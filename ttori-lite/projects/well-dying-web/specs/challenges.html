@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>K-Ending 핵심 구현 난관 및 극복 솔루션 분석 보고서</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Mermaid.js 동적 다이어그램 라이브러리 -->
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'base',
+            themeVariables: {
+                primaryColor: '#1A2B4C',
+                primaryTextColor: '#FFFFFF',
+                primaryBorderColor: '#1A2B4C',
+                lineColor: '#4E7055',
+                secondaryColor: '#EAE5DC',
+                tertiaryColor: '#F7F4EF'
+            }
+        });
+    </script>
+</head>
+<body>
+
+    <!-- 네비게이션 바 -->
+    <nav class="navbar">
+        <a href="index.html" class="navbar-brand">
+            🌿 <span>K-Ending</span> 토탈 케어
+        </a>
+        <ul class="navbar-nav">
+            <li><a href="index.html">서비스 개요</a></li>
+            <li><a href="flow.html">시스템 흐름도</a></li>
+            <li><a href="specs.html">기능 및 API 명세</a></li>
+            <li><a href="architecture.html">시스템 아키텍처</a></li>
+            <li><a href="challenges.html" class="active">구현 난관 & 솔루션</a></li>
+        </ul>
+    </nav>
+
+    <div class="container">
+        <!-- Hero Section -->
+        <header class="hero">
+            <h1>핵심 구현 난관 및 극복 솔루션 분석 보고서</h1>
+            <p>기획서 4번(디지털 엔딩노트) 및 5번(상중 케어 & 행정 가이드) 구현 시 직면할 법적·기술적·운영적 허들과 실무적인 극복 방안</p>
+        </header>
+
+        <!-- 5대 핵심 난관 카드 분석 -->
+        <h2 style="margin-bottom: 1.5rem; color: var(--primary-color);">🚧 5대 핵심 기술/법적/UX 난관 및 극복 솔루션</h2>
+        <div class="grid">
+            
+            <!-- 난관 1: 사망 여부 감지 -->
+            <div class="card" style="border-top: 5px solid #D9534F;">
+                <div class="card-title" style="color: #D9534F;">1. [핵심] 사망 여부 감지 및 사후 발송 트리거 한계</div>
+                <div class="card-content">
+                    <p style="font-weight: 600; color: var(--primary-color);">⚠️ 문제점 (Challenge):</p>
+                    <p style="font-size: 0.95rem; margin-bottom: 0.75rem;">
+                        민간 플랫폼이 정부 주민등록 사망 전산망에 직접 실시간으로 접근하는 것은 불가능하여 고인의 사망 여부를 자동 감지할 수 없음.
+                    </p>
+                    <p style="font-weight: 600; color: var(--point-color);">💡 극복 솔루션 (Solution):</p>
+                    <p style="font-size: 0.95rem;">
+                        <strong>2단계 검증(Multi-Sig) 워크플로우</strong>: 유족의 사망진단서 OCR 업로드 및 2인 이상 지정 수신인 승인 시 24시간 카운트다운 후 유언 메시지 사후 발송.
+                    </p>
+                </div>
+            </div>
+
+            <!-- 난관 2: 법적 효력 한계 -->
+            <div class="card" style="border-top: 5px solid #F0AD4E;">
+                <div class="card-title" style="color: #B47318;">2. [법적] 디지털 유언장의 민법상 법적 효력 부재</div>
+                <div class="card-content">
+                    <p style="font-weight: 600; color: var(--primary-color);">⚠️ 문제점 (Challenge):</p>
+                    <p style="font-size: 0.95rem; margin-bottom: 0.75rem;">
+                        민법 제1065조에 따른 유언의 법정 방식(자필, 공증 등)을 충족하지 않으면 서비스 내 작성한 디지털 유언장이 법적 재산 상속 효력을 갖지 못함.
+                    </p>
+                    <p style="font-weight: 600; color: var(--point-color);">💡 극복 솔루션 (Solution):</p>
+                    <p style="font-size: 0.95rem;">
+                        엔딩노트는 <strong>'감성 유언 및 가족 메시지'</strong>로 명확히 마케팅하며, 재산 상속은 플랫폼 내 <strong>1:1 공증 변호사 매칭</strong>으로 연계.
+                    </p>
+                </div>
+            </div>
+
+            <!-- 난관 3: AES-256 개인금고 키 분실 -->
+            <div class="card" style="border-top: 5px solid var(--primary-color);">
+                <div class="card-title">3. [기술] AES-256 개인 금고 키 분실 시 영구 복구 불가</div>
+                <div class="card-content">
+                    <p style="font-weight: 600; color: var(--primary-color);">⚠️ 문제점 (Challenge):</p>
+                    <p style="font-size: 0.95rem; margin-bottom: 0.75rem;">
+                        본인 암호화 키로 AES-256 완벽 암호화 시, 고인이 비밀번호를 잊거나 유족에게 전달 못 하면 영구적으로 해독 불가.
+                    </p>
+                    <p style="font-weight: 600; color: var(--point-color);">💡 극복 솔루션 (Solution):</p>
+                    <p style="font-size: 0.95rem;">
+                        <strong>샤미르 비밀 분할(Shamir's Secret Sharing)</strong> 또는 키-위탁(Key Escrow) 방식을 적용하여 사후 유족 합의 시 분산 키로 복구.
+                    </p>
+                </div>
+            </div>
+
+            <!-- 난관 4: 정부24 연계 한계 -->
+            <div class="card" style="border-top: 5px solid var(--primary-light);">
+                <div class="card-title" style="color: var(--primary-light);">4. [연동] 정부24 안심상속 Direct Open API 미개방</div>
+                <div class="card-content">
+                    <p style="font-weight: 600; color: var(--primary-color);">⚠️ 문제점 (Challenge):</p>
+                    <p style="font-size: 0.95rem; margin-bottom: 0.75rem;">
+                        정부24 및 금융감독원 서비스는 민간 3자 플랫폼에 실시간 Direct API 연동을 개방하지 않는 경우가 많음.
+                    </p>
+                    <p style="font-weight: 600; color: var(--point-color);">💡 극복 솔루션 (Solution):</p>
+                    <p style="font-size: 0.95rem;">
+                        사망일 기준 <strong>D-Day 자동 타임라인 캘린더</strong>를 생성하고, 해당 공공 서비스 <strong>Deep Link + 인터랙티브 가이드</strong> 형태로 제공.
+                    </p>
+                </div>
+            </div>
+
+            <!-- 난관 5: 상중 유족 UX -->
+            <div class="card" style="border-top: 5px solid var(--point-color); grid-column: span 2;">
+                <div class="card-title" style="color: var(--point-color);">5. [UX/운영] 상중(喪中) 유족의 극심한 심리적 혼란 및 복잡 입력 거부감</div>
+                <div class="card-content">
+                    <p style="font-weight: 600; color: var(--primary-color);">⚠️ 문제점 (Challenge):</p>
+                    <p style="font-size: 0.95rem; margin-bottom: 0.75rem;">
+                        임종 직후 유족은 정신적 충격과 경황이 없어 웹 서비스의 복잡한 절차나 서류 등록을 처리할 여력이 없음.
+                    </p>
+                    <p style="font-weight: 600; color: var(--point-color);">💡 극복 솔루션 (Solution):</p>
+                    <p style="font-size: 0.95rem;">
+                        입력을 <strong>"사망일" 1개로 최소화</strong>하고, 이후 단계는 **카카오 알림톡 푸시(Push)**를 통해 D-Day 시점별(D+1일 장례, D+14일 사망신고, D+30일 안심상속) 1-Click 숏컷 가이드로 자동 발송.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2단계 사후 검증 프로세스 다이어그램 -->
+        <h2 style="margin-top: 3rem; margin-bottom: 1.5rem; color: var(--primary-color);">🔄 2단계 유족 검증(Multi-Sig) 사후 발송 프로세스</h2>
+        <div class="flow-container" style="display: flex; justify-content: center; overflow-x: auto;">
+            <div class="mermaid" style="width: 100%; min-width: 600px;">
+                sequenceDiagram
+                    autonumber
+                    actor User as 6070 시니어 (생전)
+                    actor Mourner as 유족/상주 (사후)
+                    participant System as K-Ending 플랫폼
+                    actor Recipient as 지정 수신 자녀
+
+                    User->>System: 디지털 엔딩노트 & 유언 메시지 암호화 저장
+                    Note over User,System: 생전 엔딩노트 AES-256 암호화 보관
+                    Mourner->>System: 임종 후 사망진단서 OCR 업로드 & 사후 발송 요청
+                    System->>Recipient: 사후 발송 승인 요청 알림톡 전송
+                    Recipient->>System: 지정 수신인 2인 이상 승인 (Multi-Sig)
+                    System->>System: 24시간 카운트다운 디스패치 실행
+                    System-->>Recipient: 사후 유언 메시지 및 보안 금고 열람 키 발송
+            </div>
+        </div>
+
+        <!-- 스펙 vs 난관 vs 솔루션 대조표 -->
+        <h2 style="margin-top: 3rem; margin-bottom: 1.5rem; color: var(--primary-color);">📋 기획서 스펙 vs 난관 vs 현명한 솔루션 비교표</h2>
+        <div style="overflow-x: auto;">
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width: 20%;">PDF 기획서 스펙</th>
+                        <th style="width: 40%;">실제 구현 시 난관 (Challenge)</th>
+                        <th style="width: 40%;">추천하는 현명한 구현 솔루션</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td style="font-weight: 700; color: var(--primary-color);">4.2 비밀번호/자산 보관함</td>
+                        <td>AES-256 완벽 암호화 시 본인 비밀번호 분실 시 영구 복구 불가</td>
+                        <td>샤미르 비밀 분할(Shamir's Secret Sharing) 기반 분산 복구 키 관리</td>
+                    </tr>
+                    <tr>
+                        <td style="font-weight: 700; color: var(--primary-color);">4.3 사후 지정 발송</td>
+                        <td>민간 플랫폼이 정부 사망망에 접속 불가하여 사망 자동 트리거 불가</td>
+                        <td>사망진단서 OCR 검증 + 유족 2인 이상 승인(Multi-Sig) 트리거</td>
+                    </tr>
+                    <tr>
+                        <td style="font-weight: 700; color: var(--primary-color);">5.1 행정절차 타임라인</td>
+                        <td>정부24 및 금융 안심상속 Direct Open API 미개방</td>
+                        <td>사망일 기준 D-Day 자동 캘린더 생성 + 정부24 Deep Link 제공</td>
+                    </tr>
+                    <tr>
+                        <td style="font-weight: 700; color: var(--primary-color);">5.2 모바일 부고장</td>
+                        <td>카카오톡 공유 시 동적 프리뷰 서식 제한</td>
+                        <td>Puppeteer / Canvas 기반 서버사이드 동적 OG 이미지 실시간 생성</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- 1-Touch 긴급 상담 플로팅 버튼 -->
+    <a href="tel:119" class="floating-call" onclick="alert('긴급 장례 지원 서비스로 전화를 연결합니다. (24시간 디스패치)'); return false;">
+        🚨 긴급 상담
+    </a>
+
+</body>
+</html>

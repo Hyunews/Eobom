@@ -1,0 +1,6 @@
+# OS
+.DS_Store
+
+# 로컬 전용 설정/시크릿
+.env
+*.local.md

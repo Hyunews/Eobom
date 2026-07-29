@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>디지털 엔딩 & 웰다잉 토탈 케어 정보 플랫폼 기획서</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- 네비게이션 바 -->
+    <nav class="navbar">
+        <a href="index.html" class="navbar-brand">
+            🌿 <span>K-Ending</span> 토탈 케어
+        </a>
+        <ul class="navbar-nav">
+            <li><a href="index.html" class="active">서비스 개요</a></li>
+            <li><a href="flow.html">시스템 흐름도</a></li>
+            <li><a href="specs.html">기능 및 API 명세</a></li>
+            <li><a href="architecture.html">시스템 아키텍처</a></li>
+            <li><a href="challenges.html">구현 난관 & 솔루션</a></li>
+        </ul>
+    </nav>
+
+    <div class="container">
+        <!-- Hero Section -->
+        <header class="hero">
+            <h1>디지털 엔딩 & 웰다잉 토탈 케어 정보 플랫폼</h1>
+            <p>생전 웰다잉 준비부터 임종 직후 장례 매칭, 그리고 사후 디지털 유품 정리와 행정 절차까지 단일 플랫폼에서 완결하는 한국형 디지털 엔딩 모델(K-Ending Model)</p>
+        </header>
+
+        <!-- 핵심 비즈니스 목표 -->
+        <h2 style="margin-bottom: 1.5rem; color: var(--primary-color);">🎯 서비스 핵심 목표</h2>
+        <div class="grid">
+            <div class="card">
+                <div class="card-title">⚖️ 정보 불균형 해소</div>
+                <div class="card-content">
+                    비대칭적이고 폐쇄적인 장례·묘지·상속 시장의 정보를 투명하게 표준화하여 소비자 중심의 선택권을 보장합니다.
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-title">🔄 원스톱 생애 마무리</div>
+                <div class="card-content">
+                    생전 준비(엔딩노트/상속) $\rightarrow$ 임종 직후(장례/묘지) $\rightarrow$ 임종 후(디지털 유품 정리/행정)로 연결되는 원스톱 라이프 사이클 케어를 제공합니다.
+                </div>
+            </div>
+        </div>
+
+        <!-- 타깃 페르소나 및 페인 포인트 -->
+        <h2 style="margin-bottom: 1.5rem; color: var(--primary-color);">👥 메인 타깃 & 페인 포인트</h2>
+        <div class="grid">
+            <div class="card" style="border-top: 5px solid var(--point-color);">
+                <div class="card-title" style="color: var(--point-color);">Target 1: 6070 액티브 시니어</div>
+                <div class="card-content">
+                    <strong>[생전 준비자]</strong>
+                    <ul>
+                        <li><strong>Needs:</strong> 자녀에게 부담을 주지 않고 자신의 존엄한 마무리를 스스로 준비하고자 함.</li>
+                        <li><strong>Pain Point:</strong> 엔딩노트 작성 방법을 모르며, 디지털 자산 유출이 우려되고 상속/증여 절차가 복잡하여 막막함.</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="card" style="border-top: 5px solid var(--primary-light);">
+                <div class="card-title" style="color: var(--primary-light);">Target 2: 3040 자녀 세대</div>
+                <div class="card-content">
+                    <strong>[상주 및 상속 자식]</strong>
+                    <ul>
+                        <li><strong>Needs:</strong> 갑작스러운 부모님의 임종 및 상중 상황에 신속하고 합리적으로 대응하고자 함.</li>
+                        <li><strong>Pain Point:</strong> 장례 및 묘지 비용 비교가 불가능하고, 세무 및 사망 행정 절차가 불확실하며 디지털 유품 처리가 난항임.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- 정보 구조도 (IA) -->
+        <h2 style="margin-bottom: 1.5rem; color: var(--primary-color);">Hierarchical IA (정보 구조도)</h2>
+        <div class="flow-container" style="line-height: 2;">
+            <div style="font-weight: 700; color: var(--primary-color); font-size: 1.2rem; margin-bottom: 1rem;">📱 App Home</div>
+            <div style="margin-left: 1.5rem;">
+                <details open>
+                    <summary style="font-weight: 600; cursor: pointer; color: var(--point-color);">1. 장례·묘지 매칭</summary>
+                    <ul style="margin-left: 2rem; list-style-type: square;">
+                        <li>1.1. 장례식장/상조 비교 (위치, 예산, 종교, 규모)</li>
+                        <li>1.2. 묘지/봉안당/수목장 검색 (VR 투어, 답사 예약)</li>
+                        <li>1.3. 실시간 긴급 장례 지원 (24/7 디스패치)</li>
+                    </ul>
+                </details>
+                <details open style="margin-top: 0.5rem;">
+                    <summary style="font-weight: 600; cursor: pointer; color: var(--point-color);">2. 상속·법률·세무</summary>
+                    <ul style="margin-left: 2rem; list-style-type: square;">
+                        <li>2.1. 전문가 1:1 상담 (변호사, 세무사, 법무사)</li>
+                        <li>2.2. 상속세/증여세 시뮬레이터</li>
+                        <li>2.3. 유언장 작성 및 공증 매칭</li>
+                    </ul>
+                </details>
+                <details open style="margin-top: 0.5rem;">
+                    <summary style="font-weight: 600; cursor: pointer; color: var(--point-color);">3. 디지털 유품 정리</summary>
+                    <ul style="margin-left: 2rem; list-style-type: square;">
+                        <li>3.1. 디지털 자산 정리 (소셜/클라우드 계정 정산 요청)</li>
+                        <li>3.2. 현물 유품 정리 (수거 및 청소 업체 매칭)</li>
+                        <li>3.3. 디지털 메모리얼 (추모관 및 앨범 생성)</li>
+                    </ul>
+                </details>
+                <details open style="margin-top: 0.5rem;">
+                    <summary style="font-weight: 600; cursor: pointer; color: var(--point-color);">4. 디지털 엔딩노트</summary>
+                    <ul style="margin-left: 2rem; list-style-type: square;">
+                        <li>4.1. 사전 의향서 (연명 의료, 장례 방식, 위시리스트)</li>
+                        <li>4.2. 비밀번호/자산 보관함 (보안 금고)</li>
+                        <li>4.3. 지정 수신인 유언 메시지 (사후 발송 설정)</li>
+                    </ul>
+                </details>
+                <details open style="margin-top: 0.5rem;">
+                    <summary style="font-weight: 600; cursor: pointer; color: var(--point-color);">5. 상중 케어 & 행정 가이드</summary>
+                    <ul style="margin-left: 2rem; list-style-type: square;">
+                        <li>5.1. 사망 후 행정절차 타임라인 (정부24 연계)</li>
+                        <li>5.2. 모바일 부고장 생성 및 답례품 작성</li>
+                        <li>5.3. 유족 심리 상담 케어</li>
+                    </ul>
+                </details>
+            </div>
+        </div>
+    </div>
+
+    <!-- 1-Touch 긴급 상담 플로팅 버튼 -->
+    <a href="tel:119" class="floating-call" onclick="alert('긴급 장례 지원 서비스로 전화를 연결합니다. (24시간 디스패치)'); return false;">
+        🚨 긴급 상담
+    </a>
+
+</body>
+</html>
