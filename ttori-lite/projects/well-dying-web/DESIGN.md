@@ -68,6 +68,9 @@ This document serves as the **authoritative design system and UX specification**
 * **Header**: Deep Navy (`#1E293B`), Logo on far left, Login button on far right.
 * **Hover Sidebar**: Collapsed `70px` icon-only state that smoothly expands to `240px` on mouse hover. Hover tips removed.
 
+### 5.2 Home Dashboard (`HomePage`)
+* **Hero Layout**: 2-Column Responsive Layout (`gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))'`). Left column features prominent high-contrast headline typography (`fontSize: 2.5rem`, `fontWeight: 800`, `letterSpacing: -0.03em`), warm gold highlight (`#D97706`), clear subtitle contrast, and clean minimalist value cards. Right column features a serene, high-resolution aesthetic photograph (`calm_boat.png`) symbolizing a peaceful life journey with rounded corners (`16px`), soft shadow, and backdrop-filtered overlay caption.
+
 ### 5.2 Facility Matching Page (`FacilityPage`)
 * **Filters**: Category (All, Funeral Home, Cemetery/Tree Burial), Budget Range (<=500만, 500만~1,000만, >=1,000만), Region (All 8 Korean regions: Entire, Seoul, Gyeonggi/Incheon, Gangwon, Chungcheong, Gyeongsang/Daegu/Busan, Jeolla/Gwangju, Jeju), Religion, Guest Count.
 * **Action Buttons**: `지도 보기` & `답사 예약`. Buttons MUST have `whiteSpace: 'nowrap'` and compact padding so text never wraps into two lines.
