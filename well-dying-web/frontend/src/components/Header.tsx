@@ -20,8 +20,7 @@ export const Header: React.FC<HeaderProps> = ({ setActiveTab, onOpenLogin, curre
       boxShadow: '0 4px 15px rgba(0,0,0,0.1)'
     }}>
       <div style={{
-        maxWidth: '1400px',
-        margin: '0 auto',
+        width: '100%',
         padding: '0 2rem',
         height: '100%',
         display: 'flex',
@@ -48,7 +47,7 @@ export const Header: React.FC<HeaderProps> = ({ setActiveTab, onOpenLogin, curre
           </div>
           <div>
             <h1 style={{ fontSize: '1.4rem', fontWeight: 700, margin: 0, color: '#FFFFFF', lineHeight: 1.2 }}>
-              K-Ending <span style={{ color: 'var(--point-light)', fontSize: '1rem', fontWeight: 400 }}>토탈 케어</span>
+              DEWD <span style={{ color: 'var(--point-light)', fontSize: '1rem', fontWeight: 400 }}>토탈 케어</span>
             </h1>
             <p style={{ fontSize: '0.75rem', color: '#DFDCD7', margin: 0 }}>생전 준비부터 사후 행정까지 완결</p>
           </div>

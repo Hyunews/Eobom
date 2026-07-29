@@ -1,7 +1,13 @@
 import React, { useState } from 'react';
 import { Scale, Video, Calculator, Calendar, Clock, X, CheckCircle2 } from 'lucide-react';
+import expertsData from '../mockData/experts.json';
 
-export const CounselingPage: React.FC = () => {
+interface CounselingPageProps {
+  currentUser?: string | null;
+  onOpenLogin?: () => void;
+}
+
+export const CounselingPage: React.FC<CounselingPageProps> = ({ currentUser, onOpenLogin }) => {
   // 분야 선택 필터
   const [selectedCategory, setSelectedCategory] = useState<string>('전체');
 
@@ -10,6 +16,15 @@ export const CounselingPage: React.FC = () => {
   const [selectedDate, setSelectedDate] = useState<string>('2026-08-05');
   const [selectedTime, setSelectedTime] = useState<string>('14:00');
   const [bookingSuccess, setBookingSuccess] = useState<boolean>(false);
+
+  const handleOpenBookingModal = (expertName: string) => {
+    if (!currentUser) {
+      alert('⚠️ 전문가 1:1 비대면 상담 예약은 로그인 후 이용하실 수 있습니다.');
+      onOpenLogin?.();
+      return;
+    }
+    setBookingExpert(expertName);
+  };
 
   // 상속세 시뮬레이터 상태
   const [totalAsset, setTotalAsset] = useState<number>(100000);
@@ -25,32 +40,7 @@ export const CounselingPage: React.FC = () => {
     setCalculatedTax(tax);
   };
 
-  const experts = [
-    {
-      id: 'e1',
-      name: '김상속 변호사',
-      category: '유언·상속 분쟁',
-      experience: '경력 15년',
-      rating: '4.9/5.0',
-      available: '화상상담 가능'
-    },
-    {
-      id: 'e2',
-      name: '이세무 세무사',
-      category: '세무·증여 절세',
-      experience: '경력 12년',
-      rating: '5.0/5.0',
-      available: '화상/방문 가능'
-    },
-    {
-      id: 'e3',
-      name: '박법무 법무사',
-      category: '부동산·등기 공증',
-      experience: '경력 18년',
-      rating: '4.8/5.0',
-      available: '예약 가능'
-    }
-  ];
+  const experts = expertsData;
 
   const filteredExperts = selectedCategory === '전체' 
     ? experts 
@@ -68,7 +58,7 @@ export const CounselingPage: React.FC = () => {
     <div className="container">
       <div style={{ marginBottom: '2rem' }}>
         <h1 style={{ color: 'var(--primary-color)', fontSize: '2rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <Scale color="var(--primary-color)" /> 2. 상속·법률·세무 비대면 전문가 상담
+          <Scale color="var(--primary-color)" /> 상속·법률·세무 비대면 전문가 상담
         </h1>
         <p style={{ color: 'var(--text-muted)' }}>
           변호사, 세무사 분야별 1:1 상담 예약, 상담 일정 달력 선택 및 상속세 자동 시뮬레이터
@@ -129,11 +119,11 @@ export const CounselingPage: React.FC = () => {
                 <p style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--point-color)' }}>{exp.category}</p>
                 <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '0.75rem' }}>{exp.experience} | {exp.available}</p>
                 <button 
-                  onClick={() => setBookingExpert(exp.name)} 
+                  onClick={() => handleOpenBookingModal(exp.name)} 
                   className="btn btn-primary" 
                   style={{ width: '100%', height: '44px', fontSize: '0.95rem' }}
                 >
-                  <Calendar size={16} /> 상담 일정 예약하기
+                  <Calendar size={16} /> 상담 일정 예약하기 (개발중)
                 </button>
               </div>
             ))}

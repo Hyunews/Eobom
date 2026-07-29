@@ -1,42 +1,39 @@
 import React, { useState } from 'react';
-import { PackageCheck, ShieldAlert, Heart, Upload, Image, MapPin, CheckCircle2, MessageSquarePlus, Trash2 } from 'lucide-react';
+import { LogIn, PackageCheck, ShieldAlert, Heart, Upload, Image, MapPin, CheckCircle2, MessageSquarePlus, Trash2 } from 'lucide-react';
+import digitalEstateData from '../mockData/digitalEstate.json';
 
-export const DigitalEstatePage: React.FC = () => {
+interface DigitalEstatePageProps {
+  currentUser?: string | null;
+  onOpenLogin?: () => void;
+}
+
+export const DigitalEstatePage: React.FC<DigitalEstatePageProps> = ({ currentUser, onOpenLogin }) => {
   const [activeSubTab, setActiveSubTab] = useState<'digital' | 'physical' | 'memorial'>('digital');
 
   // 1. 디지털 계정 정산 상태
   const [uploadedFiles, setUploadedFiles] = useState<string[]>([]);
-  const [digitalAccounts, setDigitalAccounts] = useState([
-    { id: 1, name: '네이버 (이메일/블로그)', status: '계정 정산 및 데이터 백업' },
-    { id: 2, name: '카카오톡 / 카카오뱅크', status: '계정 정산 및 탈퇴 절차' },
-    { id: 3, name: 'Google / YouTube', status: '디지털 자산 승계 및 추모 전환' }
-  ]);
+  const [digitalAccounts, setDigitalAccounts] = useState(digitalEstateData.digitalAccounts);
 
   // 2. 현물 유품 정리 지역 업체 상태
   const [vendorRegion, setVendorRegion] = useState('전체');
-  const vendors = [
-    { name: '평안 유품 정리 & 특수청소', region: '서울/경기', rating: 4.9, tags: ['유품 정찰제', '소각/기부 대행', '당일 견적'] },
-    { name: '하늘 유품 정산 케어', region: '충청/대전', rating: 4.8, tags: ['유가족 안심 동행', '유품 분류 전문'] },
-    { name: '가람 유품 정리 클린', region: '경상/부산', rating: 4.9, tags: ['특수 소독 청소', '가전/가구 수거'] }
-  ];
+  const vendors = digitalEstateData.vendors;
 
   // 3. 디지털 추모관 상태 (헌화, 방명록, 앨범)
   const [tributeFlowerCount, setTributeFlowerCount] = useState<number>(42);
-  const [guestbookList, setGuestbookList] = useState<Array<{ name: string; message: string; date: string }>>([
-    { name: '김하늘 자녀', message: '아버님, 그곳에서는 부디 편안하게 쉬세요. 사랑합니다.', date: '2026-07-28' },
-    { name: '이민우 친구', message: '오랜 친구야, 평안하길 기도한다.', date: '2026-07-29' }
-  ]);
+  const [guestbookList, setGuestbookList] = useState<Array<{ name: string; message: string; date: string }>>(digitalEstateData.guestbookList);
   const [newGuestName, setNewGuestName] = useState('');
   const [newGuestMsg, setNewGuestMsg] = useState('');
 
-  const [memorialPhotos, setMemorialPhotos] = useState<Array<{ title: string; url: string }>>([
-    { title: '가족 추억 여행', url: 'https://images.unsplash.com/photo-1511895426328-dc8714191300?w=500&auto=format&fit=crop' },
-    { title: '따뜻했던 순간들', url: 'https://images.unsplash.com/photo-1490578474895-699bc4e2cf59?w=500&auto=format&fit=crop' }
-  ]);
+  const [memorialPhotos, setMemorialPhotos] = useState<Array<{ title: string; url: string }>>(digitalEstateData.memorialPhotos);
   const [newPhotoTitle, setNewPhotoTitle] = useState('');
 
   // 1) 파일 업로드 핸들러
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!currentUser) {
+      alert('⚠️ 증빙 서류 업로드는 로그인 후 이용하실 수 있습니다.');
+      onOpenLogin?.();
+      return;
+    }
     if (e.target.files && e.target.files[0]) {
       const fileName = e.target.files[0].name;
       setUploadedFiles([...uploadedFiles, fileName]);
@@ -46,6 +43,11 @@ export const DigitalEstatePage: React.FC = () => {
 
   // 1) 정산 신청 클릭 핸들러 (서류 검증)
   const handleApplyAccount = (accName: string) => {
+    if (!currentUser) {
+      alert('⚠️ 고인 계정 정산 신청은 로그인 후 이용하실 수 있습니다.');
+      onOpenLogin?.();
+      return;
+    }
     if (uploadedFiles.length === 0) {
       alert('⚠️ 증빙 서류(가족관계증명서 또는 사망진단서)가 아직 업로드되지 않았습니다!\n아래 파일 업로드 영역에서 증빙 서류를 먼저 첨부해 주세요.');
     } else {
@@ -76,7 +78,7 @@ export const DigitalEstatePage: React.FC = () => {
     <div className="container">
       <div style={{ marginBottom: '2rem' }}>
         <h1 style={{ color: 'var(--primary-color)', fontSize: '2rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <PackageCheck color="var(--primary-color)" /> 3. 디지털 유품 및 현물 정리 서비스
+          <PackageCheck color="var(--primary-color)" /> 디지털 유품 및 현물 정리 서비스
         </h1>
         <p style={{ color: 'var(--text-muted)' }}>
           고인의 디지털 계정 정산 신청, 지역 기반 현물 유품 정리 수거 및 온라인 추모관 갤러리
@@ -113,29 +115,14 @@ export const DigitalEstatePage: React.FC = () => {
         <div style={{ backgroundColor: 'var(--card-bg)', padding: '2rem', borderRadius: 'var(--border-radius)', boxShadow: 'var(--box-shadow)' }}>
           <h3 style={{ color: 'var(--primary-color)', marginBottom: '0.5rem' }}>고인 디지털 계정 정산 신청</h3>
           <p style={{ fontSize: '0.95rem', color: 'var(--text-muted)', marginBottom: '1.5rem' }}>
-            증빙 서류(가족관계증명서 등) 업로드 후 신청 가능합니다. (미업로드 시 경고 안내)
+            정당한 상속인 확인을 위해 아래 <strong>증빙 서류(가족관계증명서 / 사망진단서)를 먼저 업로드</strong>해 주세요.
           </p>
 
-          {/* 계정 정산 신청 목록 */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginBottom: '2rem' }}>
-            {digitalAccounts.map((acc) => (
-              <div key={acc.id} style={{ padding: '1.2rem', border: '1px solid var(--border-color)', borderRadius: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div>
-                  <h4 style={{ color: 'var(--primary-color)', fontSize: '1.1rem' }}>{acc.name}</h4>
-                  <p style={{ fontSize: '0.9rem', color: 'var(--point-color)', fontWeight: 500 }}>{acc.status}</p>
-                </div>
-                <button onClick={() => handleApplyAccount(acc.name)} className="btn btn-point" style={{ height: '42px', fontSize: '0.9rem' }}>
-                  정산 신청
-                </button>
-              </div>
-            ))}
-          </div>
-
-          {/* 서류 업로드 영역 */}
-          <div style={{ border: '2px dashed var(--border-color)', padding: '2rem', textAlign: 'center', borderRadius: '12px', backgroundColor: 'var(--secondary-color)' }}>
+          {/* 1. 증빙 서류 업로드 영역 (최상단 이동) */}
+          <div style={{ border: '2px dashed var(--border-color)', padding: '2rem', textAlign: 'center', borderRadius: '12px', backgroundColor: 'var(--secondary-color)', marginBottom: '2.5rem' }}>
             <Upload color="var(--primary-color)" size={36} style={{ marginBottom: '0.5rem' }} />
-            <h4 style={{ color: 'var(--primary-color)', marginBottom: '0.25rem' }}>증빙 서류 업로드 (가족관계증명서 / 사망진단서)</h4>
-            <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>Naver OCR 엔진으로 정당한 상속인 여부를 검증합니다.</p>
+            <h4 style={{ color: 'var(--primary-color)', marginBottom: '0.25rem' }}>📌 필수 증빙 서류 업로드 (가족관계증명서 / 사망진단서)</h4>
+            <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>Naver OCR 엔진으로 정당한 상속인 여부를 즉시 검증합니다.</p>
             
             <input type="file" id="doc-file-input" onChange={handleFileUpload} style={{ display: 'none' }} />
             <label htmlFor="doc-file-input" className="btn btn-primary" style={{ cursor: 'pointer' }}>
@@ -143,7 +130,7 @@ export const DigitalEstatePage: React.FC = () => {
             </label>
 
             {uploadedFiles.length > 0 && (
-              <div style={{ marginTop: '1.5rem', textAlign: 'left', backgroundColor: '#FFFFFF', padding: '1rem', borderRadius: '8px' }}>
+              <div style={{ marginTop: '1.5rem', textAlign: 'left', backgroundColor: '#FFFFFF', padding: '1rem', borderRadius: '8px', border: '1px solid var(--point-color)' }}>
                 <h5 style={{ color: 'var(--point-color)', display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.5rem' }}>
                   <CheckCircle2 size={16} /> 현재 업로드 완료된 서류 목록:
                 </h5>
@@ -154,6 +141,22 @@ export const DigitalEstatePage: React.FC = () => {
                 </ul>
               </div>
             )}
+          </div>
+
+          {/* 2. 계정 정산 신청 목록 */}
+          <h4 style={{ color: 'var(--primary-color)', marginBottom: '1rem' }}>계정별 정산/승계 신청</h4>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            {digitalAccounts.map((acc) => (
+              <div key={acc.id} style={{ padding: '1.2rem', border: '1px solid var(--border-color)', borderRadius: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div>
+                  <h4 style={{ color: 'var(--primary-color)', fontSize: '1.1rem' }}>{acc.name}</h4>
+                  <p style={{ fontSize: '0.9rem', color: 'var(--point-color)', fontWeight: 500 }}>{acc.status}</p>
+                </div>
+                <button onClick={() => handleApplyAccount(acc.name)} className="btn btn-point" style={{ height: '42px', fontSize: '0.9rem' }}>
+                  정산 신청 (개발중)
+                </button>
+              </div>
+            ))}
           </div>
         </div>
       )}

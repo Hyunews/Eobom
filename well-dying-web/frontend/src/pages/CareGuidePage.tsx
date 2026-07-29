@@ -1,29 +1,37 @@
 import React, { useState } from 'react';
 import { CalendarHeart, CheckSquare, MessageSquare, HeartHandshake, ExternalLink } from 'lucide-react';
+import careGuideTasksData from '../mockData/careGuideTasks.json';
 
-export const CareGuidePage: React.FC = () => {
+interface CareGuidePageProps {
+  currentUser?: string | null;
+  onOpenLogin?: () => void;
+}
+
+export const CareGuidePage: React.FC<CareGuidePageProps> = ({ currentUser, onOpenLogin }) => {
   const [deceasedName, setDeceasedName] = useState('홍길동');
   const [mournerName, setMournerName] = useState('홍상주');
   const [funeralPlace, setFuneralPlace] = useState('서울 평안 장례식장 201호');
 
-  const [tasks, setTasks] = useState([
-    { id: 1, day: 'D-Day', text: '사망진단서 (발급 10부 이상 챙기기)', checked: true },
-    { id: 2, day: 'D-Day', text: '장례식장 계약 및 영정사진 전달', checked: true },
-    { id: 3, day: 'D+3일', text: '화장장 예약 및 운구차 배정 확인', checked: false },
-    { id: 4, day: 'D+14일', text: '읍면동 주민센터 사망 신고 (1개월 내 신고 미완료 시 과태료)', checked: false },
-    { id: 5, day: 'D+30일', text: '정부24 안심상속 원스톱 서비스 (금융/토지/세금 조회)', checked: false },
-    { id: 6, day: 'D+60일', text: '상속세 신고 및 납부 (상속 개시일이 속하는 달의 말일부터 6개월 내)', checked: false }
-  ]);
+  const [tasks, setTasks] = useState(careGuideTasksData);
 
   const toggleTask = (id: number) => {
     setTasks(tasks.map(t => t.id === id ? { ...t, checked: !t.checked } : t));
+  };
+
+  const handleSendObituary = () => {
+    if (!currentUser) {
+      alert('⚠️ 모바일 부고장 전송 서비스는 로그인 후 이용하실 수 있습니다.');
+      onOpenLogin?.();
+      return;
+    }
+    alert('💬 [개발중] 카카오톡 부고장 공유 API 연동 기능 개발 중입니다.');
   };
 
   return (
     <div className="container">
       <div style={{ marginBottom: '2rem' }}>
         <h1 style={{ color: 'var(--primary-color)', fontSize: '2rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <CalendarHeart color="var(--primary-color)" /> 5. 상중 케어 & 사망 행정 가이드
+          <CalendarHeart color="var(--primary-color)" /> 상중 케어 & 사망 행정 가이드
         </h1>
         <p style={{ color: 'var(--text-muted)' }}>
           사망 후 D-Day별 필속 행정절차 타임라인, 모바일 부고장 작성 및 유족 심리 케어
@@ -109,8 +117,8 @@ export const CareGuidePage: React.FC = () => {
               • 빈소: {funeralPlace}<br/>
               • 마음 전하실 곳: 카카오뱅크 3333-xx-xxxx
             </div>
-            <button onClick={() => alert('부고장 카카오톡 공유 링크가 생성되었습니다.')} className="btn btn-primary" style={{ width: '100%', marginTop: '1rem' }}>
-              카카오톡 부고장 전송하기
+            <button onClick={handleSendObituary} className="btn btn-primary" style={{ width: '100%', marginTop: '1rem' }}>
+              카카오톡 부고장 전송하기 (개발중)
             </button>
           </div>
         </div>

@@ -9,18 +9,19 @@
 ```
 워크스페이스 : ttori-lite (1인 + 에이전트 1개용 외장두뇌, biz-ttori 후속작)
 현재 페르소나: 공공기관/대기업 수석 보고관 & 문서 시각화 총괄 감독관
-현재 단계    : 엔터프라이즈 문서 시각화 표준 체계(skills/enterprise-document-design) 수립 완료
-마지막 작업  : 2026-07-29 공공기관/대기업 보고서, HTML 시각화, 학술 논문 규격 및 
-              AI 하달 프롬프트 메타 템플릿 아카이빙 구축 완료.
-다음 할 일   : 사용자의 요청 시 문서 유형별 다른 AI 하달용 프롬프트 생성 및 웹 구현 감독
+현재 단계    : well-dying-web 소스코드 및 ttori-lite 기획 볼트 연동 정돈 완료
+마지막 작업  : 2026-07-29 ttori-lite 지식 보관소와 well-dying-web(React+Vite) 소스코드 
+              역할 분리 명확화, 루트 PDF 이동 및 README/context 상대 경로 연결 완료.
+다음 할 일   : well-dying-web 백엔드 Express 서버 구축 및 기능 확장
 ```
 
 ## ⏳ 다음 할 일
 
 - [x] 엔터프라이즈 문서 시각화 표준 센터 구축 (`skills/enterprise-document-design/`)
 - [x] 다른 AI 하달용 프롬프트 메타 템플릿 완성 (`05_ai_worker_prompt_template.md`)
-- [ ] 사용자 요청 시 실무 AI 작업 전달용 개별 프롬프트 발급
-- [ ] `well-dying-web/` 소스코드(React + TypeScript) 구현 및 감독
+- [x] `well-dying-web/`와 `ttori-lite/` 역할 분리 및 폴더 구조 정돈 완료
+- [x] `well-dying-web/frontend/` 최신 React 소스코드 파악 및 연결 안내 문서 작성
+- [ ] `well-dying-web/` 백엔드 Express API 서버 구축 및 개별 기능 연동
 
 - [ ] 개인 GitHub 계정에 원격 연결 + 최초 푸시
 - [ ] `skills/`에 실제 스킬 첫 항목 쌓이는지 지켜보기 (반복 작업 나오면)

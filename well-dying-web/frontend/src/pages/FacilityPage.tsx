@@ -1,70 +1,66 @@
 import React, { useState } from 'react';
 import { ShieldCheck, MapPin, Map, CalendarCheck, X } from 'lucide-react';
+import facilitiesData from '../mockData/facilities.json';
 
-export const FacilityPage: React.FC = () => {
+interface FacilityPageProps {
+  currentUser?: string | null;
+  onOpenLogin?: () => void;
+}
+
+export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenLogin }) => {
   const [selectedMapFacility, setSelectedMapFacility] = useState<{ name: string; location: string } | null>(null);
 
   // 필터 상태
   const [category, setCategory] = useState('전체');
-  const [region, setRegion] = useState('서울 전체');
+  const [region, setRegion] = useState('전체');
   const [religion, setReligion] = useState('전체');
   const [guestCount, setGuestCount] = useState('전체');
+  const [budget, setBudget] = useState('전체');
 
-  const facilities = [
-    {
-      id: 'f1',
-      name: '서울 평안 추모 장례식장',
-      type: '장례식장',
-      location: '서울 서초구 반포대로 123',
-      price: '850만원~',
-      rating: 4.9,
-      religion: '무교/기독교/불교',
-      guests: '100~300명',
-      tags: ['24시간 상담', '주차 200대', 'VIP빈소']
-    },
-    {
-      id: 'f2',
-      name: '청송 봉안당 & 자연 수목장',
-      type: '묘지/수목장',
-      location: '경기 용인시 처인구 456',
-      price: '450만원~',
-      rating: 4.8,
-      religion: '전체 종교',
-      guests: '300명 이상',
-      tags: ['자연 수목장', '셔틀버스 운영', '야외 추모공원']
-    },
-    {
-      id: 'f3',
-      name: '성모 웰다잉 전용 장례 센터',
-      type: '장례식장',
-      location: '서울 강남구 테헤란로 789',
-      price: '600만원~',
-      rating: 4.9,
-      religion: '천주교/기독교',
-      guests: '100명 미만',
-      tags: ['소규모 가족장', '천주교 전용관', '정찰제']
+  const facilities = facilitiesData;
+
+  const handleBookVisit = (facilityName: string) => {
+    if (!currentUser) {
+      alert('⚠️ 장례식장/묘지 답사 예약은 로그인 후 이용하실 수 있습니다.');
+      onOpenLogin?.();
+      return;
     }
-  ];
+    alert(`📅 [${facilityName}] 답사 예약 신청이 완료되었습니다. 담당 매니저가 곧 연락드립니다.`);
+  };
+
+  const filteredFacilities = facilities.filter((f) => {
+    if (category !== '전체' && f.type !== category) return false;
+    if (budget === '500이하' && f.priceValue > 500) return false;
+    if (budget === '500_1000' && (f.priceValue < 500 || f.priceValue > 1000)) return false;
+    if (budget === '1000이상' && f.priceValue < 1000) return false;
+    if (region !== '전체') {
+      const matchKey = region.split('/')[0].trim();
+      if (!f.location.includes(matchKey)) return false;
+    }
+    if (religion !== '전체' && !f.religion.includes(religion) && !f.religion.includes('전체')) return false;
+    if (guestCount !== '전체' && f.guests !== guestCount) return false;
+    return true;
+  });
 
   return (
     <div className="container">
       <div style={{ marginBottom: '2rem' }}>
         <h1 style={{ color: 'var(--primary-color)', fontSize: '2rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <ShieldCheck color="var(--primary-color)" /> 1. 장례·묘지 맞춤 비교 매칭
+          <ShieldCheck color="var(--primary-color)" /> 장례·묘지 맞춤 비교 매칭
         </h1>
         <p style={{ color: 'var(--text-muted)' }}>
           위치, 종교, 예상 하객 수 및 예산에 맞춘 장례식장/봉안당 투명 비교 및 지도 보기 서비스
         </p>
       </div>
 
-      {/* 개편된 필터 옵션 (종교, 하객수 포함) */}
+      {/* 개편된 필터 옵션 (지역, 종교, 하객수, 예산 포함) */}
       <div style={{
         backgroundColor: 'var(--card-bg)',
         padding: '1.5rem',
         borderRadius: 'var(--border-radius)',
         marginBottom: '2rem',
         display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
         gap: '1rem',
         boxShadow: 'var(--box-shadow)'
       }}>
@@ -77,11 +73,25 @@ export const FacilityPage: React.FC = () => {
           </select>
         </div>
         <div>
+          <label className="form-label">예산 범위</label>
+          <select value={budget} onChange={(e) => setBudget(e.target.value)} className="form-select">
+            <option value="전체">전체 예산</option>
+            <option value="500이하">500만원 이하</option>
+            <option value="500_1000">500만원 ~ 1,000만원</option>
+            <option value="1000이상">1,000만원 이상</option>
+          </select>
+        </div>
+        <div>
           <label className="form-label">지역 선택</label>
           <select value={region} onChange={(e) => setRegion(e.target.value)} className="form-select">
-            <option value="서울 전체">서울 전체</option>
-            <option value="경기/인천">경기/인천</option>
-            <option value="강원/충청">강원/충청</option>
+            <option value="전체">전체 지역</option>
+            <option value="서울">서울</option>
+            <option value="경기">경기/인천</option>
+            <option value="강원">강원</option>
+            <option value="충청">충청</option>
+            <option value="경상">경상/대구/부산</option>
+            <option value="전라">전라/광주</option>
+            <option value="제주">제주</option>
           </select>
         </div>
         <div>
@@ -107,7 +117,7 @@ export const FacilityPage: React.FC = () => {
 
       {/* 시설 카드 목록 */}
       <div className="grid">
-        {facilities.map((item) => (
+        {filteredFacilities.map((item) => (
           <div key={item.id} className="card">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
               <span style={{ fontSize: '0.85rem', backgroundColor: 'var(--secondary-color)', padding: '0.3rem 0.6rem', borderRadius: '4px', fontWeight: 600, color: 'var(--point-color)' }}>
@@ -137,12 +147,30 @@ export const FacilityPage: React.FC = () => {
               <button 
                 onClick={() => setSelectedMapFacility({ name: item.name, location: item.location })} 
                 className="btn" 
-                style={{ flex: 1, backgroundColor: 'var(--secondary-color)', color: 'var(--primary-color)', fontSize: '0.9rem' }}
+                style={{ 
+                  flex: 1, 
+                  backgroundColor: 'var(--secondary-color)', 
+                  color: 'var(--primary-color)', 
+                  fontSize: '0.9rem',
+                  padding: '0 0.5rem',
+                  whiteSpace: 'nowrap',
+                  gap: '0.3rem'
+                }}
               >
-                <Map size={16} /> 지도 보기
+                <Map size={16} style={{ flexShrink: 0 }} /> 지도 보기
               </button>
-              <button onClick={() => alert(`${item.name} 답사 및 상세 상담이 예약되었습니다.`)} className="btn btn-primary" style={{ flex: 1, fontSize: '0.9rem' }}>
-                <CalendarCheck size={16} /> 답사 예약
+              <button 
+                onClick={() => handleBookVisit(item.name)} 
+                className="btn btn-primary" 
+                style={{ 
+                  flex: 1, 
+                  fontSize: '0.9rem',
+                  padding: '0 0.5rem',
+                  whiteSpace: 'nowrap',
+                  gap: '0.3rem'
+                }}
+              >
+                <CalendarCheck size={16} style={{ flexShrink: 0 }} /> 답사 예약
               </button>
             </div>
           </div>

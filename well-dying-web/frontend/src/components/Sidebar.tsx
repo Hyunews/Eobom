@@ -85,18 +85,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab }) => 
           );
         })}
       </div>
-
-      <div style={{
-        marginTop: 'auto',
-        padding: '1rem',
-        color: '#A0AAB2',
-        fontSize: '0.8rem',
-        whiteSpace: 'nowrap',
-        opacity: isHovered ? 1 : 0,
-        transition: 'opacity 0.2s'
-      }}>
-        {isHovered && '💡 마우스 호버로 여닫기'}
-      </div>
     </aside>
   );
 };

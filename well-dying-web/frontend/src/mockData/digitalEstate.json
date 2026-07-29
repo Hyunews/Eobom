@@ -1,0 +1,50 @@
+{
+  "digitalAccounts": [
+    { "id": 1, "name": "네이버 (이메일/블로그/카페)", "status": "계정 정산 및 데이터 백업" },
+    { "id": 2, "name": "카카오톡 / 카카오뱅크 / 페이", "status": "계정 정산 및 탈퇴 절차" },
+    { "id": 3, "name": "Google / YouTube / 드라이브", "status": "디지털 자산 승계 및 추모 전환" },
+    { "id": 4, "name": "인스타그램 (Instagram)", "status": "기념 계정 추모 전환 요청" },
+    { "id": 5, "name": "페이스북 (Facebook)", "status": "추모 프로필 지정 및 삭제" },
+    { "id": 6, "name": "Apple ID / iCloud 백업", "status": "유산 관리인 접근 권한 신청" },
+    { "id": 7, "name": "업비트 / 빗썸 (가상자산)", "status": "상속 포트폴리오 자산 상속 출금" },
+    { "id": 8, "name": "쿠팡 / 11번가 / 스마트스토어", "status": "정기 결제 해지 및 정산 금 환급" },
+    { "id": 9, "name": "멜론 / 지니뮤직 / 넷플릭스", "status": "구독형 스트리밍 해지 대행" },
+    { "id": 10, "name": "넥슨 / 엔씨소프트 (게임)", "status": "계정 캐릭터 및 유료 자산 상속" }
+  ],
+  "vendors": [
+    { "name": "평안 유품 정리 & 특수청소", "region": "서울/경기", "rating": 4.9, "tags": ["유품 정찰제", "소각/기부 대행", "당일 견적"] },
+    { "name": "하늘 유품 정산 케어", "region": "충청/대전", "rating": 4.8, "tags": ["유가족 안심 동행", "유품 분류 전문"] },
+    { "name": "가람 유품 정리 클린", "region": "경상/부산", "rating": 4.9, "tags": ["특수 소독 청소", "가전/가구 수거"] },
+    { "name": "솔빛 유품 소각 및 기부센터", "region": "서울/경기", "rating": 4.7, "tags": ["소각 처리증 발급", "사회복지 기부 연계"] },
+    { "name": "백두 특수 청소 & 유품 정산", "region": "강원/춘천", "rating": 4.9, "tags": ["24시 긴급 출동", "악취 제거 탈취"] },
+    { "name": "호남 안심 유품 수거 케어", "region": "전라/광주", "rating": 4.8, "tags": ["유족 맞춤 견적", "귀중품 현장 인도"] },
+    { "name": "한라 디지털 & 현물 유품 정리", "region": "제주 전체", "rating": 5.0, "tags": ["도서 지역 출장", "원스톱 청소"] },
+    { "name": "세종 유가족 안심 정찰제", "region": "충청/세종", "rating": 4.9, "tags": ["비대면 소독", "유품 포장 이사"] },
+    { "name": "영남 청솔 특수 소독 & 정리", "region": "경상/대구", "rating": 4.8, "tags": ["특수 약품 소독", "유가족 동행"] },
+    { "name": "경기 드림 유품 리사이클", "region": "서울/경기", "rating": 4.7, "tags": ["재활용 수거 할인", "친환경 소각"] }
+  ],
+  "guestbookList": [
+    { "name": "김하늘 자녀", "message": "아버님, 그곳에서는 부디 편안하게 쉬세요. 사랑합니다.", "date": "2026-07-28" },
+    { "name": "이민우 친구", "message": "오랜 친구야, 함께했던 소중한 시간 잊지 않을게. 평안하길 기도한다.", "date": "2026-07-29" },
+    { "name": "박성진 직장동료", "message": "언제나 선후배들에게 따뜻하셨던 팀장님, 그 은혜 가슴 깊이 간직하겠습니다.", "date": "2026-07-29" },
+    { "name": "최은지 조카", "message": "항상 인자하게 웃어주시던 삼촌 모습이 그립습니다.", "date": "2026-07-29" },
+    { "name": "정수현 제자", "message": "선생님의 가르침 덕분에 바르게 자랄 수 있었습니다. 감사합니다.", "date": "2026-07-29" },
+    { "name": "강명수 고교동창", "message": "자주 연락 못해서 미안하네. 먼 곳에서 편안히 쉬게나.", "date": "2026-07-29" },
+    { "name": "윤영희 이웃", "message": "항상 고운 인사 나눠주셨던 어르신, 천국에서 행복하세요.", "date": "2026-07-29" },
+    { "name": "오상훈 동아리 후배", "message": "선배님의 따뜻한 온기가 아직도 선합니다. 명복을 빕니다.", "date": "2026-07-29" },
+    { "name": "조경숙 봉사단체", "message": "지역 사회를 위해 헌신하셨던 고인의 뜻을 이어나가겠습니다.", "date": "2026-07-29" },
+    { "name": "임철민 손주", "message": "할아버지 하늘나라에서도 저 지켜봐주세요! 사랑해요!", "date": "2026-07-29" }
+  ],
+  "memorialPhotos": [
+    { "title": "가족 추억 여행", "url": "https://images.unsplash.com/photo-1511895426328-dc8714191300?w=500&auto=format&fit=crop" },
+    { "title": "따뜻했던 산책길", "url": "https://images.unsplash.com/photo-1490578474895-699bc4e2cf59?w=500&auto=format&fit=crop" },
+    { "title": "환하게 웃으시던 날", "url": "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=500&auto=format&fit=crop" },
+    { "title": "정성 가득했던 칠순 잔치", "url": "https://images.unsplash.com/photo-1517457373958-b7bdd4587205?w=500&auto=format&fit=crop" },
+    { "title": "가을 단풍 나들이", "url": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=500&auto=format&fit=crop" },
+    { "title": "손주와 함께한 공원 놀이", "url": "https://images.unsplash.com/photo-1476703993599-0035a21b17a9?w=500&auto=format&fit=crop" },
+    { "title": "아름다웠던 정원 화초들", "url": "https://images.unsplash.com/photo-1465146344425-f00d5f5c8f07?w=500&auto=format&fit=crop" },
+    { "title": "평화로운 노을 풍경", "url": "https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=500&auto=format&fit=crop" },
+    { "title": "가족들과의 설날 모임", "url": "https://images.unsplash.com/photo-1513151233558-d860c5398176?w=500&auto=format&fit=crop" },
+    { "title": "평안했던 시골 집 마당", "url": "https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=500&auto=format&fit=crop" }
+  ]
+}
