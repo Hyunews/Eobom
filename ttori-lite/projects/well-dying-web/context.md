@@ -9,7 +9,7 @@
 * **프로젝트명**: 디지털 엔딩 & 웰다잉(Well-Dying) 토탈 케어 정보 플랫폼
 * **실제 소스코드 경로**: [`well-dying-web`](../../well-dying-web)
 * **최신 웹사이트 구현체**: [`well-dying-web/frontend`](../../well-dying-web/frontend) (React + Vite + TypeScript)
-* **기획서 및 명세 문서**: [`specs/`](specs/index.html) (HTML/CSS 시스템 명세 및 와이어프레임)
+* **기획서 및 명세 문서**: [`specs/`](specs/index.html) (HTML/CSS 시스템 명세) | [`DESIGN.md`](DESIGN.md) (구글 스티치 디자인 시스템)
 * **기술 스택**: 
   * Frontend: React 18 + Vite 5 + TypeScript + Lucide Icons
   * Backend: Node.js + Express + TypeScript (예정)
