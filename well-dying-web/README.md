@@ -25,11 +25,11 @@ well-dying-web/
 
 ## 🔗 기획서 및 문서 연동 안내
 
-본 소스코드의 **시스템 기획서, 와이어프레임, API 명세서, 서비스 배경 PDF 문서**는 지식/메모리 볼트인 `ttori-lite` 내에 보관되어 있습니다.
+본 소스코드의 **시스템 기획서, 와이어프레임, API 명세서, 서비스 배경 PDF 문서**는 지식/메모리 볼트인 `.harness` 내에 보관되어 있습니다.
 
-* **웹 기획서 및 명세 (HTML)**: [`../ttori-lite/projects/well-dying-web/specs/index.html`](../ttori-lite/projects/well-dying-web/specs/index.html)
-* **기획 배경 PDF 문서**: [`../ttori-lite/projects/well-dying-web/`](../ttori-lite/projects/well-dying-web/)
-* **프로젝트 컨텍스트 및 할 일**: [`../ttori-lite/projects/well-dying-web/context.md`](../ttori-lite/projects/well-dying-web/context.md)
+* **웹 기획서 및 명세 (HTML)**: [`../.harness/projects/well-dying-web/specs/index.html`](../.harness/projects/well-dying-web/specs/index.html)
+* **기획 배경 PDF 문서**: [`../.harness/projects/well-dying-web/`](../.harness/projects/well-dying-web/)
+* **프로젝트 컨텍스트 및 할 일**: [`../.harness/projects/well-dying-web/context.md`](../.harness/projects/well-dying-web/context.md)
 
 ---
 

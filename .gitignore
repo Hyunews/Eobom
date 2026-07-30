@@ -26,3 +26,7 @@ build/
 .idea/
 .DS_Store
 Thumbs.db
+
+# Harness Directory
+.harness/
+.harness
