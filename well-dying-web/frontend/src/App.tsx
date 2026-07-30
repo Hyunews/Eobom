@@ -14,10 +14,11 @@ import { CareGuidePage } from './pages/CareGuidePage';
 
 export function App() {
   // F5 새로고침 및 브라우저 뒤로가기 시에도 현재 탭과 로그인 유지
+  // 웹 주소로 새로 들어올 때는 항상 홈화면이 기본으로 보이도록 설정
   const [activeTab, setActiveTabState] = useState<string>(() => {
     const hash = window.location.hash.replace('#', '');
     if (hash) return hash;
-    return localStorage.getItem('k_ending_active_tab') || 'home';
+    return 'home';
   });
 
   const [isLoginOpen, setIsLoginOpen] = useState<boolean>(false);
@@ -37,6 +38,9 @@ export function App() {
       if (hash) {
         setActiveTabState(hash);
         localStorage.setItem('k_ending_active_tab', hash);
+      } else {
+        setActiveTabState('home');
+        localStorage.setItem('k_ending_active_tab', 'home');
       }
     };
     window.addEventListener('hashchange', handleHashChange);
@@ -57,7 +61,8 @@ export function App() {
   const renderPage = () => {
     const authProps = {
       currentUser,
-      onOpenLogin: () => setIsLoginOpen(true)
+      onOpenLogin: () => setIsLoginOpen(true),
+      setActiveTab
     };
 
     switch (activeTab) {

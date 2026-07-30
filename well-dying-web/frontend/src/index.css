@@ -1,24 +1,29 @@
-@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Outfit:wght@400;500;600;700&display=swap');
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+@import url('https://fonts.googleapis.com/css2?family=KoPub+World+Batang:wght@400;700&family=Noto+Sans+KR:wght@300;400;500;700&family=Outfit:wght@400;500;600;700&display=swap');
 
 :root {
-  --primary-color: #1A2B4C;    /* 딥 네이비 */
-  --primary-light: #2A3F66;
-  --secondary-color: #F7F4EF;  /* 소프트 베이지 */
+  --primary-color: #1A2B4C;    /* 공식 Deep Navy */
+  --primary-light: #283C66;
+  --point-color: #5B7065;      /* 공식 Warm Green */
+  --point-light: #71887D;
+  --accent-gold: #D4A359;      /* 공식 Warm Gold */
+  --secondary-color: #FBF9F5;  /* 공식 Soft Cream Background */
   --secondary-dark: #EAE5DC;
-  --point-color: #4E7055;      /* 웜 그리너리 */
-  --point-light: #5F8567;
-  --accent-red: #D9534F;       /* 긴급 액션 컬러 */
-  --text-main: #2F3E46;
+  --accent-red: #DC2626;       /* 긴급 알림 Red */
+  --text-main: #1A2B4C;
   --text-muted: #6C7A89;
   --border-color: #DFDCD7;
   --card-bg: #FFFFFF;
+
+  --font-body: 'Pretendard', 'Noto Sans KR', sans-serif;
+  --font-serif: 'KoPub World Batang', 'KoPubWorld 명조', serif;
 
   --base-font-size: 18px;
   --min-touch-target: 56px;
   --border-radius: 12px;
   --transition-speed: 0.3s;
-  --box-shadow: 0 8px 30px rgba(0, 0, 0, 0.05);
-  --box-shadow-hover: 0 12px 40px rgba(0, 0, 0, 0.1);
+  --box-shadow: 0 8px 30px rgba(26, 43, 76, 0.06);
+  --box-shadow-hover: 0 12px 40px rgba(26, 43, 76, 0.12);
 }
 
 * {
@@ -28,7 +33,7 @@
 }
 
 body {
-  font-family: 'Noto Sans KR', 'Outfit', sans-serif;
+  font-family: var(--font-body);
   font-size: var(--base-font-size);
   line-height: 1.7;
   color: var(--text-main);

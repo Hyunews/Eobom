@@ -31,10 +31,10 @@ export const Footer: React.FC = () => {
             gap: '0.4rem',
             lineHeight: 1.2
           }}>
-            🌿 DEWD 토탈 케어
+            <span style={{ color: 'var(--accent-gold)', fontSize: '1.2rem' }}>∞</span> 이어봄 (Eobom) 토탈 케어
           </h3>
           <p style={{ fontSize: '0.9rem', lineHeight: 1.7, color: '#9CA3AF', margin: 0 }}>
-            생전 준비(엔딩노트, 상속)부터 임종 직후(장례, 묘지) 및 사후 정리(디지털 유품, 사망 행정)까지 단일 플랫폼에서 완결하는 한국형 디지털 엔딩 정보 서비스입니다.
+            생전 준비(엔딩노트, 상속)부터 임종 직후(장례, 묘지) 및 사후 정리(디지털 유품, 사망 행정)까지 단일 플랫폼에서 완결하는 웰다잉 토탈 케어 정보 서비스입니다.
           </p>
         </div>
 
@@ -115,7 +115,7 @@ export const Footer: React.FC = () => {
         fontSize: '0.85rem',
         color: '#6B7280'
       }}>
-        Copyright © 2026 DEWD Total Care Platform. All rights reserved.
+        Copyright © 2026 이어봄 (Eobom) Total Care Platform. All rights reserved.
       </div>
     </footer>
   );

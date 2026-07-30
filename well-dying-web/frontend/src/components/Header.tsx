@@ -30,26 +30,41 @@ export const Header: React.FC<HeaderProps> = ({ setActiveTab, onOpenLogin, curre
         {/* 브랜드 로고 (클릭 시 메인 페이지로 이동) */}
         <div 
           onClick={() => setActiveTab('home')} 
-          style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.75rem' }}
+          style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.85rem' }}
         >
           <div style={{
-            backgroundColor: 'var(--point-color)',
+            background: 'linear-gradient(135deg, var(--point-color) 0%, var(--primary-color) 100%)',
+            border: '2px solid var(--accent-gold)',
             borderRadius: '50%',
-            width: '42px',
-            height: '42px',
+            width: '44px',
+            height: '44px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            fontWeight: 'bold',
-            fontSize: '1.4rem'
-          }}>
-            🌿
+            color: 'var(--accent-gold)',
+            fontSize: '1.5rem',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.2)'
+          }} title="이어봄 무한대 & 손 & 잎사귀 심볼마크">
+            ∞
           </div>
           <div>
-            <h1 style={{ fontSize: '1.4rem', fontWeight: 700, margin: 0, color: '#FFFFFF', lineHeight: 1.2 }}>
-              DEWD <span style={{ color: 'var(--point-light)', fontSize: '1rem', fontWeight: 400 }}>토탈 케어</span>
+            <h1 style={{ 
+              fontSize: '1.45rem', 
+              fontWeight: 800, 
+              margin: 0, 
+              color: '#FFFFFF', 
+              lineHeight: 1.1,
+              fontFamily: 'var(--font-serif)',
+              letterSpacing: '-0.02em',
+              display: 'flex',
+              alignItems: 'baseline',
+              gap: '0.4rem'
+            }}>
+              이어봄 <span style={{ color: 'var(--accent-gold)', fontSize: '0.95rem', fontWeight: 600, fontFamily: 'sans-serif' }}>Eobom</span>
             </h1>
-            <p style={{ fontSize: '0.75rem', color: '#DFDCD7', margin: 0 }}>생전 준비부터 사후 행정까지 완결</p>
+            <p style={{ fontSize: '0.72rem', color: 'rgba(251, 249, 245, 0.8)', margin: 0, letterSpacing: '0.02em' }}>
+              디지털 엔딩 & 웰다잉 토탈 케어
+            </p>
           </div>
         </div>
 

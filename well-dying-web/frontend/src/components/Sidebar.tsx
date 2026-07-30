@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ShieldCheck, Scale, PackageCheck, ScrollText, CalendarHeart, ChevronRight } from 'lucide-react';
+import { Home, Home as HouseIcon, Scale, Smartphone, ScrollText, ClipboardCheck } from 'lucide-react';
 
 interface SidebarProps {
   activeTab: string;
@@ -10,11 +10,12 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab }) => 
   const [isHovered, setIsHovered] = useState(false);
 
   const menuItems = [
-    { id: 'facility', label: '장례·묘지 매칭', icon: ShieldCheck },
-    { id: 'counseling', label: '상속·법률·세무', icon: Scale },
-    { id: 'digital-estate', label: '디지털 유품 정리', icon: PackageCheck },
+    { id: 'home', label: '홈 메인', icon: Home },
+    { id: 'facility', label: '장례 · 묘지 매칭', icon: HouseIcon },
+    { id: 'counseling', label: '상속 · 법률 케어', icon: Scale },
+    { id: 'digital-estate', label: '디지털 유품 정리', icon: Smartphone },
     { id: 'ending-note', label: '디지털 엔딩노트', icon: ScrollText },
-    { id: 'care-guide', label: '상중 케어·행정', icon: CalendarHeart },
+    { id: 'care-guide', label: '상중 · 행정 케어', icon: ClipboardCheck },
   ];
 
   return (
