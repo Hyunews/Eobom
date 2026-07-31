@@ -1,5 +1,5 @@
-import React from 'react';
-import { X, MapPin, Navigation, ExternalLink, ShieldCheck, Car, PhoneCall, Clock } from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
+import { X, MapPin, Navigation, ExternalLink, ShieldCheck, Clock, Layers } from 'lucide-react';
 
 interface KakaoMapModalProps {
   facility: {
@@ -13,12 +13,29 @@ interface KakaoMapModalProps {
   };
   userLocation?: { lat: number; lng: number } | null;
   onClose: () => void;
+  apiKey?: string; // 전달받은 Kakao JS API Key
 }
 
-export const KakaoMapModal: React.FC<KakaoMapModalProps> = ({ facility, userLocation, onClose }) => {
+declare global {
+  interface Window {
+    kakao: any;
+  }
+}
+
+export const KakaoMapModal: React.FC<KakaoMapModalProps> = ({ facility, userLocation, onClose, apiKey }) => {
+  const mapRef = useRef<HTMLDivElement>(null);
+  const [isMapLoaded, setIsMapLoaded] = useState(false);
+  const [mapType, setMapType] = useState<'ROADMAP' | 'HYBRID'>('ROADMAP');
+
+  const lat = facility.lat || 37.4925;
+  const lng = facility.lng || 127.0078;
+
+  // 환경변수 또는 props의 API Key 확인
+  const kakaoAppKey = apiKey || (import.meta as any).env?.VITE_KAKAO_MAP_KEY || '';
+
   // 거리 계산 (Haversine formula)
   const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
-    const R = 6371; // 지구 반지름 (km)
+    const R = 6371;
     const dLat = ((lat2 - lat1) * Math.PI) / 180;
     const dLon = ((lon2 - lon1) * Math.PI) / 180;
     const a =
@@ -28,12 +45,78 @@ export const KakaoMapModal: React.FC<KakaoMapModalProps> = ({ facility, userLoca
     return (R * c).toFixed(1);
   };
 
-  const lat = facility.lat || 37.4925;
-  const lng = facility.lng || 127.0078;
   const distance = userLocation ? calculateDistance(userLocation.lat, userLocation.lng, lat, lng) : '3.2';
 
   const kakaoMapNavUrl = `https://map.kakao.com/link/to/${encodeURIComponent(facility.name)},${lat},${lng}`;
   const kakaoRoadviewUrl = `https://map.kakao.com/link/roadview/${lat},${lng}`;
+
+  // 동적 카카오 지도 SDK 스크립트 로드 및 맵 초기화
+  useEffect(() => {
+    if (!kakaoAppKey) {
+      setIsMapLoaded(false);
+      return;
+    }
+
+    const loadKakaoMapScript = () => {
+      if (window.kakao && window.kakao.maps) {
+        initMap();
+        return;
+      }
+
+      const existingScript = document.getElementById('kakao-map-script');
+      if (!existingScript) {
+        const script = document.createElement('script');
+        script.id = 'kakao-map-script';
+        script.src = `//dapi.kakao.com/v2/maps/sdk.js?appkey=${kakaoAppKey}&autoload=false&libraries=services`;
+        script.onload = () => {
+          window.kakao.maps.load(() => initMap());
+        };
+        script.onerror = () => setIsMapLoaded(false);
+        document.head.appendChild(script);
+      } else {
+        window.kakao.maps.load(() => initMap());
+      }
+    };
+
+    const initMap = () => {
+      if (!mapRef.current || !window.kakao || !window.kakao.maps) return;
+
+      const container = mapRef.current;
+      const options = {
+        center: new window.kakao.maps.LatLng(lat, lng),
+        level: 3
+      };
+
+      const map = new window.kakao.maps.Map(container, options);
+
+      // 마커 생성
+      const markerPosition = new window.kakao.maps.LatLng(lat, lng);
+      const marker = new window.kakao.maps.Marker({
+        position: markerPosition
+      });
+      marker.setMap(map);
+
+      // 인포윈도우(팝업) 생성
+      const iwContent = `
+        <div style="padding:10px 14px; border-radius:12px; font-family:sans-serif; font-size:12px; line-height:1.4;">
+          <strong style="color:#1E293B; font-size:13px;">📍 ${facility.name}</strong><br/>
+          <span style="color:#64748B;">${facility.location}</span>
+        </div>
+      `;
+      const infowindow = new window.kakao.maps.InfoWindow({
+        content: iwContent
+      });
+      infowindow.open(map, marker);
+
+      // 컨트롤 추가
+      const zoomControl = new window.kakao.maps.ZoomControl();
+      map.addControl(zoomControl, window.kakao.maps.ControlPosition.RIGHT);
+
+      setIsMapLoaded(true);
+    };
+
+    loadKakaoMapScript();
+  }, [kakaoAppKey, lat, lng, facility.name, facility.location]);
 
   return (
     <div
@@ -43,7 +126,7 @@ export const KakaoMapModal: React.FC<KakaoMapModalProps> = ({ facility, userLoca
         left: 0,
         right: 0,
         bottom: 0,
-        backgroundColor: 'rgba(15, 23, 42, 0.75)',
+        backgroundColor: 'rgba(15, 23, 42, 0.8)',
         backdropFilter: 'blur(8px)',
         zIndex: 2000,
         display: 'flex',
@@ -57,7 +140,7 @@ export const KakaoMapModal: React.FC<KakaoMapModalProps> = ({ facility, userLoca
           backgroundColor: '#FFFFFF',
           borderRadius: '20px',
           padding: '2rem',
-          maxWidth: '680px',
+          maxWidth: '720px',
           width: '100%',
           boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
           position: 'relative',
@@ -79,126 +162,134 @@ export const KakaoMapModal: React.FC<KakaoMapModalProps> = ({ facility, userLoca
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            cursor: 'pointer'
+            cursor: 'pointer',
+            zIndex: 10
           }}
         >
           <X size={20} color="var(--primary-color)" />
         </button>
 
         <div style={{ marginBottom: '1rem' }}>
-          <span style={{ fontSize: '0.8rem', backgroundColor: '#FEF3C7', color: '#D97706', padding: '0.2rem 0.6rem', borderRadius: '12px', fontWeight: 700 }}>
-            카카오맵 LBS 위치 서비스
-          </span>
-          <h3 style={{ fontSize: '1.4rem', color: 'var(--primary-color)', marginTop: '0.4rem', marginBottom: '0.2rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <span style={{ fontSize: '0.8rem', backgroundColor: '#FEE500', color: '#191919', padding: '0.2rem 0.6rem', borderRadius: '12px', fontWeight: 800 }}>
+              Kakao Maps LBS SDK Connected
+            </span>
+            {kakaoAppKey ? (
+              <span style={{ fontSize: '0.75rem', backgroundColor: '#DEF7EC', color: '#03543F', padding: '0.2rem 0.5rem', borderRadius: '10px', fontWeight: 700 }}>
+                ● 실제 카카오 지도 연동 중
+              </span>
+            ) : (
+              <span style={{ fontSize: '0.75rem', backgroundColor: '#FEF3C7', color: '#92400E', padding: '0.2rem 0.5rem', borderRadius: '10px', fontWeight: 700 }}>
+                ● LBS 시뮬레이션 모드 (JS 키 입력 시 실제 지도 전환)
+              </span>
+            )}
+          </div>
+
+          <h3 style={{ fontSize: '1.5rem', color: 'var(--primary-color)', marginTop: '0.5rem', marginBottom: '0.2rem', display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 800 }}>
             <MapPin color="var(--accent-red)" /> {facility.name}
           </h3>
           <p style={{ fontSize: '0.95rem', color: 'var(--text-muted)' }}>
-            주소: {facility.location} (현 위치에서 <strong style={{ color: 'var(--point-color)' }}>{distance} km</strong>)
+            주소: {facility.location} (현재 위치에서 <strong style={{ color: 'var(--point-color)' }}>{distance} km</strong>)
           </p>
         </div>
 
-        {/* 지도 프리뷰 영역 */}
+        {/* 지도 영역 (실제 SDK 맵 컨테이너 + 하이브리드 폴백) */}
         <div
           style={{
             position: 'relative',
-            height: '320px',
+            height: '360px',
             borderRadius: '16px',
             overflow: 'hidden',
             backgroundColor: '#E2E8F0',
-            border: '1px solid var(--border-color)',
-            backgroundImage: `radial-gradient(#CBD5E1 1px, transparent 1px)`,
-            backgroundSize: '16px 16px',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center'
+            border: '1px solid var(--border-color)'
           }}
         >
-          {/* LBS 반경 원 그래픽 */}
-          <div
-            style={{
-              position: 'absolute',
-              width: '240px',
-              height: '240px',
-              borderRadius: '50%',
-              border: '2px dashed rgba(217, 119, 6, 0.4)',
-              backgroundColor: 'rgba(217, 119, 6, 0.05)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center'
-            }}
-          >
-            <span style={{ fontSize: '0.75rem', color: 'var(--point-color)', fontWeight: 700, position: 'absolute', top: '10px' }}>
-              📍 반경 내 최적 접근 경로
-            </span>
-          </div>
+          {/* 실제 카카오 지도 마운트 엘리먼트 */}
+          <div ref={mapRef} style={{ width: '100%', height: '100%' }} />
 
-          {/* 중앙 마커 핀 */}
-          <div style={{ zIndex: 5, textAlign: 'center' }}>
+          {/* API Key 미설정 시 나타나는 시뮬레이션 LBS UI */}
+          {!kakaoAppKey && (
             <div
               style={{
-                backgroundColor: 'var(--accent-red)',
-                color: '#FFF',
-                padding: '0.4rem 0.8rem',
-                borderRadius: '20px',
-                fontSize: '0.85rem',
-                fontWeight: 700,
-                boxShadow: '0 8px 16px rgba(239, 68, 68, 0.3)',
-                marginBottom: '0.4rem',
-                display: 'inline-flex',
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                backgroundImage: `radial-gradient(#CBD5E1 1px, transparent 1px)`,
+                backgroundSize: '16px 16px',
+                display: 'flex',
+                flexDirection: 'column',
                 alignItems: 'center',
-                gap: '0.3rem'
+                justifyContent: 'center',
+                backgroundColor: '#F1F5F9'
               }}
             >
-              <MapPin size={16} /> {facility.name}
-            </div>
-            <p style={{ fontSize: '0.8rem', color: '#475569', backgroundColor: 'rgba(255,255,255,0.9)', padding: '0.2rem 0.6rem', borderRadius: '8px' }}>
-              GPS 좌표: {lat.toFixed(4)}, {lng.toFixed(4)}
-            </p>
-          </div>
+              <div
+                style={{
+                  width: '240px',
+                  height: '240px',
+                  borderRadius: '50%',
+                  border: '2px dashed rgba(217, 119, 6, 0.4)',
+                  backgroundColor: 'rgba(217, 119, 6, 0.05)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  position: 'relative'
+                }}
+              >
+                <span style={{ fontSize: '0.75rem', color: 'var(--point-color)', fontWeight: 700, position: 'absolute', top: '10px' }}>
+                  📍 LBS 반경 {distance}km 위치 탐색
+                </span>
+              </div>
 
-          {/* 카카오 지도 뱃지 */}
-          <div
-            style={{
-              position: 'absolute',
-              bottom: '12px',
-              left: '12px',
-              backgroundColor: '#FEE500',
-              color: '#000000',
-              padding: '0.3rem 0.7rem',
-              borderRadius: '8px',
-              fontSize: '0.75rem',
-              fontWeight: 800,
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.3rem'
-            }}
-          >
-            Kakao Map LBS Connected
-          </div>
+              <div style={{ zIndex: 5, textAlign: 'center', position: 'absolute' }}>
+                <div
+                  style={{
+                    backgroundColor: 'var(--accent-red)',
+                    color: '#FFF',
+                    padding: '0.4rem 0.9rem',
+                    borderRadius: '20px',
+                    fontSize: '0.9rem',
+                    fontWeight: 800,
+                    boxShadow: '0 8px 16px rgba(239, 68, 68, 0.3)',
+                    marginBottom: '0.4rem',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '0.3rem'
+                  }}
+                >
+                  <MapPin size={16} /> {facility.name}
+                </div>
+                <p style={{ fontSize: '0.8rem', color: '#475569', backgroundColor: 'rgba(255,255,255,0.95)', padding: '0.3rem 0.7rem', borderRadius: '8px', boxShadow: '0 2px 5px rgba(0,0,0,0.1)' }}>
+                  GPS 좌표: {lat.toFixed(4)}, {lng.toFixed(4)}
+                </p>
+              </div>
+            </div>
+          )}
         </div>
 
-        {/* 편의 정보 및 링크 */}
-        <div style={{ marginTop: '1.5rem', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-          <div style={{ backgroundColor: 'var(--card-bg)', padding: '1rem', borderRadius: '12px', fontSize: '0.85rem' }}>
-            <p style={{ fontWeight: 700, color: 'var(--primary-color)', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+        {/* 편의 정보 */}
+        <div style={{ marginTop: '1.2rem', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.8rem' }}>
+          <div style={{ backgroundColor: 'var(--card-bg)', padding: '0.9rem', borderRadius: '12px', fontSize: '0.85rem' }}>
+            <p style={{ fontWeight: 700, color: 'var(--primary-color)', marginBottom: '0.4rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
               <ShieldCheck size={16} color="var(--point-color)" /> 주차 및 보증 정보
             </p>
-            <p style={{ margin: '0 0 0.2rem 0', color: 'var(--text-muted)' }}>• 무료 주차 가능 (대형 버스 지원)</p>
-            <p style={{ margin: 0, color: 'var(--text-muted)' }}>• 24시간 장례 지도사 상주 및 안치실</p>
+            <p style={{ margin: '0 0 0.2rem 0', color: 'var(--text-muted)' }}>• 무료 주차 (대형 버스/유족 우선)</p>
+            <p style={{ margin: 0, color: 'var(--text-muted)' }}>• 24시간 장례지도사 상주</p>
           </div>
 
-          <div style={{ backgroundColor: 'var(--card-bg)', padding: '1rem', borderRadius: '12px', fontSize: '0.85rem' }}>
-            <p style={{ fontWeight: 700, color: 'var(--primary-color)', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+          <div style={{ backgroundColor: 'var(--card-bg)', padding: '0.9rem', borderRadius: '12px', fontSize: '0.85rem' }}>
+            <p style={{ fontWeight: 700, color: 'var(--primary-color)', marginBottom: '0.4rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
               <Clock size={16} color="var(--point-color)" /> 빠른 방문 안내
             </p>
-            <p style={{ margin: '0 0 0.2rem 0', color: 'var(--text-muted)' }}>• 지하철/버스 정류장 도보 5분</p>
-            <p style={{ margin: 0, color: 'var(--text-muted)' }}>• 긴급 운구 차량 15분 내 도달 지역</p>
+            <p style={{ margin: '0 0 0.2rem 0', color: 'var(--text-muted)' }}>• 대중교통 도보 5분 거리</p>
+            <p style={{ margin: 0, color: 'var(--text-muted)' }}>• 긴급 운구 차 15분 도착 지역</p>
           </div>
         </div>
 
         {/* 카카오맵 내비게이션 & 로드뷰 외출 버튼 */}
-        <div style={{ marginTop: '1.5rem', display: 'flex', gap: '0.8rem' }}>
+        <div style={{ marginTop: '1.2rem', display: 'flex', gap: '0.8rem' }}>
           <a
             href={kakaoMapNavUrl}
             target="_blank"
@@ -208,13 +299,14 @@ export const KakaoMapModal: React.FC<KakaoMapModalProps> = ({ facility, userLoca
               flex: 1,
               backgroundColor: '#FEE500',
               color: '#191919',
-              fontWeight: 700,
+              fontWeight: 800,
               fontSize: '0.95rem',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               gap: '0.4rem',
-              textDecoration: 'none'
+              textDecoration: 'none',
+              padding: '0.8rem'
             }}
           >
             <Navigation size={18} /> 카카오맵 길찾기 <ExternalLink size={14} />
@@ -229,16 +321,17 @@ export const KakaoMapModal: React.FC<KakaoMapModalProps> = ({ facility, userLoca
               flex: 1,
               backgroundColor: 'var(--secondary-color)',
               color: 'var(--primary-color)',
-              fontWeight: 700,
+              fontWeight: 800,
               fontSize: '0.95rem',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               gap: '0.4rem',
-              textDecoration: 'none'
+              textDecoration: 'none',
+              padding: '0.8rem'
             }}
           >
-            <MapPin size={18} /> 로드뷰 보기 <ExternalLink size={14} />
+            <MapPin size={18} /> 로드뷰 바로가기 <ExternalLink size={14} />
           </a>
         </div>
       </div>
