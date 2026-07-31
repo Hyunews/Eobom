@@ -50,11 +50,11 @@ export const KakaoMapModal: React.FC<KakaoMapModalProps> = ({ facility, userLoca
     let isCancelled = false;
     let mapInstance: any = null;
 
-    // .env에서 API 키를 가져와 동적으로 SDK 스크립트 로드 (단일 소스 관리)
+    // .env에서 API 키를 가져와 동적으로 SDK 스크립트 로드 (단일 소스 관리, document.write 방지를 위한 autoload=false 필수)
     const KAKAO_KEY = import.meta.env.VITE_KAKAO_MAP_KEY || '';
     if (KAKAO_KEY && !document.querySelector('script[src*="dapi.kakao.com"]')) {
       const script = document.createElement('script');
-      script.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${KAKAO_KEY}&libraries=services`;
+      script.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${KAKAO_KEY}&libraries=services&autoload=false`;
       script.async = true;
       document.head.appendChild(script);
     }
