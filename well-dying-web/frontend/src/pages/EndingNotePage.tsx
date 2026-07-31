@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { ScrollText, Lock, Key, Send, FileCheck, LogIn } from 'lucide-react';
+import { NoteKeyIcon } from '../components/MenuIcons';
 
 interface EndingNotePageProps {
   currentUser?: string | null;
@@ -79,11 +80,14 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
       )}
 
       <div style={{ marginBottom: '2rem', filter: !currentUser ? 'blur(3px)' : 'none' }}>
-        <h1 style={{ color: 'var(--primary-color)', fontSize: '2rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <ScrollText color="var(--primary-color)" /> 디지털 엔딩노트 & 유족 메시지 보관함
+        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', backgroundColor: '#F1F5F9', color: 'var(--primary-color)', padding: '0.3rem 0.8rem', borderRadius: '16px', fontSize: '0.85rem', fontWeight: 700, marginBottom: '0.6rem' }}>
+          <NoteKeyIcon size={18} color="var(--primary-color)" /> 노트 &amp; 열쇠 | 유언 메시지 작성 &amp; 256-bit AES 암호화 금고
+        </div>
+        <h1 style={{ color: 'var(--primary-color)', fontSize: '2rem', display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0 }}>
+          <NoteKeyIcon color="var(--primary-color)" size={32} /> 디지털 엔딩노트 &amp; 유족 메시지 보관함
         </h1>
-        <p style={{ color: 'var(--text-muted)' }}>
-          사전 연명의료 의향서, 장례 희망 방식, 유족을 위한 유언 메시지 & 비밀 보관함 및 사후 자동 발송
+        <p style={{ color: 'var(--text-muted)', marginTop: '0.4rem' }}>
+          사전 연명의료 의향서, 장례 희망 방식, 유족을 위한 유언 메시지 &amp; 비밀 보관함 및 사후 자동 발송
         </p>
       </div>
 

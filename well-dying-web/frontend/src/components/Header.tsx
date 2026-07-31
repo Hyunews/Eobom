@@ -1,5 +1,6 @@
 import React from 'react';
 import { UserCheck, LogIn, LogOut } from 'lucide-react';
+import { EobomLogo } from './EobomLogo';
 
 interface HeaderProps {
   setActiveTab: (tab: string) => void;
@@ -27,45 +28,13 @@ export const Header: React.FC<HeaderProps> = ({ setActiveTab, onOpenLogin, curre
         justifyContent: 'space-between',
         alignItems: 'center'
       }}>
-        {/* 브랜드 로고 (클릭 시 메인 페이지로 이동) */}
+        {/* 브랜드 로고 (공식 Design_Logo.png 가이드 기반 심볼마크 & 워드마크) */}
         <div 
           onClick={() => setActiveTab('home')} 
-          style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.85rem' }}
+          style={{ cursor: 'pointer', display: 'flex', alignItems: 'center' }}
+          title="이어봄 (Eobom) 디지털 엔딩 & 웰다잉 토탈 케어 플랫폼"
         >
-          <div style={{
-            background: 'linear-gradient(135deg, var(--point-color) 0%, var(--primary-color) 100%)',
-            border: '2px solid var(--accent-gold)',
-            borderRadius: '50%',
-            width: '44px',
-            height: '44px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: 'var(--accent-gold)',
-            fontSize: '1.5rem',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.2)'
-          }} title="이어봄 무한대 & 손 & 잎사귀 심볼마크">
-            ∞
-          </div>
-          <div>
-            <h1 style={{ 
-              fontSize: '1.45rem', 
-              fontWeight: 800, 
-              margin: 0, 
-              color: '#FFFFFF', 
-              lineHeight: 1.1,
-              fontFamily: 'var(--font-serif)',
-              letterSpacing: '-0.02em',
-              display: 'flex',
-              alignItems: 'baseline',
-              gap: '0.4rem'
-            }}>
-              이어봄 <span style={{ color: 'var(--accent-gold)', fontSize: '0.95rem', fontWeight: 600, fontFamily: 'sans-serif' }}>Eobom</span>
-            </h1>
-            <p style={{ fontSize: '0.72rem', color: 'rgba(251, 249, 245, 0.8)', margin: 0, letterSpacing: '0.02em' }}>
-              디지털 엔딩 & 웰다잉 토탈 케어
-            </p>
-          </div>
+          <EobomLogo variant="header" height={42} />
         </div>
 
         {/* 우측 로그인 / 회원가입 상태 버튼 */}

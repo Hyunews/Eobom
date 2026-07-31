@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { CalendarHeart, CheckSquare, MessageSquare, HeartHandshake, ExternalLink } from 'lucide-react';
 import careGuideTasksData from '../mockData/careGuideTasks.json';
+import { ChecklistShieldIcon } from '../components/MenuIcons';
 
 interface CareGuidePageProps {
   currentUser?: string | null;
@@ -30,11 +31,14 @@ export const CareGuidePage: React.FC<CareGuidePageProps> = ({ currentUser, onOpe
   return (
     <div className="container">
       <div style={{ marginBottom: '2rem' }}>
-        <h1 style={{ color: 'var(--primary-color)', fontSize: '2rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <CalendarHeart color="var(--primary-color)" /> 상중 케어 & 사망 행정 가이드
+        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', backgroundColor: '#DEF7EC', color: '#03543F', padding: '0.3rem 0.8rem', borderRadius: '16px', fontSize: '0.85rem', fontWeight: 700, marginBottom: '0.6rem' }}>
+          <ChecklistShieldIcon size={18} color="#03543F" /> 체크리스트 &amp; 쉴드 | 사망 직후 D-Day 필수 행정절차 및 24h 긴급 콜
+        </div>
+        <h1 style={{ color: 'var(--primary-color)', fontSize: '2rem', display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0 }}>
+          <ChecklistShieldIcon color="var(--point-color)" size={32} /> 상중 케어 &amp; 사망 행정 가이드
         </h1>
-        <p style={{ color: 'var(--text-muted)' }}>
-          사망 후 D-Day별 필속 행정절차 타임라인, 모바일 부고장 작성 및 유족 심리 케어
+        <p style={{ color: 'var(--text-muted)', marginTop: '0.4rem' }}>
+          사망 후 D-Day별 필수 행정절차 타임라인, 모바일 부고장 작성 및 유족 심리 케어
         </p>
       </div>
 

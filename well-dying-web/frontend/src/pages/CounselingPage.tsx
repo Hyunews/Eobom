@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Scale, Video, Calculator, Calendar, Clock, X, CheckCircle2 } from 'lucide-react';
 import expertsData from '../mockData/experts.json';
+import { HandScalesIcon } from '../components/MenuIcons';
 
 interface CounselingPageProps {
   currentUser?: string | null;
@@ -57,8 +58,11 @@ export const CounselingPage: React.FC<CounselingPageProps> = ({ currentUser, onO
   return (
     <div className="container">
       <div style={{ marginBottom: '2rem' }}>
-        <h1 style={{ color: 'var(--primary-color)', fontSize: '2rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <Scale color="var(--primary-color)" /> 상속·법률·세무 비대면 전문가 상담
+        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', backgroundColor: '#FEF3C7', color: '#D97706', padding: '0.3rem 0.8rem', borderRadius: '16px', fontSize: '0.85rem', fontWeight: 700, marginBottom: '0.6rem' }}>
+          <HandScalesIcon size={18} color="#D97706" /> 손 &amp; 저울 | 상속세 시뮬레이터 &amp; 변호사 · 세무사 1:1 케어
+        </div>
+        <h1 style={{ color: 'var(--primary-color)', fontSize: '2rem', display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0 }}>
+          <HandScalesIcon color="var(--point-color)" size={32} /> 상속 · 법률 · 세무 비대면 전문가 상담
         </h1>
         <p style={{ color: 'var(--text-muted)' }}>
           변호사, 세무사 분야별 1:1 상담 예약, 상담 일정 달력 선택 및 상속세 자동 시뮬레이터

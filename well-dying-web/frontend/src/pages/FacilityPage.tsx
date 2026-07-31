@@ -5,6 +5,7 @@ import { KakaoMapModal } from '../components/KakaoMapModal';
 import { PriceCompareModal } from '../components/facility/PriceCompareModal';
 import { BookingModal } from '../components/facility/BookingModal';
 import { EmergencyModal } from '../components/facility/EmergencyModal';
+import { HouseLeafIcon } from '../components/MenuIcons';
 
 interface FacilityPageProps {
   currentUser?: string | null;
@@ -104,8 +105,8 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
         }}
       >
         <div style={{ position: 'relative', zIndex: 2, maxWidth: '750px' }}>
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', backgroundColor: 'rgba(217, 119, 6, 0.25)', color: 'var(--accent-gold)', padding: '0.4rem 0.9rem', borderRadius: '20px', fontSize: '0.85rem', fontWeight: 700, marginBottom: '1rem' }}>
-            <Sparkles size={16} /> LBS 카카오맵 & 360° VR 파노라마 통합 솔루션
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', backgroundColor: 'rgba(217, 119, 6, 0.25)', color: 'var(--accent-gold)', padding: '0.4rem 0.9rem', borderRadius: '20px', fontSize: '0.85rem', fontWeight: 700, marginBottom: '1rem' }}>
+            <HouseLeafIcon size={18} color="var(--accent-gold)" /> 집 &amp; 나뭇잎 | 봉안당·수목장 맞춤 검색 및 장례식장 맞춤 매칭
           </div>
           <h1 style={{ fontSize: '2.3rem', fontWeight: 800, marginBottom: '0.8rem', color: '#FFFFFF', lineHeight: '1.2' }}>
             장례·묘지 맞춤 비교 매칭 및 VR 답사
@@ -358,6 +359,7 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
         <PriceCompareModal
           facility={selectedPriceFacility}
           onClose={() => setSelectedPriceFacility(null)}
+          onOpenBooking={() => setBookingFacilityName(selectedPriceFacility.name)}
         />
       )}
 
