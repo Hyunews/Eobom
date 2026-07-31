@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { X, MapPin, Navigation, ExternalLink, ShieldCheck, Clock, Layers } from 'lucide-react';
+import { X, MapPin, Navigation, ExternalLink, ShieldCheck, Clock } from 'lucide-react';
 
 interface KakaoMapModalProps {
   facility: {
@@ -13,7 +13,7 @@ interface KakaoMapModalProps {
   };
   userLocation?: { lat: number; lng: number } | null;
   onClose: () => void;
-  apiKey?: string; // 전달받은 Kakao JS API Key
+  apiKey?: string;
 }
 
 declare global {
@@ -25,7 +25,6 @@ declare global {
 export const KakaoMapModal: React.FC<KakaoMapModalProps> = ({ facility, userLocation, onClose, apiKey }) => {
   const mapRef = useRef<HTMLDivElement>(null);
   const [isMapLoaded, setIsMapLoaded] = useState(false);
-  const [mapType, setMapType] = useState<'ROADMAP' | 'HYBRID'>('ROADMAP');
 
   const lat = facility.lat || 37.4925;
   const lng = facility.lng || 127.0078;
@@ -50,72 +49,125 @@ export const KakaoMapModal: React.FC<KakaoMapModalProps> = ({ facility, userLoca
   const kakaoMapNavUrl = `https://map.kakao.com/link/to/${encodeURIComponent(facility.name)},${lat},${lng}`;
   const kakaoRoadviewUrl = `https://map.kakao.com/link/roadview/${lat},${lng}`;
 
-  // 동적 카카오 지도 SDK 스크립트 로드 및 맵 초기화
+  // 동적 카카오 지도 SDK 스크립트 안전 로드 및 맵 초기화
   useEffect(() => {
     if (!kakaoAppKey) {
       setIsMapLoaded(false);
       return;
     }
 
-    const loadKakaoMapScript = () => {
-      if (window.kakao && window.kakao.maps) {
+    let isSubscribed = true;
+
+    const initMap = () => {
+      if (!isSubscribed || !mapRef.current) return;
+
+      try {
+        if (!window.kakao || !window.kakao.maps || !window.kakao.maps.LatLng) {
+          setIsMapLoaded(false);
+          return;
+        }
+
+        const container = mapRef.current;
+        const options = {
+          center: new window.kakao.maps.LatLng(lat, lng),
+          level: 3
+        };
+
+        const map = new window.kakao.maps.Map(container, options);
+
+        // 마커 생성
+        const markerPosition = new window.kakao.maps.LatLng(lat, lng);
+        const marker = new window.kakao.maps.Marker({
+          position: markerPosition
+        });
+        marker.setMap(map);
+
+        // 인포윈도우(팝업) 생성
+        const iwContent = `
+          <div style="padding:10px 14px; border-radius:12px; font-family:sans-serif; font-size:12px; line-height:1.4;">
+            <strong style="color:#1E293B; font-size:13px;">📍 ${facility.name}</strong><br/>
+            <span style="color:#64748B;">${facility.location}</span>
+          </div>
+        `;
+        const infowindow = new window.kakao.maps.InfoWindow({
+          content: iwContent
+        });
+        infowindow.open(map, marker);
+
+        // 지도 조작 컨트롤 추가
+        const zoomControl = new window.kakao.maps.ZoomControl();
+        map.addControl(zoomControl, window.kakao.maps.ControlPosition.RIGHT);
+
+        setIsMapLoaded(true);
+      } catch (err) {
+        console.warn('Kakao Map initialization fallback:', err);
+        setIsMapLoaded(false);
+      }
+    };
+
+    const loadKakaoSDK = () => {
+      // 1. 이미 kakao.maps.LatLng 객체까지 완전히 로드 완료된 경우
+      if (window.kakao && window.kakao.maps && window.kakao.maps.LatLng) {
         initMap();
         return;
       }
 
-      const existingScript = document.getElementById('kakao-map-script');
-      if (!existingScript) {
-        const script = document.createElement('script');
-        script.id = 'kakao-map-script';
-        script.src = `//dapi.kakao.com/v2/maps/sdk.js?appkey=${kakaoAppKey}&autoload=false&libraries=services`;
-        script.onload = () => {
-          window.kakao.maps.load(() => initMap());
-        };
-        script.onerror = () => setIsMapLoaded(false);
-        document.head.appendChild(script);
-      } else {
+      // 2. window.kakao.maps.load 함수가 호출 가능한 상태인 경우
+      if (window.kakao && window.kakao.maps && typeof window.kakao.maps.load === 'function') {
         window.kakao.maps.load(() => initMap());
+        return;
       }
-    };
 
-    const initMap = () => {
-      if (!mapRef.current || !window.kakao || !window.kakao.maps) return;
+      // 3. 스크립트 엘리먼트가 이미 존재하는 경우
+      const existingScript = document.getElementById('kakao-map-script') as HTMLScriptElement;
+      if (existingScript) {
+        const handleScriptLoad = () => {
+          if (window.kakao && window.kakao.maps && typeof window.kakao.maps.load === 'function') {
+            window.kakao.maps.load(() => initMap());
+          } else {
+            initMap();
+          }
+        };
 
-      const container = mapRef.current;
-      const options = {
-        center: new window.kakao.maps.LatLng(lat, lng),
-        level: 3
+        existingScript.addEventListener('load', handleScriptLoad);
+        
+        // 지연 시간 후 폴백 확인
+        const timer = setTimeout(() => {
+          if (window.kakao && window.kakao.maps && typeof window.kakao.maps.load === 'function') {
+            window.kakao.maps.load(() => initMap());
+          } else {
+            initMap();
+          }
+        }, 300);
+
+        return () => {
+          existingScript.removeEventListener('load', handleScriptLoad);
+          clearTimeout(timer);
+        };
+      }
+
+      // 4. 신규 스크립트 생성 로드
+      const script = document.createElement('script');
+      script.id = 'kakao-map-script';
+      script.src = `//dapi.kakao.com/v2/maps/sdk.js?appkey=${kakaoAppKey}&autoload=false&libraries=services`;
+      script.async = true;
+      script.onload = () => {
+        if (window.kakao && window.kakao.maps && typeof window.kakao.maps.load === 'function') {
+          window.kakao.maps.load(() => initMap());
+        } else {
+          initMap();
+        }
       };
-
-      const map = new window.kakao.maps.Map(container, options);
-
-      // 마커 생성
-      const markerPosition = new window.kakao.maps.LatLng(lat, lng);
-      const marker = new window.kakao.maps.Marker({
-        position: markerPosition
-      });
-      marker.setMap(map);
-
-      // 인포윈도우(팝업) 생성
-      const iwContent = `
-        <div style="padding:10px 14px; border-radius:12px; font-family:sans-serif; font-size:12px; line-height:1.4;">
-          <strong style="color:#1E293B; font-size:13px;">📍 ${facility.name}</strong><br/>
-          <span style="color:#64748B;">${facility.location}</span>
-        </div>
-      `;
-      const infowindow = new window.kakao.maps.InfoWindow({
-        content: iwContent
-      });
-      infowindow.open(map, marker);
-
-      // 컨트롤 추가
-      const zoomControl = new window.kakao.maps.ZoomControl();
-      map.addControl(zoomControl, window.kakao.maps.ControlPosition.RIGHT);
-
-      setIsMapLoaded(true);
+      script.onerror = () => setIsMapLoaded(false);
+      document.head.appendChild(script);
     };
 
-    loadKakaoMapScript();
+    const cleanup = loadKakaoSDK();
+
+    return () => {
+      isSubscribed = false;
+      if (typeof cleanup === 'function') cleanup();
+    };
   }, [kakaoAppKey, lat, lng, facility.name, facility.location]);
 
   return (
@@ -174,13 +226,13 @@ export const KakaoMapModal: React.FC<KakaoMapModalProps> = ({ facility, userLoca
             <span style={{ fontSize: '0.8rem', backgroundColor: '#FEE500', color: '#191919', padding: '0.2rem 0.6rem', borderRadius: '12px', fontWeight: 800 }}>
               Kakao Maps LBS SDK Connected
             </span>
-            {kakaoAppKey ? (
+            {isMapLoaded ? (
               <span style={{ fontSize: '0.75rem', backgroundColor: '#DEF7EC', color: '#03543F', padding: '0.2rem 0.5rem', borderRadius: '10px', fontWeight: 700 }}>
-                ● 실제 카카오 지도 연동 중
+                ● 실제 카카오 지도 렌더링 중
               </span>
             ) : (
               <span style={{ fontSize: '0.75rem', backgroundColor: '#FEF3C7', color: '#92400E', padding: '0.2rem 0.5rem', borderRadius: '10px', fontWeight: 700 }}>
-                ● LBS 시뮬레이션 모드 (JS 키 입력 시 실제 지도 전환)
+                ● LBS 위치 스마트 가이드 (실시간 안전 전환)
               </span>
             )}
           </div>
@@ -207,8 +259,8 @@ export const KakaoMapModal: React.FC<KakaoMapModalProps> = ({ facility, userLoca
           {/* 실제 카카오 지도 마운트 엘리먼트 */}
           <div ref={mapRef} style={{ width: '100%', height: '100%' }} />
 
-          {/* API Key 미설정 시 나타나는 시뮬레이션 LBS UI */}
-          {!kakaoAppKey && (
+          {/* 지도 미로드 시 나타나는 스마트 LBS UI 폴백 */}
+          {!isMapLoaded && (
             <div
               style={{
                 position: 'absolute',
@@ -222,7 +274,8 @@ export const KakaoMapModal: React.FC<KakaoMapModalProps> = ({ facility, userLoca
                 flexDirection: 'column',
                 alignItems: 'center',
                 justifyContent: 'center',
-                backgroundColor: '#F1F5F9'
+                backgroundColor: '#F1F5F9',
+                zIndex: 2
               }}
             >
               <div

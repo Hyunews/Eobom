@@ -1,237 +1,442 @@
 [
   {
-    "id": "f1",
-    "name": "서울 평안 추모 장례식장",
+    "id": "f_seoul_1",
+    "name": "삼성서울병원 장례식장",
     "type": "장례식장",
-    "location": "서울 서초구 반포대로 123",
-    "lat": 37.4925,
-    "lng": 127.0078,
-    "price": "850만원~",
-    "priceValue": 850,
+    "location": "서울 강남구 일원로 81",
+    "lat": 37.4882,
+    "lng": 127.0856,
+    "price": "950만원~",
+    "priceValue": 950,
     "rating": 4.9,
-    "religion": "무교/기독교/불교",
-    "guests": "100~300명",
-    "tags": ["24시간 상담", "주차 200대", "VIP빈소"],
-    "amenities": ["VIP 빈소", "주차 200대", "샤워시설", "전자방명록", "24시 출동"],
+    "religion": "무교/기독교/천주교/불교",
+    "guests": "300명 이상",
+    "tags": ["삼성서울병원", "VIP 독채빈소", "24시간 출동", "주차 500대"],
+    "amenities": ["VIP 전용관", "호텔식 셰프 서비스", "독립 샤워룸", "전자방명록", "발렛파킹"],
     "vrImages": [
       {
-        "id": "hall",
-        "title": "VIP 특실 빈소 (분향실)",
+        "id": "vip_hall",
+        "title": "VIP 1호 특실 (분향실)",
         "url": "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=1600&q=80"
       },
       {
         "id": "lounge",
-        "title": "유족 전용 휴게실 및 수면실",
+        "title": "유족 전용 휴게실 & 안마 라운지",
         "url": "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1600&q=80"
       },
       {
         "id": "dining",
-        "title": "고품격 접객실 (200석 규모)",
+        "title": "접객 전용 정갈한 식당 (250석)",
         "url": "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1600&q=80"
       }
     ],
     "detailedPrices": {
-      "facilityFee": "320만원 (2일 기준)",
-      "casketFee": "150만원 (고급 삼나무)",
-      "shroudFee": "120만원 (100% 대관령 삼베)",
-      "mourningDress": "60만원 (남녀 10벌)",
-      "altarFlower": "200만원 (생화 특대)",
-      "totalEst": "850만원 ~ 1,100만원"
+      "facilityFee": "380만원 (2일 기준)",
+      "casketFee": "180만원 (고급 삼나무)",
+      "shroudFee": "150만원 (100% 대관령 삼베)",
+      "mourningDress": "70만원 (남녀 10벌)",
+      "altarFlower": "220만원 (생화 특대 제단)",
+      "totalEst": "950만원 ~ 1,300만원"
     }
   },
   {
-    "id": "f2",
-    "name": "청송 봉안당 & 자연 수목장",
-    "type": "묘지/수목장",
-    "location": "경기 용인시 처인구 456",
-    "lat": 37.2341,
-    "lng": 127.2014,
-    "price": "450만원~",
-    "priceValue": 450,
-    "rating": 4.8,
-    "religion": "전체 종교",
-    "guests": "300명 이상",
-    "tags": ["자연 수목장", "셔틀버스 운영", "야외 추모공원"],
-    "amenities": ["자연 수목장", "야외 추모공원", "셔틀버스", "24시간 캡스 보안"],
-    "vrImages": [
-      {
-        "id": "forest",
-        "title": "소나무 수목장 구역",
-        "url": "https://images.unsplash.com/photo-1448375240586-882707db888b?auto=format&fit=crop&w=1600&q=80"
-      },
-      {
-        "id": "charnel",
-        "title": "실내 안치 봉안당 (햇살관)",
-        "url": "https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=1600&q=80"
-      }
-    ],
-    "detailedPrices": {
-      "facilityFee": "200만원 (분양 기본)",
-      "casketFee": "없음 (유골함 안치)",
-      "shroudFee": "80만원 (전용 유골함)",
-      "mourningDress": "30만원",
-      "altarFlower": "40만원",
-      "totalEst": "450만원 ~ 600만원"
-    }
-  },
-  {
-    "id": "f3",
-    "name": "성모 웰다잉 전용 장례 센터",
+    "id": "f_seoul_2",
+    "name": "서울아산병원 장례식장",
     "type": "장례식장",
-    "location": "서울 강남구 테헤란로 789",
-    "lat": 37.5042,
-    "lng": 127.0456,
-    "price": "600만원~",
-    "priceValue": 600,
-    "rating": 4.9,
-    "religion": "천주교/기독교",
-    "guests": "100명 미만",
-    "tags": ["소규모 가족장", "천주교 전용관", "정찰제"],
-    "amenities": ["가족장 전용", "성당 예배실", "정찰제", "주차 100대"],
-    "vrImages": [
-      {
-        "id": "chapel",
-        "title": "천주교/기독교 성당 추모실",
-        "url": "https://images.unsplash.com/photo-1548625149-fc4a29cf7092?auto=format&fit=crop&w=1600&q=80"
-      },
-      {
-        "id": "hall",
-        "title": "가족장 전용 아담한 빈소",
-        "url": "https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=1600&q=80"
-      }
-    ],
-    "detailedPrices": {
-      "facilityFee": "220만원",
-      "casketFee": "110만원",
-      "shroudFee": "90만원",
-      "mourningDress": "50만원",
-      "altarFlower": "130만원",
-      "totalEst": "600만원 ~ 750만원"
-    }
-  },
-  {
-    "id": "f4",
-    "name": "한강 솔숲 추모공원 (수목장)",
-    "type": "묘지/수목장",
-    "location": "경기 파주시 탄현면 321",
-    "lat": 37.7852,
-    "lng": 126.6975,
-    "price": "380만원~",
-    "priceValue": 380,
-    "rating": 4.7,
-    "religion": "전체 종교",
-    "guests": "100~300명",
-    "tags": ["솔숲 아늑함", "영구 안치", "산책로 조성"],
-    "amenities": ["솔숲 산책로", "영구 안치", "야외 주차장", "카페테리아"],
-    "vrImages": [
-      {
-        "id": "nature",
-        "title": "한강 조망 프리미엄 수목 구역",
-        "url": "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&w=1600&q=80"
-      }
-    ],
-    "detailedPrices": {
-      "facilityFee": "180만원",
-      "casketFee": "없음",
-      "shroudFee": "60만원",
-      "mourningDress": "20만원",
-      "altarFlower": "30만원",
-      "totalEst": "380만원 ~ 500만원"
-    }
-  },
-  {
-    "id": "f5",
-    "name": "대전 하늘누리 장례문화원",
-    "type": "장례식장",
-    "location": "충청 대전 서구 둔산로 55",
-    "lat": 36.3504,
-    "lng": 127.3845,
-    "price": "520만원~",
-    "priceValue": 520,
-    "rating": 4.6,
-    "religion": "무교/불교",
-    "guests": "100~300명",
-    "tags": ["넓은 발인실", "음식 자체 정찰제", "교통 편리"],
-    "amenities": ["발인 전용관", "음식 정찰제", "역세권", "주차 150대"],
-    "vrImages": [
-      {
-        "id": "hall",
-        "title": "대형 1호 빈소",
-        "url": "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=1600&q=80"
-      }
-    ],
-    "detailedPrices": {
-      "facilityFee": "200만원",
-      "casketFee": "100만원",
-      "shroudFee": "70만원",
-      "mourningDress": "50만원",
-      "altarFlower": "100만원",
-      "totalEst": "520만원 ~ 680만원"
-    }
-  },
-  {
-    "id": "f7",
-    "name": "강남 프리미엄 유가족 장례식장",
-    "type": "장례식장",
-    "location": "서울 강남구 도곡로 999",
-    "lat": 37.4912,
-    "lng": 127.0543,
-    "price": "1,200만원~",
-    "priceValue": 1200,
-    "rating": 5.0,
-    "religion": "전체 종교",
-    "guests": "300명 이상",
-    "tags": ["호텔식 서비스", "발렛파킹 지원", "독채 빈소"],
-    "amenities": ["독채 빈소", "호텔식 셰프 서비스", "발렛 파킹", "개별 샤워룸"],
-    "vrImages": [
-      {
-        "id": "vip",
-        "title": "프리미엄 펜트하우스 독채 빈소",
-        "url": "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1600&q=80"
-      },
-      {
-        "id": "dining",
-        "title": "호텔식 뷔페 접객 전용 라운지",
-        "url": "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1600&q=80"
-      }
-    ],
-    "detailedPrices": {
-      "facilityFee": "500만원",
-      "casketFee": "250만원 (특호 황장목)",
-      "shroudFee": "200만원 (명품 안동포)",
-      "mourningDress": "100만원",
-      "altarFlower": "350만원",
-      "totalEst": "1,200만원 ~ 1,800만원"
-    }
-  },
-  {
-    "id": "f19",
-    "name": "인천 송도 국제 해돋이 장례식장",
-    "type": "장례식장",
-    "location": "경기/인천 인천 연수구 컨벤시아대로 12",
-    "lat": 37.3892,
-    "lng": 126.6432,
+    "location": "서울 송파구 올림픽로43길 88",
+    "lat": 37.5248,
+    "lng": 127.1082,
     "price": "890만원~",
     "priceValue": 890,
-    "rating": 4.8,
+    "rating": 4.9,
     "religion": "전체 종교",
     "guests": "300명 이상",
-    "tags": ["송도 센트럴뷰", "국제 규격 빈소", "경호 서비스"],
-    "amenities": ["송도 센트럴뷰", "경호 요원 배치", "외국어 통역", "VIP 대기실"],
+    "tags": ["서울아산병원", "한강 조망", "정찰제 제공", "넓은 주차"],
+    "amenities": ["한강 조망 빈소", "영안실 모니터링", "기숙형 유족실", "무료 와이파이"],
     "vrImages": [
       {
-        "id": "vip",
-        "title": "송도 국제관 대형 빈소",
-        "url": "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=1600&q=80"
+        "id": "hall_30",
+        "title": "3층 30호 대형 빈소",
+        "url": "https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=1600&q=80"
+      },
+      {
+        "id": "chapel",
+        "title": "종교별 전용 추모 예배실",
+        "url": "https://images.unsplash.com/photo-1548625149-fc4a29cf7092?auto=format&fit=crop&w=1600&q=80"
       }
     ],
     "detailedPrices": {
       "facilityFee": "350만원",
       "casketFee": "160만원",
       "shroudFee": "130만원",
-      "mourningDress": "70만원",
+      "mourningDress": "60만원",
+      "altarFlower": "190만원",
+      "totalEst": "890만원 ~ 1,150만원"
+    }
+  },
+  {
+    "id": "f_gyeonggi_1",
+    "name": "분당서울대학교병원 장례식장",
+    "type": "장례식장",
+    "location": "경기 성남시 분당구 구미로173번길 82",
+    "lat": 37.3516,
+    "lng": 127.1232,
+    "price": "780만원~",
+    "priceValue": 780,
+    "rating": 4.8,
+    "religion": "무교/기독교/천주교/불교",
+    "guests": "100~300명",
+    "tags": ["분당서울대병원", "불곡산 산세", "스마트 부고", "쾌적한 분향실"],
+    "amenities": ["불곡산 경관", "스마트 키오스크 부고", "유족 전용 샤워룸", "24시간 캡스 보안"],
+    "vrImages": [
+      {
+        "id": "hall_bd",
+        "title": "분당 2호 빈소 (분향실)",
+        "url": "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=1600&q=80"
+      }
+    ],
+    "detailedPrices": {
+      "facilityFee": "300만원",
+      "casketFee": "140만원",
+      "shroudFee": "110만원",
+      "mourningDress": "50만원",
       "altarFlower": "180만원",
-      "totalEst": "890만원 ~ 1,200만원"
+      "totalEst": "780만원 ~ 1,000만원"
+    }
+  },
+  {
+    "id": "f_gyeonggi_2",
+    "name": "용인 평온의숲 봉안당 & 수목장",
+    "type": "묘지/수목장",
+    "location": "경기 용인시 처인구 이동읍 어진로 68",
+    "lat": 37.1428,
+    "lng": 127.1985,
+    "price": "420만원~",
+    "priceValue": 420,
+    "rating": 4.9,
+    "religion": "전체 종교",
+    "guests": "300명 이상",
+    "tags": ["공공 수목장", "용인 도시공사 운영", "자연 친화적", "평생 안치"],
+    "amenities": ["소나무 자연 수목장", "실내 아늑한 봉안당", "야외 추모 공원", "셔틀버스 가동"],
+    "vrImages": [
+      {
+        "id": "forest_zone",
+        "title": "평온의숲 소나무 수목장 구역",
+        "url": "https://images.unsplash.com/photo-1448375240586-882707db888b?auto=format&fit=crop&w=1600&q=80"
+      },
+      {
+        "id": "charnel_hall",
+        "title": "평생 안치 햇살관 봉안당",
+        "url": "https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=1600&q=80"
+      }
+    ],
+    "detailedPrices": {
+      "facilityFee": "200만원 (분양 표준)",
+      "casketFee": "없음 (유골함 안치)",
+      "shroudFee": "80만원 (천연 도자기 유골함)",
+      "mourningDress": "30만원",
+      "altarFlower": "40만원",
+      "totalEst": "420만원 ~ 580만원"
+    }
+  },
+  {
+    "id": "f_gangwon_1",
+    "name": "강원대학교병원 장례식장",
+    "type": "장례식장",
+    "location": "강원 춘천시 백령로 156",
+    "lat": 37.8748,
+    "lng": 127.7445,
+    "price": "550만원~",
+    "priceValue": 550,
+    "rating": 4.7,
+    "religion": "무교/기독교/불교",
+    "guests": "100~300명",
+    "tags": ["강원대병원", "춘천 도심 접근성", "정찰제 운영", "넓은 발인실"],
+    "amenities": ["대학병원 품질 보증", "정찰제 음식 제공", "넓은 주차장", "유족 휴게실"],
+    "vrImages": [
+      {
+        "id": "gw_hall",
+        "title": "강원대 1호 빈소",
+        "url": "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=1600&q=80"
+      }
+    ],
+    "detailedPrices": {
+      "facilityFee": "210만원",
+      "casketFee": "110만원",
+      "shroudFee": "80만원",
+      "mourningDress": "45만원",
+      "altarFlower": "105만원",
+      "totalEst": "550만원 ~ 720만원"
+    }
+  },
+  {
+    "id": "f_gangwon_2",
+    "name": "강릉아산병원 장례식장",
+    "type": "장례식장",
+    "location": "강원 강릉시 사천면 방동길 38",
+    "lat": 37.8075,
+    "lng": 128.8524,
+    "price": "620만원~",
+    "priceValue": 620,
+    "rating": 4.8,
+    "religion": "전체 종교",
+    "guests": "100~300명",
+    "tags": ["강릉아산병원", "동해 오션뷰 근교", "공기 청정 빈소", "운구 대기"],
+    "amenities": ["동해 청정 공기", "현대 아산 서비스", "24시간 출동 배차", "가족 대기실"],
+    "vrImages": [
+      {
+        "id": "gn_hall",
+        "title": "강릉 특실 빈소",
+        "url": "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1600&q=80"
+      }
+    ],
+    "detailedPrices": {
+      "facilityFee": "240만원",
+      "casketFee": "120만원",
+      "shroudFee": "90만원",
+      "mourningDress": "50만원",
+      "altarFlower": "120만원",
+      "totalEst": "620만원 ~ 800만원"
+    }
+  },
+  {
+    "id": "f_chungcheong_1",
+    "name": "충남대학교병원 장례식장",
+    "type": "장례식장",
+    "location": "대전 중구 문화로 282",
+    "lat": 36.3168,
+    "lng": 127.4142,
+    "price": "650만원~",
+    "priceValue": 650,
+    "rating": 4.8,
+    "religion": "전체 종교",
+    "guests": "100~300명",
+    "tags": ["충남대병원", "대전 중심 위치", "보조금 안내", "VIP실"],
+    "amenities": ["대전 중앙 유족관", "전자 방명록 시스템", "24시 대기 운구차", "주차 300대"],
+    "vrImages": [
+      {
+        "id": "cn_hall",
+        "title": "충남대 VIP 3호 빈소",
+        "url": "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=1600&q=80"
+      }
+    ],
+    "detailedPrices": {
+      "facilityFee": "250만원",
+      "casketFee": "130만원",
+      "shroudFee": "95만원",
+      "mourningDress": "50만원",
+      "altarFlower": "125만원",
+      "totalEst": "650만원 ~ 850만원"
+    }
+  },
+  {
+    "id": "f_chungcheong_2",
+    "name": "천안시 하늘공원 추모관 & 수목장",
+    "type": "묘지/수목장",
+    "location": "충남 천안시 동남구 광덕면 광덕로 842",
+    "lat": 36.7025,
+    "lng": 127.0658,
+    "price": "390만원~",
+    "priceValue": 390,
+    "rating": 4.8,
+    "religion": "전체 종교",
+    "guests": "100명 미만",
+    "tags": ["광덕산 자락", "천안 공공 추모관", "수목 안치", "조용함"],
+    "amenities": ["광덕산 경관 수목장", "무료 주차장", "연중무휴 추모관", "쉼터 조경"],
+    "vrImages": [
+      {
+        "id": "ca_sky",
+        "title": "광덕산 정기 하늘공원 수목 구역",
+        "url": "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&w=1600&q=80"
+      }
+    ],
+    "detailedPrices": {
+      "facilityFee": "190만원",
+      "casketFee": "없음",
+      "shroudFee": "70만원 (도자기 유골함)",
+      "mourningDress": "30만원",
+      "altarFlower": "35만원",
+      "totalEst": "390만원 ~ 520만원"
+    }
+  },
+  {
+    "id": "f_gyeongsang_1",
+    "name": "부산대학교병원 장례식장",
+    "type": "장례식장",
+    "location": "부산 서구 구덕로 179",
+    "lat": 35.1012,
+    "lng": 129.0185,
+    "price": "720만원~",
+    "priceValue": 720,
+    "rating": 4.9,
+    "religion": "무교/불교/기독교",
+    "guests": "100~300명",
+    "tags": ["부산대병원", "부산 중심권", "해양 추모 연계", "독채 빈소"],
+    "amenities": ["부산 대표 대학병원", "해양 산골 연계 서비스", "유족 휴게실", "24h 출동"],
+    "vrImages": [
+      {
+        "id": "bs_hall",
+        "title": "부산대 1호 특실",
+        "url": "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=1600&q=80"
+      }
+    ],
+    "detailedPrices": {
+      "facilityFee": "280만원",
+      "casketFee": "140만원",
+      "shroudFee": "100만원",
+      "mourningDress": "55만원",
+      "altarFlower": "145만원",
+      "totalEst": "720만원 ~ 950만원"
+    }
+  },
+  {
+    "id": "f_gyeongsang_2",
+    "name": "경북대학교병원 장례식장",
+    "type": "장례식장",
+    "location": "대구 중구 동덕로 130",
+    "lat": 35.8662,
+    "lng": 128.6045,
+    "price": "690만원~",
+    "priceValue": 690,
+    "rating": 4.8,
+    "religion": "전체 종교",
+    "guests": "100~300명",
+    "tags": ["경북대병원", "대구 중심 지하철역", "스마트 부고", "VIP실"],
+    "amenities": ["동대구역 접근성", "전자 방명록 키오스크", "24시간 장례 지도사", "주차 400대"],
+    "vrImages": [
+      {
+        "id": "gb_hall",
+        "title": "경북대 VIP 특실 빈소",
+        "url": "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1600&q=80"
+      }
+    ],
+    "detailedPrices": {
+      "facilityFee": "260만원",
+      "casketFee": "135만원",
+      "shroudFee": "95만원",
+      "mourningDress": "50만원",
+      "altarFlower": "150만원",
+      "totalEst": "690만원 ~ 900만원"
+    }
+  },
+  {
+    "id": "f_jeolla_1",
+    "name": "전남대학교병원 장례식장",
+    "type": "장례식장",
+    "location": "광주 동구 제봉로 42",
+    "lat": 35.1415,
+    "lng": 126.9228,
+    "price": "610만원~",
+    "priceValue": 610,
+    "rating": 4.8,
+    "religion": "전체 종교",
+    "guests": "100~300명",
+    "tags": ["전남대병원", "광주 시내 중심", "정갈한 남도 접객", "24시 대기"],
+    "amenities": ["광주 대학병원 서비스", "남도 한식 정갈 정찰제", "주차 350대", "입식/좌식 선택"],
+    "vrImages": [
+      {
+        "id": "jn_hall",
+        "title": "전남대 2호 빈소",
+        "url": "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=1600&q=80"
+      }
+    ],
+    "detailedPrices": {
+      "facilityFee": "230만원",
+      "casketFee": "120만원",
+      "shroudFee": "85만원",
+      "mourningDress": "45만원",
+      "altarFlower": "130만원",
+      "totalEst": "610만원 ~ 800만원"
+    }
+  },
+  {
+    "id": "f_jeolla_2",
+    "name": "전북대학교병원 장례식장",
+    "type": "장례식장",
+    "location": "전북 전주시 덕진구 건지로 20",
+    "lat": 35.8465,
+    "lng": 127.1418,
+    "price": "590만원~",
+    "priceValue": 590,
+    "rating": 4.8,
+    "religion": "전체 종교",
+    "guests": "100~300명",
+    "tags": ["전북대병원", "전주 덕진구 위치", "친환경 용품", "넓은 주차"],
+    "amenities": ["전주 대표 대학병원", "친환경 장례 용품", "유족 수면실", "24시간 출동"],
+    "vrImages": [
+      {
+        "id": "jb_hall",
+        "title": "전북대 1호 빈소",
+        "url": "https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=1600&q=80"
+      }
+    ],
+    "detailedPrices": {
+      "facilityFee": "220만원",
+      "casketFee": "115만원",
+      "shroudFee": "85만원",
+      "mourningDress": "45만원",
+      "altarFlower": "125만원",
+      "totalEst": "590만원 ~ 780만원"
+    }
+  },
+  {
+    "id": "f_jeju_1",
+    "name": "제주대학교병원 장례식장",
+    "type": "장례식장",
+    "location": "제주 제주시 아란13길 15",
+    "lat": 33.4678,
+    "lng": 126.5452,
+    "price": "640만원~",
+    "priceValue": 640,
+    "rating": 4.9,
+    "religion": "전체 종교",
+    "guests": "100~300명",
+    "tags": ["제주대병원", "한라산 조망", "제주 도민 우대", "운구 차량 대기"],
+    "amenities": ["한라산 조망 쾌적 환경", "제주 도민 협약 할인", "독립 유족실", "24시 출동"],
+    "vrImages": [
+      {
+        "id": "jj_hall",
+        "title": "제주대 VIP 1호 빈소",
+        "url": "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=1600&q=80"
+      }
+    ],
+    "detailedPrices": {
+      "facilityFee": "240만원",
+      "casketFee": "125만원",
+      "shroudFee": "90만원",
+      "mourningDress": "50만원",
+      "altarFlower": "135만원",
+      "totalEst": "640만원 ~ 840만원"
+    }
+  },
+  {
+    "id": "f_jeju_2",
+    "name": "제주 양지공원 추모관 & 수목장",
+    "type": "묘지/수목장",
+    "location": "제주 제주시 516로 2582",
+    "lat": 33.4325,
+    "lng": 126.5785,
+    "price": "360만원~",
+    "priceValue": 360,
+    "rating": 5.0,
+    "religion": "전체 종교",
+    "guests": "100명 미만",
+    "tags": ["한라산 516도로", "제주 특별자치도 공영", "청정 수목 안치"],
+    "amenities": ["제주 공영 봉안당/수목장", "한라산 청정 숲", "연중무휴 추모관", "무료 주차"],
+    "vrImages": [
+      {
+        "id": "jj_yangji",
+        "title": "양지공원 한라산 자락 수목 구역",
+        "url": "https://images.unsplash.com/photo-1448375240586-882707db888b?auto=format&fit=crop&w=1600&q=80"
+      }
+    ],
+    "detailedPrices": {
+      "facilityFee": "170만원",
+      "casketFee": "없음",
+      "shroudFee": "65만원 (천연 화산송이 유골함)",
+      "mourningDress": "25만원",
+      "altarFlower": "30만원",
+      "totalEst": "360만원 ~ 480만원"
     }
   }
 ]
