@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { ShieldCheck, MapPin, Map, CalendarCheck, PhoneCall, Sparkles, Filter, Calculator } from 'lucide-react';
-import facilitiesData from '../mockData/facilities.json';
+import { ShieldCheck, MapPin, Map, CalendarCheck, PhoneCall, Sparkles, Filter, Calculator, MessageSquare } from 'lucide-react';
+import { BACKEND_URL } from '../config';
 import { KakaoMapModal } from '../components/KakaoMapModal';
 import { PriceCompareModal } from '../components/facility/PriceCompareModal';
 import { BookingModal } from '../components/facility/BookingModal';
 import { EmergencyModal } from '../components/facility/EmergencyModal';
+import { FacilityReviewModal } from '../components/facility/FacilityReviewModal';
 import { HouseLeafIcon } from '../components/MenuIcons';
 
 interface FacilityPageProps {
@@ -13,10 +14,18 @@ interface FacilityPageProps {
 }
 
 export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenLogin }) => {
+  // 시설 목록 (백엔드 API 연동, 서버사이드 필터링 + 페이지네이션)
+  const [facilities, setFacilities] = useState<any[]>([]);
+  const [totalCount, setTotalCount] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
+  const [page, setPage] = useState(1);
+  const PAGE_SIZE = 30;
+
   // 모달 상태
   const [selectedMapFacility, setSelectedMapFacility] = useState<any | null>(null);
   const [selectedPriceFacility, setSelectedPriceFacility] = useState<any | null>(null);
-  const [bookingFacilityName, setBookingFacilityName] = useState<string | null>(null);
+  const [bookingFacility, setBookingFacility] = useState<any | null>(null);
+  const [reviewFacility, setReviewFacility] = useState<any | null>(null);
 
   // 긴급 출동 타임라인 모달 상태
   const [showEmergencyModal, setShowEmergencyModal] = useState(false);
@@ -31,6 +40,54 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
   const [religion, setReligion] = useState('전체');
   const [guestCount, setGuestCount] = useState('전체');
   const [budget, setBudget] = useState('전체');
+
+  // 필터/페이지 변경 시 서버에 조건 그대로 위임해서 재조회
+  useEffect(() => {
+    const params = new URLSearchParams();
+    if (category !== '전체') params.set('category', category);
+    if (region !== '전체') params.set('region', region);
+    if (religion !== '전체') params.set('religion', religion);
+    if (guestCount !== '전체') params.set('guests', guestCount);
+    if (budget !== '전체') params.set('budget', budget);
+    if (lbsRadius !== '전체') params.set('radius', lbsRadius);
+    if (userLocation) {
+      params.set('lat', String(userLocation.lat));
+      params.set('lng', String(userLocation.lng));
+    }
+    params.set('page', String(page));
+    params.set('pageSize', String(PAGE_SIZE));
+
+    fetch(`${BACKEND_URL}/api/facilities?${params.toString()}`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.status === 'success') {
+          setFacilities(data.data);
+          setTotalCount(data.count);
+          setTotalPages(data.totalPages);
+        }
+      })
+      .catch(() => {
+        // 조회 실패 시 빈 목록으로 유지 (필터 UI는 정상 노출)
+      });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [category, region, religion, guestCount, budget, lbsRadius, userLocation, page]);
+
+  // 필터 select의 onChange에서 값 변경과 함께 page를 1로 리셋해주는 헬퍼
+  const withPageReset = (setter: (value: string) => void) => (value: string) => {
+    setter(value);
+    setPage(1);
+  };
+  const handleCategoryChange = withPageReset(setCategory);
+  const handleRegionChange = withPageReset(setRegion);
+  const handleReligionChange = withPageReset(setReligion);
+  const handleGuestCountChange = withPageReset(setGuestCount);
+  const handleBudgetChange = withPageReset(setBudget);
+  const handleLbsRadiusChange = withPageReset(setLbsRadius);
+
+  const goToPage = (p: number) => {
+    setPage(p);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   // 사용자의 현위치 자동 감지 (Geolocation API)
   useEffect(() => {
@@ -52,42 +109,11 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
     }
   }, []);
 
-  // 거리 계산 함수 (Haversine formula)
-  const calculateDist = (lat1: number, lon1: number, lat2: number, lon2: number) => {
-    const R = 6371;
-    const dLat = ((lat2 - lat1) * Math.PI) / 180;
-    const dLon = ((lon2 - lon1) * Math.PI) / 180;
-    const a =
-      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-      Math.cos((lat1 * Math.PI) / 180) * Math.cos((lat2 * Math.PI) / 180) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    return R * c;
+  // 리뷰 작성 완료 시 해당 시설의 리뷰/평점을 목록 + 열려있는 리뷰 모달에 즉시 반영
+  const handleReviewSubmitted = (updatedFacility: any) => {
+    setFacilities((prev) => prev.map((f) => (f.id === updatedFacility.id ? updatedFacility : f)));
+    setReviewFacility(updatedFacility);
   };
-
-  const facilities = facilitiesData;
-
-  // 필터링 적용
-  const filteredFacilities = facilities.filter((f) => {
-    if (category !== '전체' && f.type !== category) return false;
-    if (budget === '500이하' && f.priceValue > 500) return false;
-    if (budget === '500_1000' && (f.priceValue < 500 || f.priceValue > 1000)) return false;
-    if (budget === '1000이상' && f.priceValue < 1000) return false;
-    if (region !== '전체') {
-      const matchKey = region.split('/')[0].trim();
-      if (!f.location.includes(matchKey)) return false;
-    }
-    if (religion !== '전체' && !f.religion.includes(religion) && !f.religion.includes('전체')) return false;
-    if (guestCount !== '전체' && f.guests !== guestCount) return false;
-
-    // LBS 반경 거리 필터링
-    if (lbsRadius !== '전체' && userLocation && f.lat && f.lng) {
-      const dist = calculateDist(userLocation.lat, userLocation.lng, f.lat, f.lng);
-      const maxDist = parseInt(lbsRadius.replace('km', ''), 10);
-      if (dist > maxDist) return false;
-    }
-
-    return true;
-  });
 
   return (
     <div className="container" style={{ paddingBottom: '4rem' }}>
@@ -165,7 +191,7 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
           {/* LBS 반경 거리 */}
           <div>
             <label className="form-label">📍 내 위치 기준 반경</label>
-            <select value={lbsRadius} onChange={(e) => setLbsRadius(e.target.value)} className="form-select">
+            <select value={lbsRadius} onChange={(e) => handleLbsRadiusChange(e.target.value)} className="form-select">
               <option value="전체">전체 반경 (전국)</option>
               <option value="5km">반경 5km 이내</option>
               <option value="10km">반경 10km 이내</option>
@@ -175,7 +201,7 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
 
           <div>
             <label className="form-label">구분</label>
-            <select value={category} onChange={(e) => setCategory(e.target.value)} className="form-select">
+            <select value={category} onChange={(e) => handleCategoryChange(e.target.value)} className="form-select">
               <option value="전체">전체 (장례식장/묘지)</option>
               <option value="장례식장">장례식장</option>
               <option value="묘지/수목장">묘지/봉안당/수목장</option>
@@ -184,7 +210,7 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
 
           <div>
             <label className="form-label">예산 범위</label>
-            <select value={budget} onChange={(e) => setBudget(e.target.value)} className="form-select">
+            <select value={budget} onChange={(e) => handleBudgetChange(e.target.value)} className="form-select">
               <option value="전체">전체 예산</option>
               <option value="500이하">500만원 이하</option>
               <option value="500_1000">500만원 ~ 1,000만원</option>
@@ -194,7 +220,7 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
 
           <div>
             <label className="form-label">지역 선택</label>
-            <select value={region} onChange={(e) => setRegion(e.target.value)} className="form-select">
+            <select value={region} onChange={(e) => handleRegionChange(e.target.value)} className="form-select">
               <option value="전체">전체 지역</option>
               <option value="서울">서울</option>
               <option value="경기">경기/인천</option>
@@ -208,7 +234,7 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
 
           <div>
             <label className="form-label">종교 선택</label>
-            <select value={religion} onChange={(e) => setReligion(e.target.value)} className="form-select">
+            <select value={religion} onChange={(e) => handleReligionChange(e.target.value)} className="form-select">
               <option value="전체">전체 종교</option>
               <option value="무교">무교 (일반)</option>
               <option value="기독교">기독교</option>
@@ -219,7 +245,7 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
 
           <div>
             <label className="form-label">예상 하객 수</label>
-            <select value={guestCount} onChange={(e) => setGuestCount(e.target.value)} className="form-select">
+            <select value={guestCount} onChange={(e) => handleGuestCountChange(e.target.value)} className="form-select">
               <option value="전체">전체 규모</option>
               <option value="100명 미만">100명 미만 (가족장)</option>
               <option value="100~300명">100명 ~ 300명</option>
@@ -232,14 +258,13 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
       {/* 시설 카드 목록 */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
         <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem', margin: 0 }}>
-          총 <strong style={{ color: 'var(--primary-color)' }}>{filteredFacilities.length}개</strong> 시설이 검색되었습니다.
+          총 <strong style={{ color: 'var(--primary-color)' }}>{totalCount}개</strong> 시설이 검색되었습니다. ({page}/{totalPages} 페이지)
         </p>
       </div>
 
       <div className="grid">
-        {filteredFacilities.map((item) => {
-          // 사용자 위치와의 거리 계산
-          const distKm = userLocation && item.lat && item.lng ? calculateDist(userLocation.lat, userLocation.lng, item.lat, item.lng).toFixed(1) : null;
+        {facilities.map((item) => {
+          const distKm = typeof item.distanceKm === 'number' ? item.distanceKm.toFixed(1) : null;
 
           return (
             <div key={item.id} className="card" style={{ display: 'flex', flexDirection: 'column' }}>
@@ -254,7 +279,7 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
                     </span>
                   )}
                 </div>
-                <span style={{ fontWeight: 'bold', color: 'var(--point-color)' }}>★ {item.rating}</span>
+                <span style={{ fontWeight: 'bold', color: 'var(--point-color)' }}>★ {item.effectiveRating ?? item.rating}</span>
               </div>
 
               <h3 style={{ fontSize: '1.25rem', color: 'var(--primary-color)', marginBottom: '0.4rem', fontWeight: 700 }}>{item.name}</h3>
@@ -274,7 +299,7 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
 
               {/* 태그 목록 */}
               <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap', marginBottom: '1.2rem' }}>
-                {item.tags.map((tag, idx) => (
+                {item.tags.map((tag: string, idx: number) => (
                   <span key={idx} style={{ fontSize: '0.75rem', backgroundColor: '#EAE5DC', padding: '0.2rem 0.5rem', borderRadius: '4px', color: '#444' }}>
                     #{tag}
                   </span>
@@ -283,6 +308,31 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
 
               {/* 액션 버튼 그룹 */}
               <div style={{ marginTop: 'auto', display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
+                  {/* 전화 문의 버튼 (실데이터 수집된 시설만 노출) */}
+                  {item.phone && (
+                    <a
+                      href={`tel:${item.phone}`}
+                      className="btn"
+                      style={{
+                        flex: '1 1 0',
+                        minWidth: '100px',
+                        backgroundColor: '#ECFDF5',
+                        color: '#059669',
+                        fontSize: '0.85rem',
+                        padding: '0.6rem 0.4rem',
+                        whiteSpace: 'nowrap',
+                        gap: '0.3rem',
+                        fontWeight: 700,
+                        textDecoration: 'none',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                      }}
+                    >
+                      <PhoneCall size={16} /> 전화 문의
+                    </a>
+                  )}
+
                   {/* 카카오맵 지도 버튼 */}
                   <button
                     onClick={() => setSelectedMapFacility(item)}
@@ -323,7 +373,7 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
 
                   {/* 답사 예약 버튼 */}
                   <button
-                    onClick={() => setBookingFacilityName(item.name)}
+                    onClick={() => setBookingFacility(item)}
                     className="btn btn-primary"
                     style={{
                       flex: '1 1 0',
@@ -337,13 +387,82 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
                   >
                     <CalendarCheck size={16} /> 답사 예약
                   </button>
+
+                  {/* 리뷰 버튼 */}
+                  <button
+                    onClick={() => setReviewFacility(item)}
+                    className="btn"
+                    style={{
+                      flex: '1 1 0',
+                      minWidth: '100px',
+                      backgroundColor: 'var(--card-bg)',
+                      color: 'var(--primary-color)',
+                      border: '1px solid var(--border-color)',
+                      fontSize: '0.85rem',
+                      padding: '0.6rem 0.4rem',
+                      whiteSpace: 'nowrap',
+                      gap: '0.3rem',
+                      fontWeight: 700
+                    }}
+                  >
+                    <MessageSquare size={16} /> 리뷰 {item.reviews?.length ? `(${item.reviews.length})` : ''}
+                  </button>
               </div>
             </div>
           );
         })}
       </div>
 
-
+      {/* 페이지네이션 */}
+      {totalPages > 1 && (
+        <div style={{ display: 'flex', justifyContent: 'center', gap: '0.4rem', marginTop: '2rem', flexWrap: 'wrap' }}>
+          <button
+            onClick={() => goToPage(Math.max(1, page - 1))}
+            disabled={page === 1}
+            className="btn"
+            style={{ padding: '0.5rem 0.9rem', backgroundColor: 'var(--card-bg)', border: '1px solid var(--border-color)', color: 'var(--primary-color)', opacity: page === 1 ? 0.5 : 1 }}
+          >
+            이전
+          </button>
+          {Array.from({ length: totalPages }, (_, i) => i + 1)
+            .filter((p) => Math.abs(p - page) <= 2 || p === 1 || p === totalPages)
+            .reduce<number[]>((acc, p) => {
+              if (acc.length > 0 && p - acc[acc.length - 1] > 1) acc.push(-1); // 생략 표시(...)용 구분자
+              acc.push(p);
+              return acc;
+            }, [])
+            .map((p, idx) =>
+              p === -1 ? (
+                <span key={`ellipsis-${idx}`} style={{ padding: '0.5rem 0.3rem', color: 'var(--text-muted)' }}>
+                  …
+                </span>
+              ) : (
+                <button
+                  key={p}
+                  onClick={() => goToPage(p)}
+                  className="btn"
+                  style={{
+                    padding: '0.5rem 0.9rem',
+                    backgroundColor: p === page ? 'var(--primary-color)' : 'var(--card-bg)',
+                    color: p === page ? '#FFFFFF' : 'var(--primary-color)',
+                    border: '1px solid var(--border-color)',
+                    fontWeight: p === page ? 700 : 400
+                  }}
+                >
+                  {p}
+                </button>
+              )
+            )}
+          <button
+            onClick={() => goToPage(Math.min(totalPages, page + 1))}
+            disabled={page === totalPages}
+            className="btn"
+            style={{ padding: '0.5rem 0.9rem', backgroundColor: 'var(--card-bg)', border: '1px solid var(--border-color)', color: 'var(--primary-color)', opacity: page === totalPages ? 0.5 : 1 }}
+          >
+            다음
+          </button>
+        </div>
+      )}
 
       {/* 카카오맵 LBS 모달 */}
       {selectedMapFacility && (
@@ -359,17 +478,29 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
         <PriceCompareModal
           facility={selectedPriceFacility}
           onClose={() => setSelectedPriceFacility(null)}
-          onOpenBooking={() => setBookingFacilityName(selectedPriceFacility.name)}
+          onOpenBooking={() => setBookingFacility(selectedPriceFacility)}
         />
       )}
 
       {/* 답사 예약 모달 */}
-      {bookingFacilityName && (
+      {bookingFacility && (
         <BookingModal
-          facilityName={bookingFacilityName}
+          facilityId={bookingFacility.id}
+          facilityName={bookingFacility.name}
           currentUser={currentUser}
           onOpenLogin={onOpenLogin}
-          onClose={() => setBookingFacilityName(null)}
+          onClose={() => setBookingFacility(null)}
+        />
+      )}
+
+      {/* 시설 리뷰 모달 */}
+      {reviewFacility && (
+        <FacilityReviewModal
+          facility={reviewFacility}
+          currentUser={currentUser}
+          onOpenLogin={onOpenLogin}
+          onClose={() => setReviewFacility(null)}
+          onReviewSubmitted={handleReviewSubmitted}
         />
       )}
 

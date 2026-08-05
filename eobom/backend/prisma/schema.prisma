@@ -8,15 +8,17 @@ generator client {
 }
 
 model User {
-  id           String          @id @default(uuid())
-  email        String?         @unique // 유저 대표 이메일 (유니크)
-  name         String          // 유저 이름 / 닉네임
-  profileImage String?         // 대표 프로필 이미지 URL
-  role         String          @default("USER") // 'USER', 'EXPERT', 'ADMIN'
-  refreshToken String?         // JWT Refresh Token
-  accounts     SocialAccount[] // 연동된 소셜 계정 목록
-  createdAt    DateTime        @default(now())
-  updatedAt    DateTime        @updatedAt
+  id               String            @id @default(uuid())
+  email            String?           @unique // 유저 대표 이메일 (유니크)
+  name             String            // 유저 이름 / 닉네임
+  profileImage     String?           // 대표 프로필 이미지 URL
+  role             String            @default("USER") // 'USER', 'EXPERT', 'ADMIN'
+  refreshToken     String?           // JWT Refresh Token
+  accounts         SocialAccount[]   // 연동된 소셜 계정 목록
+  facilityReviews  FacilityReview[]
+  facilityBookings FacilityBooking[]
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
 }
 
 model SocialAccount {
@@ -31,4 +33,60 @@ model SocialAccount {
                        // 재로그인 시 이 provider+providerId를 다시 인식해 같은 계정으로 복구하기 위해 하드 삭제하지 않음
 
   @@unique([provider, providerId])
+}
+
+// 시설 마스터 (장례식장 / 묘지·수목장)
+model Facility {
+  id             String            @id
+  name           String
+  type           String            // '장례식장' | '묘지/수목장'
+  location       String            // 도로명 주소
+  lat            Float
+  lng            Float
+  phone          String?           // 실데이터 수집(카카오/공공 CSV) 시 채워지는 연락처
+  kakaoPlaceId   String?           @unique // 카카오 로컬 API로 수집한 장례식장의 장소ID (재동기화 dedup용)
+  price          String            // 대표 가격 표시 문자열 (예: "950만원~")
+  priceValue     Int               // 예산 필터용 숫자값
+  rating         Float             @default(0.0) // 초기 시딩값(공시 만족도 기준) — 리뷰 5건 미만일 때 노출값으로 사용
+  religion       String
+  guests         String
+  isPartner      Boolean           @default(false)
+  tags           String[]          @default([])
+  amenities      String[]          @default([])
+  vrImages       Json?
+  detailedPrices Json?             // {facilityFee, casketFee, shroudFee, mourningDress, altarFlower, totalEst}
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+
+  reviews        FacilityReview[]
+  bookings       FacilityBooking[]
+}
+
+// 시설 리뷰
+model FacilityReview {
+  id         String   @id @default(uuid())
+  facilityId String
+  facility   Facility @relation(fields: [facilityId], references: [id], onDelete: Cascade)
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  rating     Float
+  content    String
+  createdAt  DateTime @default(now())
+
+  @@unique([facilityId, userId]) // 1인 1리뷰 (실제 답사완료 인증 체계 없어 로그인 유저 단위로 단순화)
+}
+
+// 답사 예약
+model FacilityBooking {
+  id           String   @id @default(uuid())
+  facilityId   String
+  facility     Facility @relation(fields: [facilityId], references: [id], onDelete: Cascade)
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  bookingDate  DateTime
+  bookingTime  String
+  bookingCount Int
+  bookingNote  String?
+  status       String   @default("PENDING") // PENDING | CONFIRMED | CANCELLED
+  createdAt    DateTime @default(now())
 }

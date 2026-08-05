@@ -22,7 +22,7 @@ interface LinkStatePayload extends jwt.JwtPayload {
 }
 
 // 헬퍼: Authorization 헤더의 Bearer 토큰 검증 (실패 시 null)
-const verifyBearerToken = (req: Request): (jwt.JwtPayload & { id: string }) | null => {
+export const verifyBearerToken = (req: Request): (jwt.JwtPayload & { id: string }) | null => {
   const authHeader = req.headers.authorization;
   if (!authHeader || !authHeader.startsWith('Bearer ')) return null;
   try {

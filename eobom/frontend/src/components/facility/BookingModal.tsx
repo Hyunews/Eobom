@@ -1,28 +1,56 @@
 import React, { useState } from 'react';
 import { X, CalendarCheck } from 'lucide-react';
+import { BACKEND_URL } from '../../config';
 
 interface BookingModalProps {
+  facilityId: string;
   facilityName: string;
   currentUser?: string | null;
   onOpenLogin?: () => void;
   onClose: () => void;
 }
 
-export const BookingModal: React.FC<BookingModalProps> = ({ facilityName, currentUser, onOpenLogin, onClose }) => {
+export const BookingModal: React.FC<BookingModalProps> = ({ facilityId, facilityName, currentUser, onOpenLogin, onClose }) => {
   const [bookingDate, setBookingDate] = useState('');
   const [bookingTime, setBookingTime] = useState('14:00');
   const [bookingCount, setBookingCount] = useState('2');
   const [bookingNote, setBookingNote] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!currentUser) {
       alert('⚠️ 답사 예약은 로그인 후 이용하실 수 있습니다.');
       onOpenLogin?.();
       return;
     }
-    alert(`🎉 [${facilityName}] 답사 예약 신청이 완료되었습니다!\n\n일시: ${bookingDate} ${bookingTime}\n인원: ${bookingCount}명\n배정된 웰다잉 전문 코디네이터가 30분 이내 해피콜을 드립니다.`);
-    onClose();
+
+    const token = localStorage.getItem('k_ending_token');
+    if (!token) {
+      alert('⚠️ 답사 예약은 로그인 후 이용하실 수 있습니다.');
+      onOpenLogin?.();
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/facilities/${facilityId}/bookings`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ bookingDate, bookingTime, bookingCount: Number(bookingCount), bookingNote }),
+      });
+      const data = await res.json();
+      if (!res.ok || data.status !== 'success') {
+        alert(data.message || '예약 신청에 실패했습니다.');
+        return;
+      }
+      alert(`🎉 [${facilityName}] 답사 예약 신청이 완료되었습니다!\n\n일시: ${bookingDate} ${bookingTime}\n인원: ${bookingCount}명\n배정된 웰다잉 전문 코디네이터가 30분 이내 해피콜을 드립니다.`);
+      onClose();
+    } catch (e) {
+      alert('서버와 통신 중 오류가 발생했습니다.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -117,8 +145,8 @@ export const BookingModal: React.FC<BookingModalProps> = ({ facilityName, curren
             <button type="button" onClick={onClose} className="btn" style={{ flex: 1, backgroundColor: '#E2E8F0' }}>
               취소
             </button>
-            <button type="submit" className="btn btn-primary" style={{ flex: 1 }}>
-              예약 신청 완료
+            <button type="submit" disabled={isSubmitting} className="btn btn-primary" style={{ flex: 1 }}>
+              {isSubmitting ? '신청 중...' : '예약 신청 완료'}
             </button>
           </div>
         </form>
