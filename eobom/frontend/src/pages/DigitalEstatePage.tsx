@@ -78,8 +78,8 @@ export const DigitalEstatePage: React.FC<DigitalEstatePageProps> = ({ currentUse
   return (
     <div className="container">
       <div style={{ marginBottom: '2rem' }}>
-        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', backgroundColor: '#FEF3C7', color: '#D97706', padding: '0.3rem 0.8rem', borderRadius: '16px', fontSize: '0.85rem', fontWeight: 700, marginBottom: '0.6rem' }}>
-          <PhoneHeartIcon size={18} color="#D97706" /> 스마트폰 &amp; 하트 | SNS / 클라우드 영구 삭제 및 유품 정리 원스톱
+        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', backgroundColor: '#FEF3C7', color: 'var(--accent-gold)', padding: '0.3rem 0.8rem', borderRadius: '16px', fontSize: '0.85rem', fontWeight: 700, marginBottom: '0.6rem' }}>
+          <PhoneHeartIcon size={18} color="var(--accent-gold)" /> 스마트폰 &amp; 하트 | SNS / 클라우드 영구 삭제 및 유품 정리 원스톱
         </div>
         <h1 style={{ color: 'var(--primary-color)', fontSize: '2rem', display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0 }}>
           <PhoneHeartIcon color="var(--accent-gold)" size={32} /> 디지털 유품 및 현물 정리 서비스

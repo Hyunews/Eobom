@@ -98,7 +98,7 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
             <h3 style={{ color: 'var(--primary-color)', margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               <FileCheck color="var(--point-color)" /> 사전 연명의료 & 장례 희망 의향서
             </h3>
-            <span style={{ fontSize: '0.8rem', backgroundColor: '#E3F2FD', color: '#0D47A1', padding: '0.2rem 0.6rem', borderRadius: '12px', fontWeight: 600 }}>
+            <span style={{ fontSize: '0.8rem', backgroundColor: 'rgba(26, 43, 76, 0.08)', color: 'var(--primary-color)', padding: '0.2rem 0.6rem', borderRadius: '12px', fontWeight: 600 }}>
               🏥 생전/응급 시 대리인 즉시 열람 가능
             </span>
           </div>
@@ -154,7 +154,7 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
           </form>
 
           {savedSuccess && (
-            <div style={{ marginTop: '1rem', padding: '1rem', backgroundColor: '#D4EDDA', color: '#155724', borderRadius: '8px', fontSize: '0.9rem' }}>
+            <div style={{ marginTop: '1rem', padding: '1rem', backgroundColor: 'rgba(91, 112, 101, 0.12)', color: 'var(--point-color)', borderRadius: '8px', fontSize: '0.9rem' }}>
               🔒 사전 연명의료 의향서가 저장되었으며, 국립연명의료관리기관 DB 호환 모바일 QR카드가 준비되었습니다.
             </div>
           )}

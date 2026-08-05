@@ -105,7 +105,7 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
         }}
       >
         <div style={{ position: 'relative', zIndex: 2, maxWidth: '750px' }}>
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', backgroundColor: 'rgba(217, 119, 6, 0.25)', color: 'var(--accent-gold)', padding: '0.4rem 0.9rem', borderRadius: '20px', fontSize: '0.85rem', fontWeight: 700, marginBottom: '1rem' }}>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', backgroundColor: 'rgba(212, 163, 89, 0.25)', color: 'var(--accent-gold)', padding: '0.4rem 0.9rem', borderRadius: '20px', fontSize: '0.85rem', fontWeight: 700, marginBottom: '1rem' }}>
             <HouseLeafIcon size={18} color="var(--accent-gold)" /> 집 &amp; 나뭇잎 | 봉안당·수목장 맞춤 검색 및 장례식장 맞춤 매칭
           </div>
           <h1 style={{ fontSize: '2.3rem', fontWeight: 800, marginBottom: '0.8rem', color: '#FFFFFF', lineHeight: '1.2' }}>
@@ -249,7 +249,7 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
                     {item.type}
                   </span>
                   {distKm && (
-                    <span style={{ fontSize: '0.75rem', backgroundColor: '#FEF3C7', color: '#D97706', padding: '0.25rem 0.5rem', borderRadius: '6px', fontWeight: 700 }}>
+                    <span style={{ fontSize: '0.75rem', backgroundColor: '#FEF3C7', color: 'var(--accent-gold)', padding: '0.25rem 0.5rem', borderRadius: '6px', fontWeight: 700 }}>
                       📍 {distKm} km
                     </span>
                   )}

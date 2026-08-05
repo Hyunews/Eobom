@@ -1,15 +1,16 @@
 import React from 'react';
-import { UserCheck, LogIn, LogOut } from 'lucide-react';
+import { UserCheck, LogIn, LogOut, Settings } from 'lucide-react';
 import { EobomLogo } from './EobomLogo';
 
 interface HeaderProps {
   setActiveTab: (tab: string) => void;
   onOpenLogin: () => void;
+  onOpenAccountSettings: () => void;
   currentUser: string | null;
   onLogout: () => void;
 }
 
-export const Header: React.FC<HeaderProps> = ({ setActiveTab, onOpenLogin, currentUser, onLogout }) => {
+export const Header: React.FC<HeaderProps> = ({ setActiveTab, onOpenLogin, onOpenAccountSettings, currentUser, onLogout }) => {
   return (
     <header style={{
       backgroundColor: 'var(--primary-color)',
@@ -41,18 +42,39 @@ export const Header: React.FC<HeaderProps> = ({ setActiveTab, onOpenLogin, curre
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
           {currentUser ? (
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-              <span style={{
-                fontSize: '0.9rem',
-                backgroundColor: 'rgba(255,255,255,0.15)',
-                padding: '0.4rem 0.8rem',
-                borderRadius: '20px',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.4rem'
-              }}>
+              <span
+                onClick={() => setActiveTab('mypage')}
+                title="마이페이지"
+                style={{
+                  fontSize: '0.9rem',
+                  backgroundColor: 'rgba(255,255,255,0.15)',
+                  padding: '0.4rem 0.8rem',
+                  borderRadius: '20px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.4rem',
+                  cursor: 'pointer'
+                }}>
                 <UserCheck size={16} color="var(--point-light)" />
                 {currentUser}님
               </span>
+              <button
+                onClick={onOpenAccountSettings}
+                style={{
+                  backgroundColor: 'transparent',
+                  color: '#DFDCD7',
+                  border: '1px solid rgba(255,255,255,0.3)',
+                  borderRadius: '6px',
+                  padding: '0.4rem 0.8rem',
+                  fontSize: '0.85rem',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.3rem'
+                }}
+              >
+                <Settings size={14} /> 계정 설정
+              </button>
               <button
                 onClick={onLogout}
                 style={{

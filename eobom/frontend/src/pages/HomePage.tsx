@@ -12,6 +12,8 @@ interface HomePageProps {
 export const HomePage: React.FC<HomePageProps> = ({ setActiveTab }) => {
   const [activeSection, setActiveSection] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
+  const activeSectionRef = useRef(0);
+  const isWheelScrollingRef = useRef(false);
 
   const sections = [
     { id: 'hero', title: '이어봄 브랜드', icon: Sparkles },
@@ -61,6 +63,40 @@ export const HomePage: React.FC<HomePageProps> = ({ setActiveTab }) => {
 
     container.addEventListener('scroll', handleScroll, { passive: true });
     return () => container.removeEventListener('scroll', handleScroll);
+  }, [sections.length]);
+
+  // activeSection의 최신값을 휠 이벤트 핸들러(마운트 시 1회만 등록)에서 항상 최신으로 읽기 위한 ref 동기화
+  useEffect(() => {
+    activeSectionRef.current = activeSection;
+  }, [activeSection]);
+
+  // 마우스 휠 한 번 = 섹션 한 칸 이동 (네이티브 scroll-snap은 여러 번 굴려야 겨우 스냅되는 둔감한 반응이라, 휠 델타를 직접 가로채서 즉시 다음/이전 섹션으로 이동시킴)
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const handleWheel = (e: WheelEvent) => {
+      e.preventDefault();
+      if (isWheelScrollingRef.current) return;
+
+      const direction = e.deltaY > 0 ? 1 : -1;
+      const nextIndex = activeSectionRef.current + direction;
+      if (nextIndex < 0 || nextIndex >= sections.length) return;
+
+      isWheelScrollingRef.current = true;
+      activeSectionRef.current = nextIndex;
+      setActiveSection(nextIndex);
+      container.scrollTo({ top: nextIndex * container.clientHeight, behavior: 'smooth' });
+
+      // 트랙패드는 한 번의 스와이프에도 휠 이벤트가 연속으로 여러 번 발생하므로,
+      // 전환 애니메이션이 끝날 때까지 잠깐 잠가서 한 제스처에 섹션이 여러 칸 튀는 것을 방지
+      window.setTimeout(() => {
+        isWheelScrollingRef.current = false;
+      }, 700);
+    };
+
+    container.addEventListener('wheel', handleWheel, { passive: false });
+    return () => container.removeEventListener('wheel', handleWheel);
   }, [sections.length]);
 
   const scrollToSection = (index: number) => {
@@ -302,12 +338,12 @@ export const HomePage: React.FC<HomePageProps> = ({ setActiveTab }) => {
         >
           <div style={{ maxWidth: '1200px', width: '100%', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '3rem', alignItems: 'center' }}>
             <div>
-              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', backgroundColor: '#FEF3C7', padding: '0.4rem 1rem', borderRadius: '20px', fontSize: '0.85rem', color: '#D97706', fontWeight: 800, marginBottom: '1.2rem' }}>
-                <HandScalesIcon size={20} color="#D97706" /> 02. 상속 · 법률 케어
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', backgroundColor: '#FEF3C7', padding: '0.4rem 1rem', borderRadius: '20px', fontSize: '0.85rem', color: 'var(--accent-gold)', fontWeight: 800, marginBottom: '1.2rem' }}>
+                <HandScalesIcon size={20} color="var(--accent-gold)" /> 02. 상속 · 법률 케어
               </div>
               <h2 style={{ fontSize: '2.5rem', fontWeight: 800, color: '#1A2B4C', fontFamily: "'KoPub World Batang', serif", marginBottom: '1.2rem', lineHeight: 1.25 }}>
                 복잡하고 막막한 상속세<br />
-                <span style={{ color: '#D97706' }}>전문가가 1:1 케어합니다</span>
+                <span style={{ color: 'var(--accent-gold)' }}>전문가가 1:1 케어합니다</span>
               </h2>
               <p style={{ fontSize: '1.1rem', color: '#6C7A89', lineHeight: 1.7, marginBottom: '2rem' }}>
                 상속세 자동 시뮬레이터로 공제액을 즉시 계산하고, 분야별 검증된 변호사·세무사와의 비대면 상담을 예약하세요.
@@ -320,14 +356,14 @@ export const HomePage: React.FC<HomePageProps> = ({ setActiveTab }) => {
               <button
                 onClick={() => setActiveTab?.('counseling')}
                 className="btn btn-primary"
-                style={{ backgroundColor: '#D97706', padding: '1rem 2.2rem', fontSize: '1.05rem', borderRadius: '16px', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '0.6rem' }}
+                style={{ backgroundColor: 'var(--accent-gold)', padding: '1rem 2.2rem', fontSize: '1.05rem', borderRadius: '16px', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '0.6rem' }}
               >
                 상속 · 법률 케어 이동하기 <ArrowRight size={18} />
               </button>
             </div>
-            <div style={{ backgroundColor: '#FFFFFF', padding: '2.5rem', borderRadius: '24px', boxShadow: '0 12px 35px rgba(217,119,6,0.1)', border: '2px solid #D97706' }}>
+            <div style={{ backgroundColor: '#FFFFFF', padding: '2.5rem', borderRadius: '24px', boxShadow: '0 12px 35px rgba(212,163,89,0.1)', border: '2px solid var(--accent-gold)' }}>
               <div style={{ width: '64px', height: '64px', backgroundColor: '#FEF3C7', borderRadius: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1.5rem' }}>
-                <HandScalesIcon size={36} color="#D97706" />
+                <HandScalesIcon size={36} color="var(--accent-gold)" />
               </div>
               <h3 style={{ fontSize: '1.4rem', color: '#1A2B4C', fontWeight: 800, marginBottom: '0.8rem' }}>상속세 시뮬레이터 &amp; 1:1 케어</h3>
               <p style={{ color: '#6C7A89', fontSize: '0.95rem', lineHeight: 1.7, margin: 0 }}>
@@ -530,8 +566,8 @@ export const HomePage: React.FC<HomePageProps> = ({ setActiveTab }) => {
               }}
             >
               <div>
-                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', backgroundColor: '#FEF3C7', color: '#D97706', padding: '0.3rem 0.8rem', borderRadius: '16px', fontSize: '0.82rem', fontWeight: 700, marginBottom: '0.5rem' }}>
-                  <Sparkles size={14} color="#D97706" /> 이어봄과 함께하는 존엄하고 따뜻한 준비
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', backgroundColor: '#FEF3C7', color: 'var(--accent-gold)', padding: '0.3rem 0.8rem', borderRadius: '16px', fontSize: '0.82rem', fontWeight: 700, marginBottom: '0.5rem' }}>
+                  <Sparkles size={14} color="var(--accent-gold)" /> 이어봄과 함께하는 존엄하고 따뜻한 준비
                 </div>
                 <h3 style={{ fontSize: '1.4rem', color: '#1A2B4C', fontWeight: 800, margin: 0, fontFamily: "'KoPub World Batang', serif" }}>
                   당신과 사랑하는 가족의 삶의 모든 봄날을 응원합니다
