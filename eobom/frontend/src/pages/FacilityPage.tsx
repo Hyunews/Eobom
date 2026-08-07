@@ -95,18 +95,24 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
 
   // 사용자의 현위치 자동 감지 (Geolocation API) — "선택 안함" 시 되돌아갈 기본 위치로도 보관
   const [detectedLocation, setDetectedLocation] = useState<{ lat: number; lng: number } | null>(null);
+  // 위치 API가 실패해 기본값(서울 서초)으로 대체됐는지 — 이 경우 실제 위치가 아니므로 UI에 반드시 알린다
+  const [isLocationFallback, setIsLocationFallback] = useState(false);
   useEffect(() => {
-    const applyDetected = (loc: { lat: number; lng: number }) => {
+    const applyDetected = (loc: { lat: number; lng: number }, isFallback: boolean) => {
       setUserLocation(loc);
       setDetectedLocation(loc);
+      setIsLocationFallback(isFallback);
     };
-    if (navigator.geolocation) {
+    // Geolocation API는 보안 컨텍스트(HTTPS 또는 localhost)에서만 동작한다.
+    // http://<LAN IP>:5173처럼 암호화 없는 일반 IP로 접속하면 브라우저가 요청 자체를 거부해
+    // 아래 실패 콜백으로 떨어진다 — 코드 버그가 아니라 브라우저 보안 정책이다.
+    if (navigator.geolocation && window.isSecureContext) {
       navigator.geolocation.getCurrentPosition(
-        (pos) => applyDetected({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
-        () => applyDetected({ lat: 37.4925, lng: 127.0078 }) // Default fallback location (서울 서초)
+        (pos) => applyDetected({ lat: pos.coords.latitude, lng: pos.coords.longitude }, false),
+        () => applyDetected({ lat: 37.4925, lng: 127.0078 }, true) // Default fallback location (서울 서초)
       );
     } else {
-      applyDetected({ lat: 37.4925, lng: 127.0078 });
+      applyDetected({ lat: 37.4925, lng: 127.0078 }, true);
     }
   }, []);
 
@@ -166,6 +172,7 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
         return;
       }
       setUserLocation({ lat: data.data.lat, lng: data.data.lng });
+      setIsLocationFallback(false); // 사용자가 직접 지정한 위치이므로 더 이상 기본값이 아님
       setPage(1);
     } catch (e) {
       setLocationError('위치 검색 중 오류가 발생했습니다.');
@@ -226,6 +233,22 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'var(--primary-color)', fontWeight: 700, whiteSpace: 'nowrap' }}>
           <MapPin size={18} color="var(--point-color)" /> 위치: {locationName}
+          {isLocationFallback && (
+            <span
+              title="실제 위치를 확인하지 못해 기본 위치로 표시 중입니다. https 또는 localhost가 아닌 주소에서는 브라우저가 위치 확인을 차단합니다. 아래에서 시/도·시/군/구를 직접 선택해주세요."
+              style={{
+                fontSize: '0.7rem',
+                fontWeight: 700,
+                color: '#92400E',
+                backgroundColor: '#FEF3C7',
+                padding: '0.15rem 0.5rem',
+                borderRadius: '10px',
+                cursor: 'help'
+              }}
+            >
+              ⚠ 실제 위치 아님(기본값)
+            </span>
+          )}
         </div>
         <div style={{ display: 'flex', gap: '0.8rem' }}>
           <select value={locationProvince} onChange={(e) => handleProvinceChange(e.target.value)} className="form-select" style={{ width: '250px' }}>

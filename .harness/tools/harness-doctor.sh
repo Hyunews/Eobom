@@ -35,7 +35,7 @@ echo
 # ── 1. 부팅 파일 존재 + 용량 예산 ────────────────────────────────
 echo "1. 부팅 파일 (매 세션 로드, 합계 ≤ 11KB)"
 BOOT_TOTAL=0
-for f in "$HARNESS/AGENTS.md" "$HARNESS/memory/context.md"; do
+for f in "$HARNESS/AGENTS.md" "$HARNESS/memory/context.md" "$HARNESS/memory/pending-approvals.md"; do
   CHECKS=$((CHECKS + 1))
   if [ ! -f "$f" ]; then
     fail "없음: ${f#$ROOT/}"
@@ -136,6 +136,59 @@ if [ -f "$INDEX" ]; then
 else
   fail "docs/00_DOCS_INDEX.md 없음"
   CHECKS=$((CHECKS + 1))
+fi
+echo
+
+# ── 5-1. "다음 할 일" 에이전트 태그 ──────────────────────────────
+# 사용자가 이 한 줄로 어느 창을 열지 판단한다. 태그가 빠지면 전환 판단이 불가능해져
+# 구조 전체가 무력화되므로 실패 처리한다. (2026-08-07 실제로 태그가 지워진 사고 있었음)
+echo "5-1. context.md \"다음 할 일\" 에이전트 태그"
+CTXF="$HARNESS/memory/context.md"
+CHECKS=$((CHECKS + 1))
+if [ -f "$CTXF" ]; then
+  NEXT_BLOCK="$(sed -n '/^## ▶ 다음 할 일/,/^## /p' "$CTXF" | grep -v '^<!--' | grep -v '^\s*$')"
+  if [ -z "$NEXT_BLOCK" ]; then
+    fail "\"▶ 다음 할 일\" 섹션이 비어있음"
+  elif printf '%s' "$NEXT_BLOCK" | grep -qE '\[(Claude|Gemini)\]'; then
+    ok "에이전트 태그 있음"
+  else
+    fail "\"다음 할 일\"에 [Claude] 또는 [Gemini] 태그 없음 — 사용자가 어느 창을 열지 알 수 없다"
+  fi
+else
+  fail "context.md 없음"
+fi
+echo
+
+# ── 5-2. 승인 대기 항목과 "다음 할 일" 충돌 검사 ─────────────────
+# 2026-08-07, 08-08 두 차례 "docs/13은 대표 컨펌 전이라 착수 금지"라는 경고가
+# context.md 갱신 중 조용히 삭제된 사고가 있었다. pending-approvals.md로 분리한 뒤에도
+# "다음 할 일"이 승인 대기 문서를 직접 가리키면 그 자체로 위험 신호이므로 자동 검사한다.
+echo "5-2. 승인 대기(pending-approvals.md) ↔ \"다음 할 일\" 충돌 검사"
+PENDING="$HARNESS/memory/pending-approvals.md"
+CHECKS=$((CHECKS + 1))
+if [ -f "$PENDING" ]; then
+  PENDING_PATHS="$(grep -oE 'docs/[^ *`]+\.md' "$PENDING" 2>/dev/null | sort -u)"
+  if [ -z "$PENDING_PATHS" ]; then
+    ok "대기 중인 항목 없음"
+  else
+    CONFLICT=0
+    NEXT_TASK="$(sed -n '/^## ▶ 다음 할 일/,/^## /p' "$CTXF" 2>/dev/null | grep -v '^<!--')"
+    while IFS= read -r p; do
+      [ -z "$p" ] && continue
+      if printf '%s' "$NEXT_TASK" | grep -qF "$p"; then
+        fail "\"다음 할 일\"이 승인 대기 중인 $p 를 직접 가리킴 — 사람 승인 없이 착수 위험"
+        CONFLICT=1
+      fi
+    done <<< "$PENDING_PATHS"
+    # context.md가 pending-approvals.md를 아예 언급하지 않으면 그것도 위험(참조 자체가 끊김)
+    if ! grep -q 'pending-approvals' "$CTXF" 2>/dev/null; then
+      fail "context.md가 pending-approvals.md를 전혀 참조하지 않음 — 승인 대기 상태를 놓치기 쉬움"
+      CONFLICT=1
+    fi
+    [ "$CONFLICT" -eq 0 ] && ok "충돌 없음, context.md가 pending-approvals.md 참조 중"
+  fi
+else
+  fail "pending-approvals.md 없음"
 fi
 echo
 

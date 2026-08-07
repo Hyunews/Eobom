@@ -19,7 +19,53 @@ interface PendingSocialLinkPayload extends jwt.JwtPayload {
 interface LinkStatePayload extends jwt.JwtPayload {
   purpose: 'link';
   userId: string;
+  origin?: string;
 }
+
+interface LoginStatePayload extends jwt.JwtPayload {
+  purpose: 'login';
+  origin?: string;
+}
+
+// 로그인/연동 시작 요청(`GET /:provider`, `/:provider/link`)의 Referer로 프론트 오리진을 캡처한다.
+// 콜백 시점(`/:provider/callback`)엔 Referer가 카카오/네이버/구글 도메인이라 그때는 원래 출처를 알 수 없으므로,
+// 반드시 시작 시점에 잡아서 OAuth state에 실어 콜백까지 들고 간다.
+//
+// 보안: Referer를 무조건 신뢰하면 외부 사이트가 우리 로그인 링크를 감싸서 로그인 성공 토큰을
+// 자기 도메인으로 새게 만드는 오픈 리다이렉트가 가능해진다. 그래서 사설 대역(LAN)·localhost +
+// 알려진 프론트 개발 포트로만 범위를 좁힌다. 이 조건에 안 맞으면(=배포 환경 등) undefined를
+// 반환해 resolveFrontendUrl()이 FRONTEND_URL env로 폴백하게 한다.
+const DEV_FRONTEND_PORT = '5173';
+const isTrustedDevHost = (hostname: string): boolean =>
+  hostname === 'localhost' ||
+  hostname === '127.0.0.1' ||
+  /^(10\.|172\.(1[6-9]|2\d|3[01])\.|192\.168\.)/.test(hostname);
+
+export const captureFrontendOrigin = (req: Request): string | undefined => {
+  const referer = req.get('referer');
+  if (!referer) return undefined;
+  try {
+    const url = new URL(referer);
+    if (!isTrustedDevHost(url.hostname)) return undefined;
+    if (url.port && url.port !== DEV_FRONTEND_PORT) return undefined;
+    return url.origin;
+  } catch {
+    return undefined;
+  }
+};
+
+// state에서 프론트 오리진을 복원. 없거나(만료·위조·Referer 없음) 실패하면 기본값(FRONTEND_URL)으로 폴백.
+export const resolveFrontendUrl = (state: unknown): string => {
+  if (typeof state === 'string') {
+    try {
+      const decoded = jwt.verify(state, JWT_SECRET) as LinkStatePayload | LoginStatePayload;
+      if (decoded.origin) return decoded.origin;
+    } catch {
+      // 무시하고 아래 기본값으로 폴백
+    }
+  }
+  return FRONTEND_URL;
+};
 
 // 헬퍼: Authorization 헤더의 Bearer 토큰 검증 (실패 시 null)
 export const verifyBearerToken = (req: Request): (jwt.JwtPayload & { id: string }) | null => {
@@ -47,9 +93,13 @@ export const generateToken = (user: { id: string; name: string; email?: string; 
 };
 
 // 헬퍼: 로그인 성공 시 프론트로 보낼 리다이렉트 URL 생성
-const buildLoginSuccessRedirect = (user: { id: string; name: string; email: string | null }, provider: string) => {
+const buildLoginSuccessRedirect = (
+  user: { id: string; name: string; email: string | null },
+  provider: string,
+  frontendUrl: string
+) => {
   const token = generateToken({ id: user.id, name: user.name, email: user.email ?? undefined, provider });
-  return `${FRONTEND_URL}/#loginSuccess?token=${token}&name=${encodeURIComponent(user.name)}&provider=${provider}&email=${encodeURIComponent(
+  return `${frontendUrl}/#loginSuccess?token=${token}&name=${encodeURIComponent(user.name)}&provider=${provider}&email=${encodeURIComponent(
     user.email || ''
   )}`;
 };
@@ -70,11 +120,11 @@ const generateTempLinkToken = (socialUser: SocialProfile, existingUserId: string
 
 // 마이페이지에서 로그인된 상태로 다른 소셜 계정을 추가 연동하는 경우 처리
 // (OAuth state 파라미터에 서명된 userId를 실어보내 별도 리다이렉트 URI 등록 없이 기존 콜백을 재사용)
-const handleLinkCallback = async (req: Request, res: Response, userId: string) => {
+const handleLinkCallback = async (req: Request, res: Response, userId: string, frontendUrl: string) => {
   const socialUser = req.user as SocialProfile;
 
   if (!socialUser) {
-    return res.redirect(`${FRONTEND_URL}/#mypage?linkError=auth_failed`);
+    return res.redirect(`${frontendUrl}/#mypage?linkError=auth_failed`);
   }
 
   try {
@@ -84,17 +134,17 @@ const handleLinkCallback = async (req: Request, res: Response, userId: string) =
 
     if (existing) {
       if (existing.userId !== userId) {
-        return res.redirect(`${FRONTEND_URL}/#mypage?linkError=already_linked_elsewhere`);
+        return res.redirect(`${frontendUrl}/#mypage?linkError=already_linked_elsewhere`);
       }
       if (!existing.unlinkedAt) {
-        return res.redirect(`${FRONTEND_URL}/#mypage?linkError=already_own`);
+        return res.redirect(`${frontendUrl}/#mypage?linkError=already_own`);
       }
       // 과거 본인이 연동 해제했던 소셜 계정 -> 삭제 후 재생성 대신 그대로 복구
       await prisma.socialAccount.update({
         where: { id: existing.id },
         data: { unlinkedAt: null, email: socialUser.email },
       });
-      return res.redirect(`${FRONTEND_URL}/#mypage?linkSuccess=${socialUser.provider}`);
+      return res.redirect(`${frontendUrl}/#mypage?linkSuccess=${socialUser.provider}`);
     }
 
     await prisma.socialAccount.create({
@@ -106,24 +156,26 @@ const handleLinkCallback = async (req: Request, res: Response, userId: string) =
       },
     });
 
-    return res.redirect(`${FRONTEND_URL}/#mypage?linkSuccess=${socialUser.provider}`);
+    return res.redirect(`${frontendUrl}/#mypage?linkSuccess=${socialUser.provider}`);
   } catch (error) {
     console.error('소셜 계정 추가 연동 실패:', error);
-    return res.redirect(`${FRONTEND_URL}/#mypage?linkError=server_error`);
+    return res.redirect(`${frontendUrl}/#mypage?linkError=server_error`);
   }
 };
 
 // 소셜 로그인 성공 공통 처리 핸들러
 export const handleSocialLoginCallback = async (req: Request, res: Response) => {
   const socialUser = req.user as SocialProfile;
+  const state = req.query.state;
+  // 로그인 시작 시점에 캡처해둔 프론트 오리진(LAN IP 등) 복원 — 없으면 FRONTEND_URL 기본값
+  const frontendUrl = resolveFrontendUrl(state);
 
   // state에 서명된 링크 요청이 실려있으면 "로그인"이 아니라 "기존 로그인 유저에 계정 추가 연동"으로 분기
-  const state = req.query.state;
   if (typeof state === 'string') {
     try {
       const decoded = jwt.verify(state, JWT_SECRET) as LinkStatePayload;
       if (decoded.purpose === 'link' && decoded.userId) {
-        return handleLinkCallback(req, res, decoded.userId);
+        return handleLinkCallback(req, res, decoded.userId, frontendUrl);
       }
     } catch {
       // 링크용 state가 아니면(혹은 만료) 무시하고 일반 로그인 흐름으로 계속 진행
@@ -131,7 +183,7 @@ export const handleSocialLoginCallback = async (req: Request, res: Response) => 
   }
 
   if (!socialUser) {
-    return res.redirect(`${FRONTEND_URL}?loginError=auth_failed`);
+    return res.redirect(`${frontendUrl}?loginError=auth_failed`);
   }
 
   try {
@@ -161,7 +213,7 @@ export const handleSocialLoginCallback = async (req: Request, res: Response) => 
           data: { unlinkedAt: null, email: socialUser.email },
         });
       }
-      return res.redirect(buildLoginSuccessRedirect(user, socialUser.provider));
+      return res.redirect(buildLoginSuccessRedirect(user, socialUser.provider, frontendUrl));
     }
 
     // 2단계: 연동 기록은 없지만 동일 이메일의 기존 유저가 있으면 -> 계정 통합/독립 가입 선택 모달로 유도
@@ -174,7 +226,7 @@ export const handleSocialLoginCallback = async (req: Request, res: Response) => 
       if (existingUserByEmail) {
         const tempToken = generateTempLinkToken(socialUser, existingUserByEmail.id);
         const existingProvider = existingUserByEmail.accounts[0]?.provider || 'UNKNOWN';
-        const redirectUrl = `${FRONTEND_URL}/#socialLinkPrompt?tempToken=${tempToken}&email=${encodeURIComponent(
+        const redirectUrl = `${frontendUrl}/#socialLinkPrompt?tempToken=${tempToken}&email=${encodeURIComponent(
           socialUser.email
         )}&existingProvider=${existingProvider}&newProvider=${socialUser.provider}`;
         return res.redirect(redirectUrl);
@@ -197,10 +249,10 @@ export const handleSocialLoginCallback = async (req: Request, res: Response) => 
       },
     });
 
-    return res.redirect(buildLoginSuccessRedirect(newUser, socialUser.provider));
+    return res.redirect(buildLoginSuccessRedirect(newUser, socialUser.provider, frontendUrl));
   } catch (error) {
     console.error('소셜 로그인 DB 처리 실패:', error);
-    return res.redirect(`${FRONTEND_URL}?loginError=server_error`);
+    return res.redirect(`${frontendUrl}?loginError=server_error`);
   }
 };
 

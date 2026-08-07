@@ -25,6 +25,7 @@ declare global {
 export const KakaoMapModal: React.FC<KakaoMapModalProps> = ({ facility, userLocation, onClose }) => {
   const mapRef = useRef<HTMLDivElement>(null);
   const [isMapLoaded, setIsMapLoaded] = useState(false);
+  const [loadFailed, setLoadFailed] = useState(false);
 
   const lat = facility.lat || 37.4925;
   const lng = facility.lng || 127.0078;
@@ -49,13 +50,21 @@ export const KakaoMapModal: React.FC<KakaoMapModalProps> = ({ facility, userLoca
   useEffect(() => {
     let isCancelled = false;
     let mapInstance: any = null;
+    setLoadFailed(false);
 
     // .env에서 API 키를 가져와 동적으로 SDK 스크립트 로드 (단일 소스 관리, document.write 방지를 위한 autoload=false 필수)
     const KAKAO_KEY = import.meta.env.VITE_KAKAO_MAP_KEY || '';
-    if (KAKAO_KEY && !document.querySelector('script[src*="dapi.kakao.com"]')) {
+    if (!KAKAO_KEY) {
+      setLoadFailed(true);
+      return;
+    }
+    if (!document.querySelector('script[src*="dapi.kakao.com"]')) {
       const script = document.createElement('script');
       script.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${KAKAO_KEY}&libraries=services&autoload=false`;
       script.async = true;
+      script.onerror = () => {
+        if (!isCancelled) setLoadFailed(true);
+      };
       document.head.appendChild(script);
     }
 
@@ -135,8 +144,9 @@ export const KakaoMapModal: React.FC<KakaoMapModalProps> = ({ facility, userLoca
         tryInit();
       }
 
-      if (attempts > 50) { // 5초 타임아웃
+      if (attempts > 50) { // 5초 타임아웃 — SDK가 안 뜨면 무한 스피너 대신 실패 상태로 전환
         clearInterval(interval);
+        if (!isCancelled && !window.kakao) setLoadFailed(true);
       }
     }, 100);
 
@@ -206,6 +216,10 @@ export const KakaoMapModal: React.FC<KakaoMapModalProps> = ({ facility, userLoca
               <span style={{ fontSize: '0.75rem', backgroundColor: '#DEF7EC', color: '#03543F', padding: '0.2rem 0.5rem', borderRadius: '10px', fontWeight: 700 }}>
                 ● 실제 카카오 지도 렌더링 완료
               </span>
+            ) : loadFailed ? (
+              <span style={{ fontSize: '0.75rem', backgroundColor: '#FEE2E2', color: '#991B1B', padding: '0.2rem 0.5rem', borderRadius: '10px', fontWeight: 700 }}>
+                ● 지도를 불러오지 못했습니다
+              </span>
             ) : (
               <span style={{ fontSize: '0.75rem', backgroundColor: '#FEF3C7', color: '#92400E', padding: '0.2rem 0.5rem', borderRadius: '10px', fontWeight: 700 }}>
                 ● 카카오 지도 렌더링 중...
@@ -235,7 +249,7 @@ export const KakaoMapModal: React.FC<KakaoMapModalProps> = ({ facility, userLoca
           {/* 실제 카카오 지도 마운트 엘리먼트 */}
           <div ref={mapRef} style={{ width: '100%', height: '100%', position: 'absolute', top: 0, left: 0, zIndex: 1 }} />
 
-          {/* 로딩 대기 시 안내 표시 */}
+          {/* 로딩 대기 / 실패 시 안내 표시 */}
           {!isMapLoaded && (
             <div
               style={{
@@ -254,11 +268,21 @@ export const KakaoMapModal: React.FC<KakaoMapModalProps> = ({ facility, userLoca
                 zIndex: 2
               }}
             >
-              <div style={{ textAlign: 'center' }}>
-                <MapPin size={32} color="var(--accent-red)" className="animate-pulse" style={{ marginBottom: '0.5rem' }} />
-                <p style={{ fontSize: '0.9rem', color: '#475569', fontWeight: 700 }}>실제 카카오 지도를 불러오는 중입니다...</p>
-                <p style={{ fontSize: '0.8rem', color: '#94A3B8' }}>{facility.name} (좌표: {lat}, {lng})</p>
-              </div>
+              {loadFailed ? (
+                <div style={{ textAlign: 'center', padding: '0 1.5rem' }}>
+                  <MapPin size={32} color="#991B1B" style={{ marginBottom: '0.5rem' }} />
+                  <p style={{ fontSize: '0.9rem', color: '#991B1B', fontWeight: 700 }}>지도를 불러오지 못했습니다</p>
+                  <p style={{ fontSize: '0.8rem', color: '#64748B' }}>
+                    카카오맵 API 키가 없거나, 개발자 콘솔에서 지도 서비스가 비활성 상태일 수 있습니다.
+                  </p>
+                </div>
+              ) : (
+                <div style={{ textAlign: 'center' }}>
+                  <MapPin size={32} color="var(--accent-red)" className="animate-pulse" style={{ marginBottom: '0.5rem' }} />
+                  <p style={{ fontSize: '0.9rem', color: '#475569', fontWeight: 700 }}>실제 카카오 지도를 불러오는 중입니다...</p>
+                  <p style={{ fontSize: '0.8rem', color: '#94A3B8' }}>{facility.name} (좌표: {lat}, {lng})</p>
+                </div>
+              )}
             </div>
           )}
         </div>
