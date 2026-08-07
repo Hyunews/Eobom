@@ -26,11 +26,12 @@ eobom/
 
 ## 🔗 기획서 및 문서 연동 안내
 
-본 소스코드의 **시스템 기획서, 와이어프레임, API 명세서, 서비스 배경 PDF 문서**는 지식/메모리 볼트인 `.harness` 내에 보관되어 있습니다.
+본 소스코드의 **시스템 기획서, 와이어프레임, API 명세서, 서비스 배경 PDF 문서**는 저장소 루트의 `docs/`·`reports/`에, 에이전트 행동 규칙 및 세션 컨텍스트는 `.harness/`에 보관되어 있습니다.
 
-* **웹 기획서 및 명세 (HTML)**: [`../.harness/projects/eobom/specs/index.html`](../.harness/projects/eobom/specs/index.html)
-* **기획 배경 PDF 문서**: [`../.harness/projects/eobom/`](../.harness/projects/eobom/)
-* **프로젝트 컨텍스트 및 할 일**: [`../.harness/projects/eobom/context.md`](../.harness/projects/eobom/context.md)
+* **웹 기획서 및 명세 (HTML)**: [`../reports/index.html`](../reports/index.html)
+* **기획 배경 PDF 문서**: [`../reports/`](../reports/)
+* **AI 에이전트 기획 마크다운 SSOT**: [`../docs/00_DOCS_INDEX.md`](../docs/00_DOCS_INDEX.md)
+* **프로젝트 컨텍스트 및 할 일**: [`../.harness/memory/context.md`](../.harness/memory/context.md)
 
 ---
 

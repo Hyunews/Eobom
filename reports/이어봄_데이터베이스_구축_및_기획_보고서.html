@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>이어봄 토탈 케어 플랫폼 - 데이터베이스 구축 및 기획 보고서</title>
+    <style>
+        :root {
+            --primary-navy: #1E293B;
+            --primary-slate: #0F172A;
+            --accent-gold: #D97706;
+            --eco-green: #059669;
+            --alert-red: #EF4444;
+            --bg-light: #F8FAFC;
+            --surface-white: #FFFFFF;
+            --text-dark: #0F172A;
+            --text-muted: #64748B;
+            --border-color: #E2E8F0;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg-light);
+            color: var(--text-dark);
+            line-height: 1.6;
+            padding: 24px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        header.doc-header {
+            background: linear-gradient(135deg, var(--primary-slate) 0%, var(--primary-navy) 100%);
+            color: #FFFFFF;
+            padding: 36px;
+            border-radius: 16px;
+            margin-bottom: 24px;
+            box-shadow: 0 10px 25px rgba(15, 23, 42, 0.15);
+            border-bottom: 5px solid var(--accent-gold);
+        }
+        header.doc-header h1 {
+            font-size: 2.1rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        header.doc-header p {
+            color: #94A3B8;
+            font-size: 1.05rem;
+            line-height: 1.5;
+        }
+        .meta-badges {
+            display: flex;
+            gap: 10px;
+            margin-top: 18px;
+            flex-wrap: wrap;
+        }
+        .badge {
+            background: rgba(255, 255, 255, 0.12);
+            color: #F8FAFC;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .badge.gold {
+            background: rgba(217, 119, 6, 0.2);
+            border-color: var(--accent-gold);
+            color: #FBBF24;
+            font-weight: 700;
+        }
+        .badge.green {
+            background: rgba(5, 150, 105, 0.2);
+            border-color: var(--eco-green);
+            color: #34D399;
+            font-weight: 700;
+        }
+
+        .section {
+            background: var(--surface-white);
+            border-radius: 16px;
+            padding: 32px;
+            margin-bottom: 24px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+        }
+        .section-title {
+            font-size: 1.45rem;
+            font-weight: 700;
+            color: var(--primary-slate);
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 20px;
+        }
+        .grid-4 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 16px;
+        }
+
+        .card {
+            background: #F8FAFC;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+            transition: all 0.2s ease;
+        }
+        .card:hover {
+            border-color: var(--accent-gold);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.06);
+        }
+        .card h3 {
+            font-size: 1.15rem;
+            color: var(--primary-navy);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .card ul {
+            padding-left: 18px;
+            font-size: 0.95rem;
+            color: #334155;
+        }
+        .card li { margin-bottom: 6px; }
+
+        /* 비교 테이블 */
+        table.compare-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 16px;
+            font-size: 0.95rem;
+        }
+        table.compare-table th {
+            background-color: var(--primary-slate);
+            color: #FFFFFF;
+            padding: 14px;
+            text-align: center;
+            font-weight: 600;
+        }
+        table.compare-table td {
+            padding: 14px;
+            border-bottom: 1px solid var(--border-color);
+            vertical-align: top;
+        }
+        table.compare-table tr:nth-child(even) {
+            background-color: #F8FAFC;
+        }
+        table.compare-table tr:hover {
+            background-color: #F1F5F9;
+        }
+
+        .tag-pro { color: var(--eco-green); font-weight: 700; }
+        .tag-con { color: var(--alert-red); font-weight: 700; }
+
+        /* 스키마 코드 블록 */
+        .code-box {
+            background-color: #0F172A;
+            color: #E2E8F0;
+            padding: 24px;
+            border-radius: 12px;
+            font-family: 'Fira Code', 'Courier New', monospace;
+            font-size: 0.9rem;
+            line-height: 1.6;
+            overflow-x: auto;
+            border: 1px solid #1E293B;
+        }
+        .kw { color: #38BDF8; font-weight: bold; }
+        .type { color: #4ADE80; }
+        .str { color: #F87171; }
+        .cmt { color: #64748B; font-style: italic; }
+
+        /* 타임라인 로드맵 */
+        .timeline {
+            position: relative;
+            padding-left: 28px;
+        }
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 10px;
+            top: 10px;
+            bottom: 10px;
+            width: 3px;
+            background-color: var(--border-color);
+        }
+        .timeline-step {
+            position: relative;
+            margin-bottom: 24px;
+        }
+        .timeline-step::before {
+            content: '';
+            position: absolute;
+            left: -28px;
+            top: 4px;
+            width: 17px;
+            height: 17px;
+            border-radius: 50%;
+            background-color: var(--accent-gold);
+            border: 3px solid var(--surface-white);
+            box-shadow: 0 0 0 2px var(--accent-gold);
+        }
+        .timeline-step h4 {
+            font-size: 1.1rem;
+            color: var(--primary-slate);
+            margin-bottom: 6px;
+        }
+        .timeline-step p {
+            font-size: 0.95rem;
+            color: var(--text-muted);
+        }
+
+        footer {
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-top: 40px;
+            padding-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+
+    <!-- 문서 헤더 -->
+    <header class="doc-header">
+        <h1>🗄️ 이어봄 토탈 케어 플랫폼 데이터베이스 구축 및 기획 보고서</h1>
+        <p>디지털 엔딩 & 웰다잉 플랫폼의 기능별 데이터 분석, DB 종류별 비교 평가, 물리 스키마(ERD) 설계, 보안 암호화 방안 및 실행 로드맵</p>
+        <div class="meta-badges">
+            <span class="badge gold">SSOT 데이터베이스 기획서</span>
+            <span class="badge green">최종 아키텍처: PostgreSQL + Prisma ORM + AWS S3</span>
+            <span class="badge">프로젝트: eobom</span>
+            <span class="badge">작성일자: 2026-07-30</span>
+        </div>
+    </header>
+
+    <!-- 1. 기획 배경 및 목적 -->
+    <section class="section">
+        <h2 class="section-title">📌 1. 데이터베이스 기획 배경 및 목적</h2>
+        <p style="margin-bottom: 16px;">
+            <strong>eobom</strong> 플랫폼은 생전 웰다잉 준비(엔딩노트/유산 관리)부터 임종 직후(장례/추모시설 예약), 그리고 사후(모바일 부고장/디지털 유품 정리)로 연결되는 **한국형 디지털 엔딩 토탈 케어 서비스**입니다.
+        </p>
+        <p>
+            본 기획서는 세부 백엔드 API 구현에 앞서 **데이터의 무결성**, **최고 수준의 보안(암호화)**, **대용량 미디어 파일과의 효율적 분리**를 보장하는 최적의 데이터베이스 아키텍처를 정의하는 것을 목적으로 합니다.
+        </p>
+    </section>
+
+    <!-- 2. 서비스 기능별 데이터 요구사항 -->
+    <section class="section">
+        <h2 class="section-title">📋 2. 서비스 기능별 데이터 요구사항 (Data Requirements)</h2>
+        <div class="grid-2">
+            <div class="card">
+                <h3>🔐 1) 디지털 유언장 & 엔딩노트</h3>
+                <ul>
+                    <li><strong>보관 데이터:</strong> 사전연명의향서, 비밀 유언 텍스트, 음성/영상 메모리얼 파일 메타데이터.</li>
+                    <li><strong>보안 및 무결성:</strong> 극비 데이터로서 DB 내 필드 단위 암호화(AES-256) 저장 필수.</li>
+                    <li><strong>열람 제어:</strong> 작성자 본인 및 사후 지정 수령인(보호자)에 한해 열람 조건 충족 시 공개.</li>
+                </ul>
+            </div>
+            <div class="card">
+                <h3>💼 2) 디지털 유산 & 계정 관리</h3>
+                <ul>
+                    <li><strong>보관 데이터:</strong> SNS, 금융, 락커, 구독 서비스 플랫폼 계정 정보 및 사후 처리 방침.</li>
+                    <li><strong>가변성 구조:</strong> 플랫폼마다 자격 증명 양식이 다르므로 JSONB 형태의 유연한 가변 속성 데이터 필요.</li>
+                    <li><strong>상태 추적:</strong> 파기, 양도, 추모계정 전환 처리 이력에 대한 트랜잭션 보장.</li>
+                </ul>
+            </div>
+            <div class="card">
+                <h3>🏛️ 3) 장례식장/추모공원 검색 & 예약</h3>
+                <ul>
+                    <li><strong>보관 데이터:</strong> 전국 장례식장/봉안당/수목장 위치(위경도), 카테고리, 이용 요금, 1:1 상담 신청 내역.</li>
+                    <li><strong>트랜잭션:</strong> 위치 기반 반경 검색(Spatial Index) 및 동시 예약 중복 방지(ACID) 적용.</li>
+                </ul>
+            </div>
+            <div class="card">
+                <h3>📩 4) 모바일 부고장 & 조의록</h3>
+                <ul>
+                    <li><strong>보관 데이터:</strong> 부고장 생성 정보, 고인/상주 명의, 빈소 주소, 조의금 계좌, 조문객 조의록.</li>
+                    <li><strong>성능 요소:</strong> 순간적인 부고 알림 클릭 급증 시 빠른 읽기 성능(Read-Heavy) 보장.</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <!-- 3. DB 종류별 장단점 비교 및 최종 아키텍처 선정 -->
+    <section class="section">
+        <h2 class="section-title">⚖️ 3. 데이터베이스 종류별 장단점 비교 평가</h2>
+        <table class="compare-table">
+            <thead>
+                <tr>
+                    <th>평가 항목</th>
+                    <th>RDBMS (PostgreSQL) ⭐</th>
+                    <th>BaaS (Supabase)</th>
+                    <th>NoSQL (MongoDB)</th>
+                    <th>Hybrid (Postgres + S3) 🏆</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>ACID & 관계 무결성</strong></td>
+                    <td><span class="tag-pro">최상</span> (외래키 & 엄격한 트랜잭션)</td>
+                    <td><span class="tag-pro">최상</span> (Postgres 기반)</td>
+                    <td><span class="tag-con">보통</span> (문서 단위, FK 제한적)</td>
+                    <td><span class="tag-pro">최상</span> (메타데이터 무결성 완벽)</td>
+                </tr>
+                <tr>
+                    <td><strong>보안 및 접근 제어</strong></td>
+                    <td><span class="tag-pro">우수</span> (Field Encryption)</td>
+                    <td><span class="tag-pro">최상</span> (Row Level Security RLS)</td>
+                    <td><span class="tag-con">보통</span> (앱 서비스 단 처리)</td>
+                    <td><span class="tag-pro">최상</span> (DB 암호화 + S3 Presigned)</td>
+                </tr>
+                <tr>
+                    <td><strong>가변 데이터 (JSON)</strong></td>
+                    <td><span class="tag-pro">우수</span> (JSONB 인덱싱 지원)</td>
+                    <td><span class="tag-pro">우수</span> (JSONB 지원)</td>
+                    <td><span class="tag-pro">최상</span> (Schema-less Document)</td>
+                    <td><span class="tag-pro">최상</span> (JSONB + 미디어 분리)</td>
+                </tr>
+                <tr>
+                    <td><strong>대용량 미디어 처리</strong></td>
+                    <td><span class="tag-con">부적합</span> (BLOB 부하)</td>
+                    <td><span class="tag-pro">우수</span> (Storage 제품 탑재)</td>
+                    <td><span class="tag-con">제한적</span> (GridFS 복잡성)</td>
+                    <td><span class="tag-pro">최상</span> (S3 전문 분리)</td>
+                </tr>
+                <tr>
+                    <td><strong>개발 생산성 (ORM)</strong></td>
+                    <td><span class="tag-pro">우수</span> (Prisma / TypeScript)</td>
+                    <td><span class="tag-pro">최상</span> (자동 REST/GraphQL)</td>
+                    <td><span class="tag-pro">우수</span> (Mongoose)</td>
+                    <td><span class="tag-pro">우수</span> (표준 프레임워크 호환)</td>
+                </tr>
+                <tr>
+                    <td><strong>종합 평가 및 판정</strong></td>
+                    <td><strong>핵심 서비스 DB 1순위</strong></td>
+                    <td><strong>빠른 MVP 구현 시 유용</strong></td>
+                    <td>관계형 구조 미흡으로 비추천</td>
+                    <td><strong>최종 채택 (Standard Architecture)</strong></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- 최종 채택 아키텍처 박스 -->
+        <div style="background-color: #ECFDF5; border: 1px solid #10B981; border-radius: 12px; padding: 20px; margin-top: 24px;">
+            <h3 style="color: #065F46; margin-bottom: 8px; font-size: 1.15rem;">🏆 최종 아키텍처 채택 사유: PostgreSQL + Prisma ORM + AWS S3 하이브리드 구성</h3>
+            <p style="color: #047857; font-size: 0.98rem; line-height: 1.6;">
+                웰다잉 토탈 케어 서비스는 유언장, 예약 트랜잭션, 지정 수령인 간의 <strong>엄격한 관계형 무결성(Foreign Key)</strong>이 필수적입니다. 
+                따라서 메인 RDBMS로 <strong>PostgreSQL</strong>을 사용하고, <strong>Prisma ORM</strong>을 채택하여 100% Type-Safe한 백엔드를 구축합니다. 
+                또한 영상/음성 메모리얼 파일은 <strong>AWS S3 (또는 Supabase Storage)</strong>로 이관하고 DB에는 암호화 URL만 보관함으로써 DB 쿼리 성능과 스토리지 비용을 동시에 최적화합니다.
+            </p>
+        </div>
+    </section>
+
+    <!-- 4. 물리 DB 스키마 명세 (Prisma Schema) -->
+    <section class="section">
+        <h2 class="section-title">💻 4. 물리 데이터베이스 스키마 명세 (`schema.prisma`)</h2>
+        <p style="margin-bottom: 16px; color: var(--text-muted);">
+            실제 백엔드 구축 시 사용되는 8개 핵심 엔티티 모델 스키마 정의입니다.
+        </p>
+
+        <div class="code-box">
+<span class="kw">datasource</span> db {
+  <span class="kw">provider</span> = <span class="str">"postgresql"</span>
+  <span class="kw">url</span>      = env(<span class="str">"DATABASE_URL"</span>)
+}
+
+<span class="kw">generator</span> client {
+  <span class="kw">provider</span> = <span class="str">"prisma-client-js"</span>
+}
+
+<span class="cmt">// 1. 회원 기본 정보 테이블</span>
+<span class="kw">model</span> <span class="type">User</span> {
+  id           <span class="type">String</span>        @id @default(uuid())
+  email        <span class="type">String</span>        @unique
+  name         <span class="type">String</span>
+  phone        <span class="type">String</span>
+  role         <span class="type">String</span>        @default("USER") <span class="cmt">// USER, ADMIN, COUNSELOR</span>
+  createdAt    <span class="type">DateTime</span>      @default(now())
+  updatedAt    <span class="type">DateTime</span>      @updatedAt
+
+  guardians    <span class="type">Guardian</span>[]
+  wills        <span class="type">WillNote</span>[]
+  estates      <span class="type">DigitalEstate</span>[]
+  reservations <span class="type">Reservation</span>[]
+  obituaries   <span class="type">Obituary</span>[]
+}
+
+<span class="cmt">// 2. 지정 수령인 (보호자) 관계 테이블</span>
+<span class="kw">model</span> <span class="type">Guardian</span> {
+  id           <span class="type">String</span>   @id @default(uuid())
+  userId       <span class="type">String</span>
+  user         <span class="type">User</span>     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name         <span class="type">String</span>
+  phone        <span class="type">String</span>
+  relationship <span class="type">String</span>   <span class="cmt">// 자녀, 배우자 등</span>
+  isVerified   <span class="type">Boolean</span>  @default(false)
+  createdAt    <span class="type">DateTime</span> @default(now())
+}
+
+<span class="cmt">// 3. 디지털 유언장 & 엔딩노트 테이블</span>
+<span class="kw">model</span> <span class="type">WillNote</span> {
+  id               <span class="type">String</span>     @id @default(uuid())
+  userId           <span class="type">String</span>
+  user             <span class="type">User</span>       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title            <span class="type">String</span>
+  encryptedContent <span class="type">String</span>     @db.Text <span class="cmt">// AES-256 암호화된 유언문</span>
+  releaseCondition <span class="type">String</span>     <span class="cmt">// ON_DEATH_VERIFIED, SPECIFIC_DATE 등</span>
+  isReleased       <span class="type">Boolean</span>    @default(false)
+  files            <span class="type">WillFile</span>[]
+  createdAt        <span class="type">DateTime</span>   @default(now())
+  updatedAt        <span class="type">DateTime</span>   @updatedAt
+}
+
+<span class="cmt">// 4. 유언장 첨부 미디어 파일 메타데이터 (S3 연동)</span>
+<span class="kw">model</span> <span class="type">WillFile</span> {
+  id        <span class="type">String</span>   @id @default(uuid())
+  willId    <span class="type">String</span>
+  will      <span class="type">WillNote</span> @relation(fields: [willId], references: [id], onDelete: Cascade)
+  fileUrl   <span class="type">String</span>   <span class="cmt">// S3 객체 URL</span>
+  fileType  <span class="type">String</span>   <span class="cmt">// audio/mp4, video/mp4 등</span>
+  fileSize  <span class="type">Int</span>
+  createdAt <span class="type">DateTime</span> @default(now())
+}
+
+<span class="cmt">// 5. 디지털 유산 및 계정 관리 테이블</span>
+<span class="kw">model</span> <span class="type">DigitalEstate</span> {
+  id                   <span class="type">String</span>   @id @default(uuid())
+  userId               <span class="type">String</span>
+  user                 <span class="type">User</span>     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  platformName         <span class="type">String</span>   <span class="cmt">// Naver, Google, Kakao, Instagram 등</span>
+  category             <span class="type">String</span>   <span class="cmt">// SNS, 금융, 구독 서비스</span>
+  encryptedCredentials <span class="type">String</span>?  @db.Text
+  actionType           <span class="type">String</span>   @default("DELETE") <span class="cmt">// DELETE, TRANSFER, MEMORIALIZE</span>
+  createdAt            <span class="type">DateTime</span> @default(now())
+}
+
+<span class="cmt">// 6. 장례식장 및 추모 시설 테이블</span>
+<span class="kw">model</span> <span class="type">Facility</span> {
+  id           <span class="type">String</span>        @id @default(uuid())
+  name         <span class="type">String</span>
+  category     <span class="type">String</span>        <span class="cmt">// FUNERAL_HOME, MEMORIAL_PARK, NATURAL_BURIAL</span>
+  address      <span class="type">String</span>
+  phone        <span class="type">String</span>
+  latitude     <span class="type">Float</span>?
+  longitude    <span class="type">Float</span>?
+  reservations <span class="type">Reservation</span>[]
+  createdAt    <span class="type">DateTime</span>      @default(now())
+}
+
+<span class="cmt">// 7. 상담 및 시설 예약 관리 테이블</span>
+<span class="kw">model</span> <span class="type">Reservation</span> {
+  id              <span class="type">String</span>   @id @default(uuid())
+  userId          <span class="type">String</span>
+  user            <span class="type">User</span>     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  facilityId      <span class="type">String</span>
+  facility        <span class="type">Facility</span> @relation(fields: [facilityId], references: [id])
+  reservationDate <span class="type">DateTime</span>
+  status          <span class="type">String</span>   @default("PENDING") <span class="cmt">// PENDING, CONFIRMED, CANCELLED</span>
+  notes           <span class="type">String</span>?  @db.Text
+  createdAt       <span class="type">DateTime</span> @default(now())
+}
+
+<span class="cmt">// 8. 모바일 부고장 테이블</span>
+<span class="kw">model</span> <span class="type">Obituary</span> {
+  id           <span class="type">String</span>   @id @default(uuid())
+  userId       <span class="type">String</span>
+  user         <span class="type">User</span>     @relation(fields: [userId], references: [id])
+  deceasedName <span class="type">String</span>
+  funeralHome  <span class="type">String</span>
+  bankAccount  <span class="type">String</span>?
+  createdAt    <span class="type">DateTime</span> @default(now())
+}
+        </div>
+    </section>
+
+    <!-- 5. 보안 및 데이터 보호 전략 -->
+    <section class="section">
+        <h2 class="section-title">🔒 5. 데이터 보안 & 암호화 보호 전략</h2>
+        <div class="grid-2">
+            <div class="card" style="border-left: 5px solid var(--accent-gold);">
+                <h3>🔑 1) Field-Level Encryption (AES-256-GCM)</h3>
+                <p style="font-size: 0.95rem; color: #475569; margin-top: 6px;">
+                    유언장 본문(`encryptedContent`) 및 유산 계정 자격 증명(`encryptedCredentials`)은 데이터베이스에 전달되기 전 백엔드 애플리케이션 단에서 **AES-256-GCM**으로 암호화됩니다. DB 관리자나 시스템 침해 시에도 원본 텍스트 유출이 불가능합니다.
+                </p>
+            </div>
+            <div class="card" style="border-left: 5px solid var(--eco-green);">
+                <h3>🛡️ 2) Envelope Encryption (이중 봉투 암호화)</h3>
+                <p style="font-size: 0.95rem; color: #475569; margin-top: 6px;">
+                    Master Key(KEK)는 AWS KMS 또는 Vault 하드웨어 보안 모듈에 보관하고, 사용자별 Data Encryption Key(DEK)를 분리 관리함으로써 보안 키 탈취 위험을 철저히 차단합니다.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- 6. DB 구축 실행 로드맵 -->
+    <section class="section">
+        <h2 class="section-title">🚀 6. 데이터베이스 단계별 구축 실행 로드맵</h2>
+        <div class="timeline">
+            <div class="timeline-step">
+                <h4>Phase 1: DB 개발 환경 구축 & ORM 마이그레이션 (1주차)</h4>
+                <p>Docker 기반 PostgreSQL 서버 인스턴스 생성, 백엔드 프로젝트 내 Prisma ORM 연결 및 초기 마이그레이션 스크립트 실행.</p>
+            </div>
+            <div class="timeline-step">
+                <h4>Phase 2: 장례/추모 시설 공공 데이터 시딩 (2주차)</h4>
+                <p>전국 주요 장례식장, 추모공원, 봉안당 공공 데이터를 수집하고 `prisma/seed.ts`를 통해 시드 데이터 일괄 구축.</p>
+            </div>
+            <div class="timeline-step">
+                <h4>Phase 3: AES-256 암호화 모듈 & S3 미디어 파이프라인 연동 (3주차)</h4>
+                <p>유언장 암복호화 유틸리티 함수 작성 및 대용량 음성/영상 메모리얼 업로드를 위한 S3 Presigned URL 파이프라인 연동.</p>
+            </div>
+            <div class="timeline-step">
+                <h4>Phase 4: 백엔드 API 연동 & 위치/검색 인덱스 최적화 (4주차)</h4>
+                <p>프론트엔드(`eobom/frontend`)와 REST API 통신 구현 및 위치 기반 장례식장 검색 쿼리 인덱스 성능 검증.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- 푸터 -->
+    <footer>
+        <p>eobom (K-Ending Project) | Confidential & Internal Specs Document</p>
+    </footer>
+
+</div>
+
+</body>
+</html>

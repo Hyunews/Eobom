@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>이어봄 - 전문가 상담 도메인 상업화 및 직역별 컴플라이언스 보고서</title>
+  <style>
+    :root {
+      --primary: #1A2B4C;
+      --secondary: #5B7065;
+      --accent: #D4A359;
+      --bg: #FBF9F5;
+      --surface: #FFFFFF;
+      --text: #1E293B;
+      --text-muted: #64748B;
+      --border: #E2E8F0;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      padding: 2rem 1rem;
+    }
+    .container {
+      max-width: 1080px;
+      margin: 0 auto;
+      background-color: var(--surface);
+      padding: 3rem;
+      border-radius: 24px;
+      box-shadow: 0 20px 40px rgba(26, 43, 76, 0.08);
+      border: 1px solid var(--border);
+    }
+    .header {
+      border-bottom: 3px solid var(--accent);
+      padding-bottom: 1.5rem;
+      margin-bottom: 2.5rem;
+    }
+    .badge {
+      display: inline-block;
+      background-color: var(--primary);
+      color: #FFF;
+      font-size: 0.85rem;
+      font-weight: 700;
+      padding: 0.3rem 0.8rem;
+      border-radius: 20px;
+      margin-bottom: 0.8rem;
+    }
+    h1 {
+      font-size: 2rem;
+      color: var(--primary);
+      margin-bottom: 0.5rem;
+      font-weight: 800;
+    }
+    .subtitle {
+      color: var(--text-muted);
+      font-size: 1.05rem;
+    }
+    .section-title {
+      font-size: 1.4rem;
+      color: var(--primary);
+      margin: 2.5rem 0 1.2rem 0;
+      padding-left: 0.8rem;
+      border-left: 5px solid var(--secondary);
+      font-weight: 700;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+      gap: 1.2rem;
+      margin-bottom: 2rem;
+    }
+    .card {
+      background-color: #F8FAFC;
+      border-radius: 16px;
+      padding: 1.5rem;
+      border: 1px solid var(--border);
+    }
+    .card.highlight {
+      border: 2px solid var(--accent);
+      background-color: #FFFDF9;
+    }
+    .card h3 {
+      font-size: 1.15rem;
+      color: var(--primary);
+      margin-bottom: 0.5rem;
+      font-weight: 700;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1.5rem 0;
+      font-size: 0.95rem;
+    }
+    th, td {
+      padding: 1rem;
+      border: 1px solid var(--border);
+      text-align: center;
+    }
+    th {
+      background-color: var(--primary);
+      color: #FFF;
+      font-weight: 700;
+    }
+    tr:nth-child(even) { background-color: #F8FAFC; }
+    .badge-forbidden { color: #DC2626; font-weight: bold; }
+    .badge-allowed { color: #16A34A; font-weight: bold; }
+
+    .legal-box {
+      background-color: #FEF2F2;
+      border: 1px solid #FCA5A5;
+      padding: 1.5rem;
+      border-radius: 16px;
+      margin-top: 2rem;
+    }
+    .legal-box h4 {
+      color: #991B1B;
+      margin-bottom: 0.5rem;
+      font-size: 1.1rem;
+    }
+    .summary-box {
+      background-color: var(--primary);
+      color: #FFF;
+      padding: 2rem;
+      border-radius: 20px;
+      margin-top: 3rem;
+    }
+    .summary-box h3 {
+      color: var(--accent);
+      margin-bottom: 0.8rem;
+      font-size: 1.3rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <span class="badge">도메인 컴플라이언스 보고서</span>
+      <h1>전문가 상담 도메인 상업화 및 직역별 규제 분리 명세서</h1>
+      <p class="subtitle">변호사법 제34조 엄격 준수를 위한 수익 모델 직역별 다원화 구조</p>
+    </div>
+
+    <h2 class="section-title">👨‍⚖️ 1. 직역별 법률 규제 및 적용 모델 분리</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>전문가 직역</th>
+          <th>적용 법률 규제</th>
+          <th>성과 연동 수수료 (Lead Fee)</th>
+          <th>이어봄 적용 수익 모델</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>⚖️ 상속 전문 변호사</strong></td>
+          <td>변호사법 제34조<br>(소개/알선/수임료 분배 금지)</td>
+          <td><span class="badge-forbidden">전면 금지</span></td>
+          <td><strong>[Tier 3] 순수 고정 월정액 광고료 모델만 허용</strong><br>(월 9.9만 ~ 29.9만)</td>
+        </tr>
+        <tr>
+          <td><strong>📊 상속세 전문 세무사</strong></td>
+          <td>세무사법 제2조의2</td>
+          <td><span class="badge-allowed">조건부 허용</span></td>
+          <td>[Tier 2] 상담 수수료 정산 + [Tier 3] 월정액 + [Tier 4] 신고 대행</td>
+        </tr>
+        <tr>
+          <td><strong>📝 디지털 유품 행정사</strong></td>
+          <td>행정사법 제2조</td>
+          <td><span class="badge-allowed">허용</span></td>
+          <td>[Tier 2] 상담 수수료 정산 + [Tier 4] 유품 대행 수수료</td>
+        </tr>
+        <tr>
+          <td><strong>🤝 장례 · 장지 지도사</strong></td>
+          <td>장사 등에 관한 법률</td>
+          <td><span class="badge-allowed">허용</span></td>
+          <td>[Tier 2] 상담 수수료 정산 + [Tier 4] B2B 리드 정산</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="legal-box">
+      <h4>⚖️ 변호사법 제34조 컴플라이언스 정정 완료</h4>
+      <p>
+        변호사 직역에 대해 사건 소송 수임 시 리드 수수료를 받는 행위는 변호사법 제34조 위반이므로 <strong>전면 삭제 및 금지</strong> 처리되었습니다. 변호사 서비스는 <strong>"순수 고정 월정액 광고 플랫폼(Tier 3)"</strong>으로만 운용하여 법적 리스크를 100% 제거합니다.
+      </p>
+    </div>
+
+    <div class="summary-box">
+      <h3>🎯 종합 결론: 자기모순 없는 완벽한 법적 안정성 확보</h3>
+      <p>
+        변호사 직역은 성과 연동 수수료를 전면 배제하고 고정 광고료 모델로 분리함으로써, 문서 내의 자기모순을 해소하고 변협과의 법적 분쟁 리스크 없이 안전하고 지속 가능한 B2B 수익 구조를 완성했습니다.
+      </p>
+    </div>
+  </div>
+</body>
+</html>

@@ -4,6 +4,7 @@ import cors from 'cors';
 import passport from './config/passport';
 import authRoutes from './routes/authRoutes';
 import facilityRoutes from './routes/facilityRoutes';
+import geoRoutes from './routes/geoRoutes';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -17,6 +18,7 @@ app.use(passport.initialize());
 // 라우터 연결
 app.use('/api/auth', authRoutes);
 app.use('/api/facilities', facilityRoutes);
+app.use('/api/geo', geoRoutes);
 
 // 기본 헬스체크
 app.get('/api/health', (req, res) => {

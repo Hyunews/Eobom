@@ -73,18 +73,15 @@ export const getFacilities = async (req: Request, res: Response) => {
     const page = Math.max(1, parseInt((req.query.page as string) || '1', 10) || 1);
     const pageSize = Math.min(MAX_PAGE_SIZE, Math.max(1, parseInt((req.query.pageSize as string) || String(DEFAULT_PAGE_SIZE), 10) || DEFAULT_PAGE_SIZE));
 
-    const radius = req.query.radius as string | undefined;
     const lat = req.query.lat ? Number(req.query.lat) : null;
     const lng = req.query.lng ? Number(req.query.lng) : null;
     const hasLocation = lat !== null && lng !== null && !Number.isNaN(lat) && !Number.isNaN(lng);
-    const radiusKm = radius && radius !== '전체' ? parseInt(radius.replace('km', ''), 10) : null;
 
-    // 반경 필터가 켜져있으면 거리 계산을 위해 조건에 맞는 전체를 가져온 뒤 메모리에서 거리순 정렬/페이징
-    if (radiusKm && hasLocation) {
-      const all = await prisma.facility.findMany({ where, include: facilityInclude, orderBy: { createdAt: 'asc' } });
+    // 위치가 있으면 항상 가까운 순으로 정렬 -> 거리 계산을 위해 조건에 맞는 전체를 가져온 뒤 메모리에서 정렬/페이징
+    if (hasLocation) {
+      const all = await prisma.facility.findMany({ where, include: facilityInclude });
       const withDistance = all
         .map((f) => ({ ...f, distanceKm: haversineKm(lat!, lng!, f.lat, f.lng) }))
-        .filter((f) => f.distanceKm <= radiusKm)
         .sort((a, b) => a.distanceKm - b.distanceKm);
 
       const totalCount = withDistance.length;
@@ -99,7 +96,7 @@ export const getFacilities = async (req: Request, res: Response) => {
       });
     }
 
-    // 반경 필터 없음 -> DB 레벨 skip/take로 페이징 (1500건 규모에서도 빠름)
+    // 위치 정보가 없으면 DB 레벨 skip/take로 페이징 (1500건 규모에서도 빠름)
     const [totalCount, rows] = await Promise.all([
       prisma.facility.count({ where }),
       prisma.facility.findMany({
@@ -111,19 +108,13 @@ export const getFacilities = async (req: Request, res: Response) => {
       }),
     ]);
 
-    const data = rows.map((f) => {
-      const withRating = withEffectiveRating(f);
-      if (!hasLocation) return withRating;
-      return { ...withRating, distanceKm: Math.round(haversineKm(lat!, lng!, f.lat, f.lng) * 10) / 10 };
-    });
-
     return res.json({
       status: 'success',
       count: totalCount,
       page,
       pageSize,
       totalPages: Math.max(1, Math.ceil(totalCount / pageSize)),
-      data,
+      data: rows.map(withEffectiveRating),
     });
   } catch (error) {
     console.error('시설 목록 조회 실패:', error);

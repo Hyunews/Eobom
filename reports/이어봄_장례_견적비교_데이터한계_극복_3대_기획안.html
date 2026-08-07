@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>이어봄 - 장례 견적 비교 데이터 한계 극복 3대 기획안 보고서</title>
+  <style>
+    :root {
+      --primary: #1A2B4C;
+      --secondary: #5B7065;
+      --accent: #D4A359;
+      --bg: #FBF9F5;
+      --surface: #FFFFFF;
+      --text: #1E293B;
+      --text-muted: #64748B;
+      --border: #E2E8F0;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      padding: 2rem 1rem;
+    }
+    .container {
+      max-width: 1080px;
+      margin: 0 auto;
+      background-color: var(--surface);
+      padding: 3rem;
+      border-radius: 24px;
+      box-shadow: 0 20px 40px rgba(26, 43, 76, 0.08);
+      border: 1px solid var(--border);
+    }
+    .header {
+      border-bottom: 3px solid var(--accent);
+      padding-bottom: 1.5rem;
+      margin-bottom: 2.5rem;
+    }
+    .badge {
+      display: inline-block;
+      background-color: var(--primary);
+      color: #FFF;
+      font-size: 0.85rem;
+      font-weight: 700;
+      padding: 0.3rem 0.8rem;
+      border-radius: 20px;
+      margin-bottom: 0.8rem;
+    }
+    h1 {
+      font-size: 2rem;
+      color: var(--primary);
+      margin-bottom: 0.5rem;
+      font-weight: 800;
+    }
+    .subtitle {
+      color: var(--text-muted);
+      font-size: 1.05rem;
+    }
+    .section-title {
+      font-size: 1.4rem;
+      color: var(--primary);
+      margin: 2.5rem 0 1.2rem 0;
+      padding-left: 0.8rem;
+      border-left: 5px solid var(--secondary);
+      font-weight: 700;
+    }
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+    .card {
+      background-color: #F8FAFC;
+      border-radius: 16px;
+      padding: 1.8rem;
+      border: 1px solid var(--border);
+      position: relative;
+    }
+    .card.recommended {
+      border: 2px solid var(--accent);
+      background-color: #FFFDF9;
+    }
+    .card-tag {
+      position: absolute;
+      top: 1.2rem;
+      right: 1.2rem;
+      font-size: 0.75rem;
+      font-weight: 800;
+      padding: 0.2rem 0.6rem;
+      border-radius: 12px;
+    }
+    .tag-a { background-color: #E0F2FE; color: #0369A1; }
+    .tag-b { background-color: #FEF3C7; color: #B45309; }
+    .tag-c { background-color: #DCFCE7; color: #15803D; }
+
+    .card h3 {
+      font-size: 1.25rem;
+      color: var(--primary);
+      margin-bottom: 0.8rem;
+      font-weight: 700;
+    }
+    .card p {
+      font-size: 0.95rem;
+      color: #475569;
+      margin-bottom: 1rem;
+    }
+    .card-list {
+      list-style: none;
+      font-size: 0.9rem;
+    }
+    .card-list li {
+      margin-bottom: 0.4rem;
+      padding-left: 1.2rem;
+      position: relative;
+    }
+    .card-list li::before {
+      content: "•";
+      position: absolute;
+      left: 0;
+      color: var(--secondary);
+      font-weight: bold;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1.5rem 0;
+      font-size: 0.95rem;
+    }
+    th, td {
+      padding: 1rem;
+      border: 1px solid var(--border);
+      text-align: center;
+    }
+    th {
+      background-color: var(--primary);
+      color: #FFF;
+      font-weight: 700;
+    }
+    tr:nth-child(even) { background-color: #F8FAFC; }
+    .star { color: var(--accent); font-weight: bold; }
+
+    .summary-box {
+      background-color: var(--primary);
+      color: #FFF;
+      padding: 2rem;
+      border-radius: 20px;
+      margin-top: 3rem;
+    }
+    .summary-box h3 {
+      color: var(--accent);
+      margin-bottom: 0.8rem;
+      font-size: 1.3rem;
+    }
+    .summary-box p {
+      color: #E2E8F0;
+      font-size: 1rem;
+      line-height: 1.7;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <span class="badge">PM &amp; 기획 의사결정보고서</span>
+      <h1>장례 견적 비교 데이터 한계 극복 3대 기획안</h1>
+      <p class="subtitle">전국 1,100개 장례식장 데이터 제약 극복 및 UX · B2B 수익성 극대화 전략</p>
+    </div>
+
+    <h2 class="section-title">📌 1. 문제 배경 및 핵심 과제</h2>
+    <p style="margin-bottom: 1.5rem; color: #475569;">
+      공공데이터 및 카카오 API는 장례식장의 <strong>이름, 주소, 위치 핀, 전화번호</strong>를 100% 제공하지만, 개별 장례식장의 <strong>5대 세부 항목(빈소, 안치실, 관/수의, 제단생화, 음식비) 단가</strong>는 공시 파편화로 인해 실시간 일괄 수집에 현실적 한계가 존재합니다. 세부 데이터 부재 상태에서도 첫날부터 100% 동작하는 UX 구축이 필요합니다.
+    </p>
+
+    <h2 class="section-title">💡 2. 3대 기획 대안 상세 비교</h2>
+    <div class="card-grid">
+      <!-- 대안 A -->
+      <div class="card recommended">
+        <span class="card-tag tag-a">대안 A (강력 추천)</span>
+        <h3>표준 장례비 시뮬레이터</h3>
+        <p>보건복지부 표준 장례 통계 수가표를 기반으로 하객수/종교/규모 선택 시 예상 가이드 비용 산출.</p>
+        <ul class="card-list">
+          <li><strong>첫날 완성도:</strong> 100% 즉시 전국 구동</li>
+          <li><strong>UX 만족도:</strong> 예산 가이드 제공</li>
+          <li><strong>개발 난이도:</strong> 매우 쉬움</li>
+        </ul>
+      </div>
+
+      <!-- 대안 B -->
+      <div class="card">
+        <span class="card-tag tag-b">대안 B</span>
+        <h3>제휴 vs 비제휴 파트너 차별화</h3>
+        <p>일반 시설은 기본 공시액, 제휴 파트너 시설은 어드민 등록 실시간 세부 견적표 및 할인가 노출.</p>
+        <ul class="card-list">
+          <li><strong>B2B 수익 직결:</strong> 파트너 입점 명분 극대화</li>
+          <li><strong>세부 견적:</strong> 제휴 시설에 한해 100% 분해</li>
+          <li><strong>개발 난이도:</strong> 어드민 추가 개발</li>
+        </ul>
+      </div>
+
+      <!-- 대안 C -->
+      <div class="card">
+        <span class="card-tag tag-c">대안 C</span>
+        <h3>1-Touch 맞춤 견적서 신청</h3>
+        <p>[견적서 신청] 클릭 시 전문 장례지도사가 카카오 알림톡/전화로 최적 3곳 비교 견적 발송.</p>
+        <ul class="card-list">
+          <li><strong>데이터 정밀도:</strong> 100% 최신 실제 견적</li>
+          <li><strong>리드 유치:</strong> 유저 데이터 확보</li>
+          <li><strong>운영 부담:</strong> 상담원 리소스 필요</li>
+        </ul>
+      </div>
+    </div>
+
+    <h2 class="section-title">📊 3. 종합 비교 평가표</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>평가 항목</th>
+          <th>대안 A (표준 시뮬레이터)</th>
+          <th>대안 B (제휴 차별화)</th>
+          <th>대안 C (맞춤 신청)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>구현 난이도</strong></td>
+          <td><span class="star">쉬움 (즉시 적용)</span></td>
+          <td>보통 (어드민 구축)</td>
+          <td>보통 (알림톡 연동)</td>
+        </tr>
+        <tr>
+          <td><strong>첫날 서비스 커버리지</strong></td>
+          <td><span class="star">100% (전국 1,100개)</span></td>
+          <td>제휴 시설 한정</td>
+          <td>상담원 대응 가능 범위</td>
+        </tr>
+        <tr>
+          <td><strong>UX 가독성 &amp; 만족도</strong></td>
+          <td><span class="star">★★★★☆</span></td>
+          <td>★★★☆☆</td>
+          <td><span class="star">★★★★★</span></td>
+        </tr>
+        <tr>
+          <td><strong>B2B 입점 유인 (수익성)</strong></td>
+          <td>★★☆☆☆</td>
+          <td><span class="star">★★★★★</span></td>
+          <td>★★★★☆</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="summary-box">
+      <h3>🎯 PM 최선의 결론: [대안 A + 대안 C 하이브리드 결합]</h3>
+      <p>
+        <strong>1차 MVP 단계:</strong> [대안 A: 표준 시뮬레이터]를 기본 탑재하여 전국 1,100개 장례식장에 대해 100% 서비스가 가동되도록 구축합니다.<br>
+        <strong>상세 견적 요청 시:</strong> [대안 C: 맞춤 견적서 신청]으로 유연하게 연결하여 전문 상담원 알림톡 견적을 발송함으로써 세부 데이터 부재를 극복합니다.<br>
+        <strong>향후 B2B 확장 시:</strong> [대안 B]를 적용하여 제휴 업체의 어드민 실시간 단가로 자연스럽게 전환합니다.
+      </p>
+    </div>
+  </div>
+</body>
+</html>

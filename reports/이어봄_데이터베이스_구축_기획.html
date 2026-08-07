@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>이어봄 플랫폼 데이터베이스 구축 및 기획서</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .badge {
+            display: inline-block;
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            margin-right: 0.5rem;
+        }
+        .badge-recommended { background-color: #4E7055; color: white; }
+        .badge-rdbms { background-color: #1A2B4C; color: white; }
+        .badge-baas { background-color: #3ECF8E; color: #111; }
+        .badge-nosql { background-color: #13AA52; color: white; }
+        
+        .compare-table th {
+            text-align: center;
+        }
+        .compare-table td {
+            font-size: 0.95rem;
+        }
+        .pro-con {
+            font-weight: 600;
+        }
+        .pro { color: #2E7D32; }
+        .con { color: #C62828; }
+        
+        .code-block {
+            background-color: #1E1E1E;
+            color: #D4D4D4;
+            padding: 1.5rem;
+            border-radius: var(--border-radius);
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.9rem;
+            line-height: 1.5;
+            overflow-x: auto;
+            margin-top: 1rem;
+            box-shadow: var(--box-shadow);
+        }
+        .code-keyword { color: #569CD6; font-weight: bold; }
+        .code-type { color: #4EC9B0; }
+        .code-string { color: #CE9178; }
+        .code-comment { color: #6A9955; font-style: italic; }
+
+        .timeline-list {
+            list-style: none;
+            padding-left: 0;
+        }
+        .timeline-item {
+            position: relative;
+            padding-left: 2.5rem;
+            margin-bottom: 2rem;
+        }
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: 0.75rem;
+            top: 2rem;
+            bottom: -2rem;
+            width: 3px;
+            background-color: var(--border-color);
+        }
+        .timeline-item:last-child::before {
+            display: none;
+        }
+        .timeline-icon {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 2rem;
+            height: 2rem;
+            border-radius: 50%;
+            background-color: var(--primary-color);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 네비게이션 바 -->
+    <nav class="navbar">
+        <a href="index.html" class="navbar-brand">
+            🌿 <span>이어봄</span> 토탈 케어
+        </a>
+                <ul class="navbar-nav" style="flex-wrap: wrap; gap: 0.5rem;">
+            <li><a href="index.html">서비스 개요</a></li>
+            <li><a href="이어봄_세부_프로젝트_기획서.html">세부 프로젝트 기획서</a></li>
+            <li><a href="이어봄_DB_요구사항_및_테이블_명세서.html">DB 요구사항 & 테이블 명세</a></li>
+            <li><a href="이어봄_화면_설계서_및_와이어프레임.html">화면 설계서 & 와이어프레임</a></li>
+            <li><a href="이어봄_시스템_아키텍처.html">시스템 아키텍처</a></li>
+            <li><a href="이어봄_시스템_흐름도.html">시스템 흐름도</a></li>
+            <li><a href="이어봄_기능_및_API_명세서.html">기능 및 API 명세</a></li>
+            <li><a href="이어봄_데이터베이스_구축_기획.html" class="active">DB 구축 기획</a></li>
+            <li><a href="이어봄_구현_난관_및_솔루션.html">구현 난관 & 솔루션</a></li>
+        </ul>
+    </nav>
+
+    <div class="container">
+        <!-- Hero Section -->
+        <header class="hero">
+            <h1>🗄️ 데이터베이스 구축 & 기획서 (DB Architecture Specification)</h1>
+            <p>디지털 엔딩 & 웰다잉 토탈 케어 플랫폼(이어봄)의 서비스 기능별 데이터 요구사항 분석, 데이터베이스 엔진 비교 평가, 물리 스키마 설계 및 암호화 보안 전략</p>
+        </header>
+
+        <!-- 1. 핵심 기능별 데이터 요구사항 -->
+        <section style="margin-bottom: 3.5rem;">
+            <h2 style="margin-bottom: 1.5rem; color: var(--primary-color);">1. 구현 기능별 데이터 요구사항 (Data Requirements)</h2>
+            <div class="grid">
+                <div class="card">
+                    <div class="card-title">🔐 1. 디지털 유언장 & 엔딩노트</div>
+                    <div class="card-content">
+                        <ul>
+                            <li><strong>요구 데이터:</strong> 암호화된 유언 텍스트, 사전연명의향서, 음성/영상 메모리얼 파일 URL.</li>
+                            <li><strong>특이사항:</strong> 최고 등급의 개인정보 보안 필요. 필드 단위 암호화(AES-256) 및 열람 조건(사망 확정/지정일) 제어 로직 필요.</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-title">💼 2. 디지털 유산 & 계정 관리</div>
+                    <div class="card-content">
+                        <ul>
+                            <li><strong>요구 데이터:</strong> 소셜/금융/구독 플랫폼 명, 계정 식별자, 사후 처리 방침(파기/유지/전달), 자격 증명.</li>
+                            <li><strong>특이사항:</strong> 다양한 플랫폼별 가변 속성 데이터(JSONB 구조) 수용 및 처리 완료 여부 추적 트랜잭션.</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-title">🏛️ 3. 장례/추모 시설 검색 & 예약</div>
+                    <div class="card-content">
+                        <ul>
+                            <li><strong>요구 데이터:</strong> 장례식장/봉안당/수목장 위치(위경도), 카테고리, 이용 요금, 1:1 상담 및 방문 예약 내역.</li>
+                            <li><strong>특이사항:</strong> 공간 위치 쿼리(Spatial Query) 및 동시 예약 중복 방지 트랜잭션(ACID) 필요.</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-title">📩 4. 모바일 부고장 & 조의록</div>
+                    <div class="card-content">
+                        <ul>
+                            <li><strong>요구 데이터:</strong> 고인 정보, 상주 계정, 빈소 위치, 조의금 계좌, 조문객 방명록/조의 메시지.</li>
+                            <li><strong>특이사항:</strong> 부고 알림 트래픽 급증 시 빠른 읽기 성능(Read-Heavy) 및 조의 메시지 실시간 저장.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 2. DB 종류별 장단점 비교 및 최종 선정 -->
+        <section style="margin-bottom: 3.5rem;">
+            <h2 style="margin-bottom: 1.5rem; color: var(--primary-color);">2. 데이터베이스 종류별 장단점 비교 평가</h2>
+            <div style="background: white; padding: 1.5rem; border-radius: var(--border-radius); box-shadow: var(--box-shadow); border: 1px solid var(--border-color);">
+                <table class="compare-table">
+                    <thead>
+                        <tr>
+                            <th>비교 항목</th>
+                            <th>RDBMS (PostgreSQL) <span class="badge badge-recommended">추천</span></th>
+                            <th>BaaS (Supabase - Postgres)</th>
+                            <th>NoSQL (MongoDB)</th>
+                            <th>Hybrid (Postgres + S3)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>데이터 무결성 & ACID</strong></td>
+                            <td><span class="pro">최상</span> (외래키 & 엄격한 트랜잭션)</td>
+                            <td><span class="pro">최상</span> (PostgreSQL 엔진 기반)</td>
+                            <td><span class="con">보통</span> (문서 단위, FK 결합 한계)</td>
+                            <td><span class="pro">최상</span> (메타데이터 ACID 보장)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>보안 & 접근 제어</strong></td>
+                            <td><span class="pro">우수</span> (Field Level Encryption)</td>
+                            <td><span class="pro">최상</span> (Row Level Security RLS)</td>
+                            <td><span class="con">보통</span> (애플리케이션 단 검증)</td>
+                            <td><span class="pro">최상</span> (DB 암호화 + S3 Presigned)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>유연성 (가변 데이터)</strong></td>
+                            <td><span class="pro">우수</span> (JSONB 타입 지원)</td>
+                            <td><span class="pro">우수</span> (JSONB 타입 지원)</td>
+                            <td><span class="pro">최상</span> (Schema-less Document)</td>
+                            <td><span class="pro">최상</span> (JSONB + 미디어 파일 분리)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>미디어(대용량) 처리</strong></td>
+                            <td><span class="con">부적합</span> (BLOB 저장 시 성능 저하)</td>
+                            <td><span class="pro">우수</span> (Storage 제품 일체 제공)</td>
+                            <td><span class="con">제한적</span> (GridFS 사용 시 복잡도 증가)</td>
+                            <td><span class="pro">최상</span> (S3 전용 스토리지 분리)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>개발 생산성 & 백엔드 연동</strong></td>
+                            <td><span class="pro">우수</span> (Prisma / Node / NestJS)</td>
+                            <td><span class="pro">최상</span> (자동 REST/GraphQL API)</td>
+                            <td><span class="pro">우수</span> (Mongoose / Node.js)</td>
+                            <td><span class="pro">우수</span> (표준 기업형 아키텍처)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>종합 평가 및 판정</strong></td>
+                            <td><strong>핵심 서비스 데이터용 1순위</strong></td>
+                            <td><strong>빠른 MVP 구축 시 최적</strong></td>
+                            <td>비정형 복잡 데이터가 적어 비추천</td>
+                            <td><strong>최종 채택 아키텍처 (Standard)</strong></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- 최종 아키텍처 채택 사유 카드 -->
+            <div class="card" style="margin-top: 2rem; border-left: 6px solid var(--point-color);">
+                <div class="card-title" style="color: var(--point-color);">💡 최종 채택: PostgreSQL + Prisma ORM + AWS S3 하이브리드 아키텍처</div>
+                <div class="card-content">
+                    <p><strong>채택 사유:</strong> 웰다잉 플랫폼은 유언장 및 예약 정보 등 **트랜잭션 무결성과 관계형 결합도(FK)**가 극도로 중요한 시스템입니다. 따라서 메인 DB로 **PostgreSQL**을 채택하고, 타입 안전성이 뛰어난 **Prisma ORM**을 통해 백엔드를 연동합니다. 또한 대용량 음성/영상 엔딩노트는 **AWS S3 (또는 Supabase Storage)**로 이관하고 DB에는 암호화된 URL 및 메타데이터만 저장함으로써 저장 비용 절감과 조회 성능을 극대화합니다.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 3. 물리 스키마 명세 (Prisma Schema) -->
+        <section style="margin-bottom: 3.5rem;">
+            <h2 style="margin-bottom: 1.5rem; color: var(--primary-color);">3. 데이터베이스 물리 스키마 명세 (Prisma Schema)</h2>
+            <p>플랫폼 구축에 직접 활용되는 8개 핵심 엔티티 스키마 코드입니다.</p>
+
+            <div class="code-block">
+<span class="code-keyword">datasource</span> db {
+  <span class="code-keyword">provider</span> = <span class="code-string">"postgresql"</span>
+  <span class="code-keyword">url</span>      = env(<span class="code-string">"DATABASE_URL"</span>)
+}
+
+<span class="code-keyword">generator</span> client {
+  <span class="code-keyword">provider</span> = <span class="code-string">"prisma-client-js"</span>
+}
+
+<span class="code-comment">// 1. 회원 정보 테이블</span>
+<span class="code-keyword">model</span> <span class="code-type">User</span> {
+  id           <span class="code-type">String</span>        @id @default(uuid())
+  email        <span class="code-type">String</span>        @unique
+  name         <span class="code-type">String</span>
+  phone        <span class="code-type">String</span>
+  role         <span class="code-type">String</span>        @default("USER") <span class="code-comment">// USER, ADMIN, COUNSELOR</span>
+  createdAt    <span class="code-type">DateTime</span>      @default(now())
+  updatedAt    <span class="code-type">DateTime</span>      @updatedAt
+
+  guardians    <span class="code-type">Guardian</span>[]
+  wills        <span class="code-type">WillNote</span>[]
+  estates      <span class="code-type">DigitalEstate</span>[]
+  reservations <span class="code-type">Reservation</span>[]
+  obituaries   <span class="code-type">Obituary</span>[]
+}
+
+<span class="code-comment">// 2. 지정 수령인 (보호자) 테이블</span>
+<span class="code-keyword">model</span> <span class="code-type">Guardian</span> {
+  id           <span class="code-type">String</span>   @id @default(uuid())
+  userId       <span class="code-type">String</span>
+  user         <span class="code-type">User</span>     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name         <span class="code-type">String</span>
+  phone        <span class="code-type">String</span>
+  relationship <span class="code-type">String</span>   <span class="code-comment">// 자녀, 배우자, 친척 등</span>
+  isVerified   <span class="code-type">Boolean</span>  @default(false)
+  createdAt    <span class="code-type">DateTime</span> @default(now())
+}
+
+<span class="code-comment">// 3. 디지털 유언장 & 엔딩노트 테이블</span>
+<span class="code-keyword">model</span> <span class="code-type">WillNote</span> {
+  id               <span class="code-type">String</span>     @id @default(uuid())
+  userId           <span class="code-type">String</span>
+  user             <span class="code-type">User</span>       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title            <span class="code-type">String</span>
+  encryptedContent <span class="code-type">String</span>     @db.Text <span class="code-comment">// AES-256 암호화된 유언문</span>
+  releaseCondition <span class="code-type">String</span>     <span class="code-comment">// ON_DEATH_VERIFIED, SPECIFIC_DATE 등</span>
+  isReleased       <span class="code-type">Boolean</span>    @default(false)
+  files            <span class="code-type">WillFile</span>[]
+  createdAt        <span class="code-type">DateTime</span>   @default(now())
+  updatedAt        <span class="code-type">DateTime</span>   @updatedAt
+}
+
+<span class="code-comment">// 4. 유언장 첨부 미디어 파일 테이블 (S3 연동)</span>
+<span class="code-keyword">model</span> <span class="code-type">WillFile</span> {
+  id        <span class="code-type">String</span>   @id @default(uuid())
+  willId    <span class="code-type">String</span>
+  will      <span class="code-type">WillNote</span> @relation(fields: [willId], references: [id], onDelete: Cascade)
+  fileUrl   <span class="code-type">String</span>   <span class="code-comment">// S3 객체 URL</span>
+  fileType  <span class="code-type">String</span>   <span class="code-comment">// audio/mp4, video/mp4 등</span>
+  fileSize  <span class="code-type">Int</span>
+  createdAt <span class="code-type">DateTime</span> @default(now())
+}
+
+<span class="code-comment">// 5. 디지털 유산 및 계정 테이블</span>
+<span class="code-keyword">model</span> <span class="code-type">DigitalEstate</span> {
+  id                   <span class="code-type">String</span>   @id @default(uuid())
+  userId               <span class="code-type">String</span>
+  user                 <span class="code-type">User</span>     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  platformName         <span class="code-type">String</span>   <span class="code-comment">// Naver, Google, Kakao, Instagram 등</span>
+  category             <span class="code-type">String</span>   <span class="code-comment">// SNS, 금융, 구독 서비스</span>
+  encryptedCredentials <span class="code-type">String</span>?  @db.Text
+  actionType           <span class="code-type">String</span>   @default("DELETE") <span class="code-comment">// DELETE, TRANSFER, MEMORIALIZE</span>
+  createdAt            <span class="code-type">DateTime</span> @default(now())
+}
+
+<span class="code-comment">// 6. 장례식장 및 추모 시설 DB 테이블</span>
+<span class="code-keyword">model</span> <span class="code-type">Facility</span> {
+  id           <span class="code-type">String</span>        @id @default(uuid())
+  name         <span class="code-type">String</span>
+  category     <span class="code-type">String</span>        <span class="code-comment">// FUNERAL_HOME, MEMORIAL_PARK, NATURAL_BURIAL</span>
+  address      <span class="code-type">String</span>
+  phone        <span class="code-type">String</span>
+  latitude     <span class="code-type">Float</span>?
+  longitude    <span class="code-type">Float</span>?
+  reservations <span class="code-type">Reservation</span>[]
+  createdAt    <span class="code-type">DateTime</span>      @default(now())
+}
+
+<span class="code-comment">// 7. 상담 및 시설 예약 테이블</span>
+<span class="code-keyword">model</span> <span class="code-type">Reservation</span> {
+  id              <span class="code-type">String</span>   @id @default(uuid())
+  userId          <span class="code-type">String</span>
+  user            <span class="code-type">User</span>     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  facilityId      <span class="code-type">String</span>
+  facility        <span class="code-type">Facility</span> @relation(fields: [facilityId], references: [id])
+  reservationDate <span class="code-type">DateTime</span>
+  status          <span class="code-type">String</span>   @default("PENDING") <span class="code-comment">// PENDING, CONFIRMED, CANCELLED</span>
+  notes           <span class="code-type">String</span>?  @db.Text
+  createdAt       <span class="code-type">DateTime</span> @default(now())
+}
+
+<span class="code-comment">// 8. 모바일 부고장 테이블</span>
+<span class="code-keyword">model</span> <span class="code-type">Obituary</span> {
+  id           <span class="code-type">String</span>   @id @default(uuid())
+  userId       <span class="code-type">String</span>
+  user         <span class="code-type">User</span>     @relation(fields: [userId], references: [id])
+  deceasedName <span class="code-type">String</span>
+  funeralHome  <span class="code-type">String</span>
+  bankAccount  <span class="code-type">String</span>?
+  createdAt    <span class="code-type">DateTime</span> @default(now())
+}
+            </div>
+        </section>
+
+        <!-- 4. 데이터 보안 & 암호화 전략 -->
+        <section style="margin-bottom: 3.5rem;">
+            <h2 style="margin-bottom: 1.5rem; color: var(--primary-color);">4. 데이터 보안 & 암호화 아키텍처</h2>
+            <div class="grid">
+                <div class="card" style="border-top: 5px solid var(--primary-color);">
+                    <div class="card-title">🔑 1. 필드 레벨 암호화 (AES-256-GCM)</div>
+                    <div class="card-content">
+                        유언장 내용(`encryptedContent`)과 자격 증명(`encryptedCredentials`)은 데이터베이스 저장 전 백엔드 애플리케이션 단에서 **AES-256-GCM 알고리즘**으로 암호화된 후 저장됩니다. DB 관리자조차 실데이터 원문을 볼 수 없습니다.
+                    </div>
+                </div>
+                <div class="card" style="border-top: 5px solid var(--point-color);">
+                    <div class="card-title">🛡️ 2. 봉투 암호화 (Envelope Encryption)</div>
+                    <div class="card-content">
+                        Master Key(KEK)는 AWS KMS 또는 HashiCorp Vault와 같은 전용 키 관리 서비스에 보관하며, 사용자별 Data Encryption Key(DEK)를 주기적으로 로테이션하여 높은 보안 수준을 유지합니다.
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 5. 데이터베이스 구축 로드맵 -->
+        <section style="margin-bottom: 3.5rem;">
+            <h2 style="margin-bottom: 1.5rem; color: var(--primary-color);">5. 데이터베이스 단계별 구축 로드맵</h2>
+            <div class="flow-container">
+                <ul class="timeline-list">
+                    <li class="timeline-item">
+                        <div class="timeline-icon">1</div>
+                        <h3 style="color: var(--primary-color); font-size: 1.2rem;">Phase 1: DB 개발 환경 구축 & 마이그레이션 (1주차)</h3>
+                        <p style="color: var(--text-muted); margin-top: 0.5rem;">Docker 기반 PostgreSQL 서버 구동, Node.js/NestJS 백엔드 프로젝트 초기화 및 `prisma migrate`를 통한 초기 스키마 생성.</p>
+                    </li>
+                    <li class="timeline-item">
+                        <div class="timeline-icon">2</div>
+                        <h3 style="color: var(--primary-color); font-size: 1.2rem;">Phase 2: 장례/추모 시설 공공 DB 데이터 시딩 (2주차)</h3>
+                        <p style="color: var(--text-muted); margin-top: 0.5rem;">전국 장례식장, 추모공원, 봉안당 공공 데이터 수집 후 `prisma/seed.ts`를 활용한 시드 데이터 배치 이관.</p>
+                    </li>
+                    <li class="timeline-item">
+                        <div class="timeline-icon">3</div>
+                        <h3 style="color: var(--primary-color); font-size: 1.2rem;">Phase 3: AES-256 암호화 & S3 미디어 파이프라인 연동 (3주차)</h3>
+                        <p style="color: var(--text-muted); margin-top: 0.5rem;">유언장 암복호화 유틸리티 구현 및 음성/영상 메모리얼 파일 업로드를 위한 AWS S3 Presigned URL 생성 로직 연동.</p>
+                    </li>
+                    <li class="timeline-item">
+                        <div class="timeline-icon">4</div>
+                        <h3 style="color: var(--primary-color); font-size: 1.2rem;">Phase 4: 백엔드 REST API CRUD 연동 & 인덱스 최적화 (4주차)</h3>
+                        <p style="color: var(--text-muted); margin-top: 0.5rem;">프론트엔드(`eobom/frontend`)와 REST API 연동 및 주요 쿼리(위치 기반 장례식장 검색) 인덱스 성능 최적화.</p>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+    </div>
+
+    <!-- 1-Touch 긴급 상담 플로팅 버튼 -->
+    <a href="tel:119" class="floating-call" onclick="alert('긴급 장례 지원 서비스로 전화를 연결합니다. (24시간 디스패치)'); return false;">
+        🚨 긴급 상담
+    </a>
+
+</body>
+</html>

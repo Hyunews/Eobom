@@ -4,7 +4,6 @@ import { BACKEND_URL } from '../config';
 import { KakaoMapModal } from '../components/KakaoMapModal';
 import { PriceCompareModal } from '../components/facility/PriceCompareModal';
 import { BookingModal } from '../components/facility/BookingModal';
-import { EmergencyModal } from '../components/facility/EmergencyModal';
 import { FacilityReviewModal } from '../components/facility/FacilityReviewModal';
 import { HouseLeafIcon } from '../components/MenuIcons';
 
@@ -14,6 +13,11 @@ interface FacilityPageProps {
 }
 
 export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenLogin }) => {
+  // 터치 기반(모바일/태블릿) 기기인지 판별 — 데스크톱은 tel: 링크를 눌러도 통화가 안 되므로 번호만 노출
+  const [isTouchDevice] = useState(() => window.matchMedia('(hover: none) and (pointer: coarse)').matches);
+  // 데스크톱에서 전화 버튼에 마우스오버 시 번호를 보여줄 커스텀 툴팁 (네이티브 title 속성은 지연/미표시 이슈가 있어 직접 구현)
+  const [hoveredPhoneId, setHoveredPhoneId] = useState<string | null>(null);
+
   // 시설 목록 (백엔드 API 연동, 서버사이드 필터링 + 페이지네이션)
   const [facilities, setFacilities] = useState<any[]>([]);
   const [totalCount, setTotalCount] = useState(0);
@@ -27,12 +31,14 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
   const [bookingFacility, setBookingFacility] = useState<any | null>(null);
   const [reviewFacility, setReviewFacility] = useState<any | null>(null);
 
-  // 긴급 출동 타임라인 모달 상태
-  const [showEmergencyModal, setShowEmergencyModal] = useState(false);
-
-  // 위치 및 LBS 필터 상태
+  // 위치 상태 (반경 필터 대신 항상 이 위치 기준 가까운 순으로 정렬)
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
-  const [lbsRadius, setLbsRadius] = useState<string>('전체'); // 전체, 5km, 10km, 20km
+  const [locationName, setLocationName] = useState<string>('위치 확인 중...');
+  const [regionsData, setRegionsData] = useState<Record<string, string[]>>({});
+  const [locationProvince, setLocationProvince] = useState('');
+  const [locationDistrict, setLocationDistrict] = useState('');
+  const [isSearchingLocation, setIsSearchingLocation] = useState(false);
+  const [locationError, setLocationError] = useState<string | null>(null);
 
   // 필터 상태
   const [category, setCategory] = useState('전체');
@@ -49,7 +55,6 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
     if (religion !== '전체') params.set('religion', religion);
     if (guestCount !== '전체') params.set('guests', guestCount);
     if (budget !== '전체') params.set('budget', budget);
-    if (lbsRadius !== '전체') params.set('radius', lbsRadius);
     if (userLocation) {
       params.set('lat', String(userLocation.lat));
       params.set('lng', String(userLocation.lng));
@@ -70,7 +75,7 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
         // 조회 실패 시 빈 목록으로 유지 (필터 UI는 정상 노출)
       });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [category, region, religion, guestCount, budget, lbsRadius, userLocation, page]);
+  }, [category, region, religion, guestCount, budget, userLocation, page]);
 
   // 필터 select의 onChange에서 값 변경과 함께 page를 1로 리셋해주는 헬퍼
   const withPageReset = (setter: (value: string) => void) => (value: string) => {
@@ -82,32 +87,92 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
   const handleReligionChange = withPageReset(setReligion);
   const handleGuestCountChange = withPageReset(setGuestCount);
   const handleBudgetChange = withPageReset(setBudget);
-  const handleLbsRadiusChange = withPageReset(setLbsRadius);
 
   const goToPage = (p: number) => {
     setPage(p);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // 사용자의 현위치 자동 감지 (Geolocation API)
+  // 사용자의 현위치 자동 감지 (Geolocation API) — "선택 안함" 시 되돌아갈 기본 위치로도 보관
+  const [detectedLocation, setDetectedLocation] = useState<{ lat: number; lng: number } | null>(null);
   useEffect(() => {
+    const applyDetected = (loc: { lat: number; lng: number }) => {
+      setUserLocation(loc);
+      setDetectedLocation(loc);
+    };
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          setUserLocation({
-            lat: pos.coords.latitude,
-            lng: pos.coords.longitude
-          });
-        },
-        () => {
-          // Default fallback location (서울 서초)
-          setUserLocation({ lat: 37.4925, lng: 127.0078 });
-        }
+        (pos) => applyDetected({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+        () => applyDetected({ lat: 37.4925, lng: 127.0078 }) // Default fallback location (서울 서초)
       );
     } else {
-      setUserLocation({ lat: 37.4925, lng: 127.0078 });
+      applyDetected({ lat: 37.4925, lng: 127.0078 });
     }
   }, []);
+
+  // 현위치가 바뀔 때마다(최초 감지 + 시/군/구 선택으로 변경) 대략적인 지역명으로 역지오코딩해서 표시
+  useEffect(() => {
+    if (!userLocation) return;
+    fetch(`${BACKEND_URL}/api/geo/reverse?lat=${userLocation.lat}&lng=${userLocation.lng}`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.status === 'success') setLocationName(data.data.region);
+      })
+      .catch(() => {
+        setLocationName('위치 확인 실패');
+      });
+  }, [userLocation]);
+
+  // 시/도 -> 시/군/구 선택 옵션 목록 (실제 보유 시설 데이터 기반)
+  useEffect(() => {
+    fetch(`${BACKEND_URL}/api/geo/regions`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.status === 'success') setRegionsData(data.data);
+      })
+      .catch(() => {
+        // 실패해도 필터/목록 조회에는 영향 없음
+      });
+  }, []);
+
+  const provinceOptions = Object.keys(regionsData).sort((a, b) => a.localeCompare(b, 'ko'));
+  const districtOptions = locationProvince ? regionsData[locationProvince] || [] : [];
+
+  const handleProvinceChange = (value: string) => {
+    setLocationProvince(value);
+    setLocationDistrict('');
+  };
+
+  // 시/군/구까지 선택되면 그 지역명으로 지오코딩해서 기준 위치를 변경. "선택 안함"이면 자동 감지된 위치로 복귀
+  const handleDistrictChange = async (value: string) => {
+    setLocationDistrict(value);
+    if (!value) {
+      setLocationProvince('');
+      setLocationError(null);
+      if (detectedLocation) {
+        setUserLocation(detectedLocation);
+        setPage(1);
+      }
+      return;
+    }
+
+    setIsSearchingLocation(true);
+    setLocationError(null);
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/geo/geocode?query=${encodeURIComponent(`${locationProvince} ${value}`)}`);
+      const data = await res.json();
+      if (!res.ok || data.status !== 'success') {
+        setLocationError(data.message || '해당 위치를 찾을 수 없습니다.');
+        return;
+      }
+      setUserLocation({ lat: data.data.lat, lng: data.data.lng });
+      setPage(1);
+    } catch (e) {
+      setLocationError('위치 검색 중 오류가 발생했습니다.');
+    } finally {
+      setIsSearchingLocation(false);
+    }
+  };
 
   // 리뷰 작성 완료 시 해당 시설의 리뷰/평점을 목록 + 열려있는 리뷰 모달에 즉시 반영
   const handleReviewSubmitted = (updatedFacility: any) => {
@@ -138,32 +203,55 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
             장례·묘지 맞춤 비교 매칭 및 VR 답사
           </h1>
           <p style={{ fontSize: '1.05rem', color: '#CBD5E1', lineHeight: '1.6', margin: 0 }}>
-            현재 위치 기반 반경 탐색, 카카오맵 LBS 핀 마커 연동, 360도 사이버 공간 투어 및 1-Touch 24시간 긴급 출동 지원을 만나보세요.
+            현재 위치 기반 반경 탐색, 카카오맵 LBS 핀 마커 연동, 360도 사이버 공간 투어를 만나보세요.
           </p>
         </div>
+      </div>
 
-        <button
-          onClick={() => setShowEmergencyModal(true)}
-          style={{
-            position: 'absolute',
-            top: '2.5rem',
-            right: '2.5rem',
-            backgroundColor: 'var(--accent-red)',
-            color: '#FFF',
-            border: 'none',
-            padding: '0.9rem 1.4rem',
-            borderRadius: '16px',
-            fontWeight: 700,
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.6rem',
-            boxShadow: '0 10px 20px rgba(239, 68, 68, 0.4)',
-            zIndex: 3
-          }}
-        >
-          <PhoneCall size={20} className="animate-pulse" /> 24시간 긴급 출동 요청
-        </button>
+      {/* 위치 표시 및 변경 */}
+      <div
+        style={{
+          backgroundColor: 'var(--card-bg)',
+          padding: '1.2rem 1.5rem',
+          borderRadius: '16px',
+          marginBottom: '1.2rem',
+          boxShadow: 'var(--box-shadow)',
+          border: '1px solid var(--border-color)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: '1rem',
+          flexWrap: 'wrap'
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'var(--primary-color)', fontWeight: 700, whiteSpace: 'nowrap' }}>
+          <MapPin size={18} color="var(--point-color)" /> 위치: {locationName}
+        </div>
+        <div style={{ display: 'flex', gap: '0.8rem' }}>
+          <select value={locationProvince} onChange={(e) => handleProvinceChange(e.target.value)} className="form-select" style={{ width: '250px' }}>
+            <option value="">시/도 선택</option>
+            {provinceOptions.map((p) => (
+              <option key={p} value={p}>
+                {p}
+              </option>
+            ))}
+          </select>
+          <select
+            value={locationDistrict}
+            onChange={(e) => handleDistrictChange(e.target.value)}
+            disabled={!locationProvince || isSearchingLocation}
+            className="form-select"
+            style={{ width: '250px' }}
+          >
+            <option value="">선택 안함</option>
+            {districtOptions.map((d) => (
+              <option key={d} value={d}>
+                {d}
+              </option>
+            ))}
+          </select>
+        </div>
+        {locationError && <p style={{ color: '#DC2626', fontSize: '0.8rem', margin: 0, width: '100%' }}>{locationError}</p>}
       </div>
 
       {/* 스마트 멀티 스펙 필터 바 */}
@@ -188,17 +276,6 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
             gap: '1.2rem'
           }}
         >
-          {/* LBS 반경 거리 */}
-          <div>
-            <label className="form-label">📍 내 위치 기준 반경</label>
-            <select value={lbsRadius} onChange={(e) => handleLbsRadiusChange(e.target.value)} className="form-select">
-              <option value="전체">전체 반경 (전국)</option>
-              <option value="5km">반경 5km 이내</option>
-              <option value="10km">반경 10km 이내</option>
-              <option value="20km">반경 20km 이내</option>
-            </select>
-          </div>
-
           <div>
             <label className="form-label">구분</label>
             <select value={category} onChange={(e) => handleCategoryChange(e.target.value)} className="form-select">
@@ -308,29 +385,76 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
 
               {/* 액션 버튼 그룹 */}
               <div style={{ marginTop: 'auto', display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
-                  {/* 전화 문의 버튼 (실데이터 수집된 시설만 노출) */}
+                  {/* 전화 버튼 (실데이터 수집된 시설만 노출) — 모바일은 탭하면 바로 통화, 데스크톱은 마우스오버 시 번호만 툴팁으로 표시 */}
                   {item.phone && (
-                    <a
-                      href={`tel:${item.phone}`}
-                      className="btn"
-                      style={{
-                        flex: '1 1 0',
-                        minWidth: '100px',
-                        backgroundColor: '#ECFDF5',
-                        color: '#059669',
-                        fontSize: '0.85rem',
-                        padding: '0.6rem 0.4rem',
-                        whiteSpace: 'nowrap',
-                        gap: '0.3rem',
-                        fontWeight: 700,
-                        textDecoration: 'none',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center'
-                      }}
-                    >
-                      <PhoneCall size={16} /> 전화 문의
-                    </a>
+                    isTouchDevice ? (
+                      <a
+                        href={`tel:${item.phone}`}
+                        className="btn"
+                        style={{
+                          flex: '1 1 0',
+                          minWidth: '100px',
+                          backgroundColor: '#ECFDF5',
+                          color: '#059669',
+                          fontSize: '0.85rem',
+                          padding: '0.6rem 0.4rem',
+                          whiteSpace: 'nowrap',
+                          gap: '0.3rem',
+                          fontWeight: 700,
+                          textDecoration: 'none',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center'
+                        }}
+                      >
+                        <PhoneCall size={16} /> 전화
+                      </a>
+                    ) : (
+                      <span
+                        onMouseEnter={() => setHoveredPhoneId(item.id)}
+                        onMouseLeave={() => setHoveredPhoneId((prev) => (prev === item.id ? null : prev))}
+                        className="btn"
+                        style={{
+                          position: 'relative',
+                          flex: '1 1 0',
+                          minWidth: '100px',
+                          backgroundColor: '#ECFDF5',
+                          color: '#059669',
+                          fontSize: '0.85rem',
+                          padding: '0.6rem 0.4rem',
+                          whiteSpace: 'nowrap',
+                          gap: '0.3rem',
+                          fontWeight: 700,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          cursor: 'default'
+                        }}
+                      >
+                        <PhoneCall size={16} /> 전화
+                        {hoveredPhoneId === item.id && (
+                          <span
+                            style={{
+                              position: 'absolute',
+                              bottom: 'calc(100% + 6px)',
+                              left: '50%',
+                              transform: 'translateX(-50%)',
+                              backgroundColor: '#111827',
+                              color: '#FFFFFF',
+                              padding: '0.35rem 0.7rem',
+                              borderRadius: '6px',
+                              fontSize: '0.8rem',
+                              fontWeight: 700,
+                              whiteSpace: 'nowrap',
+                              zIndex: 10,
+                              boxShadow: '0 4px 10px rgba(0,0,0,0.25)'
+                            }}
+                          >
+                            {item.phone}
+                          </span>
+                        )}
+                      </span>
+                    )
                   )}
 
                   {/* 카카오맵 지도 버튼 */}
@@ -502,11 +626,6 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
           onClose={() => setReviewFacility(null)}
           onReviewSubmitted={handleReviewSubmitted}
         />
-      )}
-
-      {/* 24시간 긴급 출동 요청 타임라인 모달 */}
-      {showEmergencyModal && (
-        <EmergencyModal onClose={() => setShowEmergencyModal(false)} />
       )}
     </div>
   );

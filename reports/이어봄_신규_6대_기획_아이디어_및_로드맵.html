@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>이어봄 (Eobom) - 신규 6대 기획 아이디어 & 전략 로드맵</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;800&family=Outfit:wght@500;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #1A2B4C;
+      --point: #5B7065;
+      --gold: #D4A359;
+      --bg: #FBF9F5;
+      --card-bg: #FFFFFF;
+      --text: #1E293B;
+      --text-muted: #64748B;
+      --red: #EF4444;
+      --border: #E2E8F0;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Noto Sans KR', sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.7;
+      padding: 2rem 1rem;
+    }
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+    header {
+      background: linear-gradient(135deg, var(--primary) 0%, #0F172A 100%);
+      color: #FFFFFF;
+      padding: 2.5rem;
+      border-radius: 24px;
+      box-shadow: 0 20px 40px rgba(15, 23, 42, 0.15);
+      margin-bottom: 2rem;
+      position: relative;
+    }
+    header h1 { font-size: 2.2rem; font-weight: 800; margin-bottom: 0.5rem; }
+    header p { color: #CBD5E1; font-size: 1.05rem; }
+    .badge {
+      display: inline-block;
+      background-color: rgba(212, 163, 89, 0.25);
+      color: var(--gold);
+      padding: 0.3rem 0.8rem;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+    }
+    .card {
+      background-color: var(--card-bg);
+      border-radius: 20px;
+      padding: 2rem;
+      margin-bottom: 2rem;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+      border: 1px solid var(--border);
+    }
+    .card h2 {
+      font-size: 1.4rem;
+      color: var(--primary);
+      margin-bottom: 1.2rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      border-bottom: 2px solid var(--bg);
+      padding-bottom: 0.8rem;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1rem;
+      font-size: 0.95rem;
+    }
+    th, td {
+      padding: 0.9rem 1rem;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+    th {
+      background-color: #F8FAFC;
+      color: var(--primary);
+      font-weight: 700;
+    }
+    .rank-tag {
+      background-color: var(--primary);
+      color: #FFF;
+      padding: 0.2rem 0.6rem;
+      border-radius: 12px;
+      font-weight: 800;
+      font-size: 0.8rem;
+    }
+    .p-high { color: var(--red); font-weight: 800; }
+    .p-mid { color: #D97706; font-weight: 700; }
+    .roadmap-box {
+      background-color: #F8FAFC;
+      border-left: 4px solid var(--primary);
+      padding: 1.2rem 1.5rem;
+      margin-bottom: 1rem;
+      border-radius: 0 12px 12px 0;
+    }
+    .roadmap-box h3 { color: var(--primary); font-size: 1.1rem; margin-bottom: 0.4rem; }
+    .idea-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.2rem;
+      margin-top: 1rem;
+    }
+    .idea-card {
+      background: #F8FAFC;
+      padding: 1.4rem;
+      border-radius: 16px;
+      border: 1px solid var(--border);
+    }
+    .idea-card h4 { color: var(--primary); font-size: 1.1rem; margin-bottom: 0.5rem; }
+    .idea-card p { font-size: 0.9rem; color: var(--text-muted); }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <span class="badge">🌿 Eobom Strategic Product Roadmap</span>
+      <h1>이어봄 신규 6대 기획 아이디어 & 전략 로드맵</h1>
+      <p>사용자 경험(UX) 극대화, 실사용자 인증 및 투명 공공데이터 기반 고도화 전략</p>
+    </header>
+
+    <div class="card">
+      <h2>📊 6대 신규 아이디어 종합 비교표</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>우선순위</th>
+            <th>아이디어 명칭</th>
+            <th>핵심 목표</th>
+            <th>ROI / 가성비</th>
+            <th>개발 난이도</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="rank-tag">1위</span></td>
+            <td><strong>🚨 상황별 온보딩 위저드</strong></td>
+            <td>유저 감정/상황별 분기</td>
+            <td><span class="p-high">최상 (🔥🔥🔥)</span></td>
+            <td>⭐ (쉬움)</td>
+          </tr>
+          <tr>
+            <td><span class="rank-tag">2위</span></td>
+            <td><strong>🗺️ 전국 시설 통합 지도 뷰</strong></td>
+            <td>한눈에 지리적 지도 비교</td>
+            <td><span class="p-high">상 (🔥🔥🔥)</span></td>
+            <td>⭐⭐ (보통)</td>
+          </tr>
+          <tr>
+            <td><span class="rank-tag">3위</span></td>
+            <td><strong>🔑 카카오 소셜 로그인</strong></td>
+            <td>실사용자 간편 인증</td>
+            <td><span class="p-mid">상 (🔥🔥)</span></td>
+            <td>⭐⭐ (보통)</td>
+          </tr>
+          <tr>
+            <td><span class="rank-tag">4위</span></td>
+            <td><strong>🏛️ 공공데이터 연동 (e하늘)</strong></td>
+            <td>정부 공시 실시간 가격/시설</td>
+            <td><span class="p-mid">중상 (🔥🔥)</span></td>
+            <td>⭐⭐⭐ (중간)</td>
+          </tr>
+          <tr>
+            <td><span class="rank-tag">5위</span></td>
+            <td><strong>🤖 AI 챗봇 1차 상담 응대</strong></td>
+            <td>24시간 FAQ & 전문가 가교</td>
+            <td>중 (🔥)</td>
+            <td>⭐⭐⭐ (중간)</td>
+          </tr>
+          <tr>
+            <td><span class="rank-tag">6위</span></td>
+            <td><strong>📱 PWA (Progressive Web App)</strong></td>
+            <td>모바일 홈 화면 앱 설치</td>
+            <td>중 (🔥)</td>
+            <td>⭐⭐ (보통)</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <h2>🗺️ 3단계 실행 로드맵 (Execution Roadmap)</h2>
+      <div class="roadmap-box">
+        <h3>[Phase 1] 사용자 경험 &amp; 전환율 극대화 (우선 구현)</h3>
+        <p>• 1-1. 상황별 온보딩 위저드 (임종 직후 / 생전 사전 준비 / 상속·행정 3대 분기)<br>
+        • 1-2. 전국 시설 통합 지도 뷰 (14개 핀 마커 ↔ 리스트 토글)</p>
+      </div>
+      <div class="roadmap-box" style="border-left-color: var(--point);">
+        <h3>[Phase 2] 실사용자 인증 &amp; 공공데이터 신뢰성 구축</h3>
+        <p>• 2-1. 카카오 소셜 로그인 (OAuth 2.0 및 마이페이지 연동)<br>
+        • 2-2. 공공데이터 연동 (보건복지부 e하늘 장사정보 API 연동)</p>
+      </div>
+      <div class="roadmap-box" style="border-left-color: var(--gold);">
+        <h3>[Phase 3] 서비스 고도화 &amp; 리텐션 향상</h3>
+        <p>• 3-1. AI 챗봇 1차 상담 응대 (OpenAI/Claude API 24/7 Q&amp;A)<br>
+        • 3-2. PWA 전환 (스마트폰 홈화면 추가 &amp; 오프라인 핫라인)</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>🎯 주요 아이디어 핵심 기획 명세</h2>
+      <div class="idea-grid">
+        <div class="idea-card">
+          <h4>1. 🚨 상황별 온보딩 위저드</h4>
+          <p>첫 진입 시 "임종 직후 핫라인", "생전 장지 준비", "상속세/유품 정리" 3가지 분기를 제공하여 맞춤 화면을 즉시 구성합니다.</p>
+        </div>
+        <div class="idea-card">
+          <h4>2. 🗺️ 전국 시설 통합 지도 뷰</h4>
+          <p>상단 토글로 전체 지도를 펼쳐 14개 카카오 지도 핀을 한눈에 보고 핀 클릭 시 시설 요약 카드를 표시합니다.</p>
+        </div>
+        <div class="idea-card">
+          <h4>3. 🔑 카카오 소셜 로그인</h4>
+          <p>카카오 계정으로 1초 만에 로그인하여 예약 내역, 견적함, 엔딩노트를 개인 마이페이지에 안전 보관합니다.</p>
+        </div>
+        <div class="idea-card">
+          <h4>4. 🏛️ 공공데이터 연동 (e하늘)</h4>
+          <p>보건복지부 공공 API를 통해 전국 실제 장례식장 및 화장장의 실시간 잔여 현황과 표준 공시 가격을 연동합니다.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

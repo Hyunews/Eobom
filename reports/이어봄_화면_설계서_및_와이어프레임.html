@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>이어봄 데모 프론트엔드 맞춤 UI/UX 화면설계서 및 와이어프레임</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .spec-box { background: #FFFFFF; border: 1px solid var(--border-color); border-radius: var(--border-radius); padding: 1.5rem; margin-bottom: 2rem; box-shadow: var(--box-shadow); }
+        .spec-box h3 { color: var(--primary-color); border-bottom: 2px solid var(--secondary-color); padding-bottom: 0.5rem; margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: center; }
+        
+        .badge-tab { background-color: #4E7055; color: white; padding: 4px 10px; border-radius: 12px; font-size: 0.8rem; font-weight: bold; }
+        .badge-comp { background-color: #1A2B4C; color: white; padding: 4px 10px; border-radius: 12px; font-size: 0.8rem; }
+        
+        table.screen-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+            margin-top: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        table.screen-table th {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 12px;
+            text-align: left;
+        }
+        table.screen-table td {
+            padding: 10px 12px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        table.screen-table tr:nth-child(even) {
+            background-color: var(--secondary-color);
+        }
+
+        /* React Demo Frontend Wireframe Box */
+        .react-mockup {
+            border: 2px solid #1A2B4C;
+            border-radius: 12px;
+            background: #F8FAFC;
+            padding: 1.2rem;
+            margin-top: 1rem;
+            margin-bottom: 2rem;
+        }
+        .rm-header {
+            background: #1A2B4C;
+            color: white;
+            padding: 0.8rem 1.2rem;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .rm-tabs {
+            display: flex;
+            gap: 0.5rem;
+            background: #EAE5DC;
+            padding: 0.6rem;
+            border-radius: 8px;
+            margin-top: 0.8rem;
+            font-size: 0.88rem;
+            flex-wrap: wrap;
+        }
+        .rm-tab {
+            background: white;
+            padding: 0.4rem 0.9rem;
+            border-radius: 6px;
+            color: #2F3E46;
+            font-weight: 500;
+            cursor: pointer;
+            border: 1px solid #DFDCD7;
+        }
+        .rm-tab.active {
+            background: #4E7055;
+            color: white;
+            border-color: #4E7055;
+            font-weight: bold;
+        }
+        .rm-body {
+            background: white;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-top: 1rem;
+            border: 1px solid #DFDCD7;
+        }
+        .rm-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        .rm-card {
+            border: 1px solid #DFDCD7;
+            border-radius: 8px;
+            padding: 1rem;
+            background: #FAF8F5;
+        }
+        .rm-btn {
+            background: #4E7055;
+            color: white;
+            padding: 0.6rem 1rem;
+            border-radius: 6px;
+            font-weight: bold;
+            display: inline-block;
+            margin-top: 0.5rem;
+            font-size: 0.9rem;
+        }
+        .rm-emergency-float {
+            position: relative;
+            background: #D9534F;
+            color: white;
+            padding: 0.8rem;
+            border-radius: 20px;
+            text-align: center;
+            font-weight: bold;
+            margin-top: 1rem;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 네비게이션 바 -->
+    <nav class="navbar">
+        <a href="index.html" class="navbar-brand">
+            🌿 <span>이어봄</span> 토탈 케어
+        </a>
+        <ul class="navbar-nav" style="flex-wrap: wrap; gap: 0.5rem;">
+            <li><a href="index.html">서비스 개요</a></li>
+            <li><a href="이어봄_세부_프로젝트_기획서.html">세부 프로젝트 기획서</a></li>
+            <li><a href="이어봄_DB_요구사항_및_테이블_명세서.html">DB 요구사항 & 테이블 명세</a></li>
+            <li><a href="이어봄_화면_설계서_및_와이어프레임.html" class="active">화면 설계서 & 와이어프레임</a></li>
+            <li><a href="이어봄_시스템_아키텍처.html">시스템 아키텍처</a></li>
+            <li><a href="이어봄_시스템_흐름도.html">시스템 흐름도</a></li>
+            <li><a href="이어봄_기능_및_API_명세서.html">기능 및 API 명세</a></li>
+            <li><a href="이어봄_데이터베이스_구축_기획.html">DB 구축 기획</a></li>
+            <li><a href="이어봄_구현_난관_및_솔루션.html">구현 난관 & 솔루션</a></li>
+        </ul>
+    </nav>
+
+    <div class="container">
+        <header class="hero">
+            <h1>🎨 UI/UX 화면설계서 & 데모 프론트엔드 컴포넌트 명세</h1>
+            <p>React 18 + Vite 데모 프론트엔드 구동체(eobom/frontend)의 6대 메인 탭 컴포넌트, 공통 네비게이션, 모달 및 시각적 와이어프레임 명세</p>
+        </header>
+
+        <!-- 1. 프론트엔드 화면 구성 구조 (App.tsx 탭 매핑) -->
+        <section class="spec-box">
+            <h3>1. 데모 프론트엔드 화면 구성 구조 (App.tsx & React Router Hash)</h3>
+            <p style="margin-bottom: 1rem;">현재 데모 프론트엔드 소스코드(<code>eobom/frontend/src</code>)의 6개 핵심 탭 컴포넌트 및 모달 구조와 100% 매치되는 화면 목록입니다.</p>
+
+            <table class="screen-table">
+                <thead>
+                    <tr>
+                        <th>화면 ID</th>
+                        <th>탭 식별자 (`activeTab`)</th>
+                        <th>React 페이지 컴포넌트</th>
+                        <th>주요 수록 기능 및 UI 컴포넌트</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>SCR-101</strong></td>
+                        <td><code>home</code></td>
+                        <td><code>HomePage.tsx</code></td>
+                        <td>메인 히어로 세션, 웰다잉 라이프사이클 3단계 카드, 퀵 매칭 검색 폼, 브랜드 안내</td>
+                    </tr>
+                    <tr>
+                        <td><strong>SCR-102</strong></td>
+                        <td><code>facility</code></td>
+                        <td><code>FacilityPage.tsx</code></td>
+                        <td>장례식장/봉안당/수목장 카테고리 탭, 위치/예산 검색, 카카오 맵/지도 뷰, 상세 모달 & 예약 신청</td>
+                    </tr>
+                    <tr>
+                        <td><strong>SCR-103</strong></td>
+                        <td><code>counseling</code></td>
+                        <td><code>CounselingPage.tsx</code></td>
+                        <td>상속세/증여세 자동 시뮬레이터 폼, 예상 세액 계산 결과 카드, 전문가 1:1 상담 신청 폼</td>
+                    </tr>
+                    <tr>
+                        <td><strong>SCR-104</strong></td>
+                        <td><code>digital-estate</code></td>
+                        <td><code>DigitalEstatePage.tsx</code></td>
+                        <td>SNS/금융 계정 사후 처리 방침 Vault, 현물 유품 정리 수거 신청, 디지털 메모리얼 추모관</td>
+                    </tr>
+                    <tr>
+                        <td><strong>SCR-105</strong></td>
+                        <td><code>ending-note</code></td>
+                        <td><code>EndingNotePage.tsx</code></td>
+                        <td>사전연명의향서, 위시리스트, AES-256 암호화 유언장 작성기, 지정 수령인(보호자) 설정 모달</td>
+                    </tr>
+                    <tr>
+                        <td><strong>SCR-106</strong></td>
+                        <td><code>care-guide</code></td>
+                        <td><code>CareGuidePage.tsx</code></td>
+                        <td>사망 후 행정절차 D-Day 타임라인(정부24 연계), 카카오톡 모바일 부고장 생성기, 유족 심리 케어</td>
+                    </tr>
+                    <tr>
+                        <td><strong>SCR-MOD-01</strong></td>
+                        <td>Global Modal</td>
+                        <td><code>LoginModal.tsx</code></td>
+                        <td>데모 로그인/회원가입 모달, 데모 계정 선택, LocalStorage 인증 상태 관리</td>
+                    </tr>
+                    <tr>
+                        <td><strong>SCR-MOD-02</strong></td>
+                        <td>Global Floating</td>
+                        <td><code>FloatingEmergency.tsx</code></td>
+                        <td>1-Touch 24시간 긴급 장례 지원 모달 및 전화(119/24h 센터) 연결</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <!-- 2. 데모 프론트엔드 6대 메인 탭 시각적 와이어프레임 -->
+        <section class="spec-box">
+            <h3>2. 데모 프론트엔드 메인 탭 와이어프레임 (App.tsx UI 레이아웃)</h3>
+
+            <!-- 1) Header & Sidebar 레이아웃 -->
+            <h4 style="color: var(--primary-color); margin-top: 1.5rem;">[공통 레이아웃] Header + Hover Sidebar + Active Page Area</h4>
+            <div class="react-mockup">
+                <div class="rm-header">
+                    <span>🌿 K-Ending (이어봄) 토탈 케어</span>
+                    <div>
+                        <span style="font-size: 0.85rem; margin-right: 1rem;">👤 데모 사용자 (홍길동 님)</span>
+                        <span class="rm-btn" style="background: #D9534F; font-size: 0.8rem; padding: 4px 10px;">로그아웃</span>
+                    </div>
+                </div>
+                <div class="rm-tabs">
+                    <span class="rm-tab active">🏠 홈 (home)</span>
+                    <span class="rm-tab">🏛️ 장례·묘지 매칭 (facility)</span>
+                    <span class="rm-tab">⚖️ 상속·법률·세무 (counseling)</span>
+                    <span class="rm-tab">💼 디지털 유품 정리 (digital-estate)</span>
+                    <span class="rm-tab">📜 디지털 엔딩노트 (ending-note)</span>
+                    <span class="rm-tab">📋 상중 케어 & 행정 (care-guide)</span>
+                </div>
+
+                <!-- 2) HomePage.tsx 와이어프레임 -->
+                <div class="rm-body">
+                    <h3 style="color: #1A2B4C;">[SCR-101] HomePage.tsx - 메인 홈</h3>
+                    <div style="background: #F7F4EF; padding: 1.2rem; border-radius: 8px; margin-top: 0.8rem; text-align: center;">
+                        <h2 style="color: #1A2B4C; font-size: 1.5rem;">"당신의 존엄한 마무리를 함께 준비합니다"</h2>
+                        <p style="color: #6C7A89; margin-top: 0.4rem;">생전 준비 ➔ 임종 직후 ➔ 사후 행정 절차 단일 플랫폼 제공</p>
+                    </div>
+                    <div class="rm-grid">
+                        <div class="rm-card">
+                            <h4>🌱 1. 생전 준비</h4>
+                            <p style="font-size: 0.85rem; color: #6C7A89; margin-top: 0.3rem;">엔딩노트 작성, 사전연명의향서, 디지털 유산 자격증명 보관</p>
+                            <span class="rm-btn">엔딩노트 바로가기</span>
+                        </div>
+                        <div class="rm-card">
+                            <h4>🕊️ 2. 임종 직후</h4>
+                            <p style="font-size: 0.85rem; color: #6C7A89; margin-top: 0.3rem;">위치 기반 장례식장/수목장 비교, 24시간 긴급 출동 지원</p>
+                            <span class="rm-btn">시설 검색 바로가기</span>
+                        </div>
+                        <div class="rm-card">
+                            <h4>⚖️ 3. 임종 후 절차</h4>
+                            <p style="font-size: 0.85rem; color: #6C7A89; margin-top: 0.3rem;">상속세 계산기, 디지털 계정 정산, 모바일 부고장 생성</p>
+                            <span class="rm-btn">상속 상담 바로가기</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3) Floating Emergency -->
+                <div class="rm-emergency-float">
+                    🚨 1-Touch 24시간 긴급 장례 지원 (클릭 시 24h 센터 콜 연결 모달)
+                </div>
+            </div>
+
+            <!-- 4) FacilityPage.tsx 와이어프레임 -->
+            <h4 style="color: var(--primary-color); margin-top: 2rem;">[SCR-102] FacilityPage.tsx - 장례·묘지 시설 매칭 탭</h4>
+            <div class="react-mockup">
+                <div class="rm-header">
+                    <span>🏛️ 시설 검색 & 필터링 (FacilityPage)</span>
+                    <span style="font-size: 0.85rem;">카카오 맵 연동 지원</span>
+                </div>
+                <div class="rm-body">
+                    <div style="display: flex; gap: 0.8rem; margin-bottom: 1rem;">
+                        <input type="text" value="서울 강남구" style="padding: 0.6rem; border: 1px solid #DFDCD7; border-radius: 6px; flex: 1;" readonly>
+                        <select style="padding: 0.6rem; border: 1px solid #DFDCD7; border-radius: 6px;" disabled><option>카테고리 전체 (장례식장, 봉안당, 수목장)</option></select>
+                        <span class="rm-btn">검색</span>
+                    </div>
+                    <div class="rm-grid">
+                        <div class="rm-card">
+                            <h4>서울아산병원 장례식장</h4>
+                            <p style="font-size: 0.85rem; color: #6C7A89;">서울 송파구 올림픽로 43길 88 | ⭐ 4.9</p>
+                            <p style="font-size: 0.9rem; font-weight: bold; color: #4E7055; margin-top: 0.5rem;">최저 1,500만원 ~</p>
+                            <span class="rm-btn">3D/VR 둘러보기 & 상세 예약</span>
+                        </div>
+                        <div class="rm-card">
+                            <h4>용인 아너스톤 봉안당</h4>
+                            <p style="font-size: 0.85rem; color: #6C7A89;">경기 용인시 모현읍 | ⭐ 4.8</p>
+                            <p style="font-size: 0.9rem; font-weight: bold; color: #4E7055; margin-top: 0.5rem;">최저 350만원 ~</p>
+                            <span class="rm-btn">3D/VR 둘러보기 & 상세 예약</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 5) CounselingPage.tsx 와이어프레임 -->
+            <h4 style="color: var(--primary-color); margin-top: 2rem;">[SCR-103] CounselingPage.tsx - 상속세 계산기 & 전문가 상담 탭</h4>
+            <div class="react-mockup">
+                <div class="rm-header">
+                    <span>⚖️ 상속세/증여세 시뮬레이터 & 1:1 상담 (CounselingPage)</span>
+                </div>
+                <div class="rm-body">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+                        <div style="background: #F7F4EF; padding: 1.2rem; border-radius: 8px;">
+                            <h4>🧮 상속세 시뮬레이터</h4>
+                            <div style="margin-top: 0.8rem;">
+                                <label style="font-size: 0.85rem;">부동산 가액 (원):</label>
+                                <input type="text" value="1,200,000,000" style="width: 100%; padding: 0.5rem; margin-bottom: 0.5rem; border: 1px solid #DFDCD7;" readonly>
+                                <label style="font-size: 0.85rem;">금융/현금 자산 (원):</label>
+                                <input type="text" value="300,000,000" style="width: 100%; padding: 0.5rem; margin-bottom: 0.5rem; border: 1px solid #DFDCD7;" readonly>
+                                <span class="rm-btn" style="width: 100%; text-align: center;">예상 상속세 산출하기</span>
+                            </div>
+                        </div>
+                        <div style="background: #EEF2F6; padding: 1.2rem; border-radius: 8px;">
+                            <h4>👨‍⚖️ 전문가 1:1 상담 신청</h4>
+                            <p style="font-size: 0.85rem; color: #6C7A89; margin-top: 0.3rem;">상속/증여 전문 변호사 및 세무사 맞춤 연결</p>
+                            <div style="margin-top: 0.8rem;">
+                                <input type="text" value="상속 공제 관련 문의합니다" style="width: 100%; padding: 0.5rem; margin-bottom: 0.5rem; border: 1px solid #DFDCD7;" readonly>
+                                <span class="rm-btn" style="background: #1A2B4C; width: 100%; text-align: center;">상담 예약 신청</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 6) EndingNotePage.tsx 와이어프레임 -->
+            <h4 style="color: var(--primary-color); margin-top: 2rem;">[SCR-105] EndingNotePage.tsx - 디지털 엔딩노트 탭</h4>
+            <div class="react-mockup">
+                <div class="rm-header">
+                    <span>📜 디지털 엔딩노트 & 유언장 Vault (EndingNotePage)</span>
+                    <span style="font-size: 0.85rem;">🔒 AES-256 필드 암호화</span>
+                </div>
+                <div class="rm-body">
+                    <div style="background: #F7F4EF; padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
+                        <h4 style="color: #4E7055;">사전연명의향서 & 위시리스트 작성 현황</h4>
+                        <p style="font-size: 0.85rem; color: #6C7A89; margin-top: 0.3rem;">연명 의료 중단 동의 | 원하는 장례 방식: 수목장 | 진행률 80%</p>
+                    </div>
+                    <div style="border: 1px solid #DFDCD7; padding: 1.2rem; border-radius: 8px;">
+                        <h4>✍️ 암호화 유언장 및 수령인(보호자) 설정</h4>
+                        <textarea style="width: 100%; height: 80px; padding: 0.6rem; margin-top: 0.5rem; border: 1px solid #DFDCD7;" readonly>사랑하는 가족들에게 전하는 나의 유언 및 소중한 메시지입니다...</textarea>
+                        <div style="display: flex; gap: 0.8rem; margin-top: 0.8rem;">
+                            <span class="rm-btn" style="background: #2A3F66;">🎤 음성 노트 녹음</span>
+                            <span class="rm-btn" style="background: #2A3F66;">🎥 영상 메시지 등록</span>
+                            <span class="rm-btn">👥 수령인 지정 (홍길동 / 010-1234-5678)</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 3. 시니어 UI/UX 디자인 규격 및 인터랙션 지침 -->
+        <section class="spec-box">
+            <h3>3. 데모 프론트엔드 UI/UX 디자인 지침 (Design Tokens)</h3>
+            <ul>
+                <li><strong>Color Tokens:</strong> Primary Navy (`#1A2B4C`), Point Green (`#4E7055`), Accent Red (`#D9534F`), Warm Beige (`#F7F4EF`).</li>
+                <li><strong>Typography Rules:</strong> Noto Sans KR / Outfit 폰트, 기본 본문 18px 이상, 대화형 폼 터치 높이 56px 이상 적용.</li>
+                <li><strong>State Persistence:</strong> LocalStorage 및 Hash URL(`window.location.hash`) 기반 탭 유지 및 로그인 데모 상태 동기화.</li>
+            </ul>
+        </section>
+    </div>
+
+</body>
+</html>

@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>이어봄 플랫폼 - DB 요구사항정의서 및 테이블 명세서</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .spec-box { background: #FFFFFF; border: 1px solid var(--border-color); border-radius: var(--border-radius); padding: 1.5rem; margin-bottom: 2rem; box-shadow: var(--box-shadow); }
+        .spec-box h3 { color: var(--primary-color); border-bottom: 2px solid var(--secondary-color); padding-bottom: 0.5rem; margin-bottom: 1rem; }
+        
+        table.dict-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+            margin-top: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        table.dict-table th {
+            background-color: var(--primary-color);
+            color: #FFFFFF;
+            padding: 10px;
+            text-align: center;
+            font-weight: 500;
+        }
+        table.dict-table td {
+            padding: 8px 10px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        table.dict-table tr:nth-child(even) {
+            background-color: var(--secondary-color);
+        }
+        .pk { color: #D9534F; font-weight: bold; }
+        .fk { color: #337AB7; font-weight: bold; }
+        .uk { color: #5CB85C; font-weight: bold; }
+        .enc { background-color: #FFF3CD; color: #856404; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <!-- 네비게이션 바 -->
+    <nav class="navbar">
+        <a href="index.html" class="navbar-brand">🌿 <span>이어봄</span> 토탈 케어</a>
+                <ul class="navbar-nav" style="flex-wrap: wrap; gap: 0.5rem;">
+            <li><a href="index.html">서비스 개요</a></li>
+            <li><a href="이어봄_세부_프로젝트_기획서.html">세부 프로젝트 기획서</a></li>
+            <li><a href="이어봄_DB_요구사항_및_테이블_명세서.html" class="active">DB 요구사항 & 테이블 명세</a></li>
+            <li><a href="이어봄_화면_설계서_및_와이어프레임.html">화면 설계서 & 와이어프레임</a></li>
+            <li><a href="이어봄_시스템_아키텍처.html">시스템 아키텍처</a></li>
+            <li><a href="이어봄_시스템_흐름도.html">시스템 흐름도</a></li>
+            <li><a href="이어봄_기능_및_API_명세서.html">기능 및 API 명세</a></li>
+            <li><a href="이어봄_데이터베이스_구축_기획.html">DB 구축 기획</a></li>
+            <li><a href="이어봄_구현_난관_및_솔루션.html">구현 난관 & 솔루션</a></li>
+        </ul>
+    </nav>
+
+    <div class="container">
+        <header class="hero">
+            <h1>🗃️ DB 요구사항정의서 및 테이블 상세 명세서 (Table Dictionary)</h1>
+            <p>이어봄 플랫폼의 데이터베이스 기능/비기능 요구사항 정의 및 전체 10개 핵심 테이블의 물리 컬럼 데이터 구조 사전</p>
+        </header>
+
+        <!-- 1. DB 요구사항 정의서 -->
+        <section class="spec-box">
+            <h3>1. 데이터베이스 요구사항 정의서 (DB Requirements)</h3>
+            
+            <h4>1) 기능적 요구사항 (Functional Requirements)</h4>
+            <ul style="margin-left: 1.5rem; margin-bottom: 1rem;">
+                <li><strong>FR-DB-01 [트랜잭션 무결성]:</strong> 시설 예약 및 결제, 유언장 작성 시 ACID 트랜잭션 철저 보장.</li>
+                <li><strong>FR-DB-02 [데이터 암호화]:</strong> 유언장 본문 및 유산 자격 증명은 DB 저장 전 애플리케이션단 AES-256-GCM 필드 암호화 적용.</li>
+                <li><strong>FR-DB-03 [가변 자산 구조]:</strong> 플랫폼별 유산 계정 데이터 저장을 위해 PostgreSQL JSONB 타입 활용.</li>
+                <li><strong>FR-DB-04 [위치 공간 인덱스]:</strong> 장례식장/추모공원의 위경도 기준 반경 검색 최적화를 위해 PostGIS 또는 Spatial Index 적용.</li>
+            </ul>
+
+            <h4>2) 비기능적 요구사항 (Non-Functional Requirements)</h4>
+            <ul style="margin-left: 1.5rem;">
+                <li><strong>NFR-DB-01 [성능 및 가용성]:</strong> 읽기 트래픽(부고장/시설 검색) 1,000 RPS 이상 처리, 99.9% 서비스 가동률.</li>
+                <li><strong>NFR-DB-02 [백업 & 복구]:</strong> 일일 자동 풀 백업(Daily Full Backup) 및 트랜잭션 로그 실시간 스트리밍(Point-in-time Recovery).</li>
+            </ul>
+        </section>
+
+        <!-- 2. 테이블 상세 명세서 (Table Dictionary) -->
+        <section class="spec-box">
+            <h3>2. 전체 10개 테이블 명세서 (Table Dictionary)</h3>
+
+            <!-- 1. users -->
+            <h4 style="color: var(--primary-color); margin-top: 1.5rem;">1) users (회원 기본 정보 테이블)</h4>
+            <table class="dict-table">
+                <thead>
+                    <tr>
+                        <th>컬럼명 (Column)</th>
+                        <th>데이터 타입</th>
+                        <th>길이</th>
+                        <th>제약 조건</th>
+                        <th>Null 허용</th>
+                        <th>기본값</th>
+                        <th>암호화</th>
+                        <th>설명</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="pk">id</td>
+                        <td>VARCHAR</td>
+                        <td>36</td>
+                        <td>PK</td>
+                        <td>No</td>
+                        <td>UUID()</td>
+                        <td>-</td>
+                        <td>회원 고유 식별자</td>
+                    </tr>
+                    <tr>
+                        <td class="uk">email</td>
+                        <td>VARCHAR</td>
+                        <td>100</td>
+                        <td>UK</td>
+                        <td>No</td>
+                        <td>-</td>
+                        <td>-</td>
+                        <td>로그인 이메일 계정</td>
+                    </tr>
+                    <tr>
+                        <td>password_hash</td>
+                        <td>VARCHAR</td>
+                        <td>255</td>
+                        <td>-</td>
+                        <td>No</td>
+                        <td>-</td>
+                        <td>BCrypt</td>
+                        <td>비밀번호 해시값</td>
+                    </tr>
+                    <tr>
+                        <td>name</td>
+                        <td>VARCHAR</td>
+                        <td>50</td>
+                        <td>-</td>
+                        <td>No</td>
+                        <td>-</td>
+                        <td>-</td>
+                        <td>회원 실명</td>
+                    </tr>
+                    <tr>
+                        <td>phone</td>
+                        <td>VARCHAR</td>
+                        <td>20</td>
+                        <td>-</td>
+                        <td>No</td>
+                        <td>-</td>
+                        <td>-</td>
+                        <td>휴대폰 번호</td>
+                    </tr>
+                    <tr>
+                        <td>role</td>
+                        <td>VARCHAR</td>
+                        <td>20</td>
+                        <td>-</td>
+                        <td>No</td>
+                        <td>'USER'</td>
+                        <td>-</td>
+                        <td>권한 (USER, COUNSELOR, ADMIN)</td>
+                    </tr>
+                    <tr>
+                        <td>created_at</td>
+                        <td>TIMESTAMP</td>
+                        <td>-</td>
+                        <td>-</td>
+                        <td>No</td>
+                        <td>NOW()</td>
+                        <td>-</td>
+                        <td>가입 일시</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <!-- 2. guardians -->
+            <h4 style="color: var(--primary-color); margin-top: 1.5rem;">2) guardians (지정 수령인 / 보호자 테이블)</h4>
+            <table class="dict-table">
+                <thead>
+                    <tr>
+                        <th>컬럼명 (Column)</th>
+                        <th>데이터 타입</th>
+                        <th>길이</th>
+                        <th>제약 조건</th>
+                        <th>Null 허용</th>
+                        <th>기본값</th>
+                        <th>암호화</th>
+                        <th>설명</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="pk">id</td>
+                        <td>VARCHAR</td>
+                        <td>36</td>
+                        <td>PK</td>
+                        <td>No</td>
+                        <td>UUID()</td>
+                        <td>-</td>
+                        <td>수령인 고유 ID</td>
+                    </tr>
+                    <tr>
+                        <td class="fk">user_id</td>
+                        <td>VARCHAR</td>
+                        <td>36</td>
+                        <td>FK (users.id)</td>
+                        <td>No</td>
+                        <td>-</td>
+                        <td>-</td>
+                        <td>작성 회원 ID</td>
+                    </tr>
+                    <tr>
+                        <td>name</td>
+                        <td>VARCHAR</td>
+                        <td>50</td>
+                        <td>-</td>
+                        <td>No</td>
+                        <td>-</td>
+                        <td>-</td>
+                        <td>수령인 성명</td>
+                    </tr>
+                    <tr>
+                        <td>phone</td>
+                        <td>VARCHAR</td>
+                        <td>20</td>
+                        <td>-</td>
+                        <td>No</td>
+                        <td>-</td>
+                        <td>-</td>
+                        <td>수령인 연락처</td>
+                    </tr>
+                    <tr>
+                        <td>relationship</td>
+                        <td>VARCHAR</td>
+                        <td>30</td>
+                        <td>-</td>
+                        <td>No</td>
+                        <td>-</td>
+                        <td>-</td>
+                        <td>관계 (자녀, 배우자 등)</td>
+                    </tr>
+                    <tr>
+                        <td>is_verified</td>
+                        <td>BOOLEAN</td>
+                        <td>-</td>
+                        <td>-</td>
+                        <td>No</td>
+                        <td>false</td>
+                        <td>-</td>
+                        <td>본인 인증 완료 여부</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <!-- 3. wills_notes -->
+            <h4 style="color: var(--primary-color); margin-top: 1.5rem;">3) wills_notes (디지털 유언장 & 엔딩노트 테이블)</h4>
+            <table class="dict-table">
+                <thead>
+                    <tr>
+                        <th>컬럼명 (Column)</th>
+                        <th>데이터 타입</th>
+                        <th>길이</th>
+                        <th>제약 조건</th>
+                        <th>Null 허용</th>
+                        <th>기본값</th>
+                        <th>암호화</th>
+                        <th>설명</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="pk">id</td>
+                        <td>VARCHAR</td>
+                        <td>36</td>
+                        <td>PK</td>
+                        <td>No</td>
+                        <td>UUID()</td>
+                        <td>-</td>
+                        <td>유언장 고유 ID</td>
+                    </tr>
+                    <tr>
+                        <td class="fk">user_id</td>
+                        <td>VARCHAR</td>
+                        <td>36</td>
+                        <td>FK (users.id)</td>
+                        <td>No</td>
+                        <td>-</td>
+                        <td>-</td>
+                        <td>작성 회원 ID</td>
+                    </tr>
+                    <tr>
+                        <td>title</td>
+                        <td>VARCHAR</td>
+                        <td>200</td>
+                        <td>-</td>
+                        <td>No</td>
+                        <td>-</td>
+                        <td>-</td>
+                        <td>유언장 제목</td>
+                    </tr>
+                    <tr>
+                        <td>encrypted_content</td>
+                        <td>TEXT</td>
+                        <td>-</td>
+                        <td>-</td>
+                        <td>No</td>
+                        <td>-</td>
+                        <td><span class="enc">AES-256</span></td>
+                        <td>암호화된 유언장 본문</td>
+                    </tr>
+                    <tr>
+                        <td>release_condition</td>
+                        <td>VARCHAR</td>
+                        <td>50</td>
+                        <td>-</td>
+                        <td>No</td>
+                        <td>'DEATH_VERIFIED'</td>
+                        <td>-</td>
+                        <td>공개 조건 (사망인증/지정일)</td>
+                    </tr>
+                    <tr>
+                        <td>is_released</td>
+                        <td>BOOLEAN</td>
+                        <td>-</td>
+                        <td>-</td>
+                        <td>No</td>
+                        <td>false</td>
+                        <td>-</td>
+                        <td>공개 열람 활성화 여부</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <!-- 4. will_files -->
+            <h4 style="color: var(--primary-color); margin-top: 1.5rem;">4) will_files (유언장 미디어 파일 테이블)</h4>
+            <table class="dict-table">
+                <thead>
+                    <tr>
+                        <th>컬럼명 (Column)</th>
+                        <th>데이터 타입</th>
+                        <th>길이</th>
+                        <th>제약 조건</th>
+                        <th>Null 허용</th>
+                        <th>기본값</th>
+                        <th>암호화</th>
+                        <th>설명</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="pk">id</td>
+                        <td>VARCHAR</td>
+                        <td>36</td>
+                        <td>PK</td>
+                        <td>No</td>
+                        <td>UUID()</td>
+                        <td>-</td>
+                        <td>파일 고유 ID</td>
+                    </tr>
+                    <tr>
+                        <td class="fk">will_id</td>
+                        <td>VARCHAR</td>
+                        <td>36</td>
+                        <td>FK (wills_notes.id)</td>
+                        <td>No</td>
+                        <td>-</td>
+                        <td>-</td>
+                        <td>유언장 ID</td>
+                    </tr>
+                    <tr>
+                        <td>file_url</td>
+                        <td>VARCHAR</td>
+                        <td>500</td>
+                        <td>-</td>
+                        <td>No</td>
+                        <td>-</td>
+                        <td>-</td>
+                        <td>S3 저장 객체 URL</td>
+                    </tr>
+                    <tr>
+                        <td>file_type</td>
+                        <td>VARCHAR</td>
+                        <td>50</td>
+                        <td>-</td>
+                        <td>No</td>
+                        <td>-</td>
+                        <td>-</td>
+                        <td>파일 형식 (audio/mp4, video/mp4)</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <!-- 5. digital_estates -->
+            <h4 style="color: var(--primary-color); margin-top: 1.5rem;">5) digital_estates (디지털 유산/계정 테이블)</h4>
+            <table class="dict-table">
+                <thead>
+                    <tr>
+                        <th>컬럼명 (Column)</th>
+                        <th>데이터 타입</th>
+                        <th>길이</th>
+                        <th>제약 조건</th>
+                        <th>Null 허용</th>
+                        <th>기본값</th>
+                        <th>암호화</th>
+                        <th>설명</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="pk">id</td>
+                        <td>VARCHAR</td>
+                        <td>36</td>
+                        <td>PK</td>
+                        <td>No</td>
+                        <td>UUID()</td>
+                        <td>-</td>
+                        <td>유산 항목 ID</td>
+                    </tr>
+                    <tr>
+                        <td class="fk">user_id</td>
+                        <td>VARCHAR</td>
+                        <td>36</td>
+                        <td>FK (users.id)</td>
+                        <td>No</td>
+                        <td>-</td>
+                        <td>-</td>
+                        <td>소유 회원 ID</td>
+                    </tr>
+                    <tr>
+                        <td>platform_name</td>
+                        <td>VARCHAR</td>
+                        <td>100</td>
+                        <td>-</td>
+                        <td>No</td>
+                        <td>-</td>
+                        <td>-</td>
+                        <td>플랫폼명 (Naver, Kakao 등)</td>
+                    </tr>
+                    <tr>
+                        <td>action_type</td>
+                        <td>VARCHAR</td>
+                        <td>30</td>
+                        <td>-</td>
+                        <td>No</td>
+                        <td>'DELETE'</td>
+                        <td>-</td>
+                        <td>처리방침 (DELETE, TRANSFER, MEMORIAL)</td>
+                    </tr>
+                    <tr>
+                        <td>encrypted_credentials</td>
+                        <td>TEXT</td>
+                        <td>-</td>
+                        <td>-</td>
+                        <td>Yes</td>
+                        <td>NULL</td>
+                        <td><span class="enc">AES-256</span></td>
+                        <td>암호화된 계정 자격 증명</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <!-- 6. facilities -->
+            <h4 style="color: var(--primary-color); margin-top: 1.5rem;">6) facilities (장례/추모 시설 DB 테이블)</h4>
+            <table class="dict-table">
+                <thead>
+                    <tr>
+                        <th>컬럼명 (Column)</th>
+                        <th>데이터 타입</th>
+                        <th>길이</th>
+                        <th>제약 조건</th>
+                        <th>Null 허용</th>
+                        <th>기본값</th>
+                        <th>암호화</th>
+                        <th>설명</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="pk">id</td>
+                        <td>VARCHAR</td>
+                        <td>36</td>
+                        <td>PK</td>
+                        <td>No</td>
+                        <td>UUID()</td>
+                        <td>-</td>
+                        <td>시설 고유 ID</td>
+                    </tr>
+                    <tr>
+                        <td>name</td>
+                        <td>VARCHAR</td>
+                        <td>150</td>
+                        <td>-</td>
+                        <td>No</td>
+                        <td>-</td>
+                        <td>-</td>
+                        <td>시설 명칭</td>
+                    </tr>
+                    <tr>
+                        <td>category</td>
+                        <td>VARCHAR</td>
+                        <td>50</td>
+                        <td>-</td>
+                        <td>No</td>
+                        <td>-</td>
+                        <td>-</td>
+                        <td>카테고리 (장례식장/봉안당/수목장)</td>
+                    </tr>
+                    <tr>
+                        <td>address</td>
+                        <td>VARCHAR</td>
+                        <td>255</td>
+                        <td>-</td>
+                        <td>No</td>
+                        <td>-</td>
+                        <td>-</td>
+                        <td>도로명 주소</td>
+                    </tr>
+                    <tr>
+                        <td>latitude</td>
+                        <td>DOUBLE</td>
+                        <td>-</td>
+                        <td>-</td>
+                        <td>Yes</td>
+                        <td>NULL</td>
+                        <td>-</td>
+                        <td>위도 좌표</td>
+                    </tr>
+                    <tr>
+                        <td>longitude</td>
+                        <td>DOUBLE</td>
+                        <td>-</td>
+                        <td>-</td>
+                        <td>Yes</td>
+                        <td>NULL</td>
+                        <td>-</td>
+                        <td>경도 좌표</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <!-- 7. facility_reviews -->
+            <h4 style="color: var(--primary-color); margin-top: 1.5rem;">7) facility_reviews (시설 후기 테이블)</h4>
+            <table class="dict-table">
+                <thead>
+                    <tr>
+                        <th>컬럼명 (Column)</th>
+                        <th>데이터 타입</th>
+                        <th>길이</th>
+                        <th>제약 조건</th>
+                        <th>Null 허용</th>
+                        <th>기본값</th>
+                        <th>암호화</th>
+                        <th>설명</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="pk">id</td>
+                        <td>VARCHAR</td>
+                        <td>36</td>
+                        <td>PK</td>
+                        <td>No</td>
+                        <td>UUID()</td>
+                        <td>-</td>
+                        <td>리뷰 ID</td>
+                    </tr>
+                    <tr>
+                        <td class="fk">facility_id</td>
+                        <td>VARCHAR</td>
+                        <td>36</td>
+                        <td>FK (facilities.id)</td>
+                        <td>No</td>
+                        <td>-</td>
+                        <td>-</td>
+                        <td>시설 ID</td>
+                    </tr>
+                    <tr>
+                        <td class="fk">user_id</td>
+                        <td>VARCHAR</td>
+                        <td>36</td>
+                        <td>FK (users.id)</td>
+                        <td>No</td>
+                        <td>-</td>
+                        <td>-</td>
+                        <td>작성자 ID</td>
+                    </tr>
+                    <tr>
+                        <td>rating</td>
+                        <td>INT</td>
+                        <td>-</td>
+                        <td>-</td>
+                        <td>No</td>
+                        <td>5</td>
+                        <td>-</td>
+                        <td>평점 (1~5점)</td>
+                    </tr>
+                    <tr>
+                        <td>comment</td>
+                        <td>TEXT</td>
+                        <td>-</td>
+                        <td>-</td>
+                        <td>No</td>
+                        <td>-</td>
+                        <td>-</td>
+                        <td>리뷰 내용</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <!-- 8. reservations -->
+            <h4 style="color: var(--primary-color); margin-top: 1.5rem;">8) reservations (상담 및 시설 예약 테이블)</h4>
+            <table class="dict-table">
+                <thead>
+                    <tr>
+                        <th>컬럼명 (Column)</th>
+                        <th>데이터 타입</th>
+                        <th>길이</th>
+                        <th>제약 조건</th>
+                        <th>Null 허용</th>
+                        <th>기본값</th>
+                        <th>암호화</th>
+                        <th>설명</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="pk">id</td>
+                        <td>VARCHAR</td>
+                        <td>36</td>
+                        <td>PK</td>
+                        <td>No</td>
+                        <td>UUID()</td>
+                        <td>-</td>
+                        <td>예약 고유 ID</td>
+                    </tr>
+                    <tr>
+                        <td class="fk">user_id</td>
+                        <td>VARCHAR</td>
+                        <td>36</td>
+                        <td>FK (users.id)</td>
+                        <td>No</td>
+                        <td>-</td>
+                        <td>-</td>
+                        <td>예약 회원 ID</td>
+                    </tr>
+                    <tr>
+                        <td class="fk">facility_id</td>
+                        <td>VARCHAR</td>
+                        <td>36</td>
+                        <td>FK (facilities.id)</td>
+                        <td>No</td>
+                        <td>-</td>
+                        <td>-</td>
+                        <td>대상 시설 ID</td>
+                    </tr>
+                    <tr>
+                        <td>reservation_date</td>
+                        <td>TIMESTAMP</td>
+                        <td>-</td>
+                        <td>-</td>
+                        <td>No</td>
+                        <td>-</td>
+                        <td>-</td>
+                        <td>예약 일시</td>
+                    </tr>
+                    <tr>
+                        <td>status</td>
+                        <td>VARCHAR</td>
+                        <td>30</td>
+                        <td>-</td>
+                        <td>No</td>
+                        <td>'PENDING'</td>
+                        <td>-</td>
+                        <td>상태 (PENDING, CONFIRMED, CANCEL)</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <!-- 9. obituaries -->
+            <h4 style="color: var(--primary-color); margin-top: 1.5rem;">9) obituaries (모바일 부고장 테이블)</h4>
+            <table class="dict-table">
+                <thead>
+                    <tr>
+                        <th>컬럼명 (Column)</th>
+                        <th>데이터 타입</th>
+                        <th>길이</th>
+                        <th>제약 조건</th>
+                        <th>Null 허용</th>
+                        <th>기본값</th>
+                        <th>암호화</th>
+                        <th>설명</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="pk">id</td>
+                        <td>VARCHAR</td>
+                        <td>36</td>
+                        <td>PK</td>
+                        <td>No</td>
+                        <td>UUID()</td>
+                        <td>-</td>
+                        <td>부고장 ID</td>
+                    </tr>
+                    <tr>
+                        <td class="fk">user_id</td>
+                        <td>VARCHAR</td>
+                        <td>36</td>
+                        <td>FK (users.id)</td>
+                        <td>No</td>
+                        <td>-</td>
+                        <td>-</td>
+                        <td>상주 회원 ID</td>
+                    </tr>
+                    <tr>
+                        <td>deceased_name</td>
+                        <td>VARCHAR</td>
+                        <td>50</td>
+                        <td>-</td>
+                        <td>No</td>
+                        <td>-</td>
+                        <td>-</td>
+                        <td>고인 성함</td>
+                    </tr>
+                    <tr>
+                        <td>funeral_home</td>
+                        <td>VARCHAR</td>
+                        <td>150</td>
+                        <td>-</td>
+                        <td>No</td>
+                        <td>-</td>
+                        <td>-</td>
+                        <td>장례식장명 및 호실</td>
+                    </tr>
+                    <tr>
+                        <td>bank_account</td>
+                        <td>VARCHAR</td>
+                        <td>100</td>
+                        <td>-</td>
+                        <td>Yes</td>
+                        <td>NULL</td>
+                        <td>-</td>
+                        <td>부의금 계좌 번호</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <!-- 10. condolence_messages -->
+            <h4 style="color: var(--primary-color); margin-top: 1.5rem;">10) condolence_messages (조문객 조의록 테이블)</h4>
+            <table class="dict-table">
+                <thead>
+                    <tr>
+                        <th>컬럼명 (Column)</th>
+                        <th>데이터 타입</th>
+                        <th>길이</th>
+                        <th>제약 조건</th>
+                        <th>Null 허용</th>
+                        <th>기본값</th>
+                        <th>암호화</th>
+                        <th>설명</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="pk">id</td>
+                        <td>VARCHAR</td>
+                        <td>36</td>
+                        <td>PK</td>
+                        <td>No</td>
+                        <td>UUID()</td>
+                        <td>-</td>
+                        <td>조의록 ID</td>
+                    </tr>
+                    <tr>
+                        <td class="fk">obituary_id</td>
+                        <td>VARCHAR</td>
+                        <td>36</td>
+                        <td>FK (obituaries.id)</td>
+                        <td>No</td>
+                        <td>-</td>
+                        <td>-</td>
+                        <td>부고장 ID</td>
+                    </tr>
+                    <tr>
+                        <td>visitor_name</td>
+                        <td>VARCHAR</td>
+                        <td>50</td>
+                        <td>-</td>
+                        <td>No</td>
+                        <td>-</td>
+                        <td>-</td>
+                        <td>조문객 성함</td>
+                    </tr>
+                    <tr>
+                        <td>message</td>
+                        <td>TEXT</td>
+                        <td>-</td>
+                        <td>-</td>
+                        <td>No</td>
+                        <td>-</td>
+                        <td>-</td>
+                        <td>추모 메시지 내용</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+    </div>
+
+</body>
+</html>
