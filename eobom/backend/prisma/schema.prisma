@@ -284,3 +284,19 @@ model Expert {
   @@index([status])
   @@index([category])
 }
+
+// ─────────────────────────────────────────────────────────────────
+// 운영자(내부 직원) 계정 — Partner/Expert와 인증 패턴은 같지만 **공개 가입 API가 없다.**
+// 계정 생성은 시드 스크립트(prisma/seed-admin.ts)로만 한다 — 가입 폼을 공개하면
+// 그 자체가 보안 구멍이 된다. 2026-08-10 신설 — 장사시설/전문가 가입 승인 + 시설 클레임 승인용.
+// ─────────────────────────────────────────────────────────────────
+model Admin {
+  id               String  @id @default(uuid())
+  email            String  @unique
+  passwordHash     String
+  refreshTokenHash String?
+  name             String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

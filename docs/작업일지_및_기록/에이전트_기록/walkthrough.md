@@ -6,6 +6,30 @@
 
 ---
 
+## 2026-08-10 (3) | 운영자 승인 대시보드 + 시설 클레임(연동) API + 사업자/전문가 대시보드
+
+- **근거 스펙**: `docs/16` §6.2(운영자 어드민)·§3.3(시설 클레임), `docs/17` §4. 정식 스펙 문서 갱신 없이 기존 문서의 "다음 단계"로 명시돼 있던 부분을 그대로 구현(대표 지시: "관리자 페이지와 사업자/전문가 대시보드 만들어야 함").
+- **건드린 파일**:
+  - 백엔드 신규: `prisma/schema.prisma`(+마이그레이션 `20260810141549_admin_account`), `prisma/seed-admin.ts`, `src/controllers/adminController.ts`, `src/controllers/moderationController.ts`, `src/controllers/claimController.ts`, `src/routes/adminRoutes.ts`
+  - 백엔드 수정: `src/routes/partnerRoutes.ts`(클레임 라우트), `src/controllers/facilityController.ts`(이름 검색 `q` 파라미터), `src/server.ts`(adminRoutes 마운트), `package.json`(`seed:admin` 스크립트)
+  - 프론트 신규: `src/pages/AdminPage.tsx`, `src/pages/BizDashboard.tsx`
+  - 프론트 수정: `src/App.tsx`('admin' 라우트 추가), `src/pages/PartnerPortalPage.tsx`(로그인 후 화면을 `BizDashboard`로 교체)
+- **결과**:
+  - **`Admin` 계정**: Partner/Expert와 같은 인증 패턴(bcrypt, JWT `aud='admin'`, refresh 회전)이지만 **공개 가입 API가 없음** — `npm run seed:admin`(환경변수로 이메일/비밀번호/이름 전달)으로만 생성. 가입 폼을 공개하면 그 자체가 보안 구멍이라는 판단.
+  - **가입 승인**: `GET/PATCH /api/admin/partners`, `/api/admin/experts` — 상태별 조회 + 승인/반려(사유)/정지.
+  - **시설 클레임(연동)**: 파트너가 `GET /api/facilities?q=`로 자기 시설을 찾아 `POST /api/partner/claims`로 신청 → 운영자가 `PATCH /api/admin/claims/:id/status`로 승인하면 **트랜잭션으로 `Facility.partnerId`+`isPartner`를 동시 갱신**(docs 16 §3.4 SSOT 원칙 그대로 구현). 이미 다른 사업자에게 연동된 시설에 신청하면 자동으로 "분쟁 건"으로 표시되고, 운영자가 그런 클레임을 승인하려 하면 409로 막힘(트랜잭션 안에서 재확인).
+  - **전문가는 클레임 절차가 없음** — Facility 같은 사전 마스터 데이터가 없어 가입 승인 자체가 곧 프로필 공개(docs 17 §4에 이미 명시돼 있던 설계).
+  - **프론트**: `AdminPage`(`#admin`, 어디에도 링크 노출 안 함 — 직접 URL로만 접근)에 가입승인 큐 2종 + 클레임 큐, 각 승인/반려 버튼. `BizDashboard`가 로그인 후 화면을 대체 — 장사시설은 검색+클레임+내 시설 목록, 전문가는 프로필+승인상태만.
+  - 백엔드·프론트 `tsc`+`build` 통과. 실서버 전체 플로우 curl 검증: 관리자 로그인 → 사업자 가입/승인 → 사업자 로그인 → 시설 검색 → 클레임 신청 → 관리자 승인 → **`Facility.partnerId`+`isPartner` 실제 반영 확인** → 중복 클레임 거부(409) → 전문가 가입/승인 → 충돌 클레임(이미 연동된 시설) 자동 분쟁 표시 + 관리자 승인 시도 시 409 거부까지 전부 확인. 테스트 데이터·시설 partnerId 원복 완료.
+- **편차**: 없음.
+- **다음 에이전트가 알아야 할 것**:
+  - **DB에 관리자 계정이 없음** — 테스트용으로 만들었던 `admin-smoke@eobom.co.kr`은 정리하며 삭제함. 실사용 전 `npm run seed:admin`으로 진짜 관리자 계정을 새로 만들어야 `/#admin`에 로그인 가능.
+  - `AdminPage`·`BizDashboard` 둘 다 **브라우저 UI 미검증**(자동화 도구 없음) — API는 curl로 전부 확인했지만 실제 클릭 테스트는 사용자 확인 필요.
+  - 클레임 반려(REJECTED) 경로, 사업자/전문가 정지(SUSPENDED) 경로는 API는 있지만 이번 curl 테스트에선 승인 경로만 실행함 — 다음에 만지면 같이 확인할 것.
+  - `evidenceUrl`(클레임 증빙), `bizLicenseUrl`/`licenseDocUrl`(가입 서류) 전부 문자열 URL만 받고 실제 파일 업로드 인프라는 여전히 없음(docs 16 §7.4에 이미 기록된 미완 사항, 이번에도 안 건드림).
+
+---
+
 ## 2026-08-10 (2) | 전문가(변호사·세무사·행정사·장례지도사) 계정 체계 + OAuth 로컬 HTTPS 콜백 수정
 
 - **근거 스펙**: `docs/04_상속세_전문가상담/17_전문가_계정_체계_구현_메모.md` (정식 스펙 아님 — 대표 지시로 구현 중 작성한 메모, §12.5 방식대로 예외 처리했음을 문서 자체에 명시함). 참고: `docs/15`(전문가상담 도메인, 법적 근거).

@@ -45,6 +45,12 @@ const buildWhere = (query: Request['query']): Prisma.FacilityWhereInput => {
     where.guests = guests;
   }
 
+  // 이름 검색 — 파트너가 자기 시설을 찾아 클레임 신청할 때 사용(docs 16 §3.3)
+  const q = query.q as string | undefined;
+  if (q && q.trim()) {
+    where.name = { contains: q.trim(), mode: 'insensitive' };
+  }
+
   return where;
 };
 

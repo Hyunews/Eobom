@@ -10,6 +10,7 @@ import facilityRoutes from './routes/facilityRoutes';
 import geoRoutes from './routes/geoRoutes';
 import partnerRoutes from './routes/partnerRoutes';
 import expertRoutes from './routes/expertRoutes';
+import adminRoutes from './routes/adminRoutes';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -34,6 +35,7 @@ app.use('/api/facilities', facilityRoutes);
 app.use('/api/geo', geoRoutes);
 app.use('/api/partner', partnerRoutes);
 app.use('/api/expert', expertRoutes);
+app.use('/api/admin', adminRoutes);
 
 // 기본 헬스체크
 app.get('/api/health', (req, res) => {

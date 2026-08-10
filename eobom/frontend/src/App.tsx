@@ -16,6 +16,7 @@ import { EndingNotePage } from './pages/EndingNotePage';
 import { CareGuidePage } from './pages/CareGuidePage';
 import { MyPage } from './pages/MyPage';
 import { PartnerPortalPage } from './pages/PartnerPortalPage';
+import { AdminPage } from './pages/AdminPage';
 
 export function App() {
   // F5 새로고침 및 브라우저 뒤로가기 시에도 현재 탭과 로그인 유지
@@ -212,6 +213,9 @@ export function App() {
       case 'partner':
         // B2C 소셜 로그인과 무관한 별도 포털 — Header/Sidebar 메뉴에는 올리지 않고 Footer 링크로만 접근
         return <PartnerPortalPage />;
+      case 'admin':
+        // 운영자 전용 — 어디에도 링크 노출 안 함, 직접 URL(#admin)로만 접근
+        return <AdminPage />;
       default:
         return <HomePage {...authProps} />;
     }

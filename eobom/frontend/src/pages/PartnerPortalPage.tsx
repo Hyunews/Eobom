@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { Building2, Scale, Lock, Mail, ShieldCheck } from 'lucide-react';
+import { Building2, Scale, Lock, Mail } from 'lucide-react';
 import { BACKEND_URL } from '../config';
+import { BizDashboard } from './BizDashboard';
 
 // 사업자(장사시설) / 전문가(변호사·세무사·행정사·장례지도사) 전용 포털.
 // B2C 소셜 로그인(LoginModal)과 완전히 분리된 이메일/비밀번호 회원가입·로그인.
@@ -137,18 +138,7 @@ export const PartnerPortalPage: React.FC = () => {
 
   if (loggedIn) {
     return (
-      <div className="container" style={{ maxWidth: '520px', padding: '4rem 1rem' }}>
-        <div style={{ backgroundColor: 'var(--card-bg)', borderRadius: '20px', padding: '2.5rem', boxShadow: 'var(--box-shadow)', textAlign: 'center' }}>
-          <ShieldCheck size={40} color="var(--point-color)" style={{ marginBottom: '1rem' }} />
-          <h2 style={{ color: 'var(--primary-color)', marginBottom: '0.4rem' }}>{loggedIn.name}</h2>
-          <p style={{ color: 'var(--text-muted)', marginBottom: '2rem' }}>
-            {loggedIn.type === 'FACILITY' ? '장사시설 사업자' : '전문가'} 계정으로 로그인되어 있습니다.
-          </p>
-          <button onClick={handleLogout} className="btn" style={{ backgroundColor: '#E2E8F0' }}>
-            로그아웃
-          </button>
-        </div>
-      </div>
+      <BizDashboard type={loggedIn.type} name={loggedIn.name} onLogout={handleLogout} />
     );
   }
 
