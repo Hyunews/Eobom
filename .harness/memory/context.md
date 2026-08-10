@@ -9,11 +9,11 @@
 
 ## ▶ 다음 할 일
 
-**[사용자] 3에이전트 체제 전환안 승인 여부 결정** (2026-08-07 퇴근으로 중단)
-→ 검토 결과·근거: `.harness/_meta/3에이전트_전환안.md`
-→ 승인되면 **[Claude]** 하네스 규칙 반영 + Gemini 문서화 스킬 작성, 이후 Domain 01 개발 재개.
+**[Claude:Sonnet] Domain 01(장례·묘지 매칭) 개발 재개**
+→ 3에이전트 전환은 2026-08-10 승인·반영 완료. 이제 태그는 `[Claude:Opus]`(기획) / `[Claude:Sonnet]`(구현) / `[Gemini]`(문서화·검증) 3종 — 어느 모델로 갈지는 태그가 알려준다(→ `.harness/roles.md` §0).
+→ 백엔드 배포는 **[사용자]** Render Blueprint 생성 대기 중이라 그 전까지 로컬 개발로 진행.
 
-미커밋 변경분 있음(mkcert HTTPS + render.yaml) — 커밋은 사용자가 직접 수행.
+하네스 변경분 미커밋 — 커밋은 사용자가 직접 수행.
 
 ---
 
@@ -22,8 +22,9 @@
 ```text
 프로젝트   : 이어봄(Eobom) — 디지털 엔딩 & 웰다잉 토탈 케어 플랫폼
 워크스페이스: C:\Users\kilak\Desktop\Eobom  (In-Repo Harness Architecture)
-협업 체계  : Gemini(기획, docs/·reports/) ↔ Claude(구현, eobom/·.harness/) — 사람이 창 전환
-마지막 작업: 2026-08-07 mkcert 로컬 HTTPS + 위치 자동감지 실브라우저 검증 완료(권한 프롬프트·실위치·배지 미노출 3항목 사용자 확인)
+협업 체계  : Claude:Opus(기획 docs/) → Claude:Sonnet(구현 eobom/·.harness/) → Gemini(reports/·검증)
+             사람이 /model 과 창을 전환. 태그·소유권 상세는 roles.md §0·§1
+마지막 작업: 2026-08-10 3에이전트 체제 전환 반영 (소유권·태그·harness-doctor·Gemini 핸드오프 스킬)
 ```
 
 - **기획 SSOT**: `docs/` (도메인별 한글 디렉토리) — 마스터 목차는 `docs/00_DOCS_INDEX.md`
@@ -35,6 +36,7 @@
 ## 지금 막고 있는 것
 
 - **백엔드 미배포**: 실서비스 소셜 로그인 불가. `render.yaml` 준비 완료 — 사용자가 Render 대시보드에서 Blueprint 생성해야 진행됨(→ `systems.md` §5 체크리스트).
-- **3에이전트 전환안 미승인**: 아래 §전환안. 승인 전까지 현행 2에이전트 체제 유지.
+- **장례 견적비교 A+C 하이브리드안**: 대표 컨펌 전이라 착수 금지(→ `pending-approvals.md`).
+- **Render 무료 Postgres ~2026-09-07 만료**: 유료 전환/이전 결정 필요(→ `pending-approvals.md`).
 
 > 카카오맵 API는 2026-08-07 활성화 완료(해결됨). 그 외 연동 이슈는 `.harness/systems.md` 참고.

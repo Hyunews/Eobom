@@ -2,7 +2,7 @@
 
 > 이 파일이 유일한 행동 규칙 본문이다. `CLAUDE.md`(코딩) / `GEMINI.md`(기획)는 각자의 역할만 덧붙이는 얇은 파일이며, 규칙이 충돌하면 **이 문서가 이긴다**.
 >
-> 대상: **1인 + 2에이전트** — Gemini(Antigravity IDE, 기획·설계) / Claude(CLI, 구현·검증). 사람이 창을 직접 전환하며 쓴다. 에이전트가 다른 에이전트를 자동 호출하지 않는다.
+> 대상: **1인 + 3주체** — `[Claude:Opus]` 기획·설계 / `[Claude:Sonnet]` 개발·구현 / `[Gemini]` Flash, 기계적 문서화·교차검증. 사람이 `/model`과 창을 직접 전환하며 쓴다. 에이전트가 다른 에이전트를 자동 호출하지 않는다. (태그·전환 방법 → `roles.md` §0)
 
 ---
 
@@ -24,6 +24,7 @@
 | 에이전트 전환 / 누가 뭘 쓰는지 헷갈릴 때 | `.harness/roles.md` |
 | 개인정보·시크릿·외부 발행(배포/공개) 건드릴 때 | `.harness/security.md` |
 | 작업을 "끝났다"고 선언하기 직전 | `.harness/done.md` |
+| `walkthrough.md`·일지에 기록을 남길 때 | `.harness/record.md` |
 | 외부 연동(OAuth·지도·공공데이터·DB·배포) 건드릴 때 | `.harness/systems.md` |
 | 반복 작업(2회차 이상)일 때 | `.harness/skills/` |
 | 과거 결정 이유가 궁금할 때 | `.harness/memory/MEMORY.md` → 해당 메모리 |
@@ -48,7 +49,8 @@ PLAN → CONFIRM → CODE/WRITE → SAVE → UPDATE
 
 | 영역 | 쓰기 | 읽기 |
 |---|---|---|
-| `docs/`, `reports/` | Gemini | Claude |
+| `docs/` (기획 SSOT) | Claude(Opus 모드) | Gemini |
+| `reports/` (시각화 HTML) | Gemini | Claude |
 | `eobom/`, `.harness/` | Claude | Gemini |
 | `assets/` | 사람 | 둘 다 |
 | `docs/작업일지_및_기록/` | **파일별로 나뉨** → `roles.md` §1-2 | |

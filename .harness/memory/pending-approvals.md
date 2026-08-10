@@ -11,9 +11,9 @@
 - [ ] **Render 무료 Postgres 30일 만료 대응** — 유료 전환 or Oracle Cloud 등 대안으로 이전 여부 결정 필요.
       사유: 무료 DB가 배포일(2026-08-07 예정)로부터 30일 뒤(~2026-09-07) 만료·삭제됨. 등록: 2026-08-07. (→ `systems.md` §5)
 
-- [ ] **3에이전트 체제 전환안** (개발 Sonnet / 기획 Opus / 문서화·교차검증 Gemini Flash) — 승인 시 `roles.md`·`AGENTS.md`·`harness-doctor.sh` 반영 + Gemini 문서화 스킬 작성.
-      검토 결과 요약: `docs/` 쓰기 권한만 Gemini→Claude:Opus로 바꾸면 되고 나머지는 변경 불필요. **상세·근거는 `.harness/_meta/3에이전트_전환안.md`**. 등록: 2026-08-07 (퇴근으로 논의 중단).
-
 ## 해제됨 (이력 보존, 삭제하지 않음)
 
-(없음)
+- [x] **3에이전트 체제 전환안** (개발 Sonnet / 기획 Opus / 문서화·교차검증 Gemini Flash)
+      등록 2026-08-07 → **2026-08-10 사용자 승인·반영 완료.** `docs/` 쓰기가 Gemini→Claude(Opus 모드)로 이관됐고,
+      `roles.md` §0 태그표·`AGENTS.md`·`CLAUDE.md`·`GEMINI.md`·`done.md`·`README.md`·`harness-doctor.sh` 5-1 태그 검사에 반영됨.
+      문서화 프롬프트는 `.harness/skills/gemini-handoff-doc.md`. 경위는 `.harness/_meta/3에이전트_전환안.md`.

@@ -54,10 +54,12 @@ echo
 
 # ── 2. 조건부 로드 파일 존재 ─────────────────────────────────────
 # 예산 근거: 조건부 파일은 부팅과 달리 선택적으로만 읽히므로 상한이 덜 빡빡해도 된다.
-# roles.md는 소유권표 2개 + 파이프라인 + 편차 프로토콜 + 기록 형식을 모두 담는
+# roles.md는 태그표 + 소유권표 2개 + 파이프라인 + 편차 프로토콜 + 핸드오프를 담는
 # 이 하네스의 중심 문서라 8KB를 준다. 나머지는 단일 주제라 6KB.
+# 2026-08-10: roles.md가 8188B까지 차서 기록 형식(구 §3)을 record.md로 분리했다.
+# 다시 한계에 닿으면 예산을 올리기 전에 "이 문서에 있을 내용이 맞는지"부터 볼 것.
 echo "2. 조건부 로드 파일"
-for f in roles.md security.md done.md systems.md; do
+for f in roles.md security.md done.md systems.md record.md; do
   CHECKS=$((CHECKS + 1))
   case "$f" in
     roles.md) budget=8192 ;;
@@ -140,8 +142,9 @@ fi
 echo
 
 # ── 5-1. "다음 할 일" 에이전트 태그 ──────────────────────────────
-# 사용자가 이 한 줄로 어느 창을 열지 판단한다. 태그가 빠지면 전환 판단이 불가능해져
-# 구조 전체가 무력화되므로 실패 처리한다. (2026-08-07 실제로 태그가 지워진 사고 있었음)
+# 사용자가 이 한 줄로 어느 모델·어느 창으로 갈지 판단한다. 태그가 빠지면 전환 판단이
+# 불가능해져 구조 전체가 무력화되므로 실패 처리한다. (2026-08-07 태그가 지워진 사고 있었음)
+# 2026-08-10 3주체 전환: 맨 `[Claude]`는 Opus/Sonnet 구분이 안 되므로 통과시키지 않는다.
 echo "5-1. context.md \"다음 할 일\" 에이전트 태그"
 CTXF="$HARNESS/memory/context.md"
 CHECKS=$((CHECKS + 1))
@@ -149,10 +152,12 @@ if [ -f "$CTXF" ]; then
   NEXT_BLOCK="$(sed -n '/^## .*다음 할 일/,/^## /p' "$CTXF" | grep -v '^<!--' | grep -v '^\s*$')"
   if [ -z "$NEXT_BLOCK" ]; then
     fail "\"▶ 다음 할 일\" 섹션이 비어있음"
-  elif printf '%s' "$NEXT_BLOCK" | grep -qE '\[(Claude|Gemini|사용자)\]'; then
+  elif printf '%s' "$NEXT_BLOCK" | grep -qE '\[(Claude:(Opus|Sonnet)|Gemini|사용자)\]'; then
     ok "에이전트 태그 있음"
+  elif printf '%s' "$NEXT_BLOCK" | grep -qE '\[Claude\]'; then
+    fail "태그가 맨 [Claude] — 3주체 전환 후로는 [Claude:Opus](기획) / [Claude:Sonnet](구현)로 구분할 것"
   else
-    fail "\"다음 할 일\"에 [Claude] 또는 [Gemini] 태그 없음 — 사용자가 어느 창을 열지 알 수 없다"
+    fail "\"다음 할 일\"에 [Claude:Opus]/[Claude:Sonnet]/[Gemini]/[사용자] 태그 없음 — 어느 모델·창으로 가야 할지 알 수 없다"
   fi
 else
   fail "context.md 없음"
