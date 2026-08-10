@@ -246,3 +246,41 @@ model Settlement {
 
   @@unique([partnerId, periodYm]) // 같은 달 중복 발행 방지
 }
+
+// ─────────────────────────────────────────────────────────────────
+// 전문가(변호사·세무사·행정사·장례지도사) 계정 체계 — Partner(장사시설)와 완전 분리.
+// docs/04_상속세_전문가상담/17_전문가_계정_체계_구현_메모.md 참고.
+// 의도적으로 Lead/CommissionPolicy 관계를 만들지 않는다 — 변호사법 제34조 때문에
+// 직역별 수수료 구조가 갈라져 있어(같은 문서 §2), Partner의 리드 구조를 그대로
+// 재사용하면 변호사만 예외 처리해야 해서 스키마가 오염된다.
+// ─────────────────────────────────────────────────────────────────
+model Expert {
+  id               String  @id @default(uuid())
+  email            String  @unique // 로그인 ID
+  passwordHash     String
+  refreshTokenHash String? // Partner와 동일한 회전 방식(sha256 해시)
+
+  category      String // LAWYER | TAX_ACCOUNTANT | ADMINISTRATIVE_SCRIVENER | FUNERAL_DIRECTOR (docs 15 §2)
+  name          String // 전문가 본인 성명
+  licenseNo     String // 자격증·등록번호 (사업자등록번호 아님 — 변호사/세무사 등록번호 등)
+  licenseOrg    String? // 등록 기관 (대한변호사협회, 한국세무사회 등)
+  licenseDocUrl String? // 자격증 사본 (비공개 스토리지)
+  contactPhone  String
+
+  bio         String? // 소개·경력
+  specialties String[] @default([]) // 세부 전문 분야
+
+  status       String    @default("PENDING") // PENDING | APPROVED | REJECTED | SUSPENDED — 자동승인 없음(Partner와 동일 원칙)
+  rejectReason String?
+  approvedAt   DateTime?
+
+  settlementBank    String?
+  settlementAccount String? // 암호화 저장. 변호사 카테고리는 건별 정산 자체가 없음(Tier3 월정액 광고만)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([category, licenseNo]) // 같은 자격증 번호 중복 가입 방지
+  @@index([status])
+  @@index([category])
+}

@@ -131,6 +131,10 @@ export const Footer: React.FC<FooterProps> = ({ isFullPageSnap = false }) => {
         }}
       >
         Copyright © 2026 이어봄 (Eobom) Total Care Platform. All rights reserved.
+        {' · '}
+        <a href="#partner" style={{ color: '#6B7280', textDecoration: 'underline' }}>
+          장사시설·전문가 파트너이신가요?
+        </a>
       </div>
     </footer>
   );

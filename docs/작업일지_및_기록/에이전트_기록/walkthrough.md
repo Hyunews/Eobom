@@ -6,6 +6,30 @@
 
 ---
 
+## 2026-08-10 (2) | 전문가(변호사·세무사·행정사·장례지도사) 계정 체계 + OAuth 로컬 HTTPS 콜백 수정
+
+- **근거 스펙**: `docs/04_상속세_전문가상담/17_전문가_계정_체계_구현_메모.md` (정식 스펙 아님 — 대표 지시로 구현 중 작성한 메모, §12.5 방식대로 예외 처리했음을 문서 자체에 명시함). 참고: `docs/15`(전문가상담 도메인, 법적 근거).
+- **건드린 파일**:
+  - 백엔드 신규: `prisma/schema.prisma`(+마이그레이션 `20260810134356_expert_account`), `src/controllers/expertController.ts`, `src/routes/expertRoutes.ts`
+  - 백엔드 수정: `src/server.ts`(expertRoutes 마운트), `.env`/`.env.example`(3사 OAuth 콜백 URL http→https)
+  - 프론트 신규: `src/pages/PartnerPortalPage.tsx`
+  - 프론트 수정: `src/App.tsx`('partner' 탭 라우트), `src/components/Footer.tsx`(파트너 포털 링크)
+- **결과**:
+  - **OAuth 로컬 콜백 버그 수정**: mkcert HTTPS 전용 서빙과 `.env`의 http 콜백 URL이 어긋나 카카오/네이버/구글 로그인이 `ERR_EMPTY_RESPONSE`로 실패하던 문제. `.env`를 https로 수정 + 사용자가 3사 콘솔에 https 콜백 URI·플랫폼 도메인 등록 완료, 3사 모두 로그인 확인됨(→ `systems.md` §1).
+  - **`Expert` 계정 체계**: `Partner`(장사시설)와 완전 분리된 모델·인증(이메일/비밀번호, JWT `aud='expert'`, refresh 회전). `docs/15` §2의 4대 직역(LAWYER/TAX_ACCOUNTANT/ADMINISTRATIVE_SCRIVENER/FUNERAL_DIRECTOR) 반영. 의도적으로 `Lead`/`CommissionPolicy` 관계를 만들지 않음(변호사법 제34조, 문서 17 §2).
+  - **파트너 포털 프론트**: `/#partner`에서 장사시설/전문가 선택 + 로그인/가입 토글, 일반 이메일·비밀번호 폼(소셜 로그인 아님). Header/Sidebar 메뉴에는 안 올리고 Footer 링크로만 접근.
+  - 백엔드·프론트 `tsc`+`build` 통과. 실서버로 전체 플로우 검증: 가입→PENDING 로그인거부(403)→잘못된 category 거부(400)→중복이메일 거부(409)→(수동 승인)→로그인→`GET/PATCH /me`(정산계좌 AES-256-GCM 암복호화 왕복 확인)→refresh 토큰 회전→구 refresh 재사용 차단(401) 전부 확인. 사업자 토큰으로 전문가 라우트 접근 시 401(교차 사용 차단) 확인. 테스트 데이터 정리함.
+- **편차**: 없음(신규 기능이라 비교할 기존 스펙 없음). 다만 `roles.md` §2 원칙과의 예외: 정식 `docs/` 작성은 `[Claude:Opus]` 몫인데, 이번엔 사용자가 "구현하면서 메모만 남겨라"고 직접 지시해 `[Claude:Sonnet]`이 메모 성격 문서(`17`)를 직접 작성함. 문서 자체에 이 경위를 명시해뒀음.
+- **다음 에이전트가 알아야 할 것**:
+  - **브라우저 UI 미검증**: 이 세션에 브라우저 자동화 도구가 없어 `PartnerPortalPage.tsx` 실제 클릭 테스트를 못 했음. 백엔드 API는 curl로 전부 검증됐고 `tsc`/`vite build`도 통과했지만, 폼 렌더링·상태 전환은 사용자가 직접 확인 필요.
+  - 운영자 승인 화면이 없어 지금은 Prisma 스크립트로 DB를 직접 고쳐 승인 테스트함 — 실사용 전 어드민 화면(문서 16 §11 stage 5와 통합 검토 여지) 필요.
+  - `docs/17` §2에 정리된 법적 리스크(자격증 자동검증 여부, 변호사 정산 결제수단, 나머지 3개 직역 리드수수료 설계)는 사장님 확인 대기 중 — `pending-approvals.md`에는 아직 미등록, 다음 세션에 등록 검토할 것.
+  - `partnerController.ts`/`expertController.ts`가 거의 동일한 인증 로직을 복붙한 상태 — 세 번째 유사 계정 유형이 생기면(예: 어드민) 공통 헬퍼로 리팩터링 고려.
+
+<!-- Gemini 판정 대기 -->
+
+---
+
 ## 2026-08-10 | 장사시설 사업자 회원 + 리드 수수료 정산 인프라 0~3단계
 
 - **근거 스펙**: `docs/01_장례_묘지_매칭/16_장사시설_사업자회원_및_리드_수수료_정산_명세서.md` §11 구현순서표 0~3단계.

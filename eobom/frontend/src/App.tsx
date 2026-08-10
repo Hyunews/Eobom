@@ -15,6 +15,7 @@ import { DigitalEstatePage } from './pages/DigitalEstatePage';
 import { EndingNotePage } from './pages/EndingNotePage';
 import { CareGuidePage } from './pages/CareGuidePage';
 import { MyPage } from './pages/MyPage';
+import { PartnerPortalPage } from './pages/PartnerPortalPage';
 
 export function App() {
   // F5 새로고침 및 브라우저 뒤로가기 시에도 현재 탭과 로그인 유지
@@ -208,6 +209,9 @@ export function App() {
         return <CareGuidePage {...authProps} />;
       case 'mypage':
         return <MyPage {...authProps} onOpenAccountSettings={() => { setMyPageMessage(null); setIsMyPageOpen(true); }} />;
+      case 'partner':
+        // B2C 소셜 로그인과 무관한 별도 포털 — Header/Sidebar 메뉴에는 올리지 않고 Footer 링크로만 접근
+        return <PartnerPortalPage />;
       default:
         return <HomePage {...authProps} />;
     }
