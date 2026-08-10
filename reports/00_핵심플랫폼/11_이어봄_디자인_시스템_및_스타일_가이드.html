@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🎨 11. 디자인 시스템 및 스타일 가이드 - 이어봄</title>
+  <link rel="stylesheet" href="../../style.css">
+  <style>
+    .color-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-top: 15px; }
+    .color-chip { border-radius: 8px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+    .color-swatch { height: 100px; display: flex; align-items: flex-end; padding: 12px; color: white; font-weight: bold; font-family: monospace; }
+    .color-info { padding: 12px; background: white; }
+    .color-info h5 { margin: 0 0 4px 0; color: #1e293b; font-size: 1rem; }
+    .color-info p { margin: 0; color: #64748b; font-size: 0.85rem; }
+    .font-sample { background: #f8fafc; border: 1px solid #e2e8f0; padding: 20px; border-radius: 8px; margin-bottom: 15px; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-container">
+      <h1>🎨 11. 디자인 시스템 및 스타일 가이드 (Design System)</h1>
+      <p>이어봄(Eobom) 브랜드 자산 기반 공식 디자인 토큰, 컬러 팔레트, 타이포그래피 및 반응형 가이드</p>
+    </div>
+  </header>
+
+  <main class="container">
+    <nav class="breadcrumb">
+      <a href="../../index.html">🏠 스펙 통합 포털 Home</a> &gt; 
+      <a href="../index.html">00. 핵심 플랫폼</a> &gt; 
+      <span>11. 디자인 시스템</span>
+    </nav>
+
+    <section class="card">
+      <h2>🌿 1. Brand Visual Aesthetics</h2>
+      <ul>
+        <li><strong>Brand Name</strong>: 이어봄 (Eobom) / DEWD (Digital Ending & Well-Dying Total Care)</li>
+        <li><strong>Symbolmark Concept</strong>: 무한대 연상 곡선(영원함), 봄의 잎사귀(온기/희망), 두 손의 악수(신뢰)</li>
+        <li><strong>Visual Identity Philosophy</strong>: 존엄함(Dignity), 평온함(Serenity), 따뜻함(Warmth), 현대적 품격(Modern Elegance). 눈이 편안한 오가닉 소프트 웜 크림(<code>#FBF9F5</code>) 바탕.</li>
+      </ul>
+    </section>
+
+    <section class="card">
+      <h2>🖌️ 2. Design Tokens & Color Palette</h2>
+      <div class="color-grid">
+        <div class="color-chip">
+          <div class="color-swatch" style="background: #1A2B4C;">#1A2B4C</div>
+          <div class="color-info">
+            <h5>Deep Navy (Primary)</h5>
+            <p>헤더, 주 헤드라인, 1차 버튼, 푸터</p>
+          </div>
+        </div>
+
+        <div class="color-chip">
+          <div class="color-swatch" style="background: #5B7065;">#5B7065</div>
+          <div class="color-info">
+            <h5>Warm Green (Secondary)</h5>
+            <p>서브 포인트, 완결 뱃지, 수목장/생태</p>
+          </div>
+        </div>
+
+        <div class="color-chip">
+          <div class="color-swatch" style="background: #D4A359;">#D4A359</div>
+          <div class="color-info">
+            <h5>Warm Gold (Accent)</h5>
+            <p>프리미엄 뱃지, 하이라이트 아이콘</p>
+          </div>
+        </div>
+
+        <div class="color-chip">
+          <div class="color-swatch" style="background: #FBF9F5; color: #1A2B4C; border-bottom: 1px solid #e2e8f0;">#FBF9F5</div>
+          <div class="color-info">
+            <h5>Soft Cream (Background)</h5>
+            <p>전역 앱 백그라운드 (눈이 편안함)</p>
+          </div>
+        </div>
+
+        <div class="color-chip">
+          <div class="color-swatch" style="background: #EF4444;">#EF4444</div>
+          <div class="color-info">
+            <h5>Crimson Red (Alert)</h5>
+            <p>24시간 긴급 콜 FAB, 긴급 알림</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>📐 3. Typography & Layout System</h2>
+      <div class="font-sample">
+        <h3 style="font-family: 'Pretendard', sans-serif; color: #1A2B4C; margin-top: 0;">UI Header & Body: Pretendard / Noto Sans KR</h3>
+        <p style="font-family: 'Pretendard', sans-serif; color: #6C7A89;">가독성이 높고 현대적인 슬레이트 딥 네이비 컬러 텍스트 규격 적용.</p>
+      </div>
+
+      <div class="font-sample">
+        <h3 style="font-family: 'KoPubWorld 명조', serif; color: #1A2B4C; margin-top: 0;">Title & Quote: KoPubWorld 명조 (Serif)</h3>
+        <p style="font-family: 'KoPubWorld 명조', serif; color: #5B7065;">존엄함과 전통적인 품격을 더해주는 서리프 명조 서체 라인업.</p>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="container" style="text-align: center; color: #94a3b8; padding: 20px 0;">
+      <p>© 2026 Eobom Project. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

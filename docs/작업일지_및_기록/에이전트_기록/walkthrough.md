@@ -6,7 +6,23 @@
 
 ---
 
-## 2026-08-08 (2) | Domain01 위치 오탐지 + 카카오 지도 미작동 조사·부분 수정
+## 2026-08-07 (3) | mkcert 기반 로컬 HTTPS 구축 완료
+
+- **근거 스펙**: `docs/00_핵심플랫폼/08_구현_난관_및_기술_솔루션.md` §4(Gemini 작성) — Gemini 승인 후 진행(→ Antigravity 핸드오프 대화).
+- **건드린 파일**: `eobom/frontend/vite.config.ts`, `eobom/backend/src/server.ts`, `eobom/frontend/src/config.ts`, `.gitignore`. 신규: `eobom/.certs/`(gitignore 대상, 커밋 안 됨).
+- **결과**:
+  - mkcert 로컬 CA를 Windows 신뢰 저장소에 설치, `localhost`/`127.0.0.1`/`192.168.0.111` 인증서 발급.
+  - Vite·Express 둘 다 인증서 파일 존재 여부로 HTTPS/HTTP를 자동 판단하도록 구현 — 인증서 없는 환경(Render 등 배포 환경 포함)에서는 기존처럼 HTTP로 자연스럽게 폴백.
+  - 이미 떠 있던 기존 dev 서버(포트 5173, 5000)가 `--respawn`/Vite 설정 자동재시작으로 코드 변경을 즉시 반영, 재시작 없이 HTTPS 전환 확인(PowerShell `Invoke-WebRequest`로 인증서 신뢰까지 검증 — 경고 없이 200).
+  - 타입체크 프론트/백엔드 모두 통과.
+- **편차**: 스펙은 `choco`/`scoop`으로 mkcert 설치를 안내했으나 이 PC에 둘 다 없어 GitHub 릴리즈 바이너리 직접 다운로드로 대체(결과물 동일, 기능 차이 없음).
+- **다음 에이전트가 알아야 할 것**: `context.md`에 "백엔드 미배포 (Railway 배포 수순 대기 중)"이라고 적혀 있는데, 사용자가 이미 **Render**로 결정했고 `render.yaml`도 그 기준으로 만들어져 있음(`eobom-backend.onrender.com` 고정 도메인, 카카오/네이버/구글 콜백 URL도 그걸로 등록 예정). Railway 언급은 다른 문서 어디에도 없어 착오로 추정 — 사용자에게 확인 필요.
+
+<!-- Gemini 판정 대기 -->
+
+---
+
+## 2026-08-07 (2) | Domain01 위치 오탐지 + 카카오 지도 미작동 조사·부분 수정
 
 - **근거 스펙**: 스펙 없음 — 사용자가 IP 접속 시 위치가 서울 서초구로 잘못 뜨고 카카오 지도가 안 뜬다고 버그 리포트, 원인 조사 후 즉흥 수정.
 - **건드린 파일**: `eobom/frontend/src/pages/FacilityPage.tsx`, `eobom/frontend/src/components/KakaoMapModal.tsx`
@@ -21,7 +37,7 @@
 
 ---
 
-## 2026-08-08 | LAN IP 환경 소셜 로그인 리다이렉트 동적 처리
+## 2026-08-07 | LAN IP 환경 소셜 로그인 리다이렉트 동적 처리
 
 - **근거 스펙**: 스펙 없음 — 사용자 요청(네이버 콜백 URL에 LAN IP 추가 후, 프론트/백엔드가 그 IP를 동적으로 인식하도록)에 따른 즉흥 구현.
 - **건드린 파일**: `eobom/frontend/src/config.ts`, `eobom/frontend/src/vite-env.d.ts`, `eobom/frontend/.env.example`, `eobom/backend/src/controllers/authController.ts`, `eobom/backend/src/routes/authRoutes.ts`, `eobom/backend/.env.example`

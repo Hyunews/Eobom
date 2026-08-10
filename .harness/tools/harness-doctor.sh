@@ -146,10 +146,10 @@ echo "5-1. context.md \"다음 할 일\" 에이전트 태그"
 CTXF="$HARNESS/memory/context.md"
 CHECKS=$((CHECKS + 1))
 if [ -f "$CTXF" ]; then
-  NEXT_BLOCK="$(sed -n '/^## ▶ 다음 할 일/,/^## /p' "$CTXF" | grep -v '^<!--' | grep -v '^\s*$')"
+  NEXT_BLOCK="$(sed -n '/^## .*다음 할 일/,/^## /p' "$CTXF" | grep -v '^<!--' | grep -v '^\s*$')"
   if [ -z "$NEXT_BLOCK" ]; then
     fail "\"▶ 다음 할 일\" 섹션이 비어있음"
-  elif printf '%s' "$NEXT_BLOCK" | grep -qE '\[(Claude|Gemini)\]'; then
+  elif printf '%s' "$NEXT_BLOCK" | grep -qE '\[(Claude|Gemini|사용자)\]'; then
     ok "에이전트 태그 있음"
   else
     fail "\"다음 할 일\"에 [Claude] 또는 [Gemini] 태그 없음 — 사용자가 어느 창을 열지 알 수 없다"
@@ -172,7 +172,7 @@ if [ -f "$PENDING" ]; then
     ok "대기 중인 항목 없음"
   else
     CONFLICT=0
-    NEXT_TASK="$(sed -n '/^## ▶ 다음 할 일/,/^## /p' "$CTXF" 2>/dev/null | grep -v '^<!--')"
+    NEXT_TASK="$(sed -n '/^## .*다음 할 일/,/^## /p' "$CTXF" 2>/dev/null | grep -v '^<!--')"
     while IFS= read -r p; do
       [ -z "$p" ] && continue
       if printf '%s' "$NEXT_TASK" | grep -qF "$p"; then

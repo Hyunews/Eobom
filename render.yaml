@@ -1,0 +1,47 @@
+# Render Blueprint — 이어봄 백엔드 배포
+# 사용법: Render 대시보드 > New > Blueprint > 이 레포 선택 → 자동 인식됨.
+# sync: false로 표시된 값은 Blueprint 생성 화면에서 직접 입력해야 함(레포에는 시크릿을 넣지 않음).
+#
+# name을 eobom-backend로 고정해서 배포 도메인이 https://eobom-backend.onrender.com 으로
+# 예측 가능하게 만들었다 — 그래야 카카오/네이버/구글 콜백 URL을 배포 전에 미리 등록할 수 있다.
+
+services:
+  - name: eobom-backend
+    type: web
+    runtime: node
+    plan: free
+    rootDir: eobom/backend
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: eobom-db
+          property: connectionString
+      - key: FRONTEND_URL
+        value: https://eobom.vercel.app
+      - key: JWT_SECRET
+        sync: false
+      - key: KAKAO_CLIENT_ID
+        sync: false
+      - key: KAKAO_CLIENT_SECRET
+        sync: false
+      - key: KAKAO_CALLBACK_URL
+        value: https://eobom-backend.onrender.com/api/auth/kakao/callback
+      - key: NAVER_CLIENT_ID
+        sync: false
+      - key: NAVER_CLIENT_SECRET
+        sync: false
+      - key: NAVER_CALLBACK_URL
+        value: https://eobom-backend.onrender.com/api/auth/naver/callback
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
+      - key: GOOGLE_CALLBACK_URL
+        value: https://eobom-backend.onrender.com/api/auth/google/callback
+
+databases:
+  - name: eobom-db
+    plan: free
+    databaseName: eobom_db

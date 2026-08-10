@@ -10,7 +10,7 @@
 # 사용법:  tools/gbrain-doctor.sh
 # 종료코드: 0 = 정상, 1 = 깨진 링크 있음, 2 = 사용 오류
 #
-set -euo pipefail
+set -e
 
 # 저장소 루트 기준으로 스캔한다 (2026-08-07 재구성으로 docs/가 .harness 밖으로 나갔음 —
 # .harness만 스캔하면 대부분의 노트를 못 봐서 "0개 검사 후 초록불" 사고가 난다).

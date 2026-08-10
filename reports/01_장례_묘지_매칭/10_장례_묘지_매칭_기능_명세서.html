@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🪦 10. 장례 · 묘지 매칭 기능 및 데이터 연동 상세 명세서 - 이어봄</title>
+  <link rel="stylesheet" href="../../style.css">
+  <style>
+    .badge-partner { background: #10B981; color: white; padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 0.85rem; }
+    .badge-general { background: #6B7280; color: white; padding: 4px 8px; border-radius: 4px; font-size: 0.85rem; }
+    .feature-card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px; margin-bottom: 20px; }
+    .feature-card h4 { color: #1e293b; margin-top: 0; display: flex; align-items: center; justify-content: space-between; }
+    .compare-table th { background: #1e293b; color: white; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-container">
+      <h1>🪦 10. 장례 · 묘지 매칭 기능 및 데이터 연동 명세서</h1>
+      <p>이어봄(Eobom) 디지털 엔딩 & 웰다잉 토탈 케어 플랫폼 | Domain 01 SSOT HTML Spec</p>
+    </div>
+  </header>
+
+  <main class="container">
+    <nav class="breadcrumb">
+      <a href="../../index.html">🏠 스펙 통합 포털 Home</a> &gt; 
+      <a href="../index.html">01. 장례 · 묘지 매칭</a> &gt; 
+      <span>10. 장례 · 묘지 매칭 기능 명세서</span>
+    </nav>
+
+    <section class="card">
+      <h2>📌 1. 서비스 개요 및 비전</h2>
+      <ul>
+        <li><strong>도메인</strong>: 장례식장, 봉안당(납골당), 수목장, 해양장 맞춤 탐색, LBS 현위치 기반 검색, 공시 견적 비교, VR 360 사이버 답사, 1-Touch 답사 예약</li>
+        <li><strong>대응 화면 ID</strong>: <code>SCR-004</code> (<code>FacilityPage.tsx</code>, <code>KakaoMapModal.tsx</code>, <code>PriceCompareModal.tsx</code>, <code>BookingModal.tsx</code>)</li>
+        <li><strong>핵심 가치</strong>: 장례 비용 정보 비대칭 해소, 10분 내 최적 안식처 검색, 편리한 답사 예약 대행</li>
+        <li><strong>상업적 이용 법률 승인</strong>: ⚖️ 보건복지부 e하늘 Open API & 카카오 로컬 API 100% 합법적 영리 이용 검토 완료 (공공데이터 이용법 제3조 준수)</li>
+      </ul>
+    </section>
+
+    <section class="card">
+      <h2>🔍 2. 더미 데이터 5종의 실제 구현 가능성 및 상세 기획 판단</h2>
+      <p>현재 프론트엔드 코드에 포함된 5가지 핵심 데이터 항목은 기술적/비즈니스적으로 <strong>100% 실제 구현이 가능하며, 서비스의 본질적인 경쟁력이므로 모두 '유지'합니다.</strong></p>
+
+      <div class="feature-card">
+        <h4><span>1️⃣ [항목 1] 별점 (Star Rating)</span> <span class="badge-partner">유지 확정</span></h4>
+        <p><strong>실제 구현 기술 방안</strong>: 단순 외부 평점이 아닌, 이어봄 플랫폼을 통해 <strong>실제 답사/상담/장례를 완료한 검증된 이용자</strong>만 리뷰 및 별점(1.0~5.0)을 작성할 수 있는 자체 리뷰 DB(<code>facility_reviews</code>) 구축. <code>AVG(rating)</code> 산술 평균 수치로 실시간 업데이트.</p>
+        <p><strong>초기 운영 전략</strong>: 초기에는 지자체 및 보건복지부 공시 서비스 만족도 수치를 기본 부여하고 실이용 리뷰 5건 이상 누적 시 유저 평점 가중치로 자동 전환.</p>
+      </div>
+
+      <div class="feature-card">
+        <h4><span>2️⃣ [항목 2] 주소 및 위경도 (Location & Address)</span> <span class="badge-partner">유지 확정</span></h4>
+        <p><strong>실제 구현 기술 방안</strong>: <strong>카카오 로컬 REST API (`query=장례식장`) 및 Kakao Maps SDK 100% 연동</strong>. 사용자의 현위치(`navigator.geolocation`)를 수신하고 하버사인(Haversine) 거리 계산 로직으로 5km, 10km, 20km 반경 동적 필터링.</p>
+      </div>
+
+      <div class="feature-card">
+        <h4><span>3️⃣ [항목 3] 견적 비교 및 예상 기본 비용 (Estimate & Pricing)</span> <span class="badge-partner">유지 확정 (USP)</span></h4>
+        <p><strong>실제 구현 기술 방안</strong>: <strong>보건복지부 `e하늘장례정보시스템` 공공 Open API 연동 (핵심)</strong>. 전국 장례식장의 표준 시설 사용료(빈소/안치실/입관실) 및 장례 용품 공시 가격 데이터를 실시간 무상 수집. 제휴 파트너 시설의 경우 5대 세부 항목 실시간 분해 & 패키지 할인가 노출.</p>
+      </div>
+
+      <div class="feature-card">
+        <h4><span>4️⃣ [항목 4] 특징 해시태그 (Hashtags)</span> <span class="badge-partner">유지 확정</span></h4>
+        <p><strong>실제 구현 기술 방안</strong>: 시설 속성 DB(<code>facility_tags</code>) 연동. 공공데이터의 객관적 속성(주차대수, 24시간 여부, 수목장 종류)과 관리자 입점 등록 체크박스 조합. 태그 클릭 시 모달 필터링 연동.</p>
+      </div>
+
+      <div class="feature-card">
+        <h4><span>5️⃣ [항목 5] 답사 예약 (Tour Booking)</span> <span class="badge-partner">수익화 접점</span></h4>
+        <p><strong>실제 구현 기술 방안 (2단계 하이브리드 예약)</strong>:</p>
+        <ul>
+          <li><strong>제휴 파트너 시설</strong>: 유족의 답사 신청 즉시 장례식장/수목장 사업자 전용 알림톡 및 파트너 어드민 웹으로 예약 정보 자동 전송.</li>
+          <li><strong>비제휴 시설</strong>: 신청 접수 시 이어봄 전담 해피콜 상담원이 유선으로 장례식장에 대신 답사를 예약해 주는 <strong>대행 예약 서비스</strong> 운영.</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>🗺️ 3. 전국 장례식장 데이터 구축 및 노출 전략 (하이브리드 디렉토리 모델)</h2>
+      <p>초기 데이터 부족(Cold Start) 문제를 예방하기 위해 전국의 모든 장례식장을 첫날부터 검색할 수 있는 <strong>하이브리드 디렉토리 모델</strong>을 채택합니다.</p>
+
+      <h3>제휴 vs 비제휴 시설 기능 차별화 명세</h3>
+      <table class="compare-table" style="width: 100%; border-collapse: collapse; margin-top: 15px;">
+        <thead>
+          <tr>
+            <th>구분</th>
+            <th>일반 공시 시설 (비제휴)</th>
+            <th>🌿 이어봄 인증 파트너 시설 (제휴)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>기본 정보</strong></td>
+            <td>도로명 주소, 지도 핀, 전화번호</td>
+            <td>도로명 주소, 지도 핀, 전화번호, <span class="badge-partner">인증 뱃지</span></td>
+          </tr>
+          <tr>
+            <td><strong>가격 정보</strong></td>
+            <td>보건복지부 공시 기본 총액 범위</td>
+            <td><strong style="color: #10B981;">5대 세부 항목 실시간 분해 & 패키지 할인가</strong></td>
+          </tr>
+          <tr>
+            <td><strong>답사 방식</strong></td>
+            <td>이어봄 상담원 해피콜 대행 예약</td>
+            <td><strong>장례식장 직통 1-Touch 자동 확정 예약</strong></td>
+          </tr>
+          <tr>
+            <td><strong>시각 자료</strong></td>
+            <td>일반 대표 이미지</td>
+            <td><strong>VR 360도 사이버 공간 투어 갤러리</strong></td>
+          </tr>
+          <tr>
+            <td><strong>검색 노출</strong></td>
+            <td>기본 거리순/가격순 정렬 노출</td>
+            <td><strong style="color: #D4A359;">검색 결과 최상단 스포트라이트 핀 고정</strong></td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+  </main>
+
+  <footer>
+    <div class="container" style="text-align: center; color: #94a3b8; padding: 20px 0;">
+      <p>© 2026 Eobom Project. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

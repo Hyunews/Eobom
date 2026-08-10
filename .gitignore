@@ -21,6 +21,9 @@ build/
 .env.local
 .env.*.local
 
+# mkcert 로컬 HTTPS 개인키 (기기별로 생성, 절대 커밋 금지)
+eobom/.certs/
+
 # IDE & OS files
 .vscode/
 .idea/

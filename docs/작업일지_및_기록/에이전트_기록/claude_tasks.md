@@ -5,6 +5,26 @@
 
 ---
 
+## 2026-08-07 — 하네스 재설계 + Domain01 LAN/HTTPS 대응 + Render 배포 준비
+
+### 삽질 · 함정 기록 (다음에 같은 데서 시간 안 쓰려고)
+
+- **점검 스크립트 3개가 "조용히 초록불"이었음** — 재구성으로 `projects/`·`daily/` 폴더가 사라졌는데 스크립트가 그걸 전제로 짜여 있어 0건 검사 후 "이상 없음"을 출력. `memory-sync-check.sh`는 macOS 전용 `stat -f`라 Windows Git Bash에선 애초에 실패. → `harness-doctor.sh` 하나로 통합하고 **"검사 0건 = 실패"** 규칙을 넣음. 에러보다 조용한 통과가 훨씬 위험하다는 교훈.
+- **`implementation_plan.md`는 유령 파일이었음** — `AGENTS.md`/`CLAUDE.md`/`GEMINI.md` 5곳이 참조하는데 레포 어디에도 존재한 적 없음. 규칙이 없는 파일을 읽으라고 시키고 있었던 것.
+- **`consolidate_reports.py`가 위험했음** — 죽은 경로(`../projects/eobom/reports`)를 `os.makedirs`로 재생성하고 `eobom/`에서 html/pdf를 삭제하는 로직. 재구성 후엔 그냥 파괴적이라 삭제함.
+- **`.env`의 스캐폴딩 기본값에 당할 뻔** — OAuth 동적 대응 최초 구현에서 "`FRONTEND_URL` env 있으면 동적 캡처 끔"으로 짰는데, 실제 `.env`에 `.env.example`에서 복사된 `localhost:5173`이 이미 들어있어 기능이 무력화될 상황이었음. env 존재 여부로 분기할 땐 "그 값이 진짜 의도된 설정인지" 확인할 것.
+- **Referer 신뢰 = 오픈 리다이렉트** — 로그인 시작 시점 Referer를 그대로 믿으면 외부 사이트가 우리 로그인 링크를 감싸서 토큰을 자기 도메인으로 빼갈 수 있음. 사설 대역+localhost+5173으로 화이트리스트 좁힘.
+- **statusLine이 한글 때문에 깨져 있었음** — `claude-statusline-wrapper.cmd`가 `more.com`으로 stdin을 받는데, 이게 콘솔 코드페이지로 재인코딩하면서 한글 세션명을 깨뜨림 → JSON 파싱 실패 → `unknown | 컨텍스트 n/a`. PowerShell 바이트 스트림 복사로 교체.
+- **mkcert 설치**: 이 PC엔 choco/scoop/winget 전부 없어서 GitHub 릴리즈 바이너리 직접 다운로드로 해결. `mkcert -install`이 Java keytool 단계에서 에러를 뱉지만 **Windows 신뢰 저장소 설치는 이미 성공한 뒤**라 브라우저 용도로는 무관.
+- **날짜를 하루 잘못 적었음** — walkthrough/systems/context에 `2026-08-08`로 적었는데 실제로는 `2026-08-07`. 세션 마무리 중 발견해 일괄 정정. 날짜는 추측하지 말고 확인할 것.
+
+### 검증 방법 메모
+
+- HTTPS 신뢰 여부는 `curl -k`로는 확인 불가(검증을 건너뛰므로). PowerShell `Invoke-WebRequest`가 Windows 신뢰 저장소를 그대로 쓰므로 브라우저 관점에 가장 가까움.
+- `harness-doctor.sh`의 새 검사(5-1 태그, 5-2 승인대기 충돌)는 **일부러 깨뜨려서** 🔴가 실제로 뜨는지 확인 후 원복함. 안전장치는 실패하는 걸 봐야 믿을 수 있음.
+
+---
+
 ## 2026-08-05 (야간) — 위치 UX 개선 + CSV 데이터 오류 수정 + Domain02 기획 교차검토
 
 ### 체크리스트
