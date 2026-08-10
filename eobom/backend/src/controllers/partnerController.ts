@@ -4,6 +4,7 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import prisma from '../config/prisma';
 import { encryptField, decryptField } from '../utils/crypto';
+import { normalizePhone, isValidPhoneLength, MIN_PHONE_DIGITS, MAX_PHONE_DIGITS } from '../utils/phone';
 
 // 사업자(Partner) 인증 — B2C User와 완전히 분리된 토큰 체계 (docs 16 §3, §6.1, §6.4)
 // aud: 'partner' 클레임으로 B2C 토큰과 교차 사용을 막는다. B2C authController.ts와 시크릿은
@@ -98,6 +99,12 @@ export const signup = async (req: Request, res: Response) => {
     return res.status(400).json({ status: 'error', message: `사업자등록번호는 숫자 ${BIZ_REG_NO_LENGTH}자리여야 합니다.` });
   }
 
+  // 연락처도 사업자등록번호와 같은 원칙 — 하이픈 유무로 다른 값이 되지 않도록 숫자만 저장한다.
+  const normalizedPhone = normalizePhone(contactPhone);
+  if (!isValidPhoneLength(normalizedPhone)) {
+    return res.status(400).json({ status: 'error', message: `담당자 연락처는 숫자 ${MIN_PHONE_DIGITS}~${MAX_PHONE_DIGITS}자리여야 합니다.` });
+  }
+
   try {
     const [existingEmail, existingBizRegNo] = await Promise.all([
       prisma.partner.findUnique({ where: { email } }),
@@ -121,7 +128,7 @@ export const signup = async (req: Request, res: Response) => {
         companyName,
         ownerName,
         contactName,
-        contactPhone,
+        contactPhone: normalizedPhone,
         bizLicenseUrl,
         status: 'PENDING',
       },
@@ -271,12 +278,16 @@ export const updateMe = async (req: Request, res: Response) => {
     settlementAccount?: string;
   };
 
+  if (contactPhone && !isValidPhoneLength(normalizePhone(contactPhone))) {
+    return res.status(400).json({ status: 'error', message: `연락처는 숫자 ${MIN_PHONE_DIGITS}~${MAX_PHONE_DIGITS}자리여야 합니다.` });
+  }
+
   try {
     const partner = await prisma.partner.update({
       where: { id: decoded.id },
       data: {
         ...(contactName ? { contactName } : {}),
-        ...(contactPhone ? { contactPhone } : {}),
+        ...(contactPhone ? { contactPhone: normalizePhone(contactPhone) } : {}),
         ...(settlementBank ? { settlementBank } : {}),
         ...(settlementAccount ? { settlementAccount: encryptField(settlementAccount) } : {}),
       },

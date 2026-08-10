@@ -4,6 +4,7 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import prisma from '../config/prisma';
 import { encryptField, decryptField } from '../utils/crypto';
+import { normalizePhone, isValidPhoneLength, MIN_PHONE_DIGITS, MAX_PHONE_DIGITS } from '../utils/phone';
 
 // 전문가(변호사·세무사·행정사·장례지도사) 인증 — Partner(장사시설)와 완전 분리된 계정 체계.
 // docs/04_상속세_전문가상담/17_전문가_계정_체계_구현_메모.md 근거. 인증 방식(비밀번호 해시,
@@ -90,6 +91,12 @@ export const signup = async (req: Request, res: Response) => {
     return res.status(400).json({ status: 'error', message: `전문 분야는 ${EXPERT_CATEGORIES.join(', ')} 중 하나여야 합니다.` });
   }
 
+  // 연락처는 사업자등록번호와 같은 원칙 — 하이픈 유무로 다른 값이 되지 않도록 숫자만 저장한다.
+  const normalizedPhone = normalizePhone(contactPhone);
+  if (!isValidPhoneLength(normalizedPhone)) {
+    return res.status(400).json({ status: 'error', message: `연락처는 숫자 ${MIN_PHONE_DIGITS}~${MAX_PHONE_DIGITS}자리여야 합니다.` });
+  }
+
   try {
     const [existingEmail, existingLicense] = await Promise.all([
       prisma.expert.findUnique({ where: { email } }),
@@ -112,7 +119,7 @@ export const signup = async (req: Request, res: Response) => {
         licenseNo,
         licenseOrg,
         licenseDocUrl,
-        contactPhone,
+        contactPhone: normalizedPhone,
         bio,
         status: 'PENDING',
       },
@@ -266,11 +273,15 @@ export const updateMe = async (req: Request, res: Response) => {
     settlementAccount?: string;
   };
 
+  if (contactPhone && !isValidPhoneLength(normalizePhone(contactPhone))) {
+    return res.status(400).json({ status: 'error', message: `연락처는 숫자 ${MIN_PHONE_DIGITS}~${MAX_PHONE_DIGITS}자리여야 합니다.` });
+  }
+
   try {
     const expert = await prisma.expert.update({
       where: { id: decoded.id },
       data: {
-        ...(contactPhone ? { contactPhone } : {}),
+        ...(contactPhone ? { contactPhone: normalizePhone(contactPhone) } : {}),
         ...(bio !== undefined ? { bio } : {}),
         ...(Array.isArray(specialties) ? { specialties } : {}),
         ...(settlementBank ? { settlementBank } : {}),

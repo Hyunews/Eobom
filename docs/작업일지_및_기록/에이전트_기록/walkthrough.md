@@ -6,6 +6,51 @@
 
 ---
 
+## 2026-08-10 (5) | FacilityPage 개편: 필터 간소화 + 전화 비노출 + 업체 문의 + 이미지 업로드
+
+- **근거 스펙**: 스펙 없음 — 대표 지시(필터 축소, 전화번호 비노출, 견적비교/답사예약 삭제, 업체 문의 폼, 시설 이미지). 즉흥 구현이나 docs 16 §9(전화 문의는 수수료 근거 불가)와 정확히 같은 방향.
+- **건드린 파일**:
+  - 프론트 신규: `src/components/facility/InquiryModal.tsx`
+  - 프론트 수정: `src/pages/FacilityPage.tsx`(전면 재작성), `src/pages/BizDashboard.tsx`(이미지 업로드 UI), `src/config.ts`(변경 없음, 기존 GEOLOCATION_FALLBACK 재사용)
+  - 프론트 삭제: `src/components/facility/PriceCompareModal.tsx`, `src/components/facility/BookingModal.tsx` (FacilityPage에서만 쓰이던 컴포넌트, 미사용 확인 후 삭제)
+  - 백엔드 신규: `src/config/upload.ts`(multer 설정), `src/controllers/facilityMediaController.ts`(이미지 업로드/삭제)
+  - 백엔드 수정: `prisma/schema.prisma`(+마이그레이션 `20260810161724_facility_images`), `src/controllers/facilityController.ts`(buildWhere 간소화), `src/controllers/claimController.ts`(listMyFacilities에 images 추가), `src/routes/partnerRoutes.ts`, `src/server.ts`(정적 서빙), `package.json`(multer)
+  - 기타: 루트 `.gitignore`(`eobom/backend/uploads/` 추가)
+- **결과**:
+  - **필터 간소화**: 예산범위·종교·예상하객수·지역(대분류) 필터 삭제, 구분(category)만 남기고 위치 선택(시/도+시/군/구) 섹션과 한 블록으로 병합. 백엔드 `buildWhere`도 대응 정리.
+  - **전화 비노출**: 시설 카드의 전화 버튼(`tel:` 링크) 완전 제거. 대신 "업체 문의" 버튼으로 유도.
+  - **견적비교·답사예약 삭제**: 두 컴포넌트 다 미사용 확인 후 파일까지 삭제. 백엔드 `POST /api/facilities/:id/bookings`·`FacilityBooking`은 그대로 둠(데이터 삭제는 범위 밖으로 판단).
+  - **업체 문의**: `InquiryModal` 신설 — 이름/연락처/문의내용/동의 체크박스 → 기존 `POST /api/facilities/:id/quotes`(Lead type=QUOTE)에 연결. leadNo를 접수번호로 노출("라벨링" 요구사항 = 기존 leadNo 시스템).
+  - **시설 이미지**: `Facility.images String[]` 신설. 파트너가 `BizDashboard`에서 업로드(`POST /api/partner/facilities/:id/images`, multer 로컬 디스크) → 소비자 `FacilityPage` 카드 상단 이미지 박스에 그대로 노출. 삭제 API도 함께 구현.
+  - 실서버 전체 검증: 카테고리 필터 정상 + 삭제된 필터 파라미터 조용히 무시(크래시 없음) 확인. 문의 접수 → leadNo 발급 확인. 이미지 업로드 → 정적 서빙(200, image/png) → 공개 API 반영 → 삭제 → 실제 디스크 파일 제거(404) 전부 확인. **소유권 검증**: 남의 시설에 업로드/삭제 시도 시 403 확인. 잘못된 파일 타입(400)·미인증(401) 거부도 확인. 테스트 데이터·시설 상태 전부 원복.
+  - `tsc`+`build` 백엔드·프론트 둘 다 통과.
+- **편차**: 없음(스펙 자체가 사용자 즉흥 지시).
+- **다음 에이전트가 알아야 할 것**:
+  - **이미지 저장은 로컬 디스크(MVP)** — `eobom/backend/uploads/facility-images/`. **Render 등에 배포하면 재배포 시 파일이 사라진다.** 실배포 전 S3/Cloudinary 같은 외부 스토리지로 반드시 교체(신규 외부 서비스라 사용자 승인 필요, security.md §5).
+  - 브라우저 UI 미검증(자동화 도구 없음) — 특히 파일 업로드 `<input type="file">` 실제 클릭 동작은 API 레벨로만 확인했고 사용자 확인 필요.
+  - `Facility.religion`·`guests`·`price` 필드와 카드 표시 텍스트는 그대로 남겨둠 — 필터만 지워달라는 요청이라 정보 표시 자체는 안 건드림. 표시도 없애고 싶으면 별도 요청 필요.
+  - `FacilityBooking`/답사예약 백엔드 API는 살아있지만 프론트에서 호출하는 곳이 이제 없음 — 완전히 죽은 기능인지, 나중에 다른 형태로 되살릴지 확인 필요.
+
+---
+
+## 2026-08-10 (4) | 로그인 정리 + 연락처 정규화
+
+- **근거 스펙**: 스펙 없음 — 사용자 리뷰 피드백 3건에 대한 즉흥 수정.
+- **건드린 파일**:
+  - 프론트: `src/components/LoginModal.tsx`(옛 admin/1234 목업 로그인 제거), `src/config.ts`(`formatPhoneForDisplay` 추가), `src/pages/AdminPage.tsx`·`src/pages/BizDashboard.tsx`(표시용 포맷 적용)
+  - 백엔드 신규: `src/utils/phone.ts`(`normalizePhone`, `isValidPhoneLength`)
+  - 백엔드 수정: `src/controllers/partnerController.ts`·`src/controllers/expertController.ts`(signup·updateMe에 연락처 정규화 적용)
+- **결과**:
+  - `LoginModal`(B2C)에 남아있던 `admin`/`1234` 하드코딩 목업 로그인 버튼·폼 제거. 이제 관리자는 `#admin`(실제 `Admin` 계정) 한 곳뿐 — B2C 로그인 쪽에 관리자로 가는 경로가 없다.
+  - 사업자등록번호 검증: 확인 결과 이미 정상이었음 — placeholder `"000-00-00000"`는 실제로 10자리(프로그램적으로 카운트 확인), 백엔드도 하이픈 유무 무관하게 숫자만 뽑아 10자리 검증(`normalizeBizRegNo`). 버그 없음, 사용자에게 설명함.
+  - 연락처: 정규화가 전혀 없어 `010-1234-5678`과 `01012345678`이 다른 문자열로 저장되고 있던 실제 버그. `normalizePhone`(숫자만 추출) + `isValidPhoneLength`(9~11자리) 신설, `Partner`·`Expert` 양쪽 signup/updateMe에 적용. 화면 표시는 `formatPhoneForDisplay`로 하이픈을 다시 붙여 보여줌.
+  - 실서버 검증: 하이픈 있는 번호/없는 번호로 각각 가입 → DB에 완전히 동일한 `01012345678`로 저장됨 확인. 13자리(과도하게 긴) 입력은 400 거부 확인. 테스트 데이터 정리함.
+  - `tsc`(백엔드·프론트) 통과.
+- **편차**: 없음.
+- **다음 에이전트가 알아야 할 것**: `formatPhoneForDisplay`는 정확한 지역번호 체계(02는 2자리, 다른 지역은 3자리 등)를 완전히 다루지 않는 근사 포맷터다 — 표시 전용이고 저장값(숫자만)엔 영향 없음. 실제 프로덕션에서 이상하게 보이는 번호가 있으면 이 함수부터 볼 것.
+
+---
+
 ## 2026-08-10 (3) | 운영자 승인 대시보드 + 시설 클레임(연동) API + 사업자/전문가 대시보드
 
 - **근거 스펙**: `docs/16` §6.2(운영자 어드민)·§3.3(시설 클레임), `docs/17` §4. 정식 스펙 문서 갱신 없이 기존 문서의 "다음 단계"로 명시돼 있던 부분을 그대로 구현(대표 지시: "관리자 페이지와 사업자/전문가 대시보드 만들어야 함").

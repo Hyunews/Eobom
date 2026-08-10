@@ -17,7 +17,7 @@
 - 스펙 정본: `docs/00_핵심플랫폼/09_소셜로그인_및_계정통합_명세서.md`
 - 시크릿: `eobom/backend/.env` (→ `security.md` §3)
 - ⚠️ **프로덕션 콜백 URL 미등록** — 백엔드가 아직 배포되지 않아 실서비스 로그인 불가
-- ⚠️ **로컬 콜백은 https 필수** — mkcert 도입 후 백엔드가 인증서 존재 시 HTTPS만 서빙(`server.ts`). http로 두면 인증 후 리다이렉트가 TLS 포트에 평문으로 들어가 `ERR_EMPTY_RESPONSE`(2026-08-10 실장애, `.env` 수정 완료). **[사용자]** 카카오/네이버/구글 콘솔 Redirect URI에 `https://localhost:5000/api/auth/<provider>/callback` 추가 필요 — 콘솔 미등록이면 `.env`만 바꿔도 소용없음.
+- ⚠️ **로컬 콜백은 https 필수** — mkcert 도입 후 백엔드가 인증서 존재 시 HTTPS만 서빙(`server.ts`). http로 두면 인증 후 리다이렉트가 TLS 포트에 평문으로 들어가 `ERR_EMPTY_RESPONSE`(2026-08-10 실장애, 해결됨) — 3사 콘솔에 `https://localhost:5000/api/auth/<provider>/callback` 등록 완료.
 
 ## 2. 지도 / 위치
 
@@ -26,8 +26,8 @@
 | 카카오맵 JS SDK | ✅ 활성 (2026-08-07 확인) | 등록 도메인에 로컬 LAN IP 추가함 (기존엔 localhost만 등록돼 있었음) |
 | 카카오 로컬 API (장소검색) | ✅ 사용 중 | 시설 데이터 수집에 사용 |
 
-- 키: `VITE_KAKAO_MAP_KEY` (`eobom/frontend/.env`) — 프론트 번들에 노출되므로 도메인 제한 필수
-- 활성화 경로: 카카오 디벨로퍼 > 이어봄 앱 > 제품 설정 > 카카오맵 > 활성화 ON
+- 키: `VITE_KAKAO_MAP_KEY`(`eobom/frontend/.env`) — 프론트 번들 노출, 도메인 제한 필수
+- 활성화: 카카오 디벨로퍼 > 이어봄 앱 > 제품 설정 > 카카오맵 > ON
 - ⚠️ **수집 한계**: 시/도 단위 검색 시 45건 API 캡으로 일부 지역 누락. 전수 수집은 시/군/구 단위 재검색 필요.
 
 ### 위치(Geolocation) 자동감지 — mkcert 로컬 HTTPS로 로컬 검증 가능해짐 ✅
@@ -45,8 +45,8 @@ mkcert 도입 후 `https://localhost:5173`·`https://192.168.0.111:5173`에서 �
 | 보건복지부 봉안시설/자연장지 CSV | ✅ 사용 중 | `assets/` 에 원본 보관 |
 
 - 법률 검토 정본: `docs/01_장례_묘지_매칭/12_공공데이터_및_API_상업적_이용_법률_검토서.md`
-- ⚠️ 위 배제 때문에 **Facility의 가격·종교·하객수·평점은 전부 플레이스홀더**다. 실데이터로 착각하지 말 것.
-- ⚠️ CSV 원본 오류(전남광주통합특별시 45건) 2026-08-05 수정 완료. 재수집 시 재발 확인.
+- ⚠️ 위 배제로 **Facility 가격·종교·하객수·평점은 전부 플레이스홀더**다. 실데이터 착각 금지.
+- ⚠️ CSV 원본 오류(전남광주 45건) 2026-08-05 수정 완료. 재수집 시 재발 확인.
 
 ## 4. 데이터베이스
 
@@ -74,20 +74,25 @@ mkcert 도입 후 `https://localhost:5173`·`https://192.168.0.111:5173`에서 �
 **사용자 결정: 우선 Render 무료 티어로 배포, Oracle Cloud 등 다른 대안은 추후 재검토.**
 
 - 설정: 레포 루트 `render.yaml`(Blueprint) — `eobom/backend`가 `rootDir`, Postgres 포함
-- 도메인 고정: `https://eobom-backend.onrender.com`(render.yaml `name` 필드 → 콜백 URL 미리 등록 가능)
+- 도메인 고정: `https://eobom-backend.onrender.com`(render.yaml `name` 필드)
 - ⚠️ **무료 Postgres 30일 후 만료**(14일 유예, 백업 없음) — ~2026-09-07 결정 필요, pending-approvals.md 등록됨.
 - ⚠️ 무료 웹서비스는 15분 미사용 시 슬립.
-- 배포 후: (1) 3사 콘솔에 새 콜백 등록 (2) Vercel env `VITE_BACKEND_URL` 추가 (3) 시설 데이터 시딩 1회(`npm run seed`, 수동).
+- 배포 후: (1) 3사 콘솔 콜백 재등록 (2) Vercel env `VITE_BACKEND_URL` (3) 시설 시딩(`npm run seed`) (4) 이미지 스토리지 교체(위 참고).
 
 ### 로컬 LAN(폰 실기기) OAuth — 백엔드 배포로 대체됨
 
 PC/폰 다른 네트워크라 보류(2026-08-07). 동적 IP 코드는 구현 완료, 배포되면 무의미해짐.
 
+### 시설 이미지 저장 — ⚠️ 배포 전 필수 교체 (2026-08-10)
+
+파트너 업로드 사진이 백엔드 로컬 디스크(`eobom/backend/uploads/`)에 저장된다. Render는 재배포 시
+디스크 초기화 → **이미지 전부 소실.** 실배포 전 S3 등으로 교체 필수(신규 외부 연동, 승인 필요).
+
 ## 6. 미구현 / 대기
 
-- **제휴(`isPartner`) UI**: 필드는 있으나 전부 `false`. 배지·최상단 고정·VR 게이팅 미구현.
+- **제휴(`isPartner`) 배지 UI**: 필드는 있으나 최상단 고정·VR 게이팅 미구현.
 - **360° VR 뷰**: 파노라마 이미지 미확보로 비활성화(코드 제거됨).
-- **카카오 연결해제 웹훅**: 외부(카카오 계정에서 직접 연동해제·탈퇴)에서 끊겨도 우리 DB엔 반영 안 됨 — 카카오 콘솔이 개인정보 처리 누락 경고 중(2026-08-10). 구현 시 `SocialAccount.unlinkedAt`과 같은 로직 재사용, 요청 검증 방식은 카카오 공식 문서로 확인 후 착수.
+- **카카오 연결해제 웹훅**: 외부(카카오 계정에서 직접 연동해제·탈퇴)에서 끊겨도 DB 미반영 — 카카오 콘솔 경고 중(2026-08-10). `SocialAccount.unlinkedAt` 로직 재사용, 요청 검증은 공식 문서 확인 후 착수.
 
 > 사람 승인 대기 항목(예: 가격비교 docs/13)은 여기 안 적는다 → `pending-approvals.md`가 정본.
 

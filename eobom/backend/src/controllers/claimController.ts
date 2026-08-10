@@ -75,7 +75,7 @@ export const listMyFacilities = async (req: Request, res: Response) => {
   try {
     const facilities = await prisma.facility.findMany({
       where: { partnerId: decoded.id },
-      select: { id: true, name: true, type: true, location: true, isPartner: true },
+      select: { id: true, name: true, type: true, location: true, isPartner: true, images: true },
       orderBy: { name: 'asc' },
     });
     return res.json({ status: 'success', data: facilities });

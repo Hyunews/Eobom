@@ -27,6 +27,9 @@ eobom/.certs/
 # DB 백업 (User/SocialAccount 등 실제 개인정보 포함 — 절대 커밋 금지, security.md §1)
 eobom/backend/backups/
 
+# 파트너가 업로드한 시설 이미지 (로컬 디스크 저장, 사용자 생성 콘텐츠 — 커밋 대상 아님)
+eobom/backend/uploads/
+
 # IDE & OS files
 .vscode/
 .idea/

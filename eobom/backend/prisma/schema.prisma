@@ -58,6 +58,7 @@ model Facility {
   tags           String[] @default([])
   amenities      String[] @default([])
   vrImages       Json?
+  images         String[] @default([]) // 파트너가 BizDashboard에서 업로드한 시설 사진 URL 목록 (2026-08-10)
   detailedPrices Json? // {facilityFee, casketFee, shroudFee, mourningDress, altarFlower, totalEst}
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt

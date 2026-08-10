@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { ShieldCheck, Lock, Mail, CheckCircle2, XCircle } from 'lucide-react';
-import { BACKEND_URL } from '../config';
+import { BACKEND_URL, formatPhoneForDisplay } from '../config';
 
 // 운영자 전용 — 사업자(Partner)·전문가(Expert) 가입 심사 + 시설 클레임(연동) 심사.
 // docs/16 §6.2, docs/17. 계정은 seed-admin.ts로만 생성되므로 여기엔 가입 폼이 없다.
@@ -209,7 +209,7 @@ export const AdminPage: React.FC = () => {
                 <div>
                   <strong style={{ color: 'var(--primary-color)' }}>{p.companyName}</strong>
                   <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginLeft: '0.6rem' }}>
-                    대표 {p.ownerName} · 사업자번호 {p.bizRegNo} · 담당 {p.contactName}({p.contactPhone}) · {p.email}
+                    대표 {p.ownerName} · 사업자번호 {p.bizRegNo} · 담당 {p.contactName}({formatPhoneForDisplay(p.contactPhone)}) · {p.email}
                   </span>
                   {p.rejectReason && <div style={{ color: '#991B1B', fontSize: '0.8rem' }}>반려 사유: {p.rejectReason}</div>}
                 </div>
@@ -235,7 +235,7 @@ export const AdminPage: React.FC = () => {
                     {EXPERT_CATEGORY_LABELS[ex.category] || ex.category}
                   </span>
                   <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginLeft: '0.6rem' }}>
-                    자격번호 {ex.licenseNo} {ex.licenseOrg && `(${ex.licenseOrg})`} · {ex.contactPhone} · {ex.email}
+                    자격번호 {ex.licenseNo} {ex.licenseOrg && `(${ex.licenseOrg})`} · {formatPhoneForDisplay(ex.contactPhone)} · {ex.email}
                   </span>
                   {ex.rejectReason && <div style={{ color: '#991B1B', fontSize: '0.8rem' }}>반려 사유: {ex.rejectReason}</div>}
                 </div>

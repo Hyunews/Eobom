@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { signup, login, refresh, getMe, updateMe } from '../controllers/partnerController';
 import { submitClaim, listMyClaims, listMyFacilities } from '../controllers/claimController';
+import { addFacilityImage, removeFacilityImage } from '../controllers/facilityMediaController';
 
 const router = Router();
 
@@ -14,5 +15,7 @@ router.patch('/me', updateMe);
 router.post('/claims', submitClaim);
 router.get('/claims', listMyClaims);
 router.get('/facilities', listMyFacilities);
+router.post('/facilities/:id/images', addFacilityImage);
+router.delete('/facilities/:id/images', removeFacilityImage);
 
 export default router;

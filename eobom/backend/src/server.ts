@@ -29,6 +29,10 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(passport.initialize());
 
+// 업로드된 시설 이미지 정적 서빙 — 로컬 디스크 저장(config/upload.ts). ⚠️ 배포 환경에서는
+// 재배포 시 사라지는 임시 저장소다 — 실서비스 전 외부 스토리지로 교체 필요.
+app.use('/uploads', express.static(path.resolve(__dirname, '../uploads')));
+
 // 라우터 연결
 app.use('/api/auth', authRoutes);
 app.use('/api/facilities', facilityRoutes);

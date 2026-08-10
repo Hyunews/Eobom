@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { ShieldCheck, Search, Link2 } from 'lucide-react';
-import { BACKEND_URL } from '../config';
+import { ShieldCheck, Search, Link2, Upload, X, Image as ImageIcon } from 'lucide-react';
+import { BACKEND_URL, formatPhoneForDisplay } from '../config';
 
 // 로그인 후 화면 — 장사시설은 "내 시설" + 검색/클레임 신청, 전문가는 내 프로필/승인 상태만 보여준다.
 // 전문가는 Facility 같은 사전 마스터 데이터가 없어 "클레임"이라는 별도 연동 절차가 없다 —
@@ -33,6 +33,9 @@ export const BizDashboard: React.FC<BizDashboardProps> = ({ type, name, onLogout
 
   // 전문가 전용 상태
   const [expertProfile, setExpertProfile] = useState<any | null>(null);
+
+  // 이미지 업로드 진행 상태 (시설 id -> 업로드 중 여부)
+  const [uploadingId, setUploadingId] = useState<string | null>(null);
 
   const loadFacilityData = async () => {
     const [facRes, claimRes] = await Promise.all([
@@ -85,6 +88,44 @@ export const BizDashboard: React.FC<BizDashboardProps> = ({ type, name, onLogout
     loadFacilityData();
   };
 
+  const handleImageUpload = async (facilityId: string, file: File) => {
+    setUploadingId(facilityId);
+    try {
+      const formData = new FormData();
+      formData.append('image', file);
+      // FormData 사용 시 Content-Type을 직접 지정하지 않는다 — 브라우저가 boundary를 포함해 자동 설정
+      const res = await fetch(`${BACKEND_URL}/api/partner/facilities/${facilityId}/images`, {
+        method: 'POST',
+        headers: authHeaders,
+        body: formData,
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        alert(data.message || '이미지 업로드에 실패했습니다.');
+        return;
+      }
+      loadFacilityData();
+    } catch {
+      alert('서버와 통신 중 오류가 발생했습니다.');
+    } finally {
+      setUploadingId(null);
+    }
+  };
+
+  const handleImageDelete = async (facilityId: string, imagePath: string) => {
+    const res = await fetch(`${BACKEND_URL}/api/partner/facilities/${facilityId}/images`, {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json', ...authHeaders },
+      body: JSON.stringify({ imagePath }),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      alert(data.message || '이미지 삭제에 실패했습니다.');
+      return;
+    }
+    loadFacilityData();
+  };
+
   return (
     <div className="container" style={{ maxWidth: '720px', padding: '3rem 1rem' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
@@ -115,7 +156,7 @@ export const BizDashboard: React.FC<BizDashboardProps> = ({ type, name, onLogout
               </span>
             </div>
             <p style={{ margin: '0.2rem 0' }}>자격증 등록번호: {expertProfile.licenseNo}</p>
-            <p style={{ margin: '0.2rem 0' }}>연락처: {expertProfile.contactPhone}</p>
+            <p style={{ margin: '0.2rem 0' }}>연락처: {formatPhoneForDisplay(expertProfile.contactPhone)}</p>
             {expertProfile.bio && <p style={{ margin: '0.2rem 0', color: 'var(--text-muted)' }}>{expertProfile.bio}</p>}
             {expertProfile.status === 'PENDING' && (
               <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginTop: '0.8rem' }}>
@@ -172,16 +213,98 @@ export const BizDashboard: React.FC<BizDashboardProps> = ({ type, name, onLogout
             )}
           </div>
 
-          {/* 연동 완료된 내 시설 */}
+          {/* 연동 완료된 내 시설 — 시설 사진 업로드 (소비자 화면 이미지 박스에 그대로 노출됨) */}
           <div style={{ backgroundColor: 'var(--card-bg)', borderRadius: '16px', padding: '1.5rem', boxShadow: 'var(--box-shadow)' }}>
             <h3 style={{ color: 'var(--primary-color)', marginBottom: '0.8rem' }}>연동된 내 시설</h3>
             {myFacilities.length === 0 ? (
               <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>아직 연동된 시설이 없습니다. 위에서 검색 후 클레임을 신청해주세요.</p>
             ) : (
               myFacilities.map((f) => (
-                <div key={f.id} style={{ padding: '0.5rem 0', borderTop: '1px solid var(--border-color)' }}>
-                  <strong>{f.name}</strong>
-                  <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginLeft: '0.5rem' }}>{f.location}</span>
+                <div key={f.id} style={{ padding: '0.8rem 0', borderTop: '1px solid var(--border-color)' }}>
+                  <div style={{ marginBottom: '0.6rem' }}>
+                    <strong>{f.name}</strong>
+                    <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginLeft: '0.5rem' }}>{f.location}</span>
+                  </div>
+
+                  {/* 업로드된 사진 썸네일 */}
+                  <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '0.6rem' }}>
+                    {(f.images || []).map((img: string) => (
+                      <div key={img} style={{ position: 'relative', width: '72px', height: '72px' }}>
+                        <img
+                          src={`${BACKEND_URL}${img}`}
+                          alt={f.name}
+                          style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '8px', border: '1px solid var(--border-color)' }}
+                        />
+                        <button
+                          onClick={() => handleImageDelete(f.id, img)}
+                          title="이미지 삭제"
+                          style={{
+                            position: 'absolute',
+                            top: '-6px',
+                            right: '-6px',
+                            width: '20px',
+                            height: '20px',
+                            borderRadius: '50%',
+                            border: 'none',
+                            backgroundColor: '#991B1B',
+                            color: '#FFFFFF',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                          }}
+                        >
+                          <X size={12} />
+                        </button>
+                      </div>
+                    ))}
+                    {(!f.images || f.images.length === 0) && (
+                      <div
+                        style={{
+                          width: '72px',
+                          height: '72px',
+                          borderRadius: '8px',
+                          border: '1px dashed var(--border-color)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          color: 'var(--text-muted)',
+                        }}
+                      >
+                        <ImageIcon size={20} />
+                      </div>
+                    )}
+                  </div>
+
+                  {/* 업로드 */}
+                  <label
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '0.4rem',
+                      fontSize: '0.82rem',
+                      padding: '0.45rem 0.8rem',
+                      borderRadius: '8px',
+                      backgroundColor: 'var(--secondary-color)',
+                      color: 'var(--primary-color)',
+                      cursor: uploadingId === f.id ? 'default' : 'pointer',
+                      opacity: uploadingId === f.id ? 0.6 : 1,
+                    }}
+                  >
+                    <Upload size={14} />
+                    {uploadingId === f.id ? '업로드 중...' : '사진 추가 (최대 5MB)'}
+                    <input
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp,image/gif"
+                      disabled={uploadingId === f.id}
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) handleImageUpload(f.id, file);
+                        e.target.value = '';
+                      }}
+                      style={{ display: 'none' }}
+                    />
+                  </label>
                 </div>
               ))
             )}

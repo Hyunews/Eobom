@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { ShieldCheck, MapPin, Map, CalendarCheck, PhoneCall, Sparkles, Filter, Calculator, MessageSquare } from 'lucide-react';
+import { MapPin, Map, Image as ImageIcon, Send, MessageSquare } from 'lucide-react';
 import { BACKEND_URL, GEOLOCATION_FALLBACK } from '../config';
 import { KakaoMapModal } from '../components/KakaoMapModal';
-import { PriceCompareModal } from '../components/facility/PriceCompareModal';
-import { BookingModal } from '../components/facility/BookingModal';
+import { InquiryModal } from '../components/facility/InquiryModal';
 import { FacilityReviewModal } from '../components/facility/FacilityReviewModal';
 import { HouseLeafIcon } from '../components/MenuIcons';
 
@@ -12,12 +11,12 @@ interface FacilityPageProps {
   onOpenLogin?: () => void;
 }
 
+// 2026-08-10 대표 지시로 대폭 개편:
+// - 필터: 예산/종교/하객수/지역(대분류) 삭제 → 위치(시/도·시/군/구, 거리순 정렬)+구분만 남기고 한 섹션으로 병합
+// - 전화번호 비노출: 직통 전화 대신 "업체 문의"(InquiryModal, 견적요청 리드) 폼으로 유도
+// - 견적비교·답사예약 삭제 → 업체 문의로 대체
+// - 이미지 박스 추가: 파트너가 BizDashboard에서 올린 Facility.images 노출
 export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenLogin }) => {
-  // 터치 기반(모바일/태블릿) 기기인지 판별 — 데스크톱은 tel: 링크를 눌러도 통화가 안 되므로 번호만 노출
-  const [isTouchDevice] = useState(() => window.matchMedia('(hover: none) and (pointer: coarse)').matches);
-  // 데스크톱에서 전화 버튼에 마우스오버 시 번호를 보여줄 커스텀 툴팁 (네이티브 title 속성은 지연/미표시 이슈가 있어 직접 구현)
-  const [hoveredPhoneId, setHoveredPhoneId] = useState<string | null>(null);
-
   // 시설 목록 (백엔드 API 연동, 서버사이드 필터링 + 페이지네이션)
   const [facilities, setFacilities] = useState<any[]>([]);
   const [totalCount, setTotalCount] = useState(0);
@@ -27,8 +26,7 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
 
   // 모달 상태
   const [selectedMapFacility, setSelectedMapFacility] = useState<any | null>(null);
-  const [selectedPriceFacility, setSelectedPriceFacility] = useState<any | null>(null);
-  const [bookingFacility, setBookingFacility] = useState<any | null>(null);
+  const [inquiryFacility, setInquiryFacility] = useState<any | null>(null);
   const [reviewFacility, setReviewFacility] = useState<any | null>(null);
 
   // 위치 상태 (반경 필터 대신 항상 이 위치 기준 가까운 순으로 정렬)
@@ -40,21 +38,13 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
   const [isSearchingLocation, setIsSearchingLocation] = useState(false);
   const [locationError, setLocationError] = useState<string | null>(null);
 
-  // 필터 상태
+  // 필터 상태 — 구분만 남음 (예산/종교/하객수/지역 대분류 삭제, 2026-08-10)
   const [category, setCategory] = useState('전체');
-  const [region, setRegion] = useState('전체');
-  const [religion, setReligion] = useState('전체');
-  const [guestCount, setGuestCount] = useState('전체');
-  const [budget, setBudget] = useState('전체');
 
   // 필터/페이지 변경 시 서버에 조건 그대로 위임해서 재조회
   useEffect(() => {
     const params = new URLSearchParams();
     if (category !== '전체') params.set('category', category);
-    if (region !== '전체') params.set('region', region);
-    if (religion !== '전체') params.set('religion', religion);
-    if (guestCount !== '전체') params.set('guests', guestCount);
-    if (budget !== '전체') params.set('budget', budget);
     if (userLocation) {
       params.set('lat', String(userLocation.lat));
       params.set('lng', String(userLocation.lng));
@@ -75,18 +65,12 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
         // 조회 실패 시 빈 목록으로 유지 (필터 UI는 정상 노출)
       });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [category, region, religion, guestCount, budget, userLocation, page]);
+  }, [category, userLocation, page]);
 
-  // 필터 select의 onChange에서 값 변경과 함께 page를 1로 리셋해주는 헬퍼
-  const withPageReset = (setter: (value: string) => void) => (value: string) => {
-    setter(value);
+  const handleCategoryChange = (value: string) => {
+    setCategory(value);
     setPage(1);
   };
-  const handleCategoryChange = withPageReset(setCategory);
-  const handleRegionChange = withPageReset(setRegion);
-  const handleReligionChange = withPageReset(setReligion);
-  const handleGuestCountChange = withPageReset(setGuestCount);
-  const handleBudgetChange = withPageReset(setBudget);
 
   const goToPage = (p: number) => {
     setPage(p);
@@ -207,151 +191,83 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
             <HouseLeafIcon size={18} color="var(--accent-gold)" /> 집 &amp; 나뭇잎 | 봉안당·수목장 맞춤 검색 및 장례식장 맞춤 매칭
           </div>
           <h1 style={{ fontSize: '2.3rem', fontWeight: 800, marginBottom: '0.8rem', color: '#FFFFFF', lineHeight: '1.2' }}>
-            장례·묘지 맞춤 비교 매칭 및 VR 답사
+            장례·묘지 맞춤 비교 매칭
           </h1>
           <p style={{ fontSize: '1.05rem', color: '#CBD5E1', lineHeight: '1.6', margin: 0 }}>
-            현재 위치 기반 반경 탐색, 카카오맵 LBS 핀 마커 연동, 360도 사이버 공간 투어를 만나보세요.
+            현재 위치 기반 거리순 정렬과 카카오맵 LBS 핀 마커 연동을 만나보세요.
           </p>
         </div>
       </div>
 
-      {/* 위치 표시 및 변경 */}
+      {/* 위치 + 구분 (2026-08-10 병합 — 예산/종교/하객수/지역 대분류 필터는 삭제) */}
       <div
         style={{
           backgroundColor: 'var(--card-bg)',
-          padding: '1.2rem 1.5rem',
-          borderRadius: '16px',
-          marginBottom: '1.2rem',
-          boxShadow: 'var(--box-shadow)',
-          border: '1px solid var(--border-color)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: '1rem',
-          flexWrap: 'wrap'
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'var(--primary-color)', fontWeight: 700, whiteSpace: 'nowrap' }}>
-          <MapPin size={18} color="var(--point-color)" /> 위치: {locationName}
-          {isLocationFallback && (
-            <span
-              title="실제 위치를 확인하지 못해 기본 위치로 표시 중입니다. https 또는 localhost가 아닌 주소에서는 브라우저가 위치 확인을 차단합니다. 아래에서 시/도·시/군/구를 직접 선택해주세요."
-              style={{
-                fontSize: '0.7rem',
-                fontWeight: 700,
-                color: '#92400E',
-                backgroundColor: '#FEF3C7',
-                padding: '0.15rem 0.5rem',
-                borderRadius: '10px',
-                cursor: 'help'
-              }}
-            >
-              ⚠ 실제 위치 아님(기본값)
-            </span>
-          )}
-        </div>
-        <div style={{ display: 'flex', gap: '0.8rem' }}>
-          <select value={locationProvince} onChange={(e) => handleProvinceChange(e.target.value)} className="form-select" style={{ width: '250px' }}>
-            <option value="">시/도 선택</option>
-            {provinceOptions.map((p) => (
-              <option key={p} value={p}>
-                {p}
-              </option>
-            ))}
-          </select>
-          <select
-            value={locationDistrict}
-            onChange={(e) => handleDistrictChange(e.target.value)}
-            disabled={!locationProvince || isSearchingLocation}
-            className="form-select"
-            style={{ width: '250px' }}
-          >
-            <option value="">선택 안함</option>
-            {districtOptions.map((d) => (
-              <option key={d} value={d}>
-                {d}
-              </option>
-            ))}
-          </select>
-        </div>
-        {locationError && <p style={{ color: '#DC2626', fontSize: '0.8rem', margin: 0, width: '100%' }}>{locationError}</p>}
-      </div>
-
-      {/* 스마트 멀티 스펙 필터 바 */}
-      <div
-        style={{
-          backgroundColor: 'var(--card-bg)',
-          padding: '1.8rem',
+          padding: '1.5rem',
           borderRadius: '20px',
           marginBottom: '2.5rem',
           boxShadow: 'var(--box-shadow)',
-          border: '1px solid var(--border-color)'
+          border: '1px solid var(--border-color)',
+          display: 'flex',
+          flexWrap: 'wrap',
+          alignItems: 'flex-end',
+          gap: '1.2rem'
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.2rem', color: 'var(--primary-color)', fontWeight: 700 }}>
-          <Filter size={20} color="var(--point-color)" /> 조건별 맞춤 필터링
+        <div style={{ flex: '2 1 320px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'var(--primary-color)', fontWeight: 700, marginBottom: '0.6rem' }}>
+            <MapPin size={18} color="var(--point-color)" /> 위치: {locationName}
+            {isLocationFallback && (
+              <span
+                title="실제 위치를 확인하지 못해 기본 위치로 표시 중입니다. https 또는 localhost가 아닌 주소에서는 브라우저가 위치 확인을 차단합니다. 아래에서 시/도·시/군/구를 직접 선택해주세요."
+                style={{
+                  fontSize: '0.7rem',
+                  fontWeight: 700,
+                  color: '#92400E',
+                  backgroundColor: '#FEF3C7',
+                  padding: '0.15rem 0.5rem',
+                  borderRadius: '10px',
+                  cursor: 'help'
+                }}
+              >
+                ⚠ 실제 위치 아님(기본값)
+              </span>
+            )}
+          </div>
+          <div style={{ display: 'flex', gap: '0.6rem', flexWrap: 'wrap' }}>
+            <select value={locationProvince} onChange={(e) => handleProvinceChange(e.target.value)} className="form-select" style={{ flex: '1 1 140px' }}>
+              <option value="">시/도 선택</option>
+              {provinceOptions.map((p) => (
+                <option key={p} value={p}>
+                  {p}
+                </option>
+              ))}
+            </select>
+            <select
+              value={locationDistrict}
+              onChange={(e) => handleDistrictChange(e.target.value)}
+              disabled={!locationProvince || isSearchingLocation}
+              className="form-select"
+              style={{ flex: '1 1 140px' }}
+            >
+              <option value="">선택 안함</option>
+              {districtOptions.map((d) => (
+                <option key={d} value={d}>
+                  {d}
+                </option>
+              ))}
+            </select>
+          </div>
+          {locationError && <p style={{ color: '#DC2626', fontSize: '0.8rem', margin: '0.4rem 0 0 0' }}>{locationError}</p>}
         </div>
 
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))',
-            gap: '1.2rem'
-          }}
-        >
-          <div>
-            <label className="form-label">구분</label>
-            <select value={category} onChange={(e) => handleCategoryChange(e.target.value)} className="form-select">
-              <option value="전체">전체 (장례식장/묘지)</option>
-              <option value="장례식장">장례식장</option>
-              <option value="묘지/수목장">묘지/봉안당/수목장</option>
-            </select>
-          </div>
-
-          <div>
-            <label className="form-label">예산 범위</label>
-            <select value={budget} onChange={(e) => handleBudgetChange(e.target.value)} className="form-select">
-              <option value="전체">전체 예산</option>
-              <option value="500이하">500만원 이하</option>
-              <option value="500_1000">500만원 ~ 1,000만원</option>
-              <option value="1000이상">1,000만원 이상</option>
-            </select>
-          </div>
-
-          <div>
-            <label className="form-label">지역 선택</label>
-            <select value={region} onChange={(e) => handleRegionChange(e.target.value)} className="form-select">
-              <option value="전체">전체 지역</option>
-              <option value="서울">서울</option>
-              <option value="경기">경기/인천</option>
-              <option value="강원">강원</option>
-              <option value="충청">충청</option>
-              <option value="경상">경상/대구/부산</option>
-              <option value="전라">전라/광주</option>
-              <option value="제주">제주</option>
-            </select>
-          </div>
-
-          <div>
-            <label className="form-label">종교 선택</label>
-            <select value={religion} onChange={(e) => handleReligionChange(e.target.value)} className="form-select">
-              <option value="전체">전체 종교</option>
-              <option value="무교">무교 (일반)</option>
-              <option value="기독교">기독교</option>
-              <option value="천주교">천주교</option>
-              <option value="불교">불교</option>
-            </select>
-          </div>
-
-          <div>
-            <label className="form-label">예상 하객 수</label>
-            <select value={guestCount} onChange={(e) => handleGuestCountChange(e.target.value)} className="form-select">
-              <option value="전체">전체 규모</option>
-              <option value="100명 미만">100명 미만 (가족장)</option>
-              <option value="100~300명">100명 ~ 300명</option>
-              <option value="300명 이상">300명 이상 (대규모)</option>
-            </select>
-          </div>
+        <div style={{ flex: '1 1 180px' }}>
+          <label className="form-label">구분</label>
+          <select value={category} onChange={(e) => handleCategoryChange(e.target.value)} className="form-select">
+            <option value="전체">전체 (장례식장/묘지)</option>
+            <option value="장례식장">장례식장</option>
+            <option value="묘지/수목장">묘지/봉안당/수목장</option>
+          </select>
         </div>
       </div>
 
@@ -365,9 +281,33 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
       <div className="grid">
         {facilities.map((item) => {
           const distKm = typeof item.distanceKm === 'number' ? item.distanceKm.toFixed(1) : null;
+          const thumbnail = Array.isArray(item.images) && item.images.length > 0 ? `${BACKEND_URL}${item.images[0]}` : null;
 
           return (
-            <div key={item.id} className="card" style={{ display: 'flex', flexDirection: 'column' }}>
+            <div key={item.id} className="card" style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+              {/* 이미지 박스 — 파트너가 BizDashboard에서 올린 사진(없으면 플레이스홀더) */}
+              <div
+                style={{
+                  width: 'calc(100% + 2.5rem)',
+                  margin: '-1.25rem -1.25rem 1rem -1.25rem',
+                  height: '160px',
+                  backgroundColor: 'var(--secondary-color)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  overflow: 'hidden'
+                }}
+              >
+                {thumbnail ? (
+                  <img src={thumbnail} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                ) : (
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.3rem', color: 'var(--text-muted)' }}>
+                    <ImageIcon size={28} />
+                    <span style={{ fontSize: '0.75rem' }}>등록된 이미지 없음</span>
+                  </div>
+                )}
+              </div>
+
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.6rem' }}>
                 <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center' }}>
                   <span style={{ fontSize: '0.8rem', backgroundColor: 'var(--secondary-color)', padding: '0.3rem 0.6rem', borderRadius: '6px', fontWeight: 700, color: 'var(--primary-color)' }}>
@@ -406,80 +346,8 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
                 ))}
               </div>
 
-              {/* 액션 버튼 그룹 */}
+              {/* 액션 버튼 그룹 — 전화 직통·견적비교·답사예약 삭제(2026-08-10), 업체 문의로 대체 */}
               <div style={{ marginTop: 'auto', display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
-                  {/* 전화 버튼 (실데이터 수집된 시설만 노출) — 모바일은 탭하면 바로 통화, 데스크톱은 마우스오버 시 번호만 툴팁으로 표시 */}
-                  {item.phone && (
-                    isTouchDevice ? (
-                      <a
-                        href={`tel:${item.phone}`}
-                        className="btn"
-                        style={{
-                          flex: '1 1 0',
-                          minWidth: '100px',
-                          backgroundColor: '#ECFDF5',
-                          color: '#059669',
-                          fontSize: '0.85rem',
-                          padding: '0.6rem 0.4rem',
-                          whiteSpace: 'nowrap',
-                          gap: '0.3rem',
-                          fontWeight: 700,
-                          textDecoration: 'none',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center'
-                        }}
-                      >
-                        <PhoneCall size={16} /> 전화
-                      </a>
-                    ) : (
-                      <span
-                        onMouseEnter={() => setHoveredPhoneId(item.id)}
-                        onMouseLeave={() => setHoveredPhoneId((prev) => (prev === item.id ? null : prev))}
-                        className="btn"
-                        style={{
-                          position: 'relative',
-                          flex: '1 1 0',
-                          minWidth: '100px',
-                          backgroundColor: '#ECFDF5',
-                          color: '#059669',
-                          fontSize: '0.85rem',
-                          padding: '0.6rem 0.4rem',
-                          whiteSpace: 'nowrap',
-                          gap: '0.3rem',
-                          fontWeight: 700,
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          cursor: 'default'
-                        }}
-                      >
-                        <PhoneCall size={16} /> 전화
-                        {hoveredPhoneId === item.id && (
-                          <span
-                            style={{
-                              position: 'absolute',
-                              bottom: 'calc(100% + 6px)',
-                              left: '50%',
-                              transform: 'translateX(-50%)',
-                              backgroundColor: '#111827',
-                              color: '#FFFFFF',
-                              padding: '0.35rem 0.7rem',
-                              borderRadius: '6px',
-                              fontSize: '0.8rem',
-                              fontWeight: 700,
-                              whiteSpace: 'nowrap',
-                              zIndex: 10,
-                              boxShadow: '0 4px 10px rgba(0,0,0,0.25)'
-                            }}
-                          >
-                            {item.phone}
-                          </span>
-                        )}
-                      </span>
-                    )
-                  )}
-
                   {/* 카카오맵 지도 버튼 */}
                   <button
                     onClick={() => setSelectedMapFacility(item)}
@@ -499,28 +367,9 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
                     <Map size={16} /> 카카오 지도
                   </button>
 
-                  {/* 상세 견적서 버튼 */}
+                  {/* 업체 문의 버튼 */}
                   <button
-                    onClick={() => setSelectedPriceFacility(item)}
-                    className="btn"
-                    style={{
-                      flex: '1 1 0',
-                      minWidth: '100px',
-                      backgroundColor: 'var(--secondary-color)',
-                      color: 'var(--primary-color)',
-                      fontSize: '0.85rem',
-                      padding: '0.6rem 0.4rem',
-                      whiteSpace: 'nowrap',
-                      gap: '0.3rem',
-                      fontWeight: 700
-                    }}
-                  >
-                    <Calculator size={16} /> 견적 비교
-                  </button>
-
-                  {/* 답사 예약 버튼 */}
-                  <button
-                    onClick={() => setBookingFacility(item)}
+                    onClick={() => setInquiryFacility(item)}
                     className="btn btn-primary"
                     style={{
                       flex: '1 1 0',
@@ -532,7 +381,7 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
                       fontWeight: 700
                     }}
                   >
-                    <CalendarCheck size={16} /> 답사 예약
+                    <Send size={16} /> 업체 문의
                   </button>
 
                   {/* 리뷰 버튼 */}
@@ -620,23 +469,12 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
         />
       )}
 
-      {/* 표준 공시 견적 비교 모달 */}
-      {selectedPriceFacility && (
-        <PriceCompareModal
-          facility={selectedPriceFacility}
-          onClose={() => setSelectedPriceFacility(null)}
-          onOpenBooking={() => setBookingFacility(selectedPriceFacility)}
-        />
-      )}
-
-      {/* 답사 예약 모달 */}
-      {bookingFacility && (
-        <BookingModal
-          facilityId={bookingFacility.id}
-          facilityName={bookingFacility.name}
-          currentUser={currentUser}
-          onOpenLogin={onOpenLogin}
-          onClose={() => setBookingFacility(null)}
+      {/* 업체 문의 모달 */}
+      {inquiryFacility && (
+        <InquiryModal
+          facilityId={inquiryFacility.id}
+          facilityName={inquiryFacility.name}
+          onClose={() => setInquiryFacility(null)}
         />
       )}
 

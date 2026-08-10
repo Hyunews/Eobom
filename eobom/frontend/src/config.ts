@@ -35,3 +35,17 @@ export const GEOLOCATION_FALLBACK = { lat: 37.4925, lng: 127.0078 };
 // 카카오맵 SDK 로드 대기 타임아웃(ms) — 이 시간 안에 안 뜨면 무한 스피너 대신 실패 상태로 전환.
 export const KAKAO_MAP_LOAD_TIMEOUT_MS = 5000;
 export const KAKAO_MAP_LOAD_POLL_INTERVAL_MS = 100;
+
+// 연락처는 백엔드에 숫자만(하이픈 없이) 저장된다(backend/src/utils/phone.ts와 짝) — 화면 표시용 포맷터.
+// 정확한 지역번호 체계까지는 다루지 않는 근사치 포맷(011자리 서울/지방 구분 등은 생략).
+export const formatPhoneForDisplay = (digits: string): string => {
+  if (!digits) return digits;
+  if (digits.length === 11) return `${digits.slice(0, 3)}-${digits.slice(3, 7)}-${digits.slice(7)}`;
+  if (digits.length === 10) {
+    return digits.startsWith('02') ? `${digits.slice(0, 2)}-${digits.slice(2, 6)}-${digits.slice(6)}` : `${digits.slice(0, 3)}-${digits.slice(3, 6)}-${digits.slice(6)}`;
+  }
+  if (digits.length === 9) {
+    return digits.startsWith('02') ? `${digits.slice(0, 2)}-${digits.slice(2, 5)}-${digits.slice(5)}` : digits;
+  }
+  return digits;
+};

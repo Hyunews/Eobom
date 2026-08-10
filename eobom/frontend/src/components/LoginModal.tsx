@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { X, Lock, User, AlertCircle, ShieldCheck } from 'lucide-react';
+import React from 'react';
+import { X, ShieldCheck } from 'lucide-react';
 import { BACKEND_URL } from '../config';
 
 interface LoginModalProps {
@@ -8,12 +8,9 @@ interface LoginModalProps {
   onLoginSuccess: (username: string, provider?: string) => void;
 }
 
+// B2C 소비자 로그인 전용. 사업자·전문가는 /#partner, 운영자는 /#admin — 전부 완전히 분리된
+// 별도 인증 체계라 여기엔 관리자 로그인이 없다(2026-08-10, 옛 admin/1234 목업 버튼 제거).
 export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLoginSuccess }) => {
-  const [showAdminLogin, setShowAdminLogin] = useState(false);
-  const [username, setUsername] = useState('admin');
-  const [password, setPassword] = useState('1234');
-  const [errorMessage, setErrorMessage] = useState('');
-
   if (!isOpen) return null;
 
   // 소셜 로그인 처리 (카카오, 네이버, 구글) — 백엔드 OAuth 인가 엔드포인트로 리다이렉트
@@ -25,18 +22,6 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin
   const handleMockSocialLogin = (providerName: string, providerCode: string) => {
     onLoginSuccess(`${providerName} 회원`, providerCode);
     onClose();
-  };
-
-  // 관리자 수동 로그인
-  const handleAdminSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (username === 'admin' && password === '1234') {
-      onLoginSuccess('관리자 (Admin)', 'ADMIN');
-      setErrorMessage('');
-      onClose();
-    } else {
-      setErrorMessage('아이디(admin) 또는 비밀번호(1234)가 올바르지 않습니다.');
-    }
   };
 
   return (
@@ -110,9 +95,8 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin
           </p>
         </div>
 
-        {!showAdminLogin ? (
-          /* 소셜 로그인 3종 전면 배치 */
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
+        {/* 소셜 로그인 3종 전면 배치 */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
             {/* 1. 카카오 로그인 */}
             <button
               onClick={() => handleSocialLogin('kakao')}
@@ -195,7 +179,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin
               구글 계정으로 시작하기
             </button>
 
-            {/* 하단 개발용 모의 로그인 / 관리자 로그인 버튼 */}
+            {/* 하단 개발용 모의 로그인 버튼 */}
             <div style={{ marginTop: '1.25rem', paddingTop: '1.25rem', borderTop: '1px solid #F3F4F6', textAlign: 'center' }}>
               <div style={{ fontSize: '0.8rem', color: '#9CA3AF', marginBottom: '0.6rem' }}>
                 [빠른 데모 테스트용 선택]
@@ -223,70 +207,8 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin
                   ⚪ 구글(모의)
                 </button>
               </div>
-
-              <button
-                type="button"
-                onClick={() => setShowAdminLogin(true)}
-                style={{ background: 'none', border: 'none', color: '#9CA3AF', fontSize: '0.82rem', cursor: 'pointer', textDecoration: 'underline' }}
-              >
-                관리자(admin) 계정으로 입력 로그인하기
-              </button>
             </div>
           </div>
-        ) : (
-          /* 관리자 입력 폼 */
-          <form onSubmit={handleAdminSubmit}>
-            <div style={{ marginBottom: '1rem' }}>
-              <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--primary-color)', marginBottom: '0.4rem' }}>관리자 아이디</div>
-              <div style={{ position: 'relative' }}>
-                <input
-                  type="text"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  className="form-input"
-                  style={{ paddingLeft: '2.5rem' }}
-                  placeholder="admin"
-                  required
-                />
-                <User size={18} style={{ position: 'absolute', left: '1rem', top: '16px', color: '#9CA3AF' }} />
-              </div>
-            </div>
-
-            <div style={{ marginBottom: '1.25rem' }}>
-              <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--primary-color)', marginBottom: '0.4rem' }}>비밀번호</div>
-              <div style={{ position: 'relative' }}>
-                <input
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="form-input"
-                  style={{ paddingLeft: '2.5rem' }}
-                  placeholder="1234"
-                  required
-                />
-                <Lock size={18} style={{ position: 'absolute', left: '1rem', top: '16px', color: '#9CA3AF' }} />
-              </div>
-            </div>
-
-            {errorMessage && (
-              <div style={{ backgroundColor: '#FDE8E8', color: '#9B1C1C', padding: '0.75rem', borderRadius: '8px', fontSize: '0.85rem', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <AlertCircle size={16} />
-                {errorMessage}
-              </div>
-            )}
-
-            <button type="submit" className="btn btn-primary" style={{ width: '100%', marginBottom: '0.75rem' }}>
-              관리자 로그인
-            </button>
-            <button
-              type="button"
-              onClick={() => setShowAdminLogin(false)}
-              style={{ width: '100%', background: 'none', border: 'none', color: '#6B7280', fontSize: '0.85rem', cursor: 'pointer' }}
-            >
-              ← 소셜 로그인으로 돌아가기
-            </button>
-          </form>
-        )}
       </div>
     </div>
   );

@@ -16,33 +16,14 @@ const haversineKm = (lat1: number, lng1: number, lat2: number, lng2: number) => 
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 };
 
-// 기존 프론트 클라이언트 필터 로직을 그대로 옮긴 Prisma where절 구성
+// Prisma where절 구성 — 2026-08-10 필터 간소화: 예산/종교/하객수/지역(대분류) 필터 제거,
+// 위치는 lat/lng 기반 거리순 정렬(getFacilities)로 대체한다. 남은 건 구분(category)뿐이다.
 const buildWhere = (query: Request['query']): Prisma.FacilityWhereInput => {
   const where: Prisma.FacilityWhereInput = {};
 
   const category = query.category as string | undefined;
   if (category && category !== '전체') {
     where.type = category;
-  }
-
-  const budget = query.budget as string | undefined;
-  if (budget === '500이하') where.priceValue = { lte: 500 };
-  else if (budget === '500_1000') where.priceValue = { gte: 500, lte: 1000 };
-  else if (budget === '1000이상') where.priceValue = { gte: 1000 };
-
-  const region = query.region as string | undefined;
-  if (region && region !== '전체') {
-    where.location = { contains: region };
-  }
-
-  const religion = query.religion as string | undefined;
-  if (religion && religion !== '전체') {
-    where.OR = [{ religion: { contains: religion } }, { religion: { contains: '전체' } }];
-  }
-
-  const guests = query.guests as string | undefined;
-  if (guests && guests !== '전체') {
-    where.guests = guests;
   }
 
   // 이름 검색 — 파트너가 자기 시설을 찾아 클레임 신청할 때 사용(docs 16 §3.3)
