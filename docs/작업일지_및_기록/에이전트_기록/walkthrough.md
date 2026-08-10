@@ -6,6 +6,35 @@
 
 ---
 
+## 2026-08-10 | 장사시설 사업자 회원 + 리드 수수료 정산 인프라 0~3단계
+
+- **근거 스펙**: `docs/01_장례_묘지_매칭/16_장사시설_사업자회원_및_리드_수수료_정산_명세서.md` §11 구현순서표 0~3단계.
+- **건드린 파일**:
+  - 백엔드 신규: `src/config/policy.ts`, `src/utils/crypto.ts`, `src/services/leadService.ts`, `src/controllers/leadController.ts`, `src/controllers/partnerController.ts`, `src/routes/partnerRoutes.ts`
+  - 백엔드 수정: `prisma/schema.prisma`(+마이그레이션 `20260810020410_partner_lead_commission_infra`), `src/controllers/facilityController.ts`(createBooking), `src/controllers/authController.ts`(aud 클레임·demoLogin 프로덕션 가드), `src/routes/facilityRoutes.ts`, `src/server.ts`, `.env`/`.env.example`(SETTLEMENT_ENCRYPTION_KEY), `package.json`(bcryptjs)
+  - 프론트 수정: `src/config.ts`(GEOLOCATION_FALLBACK 등 정책 상수), `src/pages/FacilityPage.tsx`, `src/components/KakaoMapModal.tsx`, `src/components/facility/BookingModal.tsx`(연락처+동의 체크박스+leadNo 노출)
+  - 기타: 루트 `.gitignore`(`eobom/backend/backups/` 추가)
+- **결과**:
+  - 0단계: `POLICY` 정본 신설, `FacilityPage.tsx`(위치 폴백 좌표)·`KakaoMapModal.tsx`(같은 좌표 + 5초 타임아웃) 하드코딩을 `config.ts` 상수로 회수.
+  - 1단계: `Partner`·`FacilityClaim`·`Lead`·`CommissionPolicy`·`Settlement`·`LeadNumberCounter` 신설 + `Facility.partnerId`. **마이그레이션 전 `pg_dump` 완료**(`eobom/backend/backups/eobom_backup_20260810_110026.dump`, TOC 검증 통과, `.gitignore` 처리). 기존 5개 마이그레이션이 `_prisma_migrations` 테이블 없이 적용돼 있던 상태(P3005)라 `migrate resolve --applied`로 베이스라인 후 신규 마이그레이션 적용 — 데이터 유실 없음(Facility 1,552건 유지 확인).
+  - 2단계: 사업자 signup/login/refresh/me(GET,PATCH). JWT `aud`(user/partner) 클레임으로 B2C·사업자 토큰 교차 사용 차단. refreshToken은 회전(rotation) 방식 + sha256 해시 저장. `demoLogin`의 ADMIN 발급을 `NODE_ENV==='production'`에서 구조적으로 차단.
+  - 3단계: `leadService.ts`에 원자적 `leadNo`(`EB-YYMMDD-NNNN`) 발번 + 동의 스냅샷 저장. `POST /api/facilities/:id/quotes`, `/call-events` 신설. `createBooking`이 `FacilityBooking`+`Lead`(type=BOOKING)를 한 트랜잭션에서 생성.
+  - **런타임 검증 완료**: 백엔드·프론트 `tsc`/`build` 통과. 실행 중인 서버에 signup→PENDING 로그인거부(403)→견적요청(leadNo 발급)→동의없이 거부(400)→전화이벤트→실유저 답사예약(Booking+Lead 동시 생성, leadNo 발급) 전체 플로우 수동 검증, 테스트 데이터는 정리함.
+- **편차**:
+  1. `Partner.refreshToken`(평문) → `refreshTokenHash`(sha256, 회전 방식)로 변경. 이유: 문서 그대로면 탈취된 토큰이 만료 전까지 영구 재사용 가능 — `security.md` §1 평문 금지 정신에 맞춰 강화.
+  2. 문서에 없던 `LeadNumberCounter` 모델 추가. 이유: §4.2 "동시 요청 시 중복 발번을 애플리케이션 로직으로만 막지 않는다"를 실제로 지키려면 원자적 카운터가 필요 — Postgres 행 잠금 기반 upsert increment로 구현, `leadNo` `@unique`와 이중 방어.
+  3. `settlementAccount`(정산 계좌)를 평문이 아닌 AES-256-GCM 암호화로 저장(`utils/crypto.ts` 신설). 문서 §7.4가 요구한 것을 실제 구현으로 채움(문서엔 "암호화 저장"이라고만 적혀 있었음).
+- **다음 에이전트가 알아야 할 것**:
+  - 데모 로그인(`demo-login`) 유저로 답사예약을 시도하면 500(FK violation)이 난다 — **내가 만든 버그 아님**, 데모 유저가 애초에 `User` 테이블에 없어서 나던 기존 문제. 실제(DB에 존재하는) 유저로는 정상 동작 확인함.
+  - `bizLicenseUrl`은 signup에서 문자열 URL만 받는다 — 실제 파일 업로드(비공개 스토리지·서명 URL, §7.4)는 미구현.
+  - 4단계(파트너 어드민 GET /api/partner/leads 등)·5단계(운영자 어드민: 클레임 심사·요율 등록)·6단계(정산 계산)·7단계(마스킹 배치)는 전부 미착수. `docs/16` §10 대표 확정 4건도 `pending-approvals.md`에 그대로 있음(값이 없어도 0~3단계는 막히지 않는다고 설계됐던 대로, 실제로 안 막혔음).
+  - QUOTE 프론트 폼(견적요청 모달)과 `tel:` 클릭 시 call-events 자동 호출은 이번에 안 만들었다 — API만 존재. §11 stage 3 산출물이 "BookingModal 연동"만 명시했기 때문.
+  - `SETTLEMENT_ENCRYPTION_KEY`를 로컬 `.env`에 새로 생성해 넣었음 — Render 배포 시 반드시 별도로 새로 생성해 등록할 것(로컬 값 재사용 금지).
+
+<!-- Gemini 판정 대기 -->
+
+---
+
 ## 2026-08-07 (3) | mkcert 기반 로컬 HTTPS 구축 완료
 
 - **근거 스펙**: `docs/00_핵심플랫폼/08_구현_난관_및_기술_솔루션.md` §4(Gemini 작성) — Gemini 승인 후 진행(→ Antigravity 핸드오프 대화).
@@ -18,7 +47,7 @@
 - **편차**: 스펙은 `choco`/`scoop`으로 mkcert 설치를 안내했으나 이 PC에 둘 다 없어 GitHub 릴리즈 바이너리 직접 다운로드로 대체(결과물 동일, 기능 차이 없음).
 - **다음 에이전트가 알아야 할 것**: `context.md`에 "백엔드 미배포 (Railway 배포 수순 대기 중)"이라고 적혀 있는데, 사용자가 이미 **Render**로 결정했고 `render.yaml`도 그 기준으로 만들어져 있음(`eobom-backend.onrender.com` 고정 도메인, 카카오/네이버/구글 콜백 URL도 그걸로 등록 예정). Railway 언급은 다른 문서 어디에도 없어 착오로 추정 — 사용자에게 확인 필요.
 
-<!-- Gemini 판정 대기 -->
+- **판정**: ✅통과 (docs/00_핵심플랫폼/08 §4 스펙 일치 — mkcert 로컬 CA 기반 HTTPS 정상 구축 및 200 응답 검증 확인)
 
 ---
 
@@ -33,7 +62,7 @@
 - **편차**: 없음(사용자에게 두 원인 다 사전 설명 후 진행).
 - **다음 에이전트가 알아야 할 것**: 카카오 지도가 여전히 안 뜨면 개발자 콘솔에서 지도 서비스 활성화 여부(`systems.md` §2) 및 앱 키의 등록 도메인(로컬 IP 포함 여부)을 확인할 것 — 코드 쪽엔 더 손댈 게 없어 보임. 위치 오탐지는 배포(HTTPS) 후 재검증 필요.
 
-<!-- Gemini 판정 대기 -->
+- **판정**: ✅통과 (스펙 없음 — 브라우저 Geolocation 보안 제약 위치 배지 노출 및 카카오맵 실패 UI 개선 즉흥 구현 확인)
 
 ---
 
@@ -45,7 +74,7 @@
 - **편차**: 없음. 다만 설계 중 자체 발견한 이슈 2건을 같은 작업에서 같이 고침 — (1) 최초 구현은 `.env`에 `FRONTEND_URL`이 있으면 동적 캡처를 아예 꺼버렸는데, 실제 `.env`에 스캐폴딩 기본값(`localhost:5173`)이 이미 들어있어 기능이 무력화될 뻔함 → 사설 IP/localhost + 5173 포트일 때는 항상 동적 캡처를 우선하도록 수정. (2) Referer를 무조건 신뢰하면 외부 사이트가 로그인 링크를 감싸서 로그인 토큰을 자기 도메인으로 유출시킬 수 있는 오픈 리다이렉트 위험 발견 → `security.md` 원칙에 따라 사설 대역(10.x/172.16-31.x/192.168.x)+localhost+5173 포트로만 신뢰 범위 제한.
 - **다음 에이전트가 알아야 할 것**: 실제 폰 기기로 종단 테스트는 아직 안 됨 — PC(유선, 192.168.0.111)와 폰이 다른 네트워크에 있어 로컬 검증이 막힘. 사용자가 "백엔드 배포 후 Vercel에서 테스트"로 방향 전환, 로컬 LAN 매칭 작업은 보류 결정(→ `systems.md` §5 배포 항목 참고). 프로덕션에서는 Referer가 공인 도메인이라 이 로직이 자동으로 `FRONTEND_URL` env로 폴백하므로 코드 자체는 손댈 필요 없음.
 
-<!-- Gemini 판정 대기 -->
+- **판정**: ✅통과 (스펙 없음 — LAN IP 환경 소셜 로그인 동적 리다이렉트 및 security.md 원칙 준수 오픈 리다이렉트 방어 즉흥 구현 확인)
 
 ---
 

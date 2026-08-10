@@ -10,13 +10,14 @@ generator client {
 model User {
   id               String            @id @default(uuid())
   email            String?           @unique // 유저 대표 이메일 (유니크)
-  name             String            // 유저 이름 / 닉네임
-  profileImage     String?           // 대표 프로필 이미지 URL
+  name             String // 유저 이름 / 닉네임
+  profileImage     String? // 대표 프로필 이미지 URL
   role             String            @default("USER") // 'USER', 'EXPERT', 'ADMIN'
-  refreshToken     String?           // JWT Refresh Token
-  accounts         SocialAccount[]   // 연동된 소셜 계정 목록
+  refreshToken     String? // JWT Refresh Token
+  accounts         SocialAccount[] // 연동된 소셜 계정 목록
   facilityReviews  FacilityReview[]
   facilityBookings FacilityBooking[]
+  leads            Lead[] // docs/01_.../16 — 이 유저가 남긴 문의/견적요청/답사예약 리드
   createdAt        DateTime          @default(now())
   updatedAt        DateTime          @updatedAt
 }
@@ -25,41 +26,48 @@ model SocialAccount {
   id         String    @id @default(uuid())
   userId     String
   user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  provider   String    // 'KAKAO', 'NAVER', 'GOOGLE'
-  providerId String    // 각 소셜 제공자의 고유 식별자 ID
-  email      String?   // 소셜 프로필상의 이메일
+  provider   String // 'KAKAO', 'NAVER', 'GOOGLE'
+  providerId String // 각 소셜 제공자의 고유 식별자 ID
+  email      String? // 소셜 프로필상의 이메일
   createdAt  DateTime  @default(now())
   unlinkedAt DateTime? // null이면 연동 중. 값이 있으면 사용자가 연동 해제한 상태(소프트 삭제) —
-                       // 재로그인 시 이 provider+providerId를 다시 인식해 같은 계정으로 복구하기 위해 하드 삭제하지 않음
+  // 재로그인 시 이 provider+providerId를 다시 인식해 같은 계정으로 복구하기 위해 하드 삭제하지 않음
 
   @@unique([provider, providerId])
 }
 
 // 시설 마스터 (장례식장 / 묘지·수목장)
 model Facility {
-  id             String            @id
+  id             String   @id
   name           String
-  type           String            // '장례식장' | '묘지/수목장'
-  location       String            // 도로명 주소
+  type           String // '장례식장' | '묘지/수목장'
+  location       String // 도로명 주소
   lat            Float
   lng            Float
-  phone          String?           // 실데이터 수집(카카오/공공 CSV) 시 채워지는 연락처
-  kakaoPlaceId   String?           @unique // 카카오 로컬 API로 수집한 장례식장의 장소ID (재동기화 dedup용)
-  price          String            // 대표 가격 표시 문자열 (예: "950만원~")
-  priceValue     Int               // 예산 필터용 숫자값
-  rating         Float             @default(0.0) // 초기 시딩값(공시 만족도 기준) — 리뷰 5건 미만일 때 노출값으로 사용
+  phone          String? // 실데이터 수집(카카오/공공 CSV) 시 채워지는 연락처
+  kakaoPlaceId   String?  @unique // 카카오 로컬 API로 수집한 장례식장의 장소ID (재동기화 dedup용)
+  price          String // 대표 가격 표시 문자열 (예: "950만원~")
+  priceValue     Int // 예산 필터용 숫자값
+  rating         Float    @default(0.0) // 초기 시딩값(공시 만족도 기준) — 리뷰 5건 미만일 때 노출값으로 사용
   religion       String
   guests         String
-  isPartner      Boolean           @default(false)
-  tags           String[]          @default([])
-  amenities      String[]          @default([])
+  // isPartner: 파생 캐시 컬럼 — 정본은 partnerId. 클레임 승인/해지 트랜잭션 안에서만 갱신한다(docs 16 §3.4).
+  isPartner      Boolean  @default(false)
+  partnerId      String?
+  partner        Partner? @relation(fields: [partnerId], references: [id])
+  tags           String[] @default([])
+  amenities      String[] @default([])
   vrImages       Json?
-  detailedPrices Json?             // {facilityFee, casketFee, shroudFee, mourningDress, altarFlower, totalEst}
-  createdAt      DateTime          @default(now())
-  updatedAt      DateTime          @updatedAt
+  detailedPrices Json? // {facilityFee, casketFee, shroudFee, mourningDress, altarFlower, totalEst}
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
-  reviews        FacilityReview[]
-  bookings       FacilityBooking[]
+  reviews  FacilityReview[]
+  bookings FacilityBooking[]
+  claims   FacilityClaim[]
+  leads    Lead[]
+
+  @@index([partnerId])
 }
 
 // 시설 리뷰
@@ -89,4 +97,152 @@ model FacilityBooking {
   bookingNote  String?
   status       String   @default("PENDING") // PENDING | CONFIRMED | CANCELLED
   createdAt    DateTime @default(now())
+}
+
+// ─────────────────────────────────────────────────────────────────
+// 장사시설 사업자 회원 + 리드 수수료 정산 인프라
+// docs/01_장례_묘지_매칭/16_장사시설_사업자회원_및_리드_수수료_정산_명세서.md
+// 2026-08-10 대표 지시 기반. §는 위 문서의 섹션 번호를 가리킨다.
+// ─────────────────────────────────────────────────────────────────
+
+// 사업자 (법인격 단위) — B2C User와 완전 분리 (§3.1)
+model Partner {
+  id               String  @id @default(uuid())
+  email            String  @unique // 로그인 ID
+  passwordHash     String
+  refreshTokenHash String? // 발급된 refresh token의 sha256 해시 (회전·재사용 탐지용, §6.1)
+
+  bizRegNo      String  @unique // 사업자등록번호 (하이픈 제거 10자리)
+  companyName   String // 상호
+  ownerName     String // 대표자명
+  contactName   String // 담당자명
+  contactPhone  String
+  bizLicenseUrl String? // 사업자등록증 사본 (비공개 스토리지, §7.4)
+
+  status       String    @default("PENDING") // PENDING | APPROVED | REJECTED | SUSPENDED (§3.2)
+  rejectReason String?
+  approvedAt   DateTime?
+
+  settlementBank    String?
+  settlementAccount String? // 암호화 저장 (평문 금지, §7.4)
+
+  facilities         Facility[]
+  claims             FacilityClaim[]
+  leads              Lead[]
+  settlements        Settlement[]
+  commissionPolicies CommissionPolicy[] // 이 파트너 전용 특약 요율 (없으면 기본 요율 적용)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status])
+}
+
+// 시설 소유권 클레임 (§3.3) — 신청/심사 API는 이번 범위(0~3단계) 밖, 스키마만 선반영
+model FacilityClaim {
+  id         String   @id @default(uuid())
+  partnerId  String
+  partner    Partner  @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  facilityId String
+  facility   Facility @relation(fields: [facilityId], references: [id], onDelete: Cascade)
+
+  status      String    @default("PENDING") // PENDING | APPROVED | REJECTED
+  evidenceUrl String? // 시설 인허가증 등 소유 증빙
+  reviewNote  String? // 운영자 심사 메모
+  reviewedAt  DateTime?
+  createdAt   DateTime  @default(now())
+
+  @@unique([partnerId, facilityId]) // 같은 사업자의 중복 신청 방지
+  @@index([status])
+}
+
+// 견적요청 번호(leadNo) 발번용 일자별 원자적 카운터.
+// UPDATE ... SET seq = seq + 1 형태(Prisma upsert increment)가 Postgres 행 잠금으로
+// 동시 요청에서도 안전하다 — leadNo @unique와 함께 이중 방어(§4.2).
+model LeadNumberCounter {
+  dateKey String @id // 'YYMMDD'
+  seq     Int    @default(0)
+}
+
+// 리드 (문의 · 견적요청 · 답사예약) — 수수료 청구의 증거 (§4)
+model Lead {
+  id     String @id @default(uuid())
+  leadNo String @unique // EB-260810-0001 (표시·대조용, 불변, §4.2)
+  type   String // QUOTE | BOOKING | CONSULT | CALL (§4.1)
+
+  facilityId String
+  facility   Facility @relation(fields: [facilityId], references: [id])
+  partnerId  String? // 발생 시점 귀속 파트너 (없으면 비제휴)
+  partner    Partner? @relation(fields: [partnerId], references: [id])
+
+  userId String? // 로그인 유저면 참조 (탈퇴 시 null)
+  user   User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  // 신청자 스냅샷 (§4.4) — 정산 확정 후 마스킹
+  applicantName  String?
+  applicantPhone String?
+  maskedAt       DateTime?
+
+  payload Json // type별 요청 내용 (희망일시/하객수/종교/예산 등)
+
+  thirdPartyConsentAt DateTime? // 개인정보 제3자 제공 동의 시각 (§7.1)
+  consentSnapshot     Json? // 동의 시점의 고지 문구 버전 — 분쟁 대비
+
+  status        String @default("REQUESTED") // REQUESTED|NOTIFIED|RESPONDED|CONVERTED|LOST|INVALID (§4.3)
+  statusHistory Json   @default("[]") // [{status, at, by, note}]
+
+  billable           Boolean           @default(false) // 청구 대상 여부 (운영자 확정)
+  billedAmount       Int? // 청구 금액 스냅샷 (§8.2)
+  commissionPolicyId String? // 어느 요율로 계산했는지 (분쟁 시 유일한 증거)
+  commissionPolicy   CommissionPolicy? @relation(fields: [commissionPolicyId], references: [id])
+  settlementId       String?
+  settlement         Settlement?       @relation(fields: [settlementId], references: [id])
+  disputeReason      String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([partnerId, status])
+  @@index([facilityId, createdAt])
+  @@index([createdAt])
+}
+
+// 수수료 정책 — 값이 아니라 "유효기간이 붙은 레코드"로 관리 (§8.2, §12.2)
+model CommissionPolicy {
+  id       String   @id @default(uuid())
+  basis    String // PER_CONVERSION | PER_LEAD | MONTHLY_FLAT
+  amount   Int? // 정액(원)
+  rate     Decimal? @db.Decimal(5, 4) // 정률 (0.0500 = 5%)
+  currency String   @default("KRW")
+
+  partnerId String? // null = 기본 요율 / 값 = 해당 파트너 특약
+  partner   Partner? @relation(fields: [partnerId], references: [id])
+
+  effectiveFrom DateTime // 적용 시작 시점
+  effectiveTo   DateTime? // null이면 현재 유효
+
+  memo      String? // 이 요율인 이유 (특약 사유 등)
+  createdBy String? // 변경한 운영자 User.id
+  createdAt DateTime @default(now())
+
+  leads Lead[]
+
+  @@index([partnerId, effectiveFrom])
+}
+
+// 월 정산 (§8.1) — 발행/이의제기 API는 이번 범위 밖, 스키마만 선반영
+model Settlement {
+  id        String    @id @default(uuid())
+  partnerId String
+  partner   Partner   @relation(fields: [partnerId], references: [id])
+  periodYm  String // '2026-08'
+  leadCount Int
+  amount    Int
+  status    String    @default("DRAFT") // DRAFT | ISSUED | DISPUTED | PAID
+  issuedAt  DateTime?
+  paidAt    DateTime?
+  leads     Lead[]
+  createdAt DateTime  @default(now())
+
+  @@unique([partnerId, periodYm]) // 같은 달 중복 발행 방지
 }

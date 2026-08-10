@@ -24,6 +24,9 @@ build/
 # mkcert 로컬 HTTPS 개인키 (기기별로 생성, 절대 커밋 금지)
 eobom/.certs/
 
+# DB 백업 (User/SocialAccount 등 실제 개인정보 포함 — 절대 커밋 금지, security.md §1)
+eobom/backend/backups/
+
 # IDE & OS files
 .vscode/
 .idea/

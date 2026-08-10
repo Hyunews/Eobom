@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { X, MapPin, Navigation, ExternalLink, ShieldCheck, Clock } from 'lucide-react';
+import { GEOLOCATION_FALLBACK, KAKAO_MAP_LOAD_TIMEOUT_MS, KAKAO_MAP_LOAD_POLL_INTERVAL_MS } from '../config';
 
 interface KakaoMapModalProps {
   facility: {
@@ -27,8 +28,8 @@ export const KakaoMapModal: React.FC<KakaoMapModalProps> = ({ facility, userLoca
   const [isMapLoaded, setIsMapLoaded] = useState(false);
   const [loadFailed, setLoadFailed] = useState(false);
 
-  const lat = facility.lat || 37.4925;
-  const lng = facility.lng || 127.0078;
+  const lat = facility.lat || GEOLOCATION_FALLBACK.lat;
+  const lng = facility.lng || GEOLOCATION_FALLBACK.lng;
 
   // 거리 계산 (Haversine formula)
   const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
@@ -131,8 +132,9 @@ export const KakaoMapModal: React.FC<KakaoMapModalProps> = ({ facility, userLoca
       }
     };
 
-    // 100ms 폴링으로 Kakao SDK 준비 감지
+    // 폴링으로 Kakao SDK 준비 감지 (간격·타임아웃은 config.ts 상수 — §12.5)
     let attempts = 0;
+    const maxAttempts = Math.ceil(KAKAO_MAP_LOAD_TIMEOUT_MS / KAKAO_MAP_LOAD_POLL_INTERVAL_MS);
     const interval = setInterval(() => {
       attempts++;
       if (window.kakao && window.kakao.maps && window.kakao.maps.LatLng) {
@@ -144,11 +146,11 @@ export const KakaoMapModal: React.FC<KakaoMapModalProps> = ({ facility, userLoca
         tryInit();
       }
 
-      if (attempts > 50) { // 5초 타임아웃 — SDK가 안 뜨면 무한 스피너 대신 실패 상태로 전환
+      if (attempts > maxAttempts) { // 타임아웃 — SDK가 안 뜨면 무한 스피너 대신 실패 상태로 전환
         clearInterval(interval);
         if (!isCancelled && !window.kakao) setLoadFailed(true);
       }
-    }, 100);
+    }, KAKAO_MAP_LOAD_POLL_INTERVAL_MS);
 
     return () => {
       isCancelled = true;

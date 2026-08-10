@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ShieldCheck, MapPin, Map, CalendarCheck, PhoneCall, Sparkles, Filter, Calculator, MessageSquare } from 'lucide-react';
-import { BACKEND_URL } from '../config';
+import { BACKEND_URL, GEOLOCATION_FALLBACK } from '../config';
 import { KakaoMapModal } from '../components/KakaoMapModal';
 import { PriceCompareModal } from '../components/facility/PriceCompareModal';
 import { BookingModal } from '../components/facility/BookingModal';
@@ -109,10 +109,10 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
     if (navigator.geolocation && window.isSecureContext) {
       navigator.geolocation.getCurrentPosition(
         (pos) => applyDetected({ lat: pos.coords.latitude, lng: pos.coords.longitude }, false),
-        () => applyDetected({ lat: 37.4925, lng: 127.0078 }, true) // Default fallback location (서울 서초)
+        () => applyDetected(GEOLOCATION_FALLBACK, true)
       );
     } else {
-      applyDetected({ lat: 37.4925, lng: 127.0078 }, true);
+      applyDetected(GEOLOCATION_FALLBACK, true);
     }
   }, []);
 

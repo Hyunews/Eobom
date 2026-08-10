@@ -5,6 +5,17 @@
 
 ---
 
+## 2026-08-10 — 장사시설 사업자 회원 + 리드 수수료 정산 인프라 0~3단계
+
+### 삽질 · 함정 기록
+
+- **`prisma migrate dev`가 이 환경에서 항상 거부됨** — Git Bash 비대화형 셸이라 `--create-only`를 붙여도 "non-interactive is not supported" 에러. 우회: `prisma migrate diff --from-migrations ... --to-schema-datamodel ... --shadow-database-url ... --script`로 SQL만 뽑아서 `prisma/migrations/<timestamp>_name/migration.sql`에 직접 써넣고 `prisma migrate deploy`로 적용. `--shadow-database-url`엔 임시 DB(`eobom_shadow`, 작업 후 `dropdb`)가 필요함 — 없으면 diff 자체가 거부됨.
+- **`migrate deploy`가 P3005로 막힘** — `_prisma_migrations` 테이블이 DB에 아예 없었음(기존 5개 마이그레이션이 트래킹 없이 적용된 상태였던 걸로 추정, 이번 세션에서 만든 문제 아님). `\d "Facility"`로 라이브 스키마가 5번째 마이그레이션 결과와 정확히 일치하는지 먼저 확인한 뒤, 5개를 `prisma migrate resolve --applied`로 베이스라인 처리하고서야 6번째가 정상 적용됨. **베이스라인 전에 반드시 라이브 스키마와 마이그레이션 SQL을 대조할 것** — 안 맞는데 applied로 찍으면 그 뒤로 영원히 어긋난다.
+- **`prisma generate`가 EPERM으로 실패** — 백엔드 dev 서버(ts-node-dev)가 `query_engine-windows.dll.node`를 잠그고 있었음. `Get-CimInstance Win32_Process`로 커맨드라인 확인해서 백엔드 프로세스만 골라 종료 후 재생성. Windows에서 Prisma client 재생성 전엔 항상 dev 서버부터 내릴 것.
+- **curl로 한글 테스트하면 깨짐** — Git Bash의 콘솔 코드페이지가 949(CP949)라 `curl -d '{"name":"홍길동"}'`처럼 인자로 한글을 넘기면 서버 도달 전에 바이트가 깨짐(`chcp.com` 확인). DB에 실제로 깨진 채 저장된 걸 보고 처음엔 애플리케이션 버그로 의심했으나, UTF-8로 저장한 JSON 파일을 `curl --data-binary @file.json`으로 보내니 정상 저장됨 — 원인은 애플리케이션이 아니라 테스트 도구였음. **Windows Git Bash에서 curl로 한글 바디 테스트할 땐 항상 파일로 넘길 것, 인자로 직접 넘기지 말 것.**
+
+---
+
 ## 2026-08-07 — 하네스 재설계 + Domain01 LAN/HTTPS 대응 + Render 배포 준비
 
 ### 삽질 · 함정 기록 (다음에 같은 데서 시간 안 쓰려고)

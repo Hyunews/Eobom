@@ -15,6 +15,8 @@ export const BookingModal: React.FC<BookingModalProps> = ({ facilityId, facility
   const [bookingTime, setBookingTime] = useState('14:00');
   const [bookingCount, setBookingCount] = useState('2');
   const [bookingNote, setBookingNote] = useState('');
+  const [applicantPhone, setApplicantPhone] = useState('');
+  const [thirdPartyConsent, setThirdPartyConsent] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -32,19 +34,34 @@ export const BookingModal: React.FC<BookingModalProps> = ({ facilityId, facility
       return;
     }
 
+    if (!thirdPartyConsent) {
+      alert('⚠️ 개인정보 제3자 제공에 동의해야 답사 예약을 신청할 수 있습니다.');
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       const res = await fetch(`${BACKEND_URL}/api/facilities/${facilityId}/bookings`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ bookingDate, bookingTime, bookingCount: Number(bookingCount), bookingNote }),
+        body: JSON.stringify({
+          bookingDate,
+          bookingTime,
+          bookingCount: Number(bookingCount),
+          bookingNote,
+          applicantPhone,
+          thirdPartyConsent,
+        }),
       });
       const data = await res.json();
       if (!res.ok || data.status !== 'success') {
         alert(data.message || '예약 신청에 실패했습니다.');
         return;
       }
-      alert(`🎉 [${facilityName}] 답사 예약 신청이 완료되었습니다!\n\n일시: ${bookingDate} ${bookingTime}\n인원: ${bookingCount}명\n배정된 웰다잉 전문 코디네이터가 30분 이내 해피콜을 드립니다.`);
+      // leadNo(견적요청 번호)를 반드시 노출한다 — 나중에 전화로 "이 번호 건입니다"라고
+      // 대조할 수 있어야 하고, 그게 수수료 청구 근거를 유저 쪽에서도 뒷받침한다(docs 16 §6.3).
+      const leadNoLine = data.leadNo ? `\n\n접수번호: ${data.leadNo}\n(문의 시 이 번호를 말씀해주세요)` : '';
+      alert(`🎉 [${facilityName}] 답사 예약 신청이 완료되었습니다!\n\n일시: ${bookingDate} ${bookingTime}\n인원: ${bookingCount}명\n배정된 웰다잉 전문 코디네이터가 30분 이내 해피콜을 드립니다.${leadNoLine}`);
       onClose();
     } catch (e) {
       alert('서버와 통신 중 오류가 발생했습니다.');
@@ -125,6 +142,18 @@ export const BookingModal: React.FC<BookingModalProps> = ({ facilityId, facility
           </div>
 
           <div>
+            <label className="form-label">연락처</label>
+            <input
+              type="tel"
+              required
+              placeholder="010-0000-0000"
+              value={applicantPhone}
+              onChange={(e) => setApplicantPhone(e.target.value)}
+              className="form-select"
+            />
+          </div>
+
+          <div>
             <label className="form-label">요청 사항 (선택)</label>
             <textarea
               placeholder="예: 휠체어 지원 필요, 특정 종교 전용관 먼저 둘러보기 희망"
@@ -140,6 +169,33 @@ export const BookingModal: React.FC<BookingModalProps> = ({ facilityId, facility
               }}
             />
           </div>
+
+          <label
+            style={{
+              display: 'flex',
+              alignItems: 'flex-start',
+              gap: '0.5rem',
+              fontSize: '0.8rem',
+              color: 'var(--text-muted)',
+              backgroundColor: 'var(--card-bg)',
+              padding: '0.8rem',
+              borderRadius: '8px',
+              cursor: 'pointer'
+            }}
+          >
+            <input
+              type="checkbox"
+              checked={thirdPartyConsent}
+              onChange={(e) => setThirdPartyConsent(e.target.checked)}
+              style={{ marginTop: '0.15rem' }}
+            />
+            <span>
+              <strong style={{ color: 'var(--text-main)' }}>[필수]</strong> 개인정보 제3자 제공에 동의합니다.
+              <br />
+              제공받는 자: {facilityName} 등 신청 시설 (또는 비제휴 시 이어봄 상담원) · 제공 목적: 견적 안내 및 답사 예약 연락 ·
+              제공 항목: 이름, 연락처, 요청 내용 · 보유 기간: 목적 달성 후 파기
+            </span>
+          </label>
 
           <div style={{ display: 'flex', gap: '0.8rem', marginTop: '0.5rem' }}>
             <button type="button" onClick={onClose} className="btn" style={{ flex: 1, backgroundColor: '#E2E8F0' }}>
