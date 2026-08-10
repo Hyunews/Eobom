@@ -26,6 +26,14 @@ const buildWhere = (query: Request['query']): Prisma.FacilityWhereInput => {
     where.type = category;
   }
 
+  // 태그 필터 — 프론트 TAG_CATALOG(components/facility/tagCatalog.ts)에 등록된 값만
+  // 클릭 가능한 필터로 넘어온다. 여기선 그 화이트리스트를 몰라도 되게 범용으로 처리
+  // (Facility.tags는 String[] — Prisma `has`로 배열 포함 여부만 확인).
+  const tag = query.tag as string | undefined;
+  if (tag && tag.trim()) {
+    where.tags = { has: tag.trim() };
+  }
+
   // 이름 검색 — 파트너가 자기 시설을 찾아 클레임 신청할 때 사용(docs 16 §3.3)
   const q = query.q as string | undefined;
   if (q && q.trim()) {

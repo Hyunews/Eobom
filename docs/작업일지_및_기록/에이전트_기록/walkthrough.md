@@ -6,6 +6,100 @@
 
 ---
 
+## 2026-08-11 (3) | DB 테이블 명세서(docs/05) 자동 생성 스크립트 + 컬럼 주석 전수 보강
+
+- **근거 스펙**: 스펙 없음 — 대표 지시("schema 한글 주석만으론 부족하다는 의문, 유지보수·이관용으로 최대한 자세히", "각 컬럼 설명 꼭 있어야 함"). 즉흥 구현이나 하네스 §7(Dual Document Policy, "같은 문서 두 곳에 복사 금지") 원칙과 정확히 일치.
+- **건드린 파일**:
+  - 신규: `.harness/tools/generate-db-doc.js` (의존성 없는 순수 Node 스크립트)
+  - 수정: `eobom/backend/prisma/schema.prisma` — 13개 모델 전체 물리 컬럼(146개)에 누락됐던 한글 인라인 주석 보강(이전엔 다수 필드가 무주석), `User`/`SocialAccount` 모델 설명 주석 신설
+  - 재생성: `docs/00_핵심플랫폼/05_DB_요구사항_및_테이블_사전.md` (기존 6개 테이블만 나열된 6줄짜리 문서 → 13개 테이블·146개 물리 컬럼 전수 사전으로 교체)
+  - `docs/00_DOCS_INDEX.md` — 05번 행 설명 갱신
+- **결과**:
+  - **설계**: 문서를 두 구간으로 분리 — ① `AUTO-GENERATED` 마커 사이는 스크립트가 `schema.prisma` 주석에서 추출(드리프트 구조적으로 불가능), ② 그 아래 "보충 설명" 구간은 JSON 필드 실제 형태·상태값 전이·테이블 간 흐름처럼 한 줄 주석으로 못 담는 서술을 사람이 직접 쓰는 곳(스크립트가 절대 안 건드림). 파일은 하나만 유지 — 버전 이력은 git log가 대신함(하네스 "같은 문서 두 곳 금지" 원칙).
+  - **파서**: 모델 선언 위 연속 주석 = 모델 설명, 필드 라인의 `// 설명` = 컬럼 설명, 필드 바로 위/아래 단독 주석 줄은 다음 줄이 필드인지 보고 머리말/연속으로 자동 판별(예: `isPartner` 위 블록 주석은 머리말로, `unlinkedAt` 아래 줄바꿈 주석은 연속으로 정확히 붙음). `@@unique`/`@@index` 등 제약조건도 별도 목록으로 추출.
+  - **관계 필드 분리**: `user User @relation(...)` 같은 필드는 실제 물리 컬럼이 아니라 FK 스칼라(`userId`)를 사람이 읽기 편하게 보여주는 Prisma 뷰라 "관계 필드"로 별도 표에 분리 — 메인 컬럼 표는 실제 DB 컬럼만 반영.
+  - **컬럼 주석 전수 보강**: 스크립트 실행 결과 물리 컬럼 146개 중 "설명 없음" **0개**까지 `schema.prisma`를 직접 보강(대표가 명시적으로 요구한 조건).
+  - 버그 2건 자체 발견·수정: (1) 원본 주석에 `|`가 들어있으면(`'장례식장' | '묘지/수목장'`) 마크다운 표 셀 구분자와 충돌해 열이 깨짐 → 이스케이프 처리. (2) 필드 위/아래 단독 주석 줄을 무조건 "직전 필드의 연속"으로 붙였더니 `isPartner` 위의 머리말 주석이 바로 위 `guests` 컬럼 설명에 잘못 붙는 문제 → 다음 줄이 필드인지 보고 머리말/연속 분기하도록 수정.
+  - `prisma validate` 통과(주석만 추가라 스키마 자체·마이그레이션 영향 없음). `node .harness/tools/generate-db-doc.js` 재실행 시 정확히 같은 결과 재현 확인(멱등).
+- **편차**: 없음.
+- **다음 에이전트가 알아야 할 것**:
+  - **DB 스펙이 바뀌면 `docs/05`를 손으로 고치지 말 것** — `schema.prisma` 주석을 고치고 `node .harness/tools/generate-db-doc.js`를 재실행. 마커 사이를 직접 고치면 다음 재실행 때 덮어써진다.
+  - "보충 설명" 구간은 아직 비어 있음(자리만 마련) — JSON 필드(`payload`, `detailedPrices`, `statusHistory`, `vrImages`, `consentSnapshot`) 실제 형태나 `Lead.status`/`Partner.status` 등 상태값 전이도를 다음에 채워 넣을 것.
+  - 백엔드 dev 서버가 `query_engine-windows.dll.node`를 잠그고 있어 `prisma generate`가 EPERM으로 실패했음(기존에도 기록된 이슈) — 주석만 바꾼 거라 클라이언트 재생성이 실질적으로 불필요해 넘어갔다. 실제 스키마(필드/타입) 변경이 있으면 dev 서버 내리고 재생성할 것.
+
+<!-- Gemini 판정 대기 -->
+
+---
+
+## 2026-08-11 (2) | 시설 태그(#해시태그) 클릭 필터 + TAG_CATALOG 관리 체계
+
+- **근거 스펙**: 스펙 없음 — 대표 지시("태그 필요하면 구성 후 별도 관리 파일 또는 md 명세서"). `docs/01_장례_묘지_매칭/19` 신설.
+- **건드린 파일**:
+  - 프론트 신규: `src/components/facility/tagCatalog.ts`, `docs/01_장례_묘지_매칭/19_시설_태그_분류_체계_명세서.md`
+  - 프론트 수정: `src/pages/FacilityPage.tsx`(태그 필터 상태·클릭 핸들러·카드 태그 클릭 가능화·활성 필터 칩)
+  - 백엔드 수정: `src/controllers/facilityController.ts`(`buildWhere`에 범용 `tag` 쿼리파라미터, Prisma `tags: { has }`)
+  - `docs/00_DOCS_INDEX.md` — 19번 행 신설
+- **결과**:
+  - DB 감사(1,552건): 분류 가능한 태그는 `사설`(626)/`공설`(322)뿐이고 나머지 ~50종은 수기 시드 14건의 1회성 마케팅 문구 — 태그 문자열 전체를 필터로 취급하지 않고 **화이트리스트 방식**(`TAG_CATALOG`)으로 설계. 화이트리스트 밖 태그는 기존처럼 클릭 안 되는 라벨로 그대로 노출(기존 화면 100% 하위호환).
+  - `TAG_CATALOG`에 등록된 값(`공설`/`사설`, 카테고리 "운영주체")만 카드에서 클릭 가능한 버튼으로 렌더링. 클릭 시 `tag` 쿼리파라미터로 서버 재조회(토글 — 같은 태그 재클릭 시 해제), 필터 바에 활성 태그 칩 노출(칩 클릭으로도 해제 가능).
+  - 새 카테고리 추가는 원칙적으로 `tagCatalog.ts` 한 파일만 고치면 됨(백엔드는 이미 범용 `tag` 파라미터 처리) — docs/19에 확장 가이드 기록.
+  - 백엔드 `tsc --noEmit` 통과 + 로컬 dev 서버 실호출로 `?tag=사설`→626건, `?tag=공설`→322건, 무필터→1552건 확인(DB 감사 결과와 정확히 일치). 프론트 `tsc --noEmit`/`vite build` 통과.
+- **편차**: 없음.
+- **다음 에이전트가 알아야 할 것**:
+  - **브라우저 클릭 E2E 미검증**(자동화 도구 없음) — 카드 태그 클릭 → 필터 적용 → 칩에서 해제까지 사용자 확인 필요.
+  - 마케팅 문구 태그(~50종)는 여전히 필터링 불가 상태로 남아 있음 — 필요해지면 `TAG_CATALOG`에 각각 등록하거나, 별도 카테고리 축(예: "부대시설 강조")을 설계해야 함.
+
+<!-- Gemini 판정 대기 -->
+
+---
+
+## 2026-08-11 (1) | URL 라우팅 해시 → HistoryRouter(BrowserRouter) 전환
+
+- **근거 스펙**: 스펙 없음 — 대표 지시("HistoryRouter 스타일로 변경, 변경점 자세히 md로"). `docs/00_핵심플랫폼/18` 신설(Gemini HTML 보고서화 예정).
+- **건드린 파일**:
+  - 프론트 전면 재작성: `src/App.tsx` (`AppShell` 분리, `BrowserRouter`+`Routes`/`Route` 도입)
+  - 신규 의존성: `react-router-dom@^6` (`package.json`)
+  - 신규 문서: `docs/00_핵심플랫폼/18_URL_라우팅_HistoryRouter_전환_구현_메모.md`
+  - 무변경(이미 준비돼 있었음): `vercel.json`(SPA rewrite 기존 설정), 백엔드 `authController.ts`(OAuth 콜백 URL 포맷)
+- **결과**:
+  - URL이 `/#facility` → `/facility` 형태로 전환. `setActiveTab(tab: string)`/`activeTab` 인터페이스를 그대로 유지한 채 내부 구현만 `window.location.hash` 조작에서 `navigate()`로 교체 — `Header.tsx`/`Sidebar.tsx`/`HomePage.tsx`/`MyPage.tsx` **4개 컴포넌트는 한 줄도 수정하지 않음**(마이그레이션 반경 최소화).
+  - 뒤로가기 스크롤 복원: 수동 `isBackNavigation` ref → `react-router-dom`의 `useNavigationType()`(`'POP'`) 판정으로 교체.
+  - OAuth 콜백(`/#loginSuccess?...`, `/#socialLinkPrompt?...`, `/#mypage?linkSuccess=...`)은 pathname이 항상 `/`로 오고 hash는 페이지 라우팅과 무관한 1회성 신호라 **백엔드 무변경**으로 100% 호환 확인 — `window.history.replaceState` 정리 대상만 `pathname+'#home'` → `'/'`로 조정.
+  - 죽은 코드 정리: 아무 데서도 읽지 않던 `localStorage.setItem('k_ending_active_tab', ...)` 제거(grep으로 미사용 확인 후).
+  - `tsc && vite build` 통과. 로컬 dev 서버(별도 포트로 임시 기동)로 `/facility` 직접 딥링크 GET → 200 확인(스모크 테스트 후 해당 dev 서버는 종료, 사용자의 기존 5173 인스턴스는 건드리지 않음).
+- **편차**: 없음.
+- **다음 에이전트가 알아야 할 것**:
+  - **브라우저 클릭 E2E 미검증** — 메뉴 이동, 뒤로가기 스크롤 복원, 소셜 로그인 콜백 후 홈 이동은 사용자 확인 필요.
+  - **Vercel 배포 후 딥링크 새로고침 확인 필요** — `vercel.json` rewrite가 실제 배포본에도 적용되는지는 로컬에서 검증 불가.
+  - 기존에 `#facility` 형태로 공유/북마크된 링크는 이제 홈으로만 떨어짐(자동 리다이렉트 없음) — docs/18 §7에 트레이드오프 기록, 필요시 하위호환 리다이렉트 추가 검토.
+
+<!-- Gemini 판정 대기 -->
+
+---
+
+## 2026-08-10 (6) | 전남·광주 주소 표기 통합 ("전남광주통합특별시")
+
+- **근거 스펙**: 스펙 없음 — 대표 지시(전남+광주 주소 표기를 "전남광주통합특별시"로 통합, DB의 기존 시설 주소도 전부 수정). `docs/00_핵심플랫폼/05` 등 정식 스펙 문서엔 지역 표기 정책이 없어 즉흥 구현.
+- **건드린 파일**:
+  - 백엔드 신규: `src/utils/address.ts`(`MERGED_PROVINCE`, `GWANGJU_DISTRICTS`, `normalizeAddressProvince`)
+  - 백엔드 수정: `src/controllers/geoController.ts`(`PROVINCE_ALIASES` 병합 + `resolveKakaoQuery` 신설), `prisma/import-facility-csv.ts`, `prisma/sync-kakao-funeral.ts`, `prisma/seed-data/facilities.json`(`f_jeolla_1` 주소)
+  - 일회성 마이그레이션 스크립트(`prisma/migrate-jeonnam-gwangju-merge.ts`)로 로컬 DB `Facility.location` 137건 치환 후 스크립트 자체는 삭제(재사용 대상 아님, 정규화 로직은 `normalizeAddressProvider`로 상시화됨).
+- **결과**:
+  - `PROVINCE_ALIASES`에서 광주광역시/광주/전라남도/전남을 전부 `전남광주통합특별시` 한 키로 통합 — `GET /api/geo/regions`(지역 드롭다운)가 이 표에서 파생되므로 필터 목록은 자동 통합됨(검증: 옛 광주 5구 + 옛 전남 22개 시/군 전부 이 하나의 시/도 아래로 묶여 나옴).
+  - 기존 `Facility.location` 문자열도 선두 시/도 토큰만 치환(좌표는 재지오코딩 안 함, 이미 정확함) — 로컬 DB 1,552건 중 137건 갱신 확인.
+  - **카카오 지오코딩 방어**: 카카오 로컬 API는 아직 옛 행정구역 명칭 기준이라 "전남광주통합특별시"를 그대로 보내면 주소/키워드 검색 둘 다 실패할 위험이 있어, `geocode()` 호출 직전에만 `resolveKakaoQuery()`로 구/군 소속에 따라 광주광역시/전라남도로 되돌려서 보내도록 이원화(화면 표시는 통합명, 카카오 호출은 옛 명칭).
+  - 재시딩 시 되돌아가지 않도록 `import-facility-csv.ts`/`sync-kakao-funeral.ts`도 저장 시점에 `normalizeAddressProvince()`를 거치게 수정. `assets/`의 원본 CSV는 하네스 소유권상 에이전트 쓰기 금지 영역이라 손대지 않음(그 CSV의 시/도 컬럼은 그대로 옛 명칭).
+  - `tsc --noEmit` 통과. 로컬 DB(`localhost:5433`, 미배포)에 적용 완료, `GET /api/geo/regions` 결과로 병합 확인.
+- **편차**: 사용자에게 사전 확인 없이 로컬 DB에 즉시 마이그레이션 실행(미배포 dev DB라 저위험 판단) — 단, 실행 전 **2026-08-05 (야간) 항목과 정반대 방향**이라는 걸 발견해 사용자에게 먼저 알리고 "통합 유지" 확답을 받은 뒤 확정함. 사유: 08-05엔 "전남광주통합특별시"가 원인불명 CSV 오류로 기록돼 있었는데, 이번엔 대표가 구체적 예시(광산구/여수시/곡성군)까지 들어 명시적으로 재지시함 — 다른 근거의 별개 결정으로 판단.
+- **다음 에이전트가 알아야 할 것**:
+  - `f_jeolla_1`을 제외한 나머지 136건은 전부 CSV/카카오 임포트 소스라 "광주광역시"/"전라남도" 정식 명칭 선두 토큰만 있었음 — 축약형("광주"/"전남" 단독)이 더 있는지는 재검증 안 함, 향후 새 소스 추가 시 `normalizeAddressProvince`의 `LEGACY_PREFIXES` 셋 확인할 것.
+  - `docs/`에 이 정책(지역 표기 통합)을 기록한 정식 스펙이 없다 — `[Claude:Opus]`가 필요 시 `docs/00_핵심플랫폼/05` 또는 신규 문서에 반영 검토.
+  - `GWANGJU_DISTRICTS`(동/서/남/북/광산구)는 하드코딩 — 향후 행정구역이 또 바뀌면 여기부터 볼 것.
+
+<!-- Gemini 판정 대기 -->
+
+---
+
 ## 2026-08-10 (5) | FacilityPage 개편: 필터 간소화 + 전화 비노출 + 업체 문의 + 이미지 업로드
 
 - **근거 스펙**: 스펙 없음 — 대표 지시(필터 축소, 전화번호 비노출, 견적비교/답사예약 삭제, 업체 문의 폼, 시설 이미지). 즉흥 구현이나 docs 16 §9(전화 문의는 수수료 근거 불가)와 정확히 같은 방향.

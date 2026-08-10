@@ -1,15 +1,17 @@
 import { Request, Response } from 'express';
 import prisma from '../config/prisma';
+import { GWANGJU_DISTRICTS, MERGED_PROVINCE } from '../utils/address';
 
 const KAKAO_KEY = process.env.KAKAO_CLIENT_ID;
 
 // 시/도 표기 정규화 (CSV 원본은 정식 명칭, 카카오 검색 결과는 축약형이라 하나로 통일)
+// 광주·전남은 2026년 전남광주통합특별시 출범으로 하나의 시/도로 합쳐 노출한다.
 const PROVINCE_ALIASES: Record<string, string> = {
   서울특별시: '서울', 서울: '서울',
   부산광역시: '부산', 부산: '부산',
   대구광역시: '대구', 대구: '대구',
   인천광역시: '인천', 인천: '인천',
-  광주광역시: '광주', 광주: '광주',
+  광주광역시: MERGED_PROVINCE, 광주: MERGED_PROVINCE,
   대전광역시: '대전', 대전: '대전',
   울산광역시: '울산', 울산: '울산',
   세종특별자치시: '세종', 세종: '세종',
@@ -18,7 +20,8 @@ const PROVINCE_ALIASES: Record<string, string> = {
   충청북도: '충북', 충북: '충북',
   충청남도: '충남', 충남: '충남',
   전라북도: '전북', 전북특별자치도: '전북', 전북: '전북',
-  전라남도: '전남', 전남: '전남',
+  전라남도: MERGED_PROVINCE, 전남: MERGED_PROVINCE,
+  전남광주통합특별시: MERGED_PROVINCE,
   경상북도: '경북', 경북: '경북',
   경상남도: '경남', 경남: '경남',
   제주특별자치도: '제주', 제주: '제주',
@@ -81,12 +84,23 @@ export const reverseGeocode = async (req: Request, res: Response) => {
   }
 };
 
+// "전남광주통합특별시 여수시" 같은 병합 시/도 질의를 카카오가 아는 옛 명칭으로 되돌린다.
+// 카카오 로컬 API 주소 데이터는 아직 통합 이전 행정구역 기준이라, 병합 명칭을 그대로 보내면
+// 주소 검색·키워드 검색 둘 다 실패한다 — 화면 표시는 통합명, 카카오 호출은 옛 명칭으로 이원화.
+const resolveKakaoQuery = (query: string): string => {
+  const tokens = query.trim().split(/\s+/);
+  if (tokens[0] !== MERGED_PROVINCE || !tokens[1]) return query;
+  const legacyProvince = GWANGJU_DISTRICTS.has(tokens[1]) ? '광주광역시' : '전라남도';
+  return [legacyProvince, ...tokens.slice(1)].join(' ');
+};
+
 // 주소/지역명/장소명 -> 좌표 검색 (`GET /api/geo/geocode`) — 주소 검색 우선, 실패 시 키워드 검색으로 폴백
 export const geocode = async (req: Request, res: Response) => {
-  const query = req.query.query as string | undefined;
-  if (!query?.trim()) {
+  const rawQuery = req.query.query as string | undefined;
+  if (!rawQuery?.trim()) {
     return res.status(400).json({ status: 'error', message: 'query가 필요합니다.' });
   }
+  const query = resolveKakaoQuery(rawQuery);
 
   try {
     const addressUrl = `https://dapi.kakao.com/v2/local/search/address.json?query=${encodeURIComponent(query)}`;

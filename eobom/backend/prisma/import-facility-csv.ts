@@ -3,6 +3,7 @@ import { readFileSync } from 'fs';
 import { join } from 'path';
 import { parse } from 'csv-parse/sync';
 import prisma from '../src/config/prisma';
+import { normalizeAddressProvince } from '../src/utils/address';
 
 const KAKAO_KEY = process.env.KAKAO_CLIENT_ID;
 const DELAY_MS = 150;
@@ -68,13 +69,16 @@ async function main() {
       const amenities = AMENITY_COLUMNS.filter((col) => row[col]?.trim() === '설치');
       const tags = row['공-사설 구분']?.trim() ? [row['공-사설 구분'].trim()] : [];
       const id = `${source.idPrefix}_${String(i + 1).padStart(3, '0')}`;
+      // 지오코딩은 CSV 원본 주소(카카오가 아는 옛 행정구역 표기)로 하고, 화면 표시용
+      // location만 병합 시/도 명칭으로 정규화한다(주소 자체가 바뀐 게 아니라 표기만 바뀜).
+      const location = normalizeAddressProvince(address);
 
       const existing = await prisma.facility.findUnique({ where: { id } });
       await prisma.facility.upsert({
         where: { id },
         update: {
           name,
-          location: address,
+          location,
           lat: coords.lat,
           lng: coords.lng,
           phone: row['전화번호']?.trim() || null,
@@ -83,7 +87,7 @@ async function main() {
           id,
           name,
           type: '묘지/수목장',
-          location: address,
+          location,
           lat: coords.lat,
           lng: coords.lng,
           phone: row['전화번호']?.trim() || null,

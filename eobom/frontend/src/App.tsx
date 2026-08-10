@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { BrowserRouter, Routes, Route, Navigate, useLocation, useNavigate, useNavigationType } from 'react-router-dom';
 import { Header } from './components/Header';
 import { Sidebar } from './components/Sidebar';
 import { Footer } from './components/Footer';
@@ -18,21 +19,21 @@ import { MyPage } from './pages/MyPage';
 import { PartnerPortalPage } from './pages/PartnerPortalPage';
 import { AdminPage } from './pages/AdminPage';
 
-export function App() {
-  // F5 새로고침 및 브라우저 뒤로가기 시에도 현재 탭과 로그인 유지
-  // 웹 주소로 새로 들어올 때는 항상 홈화면이 기본으로 보이도록 설정
-  const [activeTab, setActiveTabState] = useState<string>(() => {
-    const hash = window.location.hash.replace('#', '');
-    if (hash) return hash;
-    return 'home';
-  });
+function AppShell() {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const navigationType = useNavigationType(); // 'POP' = 뒤로가기/앞으로가기, 'PUSH'/'REPLACE' = 메뉴 클릭 등 직접 이동
+
+  // 현재 경로 -> 탭 id. path 매핑은 setActiveTab이 만드는 규칙과 대칭이어야 한다.
+  const rawTab = location.pathname.replace(/^\//, '');
+  const activeTab = rawTab === '' ? 'home' : rawTab;
 
   const [isLoginOpen, setIsLoginOpen] = useState<boolean>(false);
   const [currentUser, setCurrentUser] = useState<string | null>(() => {
     return localStorage.getItem('k_ending_current_user') || null;
   });
 
-  // 가입 시 이메일 중복 감지 -> [계정 통합] vs [독립 신규 가입] 선택 모달 상태
+  // 가입 시점 이메일 중복 감지 -> [계정 통합] vs [독립 신규 가입] 선택 모달 상태
   const [socialLinkPrompt, setSocialLinkPrompt] = useState<{
     tempToken: string;
     email: string;
@@ -44,10 +45,8 @@ export function App() {
   const [isMyPageOpen, setIsMyPageOpen] = useState<boolean>(false);
   const [myPageMessage, setMyPageMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
-  // 이동 타입 구분 플래그: 'menu' (메뉴 클릭 -> 최상단 0) vs 'back' (뒤로가기 -> 이전 위치 복원)
-  const isBackNavigation = React.useRef<boolean>(false);
-
-  // 메뉴/버튼 직접 클릭으로 페이지 이동 시 호출
+  // 메뉴/버튼 직접 클릭으로 페이지 이동 시 호출 — 시그니처는 예전 해시 버전과 동일하게 유지해
+  // Header/Sidebar/HomePage/MyPage 등 호출부는 손대지 않아도 되게 함.
   const setActiveTab = (tab: string) => {
     // 1. 현재 떠나는 탭의 위치 기록 (뒤로가기로 되돌아올 때 복원용)
     if (activeTab !== 'home') {
@@ -56,32 +55,14 @@ export function App() {
 
     // 2. 메뉴 직접 클릭이므로 타겟 탭의 저장된 스크롤 위치 삭제 (최상단 개봉)
     sessionStorage.removeItem(`eobom_scroll_${tab}`);
-    isBackNavigation.current = false;
 
-    setActiveTabState(tab);
-    window.location.hash = tab;
-    localStorage.setItem('k_ending_active_tab', tab);
+    navigate(tab === 'home' ? '/' : `/${tab}`);
   };
-
-  // 브라우저 뒤로가기 / 앞으로가기 (hashchange) 이벤트 처리
-  React.useEffect(() => {
-    const handleHashChange = () => {
-      // 뒤로가기/앞으로가기 시에는 복원 모드 활성화
-      isBackNavigation.current = true;
-      const hash = window.location.hash.replace('#', '');
-      const targetTab = hash || 'home';
-      setActiveTabState(targetTab);
-      localStorage.setItem('k_ending_active_tab', targetTab);
-    };
-
-    window.addEventListener('hashchange', handleHashChange);
-    return () => window.removeEventListener('hashchange', handleHashChange);
-  }, []);
 
   // 탭 변경 시 스크롤 처리 (뒤로가기 시 복원, 메뉴 클릭 시 최상단)
   React.useEffect(() => {
     if (activeTab !== 'home') {
-      if (isBackNavigation.current) {
+      if (navigationType === 'POP') {
         const saved = sessionStorage.getItem(`eobom_scroll_${activeTab}`);
         const targetY = saved ? Number(saved) : 0;
         window.scrollTo({ top: targetY, left: 0, behavior: 'instant' });
@@ -93,7 +74,8 @@ export function App() {
     }
   }, [activeTab]);
 
-  // 백엔드 소셜 로그인 리다이렉트 콜백 파싱 (예: #loginSuccess?token=...&name=...)
+  // 백엔드 소셜 로그인 리다이렉트 콜백 파싱 (예: /#loginSuccess?token=...&name=...)
+  // 경로(pathname)는 항상 '/'로 온다 — 해시는 페이지 라우팅과 무관한 1회성 신호로만 쓴다.
   React.useEffect(() => {
     const hash = window.location.hash;
     if (hash.includes('loginSuccess')) {
@@ -104,14 +86,12 @@ export function App() {
 
       if (name) {
         handleLoginSuccess(name, provider || undefined, token || undefined);
-        // Hash 정리
-        window.history.replaceState(null, '', window.location.pathname + '#home');
-        setActiveTabState('home');
+        window.history.replaceState(null, '', '/');
       }
     }
   }, []);
 
-  // 가입 시점 동일 이메일 감지 콜백 파싱 (예: #socialLinkPrompt?tempToken=...&email=...)
+  // 가입 시점 동일 이메일 감지 콜백 파싱 (예: /#socialLinkPrompt?tempToken=...&email=...)
   React.useEffect(() => {
     const hash = window.location.hash;
     if (hash.includes('socialLinkPrompt')) {
@@ -124,12 +104,11 @@ export function App() {
       if (tempToken && email && existingProvider && newProvider) {
         setSocialLinkPrompt({ tempToken, email, existingProvider, newProvider });
       }
-      window.history.replaceState(null, '', window.location.pathname + '#home');
-      setActiveTabState('home');
+      window.history.replaceState(null, '', '/');
     }
   }, []);
 
-  // 마이페이지 소셜 계정 추가 연동 리다이렉트 콜백 파싱 (예: #mypage?linkSuccess=KAKAO / ?linkError=...)
+  // 마이페이지 소셜 계정 추가 연동 리다이렉트 콜백 파싱 (예: /#mypage?linkSuccess=KAKAO / ?linkError=...)
   React.useEffect(() => {
     const hash = window.location.hash;
     if (hash.startsWith('#mypage')) {
@@ -150,8 +129,7 @@ export function App() {
         setMyPageMessage({ type: 'error', text: errorMessages[linkError] || '연동에 실패했습니다.' });
         setIsMyPageOpen(true);
       }
-      window.history.replaceState(null, '', window.location.pathname + '#home');
-      setActiveTabState('home');
+      window.history.replaceState(null, '', '/mypage');
     }
   }, []);
 
@@ -188,37 +166,10 @@ export function App() {
     alert('로그아웃 되었습니다.');
   };
 
-  const renderPage = () => {
-    const authProps = {
-      currentUser,
-      onOpenLogin: () => setIsLoginOpen(true),
-      setActiveTab
-    };
-
-    switch (activeTab) {
-      case 'home':
-        return <HomePage {...authProps} />;
-      case 'facility':
-        return <FacilityPage {...authProps} />;
-      case 'counseling':
-        return <CounselingPage {...authProps} />;
-      case 'digital-estate':
-        return <DigitalEstatePage {...authProps} />;
-      case 'ending-note':
-        return <EndingNotePage {...authProps} />;
-      case 'care-guide':
-        return <CareGuidePage {...authProps} />;
-      case 'mypage':
-        return <MyPage {...authProps} onOpenAccountSettings={() => { setMyPageMessage(null); setIsMyPageOpen(true); }} />;
-      case 'partner':
-        // B2C 소셜 로그인과 무관한 별도 포털 — Header/Sidebar 메뉴에는 올리지 않고 Footer 링크로만 접근
-        return <PartnerPortalPage />;
-      case 'admin':
-        // 운영자 전용 — 어디에도 링크 노출 안 함, 직접 URL(#admin)로만 접근
-        return <AdminPage />;
-      default:
-        return <HomePage {...authProps} />;
-    }
+  const authProps = {
+    currentUser,
+    onOpenLogin: () => setIsLoginOpen(true),
+    setActiveTab,
   };
 
   return (
@@ -238,7 +189,24 @@ export function App() {
       {/* 메인 콘텐츠 영역 (사이드바 공간 확보 wrapper) */}
       <div className="main-wrapper">
         <main style={{ flexGrow: 1 }}>
-          {renderPage()}
+          <Routes>
+            <Route path="/" element={<HomePage {...authProps} />} />
+            <Route path="/facility" element={<FacilityPage {...authProps} />} />
+            <Route path="/counseling" element={<CounselingPage {...authProps} />} />
+            <Route path="/digital-estate" element={<DigitalEstatePage {...authProps} />} />
+            <Route path="/ending-note" element={<EndingNotePage {...authProps} />} />
+            <Route path="/care-guide" element={<CareGuidePage {...authProps} />} />
+            <Route
+              path="/mypage"
+              element={<MyPage {...authProps} onOpenAccountSettings={() => { setMyPageMessage(null); setIsMyPageOpen(true); }} />}
+            />
+            {/* B2C 소셜 로그인과 무관한 별도 포털 — Header/Sidebar 메뉴에는 올리지 않고 Footer 링크로만 접근 */}
+            <Route path="/partner" element={<PartnerPortalPage />} />
+            {/* 운영자 전용 — 어디에도 링크 노출 안 함, 직접 URL(/admin)로만 접근 */}
+            <Route path="/admin" element={<AdminPage />} />
+            {/* 알 수 없는 경로는 전부 홈으로 (기존 switch의 default 분기와 동일 동작) */}
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
         </main>
 
         {/* 1-Touch 긴급 상담 플로팅 버튼 */}
@@ -278,6 +246,14 @@ export function App() {
         initialMessage={myPageMessage}
       />
     </div>
+  );
+}
+
+export function App() {
+  return (
+    <BrowserRouter>
+      <AppShell />
+    </BrowserRouter>
   );
 }
 

@@ -5,6 +5,7 @@ import { KakaoMapModal } from '../components/KakaoMapModal';
 import { InquiryModal } from '../components/facility/InquiryModal';
 import { FacilityReviewModal } from '../components/facility/FacilityReviewModal';
 import { HouseLeafIcon } from '../components/MenuIcons';
+import { TAG_CATALOG, isFilterableTag } from '../components/facility/tagCatalog';
 
 interface FacilityPageProps {
   currentUser?: string | null;
@@ -38,13 +39,15 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
   const [isSearchingLocation, setIsSearchingLocation] = useState(false);
   const [locationError, setLocationError] = useState<string | null>(null);
 
-  // 필터 상태 — 구분만 남음 (예산/종교/하객수/지역 대분류 삭제, 2026-08-10)
+  // 필터 상태 — 구분(예산/종교/하객수/지역 대분류 삭제, 2026-08-10) + 태그(운영주체 등, 2026-08-10 추가)
   const [category, setCategory] = useState('전체');
+  const [selectedTag, setSelectedTag] = useState<string | null>(null);
 
   // 필터/페이지 변경 시 서버에 조건 그대로 위임해서 재조회
   useEffect(() => {
     const params = new URLSearchParams();
     if (category !== '전체') params.set('category', category);
+    if (selectedTag) params.set('tag', selectedTag);
     if (userLocation) {
       params.set('lat', String(userLocation.lat));
       params.set('lng', String(userLocation.lng));
@@ -65,10 +68,16 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
         // 조회 실패 시 빈 목록으로 유지 (필터 UI는 정상 노출)
       });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [category, userLocation, page]);
+  }, [category, selectedTag, userLocation, page]);
 
   const handleCategoryChange = (value: string) => {
     setCategory(value);
+    setPage(1);
+  };
+
+  // 카드의 태그를 클릭하면 그 태그로 필터, 이미 선택된 태그를 다시 누르면 해제(토글)
+  const handleTagClick = (tag: string) => {
+    setSelectedTag((prev) => (prev === tag ? null : tag));
     setPage(1);
   };
 
@@ -269,6 +278,29 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
             <option value="묘지/수목장">묘지/봉안당/수목장</option>
           </select>
         </div>
+
+        {/* 카드의 #태그를 클릭하면 여기 활성 필터로 표시됨 — 클릭해서 해제 가능 */}
+        {selectedTag && (
+          <div style={{ flex: '0 0 auto' }}>
+            <label className="form-label">태그 필터</label>
+            <button
+              onClick={() => handleTagClick(selectedTag)}
+              className="btn"
+              style={{
+                backgroundColor: 'var(--point-color)',
+                color: '#fff',
+                padding: '0.5rem 0.9rem',
+                borderRadius: '8px',
+                fontSize: '0.85rem',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.3rem',
+              }}
+            >
+              #{TAG_CATALOG[selectedTag]?.label ?? selectedTag} ✕
+            </button>
+          </div>
+        )}
       </div>
 
       {/* 시설 카드 목록 */}
@@ -337,13 +369,32 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
                 <span style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--point-color)' }}>{item.price}</span>
               </div>
 
-              {/* 태그 목록 */}
+              {/* 태그 목록 — TAG_CATALOG에 등록된 값(예: 공설/사설)만 클릭 가능한 필터, 나머지는 그냥 라벨 */}
               <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap', marginBottom: '1.2rem' }}>
-                {item.tags.map((tag: string, idx: number) => (
-                  <span key={idx} style={{ fontSize: '0.75rem', backgroundColor: '#EAE5DC', padding: '0.2rem 0.5rem', borderRadius: '4px', color: '#444' }}>
-                    #{tag}
-                  </span>
-                ))}
+                {item.tags.map((tag: string, idx: number) =>
+                  isFilterableTag(tag) ? (
+                    <button
+                      key={idx}
+                      onClick={() => handleTagClick(tag)}
+                      title={`"${TAG_CATALOG[tag].label}" 태그로 필터`}
+                      style={{
+                        fontSize: '0.75rem',
+                        backgroundColor: selectedTag === tag ? 'var(--point-color)' : '#EAE5DC',
+                        color: selectedTag === tag ? '#fff' : '#444',
+                        padding: '0.2rem 0.5rem',
+                        borderRadius: '4px',
+                        border: 'none',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      #{TAG_CATALOG[tag].label}
+                    </button>
+                  ) : (
+                    <span key={idx} style={{ fontSize: '0.75rem', backgroundColor: '#EAE5DC', padding: '0.2rem 0.5rem', borderRadius: '4px', color: '#444' }}>
+                      #{tag}
+                    </span>
+                  )
+                )}
               </div>
 
               {/* 액션 버튼 그룹 — 전화 직통·견적비교·답사예약 삭제(2026-08-10), 업체 문의로 대체 */}

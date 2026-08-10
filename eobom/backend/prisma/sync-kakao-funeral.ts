@@ -1,5 +1,6 @@
 import 'dotenv/config';
 import prisma from '../src/config/prisma';
+import { normalizeAddressProvince } from '../src/utils/address';
 
 const KAKAO_KEY = process.env.KAKAO_CLIENT_ID;
 const REGIONS = [
@@ -65,12 +66,13 @@ async function main() {
   let created = 0;
   let updated = 0;
   for (const doc of seen.values()) {
+    const location = normalizeAddressProvince(doc.road_address_name || doc.address_name);
     const existing = await prisma.facility.findUnique({ where: { kakaoPlaceId: doc.id } });
     await prisma.facility.upsert({
       where: { kakaoPlaceId: doc.id },
       update: {
         name: doc.place_name,
-        location: doc.road_address_name || doc.address_name,
+        location,
         lat: Number(doc.y),
         lng: Number(doc.x),
         phone: doc.phone || null,
@@ -80,7 +82,7 @@ async function main() {
         kakaoPlaceId: doc.id,
         name: doc.place_name,
         type: '장례식장',
-        location: doc.road_address_name || doc.address_name,
+        location,
         lat: Number(doc.y),
         lng: Number(doc.x),
         phone: doc.phone || null,
