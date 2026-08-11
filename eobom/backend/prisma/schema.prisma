@@ -26,7 +26,7 @@ model User {
 // 소셜 로그인 계정 (User 1:N) — 카카오/네이버/구글 연동 정보, 1인 다계정 연동 지원
 model SocialAccount {
   id         String    @id @default(uuid()) // 고유 식별자(UUID)
-  userId     String // FK → User.id
+  userId     String // 이 소셜 계정이 연동된 User
   user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   provider   String // 'KAKAO', 'NAVER', 'GOOGLE'
   providerId String // 각 소셜 제공자의 고유 식별자 ID
@@ -53,9 +53,9 @@ model Facility {
   rating         Float    @default(0.0) // 초기 시딩값(공시 만족도 기준) — 리뷰 5건 미만일 때 노출값으로 사용
   religion       String // 수용 가능 종교 (예: '전체 종교')
   guests         String // 수용 가능 하객 규모 (예: '100~300명')
-  // isPartner: 파생 캐시 컬럼 — 정본은 partnerId. 클레임 승인/해지 트랜잭션 안에서만 갱신한다(docs 16 §3.4).
-  isPartner      Boolean  @default(false) // 제휴(클레임 승인된) 시설 여부 — partnerId의 파생 캐시
-  partnerId      String? // FK → Partner.id (클레임 승인된 사업자, 없으면 비제휴)
+  // 파생 캐시 컬럼 — 정본은 partnerId. 클레임 승인/해지 트랜잭션 안에서만 갱신한다(docs 16 §3.4).
+  isPartner      Boolean  @default(false) // 제휴(클레임 승인된) 시설 여부
+  partnerId      String? // 클레임 승인된 사업자 (없으면 비제휴)
   partner        Partner? @relation(fields: [partnerId], references: [id])
   tags           String[] @default([]) // 표시용 태그 배열 — 분류 가능한 값(공설/사설 등)만 frontend TAG_CATALOG로 필터링됨(docs 01/19)
   amenities      String[] @default([]) // 부대시설 목록 (예: 식당/매점/주차장/유족대기실/장애인편의시설)
@@ -76,9 +76,9 @@ model Facility {
 // 시설 리뷰
 model FacilityReview {
   id         String   @id @default(uuid()) // 고유 식별자(UUID)
-  facilityId String // FK → Facility.id
+  facilityId String // 리뷰 대상 시설
   facility   Facility @relation(fields: [facilityId], references: [id], onDelete: Cascade)
-  userId     String // FK → User.id
+  userId     String // 리뷰 작성자
   user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   rating     Float // 별점 (1~5)
   content    String // 리뷰 본문
@@ -90,9 +90,9 @@ model FacilityReview {
 // 답사 예약
 model FacilityBooking {
   id           String   @id @default(uuid()) // 고유 식별자(UUID)
-  facilityId   String // FK → Facility.id
+  facilityId   String // 예약 대상 시설
   facility     Facility @relation(fields: [facilityId], references: [id], onDelete: Cascade)
-  userId       String // FK → User.id
+  userId       String // 예약 신청자
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   bookingDate  DateTime // 예약 희망 날짜
   bookingTime  String // 예약 희망 시간
@@ -144,9 +144,9 @@ model Partner {
 // 시설 소유권 클레임 (§3.3) — 신청/심사 API는 이번 범위(0~3단계) 밖, 스키마만 선반영
 model FacilityClaim {
   id         String   @id @default(uuid()) // 고유 식별자(UUID)
-  partnerId  String // FK → Partner.id
+  partnerId  String // 클레임을 신청한 사업자
   partner    Partner  @relation(fields: [partnerId], references: [id], onDelete: Cascade)
-  facilityId String // FK → Facility.id
+  facilityId String // 클레임 대상 시설
   facility   Facility @relation(fields: [facilityId], references: [id], onDelete: Cascade)
 
   status      String    @default("PENDING") // PENDING | APPROVED | REJECTED
@@ -173,7 +173,7 @@ model Lead {
   leadNo String @unique // EB-260810-0001 (표시·대조용, 불변, §4.2)
   type   String // QUOTE | BOOKING | CONSULT | CALL (§4.1)
 
-  facilityId String // FK → Facility.id
+  facilityId String // 리드가 발생한 시설
   facility   Facility @relation(fields: [facilityId], references: [id])
   partnerId  String? // 발생 시점 귀속 파트너 (없으면 비제휴)
   partner    Partner? @relation(fields: [partnerId], references: [id])
@@ -198,7 +198,7 @@ model Lead {
   billedAmount       Int? // 청구 금액 스냅샷 (§8.2)
   commissionPolicyId String? // 어느 요율로 계산했는지 (분쟁 시 유일한 증거)
   commissionPolicy   CommissionPolicy? @relation(fields: [commissionPolicyId], references: [id])
-  settlementId       String? // FK → Settlement.id (정산에 포함된 이후 채워짐)
+  settlementId       String? // 정산에 포함된 이후 채워짐
   settlement         Settlement?       @relation(fields: [settlementId], references: [id])
   disputeReason      String? // 정산 이의제기 사유
 
@@ -236,7 +236,7 @@ model CommissionPolicy {
 // 월 정산 (§8.1) — 발행/이의제기 API는 이번 범위 밖, 스키마만 선반영
 model Settlement {
   id        String    @id @default(uuid()) // 고유 식별자(UUID)
-  partnerId String // FK → Partner.id
+  partnerId String // 정산 대상 사업자
   partner   Partner   @relation(fields: [partnerId], references: [id])
   periodYm  String // '2026-08'
   leadCount Int // 정산 대상 리드 건수
