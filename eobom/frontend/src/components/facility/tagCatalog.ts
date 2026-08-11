@@ -8,7 +8,7 @@
 //
 // 새 카테고리를 추가하려면: (1) 여기 항목만 추가하면 된다. 백엔드 facilityController.ts의
 // buildWhere가 이미 범용 `tag` 쿼리파라미터(Prisma `tags: { has }`)를 쓰므로 백엔드 수정은
-// 보통 필요 없다. 상세 배경·확장 가이드는 docs/01_장례_묘지_매칭/19 참고.
+// 보통 필요 없다. 상세 배경·확장 가이드는 docs/01_장사시설_매칭/01-06 참고.
 export interface TagDefinition {
   category: string; // 카테고리명 — 여러 태그를 묶어 보여줄 때 그룹 라벨로 쓴다
   label: string; // 화면 표시 라벨 (지금은 원본 값과 동일하지만, 원본 값이 바뀌어도 화면 문구는 유지하고 싶을 때 분리해서 쓴다)

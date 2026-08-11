@@ -25,7 +25,7 @@ export const PROVIDER_LABELS: Record<string, string> = {
 
 export const providerLabel = (provider: string): string => PROVIDER_LABELS[provider.toUpperCase()] || provider;
 
-// 프론트 전용 UI 정책 상수 — docs/01_장례_묘지_매칭/16_...명세서.md §12.5.
+// 프론트 전용 UI 정책 상수 — docs/01_장사시설_매칭/01-05_...명세서.md §12.5.
 // 백엔드 정책(POLICY, backend/src/config/policy.ts)과 같은 원칙(값을 컴포넌트에 직접 쓰지 않는다)을
 // 따르되, 순수 클라이언트 동작이라 백엔드로 옮기거나 API로 내려받지 않는다.
 // 위치 확인 실패 시 대체 좌표(서울 서초) — 2026-08-07 "위치가 잘못 뜬다" 버그의 원인이었던 값.

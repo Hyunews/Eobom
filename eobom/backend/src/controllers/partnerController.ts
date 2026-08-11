@@ -6,7 +6,7 @@ import prisma from '../config/prisma';
 import { encryptField, decryptField } from '../utils/crypto';
 import { normalizePhone, isValidPhoneLength, MIN_PHONE_DIGITS, MAX_PHONE_DIGITS } from '../utils/phone';
 
-// 사업자(Partner) 인증 — B2C User와 완전히 분리된 토큰 체계 (docs 16 §3, §6.1, §6.4)
+// 사업자(Partner) 인증 — B2C User와 완전히 분리된 토큰 체계 (docs 01-05 §3, §6.1, §6.4)
 // aud: 'partner' 클레임으로 B2C 토큰과 교차 사용을 막는다. B2C authController.ts와 시크릿은
 // 공유하되(별도 키를 새로 관리하는 비용을 피함) payload 목적으로 구분한다.
 
@@ -62,7 +62,7 @@ const PARTNER_STATUS_MESSAGE: Record<string, string> = {
   SUSPENDED: '이용이 정지된 계정입니다. 고객센터로 문의해주세요.',
 };
 
-// 가입 신청 (`POST /api/partner/signup`) — 승인 전까지 로그인 불가 (docs 16 §3.2)
+// 가입 신청 (`POST /api/partner/signup`) — 승인 전까지 로그인 불가 (docs 01-05 §3.2)
 export const signup = async (req: Request, res: Response) => {
   const {
     email,

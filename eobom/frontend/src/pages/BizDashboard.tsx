@@ -4,7 +4,7 @@ import { BACKEND_URL, formatPhoneForDisplay } from '../config';
 
 // 로그인 후 화면 — 장사시설은 "내 시설" + 검색/클레임 신청, 전문가는 내 프로필/승인 상태만 보여준다.
 // 전문가는 Facility 같은 사전 마스터 데이터가 없어 "클레임"이라는 별도 연동 절차가 없다 —
-// 가입 승인 자체가 곧 프로필 공개다(docs 17 §4).
+// 가입 승인 자체가 곧 프로필 공개다(docs 02-02 §4).
 
 type AccountType = 'FACILITY' | 'EXPERT';
 

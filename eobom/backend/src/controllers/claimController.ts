@@ -4,7 +4,7 @@ import { verifyPartnerBearerToken } from './partnerController';
 import { verifyAdminBearerToken } from './adminController';
 
 // 시설 소유권 클레임 — 사업자(Partner)가 자기 시설을 "이게 제 시설입니다"라고 신청하고,
-// 운영자가 심사해서 승인하면 Facility.partnerId가 채워진다 (docs 16 §3.3, §3.4).
+// 운영자가 심사해서 승인하면 Facility.partnerId가 채워진다 (docs 01-05 §3.3, §3.4).
 // isPartner는 파생 캐시라 승인/반려 트랜잭션 안에서만 같이 갱신한다 — 동기화 지점을 한 곳으로 제한.
 
 // 클레임 신청 (`POST /api/partner/claims`)

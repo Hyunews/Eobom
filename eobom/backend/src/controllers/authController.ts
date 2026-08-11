@@ -68,7 +68,7 @@ export const resolveFrontendUrl = (state: unknown): string => {
 };
 
 // 헬퍼: Authorization 헤더의 Bearer 토큰 검증 (실패 시 null)
-// aud(대상) 클레임으로 B2C ↔ 사업자(Partner) 토큰 교차 사용을 막는다(docs 16 §6.4).
+// aud(대상) 클레임으로 B2C ↔ 사업자(Partner) 토큰 교차 사용을 막는다(docs 01-05 §6.4).
 // aud가 없는 토큰(이 필드 도입 전에 발급된 것)은 레거시로 간주해 그대로 허용 — 아직 파트너 토큰이
 // 존재하지 않던 시절 발급분이라 'partner'로 위조될 수 없었기 때문에 안전하다.
 export const verifyBearerToken = (req: Request): (jwt.JwtPayload & { id: string }) | null => {
@@ -369,7 +369,7 @@ export const demoLogin = (req: Request, res: Response) => {
   const { provider } = req.body; // 'KAKAO' | 'NAVER' | 'GOOGLE' | 'ADMIN'
 
   // ADMIN 데모 로그인은 개발용 뒷문이다 — 실서비스에서 살아있으면 누구나 role=ADMIN 토큰을
-  // 발급받을 수 있다(docs 16 §6.4, §11 "구현 시 반드시 지킬 것" 3항). 배포 시 수동으로
+  // 발급받을 수 있다(docs 01-05 §6.4, §11 "구현 시 반드시 지킬 것" 3항). 배포 시 수동으로
   // 지우는 대신, 프로덕션 환경에서는 구조적으로 막아 사람이 잊어도 안전하도록 한다.
   if (provider === 'ADMIN' && process.env.NODE_ENV === 'production') {
     return res.status(403).json({ status: 'error', message: '허용되지 않는 요청입니다.' });

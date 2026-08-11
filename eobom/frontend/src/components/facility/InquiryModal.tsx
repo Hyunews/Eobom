@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { X, Send, ShieldCheck } from 'lucide-react';
 import { BACKEND_URL } from '../../config';
 
-// 업체 문의 — 전화번호 노출 대신 이 폼을 통해서만 시설에 문의한다(docs 16 §9: 전화 문의는
+// 업체 문의 — 전화번호 노출 대신 이 폼을 통해서만 시설에 문의한다(docs 01-05 §9: 전화 문의는
 // 수수료 청구 근거로 증명 불가, 견적요청 폼으로 유도). 기존 POST /api/facilities/:id/quotes
 // (Lead type=QUOTE)에 그대로 연결 — leadNo가 사용자가 말한 "라벨링"에 해당한다.
 

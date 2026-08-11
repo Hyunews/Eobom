@@ -1,7 +1,7 @@
 import crypto from 'crypto';
 
 // 정산 계좌 등 "저장은 해야 하지만 평문으로 두면 안 되는" 필드용 AES-256-GCM 암호화.
-// docs/01_장례_묘지_매칭/16_...명세서.md §7.4, .harness/security.md §1(평문 금지) 근거.
+// docs/01_장사시설_매칭/01-05_...명세서.md §7.4, .harness/security.md §1(평문 금지) 근거.
 // 키는 시크릿이므로 .env에서만 읽는다 — policy.ts(git 커밋)에 두지 않는다.
 
 const ALGORITHM = 'aes-256-gcm';

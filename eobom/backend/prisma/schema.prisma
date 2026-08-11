@@ -18,7 +18,7 @@ model User {
   accounts         SocialAccount[] // 연동된 소셜 계정 목록
   facilityReviews  FacilityReview[] // 이 유저가 작성한 시설 리뷰 목록
   facilityBookings FacilityBooking[] // 이 유저의 답사 예약 목록
-  leads            Lead[] // docs/01_.../16 — 이 유저가 남긴 문의/견적요청/답사예약 리드
+  leads            Lead[] // docs/01_.../01-05 — 이 유저가 남긴 문의/견적요청/답사예약 리드
   createdAt        DateTime          @default(now()) // 가입 일시
   updatedAt        DateTime          @updatedAt // 최종 수정 일시
 }
@@ -53,11 +53,11 @@ model Facility {
   rating         Float    @default(0.0) // 초기 시딩값(공시 만족도 기준) — 리뷰 5건 미만일 때 노출값으로 사용
   religion       String // 수용 가능 종교 (예: '전체 종교')
   guests         String // 수용 가능 하객 규모 (예: '100~300명')
-  // 파생 캐시 컬럼 — 정본은 partnerId. 클레임 승인/해지 트랜잭션 안에서만 갱신한다(docs 16 §3.4).
+  // 파생 캐시 컬럼 — 정본은 partnerId. 클레임 승인/해지 트랜잭션 안에서만 갱신한다(docs 01-05 §3.4).
   isPartner      Boolean  @default(false) // 제휴(클레임 승인된) 시설 여부
   partnerId      String? // 클레임 승인된 사업자 (없으면 비제휴)
   partner        Partner? @relation(fields: [partnerId], references: [id])
-  tags           String[] @default([]) // 표시용 태그 배열 — 분류 가능한 값(공설/사설 등)만 frontend TAG_CATALOG로 필터링됨(docs 01/19)
+  tags           String[] @default([]) // 표시용 태그 배열 — 분류 가능한 값(공설/사설 등)만 frontend TAG_CATALOG로 필터링됨(docs 01-06)
   amenities      String[] @default([]) // 부대시설 목록 (예: 식당/매점/주차장/유족대기실/장애인편의시설)
   vrImages       Json? // VR 뷰어용 이미지 메타데이터 배열
   images         String[] @default([]) // 파트너가 BizDashboard에서 업로드한 시설 사진 URL 목록 (2026-08-10)
@@ -104,7 +104,7 @@ model FacilityBooking {
 
 // ─────────────────────────────────────────────────────────────────
 // 장사시설 사업자 회원 + 리드 수수료 정산 인프라
-// docs/01_장례_묘지_매칭/16_장사시설_사업자회원_및_리드_수수료_정산_명세서.md
+// docs/01_장사시설_매칭/01-05_장사시설_사업자회원_및_리드_수수료_정산_명세서.md
 // 2026-08-10 대표 지시 기반. §는 위 문서의 섹션 번호를 가리킨다.
 // ─────────────────────────────────────────────────────────────────
 
@@ -252,7 +252,7 @@ model Settlement {
 
 // ─────────────────────────────────────────────────────────────────
 // 전문가(변호사·세무사·행정사·장례지도사) 계정 체계 — Partner(장사시설)와 완전 분리.
-// docs/04_상속세_전문가상담/17_전문가_계정_체계_구현_메모.md 참고.
+// docs/02_전문가_매칭/02-02_전문가_계정_체계_구현_메모.md 참고.
 // 의도적으로 Lead/CommissionPolicy 관계를 만들지 않는다 — 변호사법 제34조 때문에
 // 직역별 수수료 구조가 갈라져 있어(같은 문서 §2), Partner의 리드 구조를 그대로
 // 재사용하면 변호사만 예외 처리해야 해서 스키마가 오염된다.
@@ -263,7 +263,7 @@ model Expert {
   passwordHash     String // bcrypt 해시 (평문 저장 금지)
   refreshTokenHash String? // Partner와 동일한 회전 방식(sha256 해시)
 
-  category      String // LAWYER | TAX_ACCOUNTANT | ADMINISTRATIVE_SCRIVENER | FUNERAL_DIRECTOR (docs 15 §2)
+  category      String // LAWYER | TAX_ACCOUNTANT | ADMINISTRATIVE_SCRIVENER | FUNERAL_DIRECTOR (docs 02-01 §2)
   name          String // 전문가 본인 성명
   licenseNo     String // 자격증·등록번호 (사업자등록번호 아님 — 변호사/세무사 등록번호 등)
   licenseOrg    String? // 등록 기관 (대한변호사협회, 한국세무사회 등)

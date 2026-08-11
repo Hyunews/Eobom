@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // generate-db-doc.js — schema.prisma + prisma/migrations를 읽어
-// docs/00_핵심플랫폼/05_DB_요구사항_및_테이블_사전.md의 "자동 생성" 구간만 갱신한다.
+// docs/00_핵심플랫폼/00-05_DB_요구사항_및_테이블_사전.md의 "자동 생성" 구간만 갱신한다.
 // 그 아래 "보충 설명" 구간은 사람이 손으로 관리하며 이 스크립트가 건드리지 않는다.
 //
 // 실행: node .harness/tools/generate-db-doc.js
@@ -16,7 +16,7 @@ const ROOT = path.resolve(__dirname, '..', '..');
 const BACKEND_PRISMA_DIR = path.join(ROOT, 'eobom', 'backend', 'prisma');
 const SCHEMA_PATH = path.join(BACKEND_PRISMA_DIR, 'schema.prisma');
 const MIGRATIONS_DIR = path.join(BACKEND_PRISMA_DIR, 'migrations');
-const DOC_PATH = path.join(ROOT, 'docs', '00_핵심플랫폼', '05_DB_요구사항_및_테이블_사전.md');
+const DOC_PATH = path.join(ROOT, 'docs', '00_핵심플랫폼', '00-05_DB_요구사항_및_테이블_사전.md');
 
 const BEGIN_MARKER = '<!-- AUTO-GENERATED:BEGIN (generate-db-doc.js — 직접 수정 금지, schema.prisma를 고치고 스크립트를 재실행할 것) -->';
 const END_MARKER = '<!-- AUTO-GENERATED:END -->';

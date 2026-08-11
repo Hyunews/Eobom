@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>🌿 이어봄 (Eobom) 프로젝트 시각화 스펙 & 보고서 통합 포털</title>
+  <title>🌿 이어봄 (Eobom) 프로젝트 시각화 스펙 &amp; 보고서 통합 포털</title>
   <link rel="stylesheet" href="style.css">
   <style>
     .domain-section { margin-bottom: 40px; }
@@ -11,10 +11,12 @@
     .report-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; }
     .report-card { background: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); transition: transform 0.2s, box-shadow 0.2s; }
     .report-card:hover { transform: translateY(-4px); box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); border-color: #3b82f6; }
+    .report-card.pending { background: #f8fafc; border-style: dashed; }
     .report-card h4 { margin: 0 0 10px 0; color: #0f172a; font-size: 1.1rem; }
     .report-card p { color: #64748b; font-size: 0.9rem; margin-bottom: 15px; line-height: 1.5; }
     .report-link { display: inline-block; background: #1A2B4C; color: white; text-decoration: none; padding: 8px 16px; border-radius: 6px; font-size: 0.85rem; font-weight: bold; }
     .report-link:hover { background: #D4A359; }
+    .report-link.disabled { background: #94a3b8; cursor: not-allowed; }
     .badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; background: #e2e8f0; color: #475569; margin-left: 8px; }
   </style>
 </head>
@@ -22,118 +24,187 @@
   <header>
     <div class="header-container">
       <h1>🌿 이어봄 (Eobom) 시각화 보고서 통합 포털</h1>
-      <p>Digital Ending & Well-Dying Total Care Platform | Enterprise Specification Portal</p>
+      <p>Digital Ending &amp; Well-Dying Total Care Platform | Enterprise Specification Portal</p>
     </div>
   </header>
 
   <main class="container">
-    <!-- 00. 핵심 플랫폼 -->
+    <!-- 00. 공통 플랫폼 & 코어 기반 -->
     <section class="domain-section">
       <div class="domain-title">
-        <span>🌿 00. 공통 플랫폼 & 코어 기반 (`00_핵심플랫폼/`)</span>
-        <span class="badge">9종 기획 명세</span>
+        <span>🌿 00. 공통 플랫폼 &amp; 코어 기반 (`00_핵심플랫폼/`)</span>
+        <span class="badge">10종 명세 및 구현 메모</span>
       </div>
       <div class="report-grid">
         <div class="report-card">
-          <h4>01. 신규 6대 기획 아이디어 및 로드맵</h4>
+          <h4>00-01. 신규 6대 기획 아이디어 및 로드맵</h4>
           <p>상황별 위저드, LBS 지도 뷰, 웰다잉 타임라인 등 핵심 6대 기능 아이디어 시각화</p>
-          <a href="00_핵심플랫폼/01_이어봄_신규_6대_기획_아이디어_및_로드맵.html" class="report-link">보고서 열람 ➔</a>
+          <a href="00_핵심플랫폼/00-01_이어봄_신규_6대_기획_아이디어_및_로드맵.html" class="report-link">보고서 열람 ➔</a>
         </div>
 
         <div class="report-card">
-          <h4>02. 서비스 개요 및 세부 기획서</h4>
+          <h4>00-02. 서비스 개요 및 세부 기획서</h4>
           <p>K-Ending 비전, 6070 시니어 및 3040 자녀 페르소나, 5대 IA 서비스 명세</p>
-          <a href="00_핵심플랫폼/02_이어봄_서비스_개요_및_기획서.html" class="report-link">보고서 열람 ➔</a>
+          <a href="00_핵심플랫폼/00-02_이어봄_서비스_개요_및_기획서.html" class="report-link">보고서 열람 ➔</a>
         </div>
 
         <div class="report-card">
-          <h4>03. 시스템 아키텍처 및 흐름도</h4>
+          <h4>00-03. 시스템 아키텍처 및 흐름도</h4>
           <p>React/Vite + Express + PostgreSQL + AES-256 Vault 전체 흐름도 시각화</p>
-          <a href="00_핵심플랫폼/03_이어봄_시스템_아키텍처_및_흐름도.html" class="report-link">보고서 열람 ➔</a>
+          <a href="00_핵심플랫폼/00-03_이어봄_시스템_아키텍처_및_흐름도.html" class="report-link">보고서 열람 ➔</a>
         </div>
 
         <div class="report-card">
-          <h4>04. 기능 및 API 명세서</h4>
+          <h4>00-04. 기능 및 API 명세서</h4>
           <p>5대 서비스 도메인 RESTful API 엔드포인트 및 JSON 데이터 규격</p>
-          <a href="00_핵심플랫폼/04_이어봄_기능_및_API_명세서.html" class="report-link">보고서 열람 ➔</a>
+          <a href="00_핵심플랫폼/00-04_이어봄_기능_및_API_명세서.html" class="report-link">보고서 열람 ➔</a>
         </div>
 
         <div class="report-card">
-          <h4>05. DB 요구사항 및 테이블 사전</h4>
-          <p>10개 핵심 데이터베이스 테이블(users, facilities, wills 등) 스키마 상세 사전</p>
-          <a href="00_핵심플랫폼/05_이어봄_DB_요구사항_및_테이블_사전.html" class="report-link">보고서 열람 ➔</a>
+          <h4>00-05. DB 요구사항 및 테이블 사전</h4>
+          <p>13개 데이터베이스 테이블·물리 컬럼 146개 전수 사전 (schema.prisma 주석 자동 추출)</p>
+          <a href="00_핵심플랫폼/00-05_이어봄_DB_요구사항_및_테이블_사전.html" class="report-link">보고서 열람 ➔</a>
         </div>
 
         <div class="report-card">
-          <h4>06. 화면 설계서 및 와이어프레임</h4>
+          <h4>00-06. 화면 설계서 및 와이어프레임</h4>
           <p>SCR-001 ~ SCR-015 화면 UI 목록 및 접근성 디자인 가이드 시각화</p>
-          <a href="00_핵심플랫폼/06_이어봄_화면_설계서_및_와이어프레임.html" class="report-link">보고서 열람 ➔</a>
+          <a href="00_핵심플랫폼/00-06_이어봄_화면_설계서_및_와이어프레임.html" class="report-link">보고서 열람 ➔</a>
         </div>
 
         <div class="report-card">
-          <h4>08. 구현 난관 및 기술 솔루션</h4>
+          <h4>00-07. 구현 난관 및 기술 솔루션</h4>
           <p>mkcert 로컬 HTTPS, LBS 우회, PostgreSQL 5433 포트 등 4대 기술 해결책</p>
-          <a href="00_핵심플랫폼/08_이어봄_구현_난관_및_기술_솔루션.html" class="report-link">보고서 열람 ➔</a>
+          <a href="00_핵심플랫폼/00-07_이어봄_구현_난관_및_기술_솔루션.html" class="report-link">보고서 열람 ➔</a>
         </div>
 
         <div class="report-card">
-          <h4>09. 소셜로그인 및 계정통합 명세서</h4>
+          <h4>00-08. 소셜로그인 및 계정통합 명세서</h4>
           <p>카카오/네이버/구글 3사 OAuth 2.0 및 User 1:N SocialAccount 계정 통합 흐름</p>
-          <a href="00_핵심플랫폼/09_이어봄_소셜로그인_및_계정통합_명세서.html" class="report-link">보고서 열람 ➔</a>
+          <a href="00_핵심플랫폼/00-08_이어봄_소셜로그인_및_계정통합_명세서.html" class="report-link">보고서 열람 ➔</a>
         </div>
 
         <div class="report-card">
-          <h4>11. 디자인 시스템 및 스타일 가이드</h4>
+          <h4>00-09. 디자인 시스템 및 스타일 가이드</h4>
           <p>브랜드 3대 핵심 컬러 토큰(#1A2B4C, #5B7065, #D4A359), 폰트 및 모션 규격</p>
-          <a href="00_핵심플랫폼/11_이어봄_디자인_시스템_및_스타일_가이드.html" class="report-link">보고서 열람 ➔</a>
+          <a href="00_핵심플랫폼/00-09_이어봄_디자인_시스템_및_스타일_가이드.html" class="report-link">보고서 열람 ➔</a>
+        </div>
+
+        <div class="report-card">
+          <h4>00-10. URL 라우팅 — HistoryRouter 전환</h4>
+          <p>해시(#tab) 방식에서 react-router-dom BrowserRouter 기반 라우팅으로의 전환 구현 메모</p>
+          <a href="00_핵심플랫폼/00-10_이어봄_URL_라우팅_HistoryRouter_전환.html" class="report-link">보고서 열람 ➔</a>
         </div>
       </div>
     </section>
 
-    <!-- 01. 장례 묘지 매칭 -->
+    <!-- 01. 장사시설 매칭 -->
     <section class="domain-section">
       <div class="domain-title">
-        <span>🪦 01. Domain 01: 장례 · 묘지 매칭 (`01_장례_묘지_매칭/`)</span>
-        <span class="badge" style="background: #dbeafe; color: #1e40af;">4종 명세 및 검토서</span>
+        <span>🪦 01. Domain 01: 장사시설 매칭 (`01_장사시설_매칭/`)</span>
+        <span class="badge" style="background: #dbeafe; color: #1e40af;">6종 명세 및 기술 구현</span>
       </div>
       <div class="report-grid">
         <div class="report-card">
-          <h4>10. 장례 · 묘지 매칭 기능 명세서</h4>
-          <p>전국 1,500개 시설 하이브리드 노출, LBS 시/도 정렬, 5대 더미 데이터 검증</p>
-          <a href="01_장례_묘지_매칭/10_장례_묘지_매칭_기능_명세서.html" class="report-link">보고서 열람 ➔</a>
+          <h4>01-01. 장례 · 묘지 매칭 기능 명세서</h4>
+          <p>전국 1,552개 시설 하이브리드 노출, LBS 시/도 정렬, 5대 데이터 검증 전략</p>
+          <a href="01_장사시설_매칭/01-01_장례_묘지_매칭_기능_명세서.html" class="report-link">보고서 열람 ➔</a>
         </div>
 
         <div class="report-card">
-          <h4>12. 공공데이터 및 API 상업적 이용 법률 검토서</h4>
+          <h4>01-02. 공공데이터 및 API 상업적 이용 법률 검토서</h4>
           <p>e하늘 공공데이터 영리 이용 및 위치정보법 LBS 2단계 규제 대응 트랙</p>
-          <a href="01_장례_묘지_매칭/12_공공데이터_및_API_상업적_이용_법률_검토서.html" class="report-link">보고서 열람 ➔</a>
+          <a href="01_장사시설_매칭/01-02_공공데이터_및_API_상업적_이용_법률_검토서.html" class="report-link">보고서 열람 ➔</a>
         </div>
 
         <div class="report-card">
-          <h4>13. 장례 견적비교 데이터 한계 극복 3대 기획안</h4>
+          <h4>01-03. 장례 견적비교 데이터 한계 극복 3대 기획안</h4>
           <p>세부 단가 부재 극복을 위한 표준 시뮬레이터 및 파트너 차별화 PM 기획안</p>
-          <a href="01_장례_묘지_매칭/13_이어봄_장례_견적비교_데이터한계_극복_3대_기획안.html" class="report-link">보고서 열람 ➔</a>
+          <a href="01_장사시설_매칭/01-03_이어봄_장례_견적비교_데이터한계_극복_3대_기획안.html" class="report-link">보고서 열람 ➔</a>
         </div>
 
         <div class="report-card">
-          <h4>14. 답사예약 vs 직통전화 UX & 수익모델 검토서</h4>
+          <h4>01-04. 답사예약 vs 직통전화 UX &amp; 수익모델 검토서</h4>
           <p>인앱 답사예약 vs 직통전화(tel:) 투트랙 UX 및 B2B 리드 정산 검토서</p>
-          <a href="01_장례_묘지_매칭/14_이어봄_장례_답사예약_vs_직통전화_검토보고서.html" class="report-link">보고서 열람 ➔</a>
+          <a href="01_장사시설_매칭/01-04_이어봄_장례_답사예약_vs_직통전화_검토보고서.html" class="report-link">보고서 열람 ➔</a>
+        </div>
+
+        <div class="report-card">
+          <h4>01-05. 장사시설 사업자 회원 &amp; 리드 수수료 정산 명세서</h4>
+          <p>사업자 계정(Partner) 분리, 시설 소유권 클레임, 리드 로그 및 견적요청 번호, 월 정산 체계</p>
+          <a href="01_장사시설_매칭/01-05_이어봄_장사시설_사업자회원_및_리드_수수료_정산_명세서.html" class="report-link">보고서 열람 ➔</a>
+        </div>
+
+        <div class="report-card">
+          <h4>01-06. 시설 태그(#해시태그) 분류 체계 명세서</h4>
+          <p>화이트리스트(TAG_CATALOG) 기반 해시태그 클릭 필터화 및 확장 가이드</p>
+          <a href="01_장사시설_매칭/01-06_이어봄_시설_태그_분류_체계.html" class="report-link">보고서 열람 ➔</a>
         </div>
       </div>
     </section>
 
-    <!-- 04. 상속세 전문가상담 -->
+    <!-- 02. 전문가 매칭 -->
     <section class="domain-section">
       <div class="domain-title">
-        <span>💡 04. Domain 04: 상속 · 세무 케어 (`04_상속세_전문가상담/`)</span>
-        <span class="badge" style="background: #fef3c7; color: #92400e;">전문가 상담 명세</span>
+        <span>⚖️ 02. Domain 02: 전문가 매칭 — 상속 · 법률 케어 (`02_전문가_매칭/`)</span>
+        <span class="badge" style="background: #fef3c7; color: #92400e;">2종 명세 및 구현 메모</span>
       </div>
       <div class="report-grid">
         <div class="report-card">
-          <h4>15. 전문가상담 도메인 상업화 명세서</h4>
+          <h4>02-01. 전문가상담 도메인 상업화 명세서</h4>
           <p>상속 세무사·변호사·행정사 4대 영역, 4단계 수익화 및 변호사법 컴플라이언스</p>
-          <a href="04_상속세_전문가상담/15_이어봄_전문가상담_도메인_상업화_보고서.html" class="report-link">보고서 열람 ➔</a>
+          <a href="02_전문가_매칭/02-01_이어봄_전문가상담_도메인_상업화_보고서.html" class="report-link">보고서 열람 ➔</a>
+        </div>
+
+        <div class="report-card pending">
+          <h4>02-02. 전문가 계정 체계 구현 메모</h4>
+          <p>Expert 계정 체계(Partner와 분리), 법적 리스크 참고자료 (마크다운 문서 docs/02-02 보유)</p>
+          <span class="report-link disabled">시각화 대기 ⏳</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- 03. 디지털 유품 정리 · 추모관 -->
+    <section class="domain-section">
+      <div class="domain-title">
+        <span>📱 03. Domain 03: 디지털 유품 정리 · 추모관 (`03_디지털_유품_추모관/`)</span>
+        <span class="badge" style="background: #f1f5f9; color: #64748b;">준비 중</span>
+      </div>
+      <div class="report-grid">
+        <div class="report-card pending">
+          <h4>03. 디지털 유품 정리 및 온라인 추모관</h4>
+          <p>고인 디지털 계정 정산/삭제 대행, 현물 유품 정리 업체 매칭, 온라인 추모관 서비스 (인앱 전 기능 목업 가동 중)</p>
+          <span class="report-link disabled">기획 명세서 준비 중 ⏳</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- 04. 상중 · 행정 케어 -->
+    <section class="domain-section">
+      <div class="domain-title">
+        <span>🛡️ 04. Domain 04: 상중 · 행정 케어 (`04_상중_행정_케어/`)</span>
+        <span class="badge" style="background: #f1f5f9; color: #64748b;">준비 중</span>
+      </div>
+      <div class="report-grid">
+        <div class="report-card pending">
+          <h4>04. 사망 직후 D-Day 행정 가이드 &amp; 부고장</h4>
+          <p>사망 직후 D-Day 행정 체크리스트, 모바일 부고장 생성, 안심상속 원스톱 서비스 안내 (인앱 전 기능 목업 가동 중)</p>
+          <span class="report-link disabled">기획 명세서 준비 중 ⏳</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- 05. 디지털 엔딩노트 · 유언 -->
+    <section class="domain-section">
+      <div class="domain-title">
+        <span>📘 05. Domain 05: 디지털 엔딩노트 · 유언 (`05_엔딩노트_유언/`)</span>
+        <span class="badge" style="background: #f1f5f9; color: #64748b;">준비 중 (생전 전용)</span>
+      </div>
+      <div class="report-grid">
+        <div class="report-card pending">
+          <h4>05. AES-256 암호화 금고 &amp; 사후 메시지 발송</h4>
+          <p>생전 본인 작성 256-bit AES 암호화 금고, 연명의료 의향서, 유언 및 유족 전달 메시지 사후 자동 발송 (인앱 전 기능 목업 가동 중)</p>
+          <span class="report-link disabled">기획 명세서 준비 중 ⏳</span>
         </div>
       </div>
     </section>
@@ -141,14 +212,14 @@
     <!-- 06. 비즈니스 분석 -->
     <section class="domain-section">
       <div class="domain-title">
-        <span>📊 06. 비즈니스 & 경쟁사 분석 (`06_비즈니스_분석/`)</span>
+        <span>📊 06. 비즈니스 &amp; 경쟁사 분석 (`06_비즈니스_분석/`)</span>
         <span class="badge">경쟁 분석</span>
       </div>
       <div class="report-grid">
         <div class="report-card">
-          <h4>07. 경쟁 서비스 분석 보고서</h4>
-          <p>국내 상조 4사 및 디지털 엔딩노트 앱 비교 분석 & 이어봄 5대 융합 차별화 전략</p>
-          <a href="06_비즈니스_분석/07_이어봄_경쟁_서비스_분석_보고서.html" class="report-link">보고서 열람 ➔</a>
+          <h4>06-01. 경쟁 서비스 분석 보고서</h4>
+          <p>국내 상조 4사 및 디지털 엔딩노트 앱 비교 분석 &amp; 이어봄 5대 융합 차별화 전략</p>
+          <a href="06_비즈니스_분석/06-01_이어봄_경쟁_서비스_분석_보고서.html" class="report-link">보고서 열람 ➔</a>
         </div>
       </div>
     </section>
@@ -167,9 +238,9 @@
         </div>
 
         <div class="report-card">
-          <h4>디지털 엔딩 & 웰다잉 토탈 케어 플랫폼 보고서 (PDF)</h4>
+          <h4>디지털 엔딩 &amp; 웰다잉 토탈 케어 플랫폼 보고서 (PDF)</h4>
           <p>이어봄 플랫폼 전체 비전 및 사업 계획 요약 PDF 리포트</p>
-          <a href="대외_제출용_보고서/디지털 엔딩 & 웰다잉(Well-Dying) 토탈 케어 정보 플랫폼.pdf" class="report-link" target="_blank">PDF 다운로드 📄</a>
+          <a href="대외_제출용_보고서/디지털 엔딩 &amp; 웰다잉(Well-Dying) 토탈 케어 정보 플랫폼.pdf" class="report-link" target="_blank">PDF 다운로드 📄</a>
         </div>
       </div>
     </section>

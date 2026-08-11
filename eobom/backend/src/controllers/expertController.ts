@@ -7,7 +7,7 @@ import { encryptField, decryptField } from '../utils/crypto';
 import { normalizePhone, isValidPhoneLength, MIN_PHONE_DIGITS, MAX_PHONE_DIGITS } from '../utils/phone';
 
 // 전문가(변호사·세무사·행정사·장례지도사) 인증 — Partner(장사시설)와 완전 분리된 계정 체계.
-// docs/04_상속세_전문가상담/17_전문가_계정_체계_구현_메모.md 근거. 인증 방식(비밀번호 해시,
+// docs/02_전문가_매칭/02-02_전문가_계정_체계_구현_메모.md 근거. 인증 방식(비밀번호 해시,
 // JWT 발급, refresh 회전)은 partnerController.ts와 동일 패턴을 재사용하되, aud 클레임으로
 // 사업자(Partner)·전문가(Expert)·B2C(User) 3종 토큰이 서로 섞이지 않게 분리한다.
 
@@ -16,7 +16,7 @@ const ACCESS_TOKEN_TTL = '2h';
 const REFRESH_TOKEN_TTL = '30d';
 const MIN_PASSWORD_LENGTH = 8;
 
-// docs/15 §2의 4대 전문가 직역
+// docs/02-01 §2의 4대 전문가 직역
 const EXPERT_CATEGORIES = ['LAWYER', 'TAX_ACCOUNTANT', 'ADMINISTRATIVE_SCRIVENER', 'FUNERAL_DIRECTOR'] as const;
 type ExpertCategory = (typeof EXPERT_CATEGORIES)[number];
 const isValidCategory = (v: unknown): v is ExpertCategory => EXPERT_CATEGORIES.includes(v as ExpertCategory);
@@ -45,7 +45,7 @@ const generateRefreshToken = (expertId: string) =>
   jwt.sign({ sub: expertId, purpose: 'expert_refresh', aud: 'expert' }, JWT_SECRET, { expiresIn: REFRESH_TOKEN_TTL });
 
 // 헬퍼: Authorization 헤더의 전문가 Bearer 토큰 검증 (실패 시 null). aud !== 'expert'면 거부해
-// B2C·사업자 토큰이 전문가 라우트로 들어오는 것을 막는다(docs 16 §6.4와 동일 원칙).
+// B2C·사업자 토큰이 전문가 라우트로 들어오는 것을 막는다(docs 01-05 §6.4와 동일 원칙).
 export const verifyExpertBearerToken = (req: Request): ExpertAccessPayload | null => {
   const authHeader = req.headers.authorization;
   if (!authHeader || !authHeader.startsWith('Bearer ')) return null;

@@ -1,7 +1,7 @@
 import { Prisma } from '@prisma/client';
 import { POLICY } from '../config/policy';
 
-// 리드(Lead) 생성 공통 로직. docs/01_장례_묘지_매칭/16_...명세서.md §4를 그대로 구현한다.
+// 리드(Lead) 생성 공통 로직. docs/01_장사시설_매칭/01-05_...명세서.md §4를 그대로 구현한다.
 // 반드시 트랜잭션(tx) 안에서 호출한다 — leadNo 발번(§4.2)과 리드 생성이 원자적이어야 하고,
 // BOOKING 타입은 FacilityBooking 생성과도 같은 트랜잭션이어야 한다(§5.3).
 

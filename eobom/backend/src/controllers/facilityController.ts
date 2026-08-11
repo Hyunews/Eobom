@@ -34,7 +34,7 @@ const buildWhere = (query: Request['query']): Prisma.FacilityWhereInput => {
     where.tags = { has: tag.trim() };
   }
 
-  // 이름 검색 — 파트너가 자기 시설을 찾아 클레임 신청할 때 사용(docs 16 §3.3)
+  // 이름 검색 — 파트너가 자기 시설을 찾아 클레임 신청할 때 사용(docs 01-05 §3.3)
   const q = query.q as string | undefined;
   if (q && q.trim()) {
     where.name = { contains: q.trim(), mode: 'insensitive' };
@@ -43,7 +43,7 @@ const buildWhere = (query: Request['query']): Prisma.FacilityWhereInput => {
   return where;
 };
 
-const REVIEW_THRESHOLD = 5; // 이 건수 이상 쌓이면 실제 리뷰 평균으로 전환 (docs/10 2.1 정책)
+const REVIEW_THRESHOLD = 5; // 이 건수 이상 쌓이면 실제 리뷰 평균으로 전환 (docs/01-01 2.1 정책)
 
 // 리뷰 5건 미만이면 시딩된 기본 평점, 이상이면 리뷰 평균으로 노출 평점을 계산
 const withEffectiveRating = <T extends { rating: number; reviews: { rating: number }[] }>(facility: T) => {
@@ -134,7 +134,7 @@ export const getFacilityById = async (req: Request, res: Response) => {
 
 // 답사 예약 신청 (`POST /api/facilities/:id/bookings`)
 // FacilityBooking(업무 실체)과 Lead(정산 근거, type=BOOKING)를 같은 트랜잭션에서 함께 만든다
-// (docs 16 §5.3) — 예약은 취소되면 끝이지만 리드는 정산 이력으로 남아야 해 생명주기가 다르다.
+// (docs 01-05 §5.3) — 예약은 취소되면 끝이지만 리드는 정산 이력으로 남아야 해 생명주기가 다르다.
 export const createBooking = async (req: Request, res: Response) => {
   const decoded = verifyBearerToken(req);
   if (!decoded) {

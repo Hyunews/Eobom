@@ -3,7 +3,7 @@ import { ShieldCheck, Lock, Mail, CheckCircle2, XCircle } from 'lucide-react';
 import { BACKEND_URL, formatPhoneForDisplay } from '../config';
 
 // 운영자 전용 — 사업자(Partner)·전문가(Expert) 가입 심사 + 시설 클레임(연동) 심사.
-// docs/16 §6.2, docs/17. 계정은 seed-admin.ts로만 생성되므로 여기엔 가입 폼이 없다.
+// docs/01-05 §6.2, docs/02-02. 계정은 seed-admin.ts로만 생성되므로 여기엔 가입 폼이 없다.
 // 공개 메뉴·Footer 어디에도 링크하지 않는다 — 직접 URL(#admin)로만 접근.
 
 type QueueTab = 'PARTNERS' | 'EXPERTS' | 'CLAIMS';
