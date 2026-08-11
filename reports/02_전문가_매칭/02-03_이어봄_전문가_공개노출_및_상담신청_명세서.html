@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>이어봄 - 전문가 매칭 공개 노출 및 상담 신청 명세서</title>
+  <style>
+    :root {
+      --primary: #1A2B4C;
+      --secondary: #5B7065;
+      --accent: #D4A359;
+      --bg: #FBF9F5;
+      --surface: #FFFFFF;
+      --text: #1E293B;
+      --text-muted: #64748B;
+      --border: #E2E8F0;
+      --code-bg: #0F172A;
+      --code-text: #F8FAFC;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.65;
+      padding: 2rem 1rem;
+    }
+    .container {
+      max-width: 1080px;
+      margin: 0 auto;
+      background-color: var(--surface);
+      padding: 3rem;
+      border-radius: 24px;
+      box-shadow: 0 20px 40px rgba(26, 43, 76, 0.08);
+      border: 1px solid var(--border);
+    }
+    .header {
+      border-bottom: 3px solid var(--accent);
+      padding-bottom: 1.5rem;
+      margin-bottom: 2.5rem;
+    }
+    .badge {
+      display: inline-block;
+      background-color: var(--primary);
+      color: #FFF;
+      font-size: 0.85rem;
+      font-weight: 700;
+      padding: 0.3rem 0.8rem;
+      border-radius: 20px;
+      margin-bottom: 0.8rem;
+    }
+    .badge-sub {
+      display: inline-block;
+      background-color: var(--secondary);
+      color: #FFF;
+      font-size: 0.85rem;
+      font-weight: 700;
+      padding: 0.3rem 0.8rem;
+      border-radius: 20px;
+      margin-bottom: 0.8rem;
+      margin-left: 0.4rem;
+    }
+    h1 {
+      font-size: 2rem;
+      color: var(--primary);
+      margin-bottom: 0.5rem;
+      font-weight: 800;
+    }
+    .subtitle {
+      color: var(--text-muted);
+      font-size: 1.05rem;
+    }
+    .section-title {
+      font-size: 1.4rem;
+      color: var(--primary);
+      margin: 2.5rem 0 1.2rem 0;
+      padding-left: 0.8rem;
+      border-left: 5px solid var(--secondary);
+      font-weight: 700;
+    }
+    .subsection-title {
+      font-size: 1.15rem;
+      color: var(--primary);
+      margin: 1.8rem 0 0.8rem 0;
+      font-weight: 700;
+    }
+    p { margin-bottom: 1rem; color: #334155; }
+    ul, ol { margin-bottom: 1rem; padding-left: 1.4rem; color: #334155; }
+    li { margin-bottom: 0.4rem; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1.2rem 0 1.8rem 0;
+      font-size: 0.93rem;
+    }
+    th, td {
+      padding: 0.85rem 0.9rem;
+      border: 1px solid var(--border);
+      text-align: left;
+      vertical-align: top;
+    }
+    th {
+      background-color: var(--primary);
+      color: #FFF;
+      font-weight: 700;
+      text-align: center;
+    }
+    tr:nth-child(even) { background-color: #F8FAFC; }
+
+    .callout {
+      background-color: #F8FAFC;
+      border-left: 4px solid var(--primary);
+      padding: 1.2rem 1.5rem;
+      margin: 1.2rem 0;
+      border-radius: 0 12px 12px 0;
+      font-size: 0.95rem;
+      color: #334155;
+    }
+    .callout-info {
+      background-color: #EFF6FF;
+      border-left-color: #3B82F6;
+      color: #1E40AF;
+    }
+    .callout-warning {
+      background-color: #FEF3C7;
+      border-left-color: #F59E0B;
+      color: #92400E;
+    }
+    .callout-danger {
+      background-color: #FEF2F2;
+      border-left-color: #EF4444;
+      color: #991B1B;
+    }
+
+    pre {
+      background-color: var(--code-bg);
+      color: var(--code-text);
+      padding: 1.2rem 1.5rem;
+      border-radius: 12px;
+      overflow-x: auto;
+      font-family: 'Fira Code', 'Consolas', monospace;
+      font-size: 0.88rem;
+      line-height: 1.5;
+      margin: 1.2rem 0;
+    }
+    code {
+      font-family: 'Fira Code', 'Consolas', monospace;
+      background-color: #F1F5F9;
+      color: #0F172A;
+      padding: 0.15rem 0.4rem;
+      border-radius: 4px;
+      font-size: 0.9em;
+    }
+    pre code {
+      background-color: transparent;
+      color: inherit;
+      padding: 0;
+    }
+    hr {
+      border: 0;
+      height: 1px;
+      background: var(--border);
+      margin: 2.5rem 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <span class="badge">⚖️ 전문가 매칭 확정 명세서</span>
+      <span class="badge-sub">Doc #02-03</span>
+      <h1>전문가 매칭 — 공개 노출 및 상담 신청 명세서</h1>
+      <p class="subtitle">승인 전문가 공개 노출, 상담 신청(ConsultRequest, EC-YYMMDD-NNNN), 변호사법 가드레일, Stage 1 구현 완료 검증</p>
+    </div>
+
+    <div class="callout callout-info">
+      <p><strong>문서 성격</strong>: 확정 스펙. <code>[Claude:Opus]</code> 작성(2026-08-11). 대표 지시로 Domain01 일단락 후 Domain02 착수.<br>
+      <strong>선행 문서</strong>: <code>02-01</code>(직역별 수익 모델·변호사법 컴플라이언스, 정본) / <code>02-02</code>(Expert 계정 체계 구현 메모)<br>
+      <strong>화면</strong>: <code>CounselingPage.tsx</code>(소비자), <code>BizDashboard.tsx</code>(전문가), <code>AdminPage.tsx</code>(운영자)</p>
+    </div>
+
+    <hr>
+
+    <h2 class="section-title">📌 1. 현황 진단 — 무엇이 비어 있나</h2>
+    <p><code>02-02</code>로 <strong>전문가 B2B 계정 체계는 완성</strong>됐지만, <strong>소비자(B2C) 쪽이 통째로 목업</strong>이었습니다. 이번 단계의 목표는 <strong>"가입 → 노출 → 문의 도착"의 최소 루프를 닫는 것</strong>입니다.</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>영역</th>
+          <th>상태 (2026-08-11 완료)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td><code>Expert</code> 스키마 · 가입/로그인/refresh/내정보 API</td><td>✅ 구축 완료</td></tr>
+        <tr><td>운영자 승인 API (<code>/api/admin/experts</code>)</td><td>✅ 구축 완료</td></tr>
+        <tr><td>전문가 본인 대시보드(프로필·승인상태)</td><td>✅ 구축 완료</td></tr>
+        <tr><td><strong>승인된 전문가를 소비자에게 노출</strong></td><td>✅ <strong>구현 완료</strong> — <code>CounselingPage</code> 실연동</td></tr>
+        <tr><td><strong>상담 신청 접수</strong></td><td>✅ <strong>구현 완료</strong> — <code>ConsultRequestModal</code> &amp; <code>EC-</code> 발번</td></tr>
+        <tr><td><strong>전문가가 자기 상담 신청을 확인</strong></td><td>✅ <strong>구현 완료</strong> — <code>BizDashboard</code> 탭 추가</td></tr>
+      </tbody>
+    </table>
+
+    <hr>
+
+    <h2 class="section-title">🎯 2. 범위 (Stage 1 = 무과금 루프)</h2>
+    <p>Domain01에서 <strong>리드 인프라를 먼저 깔고 정산은 나중에</strong> 한 것과 같은 순서를 따릅니다 (→ <code>01-05</code>).</p>
+    <ul>
+      <li>승인된 전문가 <strong>공개 목록/상세 API</strong> + <code>CounselingPage</code> 실연동</li>
+      <li><strong>상담 신청(<code>ConsultRequest</code>)</strong> 접수 — 개인정보 제3자 제공 동의 포함</li>
+      <li>전문가 대시보드에서 <strong>받은 상담 신청 목록</strong> 조회 및 상태 변경</li>
+      <li>신청번호 발번(<code>EC-YYMMDD-NNNN</code>)</li>
+    </ul>
+
+    <hr>
+
+    <h2 class="section-title">⚖️ 3. 변호사법 가드레일 (설계의 제1 제약)</h2>
+    <ol style="margin-left: 1.2rem;">
+      <li><strong><code>ConsultRequest</code>에 과금 필드를 두지 않는다.</strong> <code>billable</code>·<code>billedAmount</code> 등 컬럼 배제 — 없는 필드는 실수로 채워질 수 없음.</li>
+      <li><strong>과금은 별도 테이블로 분리한다</strong> (Stage 2). <code>LAWYER</code> 카테고리는 과금 테이블에서 배제.</li>
+      <li><strong>월정액은 상담 건수와 완전히 무관해야 한다.</strong> 고정 광고료 성격 유지.</li>
+      <li><strong>변호사 프로필에 성과·성공보수 표현 금지.</strong></li>
+    </ol>
+
+    <hr>
+
+    <h2 class="section-title">🗄️ 4. 데이터 모델</h2>
+    <h3 class="subsection-title">4.1 <code>ConsultRequest</code> &amp; 4.2 <code>ConsultNumberCounter</code></h3>
+    <p><code>EC-YYMMDD-NNNN</code> 발번. <code>Lead</code> 및 <code>LeadNumberCounter</code>와 별도 테이블로 분리. 과금 컬럼 전무.</p>
+
+    <h3 class="subsection-title">4.3 <code>Expert</code> 모델 보강</h3>
+    <ul>
+      <li><code>consultRequests ConsultRequest[]</code> 관계 추가</li>
+      <li><code>isPublished Boolean @default(false)</code> 추가 — 승인(<code>status=APPROVED</code>)과 공개 노출을 독립 플래그로 분리.</li>
+      <li><strong><code>officeAddress String?</code> 추가 (2026-08-11 신설)</strong> — 사무실 주소. 4대 직역(변호사/세무사/행정사/장례지도사) 공용 필드로 설계. 공개 API 화이트리스트에서 제외하지 않고 정보 제공.</li>
+    </ul>
+
+    <hr>
+
+    <h2 class="section-title">🔌 5. API 명세 (구현 완료)</h2>
+    <h3 class="subsection-title">5.1 공개 API</h3>
+    <ul>
+      <li><code>GET /api/experts</code> &amp; <code>GET /api/experts/:id</code> (<strong><code>status=APPROVED</code> AND <code>isPublished=true</code>만 반환</strong>)</li>
+      <li><strong>민감 필드 제외 화이트리스트 필수</strong>: <code>passwordHash</code>, <code>refreshTokenHash</code>, <code>settlementBank</code>, <code>settlementAccount</code>, <code>licenseDocUrl</code>, <code>contactPhone</code>, <code>rejectReason</code> 전면 제외.</li>
+    </ul>
+
+    <h3 class="subsection-title">5.2 상담 신청 &amp; 5.3 전문가 본인 &amp; 5.4 운영자 API</h3>
+    <ul>
+      <li><code>POST /api/experts/:id/consult-requests</code>: 동의 미체크 시 <strong>400</strong>, 미승인/미공개 전문가는 <strong>404</strong>.</li>
+      <li><code>GET/PATCH /api/expert/consult-requests</code>: 소유권 검증 (남의 신청 403).</li>
+      <li><code>GET/PATCH /api/admin/experts</code>: <code>isPublished</code> 토글 (미승인 시 400), <code>PATCH /api/admin/experts/:id</code>(연락처·사무실 주소·소개 인라인 수정 허용, 자격증 번호 등 신원 정보 수정 금지).</li>
+    </ul>
+
+    <hr>
+
+    <h2 class="section-title">🧭 9. 구현 순서 &amp; 검증 결과</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>단계</th>
+          <th>상태</th>
+          <th>내용</th>
+          <th>산출물</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>1</strong></td><td>✅ 완료</td><td><code>ConsultRequest</code>·<code>ConsultNumberCounter</code> 스키마 + <code>Expert.isPublished</code>/<code>officeAddress</code> 마이그레이션</td><td><code>schema.prisma</code></td></tr>
+        <tr><td><strong>2</strong></td><td>✅ 완료</td><td>공개 API <code>GET /api/experts</code>, <code>/:id</code> (필드 화이트리스트 적용)</td><td><code>expertPublicController.ts</code></td></tr>
+        <tr><td><strong>3</strong></td><td>✅ 완료</td><td>상담 신청 <code>POST /api/experts/:id/consult-requests</code> + <code>EC-</code> 발번 서비스</td><td><code>consultService.ts</code></td></tr>
+        <tr><td><strong>4</strong></td><td>✅ 완료</td><td>전문가 본인 신청 조회/상태변경 (소유권 검증)</td><td><code>expertController.ts</code></td></tr>
+        <tr><td><strong>5</strong></td><td>✅ 완료</td><td>운영자 <code>isPublished</code> 토글 + 전체 신청 조회 + 인라인 정보수정</td><td><code>adminController.ts</code></td></tr>
+        <tr><td><strong>6</strong></td><td>✅ 완료</td><td><code>CounselingPage</code> 목업 제거 + 실연동, <code>ConsultRequestModal</code> 신설</td><td>프론트엔드</td></tr>
+        <tr><td><strong>7</strong></td><td>✅ 완료</td><td><code>BizDashboard</code> "받은 상담 신청" 탭, <code>AdminPage</code> 공개 토글/검색/필터</td><td>프론트엔드</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout callout-info">
+      <p><strong>2026-08-11 Stage 1 전 단계 구현 완료</strong> — 백엔드 17단계 curl 검증 전원 통과 확인. 브라우저 클릭 E2E 미검증 상태.</p>
+    </div>
+  </div>
+</body>
+</html>

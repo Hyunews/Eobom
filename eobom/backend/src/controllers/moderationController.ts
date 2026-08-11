@@ -128,6 +128,7 @@ export const listExperts = async (req: Request, res: Response) => {
         licenseOrg: true,
         licenseDocUrl: true,
         contactPhone: true,
+        officeAddress: true,
         bio: true,
         status: true,
         rejectReason: true,
@@ -179,9 +180,9 @@ export const updateExpertInfo = async (req: Request, res: Response) => {
     return res.status(401).json({ status: 'error', message: '인증 토큰이 없거나 유효하지 않습니다.' });
   }
 
-  const { contactPhone, bio } = req.body as { contactPhone?: string; bio?: string };
-  if (contactPhone === undefined && bio === undefined) {
-    return res.status(400).json({ status: 'error', message: '수정할 항목(연락처, 소개)이 없습니다.' });
+  const { contactPhone, officeAddress, bio } = req.body as { contactPhone?: string; officeAddress?: string; bio?: string };
+  if (contactPhone === undefined && officeAddress === undefined && bio === undefined) {
+    return res.status(400).json({ status: 'error', message: '수정할 항목(연락처, 사무실 주소, 소개)이 없습니다.' });
   }
 
   let normalizedPhone: string | undefined;
@@ -197,10 +198,11 @@ export const updateExpertInfo = async (req: Request, res: Response) => {
       where: { id: req.params.id },
       data: {
         ...(normalizedPhone !== undefined ? { contactPhone: normalizedPhone } : {}),
+        ...(officeAddress !== undefined ? { officeAddress } : {}),
         ...(bio !== undefined ? { bio } : {}),
       },
     });
-    return res.json({ status: 'success', data: { id: expert.id, contactPhone: expert.contactPhone, bio: expert.bio } });
+    return res.json({ status: 'success', data: { id: expert.id, contactPhone: expert.contactPhone, officeAddress: expert.officeAddress, bio: expert.bio } });
   } catch (error) {
     console.error('전문가 정보 수정 실패:', error);
     return res.status(500).json({ status: 'error', message: '정보 수정 중 오류가 발생했습니다.' });

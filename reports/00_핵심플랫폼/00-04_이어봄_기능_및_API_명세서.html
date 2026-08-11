@@ -1,133 +1,291 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>이어봄 토탈 케어 핵심 기능 및 API 명세</title>
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>이어봄 - 기능 및 REST API 명세서 (전체 지도)</title>
+  <style>
+    :root {
+      --primary: #1A2B4C;
+      --secondary: #5B7065;
+      --accent: #D4A359;
+      --bg: #FBF9F5;
+      --surface: #FFFFFF;
+      --text: #1E293B;
+      --text-muted: #64748B;
+      --border: #E2E8F0;
+      --code-bg: #0F172A;
+      --code-text: #F8FAFC;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.65;
+      padding: 2rem 1rem;
+    }
+    .container {
+      max-width: 1080px;
+      margin: 0 auto;
+      background-color: var(--surface);
+      padding: 3rem;
+      border-radius: 24px;
+      box-shadow: 0 20px 40px rgba(26, 43, 76, 0.08);
+      border: 1px solid var(--border);
+    }
+    .header {
+      border-bottom: 3px solid var(--accent);
+      padding-bottom: 1.5rem;
+      margin-bottom: 2.5rem;
+    }
+    .badge {
+      display: inline-block;
+      background-color: var(--primary);
+      color: #FFF;
+      font-size: 0.85rem;
+      font-weight: 700;
+      padding: 0.3rem 0.8rem;
+      border-radius: 20px;
+      margin-bottom: 0.8rem;
+    }
+    .badge-sub {
+      display: inline-block;
+      background-color: var(--secondary);
+      color: #FFF;
+      font-size: 0.85rem;
+      font-weight: 700;
+      padding: 0.3rem 0.8rem;
+      border-radius: 20px;
+      margin-bottom: 0.8rem;
+      margin-left: 0.4rem;
+    }
+    h1 {
+      font-size: 2rem;
+      color: var(--primary);
+      margin-bottom: 0.5rem;
+      font-weight: 800;
+    }
+    .subtitle {
+      color: var(--text-muted);
+      font-size: 1.05rem;
+    }
+    .section-title {
+      font-size: 1.4rem;
+      color: var(--primary);
+      margin: 2.5rem 0 1.2rem 0;
+      padding-left: 0.8rem;
+      border-left: 5px solid var(--secondary);
+      font-weight: 700;
+    }
+    .subsection-title {
+      font-size: 1.15rem;
+      color: var(--primary);
+      margin: 1.8rem 0 0.8rem 0;
+      font-weight: 700;
+    }
+    p { margin-bottom: 1rem; color: #334155; }
+    ul, ol { margin-bottom: 1rem; padding-left: 1.4rem; color: #334155; }
+    li { margin-bottom: 0.4rem; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1.2rem 0 1.8rem 0;
+      font-size: 0.93rem;
+    }
+    th, td {
+      padding: 0.85rem 0.9rem;
+      border: 1px solid var(--border);
+      text-align: left;
+      vertical-align: top;
+    }
+    th {
+      background-color: var(--primary);
+      color: #FFF;
+      font-weight: 700;
+      text-align: center;
+    }
+    tr:nth-child(even) { background-color: #F8FAFC; }
+
+    .callout {
+      background-color: #F8FAFC;
+      border-left: 4px solid var(--primary);
+      padding: 1.2rem 1.5rem;
+      margin: 1.2rem 0;
+      border-radius: 0 12px 12px 0;
+      font-size: 0.95rem;
+      color: #334155;
+    }
+    .callout-info {
+      background-color: #EFF6FF;
+      border-left-color: #3B82F6;
+      color: #1E40AF;
+    }
+    .callout-warning {
+      background-color: #FEF3C7;
+      border-left-color: #F59E0B;
+      color: #92400E;
+    }
+
+    code {
+      font-family: 'Fira Code', 'Consolas', monospace;
+      background-color: #F1F5F9;
+      color: #0F172A;
+      padding: 0.15rem 0.4rem;
+      border-radius: 4px;
+      font-size: 0.9em;
+    }
+    hr {
+      border: 0;
+      height: 1px;
+      background: var(--border);
+      margin: 2.5rem 0;
+    }
+    del { color: #94A3B8; text-decoration: line-through; }
+  </style>
 </head>
 <body>
-
-    <!-- 네비게이션 바 -->
-    <nav class="navbar">
-        <a href="index.html" class="navbar-brand">
-            🌿 <span>이어봄</span> 토탈 케어
-        </a>
-                <ul class="navbar-nav" style="flex-wrap: wrap; gap: 0.5rem;">
-            <li><a href="index.html">서비스 개요</a></li>
-            <li><a href="이어봄_세부_프로젝트_기획서.html">세부 프로젝트 기획서</a></li>
-            <li><a href="이어봄_DB_요구사항_및_테이블_명세서.html">DB 요구사항 & 테이블 명세</a></li>
-            <li><a href="이어봄_화면_설계서_및_와이어프레임.html">화면 설계서 & 와이어프레임</a></li>
-            <li><a href="이어봄_시스템_아키텍처.html">시스템 아키텍처</a></li>
-            <li><a href="이어봄_시스템_흐름도.html">시스템 흐름도</a></li>
-            <li><a href="이어봄_기능_및_API_명세서.html" class="active">기능 및 API 명세</a></li>
-            <li><a href="이어봄_데이터베이스_구축_기획.html">DB 구축 기획</a></li>
-            <li><a href="이어봄_구현_난관_및_솔루션.html">구현 난관 & 솔루션</a></li>
-        </ul>
-    </nav>
-
-    <div class="container">
-        <!-- Header -->
-        <header class="hero">
-            <h1>핵심 기능 및 API 명세</h1>
-            <p>플랫폼 내 5대 핵심 서비스의 상세 작동 프로세스, 사용자 흐름 및 연동 대상 기술 스펙</p>
-        </header>
-
-        <!-- 기능 명세표 -->
-        <h2 style="margin-bottom: 1.5rem; color: var(--primary-color);">📋 핵심 기능 명세표</h2>
-        <div style="overflow-x: auto;">
-            <table>
-                <thead>
-                    <tr>
-                        <th style="width: 15%;">기능명</th>
-                        <th style="width: 35%;">상세 설명</th>
-                        <th style="width: 30%;">사용자 흐름 (User Flow)</th>
-                        <th style="width: 20%;">시스템 연동 및 API</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td style="font-weight: 700; color: var(--primary-color);">장례/묘지 맞춤 비교</td>
-                        <td>위치, 종교, 예상 하객 수, 예산 입력 시 맞춤형 장례식장 및 봉안당/수목장 추천</td>
-                        <td>홈 &gt; 장례/묘지 선택 &gt; 필터 입력 &gt; 추천 리스트 확인 &gt; 견적 비교 및 답사/상담 예약</td>
-                        <td>카카오맵 API, 위치 기반 서비스(LBS), VR 뷰어 엔진</td>
-                    </tr>
-                    <tr>
-                        <td style="font-weight: 700; color: var(--primary-color);">전문가 1:1 상담</td>
-                        <td>상속, 증여, 유언 관련 법률/세무 전문가 매칭 및 화상/음성 비대면 상담 제공</td>
-                        <td>상속 메뉴 &gt; 분야 선택 &gt; 전문가 프로필 확인 &gt; 상담 일정 선택 및 결제 &gt; 비대면 상담</td>
-                        <td>WebRTC (화상 통화), PG 결제 모듈, 일정 예약 API</td>
-                    </tr>
-                    <tr>
-                        <td style="font-weight: 700; color: var(--primary-color);">디지털 유품 정리</td>
-                        <td>고인의 디지털 계정(SNS, 이메일 등) 정산 및 현물 유품 정리 수거 요청</td>
-                        <td>디지털 유품 메뉴 &gt; 정리 항목 선택 (디지털/현물) &gt; 증빙서류 업로드 &gt; 견적 확인 &gt; 작업 요청</td>
-                        <td>서류 OCR 검증, 암호화 저장소, 제휴 정리 업체 ERP 연동</td>
-                    </tr>
-                    <tr>
-                        <td style="font-weight: 700; color: var(--primary-color);">디지털 엔딩노트</td>
-                        <td>생전 의료 의향(연명의료), 장례 희망 방식, 자산 정보, 유족 메시지 등을 암호화 작성</td>
-                        <td>엔딩노트 메뉴 &gt; 탭별 항목 작성 &gt; 수신인 지정 &gt; 본인 인증 및 암호화 저장</td>
-                        <td>AES-256 암호화, 블록체인 기반 데이터 위변조 방지</td>
-                    </tr>
-                    <tr>
-                        <td style="font-weight: 700; color: var(--primary-color);">사망 후 행정 가이드</td>
-                        <td>사망 신고, 안심상속 원스톱 서비스 등 단계별 필요 행정 절차를 D-Day 형태로 안내</td>
-                        <td>상중 케어 메뉴 &gt; 사망일 입력 &gt; D-Day별 행정 체크리스트 확인 &gt; 정부 페이지 바로가기</td>
-                        <td>정부24 링크, Push Notification 시스템, 캘린더 연동</td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-
-        <!-- 알고리즘 설계 -->
-        <h2 style="margin-top: 3rem; margin-bottom: 1.5rem; color: var(--primary-color);">🧮 데이터 기반 맞춤 추천 알고리즘</h2>
-        <div class="card" style="border-left: 5px solid var(--point-color); margin-bottom: 3rem;">
-            <div class="card-title">Recommendation Score 산출 공식</div>
-            <div class="card-content">
-                <p style="font-size: 1.1rem; font-weight: 600; background-color: var(--secondary-color); padding: 1rem; border-radius: 8px; font-family: monospace; overflow-x: auto; margin-bottom: 1rem;">
-                    Score = (Distance_Score * 0.35) + (Budget_Match_Score * 0.30) + (Religion_Match_Score * 0.20) + (User_Rating_Score * 0.15)
-                </p>
-                <ul style="margin-left: 1.5rem;">
-                    <li><strong>위치 점수 (Distance Score - 35%):</strong> 현재 GPS 또는 지정 지역과의 거리 점수</li>
-                    <li><strong>예산 일치도 (Budget Match Score - 30%):</strong> 최저~최고 예산 범위 대비 적합도</li>
-                    <li><strong>종교 일치도 (Religion Match Score - 20%):</strong> 유교, 기독교, 불교, 천주교 등 선호 형식 반영</li>
-                    <li><strong>유저 평점 (User Rating Score - 15%):</strong> 실제 시설 방문자 만족도 평점</li>
-                </ul>
-                <p style="margin-top: 1rem; font-weight: 500; color: var(--point-color);">👉 산출 결과 상위 3개 최적 추천안 제공 및 세부 견적 비교표 자동 생성</p>
-            </div>
-        </div>
-
-        <!-- 시니어 접근성 원칙 -->
-        <h2 style="margin-bottom: 1.5rem; color: var(--primary-color);">🎨 시니어 및 상주 대상 UX/UI 설계 원칙</h2>
-        <div class="grid">
-            <div class="card">
-                <div class="card-title">👀 시각적 가독성 (Accessibility)</div>
-                <div class="card-content">
-                    <ul>
-                        <li>기본 폰트 크기 **최소 18px(1.1rem) 이상** 확보하여 저시력자 배려.</li>
-                        <li>모든 주요 버튼 높이는 **최소 56px 이상**으로 마크업하여 오터치/오클릭 방지.</li>
-                        <li>명도 대비가 명확한 디자인 및 **고대비 모드(High Contrast)** 지원.</li>
-                    </ul>
-                </div>
-            </div>
-            <div class="card">
-                <div class="card-title">💌 감성적 안정성 (Emotional Safety)</div>
-                <div class="card-content">
-                    <ul>
-                        <li>위급하거나 엄숙한 상황을 고려하여 너무 명도가 낮은 블랙 위주의 톤은 지양하며, 신뢰와 차분함을 주는 **딥 네이비(Primary)**와 **소프트 베이지(Secondary)** 사용.</li>
-                        <li>직관적이고 따뜻한 톤의 일러스트 및 아이콘 배치.</li>
-                        <li>급박한 임종 상황을 대비한 **'1-Touch 긴급 상담' 플로팅 버튼** 상시 배치.</li>
-                    </ul>
-                </div>
-            </div>
-        </div>
+  <div class="container">
+    <div class="header">
+      <span class="badge">🌿 공통 플랫폼 명세서</span>
+      <span class="badge-sub">Doc #00-04</span>
+      <h1>기능 및 REST API 명세서 (전체 지도)</h1>
+      <p class="subtitle">6개 네임스페이스 엔드포인트 전체 인벤토리, 4종 토큰(aud) 인증 체계 및 구현 상태</p>
     </div>
 
-    <!-- 1-Touch 긴급 상담 플로팅 버튼 -->
-    <a href="tel:119" class="floating-call" onclick="alert('긴급 장례 지원 서비스로 전화를 연결합니다. (24시간 디스패치)'); return false;">
-        🚨 긴급 상담
-    </a>
+    <div class="callout callout-info">
+      <p><strong>문서 목적</strong>: 이어봄 백엔드(<code>eobom/backend</code>)의 <strong>전체 엔드포인트 지도</strong>입니다. 어떤 네임스페이스가 있고 무엇이 구현됐는지를 한눈에 보는 것이 목적이며, <strong>요청/응답 상세 규격은 각 도메인 문서가 정본</strong>입니다.<br>
+      <strong>상태 표기</strong>: ✅ 구현 / ⬜ 미구현(계획) / ❌ 폐기</p>
+    </div>
 
+    <hr>
+
+    <h2 class="section-title">🔑 0. 인증 체계 — 4종 토큰</h2>
+    <p>JWT <code>aud</code>(audience) 클레임으로 주체를 구분하고, <strong>미들웨어에서 교차 사용을 차단</strong>합니다. 다른 주체의 토큰으로 접근하면 401입니다.</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th><code>aud</code></th>
+          <th>주체</th>
+          <th>계정 생성 경로</th>
+          <th>액세스 토큰 수명</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td><code>user</code></td><td>B2C 일반 유저</td><td>소셜 로그인(카카오/네이버/구글)</td><td>7일</td></tr>
+        <tr><td><code>partner</code></td><td>장사시설 사업자</td><td><code>/api/partner/signup</code> → 운영자 승인</td><td>2시간</td></tr>
+        <tr><td><code>expert</code></td><td>전문가(4대 직역)</td><td><code>/api/expert/signup</code> → 운영자 승인</td><td>2시간</td></tr>
+        <tr><td><code>admin</code></td><td>내부 운영자</td><td><strong>공개 가입 없음</strong> — <code>prisma/seed-admin.ts</code> 스크립트만</td><td>2시간</td></tr>
+      </tbody>
+    </table>
+    <ul>
+      <li>파트너·전문가·운영자는 리프레시 토큰(30일) <strong>회전</strong> 방식입니다. 구 토큰 재사용은 401.</li>
+      <li><strong>프론트는 토큰 만료를 스스로 검사하지 않습니다.</strong> API가 401을 반환하면 그때 로그아웃 처리합니다.</li>
+    </ul>
+
+    <hr>
+
+    <h2 class="section-title">📡 1. B2C 인증 (`/api/auth`) — 정본 00-08</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>상태</th>
+          <th>엔드포인트</th>
+          <th>설명</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>✅</td><td><code>GET /api/auth/kakao</code> · <code>/naver</code> · <code>/google</code></td><td>소셜 OAuth 리다이렉트</td></tr>
+        <tr><td>✅</td><td><code>GET /api/auth/{provider}/callback</code></td><td>인증 콜백 및 계정 연동/통합 처리</td></tr>
+        <tr><td>✅</td><td><code>POST /api/auth/confirm-link</code></td><td>이메일 중복 시 통합(<code>MERGE</code>) / 독립 생성(<code>CREATE_NEW</code>) 확정</td></tr>
+        <tr><td>✅</td><td><code>GET /api/auth/me</code></td><td>내 프로필 + 연동된 소셜 계정 목록</td></tr>
+        <tr><td>✅</td><td><code>POST /api/auth/demo-login</code></td><td>개발용. <strong>프로덕션 가드 적용됨</strong></td></tr>
+      </tbody>
+    </table>
+
+    <hr>
+
+    <h2 class="section-title">🪦 2. 시설 (`/api/facilities`) — 정본 01-01, 01-05</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>상태</th>
+          <th>엔드포인트</th>
+          <th>설명</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>✅</td><td><code>GET /api/facilities</code></td><td>목록. 쿼리: <code>category</code>, <code>tag</code>, <code>q</code>, <code>lat/lng</code>, <code>page</code>, <code>pageSize</code></td></tr>
+        <tr><td>✅</td><td><code>GET /api/facilities/:id</code></td><td>시설 상세</td></tr>
+        <tr><td>✅</td><td><code>POST /api/facilities/:id/reviews</code></td><td>리뷰·별점 작성 (로그인 필요, 1인 1리뷰)</td></tr>
+        <tr><td>✅</td><td><code>POST /api/facilities/:id/quotes</code></td><td><strong>업체 문의</strong> → <code>leadNo</code>(<code>EB-YYMMDD-NNNN</code>) 반환</td></tr>
+        <tr><td>❌</td><td><del><code>POST /api/facilities/:id/bookings</code></del></td><td>답사예약 — <strong>삭제됨</strong>(→ <code>01-05</code> §4.1·§5.3)</td></tr>
+      </tbody>
+    </table>
+
+    <hr>
+
+    <h2 class="section-title">🗺️ 3. 지역·지도 (`/api/geo`) — 정본 01-02</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>상태</th>
+          <th>엔드포인트</th>
+          <th>설명</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>✅</td><td><code>GET /api/geo/regions</code></td><td>시/도 · 시/군/구 드롭다운 목록 (<code>전남광주통합특별시</code> 키 지원)</td></tr>
+      </tbody>
+    </table>
+
+    <hr>
+
+    <h2 class="section-title">🏢 4. 사업자 (`/api/partner`) — 정본 01-05 §6.1</h2>
+    <p>가입·로그인·내정보·시설 클레임·사진 업로드는 ✅ 구현 완료. 리드 목록 조회 및 정산 관련 엔드포인트는 ⬜ 미구현 (수수료 기준 확정 대기).</p>
+
+    <hr>
+
+    <h2 class="section-title">⚖️ 5. 전문가 (`/api/expert`, `/api/experts`) — 정본 02-03 §5</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>네임스페이스</th>
+          <th>인증</th>
+          <th>내용</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td><code>/api/experts</code> (복수)</td><td>없음</td><td>공개 목록·상세, 상담 신청 (<code>status=APPROVED</code> AND <code>isPublished=true</code>만 반환)</td></tr>
+        <tr><td><code>/api/expert</code> (단수)</td><td><code>aud=expert</code></td><td>가입·로그인·내정보, 받은 상담 신청 조회·상태변경</td></tr>
+      </tbody>
+    </table>
+
+    <hr>
+
+    <h2 class="section-title">🛡️ 6. 운영자 (`/api/admin`) — 정본 01-05 §6.2 · 02-03 §5.4</h2>
+    <p>인증, 사업자 심사·정보수정, 전문가 심사·공개토글·정보수정, 시설 클레임 심사, 상담 신청 전체 조회가 ✅ 구현되었습니다.<br>
+    <strong>회원 정보 수정 범위 원칙</strong>: 담당자명·연락처·사무실주소 등 운영 편의 정보만 수정 허용하고, <strong>사업자번호·자격증번호 등 검증된 신원 정보는 직접 수정 금지</strong>(반려 후 재신청 수순).</p>
+
+    <hr>
+
+    <h2 class="section-title">🚧 7. 아직 백엔드가 없는 도메인</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>도메인</th>
+          <th>화면</th>
+          <th>상태</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>03</strong> 디지털 유품·추모관</td><td><code>SCR-003</code></td><td>프론트 100% 목업 — Prisma 모델 없음</td></tr>
+        <tr><td><strong>04</strong> 상중·행정 케어</td><td><code>SCR-006</code></td><td>프론트 100% 목업 — 체크리스트는 로컬 JSON</td></tr>
+        <tr><td><strong>05</strong> 엔딩노트·유언</td><td><code>SCR-002</code></td><td>프론트 100% 목업 — Prisma 모델 없음</td></tr>
+      </tbody>
+    </table>
+  </div>
 </body>
 </html>

@@ -223,6 +223,7 @@ export const BizDashboard: React.FC<BizDashboardProps> = ({ type, name, onLogout
               </div>
               <p style={{ margin: '0.2rem 0' }}>자격증 등록번호: {expertProfile.licenseNo}</p>
               <p style={{ margin: '0.2rem 0' }}>연락처: {formatPhoneForDisplay(expertProfile.contactPhone)}</p>
+              {expertProfile.officeAddress && <p style={{ margin: '0.2rem 0' }}>사무실 주소: {expertProfile.officeAddress}</p>}
               {expertProfile.bio && <p style={{ margin: '0.2rem 0', color: 'var(--text-muted)' }}>{expertProfile.bio}</p>}
               {expertProfile.status === 'PENDING' && (
                 <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginTop: '0.8rem' }}>

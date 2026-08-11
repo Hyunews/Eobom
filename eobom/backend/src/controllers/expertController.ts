@@ -67,7 +67,7 @@ const EXPERT_STATUS_MESSAGE: Record<string, string> = {
 
 // 가입 신청 (`POST /api/expert/signup`) — 승인 전까지 로그인 불가. 자동승인 없음(§ 법적 리스크 메모 참고)
 export const signup = async (req: Request, res: Response) => {
-  const { email, password, category, name, licenseNo, licenseOrg, licenseDocUrl, contactPhone, bio } = req.body as {
+  const { email, password, category, name, licenseNo, licenseOrg, licenseDocUrl, contactPhone, officeAddress, bio } = req.body as {
     email?: string;
     password?: string;
     category?: string;
@@ -76,6 +76,7 @@ export const signup = async (req: Request, res: Response) => {
     licenseOrg?: string;
     licenseDocUrl?: string;
     contactPhone?: string;
+    officeAddress?: string;
     bio?: string;
   };
 
@@ -121,6 +122,7 @@ export const signup = async (req: Request, res: Response) => {
         licenseOrg,
         licenseDocUrl,
         contactPhone: normalizedPhone,
+        officeAddress,
         bio,
         status: 'PENDING',
       },
@@ -218,6 +220,7 @@ const serializeExpert = (expert: {
   licenseNo: string;
   licenseOrg: string | null;
   contactPhone: string;
+  officeAddress: string | null;
   bio: string | null;
   specialties: string[];
   status: string;
@@ -232,6 +235,7 @@ const serializeExpert = (expert: {
   licenseNo: expert.licenseNo,
   licenseOrg: expert.licenseOrg,
   contactPhone: expert.contactPhone,
+  officeAddress: expert.officeAddress,
   bio: expert.bio,
   specialties: expert.specialties,
   status: expert.status,
@@ -266,8 +270,9 @@ export const updateMe = async (req: Request, res: Response) => {
     return res.status(401).json({ status: 'error', message: '인증 토큰이 없거나 유효하지 않습니다.' });
   }
 
-  const { contactPhone, bio, specialties, settlementBank, settlementAccount } = req.body as {
+  const { contactPhone, officeAddress, bio, specialties, settlementBank, settlementAccount } = req.body as {
     contactPhone?: string;
+    officeAddress?: string;
     bio?: string;
     specialties?: string[];
     settlementBank?: string;
@@ -283,6 +288,7 @@ export const updateMe = async (req: Request, res: Response) => {
       where: { id: decoded.id },
       data: {
         ...(contactPhone ? { contactPhone: normalizePhone(contactPhone) } : {}),
+        ...(officeAddress !== undefined ? { officeAddress } : {}),
         ...(bio !== undefined ? { bio } : {}),
         ...(Array.isArray(specialties) ? { specialties } : {}),
         ...(settlementBank ? { settlementBank } : {}),

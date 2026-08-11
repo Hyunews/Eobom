@@ -49,6 +49,7 @@ export const PartnerPortalPage: React.FC = () => {
   const [licenseNo, setLicenseNo] = useState('');
   const [licenseOrg, setLicenseOrg] = useState('');
   const [expertPhone, setExpertPhone] = useState('');
+  const [officeAddress, setOfficeAddress] = useState('');
   const [bio, setBio] = useState('');
 
   const endpointBase = accountType === 'FACILITY' ? `${BACKEND_URL}/api/partner` : `${BACKEND_URL}/api/expert`;
@@ -67,6 +68,7 @@ export const PartnerPortalPage: React.FC = () => {
     setLicenseNo('');
     setLicenseOrg('');
     setExpertPhone('');
+    setOfficeAddress('');
     setBio('');
   };
 
@@ -111,7 +113,7 @@ export const PartnerPortalPage: React.FC = () => {
       const payload =
         accountType === 'FACILITY'
           ? { email, password, bizRegNo, companyName, ownerName, contactName, contactPhone: facilityPhone }
-          : { email, password, category, name: expertName, licenseNo, licenseOrg, contactPhone: expertPhone, bio };
+          : { email, password, category, name: expertName, licenseNo, licenseOrg, contactPhone: expertPhone, officeAddress, bio };
 
       const res = await fetch(`${endpointBase}/signup`, {
         method: 'POST',
@@ -336,6 +338,10 @@ export const PartnerPortalPage: React.FC = () => {
             <div>
               <label className="form-label">연락처</label>
               <input required type="tel" value={expertPhone} onChange={(e) => setExpertPhone(e.target.value)} className="form-select" />
+            </div>
+            <div>
+              <label className="form-label">사무실 주소 (선택)</label>
+              <input placeholder="예: 서울 서초구 서초대로 000, 0층" value={officeAddress} onChange={(e) => setOfficeAddress(e.target.value)} className="form-select" />
             </div>
             <div>
               <label className="form-label">소개 (선택)</label>

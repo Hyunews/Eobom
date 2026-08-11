@@ -253,6 +253,7 @@ model Expert {
   licenseOrg    String? // 등록 기관 (대한변호사협회, 한국세무사회 등)
   licenseDocUrl String? // 자격증 사본 (비공개 스토리지)
   contactPhone  String // 연락처 (숫자만 정규화 저장, utils/phone.ts)
+  officeAddress String? // 사무실 주소 (전문직 신뢰도·안내용, 선택 입력)
 
   bio         String? // 소개·경력
   specialties String[] @default([]) // 세부 전문 분야

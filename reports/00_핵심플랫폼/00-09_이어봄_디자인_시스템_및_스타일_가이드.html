@@ -3,105 +3,251 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>🎨 11. 디자인 시스템 및 스타일 가이드 - 이어봄</title>
-  <link rel="stylesheet" href="../../style.css">
+  <title>이어봄 - 디자인 시스템 및 스타일 가이드</title>
   <style>
-    .color-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-top: 15px; }
-    .color-chip { border-radius: 8px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
-    .color-swatch { height: 100px; display: flex; align-items: flex-end; padding: 12px; color: white; font-weight: bold; font-family: monospace; }
-    .color-info { padding: 12px; background: white; }
-    .color-info h5 { margin: 0 0 4px 0; color: #1e293b; font-size: 1rem; }
-    .color-info p { margin: 0; color: #64748b; font-size: 0.85rem; }
-    .font-sample { background: #f8fafc; border: 1px solid #e2e8f0; padding: 20px; border-radius: 8px; margin-bottom: 15px; }
+    :root {
+      --primary: #1A2B4C;
+      --secondary: #5B7065;
+      --accent: #D4A359;
+      --bg: #FBF9F5;
+      --surface: #FFFFFF;
+      --text: #1E293B;
+      --text-muted: #64748B;
+      --border: #E2E8F0;
+      --code-bg: #0F172A;
+      --code-text: #F8FAFC;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.65;
+      padding: 2rem 1rem;
+    }
+    .container {
+      max-width: 1080px;
+      margin: 0 auto;
+      background-color: var(--surface);
+      padding: 3rem;
+      border-radius: 24px;
+      box-shadow: 0 20px 40px rgba(26, 43, 76, 0.08);
+      border: 1px solid var(--border);
+    }
+    .header {
+      border-bottom: 3px solid var(--accent);
+      padding-bottom: 1.5rem;
+      margin-bottom: 2.5rem;
+    }
+    .badge {
+      display: inline-block;
+      background-color: var(--primary);
+      color: #FFF;
+      font-size: 0.85rem;
+      font-weight: 700;
+      padding: 0.3rem 0.8rem;
+      border-radius: 20px;
+      margin-bottom: 0.8rem;
+    }
+    .badge-sub {
+      display: inline-block;
+      background-color: var(--secondary);
+      color: #FFF;
+      font-size: 0.85rem;
+      font-weight: 700;
+      padding: 0.3rem 0.8rem;
+      border-radius: 20px;
+      margin-bottom: 0.8rem;
+      margin-left: 0.4rem;
+    }
+    h1 {
+      font-size: 2rem;
+      color: var(--primary);
+      margin-bottom: 0.5rem;
+      font-weight: 800;
+    }
+    .subtitle {
+      color: var(--text-muted);
+      font-size: 1.05rem;
+    }
+    .section-title {
+      font-size: 1.4rem;
+      color: var(--primary);
+      margin: 2.5rem 0 1.2rem 0;
+      padding-left: 0.8rem;
+      border-left: 5px solid var(--secondary);
+      font-weight: 700;
+    }
+    .subsection-title {
+      font-size: 1.15rem;
+      color: var(--primary);
+      margin: 1.8rem 0 0.8rem 0;
+      font-weight: 700;
+    }
+    p { margin-bottom: 1rem; color: #334155; }
+    ul, ol { margin-bottom: 1rem; padding-left: 1.4rem; color: #334155; }
+    li { margin-bottom: 0.4rem; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1.2rem 0 1.8rem 0;
+      font-size: 0.93rem;
+    }
+    th, td {
+      padding: 0.85rem 0.9rem;
+      border: 1px solid var(--border);
+      text-align: left;
+      vertical-align: top;
+    }
+    th {
+      background-color: var(--primary);
+      color: #FFF;
+      font-weight: 700;
+      text-align: center;
+    }
+    tr:nth-child(even) { background-color: #F8FAFC; }
+
+    .callout {
+      background-color: #F8FAFC;
+      border-left: 4px solid var(--primary);
+      padding: 1.2rem 1.5rem;
+      margin: 1.2rem 0;
+      border-radius: 0 12px 12px 0;
+      font-size: 0.95rem;
+      color: #334155;
+    }
+    .callout-info {
+      background-color: #EFF6FF;
+      border-left-color: #3B82F6;
+      color: #1E40AF;
+    }
+    .callout-warning {
+      background-color: #FEF3C7;
+      border-left-color: #F59E0B;
+      color: #92400E;
+    }
+
+    .color-swatch {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border-radius: 4px;
+      margin-right: 6px;
+      vertical-align: middle;
+      border: 1px solid rgba(0,0,0,0.1);
+    }
+    code {
+      font-family: 'Fira Code', 'Consolas', monospace;
+      background-color: #F1F5F9;
+      color: #0F172A;
+      padding: 0.15rem 0.4rem;
+      border-radius: 4px;
+      font-size: 0.9em;
+    }
+    hr {
+      border: 0;
+      height: 1px;
+      background: var(--border);
+      margin: 2.5rem 0;
+    }
   </style>
 </head>
 <body>
-  <header>
-    <div class="header-container">
-      <h1>🎨 11. 디자인 시스템 및 스타일 가이드 (Design System)</h1>
-      <p>이어봄(Eobom) 브랜드 자산 기반 공식 디자인 토큰, 컬러 팔레트, 타이포그래피 및 반응형 가이드</p>
+  <div class="container">
+    <div class="header">
+      <span class="badge">🎨 공통 플랫폼 명세서</span>
+      <span class="badge-sub">Doc #00-09</span>
+      <h1>디자인 시스템 및 스타일 가이드 (Design System)</h1>
+      <p class="subtitle">3대 컬러 토큰(#1A2B4C, #5B7065, #D4A359), 시니어 접근성 토큰(18px/56px/1.7), 여백 스케일 및 운영자 밀도 예외</p>
     </div>
-  </header>
 
-  <main class="container">
-    <nav class="breadcrumb">
-      <a href="../../index.html">🏠 스펙 통합 포털 Home</a> &gt; 
-      <a href="../index.html">00. 핵심 플랫폼</a> &gt; 
-      <span>11. 디자인 시스템</span>
-    </nav>
-
-    <section class="card">
-      <h2>🌿 1. Brand Visual Aesthetics</h2>
-      <ul>
-        <li><strong>Brand Name</strong>: 이어봄 (Eobom) / DEWD (Digital Ending & Well-Dying Total Care)</li>
-        <li><strong>Symbolmark Concept</strong>: 무한대 연상 곡선(영원함), 봄의 잎사귀(온기/희망), 두 손의 악수(신뢰)</li>
-        <li><strong>Visual Identity Philosophy</strong>: 존엄함(Dignity), 평온함(Serenity), 따뜻함(Warmth), 현대적 품격(Modern Elegance). 눈이 편안한 오가닉 소프트 웜 크림(<code>#FBF9F5</code>) 바탕.</li>
-      </ul>
-    </section>
-
-    <section class="card">
-      <h2>🖌️ 2. Design Tokens & Color Palette</h2>
-      <div class="color-grid">
-        <div class="color-chip">
-          <div class="color-swatch" style="background: #1A2B4C;">#1A2B4C</div>
-          <div class="color-info">
-            <h5>Deep Navy (Primary)</h5>
-            <p>헤더, 주 헤드라인, 1차 버튼, 푸터</p>
-          </div>
-        </div>
-
-        <div class="color-chip">
-          <div class="color-swatch" style="background: #5B7065;">#5B7065</div>
-          <div class="color-info">
-            <h5>Warm Green (Secondary)</h5>
-            <p>서브 포인트, 완결 뱃지, 수목장/생태</p>
-          </div>
-        </div>
-
-        <div class="color-chip">
-          <div class="color-swatch" style="background: #D4A359;">#D4A359</div>
-          <div class="color-info">
-            <h5>Warm Gold (Accent)</h5>
-            <p>프리미엄 뱃지, 하이라이트 아이콘</p>
-          </div>
-        </div>
-
-        <div class="color-chip">
-          <div class="color-swatch" style="background: #FBF9F5; color: #1A2B4C; border-bottom: 1px solid #e2e8f0;">#FBF9F5</div>
-          <div class="color-info">
-            <h5>Soft Cream (Background)</h5>
-            <p>전역 앱 백그라운드 (눈이 편안함)</p>
-          </div>
-        </div>
-
-        <div class="color-chip">
-          <div class="color-swatch" style="background: #EF4444;">#EF4444</div>
-          <div class="color-info">
-            <h5>Crimson Red (Alert)</h5>
-            <p>24시간 긴급 콜 FAB, 긴급 알림</p>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <section class="card">
-      <h2>📐 3. Typography & Layout System</h2>
-      <div class="font-sample">
-        <h3 style="font-family: 'Pretendard', sans-serif; color: #1A2B4C; margin-top: 0;">UI Header & Body: Pretendard / Noto Sans KR</h3>
-        <p style="font-family: 'Pretendard', sans-serif; color: #6C7A89;">가독성이 높고 현대적인 슬레이트 딥 네이비 컬러 텍스트 규격 적용.</p>
-      </div>
-
-      <div class="font-sample">
-        <h3 style="font-family: 'KoPubWorld 명조', serif; color: #1A2B4C; margin-top: 0;">Title & Quote: KoPubWorld 명조 (Serif)</h3>
-        <p style="font-family: 'KoPubWorld 명조', serif; color: #5B7065;">존엄함과 전통적인 품격을 더해주는 서리프 명조 서체 라인업.</p>
-      </div>
-    </section>
-  </main>
-
-  <footer>
-    <div class="container" style="text-align: center; color: #94a3b8; padding: 20px 0;">
-      <p>© 2026 Eobom Project. All rights reserved.</p>
+    <div class="callout callout-info">
+      <p><strong>문서 목적</strong>: 이어봄 (Eobom) 브랜딩 자산(<code>Design_Logo.png</code>) 기반의 <strong>공식 디자인 시스템, 컬러 토큰, 타이포그래피, UI 레이아웃 및 반응형 스타일 가이드</strong>를 정의합니다.</p>
     </div>
-  </footer>
+
+    <hr>
+
+    <h2 class="section-title">🌿 1. Brand Visual Aesthetics</h2>
+    <ul>
+      <li><strong>Brand Name</strong>: 이어봄 (Eobom) / DEWD (Digital Ending &amp; Well-Dying Total Care)</li>
+      <li><strong>Symbolmark Concept</strong>: 무한대 연상 곡선(영원성), 봄의 잎사귀(새로운 시작/온기), 두 손의 악수(연결/신뢰)</li>
+      <li><strong>Visual Identity Philosophy</strong>: 존엄함(Dignity), 평온함(Serenity), 따뜻함(Warmth), 현대적 품격(Modern Elegance). 소프트 웜 크림(<code>#FBF9F5</code>) 바탕 오가닉 비주얼, 12px ~ 24px 부드러운 둥근 모서리 카드 시스템.</li>
+    </ul>
+
+    <hr>
+
+    <h2 class="section-title">🖌️ 2. Design Tokens &amp; Color Palette</h2>
+    <h3 class="subsection-title">2.1 3대 핵심 브랜드 컬러 &amp; 액센트 토큰</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>구분</th>
+          <th>색상명</th>
+          <th>Hex Code</th>
+          <th>주요 적용 컴포넌트</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>Primary</strong></td><td>Deep Navy (딥 네이비)</td><td><span class="color-swatch" style="background:#1A2B4C;"></span><code>#1A2B4C</code></td><td>헤더, 주 헤드라인, 1차 액션 버튼, 다크 카드 표면, 푸터 배경</td></tr>
+        <tr><td><strong>Secondary</strong></td><td>Warm Green (웜 그린)</td><td><span class="color-swatch" style="background:#5B7065;"></span><code>#5B7065</code></td><td>서브 포인트, 완결 뱃지, 수목장/생태 뱃지, 강조 아이콘</td></tr>
+        <tr><td><strong>Accent</strong></td><td>Warm Gold (웜 골드)</td><td><span class="color-swatch" style="background:#D4A359;"></span><code>#D4A359</code></td><td>프리미엄 뱃지, 하이라이트 아이콘, 서체 강조, 골드 테두리</td></tr>
+        <tr><td><strong>Background</strong></td><td>Soft Cream White</td><td><span class="color-swatch" style="background:#FBF9F5;"></span><code>#FBF9F5</code></td><td>메인 앱 전역 백그라운드 (소프트 웜 톤)</td></tr>
+        <tr><td><strong>Surface</strong></td><td>Pure White</td><td><span class="color-swatch" style="background:#FFFFFF;"></span><code>#FFFFFF</code></td><td>기본 대시보드 카드, 입력 폼 박스, 모달 배경</td></tr>
+        <tr><td><strong>Alert</strong></td><td>Crimson Red</td><td><span class="color-swatch" style="background:#EF4444;"></span><code>#EF4444</code> / <code>#DC2626</code></td><td>24시간 긴급 콜 FAB 버튼, 긴급 알림 뱃지</td></tr>
+      </tbody>
+    </table>
+
+    <h3 class="subsection-title">2.2 Typography System &amp; 2.3 접근성 토큰 (축소 불가 정본)</h3>
+    <p>6070 시니어 주 페르소나를 위한 최소 보장선으로 아래 3개 접근성 토큰은 절대 축소하지 않습니다 (<code>index.css</code> 정본).</p>
+    <table>
+      <thead>
+        <tr>
+          <th>토큰</th>
+          <th>값</th>
+          <th>의미</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td><code>--base-font-size</code></td><td><code>18px</code></td><td>본문 기준 크기 (일반 16px 대비 시니어 가독성 확충)</td></tr>
+        <tr><td><code>--min-touch-target</code></td><td><code>56px</code></td><td>주요 버튼(<code>.btn</code>) 높이 (손떨림 감안 터치 타겟)</td></tr>
+        <tr><td><code>line-height</code></td><td><code>1.7</code></td><td><code>body</code> 기본 행간</td></tr>
+      </tbody>
+    </table>
+
+    <h3 class="subsection-title">2.4 여백 스케일 (2026-08-11 밀도 조정)</h3>
+    <p>접근성 토큰(font-size 18px / 터치 타겟 56px)은 보존하면서 여백(padding/margin/gap)만 25~30% 축소하였습니다.</p>
+    <table>
+      <thead>
+        <tr>
+          <th>대상</th>
+          <th>이전</th>
+          <th>현재</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td><code>.container</code> padding</td><td><code>2.5rem 24px</code></td><td><code>1.75rem 24px</code></td></tr>
+        <tr><td><code>.card</code> padding</td><td><code>2rem</code></td><td><code>1.5rem</code></td></tr>
+        <tr><td><code>.grid</code> gap</td><td><code>2rem</code></td><td><code>1.5rem</code></td></tr>
+        <tr><td><code>.form-group</code> margin-bottom</td><td><code>1.5rem</code></td><td><code>1.1rem</code></td></tr>
+        <tr><td><code>.hero-section</code> margin-bottom</td><td><code>3.5rem</code></td><td><code>2.25rem</code></td></tr>
+      </tbody>
+    </table>
+
+    <h3 class="subsection-title">2.5 운영자 화면 예외 — 밀도 우선</h3>
+    <div class="callout callout-warning">
+      <p><code>AdminPage.tsx</code>(운영자 대시보드)는 업무 반복형 사용자 전용 화면이므로 로컬 상수 <code>SMALL_BTN</code>(34px) / <code>TAB_BTN</code>(38px) / <code>SMALL_INPUT</code>(38px)을 써서 밀도를 높입니다. <strong>전역 <code>.btn</code>을 건드리지 않아야 소비자 화면 접근성이 보존됩니다.</strong></p>
+    </div>
+
+    <hr>
+
+    <h2 class="section-title">📐 3. Layout &amp; Responsive Breakpoints</h2>
+    <ul>
+      <li><strong>Header</strong>: 고정 72px 상단 바</li>
+      <li><strong>Sidebar</strong>: 6개 메뉴(도메인 번호 체계와 1:1 일치), 고정 72px ↔ 호버 시 240px 확장</li>
+      <li><strong>Floating FAB</strong>: 우하단 <code>🚨 24시간 긴급 콜</code> (`.animate-pulse`)</li>
+      <li><strong>Breakpoints</strong>: Desktop (&gt;= 1024px, 3~4열 그리드), Tablet (768~1023px, 2열 그리드), Mobile (&lt; 768px, 1열 스택)</li>
+    </ul>
+  </div>
 </body>
 </html>

@@ -22,6 +22,12 @@ const EXPERT_CATEGORY_LABELS: Record<string, string> = {
   FUNERAL_DIRECTOR: '장례지도사',
 };
 
+// 카드 안의 텍스트(0.8~0.85rem)에 맞춘 컴팩트 버튼/입력 크기 — 기본 .btn/.form-select는
+// 시니어 접근성용 56px/52px 터치 타겟이라 이 조밀한 운영자 목록 안에서는 과하게 커 보였다.
+const SMALL_BTN: React.CSSProperties = { height: '34px', padding: '0 0.9rem', fontSize: '0.8rem', borderRadius: '8px' };
+const TAB_BTN: React.CSSProperties = { height: '38px', padding: '0 1rem', fontSize: '0.85rem', borderRadius: '8px' };
+const SMALL_INPUT: React.CSSProperties = { height: '38px', fontSize: '0.85rem' };
+
 export const AdminPage: React.FC = () => {
   const [token, setToken] = useState<string | null>(() => localStorage.getItem('eobom_admin_token'));
   const [adminName, setAdminName] = useState<string | null>(() => localStorage.getItem('eobom_admin_name'));
@@ -51,7 +57,7 @@ export const AdminPage: React.FC = () => {
   const [editingPartnerId, setEditingPartnerId] = useState<string | null>(null);
   const [partnerEditForm, setPartnerEditForm] = useState({ contactName: '', contactPhone: '' });
   const [editingExpertId, setEditingExpertId] = useState<string | null>(null);
-  const [expertEditForm, setExpertEditForm] = useState({ contactPhone: '', bio: '' });
+  const [expertEditForm, setExpertEditForm] = useState({ contactPhone: '', officeAddress: '', bio: '' });
 
   const authHeaders = { Authorization: `Bearer ${token}` };
 
@@ -219,7 +225,7 @@ export const AdminPage: React.FC = () => {
 
   const startEditExpert = (ex: any) => {
     setEditingExpertId(ex.id);
-    setExpertEditForm({ contactPhone: ex.contactPhone || '', bio: ex.bio || '' });
+    setExpertEditForm({ contactPhone: ex.contactPhone || '', officeAddress: ex.officeAddress || '', bio: ex.bio || '' });
   };
 
   const saveEditExpert = async (id: string) => {
@@ -308,7 +314,7 @@ export const AdminPage: React.FC = () => {
         <h1 style={{ color: 'var(--primary-color)', fontSize: '1.6rem', fontWeight: 800 }}>운영자 승인 대시보드</h1>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
           <span style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>{adminName}님</span>
-          <button onClick={() => handleLogout()} className="btn" style={{ backgroundColor: '#E2E8F0', fontSize: '0.85rem' }}>
+          <button onClick={() => handleLogout()} className="btn" style={{ ...SMALL_BTN, backgroundColor: '#E2E8F0' }}>
             로그아웃
           </button>
         </div>
@@ -321,6 +327,7 @@ export const AdminPage: React.FC = () => {
             onClick={() => setTab(t)}
             className="btn"
             style={{
+              ...TAB_BTN,
               backgroundColor: tab === t ? 'var(--primary-color)' : 'var(--card-bg)',
               color: tab === t ? '#FFFFFF' : 'var(--primary-color)',
               border: '1px solid var(--border-color)',
@@ -338,13 +345,13 @@ export const AdminPage: React.FC = () => {
             }}
             style={{ display: 'flex', gap: '0.5rem', marginLeft: 'auto' }}
           >
-            <input value={facilitySearch} onChange={(e) => setFacilitySearch(e.target.value)} placeholder="시설명 검색" className="form-select" style={{ width: '200px' }} />
-            <button type="submit" className="btn btn-primary">검색</button>
+            <input value={facilitySearch} onChange={(e) => setFacilitySearch(e.target.value)} placeholder="시설명 검색" className="form-select" style={{ ...SMALL_INPUT, width: '200px' }} />
+            <button type="submit" className="btn btn-primary" style={TAB_BTN}>검색</button>
           </form>
         ) : (
           <div style={{ display: 'flex', gap: '0.5rem', marginLeft: 'auto' }}>
-            <input value={memberSearch} onChange={(e) => setMemberSearch(e.target.value)} placeholder="이름·상호·이메일 검색" className="form-select" style={{ width: '200px' }} />
-            <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="form-select" style={{ width: '140px' }}>
+            <input value={memberSearch} onChange={(e) => setMemberSearch(e.target.value)} placeholder="이름·상호·이메일 검색" className="form-select" style={{ ...SMALL_INPUT, width: '200px' }} />
+            <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="form-select" style={{ ...SMALL_INPUT, width: '140px' }}>
               <option value="">전체</option>
               <option value="PENDING">심사 대기</option>
               <option value="APPROVED">승인됨</option>
@@ -367,7 +374,7 @@ export const AdminPage: React.FC = () => {
                 {editingPartnerId === p.id ? (
                   <div style={{ flex: 1, minWidth: '260px', display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
                     <div>
-                      <strong style={{ color: 'var(--primary-color)' }}>{p.companyName}</strong>
+                      <strong style={{ color: 'var(--primary-color)', fontSize: '1.05rem' }}>{p.companyName}</strong>
                       <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem', marginLeft: '0.6rem' }}>
                         대표 {p.ownerName} · 사업자번호 {p.bizRegNo} · {p.email}
                       </span>
@@ -378,28 +385,28 @@ export const AdminPage: React.FC = () => {
                         onChange={(e) => setPartnerEditForm((f) => ({ ...f, contactName: e.target.value }))}
                         placeholder="담당자명"
                         className="form-select"
-                        style={{ flex: 1, minWidth: '140px' }}
+                        style={{ ...SMALL_INPUT, flex: 1, minWidth: '140px' }}
                       />
                       <input
                         value={partnerEditForm.contactPhone}
                         onChange={(e) => setPartnerEditForm((f) => ({ ...f, contactPhone: e.target.value }))}
                         placeholder="연락처"
                         className="form-select"
-                        style={{ flex: 1, minWidth: '140px' }}
+                        style={{ ...SMALL_INPUT, flex: 1, minWidth: '140px' }}
                       />
                     </div>
                     <div style={{ display: 'flex', gap: '0.5rem' }}>
-                      <button onClick={() => saveEditPartner(p.id)} className="btn" style={{ backgroundColor: '#DEF7EC', color: '#03543F', display: 'flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.85rem' }}>
+                      <button onClick={() => saveEditPartner(p.id)} className="btn" style={{ ...SMALL_BTN, backgroundColor: '#DEF7EC', color: '#03543F', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
                         <Save size={14} /> 저장
                       </button>
-                      <button onClick={() => setEditingPartnerId(null)} className="btn" style={{ backgroundColor: '#F1F5F9', color: '#6B7280', display: 'flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.85rem' }}>
+                      <button onClick={() => setEditingPartnerId(null)} className="btn" style={{ ...SMALL_BTN, backgroundColor: '#F1F5F9', color: '#6B7280', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
                         <X size={14} /> 취소
                       </button>
                     </div>
                   </div>
                 ) : (
                   <div>
-                    <strong style={{ color: 'var(--primary-color)' }}>{p.companyName}</strong>
+                    <strong style={{ color: 'var(--primary-color)', fontSize: '1.05rem' }}>{p.companyName}</strong>
                     <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginLeft: '0.6rem' }}>
                       대표 {p.ownerName} · 사업자번호 {p.bizRegNo} · 담당 {p.contactName}({formatPhoneForDisplay(p.contactPhone)}) · {p.email}
                     </span>
@@ -408,7 +415,7 @@ export const AdminPage: React.FC = () => {
                 )}
                 {editingPartnerId !== p.id && (
                   <div style={{ display: 'flex', gap: '0.5rem' }}>
-                    <button onClick={() => startEditPartner(p)} className="btn" style={{ backgroundColor: '#F1F5F9', color: 'var(--primary-color)', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                    <button onClick={() => startEditPartner(p)} className="btn" style={{ ...SMALL_BTN, backgroundColor: '#F1F5F9', color: 'var(--primary-color)', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
                       <Pencil size={14} /> 정보 수정
                     </button>
                     {p.status === 'PENDING' && (
@@ -432,7 +439,7 @@ export const AdminPage: React.FC = () => {
                 {editingExpertId === ex.id ? (
                   <div style={{ flex: 1, minWidth: '260px', display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
                     <div>
-                      <strong style={{ color: 'var(--primary-color)' }}>{ex.name}</strong>
+                      <strong style={{ color: 'var(--primary-color)', fontSize: '1.05rem' }}>{ex.name}</strong>
                       <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem', marginLeft: '0.6rem' }}>
                         자격번호 {ex.licenseNo} {ex.licenseOrg && `(${ex.licenseOrg})`} · {ex.email}
                       </span>
@@ -442,38 +449,47 @@ export const AdminPage: React.FC = () => {
                       onChange={(e) => setExpertEditForm((f) => ({ ...f, contactPhone: e.target.value }))}
                       placeholder="연락처"
                       className="form-select"
+                      style={SMALL_INPUT}
+                    />
+                    <input
+                      value={expertEditForm.officeAddress}
+                      onChange={(e) => setExpertEditForm((f) => ({ ...f, officeAddress: e.target.value }))}
+                      placeholder="사무실 주소"
+                      className="form-select"
+                      style={SMALL_INPUT}
                     />
                     <textarea
                       value={expertEditForm.bio}
                       onChange={(e) => setExpertEditForm((f) => ({ ...f, bio: e.target.value }))}
                       placeholder="소개"
-                      style={{ width: '100%', padding: '0.8rem', borderRadius: '8px', border: '1px solid var(--border-color)', fontSize: '0.9rem', height: '70px' }}
+                      style={{ width: '100%', padding: '0.6rem 0.8rem', borderRadius: '8px', border: '1px solid var(--border-color)', fontSize: '0.85rem', height: '60px' }}
                     />
                     <div style={{ display: 'flex', gap: '0.5rem' }}>
-                      <button onClick={() => saveEditExpert(ex.id)} className="btn" style={{ backgroundColor: '#DEF7EC', color: '#03543F', display: 'flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.85rem' }}>
+                      <button onClick={() => saveEditExpert(ex.id)} className="btn" style={{ ...SMALL_BTN, backgroundColor: '#DEF7EC', color: '#03543F', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
                         <Save size={14} /> 저장
                       </button>
-                      <button onClick={() => setEditingExpertId(null)} className="btn" style={{ backgroundColor: '#F1F5F9', color: '#6B7280', display: 'flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.85rem' }}>
+                      <button onClick={() => setEditingExpertId(null)} className="btn" style={{ ...SMALL_BTN, backgroundColor: '#F1F5F9', color: '#6B7280', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
                         <X size={14} /> 취소
                       </button>
                     </div>
                   </div>
                 ) : (
                   <div>
-                    <strong style={{ color: 'var(--primary-color)' }}>{ex.name}</strong>
+                    <strong style={{ color: 'var(--primary-color)', fontSize: '1.05rem' }}>{ex.name}</strong>
                     <span style={{ fontSize: '0.75rem', backgroundColor: 'var(--secondary-color)', padding: '0.15rem 0.5rem', borderRadius: '6px', marginLeft: '0.5rem' }}>
                       {EXPERT_CATEGORY_LABELS[ex.category] || ex.category}
                     </span>
                     <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginLeft: '0.6rem' }}>
                       자격번호 {ex.licenseNo} {ex.licenseOrg && `(${ex.licenseOrg})`} · {formatPhoneForDisplay(ex.contactPhone)} · {ex.email}
                     </span>
+                    {ex.officeAddress && <div style={{ color: 'var(--text-muted)', fontSize: '0.8rem', marginTop: '0.2rem' }}>사무실: {ex.officeAddress}</div>}
                     {ex.bio && <div style={{ color: 'var(--text-muted)', fontSize: '0.8rem', marginTop: '0.2rem' }}>{ex.bio}</div>}
                     {ex.rejectReason && <div style={{ color: '#991B1B', fontSize: '0.8rem' }}>반려 사유: {ex.rejectReason}</div>}
                   </div>
                 )}
                 {editingExpertId !== ex.id && (
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
-                    <button onClick={() => startEditExpert(ex)} className="btn" style={{ backgroundColor: '#F1F5F9', color: 'var(--primary-color)', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                    <button onClick={() => startEditExpert(ex)} className="btn" style={{ ...SMALL_BTN, backgroundColor: '#F1F5F9', color: 'var(--primary-color)', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
                       <Pencil size={14} /> 정보 수정
                     </button>
                     {ex.status === 'PENDING' && (
@@ -501,7 +517,7 @@ export const AdminPage: React.FC = () => {
             claims.map((c) => (
               <div key={c.id} className="card" style={{ padding: '1.2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.8rem' }}>
                 <div>
-                  <strong style={{ color: 'var(--primary-color)' }}>{c.facility?.name}</strong>
+                  <strong style={{ color: 'var(--primary-color)', fontSize: '1.05rem' }}>{c.facility?.name}</strong>
                   <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginLeft: '0.6rem' }}>
                     {c.facility?.location} · 신청 사업자: {c.partner?.companyName}({c.partner?.email})
                   </span>
@@ -524,37 +540,40 @@ export const AdminPage: React.FC = () => {
             <EmptyState />
           ) : (
             <>
-              {facilities.map((f) => (
-                <div key={f.id} className="card" style={{ padding: '1.2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.8rem' }}>
-                  <div>
-                    <strong style={{ color: 'var(--primary-color)' }}>{f.name}</strong>
-                    <span style={{ fontSize: '0.75rem', backgroundColor: 'var(--secondary-color)', padding: '0.15rem 0.5rem', borderRadius: '6px', marginLeft: '0.5rem' }}>
-                      {f.type}
-                    </span>
-                    <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginLeft: '0.6rem' }}>{f.location}</span>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '0.8rem' }}>
+                {facilities.map((f) => (
+                  <div key={f.id} className="card" style={{ padding: '1rem', display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '0.5rem' }}>
+                      <strong style={{ color: 'var(--primary-color)', fontSize: '0.95rem' }}>{f.name}</strong>
+                      <span
+                        style={{
+                          fontSize: '0.72rem',
+                          fontWeight: 700,
+                          padding: '0.15rem 0.5rem',
+                          borderRadius: '8px',
+                          whiteSpace: 'nowrap',
+                          backgroundColor: f.isPartner ? '#DEF7EC' : '#F1F5F9',
+                          color: f.isPartner ? '#03543F' : '#6B7280',
+                        }}
+                      >
+                        {f.isPartner ? '연동됨' : '미연동'}
+                      </span>
+                    </div>
+                    <div>
+                      <span style={{ fontSize: '0.72rem', backgroundColor: 'var(--secondary-color)', padding: '0.1rem 0.4rem', borderRadius: '5px' }}>{f.type}</span>
+                      <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem', marginLeft: '0.4rem' }}>{f.location}</span>
+                    </div>
                   </div>
-                  <span
-                    style={{
-                      fontSize: '0.78rem',
-                      fontWeight: 700,
-                      padding: '0.2rem 0.6rem',
-                      borderRadius: '10px',
-                      backgroundColor: f.isPartner ? '#DEF7EC' : '#F1F5F9',
-                      color: f.isPartner ? '#03543F' : '#6B7280',
-                    }}
-                  >
-                    {f.isPartner ? '사업자 연동됨' : '미연동'}
-                  </span>
-                </div>
-              ))}
-              <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.8rem', marginTop: '0.5rem' }}>
-                <button disabled={facilityPage <= 1} onClick={() => loadFacilities(facilityPage - 1)} className="btn" style={{ backgroundColor: '#F1F5F9', opacity: facilityPage <= 1 ? 0.5 : 1 }}>
+                ))}
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.8rem', marginTop: '0.8rem' }}>
+                <button disabled={facilityPage <= 1} onClick={() => loadFacilities(facilityPage - 1)} className="btn" style={{ ...SMALL_BTN, backgroundColor: '#F1F5F9', opacity: facilityPage <= 1 ? 0.5 : 1 }}>
                   이전
                 </button>
                 <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
                   {facilityPage} / {facilityTotalPages} 페이지 (총 {facilityCount}건)
                 </span>
-                <button disabled={facilityPage >= facilityTotalPages} onClick={() => loadFacilities(facilityPage + 1)} className="btn" style={{ backgroundColor: '#F1F5F9', opacity: facilityPage >= facilityTotalPages ? 0.5 : 1 }}>
+                <button disabled={facilityPage >= facilityTotalPages} onClick={() => loadFacilities(facilityPage + 1)} className="btn" style={{ ...SMALL_BTN, backgroundColor: '#F1F5F9', opacity: facilityPage >= facilityTotalPages ? 0.5 : 1 }}>
                   다음
                 </button>
               </div>
@@ -570,13 +589,13 @@ const EmptyState: React.FC = () => (
 );
 
 const ApproveButton: React.FC<{ onClick: () => void }> = ({ onClick }) => (
-  <button onClick={onClick} className="btn" style={{ backgroundColor: '#DEF7EC', color: '#03543F', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-    <CheckCircle2 size={16} /> 승인
+  <button onClick={onClick} className="btn" style={{ ...SMALL_BTN, backgroundColor: '#DEF7EC', color: '#03543F', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+    <CheckCircle2 size={14} /> 승인
   </button>
 );
 
 const RejectButton: React.FC<{ onClick: () => void }> = ({ onClick }) => (
-  <button onClick={onClick} className="btn" style={{ backgroundColor: '#FEE2E2', color: '#991B1B', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-    <XCircle size={16} /> 반려
+  <button onClick={onClick} className="btn" style={{ ...SMALL_BTN, backgroundColor: '#FEE2E2', color: '#991B1B', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+    <XCircle size={14} /> 반려
   </button>
 );
