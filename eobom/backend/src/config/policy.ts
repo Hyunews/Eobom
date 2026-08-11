@@ -10,6 +10,9 @@ export const POLICY = {
     requirePhoneVerification: true, // §10-2 — SMS 인증 연동은 별도 구현 전까지 미시행(정책값만 존재)
     acceptForNonPartner: true, // §10-4
   },
+  consult: {
+    numberPrefix: 'EC', // 상담 신청 번호 접두어 (docs 02-03 §4.1) — EC-YYMMDD-NNNN. Lead의 EB-와 구분되는 별도 카운터.
+  },
   settlement: {
     cycleMonths: 1, // §10-3
     disputeWindowDays: 7, // §10-3 — 이의제기 기간

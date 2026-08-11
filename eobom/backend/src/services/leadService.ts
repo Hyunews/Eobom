@@ -2,15 +2,15 @@ import { Prisma } from '@prisma/client';
 import { POLICY } from '../config/policy';
 
 // 리드(Lead) 생성 공통 로직. docs/01_장사시설_매칭/01-05_...명세서.md §4를 그대로 구현한다.
-// 반드시 트랜잭션(tx) 안에서 호출한다 — leadNo 발번(§4.2)과 리드 생성이 원자적이어야 하고,
-// BOOKING 타입은 FacilityBooking 생성과도 같은 트랜잭션이어야 한다(§5.3).
+// 반드시 트랜잭션(tx) 안에서 호출한다 — leadNo 발번(§4.2)과 리드 생성이 원자적이어야 한다.
+// BOOKING 타입(FacilityBooking 연동)은 2026-08-11 답사예약 기능 폐기와 함께 제거됨.
 
 type TxClient = Prisma.TransactionClient;
 
-export type LeadType = 'QUOTE' | 'BOOKING' | 'CONSULT' | 'CALL';
+export type LeadType = 'QUOTE' | 'CONSULT' | 'CALL';
 
 // 개인정보를 동반하는 유형만 동의가 필요하다. CALL은 익명 이벤트라 대상이 아니다(§4.1, §7.1).
-const PII_LEAD_TYPES: ReadonlySet<LeadType> = new Set(['QUOTE', 'BOOKING', 'CONSULT']);
+const PII_LEAD_TYPES: ReadonlySet<LeadType> = new Set(['QUOTE', 'CONSULT']);
 
 export class ConsentRequiredError extends Error {
   constructor() {
@@ -57,9 +57,9 @@ interface ConsentNotice {
 }
 
 const buildConsentNotice = (facilityName: string, hasPartner: boolean): ConsentNotice => ({
-  noticeVersion: '2026-08-10',
+  noticeVersion: '2026-08-11',
   providedTo: hasPartner ? `${facilityName} (이어봄 제휴 사업자)` : '이어봄 상담원 (비제휴 시설 — 사업자에게 직접 전달하지 않음, §7.2)',
-  purpose: '견적 안내 및 답사 예약 연락',
+  purpose: '업체 문의 및 견적 안내 연락',
   items: ['이름', '연락처', '요청 내용(희망일시·규모 등)'],
   retention: '목적 달성 후 파기 — 정산 확정 시 마스킹 처리(§7.3)',
 });

@@ -2,34 +2,43 @@ import React, { useState } from 'react';
 import { X, Send, ShieldCheck } from 'lucide-react';
 import { BACKEND_URL } from '../../config';
 
-// 업체 문의 — 전화번호 노출 대신 이 폼을 통해서만 시설에 문의한다(docs 01-05 §9: 전화 문의는
-// 수수료 청구 근거로 증명 불가, 견적요청 폼으로 유도). 기존 POST /api/facilities/:id/quotes
-// (Lead type=QUOTE)에 그대로 연결 — leadNo가 사용자가 말한 "라벨링"에 해당한다.
+// 전문가 상담 신청 — InquiryModal.tsx(장사시설 업체 문의)와 같은 구조.
+// docs/02_전문가_매칭/02-03_전문가_공개노출_및_상담신청_명세서.md §7.2.
+// POST /api/experts/:id/consult-requests 에 연결, 접수번호(EC-YYMMDD-NNNN)를 사용자에게 보여준다.
 
-interface InquiryModalProps {
-  facilityId: string;
-  facilityName: string;
+const CHANNEL_OPTIONS: { value: string; label: string }[] = [
+  { value: 'ALIMTALK', label: '카카오 알림톡' },
+  { value: 'PHONE', label: '전화' },
+  { value: 'VIDEO', label: '화상 상담' },
+  { value: 'VISIT', label: '방문' },
+];
+
+interface ConsultRequestModalProps {
+  expertId: string;
+  expertName: string;
   onClose: () => void;
 }
 
-export const InquiryModal: React.FC<InquiryModalProps> = ({ facilityId, facilityName, onClose }) => {
+export const ConsultRequestModal: React.FC<ConsultRequestModalProps> = ({ expertId, expertName, onClose }) => {
   const [applicantName, setApplicantName] = useState('');
   const [applicantPhone, setApplicantPhone] = useState('');
-  const [message, setMessage] = useState('');
+  const [channel, setChannel] = useState(CHANNEL_OPTIONS[0].value);
+  const [preferredAt, setPreferredAt] = useState('');
+  const [content, setContent] = useState('');
   const [thirdPartyConsent, setThirdPartyConsent] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!thirdPartyConsent) {
-      alert('⚠️ 개인정보 제3자 제공에 동의해야 문의를 보낼 수 있습니다.');
+      alert('⚠️ 개인정보 제3자 제공에 동의해야 상담을 신청할 수 있습니다.');
       return;
     }
 
     setIsSubmitting(true);
     try {
       const token = localStorage.getItem('k_ending_token');
-      const res = await fetch(`${BACKEND_URL}/api/facilities/${facilityId}/quotes`, {
+      const res = await fetch(`${BACKEND_URL}/api/experts/${expertId}/consult-requests`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -38,16 +47,18 @@ export const InquiryModal: React.FC<InquiryModalProps> = ({ facilityId, facility
         body: JSON.stringify({
           applicantName,
           applicantPhone,
+          channel,
+          preferredAt: preferredAt || undefined,
+          content,
           thirdPartyConsent,
-          payload: { message },
         }),
       });
       const data = await res.json();
       if (!res.ok || data.status !== 'success') {
-        alert(data.message || '문의 접수에 실패했습니다.');
+        alert(data.message || '상담 신청에 실패했습니다.');
         return;
       }
-      alert(`✅ [${facilityName}]에 문의가 접수되었습니다.\n\n접수번호: ${data.data.leadNo}\n(문의 시 이 번호를 말씀해주시면 빠르게 확인 가능합니다)`);
+      alert(`✅ [${expertName}]님께 상담 신청이 접수되었습니다.\n\n접수번호: ${data.data.requestNo}\n(문의 시 이 번호를 말씀해주시면 빠르게 확인 가능합니다)`);
       onClose();
     } catch {
       alert('서버와 통신 중 오류가 발생했습니다.');
@@ -91,10 +102,10 @@ export const InquiryModal: React.FC<InquiryModalProps> = ({ facilityId, facility
         </button>
 
         <h3 style={{ color: 'var(--primary-color)', marginBottom: '0.4rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <Send color="var(--point-color)" size={20} /> [{facilityName}] 업체 문의
+          <Send color="var(--point-color)" size={20} /> [{expertName}] 상담 신청
         </h3>
         <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '1.1rem' }}>
-          문의 내용을 남겨주시면 담당자가 확인 후 연락드립니다.
+          신청 내용을 남겨주시면 전문가가 확인 후 연락드립니다.
         </p>
 
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
@@ -105,16 +116,39 @@ export const InquiryModal: React.FC<InquiryModalProps> = ({ facilityId, facility
 
           <div>
             <label className="form-label">연락처</label>
-            <input required type="tel" placeholder="010-0000-0000" value={applicantPhone} onChange={(e) => setApplicantPhone(e.target.value)} className="form-select" />
+            <input
+              required
+              type="tel"
+              placeholder="010-0000-0000"
+              value={applicantPhone}
+              onChange={(e) => setApplicantPhone(e.target.value)}
+              className="form-select"
+            />
           </div>
 
           <div>
-            <label className="form-label">문의 사항</label>
+            <label className="form-label">희망 상담 방식</label>
+            <select value={channel} onChange={(e) => setChannel(e.target.value)} className="form-select">
+              {CHANNEL_OPTIONS.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="form-label">희망 상담 일시 (선택)</label>
+            <input type="datetime-local" value={preferredAt} onChange={(e) => setPreferredAt(e.target.value)} className="form-select" />
+          </div>
+
+          <div>
+            <label className="form-label">상담 희망 내용</label>
             <textarea
               required
-              placeholder="궁금하신 내용을 남겨주세요 (예: 빈소 사용 가능 일정, 비용 문의 등)"
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
+              placeholder="궁금하신 내용을 남겨주세요 (예: 상속세 절세 방안, 유언장 작성 관련 등)"
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
               style={{
                 width: '100%',
                 padding: '0.8rem',
@@ -143,8 +177,8 @@ export const InquiryModal: React.FC<InquiryModalProps> = ({ facilityId, facility
             <span>
               <strong style={{ color: 'var(--text-main)' }}>[필수]</strong> 개인정보 제3자 제공에 동의합니다.
               <br />
-              제공받는 자: {facilityName} 등 신청 시설 (또는 비제휴 시 이어봄 상담원) · 제공 목적: 문의 응대 및 연락 ·
-              제공 항목: 이름, 연락처, 문의 내용 · 보유 기간: 목적 달성 후 파기
+              제공받는 자: {expertName} (이어봄 입점 전문가) · 제공 목적: 상담 안내 및 연락 ·
+              제공 항목: 이름, 연락처, 상담 희망 내용 · 보유 기간: 목적 달성 후 파기
             </span>
           </label>
 
@@ -155,7 +189,7 @@ export const InquiryModal: React.FC<InquiryModalProps> = ({ facilityId, facility
             <button type="submit" disabled={isSubmitting} className="btn btn-primary" style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem' }}>
               {isSubmitting ? '전송 중...' : (
                 <>
-                  <ShieldCheck size={16} /> 문의 전송
+                  <ShieldCheck size={16} /> 상담 신청
                 </>
               )}
             </button>

@@ -3,13 +3,13 @@
     "id": 1,
     "day": "D-Day",
     "text": "사망진단서 (발급 10부 이상 챙기기)",
-    "checked": true
+    "checked": false
   },
   {
     "id": 2,
     "day": "D-Day",
     "text": "장례식장 계약 및 영정사진 전달",
-    "checked": true
+    "checked": false
   },
   {
     "id": 3,

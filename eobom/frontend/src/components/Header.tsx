@@ -23,7 +23,7 @@ export const Header: React.FC<HeaderProps> = ({ setActiveTab, onOpenLogin, onOpe
     }}>
       <div style={{
         width: '100%',
-        padding: '0 2rem',
+        padding: '0 1.5rem',
         height: '100%',
         display: 'flex',
         justifyContent: 'space-between',
@@ -39,7 +39,7 @@ export const Header: React.FC<HeaderProps> = ({ setActiveTab, onOpenLogin, onOpe
         </div>
 
         {/* 우측 로그인 / 회원가입 상태 버튼 */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
           {currentUser ? (
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
               <span

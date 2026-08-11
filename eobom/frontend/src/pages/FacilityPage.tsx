@@ -181,14 +181,14 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
   };
 
   return (
-    <div className="container" style={{ paddingBottom: '4rem' }}>
+    <div className="container" style={{ paddingBottom: '3rem' }}>
       {/* 히어로 헤더 */}
       <div
         style={{
-          marginBottom: '2.5rem',
+          marginBottom: '1.75rem',
           backgroundColor: 'var(--primary-color)',
           color: '#FFFFFF',
-          padding: '2.5rem',
+          padding: '1.75rem',
           borderRadius: '24px',
           boxShadow: 'var(--box-shadow)',
           position: 'relative',
@@ -212,9 +212,9 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
       <div
         style={{
           backgroundColor: 'var(--card-bg)',
-          padding: '1.5rem',
+          padding: '1.1rem',
           borderRadius: '20px',
-          marginBottom: '2.5rem',
+          marginBottom: '1.75rem',
           boxShadow: 'var(--box-shadow)',
           border: '1px solid var(--border-color)',
           display: 'flex',
@@ -462,7 +462,7 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
 
       {/* 페이지네이션 */}
       {totalPages > 1 && (
-        <div style={{ display: 'flex', justifyContent: 'center', gap: '0.4rem', marginTop: '2rem', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', justifyContent: 'center', gap: '0.4rem', marginTop: '1.5rem', flexWrap: 'wrap' }}>
           <button
             onClick={() => goToPage(Math.max(1, page - 1))}
             disabled={page === 1}

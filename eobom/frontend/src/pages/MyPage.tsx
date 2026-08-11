@@ -49,14 +49,14 @@ export const MyPage: React.FC<MyPageProps> = ({ currentUser, onOpenLogin, onOpen
             backgroundColor: 'rgba(26, 43, 76, 0.75)',
             backdropFilter: 'blur(8px)',
             borderRadius: 'var(--border-radius)',
-            padding: '3rem 2.5rem',
+            padding: '2.2rem 1.75rem',
             textAlign: 'center',
             maxWidth: '420px'
           }}
         >
           <Lock size={36} color="#FFFFFF" style={{ marginBottom: '1rem' }} />
           <h2 style={{ color: '#FFFFFF', margin: '0 0 0.6rem 0', fontSize: '1.3rem' }}>마이페이지는 로그인 후 이용하실 수 있어요</h2>
-          <p style={{ color: 'rgba(255,255,255,0.75)', fontSize: '0.9rem', marginBottom: '1.5rem' }}>
+          <p style={{ color: 'rgba(255,255,255,0.75)', fontSize: '0.9rem', marginBottom: '1.1rem' }}>
             예약 현황, 상담 내역, 엔딩노트 진행 상황을 한눈에 확인하세요.
           </p>
           <button onClick={onOpenLogin} className="btn btn-point">
@@ -86,11 +86,11 @@ export const MyPage: React.FC<MyPageProps> = ({ currentUser, onOpenLogin, onOpen
           borderRadius: 'var(--border-radius)',
           boxShadow: 'var(--box-shadow)',
           border: '1px solid var(--border-color)',
-          padding: '2rem',
+          padding: '1.5rem',
           display: 'flex',
           alignItems: 'center',
-          gap: '1.5rem',
-          marginBottom: '1.5rem',
+          gap: '1.1rem',
+          marginBottom: '1.1rem',
           flexWrap: 'wrap'
         }}
       >
@@ -168,10 +168,10 @@ export const MyPage: React.FC<MyPageProps> = ({ currentUser, onOpenLogin, onOpen
         style={{
           backgroundColor: 'var(--primary-color)',
           borderRadius: 'var(--border-radius)',
-          padding: '1.75rem 1rem',
+          padding: '1.3rem 1rem',
           display: 'grid',
           gridTemplateColumns: 'repeat(3, 1fr)',
-          marginBottom: '2rem'
+          marginBottom: '1.5rem'
         }}
       >
         {stats.map((stat, idx) => (
@@ -197,7 +197,7 @@ export const MyPage: React.FC<MyPageProps> = ({ currentUser, onOpenLogin, onOpen
             flexDirection: 'row',
             alignItems: 'center',
             justifyContent: 'space-between',
-            padding: '1.25rem 1.5rem',
+            padding: '1rem 1.1rem',
             cursor: 'pointer',
             textAlign: 'left',
             width: '100%'
@@ -233,7 +233,7 @@ export const MyPage: React.FC<MyPageProps> = ({ currentUser, onOpenLogin, onOpen
             flexDirection: 'row',
             alignItems: 'center',
             justifyContent: 'space-between',
-            padding: '1.25rem 1.5rem',
+            padding: '1rem 1.1rem',
             cursor: 'pointer',
             textAlign: 'left',
             width: '100%'
@@ -268,7 +268,7 @@ export const MyPage: React.FC<MyPageProps> = ({ currentUser, onOpenLogin, onOpen
             flexDirection: 'row',
             alignItems: 'center',
             justifyContent: 'space-between',
-            padding: '1.25rem 1.5rem',
+            padding: '1rem 1.1rem',
             flexWrap: 'wrap',
             gap: '1rem'
           }}

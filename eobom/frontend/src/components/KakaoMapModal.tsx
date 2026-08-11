@@ -179,7 +179,7 @@ export const KakaoMapModal: React.FC<KakaoMapModalProps> = ({ facility, userLoca
         style={{
           backgroundColor: '#FFFFFF',
           borderRadius: '20px',
-          padding: '2rem',
+          padding: '1.5rem',
           maxWidth: '720px',
           width: '100%',
           boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',

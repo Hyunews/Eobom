@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { Phone, ShieldCheck, FileText, Lock } from 'lucide-react';
 import { EobomLogo } from './EobomLogo';
 
@@ -12,14 +13,14 @@ export const Footer: React.FC<FooterProps> = ({ isFullPageSnap = false }) => {
       style={{
         backgroundColor: '#1A2B4C',
         color: '#D1D5DB',
-        padding: isFullPageSnap ? '2.5rem 2.5rem 1.8rem 2.5rem' : '3.5rem 2rem 2rem 2rem',
-        marginTop: isFullPageSnap ? 0 : '4rem',
+        padding: isFullPageSnap ? '1.75rem 1.75rem 1.3rem 1.75rem' : '2.25rem 1.5rem 1.5rem 1.5rem',
+        marginTop: isFullPageSnap ? 0 : '2.75rem',
         borderRadius: isFullPageSnap ? '24px' : 0,
         boxShadow: isFullPageSnap ? '0 16px 40px rgba(26, 43, 76, 0.15)' : 'none',
         borderTop: isFullPageSnap ? '4px solid var(--accent-gold)' : '5px solid var(--point-color)',
         maxWidth: isFullPageSnap ? '1200px' : '100%',
         width: '100%',
-        margin: isFullPageSnap ? '0 auto' : '4rem 0 0 0'
+        margin: isFullPageSnap ? '0 auto' : '2.75rem 0 0 0'
       }}
     >
       <div
@@ -29,7 +30,7 @@ export const Footer: React.FC<FooterProps> = ({ isFullPageSnap = false }) => {
           margin: '0 auto',
           display: 'grid',
           gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
-          gap: '2.5rem',
+          gap: '1.75rem',
           alignItems: 'start'
         }}
       >
@@ -122,8 +123,8 @@ export const Footer: React.FC<FooterProps> = ({ isFullPageSnap = false }) => {
         style={{
           width: '100%',
           maxWidth: '1400px',
-          margin: '2rem auto 0 auto',
-          paddingTop: '1.2rem',
+          margin: '1.5rem auto 0 auto',
+          paddingTop: '1rem',
           borderTop: '1px solid rgba(255,255,255,0.1)',
           textAlign: 'center',
           fontSize: '0.82rem',
@@ -132,9 +133,9 @@ export const Footer: React.FC<FooterProps> = ({ isFullPageSnap = false }) => {
       >
         Copyright © 2026 이어봄 (Eobom) Total Care Platform. All rights reserved.
         {' · '}
-        <a href="#partner" style={{ color: '#6B7280', textDecoration: 'underline' }}>
+        <Link to="/partner" style={{ color: '#6B7280', textDecoration: 'underline' }}>
           장사시설·전문가 파트너이신가요?
-        </a>
+        </Link>
       </div>
     </footer>
   );

@@ -2,7 +2,6 @@ import { Request, Response } from 'express';
 import { Prisma } from '@prisma/client';
 import prisma from '../config/prisma';
 import { verifyBearerToken } from './authController';
-import { createLead, ConsentRequiredError } from '../services/leadService';
 
 const DEFAULT_PAGE_SIZE = 30;
 const MAX_PAGE_SIZE = 50;
@@ -129,78 +128,6 @@ export const getFacilityById = async (req: Request, res: Response) => {
   } catch (error) {
     console.error('시설 상세 조회 실패:', error);
     return res.status(500).json({ status: 'error', message: '시설 정보를 불러오지 못했습니다.' });
-  }
-};
-
-// 답사 예약 신청 (`POST /api/facilities/:id/bookings`)
-// FacilityBooking(업무 실체)과 Lead(정산 근거, type=BOOKING)를 같은 트랜잭션에서 함께 만든다
-// (docs 01-05 §5.3) — 예약은 취소되면 끝이지만 리드는 정산 이력으로 남아야 해 생명주기가 다르다.
-export const createBooking = async (req: Request, res: Response) => {
-  const decoded = verifyBearerToken(req);
-  if (!decoded) {
-    return res.status(401).json({ status: 'error', message: '로그인이 필요합니다.' });
-  }
-
-  const { bookingDate, bookingTime, bookingCount, bookingNote, applicantPhone, thirdPartyConsent } = req.body as {
-    bookingDate?: string;
-    bookingTime?: string;
-    bookingCount?: number;
-    bookingNote?: string;
-    applicantPhone?: string;
-    thirdPartyConsent?: boolean;
-  };
-  if (!bookingDate || !bookingTime || !bookingCount) {
-    return res.status(400).json({ status: 'error', message: '희망일시와 인원은 필수입니다.' });
-  }
-  if (!applicantPhone?.trim()) {
-    return res.status(400).json({ status: 'error', message: '연락처는 필수입니다. (전화로 예약 건을 확인하기 위해 필요합니다)' });
-  }
-  if (!thirdPartyConsent) {
-    return res.status(400).json({ status: 'error', message: '개인정보 제3자 제공에 동의해야 답사 예약을 신청할 수 있습니다.' });
-  }
-
-  try {
-    const facility = await prisma.facility.findUnique({ where: { id: req.params.id } });
-    if (!facility) {
-      return res.status(404).json({ status: 'error', message: '시설을 찾을 수 없습니다.' });
-    }
-
-    // 신청자 스냅샷용 이름(§4.4) — DB에 있으면 최신 User.name, 없으면(데모 로그인 등) 토큰의 name으로 대체
-    const user = await prisma.user.findUnique({ where: { id: decoded.id }, select: { name: true } });
-    const applicantName = user?.name || (decoded as { name?: string }).name || '이름 미상';
-
-    const { booking, lead } = await prisma.$transaction(async (tx) => {
-      const createdBooking = await tx.facilityBooking.create({
-        data: {
-          facilityId: facility.id,
-          userId: decoded.id,
-          bookingDate: new Date(bookingDate),
-          bookingTime,
-          bookingCount: Number(bookingCount),
-          bookingNote,
-        },
-      });
-
-      const createdLead = await createLead(tx, {
-        type: 'BOOKING',
-        facilityId: facility.id,
-        userId: decoded.id,
-        applicantName,
-        applicantPhone: applicantPhone.trim(),
-        payload: { bookingId: createdBooking.id, bookingDate, bookingTime, bookingCount: Number(bookingCount), bookingNote },
-        thirdPartyConsent: true,
-      });
-
-      return { booking: createdBooking, lead: createdLead };
-    });
-
-    return res.json({ status: 'success', data: booking, leadNo: lead.leadNo });
-  } catch (error) {
-    if (error instanceof ConsentRequiredError) {
-      return res.status(400).json({ status: 'error', message: error.message });
-    }
-    console.error('답사 예약 신청 실패:', error);
-    return res.status(500).json({ status: 'error', message: '예약 신청 처리 중 오류가 발생했습니다.' });
   }
 };
 

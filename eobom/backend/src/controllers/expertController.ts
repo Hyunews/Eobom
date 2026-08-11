@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import crypto from 'crypto';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import { Prisma } from '@prisma/client';
 import prisma from '../config/prisma';
 import { encryptField, decryptField } from '../utils/crypto';
 import { normalizePhone, isValidPhoneLength, MIN_PHONE_DIGITS, MAX_PHONE_DIGITS } from '../utils/phone';
@@ -292,5 +293,69 @@ export const updateMe = async (req: Request, res: Response) => {
   } catch (error) {
     console.error('전문가 정보 수정 실패:', error);
     return res.status(500).json({ status: 'error', message: '정보 수정 중 오류가 발생했습니다.' });
+  }
+};
+
+// 내게 온 상담 신청 목록 (`GET /api/expert/consult-requests`) — status 쿼리로 필터(docs 02-03 §5.3)
+export const getMyConsultRequests = async (req: Request, res: Response) => {
+  const decoded = verifyExpertBearerToken(req);
+  if (!decoded) {
+    return res.status(401).json({ status: 'error', message: '인증 토큰이 없거나 유효하지 않습니다.' });
+  }
+
+  const status = req.query.status as string | undefined;
+
+  try {
+    const requests = await prisma.consultRequest.findMany({
+      where: { expertId: decoded.id, ...(status ? { status } : {}) },
+      orderBy: { createdAt: 'desc' },
+    });
+    return res.json({ status: 'success', data: requests });
+  } catch (error) {
+    console.error('상담 신청 목록 조회 실패:', error);
+    return res.status(500).json({ status: 'error', message: '상담 신청 목록을 불러오지 못했습니다.' });
+  }
+};
+
+const CONSULT_STATUS_TRANSITIONS = ['ACCEPTED', 'COMPLETED', 'CANCELLED'] as const;
+
+// 상담 신청 상태 변경 (`PATCH /api/expert/consult-requests/:id/status`) — 소유권 검증 필수.
+// 남의 신청은 403(존재는 이미 알려진 대상이라 404로 숨기지 않는다 — 01-05 클레임 API와 동일 원칙).
+export const updateConsultRequestStatus = async (req: Request, res: Response) => {
+  const decoded = verifyExpertBearerToken(req);
+  if (!decoded) {
+    return res.status(401).json({ status: 'error', message: '인증 토큰이 없거나 유효하지 않습니다.' });
+  }
+
+  const { status: nextStatus, note } = req.body as { status?: string; note?: string };
+  if (!nextStatus || !CONSULT_STATUS_TRANSITIONS.includes(nextStatus as (typeof CONSULT_STATUS_TRANSITIONS)[number])) {
+    return res.status(400).json({ status: 'error', message: `status는 ${CONSULT_STATUS_TRANSITIONS.join(', ')} 중 하나여야 합니다.` });
+  }
+
+  try {
+    const existing = await prisma.consultRequest.findUnique({ where: { id: req.params.id } });
+    if (!existing) {
+      return res.status(404).json({ status: 'error', message: '상담 신청을 찾을 수 없습니다.' });
+    }
+    if (existing.expertId !== decoded.id) {
+      return res.status(403).json({ status: 'error', message: '본인에게 온 상담 신청만 처리할 수 있습니다.' });
+    }
+
+    const now = new Date();
+    const history = Array.isArray(existing.statusHistory) ? existing.statusHistory : [];
+    const updated = await prisma.consultRequest.update({
+      where: { id: existing.id },
+      data: {
+        status: nextStatus,
+        statusHistory: [
+          ...history,
+          { status: nextStatus, at: now.toISOString(), by: 'expert', note: note ?? null },
+        ] as unknown as Prisma.InputJsonValue,
+      },
+    });
+    return res.json({ status: 'success', data: updated });
+  } catch (error) {
+    console.error('상담 신청 상태 변경 실패:', error);
+    return res.status(500).json({ status: 'error', message: '상태 변경 중 오류가 발생했습니다.' });
   }
 };

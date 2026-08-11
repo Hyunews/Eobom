@@ -122,7 +122,7 @@ export const MyPageAuthSettings: React.FC<MyPageAuthSettingsProps> = ({ isOpen, 
           borderRadius: '24px',
           maxWidth: '440px',
           width: '100%',
-          padding: '2.5rem 2rem',
+          padding: '1.9rem 1.5rem',
           boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
           position: 'relative',
         }}
@@ -148,7 +148,7 @@ export const MyPageAuthSettings: React.FC<MyPageAuthSettingsProps> = ({ isOpen, 
           <X size={20} />
         </button>
 
-        <h2 style={{ color: 'var(--primary-color)', fontSize: '1.4rem', fontWeight: 800, margin: '0 0 1.5rem 0' }}>
+        <h2 style={{ color: 'var(--primary-color)', fontSize: '1.4rem', fontWeight: 800, margin: '0 0 1.1rem 0' }}>
           연동된 소셜 계정
         </h2>
 
@@ -160,7 +160,7 @@ export const MyPageAuthSettings: React.FC<MyPageAuthSettingsProps> = ({ isOpen, 
               padding: '0.75rem',
               borderRadius: '8px',
               fontSize: '0.85rem',
-              marginBottom: '1.25rem',
+              marginBottom: '0.95rem',
               display: 'flex',
               alignItems: 'center',
               gap: '0.5rem',

@@ -17,8 +17,8 @@ model User {
   refreshToken     String? // JWT Refresh Token
   accounts         SocialAccount[] // 연동된 소셜 계정 목록
   facilityReviews  FacilityReview[] // 이 유저가 작성한 시설 리뷰 목록
-  facilityBookings FacilityBooking[] // 이 유저의 답사 예약 목록
-  leads            Lead[] // docs/01_.../01-05 — 이 유저가 남긴 문의/견적요청/답사예약 리드
+  leads            Lead[] // docs/01_.../01-05 — 이 유저가 남긴 문의/견적요청 리드
+  consultRequests  ConsultRequest[] // docs/02_.../02-03 — 이 유저가 남긴 전문가 상담 신청
   createdAt        DateTime          @default(now()) // 가입 일시
   updatedAt        DateTime          @updatedAt // 최종 수정 일시
 }
@@ -66,7 +66,6 @@ model Facility {
   updatedAt      DateTime @updatedAt // 최종 수정 일시
 
   reviews  FacilityReview[] // 이 시설에 달린 리뷰 목록
-  bookings FacilityBooking[] // 이 시설의 답사 예약 목록
   claims   FacilityClaim[] // 이 시설에 대한 소유권 클레임 이력
   leads    Lead[] // 이 시설로 들어온 리드(문의/견적요청/답사예약) 목록
 
@@ -85,21 +84,6 @@ model FacilityReview {
   createdAt  DateTime @default(now()) // 작성 일시
 
   @@unique([facilityId, userId]) // 1인 1리뷰 (실제 답사완료 인증 체계 없어 로그인 유저 단위로 단순화)
-}
-
-// 답사 예약
-model FacilityBooking {
-  id           String   @id @default(uuid()) // 고유 식별자(UUID)
-  facilityId   String // 예약 대상 시설
-  facility     Facility @relation(fields: [facilityId], references: [id], onDelete: Cascade)
-  userId       String // 예약 신청자
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  bookingDate  DateTime // 예약 희망 날짜
-  bookingTime  String // 예약 희망 시간
-  bookingCount Int // 예약 인원 수
-  bookingNote  String? // 예약자 메모
-  status       String   @default("PENDING") // PENDING | CONFIRMED | CANCELLED
-  createdAt    DateTime @default(now()) // 예약 신청 일시
 }
 
 // ─────────────────────────────────────────────────────────────────
@@ -171,7 +155,7 @@ model LeadNumberCounter {
 model Lead {
   id     String @id @default(uuid()) // 고유 식별자(UUID)
   leadNo String @unique // EB-260810-0001 (표시·대조용, 불변, §4.2)
-  type   String // QUOTE | BOOKING | CONSULT | CALL (§4.1)
+  type   String // QUOTE | CONSULT | CALL (§4.1 — BOOKING은 2026-08-11 FacilityBooking 폐기와 함께 제거됨)
 
   facilityId String // 리드가 발생한 시설
   facility   Facility @relation(fields: [facilityId], references: [id])
@@ -276,9 +260,14 @@ model Expert {
   status       String    @default("PENDING") // PENDING | APPROVED | REJECTED | SUSPENDED — 자동승인 없음(Partner와 동일 원칙)
   rejectReason String? // 반려 사유 (status=REJECTED일 때)
   approvedAt   DateTime? // 운영자 승인 일시
+  // isPublished: 승인(status=APPROVED)과 공개 노출을 분리하는 독립 플래그 — 승인은 됐지만
+  // 프로필이 미비해 아직 노출하고 싶지 않은 경우가 있다(docs 02-03 §4.3). 운영자가 직접 켠다.
+  isPublished  Boolean   @default(false) // 소비자 목록(GET /api/experts)에 노출할지 여부
 
   settlementBank    String? // 정산 계좌 은행명
   settlementAccount String? // 암호화 저장. 변호사 카테고리는 건별 정산 자체가 없음(Tier3 월정액 광고만)
+
+  consultRequests ConsultRequest[] // 이 전문가에게 들어온 상담 신청 목록 (docs 02-03)
 
   createdAt DateTime @default(now()) // 가입 신청 일시
   updatedAt DateTime @updatedAt // 최종 수정 일시
@@ -286,6 +275,53 @@ model Expert {
   @@unique([category, licenseNo]) // 같은 자격증 번호 중복 가입 방지
   @@index([status])
   @@index([category])
+}
+
+// ─────────────────────────────────────────────────────────────────
+// 전문가 상담 신청 (Stage 1 — 무과금 루프). docs/02_전문가_매칭/02-03_전문가_공개노출_및_상담신청_명세서.md
+// Lead(장사시설)와 의도적으로 분리한다 — 대상 주체가 다르고(Expert vs Partner), 변호사법
+// 제34조 때문에 과금 가능 여부가 직역별로 갈린다(§3). 그래서 이 테이블엔 과금 컬럼을 아예
+// 두지 않는다 — billable/billedAmount/commissionPolicyId 같은 필드가 없으면 실수로도 못
+// 채운다(§3.2, docs 02-02 §2가 Lead 재사용을 거부한 논리와 동일).
+// ─────────────────────────────────────────────────────────────────
+model ConsultRequest {
+  id        String @id @default(uuid()) // 고유 식별자(UUID)
+  requestNo String @unique // EC-YYMMDD-NNNN (표시·대조용 불변 번호, Lead의 EB-와 접두어로 구분)
+
+  expertId         String // 신청 대상 전문가
+  expert           Expert @relation(fields: [expertId], references: [id])
+  categorySnapshot String // 신청 시점의 전문가 직역 — 전문가가 나중에 카테고리를 바꿔도 당시 기준 보존
+
+  userId String? // 로그인 유저면 참조 (탈퇴 시 null)
+  user   User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  // 신청자 스냅샷 — 정산 확정 후가 아니라 일정 기간 경과 후 마스킹(§8, Lead §4.4와 동일 원칙)
+  applicantName  String? // 신청 시점 이름 스냅샷
+  applicantPhone String? // 신청 시점 연락처 스냅샷
+  maskedAt       DateTime? // 마스킹 처리 일시 (null이면 아직 원본 유지)
+
+  channel     String // ALIMTALK | PHONE | VIDEO | VISIT — 희망 상담 방식
+  preferredAt DateTime? // 희망 상담 일시 (선택)
+  content     String // 상담 희망 내용
+
+  thirdPartyConsentAt DateTime? // 개인정보 제3자 제공 동의 시각 — 없으면 접수 거부(§5.2)
+  consentSnapshot     Json? // 동의 시점의 고지 문구 버전 — 분쟁 대비
+
+  status        String @default("REQUESTED") // REQUESTED | ACCEPTED | COMPLETED | CANCELLED | INVALID
+  statusHistory Json   @default("[]") // [{status, at, by, note}]
+
+  createdAt DateTime @default(now()) // 신청 접수 일시
+  updatedAt DateTime @updatedAt // 최종 수정 일시
+
+  @@index([expertId, status])
+  @@index([createdAt])
+}
+
+// 상담 신청 번호(requestNo) 발번용 일자별 원자적 카운터. LeadNumberCounter와 별도 테이블 —
+// EB-(리드)와 EC-(상담)의 일련번호가 서로를 건너뛰면 대조가 어려워진다(docs 02-03 §4.2).
+model ConsultNumberCounter {
+  dateKey String @id // 'YYMMDD'
+  seq     Int    @default(0) // 해당 날짜의 다음 발번 시퀀스 (Postgres 행 잠금 기반 원자적 증가)
 }
 
 // ─────────────────────────────────────────────────────────────────

@@ -10,6 +10,7 @@ import facilityRoutes from './routes/facilityRoutes';
 import geoRoutes from './routes/geoRoutes';
 import partnerRoutes from './routes/partnerRoutes';
 import expertRoutes from './routes/expertRoutes';
+import expertPublicRoutes from './routes/expertPublicRoutes';
 import adminRoutes from './routes/adminRoutes';
 
 const app = express();
@@ -39,6 +40,7 @@ app.use('/api/facilities', facilityRoutes);
 app.use('/api/geo', geoRoutes);
 app.use('/api/partner', partnerRoutes);
 app.use('/api/expert', expertRoutes);
+app.use('/api/experts', expertPublicRoutes); // 소비자 공개 API — 단수형(/api/expert, 본인 계정)과 분리
 app.use('/api/admin', adminRoutes);
 
 // 기본 헬스체크

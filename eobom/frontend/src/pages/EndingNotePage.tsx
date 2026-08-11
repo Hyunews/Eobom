@@ -37,13 +37,13 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
           flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
-          padding: '2rem',
+          padding: '1.5rem',
           textAlign: 'center',
           borderRadius: 'var(--border-radius)'
         }}>
           <div style={{
             backgroundColor: '#FFFFFF',
-            padding: '3rem 2.5rem',
+            padding: '2.2rem 1.75rem',
             borderRadius: '16px',
             boxShadow: '0 12px 40px rgba(0,0,0,0.15)',
             maxWidth: '520px',
@@ -57,7 +57,7 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              margin: '0 auto 1.5rem',
+              margin: '0 auto 1.1rem',
               fontSize: '2rem'
             }}>
               🔒
@@ -65,7 +65,7 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
             <h2 style={{ color: 'var(--primary-color)', fontSize: '1.6rem', marginBottom: '0.75rem', fontWeight: 700 }}>
               로그인이 필요한 회원 전용 서비스입니다
             </h2>
-            <p style={{ color: 'var(--text-muted)', fontSize: '1rem', lineHeight: 1.6, marginBottom: '2rem' }}>
+            <p style={{ color: 'var(--text-muted)', fontSize: '1rem', lineHeight: 1.6, marginBottom: '1.5rem' }}>
               디지털 엔딩노트는 개인 사전 의향서 및 유언 메시지를 다루는 최고 보안 영역입니다. 로그인 후 안전하게 작성하고 보관하세요.
             </p>
             <button 
@@ -79,7 +79,7 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
         </div>
       )}
 
-      <div style={{ marginBottom: '2rem', filter: !currentUser ? 'blur(3px)' : 'none' }}>
+      <div style={{ marginBottom: '1.5rem', filter: !currentUser ? 'blur(3px)' : 'none' }}>
         <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', backgroundColor: '#F1F5F9', color: 'var(--primary-color)', padding: '0.3rem 0.8rem', borderRadius: '16px', fontSize: '0.85rem', fontWeight: 700, marginBottom: '0.6rem' }}>
           <NoteKeyIcon size={18} color="var(--primary-color)" /> 노트 &amp; 열쇠 | 유언 메시지 작성 &amp; 256-bit AES 암호화 금고
         </div>
@@ -91,9 +91,9 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
         </p>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '2rem', filter: !currentUser ? 'blur(3px)' : 'none' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1.5rem', filter: !currentUser ? 'blur(3px)' : 'none' }}>
         {/* 사전 의향서 작성 */}
-        <div style={{ backgroundColor: 'var(--card-bg)', padding: '2rem', borderRadius: 'var(--border-radius)', boxShadow: 'var(--box-shadow)' }}>
+        <div style={{ backgroundColor: 'var(--card-bg)', padding: '1.5rem', borderRadius: 'var(--border-radius)', boxShadow: 'var(--box-shadow)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.75rem', flexWrap: 'wrap', gap: '0.5rem' }}>
             <h3 style={{ color: 'var(--primary-color)', margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               <FileCheck color="var(--point-color)" /> 사전 연명의료 & 장례 희망 의향서
@@ -102,7 +102,7 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
               🏥 생전/응급 시 대리인 즉시 열람 가능
             </span>
           </div>
-          <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '1.2rem' }}>
+          <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>
             중태 및 응급 시 의료진/지정 대리인이 본인의 연명의료 의향을 생전에 사전 확인할 수 있습니다.
           </p>
 
@@ -161,7 +161,7 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
         </div>
 
         {/* 유족 유언 메시지 & 비밀 보관함 */}
-        <div style={{ backgroundColor: 'var(--card-bg)', padding: '2rem', borderRadius: 'var(--border-radius)', boxShadow: 'var(--box-shadow)' }}>
+        <div style={{ backgroundColor: 'var(--card-bg)', padding: '1.5rem', borderRadius: 'var(--border-radius)', boxShadow: 'var(--box-shadow)' }}>
           <h3 style={{ color: 'var(--primary-color)', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             <Lock color="var(--primary-color)" /> 유족을 위한 유언 메시지 & 비밀 보관함
           </h3>
@@ -185,7 +185,7 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
             <Key size={18} /> 유족 메시지 & 비밀 보관함 저장
           </button>
 
-          <div style={{ marginTop: '1.5rem', paddingTop: '1rem', borderTop: '1px solid var(--border-color)' }}>
+          <div style={{ marginTop: '1.1rem', paddingTop: '1rem', borderTop: '1px solid var(--border-color)' }}>
             <h4 style={{ fontSize: '1rem', color: 'var(--primary-color)', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
               <Send size={16} color="var(--point-color)" /> 사후 지정 수신인 유언 메시지
             </h4>

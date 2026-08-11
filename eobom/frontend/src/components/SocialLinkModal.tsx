@@ -73,11 +73,11 @@ export const SocialLinkModal: React.FC<SocialLinkModalProps> = ({
           borderRadius: '24px',
           maxWidth: '440px',
           width: '100%',
-          padding: '2.5rem 2rem',
+          padding: '1.9rem 1.5rem',
           boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
         }}
       >
-        <div style={{ textAlign: 'center', marginBottom: '1.75rem' }}>
+        <div style={{ textAlign: 'center', marginBottom: '1.3rem' }}>
           <h2 style={{ color: 'var(--primary-color)', fontSize: '1.4rem', fontWeight: 800, margin: '0 0 0.6rem 0' }}>
             이미 가입된 이메일이에요
           </h2>

@@ -101,7 +101,7 @@ export const FacilityReviewModal: React.FC<FacilityReviewModalProps> = ({
         style={{
           backgroundColor: '#FFFFFF',
           borderRadius: '20px',
-          padding: '2rem',
+          padding: '1.5rem',
           maxWidth: '520px',
           width: '100%',
           maxHeight: '85vh',
@@ -123,7 +123,7 @@ export const FacilityReviewModal: React.FC<FacilityReviewModalProps> = ({
           평균 평점 ★ {facility.effectiveRating ?? facility.rating} · 리뷰 {facility.reviews.length}건
         </p>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', marginBottom: '1.5rem', maxHeight: '260px', overflowY: 'auto' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', marginBottom: '1.1rem', maxHeight: '260px', overflowY: 'auto' }}>
           {facility.reviews.length === 0 && (
             <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>아직 작성된 리뷰가 없습니다. 첫 리뷰를 남겨주세요.</p>
           )}

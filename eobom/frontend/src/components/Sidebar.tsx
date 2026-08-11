@@ -16,8 +16,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab }) => 
     { id: 'facility', label: '장례 · 묘지 매칭', icon: HouseLeafIcon },
     { id: 'counseling', label: '상속 · 법률 케어', icon: HandScalesIcon },
     { id: 'digital-estate', label: '디지털 유품 정리', icon: PhoneHeartIcon },
-    { id: 'ending-note', label: '디지털 엔딩노트', icon: NoteKeyIcon },
     { id: 'care-guide', label: '상중 · 행정 케어', icon: ChecklistShieldIcon },
+    { id: 'ending-note', label: '디지털 엔딩노트', icon: NoteKeyIcon },
   ];
 
   return (
@@ -38,7 +38,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab }) => 
         overflow: 'hidden',
         display: 'flex',
         flexDirection: 'column',
-        padding: '1.25rem 0.5rem'
+        padding: '1rem 0.5rem'
       }}
     >
       <div

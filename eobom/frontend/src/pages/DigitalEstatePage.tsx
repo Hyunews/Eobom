@@ -77,7 +77,7 @@ export const DigitalEstatePage: React.FC<DigitalEstatePageProps> = ({ currentUse
 
   return (
     <div className="container">
-      <div style={{ marginBottom: '2rem' }}>
+      <div style={{ marginBottom: '1.5rem' }}>
         <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', backgroundColor: '#FEF3C7', color: 'var(--accent-gold)', padding: '0.3rem 0.8rem', borderRadius: '16px', fontSize: '0.85rem', fontWeight: 700, marginBottom: '0.6rem' }}>
           <PhoneHeartIcon size={18} color="var(--accent-gold)" /> 스마트폰 &amp; 하트 | SNS / 클라우드 영구 삭제 및 유품 정리 원스톱
         </div>
@@ -90,7 +90,7 @@ export const DigitalEstatePage: React.FC<DigitalEstatePageProps> = ({ currentUse
       </div>
 
       {/* 서브 탭 */}
-      <div style={{ display: 'flex', gap: '1rem', marginBottom: '2rem', flexWrap: 'wrap' }}>
+      <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
         <button
           onClick={() => setActiveSubTab('digital')}
           className={`btn ${activeSubTab === 'digital' ? 'btn-primary' : ''}`}
@@ -116,14 +116,14 @@ export const DigitalEstatePage: React.FC<DigitalEstatePageProps> = ({ currentUse
 
       {/* 서브탭 1: 디지털 자산 정산 */}
       {activeSubTab === 'digital' && (
-        <div style={{ backgroundColor: 'var(--card-bg)', padding: '2rem', borderRadius: 'var(--border-radius)', boxShadow: 'var(--box-shadow)' }}>
+        <div style={{ backgroundColor: 'var(--card-bg)', padding: '1.5rem', borderRadius: 'var(--border-radius)', boxShadow: 'var(--box-shadow)' }}>
           <h3 style={{ color: 'var(--primary-color)', marginBottom: '0.5rem' }}>고인 디지털 계정 정산 신청</h3>
-          <p style={{ fontSize: '0.95rem', color: 'var(--text-muted)', marginBottom: '1.5rem' }}>
+          <p style={{ fontSize: '0.95rem', color: 'var(--text-muted)', marginBottom: '1.1rem' }}>
             정당한 상속인 확인을 위해 아래 <strong>증빙 서류(가족관계증명서 / 사망진단서)를 먼저 업로드</strong>해 주세요.
           </p>
 
           {/* 1. 증빙 서류 업로드 영역 (최상단 이동) */}
-          <div style={{ border: '2px dashed var(--border-color)', padding: '2rem', textAlign: 'center', borderRadius: '12px', backgroundColor: 'var(--secondary-color)', marginBottom: '2.5rem' }}>
+          <div style={{ border: '2px dashed var(--border-color)', padding: '1.5rem', textAlign: 'center', borderRadius: '12px', backgroundColor: 'var(--secondary-color)', marginBottom: '1.75rem' }}>
             <Upload color="var(--primary-color)" size={36} style={{ marginBottom: '0.5rem' }} />
             <h4 style={{ color: 'var(--primary-color)', marginBottom: '0.25rem' }}>📌 필수 증빙 서류 업로드 (가족관계증명서 / 사망진단서)</h4>
             <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>Naver OCR 엔진으로 정당한 상속인 여부를 즉시 검증합니다.</p>
@@ -134,7 +134,7 @@ export const DigitalEstatePage: React.FC<DigitalEstatePageProps> = ({ currentUse
             </label>
 
             {uploadedFiles.length > 0 && (
-              <div style={{ marginTop: '1.5rem', textAlign: 'left', backgroundColor: '#FFFFFF', padding: '1rem', borderRadius: '8px', border: '1px solid var(--point-color)' }}>
+              <div style={{ marginTop: '1.1rem', textAlign: 'left', backgroundColor: '#FFFFFF', padding: '1rem', borderRadius: '8px', border: '1px solid var(--point-color)' }}>
                 <h5 style={{ color: 'var(--point-color)', display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.5rem' }}>
                   <CheckCircle2 size={16} /> 현재 업로드 완료된 서류 목록:
                 </h5>
@@ -151,7 +151,7 @@ export const DigitalEstatePage: React.FC<DigitalEstatePageProps> = ({ currentUse
           <h4 style={{ color: 'var(--primary-color)', marginBottom: '1rem' }}>계정별 정산/승계 신청</h4>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             {digitalAccounts.map((acc) => (
-              <div key={acc.id} style={{ padding: '1.2rem', border: '1px solid var(--border-color)', borderRadius: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div key={acc.id} style={{ padding: '1rem', border: '1px solid var(--border-color)', borderRadius: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div>
                   <h4 style={{ color: 'var(--primary-color)', fontSize: '1.1rem' }}>{acc.name}</h4>
                   <p style={{ fontSize: '0.9rem', color: 'var(--point-color)', fontWeight: 500 }}>{acc.status}</p>
@@ -167,13 +167,13 @@ export const DigitalEstatePage: React.FC<DigitalEstatePageProps> = ({ currentUse
 
       {/* 서브탭 2: 현물 유품 정리 (지역 업체 추천) */}
       {activeSubTab === 'physical' && (
-        <div style={{ backgroundColor: 'var(--card-bg)', padding: '2rem', borderRadius: 'var(--border-radius)', boxShadow: 'var(--box-shadow)' }}>
+        <div style={{ backgroundColor: 'var(--card-bg)', padding: '1.5rem', borderRadius: 'var(--border-radius)', boxShadow: 'var(--box-shadow)' }}>
           <h3 style={{ color: 'var(--primary-color)', marginBottom: '0.5rem' }}>지역 기반 현물 유품 정리 전문 업체 추천</h3>
-          <p style={{ fontSize: '0.95rem', color: 'var(--text-muted)', marginBottom: '1.5rem' }}>
+          <p style={{ fontSize: '0.95rem', color: 'var(--text-muted)', marginBottom: '1.1rem' }}>
             유품 정찰제 수거, 소각 대행 및 특수 청소 제휴 전문 업체 리스트입니다.
           </p>
 
-          <div className="form-group" style={{ maxWidth: '300px', marginBottom: '1.5rem' }}>
+          <div className="form-group" style={{ maxWidth: '300px', marginBottom: '1.1rem' }}>
             <label className="form-label">지역 필터</label>
             <select value={vendorRegion} onChange={(e) => setVendorRegion(e.target.value)} className="form-select">
               <option value="전체">전체 지역</option>
@@ -211,9 +211,9 @@ export const DigitalEstatePage: React.FC<DigitalEstatePageProps> = ({ currentUse
 
       {/* 서브탭 3: 디지털 추모관 (헌화, 방명록, 앨범) */}
       {activeSubTab === 'memorial' && (
-        <div style={{ backgroundColor: 'var(--card-bg)', padding: '2rem', borderRadius: 'var(--border-radius)', boxShadow: 'var(--box-shadow)' }}>
+        <div style={{ backgroundColor: 'var(--card-bg)', padding: '1.5rem', borderRadius: 'var(--border-radius)', boxShadow: 'var(--box-shadow)' }}>
           {/* 상단 헌화 섹션 */}
-          <div style={{ textAlign: 'center', padding: '2rem', backgroundColor: 'var(--secondary-color)', borderRadius: '12px', marginBottom: '2rem' }}>
+          <div style={{ textAlign: 'center', padding: '1.5rem', backgroundColor: 'var(--secondary-color)', borderRadius: '12px', marginBottom: '1.5rem' }}>
             <h3 style={{ color: 'var(--primary-color)', marginBottom: '0.5rem' }}>🌹 고인 온라인 추모관</h3>
             <p style={{ fontSize: '1rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>
               현재 <strong>{tributeFlowerCount}송이</strong>의 국화꽃이 헌화되었습니다.
@@ -229,13 +229,13 @@ export const DigitalEstatePage: React.FC<DigitalEstatePageProps> = ({ currentUse
             </button>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2rem' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.5rem' }}>
             {/* 추모 방명록 기능 */}
             <div>
               <h4 style={{ color: 'var(--primary-color)', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 <MessageSquarePlus color="var(--primary-color)" /> 추모 방명록 작성
               </h4>
-              <form onSubmit={handleAddGuestbook} style={{ marginBottom: '1.5rem' }}>
+              <form onSubmit={handleAddGuestbook} style={{ marginBottom: '1.1rem' }}>
                 <div className="form-group">
                   <input
                     type="text"
@@ -279,7 +279,7 @@ export const DigitalEstatePage: React.FC<DigitalEstatePageProps> = ({ currentUse
               <h4 style={{ color: 'var(--primary-color)', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 <Image color="var(--primary-color)" /> 추모 사진 등록 & 갤러리
               </h4>
-              <form onSubmit={handleAddPhoto} style={{ marginBottom: '1.5rem' }}>
+              <form onSubmit={handleAddPhoto} style={{ marginBottom: '1.1rem' }}>
                 <div className="form-group">
                   <input
                     type="text"

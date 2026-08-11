@@ -6,6 +6,171 @@
 
 ---
 
+## 2026-08-11 (11) | 03/05 관리자 열람범위 설계 메모 + 운영자 대시보드 회원검색·전체시설 조회 추가
+
+- **근거 스펙**: 스펙 없음 — 대표 지시("03 05 관련해서 md파일 만들어둬줘" + "가능한 부분 한에서 대시보드 업글"). 03/05는 정식 스펙 작성 권한이 `[Claude:Opus]`지만, 이번엔 대표가 `[Claude:Sonnet]`에게 메모 문서 작성을 직접 지시함(02-02 문서와 동일한 예외 패턴).
+- **건드린 파일**:
+  - 신규 문서: `docs/03_디지털_유품_추모관/03-01_관리자_회원연동_설계_메모.md`, `docs/05_엔딩노트_유언/05-01_관리자_열람범위_설계_메모.md`
+  - 문서 수정: `docs/00_DOCS_INDEX.md`(03/05 도메인 표에 신규 문서 행 추가)
+  - 프론트: `eobom/frontend/src/mockData/careGuideTasks.json`(D-Day 체크리스트 1·2번 `checked:true` → `false` 버그 수정), `eobom/frontend/src/pages/AdminPage.tsx`(전체 시설 탭 신규, 사업자/전문가 검색+전체 상태필터)
+- **결과**:
+  - **03-01 메모**: 디지털유품·추모관 데이터가 회원(`User`)에 종속된다는 대표 설계 원칙을 문서화 — 향후 03이 실제 백엔드로 구현될 때 `userId` FK로 연결해 운영자 회원상세 화면에서 조인 표시하도록 근거를 남김. 현재 03은 백엔드 모델이 전혀 없어(전 기능 프론트 목업) 지금 바로 구현할 대상은 없음. 현물 유품 수거업체 계정 형태는 기획 미정으로 명시적 보류.
+  - **05-01 메모**: 같은 회원연동 원칙 + **쟁점 정리**(결론 아님) — 관리자 열람 범위를 메타데이터만(A안, 작성여부·봉인상태·개봉이력)으로 할지 본문 내용까지(B안)로 할지. B안은 EndingNotePage에 이미 명시된 "생전엔 철저히 비밀, 사후 이중동의 시에만 복호화" 약속과 정면 충돌하므로 A안을 권장하되, 최종 판단은 Opus/사장님 상의로 넘김.
+  - **CareGuidePage 버그 수정**: `careGuideTasksData`에서 D-Day 체크리스트 1·2번 항목만 `checked: true`로 하드코딩돼 있어 항상 체크된 상태로 보이던 버그(3~6번은 정상적으로 `false`) — 전부 `false`로 통일.
+  - **운영자 대시보드 업그레이드**: (1) 사업자/전문가 탭에 상태 필터 "전체" 옵션 + 이름·상호·이메일 검색창 추가(클라이언트 필터, 목록 규모가 작아 서버 API 변경 없음). (2) **신규 "전체 시설" 탭** — 기존 공개 `GET /api/facilities`(이미 페이지네이션·`q` 검색 지원)를 그대로 재사용해 1,552건 전체를 검색·페이지네이션 조회 가능하게 함, 연동(`isPartner`) 여부 뱃지 표시. **새 백엔드 엔드포인트 없음** — 기존 인프라 재사용만으로 구현.
+  - 프론트 `tsc --noEmit` 통과, 로컬 `GET /api/facilities?page=1&pageSize=2` 실호출로 응답 형태(`isPartner`/`location`/`type` 등) 확인.
+- **편차**: 03/05 정식 스펙이 아닌 메모를 `[Claude:Sonnet]`이 직접 작성 — 대표 직접 지시에 의한 예외(문서 자체에 경위 명시).
+- **다음 에이전트가 알아야 할 것**:
+  - **전체 시설 탭은 조회 전용**이다 — 시설 정보 수정(관리자가 대신 편집)은 포함 안 함. 클레임 안 된 시설도 관리자가 대신 고칠지는 아직 정책 미정(대표 질문으로 나왔던 사안, `context.md` 후보에 등록됨).
+  - **05-01의 A/B안은 미확정**이다 — 이 상태로 05 도메인을 실제 구현하면 안 되고, 반드시 사전에 결정을 받아야 한다. `context.md`/`pending-approvals.md`에 등록 권장.
+  - 사업자/전문가 검색은 서버가 아니라 프론트에서 필터링한다 — 회원 수가 수천 단위로 늘어나면(가능성 낮음, B2B 계정) 서버 검색 API로 전환 검토.
+  - 브라우저 클릭 E2E 미검증 — 전체 시설 탭 페이지네이션·검색, 사업자/전문가 검색창 전부 코드 리뷰로만 확인.
+
+<!-- Gemini 판정 대기 -->
+
+---
+
+## 2026-08-11 (10) | 프론트 버그 4건 수정 + 운영자 대시보드 인라인 정보수정 기능
+
+- **근거 스펙**: 스펙 없음 — 대표 리뷰 피드백 4건에 대한 즉흥 수정. 마지막 건(정보수정)은 대표 확인 질문("대시보드에서 수정 안 되는데 되게 하는 게 맞지 않나")에 대해 범위(담당자명/연락처/소개만, 검증된 신원 필드 제외)를 상의 후 확정.
+- **건드린 파일**:
+  - 프론트: `src/components/Footer.tsx`(라우팅 링크), `src/pages/PartnerPortalPage.tsx`(비밀번호 확인 필드), `src/pages/AdminPage.tsx`(세션만료 자동로그아웃 + 인라인 정보수정 UI), `src/pages/BizDashboard.tsx`(세션만료 자동로그아웃)
+  - 백엔드: `src/controllers/moderationController.ts`(`updatePartnerInfo`·`updateExpertInfo` 신규, `listExperts` select에 `bio` 추가), `src/routes/adminRoutes.ts`
+- **결과**:
+  - **Footer 라우팅 잔재 수정**: 08-11 (1) HistoryRouter 전환 때 `Footer.tsx`의 "장사시설·전문가 파트너이신가요?" 링크만 `href="#partner"`로 남아있던 걸 발견 — `react-router-dom`의 `<Link to="/partner">`로 교체. 전체 검색해서 다른 잔재 없음 확인.
+  - **PartnerPortalPage 비밀번호 확인 필드**: 장사시설·전문가 가입 폼 둘 다에 "비밀번호 확인" 입력 추가, 제출 전 프론트에서 일치 검증(불일치 시 서버 호출 없이 즉시 에러). 백엔드는 무변경.
+  - **세션 만료 자동 로그아웃**: 액세스 토큰(2h) 만료 후에도 프론트가 `localStorage` 존재 여부만으로 "로그인됨"을 판단해, 401을 받아도 조용히 빈 화면만 보이던 버그(대표가 실제로 겪음 — 어제 로그인한 admin이 승인 대시보드에서 데이터가 안 뜸). `AdminPage.tsx`·`BizDashboard.tsx`에 `authFetch` 공통 래퍼를 추가해 401 수신 시 즉시 로그아웃 처리 + "세션이 만료되어 로그아웃되었습니다" 안내. 부수 발견: `onClick={handleLogout}`처럼 함수를 그대로 넘긴 자리는 React가 클릭 이벤트 객체를 `notice` 인자로 넘겨버리는 버그라 `onClick={() => handleLogout()}`로 같이 수정.
+  - **운영자 대시보드 인라인 정보수정**: 지금까지 관리자는 사업자/전문가 상태(승인·반려·정지)만 바꿀 수 있고 필드 자체를 고치는 API가 없었음. 신규 `PATCH /api/admin/partners/:id`(담당자명·연락처)·`PATCH /api/admin/experts/:id`(연락처·소개) 추가 — **사업자등록번호·자격증번호 등 검증된 신원 필드는 의도적으로 제외**(틀렸으면 반려 후 재신청을 받아 심사 이력 보존, `updatePartnerStatus`/`updateExpertStatus`와 동일한 "자동승인 없음" 원칙의 연장). `AdminPage.tsx` 각 카드에 "정보 수정" 버튼 → 인라인 편집 폼(저장/취소) 추가.
+  - 백엔드·프론트 `tsc --noEmit` 전부 통과, 로컬 dev 서버(`ts-node-dev --respawn`) 정상 반영 확인.
+- **편차**: 없음.
+- **다음 에이전트가 알아야 할 것**:
+  - **브라우저 클릭 E2E 미검증** — 4건 전부 코드 리뷰 + tsc로만 확인. 특히 세션만료 자동로그아웃은 실제로 2시간 기다려서 401을 받는 시나리오를 테스트 못 했다(로직상 안전하다고 판단했을 뿐).
+  - 리프레시 토큰(30일)은 발급·저장은 되지만 프론트 어디서도 사용 안 함 — "만료 직전 조용히 갱신" 방식으로 바꾸고 싶으면 이 리프레시 플로우를 새로 만들어야 한다(지금은 의도적으로 "일정 시간 후 로그아웃"이 대표가 원한 동작이라 판단해 갱신 로직은 추가하지 않음).
+  - 대표가 이어서 물어본 3건(전체 시설 DB 조회 화면 / 전체 회원 검색 화면 / 클레임 없는 시설도 관리자가 대신 편집할지 정책)은 아직 미착수 — `context.md`에 후보로 등록 예정.
+
+<!-- Gemini 판정 대기 -->
+
+---
+
+## 2026-08-11 (9) | 전체 페이지 여백/밀도 축소 완료 (Header/Sidebar/Footer + 9개 페이지 + 9개 모달)
+
+- **근거 스펙**: 스펙 없음 — 대표 지시("전체 다 진행해줘"). 이전 세션에서 `index.css`의 `.container`/`.grid`/`.card`/`.form-group`/`.hero-*` 축소를 완료한 뒤 이어서 진행.
+- **건드린 파일**:
+  - 본인 직접 수정: `eobom/frontend/src/components/Header.tsx`, `Sidebar.tsx`, `Footer.tsx`
+  - 서브에이전트 4개에 병렬 위임: `src/pages/AdminPage.tsx`·`BizDashboard.tsx`·`CareGuidePage.tsx`·`CounselingPage.tsx`·`DigitalEstatePage.tsx`·`EndingNotePage.tsx`·`FacilityPage.tsx`·`HomePage.tsx`·`MyPage.tsx`·`PartnerPortalPage.tsx`, `src/components/LoginModal.tsx`·`SocialLinkModal.tsx`·`KakaoMapModal.tsx`·`MyPageAuthSettings.tsx`·`facility/InquiryModal.tsx`·`facility/FacilityReviewModal.tsx`·`expert/ConsultRequestModal.tsx`·`counseling/TaxSimulatorModal.tsx`
+- **결과**:
+  - `index.css`에서 이미 적용된 축소 비율(예: `.card` padding `2rem`→`1.5rem`, `.form-group` margin-bottom `1.5rem`→`1.1rem`, 약 25~30%)을 기준선으로 삼아, 각 파일 인라인 style 중 대략 `1.25rem(20px)` 이상인 `padding`/`margin`/`gap`만 같은 비율로 축소. `font-size`·`color`·`border-radius`·`box-shadow`·`line-height`(1.7 접근성 토큰)·터치 타겟 높이(`--min-touch-target:56px`류)·구조적 고정폭(헤더 72px, 사이드바 72/240px)은 전부 보존.
+  - Header/Sidebar/Footer는 본인이 직접 수정(내부 여백만, 구조적 고정값 불변 — 예: header 내부 padding `0 2rem`→`0 1.5rem`, footer padding `3.5rem 2rem 2rem 2rem`→`2.25rem 1.5rem 1.5rem 1.5rem`).
+  - 나머지 9개 페이지 + 8개 모달 파일은 4개 백그라운드 서브에이전트에 파일 단위로 나눠 병렬 위임(각 에이전트에게 위 축소 비율·예시·"담당 파일 외 건드리지 말 것"을 명시). 모두 완료 보고 확인.
+  - 프론트 `tsc --noEmit` 작업 전/후 2회 통과 확인.
+  - 진행 추적용 Task #1~#12(H/S/F 1건 + 페이지 9건 + 모달 묶음 1건) 전부 completed.
+- **편차**: 없음.
+- **다음 에이전트가 알아야 할 것**:
+  - 서브에이전트 4개 전부 `TaskUpdate` 도구가 툴셋에 없어(권한 제한) 본인이 대신 taskId를 completed 처리했다 — 향후 서브에이전트에 진행 추적을 맡길 때는 이 제약을 감안할 것.
+  - **브라우저 시각 확인 불가**(자동화 도구 없음) — 코드 리뷰 + `tsc` 통과로만 판단했다. 실제 밀도가 의도대로 보이는지는 대표가 브라우저에서 직접 확인 필요.
+  - `CounselingPage.tsx`/`BizDashboard.tsx`는 이번 세션 이전에 이미 다른 작업(상속세 시뮬레이터 모달 분리, 상담신청 UI 추가)으로 수정돼 있던 상태라 `git diff` 결과가 커 보이지만, 이번 여백 축소로 인한 실제 변경분은 파일당 수 줄~수십 줄 수준이다(서브에이전트별 상세 값 목록은 세션 로그 참고).
+  - `context.md`의 "다음 할 일" 중 "전체 페이지 여백/밀도 축소" 항목은 이번으로 완료됨 — 다음 우선순위는 `context.md` "다음 후보" 목록에서 대표가 정해야 한다.
+
+<!-- Gemini 판정 대기 -->
+
+---
+
+## 2026-08-11 (8) | 상속세 시뮬레이터 모달로 분리
+
+- **근거 스펙**: 스펙 없음 — 대표 요청("상담페이지에 포션을 너무 많이 차지하니 버튼으로 모달 띄워서 쓰게 해줘").
+- **건드린 파일**:
+  - 신규: `eobom/frontend/src/components/counseling/TaxSimulatorModal.tsx`
+  - 수정: `eobom/frontend/src/pages/CounselingPage.tsx`(시뮬레이터 인라인 코드 전량 제거, 배너 버튼 + 모달 트리거로 교체, 2컬럼 그리드 → 단일 컬럼 레이아웃)
+- **결과**:
+  - 시뮬레이터 상태·계산·결과·참고사항 블록을 `TaxSimulatorModal`로 그대로 이동(로직 변경 없음, `InquiryModal`/`ConsultRequestModal`과 같은 오버레이 모달 패턴, `maxHeight: 90vh` + 스크롤로 긴 내용 수용).
+  - `CounselingPage`는 상단에 "상속세, 대략 얼마나 나올까요?" 배너 버튼 하나만 남기고, 전문가 목록 섹션을 전체 폭으로 확장(카드 그리드 `auto-fill minmax(280px,1fr)`로 목록 가독성도 개선).
+  - `tsc --noEmit` + `vite build` 통과.
+- **편차**: 없음.
+- **다음 에이전트가 알아야 할 것**: 브라우저 클릭 E2E 미검증(배너 클릭→모달 오픈→닫기 흐름). 계산 로직·참고사항 문구는 08-11 (7) 항목에서 그대로 가져온 것이라 재검증 불필요.
+
+<!-- Gemini 판정 대기 -->
+
+---
+
+## 2026-08-11 (7) | 상속세 간이 시뮬레이터 실제 세법 구조로 재구현
+
+- **근거 스펙**: 스펙 없음 — 대표 요청("상세하게 다시 만들어줄 수 있어? 조건에 따라 값이 달라지나? 참고사항 명시해줘"). `docs/02_전문가_매칭/02-01` §3.1(Tier 1 무료 훅)의 취지는 유지, 계산 정확도만 즉흥 개선.
+- **건드린 파일**:
+  - 신규: `eobom/frontend/src/utils/inheritanceTax.ts`
+  - 수정: `eobom/frontend/src/pages/CounselingPage.tsx`(시뮬레이터 입력/출력 전면 교체)
+- **결과**:
+  - 기존 구현은 "5억 고정공제 + 배우자면 5억 추가, 세율 20% 균일"로 실제 상속세법과 무관한 임의 수치였고 면책 문구도 없었음 — 실사용자가 오판할 위험이 있는 상태였다(대표에게 사전 확인 후 진행).
+  - 상속세및증여세법 핵심 구조로 재구현: 기초공제(2억)+인적공제(자녀 5천만원/인, 연로자 5천만원/인) vs 일괄공제(5억) 중 큰 금액, 배우자공제(실제 상속액 또는 미입력 시 법정상속분 1.5:N 추정, 5억~30억 clamp), 금융재산 상속공제(20%, 최소 2천만원~한도 2억), 5단계 누진세율(10~50%, 누진공제), 신고세액공제(3%).
+  - 입력 항목 확장: 총 상속재산·채무장례비용·금융재산가액·배우자 유무/실제상속액·자녀수·65세이상 상속인수 — "조건에 따라 값이 달라지는가"에 대한 답으로 전부 결과에 영향을 주게 설계.
+  - 결과 화면에 과세가액→공제 3종→과세표준→적용세율구간→산출세액→신고세액공제→최종세액 단계별 breakdown 노출(사용자 요청 "상세하게").
+  - 화면 하단에 **참고사항 박스** 신설: 반영 항목/미반영 항목(미성년자·장애인공제, 동거주택공제, 가업상속공제, 세대생략가산, 사전증여합산 등)을 명시하고, 세율·공제액이 법 개정으로 바뀔 수 있다는 caveat + "법적 효력 없는 참고용, 정확한 세액은 전문가 상담" 문구로 Tier 2 상담 신청 유도와 자연스럽게 연결.
+  - 계산 로직 수동 검증 2건: (1) 20억·배우자·자녀2·채무0 → 약 1.29억원 (2) 5억·배우자없음·자녀0 → 0원(일괄공제로 전액 상쇄) — 둘 다 통상적으로 알려진 범위와 일치.
+  - 프론트 `tsc --noEmit` + `vite build` 통과.
+- **편차**: 없음(즉흥 개선, 비교할 기존 스펙 없음).
+- **다음 에이전트가 알아야 할 것**:
+  - **브라우저 클릭 E2E 미검증** — 폼 입력값 변화에 따른 결과 갱신은 코드 리뷰로만 확인.
+  - 의도적으로 미반영: 미성년자·장애인공제(기대여명 필요), 동거주택상속공제(거주요건), 세대생략가산, 사전증여재산 합산 — 화면에 명시했으나 실제 구현은 없음. 필요해지면 `utils/inheritanceTax.ts`에 추가.
+  - 세율표·공제액은 `TAX_BRACKETS` 등 상수로 `inheritanceTax.ts` 상단에 모아뒀음 — 세법 개정 시 여기만 고치면 됨.
+
+<!-- Gemini 판정 대기 -->
+
+---
+
+## 2026-08-11 (6) | Domain01 폐기 코드 정리(VRViewerModal·FacilityBooking) + Domain02 Stage 1 구현
+
+- **근거 스펙**: `docs/02_전문가_매칭/02-03_전문가_공개노출_및_상담신청_명세서.md` §9 구현순서 1~7단계 전부. 대표 지시로 `VRViewerModal.tsx`·`FacilityBooking` 삭제 확정(02-03 이전 대화에서 "VR은 제휴 혜택 재설계와 엮여 대표 확정 대기"로 보류됐던 항목이 이번에 확정됨).
+- **건드린 파일**:
+  - 삭제: `eobom/frontend/src/components/VRViewerModal.tsx`, `eobom/frontend/src/mockData/experts.json`
+  - 스키마: `eobom/backend/prisma/schema.prisma`(`FacilityBooking` 모델 제거, `User.facilityBookings`/`Facility.bookings` 관계 제거, `Lead.type`에서 `BOOKING` 제거, `ConsultRequest`+`ConsultNumberCounter` 신설, `Expert.isPublished`+`consultRequests` 관계 추가) + 마이그레이션 2건(`20260811011202_drop_facility_booking`, `20260811011506_expert_consult_request_infra`)
+  - 백엔드 신규: `src/services/consultService.ts`(EC- 발번 + 상담신청 생성), `src/controllers/expertPublicController.ts`(공개 목록/상세/신청), `src/routes/expertPublicRoutes.ts`
+  - 백엔드 수정: `src/controllers/facilityController.ts`(`createBooking` 제거), `src/routes/facilityRoutes.ts`, `src/services/leadService.ts`(`LeadType`에서 BOOKING 제거, 동의 문구 "답사 예약"→"업체 문의"로 갱신), `src/config/policy.ts`(`POLICY.consult.numberPrefix` 신설), `src/controllers/expertController.ts`(`getMyConsultRequests`·`updateConsultRequestStatus` 추가), `src/routes/expertRoutes.ts`, `src/controllers/moderationController.ts`(`updateExpertPublish`·`listConsultRequestsForAdmin` 추가, `listExperts` select에 `isPublished` 추가), `src/routes/adminRoutes.ts`, `src/server.ts`(`expertPublicRoutes` 마운트)
+  - 프론트 신규: `src/components/expert/ConsultRequestModal.tsx`
+  - 프론트 수정: `src/components/Sidebar.tsx`(menuItems `care-guide`↔`ending-note` 순서 교체, 도메인 재편 대응), `src/pages/CounselingPage.tsx`(전면 재작성 — 목업 제거, `GET /api/experts` 실연동), `src/pages/BizDashboard.tsx`(전문가용 "받은 상담 신청" 탭 추가), `src/pages/AdminPage.tsx`(전문가 공개 노출 토글 추가)
+- **결과**:
+  - **Domain01 정리**: `FacilityBooking`(호출부 없음, 데이터 0건 확인 후 삭제) 완전 제거. `Lead.type`의 `BOOKING` 값도 함께 제거(생산자가 사라졌으므로) — `01-05` §4.1 문서가 4개 타입(QUOTE/BOOKING/CONSULT/CALL)으로 되어있는데 이제 3개(QUOTE/CONSULT/CALL)가 실제다. **편차 기록**. 동의 고지 문구의 "답사 예약 연락"도 "업체 문의 연락"으로 갱신, `noticeVersion` 2026-08-11로 갱신.
+  - **Domain02 Stage 1 백엔드**: `ConsultRequest`에 과금 컬럼을 스펙대로 전혀 두지 않음(§3.2 변호사법 가드레일). `ConsultNumberCounter`를 `LeadNumberCounter`와 별도 테이블로 분리, `EC-YYMMDD-NNNN` 발번 확인. 공개 API(`GET /api/experts`, `/:id`)는 select 화이트리스트로 `passwordHash`/`refreshTokenHash`/`settlementBank`/`settlementAccount`/`licenseDocUrl`/`contactPhone`/`rejectReason`/`email` 전부 제외 확인. 미승인·미공개 전문가는 404(존재 은폐).
+  - **`isPublished` ≠ `status`**: 승인(APPROVED)과 공개(isPublished) 두 축을 분리 구현, `updateExpertPublish`가 미승인 전문가의 공개 시도를 400으로 차단.
+  - **Domain02 Stage 1 프론트**: `CounselingPage`가 실제 승인+공개 전문가만 노출(현재 0명 — 빈 상태 UI 확인). 카테고리 탭 4종 + 전체. `ConsultRequestModal`이 `InquiryModal` 패턴 재사용. `BizDashboard`에 전문가용 상담 신청 목록+상태변경(수락/거절/완료) 추가. `AdminPage`에 공개 토글 체크박스 추가(승인된 전문가에게만 노출).
+  - **전수 curl 검증(17단계, 전부 통과)**: 관리자 로그인 → 전문가 가입 → 승인 전 목록 미노출 → 관리자 승인 → **승인만으론 여전히 미노출(공개 플래그 별개 축 확인)** → 미공개 상세 404 → 공개 토글 ON → 목록/상세 노출 + 민감 필드 0건 유출 확인 → 카테고리 필터 → 동의없음 400 → 정상 신청(EC-260811-0001) → 존재하지 않는 전문가 404 → 전문가 로그인 → 본인 신청 목록 조회 → 상태변경(ACCEPTED, statusHistory 누적 확인) → 관리자 전체 조회 → 공개 토글 OFF 후 재차 미노출 확인. 테스트 계정(admin-smoke-domain02, expert-smoke) 전부 정리 완료.
+  - 백엔드·프론트 `tsc --noEmit` + `npm run build` 전부 통과. `docs/00-05` DB 문서 재생성(12→14개 모델, 137→157개 컬럼, 설명 누락 0건 유지).
+- **편차**:
+  1. `Lead.type`에서 `BOOKING` 제거는 `01-05` §4.1 문서와 어긋난다(문서는 여전히 4타입). Opus가 다음 기회에 `01-05` §4.1을 3타입으로 정정 필요.
+  2. `EC-` 접두어를 문서(§4.1)대로 `POLICY.consult.numberPrefix`에 정본으로 등록(하드코딩 안 함) — `01-05`의 `POLICY.lead.numberPrefix` 패턴을 그대로 따름, 스펙에 없던 결정이지만 하네스 §7 하드코딩 제거 원칙과 일치.
+- **다음 에이전트가 알아야 할 것**:
+  - **브라우저 클릭 E2E 미검증** — `ConsultRequestModal` 폼 제출, `BizDashboard` 상담 신청 탭, `AdminPage` 공개 토글 체크박스는 API 레벨(curl)로만 확인. 사용자가 실제 클릭 테스트 필요.
+  - **`Sidebar.tsx` 메뉴 순서 교체는 이미 완료됨** — `context.md`의 "다음 할 일"에서 지워야 함.
+  - Stage 2(과금: Tier2 상담료, Tier3 월정액, Tier4 대행수수료)는 `02-03` §10 그대로 대표 확정 대기 중, 미착수.
+  - `Facility.vrImages`·`detailedPrices`·`priceValue` 컬럼은 여전히 미정리 상태로 남아있음(이번엔 VRViewerModal 컴포넌트만 삭제, 스키마 컬럼 자체는 건드리지 않음 — 사용자 지시가 "VRViewerModal.tsx, FacilityBooking 두 API"로 한정됐다고 판단).
+  - `seed.ts`/`seed-data/facilities.json`는 `FacilityBooking` 필드를 참조하지 않아 무변경.
+
+<!-- Gemini 판정 대기 -->
+
+---
+
+## 2026-08-11 (5) | [Opus] Domain01 스펙 정리(견적비교·답사예약 폐기) + Domain02 기획 착수
+
+- **근거 스펙**: 대표·사장님 논의 결과 3건 확정 — ① 견적 비교 도입 안 함(수익은 업체 문의 리드 수수료) ② 답사 예약 도입 안 함 ③ Domain02 = 전문가 매칭으로 진행.
+- **건드린 파일**:
+  - 수정: `01-01`(§2.3·§2.5 `[유지]`→`[폐기]`, §3.3 재설계 필요 경고, §5 "업체 자세히 보기" 신설), `01-03`·`01-04`(폐기 배너), `00_DOCS_INDEX.md`(02-03 행 추가), `.harness/memory/pending-approvals.md`
+  - 신규: `docs/02_전문가_매칭/02-03_전문가_공개노출_및_상담신청_명세서.md`
+- **결과**:
+  - **Domain01 스펙 정합화**: 08-10에 코드에서 이미 삭제된 `PriceCompareModal`·`BookingModal`이 스펙엔 여전히 `[유지]`로 남아 있어 문서가 거짓말을 하던 상태를 바로잡음. 폐기 문서(`01-03`·`01-04`)는 삭제하지 않고 배너로 사유를 남김 — 판단 근거 보존.
+  - **답사예약 대체 설계**(`01-01` §5 신설): 이미 가진 데이터(images·amenities·religion·guests·좌표·리뷰·운영주체 태그)만 모아도 상세 화면이 성립함을 확인. 형태는 **별도 페이지 `/facility/:id` 권장** — 08-11 History 라우팅 전환으로 개별 시설 URL 공유가 가능해졌기 때문.
+  - **`pending-approvals` 1건 해제**(견적비교 A+C안 → 기각), **1건 신규 등록**(제휴사 혜택·수익구조 재설계 — 견적비교·답사예약·VR이 다 빠져 제휴 차별화가 사실상 비었음).
+  - **Domain02 `02-03` 신설**: 진단 결과 전문가 B2B 계정은 완성됐으나 **B2C가 통째로 목업**(가입해도 아무 일도 안 일어남). Stage 1을 "결제 없는 최소 루프"(공개 노출 → 상담 신청 → 전문가 확인)로 잘라 **대표 승인 없이 착수 가능**하게 설계 — `01-05`가 수수료율 미확정 상태로 0~3단계를 진행한 것과 같은 구조.
+  - **변호사법 가드레일을 코드 구조로 표현**: `ConsultRequest`에 과금 컬럼을 아예 만들지 않고 과금은 Stage 2 별도 테이블로 분리. `02-02` §2가 `Lead` 재사용을 거부한 논리를 그대로 승계("없는 필드는 실수로 채워질 수 없다").
+  - `02-02`가 남긴 미결 3건에 전부 답을 냄 — 자격증 자동검증은 **연동 안 함 권장**(공개 API 부재, 3중 수동 방어로 충분), 변호사 월정액은 **초기 계좌이체 수동** 권장, 리드 수수료는 `Lead` 재사용 대신 분리.
+- **편차**: 없음(전부 대표 확정 사항 반영 + 기획 신설).
+- **다음 에이전트가 알아야 할 것**:
+  - **`[Claude:Sonnet]` 착수 가능**: `02-03` §9 구현순서 1~7단계. 1~5는 백엔드라 curl 검증 가능.
+  - **§9.1 "반드시 지킬 것" 5개 항목을 먼저 읽을 것** — 특히 공개 API 필드 화이트리스트(정산계좌·자격증 사본·연락처 유출 방지)와 `ConsultRequest`에 과금 컬럼 추가 금지.
+  - Domain01 잔여 정리 대상(스펙상 폐기됐으나 코드에 남아있음): `FacilityBooking` 모델·API(데이터 0건), `Facility.detailedPrices`·`priceValue`, 고아 컴포넌트 `VRViewerModal.tsx`. 제거 여부는 Sonnet 판단이되 **VR은 제휴 혜택 재설계와 엮여 있어 대표 확정 대기**.
+  - 공개 가능한 전문가가 현재 **0명** — `CounselingPage` 실연동 시 빈 목록 처리를 반드시 넣을 것.
+
+<!-- Gemini 판정 대기 -->
+
+---
+
 ## 2026-08-11 (4) | 도메인 번호 체계 재편 — 메뉴 순서 정렬 + 문서 ID 도메인별 재부여
 
 - **근거 스펙**: 스펙 없음 — 대표 지시("웹 메뉴 순서대로 도메인 순서를 맞추자", "01~04 사후/05 본인", "도메인별 01부터 재시작"). `[Claude:Opus]` 기획 판단으로 순서 확정 후 실행.

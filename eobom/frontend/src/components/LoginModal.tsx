@@ -44,7 +44,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin
         borderRadius: '24px',
         maxWidth: '440px',
         width: '100%',
-        padding: '2.5rem 2rem',
+        padding: '1.9rem 1.5rem',
         boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
         position: 'relative'
       }}>
@@ -72,7 +72,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin
         </button>
 
         {/* 모달 타이틀 */}
-        <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
+        <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
           <div style={{
             display: 'inline-flex',
             alignItems: 'center',
@@ -180,7 +180,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin
             </button>
 
             {/* 하단 개발용 모의 로그인 버튼 */}
-            <div style={{ marginTop: '1.25rem', paddingTop: '1.25rem', borderTop: '1px solid #F3F4F6', textAlign: 'center' }}>
+            <div style={{ marginTop: '0.95rem', paddingTop: '0.95rem', borderTop: '1px solid #F3F4F6', textAlign: 'center' }}>
               <div style={{ fontSize: '0.8rem', color: '#9CA3AF', marginBottom: '0.6rem' }}>
                 [빠른 데모 테스트용 선택]
               </div>

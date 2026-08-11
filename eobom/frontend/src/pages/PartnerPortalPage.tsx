@@ -34,6 +34,7 @@ export const PartnerPortalPage: React.FC = () => {
   // 로그인 공통 필드
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [passwordConfirm, setPasswordConfirm] = useState('');
 
   // 장사시설 가입 필드
   const [bizRegNo, setBizRegNo] = useState('');
@@ -55,6 +56,7 @@ export const PartnerPortalPage: React.FC = () => {
   const resetForm = () => {
     setEmail('');
     setPassword('');
+    setPasswordConfirm('');
     setBizRegNo('');
     setCompanyName('');
     setOwnerName('');
@@ -99,6 +101,10 @@ export const PartnerPortalPage: React.FC = () => {
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (password !== passwordConfirm) {
+      setResultMessage({ type: 'error', text: '비밀번호가 일치하지 않습니다.' });
+      return;
+    }
     setIsSubmitting(true);
     setResultMessage(null);
     try {
@@ -127,13 +133,13 @@ export const PartnerPortalPage: React.FC = () => {
     }
   };
 
-  const handleLogout = () => {
+  const handleLogout = (notice?: string) => {
     localStorage.removeItem('eobom_biz_token');
     localStorage.removeItem('eobom_biz_refresh_token');
     localStorage.removeItem('eobom_biz_type');
     localStorage.removeItem('eobom_biz_name');
     setLoggedIn(null);
-    setResultMessage(null);
+    setResultMessage(notice ? { type: 'error', text: notice } : null);
   };
 
   if (loggedIn) {
@@ -143,8 +149,8 @@ export const PartnerPortalPage: React.FC = () => {
   }
 
   return (
-    <div className="container" style={{ maxWidth: '560px', padding: '3rem 1rem' }}>
-      <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
+    <div className="container" style={{ maxWidth: '560px', padding: '2.2rem 1rem' }}>
+      <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
         <h1 style={{ fontSize: '1.8rem', color: 'var(--primary-color)', fontWeight: 800, marginBottom: '0.5rem' }}>
           사업자·전문가 파트너 포털
         </h1>
@@ -154,7 +160,7 @@ export const PartnerPortalPage: React.FC = () => {
       </div>
 
       {/* 계정 유형 선택 */}
-      <div style={{ display: 'flex', gap: '0.6rem', marginBottom: '1.5rem' }}>
+      <div style={{ display: 'flex', gap: '0.6rem', marginBottom: '1.1rem' }}>
         <button
           type="button"
           onClick={() => setAccountType('FACILITY')}
@@ -192,7 +198,7 @@ export const PartnerPortalPage: React.FC = () => {
       </div>
 
       {/* 로그인 / 가입 토글 */}
-      <div style={{ display: 'flex', gap: '1.5rem', marginBottom: '1.5rem', justifyContent: 'center', borderBottom: '1px solid var(--border-color)' }}>
+      <div style={{ display: 'flex', gap: '1.1rem', marginBottom: '1.1rem', justifyContent: 'center', borderBottom: '1px solid var(--border-color)' }}>
         {(['LOGIN', 'SIGNUP'] as Mode[]).map((m) => (
           <button
             key={m}
@@ -232,7 +238,7 @@ export const PartnerPortalPage: React.FC = () => {
         </div>
       )}
 
-      <div style={{ backgroundColor: 'var(--card-bg)', borderRadius: '20px', padding: '2rem', boxShadow: 'var(--box-shadow)' }}>
+      <div style={{ backgroundColor: 'var(--card-bg)', borderRadius: '20px', padding: '1.5rem', boxShadow: 'var(--box-shadow)' }}>
         {mode === 'LOGIN' ? (
           <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             <div>
@@ -262,6 +268,10 @@ export const PartnerPortalPage: React.FC = () => {
             <div>
               <label className="form-label">비밀번호 (8자 이상)</label>
               <input type="password" required minLength={8} value={password} onChange={(e) => setPassword(e.target.value)} className="form-select" />
+            </div>
+            <div>
+              <label className="form-label">비밀번호 확인</label>
+              <input type="password" required minLength={8} value={passwordConfirm} onChange={(e) => setPasswordConfirm(e.target.value)} className="form-select" />
             </div>
             <div>
               <label className="form-label">사업자등록번호</label>
@@ -296,6 +306,10 @@ export const PartnerPortalPage: React.FC = () => {
             <div>
               <label className="form-label">비밀번호 (8자 이상)</label>
               <input type="password" required minLength={8} value={password} onChange={(e) => setPassword(e.target.value)} className="form-select" />
+            </div>
+            <div>
+              <label className="form-label">비밀번호 확인</label>
+              <input type="password" required minLength={8} value={passwordConfirm} onChange={(e) => setPasswordConfirm(e.target.value)} className="form-select" />
             </div>
             <div>
               <label className="form-label">전문 분야</label>

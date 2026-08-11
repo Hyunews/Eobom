@@ -30,7 +30,7 @@ export const CareGuidePage: React.FC<CareGuidePageProps> = ({ currentUser, onOpe
 
   return (
     <div className="container">
-      <div style={{ marginBottom: '2rem' }}>
+      <div style={{ marginBottom: '1.5rem' }}>
         <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', backgroundColor: '#DEF7EC', color: '#03543F', padding: '0.3rem 0.8rem', borderRadius: '16px', fontSize: '0.85rem', fontWeight: 700, marginBottom: '0.6rem' }}>
           <ChecklistShieldIcon size={18} color="#03543F" /> 체크리스트 &amp; 쉴드 | 사망 직후 D-Day 필수 행정절차 및 24h 긴급 콜
         </div>
@@ -42,9 +42,9 @@ export const CareGuidePage: React.FC<CareGuidePageProps> = ({ currentUser, onOpe
         </p>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '2rem' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1.5rem' }}>
         {/* D-Day 행정절차 타임라인 */}
-        <div style={{ backgroundColor: 'var(--card-bg)', padding: '2rem', borderRadius: 'var(--border-radius)', boxShadow: 'var(--box-shadow)' }}>
+        <div style={{ backgroundColor: 'var(--card-bg)', padding: '1.5rem', borderRadius: 'var(--border-radius)', boxShadow: 'var(--box-shadow)' }}>
           <h3 style={{ color: 'var(--primary-color)', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             <CheckSquare color="var(--point-color)" /> D-Day별 행정절차 체크리스트
           </h3>
@@ -82,14 +82,14 @@ export const CareGuidePage: React.FC<CareGuidePageProps> = ({ currentUser, onOpe
             target="_blank"
             rel="noreferrer"
             className="btn btn-point"
-            style={{ width: '100%', marginTop: '1.5rem', textDecoration: 'none' }}
+            style={{ width: '100%', marginTop: '1.1rem', textDecoration: 'none' }}
           >
             🏛️ 정부24 안심상속 원스톱 서비스 바로가기 <ExternalLink size={16} />
           </a>
         </div>
 
         {/* 모바일 부고장 생성 데모 */}
-        <div style={{ backgroundColor: 'var(--card-bg)', padding: '2rem', borderRadius: 'var(--border-radius)', boxShadow: 'var(--box-shadow)' }}>
+        <div style={{ backgroundColor: 'var(--card-bg)', padding: '1.5rem', borderRadius: 'var(--border-radius)', boxShadow: 'var(--box-shadow)' }}>
           <h3 style={{ color: 'var(--primary-color)', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             <MessageSquare color="var(--primary-color)" /> 모바일 부고장 간편 작성
           </h3>
@@ -108,7 +108,7 @@ export const CareGuidePage: React.FC<CareGuidePageProps> = ({ currentUser, onOpe
           </div>
 
           <div style={{
-            marginTop: '1.5rem',
+            marginTop: '1.1rem',
             padding: '1.2rem',
             backgroundColor: 'var(--secondary-color)',
             borderRadius: '8px',
