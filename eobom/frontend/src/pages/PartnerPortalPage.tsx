@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { Building2, Scale, Lock, Mail } from 'lucide-react';
+import { Building2, Scale, Lock, Mail, Search } from 'lucide-react';
 import { BACKEND_URL } from '../config';
 import { BizDashboard } from './BizDashboard';
+import { AddressSearchModal } from '../components/AddressSearchModal';
 
 // 사업자(장사시설) / 전문가(변호사·세무사·행정사·장례지도사) 전용 포털.
 // B2C 소셜 로그인(LoginModal)과 완전히 분리된 이메일/비밀번호 회원가입·로그인.
@@ -51,6 +52,7 @@ export const PartnerPortalPage: React.FC = () => {
   const [expertPhone, setExpertPhone] = useState('');
   const [officeAddress, setOfficeAddress] = useState('');
   const [bio, setBio] = useState('');
+  const [showAddressSearch, setShowAddressSearch] = useState(false);
 
   const endpointBase = accountType === 'FACILITY' ? `${BACKEND_URL}/api/partner` : `${BACKEND_URL}/api/expert`;
 
@@ -341,7 +343,23 @@ export const PartnerPortalPage: React.FC = () => {
             </div>
             <div>
               <label className="form-label">사무실 주소 (선택)</label>
-              <input placeholder="예: 서울 서초구 서초대로 000, 0층" value={officeAddress} onChange={(e) => setOfficeAddress(e.target.value)} className="form-select" />
+              <div style={{ display: 'flex', gap: '0.5rem' }}>
+                <input
+                  placeholder="주소 검색으로 입력하거나 직접 입력 (예: ..., 0층)"
+                  value={officeAddress}
+                  onChange={(e) => setOfficeAddress(e.target.value)}
+                  className="form-select"
+                  style={{ flex: 1 }}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowAddressSearch(true)}
+                  className="btn"
+                  style={{ backgroundColor: 'var(--secondary-color)', color: 'var(--primary-color)', display: 'flex', alignItems: 'center', gap: '0.3rem', whiteSpace: 'nowrap' }}
+                >
+                  <Search size={16} /> 주소 검색
+                </button>
+              </div>
             </div>
             <div>
               <label className="form-label">소개 (선택)</label>
@@ -361,6 +379,10 @@ export const PartnerPortalPage: React.FC = () => {
       <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', textAlign: 'center', marginTop: '1.2rem' }}>
         가입 신청 후 운영자 심사를 거쳐 승인되면 로그인하실 수 있습니다.
       </p>
+
+      {showAddressSearch && (
+        <AddressSearchModal onSelect={(address) => setOfficeAddress(address)} onClose={() => setShowAddressSearch(false)} />
+      )}
     </div>
   );
 };

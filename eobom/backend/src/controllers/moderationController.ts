@@ -77,9 +77,12 @@ export const updatePartnerInfo = async (req: Request, res: Response) => {
     return res.status(401).json({ status: 'error', message: '인증 토큰이 없거나 유효하지 않습니다.' });
   }
 
-  const { contactName, contactPhone } = req.body as { contactName?: string; contactPhone?: string };
-  if (contactName === undefined && contactPhone === undefined) {
-    return res.status(400).json({ status: 'error', message: '수정할 항목(담당자명, 연락처)이 없습니다.' });
+  const { ownerName, contactName, contactPhone } = req.body as { ownerName?: string; contactName?: string; contactPhone?: string };
+  if (ownerName === undefined && contactName === undefined && contactPhone === undefined) {
+    return res.status(400).json({ status: 'error', message: '수정할 항목(대표자명, 담당자명, 연락처)이 없습니다.' });
+  }
+  if (ownerName !== undefined && !ownerName.trim()) {
+    return res.status(400).json({ status: 'error', message: '대표자명은 비워둘 수 없습니다.' });
   }
   if (contactName !== undefined && !contactName.trim()) {
     return res.status(400).json({ status: 'error', message: '담당자명은 비워둘 수 없습니다.' });
@@ -97,11 +100,12 @@ export const updatePartnerInfo = async (req: Request, res: Response) => {
     const partner = await prisma.partner.update({
       where: { id: req.params.id },
       data: {
+        ...(ownerName !== undefined ? { ownerName: ownerName.trim() } : {}),
         ...(contactName !== undefined ? { contactName: contactName.trim() } : {}),
         ...(normalizedPhone !== undefined ? { contactPhone: normalizedPhone } : {}),
       },
     });
-    return res.json({ status: 'success', data: { id: partner.id, contactName: partner.contactName, contactPhone: partner.contactPhone } });
+    return res.json({ status: 'success', data: { id: partner.id, ownerName: partner.ownerName, contactName: partner.contactName, contactPhone: partner.contactPhone } });
   } catch (error) {
     console.error('사업자 정보 수정 실패:', error);
     return res.status(500).json({ status: 'error', message: '정보 수정 중 오류가 발생했습니다.' });

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Home } from 'lucide-react';
 import { HouseLeafIcon, HandScalesIcon, PhoneHeartIcon, NoteKeyIcon, ChecklistShieldIcon } from './MenuIcons';
 
@@ -7,9 +7,10 @@ interface SidebarProps {
   setActiveTab: (tab: string) => void;
 }
 
+// width/margin-left 확장 동기화는 순수 CSS(:hover)로 처리한다(→ index.css `.sidebar`) —
+// 이전엔 이 컴포넌트의 React state로 width만 넓히고 .main-wrapper의 margin-left는
+// 못 따라가서, 확장 시 사이드바가 본문 위에 그대로 올라타 콘텐츠를 가리는 문제가 있었다.
 export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab }) => {
-  const [isHovered, setIsHovered] = useState(false);
-
   // 공식 6개 네비게이션 메뉴 (각 메뉴별 보조 설명 문구 제거하여 디자인 극대화)
   const menuItems = [
     { id: 'home', label: '메인', icon: Home },
@@ -22,20 +23,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab }) => 
 
   return (
     <aside
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
+      className="sidebar"
       style={{
-        position: 'fixed',
-        left: 0,
-        top: '72px', // Header 아래 고정
-        bottom: 0,
-        width: isHovered ? '240px' : '72px',
         backgroundColor: 'var(--primary-color)',
         color: '#FFFFFF',
         boxShadow: '4px 0 20px rgba(0,0,0,0.15)',
-        zIndex: 900,
-        transition: 'width 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-        overflow: 'hidden',
         display: 'flex',
         flexDirection: 'column',
         padding: '1rem 0.5rem'
@@ -90,12 +82,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab }) => 
               </div>
 
               <span
+                className="sidebar-label"
                 style={{
                   fontSize: '0.98rem',
                   fontWeight: isActive ? 800 : 600,
-                  color: isActive ? '#FFFFFF' : '#F8FAFC',
-                  opacity: isHovered ? 1 : 0,
-                  transition: 'opacity 0.25s ease'
+                  color: isActive ? '#FFFFFF' : '#F8FAFC'
                 }}
               >
                 {item.label}

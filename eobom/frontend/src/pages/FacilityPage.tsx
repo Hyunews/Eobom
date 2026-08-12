@@ -278,29 +278,34 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
             <option value="묘지/수목장">묘지/봉안당/수목장</option>
           </select>
         </div>
+      </div>
 
-        {/* 카드의 #태그를 클릭하면 여기 활성 필터로 표시됨 — 클릭해서 해제 가능 */}
-        {selectedTag && (
-          <div style={{ flex: '0 0 auto' }}>
-            <label className="form-label">태그 필터</label>
+      {/* 태그 필터 칩 — 카드까지 스크롤하지 않고도 TAG_CATALOG 등록 태그를 바로 클릭할 수 있게 필터 박스 바로 아래 노출 (2026-08-12 대표 피드백) */}
+      <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '0.5rem', marginBottom: '1.2rem' }}>
+        <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>태그:</span>
+        {Object.keys(TAG_CATALOG).map((tag) => {
+          const active = selectedTag === tag;
+          return (
             <button
-              onClick={() => handleTagClick(selectedTag)}
+              key={tag}
+              onClick={() => handleTagClick(tag)}
               className="btn"
               style={{
-                backgroundColor: 'var(--point-color)',
-                color: '#fff',
-                padding: '0.5rem 0.9rem',
-                borderRadius: '8px',
-                fontSize: '0.85rem',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.3rem',
+                backgroundColor: active ? 'var(--point-color)' : 'var(--card-bg)',
+                color: active ? '#fff' : 'var(--primary-color)',
+                border: active ? 'none' : '1px solid var(--border-color)',
+                padding: '0.3rem 0.7rem',
+                borderRadius: '999px',
+                fontSize: '0.78rem',
+                fontWeight: 600,
+                minHeight: 'auto',
+                lineHeight: 1.4
               }}
             >
-              #{TAG_CATALOG[selectedTag]?.label ?? selectedTag} ✕
+              #{TAG_CATALOG[tag].label}
             </button>
-          </div>
-        )}
+          );
+        })}
       </div>
 
       {/* 시설 카드 목록 */}

@@ -41,12 +41,46 @@ body {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  /* 한글은 word-break 기본값(normal)에서 음절 단위로 아무 데서나 끊긴다 —
+     사이트 전체 기본값으로 keep-all을 깔아 좁은 화면에서 어절 중간에 끊기는 걸 방지 */
+  word-break: keep-all;
+  overflow-wrap: break-word;
 }
 
 #root {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+}
+
+/* ── 좌측 호버 확장 사이드바 (Sidebar.tsx) ──
+   width/margin-left 둘 다 순수 CSS :hover로 제어한다 — 사이드바가 확장될 때
+   .main-wrapper의 margin-left도 같은 값(240px)으로 함께 밀리게 해서, 확장된
+   사이드바가 본문을 덮어버리던 문제(콘텐츠 가림)를 근본적으로 없앤다.
+   Sidebar(<aside class="sidebar">)와 .main-wrapper는 App.tsx에서 바로 이어지는
+   형제 요소라 인접 형제 선택자(+)로 동기화 가능. */
+.sidebar {
+  position: fixed;
+  left: 0;
+  top: 72px;
+  bottom: 0;
+  width: 72px;
+  z-index: 900;
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+}
+
+.sidebar:hover {
+  width: 240px;
+}
+
+.sidebar-label {
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+
+.sidebar:hover .sidebar-label {
+  opacity: 1;
 }
 
 /* Sidebar Margin Space for Main Layout */
@@ -57,6 +91,28 @@ body {
   flex-direction: column;
   min-height: calc(100vh - 72px);
   flex-grow: 1;
+}
+
+.sidebar:hover + .main-wrapper {
+  margin-left: 240px;
+}
+
+/* 휴대폰 폭에서는 터치라 호버가 의미 없고(운영체제마다 동작이 달라 오히려 불안정),
+   고정 아이콘 레일 자체도 더 좁혀서 본문 공간을 최대한 확보한다. */
+@media (max-width: 480px) {
+  .sidebar,
+  .sidebar:hover {
+    width: 56px;
+  }
+
+  .sidebar:hover .sidebar-label {
+    opacity: 0;
+  }
+
+  .main-wrapper,
+  .sidebar:hover + .main-wrapper {
+    margin-left: 56px;
+  }
 }
 
 /* UI Layout Containers */
@@ -185,114 +241,26 @@ body {
   box-shadow: 0 0 0 3px rgba(26, 43, 76, 0.1);
 }
 
-/* ── Hero Section ── */
-.hero-section {
-  display: grid;
-  grid-template-columns: 1fr 34%;  /* 이미지 비율 축소 38% → 34% */
-  background-color: var(--card-bg);
-  border-radius: var(--border-radius);
-  box-shadow: var(--box-shadow);
-  border: 1px solid var(--border-color);
-  margin-bottom: 2.25rem;
-  overflow: hidden;
-  min-height: 300px;
+/* ── 풀페이지 스냅 스크롤(HomePage) 뷰포트 높이 ──
+   모바일 브라우저는 주소창 접힘/펼침에 따라 100vh가 실제 보이는 영역보다 커질 수 있어
+   섹션 경계가 어긋나 보인다. 100dvh(동적 뷰포트 높이) 지원 브라우저에서는 그쪽을 우선 적용,
+   미지원 브라우저는 100vh로 그대로 동작(fallback). */
+.fullpage-viewport,
+.fullpage-section {
+  height: calc(100vh - 72px);
 }
 
-.hero-text {
-  padding: clamp(1.25rem, 2.5vw, 2.2rem) clamp(1.25rem, 2.5vw, 2.4rem);
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: 0;
-  word-break: keep-all;
-  overflow-wrap: break-word;
-}
-
-.hero-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  background-color: var(--secondary-color);
-  color: var(--point-color);
-  padding: 0.4rem 0.9rem;
-  border-radius: 24px;
-  font-size: clamp(0.72rem, 1.4vw, 0.85rem);
-  font-weight: 700;
-  margin-bottom: 1rem;
-  border: 1px solid rgba(78, 112, 85, 0.2);
-  align-self: flex-start;
-  white-space: normal;
-  max-width: 100%;
-}
-
-.hero-title {
-  font-size: clamp(1.5rem, 3.2vw, 3.5rem);  /* 1920px → ~61px, 좁은 화면 1.5rem 고정 */
-  font-weight: 800;
-  color: var(--primary-color);
-  line-height: 1.3;
-  letter-spacing: -0.03em;
-  margin-bottom: 0.9rem;
-}
-
-.hero-desc {
-  font-size: clamp(0.9rem, 1.3vw, 1.2rem);  /* 1920px → ~22px */
-  color: var(--text-muted);
-  line-height: 1.75;
-  margin-bottom: 1.2rem;
-}
-
-.hero-checklist {
-  display: flex;
-  flex-direction: column;
-  gap: 0.45rem;
-}
-
-.hero-check-item {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: clamp(0.85rem, 1vw, 1rem);     /* 1920px → 18px(max) */
-  color: var(--primary-color);
-  font-weight: 600;
-}
-
-.hero-image-wrap {
-  overflow: hidden;
-}
-
-.hero-image-wrap img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: center;
-  display: block;
+@supports (height: 100dvh) {
+  .fullpage-viewport,
+  .fullpage-section {
+    height: calc(100dvh - 72px);
+  }
 }
 
 /* ── Responsive Breakpoints ── */
 
-/*
-  900px 이하에서 히어로 단일 컬럼으로 전환.
-  사이드바는 항상 position:fixed + width:72px → margin-left:72px 절대 제거하지 않음.
-*/
-@media (max-width: 900px) {
-  .hero-section {
-    grid-template-columns: 1fr;
-    min-height: unset;
-  }
-
-  /* 스택 시 이미지: 16:9 비율 유지, 너무 길어지지 않도록 max-height 제한 */
-  .hero-image-wrap {
-    aspect-ratio: 16 / 9;
-    width: 100%;
-    max-height: 260px;
-  }
-
-  .hero-image-wrap img {
-    height: 100%;
-  }
-}
-
-/* 좁은 화면에서 컨테이너 패딩만 줄임 — margin-left는 유지 (사이드바 항상 고정) */
+/* 좁은 화면에서 컨테이너 패딩만 줄임 — margin-left는 사이드바 hover 상태에 따라 Sidebar.tsx의
+   CSS(:hover)로 동적으로 늘어난다 (아래 사이드바 규칙 참고). */
 @media (max-width: 768px) {
   .container {
     padding: 1.5rem 1rem;

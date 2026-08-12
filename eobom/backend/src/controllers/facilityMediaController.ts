@@ -86,3 +86,40 @@ export const removeFacilityImage = async (req: Request, res: Response) => {
     return res.status(500).json({ status: 'error', message: '이미지 삭제 처리 중 오류가 발생했습니다.' });
   }
 };
+
+// 대표 사진 지정 (`PATCH /api/partner/facilities/:id/images/cover`, body: { imagePath }) — 별도
+// "대표 사진" 컬럼을 새로 만들지 않고, 소비자 화면(FacilityPage.tsx)이 이미 따르는 "images[0]이
+// 대표"라는 기존 규칙을 그대로 이용한다. 지정한 이미지를 배열 맨 앞으로 옮기기만 하면 된다 —
+// 마이그레이션 없이, 기존 규칙과 항상 일치하게 동작.
+export const setCoverImage = async (req: Request, res: Response) => {
+  const decoded = verifyPartnerBearerToken(req);
+  if (!decoded) {
+    return res.status(401).json({ status: 'error', message: '인증 토큰이 없거나 유효하지 않습니다.' });
+  }
+
+  const { imagePath } = req.body as { imagePath?: string };
+  if (!imagePath) {
+    return res.status(400).json({ status: 'error', message: 'imagePath가 필요합니다.' });
+  }
+
+  try {
+    const facility = await prisma.facility.findUnique({ where: { id: req.params.id } });
+    if (!facility) {
+      return res.status(404).json({ status: 'error', message: '시설을 찾을 수 없습니다.' });
+    }
+    if (facility.partnerId !== decoded.id) {
+      return res.status(403).json({ status: 'error', message: '연동된 본인 시설의 사진만 대표로 지정할 수 있습니다.' });
+    }
+    if (!facility.images.includes(imagePath)) {
+      return res.status(400).json({ status: 'error', message: '이 시설에 등록된 사진이 아닙니다.' });
+    }
+
+    const reordered = [imagePath, ...facility.images.filter((img) => img !== imagePath)];
+    const updated = await prisma.facility.update({ where: { id: facility.id }, data: { images: reordered } });
+
+    return res.json({ status: 'success', data: { images: updated.images } });
+  } catch (error) {
+    console.error('대표 사진 지정 실패:', error);
+    return res.status(500).json({ status: 'error', message: '대표 사진 지정 중 오류가 발생했습니다.' });
+  }
+};

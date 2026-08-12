@@ -5,7 +5,7 @@ import { BACKEND_URL } from '../config';
 interface LoginModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onLoginSuccess: (username: string, provider?: string) => void;
+  onLoginSuccess: (username: string, provider?: string, token?: string) => void;
 }
 
 // B2C 소비자 로그인 전용. 사업자·전문가는 /#partner, 운영자는 /#admin — 전부 완전히 분리된
@@ -18,10 +18,27 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin
     window.location.href = `${BACKEND_URL}/api/auth/${provider}`;
   };
 
-  // 모의 소셜 로그인 (백엔드 세팅 전 즉시 테스트용)
-  const handleMockSocialLogin = (providerName: string, providerCode: string) => {
-    onLoginSuccess(`${providerName} 회원`, providerCode);
-    onClose();
+  // 데모 로그인 (`POST /api/auth/demo-login`) — 2026-08-12 정정: 예전엔 토큰 없이 화면 표시용
+  // 이름만 세팅하는 순수 프런트 목업이었다. 그래서 로그인된 것처럼 "OO 회원님"이 뜨는데도
+  // 실제로는 인증 토큰이 없어 업체 문의 등 모든 요청이 조용히 익명으로 나가는 혼란이 있었다
+  // (walkthrough 2026-08-12 (4)). 실제 백엔드 데모 로그인 API를 호출해 진짜 토큰을 받도록 수정.
+  const handleMockSocialLogin = async (providerCode: string) => {
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/auth/demo-login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ provider: providerCode }),
+      });
+      const data = await res.json();
+      if (!res.ok || data.status !== 'success') {
+        alert(data.message || '데모 로그인에 실패했습니다.');
+        return;
+      }
+      onLoginSuccess(data.user.name, providerCode, data.token);
+      onClose();
+    } catch {
+      alert('서버와 통신 중 오류가 발생했습니다.');
+    }
   };
 
   return (
@@ -187,21 +204,21 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin
               <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center', marginBottom: '0.75rem' }}>
                 <button
                   type="button"
-                  onClick={() => handleMockSocialLogin('카카오 모의', 'KAKAO')}
+                  onClick={() => handleMockSocialLogin('KAKAO')}
                   style={{ fontSize: '0.78rem', padding: '0.35rem 0.65rem', borderRadius: '6px', border: '1px solid #FEE500', backgroundColor: '#FFFDF0', color: '#191919', cursor: 'pointer' }}
                 >
                   🟡 카카오(모의)
                 </button>
                 <button
                   type="button"
-                  onClick={() => handleMockSocialLogin('네이버 모의', 'NAVER')}
+                  onClick={() => handleMockSocialLogin('NAVER')}
                   style={{ fontSize: '0.78rem', padding: '0.35rem 0.65rem', borderRadius: '6px', border: '1px solid #03C75A', backgroundColor: '#F0FDF4', color: '#03C75A', cursor: 'pointer' }}
                 >
                   🟢 네이버(모의)
                 </button>
                 <button
                   type="button"
-                  onClick={() => handleMockSocialLogin('구글 모의', 'GOOGLE')}
+                  onClick={() => handleMockSocialLogin('GOOGLE')}
                   style={{ fontSize: '0.78rem', padding: '0.35rem 0.65rem', borderRadius: '6px', border: '1px solid #D1D5DB', backgroundColor: '#F9FAFB', color: '#374151', cursor: 'pointer' }}
                 >
                   ⚪ 구글(모의)

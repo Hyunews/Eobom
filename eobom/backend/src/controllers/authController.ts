@@ -364,8 +364,13 @@ export const confirmLink = async (req: Request, res: Response) => {
   }
 };
 
-// 모의 / 데모 로그인 (개발자 및 데모용, DB 미저장)
-export const demoLogin = (req: Request, res: Response) => {
+// 모의 / 데모 로그인 (개발자 및 데모용)
+// 2026-08-12 정정: 예전엔 User 테이블에 저장하지 않는 합성 id(`demo_${Date.now()}`)로 토큰만
+// 발급했는데, 그 id가 실제 User 행을 가리키지 않아 업체 문의·리뷰 등 User FK를 참조하는 모든
+// 액션이 500으로 깨졌다(발견: 프런트의 "[빠른 데모 테스트용 선택]" 버튼이 이 API를 실제로는 호출
+// 안 하고 있어서 화면에서는 안 보였을 뿐, API를 직접 두드리면 항상 재현됨). 이제 실제 소셜
+// 로그인(User.create)과 동일하게 User 행을 upsert해서 decoded.id가 항상 유효한 FK를 가리키게 한다.
+export const demoLogin = async (req: Request, res: Response) => {
   const { provider } = req.body; // 'KAKAO' | 'NAVER' | 'GOOGLE' | 'ADMIN'
 
   // ADMIN 데모 로그인은 개발용 뒷문이다 — 실서비스에서 살아있으면 누구나 role=ADMIN 토큰을
@@ -385,25 +390,37 @@ export const demoLogin = (req: Request, res: Response) => {
   const name = demoNames[provider] || '테스트 회원';
   const email = `demo_${(provider || 'user').toLowerCase()}@eobom.co.kr`;
 
-  const user = {
-    id: `demo_${Date.now()}`,
-    name,
-    email,
-    provider: provider || 'DEMO',
-  };
+  // ADMIN 데모는 B2C User와 무관한 순수 토큰 데모다 — Admin은 별도 모델(§6.4)이라 User 행을
+  // 만들어도 실제 관리자 권한과는 상관없고, 어차피 /admin 라우트는 이 토큰을 받지 않는다.
+  if (provider === 'ADMIN') {
+    const user = { id: `demo_admin_${Date.now()}`, name, email, provider };
+    const token = generateToken(user);
+    return res.json({ status: 'success', token, user });
+  }
 
-  const token = generateToken(user);
+  try {
+    const dbUser = await prisma.user.upsert({
+      where: { email },
+      update: { name },
+      create: { email, name },
+    });
 
-  return res.json({
-    status: 'success',
-    token,
-    user: {
-      id: user.id,
-      name: user.name,
-      email: user.email,
-      provider: user.provider,
-    },
-  });
+    const token = generateToken({ id: dbUser.id, name: dbUser.name, email: dbUser.email ?? undefined, provider: provider || 'DEMO' });
+
+    return res.json({
+      status: 'success',
+      token,
+      user: {
+        id: dbUser.id,
+        name: dbUser.name,
+        email: dbUser.email,
+        provider: provider || 'DEMO',
+      },
+    });
+  } catch (error) {
+    console.error('데모 로그인 처리 실패:', error);
+    return res.status(500).json({ status: 'error', message: '데모 로그인 처리 중 오류가 발생했습니다.' });
+  }
 };
 
 // 현재 로그인 정보 검증 + 연동된 소셜 계정 목록 반환 (`GET /api/auth/me`)

@@ -110,7 +110,7 @@ export const HomePage: React.FC<HomePageProps> = ({ setActiveTab }) => {
   };
 
   return (
-    <div style={{ position: 'relative', width: '100%', height: 'calc(100vh - 72px)', overflow: 'hidden', backgroundColor: '#FBF9F5' }}>
+    <div className="fullpage-viewport" style={{ position: 'relative', width: '100%', overflow: 'hidden', backgroundColor: '#FBF9F5' }}>
       {/* 우측 풀페이지 스크롤 네비게이션 인디케이터 (7개 섹션 점) */}
       <div
         style={{
@@ -165,9 +165,9 @@ export const HomePage: React.FC<HomePageProps> = ({ setActiveTab }) => {
         {/* [섹션 0] 메인 히어로 (따뜻한 베이지 배경 #FBF9F5) */}
         {/* ========================================================= */}
         <section
+          className="fullpage-section"
           style={{
             width: '100%',
-            height: 'calc(100vh - 72px)',
             scrollSnapAlign: 'start',
             display: 'flex',
             alignItems: 'center',
@@ -271,9 +271,9 @@ export const HomePage: React.FC<HomePageProps> = ({ setActiveTab }) => {
         {/* [섹션 1] 장례 · 묘지 매칭 (집 & 나뭇잎) */}
         {/* ========================================================= */}
         <section
+          className="fullpage-section"
           style={{
             width: '100%',
-            height: 'calc(100vh - 72px)',
             scrollSnapAlign: 'start',
             display: 'flex',
             alignItems: 'center',
@@ -288,7 +288,7 @@ export const HomePage: React.FC<HomePageProps> = ({ setActiveTab }) => {
               <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', backgroundColor: '#FFFFFF', padding: '0.4rem 1rem', borderRadius: '20px', fontSize: '0.85rem', color: '#1A2B4C', fontWeight: 800, marginBottom: '1.2rem', boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}>
                 <HouseLeafIcon size={20} color="#1A2B4C" /> 01. 장례 · 묘지 매칭
               </div>
-              <h2 style={{ fontSize: '2.5rem', fontWeight: 800, color: '#1A2B4C', fontFamily: "'KoPub World Batang', serif", marginBottom: '1.2rem', lineHeight: 1.25 }}>
+              <h2 style={{ fontSize: 'clamp(1.7rem, 3.6vw, 2.5rem)', fontWeight: 800, color: '#1A2B4C', fontFamily: "'KoPub World Batang', serif", marginBottom: '1.2rem', lineHeight: 1.25 }}>
                 당신에게 가장 평온한<br />
                 <span style={{ color: '#5B7065' }}>안식처를 찾아드립니다</span>
               </h2>
@@ -324,9 +324,9 @@ export const HomePage: React.FC<HomePageProps> = ({ setActiveTab }) => {
         {/* [섹션 2] 상속 · 법률 케어 (손 & 저울) */}
         {/* ========================================================= */}
         <section
+          className="fullpage-section"
           style={{
             width: '100%',
-            height: 'calc(100vh - 72px)',
             scrollSnapAlign: 'start',
             display: 'flex',
             alignItems: 'center',
@@ -341,7 +341,7 @@ export const HomePage: React.FC<HomePageProps> = ({ setActiveTab }) => {
               <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', backgroundColor: '#FEF3C7', padding: '0.4rem 1rem', borderRadius: '20px', fontSize: '0.85rem', color: 'var(--accent-gold)', fontWeight: 800, marginBottom: '1.2rem' }}>
                 <HandScalesIcon size={20} color="var(--accent-gold)" /> 02. 상속 · 법률 케어
               </div>
-              <h2 style={{ fontSize: '2.5rem', fontWeight: 800, color: '#1A2B4C', fontFamily: "'KoPub World Batang', serif", marginBottom: '1.2rem', lineHeight: 1.25 }}>
+              <h2 style={{ fontSize: 'clamp(1.7rem, 3.6vw, 2.5rem)', fontWeight: 800, color: '#1A2B4C', fontFamily: "'KoPub World Batang', serif", marginBottom: '1.2rem', lineHeight: 1.25 }}>
                 복잡하고 막막한 상속세<br />
                 <span style={{ color: 'var(--accent-gold)' }}>전문가가 1:1 케어합니다</span>
               </h2>
@@ -377,9 +377,9 @@ export const HomePage: React.FC<HomePageProps> = ({ setActiveTab }) => {
         {/* [섹션 3] 디지털 유품 정리 (스마트폰 & 하트) */}
         {/* ========================================================= */}
         <section
+          className="fullpage-section"
           style={{
             width: '100%',
-            height: 'calc(100vh - 72px)',
             scrollSnapAlign: 'start',
             display: 'flex',
             alignItems: 'center',
@@ -394,7 +394,7 @@ export const HomePage: React.FC<HomePageProps> = ({ setActiveTab }) => {
               <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', backgroundColor: '#FFFFFF', padding: '0.4rem 1rem', borderRadius: '20px', fontSize: '0.85rem', color: '#D4A359', fontWeight: 800, marginBottom: '1.2rem', boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}>
                 <PhoneHeartIcon size={20} color="#D4A359" /> 03. 디지털 유품 정리
               </div>
-              <h2 style={{ fontSize: '2.5rem', fontWeight: 800, color: '#1A2B4C', fontFamily: "'KoPub World Batang', serif", marginBottom: '1.2rem', lineHeight: 1.25 }}>
+              <h2 style={{ fontSize: 'clamp(1.7rem, 3.6vw, 2.5rem)', fontWeight: 800, color: '#1A2B4C', fontFamily: "'KoPub World Batang', serif", marginBottom: '1.2rem', lineHeight: 1.25 }}>
                 소중한 디지털 흔적에<br />
                 <span style={{ color: '#D4A359' }}>안전한 마침표를 찍습니다</span>
               </h2>
@@ -430,9 +430,9 @@ export const HomePage: React.FC<HomePageProps> = ({ setActiveTab }) => {
         {/* [섹션 4] 상중 · 행정 케어 (체크리스트 & 쉴드) */}
         {/* ========================================================= */}
         <section
+          className="fullpage-section"
           style={{
             width: '100%',
-            height: 'calc(100vh - 72px)',
             scrollSnapAlign: 'start',
             display: 'flex',
             alignItems: 'center',
@@ -447,7 +447,7 @@ export const HomePage: React.FC<HomePageProps> = ({ setActiveTab }) => {
               <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', backgroundColor: '#DEF7EC', padding: '0.4rem 1rem', borderRadius: '20px', fontSize: '0.85rem', color: '#03543F', fontWeight: 800, marginBottom: '1.2rem' }}>
                 <ChecklistShieldIcon size={20} color="#03543F" /> 04. 상중 · 행정 케어
               </div>
-              <h2 style={{ fontSize: '2.5rem', fontWeight: 800, color: '#1A2B4C', fontFamily: "'KoPub World Batang', serif", marginBottom: '1.2rem', lineHeight: 1.25 }}>
+              <h2 style={{ fontSize: 'clamp(1.7rem, 3.6vw, 2.5rem)', fontWeight: 800, color: '#1A2B4C', fontFamily: "'KoPub World Batang', serif", marginBottom: '1.2rem', lineHeight: 1.25 }}>
                 갑작스러운 이별 앞에서도<br />
                 <span style={{ color: '#5B7065' }}>24시간 든든하게 지켜드립니다</span>
               </h2>
@@ -483,9 +483,9 @@ export const HomePage: React.FC<HomePageProps> = ({ setActiveTab }) => {
         {/* [섹션 5] 디지털 엔딩노트 (노트 & 열쇠) */}
         {/* ========================================================= */}
         <section
+          className="fullpage-section"
           style={{
             width: '100%',
-            height: 'calc(100vh - 72px)',
             scrollSnapAlign: 'start',
             display: 'flex',
             alignItems: 'center',
@@ -500,7 +500,7 @@ export const HomePage: React.FC<HomePageProps> = ({ setActiveTab }) => {
               <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', backgroundColor: '#FFFFFF', padding: '0.4rem 1rem', borderRadius: '20px', fontSize: '0.85rem', color: '#1A2B4C', fontWeight: 800, marginBottom: '1.2rem', boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}>
                 <NoteKeyIcon size={20} color="#1A2B4C" /> 05. 디지털 엔딩노트
               </div>
-              <h2 style={{ fontSize: '2.5rem', fontWeight: 800, color: '#1A2B4C', fontFamily: "'KoPub World Batang', serif", marginBottom: '1.2rem', lineHeight: 1.25 }}>
+              <h2 style={{ fontSize: 'clamp(1.7rem, 3.6vw, 2.5rem)', fontWeight: 800, color: '#1A2B4C', fontFamily: "'KoPub World Batang', serif", marginBottom: '1.2rem', lineHeight: 1.25 }}>
                 사랑하는 이들에게 남기는<br />
                 <span style={{ color: '#5B7065' }}>256-bit 비밀 메시지</span>
               </h2>
@@ -536,9 +536,9 @@ export const HomePage: React.FC<HomePageProps> = ({ setActiveTab }) => {
         {/* [섹션 6] 에필로그 & 푸터 (다른 섹션과 같은 베이지 톤, Footer Snap Section) */}
         {/* ========================================================= */}
         <section
+          className="fullpage-section"
           style={{
             width: '100%',
-            height: 'calc(100vh - 72px)',
             scrollSnapAlign: 'start',
             display: 'flex',
             flexDirection: 'column',

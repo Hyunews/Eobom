@@ -87,13 +87,11 @@ async function main() {
         lng: Number(doc.x),
         phone: doc.phone || null,
         price: '가격 정보 준비중',
-        priceValue: 0,
         rating: 0,
         religion: '전체 종교',
         guests: '전체 규모',
         tags: [],
         amenities: [],
-        detailedPrices: undefined,
       },
     });
     if (existing) updated++;

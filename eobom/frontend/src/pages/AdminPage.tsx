@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { ShieldCheck, Lock, Mail, CheckCircle2, XCircle, Pencil, Save, X } from 'lucide-react';
+import { ShieldCheck, Lock, Mail, CheckCircle2, XCircle, Pencil, Save, X, Search } from 'lucide-react';
 import { BACKEND_URL, formatPhoneForDisplay } from '../config';
+import { AddressSearchModal } from '../components/AddressSearchModal';
 
 // 운영자 전용 — 사업자(Partner)·전문가(Expert) 가입 심사 + 시설 클레임(연동) 심사.
 // docs/01-05 §6.2, docs/02-02. 계정은 seed-admin.ts로만 생성되므로 여기엔 가입 폼이 없다.
@@ -11,7 +12,7 @@ type QueueTab = 'PARTNERS' | 'EXPERTS' | 'CLAIMS' | 'FACILITIES';
 const TAB_LABELS: Record<QueueTab, string> = {
   PARTNERS: '사업자 가입',
   EXPERTS: '전문가 가입',
-  CLAIMS: '시설 연동(클레임)',
+  CLAIMS: '시설 연동',
   FACILITIES: '전체 시설',
 };
 
@@ -55,9 +56,10 @@ export const AdminPage: React.FC = () => {
 
   // 사업자 담당자명/연락처, 전문가 연락처/소개 인라인 수정 상태 (검증된 신원 필드는 대상 아님)
   const [editingPartnerId, setEditingPartnerId] = useState<string | null>(null);
-  const [partnerEditForm, setPartnerEditForm] = useState({ contactName: '', contactPhone: '' });
+  const [partnerEditForm, setPartnerEditForm] = useState({ ownerName: '', contactName: '', contactPhone: '' });
   const [editingExpertId, setEditingExpertId] = useState<string | null>(null);
   const [expertEditForm, setExpertEditForm] = useState({ contactPhone: '', officeAddress: '', bio: '' });
+  const [showAddressSearch, setShowAddressSearch] = useState(false);
 
   const authHeaders = { Authorization: `Bearer ${token}` };
 
@@ -204,7 +206,7 @@ export const AdminPage: React.FC = () => {
 
   const startEditPartner = (p: any) => {
     setEditingPartnerId(p.id);
-    setPartnerEditForm({ contactName: p.contactName || '', contactPhone: p.contactPhone || '' });
+    setPartnerEditForm({ ownerName: p.ownerName || '', contactName: p.contactName || '', contactPhone: p.contactPhone || '' });
   };
 
   const saveEditPartner = async (id: string) => {
@@ -381,6 +383,13 @@ export const AdminPage: React.FC = () => {
                     </div>
                     <div style={{ display: 'flex', gap: '0.6rem', flexWrap: 'wrap' }}>
                       <input
+                        value={partnerEditForm.ownerName}
+                        onChange={(e) => setPartnerEditForm((f) => ({ ...f, ownerName: e.target.value }))}
+                        placeholder="대표자명"
+                        className="form-select"
+                        style={{ ...SMALL_INPUT, flex: 1, minWidth: '140px' }}
+                      />
+                      <input
                         value={partnerEditForm.contactName}
                         onChange={(e) => setPartnerEditForm((f) => ({ ...f, contactName: e.target.value }))}
                         placeholder="담당자명"
@@ -451,13 +460,23 @@ export const AdminPage: React.FC = () => {
                       className="form-select"
                       style={SMALL_INPUT}
                     />
-                    <input
-                      value={expertEditForm.officeAddress}
-                      onChange={(e) => setExpertEditForm((f) => ({ ...f, officeAddress: e.target.value }))}
-                      placeholder="사무실 주소"
-                      className="form-select"
-                      style={SMALL_INPUT}
-                    />
+                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                      <input
+                        value={expertEditForm.officeAddress}
+                        onChange={(e) => setExpertEditForm((f) => ({ ...f, officeAddress: e.target.value }))}
+                        placeholder="사무실 주소"
+                        className="form-select"
+                        style={{ ...SMALL_INPUT, flex: 1 }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowAddressSearch(true)}
+                        className="btn"
+                        style={{ ...SMALL_BTN, backgroundColor: 'var(--secondary-color)', color: 'var(--primary-color)', display: 'flex', alignItems: 'center', gap: '0.3rem', whiteSpace: 'nowrap' }}
+                      >
+                        <Search size={14} /> 검색
+                      </button>
+                    </div>
                     <textarea
                       value={expertEditForm.bio}
                       onChange={(e) => setExpertEditForm((f) => ({ ...f, bio: e.target.value }))}
@@ -580,6 +599,13 @@ export const AdminPage: React.FC = () => {
             </>
           ))}
       </div>
+
+      {showAddressSearch && (
+        <AddressSearchModal
+          onSelect={(address) => setExpertEditForm((f) => ({ ...f, officeAddress: address }))}
+          onClose={() => setShowAddressSearch(false)}
+        />
+      )}
     </div>
   );
 };

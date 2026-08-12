@@ -1,10 +1,16 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { X, Send, ShieldCheck } from 'lucide-react';
 import { BACKEND_URL } from '../../config';
 
 // 업체 문의 — 전화번호 노출 대신 이 폼을 통해서만 시설에 문의한다(docs 01-05 §9: 전화 문의는
 // 수수료 청구 근거로 증명 불가, 견적요청 폼으로 유도). 기존 POST /api/facilities/:id/quotes
 // (Lead type=QUOTE)에 그대로 연결 — leadNo가 사용자가 말한 "라벨링"에 해당한다.
+
+// 매번 이름·연락처를 다시 치는 불편을 줄이기 위한 자동입력(2026-08-12 대표 지시) — 수정은 항상 가능.
+// User 모델엔 연락처 필드가 없어(소셜 로그인 전제라 수집 안 함) 계정에서 끌어올 수 없다 — 대신
+// 이 브라우저에서 마지막으로 문의할 때 쓴 값을 localStorage에 남겨 다음 문의에 그대로 채운다.
+// 이름은 로그인 상태면 계정 이름(/api/auth/me, provider 접미사 없는 원본)이 로컬 저장값보다 우선한다.
+const LAST_APPLICANT_KEY = 'eobom_last_applicant';
 
 interface InquiryModalProps {
   facilityId: string;
@@ -18,6 +24,27 @@ export const InquiryModal: React.FC<InquiryModalProps> = ({ facilityId, facility
   const [message, setMessage] = useState('');
   const [thirdPartyConsent, setThirdPartyConsent] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem(LAST_APPLICANT_KEY) || '{}');
+      if (saved.name) setApplicantName(saved.name);
+      if (saved.phone) setApplicantPhone(saved.phone);
+    } catch {
+      // 저장된 값이 손상됐으면 그냥 빈 값으로 시작 — 자동입력은 편의 기능일 뿐 필수 아님
+    }
+
+    const token = localStorage.getItem('k_ending_token');
+    if (!token) return;
+    fetch(`${BACKEND_URL}/api/auth/me`, { headers: { Authorization: `Bearer ${token}` } })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.status === 'success' && data.user?.name) setApplicantName(data.user.name);
+      })
+      .catch(() => {
+        // 계정 이름 조회 실패해도 로컬 저장값(또는 빈 값)으로 계속 진행 — 문의 자체를 막지 않는다
+      });
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -47,6 +74,7 @@ export const InquiryModal: React.FC<InquiryModalProps> = ({ facilityId, facility
         alert(data.message || '문의 접수에 실패했습니다.');
         return;
       }
+      localStorage.setItem(LAST_APPLICANT_KEY, JSON.stringify({ name: applicantName, phone: applicantPhone }));
       alert(`✅ [${facilityName}]에 문의가 접수되었습니다.\n\n접수번호: ${data.data.leadNo}\n(문의 시 이 번호를 말씀해주시면 빠르게 확인 가능합니다)`);
       onClose();
     } catch {
