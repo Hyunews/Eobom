@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>☁️ 00-11. 백엔드 · DB 배포 및 인프라 전략 결정서 - 이어봄 기획 명세서</title>
+  <style>
+    :root {
+      --primary: #1A2B4C;
+      --secondary: #5B7065;
+      --accent: #D4A359;
+      --bg: #FBF9F5;
+      --surface: #FFFFFF;
+      --text: #1E293B;
+      --text-muted: #64748B;
+      --border: #E2E8F0;
+      --code-bg: #0F172A;
+      --code-text: #F8FAFC;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.65;
+      padding: 2rem 1rem;
+    }
+    .container {
+      max-width: 1140px;
+      margin: 0 auto;
+      background-color: var(--surface);
+      padding: 3rem;
+      border-radius: 24px;
+      box-shadow: 0 20px 40px rgba(26, 43, 76, 0.08);
+      border: 1px solid var(--border);
+    }
+    .header {
+      border-bottom: 3px solid var(--accent);
+      padding-bottom: 1.5rem;
+      margin-bottom: 2.5rem;
+    }
+    .badge {
+      display: inline-block;
+      background-color: var(--primary);
+      color: #FFF;
+      font-size: 0.85rem;
+      font-weight: 700;
+      padding: 0.3rem 0.8rem;
+      border-radius: 20px;
+      margin-bottom: 0.8rem;
+    }
+    h1 {
+      font-size: 2.1rem;
+      color: var(--primary);
+      margin-bottom: 0.5rem;
+      font-weight: 800;
+    }
+    .subtitle {
+      color: var(--text-muted);
+      font-size: 1.05rem;
+    }
+    .section-title {
+      font-size: 1.5rem;
+      color: var(--primary);
+      margin: 2.5rem 0 1.2rem 0;
+      padding-left: 0.8rem;
+      border-left: 5px solid var(--secondary);
+      font-weight: 700;
+    }
+    .subsection-title {
+      font-size: 1.25rem;
+      color: var(--primary);
+      margin: 1.8rem 0 0.8rem 0;
+      font-weight: 700;
+    }
+    .h4-title {
+      font-size: 1.05rem;
+      color: var(--secondary);
+      margin: 1.2rem 0 0.6rem 0;
+      font-weight: 700;
+    }
+    .info-quote {
+      background: #F1F5F9;
+      border-left: 4px solid var(--accent);
+      padding: 0.9rem 1.2rem;
+      margin: 1rem 0;
+      border-radius: 6px;
+      font-size: 0.95rem;
+      color: #334155;
+    }
+    code {
+      background: #EFF6FF;
+      color: #1D4ED8;
+      padding: 0.15rem 0.4rem;
+      border-radius: 6px;
+      font-family: 'Fira Code', Consolas, monospace;
+      font-size: 0.88rem;
+    }
+    pre {
+      background: var(--code-bg);
+      color: var(--code-text);
+      padding: 1.2rem;
+      border-radius: 12px;
+      overflow-x: auto;
+      margin: 1rem 0 1.5rem 0;
+      font-family: 'Fira Code', Consolas, monospace;
+      font-size: 0.9rem;
+    }
+    pre code {
+      background: transparent;
+      color: inherit;
+      padding: 0;
+    }
+    .table-container {
+      overflow-x: auto;
+      margin: 1.2rem 0 1.8rem 0;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.92rem;
+      background: #FFFFFF;
+    }
+    th {
+      background-color: var(--primary);
+      color: #FFFFFF;
+      padding: 0.8rem 1rem;
+      text-align: left;
+      font-weight: 600;
+    }
+    td {
+      padding: 0.8rem 1rem;
+      border-bottom: 1px solid var(--border);
+      color: #334155;
+    }
+    tr:last-child td {
+      border-bottom: none;
+    }
+    tr:nth-child(even) {
+      background-color: #F8FAFC;
+    }
+    .tag {
+      display: inline-block;
+      padding: 0.15rem 0.45rem;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 700;
+    }
+    .tag.green { background-color: #DCFCE7; color: #166534; }
+    .tag.gray { background-color: #F1F5F9; color: #475569; }
+    .tag.orange { background-color: #FFEDD5; color: #9A3412; }
+    .tag.pk { background-color: #FEE2E2; color: #991B1B; }
+    .tag.fk { background-color: #DBEAFE; color: #1E40AF; }
+    .tag.uk { background-color: #DCFCE7; color: #166534; }
+    p { margin-bottom: 0.9rem; color: #334155; }
+    ul, ol { margin-bottom: 1rem; padding-left: 1.4rem; color: #334155; }
+    li { margin-bottom: 0.4rem; }
+    .divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 2.5rem 0;
+    }
+    .nav-bar {
+      margin-bottom: 2rem;
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+    }
+    .nav-link {
+      color: var(--primary);
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+    .nav-link:hover {
+      color: var(--accent);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="nav-bar">
+      <a href="../index.html" class="nav-link">← 보고서 메인 포털로 돌아가기</a>
+    </div>
+    <div class="header">
+      <span class="badge">SSOT 정본 동기화 완료</span>
+      <h1>☁️ 00-11. 백엔드 · DB 배포 및 인프라 전략 결정서</h1>
+      
+    </div>
+    <h1>☁️ 00-11. 백엔드 · DB 배포 및 인프라 전략 결정서</h1>
+<blockquote class="info-quote"><strong>문서 성격</strong>: 확정 스펙(권고 + 대표 확정 대기). <code>[Claude:Opus]</code> 작성(2026-08-12).</blockquote>
+<blockquote class="info-quote">대표 문제제기: *&quot;클라우드로 던질지, 회사 내부 서버를 두고 관리할지 — 초기에 막연히 클라우드로 넘어갔다.&quot;*</blockquote>
+<blockquote class="info-quote"><strong>선행 상태</strong>: <code>00-03</code>은 토폴로지만 정의하고 <strong>배포 위치를 정한 적이 없습니다.</strong> 이 문서가 그 공백을 메웁니다.</blockquote>
+<blockquote class="info-quote"><strong>관련</strong>: <code>systems.md</code> §5(현 배포 상태) · <code>security.md</code> §6(데이터 유실 사고) · <code>03-02</code> §4.6(추모 사진 저장소)</blockquote>
+<hr class="divider"/>
+<h2 class="section-title">📌 1. 이 문서가 푸는 문제</h2>
+<p>지금까지 인프라는 <strong>결정된 적이 없고 흘러왔습니다.</strong> 프론트는 Vercel에 올라가 있고, 백엔드는</p>
+<p><code>render.yaml</code>만 작성된 채 미배포이며, DB는 대표 PC의 Docker 컨테이너입니다. <code>00-03</code> 아키텍처</p>
+<p>문서에도 <code>(Vercel Host)</code> 한 줄 외에 배포 위치에 대한 언급이 없습니다.</p>
+<p>목업 단계에서는 문제가 없었지만, <strong>실서비스 데이터가 한 번 들어가면 이전 비용이 급격히 오릅니다.</strong></p>
+<p>지금이 정할 시점입니다.</p>
+<hr class="divider"/>
+<h2 class="section-title">🧭 2. 질문을 다시 세운다</h2>
+<h3 class="subsection-title">2.1 &quot;클라우드 vs 내부 서버&quot;는 정확한 질문이 아니다</h3>
+<p>진짜 질문은 <strong>&quot;누가 24시간 365일 보안·패치·백업·복구를 책임지는가&quot;</strong> 입니다.</p>
+<p>내부 서버를 두면 데이터를 물리적으로 손에 쥐는 대신 아래를 <strong>전부 우리가</strong> 떠안습니다.</p>
+<div class="table-container"><table><thead><tr><th>항목</th><th>내용</th></tr></thead><tbody><tr><td>물리 보안</td><td>서버실 출입통제, 도난·화재 대비</td></tr><tr><td>네트워크</td><td>방화벽, 포트 노출 관리, DDoS, VPN</td></tr><tr><td>패치</td><td>OS·PostgreSQL·Node 보안 패치 상시 추적</td></tr><tr><td>백업</td><td>자동 백업 + **복구 리허설**(백업은 복구해봐야 백업이다)</td></tr><tr><td>가용성</td><td>정전·회선 장애·하드웨어 고장 시 복구, UPS</td></tr><tr><td>감사</td><td>접근 로그 보존, 침입 탐지</td></tr></tbody></table></div>
+<p><strong>&quot;우리 서버라서 더 안전하다&quot;는 직관은 소규모 팀에서 대체로 거꾸로입니다.</strong> 위 항목을 상시 수행할</p>
+<p>사람이 없으면, 관리형 클라우드보다 <strong>덜</strong> 안전해집니다.</p>
+<h3 class="subsection-title">2.2 결정은 하나가 아니라 넷이다</h3>
+<p>네 가지는 <strong>따로 정할 수 있습니다.</strong> 묶어서 생각하면 판단이 흐려집니다.</p>
+<div class="table-container"><table><thead><tr><th>#</th><th>대상</th><th>현재</th><th>민감도</th></tr></thead><tbody><tr><td>1</td><td>프론트엔드(정적)</td><td>Vercel</td><td>낮음</td></tr><tr><td>2</td><td>백엔드 API 서버</td><td>미배포</td><td>중</td></tr><tr><td>3</td><td>**데이터베이스**</td><td>대표 PC Docker</td><td>**최상**</td></tr><tr><td>4</td><td>**파일 스토리지**(사진·서류)</td><td>백엔드 로컬 디스크</td><td>**높음**</td></tr></tbody></table></div>
+<p><strong>3·4가 이 결정의 본체</strong>입니다. 1은 이미 해결됐고 2는 상대적으로 교체가 쉽습니다.</p>
+<hr class="divider"/>
+<h2 class="section-title">⚖️ 3. 이 프로젝트 특유의 판단 근거</h2>
+<h3 class="subsection-title">3.1 데이터 민감도가 일반 웹서비스가 아니다</h3>
+<p>이어봄이 담는 것: <strong>사망 사실·가족관계·상속 상담 내용(재산 정보)·사업자등록증·자격증 사본·정산 계좌</strong>,</p>
+<p>그리고 Domain 05의 <strong>유언·엔딩노트</strong>.</p>
+<p>특히 05는 화면에서 이미 *&quot;생전에는 철저히 비밀이 보장되며, 사후 이중 동의 시에만 복호화&quot;* 라고</p>
+<p><strong>사용자에게 명시적으로 약속</strong>했습니다(→ <code>05-01</code> §1). 이 약속을 지탱하지 못하는 인프라는 선택지가 아닙니다.</p>
+<p>유출 사고 시 파장이 &quot;죄송합니다&quot;로 끝나지 않는 데이터입니다.</p>
+<h3 class="subsection-title">3.2 우리는 이미 백업 없이 데이터를 한 번 잃었다</h3>
+<p><code>security.md</code> §6에 기록된 사실입니다 — **2026-08-05 마이그레이션 실수로 <code>User</code>/<code>SocialAccount</code> 유실,</p>
+<p>백업 없음.** 로컬 개발이라 재로그인으로 수습됐습니다.</p>
+<p>이것을 실패로 볼 게 아니라 <strong>데이터로 봐야 합니다.</strong> 현재 팀의 백업 운영 성숙도를 보여주는 실측치이고,</p>
+<p>내부 서버 운영은 <strong>이 사고 유형을 그대로 프로덕션으로 옮기는 선택</strong>입니다.</p>
+<p>반면 관리형 DB는 자동 백업·시점 복구(PITR)가 기본 제공이라 이 실수를 흡수합니다.</p>
+<h3 class="subsection-title">3.3 팀 여건 (2026-08-12 대표 확인)</h3>
+<ul><li><strong>사내 서버: 있음</strong></li></ul>
+<ul><li><strong>전담 인프라/보안 인력: 없음</strong></li></ul>
+<ul><li><strong>온프레미스를 강제하는 외부 요구(제휴사·공공기관·경영진 방침): 없음</strong></li></ul>
+<p><strong>&quot;장비는 있는데 운영할 사람이 없다&quot;</strong> — 이것이 온프레미스에서 가장 위험한 조합입니다. §4.2에서 따로 다룹니다.</p>
+<hr class="divider"/>
+<h2 class="section-title">🔍 4. 선택지 비교</h2>
+<div class="table-container"><table><thead><tr><th></th><th>A. 온프레미스(사내 서버)</th><th>**B. 관리형 클라우드(국내 리전)**</th><th>C. 무료 PaaS(현 `render.yaml`)</th></tr></thead><tbody><tr><td>백업·복구</td><td>**직접 구축·리허설**</td><td>자동 백업 + 시점 복구 기본</td><td>**무료 티어는 백업 없음**</td></tr><tr><td>패치·보안</td><td>전부 자체</td><td>DB·OS는 제공사 책임</td><td>제공사</td></tr><tr><td>초기 비용</td><td>장비 보유로 낮아 보임</td><td>낮음(종량)</td><td>0</td></tr><tr><td>운영 부담</td><td>**매우 높음**</td><td>낮음</td><td>낮음</td></tr><tr><td>확장</td><td>장비 증설 필요</td><td>즉시</td><td>제한적</td></tr><tr><td>데이터 위치</td><td>완전 통제</td><td>리전 선택으로 국내 고정</td><td>**국외일 가능성**</td></tr><tr><td>장애 시</td><td>우리가 밤에 일어남</td><td>대체로 제공사가 처리</td><td>슬립·불안정</td></tr><tr><td>적합 시점</td><td>전담 인력 확보 후</td><td>**지금**</td><td>목업·스테이징 한정</td></tr></tbody></table></div>
+<h3 class="subsection-title">4.1 C(무료 PaaS)는 프로덕션 후보가 아니다</h3>
+<p>현재 <code>render.yaml</code>의 <code>plan: free</code> Postgres는 <strong>백업이 없고 수명 제한이 있습니다.</strong> §3.1 데이터를</p>
+<p>담을 곳이 아닙니다. 목업·스테이징 용도로만 유효합니다.</p>
+<p>(무료 Postgres 만료 시한은 아직 DB가 생성되지 않아 실제로 돌고 있지 않습니다 → <code>systems.md</code> §5.)</p>
+<h3 class="subsection-title">4.2 &quot;이미 서버가 있는데 왜 안 쓰나&quot; — 정면으로 답한다</h3>
+<p><strong>장비가 이미 있다는 사실은 이 결정에서 거의 무관합니다.</strong> 장비값은 이미 지출된 매몰비용이고,</p>
+<p>앞으로 드는 비용은 <strong>운영 인건비와 사고 리스크</strong>인데 그건 장비 유무와 무관하게 새로 발생합니다.</p>
+<p>&quot;서버가 놀고 있으니 쓰자&quot;로 시작해 → 패치가 밀리고 → 백업 복구를 한 번도 테스트하지 않은 채</p>
+<p>운영되다가 → 사고가 나는 것이 전형적인 경로입니다. <strong>§3.2가 이미 그 경로의 첫 구간을 보여줬습니다.</strong></p>
+<p>다만 그 서버를 <strong>버리라는 뜻은 아닙니다.</strong> 올바른 용도가 있습니다 → §6.</p>
+<hr class="divider"/>
+<h2 class="section-title">✅ 5. 권고</h2>
+<blockquote class="info-quote"><strong>관리형 클라우드(국내 리전)를 프로덕션으로 채택하고, 온프레미스는 채택하지 않습니다.</strong></blockquote>
+<blockquote class="info-quote">단, 전담 인프라 인력을 확보하면 재검토합니다.</blockquote>
+<h3 class="subsection-title">5.1 구성 권고</h3>
+<div class="table-container"><table><thead><tr><th>대상</th><th>권고</th></tr></thead><tbody><tr><td>프론트엔드</td><td>**Vercel 유지** (정적 자산, 민감도 낮음)</td></tr><tr><td>백엔드 API</td><td>관리형 컨테이너/앱 서비스 — **국내 리전**</td></tr><tr><td>**DB**</td><td>**관리형 PostgreSQL — 자동 백업 + 시점 복구 필수, 국내 리전**</td></tr><tr><td>**파일 스토리지**</td><td>**S3 호환 오브젝트 스토리지** — 로컬 디스크 금지</td></tr><tr><td>백업</td><td>관리형 자동 백업 + **분기 1회 복구 리허설**(§7.3)</td></tr></tbody></table></div>
+<h3 class="subsection-title">5.2 국내 리전을 권고하는 이유</h3>
+<p>개인정보보호법은 온프레미스를 요구하지 않으며 <strong>클라우드는 합법이고 일반적</strong>입니다. 다만</p>
+<p><strong>개인정보의 국외 이전에는 별도 고지·동의 등 추가 의무가 따릅니다.</strong> 국내 리전을 쓰면 이 논점을</p>
+<p>아예 만들지 않습니다. §3.1 데이터 성격상 불필요한 논점은 만들지 않는 편이 낫습니다.</p>
+<blockquote class="info-quote">⚠️ <strong>확인 필요</strong>: 위 법령 해석과 ISMS-P 인증 의무 대상 여부(매출·이용자 수 기준), 공공기관 연계 시</blockquote>
+<blockquote class="info-quote">CSAP 필요 여부는 <strong>실서비스 오픈 전 전문가 확인</strong>을 권합니다. 이 문서는 법률 자문이 아닙니다.</blockquote>
+<h3 class="subsection-title">5.3 후보 사업자 (최종 선택은 대표 확정 사항)</h3>
+<div class="table-container"><table><thead><tr><th>후보</th><th>특징</th></tr></thead><tbody><tr><td>**네이버 클라우드(NCP)**</td><td>국내 사업자, 한국어 지원·문서, 공공 연계 시 유리</td></tr><tr><td>**AWS 서울 리전**</td><td>생태계·자료 최다, RDS 자동 백업·PITR 성숙, 인력 수급 용이</td></tr><tr><td>기타 국내 CSP</td><td>요건 비교 후 검토</td></tr></tbody></table></div>
+<p><strong>어느 쪽이든 §5.1의 요건(관리형 DB·자동 백업·국내 리전·오브젝트 스토리지)을 만족하면 됩니다.</strong></p>
+<p>사업자 선택보다 <strong>요건 충족 여부가 본질</strong>입니다.</p>
+<hr class="divider"/>
+<h2 class="section-title">🖥️ 6. 사내 서버의 올바른 용도</h2>
+<p>프로덕션 DB를 올리지 않을 뿐, 놀릴 필요는 없습니다.</p>
+<p>1. <strong>개발·스테이징 환경</strong> — 실데이터 없이 배포 리허설. 지금 대표 PC Docker가 하던 역할을 승계.</p>
+<p>2. <strong>백업 보관 사본</strong> — 클라우드 자동 백업과 별개로 주기적 사본을 사내에 보관(3-2-1 백업 원칙).</p>
+<p>   <strong>단, 개인정보가 포함된 백업은 암호화 저장하고 접근을 통제해야 합니다.</strong></p>
+<p>3. <strong>내부 도구</strong> — 사내 대시보드, 배치 작업 등 개인정보를 다루지 않는 워크로드.</p>
+<p><strong>금지</strong>: 프로덕션 DB, 유족·고인 개인정보 원본, 엔딩노트 암호화 데이터.</p>
+<hr class="divider"/>
+<h2 class="section-title">🚧 7. 이행 계획</h2>
+<h3 class="subsection-title">7.1 단계</h3>
+<div class="table-container"><table><thead><tr><th>단계</th><th>내용</th><th>시점</th></tr></thead><tbody><tr><td>**0**</td><td>**지금**: 로컬 Docker 유지 (목업 개발)</td><td>현재</td></tr><tr><td>**1**</td><td>사업자·요건 확정(§5.1) → <code>pending-approvals</code> 해제</td><td>대표 결정</td></tr><tr><td>**2**</td><td>스테이징 구축 — 무료/저가 티어 또는 사내 서버, **실데이터 없이**</td><td>결정 직후</td></tr><tr><td>**3**</td><td>오브젝트 스토리지 전환 — **<code>03-02</code> 추모관 오픈의 선행 조건**</td><td>프로덕션 전</td></tr><tr><td>**4**</td><td>프로덕션 구축 — 관리형 DB, 국내 리전, 자동 백업 확인</td><td>오픈 전</td></tr><tr><td>**5**</td><td>OAuth 3사 콜백 URL 재등록, Vercel <code>VITE_BACKEND_URL</code> 갱신</td><td>4와 동시</td></tr></tbody></table></div>
+<h3 class="subsection-title">7.2 전환 시 반드시 지킬 것</h3>
+<p>1. <strong><code>.env</code> 시크릿을 클라우드 시크릿 관리로 이전</strong> — 코드·이미지에 굽지 말 것(→ <code>security.md</code> §1).</p>
+<p>2. <strong>DB는 공개 인터넷에 노출하지 말 것</strong> — 백엔드에서만 접근 가능한 사설 네트워크에 둘 것.</p>
+<p>3. <strong>오브젝트 스토리지 버킷을 공개로 두지 말 것</strong> — 사업자등록증·자격증 사본이 들어갑니다.</p>
+<p>   서명된 URL 방식으로 제공.</p>
+<p>4. <strong>마이그레이션 전 <code>pg_dump</code></strong> — <code>security.md</code> §6 규칙은 클라우드에서도 유지.</p>
+<p>5. <strong>위치정보(트랙 A) 제거 여부 재확인</strong> — 프로덕션 전환 시점 점검 항목(→ <code>security.md</code> §4).</p>
+<h3 class="subsection-title">7.3 백업은 복구해봐야 백업이다</h3>
+<p>자동 백업을 켜는 것으로 끝내지 말고 <strong>분기 1회 실제 복구 리허설</strong>을 수행하고 결과를 기록하십시오.</p>
+<p>§3.2 사고의 재발 방지는 &quot;백업 설정&quot;이 아니라 &quot;복구 확인&quot;에서 나옵니다.</p>
+<hr class="divider"/>
+<h2 class="section-title">❓ 8. 대표 확정 필요 항목</h2>
+<p>1. <strong>클라우드 사업자 선택</strong> — §5.3. 요건(§5.1) 충족이 우선, 브랜드는 그다음.</p>
+<p>2. <strong>예산 범위</strong> — 관리형 DB는 무료 티어보다 비용이 발생합니다. 실제 견적은 트래픽·저장 용량이</p>
+<p>   정해져야 산출 가능하므로, <strong>오픈 규모 가정</strong>을 먼저 주셔야 합니다.</p>
+<p>3. <strong>오픈 목표 시점</strong> — §7 단계의 역산 기준.</p>
+<p>4. <strong>전담 인프라 인력 채용 계획 유무</strong> — 있다면 온프레미스 재검토 여지가 생깁니다(§5 단서).</p>
+<p>5. <strong>법률·인증 확인</strong>(§5.2 ⚠️) — ISMS-P 대상 여부, 개인정보 국외이전 논점. 오픈 전 전문가 확인.</p>
+<hr class="divider"/>
+<h2 class="section-title">🔗 9. 관련 문서</h2>
+<div class="table-container"><table><thead><tr><th>문서</th><th>관계</th></tr></thead><tbody><tr><td><code>00-03</code></td><td>시스템 토폴로지 — 배포 위치는 이 문서가 정본</td></tr><tr><td><code>systems.md</code> §5</td><td>현재 배포 상태·Render 현황 (연동 상태 SSOT)</td></tr><tr><td><code>security.md</code> §1·§4·§6</td><td>시크릿 관리, 위치정보법, 데이터 유실 사고</td></tr><tr><td><code>03-02</code> §4.6</td><td>추모 사진 — **오브젝트 스토리지 전환이 오픈 선행 조건**</td></tr><tr><td><code>05-01</code></td><td>엔딩노트 비밀보장 약속 — 인프라가 지탱해야 할 요구</td></tr><tr><td><code>01-02</code></td><td>위치정보법 검토 — 프로덕션 전환 시 트랙 A 재확인</td></tr></tbody></table></div>
+
+  </div>
+</body>
+</html>

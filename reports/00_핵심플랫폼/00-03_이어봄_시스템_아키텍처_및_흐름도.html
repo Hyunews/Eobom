@@ -191,6 +191,11 @@
     </div>
     <h1>🏗️ 03. 시스템 아키텍처 및 흐름도 명세서</h1>
 <blockquote class="info-quote"><strong>문서 목적</strong>: 이어봄 (Eobom) 토탈 케어 플랫폼의 웹/앱 클라이언트, 백엔드 API 서버, 데이터베이스, OAuth 소셜 로그인 및 보안 Vault 통합 아키텍처를 정의합니다.</blockquote>
+<p>&gt;</p>
+<blockquote class="info-quote">⚠️ <strong>이 문서는 구성 요소만 정의하며 &quot;어디에 배포하는가&quot;는 다루지 않습니다.</strong></blockquote>
+<blockquote class="info-quote">배포 위치·인프라 전략(클라우드 vs 사내 서버, 관리형 DB, 오브젝트 스토리지)의 정본은</blockquote>
+<blockquote class="info-quote"><strong>[<code>00-11_백엔드_DB_배포_및_인프라_전략_결정서.md</code>](00-11_백엔드_DB_배포_및_인프라_전략_결정서.md)</strong> 입니다.</blockquote>
+<blockquote class="info-quote">아래 토폴로지의 포트(5000/5433)는 <strong>로컬 개발 기준</strong>이며 프로덕션 값이 아닙니다.</blockquote>
 <hr class="divider"/>
 <h2 class="section-title">📐 1. 시스템 토폴로지 (System Topology)</h2>
 <pre><code>[ Frontend: React 18 + Vite 5 + TypeScript ] (Vercel Host)

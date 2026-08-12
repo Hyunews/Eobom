@@ -9,18 +9,23 @@ generator client {
 
 // 유저 마스터 (B2C 일반 회원) — Partner/Expert/Admin과는 완전히 분리된 별도 인증 체계
 model User {
-  id               String            @id @default(uuid()) // 고유 식별자(UUID)
-  email            String?           @unique // 유저 대표 이메일 (유니크)
-  name             String // 유저 이름 / 닉네임
-  profileImage     String? // 대표 프로필 이미지 URL
-  role             String            @default("USER") // 'USER', 'EXPERT', 'ADMIN'
-  refreshToken     String? // JWT Refresh Token
-  accounts         SocialAccount[] // 연동된 소셜 계정 목록
-  facilityReviews  FacilityReview[] // 이 유저가 작성한 시설 리뷰 목록
-  leads            Lead[] // docs/01_.../01-05 — 이 유저가 남긴 문의/견적요청 리드
-  consultRequests  ConsultRequest[] // docs/02_.../02-03 — 이 유저가 남긴 전문가 상담 신청
-  createdAt        DateTime          @default(now()) // 가입 일시
-  updatedAt        DateTime          @updatedAt // 최종 수정 일시
+  id                  String               @id @default(uuid()) // 고유 식별자(UUID)
+  email               String?              @unique // 유저 대표 이메일 (유니크)
+  name                String // 유저 이름 / 닉네임
+  profileImage        String? // 대표 프로필 이미지 URL
+  role                String               @default("USER") // 'USER', 'EXPERT', 'ADMIN'
+  refreshToken        String? // JWT Refresh Token
+  accounts            SocialAccount[] // 연동된 소셜 계정 목록
+  facilityReviews     FacilityReview[] // 이 유저가 작성한 시설 리뷰 목록
+  leads               Lead[] // docs/01_.../01-05 — 이 유저가 남긴 문의/견적요청 리드
+  consultRequests     ConsultRequest[] // docs/02_.../02-03 — 이 유저가 남긴 전문가 상담 신청
+  digitalCleanupItems DigitalCleanupItem[] // docs/03_.../03-02 — 디지털 정리 진행 항목
+  memorials           Memorial[] // docs/03_.../03-02 — 개설한 추모관
+  memorialTributes    MemorialTribute[] // 남긴 헌화
+  memorialGuestbooks  MemorialGuestbook[] // 남긴 방명록
+  memorialPhotos      MemorialPhoto[] // 업로드한 추모 사진
+  createdAt           DateTime             @default(now()) // 가입 일시
+  updatedAt           DateTime             @updatedAt // 최종 수정 일시
 }
 
 // 소셜 로그인 계정 (User 1:N) — 카카오/네이버/구글 연동 정보, 1인 다계정 연동 지원
@@ -40,31 +45,31 @@ model SocialAccount {
 
 // 시설 마스터 (장례식장 / 묘지·수목장)
 model Facility {
-  id             String   @id // 고유 식별자 — 소스별 규칙 있음(CSV: bongan_NNN/jayeon_NNN, 카카오: kakao_<placeId>, 수기 시드: f_*)
-  name           String // 시설명
-  type           String // '장례식장' | '묘지/수목장'
-  location       String // 도로명 주소 (화면 표시용 — 전남광주통합특별시 등 병합 표기는 utils/address.ts 정규화 거침)
-  lat            Float // 위도
-  lng            Float // 경도
-  phone          String? // 실데이터 수집(카카오/공공 CSV) 시 채워지는 연락처
-  kakaoPlaceId   String?  @unique // 카카오 로컬 API로 수집한 장례식장의 장소ID (재동기화 dedup용)
-  price          String // 대표 가격 표시 문자열 (예: "950만원~")
-  rating         Float    @default(0.0) // 초기 시딩값(공시 만족도 기준) — 리뷰 5건 미만일 때 노출값으로 사용
-  religion       String // 수용 가능 종교 (예: '전체 종교')
-  guests         String // 수용 가능 하객 규모 (예: '100~300명')
+  id           String   @id // 고유 식별자 — 소스별 규칙 있음(CSV: bongan_NNN/jayeon_NNN, 카카오: kakao_<placeId>, 수기 시드: f_*)
+  name         String // 시설명
+  type         String // '장례식장' | '묘지/수목장'
+  location     String // 도로명 주소 (화면 표시용 — 전남광주통합특별시 등 병합 표기는 utils/address.ts 정규화 거침)
+  lat          Float // 위도
+  lng          Float // 경도
+  phone        String? // 실데이터 수집(카카오/공공 CSV) 시 채워지는 연락처
+  kakaoPlaceId String?  @unique // 카카오 로컬 API로 수집한 장례식장의 장소ID (재동기화 dedup용)
+  price        String // 대표 가격 표시 문자열 (예: "950만원~")
+  rating       Float    @default(0.0) // 초기 시딩값(공시 만족도 기준) — 리뷰 5건 미만일 때 노출값으로 사용
+  religion     String // 수용 가능 종교 (예: '전체 종교')
+  guests       String // 수용 가능 하객 규모 (예: '100~300명')
   // 파생 캐시 컬럼 — 정본은 partnerId. 클레임 승인/해지 트랜잭션 안에서만 갱신한다(docs 01-05 §3.4).
-  isPartner      Boolean  @default(false) // 제휴(클레임 승인된) 시설 여부
-  partnerId      String? // 클레임 승인된 사업자 (없으면 비제휴)
-  partner        Partner? @relation(fields: [partnerId], references: [id])
-  tags           String[] @default([]) // 표시용 태그 배열 — 분류 가능한 값(공설/사설 등)만 frontend TAG_CATALOG로 필터링됨(docs 01-06)
-  amenities      String[] @default([]) // 부대시설 목록 (예: 식당/매점/주차장/유족대기실/장애인편의시설)
-  images         String[] @default([]) // 파트너가 BizDashboard에서 업로드한 시설 사진 URL 목록 (2026-08-10)
-  createdAt      DateTime @default(now()) // 레코드 생성 일시
-  updatedAt      DateTime @updatedAt // 최종 수정 일시
+  isPartner    Boolean  @default(false) // 제휴(클레임 승인된) 시설 여부
+  partnerId    String? // 클레임 승인된 사업자 (없으면 비제휴)
+  partner      Partner? @relation(fields: [partnerId], references: [id])
+  tags         String[] @default([]) // 표시용 태그 배열 — 분류 가능한 값(공설/사설 등)만 frontend TAG_CATALOG로 필터링됨(docs 01-06)
+  amenities    String[] @default([]) // 부대시설 목록 (예: 식당/매점/주차장/유족대기실/장애인편의시설)
+  images       String[] @default([]) // 파트너가 BizDashboard에서 업로드한 시설 사진 URL 목록 (2026-08-10)
+  createdAt    DateTime @default(now()) // 레코드 생성 일시
+  updatedAt    DateTime @updatedAt // 최종 수정 일시
 
-  reviews  FacilityReview[] // 이 시설에 달린 리뷰 목록
-  claims   FacilityClaim[] // 이 시설에 대한 소유권 클레임 이력
-  leads    Lead[] // 이 시설로 들어온 리드(문의/견적요청/답사예약) 목록
+  reviews FacilityReview[] // 이 시설에 달린 리뷰 목록
+  claims  FacilityClaim[] // 이 시설에 대한 소유권 클레임 이력
+  leads   Lead[] // 이 시설로 들어온 리드(문의/견적요청/답사예약) 목록
 
   @@index([partnerId])
 }
@@ -320,6 +325,133 @@ model ConsultRequest {
 model ConsultNumberCounter {
   dateKey String @id // 'YYMMDD'
   seq     Int    @default(0) // 해당 날짜의 다음 발번 시퀀스 (Postgres 행 잠금 기반 원자적 증가)
+}
+
+// ─────────────────────────────────────────────────────────────────
+// 디지털 유품 정리 · 온라인 추모관. docs/03_디지털_유품_추모관/03-02_...명세서.md
+// "대행"이 아니라 "안내 + 진행 추적"으로 도메인을 재정의했다(§2) — 고인 계정 자격증명·증빙서류
+// 컬럼을 의도적으로 두지 않는다(§1.1-2, §3.3, §9.1-1). 위임 대행이 필요하면 Domain 02
+// 행정사 상담(ConsultRequest)으로 연결하며, 이 도메인엔 별도 과금 구조를 만들지 않는다(§3.4).
+// ─────────────────────────────────────────────────────────────────
+
+// 디지털 플랫폼 안내 카탈로그(§3.1) — 운영자가 관리하는 마스터 데이터, 유저 데이터 아님.
+// 금융·가상자산 플랫폼은 이 테이블에 절대 넣지 않는다(§3.2 C분류, §1.1 배제 근거).
+model DigitalPlatform {
+  id             String    @id @default(uuid()) // 고유 식별자(UUID)
+  name           String // 표시명 (예: '네이버')
+  category       String // EMAIL | SNS | CLOUD | SUBSCRIPTION | ETC
+  actionType     String // DELETE(삭제) | MEMORIALIZE(추모 전환) | CANCEL(해지)
+  officialUrl    String? // 공식 유족 절차 안내 페이지
+  requiredDocs   String[]  @default([]) // 필요 서류 체크리스트 — 파일 자체는 받지 않는다(§3.3)
+  guideSummary   String // 절차 요약 — 유족이 읽는 본문
+  estimatedDays  Int? // 예상 소요일 (참고값)
+  needsAgentHelp Boolean   @default(false) // true면 행정사 상담(Domain 02) 유도(§3.4)
+  isPublished    Boolean   @default(false) // 확인 완료 전에는 노출 안 함
+  lastVerifiedAt DateTime? // 최종 확인일 — 화면에 함께 노출(§3.1). 오래되면 운영자 화면에서 경고
+  sortOrder      Int       @default(0) // 노출 순서
+  createdAt      DateTime  @default(now()) // 등록 일시
+  updatedAt      DateTime  @updatedAt // 최종 수정 일시
+
+  cleanupItems DigitalCleanupItem[] // 이 플랫폼을 대상으로 한 유족들의 진행 항목
+
+  @@index([category, isPublished])
+}
+
+// 유족 개인의 디지털 정리 진행 추적(§3). 증빙 파일 컬럼은 없다 — 없는 필드는 실수로도
+// 채워질 수 없다(§3.3, §9.1-1, docs 02-03 §3.2와 동일 논리).
+model DigitalCleanupItem {
+  id         String           @id @default(uuid()) // 고유 식별자(UUID)
+  userId     String // FK → User (03-01 §2 원칙, §5.5)
+  user       User             @relation(fields: [userId], references: [id])
+  platformId String? // FK → DigitalPlatform (직접 입력 항목이면 null)
+  platform   DigitalPlatform? @relation(fields: [platformId], references: [id])
+  customName String? // 카탈로그에 없는 서비스를 유족이 직접 추가한 경우
+
+  status        String  @default("TODO") // TODO | PREPARING | SUBMITTED | DONE | BLOCKED
+  statusHistory Json    @default("[]") // [{status, at, note}]
+  memo          String? // 유족 개인 메모 (접수번호 등을 본인이 적어두는 칸)
+
+  createdAt DateTime @default(now()) // 항목 추가 일시
+  updatedAt DateTime @updatedAt // 최종 수정 일시
+
+  @@index([userId, status])
+}
+
+// 온라인 추모관(§4) — 고인 1명당 1개, 유족이 개설(§4.1). 공개범위 기본값은 PUBLIC이 아니라
+// LINK다(§4.2) — 사망 사실+유족 구성이 공개 색인되면 부고 사칭 보이스피싱의 표적 정보가 된다.
+model Memorial {
+  id              String @id @default(uuid()) // 고유 식별자(UUID)
+  slug            String @unique // 공개 URL용 추측 불가 토큰(§4.2, §9.1-2) — 순번 금지
+  createdByUserId String // FK → User — 개설자(상주)
+  createdByUser   User   @relation(fields: [createdByUserId], references: [id])
+
+  deceasedName      String // 고인 성명
+  deceasedBirthDate DateTime? // 생년월일 — 공개 응답에서 제외(§4.2, §6.1)
+  deceasedDeathDate DateTime? // 사망일
+  portraitUrl       String? // 영정 사진
+  epitaph           String? // 추모 문구
+
+  visibility          String    @default("LINK") // PRIVATE | LINK | PUBLIC (§4.2)
+  falseReportAgreedAt DateTime // 허위 개설 시 법적 책임 고지 동의 시각(§4.3-4)
+  reportedAt          DateTime? // 신고 접수 시각 — 값이 있으면 자동 PRIVATE 전환(§4.3-3, §9.1-5)
+  reviewedAt          DateTime? // 운영자 확인 시각
+  closedAt            DateTime? // 개설자가 닫음 (소프트 삭제)
+
+  createdAt DateTime @default(now()) // 개설 일시
+  updatedAt DateTime @updatedAt // 최종 수정 일시
+
+  tributes  MemorialTribute[] // 헌화 목록
+  guestbook MemorialGuestbook[] // 방명록 목록
+  photos    MemorialPhoto[] // 사진 앨범
+
+  @@index([createdByUserId])
+  @@index([visibility])
+}
+
+// 헌화(§4.4) — 비회원 허용, 로그인 사용자는 1인 1회 보장. IP는 원문 저장 금지, 해시만(§9.1-6).
+model MemorialTribute {
+  id          String   @id @default(uuid()) // 고유 식별자(UUID)
+  memorialId  String // 헌화 대상 추모관
+  memorial    Memorial @relation(fields: [memorialId], references: [id], onDelete: Cascade)
+  userId      String? // FK → User (비회원이면 null)
+  user        User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  visitorHash String // 비회원 중복 억제용 해시(브라우저 토큰+IP 조합) — IP 원문 저장 금지(§4.4)
+  createdAt   DateTime @default(now()) // 헌화 일시
+
+  @@unique([memorialId, userId]) // 로그인 사용자 1인 1회 보장 (userId=null인 비회원 행은 유니크 제약 미적용)
+}
+
+// 방명록(§4.5) — 비회원 작성 허용, 작성자명은 스냅샷(01-05 §4.4 원칙 승계, §5.5).
+model MemorialGuestbook {
+  id                 String    @id @default(uuid()) // 고유 식별자(UUID)
+  memorialId         String // 방명록 대상 추모관
+  memorial           Memorial  @relation(fields: [memorialId], references: [id], onDelete: Cascade)
+  userId             String? // FK → User (비회원이면 null)
+  user               User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+  authorName         String // 작성자명 스냅샷
+  relationToDeceased String? // 고인과의 관계 (예: '친구')
+  message            String // 본문
+  deletedByOwnerAt   DateTime? // 상주가 삭제(§4.5) — 소프트 삭제
+  hiddenAt           DateTime? // 운영자 강제 비공개 — 소프트 삭제로 원문 보존
+  createdAt          DateTime  @default(now()) // 작성 일시
+
+  @@index([memorialId, createdAt])
+}
+
+// 추모 사진(§4.6) — 업로드는 구현하되 실서비스 오픈은 오브젝트 스토리지 전환 이후로 묶는다
+// (systems.md §5, §9.1-7). 업로드 상한 등 수치는 policy.ts에 둔다(01-05 §12).
+model MemorialPhoto {
+  id               String   @id @default(uuid()) // 고유 식별자(UUID)
+  memorialId       String // 사진이 속한 추모관
+  memorial         Memorial @relation(fields: [memorialId], references: [id], onDelete: Cascade)
+  uploadedByUserId String // FK → User — 업로드 권한은 개설자로 제한(초기)
+  uploadedByUser   User     @relation(fields: [uploadedByUserId], references: [id])
+  url              String // 이미지 URL
+  title            String // 사진 제목
+  sortOrder        Int      @default(0) // 대표 사진은 sortOrder 최소값 (Facility.images[0] 규칙과 동일 사상)
+  createdAt        DateTime @default(now()) // 등록 일시
+
+  @@index([memorialId, sortOrder])
 }
 
 // ─────────────────────────────────────────────────────────────────

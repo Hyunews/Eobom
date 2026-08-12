@@ -17,7 +17,7 @@
 - 스펙 정본: `docs/00_핵심플랫폼/00-08_소셜로그인_및_계정통합_명세서.md`
 - 시크릿: `eobom/backend/.env` (→ `security.md` §3)
 - ⚠️ **프로덕션 콜백 URL 미등록** — 백엔드가 아직 배포되지 않아 실서비스 로그인 불가
-- ⚠️ **로컬 콜백은 https 필수** — mkcert 도입 후 백엔드가 인증서 존재 시 HTTPS만 서빙(`server.ts`). http로 두면 인증 후 리다이렉트가 TLS 포트에 평문으로 들어가 `ERR_EMPTY_RESPONSE`(2026-08-10 실장애, 해결됨) — 3사 콘솔에 `https://localhost:5000/api/auth/<provider>/callback` 등록 완료.
+- ⚠️ **로컬 콜백은 https 필수** — 인증서 존재 시 백엔드가 HTTPS만 서빙(`server.ts`). http로 두면 `ERR_EMPTY_RESPONSE`(08-10 실장애, 해결). 3사 콘솔에 `https://localhost:5000/api/auth/<provider>/callback` 등록 완료.
 
 ## 2. 지도 / 위치
 
@@ -30,12 +30,11 @@
 - 활성화: 카카오 디벨로퍼 > 이어봄 앱 > 제품 설정 > 카카오맵 > ON
 - ⚠️ **수집 한계**: 시/도 단위 검색 시 45건 API 캡으로 일부 지역 누락. 전수 수집은 시/군/구 단위 재검색 필요.
 
-### 위치(Geolocation) 자동감지 — mkcert 로컬 HTTPS로 로컬 검증 가능해짐 ✅
+### 위치(Geolocation) 자동감지 — mkcert 로컬 HTTPS로 검증 가능 ✅
 
-브라우저 `navigator.geolocation`은 보안 컨텍스트(HTTPS/`localhost`)에서만 동작 — LAN IP를 http로
-접속하면 차단되어 폴백(서울 서초, `frontend/config.ts`의 `GEOLOCATION_FALLBACK`)으로 떨어짐.
-mkcert 도입 후 `https://localhost:5173`·`https://192.168.0.111:5173`에서 정상 동작 확인 완료.
-⚠️ 주소창에 `https://` 반드시 명시(생략 시 http 시도 → 서버 거부, 버그 아님). 북마크 권장.
+`navigator.geolocation`은 보안 컨텍스트(HTTPS/`localhost`)에서만 동작 — http면 폴백(서울 서초,
+`config.ts`의 `GEOLOCATION_FALLBACK`)으로 떨어짐. mkcert 도입 후 `https://localhost:5173` 정상 확인.
+⚠️ 주소창에 `https://` 반드시 명시(생략 시 서버 거부, 버그 아님).
 
 ## 3. 공공데이터
 
@@ -69,14 +68,16 @@ mkcert 도입 후 `https://localhost:5173`·`https://192.168.0.111:5173`에서 �
 | 백엔드 | 🟡 **배포 준비 완료, 미실행** | Render 선택함(→ 아래). `render.yaml` 작성 완료, 사용자가 대시보드에서 Blueprint 생성 필요 |
 | 저장소 | private | `github.com/Hyunews/Eobom` |
 
-### 백엔드 배포 — Render (2026-08-07 결정)
+### 백엔드 배포 — Render (2026-08-07 결정, **08-12 재검토 중**)
 
-**사용자 결정: 우선 Render 무료 티어로 배포, Oracle Cloud 등 다른 대안은 추후 재검토.**
+⚠️ 인프라 전략 정본은 **`docs/00_핵심플랫폼/00-11_백엔드_DB_배포_및_인프라_전략_결정서.md`** — 관리형
+클라우드(국내 리전) 권고. 무료 티어는 백업이 없어 **프로덕션 부적합, 스테이징 전용**.
 
 - 설정: 레포 루트 `render.yaml`(Blueprint) — `eobom/backend`가 `rootDir`, Postgres 포함
 - 도메인 고정: `https://eobom-backend.onrender.com`(render.yaml `name` 필드)
-- ⚠️ **무료 Postgres 30일 후 만료**(14일 유예, 백업 없음) — ~2026-09-07 결정 필요, pending-approvals.md 등록됨.
-- ⚠️ 무료 웹서비스는 15분 미사용 시 슬립.
+- ⚠️ **무료 Postgres 수명 제한**(30일+유예, 백업 없음). **아직 생성 안 됨** — Blueprint 만드는 순간부터
+  시계가 돈다(08-12 확인). 만료일은 그때 대시보드에서 볼 것.
+- ⚠️ 무료 **웹서비스**는 만료 없이 15분 슬립만 — DB와 정책 다름.
 - 배포 후: (1) 3사 콘솔 콜백 재등록 (2) Vercel env `VITE_BACKEND_URL` (3) 시설 시딩(`npm run seed`) (4) 이미지 스토리지 교체(위 참고).
 
 ### 이미지 저장 — ⚠️ 배포 전 필수 교체 (2026-08-10)
@@ -87,7 +88,7 @@ mkcert 도입 후 `https://localhost:5173`·`https://192.168.0.111:5173`에서 �
 
 ## 6. 미구현 / 대기
 
-- **로컬 LAN(폰 실기기) OAuth**: 보류(2026-08-07) — 동적 IP 코드는 구현 완료, 백엔드 배포로 대체됨.
+- **로컬 LAN(폰) OAuth**: 보류 — 동적 IP 코드 구현 완료, 백엔드 배포로 대체됨.
 - **제휴(`isPartner`) 배지 UI**: 필드는 있으나 최상단 고정·VR 게이팅 미구현.
 - **360° VR 뷰**: 파노라마 이미지 미확보로 비활성화(코드 제거됨).
 - **카카오 연결해제 웹훅**: 외부(카카오 계정에서 직접 연동해제·탈퇴)에서 끊겨도 DB 미반영 — 카카오 콘솔 경고 중(2026-08-10). `SocialAccount.unlinkedAt` 로직 재사용, 요청 검증은 공식 문서 확인 후 착수.

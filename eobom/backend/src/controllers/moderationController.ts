@@ -263,3 +263,109 @@ export const listConsultRequestsForAdmin = async (req: Request, res: Response) =
     return res.status(500).json({ status: 'error', message: '목록 조회 중 오류가 발생했습니다.' });
   }
 };
+
+// ─────────────────────────────────────────────────────────────────
+// 추모관(Memorial) 신고 처리. docs 03-02 §4.3, §6.1, §6.3, §9 6단계.
+// "선차단 후 확인" 원칙(§4.3-3) — 신고 접수 시점에 이미 PRIVATE로 전환돼 있으므로, 여기서는
+// 그 이후의 운영자 확인·복구만 다룬다.
+// ─────────────────────────────────────────────────────────────────
+
+// 신고 접수 (`POST /api/memorials/:slug/report`) — 공개, 인증 불필요. 접수 즉시 PRIVATE 전환(§4.3-3).
+// 신고 사유를 저장하는 컬럼은 스키마에 없다(§5.3) — reportedAt/visibility만 갱신한다.
+export const reportMemorial = async (req: Request, res: Response) => {
+  try {
+    const memorial = await prisma.memorial.findUnique({ where: { slug: req.params.slug } });
+    if (!memorial) {
+      return res.status(404).json({ status: 'error', message: '추모관을 찾을 수 없습니다.' });
+    }
+
+    const updated = await prisma.memorial.update({
+      where: { id: memorial.id },
+      data: { reportedAt: new Date(), visibility: 'PRIVATE', reviewedAt: null },
+    });
+    return res.json({ status: 'success', data: { id: updated.id, visibility: updated.visibility } });
+  } catch (error) {
+    console.error('추모관 신고 접수 실패:', error);
+    return res.status(500).json({ status: 'error', message: '신고 접수 중 오류가 발생했습니다.' });
+  }
+};
+
+// 추모관 목록 (`GET /api/admin/memorials?reported=true`) — reported=true면 미확인 신고 큐만(§6.3)
+export const listMemorialsForAdmin = async (req: Request, res: Response) => {
+  const decoded = verifyAdminBearerToken(req);
+  if (!decoded) {
+    return res.status(401).json({ status: 'error', message: '인증 토큰이 없거나 유효하지 않습니다.' });
+  }
+
+  const reportedOnly = req.query.reported === 'true';
+  try {
+    const memorials = await prisma.memorial.findMany({
+      where: reportedOnly ? { reportedAt: { not: null }, reviewedAt: null } : {},
+      include: { createdByUser: { select: { id: true, name: true, email: true } } },
+      orderBy: { createdAt: 'desc' },
+    });
+    return res.json({ status: 'success', data: memorials });
+  } catch (error) {
+    console.error('추모관 목록(운영자) 조회 실패:', error);
+    return res.status(500).json({ status: 'error', message: '목록 조회 중 오류가 발생했습니다.' });
+  }
+};
+
+// 신고 확인 (`PATCH /api/admin/memorials/:id/review`) — 복구 또는 유지 판단(§6.3).
+// 신고 이전의 공개범위를 별도로 기억해두는 컬럼이 없으므로(§5.3), 복구 시 운영자가 공개범위를
+// 직접 지정한다(미지정 시 안전한 기본값 LINK) — 시스템이 임의로 이전 값을 추정하지 않는다.
+const REVIEW_DECISIONS = ['RESTORE', 'CONFIRM'] as const;
+export const reviewMemorialReport = async (req: Request, res: Response) => {
+  const decoded = verifyAdminBearerToken(req);
+  if (!decoded) {
+    return res.status(401).json({ status: 'error', message: '인증 토큰이 없거나 유효하지 않습니다.' });
+  }
+
+  const { decision, visibility } = req.body as { decision?: string; visibility?: string };
+  if (!decision || !(REVIEW_DECISIONS as readonly string[]).includes(decision)) {
+    return res.status(400).json({ status: 'error', message: `decision은 ${REVIEW_DECISIONS.join(', ')} 중 하나여야 합니다.` });
+  }
+  if (visibility !== undefined && !['LINK', 'PUBLIC'].includes(visibility)) {
+    return res.status(400).json({ status: 'error', message: 'visibility는 RESTORE 시 LINK 또는 PUBLIC만 지정할 수 있습니다.' });
+  }
+
+  try {
+    const memorial = await prisma.memorial.findUnique({ where: { id: req.params.id } });
+    if (!memorial) {
+      return res.status(404).json({ status: 'error', message: '추모관을 찾을 수 없습니다.' });
+    }
+
+    const updated = await prisma.memorial.update({
+      where: { id: memorial.id },
+      data: {
+        reviewedAt: new Date(),
+        visibility: decision === 'RESTORE' ? visibility || 'LINK' : 'PRIVATE',
+      },
+    });
+    return res.json({ status: 'success', data: { id: updated.id, visibility: updated.visibility, reviewedAt: updated.reviewedAt } });
+  } catch (error) {
+    console.error('추모관 신고 확인 처리 실패:', error);
+    return res.status(500).json({ status: 'error', message: '신고 확인 처리 중 오류가 발생했습니다.' });
+  }
+};
+
+// 방명록 강제 비공개 (`PATCH /api/admin/memorials/:id/guestbook/:gid/hide`) — 소프트 삭제(§4.5, §6.3)
+export const hideMemorialGuestbookEntry = async (req: Request, res: Response) => {
+  const decoded = verifyAdminBearerToken(req);
+  if (!decoded) {
+    return res.status(401).json({ status: 'error', message: '인증 토큰이 없거나 유효하지 않습니다.' });
+  }
+
+  try {
+    const entry = await prisma.memorialGuestbook.findUnique({ where: { id: req.params.gid } });
+    if (!entry || entry.memorialId !== req.params.id) {
+      return res.status(404).json({ status: 'error', message: '방명록을 찾을 수 없습니다.' });
+    }
+
+    const updated = await prisma.memorialGuestbook.update({ where: { id: entry.id }, data: { hiddenAt: new Date() } });
+    return res.json({ status: 'success', data: { id: updated.id, hiddenAt: updated.hiddenAt } });
+  } catch (error) {
+    console.error('방명록 강제 비공개 처리 실패:', error);
+    return res.status(500).json({ status: 'error', message: '방명록 비공개 처리 중 오류가 발생했습니다.' });
+  }
+};

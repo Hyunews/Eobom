@@ -302,7 +302,7 @@
 <h2 class="section-title">📋 자동 생성: 테이블·컬럼 사전</h2>
 <div class="toc-container" id="toc-top">
     <div class="toc-header">
-      <span class="toc-title">📋 빠른 테이블 인덱스 (총 14개 모델)</span>
+      <span class="toc-title">📋 빠른 테이블 인덱스 (총 20개 모델)</span>
       <span class="toc-subtitle">클릭 시 해당 DB 테이블 위치로 스무스 이동합니다.</span>
     </div>
     <div class="toc-grid">
@@ -397,8 +397,50 @@
           <span class="toc-desc">상담 신청 번호(requestNo) 발번용 일자별 원자적 카운터...</span>
         </div>
       </a>
-      <a href="#model-Admin" class="toc-item">
+      <a href="#model-DigitalPlatform" class="toc-item">
         <span class="toc-num">14</span>
+        <div class="toc-text">
+          <span class="toc-name">DigitalPlatform</span>
+          <span class="toc-desc">디지털 플랫폼 안내 카탈로그(§3.1) — 운영자가 관리하는 마...</span>
+        </div>
+      </a>
+      <a href="#model-DigitalCleanupItem" class="toc-item">
+        <span class="toc-num">15</span>
+        <div class="toc-text">
+          <span class="toc-name">DigitalCleanupItem</span>
+          <span class="toc-desc">유족 개인의 디지털 정리 진행 추적(§3). 증빙 파일 컬럼은 ...</span>
+        </div>
+      </a>
+      <a href="#model-Memorial" class="toc-item">
+        <span class="toc-num">16</span>
+        <div class="toc-text">
+          <span class="toc-name">Memorial</span>
+          <span class="toc-desc">온라인 추모관(§4) — 고인 1명당 1개, 유족이 개설(§4....</span>
+        </div>
+      </a>
+      <a href="#model-MemorialTribute" class="toc-item">
+        <span class="toc-num">17</span>
+        <div class="toc-text">
+          <span class="toc-name">MemorialTribute</span>
+          <span class="toc-desc">헌화(§4.4) — 비회원 허용, 로그인 사용자는 1인 1회 보...</span>
+        </div>
+      </a>
+      <a href="#model-MemorialGuestbook" class="toc-item">
+        <span class="toc-num">18</span>
+        <div class="toc-text">
+          <span class="toc-name">MemorialGuestbook</span>
+          <span class="toc-desc">방명록(§4.5) — 비회원 작성 허용, 작성자명은 스냅샷(01...</span>
+        </div>
+      </a>
+      <a href="#model-MemorialPhoto" class="toc-item">
+        <span class="toc-num">19</span>
+        <div class="toc-text">
+          <span class="toc-name">MemorialPhoto</span>
+          <span class="toc-desc">추모 사진(§4.6) — 업로드는 구현하되 실서비스 오픈은 오브...</span>
+        </div>
+      </a>
+      <a href="#model-Admin" class="toc-item">
+        <span class="toc-num">20</span>
         <div class="toc-text">
           <span class="toc-name">Admin</span>
           <span class="toc-desc">운영자(내부 직원) 계정 — Partner/Expert와 인증 ...</span>
@@ -414,7 +456,7 @@
 <p class="meta-info">💡 <strong>최초 생성</strong>: 2026-08-04 (`20260804054755_init`) · <strong>최근 수정</strong>: 2026-08-04 (`20260804173245_social_account_split`)</p>
 <div class="table-container"><table><thead><tr><th>컬럼</th><th>타입</th><th>제약조건</th><th>설명</th></tr></thead><tbody><tr><td><code>id</code></td><td><code>String</code></td><td><span class="tag pk">PK</span>, <span class="tag nn">NOT <span class="tag null">NULL</span></span></td><td>고유 식별자(UUID)</td></tr><tr><td><code>email</code></td><td><code>String?</code></td><td><span class="tag uk">UNIQUE</span>, <span class="tag null">NULL</span></td><td>유저 대표 이메일 (유니크)</td></tr><tr><td><code>name</code></td><td><code>String</code></td><td><span class="tag nn">NOT <span class="tag null">NULL</span></span></td><td>유저 이름 / 닉네임</td></tr><tr><td><code>profileImage</code></td><td><code>String?</code></td><td><span class="tag null">NULL</span></td><td>대표 프로필 이미지 URL</td></tr><tr><td><code>role</code></td><td><code>String</code></td><td><span class="tag nn">NOT <span class="tag null">NULL</span></span></td><td>&#039;USER&#039;, &#039;EXPERT&#039;, &#039;ADMIN&#039;</td></tr><tr><td><code>refreshToken</code></td><td><code>String?</code></td><td><span class="tag null">NULL</span></td><td>JWT Refresh Token</td></tr><tr><td><code>createdAt</code></td><td><code>DateTime</code></td><td><span class="tag nn">NOT <span class="tag null">NULL</span></span></td><td>가입 일시</td></tr><tr><td><code>updatedAt</code></td><td><code>DateTime</code></td><td><span class="tag nn">NOT <span class="tag null">NULL</span></span></td><td>최종 수정 일시</td></tr></tbody></table></div>
 <p><strong>관계 필드</strong> (물리 컬럼 아님 — Prisma가 FK를 통해 연결해 보여주는 뷰. 제약조건은 위 표의 FK 스칼라 컬럼 참고)</p>
-<div class="table-container"><table><thead><tr><th>필드</th><th>대상 모델</th><th>설명</th></tr></thead><tbody><tr><td><code>accounts</code></td><td><code>SocialAccount[]</code></td><td>연동된 소셜 계정 목록</td></tr><tr><td><code>facilityReviews</code></td><td><code>FacilityReview[]</code></td><td>이 유저가 작성한 시설 리뷰 목록</td></tr><tr><td><code>leads</code></td><td><code>Lead[]</code></td><td>docs/01_.../01-05 — 이 유저가 남긴 문의/견적요청 리드</td></tr><tr><td><code>consultRequests</code></td><td><code>ConsultRequest[]</code></td><td>docs/02_.../02-03 — 이 유저가 남긴 전문가 상담 신청</td></tr></tbody></table></div>
+<div class="table-container"><table><thead><tr><th>필드</th><th>대상 모델</th><th>설명</th></tr></thead><tbody><tr><td><code>accounts</code></td><td><code>SocialAccount[]</code></td><td>연동된 소셜 계정 목록</td></tr><tr><td><code>facilityReviews</code></td><td><code>FacilityReview[]</code></td><td>이 유저가 작성한 시설 리뷰 목록</td></tr><tr><td><code>leads</code></td><td><code>Lead[]</code></td><td>docs/01_.../01-05 — 이 유저가 남긴 문의/견적요청 리드</td></tr><tr><td><code>consultRequests</code></td><td><code>ConsultRequest[]</code></td><td>docs/02_.../02-03 — 이 유저가 남긴 전문가 상담 신청</td></tr><tr><td><code>digitalCleanupItems</code></td><td><code>DigitalCleanupItem[]</code></td><td>docs/03_.../03-02 — 디지털 정리 진행 항목</td></tr><tr><td><code>memorials</code></td><td><code>Memorial[]</code></td><td>docs/03_.../03-02 — 개설한 추모관</td></tr><tr><td><code>memorialTributes</code></td><td><code>MemorialTribute[]</code></td><td>남긴 헌화</td></tr><tr><td><code>memorialGuestbooks</code></td><td><code>MemorialGuestbook[]</code></td><td>남긴 방명록</td></tr><tr><td><code>memorialPhotos</code></td><td><code>MemorialPhoto[]</code></td><td>업로드한 추모 사진</td></tr></tbody></table></div>
 </div>
 <div class="model-card" id="model-SocialAccount">
         <div class="model-card-header">
@@ -435,7 +477,7 @@
           <a href="#toc-top" class="back-to-top">↑ 목차로 이동</a>
         </div>
 <blockquote class="info-quote">시설 마스터 (장례식장 / 묘지·수목장)</blockquote>
-<p class="meta-info">💡 <strong>최초 생성</strong>: 2026-08-05 (`20260805053339_facility_domain`) · <strong>최근 수정</strong>: 2026-08-10 (`20260810161724_facility_images`)</p>
+<p class="meta-info">💡 <strong>최초 생성</strong>: 2026-08-05 (`20260805053339_facility_domain`) · <strong>최근 수정</strong>: 2026-08-12 (`20260812024232_drop_facility_deprecated_columns`)</p>
 <div class="table-container"><table><thead><tr><th>컬럼</th><th>타입</th><th>제약조건</th><th>설명</th></tr></thead><tbody><tr><td><code>id</code></td><td><code>String</code></td><td><span class="tag pk">PK</span>, <span class="tag nn">NOT <span class="tag null">NULL</span></span></td><td>고유 식별자 — 소스별 규칙 있음(CSV: bongan_NNN/jayeon_NNN, 카카오: kakao_&lt;placeId&gt;, 수기 시드: f_*)</td></tr><tr><td><code>name</code></td><td><code>String</code></td><td><span class="tag nn">NOT <span class="tag null">NULL</span></span></td><td>시설명</td></tr><tr><td><code>type</code></td><td><code>String</code></td><td><span class="tag nn">NOT <span class="tag null">NULL</span></span></td><td>&#039;장례식장&#039; | &#039;묘지/수목장&#039;</td></tr><tr><td><code>location</code></td><td><code>String</code></td><td><span class="tag nn">NOT <span class="tag null">NULL</span></span></td><td>도로명 주소 (화면 표시용 — 전남광주통합특별시 등 병합 표기는 utils/address.ts 정규화 거침)</td></tr><tr><td><code>lat</code></td><td><code>Float</code></td><td><span class="tag nn">NOT <span class="tag null">NULL</span></span></td><td>위도</td></tr><tr><td><code>lng</code></td><td><code>Float</code></td><td><span class="tag nn">NOT <span class="tag null">NULL</span></span></td><td>경도</td></tr><tr><td><code>phone</code></td><td><code>String?</code></td><td><span class="tag null">NULL</span></td><td>실데이터 수집(카카오/공공 CSV) 시 채워지는 연락처</td></tr><tr><td><code>kakaoPlaceId</code></td><td><code>String?</code></td><td><span class="tag uk">UNIQUE</span>, <span class="tag null">NULL</span></td><td>카카오 로컬 API로 수집한 장례식장의 장소ID (재동기화 dedup용)</td></tr><tr><td><code>price</code></td><td><code>String</code></td><td><span class="tag nn">NOT <span class="tag null">NULL</span></span></td><td>대표 가격 표시 문자열 (예: &quot;950만원~&quot;)</td></tr><tr><td><code>rating</code></td><td><code>Float</code></td><td><span class="tag nn">NOT <span class="tag null">NULL</span></span></td><td>초기 시딩값(공시 만족도 기준) — 리뷰 5건 미만일 때 노출값으로 사용</td></tr><tr><td><code>religion</code></td><td><code>String</code></td><td><span class="tag nn">NOT <span class="tag null">NULL</span></span></td><td>수용 가능 종교 (예: &#039;전체 종교&#039;)</td></tr><tr><td><code>guests</code></td><td><code>String</code></td><td><span class="tag nn">NOT <span class="tag null">NULL</span></span></td><td>수용 가능 하객 규모 (예: &#039;100~300명&#039;)</td></tr><tr><td><code>isPartner</code></td><td><code>Boolean</code></td><td><span class="tag nn">NOT <span class="tag null">NULL</span></span></td><td>파생 캐시 컬럼 — 정본은 partnerId. 클레임 승인/해지 트랜잭션 안에서만 갱신한다(docs 01-05 §3.4). — 제휴(클레임 승인된) 시설 여부</td></tr><tr><td><code>partnerId</code></td><td><code>String?</code></td><td><span class="tag fk">FK → Partner.id</span>, <span class="tag null">NULL</span></td><td>클레임 승인된 사업자 (없으면 비제휴)</td></tr><tr><td><code>tags</code></td><td><code>String[]</code></td><td><span class="tag nn">NOT <span class="tag null">NULL</span></span></td><td>표시용 태그 배열 — 분류 가능한 값(공설/사설 등)만 frontend TAG_CATALOG로 필터링됨(docs 01-06)</td></tr><tr><td><code>amenities</code></td><td><code>String[]</code></td><td><span class="tag nn">NOT <span class="tag null">NULL</span></span></td><td>부대시설 목록 (예: 식당/매점/주차장/유족대기실/장애인편의시설)</td></tr><tr><td><code>images</code></td><td><code>String[]</code></td><td><span class="tag nn">NOT <span class="tag null">NULL</span></span></td><td>파트너가 BizDashboard에서 업로드한 시설 사진 URL 목록 (2026-08-10)</td></tr><tr><td><code>createdAt</code></td><td><code>DateTime</code></td><td><span class="tag nn">NOT <span class="tag null">NULL</span></span></td><td>레코드 생성 일시</td></tr><tr><td><code>updatedAt</code></td><td><code>DateTime</code></td><td><span class="tag nn">NOT <span class="tag null">NULL</span></span></td><td>최종 수정 일시</td></tr></tbody></table></div>
 <p><strong>관계 필드</strong> (물리 컬럼 아님 — Prisma가 FK를 통해 연결해 보여주는 뷰. 제약조건은 위 표의 FK 스칼라 컬럼 참고)</p>
 <div class="table-container"><table><thead><tr><th>필드</th><th>대상 모델</th><th>설명</th></tr></thead><tbody><tr><td><code>partner</code></td><td><code>Partner?</code></td><td></td></tr><tr><td><code>reviews</code></td><td><code>FacilityReview[]</code></td><td>이 시설에 달린 리뷰 목록</td></tr><tr><td><code>claims</code></td><td><code>FacilityClaim[]</code></td><td>이 시설에 대한 소유권 클레임 이력</td></tr><tr><td><code>leads</code></td><td><code>Lead[]</code></td><td>이 시설로 들어온 리드(문의/견적요청/답사예약) 목록</td></tr></tbody></table></div>
@@ -569,6 +611,85 @@
 <blockquote class="info-quote">상담 신청 번호(requestNo) 발번용 일자별 원자적 카운터. LeadNumberCounter와 별도 테이블 — EB-(리드)와 EC-(상담)의 일련번호가 서로를 건너뛰면 대조가 어려워진다(docs 02-03 §4.2).</blockquote>
 <p class="meta-info">💡 <strong>최초 생성</strong>: 2026-08-11 (`20260811011506_expert_consult_request_infra`) · <strong>최근 수정</strong>: 2026-08-11 (`20260811011506_expert_consult_request_infra`)</p>
 <div class="table-container"><table><thead><tr><th>컬럼</th><th>타입</th><th>제약조건</th><th>설명</th></tr></thead><tbody><tr><td><code>dateKey</code></td><td><code>String</code></td><td><span class="tag pk">PK</span>, <span class="tag nn">NOT <span class="tag null">NULL</span></span></td><td>&#039;YYMMDD&#039;</td></tr><tr><td><code>seq</code></td><td><code>Int</code></td><td><span class="tag nn">NOT <span class="tag null">NULL</span></span></td><td>해당 날짜의 다음 발번 시퀀스 (Postgres 행 잠금 기반 원자적 증가)</td></tr></tbody></table></div>
+</div>
+<div class="model-card" id="model-DigitalPlatform">
+        <div class="model-card-header">
+          <h3 class="model-title">📦 DigitalPlatform</h3>
+          <a href="#toc-top" class="back-to-top">↑ 목차로 이동</a>
+        </div>
+<blockquote class="info-quote">디지털 플랫폼 안내 카탈로그(§3.1) — 운영자가 관리하는 마스터 데이터, 유저 데이터 아님. 금융·가상자산 플랫폼은 이 테이블에 절대 넣지 않는다(§3.2 C분류, §1.1 배제 근거).</blockquote>
+<p class="meta-info">💡 <strong>최초 생성</strong>: 2026-08-12 (`20260812050713_digital_estate_memorial_infra`) · <strong>최근 수정</strong>: 2026-08-12 (`20260812050713_digital_estate_memorial_infra`)</p>
+<div class="table-container"><table><thead><tr><th>컬럼</th><th>타입</th><th>제약조건</th><th>설명</th></tr></thead><tbody><tr><td><code>id</code></td><td><code>String</code></td><td><span class="tag pk">PK</span>, <span class="tag nn">NOT <span class="tag null">NULL</span></span></td><td>고유 식별자(UUID)</td></tr><tr><td><code>name</code></td><td><code>String</code></td><td><span class="tag nn">NOT <span class="tag null">NULL</span></span></td><td>표시명 (예: &#039;네이버&#039;)</td></tr><tr><td><code>category</code></td><td><code>String</code></td><td><span class="tag nn">NOT <span class="tag null">NULL</span></span></td><td>EMAIL | SNS | CLOUD | SUBSCRIPTION | ETC</td></tr><tr><td><code>actionType</code></td><td><code>String</code></td><td><span class="tag nn">NOT <span class="tag null">NULL</span></span></td><td>DELETE(삭제) | MEMORIALIZE(추모 전환) | CANCEL(해지)</td></tr><tr><td><code>officialUrl</code></td><td><code>String?</code></td><td><span class="tag null">NULL</span></td><td>공식 유족 절차 안내 페이지</td></tr><tr><td><code>requiredDocs</code></td><td><code>String[]</code></td><td><span class="tag nn">NOT <span class="tag null">NULL</span></span></td><td>필요 서류 체크리스트 — 파일 자체는 받지 않는다(§3.3)</td></tr><tr><td><code>guideSummary</code></td><td><code>String</code></td><td><span class="tag nn">NOT <span class="tag null">NULL</span></span></td><td>절차 요약 — 유족이 읽는 본문</td></tr><tr><td><code>estimatedDays</code></td><td><code>Int?</code></td><td><span class="tag null">NULL</span></td><td>예상 소요일 (참고값)</td></tr><tr><td><code>needsAgentHelp</code></td><td><code>Boolean</code></td><td><span class="tag nn">NOT <span class="tag null">NULL</span></span></td><td>true면 행정사 상담(Domain 02) 유도(§3.4)</td></tr><tr><td><code>isPublished</code></td><td><code>Boolean</code></td><td><span class="tag nn">NOT <span class="tag null">NULL</span></span></td><td>확인 완료 전에는 노출 안 함</td></tr><tr><td><code>lastVerifiedAt</code></td><td><code>DateTime?</code></td><td><span class="tag null">NULL</span></td><td>최종 확인일 — 화면에 함께 노출(§3.1). 오래되면 운영자 화면에서 경고</td></tr><tr><td><code>sortOrder</code></td><td><code>Int</code></td><td><span class="tag nn">NOT <span class="tag null">NULL</span></span></td><td>노출 순서</td></tr><tr><td><code>createdAt</code></td><td><code>DateTime</code></td><td><span class="tag nn">NOT <span class="tag null">NULL</span></span></td><td>등록 일시</td></tr><tr><td><code>updatedAt</code></td><td><code>DateTime</code></td><td><span class="tag nn">NOT <span class="tag null">NULL</span></span></td><td>최종 수정 일시</td></tr></tbody></table></div>
+<p><strong>관계 필드</strong> (물리 컬럼 아님 — Prisma가 FK를 통해 연결해 보여주는 뷰. 제약조건은 위 표의 FK 스칼라 컬럼 참고)</p>
+<div class="table-container"><table><thead><tr><th>필드</th><th>대상 모델</th><th>설명</th></tr></thead><tbody><tr><td><code>cleanupItems</code></td><td><code>DigitalCleanupItem[]</code></td><td>이 플랫폼을 대상으로 한 유족들의 진행 항목</td></tr></tbody></table></div>
+<p><strong>복합 제약조건 / 인덱스 원문</strong> (위 표의 UNIQUE(복합) 태그가 정확히 어떤 컬럼 조합인지 여기서 확인)</p>
+<ul><li><code>@@index([category, isPublished])</code></li></ul>
+</div>
+<div class="model-card" id="model-DigitalCleanupItem">
+        <div class="model-card-header">
+          <h3 class="model-title">📦 DigitalCleanupItem</h3>
+          <a href="#toc-top" class="back-to-top">↑ 목차로 이동</a>
+        </div>
+<blockquote class="info-quote">유족 개인의 디지털 정리 진행 추적(§3). 증빙 파일 컬럼은 없다 — 없는 필드는 실수로도 채워질 수 없다(§3.3, §9.1-1, docs 02-03 §3.2와 동일 논리).</blockquote>
+<p class="meta-info">💡 <strong>최초 생성</strong>: 2026-08-12 (`20260812050713_digital_estate_memorial_infra`) · <strong>최근 수정</strong>: 2026-08-12 (`20260812050713_digital_estate_memorial_infra`)</p>
+<div class="table-container"><table><thead><tr><th>컬럼</th><th>타입</th><th>제약조건</th><th>설명</th></tr></thead><tbody><tr><td><code>id</code></td><td><code>String</code></td><td><span class="tag pk">PK</span>, <span class="tag nn">NOT <span class="tag null">NULL</span></span></td><td>고유 식별자(UUID)</td></tr><tr><td><code>userId</code></td><td><code>String</code></td><td><span class="tag fk">FK → User.id</span>, <span class="tag nn">NOT <span class="tag null">NULL</span></span></td><td><span class="tag fk">FK → User</span> (03-01 §2 원칙, §5.5)</td></tr><tr><td><code>platformId</code></td><td><code>String?</code></td><td><span class="tag fk">FK → DigitalPlatform.id</span>, <span class="tag null">NULL</span></td><td><span class="tag fk">FK → DigitalPlatform</span> (직접 입력 항목이면 null)</td></tr><tr><td><code>customName</code></td><td><code>String?</code></td><td><span class="tag null">NULL</span></td><td>카탈로그에 없는 서비스를 유족이 직접 추가한 경우</td></tr><tr><td><code>status</code></td><td><code>String</code></td><td><span class="tag nn">NOT <span class="tag null">NULL</span></span></td><td>TODO | PREPARING | SUBMITTED | DONE | BLOCKED</td></tr><tr><td><code>statusHistory</code></td><td><code>Json</code></td><td><span class="tag nn">NOT <span class="tag null">NULL</span></span></td><td>[{status, at, note}]</td></tr><tr><td><code>memo</code></td><td><code>String?</code></td><td><span class="tag null">NULL</span></td><td>유족 개인 메모 (접수번호 등을 본인이 적어두는 칸)</td></tr><tr><td><code>createdAt</code></td><td><code>DateTime</code></td><td><span class="tag nn">NOT <span class="tag null">NULL</span></span></td><td>항목 추가 일시</td></tr><tr><td><code>updatedAt</code></td><td><code>DateTime</code></td><td><span class="tag nn">NOT <span class="tag null">NULL</span></span></td><td>최종 수정 일시</td></tr></tbody></table></div>
+<p><strong>관계 필드</strong> (물리 컬럼 아님 — Prisma가 FK를 통해 연결해 보여주는 뷰. 제약조건은 위 표의 FK 스칼라 컬럼 참고)</p>
+<div class="table-container"><table><thead><tr><th>필드</th><th>대상 모델</th><th>설명</th></tr></thead><tbody><tr><td><code>user</code></td><td><code>User</code></td><td></td></tr><tr><td><code>platform</code></td><td><code>DigitalPlatform?</code></td><td></td></tr></tbody></table></div>
+<p><strong>복합 제약조건 / 인덱스 원문</strong> (위 표의 UNIQUE(복합) 태그가 정확히 어떤 컬럼 조합인지 여기서 확인)</p>
+<ul><li><code>@@index([userId, status])</code></li></ul>
+</div>
+<div class="model-card" id="model-Memorial">
+        <div class="model-card-header">
+          <h3 class="model-title">📦 Memorial</h3>
+          <a href="#toc-top" class="back-to-top">↑ 목차로 이동</a>
+        </div>
+<blockquote class="info-quote">온라인 추모관(§4) — 고인 1명당 1개, 유족이 개설(§4.1). 공개범위 기본값은 PUBLIC이 아니라 LINK다(§4.2) — 사망 사실+유족 구성이 공개 색인되면 부고 사칭 보이스피싱의 표적 정보가 된다.</blockquote>
+<p class="meta-info">💡 <strong>최초 생성</strong>: 2026-08-12 (`20260812050713_digital_estate_memorial_infra`) · <strong>최근 수정</strong>: 2026-08-12 (`20260812050713_digital_estate_memorial_infra`)</p>
+<div class="table-container"><table><thead><tr><th>컬럼</th><th>타입</th><th>제약조건</th><th>설명</th></tr></thead><tbody><tr><td><code>id</code></td><td><code>String</code></td><td><span class="tag pk">PK</span>, <span class="tag nn">NOT <span class="tag null">NULL</span></span></td><td>고유 식별자(UUID)</td></tr><tr><td><code>slug</code></td><td><code>String</code></td><td><span class="tag uk">UNIQUE</span>, <span class="tag nn">NOT <span class="tag null">NULL</span></span></td><td>공개 URL용 추측 불가 토큰(§4.2, §9.1-2) — 순번 금지</td></tr><tr><td><code>createdByUserId</code></td><td><code>String</code></td><td><span class="tag fk">FK → User.id</span>, <span class="tag nn">NOT <span class="tag null">NULL</span></span></td><td><span class="tag fk">FK → User</span> — 개설자(상주)</td></tr><tr><td><code>deceasedName</code></td><td><code>String</code></td><td><span class="tag nn">NOT <span class="tag null">NULL</span></span></td><td>고인 성명</td></tr><tr><td><code>deceasedBirthDate</code></td><td><code>DateTime?</code></td><td><span class="tag null">NULL</span></td><td>생년월일 — 공개 응답에서 제외(§4.2, §6.1)</td></tr><tr><td><code>deceasedDeathDate</code></td><td><code>DateTime?</code></td><td><span class="tag null">NULL</span></td><td>사망일</td></tr><tr><td><code>portraitUrl</code></td><td><code>String?</code></td><td><span class="tag null">NULL</span></td><td>영정 사진</td></tr><tr><td><code>epitaph</code></td><td><code>String?</code></td><td><span class="tag null">NULL</span></td><td>추모 문구</td></tr><tr><td><code>visibility</code></td><td><code>String</code></td><td><span class="tag nn">NOT <span class="tag null">NULL</span></span></td><td>PRIVATE | LINK | PUBLIC (§4.2)</td></tr><tr><td><code>falseReportAgreedAt</code></td><td><code>DateTime</code></td><td><span class="tag nn">NOT <span class="tag null">NULL</span></span></td><td>허위 개설 시 법적 책임 고지 동의 시각(§4.3-4)</td></tr><tr><td><code>reportedAt</code></td><td><code>DateTime?</code></td><td><span class="tag null">NULL</span></td><td>신고 접수 시각 — 값이 있으면 자동 PRIVATE 전환(§4.3-3, §9.1-5)</td></tr><tr><td><code>reviewedAt</code></td><td><code>DateTime?</code></td><td><span class="tag null">NULL</span></td><td>운영자 확인 시각</td></tr><tr><td><code>closedAt</code></td><td><code>DateTime?</code></td><td><span class="tag null">NULL</span></td><td>개설자가 닫음 (소프트 삭제)</td></tr><tr><td><code>createdAt</code></td><td><code>DateTime</code></td><td><span class="tag nn">NOT <span class="tag null">NULL</span></span></td><td>개설 일시</td></tr><tr><td><code>updatedAt</code></td><td><code>DateTime</code></td><td><span class="tag nn">NOT <span class="tag null">NULL</span></span></td><td>최종 수정 일시</td></tr></tbody></table></div>
+<p><strong>관계 필드</strong> (물리 컬럼 아님 — Prisma가 FK를 통해 연결해 보여주는 뷰. 제약조건은 위 표의 FK 스칼라 컬럼 참고)</p>
+<div class="table-container"><table><thead><tr><th>필드</th><th>대상 모델</th><th>설명</th></tr></thead><tbody><tr><td><code>createdByUser</code></td><td><code>User</code></td><td></td></tr><tr><td><code>tributes</code></td><td><code>MemorialTribute[]</code></td><td>헌화 목록</td></tr><tr><td><code>guestbook</code></td><td><code>MemorialGuestbook[]</code></td><td>방명록 목록</td></tr><tr><td><code>photos</code></td><td><code>MemorialPhoto[]</code></td><td>사진 앨범</td></tr></tbody></table></div>
+<p><strong>복합 제약조건 / 인덱스 원문</strong> (위 표의 UNIQUE(복합) 태그가 정확히 어떤 컬럼 조합인지 여기서 확인)</p>
+<ul><li><code>@@index([createdByUserId])</code></li></ul>
+<ul><li><code>@@index([visibility])</code></li></ul>
+</div>
+<div class="model-card" id="model-MemorialTribute">
+        <div class="model-card-header">
+          <h3 class="model-title">📦 MemorialTribute</h3>
+          <a href="#toc-top" class="back-to-top">↑ 목차로 이동</a>
+        </div>
+<blockquote class="info-quote">헌화(§4.4) — 비회원 허용, 로그인 사용자는 1인 1회 보장. IP는 원문 저장 금지, 해시만(§9.1-6).</blockquote>
+<p class="meta-info">💡 <strong>최초 생성</strong>: 2026-08-12 (`20260812050713_digital_estate_memorial_infra`) · <strong>최근 수정</strong>: 2026-08-12 (`20260812050713_digital_estate_memorial_infra`)</p>
+<div class="table-container"><table><thead><tr><th>컬럼</th><th>타입</th><th>제약조건</th><th>설명</th></tr></thead><tbody><tr><td><code>id</code></td><td><code>String</code></td><td><span class="tag pk">PK</span>, <span class="tag nn">NOT <span class="tag null">NULL</span></span></td><td>고유 식별자(UUID)</td></tr><tr><td><code>memorialId</code></td><td><code>String</code></td><td><span class="tag fk">FK → Memorial.id</span>, <span class="tag uk">UNIQUE</span>(복합), <span class="tag nn">NOT <span class="tag null">NULL</span></span></td><td>헌화 대상 추모관</td></tr><tr><td><code>userId</code></td><td><code>String?</code></td><td><span class="tag fk">FK → User.id</span>, <span class="tag uk">UNIQUE</span>(복합), <span class="tag null">NULL</span></td><td><span class="tag fk">FK → User</span> (비회원이면 null)</td></tr><tr><td><code>visitorHash</code></td><td><code>String</code></td><td><span class="tag nn">NOT <span class="tag null">NULL</span></span></td><td>비회원 중복 억제용 해시(브라우저 토큰+IP 조합) — IP 원문 저장 금지(§4.4)</td></tr><tr><td><code>createdAt</code></td><td><code>DateTime</code></td><td><span class="tag nn">NOT <span class="tag null">NULL</span></span></td><td>헌화 일시</td></tr></tbody></table></div>
+<p><strong>관계 필드</strong> (물리 컬럼 아님 — Prisma가 FK를 통해 연결해 보여주는 뷰. 제약조건은 위 표의 FK 스칼라 컬럼 참고)</p>
+<div class="table-container"><table><thead><tr><th>필드</th><th>대상 모델</th><th>설명</th></tr></thead><tbody><tr><td><code>memorial</code></td><td><code>Memorial</code></td><td></td></tr><tr><td><code>user</code></td><td><code>User?</code></td><td></td></tr></tbody></table></div>
+<p><strong>복합 제약조건 / 인덱스 원문</strong> (위 표의 UNIQUE(복합) 태그가 정확히 어떤 컬럼 조합인지 여기서 확인)</p>
+<ul><li><code>@@unique([memorialId, userId])</code> — 로그인 사용자 1인 1회 보장 (userId=null인 비회원 행은 유니크 제약 미적용)</li></ul>
+</div>
+<div class="model-card" id="model-MemorialGuestbook">
+        <div class="model-card-header">
+          <h3 class="model-title">📦 MemorialGuestbook</h3>
+          <a href="#toc-top" class="back-to-top">↑ 목차로 이동</a>
+        </div>
+<blockquote class="info-quote">방명록(§4.5) — 비회원 작성 허용, 작성자명은 스냅샷(01-05 §4.4 원칙 승계, §5.5).</blockquote>
+<p class="meta-info">💡 <strong>최초 생성</strong>: 2026-08-12 (`20260812050713_digital_estate_memorial_infra`) · <strong>최근 수정</strong>: 2026-08-12 (`20260812050713_digital_estate_memorial_infra`)</p>
+<div class="table-container"><table><thead><tr><th>컬럼</th><th>타입</th><th>제약조건</th><th>설명</th></tr></thead><tbody><tr><td><code>id</code></td><td><code>String</code></td><td><span class="tag pk">PK</span>, <span class="tag nn">NOT <span class="tag null">NULL</span></span></td><td>고유 식별자(UUID)</td></tr><tr><td><code>memorialId</code></td><td><code>String</code></td><td><span class="tag fk">FK → Memorial.id</span>, <span class="tag nn">NOT <span class="tag null">NULL</span></span></td><td>방명록 대상 추모관</td></tr><tr><td><code>userId</code></td><td><code>String?</code></td><td><span class="tag fk">FK → User.id</span>, <span class="tag null">NULL</span></td><td><span class="tag fk">FK → User</span> (비회원이면 null)</td></tr><tr><td><code>authorName</code></td><td><code>String</code></td><td><span class="tag nn">NOT <span class="tag null">NULL</span></span></td><td>작성자명 스냅샷</td></tr><tr><td><code>relationToDeceased</code></td><td><code>String?</code></td><td><span class="tag null">NULL</span></td><td>고인과의 관계 (예: &#039;친구&#039;)</td></tr><tr><td><code>message</code></td><td><code>String</code></td><td><span class="tag nn">NOT <span class="tag null">NULL</span></span></td><td>본문</td></tr><tr><td><code>deletedByOwnerAt</code></td><td><code>DateTime?</code></td><td><span class="tag null">NULL</span></td><td>상주가 삭제(§4.5) — 소프트 삭제</td></tr><tr><td><code>hiddenAt</code></td><td><code>DateTime?</code></td><td><span class="tag null">NULL</span></td><td>운영자 강제 비공개 — 소프트 삭제로 원문 보존</td></tr><tr><td><code>createdAt</code></td><td><code>DateTime</code></td><td><span class="tag nn">NOT <span class="tag null">NULL</span></span></td><td>작성 일시</td></tr></tbody></table></div>
+<p><strong>관계 필드</strong> (물리 컬럼 아님 — Prisma가 FK를 통해 연결해 보여주는 뷰. 제약조건은 위 표의 FK 스칼라 컬럼 참고)</p>
+<div class="table-container"><table><thead><tr><th>필드</th><th>대상 모델</th><th>설명</th></tr></thead><tbody><tr><td><code>memorial</code></td><td><code>Memorial</code></td><td></td></tr><tr><td><code>user</code></td><td><code>User?</code></td><td></td></tr></tbody></table></div>
+<p><strong>복합 제약조건 / 인덱스 원문</strong> (위 표의 UNIQUE(복합) 태그가 정확히 어떤 컬럼 조합인지 여기서 확인)</p>
+<ul><li><code>@@index([memorialId, createdAt])</code></li></ul>
+</div>
+<div class="model-card" id="model-MemorialPhoto">
+        <div class="model-card-header">
+          <h3 class="model-title">📦 MemorialPhoto</h3>
+          <a href="#toc-top" class="back-to-top">↑ 목차로 이동</a>
+        </div>
+<blockquote class="info-quote">추모 사진(§4.6) — 업로드는 구현하되 실서비스 오픈은 오브젝트 스토리지 전환 이후로 묶는다 (systems.md §5, §9.1-7). 업로드 상한 등 수치는 policy.ts에 둔다(01-05 §12).</blockquote>
+<p class="meta-info">💡 <strong>최초 생성</strong>: 2026-08-12 (`20260812050713_digital_estate_memorial_infra`) · <strong>최근 수정</strong>: 2026-08-12 (`20260812050713_digital_estate_memorial_infra`)</p>
+<div class="table-container"><table><thead><tr><th>컬럼</th><th>타입</th><th>제약조건</th><th>설명</th></tr></thead><tbody><tr><td><code>id</code></td><td><code>String</code></td><td><span class="tag pk">PK</span>, <span class="tag nn">NOT <span class="tag null">NULL</span></span></td><td>고유 식별자(UUID)</td></tr><tr><td><code>memorialId</code></td><td><code>String</code></td><td><span class="tag fk">FK → Memorial.id</span>, <span class="tag nn">NOT <span class="tag null">NULL</span></span></td><td>사진이 속한 추모관</td></tr><tr><td><code>uploadedByUserId</code></td><td><code>String</code></td><td><span class="tag fk">FK → User.id</span>, <span class="tag nn">NOT <span class="tag null">NULL</span></span></td><td><span class="tag fk">FK → User</span> — 업로드 권한은 개설자로 제한(초기)</td></tr><tr><td><code>url</code></td><td><code>String</code></td><td><span class="tag nn">NOT <span class="tag null">NULL</span></span></td><td>이미지 URL</td></tr><tr><td><code>title</code></td><td><code>String</code></td><td><span class="tag nn">NOT <span class="tag null">NULL</span></span></td><td>사진 제목</td></tr><tr><td><code>sortOrder</code></td><td><code>Int</code></td><td><span class="tag nn">NOT <span class="tag null">NULL</span></span></td><td>대표 사진은 sortOrder 최소값 (Facility.images[0] 규칙과 동일 사상)</td></tr><tr><td><code>createdAt</code></td><td><code>DateTime</code></td><td><span class="tag nn">NOT <span class="tag null">NULL</span></span></td><td>등록 일시</td></tr></tbody></table></div>
+<p><strong>관계 필드</strong> (물리 컬럼 아님 — Prisma가 FK를 통해 연결해 보여주는 뷰. 제약조건은 위 표의 FK 스칼라 컬럼 참고)</p>
+<div class="table-container"><table><thead><tr><th>필드</th><th>대상 모델</th><th>설명</th></tr></thead><tbody><tr><td><code>memorial</code></td><td><code>Memorial</code></td><td></td></tr><tr><td><code>uploadedByUser</code></td><td><code>User</code></td><td></td></tr></tbody></table></div>
+<p><strong>복합 제약조건 / 인덱스 원문</strong> (위 표의 UNIQUE(복합) 태그가 정확히 어떤 컬럼 조합인지 여기서 확인)</p>
+<ul><li><code>@@index([memorialId, sortOrder])</code></li></ul>
 </div>
 <div class="model-card" id="model-Admin">
         <div class="model-card-header">

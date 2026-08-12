@@ -121,3 +121,49 @@ export const getMe = async (req: Request, res: Response) => {
     return res.status(500).json({ status: 'error', message: '정보 조회 중 오류가 발생했습니다.' });
   }
 };
+
+// 회원(B2C User) 상세 (`GET /api/admin/users/:id`) — 03 도메인 데이터 조인 표시(docs 03-02 §6.4).
+// `03-01` §2가 요구했던 "회원 클릭 시 관련 도메인 데이터 확인"의 실제 구현. 05 도메인(엔딩노트)은
+// 열람 범위가 미확정(`05-01` §3)이라 여기 포함하지 않는다 — 이 문서의 결정을 05에 유추 적용하지 말 것.
+export const getUserDetailForAdmin = async (req: Request, res: Response) => {
+  const decoded = verifyAdminBearerToken(req);
+  if (!decoded) {
+    return res.status(401).json({ status: 'error', message: '인증 토큰이 없거나 유효하지 않습니다.' });
+  }
+
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: req.params.id },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        createdAt: true,
+        digitalCleanupItems: {
+          select: {
+            id: true,
+            status: true,
+            customName: true,
+            createdAt: true,
+            platform: { select: { id: true, name: true, category: true } },
+          },
+          orderBy: { createdAt: 'desc' },
+        },
+        memorials: {
+          select: { id: true, slug: true, deceasedName: true, visibility: true, closedAt: true, createdAt: true },
+          orderBy: { createdAt: 'desc' },
+        },
+        _count: { select: { memorialGuestbooks: true } },
+      },
+    });
+    if (!user) {
+      return res.status(404).json({ status: 'error', message: '회원을 찾을 수 없습니다.' });
+    }
+
+    const { _count, ...rest } = user;
+    return res.json({ status: 'success', data: { ...rest, guestbookCount: _count.memorialGuestbooks } });
+  } catch (error) {
+    console.error('회원 상세 조회 실패:', error);
+    return res.status(500).json({ status: 'error', message: '회원 상세 조회 중 오류가 발생했습니다.' });
+  }
+};
