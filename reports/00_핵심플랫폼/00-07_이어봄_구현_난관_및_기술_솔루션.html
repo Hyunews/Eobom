@@ -1,196 +1,239 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>K-Ending 핵심 구현 난관 및 극복 솔루션 분석 보고서</title>
-    <link rel="stylesheet" href="style.css">
-    <!-- Mermaid.js 동적 다이어그램 라이브러리 -->
-    <script type="module">
-        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
-        mermaid.initialize({
-            startOnLoad: true,
-            theme: 'base',
-            themeVariables: {
-                primaryColor: '#1A2B4C',
-                primaryTextColor: '#FFFFFF',
-                primaryBorderColor: '#1A2B4C',
-                lineColor: '#4E7055',
-                secondaryColor: '#EAE5DC',
-                tertiaryColor: '#F7F4EF'
-            }
-        });
-    </script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🛠️ 08. 구현 난관 및 기술 솔루션 (Technical Solutions) - 이어봄 기획 명세서</title>
+  <style>
+    :root {
+      --primary: #1A2B4C;
+      --secondary: #5B7065;
+      --accent: #D4A359;
+      --bg: #FBF9F5;
+      --surface: #FFFFFF;
+      --text: #1E293B;
+      --text-muted: #64748B;
+      --border: #E2E8F0;
+      --code-bg: #0F172A;
+      --code-text: #F8FAFC;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.65;
+      padding: 2rem 1rem;
+    }
+    .container {
+      max-width: 1140px;
+      margin: 0 auto;
+      background-color: var(--surface);
+      padding: 3rem;
+      border-radius: 24px;
+      box-shadow: 0 20px 40px rgba(26, 43, 76, 0.08);
+      border: 1px solid var(--border);
+    }
+    .header {
+      border-bottom: 3px solid var(--accent);
+      padding-bottom: 1.5rem;
+      margin-bottom: 2.5rem;
+    }
+    .badge {
+      display: inline-block;
+      background-color: var(--primary);
+      color: #FFF;
+      font-size: 0.85rem;
+      font-weight: 700;
+      padding: 0.3rem 0.8rem;
+      border-radius: 20px;
+      margin-bottom: 0.8rem;
+    }
+    h1 {
+      font-size: 2.1rem;
+      color: var(--primary);
+      margin-bottom: 0.5rem;
+      font-weight: 800;
+    }
+    .subtitle {
+      color: var(--text-muted);
+      font-size: 1.05rem;
+    }
+    .section-title {
+      font-size: 1.5rem;
+      color: var(--primary);
+      margin: 2.5rem 0 1.2rem 0;
+      padding-left: 0.8rem;
+      border-left: 5px solid var(--secondary);
+      font-weight: 700;
+    }
+    .subsection-title {
+      font-size: 1.25rem;
+      color: var(--primary);
+      margin: 1.8rem 0 0.8rem 0;
+      font-weight: 700;
+    }
+    .h4-title {
+      font-size: 1.05rem;
+      color: var(--secondary);
+      margin: 1.2rem 0 0.6rem 0;
+      font-weight: 700;
+    }
+    .info-quote {
+      background: #F1F5F9;
+      border-left: 4px solid var(--accent);
+      padding: 0.9rem 1.2rem;
+      margin: 1rem 0;
+      border-radius: 6px;
+      font-size: 0.95rem;
+      color: #334155;
+    }
+    code {
+      background: #EFF6FF;
+      color: #1D4ED8;
+      padding: 0.15rem 0.4rem;
+      border-radius: 6px;
+      font-family: 'Fira Code', Consolas, monospace;
+      font-size: 0.88rem;
+    }
+    pre {
+      background: var(--code-bg);
+      color: var(--code-text);
+      padding: 1.2rem;
+      border-radius: 12px;
+      overflow-x: auto;
+      margin: 1rem 0 1.5rem 0;
+      font-family: 'Fira Code', Consolas, monospace;
+      font-size: 0.9rem;
+    }
+    pre code {
+      background: transparent;
+      color: inherit;
+      padding: 0;
+    }
+    .table-container {
+      overflow-x: auto;
+      margin: 1.2rem 0 1.8rem 0;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.92rem;
+      background: #FFFFFF;
+    }
+    th {
+      background-color: var(--primary);
+      color: #FFFFFF;
+      padding: 0.8rem 1rem;
+      text-align: left;
+      font-weight: 600;
+    }
+    td {
+      padding: 0.8rem 1rem;
+      border-bottom: 1px solid var(--border);
+      color: #334155;
+    }
+    tr:last-child td {
+      border-bottom: none;
+    }
+    tr:nth-child(even) {
+      background-color: #F8FAFC;
+    }
+    .tag {
+      display: inline-block;
+      padding: 0.15rem 0.45rem;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 700;
+    }
+    .tag.green { background-color: #DCFCE7; color: #166534; }
+    .tag.gray { background-color: #F1F5F9; color: #475569; }
+    .tag.orange { background-color: #FFEDD5; color: #9A3412; }
+    .tag.pk { background-color: #FEE2E2; color: #991B1B; }
+    .tag.fk { background-color: #DBEAFE; color: #1E40AF; }
+    .tag.uk { background-color: #DCFCE7; color: #166534; }
+    p { margin-bottom: 0.9rem; color: #334155; }
+    ul, ol { margin-bottom: 1rem; padding-left: 1.4rem; color: #334155; }
+    li { margin-bottom: 0.4rem; }
+    .divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 2.5rem 0;
+    }
+    .nav-bar {
+      margin-bottom: 2rem;
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+    }
+    .nav-link {
+      color: var(--primary);
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+    .nav-link:hover {
+      color: var(--accent);
+    }
+  </style>
 </head>
 <body>
-
-    <!-- 네비게이션 바 -->
-    <nav class="navbar">
-        <a href="index.html" class="navbar-brand">
-            🌿 <span>이어봄</span> 토탈 케어
-        </a>
-                <ul class="navbar-nav" style="flex-wrap: wrap; gap: 0.5rem;">
-            <li><a href="index.html">서비스 개요</a></li>
-            <li><a href="이어봄_세부_프로젝트_기획서.html">세부 프로젝트 기획서</a></li>
-            <li><a href="이어봄_DB_요구사항_및_테이블_명세서.html">DB 요구사항 & 테이블 명세</a></li>
-            <li><a href="이어봄_화면_설계서_및_와이어프레임.html">화면 설계서 & 와이어프레임</a></li>
-            <li><a href="이어봄_시스템_아키텍처.html">시스템 아키텍처</a></li>
-            <li><a href="이어봄_시스템_흐름도.html">시스템 흐름도</a></li>
-            <li><a href="이어봄_기능_및_API_명세서.html">기능 및 API 명세</a></li>
-            <li><a href="이어봄_데이터베이스_구축_기획.html">DB 구축 기획</a></li>
-            <li><a href="이어봄_구현_난관_및_솔루션.html" class="active">구현 난관 & 솔루션</a></li>
-        </ul>
-    </nav>
-
-    <div class="container">
-        <!-- Hero Section -->
-        <header class="hero">
-            <h1>핵심 구현 난관 및 극복 솔루션 분석 보고서</h1>
-            <p>기획서 4번(디지털 엔딩노트) 및 5번(상중 케어 & 행정 가이드) 구현 시 직면할 법적·기술적·운영적 허들과 실무적인 극복 방안</p>
-        </header>
-
-        <!-- 5대 핵심 난관 카드 분석 -->
-        <h2 style="margin-bottom: 1.5rem; color: var(--primary-color);">🚧 5대 핵심 기술/법적/UX 난관 및 극복 솔루션</h2>
-        <div class="grid">
-            
-            <!-- 난관 1: 사망 여부 감지 -->
-            <div class="card" style="border-top: 5px solid #D9534F;">
-                <div class="card-title" style="color: #D9534F;">1. [핵심] 사망 여부 감지 및 사후 발송 트리거 한계</div>
-                <div class="card-content">
-                    <p style="font-weight: 600; color: var(--primary-color);">⚠️ 문제점 (Challenge):</p>
-                    <p style="font-size: 0.95rem; margin-bottom: 0.75rem;">
-                        민간 플랫폼이 정부 주민등록 사망 전산망에 직접 실시간으로 접근하는 것은 불가능하여 고인의 사망 여부를 자동 감지할 수 없음.
-                    </p>
-                    <p style="font-weight: 600; color: var(--point-color);">💡 극복 솔루션 (Solution):</p>
-                    <p style="font-size: 0.95rem;">
-                        <strong>2단계 검증(Multi-Sig) 워크플로우</strong>: 유족의 사망진단서 OCR 업로드 및 2인 이상 지정 수신인 승인 시 24시간 카운트다운 후 유언 메시지 사후 발송.
-                    </p>
-                </div>
-            </div>
-
-            <!-- 난관 2: 법적 효력 한계 -->
-            <div class="card" style="border-top: 5px solid #F0AD4E;">
-                <div class="card-title" style="color: #B47318;">2. [법적] 디지털 유언장의 민법상 법적 효력 부재</div>
-                <div class="card-content">
-                    <p style="font-weight: 600; color: var(--primary-color);">⚠️ 문제점 (Challenge):</p>
-                    <p style="font-size: 0.95rem; margin-bottom: 0.75rem;">
-                        민법 제1065조에 따른 유언의 법정 방식(자필, 공증 등)을 충족하지 않으면 서비스 내 작성한 디지털 유언장이 법적 재산 상속 효력을 갖지 못함.
-                    </p>
-                    <p style="font-weight: 600; color: var(--point-color);">💡 극복 솔루션 (Solution):</p>
-                    <p style="font-size: 0.95rem;">
-                        엔딩노트는 <strong>'감성 유언 및 가족 메시지'</strong>로 명확히 마케팅하며, 재산 상속은 플랫폼 내 <strong>1:1 공증 변호사 매칭</strong>으로 연계.
-                    </p>
-                </div>
-            </div>
-
-            <!-- 난관 3: AES-256 개인금고 키 분실 -->
-            <div class="card" style="border-top: 5px solid var(--primary-color);">
-                <div class="card-title">3. [기술] AES-256 개인 금고 키 분실 시 영구 복구 불가</div>
-                <div class="card-content">
-                    <p style="font-weight: 600; color: var(--primary-color);">⚠️ 문제점 (Challenge):</p>
-                    <p style="font-size: 0.95rem; margin-bottom: 0.75rem;">
-                        본인 암호화 키로 AES-256 완벽 암호화 시, 고인이 비밀번호를 잊거나 유족에게 전달 못 하면 영구적으로 해독 불가.
-                    </p>
-                    <p style="font-weight: 600; color: var(--point-color);">💡 극복 솔루션 (Solution):</p>
-                    <p style="font-size: 0.95rem;">
-                        <strong>샤미르 비밀 분할(Shamir's Secret Sharing)</strong> 또는 키-위탁(Key Escrow) 방식을 적용하여 사후 유족 합의 시 분산 키로 복구.
-                    </p>
-                </div>
-            </div>
-
-            <!-- 난관 4: 정부24 연계 한계 -->
-            <div class="card" style="border-top: 5px solid var(--primary-light);">
-                <div class="card-title" style="color: var(--primary-light);">4. [연동] 정부24 안심상속 Direct Open API 미개방</div>
-                <div class="card-content">
-                    <p style="font-weight: 600; color: var(--primary-color);">⚠️ 문제점 (Challenge):</p>
-                    <p style="font-size: 0.95rem; margin-bottom: 0.75rem;">
-                        정부24 및 금융감독원 서비스는 민간 3자 플랫폼에 실시간 Direct API 연동을 개방하지 않는 경우가 많음.
-                    </p>
-                    <p style="font-weight: 600; color: var(--point-color);">💡 극복 솔루션 (Solution):</p>
-                    <p style="font-size: 0.95rem;">
-                        사망일 기준 <strong>D-Day 자동 타임라인 캘린더</strong>를 생성하고, 해당 공공 서비스 <strong>Deep Link + 인터랙티브 가이드</strong> 형태로 제공.
-                    </p>
-                </div>
-            </div>
-
-            <!-- 난관 5: 상중 유족 UX -->
-            <div class="card" style="border-top: 5px solid var(--point-color); grid-column: span 2;">
-                <div class="card-title" style="color: var(--point-color);">5. [UX/운영] 상중(喪中) 유족의 극심한 심리적 혼란 및 복잡 입력 거부감</div>
-                <div class="card-content">
-                    <p style="font-weight: 600; color: var(--primary-color);">⚠️ 문제점 (Challenge):</p>
-                    <p style="font-size: 0.95rem; margin-bottom: 0.75rem;">
-                        임종 직후 유족은 정신적 충격과 경황이 없어 웹 서비스의 복잡한 절차나 서류 등록을 처리할 여력이 없음.
-                    </p>
-                    <p style="font-weight: 600; color: var(--point-color);">💡 극복 솔루션 (Solution):</p>
-                    <p style="font-size: 0.95rem;">
-                        입력을 <strong>"사망일" 1개로 최소화</strong>하고, 이후 단계는 **카카오 알림톡 푸시(Push)**를 통해 D-Day 시점별(D+1일 장례, D+14일 사망신고, D+30일 안심상속) 1-Click 숏컷 가이드로 자동 발송.
-                    </p>
-                </div>
-            </div>
-        </div>
-
-        <!-- 2단계 사후 검증 프로세스 다이어그램 -->
-        <h2 style="margin-top: 3rem; margin-bottom: 1.5rem; color: var(--primary-color);">🔄 2단계 유족 검증(Multi-Sig) 사후 발송 프로세스</h2>
-        <div class="flow-container" style="display: flex; justify-content: center; overflow-x: auto;">
-            <div class="mermaid" style="width: 100%; min-width: 600px;">
-                sequenceDiagram
-                    autonumber
-                    actor User as 6070 시니어 (생전)
-                    actor Mourner as 유족/상주 (사후)
-                    participant System as K-Ending 플랫폼
-                    actor Recipient as 지정 수신 자녀
-
-                    User->>System: 디지털 엔딩노트 & 유언 메시지 암호화 저장
-                    Note over User,System: 생전 엔딩노트 AES-256 암호화 보관
-                    Mourner->>System: 임종 후 사망진단서 OCR 업로드 & 사후 발송 요청
-                    System->>Recipient: 사후 발송 승인 요청 알림톡 전송
-                    Recipient->>System: 지정 수신인 2인 이상 승인 (Multi-Sig)
-                    System->>System: 24시간 카운트다운 디스패치 실행
-                    System-->>Recipient: 사후 유언 메시지 및 보안 금고 열람 키 발송
-            </div>
-        </div>
-
-        <!-- 스펙 vs 난관 vs 솔루션 대조표 -->
-        <h2 style="margin-top: 3rem; margin-bottom: 1.5rem; color: var(--primary-color);">📋 기획서 스펙 vs 난관 vs 현명한 솔루션 비교표</h2>
-        <div style="overflow-x: auto;">
-            <table>
-                <thead>
-                    <tr>
-                        <th style="width: 20%;">PDF 기획서 스펙</th>
-                        <th style="width: 40%;">실제 구현 시 난관 (Challenge)</th>
-                        <th style="width: 40%;">추천하는 현명한 구현 솔루션</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td style="font-weight: 700; color: var(--primary-color);">4.2 비밀번호/자산 보관함</td>
-                        <td>AES-256 완벽 암호화 시 본인 비밀번호 분실 시 영구 복구 불가</td>
-                        <td>샤미르 비밀 분할(Shamir's Secret Sharing) 기반 분산 복구 키 관리</td>
-                    </tr>
-                    <tr>
-                        <td style="font-weight: 700; color: var(--primary-color);">4.3 사후 지정 발송</td>
-                        <td>민간 플랫폼이 정부 사망망에 접속 불가하여 사망 자동 트리거 불가</td>
-                        <td>사망진단서 OCR 검증 + 유족 2인 이상 승인(Multi-Sig) 트리거</td>
-                    </tr>
-                    <tr>
-                        <td style="font-weight: 700; color: var(--primary-color);">5.1 행정절차 타임라인</td>
-                        <td>정부24 및 금융 안심상속 Direct Open API 미개방</td>
-                        <td>사망일 기준 D-Day 자동 캘린더 생성 + 정부24 Deep Link 제공</td>
-                    </tr>
-                    <tr>
-                        <td style="font-weight: 700; color: var(--primary-color);">5.2 모바일 부고장</td>
-                        <td>카카오톡 공유 시 동적 프리뷰 서식 제한</td>
-                        <td>Puppeteer / Canvas 기반 서버사이드 동적 OG 이미지 실시간 생성</td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
+  <div class="container">
+    <div class="nav-bar">
+      <a href="../index.html" class="nav-link">← 보고서 메인 포털로 돌아가기</a>
     </div>
+    <div class="header">
+      <span class="badge">SSOT 정본 동기화 완료</span>
+      <h1>🛠️ 08. 구현 난관 및 기술 솔루션 (Technical Solutions)</h1>
+      
+    </div>
+    <h1>🛠️ 08. 구현 난관 및 기술 솔루션 (Technical Solutions)</h1>
+<blockquote class="info-quote"><strong>문서 목적</strong>: 개발 과정에서 발생하는 주요 난제(소셜 계정 중복, LBS 사업자 신고 장벽, 로컬 HTTPS/Geolocation 제한, 256-bit AES 암호화 금고 등)와 그에 대한 해법을 기술합니다.</blockquote>
+<hr class="divider"/>
+<h2 class="section-title">💡 주요 기술 난제 및 솔루션</h2>
+<h3 class="subsection-title">1. 소셜 로그인 이메일 중복 시 유니크 제약 충돌</h3>
+<ul><li><strong>문제</strong>: 동일 이메일로 다른 소셜 계정(카카오/네이버/구글) 가입 시 DB 이메일 유니크 제약 조건 충돌 발생.</li></ul>
+<ul><li><strong>해법</strong>: <code>CREATE_NEW</code> 선택 시 <code>User.email</code>을 <code>null</code>로 처리하고 <code>SocialAccount.email</code>에 개별 보존하여 1인 N개 소셜계정 독립 연동 구조 구현.</li></ul>
+<h3 class="subsection-title">2. 정부 공공 API 신청 시 &#039;LBS 사업자 신고&#039; 장벽</h3>
+<ul><li><strong>문제</strong>: e하늘 장례정보 API 이용 시 위치기반서비스(LBS) 사업자 신고(방통위) 필요 및 세부 단가 데이터 결여.</li></ul>
+<ul><li><strong>해법</strong>: 행정 절차 대신 <strong>카카오 로컬 REST API (<code>query=장례식장</code>) + 보건복지부 CSV 파싱 시딩</strong> 기법으로 LBS 신고 없이 전국 1,500개 이상 시설 실데이터 100% 확보.</li></ul>
+<h3 class="subsection-title">3. PostgreSQL 포트 충돌 (기본 5432 포트)</h3>
+<ul><li><strong>문제</strong>: 개발자 로컬 PC의 타 프로젝트 PostgreSQL(5432 포트)과 포트 충돌 발생.</li></ul>
+<ul><li><strong>해법</strong>: Docker 컨테이너 호스트 포트를 <code>5433</code>으로 우회 매핑(<code>5433:5432</code>)하여 타 서비스와의 충돌을 완전 예방.</li></ul>
+<h3 class="subsection-title">4. 로컬 IP 테스트 시 Geolocation API 보안 컨텍스트(Secure Context) 제한 🌟 (신규)</h3>
+<ul><li><strong>문제</strong>: </li></ul>
+<p>  * 브라우저의 Geolocation API(<code>navigator.geolocation</code>)는 보안 정책상 <strong>보안 컨텍스트(<code>https://</code> 또는 <code>localhost</code>)</strong>에서만 동작함.</p>
+<p>  * 개발 중 사설 LAN IP(<code>http://192.168.x.x:5173</code>)로 접속하면 <code>http://</code>로 판정되어 위치 자동 감지가 항상 실패하고 하드코딩 폴백(서울 서초 좌표)으로 무조건 떨어지는 문제 발생.</p>
+<ul><li><strong>대안 검토 결과</strong>:</li></ul>
+<p>  * <code>Certbot</code>: Let&#039;s Encrypt는 공인 도메인 전용으로 사설 IP/localhost 발급 불가.</p>
+<p>  * <code>OpenSSL 자체 서명</code>: 브라우저 레드 스크린 경고 발생 및 최신 크롬 SAN(Subject Alternative Name) 설정 작성 까다로움.</p>
+<p>  * <code>Cloudflare Tunnel</code>: 테스트 범위를 넘어 진짜 인터넷에 개발 서버가 노출되는 위험 존재.</p>
+<ul><li><strong>해법 (<code>mkcert</code> 도입 및 구축)</strong>:</li></ul>
+<p>  * 로컬 전용 CA(인증기관) 래퍼 도구인 <strong><code>mkcert</code></strong>를 채택하여 신뢰할 수 있는 개발용 SSL/TLS 인증서 자동 발급 및 적용.</p>
+<hr class="divider"/>
+<h2 class="section-title">🔒 [부록] `mkcert` 기반 로컬 HTTPS 구축 및 가이드</h2>
+<h3 class="subsection-title">1) `mkcert` 설치 및 로컬 CA 등록 (윈도우)</h3>
+<pre><code># Chocolatey 사용 시
+choco install mkcert
 
-    <!-- 1-Touch 긴급 상담 플로팅 버튼 -->
-    <a href="tel:119" class="floating-call" onclick="alert('긴급 장례 지원 서비스로 전화를 연결합니다. (24시간 디스패치)'); return false;">
-        🚨 긴급 상담
-    </a>
+# Scoop 사용 시
+scoop install mkcert
 
+# 윈도우 신뢰 인증서 저장소에 로컬 CA 등록
+mkcert -install</code></pre>
+<h3 class="subsection-title">2) 인증서 발급 (`eobom/` 디렉토리)</h3>
+<pre><code># localhost, 127.0.0.1 및 내부 사설 IP용 인증서 통합 발급
+mkcert localhost 127.0.0.1 192.168.0.111
+# 생성 파일: localhost+2.pem (인증서), localhost+2-key.pem (개인키)</code></pre>
+<h3 class="subsection-title">3) 프론트엔드/백엔드 SSL 적용</h3>
+<ul><li><strong>Vite ([<code>vite.config.ts</code>](../../eobom/frontend/vite.config.ts))</strong>: <code>https: { key: fs.readFileSync(...), cert: fs.readFileSync(...) }</code> 세팅.</li></ul>
+<ul><li><strong>Express ([<code>server.ts</code>](../../eobom/backend/src/server.ts))</strong>: <code>https.createServer({ key, cert }, app)</code>을 통해 5000번 포트를 HTTPS로 구동.</li></ul>
+<h3 class="subsection-title">4) 복원 (Uninstall)</h3>
+<p>테스트 완료 후 언제든 원복 가능:</p>
+<pre><code>mkcert -uninstall</code></pre>
+
+  </div>
 </body>
 </html>

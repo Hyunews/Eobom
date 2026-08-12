@@ -3,92 +3,249 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>⚖️ 12. 공공데이터 및 API 상업적 이용 & 위치정보법 2단계 법률 검토서 - 이어봄</title>
-  <link rel="stylesheet" href="../../style.css">
+  <title>⚖️ 12. 공공데이터(e하늘) 및 지도 API 상업적 이용 &amp; 위치정보법 2단계 법률 검토서 - 이어봄 기획 명세서</title>
   <style>
-    .law-card { background: #f1f5f9; border-left: 5px solid #3b82f6; padding: 20px; border-radius: 4px; margin-bottom: 20px; }
-    .badge-approved { background: #10B981; color: white; padding: 4px 8px; border-radius: 4px; font-weight: bold; }
-    .badge-conditional { background: #F59E0B; color: white; padding: 4px 8px; border-radius: 4px; font-weight: bold; }
+    :root {
+      --primary: #1A2B4C;
+      --secondary: #5B7065;
+      --accent: #D4A359;
+      --bg: #FBF9F5;
+      --surface: #FFFFFF;
+      --text: #1E293B;
+      --text-muted: #64748B;
+      --border: #E2E8F0;
+      --code-bg: #0F172A;
+      --code-text: #F8FAFC;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.65;
+      padding: 2rem 1rem;
+    }
+    .container {
+      max-width: 1140px;
+      margin: 0 auto;
+      background-color: var(--surface);
+      padding: 3rem;
+      border-radius: 24px;
+      box-shadow: 0 20px 40px rgba(26, 43, 76, 0.08);
+      border: 1px solid var(--border);
+    }
+    .header {
+      border-bottom: 3px solid var(--accent);
+      padding-bottom: 1.5rem;
+      margin-bottom: 2.5rem;
+    }
+    .badge {
+      display: inline-block;
+      background-color: var(--primary);
+      color: #FFF;
+      font-size: 0.85rem;
+      font-weight: 700;
+      padding: 0.3rem 0.8rem;
+      border-radius: 20px;
+      margin-bottom: 0.8rem;
+    }
+    h1 {
+      font-size: 2.1rem;
+      color: var(--primary);
+      margin-bottom: 0.5rem;
+      font-weight: 800;
+    }
+    .subtitle {
+      color: var(--text-muted);
+      font-size: 1.05rem;
+    }
+    .section-title {
+      font-size: 1.5rem;
+      color: var(--primary);
+      margin: 2.5rem 0 1.2rem 0;
+      padding-left: 0.8rem;
+      border-left: 5px solid var(--secondary);
+      font-weight: 700;
+    }
+    .subsection-title {
+      font-size: 1.25rem;
+      color: var(--primary);
+      margin: 1.8rem 0 0.8rem 0;
+      font-weight: 700;
+    }
+    .h4-title {
+      font-size: 1.05rem;
+      color: var(--secondary);
+      margin: 1.2rem 0 0.6rem 0;
+      font-weight: 700;
+    }
+    .info-quote {
+      background: #F1F5F9;
+      border-left: 4px solid var(--accent);
+      padding: 0.9rem 1.2rem;
+      margin: 1rem 0;
+      border-radius: 6px;
+      font-size: 0.95rem;
+      color: #334155;
+    }
+    code {
+      background: #EFF6FF;
+      color: #1D4ED8;
+      padding: 0.15rem 0.4rem;
+      border-radius: 6px;
+      font-family: 'Fira Code', Consolas, monospace;
+      font-size: 0.88rem;
+    }
+    pre {
+      background: var(--code-bg);
+      color: var(--code-text);
+      padding: 1.2rem;
+      border-radius: 12px;
+      overflow-x: auto;
+      margin: 1rem 0 1.5rem 0;
+      font-family: 'Fira Code', Consolas, monospace;
+      font-size: 0.9rem;
+    }
+    pre code {
+      background: transparent;
+      color: inherit;
+      padding: 0;
+    }
+    .table-container {
+      overflow-x: auto;
+      margin: 1.2rem 0 1.8rem 0;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.92rem;
+      background: #FFFFFF;
+    }
+    th {
+      background-color: var(--primary);
+      color: #FFFFFF;
+      padding: 0.8rem 1rem;
+      text-align: left;
+      font-weight: 600;
+    }
+    td {
+      padding: 0.8rem 1rem;
+      border-bottom: 1px solid var(--border);
+      color: #334155;
+    }
+    tr:last-child td {
+      border-bottom: none;
+    }
+    tr:nth-child(even) {
+      background-color: #F8FAFC;
+    }
+    .tag {
+      display: inline-block;
+      padding: 0.15rem 0.45rem;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 700;
+    }
+    .tag.green { background-color: #DCFCE7; color: #166534; }
+    .tag.gray { background-color: #F1F5F9; color: #475569; }
+    .tag.orange { background-color: #FFEDD5; color: #9A3412; }
+    .tag.pk { background-color: #FEE2E2; color: #991B1B; }
+    .tag.fk { background-color: #DBEAFE; color: #1E40AF; }
+    .tag.uk { background-color: #DCFCE7; color: #166534; }
+    p { margin-bottom: 0.9rem; color: #334155; }
+    ul, ol { margin-bottom: 1rem; padding-left: 1.4rem; color: #334155; }
+    li { margin-bottom: 0.4rem; }
+    .divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 2.5rem 0;
+    }
+    .nav-bar {
+      margin-bottom: 2rem;
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+    }
+    .nav-link {
+      color: var(--primary);
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+    .nav-link:hover {
+      color: var(--accent);
+    }
   </style>
 </head>
 <body>
-  <header>
-    <div class="header-container">
-      <h1>⚖️ 12. 공공데이터 및 API 상업적 이용 & 위치정보법 법률 검토서</h1>
-      <p>보건복지부 e하늘 Open API & 카카오 로컬 API 상업적 영리 이용 및 위치정보법 규제 준수 가이드</p>
+  <div class="container">
+    <div class="nav-bar">
+      <a href="../index.html" class="nav-link">← 보고서 메인 포털로 돌아가기</a>
     </div>
-  </header>
-
-  <main class="container">
-    <nav class="breadcrumb">
-      <a href="../../index.html">🏠 스펙 통합 포털 Home</a> &gt; 
-      <a href="../index.html">01. 장례 · 묘지 매칭</a> &gt; 
-      <span>12. 공공데이터 법률 검토서</span>
-    </nav>
-
-    <section class="card">
-      <h2>📌 1. 검토 요약 및 2단계 규제 구분 (Dual-Layer Framework)</h2>
-      <table style="width: 100%; border-collapse: collapse; margin-top: 15px;">
-        <thead>
-          <tr style="background: #1e293b; color: white;">
-            <th>규제 층위</th>
-            <th>관련 법률 및 약관</th>
-            <th>상업적 영리 이용 판단</th>
-            <th>핵심 조치 & 준수 가이드</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td><strong>Layer 1: 공공데이터 영리이용</strong></td>
-            <td>공공데이터법 제3조 & 제26조, 공공누리 제1유형</td>
-            <td><span class="badge-approved">100% 합법 (허용)</span></td>
-            <td>출처 표시 문구 푸터 및 하단에 명시</td>
-          </tr>
-          <tr>
-            <td><strong>Layer 2: 위치기반서비스 (LBS)</strong></td>
-            <td>위치정보의 보호 및 이용 등에 관한 법률 제9조</td>
-            <td><span class="badge-conditional">조건부 준수 & 우회 가능</span></td>
-            <td>① KCC LBS 사업자 신고 진행<br>② <strong>행정동/검색어 기반 우회 기획 (신고 면제)</strong></td>
-          </tr>
-          <tr>
-            <td><strong>B2B 수익 모델 (Monetization)</strong></td>
-            <td>공공데이터 2차 가공 서비스 (직방, 야놀자 선례)</td>
-            <td><span class="badge-approved">100% 합법 (허용)</span></td>
-            <td>유족 정보 무상 개방 + B2B 입점/리드 수수료 수취</td>
-          </tr>
-        </tbody>
-      </table>
-    </section>
-
-    <section class="card">
-      <h2>🏛️ 2. 2단계 법률 검토 및 3가지 대응 트랙</h2>
-      <div class="law-card">
-        <h3>1️⃣ [트랙 A] 실시간 유저 GPS 기반 LBS 매칭 (`navigator.geolocation`)</h3>
-        <p>유저의 현재 GPS 위치를 수신하여 장례식장과의 거리를 계산하는 방식은 위치정보법상 <strong>위치기반서비스</strong>에 해당함. 방송통신위원회(KCC) 간이 신고 제출 (2~4주 소요).</p>
-      </div>
-
-      <div class="law-card" style="border-left-color: #10B981; background: #ecfdf5;">
-        <h3>2️⃣ [트랙 B] 행정동/검색어 선택 기반 지도 탐색 (신고 면제 우회 기획 - 추천)</h3>
-        <p>유저의 개인 GPS 정보를 실시간 수집하지 않고, 유저가 <strong>"서울 강남구", "경기도 성남시" 등 지역/장례식장명을 직접 선택</strong>하여 카카오 지도 핀을 렌더링하는 방식. 개인위치정보를 수집하지 않으므로 <strong>위치정보법상 LBS 사업자 신고 의무 대상에서 완전히 제외되어 즉시 100% 합법 서비스 가능!</strong></p>
-      </div>
-
-      <div class="law-card" style="border-left-color: #8b5cf6;">
-        <h3>3️⃣ [트랙 C] 표준 장례비 시뮬레이터</h3>
-        <p>위치정보와 무관하게 유저 입력 조건(하객수, 규모, 종교)에 따른 통계 수가 계산이므로 위치정보법 규제와 완전히 무관함.</p>
-      </div>
-    </section>
-
-    <section class="card">
-      <h2>💰 3. 비즈니스 수익 모델(Monetization)과의 법적 구별</h2>
-      <p>공공데이터 자체를 유저에게 유료로 판매하는 것이 아니며, 정보는 투명하게 무료 개방하고 <strong>B2B 파트너 서비스(입점/광고/연결 수수료)에서 수익을 창출</strong>하므로 법적/윤리적 이슈가 발생하지 않습니다.</p>
-      <p><strong>유사 타사 검증 선례</strong>: 직방/다방 (국토부 아파트 실거래가 ➔ 부동산 입점 수수료), 야놀자 (한국관광공사 숙박 데이터 ➔ 제휴 수수료)</p>
-    </section>
-  </main>
-
-  <footer>
-    <div class="container" style="text-align: center; color: #94a3b8; padding: 20px 0;">
-      <p>© 2026 Eobom Project. All rights reserved.</p>
+    <div class="header">
+      <span class="badge">SSOT 정본 동기화 완료</span>
+      <h1>⚖️ 12. 공공데이터(e하늘) 및 지도 API 상업적 이용 &amp; 위치정보법 2단계 법률 검토서</h1>
+      
     </div>
-  </footer>
+    <h1>⚖️ 12. 공공데이터(e하늘) 및 지도 API 상업적 이용 &amp; 위치정보법 2단계 법률 검토서</h1>
+<blockquote class="info-quote"><strong>문서 목적</strong>: 이어봄(Eobom) 플랫폼이 <strong>보건복지부 e하늘장례정보 Open API / CSV 데이터</strong> 및 <strong>카카오 로컬/맵 API</strong>를 기반으로 전국의 장례식장/수목원 데이터를 수집하여 수익 목적의 영리 플랫폼(B2B 입점 및 리드 수수료 모델)으로 활용할 때의 법적 적합성, 공공데이터법 및 <strong>「위치정보의 보호 및 이용 등에 관한 법률(위치정보법)」</strong> 규제 준수 방안을 정교하게 검토하고 명시합니다.</blockquote>
+<hr class="divider"/>
+<h2 class="section-title">📌 1. 검토 요약 및 2단계 규제 구분 (Dual-Layer Regulatory Framework)</h2>
+<div class="table-container"><table><thead><tr><th>규제 층위</th><th>관련 법률 및 약관</th><th>상업적 영리 이용 및 서비스 제공 판단</th><th>핵심 조치 &amp; 준수 가이드</th></tr></thead><tbody><tr><td>**Layer 1: 공공데이터 영리이용**</td><td>• 공공데이터법 제3조 &amp; 제26조&lt;br&gt;• 공공누리(KOGL) 제1유형</td><td>**<code>[100% 합법 (허용)]</code>**</td><td>출처 표시 문구 푸터 및 하단에 명시</td></tr><tr><td>**Layer 2: 위치기반서비스 (LBS)**</td><td>• 위치정보의 보호 및 이용 등에 관한 법률 (위치정보법 제9조)</td><td>**<code>[조건부 준수 &amp; 우회 가능]</code>**</td><td>① KCC LBS 사업자 신고 진행 (2~4주)&lt;br&gt;② **행정동/검색어 기반 우회 기획 (신고 면제)**</td></tr><tr><td>**B2B 수익 모델 (Monetization)**</td><td>• 공공데이터 2차 가공 서비스&lt;br&gt;• (직방, 야놀자, 카카오T 선례)</td><td>**<code>[100% 합법 (허용)]</code>**</td><td>유족 정보 무상 개방 + B2B 입점/리드 수수료</td></tr></tbody></table></div>
+<blockquote class="info-quote"><strong>핵심 결론:</strong> 공공데이터법상 상업적 영리 이용은 100% 승인되어 있으나, <strong>실시간 GPS 기반 LBS 거리 정렬 기능은 위치정보법상 방송통신위원회(KCC) 사업자 신고 대상</strong>입니다. 이에 대한 <strong>행정 신고 절차(트랙 A)</strong> 및 <strong>행정동/검색어 선택 기반 우회 서비스 기획(트랙 B)</strong>을 다원화하여 법적 리스크를 100% 제거합니다.</blockquote>
+<hr class="divider"/>
+<h2 class="section-title">🏛️ 2. 2단계 법률 검토 및 규제 분석</h2>
+<h3 class="subsection-title">2.1 Layer 1: 공공데이터법 &amp; 카카오 API 저작권 검토 (100% 합법)</h3>
+<p>1. <strong>보건복지부 e하늘장례정보 데이터 (data.go.kr)</strong>:</p>
+<p>   * <code>공공데이터법 제3조 및 제26조</code>에 의거, 공공기관은 영리 목적 이용을 제한할 수 없으며 <strong>공공누리 제1유형(출처 표시 조건 하 2차 가공 및 영리이용 허용)</strong>이 적용됨.</p>
+<p>2. <strong>카카오 로컬 REST API &amp; Maps SDK</strong>:</p>
+<p>   * <code>Kakao Developers 서비스 약관 제9조</code>에 의거, 상업용 앱/웹 내 지도 렌더링 및 핀 표시가 100% 허용됨.</p>
+<h3 class="subsection-title">2.2 Layer 2: 위치정보법(방송통신위원회/KISA) 규제 분석 및 3가지 대응 트랙</h3>
+<p>공공데이터포털 API 신청 시 &quot;위치기반서비스사업자 신고필증 미첨부 시 반려&quot;되는 원인은 공공데이터법이 아닌 <strong>「위치정보의 보호 및 이용 등에 관한 법률(위치정보법 제9조)」</strong> 규제 때문입니다.</p>
+<pre><code>                  【 위치정보법 규제 적용 기준 분석 】
+                                   │
+         ┌─────────────────────────┼─────────────────────────┐
+         ▼                         ▼                         ▼
+【 트랙 A: 실시간 GPS LBS 】   【 트랙 B: 행정동/검색어 선택 】 【 트랙 C: 표준 시뮬레이터 】
+ • 유저 GPS(`geolocation`) 채집 • 유저 GPS 미채집 (&quot;강남구&quot; 선택) • 통계 평균 수가 산출
+ • KCC LBS 사업자 신고 필요   • **위치정보법 규제 대상 제외!**  • **위치정보법 규제 대상 제외!**</code></pre>
+<p>1. <strong>[트랙 A] 실시간 유저 GPS 기반 LBS 매칭 (<code>navigator.geolocation</code>)</strong>:</p>
+<p>   * 유저의 현재 모바일/웹 GPS 위치를 수신하여 장례식장과의 거리를 계산하는 방식은 위치정보법상 <strong>위치기반서비스</strong>에 해당함.</p>
+<p>   * <strong>조치 사항:</strong> 방송통신위원회(KCC) 및 KISA에 &quot;위치기반서비스 사업자 신고(개인위치정보 미수집 시 간이신고)&quot;를 제출하여 정식 사업자 자격 획득 (소요시간 2~4주).</p>
+<p>2. <strong>[트랙 B] 행정동/검색어 선택 기반 지도 탐색 (신고 면제 우회 기획)</strong>:</p>
+<p>   * 유저의 개인 GPS 정보를 실시간 수집하지 않고, 유저가 <strong>&quot;서울 강남구&quot;, &quot;경기도 성남시&quot; 등 지역/행정동이나 장례식장명을 직접 검색/선택</strong>하여 카카오 지도 핀을 렌더링하는 방식.</p>
+<p>   * <strong>법적 평가:</strong> 유저의 개인위치정보(Personal Location Information)를 처리하지 않으므로 <strong>위치정보법상 LBS 사업자 신고 의무 대상에서 완전히 제외되어 즉시 100% 합법 서비스 가능!</strong></p>
+<p>3. <strong>[트랙 C] 문서 13의 대안 A (표준 장례비 시뮬레이터)</strong>:</p>
+<p>   * 위치정보와 무관하게 유저 입력 조건(하객수, 규모, 종교)에 따른 통계 수가 계산이므로 <strong>위치정보법 규제와 완전히 무관(안전)</strong>.</p>
+<hr class="divider"/>
+<h2 class="section-title">💰 3. 비즈니스 수익 모델(Monetization)과의 법적 구별</h2>
+<p>스타트업의 영리 활동이 법적으로 문제없이 성립하는 구조는 다음과 같습니다:</p>
+<pre><code>[ 보건복지부 e하늘 공공데이터 (무료) ] ➔ [ 이어봄 2차 가공 큐레이션 엔진 ]
+                                                     │
+                                                     ▼
+    ┌────────────────────────────────────────────────┴────────────────────────────────┐
+    ▼                                                                                 ▼
+【 유족 / 일반 사용자 】                                              【 장례식장 / 수목원 B2B 파트너 】
+ • 전국의 공시 가격 및 위치 정보 100% 무료 제공                     • [🌿 이어봄 인증 파트너] 입점 월정액
+ • 검색 및 답사 신청 서비스 무상 제공                                • VR 360, 실시간 견적 분해, 상단 노출 수수료
+                                                                      • 답사 연결 리드 수수료 수취</code></pre>
+<ul><li><strong>법적 정당성:</strong> 공공데이터 자체를 유저에게 유료로 판매하는 것이 아니며, 정보는 투명하게 무료 개방하고 <strong>B2B 파트너 서비스(입점/광고/연결 수수료)에서 수익을 창출</strong>하므로 법적/윤리적 이슈가 발생하지 않습니다.</li></ul>
+<ul><li><strong>타사 검증 선례:</strong></li></ul>
+<p>  * <strong>직방/다방:</strong> 국토교통부 아파트 실거래가 공공데이터 ➔ 부동산 입점 수수료</p>
+<p>  * <strong>야놀자/여기어때:</strong> 한국관광공사 숙박 데이터 ➔ 숙박업소 입점/수수료</p>
+<p>  * <strong>카카오 T:</strong> 전국 택시/주차장 공공 정보 ➔ 호출 연결 수수료</p>
+<hr class="divider"/>
+<h2 class="section-title">📝 4. 서비스 적용 의무 표시 사항 (Compliance Check)</h2>
+<p>서비스 푸터 및 장례 매칭 상세 화면 하단에 아래 출처 문구를 명시하여 운용합니다:</p>
+<pre><code>&lt;footer class=&quot;legal-notice&quot;&gt;
+  &lt;p&gt;
+    * 본 서비스의 장례식장 및 봉안당·수목장 공시 정보는 보건복지부 e하늘장례정보시스템(data.go.kr) 
+      공공데이터를 기반으로 제공되며, 2차 가공된 정보의 무단 전재를 금합니다.
+  &lt;/p&gt;
+&lt;/footer&gt;</code></pre>
+
+  </div>
 </body>
 </html>

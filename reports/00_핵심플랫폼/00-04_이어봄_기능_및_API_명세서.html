@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>이어봄 - 기능 및 REST API 명세서 (전체 지도)</title>
+  <title>⚡ 00-04. 기능 및 REST API 명세서 (전체 지도) - 이어봄 기획 명세서</title>
   <style>
     :root {
       --primary: #1A2B4C;
@@ -26,7 +26,7 @@
       padding: 2rem 1rem;
     }
     .container {
-      max-width: 1080px;
+      max-width: 1140px;
       margin: 0 auto;
       background-color: var(--surface);
       padding: 3rem;
@@ -49,19 +49,8 @@
       border-radius: 20px;
       margin-bottom: 0.8rem;
     }
-    .badge-sub {
-      display: inline-block;
-      background-color: var(--secondary);
-      color: #FFF;
-      font-size: 0.85rem;
-      font-weight: 700;
-      padding: 0.3rem 0.8rem;
-      border-radius: 20px;
-      margin-bottom: 0.8rem;
-      margin-left: 0.4rem;
-    }
     h1 {
-      font-size: 2rem;
+      font-size: 2.1rem;
       color: var(--primary);
       margin-bottom: 0.5rem;
       font-weight: 800;
@@ -71,7 +60,7 @@
       font-size: 1.05rem;
     }
     .section-title {
-      font-size: 1.4rem;
+      font-size: 1.5rem;
       color: var(--primary);
       margin: 2.5rem 0 1.2rem 0;
       padding-left: 0.8rem;
@@ -79,213 +68,173 @@
       font-weight: 700;
     }
     .subsection-title {
-      font-size: 1.15rem;
+      font-size: 1.25rem;
       color: var(--primary);
       margin: 1.8rem 0 0.8rem 0;
       font-weight: 700;
     }
-    p { margin-bottom: 1rem; color: #334155; }
-    ul, ol { margin-bottom: 1rem; padding-left: 1.4rem; color: #334155; }
-    li { margin-bottom: 0.4rem; }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin: 1.2rem 0 1.8rem 0;
-      font-size: 0.93rem;
-    }
-    th, td {
-      padding: 0.85rem 0.9rem;
-      border: 1px solid var(--border);
-      text-align: left;
-      vertical-align: top;
-    }
-    th {
-      background-color: var(--primary);
-      color: #FFF;
+    .h4-title {
+      font-size: 1.05rem;
+      color: var(--secondary);
+      margin: 1.2rem 0 0.6rem 0;
       font-weight: 700;
-      text-align: center;
     }
-    tr:nth-child(even) { background-color: #F8FAFC; }
-
-    .callout {
-      background-color: #F8FAFC;
-      border-left: 4px solid var(--primary);
-      padding: 1.2rem 1.5rem;
-      margin: 1.2rem 0;
-      border-radius: 0 12px 12px 0;
+    .info-quote {
+      background: #F1F5F9;
+      border-left: 4px solid var(--accent);
+      padding: 0.9rem 1.2rem;
+      margin: 1rem 0;
+      border-radius: 6px;
       font-size: 0.95rem;
       color: #334155;
     }
-    .callout-info {
-      background-color: #EFF6FF;
-      border-left-color: #3B82F6;
-      color: #1E40AF;
-    }
-    .callout-warning {
-      background-color: #FEF3C7;
-      border-left-color: #F59E0B;
-      color: #92400E;
-    }
-
     code {
-      font-family: 'Fira Code', 'Consolas', monospace;
-      background-color: #F1F5F9;
-      color: #0F172A;
+      background: #EFF6FF;
+      color: #1D4ED8;
       padding: 0.15rem 0.4rem;
-      border-radius: 4px;
-      font-size: 0.9em;
+      border-radius: 6px;
+      font-family: 'Fira Code', Consolas, monospace;
+      font-size: 0.88rem;
     }
-    hr {
-      border: 0;
-      height: 1px;
-      background: var(--border);
+    pre {
+      background: var(--code-bg);
+      color: var(--code-text);
+      padding: 1.2rem;
+      border-radius: 12px;
+      overflow-x: auto;
+      margin: 1rem 0 1.5rem 0;
+      font-family: 'Fira Code', Consolas, monospace;
+      font-size: 0.9rem;
+    }
+    pre code {
+      background: transparent;
+      color: inherit;
+      padding: 0;
+    }
+    .table-container {
+      overflow-x: auto;
+      margin: 1.2rem 0 1.8rem 0;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.92rem;
+      background: #FFFFFF;
+    }
+    th {
+      background-color: var(--primary);
+      color: #FFFFFF;
+      padding: 0.8rem 1rem;
+      text-align: left;
+      font-weight: 600;
+    }
+    td {
+      padding: 0.8rem 1rem;
+      border-bottom: 1px solid var(--border);
+      color: #334155;
+    }
+    tr:last-child td {
+      border-bottom: none;
+    }
+    tr:nth-child(even) {
+      background-color: #F8FAFC;
+    }
+    .tag {
+      display: inline-block;
+      padding: 0.15rem 0.45rem;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 700;
+    }
+    .tag.green { background-color: #DCFCE7; color: #166534; }
+    .tag.gray { background-color: #F1F5F9; color: #475569; }
+    .tag.orange { background-color: #FFEDD5; color: #9A3412; }
+    .tag.pk { background-color: #FEE2E2; color: #991B1B; }
+    .tag.fk { background-color: #DBEAFE; color: #1E40AF; }
+    .tag.uk { background-color: #DCFCE7; color: #166534; }
+    p { margin-bottom: 0.9rem; color: #334155; }
+    ul, ol { margin-bottom: 1rem; padding-left: 1.4rem; color: #334155; }
+    li { margin-bottom: 0.4rem; }
+    .divider {
+      border: none;
+      border-top: 1px solid var(--border);
       margin: 2.5rem 0;
     }
-    del { color: #94A3B8; text-decoration: line-through; }
+    .nav-bar {
+      margin-bottom: 2rem;
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+    }
+    .nav-link {
+      color: var(--primary);
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+    .nav-link:hover {
+      color: var(--accent);
+    }
   </style>
 </head>
 <body>
   <div class="container">
+    <div class="nav-bar">
+      <a href="../index.html" class="nav-link">← 보고서 메인 포털로 돌아가기</a>
+    </div>
     <div class="header">
-      <span class="badge">🌿 공통 플랫폼 명세서</span>
-      <span class="badge-sub">Doc #00-04</span>
-      <h1>기능 및 REST API 명세서 (전체 지도)</h1>
-      <p class="subtitle">6개 네임스페이스 엔드포인트 전체 인벤토리, 4종 토큰(aud) 인증 체계 및 구현 상태</p>
+      <span class="badge">SSOT 정본 동기화 완료</span>
+      <h1>⚡ 00-04. 기능 및 REST API 명세서 (전체 지도)</h1>
+      
     </div>
+    <h1>⚡ 00-04. 기능 및 REST API 명세서 (전체 지도)</h1>
+<blockquote class="info-quote"><strong>문서 목적</strong>: 이어봄 백엔드(<code>eobom/backend</code>)의 <strong>전체 엔드포인트 지도</strong>입니다. 어떤 네임스페이스가 있고 무엇이 구현됐는지를 한눈에 보는 것이 목적이며, <strong>요청/응답 상세 규격은 각 도메인 문서가 정본</strong>입니다(→ <code>.harness/AGENTS.md</code> §7 &quot;같은 문서를 두 곳에 복사하지 않는다&quot;).</blockquote>
+<p>&gt;</p>
+<blockquote class="info-quote"><strong>2026-08-11 전면 갱신</strong>: 기존 문서는 <code>/api/auth</code>·<code>/api/facilities</code> 두 개만 다루고 있었고, 그 사이 추가된 <strong>파트너·전문가·운영자 네임스페이스 30여 개 엔드포인트가 통째로 누락</strong>돼 있었습니다. 또 이미 삭제된 답사예약 API가 남아 있었습니다.</blockquote>
+<p><strong>상태 표기</strong>: ✅ 구현 / ⬜ 미구현(계획) / ❌ 폐기</p>
+<hr class="divider"/>
+<h2 class="section-title">🔑 0. 인증 체계 — 4종 토큰</h2>
+<p>JWT <code>aud</code>(audience) 클레임으로 주체를 구분하고, <strong>미들웨어에서 교차 사용을 차단</strong>합니다. 다른 주체의 토큰으로 접근하면 401입니다.</p>
+<div class="table-container"><table><thead><tr><th>`aud`</th><th>주체</th><th>계정 생성 경로</th><th>액세스 토큰 수명</th></tr></thead><tbody><tr><td><code>user</code></td><td>B2C 일반 유저</td><td>소셜 로그인(카카오/네이버/구글)</td><td>7일</td></tr><tr><td><code>partner</code></td><td>장사시설 사업자</td><td><code>/api/partner/signup</code> → 운영자 승인</td><td>2시간</td></tr><tr><td><code>expert</code></td><td>전문가(4대 직역)</td><td><code>/api/expert/signup</code> → 운영자 승인</td><td>2시간</td></tr><tr><td><code>admin</code></td><td>내부 운영자</td><td>**공개 가입 없음** — <code>prisma/seed-admin.ts</code> 스크립트만</td><td>2시간</td></tr></tbody></table></div>
+<ul><li>파트너·전문가·운영자는 리프레시 토큰(30일) <strong>회전</strong> 방식입니다. 구 토큰 재사용은 401.</li></ul>
+<ul><li><strong>프론트는 토큰 만료를 스스로 검사하지 않습니다.</strong> API가 401을 반환하면 그때 로그아웃 처리합니다 — 이 처리가 없으면 토큰이 죽어도 화면은 로그인된 것처럼 보이면서 데이터만 비는 버그가 납니다(2026-08-11 실제 발생·수정).</li></ul>
+<ul><li>상세 원칙 → <code>01-05</code> §6.4</li></ul>
+<hr class="divider"/>
+<h2 class="section-title">📡 1. B2C 인증 (`/api/auth`) — 정본 `00-08`</h2>
+<div class="table-container"><table><thead><tr><th></th><th>엔드포인트</th><th>설명</th></tr></thead><tbody><tr><td><span class="tag green">✅ 구현</span></td><td><code>GET /api/auth/kakao</code> · <code>/naver</code> · <code>/google</code></td><td>소셜 OAuth 리다이렉트</td></tr><tr><td><span class="tag green">✅ 구현</span></td><td><code>GET /api/auth/{provider}/callback</code></td><td>인증 콜백 및 계정 연동/통합 처리</td></tr><tr><td><span class="tag green">✅ 구현</span></td><td><code>POST /api/auth/confirm-link</code></td><td>이메일 중복 시 통합(<code>MERGE</code>) / 독립 생성(<code>CREATE_NEW</code>) 확정</td></tr><tr><td><span class="tag green">✅ 구현</span></td><td><code>GET /api/auth/me</code></td><td>내 프로필 + 연동된 소셜 계정 목록</td></tr><tr><td><span class="tag green">✅ 구현</span></td><td><code>POST /api/auth/demo-login</code></td><td>개발용. **프로덕션 가드 적용됨**</td></tr></tbody></table></div>
+<hr class="divider"/>
+<h2 class="section-title">🪦 2. 시설 (`/api/facilities`) — 정본 `01-01`, `01-05`</h2>
+<div class="table-container"><table><thead><tr><th></th><th>엔드포인트</th><th>설명</th></tr></thead><tbody><tr><td><span class="tag green">✅ 구현</span></td><td><code>GET /api/facilities</code></td><td>목록. 쿼리: <code>category</code>, <code>tag</code>, <code>q</code>(이름), <code>lat</code>/<code>lng</code>(거리순), <code>page</code>, <code>pageSize</code></td></tr><tr><td><span class="tag green">✅ 구현</span></td><td><code>GET /api/facilities/:id</code></td><td>시설 상세</td></tr><tr><td><span class="tag green">✅ 구현</span></td><td><code>POST /api/facilities/:id/reviews</code></td><td>리뷰·별점 작성 (로그인 필요, 1인 1리뷰)</td></tr><tr><td><span class="tag green">✅ 구현</span></td><td><code>POST /api/facilities/:id/quotes</code></td><td>**업체 문의** → <code>leadNo</code>(<code>EB-YYMMDD-NNNN</code>) 반환. 동의 없으면 400</td></tr><tr><td>❌</td><td>~~<code>POST /api/facilities/:id/bookings</code>~~</td><td>답사예약 — **삭제됨**(→ <code>01-05</code> §4.1·§5.3)</td></tr></tbody></table></div>
+<ul><li>필터 간소화(2026-08-10): 예산·종교·하객수·지역 대분류 필터 제거. 삭제된 파라미터가 들어와도 무시하고 크래시하지 않습니다.</li></ul>
+<ul><li>운영자 대시보드의 &quot;전체 시설&quot; 탭도 <strong>이 공개 API를 그대로 재사용</strong>합니다(별도 어드민 API 없음).</li></ul>
+<hr class="divider"/>
+<h2 class="section-title">🗺️ 3. 지역·지도 (`/api/geo`) — 정본 `01-02`</h2>
+<div class="table-container"><table><thead><tr><th></th><th>엔드포인트</th><th>설명</th></tr></thead><tbody><tr><td><span class="tag green">✅ 구현</span></td><td><code>GET /api/geo/regions</code></td><td>시/도 · 시/군/구 드롭다운 목록</td></tr></tbody></table></div>
+<ul><li>전남·광주는 <strong><code>전남광주통합특별시</code></strong> 한 키로 병합 표기합니다. 다만 카카오 API는 옛 행정구역명 기준이라, 지오코딩 호출 직전에만 옛 명칭으로 되돌려 보냅니다(표시명 ≠ 조회명 이원화).</li></ul>
+<hr class="divider"/>
+<h2 class="section-title">🏢 4. 사업자 (`/api/partner`) — **정본 `01-05` §6.1**</h2>
+<p>가입·로그인·내정보·시설 클레임·사진 업로드는 ✅ 구현. <strong>리드 조회와 정산 관련 엔드포인트는 ⬜ 미구현</strong>(수수료 기준 확정 대기 → <code>01-05</code> §10-1).</p>
+<blockquote class="info-quote">사진 업로드는 현재 <strong>로컬 디스크 저장</strong>이라 배포 시 재배포마다 파일이 사라집니다. 실서비스 전 외부 스토리지 전환 필수(→ <code>.harness/systems.md</code> §5).</blockquote>
+<hr class="divider"/>
+<h2 class="section-title">⚖️ 5. 전문가 (`/api/expert`, `/api/experts`) — **정본 `02-03` §5**</h2>
+<div class="table-container"><table><thead><tr><th>네임스페이스</th><th>인증</th><th>내용</th></tr></thead><tbody><tr><td><code>/api/experts</code> (복수)</td><td>없음</td><td>공개 목록·상세, 상담 신청. **<code>status=APPROVED</code> AND <code>isPublished=true</code>만** 노출</td></tr><tr><td><code>/api/expert</code> (단수)</td><td><code>aud=expert</code></td><td>가입·로그인·내정보, 받은 상담 신청 조회·상태변경</td></tr></tbody></table></div>
+<ul><li>공개 API는 <strong>select 화이트리스트</strong>로 <code>passwordHash</code>·<code>settlementAccount</code>·<code>licenseDocUrl</code>·<code>contactPhone</code> 등을 차단합니다. 사무실 주소(<code>officeAddress</code>)는 공개 대상입니다(→ <code>02-03</code> §4.3).</li></ul>
+<ul><li>미승인·미공개 전문가 조회는 403이 아니라 <strong>404</strong>(존재 자체를 숨김).</li></ul>
+<ul><li><code>ConsultRequest</code>에는 <strong>과금 컬럼을 두지 않습니다</strong> — 변호사법 제34조 가드레일(→ <code>02-03</code> §3.2).</li></ul>
+<hr class="divider"/>
+<h2 class="section-title">🛡️ 6. 운영자 (`/api/admin`) — 정본 `01-05` §6.2 · `02-03` §5.4</h2>
+<div class="table-container"><table><thead><tr><th>대상</th><th>구현</th></tr></thead><tbody><tr><td>인증(<code>/login</code>·<code>/refresh</code>·<code>/me</code>)</td><td><span class="tag green">✅ 구현</span></td></tr><tr><td>사업자 심사·정보수정</td><td><span class="tag green">✅ 구현</span></td></tr><tr><td>전문가 심사·공개토글·정보수정</td><td><span class="tag green">✅ 구현</span></td></tr><tr><td>시설 클레임 심사</td><td><span class="tag green">✅ 구현</span></td></tr><tr><td>상담 신청 전체 조회</td><td><span class="tag green">✅ 구현</span></td></tr><tr><td>리드 조회·청구 확정, 정산서 생성·발행</td><td><span class="tag gray">⬜ 계획</span></td></tr></tbody></table></div>
+<p><strong>회원 정보 수정 범위 원칙</strong>: 운영 편의 정보(담당자명·연락처·사무실 주소·소개)만 직접 수정하고, <strong>검증된 신원 정보(사업자등록번호·자격증번호·상호·성명)는 수정하지 않습니다.</strong> 잘못됐으면 반려 후 재신청 — 심사 이력을 끊지 않기 위함입니다(→ <code>01-05</code> §6.2).</p>
+<hr class="divider"/>
+<h2 class="section-title">🚧 7. 아직 백엔드가 없는 도메인</h2>
+<div class="table-container"><table><thead><tr><th>도메인</th><th>화면</th><th>상태</th></tr></thead><tbody><tr><td>**03** 디지털 유품·추모관</td><td><code>SCR-003</code></td><td>프론트 100% 목업 — **Prisma 모델 없음**</td></tr><tr><td>**04** 상중·행정 케어</td><td><code>SCR-006</code></td><td>프론트 100% 목업 — 체크리스트는 로컬 JSON</td></tr><tr><td>**05** 엔딩노트·유언</td><td><code>SCR-002</code></td><td>프론트 100% 목업 — **Prisma 모델 없음**</td></tr></tbody></table></div>
+<p>03·05는 회원(<code>User</code>)에 종속된 데이터를 다루게 되므로, 모델 신설 시 <code>userId</code> FK 연결이 전제입니다(→ <code>03-01</code>, <code>05-01</code>). 05는 운영자 열람 범위가 <strong>미확정</strong>이라 착수 전 확인이 필요합니다.</p>
+<hr class="divider"/>
+<h2 class="section-title">🔗 8. 관련 문서</h2>
+<div class="table-container"><table><thead><tr><th>문서</th><th>담당 범위</th></tr></thead><tbody><tr><td><code>00-05</code></td><td>DB 스키마 전수 사전(자동 생성)</td></tr><tr><td><code>00-08</code></td><td>소셜 로그인·계정 통합 상세</td></tr><tr><td><code>01-05</code></td><td>사업자·리드·정산 API 정본</td></tr><tr><td><code>02-03</code></td><td>전문가 공개노출·상담신청 API 정본</td></tr><tr><td><code>.harness/systems.md</code></td><td>외부 연동(OAuth 키, 지도, DB, 배포) 실제 설정값</td></tr></tbody></table></div>
 
-    <div class="callout callout-info">
-      <p><strong>문서 목적</strong>: 이어봄 백엔드(<code>eobom/backend</code>)의 <strong>전체 엔드포인트 지도</strong>입니다. 어떤 네임스페이스가 있고 무엇이 구현됐는지를 한눈에 보는 것이 목적이며, <strong>요청/응답 상세 규격은 각 도메인 문서가 정본</strong>입니다.<br>
-      <strong>상태 표기</strong>: ✅ 구현 / ⬜ 미구현(계획) / ❌ 폐기</p>
-    </div>
-
-    <hr>
-
-    <h2 class="section-title">🔑 0. 인증 체계 — 4종 토큰</h2>
-    <p>JWT <code>aud</code>(audience) 클레임으로 주체를 구분하고, <strong>미들웨어에서 교차 사용을 차단</strong>합니다. 다른 주체의 토큰으로 접근하면 401입니다.</p>
-
-    <table>
-      <thead>
-        <tr>
-          <th><code>aud</code></th>
-          <th>주체</th>
-          <th>계정 생성 경로</th>
-          <th>액세스 토큰 수명</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr><td><code>user</code></td><td>B2C 일반 유저</td><td>소셜 로그인(카카오/네이버/구글)</td><td>7일</td></tr>
-        <tr><td><code>partner</code></td><td>장사시설 사업자</td><td><code>/api/partner/signup</code> → 운영자 승인</td><td>2시간</td></tr>
-        <tr><td><code>expert</code></td><td>전문가(4대 직역)</td><td><code>/api/expert/signup</code> → 운영자 승인</td><td>2시간</td></tr>
-        <tr><td><code>admin</code></td><td>내부 운영자</td><td><strong>공개 가입 없음</strong> — <code>prisma/seed-admin.ts</code> 스크립트만</td><td>2시간</td></tr>
-      </tbody>
-    </table>
-    <ul>
-      <li>파트너·전문가·운영자는 리프레시 토큰(30일) <strong>회전</strong> 방식입니다. 구 토큰 재사용은 401.</li>
-      <li><strong>프론트는 토큰 만료를 스스로 검사하지 않습니다.</strong> API가 401을 반환하면 그때 로그아웃 처리합니다.</li>
-    </ul>
-
-    <hr>
-
-    <h2 class="section-title">📡 1. B2C 인증 (`/api/auth`) — 정본 00-08</h2>
-    <table>
-      <thead>
-        <tr>
-          <th>상태</th>
-          <th>엔드포인트</th>
-          <th>설명</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr><td>✅</td><td><code>GET /api/auth/kakao</code> · <code>/naver</code> · <code>/google</code></td><td>소셜 OAuth 리다이렉트</td></tr>
-        <tr><td>✅</td><td><code>GET /api/auth/{provider}/callback</code></td><td>인증 콜백 및 계정 연동/통합 처리</td></tr>
-        <tr><td>✅</td><td><code>POST /api/auth/confirm-link</code></td><td>이메일 중복 시 통합(<code>MERGE</code>) / 독립 생성(<code>CREATE_NEW</code>) 확정</td></tr>
-        <tr><td>✅</td><td><code>GET /api/auth/me</code></td><td>내 프로필 + 연동된 소셜 계정 목록</td></tr>
-        <tr><td>✅</td><td><code>POST /api/auth/demo-login</code></td><td>개발용. <strong>프로덕션 가드 적용됨</strong></td></tr>
-      </tbody>
-    </table>
-
-    <hr>
-
-    <h2 class="section-title">🪦 2. 시설 (`/api/facilities`) — 정본 01-01, 01-05</h2>
-    <table>
-      <thead>
-        <tr>
-          <th>상태</th>
-          <th>엔드포인트</th>
-          <th>설명</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr><td>✅</td><td><code>GET /api/facilities</code></td><td>목록. 쿼리: <code>category</code>, <code>tag</code>, <code>q</code>, <code>lat/lng</code>, <code>page</code>, <code>pageSize</code></td></tr>
-        <tr><td>✅</td><td><code>GET /api/facilities/:id</code></td><td>시설 상세</td></tr>
-        <tr><td>✅</td><td><code>POST /api/facilities/:id/reviews</code></td><td>리뷰·별점 작성 (로그인 필요, 1인 1리뷰)</td></tr>
-        <tr><td>✅</td><td><code>POST /api/facilities/:id/quotes</code></td><td><strong>업체 문의</strong> → <code>leadNo</code>(<code>EB-YYMMDD-NNNN</code>) 반환</td></tr>
-        <tr><td>❌</td><td><del><code>POST /api/facilities/:id/bookings</code></del></td><td>답사예약 — <strong>삭제됨</strong>(→ <code>01-05</code> §4.1·§5.3)</td></tr>
-      </tbody>
-    </table>
-
-    <hr>
-
-    <h2 class="section-title">🗺️ 3. 지역·지도 (`/api/geo`) — 정본 01-02</h2>
-    <table>
-      <thead>
-        <tr>
-          <th>상태</th>
-          <th>엔드포인트</th>
-          <th>설명</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr><td>✅</td><td><code>GET /api/geo/regions</code></td><td>시/도 · 시/군/구 드롭다운 목록 (<code>전남광주통합특별시</code> 키 지원)</td></tr>
-      </tbody>
-    </table>
-
-    <hr>
-
-    <h2 class="section-title">🏢 4. 사업자 (`/api/partner`) — 정본 01-05 §6.1</h2>
-    <p>가입·로그인·내정보·시설 클레임·사진 업로드는 ✅ 구현 완료. 리드 목록 조회 및 정산 관련 엔드포인트는 ⬜ 미구현 (수수료 기준 확정 대기).</p>
-
-    <hr>
-
-    <h2 class="section-title">⚖️ 5. 전문가 (`/api/expert`, `/api/experts`) — 정본 02-03 §5</h2>
-    <table>
-      <thead>
-        <tr>
-          <th>네임스페이스</th>
-          <th>인증</th>
-          <th>내용</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr><td><code>/api/experts</code> (복수)</td><td>없음</td><td>공개 목록·상세, 상담 신청 (<code>status=APPROVED</code> AND <code>isPublished=true</code>만 반환)</td></tr>
-        <tr><td><code>/api/expert</code> (단수)</td><td><code>aud=expert</code></td><td>가입·로그인·내정보, 받은 상담 신청 조회·상태변경</td></tr>
-      </tbody>
-    </table>
-
-    <hr>
-
-    <h2 class="section-title">🛡️ 6. 운영자 (`/api/admin`) — 정본 01-05 §6.2 · 02-03 §5.4</h2>
-    <p>인증, 사업자 심사·정보수정, 전문가 심사·공개토글·정보수정, 시설 클레임 심사, 상담 신청 전체 조회가 ✅ 구현되었습니다.<br>
-    <strong>회원 정보 수정 범위 원칙</strong>: 담당자명·연락처·사무실주소 등 운영 편의 정보만 수정 허용하고, <strong>사업자번호·자격증번호 등 검증된 신원 정보는 직접 수정 금지</strong>(반려 후 재신청 수순).</p>
-
-    <hr>
-
-    <h2 class="section-title">🚧 7. 아직 백엔드가 없는 도메인</h2>
-    <table>
-      <thead>
-        <tr>
-          <th>도메인</th>
-          <th>화면</th>
-          <th>상태</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr><td><strong>03</strong> 디지털 유품·추모관</td><td><code>SCR-003</code></td><td>프론트 100% 목업 — Prisma 모델 없음</td></tr>
-        <tr><td><strong>04</strong> 상중·행정 케어</td><td><code>SCR-006</code></td><td>프론트 100% 목업 — 체크리스트는 로컬 JSON</td></tr>
-        <tr><td><strong>05</strong> 엔딩노트·유언</td><td><code>SCR-002</code></td><td>프론트 100% 목업 — Prisma 모델 없음</td></tr>
-      </tbody>
-    </table>
   </div>
 </body>
 </html>

@@ -1,225 +1,219 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>K-Ending 토탈 케어 시스템 아키텍처 및 모듈 명세서</title>
-    <link rel="stylesheet" href="style.css">
-    <!-- Mermaid.js 동적 다이어그램 라이브러리 -->
-    <script type="module">
-        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
-        mermaid.initialize({
-            startOnLoad: true,
-            theme: 'base',
-            themeVariables: {
-                primaryColor: '#1A2B4C',
-                primaryTextColor: '#FFFFFF',
-                primaryBorderColor: '#1A2B4C',
-                lineColor: '#4E7055',
-                secondaryColor: '#EAE5DC',
-                tertiaryColor: '#F7F4EF'
-            }
-        });
-    </script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🏗️ 03. 시스템 아키텍처 및 흐름도 명세서 - 이어봄 기획 명세서</title>
+  <style>
+    :root {
+      --primary: #1A2B4C;
+      --secondary: #5B7065;
+      --accent: #D4A359;
+      --bg: #FBF9F5;
+      --surface: #FFFFFF;
+      --text: #1E293B;
+      --text-muted: #64748B;
+      --border: #E2E8F0;
+      --code-bg: #0F172A;
+      --code-text: #F8FAFC;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.65;
+      padding: 2rem 1rem;
+    }
+    .container {
+      max-width: 1140px;
+      margin: 0 auto;
+      background-color: var(--surface);
+      padding: 3rem;
+      border-radius: 24px;
+      box-shadow: 0 20px 40px rgba(26, 43, 76, 0.08);
+      border: 1px solid var(--border);
+    }
+    .header {
+      border-bottom: 3px solid var(--accent);
+      padding-bottom: 1.5rem;
+      margin-bottom: 2.5rem;
+    }
+    .badge {
+      display: inline-block;
+      background-color: var(--primary);
+      color: #FFF;
+      font-size: 0.85rem;
+      font-weight: 700;
+      padding: 0.3rem 0.8rem;
+      border-radius: 20px;
+      margin-bottom: 0.8rem;
+    }
+    h1 {
+      font-size: 2.1rem;
+      color: var(--primary);
+      margin-bottom: 0.5rem;
+      font-weight: 800;
+    }
+    .subtitle {
+      color: var(--text-muted);
+      font-size: 1.05rem;
+    }
+    .section-title {
+      font-size: 1.5rem;
+      color: var(--primary);
+      margin: 2.5rem 0 1.2rem 0;
+      padding-left: 0.8rem;
+      border-left: 5px solid var(--secondary);
+      font-weight: 700;
+    }
+    .subsection-title {
+      font-size: 1.25rem;
+      color: var(--primary);
+      margin: 1.8rem 0 0.8rem 0;
+      font-weight: 700;
+    }
+    .h4-title {
+      font-size: 1.05rem;
+      color: var(--secondary);
+      margin: 1.2rem 0 0.6rem 0;
+      font-weight: 700;
+    }
+    .info-quote {
+      background: #F1F5F9;
+      border-left: 4px solid var(--accent);
+      padding: 0.9rem 1.2rem;
+      margin: 1rem 0;
+      border-radius: 6px;
+      font-size: 0.95rem;
+      color: #334155;
+    }
+    code {
+      background: #EFF6FF;
+      color: #1D4ED8;
+      padding: 0.15rem 0.4rem;
+      border-radius: 6px;
+      font-family: 'Fira Code', Consolas, monospace;
+      font-size: 0.88rem;
+    }
+    pre {
+      background: var(--code-bg);
+      color: var(--code-text);
+      padding: 1.2rem;
+      border-radius: 12px;
+      overflow-x: auto;
+      margin: 1rem 0 1.5rem 0;
+      font-family: 'Fira Code', Consolas, monospace;
+      font-size: 0.9rem;
+    }
+    pre code {
+      background: transparent;
+      color: inherit;
+      padding: 0;
+    }
+    .table-container {
+      overflow-x: auto;
+      margin: 1.2rem 0 1.8rem 0;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.92rem;
+      background: #FFFFFF;
+    }
+    th {
+      background-color: var(--primary);
+      color: #FFFFFF;
+      padding: 0.8rem 1rem;
+      text-align: left;
+      font-weight: 600;
+    }
+    td {
+      padding: 0.8rem 1rem;
+      border-bottom: 1px solid var(--border);
+      color: #334155;
+    }
+    tr:last-child td {
+      border-bottom: none;
+    }
+    tr:nth-child(even) {
+      background-color: #F8FAFC;
+    }
+    .tag {
+      display: inline-block;
+      padding: 0.15rem 0.45rem;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 700;
+    }
+    .tag.green { background-color: #DCFCE7; color: #166534; }
+    .tag.gray { background-color: #F1F5F9; color: #475569; }
+    .tag.orange { background-color: #FFEDD5; color: #9A3412; }
+    .tag.pk { background-color: #FEE2E2; color: #991B1B; }
+    .tag.fk { background-color: #DBEAFE; color: #1E40AF; }
+    .tag.uk { background-color: #DCFCE7; color: #166534; }
+    p { margin-bottom: 0.9rem; color: #334155; }
+    ul, ol { margin-bottom: 1rem; padding-left: 1.4rem; color: #334155; }
+    li { margin-bottom: 0.4rem; }
+    .divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 2.5rem 0;
+    }
+    .nav-bar {
+      margin-bottom: 2rem;
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+    }
+    .nav-link {
+      color: var(--primary);
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+    .nav-link:hover {
+      color: var(--accent);
+    }
+  </style>
 </head>
 <body>
-
-    <!-- 네비게이션 바 -->
-    <nav class="navbar">
-        <a href="index.html" class="navbar-brand">
-            🌿 <span>이어봄</span> 토탈 케어
-        </a>
-                <ul class="navbar-nav" style="flex-wrap: wrap; gap: 0.5rem;">
-            <li><a href="index.html">서비스 개요</a></li>
-            <li><a href="이어봄_세부_프로젝트_기획서.html">세부 프로젝트 기획서</a></li>
-            <li><a href="이어봄_DB_요구사항_및_테이블_명세서.html">DB 요구사항 & 테이블 명세</a></li>
-            <li><a href="이어봄_화면_설계서_및_와이어프레임.html">화면 설계서 & 와이어프레임</a></li>
-            <li><a href="이어봄_시스템_아키텍처.html" class="active">시스템 아키텍처</a></li>
-            <li><a href="이어봄_시스템_흐름도.html">시스템 흐름도</a></li>
-            <li><a href="이어봄_기능_및_API_명세서.html">기능 및 API 명세</a></li>
-            <li><a href="이어봄_데이터베이스_구축_기획.html">DB 구축 기획</a></li>
-            <li><a href="이어봄_구현_난관_및_솔루션.html">구현 난관 & 솔루션</a></li>
-        </ul>
-    </nav>
-
-    <div class="container">
-        <!-- Hero Section -->
-        <header class="hero">
-            <h1>시스템 아키텍처 & 요구사항 명세서</h1>
-            <p>정보 구조도(App Home $\rightarrow$ Web Portal) 기준 전체 시스템 토폴로지, 도메인별 기능 모듈, 기술 스택 및 데이터 보안 설계</p>
-        </header>
-
-        <!-- 시스템 토폴로지 다이어그램 -->
-        <h2 style="margin-bottom: 1.5rem; color: var(--primary-color);">🏛️ 시스템 아키텍처 토폴로지</h2>
-        <div class="flow-container" style="display: flex; justify-content: center; overflow-x: auto;">
-            <div class="mermaid" style="width: 100%; min-width: 600px;">
-                graph TD
-                    classDef fe fill:#1A2B4C,stroke:#1A2B4C,color:#FFF;
-                    classDef be fill:#4E7055,stroke:#4E7055,color:#FFF;
-                    classDef db fill:#F7F4EF,stroke:#DFDCD7,color:#2F3E46;
-                    classDef ext fill:#EAE5DC,stroke:#1A2B4C,color:#1A2B4C;
-
-                    User["📱 Web Client<br/>(React + Vite + TS)"]:::fe --> Gateway["🌐 Nginx / API Gateway"]:::fe
-                    Gateway --> Backend["⚙️ Express TS Backend Server"]:::be
-
-                    Backend --> DB[("💾 PostgreSQL<br/>(메인 RDB)")]:::db
-                    Backend --> Cache[("⚡ Redis<br/>(세션 & 캐시)")]:::db
-                    Backend --> Vault[("🔒 Security Vault<br/>(AES-256 개인금고)")]:::db
-
-                    Backend -.-> MapAPI("🗺️ 카카오맵 LBS API"):::ext
-                    Backend -.-> WebRTC("📹 WebRTC 화상통화"):::ext
-                    Backend -.-> PG("💳 PG 결제 시스템"):::ext
-                    Backend -.-> Gov("🏛️ 정부24 / 알림톡 API"):::ext
-            </div>
-        </div>
-
-        <!-- 5대 도메인별 기능 모듈 카드 -->
-        <h2 style="margin-bottom: 1.5rem; color: var(--primary-color);">🧩 5대 핵심 도메인 모듈 및 기술 요소</h2>
-        <div class="grid">
-            <!-- 1. 장례 묘지 매칭 -->
-            <div class="card" style="border-top: 5px solid var(--primary-color);">
-                <div class="card-title">1. 장례·묘지 매칭 서비스 (`/facilities`)</div>
-                <div class="card-content">
-                    <ul>
-                        <li><strong>1.1 장례식장/상조 비교:</strong> 위치(LBS), 예산, 종교, 규모 기반 맞춤형 추천 알고리즘 엔진 탑재.</li>
-                        <li><strong>1.2 묘지/봉안당 검색:</strong> Three.js/Panolens.js 기반 360° VR 가상 투어 및 답사 예약 캘린더.</li>
-                        <li><strong>1.3 24/7 실시간 긴급 지원:</strong> Socket.io 기반 긴급 장례지도사 1-Touch 디스패치 및 실시간 트래킹.</li>
-                    </ul>
-                </div>
-            </div>
-
-            <!-- 2. 상속 법률 세무 -->
-            <div class="card" style="border-top: 5px solid var(--point-color);">
-                <div class="card-title" style="color: var(--point-color);">2. 상속·법률·세무 서비스 (`/counseling`)</div>
-                <div class="card-content">
-                    <ul>
-                        <li><strong>2.1 전문가 1:1 상담:</strong> WebRTC 기반 화상/음성 상담, 전문가 일정 예약 및 결제(PG) 시스템.</li>
-                        <li><strong>2.2 상속/증여세 시뮬레이터:</strong> 최신 국세청 공제율 및 과세표준 알고리즘 기반 자동 산출 엔진.</li>
-                        <li><strong>2.3 유언장 작성 및 공증:</strong> KISA 연계 전자서명 및 변호사 공증 매칭 워크플로우.</li>
-                    </ul>
-                </div>
-            </div>
-
-            <!-- 3. 디지털 유품 정리 -->
-            <div class="card" style="border-top: 5px solid var(--primary-light);">
-                <div class="card-title" style="color: var(--primary-light);">3. 디지털 유품 정리 서비스 (`/digital-estate`)</div>
-                <div class="card-content">
-                    <ul>
-                        <li><strong>3.1 디지털 자산 정리:</strong> 고인 계정(SNS/이메일) 위임 서류 OCR(Naver/Tesseract) 자동 검증.</li>
-                        <li><strong>3.2 현물 유품 정리:</strong> 청소/수거 업체 견적 산출 및 제휴 ERP 시스템 Webhook 연동.</li>
-                        <li><strong>3.3 디지털 메모리얼:</strong> AWS S3 기반 고인 온라인 추모관, 방명록 및 모바일 앨범 생성기.</li>
-                    </ul>
-                </div>
-            </div>
-
-            <!-- 4. 디지털 엔딩노트 -->
-            <div class="card" style="border-top: 5px solid #D9534F;">
-                <div class="card-title" style="color: #D9534F;">4. 디지털 엔딩노트 (보안 금고) (`/ending-note`)</div>
-                <div class="card-content">
-                    <ul>
-                        <li><strong>4.1 사전 의향서:</strong> 연명의료 중단 의향, 장례 희망 방식, 위시리스트 암호화 저장.</li>
-                        <li><strong>4.2 비밀번호/자산 보관함:</strong> KISA 개인정보 암호화 가이드 준수 (AES-256-GCM 보안 금고).</li>
-                        <li><strong>4.3 지정 수신인 유언 메시지:</strong> 사후 조건 충족 시 Cron 스케줄러 기반 알림톡/메일 발송.</li>
-                    </ul>
-                </div>
-            </div>
-
-            <!-- 5. 상중 케어 & 행정 가이드 -->
-            <div class="card" style="border-top: 5px solid #F0AD4E; grid-column: span 2;">
-                <div class="card-title" style="color: #B47318;">5. 상중 케어 & 행정 가이드 (`/care-guide`)</div>
-                <div class="card-content">
-                    <ul>
-                        <li><strong>5.1 사망 후 행정절차 타임라인:</strong> 사망일 기준 D-Day별 행정 체크리스트 (정부24 안심상속 서비스 연계).</li>
-                        <li><strong>5.2 모바일 부고장 & 답례품:</strong> Canvas/Puppeteer 기반 동적 OG 이미지 생성 및 카카오톡 공유 API.</li>
-                        <li><strong>5.3 유족 심리 상담 케어:</strong> 헬스케어 전문가 1:1 심리 케어 세션 예약 및 트래킹 시스템.</li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-
-        <!-- 기술 스택 및 인프라 명세표 -->
-        <h2 style="margin-top: 3rem; margin-bottom: 1.5rem; color: var(--primary-color);">🛠️ 기술 스택 및 인프라 요구사항 명세</h2>
-        <div style="overflow-x: auto;">
-            <table>
-                <thead>
-                    <tr>
-                        <th style="width: 15%;">구분</th>
-                        <th style="width: 35%;">선택 기술 스택 (Tech Stack)</th>
-                        <th style="width: 50%;">주요 역할 및 도입 사유</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td style="font-weight: 700; color: var(--primary-color);">Frontend</td>
-                        <td>React 18, TypeScript, Vite, Vanilla CSS</td>
-                        <td>빠른 번들링 speed, 시니어 접근성(18px+, 56px+) 반응형 UI 구현</td>
-                    </tr>
-                    <tr>
-                        <td style="font-weight: 700; color: var(--primary-color);">Backend</td>
-                        <td>Node.js, Express, TypeScript, Prisma ORM</td>
-                        <td>타입 안정성 보장, 높은 개발 생산성 및 RESTful API 구현</td>
-                    </tr>
-                    <tr>
-                        <td style="font-weight: 700; color: var(--primary-color);">Database</td>
-                        <td>PostgreSQL 15, Redis</td>
-                        <td>관계형 데이터(시설, 사용자, 예약) 관리 및 실시간 세션/캐싱</td>
-                    </tr>
-                    <tr>
-                        <td style="font-weight: 700; color: var(--primary-color);">Security</td>
-                        <td>AES-256-GCM, Bcrypt, JWT, SSL/TLS</td>
-                        <td>민감 자산 정보 및 엔딩노트 개인 금고 최고 수준 암호화 보관</td>
-                    </tr>
-                    <tr>
-                        <td style="font-weight: 700; color: var(--primary-color);">Media/File</td>
-                        <td>AWS S3 / NCP Object Storage</td>
-                        <td>추모 앨범, 유품 사진 및 증빙 서류 보안 업로드 저장소</td>
-                    </tr>
-                    <tr>
-                        <td style="font-weight: 700; color: var(--primary-color);">External APIs</td>
-                        <td>카카오맵 API, WebRTC, 정부24, 알림톡, PG사</td>
-                        <td>위치 검색, 비대면 화상 통화, 사망 행정 연계 및 결제 처리</td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-
-        <!-- 로드맵 카셀 -->
-        <h2 style="margin-top: 3rem; margin-bottom: 1.5rem; color: var(--primary-color);">🗺️ 개발 단계별 추진 로드맵</h2>
-        <div class="grid">
-            <div class="card" style="border-top: 5px solid var(--point-color);">
-                <div class="card-title">Phase 1: MVP 중심 개발 (1~2개월)</div>
-                <div class="card-content">
-                    <ul>
-                        <li>전국 장례식장 / 묘지 DB 구축 및 지도 기반 위치 검색 기능</li>
-                        <li>사망 후 행정절차 타임라인 가이드 및 모바일 부고장 생성기</li>
-                    </ul>
-                </div>
-            </div>
-            <div class="card" style="border-top: 5px solid var(--primary-color);">
-                <div class="card-title">Phase 2: 서비스 고도화 (3~4개월)</div>
-                <div class="card-content">
-                    <ul>
-                        <li>맞춤 추천 알고리즘 적용 (Distance, Budget, Religion 스코어링)</li>
-                        <li>전문가 1:1 비대면 화상상담 시스템 & 디지털 엔딩노트 암호화 금고</li>
-                    </ul>
-                </div>
-            </div>
-            <div class="card" style="border-top: 5px solid var(--primary-light);">
-                <div class="card-title">Phase 3: 서비스 확장 (5~6개월)</div>
-                <div class="card-content">
-                    <ul>
-                        <li>디지털 유품 정리 (서류 OCR 검증 & 제휴 ERP 연동)</li>
-                        <li>사후 지정 수신인 유언 메시지 자동 발송 및 디지털 메모리얼</li>
-                    </ul>
-                </div>
-            </div>
-        </div>
+  <div class="container">
+    <div class="nav-bar">
+      <a href="../index.html" class="nav-link">← 보고서 메인 포털로 돌아가기</a>
     </div>
+    <div class="header">
+      <span class="badge">SSOT 정본 동기화 완료</span>
+      <h1>🏗️ 03. 시스템 아키텍처 및 흐름도 명세서</h1>
+      
+    </div>
+    <h1>🏗️ 03. 시스템 아키텍처 및 흐름도 명세서</h1>
+<blockquote class="info-quote"><strong>문서 목적</strong>: 이어봄 (Eobom) 토탈 케어 플랫폼의 웹/앱 클라이언트, 백엔드 API 서버, 데이터베이스, OAuth 소셜 로그인 및 보안 Vault 통합 아키텍처를 정의합니다.</blockquote>
+<hr class="divider"/>
+<h2 class="section-title">📐 1. 시스템 토폴로지 (System Topology)</h2>
+<pre><code>[ Frontend: React 18 + Vite 5 + TypeScript ] (Vercel Host)
+              │
+              ├── REST API / JSON (Axios, Credentials Included)
+              ▼
+[ Backend: Node.js Express API Server ] (Port 5000)
+              │
+              ├── Prisma ORM (Object-Relational Mapping)
+              ├── Passport.js OAuth (Kakao, Naver, Google)
+              │
+              ▼
+[ Database: PostgreSQL (Port 5433 / eobom_db) ]
+              │
+              ├── users (1 : N) social_accounts
+              ├── facilities (1 : N) facility_reviews
+              └── wills (256-bit AES Vault Encrypted)</code></pre>
+<hr class="divider"/>
+<h2 class="section-title">🔒 2. 보안 &amp; 암호화 메커니즘 (AES-256 Vault)</h2>
+<p>1. <strong>디지털 엔딩노트 암호화</strong>: 유저가 작성한 유언 메시지 및 자산 기록은 <code>crypto</code> 모듈 기반 <strong>256-bit AES 암호화</strong> 후 DB에 보존.</p>
+<p>2. <strong>소셜 인증 토큰 연동</strong>: JWT (JSON Web Token) 쿠키 및 헤더 기반 단기 인증 발급.</p>
+<p>3. <strong>계정 통합 보안</strong>: 동일 이메일 멀티 소셜 연동 시 10분 만료 서명된 OAuth State 기반 소유권 검증.</p>
 
-    <!-- 1-Touch 긴급 상담 플로팅 버튼 -->
-    <a href="tel:119" class="floating-call" onclick="alert('긴급 장례 지원 서비스로 전화를 연결합니다. (24시간 디스패치)'); return false;">
-        🚨 긴급 상담
-    </a>
-
+  </div>
 </body>
 </html>

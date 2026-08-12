@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>이어봄 - 시설 태그(#해시태그) 분류 체계 명세서</title>
+  <title>🏷️ 19. 시설 태그(#해시태그) 분류 체계 명세서 - 이어봄 기획 명세서</title>
   <style>
     :root {
       --primary: #1A2B4C;
@@ -26,7 +26,7 @@
       padding: 2rem 1rem;
     }
     .container {
-      max-width: 1080px;
+      max-width: 1140px;
       margin: 0 auto;
       background-color: var(--surface);
       padding: 3rem;
@@ -49,19 +49,8 @@
       border-radius: 20px;
       margin-bottom: 0.8rem;
     }
-    .badge-sub {
-      display: inline-block;
-      background-color: var(--secondary);
-      color: #FFF;
-      font-size: 0.85rem;
-      font-weight: 700;
-      padding: 0.3rem 0.8rem;
-      border-radius: 20px;
-      margin-bottom: 0.8rem;
-      margin-left: 0.4rem;
-    }
     h1 {
-      font-size: 2rem;
+      font-size: 2.1rem;
       color: var(--primary);
       margin-bottom: 0.5rem;
       font-weight: 800;
@@ -71,7 +60,7 @@
       font-size: 1.05rem;
     }
     .section-title {
-      font-size: 1.4rem;
+      font-size: 1.5rem;
       color: var(--primary);
       margin: 2.5rem 0 1.2rem 0;
       padding-left: 0.8rem;
@@ -79,178 +68,168 @@
       font-weight: 700;
     }
     .subsection-title {
-      font-size: 1.15rem;
+      font-size: 1.25rem;
       color: var(--primary);
       margin: 1.8rem 0 0.8rem 0;
       font-weight: 700;
     }
-    p { margin-bottom: 1rem; color: #334155; }
-    ul, ol { margin-bottom: 1rem; padding-left: 1.4rem; color: #334155; }
-    li { margin-bottom: 0.4rem; }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin: 1.2rem 0 1.8rem 0;
-      font-size: 0.93rem;
-    }
-    th, td {
-      padding: 0.85rem 0.9rem;
-      border: 1px solid var(--border);
-      text-align: left;
-      vertical-align: top;
-    }
-    th {
-      background-color: var(--primary);
-      color: #FFF;
+    .h4-title {
+      font-size: 1.05rem;
+      color: var(--secondary);
+      margin: 1.2rem 0 0.6rem 0;
       font-weight: 700;
-      text-align: center;
     }
-    tr:nth-child(even) { background-color: #F8FAFC; }
-
-    .callout {
-      background-color: #F8FAFC;
-      border-left: 4px solid var(--primary);
-      padding: 1.2rem 1.5rem;
-      margin: 1.2rem 0;
-      border-radius: 0 12px 12px 0;
+    .info-quote {
+      background: #F1F5F9;
+      border-left: 4px solid var(--accent);
+      padding: 0.9rem 1.2rem;
+      margin: 1rem 0;
+      border-radius: 6px;
       font-size: 0.95rem;
       color: #334155;
     }
-    .callout-info {
-      background-color: #EFF6FF;
-      border-left-color: #3B82F6;
-      color: #1E40AF;
+    code {
+      background: #EFF6FF;
+      color: #1D4ED8;
+      padding: 0.15rem 0.4rem;
+      border-radius: 6px;
+      font-family: 'Fira Code', Consolas, monospace;
+      font-size: 0.88rem;
     }
-    .callout-warning {
-      background-color: #FEF3C7;
-      border-left-color: #F59E0B;
-      color: #92400E;
-    }
-
     pre {
-      background-color: var(--code-bg);
+      background: var(--code-bg);
       color: var(--code-text);
-      padding: 1.2rem 1.5rem;
+      padding: 1.2rem;
       border-radius: 12px;
       overflow-x: auto;
-      font-family: 'Fira Code', 'Consolas', monospace;
-      font-size: 0.88rem;
-      line-height: 1.5;
-      margin: 1.2rem 0;
-    }
-    code {
-      font-family: 'Fira Code', 'Consolas', monospace;
-      background-color: #F1F5F9;
-      color: #0F172A;
-      padding: 0.15rem 0.4rem;
-      border-radius: 4px;
-      font-size: 0.9em;
+      margin: 1rem 0 1.5rem 0;
+      font-family: 'Fira Code', Consolas, monospace;
+      font-size: 0.9rem;
     }
     pre code {
-      background-color: transparent;
+      background: transparent;
       color: inherit;
       padding: 0;
     }
-    hr {
-      border: 0;
-      height: 1px;
-      background: var(--border);
+    .table-container {
+      overflow-x: auto;
+      margin: 1.2rem 0 1.8rem 0;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.92rem;
+      background: #FFFFFF;
+    }
+    th {
+      background-color: var(--primary);
+      color: #FFFFFF;
+      padding: 0.8rem 1rem;
+      text-align: left;
+      font-weight: 600;
+    }
+    td {
+      padding: 0.8rem 1rem;
+      border-bottom: 1px solid var(--border);
+      color: #334155;
+    }
+    tr:last-child td {
+      border-bottom: none;
+    }
+    tr:nth-child(even) {
+      background-color: #F8FAFC;
+    }
+    .tag {
+      display: inline-block;
+      padding: 0.15rem 0.45rem;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 700;
+    }
+    .tag.green { background-color: #DCFCE7; color: #166534; }
+    .tag.gray { background-color: #F1F5F9; color: #475569; }
+    .tag.orange { background-color: #FFEDD5; color: #9A3412; }
+    .tag.pk { background-color: #FEE2E2; color: #991B1B; }
+    .tag.fk { background-color: #DBEAFE; color: #1E40AF; }
+    .tag.uk { background-color: #DCFCE7; color: #166534; }
+    p { margin-bottom: 0.9rem; color: #334155; }
+    ul, ol { margin-bottom: 1rem; padding-left: 1.4rem; color: #334155; }
+    li { margin-bottom: 0.4rem; }
+    .divider {
+      border: none;
+      border-top: 1px solid var(--border);
       margin: 2.5rem 0;
+    }
+    .nav-bar {
+      margin-bottom: 2rem;
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+    }
+    .nav-link {
+      color: var(--primary);
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+    .nav-link:hover {
+      color: var(--accent);
     }
   </style>
 </head>
 <body>
   <div class="container">
+    <div class="nav-bar">
+      <a href="../index.html" class="nav-link">← 보고서 메인 포털로 돌아가기</a>
+    </div>
     <div class="header">
-      <span class="badge">🏷️ 장사시설 매칭 명세서</span>
-      <span class="badge-sub">Doc #01-06</span>
-      <h1>시설 태그(#해시태그) 분류 체계 명세서</h1>
-      <p class="subtitle">화이트리스트(TAG_CATALOG) 기반 해시태그 클릭 필터화 및 확장 가이드</p>
+      <span class="badge">SSOT 정본 동기화 완료</span>
+      <h1>🏷️ 19. 시설 태그(#해시태그) 분류 체계 명세서</h1>
+      
     </div>
-
-    <div class="callout callout-info">
-      <p><strong>문서 성격</strong>: <code>docs/02-02</code>와 같은 예외 패턴의 <strong>구현 메모</strong> — 대표 요청(2026-08-10)으로 <code>[Claude:Sonnet]</code>이 직접 작성.<br>
-      관리 파일은 <code>eobom/frontend/src/components/facility/tagCatalog.ts</code> 하나뿐입니다. 이 문서는 그 파일이 왜 그렇게 생겼는지, 새 카테고리를 어떻게 추가하는지에 대한 배경 설명이고, <strong>실제 정본은 코드(tagCatalog.ts)</strong>입니다.</p>
-    </div>
-
-    <hr>
-
-    <h2 class="section-title">1. 문제 — 기존 `#해시태그`는 실제로 "태그"가 아니었다</h2>
-    <p><code>Facility.tags</code>는 클릭도 안 되고 필터에도 연결 안 된, 그냥 화면에 <code>#{tag}</code>로 뿌려지는 라벨이었습니다.</p>
-    <p><strong>DB 감사 결과</strong> (2026-08-10, 로컬 dev DB 1,552건 기준):</p>
-
-    <table>
-      <thead>
-        <tr>
-          <th>값</th>
-          <th>건수</th>
-          <th>출처</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td><code>사설</code></td>
-          <td>626</td>
-          <td>보건복지부 CSV <code>공-사설 구분</code> 컬럼</td>
-        </tr>
-        <tr>
-          <td><code>공설</code></td>
-          <td>322</td>
-          <td>보건복지부 CSV <code>공-사설 구분</code> 컬럼</td>
-        </tr>
-        <tr>
-          <td>그 외 약 50종 (예: "전남대병원", "24시 대기", "한강 조망" 등)</td>
-          <td>각 1건</td>
-          <td>수기 시드(<code>seed-data/facilities.json</code>) 14건의 마케팅 문구</td>
-        </tr>
-      </tbody>
-    </table>
-
-    <p>즉 <strong>분류 가능한 값은 "공설"/"사설" 딱 하나뿐</strong>이고, 나머지는 전부 그 시설 하나만을 위한 1회성 홍보 문구입니다. 카카오 API로 수집한 590건(전체의 38%)은 애초에 <code>tags</code>가 비어 있습니다(<code>[]</code>).</p>
-
-    <hr>
-
-    <h2 class="section-title">2. 설계 — 화이트리스트 방식</h2>
-    <p>태그 문자열 전체를 "필터로 쓸 수 있는 것"으로 취급하지 않습니다. 대신 <code>tagCatalog.ts</code>에 등록된 값만 클릭 가능한 필터로 승격시키고, 나머지는 지금처럼 클릭 안 되는 일반 라벨로 둡니다.</p>
-
+    <h1>🏷️ 19. 시설 태그(#해시태그) 분류 체계 명세서</h1>
+<blockquote class="info-quote"><strong>문서 성격</strong>: <code>docs/17</code>과 같은 예외 패턴의 <strong>구현 메모</strong> — 대표 요청(2026-08-10)으로 <code>[Claude:Sonnet]</code>이 직접 작성.</blockquote>
+<blockquote class="info-quote">관리 파일은 <code>eobom/frontend/src/components/facility/tagCatalog.ts</code> 하나뿐이다. 이 문서는 그 파일이 왜 그렇게</blockquote>
+<blockquote class="info-quote">생겼는지, 새 카테고리를 어떻게 추가하는지에 대한 배경 설명이고, <strong>실제 정본은 코드(tagCatalog.ts)다.</strong></blockquote>
+<hr class="divider"/>
+<h2 class="section-title">1. 문제 — 기존 `#해시태그`는 실제로 &quot;태그&quot;가 아니었다</h2>
+<p><code>Facility.tags</code>는 클릭도 안 되고 필터에도 연결 안 된, 그냥 화면에 <code>#{tag}</code>로 뿌려지는 라벨이었다.</p>
+<p>DB 감사 결과(2026-08-10, 로컬 dev DB 1,552건 기준):</p>
+<div class="table-container"><table><thead><tr><th>값</th><th>건수</th><th>출처</th></tr></thead><tbody><tr><td><code>사설</code></td><td>626</td><td>보건복지부 CSV <code>공-사설 구분</code> 컬럼</td></tr><tr><td><code>공설</code></td><td>322</td><td>보건복지부 CSV <code>공-사설 구분</code> 컬럼</td></tr><tr><td>그 외 약 50종 (예: &quot;전남대병원&quot;, &quot;24시 대기&quot;, &quot;한강 조망&quot; 등)</td><td>각 1건</td><td>수기 시드(<code>seed-data/facilities.json</code>) 14건의 마케팅 문구</td></tr></tbody></table></div>
+<p>즉 <strong>분류 가능한 값은 &quot;공설&quot;/&quot;사설&quot; 딱 하나뿐</strong>이고, 나머지는 전부 그 시설 하나만을 위한 1회성 홍보 문구다.</p>
+<p>카카오 API로 수집한 590건(전체의 38%)은 애초에 <code>tags</code>가 비어 있다(<code>[]</code>).</p>
+<h2 class="section-title">2. 설계 — 화이트리스트 방식</h2>
+<p>태그 문자열 전체를 &quot;필터로 쓸 수 있는 것&quot;으로 취급하지 않는다. 대신 <code>tagCatalog.ts</code>에 등록된 값만 클릭 가능한</p>
+<p>필터로 승격시키고, 나머지는 지금처럼 클릭 안 되는 일반 라벨로 둔다.</p>
 <pre><code>// eobom/frontend/src/components/facility/tagCatalog.ts
 export const TAG_CATALOG: Record&lt;string, TagDefinition&gt; = {
-  공설: { category: '운영주체', label: '공설' },
-  사설: { category: '운영주체', label: '사설' },
+  공설: { category: &#039;운영주체&#039;, label: &#039;공설&#039; },
+  사설: { category: &#039;운영주체&#039;, label: &#039;사설&#039; },
 };</code></pre>
+<p>이렇게 한 이유:</p>
+<ul><li>마케팅 문구 50여 종을 억지로 카테고리에 끼워 맞추면 오히려 필터 UI가 지저분해진다(대부분 값이 후보 1개짜리 카테고리가 됨).</li></ul>
+<ul><li>&quot;운영주체(공설/사설)&quot;는 장례식장 도메인에서 가격 기대치에 직결되는, 실제로 필터링할 가치가 있는 정보다.</li></ul>
+<ul><li>화이트리스트 밖 태그는 그대로 남아 있으므로 기존 화면(마케팅 문구 노출)은 전혀 깨지지 않는다 — 순수 추가 기능.</li></ul>
+<h2 class="section-title">3. 구현</h2>
+<ul><li><strong>백엔드</strong>(<code>facilityController.ts</code>): <code>buildWhere</code>에 범용 <code>tag</code> 쿼리파라미터 추가 — <code>Facility.tags</code>가 해당 값을</li></ul>
+<p>  포함하면(Prisma <code>has</code>) 매치. 화이트리스트를 백엔드가 알 필요는 없다(프론트가 클릭 가능하게 보여줄 값만 걸러줌).</p>
+<ul><li><strong>프론트</strong>(<code>FacilityPage.tsx</code>): 카드의 태그가 <code>TAG_CATALOG</code>에 있으면 <code>&lt;button&gt;</code>으로, 없으면 기존과 동일하게</li></ul>
+<p>  <code>&lt;span&gt;</code>으로 렌더링. 클릭하면 <code>tag</code> 쿼리파라미터로 목록을 다시 조회(서버사이드 페이지네이션과 동일한 방식으로</p>
+<p>  기존 필터들과 동일 선상에서 동작). 같은 태그를 다시 클릭하면 해제(토글). 필터 바에는 활성 태그를 보여주는</p>
+<p>  칩이 하나 뜨고, 거기서도 해제할 수 있다.</p>
+<h2 class="section-title">4. 새 카테고리를 추가하려면</h2>
+<p>1. <code>tagCatalog.ts</code>의 <code>TAG_CATALOG</code>에 항목을 추가한다. 이게 끝인 경우가 대부분이다 — 백엔드는 이미 범용 <code>tag</code></p>
+<p>   파라미터를 처리하므로 보통 손댈 필요가 없다.</p>
+<p>2. 만약 그 값이 지금 DB에 아예 없다면(예: 새로운 분류축을 도입하는 경우), 데이터를 채우는 시딩/임포트 스크립트</p>
+<p>   (<code>import-facility-csv.ts</code>, <code>sync-kakao-funeral.ts</code>, <code>seed-data/facilities.json</code>)도 함께 봐야 한다.</p>
+<p>3. 한 필드에 여러 카테고리가 섞여 들어갈 수 있다는 점(<code>tags</code>가 배열이라 &quot;공설&quot; + &quot;24시간 운영&quot; 같은 태그가</p>
+<p>   공존 가능)은 이미 설계에 반영돼 있다 — 카테고리별로 별도 필드를 만들지 않았다.</p>
+<h2 class="section-title">5. 검증</h2>
+<ul><li>백엔드 <code>tsc --noEmit</code> 통과, 로컬 dev 서버 대상 <code>GET /api/facilities?tag=사설</code>(626건)/<code>?tag=공설</code>(322건) 실호출로 카운트가 DB 감사 결과와 정확히 일치함을 확인.</li></ul>
+<ul><li>프론트 <code>tsc --noEmit</code> 통과. <strong>브라우저 클릭 E2E는 미검증</strong>(자동화 도구 없음) — 카드 태그 클릭 → 필터 적용 → 칩에서 해제까지 사용자가 직접 확인 필요.</li></ul>
 
-    <h3 class="subsection-title">이렇게 한 이유</h3>
-    <ul>
-      <li>마케팅 문구 50여 종을 억지로 카테고리에 끼워 맞추면 오히려 필터 UI가 지저분해집니다 (대부분 값이 후보 1개짜리 카테고리가 됨).</li>
-      <li>"운영주체(공설/사설)"는 장례식장 도메인에서 가격 기대치에 직결되는, 실제로 필터링할 가치가 있는 정보입니다.</li>
-      <li>화이트리스트 밖 태그는 그대로 남아 있으므로 기존 화면(마케팅 문구 노출)은 전혀 깨지지 않습니다 — 순수 추가 기능.</li>
-    </ul>
-
-    <hr>
-
-    <h2 class="section-title">3. 구현</h2>
-    <ul>
-      <li><strong>백엔드</strong> (<code>facilityController.ts</code>): <code>buildWhere</code>에 범용 <code>tag</code> 쿼리파라미터 추가 — <code>Facility.tags</code>가 해당 값을 포함하면 (Prisma <code>has</code>) 매치. 화이트리스트를 백엔드가 알 필요는 없습니다 (프론트가 클릭 가능하게 보여줄 값만 걸러줌).</li>
-      <li><strong>프론트</strong> (<code>FacilityPage.tsx</code>): 카드의 태그가 <code>TAG_CATALOG</code>에 있으면 <code>&lt;button&gt;</code>으로, 없으면 기존과 동일하게 <code>&lt;span&gt;</code>으로 렌더링. 클릭하면 <code>tag</code> 쿼리파라미터로 목록을 다시 조회 (서버사이드 페이지네이션과 동일한 방식으로 기존 필터들과 동일 선상에서 동작). 같은 태그를 다시 클릭하면 해제 (토글). 필터 바에는 활성 태그를 보여주는 칩이 하나 뜨고, 거기서도 해제할 수 있습니다.</li>
-    </ul>
-
-    <hr>
-
-    <h2 class="section-title">4. 새 카테고리를 추가하려면</h2>
-    <ol style="margin-left: 1.2rem;">
-      <li><code>tagCatalog.ts</code>의 <code>TAG_CATALOG</code>에 항목을 추가합니다. 이게 끝인 경우가 대부분입니다 — 백엔드는 이미 범용 <code>tag</code> 파라미터를 처리하므로 보통 손댈 필요가 없습니다.</li>
-      <li>만약 그 값이 지금 DB에 아예 없다면(예: 새로운 분류축을 도입하는 경우), 데이터를 채우는 시딩/임포트 스크립트 (<code>import-facility-csv.ts</code>, <code>sync-kakao-funeral.ts</code>, <code>seed-data/facilities.json</code>)도 함께 봐야 합니다.</li>
-      <li>한 필드에 여러 카테고리가 섞여 들어갈 수 있다는 점(<code>tags</code>가 배열이라 "공설" + "24시간 운영" 같은 태그가 공존 가능)은 이미 설계에 반영돼 있습니다 — 카테고리별로 별도 필드를 만들지 않았습니다.</li>
-    </ol>
-
-    <hr>
-
-    <h2 class="section-title">5. 검증</h2>
-    <ul>
-      <li>백엔드 <code>tsc --noEmit</code> 통과, 로컬 dev 서버 대상 <code>GET /api/facilities?tag=사설</code> (626건) / <code>?tag=공설</code> (322건) 실호출로 카운트가 DB 감사 결과와 정확히 일치함을 확인.</li>
-      <li>프론트 <code>tsc --noEmit</code> 통과. <strong>브라우저 클릭 E2E는 미검증</strong> (자동화 도구 없음) — 카드 태그 클릭 → 필터 적용 → 칩에서 해제까지 사용자가 직접 확인 필요.</li>
-    </ul>
   </div>
 </body>
 </html>

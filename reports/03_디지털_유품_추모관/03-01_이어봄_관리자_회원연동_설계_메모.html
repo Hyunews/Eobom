@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>03-01. 관리자 대시보드 — 회원 연동 설계 메모 - 이어봄 기획 명세서</title>
+  <style>
+    :root {
+      --primary: #1A2B4C;
+      --secondary: #5B7065;
+      --accent: #D4A359;
+      --bg: #FBF9F5;
+      --surface: #FFFFFF;
+      --text: #1E293B;
+      --text-muted: #64748B;
+      --border: #E2E8F0;
+      --code-bg: #0F172A;
+      --code-text: #F8FAFC;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.65;
+      padding: 2rem 1rem;
+    }
+    .container {
+      max-width: 1140px;
+      margin: 0 auto;
+      background-color: var(--surface);
+      padding: 3rem;
+      border-radius: 24px;
+      box-shadow: 0 20px 40px rgba(26, 43, 76, 0.08);
+      border: 1px solid var(--border);
+    }
+    .header {
+      border-bottom: 3px solid var(--accent);
+      padding-bottom: 1.5rem;
+      margin-bottom: 2.5rem;
+    }
+    .badge {
+      display: inline-block;
+      background-color: var(--primary);
+      color: #FFF;
+      font-size: 0.85rem;
+      font-weight: 700;
+      padding: 0.3rem 0.8rem;
+      border-radius: 20px;
+      margin-bottom: 0.8rem;
+    }
+    h1 {
+      font-size: 2.1rem;
+      color: var(--primary);
+      margin-bottom: 0.5rem;
+      font-weight: 800;
+    }
+    .subtitle {
+      color: var(--text-muted);
+      font-size: 1.05rem;
+    }
+    .section-title {
+      font-size: 1.5rem;
+      color: var(--primary);
+      margin: 2.5rem 0 1.2rem 0;
+      padding-left: 0.8rem;
+      border-left: 5px solid var(--secondary);
+      font-weight: 700;
+    }
+    .subsection-title {
+      font-size: 1.25rem;
+      color: var(--primary);
+      margin: 1.8rem 0 0.8rem 0;
+      font-weight: 700;
+    }
+    .h4-title {
+      font-size: 1.05rem;
+      color: var(--secondary);
+      margin: 1.2rem 0 0.6rem 0;
+      font-weight: 700;
+    }
+    .info-quote {
+      background: #F1F5F9;
+      border-left: 4px solid var(--accent);
+      padding: 0.9rem 1.2rem;
+      margin: 1rem 0;
+      border-radius: 6px;
+      font-size: 0.95rem;
+      color: #334155;
+    }
+    code {
+      background: #EFF6FF;
+      color: #1D4ED8;
+      padding: 0.15rem 0.4rem;
+      border-radius: 6px;
+      font-family: 'Fira Code', Consolas, monospace;
+      font-size: 0.88rem;
+    }
+    pre {
+      background: var(--code-bg);
+      color: var(--code-text);
+      padding: 1.2rem;
+      border-radius: 12px;
+      overflow-x: auto;
+      margin: 1rem 0 1.5rem 0;
+      font-family: 'Fira Code', Consolas, monospace;
+      font-size: 0.9rem;
+    }
+    pre code {
+      background: transparent;
+      color: inherit;
+      padding: 0;
+    }
+    .table-container {
+      overflow-x: auto;
+      margin: 1.2rem 0 1.8rem 0;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.92rem;
+      background: #FFFFFF;
+    }
+    th {
+      background-color: var(--primary);
+      color: #FFFFFF;
+      padding: 0.8rem 1rem;
+      text-align: left;
+      font-weight: 600;
+    }
+    td {
+      padding: 0.8rem 1rem;
+      border-bottom: 1px solid var(--border);
+      color: #334155;
+    }
+    tr:last-child td {
+      border-bottom: none;
+    }
+    tr:nth-child(even) {
+      background-color: #F8FAFC;
+    }
+    .tag {
+      display: inline-block;
+      padding: 0.15rem 0.45rem;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 700;
+    }
+    .tag.green { background-color: #DCFCE7; color: #166534; }
+    .tag.gray { background-color: #F1F5F9; color: #475569; }
+    .tag.orange { background-color: #FFEDD5; color: #9A3412; }
+    .tag.pk { background-color: #FEE2E2; color: #991B1B; }
+    .tag.fk { background-color: #DBEAFE; color: #1E40AF; }
+    .tag.uk { background-color: #DCFCE7; color: #166534; }
+    p { margin-bottom: 0.9rem; color: #334155; }
+    ul, ol { margin-bottom: 1rem; padding-left: 1.4rem; color: #334155; }
+    li { margin-bottom: 0.4rem; }
+    .divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 2.5rem 0;
+    }
+    .nav-bar {
+      margin-bottom: 2rem;
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+    }
+    .nav-link {
+      color: var(--primary);
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+    .nav-link:hover {
+      color: var(--accent);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="nav-bar">
+      <a href="../index.html" class="nav-link">← 보고서 메인 포털로 돌아가기</a>
+    </div>
+    <div class="header">
+      <span class="badge">SSOT 정본 동기화 완료</span>
+      <h1>03-01. 관리자 대시보드 — 회원 연동 설계 메모</h1>
+      
+    </div>
+    <h1>03-01. 관리자 대시보드 — 회원 연동 설계 메모</h1>
+<blockquote class="info-quote">🔵 <strong>2026-08-12 — 정식 스펙으로 승계됨</strong></blockquote>
+<blockquote class="info-quote">§2의 <code>userId</code> FK 원칙은 <strong><code>03-02</code> §5.5·§6.4에 반영 완료</strong>되었습니다. 앞으로 그 원칙을 인용할 때는</blockquote>
+<blockquote class="info-quote"><code>03-02</code>를 참조하십시오.</blockquote>
+<blockquote class="info-quote"><strong>다만 이 문서를 폐기하지 않습니다</strong> — §3(현물 유품 수거업체 계정 형태 보류)은 **여전히 유효한</blockquote>
+<blockquote class="info-quote">미결 사안**이며 <code>03-02</code> 범위에서도 명시적으로 제외됐습니다(<code>03-02</code> §2.4, §10-3). §3이 해소될 때까지</blockquote>
+<blockquote class="info-quote">이 문서는 살아 있습니다.</blockquote>
+<blockquote class="info-quote"><strong>문서 성격</strong>: 정식 스펙이 아니라 구현 메모입니다. 대표가 &quot;운영자 대시보드에서 회원 클릭 시 도메인</blockquote>
+<blockquote class="info-quote">데이터를 볼 수 있어야 하지 않나&quot;라고 제안한 원칙을, 실제 착수 전에 근거를 남겨두기 위해</blockquote>
+<blockquote class="info-quote"><code>[Claude:Sonnet]</code>이 대표 직접 지시로 작성했습니다(같은 방식이 <code>02-02</code> 문서에도 있었음 — 정식 스펙</blockquote>
+<blockquote class="info-quote">작성은 원래 <code>[Claude:Opus]</code> 몫이나, 이번엔 사용자가 &quot;md 파일 만들어달라&quot;고 직접 요청).</blockquote>
+<p>&gt;</p>
+<blockquote class="info-quote">등록: 2026-08-11 · 작성자: <code>[Claude:Sonnet]</code></blockquote>
+<h2 class="section-title">1. 지금 상태 (사실관계)</h2>
+<ul><li>Domain 03(디지털 유품 정리 · 추모관)은 <strong>백엔드 모델이 전혀 없습니다.</strong> <code>schema.prisma</code>에는 <code>User</code> 모델</li></ul>
+<p>  하나만 있고, SNS 계정 삭제 신청·현물 유품 수거·추모관 방명록/헌화 등은 전부 <code>DigitalEstatePage.tsx</code></p>
+<p>  안의 프론트 로컬 state(useState)로만 존재하는 100% 목업입니다.</p>
+<ul><li>따라서 지금 시점에는 &quot;운영자 대시보드에서 회원 클릭 시 03 도메인 데이터 확인&quot;을 만들 수 있는 실제</li></ul>
+<p>  DB 데이터가 없습니다. 이 문서는 <strong>나중에 03이 실제 백엔드로 구현될 때 지켜야 할 설계 원칙</strong>을</p>
+<p>  남겨두는 용도입니다.</p>
+<h2 class="section-title">2. 설계 원칙 (대표 제안, 2026-08-11)</h2>
+<p>디지털 유품·추모관 관련 데이터는 성격상 특정 회원(<code>User</code>)에 종속된 데이터입니다. 운영자가 회원을</p>
+<p>검색해서 찾을 수 있다면, 그 회원을 클릭했을 때 연결된 도메인 데이터(예: SNS 삭제 신청 처리 현황,</p>
+<p>추모관 방명록/헌화 이력 등)를 함께 확인할 수 있어야 합니다.</p>
+<p><strong>구현 시 반영할 것</strong>: 03 도메인의 신규 Prisma 모델(예: <code>DigitalAccountRequest</code>, <code>MemorialGuestbook</code> 등)은</p>
+<p>전부 <code>userId</code> FK로 <code>User</code>와 연결되어야 합니다. 그래야 운영자 대시보드의 &quot;회원 상세&quot; 화면에서</p>
+<p><code>prisma.user.findUnique({ where: { id }, include: { ... } })</code> 형태로 조인해서 한 화면에 보여줄 수 있습니다.</p>
+<p>이 원칙은 05 도메인에도 동일하게 적용됩니다(→ <code>05-01</code> 참고, 다만 05는 열람 범위에 별도 제약이 있음).</p>
+<h2 class="section-title">3. 보류된 것 — 현물 유품 수거·정리 업체</h2>
+<p>현물 유품 수거/정리를 어떤 사업자 형태로 다룰지(신규 계정 유형을 만들지, 기존 <code>Partner</code>/<code>Expert</code>를</p>
+<p>확장할지, 외주 제휴사로 처리할지)는 <strong>기획이 아직 나오지 않아 보류</strong>합니다. 착수 전 반드시 <code>[Claude:Opus]</code></p>
+<p>기획 검토를 거쳐야 합니다 — 회원 유형을 잘못 설계하면(예: <code>Expert</code>에 억지로 끼워맞추기) 나중에</p>
+<p>다시 뜯어고쳐야 할 가능성이 높습니다.</p>
+<h2 class="section-title">4. 다음 단계</h2>
+<p>03 도메인 정식 스펙(<code>03-0x</code>)을 <code>[Claude:Opus]</code>가 작성할 때 이 문서의 §2 원칙을 반영 검토할 것.</p>
+<p>이 메모 자체는 스펙이 확정되면 폐기하거나 배너로 남겨도 됩니다(<code>01-03</code>/<code>01-04</code> 폐기 방식과 동일).</p>
+
+  </div>
+</body>
+</html>
