@@ -117,6 +117,7 @@ function genericMdToHtml(md) {
   let inCode = false;
   let codeBuffer = [];
 
+  let isFirstH1 = true;
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
 
@@ -147,9 +148,20 @@ function genericMdToHtml(md) {
     }
 
     if (line.startsWith('# ')) {
+      if (isFirstH1) {
+        isFirstH1 = false;
+        continue;
+      }
       html += `<h1>${escapeHtml(line.slice(2))}</h1>\n`;
     } else if (line.startsWith('## ')) {
-      html += `<h2 class="section-title">${escapeHtml(line.slice(3))}</h2>\n`;
+      const headingText = line.slice(3);
+      // Smart page break before major section boundaries (§2, §3, §4, §6, §8, §9)
+      const shouldBreak = /^(?:[⚡🔗💰🏢📋🕐]\s*)?(2|3|4|6|8|9)\./.test(headingText.trim());
+      if (shouldBreak) {
+        html += `<div class="page-break"></div>\n<h2 class="section-title">${escapeHtml(headingText)}</h2>\n`;
+      } else {
+        html += `<h2 class="section-title">${escapeHtml(headingText)}</h2>\n`;
+      }
     } else if (line.startsWith('### ')) {
       html += `<h3 class="subsection-title">${escapeHtml(line.slice(4))}</h3>\n`;
     } else if (line.startsWith('#### ')) {
@@ -362,6 +374,129 @@ function buildFullHtmlPage(title, subtitle, bodyHtml) {
     }
     .nav-link:hover {
       color: var(--accent);
+    }
+    @page {
+      size: A4 portrait;
+      margin: 15mm 14mm 18mm 14mm;
+    }
+    @media print {
+      html, body {
+        background-color: #ffffff !important;
+        color: #1e293b !important;
+        font-size: 9.5pt !important;
+        line-height: 1.5 !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+      .container {
+        max-width: 100% !important;
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        border: none !important;
+        box-shadow: none !important;
+        background: transparent !important;
+        border-radius: 0 !important;
+      }
+      .nav-bar { display: none !important; }
+      .header {
+        border-bottom: 2px solid var(--accent) !important;
+        padding-bottom: 0.6rem !important;
+        margin-bottom: 1.2rem !important;
+        page-break-after: avoid !important;
+        break-after: avoid !important;
+      }
+      h1 {
+        font-size: 17pt !important;
+        line-height: 1.3 !important;
+        margin-bottom: 0.4rem !important;
+        color: var(--primary) !important;
+      }
+      .badge {
+        font-size: 8pt !important;
+        padding: 0.2rem 0.6rem !important;
+        background-color: var(--primary) !important;
+        color: #ffffff !important;
+        -webkit-print-color-adjust: exact !important;
+      }
+      .section-title {
+        font-size: 12.5pt !important;
+        margin: 1.2rem 0 0.6rem 0 !important;
+        padding-left: 0.5rem !important;
+        border-left: 4px solid var(--secondary) !important;
+        page-break-after: avoid !important;
+        break-after: avoid !important;
+      }
+      .subsection-title {
+        font-size: 10.5pt !important;
+        margin: 1rem 0 0.5rem 0 !important;
+        page-break-after: avoid !important;
+        break-after: avoid !important;
+      }
+      .h4-title {
+        font-size: 9.5pt !important;
+        margin: 0.8rem 0 0.3rem 0 !important;
+        page-break-after: avoid !important;
+        break-after: avoid !important;
+      }
+      .info-quote {
+        background: #f8fafc !important;
+        border-left: 3px solid var(--accent) !important;
+        padding: 0.6rem 0.8rem !important;
+        margin: 0.6rem 0 !important;
+        font-size: 9pt !important;
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+        border-radius: 4px !important;
+      }
+      .table-container {
+        margin: 0.6rem 0 1rem 0 !important;
+        border: 1px solid #cbd5e1 !important;
+        border-radius: 6px !important;
+        overflow: visible !important;
+        page-break-inside: auto !important;
+        break-inside: auto !important;
+      }
+      table {
+        width: 100% !important;
+        font-size: 8.5pt !important;
+        border-collapse: collapse !important;
+      }
+      thead { display: table-header-group !important; }
+      tr {
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+      }
+      th {
+        background-color: #1a2b4c !important;
+        color: #ffffff !important;
+        padding: 0.45rem 0.65rem !important;
+        font-size: 8.5pt !important;
+        -webkit-print-color-adjust: exact !important;
+      }
+      td {
+        padding: 0.45rem 0.65rem !important;
+        border-bottom: 1px solid #e2e8f0 !important;
+      }
+      .tag {
+        font-size: 7pt !important;
+        padding: 0.1rem 0.35rem !important;
+        border-radius: 4px !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+      .divider {
+        margin: 1rem 0 !important;
+        border-top: 1px solid #e2e8f0 !important;
+      }
+      .page-break {
+        page-break-before: always !important;
+        break-before: page !important;
+      }
+      ul, ol { margin-bottom: 0.5rem !important; }
+      li { page-break-inside: avoid !important; break-inside: avoid !important; }
     }
   </style>
 </head>

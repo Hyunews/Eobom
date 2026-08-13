@@ -177,6 +177,129 @@
     .nav-link:hover {
       color: var(--accent);
     }
+    @page {
+      size: A4 portrait;
+      margin: 15mm 14mm 18mm 14mm;
+    }
+    @media print {
+      html, body {
+        background-color: #ffffff !important;
+        color: #1e293b !important;
+        font-size: 9.5pt !important;
+        line-height: 1.5 !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+      .container {
+        max-width: 100% !important;
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        border: none !important;
+        box-shadow: none !important;
+        background: transparent !important;
+        border-radius: 0 !important;
+      }
+      .nav-bar { display: none !important; }
+      .header {
+        border-bottom: 2px solid var(--accent) !important;
+        padding-bottom: 0.6rem !important;
+        margin-bottom: 1.2rem !important;
+        page-break-after: avoid !important;
+        break-after: avoid !important;
+      }
+      h1 {
+        font-size: 17pt !important;
+        line-height: 1.3 !important;
+        margin-bottom: 0.4rem !important;
+        color: var(--primary) !important;
+      }
+      .badge {
+        font-size: 8pt !important;
+        padding: 0.2rem 0.6rem !important;
+        background-color: var(--primary) !important;
+        color: #ffffff !important;
+        -webkit-print-color-adjust: exact !important;
+      }
+      .section-title {
+        font-size: 12.5pt !important;
+        margin: 1.2rem 0 0.6rem 0 !important;
+        padding-left: 0.5rem !important;
+        border-left: 4px solid var(--secondary) !important;
+        page-break-after: avoid !important;
+        break-after: avoid !important;
+      }
+      .subsection-title {
+        font-size: 10.5pt !important;
+        margin: 1rem 0 0.5rem 0 !important;
+        page-break-after: avoid !important;
+        break-after: avoid !important;
+      }
+      .h4-title {
+        font-size: 9.5pt !important;
+        margin: 0.8rem 0 0.3rem 0 !important;
+        page-break-after: avoid !important;
+        break-after: avoid !important;
+      }
+      .info-quote {
+        background: #f8fafc !important;
+        border-left: 3px solid var(--accent) !important;
+        padding: 0.6rem 0.8rem !important;
+        margin: 0.6rem 0 !important;
+        font-size: 9pt !important;
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+        border-radius: 4px !important;
+      }
+      .table-container {
+        margin: 0.6rem 0 1rem 0 !important;
+        border: 1px solid #cbd5e1 !important;
+        border-radius: 6px !important;
+        overflow: visible !important;
+        page-break-inside: auto !important;
+        break-inside: auto !important;
+      }
+      table {
+        width: 100% !important;
+        font-size: 8.5pt !important;
+        border-collapse: collapse !important;
+      }
+      thead { display: table-header-group !important; }
+      tr {
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+      }
+      th {
+        background-color: #1a2b4c !important;
+        color: #ffffff !important;
+        padding: 0.45rem 0.65rem !important;
+        font-size: 8.5pt !important;
+        -webkit-print-color-adjust: exact !important;
+      }
+      td {
+        padding: 0.45rem 0.65rem !important;
+        border-bottom: 1px solid #e2e8f0 !important;
+      }
+      .tag {
+        font-size: 7pt !important;
+        padding: 0.1rem 0.35rem !important;
+        border-radius: 4px !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+      .divider {
+        margin: 1rem 0 !important;
+        border-top: 1px solid #e2e8f0 !important;
+      }
+      .page-break {
+        page-break-before: always !important;
+        break-before: page !important;
+      }
+      ul, ol { margin-bottom: 0.5rem !important; }
+      li { page-break-inside: avoid !important; break-inside: avoid !important; }
+    }
   </style>
 </head>
 <body>
@@ -189,8 +312,7 @@
       <h1>🗣️ 00-14. 대표 · 사장님 논의 안건 정리</h1>
       
     </div>
-    <h1>🗣️ 00-14. 대표 · 사장님 논의 안건 정리</h1>
-<blockquote class="info-quote"><strong>문서 성격</strong>: 회의 자료. 전 도메인(00~08) 문서를 전수 조사해 <strong>결정 대기 항목을 한 곳에 모은 것</strong>입니다.</blockquote>
+    <blockquote class="info-quote"><strong>문서 성격</strong>: 회의 자료. 전 도메인(00~08) 문서를 전수 조사해 <strong>결정 대기 항목을 한 곳에 모은 것</strong>입니다.</blockquote>
 <blockquote class="info-quote">새 판단을 담지 않습니다 — 각 항목의 정본은 원 문서이며 여기는 <strong>목차 + 우선순위</strong>입니다.</blockquote>
 <blockquote class="info-quote"><strong>작성</strong>: <code>[Claude:Opus]</code> 2026-08-13 · <strong>대상 회의</strong>: 2026-08-14(금) 또는 08-17(월)</blockquote>
 <blockquote class="info-quote"><strong>조사 범위</strong>: <code>docs/</code> 하위 24개 문서 전수 (<code>작업일지_및_기록</code> 제외) + <code>.harness/memory/pending-approvals.md</code></blockquote>
@@ -201,6 +323,7 @@
 <div class="table-container"><table><thead><tr><th>구분</th><th>건수</th><th>성격</th><th>회의에서</th></tr></thead><tbody><tr><td>**§2 즉시 처리**</td><td>**4**</td><td>판단이 아니라 **사실 확인** — 화면이 이미 약속했는데 뒷받침이 없음</td><td>⭐ 필수</td></tr><tr><td>**§3 열쇠 결정**</td><td>**4**</td><td>이거 하나가 여러 개를 동시에 품</td><td>⭐ 필수</td></tr><tr><td>**§4 경영 판단(돈)**</td><td>**4**</td><td>사업 방향 — 기획이 정할 수 없음</td><td>⭐ 필수</td></tr><tr><td>§5 외부 전문가</td><td>5</td><td>변호사·세무사 확인 필요. 회의에선 **의뢰 여부만**</td><td>🟡</td></tr><tr><td>§6 운영 체계</td><td>3</td><td>사람·시간 배정 문제</td><td>🟡</td></tr><tr><td>§7 기술 확인</td><td>6</td><td>권고안 있음. **&quot;네&quot;만 하시면 됨**</td><td><span class="tag gray">⬜ 계획</span></td></tr></tbody></table></div>
 <blockquote class="info-quote"><strong>§2가 가장 급합니다.</strong> 나머지는 &quot;아직 안 정했다&quot;지만, §2는 <strong>이미 사용자에게 약속한 상태</strong>입니다.</blockquote>
 <hr class="divider"/>
+<div class="page-break"></div>
 <h2 class="section-title">⚡ 2. 즉시 처리 — 화면이 약속했는데 뒷받침이 없는 것 (4건)</h2>
 <p><strong>공통 성격</strong>: 전부 화면에 이미 노출 중이고, <strong>문제가 되돌릴 수 없는 시점에 드러납니다.</strong></p>
 <p>대표님 판단이 필요한 게 아니라 <strong>&quot;고칩시다&quot;만 하시면 되는 것</strong>이 3건입니다.</p>

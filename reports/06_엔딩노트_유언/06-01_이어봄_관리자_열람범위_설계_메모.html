@@ -177,6 +177,129 @@
     .nav-link:hover {
       color: var(--accent);
     }
+    @page {
+      size: A4 portrait;
+      margin: 15mm 14mm 18mm 14mm;
+    }
+    @media print {
+      html, body {
+        background-color: #ffffff !important;
+        color: #1e293b !important;
+        font-size: 9.5pt !important;
+        line-height: 1.5 !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+      .container {
+        max-width: 100% !important;
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        border: none !important;
+        box-shadow: none !important;
+        background: transparent !important;
+        border-radius: 0 !important;
+      }
+      .nav-bar { display: none !important; }
+      .header {
+        border-bottom: 2px solid var(--accent) !important;
+        padding-bottom: 0.6rem !important;
+        margin-bottom: 1.2rem !important;
+        page-break-after: avoid !important;
+        break-after: avoid !important;
+      }
+      h1 {
+        font-size: 17pt !important;
+        line-height: 1.3 !important;
+        margin-bottom: 0.4rem !important;
+        color: var(--primary) !important;
+      }
+      .badge {
+        font-size: 8pt !important;
+        padding: 0.2rem 0.6rem !important;
+        background-color: var(--primary) !important;
+        color: #ffffff !important;
+        -webkit-print-color-adjust: exact !important;
+      }
+      .section-title {
+        font-size: 12.5pt !important;
+        margin: 1.2rem 0 0.6rem 0 !important;
+        padding-left: 0.5rem !important;
+        border-left: 4px solid var(--secondary) !important;
+        page-break-after: avoid !important;
+        break-after: avoid !important;
+      }
+      .subsection-title {
+        font-size: 10.5pt !important;
+        margin: 1rem 0 0.5rem 0 !important;
+        page-break-after: avoid !important;
+        break-after: avoid !important;
+      }
+      .h4-title {
+        font-size: 9.5pt !important;
+        margin: 0.8rem 0 0.3rem 0 !important;
+        page-break-after: avoid !important;
+        break-after: avoid !important;
+      }
+      .info-quote {
+        background: #f8fafc !important;
+        border-left: 3px solid var(--accent) !important;
+        padding: 0.6rem 0.8rem !important;
+        margin: 0.6rem 0 !important;
+        font-size: 9pt !important;
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+        border-radius: 4px !important;
+      }
+      .table-container {
+        margin: 0.6rem 0 1rem 0 !important;
+        border: 1px solid #cbd5e1 !important;
+        border-radius: 6px !important;
+        overflow: visible !important;
+        page-break-inside: auto !important;
+        break-inside: auto !important;
+      }
+      table {
+        width: 100% !important;
+        font-size: 8.5pt !important;
+        border-collapse: collapse !important;
+      }
+      thead { display: table-header-group !important; }
+      tr {
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+      }
+      th {
+        background-color: #1a2b4c !important;
+        color: #ffffff !important;
+        padding: 0.45rem 0.65rem !important;
+        font-size: 8.5pt !important;
+        -webkit-print-color-adjust: exact !important;
+      }
+      td {
+        padding: 0.45rem 0.65rem !important;
+        border-bottom: 1px solid #e2e8f0 !important;
+      }
+      .tag {
+        font-size: 7pt !important;
+        padding: 0.1rem 0.35rem !important;
+        border-radius: 4px !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+      .divider {
+        margin: 1rem 0 !important;
+        border-top: 1px solid #e2e8f0 !important;
+      }
+      .page-break {
+        page-break-before: always !important;
+        break-before: page !important;
+      }
+      ul, ol { margin-bottom: 0.5rem !important; }
+      li { page-break-inside: avoid !important; break-inside: avoid !important; }
+    }
   </style>
 </head>
 <body>
@@ -189,8 +312,7 @@
       <h1>06-01. 관리자 대시보드 — 열람 범위 설계 메모 (기획 상의 필요)</h1>
       
     </div>
-    <h1>06-01. 관리자 대시보드 — 열람 범위 설계 메모 (기획 상의 필요)</h1>
-<blockquote class="info-quote">🔵 <strong>2026-08-12 — 구 <code>05-01</code>에서 이동.</strong> 도메인 재편(<code>00-12</code> §7)으로 엔딩노트 도메인이</blockquote>
+    <blockquote class="info-quote">🔵 <strong>2026-08-12 — 구 <code>05-01</code>에서 이동.</strong> 도메인 재편(<code>00-12</code> §7)으로 엔딩노트 도메인이</blockquote>
 <blockquote class="info-quote"><strong>05 → 06</strong>으로 옮겨갔습니다. 이 도메인은 <strong>생전(pre-death) 전용</strong>이며, <code>00-12</code> 논의에서</blockquote>
 <blockquote class="info-quote"><strong>고인이 유족에게 무언가를 남기는 유일한 통로</strong>로 확정됐습니다(→ <code>04-01</code> §9.1).</blockquote>
 <blockquote class="info-quote"><strong>문서 성격</strong>: 정식 스펙이 아니라 구현 메모입니다. <code>03-01</code>과 같은 배경으로 <code>[Claude:Sonnet]</code>이</blockquote>
@@ -205,12 +327,14 @@
 <p>  <code>EndingNotePage.tsx</code>의 로그인 유도 카피, <code>HomePage.tsx</code> 섹션 5(엔딩노트) 문구에 &quot;생전에는 철저히</p>
 <p>  비밀이 보장되며, 사후 사망진단서 확인 및 지정 유족의 이중 동의 완료 시에만 안전하게 복호화되어</p>
 <p>  전송됩니다&quot;라고 이미 적혀 있습니다.</p>
+<div class="page-break"></div>
 <h2 class="section-title">2. 회원 연동 원칙은 다른 도메인과 동일</h2>
 <p><code>03-01</code> §2와 같습니다 — 실제 구현 시 이 도메인의 모델도 <code>userId</code> FK로 연결되어야 운영자가 회원</p>
 <p>상세에서 확인할 수 있습니다.</p>
 <blockquote class="info-quote">🔵 <strong><code>00-12</code> §4 사다리와의 관계</strong>: 화면에 약속한 *&quot;사망진단서 확인 + 지정 유족 이중 동의&quot;* 는</blockquote>
 <blockquote class="info-quote">사다리의 <strong>L3·L4</strong>에 해당합니다. <code>04-01</code> §3.3(증빙서류 미수집)은 <strong>L0~L1 행위에 대한 결정</strong>이므로</blockquote>
 <blockquote class="info-quote">이 도메인에 유추 적용하면 안 됩니다 — 층이 다릅니다.</blockquote>
+<div class="page-break"></div>
 <h2 class="section-title">3. 쟁점 — 운영자가 정확히 뭘 볼 수 있어야 하는가 (기획 상의 필요)</h2>
 <p>대표가 제안한 &quot;회원 클릭 시 관련정보 확인&quot;을 05에 그대로 적용하면, 그 &quot;관련정보&quot;가 정확히 뭔지에</p>
 <p>따라 결과가 완전히 달라집니다.</p>
@@ -222,6 +346,7 @@
 <p>  이 기능의 신뢰(광고 카피의 진실성)가 걸린 문제라 즉흥적으로 정할 사안이 아닙니다.</p>
 <p><strong>이 문서는 A안을 권장하되 확정하지 않습니다.</strong> 최종 판단은 <code>[Claude:Opus]</code>와 대표(+ 필요시</p>
 <p>사장님) 상의로 결정하고, 결정 즉시 이 문서에 반영하거나 정식 스펙 <code>05-0x</code>로 승격해야 합니다.</p>
+<div class="page-break"></div>
 <h2 class="section-title">4. 다음 단계</h2>
 <ul><li><code>pending-approvals.md</code> 또는 <code>context.md</code> &quot;다음 후보&quot;에 이 쟁점을 등록해 논의 전까지 착수 금지</li></ul>
 <p>  상태를 유지할 것.</p>
