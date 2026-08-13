@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>✍️ 06-02. 엔딩노트 법적 효력 확보 방안 — 결정서 - 이어봄 기획 명세서</title>
+  <style>
+    :root {
+      --primary: #1A2B4C;
+      --secondary: #5B7065;
+      --accent: #D4A359;
+      --bg: #FBF9F5;
+      --surface: #FFFFFF;
+      --text: #1E293B;
+      --text-muted: #64748B;
+      --border: #E2E8F0;
+      --code-bg: #0F172A;
+      --code-text: #F8FAFC;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.65;
+      padding: 2rem 1rem;
+    }
+    .container {
+      max-width: 1140px;
+      margin: 0 auto;
+      background-color: var(--surface);
+      padding: 3rem;
+      border-radius: 24px;
+      box-shadow: 0 20px 40px rgba(26, 43, 76, 0.08);
+      border: 1px solid var(--border);
+    }
+    .header {
+      border-bottom: 3px solid var(--accent);
+      padding-bottom: 1.5rem;
+      margin-bottom: 2.5rem;
+    }
+    .badge {
+      display: inline-block;
+      background-color: var(--primary);
+      color: #FFF;
+      font-size: 0.85rem;
+      font-weight: 700;
+      padding: 0.3rem 0.8rem;
+      border-radius: 20px;
+      margin-bottom: 0.8rem;
+    }
+    h1 {
+      font-size: 2.1rem;
+      color: var(--primary);
+      margin-bottom: 0.5rem;
+      font-weight: 800;
+    }
+    .subtitle {
+      color: var(--text-muted);
+      font-size: 1.05rem;
+    }
+    .section-title {
+      font-size: 1.5rem;
+      color: var(--primary);
+      margin: 2.5rem 0 1.2rem 0;
+      padding-left: 0.8rem;
+      border-left: 5px solid var(--secondary);
+      font-weight: 700;
+    }
+    .subsection-title {
+      font-size: 1.25rem;
+      color: var(--primary);
+      margin: 1.8rem 0 0.8rem 0;
+      font-weight: 700;
+    }
+    .h4-title {
+      font-size: 1.05rem;
+      color: var(--secondary);
+      margin: 1.2rem 0 0.6rem 0;
+      font-weight: 700;
+    }
+    .info-quote {
+      background: #F1F5F9;
+      border-left: 4px solid var(--accent);
+      padding: 0.9rem 1.2rem;
+      margin: 1rem 0;
+      border-radius: 6px;
+      font-size: 0.95rem;
+      color: #334155;
+    }
+    code {
+      background: #EFF6FF;
+      color: #1D4ED8;
+      padding: 0.15rem 0.4rem;
+      border-radius: 6px;
+      font-family: 'Fira Code', Consolas, monospace;
+      font-size: 0.88rem;
+    }
+    pre {
+      background: var(--code-bg);
+      color: var(--code-text);
+      padding: 1.2rem;
+      border-radius: 12px;
+      overflow-x: auto;
+      margin: 1rem 0 1.5rem 0;
+      font-family: 'Fira Code', Consolas, monospace;
+      font-size: 0.9rem;
+    }
+    pre code {
+      background: transparent;
+      color: inherit;
+      padding: 0;
+    }
+    .table-container {
+      overflow-x: auto;
+      margin: 1.2rem 0 1.8rem 0;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.92rem;
+      background: #FFFFFF;
+    }
+    th {
+      background-color: var(--primary);
+      color: #FFFFFF;
+      padding: 0.8rem 1rem;
+      text-align: left;
+      font-weight: 600;
+    }
+    td {
+      padding: 0.8rem 1rem;
+      border-bottom: 1px solid var(--border);
+      color: #334155;
+    }
+    tr:last-child td {
+      border-bottom: none;
+    }
+    tr:nth-child(even) {
+      background-color: #F8FAFC;
+    }
+    .tag {
+      display: inline-block;
+      padding: 0.15rem 0.45rem;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 700;
+    }
+    .tag.green { background-color: #DCFCE7; color: #166534; }
+    .tag.gray { background-color: #F1F5F9; color: #475569; }
+    .tag.orange { background-color: #FFEDD5; color: #9A3412; }
+    .tag.pk { background-color: #FEE2E2; color: #991B1B; }
+    .tag.fk { background-color: #DBEAFE; color: #1E40AF; }
+    .tag.uk { background-color: #DCFCE7; color: #166534; }
+    p { margin-bottom: 0.9rem; color: #334155; }
+    ul, ol { margin-bottom: 1rem; padding-left: 1.4rem; color: #334155; }
+    li { margin-bottom: 0.4rem; }
+    .divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 2.5rem 0;
+    }
+    .nav-bar {
+      margin-bottom: 2rem;
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+    }
+    .nav-link {
+      color: var(--primary);
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+    .nav-link:hover {
+      color: var(--accent);
+    }
+    @page {
+      size: A4 portrait;
+      margin: 15mm 14mm 18mm 14mm;
+    }
+    @media print {
+      html, body {
+        background-color: #ffffff !important;
+        color: #1e293b !important;
+        font-size: 9.5pt !important;
+        line-height: 1.5 !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+      .container {
+        max-width: 100% !important;
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        border: none !important;
+        box-shadow: none !important;
+        background: transparent !important;
+        border-radius: 0 !important;
+      }
+      .nav-bar { display: none !important; }
+      .header {
+        border-bottom: 2px solid var(--accent) !important;
+        padding-bottom: 0.6rem !important;
+        margin-bottom: 1.2rem !important;
+        page-break-after: avoid !important;
+        break-after: avoid !important;
+      }
+      h1 {
+        font-size: 17pt !important;
+        line-height: 1.3 !important;
+        margin-bottom: 0.4rem !important;
+        color: var(--primary) !important;
+      }
+      .badge {
+        font-size: 8pt !important;
+        padding: 0.2rem 0.6rem !important;
+        background-color: var(--primary) !important;
+        color: #ffffff !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+      .section-title {
+        font-size: 12.5pt !important;
+        margin: 1.2rem 0 0.6rem 0 !important;
+        padding-left: 0.5rem !important;
+        border-left: 4px solid var(--secondary) !important;
+        page-break-after: avoid !important;
+        break-after: avoid !important;
+      }
+      .subsection-title {
+        font-size: 10.5pt !important;
+        margin: 1rem 0 0.5rem 0 !important;
+        page-break-after: avoid !important;
+        break-after: avoid !important;
+      }
+      .h4-title {
+        font-size: 9.5pt !important;
+        margin: 0.8rem 0 0.3rem 0 !important;
+        page-break-after: avoid !important;
+        break-after: avoid !important;
+      }
+      .info-quote {
+        background: #f8fafc !important;
+        border-left: 3px solid var(--accent) !important;
+        padding: 0.6rem 0.8rem !important;
+        margin: 0.6rem 0 !important;
+        font-size: 9pt !important;
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+        border-radius: 4px !important;
+      }
+      .table-container {
+        margin: 0.6rem 0 1rem 0 !important;
+        border: 1px solid #cbd5e1 !important;
+        border-radius: 6px !important;
+        overflow: visible !important;
+        page-break-inside: auto !important;
+        break-inside: auto !important;
+      }
+      table {
+        width: 100% !important;
+        font-size: 8.5pt !important;
+        border-collapse: collapse !important;
+      }
+      thead { display: table-header-group !important; }
+      tr {
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+      }
+      th {
+        background-color: #1a2b4c !important;
+        color: #ffffff !important;
+        padding: 0.45rem 0.65rem !important;
+        font-size: 8.5pt !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+      td {
+        padding: 0.45rem 0.65rem !important;
+        border-bottom: 1px solid #e2e8f0 !important;
+      }
+      .tag {
+        font-size: 7pt !important;
+        padding: 0.1rem 0.35rem !important;
+        border-radius: 4px !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+      .divider {
+        margin: 1rem 0 !important;
+        border-top: 1px solid #e2e8f0 !important;
+      }
+      .page-break {
+        page-break-before: always !important;
+        break-before: page !important;
+      }
+      ul, ol { margin-bottom: 0.5rem !important; }
+      li { page-break-inside: avoid !important; break-inside: avoid !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="nav-bar">
+      <a href="../index.html" class="nav-link">← 보고서 메인 포털로 돌아가기</a>
+    </div>
+    <div class="header">
+      <span class="badge">SSOT 정본 동기화 완료</span>
+      <h1>✍️ 06-02. 엔딩노트 법적 효력 확보 방안 — 결정서</h1>
+      
+    </div>
+    <blockquote class="info-quote"><strong>문서 성격</strong>: 결정서 · <strong>사장님 확정 대기</strong>. <code>[Claude:Opus]</code> 작성(2026-08-13).</blockquote>
+<blockquote class="info-quote"><strong>계기</strong>: <code>00-14</code> §2-2 개발자 지적 — *&quot;법적 효력이 없다면 의미가 없는데, 법적 효력을 갖게 하기</blockquote>
+<blockquote class="info-quote">위한 방안 모색.&quot;*</blockquote>
+<blockquote class="info-quote"><strong>표기</strong>: ✅ 확정 사실 / 🟡 권고 / 🔴 확정 필요(주체는 §7 표기)</blockquote>
+<blockquote class="info-quote">⚠️ <strong>이 문서는 법률 자문이 아닙니다.</strong> 아래 법령 인용은 <strong>검증 대상</strong>이며, 실제 서비스 문구·</blockquote>
+<blockquote class="info-quote">절차 확정 전 변호사 검토가 필요합니다(§7-1).</blockquote>
+<hr class="divider"/>
+<h2 class="section-title">📌 1. 먼저 전제를 하나 정정합니다</h2>
+<blockquote class="info-quote">개발자 지적: *&quot;법적 효력이 없다면 의미가 없는데&quot;*</blockquote>
+<p><strong>절반은 맞고, 절반은 다릅니다.</strong> 엔딩노트가 담는 것을 갈라보면 **법적 효력이 필요한 항목이</p>
+<p>소수**입니다.</p>
+<div class="table-container"><table><thead><tr><th>엔딩노트가 담는 것</th><th>법적 효력 필요?</th><th>실제로 필요한 것</th></tr></thead><tbody><tr><td>유족에게 남기는 편지·메시지</td><td>❌ 불필요</td><td>**전달만 되면 됨**</td></tr><tr><td>계좌·비밀번호·자산 위치 정보</td><td>❌ 불필요</td><td>전달만 되면 됨</td></tr><tr><td>장례 희망 방식</td><td>❌ 불필요</td><td>유언에 넣어도 **법적 구속력이 약합니다**</td></tr><tr><td>**연명의료 의향**</td><td>⭕ **필요**</td><td>🔴 **별도 법정 제도가 이미 있습니다**(§3)</td></tr><tr><td>**재산을 누구에게 얼마나**</td><td>⭕ **필요**</td><td>🔴 **민법상 유언 5방식**(§4)</td></tr></tbody></table></div>
+<blockquote class="info-quote">**✅ 결론: &quot;엔딩노트 전체를 법적 효력 있게&quot; 만드는 것이 아니라, 효력이 필요한 2가지를 골라내</blockquote>
+<blockquote class="info-quote">각각의 법정 경로로 연결하는 것이 답입니다.**</blockquote>
+<p>그리고 중요한 사실 — <strong>위 2가지는 이미 국가가 만들어둔 제도가 있습니다.</strong> 이어봄이 새로 만들</p>
+<p>것이 아니라 <strong>연결하는 것</strong>입니다.</p>
+<hr class="divider"/>
+<h2 class="section-title">🏥 2. 지금 상태 — 화면이 이미 3가지를 약속하고 있습니다</h2>
+<p><code>EndingNotePage.tsx</code>가 다루는 3대 항목입니다.</p>
+<div class="table-container"><table><thead><tr><th>화면이 약속한 것</th><th>현재 법적 상태</th></tr></thead><tbody><tr><td>&quot;사전 연명의료 의향서&quot;</td><td>❌ **앱 입력은 효력 없음** — 등록기관 작성이 요건(§3)</td></tr><tr><td>&quot;유언 메시지 / 유언 편지&quot;</td><td>❌ **앱 입력은 유언이 아님** — 민법 5방식 미충족(§4)</td></tr><tr><td>&quot;256-bit AES 암호화 금고 · 사후 자동 발송&quot;</td><td>⭕ **이 부분은 유효** — 정보 전달에는 효력이 불필요</td></tr></tbody></table></div>
+<p><strong>3개 중 2개가 &quot;효력 있는 것처럼 보이지만 아닌&quot; 상태</strong>이고, 면책 문구도 없습니다</p>
+<p>(<code>02-04</code> §1.3 — 상속세 계산기엔 붙어 있는데 여기엔 없음).</p>
+<hr class="divider"/>
+<h2 class="section-title">🏥 3. ✅ 연명의료 의향 — 이건 답이 명확합니다</h2>
+<p>**연명의료결정법상 「사전연명의료의향서」는 보건복지부 지정 등록기관에서 상담을 받고 작성해야</p>
+<p>법적 효력이 생깁니다.** 본인이 직접 방문해야 하고, 작성 후 연명의료 정보처리시스템에 등록됩니다.</p>
+<div class="table-container"><table><thead><tr><th></th><th></th></tr></thead><tbody><tr><td>**앱에 쓴 것**</td><td>❌ 효력 없음. 의료 현장에서 참고조차 안 될 수 있음</td></tr><tr><td>**등록기관 작성**</td><td>⭕ 효력 있음. **무료**</td></tr><tr><td>**이어봄의 역할**</td><td>🟡 **안내 + 등록 여부 기록**</td></tr></tbody></table></div>
+<h3 class="subsection-title">3.1 🟡 권고 설계</h3>
+<ul><li>엔딩노트의 연명의료 항목을 <strong>&quot;의향 메모&quot;와 &quot;등록 여부&quot;로 분리</strong>합니다.</li></ul>
+<ul><li><strong>&quot;등록기관에서 작성하셔야 효력이 생깁니다&quot;</strong> + <strong>가까운 등록기관 찾기 링크</strong>(국립연명의료관리기관).</li></ul>
+<ul><li>사용자가 등록을 마쳤으면 <strong>&quot;등록함 ✅ (등록일)&quot;</strong> 만 기록합니다 — **의향서 내용을 이어봄이</li></ul>
+<p>  보관할 이유가 없습니다.**</p>
+<blockquote class="info-quote"><strong>이게 가장 좋은 형태입니다</strong>: 비용 0, 법적 효력 확실, 이어봄은 개인정보를 안 받습니다.</blockquote>
+<blockquote class="info-quote"><code>04-01</code> §3.3(증빙서류 미수집)과 같은 사상입니다.</blockquote>
+<hr class="divider"/>
+<h2 class="section-title">⚖️ 4. ✅ 유언 — 민법 5방식 중 현실적인 것은 2개</h2>
+<p>법적 유언은 <strong>민법 제1065~1072조의 5가지 방식</strong>만 인정되고, 요건을 하나라도 빠뜨리면 <strong>전부 무효</strong>입니다.</p>
+<div class="table-container"><table><thead><tr><th>방식</th><th>요건</th><th>비용</th><th>앱으로 가능?</th></tr></thead><tbody><tr><td>**자필증서**(§1066)</td><td>전문·연월일·주소·성명을 **직접 손으로 쓰고 날인**</td><td>**0원**</td><td>❌ (손글씨 필수)</td></tr><tr><td>**공정증서**(§1068)</td><td>**증인 2명 + 공증인**</td><td>유료</td><td>❌</td></tr><tr><td>녹음(§1067)</td><td>취지·성명·연월일 구술 + **증인 1명**이 구술</td><td>낮음</td><td>🟡 (§4.3)</td></tr><tr><td>비밀증서(§1069)</td><td>봉인 + 확정일자</td><td>유료</td><td>❌</td></tr><tr><td>구수증서(§1070)</td><td>**질병 등 급박한 경우만**</td><td>—</td><td>❌</td></tr></tbody></table></div>
+<blockquote class="info-quote"><strong>✅ 핵심: 어떤 방식도 &quot;앱 입력창&quot;으로는 성립하지 않습니다.</strong> 자필증서는 손글씨가 요건이고,</blockquote>
+<blockquote class="info-quote">나머지는 증인·공증인이라는 사람이 필요합니다. <strong>이건 기술로 우회할 수 없는 제약입니다.</strong></blockquote>
+<h3 class="subsection-title">4.1 🟡 그래서 3안 — 권고는 **A + C 조합**</h3>
+<div class="table-container"><table><thead><tr><th></th><th>안</th><th>이어봄의 역할</th><th>장점</th><th>단점</th></tr></thead><tbody><tr><td>**A**</td><td>**자필증서 작성 가이드**</td><td>요건 체크리스트 + 문안 템플릿 제공. **작성은 본인 손글씨**</td><td>**비용 0**, 접근성 최고</td><td>요건 미비 시 무효. 분실·위조 위험. **사후 법원 검인 필요**(민법 §1091)</td></tr><tr><td>**B**</td><td>**공정증서 유언 연결**</td><td>02 변호사·공증인 매칭</td><td>**가장 안전**. 검인 불필요</td><td>비용 발생</td></tr><tr><td>**C**</td><td>**트리거 역할만**</td><td>&quot;유언장이 따로 필요합니다&quot; 안내 후 02로</td><td>가장 정직. 구현 비용 0</td><td>이어봄이 해주는 게 없음</td></tr></tbody></table></div>
+<blockquote class="info-quote">🟡 <strong>권고: C를 기본값, A를 무료 도움, B를 유료 경로.</strong></blockquote>
+<p>&gt;</p>
+<blockquote class="info-quote">- <strong>C(기본)</strong>: 엔딩노트에서 재산 처분 의사가 감지되면 <strong>항상</strong> 안내. <code>02-04</code> §3.2가 정한 원칙.</blockquote>
+<blockquote class="info-quote">- <strong>A(무료)</strong>: 요건 체크리스트를 제공합니다. 다만 <strong>이어봄이 보관하는 사진·사본은 유언이 아닙니다</strong> —</blockquote>
+<blockquote class="info-quote">  원본을 본인이 보관해야 하며, 이 사실을 반드시 고지합니다.</blockquote>
+<blockquote class="info-quote">- <strong>B(유료)</strong>: 재산 규모가 크거나 분쟁 소지가 있으면 공정증서. <strong><code>02-01</code> Tier 4 수익원</strong>이며</blockquote>
+<blockquote class="info-quote">  <code>02-04</code> §6이 지적한 &quot;생전 축이 Tier 4 전환율이 높다&quot;의 실례입니다.</blockquote>
+<h3 class="subsection-title">4.2 ⚠️ A안을 고를 때 반드시 지킬 것</h3>
+<p><strong>자필증서 유언은 &quot;쉬워 보여서 위험한&quot; 방식입니다.</strong> 실무상 무효 사례가 가장 많습니다.</p>
+<ul><li><strong>주소 누락</strong> — 가장 흔한 무효 사유. 번지까지 특정해야 한다는 것이 통설</li></ul>
+<ul><li><strong>날인 누락</strong> — 서명만으로는 부족</li></ul>
+<ul><li><strong>연월일 불명</strong> — &quot;○년 ○월 길일&quot; 같은 표기는 무효</li></ul>
+<ul><li>컴퓨터 작성·대필 → 무효</li></ul>
+<blockquote class="info-quote">🔴 <strong>이어봄이 &quot;가이드대로 썼으니 유효하다&quot;고 보증하는 것처럼 보이면 안 됩니다.</strong></blockquote>
+<blockquote class="info-quote">체크리스트는 <strong>&quot;빠뜨리기 쉬운 것 안내&quot;</strong> 수준이고, <strong>최종 확인은 전문가</strong>라고 명시합니다.</blockquote>
+<blockquote class="info-quote"><code>07-01</code> §4.3(기준일은 법률 판단이라 확정 불가)과 같은 태도입니다.</blockquote>
+<h3 class="subsection-title">4.3 🔴 녹음 유언(C안 변형)은 권고하지 않습니다</h3>
+<p>앱으로 가능해 보이지만:</p>
+<ul><li><strong>증인 1명이 같은 자리에서 구술</strong>해야 합니다 — 앱 혼자로는 불성립</li></ul>
+<ul><li>매체 보존·변조 여부가 사후 분쟁의 표적이 됩니다</li></ul>
+<ul><li>유언자 특정(음성 동일성) 다툼 소지</li></ul>
+<p><strong>기술적으로 만들 수 있다고 해서 만들면 안 되는 영역</strong>입니다.</p>
+<hr class="divider"/>
+<h2 class="section-title">🔐 5. ✅ 나머지 — 지금 설계가 이미 맞습니다</h2>
+<p>유족 메시지·자산 위치 정보는 <strong>법적 효력이 필요 없고</strong>, 필요한 것은 <strong>① 비밀 유지 ② 확실한 전달</strong></p>
+<p>두 가지뿐입니다. 그건 이미 <code>00-12</code>가 설계했습니다.</p>
+<div class="table-container"><table><thead><tr><th>필요한 것</th><th>이미 있는 답</th></tr></thead><tbody><tr><td>비밀 유지</td><td>AES-256 암호화 (현행)</td></tr><tr><td>사망 확인</td><td><code>00-12</code> §4 **L3** (서류 기반)</td></tr><tr><td>수신자 특정</td><td><code>00-12</code> §2.3 <code>BereavedRelation</code>(지정 유족)</td></tr><tr><td>개봉 통제</td><td><code>00-12</code> §4 **L4** (L3 + 지정 유족 이중 동의)</td></tr></tbody></table></div>
+<blockquote class="info-quote"><strong>✅ 즉, 엔딩노트의 3분의 2는 이미 설계가 서 있습니다.</strong> 문제는 **나머지 3분의 1(연명의료·유언)을</blockquote>
+<blockquote class="info-quote">마치 같은 것처럼 담고 있다는 것**이었습니다.</blockquote>
+<hr class="divider"/>
+<h2 class="section-title">🎯 6. ✅ 결론 — 엔딩노트의 역할 재정의</h2>
+<blockquote class="info-quote"><strong>엔딩노트는 &quot;유언을 대신하는 것&quot;이 아니라, &quot;유언이 필요하다는 것을 알아차리게 하는 것&quot;입니다.</strong></blockquote>
+<div class="table-container"><table><thead><tr><th>항목</th><th>이어봄이 하는 일</th><th>법적 효력은 어디서</th></tr></thead><tbody><tr><td>**연명의료**</td><td>의향 메모 + **등록기관 안내** + 등록 여부 기록</td><td>**등록기관**(무료)</td></tr><tr><td>**유언(재산)**</td><td>요건 가이드 + **02 연결**</td><td>**자필증서** 또는 **공정증서**</td></tr><tr><td>**유족 메시지·정보**</td><td>**암호화 보관 + L3·L4 전달** ← 이건 이어봄이 직접</td><td>효력 불필요</td></tr></tbody></table></div>
+<p><strong>이 재정의는 도메인을 약화시키지 않습니다.</strong> 오히려 반대입니다 —</p>
+<p>*&quot;우리가 유언을 만들어드립니다&quot;* 는 지킬 수 없는 약속이지만,</p>
+<p>*&quot;유언이 필요한지 알려드리고, 필요하면 제대로 된 곳으로 연결합니다&quot;* 는 지킬 수 있고</p>
+<p><strong>02의 수익으로도 이어집니다</strong>(<code>02-04</code> §6).</p>
+<h3 class="subsection-title">6.1 ✅ 화면 문구 — 즉시 처리</h3>
+<p><code>00-14</code> §2-2의 본체입니다.</p>
+<div class="table-container"><table><thead><tr><th>위치</th><th>현재</th><th>변경</th></tr></thead><tbody><tr><td><code>EndingNotePage</code> 재산 항목</td><td>*&quot;유언 편지&quot;*</td><td>**&quot;유족에게 남기는 메시지&quot;** + 면책</td></tr><tr><td><code>EndingNotePage</code> 연명의료</td><td>*&quot;사전 연명의료 의향서&quot;*</td><td>**&quot;연명의료 의향 메모&quot;** + 등록기관 안내</td></tr><tr><td><code>HomePage</code> 섹션 5</td><td>*&quot;소중한 유언을 보관하세요&quot;*</td><td>**&quot;소중한 마음을 안전하게 보관하세요&quot;**</td></tr></tbody></table></div>
+<p><strong>면책 문구 최소선</strong> — <code>TaxSimulatorModal</code>이 이미 쓰고 있는 수준입니다.</p>
+<blockquote class="info-quote">*&quot;이 기록은 법적 효력이 있는 유언장이 아닙니다. 재산 처분에 관한 의사는 민법이 정한 방식의</blockquote>
+<blockquote class="info-quote">유언장이 따로 필요합니다.&quot;* + [유언장 안내 보기]</blockquote>
+<hr class="divider"/>
+<h2 class="section-title">❓ 7. 확정 필요</h2>
+<div class="table-container"><table><thead><tr><th>#</th><th>쟁점</th><th>권고</th><th>비고</th></tr></thead><tbody><tr><td>1</td><td>**면책 문구 법률 검토**</td><td>변호사 확인</td><td><code>00-14</code> §5-3에 병합 가능</td></tr><tr><td>2</td><td>**자필증서 가이드(A안) 제공 여부**</td><td>🟡 제공 (§4.2 조건부)</td><td>안 하면 C안만</td></tr><tr><td>3</td><td>**작성한 유언장 사본 보관 여부**</td><td>🔴 **보관하지 않는 것 권고**</td><td>보관하면 &quot;우리가 가진 게 유언&quot;이라는 오해 + 분실 책임</td></tr><tr><td>4</td><td>**연명의료 등록기관 연동 범위**</td><td>🟡 링크 안내까지만</td><td>시스템 연동은 과함</td></tr><tr><td>5</td><td>공정증서 연결 시 수수료 구조</td><td>Stage 2</td><td><code>02-03</code> §10과 함께</td></tr></tbody></table></div>
+<blockquote class="info-quote"><strong>#3이 갈림길입니다.</strong> 사본을 보관하면 편리해 보이지만, **유족이 &quot;이어봄에 유언장이 있다&quot;고</blockquote>
+<blockquote class="info-quote">믿게 됩니다.<strong> 원본이 없으면 그 사본은 아무 소용이 없습니다. </strong>보관하지 않는 쪽이</blockquote>
+<blockquote class="info-quote"><code>04-01</code> §3.3(증빙서류 미수집)과도 일관됩니다.**</blockquote>
+<hr class="divider"/>
+<h2 class="section-title">🔗 8. 관련 문서</h2>
+<div class="table-container"><table><thead><tr><th>문서</th><th>관계</th></tr></thead><tbody><tr><td><code>06-01</code></td><td>운영자 열람 범위 A/B — 미확정. §5의 암호화 설계와 충돌 쟁점</td></tr><tr><td><code>02-04</code></td><td>§3 — 06↔02 경계의 정본. 이 문서는 그 06쪽 상세</td></tr><tr><td><code>02-05</code></td><td>§4.1 B안(공정증서) 연결 대상 직역</td></tr><tr><td><code>00-12</code></td><td>§4 L3·L4 — §5 전달 통제의 근거. §7.2 승계 원칙(통로는 06 하나)</td></tr><tr><td><code>07-02</code></td><td>§2.7 유언 검인 — **자필증서는 검인 필요, 공정증서는 불필요**. 유족 절차가 달라짐</td></tr><tr><td><code>00-06</code></td><td>SCR-002 — §6.1 문구 수정 반영</td></tr></tbody></table></div>
+
+  </div>
+</body>
+</html>

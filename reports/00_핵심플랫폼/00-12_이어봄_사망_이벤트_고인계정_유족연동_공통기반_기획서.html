@@ -222,6 +222,7 @@
         background-color: var(--primary) !important;
         color: #ffffff !important;
         -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
       }
       .section-title {
         font-size: 12.5pt !important;
@@ -277,6 +278,7 @@
         padding: 0.45rem 0.65rem !important;
         font-size: 8.5pt !important;
         -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
       }
       td {
         padding: 0.45rem 0.65rem !important;
@@ -315,9 +317,9 @@
     <blockquote class="info-quote"><strong>문서 성격</strong>: 플랫폼 공통 기반 기획서. <code>[Claude:Opus]</code> 작성(2026-08-12).</blockquote>
 <blockquote class="info-quote"><strong>왜 00 레벨인가</strong>: 이 문제는 특정 도메인 것이 아닙니다. 03~07(신 번호 기준)이</blockquote>
 <blockquote class="info-quote"><strong>전부 같은 &quot;사망&quot;이라는 사건을 다루는데, 각자 다르게 다루고 있어서</strong> 서로 연결되지 않습니다.</blockquote>
-<blockquote class="info-quote"><strong>계기</strong>: 대표 지적 — *&quot;추모하는 대상 계정과 이용자(가족)의 연동 문제. 사후 계정을 계속</blockquote>
+<blockquote class="info-quote"><strong>계기</strong>: 개발자 지적 — *&quot;추모하는 대상 계정과 이용자(가족)의 연동 문제. 사후 계정을 계속</blockquote>
 <blockquote class="info-quote">남겨두는 게 옳은가.&quot;* (2026-08-12)</blockquote>
-<blockquote class="info-quote"><strong>표기</strong>: ✅ 이 문서에서 확정 / 🟡 권고안 / 🔴 대표 확정 필요</blockquote>
+<blockquote class="info-quote"><strong>표기</strong>: ✅ 이 문서에서 확정 / 🟡 권고안 / 🔴 확정 필요(주체는 §8 표기)</blockquote>
 <hr class="divider"/>
 <h2 class="section-title">📌 1. 이 문서가 푸는 문제</h2>
 <p>이어봄은 <strong>사별을 다루는 플랫폼인데, &quot;사망&quot;이라는 사건을 시스템이 표현하는 방법이 정의된 적이 없습니다.</strong></p>
@@ -331,7 +333,7 @@
 <p>1. 생전에 엔딩노트를 써둔 회원이 사망 → <strong>받을 유족을 시스템이 모릅니다.</strong> 기능이 영원히 미완성.</p>
 <p>2. 유족이 추모관을 만들어도 → <strong>고인의 이어봄 계정과 연결되지 않습니다.</strong> 별개의 데이터로 남습니다.</p>
 <p>3. 고인의 계정이 → <strong>살아있는 채로 방치됩니다.</strong> 로그인 가능, 마케팅 발송 대상, 보유기간 무기한.</p>
-<p>4. 대표님이 제안한 <strong>생전 정산 신청</strong>(본인이 미리 처리 방식 선택)을 <strong>얹을 자리가 없습니다.</strong></p>
+<p>4. 개발자가 제안한 <strong>생전 정산 신청</strong>(본인이 미리 처리 방식 선택)을 <strong>얹을 자리가 없습니다.</strong></p>
 <hr class="divider"/>
 <h2 class="section-title">🧩 2. ✅ 핵심 개념 4개</h2>
 <h3 class="subsection-title">2.1 `Deceased` — 고인은 문자열이 아니라 엔티티다</h3>
@@ -346,9 +348,12 @@
 <h3 class="subsection-title">2.3 `BereavedRelation` — 유족에는 두 종류가 있다</h3>
 <div class="table-container"><table><thead><tr><th>종류</th><th>누가 정하나</th><th>신뢰도</th><th>권한</th></tr></thead><tbody><tr><td>**지정 유족**</td><td>**본인이 생전에 지정**</td><td>높음</td><td>엔딩노트 개봉 동의, 정산 실행 요청</td></tr><tr><td>**자칭 유족**</td><td>사후에 스스로 주장</td><td>낮음</td><td>추모관 개설·관리 정도</td></tr></tbody></table></div>
 <p><strong>이 구분이 없으면 §4의 검증 사다리를 만들 수 없습니다.</strong> 지금은 전부 &quot;로그인한 아무나&quot;입니다.</p>
-<h3 class="subsection-title">2.4 `PreDeathDirective` — 생전 위임 (대표 제안의 자리)</h3>
-<blockquote class="info-quote">대표 지시(2026-08-12): *&quot;죽기 전의 고인이 정산에 대한 계획을 미리 신청해놓고, 처리 방식을 미리</blockquote>
+<h3 class="subsection-title">2.4 `PreDeathDirective` — 생전 위임 (개발자 제안의 자리)</h3>
+<blockquote class="info-quote">개발자 지시(2026-08-12): *&quot;죽기 전의 고인이 정산에 대한 계획을 미리 신청해놓고, 처리 방식을 미리</blockquote>
 <blockquote class="info-quote">선택하는 선택지를 주는 게 옳지 않나. 1)유족처리 2)행정사처리 3)운영자가 대신처리 를 모두 제공.&quot;*</blockquote>
+<p>&gt;</p>
+<blockquote class="info-quote">⚠️ <strong>개발자 본인의 구상이며 사장님 확답은 아직 없습니다</strong>(2026-08-14 확인). ③은 신규 수익 모델</blockquote>
+<blockquote class="info-quote">이자 법률 검토 대상이라 <strong>사장님 판단이 반드시 필요합니다</strong>(§8-1).</blockquote>
 <p><strong>이 제안이 <code>04-01</code>의 가장 큰 제약을 풀어버립니다.</strong> 제가 &quot;이어봄은 대행할 수 없다&quot;고 단정한 근거는</p>
 <p>*&quot;고인의 위임 의사를 사후에 확인할 방법이 없다&quot;* 였는데, **본인이 생전에 위임 의사를 명시해두면</p>
 <p>전제가 달라집니다.** 유족이 사후에 주장하는 위임과 본인이 생전에 남긴 위임은 법적 무게가 다릅니다.</p>
@@ -404,7 +409,7 @@ model PreDeathDirective {
 <blockquote class="info-quote">확정 전 초안입니다. §8 미결이 정해지면 정식 스펙으로 옮깁니다.</blockquote>
 <hr class="divider"/>
 <h2 class="section-title">🪜 4. ✅ 검증 강도 사다리 — 이것이 &quot;검증 체계&quot;의 정본</h2>
-<p>대표님이 지적한 *&quot;검증이 부족하다&quot;* 의 답입니다. <strong>검증은 도메인별이 아니라 행위의 위험도별</strong>입니다.</p>
+<p>개발자가 지적한 *&quot;검증이 부족하다&quot;* 의 답입니다. <strong>검증은 도메인별이 아니라 행위의 위험도별</strong>입니다.</p>
 <div class="table-container"><table><thead><tr><th>단계</th><th>확인 수준</th><th>어떤 행위에 요구되나</th><th>근거</th></tr></thead><tbody><tr><td>**L0**</td><td>**없음**</td><td>안내 카탈로그 열람, 추모관 조문(헌화·방명록)</td><td>정보 제공·조의 표현일 뿐</td></tr><tr><td>**L1**</td><td>**자기신고 + 로그인**</td><td>추모관 개설(<code>LINK</code>), 정리 체크리스트 사용</td><td>확산 제한적, 되돌릴 수 있음</td></tr><tr><td>**L2**</td><td>**운영자 검토**</td><td>추모관 <code>PUBLIC</code> 전환, 유족 관계 자칭 등록</td><td>색인·공개 노출은 위험도가 다른 층</td></tr><tr><td>**L3**</td><td>**서류 기반 사망 확인**</td><td>**운영자 대행 신청, 엔딩노트 개봉**</td><td>되돌릴 수 없음. 재산·비밀에 접근</td></tr><tr><td>**L4**</td><td>**L3 + 지정 유족 이중 동의**</td><td>엔딩노트 중 민감 항목</td><td><code>06-01</code>이 화면에서 이미 약속한 수준</td></tr></tbody></table></div>
 <h3 class="subsection-title">4.1 이 사다리가 해결하는 것</h3>
 <ul><li><strong><code>04-01</code> §3.3(서류 미수집)과 <code>06-01</code>(사망진단서 확인)이 더 이상 충돌하지 않습니다.</strong> 전자는</li></ul>
@@ -418,7 +423,7 @@ model PreDeathDirective {
 <p>행위(대행·엔딩노트 개봉)에는 확인이 필요합니다. 절충안:</p>
 <ul><li><strong>운영자가 화면에서 확인하되 서버에 파일을 남기지 않는다</strong> — 확인 사실(<code>verifiedAt</code>, <code>reviewedBy</code>)만 기록</li></ul>
 <ul><li>또는 <strong>단기 보관 후 자동 파기</strong>(확인 완료 시점에 즉시 삭제)</li></ul>
-<p>🔴 실제 운영 가능성과 법적 증빙 필요성을 함께 봐야 하는 사안이라 대표·전문가 확인 대상입니다.</p>
+<p>🔴 실제 운영 가능성과 법적 증빙 필요성을 함께 봐야 하는 사안이라 사장님·전문가 확인 대상입니다.</p>
 <hr class="divider"/>
 <h2 class="section-title">🔐 5. ✅ 고인 계정 처리 정책 — &quot;계속 남겨두는 게 옳은가&quot;</h2>
 <p><strong>결론: 그냥 두면 안 되고, 그냥 지워서도 안 됩니다. 새로운 상태가 필요합니다.</strong></p>
@@ -438,8 +443,8 @@ model PreDeathDirective {
 <blockquote class="info-quote">🔴 <strong>보유기간은 미정</strong>입니다. <code>05-02</code> §9(추모관 보존기간)와 함께 정해야 하며, <code>00-11</code> 인프라</blockquote>
 <blockquote class="info-quote">결정(스토리지 비용)이 나와야 근거가 생깁니다.</blockquote>
 <hr class="divider"/>
-<h2 class="section-title">🧭 6. 🟡 사용자 여정과 계정 모드 — 대표 제안</h2>
-<blockquote class="info-quote">대표 지시(2026-08-12): *&quot;사용자 여정 순으로 재배치와 함께… 이것을 사용자와 엮어서 따로</blockquote>
+<h2 class="section-title">🧭 6. 🟡 사용자 여정과 계정 모드 — 개발자 제안</h2>
+<blockquote class="info-quote">개발자 지시(2026-08-12): *&quot;사용자 여정 순으로 재배치와 함께… 이것을 사용자와 엮어서 따로</blockquote>
 <blockquote class="info-quote">보여주거나 하는 방식은 어떤가? 뭔가 계정별로 나눌 수 있으면 좋을 것 같기도.&quot;*</blockquote>
 <h3 class="subsection-title">6.1 이 플랫폼 사용자는 두 상태로 들어온다</h3>
 <div class="table-container"><table><thead><tr><th></th><th>**생전 준비 모드**</th><th>**유족 모드**</th></tr></thead><tbody><tr><td>주체</td><td>**나 자신**</td><td>**고인**</td></tr><tr><td>심리</td><td>여유·신중·미룰 수 있음</td><td>긴급·경황 없음·되돌릴 수 없음</td></tr><tr><td>기능</td><td>엔딩노트, 생전 정산 위임, 지정 유족 설정</td><td>장사시설, 상중·행정, 추모관, 현물 수거, 정산 실행</td></tr><tr><td>시간축</td><td>사망 이전, 무기한</td><td>D+0 ~ 수개월</td></tr></tbody></table></div>
@@ -469,20 +474,20 @@ model PreDeathDirective {
 <p>유족 모드 헤더에 <strong>고인 이름이 들어가는 것</strong>이 중요합니다 — 기능 목록이 아니라 &quot;누구를 위한</p>
 <p>일인지&quot;가 먼저 보여야 합니다.</p>
 <hr class="divider"/>
-<h2 class="section-title">🔢 7. ✅ 도메인 번호 — **2026-08-12 대표 확정 · 실행 완료**</h2>
+<h2 class="section-title">🔢 7. ✅ 도메인 번호 — **2026-08-12 개발자 확정 · 실행 완료**</h2>
 <p>&quot;번호 = 사이드바 순서&quot;라는 기존 규칙(<code>00_DOCS_INDEX</code>)은 <strong>메뉴가 한 줄일 때만 성립합니다.</strong> §6.3처럼</p>
 <p>두 모드로 갈라지면 규칙을 바꿔야 합니다.</p>
 <p><strong>✅ 확정: 번호는 &quot;사용자 여정 순서&quot;로 하고, 메뉴 순서와의 1:1 대응은 포기합니다.</strong></p>
 <div class="table-container"><table><thead><tr><th>신 번호</th><th>도메인</th><th>모드</th><th>기존</th></tr></thead><tbody><tr><td>01</td><td>장사시설 매칭</td><td>유족</td><td>01 (유지)</td></tr><tr><td>02</td><td>전문가 매칭(상속·법률)</td><td>**양쪽**</td><td>02 (유지)</td></tr><tr><td>03</td><td>**현물 유품 수거**</td><td>유족</td><td>03에서 분리</td></tr><tr><td>04</td><td>**디지털 자산·계정 정산**</td><td>**양쪽**</td><td>03에서 분리</td></tr><tr><td>05</td><td>**디지털 추모관**</td><td>유족</td><td>03에서 분리</td></tr><tr><td>06</td><td>**엔딩노트·유언**</td><td>생전</td><td>05 → 06</td></tr><tr><td>07</td><td>**상중·행정 케어**</td><td>유족</td><td>04 → 07</td></tr><tr><td>**08**</td><td>비즈니스 분석(공통)</td><td>—</td><td>06 → **08**</td></tr></tbody></table></div>
 <ul><li><strong>01·02는 번호가 안 바뀝니다</strong> → 코드 주석 28건 무영향 (<strong>실측 확인됨</strong>)</li></ul>
 <ul><li><strong><code>docs 03-02</code> 참조 14건만</strong> 04(정산) 또는 05(추모관)로 갈라졌습니다 (<strong>전건 갱신 완료</strong>)</li></ul>
-<ul><li>08은 원래 09로 제안했으나 <strong>대표 지시로 08</strong>(번호 공백 없음)</li></ul>
-<h3 class="subsection-title">7.1 ✅ &quot;양쪽&quot;은 두 가지 뜻이었습니다 — 대표 지적으로 드러난 정정</h3>
-<p>초안은 <strong>04만 &quot;양쪽&quot;</strong> 으로 표시했는데, 대표님의 진입 분류(WellDying / 유가족)를 대보니</p>
+<ul><li>08은 원래 09로 제안했으나 <strong>개발자 지시로 08</strong>(번호 공백 없음)</li></ul>
+<h3 class="subsection-title">7.1 ✅ &quot;양쪽&quot;은 두 가지 뜻이었습니다 — 개발자 지적으로 드러난 정정</h3>
+<p>초안은 <strong>04만 &quot;양쪽&quot;</strong> 으로 표시했는데, 개발자의 진입 분류(WellDying / 유가족)를 대보니</p>
 <p><strong>02도 양쪽</strong>입니다. 그런데 <strong>같은 라벨이 전혀 다른 구조를 가리키고 있었습니다.</strong></p>
 <div class="table-container"><table><thead><tr><th></th><th>&quot;양쪽&quot;의 의미</th><th>승계</th></tr></thead><tbody><tr><td>**02** 전문가 매칭</td><td>같은 기능을 **두 주체가 각자** 쓴다</td><td>❌ 없음</td></tr><tr><td>**04** 디지털 정산</td><td>**한 주체가 시작해 다른 주체가 끝낸다**</td><td>⭕ 있음</td></tr></tbody></table></div>
 <h3 class="subsection-title">7.2 ✅ 승계 원칙 — 통로는 06 하나</h3>
-<p>대표 지적(2026-08-12): *&quot;굳이 전문가가 연결되어야 하나 싶음. 유언 등을 남길 것이었다면 06과</p>
+<p>개발자 지적(2026-08-12): *&quot;굳이 전문가가 연결되어야 하나 싶음. 유언 등을 남길 것이었다면 06과</p>
 <p>이어지는 게 자연스러움.&quot;* → <strong>채택.</strong></p>
 <div class="table-container"><table><thead><tr><th>생전 도메인</th><th>고인이 남기는 것</th><th>유족 연결</th><th>근거</th></tr></thead><tbody><tr><td>**02** 전문가</td><td>상담 이력</td><td>❌</td><td>거래 이력이지 유산이 아님. 넘기면 **유족 간 분쟁 소지 + 전문가 비밀 위반**. 유족은 본인 자격으로 새로 신청</td></tr><tr><td>**04** 정산</td><td><code>PreDeathDirective</code></td><td>⭕</td><td>유족이 **집행 주체**. 연결 안 되면 지시가 소멸</td></tr><tr><td>**06** 엔딩노트</td><td>유언·메시지</td><td>⭕</td><td>**이 도메인의 존재 목적 그 자체**(§1.1-1)</td></tr></tbody></table></div>
 <blockquote class="info-quote"><strong>✅ 원칙: 고인이 유족에게 무언가를 남기는 통로는 06 하나입니다.</strong> 다른 도메인이 각자 승계 경로를</blockquote>
@@ -499,7 +504,7 @@ model PreDeathDirective {
 <p>미해결입니다. 순환 구조가 있습니다:</p>
 <blockquote class="info-quote">이어봄이 지정 유족에게 알리려면 → <strong>사망을 알아야 함</strong> → 누군가 신고해야 함 →</blockquote>
 <blockquote class="info-quote">신고할 사람은 유족인데 → <strong>유족은 계정 존재를 모름</strong></blockquote>
-<p>🟡 <strong>권고(대표 상의 대기)</strong>: <strong>생전 지정 시점에 지정된 유족에게 즉시 통지</strong>하면 순환이 끊깁니다.</p>
+<p>🟡 <strong>권고(사장님 상의 대기)</strong>: <strong>생전 지정 시점에 지정된 유족에게 즉시 통지</strong>하면 순환이 끊깁니다.</p>
 <p>덤으로 §2.3 <code>BereavedRelation</code>에 없는 <strong>&quot;지정당한 사람의 수락&quot;</strong> 절차도 생깁니다 — 지금은 본인</p>
 <p>동의 없이 남을 지정 유족으로 박아넣을 수 있는 상태입니다.</p>
 <p><strong>제약</strong>: 비회원 고인이 다수(§2.1 케이스 B)이므로 <strong>연결 기능이 기본 동선에 끼어들면 안 됩니다.</strong></p>

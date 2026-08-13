@@ -222,6 +222,7 @@
         background-color: var(--primary) !important;
         color: #ffffff !important;
         -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
       }
       .section-title {
         font-size: 12.5pt !important;
@@ -277,6 +278,7 @@
         padding: 0.45rem 0.65rem !important;
         font-size: 8.5pt !important;
         -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
       }
       td {
         padding: 0.45rem 0.65rem !important;
@@ -312,7 +314,7 @@
       <h1>⚖️ 02-03. 전문가 매칭 — 공개 노출 및 상담 신청 명세서</h1>
       
     </div>
-    <blockquote class="info-quote"><strong>문서 성격</strong>: 확정 스펙. <code>[Claude:Opus]</code> 작성(2026-08-11). 대표 지시로 Domain01 일단락 후 Domain02 착수.</blockquote>
+    <blockquote class="info-quote"><strong>문서 성격</strong>: 확정 스펙. <code>[Claude:Opus]</code> 작성(2026-08-11). 개발자 지시로 Domain01 일단락 후 Domain02 착수.</blockquote>
 <blockquote class="info-quote"><strong>선행 문서</strong>: <code>02-01</code>(직역별 수익 모델·변호사법 컴플라이언스, 정본) / <code>02-02</code>(Expert 계정 체계 구현 메모)</blockquote>
 <blockquote class="info-quote"><strong>화면</strong>: <code>CounselingPage.tsx</code>(소비자), <code>BizDashboard.tsx</code>(전문가), <code>AdminPage.tsx</code>(운영자)</blockquote>
 <hr class="divider"/>
@@ -330,8 +332,8 @@
 <p>3. 전문가 대시보드에서 <strong>받은 상담 신청 목록</strong> 조회 및 상태 변경</p>
 <p>4. 신청번호 발번(<code>EC-YYMMDD-NNNN</code>)</p>
 <h3 class="subsection-title">2.2 이번 범위 제외 — 이유가 있는 미착수</h3>
-<div class="table-container"><table><thead><tr><th>제외 항목</th><th>이유</th></tr></thead><tbody><tr><td>Tier 2 유료 상담 결제</td><td>**PG(결제대행) 연동 필요 = 돈이 드는 외부 연동** → <code>roles.md</code> §4 대표 승인 대상</td></tr><tr><td>Tier 3 월정액 광고 과금</td><td>동일. 다만 초기엔 §6.3 수동 처리 권장</td></tr><tr><td>Tier 4 대행 수수료 정산</td><td>Tier 2가 서야 의미가 생김</td></tr><tr><td>Tier 1 AI 상속세 계산기·Q&amp;A 게시판</td><td>별도 콘텐츠 도메인 — 이번 루프와 독립</td></tr><tr><td>자격증 자동 진위확인</td><td>§6.1 참고 — **연동하지 않는 것을 권장**</td></tr></tbody></table></div>
-<p><strong>Stage 1은 결제가 전혀 없으므로 대표 승인 없이 착수 가능합니다.</strong></p>
+<div class="table-container"><table><thead><tr><th>제외 항목</th><th>이유</th></tr></thead><tbody><tr><td>Tier 2 유료 상담 결제</td><td>**PG(결제대행) 연동 필요 = 돈이 드는 외부 연동** → <code>roles.md</code> §4 사장님 승인 대상</td></tr><tr><td>Tier 3 월정액 광고 과금</td><td>동일. 다만 초기엔 §6.3 수동 처리 권장</td></tr><tr><td>Tier 4 대행 수수료 정산</td><td>Tier 2가 서야 의미가 생김</td></tr><tr><td>Tier 1 AI 상속세 계산기·Q&amp;A 게시판</td><td>별도 콘텐츠 도메인 — 이번 루프와 독립</td></tr><tr><td>자격증 자동 진위확인</td><td>§6.1 참고 — **연동하지 않는 것을 권장**</td></tr></tbody></table></div>
+<p><strong>Stage 1은 결제가 전혀 없으므로 사장님 승인 없이 착수 가능합니다.</strong></p>
 <hr class="divider"/>
 <h2 class="section-title">⚖️ 3. 변호사법 가드레일 (설계의 제1 제약)</h2>
 <p><code>02-01</code> §4가 &quot;변호사는 Tier 3 고정 월정액만&quot;으로 확정했습니다. 이번 설계에서 그 원칙을</p>
@@ -364,7 +366,7 @@
 <ul><li><code>isPublished Boolean @default(false)</code> 추가 — 승인(<code>status=APPROVED</code>)과 <strong>공개 노출</strong>을 분리.</li></ul>
 <p>  승인은 됐지만 프로필이 미비해 아직 노출하고 싶지 않은 경우가 실제로 생깁니다</p>
 <p>  (<code>Facility.isPartner</code>가 <code>partnerId</code>의 파생 캐시인 것과 달리, 이건 운영자가 직접 켜는 독립 플래그).</p>
-<ul><li><strong><code>officeAddress String?</code> 추가</strong> (2026-08-11, 대표 지시) — 사무실 주소. 선택 입력.</li></ul>
+<ul><li><strong><code>officeAddress String?</code> 추가</strong> (2026-08-11, 개발자 지시) — 사무실 주소. 선택 입력.</li></ul>
 <blockquote class="info-quote"><strong><code>officeAddress</code>를 직역별로 나누지 않은 이유</strong>: 요청은 &quot;변호사 사무실 주소&quot;였으나 세무사·행정사·장례지도사도 동일하게 사무실을 갖습니다. <code>category</code>로 분기하면 스키마·API·화면 세 곳에 조건문이 생기는데, 그 분기가 만들어내는 차이가 없습니다. <strong>4대 직역 공용 단일 필드</strong>로 둡니다.</blockquote>
 <p>&gt;</p>
 <blockquote class="info-quote">이 필드는 §5.1 공개 API의 제외 목록에 <strong>넣지 않습니다</strong> — 사무실 주소는 의뢰인이 방문하기 위해 알아야 하는 정보이고, 실제로 각 협회 공개 명부에도 등재되는 항목입니다. <code>contactPhone</code>(개인 연락처)과 성격이 다릅니다.</blockquote>
@@ -401,7 +403,7 @@
 <h3 class="subsection-title">6.2 변호사 Tier 3 결제 수단 → **초기엔 계좌이체 + 수동 확인**</h3>
 <p>PG 연동은 심사·수수료·개발이 모두 듭니다. 입점 전문가가 두 자릿수일 때는</p>
 <p><strong>세금계산서 발행 + 계좌이체</strong>가 더 싸고 빠릅니다. 전문가 대상 B2B 월정액은 소비자 결제와 달리</p>
-<p>수동 처리에 대한 저항이 낮습니다. 자동화는 규모가 생긴 뒤에 하십시오. → 대표 승인 대상(<code>pending-approvals</code>).</p>
+<p>수동 처리에 대한 저항이 낮습니다. 자동화는 규모가 생긴 뒤에 하십시오. → 사장님 승인 대상(<code>pending-approvals</code>).</p>
 <h3 class="subsection-title">6.3 나머지 3직역 리드 수수료를 `Lead`처럼 만들지 → **아니오, §4.1대로 분리**</h3>
 <p><code>ConsultRequest</code>(과금 필드 없음) + 별도 과금 테이블(Stage 2, <code>LAWYER</code> 배제) 구조를 권장합니다.</p>
 <p><code>Lead</code>를 재사용하면 변호사만 예외 처리해야 해서 <code>02-02</code> §2가 지적한 스키마 오염이 그대로 재현됩니다.</p>
@@ -445,10 +447,10 @@
 <p>4. 미승인·미공개 전문가 조회는 403이 아니라 <strong>404</strong>(존재를 숨김).</p>
 <p>5. 동의 없는 접수는 400으로 거부하고, 동의 문구를 <code>consentSnapshot</code>에 저장할 것.</p>
 <hr class="divider"/>
-<h2 class="section-title">❓ 10. 대표 확정이 필요한 것 (구현은 막지 않음)</h2>
+<h2 class="section-title">❓ 10. 사장님 확정이 필요한 것 (구현은 막지 않음)</h2>
 <p>1. <strong>Tier 3 월정액 단가</strong> — <code>02-01</code>은 베이직 9.9만/프리미엄 29.9만을 제시했으나 확정 전. Stage 2 사안.</p>
 <p>2. <strong>Tier 2 상담료 구간·수수료율</strong> — <code>02-01</code>은 2.9~12만원, Take-Rate 20~30% 제시. Stage 2 사안.</p>
-<p>3. <strong>PG 연동 여부·시점</strong> — §6.2 권장은 &quot;초기 수동&quot;. 돈이 드는 결정이라 대표 승인 대상.</p>
+<p>3. <strong>PG 연동 여부·시점</strong> — §6.2 권장은 &quot;초기 수동&quot;. 돈이 드는 결정이라 사장님 승인 대상.</p>
 <p>4. <strong>변호사 검토</strong> — 실제 과금 개시 전 §3 가드레일에 대한 외부 법률 검토 권장.</p>
 <p>위 4건은 전부 <strong>Stage 2(과금)</strong> 사안이라 이번 Stage 1 착수를 막지 않습니다 —</p>
 <p><code>01-05</code>가 수수료율 미확정 상태로 0~3단계를 진행할 수 있었던 것과 같은 구조입니다.</p>

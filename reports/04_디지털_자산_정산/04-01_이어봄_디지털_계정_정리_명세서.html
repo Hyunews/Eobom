@@ -222,6 +222,7 @@
         background-color: var(--primary) !important;
         color: #ffffff !important;
         -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
       }
       .section-title {
         font-size: 12.5pt !important;
@@ -277,6 +278,7 @@
         padding: 0.45rem 0.65rem !important;
         font-size: 8.5pt !important;
         -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
       }
       td {
         padding: 0.45rem 0.65rem !important;
@@ -342,7 +344,7 @@
 <p>   <strong>&quot;디지털 유품 행정사&quot;</strong>로 이미 명명해 두었습니다.</p>
 <blockquote class="info-quote"><strong>그래서 이 도메인은 대행하지 않고, 대행이 필요한 유족을 Domain 02로 보냅니다.</strong></blockquote>
 <h3 class="subsection-title">1.2 🟡 다만 이 제약은 생전 위임으로 풀릴 수 있습니다</h3>
-<p><code>00-12</code> §2.4(대표 제안)가 이 판단의 전제를 흔듭니다. 제가 &quot;대행할 수 없다&quot;고 단정한 근거는</p>
+<p><code>00-12</code> §2.4(개발자 제안)가 이 판단의 전제를 흔듭니다. 제가 &quot;대행할 수 없다&quot;고 단정한 근거는</p>
 <p>*&quot;고인의 위임 의사를 사후에 확인할 방법이 없다&quot;* 였는데, **본인이 생전에 위임 의사를 명시해두면</p>
 <p>전제가 달라집니다.** §10에서 다룹니다.</p>
 <hr class="divider"/>
@@ -361,7 +363,7 @@
 <p>3. 운영자 화면에서 <strong>회원 상세 조인 조회</strong>(→ <code>03-01</code> §2 원칙)</p>
 <h3 class="subsection-title">2.4 이번 범위 제외</h3>
 <div class="table-container"><table><thead><tr><th>제외 항목</th><th>이유</th></tr></thead><tbody><tr><td>현물 유품 수거</td><td>**Domain 03으로 분리**. 계정 형태 기획은 여전히 보류(→ <code>03-01</code> §3)</td></tr><tr><td>온라인 추모관</td><td>**Domain 05로 분리**(→ <code>05-01</code>)</td></tr><tr><td>위임 대행 실행</td><td>행정사 업무 영역 → Domain 02 상담으로 연결(§3.4). 단 §10 생전 위임은 별개</td></tr><tr><td>금융·가상자산·정산금</td><td>§1.1 — 상속재산 처리는 Domain 02(세무사·변호사)</td></tr><tr><td>부고 문자 발송</td><td>Domain 07(상중·행정 케어) 또는 05(추모관) — <code>00-13</code> 결정 대기</td></tr></tbody></table></div>
-<p><strong>Stage 1은 결제가 없으므로 대표 승인 없이 착수 가능합니다</strong>(<code>02-03</code> Stage 1과 동일 구조).</p>
+<p><strong>Stage 1은 결제가 없으므로 사장님 승인 없이 착수 가능합니다</strong>(<code>02-03</code> Stage 1과 동일 구조).</p>
 <hr class="divider"/>
 <h2 class="section-title">🔐 3. 디지털 계정 정리 — 설계</h2>
 <h3 class="subsection-title">3.1 플랫폼 안내 카탈로그는 코드가 아니라 데이터다</h3>
@@ -452,7 +454,7 @@
 <p>  <strong>&quot;정리&quot;·&quot;삭제 신청 안내&quot;</strong>로 바꿉니다.</p>
 <p>  &gt; 🔴 <strong>도메인 이름과의 충돌</strong>: 재편안(<code>00-12</code> §7)이 이 도메인을 <strong>&quot;디지털 자산·계정 정산&quot;</strong> 으로</p>
 <p>  &gt; 명명했는데, 이 §7.1이 금지한 바로 그 단어입니다. **문서·폴더 이름은 재편안을 따랐지만</p>
-<p>  &gt; 화면 문구 금지는 유지**합니다. 도메인 명칭 자체를 &quot;디지털 계정 정리&quot;로 바꿀지는 대표 판단(§9-4).</p>
+<p>  &gt; 화면 문구 금지는 유지**합니다. 도메인 명칭 자체를 &quot;디지털 계정 정리&quot;로 바꿀지는 개발자 판단(§9-4).</p>
 <ul><li><strong>&quot;Naver OCR 즉시 검증&quot; 문구 삭제</strong>(§1 — 사실이 아님).</li></ul>
 <ul><li>C분류(금융·가상자산) 안내 문구를 명시적으로 배치(§3.2).</li></ul>
 <ul><li>사라진 탭(현물 유품·추모관)에 대한 <strong>이동 안내를 남깁니다</strong> — 목업에서 이미 노출됐던 기능입니다.</li></ul>
@@ -470,7 +472,7 @@
 <p>3. 수치·상한은 <code>policy.ts</code>에 둘 것 — 하드코딩 금지(<code>01-05</code> §12).</p>
 <hr class="divider"/>
 <h2 class="section-title">⏳ 9. 🔴 생전 축 — 이 도메인이 &quot;양쪽&quot;인 이유</h2>
-<blockquote class="info-quote">대표 지시(2026-08-12): *&quot;죽기 전의 고인이 정산에 대한 계획을 미리 신청해놓고, 처리 방식을 미리</blockquote>
+<blockquote class="info-quote">개발자 지시(2026-08-12): *&quot;죽기 전의 고인이 정산에 대한 계획을 미리 신청해놓고, 처리 방식을 미리</blockquote>
 <blockquote class="info-quote">선택하는 선택지를 주는 게 옳지 않나. 1)유족처리 2)행정사처리 3)운영자가 대신처리.&quot;*</blockquote>
 <p><code>00-12</code> §2.4의 <code>PreDeathDirective</code>가 <strong>이 도메인에 붙습니다.</strong> 이것이 04를 생전·유족 양쪽 도메인으로</p>
 <p>만드는 유일한 요소입니다.</p>
@@ -483,7 +485,7 @@
 <p><strong>고인이 유족에게 무언가를 남기는 통로는 06 하나</strong>라는 원칙이 있는데, 04가 예외인 이유가 이것입니다 —</p>
 <p>04의 지시는 수신자가 유족이 아닐 수도 있어서 06을 경유할 수 없습니다.</p>
 <hr class="divider"/>
-<h2 class="section-title">❓ 10. 대표 확정이 필요한 것 (구현은 막지 않음)</h2>
+<h2 class="section-title">❓ 10. 확정이 필요한 것 (구현은 막지 않음)</h2>
 <div class="table-container"><table><thead><tr><th>#</th><th>쟁점</th><th>권고</th><th>상태</th></tr></thead><tbody><tr><td>1</td><td>**운영자 대행(③) 법률 검토**(§9)</td><td>외부 전문가 확인</td><td><code>00-12</code> §8-1과 동일 건</td></tr><tr><td>2</td><td>**L3 서류 확인 방식**</td><td>화면 확인 후 미저장</td><td><code>00-12</code> §8-2와 동일 건</td></tr><tr><td>3</td><td>**현물 유품 수거 재개 시점**</td><td>—</td><td>Domain 03으로 이관(→ <code>03-01</code> §3)</td></tr><tr><td>4</td><td>**도메인 명칭 &quot;정산&quot; vs &quot;정리&quot;**(§7.1)</td><td>🟡 &quot;디지털 계정 정리&quot;</td><td>재편으로 새로 생김</td></tr><tr><td>5</td><td>**<code>DigitalCleanupItem</code>에 <code>deceasedId</code> 추가**(§4.2)</td><td>🟡 추가 필요</td><td><code>00-12</code> §2.1 확정 후</td></tr></tbody></table></div>
 <p>위 항목은 전부 Stage 1 착수를 막지 않습니다 — <code>01-05</code>가 수수료율 미확정 상태로 0~3단계를 진행한 것과</p>
 <p>같은 구조입니다.</p>

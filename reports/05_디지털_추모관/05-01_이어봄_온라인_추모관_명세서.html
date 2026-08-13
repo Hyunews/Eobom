@@ -222,6 +222,7 @@
         background-color: var(--primary) !important;
         color: #ffffff !important;
         -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
       }
       .section-title {
         font-size: 12.5pt !important;
@@ -277,6 +278,7 @@
         padding: 0.45rem 0.65rem !important;
         font-size: 8.5pt !important;
         -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
       }
       td {
         padding: 0.45rem 0.65rem !important;
@@ -323,7 +325,7 @@
 <blockquote class="info-quote">허용 결정이 그 결과에 따라 바뀝니다. **미결 2건(개설 게이트·신고 정책) + 링크 모델이 확정되기</blockquote>
 <blockquote class="info-quote">전까지 프론트 착수 보류.**</blockquote>
 <blockquote class="info-quote"><strong>문서 성격</strong>: 확정 스펙. <code>[Claude:Opus]</code> 작성(2026-08-12), 재편 반영(2026-08-12).</blockquote>
-<blockquote class="info-quote"><strong>도메인 성격</strong>: <strong>유가족 전용</strong>(2026-08-12 대표 확정). 생전 축이 없습니다.</blockquote>
+<blockquote class="info-quote"><strong>도메인 성격</strong>: <strong>유가족 전용</strong>(2026-08-12 개발자 확정). 생전 축이 없습니다.</blockquote>
 <blockquote class="info-quote"><strong>화면</strong>: 추모관 개별 페이지(SCR-011 신규), <code>DigitalEstatePage.tsx</code>(SCR-003) 진입점, <code>AdminPage.tsx</code>(SCR-010)</blockquote>
 <hr class="divider"/>
 <h2 class="section-title">📌 1. 현황 진단</h2>
@@ -367,7 +369,7 @@
 <p>  <strong>완벽하지 않다는 점을 명시합니다</strong> — 브라우저를 바꾸면 우회됩니다. 헌화 수는 정확한 집계가 아니라</p>
 <p>  <strong>추모의 표현</strong>이므로 이 수준이 적정합니다. 정확성이 필요한 지표로 쓰지 마십시오.</p>
 <ul><li><strong>IP는 원문 저장하지 않고 해시로만 보관</strong>합니다(개인정보 최소 수집).</li></ul>
-<blockquote class="info-quote">🔴 <strong>대표 지적(2026-08-12)</strong>: *&quot;비로그인 사용자가 서비스를 이용한다? 나는 별로라고 생각해.&quot;*</blockquote>
+<blockquote class="info-quote">🔴 <strong>개발자 지적(2026-08-12)</strong>: *&quot;비로그인 사용자가 서비스를 이용한다? 나는 별로라고 생각해.&quot;*</blockquote>
 <blockquote class="info-quote"><strong>로그인 필수로 전환하면</strong> 위 &quot;억제만 가능&quot; 문단과 IP 해시 수집이 통째로 사라집니다.</blockquote>
 <blockquote class="info-quote"><code>00-13</code> §6.1에 링크 모델별 함의가 정리돼 있으며, <strong>링크 모델 확정 후 결정</strong>합니다.</blockquote>
 <h3 class="subsection-title">2.5 방명록 — UGC 관리</h3>
@@ -447,7 +449,7 @@
 <p>2. <strong>IP는 해시로만 저장</strong>합니다(§2.4). 원문 저장 금지. <strong>§2.4가 로그인 필수로 바뀌면 이 항목은 삭제됩니다.</strong></p>
 <p>3. 방명록·헌화는 <strong>비회원 데이터</strong>를 포함하므로 최소 수집 원칙을 지킵니다 — 이름·관계·본문 외에</p>
 <p>   연락처·이메일을 받지 않습니다. 받을 이유가 없습니다.</p>
-<p>4. <strong>추모관 보존기간</strong>은 §8-1 대표 확정 대상입니다. 무기한 보관은 스토리지 비용과 개인정보</p>
+<p>4. <strong>추모관 보존기간</strong>은 §8-1 사장님 확정 대상입니다. 무기한 보관은 스토리지 비용과 개인정보</p>
 <p>   최소보유 원칙 양쪽에 걸립니다.</p>
 <hr class="divider"/>
 <h2 class="section-title">🖥️ 6. 화면 명세</h2>
@@ -479,8 +481,8 @@
 <p>6. 사진 업로드는 구현하되 <strong>실서비스 오픈은 오브젝트 스토리지 전환과 묶을 것</strong>(§2.6).</p>
 <p>7. 업로드 상한 등 수치는 <code>policy.ts</code>에 둘 것 — 하드코딩 금지(<code>01-05</code> §12).</p>
 <hr class="divider"/>
-<h2 class="section-title">❓ 8. 대표 확정이 필요한 것</h2>
-<div class="table-container"><table><thead><tr><th>#</th><th>쟁점</th><th>권고</th><th>상태</th></tr></thead><tbody><tr><td>1</td><td>**추모관 보존기간**</td><td>오픈 전 확정 필수</td><td><code>00-11</code> 스토리지 비용 선행</td></tr><tr><td>2</td><td>**추모관 유료화 여부**</td><td>화환·프리미엄 테마 — PG 연동이라 대표 승인 대상</td><td><code>05-02</code> §9</td></tr><tr><td>3</td><td>**<code>PUBLIC</code> 목록 페이지 신설 여부**</td><td>🟡 초기에는 만들지 않음</td><td>§2.1 판단</td></tr><tr><td>4</td><td>**공유 링크 모델**</td><td>🟡 C안(단계 분리)</td><td>**<code>00-13</code> 정본**</td></tr><tr><td>5</td><td>**조문 로그인 요구**(§2.4·§2.5)</td><td>#4 확정 후 판단</td><td><code>00-13</code> §6.1</td></tr><tr><td>6</td><td>**개설 게이트·신고 정책**</td><td>LINK 즉시 / PUBLIC 승인</td><td><code>05-02</code> §6.1·§7</td></tr></tbody></table></div>
+<h2 class="section-title">❓ 8. 확정이 필요한 것</h2>
+<div class="table-container"><table><thead><tr><th>#</th><th>쟁점</th><th>권고</th><th>상태</th></tr></thead><tbody><tr><td>1</td><td>**추모관 보존기간**</td><td>오픈 전 확정 필수</td><td><code>00-11</code> 스토리지 비용 선행</td></tr><tr><td>2</td><td>**추모관 유료화 여부**</td><td>화환·프리미엄 테마 — PG 연동이라 사장님 승인 대상</td><td><code>05-02</code> §9</td></tr><tr><td>3</td><td>**<code>PUBLIC</code> 목록 페이지 신설 여부**</td><td>🟡 초기에는 만들지 않음</td><td>§2.1 판단</td></tr><tr><td>4</td><td>**공유 링크 모델**</td><td>🟡 C안(단계 분리)</td><td>**<code>00-13</code> 정본**</td></tr><tr><td>5</td><td>**조문 로그인 요구**(§2.4·§2.5)</td><td>#4 확정 후 판단</td><td><code>00-13</code> §6.1</td></tr><tr><td>6</td><td>**개설 게이트·신고 정책**</td><td>LINK 즉시 / PUBLIC 승인</td><td><code>05-02</code> §6.1·§7</td></tr></tbody></table></div>
 <hr class="divider"/>
 <h2 class="section-title">🔗 9. 관련 문서</h2>
 <div class="table-container"><table><thead><tr><th>문서</th><th>관계</th></tr></thead><tbody><tr><td><code>05-02</code></td><td>**상위 기획서.** 충돌 시 그쪽 우선. §12에 이 문서 정정 목록 8건</td></tr><tr><td><code>04-01</code></td><td>**같은 구 <code>03-02</code>에서 갈라진 형제 문서**(디지털 계정 정리)</td></tr><tr><td><code>00-13</code></td><td>**공유 링크 모델 결정서** — §2.2·§2.4·§2.5가 그 결과에 종속</td></tr><tr><td><code>00-12</code></td><td><code>Deceased</code> 엔티티(§3.1 정정 예정), 검증 사다리 L1/L2(§2.3), 모드 UX(§6.2)</td></tr><tr><td><code>00-11</code></td><td>오브젝트 스토리지 전환 — §2.6 오픈 선행 조건</td></tr><tr><td><code>00-06</code></td><td>SCR-011 신규 부여 — **이 문서 확정 시 등재 필요**</td></tr><tr><td><code>01-05</code></td><td>스냅샷 원칙(§4.4), 정책 계층(§12) 승계</td></tr><tr><td><code>06-01</code></td><td>운영자 열람 범위 — **05와 06은 결론이 다릅니다**(§4.4 경고 참조)</td></tr></tbody></table></div>

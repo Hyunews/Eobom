@@ -35,13 +35,19 @@ const REPORT_MAPPINGS = [
   { md: '02_전문가_매칭/02-02_전문가_계정_체계_구현_메모.md', html: '02_전문가_매칭/02-02_이어봄_전문가_계정_체계_구현_메모.html' },
   { md: '02_전문가_매칭/02-03_전문가_공개노출_및_상담신청_명세서.md', html: '02_전문가_매칭/02-03_이어봄_전문가_공개노출_및_상담신청_명세서.html' },
 
-  { md: '00_핵심플랫폼/00-14_대표_사장님_논의_안건_정리.md', html: '00_핵심플랫폼/00-14_이어봄_대표_사장님_논의_안건_정리.html' },
+  { md: '00_핵심플랫폼/00-14_사장님_논의_안건_정리.md', html: '00_핵심플랫폼/00-14_이어봄_사장님_논의_안건_정리.html' },
 
   // 02. 전문가 매칭 — 생전 축 (2026-08-13 신설)
   { md: '02_전문가_매칭/02-04_전문가_매칭_생전_WellDying_축_기획서.md', html: '02_전문가_매칭/02-04_이어봄_전문가_매칭_생전_WellDying_축_기획서.html' },
 
+  { md: '02_전문가_매칭/02-05_전문가_직역_확장_및_상황기반_진입_기획서.md', html: '02_전문가_매칭/02-05_이어봄_전문가_직역_확장_및_상황기반_진입_기획서.html' },
+
+  // 06. 엔딩노트 — 법적 효력 (2026-08-13 신설)
+  { md: '06_엔딩노트_유언/06-02_엔딩노트_법적효력_확보_방안_결정서.md', html: '06_엔딩노트_유언/06-02_이어봄_엔딩노트_법적효력_확보_방안_결정서.html' },
+
   // 07. 상중 행정 케어 (2026-08-13 신설)
   { md: '07_상중_행정_케어/07-01_상중_행정_케어_도메인_기획서.md', html: '07_상중_행정_케어/07-01_이어봄_상중_행정_케어_도메인_기획서.html' },
+  { md: '07_상중_행정_케어/07-02_사망후_법정기한_체크리스트_명세서.md', html: '07_상중_행정_케어/07-02_이어봄_사망후_법정기한_체크리스트_명세서.html' },
 
   // 03. 현물 유품 수거 (2026-08-12 재편 — 구 03_디지털_유품_추모관에서 분리)
   { md: '03_현물_유품_수거/03-01_현물_유품_수거_계정형태_보류_메모.md', html: '03_현물_유품_수거/03-01_이어봄_현물_유품_수거_계정형태_보류_메모.html' },
@@ -420,6 +426,7 @@ function buildFullHtmlPage(title, subtitle, bodyHtml) {
         background-color: var(--primary) !important;
         color: #ffffff !important;
         -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
       }
       .section-title {
         font-size: 12.5pt !important;
@@ -475,6 +482,7 @@ function buildFullHtmlPage(title, subtitle, bodyHtml) {
         padding: 0.45rem 0.65rem !important;
         font-size: 8.5pt !important;
         -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
       }
       td {
         padding: 0.45rem 0.65rem !important;

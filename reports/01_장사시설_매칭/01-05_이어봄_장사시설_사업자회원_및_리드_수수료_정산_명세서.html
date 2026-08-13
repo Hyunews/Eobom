@@ -222,6 +222,7 @@
         background-color: var(--primary) !important;
         color: #ffffff !important;
         -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
       }
       .section-title {
         font-size: 12.5pt !important;
@@ -277,6 +278,7 @@
         padding: 0.45rem 0.65rem !important;
         font-size: 8.5pt !important;
         -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
       }
       td {
         padding: 0.45rem 0.65rem !important;
@@ -314,7 +316,7 @@
     </div>
     <blockquote class="info-quote"><strong>문서 목적</strong>: 장사시설(장례식장·묘지/수목장) 사업자가 <strong>B2C 유저와 분리된 사업자 계정</strong>으로 가입·관리되고, 유저가 남긴 <strong>문의·견적요청을 추적 가능한 리드(Lead)로 적재</strong>하여 <strong>수수료 청구의 법적·상업적 근거</strong>로 삼는 체계를 정의합니다.</blockquote>
 <p>&gt;</p>
-<blockquote class="info-quote"><strong>근거</strong>: 2026-08-10 대표 확정 지시 2건 —</blockquote>
+<blockquote class="info-quote"><strong>근거</strong>: 2026-08-10 <strong>사장님 지시(개발자 전달)</strong> 2건 —</blockquote>
 <blockquote class="info-quote">① 장사시설 업체가 사업자로 <strong>따로 회원가입</strong>하고 우리가 <strong>따로 관리</strong>한다.</blockquote>
 <blockquote class="info-quote">② 유저가 웹을 통해 문의·견적요청을 남기면 <strong>로그/견적요청 번호를 우리가 보유</strong>하여, 추후 그것을 근거로 <strong>수수료를 청구</strong>한다.</blockquote>
 <p>&gt;</p>
@@ -323,7 +325,7 @@
 <hr class="divider"/>
 <h2 class="section-title">📌 1. 이 문서가 푸는 문제</h2>
 <p><code>14</code>가 이미 지적한 핵심 문제는 이것입니다 — <strong>직통 전화(<code>tel:</code>)로 연결되면 장례식장 원장은 그 유족이 이어봄을 보고 왔는지 알 방법이 없고, 우리도 수수료를 청구할 명분이 없다.</strong></p>
-<p>대표 지시는 이 문제의 해법을 두 축으로 확정한 것입니다.</p>
+<p>사장님 지시(개발자 전달)는 이 문제의 해법을 두 축으로 확정한 것입니다.</p>
 <div class="table-container"><table><thead><tr><th>축</th><th>무엇을 만드나</th><th>왜 필요한가</th></tr></thead><tbody><tr><td>**① 사업자 회원 체계**</td><td>수수료를 청구할 **상대방(법인격)**을 시스템에 등록</td><td>청구서를 보낼 대상이 DB에 없으면 정산 자체가 불가능</td></tr><tr><td>**② 리드 로그 + 견적요청 번호**</td><td>청구의 **증거**</td><td>&quot;이 번호의 유족을 우리가 보냈다&quot;는 대조 가능한 물증</td></tr></tbody></table></div>
 <p>둘은 분리 불가능합니다. 리드만 쌓으면 청구할 상대가 없고, 사업자만 받으면 청구할 근거가 없습니다.</p>
 <hr class="divider"/>
@@ -344,7 +346,7 @@
 <h3 class="subsection-title">3.1 왜 `User` 테이블에 role만 추가하지 않는가</h3>
 <p>기존 <code>User</code>는 소셜 로그인(카카오/네이버/구글) 전제로 설계되어 있고 <code>role</code> 필드에 <code>&#039;USER&#039; | &#039;EXPERT&#039; | &#039;ADMIN&#039;</code>이 있습니다. 여기에 <code>&#039;PARTNER&#039;</code>를 얹는 것이 가장 적은 코드로 보이지만 <strong>채택하지 않습니다.</strong></p>
 <div class="table-container"><table><thead><tr><th>이유</th><th>설명</th></tr></thead><tbody><tr><td>**인증 방식이 다름**</td><td>사업자는 담당자 퇴사·교체가 잦아 개인 소셜 계정에 묶으면 안 된다. 업체 이메일 + 비밀번호가 맞다.</td></tr><tr><td>**필수 정보가 다름**</td><td>사업자등록번호·상호·대표자명·정산 계좌는 B2C <code>User</code>에 전부 <code>null</code>로 남아 스키마가 오염된다.</td></tr><tr><td>**법인격 단위가 다름**</td><td>한 법인이 장례식장 2곳을 운영할 수 있다. 계정(사람)과 사업자(법인)를 1:1로 묶으면 확장이 막힌다.</td></tr><tr><td>**탈퇴 정책이 다름**</td><td>B2C 유저는 탈퇴 시 삭제 대상이지만, 사업자는 **정산 이력 때문에 함부로 지울 수 없다.**</td></tr></tbody></table></div>
-<p>→ <strong><code>Partner</code> 모델을 신설</strong>하고 <code>User</code>와 분리합니다. 대표 지시의 &quot;따로 회원가입 / 따로 관리&quot;와도 일치합니다.</p>
+<p>→ <strong><code>Partner</code> 모델을 신설</strong>하고 <code>User</code>와 분리합니다. 사장님 지시의 &quot;따로 회원가입 / 따로 관리&quot;와도 일치합니다.</p>
 <h3 class="subsection-title">3.2 가입 → 승인 플로우</h3>
 <pre><code>[사업자]                          [이어봄 운영자]
    │
@@ -382,11 +384,11 @@
 <h2 class="section-title">🎫 4. 리드(Lead)와 견적요청 번호</h2>
 <h3 class="subsection-title">4.1 리드 유형</h3>
 <div class="table-container"><table><thead><tr><th>유형</th><th>발생 지점</th><th>개인정보 수집</th><th>수수료 청구 근거로서의 강도</th></tr></thead><tbody><tr><td><code>QUOTE</code> **업체 문의**</td><td>업체 문의 폼 모달(<code>InquiryModal</code>)</td><td><span class="tag green">✅ 구현</span> 이름·연락처</td><td>**강함** — 유저가 명시적으로 신청, 번호 발급</td></tr><tr><td><code>CONSULT</code> **1:1 상담신청**</td><td>상담 신청</td><td><span class="tag green">✅ 구현</span></td><td>강함</td></tr><tr><td><code>CALL</code> **전화 버튼 클릭**</td><td><code>tel:</code> 링크 클릭</td><td>❌ 익명 이벤트</td><td>**약함** — §9 참조. 기본 **비청구**</td></tr></tbody></table></div>
-<blockquote class="info-quote"><strong>2026-08-11 정정 — <code>BOOKING</code>(답사예약) 유형 폐기.</strong> 대표·사장님 논의로 답사예약 기능 자체를 도입하지 않기로 확정(→ <code>01-01</code> §2.5, <code>01-04</code> 폐기 배너)되면서 <code>FacilityBooking</code> 모델·API가 제거됐고, <code>BOOKING</code> 리드를 만들 생산자가 사라졌습니다. 스키마의 <code>Lead.type</code>에서도 값이 삭제됐습니다(구현: walkthrough <code>2026-08-11 (6)</code>). 남은 유형은 위 3종입니다.</blockquote>
+<blockquote class="info-quote"><strong>2026-08-11 정정 — <code>BOOKING</code>(답사예약) 유형 폐기.</strong> 개발자·사장님 논의로 답사예약 기능 자체를 도입하지 않기로 확정(→ <code>01-01</code> §2.5, <code>01-04</code> 폐기 배너)되면서 <code>FacilityBooking</code> 모델·API가 제거됐고, <code>BOOKING</code> 리드를 만들 생산자가 사라졌습니다. 스키마의 <code>Lead.type</code>에서도 값이 삭제됐습니다(구현: walkthrough <code>2026-08-11 (6)</code>). 남은 유형은 위 3종입니다.</blockquote>
 <p>&gt;</p>
 <blockquote class="info-quote"><code>QUOTE</code>는 원래 &quot;견적요청&quot;이었으나 견적 비교 기능도 함께 폐기(→ <code>01-01</code> §2.3)되면서 실제 화면은 <strong>&quot;업체 문의&quot;</strong>로 바뀌었습니다. <strong>enum 값 <code>QUOTE</code>는 그대로 두고 표시 문구만 바꿨습니다</strong> — 이미 적재된 리드의 타입 값을 바꾸면 과거 정산 근거가 흔들리기 때문입니다.</blockquote>
 <blockquote class="info-quote"><code>CALL</code>을 청구 근거로 쓰지 않는 이유는 §9에 따로 적었습니다. 클릭했다고 통화한 것이 아니고, 통화했다고 계약한 것도 아니기 때문에 업체가 반박하면 우리가 증명할 수단이 없습니다. <strong>약한 근거로 청구하면 파트너 신뢰를 잃습니다.</strong> 지표로만 씁니다.</blockquote>
-<h3 class="subsection-title">4.2 견적요청 번호 (대표 지시 ②의 핵심)</h3>
+<h3 class="subsection-title">4.2 견적요청 번호 (사장님 지시 ②의 핵심)</h3>
 <p>전화로 &quot;<strong>EB-260810-0001</strong> 건입니다&quot;라고 대조할 수 있어야 하므로, 내부 PK(uuid)와 <strong>별개의 표시용 번호</strong>를 발번합니다.</p>
 <pre><code>EB - 260810 - 0001
 │    │        └─ 그날의 일련번호 (4자리, 일 단위 리셋)
@@ -571,7 +573,7 @@ model User {
 <blockquote class="info-quote"><strong>구현 상태 표기 (2026-08-11 정합화)</strong>: ✅ 구현됨 / ⬜ 미구현(계획 유지). 스펙과 구현이 어긋난 채 방치되면 문서가 거짓말이 되므로, 초안 작성 당시의 계획과 실제 착수분을 한 표에서 구분합니다.</blockquote>
 <h3 class="subsection-title">6.1 사업자 인증 · 계정 `/api/partner`</h3>
 <div class="table-container"><table><thead><tr><th></th><th>Method</th><th>Endpoint</th><th>설명</th><th>인증</th></tr></thead><tbody><tr><td><span class="tag green">✅ 구현</span></td><td>POST</td><td><code>/api/partner/signup</code></td><td>가입 신청 (status=PENDING)</td><td>—</td></tr><tr><td><span class="tag green">✅ 구현</span></td><td>POST</td><td><code>/api/partner/login</code></td><td>사업자 로그인 (APPROVED만 허용)</td><td>—</td></tr><tr><td><span class="tag green">✅ 구현</span></td><td>POST</td><td><code>/api/partner/refresh</code></td><td>토큰 갱신</td><td>Refresh</td></tr><tr><td><span class="tag green">✅ 구현</span></td><td>GET</td><td><code>/api/partner/me</code></td><td>내 사업자 정보·승인상태</td><td>Partner</td></tr><tr><td><span class="tag green">✅ 구현</span></td><td>PATCH</td><td><code>/api/partner/me</code></td><td>담당자·연락처·정산계좌 수정</td><td>Partner</td></tr><tr><td><span class="tag green">✅ 구현</span></td><td>GET</td><td><code>/api/partner/facilities</code></td><td>내 시설 목록</td><td>Partner</td></tr><tr><td><span class="tag green">✅ 구현</span></td><td>POST</td><td><code>/api/partner/claims</code></td><td>시설 소유권 클레임 신청</td><td>Partner</td></tr><tr><td><span class="tag green">✅ 구현</span></td><td>GET</td><td><code>/api/partner/claims</code></td><td>내 클레임 신청 현황</td><td>Partner</td></tr><tr><td><span class="tag green">✅ 구현</span></td><td>POST</td><td><code>/api/partner/facilities/:id/images</code></td><td>시설 사진 업로드(multer, 소유 시설만)</td><td>Partner</td></tr><tr><td><span class="tag green">✅ 구현</span></td><td>DELETE</td><td><code>/api/partner/facilities/:id/images</code></td><td>시설 사진 삭제</td><td>Partner</td></tr><tr><td><span class="tag green">✅ 구현</span></td><td>GET</td><td><code>/api/partner/leads</code></td><td>내 시설 리드 목록 (필터·페이지네이션)</td><td>Partner</td></tr><tr><td><span class="tag green">✅ 구현</span></td><td>GET</td><td><code>/api/partner/leads/:leadNo</code></td><td>리드 상세</td><td>Partner (본인 시설만)</td></tr><tr><td><span class="tag green">✅ 구현</span></td><td>PATCH</td><td><code>/api/partner/leads/:leadNo/status</code></td><td>응답/성사/무산 신고</td><td>Partner</td></tr><tr><td><span class="tag gray">⬜ 계획</span></td><td>GET</td><td><code>/api/partner/settlements</code></td><td>정산서 목록·상세</td><td>Partner</td></tr><tr><td><span class="tag gray">⬜ 계획</span></td><td>POST</td><td><code>/api/partner/settlements/:id/dispute</code></td><td>이의제기</td><td>Partner</td></tr></tbody></table></div>
-<blockquote class="info-quote">사진 업로드는 초안에 없던 추가분입니다(2026-08-10 대표 지시). <strong>현재 로컬 디스크 저장이라 배포 시 재배포마다 파일이 소실</strong>됩니다 — 실서비스 전 외부 스토리지 전환 필수(→ <code>.harness/systems.md</code> §5).</blockquote>
+<blockquote class="info-quote">사진 업로드는 초안에 없던 추가분입니다(2026-08-10 개발자 지시). <strong>현재 로컬 디스크 저장이라 배포 시 재배포마다 파일이 소실</strong>됩니다 — 실서비스 전 외부 스토리지 전환 필수(→ <code>.harness/systems.md</code> §5).</blockquote>
 <h3 class="subsection-title">6.2 운영자 어드민 `/api/admin`</h3>
 <div class="table-container"><table><thead><tr><th></th><th>Method</th><th>Endpoint</th><th>설명</th></tr></thead><tbody><tr><td><span class="tag green">✅ 구현</span></td><td>POST</td><td><code>/api/admin/login</code> · <code>/refresh</code> · GET <code>/me</code></td><td>운영자 인증 (공개 가입 없음 → §6.4)</td></tr><tr><td><span class="tag green">✅ 구현</span></td><td>GET</td><td><code>/api/admin/partners?status=</code></td><td>사업자 조회 (상태 필터, 빈 값이면 전체)</td></tr><tr><td><span class="tag green">✅ 구현</span></td><td>PATCH</td><td><code>/api/admin/partners/:id/status</code></td><td>승인/반려/정지 (+사유)</td></tr><tr><td><span class="tag green">✅ 구현</span></td><td>PATCH</td><td><code>/api/admin/partners/:id</code></td><td>담당자명·연락처 수정 (→ 아래 수정 범위 원칙)</td></tr><tr><td><span class="tag green">✅ 구현</span></td><td>GET</td><td><code>/api/admin/claims?status=</code></td><td>클레임 심사 큐</td></tr><tr><td><span class="tag green">✅ 구현</span></td><td>PATCH</td><td><code>/api/admin/claims/:id/status</code></td><td>클레임 승인/반려 (승인 시 <code>partnerId</code>·<code>isPartner</code> 트랜잭션 갱신)</td></tr><tr><td><span class="tag gray">⬜ 계획</span></td><td>GET</td><td><code>/api/admin/leads</code></td><td>전체 리드 조회·검색(<code>leadNo</code>)</td></tr><tr><td><span class="tag gray">⬜ 계획</span></td><td>PATCH</td><td><code>/api/admin/leads/:id/billable</code></td><td>청구 대상 확정 / <code>INVALID</code> 처리</td></tr><tr><td><span class="tag gray">⬜ 계획</span></td><td>POST</td><td><code>/api/admin/settlements/generate</code></td><td>월 정산서 일괄 생성</td></tr><tr><td><span class="tag gray">⬜ 계획</span></td><td>PATCH</td><td><code>/api/admin/settlements/:id/status</code></td><td>발행·수납 처리</td></tr></tbody></table></div>
 <p>전문가(<code>Expert</code>) 심사·공개 토글 API도 같은 <code>/api/admin</code> 네임스페이스에 있습니다 → <code>02-03</code> §5.4.</p>
@@ -644,14 +646,14 @@ model User {
 <ul><li>산정 기준이 미확정이어도 <strong>구조는 지금 만든다.</strong> 확정되면 레코드 1건을 넣는 것으로 끝난다(→ §10-1).</li></ul>
 <hr class="divider"/>
 <h2 class="section-title">⚠️ 9. 알려진 한계 — 전화 문의는 지금 구조로 증명되지 않는다</h2>
-<p>대표 지시 ②는 &quot;문의 <strong>혹은</strong> 견적 요청&quot;이라고 하셨는데, <strong>전화 문의는 현재 기술로 증명이 안 됩니다.</strong></p>
+<p>사장님 지시 ②는 &quot;문의 <strong>혹은</strong> 견적 요청&quot;이라고 하셨는데, <strong>전화 문의는 현재 기술로 증명이 안 됩니다.</strong></p>
 <div class="table-container"><table><thead><tr><th>단계</th><th>우리가 아는가</th></tr></thead><tbody><tr><td>유저가 <code>tel:</code> 버튼을 눌렀다</td><td><span class="tag green">✅ 구현</span> 이벤트 로그로 알 수 있음</td></tr><tr><td>실제로 통화가 연결됐다</td><td>❌ 브라우저는 통화 결과를 알려주지 않음</td></tr><tr><td>그 통화로 계약이 성사됐다</td><td>❌ 전혀 알 수 없음</td></tr></tbody></table></div>
 <p>즉 <code>CALL</code> 리드로 수수료를 청구하면 업체가 &quot;그런 전화 온 적 없다&quot;고 할 때 <strong>반박할 물증이 우리에게 없습니다.</strong> 그래서 §4.1에서 <code>CALL</code>을 기본 비청구로 둡니다.</p>
 <p><strong>해결 경로는 050 안심번호(가상번호)입니다.</strong> 시설마다 우리 명의의 050 번호를 발급해 착신 전환하면 통화 발생·시각·통화시간이 우리 로그에 남아 청구 근거가 됩니다. 부수 효과로 유족 번호가 업체에 직접 노출되지 않아 §7 개인정보 부담도 줄어듭니다. 다만 통신사 계약과 회선당 과금이 발생하므로 <strong>파트너 수가 확보된 뒤 도입</strong>하는 것이 합리적입니다. → 별도 검토 문서로 분리 제안.</p>
 <p>그 전까지 실무적으로 유효한 방법은 <strong>업체 문의 폼으로 유도</strong>하는 것입니다(<code>01-04</code> 대안 1과 동일한 결론). 제휴 시설에는 <code>[업체 문의]</code> 버튼을 눈에 띄게 배치합니다.</p>
-<blockquote class="info-quote"><strong>2026-08-11 정정</strong>: 원안은 &quot;전화는 보조 수단으로 둔다&quot;였으나, 2026-08-10 대표 지시로 <strong>시설 카드에서 전화번호(<code>tel:</code> 링크) 노출 자체를 제거</strong>했습니다(구현: walkthrough <code>2026-08-10 (5)</code>). 따라서 현재 <code>CALL</code> 리드를 만들 진입점이 화면에 없습니다 — <code>CALL</code> 유형은 050 도입 또는 전화 노출 재개 시를 대비해 스키마에만 남아 있는 상태입니다.</blockquote>
+<blockquote class="info-quote"><strong>2026-08-11 정정</strong>: 원안은 &quot;전화는 보조 수단으로 둔다&quot;였으나, 2026-08-10 개발자 지시로 <strong>시설 카드에서 전화번호(<code>tel:</code> 링크) 노출 자체를 제거</strong>했습니다(구현: walkthrough <code>2026-08-10 (5)</code>). 따라서 현재 <code>CALL</code> 리드를 만들 진입점이 화면에 없습니다 — <code>CALL</code> 유형은 050 도입 또는 전화 노출 재개 시를 대비해 스키마에만 남아 있는 상태입니다.</blockquote>
 <hr class="divider"/>
-<h2 class="section-title">❗ 10. 대표 확정 필요 항목</h2>
+<h2 class="section-title">❗ 10. 사장님 확정 필요 항목</h2>
 <p>아래 4건은 <strong>경영 판단</strong>이라 기획이 임의로 정하지 않습니다. 각 항목에 권장안을 붙였습니다.</p>
 <blockquote class="info-quote"><strong>중요 — 이 4건이 미정이어도 구현은 막히지 않습니다.</strong> §12 방침에 따라 전부 <strong>바꿀 수 있는 자리</strong>(정책 레코드 / 설정 파일)로 빠져 있어서, 확정되면 <strong>코드 수정이 아니라 값 입력</strong>으로 끝납니다. 아래 표의 &quot;확정 시 반영 위치&quot;를 보세요.</blockquote>
 <div class="table-container"><table><thead><tr><th>항목</th><th>확정 시 반영 위치</th><th>재배포 필요?</th></tr></thead><tbody><tr><td>10-1 수수료 기준</td><td><code>CommissionPolicy</code> 레코드 1건 추가</td><td>❌</td></tr><tr><td>10-2 로그인 요구 여부</td><td><code>policy.ts</code> → <code>lead.requireLogin</code></td><td><span class="tag green">✅ 구현</span></td></tr><tr><td>10-3 정산 주기·이의제기 기간</td><td><code>policy.ts</code> → <code>settlement.*</code></td><td><span class="tag green">✅ 구현</span></td></tr><tr><td>10-4 비제휴 시설 수용</td><td><code>policy.ts</code> → <code>lead.acceptForNonPartner</code></td><td><span class="tag green">✅ 구현</span></td></tr></tbody></table></div>

@@ -222,6 +222,7 @@
         background-color: var(--primary) !important;
         color: #ffffff !important;
         -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
       }
       .section-title {
         font-size: 12.5pt !important;
@@ -277,6 +278,7 @@
         padding: 0.45rem 0.65rem !important;
         font-size: 8.5pt !important;
         -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
       }
       td {
         padding: 0.45rem 0.65rem !important;
@@ -312,12 +314,12 @@
       <h1>🔗 00-13. 추모관 공유 링크 모델 — 결정서</h1>
       
     </div>
-    <blockquote class="info-quote"><strong>문서 성격</strong>: 결정서 · <strong>대표 확정 대기</strong>. <code>[Claude:Opus]</code> 작성(2026-08-12).</blockquote>
-<blockquote class="info-quote"><strong>계기</strong>: 대표 지적 — *&quot;추모관의 공유 링크 등은 어떻게 관리가 되고 누가 나눠주는 건지,</blockquote>
+    <blockquote class="info-quote"><strong>문서 성격</strong>: 결정서 · <strong>사장님 확정 대기</strong>. <code>[Claude:Opus]</code> 작성(2026-08-12).</blockquote>
+<blockquote class="info-quote"><strong>계기</strong>: 개발자 지적 — *&quot;추모관의 공유 링크 등은 어떻게 관리가 되고 누가 나눠주는 건지,</blockquote>
 <blockquote class="info-quote">난 거기서부터 정의되어야 한다고 봐.&quot;* (2026-08-12)</blockquote>
 <blockquote class="info-quote"><strong>🔵 2026-08-12 재편 반영</strong>: 본문의 도메인 번호를 신 체계로 갱신했습니다(추모관 03→<strong>05</strong>, 상중·행정 04→<strong>07</strong>).</blockquote>
 <blockquote class="info-quote">여부를 함께 결정**하며(<code>05-02</code> §2.2 미결), 00-12 §4 검증 사다리의 L0 정의도 여기에 달려 있습니다.</blockquote>
-<blockquote class="info-quote"><strong>표기</strong>: ✅ 확정 사실 / 🟡 권고 / 🔴 대표 확정 필요</blockquote>
+<blockquote class="info-quote"><strong>표기</strong>: ✅ 확정 사실 / 🟡 권고 / 🔴 사장님 확정 필요</blockquote>
 <hr class="divider"/>
 <h2 class="section-title">📌 1. 문제 — 링크에 대해 정의된 것이 한 줄뿐입니다</h2>
 <p>현행 스펙(<code>05-01</code> §2.1·§3.1)이 링크에 대해 말하는 전부:</p>
@@ -349,7 +351,7 @@
 <p>부고 링크와 추모관 링크가 따로 있으면 — 유족은 사망 당일에 두 번 만들어 두 번 뿌려야 하고,</p>
 <p>조문객은 어느 게 진짜인지 모릅니다. <code>05-02</code> §2.2가 권고한 <strong>(A) 05·07 통합</strong>이 링크 관점에서는</p>
 <p>사실상 유일한 답입니다.</p>
-<blockquote class="info-quote">🔴 <strong>다만 &quot;통합한다&quot;는 결정 자체는 대표 확정 사항입니다</strong>(§8-1). 아래 4개 안 중 A·B는 분리</blockquote>
+<blockquote class="info-quote">🔴 <strong>다만 &quot;통합한다&quot;는 결정 자체는 사장님 확정 사항입니다</strong>(§8-1). 아래 4개 안 중 A·B는 분리</blockquote>
 <blockquote class="info-quote">상태에서도 성립하지만, 그 경우 <strong>07이 별도 링크를 만들 것인지</strong>를 07 기획에서 다시 정해야 합니다.</blockquote>
 <hr class="divider"/>
 <h2 class="section-title">⏳ 3. 링크가 감당해야 하는 두 시기 — 요구가 정반대입니다</h2>
@@ -446,7 +448,7 @@
 <ul><li><strong>B는 &quot;지금 A로 가되 나중에 C로 갈 수 있게&quot; 하는 중간 기착지가 됩니다.</strong> <code>phase</code> 없이 회전만</li></ul>
 <p>  먼저 넣어도 유출 회수는 확보됩니다. 다만 §4.2의 오조작 위험을 어떻게 막을지는 답이 필요합니다.</p>
 <hr class="divider"/>
-<h2 class="section-title">🔴 8. 대표 확정 필요 항목</h2>
+<h2 class="section-title">🔴 8. 사장님 확정 필요 항목</h2>
 <div class="table-container"><table><thead><tr><th>#</th><th>결정 항목</th><th>선택지</th><th>권고</th><th>막고 있는 것</th></tr></thead><tbody><tr><td>1</td><td>**05·07 통합 여부**</td><td>통합 / 분리</td><td>🟡 통합</td><td>07 도메인 전체</td></tr><tr><td>2</td><td>**링크 모델**</td><td>A / B / C / D</td><td>🟡 C (일정 급하면 B)</td><td>05 착수, 스키마</td></tr><tr><td>3</td><td>**조문 로그인 요구**</td><td>§6.1 참조</td><td>**#2 확정 후 판단**</td><td><code>00-14</code> UC</td></tr><tr><td>4</td><td>**구 링크 응답**(§4.2)</td><td>404 / 안내 페이지</td><td>🟡 404 (기존 원칙 일관)</td><td>B·C 구현</td></tr><tr><td>5</td><td>**phase 전환 트리거**(§4.3)</td><td>자동 / 수동 / 혼합</td><td>🟡 고정기간 기본 + 발인일 우선</td><td>C 구현</td></tr><tr><td>6</td><td>**재전파 고지 문구**</td><td>넣음 / 안 넣음</td><td>🟡 넣음 (모든 안 공통)</td><td>개설 화면</td></tr></tbody></table></div>
 <blockquote class="info-quote"><strong>#6은 어느 안을 고르든 필요합니다.</strong> 유족은 지금 링크가 재전파될 수 있다는 사실을 안내받지</blockquote>
 <blockquote class="info-quote">못한 채 뿌리게 됩니다.</blockquote>

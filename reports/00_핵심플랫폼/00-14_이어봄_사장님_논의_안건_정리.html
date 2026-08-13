@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>🗣️ 00-14. 대표 · 사장님 논의 안건 정리 - 이어봄 기획 명세서</title>
+  <title>🗣️ 00-14. 사장님 논의 안건 정리 - 이어봄 기획 명세서</title>
   <style>
     :root {
       --primary: #1A2B4C;
@@ -222,6 +222,7 @@
         background-color: var(--primary) !important;
         color: #ffffff !important;
         -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
       }
       .section-title {
         font-size: 12.5pt !important;
@@ -277,6 +278,7 @@
         padding: 0.45rem 0.65rem !important;
         font-size: 8.5pt !important;
         -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
       }
       td {
         padding: 0.45rem 0.65rem !important;
@@ -309,7 +311,7 @@
     </div>
     <div class="header">
       <span class="badge">SSOT 정본 동기화 완료</span>
-      <h1>🗣️ 00-14. 대표 · 사장님 논의 안건 정리</h1>
+      <h1>🗣️ 00-14. 사장님 논의 안건 정리</h1>
       
     </div>
     <blockquote class="info-quote"><strong>문서 성격</strong>: 회의 자료. 전 도메인(00~08) 문서를 전수 조사해 <strong>결정 대기 항목을 한 곳에 모은 것</strong>입니다.</blockquote>
@@ -325,16 +327,28 @@
 <hr class="divider"/>
 <div class="page-break"></div>
 <h2 class="section-title">⚡ 2. 즉시 처리 — 화면이 약속했는데 뒷받침이 없는 것 (4건)</h2>
+<blockquote class="info-quote">## 🔵 2026-08-13 — 개발자 지시로 <strong>4건 전부 방향 확정. 후속 기획서 3건 작성 완료.</strong></blockquote>
+<p>&gt;</p>
+<blockquote class="info-quote">| # | 개발자 지시 | 산출물 |</blockquote>
+<blockquote class="info-quote">| :---: | :--- | :--- |</blockquote>
+<blockquote class="info-quote">| 2-1 | *&quot;상속포기·한정승인 추가와 함께 더 고려할 사항 점검&quot;* | <strong><code>07-02</code></strong> — 6항목 → <strong>전수 22항목</strong> |</blockquote>
+<blockquote class="info-quote">| 2-2 | *&quot;법적 효력을 갖게 하기 위한 방안 모색&quot;* | <strong><code>06-02</code></strong> — 3층 분리, 연명의료·유언은 법정 경로 연결 |</blockquote>
+<blockquote class="info-quote">| 2-3 | *&quot;법무사 추가해줘 / 직역 세분화가 맞나&quot;* | <strong><code>02-05</code></strong> — 법무사 추가 + <strong>상황 기반 진입</strong> |</blockquote>
+<blockquote class="info-quote">| 2-4 | *&quot;긴급 콜 대신 카카오톡 채팅?&quot;* | <strong><code>07-02</code> §5</strong> — 카카오톡 채널 권고 + 문구 변경 |</blockquote>
+<p>&gt;</p>
+<blockquote class="info-quote"><strong>아래 표는 처리 전 진단 기록으로 남겨둡니다.</strong> 남은 확정 항목은 각 문서 미결 절에 있습니다.</blockquote>
 <p><strong>공통 성격</strong>: 전부 화면에 이미 노출 중이고, <strong>문제가 되돌릴 수 없는 시점에 드러납니다.</strong></p>
-<p>대표님 판단이 필요한 게 아니라 <strong>&quot;고칩시다&quot;만 하시면 되는 것</strong>이 3건입니다.</p>
-<div class="table-container"><table><thead><tr><th>#</th><th>무엇</th><th>지금 상태</th><th>놓치면</th><th>근거</th></tr></thead><tbody><tr><td>**2-1**</td><td>**상속포기·한정승인 3개월이 체크리스트에 없음**</td><td>D-Day 체크리스트 6항목 중 없음</td><td>**유족이 고인의 빚을 상속** (민법 §1019① 경과 시 단순승인 간주)</td><td><code>07-01</code> §1.2</td></tr><tr><td>**2-2**</td><td>**엔딩노트에 &quot;법적 효력 없음&quot; 안내 없음**</td><td>상속세 계산기엔 붙어 있는데 유언엔 없음</td><td>이용자가 *&quot;유언 남겼다&quot;* 고 믿었는데 **사후에 효력 없음이 드러남** (민법 §1065~1072 방식 불충족)</td><td><code>02-04</code> §1.3</td></tr><tr><td>**2-3**</td><td>**&quot;공증 법무사 매칭&quot; — 없는 직역**</td><td><code>HomePage</code> 문구에만 존재. 4직역(변호사·세무사·행정사·지도사)에도 DB <code>Expert.category</code>에도 없음</td><td>매칭 대상이 시스템에 아예 없음</td><td><code>02-04</code> §1.2</td></tr><tr><td>**2-4**</td><td>**&quot;24h 긴급 콜&quot; 운영 주체 미정**</td><td>화면 하단 FAB + SCR-006 헤더에 상시 노출 중</td><td>전화가 왔을 때 **받을 사람이 없음**</td><td><code>07-01</code> §8-6</td></tr></tbody></table></div>
-<p><strong>처리 난이도</strong></p>
-<ul><li><strong>2-2 · 2-3은 문구 수정</strong>입니다. &quot;고치자&quot;만 하시면 당일 반영됩니다.</li></ul>
-<ul><li><strong>2-1은 실제 작업</strong>입니다(체크리스트 데이터 보강 + §5-5 검수).</li></ul>
-<ul><li><strong>2-4는 결정이 필요합니다</strong> — 운영 인력이거나, 아니면 <strong>문구를 내리는 것</strong>도 답입니다.</li></ul>
-<blockquote class="info-quote">🔴 <strong>2-3 권고: 직역을 늘리지 말고 문구를 고칩니다.</strong> 5번째 직역 신설은 <code>Expert.category</code>·승인</blockquote>
-<blockquote class="info-quote">심사·직역별 규제 층위(<code>02-01</code> §2)를 전부 다시 짜는 일입니다. 화면 문구 하나 때문에 도메인을</blockquote>
-<blockquote class="info-quote">늘리는 것은 순서가 거꾸로입니다.</blockquote>
+<div class="table-container"><table><thead><tr><th>#</th><th>무엇</th><th>지금 상태</th><th>놓치면</th><th>근거</th></tr></thead><tbody><tr><td>**2-1**</td><td>**상속포기·한정승인 3개월이 체크리스트에 없음**</td><td>D-Day 체크리스트 6항목 중 없음</td><td>**유족이 고인의 빚을 상속** (민법 §1019① 경과 시 단순승인 간주)</td><td><code>07-01</code> §1.2 → **<code>07-02</code>**</td></tr><tr><td>**2-2**</td><td>**엔딩노트에 &quot;법적 효력 없음&quot; 안내 없음**</td><td>상속세 계산기엔 붙어 있는데 유언엔 없음</td><td>이용자가 *&quot;유언 남겼다&quot;* 고 믿었는데 **사후에 효력 없음이 드러남** (민법 §1065~1072 방식 불충족)</td><td><code>02-04</code> §1.3 → **<code>06-02</code>**</td></tr><tr><td>**2-3**</td><td>**&quot;공증 법무사 매칭&quot; — 없는 직역**</td><td><code>HomePage</code> 문구에만 존재. 4직역에도 DB <code>Expert.category</code>에도 없음</td><td>매칭 대상이 시스템에 아예 없음</td><td><code>02-04</code> §1.2 → **<code>02-05</code>**</td></tr><tr><td>**2-4**</td><td>**&quot;24h 긴급 콜&quot; 운영 주체 미정**</td><td>화면 하단 FAB + SCR-006 헤더에 상시 노출 중</td><td>전화가 왔을 때 **받을 사람이 없음**</td><td><code>07-01</code> §8-6 → **<code>07-02</code> §5**</td></tr></tbody></table></div>
+<h3 class="subsection-title">2.1 검토에서 뒤집힌 판단 2가지</h3>
+<blockquote class="info-quote"><strong>① 2-3에 대해 제가 낸 권고(&quot;직역을 늘리지 말고 문구만 고치자&quot;)를 철회합니다.</strong></blockquote>
+<blockquote class="info-quote"><code>07-02</code>를 짜면서 드러났습니다 — <strong>상속포기·한정승인 신청</strong>과 <strong>부동산 상속등기</strong>는 **법무사가</blockquote>
+<blockquote class="info-quote">주 직역**입니다. 즉 4직역 체계는 *&quot;가장 자주 필요한 일&quot;* 의 담당자가 빠져 있었습니다.</blockquote>
+<blockquote class="info-quote"><code>HomePage</code>의 문구는 <strong>틀린 게 아니라 앞서간 것</strong>이었습니다. → <code>02-05</code> §3.1</blockquote>
+<p>&gt;</p>
+<blockquote class="info-quote"><strong>② 2-2의 &quot;법적 효력이 없으면 의미가 없다&quot;는 전제도 절반만 맞습니다.</strong></blockquote>
+<blockquote class="info-quote">엔딩노트가 담는 것 중 <strong>효력이 필요한 건 연명의료·재산 처분 2가지뿐</strong>이고, 그 둘은</blockquote>
+<blockquote class="info-quote"><strong>이미 국가가 만든 제도가 있습니다</strong>(등록기관 / 민법 5방식). 이어봄은 만드는 게 아니라</blockquote>
+<blockquote class="info-quote"><strong>연결하는 쪽</strong>입니다. → <code>06-02</code> §1</blockquote>
 <hr class="divider"/>
 <h2 class="section-title">🔗 3. 열쇠 결정 — 하나가 여러 개를 푸는 것 (4건)</h2>
 <p><strong>이 4건만 정해지면 나머지 미결의 절반이 자동으로 풀립니다.</strong> 순서대로 보시는 것을 권합니다.</p>
@@ -379,7 +393,7 @@
 <div class="table-container"><table><thead><tr><th>문서</th><th>항목</th><th>분류</th></tr></thead><tbody><tr><td><code>04-01</code> §10</td><td>운영자 대행 → §5-1 · L3 서류 → §7-4 · 현물유품 재개 → §4-2 · **도메인 명칭 &quot;정산&quot; vs &quot;정리&quot;** · <code>deceasedId</code> 추가</td><td>대부분 중복</td></tr></tbody></table></div>
 <blockquote class="info-quote"><strong>도메인 명칭 건</strong>: 재편안이 04를 *&quot;디지털 자산·계정 <strong>정산</strong>&quot;* 으로 명명했는데, <code>04-01</code> §7.1이</blockquote>
 <blockquote class="info-quote"><strong>화면 문구에서 &quot;정산&quot;을 금지</strong>했습니다(재산 처리를 약속하는 것으로 읽힘). 문서명은 재편안을</blockquote>
-<blockquote class="info-quote">따랐지만 <strong>명칭 자체를 &quot;디지털 계정 정리&quot;로 바꿀지는 대표 판단</strong>입니다.</blockquote>
+<blockquote class="info-quote">따랐지만 <strong>명칭 자체를 &quot;디지털 계정 정리&quot;로 바꿀지는 개발자 판단</strong>입니다.</blockquote>
 <h3 class="subsection-title">05 디지털 추모관</h3>
 <div class="table-container"><table><thead><tr><th>문서</th><th>항목</th><th>분류</th></tr></thead><tbody><tr><td><code>05-01</code> §8</td><td>보존기간 → §4-3 · 유료화 → §4-3 · PUBLIC 목록 → §7-6 · 링크모델 → §3-1 · 조문 로그인 → §3-1 · 개설게이트·신고정책</td><td>§3, §4</td></tr><tr><td><code>05-02</code> §11</td><td>개설게이트 · 신고정책 · 04 경계 → §3-2 · 운영부하 → §6-1 · 보존·수익 → §4-3 · 회귀테스트 → §6-3 · 방명록 본인삭제 · 사진삭제 권한 · 중복 추모관(**보류 지시됨**)</td><td>§3~6</td></tr></tbody></table></div>
 <h3 class="subsection-title">06 엔딩노트 · 유언</h3>

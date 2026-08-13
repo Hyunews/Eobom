@@ -222,6 +222,7 @@
         background-color: var(--primary) !important;
         color: #ffffff !important;
         -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
       }
       .section-title {
         font-size: 12.5pt !important;
@@ -277,6 +278,7 @@
         padding: 0.45rem 0.65rem !important;
         font-size: 8.5pt !important;
         -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
       }
       td {
         padding: 0.45rem 0.65rem !important;
@@ -312,13 +314,13 @@
       <h1>🧭 18. URL 라우팅 — 해시 방식 → HistoryRouter(BrowserRouter) 전환 구현 메모</h1>
       
     </div>
-    <blockquote class="info-quote"><strong>문서 성격</strong>: 정식 스펙이 아니라 <strong>구현 메모</strong>다. <code>docs/17_전문가_계정_체계_구현_메모.md</code>와 같은 예외 패턴 — 대표가</blockquote>
+    <blockquote class="info-quote"><strong>문서 성격</strong>: 정식 스펙이 아니라 <strong>구현 메모</strong>다. <code>docs/17_전문가_계정_체계_구현_메모.md</code>와 같은 예외 패턴 — 개발자가</blockquote>
 <blockquote class="info-quote">&quot;변경점을 md로 자세히 남겨달라&quot;고 직접 요청해 <code>[Claude:Sonnet]</code>이 직접 작성했다(2026-08-10). Gemini가 이 문서를</blockquote>
 <blockquote class="info-quote">바탕으로 HTML 보고서를 만들 예정이라, 코드를 안 열어봐도 무엇이/왜/어떻게 바뀌었는지 알 수 있게 서술한다.</blockquote>
 <hr class="divider"/>
 <h2 class="section-title">1. 배경 — 왜 바꿨나</h2>
 <p>기존 방식은 <code>react-router</code> 같은 라이브러리 없이, <code>App.tsx</code>가 <code>window.location.hash</code>(<code>#facility</code>, <code>#mypage</code> 등)와</p>
-<p><code>hashchange</code> 이벤트를 직접 다뤄 &quot;탭 전환&quot;을 구현하고 있었다. 대표 요청(2026-08-10)에 따라 이를 브라우저의</p>
+<p><code>hashchange</code> 이벤트를 직접 다뤄 &quot;탭 전환&quot;을 구현하고 있었다. 개발자 요청(2026-08-10)에 따라 이를 브라우저의</p>
 <p>History API 기반(HistoryRouter/BrowserRouter 방식) — 즉 URL이 <code>/#facility</code>가 아니라 <code>/facility</code>인 방식으로 전환했다.</p>
 <p><strong>해시 방식의 실질적 문제</strong></p>
 <ul><li>URL이 전부 <code>/#tab</code> 형태라 카카오톡 등으로 링크를 공유하면 링크 미리보기·검색엔진이 페이지를 구분하지 못한다 (SPA인데도 사실상 한 페이지로만 보임).</li></ul>

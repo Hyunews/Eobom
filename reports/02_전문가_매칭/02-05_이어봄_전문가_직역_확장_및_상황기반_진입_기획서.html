@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🧭 02-05. 전문가 직역 확장 및 상황 기반 진입 — 기획서 - 이어봄 기획 명세서</title>
+  <style>
+    :root {
+      --primary: #1A2B4C;
+      --secondary: #5B7065;
+      --accent: #D4A359;
+      --bg: #FBF9F5;
+      --surface: #FFFFFF;
+      --text: #1E293B;
+      --text-muted: #64748B;
+      --border: #E2E8F0;
+      --code-bg: #0F172A;
+      --code-text: #F8FAFC;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.65;
+      padding: 2rem 1rem;
+    }
+    .container {
+      max-width: 1140px;
+      margin: 0 auto;
+      background-color: var(--surface);
+      padding: 3rem;
+      border-radius: 24px;
+      box-shadow: 0 20px 40px rgba(26, 43, 76, 0.08);
+      border: 1px solid var(--border);
+    }
+    .header {
+      border-bottom: 3px solid var(--accent);
+      padding-bottom: 1.5rem;
+      margin-bottom: 2.5rem;
+    }
+    .badge {
+      display: inline-block;
+      background-color: var(--primary);
+      color: #FFF;
+      font-size: 0.85rem;
+      font-weight: 700;
+      padding: 0.3rem 0.8rem;
+      border-radius: 20px;
+      margin-bottom: 0.8rem;
+    }
+    h1 {
+      font-size: 2.1rem;
+      color: var(--primary);
+      margin-bottom: 0.5rem;
+      font-weight: 800;
+    }
+    .subtitle {
+      color: var(--text-muted);
+      font-size: 1.05rem;
+    }
+    .section-title {
+      font-size: 1.5rem;
+      color: var(--primary);
+      margin: 2.5rem 0 1.2rem 0;
+      padding-left: 0.8rem;
+      border-left: 5px solid var(--secondary);
+      font-weight: 700;
+    }
+    .subsection-title {
+      font-size: 1.25rem;
+      color: var(--primary);
+      margin: 1.8rem 0 0.8rem 0;
+      font-weight: 700;
+    }
+    .h4-title {
+      font-size: 1.05rem;
+      color: var(--secondary);
+      margin: 1.2rem 0 0.6rem 0;
+      font-weight: 700;
+    }
+    .info-quote {
+      background: #F1F5F9;
+      border-left: 4px solid var(--accent);
+      padding: 0.9rem 1.2rem;
+      margin: 1rem 0;
+      border-radius: 6px;
+      font-size: 0.95rem;
+      color: #334155;
+    }
+    code {
+      background: #EFF6FF;
+      color: #1D4ED8;
+      padding: 0.15rem 0.4rem;
+      border-radius: 6px;
+      font-family: 'Fira Code', Consolas, monospace;
+      font-size: 0.88rem;
+    }
+    pre {
+      background: var(--code-bg);
+      color: var(--code-text);
+      padding: 1.2rem;
+      border-radius: 12px;
+      overflow-x: auto;
+      margin: 1rem 0 1.5rem 0;
+      font-family: 'Fira Code', Consolas, monospace;
+      font-size: 0.9rem;
+    }
+    pre code {
+      background: transparent;
+      color: inherit;
+      padding: 0;
+    }
+    .table-container {
+      overflow-x: auto;
+      margin: 1.2rem 0 1.8rem 0;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.92rem;
+      background: #FFFFFF;
+    }
+    th {
+      background-color: var(--primary);
+      color: #FFFFFF;
+      padding: 0.8rem 1rem;
+      text-align: left;
+      font-weight: 600;
+    }
+    td {
+      padding: 0.8rem 1rem;
+      border-bottom: 1px solid var(--border);
+      color: #334155;
+    }
+    tr:last-child td {
+      border-bottom: none;
+    }
+    tr:nth-child(even) {
+      background-color: #F8FAFC;
+    }
+    .tag {
+      display: inline-block;
+      padding: 0.15rem 0.45rem;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 700;
+    }
+    .tag.green { background-color: #DCFCE7; color: #166534; }
+    .tag.gray { background-color: #F1F5F9; color: #475569; }
+    .tag.orange { background-color: #FFEDD5; color: #9A3412; }
+    .tag.pk { background-color: #FEE2E2; color: #991B1B; }
+    .tag.fk { background-color: #DBEAFE; color: #1E40AF; }
+    .tag.uk { background-color: #DCFCE7; color: #166534; }
+    p { margin-bottom: 0.9rem; color: #334155; }
+    ul, ol { margin-bottom: 1rem; padding-left: 1.4rem; color: #334155; }
+    li { margin-bottom: 0.4rem; }
+    .divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 2.5rem 0;
+    }
+    .nav-bar {
+      margin-bottom: 2rem;
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+    }
+    .nav-link {
+      color: var(--primary);
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+    .nav-link:hover {
+      color: var(--accent);
+    }
+    @page {
+      size: A4 portrait;
+      margin: 15mm 14mm 18mm 14mm;
+    }
+    @media print {
+      html, body {
+        background-color: #ffffff !important;
+        color: #1e293b !important;
+        font-size: 9.5pt !important;
+        line-height: 1.5 !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+      .container {
+        max-width: 100% !important;
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        border: none !important;
+        box-shadow: none !important;
+        background: transparent !important;
+        border-radius: 0 !important;
+      }
+      .nav-bar { display: none !important; }
+      .header {
+        border-bottom: 2px solid var(--accent) !important;
+        padding-bottom: 0.6rem !important;
+        margin-bottom: 1.2rem !important;
+        page-break-after: avoid !important;
+        break-after: avoid !important;
+      }
+      h1 {
+        font-size: 17pt !important;
+        line-height: 1.3 !important;
+        margin-bottom: 0.4rem !important;
+        color: var(--primary) !important;
+      }
+      .badge {
+        font-size: 8pt !important;
+        padding: 0.2rem 0.6rem !important;
+        background-color: var(--primary) !important;
+        color: #ffffff !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+      .section-title {
+        font-size: 12.5pt !important;
+        margin: 1.2rem 0 0.6rem 0 !important;
+        padding-left: 0.5rem !important;
+        border-left: 4px solid var(--secondary) !important;
+        page-break-after: avoid !important;
+        break-after: avoid !important;
+      }
+      .subsection-title {
+        font-size: 10.5pt !important;
+        margin: 1rem 0 0.5rem 0 !important;
+        page-break-after: avoid !important;
+        break-after: avoid !important;
+      }
+      .h4-title {
+        font-size: 9.5pt !important;
+        margin: 0.8rem 0 0.3rem 0 !important;
+        page-break-after: avoid !important;
+        break-after: avoid !important;
+      }
+      .info-quote {
+        background: #f8fafc !important;
+        border-left: 3px solid var(--accent) !important;
+        padding: 0.6rem 0.8rem !important;
+        margin: 0.6rem 0 !important;
+        font-size: 9pt !important;
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+        border-radius: 4px !important;
+      }
+      .table-container {
+        margin: 0.6rem 0 1rem 0 !important;
+        border: 1px solid #cbd5e1 !important;
+        border-radius: 6px !important;
+        overflow: visible !important;
+        page-break-inside: auto !important;
+        break-inside: auto !important;
+      }
+      table {
+        width: 100% !important;
+        font-size: 8.5pt !important;
+        border-collapse: collapse !important;
+      }
+      thead { display: table-header-group !important; }
+      tr {
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+      }
+      th {
+        background-color: #1a2b4c !important;
+        color: #ffffff !important;
+        padding: 0.45rem 0.65rem !important;
+        font-size: 8.5pt !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+      td {
+        padding: 0.45rem 0.65rem !important;
+        border-bottom: 1px solid #e2e8f0 !important;
+      }
+      .tag {
+        font-size: 7pt !important;
+        padding: 0.1rem 0.35rem !important;
+        border-radius: 4px !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+      .divider {
+        margin: 1rem 0 !important;
+        border-top: 1px solid #e2e8f0 !important;
+      }
+      .page-break {
+        page-break-before: always !important;
+        break-before: page !important;
+      }
+      ul, ol { margin-bottom: 0.5rem !important; }
+      li { page-break-inside: avoid !important; break-inside: avoid !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="nav-bar">
+      <a href="../index.html" class="nav-link">← 보고서 메인 포털로 돌아가기</a>
+    </div>
+    <div class="header">
+      <span class="badge">SSOT 정본 동기화 완료</span>
+      <h1>🧭 02-05. 전문가 직역 확장 및 상황 기반 진입 — 기획서</h1>
+      
+    </div>
+    <blockquote class="info-quote"><strong>문서 성격</strong>: 기획서 · 일부 사장님 확정 대기. <code>[Claude:Opus]</code> 작성(2026-08-13).</blockquote>
+<blockquote class="info-quote"><strong>계기</strong>: <code>00-14</code> §2-3 개발자 지시 2건 —</blockquote>
+<blockquote class="info-quote">① *&quot;메인의 법무사 → 매칭되는 전문가 없는 것이라는 소린데, 그렇다면 추가해줘.&quot;*</blockquote>
+<blockquote class="info-quote">② *&quot;고인의 사망 시 관련 서비스 진행을 위해 변호사, 법무사, 세무사, 행정사, 장례지도사 &lt;&lt;</blockquote>
+<blockquote class="info-quote">이렇게 각각 세분화해서 소개해야 하는 것인가?&quot;*</blockquote>
+<blockquote class="info-quote"><strong>관계</strong>: <code>02-01</code>(직역·수익 마스터)·<code>02-03</code>(확정 스펙)·<code>02-04</code>(생전 축)의 후속.</blockquote>
+<hr class="divider"/>
+<h2 class="section-title">📌 1. 두 질문은 사실 하나입니다</h2>
+<p>①은 *&quot;법무사를 넣을까&quot;* 이고 ②는 *&quot;직역으로 나누는 게 맞나&quot;* 인데, <strong>②의 답이 ①의 형태를 정합니다.</strong></p>
+<p>결론부터 적습니다.</p>
+<blockquote class="info-quote"><strong>✅ 법무사는 추가합니다. 다만 &quot;직역 탭&quot;을 하나 더 만드는 방식이 아닙니다.</strong></blockquote>
+<blockquote class="info-quote"><strong>유족에게는 직역이 아니라 &quot;상황&quot;으로 물어야 합니다.</strong></blockquote>
+<hr class="divider"/>
+<h2 class="section-title">🙋 2. ✅ ②의 답 — 유족은 자기가 누구를 만나야 하는지 모릅니다</h2>
+<h3 class="subsection-title">2.1 지금 화면은 공급자 중심입니다</h3>
+<p><code>CounselingPage.tsx</code>의 <code>CATEGORY_TABS</code>는 <strong>직역 4개로 필터링</strong>합니다.</p>
+<pre><code>[전체] [상속 변호사] [상속세 세무사] [디지털 유품 행정사] [장례 지도사]</code></pre>
+<p><strong>이건 &quot;우리가 가진 것&quot;의 분류이지 &quot;유족이 가진 문제&quot;의 분류가 아닙니다.</strong></p>
+<p>사별 직후 유족의 머릿속에 있는 것은 이렇습니다.</p>
+<div class="table-container"><table><thead><tr><th>유족이 실제로 하는 생각</th><th>답이 되는 직역</th></tr></thead><tbody><tr><td>*&quot;빚이 있는 것 같은데 어떡하지&quot;*</td><td>변호사 · **법무사**</td></tr><tr><td>*&quot;집 명의를 바꿔야 한다는데&quot;*</td><td>**법무사**</td></tr><tr><td>*&quot;세금이 얼마나 나오지&quot;*</td><td>세무사</td></tr><tr><td>*&quot;형제끼리 얘기가 안 된다&quot;*</td><td>변호사</td></tr><tr><td>*&quot;서류가 너무 복잡하다&quot;*</td><td>행정사</td></tr><tr><td>*&quot;장례를 어떻게 치러야 하나&quot;*</td><td>장례지도사</td></tr></tbody></table></div>
+<p><strong>어느 것도 &quot;나는 법무사가 필요하다&quot;로 시작하지 않습니다.</strong> <code>07-01</code> §3.2가 정리한 대로 이 시점의</p>
+<p>유족은 <strong>결정 피로 상태</strong>이고, 직역 이름을 놓고 고르라는 것은 <strong>판단을 유족에게 떠넘기는 것</strong>입니다.</p>
+<h3 class="subsection-title">2.2 🟡 권고 — 상황을 먼저 묻고, 직역은 결과로 보여줍니다</h3>
+<pre><code>[ 어떤 도움이 필요하세요? ]
+
+ · 고인에게 빚이 있을지 걱정됩니다        → 변호사 · 법무사   🔴 3개월 기한
+ · 부동산·자동차 명의를 바꿔야 합니다      → 법무사
+ · 상속세·취득세가 걱정됩니다             → 세무사
+ · 가족 간에 의견이 갈립니다              → 변호사
+ · 서류·행정 절차가 복잡합니다            → 행정사
+ · 장례 절차를 상담하고 싶습니다          → 장례지도사
+
+ [ 직역으로 직접 찾기 ▾ ]   ← 기존 탭은 접어서 유지</code></pre>
+<ul><li><strong>기존 직역 탭을 없애지 않습니다.</strong> 아는 사람은 바로 고를 수 있어야 합니다 — 접은 상태로 둡니다.</li></ul>
+<ul><li>상황 → 직역 매핑은 <strong><code>policy.ts</code> 또는 카탈로그 데이터</strong>로 둡니다. 하드코딩 금지(<code>01-05</code> §12).</li></ul>
+<ul><li><strong>첫 항목(&quot;빚이 있을지 걱정&quot;)에 3개월 기한 경고를 답니다</strong> — <code>07-02</code> §2.3의 진입점입니다.</li></ul>
+<h3 class="subsection-title">2.3 ✅ 이 구조가 07과 맞물립니다</h3>
+<p><code>07-01</code> §6이 *&quot;07의 체크리스트가 02의 최상위 유입구&quot;* 라고 했는데, **그 유입이 도착할 자리가</p>
+<p>바로 §2.2입니다.** 체크리스트에서 &quot;상속포기·한정승인&quot;에 막힌 유족이 [전문가 상담]을 누르면,</p>
+<p>직역 목록이 아니라 <strong>&quot;고인에게 빚이 있을지 걱정됩니다&quot;가 이미 선택된 상태</strong>로 도착해야 합니다.</p>
+<p><code>02-03</code> §5.2의 <code>ConsultRequest.content</code> 프리필이 그 수단입니다 — 새 API가 필요 없습니다.</p>
+<hr class="divider"/>
+<h2 class="section-title">⚖️ 3. ✅ ①의 답 — 법무사를 추가합니다</h2>
+<h3 class="subsection-title">3.1 왜 필요한가 — 빠뜨릴 수 없는 직역이었습니다</h3>
+<p>법무사가 없으면 <strong><code>07-02</code>가 정리한 가장 중요한 두 항목의 실행 파트너가 없습니다.</strong></p>
+<div class="table-container"><table><thead><tr><th>`07-02` 항목</th><th>주 직역</th></tr></thead><tbody><tr><td>§2.3-10 **상속포기·한정승인 신청** (3개월)</td><td>**법무사** — 법원 제출 서류 작성·제출 대리가 본업</td></tr><tr><td>§2.5-17 **부동산 상속등기**</td><td>**법무사** — 등기 대리의 주 직역</td></tr></tbody></table></div>
+<p>변호사도 할 수 있지만 <strong>비용대가 다르고, 실무상 이 두 건은 법무사가 주력</strong>입니다.</p>
+<p><strong>즉 4직역 체계는 &quot;가장 자주 필요한 일&quot;을 담당할 직역이 빠진 상태였습니다.</strong></p>
+<blockquote class="info-quote"><code>HomePage:354</code>의 *&quot;공증 법무사 매칭&quot;* 문구는 <strong>틀린 것이 아니라 앞서간 것</strong>이었습니다.</blockquote>
+<blockquote class="info-quote">다만 &quot;공증&quot;은 부정확합니다 — 유언 공증은 <strong>공증인</strong>의 직무입니다(<code>06-02</code> §4).</blockquote>
+<h3 class="subsection-title">3.2 🔴 확인이 필요한 것 — 법무사법 규제</h3>
+<p>변호사법 §34(알선 대가 금지) 때문에 <code>02-03</code> §3에 가드레일을 세웠습니다.</p>
+<p><strong>법무사법에도 유사한 규정이 있는지 확인해야 합니다.</strong></p>
+<div class="table-container"><table><thead><tr><th>확인 항목</th><th>왜</th></tr></thead><tbody><tr><td>법무사법상 **알선·소개 대가 수수 제한** 유무</td><td>있으면 **변호사와 동일 취급**(Tier 3 고정 월정액만)</td></tr><tr><td>광고·표시 규제</td><td>프로필 문구 검수 필요 여부</td></tr></tbody></table></div>
+<blockquote class="info-quote">🔴 <strong>확인 전까지는 안전한 쪽으로 둡니다</strong> — **법무사도 변호사와 동일하게 성과 연동 수수료</blockquote>
+<blockquote class="info-quote">배제**로 시작합니다. <code>02-03</code> §3.2-1의 &quot;없는 필드는 실수로 채워질 수 없다&quot; 원칙 그대로,</blockquote>
+<blockquote class="info-quote">과금 테이블에서 <code>LAWYER</code>와 함께 배제합니다.</blockquote>
+<h3 class="subsection-title">3.3 🟡 직역 재정리 (5직역)</h3>
+<div class="table-container"><table><thead><tr><th>카테고리 값</th><th>표시명</th><th>주 업무</th><th>성과 연동 수수료</th></tr></thead><tbody><tr><td><code>LAWYER</code></td><td>상속 변호사</td><td>유류분·분쟁, 유언장 검토, 공정증서 유언</td><td>❌ 금지(변호사법 §34)</td></tr><tr><td>**<code>JUDICIAL_SCRIVENER</code>**</td><td>**상속 법무사**</td><td>**상속포기·한정승인, 상속등기**</td><td>🔴 **§3.2 확인 전 금지**</td></tr><tr><td><code>TAX_ACCOUNTANT</code></td><td>상속세 세무사</td><td>상속세·취득세, 사전 증여 설계</td><td>⭕ 조건부 허용</td></tr><tr><td><code>ADMINISTRATIVE_SCRIVENER</code></td><td>행정사</td><td>행정 신고 대행, 디지털 계정 정리</td><td>⭕ 허용</td></tr><tr><td><code>FUNERAL_DIRECTOR</code></td><td>장례지도사</td><td>장례 절차, 사전 장례 계획</td><td>⭕ 허용</td></tr></tbody></table></div>
+<blockquote class="info-quote">⚠️ <strong>행정사 표시명에서 &quot;디지털 유품&quot;을 뺐습니다.</strong> 재편으로 그 업무가 Domain 04로 갔고</blockquote>
+<blockquote class="info-quote">(<code>04-01</code> §3.4), 행정사의 역할은 그보다 넓습니다.</blockquote>
+<h3 class="subsection-title">3.4 반영 대상</h3>
+<div class="table-container"><table><thead><tr><th>위치</th><th>변경</th></tr></thead><tbody><tr><td><code>schema.prisma</code> <code>Expert.category</code> 주석</td><td>5개 값으로</td></tr><tr><td><code>CounselingPage.tsx</code> <code>CATEGORY_TABS</code></td><td>항목 추가 + §2.2 상황 진입 신설</td></tr><tr><td><code>PartnerPortalPage</code>(SCR-008) 가입 폼</td><td>직역 선택지 추가</td></tr><tr><td><code>02-01</code> §2 4대 버티컬 표</td><td>5대로 갱신</td></tr><tr><td><code>HomePage:354</code></td><td>*&quot;유언장 작성 가이드 및 공증 법무사 매칭&quot;* → **&quot;상속 등기·유언장 전문가 연결&quot;**</td></tr></tbody></table></div>
+<blockquote class="info-quote"><strong>마이그레이션은 필요 없습니다</strong> — <code>category</code>가 문자열이라 값만 추가하면 됩니다.</blockquote>
+<blockquote class="info-quote">기존 데이터 영향 없음.</blockquote>
+<hr class="divider"/>
+<h2 class="section-title">💰 4. 수익 구조에 미치는 영향</h2>
+<div class="table-container"><table><thead><tr><th></th><th></th></tr></thead><tbody><tr><td>**긍정**</td><td>법무사 업무(상속포기·상속등기)는 **발생 빈도가 가장 높습니다.** 상속에 부동산이 끼면 등기는 거의 필수</td></tr><tr><td>**긍정**</td><td>§2.2 상황 진입은 **전환율을 올립니다** — 유족이 직역을 고민하다 이탈하는 구간이 사라짐</td></tr><tr><td>**제약**</td><td>🔴 §3.2 확인 전까지 법무사는 **Tier 3(고정 월정액)만** — 변호사와 동일</td></tr></tbody></table></div>
+<blockquote class="info-quote"><code>02-01</code> §3의 Tier 구조는 <strong>그대로 유효</strong>합니다. 이 문서는 직역 하나와 진입 UX를 더할 뿐이며</blockquote>
+<blockquote class="info-quote">수익 모델을 바꾸지 않습니다.</blockquote>
+<hr class="divider"/>
+<h2 class="section-title">❓ 5. 확정 필요</h2>
+<div class="table-container"><table><thead><tr><th>#</th><th>쟁점</th><th>권고</th><th>막는 것</th></tr></thead><tbody><tr><td>1</td><td>**법무사 직역 추가**</td><td>🟡 **추가**(§3.1)</td><td><code>HomePage</code> 문구, 가입 폼</td></tr><tr><td>2</td><td>**법무사법 규제 확인**(§3.2)</td><td>외부 확인 — <code>00-14</code> §5-3에 병합</td><td>법무사 과금(Stage 2)</td></tr><tr><td>3</td><td>**상황 기반 진입 도입**(§2.2)</td><td>🟡 도입. 직역 탭은 접어서 유지</td><td><code>CounselingPage</code> 개편</td></tr><tr><td>4</td><td>장례지도사 실체</td><td>🔴 **현재 제휴 전문가 0명** — 직역만 있고 사람이 없음</td><td>영업</td></tr></tbody></table></div>
+<blockquote class="info-quote"><strong>#4는 이 문서 밖의 문제지만 함께 봐야 합니다.</strong> 직역을 5개로 늘려도 **입점 전문가가 없으면</blockquote>
+<blockquote class="info-quote">빈 목록**입니다. <code>01-01</code> §3.3(제휴 시설 0건)과 같은 상태입니다.</blockquote>
+<hr class="divider"/>
+<h2 class="section-title">🔗 6. 관련 문서</h2>
+<div class="table-container"><table><thead><tr><th>문서</th><th>관계</th></tr></thead><tbody><tr><td><code>02-01</code></td><td>§2 4대 버티컬 → **5대로 갱신 필요**(§3.3). Tier 구조는 유지</td></tr><tr><td><code>02-03</code></td><td>§3 변호사법 가드레일 — **법무사에 동일 적용**(§3.2)</td></tr><tr><td><code>02-04</code></td><td>§1.2가 이 문서의 출발점(&quot;공증 법무사&quot;는 없는 직역)</td></tr><tr><td><code>07-01</code>·<code>07-02</code></td><td>§2.3 — 체크리스트가 이 화면으로 도착. 상속포기 3개월이 최대 유입 경로</td></tr><tr><td><code>06-02</code></td><td>§4.1 B안(공정증서 유언) — 변호사·공증인 연결</td></tr><tr><td><code>00-06</code></td><td>SCR-007 개편(§2.2), SCR-008 가입 폼(§3.4)</td></tr></tbody></table></div>
+
+  </div>
+</body>
+</html>

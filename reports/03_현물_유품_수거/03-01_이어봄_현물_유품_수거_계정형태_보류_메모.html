@@ -222,6 +222,7 @@
         background-color: var(--primary) !important;
         color: #ffffff !important;
         -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
       }
       .section-title {
         font-size: 12.5pt !important;
@@ -277,6 +278,7 @@
         padding: 0.45rem 0.65rem !important;
         font-size: 8.5pt !important;
         -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
       }
       td {
         padding: 0.45rem 0.65rem !important;
@@ -322,11 +324,11 @@
 <p>&gt;</p>
 <blockquote class="info-quote"><strong>§2의 <code>userId</code> FK 원칙은 <code>04-01</code> §4.3 · <code>05-01</code> §3.5에 반영 완료</strong>되었습니다. 앞으로 그 원칙을</blockquote>
 <blockquote class="info-quote">인용할 때는 그쪽을 참조하십시오. (구 <code>03-02</code> §5.5·§6.4가 원래 자리였습니다.)</blockquote>
-<blockquote class="info-quote">🔵 <strong>도메인 성격 확정(2026-08-12)</strong>: 현물 유품 수거는 <strong>유가족 전용</strong>입니다. 대표 확정 사항이며,</blockquote>
+<blockquote class="info-quote">🔵 <strong>도메인 성격 확정(2026-08-12)</strong>: 현물 유품 수거는 <strong>유가족 전용</strong>입니다. 개발자 확정 사항이며,</blockquote>
 <blockquote class="info-quote">생전(WellDying) 축이 없으므로 <code>00-12</code> §2.4의 생전 위임(<code>PreDeathDirective</code>) 대상이 아닙니다.</blockquote>
-<blockquote class="info-quote"><strong>문서 성격</strong>: 정식 스펙이 아니라 구현 메모입니다. 대표가 &quot;운영자 대시보드에서 회원 클릭 시 도메인</blockquote>
+<blockquote class="info-quote"><strong>문서 성격</strong>: 정식 스펙이 아니라 구현 메모입니다. 개발자가 &quot;운영자 대시보드에서 회원 클릭 시 도메인</blockquote>
 <blockquote class="info-quote">데이터를 볼 수 있어야 하지 않나&quot;라고 제안한 원칙을, 실제 착수 전에 근거를 남겨두기 위해</blockquote>
-<blockquote class="info-quote"><code>[Claude:Sonnet]</code>이 대표 직접 지시로 작성했습니다(같은 방식이 <code>02-02</code> 문서에도 있었음 — 정식 스펙</blockquote>
+<blockquote class="info-quote"><code>[Claude:Sonnet]</code>이 개발자 직접 지시로 작성했습니다(같은 방식이 <code>02-02</code> 문서에도 있었음 — 정식 스펙</blockquote>
 <blockquote class="info-quote">작성은 원래 <code>[Claude:Opus]</code> 몫이나, 이번엔 사용자가 &quot;md 파일 만들어달라&quot;고 직접 요청).</blockquote>
 <p>&gt;</p>
 <blockquote class="info-quote">등록: 2026-08-11 · 작성자: <code>[Claude:Sonnet]</code></blockquote>
@@ -340,7 +342,7 @@
 <ul><li><strong>현물 유품 수거(신 Domain 03)는 그중에서도 가장 뒤에 있습니다</strong> — 계정 형태조차 정해지지 않아</li></ul>
 <p>  모델을 그릴 수조차 없습니다(§3).</p>
 <div class="page-break"></div>
-<h2 class="section-title">2. 설계 원칙 (대표 제안, 2026-08-11)</h2>
+<h2 class="section-title">2. 설계 원칙 (개발자 제안, 2026-08-11)</h2>
 <p>디지털 유품·추모관 관련 데이터는 성격상 특정 회원(<code>User</code>)에 종속된 데이터입니다. 운영자가 회원을</p>
 <p>검색해서 찾을 수 있다면, 그 회원을 클릭했을 때 연결된 도메인 데이터(예: SNS 삭제 신청 처리 현황,</p>
 <p>추모관 방명록/헌화 이력 등)를 함께 확인할 수 있어야 합니다.</p>
@@ -361,7 +363,7 @@
 <p>탭이 사라지므로 재개 시점을 정해야 한다&quot;* 고 지적한 사안이 그대로 이어집니다.</p>
 <div class="page-break"></div>
 <h2 class="section-title">4. 다음 단계</h2>
-<p>1. §3(계정 형태) 대표 확정 → <code>[Claude:Opus]</code>가 <strong>Domain 03 상위 기획서를 신규 <code>03-02</code>로</strong> 작성</p>
+<p>1. §3(계정 형태) 사장님 확정 → <code>[Claude:Opus]</code>가 <strong>Domain 03 상위 기획서를 신규 <code>03-02</code>로</strong> 작성</p>
 <p>   (⚠️ 구 <code>03-02</code>는 재편 전 &quot;디지털 계정 정리·추모관 명세서&quot;였습니다 — 과거 기록 해석 시 혼동 주의)</p>
 <p>2. 그때 이 문서 §2 원칙을 반영 검토할 것</p>
 <p>3. 이 메모 자체는 스펙이 확정되면 폐기하거나 배너로 남겨도 됩니다(<code>01-03</code>/<code>01-04</code> 폐기 방식과 동일)</p>

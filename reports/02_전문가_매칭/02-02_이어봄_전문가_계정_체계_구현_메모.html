@@ -222,6 +222,7 @@
         background-color: var(--primary) !important;
         color: #ffffff !important;
         -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
       }
       .section-title {
         font-size: 12.5pt !important;
@@ -277,6 +278,7 @@
         padding: 0.45rem 0.65rem !important;
         font-size: 8.5pt !important;
         -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
       }
       td {
         padding: 0.45rem 0.65rem !important;
@@ -313,12 +315,12 @@
       
     </div>
     <blockquote class="info-quote"><strong>문서 성격</strong>: <code>16</code>(장사시설 사업자)과 달리 정식 기획 확정 문서가 아니라 <strong>구현하며 남긴 메모</strong>입니다.</blockquote>
-<blockquote class="info-quote">2026-08-10 대표 지시: &quot;장사시설/전문가 회원가입 관리 따로. 법적 문제는 참고로만 두고 나중에 문서로 보고. 구현은 일단 진행.&quot;</blockquote>
+<blockquote class="info-quote">2026-08-10 개발자 지시: &quot;장사시설/전문가 회원가입 관리 따로. 법적 문제는 참고로만 두고 나중에 문서로 보고. 구현은 일단 진행.&quot;</blockquote>
 <blockquote class="info-quote">→ 아래 법적 리스크는 <strong>의사결정을 막지 않는 참고 자료</strong>이며, 실제 서비스 오픈 전 사장님 확인이 필요합니다.</blockquote>
 <blockquote class="info-quote"><strong>작성 경위</strong>: 통상 <code>docs/</code>는 <code>[Claude:Opus]</code>가 쓰지만, 이번엔 사용자가 직접 <code>[Claude:Sonnet]</code>에게 &quot;구현하면서 메모만 남겨라&quot;고 지시해 예외적으로 구현 중 작성했습니다(→ <code>.harness/roles.md</code> §0).</blockquote>
 <hr class="divider"/>
 <h2 class="section-title">1. 왜 `Partner`(장사시설)와 별도 모델인가</h2>
-<p>기존 <code>Partner</code>(<code>docs/16</code>)를 전문가에게도 재사용하는 대신 <code>Expert</code> 모델을 새로 만들었습니다. 대표 지시(&quot;따로 되어야 향후 기능·조건 추가가 쉽다&quot;)와도 일치하고, 기술적으로도 3가지 이유가 있습니다.</p>
+<p>기존 <code>Partner</code>(<code>docs/16</code>)를 전문가에게도 재사용하는 대신 <code>Expert</code> 모델을 새로 만들었습니다. 개발자 지시(&quot;따로 되어야 향후 기능·조건 추가가 쉽다&quot;)와도 일치하고, 기술적으로도 3가지 이유가 있습니다.</p>
 <p>1. <strong>검증 기준이 다름</strong> — 장사시설은 사업자등록번호, 전문가는 자격증 등록번호(변호사 등록번호·세무사 등록번호 등). 검증 절차·근거 기관이 다릅니다.</p>
 <p>2. <strong>연결되는 도메인이 다름</strong> — <code>Partner</code>는 시설(<code>Facility</code>)에 클레임으로 붙고, 전문가는 상담(<code>docs/15</code>의 <code>CounselingPage</code>·<code>ConsultingBookingModal</code>)에 붙습니다.</p>
 <p>3. <strong>수익 모델이 직역별로 갈라짐</strong> — 아래 §2 참조. <code>Partner</code>의 <code>Lead</code>/<code>CommissionPolicy</code> 구조를 그대로 재사용하면 변호사만 예외 처리해야 해서 스키마가 지저분해집니다.</p>
