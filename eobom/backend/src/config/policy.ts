@@ -24,7 +24,7 @@ export const POLICY = {
     maskAfterSettlement: true, // §7.3
   },
   memorial: {
-    photoMaxSizeBytes: 5 * 1024 * 1024, // docs 03-02 §4.6, §9.1-9 — 시설 이미지와 동일 기준(5MB)
-    photoMaxCountPerMemorial: 20, // docs 03-02 §4.6 — 추모관 1개당 업로드 상한
+    photoMaxSizeBytes: 5 * 1024 * 1024, // docs 05-01 §2.6, §7.1-7 — 시설 이미지와 동일 기준(5MB)
+    photoMaxCountPerMemorial: 20, // docs 05-01 §2.6 — 추모관 1개당 업로드 상한
   },
 } as const;

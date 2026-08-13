@@ -122,7 +122,7 @@ export const getMe = async (req: Request, res: Response) => {
   }
 };
 
-// 회원(B2C User) 상세 (`GET /api/admin/users/:id`) — 03 도메인 데이터 조인 표시(docs 03-02 §6.4).
+// 회원(B2C User) 상세 (`GET /api/admin/users/:id`) — 도메인 데이터 조인 표시(docs 04-01 §5.4 · 05-01 §4.4).
 // `03-01` §2가 요구했던 "회원 클릭 시 관련 도메인 데이터 확인"의 실제 구현. 05 도메인(엔딩노트)은
 // 열람 범위가 미확정(`05-01` §3)이라 여기 포함하지 않는다 — 이 문서의 결정을 05에 유추 적용하지 말 것.
 export const getUserDetailForAdmin = async (req: Request, res: Response) => {

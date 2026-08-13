@@ -3,7 +3,7 @@ import { Prisma } from '@prisma/client';
 import prisma from '../config/prisma';
 import { verifyBearerToken } from './authController';
 
-// 유족 개인의 디지털 정리 진행 추적(docs 03-02 §3, §6.2). 증빙 파일은 받지 않는다(§3.3) —
+// 유족 개인의 디지털 정리 진행 추적(docs 04-01 §3, §5.2). 증빙 파일은 받지 않는다(§3.3) —
 // 이 컨트롤러에 파일 업로드 관련 로직을 추가하지 않는다.
 
 const VALID_STATUSES = ['TODO', 'PREPARING', 'SUBMITTED', 'DONE', 'BLOCKED'] as const;

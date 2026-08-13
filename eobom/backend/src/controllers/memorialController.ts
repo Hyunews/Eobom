@@ -7,7 +7,7 @@ import { verifyBearerToken } from './authController';
 import { uploadMemorialPhoto as uploadMiddleware, MEMORIAL_PHOTO_DIR, toPublicMemorialPhotoPath } from '../config/upload';
 import { POLICY } from '../config/policy';
 
-// 온라인 추모관(docs 03-02 §4, §6). 공개범위 기본값은 LINK(§4.2) — 사망 사실+유족 구성이
+// 온라인 추모관(docs 05-01 §2, §4). 공개범위 기본값은 LINK(§4.2) — 사망 사실+유족 구성이
 // 공개 색인되면 부고 사칭 보이스피싱의 표적 정보가 된다.
 
 const VALID_VISIBILITY = ['PRIVATE', 'LINK', 'PUBLIC'] as const;

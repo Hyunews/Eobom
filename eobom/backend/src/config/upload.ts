@@ -37,7 +37,7 @@ export const uploadFacilityImage = multer({
 // (server.ts가 http/https를 배포마다 다르게 서빙하므로 백엔드가 절대 URL을 박아넣지 않는다).
 export const toPublicImagePath = (filename: string): string => `/uploads/facility-images/${filename}`;
 
-// 추모 사진 로컬 디스크 저장 (docs 03-02 §4.6) — 구현은 하되 실서비스 오픈은 오브젝트 스토리지
+// 추모 사진 로컬 디스크 저장 (docs 05-01 §2.6) — 구현은 하되 실서비스 오픈은 오브젝트 스토리지
 // 전환 이후로 묶는다. 상한값은 policy.ts가 정본(§9.1-9) — 여기서 재정의하지 않는다.
 export const MEMORIAL_PHOTO_DIR = path.resolve(__dirname, '../../uploads/memorial-photos');
 fs.mkdirSync(MEMORIAL_PHOTO_DIR, { recursive: true });

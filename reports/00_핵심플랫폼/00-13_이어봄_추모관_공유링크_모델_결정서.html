@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🔗 00-13. 추모관 공유 링크 모델 — 결정서 - 이어봄 기획 명세서</title>
+  <style>
+    :root {
+      --primary: #1A2B4C;
+      --secondary: #5B7065;
+      --accent: #D4A359;
+      --bg: #FBF9F5;
+      --surface: #FFFFFF;
+      --text: #1E293B;
+      --text-muted: #64748B;
+      --border: #E2E8F0;
+      --code-bg: #0F172A;
+      --code-text: #F8FAFC;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.65;
+      padding: 2rem 1rem;
+    }
+    .container {
+      max-width: 1140px;
+      margin: 0 auto;
+      background-color: var(--surface);
+      padding: 3rem;
+      border-radius: 24px;
+      box-shadow: 0 20px 40px rgba(26, 43, 76, 0.08);
+      border: 1px solid var(--border);
+    }
+    .header {
+      border-bottom: 3px solid var(--accent);
+      padding-bottom: 1.5rem;
+      margin-bottom: 2.5rem;
+    }
+    .badge {
+      display: inline-block;
+      background-color: var(--primary);
+      color: #FFF;
+      font-size: 0.85rem;
+      font-weight: 700;
+      padding: 0.3rem 0.8rem;
+      border-radius: 20px;
+      margin-bottom: 0.8rem;
+    }
+    h1 {
+      font-size: 2.1rem;
+      color: var(--primary);
+      margin-bottom: 0.5rem;
+      font-weight: 800;
+    }
+    .subtitle {
+      color: var(--text-muted);
+      font-size: 1.05rem;
+    }
+    .section-title {
+      font-size: 1.5rem;
+      color: var(--primary);
+      margin: 2.5rem 0 1.2rem 0;
+      padding-left: 0.8rem;
+      border-left: 5px solid var(--secondary);
+      font-weight: 700;
+    }
+    .subsection-title {
+      font-size: 1.25rem;
+      color: var(--primary);
+      margin: 1.8rem 0 0.8rem 0;
+      font-weight: 700;
+    }
+    .h4-title {
+      font-size: 1.05rem;
+      color: var(--secondary);
+      margin: 1.2rem 0 0.6rem 0;
+      font-weight: 700;
+    }
+    .info-quote {
+      background: #F1F5F9;
+      border-left: 4px solid var(--accent);
+      padding: 0.9rem 1.2rem;
+      margin: 1rem 0;
+      border-radius: 6px;
+      font-size: 0.95rem;
+      color: #334155;
+    }
+    code {
+      background: #EFF6FF;
+      color: #1D4ED8;
+      padding: 0.15rem 0.4rem;
+      border-radius: 6px;
+      font-family: 'Fira Code', Consolas, monospace;
+      font-size: 0.88rem;
+    }
+    pre {
+      background: var(--code-bg);
+      color: var(--code-text);
+      padding: 1.2rem;
+      border-radius: 12px;
+      overflow-x: auto;
+      margin: 1rem 0 1.5rem 0;
+      font-family: 'Fira Code', Consolas, monospace;
+      font-size: 0.9rem;
+    }
+    pre code {
+      background: transparent;
+      color: inherit;
+      padding: 0;
+    }
+    .table-container {
+      overflow-x: auto;
+      margin: 1.2rem 0 1.8rem 0;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.92rem;
+      background: #FFFFFF;
+    }
+    th {
+      background-color: var(--primary);
+      color: #FFFFFF;
+      padding: 0.8rem 1rem;
+      text-align: left;
+      font-weight: 600;
+    }
+    td {
+      padding: 0.8rem 1rem;
+      border-bottom: 1px solid var(--border);
+      color: #334155;
+    }
+    tr:last-child td {
+      border-bottom: none;
+    }
+    tr:nth-child(even) {
+      background-color: #F8FAFC;
+    }
+    .tag {
+      display: inline-block;
+      padding: 0.15rem 0.45rem;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 700;
+    }
+    .tag.green { background-color: #DCFCE7; color: #166534; }
+    .tag.gray { background-color: #F1F5F9; color: #475569; }
+    .tag.orange { background-color: #FFEDD5; color: #9A3412; }
+    .tag.pk { background-color: #FEE2E2; color: #991B1B; }
+    .tag.fk { background-color: #DBEAFE; color: #1E40AF; }
+    .tag.uk { background-color: #DCFCE7; color: #166534; }
+    p { margin-bottom: 0.9rem; color: #334155; }
+    ul, ol { margin-bottom: 1rem; padding-left: 1.4rem; color: #334155; }
+    li { margin-bottom: 0.4rem; }
+    .divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 2.5rem 0;
+    }
+    .nav-bar {
+      margin-bottom: 2rem;
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+    }
+    .nav-link {
+      color: var(--primary);
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+    .nav-link:hover {
+      color: var(--accent);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="nav-bar">
+      <a href="../index.html" class="nav-link">← 보고서 메인 포털로 돌아가기</a>
+    </div>
+    <div class="header">
+      <span class="badge">SSOT 정본 동기화 완료</span>
+      <h1>🔗 00-13. 추모관 공유 링크 모델 — 결정서</h1>
+      
+    </div>
+    <h1>🔗 00-13. 추모관 공유 링크 모델 — 결정서</h1>
+<blockquote class="info-quote"><strong>문서 성격</strong>: 결정서 · <strong>대표 확정 대기</strong>. <code>[Claude:Opus]</code> 작성(2026-08-12).</blockquote>
+<blockquote class="info-quote"><strong>계기</strong>: 대표 지적 — *&quot;추모관의 공유 링크 등은 어떻게 관리가 되고 누가 나눠주는 건지,</blockquote>
+<blockquote class="info-quote">난 거기서부터 정의되어야 한다고 봐.&quot;* (2026-08-12)</blockquote>
+<blockquote class="info-quote"><strong>왜 00 레벨인가</strong>: 이 결정은 03(추모관) 단독 사안이 아닙니다. **04(모바일 부고장)의 존재</blockquote>
+<blockquote class="info-quote">여부를 함께 결정**하며(<code>03-03</code> §2.2 미결), 00-12 §4 검증 사다리의 L0 정의도 여기에 달려 있습니다.</blockquote>
+<blockquote class="info-quote"><strong>표기</strong>: ✅ 확정 사실 / 🟡 권고 / 🔴 대표 확정 필요</blockquote>
+<hr class="divider"/>
+<h2 class="section-title">📌 1. 문제 — 링크에 대해 정의된 것이 한 줄뿐입니다</h2>
+<p>현행 스펙(<code>03-02</code> §4.2·§5.3)이 링크에 대해 말하는 전부:</p>
+<blockquote class="info-quote"><code>slug</code> — 공개 URL용 <strong>추측 불가 토큰</strong>. 순번(<code>/memorial/1</code>) 금지.</blockquote>
+<p>즉 <strong>개설 시점에 1개 발급되고, 영구 불변이며, 아는 사람은 누구나 들어옵니다.</strong></p>
+<p><strong>비밀번호 없는 영구 마스터 키 한 장</strong>입니다. 나머지는 전부 공백입니다.</p>
+<div class="table-container"><table><thead><tr><th>질문</th><th>현행 스펙의 답</th></tr></thead><tbody><tr><td>누가 배포하나</td><td>**없음**</td></tr><tr><td>어떤 채널로 나가나</td><td>**없음**</td></tr><tr><td>재전파(단톡방 재공유)되면</td><td>**없음** — 막을 방법도, 알 방법도 없음</td></tr><tr><td>유출되면 회수할 수 있나</td><td>**불가.** <code>slug</code>가 1개뿐이라 회전 불가</td></tr><tr><td>만료되나</td><td>**없음** — 영구</td></tr><tr><td>누가 들어왔는지 아나</td><td>**없음**</td></tr></tbody></table></div>
+<p>유출 시 유족이 할 수 있는 건 <strong>추모관을 통째로 닫는 것(<code>closedAt</code>)</strong> 뿐이고,</p>
+<p>그 &quot;닫기&quot;조차 아직 미구현입니다(<code>03-03</code> §4 — 🔴 미구현으로 표기됨).</p>
+<p><strong>전부 아니면 전무입니다.</strong></p>
+<h3 class="subsection-title">1.1 이 결정이 막고 있는 것</h3>
+<div class="table-container"><table><thead><tr><th>막혀 있는 사안</th><th>어디에 있나</th></tr></thead><tbody><tr><td>03 ↔ 04 도메인 경계 (부고장 vs 추모관)</td><td><code>03-03</code> §2.2 — 🔴 미해결</td></tr><tr><td>조문 시 로그인 요구 여부</td><td><code>00-12</code> §4 L0, <code>03-02</code> §4.4·§4.5</td></tr><tr><td><code>03-04</code>·<code>04-01</code> 유스케이스 문서</td><td>미착수 — 링크 흐름 없이는 동선을 그릴 수 없음</td></tr><tr><td>04 도메인 전체</td><td>문서 0건. 부고장이 03에 흡수되면 04의 남은 범위가 달라짐</td></tr></tbody></table></div>
+<hr class="divider"/>
+<h2 class="section-title">✅ 2. 선택지가 아니라 전제 — 먼저 인정해야 할 사실 3가지</h2>
+<p><strong>아래 3가지는 안(案)이 아니라 사실입니다.</strong> 어느 모델을 고르든 바뀌지 않으므로 전제로 깔고 갑니다.</p>
+<h3 class="subsection-title">2.1 배포 주체는 유족이고, 채널은 플랫폼 밖입니다</h3>
+<p><code>03-02</code> §2.4는 부고 문자 발송을 *&quot;Domain 04에서 다룰 것&quot;* 이라며 제외했고, <strong>04는 문서가 0건</strong>입니다.</p>
+<p>넘긴 곳이 비어 있습니다.</p>
+<p>이어봄이 부고를 직접 발송하는 모델은 무겁습니다 — 대량 발송 비용, <strong>수신자 연락처 수집</strong>(사망 당일</p>
+<p>개설이 3분 안에 끝나야 한다는 <code>03-03</code> §3.2-1 제약과 정면 충돌), 발송 주체로서의 법적 책임.</p>
+<blockquote class="info-quote"><strong>실제 배포는 유족이 카카오톡으로 합니다. 이어봄이 제공하는 것은 &quot;공유하기 버튼&quot;까지입니다.</strong></blockquote>
+<h3 class="subsection-title">2.2 따라서 링크는 발송 즉시 통제를 벗어납니다</h3>
+<p>카톡방에서 재전파되고, 캡처되고, 어디까지 갔는지 아무도 모릅니다. 추측이 불가능할 뿐 <strong>전파는 무제한</strong>입니다.</p>
+<blockquote class="info-quote"><strong>결론: &quot;링크 소지 = 유족이 허락한 사람&quot;이라는 전제는 성립하지 않습니다.</strong></blockquote>
+<p>이 전제는 현행 스펙 곳곳에 암묵적으로 깔려 있습니다 — <code>LINK</code> 기본값의 근거(*&quot;URL을 아는 사람만&quot;*,</p>
+<p>§4.2), 개설 게이트를 <code>PRIVATE</code>·<code>LINK</code>에 두지 않는 근거(*&quot;링크를 아는 사람에게만 도달 — 확산 위험이</p>
+<p>제한적&quot;*, <code>03-03</code> §6.1). <strong>이 문장들은 &quot;1차 수신자&quot;에만 참이고, 2차 이후에는 거짓입니다.</strong></p>
+<h3 class="subsection-title">2.3 조문객이 받는 링크는 한 개여야 합니다</h3>
+<p>부고 링크와 추모관 링크가 따로 있으면 — 유족은 사망 당일에 두 번 만들어 두 번 뿌려야 하고,</p>
+<p>조문객은 어느 게 진짜인지 모릅니다. <code>03-03</code> §2.2가 권고한 <strong>(A) 03·04 통합</strong>이 링크 관점에서는</p>
+<p>사실상 유일한 답입니다.</p>
+<blockquote class="info-quote">🔴 <strong>다만 &quot;통합한다&quot;는 결정 자체는 대표 확정 사항입니다</strong>(§8-1). 아래 4개 안 중 A·B는 분리</blockquote>
+<blockquote class="info-quote">상태에서도 성립하지만, 그 경우 <strong>04가 별도 링크를 만들 것인지</strong>를 04 기획에서 다시 정해야 합니다.</blockquote>
+<hr class="divider"/>
+<h2 class="section-title">⏳ 3. 링크가 감당해야 하는 두 시기 — 요구가 정반대입니다</h2>
+<p>통합하면 <strong>한 링크가 성격이 반대인 두 시기를 살아야 합니다.</strong> 이것이 이 결정의 진짜 난점입니다.</p>
+<div class="table-container"><table><thead><tr><th></th><th>**부고 시기** (D+0 ~ 장례 종료)</th><th>**추모 시기** (장례 후 ~ 영구)</th></tr></thead><tbody><tr><td>링크의 목적</td><td>**널리 퍼지는 것**</td><td>**좁혀 지키는 것**</td></tr><tr><td>주 내용</td><td>빈소·발인·장지·조의금 계좌 (실용 정보)</td><td>영정·추모 문구·사진·방명록 (기억)</td></tr><tr><td>재전파</td><td>**오히려 바람직** — 알려야 하니까</td><td>**위험** — 유족이 통제하고 싶어짐</td></tr><tr><td>유족 심리</td><td>경황 없음, 결정 피로 (<code>03-03</code> §3.2)</td><td>정리·보존 모드</td></tr><tr><td>접근 마찰</td><td>**0이어야 함**</td><td>어느 정도 허용 가능</td></tr><tr><td>존속 기간</td><td>며칠</td><td>영구 (스토리지 비용 — <code>03-03</code> §9)</td></tr></tbody></table></div>
+<p><strong>같은 링크 정책을 두 시기에 적용하는 것은 불가능합니다.</strong> 부고 때 좁히면 부고가 성립하지 않고,</p>
+<p>추모 때 열어두면 영구히 통제 불능입니다. 현행 A안은 <strong>후자를 택한 것</strong>이며, 그 선택을 명시적으로</p>
+<p>한 적은 없습니다.</p>
+<hr class="divider"/>
+<h2 class="section-title">🧭 4. 선택지 4안</h2>
+<h3 class="subsection-title">4.1 A안 — 단일 영구 링크 (현행 유지)</h3>
+<p><strong>작동</strong>: 개설 시 <code>slug</code> 1개 발급. 영구 불변. 유족이 카톡으로 공유. 끝.</p>
+<div class="table-container"><table><thead><tr><th></th><th></th></tr></thead><tbody><tr><td>**유족 경험**</td><td>가장 단순. 만들고 뿌리면 끝. 배울 게 없음</td></tr><tr><td>**조문객 경험**</td><td>마찰 0</td></tr><tr><td>**구현 비용**</td><td>**0** — 이미 설계된 그대로</td></tr><tr><td>**유출 회수**</td><td>❌ 불가. 추모관 통째로 닫기만 가능(그마저 미구현)</td></tr><tr><td>**재전파 추적**</td><td>❌ 불가</td></tr><tr><td>**개인정보 추가 수집**</td><td>없음</td></tr></tbody></table></div>
+<p><strong>장점</strong>: 사망 직후 제약(<code>03-03</code> §3.2 — 3분 개설, 승인 대기 금지)을 완벽히 만족합니다.</p>
+<p>구현이 이미 끝난 설계라 일정에 영향이 없습니다.</p>
+<p><strong>단점</strong>: §3의 두 시기 중 <strong>부고 시기에만 최적화</strong>되어 있습니다. 장례가 끝나고 1년 뒤에도 링크는</p>
+<p>살아 있고, 그 사이 어디까지 퍼졌는지 유족은 알 수 없으며, 되돌릴 수단이 &quot;전체 삭제&quot;뿐입니다.</p>
+<p><strong>추모관의 본질이 &quot;영구 보존 자산&quot;인데 그 자산에 대한 통제권이 없습니다.</strong></p>
+<p><strong>이 안이 성립하려면</strong>: 개설 화면에서 *&quot;이 링크는 전달받은 분이 다시 공유할 수 있으며,</p>
+<p>한 번 만든 링크는 변경할 수 없습니다&quot;* 를 <strong>명시적으로 고지</strong>해야 합니다. 지금은 고지도 없습니다.</p>
+<hr class="divider"/>
+<h3 class="subsection-title">4.2 B안 — 회전(재발급) 가능한 링크</h3>
+<p><strong>작동</strong>: A안 + 유족이 <strong>&quot;링크 새로 만들기&quot;</strong> 를 누르면 새 <code>slug</code> 발급, 구 <code>slug</code> 무효화.</p>
+<div class="table-container"><table><thead><tr><th></th><th></th></tr></thead><tbody><tr><td>**유족 경험**</td><td>통제권 획득. 단 &quot;언제 눌러야 하는지&quot;를 스스로 판단해야 함</td></tr><tr><td>**조문객 경험**</td><td>평소 마찰 0. **회전된 뒤 구 링크로 오면 접근 불가**</td></tr><tr><td>**구현 비용**</td><td>**낮음** — <code>slug</code> 재발급 + 구 slug 이력 테이블(선택)</td></tr><tr><td>**유출 회수**</td><td>⭕ 가능</td></tr><tr><td>**재전파 추적**</td><td>❌ 불가</td></tr><tr><td>**개인정보 추가 수집**</td><td>없음</td></tr></tbody></table></div>
+<p><strong>장점</strong>: 최소 비용으로 &quot;전부 아니면 전무&quot;를 깹니다. 유출·그리핑(<code>03-03</code> §7 T2) 상황에서</p>
+<p>추모관을 삭제하지 않고도 대응할 수 있습니다.</p>
+<p><strong>단점</strong>: <strong>유족이 언제 눌러야 할지 모릅니다.</strong> 부고 기간 중에 잘못 누르면 이미 뿌린 링크가 전부</p>
+<p>죽어서 조문객이 못 들어옵니다 — 사망 당일 경황 없는 유족에게 되돌릴 수 없는 실수를 만들 수 있는</p>
+<p>버튼을 쥐여주는 셈입니다. <strong>시기 구분 없이 회전 버튼만 주는 것은 위험합니다.</strong></p>
+<p><strong>파생 논점 🔴</strong>: 구 링크로 접근했을 때 무엇을 응답하나?</p>
+<div class="table-container"><table><thead><tr><th></th><th>응답</th><th>문제</th></tr></thead><tbody><tr><td>a</td><td>**404**</td><td><code>03-02</code> §4.2·§9.1의 &quot;존재를 숨긴다&quot; 원칙과 일치. 다만 **정상 조문객이 아무 설명 없이 404**를 만남</td></tr><tr><td>b</td><td>**&quot;링크가 변경되었습니다&quot; 안내**</td><td>친절하지만 **해당 slug에 추모관이 있었다는 사실이 노출**됨</td></tr></tbody></table></div>
+<hr class="divider"/>
+<h3 class="subsection-title">4.3 🟡 C안 — 단계(phase) 분리 + 단계별 링크 정책 **[권고]**</h3>
+<p><strong>작동</strong>: <code>Memorial</code>에 <strong>세 번째 축 <code>phase</code></strong> 를 추가하고, 링크 정책을 단계에 매답니다.</p>
+<pre><code>Memorial.phase:  OBITUARY(부고)  →  MEMORIAL(추모)</code></pre>
+<div class="table-container"><table><thead><tr><th></th><th>`OBITUARY`</th><th>`MEMORIAL`</th></tr></thead><tbody><tr><td>화면 내용</td><td>빈소·발인·장지·계좌 **우선**</td><td>영정·추모 문구·사진·방명록 **우선**</td></tr><tr><td>링크</td><td>개설 시 발급, **회전 불가**</td><td>**유족이 회전 가능**</td></tr><tr><td>기본 <code>visibility</code></td><td><code>LINK</code></td><td><code>LINK</code> (유족이 좁힐 수 있음)</td></tr><tr><td>회전 버튼</td><td>**노출 안 함**</td><td>노출</td></tr></tbody></table></div>
+<p><code>03-03</code> §5가 이미 <code>visibility</code>(유족 의사)와 <code>moderationState</code>(운영자 제재)를 2축으로 분리했습니다.</p>
+<p><strong>C안은 여기에 &quot;시간&quot; 축을 더하는 것</strong>이며, 같은 설계 사상의 연장입니다.</p>
+<div class="table-container"><table><thead><tr><th></th><th></th></tr></thead><tbody><tr><td>**유족 경험**</td><td>부고 때는 선택지가 없어 실수할 수 없음. 장례 후 통제권이 **생김**</td></tr><tr><td>**조문객 경험**</td><td>부고 시기 마찰 0. 추모 전환 후 구 링크는 B안과 동일 논점</td></tr><tr><td>**구현 비용**</td><td>**중** — <code>phase</code> 컬럼 + 전환 트리거 + 화면 2벌 + 장례 정보 컬럼 신설</td></tr><tr><td>**유출 회수**</td><td>⭕ 추모 단계에서 가능</td></tr><tr><td>**재전파 추적**</td><td>❌ 불가</td></tr><tr><td>**개인정보 추가 수집**</td><td>없음 (장례 정보는 고인·유족 정보이지 조문객 정보가 아님)</td></tr></tbody></table></div>
+<p><strong>장점 3가지</strong>:</p>
+<p>1. <strong>§3의 모순을 정면으로 해결하는 유일한 안</strong>입니다. 시기별 요구가 반대라면 시기를 나누는 것이 답입니다.</p>
+<p>2. <strong>03↔04 경계가 자동으로 정해집니다</strong>(<code>03-03</code> §2.2 미결 해소). 부고장 = <code>OBITUARY</code> 단계의 추모관.</p>
+<p>   04에는 <strong>D-Day 행정 체크리스트·안심상속 원스톱 안내</strong>가 남고, 그게 04의 본래 정체성에 더 맞습니다.</p>
+<p>3. B안의 치명적 단점(경황 없는 유족의 오조작)을 <strong>버튼을 안 보여주는 것으로</strong> 제거합니다.</p>
+<p><strong>단점</strong>: 구현 비용이 가장 큽니다. 화면이 사실상 2벌 필요하고, <code>Memorial</code> 스키마에 **장례 정보</p>
+<p>컬럼이 신설<strong>되어야 합니다(현행 <code>03-02</code> §5.3에는 빈소·발인일시·장지·계좌 컬럼이 </strong>하나도 없습니다** —</p>
+<p>부고장을 04에 넘겼기 때문입니다). 통합하면 이 컬럼들이 03으로 들어옵니다.</p>
+<p><strong>파생 논점 🔴</strong>: <code>OBITUARY → MEMORIAL</code> 전환은 무엇이 트리거하나?</p>
+<div class="table-container"><table><thead><tr><th></th><th>트리거</th><th>평가</th></tr></thead><tbody><tr><td>a</td><td>**발인일 + N일 자동**</td><td>가장 자연스러움. 단 **발인일 입력이 필수가 됨** → 3분 제약과 마찰</td></tr><tr><td>b</td><td>**유족 수동 전환**</td><td>마찰 0. 단 **아무도 안 누르면 영원히 <code>OBITUARY</code>** — 사실상 A안으로 퇴화</td></tr><tr><td>c</td><td>**개설 후 고정 기간**(예: 14일) 자동</td><td>입력 불필요. 단 장례가 길어지는 경우와 어긋남</td></tr><tr><td>🟡</td><td>**c를 기본값, 발인일을 입력했으면 a로 대체**</td><td>권고 — 입력을 강제하지 않으면서 정확도를 얻음</td></tr></tbody></table></div>
+<hr class="divider"/>
+<h3 class="subsection-title">4.4 D안 — 초대 기반 수신자별 개별 토큰</h3>
+<p><strong>작동</strong>: 유족이 플랫폼 안에서 조문객을 초대(연락처 입력 또는 카카오 친구 선택)하고,</p>
+<p><strong>수신자 1인당 토큰 1개</strong>를 발급. 누가 초대했고 누가 재전파했는지 추적 가능.</p>
+<div class="table-container"><table><thead><tr><th></th><th></th></tr></thead><tbody><tr><td>**유족 경험**</td><td>**연락처를 입력해야 함** — 경황 없는 시점에 가장 무거운 작업</td></tr><tr><td>**조문객 경험**</td><td>본인 토큰으로 진입. 재전파 시 원 초대자가 드러남</td></tr><tr><td>**구현 비용**</td><td>**높음** — 초대 발송 인프라, 토큰 관리, 카카오 API 연동</td></tr><tr><td>**유출 회수**</td><td>⭕ 토큰 단위로 정밀 회수</td></tr><tr><td>**재전파 추적**</td><td>⭕ **유일하게 가능**</td></tr><tr><td>**개인정보 추가 수집**</td><td>🔴 **신규 발생** — 조문객 연락처. 동의 주체가 유족인데 정보 주체는 조문객</td></tr></tbody></table></div>
+<p><strong>장점</strong>: 통제력이 압도적입니다. §2.2의 &quot;통제 불가&quot; 전제를 <strong>유일하게 깨는 안</strong>입니다.</p>
+<p><strong>단점 — 이 안을 권고하지 않는 이유</strong>:</p>
+<p>1. <code>03-03</code> §3.2-1(<strong>3분 안에 개설</strong>)과 정면 충돌합니다. 부고를 보내려고 들어온 유족에게</p>
+<p>   &quot;조문객 명단을 입력하세요&quot;는 현실적으로 이탈 사유입니다.</p>
+<p>2. <strong>부고의 본질은 &quot;널리 알리는 것&quot;</strong> 입니다(<code>03-02</code> §4.2). 명단 기반은 부고를 초대장으로</p>
+<p>   바꿔버립니다 — 명단에 없는 지인은 조문할 방법이 없습니다.</p>
+<p>3. <strong>조문객 연락처라는 새 개인정보를 수집</strong>하게 됩니다. 03-02가 §3.3에서 증빙서류를 안 받기로 하고,</p>
+<p>   §4.4에서 IP를 해시로만 두기로 한 <strong>데이터 최소수집 기조와 반대 방향</strong>입니다.</p>
+<blockquote class="info-quote">D안은 <strong><code>PRIVATE</code> 추모관(가족 전용)의 접근 부여 수단으로는 검토 가치가 있습니다.</strong> 부고 배포</blockquote>
+<blockquote class="info-quote">수단으로는 부적합하지만, &quot;지정 유족만 볼 수 있는 추모관&quot;(<code>00-12</code> §2.3)에서는 명단이 애초에 짧습니다.</blockquote>
+<hr class="divider"/>
+<h2 class="section-title">📊 5. 4안 비교</h2>
+<div class="table-container"><table><thead><tr><th>평가축</th><th>**A** 단일 영구</th><th>**B** 회전 가능</th><th>**C** 단계 분리</th><th>**D** 초대 기반</th></tr></thead><tbody><tr><td>사망 당일 마찰</td><td>⭕ 없음</td><td>⭕ 없음</td><td>⭕ 없음</td><td>❌ 큼</td></tr><tr><td>부고 확산력</td><td>⭕</td><td>⭕</td><td>⭕</td><td>❌ 명단 한정</td></tr><tr><td>유출 회수</td><td>❌</td><td>⭕</td><td>⭕</td><td>⭕</td></tr><tr><td>유족 오조작 위험</td><td>⭕ 없음</td><td>❌ **있음**</td><td>⭕ 없음</td><td>🟡</td></tr><tr><td>재전파 추적</td><td>❌</td><td>❌</td><td>❌</td><td>⭕</td></tr><tr><td>개인정보 추가 수집</td><td>⭕ 없음</td><td>⭕ 없음</td><td>⭕ 없음</td><td>❌ 발생</td></tr><tr><td>구현 비용</td><td>⭕ 0</td><td>🟡 낮음</td><td>❌ **중~높음**</td><td>❌ 높음</td></tr><tr><td>03·04 경계 해소</td><td>❌ 미해결</td><td>❌ 미해결</td><td>⭕ **해소**</td><td>🟡</td></tr><tr><td>추모 시기 적합성</td><td>❌</td><td>🟡</td><td>⭕</td><td>⭕</td></tr></tbody></table></div>
+<hr class="divider"/>
+<h2 class="section-title">🔀 6. 각 안이 파생시키는 결정</h2>
+<h3 class="subsection-title">6.1 로그인 정책에 미치는 영향</h3>
+<p><strong>앞서 보류한 &quot;조문 시 로그인 요구&quot; 질문의 답은 링크 모델에 따라 달라집니다.</strong></p>
+<div class="table-container"><table><thead><tr><th>링크 모델</th><th>로그인 정책 함의</th></tr></thead><tbody><tr><td>**A**</td><td>링크가 영구·무제한 전파되고 회수 불가 → **로그인이 유일한 실효 통제 수단**. 요구 압력이 가장 높음</td></tr><tr><td>**B**</td><td>회수 수단이 생기므로 A보다 압력이 낮아짐. 다만 사후 대응일 뿐</td></tr><tr><td>**C**</td><td>**단계별로 다르게 걸 수 있음** — 부고 단계는 완화, 추모 단계는 요구. 가장 유연</td></tr><tr><td>**D**</td><td>토큰 자체가 신원 증명 역할 → **로그인 요구 근거가 약해짐**</td></tr></tbody></table></div>
+<blockquote class="info-quote">이 표가 §8-3(로그인 정책)을 링크 결정 <strong>이후</strong>로 미룬 이유입니다. 순서를 뒤집으면 근거 없이 정하게 됩니다.</blockquote>
+<h3 class="subsection-title">6.2 04 도메인의 범위</h3>
+<div class="table-container"><table><thead><tr><th>링크 모델</th><th>04에 남는 것</th></tr></thead><tbody><tr><td>**A·B** (분리 유지 시)</td><td>모바일 부고장 + D-Day 체크리스트 + 안심상속 안내. **단 링크가 2개가 됨**(§2.3 위반)</td></tr><tr><td>**C** (통합)</td><td>D-Day 체크리스트 + 안심상속 원스톱 안내. **부고장은 03으로 이관**</td></tr></tbody></table></div>
+<h3 class="subsection-title">6.3 스키마 영향</h3>
+<div class="table-container"><table><thead><tr><th>링크 모델</th><th>`Memorial` 변경</th></tr></thead><tbody><tr><td>**A**</td><td>없음</td></tr><tr><td>**B**</td><td><code>slug</code> 회전 이력(선택), 구 slug 응답 정책</td></tr><tr><td>**C**</td><td><code>phase</code> + **장례 정보 컬럼 신설**(빈소·발인일시·장지·조의금 계좌) + 회전</td></tr><tr><td>**D**</td><td><code>MemorialInvite</code> 신규 테이블 (수신자 연락처 — 개인정보 영향평가 대상)</td></tr></tbody></table></div>
+<hr class="divider"/>
+<h2 class="section-title">🟡 7. 권고 — C안 (단계 분리)</h2>
+<p><strong>근거 3가지</strong>:</p>
+<p>1. <strong>§3의 모순이 실재하고, C만 그걸 정면으로 다룹니다.</strong> A·B는 두 시기를 한 정책으로 덮으려 하고,</p>
+<p>   D는 부고 시기 자체를 포기합니다.</p>
+<p>2. <strong><code>03-03</code> §2.2 미결(03↔04 경계)이 부산물로 해소됩니다.</strong> 이 미결은 04 도메인 전체를 막고 있고,</p>
+<p>   04는 아직 문서가 0건입니다 — 여기가 풀리면 04-01 착수가 가능해집니다.</p>
+<p>3. <strong><code>03-03</code> §5의 2축 분리와 같은 설계 사상</strong>입니다. 하나의 필드에 두 의미를 담으려다 충돌한 것이</p>
+<p>   <code>visibility</code> 문제였고, 지금 <code>slug</code>가 같은 실수를 반복하고 있습니다 — **&quot;부고용 링크&quot;와</p>
+<p>   &quot;추모용 링크&quot;라는 두 역할을 필드 하나가 지고 있습니다.**</p>
+<h3 class="subsection-title">7.1 C안을 고르지 말아야 할 경우 — 정직한 반론</h3>
+<ul><li><strong>오픈 일정이 급하면 A입니다.</strong> C는 화면 2벌 + 스키마 확장이라 03 착수 일정을 늘립니다.</li></ul>
+<p>  03은 아직 <strong>전 기능 목업</strong>이고(<code>00_DOCS_INDEX</code>), 오브젝트 스토리지 전환(<code>00-11</code>)이라는</p>
+<p>  선행 조건도 걸려 있습니다.</p>
+<ul><li><strong>04를 독립 도메인으로 키울 계획이 있다면</strong> 통합은 그 여지를 줄입니다. 부고장은 04의 유일한</li></ul>
+<p>  &quot;제품다운&quot; 기능이고, 이걸 03으로 넘기면 04는 정보 안내 도메인만 남습니다.</p>
+<ul><li><strong>B는 &quot;지금 A로 가되 나중에 C로 갈 수 있게&quot; 하는 중간 기착지가 됩니다.</strong> <code>phase</code> 없이 회전만</li></ul>
+<p>  먼저 넣어도 유출 회수는 확보됩니다. 다만 §4.2의 오조작 위험을 어떻게 막을지는 답이 필요합니다.</p>
+<hr class="divider"/>
+<h2 class="section-title">🔴 8. 대표 확정 필요 항목</h2>
+<div class="table-container"><table><thead><tr><th>#</th><th>결정 항목</th><th>선택지</th><th>권고</th><th>막고 있는 것</th></tr></thead><tbody><tr><td>1</td><td>**03·04 통합 여부**</td><td>통합 / 분리</td><td>🟡 통합</td><td>04 도메인 전체</td></tr><tr><td>2</td><td>**링크 모델**</td><td>A / B / C / D</td><td>🟡 C (일정 급하면 B)</td><td>03 착수, 스키마</td></tr><tr><td>3</td><td>**조문 로그인 요구**</td><td>§6.1 참조</td><td>**#2 확정 후 판단**</td><td><code>03-04</code> UC</td></tr><tr><td>4</td><td>**구 링크 응답**(§4.2)</td><td>404 / 안내 페이지</td><td>🟡 404 (기존 원칙 일관)</td><td>B·C 구현</td></tr><tr><td>5</td><td>**phase 전환 트리거**(§4.3)</td><td>자동 / 수동 / 혼합</td><td>🟡 고정기간 기본 + 발인일 우선</td><td>C 구현</td></tr><tr><td>6</td><td>**재전파 고지 문구**</td><td>넣음 / 안 넣음</td><td>🟡 넣음 (모든 안 공통)</td><td>개설 화면</td></tr></tbody></table></div>
+<blockquote class="info-quote"><strong>#6은 어느 안을 고르든 필요합니다.</strong> 유족은 지금 링크가 재전파될 수 있다는 사실을 안내받지</blockquote>
+<blockquote class="info-quote">못한 채 뿌리게 됩니다.</blockquote>
+<hr class="divider"/>
+<h2 class="section-title">🔗 9. 관련 문서</h2>
+<div class="table-container"><table><thead><tr><th>문서</th><th>관계</th></tr></thead><tbody><tr><td><code>03-02</code> §4.2·§5.3</td><td><code>slug</code> 현행 정의 — 이 결정의 출발점. 확정 시 정정 대상</td></tr><tr><td><code>03-02</code> §4.4·§4.5</td><td>비회원 헌화·방명록 — §6.1에 따라 재판단</td></tr><tr><td><code>03-03</code> §2.2</td><td>03↔04 경계 미결 — §7-2로 해소 (C안 채택 시)</td></tr><tr><td><code>03-03</code> §3.2</td><td>사망 직후 제약(3분 개설·승인대기 금지) — 모든 안의 평가 기준</td></tr><tr><td><code>03-03</code> §5</td><td><code>visibility</code>/<code>moderationState</code> 2축 분리 — C안 <code>phase</code>는 그 3번째 축</td></tr><tr><td><code>03-03</code> §7</td><td>신고 남용(T2) — 링크 회전이 대응 수단 하나를 추가</td></tr><tr><td><code>00-12</code> §4</td><td>검증 사다리 L0 정의 — §6.1 확정 후 갱신 필요</td></tr><tr><td><code>00-11</code></td><td>오브젝트 스토리지 전환 — 03 오픈 선행 조건 (§7.1 일정 반론의 근거)</td></tr><tr><td><code>00-14</code>(예정)</td><td>공통 유스케이스 지도 — 이 결정이 선행되어야 03·04 동선을 그릴 수 있음</td></tr></tbody></table></div>
+
+  </div>
+</body>
+</html>

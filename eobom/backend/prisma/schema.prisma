@@ -19,8 +19,8 @@ model User {
   facilityReviews     FacilityReview[] // 이 유저가 작성한 시설 리뷰 목록
   leads               Lead[] // docs/01_.../01-05 — 이 유저가 남긴 문의/견적요청 리드
   consultRequests     ConsultRequest[] // docs/02_.../02-03 — 이 유저가 남긴 전문가 상담 신청
-  digitalCleanupItems DigitalCleanupItem[] // docs/03_.../03-02 — 디지털 정리 진행 항목
-  memorials           Memorial[] // docs/03_.../03-02 — 개설한 추모관
+  digitalCleanupItems DigitalCleanupItem[] // docs 04-01 §4.3 — 디지털 정리 진행 항목
+  memorials           Memorial[] // docs 05-01 §3.5 — 개설한 추모관
   memorialTributes    MemorialTribute[] // 남긴 헌화
   memorialGuestbooks  MemorialGuestbook[] // 남긴 방명록
   memorialPhotos      MemorialPhoto[] // 업로드한 추모 사진
@@ -328,7 +328,7 @@ model ConsultNumberCounter {
 }
 
 // ─────────────────────────────────────────────────────────────────
-// 디지털 유품 정리 · 온라인 추모관. docs/03_디지털_유품_추모관/03-02_...명세서.md
+// 디지털 계정 정리(docs 04-01) · 온라인 추모관(docs 05-01). 2026-08-12 도메인 재편으로 구 03-02가 분할됨.
 // "대행"이 아니라 "안내 + 진행 추적"으로 도메인을 재정의했다(§2) — 고인 계정 자격증명·증빙서류
 // 컬럼을 의도적으로 두지 않는다(§1.1-2, §3.3, §9.1-1). 위임 대행이 필요하면 Domain 02
 // 행정사 상담(ConsultRequest)으로 연결하며, 이 도메인엔 별도 과금 구조를 만들지 않는다(§3.4).

@@ -3,7 +3,7 @@ import { listPublicDigitalPlatforms } from '../controllers/digitalPlatformContro
 
 const router = Router();
 
-// 공개 조회 (docs 03-02 §6.1)
+// 공개 조회 (docs 04-01 §5.1)
 router.get('/', listPublicDigitalPlatforms);
 
 export default router;

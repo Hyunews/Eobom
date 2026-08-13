@@ -17,7 +17,7 @@ import { reportMemorial } from '../controllers/moderationController';
 
 const router = Router();
 
-// 공개 (docs 03-02 §6.1) — 비회원도 접근 가능
+// 공개 (docs 05-01 §4.1) — 비회원도 접근 가능
 router.get('/:slug', getMemorialBySlug);
 router.get('/:slug/guestbook', listGuestbook);
 router.post('/:slug/tributes', createTribute); // 헌화 — 비회원 허용(§4.4)

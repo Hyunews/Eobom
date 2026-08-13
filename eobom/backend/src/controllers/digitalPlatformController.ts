@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import prisma from '../config/prisma';
 import { verifyAdminBearerToken } from './adminController';
 
-// 디지털 플랫폼 안내 카탈로그(docs 03-02 §3.1) — 운영자가 관리하는 마스터 데이터.
+// 디지털 플랫폼 안내 카탈로그(docs 04-01 §3.1) — 운영자가 관리하는 마스터 데이터.
 // 금융·가상자산 플랫폼은 이 테이블에 절대 넣지 않는다(§3.2 C분류) — 관리자 화면에서 등록을
 // 막지는 않지만, 등록 전 이 원칙을 반드시 확인할 것.
 
