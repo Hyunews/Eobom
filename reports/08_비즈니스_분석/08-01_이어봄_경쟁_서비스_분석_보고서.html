@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>🏗️ 00-03. 시스템 아키텍처 및 흐름도 명세서 - 이어봄 기획 명세서</title>
+  <title>📊 08-01. 경쟁 서비스 분석 및 이어봄만의 융합 차별화 전략 보고서 - 이어봄 기획 명세서</title>
   <style>
     :root {
       --primary: #1A2B4C;
@@ -186,38 +186,20 @@
     </div>
     <div class="header">
       <span class="badge">SSOT 정본 동기화 완료</span>
-      <h1>🏗️ 00-03. 시스템 아키텍처 및 흐름도 명세서</h1>
+      <h1>📊 08-01. 경쟁 서비스 분석 및 이어봄만의 융합 차별화 전략 보고서</h1>
       
     </div>
-    <h1>🏗️ 00-03. 시스템 아키텍처 및 흐름도 명세서</h1>
-<blockquote class="info-quote"><strong>문서 목적</strong>: 이어봄 (Eobom) 토탈 케어 플랫폼의 웹/앱 클라이언트, 백엔드 API 서버, 데이터베이스, OAuth 소셜 로그인 및 보안 Vault 통합 아키텍처를 정의합니다.</blockquote>
-<p>&gt;</p>
-<blockquote class="info-quote">⚠️ <strong>이 문서는 구성 요소만 정의하며 &quot;어디에 배포하는가&quot;는 다루지 않습니다.</strong></blockquote>
-<blockquote class="info-quote">배포 위치·인프라 전략(클라우드 vs 사내 서버, 관리형 DB, 오브젝트 스토리지)의 정본은</blockquote>
-<blockquote class="info-quote"><strong>[<code>00-11_백엔드_DB_배포_및_인프라_전략_결정서.md</code>](00-11_백엔드_DB_배포_및_인프라_전략_결정서.md)</strong> 입니다.</blockquote>
-<blockquote class="info-quote">아래 토폴로지의 포트(5000/5433)는 <strong>로컬 개발 기준</strong>이며 프로덕션 값이 아닙니다.</blockquote>
+    <h1>📊 08-01. 경쟁 서비스 분석 및 이어봄만의 융합 차별화 전략 보고서</h1>
+<blockquote class="info-quote">🔵 <strong>2026-08-12 — 구 <code>06-01</code>에서 이동</strong>(그 이전 번호는 <code>07</code>). 도메인 재편(<code>00-12</code> §7)으로</blockquote>
+<blockquote class="info-quote">비즈니스 분석이 <strong>06 → 08</strong>로 옮겨갔습니다.</blockquote>
+<blockquote class="info-quote"><strong>문서 목적</strong>: 국내 대형 상조 4사(보람상조, 대명아임레디, 프리드라이프, 교원라이프) 및 대표 엔딩노트 플랫폼 대비 이어봄(Eobom)만의 5대 융합 차별화 경쟁력을 정의합니다.</blockquote>
 <hr class="divider"/>
-<h2 class="section-title">📐 1. 시스템 토폴로지 (System Topology)</h2>
-<pre><code>[ Frontend: React 18 + Vite 5 + TypeScript ] (Vercel Host)
-              │
-              ├── REST API / JSON (Axios, Credentials Included)
-              ▼
-[ Backend: Node.js Express API Server ] (Port 5000)
-              │
-              ├── Prisma ORM (Object-Relational Mapping)
-              ├── Passport.js OAuth (Kakao, Naver, Google)
-              │
-              ▼
-[ Database: PostgreSQL (Port 5433 / eobom_db) ]
-              │
-              ├── users (1 : N) social_accounts
-              ├── facilities (1 : N) facility_reviews
-              └── wills (256-bit AES Vault Encrypted)</code></pre>
-<hr class="divider"/>
-<h2 class="section-title">🔒 2. 보안 &amp; 암호화 메커니즘 (AES-256 Vault)</h2>
-<p>1. <strong>디지털 엔딩노트 암호화</strong>: 유저가 작성한 유언 메시지 및 자산 기록은 <code>crypto</code> 모듈 기반 <strong>256-bit AES 암호화</strong> 후 DB에 보존.</p>
-<p>2. <strong>소셜 인증 토큰 연동</strong>: JWT (JSON Web Token) 쿠키 및 헤더 기반 단기 인증 발급.</p>
-<p>3. <strong>계정 통합 보안</strong>: 동일 이메일 멀티 소셜 연동 시 10분 만료 서명된 OAuth State 기반 소유권 검증.</p>
+<h2 class="section-title">🏆 이어봄만의 5대 융합 차별화 핵심 전략</h2>
+<p>1. <strong>상조 + 엔딩노트 + 디지털 유품 + 장지 + 법률/세무의 올인원(All-in-One) 통합 융합</strong>: 파편화된 서비스를 단일 플랫폼에서 완결.</p>
+<p>2. <strong>256-bit AES 암호화 금고 기반 보안 엔딩노트</strong>: 강력한 암호화 기술 기반 보안 유언 메시지 보관.</p>
+<p>3. <strong>공공데이터 &amp; 카카오 지도 기반 100% 투명 정보 개방</strong>: 깜깜이 비용 구조 해소.</p>
+<p>4. <strong>1-Touch 24시간 긴급 출동 지원</strong>: 시급한 상황에서의 즉각 응급 가이드 및 지도사 파견.</p>
+<p>5. <strong>1인 1계정 멀티 소셜 연동 및 계정 통합</strong>: 편리한 접근성과 강력한 개인 계정 보안.</p>
 
   </div>
 </body>

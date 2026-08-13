@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>03-01. 현물 유품 수거 — 계정 형태 보류 메모 (+ 회원 연동 설계 원칙) - 이어봄 기획 명세서</title>
+  <style>
+    :root {
+      --primary: #1A2B4C;
+      --secondary: #5B7065;
+      --accent: #D4A359;
+      --bg: #FBF9F5;
+      --surface: #FFFFFF;
+      --text: #1E293B;
+      --text-muted: #64748B;
+      --border: #E2E8F0;
+      --code-bg: #0F172A;
+      --code-text: #F8FAFC;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.65;
+      padding: 2rem 1rem;
+    }
+    .container {
+      max-width: 1140px;
+      margin: 0 auto;
+      background-color: var(--surface);
+      padding: 3rem;
+      border-radius: 24px;
+      box-shadow: 0 20px 40px rgba(26, 43, 76, 0.08);
+      border: 1px solid var(--border);
+    }
+    .header {
+      border-bottom: 3px solid var(--accent);
+      padding-bottom: 1.5rem;
+      margin-bottom: 2.5rem;
+    }
+    .badge {
+      display: inline-block;
+      background-color: var(--primary);
+      color: #FFF;
+      font-size: 0.85rem;
+      font-weight: 700;
+      padding: 0.3rem 0.8rem;
+      border-radius: 20px;
+      margin-bottom: 0.8rem;
+    }
+    h1 {
+      font-size: 2.1rem;
+      color: var(--primary);
+      margin-bottom: 0.5rem;
+      font-weight: 800;
+    }
+    .subtitle {
+      color: var(--text-muted);
+      font-size: 1.05rem;
+    }
+    .section-title {
+      font-size: 1.5rem;
+      color: var(--primary);
+      margin: 2.5rem 0 1.2rem 0;
+      padding-left: 0.8rem;
+      border-left: 5px solid var(--secondary);
+      font-weight: 700;
+    }
+    .subsection-title {
+      font-size: 1.25rem;
+      color: var(--primary);
+      margin: 1.8rem 0 0.8rem 0;
+      font-weight: 700;
+    }
+    .h4-title {
+      font-size: 1.05rem;
+      color: var(--secondary);
+      margin: 1.2rem 0 0.6rem 0;
+      font-weight: 700;
+    }
+    .info-quote {
+      background: #F1F5F9;
+      border-left: 4px solid var(--accent);
+      padding: 0.9rem 1.2rem;
+      margin: 1rem 0;
+      border-radius: 6px;
+      font-size: 0.95rem;
+      color: #334155;
+    }
+    code {
+      background: #EFF6FF;
+      color: #1D4ED8;
+      padding: 0.15rem 0.4rem;
+      border-radius: 6px;
+      font-family: 'Fira Code', Consolas, monospace;
+      font-size: 0.88rem;
+    }
+    pre {
+      background: var(--code-bg);
+      color: var(--code-text);
+      padding: 1.2rem;
+      border-radius: 12px;
+      overflow-x: auto;
+      margin: 1rem 0 1.5rem 0;
+      font-family: 'Fira Code', Consolas, monospace;
+      font-size: 0.9rem;
+    }
+    pre code {
+      background: transparent;
+      color: inherit;
+      padding: 0;
+    }
+    .table-container {
+      overflow-x: auto;
+      margin: 1.2rem 0 1.8rem 0;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.92rem;
+      background: #FFFFFF;
+    }
+    th {
+      background-color: var(--primary);
+      color: #FFFFFF;
+      padding: 0.8rem 1rem;
+      text-align: left;
+      font-weight: 600;
+    }
+    td {
+      padding: 0.8rem 1rem;
+      border-bottom: 1px solid var(--border);
+      color: #334155;
+    }
+    tr:last-child td {
+      border-bottom: none;
+    }
+    tr:nth-child(even) {
+      background-color: #F8FAFC;
+    }
+    .tag {
+      display: inline-block;
+      padding: 0.15rem 0.45rem;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 700;
+    }
+    .tag.green { background-color: #DCFCE7; color: #166534; }
+    .tag.gray { background-color: #F1F5F9; color: #475569; }
+    .tag.orange { background-color: #FFEDD5; color: #9A3412; }
+    .tag.pk { background-color: #FEE2E2; color: #991B1B; }
+    .tag.fk { background-color: #DBEAFE; color: #1E40AF; }
+    .tag.uk { background-color: #DCFCE7; color: #166534; }
+    p { margin-bottom: 0.9rem; color: #334155; }
+    ul, ol { margin-bottom: 1rem; padding-left: 1.4rem; color: #334155; }
+    li { margin-bottom: 0.4rem; }
+    .divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 2.5rem 0;
+    }
+    .nav-bar {
+      margin-bottom: 2rem;
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+    }
+    .nav-link {
+      color: var(--primary);
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+    .nav-link:hover {
+      color: var(--accent);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="nav-bar">
+      <a href="../index.html" class="nav-link">← 보고서 메인 포털로 돌아가기</a>
+    </div>
+    <div class="header">
+      <span class="badge">SSOT 정본 동기화 완료</span>
+      <h1>03-01. 현물 유품 수거 — 계정 형태 보류 메모 (+ 회원 연동 설계 원칙)</h1>
+      
+    </div>
+    <h1>03-01. 현물 유품 수거 — 계정 형태 보류 메모 (+ 회원 연동 설계 원칙)</h1>
+<blockquote class="info-quote">🔵 <strong>2026-08-12 — Domain 03(현물 유품 수거)의 유일한 문서가 됨.</strong></blockquote>
+<blockquote class="info-quote">도메인 재편(<code>00-12</code> §7)으로 구 Domain 03이 **03(현물 유품 수거) / 04(디지털 자산·계정 정산) /</blockquote>
+<blockquote class="info-quote">05(디지털 추모관)** 셋으로 갈라졌습니다. 이 메모는 §3(현물 유품)이 살아 있는 유일한 내용이라</blockquote>
+<blockquote class="info-quote"><strong>신 Domain 03에 배치</strong>됐습니다.</blockquote>
+<p>&gt;</p>
+<blockquote class="info-quote"><strong>⚠️ 즉, Domain 03은 지금 &quot;기획 보류 상태인 도메인&quot;입니다.</strong> 확정 스펙도, 상위 기획서도 없습니다.</blockquote>
+<blockquote class="info-quote">§3이 이 도메인 전체의 착수 조건입니다.</blockquote>
+<p>&gt;</p>
+<blockquote class="info-quote"><strong>§2의 <code>userId</code> FK 원칙은 <code>04-01</code> §4.3 · <code>05-01</code> §3.5에 반영 완료</strong>되었습니다. 앞으로 그 원칙을</blockquote>
+<blockquote class="info-quote">인용할 때는 그쪽을 참조하십시오. (구 <code>03-02</code> §5.5·§6.4가 원래 자리였습니다.)</blockquote>
+<blockquote class="info-quote">🔵 <strong>도메인 성격 확정(2026-08-12)</strong>: 현물 유품 수거는 <strong>유가족 전용</strong>입니다. 대표 확정 사항이며,</blockquote>
+<blockquote class="info-quote">생전(WellDying) 축이 없으므로 <code>00-12</code> §2.4의 생전 위임(<code>PreDeathDirective</code>) 대상이 아닙니다.</blockquote>
+<blockquote class="info-quote"><strong>문서 성격</strong>: 정식 스펙이 아니라 구현 메모입니다. 대표가 &quot;운영자 대시보드에서 회원 클릭 시 도메인</blockquote>
+<blockquote class="info-quote">데이터를 볼 수 있어야 하지 않나&quot;라고 제안한 원칙을, 실제 착수 전에 근거를 남겨두기 위해</blockquote>
+<blockquote class="info-quote"><code>[Claude:Sonnet]</code>이 대표 직접 지시로 작성했습니다(같은 방식이 <code>02-02</code> 문서에도 있었음 — 정식 스펙</blockquote>
+<blockquote class="info-quote">작성은 원래 <code>[Claude:Opus]</code> 몫이나, 이번엔 사용자가 &quot;md 파일 만들어달라&quot;고 직접 요청).</blockquote>
+<p>&gt;</p>
+<blockquote class="info-quote">등록: 2026-08-11 · 작성자: <code>[Claude:Sonnet]</code></blockquote>
+<h2 class="section-title">1. 지금 상태 (사실관계)</h2>
+<ul><li>구 Domain 03(디지털 유품 정리 · 추모관)은 <strong>백엔드 모델이 전혀 없습니다.</strong> <code>schema.prisma</code>에는 <code>User</code> 모델</li></ul>
+<p>  하나만 있고, SNS 계정 삭제 신청·현물 유품 수거·추모관 방명록/헌화 등은 전부 <code>DigitalEstatePage.tsx</code></p>
+<p>  안의 프론트 로컬 state(useState)로만 존재하는 100% 목업입니다.</p>
+<ul><li>따라서 지금 시점에는 &quot;운영자 대시보드에서 회원 클릭 시 도메인 데이터 확인&quot;을 만들 수 있는 실제</li></ul>
+<p>  DB 데이터가 없습니다. 이 문서는 <strong>나중에 실제 백엔드로 구현될 때 지켜야 할 설계 원칙</strong>을</p>
+<p>  남겨두는 용도입니다.</p>
+<ul><li><strong>현물 유품 수거(신 Domain 03)는 그중에서도 가장 뒤에 있습니다</strong> — 계정 형태조차 정해지지 않아</li></ul>
+<p>  모델을 그릴 수조차 없습니다(§3).</p>
+<h2 class="section-title">2. 설계 원칙 (대표 제안, 2026-08-11)</h2>
+<p>디지털 유품·추모관 관련 데이터는 성격상 특정 회원(<code>User</code>)에 종속된 데이터입니다. 운영자가 회원을</p>
+<p>검색해서 찾을 수 있다면, 그 회원을 클릭했을 때 연결된 도메인 데이터(예: SNS 삭제 신청 처리 현황,</p>
+<p>추모관 방명록/헌화 이력 등)를 함께 확인할 수 있어야 합니다.</p>
+<p><strong>구현 시 반영할 것</strong>: 신규 Prisma 모델(예: <code>DigitalCleanupItem</code>, <code>MemorialGuestbook</code> 등)은</p>
+<p>전부 <code>userId</code> FK로 <code>User</code>와 연결되어야 합니다. 그래야 운영자 대시보드의 &quot;회원 상세&quot; 화면에서</p>
+<p><code>prisma.user.findUnique({ where: { id }, include: { ... } })</code> 형태로 조인해서 한 화면에 보여줄 수 있습니다.</p>
+<p>이 원칙은 Domain 06(엔딩노트)에도 동일하게 적용됩니다(→ <code>06-01</code> 참고, 다만 06은 열람 범위에 별도 제약이 있음).</p>
+<blockquote class="info-quote"><strong>반영 완료</strong>: <code>04-01</code> §4.3(정리 항목) · <code>05-01</code> §3.5(추모관 4종). **현물 유품(이 도메인)은</blockquote>
+<blockquote class="info-quote">모델이 아직 없어 미반영**이며, §3이 풀린 뒤 같은 원칙으로 설계해야 합니다.</blockquote>
+<h2 class="section-title">3. 🔴 보류된 것 — 현물 유품 수거·정리 업체 (**이 도메인의 착수 조건**)</h2>
+<p>현물 유품 수거/정리를 어떤 사업자 형태로 다룰지(신규 계정 유형을 만들지, 기존 <code>Partner</code>/<code>Expert</code>를</p>
+<p>확장할지, 외주 제휴사로 처리할지)는 <strong>기획이 아직 나오지 않아 보류</strong>합니다. 착수 전 반드시 <code>[Claude:Opus]</code></p>
+<p>기획 검토를 거쳐야 합니다 — 회원 유형을 잘못 설계하면(예: <code>Expert</code>에 억지로 끼워맞추기) 나중에</p>
+<p>다시 뜯어고쳐야 할 가능성이 높습니다.</p>
+<p><strong>재편으로 이 보류의 무게가 커졌습니다.</strong> 예전에는 한 도메인의 한 탭이 빠지는 문제였지만, 이제는</p>
+<p><strong>Domain 03 전체가 이 결정을 기다리는 상태</strong>입니다. 구 <code>03-02</code> §10-3이 *&quot;<code>DigitalEstatePage</code>에서</p>
+<p>탭이 사라지므로 재개 시점을 정해야 한다&quot;* 고 지적한 사안이 그대로 이어집니다.</p>
+<h2 class="section-title">4. 다음 단계</h2>
+<p>1. §3(계정 형태) 대표 확정 → <code>[Claude:Opus]</code>가 <strong>Domain 03 상위 기획서를 신규 <code>03-02</code>로</strong> 작성</p>
+<p>   (⚠️ 구 <code>03-02</code>는 재편 전 &quot;디지털 계정 정리·추모관 명세서&quot;였습니다 — 과거 기록 해석 시 혼동 주의)</p>
+<p>2. 그때 이 문서 §2 원칙을 반영 검토할 것</p>
+<p>3. 이 메모 자체는 스펙이 확정되면 폐기하거나 배너로 남겨도 됩니다(<code>01-03</code>/<code>01-04</code> 폐기 방식과 동일)</p>
+
+  </div>
+</body>
+</html>

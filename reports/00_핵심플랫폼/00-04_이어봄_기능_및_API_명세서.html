@@ -228,9 +228,19 @@
 <div class="table-container"><table><thead><tr><th>대상</th><th>구현</th></tr></thead><tbody><tr><td>인증(<code>/login</code>·<code>/refresh</code>·<code>/me</code>)</td><td><span class="tag green">✅ 구현</span></td></tr><tr><td>사업자 심사·정보수정</td><td><span class="tag green">✅ 구현</span></td></tr><tr><td>전문가 심사·공개토글·정보수정</td><td><span class="tag green">✅ 구현</span></td></tr><tr><td>시설 클레임 심사</td><td><span class="tag green">✅ 구현</span></td></tr><tr><td>상담 신청 전체 조회</td><td><span class="tag green">✅ 구현</span></td></tr><tr><td>리드 조회·청구 확정, 정산서 생성·발행</td><td><span class="tag gray">⬜ 계획</span></td></tr></tbody></table></div>
 <p><strong>회원 정보 수정 범위 원칙</strong>: 운영 편의 정보(담당자명·연락처·사무실 주소·소개)만 직접 수정하고, <strong>검증된 신원 정보(사업자등록번호·자격증번호·상호·성명)는 수정하지 않습니다.</strong> 잘못됐으면 반려 후 재신청 — 심사 이력을 끊지 않기 위함입니다(→ <code>01-05</code> §6.2).</p>
 <hr class="divider"/>
-<h2 class="section-title">🚧 7. 아직 백엔드가 없는 도메인</h2>
-<div class="table-container"><table><thead><tr><th>도메인</th><th>화면</th><th>상태</th></tr></thead><tbody><tr><td>**03** 디지털 유품·추모관</td><td><code>SCR-003</code></td><td>프론트 100% 목업 — **Prisma 모델 없음**</td></tr><tr><td>**04** 상중·행정 케어</td><td><code>SCR-006</code></td><td>프론트 100% 목업 — 체크리스트는 로컬 JSON</td></tr><tr><td>**05** 엔딩노트·유언</td><td><code>SCR-002</code></td><td>프론트 100% 목업 — **Prisma 모델 없음**</td></tr></tbody></table></div>
-<p>03·05는 회원(<code>User</code>)에 종속된 데이터를 다루게 되므로, 모델 신설 시 <code>userId</code> FK 연결이 전제입니다(→ <code>03-01</code>, <code>05-01</code>). 05는 운영자 열람 범위가 <strong>미확정</strong>이라 착수 전 확인이 필요합니다.</p>
+<h2 class="section-title">🚧 7. 백엔드 진행 상황 — 도메인별 (**2026-08-12 재편 반영**)</h2>
+<blockquote class="info-quote">🔵 <strong>이 절은 두 가지가 틀려 있었습니다</strong>: (1) 구 도메인 번호, (2) <strong>&quot;03은 Prisma 모델 없음&quot;</strong> —</blockquote>
+<blockquote class="info-quote">실제로는 구 Domain 03의 백엔드 1~7단계가 이미 구현됐고(walkthrough (10)~(15)) **모델 6개가</blockquote>
+<blockquote class="info-quote"><code>schema.prisma</code>에 있습니다.** 2026-08-13 실측 기준으로 다시 씁니다.</blockquote>
+<div class="table-container"><table><thead><tr><th>도메인</th><th>화면</th><th>Prisma 모델</th><th>상태</th></tr></thead><tbody><tr><td>**03** 현물 유품 수거</td><td>*(없음)*</td><td>없음</td><td>🔴 **기획 보류** — 계정 형태 미정(<code>03-01</code> §3)</td></tr><tr><td>**04** 디지털 자산·계정 정산</td><td><code>SCR-003</code></td><td><code>DigitalPlatform</code> · <code>DigitalCleanupItem</code></td><td>⚠️ **백엔드 있음, 프론트 목업**</td></tr><tr><td>**05** 디지털 추모관</td><td><code>SCR-011</code></td><td><code>Memorial</code> · <code>MemorialTribute</code> · <code>MemorialGuestbook</code> · <code>MemorialPhoto</code></td><td>⚠️ **백엔드 있음, 프론트 미구현**</td></tr><tr><td>**06** 엔딩노트·유언</td><td><code>SCR-002</code></td><td>**없음**</td><td>프론트 100% 목업</td></tr><tr><td>**07** 상중·행정 케어</td><td><code>SCR-006</code></td><td>**없음**</td><td>프론트 100% 목업 — 체크리스트는 로컬 JSON</td></tr></tbody></table></div>
+<p><strong>04·05 관련 네임스페이스</strong>(구현됨, 아래 §7.1): <code>/api/digital-platforms</code>, <code>/api/me/cleanup-items</code>,</p>
+<p><code>/api/memorials</code>, <code>/api/me/memorials</code>, <code>/api/admin/digital-platforms</code>, <code>/api/admin/memorials</code>.</p>
+<p>상세 규격 정본은 <strong><code>04-01</code> §5 · <code>05-01</code> §4</strong>입니다.</p>
+<h3 class="subsection-title">7.1 🔴 04·05 프론트 착수 보류 중</h3>
+<p>백엔드가 있는데도 프론트를 못 나가는 이유가 있습니다.</p>
+<div class="table-container"><table><thead><tr><th>막는 것</th><th>근거</th></tr></thead><tbody><tr><td><code>Deceased</code> 엔티티 도입 시 **스키마 재작업**</td><td><code>00-12</code> §2.1 — <code>Memorial.deceasedName</code>(문자열)을 FK로 교체</td></tr><tr><td><code>moderationState</code> 축 분리 **마이그레이션**</td><td><code>05-02</code> §5·§12-4 — 이미 구현된 백엔드를 고쳐야 함</td></tr><tr><td>**공유 링크 모델 미확정**</td><td><code>00-13</code> §8 — C안 채택 시 <code>phase</code> + 장례 정보 컬럼 신설</td></tr><tr><td>개설 게이트·신고 정책 미확정</td><td><code>05-02</code> §6.1·§7</td></tr></tbody></table></div>
+<p><strong>06은 별개로 운영자 열람 범위가 미확정</strong>이라 착수 전 확인이 필요합니다(<code>06-01</code> §3).</p>
+<p>모델 신설 시 <code>userId</code> FK 연결이 전제인 것은 전 도메인 공통입니다(→ <code>03-01</code> §2).</p>
 <hr class="divider"/>
 <h2 class="section-title">🔗 8. 관련 문서</h2>
 <div class="table-container"><table><thead><tr><th>문서</th><th>담당 범위</th></tr></thead><tbody><tr><td><code>00-05</code></td><td>DB 스키마 전수 사전(자동 생성)</td></tr><tr><td><code>00-08</code></td><td>소셜 로그인·계정 통합 상세</td></tr><tr><td><code>01-05</code></td><td>사업자·리드·정산 API 정본</td></tr><tr><td><code>02-03</code></td><td>전문가 공개노출·상담신청 API 정본</td></tr><tr><td><code>.harness/systems.md</code></td><td>외부 연동(OAuth 키, 지도, DB, 배포) 실제 설정값</td></tr></tbody></table></div>
