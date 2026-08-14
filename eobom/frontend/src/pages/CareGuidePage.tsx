@@ -31,7 +31,10 @@ interface CareGuidePageProps {
 // 보여야 한다는 원칙이라, 여기서도 severity로 강제 재그룹핑한다(JSON 순서에 기대지 않음).
 const SEVERITY_ORDER: Array<CareGuideTask['severity']> = ['CRITICAL', 'NORMAL', 'INFO'];
 const SEVERITY_LABEL: Record<CareGuideTask['severity'], { title: string; desc: string; color: string; bg: string }> = {
-  CRITICAL: { title: '1순위 · 되돌릴 수 없는 것', desc: '기한을 놓치면 되돌릴 방법이 없습니다', color: '#B91C1C', bg: '#FEE2E2' },
+  // 빨간색은 "위험/응급" 톤이 너무 강해 유족에게 불쾌감을 줄 수 있다는 개발자 피드백(2026-08-14)
+  // 으로 짙은 앰버(주황)로 교체 — 강조는 유지하되 경보음보다는 "중요 안내" 톤. "확인 필요" 배지
+  // (연한 노란빛 amber #FEF3C7/#92400E)와는 톤을 달리해서 겹칠 때도 구분되게 한다.
+  CRITICAL: { title: '1순위 · 되돌릴 수 없는 것', desc: '기한을 놓치면 되돌릴 방법이 없습니다', color: '#9A3412', bg: '#FFEDD5' },
   NORMAL: { title: '2순위 · 과태료·가산세', desc: '기한을 놓치면 불이익이 있지만 되돌릴 수는 있습니다', color: 'var(--point-color)', bg: '#EAE5DC' },
   INFO: { title: '3순위 · 실무 편의', desc: '기한 압박은 없지만 정리해두면 좋습니다', color: 'var(--text-muted)', bg: '#F1F5F9' },
 };
@@ -79,13 +82,13 @@ export const CareGuidePage: React.FC<CareGuidePageProps> = ({ currentUser, onOpe
 
       {/* §3.1 최상단 고정 배너 — 유족은 체크리스트를 끝까지 스크롤하지 않는다. 한 줄이라도
           남으려면 최상단이어야 한다. */}
-      <div style={{ backgroundColor: '#FEE2E2', border: '2px solid #FCA5A5', borderRadius: '12px', padding: '1.1rem 1.3rem', marginBottom: '1.5rem', display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
-        <AlertTriangle color="#B91C1C" size={24} style={{ flexShrink: 0, marginTop: '0.1rem' }} />
+      <div style={{ backgroundColor: '#FFEDD5', border: '2px solid #FDBA74', borderRadius: '12px', padding: '1.1rem 1.3rem', marginBottom: '1.5rem', display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
+        <AlertTriangle color="#9A3412" size={24} style={{ flexShrink: 0, marginTop: '0.1rem' }} />
         <div style={{ flex: 1 }}>
-          <h3 style={{ color: '#991B1B', fontSize: '1.05rem', margin: '0 0 0.4rem 0' }}>
+          <h3 style={{ color: '#9A3412', fontSize: '1.05rem', margin: '0 0 0.4rem 0' }}>
             고인에게 빚이 있을 수 있다면, 3개월 안에 결정해야 합니다.
           </h3>
-          <p style={{ fontSize: '0.9rem', color: '#7F1D1D', margin: '0 0 0.75rem 0', lineHeight: 1.6 }}>
+          <p style={{ fontSize: '0.9rem', color: '#7C2D12', margin: '0 0 0.75rem 0', lineHeight: 1.6 }}>
             상속포기·한정승인 기한은 상속개시를 안 날로부터 3개월입니다. 지나면 채무를 그대로 물려받습니다.
           </p>
           <div style={{ display: 'flex', gap: '0.6rem', flexWrap: 'wrap' }}>
@@ -93,7 +96,7 @@ export const CareGuidePage: React.FC<CareGuidePageProps> = ({ currentUser, onOpe
               type="button"
               onClick={() => inheritanceRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
               className="btn"
-              style={{ backgroundColor: '#FFFFFF', color: '#991B1B', border: '1px solid #FCA5A5', height: '38px', fontSize: '0.85rem', padding: '0 1rem' }}
+              style={{ backgroundColor: '#FFFFFF', color: '#9A3412', border: '1px solid #FDBA74', height: '38px', fontSize: '0.85rem', padding: '0 1rem' }}
             >
               내용 보기
             </button>
@@ -101,7 +104,7 @@ export const CareGuidePage: React.FC<CareGuidePageProps> = ({ currentUser, onOpe
               type="button"
               onClick={() => setActiveTab?.('counseling')}
               className="btn"
-              style={{ backgroundColor: '#991B1B', color: '#FFFFFF', height: '38px', fontSize: '0.85rem', padding: '0 1rem' }}
+              style={{ backgroundColor: '#9A3412', color: '#FFFFFF', height: '38px', fontSize: '0.85rem', padding: '0 1rem' }}
             >
               전문가 상담
             </button>
