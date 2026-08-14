@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { BrowserRouter, Routes, Route, Navigate, useLocation, useNavigate, useNavigationType } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, Link, useLocation, useNavigate, useNavigationType } from 'react-router-dom';
 import { Header } from './components/Header';
 import { Sidebar } from './components/Sidebar';
 import { Footer } from './components/Footer';
@@ -7,6 +7,7 @@ import { FloatingEmergency } from './components/FloatingEmergency';
 import { LoginModal } from './components/LoginModal';
 import { SocialLinkModal } from './components/SocialLinkModal';
 import { MyPageAuthSettings } from './components/MyPageAuthSettings';
+import { EobomLogo } from './components/EobomLogo';
 import { providerLabel } from './config';
 
 import { HomePage } from './pages/HomePage';
@@ -27,6 +28,10 @@ function AppShell() {
   // 현재 경로 -> 탭 id. path 매핑은 setActiveTab이 만드는 규칙과 대칭이어야 한다.
   const rawTab = location.pathname.replace(/^\//, '');
   const activeTab = rawTab === '' ? 'home' : rawTab;
+
+  // 파트너·운영자 포털은 B2C 소셜 로그인과 완전히 분리된 별도 인증 체계라
+  // Header(로그인 버튼)·Sidebar(소비자 메뉴)·긴급콜을 렌더하지 않는다(00-06 §7.4).
+  const isPortalRoute = activeTab === 'partner' || activeTab === 'admin';
 
   const [isLoginOpen, setIsLoginOpen] = useState<boolean>(false);
   const [currentUser, setCurrentUser] = useState<string | null>(() => {
@@ -174,20 +179,43 @@ function AppShell() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-      {/* 상단 네비게이션 헤더 */}
-      <Header
-        setActiveTab={setActiveTab}
-        onOpenLogin={() => setIsLoginOpen(true)}
-        onOpenAccountSettings={() => { setMyPageMessage(null); setIsMyPageOpen(true); }}
-        currentUser={currentUser}
-        onLogout={handleLogout}
-      />
+      {isPortalRoute ? (
+        /* 포털(파트너·운영자) 최소 상단 바 — 로고 + 홈 복귀 링크만. B2C 크롬 대체(00-06 §7.4) */
+        <div
+          style={{
+            padding: '1rem 1.5rem',
+            backgroundColor: 'var(--primary-color)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            boxShadow: '0 2px 10px rgba(0,0,0,0.12)'
+          }}
+        >
+          <Link to="/" style={{ display: 'inline-flex', lineHeight: 0 }}>
+            <EobomLogo variant="header" height={30} />
+          </Link>
+          <Link to="/" style={{ fontSize: '0.9rem', color: '#D1D5DB', textDecoration: 'underline' }}>
+            이어봄 홈으로
+          </Link>
+        </div>
+      ) : (
+        <>
+          {/* 상단 네비게이션 헤더 */}
+          <Header
+            setActiveTab={setActiveTab}
+            onOpenLogin={() => setIsLoginOpen(true)}
+            onOpenAccountSettings={() => { setMyPageMessage(null); setIsMyPageOpen(true); }}
+            currentUser={currentUser}
+            onLogout={handleLogout}
+          />
 
-      {/* 좌측 호버 확장 사이드바 */}
-      <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
+          {/* 좌측 호버 확장 사이드바 */}
+          <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
+        </>
+      )}
 
-      {/* 메인 콘텐츠 영역 (사이드바 공간 확보 wrapper) */}
-      <div className="main-wrapper">
+      {/* 메인 콘텐츠 영역 (사이드바 공간 확보 wrapper — 포털 경로는 사이드바가 없으므로 미적용) */}
+      <div className={isPortalRoute ? undefined : 'main-wrapper'} style={isPortalRoute ? { flexGrow: 1, display: 'flex', flexDirection: 'column' } : undefined}>
         <main style={{ flexGrow: 1 }}>
           <Routes>
             <Route path="/" element={<HomePage {...authProps} />} />
@@ -200,7 +228,7 @@ function AppShell() {
               path="/mypage"
               element={<MyPage {...authProps} onOpenAccountSettings={() => { setMyPageMessage(null); setIsMyPageOpen(true); }} />}
             />
-            {/* B2C 소셜 로그인과 무관한 별도 포털 — Header/Sidebar 메뉴에는 올리지 않고 Footer 링크로만 접근 */}
+            {/* B2C 소셜 로그인과 무관한 별도 포털 — 진입은 LoginModal 하단 분기 + Footer 링크(00-06 §7.3) */}
             <Route path="/partner" element={<PartnerPortalPage />} />
             {/* 운영자 전용 — 어디에도 링크 노출 안 함, 직접 URL(/admin)로만 접근 */}
             <Route path="/admin" element={<AdminPage />} />
@@ -209,11 +237,11 @@ function AppShell() {
           </Routes>
         </main>
 
-        {/* 1-Touch 긴급 상담 플로팅 버튼 */}
-        <FloatingEmergency />
+        {/* 1-Touch 긴급 상담 플로팅 버튼 — 유족 대상 기능이라 포털 경로엔 노출 안 함 */}
+        {!isPortalRoute && <FloatingEmergency />}
 
-        {/* 하단 푸터 (홈 메인 탭은 풀페이지 스냅 스크롤 내부 섹션 6으로 통합) */}
-        {activeTab !== 'home' && <Footer />}
+        {/* 하단 푸터 (홈 메인 탭은 풀페이지 스냅 스크롤 내부 섹션 6으로 통합, 포털 경로는 최소 상단 바로 대체) */}
+        {!isPortalRoute && activeTab !== 'home' && <Footer />}
       </div>
 
       {/* 로그인 / 회원가입 데모 모달 */}

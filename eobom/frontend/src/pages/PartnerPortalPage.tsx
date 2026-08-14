@@ -14,10 +14,13 @@ import { AddressSearchModal } from '../components/AddressSearchModal';
 type AccountType = 'FACILITY' | 'EXPERT';
 type Mode = 'LOGIN' | 'SIGNUP';
 
+// docs/02_전문가_매칭/02-05 §3.3~3.4 — 법무사 직역 추가(2026-08-14). 행정사 업무가 04(디지털
+// 자산·계정 정산)로 넘어가면서 "디지털 유품 행정사" 표시명도 함께 정정.
 const EXPERT_CATEGORY_LABELS: Record<string, string> = {
   LAWYER: '상속 전문 변호사',
+  JUDICIAL_SCRIVENER: '상속 법무사',
   TAX_ACCOUNTANT: '상속세 전문 세무사',
-  ADMINISTRATIVE_SCRIVENER: '디지털 유품 행정사',
+  ADMINISTRATIVE_SCRIVENER: '행정사',
   FUNERAL_DIRECTOR: '장례·장지 지도사',
 };
 

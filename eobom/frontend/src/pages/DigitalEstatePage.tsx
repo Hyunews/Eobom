@@ -38,11 +38,11 @@ export const DigitalEstatePage: React.FC<DigitalEstatePageProps> = ({ currentUse
     if (e.target.files && e.target.files[0]) {
       const fileName = e.target.files[0].name;
       setUploadedFiles([...uploadedFiles, fileName]);
-      alert(`[${fileName}] 파일이 증빙 서류로 성공적으로 업로드되었습니다.`);
+      alert(`🚧 [${fileName}] 파일이 예시 화면에 표시되었습니다. (실제 서버 업로드·검증 기능은 준비 중입니다)`);
     }
   };
 
-  // 1) 정산 신청 클릭 핸들러 (서류 검증)
+  // 1) 정산 신청 클릭 핸들러 (서류 검증) — 실제 접수·검증 기능은 준비 중(00-14 §2.2)
   const handleApplyAccount = (accName: string) => {
     if (!currentUser) {
       alert('⚠️ 고인 계정 정산 신청은 로그인 후 이용하실 수 있습니다.');
@@ -52,7 +52,7 @@ export const DigitalEstatePage: React.FC<DigitalEstatePageProps> = ({ currentUse
     if (uploadedFiles.length === 0) {
       alert('⚠️ 증빙 서류(가족관계증명서 또는 사망진단서)가 아직 업로드되지 않았습니다!\n아래 파일 업로드 영역에서 증빙 서류를 먼저 첨부해 주세요.');
     } else {
-      alert(`✅ [${accName}] 정산 신청이 정상적으로 접수되었습니다.\nNaver OCR 검증 후 신청이 진행됩니다.`);
+      alert(`🚧 [${accName}] 정산 신청 기능은 준비 중입니다. 이 화면에서는 실제로 접수되지 않습니다.`);
     }
   };
 
@@ -87,6 +87,14 @@ export const DigitalEstatePage: React.FC<DigitalEstatePageProps> = ({ currentUse
         <p style={{ color: 'var(--text-muted)', marginTop: '0.4rem' }}>
           고인의 디지털 계정 정산 신청, 지역 기반 현물 유품 정리 수거 및 온라인 추모관 갤러리
         </p>
+      </div>
+
+      {/* 이 페이지 전체가 프론트 목업 상태(04·05는 백엔드는 있으나 프론트 미연동, 03은 기획
+          보류)라 업체·방명록·사진 등이 실제 정보처럼 보이지 않게 예시 배너를 둔다
+          (docs 00-14 §2.2, 2026-08-14). 지우지 않고 명시하는 쪽으로 확정. */}
+      <div style={{ fontSize: '0.85rem', color: '#92400E', backgroundColor: '#FEF3C7', border: '1px solid #FDE68A', borderRadius: '8px', padding: '0.7rem 1rem', marginBottom: '1.25rem', lineHeight: 1.6 }}>
+        ⚠️ 이 페이지는 화면 구성을 보여드리기 위한 <strong>예시 데이터</strong>로 채워져 있습니다.
+        아래 업체·평점·방명록·사진은 실존하지 않으며, 실제 제휴·게시물이 아닙니다.
       </div>
 
       {/* 서브 탭 */}
@@ -126,7 +134,7 @@ export const DigitalEstatePage: React.FC<DigitalEstatePageProps> = ({ currentUse
           <div style={{ border: '2px dashed var(--border-color)', padding: '1.5rem', textAlign: 'center', borderRadius: '12px', backgroundColor: 'var(--secondary-color)', marginBottom: '1.75rem' }}>
             <Upload color="var(--primary-color)" size={36} style={{ marginBottom: '0.5rem' }} />
             <h4 style={{ color: 'var(--primary-color)', marginBottom: '0.25rem' }}>📌 필수 증빙 서류 업로드 (가족관계증명서 / 사망진단서)</h4>
-            <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>Naver OCR 엔진으로 정당한 상속인 여부를 즉시 검증합니다.</p>
+            <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>제출하신 서류는 상속인 확인 절차에 사용될 예정입니다. (자동 검증 기능은 준비 중)</p>
             
             <input type="file" id="doc-file-input" onChange={handleFileUpload} style={{ display: 'none' }} />
             <label htmlFor="doc-file-input" className="btn btn-primary" style={{ cursor: 'pointer' }}>
@@ -170,7 +178,8 @@ export const DigitalEstatePage: React.FC<DigitalEstatePageProps> = ({ currentUse
         <div style={{ backgroundColor: 'var(--card-bg)', padding: '1.5rem', borderRadius: 'var(--border-radius)', boxShadow: 'var(--box-shadow)' }}>
           <h3 style={{ color: 'var(--primary-color)', marginBottom: '0.5rem' }}>지역 기반 현물 유품 정리 전문 업체 추천</h3>
           <p style={{ fontSize: '0.95rem', color: 'var(--text-muted)', marginBottom: '1.1rem' }}>
-            유품 정찰제 수거, 소각 대행 및 특수 청소 제휴 전문 업체 리스트입니다.
+            유품 정찰제 수거, 소각 대행 및 특수 청소 업체 화면 구성 예시입니다. 실제 제휴 업체는
+            아직 없습니다 — 제휴가 시작되면 이 목록이 실제 업체 정보로 교체됩니다.
           </p>
 
           <div className="form-group" style={{ maxWidth: '300px', marginBottom: '1.1rem' }}>
@@ -187,7 +196,8 @@ export const DigitalEstatePage: React.FC<DigitalEstatePageProps> = ({ currentUse
             {vendors
               .filter(v => vendorRegion === '전체' || v.region.includes(vendorRegion))
               .map((vendor, idx) => (
-                <div key={idx} className="card" style={{ borderTop: '4px solid var(--primary-color)' }}>
+                <div key={idx} className="card" style={{ borderTop: '4px solid var(--primary-color)', position: 'relative' }}>
+                  <span style={{ position: 'absolute', top: '0.7rem', right: '0.7rem', fontSize: '0.7rem', fontWeight: 700, color: '#92400E', backgroundColor: '#FEF3C7', border: '1px solid #FDE68A', borderRadius: '10px', padding: '0.1rem 0.5rem' }}>예시</span>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
                     <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--point-color)' }}>📍 {vendor.region}</span>
                     <span style={{ fontWeight: 'bold' }}>★ {vendor.rating}</span>
@@ -200,8 +210,8 @@ export const DigitalEstatePage: React.FC<DigitalEstatePageProps> = ({ currentUse
                       </span>
                     ))}
                   </div>
-                  <button onClick={() => alert(`${vendor.name} 방문 무료 견적이 신청되었습니다.`)} className="btn btn-primary" style={{ marginTop: 'auto', width: '100%' }}>
-                    무료 방문 견적 신청
+                  <button onClick={() => alert('🚧 예시 업체입니다. 실제 제휴 서비스는 준비 중이라 이 견적 신청은 접수되지 않습니다.')} className="btn btn-primary" style={{ marginTop: 'auto', width: '100%' }}>
+                    무료 방문 견적 신청 (예시)
                   </button>
                 </div>
               ))}
@@ -235,6 +245,9 @@ export const DigitalEstatePage: React.FC<DigitalEstatePageProps> = ({ currentUse
               <h4 style={{ color: 'var(--primary-color)', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 <MessageSquarePlus color="var(--primary-color)" /> 추모 방명록 작성
               </h4>
+              <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '-0.5rem', marginBottom: '1rem' }}>
+                * 아래 방명록은 화면 구성 예시이며, 실제 작성자·게시물이 아닙니다.
+              </p>
               <form onSubmit={handleAddGuestbook} style={{ marginBottom: '1.1rem' }}>
                 <div className="form-group">
                   <input
@@ -279,6 +292,9 @@ export const DigitalEstatePage: React.FC<DigitalEstatePageProps> = ({ currentUse
               <h4 style={{ color: 'var(--primary-color)', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 <Image color="var(--primary-color)" /> 추모 사진 등록 & 갤러리
               </h4>
+              <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '-0.5rem', marginBottom: '1rem' }}>
+                * 아래 사진은 Unsplash 제공 예시 이미지입니다. 실제 고인의 사진이 아닙니다.
+              </p>
               <form onSubmit={handleAddPhoto} style={{ marginBottom: '1.1rem' }}>
                 <div className="form-group">
                   <input

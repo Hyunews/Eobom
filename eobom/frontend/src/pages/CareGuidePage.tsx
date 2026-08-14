@@ -32,7 +32,7 @@ export const CareGuidePage: React.FC<CareGuidePageProps> = ({ currentUser, onOpe
     <div className="container">
       <div style={{ marginBottom: '1.5rem' }}>
         <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', backgroundColor: '#DEF7EC', color: '#03543F', padding: '0.3rem 0.8rem', borderRadius: '16px', fontSize: '0.85rem', fontWeight: 700, marginBottom: '0.6rem' }}>
-          <ChecklistShieldIcon size={18} color="#03543F" /> 체크리스트 &amp; 쉴드 | 사망 직후 D-Day 필수 행정절차 및 24h 긴급 콜
+          <ChecklistShieldIcon size={18} color="#03543F" /> 체크리스트 &amp; 쉴드 | 사망 직후 D-Day 필수 행정절차
         </div>
         <h1 style={{ color: 'var(--primary-color)', fontSize: '2rem', display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0 }}>
           <ChecklistShieldIcon color="var(--point-color)" size={32} /> 상중 케어 &amp; 사망 행정 가이드

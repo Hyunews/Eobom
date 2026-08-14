@@ -229,10 +229,10 @@ export const HomePage: React.FC<HomePageProps> = ({ setActiveTab }) => {
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem', marginBottom: '1.75rem' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', fontSize: '1rem', color: '#1A2B4C', fontWeight: 700 }}>
-                  <CheckCircle2 size={18} color="#5B7065" /> 24시간 365일 긴급 장례 지도사 즉시 연결
+                  <CheckCircle2 size={18} color="#5B7065" /> 전국 장사시설 실시간 검색 &amp; 업체 직통 문의
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', fontSize: '1rem', color: '#1A2B4C', fontWeight: 700 }}>
-                  <CheckCircle2 size={18} color="#5B7065" /> 유족 유언 메시지 &amp; 256-bit 암호화 금고
+                  <CheckCircle2 size={18} color="#5B7065" /> 유족 메시지 &amp; 256-bit 암호화 금고
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', fontSize: '1rem', color: '#1A2B4C', fontWeight: 700 }}>
                   <CheckCircle2 size={18} color="#5B7065" /> 변호사 · 세무사 1:1 비대면 전문 케어
@@ -351,7 +351,7 @@ export const HomePage: React.FC<HomePageProps> = ({ setActiveTab }) => {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', marginBottom: '1.75rem' }}>
                 <div style={{ fontSize: '1rem', color: '#1A2B4C', fontWeight: 700 }}>• 부동산, 예적금 입력 ➔ 예상 상속세액 3초 자동 계산</div>
                 <div style={{ fontSize: '1rem', color: '#1A2B4C', fontWeight: 700 }}>• 변호사 / 세무사 월별 상담 달력 예약 시스템</div>
-                <div style={{ fontSize: '1rem', color: '#1A2B4C', fontWeight: 700 }}>• 유언장 작성 가이드 및 공증 법무사 매칭</div>
+                <div style={{ fontSize: '1rem', color: '#1A2B4C', fontWeight: 700 }}>• 상속 등기·유언장 전문가 연결</div>
               </div>
               <button
                 onClick={() => setActiveTab?.('counseling')}
@@ -449,15 +449,15 @@ export const HomePage: React.FC<HomePageProps> = ({ setActiveTab }) => {
               </div>
               <h2 style={{ fontSize: 'clamp(1.7rem, 3.6vw, 2.5rem)', fontWeight: 800, color: '#1A2B4C', fontFamily: "'KoPub World Batang', serif", marginBottom: '1.2rem', lineHeight: 1.25 }}>
                 갑작스러운 이별 앞에서도<br />
-                <span style={{ color: '#5B7065' }}>24시간 든든하게 지켜드립니다</span>
+                <span style={{ color: '#5B7065' }}>빠짐없이 챙겨드립니다</span>
               </h2>
               <p style={{ fontSize: '1.1rem', color: '#6C7A89', lineHeight: 1.7, marginBottom: '1.5rem' }}>
-                사망 후 D-Day 필수 행정절차 타임라인, 모바일 부고장 작성 및 24시간 365일 긴급 출동 파견을 연동하세요.
+                사망 후 D-Day 필수 행정절차 타임라인과 모바일 부고장 작성을 한 곳에서 확인하세요.
               </p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', marginBottom: '1.75rem' }}>
                 <div style={{ fontSize: '1rem', color: '#1A2B4C', fontWeight: 700 }}>• 사망진단서, 사망신고 등 정부24 연계 행정 타임라인</div>
                 <div style={{ fontSize: '1rem', color: '#1A2B4C', fontWeight: 700 }}>• 모바일 부고장 간편 작성 &amp; 답례 문자 생성</div>
-                <div style={{ fontSize: '1rem', color: '#1A2B4C', fontWeight: 700 }}>• 15분 내 운구 차 &amp; 전담 장례지도사 24시간 출동 핫라인</div>
+                <div style={{ fontSize: '1rem', color: '#1A2B4C', fontWeight: 700 }}>• 정부24 안심상속 원스톱 서비스 바로 연결</div>
               </div>
               <button
                 onClick={() => setActiveTab?.('care-guide')}
@@ -471,9 +471,9 @@ export const HomePage: React.FC<HomePageProps> = ({ setActiveTab }) => {
               <div style={{ width: '64px', height: '64px', backgroundColor: '#DEF7EC', borderRadius: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1.1rem' }}>
                 <ChecklistShieldIcon size={36} color="#03543F" />
               </div>
-              <h3 style={{ fontSize: '1.4rem', color: '#1A2B4C', fontWeight: 800, marginBottom: '0.8rem' }}>24h 긴급 장례 디스패치</h3>
+              <h3 style={{ fontSize: '1.4rem', color: '#1A2B4C', fontWeight: 800, marginBottom: '0.8rem' }}>행정절차 타임라인 &amp; 부고장</h3>
               <p style={{ color: '#6C7A89', fontSize: '0.95rem', lineHeight: 1.7, margin: 0 }}>
-                임종 직후 1-Touch 전화 한 통으로 15분 내 운구 차와 배정된 지도사가 즉시 현장으로 출동하여 안치 수속을 지원합니다.
+                사망신고·상속포기 등 법정기한이 있는 절차를 D-Day 타임라인으로 안내하고, 모바일 부고장 작성을 도와드립니다.
               </p>
             </div>
           </div>
@@ -505,11 +505,11 @@ export const HomePage: React.FC<HomePageProps> = ({ setActiveTab }) => {
                 <span style={{ color: '#5B7065' }}>256-bit 비밀 메시지</span>
               </h2>
               <p style={{ fontSize: '1.1rem', color: '#6C7A89', lineHeight: 1.7, marginBottom: '1.5rem' }}>
-                사전 연명의료 의향서부터 256-bit AES 최고 등급 암호화 금고, 사후 지정 수신 자동 발송까지 소중한 유언을 보관하세요.
+                연명의료 의향 메모부터 256-bit AES 최고 등급 암호화 금고, 사후 지정 수신 자동 발송까지 소중한 마음을 안전하게 보관하세요.
               </p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', marginBottom: '1.75rem' }}>
-                <div style={{ fontSize: '1rem', color: '#1A2B4C', fontWeight: 700 }}>• 사전 연명의료 의향서 &amp; 장례 방식 사전 선택</div>
-                <div style={{ fontSize: '1rem', color: '#1A2B4C', fontWeight: 700 }}>• 256-bit AES 군사 등급 암호화 유언 메시지 보관함</div>
+                <div style={{ fontSize: '1rem', color: '#1A2B4C', fontWeight: 700 }}>• 연명의료 의향 메모 &amp; 장례 방식 사전 선택</div>
+                <div style={{ fontSize: '1rem', color: '#1A2B4C', fontWeight: 700 }}>• 256-bit AES 군사 등급 암호화 메시지 보관함</div>
                 <div style={{ fontSize: '1rem', color: '#1A2B4C', fontWeight: 700 }}>• 사후 2인 유족 승인(Multi-Sig) 시 자동 메시지 개봉 및 발송</div>
               </div>
               <button

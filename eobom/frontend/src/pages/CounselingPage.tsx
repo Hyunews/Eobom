@@ -10,12 +10,13 @@ interface CounselingPageProps {
   onOpenLogin?: () => void;
 }
 
-// docs/02_전문가_매칭/02-01 §2의 4대 직역. 라벨 순서 = 탭 노출 순서.
+// docs/02_전문가_매칭/02-05 §3.3의 5대 직역(법무사 추가, 2026-08-14). 라벨 순서 = 탭 노출 순서.
 const CATEGORY_TABS: { value: string; label: string }[] = [
   { value: '전체', label: '전체' },
   { value: 'LAWYER', label: '상속 변호사' },
+  { value: 'JUDICIAL_SCRIVENER', label: '상속 법무사' },
   { value: 'TAX_ACCOUNTANT', label: '상속세 세무사' },
-  { value: 'ADMINISTRATIVE_SCRIVENER', label: '디지털 유품 행정사' },
+  { value: 'ADMINISTRATIVE_SCRIVENER', label: '행정사' },
   { value: 'FUNERAL_DIRECTOR', label: '장례 지도사' },
 ];
 const CATEGORY_LABEL: Record<string, string> = Object.fromEntries(CATEGORY_TABS.map((c) => [c.value, c.label]));

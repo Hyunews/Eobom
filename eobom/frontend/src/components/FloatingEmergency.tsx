@@ -1,14 +1,17 @@
 import React from 'react';
-import { PhoneCall } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Search } from 'lucide-react';
 
+// "24시간 긴급 콜/즉시 파견"은 받을 사람이 없는 약속이었다(00-14 §2-4 → 07-02 §5.3, 2026-08-14
+// 정정). 임종 직후 유족이 급한 건 상담원이 아니라 "장례식장이 어디인지"이므로 FAB은 Domain 01
+// 시설 검색으로 바로 보낸다. §5.3의 "②상담 문의" 갈래는 채널 개설 주체·응답시간이 사장님 확정
+// 전이라 열지 않는다.
 export const FloatingEmergency: React.FC = () => {
-  const handleCall = () => {
-    alert('🚨 긴급 장례 지원 서비스로 즉시 연결합니다.\n(24시간 365일 전담 장례지도사 1-Touch 긴급 배정)');
-  };
+  const navigate = useNavigate();
 
   return (
     <button
-      onClick={handleCall}
+      onClick={() => navigate('/facility')}
       style={{
         position: 'fixed',
         bottom: '2rem',
@@ -32,8 +35,8 @@ export const FloatingEmergency: React.FC = () => {
       onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
       onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
     >
-      <PhoneCall size={22} className="animate-pulse" />
-      <span>24시간 긴급상담</span>
+      <Search size={22} className="animate-pulse" />
+      <span>장례식장 바로 찾기</span>
     </button>
   );
 };

@@ -82,7 +82,9 @@ export const Footer: React.FC<FooterProps> = ({ isFullPageSnap = false }) => {
           </ul>
         </div>
 
-        {/* 열 3: 고객센터 & 긴급콜 */}
+        {/* 열 3: 고객센터 — "24h 긴급콜·즉시 파견"은 받을 사람이 없는 약속이라 제거함
+            (00-14 §2-4 → 07-02 §5.3, 2026-08-14 정정). 응답 가능 시간은 아직 사장님 확정 전이라
+            임의로 명시하지 않는다(07-02 §7 미결 #4). */}
         <div>
           <h3
             style={{
@@ -96,7 +98,7 @@ export const Footer: React.FC<FooterProps> = ({ isFullPageSnap = false }) => {
               lineHeight: 1.2
             }}
           >
-            <Phone size={18} color="#D4A359" /> 고객센터 &amp; 24h 긴급콜
+            <Phone size={18} color="#D4A359" /> 고객센터
           </h3>
           <div
             style={{
@@ -114,28 +116,39 @@ export const Footer: React.FC<FooterProps> = ({ isFullPageSnap = false }) => {
             1588-0000
           </div>
           <p style={{ fontSize: '0.88rem', lineHeight: 1.7, color: '#9CA3AF', margin: 0 }}>
-            365일 24시간 긴급 장례 지도사 즉시 파견 시스템
+            장사시설·장례 절차 관련 문의는 전화로 안내해드립니다.
           </p>
         </div>
+      </div>
+
+      {/* 파트너 진입 링크 — 카피라이트 줄(법적 고지, 스캔에서 빠짐)에서 분리해 본문 정보로
+          승격(00-06 §7.3 ②). 열 2(보안 & 약관)와 같은 0.88rem. */}
+      <div
+        style={{
+          width: '100%',
+          maxWidth: '1400px',
+          margin: '1.5rem auto 0 auto',
+          paddingTop: '1.25rem',
+          borderTop: '1px solid rgba(255,255,255,0.1)',
+          textAlign: 'center'
+        }}
+      >
+        <Link to="/partner" style={{ fontSize: '0.88rem', color: '#D1D5DB', textDecoration: 'underline', fontWeight: 600 }}>
+          장사시설·전문가 파트너이신가요? →
+        </Link>
       </div>
 
       <div
         style={{
           width: '100%',
           maxWidth: '1400px',
-          margin: '1.5rem auto 0 auto',
-          paddingTop: '1rem',
-          borderTop: '1px solid rgba(255,255,255,0.1)',
+          margin: '0.9rem auto 0 auto',
           textAlign: 'center',
           fontSize: '0.82rem',
           color: '#6B7280'
         }}
       >
         Copyright © 2026 이어봄 (Eobom) Total Care Platform. All rights reserved.
-        {' · '}
-        <Link to="/partner" style={{ color: '#6B7280', textDecoration: 'underline' }}>
-          장사시설·전문가 파트너이신가요?
-        </Link>
       </div>
     </footer>
   );

@@ -249,7 +249,7 @@ model Expert {
   passwordHash     String // bcrypt 해시 (평문 저장 금지)
   refreshTokenHash String? // Partner와 동일한 회전 방식(sha256 해시)
 
-  category      String // LAWYER | TAX_ACCOUNTANT | ADMINISTRATIVE_SCRIVENER | FUNERAL_DIRECTOR (docs 02-01 §2)
+  category      String // LAWYER | JUDICIAL_SCRIVENER | TAX_ACCOUNTANT | ADMINISTRATIVE_SCRIVENER | FUNERAL_DIRECTOR (docs 02-05 §3.3)
   name          String // 전문가 본인 성명
   licenseNo     String // 자격증·등록번호 (사업자등록번호 아님 — 변호사/세무사 등록번호 등)
   licenseOrg    String? // 등록 기관 (대한변호사협회, 한국세무사회 등)

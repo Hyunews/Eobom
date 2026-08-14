@@ -5,9 +5,10 @@ import { NoteKeyIcon } from '../components/MenuIcons';
 interface EndingNotePageProps {
   currentUser?: string | null;
   onOpenLogin?: () => void;
+  setActiveTab?: (tab: string) => void;
 }
 
-export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onOpenLogin }) => {
+export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onOpenLogin, setActiveTab }) => {
   const [lifeSupport, setLifeSupport] = useState<string>('연명의료 중단 희망');
   const [funeralType, setFuneralType] = useState<string>('가족장 (수목장)');
   const [vaultSecret, setVaultSecret] = useState<string>('');
@@ -66,7 +67,7 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
               로그인이 필요한 회원 전용 서비스입니다
             </h2>
             <p style={{ color: 'var(--text-muted)', fontSize: '1rem', lineHeight: 1.6, marginBottom: '1.5rem' }}>
-              디지털 엔딩노트는 개인 사전 의향서 및 유언 메시지를 다루는 최고 보안 영역입니다. 로그인 후 안전하게 작성하고 보관하세요.
+              디지털 엔딩노트는 개인 사전 의향서 및 유족에게 남기는 메시지를 다루는 최고 보안 영역입니다. 로그인 후 안전하게 작성하고 보관하세요.
             </p>
             <button 
               onClick={onOpenLogin} 
@@ -81,13 +82,13 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
 
       <div style={{ marginBottom: '1.5rem', filter: !currentUser ? 'blur(3px)' : 'none' }}>
         <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', backgroundColor: '#F1F5F9', color: 'var(--primary-color)', padding: '0.3rem 0.8rem', borderRadius: '16px', fontSize: '0.85rem', fontWeight: 700, marginBottom: '0.6rem' }}>
-          <NoteKeyIcon size={18} color="var(--primary-color)" /> 노트 &amp; 열쇠 | 유언 메시지 작성 &amp; 256-bit AES 암호화 금고
+          <NoteKeyIcon size={18} color="var(--primary-color)" /> 노트 &amp; 열쇠 | 유족에게 남기는 메시지 작성 &amp; 256-bit AES 암호화 금고
         </div>
         <h1 style={{ color: 'var(--primary-color)', fontSize: '2rem', display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0 }}>
           <NoteKeyIcon color="var(--primary-color)" size={32} /> 디지털 엔딩노트 &amp; 유족 메시지 보관함
         </h1>
         <p style={{ color: 'var(--text-muted)', marginTop: '0.4rem' }}>
-          사전 연명의료 의향서, 장례 희망 방식, 유족을 위한 유언 메시지 &amp; 비밀 보관함 및 사후 자동 발송
+          연명의료 의향 메모, 장례 희망 방식, 유족에게 남기는 메시지 &amp; 비밀 보관함 및 사후 자동 발송
         </p>
       </div>
 
@@ -96,7 +97,7 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
         <div style={{ backgroundColor: 'var(--card-bg)', padding: '1.5rem', borderRadius: 'var(--border-radius)', boxShadow: 'var(--box-shadow)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.75rem', flexWrap: 'wrap', gap: '0.5rem' }}>
             <h3 style={{ color: 'var(--primary-color)', margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <FileCheck color="var(--point-color)" /> 사전 연명의료 & 장례 희망 의향서
+              <FileCheck color="var(--point-color)" /> 연명의료 의향 메모 & 장례 희망
             </h3>
             <span style={{ fontSize: '0.8rem', backgroundColor: 'rgba(26, 43, 76, 0.08)', color: 'var(--primary-color)', padding: '0.2rem 0.6rem', borderRadius: '12px', fontWeight: 600 }}>
               🏥 생전/응급 시 대리인 즉시 열람 가능
@@ -105,6 +106,10 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
           <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>
             중태 및 응급 시 의료진/지정 대리인이 본인의 연명의료 의향을 생전에 사전 확인할 수 있습니다.
           </p>
+          <div style={{ fontSize: '0.8rem', color: '#92400E', backgroundColor: '#FEF3C7', border: '1px solid #FDE68A', borderRadius: '8px', padding: '0.7rem 0.9rem', marginBottom: '1rem' }}>
+            ⚠️ 이 메모는 법적 효력이 없습니다. 법적 효력이 있는 「사전연명의료의향서」는 보건복지부
+            지정 등록기관에서 본인이 직접 작성·등록해야 합니다(비용 없음).
+          </div>
 
           <form onSubmit={handleSaveNote}>
             <div className="form-group">
@@ -125,7 +130,7 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
                 defaultValue="홍자녀 (010-1234-5678)"
               />
               <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '0.3rem' }}>
-                * 응급상황 시 해당 보호자의 휴대전화 SMS 인증 후 연명의료 의향서가 1회 열람됩니다.
+                * 응급상황 시 해당 보호자의 휴대전화 SMS 인증 후 연명의료 의향 메모가 1회 열람됩니다.
               </p>
             </div>
 
@@ -155,22 +160,22 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
 
           {savedSuccess && (
             <div style={{ marginTop: '1rem', padding: '1rem', backgroundColor: 'rgba(91, 112, 101, 0.12)', color: 'var(--point-color)', borderRadius: '8px', fontSize: '0.9rem' }}>
-              🔒 사전 연명의료 의향서가 저장되었으며, 국립연명의료관리기관 DB 호환 모바일 QR카드가 준비되었습니다.
+              🔒 연명의료 의향 메모가 저장되었으며, 국립연명의료관리기관 DB 호환 모바일 QR카드가 준비되었습니다.
             </div>
           )}
         </div>
 
-        {/* 유족 유언 메시지 & 비밀 보관함 */}
+        {/* 유족에게 남기는 메시지 & 비밀 보관함 */}
         <div style={{ backgroundColor: 'var(--card-bg)', padding: '1.5rem', borderRadius: 'var(--border-radius)', boxShadow: 'var(--box-shadow)' }}>
           <h3 style={{ color: 'var(--primary-color)', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <Lock color="var(--primary-color)" /> 유족을 위한 유언 메시지 & 비밀 보관함
+            <Lock color="var(--primary-color)" /> 유족에게 남기는 메시지 & 비밀 보관함
           </h3>
           <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>
-            사랑하는 자녀와 가족에게 남길 따뜻한 유언 편지, 비상 예금 계좌, 마스터 비밀번호 등 사후에 꼭 전달되어야 할 마음과 중요한 정보를 안전하게 암호화 보관합니다.
+            사랑하는 자녀와 가족에게 남길 따뜻한 메시지, 비상 예금 계좌, 마스터 비밀번호 등 사후에 꼭 전달되어야 할 마음과 중요한 정보를 안전하게 암호화 보관합니다.
           </p>
 
           <div className="form-group">
-            <label className="form-label">유족에게 전달할 유언 편지 및 비상 자산 정보</label>
+            <label className="form-label">유족에게 전달할 메시지 및 비상 자산 정보</label>
             <textarea
               rows={4}
               value={vaultSecret}
@@ -185,9 +190,23 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
             <Key size={18} /> 유족 메시지 & 비밀 보관함 저장
           </button>
 
+          <div style={{ marginTop: '0.85rem', fontSize: '0.8rem', color: '#92400E', backgroundColor: '#FEF3C7', border: '1px solid #FDE68A', borderRadius: '8px', padding: '0.7rem 0.9rem', lineHeight: 1.6 }}>
+            ⚠️ 이 기록은 법적 효력이 있는 유언장이 아닙니다. 재산 처분에 관한 의사는 민법이 정한
+            방식의 유언장이 따로 필요합니다.{' '}
+            {setActiveTab && (
+              <button
+                type="button"
+                onClick={() => setActiveTab('counseling')}
+                style={{ background: 'none', border: 'none', padding: 0, color: '#92400E', fontWeight: 700, textDecoration: 'underline', cursor: 'pointer', fontSize: 'inherit' }}
+              >
+                유언장 안내 보기 →
+              </button>
+            )}
+          </div>
+
           <div style={{ marginTop: '1.1rem', paddingTop: '1rem', borderTop: '1px solid var(--border-color)' }}>
             <h4 style={{ fontSize: '1rem', color: 'var(--primary-color)', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-              <Send size={16} color="var(--point-color)" /> 사후 지정 수신인 유언 메시지
+              <Send size={16} color="var(--point-color)" /> 사후 지정 수신인 메시지
             </h4>
             <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
               사망 인증 시 지정된 수신인(자녀/배우자)의 휴대전화 알림톡으로 엔딩노트 열람 키가 자동 발송됩니다.

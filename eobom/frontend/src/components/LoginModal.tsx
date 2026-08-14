@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { X, ShieldCheck } from 'lucide-react';
 import { BACKEND_URL } from '../config';
 
@@ -8,10 +9,18 @@ interface LoginModalProps {
   onLoginSuccess: (username: string, provider?: string, token?: string) => void;
 }
 
-// B2C 소비자 로그인 전용. 사업자·전문가는 /#partner, 운영자는 /#admin — 전부 완전히 분리된
+// B2C 소비자 로그인 전용. 사업자·전문가는 /partner, 운영자는 /admin — 전부 완전히 분리된
 // 별도 인증 체계라 여기엔 관리자 로그인이 없다(2026-08-10, 옛 admin/1234 목업 버튼 제거).
+// 하단에 /partner 진입 링크만 둔다(00-06 §7.3 ①, 2026-08-14) — 헤더 로그인 버튼을 누르고
+// 여기까지 들어온 사업자·전문가가 막다른 길에 걸리지 않도록.
 export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLoginSuccess }) => {
+  const navigate = useNavigate();
   if (!isOpen) return null;
+
+  const handlePartnerEntry = () => {
+    onClose();
+    navigate('/partner');
+  };
 
   // 소셜 로그인 처리 (카카오, 네이버, 구글) — 백엔드 OAuth 인가 엔드포인트로 리다이렉트
   const handleSocialLogin = (provider: 'kakao' | 'naver' | 'google') => {
@@ -195,6 +204,27 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin
               </svg>
               구글 계정으로 시작하기
             </button>
+
+            {/* 파트너(사업자·전문가) 진입 분기 — B2C 소셜 로그인과 무관한 별도 인증 체계로 이동
+                (00-06 §7.3 ①). 데모 블록은 오픈 시 제거될 것이므로 그 위에 둔다. */}
+            <div style={{ marginTop: '0.95rem', paddingTop: '0.95rem', borderTop: '1px solid #F3F4F6', textAlign: 'center' }}>
+              <button
+                type="button"
+                onClick={handlePartnerEntry}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  fontSize: '0.9rem',
+                  fontWeight: 600,
+                  color: 'var(--primary-color)',
+                  textDecoration: 'underline',
+                  padding: 0
+                }}
+              >
+                장사시설 · 전문가 회원이신가요? 파트너 로그인 →
+              </button>
+            </div>
 
             {/* 하단 개발용 모의 로그인 버튼 */}
             <div style={{ marginTop: '0.95rem', paddingTop: '0.95rem', borderTop: '1px solid #F3F4F6', textAlign: 'center' }}>
