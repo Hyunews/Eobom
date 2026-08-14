@@ -151,9 +151,22 @@
     .tag.green { background-color: #DCFCE7; color: #166534; }
     .tag.gray { background-color: #F1F5F9; color: #475569; }
     .tag.orange { background-color: #FFEDD5; color: #9A3412; }
+    .tag.red { background-color: #FEE2E2; color: #991B1B; border: 1px solid #FECACA; }
+    .tag.blue { background-color: #DBEAFE; color: #1E40AF; border: 1px solid #BFDBFE; }
+    .tag.gold { background-color: #FEF3C7; color: #92400E; border: 1px solid #FDE68A; font-weight: 700; }
+    .tag.warn { background-color: #FEF3C7; color: #B45309; }
     .tag.pk { background-color: #FEE2E2; color: #991B1B; }
     .tag.fk { background-color: #DBEAFE; color: #1E40AF; }
     .tag.uk { background-color: #DCFCE7; color: #166534; }
+    del {
+      color: #94A3B8;
+      text-decoration: line-through;
+    }
+    .md-link {
+      color: var(--accent);
+      text-decoration: underline;
+      font-weight: 500;
+    }
     p { margin-bottom: 0.9rem; color: #334155; }
     ul, ol { margin-bottom: 1rem; padding-left: 1.4rem; color: #334155; }
     li { margin-bottom: 0.4rem; }
@@ -314,104 +327,204 @@
       <h1>🗣️ 00-14. 사장님 논의 안건 정리</h1>
       
     </div>
-    <blockquote class="info-quote"><strong>문서 성격</strong>: 회의 자료. 전 도메인(00~08) 문서를 전수 조사해 <strong>결정 대기 항목을 한 곳에 모은 것</strong>입니다.</blockquote>
-<blockquote class="info-quote">새 판단을 담지 않습니다 — 각 항목의 정본은 원 문서이며 여기는 <strong>목차 + 우선순위</strong>입니다.</blockquote>
-<blockquote class="info-quote"><strong>작성</strong>: <code>[Claude:Opus]</code> 2026-08-13 · <strong>대상 회의</strong>: 2026-08-14(금) 또는 08-17(월)</blockquote>
-<blockquote class="info-quote"><strong>조사 범위</strong>: <code>docs/</code> 하위 24개 문서 전수 (<code>작업일지_및_기록</code> 제외) + <code>.harness/memory/pending-approvals.md</code></blockquote>
+    <blockquote class="info-quote"><strong>문서 성격</strong>: 회의 자료. 전 도메인(00~08) 문서를 전수 조사해 <strong>결정 대기 항목을 한 곳에 모은 것</strong>입니다.<br/>
+새 판단을 담지 않습니다 — 각 항목의 정본은 원 문서이며 여기는 <strong>목차 + 우선순위</strong>입니다.<br/>
+<strong>작성</strong>: <code>[Claude:Opus]</code> 2026-08-13 · <strong>대상 회의</strong>: 2026-08-14(금) 또는 08-17(월)<br/>
+<strong>조사 범위</strong>: <code>docs/</code> 하위 24개 문서 전수 (<code>작업일지_및_기록</code> 제외) + <code>.harness/memory/pending-approvals.md</code></blockquote>
 <hr class="divider"/>
 <h2 class="section-title">📖 1. 먼저 읽는 법</h2>
 <p>문서에 흩어진 결정 대기 항목은 <strong>총 47건</strong>이지만, 중복을 걷어내면 <strong>실제로 정할 것은 26건</strong>입니다.</p>
 <p>그중 <strong>회의에서 반드시 다뤄야 하는 것은 §2~§4의 12건</strong>이고, 나머지는 나중에 정해도 막히지 않습니다.</p>
-<div class="table-container"><table><thead><tr><th>구분</th><th>건수</th><th>성격</th><th>회의에서</th></tr></thead><tbody><tr><td>**§2 즉시 처리**</td><td>**4**</td><td>판단이 아니라 **사실 확인** — 화면이 이미 약속했는데 뒷받침이 없음</td><td>⭐ 필수</td></tr><tr><td>**§3 열쇠 결정**</td><td>**4**</td><td>이거 하나가 여러 개를 동시에 품</td><td>⭐ 필수</td></tr><tr><td>**§4 경영 판단(돈)**</td><td>**4**</td><td>사업 방향 — 기획이 정할 수 없음</td><td>⭐ 필수</td></tr><tr><td>§5 외부 전문가</td><td>5</td><td>변호사·세무사 확인 필요. 회의에선 **의뢰 여부만**</td><td>🟡</td></tr><tr><td>§6 운영 체계</td><td>3</td><td>사람·시간 배정 문제</td><td>🟡</td></tr><tr><td>§7 기술 확인</td><td>6</td><td>권고안 있음. **&quot;네&quot;만 하시면 됨**</td><td><span class="tag gray">⬜ 계획</span></td></tr></tbody></table></div>
+<div class="table-container"><table><thead><tr><th>구분</th><th>건수</th><th>성격</th><th>회의에서</th></tr></thead><tbody><tr><td><strong>§2 즉시 처리</strong></td><td><del>5</del> → <strong>0</strong></td><td>판단이 아니라 <strong>사실 확인</strong> — 화면이 이미 약속했는데 뒷받침이 없음</td><td><span class="tag green">✅</span> <strong>08-14 전건 완료</strong></td></tr><tr><td><strong>§3 열쇠 결정</strong></td><td><del>4</del> → <strong>2</strong></td><td>이거 하나가 여러 개를 동시에 품</td><td><span class="tag gold">⭐</span> 필수 (3-3·3-4)</td></tr><tr><td><strong>§4 경영 판단(돈)</strong></td><td><del>4</del> → <strong>3</strong></td><td>사업 방향 — 기획이 정할 수 없음</td><td><span class="tag gold">⭐</span> 필수</td></tr><tr><td>§5 외부 전문가</td><td>5</td><td>변호사·세무사 확인 필요. 회의에선 <strong>의뢰 여부만</strong></td><td><span class="tag orange">🟡</span> (5-1·5-2는 범위 축소)</td></tr><tr><td>§6 운영 체계</td><td>3</td><td>사람·시간 배정 문제</td><td><span class="tag orange">🟡</span></td></tr><tr><td>§7 기술 확인</td><td>6</td><td>권고안 있음. <strong>&quot;네&quot;만 하시면 됨</strong></td><td><span class="tag gray">⬜</span></td></tr></tbody></table></div>
 <blockquote class="info-quote"><strong>§2가 가장 급합니다.</strong> 나머지는 &quot;아직 안 정했다&quot;지만, §2는 <strong>이미 사용자에게 약속한 상태</strong>입니다.</blockquote>
+<blockquote class="info-quote">## <span class="tag blue">🔵</span> 2026-08-14 (2차) — <strong>회의 전에 처리 가능한 것을 개발자 지시로 먼저 정리했습니다.</strong></blockquote>
+<p>&gt;</p>
+<blockquote class="info-quote">| 안건 | 처리 | 산출물 |<br/>
+| :--- | :--- | :--- |<br/>
+| <strong>3-1·3-2</strong> 링크 모델 · 05·07 통합 | <span class="tag green">✅</span> <strong>E안(분리 + 링크 중첩)으로 방향 확정</strong> | <code>00-13</code> §4.5·§7.2·§7.3 개정 |<br/>
+| <strong>4-2</strong> 현물 유품 계정 형태 | <span class="tag green">✅</span> <strong><code>Partner</code> 확장 + 별도 도메인</strong> | <strong><code>03-02</code></strong> 신설 |<br/>
+| <strong>5-1·5-2</strong> 대행 적법성 · 위임 문서화 | <span class="tag orange">🟡</span> <strong>내부 정리 완료 — 의뢰 범위 축소·순서 변경</strong> | <strong><code>04-02</code></strong> 신설 |<br/>
+| 6-2 · 6-3 · 7-4 · 5-4 | ⏳ <strong>작업 중</strong>(다음 사이클) | — |<br/>
+| 8(도메인별 디테일) | ⏸️ <strong>개발자 지시로 추후</strong> | — |</blockquote>
+<p>&gt;</p>
+<blockquote class="info-quote"><strong>회의에서 반드시 다뤄야 하는 것은 이제 §3-3·§3-4 + §4(3건)로 줄었습니다.</strong><br/>
+공통점은 하나입니다 — <strong>전부 &quot;숫자와 돈&quot;이라 기획이 대신 정할 수 없는 것들만 남았습니다.</strong></blockquote>
 <hr class="divider"/>
 <div class="page-break"></div>
-<h2 class="section-title">⚡ 2. 즉시 처리 — 화면이 약속했는데 뒷받침이 없는 것 (4건)</h2>
-<blockquote class="info-quote">## 🔵 2026-08-13 — 개발자 지시로 <strong>4건 전부 방향 확정. 후속 기획서 3건 작성 완료.</strong></blockquote>
+<h2 class="section-title">⚡ 2. 즉시 처리 — 화면이 약속했는데 뒷받침이 없는 것 (5건)</h2>
+<blockquote class="info-quote">## <span class="tag blue">🔵</span> 2026-08-13 — 개발자 지시로 <strong>4건 전부 방향 확정. 후속 기획서 3건 작성 완료.</strong><br/>
+## <span class="tag blue">🔵</span> 2026-08-14 — <strong>2-2·2-3·2-4 구현 완료</strong>(walkthrough (19)). <strong>2-5 신규 발견 → §2.2.</strong><br/>
+2-1(체크리스트)은 <code>AdminTask</code> 모델 신설이 필요해 별도 사이클로 분리.</blockquote>
 <p>&gt;</p>
-<blockquote class="info-quote">| # | 개발자 지시 | 산출물 |</blockquote>
-<blockquote class="info-quote">| :---: | :--- | :--- |</blockquote>
-<blockquote class="info-quote">| 2-1 | *&quot;상속포기·한정승인 추가와 함께 더 고려할 사항 점검&quot;* | <strong><code>07-02</code></strong> — 6항목 → <strong>전수 22항목</strong> |</blockquote>
-<blockquote class="info-quote">| 2-2 | *&quot;법적 효력을 갖게 하기 위한 방안 모색&quot;* | <strong><code>06-02</code></strong> — 3층 분리, 연명의료·유언은 법정 경로 연결 |</blockquote>
-<blockquote class="info-quote">| 2-3 | *&quot;법무사 추가해줘 / 직역 세분화가 맞나&quot;* | <strong><code>02-05</code></strong> — 법무사 추가 + <strong>상황 기반 진입</strong> |</blockquote>
-<blockquote class="info-quote">| 2-4 | *&quot;긴급 콜 대신 카카오톡 채팅?&quot;* | <strong><code>07-02</code> §5</strong> — 카카오톡 채널 권고 + 문구 변경 |</blockquote>
+<blockquote class="info-quote">| # | 개발자 지시 | 산출물 |<br/>
+| :---: | :--- | :--- |<br/>
+| 2-1 | *&quot;상속포기·한정승인 추가와 함께 더 고려할 사항 점검&quot;* | <strong><code>07-02</code></strong> — 6항목 → <strong>전수 22항목</strong> |<br/>
+| 2-2 | *&quot;법적 효력을 갖게 하기 위한 방안 모색&quot;* | <strong><code>06-02</code></strong> — 3층 분리, 연명의료·유언은 법정 경로 연결 |<br/>
+| 2-3 | *&quot;법무사 추가해줘 / 직역 세분화가 맞나&quot;* | <strong><code>02-05</code></strong> — 법무사 추가 + <strong>상황 기반 진입</strong> |<br/>
+| 2-4 | *&quot;긴급 콜 대신 카카오톡 채팅?&quot;* | <strong><code>07-02</code> §5</strong> — 카카오톡 채널 권고 + 문구 변경 |</blockquote>
 <p>&gt;</p>
 <blockquote class="info-quote"><strong>아래 표는 처리 전 진단 기록으로 남겨둡니다.</strong> 남은 확정 항목은 각 문서 미결 절에 있습니다.</blockquote>
 <p><strong>공통 성격</strong>: 전부 화면에 이미 노출 중이고, <strong>문제가 되돌릴 수 없는 시점에 드러납니다.</strong></p>
-<div class="table-container"><table><thead><tr><th>#</th><th>무엇</th><th>지금 상태</th><th>놓치면</th><th>근거</th></tr></thead><tbody><tr><td>**2-1**</td><td>**상속포기·한정승인 3개월이 체크리스트에 없음**</td><td>D-Day 체크리스트 6항목 중 없음</td><td>**유족이 고인의 빚을 상속** (민법 §1019① 경과 시 단순승인 간주)</td><td><code>07-01</code> §1.2 → **<code>07-02</code>**</td></tr><tr><td>**2-2**</td><td>**엔딩노트에 &quot;법적 효력 없음&quot; 안내 없음**</td><td>상속세 계산기엔 붙어 있는데 유언엔 없음</td><td>이용자가 *&quot;유언 남겼다&quot;* 고 믿었는데 **사후에 효력 없음이 드러남** (민법 §1065~1072 방식 불충족)</td><td><code>02-04</code> §1.3 → **<code>06-02</code>**</td></tr><tr><td>**2-3**</td><td>**&quot;공증 법무사 매칭&quot; — 없는 직역**</td><td><code>HomePage</code> 문구에만 존재. 4직역에도 DB <code>Expert.category</code>에도 없음</td><td>매칭 대상이 시스템에 아예 없음</td><td><code>02-04</code> §1.2 → **<code>02-05</code>**</td></tr><tr><td>**2-4**</td><td>**&quot;24h 긴급 콜&quot; 운영 주체 미정**</td><td>화면 하단 FAB + SCR-006 헤더에 상시 노출 중</td><td>전화가 왔을 때 **받을 사람이 없음**</td><td><code>07-01</code> §8-6 → **<code>07-02</code> §5**</td></tr></tbody></table></div>
+<div class="table-container"><table><thead><tr><th>#</th><th>무엇</th><th>지금 상태</th><th>놓치면</th><th>근거</th></tr></thead><tbody><tr><td><strong>2-1</strong></td><td><strong>상속포기·한정승인 3개월이 체크리스트에 없음</strong></td><td>D-Day 체크리스트 6항목 중 없음</td><td><strong>유족이 고인의 빚을 상속</strong> (민법 §1019① 경과 시 단순승인 간주)</td><td><code>07-01</code> §1.2 → <strong><code>07-02</code></strong></td></tr><tr><td><strong>2-2</strong></td><td><strong>엔딩노트에 &quot;법적 효력 없음&quot; 안내 없음</strong></td><td>상속세 계산기엔 붙어 있는데 유언엔 없음</td><td>이용자가 *&quot;유언 남겼다&quot;* 고 믿었는데 <strong>사후에 효력 없음이 드러남</strong> (민법 §1065~1072 방식 불충족)</td><td><code>02-04</code> §1.3 → <strong><code>06-02</code></strong></td></tr><tr><td><strong>2-3</strong></td><td><strong>&quot;공증 법무사 매칭&quot; — 없는 직역</strong></td><td><code>HomePage</code> 문구에만 존재. 4직역에도 DB <code>Expert.category</code>에도 없음</td><td>매칭 대상이 시스템에 아예 없음</td><td><code>02-04</code> §1.2 → <strong><code>02-05</code></strong></td></tr><tr><td><strong>2-4</strong></td><td><strong>&quot;24h 긴급 콜&quot; 운영 주체 미정</strong></td><td>화면 하단 FAB + SCR-006 헤더에 상시 노출 중</td><td>전화가 왔을 때 <strong>받을 사람이 없음</strong></td><td><code>07-01</code> §8-6 → <strong><code>07-02</code> §5</strong></td></tr></tbody></table></div>
 <h3 class="subsection-title">2.1 검토에서 뒤집힌 판단 2가지</h3>
-<blockquote class="info-quote"><strong>① 2-3에 대해 제가 낸 권고(&quot;직역을 늘리지 말고 문구만 고치자&quot;)를 철회합니다.</strong></blockquote>
-<blockquote class="info-quote"><code>07-02</code>를 짜면서 드러났습니다 — <strong>상속포기·한정승인 신청</strong>과 <strong>부동산 상속등기</strong>는 **법무사가</blockquote>
-<blockquote class="info-quote">주 직역**입니다. 즉 4직역 체계는 *&quot;가장 자주 필요한 일&quot;* 의 담당자가 빠져 있었습니다.</blockquote>
-<blockquote class="info-quote"><code>HomePage</code>의 문구는 <strong>틀린 게 아니라 앞서간 것</strong>이었습니다. → <code>02-05</code> §3.1</blockquote>
+<blockquote class="info-quote"><strong>① 2-3에 대해 제가 낸 권고(&quot;직역을 늘리지 말고 문구만 고치자&quot;)를 철회합니다.</strong><br/>
+<code>07-02</code>를 짜면서 드러났습니다 — <strong>상속포기·한정승인 신청</strong>과 <strong>부동산 상속등기</strong>는 **법무사가<br/>
+주 직역**입니다. 즉 4직역 체계는 *&quot;가장 자주 필요한 일&quot;* 의 담당자가 빠져 있었습니다.<br/>
+<code>HomePage</code>의 문구는 <strong>틀린 게 아니라 앞서간 것</strong>이었습니다. → <code>02-05</code> §3.1</blockquote>
 <p>&gt;</p>
-<blockquote class="info-quote"><strong>② 2-2의 &quot;법적 효력이 없으면 의미가 없다&quot;는 전제도 절반만 맞습니다.</strong></blockquote>
-<blockquote class="info-quote">엔딩노트가 담는 것 중 <strong>효력이 필요한 건 연명의료·재산 처분 2가지뿐</strong>이고, 그 둘은</blockquote>
-<blockquote class="info-quote"><strong>이미 국가가 만든 제도가 있습니다</strong>(등록기관 / 민법 5방식). 이어봄은 만드는 게 아니라</blockquote>
-<blockquote class="info-quote"><strong>연결하는 쪽</strong>입니다. → <code>06-02</code> §1</blockquote>
+<blockquote class="info-quote"><strong>② 2-2의 &quot;법적 효력이 없으면 의미가 없다&quot;는 전제도 절반만 맞습니다.</strong><br/>
+엔딩노트가 담는 것 중 <strong>효력이 필요한 건 연명의료·재산 처분 2가지뿐</strong>이고, 그 둘은<br/>
+<strong>이미 국가가 만든 제도가 있습니다</strong>(등록기관 / 민법 5방식). 이어봄은 만드는 게 아니라<br/>
+<strong>연결하는 쪽</strong>입니다. → <code>06-02</code> §1</blockquote>
+<h3 class="subsection-title">2.2 <span class="tag blue">🔵</span> 2026-08-14 추가 발견 — <strong>2-5. 목업 데이터가 실제 정보처럼 노출 중</strong></h3>
+<p>2-2~2-4를 구현하면서 <code>/digital-estate</code>(SCR-003)에 <strong>같은 종류의 문제가 하나 더</strong> 있는 것이</p>
+<p>드러났습니다. 초안 §2가 4건만 잡은 것은 <strong><code>HomePage</code>·<code>EndingNotePage</code> 계열만 훑었기 때문</strong>이고,</p>
+<p>목업 JSON까지는 보지 않았습니다.</p>
+<div class="table-container"><table><thead><tr><th>무엇</th><th>지금 상태</th><th>놓치면</th><th>뒷받침</th></tr></thead><tbody><tr><td><strong>제휴 업체 10곳</strong></td><td><code>mockData/digitalEstate.json</code>의 창작 업체명 + <strong>★4.7~5.0 평점</strong> + *&quot;제휴 전문 업체 리스트입니다&quot;* 단정 + <code>무료 방문 견적 신청</code> 버튼</td><td><strong>없는 제휴사를 별점까지 붙여 광고.</strong> 견적 신청은 <code>alert</code>만 뜨고 아무데도 안 감</td><td>03(현물수거)은 <code>03-01</code> 보류 메모 1건뿐 — <strong>사업 자체가 없음</strong></td></tr><tr><td><strong>조문 방명록 10건</strong></td><td>창작 조문 메시지 + 실제처럼 보이는 작성자·날짜(2026-07-28~29)</td><td>실재하지 않는 고인의 조문록이 서비스 화면에 상시 노출</td><td>05(추모관) SCR-011 미구현, <code>05-01</code> §2.6 <strong>오픈 금지</strong></td></tr><tr><td><strong>추모 사진 10장</strong></td><td>Unsplash 외부 URL을 고인 추모 앨범으로 전시</td><td>타인의 사진을 추모 사진으로 사용 + 프로덕션이 외부 이미지 호스트에 의존</td><td>동일</td></tr></tbody></table></div>
+<blockquote class="info-quote"><strong>가장 나쁜 것은 첫 줄입니다.</strong> 2-3(없는 직역 광고)과 같은 종류인데 **별점과 업체명까지<br/>
+창작했다**는 점에서 한 단계 더 나갑니다. 업체 태그 중에는 §2-4에서 방금 제거한<br/>
+*&quot;24시 긴급 출동&quot;* 이 그대로 남아 있습니다.</blockquote>
+<p><strong><span class="tag green">✅</span> 개발자 확정(08-14) — 지우지 않고 &quot;예시&quot;임을 명시합니다.</strong></p>
+<p>지우면 <code>00-14</code> 회의에서 보여줄 화면이 없어지고, 두면 거짓말입니다. <strong>목업임을 화면에 명시</strong>하면</p>
+<p>둘 다 해결되며, <code>context.md</code> ③(04·05 프론트 보류 — <code>Deceased</code> 확정 전 착수 금지)과도 충돌하지</p>
+<p>않습니다. 제대로 된 구현은 ③이 풀린 뒤입니다.</p>
+<h3 class="subsection-title">2.3 <span class="tag orange">🟡</span> 함께 드러난 구조 문제 — <code>/digital-estate</code>가 세 도메인을 뭉치고 있습니다</h3>
+<p><code>DigitalEstatePage.tsx</code> 한 페이지의 서브탭 3개가 <strong>재편 후 서로 다른 도메인</strong>입니다.</p>
+<div class="table-container"><table><thead><tr><th>서브탭</th><th>신 도메인</th><th>상태</th></tr></thead><tbody><tr><td>디지털 계정 정산</td><td><strong>04</strong></td><td>백엔드 완료 · 프론트 목업</td></tr><tr><td>현물 유품 수거/정리</td><td><strong>03</strong></td><td>기획보류</td></tr><tr><td>디지털 추모관 &amp; 앨범</td><td><strong>05</strong></td><td>백엔드 완료 · 프론트 미구현(SCR-011)</td></tr></tbody></table></div>
+<p><code>00-12</code> §7이 문서를 갈랐지만 <strong>화면은 아직 구 03(통합) 구조</strong>입니다. 분할은 ③이 풀린 뒤 §2.2</p>
+<p>처리와 별개 사이클로 갑니다 — 지금은 <strong>등재만</strong> 해둡니다.</p>
+<blockquote class="info-quote"><span class="tag warn">⚠️</span> <strong><code>HomePage</code> 배지 번호는 고치지 않습니다.</strong> <code>00-12</code> §7이 *&quot;번호는 사용자 여정 순서로 하고,<br/>
+메뉴 순서와의 1:1 대응은 포기한다&quot;* 고 확정했으므로, 배지에 신 도메인 번호를 다시 매기는 것은<br/>
+<strong>방금 폐기한 규칙을 되살리는 일</strong>입니다. 배지의 <code>01~05</code>는 *&quot;5대 핵심 서비스 중 n번째&quot;* 라는<br/>
+서수로 읽히면 되고(같은 화면의 <code>5대 핵심 서비스 둘러보기</code> 버튼과 짝), 문서 도메인 번호와는<br/>
+이제 무관합니다.</blockquote>
 <hr class="divider"/>
 <h2 class="section-title">🔗 3. 열쇠 결정 — 하나가 여러 개를 푸는 것 (4건)</h2>
 <p><strong>이 4건만 정해지면 나머지 미결의 절반이 자동으로 풀립니다.</strong> 순서대로 보시는 것을 권합니다.</p>
-<h3 class="subsection-title">3-1. 추모관 공유 링크 모델 ⭐ **가장 많이 푸는 결정**</h3>
-<div class="table-container"><table><thead><tr><th></th><th></th></tr></thead><tbody><tr><td>**선택지**</td><td>A 단일 영구(현행) / B 회전 가능 / **C 단계 분리(권고)** / D 초대 기반</td></tr><tr><td>**정본**</td><td><code>00-13</code> — 4안 장단점 전문</td></tr><tr><td>**이게 풀면**</td><td>조문 로그인 요구 여부 · 구 링크 응답(404/안내) · phase 전환 트리거 · 05 프론트 착수</td></tr><tr><td>**핵심 사실**</td><td>지금 <code>slug</code>는 **비밀번호 없는 영구 마스터 키 한 장**. 유출돼도 회수 수단이 &quot;추모관 통째로 닫기&quot;뿐이고 그마저 미구현</td></tr></tbody></table></div>
+<blockquote class="info-quote">## <span class="tag blue">🔵</span> 2026-08-14 — <strong>3-1·3-2는 개발자 방향 지시로 처리됐습니다.</strong> 사장님 안건에서 <strong>내립니다.</strong><br/>
+남은 열쇠 결정은 <strong>3-3(인프라)·3-4(수수료) 2건</strong>이며, 둘 다 *&quot;숫자를 주셔야&quot;* 진행되는 것입니다.<br/>
+처리 내용은 아래 각 항목의 <span class="tag blue">🔵</span> 블록, 정본은 <strong><code>00-13</code> §4.5·§7.2·§7.3</strong>.</blockquote>
+<h3 class="subsection-title">3-1. 추모관 공유 링크 모델 <span class="tag gold">⭐</span> <strong>가장 많이 푸는 결정</strong></h3>
+<div class="table-container"><table><thead><tr><th></th><th></th></tr></thead><tbody><tr><td><strong>선택지</strong></td><td>A 단일 영구(현행) / B 회전 가능 / <del>C 단계 분리</del> / D 초대 기반 / <strong>E 봉투·목적지</strong></td></tr><tr><td><strong>정본</strong></td><td><code>00-13</code> — 5안 장단점 전문</td></tr><tr><td><strong>이게 풀면</strong></td><td>조문 로그인 요구 여부 · 구 링크 응답(404/안내) · <del>phase 전환 트리거</del> · 05 프론트 착수</td></tr><tr><td><strong>핵심 사실</strong></td><td>지금 <code>slug</code>는 <strong>비밀번호 없는 영구 마스터 키 한 장</strong>. 유출돼도 회수 수단이 &quot;추모관 통째로 닫기&quot;뿐이고 그마저 미구현</td></tr></tbody></table></div>
+<blockquote class="info-quote"><span class="tag blue">🔵</span> <strong>08-14 처리 — E안(§4.5).</strong> 부고장(07) 링크 하나만 배포하고 추모관(05)은 그 안에서 이어집니다.<br/>
+<strong><code>phase</code> 전환 트리거 문제가 통째로 사라진 것</strong>이 가장 큰 실익입니다 — 레코드가 둘이면<br/>
+&quot;전환&quot;이라는 사건 자체가 없습니다. 회전은 추모관 쪽에서만 열립니다.<br/>
+<strong>남은 확정(개발자)</strong>: 조문 로그인 · 구 링크 응답 · 재전파 고지 문구 · 조의금 계좌 노출 ·<br/>
+OG 카드 내용 → <code>00-13</code> §8.</blockquote>
 <h3 class="subsection-title">3-2. 05(추모관) · 07(상중행정) 통합 여부</h3>
-<div class="table-container"><table><thead><tr><th></th><th></th></tr></thead><tbody><tr><td>**선택지**</td><td>**통합(권고)** / 분리</td></tr><tr><td>**정본**</td><td><code>00-13</code> §2.3·§8-1</td></tr><tr><td>**이게 풀면**</td><td>부고장 소속 · 07 도메인 범위 · 05 스키마(장례 정보 컬럼)</td></tr><tr><td>**핵심 사실**</td><td>**조문객이 받는 링크는 한 개여야 합니다.** 유족이 사망 당일에 부고장과 추모관을 따로 만들어 따로 뿌리는 건 불가능하고, 조문객은 어느 게 진짜인지 모릅니다</td></tr></tbody></table></div>
+<div class="table-container"><table><thead><tr><th></th><th></th></tr></thead><tbody><tr><td><strong>선택지</strong></td><td><del>통합(권고)</del> / <strong>분리 + 링크 중첩</strong></td></tr><tr><td><strong>정본</strong></td><td><code>00-13</code> §2.3·§4.5·§8-1</td></tr><tr><td><strong>이게 풀면</strong></td><td>부고장 소속 · 07 도메인 범위 · 05 스키마(장례 정보 컬럼)</td></tr><tr><td><strong>핵심 사실</strong></td><td><strong>조문객이 받는 링크는 한 개여야 합니다.</strong> 유족이 사망 당일에 부고장과 추모관을 따로 만들어 따로 뿌리는 건 불가능하고, 조문객은 어느 게 진짜인지 모릅니다</td></tr></tbody></table></div>
+<blockquote class="info-quote"><span class="tag blue">🔵</span> <strong>08-14 처리 — 분리 유지.</strong> 초안이 *&quot;통합이 사실상 유일한 답&quot;* 이라고 쓴 것은 <strong>틀렸습니다.</strong><br/>
+요구는 *&quot;배포 링크가 한 개&quot;* 이지 *&quot;레코드가 한 개&quot;* 가 아니었고, **부고장 안에 추모관을 넣으면<br/>
+분리 상태에서도 링크는 한 개**입니다. → <code>00-13</code> §2.3 정정 블록.<br/>
+<strong>부고장은 07에 남고</strong>(장례 정보 컬럼도 <code>Obituary</code>로 07이 보유), 05 스키마는 손대지 않습니다.<br/>
+<strong>대가</strong>: <code>Deceased</code>(<code>00-12</code> §2.1) 도입이 <strong>07·05 착수 양쪽의 전제</strong>가 됐습니다(§4.5-3).</blockquote>
 <h3 class="subsection-title">3-3. 인프라 전략 (클라우드)</h3>
-<div class="table-container"><table><thead><tr><th></th><th></th></tr></thead><tbody><tr><td>**필요한 답**</td><td>사업자 선택 · **오픈 규모 가정**(예산 산출의 전제) · 오픈 목표 시점 · 전담 인력 채용 여부</td></tr><tr><td>**정본**</td><td><code>00-11</code> §8 (권고: 관리형 클라우드 국내 리전)</td></tr><tr><td>**이게 풀면**</td><td>백엔드 배포 · 소셜 로그인 실서비스 · **추모관 사진 오픈**(오브젝트 스토리지 전환이 선행 조건)</td></tr><tr><td>**핵심 사실**</td><td>현재 이미지가 **백엔드 로컬 디스크**에 저장됩니다. 추모 사진은 유실 시 *&quot;죄송합니다&quot;* 로 끝나지 않습니다</td></tr></tbody></table></div>
+<div class="table-container"><table><thead><tr><th></th><th></th></tr></thead><tbody><tr><td><strong>필요한 답</strong></td><td>사업자 선택 · <strong>오픈 규모 가정</strong>(예산 산출의 전제) · 오픈 목표 시점 · 전담 인력 채용 여부</td></tr><tr><td><strong>정본</strong></td><td><code>00-11</code> §8 (권고: 관리형 클라우드 국내 리전)</td></tr><tr><td><strong>이게 풀면</strong></td><td>백엔드 배포 · 소셜 로그인 실서비스 · <strong>추모관 사진 오픈</strong>(오브젝트 스토리지 전환이 선행 조건)</td></tr><tr><td><strong>핵심 사실</strong></td><td>현재 이미지가 <strong>백엔드 로컬 디스크</strong>에 저장됩니다. 추모 사진은 유실 시 *&quot;죄송합니다&quot;* 로 끝나지 않습니다</td></tr></tbody></table></div>
 <h3 class="subsection-title">3-4. 리드 수수료 부과 기준</h3>
-<div class="table-container"><table><thead><tr><th></th><th></th></tr></thead><tbody><tr><td>**선택지**</td><td>A 리드 건당 / **B 성사 건당(권고)** / C 월 정액</td></tr><tr><td>**정본**</td><td><code>01-05</code> §10-1</td></tr><tr><td>**이게 풀면**</td><td>01 정산 6·7단계 착수 (현재 0~5단계 완료)</td></tr><tr><td>**핵심 사실**</td><td>확정되면 **코드 수정이 아니라 <code>CommissionPolicy</code> 레코드 1건 입력**으로 끝납니다. 재배포도 불필요</td></tr></tbody></table></div>
+<div class="table-container"><table><thead><tr><th></th><th></th></tr></thead><tbody><tr><td><strong>선택지</strong></td><td>A 리드 건당 / <strong>B 성사 건당(권고)</strong> / C 월 정액</td></tr><tr><td><strong>정본</strong></td><td><code>01-05</code> §10-1</td></tr><tr><td><strong>이게 풀면</strong></td><td>01 정산 6·7단계 착수 (현재 0~5단계 완료)</td></tr><tr><td><strong>핵심 사실</strong></td><td>확정되면 <strong>코드 수정이 아니라 <code>CommissionPolicy</code> 레코드 1건 입력</strong>으로 끝납니다. 재배포도 불필요</td></tr></tbody></table></div>
 <hr class="divider"/>
 <h2 class="section-title">💰 4. 경영 판단 — 기획이 정할 수 없는 것 (4건)</h2>
-<div class="table-container"><table><thead><tr><th>#</th><th>안건</th><th>권고</th><th>정본</th></tr></thead><tbody><tr><td>**4-1**</td><td>**제휴사 혜택·수익 구조 재설계** — 차별화 4개 중 3개가 무효화(견적비교·답사예약 폐기, VR은 고아 컴포넌트). 살아남은 건 **검색 노출 우선순위 + 사진 업로드**뿐이고 **제휴 시설은 현재 0건**</td><td>실질 혜택과 대가를 정해야 영업 가능</td><td><code>01-01</code> §3.3</td></tr><tr><td>**4-2**</td><td>**현물 유품 수거 사업자 계정 형태** — 신규 유형 / <code>Partner</code> 확장 / 외주 제휴</td><td>🔴 **Domain 03 전체가 이 결정 하나를 기다립니다** (확정 스펙도 상위 기획서도 없음)</td><td><code>03-01</code> §3</td></tr><tr><td>**4-3**</td><td>**추모관 보존기간 + 수익 모델** — 03·05는 **수익 0인데 영구 스토리지 비용이 계속 발생**</td><td>장례식장 제휴 상품(D) 우선 검토. **오픈 전 필수**</td><td><code>05-01</code> §8-1·2, <code>05-02</code> §9</td></tr><tr><td>**4-4**</td><td>**02 과금 개시 시점** — Tier 3 월정액 단가(9.9만/29.9만 제시), Tier 2 상담료·수수료율, **PG 연동 여부**</td><td>초기엔 계좌이체 수동 처리 권장</td><td><code>02-03</code> §10, <code>02-02</code> §2</td></tr></tbody></table></div>
-<blockquote class="info-quote">🟡 <strong>4-3 참고</strong>: <code>07-01</code> §6이 지적한 대로 <strong>07은 05와 달리 수익 경로가 있습니다</strong> — 상속포기·상속세</blockquote>
-<blockquote class="info-quote">항목에서 막힌 유족이 곧 02 상담 수요입니다. 05만 유일하게 유입 경로가 없습니다.</blockquote>
+<div class="table-container"><table><thead><tr><th>#</th><th>안건</th><th>권고</th><th>정본</th></tr></thead><tbody><tr><td><strong>4-1</strong></td><td><strong>제휴사 혜택·수익 구조 재설계</strong> — 차별화 4개 중 3개가 무효화(견적비교·답사예약 폐기, VR은 고아 컴포넌트). 살아남은 건 <strong>검색 노출 우선순위 + 사진 업로드</strong>뿐이고 <strong>제휴 시설은 현재 0건</strong></td><td>실질 혜택과 대가를 정해야 영업 가능</td><td><code>01-01</code> §3.3</td></tr><tr><td><del><strong>4-2</strong></del></td><td><del><strong>현물 유품 수거 사업자 계정 형태</strong></del> — 신규 유형 / <code>Partner</code> 확장 / 외주 제휴</td><td><span class="tag green">✅</span> <strong>08-14 개발자 확정 — <code>Partner</code> 확장 + 별도 도메인</strong>(아래 <span class="tag blue">🔵</span>)</td><td><code>03-01</code> §3 → <strong><code>03-02</code></strong></td></tr><tr><td><strong>4-3</strong></td><td><strong>추모관 보존기간 + 수익 모델</strong> — 03·05는 <strong>수익 0인데 영구 스토리지 비용이 계속 발생</strong></td><td>장례식장 제휴 상품(D) 우선 검토. <strong>오픈 전 필수</strong></td><td><code>05-01</code> §8-1·2, <code>05-02</code> §9</td></tr><tr><td><strong>4-4</strong></td><td><strong>02 과금 개시 시점</strong> — Tier 3 월정액 단가(9.9만/29.9만 제시), Tier 2 상담료·수수료율, <strong>PG 연동 여부</strong></td><td>초기엔 계좌이체 수동 처리 권장</td><td><code>02-03</code> §10, <code>02-02</code> §2</td></tr></tbody></table></div>
+<blockquote class="info-quote"><span class="tag orange">🟡</span> <strong>4-3 참고</strong>: <code>07-01</code> §6이 지적한 대로 <strong>07은 05와 달리 수익 경로가 있습니다</strong> — 상속포기·상속세<br/>
+항목에서 막힌 유족이 곧 02 상담 수요입니다. 05만 유일하게 유입 경로가 없습니다.</blockquote>
+<p>&gt;</p>
+<blockquote class="info-quote"><span class="tag blue">🔵</span> <strong>4-3 추가(08-14)</strong>: <code>00-13</code> §7.2-3에 <strong>&quot;N년 후 동결 + 정적 스냅샷 보존&quot;</strong> 아이디어가 생겼습니다.<br/>
+*&quot;영구 보존&quot;* 비용이 무서운 이유는 <strong>살아 있는 서비스로 영구히 유지</strong>하기 때문인데, 방명록·헌화를<br/>
+닫고 기억만 굳히면 비용 곡선이 꺾입니다. <strong>유족에게도 &quot;삭제합니다&quot;보다 훨씬 낫습니다.</strong><br/>
+4-3 논의 시 함께 보시길 권합니다.</blockquote>
+<blockquote class="info-quote">## <span class="tag blue">🔵</span> <strong>4-2 처리 경위(2026-08-14)</strong> — 개발자 확정: *&quot;현물 유품 관련 Partner로 운영. 다른 Partner와<br/>
+마찬가지 별도의 Domain으로 운영하는 것이 좋다고 판단됨.&quot;*</blockquote>
+<p>&gt;</p>
+<blockquote class="info-quote"><strong><code>03-02</code> 상위 기획서를 신설</strong>했고 Domain 03의 기획 보류가 풀렸습니다. 다만 **계정 형태가 정해진<br/>
+것이지 &quot;사업을 한다&quot;가 정해진 것은 아닙니다** — 아래 3건은 여전히 사장님 결정입니다(<code>03-02</code> §1.2·§8).</blockquote>
+<p>&gt;</p>
+<blockquote class="info-quote">| 남은 것 | 왜 기획이 못 정하나 |<br/>
+| :--- | :--- |<br/>
+| <strong>업체 모집 개시 여부·시점</strong> | 영업 자원 배분 |<br/>
+| <strong>특수청소(고독사 현장) 취급 여부</strong> | 리스크 성격이 완전히 다름(<code>03-02</code> §6.3) |<br/>
+| 수수료 기준·요율 | <strong>§3-4가 정해지면 따라감</strong> |</blockquote>
+<p>&gt;</p>
+<blockquote class="info-quote"><span class="tag red">🔴</span> <strong>그리고 기획 과정에서 새로 드러난 위험 2가지</strong>(회의에서 짚을 가치가 있습니다):<br/>
+1. <strong>유품은 상속재산입니다.</strong> 분할 협의 전에 처분하면 <strong>단순승인으로 간주될 수 있어</strong>(민법 §1026①)<br/>
+   <code>07-02</code>가 지키려던 상속포기 권리를 03이 날려버릴 수 있습니다. → <code>03-02</code> §6.2 게이트.<br/>
+2. <strong>유품정리업은 법정 업종이 아닙니다.</strong> 공공 목록이 없어 <strong>&quot;우리가 승인한 것&quot;이 유일한 검증</strong>이고,<br/>
+   무허가 업체를 매칭해 불법 투기가 나면 플랫폼이 지목됩니다. → <code>03-02</code> §6.1.</blockquote>
 <hr class="divider"/>
 <h2 class="section-title">⚖️ 5. 외부 전문가 확인이 필요한 것 (5건)</h2>
 <p><strong>회의에서는 &quot;의뢰할지 말지&quot;만 정하면 됩니다.</strong> 내부에서 결론 낼 수 없는 항목입니다.</p>
-<div class="table-container"><table><thead><tr><th>#</th><th>무엇</th><th>왜</th><th>정본</th></tr></thead><tbody><tr><td>**5-1**</td><td>**운영자 대행(③) 적법성**</td><td>생전 위임이 있어도 자동으로 합법이 되진 않음. 플랫폼 약관의 제3자 대리 금지 · 유상 대행의 행정사법 저촉 여부</td><td><code>00-12</code> §8-1</td></tr><tr><td>**5-2**</td><td>**생전 위임의 문서화 형식**</td><td>**민법 §690 — 위임은 위임인 사망 시 종료**가 원칙. 사후 효력을 어떻게 남기나</td><td><code>02-04</code> §8-3</td></tr><tr><td>**5-3**</td><td>**변호사법 가드레일 외부 검토**</td><td>과금 개시 **전에** 받아야 함</td><td><code>02-03</code> §10-4, <code>02-02</code> §2</td></tr><tr><td>**5-4**</td><td>**ISMS-P 대상 여부 · 개인정보 국외이전**</td><td>인프라 사업자 선택(§3-3)과 맞물림</td><td><code>00-11</code> §8-5</td></tr><tr><td>**5-5**</td><td>**07 법령 데이터 검수**</td><td>§2-1이 증명함 — **내부 작성 목록이 실제로 틀렸습니다.** 02 제휴 전문가 검수를 권고(비용 0 가능)</td><td><code>07-01</code> §7.1</td></tr></tbody></table></div>
-<blockquote class="info-quote">🟡 <strong>5-1과 5-2는 같은 법률가에게 함께 맡기는 것을 권합니다.</strong> 둘 다 &quot;생전 위임의 사후 효력&quot;이라는</blockquote>
-<blockquote class="info-quote">같은 뿌리입니다.</blockquote>
+<div class="table-container"><table><thead><tr><th>#</th><th>무엇</th><th>왜</th><th>정본</th></tr></thead><tbody><tr><td><strong>5-1</strong></td><td><strong>운영자 대행(③) 적법성</strong></td><td>생전 위임이 있어도 자동으로 합법이 되진 않음. 플랫폼 약관의 제3자 대리 금지 · 유상 대행의 행정사법 저촉 여부</td><td><code>00-12</code> §8-1 → <strong><code>04-02</code></strong></td></tr><tr><td><strong>5-2</strong></td><td><strong>생전 위임의 문서화 형식</strong></td><td><strong>민법 §690 — 위임은 위임인 사망 시 종료</strong>가 원칙. 사후 효력을 어떻게 남기나</td><td><code>02-04</code> §8-3 → <strong><code>04-02</code></strong></td></tr><tr><td><strong>5-3</strong></td><td><strong>변호사법 가드레일 외부 검토</strong></td><td>과금 개시 <strong>전에</strong> 받아야 함</td><td><code>02-03</code> §10-4, <code>02-02</code> §2</td></tr><tr><td><strong>5-4</strong></td><td><strong>ISMS-P 대상 여부 · 개인정보 국외이전</strong></td><td>인프라 사업자 선택(§3-3)과 맞물림</td><td><code>00-11</code> §8-5</td></tr><tr><td><strong>5-5</strong></td><td><strong>07 법령 데이터 검수</strong></td><td>§2-1이 증명함 — <strong>내부 작성 목록이 실제로 틀렸습니다.</strong> 02 제휴 전문가 검수를 권고(비용 0 가능)</td><td><code>07-01</code> §7.1</td></tr></tbody></table></div>
+<blockquote class="info-quote"><span class="tag orange">🟡</span> <strong>5-1과 5-2는 같은 법률가에게 함께 맡기는 것을 권합니다.</strong> 둘 다 &quot;생전 위임의 사후 효력&quot;이라는<br/>
+같은 뿌리입니다.</blockquote>
+<blockquote class="info-quote">## <span class="tag blue">🔵</span> <strong>5-1·5-2 처리(2026-08-14) — <code>04-02</code> 신설. 의뢰 전에 할 일이 하나 더 있습니다.</strong></blockquote>
+<p>&gt;</p>
+<blockquote class="info-quote">개발자 질의에 답하면서 <strong>의뢰 범위가 줄고, 순서가 바뀌었습니다.</strong></blockquote>
+<p>&gt;</p>
+<blockquote class="info-quote">**① 5-2 — *&quot;문서화해도 효력이 없나?&quot;* → 아닙니다.**<br/>
+민법 §690(위임은 사망으로 종료)은 <strong>강행규정이 아니라는 것이 통설</strong>이고, 실무에서 사후사무<br/>
+위임계약이 쓰입니다. <strong>법정 서식도 없습니다</strong> — 즉 *&quot;양식을 만들면 강해진다&quot;* 가 아닙니다.<br/>
+진짜 문제는 형식이 아니라 <strong>그릇</strong>입니다: 위임은 ⓐ 상속인이 해지할 수 있고 ⓑ **재산 처분에는<br/>
+못 미칩니다.<strong> 그런데 </strong>디지털 계정 정리는 대부분 재산이 아니므로**(<code>04-01</code> §1.1이 금융·가상자산을<br/>
+이미 배제) <strong>개발자 직관대로 이 영역은 위임으로 충분합니다.</strong></blockquote>
+<p>&gt;</p>
+<blockquote class="info-quote"><strong>② 5-1 — 법률 검토보다 </strong>먼저<strong> 할 무료 확인이 있습니다.</strong><br/>
+<code>04-01</code> §1.1이 이미 확인했듯 <strong>주요 플랫폼에 제3자 대리 채널이 없습니다.</strong> 변호사에게 *&quot;대행해도<br/>
+되나&quot;* 를 물어 *&quot;됩니다&quot;* 를 받아도 **구글이 이어봄을 대리인으로 받아주지 않으면 실행 경로가<br/>
+없습니다.<strong> → </strong>각 사 약관 확인(비용 0)이 0번<strong>이고, 결과가 NO면 </strong>유료 검토가 통째로 불필요**합니다.</blockquote>
+<p>&gt;</p>
+<blockquote class="info-quote"><strong>③ 그리고 지금 당장 할 수 있는 답이 이미 있습니다.</strong><br/>
+각 플랫폼이 <strong>사전 지정 기능</strong>을 이미 제공합니다(Google 휴면 계정 관리자 · Apple 디지털 유산<br/>
+관리자 · Meta 추모 계정 관리자 등). 이건 이용자↔플랫폼 계약이라 **§690 논점이 아예 생기지 않고,<br/>
+무료이며, 효력이 확실<strong>합니다. </strong>이어봄은 안내하고 지정 여부만 기록합니다** —<br/>
+<code>06-02</code> §3(연명의료 등록기관)에서 이미 쓴 것과 <strong>똑같은 형태</strong>입니다.<br/>
+덧붙여 <strong>이어봄 자체 계정 안에서는 100% 대행할 수 있습니다</strong>(<code>MEMORIALIZED</code> 전환·엔딩노트 전달·<br/>
+추모관 권한 이양) — 우리가 당사자이기 때문이며, <strong>법률 검토가 필요 없습니다.</strong></blockquote>
+<p>&gt;</p>
+<blockquote class="info-quote"><strong>→ 회의 안건으로는 &quot;유료 의뢰 여부&quot;가 아니라 &quot;0번 무료 확인을 지시할지&quot;만 남습니다.</strong></blockquote>
 <hr class="divider"/>
 <h2 class="section-title">🏢 6. 운영 체계 — 사람과 시간 (3건)</h2>
-<div class="table-container"><table><thead><tr><th>#</th><th>안건</th><th>왜 지금</th><th>정본</th></tr></thead><tbody><tr><td>**6-1**</td><td>**신고 처리 목표 응답시간 · 야간 대응 · 담당자**</td><td>🔴 **추모관 <code>PUBLIC</code> 승인제의 전제**입니다. 승인할 사람이 없으면 승인제는 &quot;PUBLIC 기능이 없는 것&quot;과 같습니다</td><td><code>05-02</code> §8·§11-4</td></tr><tr><td>**6-2**</td><td>**엔딩노트 운영자 열람 범위 A/B**</td><td>메타데이터만(A) vs 본문까지(B). **B는 화면에 건 비밀보장 약속과 충돌**</td><td><code>06-01</code> §3</td></tr><tr><td>**6-3**</td><td>**회귀 테스트 체계**</td><td>지금까지 검증 스크립트를 실행 후 전부 삭제해왔습니다 — **회귀 테스트가 0건**입니다</td><td><code>05-02</code> §6.4·§11-6</td></tr></tbody></table></div>
+<div class="table-container"><table><thead><tr><th>#</th><th>안건</th><th>왜 지금</th><th>정본</th></tr></thead><tbody><tr><td><strong>6-1</strong></td><td><strong>신고 처리 목표 응답시간 · 야간 대응 · 담당자</strong></td><td><span class="tag red">🔴</span> <strong>추모관 <code>PUBLIC</code> 승인제의 전제</strong>입니다. 승인할 사람이 없으면 승인제는 &quot;PUBLIC 기능이 없는 것&quot;과 같습니다</td><td><code>05-02</code> §8·§11-4</td></tr><tr><td><strong>6-2</strong></td><td><strong>엔딩노트 운영자 열람 범위 A/B</strong></td><td>메타데이터만(A) vs 본문까지(B). <strong>B는 화면에 건 비밀보장 약속과 충돌</strong></td><td><code>06-01</code> §3</td></tr><tr><td><strong>6-3</strong></td><td><strong>회귀 테스트 체계</strong></td><td>지금까지 검증 스크립트를 실행 후 전부 삭제해왔습니다 — <strong>회귀 테스트가 0건</strong>입니다</td><td><code>05-02</code> §6.4·§11-6</td></tr></tbody></table></div>
 <hr class="divider"/>
 <h2 class="section-title">🔧 7. 기술 확인 — 권고안대로 가면 되는 것 (6건)</h2>
 <p><strong>&quot;권고대로 하겠습니다&quot;만 확인해 주시면 됩니다.</strong> 이견 있으실 때만 논의합니다.</p>
-<div class="table-container"><table><thead><tr><th>#</th><th>안건</th><th>권고</th><th>정본</th></tr></thead><tbody><tr><td>7-1</td><td>견적요청 로그인 요구</td><td>비회원 허용 + 휴대폰 인증</td><td><code>01-05</code> §10-2</td></tr><tr><td>7-2</td><td>정산 주기 · 이의제기 기간</td><td>월 1회, 발행 후 7일</td><td><code>01-05</code> §10-3</td></tr><tr><td>7-3</td><td>비제휴 시설 견적요청 수용</td><td>수용 (**비제휴 리드 건수가 곧 B2B 영업 무기**)</td><td><code>01-05</code> §10-4</td></tr><tr><td>7-4</td><td>L3 사망 서류 저장 여부</td><td>화면 확인 후 **미저장**</td><td><code>00-12</code> §8-2, <code>04-01</code> §10-2</td></tr><tr><td>7-5</td><td>모드 전환 UX (생전/유족)</td><td>C안 — 컨텍스트 자동 + 수동 전환</td><td><code>00-12</code> §6.2</td></tr><tr><td>7-6</td><td><code>PUBLIC</code> 추모관 목록 페이지</td><td>**만들지 않음**(색인 노출 위험)</td><td><code>05-01</code> §8-3</td></tr></tbody></table></div>
+<div class="table-container"><table><thead><tr><th>#</th><th>안건</th><th>권고</th><th>정본</th></tr></thead><tbody><tr><td>7-1</td><td>견적요청 로그인 요구</td><td>비회원 허용 + 휴대폰 인증</td><td><code>01-05</code> §10-2</td></tr><tr><td>7-2</td><td>정산 주기 · 이의제기 기간</td><td>월 1회, 발행 후 7일</td><td><code>01-05</code> §10-3</td></tr><tr><td>7-3</td><td>비제휴 시설 견적요청 수용</td><td>수용 (<strong>비제휴 리드 건수가 곧 B2B 영업 무기</strong>)</td><td><code>01-05</code> §10-4</td></tr><tr><td>7-4</td><td>L3 사망 서류 저장 여부</td><td>화면 확인 후 <strong>미저장</strong></td><td><code>00-12</code> §8-2, <code>04-01</code> §10-2</td></tr><tr><td>7-5</td><td>모드 전환 UX (생전/유족)</td><td>C안 — 컨텍스트 자동 + 수동 전환</td><td><code>00-12</code> §6.2</td></tr><tr><td>7-6</td><td><code>PUBLIC</code> 추모관 목록 페이지</td><td><strong>만들지 않음</strong>(색인 노출 위험)</td><td><code>05-01</code> §8-3</td></tr></tbody></table></div>
 <hr class="divider"/>
 <h2 class="section-title">📋 8. 도메인별 전수 대장</h2>
 <p>§2~§7에 안 들어간 것까지 전부입니다. <strong>중복은 &quot;→&quot;로 표시</strong>했습니다.</p>
 <h3 class="subsection-title">00 공통 플랫폼</h3>
-<div class="table-container"><table><thead><tr><th>문서</th><th>항목</th><th>분류</th></tr></thead><tbody><tr><td><code>00-11</code> §8</td><td>클라우드 사업자 / 예산 / 오픈시점 / 인력 / 법률인증</td><td>§3-3, §5-4</td></tr><tr><td><code>00-12</code> §8</td><td>운영자 대행 법률 → §5-1 · L3 서류 → §7-4 · <code>MEMORIALIZED</code> 보유기간 → §4-3 · 모드 UX → §7-5 · 사망확인 주체·비용</td><td>§3~7</td></tr><tr><td><code>00-12</code> §7.3</td><td>**연결의 &quot;발견&quot; 단계** — 유족이 고인의 계정 존재를 어떻게 아나 (권고: 생전 지정 시 즉시 통지)</td><td>**신규·미분류**</td></tr><tr><td><code>00-13</code> §8</td><td>05·07 통합 → §3-2 · 링크 모델 → §3-1 · 조문 로그인 · 구링크 응답 · phase 트리거 · **재전파 고지 문구**</td><td>§3-1에 종속</td></tr></tbody></table></div>
+<div class="table-container"><table><thead><tr><th>문서</th><th>항목</th><th>분류</th></tr></thead><tbody><tr><td><code>00-11</code> §8</td><td>클라우드 사업자 / 예산 / 오픈시점 / 인력 / 법률인증</td><td>§3-3, §5-4</td></tr><tr><td><code>00-12</code> §8</td><td>운영자 대행 법률 → §5-1 · L3 서류 → §7-4 · <code>MEMORIALIZED</code> 보유기간 → §4-3 · 모드 UX → §7-5 · 사망확인 주체·비용</td><td>§3~7</td></tr><tr><td><code>00-12</code> §7.3</td><td><strong>연결의 &quot;발견&quot; 단계</strong> — 유족이 고인의 계정 존재를 어떻게 아나 (권고: 생전 지정 시 즉시 통지)</td><td><strong>신규·미분류</strong></td></tr><tr><td><code>00-13</code> §8</td><td><del>05·07 통합</del> <span class="tag green">✅</span> · <del>링크 모델</del> <span class="tag green">✅</span> · <del>phase 트리거</del> <span class="tag green">✅</span> <strong>소멸</strong> · 남은 6건은 <strong>개발자 확정</strong>(조문 로그인 · 구링크 응답 · 재전파 고지 문구 · <strong>조의금 계좌 노출</strong> · <strong>OG 카드 내용</strong> · <strong>동결 후 정적 보존</strong>)</td><td><span class="tag green">✅</span> <strong>08-14 대부분 해소</strong></td></tr></tbody></table></div>
 <h3 class="subsection-title">01 장사시설 매칭</h3>
-<div class="table-container"><table><thead><tr><th>문서</th><th>항목</th><th>분류</th></tr></thead><tbody><tr><td><code>01-05</code> §10</td><td>수수료 기준 → §3-4 · 로그인 → §7-1 · 정산주기 → §7-2 · 비제휴 → §7-3</td><td>—</td></tr><tr><td><code>01-01</code> §3.3</td><td>제휴사 혜택 재설계 → §4-1 · **VR 뷰어 고아 컴포넌트 존치 여부**</td><td>§4-1</td></tr></tbody></table></div>
+<div class="table-container"><table><thead><tr><th>문서</th><th>항목</th><th>분류</th></tr></thead><tbody><tr><td><code>01-05</code> §10</td><td>수수료 기준 → §3-4 · 로그인 → §7-1 · 정산주기 → §7-2 · 비제휴 → §7-3</td><td>—</td></tr><tr><td><code>01-01</code> §3.3</td><td>제휴사 혜택 재설계 → §4-1 · <strong>VR 뷰어 고아 컴포넌트 존치 여부</strong></td><td>§4-1</td></tr></tbody></table></div>
 <h3 class="subsection-title">02 전문가 매칭</h3>
 <div class="table-container"><table><thead><tr><th>문서</th><th>항목</th><th>분류</th></tr></thead><tbody><tr><td><code>02-02</code> §2</td><td>자격증 진위확인 API · 변호사 결제수단 · 3직역 수수료 설계</td><td>§4-4</td></tr><tr><td><code>02-03</code> §10</td><td>Tier 3 단가 · Tier 2 상담료 · PG 연동 · 변호사 검토</td><td>§4-4, §5-3</td></tr><tr><td><code>02-04</code> §8</td><td>공증 법무사 → §2-3 · 엔딩노트 면책 → §2-2 · 생전위임 문서화 → §5-2 · <code>contextType</code> 추가 · 생전 상담 가격대</td><td>§2, §5</td></tr></tbody></table></div>
 <h3 class="subsection-title">03 현물 유품 수거</h3>
-<div class="table-container"><table><thead><tr><th>문서</th><th>항목</th><th>분류</th></tr></thead><tbody><tr><td><code>03-01</code> §3</td><td>**사업자 계정 형태** — 이 도메인 전체의 착수 조건</td><td>§4-2</td></tr></tbody></table></div>
+<div class="table-container"><table><thead><tr><th>문서</th><th>항목</th><th>분류</th></tr></thead><tbody><tr><td><del><code>03-01</code> §3</del></td><td><del>사업자 계정 형태</del></td><td><span class="tag green">✅</span> <strong>08-14 해소 → <code>03-02</code></strong></td></tr><tr><td><code>03-02</code> §8</td><td>업체 모집 개시 · 특수청소 취급 · 폐기물 인허가 확인 기준 · 요율</td><td>§4-2 잔여</td></tr></tbody></table></div>
 <h3 class="subsection-title">04 디지털 자산 정산</h3>
-<div class="table-container"><table><thead><tr><th>문서</th><th>항목</th><th>분류</th></tr></thead><tbody><tr><td><code>04-01</code> §10</td><td>운영자 대행 → §5-1 · L3 서류 → §7-4 · 현물유품 재개 → §4-2 · **도메인 명칭 &quot;정산&quot; vs &quot;정리&quot;** · <code>deceasedId</code> 추가</td><td>대부분 중복</td></tr></tbody></table></div>
-<blockquote class="info-quote"><strong>도메인 명칭 건</strong>: 재편안이 04를 *&quot;디지털 자산·계정 <strong>정산</strong>&quot;* 으로 명명했는데, <code>04-01</code> §7.1이</blockquote>
-<blockquote class="info-quote"><strong>화면 문구에서 &quot;정산&quot;을 금지</strong>했습니다(재산 처리를 약속하는 것으로 읽힘). 문서명은 재편안을</blockquote>
-<blockquote class="info-quote">따랐지만 <strong>명칭 자체를 &quot;디지털 계정 정리&quot;로 바꿀지는 개발자 판단</strong>입니다.</blockquote>
+<div class="table-container"><table><thead><tr><th>문서</th><th>항목</th><th>분류</th></tr></thead><tbody><tr><td><code>04-01</code> §10</td><td>운영자 대행 → §5-1 · L3 서류 → §7-4 · 현물유품 재개 → §4-2 · <strong>도메인 명칭 &quot;정산&quot; vs &quot;정리&quot;</strong> · <code>deceasedId</code> 추가</td><td>대부분 중복</td></tr></tbody></table></div>
+<blockquote class="info-quote"><strong>도메인 명칭 건</strong>: 재편안이 04를 *&quot;디지털 자산·계정 <strong>정산</strong>&quot;* 으로 명명했는데, <code>04-01</code> §7.1이<br/>
+<strong>화면 문구에서 &quot;정산&quot;을 금지</strong>했습니다(재산 처리를 약속하는 것으로 읽힘). 문서명은 재편안을<br/>
+따랐지만 <strong>명칭 자체를 &quot;디지털 계정 정리&quot;로 바꿀지는 개발자 판단</strong>입니다.</blockquote>
 <h3 class="subsection-title">05 디지털 추모관</h3>
-<div class="table-container"><table><thead><tr><th>문서</th><th>항목</th><th>분류</th></tr></thead><tbody><tr><td><code>05-01</code> §8</td><td>보존기간 → §4-3 · 유료화 → §4-3 · PUBLIC 목록 → §7-6 · 링크모델 → §3-1 · 조문 로그인 → §3-1 · 개설게이트·신고정책</td><td>§3, §4</td></tr><tr><td><code>05-02</code> §11</td><td>개설게이트 · 신고정책 · 04 경계 → §3-2 · 운영부하 → §6-1 · 보존·수익 → §4-3 · 회귀테스트 → §6-3 · 방명록 본인삭제 · 사진삭제 권한 · 중복 추모관(**보류 지시됨**)</td><td>§3~6</td></tr></tbody></table></div>
+<div class="table-container"><table><thead><tr><th>문서</th><th>항목</th><th>분류</th></tr></thead><tbody><tr><td><code>05-01</code> §8</td><td>보존기간 → §4-3 · 유료화 → §4-3 · PUBLIC 목록 → §7-6 · 링크모델 → §3-1 · 조문 로그인 → §3-1 · 개설게이트·신고정책</td><td>§3, §4</td></tr><tr><td><code>05-02</code> §11</td><td>개설게이트 · 신고정책 · 04 경계 → §3-2 · 운영부하 → §6-1 · 보존·수익 → §4-3 · 회귀테스트 → §6-3 · 방명록 본인삭제 · 사진삭제 권한 · 중복 추모관(<strong>보류 지시됨</strong>)</td><td>§3~6</td></tr></tbody></table></div>
 <h3 class="subsection-title">06 엔딩노트 · 유언</h3>
 <div class="table-container"><table><thead><tr><th>문서</th><th>항목</th><th>분류</th></tr></thead><tbody><tr><td><code>06-01</code> §3</td><td>운영자 열람 범위 A/B</td><td>§6-2</td></tr></tbody></table></div>
 <h3 class="subsection-title">07 상중 · 행정 케어</h3>
-<div class="table-container"><table><thead><tr><th>문서</th><th>항목</th><th>분류</th></tr></thead><tbody><tr><td><code>07-01</code> §8</td><td>부고장 소속 → §3-2 · 법령 검수 → §5-5 · **면책 문구** · 알림 채널 · <code>deceasedId</code> · 24h 긴급콜 → §2-4</td><td>§2, §3, §5</td></tr></tbody></table></div>
+<div class="table-container"><table><thead><tr><th>문서</th><th>항목</th><th>분류</th></tr></thead><tbody><tr><td><code>07-01</code> §8</td><td><del>부고장 소속</del> <span class="tag green">✅</span> <strong>08-14 — 07에 남음</strong>(<code>00-13</code> §4.5) · 법령 검수 → §5-5 · <strong>면책 문구</strong> · 알림 채널 · <code>deceasedId</code> · <del>24h 긴급콜</del> <span class="tag green">✅</span></td><td>§5 + 개발자</td></tr></tbody></table></div>
 <hr class="divider"/>
 <h2 class="section-title">🕐 9. 회의 진행 제안</h2>
-<p>시간이 짧으면 <strong>§2 → §3만</strong> 하셔도 됩니다. 나머지는 다음으로 미뤄도 아무것도 안 막힙니다.</p>
-<div class="table-container"><table><thead><tr><th>순서</th><th>안건</th><th>예상</th><th>이유</th></tr></thead><tbody><tr><td>1</td><td>**§2 즉시 처리 4건**</td><td>15분</td><td>이미 사용자에게 약속한 상태. 3건은 &quot;고치자&quot;면 끝</td></tr><tr><td>2</td><td>**§3-1 링크 모델**</td><td>20분</td><td>가장 많이 푸는 결정. <code>00-13</code> 4안 비교표를 함께 보시면 빠릅니다</td></tr><tr><td>3</td><td>**§3-2 05·07 통합**</td><td>10분</td><td>§3-1의 C안을 고르시면 사실상 함께 결정됩니다</td></tr><tr><td>4</td><td>**§3-3 인프라 · §3-4 수수료**</td><td>20분</td><td>둘 다 &quot;숫자를 주셔야&quot; 진행되는 것</td></tr><tr><td>5</td><td>§4 경영 판단 4건</td><td>30분</td><td>길어지면 여기서 끊고 다음으로</td></tr><tr><td>—</td><td>§5~§7</td><td>—</td><td>서면으로도 가능</td></tr></tbody></table></div>
+<blockquote class="info-quote"><span class="tag blue">🔵</span> <strong>2026-08-14 갱신</strong> — §2가 전건 완료되고 §3-1·3-2·4-2가 처리되면서 <strong>순서가 크게 바뀌었습니다.</strong><br/>
+아래 표는 갱신본이고, 구 순서는 필요 없어 대체했습니다.</blockquote>
+<p>시간이 짧으면 <strong>§3-3 → §3-4만</strong> 하셔도 됩니다. 나머지는 다음으로 미뤄도 아무것도 안 막힙니다.</p>
+<div class="table-container"><table><thead><tr><th>순서</th><th>안건</th><th>예상</th><th>이유</th></tr></thead><tbody><tr><td>0</td><td><strong>처리 결과 공유</strong>(§1 <span class="tag blue">🔵</span> 블록)</td><td>5분</td><td>결정이 아니라 보고. §2 5건 + 3-1·3-2·4-2</td></tr><tr><td>1</td><td><strong>§3-3 인프라</strong></td><td>20분</td><td><strong>오픈 규모 가정·목표 시점</strong>이 없으면 예산 산출 자체가 불가능</td></tr><tr><td>2</td><td><strong>§3-4 수수료 기준</strong></td><td>15분</td><td>정해지면 <code>CommissionPolicy</code> 레코드 1건으로 끝. <strong>03 요율도 여기 따라감</strong></td></tr><tr><td>3</td><td><strong>§4-1 제휴사 혜택</strong></td><td>20분</td><td>제휴 시설 0건 — 영업이 안 시작됨</td></tr><tr><td>4</td><td><strong>§4-3 추모관 보존·수익</strong></td><td>15분</td><td><strong>&quot;동결 후 정적 보존&quot; 새 안</strong>을 함께 보시면 빠릅니다(§4-3 <span class="tag blue">🔵</span>)</td></tr><tr><td>5</td><td><strong>§4-4 02 과금 개시</strong></td><td>15분</td><td>PG 연동 여부가 본체</td></tr><tr><td>6</td><td><strong>§4-2 잔여 3건</strong></td><td>10분</td><td>계정 형태는 정해졌고, <strong>&quot;사업을 할 것인가&quot;만</strong> 남음</td></tr><tr><td>—</td><td>§5~§7</td><td>—</td><td>서면으로도 가능. <strong>5-1·5-2는 무료 확인 지시 여부만</strong></td></tr></tbody></table></div>
 <h3 class="subsection-title">9.1 회의 전에 준비하면 좋은 것</h3>
-<ul><li><strong>오픈 목표 시점</strong>과 <strong>초기 사용자 규모 가정</strong> — §3-3 예산 산출이 이것 없이는 불가능합니다.</li></ul>
-<ul><li><strong>제휴 시설 영업 계획</strong> — §4-1은 &quot;무엇을 줄 수 있나&quot;가 정해져야 합니다.</li></ul>
+<ul>
+<li><strong>오픈 목표 시점</strong>과 <strong>초기 사용자 규모 가정</strong> — §3-3 예산 산출이 이것 없이는 불가능합니다.</li>
+<li><strong>제휴 시설 영업 계획</strong> — §4-1은 &quot;무엇을 줄 수 있나&quot;가 정해져야 합니다.</li>
+</ul>
 <hr class="divider"/>
 <h2 class="section-title">🔗 10. 관련 문서</h2>
-<div class="table-container"><table><thead><tr><th>문서</th><th>이 문서와의 관계</th></tr></thead><tbody><tr><td><code>00-13</code></td><td>§3-1·§3-2의 정본. **회의에 함께 띄우시길 권합니다** (4안 비교표 §5)</td></tr><tr><td><code>00-11</code></td><td>§3-3의 정본</td></tr><tr><td><code>00-12</code></td><td>§7.3(발견 단계) 외 대부분 §5·§7로 분류됨</td></tr><tr><td><code>07-01</code></td><td>§2-1·§2-4의 근거. 신설 문서(2026-08-13)</td></tr><tr><td><code>02-04</code></td><td>§2-2·§2-3의 근거. 신설 문서(2026-08-13)</td></tr><tr><td><code>.harness/memory/pending-approvals.md</code></td><td>승인 대기 5건 — 이 문서와 내용이 겹치며, **결정 시 그쪽도 함께 해제**해야 합니다</td></tr></tbody></table></div>
-<blockquote class="info-quote"><strong>이 문서는 회의 후 폐기하지 않고 갱신합니다</strong> — 결정된 항목에 결정 내용과 날짜를 적어두면</blockquote>
-<blockquote class="info-quote">다음 회의의 출발점이 됩니다.</blockquote>
+<div class="table-container"><table><thead><tr><th>문서</th><th>이 문서와의 관계</th></tr></thead><tbody><tr><td><code>00-13</code></td><td>§3-1·§3-2의 정본. <strong>08-14 E안으로 갱신</strong> — 5안 비교표 §5 · 신 권고 §7.3</td></tr><tr><td><code>03-02</code></td><td><strong>§4-2의 산출물</strong>(2026-08-14). 잔여 결정 3건은 §8</td></tr><tr><td><code>04-02</code></td><td><strong>§5-1·§5-2의 산출물</strong>(2026-08-14). 의뢰 질문지는 §7</td></tr><tr><td><code>00-11</code></td><td>§3-3의 정본</td></tr><tr><td><code>00-12</code></td><td>§7.3(발견 단계) 외 대부분 §5·§7로 분류됨</td></tr><tr><td><code>07-01</code></td><td>§2-1·§2-4의 근거. 신설 문서(2026-08-13)</td></tr><tr><td><code>02-04</code></td><td>§2-2·§2-3의 근거. 신설 문서(2026-08-13)</td></tr><tr><td><code>.harness/memory/pending-approvals.md</code></td><td>승인 대기 5건 — 이 문서와 내용이 겹치며, <strong>결정 시 그쪽도 함께 해제</strong>해야 합니다</td></tr></tbody></table></div>
+<blockquote class="info-quote"><strong>이 문서는 회의 후 폐기하지 않고 갱신합니다</strong> — 결정된 항목에 결정 내용과 날짜를 적어두면<br/>
+다음 회의의 출발점이 됩니다.</blockquote>
 
   </div>
 </body>

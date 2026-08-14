@@ -151,9 +151,22 @@
     .tag.green { background-color: #DCFCE7; color: #166534; }
     .tag.gray { background-color: #F1F5F9; color: #475569; }
     .tag.orange { background-color: #FFEDD5; color: #9A3412; }
+    .tag.red { background-color: #FEE2E2; color: #991B1B; border: 1px solid #FECACA; }
+    .tag.blue { background-color: #DBEAFE; color: #1E40AF; border: 1px solid #BFDBFE; }
+    .tag.gold { background-color: #FEF3C7; color: #92400E; border: 1px solid #FDE68A; font-weight: 700; }
+    .tag.warn { background-color: #FEF3C7; color: #B45309; }
     .tag.pk { background-color: #FEE2E2; color: #991B1B; }
     .tag.fk { background-color: #DBEAFE; color: #1E40AF; }
     .tag.uk { background-color: #DCFCE7; color: #166534; }
+    del {
+      color: #94A3B8;
+      text-decoration: line-through;
+    }
+    .md-link {
+      color: var(--accent);
+      text-decoration: underline;
+      font-weight: 500;
+    }
     p { margin-bottom: 0.9rem; color: #334155; }
     ul, ol { margin-bottom: 1rem; padding-left: 1.4rem; color: #334155; }
     li { margin-bottom: 0.4rem; }
@@ -316,50 +329,64 @@
     </div>
     <blockquote class="info-quote">## 🚫 폐기 (2026-08-11) — 견적 비교 기능 자체를 접기로 결정</blockquote>
 <p>&gt;</p>
-<blockquote class="info-quote"><strong>결정</strong>: 개발자가 사장님과 논의한 결과 <strong>견적 비교 기능을 도입하지 않는다.</strong></blockquote>
-<blockquote class="info-quote"><strong>사유</strong>: 이어봄의 수익은 견적 비교가 아니라 <strong>업체 문의(리드) 수수료</strong>에서 나오는 구조가 맞다고 결론.</blockquote>
-<blockquote class="info-quote">견적 비교는 (1) 세부 단가 수집이 e하늘 API·위치정보법 사업자 신고에 묶여 있고(→ <code>01-02</code>),</blockquote>
-<blockquote class="info-quote">(2) 설령 붙여도 그 자체로는 과금 지점이 없어 리드 전환의 우회로에 그친다.</blockquote>
-<blockquote class="info-quote"><strong>대체</strong>: 업체 문의(<code>InquiryModal</code> → <code>Lead type=QUOTE</code>)가 유일한 전환·과금 접점이다(→ <code>01-05</code>).</blockquote>
+<blockquote class="info-quote"><strong>결정</strong>: 개발자가 사장님과 논의한 결과 <strong>견적 비교 기능을 도입하지 않는다.</strong><br/>
+<strong>사유</strong>: 이어봄의 수익은 견적 비교가 아니라 <strong>업체 문의(리드) 수수료</strong>에서 나오는 구조가 맞다고 결론.<br/>
+견적 비교는 (1) 세부 단가 수집이 e하늘 API·위치정보법 사업자 신고에 묶여 있고(→ <code>01-02</code>),<br/>
+(2) 설령 붙여도 그 자체로는 과금 지점이 없어 리드 전환의 우회로에 그친다.<br/>
+<strong>대체</strong>: 업체 문의(<code>InquiryModal</code> → <code>Lead type=QUOTE</code>)가 유일한 전환·과금 접점이다(→ <code>01-05</code>).</blockquote>
 <p>&gt;</p>
-<blockquote class="info-quote">이 문서는 <strong>판단 근거 보존용으로만 남긴다.</strong> 아래 3대 대안(A/B/C안)은 전부 착수하지 않는다.</blockquote>
-<blockquote class="info-quote">관련 승인 대기 항목(&quot;docs/13 가격비교 A+C안&quot;)도 같은 날 해제되었다.</blockquote>
+<blockquote class="info-quote">이 문서는 <strong>판단 근거 보존용으로만 남긴다.</strong> 아래 3대 대안(A/B/C안)은 전부 착수하지 않는다.<br/>
+관련 승인 대기 항목(&quot;docs/13 가격비교 A+C안&quot;)도 같은 날 해제되었다.</blockquote>
 <blockquote class="info-quote"><strong>문서 목적</strong>(폐기 전 원문): 전국 1,100여 개 장례식장의 실시간 세부 견적 단가 수집의 현실적 한계를 극복하고, 유저 UX 만족도 및 B2B 수익성을 극대화하기 위한 <strong>3가지 기획 대안(Alternative Proposals)</strong>을 제시하고 PM 및 경영진의 의사결정을 지원합니다.</blockquote>
 <hr class="divider"/>
 <h2 class="section-title">📌 1. 문제 배경 및 현황 분석</h2>
-<ul><li><strong>현상</strong>: 카카오 로컬 API 및 공공데이터 마스터 파일(CSV)은 장례식장의 <strong>명칭, 도로명 주소, 위치 좌표, 전화번호</strong>를 100% 제공하나, 장례식장별 <strong>5대 세부 항목(빈소 임대료, 안치실 사용료, 관/수의 비용, 제단 생화, 접객 음식비) 단가</strong>는 공시 파편화로 인해 실시간 일괄 수집에 한계가 존재함.</li></ul>
-<ul><li><strong>핵심 과제</strong>: 세부 데이터 부재 상태에서도 <strong>첫날부터 100% 작동 가능한 견적 비교 UX 및 B2B 입점 유인 모델</strong>을 구축해야 함.</li></ul>
+<ul>
+<li><strong>현상</strong>: 카카오 로컬 API 및 공공데이터 마스터 파일(CSV)은 장례식장의 <strong>명칭, 도로명 주소, 위치 좌표, 전화번호</strong>를 100% 제공하나, 장례식장별 <strong>5대 세부 항목(빈소 임대료, 안치실 사용료, 관/수의 비용, 제단 생화, 접객 음식비) 단가</strong>는 공시 파편화로 인해 실시간 일괄 수집에 한계가 존재함.</li>
+<li><strong>핵심 과제</strong>: 세부 데이터 부재 상태에서도 <strong>첫날부터 100% 작동 가능한 견적 비교 UX 및 B2B 입점 유인 모델</strong>을 구축해야 함.</li>
+</ul>
 <hr class="divider"/>
 <h2 class="section-title">💡 2. 3대 기획 대안 상세 비교</h2>
 <h3 class="subsection-title">🟢 [대안 A] 표준 장례비 시뮬레이터 (Smart Standard Estimator) 모델</h3>
-<ul><li><strong>개념</strong>: 보건복지부/한국장례문화진흥원 발표 <strong>업계 표준 장례비 통계 수가표</strong>를 기반으로 유저의 선택 조건(<strong>하객 수, 종교, 빈소 규모, 장지 유형</strong>)에 따라 <strong>&quot;예상 견적 시뮬레이션 금액&quot;</strong>을 자동 산출하는 방식.</li></ul>
-<ul><li><strong>UX 노출 방식</strong>:</li></ul>
+<ul>
+<li><strong>개념</strong>: 보건복지부/한국장례문화진흥원 발표 <strong>업계 표준 장례비 통계 수가표</strong>를 기반으로 유저의 선택 조건(<strong>하객 수, 종교, 빈소 규모, 장지 유형</strong>)에 따라 <strong>&quot;예상 견적 시뮬레이션 금액&quot;</strong>을 자동 산출하는 방식.</li>
+<li><strong>UX 노출 방식</strong>:</li>
+</ul>
 <p>  * <code>[💡 100명 규모 알뜰 가족장: 약 450만 ~ 580만원]</code></p>
 <p>  * <code>[💡 300명 규모 대학병원장: 약 780만 ~ 950만원]</code></p>
 <p>  * 모달 내 <code>* 보건복지부 표준 수가 기준 예상 가이드 비용</code> 안내 문구 표기.</p>
-<ul><li><strong>장점</strong>: 데이터가 완벽하지 않아도 <strong>첫날부터 전국 1,100개 시설에 대해 100% 무결점 구동</strong>.</li></ul>
-<ul><li><strong>단점</strong>: 개별 장례식장의 미세한 현장 단가 차이는 반영되지 않음 (가이드 성격).</li></ul>
+<ul>
+<li><strong>장점</strong>: 데이터가 완벽하지 않아도 <strong>첫날부터 전국 1,100개 시설에 대해 100% 무결점 구동</strong>.</li>
+<li><strong>단점</strong>: 개별 장례식장의 미세한 현장 단가 차이는 반영되지 않음 (가이드 성격).</li>
+</ul>
 <hr class="divider"/>
-<h3 class="subsection-title">🟡 [대안 B] 비제휴 일반 시설 vs 🌿 이어봄 제휴 파트너 시설 차별화 모델</h3>
-<ul><li><strong>개념</strong>: 데이터가 부족한 일반 시설과 정교한 데이터를 등록한 제휴 파트너 시설의 견적 노출을 다원화하여 <strong>B2B 입점을 유도하는 상업적 모델</strong>.</li></ul>
-<ul><li><strong>UX 노출 방식</strong>:</li></ul>
+<h3 class="subsection-title"><span class="tag orange">🟡</span> [대안 B] 비제휴 일반 시설 vs 🌿 이어봄 제휴 파트너 시설 차별화 모델</h3>
+<ul>
+<li><strong>개념</strong>: 데이터가 부족한 일반 시설과 정교한 데이터를 등록한 제휴 파트너 시설의 견적 노출을 다원화하여 <strong>B2B 입점을 유도하는 상업적 모델</strong>.</li>
+<li><strong>UX 노출 방식</strong>:</li>
+</ul>
 <p>  * <strong>일반 비제휴 시설:</strong> 보건복지부 공시 기본 총액(<code>약 750만원~</code>)만 표기. 견적 클릭 시 1:1 상담 안내 팝업.</p>
 <p>  * <strong>🌿 이어봄 제휴 시설:</strong> 파트너 어드민에서 직접 입력한 <strong><code>5대 세부 항목 실시간 분해 &amp; 이어봄 전용 할인가</code></strong> 대시보드 노출.</p>
-<ul><li><strong>장점</strong>: 장례식장 원장에게 <strong>&quot;이어봄 제휴 파트너 가입 명분&quot;</strong>을 강력히 제공 (B2B 입점 수익 모델과의 완벽한 직결).</li></ul>
-<ul><li><strong>단점</strong>: 초기에 제휴 파트너가 적을 경우 세부 견적 노출 비율이 낮음.</li></ul>
+<ul>
+<li><strong>장점</strong>: 장례식장 원장에게 <strong>&quot;이어봄 제휴 파트너 가입 명분&quot;</strong>을 강력히 제공 (B2B 입점 수익 모델과의 완벽한 직결).</li>
+<li><strong>단점</strong>: 초기에 제휴 파트너가 적을 경우 세부 견적 노출 비율이 낮음.</li>
+</ul>
 <hr class="divider"/>
-<h3 class="subsection-title">🔵 [대안 C] 1-Touch 맞춤 비교 견적서 신청 (Lead Generation) 모델</h3>
-<ul><li><strong>개념</strong>: 버튼 명칭을 <code>[상세 견적 비교]</code> ➔ <strong><code>[💡 1-Touch 맞춤 비교 견적서 신청]</code></strong>으로 전환하여, 유저가 조건을 선택하면 전문 장례지도사가 카카오 알림톡/전화로 최적 3개 장례식장의 비교 견적서를 10분 내 발송.</li></ul>
-<ul><li><strong>UX 노출 방식</strong>:</li></ul>
+<h3 class="subsection-title"><span class="tag blue">🔵</span> [대안 C] 1-Touch 맞춤 비교 견적서 신청 (Lead Generation) 모델</h3>
+<ul>
+<li><strong>개념</strong>: 버튼 명칭을 <code>[상세 견적 비교]</code> ➔ <strong><code>[💡 1-Touch 맞춤 비교 견적서 신청]</code></strong>으로 전환하여, 유저가 조건을 선택하면 전문 장례지도사가 카카오 알림톡/전화로 최적 3개 장례식장의 비교 견적서를 10분 내 발송.</li>
+<li><strong>UX 노출 방식</strong>:</li>
+</ul>
 <p>  * 폼 모달 입력 (지역, 예산, 하객수) ➔ <code>[견적서 무료 신청하기]</code> ➔ 카카오 알림톡 발송.</p>
-<ul><li><strong>장점</strong>: 유저에게 가장 정확한 실시간 비교 견적 전달 가능 &amp; 최고 수준의 유저 리드 수집.</li></ul>
-<ul><li><strong>단점</strong>: 장례지도사 해피콜/상담원 운영 리소스 소요.</li></ul>
+<ul>
+<li><strong>장점</strong>: 유저에게 가장 정확한 실시간 비교 견적 전달 가능 &amp; 최고 수준의 유저 리드 수집.</li>
+<li><strong>단점</strong>: 장례지도사 해피콜/상담원 운영 리소스 소요.</li>
+</ul>
 <hr class="divider"/>
 <h2 class="section-title">📊 3. 3대 대안 종합 비교 평가표</h2>
-<div class="table-container"><table><thead><tr><th>평가 항목</th><th>대안 A: 표준 시뮬레이터</th><th>대안 B: 제휴/비제휴 차별화</th><th>대안 C: 맞춤 견적 신청</th></tr></thead><tbody><tr><td>**개발 구현 난이도**</td><td>**<code>[하]</code>** (즉시 구현 가능)</td><td>**<code>[중]</code>** (어드민 연동 필요)</td><td>**<code>[중]</code>** (알림톡/상담 연동)</td></tr><tr><td>**첫날 서비스 완성도**</td><td>**<code>[★ ★ ★ ★ ★]</code> (100%)**</td><td><code>[★ ★ ★ ☆ ☆]</code> (제휴 기반)</td><td><code>[★ ★ ★ ★ ☆]</code> (상담원 운영)</td></tr><tr><td>**유저 UX 만족도**</td><td>**<code>[★ ★ ★ ★ ☆]</code>**</td><td><code>[★ ★ ★ ☆ ☆]</code></td><td>**<code>[★ ★ ★ ★ ★]</code>**</td></tr><tr><td>**B2B 수익 모델 직결성**</td><td><code>[★ ★ ☆ ☆ ☆]</code></td><td>**<code>[★ ★ ★ ★ ★]</code>**</td><td><code>[★ ★ ★ ★ ☆]</code></td></tr><tr><td>**운영 리소스 부담**</td><td>**<code>[없음]</code>**</td><td><code>[없음]</code></td><td><code>[상담원 리소스 필요]</code></td></tr></tbody></table></div>
+<div class="table-container"><table><thead><tr><th>평가 항목</th><th>대안 A: 표준 시뮬레이터</th><th>대안 B: 제휴/비제휴 차별화</th><th>대안 C: 맞춤 견적 신청</th></tr></thead><tbody><tr><td><strong>개발 구현 난이도</strong></td><td><strong><code>[하]</code></strong> (즉시 구현 가능)</td><td><strong><code>[중]</code></strong> (어드민 연동 필요)</td><td><strong><code>[중]</code></strong> (알림톡/상담 연동)</td></tr><tr><td><strong>첫날 서비스 완성도</strong></td><td><strong><code>[★ ★ ★ ★ ★]</code> (100%)</strong></td><td><code>[★ ★ ★ ☆ ☆]</code> (제휴 기반)</td><td><code>[★ ★ ★ ★ ☆]</code> (상담원 운영)</td></tr><tr><td><strong>유저 UX 만족도</strong></td><td><strong><code>[★ ★ ★ ★ ☆]</code></strong></td><td><code>[★ ★ ★ ☆ ☆]</code></td><td><strong><code>[★ ★ ★ ★ ★]</code></strong></td></tr><tr><td><strong>B2B 수익 모델 직결성</strong></td><td><code>[★ ★ ☆ ☆ ☆]</code></td><td><strong><code>[★ ★ ★ ★ ★]</code></strong></td><td><code>[★ ★ ★ ★ ☆]</code></td></tr><tr><td><strong>운영 리소스 부담</strong></td><td><strong><code>[없음]</code></strong></td><td><code>[없음]</code></td><td><code>[상담원 리소스 필요]</code></td></tr></tbody></table></div>
 <hr class="divider"/>
 <h2 class="section-title">🎯 4. PM 추천 및 결론</h2>
-<h3 class="subsection-title">💡 **추천안: `[대안 A + 대안 C 하이브리드 조합]`**</h3>
+<h3 class="subsection-title">💡 <strong>추천안: <code>[대안 A + 대안 C 하이브리드 조합]</code></strong></h3>
 <p>1. <strong>MVP 1차 버전:</strong> <strong>[대안 A: 표준 시뮬레이터]</strong>를 기본 탑재하여 데이터 부재와 상관없이 전국의 모든 장례식장에 대해 100% 예상 견적 가이드를 즉시 노출.</p>
 <p>2. <strong>상세 견적 요청 시:</strong> <strong>[대안 C: 맞춤 견적서 신청]</strong>으로 연결하여 전문 상담원이 1:1 비교 견적서를 알림톡으로 발송해 유저 만족도와 수익 리드를 동시에 확보.</p>
 <p>3. <strong>B2B 입점 확대 시:</strong> <strong>[대안 B]</strong>를 적용하여 제휴된 장례식장은 어드민 실시간 가격으로 자동 교체.</p>

@@ -151,9 +151,22 @@
     .tag.green { background-color: #DCFCE7; color: #166534; }
     .tag.gray { background-color: #F1F5F9; color: #475569; }
     .tag.orange { background-color: #FFEDD5; color: #9A3412; }
+    .tag.red { background-color: #FEE2E2; color: #991B1B; border: 1px solid #FECACA; }
+    .tag.blue { background-color: #DBEAFE; color: #1E40AF; border: 1px solid #BFDBFE; }
+    .tag.gold { background-color: #FEF3C7; color: #92400E; border: 1px solid #FDE68A; font-weight: 700; }
+    .tag.warn { background-color: #FEF3C7; color: #B45309; }
     .tag.pk { background-color: #FEE2E2; color: #991B1B; }
     .tag.fk { background-color: #DBEAFE; color: #1E40AF; }
     .tag.uk { background-color: #DCFCE7; color: #166534; }
+    del {
+      color: #94A3B8;
+      text-decoration: line-through;
+    }
+    .md-link {
+      color: var(--accent);
+      text-decoration: underline;
+      font-weight: 500;
+    }
     p { margin-bottom: 0.9rem; color: #334155; }
     ul, ol { margin-bottom: 1rem; padding-left: 1.4rem; color: #334155; }
     li { margin-bottom: 0.4rem; }
@@ -316,10 +329,10 @@
     </div>
     <blockquote class="info-quote"><strong>문서 목적</strong>: 이어봄 (Eobom) 토탈 케어 플랫폼의 웹/앱 클라이언트, 백엔드 API 서버, 데이터베이스, OAuth 소셜 로그인 및 보안 Vault 통합 아키텍처를 정의합니다.</blockquote>
 <p>&gt;</p>
-<blockquote class="info-quote">⚠️ <strong>이 문서는 구성 요소만 정의하며 &quot;어디에 배포하는가&quot;는 다루지 않습니다.</strong></blockquote>
-<blockquote class="info-quote">배포 위치·인프라 전략(클라우드 vs 사내 서버, 관리형 DB, 오브젝트 스토리지)의 정본은</blockquote>
-<blockquote class="info-quote"><strong>[<code>00-11_백엔드_DB_배포_및_인프라_전략_결정서.md</code>](00-11_백엔드_DB_배포_및_인프라_전략_결정서.md)</strong> 입니다.</blockquote>
-<blockquote class="info-quote">아래 토폴로지의 포트(5000/5433)는 <strong>로컬 개발 기준</strong>이며 프로덕션 값이 아닙니다.</blockquote>
+<blockquote class="info-quote"><span class="tag warn">⚠️</span> <strong>이 문서는 구성 요소만 정의하며 &quot;어디에 배포하는가&quot;는 다루지 않습니다.</strong><br/>
+배포 위치·인프라 전략(클라우드 vs 사내 서버, 관리형 DB, 오브젝트 스토리지)의 정본은<br/>
+<strong><a href="00-11_백엔드_DB_배포_및_인프라_전략_결정서.md" class="md-link"><code>00-11_백엔드_DB_배포_및_인프라_전략_결정서.md</code></a></strong> 입니다.<br/>
+아래 토폴로지의 포트(5000/5433)는 <strong>로컬 개발 기준</strong>이며 프로덕션 값이 아닙니다.</blockquote>
 <hr class="divider"/>
 <h2 class="section-title">📐 1. 시스템 토폴로지 (System Topology)</h2>
 <pre><code>[ Frontend: React 18 + Vite 5 + TypeScript ] (Vercel Host)

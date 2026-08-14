@@ -151,9 +151,22 @@
     .tag.green { background-color: #DCFCE7; color: #166534; }
     .tag.gray { background-color: #F1F5F9; color: #475569; }
     .tag.orange { background-color: #FFEDD5; color: #9A3412; }
+    .tag.red { background-color: #FEE2E2; color: #991B1B; border: 1px solid #FECACA; }
+    .tag.blue { background-color: #DBEAFE; color: #1E40AF; border: 1px solid #BFDBFE; }
+    .tag.gold { background-color: #FEF3C7; color: #92400E; border: 1px solid #FDE68A; font-weight: 700; }
+    .tag.warn { background-color: #FEF3C7; color: #B45309; }
     .tag.pk { background-color: #FEE2E2; color: #991B1B; }
     .tag.fk { background-color: #DBEAFE; color: #1E40AF; }
     .tag.uk { background-color: #DCFCE7; color: #166534; }
+    del {
+      color: #94A3B8;
+      text-decoration: line-through;
+    }
+    .md-link {
+      color: var(--accent);
+      text-decoration: underline;
+      font-weight: 500;
+    }
     p { margin-bottom: 0.9rem; color: #334155; }
     ul, ol { margin-bottom: 1rem; padding-left: 1.4rem; color: #334155; }
     li { margin-bottom: 0.4rem; }
@@ -317,9 +330,11 @@
     <blockquote class="info-quote"><strong>문서 목적</strong>: 이어봄 (Eobom - Digital Ending &amp; Well-Dying Total Care Platform)의 비전, 핵심 타겟 페르소나, 5대 대메뉴 정보 구조도(IA) 및 주요 기능 요구사항을 정립합니다.</blockquote>
 <hr class="divider"/>
 <h2 class="section-title">📌 1. 서비스 비전 및 핵심 가치</h2>
-<ul><li><strong>플랫폼명</strong>: 이어봄 (Eobom) | DEWD (Digital Ending &amp; Well-Dying Total Care)</li></ul>
-<ul><li><strong>슬로건</strong>: &quot;존엄한 마무리를 준비하고 소중한 기록을 잇다&quot;</li></ul>
-<ul><li><strong>핵심 가치</strong>: </li></ul>
+<ul>
+<li><strong>플랫폼명</strong>: 이어봄 (Eobom) | DEWD (Digital Ending &amp; Well-Dying Total Care)</li>
+<li><strong>슬로건</strong>: &quot;존엄한 마무리를 준비하고 소중한 기록을 잇다&quot;</li>
+<li><strong>핵심 가치</strong>: </li>
+</ul>
 <p>  1. <strong>존엄함 (Dignity)</strong>: 인생의 마무리를 스스로 주체적이고 아름답게 준비.</p>
 <p>  2. <strong>투명성 (Transparency)</strong>: 깜깜이 장례/장지 비용 및 세무/상속 절차의 투명 개방.</p>
 <p>  3. <strong>보안성 (Security)</strong>: 256-bit AES 암호화 금고를 통한 개인 디지털 유산 보안 보관.</p>
@@ -332,20 +347,20 @@
 <p>   * 자신의 삶을 회고하고 가족에게 남길 메시지와 유품 정리 방침을 엔딩노트에 기록하는 주체.</p>
 <p>   * 가독성 높은 큰 서체, 명확한 UX 반응형 가이드 니즈.</p>
 <hr class="divider"/>
-<h2 class="section-title">🗺️ 3. 정보 구조도 (Information Architecture) — **2026-08-12 재편**</h2>
-<blockquote class="info-quote">🔵 <strong>구 &quot;5대 대메뉴&quot;는 폐기됐습니다.</strong> 도메인이 7개로 갈라졌고(<code>00-12</code> §7), 무엇보다</blockquote>
-<blockquote class="info-quote"><strong>한 줄 메뉴가 두 모드로 갈라졌습니다.</strong> 정본은 <code>00_DOCS_INDEX</code> 도메인 번호 체계입니다.</blockquote>
+<h2 class="section-title">🗺️ 3. 정보 구조도 (Information Architecture) — <strong>2026-08-12 재편</strong></h2>
+<blockquote class="info-quote"><span class="tag blue">🔵</span> <strong>구 &quot;5대 대메뉴&quot;는 폐기됐습니다.</strong> 도메인이 7개로 갈라졌고(<code>00-12</code> §7), 무엇보다<br/>
+<strong>한 줄 메뉴가 두 모드로 갈라졌습니다.</strong> 정본은 <code>00_DOCS_INDEX</code> 도메인 번호 체계입니다.</blockquote>
 <h3 class="subsection-title">3.1 방문자는 두 방향으로 갈라진다</h3>
-<div class="table-container"><table><thead><tr><th></th><th>**WellDying 유저** (생전 준비)</th><th>**유가족 유저** (사후)</th></tr></thead><tbody><tr><td>주체</td><td>**나 자신**</td><td>**고인**</td></tr><tr><td>심리</td><td>여유·신중·미룰 수 있음</td><td>긴급·경황 없음·되돌릴 수 없음</td></tr><tr><td>도메인</td><td>**02 · 04 · 06**</td><td>**01 · 02 · 03 · 04 · 05 · 07**</td></tr></tbody></table></div>
+<div class="table-container"><table><thead><tr><th></th><th><strong>WellDying 유저</strong> (생전 준비)</th><th><strong>유가족 유저</strong> (사후)</th></tr></thead><tbody><tr><td>주체</td><td><strong>나 자신</strong></td><td><strong>고인</strong></td></tr><tr><td>심리</td><td>여유·신중·미룰 수 있음</td><td>긴급·경황 없음·되돌릴 수 없음</td></tr><tr><td>도메인</td><td><strong>02 · 04 · 06</strong></td><td><strong>01 · 02 · 03 · 04 · 05 · 07</strong></td></tr></tbody></table></div>
 <p><strong>같은 메뉴판을 둘 다에게 보여주면 양쪽 모두에게 나쁩니다</strong> — 사별 직후 유족에게 &quot;엔딩노트</p>
 <p>작성하기&quot;는 잔인하고, 생전 준비 중인 사람에게 &quot;장례식장 찾기&quot;는 불필요하게 무겁습니다</p>
-<p>(→ <code>00-12</code> §6). 🔴 모드 전환 UX는 <code>00-12</code> §6.2 C안 권고, 개발자 확정 대기.</p>
+<p>(→ <code>00-12</code> §6). <span class="tag red">🔴</span> 모드 전환 UX는 <code>00-12</code> §6.2 C안 권고, 개발자 확정 대기.</p>
 <h3 class="subsection-title">3.2 도메인별 기능</h3>
-<div class="table-container"><table><thead><tr><th>#</th><th>도메인</th><th>화면</th><th>핵심 기능</th></tr></thead><tbody><tr><td>**01**</td><td>장사시설 매칭</td><td><code>facility</code></td><td>봉안당·수목장 맞춤 검색, 카카오 지도 LBS, 직통전화(<code>tel:</code>)</td></tr><tr><td>**02**</td><td>전문가 매칭 (상속·법률)</td><td><code>counseling</code></td><td>상속세 간이 계산기, 1:1 세무사·변호사·행정사 상담</td></tr><tr><td>**03**</td><td>현물 유품 수거</td><td>*(미정)*</td><td>🔴 계정 형태 기획 보류(<code>03-01</code> §3)</td></tr><tr><td>**04**</td><td>디지털 자산·계정 정산</td><td><code>digital-estate</code></td><td>플랫폼별 유족 절차 **안내 + 진행 추적**, 생전 위임</td></tr><tr><td>**05**</td><td>디지털 추모관</td><td><code>SCR-011</code></td><td>고인 1명당 1개, 헌화·방명록·사진 앨범</td></tr><tr><td>**06**</td><td>디지털 엔딩노트·유언</td><td><code>ending-note</code></td><td>AES-256 암호화 금고, 연명의료 의향, 사후 유족 전달</td></tr><tr><td>**07**</td><td>상중·행정 케어</td><td><code>care-guide</code></td><td>사망 직후 D-Day 행정 체크리스트, 안심상속 원스톱 안내</td></tr></tbody></table></div>
-<blockquote class="info-quote">⚠️ <strong>폐기된 표현 2가지</strong> — 이전 판의 IA에는 아래가 적혀 있었으나 후속 검토에서 뒤집혔습니다.</blockquote>
-<blockquote class="info-quote">- *&quot;1-Touch 답사 예약&quot;* → <strong>폐기</strong>. 인앱 예약 대신 직통전화로 결정(<code>01-04</code>, <code>01-01</code> §2.3·§2.5).</blockquote>
-<blockquote class="info-quote">- *&quot;유품 정리 <strong>대행</strong> 관리&quot;* → <strong>불가</strong>. 제3자 대행 창구가 존재하지 않고 고인 자격증명 수집은</blockquote>
-<blockquote class="info-quote">  금지입니다(<code>04-01</code> §1.1). 도메인은 <strong>&quot;안내 + 진행 추적&quot;</strong>으로 재정의됐습니다.</blockquote>
+<div class="table-container"><table><thead><tr><th>#</th><th>도메인</th><th>화면</th><th>핵심 기능</th></tr></thead><tbody><tr><td><strong>01</strong></td><td>장사시설 매칭</td><td><code>facility</code></td><td>봉안당·수목장 맞춤 검색, 카카오 지도 LBS, 직통전화(<code>tel:</code>)</td></tr><tr><td><strong>02</strong></td><td>전문가 매칭 (상속·법률)</td><td><code>counseling</code></td><td>상속세 간이 계산기, 1:1 세무사·변호사·행정사 상담</td></tr><tr><td><strong>03</strong></td><td>현물 유품 수거</td><td>*(미정)*</td><td><span class="tag red">🔴</span> 계정 형태 기획 보류(<code>03-01</code> §3)</td></tr><tr><td><strong>04</strong></td><td>디지털 자산·계정 정산</td><td><code>digital-estate</code></td><td>플랫폼별 유족 절차 <strong>안내 + 진행 추적</strong>, 생전 위임</td></tr><tr><td><strong>05</strong></td><td>디지털 추모관</td><td><code>SCR-011</code></td><td>고인 1명당 1개, 헌화·방명록·사진 앨범</td></tr><tr><td><strong>06</strong></td><td>디지털 엔딩노트·유언</td><td><code>ending-note</code></td><td>AES-256 암호화 금고, 연명의료 의향, 사후 유족 전달</td></tr><tr><td><strong>07</strong></td><td>상중·행정 케어</td><td><code>care-guide</code></td><td>사망 직후 D-Day 행정 체크리스트, 안심상속 원스톱 안내</td></tr></tbody></table></div>
+<blockquote class="info-quote"><span class="tag warn">⚠️</span> <strong>폐기된 표현 2가지</strong> — 이전 판의 IA에는 아래가 적혀 있었으나 후속 검토에서 뒤집혔습니다.<br/>
+- *&quot;1-Touch 답사 예약&quot;* → <strong>폐기</strong>. 인앱 예약 대신 직통전화로 결정(<code>01-04</code>, <code>01-01</code> §2.3·§2.5).<br/>
+- *&quot;유품 정리 <strong>대행</strong> 관리&quot;* → <strong>불가</strong>. 제3자 대행 창구가 존재하지 않고 고인 자격증명 수집은<br/>
+  금지입니다(<code>04-01</code> §1.1). 도메인은 <strong>&quot;안내 + 진행 추적&quot;</strong>으로 재정의됐습니다.</blockquote>
 
   </div>
 </body>

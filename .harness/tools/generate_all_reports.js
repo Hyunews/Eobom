@@ -51,9 +51,11 @@ const REPORT_MAPPINGS = [
 
   // 03. 현물 유품 수거 (2026-08-12 재편 — 구 03_디지털_유품_추모관에서 분리)
   { md: '03_현물_유품_수거/03-01_현물_유품_수거_계정형태_보류_메모.md', html: '03_현물_유품_수거/03-01_이어봄_현물_유품_수거_계정형태_보류_메모.html' },
+  { md: '03_현물_유품_수거/03-02_현물_유품_수거_도메인_기획서.md', html: '03_현물_유품_수거/03-02_이어봄_현물_유품_수거_도메인_기획서.html' },
 
   // 04. 디지털 자산 정산 (구 03-02 분할본 — 계정 정리 축)
   { md: '04_디지털_자산_정산/04-01_디지털_계정_정리_명세서.md', html: '04_디지털_자산_정산/04-01_이어봄_디지털_계정_정리_명세서.html' },
+  { md: '04_디지털_자산_정산/04-02_생전위임_문서화_및_대행_가능범위_검토서.md', html: '04_디지털_자산_정산/04-02_이어봄_생전위임_문서화_및_대행_가능범위_검토서.html' },
 
   // 05. 디지털 추모관 (구 03-02 분할본 — 추모관 축 + 구 03-03)
   { md: '05_디지털_추모관/05-01_온라인_추모관_명세서.md', html: '05_디지털_추모관/05-01_이어봄_온라인_추모관_명세서.html' },
@@ -77,6 +79,25 @@ function escapeHtml(text) {
     .replace(/'/g, "&#039;");
 }
 
+function formatInline(text) {
+  return escapeHtml(text)
+    .replace(/`([^`]+)`/g, '<code>$1</code>')
+    .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+    .replace(/~~([^~]+)~~/g, '<del>$1</del>')
+    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" class="md-link">$1</a>')
+    .replace(/PK/g, '<span class="tag pk">PK</span>')
+    .replace(/FK → ([A-Za-z0-9_.]+)/g, '<span class="tag fk">FK → $1</span>')
+    .replace(/UNIQUE/g, '<span class="tag uk">UNIQUE</span>')
+    .replace(/✅/g, '<span class="tag green">✅</span>')
+    .replace(/🔴/g, '<span class="tag red">🔴</span>')
+    .replace(/🟡/g, '<span class="tag orange">🟡</span>')
+    .replace(/🔵/g, '<span class="tag blue">🔵</span>')
+    .replace(/⭐/g, '<span class="tag gold">⭐</span>')
+    .replace(/⚠️/g, '<span class="tag warn">⚠️</span>')
+    .replace(/⬜/g, '<span class="tag gray">⬜</span>')
+    .replace(/🔶/g, '<span class="tag orange">🔶</span>');
+}
+
 function mdTableToHtml(markdown) {
   const lines = markdown.trim().split('\n');
   if (lines.length < 2) return '';
@@ -91,22 +112,14 @@ function mdTableToHtml(markdown) {
 
   let html = '<div class="table-container"><table><thead><tr>';
   headers.forEach(h => {
-    html += `<th>${escapeHtml(h)}</th>`;
+    html += `<th>${formatInline(h)}</th>`;
   });
   html += '</tr></thead><tbody>';
 
   rows.forEach(row => {
     html += '<tr>';
     row.forEach(cell => {
-      let cellHtml = escapeHtml(cell)
-        .replace(/`([^`]+)`/g, '<code>$1</code>')
-        .replace(/PK/g, '<span class="tag pk">PK</span>')
-        .replace(/FK → ([A-Za-z0-9_.]+)/g, '<span class="tag fk">FK → $1</span>')
-        .replace(/UNIQUE/g, '<span class="tag uk">UNIQUE</span>')
-        .replace(/✅/g, '<span class="tag green">✅ 구현</span>')
-        .replace(/⬜/g, '<span class="tag gray">⬜ 계획</span>')
-        .replace(/🔶/g, '<span class="tag orange">🔶 진행</span>');
-      html += `<td>${cellHtml}</td>`;
+      html += `<td>${formatInline(cell)}</td>`;
     });
     html += '</tr>';
   });
@@ -122,12 +135,32 @@ function genericMdToHtml(md) {
   let tableBuffer = [];
   let inCode = false;
   let codeBuffer = [];
+  let inList = false;
+  let inQuote = false;
+  let quoteBuffer = [];
+
+  const flushQuote = () => {
+    if (inQuote) {
+      html += `<blockquote class="info-quote">${quoteBuffer.join('<br/>\n')}</blockquote>\n`;
+      quoteBuffer = [];
+      inQuote = false;
+    }
+  };
+
+  const flushList = () => {
+    if (inList) {
+      html += `</ul>\n`;
+      inList = false;
+    }
+  };
 
   let isFirstH1 = true;
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
 
     if (line.startsWith('```')) {
+      flushQuote();
+      flushList();
       if (inCode) {
         html += `<pre><code>${escapeHtml(codeBuffer.join('\n'))}</code></pre>\n`;
         codeBuffer = [];
@@ -144,6 +177,8 @@ function genericMdToHtml(md) {
     }
 
     if (line.trim().startsWith('|')) {
+      flushQuote();
+      flushList();
       inTable = true;
       tableBuffer.push(line);
       continue;
@@ -153,46 +188,55 @@ function genericMdToHtml(md) {
       inTable = false;
     }
 
+    if (line.startsWith('> ')) {
+      flushList();
+      inQuote = true;
+      quoteBuffer.push(formatInline(line.slice(2)));
+      continue;
+    } else {
+      flushQuote();
+    }
+
+    if (line.startsWith('- ') || line.startsWith('* ')) {
+      if (!inList) {
+        html += `<ul>\n`;
+        inList = true;
+      }
+      html += `<li>${formatInline(line.slice(2))}</li>\n`;
+      continue;
+    } else {
+      flushList();
+    }
+
     if (line.startsWith('# ')) {
       if (isFirstH1) {
         isFirstH1 = false;
         continue;
       }
-      html += `<h1>${escapeHtml(line.slice(2))}</h1>\n`;
+      html += `<h1>${formatInline(line.slice(2))}</h1>\n`;
     } else if (line.startsWith('## ')) {
       const headingText = line.slice(3);
-      // Smart page break before major section boundaries (§2, §3, §4, §6, §8, §9)
       const shouldBreak = /^(?:[⚡🔗💰🏢📋🕐]\s*)?(2|3|4|6|8|9)\./.test(headingText.trim());
       if (shouldBreak) {
-        html += `<div class="page-break"></div>\n<h2 class="section-title">${escapeHtml(headingText)}</h2>\n`;
+        html += `<div class="page-break"></div>\n<h2 class="section-title">${formatInline(headingText)}</h2>\n`;
       } else {
-        html += `<h2 class="section-title">${escapeHtml(headingText)}</h2>\n`;
+        html += `<h2 class="section-title">${formatInline(headingText)}</h2>\n`;
       }
     } else if (line.startsWith('### ')) {
-      html += `<h3 class="subsection-title">${escapeHtml(line.slice(4))}</h3>\n`;
+      html += `<h3 class="subsection-title">${formatInline(line.slice(4))}</h3>\n`;
     } else if (line.startsWith('#### ')) {
-      html += `<h4 class="h4-title">${escapeHtml(line.slice(5))}</h4>\n`;
-    } else if (line.startsWith('> ')) {
-      let blockquoteText = escapeHtml(line.slice(2))
-        .replace(/`([^`]+)`/g, '<code>$1</code>')
-        .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
-      html += `<blockquote class="info-quote">${blockquoteText}</blockquote>\n`;
-    } else if (line.startsWith('- ') || line.startsWith('* ')) {
-      let listText = escapeHtml(line.slice(2))
-        .replace(/`([^`]+)`/g, '<code>$1</code>')
-        .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
-      html += `<ul><li>${listText}</li></ul>\n`;
+      html += `<h4 class="h4-title">${formatInline(line.slice(5))}</h4>\n`;
     } else if (line.trim() === '---') {
       html += `<hr class="divider"/>\n`;
     } else if (line.trim() === '') {
       // blank line
     } else {
-      let formatted = escapeHtml(line)
-        .replace(/`([^`]+)`/g, '<code>$1</code>')
-        .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
-      html += `<p>${formatted}</p>\n`;
+      html += `<p>${formatInline(line)}</p>\n`;
     }
   }
+
+  flushQuote();
+  flushList();
 
   if (inTable) {
     html += mdTableToHtml(tableBuffer.join('\n')) + '\n';
@@ -355,9 +399,22 @@ function buildFullHtmlPage(title, subtitle, bodyHtml) {
     .tag.green { background-color: #DCFCE7; color: #166534; }
     .tag.gray { background-color: #F1F5F9; color: #475569; }
     .tag.orange { background-color: #FFEDD5; color: #9A3412; }
+    .tag.red { background-color: #FEE2E2; color: #991B1B; border: 1px solid #FECACA; }
+    .tag.blue { background-color: #DBEAFE; color: #1E40AF; border: 1px solid #BFDBFE; }
+    .tag.gold { background-color: #FEF3C7; color: #92400E; border: 1px solid #FDE68A; font-weight: 700; }
+    .tag.warn { background-color: #FEF3C7; color: #B45309; }
     .tag.pk { background-color: #FEE2E2; color: #991B1B; }
     .tag.fk { background-color: #DBEAFE; color: #1E40AF; }
     .tag.uk { background-color: #DCFCE7; color: #166534; }
+    del {
+      color: #94A3B8;
+      text-decoration: line-through;
+    }
+    .md-link {
+      color: var(--accent);
+      text-decoration: underline;
+      font-weight: 500;
+    }
     p { margin-bottom: 0.9rem; color: #334155; }
     ul, ol { margin-bottom: 1rem; padding-left: 1.4rem; color: #334155; }
     li { margin-bottom: 0.4rem; }

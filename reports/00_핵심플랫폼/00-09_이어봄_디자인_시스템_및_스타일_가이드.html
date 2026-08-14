@@ -151,9 +151,22 @@
     .tag.green { background-color: #DCFCE7; color: #166534; }
     .tag.gray { background-color: #F1F5F9; color: #475569; }
     .tag.orange { background-color: #FFEDD5; color: #9A3412; }
+    .tag.red { background-color: #FEE2E2; color: #991B1B; border: 1px solid #FECACA; }
+    .tag.blue { background-color: #DBEAFE; color: #1E40AF; border: 1px solid #BFDBFE; }
+    .tag.gold { background-color: #FEF3C7; color: #92400E; border: 1px solid #FDE68A; font-weight: 700; }
+    .tag.warn { background-color: #FEF3C7; color: #B45309; }
     .tag.pk { background-color: #FEE2E2; color: #991B1B; }
     .tag.fk { background-color: #DBEAFE; color: #1E40AF; }
     .tag.uk { background-color: #DCFCE7; color: #166534; }
+    del {
+      color: #94A3B8;
+      text-decoration: line-through;
+    }
+    .md-link {
+      color: var(--accent);
+      text-decoration: underline;
+      font-weight: 500;
+    }
     p { margin-bottom: 0.9rem; color: #334155; }
     ul, ol { margin-bottom: 1rem; padding-left: 1.4rem; color: #334155; }
     li { margin-bottom: 0.4rem; }
@@ -317,53 +330,67 @@
     <blockquote class="info-quote"><strong>문서 목적</strong>: 이어봄 (Eobom) 브랜딩 자산(<code>Design_Logo.png</code>) 기반의 <strong>공식 디자인 시스템, 컬러 토큰, 타이포그래피, UI 레이아웃 및 반응형 스타일 가이드</strong>를 정의합니다.</blockquote>
 <hr class="divider"/>
 <h2 class="section-title">🌿 1. Brand Visual Aesthetics</h2>
-<ul><li><strong>Brand Name</strong>: 이어봄 (Eobom) / DEWD (Digital Ending &amp; Well-Dying Total Care)</li></ul>
-<ul><li><strong>Symbolmark Concept</strong>:</li></ul>
+<ul>
+<li><strong>Brand Name</strong>: 이어봄 (Eobom) / DEWD (Digital Ending &amp; Well-Dying Total Care)</li>
+<li><strong>Symbolmark Concept</strong>:</li>
+</ul>
 <p>  * <strong>무한대 연상 곡선</strong>: 영원함, 연속성, 끝없는 동행</p>
 <p>  * <strong>봄의 잎사귀</strong>: 새로운 시작, 온기, 희망</p>
 <p>  * <strong>두 손의 악수</strong>: 연결, 신뢰, 함께하는 케어</p>
-<ul><li><strong>Visual Identity Philosophy</strong>:</li></ul>
+<ul>
+<li><strong>Visual Identity Philosophy</strong>:</li>
+</ul>
 <p>  * 존엄함(Dignity), 평온함(Serenity), 따뜻함(Warmth), 현대적 품격(Modern Elegance).</p>
 <p>  * 소프트 웜 크림(<code>#FBF9F5</code>) 바탕의 눈이 편안한 오가닉 비주얼.</p>
 <p>  * 12px ~ 24px의 부드러운 둥근 모서리(Rounded Corners) 카드 시스템.</p>
 <hr class="divider"/>
 <h2 class="section-title">🖌️ 2. Design Tokens &amp; Color Palette</h2>
 <h3 class="subsection-title">2.1 3대 핵심 브랜드 컬러 &amp; 액센트 토큰</h3>
-<div class="table-container"><table><thead><tr><th>구분</th><th>색상명</th><th>Hex Code</th><th>주요 적용 컴포넌트</th></tr></thead><tbody><tr><td>**Primary**</td><td>**Deep Navy (딥 네이비)**</td><td><code>#1A2B4C</code></td><td>헤더, 주 헤드라인, 1차 액션 버튼, 다크 카드 표면, 푸터 배경</td></tr><tr><td>**Secondary**</td><td>**Warm Green (웜 그린)**</td><td><code>#5B7065</code></td><td>서브 포인트, 완결 뱃지, 수목장/생태 뱃지, 강조 아이콘</td></tr><tr><td>**Accent**</td><td>**Warm Gold (웜 골드)**</td><td><code>#D4A359</code></td><td>프리미엄 뱃지, 하이라이트 아이콘, 서체 강조, 골드 테두리</td></tr><tr><td>**Background**</td><td>**Soft Cream White**</td><td><code>#FBF9F5</code></td><td>메인 앱 전역 백그라운드 (눈이 편안한 소프트 웜 톤)</td></tr><tr><td>**Surface**</td><td>**Pure White**</td><td><code>#FFFFFF</code></td><td>기본 대시보드 카드, 입력 폼 박스, 모달 배경</td></tr><tr><td>**Alert**</td><td>**Crimson Red**</td><td><code>#EF4444</code> / <code>#DC2626</code></td><td>24시간 긴급 콜 FAB 버튼, 긴급 알림 뱃지 (<code>.animate-pulse</code>)</td></tr></tbody></table></div>
+<div class="table-container"><table><thead><tr><th>구분</th><th>색상명</th><th>Hex Code</th><th>주요 적용 컴포넌트</th></tr></thead><tbody><tr><td><strong>Primary</strong></td><td><strong>Deep Navy (딥 네이비)</strong></td><td><code>#1A2B4C</code></td><td>헤더, 주 헤드라인, 1차 액션 버튼, 다크 카드 표면, 푸터 배경</td></tr><tr><td><strong>Secondary</strong></td><td><strong>Warm Green (웜 그린)</strong></td><td><code>#5B7065</code></td><td>서브 포인트, 완결 뱃지, 수목장/생태 뱃지, 강조 아이콘</td></tr><tr><td><strong>Accent</strong></td><td><strong>Warm Gold (웜 골드)</strong></td><td><code>#D4A359</code></td><td>프리미엄 뱃지, 하이라이트 아이콘, 서체 강조, 골드 테두리</td></tr><tr><td><strong>Background</strong></td><td><strong>Soft Cream White</strong></td><td><code>#FBF9F5</code></td><td>메인 앱 전역 백그라운드 (눈이 편안한 소프트 웜 톤)</td></tr><tr><td><strong>Surface</strong></td><td><strong>Pure White</strong></td><td><code>#FFFFFF</code></td><td>기본 대시보드 카드, 입력 폼 박스, 모달 배경</td></tr><tr><td><strong>Alert</strong></td><td><strong>Crimson Red</strong></td><td><code>#EF4444</code> / <code>#DC2626</code></td><td>24시간 긴급 콜 FAB 버튼, 긴급 알림 뱃지 (<code>.animate-pulse</code>)</td></tr></tbody></table></div>
 <h3 class="subsection-title">2.2 Typography System</h3>
-<ul><li><strong>Primary Font (UI &amp; Body)</strong>: <code>&#039;Pretendard&#039;</code>, <code>&#039;Noto Sans KR&#039;</code>, <code>sans-serif</code></li></ul>
-<ul><li><strong>Title &amp; Serif Font</strong>: <code>&#039;KoPubWorld 명조&#039;</code>, <code>&#039;KoPub World Batang&#039;</code>, <code>serif</code></li></ul>
-<ul><li><strong>Text Colors</strong>:</li></ul>
+<ul>
+<li><strong>Primary Font (UI &amp; Body)</strong>: <code>&#039;Pretendard&#039;</code>, <code>&#039;Noto Sans KR&#039;</code>, <code>sans-serif</code></li>
+<li><strong>Title &amp; Serif Font</strong>: <code>&#039;KoPubWorld 명조&#039;</code>, <code>&#039;KoPub World Batang&#039;</code>, <code>serif</code></li>
+<li><strong>Text Colors</strong>:</li>
+</ul>
 <p>  * <strong>Primary Text</strong>: <code>#1A2B4C</code> (가독성 높은 슬레이트 딥 네이비)</p>
 <p>  * <strong>Secondary / Muted</strong>: <code>#6C7A89</code> (보조 설명, 날짜, 주소)</p>
 <p>  * <strong>Hint / Placeholder</strong>: <code>#94A3B8</code> (입력창 힌트)</p>
 <p>  * <strong>On Navy Light Text</strong>: <code>#FBF9F5</code> / <code>#FFFFFF</code> (다크 표면 전용)</p>
-<h3 class="subsection-title">2.3 접근성 토큰 — **협상 대상이 아님** (2026-08-11 문서화)</h3>
+<h3 class="subsection-title">2.3 접근성 토큰 — <strong>협상 대상이 아님</strong> (2026-08-11 문서화)</h3>
 <p><code>00-02</code>의 주 페르소나가 <strong>6070 시니어</strong>입니다. 아래 3개 값은 그 페르소나를 위한 최소 보장선이며, 화면이 빽빽해 보인다는 이유로 줄이지 않습니다. <code>index.css</code>의 <code>:root</code>에 토큰으로 선언돼 있습니다.</p>
 <div class="table-container"><table><thead><tr><th>토큰</th><th>값</th><th>의미</th></tr></thead><tbody><tr><td><code>--base-font-size</code></td><td><code>18px</code></td><td>본문 기준 크기. 일반 웹 기본값(16px)보다 크게 잡은 의도적 선택</td></tr><tr><td><code>--min-touch-target</code></td><td><code>56px</code></td><td>주요 버튼(<code>.btn</code>)의 높이. 손떨림·정확도 저하를 감안한 터치 타겟</td></tr><tr><td><code>line-height</code></td><td><code>1.7</code></td><td><code>body</code> 기본 행간</td></tr></tbody></table></div>
 <blockquote class="info-quote"><strong>이 값들이 문서에 없어서 생긴 실제 문제</strong>: 2026-08-11 밀도 조정 작업에서 여백을 줄이는 김에 이 토큰들도 함께 줄일 수 있었으나, 근거가 문서에 없어 매번 &quot;줄여도 되나&quot;를 재판단해야 했습니다. <strong>그래서 여기에 정본을 세웁니다.</strong> 밀도 조정은 여백(<code>padding</code>/<code>margin</code>/<code>gap</code>)만 건드리고 위 3개는 유지합니다.</blockquote>
 <h3 class="subsection-title">2.4 여백 스케일 (2026-08-11 전면 조정)</h3>
 <p>초기 구현이 여백을 과하게 잡아 한 화면에 담기는 정보가 지나치게 적었습니다. <strong>접근성 토큰(§2.3)은 그대로 두고 여백만 약 25~30% 축소</strong>했습니다.</p>
 <div class="table-container"><table><thead><tr><th>대상</th><th>이전</th><th>현재</th></tr></thead><tbody><tr><td><code>.container</code> padding</td><td><code>2.5rem 24px</code></td><td><code>1.75rem 24px</code></td></tr><tr><td><code>.card</code> padding</td><td><code>2rem</code></td><td><code>1.5rem</code></td></tr><tr><td><code>.grid</code> gap</td><td><code>2rem</code></td><td><code>1.5rem</code></td></tr><tr><td><code>.form-group</code> margin-bottom</td><td><code>1.5rem</code></td><td><code>1.1rem</code></td></tr><tr><td><code>.hero-section</code> margin-bottom</td><td><code>3.5rem</code></td><td><code>2.25rem</code></td></tr></tbody></table></div>
-<ul><li>인라인 스타일에도 같은 비율을 적용하되 <strong>대략 <code>1.25rem</code>(20px) 이상인 값만</strong> 대상으로 합니다. <code>0.5rem</code> 이하의 작은 간격까지 줄이면 요소가 서로 붙어버립니다.</li></ul>
-<ul><li>페이지별 인라인 여백이 많은 것은 구조적 부채입니다 — 신규 화면은 되도록 공통 클래스(<code>.container</code>/<code>.card</code>/<code>.grid</code>)를 쓰십시오.</li></ul>
+<ul>
+<li>인라인 스타일에도 같은 비율을 적용하되 <strong>대략 <code>1.25rem</code>(20px) 이상인 값만</strong> 대상으로 합니다. <code>0.5rem</code> 이하의 작은 간격까지 줄이면 요소가 서로 붙어버립니다.</li>
+<li>페이지별 인라인 여백이 많은 것은 구조적 부채입니다 — 신규 화면은 되도록 공통 클래스(<code>.container</code>/<code>.card</code>/<code>.grid</code>)를 쓰십시오.</li>
+</ul>
 <h3 class="subsection-title">2.5 운영자 화면 예외 — 밀도 우선 (2026-08-11)</h3>
 <p><code>AdminPage.tsx</code>(운영자 대시보드)는 <strong>§2.3 접근성 토큰의 적용 대상이 아닙니다.</strong></p>
 <div class="table-container"><table><thead><tr><th>구분</th><th>소비자 화면</th><th>운영자 화면</th></tr></thead><tbody><tr><td>사용자</td><td>6070 시니어 유족</td><td>내부 운영 담당자</td></tr><tr><td>사용 맥락</td><td>드물게, 경황 없는 상태에서</td><td>매일, 업무로 반복</td></tr><tr><td>우선순위</td><td>큰 글씨·큰 버튼</td><td>한 화면에 많이 보이기</td></tr></tbody></table></div>
 <p>운영자 화면에서 <code>.btn</code>(56px)을 그대로 쓰면 0.8rem 설명 텍스트 옆에 1.1rem 버튼이 붙어 <strong>위계가 뒤집힙니다</strong>(실제로 2026-08-11에 지적된 문제). 그래서 <code>AdminPage.tsx</code> 안에 로컬 상수 <code>SMALL_BTN</code>(34px) / <code>TAB_BTN</code>(38px) / <code>SMALL_INPUT</code>(38px)을 두고 카드 내부 요소에 적용합니다.</p>
-<ul><li><strong>전역 <code>.btn</code>을 고치지 않습니다</strong> — 소비자 화면 CTA가 같이 작아지면 §2.3 위반입니다.</li></ul>
-<ul><li>목록 카드의 제목은 <code>font-size</code>를 <strong>명시</strong>하십시오. 생략하면 <code>&lt;strong&gt;</code>이 <code>body</code>의 18px을 상속받아 본문(0.85rem)과 위계가 어긋납니다.</li></ul>
-<ul><li>이 예외는 <strong>운영자 전용 화면에만</strong> 적용합니다. 사업자·전문가가 쓰는 <code>BizDashboard</code>는 외부 사용자 화면이므로 소비자 기준을 따릅니다.</li></ul>
+<ul>
+<li><strong>전역 <code>.btn</code>을 고치지 않습니다</strong> — 소비자 화면 CTA가 같이 작아지면 §2.3 위반입니다.</li>
+<li>목록 카드의 제목은 <code>font-size</code>를 <strong>명시</strong>하십시오. 생략하면 <code>&lt;strong&gt;</code>이 <code>body</code>의 18px을 상속받아 본문(0.85rem)과 위계가 어긋납니다.</li>
+<li>이 예외는 <strong>운영자 전용 화면에만</strong> 적용합니다. 사업자·전문가가 쓰는 <code>BizDashboard</code>는 외부 사용자 화면이므로 소비자 기준을 따릅니다.</li>
+</ul>
 <hr class="divider"/>
 <h2 class="section-title">📐 3. Layout &amp; Responsive Breakpoints</h2>
 <h3 class="subsection-title">3.1 Global Container &amp; Grid Rules</h3>
-<ul><li><strong>Max Desktop Container</strong>: <code>max-width: 1440px</code>, <code>margin: 0 auto</code>, <code>padding: 1.75rem 24px</code> (세로 여백 → §2.4)</li></ul>
-<ul><li><strong>Desktop Layout Structure</strong>:</li></ul>
+<ul>
+<li><strong>Max Desktop Container</strong>: <code>max-width: 1440px</code>, <code>margin: 0 auto</code>, <code>padding: 1.75rem 24px</code> (세로 여백 → §2.4)</li>
+<li><strong>Desktop Layout Structure</strong>:</li>
+</ul>
 <p>  * <strong>Top Header (100% Width, 고정 72px)</strong>: 브랜드 로고 + 로그인/회원가입 프로필 칩</p>
 <p>  * <strong>Left Collapsible Sidebar</strong>: <strong>6개 메뉴</strong>(메인 + 5대 도메인) 반응형 사이드바. <code>position: fixed</code>, 기본 <code>72px</code> → 마우스 호버 시 <code>240px</code> 확장. 메뉴 순서는 <strong>도메인 번호와 일치</strong>해야 합니다(→ <code>00_DOCS_INDEX.md</code> 도메인 번호 체계).</p>
 <p>  * <strong>Bottom-Right Floating FAB</strong>: <code>🚨 24시간 긴급 콜</code> (<code>.animate-pulse</code> 깜빡임)</p>
 <blockquote class="info-quote"><strong>고정 크기(헤더 72px, 사이드바 72/240px)는 여백이 아니라 구조값입니다</strong> — §2.4 밀도 조정 대상이 아닙니다. 사이드바 폭은 <code>main-wrapper</code>의 <code>margin-left</code>와 짝을 이루므로 한쪽만 바꾸면 레이아웃이 깨집니다.</blockquote>
-<ul><li><strong>Responsive Breakpoints</strong>:</li></ul>
+<ul>
+<li><strong>Responsive Breakpoints</strong>:</li>
+</ul>
 <p>  * <strong>Desktop (&gt;= 1024px)</strong>: 3~4컬럼 반응형 그리드 (<code>repeat(auto-fit, minmax(300px, 1fr))</code>)</p>
 <p>  * <strong>Tablet (768px ~ 1023px)</strong>: 2컬럼 그리드</p>
 <p>  * <strong>Mobile (&lt; 768px)</strong>: 1컬럼 스택 카드 + 반응형 햄버거/하단 탭바</p>

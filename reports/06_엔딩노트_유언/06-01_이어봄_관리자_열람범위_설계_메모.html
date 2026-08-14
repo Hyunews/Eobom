@@ -151,9 +151,22 @@
     .tag.green { background-color: #DCFCE7; color: #166534; }
     .tag.gray { background-color: #F1F5F9; color: #475569; }
     .tag.orange { background-color: #FFEDD5; color: #9A3412; }
+    .tag.red { background-color: #FEE2E2; color: #991B1B; border: 1px solid #FECACA; }
+    .tag.blue { background-color: #DBEAFE; color: #1E40AF; border: 1px solid #BFDBFE; }
+    .tag.gold { background-color: #FEF3C7; color: #92400E; border: 1px solid #FDE68A; font-weight: 700; }
+    .tag.warn { background-color: #FEF3C7; color: #B45309; }
     .tag.pk { background-color: #FEE2E2; color: #991B1B; }
     .tag.fk { background-color: #DBEAFE; color: #1E40AF; }
     .tag.uk { background-color: #DCFCE7; color: #166534; }
+    del {
+      color: #94A3B8;
+      text-decoration: line-through;
+    }
+    .md-link {
+      color: var(--accent);
+      text-decoration: underline;
+      font-weight: 500;
+    }
     p { margin-bottom: 0.9rem; color: #334155; }
     ul, ol { margin-bottom: 1rem; padding-left: 1.4rem; color: #334155; }
     li { margin-bottom: 0.4rem; }
@@ -314,18 +327,22 @@
       <h1>06-01. 관리자 대시보드 — 열람 범위 설계 메모 (기획 상의 필요)</h1>
       
     </div>
-    <blockquote class="info-quote">🔵 <strong>2026-08-12 — 구 <code>05-01</code>에서 이동.</strong> 도메인 재편(<code>00-12</code> §7)으로 엔딩노트 도메인이</blockquote>
-<blockquote class="info-quote"><strong>05 → 06</strong>으로 옮겨갔습니다. 이 도메인은 <strong>생전(pre-death) 전용</strong>이며, <code>00-12</code> 논의에서</blockquote>
-<blockquote class="info-quote"><strong>고인이 유족에게 무언가를 남기는 유일한 통로</strong>로 확정됐습니다(→ <code>04-01</code> §9.1).</blockquote>
-<blockquote class="info-quote"><strong>문서 성격</strong>: 정식 스펙이 아니라 구현 메모입니다. <code>03-01</code>과 같은 배경으로 <code>[Claude:Sonnet]</code>이</blockquote>
-<blockquote class="info-quote">개발자 직접 지시로 작성했습니다. **이 문서의 §3은 결론이 아니라 <code>[Claude:Opus]</code>/사장님 상의를</blockquote>
-<blockquote class="info-quote">위한 쟁점 정리입니다 — 임의로 확정하지 않았습니다.**</blockquote>
+    <blockquote class="info-quote"><span class="tag blue">🔵</span> <strong>2026-08-12 — 구 <code>05-01</code>에서 이동.</strong> 도메인 재편(<code>00-12</code> §7)으로 엔딩노트 도메인이<br/>
+<strong>05 → 06</strong>으로 옮겨갔습니다. 이 도메인은 <strong>생전(pre-death) 전용</strong>이며, <code>00-12</code> 논의에서<br/>
+<strong>고인이 유족에게 무언가를 남기는 유일한 통로</strong>로 확정됐습니다(→ <code>04-01</code> §9.1).</blockquote>
+<blockquote class="info-quote"><strong>문서 성격</strong>: 정식 스펙이 아니라 구현 메모입니다. <code>03-01</code>과 같은 배경으로 <code>[Claude:Sonnet]</code>이<br/>
+개발자 직접 지시로 작성했습니다. **이 문서의 §3은 결론이 아니라 <code>[Claude:Opus]</code>/사장님 상의를<br/>
+위한 쟁점 정리입니다 — 임의로 확정하지 않았습니다.**</blockquote>
 <p>&gt;</p>
 <blockquote class="info-quote">등록: 2026-08-11 · 작성자: <code>[Claude:Sonnet]</code></blockquote>
 <h2 class="section-title">1. 지금 상태 (사실관계)</h2>
-<ul><li>Domain 06(디지털 엔딩노트 · 유언)도 구 03과 마찬가지로 <strong>백엔드 모델이 전혀 없습니다.</strong> 256-bit</li></ul>
+<ul>
+<li>Domain 06(디지털 엔딩노트 · 유언)도 구 03과 마찬가지로 <strong>백엔드 모델이 전혀 없습니다.</strong> 256-bit</li>
+</ul>
 <p>  암호화 금고, 연명의료 의향서, 유족 전달 메시지 전부 <code>EndingNotePage.tsx</code> 안의 프론트 목업입니다.</p>
-<ul><li>다만 다른 도메인과 달리 이 도메인은 <strong>이미 사용자에게 명시적인 프라이버시 약속을 화면에 걸어놓은 상태</strong>입니다.</li></ul>
+<ul>
+<li>다만 다른 도메인과 달리 이 도메인은 <strong>이미 사용자에게 명시적인 프라이버시 약속을 화면에 걸어놓은 상태</strong>입니다.</li>
+</ul>
 <p>  <code>EndingNotePage.tsx</code>의 로그인 유도 카피, <code>HomePage.tsx</code> 섹션 5(엔딩노트) 문구에 &quot;생전에는 철저히</p>
 <p>  비밀이 보장되며, 사후 사망진단서 확인 및 지정 유족의 이중 동의 완료 시에만 안전하게 복호화되어</p>
 <p>  전송됩니다&quot;라고 이미 적혀 있습니다.</p>
@@ -333,26 +350,34 @@
 <h2 class="section-title">2. 회원 연동 원칙은 다른 도메인과 동일</h2>
 <p><code>03-01</code> §2와 같습니다 — 실제 구현 시 이 도메인의 모델도 <code>userId</code> FK로 연결되어야 운영자가 회원</p>
 <p>상세에서 확인할 수 있습니다.</p>
-<blockquote class="info-quote">🔵 <strong><code>00-12</code> §4 사다리와의 관계</strong>: 화면에 약속한 *&quot;사망진단서 확인 + 지정 유족 이중 동의&quot;* 는</blockquote>
-<blockquote class="info-quote">사다리의 <strong>L3·L4</strong>에 해당합니다. <code>04-01</code> §3.3(증빙서류 미수집)은 <strong>L0~L1 행위에 대한 결정</strong>이므로</blockquote>
-<blockquote class="info-quote">이 도메인에 유추 적용하면 안 됩니다 — 층이 다릅니다.</blockquote>
+<blockquote class="info-quote"><span class="tag blue">🔵</span> <strong><code>00-12</code> §4 사다리와의 관계</strong>: 화면에 약속한 *&quot;사망진단서 확인 + 지정 유족 이중 동의&quot;* 는<br/>
+사다리의 <strong>L3·L4</strong>에 해당합니다. <code>04-01</code> §3.3(증빙서류 미수집)은 <strong>L0~L1 행위에 대한 결정</strong>이므로<br/>
+이 도메인에 유추 적용하면 안 됩니다 — 층이 다릅니다.</blockquote>
 <div class="page-break"></div>
 <h2 class="section-title">3. 쟁점 — 운영자가 정확히 뭘 볼 수 있어야 하는가 (기획 상의 필요)</h2>
 <p>개발자가 제안한 &quot;회원 클릭 시 관련정보 확인&quot;을 05에 그대로 적용하면, 그 &quot;관련정보&quot;가 정확히 뭔지에</p>
 <p>따라 결과가 완전히 달라집니다.</p>
-<ul><li><strong>A안 — 메타데이터만 노출</strong>: 엔딩노트 작성 여부, 항목별 작성 완료 상태, 봉인(sealed) 여부, 사후</li></ul>
+<ul>
+<li><strong>A안 — 메타데이터만 노출</strong>: 엔딩노트 작성 여부, 항목별 작성 완료 상태, 봉인(sealed) 여부, 사후</li>
+</ul>
 <p>  개봉 이력(누가 언제 동의해서 열렸는지) 등. <strong>실제 유언·메시지 본문 내용은 노출하지 않음.</strong></p>
 <p>  기존에 화면에 걸어둔 &quot;생전엔 철저히 비밀&quot; 약속과 호환됩니다.</p>
-<ul><li><strong>B안 — 관리자가 본문까지 열람 가능</strong>: 고객지원(예: &quot;내 유언장이 왜 안 열리나요&quot; 문의 대응) 등에는</li></ul>
+<ul>
+<li><strong>B안 — 관리자가 본문까지 열람 가능</strong>: 고객지원(예: &quot;내 유언장이 왜 안 열리나요&quot; 문의 대응) 등에는</li>
+</ul>
 <p>  유용할 수 있지만, 지금까지 설계한 AES-256 + 사후 이중동의 복호화 구조와 정면으로 충돌합니다.</p>
 <p>  이 기능의 신뢰(광고 카피의 진실성)가 걸린 문제라 즉흥적으로 정할 사안이 아닙니다.</p>
 <p><strong>이 문서는 A안을 권장하되 확정하지 않습니다.</strong> 최종 판단은 <code>[Claude:Opus]</code>와 개발자(+ 필요시</p>
 <p>사장님) 상의로 결정하고, 결정 즉시 이 문서에 반영하거나 정식 스펙 <code>05-0x</code>로 승격해야 합니다.</p>
 <div class="page-break"></div>
 <h2 class="section-title">4. 다음 단계</h2>
-<ul><li><code>pending-approvals.md</code> 또는 <code>context.md</code> &quot;다음 후보&quot;에 이 쟁점을 등록해 논의 전까지 착수 금지</li></ul>
+<ul>
+<li><code>pending-approvals.md</code> 또는 <code>context.md</code> &quot;다음 후보&quot;에 이 쟁점을 등록해 논의 전까지 착수 금지</li>
+</ul>
 <p>  상태를 유지할 것.</p>
-<ul><li>05 도메인 정식 스펙 작성 시 §3 결정 사항을 반드시 별도 절(§)로 명시할 것 — 나중에 &quot;구현하다 보니</li></ul>
+<ul>
+<li>05 도메인 정식 스펙 작성 시 §3 결정 사항을 반드시 별도 절(§)로 명시할 것 — 나중에 &quot;구현하다 보니</li>
+</ul>
 <p>  관리자가 볼 수 있게 됐다&quot;는 식으로 조용히 정해지면 안 됨.</p>
 
   </div>

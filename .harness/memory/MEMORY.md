@@ -16,6 +16,7 @@
 
 - [엔터프라이즈 문서 시각화 표준](reference/enterprise-doc-standards.md) — 공공/대기업 보고서, HTML 시각화, 학술 논문 규격 및 AI 하달 프롬프트 인덱스 (type: reference)
 - [보고서 산출물 단일 폴더 원칙](feedback/single-report-directory-policy.md) — 보고서/기획 산출물 중복 생성 금지 및 reports/ 단일 폴더 보관 규칙 (type: feedback)
+- [`00-14` 2차 잔여 착수 준비](project/00-14-2차-잔여-착수준비.md) — 6-2·6-3·7-4·5-4의 사전 조사 결과(ISMS-P 개편 일정·주민번호 처리 제한·테스트 인프라 실측·열람정책 설계 방향). **문서 4개가 나가면 삭제** (type: project)
 
 
 <!-- 형식: - [제목](파일명.md) — 한줄 요약 (타입은 파일 frontmatter의 metadata.type 참고) -->

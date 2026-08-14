@@ -151,9 +151,22 @@
     .tag.green { background-color: #DCFCE7; color: #166534; }
     .tag.gray { background-color: #F1F5F9; color: #475569; }
     .tag.orange { background-color: #FFEDD5; color: #9A3412; }
+    .tag.red { background-color: #FEE2E2; color: #991B1B; border: 1px solid #FECACA; }
+    .tag.blue { background-color: #DBEAFE; color: #1E40AF; border: 1px solid #BFDBFE; }
+    .tag.gold { background-color: #FEF3C7; color: #92400E; border: 1px solid #FDE68A; font-weight: 700; }
+    .tag.warn { background-color: #FEF3C7; color: #B45309; }
     .tag.pk { background-color: #FEE2E2; color: #991B1B; }
     .tag.fk { background-color: #DBEAFE; color: #1E40AF; }
     .tag.uk { background-color: #DCFCE7; color: #166534; }
+    del {
+      color: #94A3B8;
+      text-decoration: line-through;
+    }
+    .md-link {
+      color: var(--accent);
+      text-decoration: underline;
+      font-weight: 500;
+    }
     p { margin-bottom: 0.9rem; color: #334155; }
     ul, ol { margin-bottom: 1rem; padding-left: 1.4rem; color: #334155; }
     li { margin-bottom: 0.4rem; }
@@ -314,23 +327,23 @@
       <h1>🕯️ 05-01. 온라인 추모관 명세서</h1>
       
     </div>
-    <blockquote class="info-quote">🔵 <strong>2026-08-12 — 구 <code>03-02</code>에서 분할됨.</strong> 도메인 재편(<code>00-12</code> §7)으로 구 Domain 03이</blockquote>
-<blockquote class="info-quote"><strong>03(현물 유품 수거) / 04(디지털 자산·계정 정산) / 05(디지털 추모관)</strong> 셋으로 갈라졌습니다.</blockquote>
-<blockquote class="info-quote">이 문서는 구 <code>03-02</code>의 <strong>추모관 축(§4, §5.3~5.4, 추모관 API·화면)</strong> 을 승계합니다.</blockquote>
-<blockquote class="info-quote">계정 정리 축은 <strong><code>04-01</code></strong> 로 갔습니다.</blockquote>
-<blockquote class="info-quote">🔵 <strong>상위 기획서 <code>05-02</code>(구 <code>03-03</code>)가 이 문서보다 상위이며 충돌 시 그쪽이 우선합니다.</strong></blockquote>
-<blockquote class="info-quote"><strong><code>05-02</code> §12에 이 문서의 정정 목록 8건</strong>이 있습니다 — 특히 §3.1 스키마에 <code>moderationState</code></blockquote>
-<blockquote class="info-quote">신설(신고 처리 시 <code>visibility</code>를 덮어쓰지 않도록 축 분리)이 예정돼 있습니다.</blockquote>
-<blockquote class="info-quote">🔴 <strong><code>00-13</code>(공유 링크 모델) 결정 대기 중입니다.</strong> §2.2의 <code>slug</code> 설계와 §2.4·§2.5의 비회원</blockquote>
-<blockquote class="info-quote">허용 결정이 그 결과에 따라 바뀝니다. **미결 2건(개설 게이트·신고 정책) + 링크 모델이 확정되기</blockquote>
-<blockquote class="info-quote">전까지 프론트 착수 보류.**</blockquote>
-<blockquote class="info-quote"><strong>문서 성격</strong>: 확정 스펙. <code>[Claude:Opus]</code> 작성(2026-08-12), 재편 반영(2026-08-12).</blockquote>
-<blockquote class="info-quote"><strong>도메인 성격</strong>: <strong>유가족 전용</strong>(2026-08-12 개발자 확정). 생전 축이 없습니다.</blockquote>
-<blockquote class="info-quote"><strong>화면</strong>: 추모관 개별 페이지(SCR-011 신규), <code>DigitalEstatePage.tsx</code>(SCR-003) 진입점, <code>AdminPage.tsx</code>(SCR-010)</blockquote>
+    <blockquote class="info-quote"><span class="tag blue">🔵</span> <strong>2026-08-12 — 구 <code>03-02</code>에서 분할됨.</strong> 도메인 재편(<code>00-12</code> §7)으로 구 Domain 03이<br/>
+<strong>03(현물 유품 수거) / 04(디지털 자산·계정 정산) / 05(디지털 추모관)</strong> 셋으로 갈라졌습니다.<br/>
+이 문서는 구 <code>03-02</code>의 <strong>추모관 축(§4, §5.3~5.4, 추모관 API·화면)</strong> 을 승계합니다.<br/>
+계정 정리 축은 <strong><code>04-01</code></strong> 로 갔습니다.</blockquote>
+<blockquote class="info-quote"><span class="tag blue">🔵</span> <strong>상위 기획서 <code>05-02</code>(구 <code>03-03</code>)가 이 문서보다 상위이며 충돌 시 그쪽이 우선합니다.</strong><br/>
+<strong><code>05-02</code> §12에 이 문서의 정정 목록 8건</strong>이 있습니다 — 특히 §3.1 스키마에 <code>moderationState</code><br/>
+신설(신고 처리 시 <code>visibility</code>를 덮어쓰지 않도록 축 분리)이 예정돼 있습니다.</blockquote>
+<blockquote class="info-quote"><span class="tag red">🔴</span> <strong><code>00-13</code>(공유 링크 모델) 결정 대기 중입니다.</strong> §2.2의 <code>slug</code> 설계와 §2.4·§2.5의 비회원<br/>
+허용 결정이 그 결과에 따라 바뀝니다. **미결 2건(개설 게이트·신고 정책) + 링크 모델이 확정되기<br/>
+전까지 프론트 착수 보류.**</blockquote>
+<blockquote class="info-quote"><strong>문서 성격</strong>: 확정 스펙. <code>[Claude:Opus]</code> 작성(2026-08-12), 재편 반영(2026-08-12).<br/>
+<strong>도메인 성격</strong>: <strong>유가족 전용</strong>(2026-08-12 개발자 확정). 생전 축이 없습니다.<br/>
+<strong>화면</strong>: 추모관 개별 페이지(SCR-011 신규), <code>DigitalEstatePage.tsx</code>(SCR-003) 진입점, <code>AdminPage.tsx</code>(SCR-010)</blockquote>
 <hr class="divider"/>
 <h2 class="section-title">📌 1. 현황 진단</h2>
 <p>이 도메인은 <strong>백엔드 모델이 0개</strong>이고 <code>DigitalEstatePage.tsx</code>의 로컬 state로만 존재합니다.</p>
-<div class="table-container"><table><thead><tr><th>목업이 약속한 것</th><th>실제 판단</th></tr></thead><tbody><tr><td>추모관(헌화·방명록·앨범)</td><td>⚠️ 방향은 유효하나 **고인 1명당 1개**라는 기본 구조가 없음</td></tr></tbody></table></div>
+<div class="table-container"><table><thead><tr><th>목업이 약속한 것</th><th>실제 판단</th></tr></thead><tbody><tr><td>추모관(헌화·방명록·앨범)</td><td><span class="tag warn">⚠️</span> 방향은 유효하나 <strong>고인 1명당 1개</strong>라는 기본 구조가 없음</td></tr></tbody></table></div>
 <h3 class="subsection-title">1.1 목업의 근본 문제: 추모관이 하나뿐이다</h3>
 <p>목업의 추모관은 <strong>전역 싱글턴</strong>입니다. 헌화 수가 42로 하드코딩돼 있고 방명록도 하나입니다.</p>
 <p>누구의 추모관인지가 없으므로 실제 서비스로는 성립하지 않습니다.</p>
@@ -339,18 +352,24 @@
 <hr class="divider"/>
 <h2 class="section-title">🕯️ 2. 설계</h2>
 <h3 class="subsection-title">2.1 공개 범위 — 기본값은 &quot;링크를 아는 사람만&quot;</h3>
-<div class="table-container"><table><thead><tr><th>값</th><th>의미</th><th>검색 노출</th></tr></thead><tbody><tr><td><code>PRIVATE</code></td><td>개설자와 지정 유족만</td><td>❌</td></tr><tr><td>**<code>LINK</code>**</td><td>**URL을 아는 사람만 (기본값)**</td><td>❌</td></tr><tr><td><code>PUBLIC</code></td><td>이어봄 내 추모관 목록에 노출</td><td>⭕</td></tr></tbody></table></div>
+<div class="table-container"><table><thead><tr><th>값</th><th>의미</th><th>검색 노출</th></tr></thead><tbody><tr><td><code>PRIVATE</code></td><td>개설자와 지정 유족만</td><td>❌</td></tr><tr><td><strong><code>LINK</code></strong></td><td><strong>URL을 아는 사람만 (기본값)</strong></td><td>❌</td></tr><tr><td><code>PUBLIC</code></td><td>이어봄 내 추모관 목록에 노출</td><td>⭕</td></tr></tbody></table></div>
 <p><strong>기본값을 <code>PUBLIC</code>이 아니라 <code>LINK</code>로 두는 이유</strong>: 사망 사실과 유족 구성이 공개적으로 색인되면</p>
 <p><strong>부고 사칭 보이스피싱의 표적 정보</strong>가 됩니다. 실제로 부고 문자를 가장한 피싱은 이미 사회 문제입니다.</p>
 <p>부고는 널리 알리는 것이 본래 성격이지만, <strong>&quot;널리&quot;의 주체는 유족이어야 하며 검색엔진이 아닙니다.</strong></p>
-<ul><li><code>PUBLIC</code>이어도 <strong>생년월일·주소·유족 실명 등은 공개 응답에서 제외</strong>합니다(§4.1 화이트리스트).</li></ul>
-<blockquote class="info-quote">🔴 <strong><code>00-13</code> §2.2가 이 조항의 전제를 흔듭니다.</strong> *&quot;URL을 아는 사람만&quot;* 이라는 표현은 **1차 수신자</blockquote>
-<blockquote class="info-quote">에만 참이고 2차 재전파 이후에는 거짓**입니다. 링크 모델 확정 시 이 절을 정정해야 합니다.</blockquote>
-<h3 class="subsection-title">2.2 링크(`slug`) — 🔴 `00-13` 결정 대기</h3>
-<ul><li>비공개 URL은 추측 불가능한 토큰(<code>slug</code>)을 씁니다 — 순번(<code>/memorial/1</code>)이면 열람이 가능해집니다.</li></ul>
-<ul><li><strong>현행 설계는 <code>slug</code> 1개 영구 불변</strong>입니다. <code>00-13</code>이 이를 *&quot;비밀번호 없는 영구 마스터 키 한 장&quot;* 으로</li></ul>
+<ul>
+<li><code>PUBLIC</code>이어도 <strong>생년월일·주소·유족 실명 등은 공개 응답에서 제외</strong>합니다(§4.1 화이트리스트).</li>
+</ul>
+<blockquote class="info-quote"><span class="tag red">🔴</span> <strong><code>00-13</code> §2.2가 이 조항의 전제를 흔듭니다.</strong> *&quot;URL을 아는 사람만&quot;* 이라는 표현은 **1차 수신자<br/>
+에만 참이고 2차 재전파 이후에는 거짓**입니다. 링크 모델 확정 시 이 절을 정정해야 합니다.</blockquote>
+<h3 class="subsection-title">2.2 링크(<code>slug</code>) — <span class="tag red">🔴</span> <code>00-13</code> 결정 대기</h3>
+<ul>
+<li>비공개 URL은 추측 불가능한 토큰(<code>slug</code>)을 씁니다 — 순번(<code>/memorial/1</code>)이면 열람이 가능해집니다.</li>
+<li><strong>현행 설계는 <code>slug</code> 1개 영구 불변</strong>입니다. <code>00-13</code>이 이를 *&quot;비밀번호 없는 영구 마스터 키 한 장&quot;* 으로</li>
+</ul>
 <p>  진단하고 4개 안(A 단일영구 / B 회전가능 / C 단계분리 / D 초대기반)을 제시했습니다.</p>
-<ul><li><strong>C안이 채택되면</strong> <code>Memorial.phase</code>(<code>OBITUARY</code> → <code>MEMORIAL</code>)와 **장례 정보 컬럼(빈소·발인일시·장지·</li></ul>
+<ul>
+<li><strong>C안이 채택되면</strong> <code>Memorial.phase</code>(<code>OBITUARY</code> → <code>MEMORIAL</code>)와 **장례 정보 컬럼(빈소·발인일시·장지·</li>
+</ul>
 <p>  조의금 계좌)이 이 문서에 신설**되며, Domain 07의 모바일 부고장이 이 도메인으로 흡수됩니다.</p>
 <h3 class="subsection-title">2.3 허위 추모관 방지</h3>
 <p>살아있는 사람의 추모관을 만드는 것은 <strong>심각한 명예훼손</strong>이며, 실제로 발생할 수 있는 악용입니다.</p>
@@ -360,57 +379,67 @@
 <p>3. <strong>신고 창구 + 즉시 비공개 전환</strong> — 신고가 접수되면 <strong>운영자 확인 전까지 자동 비공개</strong>로 전환합니다.</p>
 <p>   사후 확인보다 선차단이 맞습니다. 피해가 되돌릴 수 없는 종류이기 때문입니다.</p>
 <p>4. 개설 시 <strong>&quot;허위 개설은 법적 책임을 질 수 있다&quot;는 고지 동의</strong>를 받고 시점을 기록합니다.</p>
-<blockquote class="info-quote">🔵 <strong><code>00-12</code> §4 사다리 적용</strong>: 추모관 개설은 <strong>L1</strong>(자기신고+로그인), <strong><code>PUBLIC</code> 전환만 L2</strong>(운영자</blockquote>
-<blockquote class="info-quote">검토)입니다. 이것이 <code>05-02</code> §6.1이 미결로 남긴 개설 게이트의 답입니다.</blockquote>
-<h3 class="subsection-title">2.4 헌화 — 🔴 로그인 요구 여부 재검토 중</h3>
+<blockquote class="info-quote"><span class="tag blue">🔵</span> <strong><code>00-12</code> §4 사다리 적용</strong>: 추모관 개설은 <strong>L1</strong>(자기신고+로그인), <strong><code>PUBLIC</code> 전환만 L2</strong>(운영자<br/>
+검토)입니다. 이것이 <code>05-02</code> §6.1이 미결로 남긴 개설 게이트의 답입니다.</blockquote>
+<h3 class="subsection-title">2.4 헌화 — <span class="tag red">🔴</span> 로그인 요구 여부 재검토 중</h3>
 <p><strong>현행 스펙</strong>: 조문객 대부분은 <strong>비회원</strong>이므로 비회원 헌화를 허용하되 중복을 억제합니다.</p>
-<ul><li>로그인 사용자: <code>userId</code>로 <strong>1인 1회</strong> 보장(DB 유니크 제약).</li></ul>
-<ul><li>비회원: 브라우저 토큰 + IP 해시 조합으로 중복을 <strong>억제</strong>합니다.</li></ul>
+<ul>
+<li>로그인 사용자: <code>userId</code>로 <strong>1인 1회</strong> 보장(DB 유니크 제약).</li>
+<li>비회원: 브라우저 토큰 + IP 해시 조합으로 중복을 <strong>억제</strong>합니다.</li>
+</ul>
 <p>  <strong>완벽하지 않다는 점을 명시합니다</strong> — 브라우저를 바꾸면 우회됩니다. 헌화 수는 정확한 집계가 아니라</p>
 <p>  <strong>추모의 표현</strong>이므로 이 수준이 적정합니다. 정확성이 필요한 지표로 쓰지 마십시오.</p>
-<ul><li><strong>IP는 원문 저장하지 않고 해시로만 보관</strong>합니다(개인정보 최소 수집).</li></ul>
-<blockquote class="info-quote">🔴 <strong>개발자 지적(2026-08-12)</strong>: *&quot;비로그인 사용자가 서비스를 이용한다? 나는 별로라고 생각해.&quot;*</blockquote>
-<blockquote class="info-quote"><strong>로그인 필수로 전환하면</strong> 위 &quot;억제만 가능&quot; 문단과 IP 해시 수집이 통째로 사라집니다.</blockquote>
-<blockquote class="info-quote"><code>00-13</code> §6.1에 링크 모델별 함의가 정리돼 있으며, <strong>링크 모델 확정 후 결정</strong>합니다.</blockquote>
+<ul>
+<li><strong>IP는 원문 저장하지 않고 해시로만 보관</strong>합니다(개인정보 최소 수집).</li>
+</ul>
+<blockquote class="info-quote"><span class="tag red">🔴</span> <strong>개발자 지적(2026-08-12)</strong>: *&quot;비로그인 사용자가 서비스를 이용한다? 나는 별로라고 생각해.&quot;*<br/>
+<strong>로그인 필수로 전환하면</strong> 위 &quot;억제만 가능&quot; 문단과 IP 해시 수집이 통째로 사라집니다.<br/>
+<code>00-13</code> §6.1에 링크 모델별 함의가 정리돼 있으며, <strong>링크 모델 확정 후 결정</strong>합니다.</blockquote>
 <h3 class="subsection-title">2.5 방명록 — UGC 관리</h3>
 <p>방명록은 사용자 생성 콘텐츠이므로 악성 글·스팸이 들어옵니다. 유족이 사별 직후에 그런 글을 보게</p>
 <p>되는 것은 서비스가 만든 2차 피해입니다.</p>
-<ul><li><strong>개설자(상주)는 자기 추모관의 방명록을 삭제할 수 있습니다.</strong> 별도 심사 없이 즉시.</li></ul>
-<ul><li><strong>운영자는 강제 비공개(<code>hiddenAt</code>) 처리</strong>가 가능합니다 — 하드 삭제가 아니라 소프트 삭제로</li></ul>
+<ul>
+<li><strong>개설자(상주)는 자기 추모관의 방명록을 삭제할 수 있습니다.</strong> 별도 심사 없이 즉시.</li>
+<li><strong>운영자는 강제 비공개(<code>hiddenAt</code>) 처리</strong>가 가능합니다 — 하드 삭제가 아니라 소프트 삭제로</li>
+</ul>
 <p>  분쟁 대비 원문을 보존합니다(<code>SocialAccount.unlinkedAt</code>에서 검증된 패턴).</p>
-<ul><li>비회원 작성 허용 — 이름·관계는 스냅샷 저장(§3.3). <strong>§2.4와 같은 재검토 대상입니다.</strong></li></ul>
-<blockquote class="info-quote">🔴 <strong><code>05-02</code> §4가 지적한 공백</strong>: <strong>작성자 본인의 방명록 삭제 권한이 없습니다.</strong> 로그인 유저가</blockquote>
-<blockquote class="info-quote">자기 글을 못 지우는 건 부자연스럽습니다. 로그인 필수로 가면 자동 해소됩니다.</blockquote>
+<ul>
+<li>비회원 작성 허용 — 이름·관계는 스냅샷 저장(§3.3). <strong>§2.4와 같은 재검토 대상입니다.</strong></li>
+</ul>
+<blockquote class="info-quote"><span class="tag red">🔴</span> <strong><code>05-02</code> §4가 지적한 공백</strong>: <strong>작성자 본인의 방명록 삭제 권한이 없습니다.</strong> 로그인 유저가<br/>
+자기 글을 못 지우는 건 부자연스럽습니다. 로그인 필수로 가면 자동 해소됩니다.</blockquote>
 <h3 class="subsection-title">2.6 사진 앨범 — 저장소 한계를 먼저 인정한다</h3>
 <p>추모 사진은 유족이 <strong>영구 보존을 기대하는 자산</strong>입니다. 그런데 현재 이미지 저장은</p>
 <p><strong>백엔드 로컬 디스크</strong>입니다(→ <code>systems.md</code> §5).</p>
 <p><strong>이 상태로 추모 사진 업로드를 실서비스로 열면 안 됩니다.</strong> 유실 시 복구가 불가능하고, 그 성격상</p>
 <p>&quot;죄송합니다&quot;로 끝나지 않습니다.</p>
-<ul><li><strong>Stage 1에서는 사진 업로드를 구현하되, 실서비스 오픈은 오브젝트 스토리지(S3 등) 전환 이후</strong>로 묶습니다(<code>00-11</code>).</li></ul>
-<ul><li>업로드 용량·장수 상한은 <code>policy.ts</code>(→ <code>01-05</code> §12.3)에 둡니다. 하드코딩 금지.</li></ul>
+<ul>
+<li><strong>Stage 1에서는 사진 업로드를 구현하되, 실서비스 오픈은 오브젝트 스토리지(S3 등) 전환 이후</strong>로 묶습니다(<code>00-11</code>).</li>
+<li>업로드 용량·장수 상한은 <code>policy.ts</code>(→ <code>01-05</code> §12.3)에 둡니다. 하드코딩 금지.</li>
+</ul>
 <hr class="divider"/>
 <h2 class="section-title">🗄️ 3. 데이터 모델 (Prisma)</h2>
-<h3 class="subsection-title">3.1 `Memorial` (신규) — 추모관</h3>
-<div class="table-container"><table><thead><tr><th>컬럼</th><th>타입</th><th>설명</th></tr></thead><tbody><tr><td><code>id</code></td><td>String @id</td><td>UUID</td></tr><tr><td><code>slug</code></td><td>String @unique</td><td>공개 URL용 **추측 불가 토큰**(§2.2) — 순번 금지</td></tr><tr><td><code>createdByUserId</code></td><td>String</td><td>**<span class="tag fk">FK → User</span>** — 개설자(상주)</td></tr><tr><td><code>deceasedName</code></td><td>String</td><td>고인 성명</td></tr><tr><td><code>deceasedBirthDate</code></td><td>DateTime?</td><td>생년월일 (공개 응답 제외)</td></tr><tr><td><code>deceasedDeathDate</code></td><td>DateTime?</td><td>사망일</td></tr><tr><td><code>portraitUrl</code></td><td>String?</td><td>영정 사진</td></tr><tr><td><code>epitaph</code></td><td>String?</td><td>추모 문구</td></tr><tr><td><code>visibility</code></td><td>String @default(&quot;LINK&quot;)</td><td><code>PRIVATE</code> | <code>LINK</code> | <code>PUBLIC</code> (§2.1)</td></tr><tr><td><code>falseReportAgreedAt</code></td><td>DateTime</td><td>허위 개설 책임 고지 동의 시각(§2.3-4)</td></tr><tr><td><code>reportedAt</code></td><td>DateTime?</td><td>신고 접수 시각</td></tr><tr><td><code>reviewedAt</code></td><td>DateTime?</td><td>운영자 확인 시각</td></tr><tr><td><code>closedAt</code></td><td>DateTime?</td><td>개설자가 닫음 (소프트 삭제)</td></tr><tr><td><code>createdAt</code> / <code>updatedAt</code></td><td>DateTime</td><td></td></tr></tbody></table></div>
+<h3 class="subsection-title">3.1 <code>Memorial</code> (신규) — 추모관</h3>
+<div class="table-container"><table><thead><tr><th>컬럼</th><th>타입</th><th>설명</th></tr></thead><tbody><tr><td><code>id</code></td><td>String @id</td><td>UUID</td></tr><tr><td><code>slug</code></td><td>String @unique</td><td>공개 URL용 <strong>추측 불가 토큰</strong>(§2.2) — 순번 금지</td></tr><tr><td><code>createdByUserId</code></td><td>String</td><td><strong><span class="tag fk">FK → User</span></strong> — 개설자(상주)</td></tr><tr><td><code>deceasedName</code></td><td>String</td><td>고인 성명</td></tr><tr><td><code>deceasedBirthDate</code></td><td>DateTime?</td><td>생년월일 (공개 응답 제외)</td></tr><tr><td><code>deceasedDeathDate</code></td><td>DateTime?</td><td>사망일</td></tr><tr><td><code>portraitUrl</code></td><td>String?</td><td>영정 사진</td></tr><tr><td><code>epitaph</code></td><td>String?</td><td>추모 문구</td></tr><tr><td><code>visibility</code></td><td>String @default(&quot;LINK&quot;)</td><td><code>PRIVATE</code> | <code>LINK</code> | <code>PUBLIC</code> (§2.1)</td></tr><tr><td><code>falseReportAgreedAt</code></td><td>DateTime</td><td>허위 개설 책임 고지 동의 시각(§2.3-4)</td></tr><tr><td><code>reportedAt</code></td><td>DateTime?</td><td>신고 접수 시각</td></tr><tr><td><code>reviewedAt</code></td><td>DateTime?</td><td>운영자 확인 시각</td></tr><tr><td><code>closedAt</code></td><td>DateTime?</td><td>개설자가 닫음 (소프트 삭제)</td></tr><tr><td><code>createdAt</code> / <code>updatedAt</code></td><td>DateTime</td><td></td></tr></tbody></table></div>
 <p><strong>인덱스</strong>: <code>[createdByUserId]</code>, <code>[visibility]</code>, <code>[slug]</code></p>
-<blockquote class="info-quote">🔴 <strong><code>05-02</code> §5 정정 예정</strong>: <code>moderationState</code>(<code>NORMAL</code>/<code>REPORTED</code>/<code>CONFIRMED_OK</code>/<code>BLOCKED</code>) 신설.</blockquote>
-<blockquote class="info-quote"><code>visibility</code> 하나가 &quot;유족의 의사&quot;와 &quot;운영자의 제재&quot;를 동시에 표현하려다 충돌한 문제를 축 분리로 해결합니다.</blockquote>
+<blockquote class="info-quote"><span class="tag red">🔴</span> <strong><code>05-02</code> §5 정정 예정</strong>: <code>moderationState</code>(<code>NORMAL</code>/<code>REPORTED</code>/<code>CONFIRMED_OK</code>/<code>BLOCKED</code>) 신설.<br/>
+<code>visibility</code> 하나가 &quot;유족의 의사&quot;와 &quot;운영자의 제재&quot;를 동시에 표현하려다 충돌한 문제를 축 분리로 해결합니다.</blockquote>
 <p>&gt;</p>
-<blockquote class="info-quote">🔴 <strong><code>00-12</code> §2.1 정정 예정</strong>: <code>deceasedName</code>(문자열)을 <strong><code>deceasedId</code> FK → <code>Deceased</code></strong> 로 교체.</blockquote>
-<blockquote class="info-quote">고인이 엔티티가 되어야 추모관·정산·엔딩노트가 같은 고인을 가리킬 수 있습니다.</blockquote>
+<blockquote class="info-quote"><span class="tag red">🔴</span> <strong><code>00-12</code> §2.1 정정 예정</strong>: <code>deceasedName</code>(문자열)을 <strong><code>deceasedId</code> FK → <code>Deceased</code></strong> 로 교체.<br/>
+고인이 엔티티가 되어야 추모관·정산·엔딩노트가 같은 고인을 가리킬 수 있습니다.</blockquote>
 <p>&gt;</p>
-<blockquote class="info-quote">🔴 <strong><code>00-13</code> C안 채택 시</strong>: <code>phase</code> + 장례 정보 컬럼 신설(§2.2).</blockquote>
-<h3 class="subsection-title">3.2 `MemorialTribute` (헌화)</h3>
-<div class="table-container"><table><thead><tr><th>컬럼</th><th>타입</th><th>설명</th></tr></thead><tbody><tr><td><code>id</code> / <code>memorialId</code></td><td>String</td><td><span class="tag fk">FK → Memorial</span></td></tr><tr><td><code>userId</code></td><td>String?</td><td>**<span class="tag fk">FK → User</span>** (비회원이면 null — §2.4 재검토 대상)</td></tr><tr><td><code>visitorHash</code></td><td>String</td><td>비회원 중복 억제용 해시(브라우저 토큰+IP) — **IP 원문 저장 금지**</td></tr><tr><td><code>createdAt</code></td><td>DateTime</td><td></td></tr></tbody></table></div>
+<blockquote class="info-quote"><span class="tag red">🔴</span> <strong><code>00-13</code> C안 채택 시</strong>: <code>phase</code> + 장례 정보 컬럼 신설(§2.2).</blockquote>
+<h3 class="subsection-title">3.2 <code>MemorialTribute</code> (헌화)</h3>
+<div class="table-container"><table><thead><tr><th>컬럼</th><th>타입</th><th>설명</th></tr></thead><tbody><tr><td><code>id</code> / <code>memorialId</code></td><td>String</td><td><span class="tag fk">FK → Memorial</span></td></tr><tr><td><code>userId</code></td><td>String?</td><td><strong><span class="tag fk">FK → User</span></strong> (비회원이면 null — §2.4 재검토 대상)</td></tr><tr><td><code>visitorHash</code></td><td>String</td><td>비회원 중복 억제용 해시(브라우저 토큰+IP) — <strong>IP 원문 저장 금지</strong></td></tr><tr><td><code>createdAt</code></td><td>DateTime</td><td></td></tr></tbody></table></div>
 <p><code>@@unique([memorialId, userId])</code> — 로그인 사용자 1인 1회 보장.</p>
-<h3 class="subsection-title">3.3 `MemorialGuestbook` (방명록)</h3>
-<div class="table-container"><table><thead><tr><th>컬럼</th><th>타입</th><th>설명</th></tr></thead><tbody><tr><td><code>id</code> / <code>memorialId</code></td><td>String</td><td><span class="tag fk">FK → Memorial</span></td></tr><tr><td><code>userId</code></td><td>String?</td><td>**<span class="tag fk">FK → User</span>** (비회원이면 null)</td></tr><tr><td><code>authorName</code></td><td>String</td><td>작성자명 스냅샷</td></tr><tr><td><code>relation</code></td><td>String?</td><td>관계 (예: <code>친구</code>)</td></tr><tr><td><code>message</code></td><td>String</td><td>본문</td></tr><tr><td><code>deletedByOwnerAt</code></td><td>DateTime?</td><td>상주가 삭제(§2.5)</td></tr><tr><td><code>hiddenAt</code></td><td>DateTime?</td><td>운영자 강제 비공개 — 소프트 삭제로 원문 보존</td></tr><tr><td><code>createdAt</code></td><td>DateTime</td><td></td></tr></tbody></table></div>
+<h3 class="subsection-title">3.3 <code>MemorialGuestbook</code> (방명록)</h3>
+<div class="table-container"><table><thead><tr><th>컬럼</th><th>타입</th><th>설명</th></tr></thead><tbody><tr><td><code>id</code> / <code>memorialId</code></td><td>String</td><td><span class="tag fk">FK → Memorial</span></td></tr><tr><td><code>userId</code></td><td>String?</td><td><strong><span class="tag fk">FK → User</span></strong> (비회원이면 null)</td></tr><tr><td><code>authorName</code></td><td>String</td><td>작성자명 스냅샷</td></tr><tr><td><code>relation</code></td><td>String?</td><td>관계 (예: <code>친구</code>)</td></tr><tr><td><code>message</code></td><td>String</td><td>본문</td></tr><tr><td><code>deletedByOwnerAt</code></td><td>DateTime?</td><td>상주가 삭제(§2.5)</td></tr><tr><td><code>hiddenAt</code></td><td>DateTime?</td><td>운영자 강제 비공개 — 소프트 삭제로 원문 보존</td></tr><tr><td><code>createdAt</code></td><td>DateTime</td><td></td></tr></tbody></table></div>
 <p><strong>신청자 정보 스냅샷 원칙</strong>(<code>01-05</code> §4.4)을 승계합니다: <code>authorName</code>을 <code>User</code>에서 조인해</p>
 <p>표시하지 않고 작성 시점 값을 복사해 둡니다. 작성자가 나중에 이름을 바꾸거나 탈퇴해도</p>
 <p><strong>조문 당시의 기록이 보존</strong>되어야 하기 때문입니다.</p>
-<h3 class="subsection-title">3.4 `MemorialPhoto` (사진)</h3>
-<div class="table-container"><table><thead><tr><th>컬럼</th><th>타입</th><th>설명</th></tr></thead><tbody><tr><td><code>id</code> / <code>memorialId</code></td><td>String</td><td><span class="tag fk">FK → Memorial</span></td></tr><tr><td><code>uploadedByUserId</code></td><td>String</td><td>**<span class="tag fk">FK → User</span>** — 업로드 권한은 개설자로 제한(초기)</td></tr><tr><td><code>url</code> / <code>title</code></td><td>String</td><td></td></tr><tr><td><code>sortOrder</code></td><td>Int @default(0)</td><td>대표 사진은 <code>sortOrder</code> 최소값 — <code>Facility.images[0]</code> 규칙과 같은 방식</td></tr><tr><td><code>createdAt</code></td><td>DateTime</td><td></td></tr></tbody></table></div>
-<h3 class="subsection-title">3.5 `User` 변경 — `03-01` §2 원칙 반영</h3>
+<h3 class="subsection-title">3.4 <code>MemorialPhoto</code> (사진)</h3>
+<div class="table-container"><table><thead><tr><th>컬럼</th><th>타입</th><th>설명</th></tr></thead><tbody><tr><td><code>id</code> / <code>memorialId</code></td><td>String</td><td><span class="tag fk">FK → Memorial</span></td></tr><tr><td><code>uploadedByUserId</code></td><td>String</td><td><strong><span class="tag fk">FK → User</span></strong> — 업로드 권한은 개설자로 제한(초기)</td></tr><tr><td><code>url</code> / <code>title</code></td><td>String</td><td></td></tr><tr><td><code>sortOrder</code></td><td>Int @default(0)</td><td>대표 사진은 <code>sortOrder</code> 최소값 — <code>Facility.images[0]</code> 규칙과 같은 방식</td></tr><tr><td><code>createdAt</code></td><td>DateTime</td><td></td></tr></tbody></table></div>
+<h3 class="subsection-title">3.5 <code>User</code> 변경 — <code>03-01</code> §2 원칙 반영</h3>
 <pre><code>model User {
   // ... 기존 필드
   memorials           Memorial[]            // docs 05-01 — 개설한 추모관
@@ -424,26 +453,28 @@
 <hr class="divider"/>
 <h2 class="section-title">🔌 4. API 명세</h2>
 <h3 class="subsection-title">4.1 공개 (인증 불필요)</h3>
-<div class="table-container"><table><thead><tr><th>메서드</th><th>경로</th><th>설명</th></tr></thead><tbody><tr><td>GET</td><td><code>/api/memorials/:slug</code></td><td>추모관 조회. <code>PRIVATE</code>면 **404**(존재를 숨김)</td></tr><tr><td>GET</td><td><code>/api/memorials/:slug/guestbook</code></td><td>방명록 목록 (삭제·비공개 건 제외)</td></tr><tr><td>POST</td><td><code>/api/memorials/:slug/tributes</code></td><td>헌화 (**비회원 허용 — §2.4 재검토 중**)</td></tr><tr><td>POST</td><td><code>/api/memorials/:slug/guestbook</code></td><td>방명록 작성 (**비회원 허용 — §2.5 재검토 중**)</td></tr><tr><td>POST</td><td><code>/api/memorials/:slug/report</code></td><td>신고 접수 → **즉시 비공개 전환**(§2.3-3)</td></tr></tbody></table></div>
-<ul><li>공개 대상이 아닌 추모관은 <strong>403이 아니라 404</strong>로 응답합니다(<code>02-03</code> §9.1-4와 동일 원칙).</li></ul>
-<ul><li>공개 응답 <strong>화이트리스트</strong>: <code>deceasedName</code>, <code>deceasedDeathDate</code>, <code>portraitUrl</code>, <code>epitaph</code>만.</li></ul>
+<div class="table-container"><table><thead><tr><th>메서드</th><th>경로</th><th>설명</th></tr></thead><tbody><tr><td>GET</td><td><code>/api/memorials/:slug</code></td><td>추모관 조회. <code>PRIVATE</code>면 <strong>404</strong>(존재를 숨김)</td></tr><tr><td>GET</td><td><code>/api/memorials/:slug/guestbook</code></td><td>방명록 목록 (삭제·비공개 건 제외)</td></tr><tr><td>POST</td><td><code>/api/memorials/:slug/tributes</code></td><td>헌화 (<strong>비회원 허용 — §2.4 재검토 중</strong>)</td></tr><tr><td>POST</td><td><code>/api/memorials/:slug/guestbook</code></td><td>방명록 작성 (<strong>비회원 허용 — §2.5 재검토 중</strong>)</td></tr><tr><td>POST</td><td><code>/api/memorials/:slug/report</code></td><td>신고 접수 → <strong>즉시 비공개 전환</strong>(§2.3-3)</td></tr></tbody></table></div>
+<ul>
+<li>공개 대상이 아닌 추모관은 <strong>403이 아니라 404</strong>로 응답합니다(<code>02-03</code> §9.1-4와 동일 원칙).</li>
+<li>공개 응답 <strong>화이트리스트</strong>: <code>deceasedName</code>, <code>deceasedDeathDate</code>, <code>portraitUrl</code>, <code>epitaph</code>만.</li>
+</ul>
 <p>  <strong><code>deceasedBirthDate</code>·개설자 정보·<code>createdByUserId</code>는 제외</strong>합니다(§2.1).</p>
 <h3 class="subsection-title">4.2 로그인 유저 (JWT B2C)</h3>
-<div class="table-container"><table><thead><tr><th>메서드</th><th>경로</th><th>설명</th></tr></thead><tbody><tr><td>POST</td><td><code>/api/memorials</code></td><td>추모관 개설 (**허위 개설 고지 동의 필수**, 없으면 400)</td></tr><tr><td>GET</td><td><code>/api/me/memorials</code></td><td>내가 개설한 추모관 목록</td></tr><tr><td>PATCH</td><td><code>/api/memorials/:id</code></td><td>추모관 정보·공개범위 수정 (**개설자만**)</td></tr><tr><td>DELETE</td><td><code>/api/memorials/:id/guestbook/:gid</code></td><td>방명록 삭제 (**개설자만**, §2.5)</td></tr><tr><td>POST/DELETE</td><td><code>/api/memorials/:id/photos</code></td><td>사진 등록·삭제 (**개설자만**)</td></tr></tbody></table></div>
+<div class="table-container"><table><thead><tr><th>메서드</th><th>경로</th><th>설명</th></tr></thead><tbody><tr><td>POST</td><td><code>/api/memorials</code></td><td>추모관 개설 (<strong>허위 개설 고지 동의 필수</strong>, 없으면 400)</td></tr><tr><td>GET</td><td><code>/api/me/memorials</code></td><td>내가 개설한 추모관 목록</td></tr><tr><td>PATCH</td><td><code>/api/memorials/:id</code></td><td>추모관 정보·공개범위 수정 (<strong>개설자만</strong>)</td></tr><tr><td>DELETE</td><td><code>/api/memorials/:id/guestbook/:gid</code></td><td>방명록 삭제 (<strong>개설자만</strong>, §2.5)</td></tr><tr><td>POST/DELETE</td><td><code>/api/memorials/:id/photos</code></td><td>사진 등록·삭제 (<strong>개설자만</strong>)</td></tr></tbody></table></div>
 <p><strong>소유권 검증 필수</strong> — 남의 추모관을 수정하면 403(<code>02-03</code> §5.3에서 검증된 패턴).</p>
-<blockquote class="info-quote">🔴 <strong>미구현</strong>: &quot;추모관 닫기&quot;(<code>closedAt</code>)가 스키마에만 있고 API가 없습니다(<code>05-02</code> §4).</blockquote>
-<h3 class="subsection-title">4.3 운영자 (JWT `aud=admin`)</h3>
+<blockquote class="info-quote"><span class="tag red">🔴</span> <strong>미구현</strong>: &quot;추모관 닫기&quot;(<code>closedAt</code>)가 스키마에만 있고 API가 없습니다(<code>05-02</code> §4).</blockquote>
+<h3 class="subsection-title">4.3 운영자 (JWT <code>aud=admin</code>)</h3>
 <div class="table-container"><table><thead><tr><th>메서드</th><th>경로</th><th>설명</th></tr></thead><tbody><tr><td>GET</td><td><code>/api/admin/memorials?reported=true</code></td><td>신고 접수 추모관 큐</td></tr><tr><td>PATCH</td><td><code>/api/admin/memorials/:id/review</code></td><td>신고 확인 — 복구 또는 유지</td></tr><tr><td>PATCH</td><td><code>/api/admin/memorials/:id/guestbook/:gid/hide</code></td><td>방명록 강제 비공개</td></tr></tbody></table></div>
 <h3 class="subsection-title">4.4 운영자 회원 상세</h3>
-<div class="table-container"><table><thead><tr><th>메서드</th><th>경로</th><th>설명</th></tr></thead><tbody><tr><td>GET</td><td><code>/api/admin/users/:id</code></td><td>회원 상세 — 이 도메인 데이터 **조인 표시**</td></tr></tbody></table></div>
+<div class="table-container"><table><thead><tr><th>메서드</th><th>경로</th><th>설명</th></tr></thead><tbody><tr><td>GET</td><td><code>/api/admin/users/:id</code></td><td>회원 상세 — 이 도메인 데이터 <strong>조인 표시</strong></td></tr></tbody></table></div>
 <p><strong>응답에 포함</strong>: 개설한 추모관 목록(고인명·공개범위·개설일), 본인이 남긴 방명록 건수.</p>
-<blockquote class="info-quote"><strong>Domain 06(엔딩노트)과의 차이를 분명히 합니다.</strong> <code>06-01</code> §3이 제기한 &quot;운영자가 본문까지 볼</blockquote>
-<blockquote class="info-quote">것인가&quot;는 <strong>06에서는 미해결 쟁점</strong>이지만, <strong>여기서는 본문 열람을 허용</strong>합니다. 근거가 다릅니다 —</blockquote>
-<blockquote class="info-quote">방명록은 애초에 <strong>조문객에게 공개를 전제로 작성된 글</strong>이고, 운영자가 신고 처리를 하려면</blockquote>
-<blockquote class="info-quote">반드시 내용을 봐야 합니다. 반면 엔딩노트는 <strong>생전에 비밀 보장을 명시적으로 약속</strong>한 콘텐츠입니다.</blockquote>
-<blockquote class="info-quote"><strong>이 문서의 결정을 06에 유추 적용하지 마십시오.</strong></blockquote>
+<blockquote class="info-quote"><strong>Domain 06(엔딩노트)과의 차이를 분명히 합니다.</strong> <code>06-01</code> §3이 제기한 &quot;운영자가 본문까지 볼<br/>
+것인가&quot;는 <strong>06에서는 미해결 쟁점</strong>이지만, <strong>여기서는 본문 열람을 허용</strong>합니다. 근거가 다릅니다 —<br/>
+방명록은 애초에 <strong>조문객에게 공개를 전제로 작성된 글</strong>이고, 운영자가 신고 처리를 하려면<br/>
+반드시 내용을 봐야 합니다. 반면 엔딩노트는 <strong>생전에 비밀 보장을 명시적으로 약속</strong>한 콘텐츠입니다.<br/>
+<strong>이 문서의 결정을 06에 유추 적용하지 마십시오.</strong></blockquote>
 <hr class="divider"/>
-<h2 class="section-title">🔒 5. 개인정보 (→ `.harness/security.md`)</h2>
+<h2 class="section-title">🔒 5. 개인정보 (→ <code>.harness/security.md</code>)</h2>
 <p>1. <strong>고인의 개인정보는 본인이 동의할 수 없습니다.</strong> 개설자가 대신 등록하는 구조이므로,</p>
 <p>   공개 범위 기본값을 좁게(<code>LINK</code>) 두는 것으로 위험을 상쇄합니다(§2.1).</p>
 <p>2. <strong>IP는 해시로만 저장</strong>합니다(§2.4). 원문 저장 금지. <strong>§2.4가 로그인 필수로 바뀌면 이 항목은 삭제됩니다.</strong></p>
@@ -455,23 +486,29 @@
 <h2 class="section-title">🖥️ 6. 화면 명세</h2>
 <h3 class="subsection-title">6.1 추모관 페이지 (SCR-011 신규)</h3>
 <p><strong><code>SCR-011</code>을 신규 부여</strong>합니다(→ <code>00-06</code> §6 미할당 목록의 첫 번째. 이 문서 확정 시 <code>00-06</code>에 등재 필요).</p>
-<ul><li>경로: <code>/memorial/:slug</code> — <strong>추측 불가 토큰</strong>(§2.2)</li></ul>
-<ul><li>구성: 영정·고인명·생몰일 / 헌화 버튼 + 누적 수 / 방명록 / 사진 앨범 / 신고 링크</li></ul>
-<ul><li><strong>열람은 비회원도 그대로 가능해야 합니다</strong> — 부고 링크를 받은 사람에게 로그인 벽을 세우면</li></ul>
+<ul>
+<li>경로: <code>/memorial/:slug</code> — <strong>추측 불가 토큰</strong>(§2.2)</li>
+<li>구성: 영정·고인명·생몰일 / 헌화 버튼 + 누적 수 / 방명록 / 사진 앨범 / 신고 링크</li>
+<li><strong>열람은 비회원도 그대로 가능해야 합니다</strong> — 부고 링크를 받은 사람에게 로그인 벽을 세우면</li>
+</ul>
 <p>  발인 정보조차 못 봅니다. <strong>다만 기록을 남기는 행위(헌화·방명록·신고)의 로그인 요구는 §2.4 재검토 중.</strong></p>
-<ul><li>개설자로 로그인한 경우에만 편집·삭제 컨트롤 노출.</li></ul>
-<h3 class="subsection-title">6.2 `DigitalEstatePage.tsx` (SCR-003) — 진입점만</h3>
+<ul>
+<li>개설자로 로그인한 경우에만 편집·삭제 컨트롤 노출.</li>
+</ul>
+<h3 class="subsection-title">6.2 <code>DigitalEstatePage.tsx</code> (SCR-003) — 진입점만</h3>
 <p>재편으로 추모관은 이 페이지를 떠났습니다. <strong>내가 개설한 추모관 목록 + 개설 버튼</strong>만 남기거나,</p>
-<p><code>00-12</code> §6.3의 유족 모드 메뉴로 옮깁니다. 🔴 <strong><code>00-12</code> §6 모드 UX 확정 대기.</strong></p>
-<h3 class="subsection-title">6.3 `AdminPage.tsx` (SCR-010) — 탭 추가</h3>
-<ul><li><strong>&quot;추모관 신고&quot; 탭</strong> — 신고 큐, 원문 확인, 복구/유지 판단(§4.3)</li></ul>
-<ul><li><strong>회원 상세에 조인 섹션</strong>(§4.4)</li></ul>
+<p><code>00-12</code> §6.3의 유족 모드 메뉴로 옮깁니다. <span class="tag red">🔴</span> <strong><code>00-12</code> §6 모드 UX 확정 대기.</strong></p>
+<h3 class="subsection-title">6.3 <code>AdminPage.tsx</code> (SCR-010) — 탭 추가</h3>
+<ul>
+<li><strong>&quot;추모관 신고&quot; 탭</strong> — 신고 큐, 원문 확인, 복구/유지 판단(§4.3)</li>
+<li><strong>회원 상세에 조인 섹션</strong>(§4.4)</li>
+</ul>
 <p>운영자 화면 밀도는 <code>00-09</code> §2.5 예외 규정을 따릅니다.</p>
 <hr class="divider"/>
-<h2 class="section-title">🧭 7. 구현 순서 (`[Claude:Sonnet]` 전달용)</h2>
-<div class="table-container"><table><thead><tr><th>단계</th><th>내용</th><th>산출물</th></tr></thead><tbody><tr><td>**1**</td><td>스키마 4개 모델 + <code>User</code> 관계 추가 + 마이그레이션</td><td><code>schema.prisma</code></td></tr><tr><td>**2**</td><td><code>Memorial</code> 개설·수정·공개범위 + <code>slug</code> 발급</td><td><code>memorialController.ts</code></td></tr><tr><td>**3**</td><td>헌화·방명록·사진 API</td><td><code>memorialController.ts</code> 확장</td></tr><tr><td>**4**</td><td>신고 → 자동 비공개 + 운영자 확인 큐</td><td><code>moderationController.ts</code> 확장</td></tr><tr><td>**5**</td><td>운영자 회원 상세 조인 조회 (§4.4)</td><td><code>adminController.ts</code> 확장</td></tr><tr><td>**6**</td><td>추모관 페이지 SCR-011 신설</td><td>프론트</td></tr><tr><td>**7**</td><td><code>AdminPage</code> 신고 탭 + 회원 상세 섹션</td><td>프론트</td></tr></tbody></table></div>
+<h2 class="section-title">🧭 7. 구현 순서 (<code>[Claude:Sonnet]</code> 전달용)</h2>
+<div class="table-container"><table><thead><tr><th>단계</th><th>내용</th><th>산출물</th></tr></thead><tbody><tr><td><strong>1</strong></td><td>스키마 4개 모델 + <code>User</code> 관계 추가 + 마이그레이션</td><td><code>schema.prisma</code></td></tr><tr><td><strong>2</strong></td><td><code>Memorial</code> 개설·수정·공개범위 + <code>slug</code> 발급</td><td><code>memorialController.ts</code></td></tr><tr><td><strong>3</strong></td><td>헌화·방명록·사진 API</td><td><code>memorialController.ts</code> 확장</td></tr><tr><td><strong>4</strong></td><td>신고 → 자동 비공개 + 운영자 확인 큐</td><td><code>moderationController.ts</code> 확장</td></tr><tr><td><strong>5</strong></td><td>운영자 회원 상세 조인 조회 (§4.4)</td><td><code>adminController.ts</code> 확장</td></tr><tr><td><strong>6</strong></td><td>추모관 페이지 SCR-011 신설</td><td>프론트</td></tr><tr><td><strong>7</strong></td><td><code>AdminPage</code> 신고 탭 + 회원 상세 섹션</td><td>프론트</td></tr></tbody></table></div>
 <p><strong>1~5는 백엔드만이라 curl/스크립트로 검증 가능합니다.</strong> 6~7은 브라우저 확인이 필요합니다.</p>
-<p>🔴 <strong>6~7은 <code>00-13</code> 링크 모델 확정 전까지 착수 보류</strong>(§2.2).</p>
+<p><span class="tag red">🔴</span> <strong>6~7은 <code>00-13</code> 링크 모델 확정 전까지 착수 보류</strong>(§2.2).</p>
 <h3 class="subsection-title">7.1 구현 시 반드시 지킬 것</h3>
 <p>1. <strong><code>slug</code>는 추측 불가 토큰</strong>으로 생성할 것 — 순번·UUID 노출 모두 부적절(§2.2).</p>
 <p>2. 비공개 추모관 조회는 403이 아니라 <strong>404</strong>(존재를 숨김).</p>
@@ -482,10 +519,10 @@
 <p>7. 업로드 상한 등 수치는 <code>policy.ts</code>에 둘 것 — 하드코딩 금지(<code>01-05</code> §12).</p>
 <hr class="divider"/>
 <h2 class="section-title">❓ 8. 확정이 필요한 것</h2>
-<div class="table-container"><table><thead><tr><th>#</th><th>쟁점</th><th>권고</th><th>상태</th></tr></thead><tbody><tr><td>1</td><td>**추모관 보존기간**</td><td>오픈 전 확정 필수</td><td><code>00-11</code> 스토리지 비용 선행</td></tr><tr><td>2</td><td>**추모관 유료화 여부**</td><td>화환·프리미엄 테마 — PG 연동이라 사장님 승인 대상</td><td><code>05-02</code> §9</td></tr><tr><td>3</td><td>**<code>PUBLIC</code> 목록 페이지 신설 여부**</td><td>🟡 초기에는 만들지 않음</td><td>§2.1 판단</td></tr><tr><td>4</td><td>**공유 링크 모델**</td><td>🟡 C안(단계 분리)</td><td>**<code>00-13</code> 정본**</td></tr><tr><td>5</td><td>**조문 로그인 요구**(§2.4·§2.5)</td><td>#4 확정 후 판단</td><td><code>00-13</code> §6.1</td></tr><tr><td>6</td><td>**개설 게이트·신고 정책**</td><td>LINK 즉시 / PUBLIC 승인</td><td><code>05-02</code> §6.1·§7</td></tr></tbody></table></div>
+<div class="table-container"><table><thead><tr><th>#</th><th>쟁점</th><th>권고</th><th>상태</th></tr></thead><tbody><tr><td>1</td><td><strong>추모관 보존기간</strong></td><td>오픈 전 확정 필수</td><td><code>00-11</code> 스토리지 비용 선행</td></tr><tr><td>2</td><td><strong>추모관 유료화 여부</strong></td><td>화환·프리미엄 테마 — PG 연동이라 사장님 승인 대상</td><td><code>05-02</code> §9</td></tr><tr><td>3</td><td><strong><code>PUBLIC</code> 목록 페이지 신설 여부</strong></td><td><span class="tag orange">🟡</span> 초기에는 만들지 않음</td><td>§2.1 판단</td></tr><tr><td>4</td><td><strong>공유 링크 모델</strong></td><td><span class="tag orange">🟡</span> C안(단계 분리)</td><td><strong><code>00-13</code> 정본</strong></td></tr><tr><td>5</td><td><strong>조문 로그인 요구</strong>(§2.4·§2.5)</td><td>#4 확정 후 판단</td><td><code>00-13</code> §6.1</td></tr><tr><td>6</td><td><strong>개설 게이트·신고 정책</strong></td><td>LINK 즉시 / PUBLIC 승인</td><td><code>05-02</code> §6.1·§7</td></tr></tbody></table></div>
 <hr class="divider"/>
 <h2 class="section-title">🔗 9. 관련 문서</h2>
-<div class="table-container"><table><thead><tr><th>문서</th><th>관계</th></tr></thead><tbody><tr><td><code>05-02</code></td><td>**상위 기획서.** 충돌 시 그쪽 우선. §12에 이 문서 정정 목록 8건</td></tr><tr><td><code>04-01</code></td><td>**같은 구 <code>03-02</code>에서 갈라진 형제 문서**(디지털 계정 정리)</td></tr><tr><td><code>00-13</code></td><td>**공유 링크 모델 결정서** — §2.2·§2.4·§2.5가 그 결과에 종속</td></tr><tr><td><code>00-12</code></td><td><code>Deceased</code> 엔티티(§3.1 정정 예정), 검증 사다리 L1/L2(§2.3), 모드 UX(§6.2)</td></tr><tr><td><code>00-11</code></td><td>오브젝트 스토리지 전환 — §2.6 오픈 선행 조건</td></tr><tr><td><code>00-06</code></td><td>SCR-011 신규 부여 — **이 문서 확정 시 등재 필요**</td></tr><tr><td><code>01-05</code></td><td>스냅샷 원칙(§4.4), 정책 계층(§12) 승계</td></tr><tr><td><code>06-01</code></td><td>운영자 열람 범위 — **05와 06은 결론이 다릅니다**(§4.4 경고 참조)</td></tr></tbody></table></div>
+<div class="table-container"><table><thead><tr><th>문서</th><th>관계</th></tr></thead><tbody><tr><td><code>05-02</code></td><td><strong>상위 기획서.</strong> 충돌 시 그쪽 우선. §12에 이 문서 정정 목록 8건</td></tr><tr><td><code>04-01</code></td><td><strong>같은 구 <code>03-02</code>에서 갈라진 형제 문서</strong>(디지털 계정 정리)</td></tr><tr><td><code>00-13</code></td><td><strong>공유 링크 모델 결정서</strong> — §2.2·§2.4·§2.5가 그 결과에 종속</td></tr><tr><td><code>00-12</code></td><td><code>Deceased</code> 엔티티(§3.1 정정 예정), 검증 사다리 L1/L2(§2.3), 모드 UX(§6.2)</td></tr><tr><td><code>00-11</code></td><td>오브젝트 스토리지 전환 — §2.6 오픈 선행 조건</td></tr><tr><td><code>00-06</code></td><td>SCR-011 신규 부여 — <strong>이 문서 확정 시 등재 필요</strong></td></tr><tr><td><code>01-05</code></td><td>스냅샷 원칙(§4.4), 정책 계층(§12) 승계</td></tr><tr><td><code>06-01</code></td><td>운영자 열람 범위 — <strong>05와 06은 결론이 다릅니다</strong>(§4.4 경고 참조)</td></tr></tbody></table></div>
 
   </div>
 </body>

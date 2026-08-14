@@ -151,9 +151,22 @@
     .tag.green { background-color: #DCFCE7; color: #166534; }
     .tag.gray { background-color: #F1F5F9; color: #475569; }
     .tag.orange { background-color: #FFEDD5; color: #9A3412; }
+    .tag.red { background-color: #FEE2E2; color: #991B1B; border: 1px solid #FECACA; }
+    .tag.blue { background-color: #DBEAFE; color: #1E40AF; border: 1px solid #BFDBFE; }
+    .tag.gold { background-color: #FEF3C7; color: #92400E; border: 1px solid #FDE68A; font-weight: 700; }
+    .tag.warn { background-color: #FEF3C7; color: #B45309; }
     .tag.pk { background-color: #FEE2E2; color: #991B1B; }
     .tag.fk { background-color: #DBEAFE; color: #1E40AF; }
     .tag.uk { background-color: #DCFCE7; color: #166534; }
+    del {
+      color: #94A3B8;
+      text-decoration: line-through;
+    }
+    .md-link {
+      color: var(--accent);
+      text-decoration: underline;
+      font-weight: 500;
+    }
     p { margin-bottom: 0.9rem; color: #334155; }
     ul, ol { margin-bottom: 1rem; padding-left: 1.4rem; color: #334155; }
     li { margin-bottom: 0.4rem; }
@@ -319,24 +332,31 @@
 <blockquote class="info-quote"><strong>2026-08-11 전면 갱신</strong>: 기존 문서는 &quot;15개 화면&quot;이라 적어놓고 8개만 나열했고, 그중 상속세 계산기 위치가 실제와 달랐으며, 파트너·운영자 화면 3개가 통째로 누락돼 있었습니다. 실제 구현을 기준으로 인벤토리를 다시 세웠습니다.</blockquote>
 <hr class="divider"/>
 <h2 class="section-title">🖥️ 1. 소비자(B2C) 화면</h2>
-<div class="table-container"><table><thead><tr><th>화면 ID</th><th>이름</th><th>구현 파일</th><th>도메인</th><th>상태</th></tr></thead><tbody><tr><td>**SCR-001**</td><td>메인 홈 (풀페이지 스냅 스크롤 7섹션)</td><td><code>pages/HomePage.tsx</code></td><td>—</td><td><span class="tag green">✅ 구현</span> 구현</td></tr><tr><td>**SCR-002**</td><td>디지털 엔딩노트 작성</td><td><code>pages/EndingNotePage.tsx</code></td><td>06</td><td><span class="tag orange">🔶 진행</span> 프론트 목업</td></tr><tr><td>**SCR-003**</td><td>디지털 계정 정리</td><td><code>pages/DigitalEstatePage.tsx</code></td><td>04</td><td><span class="tag orange">🔶 진행</span> 프론트 목업</td></tr><tr><td>**SCR-004** 🌟</td><td>장사시설 탐색·매칭</td><td><code>pages/FacilityPage.tsx</code> + <code>KakaoMapModal</code> · <code>facility/InquiryModal</code> · <code>facility/FacilityReviewModal</code></td><td>01</td><td><span class="tag green">✅ 구현</span> 구현 (실데이터 1,552건)</td></tr><tr><td>**SCR-005**</td><td>상속세 간이 시뮬레이터</td><td><code>components/counseling/TaxSimulatorModal.tsx</code></td><td>02</td><td><span class="tag green">✅ 구현</span> 구현</td></tr><tr><td>**SCR-006**</td><td>상중 · 행정 케어 (D-Day 체크리스트, 부고장)</td><td><code>pages/CareGuidePage.tsx</code></td><td>07</td><td><span class="tag orange">🔶 진행</span> 프론트 목업</td></tr><tr><td>**SCR-007**</td><td>전문가 매칭 · 상담 신청</td><td><code>pages/CounselingPage.tsx</code> + <code>expert/ConsultRequestModal</code></td><td>02</td><td><span class="tag green">✅ 구현</span> Stage 1 구현</td></tr><tr><td>**SCR-011**</td><td>온라인 추모관 (개별 고인 페이지)</td><td>*(미구현)* — 예정 경로 <code>/memorial/:slug</code></td><td>05</td><td><span class="tag gray">⬜ 계획</span> 스펙만 (<code>05-01</code> §6.1)</td></tr><tr><td>**SCR-012**</td><td>마이페이지 · 소셜 계정 연동</td><td><code>pages/MyPage.tsx</code> + <code>MyPageAuthSettings</code></td><td>—</td><td><span class="tag green">✅ 구현</span> 구현</td></tr></tbody></table></div>
+<div class="table-container"><table><thead><tr><th>화면 ID</th><th>이름</th><th>구현 파일</th><th>도메인</th><th>상태</th></tr></thead><tbody><tr><td><strong>SCR-001</strong></td><td>메인 홈 (풀페이지 스냅 스크롤 7섹션)</td><td><code>pages/HomePage.tsx</code></td><td>—</td><td><span class="tag green">✅</span> 구현</td></tr><tr><td><strong>SCR-002</strong></td><td>디지털 엔딩노트 작성</td><td><code>pages/EndingNotePage.tsx</code></td><td>06</td><td><span class="tag orange">🔶</span> 프론트 목업</td></tr><tr><td><strong>SCR-003</strong></td><td>디지털 계정 정리</td><td><code>pages/DigitalEstatePage.tsx</code></td><td>04</td><td><span class="tag orange">🔶</span> 프론트 목업</td></tr><tr><td><strong>SCR-004</strong> 🌟</td><td>장사시설 탐색·매칭</td><td><code>pages/FacilityPage.tsx</code> + <code>KakaoMapModal</code> · <code>facility/InquiryModal</code> · <code>facility/FacilityReviewModal</code></td><td>01</td><td><span class="tag green">✅</span> 구현 (실데이터 1,552건)</td></tr><tr><td><strong>SCR-005</strong></td><td>상속세 간이 시뮬레이터</td><td><code>components/counseling/TaxSimulatorModal.tsx</code></td><td>02</td><td><span class="tag green">✅</span> 구현</td></tr><tr><td><strong>SCR-006</strong></td><td>상중 · 행정 케어 (D-Day 체크리스트, 부고장)</td><td><code>pages/CareGuidePage.tsx</code></td><td>07</td><td><span class="tag orange">🔶</span> 프론트 목업</td></tr><tr><td><strong>SCR-007</strong></td><td>전문가 매칭 · 상담 신청</td><td><code>pages/CounselingPage.tsx</code> + <code>expert/ConsultRequestModal</code></td><td>02</td><td><span class="tag green">✅</span> Stage 1 구현</td></tr><tr><td><strong>SCR-011</strong></td><td>온라인 추모관 (개별 고인 페이지)</td><td>*(미구현)* — 예정 경로 <code>/memorial/:slug</code></td><td>05</td><td><span class="tag gray">⬜</span> 스펙만 (<code>05-01</code> §6.1)</td></tr><tr><td><strong>SCR-012</strong></td><td>마이페이지 · 소셜 계정 연동</td><td><code>pages/MyPage.tsx</code> + <code>MyPageAuthSettings</code></td><td>—</td><td><span class="tag green">✅</span> 구현</td></tr></tbody></table></div>
 <p><strong>SCR ID 변경 이력</strong></p>
-<ul><li><code>SCR-005</code>(상속세 계산기)는 원래 <code>DigitalEstatePage.tsx</code> 안에 있었으나 → <code>CounselingPage</code>(SCR-007) 인라인 → <strong><code>TaxSimulatorModal</code> 분리</strong>로 두 번 이동했습니다(2026-08-11). 상속은 디지털 유품이 아니라 <strong>전문가 상담(Domain 02)의 무료 훅</strong>이라는 판단이며, 페이지 지분을 과하게 차지해 버튼+모달로 분리했습니다.</li></ul>
-<ul><li><code>SCR-004</code>는 <code>01-01</code>이 참조하는 ID입니다. 참조에 적힌 <code>PriceCompareModal</code>·<code>BookingModal</code>은 <strong>폐기·삭제</strong>됐습니다(→ <code>01-01</code> §2.3·§2.5).</li></ul>
+<ul>
+<li><code>SCR-005</code>(상속세 계산기)는 원래 <code>DigitalEstatePage.tsx</code> 안에 있었으나 → <code>CounselingPage</code>(SCR-007) 인라인 → <strong><code>TaxSimulatorModal</code> 분리</strong>로 두 번 이동했습니다(2026-08-11). 상속은 디지털 유품이 아니라 <strong>전문가 상담(Domain 02)의 무료 훅</strong>이라는 판단이며, 페이지 지분을 과하게 차지해 버튼+모달로 분리했습니다.</li>
+<li><code>SCR-004</code>는 <code>01-01</code>이 참조하는 ID입니다. 참조에 적힌 <code>PriceCompareModal</code>·<code>BookingModal</code>은 <strong>폐기·삭제</strong>됐습니다(→ <code>01-01</code> §2.3·§2.5).</li>
+</ul>
 <hr class="divider"/>
 <h2 class="section-title">🏢 2. 파트너(B2B) 화면</h2>
 <p>B2C 소셜 로그인과 <strong>완전히 분리된</strong> 이메일·비밀번호 계정 체계입니다(→ <code>01-05</code> §3.1, <code>02-02</code> §1).</p>
-<div class="table-container"><table><thead><tr><th>화면 ID</th><th>이름</th><th>구현 파일</th><th>접근 경로</th><th>상태</th></tr></thead><tbody><tr><td>**SCR-008**</td><td>파트너 포털 (장사시설/전문가 로그인·가입)</td><td><code>pages/PartnerPortalPage.tsx</code></td><td><code>/partner</code> — Footer 링크로만 노출</td><td><span class="tag green">✅ 구현</span> 구현</td></tr><tr><td>**SCR-009**</td><td>사업자·전문가 대시보드</td><td><code>pages/BizDashboard.tsx</code></td><td>SCR-008 로그인 후</td><td><span class="tag green">✅ 구현</span> 구현</td></tr></tbody></table></div>
-<ul><li><strong>SCR-009는 계정 유형에 따라 내용이 갈립니다.</strong> 장사시설은 시설 검색·클레임 신청·내 시설 사진 관리, 전문가는 프로필·승인상태·받은 상담 신청 처리.</li></ul>
-<ul><li>승인 전(<code>PENDING</code>) 계정은 로그인 자체가 막힙니다(403) — 심사 대기 안내만 노출.</li></ul>
+<div class="table-container"><table><thead><tr><th>화면 ID</th><th>이름</th><th>구현 파일</th><th>접근 경로</th><th>상태</th></tr></thead><tbody><tr><td><strong>SCR-008</strong></td><td>파트너 포털 (장사시설/전문가 로그인·가입)</td><td><code>pages/PartnerPortalPage.tsx</code></td><td><code>/partner</code> — Footer 링크로만 노출</td><td><span class="tag green">✅</span> 구현</td></tr><tr><td><strong>SCR-009</strong></td><td>사업자·전문가 대시보드</td><td><code>pages/BizDashboard.tsx</code></td><td>SCR-008 로그인 후</td><td><span class="tag green">✅</span> 구현</td></tr></tbody></table></div>
+<ul>
+<li><strong>SCR-009는 계정 유형에 따라 내용이 갈립니다.</strong> 장사시설은 시설 검색·클레임 신청·내 시설 사진 관리, 전문가는 프로필·승인상태·받은 상담 신청 처리.</li>
+<li>승인 전(<code>PENDING</code>) 계정은 로그인 자체가 막힙니다(403) — 심사 대기 안내만 노출.</li>
+<li><strong>접근 경로는 §7에서 개편 확정</strong> (2026-08-14) — Footer 카피라이트 줄 단독에서 <code>LoginModal</code> 분기 + Footer 본문 승격으로. 위 표의 &quot;Footer 링크로만&quot;은 <strong>구현 전 현황</strong>이며 §7 반영 후 갱신합니다.</li>
+</ul>
 <hr class="divider"/>
 <h2 class="section-title">🛡️ 3. 운영자(내부) 화면</h2>
-<div class="table-container"><table><thead><tr><th>화면 ID</th><th>이름</th><th>구현 파일</th><th>접근 경로</th><th>상태</th></tr></thead><tbody><tr><td>**SCR-010**</td><td>운영자 승인 대시보드</td><td><code>pages/AdminPage.tsx</code></td><td><code>/admin</code> — **어디에도 링크하지 않음**, 직접 URL만</td><td><span class="tag orange">🔶 진행</span> 부분 구현</td></tr></tbody></table></div>
+<div class="table-container"><table><thead><tr><th>화면 ID</th><th>이름</th><th>구현 파일</th><th>접근 경로</th><th>상태</th></tr></thead><tbody><tr><td><strong>SCR-010</strong></td><td>운영자 승인 대시보드</td><td><code>pages/AdminPage.tsx</code></td><td><code>/admin</code> — <strong>어디에도 링크하지 않음</strong>, 직접 URL만</td><td><span class="tag orange">🔶</span> 부분 구현</td></tr></tbody></table></div>
 <p><strong>탭 구성</strong>: 사업자 가입 심사 / 전문가 가입 심사 / 시설 연동(클레임) 심사 / 전체 시설 조회</p>
-<ul><li>계정은 공개 가입 없이 <code>prisma/seed-admin.ts</code>로만 생성합니다(→ <code>01-05</code> §6.4).</li></ul>
-<ul><li>회원 정보 수정은 <strong>운영 편의 정보만</strong> 허용하고 검증된 신원 정보는 반려 후 재신청을 받습니다(→ <code>01-05</code> §6.2).</li></ul>
-<ul><li><strong>미구현</strong>: 전체 리드 조회, 리드 청구 확정, 정산서 생성·발행(→ <code>01-05</code> §11 4~6단계, 수수료 기준 확정 대기).</li></ul>
-<ul><li>화면 밀도는 소비자 화면과 다른 기준을 씁니다(→ <code>00-09</code> §2.5).</li></ul>
+<ul>
+<li>계정은 공개 가입 없이 <code>prisma/seed-admin.ts</code>로만 생성합니다(→ <code>01-05</code> §6.4).</li>
+<li>회원 정보 수정은 <strong>운영 편의 정보만</strong> 허용하고 검증된 신원 정보는 반려 후 재신청을 받습니다(→ <code>01-05</code> §6.2).</li>
+<li><strong>미구현</strong>: 전체 리드 조회, 리드 청구 확정, 정산서 생성·발행(→ <code>01-05</code> §11 4~6단계, 수수료 기준 확정 대기).</li>
+<li>화면 밀도는 소비자 화면과 다른 기준을 씁니다(→ <code>00-09</code> §2.5).</li>
+</ul>
 <hr class="divider"/>
 <h2 class="section-title">🧩 4. 전역 컴포넌트 (화면 ID 없음)</h2>
 <div class="table-container"><table><thead><tr><th>컴포넌트</th><th>역할</th></tr></thead><tbody><tr><td><code>components/Header.tsx</code></td><td>고정 72px 상단 바 — 로고, 로그인/계정설정/로그아웃</td></tr><tr><td><code>components/Sidebar.tsx</code></td><td>좌측 고정 사이드바 — 6개 메뉴, 호버 시 72px → 240px</td></tr><tr><td><code>components/Footer.tsx</code></td><td>하단 정보 + 파트너 포털(SCR-008) 진입 링크</td></tr><tr><td><code>components/FloatingEmergency.tsx</code></td><td>우하단 24시간 긴급콜 FAB</td></tr><tr><td><code>components/LoginModal.tsx</code> · <code>SocialLinkModal.tsx</code></td><td>B2C 소셜 로그인·계정 통합(→ <code>00-08</code>)</td></tr></tbody></table></div>
@@ -348,6 +368,38 @@
 <h2 class="section-title">📌 6. 미할당 ID</h2>
 <p><code>SCR-013</code>, <code>SCR-014</code>, <code>SCR-015</code>는 <strong>아직 부여하지 않았습니다.</strong></p>
 <p>(<code>SCR-011</code>은 2026-08-12 온라인 추모관에 부여됐습니다 — <code>05-01</code> §6.1.) 과거 문서가 &quot;SCR-001~015&quot;라고 적은 것은 계획 단계의 예상 개수였을 뿐, 실제로 정의된 적이 없습니다. 신규 화면이 생기면 이 번호부터 순서대로 씁니다 — <strong>기존 ID를 재사용하거나 당겨쓰지 마십시오.</strong> 도메인 문서들이 참조하고 있습니다.</p>
+<hr class="divider"/>
+<h2 class="section-title">🚪 7. 회원 유형 진입 동선 — <strong>2026-08-14 개발자 확정</strong></h2>
+<blockquote class="info-quote"><strong>이 절이 답하는 질문</strong>: 처음 온 사람이 *&quot;나는 어느 문으로 들어가야 하나&quot;* 를 알 수 있는가.<br/>
+§1~3은 화면이 <strong>존재하는지</strong>를 적는 대장이고, 이 절은 그 화면에 <strong>닿을 수 있는지</strong>를 적습니다.<br/>
+신규 화면 ID는 발생하지 않습니다 — 기존 SCR-001·SCR-008 사이의 <strong>연결</strong>만 다룹니다.</blockquote>
+<h3 class="subsection-title">7.1 원칙 — 역할은 나누고, 모드는 나누지 않는다</h3>
+<div class="table-container"><table><thead><tr><th>구분</th><th>진입 시점에 나누는가</th><th>근거</th></tr></thead><tbody><tr><td><strong>역할</strong> — *당신은 누구인가* (일반회원 / 사업자 / 전문가 / 운영자)</td><td>⭕ <strong>나눈다</strong></td><td>인증 체계가 물리적으로 다릅니다. <code>User</code>(소셜) vs <code>Partner</code>·<code>Expert</code>(이메일+비번, 승인제) vs <code>Admin</code>(시드 생성) → <code>01-05</code> §3.1, <code>02-02</code> §1</td></tr><tr><td><strong>모드</strong> — *당신은 지금 어떤 상황인가* (생전 준비 / 유족)</td><td>❌ <strong>묻지 않는다</strong></td><td><code>00-12</code> §6.2가 <strong>A안(계정 유형 분리 가입)을 기각</strong>했습니다 — *&quot;한 사람이 둘 다 필요합니다. 내 엔딩노트도 쓰고 아버지 상도 치릅니다.&quot;* 권고는 C안(<code>Deceased</code> 등록으로 자동 판정)</td></tr></tbody></table></div>
+<p><strong>이 경계를 문서에 박아두는 이유</strong>: *&quot;회원 유형을 나누자&quot;* 는 말이 두 가지로 읽히기 때문입니다.</p>
+<p>역할 분기는 지금 확정해도 뒤집히지 않지만, <strong>모드 분기는 지금 만들면 반드시 뒤집힙니다</strong> — <code>00-12</code> §6은 아직 <span class="tag orange">🟡</span> 미확정이고, 판정 근거인 <code>Deceased</code> 엔티티가 구현되기 전엔 자동 분기의 입력값 자체가 없습니다.</p>
+<h3 class="subsection-title">7.2 현황 실측 (2026-08-14, 코드 기준)</h3>
+<div class="table-container"><table><thead><tr><th>지점</th><th>파트너 진입로</th><th>실측값</th></tr></thead><tbody><tr><td><code>Footer.tsx:136</code></td><td>⭕ 1건</td><td><code>&lt;Link to=&quot;/partner&quot;&gt;장사시설·전문가 파트너이신가요?&lt;/Link&gt;</code> — <strong>카피라이트 줄에 <code>·</code>로 이어붙음</strong>. <code>0.82rem</code>(≈13px) / <code>#6B7280</code></td></tr><tr><td><code>LoginModal.tsx</code></td><td>❌ 0건</td><td>소셜 3종 + 데모 버튼만. 잘못 들어온 사업자에게 <strong>출구가 없음</strong></td></tr><tr><td><code>Header.tsx</code></td><td>❌ 0건</td><td>로고 · 로그인 · 계정설정 · 로그아웃</td></tr><tr><td><code>App.tsx:178-187</code></td><td><span class="tag red">🔴</span> <strong>역류</strong></td><td><code>Header</code>·<code>Sidebar</code>가 <code>&lt;Routes&gt;</code> <strong>바깥</strong>에 있어 <code>/partner</code>·<code>/admin</code>에서도 렌더됩니다</td></tr></tbody></table></div>
+<p><strong>두 가지 결함이 있습니다.</strong></p>
+<p>1. <strong>유일한 진입로가 13px입니다.</strong> <code>00-09</code> §2.3이 *&quot;협상 대상이 아님&quot;* 으로 못 박은 본문 <code>18px</code> 기준의 72% 미달이고, 위치도 사용자가 스캔에서 제외하는 <strong>법적 고지 줄</strong>입니다. 홈에서는 풀페이지 스냅 7섹션 중 <strong>마지막 섹션</strong>(<code>HomePage.tsx:536·601</code>)까지 내려야 나옵니다.</p>
+<p>2. <strong>잘못된 문이 포털 안까지 따라 들어옵니다.</strong> 사업자가 <code>/partner</code>에 도착해도 상단엔 B2C <code>로그인</code> 버튼이, 좌측엔 소비자 6개 메뉴(<code>Sidebar.tsx:15-22</code>)가 그대로 있습니다. 여기서 <code>로그인</code>을 누르면 <strong>소셜 로그인 모달이 열립니다</strong> — 자기 계정 체계가 아닌 곳으로 되돌아가는 순환입니다.</p>
+<h3 class="subsection-title">7.3 진입 지점 스펙</h3>
+<div class="table-container"><table><thead><tr><th>#</th><th>위치</th><th>문구</th><th>이동</th><th>왜 여기인가</th></tr></thead><tbody><tr><td>①</td><td><strong><code>LoginModal</code> 하단</strong> (데모 버튼 블록 <strong>위</strong>, 구분선 아래)</td><td><code>장사시설 · 전문가 회원이신가요?</code> + <code>파트너 로그인 →</code></td><td><code>/partner</code> 이동 + 모달 닫기</td><td><strong>오인이 실제로 발생하는 지점.</strong> 사업자가 헤더 <code>로그인</code>을 누르는 건 자연스러운 오인이고, 지금은 거기가 막다른 길입니다</td></tr><tr><td>②</td><td><strong><code>Footer</code></strong> — 카피라이트 줄에서 <strong>분리</strong></td><td>현행 문구 유지</td><td><code>/partner</code></td><td>카피라이트는 법적 고지 영역이라 스캔에서 빠집니다. 열 2(보안 &amp; 약관)와 같은 <code>0.88rem</code>으로 올려 <strong>본문 정보</strong>로 취급</td></tr><tr><td>③</td><td><strong><code>Header</code></strong></td><td>—</td><td>—</td><td>❌ <strong>하지 않습니다.</strong> 고정 72px에 파트너 링크를 넣으면 다수인 B2C 소비자가 <strong>모든 화면에서</strong> 자기와 무관한 항목을 봅니다. 파트너는 소수·반복 방문자라 상시 노출의 이득이 작습니다</td></tr><tr><td>④</td><td><strong><code>/admin</code></strong></td><td>—</td><td>—</td><td>❌ <strong>링크 없음 유지</strong> (§3 기존 결정 재확인). 운영자는 URL을 아는 사람뿐입니다</td></tr></tbody></table></div>
+<ul>
+<li>①의 크기는 <code>0.9rem</code> 이상 · 밑줄 · <code>var(--primary-color)</code>. 보조 링크라 본문 18px 규격 대상은 아니지만 <strong>13px은 허용하지 않습니다</strong>.</li>
+<li>①은 <strong>데모 버튼 위</strong>에 둡니다. 데모 블록은 개발용이라 오픈 시 제거될 것이고, 그때 실제 링크가 같이 사라지면 안 됩니다.</li>
+</ul>
+<h3 class="subsection-title">7.4 포털 쪽 크롬 분리 (7.2-2 해결)</h3>
+<p><code>/partner</code>·<code>/admin</code>에서는 <strong>B2C 크롬을 렌더하지 않습니다.</strong></p>
+<div class="table-container"><table><thead><tr><th></th><th><code>/</code> <code>/facility</code> … (B2C)</th><th><code>/partner</code> <code>/admin</code></th></tr></thead><tbody><tr><td><code>Header</code> (로그인 버튼 포함)</td><td>⭕</td><td>❌</td></tr><tr><td><code>Sidebar</code> (소비자 6메뉴)</td><td>⭕</td><td>❌</td></tr><tr><td><code>FloatingEmergency</code> (24h 긴급콜)</td><td>⭕</td><td>❌ — 유족 대상 기능</td></tr><tr><td>대체</td><td>—</td><td><strong>로고 + <code>이어봄 홈으로</code> 링크</strong>만 있는 최소 상단 바</td></tr></tbody></table></div>
+<p>로고는 클릭 가능하게 두어 역진입(파트너 → B2C 홈)을 막지 않습니다. 사업자 담당자도 개인으로는 소비자입니다.</p>
+<h3 class="subsection-title">7.5 이번 범위에서 하지 않는 것</h3>
+<ul>
+<li><strong>생전 준비 / 유족 모드 분기</strong> — <code>00-12</code> §6 확정 및 <code>Deceased</code> 구현 이후. 여기서 손대지 않습니다.</li>
+<li><strong>가입 유형 선택 화면 신설</strong> — <code>PartnerPortalPage</code>가 이미 <code>AccountType = &#039;FACILITY&#039; | &#039;EXPERT&#039;</code> 탭으로 분기합니다(<code>PartnerPortalPage.tsx:14</code>). 앞단에 화면을 하나 더 두면 클릭만 늘어납니다.</li>
+<li><strong><code>Admin</code> 진입로 노출</strong> — §3 결정 유지.</li>
+</ul>
+<h3 class="subsection-title">7.6 부수 정리</h3>
+<p><code>LoginModal.tsx:11</code> 주석이 경로를 <code>/#partner</code>·<code>/#admin</code>으로 적고 있습니다. <code>00-10</code> HistoryRouter 전환 이후 실제 경로는 <code>/partner</code>·<code>/admin</code>이며, 주석만 갱신되지 않았습니다. ① 작업 시 같이 고칩니다.</p>
 
   </div>
 </body>

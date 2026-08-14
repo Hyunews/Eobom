@@ -3,7 +3,9 @@ const path = require('path');
 const { execSync } = require('child_process');
 
 // Target HTML file
-const htmlPath = path.resolve(__dirname, '../../reports/00_핵심플랫폼/00-14_이어봄_대표_사장님_논의_안건_정리.html');
+const htmlCandidate1 = path.resolve(__dirname, '../../reports/00_핵심플랫폼/00-14_이어봄_사장님_논의_안건_정리.html');
+const htmlCandidate2 = path.resolve(__dirname, '../../reports/00_핵심플랫폼/00-14_이어봄_대표_사장님_논의_안건_정리.html');
+const htmlPath = fs.existsSync(htmlCandidate1) ? htmlCandidate1 : htmlCandidate2;
 const pdfPath = path.resolve(__dirname, '../../reports/00_핵심플랫폼/00-14_이어봄_대표_사장님_논의_안건_정리.pdf');
 
 console.log(`Converting HTML to PDF:`);

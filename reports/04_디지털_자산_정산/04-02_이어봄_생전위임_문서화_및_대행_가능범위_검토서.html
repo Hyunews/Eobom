@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🤝 04-02. 생전 위임 문서화 · 대행 가능 범위 — 검토서 - 이어봄 기획 명세서</title>
+  <style>
+    :root {
+      --primary: #1A2B4C;
+      --secondary: #5B7065;
+      --accent: #D4A359;
+      --bg: #FBF9F5;
+      --surface: #FFFFFF;
+      --text: #1E293B;
+      --text-muted: #64748B;
+      --border: #E2E8F0;
+      --code-bg: #0F172A;
+      --code-text: #F8FAFC;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.65;
+      padding: 2rem 1rem;
+    }
+    .container {
+      max-width: 1140px;
+      margin: 0 auto;
+      background-color: var(--surface);
+      padding: 3rem;
+      border-radius: 24px;
+      box-shadow: 0 20px 40px rgba(26, 43, 76, 0.08);
+      border: 1px solid var(--border);
+    }
+    .header {
+      border-bottom: 3px solid var(--accent);
+      padding-bottom: 1.5rem;
+      margin-bottom: 2.5rem;
+    }
+    .badge {
+      display: inline-block;
+      background-color: var(--primary);
+      color: #FFF;
+      font-size: 0.85rem;
+      font-weight: 700;
+      padding: 0.3rem 0.8rem;
+      border-radius: 20px;
+      margin-bottom: 0.8rem;
+    }
+    h1 {
+      font-size: 2.1rem;
+      color: var(--primary);
+      margin-bottom: 0.5rem;
+      font-weight: 800;
+    }
+    .subtitle {
+      color: var(--text-muted);
+      font-size: 1.05rem;
+    }
+    .section-title {
+      font-size: 1.5rem;
+      color: var(--primary);
+      margin: 2.5rem 0 1.2rem 0;
+      padding-left: 0.8rem;
+      border-left: 5px solid var(--secondary);
+      font-weight: 700;
+    }
+    .subsection-title {
+      font-size: 1.25rem;
+      color: var(--primary);
+      margin: 1.8rem 0 0.8rem 0;
+      font-weight: 700;
+    }
+    .h4-title {
+      font-size: 1.05rem;
+      color: var(--secondary);
+      margin: 1.2rem 0 0.6rem 0;
+      font-weight: 700;
+    }
+    .info-quote {
+      background: #F1F5F9;
+      border-left: 4px solid var(--accent);
+      padding: 0.9rem 1.2rem;
+      margin: 1rem 0;
+      border-radius: 6px;
+      font-size: 0.95rem;
+      color: #334155;
+    }
+    code {
+      background: #EFF6FF;
+      color: #1D4ED8;
+      padding: 0.15rem 0.4rem;
+      border-radius: 6px;
+      font-family: 'Fira Code', Consolas, monospace;
+      font-size: 0.88rem;
+    }
+    pre {
+      background: var(--code-bg);
+      color: var(--code-text);
+      padding: 1.2rem;
+      border-radius: 12px;
+      overflow-x: auto;
+      margin: 1rem 0 1.5rem 0;
+      font-family: 'Fira Code', Consolas, monospace;
+      font-size: 0.9rem;
+    }
+    pre code {
+      background: transparent;
+      color: inherit;
+      padding: 0;
+    }
+    .table-container {
+      overflow-x: auto;
+      margin: 1.2rem 0 1.8rem 0;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.92rem;
+      background: #FFFFFF;
+    }
+    th {
+      background-color: var(--primary);
+      color: #FFFFFF;
+      padding: 0.8rem 1rem;
+      text-align: left;
+      font-weight: 600;
+    }
+    td {
+      padding: 0.8rem 1rem;
+      border-bottom: 1px solid var(--border);
+      color: #334155;
+    }
+    tr:last-child td {
+      border-bottom: none;
+    }
+    tr:nth-child(even) {
+      background-color: #F8FAFC;
+    }
+    .tag {
+      display: inline-block;
+      padding: 0.15rem 0.45rem;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 700;
+    }
+    .tag.green { background-color: #DCFCE7; color: #166534; }
+    .tag.gray { background-color: #F1F5F9; color: #475569; }
+    .tag.orange { background-color: #FFEDD5; color: #9A3412; }
+    .tag.red { background-color: #FEE2E2; color: #991B1B; border: 1px solid #FECACA; }
+    .tag.blue { background-color: #DBEAFE; color: #1E40AF; border: 1px solid #BFDBFE; }
+    .tag.gold { background-color: #FEF3C7; color: #92400E; border: 1px solid #FDE68A; font-weight: 700; }
+    .tag.warn { background-color: #FEF3C7; color: #B45309; }
+    .tag.pk { background-color: #FEE2E2; color: #991B1B; }
+    .tag.fk { background-color: #DBEAFE; color: #1E40AF; }
+    .tag.uk { background-color: #DCFCE7; color: #166534; }
+    del {
+      color: #94A3B8;
+      text-decoration: line-through;
+    }
+    .md-link {
+      color: var(--accent);
+      text-decoration: underline;
+      font-weight: 500;
+    }
+    p { margin-bottom: 0.9rem; color: #334155; }
+    ul, ol { margin-bottom: 1rem; padding-left: 1.4rem; color: #334155; }
+    li { margin-bottom: 0.4rem; }
+    .divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 2.5rem 0;
+    }
+    .nav-bar {
+      margin-bottom: 2rem;
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+    }
+    .nav-link {
+      color: var(--primary);
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+    .nav-link:hover {
+      color: var(--accent);
+    }
+    @page {
+      size: A4 portrait;
+      margin: 15mm 14mm 18mm 14mm;
+    }
+    @media print {
+      html, body {
+        background-color: #ffffff !important;
+        color: #1e293b !important;
+        font-size: 9.5pt !important;
+        line-height: 1.5 !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+      .container {
+        max-width: 100% !important;
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        border: none !important;
+        box-shadow: none !important;
+        background: transparent !important;
+        border-radius: 0 !important;
+      }
+      .nav-bar { display: none !important; }
+      .header {
+        border-bottom: 2px solid var(--accent) !important;
+        padding-bottom: 0.6rem !important;
+        margin-bottom: 1.2rem !important;
+        page-break-after: avoid !important;
+        break-after: avoid !important;
+      }
+      h1 {
+        font-size: 17pt !important;
+        line-height: 1.3 !important;
+        margin-bottom: 0.4rem !important;
+        color: var(--primary) !important;
+      }
+      .badge {
+        font-size: 8pt !important;
+        padding: 0.2rem 0.6rem !important;
+        background-color: var(--primary) !important;
+        color: #ffffff !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+      .section-title {
+        font-size: 12.5pt !important;
+        margin: 1.2rem 0 0.6rem 0 !important;
+        padding-left: 0.5rem !important;
+        border-left: 4px solid var(--secondary) !important;
+        page-break-after: avoid !important;
+        break-after: avoid !important;
+      }
+      .subsection-title {
+        font-size: 10.5pt !important;
+        margin: 1rem 0 0.5rem 0 !important;
+        page-break-after: avoid !important;
+        break-after: avoid !important;
+      }
+      .h4-title {
+        font-size: 9.5pt !important;
+        margin: 0.8rem 0 0.3rem 0 !important;
+        page-break-after: avoid !important;
+        break-after: avoid !important;
+      }
+      .info-quote {
+        background: #f8fafc !important;
+        border-left: 3px solid var(--accent) !important;
+        padding: 0.6rem 0.8rem !important;
+        margin: 0.6rem 0 !important;
+        font-size: 9pt !important;
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+        border-radius: 4px !important;
+      }
+      .table-container {
+        margin: 0.6rem 0 1rem 0 !important;
+        border: 1px solid #cbd5e1 !important;
+        border-radius: 6px !important;
+        overflow: visible !important;
+        page-break-inside: auto !important;
+        break-inside: auto !important;
+      }
+      table {
+        width: 100% !important;
+        font-size: 8.5pt !important;
+        border-collapse: collapse !important;
+      }
+      thead { display: table-header-group !important; }
+      tr {
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+      }
+      th {
+        background-color: #1a2b4c !important;
+        color: #ffffff !important;
+        padding: 0.45rem 0.65rem !important;
+        font-size: 8.5pt !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+      td {
+        padding: 0.45rem 0.65rem !important;
+        border-bottom: 1px solid #e2e8f0 !important;
+      }
+      .tag {
+        font-size: 7pt !important;
+        padding: 0.1rem 0.35rem !important;
+        border-radius: 4px !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+      .divider {
+        margin: 1rem 0 !important;
+        border-top: 1px solid #e2e8f0 !important;
+      }
+      .page-break {
+        page-break-before: always !important;
+        break-before: page !important;
+      }
+      ul, ol { margin-bottom: 0.5rem !important; }
+      li { page-break-inside: avoid !important; break-inside: avoid !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="nav-bar">
+      <a href="../index.html" class="nav-link">← 보고서 메인 포털로 돌아가기</a>
+    </div>
+    <div class="header">
+      <span class="badge">SSOT 정본 동기화 완료</span>
+      <h1>🤝 04-02. 생전 위임 문서화 · 대행 가능 범위 — 검토서</h1>
+      
+    </div>
+    <blockquote class="info-quote"><strong>문서 성격</strong>: 검토서 · <strong>외부 전문가 의뢰 전 내부 정리</strong>. <code>[Claude:Opus]</code> 작성(2026-08-14).<br/>
+<strong>계기</strong>: <code>00-14</code> §5-1·§5-2에 대한 개발자 질의 —<br/>
+&gt; <strong>§5-1</strong> *&quot;엔딩노트 내용 실현 같은 건 법적 절차에 따라 전문가에게 맡기되, **디지털 정산 정도는<br/>
+&gt; 맡아서 대행할 수 있지 않을까<strong>. 법적 구속을 받지 않는 선에서 </strong>대행자에게 미리 맡길 수 있을만한<br/>
+&gt; 서비스가 있는지** 파악해줘.&quot;*<br/>
+&gt; <strong>§5-2</strong> *&quot;생전 위임 시 문서화를 해놓아도 <strong>결국 효력이 없다는 얘기인건가?</strong> 아니면 **법적인<br/>
+&gt; 서식(양식)이 필요**하다는 건가?&quot;*</blockquote>
+<p>&gt;</p>
+<blockquote class="info-quote"><strong>정본 관계</strong>: <code>00-12</code> §2.4·§8-1(생전 위임 개념) · <code>02-04</code> §4(위임 문서화) · <code>04-01</code> §9(①②③)를<br/>
+<strong>한 곳에서 답하는 문서</strong>입니다. 세 문서는 각자 *&quot;법률 검토 필요&quot;* 라고만 적고 넘겼습니다.<br/>
+<strong>표기</strong>: <span class="tag green">✅</span> 확정 사실 / <span class="tag orange">🟡</span> 권고 / <span class="tag red">🔴</span> 외부 확인 필요</blockquote>
+<blockquote class="info-quote"><span class="tag warn">⚠️</span> <strong>이 문서는 법률 자문이 아닙니다.</strong> 법령·판례 서술은 <strong>의뢰 시 질문지의 초안</strong>이지 결론이<br/>
+아닙니다. §7이 그 질문지입니다. 플랫폼별 기능(§4)은 <strong>수시로 바뀌므로 확인일 기준</strong>입니다.</blockquote>
+<hr class="divider"/>
+<h2 class="section-title">📌 1. 먼저 §5-2에 답합니다 — <strong>&quot;효력이 없다&quot;가 아닙니다</strong></h2>
+<blockquote class="info-quote">질문: *&quot;문서화를 해놓아도 결국 효력이 없다는 얘기인건가?&quot;*</blockquote>
+<p><strong>아닙니다. 정확히는 이렇습니다.</strong></p>
+<div class="table-container"><table><thead><tr><th>오해</th><th>실제</th></tr></thead><tbody><tr><td>*&quot;위임은 사망하면 무효니까 문서화가 헛일&quot;*</td><td>❌ <strong>위임이 &quot;무효&quot;가 아니라 &quot;종료&quot;가 원칙</strong>이고, <strong>그 원칙은 특약으로 바꿀 수 있다</strong>는 것이 통설입니다</td></tr><tr><td>*&quot;법정 서식(양식)만 갖추면 된다&quot;*</td><td>❌ <strong>위임에는 법정 서식이 없습니다.</strong> 유언과 달리 방식 요건이 없어서, <strong>양식을 만든다고 강해지지 않습니다</strong></td></tr><tr><td>—</td><td><span class="tag green">✅</span> <strong>문제는 &quot;형식&quot;이 아니라 &quot;그릇&quot;입니다.</strong> 무엇을 맡기느냐에 따라 위임으로 충분한 것과 유언·신탁이 필요한 것이 갈립니다(§3)</td></tr></tbody></table></div>
+<h3 class="subsection-title">1.1 근거 — 민법 제690조와 그 한계</h3>
+<p><strong>민법 제690조</strong>: *&quot;위임은 당사자 한쪽의 사망이나 파산으로 종료된다.&quot;*</p>
+<p>이유는 위임이 <strong>당사자 사이의 신뢰(인적 신뢰관계)</strong> 위에 서 있기 때문입니다.</p>
+<p><strong>그런데 이 조문은 강행규정이 아니라는 것이 통설입니다.</strong> 실무에서</p>
+<p><strong>「사후사무 위임계약」</strong>(장례·묘지 관리·유품 처리 등을 내용으로, *&quot;위임인이 사망하더라도 이</p>
+<p>계약은 종료되지 아니한다&quot;* 는 특약을 붙인 계약)이 사용되는 것이 그 방증입니다.</p>
+<blockquote class="info-quote"><span class="tag blue">🔵</span> **참고로 대법원은 위임의 해지에 관한 민법 §689에 대해, 당사자가 다르게 정했다면<br/>
+&quot;약정에서 정한 해지사유·절차에 의하지 않고는 해지할 수 없다&quot;고 판시했습니다**<br/>
+(대법원 2019. 5. 30. 선고 2017다53265). §690에 대한 직접 판시는 아니지만,<br/>
+<strong>위임 규정이 당사자 약정에 양보한다는 태도</strong>는 읽을 수 있습니다.</blockquote>
+<p>&gt;</p>
+<blockquote class="info-quote"><span class="tag red">🔴</span> <strong>§690 자체에 대한 판례 확인은 §7-1 의뢰 항목입니다.</strong> 여기서 단정하지 않습니다.</blockquote>
+<h3 class="subsection-title">1.2 <span class="tag red">🔴</span> 그럼에도 위임이 약한 이유 2가지 — <strong>이게 진짜 답입니다</strong></h3>
+<p>특약을 붙여도 남는 구멍이 있습니다.</p>
+<div class="table-container"><table><thead><tr><th>#</th><th>구멍</th><th>결과</th></tr></thead><tbody><tr><td><strong>1</strong></td><td>위임인의 지위가 <strong>상속인에게 승계</strong>된다면, 상속인이 민법 §689로 <strong>해지</strong>할 수 있습니다</td><td>*&quot;고인이 이렇게 맡겼다&quot;* 를 <strong>유족이 뒤집을 수 있음</strong></td></tr><tr><td><strong>2</strong></td><td>위임은 <strong>권한을 주는 것이지 재산을 옮기는 것이 아닙니다.</strong> 사망 순간 재산은 상속인 것입니다</td><td><strong>재산 처분은 위임으로 못 함</strong> — 유언·신탁이 필요</td></tr></tbody></table></div>
+<blockquote class="info-quote"><strong><span class="tag green">✅</span> 그래서 결론은 &quot;효력이 없다&quot;가 아니라 &quot;위임은 재산에 못 미친다&quot;입니다.</strong><br/>
+그리고 <strong>디지털 계정 정리는 대부분 재산이 아닙니다</strong>(<code>04-01</code> §1.1 — 금융·가상자산·정산금은<br/>
+이미 배제했습니다). <strong>개발자 직관대로, 이 영역은 위임으로 충분한 영역입니다.</strong></blockquote>
+<hr class="divider"/>
+<h2 class="section-title">🧱 2. 그릇 3층 — 무엇을 맡기느냐로 갈립니다</h2>
+<div class="table-container"><table><thead><tr><th>층</th><th>그릇</th><th>사후 효력</th><th>방식 요건</th><th>이어봄이 다루는 것</th></tr></thead><tbody><tr><td><strong>1</strong></td><td><strong>플랫폼 내 사전 지정</strong>(서비스 설정)</td><td>⭕ <strong>가장 확실</strong> — 약관에 따른 계약 이행이라 §690 논점이 <strong>생기지 않음</strong></td><td>각 사 화면에서 클릭</td><td><strong>§4 — 이 문서의 핵심 권고</strong></td></tr><tr><td><strong>2</strong></td><td><strong>사후사무 위임계약</strong>(특약 서면)</td><td><span class="tag orange">🟡</span> 성립 가능. 단 §1.2의 구멍</td><td><strong>법정 서식 없음</strong>. 서면·의사 명확성이 실질 요건</td><td>계정 정리 지시(<code>PreDeathDirective</code>)</td></tr><tr><td><strong>3</strong></td><td><strong>유언 / 유언대용신탁</strong></td><td>⭕ 확실</td><td><span class="tag red">🔴</span> <strong>민법 5방식 등 엄격</strong>(<code>06-02</code> §4)</td><td>❌ 이어봄이 만들지 않음 → 02 연결</td></tr></tbody></table></div>
+<blockquote class="info-quote"><strong><span class="tag green">✅</span> 이 3층 구조가 <code>06-02</code> §1의 구조와 정확히 같습니다.</strong><br/>
+거기서도 *&quot;효력이 필요한 2가지(연명의료·재산)는 이미 국가가 만든 제도가 있고, 이어봄은 만드는<br/>
+게 아니라 연결한다&quot;* 였습니다. <strong>여기서도 같습니다 — 1층은 플랫폼이 이미 만들어놨습니다.</strong></blockquote>
+<hr class="divider"/>
+<h2 class="section-title">🎯 3. §5-1에 답합니다 — 대행의 3단계</h2>
+<blockquote class="info-quote">질문: *&quot;디지털 정산 정도는 맡아서 대행할 수 있지 않을까?&quot;*</blockquote>
+<p><strong>&quot;대행&quot;이라는 한 단어에 성격이 다른 셋이 섞여 있습니다. 갈라야 답이 나옵니다.</strong></p>
+<div class="table-container"><table><thead><tr><th>단계</th><th>하는 일</th><th>법적 성격</th><th>이어봄이 할 수 있나</th></tr></thead><tbody><tr><td><strong>A</strong></td><td>안내·알림·진행 추적·지정 여부 기록</td><td><strong>법률행위 아님</strong></td><td><span class="tag green">✅</span> <strong>가능</strong> — 이미 <code>04-01</code> §2가 그것</td></tr><tr><td><strong>B</strong></td><td>고인 계정에 <strong>대신 로그인</strong>, 플랫폼에 <strong>대신 신청서 제출</strong></td><td><strong>법률행위 대리</strong></td><td>❌ <strong>불가</strong> — §3.1</td></tr><tr><td><strong>C</strong></td><td>위임에 근거한 유상 신청 대행</td><td><strong>행정사 업무 영역</strong></td><td>❌ 불가 → 02 행정사 연결(<code>04-01</code> §3.4)</td></tr></tbody></table></div>
+<h3 class="subsection-title">3.1 <span class="tag red">🔴</span> B가 막히는 이유는 법이 아니라 <strong>문이 없어서</strong>입니다</h3>
+<p><strong>이게 이 검토에서 가장 중요한 사실이고, 순서를 뒤집으면 안 됩니다.</strong></p>
+<p><code>04-01</code> §1.1이 이미 확인했습니다 — **주요 플랫폼(구글·메타·애플·네이버·카카오)은 유족 요청을</p>
+<p>각 사 공식 폼으로 받아 자체 심사하며, 제휴사·대리인용 채널을 공개한 곳이 없습니다.**</p>
+<blockquote class="info-quote">**즉 &quot;생전 위임이 있으니 이어봄이 대행해도 되나?&quot;를 변호사에게 물어 &quot;됩니다&quot;라는 답을 받아도,<br/>
+구글이 이어봄을 대리인으로 받아주지 않으면 실행 경로가 없습니다.**</blockquote>
+<p>&gt;</p>
+<blockquote class="info-quote"><span class="tag red">🔴</span> <strong>그래서 §7 의뢰 순서를 바꿉니다</strong> — 법률 검토를 먼저 하지 말고,<br/>
+<strong>&quot;주요 플랫폼 중 제3자 대리를 허용하는 곳이 하나라도 있는가&quot;를 먼저 확인</strong>합니다.<br/>
+하나도 없으면 <strong>법률 검토 자체가 불필요합니다.</strong></blockquote>
+<p>그리고 자격증명(ID/PW)을 받아 로그인하는 경로는 <strong>생전 위임이 있어도 열리지 않습니다</strong> —</p>
+<p><code>04-01</code> §1.1-2가 *&quot;협상 대상이 아니다&quot;* 라고 못박은 그대로입니다.</p>
+<p>**본인이 생전에 허락해도 정보통신망법상 평가가 달라진다고 단정할 수 없고, 무엇보다</p>
+<p>계정 이용권은 일신전속적 성격이 강해 상속되지 않는다는 것이 통설입니다.**</p>
+<hr class="divider"/>
+<h2 class="section-title">🔑 4. <span class="tag green">✅</span> 그래서 실제 답 — <strong>&quot;이어봄이 대행자가 되는 게 아니라, 이용자가 미리 지정하게 한다&quot;</strong></h2>
+<blockquote class="info-quote">개발자 질문의 *&quot;대행자에게 미리 맡길 수 있을만한 서비스가 있는지 파악해줘&quot;* 에 대한 답입니다.<br/>
+<strong>있습니다. 그리고 이미 만들어져 있으며, 무료이고, 법적 효력도 확실합니다.</strong></blockquote>
+<h3 class="subsection-title">4.1 주요 플랫폼의 사전 지정 기능</h3>
+<p><strong>이용자가 생전에 각 플랫폼에서 직접 지정해두는 기능</strong>입니다. 플랫폼과 이용자 사이의 계약이므로</p>
+<p><strong>민법 §690의 위임 종료 논점이 아예 생기지 않습니다</strong>(§2 1층).</p>
+<div class="table-container"><table><thead><tr><th>플랫폼</th><th>기능</th><th>무엇을 미리 정하나</th></tr></thead><tbody><tr><td><strong>Google</strong></td><td><strong>휴면 계정 관리자</strong>(Inactive Account Manager)</td><td>일정 기간 미사용 시 <strong>지정한 사람에게 데이터 일부를 공유</strong>하고, <strong>계정 삭제를 예약</strong>할 수 있음</td></tr><tr><td><strong>Apple</strong></td><td><strong>디지털 유산 관리자</strong>(Legacy Contact)</td><td>지정인이 <strong>접근 키 + 사망증명서</strong>로 계정 데이터에 접근</td></tr><tr><td><strong>Meta</strong>(Facebook·Instagram)</td><td><strong>추모 계정 관리자</strong>(Legacy Contact)</td><td>사후 <strong>추모 계정 전환</strong> 또는 <strong>삭제</strong>를 미리 선택</td></tr><tr><td><strong>카카오</strong></td><td>추모 프로필</td><td>사후 처리 방식</td></tr><tr><td><strong>네이버</strong></td><td>유족 요청 절차</td><td><span class="tag red">🔴</span> <strong>생전 사전 지정 기능 유무 확인 필요</strong></td></tr></tbody></table></div>
+<blockquote class="info-quote"><span class="tag warn">⚠️</span> <strong>위 표는 2026-08-14 확인 기준이며, 명칭·조건·제공 범위가 수시로 바뀝니다.</strong><br/>
+**그래서 이 정보는 문서가 아니라 <code>DigitalPlatform</code> 카탈로그(<code>04-01</code> §3.1)에 들어가야 하고,<br/>
+<code>lastVerifiedAt</code> 강제 규칙의 대상입니다.** 문서에 박아두면 반드시 썩습니다.</blockquote>
+<h3 class="subsection-title">4.2 <span class="tag orange">🟡</span> 이어봄의 역할 — <code>06-02</code> §3과 완전히 같은 형태</h3>
+<p><code>06-02</code>가 연명의료에 대해 내린 결론을 <strong>그대로 복사할 수 있습니다.</strong></p>
+<div class="table-container"><table><thead><tr><th></th><th>연명의료(<code>06-02</code> §3)</th><th><strong>디지털 계정(이 문서)</strong></th></tr></thead><tbody><tr><td>진짜 효력이 생기는 곳</td><td><strong>보건복지부 지정 등록기관</strong></td><td><strong>각 플랫폼의 사전 지정 설정</strong></td></tr><tr><td>앱에 쓴 것</td><td>효력 없음</td><td>효력 없음(플랫폼이 안 봄)</td></tr><tr><td><strong>이어봄의 역할</strong></td><td><strong>안내 + 등록 여부 기록</strong></td><td><strong>안내 + 지정 여부 기록</strong></td></tr><tr><td>비용</td><td>0</td><td>0</td></tr><tr><td>개인정보 수집</td><td>없음</td><td>없음</td></tr></tbody></table></div>
+<p><strong>설계</strong>:</p>
+<pre><code>// PreDeathDirective(00-12 §2.4)의 하위 — 플랫폼별 사전 지정 현황
+model PreDeathPlatformSetting {
+  id          String   @id @default(uuid())
+  directiveId String              // FK → PreDeathDirective
+  platformId  String              // FK → DigitalPlatform (04-01 §3.1 카탈로그)
+
+  hasNativeFeature Boolean         // 이 플랫폼에 사전 지정 기능이 있나 (카탈로그에서 복사)
+  configuredAt     DateTime?       // 본인이 &quot;설정 완료&quot; 체크한 시각 — 이어봄은 검증하지 않음
+  intent           String?         // MEMORIALIZE | DELETE | TRANSFER_TO_FAMILY | KEEP (04-01 §4.1 어휘)
+  note             String?         // 유족에게 남기는 한 줄
+
+  // ⚠️ 지정한 사람의 이름·연락처는 저장하지 않는다 —
+  //    그건 플랫폼에 이미 있고, 여기 두면 제3자 개인정보가 새로 생긴다(00-13 §4.4 D안이 걸린 지점)
+}</code></pre>
+<blockquote class="info-quote"><span class="tag green">✅</span> <strong><code>configuredAt</code>은 &quot;본인이 체크했다&quot;는 사실일 뿐 이어봄이 검증한 것이 아닙니다.</strong><br/>
+검증하려면 계정에 접근해야 하고, 그건 §3.1에서 닫았습니다.<br/>
+**화면 문구도 *&quot;설정하셨나요?&quot;* 여야지 *&quot;확인했습니다&quot;* 가 되면 안 됩니다.**</blockquote>
+<h3 class="subsection-title">4.3 <span class="tag green">✅</span> 그리고 <strong>이어봄 자신의 계정에 대해서는 100% 대행할 수 있습니다</strong></h3>
+<p><strong>놓치기 쉬운데, 가장 확실한 답입니다.</strong></p>
+<p>§3.1이 막은 것은 *&quot;남의 플랫폼&quot;* 이었습니다. <strong>이어봄 계정 안에서는 이어봄이 당사자</strong>이므로</p>
+<p>약관으로 정하면 그만이고, 제3자의 허락이 필요 없습니다.</p>
+<div class="table-container"><table><thead><tr><th>이어봄이 자기 서비스 안에서 할 수 있는 대행</th><th>근거</th></tr></thead><tbody><tr><td>고인 계정 <strong><code>MEMORIALIZED</code> 전환</strong>(로그인 차단·알림 중단·데이터 보존)</td><td><code>00-12</code> §5.3</td></tr><tr><td><strong>엔딩노트 전달</strong> — L3·L4 통과 시 지정 유족에게</td><td><code>06-02</code> §5</td></tr><tr><td><strong>추모관 개설 권한</strong>을 지정 유족에게 이양</td><td><code>05-01</code></td></tr><tr><td>진행 중인 리드·상담의 정리</td><td><code>01-05</code>·<code>02-03</code></td></tr><tr><td>사전 지정 현황(§4.2)을 <strong>유족에게 요약해 전달</strong></td><td>이 문서</td></tr></tbody></table></div>
+<blockquote class="info-quote"><strong><span class="tag green">✅</span> 이것이 &quot;법적 구속을 받지 않는 선에서 미리 맡길 수 있는 서비스&quot;의 실체입니다.</strong><br/>
+이어봄이 파는 것은 *&quot;구글 계정을 대신 지워드립니다&quot;* 가 아니라<br/>
+<strong>&quot;당신이 미리 정해둔 것을 사후에 빠짐없이 꺼내 유족 손에 쥐여드립니다&quot;</strong> 입니다.<br/>
+<strong>이건 지금 설계로 전부 가능하고, 법률 검토가 필요 없습니다.</strong></blockquote>
+<hr class="divider"/>
+<h2 class="section-title">💰 5. <span class="tag orange">🟡</span> 유상으로 하면 달라집니다</h2>
+<p><code>00-12</code> §2.4가 ③(운영자 대행)에 <strong>대행 수수료</strong>를 적어둔 것이 논점을 키웠습니다.</p>
+<div class="table-container"><table><thead><tr><th></th><th>무상 부가서비스</th><th><strong>유상 대행</strong></th></tr></thead><tbody><tr><td>행정사법 저촉</td><td>낮음 — 규제는 대체로 <strong>&quot;업으로&quot; 하는 것</strong>을 겨눔</td><td><span class="tag red">🔴</span> <strong>검토 필요</strong></td></tr><tr><td>플랫폼 약관</td><td>여전히 §3.1 문제</td><td>동일</td></tr><tr><td>사고 시 책임</td><td>낮음</td><td><strong>유상 = 채무불이행 책임</strong></td></tr></tbody></table></div>
+<blockquote class="info-quote"><span class="tag orange">🟡</span> <strong>권고: §4.2·§4.3 범위는 무상 부가서비스로 둡니다.</strong><br/>
+이 범위는 <strong>04를 무료 훅으로 두고 02(전문가)로 유입시키는</strong> 기존 수익 구조(<code>04-01</code> §9 ①→②,<br/>
+<code>07-01</code> §6)와도 어긋나지 않습니다. <strong>③을 유상 상품으로 세우는 것은 §3.1이 풀린 다음입니다.</strong></blockquote>
+<hr class="divider"/>
+<h2 class="section-title">📋 6. <span class="tag orange">🟡</span> 그래서 <code>PreDeathDirective</code>는 무엇을 담아야 하나</h2>
+<p><code>00-12</code> §2.4 초안은 <code>handlerType</code>(FAMILY | AGENT | OPERATOR) 하나뿐이었습니다. <strong>부족합니다.</strong></p>
+<div class="table-container"><table><thead><tr><th>담아야 할 것</th><th>이유</th></tr></thead><tbody><tr><td><strong>플랫폼별 처리 의사</strong>(<code>intent</code>)</td><td>①②③ 어느 쪽이든 *&quot;무엇을 원했나&quot;* 가 본체</td></tr><tr><td><strong>사전 지정 완료 여부</strong>(§4.2)</td><td>이게 실제 효력의 원천</td></tr><tr><td><strong>위임 의사 문구 + 동의 시각</strong></td><td>§2 2층. 서식은 없어도 <strong>의사가 명확해야</strong> 함</td></tr><tr><td><strong>지정 유족과의 연결</strong>(<code>BereavedRelation</code>)</td><td>집행 주체</td></tr><tr><td>❌ 계정 자격증명</td><td><strong>절대 안 됨</strong>(<code>04-01</code> §1.1-2)</td></tr><tr><td>❌ 지정인의 제3자 개인정보</td><td>§4.2 주석</td></tr></tbody></table></div>
+<blockquote class="info-quote"><span class="tag orange">🟡</span> <strong>문구 권고 — 위임 의사 표시 (§2 2층의 실질 요건)</strong></blockquote>
+<p>&gt;</p>
+<blockquote class="info-quote">*&quot;본인은 사망 이후 아래 계정들에 대한 처리 의사가 위와 같음을 밝히며, 이어봄이 이 내용을<br/>
+보관하였다가 사망 확인 후 지정 유족에게 전달하는 것에 동의합니다. 이어봄은 본인을 대리하여<br/>
+각 서비스에 신청·해지를 수행하지 않으며, 실제 처리는 유족 또는 유족이 선임한 전문가가<br/>
+각 서비스의 절차에 따라 진행합니다.&quot;*</blockquote>
+<p>&gt;</p>
+<blockquote class="info-quote"><strong>핵심은 마지막 문장입니다</strong> — *&quot;대리하지 않는다&quot;* 를 이용자에게 먼저 말하는 것이<br/>
+<code>04-01</code> §2.1의 경계를 화면에서 지키는 방법입니다.</blockquote>
+<hr class="divider"/>
+<h2 class="section-title">❓ 7. 확인이 필요한 것 — <strong>의뢰 질문지</strong></h2>
+<p><code>00-14</code> §5는 *&quot;회의에서는 의뢰할지 말지만 정하면 된다&quot;* 고 했습니다. <strong>의뢰한다면 이 순서입니다.</strong></p>
+<h3 class="subsection-title">7.1 순서가 중요합니다</h3>
+<div class="table-container"><table><thead><tr><th>순서</th><th>확인 대상</th><th>누구에게</th><th>비용</th><th>이 답에 달린 것</th></tr></thead><tbody><tr><td><strong>0</strong></td><td><strong>주요 플랫폼이 제3자 대리를 허용하는가</strong>(§3.1)</td><td><span class="tag orange">🟡</span> <strong>내부 조사로 가능</strong> — 각 사 약관·고객센터</td><td><strong>0</strong></td><td>아래 전부. <strong>NO면 1·2 불필요</strong></td></tr><tr><td>1</td><td>민법 §690 특약의 유효성 · <strong>상속인 해지 가능성</strong>(§1.2-1)</td><td>변호사</td><td>유료</td><td>② 행정사 위임(<code>02-04</code> §4)</td></tr><tr><td>2</td><td><strong>유상 대행의 행정사법 저촉</strong>(§5)</td><td>변호사</td><td>유료</td><td>③ 상품화</td></tr><tr><td>3</td><td>위임 의사 문구 검토(§6)</td><td>변호사</td><td>유료</td><td>06 면책 문구(<code>06-02</code> §7-1)와 <strong>함께 의뢰 가능</strong></td></tr></tbody></table></div>
+<blockquote class="info-quote"><strong><span class="tag green">✅</span> 0번을 먼저 하십시오. 비용이 0이고, 결과에 따라 1·2가 통째로 사라집니다.</strong><br/>
+<code>00-14</code> §5-1·§5-2를 *&quot;같은 법률가에게 함께&quot;* 라고 묶은 판단은 유효하지만,<br/>
+<strong>그 앞에 무료 단계가 하나 있다는 것이 이 검토의 결론입니다.</strong></blockquote>
+<h3 class="subsection-title">7.2 착수를 막지 않는 것</h3>
+<div class="table-container"><table><thead><tr><th>지금 바로 가능</th><th>근거</th></tr></thead><tbody><tr><td><strong>§4.2 사전 지정 안내 + 지정 여부 기록</strong></td><td>법률 검토 불필요. <code>06-02</code> §3과 동일 구조</td></tr><tr><td><strong>§4.3 이어봄 자체 계정 처리</strong></td><td>우리가 당사자</td></tr><tr><td><code>DigitalPlatform</code> 카탈로그에 <strong><code>hasNativeFeature</code> 컬럼 추가</strong></td><td><code>04-01</code> §3.1 확장</td></tr></tbody></table></div>
+<blockquote class="info-quote"><strong>§5-1의 실질적 답은 &quot;지금 할 수 있는 게 이미 있다&quot;입니다.</strong><br/>
+대행 권한을 얻으려 애쓰는 것보다, <strong>각 플랫폼이 이미 열어둔 문을 이용자에게 알려주는 것</strong>이<br/>
+더 빠르고 확실하며 비용이 없습니다.</blockquote>
+<hr class="divider"/>
+<h2 class="section-title">🔗 8. 관련 문서</h2>
+<div class="table-container"><table><thead><tr><th>문서</th><th>관계</th></tr></thead><tbody><tr><td><code>04-01</code> §1.1·§9</td><td><strong>이 문서의 출발점.</strong> &quot;대행이 성립하지 않는다&quot;의 근거와 ①②③ 표</td></tr><tr><td><code>00-12</code> §2.4·§8-1</td><td><code>PreDeathDirective</code> 개념과 *&quot;법률 검토 필요&quot;* — <strong>§7이 그 검토의 질문지</strong></td></tr><tr><td><code>02-04</code> §4</td><td>생전 위임 문서화 형식 미결 → <strong>§1·§2로 답함</strong>(서식이 아니라 그릇 문제)</td></tr><tr><td><code>06-02</code> §1·§3</td><td><strong>같은 사고 틀</strong> — 효력이 필요한 것만 골라 법정 경로로 연결. §4.2가 그 복사본</td></tr><tr><td><code>00-12</code> §4</td><td>L3 사망 확인 — §4.3 실행의 게이트. 서류 논점은 <strong><code>00-16</code></strong></td></tr><tr><td><code>02-03</code></td><td>행정사 연결(단계 C) — <code>ConsultRequest</code> 재사용</td></tr><tr><td><code>05-01</code>·<code>00-12</code> §5.3</td><td>§4.3이 열거한 &quot;우리가 당사자인 처리&quot;의 각 근거</td></tr></tbody></table></div>
+
+  </div>
+</body>
+</html>

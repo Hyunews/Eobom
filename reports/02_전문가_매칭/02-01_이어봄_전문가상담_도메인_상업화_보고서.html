@@ -151,9 +151,22 @@
     .tag.green { background-color: #DCFCE7; color: #166534; }
     .tag.gray { background-color: #F1F5F9; color: #475569; }
     .tag.orange { background-color: #FFEDD5; color: #9A3412; }
+    .tag.red { background-color: #FEE2E2; color: #991B1B; border: 1px solid #FECACA; }
+    .tag.blue { background-color: #DBEAFE; color: #1E40AF; border: 1px solid #BFDBFE; }
+    .tag.gold { background-color: #FEF3C7; color: #92400E; border: 1px solid #FDE68A; font-weight: 700; }
+    .tag.warn { background-color: #FEF3C7; color: #B45309; }
     .tag.pk { background-color: #FEE2E2; color: #991B1B; }
     .tag.fk { background-color: #DBEAFE; color: #1E40AF; }
     .tag.uk { background-color: #DCFCE7; color: #166534; }
+    del {
+      color: #94A3B8;
+      text-decoration: line-through;
+    }
+    .md-link {
+      color: var(--accent);
+      text-decoration: underline;
+      font-weight: 500;
+    }
     p { margin-bottom: 0.9rem; color: #334155; }
     ul, ol { margin-bottom: 1rem; padding-left: 1.4rem; color: #334155; }
     li { margin-bottom: 0.4rem; }
@@ -314,22 +327,26 @@
       <h1>💼 02-01. 전문가 상담 도메인 상업화 및 직역별 컴플라이언스 명세서 (Counseling Master)</h1>
       
     </div>
-    <blockquote class="info-quote">🔵 <strong>2026-08-13 — 생전(WellDying) 축은 <code>02-04</code>가 보완합니다.</strong> 도메인 재편(<code>00-12</code> §7.1)으로</blockquote>
-<blockquote class="info-quote">02가 <strong>생전·유족 양쪽 도메인</strong>으로 확정됐는데, 이 문서는 전부 사후 화법으로 서술돼 있습니다.</blockquote>
-<blockquote class="info-quote"><strong>§2 표에 이미 생전 업무가 섞여 있습니다</strong>(변호사 &quot;유언장 법적 효력 검토&quot;, 지도사 &quot;장례 예산</blockquote>
-<blockquote class="info-quote">수립&quot;) — 그 축의 정리는 <code>02-04</code> §1.1·§2.1을 보십시오.</blockquote>
-<blockquote class="info-quote">*(제목의 구 전역 번호 <code>15.</code> → <code>02-01</code> 정정. 2026-08-11 재편 시 누락됐던 건입니다.)*</blockquote>
+    <blockquote class="info-quote"><span class="tag blue">🔵</span> <strong>2026-08-13 — 생전(WellDying) 축은 <code>02-04</code>가 보완합니다.</strong> 도메인 재편(<code>00-12</code> §7.1)으로<br/>
+02가 <strong>생전·유족 양쪽 도메인</strong>으로 확정됐는데, 이 문서는 전부 사후 화법으로 서술돼 있습니다.<br/>
+<strong>§2 표에 이미 생전 업무가 섞여 있습니다</strong>(변호사 &quot;유언장 법적 효력 검토&quot;, 지도사 &quot;장례 예산<br/>
+수립&quot;) — 그 축의 정리는 <code>02-04</code> §1.1·§2.1을 보십시오.<br/>
+*(제목의 구 전역 번호 <code>15.</code> → <code>02-01</code> 정정. 2026-08-11 재편 시 누락됐던 건입니다.)*</blockquote>
 <blockquote class="info-quote"><strong>문서 목적</strong>: 이어봄 (Eobom) 플랫폼의 <strong>상속 세무사 · 유언 변호사 · 유품 행정사 · 장례 지도사 전문가 상담 서비스</strong>(<code>CounselingPage.tsx</code>)의 시장 페인포인트 분석, 4대 직역별 법률 컴플라이언스(변호사법/세무사법), 4단계 분리 수익화 모델(Monetization) 및 UX/기술 구현 규격을 명밀하게 정정·정의합니다.</blockquote>
 <hr class="divider"/>
 <h2 class="section-title">📌 1. 시장 페인포인트 및 도메인 비전</h2>
-<ul><li><strong>도메인</strong>: 상속세, 유산 분할, 유언장 법적 효력, 디지털 유품 대행, 장례 절차 1:1 매칭</li></ul>
-<ul><li><strong>화면 ID</strong>: <code>SCR-007</code> (<code>CounselingPage.tsx</code>, <code>expert/ConsultRequestModal.tsx</code>) + <code>SCR-005</code>(<code>counseling/TaxSimulatorModal.tsx</code> — 아래 무료 훅)</li></ul>
+<ul>
+<li><strong>도메인</strong>: 상속세, 유산 분할, 유언장 법적 효력, 디지털 유품 대행, 장례 절차 1:1 매칭</li>
+<li><strong>화면 ID</strong>: <code>SCR-007</code> (<code>CounselingPage.tsx</code>, <code>expert/ConsultRequestModal.tsx</code>) + <code>SCR-005</code>(<code>counseling/TaxSimulatorModal.tsx</code> — 아래 무료 훅)</li>
+</ul>
 <blockquote class="info-quote"><strong>2026-08-11 정정</strong>: 초안이 참조한 <code>ExpertDetailModal.tsx</code>·<code>ConsultingBookingModal.tsx</code>는 <strong>만들어지지 않았습니다.</strong> Stage 1(무과금 루프)에서는 상세 모달 없이 목록 카드에서 바로 신청하는 <code>ConsultRequestModal</code> 하나로 구현됐습니다(→ <code>02-03</code> §7). 상속세 계산기는 <code>SCR-005</code>로 별도 ID를 갖습니다(→ <code>00-06</code>).</blockquote>
-<ul><li><strong>핵심 비전</strong>: <strong>&quot;K-Ending 전담 전문가 1:1 온디맨드 매칭 플랫폼&quot;</strong> (상속세 계산기 ➔ 무료 Q&amp;A ➔ 유료 상담 ➔ B2B 연결)</li></ul>
-<ul><li><strong>컴플라이언스 대원칙</strong>: 직역별 관련 법률(변호사법, 세무사법, 행정사법)의 규제 층위가 다르므로, <strong>변호사 직역은 성과 연동 수수료를 전면 금지하고 고정 월정액 광고 모델로 완전 분리</strong>함.</li></ul>
+<ul>
+<li><strong>핵심 비전</strong>: <strong>&quot;K-Ending 전담 전문가 1:1 온디맨드 매칭 플랫폼&quot;</strong> (상속세 계산기 ➔ 무료 Q&amp;A ➔ 유료 상담 ➔ B2B 연결)</li>
+<li><strong>컴플라이언스 대원칙</strong>: 직역별 관련 법률(변호사법, 세무사법, 행정사법)의 규제 층위가 다르므로, <strong>변호사 직역은 성과 연동 수수료를 전면 금지하고 고정 월정액 광고 모델로 완전 분리</strong>함.</li>
+</ul>
 <hr class="divider"/>
 <h2 class="section-title">👨‍⚖️ 2. 4대 전문가 버티컬 영역 및 직역별 법적 규제 층위</h2>
-<div class="table-container"><table><thead><tr><th>전문가 카테고리</th><th>주요 자문 영역</th><th>적용 법률 규제</th><th>성과 연동 수수료(Lead Fee) 허용 여부</th></tr></thead><tbody><tr><td>**1. 상속 전문 변호사**</td><td>유언장 법적 효력 검토, 유류분 반환 청구, 유산분할협의서</td><td><code>변호사법 제34조</code> (소개/알선/수임료 분배 금지)</td><td>**<code>[전면 금지]</code> (순수 고정 월정액 광고만 가능)**</td></tr><tr><td>**2. 상속세 전문 세무사**</td><td>상속세 시뮬레이션, 배우자/자녀 공제 극대화, 세무조사 대치</td><td><code>세무사법 제2조의2</code> (무자격 대리 금지)</td><td>**<code>[조건부 허용]</code>** (플랫폼 알림톡 상담료 정산 가능)</td></tr><tr><td>**3. 디지털 유품 행정사**</td><td>사망자 SNS/클라우드 계정 삭제 대행, 안심상속 금융자산 조회</td><td><code>행정사법 제2조</code> (행정 업무 대행)</td><td>**<code>[허용]</code>** (유품 대행 서비스 수수료 수취 가능)</td></tr><tr><td>**4. 장례 · 장지 지도사**</td><td>맞춤 장례 예산 수립, 봉안당/수목장 가격 비교 및 답사 동행</td><td><code>장사 등에 관한 법률</code></td><td>**<code>[허용]</code>** (B2B 답사 및 컨설팅 수수료 정산)</td></tr></tbody></table></div>
+<div class="table-container"><table><thead><tr><th>전문가 카테고리</th><th>주요 자문 영역</th><th>적용 법률 규제</th><th>성과 연동 수수료(Lead Fee) 허용 여부</th></tr></thead><tbody><tr><td><strong>1. 상속 전문 변호사</strong></td><td>유언장 법적 효력 검토, 유류분 반환 청구, 유산분할협의서</td><td><code>변호사법 제34조</code> (소개/알선/수임료 분배 금지)</td><td><strong><code>[전면 금지]</code> (순수 고정 월정액 광고만 가능)</strong></td></tr><tr><td><strong>2. 상속세 전문 세무사</strong></td><td>상속세 시뮬레이션, 배우자/자녀 공제 극대화, 세무조사 대치</td><td><code>세무사법 제2조의2</code> (무자격 대리 금지)</td><td><strong><code>[조건부 허용]</code></strong> (플랫폼 알림톡 상담료 정산 가능)</td></tr><tr><td><strong>3. 디지털 유품 행정사</strong></td><td>사망자 SNS/클라우드 계정 삭제 대행, 안심상속 금융자산 조회</td><td><code>행정사법 제2조</code> (행정 업무 대행)</td><td><strong><code>[허용]</code></strong> (유품 대행 서비스 수수료 수취 가능)</td></tr><tr><td><strong>4. 장례 · 장지 지도사</strong></td><td>맞춤 장례 예산 수립, 봉안당/수목장 가격 비교 및 답사 동행</td><td><code>장사 등에 관한 법률</code></td><td><strong><code>[허용]</code></strong> (B2B 답사 및 컨설팅 수수료 정산)</td></tr></tbody></table></div>
 <hr class="divider"/>
 <h2 class="section-title">💰 3. 직역별 분리 적용 4단계 상업화 모델 (Differentiated Monetization)</h2>
 <pre><code>                       【 전문가 수익 모델 직역별 분리 구조 】
@@ -342,19 +359,27 @@
    (베이직: 9.9만/월, 프리미엄: 29.9만/월)                  • [Tier 3] 프로필 입점 월정액 구독
  • **[Tier 2/4 성과연동 수수료 전면 제외!]**                 • [Tier 4] 상속세 신고/행정 대행 수수료 정산</code></pre>
 <h3 class="subsection-title">3.1 [Tier 1] 무료 1차 진단 및 Q&amp;A (Hook &amp; Lead Generation) - 공통 적용</h3>
-<ul><li><strong>AI 상속세 1차 자동 계산기</strong>: 자산 대략(부동산, 예금)과 상속인을 입력하면 예상 공제액 1차 시뮬레이션 (무료).</li></ul>
-<ul><li><strong>24시간 답변 게시판</strong>: 유저 질문 등록 시 제휴 전문가가 답변을 등록하여 신뢰 형성.</li></ul>
-<h3 class="subsection-title">3.2 [Tier 2] 1:1 온디맨드 유료 상담 (Pay-Per-Consultation) - `[세무사/행정사/지도사 전용]`</h3>
-<ul><li><strong>카카오 알림톡/전화/대면 상담</strong>: 29,000원 ~ 120,000원</li></ul>
-<ul><li><strong>수수료 정산 (Take-Rate)</strong>: 플랫폼 20~30% 수수료 수취, 전문가에게 70~80% 정산.</li></ul>
-<ul><li><strong>⚠️ 변호사 예외 규정</strong>: 변호사 상담은 사건 수임 분배로 오인되지 않도록, 유저 결제액 전체가 변호사에게 전달되거나 고정 시스템 이용료만 처리함.</li></ul>
-<h3 class="subsection-title">3.3 [Tier 3] 전문가 프로필 입점 고정 월정액 광고 (B2B SaaS Subscription) - `[전 직역 공통]`</h3>
-<ul><li><strong>변호사법을 100% 준수하는 이어봄의 핵심 B2B 수익 모델</strong>:</li></ul>
+<ul>
+<li><strong>AI 상속세 1차 자동 계산기</strong>: 자산 대략(부동산, 예금)과 상속인을 입력하면 예상 공제액 1차 시뮬레이션 (무료).</li>
+<li><strong>24시간 답변 게시판</strong>: 유저 질문 등록 시 제휴 전문가가 답변을 등록하여 신뢰 형성.</li>
+</ul>
+<h3 class="subsection-title">3.2 [Tier 2] 1:1 온디맨드 유료 상담 (Pay-Per-Consultation) - <code>[세무사/행정사/지도사 전용]</code></h3>
+<ul>
+<li><strong>카카오 알림톡/전화/대면 상담</strong>: 29,000원 ~ 120,000원</li>
+<li><strong>수수료 정산 (Take-Rate)</strong>: 플랫폼 20~30% 수수료 수취, 전문가에게 70~80% 정산.</li>
+<li><strong><span class="tag warn">⚠️</span> 변호사 예외 규정</strong>: 변호사 상담은 사건 수임 분배로 오인되지 않도록, 유저 결제액 전체가 변호사에게 전달되거나 고정 시스템 이용료만 처리함.</li>
+</ul>
+<h3 class="subsection-title">3.3 [Tier 3] 전문가 프로필 입점 고정 월정액 광고 (B2B SaaS Subscription) - <code>[전 직역 공통]</code></h3>
+<ul>
+<li><strong>변호사법을 100% 준수하는 이어봄의 핵심 B2B 수익 모델</strong>:</li>
+</ul>
 <p>  * <strong>베이직 입점 (월 99,000원)</strong>: 프로필 노출, 상담 예약 시스템 이용권 부여.</p>
 <p>  * <strong>프리미엄 스포트라이트 (월 299,000원)</strong>: 검색 상단 고정 노출, &#039;이달의 상속 변호사/세무사&#039; 뱃지.</p>
-<h3 class="subsection-title">3.4 [Tier 4] 고액 상속세 신고 및 행정 대행 수수료 - `[세무사/행정사/지도사 전용]`</h3>
-<ul><li>상담 후 수백~수천만 원 상당의 <strong>상속세 신고 대행(수수료 200만~1,000만원)</strong> 또는 <strong>유품 정리 대행</strong>으로 전환 시 정당한 플랫폼 마케팅 수수료 정산.</li></ul>
-<ul><li><strong>⚠️ 변호사 예외 규정</strong>: 변호사의 소송 수임(유류분, 유산분할 소송) 건에 대한 소개/수임 수수료 정산은 <strong>변호사법 제34조 위반이므로 변호사 직역에서는 100% 배제</strong>함.</li></ul>
+<h3 class="subsection-title">3.4 [Tier 4] 고액 상속세 신고 및 행정 대행 수수료 - <code>[세무사/행정사/지도사 전용]</code></h3>
+<ul>
+<li>상담 후 수백~수천만 원 상당의 <strong>상속세 신고 대행(수수료 200만~1,000만원)</strong> 또는 <strong>유품 정리 대행</strong>으로 전환 시 정당한 플랫폼 마케팅 수수료 정산.</li>
+<li><strong><span class="tag warn">⚠️</span> 변호사 예외 규정</strong>: 변호사의 소송 수임(유류분, 유산분할 소송) 건에 대한 소개/수임 수수료 정산은 <strong>변호사법 제34조 위반이므로 변호사 직역에서는 100% 배제</strong>함.</li>
+</ul>
 <hr class="divider"/>
 <h2 class="section-title">⚖️ 4. 변호사법 컴플라이언스 및 법적 리스크 관리 (Compliance Analysis)</h2>
 <h3 class="subsection-title">4.1 변호사법 제34조 (알선 / 소개 / 수임료 분배 금지) 준수 조치</h3>

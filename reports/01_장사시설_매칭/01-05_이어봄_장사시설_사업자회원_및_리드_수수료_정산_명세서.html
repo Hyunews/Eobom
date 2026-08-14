@@ -151,9 +151,22 @@
     .tag.green { background-color: #DCFCE7; color: #166534; }
     .tag.gray { background-color: #F1F5F9; color: #475569; }
     .tag.orange { background-color: #FFEDD5; color: #9A3412; }
+    .tag.red { background-color: #FEE2E2; color: #991B1B; border: 1px solid #FECACA; }
+    .tag.blue { background-color: #DBEAFE; color: #1E40AF; border: 1px solid #BFDBFE; }
+    .tag.gold { background-color: #FEF3C7; color: #92400E; border: 1px solid #FDE68A; font-weight: 700; }
+    .tag.warn { background-color: #FEF3C7; color: #B45309; }
     .tag.pk { background-color: #FEE2E2; color: #991B1B; }
     .tag.fk { background-color: #DBEAFE; color: #1E40AF; }
     .tag.uk { background-color: #DCFCE7; color: #166534; }
+    del {
+      color: #94A3B8;
+      text-decoration: line-through;
+    }
+    .md-link {
+      color: var(--accent);
+      text-decoration: underline;
+      font-weight: 500;
+    }
     p { margin-bottom: 0.9rem; color: #334155; }
     ul, ol { margin-bottom: 1rem; padding-left: 1.4rem; color: #334155; }
     li { margin-bottom: 0.4rem; }
@@ -316,36 +329,38 @@
     </div>
     <blockquote class="info-quote"><strong>문서 목적</strong>: 장사시설(장례식장·묘지/수목장) 사업자가 <strong>B2C 유저와 분리된 사업자 계정</strong>으로 가입·관리되고, 유저가 남긴 <strong>문의·견적요청을 추적 가능한 리드(Lead)로 적재</strong>하여 <strong>수수료 청구의 법적·상업적 근거</strong>로 삼는 체계를 정의합니다.</blockquote>
 <p>&gt;</p>
-<blockquote class="info-quote"><strong>근거</strong>: 2026-08-10 <strong>사장님 지시(개발자 전달)</strong> 2건 —</blockquote>
-<blockquote class="info-quote">① 장사시설 업체가 사업자로 <strong>따로 회원가입</strong>하고 우리가 <strong>따로 관리</strong>한다.</blockquote>
-<blockquote class="info-quote">② 유저가 웹을 통해 문의·견적요청을 남기면 <strong>로그/견적요청 번호를 우리가 보유</strong>하여, 추후 그것을 근거로 <strong>수수료를 청구</strong>한다.</blockquote>
+<blockquote class="info-quote"><strong>근거</strong>: 2026-08-10 <strong>사장님 지시(개발자 전달)</strong> 2건 —<br/>
+① 장사시설 업체가 사업자로 <strong>따로 회원가입</strong>하고 우리가 <strong>따로 관리</strong>한다.<br/>
+② 유저가 웹을 통해 문의·견적요청을 남기면 <strong>로그/견적요청 번호를 우리가 보유</strong>하여, 추후 그것을 근거로 <strong>수수료를 청구</strong>한다.</blockquote>
 <p>&gt;</p>
-<blockquote class="info-quote"><strong>선행 문서</strong>: <code>13</code>(견적 데이터 한계 3대 대안) · <code>14</code>(답사예약 vs 직통전화 리드 수수료 검토) · <code>10</code>(§3.3 제휴/비제휴 차별화)</blockquote>
-<blockquote class="info-quote">본 문서는 위 검토서들이 &quot;필요하다&quot;고 결론 낸 것을 <strong>실제 구현 가능한 스펙으로 확정</strong>하는 문서입니다.</blockquote>
+<blockquote class="info-quote"><strong>선행 문서</strong>: <code>13</code>(견적 데이터 한계 3대 대안) · <code>14</code>(답사예약 vs 직통전화 리드 수수료 검토) · <code>10</code>(§3.3 제휴/비제휴 차별화)<br/>
+본 문서는 위 검토서들이 &quot;필요하다&quot;고 결론 낸 것을 <strong>실제 구현 가능한 스펙으로 확정</strong>하는 문서입니다.</blockquote>
 <hr class="divider"/>
 <h2 class="section-title">📌 1. 이 문서가 푸는 문제</h2>
 <p><code>14</code>가 이미 지적한 핵심 문제는 이것입니다 — <strong>직통 전화(<code>tel:</code>)로 연결되면 장례식장 원장은 그 유족이 이어봄을 보고 왔는지 알 방법이 없고, 우리도 수수료를 청구할 명분이 없다.</strong></p>
 <p>사장님 지시(개발자 전달)는 이 문제의 해법을 두 축으로 확정한 것입니다.</p>
-<div class="table-container"><table><thead><tr><th>축</th><th>무엇을 만드나</th><th>왜 필요한가</th></tr></thead><tbody><tr><td>**① 사업자 회원 체계**</td><td>수수료를 청구할 **상대방(법인격)**을 시스템에 등록</td><td>청구서를 보낼 대상이 DB에 없으면 정산 자체가 불가능</td></tr><tr><td>**② 리드 로그 + 견적요청 번호**</td><td>청구의 **증거**</td><td>&quot;이 번호의 유족을 우리가 보냈다&quot;는 대조 가능한 물증</td></tr></tbody></table></div>
+<div class="table-container"><table><thead><tr><th>축</th><th>무엇을 만드나</th><th>왜 필요한가</th></tr></thead><tbody><tr><td><strong>① 사업자 회원 체계</strong></td><td>수수료를 청구할 <strong>상대방(법인격)</strong>을 시스템에 등록</td><td>청구서를 보낼 대상이 DB에 없으면 정산 자체가 불가능</td></tr><tr><td><strong>② 리드 로그 + 견적요청 번호</strong></td><td>청구의 <strong>증거</strong></td><td>&quot;이 번호의 유족을 우리가 보냈다&quot;는 대조 가능한 물증</td></tr></tbody></table></div>
 <p>둘은 분리 불가능합니다. 리드만 쌓으면 청구할 상대가 없고, 사업자만 받으면 청구할 근거가 없습니다.</p>
 <hr class="divider"/>
 <h2 class="section-title">🧭 2. 범위</h2>
 <h3 class="subsection-title">2.1 이번 범위에 포함</h3>
-<ul><li><strong>설정·정책 관리 방침</strong> — 수수료율·운영 정책을 코드에서 분리 (§12)</li></ul>
-<ul><li>사업자 회원가입·심사·승인 및 사업자 전용 로그인 (B2C 소셜 로그인과 <strong>완전 분리</strong>)</li></ul>
-<ul><li>사업자 ↔ 시설(<code>Facility</code>) 소유권 연결 및 클레임 심사</li></ul>
-<ul><li>리드(업체 문의·상담신청·전화클릭) 적재 및 <strong>리드 번호</strong> 발번 (~~답사예약~~ 폐기 → §4.1)</li></ul>
-<ul><li>리드 상태 추적 (접수 → 전달 → 응답 → 성사/무산)</li></ul>
-<ul><li>개인정보 <strong>제3자 제공 동의</strong> 절차 (법적 필수 — §7)</li></ul>
-<ul><li>파트너 어드민 최소 화면 · 내부 운영자 어드민 최소 화면</li></ul>
-<ul><li>월 단위 정산서 생성 및 이의제기 처리</li></ul>
+<ul>
+<li><strong>설정·정책 관리 방침</strong> — 수수료율·운영 정책을 코드에서 분리 (§12)</li>
+<li>사업자 회원가입·심사·승인 및 사업자 전용 로그인 (B2C 소셜 로그인과 <strong>완전 분리</strong>)</li>
+<li>사업자 ↔ 시설(<code>Facility</code>) 소유권 연결 및 클레임 심사</li>
+<li>리드(업체 문의·상담신청·전화클릭) 적재 및 <strong>리드 번호</strong> 발번 (<del>답사예약</del> 폐기 → §4.1)</li>
+<li>리드 상태 추적 (접수 → 전달 → 응답 → 성사/무산)</li>
+<li>개인정보 <strong>제3자 제공 동의</strong> 절차 (법적 필수 — §7)</li>
+<li>파트너 어드민 최소 화면 · 내부 운영자 어드민 최소 화면</li>
+<li>월 단위 정산서 생성 및 이의제기 처리</li>
+</ul>
 <h3 class="subsection-title">2.2 이번 범위에서 제외 (별도 문서/차기)</h3>
-<div class="table-container"><table><thead><tr><th>제외 항목</th><th>사유</th></tr></thead><tbody><tr><td>**050 안심번호(가상번호) 연동**</td><td>통화 트래킹의 정답이지만 통신사 계약·과금 발생 → §9 한계에서 별도 논의</td></tr><tr><td>**카카오 알림톡 발송**</td><td>채널 개설·템플릿 심사 선행 필요. 1차는 이메일/SMS 또는 어드민 열람으로 대체</td></tr><tr><td>**파트너 세부 단가 입력 대시보드**</td><td><code>13</code> 대안 B 영역. 본 문서는 **리드/정산 인프라**만 다룸</td></tr><tr><td>**결제(PG) 자동 수납**</td><td>1차는 정산서 발행 + 계좌이체 수동 대사</td></tr><tr><td>**세금계산서 자동 발행**</td><td>정산 규칙 확정 후 별도 검토</td></tr></tbody></table></div>
+<div class="table-container"><table><thead><tr><th>제외 항목</th><th>사유</th></tr></thead><tbody><tr><td><strong>050 안심번호(가상번호) 연동</strong></td><td>통화 트래킹의 정답이지만 통신사 계약·과금 발생 → §9 한계에서 별도 논의</td></tr><tr><td><strong>카카오 알림톡 발송</strong></td><td>채널 개설·템플릿 심사 선행 필요. 1차는 이메일/SMS 또는 어드민 열람으로 대체</td></tr><tr><td><strong>파트너 세부 단가 입력 대시보드</strong></td><td><code>13</code> 대안 B 영역. 본 문서는 <strong>리드/정산 인프라</strong>만 다룸</td></tr><tr><td><strong>결제(PG) 자동 수납</strong></td><td>1차는 정산서 발행 + 계좌이체 수동 대사</td></tr><tr><td><strong>세금계산서 자동 발행</strong></td><td>정산 규칙 확정 후 별도 검토</td></tr></tbody></table></div>
 <hr class="divider"/>
 <h2 class="section-title">🏢 3. 사업자 회원 체계</h2>
-<h3 class="subsection-title">3.1 왜 `User` 테이블에 role만 추가하지 않는가</h3>
+<h3 class="subsection-title">3.1 왜 <code>User</code> 테이블에 role만 추가하지 않는가</h3>
 <p>기존 <code>User</code>는 소셜 로그인(카카오/네이버/구글) 전제로 설계되어 있고 <code>role</code> 필드에 <code>&#039;USER&#039; | &#039;EXPERT&#039; | &#039;ADMIN&#039;</code>이 있습니다. 여기에 <code>&#039;PARTNER&#039;</code>를 얹는 것이 가장 적은 코드로 보이지만 <strong>채택하지 않습니다.</strong></p>
-<div class="table-container"><table><thead><tr><th>이유</th><th>설명</th></tr></thead><tbody><tr><td>**인증 방식이 다름**</td><td>사업자는 담당자 퇴사·교체가 잦아 개인 소셜 계정에 묶으면 안 된다. 업체 이메일 + 비밀번호가 맞다.</td></tr><tr><td>**필수 정보가 다름**</td><td>사업자등록번호·상호·대표자명·정산 계좌는 B2C <code>User</code>에 전부 <code>null</code>로 남아 스키마가 오염된다.</td></tr><tr><td>**법인격 단위가 다름**</td><td>한 법인이 장례식장 2곳을 운영할 수 있다. 계정(사람)과 사업자(법인)를 1:1로 묶으면 확장이 막힌다.</td></tr><tr><td>**탈퇴 정책이 다름**</td><td>B2C 유저는 탈퇴 시 삭제 대상이지만, 사업자는 **정산 이력 때문에 함부로 지울 수 없다.**</td></tr></tbody></table></div>
+<div class="table-container"><table><thead><tr><th>이유</th><th>설명</th></tr></thead><tbody><tr><td><strong>인증 방식이 다름</strong></td><td>사업자는 담당자 퇴사·교체가 잦아 개인 소셜 계정에 묶으면 안 된다. 업체 이메일 + 비밀번호가 맞다.</td></tr><tr><td><strong>필수 정보가 다름</strong></td><td>사업자등록번호·상호·대표자명·정산 계좌는 B2C <code>User</code>에 전부 <code>null</code>로 남아 스키마가 오염된다.</td></tr><tr><td><strong>법인격 단위가 다름</strong></td><td>한 법인이 장례식장 2곳을 운영할 수 있다. 계정(사람)과 사업자(법인)를 1:1로 묶으면 확장이 막힌다.</td></tr><tr><td><strong>탈퇴 정책이 다름</strong></td><td>B2C 유저는 탈퇴 시 삭제 대상이지만, 사업자는 <strong>정산 이력 때문에 함부로 지울 수 없다.</strong></td></tr></tbody></table></div>
 <p>→ <strong><code>Partner</code> 모델을 신설</strong>하고 <code>User</code>와 분리합니다. 사장님 지시의 &quot;따로 회원가입 / 따로 관리&quot;와도 일치합니다.</p>
 <h3 class="subsection-title">3.2 가입 → 승인 플로우</h3>
 <pre><code>[사업자]                          [이어봄 운영자]
@@ -370,48 +385,58 @@
 <blockquote class="info-quote"><strong>자동 승인은 채택하지 않습니다.</strong> 사업자등록번호 진위는 API로 검증되지만, <strong>&quot;그 사업자가 그 시설의 운영자인가&quot;는 자동 검증이 불가능</strong>합니다. 이걸 자동화하면 타인이 남의 장례식장 리드(=유족 개인정보)를 열람하게 됩니다. 개인정보 사고의 직접 경로이므로 수동 심사를 필수로 둡니다.</blockquote>
 <h3 class="subsection-title">3.3 시설 소유권 클레임</h3>
 <p>시설 마스터(<code>Facility</code> 1,552건)는 공공데이터·카카오 API로 <strong>우리가 먼저 만들어 둔 것</strong>이라, 사업자는 &quot;이미 있는 내 시설&quot;을 자기 것이라 주장(claim)하는 형태가 됩니다.</p>
-<ul><li>가입 시 또는 가입 후, 사업자가 디렉토리에서 자기 시설을 검색해 클레임 신청</li></ul>
-<ul><li>운영자가 승인하면 <code>Facility.partnerId</code>가 채워지고 그 시점부터 <strong>해당 시설의 리드가 이 사업자에게 귀속</strong></li></ul>
-<ul><li>한 사업자가 여러 시설 클레임 가능 (<code>Partner</code> 1:N <code>Facility</code>)</li></ul>
-<ul><li><strong>이미 다른 사업자에게 승인된 시설은 중복 클레임 불가</strong> — 신청은 받되 운영자에게 분쟁 건으로 표시</li></ul>
-<h3 class="subsection-title">3.4 `isPartner` 필드 처리 (기존 스키마와의 정합성)</h3>
+<ul>
+<li>가입 시 또는 가입 후, 사업자가 디렉토리에서 자기 시설을 검색해 클레임 신청</li>
+<li>운영자가 승인하면 <code>Facility.partnerId</code>가 채워지고 그 시점부터 <strong>해당 시설의 리드가 이 사업자에게 귀속</strong></li>
+<li>한 사업자가 여러 시설 클레임 가능 (<code>Partner</code> 1:N <code>Facility</code>)</li>
+<li><strong>이미 다른 사업자에게 승인된 시설은 중복 클레임 불가</strong> — 신청은 받되 운영자에게 분쟁 건으로 표시</li>
+</ul>
+<h3 class="subsection-title">3.4 <code>isPartner</code> 필드 처리 (기존 스키마와의 정합성)</h3>
 <p><code>Facility.isPartner</code>(Boolean)가 이미 존재하고 <code>10</code> §3.3·<code>13</code> 대안 B가 이 값으로 UI를 분기합니다. 신설되는 <code>partnerId</code>와 의미가 겹치므로 <strong>한쪽을 정본으로 못 박습니다.</strong></p>
-<ul><li><strong>정본(SSOT)</strong>: <code>Facility.partnerId</code> — 승인된 클레임이 있으면 채워짐</li></ul>
-<ul><li><strong><code>isPartner</code></strong>: 목록 조회 필터·정렬 성능을 위한 <strong>파생 캐시 컬럼</strong>으로 재정의. 클레임 승인/해지 <strong>트랜잭션 안에서만</strong> 갱신한다.</li></ul>
-<ul><li>두 값이 어긋나면 <code>partnerId</code>가 이긴다. 정합성 점검 배치를 운영 초기에 1회 이상 돌린다.</li></ul>
+<ul>
+<li><strong>정본(SSOT)</strong>: <code>Facility.partnerId</code> — 승인된 클레임이 있으면 채워짐</li>
+<li><strong><code>isPartner</code></strong>: 목록 조회 필터·정렬 성능을 위한 <strong>파생 캐시 컬럼</strong>으로 재정의. 클레임 승인/해지 <strong>트랜잭션 안에서만</strong> 갱신한다.</li>
+<li>두 값이 어긋나면 <code>partnerId</code>가 이긴다. 정합성 점검 배치를 운영 초기에 1회 이상 돌린다.</li>
+</ul>
 <blockquote class="info-quote">파생 컬럼을 두는 이유: 목록 API가 매 요청 <code>partnerId IS NOT NULL</code> 조인 없이 인덱스만으로 파트너 우선 정렬을 하도록. 단, <strong>동기화 지점을 트랜잭션 한 곳으로 제한</strong>해야 썩지 않는다.</blockquote>
 <hr class="divider"/>
 <h2 class="section-title">🎫 4. 리드(Lead)와 견적요청 번호</h2>
 <h3 class="subsection-title">4.1 리드 유형</h3>
-<div class="table-container"><table><thead><tr><th>유형</th><th>발생 지점</th><th>개인정보 수집</th><th>수수료 청구 근거로서의 강도</th></tr></thead><tbody><tr><td><code>QUOTE</code> **업체 문의**</td><td>업체 문의 폼 모달(<code>InquiryModal</code>)</td><td><span class="tag green">✅ 구현</span> 이름·연락처</td><td>**강함** — 유저가 명시적으로 신청, 번호 발급</td></tr><tr><td><code>CONSULT</code> **1:1 상담신청**</td><td>상담 신청</td><td><span class="tag green">✅ 구현</span></td><td>강함</td></tr><tr><td><code>CALL</code> **전화 버튼 클릭**</td><td><code>tel:</code> 링크 클릭</td><td>❌ 익명 이벤트</td><td>**약함** — §9 참조. 기본 **비청구**</td></tr></tbody></table></div>
+<div class="table-container"><table><thead><tr><th>유형</th><th>발생 지점</th><th>개인정보 수집</th><th>수수료 청구 근거로서의 강도</th></tr></thead><tbody><tr><td><code>QUOTE</code> <strong>업체 문의</strong></td><td>업체 문의 폼 모달(<code>InquiryModal</code>)</td><td><span class="tag green">✅</span> 이름·연락처</td><td><strong>강함</strong> — 유저가 명시적으로 신청, 번호 발급</td></tr><tr><td><code>CONSULT</code> <strong>1:1 상담신청</strong></td><td>상담 신청</td><td><span class="tag green">✅</span></td><td>강함</td></tr><tr><td><code>CALL</code> <strong>전화 버튼 클릭</strong></td><td><code>tel:</code> 링크 클릭</td><td>❌ 익명 이벤트</td><td><strong>약함</strong> — §9 참조. 기본 <strong>비청구</strong></td></tr></tbody></table></div>
 <blockquote class="info-quote"><strong>2026-08-11 정정 — <code>BOOKING</code>(답사예약) 유형 폐기.</strong> 개발자·사장님 논의로 답사예약 기능 자체를 도입하지 않기로 확정(→ <code>01-01</code> §2.5, <code>01-04</code> 폐기 배너)되면서 <code>FacilityBooking</code> 모델·API가 제거됐고, <code>BOOKING</code> 리드를 만들 생산자가 사라졌습니다. 스키마의 <code>Lead.type</code>에서도 값이 삭제됐습니다(구현: walkthrough <code>2026-08-11 (6)</code>). 남은 유형은 위 3종입니다.</blockquote>
 <p>&gt;</p>
 <blockquote class="info-quote"><code>QUOTE</code>는 원래 &quot;견적요청&quot;이었으나 견적 비교 기능도 함께 폐기(→ <code>01-01</code> §2.3)되면서 실제 화면은 <strong>&quot;업체 문의&quot;</strong>로 바뀌었습니다. <strong>enum 값 <code>QUOTE</code>는 그대로 두고 표시 문구만 바꿨습니다</strong> — 이미 적재된 리드의 타입 값을 바꾸면 과거 정산 근거가 흔들리기 때문입니다.</blockquote>
 <blockquote class="info-quote"><code>CALL</code>을 청구 근거로 쓰지 않는 이유는 §9에 따로 적었습니다. 클릭했다고 통화한 것이 아니고, 통화했다고 계약한 것도 아니기 때문에 업체가 반박하면 우리가 증명할 수단이 없습니다. <strong>약한 근거로 청구하면 파트너 신뢰를 잃습니다.</strong> 지표로만 씁니다.</blockquote>
 <h3 class="subsection-title">4.2 견적요청 번호 (사장님 지시 ②의 핵심)</h3>
-<p>전화로 &quot;<strong>EB-260810-0001</strong> 건입니다&quot;라고 대조할 수 있어야 하므로, 내부 PK(uuid)와 <strong>별개의 표시용 번호</strong>를 발번합니다.</p>
+<p>전화로 &quot;<strong>EB-260810-0001</strong> 건입니다&quot;라고 대조할 수 있어야 하므로, 내부 <span class="tag pk">PK</span>(uuid)와 <strong>별개의 표시용 번호</strong>를 발번합니다.</p>
 <pre><code>EB - 260810 - 0001
 │    │        └─ 그날의 일련번호 (4자리, 일 단위 리셋)
 │    └─ 발생일 YYMMDD
 └─ 고정 접두어</code></pre>
-<ul><li><strong>불변</strong>: 발번 후 절대 변경·재사용 금지. 상태가 바뀌어도 번호는 그대로.</li></ul>
-<ul><li><strong>유니크 제약</strong>을 DB에 건다(<code>@unique</code>). 동시 요청 시 중복 발번을 애플리케이션 로직으로만 막지 않는다.</li></ul>
-<ul><li><strong>번호만으로는 조회 불가</strong>: 번호는 대조용 식별자일 뿐, 상세 조회는 반드시 인증(파트너 본인 시설 / 운영자)을 거친다. 번호가 순차적이라 추측이 쉬우므로 <strong>인증 없는 조회 API를 만들면 그대로 개인정보 유출</strong>이 된다.</li></ul>
+<ul>
+<li><strong>불변</strong>: 발번 후 절대 변경·재사용 금지. 상태가 바뀌어도 번호는 그대로.</li>
+<li><strong>유니크 제약</strong>을 DB에 건다(<code>@unique</code>). 동시 요청 시 중복 발번을 애플리케이션 로직으로만 막지 않는다.</li>
+<li><strong>번호만으로는 조회 불가</strong>: 번호는 대조용 식별자일 뿐, 상세 조회는 반드시 인증(파트너 본인 시설 / 운영자)을 거친다. 번호가 순차적이라 추측이 쉬우므로 <strong>인증 없는 조회 API를 만들면 그대로 개인정보 유출</strong>이 된다.</li>
+</ul>
 <h3 class="subsection-title">4.3 리드 상태 머신</h3>
 <pre><code> REQUESTED ──▶ NOTIFIED ──▶ RESPONDED ──┬─▶ CONVERTED  (계약 성사 → 청구 대상)
   (접수)       (업체전달)     (업체응답)   │
                                         └─▶ LOST       (무산 → 비청구)
       │
       └────────────────────────────────────▶ INVALID    (허수·중복·장난 → 비청구)</code></pre>
-<ul><li>상태 변경은 <strong>누가·언제</strong> 했는지 <code>statusHistory</code>에 누적한다. 정산 분쟁 시 이 이력이 유일한 방어 수단이다.</li></ul>
-<ul><li><code>CONVERTED</code> 판정은 <strong>업체 신고 + 운영자 확인</strong>의 2단계. 업체 자기신고만 믿으면 축소 신고(수수료 회피) 유인이 생긴다.</li></ul>
-<ul><li><code>INVALID</code> 처리 권한은 <strong>운영자만</strong>. 업체가 임의로 허수 처리하면 청구를 무력화할 수 있다.</li></ul>
-<h3 class="subsection-title">4.4 신청자 정보 스냅샷 — 왜 `userId` 참조만으로 부족한가</h3>
+<ul>
+<li>상태 변경은 <strong>누가·언제</strong> 했는지 <code>statusHistory</code>에 누적한다. 정산 분쟁 시 이 이력이 유일한 방어 수단이다.</li>
+<li><code>CONVERTED</code> 판정은 <strong>업체 신고 + 운영자 확인</strong>의 2단계. 업체 자기신고만 믿으면 축소 신고(수수료 회피) 유인이 생긴다.</li>
+<li><code>INVALID</code> 처리 권한은 <strong>운영자만</strong>. 업체가 임의로 허수 처리하면 청구를 무력화할 수 있다.</li>
+</ul>
+<h3 class="subsection-title">4.4 신청자 정보 스냅샷 — 왜 <code>userId</code> 참조만으로 부족한가</h3>
 <p>리드에 <code>userId</code>만 걸어두면, 유저가 <strong>탈퇴</strong>하는 순간 정산 근거가 사라집니다. 반대로 개인정보를 영구 보관하면 개인정보보호법 위반입니다. 둘 다 피해야 하므로:</p>
-<ul><li>리드 생성 시 신청자 이름·연락처를 <strong>스냅샷으로 복사 저장</strong>한다(<code>applicantName</code>, <code>applicantPhone</code>).</li></ul>
-<ul><li><strong>정산 확정 후</strong>에는 스냅샷을 마스킹한다 — <code>홍길동</code> → <code>홍*동</code>, <code>010-1234-5678</code> → <code>010-****-5678</code>.</li></ul>
-<ul><li>마스킹 후에도 <strong><code>leadNo</code>·발생시각·시설·금액·상태이력은 보존</strong>된다 → 청구 근거는 유지, 개인정보는 최소화.</li></ul>
-<ul><li>보유기간·마스킹 시점은 §7.3.</li></ul>
+<ul>
+<li>리드 생성 시 신청자 이름·연락처를 <strong>스냅샷으로 복사 저장</strong>한다(<code>applicantName</code>, <code>applicantPhone</code>).</li>
+<li><strong>정산 확정 후</strong>에는 스냅샷을 마스킹한다 — <code>홍길동</code> → <code>홍*동</code>, <code>010-1234-5678</code> → <code>010-****-5678</code>.</li>
+<li>마스킹 후에도 <strong><code>leadNo</code>·발생시각·시설·금액·상태이력은 보존</strong>된다 → 청구 근거는 유지, 개인정보는 최소화.</li>
+<li>보유기간·마스킹 시점은 §7.3.</li>
+</ul>
 <hr class="divider"/>
 <h2 class="section-title">🗄️ 5. 데이터 모델 (Prisma)</h2>
 <blockquote class="info-quote">기존 모델 변경은 <strong>추가(additive)만</strong> 합니다. 2026-08-05 마이그레이션으로 <code>User</code>/<code>SocialAccount</code>가 유실된 사고가 있었으므로(→ <code>.harness/security.md</code> §6), <strong>마이그레이션 전 <code>pg_dump</code> 필수</strong>입니다.</blockquote>
@@ -563,23 +588,23 @@ model User {
   // ... 기존 필드 유지 ...
   leads Lead[]                             // 신규 역참조
 }</code></pre>
-<h3 class="subsection-title">5.3 ~~기존 `FacilityBooking`과의 관계~~ → **폐기 (2026-08-11)**</h3>
+<h3 class="subsection-title">5.3 <del>기존 <code>FacilityBooking</code>과의 관계</del> → <strong>폐기 (2026-08-11)</strong></h3>
 <blockquote class="info-quote"><strong>이 절은 더 이상 유효하지 않습니다.</strong> 답사예약 기능 자체를 도입하지 않기로 확정(→ <code>01-01</code> §2.5)되면서 <code>FacilityBooking</code> 모델과 관련 API(<code>POST /api/facilities/:id/bookings</code>)가 <strong>삭제</strong>됐습니다. 삭제 시점에 적재 데이터 0건임을 확인했습니다(구현: walkthrough <code>2026-08-11 (6)</code>).</blockquote>
 <p>&gt;</p>
 <blockquote class="info-quote">원안은 &quot;<code>FacilityBooking</code>(업무 실체)과 <code>Lead</code>(정산 근거)는 생명주기가 달라 합치지 않는다&quot;였고 그 판단 자체는 여전히 타당했으나, <strong>답사예약이라는 업무 실체가 사라져</strong> 분리할 대상이 없어졌습니다. 판단 근거 보존을 위해 절을 삭제하지 않고 폐기 표시만 남깁니다(<code>01-03</code>·<code>01-04</code> 처리 방식과 동일).</blockquote>
 <hr class="divider"/>
 <h2 class="section-title">🔌 6. API 명세 (초안)</h2>
 <p>기존 라우트 구조(<code>/api/auth</code>, <code>/api/facilities</code>, <code>/api/geo</code>)에 2개 네임스페이스를 추가합니다.</p>
-<blockquote class="info-quote"><strong>구현 상태 표기 (2026-08-11 정합화)</strong>: ✅ 구현됨 / ⬜ 미구현(계획 유지). 스펙과 구현이 어긋난 채 방치되면 문서가 거짓말이 되므로, 초안 작성 당시의 계획과 실제 착수분을 한 표에서 구분합니다.</blockquote>
-<h3 class="subsection-title">6.1 사업자 인증 · 계정 `/api/partner`</h3>
-<div class="table-container"><table><thead><tr><th></th><th>Method</th><th>Endpoint</th><th>설명</th><th>인증</th></tr></thead><tbody><tr><td><span class="tag green">✅ 구현</span></td><td>POST</td><td><code>/api/partner/signup</code></td><td>가입 신청 (status=PENDING)</td><td>—</td></tr><tr><td><span class="tag green">✅ 구현</span></td><td>POST</td><td><code>/api/partner/login</code></td><td>사업자 로그인 (APPROVED만 허용)</td><td>—</td></tr><tr><td><span class="tag green">✅ 구현</span></td><td>POST</td><td><code>/api/partner/refresh</code></td><td>토큰 갱신</td><td>Refresh</td></tr><tr><td><span class="tag green">✅ 구현</span></td><td>GET</td><td><code>/api/partner/me</code></td><td>내 사업자 정보·승인상태</td><td>Partner</td></tr><tr><td><span class="tag green">✅ 구현</span></td><td>PATCH</td><td><code>/api/partner/me</code></td><td>담당자·연락처·정산계좌 수정</td><td>Partner</td></tr><tr><td><span class="tag green">✅ 구현</span></td><td>GET</td><td><code>/api/partner/facilities</code></td><td>내 시설 목록</td><td>Partner</td></tr><tr><td><span class="tag green">✅ 구현</span></td><td>POST</td><td><code>/api/partner/claims</code></td><td>시설 소유권 클레임 신청</td><td>Partner</td></tr><tr><td><span class="tag green">✅ 구현</span></td><td>GET</td><td><code>/api/partner/claims</code></td><td>내 클레임 신청 현황</td><td>Partner</td></tr><tr><td><span class="tag green">✅ 구현</span></td><td>POST</td><td><code>/api/partner/facilities/:id/images</code></td><td>시설 사진 업로드(multer, 소유 시설만)</td><td>Partner</td></tr><tr><td><span class="tag green">✅ 구현</span></td><td>DELETE</td><td><code>/api/partner/facilities/:id/images</code></td><td>시설 사진 삭제</td><td>Partner</td></tr><tr><td><span class="tag green">✅ 구현</span></td><td>GET</td><td><code>/api/partner/leads</code></td><td>내 시설 리드 목록 (필터·페이지네이션)</td><td>Partner</td></tr><tr><td><span class="tag green">✅ 구현</span></td><td>GET</td><td><code>/api/partner/leads/:leadNo</code></td><td>리드 상세</td><td>Partner (본인 시설만)</td></tr><tr><td><span class="tag green">✅ 구현</span></td><td>PATCH</td><td><code>/api/partner/leads/:leadNo/status</code></td><td>응답/성사/무산 신고</td><td>Partner</td></tr><tr><td><span class="tag gray">⬜ 계획</span></td><td>GET</td><td><code>/api/partner/settlements</code></td><td>정산서 목록·상세</td><td>Partner</td></tr><tr><td><span class="tag gray">⬜ 계획</span></td><td>POST</td><td><code>/api/partner/settlements/:id/dispute</code></td><td>이의제기</td><td>Partner</td></tr></tbody></table></div>
+<blockquote class="info-quote"><strong>구현 상태 표기 (2026-08-11 정합화)</strong>: <span class="tag green">✅</span> 구현됨 / <span class="tag gray">⬜</span> 미구현(계획 유지). 스펙과 구현이 어긋난 채 방치되면 문서가 거짓말이 되므로, 초안 작성 당시의 계획과 실제 착수분을 한 표에서 구분합니다.</blockquote>
+<h3 class="subsection-title">6.1 사업자 인증 · 계정 <code>/api/partner</code></h3>
+<div class="table-container"><table><thead><tr><th></th><th>Method</th><th>Endpoint</th><th>설명</th><th>인증</th></tr></thead><tbody><tr><td><span class="tag green">✅</span></td><td>POST</td><td><code>/api/partner/signup</code></td><td>가입 신청 (status=PENDING)</td><td>—</td></tr><tr><td><span class="tag green">✅</span></td><td>POST</td><td><code>/api/partner/login</code></td><td>사업자 로그인 (APPROVED만 허용)</td><td>—</td></tr><tr><td><span class="tag green">✅</span></td><td>POST</td><td><code>/api/partner/refresh</code></td><td>토큰 갱신</td><td>Refresh</td></tr><tr><td><span class="tag green">✅</span></td><td>GET</td><td><code>/api/partner/me</code></td><td>내 사업자 정보·승인상태</td><td>Partner</td></tr><tr><td><span class="tag green">✅</span></td><td>PATCH</td><td><code>/api/partner/me</code></td><td>담당자·연락처·정산계좌 수정</td><td>Partner</td></tr><tr><td><span class="tag green">✅</span></td><td>GET</td><td><code>/api/partner/facilities</code></td><td>내 시설 목록</td><td>Partner</td></tr><tr><td><span class="tag green">✅</span></td><td>POST</td><td><code>/api/partner/claims</code></td><td>시설 소유권 클레임 신청</td><td>Partner</td></tr><tr><td><span class="tag green">✅</span></td><td>GET</td><td><code>/api/partner/claims</code></td><td>내 클레임 신청 현황</td><td>Partner</td></tr><tr><td><span class="tag green">✅</span></td><td>POST</td><td><code>/api/partner/facilities/:id/images</code></td><td>시설 사진 업로드(multer, 소유 시설만)</td><td>Partner</td></tr><tr><td><span class="tag green">✅</span></td><td>DELETE</td><td><code>/api/partner/facilities/:id/images</code></td><td>시설 사진 삭제</td><td>Partner</td></tr><tr><td><span class="tag green">✅</span></td><td>GET</td><td><code>/api/partner/leads</code></td><td>내 시설 리드 목록 (필터·페이지네이션)</td><td>Partner</td></tr><tr><td><span class="tag green">✅</span></td><td>GET</td><td><code>/api/partner/leads/:leadNo</code></td><td>리드 상세</td><td>Partner (본인 시설만)</td></tr><tr><td><span class="tag green">✅</span></td><td>PATCH</td><td><code>/api/partner/leads/:leadNo/status</code></td><td>응답/성사/무산 신고</td><td>Partner</td></tr><tr><td><span class="tag gray">⬜</span></td><td>GET</td><td><code>/api/partner/settlements</code></td><td>정산서 목록·상세</td><td>Partner</td></tr><tr><td><span class="tag gray">⬜</span></td><td>POST</td><td><code>/api/partner/settlements/:id/dispute</code></td><td>이의제기</td><td>Partner</td></tr></tbody></table></div>
 <blockquote class="info-quote">사진 업로드는 초안에 없던 추가분입니다(2026-08-10 개발자 지시). <strong>현재 로컬 디스크 저장이라 배포 시 재배포마다 파일이 소실</strong>됩니다 — 실서비스 전 외부 스토리지 전환 필수(→ <code>.harness/systems.md</code> §5).</blockquote>
-<h3 class="subsection-title">6.2 운영자 어드민 `/api/admin`</h3>
-<div class="table-container"><table><thead><tr><th></th><th>Method</th><th>Endpoint</th><th>설명</th></tr></thead><tbody><tr><td><span class="tag green">✅ 구현</span></td><td>POST</td><td><code>/api/admin/login</code> · <code>/refresh</code> · GET <code>/me</code></td><td>운영자 인증 (공개 가입 없음 → §6.4)</td></tr><tr><td><span class="tag green">✅ 구현</span></td><td>GET</td><td><code>/api/admin/partners?status=</code></td><td>사업자 조회 (상태 필터, 빈 값이면 전체)</td></tr><tr><td><span class="tag green">✅ 구현</span></td><td>PATCH</td><td><code>/api/admin/partners/:id/status</code></td><td>승인/반려/정지 (+사유)</td></tr><tr><td><span class="tag green">✅ 구현</span></td><td>PATCH</td><td><code>/api/admin/partners/:id</code></td><td>담당자명·연락처 수정 (→ 아래 수정 범위 원칙)</td></tr><tr><td><span class="tag green">✅ 구현</span></td><td>GET</td><td><code>/api/admin/claims?status=</code></td><td>클레임 심사 큐</td></tr><tr><td><span class="tag green">✅ 구현</span></td><td>PATCH</td><td><code>/api/admin/claims/:id/status</code></td><td>클레임 승인/반려 (승인 시 <code>partnerId</code>·<code>isPartner</code> 트랜잭션 갱신)</td></tr><tr><td><span class="tag gray">⬜ 계획</span></td><td>GET</td><td><code>/api/admin/leads</code></td><td>전체 리드 조회·검색(<code>leadNo</code>)</td></tr><tr><td><span class="tag gray">⬜ 계획</span></td><td>PATCH</td><td><code>/api/admin/leads/:id/billable</code></td><td>청구 대상 확정 / <code>INVALID</code> 처리</td></tr><tr><td><span class="tag gray">⬜ 계획</span></td><td>POST</td><td><code>/api/admin/settlements/generate</code></td><td>월 정산서 일괄 생성</td></tr><tr><td><span class="tag gray">⬜ 계획</span></td><td>PATCH</td><td><code>/api/admin/settlements/:id/status</code></td><td>발행·수납 처리</td></tr></tbody></table></div>
+<h3 class="subsection-title">6.2 운영자 어드민 <code>/api/admin</code></h3>
+<div class="table-container"><table><thead><tr><th></th><th>Method</th><th>Endpoint</th><th>설명</th></tr></thead><tbody><tr><td><span class="tag green">✅</span></td><td>POST</td><td><code>/api/admin/login</code> · <code>/refresh</code> · GET <code>/me</code></td><td>운영자 인증 (공개 가입 없음 → §6.4)</td></tr><tr><td><span class="tag green">✅</span></td><td>GET</td><td><code>/api/admin/partners?status=</code></td><td>사업자 조회 (상태 필터, 빈 값이면 전체)</td></tr><tr><td><span class="tag green">✅</span></td><td>PATCH</td><td><code>/api/admin/partners/:id/status</code></td><td>승인/반려/정지 (+사유)</td></tr><tr><td><span class="tag green">✅</span></td><td>PATCH</td><td><code>/api/admin/partners/:id</code></td><td>담당자명·연락처 수정 (→ 아래 수정 범위 원칙)</td></tr><tr><td><span class="tag green">✅</span></td><td>GET</td><td><code>/api/admin/claims?status=</code></td><td>클레임 심사 큐</td></tr><tr><td><span class="tag green">✅</span></td><td>PATCH</td><td><code>/api/admin/claims/:id/status</code></td><td>클레임 승인/반려 (승인 시 <code>partnerId</code>·<code>isPartner</code> 트랜잭션 갱신)</td></tr><tr><td><span class="tag gray">⬜</span></td><td>GET</td><td><code>/api/admin/leads</code></td><td>전체 리드 조회·검색(<code>leadNo</code>)</td></tr><tr><td><span class="tag gray">⬜</span></td><td>PATCH</td><td><code>/api/admin/leads/:id/billable</code></td><td>청구 대상 확정 / <code>INVALID</code> 처리</td></tr><tr><td><span class="tag gray">⬜</span></td><td>POST</td><td><code>/api/admin/settlements/generate</code></td><td>월 정산서 일괄 생성</td></tr><tr><td><span class="tag gray">⬜</span></td><td>PATCH</td><td><code>/api/admin/settlements/:id/status</code></td><td>발행·수납 처리</td></tr></tbody></table></div>
 <p>전문가(<code>Expert</code>) 심사·공개 토글 API도 같은 <code>/api/admin</code> 네임스페이스에 있습니다 → <code>02-03</code> §5.4.</p>
 <p><strong>운영자의 회원정보 수정 범위 원칙</strong> (2026-08-11 신설, 구현: walkthrough <code>(10)</code>)</p>
 <p>운영자가 회원 레코드의 <strong>모든</strong> 필드를 고칠 수 있게 열지 않습니다. 필드를 두 부류로 나눕니다.</p>
-<div class="table-container"><table><thead><tr><th>부류</th><th>예</th><th>운영자 처리</th></tr></thead><tbody><tr><td>운영 편의 정보</td><td>담당자명, 연락처, (전문가) 사무실 주소·소개</td><td>**직접 수정 허용** — 오타·인사이동 대응</td></tr><tr><td>검증된 신원 정보</td><td>사업자등록번호, 자격증 등록번호, 상호, 대표자명</td><td>**직접 수정 금지** — 반려 후 재신청을 받는다</td></tr></tbody></table></div>
+<div class="table-container"><table><thead><tr><th>부류</th><th>예</th><th>운영자 처리</th></tr></thead><tbody><tr><td>운영 편의 정보</td><td>담당자명, 연락처, (전문가) 사무실 주소·소개</td><td><strong>직접 수정 허용</strong> — 오타·인사이동 대응</td></tr><tr><td>검증된 신원 정보</td><td>사업자등록번호, 자격증 등록번호, 상호, 대표자명</td><td><strong>직접 수정 금지</strong> — 반려 후 재신청을 받는다</td></tr></tbody></table></div>
 <p>신원 정보를 운영자가 조용히 고칠 수 있으면 <strong>심사 이력이 끊깁니다.</strong> &quot;승인 당시 무엇을 보고 승인했는가&quot;가 증명되지 않으면 §3.2에서 자동승인을 배제한 이유(타인 시설 리드=유족 개인정보 오열람 방지)가 무력화됩니다. 잘못된 신원 정보는 고쳐주는 것이 아니라 <strong>되돌려 보내는</strong> 것이 맞습니다.</p>
 <p><strong>아직 화면이 없는 조회 기능</strong> (2026-08-11 추가 구현, 신규 API 없음)</p>
 <p>운영자 대시보드에 &quot;전체 시설&quot; 탭을 붙였습니다. 별도 어드민 API를 만들지 않고 <strong>기존 공개 API <code>GET /api/facilities</code>(페이지네이션·<code>q</code> 검색 지원)를 그대로 재사용</strong>했습니다 — 조회 전용이고 공개 데이터라 권한 분리가 불필요하기 때문입니다. 사업자·전문가 목록 검색도 서버 검색 API 없이 이미 받아온 목록을 화면에서 필터링합니다(B2B 계정이라 규모가 작음). 회원 수가 수천 단위로 늘면 서버 검색으로 전환합니다.</p>
@@ -587,13 +612,15 @@ model User {
 <div class="table-container"><table><thead><tr><th>Method</th><th>Endpoint</th><th>설명</th></tr></thead><tbody><tr><td>POST</td><td><code>/api/facilities/:id/quotes</code></td><td>견적요청 생성 → <code>leadNo</code> 반환</td></tr><tr><td>POST</td><td><code>/api/facilities/:id/call-events</code></td><td><code>tel:</code> 클릭 익명 이벤트 적재 (개인정보 없음)</td></tr></tbody></table></div>
 <blockquote class="info-quote"><strong>응답에 <code>leadNo</code>를 반드시 돌려주고 화면에 노출</strong>합니다. 유저가 번호를 알고 있어야 나중에 &quot;제가 이어봄으로 신청한 건입니다&quot;라고 말할 수 있고, 그게 우리 수수료 근거를 유저 쪽에서도 뒷받침합니다.</blockquote>
 <h3 class="subsection-title">6.4 인증 분리 원칙</h3>
-<ul><li>사업자 토큰과 B2C 유저 토큰은 <strong>payload에 <code>aud</code>(대상) 필드를 넣어 구분</strong>하고, 미들웨어에서 교차 사용을 차단한다.</li></ul>
-<ul><li><code>/api/partner/*</code>에 B2C 토큰이 들어오면 401. 반대도 동일.</li></ul>
-<ul><li>**<code>/api/admin/*</code>는 별도 <code>Admin</code> 모델 + <code>aud=&#039;admin&#039;</code> 토큰으로 보호**한다.</li></ul>
+<ul>
+<li>사업자 토큰과 B2C 유저 토큰은 <strong>payload에 <code>aud</code>(대상) 필드를 넣어 구분</strong>하고, 미들웨어에서 교차 사용을 차단한다.</li>
+<li><code>/api/partner/*</code>에 B2C 토큰이 들어오면 401. 반대도 동일.</li>
+<li>**<code>/api/admin/*</code>는 별도 <code>Admin</code> 모델 + <code>aud=&#039;admin&#039;</code> 토큰으로 보호**한다.</li>
+</ul>
 <blockquote class="info-quote"><strong>2026-08-11 정정 — 운영자 인증 방식 변경.</strong> 초안은 &quot;<code>User.role === &#039;ADMIN&#039;</code>으로 보호(기존 <code>role</code> 필드 활용)&quot;였으나, 구현 단계에서 <strong>독립 <code>Admin</code> 모델</strong>로 바꿨습니다(구현: walkthrough <code>2026-08-10 (3)</code>). 이유는 두 가지입니다.</blockquote>
 <p>&gt;</p>
-<blockquote class="info-quote">1. <strong>B2C 로그인 경로와 운영자 권한이 한 테이블에 얽히면 사고 반경이 커진다.</strong> 소셜 로그인으로 들어온 계정에 <code>role</code> 하나만 잘못 세팅돼도 즉시 운영자가 됩니다. 초안 스스로 &quot;<code>demo-login</code>의 ADMIN 발급 경로를 실배포 전 반드시 차단할 것&quot;이라는 위험을 적어뒀는데, 이는 <strong>차단해야 할 구멍이 애초에 생기는 설계</strong>라는 뜻이었습니다.</blockquote>
-<blockquote class="info-quote">2. <strong>운영자는 공개 가입이 없어야 한다.</strong> <code>Admin</code>에는 signup API를 만들지 않고 <code>prisma/seed-admin.ts</code> 스크립트로만 계정을 생성합니다. 가입 폼이 존재하는 것 자체가 공격면입니다.</blockquote>
+<blockquote class="info-quote">1. <strong>B2C 로그인 경로와 운영자 권한이 한 테이블에 얽히면 사고 반경이 커진다.</strong> 소셜 로그인으로 들어온 계정에 <code>role</code> 하나만 잘못 세팅돼도 즉시 운영자가 됩니다. 초안 스스로 &quot;<code>demo-login</code>의 ADMIN 발급 경로를 실배포 전 반드시 차단할 것&quot;이라는 위험을 적어뒀는데, 이는 <strong>차단해야 할 구멍이 애초에 생기는 설계</strong>라는 뜻이었습니다.<br/>
+2. <strong>운영자는 공개 가입이 없어야 한다.</strong> <code>Admin</code>에는 signup API를 만들지 않고 <code>prisma/seed-admin.ts</code> 스크립트로만 계정을 생성합니다. 가입 폼이 존재하는 것 자체가 공격면입니다.</blockquote>
 <p>&gt;</p>
 <blockquote class="info-quote">결과적으로 초안이 경고했던 <code>demo-login</code> ADMIN 발급 문제는 <strong>경로 자체가 사라져</strong> 해소됐습니다(<code>demo-login</code>은 프로덕션 가드도 별도로 적용됨). 3종 토큰(<code>aud</code>: <code>user</code>/<code>partner</code>/<code>expert</code>)에 <code>admin</code>이 더해져 총 4종이며, 교차 사용은 전부 401입니다.</blockquote>
 <hr class="divider"/>
@@ -601,23 +628,31 @@ model User {
 <p>유족의 이름·연락처를 장례식장에 넘기는 행위는 <strong>개인정보 제3자 제공</strong>(개인정보보호법 제17조)입니다. 동의 없이 넘기면 서비스 자체가 중단될 수 있는 위험이므로, 아래는 <strong>선택이 아니라 구현 필수 조건</strong>입니다.</p>
 <h3 class="subsection-title">7.1 동의 없이는 리드를 만들지 않는다</h3>
 <p>업체 문의 폼에 <strong>필수 동의 체크박스</strong>를 두고, 아래 4가지를 명시합니다.</p>
-<div class="table-container"><table><thead><tr><th>고지 항목</th><th>내용</th></tr></thead><tbody><tr><td>제공받는 자</td><td>신청한 **해당 장사시설 사업자** (상호 명시)</td></tr><tr><td>제공 목적</td><td>**업체 문의 연락**</td></tr><tr><td>제공 항목</td><td>이름, 연락처, 요청 내용</td></tr><tr><td>보유·이용 기간</td><td>목적 달성 후 파기 (§7.3)</td></tr></tbody></table></div>
+<div class="table-container"><table><thead><tr><th>고지 항목</th><th>내용</th></tr></thead><tbody><tr><td>제공받는 자</td><td>신청한 <strong>해당 장사시설 사업자</strong> (상호 명시)</td></tr><tr><td>제공 목적</td><td><strong>업체 문의 연락</strong></td></tr><tr><td>제공 항목</td><td>이름, 연락처, 요청 내용</td></tr><tr><td>보유·이용 기간</td><td>목적 달성 후 파기 (§7.3)</td></tr></tbody></table></div>
 <blockquote class="info-quote"><strong>2026-08-11 정정</strong>: 답사예약 폐기(§4.1)에 따라 고지 문구에서 &quot;답사 예약 연락&quot;을 뺐습니다. 코드의 고지 문구와 <code>noticeVersion</code>도 함께 갱신됐습니다(구현: walkthrough <code>2026-08-11 (6)</code>). <strong>문구를 바꿔도 과거 동의 건의 <code>consentSnapshot</code>은 그대로 보존</strong>되므로, 그 시점에 무엇에 동의했는지는 계속 증명됩니다 — 아래 항목이 요구하는 바 그대로입니다.</blockquote>
-<ul><li>체크 없이 제출 불가. <code>thirdPartyConsentAt</code>이 <code>null</code>인 리드는 <strong>파트너에게 노출하지 않는다</strong>.</li></ul>
-<ul><li>동의 시점의 <strong>고지 문구 전문을 <code>consentSnapshot</code>에 저장</strong>한다. 나중에 문구를 바꿔도 &quot;그때 무엇에 동의했는지&quot;를 증명할 수 있어야 한다.</li></ul>
+<ul>
+<li>체크 없이 제출 불가. <code>thirdPartyConsentAt</code>이 <code>null</code>인 리드는 <strong>파트너에게 노출하지 않는다</strong>.</li>
+<li>동의 시점의 <strong>고지 문구 전문을 <code>consentSnapshot</code>에 저장</strong>한다. 나중에 문구를 바꿔도 &quot;그때 무엇에 동의했는지&quot;를 증명할 수 있어야 한다.</li>
+</ul>
 <h3 class="subsection-title">7.2 비제휴 시설은 개인정보를 전달하지 않는다</h3>
 <p><code>partnerId</code>가 없는 시설(전국 대부분)에도 견적요청은 들어올 수 있습니다. 이때:</p>
-<ul><li>리드는 <strong>적재하되</strong>, 제공받을 사업자가 특정되지 않으므로 <strong>개인정보를 아무에게도 전달하지 않는다</strong>.</li></ul>
-<ul><li>이어봄 상담원이 직접 응대한다(<code>13</code> 대안 C의 해피콜 모델).</li></ul>
-<ul><li>영업용으로는 <strong>건수만</strong> 사용한다 — *&quot;귀 시설에 지난달 문의 12건이 접수됐습니다. 제휴하시면 바로 연결됩니다&quot;*. <code>10</code> §3.4의 B2B 영업 명분과 정확히 일치하며, <strong>개인정보를 넘기지 않고도 영업이 된다.</strong></li></ul>
+<ul>
+<li>리드는 <strong>적재하되</strong>, 제공받을 사업자가 특정되지 않으므로 <strong>개인정보를 아무에게도 전달하지 않는다</strong>.</li>
+<li>이어봄 상담원이 직접 응대한다(<code>13</code> 대안 C의 해피콜 모델).</li>
+<li>영업용으로는 <strong>건수만</strong> 사용한다 — *&quot;귀 시설에 지난달 문의 12건이 접수됐습니다. 제휴하시면 바로 연결됩니다&quot;*. <code>10</code> §3.4의 B2B 영업 명분과 정확히 일치하며, <strong>개인정보를 넘기지 않고도 영업이 된다.</strong></li>
+</ul>
 <h3 class="subsection-title">7.3 보유기간과 마스킹</h3>
-<div class="table-container"><table><thead><tr><th>시점</th><th>처리</th></tr></thead><tbody><tr><td>리드 생성</td><td>이름·연락처 평문 저장 (업무 수행에 필요)</td></tr><tr><td>상태 <code>CONVERTED</code>/<code>LOST</code> 확정 + 정산 확정</td><td>**마스킹 실행** (<code>maskedAt</code> 기록)</td></tr><tr><td>그 이후</td><td><code>leadNo</code>·시각·시설·금액·상태이력만 보존 → 청구 근거 유지</td></tr></tbody></table></div>
-<ul><li>마스킹은 배치로 돌린다. &quot;정산 끝났는데 개인정보가 남아있는&quot; 상태가 길어지지 않도록 <strong>주기와 실행 로그를 남긴다</strong>.</li></ul>
-<ul><li>파트너 어드민에서는 <strong>응답 완료 후 연락처를 마스킹 표시</strong>한다. 필요 이상으로 오래 원문을 보여줄 이유가 없다.</li></ul>
+<div class="table-container"><table><thead><tr><th>시점</th><th>처리</th></tr></thead><tbody><tr><td>리드 생성</td><td>이름·연락처 평문 저장 (업무 수행에 필요)</td></tr><tr><td>상태 <code>CONVERTED</code>/<code>LOST</code> 확정 + 정산 확정</td><td><strong>마스킹 실행</strong> (<code>maskedAt</code> 기록)</td></tr><tr><td>그 이후</td><td><code>leadNo</code>·시각·시설·금액·상태이력만 보존 → 청구 근거 유지</td></tr></tbody></table></div>
+<ul>
+<li>마스킹은 배치로 돌린다. &quot;정산 끝났는데 개인정보가 남아있는&quot; 상태가 길어지지 않도록 <strong>주기와 실행 로그를 남긴다</strong>.</li>
+<li>파트너 어드민에서는 <strong>응답 완료 후 연락처를 마스킹 표시</strong>한다. 필요 이상으로 오래 원문을 보여줄 이유가 없다.</li>
+</ul>
 <h3 class="subsection-title">7.4 기타</h3>
-<ul><li><code>bizLicenseUrl</code>(사업자등록증 사본)은 <strong>공개 정적 경로에 두지 않는다</strong>. 인증된 운영자만 접근 가능한 비공개 스토리지 + 서명 URL.</li></ul>
-<ul><li><code>settlementAccount</code>(정산 계좌)는 <strong>암호화 저장</strong>. <code>.harness/security.md</code> §1의 평문 금지 원칙 적용.</li></ul>
-<ul><li>문서·테스트 픽스처에는 실제 업체·유족 정보를 쓰지 않는다(<code>홍길동</code>, <code>010-0000-0000</code>).</li></ul>
+<ul>
+<li><code>bizLicenseUrl</code>(사업자등록증 사본)은 <strong>공개 정적 경로에 두지 않는다</strong>. 인증된 운영자만 접근 가능한 비공개 스토리지 + 서명 URL.</li>
+<li><code>settlementAccount</code>(정산 계좌)는 <strong>암호화 저장</strong>. <code>.harness/security.md</code> §1의 평문 금지 원칙 적용.</li>
+<li>문서·테스트 픽스처에는 실제 업체·유족 정보를 쓰지 않는다(<code>홍길동</code>, <code>010-0000-0000</code>).</li>
+</ul>
 <hr class="divider"/>
 <h2 class="section-title">💰 8. 정산</h2>
 <h3 class="subsection-title">8.1 흐름</h3>
@@ -629,9 +664,11 @@ model User {
               │                    └─ 이의 없음 / 기간 경과
               │                          │
               └──────────────────────────▶ PAID (입금 확인, 수동 대사)</code></pre>
-<ul><li><strong>이의제기 기간</strong>을 정하고 그 안에 이의가 없으면 확정으로 간주한다(권장 7일). 기간이 없으면 분쟁이 무한정 열려 정산이 닫히지 않는다.</li></ul>
-<ul><li><code>Settlement</code>에 <code>@@unique([partnerId, periodYm])</code>을 걸어 <strong>같은 달 중복 발행을 DB가 막는다</strong>.</li></ul>
-<h3 class="subsection-title">8.2 수수료 계산 — 요율은 코드가 아니라 `CommissionPolicy` 레코드에서 읽는다</h3>
+<ul>
+<li><strong>이의제기 기간</strong>을 정하고 그 안에 이의가 없으면 확정으로 간주한다(권장 7일). 기간이 없으면 분쟁이 무한정 열려 정산이 닫히지 않는다.</li>
+<li><code>Settlement</code>에 <code>@@unique([partnerId, periodYm])</code>을 걸어 <strong>같은 달 중복 발행을 DB가 막는다</strong>.</li>
+</ul>
+<h3 class="subsection-title">8.2 수수료 계산 — 요율은 코드가 아니라 <code>CommissionPolicy</code> 레코드에서 읽는다</h3>
 <pre><code>리드 1건의 청구액 계산
   ① 리드의 기준 시점 t = Lead.createdAt
   ② t 시점에 유효한 정책을 찾는다
@@ -641,13 +678,15 @@ model User {
   ③ basis에 따라 금액 산출
   ④ 결과를 Lead.billedAmount + Lead.commissionPolicyId 에 **스냅샷으로 박는다**</code></pre>
 <p><strong>④가 핵심입니다.</strong> 계산 결과만 저장하면 &quot;왜 이 금액인지&quot; 설명할 수 없고, 요율 ID만 저장하면 정책 레코드가 수정될 때 과거 금액이 흔들립니다. <strong>둘 다</strong> 남겨야 정산 분쟁에서 방어됩니다.</p>
-<ul><li>요율을 바꿀 때는 <strong>기존 레코드를 수정하지 않는다.</strong> 이전 레코드의 <code>effectiveTo</code>를 닫고 <strong>새 레코드를 추가</strong>한다. 과거 정산 재계산이 항상 같은 값을 내야 하기 때문이다.</li></ul>
-<ul><li>같은 이유로 <code>CommissionPolicy</code>는 <strong>삭제하지 않는다</strong>. 잘못 넣었으면 즉시 <code>effectiveTo</code>로 닫는다.</li></ul>
-<ul><li>산정 기준이 미확정이어도 <strong>구조는 지금 만든다.</strong> 확정되면 레코드 1건을 넣는 것으로 끝난다(→ §10-1).</li></ul>
+<ul>
+<li>요율을 바꿀 때는 <strong>기존 레코드를 수정하지 않는다.</strong> 이전 레코드의 <code>effectiveTo</code>를 닫고 <strong>새 레코드를 추가</strong>한다. 과거 정산 재계산이 항상 같은 값을 내야 하기 때문이다.</li>
+<li>같은 이유로 <code>CommissionPolicy</code>는 <strong>삭제하지 않는다</strong>. 잘못 넣었으면 즉시 <code>effectiveTo</code>로 닫는다.</li>
+<li>산정 기준이 미확정이어도 <strong>구조는 지금 만든다.</strong> 확정되면 레코드 1건을 넣는 것으로 끝난다(→ §10-1).</li>
+</ul>
 <hr class="divider"/>
-<h2 class="section-title">⚠️ 9. 알려진 한계 — 전화 문의는 지금 구조로 증명되지 않는다</h2>
+<h2 class="section-title"><span class="tag warn">⚠️</span> 9. 알려진 한계 — 전화 문의는 지금 구조로 증명되지 않는다</h2>
 <p>사장님 지시 ②는 &quot;문의 <strong>혹은</strong> 견적 요청&quot;이라고 하셨는데, <strong>전화 문의는 현재 기술로 증명이 안 됩니다.</strong></p>
-<div class="table-container"><table><thead><tr><th>단계</th><th>우리가 아는가</th></tr></thead><tbody><tr><td>유저가 <code>tel:</code> 버튼을 눌렀다</td><td><span class="tag green">✅ 구현</span> 이벤트 로그로 알 수 있음</td></tr><tr><td>실제로 통화가 연결됐다</td><td>❌ 브라우저는 통화 결과를 알려주지 않음</td></tr><tr><td>그 통화로 계약이 성사됐다</td><td>❌ 전혀 알 수 없음</td></tr></tbody></table></div>
+<div class="table-container"><table><thead><tr><th>단계</th><th>우리가 아는가</th></tr></thead><tbody><tr><td>유저가 <code>tel:</code> 버튼을 눌렀다</td><td><span class="tag green">✅</span> 이벤트 로그로 알 수 있음</td></tr><tr><td>실제로 통화가 연결됐다</td><td>❌ 브라우저는 통화 결과를 알려주지 않음</td></tr><tr><td>그 통화로 계약이 성사됐다</td><td>❌ 전혀 알 수 없음</td></tr></tbody></table></div>
 <p>즉 <code>CALL</code> 리드로 수수료를 청구하면 업체가 &quot;그런 전화 온 적 없다&quot;고 할 때 <strong>반박할 물증이 우리에게 없습니다.</strong> 그래서 §4.1에서 <code>CALL</code>을 기본 비청구로 둡니다.</p>
 <p><strong>해결 경로는 050 안심번호(가상번호)입니다.</strong> 시설마다 우리 명의의 050 번호를 발급해 착신 전환하면 통화 발생·시각·통화시간이 우리 로그에 남아 청구 근거가 됩니다. 부수 효과로 유족 번호가 업체에 직접 노출되지 않아 §7 개인정보 부담도 줄어듭니다. 다만 통신사 계약과 회선당 과금이 발생하므로 <strong>파트너 수가 확보된 뒤 도입</strong>하는 것이 합리적입니다. → 별도 검토 문서로 분리 제안.</p>
 <p>그 전까지 실무적으로 유효한 방법은 <strong>업체 문의 폼으로 유도</strong>하는 것입니다(<code>01-04</code> 대안 1과 동일한 결론). 제휴 시설에는 <code>[업체 문의]</code> 버튼을 눈에 띄게 배치합니다.</p>
@@ -656,26 +695,26 @@ model User {
 <h2 class="section-title">❗ 10. 사장님 확정 필요 항목</h2>
 <p>아래 4건은 <strong>경영 판단</strong>이라 기획이 임의로 정하지 않습니다. 각 항목에 권장안을 붙였습니다.</p>
 <blockquote class="info-quote"><strong>중요 — 이 4건이 미정이어도 구현은 막히지 않습니다.</strong> §12 방침에 따라 전부 <strong>바꿀 수 있는 자리</strong>(정책 레코드 / 설정 파일)로 빠져 있어서, 확정되면 <strong>코드 수정이 아니라 값 입력</strong>으로 끝납니다. 아래 표의 &quot;확정 시 반영 위치&quot;를 보세요.</blockquote>
-<div class="table-container"><table><thead><tr><th>항목</th><th>확정 시 반영 위치</th><th>재배포 필요?</th></tr></thead><tbody><tr><td>10-1 수수료 기준</td><td><code>CommissionPolicy</code> 레코드 1건 추가</td><td>❌</td></tr><tr><td>10-2 로그인 요구 여부</td><td><code>policy.ts</code> → <code>lead.requireLogin</code></td><td><span class="tag green">✅ 구현</span></td></tr><tr><td>10-3 정산 주기·이의제기 기간</td><td><code>policy.ts</code> → <code>settlement.*</code></td><td><span class="tag green">✅ 구현</span></td></tr><tr><td>10-4 비제휴 시설 수용</td><td><code>policy.ts</code> → <code>lead.acceptForNonPartner</code></td><td><span class="tag green">✅ 구현</span></td></tr></tbody></table></div>
+<div class="table-container"><table><thead><tr><th>항목</th><th>확정 시 반영 위치</th><th>재배포 필요?</th></tr></thead><tbody><tr><td>10-1 수수료 기준</td><td><code>CommissionPolicy</code> 레코드 1건 추가</td><td>❌</td></tr><tr><td>10-2 로그인 요구 여부</td><td><code>policy.ts</code> → <code>lead.requireLogin</code></td><td><span class="tag green">✅</span></td></tr><tr><td>10-3 정산 주기·이의제기 기간</td><td><code>policy.ts</code> → <code>settlement.*</code></td><td><span class="tag green">✅</span></td></tr><tr><td>10-4 비제휴 시설 수용</td><td><code>policy.ts</code> → <code>lead.acceptForNonPartner</code></td><td><span class="tag green">✅</span></td></tr></tbody></table></div>
 <h3 class="subsection-title">10-1. 수수료 부과 기준 (가장 중요)</h3>
-<div class="table-container"><table><thead><tr><th>안</th><th>내용</th><th>장점</th><th>단점</th></tr></thead><tbody><tr><td>**A. 리드 발생 건당**</td><td>문의 1건당 정액</td><td>정산 단순, 성사 여부 무관</td><td>업체 저항 큼 — 성사 안 된 건도 내야 함</td></tr><tr><td>**B. 계약 성사 건당** ⭐</td><td>성사 시 정액 또는 정률</td><td>업체 수용성 높음, 영업 명분 강함</td><td>업체 축소 신고 위험 → §4.3 2단계 확인 필수</td></tr><tr><td>**C. 월 정액 구독**</td><td>리드 무제한 + 월 고정비</td><td>수익 예측 가능</td><td>초기 파트너 확보 어려움</td></tr></tbody></table></div>
+<div class="table-container"><table><thead><tr><th>안</th><th>내용</th><th>장점</th><th>단점</th></tr></thead><tbody><tr><td><strong>A. 리드 발생 건당</strong></td><td>문의 1건당 정액</td><td>정산 단순, 성사 여부 무관</td><td>업체 저항 큼 — 성사 안 된 건도 내야 함</td></tr><tr><td><strong>B. 계약 성사 건당</strong> <span class="tag gold">⭐</span></td><td>성사 시 정액 또는 정률</td><td>업체 수용성 높음, 영업 명분 강함</td><td>업체 축소 신고 위험 → §4.3 2단계 확인 필수</td></tr><tr><td><strong>C. 월 정액 구독</strong></td><td>리드 무제한 + 월 고정비</td><td>수익 예측 가능</td><td>초기 파트너 확보 어려움</td></tr></tbody></table></div>
 <blockquote class="info-quote"><strong>권장: B(성사 건당)로 시작.</strong> 초기 파트너 확보가 최우선인 단계에서 A는 진입 장벽이 됩니다. B는 &quot;성사되면 그때 주세요&quot;라 영업이 쉽고, 축소 신고 위험은 §4.3의 2단계 확인과 유족 대상 사후 확인(리드 만족도 문자 등)으로 보완 가능합니다. 파트너가 쌓이면 C로 전환하는 경로가 자연스럽습니다.</blockquote>
 <h3 class="subsection-title">10-2. 견적요청에 로그인을 요구할 것인가</h3>
-<div class="table-container"><table><thead><tr><th>안</th><th>장점</th><th>단점</th></tr></thead><tbody><tr><td>로그인 필수</td><td>허수 리드 차단, 신원 명확</td><td>상중 유족에게 가입 요구 = 이탈</td></tr><tr><td>비회원 허용 + 휴대폰 인증 ⭐</td><td>이탈 최소 + 허수 차단</td><td>인증 SMS 비용</td></tr><tr><td>비회원 완전 허용</td><td>이탈 최소</td><td>장난 신청이 그대로 청구 근거를 오염시킴</td></tr></tbody></table></div>
+<div class="table-container"><table><thead><tr><th>안</th><th>장점</th><th>단점</th></tr></thead><tbody><tr><td>로그인 필수</td><td>허수 리드 차단, 신원 명확</td><td>상중 유족에게 가입 요구 = 이탈</td></tr><tr><td>비회원 허용 + 휴대폰 인증 <span class="tag gold">⭐</span></td><td>이탈 최소 + 허수 차단</td><td>인증 SMS 비용</td></tr><tr><td>비회원 완전 허용</td><td>이탈 최소</td><td>장난 신청이 그대로 청구 근거를 오염시킴</td></tr></tbody></table></div>
 <blockquote class="info-quote"><strong>권장: 비회원 허용 + 휴대폰 인증.</strong> 임종 직후 유족에게 회원가입을 요구하는 것은 <code>14</code> §2가 지적한 &quot;심리적 부담&quot;과 정면 충돌합니다. 다만 인증 없이 받으면 허수가 수수료 분쟁의 빌미가 됩니다.</blockquote>
 <h3 class="subsection-title">10-3. 정산 주기와 이의제기 기간</h3>
 <blockquote class="info-quote"><strong>권장: 월 1회 정산, 발행 후 7일 이의제기.</strong></blockquote>
 <h3 class="subsection-title">10-4. 비제휴 시설 견적요청 수용 여부</h3>
 <blockquote class="info-quote"><strong>권장: 수용 + 이어봄 상담원 응대</strong>(§7.2). 거절하면 유저 경험이 나빠지고(<code>10</code> §3.1 Cold Start 문제 재발), 무엇보다 <strong>비제휴 시설 리드 건수가 곧 B2B 영업 무기</strong>입니다.</blockquote>
 <hr class="divider"/>
-<h2 class="section-title">🚧 11. 구현 순서 (`[Claude:Sonnet]` 착수 가이드)</h2>
+<h2 class="section-title">🚧 11. 구현 순서 (<code>[Claude:Sonnet]</code> 착수 가이드)</h2>
 <p>수수료 기준(§10-1)이 미확정이어도 <strong>1~3단계는 지금 착수 가능</strong>합니다.</p>
-<div class="table-container"><table><thead><tr><th>단계</th><th>상태</th><th>범위</th><th>산출물</th><th>선행 조건</th></tr></thead><tbody><tr><td>**0**</td><td><span class="tag green">✅ 구현</span></td><td>**설정 골격**</td><td><code>config/policy.ts</code> 신설 + 기존 하드코딩 값 회수 (§12)</td><td>—</td></tr><tr><td>**1**</td><td><span class="tag green">✅ 구현</span></td><td>스키마 + 마이그레이션</td><td><code>Partner</code>·<code>FacilityClaim</code>·<code>Lead</code>·<code>CommissionPolicy</code>·<code>Settlement</code> 생성, <code>Facility.partnerId</code> 추가</td><td>**<code>pg_dump</code> 선행 필수**</td></tr><tr><td>**2**</td><td><span class="tag green">✅ 구현</span></td><td>사업자 인증</td><td>가입/로그인/토큰 분리(<code>aud</code>), 심사 상태 게이트</td><td>1</td></tr><tr><td>**3**</td><td><span class="tag green">✅ 구현</span></td><td>리드 파이프라인</td><td>업체 문의 API + <code>leadNo</code> 발번 + 동의 저장 (~~<code>BookingModal</code> 연동~~ → §4.1 폐기)</td><td>0,1</td></tr><tr><td>**4**</td><td><span class="tag green">✅ 구현</span></td><td>파트너 어드민</td><td>리드 목록·상세·상태 신고 화면</td><td>2,3</td></tr><tr><td>**5**</td><td><span class="tag orange">🔶 진행</span></td><td>운영자 어드민</td><td>가입/클레임 심사 <span class="tag green">✅ 구현</span> · 회원정보 수정 <span class="tag green">✅ 구현</span> · 전체 시설 조회 <span class="tag green">✅ 구현</span> / 리드 청구 확정 <span class="tag gray">⬜ 계획</span> · **요율 등록 화면** <span class="tag gray">⬜ 계획</span></td><td>2,3</td></tr><tr><td>**6**</td><td><span class="tag gray">⬜ 계획</span></td><td>정산</td><td>정책 해석기(§8.2 ①~④) + 월 집계·발행·이의제기</td><td>5 + §10-1 확정</td></tr><tr><td>**7**</td><td><span class="tag gray">⬜ 계획</span></td><td>마스킹 배치</td><td>§7.3 개인정보 파기</td><td>6</td></tr></tbody></table></div>
-<blockquote class="info-quote"><strong>2026-08-12 진행 상황</strong>: 0~4단계 완료 (4단계 파트너 리드 조회 화면 구현 및 E2E 브라우저 검증 완료). 5단계는 심사·회원관리 완료, 정산 확정 ⬜. 6·7단계는 수수료 기준 확정 대기.</blockquote>
+<div class="table-container"><table><thead><tr><th>단계</th><th>상태</th><th>범위</th><th>산출물</th><th>선행 조건</th></tr></thead><tbody><tr><td><strong>0</strong></td><td><span class="tag green">✅</span></td><td><strong>설정 골격</strong></td><td><code>config/policy.ts</code> 신설 + 기존 하드코딩 값 회수 (§12)</td><td>—</td></tr><tr><td><strong>1</strong></td><td><span class="tag green">✅</span></td><td>스키마 + 마이그레이션</td><td><code>Partner</code>·<code>FacilityClaim</code>·<code>Lead</code>·<code>CommissionPolicy</code>·<code>Settlement</code> 생성, <code>Facility.partnerId</code> 추가</td><td><strong><code>pg_dump</code> 선행 필수</strong></td></tr><tr><td><strong>2</strong></td><td><span class="tag green">✅</span></td><td>사업자 인증</td><td>가입/로그인/토큰 분리(<code>aud</code>), 심사 상태 게이트</td><td>1</td></tr><tr><td><strong>3</strong></td><td><span class="tag green">✅</span></td><td>리드 파이프라인</td><td>업체 문의 API + <code>leadNo</code> 발번 + 동의 저장 (<del><code>BookingModal</code> 연동</del> → §4.1 폐기)</td><td>0,1</td></tr><tr><td><strong>4</strong></td><td><span class="tag green">✅</span></td><td>파트너 어드민</td><td>리드 목록·상세·상태 신고 화면</td><td>2,3</td></tr><tr><td><strong>5</strong></td><td><span class="tag orange">🔶</span></td><td>운영자 어드민</td><td>가입/클레임 심사 <span class="tag green">✅</span> · 회원정보 수정 <span class="tag green">✅</span> · 전체 시설 조회 <span class="tag green">✅</span> / 리드 청구 확정 <span class="tag gray">⬜</span> · <strong>요율 등록 화면</strong> <span class="tag gray">⬜</span></td><td>2,3</td></tr><tr><td><strong>6</strong></td><td><span class="tag gray">⬜</span></td><td>정산</td><td>정책 해석기(§8.2 ①~④) + 월 집계·발행·이의제기</td><td>5 + §10-1 확정</td></tr><tr><td><strong>7</strong></td><td><span class="tag gray">⬜</span></td><td>마스킹 배치</td><td>§7.3 개인정보 파기</td><td>6</td></tr></tbody></table></div>
+<blockquote class="info-quote"><strong>2026-08-12 진행 상황</strong>: 0~4단계 완료 (4단계 파트너 리드 조회 화면 구현 및 E2E 브라우저 검증 완료). 5단계는 심사·회원관리 완료, 정산 확정 <span class="tag gray">⬜</span>. 6·7단계는 수수료 기준 확정 대기.</blockquote>
 <p><strong>구현 시 반드시 지킬 것</strong></p>
 <p>1. <strong>마이그레이션 전 <code>pg_dump</code></strong> — 2026-08-05 데이터 유실 사고 재발 방지(<code>.harness/security.md</code> §6)</p>
 <p>2. <strong><code>leadNo</code> 유니크 제약을 DB에</strong> — 애플리케이션 로직만으로 동시성 방어 금지</p>
-<p>3. ~~<strong><code>demo-login</code>의 ADMIN 발급 차단</strong>~~ → <strong>해소됨.</strong> 운영자를 별도 <code>Admin</code> 모델로 분리해 <code>User.role</code> 경유 승격 경로 자체가 없어졌다(§6.4). <code>demo-login</code>에는 프로덕션 가드가 따로 적용돼 있음.</p>
+<p>3. <del><strong><code>demo-login</code>의 ADMIN 발급 차단</strong></del> → <strong>해소됨.</strong> 운영자를 별도 <code>Admin</code> 모델로 분리해 <code>User.role</code> 경유 승격 경로 자체가 없어졌다(§6.4). <code>demo-login</code>에는 프로덕션 가드가 따로 적용돼 있음.</p>
 <p>4. <strong>동의 없는 리드는 파트너에게 노출 금지</strong> (§7.1)</p>
 <p>5. <strong><code>partnerId</code>↔<code>isPartner</code> 동기화는 트랜잭션 한 곳에서만</strong> (§3.4)</p>
 <p>6. <strong>정책 값을 코드에 직접 쓰지 않는다</strong> — 전부 §12의 자리로 (<code>policy.ts</code> 또는 <code>CommissionPolicy</code>)</p>
@@ -683,15 +722,17 @@ model User {
 <hr class="divider"/>
 <h2 class="section-title">⚙️ 12. 설정·정책 관리 방침 (하드코딩 제거 원칙)</h2>
 <blockquote class="info-quote">2026-08-10 확정. <strong>&quot;돈과 법에 닿는 값은 DB에 이력과 함께, 나머지 정책은 파일 한 곳에, 환경 차이만 <code>.env</code>에.&quot;</strong></blockquote>
-<h3 class="subsection-title">12.1 왜 `.env`에 넣으면 안 되는가</h3>
+<h3 class="subsection-title">12.1 왜 <code>.env</code>에 넣으면 안 되는가</h3>
 <p><code>.env</code>의 원래 용도(Twelve-Factor App 3원칙)는 <strong>&quot;배포 환경마다 달라지는 것&quot;</strong>입니다. 수수료율은 개발 서버와 운영 서버에서 다를 이유가 없습니다. 환경 차이가 아니라 <strong>경영 판단</strong>입니다.</p>
-<ul><li><code>.env</code>에 정책을 넣으면 → *&quot;스테이징만 수수료 10%&quot;* 같은 환경별 값 어긋남 사고</li></ul>
-<ul><li><code>.env</code>는 <strong>변경 이력이 남지 않는다</strong> → 정산 분쟁에서 &quot;그때 요율이 얼마였는지&quot; 증명 불가</li></ul>
+<ul>
+<li><code>.env</code>에 정책을 넣으면 → *&quot;스테이징만 수수료 10%&quot;* 같은 환경별 값 어긋남 사고</li>
+<li><code>.env</code>는 <strong>변경 이력이 남지 않는다</strong> → 정산 분쟁에서 &quot;그때 요율이 얼마였는지&quot; 증명 불가</li>
+</ul>
 <h3 class="subsection-title">12.2 3계층 배치</h3>
-<div class="table-container"><table><thead><tr><th>계층</th><th>담는 것</th><th>위치</th><th>이력</th></tr></thead><tbody><tr><td>**환경 설정**</td><td>DB 주소, OAuth 키, JWT 키, 지도 키</td><td><code>eobom/backend/.env</code> · <code>eobom/frontend/.env</code></td><td>남기지 않음(시크릿)</td></tr><tr><td>**운영 정책**</td><td>로그인 요구 여부, 이의제기 기간, 비제휴 수용, <code>leadNo</code> 접두어, 마스킹 주기</td><td>**<code>eobom/backend/src/config/policy.ts</code> 단 한 곳**</td><td>git 커밋 이력</td></tr><tr><td>**요율(돈)**</td><td>수수료 기준·금액·정률, 파트너별 특약</td><td>**DB <code>CommissionPolicy</code> + 유효기간**</td><td>레코드 자체가 이력</td></tr></tbody></table></div>
+<div class="table-container"><table><thead><tr><th>계층</th><th>담는 것</th><th>위치</th><th>이력</th></tr></thead><tbody><tr><td><strong>환경 설정</strong></td><td>DB 주소, OAuth 키, JWT 키, 지도 키</td><td><code>eobom/backend/.env</code> · <code>eobom/frontend/.env</code></td><td>남기지 않음(시크릿)</td></tr><tr><td><strong>운영 정책</strong></td><td>로그인 요구 여부, 이의제기 기간, 비제휴 수용, <code>leadNo</code> 접두어, 마스킹 주기</td><td><strong><code>eobom/backend/src/config/policy.ts</code> 단 한 곳</strong></td><td>git 커밋 이력</td></tr><tr><td><strong>요율(돈)</strong></td><td>수수료 기준·금액·정률, 파트너별 특약</td><td><strong>DB <code>CommissionPolicy</code> + 유효기간</strong></td><td>레코드 자체가 이력</td></tr></tbody></table></div>
 <p><strong>요율만 DB인 이유</strong>는 §8.2에 있습니다 — 요약하면, 9월에 요율을 올린 뒤 8월 정산서를 재발행하면 <strong>파일 방식은 9월 요율로 계산</strong>해버립니다. 이미 청구한 금액과 어긋나고 증명할 방법이 없습니다. 요율은 값이 아니라 <strong>기간이 붙은 레코드</strong>여야 합니다. 부수 효과로 <strong>파트너별 특약 요율</strong>(초기 입점 할인, 대형 법인 협상가)이 구조 변경 없이 가능해집니다.</p>
 <p><strong>나머지를 파일로 두는 이유</strong>는 비용 대비 효용입니다. 이 값들은 과거 시점 재현이 필요 없고 1년에 몇 번 안 바뀌므로, 어드민 화면을 만들 값어치가 없습니다. 자주 바꾸게 되면 그때 DB로 옮기면 됩니다 — <strong>파일 → DB는 쉽고, DB → 파일은 어렵습니다.</strong></p>
-<h3 class="subsection-title">12.3 `policy.ts` 형태</h3>
+<h3 class="subsection-title">12.3 <code>policy.ts</code> 형태</h3>
 <pre><code>// eobom/backend/src/config/policy.ts
 // 운영 정책 단일 정본. 이 파일 밖에서 같은 값을 다시 쓰지 않는다.
 // 값을 바꿀 때는 여기만 고치고, 왜 바꿨는지 커밋 메시지에 남긴다.
@@ -721,11 +762,11 @@ export const POLICY = {
 <p>4. <strong>시크릿은 절대 <code>policy.ts</code>에 넣지 않는다</strong> — 이 파일은 git에 커밋된다. 시크릿은 <code>.env</code> (→ <code>.harness/security.md</code> §3).</p>
 <h3 class="subsection-title">12.5 기존 하드코딩 회수 대상 (구현 0단계)</h3>
 <p>이 방침을 새 기능에만 적용하면 기존 코드의 하드코딩은 그대로 남습니다. 착수 시 아래를 같이 회수합니다.</p>
-<div class="table-container"><table><thead><tr><th>위치</th><th>값</th><th>조치</th></tr></thead><tbody><tr><td><code>eobom/frontend/src/pages/FacilityPage.tsx</code></td><td>위치 폴백 좌표 <code>37.4925, 127.0078</code> (서울 서초)</td><td>상수로 분리 + 폴백임을 명시. **08-07에 &quot;위치가 잘못 뜬다&quot; 버그의 원인이었던 값**</td></tr><tr><td><code>eobom/frontend/src/components/KakaoMapModal.tsx</code></td><td>지도 로드 타임아웃 <code>5초</code></td><td>프론트 설정 상수로</td></tr><tr><td>리드/정산 관련 신규 코드 전체</td><td>—</td><td>처음부터 <code>POLICY</code> 경유</td></tr></tbody></table></div>
+<div class="table-container"><table><thead><tr><th>위치</th><th>값</th><th>조치</th></tr></thead><tbody><tr><td><code>eobom/frontend/src/pages/FacilityPage.tsx</code></td><td>위치 폴백 좌표 <code>37.4925, 127.0078</code> (서울 서초)</td><td>상수로 분리 + 폴백임을 명시. <strong>08-07에 &quot;위치가 잘못 뜬다&quot; 버그의 원인이었던 값</strong></td></tr><tr><td><code>eobom/frontend/src/components/KakaoMapModal.tsx</code></td><td>지도 로드 타임아웃 <code>5초</code></td><td>프론트 설정 상수로</td></tr><tr><td>리드/정산 관련 신규 코드 전체</td><td>—</td><td>처음부터 <code>POLICY</code> 경유</td></tr></tbody></table></div>
 <blockquote class="info-quote">프론트엔드는 백엔드 <code>policy.ts</code>를 직접 import할 수 없습니다. 프론트 전용 상수는 <code>eobom/frontend/src/config.ts</code>(이미 존재)에 모으고, <strong>양쪽에 같은 값이 필요하면 API 응답으로 내려보냅니다</strong> — 두 파일에 같은 숫자를 적어두면 반드시 어긋납니다.</blockquote>
 <hr class="divider"/>
 <h2 class="section-title">🔗 13. 관련 문서</h2>
-<div class="table-container"><table><thead><tr><th>문서</th><th>관계</th></tr></thead><tbody><tr><td><code>10_장례_묘지_매칭_기능_명세서.md</code> §3.3</td><td>제휴/비제휴 차별화 — 본 문서가 그 **인프라**를 정의</td></tr><tr><td><code>13_장례_견적비교_데이터한계_극복_3대_기획안.md</code></td><td>대안 B(파트너 차별화)·대안 C(리드 생성)의 **실행 기반**. 단, 13의 가격비교 A+C 착수 승인과는 별건</td></tr><tr><td><code>14_장례_답사예약_vs_직통전화_UX_및_수익모델_검토서.md</code></td><td>대안 1(하이브리드 투 트랙) 확정본. §9의 전화 트래킹 한계는 14의 문제 제기에 대한 답</td></tr><tr><td><code>12_공공데이터_및_API_상업적_이용_법률_검토서.md</code></td><td>위치정보법. 본 문서와 직접 충돌 없음</td></tr><tr><td><code>.harness/security.md</code></td><td>§7 개인정보 처리, §12.4 시크릿 분리의 상위 원칙</td></tr></tbody></table></div>
+<div class="table-container"><table><thead><tr><th>문서</th><th>관계</th></tr></thead><tbody><tr><td><code>10_장례_묘지_매칭_기능_명세서.md</code> §3.3</td><td>제휴/비제휴 차별화 — 본 문서가 그 <strong>인프라</strong>를 정의</td></tr><tr><td><code>13_장례_견적비교_데이터한계_극복_3대_기획안.md</code></td><td>대안 B(파트너 차별화)·대안 C(리드 생성)의 <strong>실행 기반</strong>. 단, 13의 가격비교 A+C 착수 승인과는 별건</td></tr><tr><td><code>14_장례_답사예약_vs_직통전화_UX_및_수익모델_검토서.md</code></td><td>대안 1(하이브리드 투 트랙) 확정본. §9의 전화 트래킹 한계는 14의 문제 제기에 대한 답</td></tr><tr><td><code>12_공공데이터_및_API_상업적_이용_법률_검토서.md</code></td><td>위치정보법. 본 문서와 직접 충돌 없음</td></tr><tr><td><code>.harness/security.md</code></td><td>§7 개인정보 처리, §12.4 시크릿 분리의 상위 원칙</td></tr></tbody></table></div>
 
   </div>
 </body>
