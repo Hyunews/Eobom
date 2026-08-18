@@ -200,7 +200,7 @@ export const BoxDetailOverlay: React.FC<BoxDetailOverlayProps> = ({
                 display: 'grid',
                 gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
                 gap: '2.2rem',
-                alignItems: 'center',
+                alignItems: 'start',
               }}
             >
               <div>

@@ -3,458 +3,526 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>✨ 00-25. 인터페이스(interface) 템플릿 기술 분석 및 이어봄 메인 적용 보고서</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css">
-  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=KoPub+World+Batang:wght@400;700&family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <title>🎨 00-25. 인터페이스(interface) 템플릿 기술 분석 및 메인 적용 방안 - 이어봄 기획 명세서</title>
   <style>
     :root {
-      --primary: #1A2B4C;        /* Deep Navy */
-      --primary-light: #283C66;
-      --secondary: #5B7065;      /* Warm Green */
-      --secondary-light: #71887D;
-      --accent: #D4A359;         /* Warm Gold */
-      --bg: #FBF9F5;             /* Soft Cream Background */
+      --primary: #1A2B4C;
+      --secondary: #5B7065;
+      --accent: #D4A359;
+      --bg: #FBF9F5;
       --surface: #FFFFFF;
       --text: #1E293B;
       --text-muted: #64748B;
       --border: #E2E8F0;
-      --border-warm: #DFDCD7;
       --code-bg: #0F172A;
       --code-text: #F8FAFC;
-      --card-shadow: 0 10px 25px -5px rgba(26, 43, 76, 0.06), 0 8px 10px -6px rgba(26, 43, 76, 0.04);
-      --font-body: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      --font-serif: 'KoPub World Batang', 'KoPubWorld 명조', serif;
-      --font-mono: 'Fira Code', monospace;
     }
-
     * { box-sizing: border-box; margin: 0; padding: 0; }
-
     body {
-      font-family: var(--font-body);
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       background-color: var(--bg);
       color: var(--text);
-      line-height: 1.7;
-      padding: 2.5rem 1rem;
-      word-break: keep-all;
+      line-height: 1.65;
+      padding: 2rem 1rem;
     }
-
-    .report-wrapper {
-      max-width: 1200px;
+    .container {
+      max-width: 1140px;
       margin: 0 auto;
       background-color: var(--surface);
-      border-radius: 28px;
-      box-shadow: 0 25px 50px -12px rgba(26, 43, 76, 0.12);
-      border: 1px solid var(--border-warm);
-      overflow: hidden;
-    }
-
-    /* 상단 헤더 배너 */
-    .report-header {
-      background: linear-gradient(135deg, #1A2B4C 0%, #283C66 60%, #152238 100%);
-      color: #FFFFFF;
-      padding: 3.5rem 3rem 2.5rem 3rem;
-      position: relative;
-      border-bottom: 4px solid var(--accent);
-    }
-
-    .header-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.5rem;
-      background-color: rgba(212, 163, 89, 0.2);
-      border: 1px solid var(--accent);
-      color: #F8FAFC;
-      font-size: 0.85rem;
-      font-weight: 700;
-      padding: 0.4rem 1rem;
-      border-radius: 30px;
-      margin-bottom: 1.2rem;
-    }
-
-    .report-title {
-      font-family: var(--font-serif);
-      font-size: 2.3rem;
-      font-weight: 700;
-      line-height: 1.3;
-      margin-bottom: 0.8rem;
-    }
-
-    .report-subtitle {
-      color: #CBD5E1;
-      font-size: 1.1rem;
-      font-weight: 400;
-      max-width: 900px;
-      line-height: 1.6;
-    }
-
-    .meta-box {
-      margin-top: 2rem;
-      padding-top: 1.5rem;
-      border-top: 1px solid rgba(255, 255, 255, 0.15);
-      display: flex;
-      flex-wrap: wrap;
-      gap: 2rem;
-      font-size: 0.9rem;
-      color: #94A3B8;
-    }
-    .meta-item strong { color: #FFFFFF; margin-right: 0.4rem; }
-
-    /* 본문 */
-    .report-body { padding: 3.5rem 3rem; }
-
-    .toc-card {
-      background-color: #F8FAFC;
+      padding: 3rem;
+      border-radius: 24px;
+      box-shadow: 0 20px 40px rgba(26, 43, 76, 0.08);
       border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 1.75rem 2rem;
-      margin-bottom: 3.5rem;
     }
-    .toc-title {
-      font-size: 1.15rem;
-      font-weight: 700;
-      color: var(--primary);
-      margin-bottom: 1rem;
-    }
-    .toc-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 0.75rem 1.5rem;
-    }
-    .toc-link {
-      color: var(--secondary);
-      text-decoration: none;
-      font-size: 0.95rem;
-      font-weight: 500;
-    }
-    .toc-link:hover { color: var(--primary); text-decoration: underline; }
-
-    .section-block { margin-bottom: 4rem; }
-    .section-title {
-      font-family: var(--font-serif);
-      font-size: 1.75rem;
-      font-weight: 700;
-      color: var(--primary);
-      border-bottom: 2px solid var(--border-warm);
-      padding-bottom: 0.8rem;
-      margin-bottom: 1.75rem;
-    }
-    .section-desc {
-      font-size: 1.05rem;
-      color: var(--text-muted);
-      margin-bottom: 1.5rem;
-    }
-
-    .tech-card {
-      background-color: #FFFFFF;
-      border: 1px solid var(--border);
-      border-radius: 18px;
-      padding: 1.75rem;
-      margin-bottom: 1.75rem;
-      box-shadow: var(--card-shadow);
-    }
-    .tech-card.highlight { border-left: 6px solid var(--accent); }
-    .tech-card.green { border-left: 6px solid var(--secondary); }
-    .tech-card.alert { border-left: 6px solid #DC2626; background-color: #FFFDFD; }
-
-    .card-head {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 1rem;
-    }
-    .card-title {
-      font-size: 1.25rem;
-      font-weight: 700;
-      color: var(--primary);
+    .header {
+      border-bottom: 3px solid var(--accent);
+      padding-bottom: 1.5rem;
+      margin-bottom: 2.5rem;
     }
     .badge {
-      font-size: 0.8rem;
+      display: inline-block;
+      background-color: var(--primary);
+      color: #FFF;
+      font-size: 0.85rem;
       font-weight: 700;
-      padding: 0.25rem 0.7rem;
-      border-radius: 12px;
+      padding: 0.3rem 0.8rem;
+      border-radius: 20px;
+      margin-bottom: 0.8rem;
     }
-    .badge-pass { background-color: #DEF7EC; color: #03543F; }
-    .badge-reject { background-color: #FEE2E2; color: #991B1B; }
-    .badge-keep { background-color: #FEF3C7; color: #92400E; }
-
-    .compare-table {
-      width: 100%;
-      border-collapse: separate;
-      border-spacing: 0;
-      margin: 1.5rem 0;
-      border-radius: 14px;
-      overflow: hidden;
+    h1 {
+      font-size: 2.1rem;
+      color: var(--primary);
+      margin-bottom: 0.5rem;
+      font-weight: 800;
+    }
+    .subtitle {
+      color: var(--text-muted);
+      font-size: 1.05rem;
+    }
+    .section-title {
+      font-size: 1.5rem;
+      color: var(--primary);
+      margin: 2.5rem 0 1.2rem 0;
+      padding-left: 0.8rem;
+      border-left: 5px solid var(--secondary);
+      font-weight: 700;
+    }
+    .subsection-title {
+      font-size: 1.25rem;
+      color: var(--primary);
+      margin: 1.8rem 0 0.8rem 0;
+      font-weight: 700;
+    }
+    .h4-title {
+      font-size: 1.05rem;
+      color: var(--secondary);
+      margin: 1.2rem 0 0.6rem 0;
+      font-weight: 700;
+    }
+    .info-quote {
+      background: #F1F5F9;
+      border-left: 4px solid var(--accent);
+      padding: 0.9rem 1.2rem;
+      margin: 1rem 0;
+      border-radius: 6px;
+      font-size: 0.95rem;
+      color: #334155;
+    }
+    code {
+      background: #EFF6FF;
+      color: #1D4ED8;
+      padding: 0.15rem 0.4rem;
+      border-radius: 6px;
+      font-family: 'Fira Code', Consolas, monospace;
+      font-size: 0.88rem;
+    }
+    pre {
+      background: var(--code-bg);
+      color: var(--code-text);
+      padding: 1.2rem;
+      border-radius: 12px;
+      overflow-x: auto;
+      margin: 1rem 0 1.5rem 0;
+      font-family: 'Fira Code', Consolas, monospace;
+      font-size: 0.9rem;
+    }
+    pre code {
+      background: transparent;
+      color: inherit;
+      padding: 0;
+    }
+    .table-container {
+      overflow-x: auto;
+      margin: 1.2rem 0 1.8rem 0;
+      border-radius: 12px;
       border: 1px solid var(--border);
     }
-    .compare-table th, .compare-table td {
-      padding: 1.1rem 1.25rem;
-      font-size: 0.95rem;
-      text-align: left;
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.92rem;
+      background: #FFFFFF;
     }
-    .compare-table th {
+    th {
       background-color: var(--primary);
       color: #FFFFFF;
+      padding: 0.8rem 1rem;
+      text-align: left;
       font-weight: 600;
     }
-    .compare-table td {
-      background-color: #FFFFFF;
+    td {
+      padding: 0.8rem 1rem;
       border-bottom: 1px solid var(--border);
+      color: #334155;
     }
-    .compare-table tr:last-child td { border-bottom: none; }
-
-    /* 풀페이지 3섹션 아키텍처 박스 */
-    .snap-architecture-box {
-      background: #FBF9F5;
-      border: 2px solid var(--border-warm);
-      border-radius: 18px;
-      padding: 1.75rem;
-      margin: 1.5rem 0;
+    tr:last-child td {
+      border-bottom: none;
     }
-    .snap-step {
-      background: #FFFFFF;
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 1.25rem 1.5rem;
-      margin-bottom: 1rem;
-      box-shadow: 0 4px 12px rgba(26, 43, 76, 0.04);
+    tr:nth-child(even) {
+      background-color: #F8FAFC;
     }
-    .snap-step:last-child { margin-bottom: 0; }
-    .snap-step-title {
-      font-size: 1.1rem;
+    .tag {
+      display: inline-block;
+      padding: 0.15rem 0.45rem;
+      border-radius: 6px;
+      font-size: 0.75rem;
       font-weight: 700;
-      color: var(--primary);
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      margin-bottom: 0.4rem;
     }
-
-    @media (max-width: 768px) {
-      body { padding: 1rem 0.5rem; }
-      .report-header { padding: 2.5rem 1.5rem; }
-      .report-title { font-size: 1.8rem; }
-      .report-body { padding: 2rem 1.25rem; }
+    .tag.green { background-color: #DCFCE7; color: #166534; }
+    .tag.gray { background-color: #F1F5F9; color: #475569; }
+    .tag.orange { background-color: #FFEDD5; color: #9A3412; }
+    .tag.red { background-color: #FEE2E2; color: #991B1B; border: 1px solid #FECACA; }
+    .tag.blue { background-color: #DBEAFE; color: #1E40AF; border: 1px solid #BFDBFE; }
+    .tag.gold { background-color: #FEF3C7; color: #92400E; border: 1px solid #FDE68A; font-weight: 700; }
+    .tag.warn { background-color: #FEF3C7; color: #B45309; }
+    .tag.pk { background-color: #FEE2E2; color: #991B1B; }
+    .tag.fk { background-color: #DBEAFE; color: #1E40AF; }
+    .tag.uk { background-color: #DCFCE7; color: #166534; }
+    del {
+      color: #94A3B8;
+      text-decoration: line-through;
+    }
+    .md-link {
+      color: var(--accent);
+      text-decoration: underline;
+      font-weight: 500;
+    }
+    p { margin-bottom: 0.9rem; color: #334155; }
+    ul, ol { margin-bottom: 1rem; padding-left: 1.4rem; color: #334155; }
+    li { margin-bottom: 0.4rem; }
+    .divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 2.5rem 0;
+    }
+    .nav-bar {
+      margin-bottom: 2rem;
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+    }
+    .nav-link {
+      color: var(--primary);
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+    .nav-link:hover {
+      color: var(--accent);
+    }
+    @page {
+      size: A4 portrait;
+      margin: 15mm 14mm 18mm 14mm;
+    }
+    @media print {
+      html, body {
+        background-color: #ffffff !important;
+        color: #1e293b !important;
+        font-size: 9.5pt !important;
+        line-height: 1.5 !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+      .container {
+        max-width: 100% !important;
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        border: none !important;
+        box-shadow: none !important;
+        background: transparent !important;
+        border-radius: 0 !important;
+      }
+      .nav-bar { display: none !important; }
+      .header {
+        border-bottom: 2px solid var(--accent) !important;
+        padding-bottom: 0.6rem !important;
+        margin-bottom: 1.2rem !important;
+        page-break-after: avoid !important;
+        break-after: avoid !important;
+      }
+      h1 {
+        font-size: 17pt !important;
+        line-height: 1.3 !important;
+        margin-bottom: 0.4rem !important;
+        color: var(--primary) !important;
+      }
+      .badge {
+        font-size: 8pt !important;
+        padding: 0.2rem 0.6rem !important;
+        background-color: var(--primary) !important;
+        color: #ffffff !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+      .section-title {
+        font-size: 12.5pt !important;
+        margin: 1.2rem 0 0.6rem 0 !important;
+        padding-left: 0.5rem !important;
+        border-left: 4px solid var(--secondary) !important;
+        page-break-after: avoid !important;
+        break-after: avoid !important;
+      }
+      .subsection-title {
+        font-size: 10.5pt !important;
+        margin: 1rem 0 0.5rem 0 !important;
+        page-break-after: avoid !important;
+        break-after: avoid !important;
+      }
+      .h4-title {
+        font-size: 9.5pt !important;
+        margin: 0.8rem 0 0.3rem 0 !important;
+        page-break-after: avoid !important;
+        break-after: avoid !important;
+      }
+      .info-quote {
+        background: #f8fafc !important;
+        border-left: 3px solid var(--accent) !important;
+        padding: 0.6rem 0.8rem !important;
+        margin: 0.6rem 0 !important;
+        font-size: 9pt !important;
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+        border-radius: 4px !important;
+      }
+      .table-container {
+        margin: 0.6rem 0 1rem 0 !important;
+        border: 1px solid #cbd5e1 !important;
+        border-radius: 6px !important;
+        overflow: visible !important;
+        page-break-inside: auto !important;
+        break-inside: auto !important;
+      }
+      table {
+        width: 100% !important;
+        font-size: 8.5pt !important;
+        border-collapse: collapse !important;
+      }
+      thead { display: table-header-group !important; }
+      tr {
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+      }
+      th {
+        background-color: #1a2b4c !important;
+        color: #ffffff !important;
+        padding: 0.45rem 0.65rem !important;
+        font-size: 8.5pt !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+      td {
+        padding: 0.45rem 0.65rem !important;
+        border-bottom: 1px solid #e2e8f0 !important;
+      }
+      .tag {
+        font-size: 7pt !important;
+        padding: 0.1rem 0.35rem !important;
+        border-radius: 4px !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+      .divider {
+        margin: 1rem 0 !important;
+        border-top: 1px solid #e2e8f0 !important;
+      }
+      .page-break {
+        page-break-before: always !important;
+        break-before: page !important;
+      }
+      ul, ol { margin-bottom: 0.5rem !important; }
+      li { page-break-inside: avoid !important; break-inside: avoid !important; }
     }
   </style>
 </head>
 <body>
-
-<div class="report-wrapper">
-  <!-- 헤더 -->
-  <header class="report-header">
-    <div class="header-badge">
-      <span>🌿 REFINED TEMPLATE ANALYSIS &amp; FULLPAGE INTEGRATION</span>
+  <div class="container">
+    <div class="nav-bar">
+      <a href="../index.html" class="nav-link">← 보고서 메인 포털로 돌아가기</a>
     </div>
-    <h1 class="report-title">인터페이스 템플릿 기술 분석 및 메인 풀페이지 융합 보고서</h1>
-    <p class="report-subtitle">
-      과도한 사이버/기계식 요소를 걷어내고, 이어봄의 소프트 웜 크림(#FBF9F5) 색감과 풀페이지 스냅(100dvh) 구조를 100% 유지하며 에디토리얼 디테일을 정갈하게 이식하는 실전 설계안
-    </p>
-    <div class="meta-box">
-      <div class="meta-item"><strong>문서 번호:</strong> 00-25</div>
-      <div class="meta-item"><strong>작성자:</strong> [Gemini] 시각화 및 인터랙션 설계</div>
-      <div class="meta-item"><strong>참조 소스:</strong> c:\Users\kilak\Desktop\interface</div>
-      <div class="meta-item"><strong>작성일:</strong> 2026-08-18</div>
+    <div class="header">
+      <span class="badge">SSOT 정본 동기화 완료</span>
+      <h1>🎨 00-25. 인터페이스(interface) 템플릿 기술 분석 및 메인 적용 방안</h1>
+      
     </div>
-  </header>
-
-  <main class="report-body">
-    <!-- 목차 -->
-    <nav class="toc-card">
-      <div class="toc-title">📑 목차</div>
-      <div class="toc-grid">
-        <a href="#sec1" class="toc-link">1. 이어봄 맞춤형 취사선택 (Selection Matrix)</a>
-        <a href="#sec2" class="toc-link">2. 풀페이지 스냅스크롤(100dvh) 융합 구조</a>
-        <a href="#sec3" class="toc-link">3. 4박스 카드(EntryBoxes) 디테일 개선</a>
-        <a href="#sec4" class="toc-link">4. 컴포넌트별 구현 명세 및 인계</a>
-      </div>
-    </nav>
-
-    <!-- 섹션 1 -->
-    <section id="sec1" class="section-block">
-      <h2 class="section-title">⚖️ 1. 이어봄 맞춤형 취사선택 (Selection Matrix)</h2>
-      <p class="section-desc">
-        <code>interface</code> 템플릿은 매우 현대적이지만, 자칫 과하면 <strong>6070 시니어 사용자 및 상례/웰다잉 플랫폼의 경건한 톤앤매너</strong>를 해칠 수 있습니다. 따라서 철저하게 <strong>"절제와 온기"</strong>를 기준으로 취사선택합니다.
-      </p>
-
-      <table class="compare-table">
-        <thead>
-          <tr>
-            <th style="width: 25%;">템플릿 요소</th>
-            <th style="width: 15%;">판정</th>
-            <th style="width: 60%;">이유 및 대체 방안</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td><strong>기계식 클릭 사운드<br>(Web Audio Synth)</strong></td>
-            <td><span class="badge badge-reject">❌ 완전 배제</span></td>
-            <td>슬픔에 잠긴 유족이나 조용한 환경의 시니어에게 기계식 타격음은 불필요한 소음과 거부감을 줌 ➔ <strong>음소거(무음) 유지</strong></td>
-          </tr>
-          <tr>
-            <td><strong>사이버 글리치 텍스트<br>(Scramble with !@#$)</strong></td>
-            <td><span class="badge badge-reject">❌ 완전 배제</span></td>
-            <td>시니어 사용자에게 시스템 오류/깨짐으로 오인될 위험 ➔ <strong>단아하고 정갈한 페이드인 &amp; 스트로크</strong>로 대체</td>
-          </tr>
-          <tr>
-            <td><strong>다크 잉크블랙 배경<br>(oklch 0.08)</strong></td>
-            <td><span class="badge badge-reject">❌ 완전 배제</span></td>
-            <td>이어봄 브랜드 고유 자산인 <strong>소프트 웜 크림(#FBF9F5)</strong> 바탕색을 100% 유지</td>
-          </tr>
-          <tr>
-            <td><strong>한지 노이즈 질감<br>(Fractal Noise)</strong></td>
-            <td><span class="badge badge-pass">⭕ 채택</span></td>
-            <td>소프트 웜 크림 배경 위에 <strong>극미세 한지(Hanji) 질감(`opacity: 0.015`)</strong>을 얹어 종이의 온기와 깊이감 부여</td>
-          </tr>
-          <tr>
-            <td><strong>종이 모서리 접힘<br>(Corner Fold)</strong></td>
-            <td><span class="badge badge-pass">⭕ 채택</span></td>
-            <td>유언장, 엔딩노트, 공문서 등 <strong>기록물의 아날로그 감성</strong>을 4박스 카드 우측 하단에 단아하게 적용</td>
-          </tr>
-          <tr>
-            <td><strong>호버 확장 디바이더 라인</strong></td>
-            <td><span class="badge badge-pass">⭕ 채택</span></td>
-            <td>카드 호버 시 48px 골드/그린 라인이 <strong>100%로 스무스하게 늘어나는 절제된 모션</strong> 적용</td>
-          </tr>
-        </tbody>
-      </table>
-    </section>
-
-    <!-- 섹션 2 -->
-    <section id="sec2" class="section-block">
-      <h2 class="section-title">📐 2. 풀페이지 스냅스크롤(100dvh) 융합 구조</h2>
-      <p class="section-desc">
-        <code>interface</code> 템플릿의 일반 세로 스크롤 방식 대신, <strong>이어봄의 풀페이지 스냅 스크롤(100dvh) 3섹션 아키텍처</strong>를 완벽하게 유지하면서 화면을 완성합니다.
-      </p>
-
-      <div class="snap-architecture-box">
-        <!-- 섹션 0 -->
-        <div class="snap-step" style="border-left: 5px solid var(--secondary);">
-          <div class="snap-step-title">
-            <span>[섹션 0] 메인 히어로 (100dvh 스냅)</span>
-          </div>
-          <p style="font-size: 0.92rem; color: var(--text-muted); margin: 0;">
-            • <strong>배경</strong>: 소프트 웜 크림(#FBF9F5) 바탕 + 극미세 한지 질감 노이즈.<br>
-            • <strong>좌측</strong>: "존엄하고 따뜻한 봄날을 함께 이어갑니다" 명조 헤드라인의 정갈한 등장.<br>
-            • <strong>우측</strong>: 나룻배 비주얼 카드에 부드러운 페이드 테두리와 서정적인 줌 애니메이션.
-          </p>
-        </div>
-
-        <!-- 섹션 1 -->
-        <div class="snap-step" style="border-left: 5px solid var(--accent);">
-          <div class="snap-step-title">
-            <span>[섹션 1] 4박스 진입 구조 (100dvh 스냅)</span>
-          </div>
-          <p style="font-size: 0.92rem; color: var(--text-muted); margin: 0;">
-            • <strong>박스①(생전 준비) &amp; 박스②(임종 및 사후 정리)</strong>: 우측 하단 한지 접힘(Corner Fold) + 호버 시 100% 확장 디바이더 라인 + 클릭 시 미니 풀스크린 오버레이(BoxDetailOverlay) 오픈.<br>
-            • <strong>박스③(Guest) &amp; 박스④(파트너)</strong>: 정갈한 단일 라인 바로가기 형태 유지.
-          </p>
-        </div>
-
-        <!-- 섹션 2 -->
-        <div class="snap-step" style="border-left: 5px solid var(--primary);">
-          <div class="snap-step-title">
-            <span>[섹션 2] 플랫폼 정보 푸터 (100dvh / auto 스냅)</span>
-          </div>
-          <p style="font-size: 0.92rem; color: var(--text-muted); margin: 0;">
-            • <strong>다크 딥 네이비(#1A2B4C)</strong> 바탕에 법정 약관 및 보호책임자 실연락처 정보가 단정하게 정렬된 신뢰의 마무리.
-          </p>
-        </div>
-      </div>
-    </section>
-
-    <!-- 섹션 3 -->
-    <section id="sec3" class="section-block">
-      <h2 class="section-title">🗂️ 3. 4박스 카드(EntryBoxes) 디테일 개선</h2>
-      <p class="section-desc">
-        <code>EntryBoxes.tsx</code>의 카드를 아날로그 기록물처럼 고급스럽게 다듬는 핵심 CSS &amp; 인터랙션 기법입니다.
-      </p>
-
-      <div class="tech-card highlight">
-        <div class="card-head">
-          <div class="card-title">📜 종이 모서리 접힘 (Corner Fold) &amp; 디바이더 확장 라인</div>
-          <span class="badge badge-pass">Pure CSS 구현</span>
-        </div>
-        <p>복잡한 자바스크립트 라이브러리 없이 순수 CSS만으로 가볍고 안정적으로 구현할 수 있습니다.</p>
-
-        <pre><code>/* 1. 카드의 우측 하단 아날로그 종이 접힘 효과 */
-.corner-fold {
-  position: absolute;
-  bottom: 0;
-  right: 0;
-  width: 24px;
-  height: 24px;
-  overflow: hidden;
-}
-.corner-fold::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  right: 0;
-  width: 32px;
-  height: 32px;
-  background-color: var(--secondary-color); /* 배경색과 동일 */
-  transform: rotate(45deg) translate(16px, 16px);
-  border-top: 1px solid var(--border-color);
-  border-left: 1px solid var(--border-color);
-}
-
-/* 2. 호버 시 골드/그린 디바이더 라인 확장 */
-.card-divider {
-  width: 48px;
-  height: 2px;
-  background-color: var(--accent-gold);
-  transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-}
-.entry-card:hover .card-divider {
-  width: 100%;
+    <blockquote class="info-quote"><strong>문서 성격</strong>: 기술 분석서 및 기획/구현 가이드. <code>[Gemini]</code> 작성 (2026-08-18).  <br/>
+<strong>분석 대상</strong>: <code>c:\Users\kilak\Desktop\interface</code> (Next.js 16 / React 19 / Tailwind v4 / GSAP / Framer Motion / Lenis).  <br/>
+<strong>문서 목적</strong>: 외부 최신 인터페이스 템플릿의 핵심 디자인 패턴, 기술 스택, 인터랙션 코드 및 시각 효과를 정밀 분석하고, <strong>이어봄(Eobom) 메인 화면(<code>HomePage.tsx</code>, <code>EntryBoxes.tsx</code>, <code>Hero</code>)에 웰다잉 감성과 결합하여 적용하는 구체적인 구현 방안</strong>을 수립합니다.</blockquote>
+<hr class="divider"/>
+<h2 class="section-title">📌 1. 템플릿 아키텍처 및 핵심 기술 스택</h2>
+<h3 class="subsection-title">1.1 핵심 의존성 및 기술 생태계 (Technology Stack)</h3>
+<pre><code>{
+  &quot;core&quot;: {
+    &quot;framework&quot;: &quot;Next.js 16.1.0-canary (App Router)&quot;,
+    &quot;ui_engine&quot;: &quot;React 19.2.0 + TypeScript 5&quot;,
+    &quot;styling&quot;: &quot;Tailwind CSS v4.1.9 + oklch Color Space + CSS Variables&quot;
+  },
+  &quot;animation_and_motion&quot;: {
+    &quot;gsap&quot;: &quot;^3.14.1 (ScrollTrigger, Tween, Context)&quot;,
+    &quot;framer-motion&quot;: &quot;^13.1.0 (3D Transform, RotateX, Layout Animations)&quot;,
+    &quot;lenis&quot;: &quot;^1.3.15 (Smooth Kinetic Scroll Physics)&quot;
+  },
+  &quot;audio_and_sensory&quot;: {
+    &quot;web_audio_api&quot;: &quot;Native AudioContext Oscillator/BiquadFilter Synth&quot;,
+    &quot;haptics&quot;: &quot;navigator.vibrate Haptic Feedback API&quot;
+  },
+  &quot;primitives&quot;: {
+    &quot;radix_ui&quot;: &quot;Radix UI Primitives (Accordion, Dialog, Tooltip, Popover 등)&quot;,
+    &quot;icons&quot;: &quot;lucide-react (^0.454.0)&quot;,
+    &quot;vaul&quot;: &quot;^1.1.2 (iOS-style Drawer / Bottom Sheet)&quot;
+  }
 }</code></pre>
-      </div>
-    </section>
+<hr class="divider"/>
+<h2 class="section-title">🔍 2. 핵심 인터랙티브 컴포넌트 &amp; 코드 상세 분석</h2>
+<h3 class="subsection-title">2.1 Split-Flap Display &amp; Web Audio 신시사이저 (<code>components/split-flap-text.tsx</code>)</h3>
+<p>공항이나 기차역의 <strong>솔라리 보드(Solari Split-Flap Board)</strong>를 디지털로 완벽하게 재현한 3D 플립 텍스트 컴포넌트입니다.</p>
+<pre><code>// 1. Web Audio API를 이용한 외부 사운드 파일 없는 실시간 기계식 타격음 합성
+const oscillator = ctx.createOscillator();
+const gainNode = ctx.createGain();
+const filter = ctx.createBiquadFilter();
 
-    <!-- 섹션 4 -->
-    <section id="sec4" class="section-block">
-      <h2 class="section-title">🚀 4. 컴포넌트별 구현 명세 및 인계</h2>
+oscillator.type = &quot;square&quot;;
+oscillator.frequency.setValueAtTime(800 + Math.random() * 400, ctx.currentTime);
+oscillator.frequency.exponentialRampToValueAtTime(200, ctx.currentTime + 0.015);
 
-      <table class="compare-table">
-        <thead>
-          <tr>
-            <th style="width: 25%;">대상 파일</th>
-            <th style="width: 35%;">적용할 인터페이스 기법</th>
-            <th style="width: 40%;">기대 효과</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td><code>eobom/frontend/src/index.css</code></td>
-            <td>극미세 한지(Hanji) 노이즈 질감</td>
-            <td>단색 배경의 밋밋함을 없애고 눈이 편안한 오가닉 종이 질감 연출</td>
-          </tr>
-          <tr>
-            <td><code>eobom/frontend/src/components/home/EntryBoxes.tsx</code></td>
-            <td>Corner Fold + 호버 디바이더 확장</td>
-            <td>4박스 카드가 정갈하고 품격 있는 기록물처럼 느껴지는 시각적 완성도</td>
-          </tr>
-          <tr>
-            <td><code>eobom/frontend/src/pages/HomePage.tsx</code></td>
-            <td>풀페이지 스냅 섹션 유지 + 소프트 페이드</td>
-            <td>100dvh 스냅 구조를 유지하면서 섹션 간 전환감이 극도로 부드러워짐</td>
-          </tr>
-        </tbody>
-      </table>
-    </section>
+filter.type = &quot;bandpass&quot;;
+filter.frequency.setValueAtTime(1200, ctx.currentTime);
+filter.Q.setValueAtTime(0.8, ctx.currentTime);
 
-    <!-- 마무리 -->
-    <div style="background: linear-gradient(135deg, #1A2B4C, #283C66); color: #FFFFFF; border-radius: 20px; padding: 2.5rem; text-align: center;">
-      <h3 style="font-family: var(--font-serif); font-size: 1.5rem; margin-bottom: 0.8rem; color: #D4A359;">
-        "과시하지 않는 단아한 품격, 이어봄만의 따뜻한 풀페이지 경험"
-      </h3>
-      <p style="color: #CBD5E1; font-size: 0.98rem; max-width: 800px; margin: 0 auto; line-height: 1.7;">
-        본 정제안은 기계적 소음과 과도한 사이버 효과를 배제하고, 이어봄의 정체성(소프트 웜 크림, 풀페이지 스냅)을 지키면서 템플릿의 장점인 '종이 질감과 단아한 선의 미학'만을 온전히 흡수하도록 설계되었습니다.
-      </p>
-    </div>
+gainNode.gain.setValueAtTime(0.05, ctx.currentTime);
+gainNode.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.02);
 
-  </main>
-</div>
+// 2. Framer Motion 3D 상/하단 분할 플랩 애니메이션
+&lt;motion.div
+  key={`${animationKey}-${isSettled}`}
+  initial={{ rotateX: -90 }}
+  animate={{ rotateX: 0 }}
+  transition={{ delay: tileDelay, duration: 0.25, ease: [0.22, 0.61, 0.36, 1] }}
+  style={{ transformStyle: &quot;preserve-3d&quot;, backfaceVisibility: &quot;hidden&quot; }}
+&gt;
+  {/* 플립 분할 문자 렌더링 */}
+&lt;/motion.div&gt;</code></pre>
+<ul>
+<li><strong>기술 포인트</strong>: </li>
+</ul>
+<p>  - <code>AudioContext</code>의 <code>square</code> 파형과 <code>bandpass</code> 필터로 15ms 미세 타격음 실시간 생성 (네트워크 트래픽 0B).</p>
+<p>  - 문자가 순차적으로 회전(Flip)하며 최종 텍스트로 안착(Settling)하는 물리 엔진 효과.</p>
+<p>  - 마우스 호버 시 재트리거 및 사운드 Mute/Unmute 글로벌 컨텍스트 연동.</p>
+<hr class="divider"/>
+<h3 class="subsection-title">2.2 Scramble Text Decoder (<code>components/scramble-text.tsx</code>)</h3>
+<p>사이버펑크 및 하이테크 에디토리얼에서 쓰이는 <strong>글리치 텍스트 디코더</strong> 효과입니다.</p>
+<pre><code>const GLYPHS = &quot;!@#$%^&amp;*()_+-=&lt;&gt;?/\\[]{}Xx&quot;;
 
+function runScrambleAnimation(text, duration, setDisplayText, onComplete) {
+  const lockedIndices = new Set();
+  const finalChars = text.split(&quot;&quot;);
+  const totalChars = finalChars.length;
+  const scrambleObj = { progress: 0 };
+
+  return gsap.to(scrambleObj, {
+    progress: 1,
+    duration,
+    ease: &quot;power2.out&quot;,
+    onUpdate: () =&gt; {
+      const numLocked = Math.floor(scrambleObj.progress * totalChars);
+      for (let i = 0; i &lt; numLocked; i++) lockedIndices.add(i);
+
+      const newDisplay = finalChars
+        .map((char, i) =&gt; (lockedIndices.has(i) ? char : GLYPHS[Math.floor(Math.random() * GLYPHS.length)]))
+        .join(&quot;&quot;);
+
+      setDisplayText(newDisplay);
+    },
+    onComplete: () =&gt; {
+      setDisplayText(text);
+      onComplete?.();
+    }
+  });
+}</code></pre>
+<ul>
+<li><strong>기술 포인트</strong>:</li>
+</ul>
+<p>  - GSAP <code>power2.out</code> 트윈 진행률(<code>progress: 0 ➔ 1</code>)에 따라 좌측부터 글자가 하나씩 고정(Locking)되는 정교한 계산 로직.</p>
+<p>  - 버튼 호버(<code>ScrambleTextOnHover</code>) 및 페이지 마운트(<code>ScrambleText</code>) 시 인터랙션 부여.</p>
+<hr class="divider"/>
+<h3 class="subsection-title">2.3 Draw Text / Ticker Animation (<code>components/draw-text.tsx</code>)</h3>
+<p>헤드라인 텍스트에 슬롯머신/티커(Ticker)처럼 무작위 문자가 회전하다가 정답 문자에 멈추며 액센트 컬러 배경이 채워지는 타이포그래피 효과입니다.</p>
+<pre><code>const flipChars = &quot;ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-+#@$%&quot;;
+// GSAP delayedCall + setInterval 기반 각 글자별 독립 카운터 및 배경색 하이라이트
+&lt;span
+  style={{
+    backgroundColor: activeIndices[index] ? &quot;#f97316&quot; : &quot;transparent&quot;,
+    color: activeIndices[index] ? &quot;#000000&quot; : flippingIndices[index] ? &quot;#f97316&quot; : &quot;transparent&quot;,
+    padding: &quot;0.08em 0.05em&quot;,
+    marginRight: &quot;0.06em&quot;
+  }}
+&gt;
+  {displayChars[index]}
+&lt;/span&gt;</code></pre>
+<hr class="divider"/>
+<h3 class="subsection-title">2.4 Interactive Magnetic Cursor &amp; Horizon Cards (<code>components/signals-section.tsx</code>)</h3>
+<p>마우스 움직임을 부드럽게 추종하는 마그네틱 커서와 가로 스크롤 매거진 카드 레이아웃입니다.</p>
+<pre><code>// 1. GSAP 부드러운 커서 추종
+gsap.to(cursor, {
+  x: e.clientX - rect.left,
+  y: e.clientY - rect.top,
+  duration: 0.5,
+  ease: &quot;power3.out&quot;
+});
+
+// 2. 카드 모서리 접힘(Corner Fold) 및 가로 디바이더 라인 확장 애니메이션
+&lt;div className=&quot;w-12 h-px bg-accent/60 mb-6 group-hover:w-full transition-all duration-500&quot; /&gt;
+&lt;div className=&quot;absolute bottom-0 right-0 w-6 h-6 overflow-hidden&quot;&gt;
+  &lt;div className=&quot;absolute bottom-0 right-0 w-8 h-8 bg-background rotate-45 translate-x-4 translate-y-4 border-t border-l border-border/30&quot; /&gt;
+&lt;/div&gt;</code></pre>
+<hr class="divider"/>
+<h3 class="subsection-title">2.5 Animated Noise &amp; Grid Texture (<code>components/animated-noise.tsx</code>, <code>globals.css</code>)</h3>
+<p>단조로운 디지털 화면에 아날로그적인 품격과 깊이감을 더하는 프랙탈 노이즈(Grain) 오버레이입니다.</p>
+<pre><code>/* CSS SVG Fractal Noise Filter */
+.noise-overlay {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1000;
+  opacity: 0.03;
+  background-image: url(&quot;data:image/svg+xml,%3Csvg viewBox=&#039;0 0 256 256&#039; xmlns=&#039;http://www.w3.org/2000/svg&#039;%3E%3Cfilter id=&#039;noise&#039;%3E%3CfeTurbulence type=&#039;fractalNoise&#039; baseFrequency=&#039;0.9&#039; numOctaves=&#039;4&#039; stitchTiles=&#039;stitch&#039;/%3E%3C/filter%3E%3Crect width=&#039;100%25&#039; height=&#039;100%25&#039; filter=&#039;url(%23noise)&#039;/%3E%3C/svg%3E&quot;);
+}
+
+/* 60px Tech Grid Background */
+.grid-bg {
+  background-image: linear-gradient(to right, oklch(0.2 0 0) 1px, transparent 1px),
+    linear-gradient(to bottom, oklch(0.2 0 0) 1px, transparent 1px);
+  background-size: 60px 60px;
+}</code></pre>
+<hr class="divider"/>
+<h2 class="section-title">🌿 3. 이어봄(Eobom) 맞춤형 융합 및 절제(Calibration) 전략</h2>
+<p>개발자의 명확한 피드백(2026-08-18)을 반영하여, <strong>&quot;과하게 사이버틱하거나 자극적인 요소는 완전히 걷어내고, 이어봄 고유의 따뜻한 색감과 풀페이지 스냅스크롤 구조를 유지하면서 핵심 디테일만 정갈하게 취합&quot;</strong>합니다.</p>
+<pre><code>┌─────────────────────────────────────────────────────────────────────────────┐
+│                 ✨ 이어봄 톤앤매너 맞춤형 취사선택 (Selection Matrix)          │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ ❌ 걷어낼 것 : 기계식 클릭 사운드(Web Audio), 사이버 글리치, 차가운 블랙 배경  │
+│ ⭕ 유지할 것 : 소프트 웜 크림(#FBF9F5), 딥 네이비, 웜 그린/골드, 풀페이지 스냅│
+│ 💎 가져올 것 : 한지(Hanji) 질감 노이즈, 카드 모서리 접힘(Fold), 호버 디바이더 │
+└─────────────────────────────────────────────────────────────────────────────┘</code></pre>
+<hr class="divider"/>
+<h3 class="subsection-title">3.1 걷어낼 과도한 요소 (De-cluttering &amp; Tone Down)</h3>
+<p>1. <strong>기계식 타격음 사운드(Web Audio API)</strong>: </p>
+<p>   - ❌ *기각 사유*: 상례 및 웰다잉 플랫폼의 경건하고 차분한 분위기에 기계식 타격음은 불필요한 소음과 거부감을 줄 수 있음. ➔ <strong>완전 배제(음소거).</strong></p>
+<p>2. <strong>사이버펑크 글리치 텍스트 (Scramble with <code>!@#$%</code>)</strong>:</p>
+<p>   - ❌ *기각 사유*: 6070 시니어 사용자에게 버그나 오류로 오인될 위험이 있음. ➔ 대신 <strong>단아하고 정갈한 페이드인 &amp; 부드러운 스트로크 텍스트</strong>로 대체.</p>
+<p>3. <strong>차가운 잉크 블랙 배경</strong>:</p>
+<p>   - ❌ *기각 사유*: 브랜드 고유 자산인 <strong>소프트 웜 크림(<code>#FBF9F5</code>)</strong>을 전역 배경으로 100% 유지.</p>
+<hr class="divider"/>
+<h3 class="subsection-title">3.2 풀페이지 스냅 스크롤(Fullpage Snap) 융합 구조</h3>
+<p><code>interface</code> 템플릿의 세로 일반 스크롤 대신, <strong>이어봄의 100dvh 풀페이지 스냅 스크롤 3섹션 아키텍처</strong>를 그대로 유지하며 시각적 완성도를 극대화합니다.</p>
+<pre><code>┌─────────────────────────────────────────────────────────────────────────────┐
+│ [섹션 0] 메인 히어로 (100dvh)                                              │
+│ - 배경 : 소프트 웜 크림(#FBF9F5) + 극미세 한지(Hanji) 노이즈 질감            │
+│ - 좌측 : 명조체 헤드라인 (&quot;존엄하고 따뜻한 봄날&quot;) + 정갈한 단어 페이드인    │
+│ - 우측 : 나룻배 비주얼 카드 (소프트 블러 테두리 + 서정적 줌 애니메이션)      │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ [섹션 1] 4박스 진입 구조 (100dvh)                                           │
+│ - 레이아웃 : 데스크톱 2x2 그리드 / 모바일 1열 스택                         │
+│ - 박스①(생전) &amp; 박스②(임종) : 우측 하단 아날로그 모서리 접힘(Corner Fold)   │
+│   + 호버 시 카드의 골드/그린 디바이더 라인이 100%로 스무스하게 확장         │
+│   + 클릭 시 미니 풀스크린 오버레이(BoxDetailOverlay) 오픈                   │
+│ - 박스③(Guest) &amp; 박스④(파트너) : 정갈한 단일 라인 및 링크 진입 구조        │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ [섹션 2] 플랫폼 정보 푸터 (100dvh / auto)                                  │
+│ - 배경 : 깊은 딥 네이비(#1A2B4C) 바탕의 공신력 있는 약관/보호책임자 정보    │
+└─────────────────────────────────────────────────────────────────────────────┘</code></pre>
+<hr class="divider"/>
+<h2 class="section-title">🚀 4. 최종 컴포넌트별 적용 명세서</h2>
+<div class="table-container"><table><thead><tr><th>영역</th><th>적용할 템플릿 기법</th><th>이어봄 맞춤형 구현 상세</th></tr></thead><tbody><tr><td><strong>전역 배경 (<code>index.css</code>)</strong></td><td>SVG 프랙탈 노이즈</td><td>웜 크림(<code>#FBF9F5</code>) 배경 위에 <code>opacity: 0.015</code> 한지(Hanji) 질감 오버레이 적용 (눈 피로도 감소 및 아날로그 온기)</td></tr><tr><td><strong>메인 히어로 (<code>HomePage.tsx</code>)</strong></td><td>부드러운 스태거 모션</td><td>나룻배 카드 테두리에 부드러운 소프트 페이드 그라데이션 및 텍스트 순차 페이드인 적용</td></tr><tr><td><strong>4박스 카드 (<code>EntryBoxes.tsx</code>)</strong></td><td>에디토리얼 카드 디테일</td><td>① <strong>우측 하단 모서리 접힘(Corner Fold)</strong>: 유언장/기록물 느낌의 단아한 종이 접힘 효과&lt;br&gt;② <strong>호버 확장 디바이더</strong>: 마우스 호버 시 48px 골드/그린 라인이 100%로 스무스 확장&lt;br&gt;③ <strong>부드러운 리프트(Lift)</strong>: <code>transform: translateY(-4px)</code> + 앰비언트 섀도우</td></tr><tr><td><strong>슬라이드 오버레이 (<code>BoxDetailOverlay</code>)</strong></td><td>진행 인디케이터</td><td>상단에 <code>01 / 06</code> 단아한 스텝 표시 및 하단 부드러운 휠 유도 힌트</td></tr></tbody></table></div>
+<hr class="divider"/>
+<h2 class="section-title">📌 5. 다음 에이전트 인계 사항</h2>
+<ul>
+<li><code>[Claude:Sonnet]</code> 구현 시: 복잡한 외부 오디오나 글리치 라이브러리 설치 없이, <strong>순수 CSS + 가벼운 Framer Motion/CSS 트랜지션만으로</strong> 본 명세서의 디테일(Corner Fold, Divider 확장, 한지 노이즈)을 <code>EntryBoxes.tsx</code> 및 <code>index.css</code>에 안전하게 구현할 수 있습니다.</li>
+<li><code>[Claude:Opus]</code> 기획 시: 본 기획서(<code>00-25</code>)를 바탕으로 <code>00-23</code> §8에 4박스 카드의 최종 시각 스타일 스펙을 확정 반영할 수 있습니다.</li>
+</ul>
+
+  </div>
 </body>
 </html>

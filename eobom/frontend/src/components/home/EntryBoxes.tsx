@@ -8,9 +8,22 @@ import { BoxDetailOverlay } from './BoxDetailOverlay';
 // 박스①②는 항목 목록을 뺀 "간단 설명"만 남기고, 클릭 시 박스별 미니 풀스크린 오버레이에서
 // 도메인 소개 슬라이드(구 HomePage 섹션 01~05)를 휠로 넘겨보게 바꿨다. 박스③④(Guest·파트너)는
 // 항목이 1개뿐이라 기존 방식(목록 1줄) 그대로 둔다.
+// 08-19 시각 정제(00-23 §8.5) — ①②/③④를 별도 그리드 블록으로 나눠 "큰 카드/낮은 카드"
+// 위계를 복원하고, ①②는 아이콘 확대 + 클릭 불가 요약 칩으로 빈 공간을 채운다.
 
 const box1Keys = ['counseling', 'ending-note', 'digital-estate'];
 const box2Keys = ['care-guide', 'facility', 'counseling', 'digital-estate', 'memorial', 'pickup'];
+
+// 박스 요약 칩 전용 짧은 라벨 — domainSlides.badgeLabel은 오버레이 슬라이드 제목용이라 길다.
+const chipLabels: Record<string, string> = {
+  counseling: '전문가 상담',
+  'ending-note': '디지털 엔딩노트',
+  'digital-estate': '디지털 자산 정리',
+  'care-guide': '상중 케어',
+  facility: '장사시설 매칭',
+  memorial: '디지털 추모관',
+  pickup: '유품 수거',
+};
 
 interface EntryBoxesProps {
   currentUser?: string | null;
@@ -45,6 +58,27 @@ const Badge: React.FC<{ status: 'preview' | 'comingSoon' }> = ({ status }) => {
     </span>
   );
 };
+
+// 클릭 불가 요약 칩 — 박스①②의 빈 공간을 채우되 어포던스를 만들지 않도록 순수 <span>만 쓴다.
+const ChipRow: React.FC<{ labels: string[] }> = ({ labels }) => (
+  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginTop: '1.1rem' }}>
+    {labels.map((label) => (
+      <span
+        key={label}
+        style={{
+          fontSize: '0.82rem',
+          fontWeight: 600,
+          color: '#6C7A89',
+          backgroundColor: '#F1F5F9',
+          padding: '0.3rem 0.75rem',
+          borderRadius: '999px',
+        }}
+      >
+        {label}
+      </span>
+    ))}
+  </div>
+);
 
 const EntryRow: React.FC<{
   item: EntryItem;
@@ -92,23 +126,41 @@ const EntryRow: React.FC<{
   );
 };
 
-const BoxHeader: React.FC<{ icon: React.ReactNode; title: string; subtitle: string; badge?: React.ReactNode }> = ({
-  icon,
-  title,
-  subtitle,
-  badge,
-}) => (
-  <div>
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.5rem' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '0.55rem' }}>
-        {icon}
-        <h3 style={{ fontSize: '1.3rem', fontWeight: 800, color: 'var(--primary-color)', margin: 0 }}>{title}</h3>
+const BoxHeader: React.FC<{
+  icon: React.ReactNode;
+  title: string;
+  subtitle: string;
+  badge?: React.ReactNode;
+  size?: 'lg' | 'sm';
+}> = ({ icon, title, subtitle, badge, size = 'lg' }) => {
+  const boxSize = size === 'lg' ? '52px' : '40px';
+  const titleSize = size === 'lg' ? '1.3rem' : '1.15rem';
+  return (
+    <div>
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '0.5rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+          <div
+            style={{
+              width: boxSize,
+              height: boxSize,
+              flexShrink: 0,
+              borderRadius: '14px',
+              backgroundColor: '#F1F5F9',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            {icon}
+          </div>
+          <h3 style={{ fontSize: titleSize, fontWeight: 800, color: 'var(--primary-color)', margin: 0 }}>{title}</h3>
+        </div>
+        {badge}
       </div>
-      {badge}
+      <p style={{ fontSize: '0.92rem', color: 'var(--text-muted)', margin: '0.6rem 0 0 0' }}>{subtitle}</p>
     </div>
-    <p style={{ fontSize: '0.92rem', color: 'var(--text-muted)', margin: '0.35rem 0 0 0' }}>{subtitle}</p>
-  </div>
-);
+  );
+};
 
 export const EntryBoxes: React.FC<EntryBoxesProps> = ({ currentUser, onOpenLogin, setActiveTab }) => {
   const [openBox, setOpenBox] = useState<'box1' | 'box2' | null>(null);
@@ -128,23 +180,41 @@ export const EntryBoxes: React.FC<EntryBoxesProps> = ({ currentUser, onOpenLogin
         어떤 도움이 필요하신가요?
       </h2>
 
-      <div
-        className="entry-boxes-grid"
-        style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}
-      >
+      {/* 상단 블록 — ①② 큰 카드(00-23 §8.5) */}
+      <div className="entry-boxes-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
         {/* ① 생전 준비 — 클릭 시 미니 오버레이(전문가상담·엔딩노트·디지털자산) */}
         <button
           type="button"
           onClick={() => setOpenBox('box1')}
-          className="card"
-          style={{ textAlign: 'left', cursor: 'pointer', border: '1px solid var(--border-color)', width: '100%', fontFamily: 'inherit' }}
+          className="card entry-box-primary"
+          style={{
+            textAlign: 'left',
+            cursor: 'pointer',
+            border: '1px solid var(--border-color)',
+            width: '100%',
+            fontFamily: 'inherit',
+            justifyContent: 'space-between',
+          }}
         >
           <BoxHeader
-            icon={<HeartHandshake size={26} color="var(--point-color)" />}
+            icon={<HeartHandshake size={28} color="var(--point-color)" />}
             title="생전 준비"
             subtitle="미리 준비해 두면, 남은 가족이 덜 힘듭니다."
           />
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', marginTop: '1rem', color: 'var(--text-muted)', fontSize: '0.85rem', fontWeight: 700 }}>
+          <ChipRow labels={box1Keys.map((k) => chipLabels[k])} />
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.3rem',
+              marginTop: '1.1rem',
+              paddingTop: '1rem',
+              borderTop: '1px solid var(--border-color)',
+              color: 'var(--point-color)',
+              fontSize: '0.9rem',
+              fontWeight: 700,
+            }}
+          >
             자세히 보기 <ChevronRight size={16} />
           </div>
         </button>
@@ -153,28 +223,55 @@ export const EntryBoxes: React.FC<EntryBoxesProps> = ({ currentUser, onOpenLogin
         <button
           type="button"
           onClick={() => setOpenBox('box2')}
-          className="card"
-          style={{ textAlign: 'left', cursor: 'pointer', border: '1px solid var(--border-color)', width: '100%', fontFamily: 'inherit' }}
+          className="card entry-box-primary"
+          style={{
+            textAlign: 'left',
+            cursor: 'pointer',
+            border: '1px solid var(--border-color)',
+            width: '100%',
+            fontFamily: 'inherit',
+            justifyContent: 'space-between',
+          }}
         >
           <BoxHeader
-            icon={<ChecklistShieldIcon size={26} color="#03543F" />}
+            icon={<ChecklistShieldIcon size={28} color="#03543F" />}
             title="임종 및 사후 정리"
             subtitle="지금 해야 할 일부터 순서대로 안내해 드립니다."
           />
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', marginTop: '1rem', color: 'var(--text-muted)', fontSize: '0.85rem', fontWeight: 700 }}>
+          <ChipRow labels={box2Keys.map((k) => chipLabels[k])} />
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.3rem',
+              marginTop: '1.1rem',
+              paddingTop: '1rem',
+              borderTop: '1px solid var(--border-color)',
+              color: 'var(--point-color)',
+              fontSize: '0.9rem',
+              fontWeight: 700,
+            }}
+          >
             자세히 보기 <ChevronRight size={16} />
           </div>
         </button>
+      </div>
 
+      {/* 하단 블록 — ③④ 낮은 카드, 높이 약 절반(00-23 §8.5) */}
+      <div
+        className="entry-boxes-grid"
+        style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginTop: '1.5rem' }}
+      >
         {/* ③ Guest — 링크 전체 붙여넣기(00-23 §4.4). 목업 단계는 비활성 고정, 기존 방식 유지 */}
-        <div className="card">
+        <div className="card entry-box-secondary">
           <BoxHeader
-            icon={<DoorOpen size={26} color="#5B7065" />}
+            icon={<DoorOpen size={20} color="#5B7065" />}
             title="Guest"
             subtitle="받으신 추모관 링크로 입장하세요."
             badge={<Badge status="comingSoon" />}
+            size="sm"
           />
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem', marginTop: '0.6rem' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem', marginTop: '0.8rem' }}>
             <input
               type="text"
               className="form-input"
@@ -196,13 +293,14 @@ export const EntryBoxes: React.FC<EntryBoxesProps> = ({ currentUser, onOpenLogin
         </div>
 
         {/* ④ 파트너 — 항목 1개뿐이라 기존 방식(목록 1줄) 그대로 유지 */}
-        <div className="card">
+        <div className="card entry-box-secondary">
           <BoxHeader
-            icon={<Building2 size={26} color="var(--primary-color)" />}
+            icon={<Building2 size={20} color="var(--primary-color)" />}
             title="파트너"
             subtitle="장사시설·전문가 사업자이신가요?"
+            size="sm"
           />
-          <div style={{ marginTop: '0.4rem' }}>
+          <div style={{ marginTop: '0.5rem' }}>
             {box4Items.map((item) => (
               <EntryRow key={item.label} item={item} currentUser={currentUser} onOpenLogin={onOpenLogin} setActiveTab={setActiveTab} />
             ))}

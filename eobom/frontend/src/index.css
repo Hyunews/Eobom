@@ -287,3 +287,14 @@ body {
   }
 }
 
+/* 박스①②(상단, 큰 카드)/③④(하단, 높이 약 절반) 위계 — 768px 미만은 스택이라 강제 높이를 걸지 않는다 */
+@media (min-width: 768px) {
+  .entry-box-primary {
+    min-height: 300px;
+  }
+
+  .entry-box-secondary {
+    min-height: 150px;
+  }
+}
+

@@ -180,7 +180,7 @@ export const HomePage: React.FC<HomePageProps> = ({ currentUser, onOpenLogin, se
               display: 'grid',
               gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))',
               gap: '2.2rem',
-              alignItems: 'center'
+              alignItems: 'start'
             }}
           >
             {/* 좌측 메인 텍스트 & 헤드라인 */}

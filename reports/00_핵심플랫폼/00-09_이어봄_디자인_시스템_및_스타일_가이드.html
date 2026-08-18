@@ -346,7 +346,13 @@
 <hr class="divider"/>
 <h2 class="section-title">🖌️ 2. Design Tokens &amp; Color Palette</h2>
 <h3 class="subsection-title">2.1 3대 핵심 브랜드 컬러 &amp; 액센트 토큰</h3>
-<div class="table-container"><table><thead><tr><th>구분</th><th>색상명</th><th>Hex Code</th><th>주요 적용 컴포넌트</th></tr></thead><tbody><tr><td><strong>Primary</strong></td><td><strong>Deep Navy (딥 네이비)</strong></td><td><code>#1A2B4C</code></td><td>헤더, 주 헤드라인, 1차 액션 버튼, 다크 카드 표면, 푸터 배경</td></tr><tr><td><strong>Secondary</strong></td><td><strong>Warm Green (웜 그린)</strong></td><td><code>#5B7065</code></td><td>서브 포인트, 완결 뱃지, 수목장/생태 뱃지, 강조 아이콘</td></tr><tr><td><strong>Accent</strong></td><td><strong>Warm Gold (웜 골드)</strong></td><td><code>#D4A359</code></td><td>프리미엄 뱃지, 하이라이트 아이콘, 서체 강조, 골드 테두리</td></tr><tr><td><strong>Background</strong></td><td><strong>Soft Cream White</strong></td><td><code>#FBF9F5</code></td><td>메인 앱 전역 백그라운드 (눈이 편안한 소프트 웜 톤)</td></tr><tr><td><strong>Surface</strong></td><td><strong>Pure White</strong></td><td><code>#FFFFFF</code></td><td>기본 대시보드 카드, 입력 폼 박스, 모달 배경</td></tr><tr><td><strong>Alert</strong></td><td><strong>Crimson Red</strong></td><td><code>#EF4444</code> / <code>#DC2626</code></td><td>24시간 긴급 콜 FAB 버튼, 긴급 알림 뱃지 (<code>.animate-pulse</code>)</td></tr></tbody></table></div>
+<div class="table-container"><table><thead><tr><th>구분</th><th>색상명</th><th>Hex Code</th><th>주요 적용 컴포넌트</th></tr></thead><tbody><tr><td><strong>Primary</strong></td><td><strong>Deep Navy (딥 네이비)</strong></td><td><code>#1A2B4C</code></td><td>헤더, 주 헤드라인, 1차 액션 버튼, 다크 카드 표면, 푸터 배경</td></tr><tr><td><strong>Secondary</strong></td><td><strong>Warm Green (웜 그린)</strong></td><td><code>#5B7065</code></td><td>서브 포인트, 완결 뱃지, 수목장/생태 뱃지, 강조 아이콘</td></tr><tr><td><strong>Accent</strong></td><td><strong>Warm Gold (웜 골드)</strong></td><td><code>#D4A359</code></td><td>프리미엄 뱃지, 하이라이트 아이콘, 서체 강조, 골드 테두리</td></tr><tr><td><strong>Background</strong></td><td><strong>Soft Cream White</strong></td><td><code>#FBF9F5</code></td><td>메인 앱 전역 백그라운드 (눈이 편안한 소프트 웜 톤)</td></tr><tr><td><strong>Surface</strong></td><td><strong>Pure White</strong></td><td><code>#FFFFFF</code></td><td>기본 대시보드 카드, 입력 폼 박스, 모달 배경</td></tr><tr><td><strong>Alert</strong></td><td><strong>Crimson Red</strong></td><td><code>#DC2626</code> (<code>--accent-red</code>)</td><td>폼 오류 메시지, 지도 핀 마커, 상속세 시뮬레이터 결과 강조</td></tr></tbody></table></div>
+<blockquote class="info-quote"><span class="tag blue">🔵</span> <strong>2026-08-19 정정 (실측 반영)</strong>: 종전에 이 행은 색을 <code>#EF4444</code>/<code>#DC2626</code> 2개로 적고 용도를 *&quot;24시간 긴급 콜 FAB 버튼&quot;* 이라 했으나 <strong>둘 다 지금 사실이 아닙니다.</strong><br/>
+* <strong><code>#EF4444</code>는 저장소 전체에 0건</strong>입니다 — 문서에만 있던 색입니다.<br/>
+* <strong>긴급 콜 FAB은 존재하지 않습니다.</strong> *&quot;24시간 긴급콜&quot;* 은 <code>00-14</code> §2-4가 <strong>받을 사람이 없는 약속</strong>으로 판정해 *&quot;장례식장 바로 찾기&quot;* 로 정정했고(2026-08-14), 그 버튼마저 <strong>2026-08-18 개발자 지시로 완전 제거</strong>됐습니다(walkthrough (32) — <code>FloatingEmergency.tsx</code> 파일 삭제).<br/>
+* <code>#DC2626</code>은 살아 있으나 용도가 다릅니다 — <code>TaxSimulatorModal</code>(상속세 결과) · <code>KakaoMapModal</code>(핀 마커) · 오류 메시지 3곳(<code>FacilityPage</code> 위치 오류, <code>FacilityReviewModal</code>, <code>MyPageAuthSettings</code>).</blockquote>
+<p>&gt;</p>
+<blockquote class="info-quote"><strong>왜 고쳤나</strong>: 이 표는 정본이라 틀린 값이 남아 있으면 다음 구현자가 그대로 만듭니다. 특히 *&quot;없는 것을 있다고&quot;* 적힌 상태라 <code>00-14</code> §2가 여덟 번 잡은 결함과 같은 종류였습니다.</blockquote>
 <h3 class="subsection-title">2.2 Typography System</h3>
 <ul>
 <li><strong>Primary Font (UI &amp; Body)</strong>: <code>&#039;Pretendard&#039;</code>, <code>&#039;Noto Sans KR&#039;</code>, <code>sans-serif</code></li>
@@ -386,7 +392,12 @@
 </ul>
 <p>  * <strong>Top Header (100% Width, 고정 72px)</strong>: 브랜드 로고 + 로그인/회원가입 프로필 칩</p>
 <p>  * <strong>Left Collapsible Sidebar</strong>: <strong>6개 메뉴</strong>(메인 + 5대 도메인) 반응형 사이드바. <code>position: fixed</code>, 기본 <code>72px</code> → 마우스 호버 시 <code>240px</code> 확장. 메뉴 순서는 <strong>도메인 번호와 일치</strong>해야 합니다(→ <code>00_DOCS_INDEX.md</code> 도메인 번호 체계).</p>
-<p>  * <strong>Bottom-Right Floating FAB</strong>: <code>🚨 24시간 긴급 콜</code> (<code>.animate-pulse</code> 깜빡임)</p>
+<p>  * <strong>Bottom-Right Floating FAB</strong>: ❌ <strong>없습니다</strong> — 아래 <span class="tag blue">🔵</span> 블록.</p>
+<p>  * <strong>메인 홈(<code>SCR-001</code>) 진입 구조</strong>: 히어로 + <strong>4박스 진입 블록</strong> + 에필로그/푸터의 풀페이지 스냅 3섹션. <span class="tag red">🔴</span> <strong>정본은 <code>00-23</code>이며, 현재 <code>00-23</code> §8이 실물과 어긋나 재정합 대기 상태</strong>입니다(walkthrough (32)) — 이 절에 중복 서술하지 않습니다.</p>
+<blockquote class="info-quote"><span class="tag blue">🔵</span> <strong>2026-08-19 정정 — 우하단 FAB은 제거됐습니다.</strong><br/>
+종전 이 목록은 *&quot;Bottom-Right Floating FAB: 🚨 24시간 긴급 콜&quot;* 을 구조 요소로 명시했으나, 해당 버튼은 <strong>2026-08-18 개발자 지시로 전 페이지에서 제거</strong>됐고 <code>FloatingEmergency.tsx</code>도 삭제됐습니다(walkthrough (32)).<br/>
+<strong>경위는 2단계입니다</strong> — ①<code>00-14</code> §2-4가 *&quot;24시간 긴급콜&quot;* 을 받을 사람이 없는 약속으로 판정해 *&quot;장례식장 바로 찾기&quot;*(도메인 01 시설 검색)로 정정(2026-08-14) → ②그 대체 버튼마저 제거(2026-08-18).<br/>
+<span class="tag warn">⚠️</span> <strong><code>/facility</code>로 가는 단축 진입 경로가 하나 사라졌다는 뜻</strong>입니다. 재도입 여부는 개발자 판단 사항으로 남아 있습니다.</blockquote>
 <blockquote class="info-quote"><strong>고정 크기(헤더 72px, 사이드바 72/240px)는 여백이 아니라 구조값입니다</strong> — §2.4 밀도 조정 대상이 아닙니다. 사이드바 폭은 <code>main-wrapper</code>의 <code>margin-left</code>와 짝을 이루므로 한쪽만 바꾸면 레이아웃이 깨집니다.</blockquote>
 <ul>
 <li><strong>Responsive Breakpoints</strong>:</li>
@@ -400,8 +411,21 @@
 <p>   <code>transform: translateY(-4px)</code>, <code>box-shadow: 0 12px 24px rgba(0,0,0,0.08)</code>, <code>transition: all 0.25s ease</code>.</p>
 <p>2. <strong>Glassmorphism Blur Overlay</strong>:</p>
 <p>   <code>background: rgba(26, 43, 76, 0.75)</code>, <code>backdrop-filter: blur(8px)</code> (미인증/보호 구역).</p>
-<p>3. <strong>Emergency Pulsing Keyframes</strong>:</p>
-<p>   <code>@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }</code></p>
+<p>3. <strong>Pulsing Keyframes</strong> (<code>.animate-pulse</code>, <code>animation: pulse 1.6s ease-in-out infinite</code>):</p>
+<p>   <code>@keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.6; transform: scale(1.15); } }</code></p>
+<p>   * <span class="tag blue">🔵</span> <strong>2026-08-19 정정</strong>: 종전에는 이름이 *&quot;Emergency&quot;* 이고 값이 <code>50% { opacity: 0.5; }</code> 였으나, <strong>실제 코드는 <code>opacity: 0.6</code> + <code>transform: scale(1.15)</code></strong> 이고 <strong>유일한 사용처는 긴급 버튼이 아니라 <code>KakaoMapModal</code>의 지도 핀 마커</strong>입니다(전수 검색 1건). 긴급 FAB이 제거되면서 이름이 실체와 어긋났습니다(→ §3.1).</p>
+<p>   * <span class="tag warn">⚠️</span> <code>index.css:127</code>의 주석은 아직 *&quot;Emergency Hotline Pulsing Badge&quot;* 입니다 — <strong>코드 주석 정정은 <code>[Claude:Sonnet]</code> 몫</strong>이라 이 문서에서는 사실만 기록합니다.</p>
+<hr class="divider"/>
+<h2 class="section-title"><span class="tag red">🔴</span> 5. 정본 경계 — <strong><code>reports/style.css</code>는 디자인 정본이 아닙니다</strong> (2026-08-19 신설)</h2>
+<p><strong>이 문서(<code>00-09</code>)가 색·서체·여백·접근성 토큰의 유일한 정본</strong>이고, 구현 정본은 <code>eobom/frontend/src/index.css</code>입니다.</p>
+<h3 class="subsection-title">5.1 계기 — 2주치 드리프트가 실제로 발생했습니다</h3>
+<p>2026-08-19에 *&quot;<code>reports/</code>의 디자인 산출물을 바탕으로 화면을 세련되게 바꾸자&quot;* 는 제안이 나왔고, 대조한 결과 <strong><code>reports/style.css</code>(2026-08-05)가 앱보다 뒤처져 있어 그대로 적용하면 퇴행</strong>이었습니다.</p>
+<div class="table-container"><table><thead><tr><th>토큰</th><th><code>reports/style.css</code></th><th><strong><code>00-09</code> 정본 = <code>index.css</code></strong></th></tr></thead><tbody><tr><td>Point</td><td><code>#4E7055</code> ❌</td><td><code>#5B7065</code></td></tr><tr><td>Background</td><td><code>#F7F4EF</code> ❌</td><td><code>#FBF9F5</code></td></tr><tr><td>Text</td><td><code>#2F3E46</code> ❌</td><td><code>#1A2B4C</code></td></tr><tr><td><strong>Accent Gold</strong></td><td><strong>없음</strong> ❌</td><td><code>#D4A359</code></td></tr><tr><td>본문 서체</td><td>Noto Sans KR ❌</td><td>Pretendard</td></tr><tr><td><strong>제목 명조</strong></td><td><strong>없음</strong> ❌</td><td>KoPubWorld 명조</td></tr><tr><td>Card hover</td><td><code>translateY(-5px)</code> ❌</td><td><code>translateY(-4px)</code> (§4)</td></tr><tr><td>Card padding</td><td><code>2rem</code> ❌</td><td><code>1.5rem</code> (§2.4)</td></tr><tr><td>긴급 FAB</td><td><code>.floating-call</code> 잔존 ❌</td><td>제거됨 (§3.1)</td></tr></tbody></table></div>
+<h3 class="subsection-title">5.2 원인 — 두 파일은 목적이 다릅니다</h3>
+<p><code>reports/</code>는 <strong><code>docs/</code> 마크다운을 HTML로 시각화한 문서 뷰어</strong>이고(<code>generate_all_reports.js</code> 생성), <code>style.css</code>는 그 <strong>보고서를 읽기 위한 스타일</strong>입니다. 제품 화면 시안이 아닙니다. 목적이 다르니 자연히 갈라지는데, <strong>어느 쪽이 정본인지 문서에 적혀 있지 않아 혼선이 났습니다.</strong></p>
+<h3 class="subsection-title">5.3 규칙</h3>
+<div class="table-container"><table><thead><tr><th></th><th>내용</th></tr></thead><tbody><tr><td><span class="tag green">✅</span> <strong>정본</strong></td><td>색·서체·여백·접근성 토큰 → <strong><code>00-09</code></strong> / 구현 → <code>index.css</code></td></tr><tr><td>❌ <strong>정본 아님</strong></td><td><code>reports/style.css</code>, <code>reports/**/*.html</code>의 인라인 스타일</td></tr><tr><td><span class="tag blue">🔵</span> <strong>소유권</strong></td><td><code>reports/</code>는 <strong><code>[Gemini]</code> 소유</strong>이며 Claude에게 <strong>읽기 전용</strong>입니다(<code>CLAUDE.md</code>). 드리프트가 보이면 고치지 말고 <code>context.md</code>에 <code>[Gemini]</code> 요청으로 남깁니다</td></tr></tbody></table></div>
+<blockquote class="info-quote"><span class="tag orange">🟡</span> <strong><code>reports/style.css</code>의 처분은 <code>[Gemini]</code> 판단</strong>입니다 — ①<code>00-09</code> 토큰에 맞춰 갱신하거나 ②보고서 전용임을 파일 상단 주석에 명시하거나 ③삭제합니다. <strong>어느 쪽이든 &quot;제품 디자인 시안&quot;으로 오해될 여지를 없애는 것이 목적</strong>이고, 문서 가독성 자체는 보고서의 요구라 무조건 <code>index.css</code>와 같아질 필요는 없습니다.</blockquote>
 
   </div>
 </body>
