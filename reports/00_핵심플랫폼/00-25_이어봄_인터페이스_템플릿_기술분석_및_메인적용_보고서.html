@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>✨ 00-25. 인터페이스(interface) 템플릿 기술 분석 및 이어봄 메인 적용 보고서</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css">
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=KoPub+World+Batang:wght@400;700&family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #1A2B4C;        /* Deep Navy */
+      --primary-light: #283C66;
+      --secondary: #5B7065;      /* Warm Green */
+      --secondary-light: #71887D;
+      --accent: #D4A359;         /* Warm Gold */
+      --bg: #FBF9F5;             /* Soft Cream Background */
+      --surface: #FFFFFF;
+      --text: #1E293B;
+      --text-muted: #64748B;
+      --border: #E2E8F0;
+      --border-warm: #DFDCD7;
+      --code-bg: #0F172A;
+      --code-text: #F8FAFC;
+      --card-shadow: 0 10px 25px -5px rgba(26, 43, 76, 0.06), 0 8px 10px -6px rgba(26, 43, 76, 0.04);
+      --font-body: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      --font-serif: 'KoPub World Batang', 'KoPubWorld 명조', serif;
+      --font-mono: 'Fira Code', monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--font-body);
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.7;
+      padding: 2.5rem 1rem;
+      word-break: keep-all;
+    }
+
+    .report-wrapper {
+      max-width: 1200px;
+      margin: 0 auto;
+      background-color: var(--surface);
+      border-radius: 28px;
+      box-shadow: 0 25px 50px -12px rgba(26, 43, 76, 0.12);
+      border: 1px solid var(--border-warm);
+      overflow: hidden;
+    }
+
+    /* 상단 헤더 배너 */
+    .report-header {
+      background: linear-gradient(135deg, #1A2B4C 0%, #283C66 60%, #152238 100%);
+      color: #FFFFFF;
+      padding: 3.5rem 3rem 2.5rem 3rem;
+      position: relative;
+      border-bottom: 4px solid var(--accent);
+    }
+
+    .header-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background-color: rgba(212, 163, 89, 0.2);
+      border: 1px solid var(--accent);
+      color: #F8FAFC;
+      font-size: 0.85rem;
+      font-weight: 700;
+      padding: 0.4rem 1rem;
+      border-radius: 30px;
+      margin-bottom: 1.2rem;
+    }
+
+    .report-title {
+      font-family: var(--font-serif);
+      font-size: 2.3rem;
+      font-weight: 700;
+      line-height: 1.3;
+      margin-bottom: 0.8rem;
+    }
+
+    .report-subtitle {
+      color: #CBD5E1;
+      font-size: 1.1rem;
+      font-weight: 400;
+      max-width: 900px;
+      line-height: 1.6;
+    }
+
+    .meta-box {
+      margin-top: 2rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.15);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 2rem;
+      font-size: 0.9rem;
+      color: #94A3B8;
+    }
+    .meta-item strong { color: #FFFFFF; margin-right: 0.4rem; }
+
+    /* 본문 */
+    .report-body { padding: 3.5rem 3rem; }
+
+    .toc-card {
+      background-color: #F8FAFC;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 1.75rem 2rem;
+      margin-bottom: 3.5rem;
+    }
+    .toc-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: 1rem;
+    }
+    .toc-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 0.75rem 1.5rem;
+    }
+    .toc-link {
+      color: var(--secondary);
+      text-decoration: none;
+      font-size: 0.95rem;
+      font-weight: 500;
+    }
+    .toc-link:hover { color: var(--primary); text-decoration: underline; }
+
+    .section-block { margin-bottom: 4rem; }
+    .section-title {
+      font-family: var(--font-serif);
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: var(--primary);
+      border-bottom: 2px solid var(--border-warm);
+      padding-bottom: 0.8rem;
+      margin-bottom: 1.75rem;
+    }
+    .section-desc {
+      font-size: 1.05rem;
+      color: var(--text-muted);
+      margin-bottom: 1.5rem;
+    }
+
+    .tech-card {
+      background-color: #FFFFFF;
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 1.75rem;
+      margin-bottom: 1.75rem;
+      box-shadow: var(--card-shadow);
+    }
+    .tech-card.highlight { border-left: 6px solid var(--accent); }
+    .tech-card.green { border-left: 6px solid var(--secondary); }
+    .tech-card.alert { border-left: 6px solid #DC2626; background-color: #FFFDFD; }
+
+    .card-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1rem;
+    }
+    .card-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--primary);
+    }
+    .badge {
+      font-size: 0.8rem;
+      font-weight: 700;
+      padding: 0.25rem 0.7rem;
+      border-radius: 12px;
+    }
+    .badge-pass { background-color: #DEF7EC; color: #03543F; }
+    .badge-reject { background-color: #FEE2E2; color: #991B1B; }
+    .badge-keep { background-color: #FEF3C7; color: #92400E; }
+
+    .compare-table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      margin: 1.5rem 0;
+      border-radius: 14px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+    .compare-table th, .compare-table td {
+      padding: 1.1rem 1.25rem;
+      font-size: 0.95rem;
+      text-align: left;
+    }
+    .compare-table th {
+      background-color: var(--primary);
+      color: #FFFFFF;
+      font-weight: 600;
+    }
+    .compare-table td {
+      background-color: #FFFFFF;
+      border-bottom: 1px solid var(--border);
+    }
+    .compare-table tr:last-child td { border-bottom: none; }
+
+    /* 풀페이지 3섹션 아키텍처 박스 */
+    .snap-architecture-box {
+      background: #FBF9F5;
+      border: 2px solid var(--border-warm);
+      border-radius: 18px;
+      padding: 1.75rem;
+      margin: 1.5rem 0;
+    }
+    .snap-step {
+      background: #FFFFFF;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.25rem 1.5rem;
+      margin-bottom: 1rem;
+      box-shadow: 0 4px 12px rgba(26, 43, 76, 0.04);
+    }
+    .snap-step:last-child { margin-bottom: 0; }
+    .snap-step-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--primary);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 0.4rem;
+    }
+
+    @media (max-width: 768px) {
+      body { padding: 1rem 0.5rem; }
+      .report-header { padding: 2.5rem 1.5rem; }
+      .report-title { font-size: 1.8rem; }
+      .report-body { padding: 2rem 1.25rem; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="report-wrapper">
+  <!-- 헤더 -->
+  <header class="report-header">
+    <div class="header-badge">
+      <span>🌿 REFINED TEMPLATE ANALYSIS &amp; FULLPAGE INTEGRATION</span>
+    </div>
+    <h1 class="report-title">인터페이스 템플릿 기술 분석 및 메인 풀페이지 융합 보고서</h1>
+    <p class="report-subtitle">
+      과도한 사이버/기계식 요소를 걷어내고, 이어봄의 소프트 웜 크림(#FBF9F5) 색감과 풀페이지 스냅(100dvh) 구조를 100% 유지하며 에디토리얼 디테일을 정갈하게 이식하는 실전 설계안
+    </p>
+    <div class="meta-box">
+      <div class="meta-item"><strong>문서 번호:</strong> 00-25</div>
+      <div class="meta-item"><strong>작성자:</strong> [Gemini] 시각화 및 인터랙션 설계</div>
+      <div class="meta-item"><strong>참조 소스:</strong> c:\Users\kilak\Desktop\interface</div>
+      <div class="meta-item"><strong>작성일:</strong> 2026-08-18</div>
+    </div>
+  </header>
+
+  <main class="report-body">
+    <!-- 목차 -->
+    <nav class="toc-card">
+      <div class="toc-title">📑 목차</div>
+      <div class="toc-grid">
+        <a href="#sec1" class="toc-link">1. 이어봄 맞춤형 취사선택 (Selection Matrix)</a>
+        <a href="#sec2" class="toc-link">2. 풀페이지 스냅스크롤(100dvh) 융합 구조</a>
+        <a href="#sec3" class="toc-link">3. 4박스 카드(EntryBoxes) 디테일 개선</a>
+        <a href="#sec4" class="toc-link">4. 컴포넌트별 구현 명세 및 인계</a>
+      </div>
+    </nav>
+
+    <!-- 섹션 1 -->
+    <section id="sec1" class="section-block">
+      <h2 class="section-title">⚖️ 1. 이어봄 맞춤형 취사선택 (Selection Matrix)</h2>
+      <p class="section-desc">
+        <code>interface</code> 템플릿은 매우 현대적이지만, 자칫 과하면 <strong>6070 시니어 사용자 및 상례/웰다잉 플랫폼의 경건한 톤앤매너</strong>를 해칠 수 있습니다. 따라서 철저하게 <strong>"절제와 온기"</strong>를 기준으로 취사선택합니다.
+      </p>
+
+      <table class="compare-table">
+        <thead>
+          <tr>
+            <th style="width: 25%;">템플릿 요소</th>
+            <th style="width: 15%;">판정</th>
+            <th style="width: 60%;">이유 및 대체 방안</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>기계식 클릭 사운드<br>(Web Audio Synth)</strong></td>
+            <td><span class="badge badge-reject">❌ 완전 배제</span></td>
+            <td>슬픔에 잠긴 유족이나 조용한 환경의 시니어에게 기계식 타격음은 불필요한 소음과 거부감을 줌 ➔ <strong>음소거(무음) 유지</strong></td>
+          </tr>
+          <tr>
+            <td><strong>사이버 글리치 텍스트<br>(Scramble with !@#$)</strong></td>
+            <td><span class="badge badge-reject">❌ 완전 배제</span></td>
+            <td>시니어 사용자에게 시스템 오류/깨짐으로 오인될 위험 ➔ <strong>단아하고 정갈한 페이드인 &amp; 스트로크</strong>로 대체</td>
+          </tr>
+          <tr>
+            <td><strong>다크 잉크블랙 배경<br>(oklch 0.08)</strong></td>
+            <td><span class="badge badge-reject">❌ 완전 배제</span></td>
+            <td>이어봄 브랜드 고유 자산인 <strong>소프트 웜 크림(#FBF9F5)</strong> 바탕색을 100% 유지</td>
+          </tr>
+          <tr>
+            <td><strong>한지 노이즈 질감<br>(Fractal Noise)</strong></td>
+            <td><span class="badge badge-pass">⭕ 채택</span></td>
+            <td>소프트 웜 크림 배경 위에 <strong>극미세 한지(Hanji) 질감(`opacity: 0.015`)</strong>을 얹어 종이의 온기와 깊이감 부여</td>
+          </tr>
+          <tr>
+            <td><strong>종이 모서리 접힘<br>(Corner Fold)</strong></td>
+            <td><span class="badge badge-pass">⭕ 채택</span></td>
+            <td>유언장, 엔딩노트, 공문서 등 <strong>기록물의 아날로그 감성</strong>을 4박스 카드 우측 하단에 단아하게 적용</td>
+          </tr>
+          <tr>
+            <td><strong>호버 확장 디바이더 라인</strong></td>
+            <td><span class="badge badge-pass">⭕ 채택</span></td>
+            <td>카드 호버 시 48px 골드/그린 라인이 <strong>100%로 스무스하게 늘어나는 절제된 모션</strong> 적용</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- 섹션 2 -->
+    <section id="sec2" class="section-block">
+      <h2 class="section-title">📐 2. 풀페이지 스냅스크롤(100dvh) 융합 구조</h2>
+      <p class="section-desc">
+        <code>interface</code> 템플릿의 일반 세로 스크롤 방식 대신, <strong>이어봄의 풀페이지 스냅 스크롤(100dvh) 3섹션 아키텍처</strong>를 완벽하게 유지하면서 화면을 완성합니다.
+      </p>
+
+      <div class="snap-architecture-box">
+        <!-- 섹션 0 -->
+        <div class="snap-step" style="border-left: 5px solid var(--secondary);">
+          <div class="snap-step-title">
+            <span>[섹션 0] 메인 히어로 (100dvh 스냅)</span>
+          </div>
+          <p style="font-size: 0.92rem; color: var(--text-muted); margin: 0;">
+            • <strong>배경</strong>: 소프트 웜 크림(#FBF9F5) 바탕 + 극미세 한지 질감 노이즈.<br>
+            • <strong>좌측</strong>: "존엄하고 따뜻한 봄날을 함께 이어갑니다" 명조 헤드라인의 정갈한 등장.<br>
+            • <strong>우측</strong>: 나룻배 비주얼 카드에 부드러운 페이드 테두리와 서정적인 줌 애니메이션.
+          </p>
+        </div>
+
+        <!-- 섹션 1 -->
+        <div class="snap-step" style="border-left: 5px solid var(--accent);">
+          <div class="snap-step-title">
+            <span>[섹션 1] 4박스 진입 구조 (100dvh 스냅)</span>
+          </div>
+          <p style="font-size: 0.92rem; color: var(--text-muted); margin: 0;">
+            • <strong>박스①(생전 준비) &amp; 박스②(임종 및 사후 정리)</strong>: 우측 하단 한지 접힘(Corner Fold) + 호버 시 100% 확장 디바이더 라인 + 클릭 시 미니 풀스크린 오버레이(BoxDetailOverlay) 오픈.<br>
+            • <strong>박스③(Guest) &amp; 박스④(파트너)</strong>: 정갈한 단일 라인 바로가기 형태 유지.
+          </p>
+        </div>
+
+        <!-- 섹션 2 -->
+        <div class="snap-step" style="border-left: 5px solid var(--primary);">
+          <div class="snap-step-title">
+            <span>[섹션 2] 플랫폼 정보 푸터 (100dvh / auto 스냅)</span>
+          </div>
+          <p style="font-size: 0.92rem; color: var(--text-muted); margin: 0;">
+            • <strong>다크 딥 네이비(#1A2B4C)</strong> 바탕에 법정 약관 및 보호책임자 실연락처 정보가 단정하게 정렬된 신뢰의 마무리.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 섹션 3 -->
+    <section id="sec3" class="section-block">
+      <h2 class="section-title">🗂️ 3. 4박스 카드(EntryBoxes) 디테일 개선</h2>
+      <p class="section-desc">
+        <code>EntryBoxes.tsx</code>의 카드를 아날로그 기록물처럼 고급스럽게 다듬는 핵심 CSS &amp; 인터랙션 기법입니다.
+      </p>
+
+      <div class="tech-card highlight">
+        <div class="card-head">
+          <div class="card-title">📜 종이 모서리 접힘 (Corner Fold) &amp; 디바이더 확장 라인</div>
+          <span class="badge badge-pass">Pure CSS 구현</span>
+        </div>
+        <p>복잡한 자바스크립트 라이브러리 없이 순수 CSS만으로 가볍고 안정적으로 구현할 수 있습니다.</p>
+
+        <pre><code>/* 1. 카드의 우측 하단 아날로그 종이 접힘 효과 */
+.corner-fold {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 24px;
+  height: 24px;
+  overflow: hidden;
+}
+.corner-fold::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 32px;
+  height: 32px;
+  background-color: var(--secondary-color); /* 배경색과 동일 */
+  transform: rotate(45deg) translate(16px, 16px);
+  border-top: 1px solid var(--border-color);
+  border-left: 1px solid var(--border-color);
+}
+
+/* 2. 호버 시 골드/그린 디바이더 라인 확장 */
+.card-divider {
+  width: 48px;
+  height: 2px;
+  background-color: var(--accent-gold);
+  transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.entry-card:hover .card-divider {
+  width: 100%;
+}</code></pre>
+      </div>
+    </section>
+
+    <!-- 섹션 4 -->
+    <section id="sec4" class="section-block">
+      <h2 class="section-title">🚀 4. 컴포넌트별 구현 명세 및 인계</h2>
+
+      <table class="compare-table">
+        <thead>
+          <tr>
+            <th style="width: 25%;">대상 파일</th>
+            <th style="width: 35%;">적용할 인터페이스 기법</th>
+            <th style="width: 40%;">기대 효과</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>eobom/frontend/src/index.css</code></td>
+            <td>극미세 한지(Hanji) 노이즈 질감</td>
+            <td>단색 배경의 밋밋함을 없애고 눈이 편안한 오가닉 종이 질감 연출</td>
+          </tr>
+          <tr>
+            <td><code>eobom/frontend/src/components/home/EntryBoxes.tsx</code></td>
+            <td>Corner Fold + 호버 디바이더 확장</td>
+            <td>4박스 카드가 정갈하고 품격 있는 기록물처럼 느껴지는 시각적 완성도</td>
+          </tr>
+          <tr>
+            <td><code>eobom/frontend/src/pages/HomePage.tsx</code></td>
+            <td>풀페이지 스냅 섹션 유지 + 소프트 페이드</td>
+            <td>100dvh 스냅 구조를 유지하면서 섹션 간 전환감이 극도로 부드러워짐</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- 마무리 -->
+    <div style="background: linear-gradient(135deg, #1A2B4C, #283C66); color: #FFFFFF; border-radius: 20px; padding: 2.5rem; text-align: center;">
+      <h3 style="font-family: var(--font-serif); font-size: 1.5rem; margin-bottom: 0.8rem; color: #D4A359;">
+        "과시하지 않는 단아한 품격, 이어봄만의 따뜻한 풀페이지 경험"
+      </h3>
+      <p style="color: #CBD5E1; font-size: 0.98rem; max-width: 800px; margin: 0 auto; line-height: 1.7;">
+        본 정제안은 기계적 소음과 과도한 사이버 효과를 배제하고, 이어봄의 정체성(소프트 웜 크림, 풀페이지 스냅)을 지키면서 템플릿의 장점인 '종이 질감과 단아한 선의 미학'만을 온전히 흡수하도록 설계되었습니다.
+      </p>
+    </div>
+
+  </main>
+</div>
+
+</body>
+</html>
