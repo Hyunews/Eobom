@@ -124,7 +124,7 @@ body {
   flex-grow: 1;
 }
 
-/* Emergency Hotline Pulsing Badge */
+/* 지도 핀 마커 펄스 애니메이션(KakaoMapModal 전용 — 00-09 §4-3 2026-08-19 정정) */
 @keyframes pulse {
   0%, 100% { opacity: 1; transform: scale(1); }
   50% { opacity: 0.6; transform: scale(1.15); }
