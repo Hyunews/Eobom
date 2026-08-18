@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>✨ 이어봄 (Eobom) 프론트엔드 UI/UX 디자인 개선 및 심미성 강화 제안서</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css">
+  <link href="https://fonts.googleapis.com/css2?family=KoPub+World+Batang:wght@400;700&family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #1A2B4C;        /* Deep Navy */
+      --primary-light: #283C66;
+      --secondary: #5B7065;      /* Warm Green */
+      --secondary-light: #71887D;
+      --accent: #D4A359;         /* Warm Gold */
+      --accent-light: #FDE047;
+      --bg: #FBF9F5;             /* Soft Cream Background */
+      --surface: #FFFFFF;
+      --surface-subtle: #F8FAFC;
+      --text: #1E293B;
+      --text-muted: #64748B;
+      --text-light: #94A3B8;
+      --border: #E2E8F0;
+      --border-warm: #DFDCD7;
+      --danger: #DC2626;
+      --danger-bg: #FEF2F2;
+      --card-shadow: 0 10px 25px -5px rgba(26, 43, 76, 0.06), 0 8px 10px -6px rgba(26, 43, 76, 0.04);
+      --card-hover: 0 20px 35px -5px rgba(26, 43, 76, 0.12), 0 10px 10px -5px rgba(26, 43, 76, 0.06);
+      --font-body: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      --font-serif: 'KoPub World Batang', 'KoPubWorld 명조', serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--font-body);
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.7;
+      padding: 2.5rem 1rem;
+      word-break: keep-all;
+    }
+
+    .report-wrapper {
+      max-width: 1200px;
+      margin: 0 auto;
+      background-color: var(--surface);
+      border-radius: 28px;
+      box-shadow: 0 25px 50px -12px rgba(26, 43, 76, 0.12);
+      border: 1px solid var(--border-warm);
+      overflow: hidden;
+    }
+
+    /* 상단 헤더 배너 */
+    .report-header {
+      background: linear-gradient(135deg, #1A2B4C 0%, #283C66 60%, #152238 100%);
+      color: #FFFFFF;
+      padding: 3.5rem 3rem 2.5rem 3rem;
+      position: relative;
+      border-bottom: 4px solid var(--accent);
+    }
+
+    .header-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background-color: rgba(212, 163, 89, 0.2);
+      border: 1px solid var(--accent);
+      color: #F8FAFC;
+      font-size: 0.85rem;
+      font-weight: 700;
+      padding: 0.4rem 1rem;
+      border-radius: 30px;
+      margin-bottom: 1.2rem;
+      backdrop-filter: blur(4px);
+    }
+
+    .report-title {
+      font-family: var(--font-serif);
+      font-size: 2.3rem;
+      font-weight: 700;
+      line-height: 1.3;
+      margin-bottom: 0.8rem;
+      letter-spacing: -0.01em;
+    }
+
+    .report-subtitle {
+      color: #CBD5E1;
+      font-size: 1.1rem;
+      font-weight: 400;
+      max-width: 850px;
+      line-height: 1.6;
+    }
+
+    .meta-box {
+      margin-top: 2rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.15);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 2rem;
+      font-size: 0.9rem;
+      color: #94A3B8;
+    }
+    .meta-item strong { color: #FFFFFF; margin-right: 0.4rem; }
+
+    /* 본문 컨텐츠 영역 */
+    .report-body {
+      padding: 3.5rem 3rem;
+    }
+
+    /* 목차 네비게이션 */
+    .toc-card {
+      background-color: var(--surface-subtle);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 1.75rem 2rem;
+      margin-bottom: 3.5rem;
+    }
+    .toc-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .toc-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 0.75rem 1.5rem;
+    }
+    .toc-link {
+      color: var(--secondary);
+      text-decoration: none;
+      font-size: 0.95rem;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      transition: color 0.2s;
+    }
+    .toc-link:hover {
+      color: var(--primary);
+      text-decoration: underline;
+    }
+
+    /* 섹션 공통 스타일 */
+    .section-block {
+      margin-bottom: 4rem;
+    }
+    .section-title {
+      font-family: var(--font-serif);
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: var(--primary);
+      border-bottom: 2px solid var(--border-warm);
+      padding-bottom: 0.8rem;
+      margin-bottom: 1.75rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    .section-desc {
+      font-size: 1.05rem;
+      color: var(--text-muted);
+      margin-bottom: 1.5rem;
+      line-height: 1.7;
+    }
+
+    /* 카드 및 박스 컴포넌트 */
+    .insight-card {
+      background-color: #FFFFFF;
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 1.75rem;
+      margin-bottom: 1.5rem;
+      box-shadow: var(--card-shadow);
+      transition: transform 0.25s, box-shadow 0.25s;
+    }
+    .insight-card:hover {
+      transform: translateY(-3px);
+      box-shadow: var(--card-hover);
+      border-color: var(--secondary-light);
+    }
+    .insight-card.highlight {
+      border-left: 6px solid var(--accent);
+      background: linear-gradient(to right, #FFFDF8, #FFFFFF);
+    }
+    .insight-card.point {
+      border-left: 6px solid var(--secondary);
+      background: linear-gradient(to right, #F7FAF9, #FFFFFF);
+    }
+    .insight-card.alert {
+      border-left: 6px solid var(--danger);
+      background: linear-gradient(to right, #FEF8F8, #FFFFFF);
+    }
+
+    .card-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1rem;
+    }
+    .card-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--primary);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .status-badge {
+      font-size: 0.8rem;
+      font-weight: 700;
+      padding: 0.25rem 0.7rem;
+      border-radius: 12px;
+      display: inline-flex;
+      align-items: center;
+    }
+    .badge-urgent { background-color: #FEE2E2; color: #991B1B; }
+    .badge-recommend { background-color: #FEF3C7; color: #92400E; }
+    .badge-polish { background-color: #E0E7FF; color: #3730A3; }
+    .badge-good { background-color: #DEF7EC; color: #03543F; }
+
+    /* 비교 표 스타일 */
+    .compare-table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      margin: 1.5rem 0;
+      border-radius: 14px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+    .compare-table th, .compare-table td {
+      padding: 1.1rem 1.25rem;
+      font-size: 0.95rem;
+      text-align: left;
+    }
+    .compare-table th {
+      background-color: var(--primary);
+      color: #FFFFFF;
+      font-weight: 600;
+      border-bottom: 1px solid var(--border);
+    }
+    .compare-table td {
+      background-color: #FFFFFF;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+    }
+    .compare-table tr:last-child td {
+      border-bottom: none;
+    }
+    .compare-table td.as-is {
+      background-color: #FFF9F9;
+      color: #7F1D1D;
+    }
+    .compare-table td.to-be {
+      background-color: #F6FBF8;
+      color: #064E3B;
+      font-weight: 500;
+    }
+
+    /* 시각적 컴포넌트 목업 박스 */
+    .mockup-preview {
+      background-color: #FAF9F6;
+      border: 1.5px dashed var(--border-warm);
+      border-radius: 16px;
+      padding: 1.5rem;
+      margin: 1.25rem 0;
+    }
+    .mockup-label {
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--secondary);
+      text-transform: uppercase;
+      margin-bottom: 0.8rem;
+      display: block;
+      letter-spacing: 0.05em;
+    }
+
+    /* 모바일 반응형 뷰 */
+    @media (max-width: 768px) {
+      body { padding: 1rem 0.5rem; }
+      .report-header { padding: 2.5rem 1.5rem; }
+      .report-title { font-size: 1.8rem; }
+      .report-body { padding: 2rem 1.25rem; }
+      .meta-box { gap: 1rem; }
+      .compare-table th, .compare-table td { padding: 0.8rem 0.9rem; font-size: 0.88rem; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="report-wrapper">
+  <!-- 1. 리포트 헤더 -->
+  <header class="report-header">
+    <div class="header-badge">
+      <span>🎨 FRONTEND UI/UX DESIGN &amp; AESTHETIC ENHANCEMENT</span>
+    </div>
+    <h1 class="report-title">이어봄(Eobom) 프론트엔드 UI/UX 디자인 개선 제안서</h1>
+    <p class="report-subtitle">
+      6070 시니어 접근성과 웰다잉 플랫폼 특유의 "존엄함, 온기, 품격"을 극대화하는 프론트엔드 인터페이스 및 심미성 강화 종합 분석 보고서
+    </p>
+    <div class="meta-box">
+      <div class="meta-item"><strong>문서 번호:</strong> 00-24</div>
+      <div class="meta-item"><strong>분석 주체:</strong> [Gemini] 시각화 및 UI/UX 분석</div>
+      <div class="meta-item"><strong>분석 대상:</strong> eobom/frontend/src (React18 + TSX + CSS)</div>
+      <div class="meta-item"><strong>작성일:</strong> 2026-08-18</div>
+    </div>
+  </header>
+
+  <main class="report-body">
+    <!-- 2. 목차 네비게이션 -->
+    <nav class="toc-card">
+      <div class="toc-title">📑 목차 (Table of Contents)</div>
+      <div class="toc-grid">
+        <a href="#sec1" class="toc-link">1. 브랜드 감성 및 비주얼 아이덴티티 강화</a>
+        <a href="#sec2" class="toc-link">2. 메인화면(Hero &amp; 4박스) 인터랙션 고도화</a>
+        <a href="#sec3" class="toc-link">3. 전역 레이아웃 및 내비게이션(사이드바/모바일)</a>
+        <a href="#sec4" class="toc-link">4. 도메인별 세부 페이지 UI 디테일 개선</a>
+        <a href="#sec5" class="toc-link">5. 타이포그래피 &amp; 시니어 접근성 정밀 보정</a>
+        <a href="#sec6" class="toc-link">6. 단계별 실행 로드맵 및 권고사항</a>
+      </div>
+    </nav>
+
+    <!-- 3. 본문 섹션 -->
+
+    <!-- Section 1 -->
+    <section id="sec1" class="section-block">
+      <h2 class="section-title">🌿 1. 브랜드 감성 및 비주얼 아이덴티티 강화</h2>
+      <p class="section-desc">
+        이어봄은 <strong>"생전 준비부터 임종 및 사후 정리까지 이어주는 웰다잉 토탈 케어"</strong> 플랫폼입니다. 일반 상업 사이트의 자극적인 원색이나 차가운 테크 느낌을 지양하고, <strong>소프트 웜 크림(#FBF9F5)</strong>, <strong>딥 네이비(#1A2B4C)</strong>, <strong>웜 그린(#5B7065)</strong>, <strong>웜 골드(#D4A359)</strong> 4대 핵심 컬러를 기반으로 시각적 깊이감과 온기를 전달해야 합니다.
+      </p>
+
+      <div class="insight-card highlight">
+        <div class="card-head">
+          <div class="card-title">✨ 은은한 앰비언트 글로우(Ambient Glow) 및 글래스모피즘 융합</div>
+          <span class="status-badge badge-recommend">심미성 강화</span>
+        </div>
+        <p><strong>[현상]</strong> 전역 배경색(#FBF9F5)과 카드(#FFFFFF)의 경계가 단순한 단색 실선(1px solid #DFDCD7)으로만 구분되어 있어, 화면 전체가 다소 평면적이고 정적인 인상을 줍니다.</p>
+        <p style="margin-top: 0.5rem;"><strong>[개선안]</strong> 
+          카드 및 헤더에 <code>backdrop-filter: blur(12px)</code>와 <strong>따뜻한 다중 레이어 그림자</strong>(Soft Multi-layer Shadow: <code>0 12px 32px rgba(26, 43, 76, 0.05)</code>)를 적용하고, 핵심 강조 카드(예: 상속세 시뮬레이터, 엔딩노트 보안 금고)에는 미세한 골드 그라데이션 테두리를 입혀 <strong>"프리미엄하고 정갈한 품격"</strong>을 부여합니다.
+        </p>
+      </div>
+
+      <div class="insight-card point">
+        <div class="card-head">
+          <div class="card-title">🖼️ 메인 히어로 나룻배 비주얼의 감성적 깊이감 부여</div>
+          <span class="status-badge badge-polish">비주얼 개선</span>
+        </div>
+        <p><strong>[현상]</strong> 메인 히어로의 나룻배 이미지(<code>/calm_boat.png</code>)가 단순 카드 래퍼에 담겨 있어 좌측 텍스트와 우측 이미지 간의 시각적 유기성이 부족합니다.</p>
+        <p style="margin-top: 0.5rem;"><strong>[개선안]</strong> 
+          이미지 좌측/하단 가장자리에 <strong>소프트 웜 크림(#FBF9F5) 페이드 그라데이션 오버레이</strong>를 입혀 텍스트 영역과 자연스럽게 녹아들게 하고, 이미지 호버 시 아주 미세한 줌 애니메이션(<code>transform: scale(1.03); transition: 0.8s ease</code>)을 주어 "평온한 강물 위에 떠 있는 듯한" 서정적 분위기를 연출합니다.
+        </p>
+      </div>
+    </section>
+
+    <!-- Section 2 -->
+    <section id="sec2" class="section-block">
+      <h2 class="section-title">🏠 2. 메인화면(Hero &amp; 4박스) 인터랙션 고도화</h2>
+      <p class="section-desc">
+        2차 개편(walkthrough 32)을 통해 <strong>히어로 축소 + 4박스 구조(생전 / 임종 / Guest / 파트너) + 미니 풀스크린 오버레이(BoxDetailOverlay)</strong>로 진입 구조가 정직하게 정리되었습니다. 이 구조를 바탕으로 사용자가 더 직관적으로 상호작용할 수 있도록 어포던스(Affordance)를 강화해야 합니다.
+      </p>
+
+      <table class="compare-table">
+        <thead>
+          <tr>
+            <th style="width: 25%;">대상 컴포넌트</th>
+            <th style="width: 35%;">현재 상태 (As-Is)</th>
+            <th style="width: 40%;">개선 제안 (To-Be)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>4박스 카드<br>(EntryBoxes.tsx)</strong></td>
+            <td class="as-is">박스①·②가 클릭 시 전체화면 슬라이드가 열린다는 점이 카드 외형상 직관적이지 않음 (단순 카드 형태).</td>
+            <td class="to-be">우측 상단에 <strong>"전체 슬라이드 보기 ↗"</strong> 칩 및 마우스 호버 시 부드러운 리프트(Lift) 효과 + 아이콘 앰비언트 하이라이트 추가.</td>
+          </tr>
+          <tr>
+            <td><strong>풀스크린 오버레이<br>(BoxDetailOverlay.tsx)</strong></td>
+            <td class="as-is">슬라이드 개수와 현재 위치를 우측 작은 인디케이터 점으로만 파악 가능. 닫기 버튼이 상단에 고정.</td>
+            <td class="to-be">좌측 상단에 <strong>"도메인 진행 스텝바 (예: 01 / 06)"</strong>를 시각화하고, 하단에 <strong>"다음 항목으로 스크롤 ↓"</strong> 바운스 힌트 제공.</td>
+          </tr>
+          <tr>
+            <td><strong>히어로 스크롤 유도<br>(HomePage.tsx)</strong></td>
+            <td class="as-is">풀페이지 스냅스크롤 인디케이터 점 3개만 우측에 플로팅되어 첫 방문자에게 스크롤 안내 부족.</td>
+            <td class="to-be">히어로 하단 중앙에 <strong>"어떤 도움이 필요하신가요? 아래로 스크롤"</strong> 안내 플로팅 칩(펄스 애니메이션) 배치.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="mockup-preview">
+        <span class="mockup-label">💡 4박스 카드 비주얼 어포던스 개선 시안</span>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; margin-top: 0.5rem;">
+          <div style="background: #FFFFFF; border: 2px solid #5B7065; border-radius: 14px; padding: 1.2rem; box-shadow: 0 4px 14px rgba(91, 112, 101, 0.1);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+              <span style="font-weight: 700; color: #1A2B4C; font-size: 1.1rem;">🌱 생전 준비</span>
+              <span style="font-size: 0.75rem; background: #DEF7EC; color: #03543F; padding: 0.2rem 0.5rem; border-radius: 6px; font-weight: 700;">슬라이드 3종 ↗</span>
+            </div>
+            <p style="font-size: 0.85rem; color: #64748B; margin: 0;">상속·법률 전문가 상담, 디지털 엔딩노트, 디지털 계정 정리</p>
+          </div>
+          <div style="background: #FFFFFF; border: 2px solid #D4A359; border-radius: 14px; padding: 1.2rem; box-shadow: 0 4px 14px rgba(212, 163, 89, 0.15);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+              <span style="font-weight: 700; color: #1A2B4C; font-size: 1.1rem;">🕊️ 임종 및 사후 정리</span>
+              <span style="font-size: 0.75rem; background: #FEF3C7; color: #92400E; padding: 0.2rem 0.5rem; border-radius: 6px; font-weight: 700;">슬라이드 6종 ↗</span>
+            </div>
+            <p style="font-size: 0.85rem; color: #64748B; margin: 0;">사망 직후 행정 케어, 장례·묘지 매칭, 전문가 상담, 유품 정리</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 3 -->
+    <section id="sec3" class="section-block">
+      <h2 class="section-title">🧭 3. 전역 레이아웃 및 내비게이션(사이드바/모바일)</h2>
+      <p class="section-desc">
+        화면 좌측의 <strong>확장형 사이드바(Sidebar.tsx)</strong>와 <strong>모바일 환경 UX</strong>는 사용자 경험의 핵심 뼈대입니다.
+      </p>
+
+      <div class="insight-card alert">
+        <div class="card-head">
+          <div class="card-title">⚠️ 사이드바 호버 시 레이아웃 시프트(Layout Shift) 완화</div>
+          <span class="status-badge badge-urgent">사용성 개선</span>
+        </div>
+        <p><strong>[현상]</strong> 데스크톱에서 사이드바에 마우스가 닿으면 <code>width: 240px</code>로 확장되며 <code>.main-wrapper</code>의 <code>margin-left</code>가 72px에서 240px로 함께 밀립니다. 마우스가 우연히 스칠 때마다 전체 본문이 좌우로 덜컥거리며 밀려 시각적 피로감을 유발합니다.</p>
+        <p style="margin-top: 0.5rem;"><strong>[개선안]</strong> 
+          본문을 밀어내는 방식 대신, <strong>고정 슬림 아이콘 레일(72px)</strong>을 유지하면서 호버 시 <strong>플로팅 오버레이 드로어(Floating Overlay Drawer)</strong> 또는 <strong>정교한 툴팁 팝오버(Tooltip Popover)</strong>로 메뉴명을 노출하면 본문의 흔들림 없이 우아한 내비게이션을 유지할 수 있습니다.
+        </p>
+      </div>
+
+      <div class="insight-card highlight">
+        <div class="card-head">
+          <div class="card-title">📱 모바일 하단 탭 바 (Mobile Bottom Navigation Bar) 권고</div>
+          <span class="status-badge badge-recommend">모바일 UX</span>
+        </div>
+        <p><strong>[현상]</strong> 모바일(&lt; 480px)에서 좌측에 56px 고정 사이드바가 상시 자리를 차지하여, 375px 소형 모바일 화면에서 실제 본문 가로 폭이 319px로 좁아집니다.</p>
+        <p style="margin-top: 0.5rem;"><strong>[개선안]</strong> 
+          모바일 폭(&lt; 768px)에서는 좌측 사이드바를 숨기고(<code>display: none</code>), <strong>하단 고정 내비게이션 바(Bottom Tab Bar: 홈, 장사시설, 전문가, 상중케어, 전체메뉴)</strong>를 제공합니다. 6070 시니어가 한 손(엄지손가락)으로 조작하기 가장 편안한 모바일 UI 표준입니다.
+        </p>
+      </div>
+    </section>
+
+    <!-- Section 4 -->
+    <section id="sec4" class="section-block">
+      <h2 class="section-title">📂 4. 도메인별 세부 페이지 UI 디테일 개선</h2>
+      <p class="section-desc">
+        각 도메인 화면의 신뢰성과 완성도를 높이기 위한 세부 디자인 디테일입니다.
+      </p>
+
+      <div class="insight-card point">
+        <div class="card-head">
+          <div class="card-title">01. 장사시설 매칭 (FacilityPage.tsx) — 투명 가격 공시 배지</div>
+          <span class="status-badge badge-polish">신뢰감 강화</span>
+        </div>
+        <ul>
+          <li><strong>공공데이터 투명 가격 강조:</strong> 보건복지부 e하늘 장사정보 가격 공시 연동 시설에 <strong>[🛡️ e하늘 표준 가격 공시]</strong> 에메랄드 뱃지를 카드 상단에 선명하게 노출하여 바가지 요금 걱정을 덜어주는 신뢰감 제공.</li>
+          <li><strong>시설 썸네일 플레이스홀더:</strong> 파트너가 사진을 등록하지 않은 시설의 경우 회색 빈 박스 대신 <strong>"봉안당 / 수목장 / 장례식장"</strong> 카테고리별 품격 있는 일러스트 배경 적용.</li>
+        </ul>
+      </div>
+
+      <div class="insight-card point">
+        <div class="card-head">
+          <div class="card-title">02. 상속·법률 상담 (CounselingPage.tsx) — 시뮬레이터 배너 프리미엄화</div>
+          <span class="status-badge badge-recommend">전환율 극대화</span>
+        </div>
+        <ul>
+          <li><strong>상속세 시뮬레이터 CTA 배너:</strong> 단순 텍스트 박스에서 <strong>"📊 상속세 예상 세액 1분 자동 계산기"</strong> 형태의 골드 그라데이션 카드와 계산기 일러스트를 결합하여 클릭 유도력 강화.</li>
+          <li><strong>전문가 자격 뱃지:</strong> 변호사, 법무사, 세무사, 행정사 등 자격협회 인증 여부를 한눈에 알아볼 수 있는 공인 뱃지 시스템 정교화.</li>
+        </ul>
+      </div>
+
+      <div class="insight-card point">
+        <div class="card-head">
+          <div class="card-title">07. 상중 케어 &amp; 행정 가이드 (CareGuidePage.tsx) — 진행률 및 타임라인 시각화</div>
+          <span class="status-badge badge-recommend">유족 심리 안정</span>
+        </div>
+        <ul>
+          <li><strong>행정 체크리스트 진행률 게이지:</strong> 상단에 <strong>"전체 23개 과제 중 7개 완료 (30%)"</strong> 프로그레스 바를 배치하여, 경황없는 유족이 남은 행정 절차를 체계적으로 파악하고 심리적 안도감을 얻을 수 있도록 지원.</li>
+          <li><strong>D-Day 수직 타임라인(Vertical Stepper):</strong> [D-Day ~ 3일] ➔ [3개월 이내 상속포기] ➔ [6개월 이내 상속세] 단계가 시간 순서대로 연결된 세로 라인 타임라인 UI 구현.</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- Section 5 -->
+    <section id="sec5" class="section-block">
+      <h2 class="section-title">🔍 5. 타이포그래피 &amp; 시니어 접근성 정밀 보정</h2>
+      <p class="section-desc">
+        이어봄의 핵심 페르소나인 <strong>6070 시니어 사용자</strong>를 위한 웹 접근성(WCAG 2.1) 및 타이포그래피 규칙 준수 현황입니다.
+      </p>
+
+      <div class="insight-card highlight">
+        <div class="card-head">
+          <div class="card-title">👁️ 텍스트 명도 대비(Contrast Ratio) 7:1 (WCAG AAA) 보정</div>
+          <span class="status-badge badge-urgent">접근성 보장</span>
+        </div>
+        <p><strong>[진단]</strong> 보조 설명 및 날짜, 힌트 등에 사용되는 연한 그레이(<code>#94A3B8</code>, <code>#9CA3AF</code>)가 소프트 웜 크림 배경(#FBF9F5) 위에서 대비율 약 3.2:1 ~ 3.8:1로, 시니어의 노안·시력 저하 시 흐릿하게 보일 위험이 있습니다.</p>
+        <p style="margin-top: 0.5rem;"><strong>[보정 가이드]</strong> 
+          보조 텍스트 토큰을 최소 <strong>#64748B (Slate Gray, 대비율 4.8:1 - WCAG AA 통과)</strong> 이상으로 상향 조정하고, 중요 안내 문구는 <strong>#334155 (대비율 7.5:1 - WCAG AAA 통과)</strong>로 짙게 유지합니다.
+        </p>
+      </div>
+
+      <div class="insight-card point">
+        <div class="card-head">
+          <div class="card-title">👆 최소 터치 타겟(56px) 및 클릭 피드백(Active State) 보강</div>
+          <span class="status-badge badge-good">토큰 준수</span>
+        </div>
+        <p><strong>[현황 및 제안]</strong> <code>index.css</code>의 <code>--min-touch-target: 56px</code> 원칙은 매우 훌륭하게 설계되어 있습니다. 여기에 더해 터치 시 버튼이 <strong>0.97배 살짝 눌리는 탭 피드백(<code>:active { transform: scale(0.97); }</code>)</strong>을 공통 클래스(<code>.btn</code>, <code>.card</code>)에 적용하면 손떨림이 있는 시니어도 버튼이 정상적으로 눌렸음을 촉각적/시각적으로 즉시 인지할 수 있습니다.</p>
+      </div>
+    </section>
+
+    <!-- Section 6 -->
+    <section id="sec6" class="section-block">
+      <h2 class="section-title">🚀 6. 단계별 실행 로드맵 및 권고사항</h2>
+      <p class="section-desc">
+        프론트엔드 작업 우선순위에 맞춘 추천 개선 로드맵입니다.
+      </p>
+
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.5rem;">
+        <div style="background: #FFFFFF; border: 1px solid var(--border); border-top: 4px solid var(--secondary); border-radius: 16px; padding: 1.5rem; box-shadow: var(--card-shadow);">
+          <h3 style="color: var(--primary); font-size: 1.15rem; margin-bottom: 0.8rem;">🌱 Phase 1. Quick Wins (즉시 반영 권고)</h3>
+          <ul style="padding-left: 1.2rem; font-size: 0.92rem; color: var(--text-muted); line-height: 1.8;">
+            <li>텍스트 명도 대비율 보정 (#94A3B8 ➔ #64748B)</li>
+            <li>4박스 카드 "슬라이드 보기 ↗" 어포던스 칩 추가</li>
+            <li>버튼 및 카드 터치 피드백(<code>:active scale(0.97)</code>) 적용</li>
+            <li>CareGuidePage 체크리스트 진행률(%) 바 신설</li>
+          </ul>
+        </div>
+
+        <div style="background: #FFFFFF; border: 1px solid var(--border); border-top: 4px solid var(--accent); border-radius: 16px; padding: 1.5rem; box-shadow: var(--card-shadow);">
+          <h3 style="color: var(--primary); font-size: 1.15rem; margin-bottom: 0.8rem;">✨ Phase 2. Visual Polish (UI 고도화)</h3>
+          <ul style="padding-left: 1.2rem; font-size: 0.92rem; color: var(--text-muted); line-height: 1.8;">
+            <li>사이드바 호버 시 본문 밀림(Layout Shift) 방지 드로어화</li>
+            <li>모바일 화면 하단 내비게이션 바(Bottom Tab Bar) 도입</li>
+            <li>상속세 시뮬레이터 배너 프리미엄 골드 디자인 적용</li>
+            <li>BoxDetailOverlay 슬라이드 진행 스텝바 및 스크롤 안내 추가</li>
+          </ul>
+        </div>
+
+        <div style="background: #FFFFFF; border: 1px solid var(--border); border-top: 4px solid var(--primary); border-radius: 16px; padding: 1.5rem; box-shadow: var(--card-shadow);">
+          <h3 style="color: var(--primary); font-size: 1.15rem; margin-bottom: 0.8rem;">🏛️ Phase 3. Full Experience (완성도 극대화)</h3>
+          <ul style="padding-left: 1.2rem; font-size: 0.92rem; color: var(--text-muted); line-height: 1.8;">
+            <li>장사시설 썸네일 카테고리별 감성 일러스트 플레이스홀더</li>
+            <li>사망 행정 D-Day 수직 타임라인 스텝퍼 UI</li>
+            <li>메인 히어로 서정적 비주얼 페이드 그라데이션 및 블러 심도 강화</li>
+            <li>다크/라이트 테마 토큰화 및 글로벌 마이크로 인터랙션 완결</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- 마무리 결론 -->
+    <div style="background: linear-gradient(135deg, #1A2B4C, #283C66); color: #FFFFFF; border-radius: 20px; padding: 2.5rem; text-align: center; margin-top: 2rem;">
+      <h3 style="font-family: var(--font-serif); font-size: 1.5rem; margin-bottom: 0.8rem; color: #FFFFFF;">
+        "품격 있는 비주얼과 따뜻한 사용성으로 유족의 마음에 평온을 더합니다"
+      </h3>
+      <p style="color: #CBD5E1; font-size: 0.98rem; max-width: 800px; margin: 0 auto; line-height: 1.7;">
+        이어봄 플랫폼은 고인을 기리고 슬픔에 잠긴 가족을 돕는 매우 특별한 공간입니다. 본 제안서의 UI/UX 개선안들은 복잡한 기술을 과시하기 위함이 아니라, <strong>가장 힘든 순간에 직면한 사용자가 아무런 불편함과 불안감 없이 안심하고 서비스를 이용할 수 있도록 돕는 시각적 배려</strong>입니다.
+      </p>
+    </div>
+
+  </main>
+</div>
+
+</body>
+</html>
