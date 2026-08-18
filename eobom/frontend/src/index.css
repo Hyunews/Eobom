@@ -267,3 +267,23 @@ body {
   }
 }
 
+/* ── 박스별 미니 풀스크린 오버레이(BoxDetailOverlay) 슬라이드 높이 ──
+   오버레이는 헤더 위까지 전부 덮으므로 .fullpage-section과 달리 72px을 빼지 않는다. */
+.overlay-slide {
+  height: 100vh;
+}
+
+@supports (height: 100dvh) {
+  .overlay-slide {
+    height: 100dvh;
+  }
+}
+
+/* ── 메인 홈 4박스 진입 블록(EntryBoxes) — 00-23 §8.5 ──
+   Desktop(≥1024)·Tablet(768~1023) 동일 2열(①②/③④), Mobile(<768) 1열 스택(①→②→③→④) */
+@media (max-width: 767px) {
+  .entry-boxes-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+

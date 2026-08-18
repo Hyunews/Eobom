@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🔐 00-19. 개인정보처리방침 — **v0.9 초안** - 이어봄 기획 명세서</title>
+  <style>
+    :root {
+      --primary: #1A2B4C;
+      --secondary: #5B7065;
+      --accent: #D4A359;
+      --bg: #FBF9F5;
+      --surface: #FFFFFF;
+      --text: #1E293B;
+      --text-muted: #64748B;
+      --border: #E2E8F0;
+      --code-bg: #0F172A;
+      --code-text: #F8FAFC;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.65;
+      padding: 2rem 1rem;
+    }
+    .container {
+      max-width: 1140px;
+      margin: 0 auto;
+      background-color: var(--surface);
+      padding: 3rem;
+      border-radius: 24px;
+      box-shadow: 0 20px 40px rgba(26, 43, 76, 0.08);
+      border: 1px solid var(--border);
+    }
+    .header {
+      border-bottom: 3px solid var(--accent);
+      padding-bottom: 1.5rem;
+      margin-bottom: 2.5rem;
+    }
+    .badge {
+      display: inline-block;
+      background-color: var(--primary);
+      color: #FFF;
+      font-size: 0.85rem;
+      font-weight: 700;
+      padding: 0.3rem 0.8rem;
+      border-radius: 20px;
+      margin-bottom: 0.8rem;
+    }
+    h1 {
+      font-size: 2.1rem;
+      color: var(--primary);
+      margin-bottom: 0.5rem;
+      font-weight: 800;
+    }
+    .subtitle {
+      color: var(--text-muted);
+      font-size: 1.05rem;
+    }
+    .section-title {
+      font-size: 1.5rem;
+      color: var(--primary);
+      margin: 2.5rem 0 1.2rem 0;
+      padding-left: 0.8rem;
+      border-left: 5px solid var(--secondary);
+      font-weight: 700;
+    }
+    .subsection-title {
+      font-size: 1.25rem;
+      color: var(--primary);
+      margin: 1.8rem 0 0.8rem 0;
+      font-weight: 700;
+    }
+    .h4-title {
+      font-size: 1.05rem;
+      color: var(--secondary);
+      margin: 1.2rem 0 0.6rem 0;
+      font-weight: 700;
+    }
+    .info-quote {
+      background: #F1F5F9;
+      border-left: 4px solid var(--accent);
+      padding: 0.9rem 1.2rem;
+      margin: 1rem 0;
+      border-radius: 6px;
+      font-size: 0.95rem;
+      color: #334155;
+    }
+    code {
+      background: #EFF6FF;
+      color: #1D4ED8;
+      padding: 0.15rem 0.4rem;
+      border-radius: 6px;
+      font-family: 'Fira Code', Consolas, monospace;
+      font-size: 0.88rem;
+    }
+    pre {
+      background: var(--code-bg);
+      color: var(--code-text);
+      padding: 1.2rem;
+      border-radius: 12px;
+      overflow-x: auto;
+      margin: 1rem 0 1.5rem 0;
+      font-family: 'Fira Code', Consolas, monospace;
+      font-size: 0.9rem;
+    }
+    pre code {
+      background: transparent;
+      color: inherit;
+      padding: 0;
+    }
+    .table-container {
+      overflow-x: auto;
+      margin: 1.2rem 0 1.8rem 0;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.92rem;
+      background: #FFFFFF;
+    }
+    th {
+      background-color: var(--primary);
+      color: #FFFFFF;
+      padding: 0.8rem 1rem;
+      text-align: left;
+      font-weight: 600;
+    }
+    td {
+      padding: 0.8rem 1rem;
+      border-bottom: 1px solid var(--border);
+      color: #334155;
+    }
+    tr:last-child td {
+      border-bottom: none;
+    }
+    tr:nth-child(even) {
+      background-color: #F8FAFC;
+    }
+    .tag {
+      display: inline-block;
+      padding: 0.15rem 0.45rem;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 700;
+    }
+    .tag.green { background-color: #DCFCE7; color: #166534; }
+    .tag.gray { background-color: #F1F5F9; color: #475569; }
+    .tag.orange { background-color: #FFEDD5; color: #9A3412; }
+    .tag.red { background-color: #FEE2E2; color: #991B1B; border: 1px solid #FECACA; }
+    .tag.blue { background-color: #DBEAFE; color: #1E40AF; border: 1px solid #BFDBFE; }
+    .tag.gold { background-color: #FEF3C7; color: #92400E; border: 1px solid #FDE68A; font-weight: 700; }
+    .tag.warn { background-color: #FEF3C7; color: #B45309; }
+    .tag.pk { background-color: #FEE2E2; color: #991B1B; }
+    .tag.fk { background-color: #DBEAFE; color: #1E40AF; }
+    .tag.uk { background-color: #DCFCE7; color: #166534; }
+    del {
+      color: #94A3B8;
+      text-decoration: line-through;
+    }
+    .md-link {
+      color: var(--accent);
+      text-decoration: underline;
+      font-weight: 500;
+    }
+    p { margin-bottom: 0.9rem; color: #334155; }
+    ul, ol { margin-bottom: 1rem; padding-left: 1.4rem; color: #334155; }
+    li { margin-bottom: 0.4rem; }
+    .divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 2.5rem 0;
+    }
+    .nav-bar {
+      margin-bottom: 2rem;
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+    }
+    .nav-link {
+      color: var(--primary);
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+    .nav-link:hover {
+      color: var(--accent);
+    }
+    @page {
+      size: A4 portrait;
+      margin: 15mm 14mm 18mm 14mm;
+    }
+    @media print {
+      html, body {
+        background-color: #ffffff !important;
+        color: #1e293b !important;
+        font-size: 9.5pt !important;
+        line-height: 1.5 !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+      .container {
+        max-width: 100% !important;
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        border: none !important;
+        box-shadow: none !important;
+        background: transparent !important;
+        border-radius: 0 !important;
+      }
+      .nav-bar { display: none !important; }
+      .header {
+        border-bottom: 2px solid var(--accent) !important;
+        padding-bottom: 0.6rem !important;
+        margin-bottom: 1.2rem !important;
+        page-break-after: avoid !important;
+        break-after: avoid !important;
+      }
+      h1 {
+        font-size: 17pt !important;
+        line-height: 1.3 !important;
+        margin-bottom: 0.4rem !important;
+        color: var(--primary) !important;
+      }
+      .badge {
+        font-size: 8pt !important;
+        padding: 0.2rem 0.6rem !important;
+        background-color: var(--primary) !important;
+        color: #ffffff !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+      .section-title {
+        font-size: 12.5pt !important;
+        margin: 1.2rem 0 0.6rem 0 !important;
+        padding-left: 0.5rem !important;
+        border-left: 4px solid var(--secondary) !important;
+        page-break-after: avoid !important;
+        break-after: avoid !important;
+      }
+      .subsection-title {
+        font-size: 10.5pt !important;
+        margin: 1rem 0 0.5rem 0 !important;
+        page-break-after: avoid !important;
+        break-after: avoid !important;
+      }
+      .h4-title {
+        font-size: 9.5pt !important;
+        margin: 0.8rem 0 0.3rem 0 !important;
+        page-break-after: avoid !important;
+        break-after: avoid !important;
+      }
+      .info-quote {
+        background: #f8fafc !important;
+        border-left: 3px solid var(--accent) !important;
+        padding: 0.6rem 0.8rem !important;
+        margin: 0.6rem 0 !important;
+        font-size: 9pt !important;
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+        border-radius: 4px !important;
+      }
+      .table-container {
+        margin: 0.6rem 0 1rem 0 !important;
+        border: 1px solid #cbd5e1 !important;
+        border-radius: 6px !important;
+        overflow: visible !important;
+        page-break-inside: auto !important;
+        break-inside: auto !important;
+      }
+      table {
+        width: 100% !important;
+        font-size: 8.5pt !important;
+        border-collapse: collapse !important;
+      }
+      thead { display: table-header-group !important; }
+      tr {
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+      }
+      th {
+        background-color: #1a2b4c !important;
+        color: #ffffff !important;
+        padding: 0.45rem 0.65rem !important;
+        font-size: 8.5pt !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+      td {
+        padding: 0.45rem 0.65rem !important;
+        border-bottom: 1px solid #e2e8f0 !important;
+      }
+      .tag {
+        font-size: 7pt !important;
+        padding: 0.1rem 0.35rem !important;
+        border-radius: 4px !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+      .divider {
+        margin: 1rem 0 !important;
+        border-top: 1px solid #e2e8f0 !important;
+      }
+      .page-break {
+        page-break-before: always !important;
+        break-before: page !important;
+      }
+      ul, ol { margin-bottom: 0.5rem !important; }
+      li { page-break-inside: avoid !important; break-inside: avoid !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="nav-bar">
+      <a href="../index.html" class="nav-link">← 보고서 메인 포털로 돌아가기</a>
+    </div>
+    <div class="header">
+      <span class="badge">SSOT 정본 동기화 완료</span>
+      <h1>🔐 00-19. 개인정보처리방침 — **v0.9 초안**</h1>
+      
+    </div>
+    <blockquote class="info-quote"><strong>문서 성격</strong>: <strong>게시 예정 본문의 정본</strong>. 다른 기획 문서와 달리 **이 문서의 본문은 그대로<br/>
+화면에 나갑니다**(<code>/privacy</code>). <code>[Claude:Opus]</code> 작성(2026-08-18).<br/>
+<strong>근거</strong>: <code>00-18</code> §11.5 단계 1 · <code>00-17</code> §4.2 ① · <code>00-14</code> §2.4(2-6).<br/>
+<strong>설계 근거의 정본은 <code>00-18</code></strong> 입니다 — 왜 이렇게 썼는지는 거기, 무엇을 게시할지는 여기.</blockquote>
+<blockquote class="info-quote"># <span class="tag red">🔴</span> 이 문서는 <strong>게시본이 아닙니다. 지금 화면에 걸면 안 됩니다.</strong><br/>
+<strong>버전 <code>v0.9</code> · 시행일 <span class="tag red">🔴</span> 미정.</strong> <code>00-18</code> §8.1의 게이트 5개를 통과해야 <code>v1.0</code>이 됩니다.<br/>
+<span class="tag red">🔴</span> 표시 = <strong>아직 채울 수 없는 칸</strong>이며, <strong>빈칸인 채로 게시하면 필수 기재사항 누락</strong>입니다.<br/>
+<span class="tag warn">⚠️</span> <strong>이 문서는 법률 자문이 아닙니다.</strong> 법령·기관 정보는 <strong>2026-08-18 확인 기준</strong>이고,<br/>
+게시 직전 재확인이 필요합니다(<code>AGENTS.md</code> §6).</blockquote>
+<hr class="divider"/>
+<h2 class="section-title">📋 0. 편집자 주 — <strong>사장님께 여쭐 것은 이 표가 전부입니다</strong></h2>
+<p><strong>본문을 다 읽으실 필요 없습니다. 아래 <span class="tag red">🔴</span> 6개만 답을 주시면 <code>v1.0</code>으로 올라갑니다.</strong></p>
+<div class="table-container"><table><thead><tr><th>#</th><th>어디</th><th>무엇</th><th>상태</th></tr></thead><tbody><tr><td><strong>①</strong></td><td>제12조</td><td>개인정보 보호책임자</td><td><span class="tag green">✅</span> <strong>확정(08-18)</strong> — 윤현우 / 개인정보 담당자 / 070-8856-2725 / yhw@samil25.co.kr</td></tr><tr><td><strong>②</strong></td><td>제4조</td><td>추모관·고인 정보 보유기간</td><td><span class="tag red">🔴</span> <strong>여전히 열림</strong> — <strong><code>00-20</code> 신설(권고: 기본 1년 + 동결)</strong>. <span class="tag blue">🔵</span> 사장님 확정 대기</td></tr><tr><td><strong>③</strong></td><td>제1조</td><td>사업자 상호·주소·대표자</td><td><span class="tag green">✅</span> <strong>확정(08-18)</strong> — (주)삼일정보시스템 / 이권형 / 전남광주통합특별시 광산구 하남산단8번로 177, 6층</td></tr><tr><td><strong>④⑤⑥</strong></td><td>제4조·제9조·제11조</td><td>탈퇴 후 보유 · 접속기록 · 만 14세 미만</td><td><span class="tag green">✅</span> <strong>권고값대로 확정(08-18)</strong></td></tr><tr><td><strong>⑦</strong></td><td>제6조·제7조</td><td>클라우드 사업자 · 국외이전</td><td><span class="tag blue">🔵</span> <strong>보류 확정(08-18)</strong> — *&quot;아직 사업자 정해지지 않았으므로 보류&quot;*(<code>00-11</code> §8-1)</td></tr><tr><td><span class="tag red">🔴</span> <strong>⑧</strong></td><td><strong>제3-6조</strong></td><td><strong>위치정보 — 신규</strong></td><td><span class="tag orange">🟡</span> <strong>08-18 — B안(유지) 전제로 작성.</strong> <span class="tag red">🔴</span><span class="tag red">🔴</span> <strong>신고 완료가 전제이며 아직 안 됨</strong> → 잠금 규칙 <code>00-21</code> §0.2</td></tr></tbody></table></div>
+<blockquote class="info-quote">## <span class="tag green">✅</span> 2026-08-18 — <strong>6건 중 4건 확정. 남은 것은 2건입니다.</strong><br/>
+<span class="tag red">🔴</span> <strong>②추모관 보유기간</strong>(→ <code>00-20</code>) · <span class="tag blue">🔵</span> <strong>⑦클라우드</strong>(보류) · <span class="tag red">🔴</span> <strong>⑧위치정보</strong>(신규, → <code>00-14</code> §2.7).<br/>
+<strong>그중 ⑦은 보류가 확정이므로 실질 블로커는 ②와 ⑧ 둘입니다.</strong></blockquote>
+<p>&gt;</p>
+<blockquote class="info-quote"><span class="tag red">🔴</span> <strong>⑧이 이번 검토의 가장 큰 소득입니다.</strong> 사장님이 *&quot;장사시설 도메인에서 위치정보 나오는데<br/>
+수집에 해당하지 않는가&quot;* 를 물으셨고, <strong>확인해보니 수집하고 있었습니다.</strong> 그대로 갔으면<br/>
+<strong>처리방침 자체가 허위 기재</strong>가 될 뻔했습니다 — **법적 문서에서 <code>00-14</code> §2와 같은 실수를<br/>
+할 뻔한 것**입니다.</blockquote>
+<h3 class="subsection-title">0.1 <span class="tag blue">🔵</span> 이번 초안에서 확인된 <strong>좋은 소식 3가지</strong></h3>
+<p>작성하면서 코드를 다시 뒤졌는데, <strong>처리방침 관점에서 이어봄이 잘 서 있는 부분</strong>이 나왔습니다.</p>
+<p><strong>이건 그냥 적는 게 아니라 신뢰 재료로 쓸 수 있습니다.</strong></p>
+<div class="table-container"><table><thead><tr><th>발견</th><th>의미</th></tr></thead><tbody><tr><td><span class="tag green">✅</span> <strong>쿠키를 전혀 사용하지 않습니다</strong></td><td>백엔드 전체에 <code>cookie</code>·<code>httpOnly</code> 코드가 <strong>0건</strong>. 대부분의 처리방침에서 가장 길고 지저분한 절이 <strong>&quot;사용하지 않습니다&quot;로 끝납니다</strong></td></tr><tr><td><span class="tag green">✅</span> <strong>제3자 분석·광고 도구가 하나도 없습니다</strong></td><td>GA·GTM·Meta 픽셀 등 <strong>0건</strong>(<code>grep</code> 확인). <strong>행태정보 수집 절 자체가 필요 없습니다</strong></td></tr><tr><td><span class="tag green">✅</span> <strong>비회원 IP를 원문으로 저장하지 않습니다</strong></td><td><code>memorialController.ts:32</code> — 즉시 SHA-256 해시. <strong>설계가 이미 옳게 돼 있어 그대로 적으면 됩니다</strong></td></tr></tbody></table></div>
+<blockquote class="info-quote"><span class="tag orange">🟡</span> <strong>셋 다 &quot;안 하고 있다&quot;를 적는 것인데, 이 서비스에서는 그게 오히려 강한 메시지입니다.</strong><br/>
+사별·유언을 다루는 서비스에서 *&quot;당신을 추적하지 않습니다&quot;* 는 마케팅 문구가 아니라 <strong>사실</strong>입니다.</blockquote>
+<hr class="divider"/>
+<hr class="divider"/>
+<h1>이어봄(Eobom) 개인정보처리방침</h1>
+<p><strong><span class="tag red">🔴</span> 시행일: 미정 (v0.9 초안)</strong></p>
+<hr class="divider"/>
+<h2 class="section-title">제1조 (총칙)</h2>
+<p><strong>주식회사 삼일정보시스템</strong>(이하 *&quot;회사&quot;*)은 이용자의 개인정보를 중요하게 생각하며, 「개인정보 보호법」 등</p>
+<p>관계 법령을 준수합니다. 회사는 본 개인정보처리방침을 통해 이용자가 제공한 개인정보가 어떤</p>
+<p>목적과 방식으로 이용되고 있는지, 개인정보 보호를 위해 어떤 조치가 취해지고 있는지 알려드립니다.</p>
+<div class="table-container"><table><thead><tr><th>항목</th><th>내용</th></tr></thead><tbody><tr><td>서비스명</td><td><strong>이어봄(Eobom)</strong> — 웰다잉 토탈 케어 플랫폼</td></tr><tr><td>사업자 상호</td><td><strong>주식회사 삼일정보시스템</strong></td></tr><tr><td>대표자</td><td><strong>이권형</strong></td></tr><tr><td>주소</td><td><strong>전남광주통합특별시 광산구 하남산단8번로 177, 6층</strong></td></tr></tbody></table></div>
+<hr class="divider"/>
+<h2 class="section-title">제2조 (개인정보의 처리 목적)</h2>
+<p>회사는 다음의 목적을 위하여 개인정보를 처리하며, **다음의 목적 이외의 용도로는 이용하지</p>
+<p>않습니다.** 이용 목적이 변경되는 경우에는 「개인정보 보호법」 제18조에 따라 별도의 동의를</p>
+<p>받는 등 필요한 조치를 이행합니다.</p>
+<div class="table-container"><table><thead><tr><th>#</th><th>목적</th><th>상세</th></tr></thead><tbody><tr><td>1</td><td><strong>회원 가입 및 관리</strong></td><td>본인 식별, 소셜 계정 연동, 회원자격 유지·관리, 서비스 부정이용 방지</td></tr><tr><td>2</td><td><strong>장사시설·전문가·유품수거 업체 연결</strong></td><td>문의·견적 요청 접수, 해당 사업자에 대한 연락처 전달, 상담 진행</td></tr><tr><td>3</td><td><strong>디지털 계정 정리 지원</strong></td><td>이용자가 스스로 관리하는 정리 항목의 저장·진행상태 관리</td></tr><tr><td>4</td><td><strong>디지털 추모관 운영</strong></td><td>추모관 개설·공개 범위 관리, 방명록·헌화·사진 게시</td></tr><tr><td>5</td><td><strong>사업자·전문가 회원 관리</strong></td><td>가입 심사, 자격 확인, 수수료 정산, 이의제기 처리</td></tr><tr><td>6</td><td><strong>고충처리 및 분쟁 대응</strong></td><td>문의 접수·처리, 처리 결과 통보, 분쟁 시 사실관계 확인</td></tr></tbody></table></div>
+<blockquote class="info-quote"><span class="tag warn">⚠️</span> **회사는 이용자의 개인정보를 광고·마케팅 목적으로 이용하지 않으며, 별도의 마케팅 수신<br/>
+동의를 받지 않습니다.<strong> (</strong>2026-08-18 현재 사실입니다.** 마케팅 발송을 도입하면 이 문장을<br/>
+삭제하고 별도 동의 절차를 신설해야 합니다.)</blockquote>
+<hr class="divider"/>
+<h2 class="section-title">제3조 (처리하는 개인정보의 항목)</h2>
+<h3 class="subsection-title">3-1. 이용자 (일반 회원)</h3>
+<div class="table-container"><table><thead><tr><th>구분</th><th>항목</th></tr></thead><tbody><tr><td><strong>필수</strong></td><td>이름, 소셜 로그인 제공자(카카오·네이버·구글) 및 해당 제공자의 회원 식별자</td></tr><tr><td><strong>선택</strong></td><td>이메일 주소, 프로필 이미지</td></tr><tr><td><strong>자동 생성</strong></td><td>가입일시, 최종 수정일시, 서비스 이용기록</td></tr></tbody></table></div>
+<h3 class="subsection-title">3-2. 문의·견적·상담 신청 시 (추가 수집)</h3>
+<div class="table-container"><table><thead><tr><th>구분</th><th>항목</th></tr></thead><tbody><tr><td><strong>필수</strong></td><td>신청자 이름, 연락처, 요청 내용(희망 일시·규모·예산 등 이용자가 입력한 사항)</td></tr><tr><td><strong>동의 기록</strong></td><td>제3자 제공 동의 시각, <strong>동의 당시 안내받은 고지 문구 전문</strong></td></tr></tbody></table></div>
+<blockquote class="info-quote"><span class="tag orange">🟡</span> <strong>동의 문구 전문을 함께 보관하는 이유</strong>: 나중에 안내 문구가 바뀌더라도 **&quot;그때 무엇에<br/>
+동의하셨는지&quot;** 를 그대로 확인해 드릴 수 있도록 하기 위한 것입니다.</blockquote>
+<h3 class="subsection-title">3-3. 디지털 추모관 이용 시</h3>
+<div class="table-container"><table><thead><tr><th>대상</th><th>항목</th></tr></thead><tbody><tr><td><strong>개설자</strong></td><td>회원 정보(3-1) + 고인 성명, (선택) 고인 생년월일·사망일, 영정 사진, 추모 문구</td></tr><tr><td><strong>방명록 작성자</strong>(비회원 포함)</td><td>작성자명, 본문, (선택) 고인과의 관계</td></tr><tr><td><strong>헌화 참여자</strong>(비회원 포함)</td><td><strong>중복 참여 방지를 위한 식별값(해시)</strong> — 제11조 참조</td></tr></tbody></table></div>
+<blockquote class="info-quote"><span class="tag red">🔴</span> **고인(사망한 사람)에 관한 정보는 「개인정보 보호법」상 &quot;살아 있는 개인에 관한 정보&quot;가<br/>
+아니므로 법률상 개인정보에 해당하지 않습니다. 그러나 회사는 고인의 정보가 유족의 정보와<br/>
+밀접하게 결합되어 있고 그 성격이 매우 민감하다는 점을 고려하여, 이 처리방침의 모든 보호<br/>
+조치를 고인의 정보에도 동일하게 적용합니다.**</blockquote>
+<h3 class="subsection-title">3-4. 사업자 회원 · 전문가 회원</h3>
+<div class="table-container"><table><thead><tr><th>대상</th><th>필수</th><th>선택</th></tr></thead><tbody><tr><td><strong>사업자(파트너)</strong></td><td>이메일, 비밀번호, 사업자등록번호, 상호, 대표자명, 담당자명, 담당자 연락처</td><td>사업자등록증 사본, 정산 계좌 정보</td></tr><tr><td><strong>전문가</strong></td><td>이메일, 비밀번호, 성명, 자격·등록번호, 연락처</td><td>자격증 사본, 사무실 주소, 경력 소개</td></tr></tbody></table></div>
+<h3 class="subsection-title">3-5. <span class="tag red">🔴</span> 회사가 <strong>수집하지 않는</strong> 정보</h3>
+<p><strong>아래는 회사가 수집하지 않으며, 앞으로도 수집하지 않을 것을 명시합니다.</strong></p>
+<div class="table-container"><table><thead><tr><th>항목</th><th>비고</th></tr></thead><tbody><tr><td><strong>주민등록번호</strong></td><td>「개인정보 보호법」 제24조의2에 따라 <strong>법령의 근거 없이는 처리할 수 없으며, 회사에는 그 근거가 없습니다.</strong> 동의를 받더라도 처리하지 않습니다</td></tr><tr><td><strong>사망진단서·기본증명서 등 서류 파일</strong></td><td>사망 사실 확인이 필요한 경우에도 <strong>화면으로 확인만 하고 파일을 저장하지 않습니다</strong></td></tr><tr><td><strong>금융 결제정보(카드번호 등)</strong></td><td>이용자에게 요금을 청구하지 않습니다</td></tr></tbody></table></div>
+<blockquote class="info-quote"><span class="tag green">✅</span> 근거: <code>00-16</code>(주민등록번호) · <code>04-01</code> §3.3(서류 미저장).</blockquote>
+<blockquote class="info-quote">## <span class="tag red">🔴</span> 2026-08-18 정정 — <strong>위치정보를 이 표에서 뺐습니다</strong><br/>
+**사장님 지적(*&quot;장사시설 도메인에서 위치정보 나오는데 수집에 해당하지 않는가&quot;*)이 맞습니다.**<br/>
+**코드를 실측한 결과 이어봄은 현재 위치정보를 취득하고 있고, 서버로 전송하며, 제3자에게도<br/>
+전달하고 있습니다.** *&quot;수집하지 않는다&quot;* 로 적었다면 <strong>처리방침 자체가 허위 기재</strong>가 될 뻔했습니다.<br/>
+상세 진단과 권고는 <strong><code>00-14</code> §2.7(2-9)</strong> 에 등재했습니다. <strong>이 조는 그 결정이 난 뒤에 확정합니다.</strong></blockquote>
+<h3 class="subsection-title">3-6. 위치정보</h3>
+<blockquote class="info-quote"><span class="tag red">🔴</span><span class="tag red">🔴</span> <strong>이 절은 위치기반서비스사업 신고 완료를 전제로 작성되었습니다</strong>(2026-08-18 개발자<br/>
+지시 — *&quot;신고를 했다고 가정하고 진행&quot;*). **신고 전에는 이 절을 게시하지 않으며, 위치 자동<br/>
+감지 기능도 함께 중단합니다.<strong> 잠금 규칙의 정본은 </strong><code>00-21</code> §0.2**.</blockquote>
+<p>회사는 장사시설 안내 서비스를 위하여 이용자의 위치정보를 이용합니다.</p>
+<p>**상세한 사항은 「위치의 보호 및 이용 등에 관한 법률」에 따라 이용약관 제19조~제21조에</p>
+<p>명시**되어 있으며, 아래는 그 요약입니다.</p>
+<div class="table-container"><table><thead><tr><th>항목</th><th>내용</th></tr></thead><tbody><tr><td><strong>이용 목적</strong></td><td>현재 위치를 기준으로 가까운 장사시설을 우선 안내</td></tr><tr><td><strong>처리 방식</strong></td><td>좌표를 <strong>행정구역명(시·도, 시·군·구)으로 변환하는 데에만 이용</strong></td></tr><tr><td><strong>보유</strong></td><td><span class="tag green">✅</span> <strong>저장하지 않습니다.</strong> 변환 즉시 폐기합니다</td></tr><tr><td><strong>제3자</strong></td><td>변환을 위해 <strong>카카오(주)의 주소 변환 서비스를 이용</strong>합니다(업무 처리 목적)</td></tr><tr><td><strong>동의 철회</strong></td><td>언제든지 가능하며, 철회하셔도 <strong>지역을 직접 선택하여 동일하게 이용</strong>하실 수 있습니다</td></tr><tr><td><strong>이용·제공사실 확인자료</strong></td><td>위치정보법에 따라 자동 기록·보존 — <span class="tag red">🔴</span> <strong>[보유기간: 시행령 확인 후]</strong></td></tr></tbody></table></div>
+<blockquote class="info-quote"><span class="tag red">🔴</span> <strong>미확정</strong>: 확인자료 보유기간 · 위치정보관리책임자(개인정보 보호책임자와 <strong>별도 직책</strong>).<br/>
+→ <code>00-21</code> 제20조·제21조 · <code>00-14</code> §2.10.</blockquote>
+<hr class="divider"/>
+<h2 class="section-title">제4조 (개인정보의 처리 및 보유 기간)</h2>
+<p>회사는 법령에 따른 보유·이용기간 또는 정보주체로부터 개인정보를 수집 시에 동의받은 기간</p>
+<p>내에서 개인정보를 처리·보유합니다.</p>
+<div class="table-container"><table><thead><tr><th>대상</th><th>보유기간</th><th>상태</th></tr></thead><tbody><tr><td><strong>회원 정보</strong></td><td><strong>회원 탈퇴 시까지</strong></td><td><span class="tag green">✅</span></td></tr><tr><td><strong>문의·상담 신청자의 이름·연락처</strong></td><td><strong>상담 종결 및 정산 확정 후 즉시 마스킹</strong>(예: 홍*동 / 010-****-5678)</td><td><span class="tag green">✅</span></td></tr><tr><td><strong>문의 이력 중 거래 근거</strong>(접수번호·일시·대상 시설·금액)</td><td>마스킹 이후에도 <strong>보존</strong> — 사업자와의 정산·분쟁 대응 근거</td><td><span class="tag green">✅</span></td></tr><tr><td><strong>소셜 계정 연동 해제 시</strong></td><td>연동 해제 기록을 남긴 후 <strong>1년</strong> 경과 시 파기</td><td><span class="tag green">✅</span></td></tr><tr><td><strong>회원 탈퇴 시</strong></td><td>회원 정보는 <strong>지체 없이 파기</strong>. 단, 이미 발생한 문의 이력은 <strong>개인 식별 정보와의 연결을 끊은 뒤</strong> 거래 근거로만 보존</td><td><span class="tag green">✅</span></td></tr><tr><td><strong>방명록 등 삭제된 게시물</strong></td><td>작성자·상주의 요청으로 삭제된 게시물은 화면에서 즉시 비공개 처리되며, <strong>3개월</strong> 후 완전 삭제</td><td><span class="tag green">✅</span></td></tr><tr><td><strong>서비스 접속기록</strong></td><td><strong>1년</strong></td><td><span class="tag green">✅</span></td></tr><tr><td><span class="tag red">🔴</span> <strong>추모관 및 고인 관련 정보</strong></td><td><span class="tag red">🔴</span> <strong>[확정 필요 — <code>00-20</code> 권고: 개설 후 </strong>1년<strong> 활성 → 만료 시 </strong>동결<strong>(읽기 전용) → 이후 파기]</strong></td><td><span class="tag red">🔴</span> <strong>②</strong></td></tr></tbody></table></div>
+<blockquote class="info-quote"><span class="tag orange">🟡</span> <strong>회원 탈퇴 항목의 근거</strong>: 시스템이 이미 그렇게 설계돼 있습니다 — 탈퇴 시 소셜 연동 정보는<br/>
+<strong>함께 삭제</strong>되고, 문의 이력은 <strong>회원과의 연결만 끊긴 채 남습니다</strong>(<code>Lead.userId</code> <code>SetNull</code>).<br/>
+<strong>설계가 먼저 서 있었고 이 문장은 그것을 옮겨 적은 것입니다.</strong></blockquote>
+<p>&gt;</p>
+<blockquote class="info-quote"><span class="tag red">🔴</span> <strong>추모관 보유기간이 이 조에서 유일한 진짜 공백입니다.</strong> 다른 칸과 성격이 다릅니다 —<br/>
+*&quot;얼마나 두느냐&quot;* 가 <strong>저장 비용과 직결</strong>되고, 그 답이 수익 모델(<code>00-14</code> §4-3)에 달려 있습니다.</blockquote>
+<hr class="divider"/>
+<h2 class="section-title">제5조 (개인정보의 제3자 제공)</h2>
+<p>회사는 <strong>정보주체의 동의를 받은 경우에 한하여</strong> 개인정보를 제3자에게 제공합니다.</p>
+<p><strong>동의하지 않으시면 해당 신청은 접수되지 않으며, 동의 없이 전달되는 일은 없습니다.</strong></p>
+<div class="table-container"><table><thead><tr><th>제공받는 자</th><th>제공 목적</th><th>제공 항목</th><th>보유·이용 기간</th></tr></thead><tbody><tr><td><strong>이용자가 문의한 해당 장사시설 사업자</strong> (신청 화면에 상호를 명시)</td><td>문의 내용에 대한 연락 및 상담</td><td>이름, 연락처, 요청 내용</td><td><strong>목적 달성 후 파기</strong></td></tr><tr><td><strong>이용자가 상담을 신청한 해당 전문가</strong> (성명·소속 명시)</td><td>상담 진행</td><td>이름, 연락처, 상담 희망 내용</td><td>동일</td></tr><tr><td><span class="tag orange">🟡</span> <strong>유품 정리·수거 업체</strong></td><td>수거 견적 상담</td><td>이름, 연락처, 요청 내용</td><td>동일 — <strong><span class="tag orange">🟡</span> [해당 서비스 개시 시 적용]</strong></td></tr></tbody></table></div>
+<blockquote class="info-quote"><span class="tag green">✅</span> **제휴 사업자가 아닌 시설에 문의하시는 경우, 회사는 이용자의 개인정보를 누구에게도<br/>
+전달하지 않습니다.** 이 경우 회사가 직접 안내해 드립니다.</blockquote>
+<hr class="divider"/>
+<h2 class="section-title">제6조 (개인정보 처리의 위탁)</h2>
+<p>회사는 서비스 제공을 위해 아래와 같이 개인정보 처리 업무를 위탁하고 있습니다.</p>
+<p>위탁계약 시 개인정보의 안전한 관리를 위한 사항을 문서로 규정하고 있습니다.</p>
+<div class="table-container"><table><thead><tr><th>수탁자</th><th>위탁 업무</th><th>상태</th></tr></thead><tbody><tr><td><span class="tag blue">🔵</span> <strong>[클라우드 인프라 사업자]</strong></td><td>서비스 서버 운영 및 데이터 보관</td><td><span class="tag blue">🔵</span> <strong>보류(08-18 확정)</strong> — 사업자 미정(<code>00-11</code> §8-1)</td></tr><tr><td><strong>Vercel Inc.</strong></td><td>웹사이트 화면 전송 및 배포</td><td><span class="tag green">✅</span></td></tr><tr><td><span class="tag red">🔴</span> <strong>카카오(주)</strong></td><td><strong>좌표 → 지역명 변환</strong>(제3-6조)</td><td><span class="tag red">🔴</span> <strong>위치정보 결정에 연동</strong>(<code>00-14</code> §2.7)</td></tr></tbody></table></div>
+<blockquote class="info-quote"><span class="tag orange">🟡</span> <strong>결제·문자·알림 발송 등은 현재 도입하지 않았으므로 수탁자가 없습니다.</strong><br/>
+도입 시 이 표를 갱신하고 사전에 공지합니다.<br/>
+<span class="tag red">🔴</span> <strong>카카오 행은 이번 위치정보 검토에서 새로 드러난 것입니다</strong> — 트랙 A를 제거하면<br/>
+개인위치정보 전달이 사라지지만, <strong>지도 SDK·시설 검색 목적의 연동은 남으므로 별도 검토 필요.</strong></blockquote>
+<hr class="divider"/>
+<h2 class="section-title">제7조 (개인정보의 국외 이전)</h2>
+<p>회사는 아래와 같이 개인정보를 국외로 이전하고 있습니다. **본 이전은 「개인정보 보호법」</p>
+<p>제28조의8 제1항 제3호(계약의 이행·편의 증진을 위한 처리위탁·보관)에 근거한 것으로, 이 처리방침을</p>
+<p>통한 공개로써 별도의 동의를 갈음합니다.**</p>
+<div class="table-container"><table><thead><tr><th>이전받는 자</th><th>연락처</th><th>이전 국가</th><th>이전 항목</th><th>이전 일시·방법</th><th>이용 목적</th><th>보유 기간</th></tr></thead><tbody><tr><td><strong>Vercel Inc.</strong></td><td><span class="tag red">🔴</span> <strong>[확인 필요]</strong></td><td>미국</td><td>접속 IP, 브라우저 정보 등 접속기록</td><td>서비스 이용 시 <strong>네트워크를 통해 상시 전송</strong></td><td>웹사이트 화면 전송·배포</td><td>해당 사업자 정책에 따름</td></tr><tr><td><strong>Google LLC</strong></td><td><span class="tag red">🔴</span> <strong>[확인 필요]</strong></td><td>미국</td><td>이메일 주소, 프로필 정보</td><td><strong>구글 계정으로 로그인하는 시점</strong>에 API 호출</td><td>소셜 로그인 인증</td><td>연동 해제 시까지</td></tr></tbody></table></div>
+<blockquote class="info-quote"><span class="tag orange">🟡</span> <strong>카카오·네이버 로그인은 국내 사업자이므로 국외 이전에 해당하지 않습니다.</strong><br/>
+<span class="tag blue">🔵</span> <strong>[08-18 보류 확정]</strong> 클라우드 사업자 미정이므로 서버 관련 행은 확정 후 갱신합니다(<code>00-11</code> §8-1).<br/>
+<span class="tag red">🔴</span> <strong>[게시 전 확인]</strong> 서비스 서버가 국외에 위치하게 되는 경우 이 표에 추가해야 합니다<br/>
+(<code>00-17</code> §3.4 — 현재 배포 계획상 백엔드는 국외 사업자이며, <code>00-11</code> §7.1 단계 4에서 이전 예정).</blockquote>
+<hr class="divider"/>
+<h2 class="section-title">제8조 (개인정보의 파기 절차 및 방법)</h2>
+<p>회사는 개인정보 보유기간의 경과, 처리목적 달성 등 개인정보가 불필요하게 되었을 때에는</p>
+<p><strong>지체 없이 해당 개인정보를 파기</strong>합니다.</p>
+<div class="table-container"><table><thead><tr><th>구분</th><th>방법</th></tr></thead><tbody><tr><td><strong>전자적 파일</strong></td><td>복구·재생할 수 없도록 영구 삭제</td></tr><tr><td><strong>출력물</strong></td><td>분쇄하거나 소각</td></tr><tr><td><strong>일부 항목만 불필요해진 경우</strong></td><td>해당 항목을 <strong>마스킹 처리</strong>하여 개인을 알아볼 수 없도록 조치</td></tr></tbody></table></div>
+<blockquote class="info-quote"><span class="tag green">✅</span> <strong>마스킹은 정기적으로 자동 실행되며, 실행 이력을 기록합니다.</strong><br/>
+*&quot;정산은 끝났는데 연락처가 계속 남아 있는&quot;* 상태가 길어지지 않도록 하기 위한 조치입니다.</blockquote>
+<hr class="divider"/>
+<h2 class="section-title">제9조 (정보주체와 법정대리인의 권리·의무 및 행사방법)</h2>
+<h3 class="subsection-title">9-1. 이용자의 권리</h3>
+<p>이용자는 회사에 대해 언제든지 다음 각 호의 권리를 행사할 수 있습니다.</p>
+<p>1. 개인정보 <strong>열람</strong> 요구</p>
+<p>2. 오류 등이 있을 경우 <strong>정정</strong> 요구</p>
+<p>3. <strong>삭제</strong> 요구</p>
+<p>4. <strong>처리정지</strong> 요구</p>
+<p>권리 행사는 서면·전자우편 등을 통하여 하실 수 있으며, 회사는 <strong>지체 없이 조치</strong>합니다.</p>
+<p>정보주체의 <strong>대리인을 통하여 하실 수도 있으며</strong>, 이 경우 위임장을 제출하셔야 합니다.</p>
+<blockquote class="info-quote"><span class="tag warn">⚠️</span> <strong>회사는 권리 행사를 이유로 이용자에게 어떠한 불이익도 주지 않습니다.</strong></blockquote>
+<h3 class="subsection-title">9-2. <span class="tag orange">🟡</span> 만 14세 미만 아동</h3>
+<p><span class="tag green">✅</span> **이어봄은 만 14세 미만 아동을 대상으로 하는 서비스가 아니며, 만 14세 미만 아동의 회원</p>
+<p>가입을 받지 않습니다.**</p>
+<blockquote class="info-quote"><span class="tag green">✅</span> <strong>2026-08-18 권고안대로 확정.</strong><br/>
+<span class="tag orange">🟡</span> <strong>다만 실무상 방명록 작성은 비회원도 가능</strong>하므로 완전한 차단은 어렵습니다 —<br/>
+<strong>&quot;가입을 받지 않는다&quot;까지만 쓰는 것이 정직</strong>합니다.</blockquote>
+<h4 class="h4-title"><span class="tag red">🔴</span> 9-2-1. <code>[Claude:Sonnet]</code> 구현 스펙 — <strong>E-4</strong> (2026-08-18 신설)</h4>
+<p><strong>실측(2026-08-18)</strong>: <code>LoginModal.tsx</code>의 소셜 버튼 3개가 <strong>곧바로 OAuth로 리다이렉트</strong>하며,</p>
+<p>저장소 전체에 <strong>연령 관련 코드가 0건</strong>입니다(<code>grep &quot;birth|age|연령|생년|14세&quot;</code> → 히트 없음).</p>
+<p><strong>즉 위 문장은 지금 사실이 아닙니다.</strong></p>
+<p>##### <span class="tag red">🔴</span> 방식: <strong>자기신고(self-declaration). 생년월일을 받지 않습니다.</strong></p>
+<div class="table-container"><table><thead><tr><th>후보</th><th>판정</th></tr></thead><tbody><tr><td><strong><span class="tag orange">🟡</span> 가입 시점 자기신고 확인</strong>(권고)</td><td><span class="tag green">✅</span> <strong>수집 항목이 늘지 않습니다.</strong> 실무 표준이며 구현이 가장 작습니다</td></tr><tr><td>생년월일 직접 입력</td><td>❌ <strong>만 14세 미만을 막으려고 전 이용자의 생년월일을 수집</strong>하게 됩니다 — <strong>최소수집 원칙과 정면 충돌</strong>하고 §3 수집 항목이 늘어납니다</td></tr><tr><td>소셜 제공자의 연령대 정보 수신</td><td>❌ <strong>3사 중 일부만 제공</strong>하고 <strong>추가 동의라 거부 가능</strong>해 정책으로 성립하지 않습니다. 게다가 이것도 수집입니다</td></tr></tbody></table></div>
+<blockquote class="info-quote"><span class="tag green">✅</span> <strong>&quot;덜 걷는 쪽&quot;이 정답인 드문 경우입니다</strong> — 보호를 위해 정보를 더 걷는 설계는<br/>
+이 프로젝트의 다른 판단(<code>00-16</code> 주민번호 미저장 · <code>05-01</code> §4.4 IP 원문 미저장)과 어긋납니다.</blockquote>
+<p>##### 구현 요구</p>
+<div class="table-container"><table><thead><tr><th>#</th><th>요구</th></tr></thead><tbody><tr><td>1</td><td><strong><code>LoginModal</code>에 만 14세 이상 확인을 두고, 확인 전에는 소셜 로그인 버튼이 동작하지 않게</strong> 합니다</td></tr><tr><td>2</td><td>문구는 <strong>약관·처리방침 동의와 묶지 않고 별도 항목</strong>으로 둡니다 — 묻힌 동의는 근거가 되지 않습니다</td></tr><tr><td>3</td><td><span class="tag orange">🟡</span> <strong>확인 사실을 별도 저장할 필요는 없습니다.</strong> 저장하면 그 자체가 새 개인정보 항목이 됩니다</td></tr><tr><td>4</td><td><span class="tag warn">⚠️</span> <strong>데모 로그인 버튼에도 같은 게이트를 겁니다</strong> — 우회 경로가 남으면 게이트가 아닙니다</td></tr></tbody></table></div>
+<p>##### <span class="tag red">🔴</span> 왜 문장만으로는 부족한가</p>
+<p><strong>개인정보보호법은 만 14세 미만 아동의 개인정보를 처리할 때 법정대리인의 동의를 요구합니다.</strong></p>
+<p>이어봄이 그 의무를 지지 않으려면 *&quot;만 14세 미만을 받지 않는다&quot;* 는 정책이 <strong>실제로 서 있어야</strong></p>
+<p>하고, <strong>자기신고 게이트가 그 최소한</strong>입니다. **문장만 있고 게이트가 없으면 그 문장이 방패가</p>
+<p>되지 않습니다.**</p>
+<blockquote class="info-quote"><span class="tag red">🔴</span> <strong>[확인 필요]</strong> 조문 번호·요건은 <strong>2026-08-18 미확인</strong>입니다 — <code>00-22</code> B-4에서 함께 확인합니다.</blockquote>
+<p>##### <span class="tag orange">🟡</span> B-4와의 관계 — <strong>게이트를 먼저 세워도 됩니다</strong></p>
+<p><code>00-22</code> B-4가 *&quot;위치정보법 §25의 법정대리인 동의 연령이 만 14세와 다를 수 있다&quot;* 를 열어두었으나,</p>
+<p><strong>위치기반서비스는 현재 잠금 상태</strong>(<code>00-21</code> §0.2)이므로 **가입 게이트는 만 14세 기준으로 먼저</p>
+<p>세우고, B-4 결과가 다르면 그때 위치정보 쪽에만 별도 기준을 답니다.**</p>
+<hr class="divider"/>
+<h2 class="section-title">제10조 (개인정보의 안전성 확보조치)</h2>
+<p>회사는 개인정보의 안전성 확보를 위하여 다음과 같은 조치를 취하고 있습니다.</p>
+<div class="table-container"><table><thead><tr><th>구분</th><th>조치</th></tr></thead><tbody><tr><td><strong>관리적 조치</strong></td><td>개인정보 취급 권한의 최소화, 접근 권한자 지정</td></tr><tr><td><strong>기술적 조치</strong></td><td>비밀번호의 <strong>암호화 저장</strong>(복호화 불가능한 방식), <strong>전송구간 암호화</strong>(HTTPS), 인증 토큰의 암호화 저장, 데이터베이스의 외부 직접 접근 차단</td></tr><tr><td><strong>물리적 조치</strong></td><td><span class="tag red">🔴</span> <strong>[클라우드 사업자 확정 후 기재 — <code>00-11</code> §8-1]</strong></td></tr></tbody></table></div>
+<blockquote class="info-quote"><span class="tag warn">⚠️</span> <strong>여기에는 &quot;실제로 하고 있는 것&quot;만 적습니다.</strong> 계획 단계인 조치를 완료된 것처럼 적지<br/>
+않습니다 — 이것이 <code>00-14</code> §2.5(2-7)에서 *&quot;KISA 기준 최고 등급&quot;* 문구를 <strong>삭제한 이유</strong>와<br/>
+같은 원칙입니다. 저장 데이터 추가 암호화·백업 체계는 <strong>실제로 가동된 시점에 이 표에 추가</strong>합니다.</blockquote>
+<hr class="divider"/>
+<h2 class="section-title">제11조 (개인정보 자동 수집 장치의 설치·운영 및 그 거부에 관한 사항)</h2>
+<h3 class="subsection-title">11-1. <span class="tag green">✅</span> 회사는 <strong>쿠키(cookie)를 사용하지 않습니다.</strong></h3>
+<p>회사는 이용자의 활동을 추적하기 위한 쿠키를 설치·운영하지 않습니다.</p>
+<p>로그인 상태 유지를 위해 **이용자의 브라우저 저장소(local storage)에 인증 토큰과 표시용 이름을</p>
+<p>저장<strong>하며, 이는 </strong>이용자의 기기 안에만 저장되고 회사 서버로 별도 수집되지 않습니다.**</p>
+<p>브라우저의 인터넷 사용기록 삭제 기능으로 언제든 직접 지우실 수 있습니다.</p>
+<h3 class="subsection-title">11-2. <span class="tag green">✅</span> 회사는 <strong>제3자 분석·광고 도구를 사용하지 않습니다.</strong></h3>
+<p>구글 애널리틱스 등 외부 분석 도구, 광고 식별자, 행태정보 수집 도구를 **일체 설치하고 있지</p>
+<p>않습니다.** 따라서 회사는 이용자의 관심사·행태를 분석하거나 맞춤형 광고에 활용하지 않습니다.</p>
+<h3 class="subsection-title">11-3. 추모관 중복 참여 방지를 위한 식별값</h3>
+<p>비회원이 헌화에 참여하는 경우, 중복 참여를 억제하기 위해 **접속 IP와 브라우저 식별값을 결합한</p>
+<p>뒤 즉시 복원 불가능한 형태(해시)로 변환하여 저장**합니다.</p>
+<p><strong>IP 주소 원문은 저장하지 않습니다.</strong></p>
+<hr class="divider"/>
+<h2 class="section-title">제12조 (개인정보 보호책임자)</h2>
+<p>회사는 개인정보 처리에 관한 업무를 총괄해서 책임지고, 개인정보 처리와 관련한 정보주체의</p>
+<p>불만처리 및 피해구제 등을 위하여 아래와 같이 개인정보 보호책임자를 지정하고 있습니다.</p>
+<div class="table-container"><table><thead><tr><th>구분</th><th>내용</th></tr></thead><tbody><tr><td><strong>성명</strong></td><td><strong>윤현우</strong></td></tr><tr><td><strong>직책</strong></td><td><strong>개인정보 담당자</strong></td></tr><tr><td><strong>연락처</strong></td><td><strong>070-8856-2725</strong></td></tr><tr><td><strong>전자우편</strong></td><td><strong>yhw@samil25.co.kr</strong></td></tr></tbody></table></div>
+<p>정보주체께서는 회사의 서비스를 이용하시면서 발생한 모든 개인정보 보호 관련 문의, 불만처리,</p>
+<p>피해구제 등에 관한 사항을 위 연락처로 문의하실 수 있습니다. 회사는 지체 없이 답변 및 처리해</p>
+<p>드릴 것입니다.</p>
+<blockquote class="info-quote"><span class="tag green">✅</span> <strong>2026-08-18 확정.</strong> 이로써 <code>00-18</code> §8.1 게이트 #3이 닫혔습니다.<br/>
+<span class="tag warn">⚠️</span> **화면(<code>Footer</code>)의 <code>1588-0000</code>은 현재 실제 운영 번호가 아니며, 개발자 방침에 따라 그대로<br/>
+둡니다<strong>(<code>00-14</code> §2.6). </strong>이 조의 연락처와 화면 대표번호는 별개<strong>이며, </strong>처리방침에는 실제<br/>
+응답 가능한 번호가 들어갔으므로 법정 요건은 충족**됩니다.<br/>
+<span class="tag orange">🟡</span> 다만 <strong>이용자 입장에서는 화면에서 본 번호와 처리방침의 번호가 다르면 혼란</strong>이 생깁니다 —<br/>
+실번호가 정해지면 <strong>두 곳을 함께 정리</strong>하는 것을 권합니다.</blockquote>
+<hr class="divider"/>
+<h2 class="section-title">제13조 (권익침해에 대한 구제방법)</h2>
+<p>정보주체는 개인정보침해로 인한 구제를 받기 위하여 아래 기관에 분쟁해결이나 상담 등을</p>
+<p>신청하실 수 있습니다.</p>
+<div class="table-container"><table><thead><tr><th>기관</th><th>연락처</th><th>홈페이지</th></tr></thead><tbody><tr><td>개인정보분쟁조정위원회</td><td>1833-6972</td><td>www.kopico.go.kr</td></tr><tr><td>개인정보침해신고센터</td><td>(국번없이) 118</td><td>privacy.kisa.or.kr</td></tr><tr><td>대검찰청</td><td>(국번없이) 1301</td><td>www.spo.go.kr</td></tr><tr><td>경찰청</td><td>(국번없이) 182</td><td>ecrm.police.go.kr</td></tr></tbody></table></div>
+<blockquote class="info-quote"><span class="tag red">🔴</span> <strong>[게시 전 확인 필요]</strong> 위 기관명·번호·주소는 <strong>2026-08-18 확인 기준</strong>입니다.</blockquote>
+<hr class="divider"/>
+<h2 class="section-title">제14조 (개인정보처리방침의 변경)</h2>
+<p>1. 이 개인정보처리방침은 <strong><span class="tag red">🔴</span> [시행일]</strong> 부터 적용됩니다.</p>
+<p>2. 회사는 이 처리방침을 변경하는 경우 <strong>변경 사항의 시행 7일 전부터</strong> 홈페이지를 통해 공지합니다.</p>
+<p>   다만 <strong>이용자의 권리에 중대한 영향을 미치는 변경의 경우 30일 전부터</strong> 공지합니다.</p>
+<p>3. 회사는 <strong>이전 버전의 처리방침을 홈페이지에서 계속 확인하실 수 있도록 보관</strong>합니다.</p>
+<blockquote class="info-quote"><span class="tag red">🔴</span> <strong>3항은 구현이 필요합니다</strong> — <code>00-18</code> §8.2 #2(버전·시행일 관리). **문서만 쓰고 이 문장을<br/>
+넣으면 그 자체가 지키지 못하는 약속**이 됩니다.</blockquote>
+<hr class="divider"/>
+<hr class="divider"/>
+<h2 class="section-title">🔗 부록. 관련 문서</h2>
+<div class="table-container"><table><thead><tr><th>문서</th><th>관계</th></tr></thead><tbody><tr><td><strong><code>00-18</code></strong></td><td><strong>이 문서의 설계 근거 정본.</strong> 왜 이렇게 썼는지는 전부 거기</td></tr><tr><td><code>00-18</code> §8.1</td><td>게시 게이트 5개 — <strong>이 문서가 <code>v1.0</code>이 되는 조건</strong></td></tr><tr><td><code>00-17</code> §3.1·§3.2·§4.1</td><td>제7조(국외이전)·제10조(안전조치)의 근거</td></tr><tr><td><code>01-05</code> §7</td><td>제5조(제3자 제공)·제4조(마스킹)의 정본</td></tr><tr><td><code>00-16</code></td><td>제3-5조(주민등록번호 미수집)의 근거</td></tr><tr><td><code>05-01</code> §4.4</td><td>제11-3조(<code>visitorHash</code>)의 설계</td></tr><tr><td><strong><code>00-20</code></strong></td><td><strong>제4조 추모관 보유기간의 검토서</strong> — 권고: <strong>기본 1년 → 동결</strong>. <span class="tag red">🔴</span> 이 문서의 마지막 실질 블로커</td></tr><tr><td><strong><code>00-14</code> §2.7(2-9)</strong></td><td><strong>제3-6조 위치정보</strong> — 08-18 신규 발견. 트랙 A 제거 시 이 조가 통째로 불필요해짐</td></tr><tr><td><code>00-14</code> §4-3</td><td>제4조 추모관 보유기간이 걸려 있는 곳</td></tr><tr><td><code>00-11</code> §8-1</td><td>제6조 수탁자·제10조 물리적 조치가 걸려 있는 곳</td></tr><tr><td><strong><code>00-21</code></strong></td><td><span class="tag green">✅</span> <strong>이용약관 초안(08-18 신설).</strong> 제4조에서 상호 참조. <strong>위치정보 상세는 거기가 정본</strong>(§19~§21)</td></tr></tbody></table></div>
+
+  </div>
+</body>
+</html>

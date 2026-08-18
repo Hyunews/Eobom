@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { MapPin, Map, Image as ImageIcon, Send, MessageSquare } from 'lucide-react';
-import { BACKEND_URL, GEOLOCATION_FALLBACK } from '../config';
+import { BACKEND_URL, GEOLOCATION_FALLBACK, LOCATION_BASED_SERVICE_REGISTERED } from '../config';
 import { KakaoMapModal } from '../components/KakaoMapModal';
 import { InquiryModal } from '../components/facility/InquiryModal';
 import { FacilityReviewModal } from '../components/facility/FacilityReviewModal';
@@ -96,10 +96,13 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
       setDetectedLocation(loc);
       setIsLocationFallback(isFallback);
     };
-    // Geolocation API는 보안 컨텍스트(HTTPS 또는 localhost)에서만 동작한다.
-    // http://<LAN IP>:5173처럼 암호화 없는 일반 IP로 접속하면 브라우저가 요청 자체를 거부해
-    // 아래 실패 콜백으로 떨어진다 — 코드 버그가 아니라 브라우저 보안 정책이다.
-    if (navigator.geolocation && window.isSecureContext) {
+    // 🔴 위치기반서비스사업 신고 완료 전까지 실시간 GPS 자동 감지를 하지 않는다
+    // (docs 00-21 §0.2 잠금 규칙, docs 00-14 §2.7~§2.10). 신고 없이 getCurrentPosition을 호출하면
+    // 약관 없이 기능만 살아 있는 상태가 되어 그 자체가 문제였다(00-14 §2.9). 대신 기본 위치로
+    // 시작하고, 이용자는 아래 시/도·시/군/구 직접 선택(트랙 B)으로 원하는 지역을 고를 수 있다 —
+    // 자동 감지만 꺼졌을 뿐 기능은 그대로다. LOCATION_BASED_SERVICE_REGISTERED가 true로 바뀌면
+    // 이 분기가 실제 GPS 감지를 재개한다.
+    if (LOCATION_BASED_SERVICE_REGISTERED && navigator.geolocation && window.isSecureContext) {
       navigator.geolocation.getCurrentPosition(
         (pos) => applyDetected({ lat: pos.coords.latitude, lng: pos.coords.longitude }, false),
         () => applyDetected(GEOLOCATION_FALLBACK, true)
@@ -228,7 +231,11 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
             <MapPin size={18} color="var(--point-color)" /> 위치: {locationName}
             {isLocationFallback && (
               <span
-                title="실제 위치를 확인하지 못해 기본 위치로 표시 중입니다. https 또는 localhost가 아닌 주소에서는 브라우저가 위치 확인을 차단합니다. 아래에서 시/도·시/군/구를 직접 선택해주세요."
+                title={
+                  LOCATION_BASED_SERVICE_REGISTERED
+                    ? '실제 위치를 확인하지 못해 기본 위치로 표시 중입니다. https 또는 localhost가 아닌 주소에서는 브라우저가 위치 확인을 차단합니다. 아래에서 시/도·시/군/구를 직접 선택해주세요.'
+                    : '현재 위치 자동 감지를 제공하지 않아 기본 위치로 표시 중입니다. 아래에서 시/도·시/군/구를 직접 선택해주세요.'
+                }
                 style={{
                   fontSize: '0.7rem',
                   fontWeight: 700,

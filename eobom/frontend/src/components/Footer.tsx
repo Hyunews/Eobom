@@ -70,14 +70,18 @@ export const Footer: React.FC<FooterProps> = ({ isFullPageSnap = false }) => {
               color: '#9CA3AF'
             }}
           >
+            {/* "KISA 기준 최고 등급 보안 암호화" 문구 제거(00-14 §2.5(2-7), 2026-08-18 개발자 확정) —
+                그런 등급 제도가 존재하지 않고 ISMS-P 미인증 상태에서 인증 사칭으로 읽힘. 대체 문구
+                없이 제거하며, 실제 보안 조치가 갖춰지면 그때 추가한다(00-18 §2.3). */}
             <li style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <ShieldCheck size={16} color="#5B7065" /> KISA 기준 최고 등급 보안 암호화
+              <Link to="/terms" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'inherit', textDecoration: 'none' }}>
+                <FileText size={16} color="#9CA3AF" /> 서비스 이용약관
+              </Link>
             </li>
             <li style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <FileText size={16} color="#9CA3AF" /> 서비스 이용약관
-            </li>
-            <li style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <ShieldCheck size={16} color="#9CA3AF" /> 개인정보 처리방침
+              <Link to="/privacy" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'inherit', textDecoration: 'none' }}>
+                <ShieldCheck size={16} color="#9CA3AF" /> 개인정보 처리방침
+              </Link>
             </li>
           </ul>
         </div>

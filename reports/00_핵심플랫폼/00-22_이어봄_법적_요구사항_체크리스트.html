@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>☑️ 00-22. 법적 요구사항 — 체크리스트 - 이어봄 기획 명세서</title>
+  <style>
+    :root {
+      --primary: #1A2B4C;
+      --secondary: #5B7065;
+      --accent: #D4A359;
+      --bg: #FBF9F5;
+      --surface: #FFFFFF;
+      --text: #1E293B;
+      --text-muted: #64748B;
+      --border: #E2E8F0;
+      --code-bg: #0F172A;
+      --code-text: #F8FAFC;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.65;
+      padding: 2rem 1rem;
+    }
+    .container {
+      max-width: 1140px;
+      margin: 0 auto;
+      background-color: var(--surface);
+      padding: 3rem;
+      border-radius: 24px;
+      box-shadow: 0 20px 40px rgba(26, 43, 76, 0.08);
+      border: 1px solid var(--border);
+    }
+    .header {
+      border-bottom: 3px solid var(--accent);
+      padding-bottom: 1.5rem;
+      margin-bottom: 2.5rem;
+    }
+    .badge {
+      display: inline-block;
+      background-color: var(--primary);
+      color: #FFF;
+      font-size: 0.85rem;
+      font-weight: 700;
+      padding: 0.3rem 0.8rem;
+      border-radius: 20px;
+      margin-bottom: 0.8rem;
+    }
+    h1 {
+      font-size: 2.1rem;
+      color: var(--primary);
+      margin-bottom: 0.5rem;
+      font-weight: 800;
+    }
+    .subtitle {
+      color: var(--text-muted);
+      font-size: 1.05rem;
+    }
+    .section-title {
+      font-size: 1.5rem;
+      color: var(--primary);
+      margin: 2.5rem 0 1.2rem 0;
+      padding-left: 0.8rem;
+      border-left: 5px solid var(--secondary);
+      font-weight: 700;
+    }
+    .subsection-title {
+      font-size: 1.25rem;
+      color: var(--primary);
+      margin: 1.8rem 0 0.8rem 0;
+      font-weight: 700;
+    }
+    .h4-title {
+      font-size: 1.05rem;
+      color: var(--secondary);
+      margin: 1.2rem 0 0.6rem 0;
+      font-weight: 700;
+    }
+    .info-quote {
+      background: #F1F5F9;
+      border-left: 4px solid var(--accent);
+      padding: 0.9rem 1.2rem;
+      margin: 1rem 0;
+      border-radius: 6px;
+      font-size: 0.95rem;
+      color: #334155;
+    }
+    code {
+      background: #EFF6FF;
+      color: #1D4ED8;
+      padding: 0.15rem 0.4rem;
+      border-radius: 6px;
+      font-family: 'Fira Code', Consolas, monospace;
+      font-size: 0.88rem;
+    }
+    pre {
+      background: var(--code-bg);
+      color: var(--code-text);
+      padding: 1.2rem;
+      border-radius: 12px;
+      overflow-x: auto;
+      margin: 1rem 0 1.5rem 0;
+      font-family: 'Fira Code', Consolas, monospace;
+      font-size: 0.9rem;
+    }
+    pre code {
+      background: transparent;
+      color: inherit;
+      padding: 0;
+    }
+    .table-container {
+      overflow-x: auto;
+      margin: 1.2rem 0 1.8rem 0;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.92rem;
+      background: #FFFFFF;
+    }
+    th {
+      background-color: var(--primary);
+      color: #FFFFFF;
+      padding: 0.8rem 1rem;
+      text-align: left;
+      font-weight: 600;
+    }
+    td {
+      padding: 0.8rem 1rem;
+      border-bottom: 1px solid var(--border);
+      color: #334155;
+    }
+    tr:last-child td {
+      border-bottom: none;
+    }
+    tr:nth-child(even) {
+      background-color: #F8FAFC;
+    }
+    .tag {
+      display: inline-block;
+      padding: 0.15rem 0.45rem;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 700;
+    }
+    .tag.green { background-color: #DCFCE7; color: #166534; }
+    .tag.gray { background-color: #F1F5F9; color: #475569; }
+    .tag.orange { background-color: #FFEDD5; color: #9A3412; }
+    .tag.red { background-color: #FEE2E2; color: #991B1B; border: 1px solid #FECACA; }
+    .tag.blue { background-color: #DBEAFE; color: #1E40AF; border: 1px solid #BFDBFE; }
+    .tag.gold { background-color: #FEF3C7; color: #92400E; border: 1px solid #FDE68A; font-weight: 700; }
+    .tag.warn { background-color: #FEF3C7; color: #B45309; }
+    .tag.pk { background-color: #FEE2E2; color: #991B1B; }
+    .tag.fk { background-color: #DBEAFE; color: #1E40AF; }
+    .tag.uk { background-color: #DCFCE7; color: #166534; }
+    del {
+      color: #94A3B8;
+      text-decoration: line-through;
+    }
+    .md-link {
+      color: var(--accent);
+      text-decoration: underline;
+      font-weight: 500;
+    }
+    p { margin-bottom: 0.9rem; color: #334155; }
+    ul, ol { margin-bottom: 1rem; padding-left: 1.4rem; color: #334155; }
+    li { margin-bottom: 0.4rem; }
+    .divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 2.5rem 0;
+    }
+    .nav-bar {
+      margin-bottom: 2rem;
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+    }
+    .nav-link {
+      color: var(--primary);
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+    .nav-link:hover {
+      color: var(--accent);
+    }
+    @page {
+      size: A4 portrait;
+      margin: 15mm 14mm 18mm 14mm;
+    }
+    @media print {
+      html, body {
+        background-color: #ffffff !important;
+        color: #1e293b !important;
+        font-size: 9.5pt !important;
+        line-height: 1.5 !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+      .container {
+        max-width: 100% !important;
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        border: none !important;
+        box-shadow: none !important;
+        background: transparent !important;
+        border-radius: 0 !important;
+      }
+      .nav-bar { display: none !important; }
+      .header {
+        border-bottom: 2px solid var(--accent) !important;
+        padding-bottom: 0.6rem !important;
+        margin-bottom: 1.2rem !important;
+        page-break-after: avoid !important;
+        break-after: avoid !important;
+      }
+      h1 {
+        font-size: 17pt !important;
+        line-height: 1.3 !important;
+        margin-bottom: 0.4rem !important;
+        color: var(--primary) !important;
+      }
+      .badge {
+        font-size: 8pt !important;
+        padding: 0.2rem 0.6rem !important;
+        background-color: var(--primary) !important;
+        color: #ffffff !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+      .section-title {
+        font-size: 12.5pt !important;
+        margin: 1.2rem 0 0.6rem 0 !important;
+        padding-left: 0.5rem !important;
+        border-left: 4px solid var(--secondary) !important;
+        page-break-after: avoid !important;
+        break-after: avoid !important;
+      }
+      .subsection-title {
+        font-size: 10.5pt !important;
+        margin: 1rem 0 0.5rem 0 !important;
+        page-break-after: avoid !important;
+        break-after: avoid !important;
+      }
+      .h4-title {
+        font-size: 9.5pt !important;
+        margin: 0.8rem 0 0.3rem 0 !important;
+        page-break-after: avoid !important;
+        break-after: avoid !important;
+      }
+      .info-quote {
+        background: #f8fafc !important;
+        border-left: 3px solid var(--accent) !important;
+        padding: 0.6rem 0.8rem !important;
+        margin: 0.6rem 0 !important;
+        font-size: 9pt !important;
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+        border-radius: 4px !important;
+      }
+      .table-container {
+        margin: 0.6rem 0 1rem 0 !important;
+        border: 1px solid #cbd5e1 !important;
+        border-radius: 6px !important;
+        overflow: visible !important;
+        page-break-inside: auto !important;
+        break-inside: auto !important;
+      }
+      table {
+        width: 100% !important;
+        font-size: 8.5pt !important;
+        border-collapse: collapse !important;
+      }
+      thead { display: table-header-group !important; }
+      tr {
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+      }
+      th {
+        background-color: #1a2b4c !important;
+        color: #ffffff !important;
+        padding: 0.45rem 0.65rem !important;
+        font-size: 8.5pt !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+      td {
+        padding: 0.45rem 0.65rem !important;
+        border-bottom: 1px solid #e2e8f0 !important;
+      }
+      .tag {
+        font-size: 7pt !important;
+        padding: 0.1rem 0.35rem !important;
+        border-radius: 4px !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+      .divider {
+        margin: 1rem 0 !important;
+        border-top: 1px solid #e2e8f0 !important;
+      }
+      .page-break {
+        page-break-before: always !important;
+        break-before: page !important;
+      }
+      ul, ol { margin-bottom: 0.5rem !important; }
+      li { page-break-inside: avoid !important; break-inside: avoid !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="nav-bar">
+      <a href="../index.html" class="nav-link">← 보고서 메인 포털로 돌아가기</a>
+    </div>
+    <div class="header">
+      <span class="badge">SSOT 정본 동기화 완료</span>
+      <h1>☑️ 00-22. 법적 요구사항 — 체크리스트</h1>
+      
+    </div>
+    <blockquote class="info-quote"><strong>문서 성격</strong>: <strong>추적 문서</strong>. 판단을 담지 않습니다 — 각 항목의 정본은 원 문서이며<br/>
+여기는 <strong>&quot;무엇이 남았고 누가 하는가&quot;</strong> 만 모읍니다. <code>[Claude:Opus]</code> 작성(2026-08-18).<br/>
+<strong>계기</strong>: 개발자 지시 — *&quot;우선 법적인 것들의 세부 요구 사항들을 체크할 수 있도록 해주고<br/>
+구현만 먼저 진행하자.&quot;*<br/>
+<strong>왜 필요한가</strong>: 법적 미확정이 **<code>00-16</code>·<code>00-17</code>·<code>00-18</code>·<code>00-19</code>·<code>00-20</code>·<code>00-21</code>·<code>01-02</code>·<br/>
+<code>security.md</code> 8곳에 흩어져** 있어 전체가 안 보입니다.</blockquote>
+<blockquote class="info-quote">## 📌 읽는 법<br/>
+- <strong>A·B는 사람이, C는 외부가, D·E는 코드가</strong> 하는 일입니다.<br/>
+- <strong>체크는 사람만 합니다</strong>(<code>AGENTS.md</code> §0 원칙 승계). 에이전트가 임의로 <code>[x]</code> 하지 않습니다.<br/>
+- <strong>막는 것 열</strong>이 비어 있으면 <strong>지금 안 해도 오픈이 막히지 않는</strong> 항목입니다.</blockquote>
+<hr class="divider"/>
+<h2 class="section-title"><span class="tag red">🔴</span> 0. 지금 오픈을 막는 것은 몇 개인가</h2>
+<div class="table-container"><table><thead><tr><th>구분</th><th>건수</th><th>성격</th></tr></thead><tbody><tr><td><strong>A. 사장님 판단</strong></td><td><strong>5</strong></td><td>기획이 대신 못 정함</td></tr><tr><td><strong>B. 조문·기관 확인</strong></td><td><strong>7</strong></td><td><span class="tag orange">🟡</span> <strong>전부 비용 0</strong> — 찾아보면 답이 있음</td></tr><tr><td><strong>C. 외부 전문가</strong></td><td><strong>6</strong></td><td><span class="tag red">🔴</span> 유료. <strong>한 건으로 묶어 의뢰 권고</strong></td></tr><tr><td><strong>D. 클라우드 확정 후</strong></td><td><strong>3</strong></td><td>⏸️ <code>00-11</code> §8-1에 걸림</td></tr><tr><td><strong>E. 코드 구현</strong></td><td><del>9</del> → <strong>6 남음</strong></td><td><code>[Sonnet]</code> — <span class="tag blue">🔵</span> <strong>08-18 E-1·E-2·E-3 완료</strong></td></tr></tbody></table></div>
+<blockquote class="info-quote"><span class="tag green">✅</span> <strong>오픈을 실제로 막는 것은 A 2건(추모관) + B 1건(위치정보 신고) + E 2건</strong>입니다.<br/>
+나머지는 <strong>오픈 시점에 맞추면 되거나, 이미 답이 정해져 실행만 남은 것</strong>들입니다.</blockquote>
+<p>&gt;</p>
+<blockquote class="info-quote"><span class="tag blue">🔵</span> <strong>2026-08-18 갱신</strong>: E-1~E-3 완료. <strong>E-5(b)·E-6은 &quot;첫 개정 전&quot;으로 재분류</strong>되어<br/>
+v1.0 블로커에서 내려갔습니다(<code>00-18</code> §8.3). <strong>v1.0 전에 남은 코드 작업은 E-4와 E-5(a) 둘뿐</strong>입니다.</blockquote>
+<hr class="divider"/>
+<h2 class="section-title"><span class="tag blue">🔵</span> A. 사장님 판단 — <strong>5건</strong></h2>
+<ul>
+<li>[ ] <strong>A-1. 추모관 활성 기간 = 1년으로 할지</strong></li>
+</ul>
+<p>  - 근거·권고: <code>00-20</code> §3·§7 (권고 <strong>1년</strong> — 첫 기일을 지나는 최소 기간)</p>
+<p>  - <strong>막는 것</strong>: <span class="tag red">🔴</span> <code>00-19</code> 제4조 · <code>00-21</code> 제15조 → <strong>처리방침·약관 게시 불가</strong></p>
+<ul>
+<li>[ ] <strong>A-2. 만료 시 &quot;삭제&quot;가 아니라 &quot;동결&quot;로 갈지</strong></li>
+</ul>
+<p>  - 근거·권고: <code>00-20</code> §5 (권고 <strong>동결</strong> — 읽기 전용)</p>
+<p>  - <strong>막는 것</strong>: <span class="tag red">🔴</span> A-1과 동일</p>
+<ul>
+<li>[ ] <strong>A-3. 위치정보 A/B/C안 최종 선택</strong></li>
+</ul>
+<p>  - 근거: <code>00-14</code> §2.7~§2.10 · 현재 <strong>B안(유지) 가정</strong>으로 문서 작성됨</p>
+<p>  - <strong>막는 것</strong>: <span class="tag red">🔴</span> <code>00-21</code> 제6장 게시 · <code>FacilityPage.tsx</code> GPS 기능</p>
+<p>  - <span class="tag warn">⚠️</span> <strong>B-1의 답을 먼저 보고 정하는 것이 효율적</strong>입니다</p>
+<ul>
+<li>[ ] <strong>A-4. 위치정보관리책임자 지정</strong></li>
+</ul>
+<p>  - 근거: <code>00-21</code> 제21조 5항. <span class="tag red">🔴</span> <strong>개인정보 보호책임자(윤현우)와 별도 직책</strong></p>
+<p>  - <strong>막는 것</strong>: <code>00-21</code> 제6장 (A-3이 A·C안이면 불필요)</p>
+<ul>
+<li>[ ] <strong>A-5. 외부 법률 검토 의뢰 여부·예산</strong></li>
+</ul>
+<p>  - 근거: <code>00-18</code> §8.1 #1 · 아래 <strong>C 전체가 여기에 달림</strong></p>
+<p>  - <strong>막는 것</strong>: <span class="tag red">🔴</span> <code>00-19</code>·<code>00-21</code> <strong>게시</strong>(초안 작성은 안 막힘)</p>
+<blockquote class="info-quote"><span class="tag orange">🟡</span> <strong>A-1·A-2는 한 번에 답하실 수 있습니다</strong> — 사실상 한 결정입니다.</blockquote>
+<hr class="divider"/>
+<h2 class="section-title"><span class="tag orange">🟡</span> B. 조문·기관 확인 — <strong>7건 · 전부 비용 0</strong></h2>
+<ul>
+<li>[ ] <strong>B-1. <span class="tag red">🔴</span> 위치정보법 제2장(제5~11조) — 신고 대상인가, 간이신고·면제가 있는가</strong></li>
+</ul>
+<p>  - <strong>이 안건 전체의 무게를 결정합니다.</strong> 국가법령정보센터에서 5분</p>
+<p>  - 근거: <code>00-14</code> §2.10 · <code>01-02</code> §2.2(*&quot;간이신고, 2~4주&quot;* 라고 이미 적어둠 — <strong>재확인 필요</strong>)</p>
+<p>  - <strong>막는 것</strong>: <span class="tag red">🔴</span> A-3</p>
+<ul>
+<li>[ ] <strong>B-2. 위치정보법 시행령 — §19① 4호 &quot;이용·제공사실 확인자료&quot; 보유기간</strong></li>
+</ul>
+<p>  - <strong>막는 것</strong>: <code>00-21</code> 제20조 4호 빈칸 · <code>00-19</code> 제3-6조</p>
+<ul>
+<li>[ ] <strong>B-3. 위치정보법 시행령 — §19① 5호가 정하는 추가 명시사항</strong></li>
+</ul>
+<p>  - <strong>막는 것</strong>: <code>00-21</code> 제20조 5호 빈칸</p>
+<ul>
+<li>[ ] <strong>B-4. 위치정보법 §25 — 법정대리인 동의 대상 연령</strong></li>
+</ul>
+<p>  - <span class="tag warn">⚠️</span> <span class="tag red">🔴</span> <strong><code>00-19</code> 제9-2조(만 14세 미만)와 기준이 다를 수 있습니다.</strong> 다르면 <strong>두 문서가 서로 다른 연령을 말하게 됩니다</strong></p>
+<p>  - <strong>막는 것</strong>: <code>00-21</code> 제20조 2호</p>
+<ul>
+<li>[ ] <strong>B-5. 위치정보법 §16② — 확인자료 자동 기록·보존 의무의 범위</strong></li>
+</ul>
+<p>  - <span class="tag warn">⚠️</span> <strong>&quot;저장 안 함&quot;이 장점이었는데 합법화하면 오히려 기록해야 하는</strong> 항목(<code>00-14</code> §2.8)</p>
+<p>  - <strong>막는 것</strong>: <code>[Sonnet]</code> E-7 설계</p>
+<ul>
+<li>[ ] <strong>B-6. 권익침해 구제기관 연락처 재확인</strong></li>
+</ul>
+<p>  - 근거: <code>00-19</code> 제13조(개인정보분쟁조정위·침해신고센터·대검·경찰청) — <strong>2026-08-18 기준 기재분</strong></p>
+<p>  - <strong>막는 것</strong>: 없음(게시 직전 확인)</p>
+<ul>
+<li>[ ] <strong>B-7. 개인정보위「개인정보 처리방침 작성지침」최신판 대조</strong></li>
+</ul>
+<p>  - 근거: <code>00-18</code> §11.2 — <strong>2025.4판 기준으로 작성됨</strong></p>
+<p>  - <strong>막는 것</strong>: 없음(게시 직전 확인)</p>
+<blockquote class="info-quote"><span class="tag orange">🟡</span> <strong>B-1만 먼저 하십시오.</strong> 나머지 6건은 게시 직전에 몰아서 해도 됩니다.</blockquote>
+<hr class="divider"/>
+<h2 class="section-title"><span class="tag red">🔴</span> C. 외부 전문가 — <strong>6건 · 한 건으로 묶어 의뢰 권고</strong></h2>
+<blockquote class="info-quote"><strong><code>06-03</code> §8 #4가 이미 묶음 의뢰를 권고했고, 여기에 약관이 더해져 6건이 됐습니다.</strong><br/>
+<strong>따로 의뢰하면 비용이 6배가 아니라 6번의 착수 비용이 붙습니다.</strong></blockquote>
+<ul>
+<li>[ ] <strong>C-1. <span class="tag red">🔴</span> <code>00-21</code> 제16조(사망 후 계정·데이터 처리)</strong></li>
+</ul>
+<p>  - <strong>표준 약관에 선례가 없는 유일한 조항이자, 이어봄 사업의 본질.</strong> 가장 시간을 써야 할 곳</p>
+<ul>
+<li>[ ] <strong>C-2. <code>00-21</code> 제9조·제23조</strong> — 중개 지위와 책임 제한이 <strong>약관규제법상 유효한 범위인지</strong></li>
+<li>[ ] <strong>C-3. <code>00-21</code> 제12조 · <code>06-03</code> §5</strong> — 엔딩노트 예외 열람 조항과 동의 문구</li>
+<li>[ ] <strong>C-4. <code>06-02</code> §7-1</strong> — 엔딩노트 면책 문구</li>
+<li>[ ] <strong>C-5. <code>04-02</code> §7-3</strong> — 운영자 대행의 적법성(행정사법·변호사법)</li>
+<li>[ ] <strong>C-6. 카카오 전달의 성격</strong> — 처리위탁인가 제3자 제공인가(<code>00-19</code> 제6조)</li>
+</ul>
+<blockquote class="info-quote"><span class="tag orange">🟡</span> <strong><code>00-16</code>(주민등록번호)은 C에서 뺐습니다</strong> — <code>00-17</code>·<code>00-16</code>이 *&quot;법령 근거가 없으면<br/>
+동의로도 처리 불가&quot;* 로 <strong>이미 결론을 냈고, 결론이 &quot;안 받는다&quot;</strong> 라 자문할 논점이 없습니다.</blockquote>
+<hr class="divider"/>
+<h2 class="section-title">⏸️ D. 클라우드 사업자 확정 후 — <strong>3건</strong> (<code>00-11</code> §8-1)</h2>
+<ul>
+<li>[ ] <strong>D-1. <code>00-19</code> 제6조</strong> 수탁자 기재</li>
+<li>[ ] <strong>D-2. <code>00-19</code> 제7조</strong> 국외이전 표 — <strong>서버가 국외면 행 추가</strong></li>
+<li>[ ] <strong>D-3. <code>00-19</code> 제10조</strong> 물리적 안전조치</li>
+</ul>
+<blockquote class="info-quote"><span class="tag blue">🔵</span> <strong>2026-08-18 보류 확정.</strong> 사업자가 정해지면 세 칸이 동시에 채워집니다.</blockquote>
+<hr class="divider"/>
+<h2 class="section-title">🔧 E. 코드 구현 — <strong>9건</strong> (<code>[Claude:Sonnet]</code>)</h2>
+<blockquote class="info-quote"><strong>아래는 &quot;기능&quot;이 아니라 &quot;법이 코드에 건 요구&quot;입니다.</strong><br/>
+<span class="tag red">🔴</span> <strong>하나라도 빠지면 문서가 거짓말이 됩니다.</strong></blockquote>
+<h3 class="subsection-title"><span class="tag green">✅</span> E-1 ~ E-3: <strong>2026-08-18 완료</strong> (walkthrough (29))</h3>
+<ul>
+<li>[x] <strong>E-1. <code>Footer.tsx:74</code> — &quot;KISA 기준 최고 등급 보안 암호화&quot; 항목 제거</strong> <span class="tag green">✅</span></li>
+</ul>
+<p>  - 근거: <code>00-14</code> §2.5 (<span class="tag blue">🔵</span> 08-18 확정 — <strong>대체 문구 없이 제거</strong>). <code>1588-0000</code>은 지시대로 존치</p>
+<ul>
+<li>[x] <strong>E-2. <span class="tag red">🔴</span><span class="tag red">🔴</span> 위치정보 잠금 규칙 (<code>00-21</code> §0.2)</strong> <span class="tag green">✅</span></li>
+</ul>
+<p>  - <code>config.ts</code>의 <strong><code>LOCATION_BASED_SERVICE_REGISTERED</code></strong>(현재 <code>false</code>) 하나로 <strong>3곳 동시 게이트</strong> —</p>
+<p>    <code>FacilityPage</code> GPS · 약관 제6장 · 처리방침 제3-6조. <strong>신고 확인 후 이 값만 <code>true</code>로</strong></p>
+<p>  - 검증: <code>/api/geo/reverse</code>가 <code>GEOLOCATION_FALLBACK</code> 고정값만 전송함을 네트워크 로그로 재현</p>
+<ul>
+<li>[x] <strong>E-3. <code>/terms</code>·<code>/privacy</code> 라우트 + 페이지</strong> <span class="tag green">✅</span></li>
+</ul>
+<h3 class="subsection-title"><span class="tag blue">🔵</span> E-4 ~ E-6: <strong>2026-08-18 재분류</strong> — 셋이 같은 무게가 아니다</h3>
+<blockquote class="info-quote"><strong>계기</strong>: walkthrough (29) <code>[Sonnet]</code> 지적 — *&quot;이미 있다고 서술 중이라 방치하면 §2류 결함.&quot;*<br/>
+<strong>지적은 맞으나 E-4에만 해당합니다.</strong> 판단 근거는 <strong><code>00-18</code> §8.3</strong>(문장이 *지금 사실*인가,<br/>
+*나중의 약속*인가). 트리거는 <strong><code>00-18</code> §8.4</strong>.</blockquote>
+<ul>
+<li>[ ] <strong>E-4. <span class="tag red">🔴</span> 만 14세 미만 가입 게이트</strong> — <strong>v1.0 게시 전 필수</strong></li>
+</ul>
+<p>  - <span class="tag red">🔴</span> <strong>셋 중 유일하게 지금 거짓입니다</strong> — *&quot;가입을 받지 않습니다&quot;* 는 현재 시제 사실 주장인데</p>
+<p>    <strong>연령 관련 코드가 저장소에 0건</strong>(2026-08-18 실측)</p>
+<p>  - <strong>구현 스펙 정본: <code>00-19</code> §9-2-1</strong> — <span class="tag orange">🟡</span> <strong>자기신고 방식</strong>(생년월일·연령대를 받지 않음.</p>
+<p>    보호하려고 정보를 더 걷는 설계는 <code>00-16</code>·<code>05-01</code> §4.4의 태도와 어긋남)</p>
+<p>  - <span class="tag warn">⚠️</span> <strong>데모 로그인 버튼에도 같은 게이트</strong> — 우회 경로가 남으면 게이트가 아님</p>
+<p>  - <span class="tag orange">🟡</span> B-4(위치정보법 §25 연령)와 다르더라도 <strong>가입 게이트는 만 14세로 먼저 세움</strong></p>
+<ul>
+<li>[ ] <strong>E-5(a). <span class="tag orange">🟡</span> 본문을 코드→데이터로 분리 + 버전·시행일 메타</strong> — <strong>v1.0 게시 전 권고</strong></li>
+</ul>
+<p>  - 근거는 *&quot;약속했으니까&quot;가 아니라 <strong>나중에 하면 비싸서</strong>*(<code>00-18</code> §8.3)</p>
+<p>  - walkthrough (29) ③의 <strong>마크다운↔TSX 이중 관리 문제와 같은 작업</strong> — 조문 38개인 지금이 가장 쌈</p>
+<ul>
+<li>[ ] <strong>E-5(b). 이전 버전 열람 화면</strong> — <span class="tag blue">🔵</span> <strong>첫 개정(v1.1) 전까지</strong></li>
+</ul>
+<p>  - <strong>지금 만들면 빈 화면입니다</strong> — 보관할 이전 버전이 아직 없음</p>
+<ul>
+<li>[ ] <strong>E-6. 개정 사전 공지 화면(7일 / 불리한 변경 30일)</strong> — <span class="tag blue">🔵</span> <strong>첫 개정(v1.1) 전까지</strong></li>
+</ul>
+<p>  - 근거: <code>00-19</code> 제14조 2항 · <code>00-21</code> 제3조 3항</p>
+<blockquote class="info-quote">## <span class="tag red">🔴</span> 이행 트리거 — <strong>미룬 것을 잊지 않기 위한 장치</strong>(<code>00-18</code> §8.4)</blockquote>
+<p>&gt;</p>
+<blockquote class="info-quote">| 트리거 | 그때 반드시 있어야 하는 것 |<br/>
+| :--- | :--- |<br/>
+| <strong>v1.0 게시 직전</strong> | <strong>E-4</strong> · <span class="tag orange">🟡</span> <strong>E-5(a)</strong> · 시행일 값 |<br/>
+| <strong>처음 개정할 때(v1.1)</strong> | <span class="tag red">🔴</span> <strong>E-5(b)</strong> · <span class="tag red">🔴</span> <strong>E-6</strong> |</blockquote>
+<p>&gt;</p>
+<blockquote class="info-quote"><span class="tag red">🔴</span> <strong>v1.1 트리거를 놓치면 두 문장이 동시에 거짓이 됩니다. 개정 작업 착수 전에 이 표를 먼저 볼 것.</strong></blockquote>
+<h3 class="subsection-title">E-7 ~ E-9: 확정 후 착수</h3>
+<ul>
+<li>[ ] <strong>E-7. 위치정보 동의 UI + 이용·제공사실 확인자료 기록</strong> — A-3·B-1·B-5 후</li>
+<li>[ ] <strong>E-8. 접속기록 1년 보관·파기 규칙</strong> — 근거 <code>00-17</code> §4.2 ⑤ · <code>00-19</code> 제4조</li>
+<li>[ ] <strong>E-9. 소프트 삭제 3종 파기 배치 + 추모관 <code>expiresAt</code>·<code>frozenAt</code></strong></li>
+</ul>
+<p>  - 근거: <code>00-19</code> 제4조 · <code>00-20</code> §8.1 (A-1·A-2 후)</p>
+<p>  - <span class="tag warn">⚠️</span> <code>frozenAt</code> 가드를 <strong>방명록·헌화·사진 3경로 전부</strong>에 — 하나라도 빠지면 동결이 아님</p>
+<hr class="divider"/>
+<h2 class="section-title">🔗 관련 문서</h2>
+<div class="table-container"><table><thead><tr><th>문서</th><th>이 체크리스트에서</th></tr></thead><tbody><tr><td><code>00-18</code> §8.1·§11.5</td><td><strong>게시 게이트와 진행 순서의 정본</strong></td></tr><tr><td><code>00-19</code> · <code>00-21</code></td><td>게시될 본문 — <strong>A·D·E가 채울 대상</strong></td></tr><tr><td><code>00-20</code></td><td>A-1·A-2의 근거</td></tr><tr><td><code>00-14</code> §2.7~§2.10</td><td>A-3·B-1의 근거</td></tr><tr><td><code>00-16</code> · <code>00-17</code></td><td>이미 결론이 난 항목(C에서 제외한 이유)</td></tr><tr><td><code>01-02</code> §2.2 · <code>security.md</code> §4</td><td>B-1의 선행 판정 — <strong>재확인 대상</strong></td></tr></tbody></table></div>
+
+  </div>
+</body>
+</html>

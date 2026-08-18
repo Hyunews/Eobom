@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>📄 00-16. L3 사망확인 서류 — 검토서 - 이어봄 기획 명세서</title>
+  <style>
+    :root {
+      --primary: #1A2B4C;
+      --secondary: #5B7065;
+      --accent: #D4A359;
+      --bg: #FBF9F5;
+      --surface: #FFFFFF;
+      --text: #1E293B;
+      --text-muted: #64748B;
+      --border: #E2E8F0;
+      --code-bg: #0F172A;
+      --code-text: #F8FAFC;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.65;
+      padding: 2rem 1rem;
+    }
+    .container {
+      max-width: 1140px;
+      margin: 0 auto;
+      background-color: var(--surface);
+      padding: 3rem;
+      border-radius: 24px;
+      box-shadow: 0 20px 40px rgba(26, 43, 76, 0.08);
+      border: 1px solid var(--border);
+    }
+    .header {
+      border-bottom: 3px solid var(--accent);
+      padding-bottom: 1.5rem;
+      margin-bottom: 2.5rem;
+    }
+    .badge {
+      display: inline-block;
+      background-color: var(--primary);
+      color: #FFF;
+      font-size: 0.85rem;
+      font-weight: 700;
+      padding: 0.3rem 0.8rem;
+      border-radius: 20px;
+      margin-bottom: 0.8rem;
+    }
+    h1 {
+      font-size: 2.1rem;
+      color: var(--primary);
+      margin-bottom: 0.5rem;
+      font-weight: 800;
+    }
+    .subtitle {
+      color: var(--text-muted);
+      font-size: 1.05rem;
+    }
+    .section-title {
+      font-size: 1.5rem;
+      color: var(--primary);
+      margin: 2.5rem 0 1.2rem 0;
+      padding-left: 0.8rem;
+      border-left: 5px solid var(--secondary);
+      font-weight: 700;
+    }
+    .subsection-title {
+      font-size: 1.25rem;
+      color: var(--primary);
+      margin: 1.8rem 0 0.8rem 0;
+      font-weight: 700;
+    }
+    .h4-title {
+      font-size: 1.05rem;
+      color: var(--secondary);
+      margin: 1.2rem 0 0.6rem 0;
+      font-weight: 700;
+    }
+    .info-quote {
+      background: #F1F5F9;
+      border-left: 4px solid var(--accent);
+      padding: 0.9rem 1.2rem;
+      margin: 1rem 0;
+      border-radius: 6px;
+      font-size: 0.95rem;
+      color: #334155;
+    }
+    code {
+      background: #EFF6FF;
+      color: #1D4ED8;
+      padding: 0.15rem 0.4rem;
+      border-radius: 6px;
+      font-family: 'Fira Code', Consolas, monospace;
+      font-size: 0.88rem;
+    }
+    pre {
+      background: var(--code-bg);
+      color: var(--code-text);
+      padding: 1.2rem;
+      border-radius: 12px;
+      overflow-x: auto;
+      margin: 1rem 0 1.5rem 0;
+      font-family: 'Fira Code', Consolas, monospace;
+      font-size: 0.9rem;
+    }
+    pre code {
+      background: transparent;
+      color: inherit;
+      padding: 0;
+    }
+    .table-container {
+      overflow-x: auto;
+      margin: 1.2rem 0 1.8rem 0;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.92rem;
+      background: #FFFFFF;
+    }
+    th {
+      background-color: var(--primary);
+      color: #FFFFFF;
+      padding: 0.8rem 1rem;
+      text-align: left;
+      font-weight: 600;
+    }
+    td {
+      padding: 0.8rem 1rem;
+      border-bottom: 1px solid var(--border);
+      color: #334155;
+    }
+    tr:last-child td {
+      border-bottom: none;
+    }
+    tr:nth-child(even) {
+      background-color: #F8FAFC;
+    }
+    .tag {
+      display: inline-block;
+      padding: 0.15rem 0.45rem;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 700;
+    }
+    .tag.green { background-color: #DCFCE7; color: #166534; }
+    .tag.gray { background-color: #F1F5F9; color: #475569; }
+    .tag.orange { background-color: #FFEDD5; color: #9A3412; }
+    .tag.red { background-color: #FEE2E2; color: #991B1B; border: 1px solid #FECACA; }
+    .tag.blue { background-color: #DBEAFE; color: #1E40AF; border: 1px solid #BFDBFE; }
+    .tag.gold { background-color: #FEF3C7; color: #92400E; border: 1px solid #FDE68A; font-weight: 700; }
+    .tag.warn { background-color: #FEF3C7; color: #B45309; }
+    .tag.pk { background-color: #FEE2E2; color: #991B1B; }
+    .tag.fk { background-color: #DBEAFE; color: #1E40AF; }
+    .tag.uk { background-color: #DCFCE7; color: #166534; }
+    del {
+      color: #94A3B8;
+      text-decoration: line-through;
+    }
+    .md-link {
+      color: var(--accent);
+      text-decoration: underline;
+      font-weight: 500;
+    }
+    p { margin-bottom: 0.9rem; color: #334155; }
+    ul, ol { margin-bottom: 1rem; padding-left: 1.4rem; color: #334155; }
+    li { margin-bottom: 0.4rem; }
+    .divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 2.5rem 0;
+    }
+    .nav-bar {
+      margin-bottom: 2rem;
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+    }
+    .nav-link {
+      color: var(--primary);
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+    .nav-link:hover {
+      color: var(--accent);
+    }
+    @page {
+      size: A4 portrait;
+      margin: 15mm 14mm 18mm 14mm;
+    }
+    @media print {
+      html, body {
+        background-color: #ffffff !important;
+        color: #1e293b !important;
+        font-size: 9.5pt !important;
+        line-height: 1.5 !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+      .container {
+        max-width: 100% !important;
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        border: none !important;
+        box-shadow: none !important;
+        background: transparent !important;
+        border-radius: 0 !important;
+      }
+      .nav-bar { display: none !important; }
+      .header {
+        border-bottom: 2px solid var(--accent) !important;
+        padding-bottom: 0.6rem !important;
+        margin-bottom: 1.2rem !important;
+        page-break-after: avoid !important;
+        break-after: avoid !important;
+      }
+      h1 {
+        font-size: 17pt !important;
+        line-height: 1.3 !important;
+        margin-bottom: 0.4rem !important;
+        color: var(--primary) !important;
+      }
+      .badge {
+        font-size: 8pt !important;
+        padding: 0.2rem 0.6rem !important;
+        background-color: var(--primary) !important;
+        color: #ffffff !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+      .section-title {
+        font-size: 12.5pt !important;
+        margin: 1.2rem 0 0.6rem 0 !important;
+        padding-left: 0.5rem !important;
+        border-left: 4px solid var(--secondary) !important;
+        page-break-after: avoid !important;
+        break-after: avoid !important;
+      }
+      .subsection-title {
+        font-size: 10.5pt !important;
+        margin: 1rem 0 0.5rem 0 !important;
+        page-break-after: avoid !important;
+        break-after: avoid !important;
+      }
+      .h4-title {
+        font-size: 9.5pt !important;
+        margin: 0.8rem 0 0.3rem 0 !important;
+        page-break-after: avoid !important;
+        break-after: avoid !important;
+      }
+      .info-quote {
+        background: #f8fafc !important;
+        border-left: 3px solid var(--accent) !important;
+        padding: 0.6rem 0.8rem !important;
+        margin: 0.6rem 0 !important;
+        font-size: 9pt !important;
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+        border-radius: 4px !important;
+      }
+      .table-container {
+        margin: 0.6rem 0 1rem 0 !important;
+        border: 1px solid #cbd5e1 !important;
+        border-radius: 6px !important;
+        overflow: visible !important;
+        page-break-inside: auto !important;
+        break-inside: auto !important;
+      }
+      table {
+        width: 100% !important;
+        font-size: 8.5pt !important;
+        border-collapse: collapse !important;
+      }
+      thead { display: table-header-group !important; }
+      tr {
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+      }
+      th {
+        background-color: #1a2b4c !important;
+        color: #ffffff !important;
+        padding: 0.45rem 0.65rem !important;
+        font-size: 8.5pt !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+      td {
+        padding: 0.45rem 0.65rem !important;
+        border-bottom: 1px solid #e2e8f0 !important;
+      }
+      .tag {
+        font-size: 7pt !important;
+        padding: 0.1rem 0.35rem !important;
+        border-radius: 4px !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+      .divider {
+        margin: 1rem 0 !important;
+        border-top: 1px solid #e2e8f0 !important;
+      }
+      .page-break {
+        page-break-before: always !important;
+        break-before: page !important;
+      }
+      ul, ol { margin-bottom: 0.5rem !important; }
+      li { page-break-inside: avoid !important; break-inside: avoid !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="nav-bar">
+      <a href="../index.html" class="nav-link">← 보고서 메인 포털로 돌아가기</a>
+    </div>
+    <div class="header">
+      <span class="badge">SSOT 정본 동기화 완료</span>
+      <h1>📄 00-16. L3 사망확인 서류 — 검토서</h1>
+      
+    </div>
+    <blockquote class="info-quote"><strong>문서 성격</strong>: 검토서 · <strong><code>00-14</code> §7-4 산출물</strong>. <code>[Claude:Opus]</code> 작성(2026-08-14 조사 / 2026-08-18 문서화).<br/>
+<strong>계기</strong>: 개발자 지시 — *&quot;7 기술확인 <strong>권고안대로 가되</strong>, **7-4 L3 서류에 대한 정보가 부족해서<br/>
+문서화해서 검토 필요**.&quot;*<br/>
+<strong>정본 관계</strong>: 검증 사다리(L0~L4)의 정본은 <strong><code>00-12</code> §4</strong>입니다. 이 문서는 그 사다리의<br/>
+<strong>L3 한 칸만</strong> 파고들며, 사다리 자체를 다시 설계하지 않습니다.<br/>
+<strong>표기</strong>: <span class="tag green">✅</span> 확정 사실 / <span class="tag orange">🟡</span> 권고 / <span class="tag red">🔴</span> 외부 확인 필요 · <span class="tag blue">🔵</span> 개발자 확정</blockquote>
+<blockquote class="info-quote"><span class="tag warn">⚠️</span> <strong>이 문서는 법률 자문이 아닙니다.</strong> 다만 §3은 <strong>&quot;해석&quot;이 아니라 조문 자체가 금지하는 사안</strong>이라<br/>
+다른 절보다 강한 어조로 씁니다. 그 이유도 §3에 적었습니다.</blockquote>
+<hr class="divider"/>
+<h2 class="section-title">📌 1. 결론 먼저 — 권고가 바뀌지는 않습니다. <strong>근거가 바뀝니다</strong></h2>
+<div class="table-container"><table><thead><tr><th></th><th>검토 전(<code>00-12</code> §8-2 · <code>04-01</code> §10-2)</th><th>검토 후</th></tr></thead><tbody><tr><td><strong>권고</strong></td><td>화면 확인 후 <strong>미저장</strong></td><td><span class="tag green">✅</span> <strong>동일 — 유지</strong></td></tr><tr><td><strong>근거</strong></td><td>*&quot;민감 서류는 유출되면 회수할 수 없다&quot;* (운영 리스크·되돌리기 쉬운 방향)</td><td><span class="tag red">🔴</span> <strong>개인정보보호법 §24조의2 — 주민등록번호는 법령 근거 없이는 처리 자체가 금지</strong>(§3)</td></tr><tr><td><strong>성격</strong></td><td>절충안·판단 사항</td><td><strong>선택지가 아님에 가까움</strong></td></tr><tr><td><strong>미결 상태</strong></td><td><code>00-12</code> §8-2 = 사장님·전문가 확인 대상</td><td><span class="tag orange">🟡</span> <strong>사장님 확정 항목에서 내릴 수 있음</strong>(§6)</td></tr></tbody></table></div>
+<blockquote class="info-quote"><strong>이 문서가 실제로 바꾸는 것은 두 가지입니다.</strong><br/>
+<strong>① 미저장 권고가 &quot;운영 편의&quot;가 아니라 &quot;법적 요구에 가깝다&quot;로 승격</strong>됩니다(§3).<br/>
+<strong>② L3 설계가 &quot;서류 한 장 확인&quot;에서 &quot;시간축 + 두 가지 확인&quot;으로 정밀해집니다</strong>(§2).<br/>
+②가 없으면 <strong>L3는 가장 급한 시점에 작동하지 않습니다.</strong></blockquote>
+<hr class="divider"/>
+<h2 class="section-title">🗂️ 2. 서류를 먼저 정확히 압니다 — 개발자가 *&quot;정보가 부족하다&quot;* 고 한 부분</h2>
+<h3 class="subsection-title">2.1 서류 4종</h3>
+<div class="table-container"><table><thead><tr><th>서류</th><th>누가 발급</th><th>무엇을 증명</th></tr></thead><tbody><tr><td><strong>사망진단서</strong></td><td>병원 진료 중 사망 시 <strong>담당 의사</strong></td><td><strong>사망 사실</strong></td></tr><tr><td><strong>시체검안서</strong></td><td>병원 밖 사망·사고사 등 <strong>검안 의사</strong></td><td>사망 사실 — <strong>사망진단서와 같은 증명력</strong></td></tr><tr><td><strong>기본증명서(상세)</strong></td><td>가족관계등록 관서 / 정부24</td><td><strong>사망 사실</strong>(단, <strong>사망신고 처리 후</strong>에만 기재됨)</td></tr><tr><td><strong>가족관계증명서(상세)</strong></td><td>동일</td><td><strong>신청인이 유족임</strong> — <span class="tag warn">⚠️</span> <strong>사망 증명이 아님</strong></td></tr></tbody></table></div>
+<h3 class="subsection-title">2.2 <span class="tag red">🔴</span> 시간축 — <strong>L3를 기본증명서로 설계하면 가장 급한 시점에 작동하지 않습니다</strong></h3>
+<p>사망신고는 <strong>의사가 발급한 원본</strong>을 가지고 <strong>관할 읍·면·동에 1개월 내</strong>에 합니다(<code>07-02</code> #6).</p>
+<p><strong>신고가 처리되기 전에는 기본증명서에 사망이 뜨지 않습니다.</strong></p>
+<pre><code>D+0 ─────────── D+수일 ─────────── D+1개월
+ │                  │                  │
+ 사망               사망신고            (신고 기한)
+ │                  │
+ └ 사망진단서·검안서만 존재            └ 이 시점 이후에야 기본증명서에 사망 기재
+   (기본증명서로는 확인 불가)</code></pre>
+<blockquote class="info-quote"><strong>L3를 요구하는 행위가 무엇이었는지 보면 문제가 분명해집니다</strong> — <strong>엔딩노트 개봉</strong>과<br/>
+<strong>운영자 대행</strong>입니다(<code>00-12</code> §4). 그리고 <strong>엔딩노트에는 장례 방식·연명의료 의향이 들어갑니다.</strong><br/>
+<strong>D+0~수일 구간에 못 열면 열어야 할 이유의 절반이 사라집니다.</strong></blockquote>
+<p>&gt;</p>
+<blockquote class="info-quote"><span class="tag green">✅</span> <strong>따라서 L3의 1차 서류는 사망진단서·시체검안서이고, 기본증명서는 대체 수단입니다.</strong><br/>
+순서를 반대로 적으면 안 됩니다.</blockquote>
+<h3 class="subsection-title">2.3 <span class="tag green">✅</span> 두 가지를 갈라야 합니다 — <strong>한 서류로 둘 다 안 됩니다</strong></h3>
+<div class="table-container"><table><thead><tr><th>확인해야 하는 것</th><th>서류</th><th>데이터 모델</th></tr></thead><tbody><tr><td>① <strong>사망 사실</strong></td><td>사망진단서 · 검안서 · 기본증명서(상세)</td><td><strong><code>DeathVerification</code></strong>(<code>00-12</code> §3)</td></tr><tr><td>② <strong>신청인이 유족임</strong></td><td><strong>가족관계증명서(상세)</strong></td><td><strong><code>BereavedRelation</code></strong>(<code>00-12</code> §3)</td></tr></tbody></table></div>
+<blockquote class="info-quote"><span class="tag red">🔴</span> <strong><code>00-12</code> §4의 L3는 ①만 말하고 있었습니다.</strong> 그런데 **엔딩노트 개봉을 신청하는 사람이<br/>
+유족이 맞는지는 ②의 문제<strong>입니다. ①만 통과시키면 </strong>&quot;고인이 사망한 것은 맞는데 아무나 열 수 있는&quot;**<br/>
+구멍이 생깁니다.</blockquote>
+<p>&gt;</p>
+<blockquote class="info-quote"><span class="tag green">✅</span> <strong>다만 <code>00-12</code>가 이미 답을 갖고 있습니다</strong> — <strong>L4 = L3 + 지정 유족 이중동의</strong>이고,<br/>
+<code>BereavedRelation.kind = DESIGNATED</code>(생전 지정)는 <strong>서류 없이 성립하는 확인</strong>입니다.<br/>
+<strong>생전에 지정해두면 ②를 서류로 확인할 필요가 아예 없습니다.</strong><br/>
+→ <strong>§4.2의 설계 권고가 여기서 나옵니다.</strong></blockquote>
+<hr class="divider"/>
+<h2 class="section-title">⚖️ 3. <span class="tag red">🔴</span> 미저장 권고의 법적 근거 — <strong>이 문서의 핵심</strong></h2>
+<h3 class="subsection-title">3.1 조문</h3>
+<p><strong>개인정보보호법 §24조의2(주민등록번호 처리의 제한)</strong> — 다음을 **제외하고는 주민등록번호를</p>
+<p>처리할 수 없습니다.**</p>
+<p>1. <strong>법률·대통령령·국회규칙·대법원규칙·헌법재판소규칙·중앙선거관리위원회규칙·감사원규칙</strong>에서</p>
+<p>   구체적으로 주민등록번호의 처리를 <strong>요구하거나 허용</strong>한 경우</p>
+<p>2. 정보주체 또는 제3자의 <strong>급박한 생명·신체·재산의 이익</strong>을 위하여 명백히 필요하다고 인정되는 경우</p>
+<p>3. 위에 준하여 주민등록번호 처리가 불가피한 경우로서 <strong>보호위원회가 고시로 정하는 경우</strong></p>
+<h3 class="subsection-title">3.2 <span class="tag green">✅</span> 이것이 왜 다른 개인정보와 다른가 — <strong>가장 흔한 오해</strong></h3>
+<div class="table-container"><table><thead><tr><th>오해</th><th>실제</th></tr></thead><tbody><tr><td>*&quot;민감정보라도 별도 동의를 받으면 처리할 수 있다&quot;*</td><td>고유식별정보 일반(여권번호·운전면허번호 등)은 그렇습니다</td></tr><tr><td>*&quot;그러니 주민등록번호도 동의받으면 된다&quot;*</td><td>❌ <strong>주민등록번호는 예외입니다.</strong> <strong>법령 근거가 없으면 동의를 받아도 처리할 수 없습니다</strong></td></tr></tbody></table></div>
+<blockquote class="info-quote"><strong><span class="tag green">✅</span> 즉 &quot;유족이 동의했으니 괜찮다&quot;는 성립하지 않습니다.</strong><br/>
+그리고 §2.1의 서류에는 <strong>주민등록번호가 인쇄되어 있습니다.</strong><br/>
+<strong>이어봄에는 이를 처리할 법령 근거가 없습니다</strong> — 금융기관·보험사가 서류를 받을 수 있는 것은<br/>
+각자의 근거 법령이 있기 때문이지, 서류를 받는 업무라서가 아닙니다.</blockquote>
+<h3 class="subsection-title">3.3 그래서 <code>00-12</code> §8-2·<code>04-01</code> §10-2의 위상이 바뀝니다</h3>
+<ul>
+<li>종전: *&quot;안 받는 쪽을 기본값으로&quot;* — <strong>되돌리기 쉬운 방향을 고른 판단</strong>(<code>04-01</code> §3.3)</li>
+<li>개정: <strong>&quot;받으면 안 되는 쪽에 가깝다&quot;</strong> — 판단이 아니라 <strong>제약</strong></li>
+</ul>
+<blockquote class="info-quote"><span class="tag orange">🟡</span> <strong>&quot;가깝다&quot;라고 쓴 이유</strong>: 화면에 띄워 <strong>읽는 행위(열람)</strong> 도 개인정보보호법상 &quot;처리&quot;에<br/>
+포함되므로, <strong>엄밀히는 저장뿐 아니라 화면 확인도 논점이 됩니다.</strong> 그래서 §4가 필요합니다.<br/>
+<strong>저장을 안 하는 것만으로 끝나지 않습니다.</strong></blockquote>
+<hr class="divider"/>
+<h2 class="section-title">🛠️ 4. 그럼 L3를 어떻게 구현하나 — 설계 권고</h2>
+<h3 class="subsection-title">4.1 <span class="tag orange">🟡</span> 제출 <strong>전</strong> 마스킹 — 서류를 받되 번호를 받지 않습니다</h3>
+<p><strong>주민등록번호가 문제이지 서류가 문제가 아닙니다.</strong> 따라서:</p>
+<div class="table-container"><table><thead><tr><th>단계</th><th>설계</th></tr></thead><tbody><tr><td><strong>① 안내</strong></td><td>업로드 화면에서 <strong>&quot;주민등록번호 뒷자리를 가린 뒤 제출하십시오&quot;</strong> 를 <strong>제출 버튼 앞 단계에</strong> 요구. 예시 이미지 제공</td></tr><tr><td><strong>② 제출</strong></td><td><span class="tag orange">🟡</span> <strong>가능하면 파일 업로드 자체를 만들지 않습니다</strong>(§4.3). 불가피할 경우에만 임시 채널</td></tr><tr><td><strong>③ 확인</strong></td><td>운영자가 <strong>화면으로 확인만</strong></td></tr><tr><td><strong>④ 기록</strong></td><td><strong><code>DeathVerification</code>에 <code>level</code>·<code>reviewedBy</code>·<code>verifiedAt</code>만.</strong> 파일·번호·이미지는 남기지 않음</td></tr><tr><td><strong>⑤ 파기</strong></td><td>임시 채널을 썼다면 <strong>확인 완료 시점 즉시 파기</strong>하고 파기 사실을 기록</td></tr></tbody></table></div>
+<blockquote class="info-quote"><span class="tag warn">⚠️</span> <strong>①을 &quot;안내 문구&quot;로만 두면 지켜지지 않습니다.</strong> <code>00-14</code> §2가 반복해서 확인한 패턴입니다 —<br/>
+<strong>화면이 말하는 것과 시스템이 강제하는 것은 다릅니다.</strong> 마스킹은 **제출 단계의 체크박스 확인 +<br/>
+운영자 1차 반려 사유**로 이중으로 걸어야 실효가 있습니다.</blockquote>
+<h3 class="subsection-title">4.2 <span class="tag green">✅</span> 더 나은 답 — <strong>서류를 안 보는 경로를 기본값으로</strong></h3>
+<p>§2.3에서 확인했듯 <strong>생전 지정(<code>DESIGNATED</code>)이 있으면 ②(유족 확인)는 서류가 필요 없습니다.</strong></p>
+<p>그리고 ①(사망 사실)은 <strong>운영자 검토(L2)와 결합하면 서류 원본 보관 없이도 확인 가능</strong>합니다.</p>
+<div class="table-container"><table><thead><tr><th>경로</th><th>서류</th><th>언제</th></tr></thead><tbody><tr><td><strong>A. 생전 지정 경로</strong> <span class="tag orange">🟡</span> <strong>기본값 권고</strong></td><td><strong>불필요</strong>(지정 유족 본인확인 + 사망 사실 확인만)</td><td>본인이 생전에 <code>BereavedRelation.DESIGNATED</code>를 남긴 경우</td></tr><tr><td><strong>B. 사후 자칭 경로</strong></td><td>필요 — §4.1 절차</td><td>지정이 없는 경우</td></tr></tbody></table></div>
+<blockquote class="info-quote"><span class="tag green">✅</span> <strong>이것은 새 설계가 아니라 <code>00-12</code>가 이미 만든 구조를 L3에 적용하는 것입니다.</strong><br/>
+<strong>그리고 06(엔딩노트)의 UX 방향과도 맞습니다</strong> — *&quot;미리 지정해두면 유족이 훨씬 수월합니다&quot;* 는<br/>
+생전 작성 유도의 근거가 되고, <code>04-02</code> §4(플랫폼 사전지정 안내)·<code>06-02</code> §3(연명의료 등록)과<br/>
+<strong>같은 형태의 문장</strong>입니다. <strong>세 곳에서 같은 말을 하고 있다면 그게 이 서비스의 핵심 동작입니다.</strong></blockquote>
+<h3 class="subsection-title">4.3 <span class="tag green">✅</span> 지금 당장 지켜야 할 구현 제약</h3>
+<p><code>04-01</code> §8이 이미 *&quot;고인 자격증명·증빙서류 관련 컬럼을 만들지 말 것 — 필드가 없으면 채워질 수</p>
+<p>없습니다&quot;* 라고 못 박았습니다. <strong>이 문서는 그 제약을 L3까지 확장합니다.</strong></p>
+<ul>
+<li>❌ <code>DeathVerification</code>에 파일 경로·이미지·주민등록번호 컬럼을 <strong>만들지 않습니다.</strong></li>
+<li>❌ 오브젝트 스토리지에 <code>death-documents/</code> 같은 버킷·프리픽스를 <strong>만들지 않습니다.</strong></li>
+<li><span class="tag green">✅</span> <code>00-12</code> §3의 모델 주석(*&quot;서류 파일 자체는 저장하지 않는 것을 기본으로 한다&quot;*)을 <strong>유지</strong>하되,</li>
+</ul>
+<p>  <strong>주석 근거를 <code>§5</code>에서 <code>00-16</code>으로 갱신</strong>합니다.</p>
+<hr class="divider"/>
+<h2 class="section-title">🔗 5. 경계 정리 — 헷갈리기 쉬운 세 가지</h2>
+<div class="table-container"><table><thead><tr><th>건</th><th>이어봄이 서류를 보나</th><th>왜</th></tr></thead><tbody><tr><td><strong>04 계정 정리 안내</strong>(<code>04-01</code> §3.3)</td><td>❌ <strong>안 봄</strong></td><td>유족이 <strong>각 플랫폼에 직접</strong> 제출. L0~L1 행위</td></tr><tr><td><strong>07 안심상속 원스톱</strong>(<code>07-02</code> #7)</td><td>❌ <strong>안 봄</strong></td><td><strong>정부24에서 처리되는 절차</strong>입니다. 이어봄은 <strong>기한 관리와 안내</strong>만 하고 신청을 대행하지 않습니다</td></tr><tr><td><strong>L3 엔딩노트 개봉·운영자 대행</strong></td><td><span class="tag orange">🟡</span> <strong>화면 확인만</strong></td><td>되돌릴 수 없는 행위. §4 절차 적용</td></tr></tbody></table></div>
+<blockquote class="info-quote"><span class="tag red">🔴</span> <strong><code>00-12</code> §8-6(사망 확인 주체·비용)과 맞물립니다.</strong> §4의 절차는 <strong>운영자 수동 심사</strong>를<br/>
+전제하며, 심사할 사람이 없으면 L3는 <strong>&quot;기능이 없는 것&quot;과 같습니다.</strong><br/>
+<code>00-14</code> §6-1(신고 처리 담당자·응답시간)과 <strong>같은 뿌리의 미결</strong>이며, 그쪽이 정해질 때 함께 정해집니다.</blockquote>
+<hr class="divider"/>
+<h2 class="section-title"><span class="tag green">✅</span> 6. <code>00-14</code> §7-4에 대한 답</h2>
+<blockquote class="info-quote"><strong>권고: 화면 확인 후 미저장 — 그대로 가시면 됩니다.</strong> 추가로 다음 3개를 확정 사항에서 내립니다.</blockquote>
+<div class="table-container"><table><thead><tr><th>#</th><th>종전</th><th>이 문서 이후</th></tr></thead><tbody><tr><td><strong>①</strong></td><td><code>00-12</code> §8-2 *&quot;L3 서류 저장 여부&quot;* — 사장님·전문가 확인 대상</td><td><span class="tag orange">🟡</span> <strong>확인 대상에서 내림.</strong> 법령이 답을 정해두고 있음(§3)</td></tr><tr><td><strong>②</strong></td><td><code>04-01</code> §10-2 #2 — 동일 건</td><td><span class="tag orange">🟡</span> <strong>동일하게 해소.</strong> <code>00-16</code> 참조로 갱신</td></tr><tr><td><strong>③</strong></td><td>—</td><td><span class="tag red">🔴</span> <strong>새로 올라온 것</strong>: <strong>①사망 사실 / ②유족 확인을 가르는 설계</strong>(§2.3)와 <strong>생전 지정 기본값</strong>(§4.2). <code>[Sonnet]</code> 구현 시 반영 대상</td></tr></tbody></table></div>
+<blockquote class="info-quote"><span class="tag red">🔴</span> <strong>남는 외부 확인 1건</strong>: <strong>§4.1의 마스킹 절차가 실무상 충분한지</strong>(마스킹된 서류로 확인했을 때<br/>
+운영자가 지는 책임 범위). 이것은 <strong>§3처럼 조문이 답을 주지 않는 영역</strong>입니다.<br/>
+다만 <strong><code>04-02</code> §7 의뢰 질문지에 한 줄 덧붙이면 되는 수준</strong>이며, 이 건만으로 별도 의뢰를 낼<br/>
+필요는 없습니다.</blockquote>
+<hr class="divider"/>
+<h2 class="section-title">🔗 7. 관련 문서</h2>
+<div class="table-container"><table><thead><tr><th>문서</th><th>관계</th></tr></thead><tbody><tr><td><strong><code>00-12</code> §4·§4.2·§8-2</strong></td><td><strong>검증 사다리 정본.</strong> 이 문서는 L3 한 칸의 상세</td></tr><tr><td><code>00-12</code> §3</td><td><code>DeathVerification</code>·<code>BereavedRelation</code> 모델 — §4.3이 제약을 추가</td></tr><tr><td><code>04-01</code> §3.3·§8·§10-2</td><td>서류 미수집 원칙(L0~L1) — <strong>층이 다르므로 유추 적용 금지</strong>라는 단서 포함</td></tr><tr><td><code>06-01</code></td><td>*&quot;사망진단서 확인 + 이중동의&quot;* 화면 약속 — L3·L4가 그 구현 근거</td></tr><tr><td><code>07-02</code> #6·#7</td><td>사망신고(1개월)·안심상속 — §2.2 시간축과 §5 경계의 근거</td></tr><tr><td><code>00-17</code></td><td>같은 법의 다른 축(<strong>안전성 확보조치·국외이전</strong>). <strong>주민등록번호는 이 문서가 정본</strong></td></tr><tr><td><code>04-02</code> §7</td><td>외부 의뢰 질문지 — §6의 남은 1건이 붙을 자리</td></tr></tbody></table></div>
+
+  </div>
+</body>
+</html>

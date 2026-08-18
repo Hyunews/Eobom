@@ -101,6 +101,9 @@ model Partner {
   passwordHash     String // bcrypt 해시 (평문 저장 금지)
   refreshTokenHash String? // 발급된 refresh token의 sha256 해시 (회전·재사용 탐지용, §6.1)
 
+  partnerType String @default("FUNERAL_FACILITY") // FUNERAL_FACILITY(01 장사시설) | ESTATE_CLEANUP(03 유품 수거)
+  // 기본값을 01로 두어 기존 데이터·기존 흐름이 그대로 유효하다 — 마이그레이션 무해 (03-02 §3.1)
+
   bizRegNo      String  @unique // 사업자등록번호 (하이픈 제거 10자리)
   companyName   String // 상호
   ownerName     String // 대표자명
@@ -159,8 +162,9 @@ model Lead {
   leadNo String @unique // EB-260810-0001 (표시·대조용, 불변, §4.2)
   type   String // QUOTE | CONSULT | CALL (§4.1 — BOOKING은 2026-08-11 FacilityBooking 폐기와 함께 제거됨)
 
-  facilityId String // 리드가 발생한 시설
-  facility   Facility @relation(fields: [facilityId], references: [id])
+  facilityId String? // 리드가 발생한 시설. FUNERAL_FACILITY 파트너는 필수, ESTATE_CLEANUP은 null
+  // (03-02 §4.1) — 컬럼은 열려 있지만 강제는 앱 레벨에서 한다. leadService.createLead가 그 지점이다.
+  facility   Facility? @relation(fields: [facilityId], references: [id])
   partnerId  String? // 발생 시점 귀속 파트너 (없으면 비제휴)
   partner    Partner? @relation(fields: [partnerId], references: [id])
 

@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>📄 00-21. 서비스 이용약관 — **v0.9 초안** - 이어봄 기획 명세서</title>
+  <style>
+    :root {
+      --primary: #1A2B4C;
+      --secondary: #5B7065;
+      --accent: #D4A359;
+      --bg: #FBF9F5;
+      --surface: #FFFFFF;
+      --text: #1E293B;
+      --text-muted: #64748B;
+      --border: #E2E8F0;
+      --code-bg: #0F172A;
+      --code-text: #F8FAFC;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.65;
+      padding: 2rem 1rem;
+    }
+    .container {
+      max-width: 1140px;
+      margin: 0 auto;
+      background-color: var(--surface);
+      padding: 3rem;
+      border-radius: 24px;
+      box-shadow: 0 20px 40px rgba(26, 43, 76, 0.08);
+      border: 1px solid var(--border);
+    }
+    .header {
+      border-bottom: 3px solid var(--accent);
+      padding-bottom: 1.5rem;
+      margin-bottom: 2.5rem;
+    }
+    .badge {
+      display: inline-block;
+      background-color: var(--primary);
+      color: #FFF;
+      font-size: 0.85rem;
+      font-weight: 700;
+      padding: 0.3rem 0.8rem;
+      border-radius: 20px;
+      margin-bottom: 0.8rem;
+    }
+    h1 {
+      font-size: 2.1rem;
+      color: var(--primary);
+      margin-bottom: 0.5rem;
+      font-weight: 800;
+    }
+    .subtitle {
+      color: var(--text-muted);
+      font-size: 1.05rem;
+    }
+    .section-title {
+      font-size: 1.5rem;
+      color: var(--primary);
+      margin: 2.5rem 0 1.2rem 0;
+      padding-left: 0.8rem;
+      border-left: 5px solid var(--secondary);
+      font-weight: 700;
+    }
+    .subsection-title {
+      font-size: 1.25rem;
+      color: var(--primary);
+      margin: 1.8rem 0 0.8rem 0;
+      font-weight: 700;
+    }
+    .h4-title {
+      font-size: 1.05rem;
+      color: var(--secondary);
+      margin: 1.2rem 0 0.6rem 0;
+      font-weight: 700;
+    }
+    .info-quote {
+      background: #F1F5F9;
+      border-left: 4px solid var(--accent);
+      padding: 0.9rem 1.2rem;
+      margin: 1rem 0;
+      border-radius: 6px;
+      font-size: 0.95rem;
+      color: #334155;
+    }
+    code {
+      background: #EFF6FF;
+      color: #1D4ED8;
+      padding: 0.15rem 0.4rem;
+      border-radius: 6px;
+      font-family: 'Fira Code', Consolas, monospace;
+      font-size: 0.88rem;
+    }
+    pre {
+      background: var(--code-bg);
+      color: var(--code-text);
+      padding: 1.2rem;
+      border-radius: 12px;
+      overflow-x: auto;
+      margin: 1rem 0 1.5rem 0;
+      font-family: 'Fira Code', Consolas, monospace;
+      font-size: 0.9rem;
+    }
+    pre code {
+      background: transparent;
+      color: inherit;
+      padding: 0;
+    }
+    .table-container {
+      overflow-x: auto;
+      margin: 1.2rem 0 1.8rem 0;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.92rem;
+      background: #FFFFFF;
+    }
+    th {
+      background-color: var(--primary);
+      color: #FFFFFF;
+      padding: 0.8rem 1rem;
+      text-align: left;
+      font-weight: 600;
+    }
+    td {
+      padding: 0.8rem 1rem;
+      border-bottom: 1px solid var(--border);
+      color: #334155;
+    }
+    tr:last-child td {
+      border-bottom: none;
+    }
+    tr:nth-child(even) {
+      background-color: #F8FAFC;
+    }
+    .tag {
+      display: inline-block;
+      padding: 0.15rem 0.45rem;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 700;
+    }
+    .tag.green { background-color: #DCFCE7; color: #166534; }
+    .tag.gray { background-color: #F1F5F9; color: #475569; }
+    .tag.orange { background-color: #FFEDD5; color: #9A3412; }
+    .tag.red { background-color: #FEE2E2; color: #991B1B; border: 1px solid #FECACA; }
+    .tag.blue { background-color: #DBEAFE; color: #1E40AF; border: 1px solid #BFDBFE; }
+    .tag.gold { background-color: #FEF3C7; color: #92400E; border: 1px solid #FDE68A; font-weight: 700; }
+    .tag.warn { background-color: #FEF3C7; color: #B45309; }
+    .tag.pk { background-color: #FEE2E2; color: #991B1B; }
+    .tag.fk { background-color: #DBEAFE; color: #1E40AF; }
+    .tag.uk { background-color: #DCFCE7; color: #166534; }
+    del {
+      color: #94A3B8;
+      text-decoration: line-through;
+    }
+    .md-link {
+      color: var(--accent);
+      text-decoration: underline;
+      font-weight: 500;
+    }
+    p { margin-bottom: 0.9rem; color: #334155; }
+    ul, ol { margin-bottom: 1rem; padding-left: 1.4rem; color: #334155; }
+    li { margin-bottom: 0.4rem; }
+    .divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 2.5rem 0;
+    }
+    .nav-bar {
+      margin-bottom: 2rem;
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+    }
+    .nav-link {
+      color: var(--primary);
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+    .nav-link:hover {
+      color: var(--accent);
+    }
+    @page {
+      size: A4 portrait;
+      margin: 15mm 14mm 18mm 14mm;
+    }
+    @media print {
+      html, body {
+        background-color: #ffffff !important;
+        color: #1e293b !important;
+        font-size: 9.5pt !important;
+        line-height: 1.5 !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+      .container {
+        max-width: 100% !important;
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        border: none !important;
+        box-shadow: none !important;
+        background: transparent !important;
+        border-radius: 0 !important;
+      }
+      .nav-bar { display: none !important; }
+      .header {
+        border-bottom: 2px solid var(--accent) !important;
+        padding-bottom: 0.6rem !important;
+        margin-bottom: 1.2rem !important;
+        page-break-after: avoid !important;
+        break-after: avoid !important;
+      }
+      h1 {
+        font-size: 17pt !important;
+        line-height: 1.3 !important;
+        margin-bottom: 0.4rem !important;
+        color: var(--primary) !important;
+      }
+      .badge {
+        font-size: 8pt !important;
+        padding: 0.2rem 0.6rem !important;
+        background-color: var(--primary) !important;
+        color: #ffffff !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+      .section-title {
+        font-size: 12.5pt !important;
+        margin: 1.2rem 0 0.6rem 0 !important;
+        padding-left: 0.5rem !important;
+        border-left: 4px solid var(--secondary) !important;
+        page-break-after: avoid !important;
+        break-after: avoid !important;
+      }
+      .subsection-title {
+        font-size: 10.5pt !important;
+        margin: 1rem 0 0.5rem 0 !important;
+        page-break-after: avoid !important;
+        break-after: avoid !important;
+      }
+      .h4-title {
+        font-size: 9.5pt !important;
+        margin: 0.8rem 0 0.3rem 0 !important;
+        page-break-after: avoid !important;
+        break-after: avoid !important;
+      }
+      .info-quote {
+        background: #f8fafc !important;
+        border-left: 3px solid var(--accent) !important;
+        padding: 0.6rem 0.8rem !important;
+        margin: 0.6rem 0 !important;
+        font-size: 9pt !important;
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+        border-radius: 4px !important;
+      }
+      .table-container {
+        margin: 0.6rem 0 1rem 0 !important;
+        border: 1px solid #cbd5e1 !important;
+        border-radius: 6px !important;
+        overflow: visible !important;
+        page-break-inside: auto !important;
+        break-inside: auto !important;
+      }
+      table {
+        width: 100% !important;
+        font-size: 8.5pt !important;
+        border-collapse: collapse !important;
+      }
+      thead { display: table-header-group !important; }
+      tr {
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+      }
+      th {
+        background-color: #1a2b4c !important;
+        color: #ffffff !important;
+        padding: 0.45rem 0.65rem !important;
+        font-size: 8.5pt !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+      td {
+        padding: 0.45rem 0.65rem !important;
+        border-bottom: 1px solid #e2e8f0 !important;
+      }
+      .tag {
+        font-size: 7pt !important;
+        padding: 0.1rem 0.35rem !important;
+        border-radius: 4px !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+      .divider {
+        margin: 1rem 0 !important;
+        border-top: 1px solid #e2e8f0 !important;
+      }
+      .page-break {
+        page-break-before: always !important;
+        break-before: page !important;
+      }
+      ul, ol { margin-bottom: 0.5rem !important; }
+      li { page-break-inside: avoid !important; break-inside: avoid !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="nav-bar">
+      <a href="../index.html" class="nav-link">← 보고서 메인 포털로 돌아가기</a>
+    </div>
+    <div class="header">
+      <span class="badge">SSOT 정본 동기화 완료</span>
+      <h1>📄 00-21. 서비스 이용약관 — **v0.9 초안**</h1>
+      
+    </div>
+    <blockquote class="info-quote"><strong>문서 성격</strong>: <strong>게시 예정 본문의 정본</strong>(<code>/terms</code>). <code>[Claude:Opus]</code> 작성(2026-08-18).<br/>
+<strong>근거</strong>: <code>00-18</code> §7.2(고유 조항 9개 배치) · §11.5 단계 3 · <code>00-14</code> §2.8(위치정보 §19 ①).<br/>
+<strong>설계 근거의 정본은 <code>00-18</code></strong> — 왜 이 조가 있는지는 거기, 게시할 문장은 여기.<br/>
+<strong>자매 문서</strong>: <code>00-19</code>(개인정보처리방침). 둘은 <strong>다른 법의 문서</strong>이며 서로를 대체하지 않습니다.</blockquote>
+<blockquote class="info-quote"># <span class="tag red">🔴</span> 게시 금지 — v0.9 · 시행일 미정<br/>
+<code>00-18</code> §8.1 게이트 통과 후 <code>v1.0</code>. <span class="tag red">🔴</span> 표시 = 미확정 칸.<br/>
+<span class="tag warn">⚠️</span> <strong>법률 자문이 아닙니다.</strong> 조문 인용은 <strong>2026-08-18 확인 기준</strong>입니다.</blockquote>
+<blockquote class="info-quote"># <span class="tag red">🔴</span><span class="tag red">🔴</span> 이 문서에는 <strong>&quot;가정&quot;이 하나 들어 있습니다</strong> — 제20조<br/>
+<strong>2026-08-18 개발자 지시</strong>: *&quot;방통위에 사업자 신고를 했다고 <strong>가정하고</strong> 진행해보자.<br/>
+일단은 <strong>빠르게 틀을 만드는게</strong> 우선이야.&quot;*</blockquote>
+<p>&gt;</p>
+<blockquote class="info-quote"><strong>제20조(위치기반서비스)는 위치기반서비스사업 신고가 완료되었다는 전제로 작성되었습니다.</strong><br/>
+<strong>2026-08-18 현재 신고는 되어 있지 않습니다.</strong></blockquote>
+<p>&gt;</p>
+<blockquote class="info-quote"><span class="tag red">🔴</span> **신고 없이 제20조를 게시하면, 이 프로젝트가 <code>00-14</code> §2에서 여덟 번 잡아낸 문제<br/>
+— *&quot;실체 없이 화면이 먼저 말하는 것&quot;* — 을 약관에서 반복하는 것이 됩니다.**<br/>
+<strong>그것도 이번에는 법적 문서에서입니다.</strong> → <strong>§0.2의 잠금 규칙을 반드시 지킬 것.</strong></blockquote>
+<hr class="divider"/>
+<h2 class="section-title">📋 0. 편집자 주</h2>
+<h3 class="subsection-title">0.1 <span class="tag red">🔴</span> 확정이 필요한 칸</h3>
+<div class="table-container"><table><thead><tr><th>#</th><th>조</th><th>무엇</th><th>주체</th></tr></thead><tbody><tr><td>①</td><td>제20조</td><td><span class="tag red">🔴</span><span class="tag red">🔴</span> <strong>위치기반서비스사업 신고</strong> — <strong>가정 중</strong></td><td><span class="tag red">🔴</span> <strong>사장님</strong>(<code>00-14</code> §2.10)</td></tr><tr><td>②</td><td>제17조</td><td>사망 후 계정 처리 세부</td><td><span class="tag red">🔴</span> <code>00-12</code> <code>Deceased</code> 확정 후</td></tr><tr><td>③</td><td>제15조</td><td>추모관 보존기간</td><td><span class="tag red">🔴</span> <code>00-20</code>(권고: 1년 → 동결)</td></tr><tr><td>④</td><td>제23조</td><td>관할 법원</td><td><span class="tag orange">🟡</span> 권고값 기입 — 확인만</td></tr><tr><td>⑤</td><td>전체</td><td><span class="tag red">🔴</span> <strong>외부 법률 검토</strong></td><td><span class="tag red">🔴</span> 외부(<code>00-18</code> §8.1 #1)</td></tr></tbody></table></div>
+<h3 class="subsection-title">0.2 <span class="tag red">🔴</span> 제20조 잠금 규칙 — <strong>반드시 지킬 것</strong></h3>
+<blockquote class="info-quote"><strong><code>[Claude:Sonnet]</code> 구현 시 다음을 지킵니다.</strong></blockquote>
+<p>&gt;</p>
+<blockquote class="info-quote">1. <span class="tag red">🔴</span> <strong>제20조는 신고 완료가 확인되기 전까지 <code>/terms</code> 화면에 렌더링하지 않습니다.</strong><br/>
+   문서에는 남기되 <strong>게시본에서는 제외</strong>합니다.<br/>
+2. <span class="tag red">🔴</span> <strong>제20조를 게시하지 않는 동안에는 <code>getCurrentPosition</code> 호출도 함께 멈춥니다</strong><br/>
+   (<code>FacilityPage.tsx:102</code>). <strong>약관 없이 기능만 살아 있는 상태가 지금 문제의 원인</strong>입니다.<br/>
+3. <span class="tag green">✅</span> <strong>둘은 한 쌍입니다</strong> — 기능을 켜면 조문이 켜지고, 조문을 끄면 기능도 꺼집니다.</blockquote>
+<p>&gt;</p>
+<blockquote class="info-quote"><strong>이 규칙이 없으면 &quot;가정하고 빨리 만들기&quot;가 그대로 사고가 됩니다.</strong></blockquote>
+<h3 class="subsection-title">0.3 <span class="tag green">✅</span> 이 초안의 성격 — <strong>새로 판단한 것이 거의 없습니다</strong></h3>
+<p>제10조~제19조는 <strong><code>00-18</code> §7.2에 배치된 9개 조항을 문장으로 옮긴 것</strong>이며,</p>
+<p>근거는 전부 기존 도메인 문서에 있습니다. <strong>새로 쓴 것은 제20조(위치정보)뿐</strong>입니다.</p>
+<hr class="divider"/>
+<hr class="divider"/>
+<h1>이어봄(Eobom) 서비스 이용약관</h1>
+<p><strong><span class="tag red">🔴</span> 시행일: 미정 (v0.9 초안)</strong></p>
+<h2 class="section-title">제1장 총칙</h2>
+<h3 class="subsection-title">제1조 (목적)</h3>
+<p>이 약관은 <strong>주식회사 삼일정보시스템</strong>(이하 *&quot;회사&quot;*)이 제공하는 웰다잉 토탈 케어 플랫폼</p>
+<p><strong>이어봄</strong>(이하 *&quot;서비스&quot;*)의 이용과 관련하여 회사와 이용자의 권리·의무 및 책임사항을</p>
+<p>규정함을 목적으로 합니다.</p>
+<h3 class="subsection-title">제2조 (정의)</h3>
+<div class="table-container"><table><thead><tr><th>용어</th><th>뜻</th></tr></thead><tbody><tr><td><strong>이용자</strong></td><td>이 약관에 따라 서비스를 이용하는 자</td></tr><tr><td><strong>회원</strong></td><td>소셜 계정으로 가입하여 서비스를 이용하는 자</td></tr><tr><td><strong>파트너 회원</strong></td><td>장사시설·유품 수거 등 사업자로 심사·승인을 받은 자</td></tr><tr><td><strong>전문가 회원</strong></td><td>변호사·법무사·세무사·행정사·장례지도사로 심사·승인을 받은 자</td></tr><tr><td><strong>고인</strong></td><td>사망한 사람으로서 서비스에 정보가 등록된 자</td></tr><tr><td><strong>유족</strong></td><td>고인의 가족 또는 고인이 생전에 지정한 자</td></tr><tr><td><strong>추모관</strong></td><td>고인을 기리기 위해 개설되는 온라인 공간</td></tr><tr><td><strong>엔딩노트</strong></td><td>이용자가 생전에 작성하여 사후 전달을 예정하는 기록</td></tr></tbody></table></div>
+<h3 class="subsection-title">제3조 (약관의 게시와 개정)</h3>
+<p>1. 회사는 이 약관을 서비스 초기 화면에 게시합니다.</p>
+<p>2. 회사는 관련 법령을 위배하지 않는 범위에서 이 약관을 개정할 수 있습니다.</p>
+<p>3. 개정 시 <strong>적용일자 및 개정사유를 명시하여 적용일자 7일 전부터</strong> 공지합니다.</p>
+<p>   다만 <strong>이용자에게 불리한 개정의 경우 30일 전부터</strong> 공지하고, 이용자가 명확히 인지할 수</p>
+<p>   있도록 개별 통지합니다.</p>
+<p>4. 이용자가 개정약관에 동의하지 않는 경우 <strong>이용계약을 해지</strong>할 수 있습니다.</p>
+<h3 class="subsection-title">제4조 (약관 외 준칙)</h3>
+<p>이 약관에 규정되지 않은 사항은 관련 법령 및 회사가 정한 개별 운영정책에 따릅니다.</p>
+<p><strong>개인정보의 처리에 관한 사항은 별도의 개인정보처리방침</strong>에 따릅니다.</p>
+<hr class="divider"/>
+<h2 class="section-title">제2장 이용계약</h2>
+<h3 class="subsection-title">제5조 (이용계약의 체결)</h3>
+<p>1. 이용계약은 이용자가 이 약관에 동의하고 회사가 이를 승낙함으로써 체결됩니다.</p>
+<p>2. 회사는 <strong>소셜 로그인(카카오·네이버·구글)</strong> 을 통한 가입을 제공합니다.</p>
+<p>3. <strong>만 14세 미만 아동의 가입은 받지 않습니다.</strong></p>
+<p>4. 회사는 다음의 경우 승낙을 거부하거나 사후에 이용계약을 해지할 수 있습니다.</p>
+<p>   - 타인의 명의를 이용한 경우</p>
+<p>   - 허위 정보를 기재한 경우</p>
+<p>   - <strong>허위의 고인 정보로 추모관 또는 부고를 개설한 경우</strong>(제15조)</p>
+<h3 class="subsection-title">제6조 (회원 탈퇴 및 자격 상실)</h3>
+<p>1. 회원은 언제든지 탈퇴를 요청할 수 있으며, 회사는 지체 없이 처리합니다.</p>
+<p>2. <span class="tag red">🔴</span> <strong>탈퇴 시 회원이 개설한 추모관의 처리에 관하여는 제15조에 따릅니다.</strong></p>
+<p>3. 회사는 회원이 이 약관을 위반한 경우 이용을 제한하거나 자격을 상실시킬 수 있으며,</p>
+<p>   이 경우 <strong>사전에 사유를 통지</strong>합니다. 다만 긴급한 경우 사후에 통지할 수 있습니다.</p>
+<hr class="divider"/>
+<h2 class="section-title">제3장 서비스</h2>
+<h3 class="subsection-title">제7조 (서비스의 제공)</h3>
+<p>회사는 다음의 서비스를 제공합니다.</p>
+<div class="table-container"><table><thead><tr><th>구분</th><th>내용</th></tr></thead><tbody><tr><td>장사시설 정보 및 연결</td><td>장례식장·봉안시설 등의 정보 제공, 문의·견적 요청 전달</td></tr><tr><td>전문가 연결</td><td>상속·법률·세무 등 전문가 정보 제공 및 상담 신청 전달</td></tr><tr><td>유품 정리·수거 업체 연결</td><td>업체 정보 제공 및 견적 요청 전달</td></tr><tr><td>디지털 계정 정리 지원</td><td>플랫폼별 절차 안내 및 진행 상태 관리</td></tr><tr><td>디지털 추모관</td><td>추모관 개설, 방명록·헌화·사진</td></tr><tr><td>엔딩노트</td><td>생전 기록 작성 및 사후 전달</td></tr><tr><td>상중 행정 안내</td><td>절차·기한 안내</td></tr></tbody></table></div>
+<h3 class="subsection-title">제8조 (서비스의 변경 및 중단)</h3>
+<p>1. 회사는 상당한 이유가 있는 경우 서비스의 내용을 변경할 수 있으며, 변경 시 사전 공지합니다.</p>
+<p>2. 시스템 점검·설비 장애·천재지변 등의 경우 서비스 제공을 일시 중단할 수 있습니다.</p>
+<p>3. 회사는 <strong>무료로 제공되는 서비스의 변경·중단으로 인한 손해에 대하여 배상하지 않습니다.</strong></p>
+<p>   다만 회사의 고의 또는 중대한 과실이 있는 경우에는 그러하지 아니합니다.</p>
+<hr class="divider"/>
+<h2 class="section-title">제4장 <span class="tag red">🔴</span> 회사의 지위와 도메인별 특칙</h2>
+<h3 class="subsection-title">제9조 (회사의 지위 — 연결이며 당사자가 아님)</h3>
+<blockquote class="info-quote"><strong>이 조가 이 약관에서 가장 중요합니다.</strong></blockquote>
+<p>1. **회사는 이용자와 파트너 회원·전문가 회원 사이의 연결을 제공할 뿐이며,</p>
+<p>   그 사이에 체결되는 계약의 당사자가 아닙니다.**</p>
+<p>2. 회사는 다음에 대하여 <strong>보증하거나 책임을 인수하지 않습니다.</strong></p>
+<p>   - 파트너 회원·전문가 회원이 제공하는 <strong>서비스의 품질·가격·이행</strong></p>
+<p>   - 견적 금액의 적정성 및 <strong>금액에 관한 분쟁의 중재</strong></p>
+<p>   - 작업 과정에서 발생한 <strong>물품의 훼손·분실 등의 사고</strong></p>
+<p>3. 다만 회사는 파트너 회원·전문가 회원의 <strong>등록 시 사업자등록증·자격증 등을 심사</strong>하며,</p>
+<p>   중대한 문제가 확인된 경우 노출을 중단하거나 자격을 정지할 수 있습니다.</p>
+<blockquote class="info-quote">근거: <code>03-02</code> §2.1 · <code>01-05</code></blockquote>
+<h3 class="subsection-title">제10조 (전문가 연결 — 법률사무의 대리가 아님)</h3>
+<p>1. **회사는 법률사무를 수행하거나 대리하지 않으며, 법률사무의 알선을 대가로 금품을</p>
+<p>   받지 않습니다.**</p>
+<p>2. 회사가 제공하는 정보는 <strong>일반적인 안내</strong>이며, <strong>개별 사안에 대한 법률 자문이 아닙니다.</strong></p>
+<p>3. 전문가와 이용자 사이의 <strong>위임계약은 당사자 간에 직접 체결</strong>됩니다.</p>
+<blockquote class="info-quote">근거: <code>02-01</code> · <code>02-03</code>(변호사법 가드레일)</blockquote>
+<h3 class="subsection-title">제11조 (엔딩노트 — 법적 효력)</h3>
+<p>1. **엔딩노트는 이용자의 의사를 기록·전달하기 위한 것이며, 그 자체로 법적 효력을</p>
+<p>   가지지 않습니다.**</p>
+<p>2. 특히 다음은 <strong>법령이 정한 별도의 방식과 절차를 갖추어야 효력이 발생</strong>합니다.</p>
+<div class="table-container"><table><thead><tr><th>항목</th><th>법정 경로</th></tr></thead><tbody><tr><td><strong>유언</strong></td><td>민법이 정한 방식(자필증서·공정증서 등)</td></tr><tr><td><strong>연명의료 의향</strong></td><td>법정 등록기관을 통한 등록</td></tr></tbody></table></div>
+<p>3. <strong>회사는 위 절차를 안내하고 연결할 뿐, 이를 대신 수행하지 않습니다.</strong></p>
+<blockquote class="info-quote">근거: <code>06-02</code> §1·§7-1</blockquote>
+<h3 class="subsection-title">제12조 <span class="tag red">🔴</span> (엔딩노트의 비공개와 예외적 열람)</h3>
+<p>1. <strong>회사는 이용자가 작성한 엔딩노트의 내용을 열람하지 않습니다.</strong></p>
+<p>   운영상 필요한 경우에도 <strong>작성 여부·작성 일시 등 최소한의 관리 정보만</strong> 확인합니다.</p>
+<p>2. 다만 다음의 경우에는 예외적으로 내용을 확인할 수 있습니다.</p>
+<blockquote class="info-quote">**① 법원의 영장 등 법령에 따른 적법한 요구가 있는 경우 — 이 경우 회사는 이를 거부할 수<br/>
+없습니다.**<br/>
+<strong>② 이용자 본인이 명시적으로 요청하고 본인 확인 절차를 거친 경우.</strong></blockquote>
+<p>3. 예외적 열람이 이루어진 경우, 회사는 **열람 사유를 기록하고 이용자 또는 이용자가 지정한</p>
+<p>   유족에게 그 사실을 통지**합니다.</p>
+<blockquote class="info-quote">근거: <strong><code>06-03</code> §3.2·§4·§5.</strong> <span class="tag warn">⚠️</span> <strong>①을 적어두지 않으면 그때 약속을 어기는 것이 됩니다.</strong><br/>
+<span class="tag orange">🟡</span> 이 조는 <strong>상시 게시</strong>이고, <code>06-03</code> §5의 동의 문구는 <strong>작성 시점 동의</strong>로 <strong>둘 다 필요</strong>합니다.</blockquote>
+<h3 class="subsection-title">제13조 (공유 링크)</h3>
+<p>1. 추모관·부고장은 <strong>링크를 아는 사람이라면 누구나 열람</strong>할 수 있습니다.</p>
+<p>2. <strong>회사는 링크가 제3자에게 다시 전달되는 것을 막거나 추적할 수 없습니다.</strong></p>
+<p>3. 이용자는 링크를 배포하기 전에 위 사항을 충분히 이해하여야 합니다.</p>
+<blockquote class="info-quote">근거: <code>00-13</code> §7 미결 #6 · §2.3</blockquote>
+<h3 class="subsection-title">제14조 (추모관·부고 개설자의 책임)</h3>
+<p>1. 추모관 또는 부고를 개설하려는 자는 **고인의 사망 사실 및 자신이 이를 개설할 정당한</p>
+<p>   지위에 있음**을 확인하여야 합니다.</p>
+<p>2. **허위의 사망 정보로 추모관 또는 부고를 개설하는 경우, 개설자는 그에 따른 민·형사상</p>
+<p>   책임을 부담합니다.**</p>
+<p>3. 신고가 접수된 추모관은 <strong>즉시 비공개로 전환</strong>되며, 회사의 확인을 거쳐 처리됩니다.</p>
+<blockquote class="info-quote">근거: <code>05-01</code> §2.3 · <code>00-13</code> §4.5-3 (<code>Memorial.falseReportAgreedAt</code>으로 <strong>이미 동의를 받고 있음</strong>)</blockquote>
+<h3 class="subsection-title">제15조 <span class="tag red">🔴</span> (추모관의 보존과 폐쇄)</h3>
+<p>1. 추모관은 개설일로부터 <span class="tag red">🔴</span> <strong>[<code>00-20</code> 확정 대기 — 권고: 1년]</strong> 동안 유지됩니다.</p>
+<p>2. 회사는 위 기간 만료 <span class="tag red">🔴</span> <strong>[권고: 30일]</strong> 전에 개설자에게 통지하며, 개설자는 <strong>연장을 요청</strong>할</p>
+<p>   수 있습니다.</p>
+<p>3. 연장하지 않은 추모관은 <span class="tag red">🔴</span> <strong>[권고: 동결]</strong> 상태가 됩니다.</p>
+<p>   <strong>동결된 추모관은 새로운 방명록·헌화·사진 등록이 중단되며, 기존 내용의 열람은 유지</strong>됩니다.</p>
+<p>4. 개설자는 언제든지 추모관을 닫을 수 있습니다.</p>
+<p>5. <span class="tag red">🔴</span> <strong>[<code>00-20</code> §6.1 — 개설자 계정 소멸 시 처리는 확정 후 보완]</strong></p>
+<blockquote class="info-quote"><span class="tag red">🔴</span> <strong>이 조는 <code>00-20</code> 확정 전까지 확정되지 않습니다.</strong> 근거·권고는 <code>00-20</code>.</blockquote>
+<h3 class="subsection-title">제16조 <span class="tag red">🔴</span> (사망 후 계정 및 데이터의 처리)</h3>
+<blockquote class="info-quote"><span class="tag red">🔴</span> <strong>표준 약관에 선례가 없는 조항입니다.</strong> <code>00-12</code> <code>Deceased</code> 확정 후 보완합니다.</blockquote>
+<p>1. 이용자가 사망한 사실이 확인된 경우, 회사는 해당 계정을 <strong>추모 상태로 전환</strong>하고</p>
+<p>   <strong>새로운 로그인 및 정보 변경을 제한</strong>할 수 있습니다.</p>
+<p>2. 유족은 법령 및 회사가 정한 확인 절차를 거쳐 <strong>고인이 남긴 기록의 전달을 요청</strong>할 수 있습니다.</p>
+<p>3. 회사는 <strong>고인의 생전 지정</strong>이 있는 경우 이를 우선합니다.</p>
+<p>4. <span class="tag red">🔴</span> <strong>[확인 절차의 세부 기준은 <code>00-12</code> §4 확정 후 이 조에 반영]</strong></p>
+<blockquote class="info-quote">근거: <code>00-12</code> §4·§7.2 · <code>00-16</code></blockquote>
+<hr class="divider"/>
+<h2 class="section-title">제5장 게시물</h2>
+<h3 class="subsection-title">제17조 (게시물의 관리)</h3>
+<p>1. 이용자가 등록한 방명록·리뷰·사진 등(이하 *&quot;게시물&quot;*)의 <strong>권리와 책임은 작성자에게</strong> 있습니다.</p>
+<p>2. <strong>추모관 개설자는 자신의 추모관에 등록된 방명록을 삭제</strong>할 수 있습니다.</p>
+<p>3. 회사는 다음의 게시물을 <strong>사전 통지 없이 비공개 처리</strong>할 수 있습니다.</p>
+<p>   - 타인을 비방하거나 명예를 훼손하는 내용</p>
+<p>   - <strong>고인과 유족의 인격을 침해하는 내용</strong></p>
+<p>   - 광고·홍보 목적의 내용</p>
+<p>   - 법령에 위반되는 내용</p>
+<p>4. 비공개 처리된 게시물은 <strong>분쟁 대응을 위해 일정 기간 보관</strong>된 후 파기됩니다.</p>
+<blockquote class="info-quote">근거: <code>05-02</code> §4</blockquote>
+<h3 class="subsection-title">제18조 (게시물의 이용)</h3>
+<p>1. 회사는 서비스 운영·개선에 필요한 범위에서 게시물을 이용할 수 있습니다.</p>
+<p>2. <strong>회사는 게시물을 홍보·마케팅 목적으로 외부에 노출하지 않습니다.</strong></p>
+<p>   <span class="tag warn">⚠️</span> <strong>이 도메인에서 조문·추모 기록의 홍보 활용은 그 자체로 부적절합니다.</strong></p>
+<hr class="divider"/>
+<h2 class="section-title">제6장 <span class="tag red">🔴</span> 위치기반서비스</h2>
+<h3 class="subsection-title">제19조 (위치기반서비스의 내용)</h3>
+<blockquote class="info-quote"><span class="tag red">🔴</span><span class="tag red">🔴</span> **이 장은 위치기반서비스사업 신고 완료를 전제로 작성되었습니다.<br/>
+신고 전에는 이 장을 게시하지 않으며, 위치 자동 감지 기능도 함께 중단합니다(§0.2).**</blockquote>
+<p>1. 회사는 이용자의 위치를 이용하여 <strong>가까운 장사시설을 우선 안내</strong>하는 서비스를 제공합니다.</p>
+<p>2. **이용자가 위치 제공에 동의하지 않는 경우에도, 지역을 직접 선택하여 동일한 서비스를</p>
+<p>   이용**하실 수 있습니다.</p>
+<h3 class="subsection-title">제20조 (개인위치정보의 이용 — 위치정보법 제19조 제1항)</h3>
+<p><strong>「위치정보의 보호 및 이용 등에 관한 법률」 제19조 제1항에 따라 다음을 명시합니다.</strong></p>
+<div class="table-container"><table><thead><tr><th>호</th><th>항목</th><th>내용</th></tr></thead><tbody><tr><td><strong>1</strong></td><td><strong>상호·주소·연락처</strong></td><td>주식회사 삼일정보시스템 / 전남광주통합특별시 광산구 하남산단8번로 177, 6층 / <strong>070-8856-2725</strong></td></tr><tr><td><strong>2</strong></td><td><strong>개인위치정보주체 및 법정대리인의 권리와 행사방법</strong></td><td>아래 제21조</td></tr><tr><td><strong>3</strong></td><td><strong>제공하는 위치기반서비스의 내용</strong></td><td><strong>현재 위치를 기준으로 가까운 장사시설을 우선 정렬하여 안내</strong>. 좌표는 <strong>행정구역명(시·도, 시·군·구)으로 변환하는 목적에 한하여 이용</strong>하며 <strong>저장하지 않습니다</strong></td></tr><tr><td><strong>4</strong></td><td><strong>이용·제공사실 확인자료의 보유근거 및 보유기간</strong></td><td>위치정보법 제16조 제2항에 따라 자동 기록·보존. <span class="tag red">🔴</span> <strong>[보유기간 — 시행령 확인 후 기재]</strong></td></tr><tr><td><strong>4의2</strong></td><td><strong>개인위치정보의 보유목적 및 보유기간</strong></td><td><strong>보유하지 않습니다.</strong> 변환 즉시 폐기하며, 별도로 저장하지 않습니다</td></tr><tr><td><strong>5</strong></td><td>그 밖의 사항</td><td><span class="tag red">🔴</span> <strong>[시행령 확인 후 보완]</strong></td></tr></tbody></table></div>
+<p>3. <strong>회사는 개인위치정보를 이용자가 지정하는 제3자에게 제공하는 서비스를 하지 않습니다.</strong></p>
+<p>4. 좌표를 행정구역명으로 변환하기 위하여 <strong>카카오(주)의 지도·주소 변환 서비스를 이용</strong>합니다.</p>
+<p>   이는 <strong>회사의 업무 처리를 위한 것이며, 이용자가 지정한 제3자에 대한 제공이 아닙니다.</strong></p>
+<blockquote class="info-quote"><span class="tag red">🔴</span> <strong>미확정 2건</strong>: 4호 보유기간 · 5호 시행령 항목. <strong>§2 정의는 시행령 확인 후 확정합니다.</strong></blockquote>
+<h3 class="subsection-title">제21조 (개인위치정보주체의 권리)</h3>
+<p>1. 이용자는 개인위치정보의 이용에 대한 <strong>동의의 전부 또는 일부를 유보</strong>할 수 있으며,</p>
+<p>   <strong>동의를 언제든지 철회</strong>할 수 있습니다.</p>
+<p>2. 이용자는 <strong>위치정보 이용·제공사실 확인자료의 열람·고지를 요구</strong>할 수 있으며,</p>
+<p>   오류가 있는 경우 <strong>정정을 요구</strong>할 수 있습니다.</p>
+<p>3. 회사는 위 요구를 거절할 수 없으며 <strong>지체 없이 필요한 조치</strong>를 취합니다.</p>
+<p>4. <span class="tag red">🔴</span> <strong>동의 철회 시 회사는 개인위치정보 및 관련 확인자료를 지체 없이 파기합니다.</strong></p>
+<p>   다만 <strong>법령에 보존 의무가 있는 경우는 예외</strong>로 합니다.</p>
+<p>5. <span class="tag red">🔴</span> <strong>[위치정보관리책임자 — 지정 후 기재. <code>00-19</code> 제12조의 개인정보 보호책임자와 별도 직책]</strong></p>
+<hr class="divider"/>
+<h2 class="section-title">제7장 기타</h2>
+<h3 class="subsection-title">제22조 (파트너 회원 및 전문가 회원에 대한 특칙)</h3>
+<p>1. 파트너·전문가 회원의 가입은 <strong>회사의 심사와 승인</strong>을 거쳐 효력이 발생합니다.</p>
+<p>   <strong>등록만으로 승인되지 않습니다.</strong></p>
+<p>2. 회사는 다음의 경우 <strong>자격을 정지하거나 노출을 중단</strong>할 수 있습니다.</p>
+<p>   - 제출 서류가 허위이거나 자격이 실효된 경우</p>
+<p>   - 이용자에 대한 중대한 불이행·불법행위가 확인된 경우</p>
+<p>3. 수수료·정산 및 이의제기 절차는 <strong>별도의 파트너 운영정책</strong>에 따릅니다.</p>
+<blockquote class="info-quote">근거: <code>01-05</code> · <code>02-03</code></blockquote>
+<h3 class="subsection-title">제23조 (책임의 제한)</h3>
+<p>1. 회사는 천재지변 또는 이에 준하는 불가항력으로 인한 서비스 제공 불가에 대하여</p>
+<p>   책임을 지지 않습니다.</p>
+<p>2. 회사는 <strong>이용자가 서비스를 통해 얻은 정보에 근거하여 내린 판단과 그 결과</strong>에 대하여</p>
+<p>   책임을 지지 않습니다. 다만 **회사가 정보를 허위로 제공하거나 중대한 과실로 잘못 제공한</p>
+<p>   경우에는 그러하지 아니합니다.**</p>
+<p>3. 회사는 이용자 상호 간, 이용자와 파트너·전문가 회원 간에 발생한 분쟁에 개입할 의무가</p>
+<p>   없습니다.</p>
+<h3 class="subsection-title">제24조 (분쟁의 해결)</h3>
+<p>1. 회사와 이용자는 분쟁 해결을 위해 성실히 협의합니다.</p>
+<p>2. 협의가 이루어지지 않는 경우, 소송은 <span class="tag orange">🟡</span> <strong>[권고: 민사소송법에 따른 관할 법원]</strong> 에 제기합니다.</p>
+<p>3. 이 약관은 <strong>대한민국 법령</strong>에 따라 규율됩니다.</p>
+<h3 class="subsection-title">부칙</h3>
+<p>1. 이 약관은 <span class="tag red">🔴</span> <strong>[시행일]</strong> 부터 시행합니다.</p>
+<hr class="divider"/>
+<hr class="divider"/>
+<h2 class="section-title">🔗 부록. 관련 문서</h2>
+<div class="table-container"><table><thead><tr><th>문서</th><th>관계</th></tr></thead><tbody><tr><td><strong><code>00-18</code> §7.2</strong></td><td><strong>이 문서의 설계도</strong> — 9개 고유 조항의 배치 근거</td></tr><tr><td><strong><code>00-19</code></strong></td><td>자매 문서(개인정보처리방침). <strong>제4조에서 상호 참조</strong></td></tr><tr><td><strong><code>00-14</code> §2.8·§2.10</strong></td><td><strong>제19~21조의 근거이자 미확정 원인</strong> — <span class="tag red">🔴</span> 신고 여부</td></tr><tr><td><strong><code>00-20</code></strong></td><td>제15조(추모관 보존)</td></tr><tr><td><code>00-12</code> §4·§7.2</td><td>제16조(사망 후 계정)</td></tr><tr><td><code>06-03</code> §4·§5</td><td>제12조(예외적 열람)</td></tr><tr><td><code>00-13</code> §7 #6</td><td>제13조(공유 링크)</td></tr><tr><td><code>05-01</code> §2.3</td><td>제14조(허위 개설)</td></tr><tr><td><code>05-02</code> §4</td><td>제17조(게시물 관리)</td></tr><tr><td><code>06-02</code> §1·§7-1</td><td>제11조(엔딩노트 효력)</td></tr><tr><td><code>03-02</code> §2.1 · <code>01-05</code></td><td>제9조(회사의 지위)</td></tr><tr><td><code>02-01</code> · <code>02-03</code></td><td>제10조(변호사법)</td></tr></tbody></table></div>
+
+  </div>
+</body>
+</html>

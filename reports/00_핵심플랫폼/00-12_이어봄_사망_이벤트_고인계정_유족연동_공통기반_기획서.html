@@ -397,7 +397,7 @@ model DeathVerification {
   level      String    // SELF_DECLARED | OPERATOR_REVIEWED | DOCUMENT_VERIFIED
   reviewedBy String?   // 운영자 확인 시
   verifiedAt DateTime?
-  // ⚠️ 서류 파일 자체는 저장하지 않는 것을 기본으로 한다(§5)
+  // ⚠️ 서류 파일 자체를 저장하지 않는다 — 파일 경로·이미지·주민등록번호 컬럼 금지(→ 00-16 §4.3)
 }
 
 // 유족 관계 — 지정(생전) vs 자칭(사후)(§2.3)
@@ -437,14 +437,23 @@ model PreDeathDirective {
 <li><strong>운영자 대행(③)이 왜 어려운지가 분명해집니다</strong> — L3가 필요하고, L3는 서류를 봐야 하며,</li>
 </ul>
 <p>  서류를 보려면 §5 문제가 따라옵니다.</p>
-<h3 class="subsection-title">4.2 <span class="tag red">🔴</span> L3의 서류를 저장할 것인가</h3>
+<h3 class="subsection-title">4.2 <span class="tag green">✅</span> L3의 서류를 저장할 것인가 → <strong><code>00-16</code>으로 해소(2026-08-18)</strong></h3>
 <p><code>04-01</code> §3.3은 *&quot;안 받는 쪽을 기본값으로&quot;* 라고 했고 그 판단은 지금도 유효합니다. 하지만 L3</p>
 <p>행위(대행·엔딩노트 개봉)에는 확인이 필요합니다. 절충안:</p>
 <ul>
 <li><strong>운영자가 화면에서 확인하되 서버에 파일을 남기지 않는다</strong> — 확인 사실(<code>verifiedAt</code>, <code>reviewedBy</code>)만 기록</li>
 <li>또는 <strong>단기 보관 후 자동 파기</strong>(확인 완료 시점에 즉시 삭제)</li>
 </ul>
-<p><span class="tag red">🔴</span> 실제 운영 가능성과 법적 증빙 필요성을 함께 봐야 하는 사안이라 사장님·전문가 확인 대상입니다.</p>
+<blockquote class="info-quote"><span class="tag blue">🔵</span> <strong>2026-08-18 스펙갱신 — 권고는 그대로(화면 확인 후 미저장)이고 근거가 바뀌었습니다.</strong><br/>
+<strong>개인정보보호법 §24조의2</strong>는 법령 근거 없이는 <strong>주민등록번호를 처리할 수 없다</strong>고 정하며,<br/>
+<strong>이것은 동의로도 풀리지 않는 예외</strong>입니다. §2.1 서류에는 주민등록번호가 인쇄돼 있고<br/>
+이어봄에는 처리 근거 법령이 없습니다. <strong>즉 이 항목은 &quot;판단&quot;이 아니라 &quot;제약&quot;에 가깝습니다</strong> —<br/>
+사장님·전문가 확인 대상에서 내립니다. 상세와 구현 절차는 <strong><code>00-16</code>이 정본</strong>입니다.</blockquote>
+<p>&gt;</p>
+<blockquote class="info-quote"><span class="tag red">🔴</span> <strong>다만 <code>00-16</code> §2.3이 이 절의 빠진 부분을 하나 찾았습니다</strong> — L3는 <strong>①사망 사실</strong>만 말하는데<br/>
+<strong>②신청인이 유족인지</strong>는 다른 서류(가족관계증명서)의 문제입니다. <strong>한 서류로 둘 다 안 됩니다.</strong><br/>
+해법은 이미 이 문서 안에 있습니다: **생전 지정(<code>BereavedRelation.DESIGNATED</code>)이 있으면<br/>
+②는 서류 없이 성립<strong>하므로, <code>00-16</code> §4.2가 그 경로를 </strong>기본값**으로 권고합니다.</blockquote>
 <hr class="divider"/>
 <h2 class="section-title">🔐 5. <span class="tag green">✅</span> 고인 계정 처리 정책 — &quot;계속 남겨두는 게 옳은가&quot;</h2>
 <p><strong>결론: 그냥 두면 안 되고, 그냥 지워서도 안 됩니다. 새로운 상태가 필요합니다.</strong></p>
@@ -539,10 +548,10 @@ model PreDeathDirective {
 <p>404 원칙과 같은 사상).</p>
 <hr class="divider"/>
 <h2 class="section-title">❓ 8. 미결 쟁점</h2>
-<div class="table-container"><table><thead><tr><th>#</th><th>쟁점</th><th>권고</th><th>막는 것</th></tr></thead><tbody><tr><td>1</td><td><strong>운영자 대행(③) 법률 검토</strong></td><td><span class="tag blue">🔵</span> <strong>2026-08-14 → <code>04-02</code>로 이관.</strong> 유료 검토 <strong>전에</strong> 무료 확인(플랫폼 제3자 대리 채널 유무)이 0번으로 앞섬 — 결과가 NO면 검토 불필요</td><td>04 ③ 상품화만</td></tr><tr><td>2</td><td><strong>L3 서류 저장 여부</strong>(§4.2)</td><td>화면 확인 후 미저장</td><td>04·06 착수</td></tr><tr><td>3</td><td><strong><code>MEMORIALIZED</code> 보유기간</strong>(§5.3)</td><td><code>00-11</code>·<code>05-02</code> §9와 함께</td><td>오픈 전</td></tr><tr><td>4</td><td><strong>도메인 번호 확정</strong>(§7)</td><td>위 표, 상중·행정 위치만 판단</td><td>문서 재편</td></tr><tr><td>5</td><td><strong>모드 전환 UX</strong>(§6.2)</td><td>C안(자동+수동)</td><td>프론트 전반</td></tr><tr><td>6</td><td>사망 확인 주체·비용</td><td>운영자 수동 심사 전제</td><td>§1 결정과 연동</td></tr></tbody></table></div>
+<div class="table-container"><table><thead><tr><th>#</th><th>쟁점</th><th>권고</th><th>막는 것</th></tr></thead><tbody><tr><td>1</td><td><strong>운영자 대행(③) 법률 검토</strong></td><td><span class="tag blue">🔵</span> <strong>2026-08-14 → <code>04-02</code>로 이관.</strong> 유료 검토 <strong>전에</strong> 무료 확인(플랫폼 제3자 대리 채널 유무)이 0번으로 앞섬 — 결과가 NO면 검토 불필요</td><td>04 ③ 상품화만</td></tr><tr><td>2</td><td><del><strong>L3 서류 저장 여부</strong>(§4.2)</del></td><td><span class="tag green">✅</span> <strong>2026-08-18 → <code>00-16</code>으로 해소.</strong> 화면 확인 후 미저장 — <strong>개인정보보호법 §24조의2(주민등록번호)가 근거</strong>이므로 확정 대기 항목이 아님</td><td><del>04·06 착수</del></td></tr><tr><td>3</td><td><strong><code>MEMORIALIZED</code> 보유기간</strong>(§5.3)</td><td><code>00-11</code>·<code>05-02</code> §9와 함께</td><td>오픈 전</td></tr><tr><td>4</td><td><strong>도메인 번호 확정</strong>(§7)</td><td>위 표, 상중·행정 위치만 판단</td><td>문서 재편</td></tr><tr><td>5</td><td><strong>모드 전환 UX</strong>(§6.2)</td><td>C안(자동+수동)</td><td>프론트 전반</td></tr><tr><td>6</td><td>사망 확인 주체·비용</td><td>운영자 수동 심사 전제</td><td>§1 결정과 연동</td></tr></tbody></table></div>
 <hr class="divider"/>
 <h2 class="section-title">🔗 9. 관련 문서</h2>
-<div class="table-container"><table><thead><tr><th>문서</th><th>관계</th></tr></thead><tbody><tr><td><code>05-01</code></td><td>고인=문자열 전제 → <strong>§2.1로 대체 필요</strong>(구 <code>03-02</code> 분할본)</td></tr><tr><td><code>05-02</code></td><td>§6.1 개설 게이트 → <strong>§4 사다리 L1/L2로 해소</strong>(구 <code>03-03</code>)</td></tr><tr><td><code>06-01</code></td><td>&quot;사망진단서 확인 + 지정 유족 이중동의&quot; 약속 → <strong>§4 L3·L4가 그 구현 근거</strong>(구 <code>05-01</code>)</td></tr><tr><td><code>00-11</code></td><td>스토리지 비용 → §5.3 보유기간의 전제</td></tr><tr><td><code>00-06</code></td><td>모드 분리 시 화면 대장 재정리 필요</td></tr></tbody></table></div>
+<div class="table-container"><table><thead><tr><th>문서</th><th>관계</th></tr></thead><tbody><tr><td><code>05-01</code></td><td>고인=문자열 전제 → <strong>§2.1로 대체 필요</strong>(구 <code>03-02</code> 분할본)</td></tr><tr><td><code>05-02</code></td><td>§6.1 개설 게이트 → <strong>§4 사다리 L1/L2로 해소</strong>(구 <code>03-03</code>)</td></tr><tr><td><code>06-01</code></td><td>&quot;사망진단서 확인 + 지정 유족 이중동의&quot; 약속 → <strong>§4 L3·L4가 그 구현 근거</strong>(구 <code>05-01</code>)</td></tr><tr><td><strong><code>00-16</code></strong></td><td><strong>§4.2 L3 상세의 정본</strong> — 서류 4종·시간축(D+0에는 기본증명서가 안 됨)·주민등록번호 제약·구현 절차</td></tr><tr><td><code>00-11</code></td><td>스토리지 비용 → §5.3 보유기간의 전제</td></tr><tr><td><code>00-06</code></td><td>모드 분리 시 화면 대장 재정리 필요</td></tr></tbody></table></div>
 
   </div>
 </body>

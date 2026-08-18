@@ -3,7 +3,6 @@ import { BrowserRouter, Routes, Route, Navigate, Link, useLocation, useNavigate,
 import { Header } from './components/Header';
 import { Sidebar } from './components/Sidebar';
 import { Footer } from './components/Footer';
-import { FloatingEmergency } from './components/FloatingEmergency';
 import { LoginModal } from './components/LoginModal';
 import { SocialLinkModal } from './components/SocialLinkModal';
 import { MyPageAuthSettings } from './components/MyPageAuthSettings';
@@ -19,6 +18,8 @@ import { CareGuidePage } from './pages/CareGuidePage';
 import { MyPage } from './pages/MyPage';
 import { PartnerPortalPage } from './pages/PartnerPortalPage';
 import { AdminPage } from './pages/AdminPage';
+import { TermsPage } from './pages/TermsPage';
+import { PrivacyPage } from './pages/PrivacyPage';
 
 function AppShell() {
   const location = useLocation();
@@ -228,6 +229,10 @@ function AppShell() {
               path="/mypage"
               element={<MyPage {...authProps} onOpenAccountSettings={() => { setMyPageMessage(null); setIsMyPageOpen(true); }} />}
             />
+            {/* 법적 문서 — docs 00-19/00-21 v0.9 초안. 게시 게이트(00-18 §8.1) 통과 전까지
+                LegalDocLayout 상단 배너로 "시행 준비 중"을 고지한다. */}
+            <Route path="/terms" element={<TermsPage />} />
+            <Route path="/privacy" element={<PrivacyPage />} />
             {/* B2C 소셜 로그인과 무관한 별도 포털 — 진입은 LoginModal 하단 분기 + Footer 링크(00-06 §7.3) */}
             <Route path="/partner" element={<PartnerPortalPage />} />
             {/* 운영자 전용 — 어디에도 링크 노출 안 함, 직접 URL(/admin)로만 접근 */}
@@ -237,10 +242,7 @@ function AppShell() {
           </Routes>
         </main>
 
-        {/* 1-Touch 긴급 상담 플로팅 버튼 — 유족 대상 기능이라 포털 경로엔 노출 안 함 */}
-        {!isPortalRoute && <FloatingEmergency />}
-
-        {/* 하단 푸터 (홈 메인 탭은 풀페이지 스냅 스크롤 내부 섹션 6으로 통합, 포털 경로는 최소 상단 바로 대체) */}
+        {/* 하단 푸터 (홈 메인 탭은 풀페이지 스냅 스크롤 내부 섹션으로 통합, 포털 경로는 최소 상단 바로 대체) */}
         {!isPortalRoute && activeTab !== 'home' && <Footer />}
       </div>
 

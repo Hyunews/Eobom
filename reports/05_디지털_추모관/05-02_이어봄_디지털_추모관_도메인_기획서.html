@@ -456,6 +456,10 @@ CONFIRMED_OK --재신고--&gt; REPORTED     (단, 재신고 임계치는 §7에�
 <p>미치는 영향) 수동 검증으로는 회귀를 못 잡습니다.</p>
 <blockquote class="info-quote"><span class="tag red">🔴</span> 이건 03만의 문제가 아니라 <strong>플랫폼 전체 사안</strong>이라 별도 논의가 필요합니다. 최소한<br/>
 &quot;검증 스크립트를 지우지 말고 <code>eobom/backend/tests/</code>에 남긴다&quot;는 규칙만 세워도 큰 차이가 납니다.</blockquote>
+<blockquote class="info-quote"><span class="tag blue">🔵</span> <strong>2026-08-18 → <code>00-15</code>로 이관.</strong> 이 절의 지적을 결정 가능한 형태로 펼친 검토서입니다<br/>
+(<code>00-14</code> §6-3). <strong>위의 &quot;지우지 말자&quot; 규칙이 그대로 0단계(비용 0)로 채택</strong>됐고, 전면 도입은<br/>
+권고하지 않습니다 — 스펙이 아직 굳지 않아 <strong>지금 쓴 테스트의 상당수가 폐기 대상</strong>이기 때문입니다.<br/>
+권고는 <strong>&quot;안 바뀌는 것부터&quot;</strong>(인증·권한 경계 → 발번 규칙 → 정책 계산). <strong>논의의 정본은 <code>00-15</code>.</strong></blockquote>
 <hr class="divider"/>
 <h2 class="section-title"><span class="tag warn">⚠️</span> 7. <span class="tag orange">🟡</span> 위협 모델 — 체계적으로 다시</h2>
 <p><code>05-01</code> §2.3은 <strong>허위 추모관 하나만</strong> 봤습니다. 그래서 그리핑을 놓쳤습니다. 전수 정리:</p>
@@ -515,7 +519,7 @@ CONFIRMED_OK --재신고--&gt; REPORTED     (단, 재신고 임계치는 §7에�
 <div class="table-container"><table><thead><tr><th>안 하는 것</th><th>이유</th></tr></thead><tbody><tr><td>고인 계정 대리 접속·대행 신청</td><td><code>04-01</code> §1.1 — 법적으로 불가 (단 §1.2 생전 위임은 별개)</td></tr><tr><td>금융·가상자산·정산금 처리</td><td><code>04-01</code> §3.2 C분류</td></tr><tr><td>현물 유품 수거업체 매칭</td><td>계정 형태 기획 보류(<code>03-01</code> §3)</td></tr><tr><td>SNS 자동 연동으로 고인 계정 탐지</td><td>각 사 API 없음 + 개인정보 리스크</td></tr><tr><td>추모관 SNS 자동 공유</td><td>§6 T6 — 확산 주체는 유족이어야 함</td></tr></tbody></table></div>
 <hr class="divider"/>
 <h2 class="section-title">❓ 11. 미결 쟁점 — 확정 대기</h2>
-<div class="table-container"><table><thead><tr><th>#</th><th>쟁점</th><th>권고</th><th>막히는 것</th></tr></thead><tbody><tr><td>1</td><td><strong>개설 게이트</strong>(§6.1)</td><td>공개범위별 차등(LINK 즉시 / PUBLIC 승인)</td><td>프론트 8~10단계</td></tr><tr><td>2</td><td><strong>신고 정책</strong>(§7.1)</td><td>A안(로그인 필수 + 개설자 알림·이의제기)</td><td>신고 UI</td></tr><tr><td>3</td><td><strong>04 부고장과의 경계</strong>(§2.2)</td><td>통합(A) 검토 — 04 기획과 함께</td><td>04 착수 시</td></tr><tr><td>4</td><td><strong>운영 부하·응답시간</strong>(§8)</td><td>— 사장님 판단 필요</td><td>1번 결정의 전제</td></tr><tr><td>5</td><td><strong>보존기간·수익모델</strong>(§9)</td><td>(D) 장례식장 제휴 우선 검토</td><td>오픈 전 필수</td></tr><tr><td>6</td><td><strong>회귀 테스트 체계</strong>(§6.4)</td><td>검증 스크립트 보존 규칙</td><td>플랫폼 전체 사안</td></tr><tr><td>7</td><td>작성자 본인 방명록 삭제(§4)</td><td>로그인 유저는 허용 권고</td><td>소소함</td></tr><tr><td>8</td><td>운영자 사진 삭제 권한(§4)</td><td>허용 권고</td><td>소소함</td></tr><tr><td>9</td><td>중복 추모관(T7)</td><td><strong>나중에 다루기로 함</strong>(개발자 지시 2026-08-12)</td><td>—</td></tr></tbody></table></div>
+<div class="table-container"><table><thead><tr><th>#</th><th>쟁점</th><th>권고</th><th>막히는 것</th></tr></thead><tbody><tr><td>1</td><td><strong>개설 게이트</strong>(§6.1)</td><td>공개범위별 차등(LINK 즉시 / PUBLIC 승인)</td><td>프론트 8~10단계</td></tr><tr><td>2</td><td><strong>신고 정책</strong>(§7.1)</td><td>A안(로그인 필수 + 개설자 알림·이의제기)</td><td>신고 UI</td></tr><tr><td>3</td><td><strong>04 부고장과의 경계</strong>(§2.2)</td><td>통합(A) 검토 — 04 기획과 함께</td><td>04 착수 시</td></tr><tr><td>4</td><td><strong>운영 부하·응답시간</strong>(§8)</td><td>— 사장님 판단 필요</td><td>1번 결정의 전제</td></tr><tr><td>5</td><td><strong>보존기간·수익모델</strong>(§9)</td><td>(D) 장례식장 제휴 우선 검토</td><td>오픈 전 필수</td></tr><tr><td>6</td><td><strong>회귀 테스트 체계</strong>(§6.4)</td><td><span class="tag green">✅</span> <strong>2026-08-18 → <code>00-15</code> 검토서로 이관.</strong> 0단계(스크립트 보존)는 비용 0이라 즉시 가능, 전면 도입은 비권고</td><td>플랫폼 전체 사안</td></tr><tr><td>7</td><td>작성자 본인 방명록 삭제(§4)</td><td>로그인 유저는 허용 권고</td><td>소소함</td></tr><tr><td>8</td><td>운영자 사진 삭제 권한(§4)</td><td>허용 권고</td><td>소소함</td></tr><tr><td>9</td><td>중복 추모관(T7)</td><td><strong>나중에 다루기로 함</strong>(개발자 지시 2026-08-12)</td><td>—</td></tr></tbody></table></div>
 <p><strong>1·2번이 프론트 착수를 막습니다.</strong> 나머지는 병행 가능합니다.</p>
 <hr class="divider"/>
 <h2 class="section-title">🔧 12. 하위 스펙 정정 목록</h2>

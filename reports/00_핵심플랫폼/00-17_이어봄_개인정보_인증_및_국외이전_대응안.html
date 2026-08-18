@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🔐 00-17. 개인정보 인증(ISMS-P) 대상 여부 · 국외이전 — 대응안 - 이어봄 기획 명세서</title>
+  <style>
+    :root {
+      --primary: #1A2B4C;
+      --secondary: #5B7065;
+      --accent: #D4A359;
+      --bg: #FBF9F5;
+      --surface: #FFFFFF;
+      --text: #1E293B;
+      --text-muted: #64748B;
+      --border: #E2E8F0;
+      --code-bg: #0F172A;
+      --code-text: #F8FAFC;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.65;
+      padding: 2rem 1rem;
+    }
+    .container {
+      max-width: 1140px;
+      margin: 0 auto;
+      background-color: var(--surface);
+      padding: 3rem;
+      border-radius: 24px;
+      box-shadow: 0 20px 40px rgba(26, 43, 76, 0.08);
+      border: 1px solid var(--border);
+    }
+    .header {
+      border-bottom: 3px solid var(--accent);
+      padding-bottom: 1.5rem;
+      margin-bottom: 2.5rem;
+    }
+    .badge {
+      display: inline-block;
+      background-color: var(--primary);
+      color: #FFF;
+      font-size: 0.85rem;
+      font-weight: 700;
+      padding: 0.3rem 0.8rem;
+      border-radius: 20px;
+      margin-bottom: 0.8rem;
+    }
+    h1 {
+      font-size: 2.1rem;
+      color: var(--primary);
+      margin-bottom: 0.5rem;
+      font-weight: 800;
+    }
+    .subtitle {
+      color: var(--text-muted);
+      font-size: 1.05rem;
+    }
+    .section-title {
+      font-size: 1.5rem;
+      color: var(--primary);
+      margin: 2.5rem 0 1.2rem 0;
+      padding-left: 0.8rem;
+      border-left: 5px solid var(--secondary);
+      font-weight: 700;
+    }
+    .subsection-title {
+      font-size: 1.25rem;
+      color: var(--primary);
+      margin: 1.8rem 0 0.8rem 0;
+      font-weight: 700;
+    }
+    .h4-title {
+      font-size: 1.05rem;
+      color: var(--secondary);
+      margin: 1.2rem 0 0.6rem 0;
+      font-weight: 700;
+    }
+    .info-quote {
+      background: #F1F5F9;
+      border-left: 4px solid var(--accent);
+      padding: 0.9rem 1.2rem;
+      margin: 1rem 0;
+      border-radius: 6px;
+      font-size: 0.95rem;
+      color: #334155;
+    }
+    code {
+      background: #EFF6FF;
+      color: #1D4ED8;
+      padding: 0.15rem 0.4rem;
+      border-radius: 6px;
+      font-family: 'Fira Code', Consolas, monospace;
+      font-size: 0.88rem;
+    }
+    pre {
+      background: var(--code-bg);
+      color: var(--code-text);
+      padding: 1.2rem;
+      border-radius: 12px;
+      overflow-x: auto;
+      margin: 1rem 0 1.5rem 0;
+      font-family: 'Fira Code', Consolas, monospace;
+      font-size: 0.9rem;
+    }
+    pre code {
+      background: transparent;
+      color: inherit;
+      padding: 0;
+    }
+    .table-container {
+      overflow-x: auto;
+      margin: 1.2rem 0 1.8rem 0;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.92rem;
+      background: #FFFFFF;
+    }
+    th {
+      background-color: var(--primary);
+      color: #FFFFFF;
+      padding: 0.8rem 1rem;
+      text-align: left;
+      font-weight: 600;
+    }
+    td {
+      padding: 0.8rem 1rem;
+      border-bottom: 1px solid var(--border);
+      color: #334155;
+    }
+    tr:last-child td {
+      border-bottom: none;
+    }
+    tr:nth-child(even) {
+      background-color: #F8FAFC;
+    }
+    .tag {
+      display: inline-block;
+      padding: 0.15rem 0.45rem;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 700;
+    }
+    .tag.green { background-color: #DCFCE7; color: #166534; }
+    .tag.gray { background-color: #F1F5F9; color: #475569; }
+    .tag.orange { background-color: #FFEDD5; color: #9A3412; }
+    .tag.red { background-color: #FEE2E2; color: #991B1B; border: 1px solid #FECACA; }
+    .tag.blue { background-color: #DBEAFE; color: #1E40AF; border: 1px solid #BFDBFE; }
+    .tag.gold { background-color: #FEF3C7; color: #92400E; border: 1px solid #FDE68A; font-weight: 700; }
+    .tag.warn { background-color: #FEF3C7; color: #B45309; }
+    .tag.pk { background-color: #FEE2E2; color: #991B1B; }
+    .tag.fk { background-color: #DBEAFE; color: #1E40AF; }
+    .tag.uk { background-color: #DCFCE7; color: #166534; }
+    del {
+      color: #94A3B8;
+      text-decoration: line-through;
+    }
+    .md-link {
+      color: var(--accent);
+      text-decoration: underline;
+      font-weight: 500;
+    }
+    p { margin-bottom: 0.9rem; color: #334155; }
+    ul, ol { margin-bottom: 1rem; padding-left: 1.4rem; color: #334155; }
+    li { margin-bottom: 0.4rem; }
+    .divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 2.5rem 0;
+    }
+    .nav-bar {
+      margin-bottom: 2rem;
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+    }
+    .nav-link {
+      color: var(--primary);
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+    .nav-link:hover {
+      color: var(--accent);
+    }
+    @page {
+      size: A4 portrait;
+      margin: 15mm 14mm 18mm 14mm;
+    }
+    @media print {
+      html, body {
+        background-color: #ffffff !important;
+        color: #1e293b !important;
+        font-size: 9.5pt !important;
+        line-height: 1.5 !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+      .container {
+        max-width: 100% !important;
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        border: none !important;
+        box-shadow: none !important;
+        background: transparent !important;
+        border-radius: 0 !important;
+      }
+      .nav-bar { display: none !important; }
+      .header {
+        border-bottom: 2px solid var(--accent) !important;
+        padding-bottom: 0.6rem !important;
+        margin-bottom: 1.2rem !important;
+        page-break-after: avoid !important;
+        break-after: avoid !important;
+      }
+      h1 {
+        font-size: 17pt !important;
+        line-height: 1.3 !important;
+        margin-bottom: 0.4rem !important;
+        color: var(--primary) !important;
+      }
+      .badge {
+        font-size: 8pt !important;
+        padding: 0.2rem 0.6rem !important;
+        background-color: var(--primary) !important;
+        color: #ffffff !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+      .section-title {
+        font-size: 12.5pt !important;
+        margin: 1.2rem 0 0.6rem 0 !important;
+        padding-left: 0.5rem !important;
+        border-left: 4px solid var(--secondary) !important;
+        page-break-after: avoid !important;
+        break-after: avoid !important;
+      }
+      .subsection-title {
+        font-size: 10.5pt !important;
+        margin: 1rem 0 0.5rem 0 !important;
+        page-break-after: avoid !important;
+        break-after: avoid !important;
+      }
+      .h4-title {
+        font-size: 9.5pt !important;
+        margin: 0.8rem 0 0.3rem 0 !important;
+        page-break-after: avoid !important;
+        break-after: avoid !important;
+      }
+      .info-quote {
+        background: #f8fafc !important;
+        border-left: 3px solid var(--accent) !important;
+        padding: 0.6rem 0.8rem !important;
+        margin: 0.6rem 0 !important;
+        font-size: 9pt !important;
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+        border-radius: 4px !important;
+      }
+      .table-container {
+        margin: 0.6rem 0 1rem 0 !important;
+        border: 1px solid #cbd5e1 !important;
+        border-radius: 6px !important;
+        overflow: visible !important;
+        page-break-inside: auto !important;
+        break-inside: auto !important;
+      }
+      table {
+        width: 100% !important;
+        font-size: 8.5pt !important;
+        border-collapse: collapse !important;
+      }
+      thead { display: table-header-group !important; }
+      tr {
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+      }
+      th {
+        background-color: #1a2b4c !important;
+        color: #ffffff !important;
+        padding: 0.45rem 0.65rem !important;
+        font-size: 8.5pt !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+      td {
+        padding: 0.45rem 0.65rem !important;
+        border-bottom: 1px solid #e2e8f0 !important;
+      }
+      .tag {
+        font-size: 7pt !important;
+        padding: 0.1rem 0.35rem !important;
+        border-radius: 4px !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+      .divider {
+        margin: 1rem 0 !important;
+        border-top: 1px solid #e2e8f0 !important;
+      }
+      .page-break {
+        page-break-before: always !important;
+        break-before: page !important;
+      }
+      ul, ol { margin-bottom: 0.5rem !important; }
+      li { page-break-inside: avoid !important; break-inside: avoid !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="nav-bar">
+      <a href="../index.html" class="nav-link">← 보고서 메인 포털로 돌아가기</a>
+    </div>
+    <div class="header">
+      <span class="badge">SSOT 정본 동기화 완료</span>
+      <h1>🔐 00-17. 개인정보 인증(ISMS-P) 대상 여부 · 국외이전 — 대응안</h1>
+      
+    </div>
+    <blockquote class="info-quote"><strong>문서 성격</strong>: 대응안 · <strong><code>00-14</code> §5-4 산출물</strong>. <code>[Claude:Opus]</code> 작성(2026-08-14 조사 / 2026-08-18 문서화).<br/>
+<strong>계기</strong>: <code>00-11</code> §5.2 <span class="tag warn">⚠️</span> 와 §8-5가 *&quot;ISMS-P 대상 여부와 국외이전 논점은 <strong>오픈 전 전문가 확인</strong>&quot;*<br/>
+이라고만 적고 넘겼습니다. 개발자 지시는 *&quot;이것에 대한 <strong>구체적 방안</strong>을 제시해줘. 문서화.&quot;* 입니다.<br/>
+<strong>정본 관계</strong>: 인프라 구성의 정본은 <code>00-11</code>, 시크릿·운영 규칙의 정본은 <code>security.md</code>입니다.<br/>
+이 문서는 <strong>그 둘이 비워둔 &quot;법적 요구&quot; 칸만</strong> 채우고, 겹치는 항목은 §4 표로 연결만 합니다.<br/>
+<strong>표기</strong>: <span class="tag green">✅</span> 확정 사실 / <span class="tag orange">🟡</span> 권고 / <span class="tag red">🔴</span> 외부 확인 필요 · <span class="tag blue">🔵</span> 개발자 확정</blockquote>
+<blockquote class="info-quote"><span class="tag warn">⚠️</span> <strong>이 문서는 법률 자문이 아닙니다.</strong> 아래 법령·제도 서술은 <strong>2026-08-14 확인 기준</strong>이며,<br/>
+<strong>§2의 인증체계 개편은 아직 확정되지 않았습니다.</strong> 재확인 시점은 §5에 못 박아 두었습니다.</blockquote>
+<hr class="divider"/>
+<h2 class="section-title">📌 1. 결론 먼저</h2>
+<div class="table-container"><table><thead><tr><th>질문</th><th>답</th></tr></thead><tbody><tr><td><strong>이어봄이 ISMS/ISMS-P 인증 의무대상인가?</strong></td><td><span class="tag green">✅</span> <strong>아닙니다.</strong> 현행 기준으로도, 진행 중인 개편안 기준으로도 대상이 아닙니다(§2)</td></tr><tr><td><strong>그럼 오픈 전 법률 검토가 필요 없나?</strong></td><td><span class="tag orange">🟡</span> <strong>&quot;인증 의무&quot; 항목에 한해서는 불필요</strong>합니다. 다만 기준이 2027년까지 유동적이라 <strong>재확인 트리거</strong>를 겁니다(§5)</td></tr><tr><td><strong>개인정보를 국외(해외 리전)에 두면 위법인가?</strong></td><td>❌ <strong>아닙니다.</strong> <code>00-11</code> §5.2의 서술은 부정확하며 이 문서로 정정합니다(§3)</td></tr><tr><td><strong>그럼 국내 리전 권고는 폐기되나?</strong></td><td>❌ <strong>유지합니다.</strong> 다만 <strong>근거가 바뀝니다</strong> — *&quot;위법을 피한다&quot;* 가 아니라 *&quot;논점을 만들지 않는다&quot;* 입니다(§3.3)</td></tr><tr><td><strong>의무대상이 아니면 지금 할 일이 없나?</strong></td><td><span class="tag red">🔴</span> <strong>가장 중요한 오해입니다.</strong> <strong>안전성 확보조치 의무는 규모와 무관하게 적용됩니다.</strong> 이 문서의 본체는 §4입니다</td></tr></tbody></table></div>
+<blockquote class="info-quote"><strong>한 줄 요약</strong>: <strong>인증은 안 받아도 되지만, 인증이 검사하는 것들은 해야 합니다.</strong><br/>
+그리고 지금 <strong>가장 급한 빈칸은 인증이 아니라 개인정보처리방침</strong>입니다(§3.4·§4.2).</blockquote>
+<hr class="divider"/>
+<h2 class="section-title">🏛️ 2. ISMS/ISMS-P 의무대상 여부</h2>
+<h3 class="subsection-title">2.1 근거 법령과 현행 규모</h3>
+<div class="table-container"><table><thead><tr><th>항목</th><th>내용</th></tr></thead><tbody><tr><td>근거 법</td><td><strong>정보통신망법 §47</strong>(ISMS) · <strong>개인정보보호법 §32조의2</strong>(ISMS-P)</td></tr><tr><td>현행 의무대상 규모</td><td><strong>2026-02 기준 593개사</strong></td></tr><tr><td>미인증 시</td><td><strong>과태료 3,000만원</strong></td></tr></tbody></table></div>
+<p>의무대상은 <strong>매출액·이용자 수·업종</strong>으로 정해집니다. 이어봄은 <strong>오픈 전이며 매출·이용자가 0</strong>입니다.</p>
+<p>정보통신서비스 제공자 기준(매출·일평균 이용자 수) 어디에도 걸리지 않습니다.</p>
+<h3 class="subsection-title">2.2 <span class="tag red">🔴</span> 인증체계 개편이 진행 중입니다 — 이것 때문에 &quot;지금 아님&quot;으로 끝내면 안 됩니다</h3>
+<div class="table-container"><table><thead><tr><th>항목</th><th>내용</th></tr></thead><tbody><tr><td>개편 방향</td><td>인증체계를 <strong>강화(Advanced) · 표준(Standard) · 간편(Lite) 3단계</strong>로 재편</td></tr><tr><td>개편 의무대상(안)</td><td>주요 공공시스템운영기관 · 이동통신사업자 · 본인확인기관 · <strong>매출액과 처리하는 개인정보 수를 고려한 대규모 개인정보처리자</strong></td></tr><tr><td>강화 인증군(안)</td><td><strong>매출 1조원 이상 주요 ISP·IDC</strong>, <strong>매출 3조원 이상 정보통신서비스 제공자</strong></td></tr><tr><td>시행 일정(안)</td><td>사후관리 <strong>2026 하반기</strong>부터 / <strong>의무화·차등 적용은 2027년부터</strong></td></tr><tr><td><strong>확정 여부</strong></td><td><span class="tag red">🔴</span> <strong>미확정.</strong> 개인정보보호법 <strong>시행령</strong>과 보호위원회 <strong>고시</strong>로 확정될 예정</td></tr></tbody></table></div>
+<blockquote class="info-quote"><strong>개편안 기준으로도 이어봄은 대상이 아닙니다.</strong> 강화군의 문턱이 조 단위 매출이고, 표준·간편의<br/>
+문턱도 *&quot;대규모 개인정보처리자&quot;* 입니다. <strong>다만 그 &quot;대규모&quot;의 숫자가 아직 안 나왔습니다.</strong><br/>
+→ 그래서 §5의 재확인 트리거가 필요합니다. <strong>&quot;오픈 전 확인&quot;으로는 부족합니다</strong> — 오픈 시점과<br/>
+시행령 공포 시점이 어긋나면 확인이 헛돌기 때문입니다.</blockquote>
+<h3 class="subsection-title">2.3 CSAP는 별개입니다 — <code>00-11</code> §5.2가 같이 묶어 놓은 것을 갈라둡니다</h3>
+<p><code>00-11</code> §5.2 <span class="tag warn">⚠️</span> 는 *&quot;공공기관 연계 시 CSAP 필요 여부&quot;* 를 ISMS-P와 한 문장에 묶었는데, <strong>성격이 다릅니다.</strong></p>
+<div class="table-container"><table><thead><tr><th></th><th>ISMS-P</th><th>CSAP</th></tr></thead><tbody><tr><td>누가 받나</td><td><strong>서비스 사업자</strong>(= 이어봄)</td><td><strong>클라우드 사업자</strong>(= NCP·AWS 등)</td></tr><tr><td>이어봄에게</td><td>의무대상이면 <strong>직접 받아야 함</strong></td><td><strong>받은 사업자를 고르면 되는 것</strong></td></tr><tr><td>언제 문제되나</td><td>규모 요건 충족 시</td><td><strong>공공기관에 서비스를 납품할 때</strong></td></tr></tbody></table></div>
+<blockquote class="info-quote"><span class="tag green">✅</span> <strong>이어봄은 B2C·B2B(장사시설·전문가) 서비스이지 공공 납품 사업이 아닙니다.</strong><br/>
+<code>01-02</code>가 다루는 **공공데이터 이용은 &quot;데이터를 받아오는 것&quot;이지 &quot;공공기관에 시스템을 파는 것&quot;이<br/>
+아니므로 CSAP 논점이 생기지 않습니다.<strong> → </strong>CSAP는 현재 검토 대상에서 내립니다.**<br/>
+공공 조달을 사업 방향으로 잡을 때 되살리면 됩니다(그때는 사업자 선택 기준에 한 줄 추가하는 일).</blockquote>
+<hr class="divider"/>
+<h2 class="section-title">🌏 3. 국외이전 — <code>00-11</code> §5.2 서술을 정정합니다</h2>
+<h3 class="subsection-title">3.1 무엇이 부정확했나</h3>
+<p><code>00-11</code> §5.2 원문: *&quot;개인정보의 국외 이전에는 <strong>별도 고지·동의 등 추가 의무가 따릅니다</strong>.&quot;*</p>
+<p><strong>&quot;별도 동의&quot;를 기본값처럼 적은 것이 부정확합니다.</strong></p>
+<p><strong>개인정보보호법 §28조의8</strong>은 국외 이전의 <strong>근거를 5가지</strong>로 열어두었고, 동의는 그중 하나일 뿐입니다.</p>
+<div class="table-container"><table><thead><tr><th>이전 근거</th><th>별도 동의</th><th>이어봄 해당</th></tr></thead><tbody><tr><td>① 정보주체의 <strong>별도 동의</strong></td><td>필요</td><td>—</td></tr><tr><td>② <strong>법률·조약</strong>에 규정</td><td>불요</td><td>—</td></tr><tr><td>③ <strong>계약의 체결·이행을 위해 필요한 처리위탁·보관</strong></td><td><strong>불요</strong> — <strong>개인정보처리방침 공개 등으로 갈음</strong></td><td><span class="tag green">✅</span> <strong>여기에 해당</strong></td></tr><tr><td>④ 이전받는 자가 <strong>§32조의2 인증(ISMS-P 등)</strong> 을 받고 안전조치·권리보장 조치를 이행</td><td>불요</td><td><span class="tag orange">🟡</span> 보조 근거</td></tr><tr><td>⑤ 이전 대상국의 보호수준이 국내와 동등하다고 <strong>보호위원회가 인정</strong></td><td>불요</td><td>—</td></tr></tbody></table></div>
+<blockquote class="info-quote"><span class="tag green">✅</span> <strong>따라서 &quot;AWS 해외 리전 = 불법&quot;이 아닙니다.</strong> 클라우드 호스팅은 전형적인 ③(처리위탁·보관)이며,<br/>
+<strong>처리방침에 공개하면 별도 동의 없이 적법</strong>합니다. 국내 기업들이 해외 리전을 쓰는 근거가 이것입니다.</blockquote>
+<h3 class="subsection-title">3.2 그래도 ③에는 <strong>조건</strong>이 붙습니다 — 공짜가 아닙니다</h3>
+<p>③으로 가려면 <strong>개인정보처리방침에 국외이전 사항을 공개</strong>해야 합니다. 공개할 항목은 실무상 다음입니다.</p>
+<p>1. 이전되는 <strong>개인정보 항목</strong></p>
+<p>2. 이전되는 <strong>국가·시기·방법</strong></p>
+<p>3. 이전받는 자의 <strong>명칭·연락처</strong></p>
+<p>4. 이전받는 자의 <strong>이용 목적·보유 기간</strong></p>
+<p><strong>즉 ③은 &quot;아무것도 안 해도 된다&quot;가 아니라 &quot;동의 대신 공개를 한다&quot;입니다.</strong></p>
+<p><span class="tag red">🔴</span> <strong>그런데 이어봄에는 그 처리방침 문서가 아직 없습니다</strong>(§3.4).</p>
+<h3 class="subsection-title">3.3 그래서 국내 리전 권고는 <strong>유지하되, 근거를 바꿉니다</strong></h3>
+<p><code>00-11</code> §5.2 마지막 문장은 이미 옳게 적혀 있었습니다 — *&quot;국내 리전을 쓰면 이 논점을 아예 만들지</p>
+<p>않습니다.&quot;* <strong>이 문장이 진짜 근거이고, 앞 문장(위법 프레임)이 군더더기였습니다.</strong></p>
+<div class="table-container"><table><thead><tr><th>프레임</th><th>평가</th></tr></thead><tbody><tr><td>❌ *&quot;국외는 위법이라 국내로 간다&quot;*</td><td><strong>틀림.</strong> 정정 대상</td></tr><tr><td><span class="tag green">✅</span> *&quot;국외도 적법하지만, 공개 항목·사업자 실사·문의 대응이 늘어난다. 국내 리전이면 그 일이 통째로 없다&quot;*</td><td><strong>채택</strong></td></tr></tbody></table></div>
+<blockquote class="info-quote"><span class="tag orange">🟡</span> 이 구분이 실무에서 중요한 이유: **위법 프레임으로 적어두면 &quot;해외 SaaS는 무조건 못 쓴다&quot;는<br/>
+잘못된 운영 규칙이 파생됩니다.<strong> 실제로는 §3.4처럼 </strong>이미 쓰고 있고, 앞으로도 쓸 수밖에 없는<br/>
+국외 요소가 있습니다.** 규칙이 현실과 어긋나면 규칙이 무시됩니다.</blockquote>
+<h3 class="subsection-title">3.4 <span class="tag red">🔴</span> 현행·계획 스택의 국외 요소 점검 — <strong>이미 국외 요소가 있습니다</strong></h3>
+<p><code>00-11</code> §5.1은 <strong>프론트엔드는 Vercel 유지</strong>를 권고했고, 현재 배포 계획(<code>render.yaml</code>)은 백엔드·DB가</p>
+<p>Render입니다. 둘 다 해외 사업자입니다. <strong>&quot;국내 리전 권고&quot;만 적어두면 이 부분이 점검에서 샙니다.</strong></p>
+<div class="table-container"><table><thead><tr><th>요소</th><th>현재/계획</th><th>개인정보가 지나가나</th><th>처리 방향</th></tr></thead><tbody><tr><td><strong>Vercel</strong> (프론트)</td><td><code>00-11</code> §5.1 <strong>유지 권고</strong></td><td><span class="tag orange">🟡</span> 정적 자산 배포. 다만 <strong>접속 로그·IP</strong>는 남음</td><td><span class="tag orange">🟡</span> 처리방침 <strong>국외이전 항목에 등재</strong>. 민감정보는 백엔드에만</td></tr><tr><td><strong>Render</strong> (백엔드+DB)</td><td><code>render.yaml</code> — <strong><code>plan: free</code></strong></td><td><span class="tag red">🔴</span> <strong>전부 지나감</strong></td><td><span class="tag green">✅</span> <code>00-11</code> §4.1이 이미 <strong>프로덕션 부적합</strong>으로 판정(백업 없음). <strong>§7 단계 4에서 교체</strong></td></tr><tr><td><strong>소셜 로그인 3사</strong></td><td>카카오·네이버(국내) / <strong>구글</strong>(국외)</td><td><span class="tag orange">🟡</span> 프로필·이메일</td><td><span class="tag orange">🟡</span> <strong>구글은 국외이전 등재 대상.</strong> <code>00-08</code> 연동</td></tr><tr><td><strong>카카오맵 JS SDK</strong></td><td><code>VITE_KAKAO_MAP_KEY</code></td><td>국내</td><td>—</td></tr><tr><td><strong>Unsplash 외부 이미지</strong></td><td>목업 추모 사진(<code>00-14</code> §2.2)</td><td>❌ 개인정보 아님</td><td><span class="tag green">✅</span> <strong>다른 이유로 이미 제거 대상</strong>(<code>00-14</code> §2.2 — 프로덕션이 외부 호스트에 의존)</td></tr></tbody></table></div>
+<blockquote class="info-quote"><span class="tag green">✅</span> <strong>가장 중요한 결론</strong>: **국외이전 논점의 실질적 해소는 &quot;국내 리전 선택&quot;이 아니라<br/>
+&quot;Render 이탈&quot;입니다.<strong> <code>00-11</code> §7.1 단계 4가 그 일이며, </strong>이 문서는 새 과제를 만들지 않고<br/>
+기존 이행 계획에 국외이전 사유를 하나 더 붙일 뿐입니다.**<br/>
+<strong>Vercel은 남습니다</strong> — 그래서 <strong>국외이전 공개 항목은 어차피 0이 되지 않습니다.</strong> §4.2가 필수인 이유입니다.</blockquote>
+<hr class="divider"/>
+<h2 class="section-title">🧱 4. 의무대상이 아니어도 해야 하는 것 — <strong>이 문서의 본체</strong></h2>
+<p><strong>안전성 확보조치(개인정보보호법 §29 및 시행령)는 사업 규모와 무관하게 적용됩니다.</strong></p>
+<p>인증 의무가 없다는 것은 *&quot;검사를 안 받는다&quot;* 이지 *&quot;조치를 안 한다&quot;* 가 아닙니다.</p>
+<h3 class="subsection-title">4.1 이미 어디에 있는지 — <strong>새로 만들지 말고 연결합니다</strong></h3>
+<div class="table-container"><table><thead><tr><th>조치 영역</th><th>이미 있는 곳</th><th>상태</th></tr></thead><tbody><tr><td>접근권한 관리(계정·권한 최소화)</td><td><code>00-04</code> 4종 토큰(<code>aud</code>) 인증 체계 · <code>00-12</code> §4 검증 사다리 L0~L4</td><td><span class="tag green">✅</span> 설계됨</td></tr><tr><td>접근통제(망 분리·DB 비노출)</td><td><strong><code>00-11</code> §7.2-2</strong> — DB는 사설 네트워크</td><td><span class="tag green">✅</span> 규칙 있음</td></tr><tr><td>암호화(저장·전송)</td><td><code>security.md</code> §6 · <code>06-02</code> · <strong><code>05-01</code> §1 이중동의 복호화 약속</strong></td><td><span class="tag green">✅</span> 규칙 있음</td></tr><tr><td>시크릿 관리</td><td><code>security.md</code> §1·§3 · <strong><code>00-11</code> §7.2-1</strong>(클라우드 시크릿 관리로 이전)</td><td><span class="tag green">✅</span> 규칙 있음</td></tr><tr><td>백업·복구</td><td><strong><code>00-11</code> §5.1·§7.3</strong>(자동 백업 + 분기 1회 복구 리허설)</td><td><span class="tag green">✅</span> 규칙 있음</td></tr><tr><td>저장매체 공개 방지</td><td><strong><code>00-11</code> §7.2-3</strong>(버킷 비공개 + 서명 URL)</td><td><span class="tag green">✅</span> 규칙 있음</td></tr><tr><td>고유식별정보 처리 제한</td><td><strong><code>00-16</code></strong>(L3 사망확인 서류 — 주민등록번호)</td><td><span class="tag green">✅</span> <strong>별도 문서</strong></td></tr><tr><td>위치정보</td><td><code>security.md</code> §4 · <code>01-02</code></td><td><span class="tag green">✅</span> 규칙 있음</td></tr></tbody></table></div>
+<blockquote class="info-quote"><strong>표를 만든 이유</strong>: 이 영역은 <strong>문서가 늘어날수록 위험해집니다.</strong> 같은 규칙이 세 군데 적히면<br/>
+한 곳만 고쳐지고 나머지가 낡습니다(<code>AGENTS.md</code> §7 — 같은 문서를 두 곳에 복사하지 않는다).<br/>
+<strong>위 8칸은 전부 정본이 따로 있으므로 이 문서는 손대지 않습니다.</strong></blockquote>
+<h3 class="subsection-title">4.2 <span class="tag red">🔴</span> 빈칸 — 정본이 아예 없는 것</h3>
+<blockquote class="info-quote">## <span class="tag blue">🔵</span> 2026-08-18 — <strong>①②③④가 <code>00-18</code>로 이관됐습니다.</strong><br/>
+아래 표는 <strong>발주 내역으로 그대로 보존</strong>합니다. 처리 결과의 정본은 <strong><code>00-18</code></strong> 입니다.</blockquote>
+<p>&gt;</p>
+<blockquote class="info-quote">| # | 이관처 | 상태 |<br/>
+| :---: | :--- | :--- |<br/>
+| ① 개인정보처리방침 | <strong><code>00-18</code></strong> §3~§6 | <span class="tag green">✅</span> <strong>초안 설계 완료.</strong> <span class="tag red">🔴</span> 게시는 §8.1 게이트 통과 후 |<br/>
+| ② 이용약관 | <strong><code>00-18</code></strong> §7 | <span class="tag green">✅</span> <strong>고유 조항 9개 배치 완료.</strong> <span class="tag red">🔴</span> 동일 |<br/>
+| ③ 보유·파기 기간 | <strong><code>00-18</code></strong> §6 | <span class="tag orange">🟡</span> <strong>표는 만들었으나 절반이 빈칸</strong> — <code>00-14</code> §4-3 등 미확정에 걸림 |<br/>
+| ④ 위탁 현황 | <strong><code>00-18</code></strong> §5.1 | <span class="tag orange">🟡</span> <strong>씨앗이던 §3.4 표가 실제 표가 됨.</strong> 수탁자 칸은 <code>00-11</code> §8-1 대기 |<br/>
+| ⑤ 접속기록 보관 | — | <span class="tag red">🔴</span> <strong>여기 남습니다</strong> — <code>[Sonnet]</code> 구현 항목 |</blockquote>
+<p>&gt;</p>
+<blockquote class="info-quote"><span class="tag red">🔴</span> <strong><code>00-18</code>이 <code>Footer</code> 전문을 다시 읽어 같은 종류의 결함 2건을 더 찾았습니다</strong><br/>
+(*&quot;KISA 기준 최고 등급 보안 암호화&quot;* · *&quot;1588-0000&quot;*) → <code>00-14</code> §2.5·§2.6.<br/>
+<strong>후자는 이 문서에도 걸립니다</strong> — 처리방침의 <strong>개인정보 보호책임자 연락처</strong>가 필수 기재사항인데<br/>
+화면의 유일한 연락처가 가짜입니다.</blockquote>
+<div class="table-container"><table><thead><tr><th>#</th><th>빈칸</th><th>왜 지금 문제인가</th><th>누가</th></tr></thead><tbody><tr><td><strong>①</strong></td><td><strong>개인정보처리방침 문서 자체가 없음</strong></td><td><span class="tag red">🔴</span> **<code>Footer.tsx:80</code>에 *&quot;개인정보 처리방침&quot;* 이 이미 노출 중인데 링크도 페이지도 없습니다.<strong> 게다가 §3.2에서 확인했듯 </strong>국외이전을 동의 없이 하려면 이 문서가 수단 그 자체**입니다</td><td><code>[Opus]</code> 초안 → <span class="tag red">🔴</span> 검토</td></tr><tr><td><strong>②</strong></td><td><strong>이용약관 없음</strong></td><td>동일 — <code>Footer.tsx:77</code>에 같이 노출 중. <code>06-03</code>(엔딩노트 예외 열람)·<code>00-13</code>(링크 재전파)이 <strong>약관에 실릴 문장을 이미 만들어내고 있습니다</strong></td><td><code>[Opus]</code> 초안 → <span class="tag red">🔴</span> 검토</td></tr><tr><td><strong>③</strong></td><td><strong>개인정보 보유·파기 기간</strong></td><td>도메인마다 흩어져 있고(<code>00-14</code> §4-3 <code>MEMORIALIZED</code> 보유기간 미정) <strong>전체 표가 없습니다</strong></td><td><code>[Opus]</code></td></tr><tr><td><strong>④</strong></td><td><strong>개인정보 처리 위탁 현황</strong></td><td>위 §3.4 표가 그 씨앗입니다. 결제·문자·알림톡이 붙으면 늘어납니다</td><td><code>[Opus]</code></td></tr><tr><td><strong>⑤</strong></td><td><strong>접속기록 보관(1년) · 파기 절차</strong></td><td>기록은 남기는데 <strong>보관 기간 규칙이 없습니다</strong></td><td><code>[Sonnet]</code> 구현 시</td></tr></tbody></table></div>
+<blockquote class="info-quote"><span class="tag red">🔴</span> <strong>①이 §2(인증)보다 훨씬 급합니다.</strong> 인증은 *&quot;우리 규모면 언젠가&quot;* 이지만,<br/>
+**처리방침은 화면이 이미 있다고 말하고 있고, 국외이전의 적법 근거이며, 오픈 시점에 없으면<br/>
+그 자체로 위반<strong>입니다. </strong><code>00-14</code> §2가 잡아낸 &quot;화면이 약속했는데 뒷받침이 없음&quot;과 같은 종류이고,<br/>
+§2 전수조사가 <code>HomePage</code>·<code>EndingNotePage</code> 계열만 훑느라 <code>Footer</code>를 안 봐서 빠진 건입니다.**</blockquote>
+<blockquote class="info-quote"><span class="tag orange">🟡</span> <strong>①②는 이 문서의 범위가 아니라 별도 문서(<code>00-18</code> 후보)입니다.</strong> 여기서는 <strong>등재만</strong> 합니다 —<br/>
+한 문서가 두 일을 하면 둘 다 낡습니다. → <span class="tag green">✅</span> <strong>2026-08-18 <code>00-18</code> 신설로 이행됨</strong>(위 <span class="tag blue">🔵</span> 블록).</blockquote>
+<hr class="divider"/>
+<h2 class="section-title">⏰ 5. 재확인 트리거 — <strong>&quot;오픈 전 확인&quot;을 대체합니다</strong></h2>
+<p><code>00-11</code> §5.2의 *&quot;오픈 전 전문가 확인&quot;* 은 <strong>시점이 우리 사정(오픈)에 묶여 있어 헛돕니다.</strong></p>
+<p>기준이 바뀌는 시점은 <strong>법령 쪽 사정</strong>이므로, 트리거를 그쪽에 겁니다.</p>
+<div class="table-container"><table><thead><tr><th>#</th><th>트리거</th><th>무엇을 재확인</th><th>확인 주체</th></tr></thead><tbody><tr><td><strong>T1</strong></td><td><strong>개인정보보호법 시행령·보호위 고시로 인증체계 개편이 확정될 때(2027 예정)</strong></td><td>*&quot;대규모 개인정보처리자&quot;* 의 <strong>구체적 숫자</strong>. 이어봄이 그 문턱에 근접했는지</td><td><span class="tag red">🔴</span> 외부</td></tr><tr><td><strong>T2</strong></td><td><strong>누적 회원 또는 처리 개인정보 건수가 유의미한 규모에 도달할 때</strong></td><td>동일. <strong>숫자가 나온 뒤에는 내부에서 판정 가능</strong></td><td>내부</td></tr><tr><td><strong>T3</strong></td><td><strong>국외 사업자 스택이 추가·변경될 때</strong>(결제 PG, 알림, AI API 등)</td><td>§3.4 표 갱신 + <strong>처리방침 국외이전 항목 갱신</strong></td><td>내부</td></tr><tr><td><strong>T4</strong></td><td><strong>공공 조달·공공기관 연계를 사업 방향으로 검토할 때</strong></td><td>§2.3 CSAP를 되살릴지</td><td>내부</td></tr></tbody></table></div>
+<blockquote class="info-quote"><span class="tag green">✅</span> <strong>T1·T2는 유료 자문이 필요 없습니다</strong> — 확정된 숫자와 우리 숫자를 비교하는 일입니다.<br/>
+<span class="tag red">🔴</span> <strong>유료 자문이 실제로 필요한 것은 이 문서가 아니라 <code>00-16</code>(주민등록번호)·<code>04-02</code>(대행 적법성)입니다.</strong><br/>
+<code>00-14</code> §5의 의뢰 목록에서 <strong>5-4는 우선순위를 내려도 됩니다.</strong></blockquote>
+<hr class="divider"/>
+<h2 class="section-title">📎 6. <code>00-11</code> 스펙갱신 내역</h2>
+<div class="table-container"><table><thead><tr><th>위치</th><th>변경</th><th>이유</th></tr></thead><tbody><tr><td><code>00-11</code> §5.2 본문</td><td>*&quot;별도 고지·동의 등 추가 의무&quot;* → <strong>§28조의8 5가지 근거 + ③ 해당 명시</strong></td><td>§3.1 — 동의가 기본값이라는 서술이 부정확</td></tr><tr><td><code>00-11</code> §5.2 <span class="tag warn">⚠️</span></td><td>*&quot;오픈 전 전문가 확인&quot;* → <strong>&quot;현재 대상 아님 + 재확인 트리거(§5)&quot;</strong></td><td>§2 — 조사로 답이 나온 항목을 미해결로 남겨두면 매번 다시 봄</td></tr><tr><td><code>00-11</code> §8-5</td><td>항목 유지, <strong>&quot;→ <code>00-17</code>로 이관·해소&quot;</strong> 표기</td><td>사장님 확정 필요 항목에서 <strong>법률 확인 부분은 내려감</strong></td></tr></tbody></table></div>
+<hr class="divider"/>
+<h2 class="section-title">🔗 7. 관련 문서</h2>
+<div class="table-container"><table><thead><tr><th>문서</th><th>관계</th></tr></thead><tbody><tr><td><code>00-11</code> §5.2·§7.2·§8-5</td><td><strong>정정 대상 정본.</strong> 인프라 구성 자체는 계속 <code>00-11</code>이 정본</td></tr><tr><td><code>00-16</code></td><td><strong>고유식별정보(주민등록번호) 처리 제한</strong> — 같은 법의 다른 조문(§24조의2)이며 성격이 훨씬 무거움</td></tr><tr><td><code>security.md</code> §1·§4·§5</td><td>시크릿·위치정보·발행 게이트 운영 규칙</td></tr><tr><td><code>04-02</code> §4</td><td>국외 플랫폼(Google·Apple·Meta) 사전지정 기능 — <strong>이용자↔플랫폼 계약이라 이어봄의 국외이전이 아님</strong></td></tr><tr><td><code>01-02</code></td><td>공공데이터·위치정보법 검토 — §2.3 CSAP 판단의 근거</td></tr><tr><td><code>00-14</code> §5-4</td><td>이 문서의 발주 항목</td></tr><tr><td><strong><code>00-18</code></strong></td><td><strong>§4.2 ①②③④의 이행 문서.</strong> 국외이전 공개 항목(§3.2)이 실제 표가 되는 곳도 여기(<code>00-18</code> §4)</td></tr></tbody></table></div>
+
+  </div>
+</body>
+</html>

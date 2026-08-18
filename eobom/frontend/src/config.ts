@@ -32,6 +32,13 @@ export const providerLabel = (provider: string): string => PROVIDER_LABELS[provi
 // 실제 위치가 아니므로 사용하는 곳에서 반드시 폴백 배지를 함께 노출할 것.
 export const GEOLOCATION_FALLBACK = { lat: 37.4925, lng: 127.0078 };
 
+// 위치기반서비스사업 신고 완료 여부 — docs 00-21 §0.2 잠금 규칙(docs 00-14 §2.10).
+// 신고가 실제로 확인되기 전까지 반드시 false로 둔다. false인 동안:
+//   (1) FacilityPage가 navigator.geolocation.getCurrentPosition을 호출하지 않고
+//   (2) TermsPage가 제6장(위치기반서비스)을, PrivacyPage가 제3-6조(위치정보)를 렌더링하지 않는다.
+// 방통위 신고가 실제로 완료된 것이 확인된 뒤에만 true로 바꾼다 — 조문과 기능은 한 쌍이다.
+export const LOCATION_BASED_SERVICE_REGISTERED = false;
+
 // 카카오맵 SDK 로드 대기 타임아웃(ms) — 이 시간 안에 안 뜨면 무한 스피너 대신 실패 상태로 전환.
 export const KAKAO_MAP_LOAD_TIMEOUT_MS = 5000;
 export const KAKAO_MAP_LOAD_POLL_INTERVAL_MS = 100;
