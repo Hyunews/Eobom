@@ -32,6 +32,14 @@ export const HomePage: React.FC<HomePageProps> = ({ currentUser, onOpenLogin, se
     const container = containerRef.current;
     if (!container) return;
 
+    // 새로고침(F5)이면 이전 스크롤 기억을 무시하고 항상 맨 위(히어로)에서 시작한다.
+    // Navigation Timing API의 type은 "문서가 실제로 다시 로드됐는지"만 반영하고 SPA 내부 이동
+    // (뒤로가기 등 client-side 라우팅)에는 바뀌지 않으므로, 이 둘을 구분하는 데 쓸 수 있다.
+    const navEntry = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming | undefined;
+    if (navEntry?.type === 'reload') {
+      sessionStorage.removeItem('eobom_scroll_home');
+    }
+
     // 마운트 시 이전에 보던 섹션이 저장돼 있으면 그 섹션으로 즉시 복원
     // (메뉴 직접 클릭 시에는 eobom_scroll_home이 삭제되어 0 최상단으로 오픈)
     const saved = sessionStorage.getItem('eobom_scroll_home');
@@ -51,8 +59,21 @@ export const HomePage: React.FC<HomePageProps> = ({ currentUser, onOpenLogin, se
       }
     };
 
+    // 이미 홈에 있는 상태에서 "홈으로"(로고 클릭 등)를 다시 누르면 App.tsx의 setActiveTab이
+    // navigate('/')를 호출해도 경로가 안 바뀌어 이 컴포넌트가 리마운트되지 않는다 — 그래서
+    // App.tsx가 쏘는 커스텀 이벤트를 직접 듣고 맨 위로 스크롤한다(마운트 여부와 무관하게 동작).
+    const handleGoTop = () => {
+      container.scrollTop = 0;
+      setActiveSection(0);
+      sessionStorage.removeItem('eobom_scroll_home');
+    };
+
     container.addEventListener('scroll', handleScroll, { passive: true });
-    return () => container.removeEventListener('scroll', handleScroll);
+    window.addEventListener('eobom:home-scroll-top', handleGoTop);
+    return () => {
+      container.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('eobom:home-scroll-top', handleGoTop);
+    };
   }, [sections.length]);
 
   // activeSection의 최신값을 휠 이벤트 핸들러(마운트 시 1회만 등록)에서 항상 최신으로 읽기 위한 ref 동기화

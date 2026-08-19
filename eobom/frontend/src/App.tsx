@@ -77,6 +77,14 @@ function AppShell() {
     // 2. 메뉴 직접 클릭이므로 타겟 탭의 저장된 스크롤 위치 삭제 (최상단 개봉)
     sessionStorage.removeItem(`eobom_scroll_${tab}`);
 
+    // 3. 이미 홈에 있는 상태에서 "홈으로"(로고 클릭 등)를 다시 누르면 아래 navigate('/')가
+    // 경로 변화가 없어 HomePage를 리마운트시키지 않는다 — 그래서 HomePage가 직접 듣는
+    // 커스텀 이벤트로 맨 위 스크롤을 별도로 알린다(다른 페이지에서 홈으로 갈 때는
+    // 무해한 조기 이벤트일 뿐, 실제 복귀는 HomePage 마운트 시 로직이 처리한다).
+    if (tab === 'home') {
+      window.dispatchEvent(new Event('eobom:home-scroll-top'));
+    }
+
     navigate(tab === 'home' ? '/' : `/${tab}`);
   };
 
