@@ -3,6 +3,7 @@ import { ChevronRight, HeartHandshake, DoorOpen, Building2 } from 'lucide-react'
 import { ChecklistShieldIcon } from '../MenuIcons';
 import { domainSlides } from './domainSlides';
 import { BoxDetailOverlay } from './BoxDetailOverlay';
+import type { NavMode } from '../../modeNav';
 
 // docs/00_핵심플랫폼/00-23 §8 — 메인화면 진입구조 목업. 사장님 지시(2026-08-18 2차)로
 // 박스①②는 항목 목록을 뺀 "간단 설명"만 남기고, 클릭 시 박스별 미니 풀스크린 오버레이에서
@@ -29,6 +30,7 @@ interface EntryBoxesProps {
   currentUser?: string | null;
   onOpenLogin?: () => void;
   setActiveTab?: (tab: string) => void;
+  onSetMode?: (mode: NavMode) => void;
 }
 
 interface EntryItem {
@@ -40,7 +42,8 @@ interface EntryItem {
 
 const box4Items: EntryItem[] = [{ label: '파트너 로그인', tab: 'partner', status: 'active' }];
 
-const Badge: React.FC<{ status: 'preview' | 'comingSoon' }> = ({ status }) => {
+// Sidebar(모드별 메뉴)가 00-26 §3의 상태 배지 규격 재사용을 위해 export한다(00-23 §8.3과 동일 규격).
+export const Badge: React.FC<{ status: 'preview' | 'comingSoon' }> = ({ status }) => {
   const preview = status === 'preview';
   return (
     <span
@@ -162,8 +165,25 @@ const BoxHeader: React.FC<{
   );
 };
 
-export const EntryBoxes: React.FC<EntryBoxesProps> = ({ currentUser, onOpenLogin, setActiveTab }) => {
+export const EntryBoxes: React.FC<EntryBoxesProps> = ({ currentUser, onOpenLogin, setActiveTab, onSetMode }) => {
   const [openBox, setOpenBox] = useState<'box1' | 'box2' | null>(null);
+
+  // 00-26 §4.2-1 — ①은 로그인 필수(전부 로그인 필수 도메인이 목적). 비로그인이면 모드도
+  // 설정하지 않고 오버레이도 열지 않는다(§4.2-1 "다"안 — 완화책은 목업 후 판단, 지금은 완화 없음).
+  const handleBox1Click = () => {
+    if (!currentUser) {
+      onOpenLogin?.();
+      return;
+    }
+    onSetMode?.('prep');
+    setOpenBox('box1');
+  };
+
+  // 00-26 §4.2-1 — ②는 로그인 없이 즉시 진입(07 열람은 07-02 원칙상 즉시 가능해야 함).
+  const handleBox2Click = () => {
+    onSetMode?.('bereaved');
+    setOpenBox('box2');
+  };
 
   return (
     <div style={{ maxWidth: '1400px', width: '100%', margin: '0 auto' }}>
@@ -185,7 +205,7 @@ export const EntryBoxes: React.FC<EntryBoxesProps> = ({ currentUser, onOpenLogin
         {/* ① 생전 준비 — 클릭 시 미니 오버레이(전문가상담·엔딩노트·디지털자산) */}
         <button
           type="button"
-          onClick={() => setOpenBox('box1')}
+          onClick={handleBox1Click}
           className="card entry-box-primary"
           style={{
             textAlign: 'left',
@@ -222,7 +242,7 @@ export const EntryBoxes: React.FC<EntryBoxesProps> = ({ currentUser, onOpenLogin
         {/* ② 임종 및 사후 정리 — 클릭 시 미니 오버레이(상중케어부터 순서대로) */}
         <button
           type="button"
-          onClick={() => setOpenBox('box2')}
+          onClick={handleBox2Click}
           className="card entry-box-primary"
           style={{
             textAlign: 'left',

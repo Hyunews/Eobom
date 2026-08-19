@@ -156,6 +156,18 @@
   - `(33) [Opus] 00-09 정정(긴급 FAB·pulse 실측) + §5 정본 경계 신설` ➔ **✅통과**
 - [x] **하네스 무결성**: `harness-doctor.sh` 129개 항목 전건 통과 확인 (부팅 예산 10KB ≤ 11KB 준수).
 
+---
+
+### 15. 2026-08-19 Walkthrough (34) 게이트 검증 판정 완료
+- [x] **Walkthrough (34) 게이트 검증 판정**:
+  - `(34) [Sonnet] 메인화면 시각 정제 — 4박스 위계 복원 + 히어로·오버레이 마감` ➔ **✅통과**
+  - **검증 내용**:
+    ① `00-23` §8.5 위계 복원 (`.entry-box-primary` 300px 상단 큰 카드 / `.entry-box-secondary` 150px 하단 작은 카드 분리)
+    ② 박스①② 요약 칩(`ChipRow`) 및 "자세히 보기" 구분선 추가로 빈 공간 해소 확인
+    ③ `index.css:127` 지도 핀 마커 펄스 애니메이션 주석 정정 완료
+    ④ `HomePage.tsx` 및 `BoxDetailOverlay.tsx` 그리드 `alignItems: 'start'` 정렬 마감
+    ⑤ `npx tsc --noEmit` 프론트/백엔드 타입 에러 0건 및 기능 회귀 없음 확인.
+
 
 
 

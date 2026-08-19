@@ -298,3 +298,28 @@ body {
   }
 }
 
+/* ── Header(Header.tsx) 반응형 — 00-26 §4.4 모드 칩 신설 + walkthrough(34) 375px 가로 오버플로 해소 ──
+   기본(≥481px)은 지금까지의 여백 그대로. 모바일에서는 사용자명을 말줄임표로 줄이고
+   버튼 라벨 텍스트(계정 설정/로그아웃/로그인 문구, 모드 칩 문구)를 숨겨 아이콘만 남긴다. */
+.header-inner {
+  padding: 0 1.5rem;
+}
+
+@media (max-width: 480px) {
+  .header-inner {
+    padding: 0 0.85rem;
+  }
+
+  .header-user-name-text {
+    max-width: 64px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .header-btn-label,
+  .header-mode-chip-label {
+    display: none;
+  }
+}
+

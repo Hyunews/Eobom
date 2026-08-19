@@ -2,14 +2,16 @@
 import { Sparkles } from 'lucide-react';
 import { Footer } from '../components/Footer';
 import { EntryBoxes } from '../components/home/EntryBoxes';
+import type { NavMode } from '../modeNav';
 
 interface HomePageProps {
   currentUser?: string | null;
   onOpenLogin?: () => void;
   setActiveTab?: (tab: string) => void;
+  onSetMode?: (mode: NavMode) => void;
 }
 
-export const HomePage: React.FC<HomePageProps> = ({ currentUser, onOpenLogin, setActiveTab }) => {
+export const HomePage: React.FC<HomePageProps> = ({ currentUser, onOpenLogin, setActiveTab, onSetMode }) => {
   const [activeSection, setActiveSection] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
   const activeSectionRef = useRef(0);
@@ -253,7 +255,7 @@ export const HomePage: React.FC<HomePageProps> = ({ currentUser, onOpenLogin, se
             overflowY: 'auto'
           }}
         >
-          <EntryBoxes currentUser={currentUser} onOpenLogin={onOpenLogin} setActiveTab={setActiveTab} />
+          <EntryBoxes currentUser={currentUser} onOpenLogin={onOpenLogin} setActiveTab={setActiveTab} onSetMode={onSetMode} />
         </section>
 
         {/* ========================================================= */}

@@ -8,6 +8,7 @@ import { SocialLinkModal } from './components/SocialLinkModal';
 import { MyPageAuthSettings } from './components/MyPageAuthSettings';
 import { EobomLogo } from './components/EobomLogo';
 import { providerLabel } from './config';
+import { NAV_MODE_STORAGE_KEY, type NavMode } from './modeNav';
 
 import { HomePage } from './pages/HomePage';
 import { FacilityPage } from './pages/FacilityPage';
@@ -33,11 +34,25 @@ function AppShell() {
   // 파트너·운영자 포털은 B2C 소셜 로그인과 완전히 분리된 별도 인증 체계라
   // Header(로그인 버튼)·Sidebar(소비자 메뉴)·긴급콜을 렌더하지 않는다(00-06 §7.4).
   const isPortalRoute = activeTab === 'partner' || activeTab === 'admin';
+  // 00-26 §7.2 — 홈은 4박스가 유일한 진입점이라 사이드바를 숨긴다(Header는 유지).
+  const isHomeRoute = activeTab === 'home';
 
   const [isLoginOpen, setIsLoginOpen] = useState<boolean>(false);
   const [currentUser, setCurrentUser] = useState<string | null>(() => {
     return localStorage.getItem('k_ending_current_user') || null;
   });
+
+  // 00-26 §4.3 — 진입 모드(생전준비/유가족). localStorage로 날짜를 넘겨 기억한다(유족 행정 절차는
+  // 여러 날에 걸침). ⚠️ 홈으로 돌아오면 4박스는 항상 보여야 하므로, 이 값으로 자동 이동시키지 않는다
+  // — 사이드바 메뉴 선택에만 쓴다(§7.2).
+  const [navMode, setNavMode] = useState<NavMode | null>(() => {
+    const saved = localStorage.getItem(NAV_MODE_STORAGE_KEY);
+    return saved === 'prep' || saved === 'bereaved' ? saved : null;
+  });
+  const handleSetNavMode = (mode: NavMode) => {
+    setNavMode(mode);
+    localStorage.setItem(NAV_MODE_STORAGE_KEY, mode);
+  };
 
   // 가입 시점 이메일 중복 감지 -> [계정 통합] vs [독립 신규 가입] 선택 모달 상태
   const [socialLinkPrompt, setSocialLinkPrompt] = useState<{
@@ -208,18 +223,37 @@ function AppShell() {
             onOpenAccountSettings={() => { setMyPageMessage(null); setIsMyPageOpen(true); }}
             currentUser={currentUser}
             onLogout={handleLogout}
+            navMode={isHomeRoute ? null : navMode}
           />
 
-          {/* 좌측 호버 확장 사이드바 */}
-          <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
+          {/* 좌측 호버 확장 사이드바 — 홈(4박스가 유일한 진입점)에서는 숨긴다(00-26 §7.2) */}
+          {!isHomeRoute && (
+            <Sidebar
+              activeTab={activeTab}
+              setActiveTab={setActiveTab}
+              navMode={navMode}
+              currentUser={currentUser}
+              onOpenLogin={() => setIsLoginOpen(true)}
+            />
+          )}
         </>
       )}
 
-      {/* 메인 콘텐츠 영역 (사이드바 공간 확보 wrapper — 포털 경로는 사이드바가 없으므로 미적용) */}
-      <div className={isPortalRoute ? undefined : 'main-wrapper'} style={isPortalRoute ? { flexGrow: 1, display: 'flex', flexDirection: 'column' } : undefined}>
+      {/* 메인 콘텐츠 영역 (사이드바 공간 확보 wrapper) — 포털 경로·홈은 사이드바가 없으므로
+          margin-left를 0으로 되돌린다(그 외 경로는 undefined로 둬 .main-wrapper CSS 값을 그대로 씀) */}
+      <div
+        className={isPortalRoute ? undefined : 'main-wrapper'}
+        style={
+          isPortalRoute
+            ? { flexGrow: 1, display: 'flex', flexDirection: 'column' }
+            : isHomeRoute
+              ? { marginLeft: 0 }
+              : undefined
+        }
+      >
         <main style={{ flexGrow: 1 }}>
           <Routes>
-            <Route path="/" element={<HomePage {...authProps} />} />
+            <Route path="/" element={<HomePage {...authProps} onSetMode={handleSetNavMode} />} />
             <Route path="/facility" element={<FacilityPage {...authProps} />} />
             <Route path="/counseling" element={<CounselingPage {...authProps} />} />
             <Route path="/digital-estate" element={<DigitalEstatePage {...authProps} />} />
