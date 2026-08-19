@@ -24,38 +24,30 @@ export const HomePage: React.FC<HomePageProps> = ({ currentUser, onOpenLogin, se
   ];
 
   // 스크롤 감지 및 이전 홈 스크롤 위치 저장 / 마운트 시 복원
+  // ⚠️ 저장·복원 단위를 "섹션 인덱스"로 통일한다(휠 핸들러·인디케이터·scrollToSection과 동일 기준).
+  // 예전에는 픽셀 scrollTop을 저장해뒀다가 복원 시 clientHeight로 나눠 섹션 번호를 역산했는데,
+  // 저장 시점과 복원 시점 사이에 뷰포트 높이가 조금만 달라져도(주소창 높이 변화 등) 나눗셈이
+  // 옆 섹션으로 반올림되는 문제가 있었다(뒤로가기 시 엉뚱한 섹션에 도착하는 버그의 원인).
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
 
-    // 마운트 시 이전에 보던 위치가 저장되어 있다면 해당 위치(섹션)로 즉시 복원
+    // 마운트 시 이전에 보던 섹션이 저장돼 있으면 그 섹션으로 즉시 복원
     // (메뉴 직접 클릭 시에는 eobom_scroll_home이 삭제되어 0 최상단으로 오픈)
     const saved = sessionStorage.getItem('eobom_scroll_home');
-    if (saved !== null) {
-      const savedTop = Number(saved);
-      if (!isNaN(savedTop) && savedTop > 0) {
-        container.scrollTop = savedTop;
-        const sectionHeight = container.clientHeight;
-        if (sectionHeight > 0) {
-          const index = Math.round(savedTop / sectionHeight);
-          setActiveSection(Math.min(sections.length - 1, Math.max(0, index)));
-        }
-      } else {
-        container.scrollTop = 0;
-        setActiveSection(0);
-      }
-    } else {
-      container.scrollTop = 0;
-      setActiveSection(0);
-    }
+    const savedIndex = saved !== null ? Number(saved) : NaN;
+    const initialIndex = !isNaN(savedIndex) ? Math.min(sections.length - 1, Math.max(0, savedIndex)) : 0;
+    container.scrollTop = initialIndex * container.clientHeight;
+    setActiveSection(initialIndex);
 
     const handleScroll = () => {
       const sectionHeight = container.clientHeight;
       if (sectionHeight > 0) {
         const index = Math.round(container.scrollTop / sectionHeight);
-        setActiveSection(Math.min(sections.length - 1, Math.max(0, index)));
-        // 현재 보던 스크롤 위치 세션에 자동 기록 (이탈 후 되돌아올 때 복원용)
-        sessionStorage.setItem('eobom_scroll_home', String(container.scrollTop));
+        const clamped = Math.min(sections.length - 1, Math.max(0, index));
+        setActiveSection(clamped);
+        // 현재 보던 섹션 인덱스를 세션에 기록 (이탈 후 되돌아올 때 복원용 — 픽셀이 아니라 인덱스)
+        sessionStorage.setItem('eobom_scroll_home', String(clamped));
       }
     };
 

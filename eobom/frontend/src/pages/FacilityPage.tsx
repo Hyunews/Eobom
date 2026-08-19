@@ -88,7 +88,7 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
 
   // 사용자의 현위치 자동 감지 (Geolocation API) — "선택 안함" 시 되돌아갈 기본 위치로도 보관
   const [detectedLocation, setDetectedLocation] = useState<{ lat: number; lng: number } | null>(null);
-  // 위치 API가 실패해 기본값(서울 서초)으로 대체됐는지 — 이 경우 실제 위치가 아니므로 UI에 반드시 알린다
+  // 위치 API가 실패해 기본값(광주 광산구)으로 대체됐는지 — 이 경우 실제 위치가 아니므로 UI에 반드시 알린다
   const [isLocationFallback, setIsLocationFallback] = useState(false);
   useEffect(() => {
     const applyDetected = (loc: { lat: number; lng: number }, isFallback: boolean) => {

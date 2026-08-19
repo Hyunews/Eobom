@@ -28,9 +28,9 @@ export const providerLabel = (provider: string): string => PROVIDER_LABELS[provi
 // 프론트 전용 UI 정책 상수 — docs/01_장사시설_매칭/01-05_...명세서.md §12.5.
 // 백엔드 정책(POLICY, backend/src/config/policy.ts)과 같은 원칙(값을 컴포넌트에 직접 쓰지 않는다)을
 // 따르되, 순수 클라이언트 동작이라 백엔드로 옮기거나 API로 내려받지 않는다.
-// 위치 확인 실패 시 대체 좌표(서울 서초) — 2026-08-07 "위치가 잘못 뜬다" 버그의 원인이었던 값.
-// 실제 위치가 아니므로 사용하는 곳에서 반드시 폴백 배지를 함께 노출할 것.
-export const GEOLOCATION_FALLBACK = { lat: 37.4925, lng: 127.0078 };
+// 위치 확인 실패 시 대체 좌표(광주광역시 광산구, 광산구청 인근) — 2026-08-19 개발자 지시로
+// 서울 서초 값에서 변경. 실제 위치가 아니므로 사용하는 곳에서 반드시 폴백 배지를 함께 노출할 것.
+export const GEOLOCATION_FALLBACK = { lat: 35.1397, lng: 126.7938 };
 
 // 위치기반서비스사업 신고 완료 여부 — docs 00-21 §0.2 잠금 규칙(docs 00-14 §2.10).
 // 신고가 실제로 확인되기 전까지 반드시 false로 둔다. false인 동안:
