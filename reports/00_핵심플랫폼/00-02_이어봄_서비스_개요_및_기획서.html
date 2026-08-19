@@ -359,8 +359,39 @@
 (생전 준비 / 유가족 / Guest / 파트너) 진입 구조를 제안했고, **사이드바가 평면 목록이라<br/>
 표현할 수 없던 2모드 분리를 메인화면이 대신하는 안<strong>입니다. 검토는 </strong><code>00-23</code>**.<br/>
 <span class="tag red">🔴</span> <strong>채택 시 이 절과 §3.2, <code>00-06</code>을 함께 갱신해야 합니다.</strong></blockquote>
+<blockquote class="info-quote">## 🔄 2026-08-19 — <strong>채택·구현 완료. 이 절에 두 가지를 덧붙입니다.</strong><br/>
+모드 전환 UX는 <strong><code>00-26</code>으로 닫혔습니다</strong>(4박스 진입 + 헤더 드롭다운 + 모드별 사이드바).<br/>
+위 <span class="tag red">🔴</span>의 *&quot;함께 갱신&quot;* 을 지금 반영합니다.</blockquote>
+<p>&gt;</p>
+<blockquote class="info-quote"><strong>① UI 표기와 문서 용어가 다릅니다 — 의도된 것입니다.</strong></blockquote>
+<p>&gt;</p>
+<blockquote class="info-quote">| 이 문서(문서·설계 용어) | <strong>화면 표기</strong>(<code>MODE_LABELS</code>) | 이유 |<br/>
+| :--- | :--- | :--- |<br/>
+| <strong>WellDying 유저</strong>(생전 준비) | <strong>생전 준비</strong> | 동일 |<br/>
+| <strong>유가족 유저</strong> | <strong>임종 및 사후 정리</strong> | <span class="tag blue">🔵</span> 개발자 확정(<code>00-23</code> §6 #3 — 문구 확정은 개발자 몫) |</blockquote>
+<p>&gt;</p>
+<blockquote class="info-quote"><span class="tag warn">⚠️</span> **<code>00-23</code> §5.2는 오히려 *&quot;임종·정리는 사무적이니 <strong>유가족</strong>이 낫다&quot;* 고 권고했습니다.**<br/>
+개발자가 반대로 정했고, 그 판단을 따릅니다. **문서는 계속 *&quot;유가족 유저&quot;* 로 씁니다** —<br/>
+<code>00-12</code>·<code>00-13</code> 등 다수 문서가 이 용어로 쓰여 있고, 바꾸면 참조가 전부 끊깁니다.<br/>
+<span class="tag red">🔴</span> <strong>화면 문구를 다시 손댈 때는 <code>modeNav.ts</code>의 <code>MODE_LABELS</code> 한 곳만 고치면 됩니다.</strong></blockquote>
+<p>&gt;</p>
+<blockquote class="info-quote"><strong>② <span class="tag red">🔴</span> WellDying 도메인이 실제 메뉴에서는 <code>02 · 06</code> 2개입니다 — <code>04</code>가 빠졌습니다.</strong><br/>
+개발자 직접 지시(*&quot;디지털 정산은 생전 준비에 불필요&quot;*, <code>walkthrough</code> (43)). 위 표의<br/>
+<strong>IA 정의(02·04·06)는 그대로 유지</strong>하되, <strong>지금 화면에 04 생전 축이 없다</strong>는 것이 이유입니다<br/>
+(<code>04-02</code> 사전지정 UI 미구현). <strong>04의 생전 축이 실제로 만들어지면 복귀 대상</strong>입니다 —<br/>
+경위·재검토 조건은 <strong><code>00-26</code> §3.1 · §6 #7</strong>.</blockquote>
 <h3 class="subsection-title">3.2 도메인별 기능</h3>
-<div class="table-container"><table><thead><tr><th>#</th><th>도메인</th><th>화면</th><th>핵심 기능</th></tr></thead><tbody><tr><td><strong>01</strong></td><td>장사시설 매칭</td><td><code>facility</code></td><td>봉안당·수목장 맞춤 검색, 카카오 지도 LBS, 직통전화(<code>tel:</code>)</td></tr><tr><td><strong>02</strong></td><td>전문가 매칭 (상속·법률)</td><td><code>counseling</code></td><td>상속세 간이 계산기, 1:1 세무사·변호사·행정사 상담</td></tr><tr><td><strong>03</strong></td><td>현물 유품 수거</td><td>*(미정)*</td><td><span class="tag red">🔴</span> 계정 형태 기획 보류(<code>03-01</code> §3)</td></tr><tr><td><strong>04</strong></td><td>디지털 자산·계정 정산</td><td><code>digital-estate</code></td><td>플랫폼별 유족 절차 <strong>안내 + 진행 추적</strong>, 생전 위임</td></tr><tr><td><strong>05</strong></td><td>디지털 추모관</td><td><code>SCR-011</code></td><td>고인 1명당 1개, 헌화·방명록·사진 앨범</td></tr><tr><td><strong>06</strong></td><td>디지털 엔딩노트·유언</td><td><code>ending-note</code></td><td>AES-256 암호화 금고, 연명의료 의향, 사후 유족 전달</td></tr><tr><td><strong>07</strong></td><td>상중·행정 케어</td><td><code>care-guide</code></td><td>사망 직후 D-Day 행정 체크리스트, 안심상속 원스톱 안내</td></tr></tbody></table></div>
+<div class="table-container"><table><thead><tr><th>#</th><th>도메인</th><th>화면</th><th>핵심 기능</th></tr></thead><tbody><tr><td><strong>01</strong></td><td>장사시설 매칭</td><td><code>facility</code></td><td>봉안당·수목장 맞춤 검색, 카카오 지도 LBS, 직통전화(<code>tel:</code>)</td></tr><tr><td><strong>02</strong></td><td>전문가 매칭 (상속·법률)</td><td><code>counseling</code></td><td>상속세 간이 계산기, 1:1 세무사·변호사·행정사 상담</td></tr><tr><td><strong>03</strong></td><td>현물 유품 수거</td><td><code>pickup</code> 🔄</td><td>지역 기반 수거 업체 매칭. <span class="tag red">🔴</span> 계정 형태 기획 보류(<code>03-01</code> §3)</td></tr><tr><td><strong>04</strong></td><td>디지털 자산·계정 정산</td><td><code>digital-estate</code></td><td>플랫폼별 유족 절차 <strong>안내 + 진행 추적</strong>, 생전 위임</td></tr><tr><td><strong>05</strong></td><td>디지털 추모관</td><td><code>SCR-011</code> · <code>memorial</code> 🔄</td><td>고인 1명당 1개, 헌화·방명록·사진 앨범</td></tr><tr><td><strong>06</strong></td><td>디지털 엔딩노트·유언</td><td><code>ending-note</code></td><td>AES-256 암호화 금고, 연명의료 의향, 사후 유족 전달</td></tr><tr><td><strong>07</strong></td><td>상중·행정 케어</td><td><code>care-guide</code> · <code>obituary</code> 🔄</td><td>사망 직후 D-Day 행정 체크리스트, 안심상속 원스톱 안내, <strong>모바일 부고장</strong></td></tr></tbody></table></div>
+<blockquote class="info-quote">🔄 <strong>2026-08-19 — 화면 열 3곳이 바뀌었습니다.</strong> <code>/digital-estate</code> 한 페이지가 03·04·05를<br/>
+뭉치고 있던 것을 분리했습니다(<code>00-14</code> §2.3 해소, 대장은 <code>00-06</code> §1 <code>SCR-013</code>~<code>SCR-015</code>).<br/>
+<span class="tag warn">⚠️</span> <strong>05는 화면이 둘입니다</strong> — <code>SCR-011</code>(고인별 공개 추모관, 미구현)과 <code>memorial</code>(화면 구성 예시).</blockquote>
+<p>&gt;</p>
+<blockquote class="info-quote"><span class="tag blue">🔵</span> <strong>UI 단축형 2개</strong> — 이 표가 도메인 <strong>정식 명칭 정본</strong>이고, 사이드바 한 줄에 들어가지 않는<br/>
+두 개만 화면에서 줄여 씁니다. <strong>줄이되 의미는 바꾸지 않습니다</strong>(<code>00-26</code> §5.1).<br/>
+| 정식 명칭(이 표) | 화면 표기 |<br/>
+| :--- | :--- |<br/>
+| 현물 유품 수거 | <strong>유품 수거</strong> |<br/>
+| 디지털 자산·계정 정산 | <strong>디지털 정산</strong> |</blockquote>
 <blockquote class="info-quote"><span class="tag warn">⚠️</span> <strong>폐기된 표현 2가지</strong> — 이전 판의 IA에는 아래가 적혀 있었으나 후속 검토에서 뒤집혔습니다.<br/>
 - *&quot;1-Touch 답사 예약&quot;* → <strong>폐기</strong>. 인앱 예약 대신 직통전화로 결정(<code>01-04</code>, <code>01-01</code> §2.3·§2.5).<br/>
 - *&quot;유품 정리 <strong>대행</strong> 관리&quot;* → <strong>불가</strong>. 제3자 대행 창구가 존재하지 않고 고인 자격증명 수집은<br/>

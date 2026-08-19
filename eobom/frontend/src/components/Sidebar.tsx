@@ -24,7 +24,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, navMo
     { id: 'home', label: '메인', icon: Home },
     { id: 'facility', label: '장사시설 매칭', icon: HouseLeafIcon },
     { id: 'counseling', label: '전문가 매칭', icon: HandScalesIcon },
-    { id: 'digital-estate', label: '디지털 자산·계정 정산', icon: PhoneHeartIcon },
+    { id: 'digital-estate', label: '디지털 정산', icon: PhoneHeartIcon },
     { id: 'care-guide', label: '상중 · 행정 케어', icon: ChecklistShieldIcon },
     { id: 'ending-note', label: '디지털 엔딩노트', icon: NoteKeyIcon },
   ];

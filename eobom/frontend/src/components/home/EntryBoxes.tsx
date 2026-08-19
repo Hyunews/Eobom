@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { ChevronRight, HeartHandshake, DoorOpen, Building2 } from 'lucide-react';
 import { ChecklistShieldIcon } from '../MenuIcons';
 import { domainSlides } from './domainSlides';
@@ -15,15 +16,19 @@ import type { NavMode } from '../../modeNav';
 // (터치 기기는 이 media 밖이라 처음부터 펼쳐진 채로 보여 터치 UX를 막지 않는다).
 // 카드 배경은 00-09 §2.1 5색 토큰에서 파생한 옅은 그라데이션 틴트(index.css --box-tint-*)로 마감.
 
-const box1Keys = ['counseling', 'ending-note', 'digital-estate'];
-const box2Keys = ['care-guide', 'facility', 'counseling', 'digital-estate', 'memorial', 'pickup'];
+// 08-19 14차(개발자 직접 지시) — 디지털 정산은 사후 처리 도메인이라 생전 준비에서 제거.
+const box1Keys = ['counseling', 'ending-note'];
+// 08-19 9차(개발자 직접 지시) — 순서 확정: 상중케어·장사시설·전문가상담·모바일부고장·
+// 유품수거·디지털정산·디지털추모관.
+const box2Keys = ['care-guide', 'facility', 'counseling', 'obituary', 'pickup', 'digital-estate', 'memorial'];
 
 // 박스 요약 칩 전용 짧은 라벨 — domainSlides.badgeLabel은 오버레이 슬라이드 제목용이라 길다.
 const chipLabels: Record<string, string> = {
   counseling: '전문가 상담',
   'ending-note': '디지털 엔딩노트',
-  'digital-estate': '디지털 자산 정리',
+  'digital-estate': '디지털 정산',
   'care-guide': '상중 케어',
+  obituary: '모바일 부고장',
   facility: '장사시설 매칭',
   memorial: '디지털 추모관',
   pickup: '유품 수거',
@@ -179,23 +184,34 @@ const RevealContent: React.FC<{ children: React.ReactNode }> = ({ children }) =>
 );
 
 export const EntryBoxes: React.FC<EntryBoxesProps> = ({ currentUser, onOpenLogin, setActiveTab, onSetMode }) => {
-  const [openBox, setOpenBox] = useState<'box1' | 'box2' | null>(null);
+  // 08-19 10차(개발자 직접 지시) — 오버레이 열림 상태를 로컬 state 대신 URL 쿼리(?entry=box1&slide=N)로
+  // 관리한다. CTA로 다른 화면에 이동한 뒤 브라우저 뒤로가기를 누르면, 그 직전에 보고 있던
+  // 박스·슬라이드로 그대로 돌아와야 하기 때문 — 로컬 state였다면 페이지 이동 시 컴포넌트가
+  // 언마운트되면서 소실돼 복원할 수 없다. 여닫기/슬라이드 이동은 모두 replace로 처리해 히스토리
+  // 스택을 늘리지 않고(뒤로가기 한 번으로 자연스럽게 홈 진입 이전으로 빠짐), CTA 클릭 시에는
+  // onClose를 부르지 않아(BoxDetailOverlay) 이동 직전 URL이 그대로 히스토리에 남게 한다.
+  const [searchParams, setSearchParams] = useSearchParams();
+  const entryParam = searchParams.get('entry');
+  const openBox: 'box1' | 'box2' | null = entryParam === 'box1' || entryParam === 'box2' ? entryParam : null;
+  const slideParam = Number(searchParams.get('slide'));
+  const rawSlideIndex = Number.isFinite(slideParam) && slideParam >= 0 ? slideParam : 0;
 
-  // 2026-08-19 5차(개발자 직접 지시) — 로그인 위치를 박스 클릭 시점에서 오버레이 내부 CTA
-  // 클릭 시점으로 옮김. "소개글(오버레이 슬라이드)은 로그인 없이도 봐야 한다"는 UX 판단.
-  // 🔴 00-26 §4.2-1("①은 전부 로그인 필수라 박스 단위 게이트")과 어긋나는 편차 — 슬라이드별
-  // CTA는 이미 `loginRequired`로 개별 게이트돼 있어(BoxDetailOverlay, 예: 엔딩노트 작성하기)
-  // 박스 단위 게이트를 없애도 실제 "쓰기" 진입은 그대로 막힌다. [Opus]가 §4.2-1을
-  // 이 기준으로 재정합해야 한다.
   const handleBox1Click = () => {
     onSetMode?.('prep');
-    setOpenBox('box1');
+    setSearchParams({ entry: 'box1' }, { replace: true });
   };
 
-  // 00-26 §4.2-1 — ②는 로그인 없이 즉시 진입(07 열람은 07-02 원칙상 즉시 가능해야 함).
   const handleBox2Click = () => {
     onSetMode?.('bereaved');
-    setOpenBox('box2');
+    setSearchParams({ entry: 'box2' }, { replace: true });
+  };
+
+  const closeOverlay = () => {
+    setSearchParams({}, { replace: true });
+  };
+
+  const handleSlideChange = (box: 'box1' | 'box2', index: number) => {
+    setSearchParams({ entry: box, slide: String(index) }, { replace: true });
   };
 
   return (
@@ -356,7 +372,9 @@ export const EntryBoxes: React.FC<EntryBoxesProps> = ({ currentUser, onOpenLogin
         <BoxDetailOverlay
           boxTitle="생전 준비"
           slides={box1Keys.map((k) => domainSlides[k])}
-          onClose={() => setOpenBox(null)}
+          initialIndex={Math.min(rawSlideIndex, box1Keys.length - 1)}
+          onSlideChange={(index) => handleSlideChange('box1', index)}
+          onClose={closeOverlay}
           currentUser={currentUser}
           onOpenLogin={onOpenLogin}
           setActiveTab={setActiveTab}
@@ -366,7 +384,9 @@ export const EntryBoxes: React.FC<EntryBoxesProps> = ({ currentUser, onOpenLogin
         <BoxDetailOverlay
           boxTitle="임종 및 사후 정리"
           slides={box2Keys.map((k) => domainSlides[k])}
-          onClose={() => setOpenBox(null)}
+          initialIndex={Math.min(rawSlideIndex, box2Keys.length - 1)}
+          onSlideChange={(index) => handleSlideChange('box2', index)}
+          onClose={closeOverlay}
           currentUser={currentUser}
           onOpenLogin={onOpenLogin}
           setActiveTab={setActiveTab}

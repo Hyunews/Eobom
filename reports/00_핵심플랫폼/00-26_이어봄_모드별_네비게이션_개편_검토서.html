@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🧭 00-26. 모드별 네비게이션 개편 — 검토서 - 이어봄 기획 명세서</title>
+  <style>
+    :root {
+      --primary: #1A2B4C;
+      --secondary: #5B7065;
+      --accent: #D4A359;
+      --bg: #FBF9F5;
+      --surface: #FFFFFF;
+      --text: #1E293B;
+      --text-muted: #64748B;
+      --border: #E2E8F0;
+      --code-bg: #0F172A;
+      --code-text: #F8FAFC;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.65;
+      padding: 2rem 1rem;
+    }
+    .container {
+      max-width: 1140px;
+      margin: 0 auto;
+      background-color: var(--surface);
+      padding: 3rem;
+      border-radius: 24px;
+      box-shadow: 0 20px 40px rgba(26, 43, 76, 0.08);
+      border: 1px solid var(--border);
+    }
+    .header {
+      border-bottom: 3px solid var(--accent);
+      padding-bottom: 1.5rem;
+      margin-bottom: 2.5rem;
+    }
+    .badge {
+      display: inline-block;
+      background-color: var(--primary);
+      color: #FFF;
+      font-size: 0.85rem;
+      font-weight: 700;
+      padding: 0.3rem 0.8rem;
+      border-radius: 20px;
+      margin-bottom: 0.8rem;
+    }
+    h1 {
+      font-size: 2.1rem;
+      color: var(--primary);
+      margin-bottom: 0.5rem;
+      font-weight: 800;
+    }
+    .subtitle {
+      color: var(--text-muted);
+      font-size: 1.05rem;
+    }
+    .section-title {
+      font-size: 1.5rem;
+      color: var(--primary);
+      margin: 2.5rem 0 1.2rem 0;
+      padding-left: 0.8rem;
+      border-left: 5px solid var(--secondary);
+      font-weight: 700;
+    }
+    .subsection-title {
+      font-size: 1.25rem;
+      color: var(--primary);
+      margin: 1.8rem 0 0.8rem 0;
+      font-weight: 700;
+    }
+    .h4-title {
+      font-size: 1.05rem;
+      color: var(--secondary);
+      margin: 1.2rem 0 0.6rem 0;
+      font-weight: 700;
+    }
+    .info-quote {
+      background: #F1F5F9;
+      border-left: 4px solid var(--accent);
+      padding: 0.9rem 1.2rem;
+      margin: 1rem 0;
+      border-radius: 6px;
+      font-size: 0.95rem;
+      color: #334155;
+    }
+    code {
+      background: #EFF6FF;
+      color: #1D4ED8;
+      padding: 0.15rem 0.4rem;
+      border-radius: 6px;
+      font-family: 'Fira Code', Consolas, monospace;
+      font-size: 0.88rem;
+    }
+    pre {
+      background: var(--code-bg);
+      color: var(--code-text);
+      padding: 1.2rem;
+      border-radius: 12px;
+      overflow-x: auto;
+      margin: 1rem 0 1.5rem 0;
+      font-family: 'Fira Code', Consolas, monospace;
+      font-size: 0.9rem;
+    }
+    pre code {
+      background: transparent;
+      color: inherit;
+      padding: 0;
+    }
+    .table-container {
+      overflow-x: auto;
+      margin: 1.2rem 0 1.8rem 0;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.92rem;
+      background: #FFFFFF;
+    }
+    th {
+      background-color: var(--primary);
+      color: #FFFFFF;
+      padding: 0.8rem 1rem;
+      text-align: left;
+      font-weight: 600;
+    }
+    td {
+      padding: 0.8rem 1rem;
+      border-bottom: 1px solid var(--border);
+      color: #334155;
+    }
+    tr:last-child td {
+      border-bottom: none;
+    }
+    tr:nth-child(even) {
+      background-color: #F8FAFC;
+    }
+    .tag {
+      display: inline-block;
+      padding: 0.15rem 0.45rem;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 700;
+    }
+    .tag.green { background-color: #DCFCE7; color: #166534; }
+    .tag.gray { background-color: #F1F5F9; color: #475569; }
+    .tag.orange { background-color: #FFEDD5; color: #9A3412; }
+    .tag.red { background-color: #FEE2E2; color: #991B1B; border: 1px solid #FECACA; }
+    .tag.blue { background-color: #DBEAFE; color: #1E40AF; border: 1px solid #BFDBFE; }
+    .tag.gold { background-color: #FEF3C7; color: #92400E; border: 1px solid #FDE68A; font-weight: 700; }
+    .tag.warn { background-color: #FEF3C7; color: #B45309; }
+    .tag.pk { background-color: #FEE2E2; color: #991B1B; }
+    .tag.fk { background-color: #DBEAFE; color: #1E40AF; }
+    .tag.uk { background-color: #DCFCE7; color: #166534; }
+    del {
+      color: #94A3B8;
+      text-decoration: line-through;
+    }
+    .md-link {
+      color: var(--accent);
+      text-decoration: underline;
+      font-weight: 500;
+    }
+    p { margin-bottom: 0.9rem; color: #334155; }
+    ul, ol { margin-bottom: 1rem; padding-left: 1.4rem; color: #334155; }
+    li { margin-bottom: 0.4rem; }
+    .divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 2.5rem 0;
+    }
+    .nav-bar {
+      margin-bottom: 2rem;
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+    }
+    .nav-link {
+      color: var(--primary);
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+    .nav-link:hover {
+      color: var(--accent);
+    }
+    @page {
+      size: A4 portrait;
+      margin: 15mm 14mm 18mm 14mm;
+    }
+    @media print {
+      html, body {
+        background-color: #ffffff !important;
+        color: #1e293b !important;
+        font-size: 9.5pt !important;
+        line-height: 1.5 !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+      .container {
+        max-width: 100% !important;
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        border: none !important;
+        box-shadow: none !important;
+        background: transparent !important;
+        border-radius: 0 !important;
+      }
+      .nav-bar { display: none !important; }
+      .header {
+        border-bottom: 2px solid var(--accent) !important;
+        padding-bottom: 0.6rem !important;
+        margin-bottom: 1.2rem !important;
+        page-break-after: avoid !important;
+        break-after: avoid !important;
+      }
+      h1 {
+        font-size: 17pt !important;
+        line-height: 1.3 !important;
+        margin-bottom: 0.4rem !important;
+        color: var(--primary) !important;
+      }
+      .badge {
+        font-size: 8pt !important;
+        padding: 0.2rem 0.6rem !important;
+        background-color: var(--primary) !important;
+        color: #ffffff !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+      .section-title {
+        font-size: 12.5pt !important;
+        margin: 1.2rem 0 0.6rem 0 !important;
+        padding-left: 0.5rem !important;
+        border-left: 4px solid var(--secondary) !important;
+        page-break-after: avoid !important;
+        break-after: avoid !important;
+      }
+      .subsection-title {
+        font-size: 10.5pt !important;
+        margin: 1rem 0 0.5rem 0 !important;
+        page-break-after: avoid !important;
+        break-after: avoid !important;
+      }
+      .h4-title {
+        font-size: 9.5pt !important;
+        margin: 0.8rem 0 0.3rem 0 !important;
+        page-break-after: avoid !important;
+        break-after: avoid !important;
+      }
+      .info-quote {
+        background: #f8fafc !important;
+        border-left: 3px solid var(--accent) !important;
+        padding: 0.6rem 0.8rem !important;
+        margin: 0.6rem 0 !important;
+        font-size: 9pt !important;
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+        border-radius: 4px !important;
+      }
+      .table-container {
+        margin: 0.6rem 0 1rem 0 !important;
+        border: 1px solid #cbd5e1 !important;
+        border-radius: 6px !important;
+        overflow: visible !important;
+        page-break-inside: auto !important;
+        break-inside: auto !important;
+      }
+      table {
+        width: 100% !important;
+        font-size: 8.5pt !important;
+        border-collapse: collapse !important;
+      }
+      thead { display: table-header-group !important; }
+      tr {
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+      }
+      th {
+        background-color: #1a2b4c !important;
+        color: #ffffff !important;
+        padding: 0.45rem 0.65rem !important;
+        font-size: 8.5pt !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+      td {
+        padding: 0.45rem 0.65rem !important;
+        border-bottom: 1px solid #e2e8f0 !important;
+      }
+      .tag {
+        font-size: 7pt !important;
+        padding: 0.1rem 0.35rem !important;
+        border-radius: 4px !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+      .divider {
+        margin: 1rem 0 !important;
+        border-top: 1px solid #e2e8f0 !important;
+      }
+      .page-break {
+        page-break-before: always !important;
+        break-before: page !important;
+      }
+      ul, ol { margin-bottom: 0.5rem !important; }
+      li { page-break-inside: avoid !important; break-inside: avoid !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="nav-bar">
+      <a href="../index.html" class="nav-link">← 보고서 메인 포털로 돌아가기</a>
+    </div>
+    <div class="header">
+      <span class="badge">SSOT 정본 동기화 완료</span>
+      <h1>🧭 00-26. 모드별 네비게이션 개편 — 검토서</h1>
+      
+    </div>
+    <blockquote class="info-quote"><strong>문서 성격</strong>: 검토서 · <strong>개발자 구상안에 대한 검토</strong>. <code>[Claude:Opus]</code> 작성(2026-08-19).<br/>
+<strong>계기</strong>: 개발자 제안(2026-08-19) — *&quot;<strong>홈페이지 첫 진입 화면에서 메뉴 없애기</strong>, 네 개의 박스에<br/>
+따라, <strong>각각 로그인 하고, 진입된 페이지에서 맞춤형 메뉴 등장</strong>&quot;*<br/>
+<strong>정본 관계</strong>: 모드 분리 정본은 <code>00-02</code> §3.1 · 도메인 라벨 정본은 <code>00-02</code> §3.2 ·<br/>
+진입 4박스는 <code>00-23</code> · 화면 대장은 <code>00-06</code>. 이 문서는 <strong>진입 후 네비게이션</strong>만 다룹니다.<br/>
+<strong>표기</strong>: <span class="tag green">✅</span> 확정 / <span class="tag orange">🟡</span> 권고 / <span class="tag red">🔴</span> 확정 필요 / <span class="tag blue">🔵</span> 개발자 확정</blockquote>
+<blockquote class="info-quote">## ⛔ <del>2026-08-19 (1차) — §6 #1 확정. 절충안(①④만 로그인)으로 착수합니다.</del> <strong>폐기</strong><br/>
+<span class="tag warn">⚠️</span> <strong>이 확정은 같은 날 뒤집혔습니다. 아래 (2차)가 유효합니다</strong> — 참조 추적용으로만 남깁니다.</blockquote>
+<p>&gt;</p>
+<blockquote class="info-quote"><del>개발자 확정: <strong>① 생전 준비 · ④ 파트너 = 진입 시 로그인</strong> / <strong>② 유가족 · ③ Guest = 로그인 없이.</strong></del><br/>
+<del>§4.1이 지적한 두 건(②유가족·③Guest)이 해소됐고, ④는 이미 그렇게 동작하므로 실질 변경은 ①뿐.</del><br/>
+<del>다만 ①에 남는 부작용 1건(02 전문가 목록 조회가 함께 막힘)은 §4.2-1에 등재.</del></blockquote>
+<p>&gt;</p>
+<blockquote class="info-quote"><span class="tag red">🔴</span> <strong>폐기 사유</strong>: 개발자가 *&quot;소개글은 로그인 없이도 봐야 한다&quot;*(walkthrough (37)) →<br/>
+*&quot;모든 버튼이 다 그렇게 작동해야 하니&quot;*(walkthrough (38))로 <strong>연속 지시</strong>해, 게이트가<br/>
+<strong>박스 단위에서 항목 단위로</strong> 옮겨졌습니다. <strong>→ 확정본은 §4.2-1, 구현 스펙은 §7입니다.</strong></blockquote>
+<blockquote class="info-quote">## 🔄 2026-08-19 (2차) — <strong>구현 실측 기준 재정합. 이 문서가 5곳에서 뒤집혔습니다.</strong><br/>
+<code>walkthrough</code> (38)·(39)·(43)이 게이트에서 <strong>🔄스펙갱신</strong> 판정을 받아, <code>[Claude:Opus]</code>가<br/>
+<strong>코드 실측을 정본으로 삼아 이 문서를 고쳤습니다</strong>(→ <code>roles.md</code> §2-1).</blockquote>
+<p>&gt;</p>
+<blockquote class="info-quote">| # | 절 | 이 문서가 적었던 것 | <strong>실제 확정된 것</strong> | 근거 |<br/>
+| :---: | :--- | :--- | :--- | :--- |<br/>
+| 1 | §3.1 | 생전 준비 <strong>3개</strong>(02·04·06) | <strong>2개</strong>(02·06) — <strong>04 제거</strong> | 개발자 직접 지시 (43) |<br/>
+| 2 | §3.2 | 유가족 <strong>6개</strong> | <strong>7개</strong> — 모바일 부고장 신설 + 순서 재확정 + 03·05 <code>준비 중</code>→<code>미리보기</code> | 개발자 직접 지시 (39) |<br/>
+| 3 | §4.2-1 | <strong>②는 로그인 없음</strong> | <strong><code>care-guide</code>만 예외</strong>, ② 나머지 6개 전부 로그인 필수 | 개발자 직접 지시 (38) |<br/>
+| 4 | §4.4 | 모드 <strong>칩</strong>(중앙·클릭 시 홈 이동) | <strong>드롭다운</strong>(로고 옆·3항목 즉시 전환) | 개발자 직접 지시 (43) |<br/>
+| 5 | §7.1 | <strong>신규 화면 ID 없음</strong> | <strong>3개 발생</strong> — <code>SCR-013</code>·<code>SCR-014</code>·<code>SCR-015</code> | 개발자 직접 지시 (39) |</blockquote>
+<p>&gt;</p>
+<blockquote class="info-quote"><span class="tag red">🔴</span> <strong>가장 무거운 것은 #5가 드러낸 사실입니다</strong> — <code>00-23</code> §3과 이 문서가 근거로 삼은<br/>
+*&quot;03·05는 실체가 없다&quot;* 는 <strong>전제 자체가 틀렸습니다.</strong> 둘 다 <code>DigitalEstatePage</code> 서브탭에<br/>
+<strong>예시 데이터로 이미 구현돼 있었고</strong>, 이번에 발견해 별도 화면으로 분리·노출한 것입니다<br/>
+(→ <code>00-23</code> §3 재정합 완료). <strong>없던 것을 만든 게 아니라 있던 것을 찾은 것입니다.</strong></blockquote>
+<hr class="divider"/>
+<h2 class="section-title">📌 1. 결론 먼저</h2>
+<div class="table-container"><table><thead><tr><th>질문</th><th>답</th></tr></thead><tbody><tr><td><strong>방향이 맞나?</strong></td><td><span class="tag green">✅</span> <strong>맞습니다.</strong> 이건 <code>00-12</code> §6.2가 <strong>2026-08-12부터 개발자 확정 대기로 묶어둔 &quot;모드 전환 UX&quot;의 답</strong>입니다(§2.1)</td></tr><tr><td><strong>가장 큰 기여는?</strong></td><td><span class="tag blue">🔵</span> <strong><code>Deceased</code> 없이 지금 만들 수 있다는 것.</strong> C안 권고가 <code>Deceased</code> 확정을 기다리느라 막혀 있었는데, 이 방식은 그 의존을 끊습니다(§2.2)</td></tr><tr><td><strong>맞춤 메뉴는 뭘 넣나?</strong></td><td><span class="tag green">✅</span> <strong>이미 정해져 있습니다.</strong> <code>00-02</code> §3.1이 모드별 도메인을 확정해 뒀습니다 — 새로 정할 것이 없습니다(§3). 🔄 <strong>다만 실제 확정은 2개/7개</strong>(§3.1·§3.2)</td></tr><tr><td><strong>그대로 만들면 되나?</strong></td><td><span class="tag red">🔴</span> <strong>아니오. &quot;각각 로그인&quot;이 4개 중 1.5개만 맞습니다</strong>(§4.1) → 🔄 <strong>게이트를 박스에서 항목으로 옮겨 해결</strong>(§4.2-1)</td></tr><tr><td><strong>또 있나?</strong></td><td><span class="tag red">🔴</span> <strong>사이드바 라벨이 5개 중 3개 어긋나 있습니다</strong> — <code>00-23</code> #6이 1개로 봤는데 실측은 3개입니다(§5) → <span class="tag green">✅</span> <strong>정정 완료</strong>(§5.1)</td></tr></tbody></table></div>
+<blockquote class="info-quote"><strong>한 줄 요약</strong>: <strong>구조는 채택하되, 진입 조건을 &quot;로그인&quot;이 아니라 &quot;모드 선택&quot;으로 바꿔야 합니다.</strong><br/>
+🔄 <strong>2026-08-19 2차 — 최종 형태는 &quot;모드 선택으로 진입, 로그인은 항목마다&quot;입니다.</strong> 4박스는 누구나 열리고, 게이트는 <strong><code>care-guide</code> 하나를 뺀 모든 항목</strong>에 걸립니다(§4.2-1).</blockquote>
+<hr class="divider"/>
+<h2 class="section-title"><span class="tag green">✅</span> 2. 이 제안이 해결하는 것</h2>
+<h3 class="subsection-title">2.1 <code>00-12</code> §6.2의 미결을 푼다 — <strong>B안의 유일한 약점을 구조로 없앱니다</strong></h3>
+<p><code>00-12</code> §6.2는 모드 전환 방식을 3안으로 비교하고 <strong>개발자 확정 대기</strong>로 남겨뒀습니다(§8 #5, *막는 것: <strong>&quot;프론트 전반&quot;</strong>*).</p>
+<div class="table-container"><table><thead><tr><th>안</th><th>방식</th><th><code>00-12</code>의 평가</th></tr></thead><tbody><tr><td>A</td><td>계정 유형 분리</td><td>❌ 한 사람이 둘 다 필요합니다</td></tr><tr><td>B</td><td><strong>수동 모드 전환</strong></td><td><span class="tag orange">🟡</span> 단순하지만 <strong>전환 존재를 모르면 무용</strong></td></tr><tr><td>C</td><td>컨텍스트 자동 + 수동</td><td><span class="tag green">✅</span> 권고 — <code>Deceased</code> 등록으로 자동 판정</td></tr></tbody></table></div>
+<p><span class="tag blue">🔵</span> <strong>개발자 제안은 B안이되, 기각 사유가 성립하지 않습니다.</strong> B안이 밀린 유일한 이유가 *&quot;전환 존재를 모르면 무용&quot;* 인데, <strong>4박스가 첫 화면이면 전환 존재를 모를 수가 없습니다</strong> — 선택이 곧 진입이기 때문입니다. <strong>화면 구조가 B안의 약점을 제거합니다.</strong></p>
+<h3 class="subsection-title">2.2 <span class="tag blue">🔵</span> <code>Deceased</code> 의존을 끊는다 — <strong>이것이 가장 큰 실익입니다</strong></h3>
+<p>C안 권고의 자동 판정은 <strong><code>Deceased</code> 등록</strong>(추모관 개설·정산 실행)을 신호로 씁니다. 그런데 <strong><code>Deceased</code>는 현재 04·05·07을 전부 묶고 있는 블로커</strong>입니다(<code>context.md</code> &quot;지금 막고 있는 것&quot;, <code>00-13</code> §4.5-3).</p>
+<blockquote class="info-quote"><span class="tag blue">🔵</span> <strong>즉 C안은 &quot;블로커가 풀려야 만들 수 있는&quot; 안이었습니다.</strong><br/>
+개발자 제안은 <strong>데이터로 추론하는 대신 사용자가 직접 고르게</strong> 하므로 <strong>지금 만들 수 있습니다.</strong><br/>
+<span class="tag warn">⚠️</span> 다만 이건 <strong>C안의 폐기가 아니라 선후 배치</strong>입니다 — <code>Deceased</code>가 확정되면 자동 판정을 <strong>덧붙일</strong> 수 있고, 그때 수동 선택은 그대로 남습니다(= C안의 &quot;수동&quot; 부분).</blockquote>
+<h3 class="subsection-title">2.3 홈의 경로 이중화가 해소된다</h3>
+<p><code>00-23</code> §5.3이 지적한 문제 — <strong>같은 목적지로 가는 경로가 홈에 2개</strong>(4박스 / 사이드바) — 가 사라집니다. 홈에서 메뉴를 걷어내면 <strong>4박스가 유일한 진입점</strong>이 됩니다.</p>
+<hr class="divider"/>
+<h2 class="section-title"><span class="tag green">✅</span> 3. 맞춤 메뉴 구성 — <strong>새로 정할 것이 없습니다</strong> (🔄 2·7개로 재정합)</h2>
+<p><code>00-02</code> §3.1이 <strong>2026-08-12에 이미 모드별 도메인을 확정</strong>해 뒀습니다.</p>
+<div class="table-container"><table><thead><tr><th></th><th><strong>WellDying 유저</strong>(생전 준비)</th><th><strong>유가족 유저</strong>(사후)</th></tr></thead><tbody><tr><td>주체</td><td><strong>나 자신</strong></td><td><strong>고인</strong></td></tr><tr><td>심리</td><td>여유·신중·미룰 수 있음</td><td><strong>긴급·경황 없음·되돌릴 수 없음</strong></td></tr><tr><td>도메인</td><td><strong>02 · 04 · 06</strong></td><td><strong>01 · 02 · 03 · 04 · 05 · 07</strong></td></tr></tbody></table></div>
+<p>이 표를 그대로 메뉴로 옮기고, <strong><code>00-23</code> §3 실측 상태</strong>를 상태 배지로 붙이면 됩니다.</p>
+<blockquote class="info-quote">🔄 <strong>2026-08-19 — 실제 메뉴는 위 도메인 목록과 두 곳 다릅니다.</strong> IA 정의(위 표)는 그대로이고,<br/>
+<strong>화면에서만 어긋난 것</strong>이니 아래 §3.1·§3.2가 이 문서의 메뉴 정본입니다.<br/>
+| 어긋남 | 내용 | 이유 |<br/>
+| :--- | :--- | :--- |<br/>
+| 생전 준비 <strong>-04</strong> | 02·06 <strong>2개</strong> | 04 생전 축(<code>04-02</code> 사전지정 UI)이 미구현 — §3.1 |<br/>
+| 유가족 <strong>+부고장</strong> | 7개 | <code>SCR-006</code>에 얹혀 있던 부고장을 분리 — §3.2 |</blockquote>
+<p>&gt;</p>
+<blockquote class="info-quote"><span class="tag warn">⚠️</span> <strong><code>00-23</code> §3의 상태 배지도 갱신됐습니다</strong> — 03·05는 <code>준비 중</code>이 아니라 <strong><code>미리보기</code></strong> 입니다(§7.1).</blockquote>
+<h3 class="subsection-title">3.1 ① 생전 준비 모드 — <strong>2개</strong> (🔄 2026-08-19 재정합: 3개 → 2개)</h3>
+<p><strong>정본은 <code>modeNav.ts</code>의 <code>PREP_MENU</code>입니다.</strong></p>
+<div class="table-container"><table><thead><tr><th>순</th><th>도메인</th><th>라벨(<code>00-02</code> §3.2 정본)</th><th>경로</th><th>상태</th><th>로그인</th></tr></thead><tbody><tr><td>1</td><td>06</td><td><strong>디지털 엔딩노트</strong></td><td><code>/ending-note</code></td><td><span class="tag orange">🟡</span> 미리보기</td><td>🔒</td></tr><tr><td>2</td><td>02</td><td><strong>전문가 매칭</strong></td><td><code>/counseling</code></td><td><span class="tag green">✅</span> 진입</td><td>🔒</td></tr></tbody></table></div>
+<blockquote class="info-quote"><span class="tag orange">🟡</span> <strong>06을 맨 위에 둡니다</strong> — 이 모드에 들어온 이유 자체가 엔딩노트입니다. 유가족 모드의 07과 같은 위치입니다.</blockquote>
+<p>&gt;</p>
+<blockquote class="info-quote">🔄 <strong>04(디지털 자산·계정 정산)를 뺐습니다</strong> — 개발자 직접 지시(*&quot;디지털 정산은 생전 준비에 불필요&quot;*, walkthrough (43)). <strong>사후 처리 도메인이라는 판단</strong>입니다. 04는 <strong>유가족 모드에는 그대로 남습니다</strong>(§3.2).</blockquote>
+<p>&gt;</p>
+<blockquote class="info-quote"><span class="tag red">🔴</span> <strong>남는 리스크 1건 — <code>00-02</code> §3.1의 IA와 어긋납니다.</strong> §3.1은 *&quot;WellDying = 02·04·06&quot;* 이고, <code>00-23</code> §4.3은 오히려 *&quot;04를 생전 준비에 <strong>추가</strong>해야 확정된 IA와 일치한다&quot;* 고 적었습니다. 근거는 <strong>04의 절반이 생전 축</strong>이라는 것입니다 — *&quot;한 주체가 시작해 다른 주체가 끝내는 것&quot;*(<code>00_DOCS_INDEX</code>), <strong>생전 위임·플랫폼 사전지정</strong>(<code>04-02</code>).<br/>
+<strong>→ 즉 이번 제거로 &quot;생전에 내 계정 정리를 위임해 두는&quot; 진입점이 사라졌습니다.</strong><br/>
+<span class="tag orange">🟡</span> <strong>권고(지금 조치 아님)</strong>: 04의 <strong>생전 축이 실제로 구현되는 시점</strong>(<code>04-02</code> 사전지정 UI)에 이 항목을 되살리거나, <strong>엔딩노트(06) 안의 한 단계로 흡수</strong>하십시오. <strong>지금은 04 생전 축이 목업조차 없으므로 제거가 실물과 더 정직합니다</strong> — 그래서 개발자 판단을 그대로 채택합니다.</blockquote>
+<h3 class="subsection-title">3.2 ② 유가족 모드 — <strong>7개</strong> (🔄 2026-08-19 재정합: 6개 → 7개, 순서·상태 전면 교체)</h3>
+<p><strong>정본은 <code>modeNav.ts</code>의 <code>BEREAVED_MENU</code>입니다.</strong> 순서는 <strong>개발자가 직접 확정</strong>했습니다(walkthrough (39)).</p>
+<div class="table-container"><table><thead><tr><th>순</th><th>도메인</th><th>라벨(UI 표기)</th><th>경로</th><th>상태</th><th>로그인</th></tr></thead><tbody><tr><td><strong>1</strong></td><td><strong>07</strong></td><td><strong>상중·행정 케어</strong></td><td><code>/care-guide</code></td><td><span class="tag green">✅</span> 진입</td><td><strong>🔓 불요 — 유일한 예외</strong></td></tr><tr><td>2</td><td>01</td><td>장사시설 매칭</td><td><code>/facility</code></td><td><span class="tag green">✅</span> 진입</td><td>🔒</td></tr><tr><td>3</td><td>02</td><td>전문가 매칭</td><td><code>/counseling</code></td><td><span class="tag green">✅</span> 진입</td><td>🔒</td></tr><tr><td>4</td><td><strong>07-파생</strong></td><td><strong>모바일 부고장</strong></td><td><code>/obituary</code></td><td><span class="tag green">✅</span> 진입</td><td>🔒</td></tr><tr><td>5</td><td>03</td><td>유품 수거</td><td><code>/pickup</code></td><td><span class="tag orange">🟡</span> 미리보기</td><td>🔒</td></tr><tr><td>6</td><td>04</td><td><strong>디지털 정산</strong></td><td><code>/digital-estate</code></td><td><span class="tag orange">🟡</span> 미리보기</td><td>🔒</td></tr><tr><td>7</td><td>05</td><td>디지털 추모관</td><td><code>/memorial</code></td><td><span class="tag orange">🟡</span> 미리보기</td><td>🔒</td></tr></tbody></table></div>
+<blockquote class="info-quote"><span class="tag red">🔴</span> <strong>07이 1순위인 것은 취향이 아니라 <code>07-02</code>의 원칙</strong>입니다 — *&quot;기한 순이 아니라 판단 순, 되돌릴 수 없는 것부터.&quot;* <code>00-23</code> §4.2가 4박스에 적용한 것과 같습니다. <strong>1순위이자 유일한 무로그인 항목</strong>이라는 점에서 §4.2-1과 일관됩니다.</blockquote>
+<p>&gt;</p>
+<blockquote class="info-quote">🔄 <strong>바뀐 것 3가지</strong><br/>
+| 변경 | 내용 | 근거 |<br/>
+| :--- | :--- | :--- |<br/>
+| <strong>신설</strong> | <strong>모바일 부고장</strong>(<code>/obituary</code>) — <code>CareGuidePage</code>에 얹혀 있던 폼을 별도 화면으로 분리 | 개발자 지시 (39) |<br/>
+| <strong>상태 승격</strong> | 03·05가 <code><span class="tag gray">⬜</span> 준비 중</code> → <strong><span class="tag orange">🟡</span> 미리보기</strong> | <strong>§7.1 참조 — &quot;실체 없음&quot; 전제가 틀렸음</strong> |<br/>
+| <strong>정렬 기준 변경</strong> | *&quot;진입 → 미리보기 → 준비 중&quot;* 이 아니라 <strong>유족의 시간 순</strong>(장례 → 행정 → 정리 → 추모) | 개발자 확정 순서 (39) |</blockquote>
+<p>&gt;</p>
+<blockquote class="info-quote"><span class="tag warn">⚠️</span> <strong>7개가 전부 눌립니다.</strong> 이전 판의 *&quot;6개 중 4개만 열린다&quot;* 는 <strong>더 이상 사실이 아닙니다.</strong> 다만 5·6·7은 <strong>예시 데이터 화면</strong>이며, 각 페이지 상단에 *&quot;실제 제휴 업체·추모관은 아직 없습니다&quot;* 배너를 띄워 고지합니다(<code>00-14</code> §2.2 원칙 유지).</blockquote>
+<p>&gt;</p>
+<blockquote class="info-quote"><span class="tag blue">🔵</span> <strong>라벨 표기 — 04는 UI에서 &quot;디지털 정산&quot;으로 줄여 씁니다.</strong> <code>00-02</code> §3.2의 도메인 정식 명칭은 <strong>&quot;디지털 자산·계정 정산&quot;</strong> 이고 그대로 유지되지만, 사이드바 한 줄에 들어가지 않고 <strong>5번 &quot;유품 수거&quot;와 나란히 놓였을 때 구분이 흐려져</strong> 단축형을 씁니다(개발자 지시 (39)). <strong>정식 명칭 ↔ UI 단축형의 1:1 대응이므로 §5가 잡은 &quot;다른 기능으로 오해&quot; 유형의 불일치가 아닙니다.</strong></blockquote>
+<h3 class="subsection-title">3.3 ③ Guest 모드 · ④ 파트너 모드 — <strong>메뉴를 만들지 않습니다</strong></h3>
+<div class="table-container"><table><thead><tr><th>모드</th><th>처리</th><th>이유</th></tr></thead><tbody><tr><td>③ Guest</td><td>❌ 메뉴 없음</td><td>목적지가 <strong>추모관 1개뿐</strong>이고 그마저 <code>SCR-011</code> 미구현. 메뉴는 2개 이상일 때 의미가 있습니다</td></tr><tr><td>④ 파트너</td><td>❌ <strong>손대지 않음</strong></td><td><strong>이미 별도 크롬</strong>입니다 — <code>00-06</code> §7.4가 *&quot;B2C 소셜 로그인과 완전 분리된 별도 인증 체계라 Header·Sidebar·긴급콜을 렌더하지 않는다&quot;* 로 확정했고 <code>App.tsx</code>에 <code>isPortalRoute</code>로 구현돼 있습니다</td></tr></tbody></table></div>
+<blockquote class="info-quote"><span class="tag blue">🔵</span> <strong>④가 이미 이렇게 동작한다는 것이 이 제안의 실현 가능성을 보증합니다.</strong> 조건부 크롬 렌더 패턴이 <strong>이미 코드에 있으므로</strong>, 모드별 사이드바는 새 구조가 아니라 <strong>기존 패턴의 확장</strong>입니다.</blockquote>
+<hr class="divider"/>
+<h2 class="section-title"><span class="tag red">🔴</span> 4. 고쳐야 할 설계</h2>
+<h3 class="subsection-title">4.1 <span class="tag red">🔴</span> &quot;각각 로그인&quot;은 <strong>4개 중 1.5개만 맞습니다</strong></h3>
+<p><code>00-23</code> §4.1이 2026-08-18에 확정한 원칙과 정면으로 부딪힙니다 — *&quot;막을 것은 <strong>쓰기</strong>이지 <strong>보기</strong>가 아니다.&quot;*</p>
+<div class="table-container"><table><thead><tr><th>박스</th><th>진입 시 로그인 강제하면</th><th>판정</th></tr></thead><tbody><tr><td>① 생전 준비</td><td>06은 맞지만 <strong>02 전문가 목록 조회까지 막힙니다</strong>(<code>GET /api/experts</code> 인증 불필요)</td><td><span class="tag orange">🟡</span> 절반</td></tr><tr><td>② 유가족</td><td><span class="tag red">🔴</span> <strong>사별 직후 유족에게 로그인 벽.</strong> <code>07-02</code>의 *&quot;한 줄이라도 남으려면 최상단&quot;* 이 무너집니다</td><td>❌</td></tr><tr><td>③ Guest</td><td><span class="tag red">🔴</span> <strong>대상이 비회원 조문객입니다.</strong> <code>00-23</code> §2.2가 *&quot;어느 문서에도 없던 경로&quot;* 라 부른 그 분기가 <strong>다시 막힙니다</strong></td><td>❌</td></tr><tr><td>④ 파트너</td><td><span class="tag green">✅</span> 이미 이메일+비밀번호 인증(소셜 아님)</td><td><span class="tag green">✅</span></td></tr></tbody></table></div>
+<p><span class="tag red">🔴</span> <strong>②③이 특히 무겁습니다 — 가장 급한 사람과 가장 권한 없는 사람에게 벽을 세우는 셈</strong>입니다.</p>
+<h3 class="subsection-title">4.2 <span class="tag orange">🟡</span> 대안 — 진입 조건을 <strong>&quot;모드 선택&quot;</strong> 으로</h3>
+<pre><code>박스 클릭  →  모드 확정 + 맞춤 메뉴 등장      ← 개발자가 원한 결과
+           →  로그인은 저장·신청·작성 시점에   ← 00-23 §4.1 유지 (기존 onOpenLogin 모달)</code></pre>
+<div class="table-container"><table><thead><tr><th></th><th>개발자 원안</th><th><span class="tag orange">🟡</span> 권고안</th></tr></thead><tbody><tr><td>맞춤 메뉴</td><td><span class="tag green">✅</span></td><td><span class="tag green">✅</span> <strong>동일</strong></td></tr><tr><td>홈 메뉴 제거</td><td><span class="tag green">✅</span></td><td><span class="tag green">✅</span> <strong>동일</strong></td></tr><tr><td>07 열람</td><td>❌ 로그인 필요</td><td><span class="tag green">✅</span> 즉시</td></tr><tr><td>Guest 조문</td><td>❌ 막힘</td><td><span class="tag green">✅</span> 가능</td></tr><tr><td>엔딩노트 작성</td><td><span class="tag green">✅</span> 로그인</td><td><span class="tag green">✅</span> 로그인(<strong>작성 시점</strong>)</td></tr></tbody></table></div>
+<blockquote class="info-quote"><span class="tag green">✅</span> <strong>원하시는 결과는 전부 얻으면서 §4.1도 깨지지 않습니다.</strong> 유일한 차이는 <strong>로그인을 묻는 시점</strong>입니다.</blockquote>
+<h3 class="subsection-title">4.2-1 <span class="tag green">✅</span> <strong>확정: 게이트는 박스가 아니라 항목에 건다</strong> (🔄 2026-08-19 2차 재정합)</h3>
+<blockquote class="info-quote"><span class="tag warn">⚠️</span> <strong>이 절은 하루 사이에 두 번 바뀌었습니다.</strong> 아래가 <strong>최종 확정</strong>이며, 앞의 *&quot;①④만 로그인 / ②는 로그인 없음&quot;* 은 <strong>폐기</strong>입니다(walkthrough (37)·(38)).</blockquote>
+<p><strong>게이트가 걸리는 위치가 바뀌었습니다 — 이것이 핵심입니다.</strong></p>
+<pre><code>(구) 박스 클릭  →  🔒 로그인 모달  →  오버레이(소개글)  →  이동
+(신) 박스 클릭  →  오버레이(소개글)  →  🔒 항목별 게이트  →  이동</code></pre>
+<p><span class="tag blue">🔵</span> **개발자 확정 1 — *&quot;소개글은 로그인 없이도 봐야 한다&quot;*** (walkthrough (37)):</p>
+<p><strong>박스 단위 로그인은 전면 폐기</strong>됐습니다. 4박스는 <strong>누구나 열어 오버레이 소개를 볼 수 있습니다.</strong></p>
+<p><span class="tag blue">🔵</span> **개발자 확정 2 — *&quot;모든 버튼이 다 그렇게 작동해야 하니&quot;*** (walkthrough (38)):</p>
+<p>게이트는 <strong>항목(CTA·사이드바 메뉴)</strong> 에 걸리고, 그 범위는 <strong><code>care-guide</code> 하나를 빼고 전부</strong>입니다.</p>
+<div class="table-container"><table><thead><tr><th>항목</th><th>도메인</th><th>오버레이 소개 열람</th><th>화면 진입</th><th>근거</th></tr></thead><tbody><tr><td><strong>상중·행정 케어</strong></td><td>07</td><td>🔓</td><td><strong>🔓 없음 — 유일한 예외</strong></td><td><span class="tag red">🔴</span> <code>07-02</code> *&quot;한 줄이라도 남으려면 최상단&quot;* · §7.3</td></tr><tr><td>장사시설 매칭</td><td>01</td><td>🔓</td><td>🔒 로그인</td><td>개발자 확정 2</td></tr><tr><td>전문가 매칭</td><td>02</td><td>🔓</td><td>🔒 로그인</td><td>개발자 확정 2</td></tr><tr><td>모바일 부고장</td><td>07-파생</td><td>🔓</td><td>🔒 로그인</td><td>전송은 별개 기능</td></tr><tr><td>유품 수거</td><td>03</td><td>🔓</td><td>🔒 로그인</td><td>개발자 확정 2</td></tr><tr><td>디지털 정산</td><td>04</td><td>🔓</td><td>🔒 로그인</td><td>개발자 확정 2</td></tr><tr><td>디지털 추모관</td><td>05</td><td>🔓</td><td>🔒 로그인</td><td>개발자 확정 2</td></tr><tr><td>디지털 엔딩노트</td><td>06</td><td>🔓</td><td>🔒 로그인</td><td>원래부터 전부 로그인(§4.1)</td></tr><tr><td>파트너 포털</td><td>—</td><td>—</td><td>🔒 별도 인증</td><td><code>00-06</code> §7.4 — <strong>변경 없음</strong></td></tr></tbody></table></div>
+<blockquote class="info-quote"><span class="tag green">✅</span> <strong><code>care-guide</code> 예외는 개발자에게 상충을 먼저 알리고 확인받았습니다</strong>(walkthrough (38)). <strong><code>07-02</code> 원칙이 개발자 확정 2를 이기는 유일한 자리</strong>입니다.<br/>
+<span class="tag warn">⚠️</span> <strong>구현 정합 조건 — 두 경로가 같아야 합니다.</strong> 게이트는 <code>domainSlides.tsx</code>(오버레이 CTA)와 <code>modeNav.ts</code>(사이드바) <strong>두 곳에 각각</strong> 적혀 있습니다. (38)이 고친 불일치 3건이 정확히 이 문제였습니다 — <strong>한쪽만 고치면 같은 목적지가 경로에 따라 다르게 동작합니다.</strong></blockquote>
+<h4 class="h4-title"><span class="tag red">🔴</span> 남는 부작용 — <strong>02 전문가 목록 조회는 여전히 막힙니다</strong> (§6 #1-1)</h4>
+<p><code>GET /api/experts</code>는 인증이 불필요하고 §4.1이 *&quot;보기는 막지 않는다&quot;* 로 정한 대상입니다.</p>
+<div class="table-container"><table><thead><tr><th></th><th>구 확정(①④만 로그인)</th><th><strong>현 확정(항목별 게이트)</strong></th></tr></thead><tbody><tr><td>전문가가 <strong>있다는 사실</strong> 인지</td><td>❌ 로그인 벽에서 끊김</td><td><span class="tag green">✅</span> <strong>오버레이 소개로 열림</strong></td></tr><tr><td>전문가 <strong>목록·프로필</strong> 조회</td><td>❌</td><td>❌ <strong>여전히 막힘</strong></td></tr></tbody></table></div>
+<blockquote class="info-quote"><span class="tag orange">🟡</span> <strong>완화책 3안(가·나·다) 중 사실상 &quot;가&quot;안에 가깝게 동작 중입니다</strong> — 로그인 모달 앞단에 소개글이라는 이탈구가 생겼기 때문입니다. <strong>부작용의 절반은 해소됐고, 절반은 남았습니다.</strong><br/>
+<span class="tag red">🔴</span> <strong>남은 절반은 §4.1 원칙과 정면으로 어긋난 채 유지됩니다</strong> — 개발자가 *&quot;모든 버튼&quot;* 의 일관성을 전환율보다 우선했습니다. <strong>관측 가능한 지표(가입 전환율)가 생기면 재검토 대상</strong>입니다(§6 #1-1).</blockquote>
+<h3 class="subsection-title">4.3 <span class="tag red">🔴</span> 재방문자 — 홈에서 메뉴를 없애면 <strong>매번 4박스를 거칩니다</strong></h3>
+<p><code>00-23</code> §5.3이 사이드바 유지에 동의한 이유가 *&quot;재방문 사용자는 사이드바로 바로 간다&quot;* 였습니다. 홈의 메뉴를 걷으면 그 경로가 사라집니다.</p>
+<blockquote class="info-quote"><span class="tag orange">🟡</span> <strong>권고: 모드를 기억합니다</strong>(<code>00-23</code> §6 #7 *&quot;모드 전환을 기억할지&quot;* 가 여기서 닫힙니다).<br/>
+<code>sessionStorage</code>가 아니라 <strong><code>localStorage</code></strong> 를 권고합니다 — 유족의 행정 절차는 <strong>여러 날에 걸칩니다</strong>(<code>07-02</code> 법정기한 최장 6개월). 브라우저를 닫았다고 모드가 풀리면 매번 다시 고르게 됩니다.<br/>
+<span class="tag warn">⚠️</span> <strong>단, 홈으로 돌아오면 4박스는 항상 보여야 합니다</strong> — 기억한 모드로 *자동 이동*시키면 다른 모드로 갈 방법이 사라집니다. <strong>기억은 &quot;메뉴 상태&quot;에만 적용하고 진입 화면은 건드리지 않습니다.</strong></blockquote>
+<h3 class="subsection-title">4.4 <span class="tag green">✅</span> 모드 전환 경로 — <strong>A안 채택, 다만 &quot;칩&quot;이 아니라 &quot;드롭다운&quot;</strong> (🔄 2026-08-19 재정합)</h3>
+<p>유가족 모드로 들어간 사람이 자기 엔딩노트를 쓰려면 어떻게 합니까? — <strong>A안으로 확정</strong>됐습니다.</p>
+<div class="table-container"><table><thead><tr><th>안</th><th>방식</th><th>결과</th></tr></thead><tbody><tr><td><strong>A</strong></td><td>헤더에 모드 전환 UI</td><td><span class="tag green">✅</span> <strong>채택 — 아래 형태로 구현</strong>(walkthrough (43))</td></tr><tr><td>B</td><td>사이드바 최하단에 *&quot;다른 도움 찾기&quot;*</td><td>❌ 미채택 — 스크롤 끝이라 발견성이 낮음</td></tr><tr><td>C</td><td>홈 로고 클릭 → 4박스</td><td><span class="tag green">✅</span> <strong>함께 유지</strong> — A와 무관하게 항상 동작합니다(<code>Header.tsx</code> 로고 <code>onClick</code>)</td></tr></tbody></table></div>
+<p><strong>🔄 이 문서가 그렸던 A안과 실제 구현이 3가지 다릅니다.</strong></p>
+<div class="table-container"><table><thead><tr><th></th><th>이 문서의 원안(칩)</th><th><strong>실제 구현(드롭다운)</strong></th></tr></thead><tbody><tr><td><strong>위치</strong></td><td>헤더 <strong>중앙</strong>(빈 공간 활용)</td><td><strong>로고 바로 오른쪽</strong></td></tr><tr><td><strong>동작</strong></td><td>클릭 → <strong>홈으로 이동</strong>, 4박스에서 다시 고름</td><td><strong>그 자리에서 3항목 펼침 → 즉시 전환</strong>(홈을 거치지 않음)</td></tr><tr><td><strong>성격</strong></td><td>*&quot;지금 모드가 뭔지 알려주는&quot;* <strong>표시용</strong></td><td>*&quot;어디서든 모드를 바꾸는&quot;* <strong>조작용</strong></td></tr></tbody></table></div>
+<p><strong>드롭다운 3항목</strong>(<code>Header.tsx</code> <code>MODE_DROPDOWN_ITEMS</code>):</p>
+<div class="table-container"><table><thead><tr><th>항목</th><th>선택 시 이동</th><th>비고</th></tr></thead><tbody><tr><td><strong>생전 준비</strong></td><td><code>PREP_MENU</code>의 첫 <code>진입</code> 항목 → <code>/counseling</code></td><td><code>ending-note</code>가 <code>미리보기</code>라 2순위가 먼저 열립니다</td></tr><tr><td><strong>임종 및 사후 정리</strong></td><td><code>BEREAVED_MENU</code>의 첫 <code>진입</code> 항목 → <code>/care-guide</code></td><td><span class="tag green">✅</span> <strong>07이 1순위인 §3.2와 일치</strong></td></tr><tr><td><strong>게스트</strong></td><td><code>/</code>(홈)</td><td><span class="tag red">🔴</span> <strong>목적지가 없습니다</strong> — 박스③이 비활성 고정이라 홈으로만 보냅니다</td></tr></tbody></table></div>
+<blockquote class="info-quote">🔄 <strong>홈에서도 노출됩니다.</strong> 이전 판(walkthrough (36))은 홈에서 칩을 숨겼습니다 — *&quot;지금 모드 표시&quot;* 가 목적이면 4박스가 있는 홈에서 중복이기 때문입니다. <strong>드롭다운은 목적이 &quot;즉시 전환&quot;이라 숨길 이유가 없어져</strong> <code>App.tsx</code>가 <code>navMode</code>를 홈에서도 그대로 넘깁니다.<br/>
+<span class="tag warn">⚠️</span> <strong>§4.3(모드 기억)과의 관계는 유지됩니다</strong> — 드롭다운은 <code>onSetMode</code>로 <code>localStorage</code>를 갱신할 뿐, <strong>홈의 4박스를 건너뛰게 만들지 않습니다.</strong></blockquote>
+<p>&gt;</p>
+<blockquote class="info-quote"><span class="tag red">🔴</span> <strong>미해결 2건</strong><br/>
+| # | 내용 |<br/>
+| :--- | :--- |<br/>
+| <strong>모바일 폭</strong> | 원안이 경고한 <strong>375px 헤더 가로 오버플로</strong>(walkthrough (34)·(36))가 <strong>드롭다운으로도 해소되지 않았습니다.</strong> 로고 옆 배치라 중앙 배치보다 나을 이유가 없습니다 — <strong>모바일에서 아이콘만 노출하는 처리가 여전히 필요</strong>합니다. |<br/>
+| <strong>게스트 항목</strong> | 실제 목적지가 생기면(<code>SCR-011</code> 구현) <code>Header.tsx</code>의 <code>handleSelectMode</code>를 <strong>함께 고쳐야 합니다.</strong> 지금은 홈으로 보내는 임시 동작입니다. |</blockquote>
+<hr class="divider"/>
+<h2 class="section-title"><span class="tag red">🔴</span> 5. 새 발견 — 사이드바 라벨이 <strong>5개 중 3개</strong> 어긋나 있습니다</h2>
+<p><code>00-23</code> §5.3(#6)은 라벨 불일치를 <strong>1건</strong>(*&quot;디지털 유품 정리&quot;*)으로 봤습니다. <strong>전수 대조하니 3건이었습니다.</strong></p>
+<div class="table-container"><table><thead><tr><th>현재 <code>Sidebar.tsx</code></th><th><strong><code>00-02</code> §3.2 정본</strong></th><th>판정</th></tr></thead><tbody><tr><td>장례 · 묘지 매칭</td><td><strong>장사시설 매칭</strong></td><td>❌</td></tr><tr><td>상속 · 법률 케어</td><td><strong>전문가 매칭</strong>(상속·법률)</td><td>❌</td></tr><tr><td>디지털 유품 정리</td><td><strong>디지털 자산·계정 정산</strong></td><td>❌</td></tr><tr><td>상중 · 행정 케어</td><td>상중·행정 케어</td><td><span class="tag green">✅</span></td></tr><tr><td>디지털 엔딩노트</td><td>디지털 엔딩노트</td><td><span class="tag green">✅</span></td></tr></tbody></table></div>
+<p><span class="tag red">🔴</span> <strong>이번 개편에서 반드시 함께 고쳐야 합니다.</strong> 어차피 메뉴를 새로 만드는데 옛 라벨을 그대로 옮기면 <strong>불일치가 두 모드로 복제</strong>됩니다. <code>00-23</code> #6은 이 문서로 닫힙니다.</p>
+<blockquote class="info-quote"><span class="tag warn">⚠️</span> <strong>&quot;장례 · 묘지 매칭&quot; → &quot;장사시설 매칭&quot;이 특히 중요합니다</strong> — 01은 장례식장뿐 아니라 <strong>봉안당·수목장</strong>을 포함하고 실데이터가 1,552건입니다. *&quot;장례·묘지&quot;* 는 범위를 좁게 오해시킵니다.</blockquote>
+<h3 class="subsection-title">5.1 <span class="tag green">✅</span> <strong>정정 완료 — 다만 04는 UI 단축형으로 안착했습니다</strong> (🔄 2026-08-19 재정합)</h3>
+<p><code>Sidebar.tsx</code> <code>defaultMenuItems</code> · <code>modeNav.ts</code> · <code>domainSlides.tsx</code> 3곳 실측 결과입니다.</p>
+<div class="table-container"><table><thead><tr><th><code>00-02</code> §3.2 정본</th><th><strong>현재 UI 표기</strong></th><th>판정</th></tr></thead><tbody><tr><td>장사시설 매칭</td><td>장사시설 매칭</td><td><span class="tag green">✅</span> <strong>정정됨</strong></td></tr><tr><td>전문가 매칭(상속·법률)</td><td>전문가 매칭</td><td><span class="tag green">✅</span> <strong>정정됨</strong></td></tr><tr><td>디지털 자산·계정 정산</td><td><strong>디지털 정산</strong></td><td><span class="tag blue">🔵</span> <strong>의도된 단축형</strong>(§3.2)</td></tr><tr><td>상중·행정 케어</td><td>상중 · 행정 케어</td><td><span class="tag green">✅</span></td></tr><tr><td>디지털 엔딩노트</td><td>디지털 엔딩노트</td><td><span class="tag green">✅</span></td></tr><tr><td>현물 유품 수거</td><td><strong>유품 수거</strong></td><td><span class="tag blue">🔵</span> <strong>의도된 단축형</strong></td></tr><tr><td>디지털 추모관</td><td>디지털 추모관</td><td><span class="tag green">✅</span></td></tr></tbody></table></div>
+<blockquote class="info-quote"><span class="tag green">✅</span> <strong>§5가 잡은 불일치 3건은 전부 사라졌습니다.</strong> <code>00-23</code> #6은 <strong>닫힘</strong>입니다.<br/>
+<span class="tag blue">🔵</span> <strong>04·03의 단축형은 불일치가 아니라 표기 규칙입니다</strong> — <strong>정식 명칭(<code>00-02</code> §3.2)은 문서·API·법적 고지에</strong>, <strong>단축형은 사이드바 한 줄에</strong>. 두 도메인이 나란히 놓이면서(§3.2의 5·6번) 긴 이름이 서로를 밀어냈습니다.<br/>
+<span class="tag red">🔴</span> <strong>지켜야 할 선 하나</strong> — 단축형은 <strong>줄이기만 할 뿐 의미를 바꾸지 않아야 합니다.</strong> *&quot;디지털 유품 정리&quot;* 가 잘못이었던 이유는 짧아서가 아니라 <strong>04(계정 정산)를 03(현물 수거)처럼 들리게</strong> 만들었기 때문입니다.</blockquote>
+<hr class="divider"/>
+<h2 class="section-title">❓ 6. 미결 쟁점</h2>
+<div class="table-container"><table><thead><tr><th>#</th><th>쟁점</th><th>권고</th><th>상태</th></tr></thead><tbody><tr><td>1</td><td><strong>진입 조건</strong>(§4.1)</td><td><span class="tag orange">🟡</span> 로그인이 아니라 모드 선택</td><td><span class="tag green">✅</span> <strong>08-19 2차 확정 — 항목별 게이트(§4.2-1)</strong>. *&quot;①④만 로그인&quot;* 은 폐기</td></tr><tr><td>1-1</td><td><span class="tag red">🔴</span> <strong>02 목록 조회 차단</strong>(§4.2-1)</td><td><span class="tag orange">🟡</span> 가·나·다 3안</td><td><span class="tag orange">🟡</span> <strong>절반 해소</strong>(소개글은 열림) · <strong>절반 잔존</strong> — 전환율 관측 시 재검토</td></tr><tr><td>2</td><td><strong>모드 기억</strong>(§4.3)</td><td><span class="tag orange">🟡</span> <code>localStorage</code>, 메뉴 상태만</td><td><span class="tag green">✅</span> <strong>구현됨</strong>(<code>NAV_MODE_STORAGE_KEY</code>)</td></tr><tr><td>3</td><td><strong>모드 전환 UI</strong>(§4.4)</td><td><span class="tag orange">🟡</span> A안(헤더 칩)</td><td><span class="tag green">✅</span> <strong>08-19 확정 — A안, 단 드롭다운 형태</strong>(§4.4)</td></tr><tr><td>4</td><td><strong>라벨 통일</strong>(§5)</td><td><span class="tag red">🔴</span> <strong>필수</strong> — 선택 아님</td><td><span class="tag green">✅</span> <strong>완료</strong>(§5.1) — <code>00-23</code> #6 닫힘</td></tr><tr><td>5</td><td>홈 외 페이지의 사이드바</td><td><span class="tag orange">🟡</span> <strong>모드가 없으면 기존 6개 메뉴 유지</strong>(직접 URL 진입 대비)</td><td><span class="tag green">✅</span> <strong>구현됨</strong>(<code>Sidebar.tsx</code> <code>defaultMenuItems</code>)</td></tr><tr><td>6</td><td><code>Deceased</code> 확정 후 자동 판정</td><td><span class="tag orange">🟡</span> <strong>덧붙임</strong>(§2.2) — 지금 범위 아님</td><td>⏸️</td></tr><tr><td><strong>7</strong></td><td><span class="tag red">🔴</span> <strong>04를 생전 준비에서 뺀 것</strong>(§3.1)</td><td><span class="tag orange">🟡</span> 04 <strong>생전 축 구현 시 복귀</strong> 또는 06으로 흡수</td><td><span class="tag blue">🔵</span> <strong>신규 — 08-19 개발자 확정, 재검토 시점만 미정</strong></td></tr><tr><td><strong>8</strong></td><td><span class="tag red">🔴</span> <strong>03·05 예시 데이터 화면 노출</strong>(§7.1)</td><td><span class="tag red">🔴</span> <strong><code>03-02</code> §7.2 · <code>05-01</code> §2.6 재정합 필요</strong></td><td><span class="tag blue">🔵</span> <strong>신규 — <code>[Opus]</code> 후속</strong></td></tr><tr><td><strong>9</strong></td><td><span class="tag red">🔴</span> <strong>375px 헤더 오버플로</strong>(§4.4)</td><td><span class="tag orange">🟡</span> 모바일은 아이콘만 노출</td><td><span class="tag red">🔴</span> <strong>미해결 — (34)부터 3회째 이월</strong></td></tr></tbody></table></div>
+<blockquote class="info-quote"><span class="tag green">✅</span> <strong>#1~#5가 전부 닫혔습니다.</strong> 이 문서가 목업 전에 미뤄둔 것은 <strong><code>Deceased</code> 의존(#6) 하나만</strong> 남았습니다.<br/>
+<span class="tag red">🔴</span> <strong>#7·#8·#9가 새로 열렸습니다</strong> — 셋 다 <strong>구현이 먼저 가고 문서가 따라온 자리</strong>입니다. #8이 가장 무겁습니다(§7.1).<br/>
+<span class="tag red">🔴</span> <strong>#5를 올렸던 이유</strong>(기록): 사용자가 <code>/facility</code>를 북마크했거나 검색으로 직접 들어올 수 있습니다. 그때 모드가 없다고 <strong>메뉴가 아예 없으면 갇힙니다.</strong></blockquote>
+<hr class="divider"/>
+<h2 class="section-title"><span class="tag blue">🔵</span> 7. 구현 스펙 — <strong>2026-08-19 #1 확정, 착수 가능</strong></h2>
+<h3 class="subsection-title">7.1 범위 (🔄 2026-08-19 재정합 — <strong>신규 화면 3개 발생</strong>)</h3>
+<div class="table-container"><table><thead><tr><th>항목</th><th>내용</th></tr></thead><tbody><tr><td>대상</td><td><code>App.tsx</code>(크롬 조건부 렌더·라우트) · <code>Sidebar.tsx</code>(모드별 메뉴) · <code>Header.tsx</code>(<strong>모드 드롭다운</strong>, §4.4) · <code>EntryBoxes.tsx</code>·<code>domainSlides.tsx</code>(4박스·오버레이) · <code>modeNav.ts</code>(메뉴 정본)</td></tr><tr><td>신규 화면 ID</td><td>🔄 <strong>3개 발생</strong> — <code>SCR-013</code> <code>/obituary</code> · <code>SCR-014</code> <code>/pickup</code> · <code>SCR-015</code> <code>/memorial</code>. <strong><code>00-06</code> 대장 갱신 필요</strong></td></tr><tr><td>백엔드</td><td><strong>없음.</strong> 순수 프론트</td></tr><tr><td>상태 저장</td><td><code>localStorage</code> 키 1개(<code>NAV_MODE_STORAGE_KEY</code>). 서버 저장 없음</td></tr></tbody></table></div>
+<h4 class="h4-title"><span class="tag red">🔴</span> *&quot;새 화면 ID는 만들지 않는다&quot;* 가 깨진 경위 — <strong>전제가 틀렸습니다</strong></h4>
+<p>이 문서와 <code>00-23</code> §3은 <strong>03(현물 수거)·05(추모관)에 실체가 없다</strong>는 전제 위에 서 있었습니다.</p>
+<p><strong>틀렸습니다.</strong> 둘 다 <strong><code>DigitalEstatePage</code>의 서브탭 안에 예시 데이터로 이미 구현돼 있었습니다.</strong></p>
+<div class="table-container"><table><thead><tr><th>화면</th><th>실제로 한 일</th><th>신규 개발인가</th></tr></thead><tbody><tr><td><code>SCR-014</code> <code>/pickup</code></td><td><code>DigitalEstatePage</code> <code>physical</code> 서브탭을 <strong>그대로 옮김</strong>(예시 업체 목록·&quot;예시&quot; 배지 포함)</td><td>❌ <strong>이동</strong></td></tr><tr><td><code>SCR-015</code> <code>/memorial</code></td><td>같은 페이지 <code>memorial</code> 서브탭을 <strong>그대로 옮김</strong>(헌화·방명록·앨범 데모)</td><td>❌ <strong>이동</strong></td></tr><tr><td><code>SCR-013</code> <code>/obituary</code></td><td><code>CareGuidePage</code>에 얹혀 있던 <strong>모바일 부고장 폼을 분리</strong></td><td>❌ <strong>분리</strong></td></tr></tbody></table></div>
+<blockquote class="info-quote"><span class="tag green">✅</span> <strong>이 분리는 <code>00-14</code> §2.3이 이미 요구한 것입니다</strong> — *&quot;<code>/digital-estate</code> 한 페이지가 03·04·05 세 도메인을 뭉치고 있음&quot;*. <code>03-02</code> §7.2도 *&quot;어차피 탭을 건드려야 하니 함께 처리하는 것이 자연스럽다&quot;* 고 적었습니다. <strong>즉 화면 ID는 늘었지만 IA는 오히려 정상화됐습니다.</strong></blockquote>
+<p>&gt;</p>
+<blockquote class="info-quote"><span class="tag red">🔴</span> <strong>그러나 <code>03-02</code> §7.2 · <code>05-01</code> §2.6과는 충돌이 남습니다</strong>(§6 #8):<br/>
+| 문서 | 규칙 | 현재 상태 |<br/>
+| :--- | :--- | :--- |<br/>
+| <code>03-02</code> §7.2 | *&quot;제휴 업체가 1건이라도 등록되기 전에는 <strong>준비 중</strong>으로 둔다&quot;* | <span class="tag red">🔴</span> <code>/pickup</code>이 <strong>예시 업체 목록을 띄우고 있음</strong> |<br/>
+| <code>05-01</code> §2.6 | *&quot;오브젝트 스토리지 전환 전 <strong>사진 업로드 실서비스 오픈 금지</strong>&quot;* | <span class="tag orange">🟡</span> <code>/memorial</code>이 <strong>앨범 데모를 띄우고 있음</strong>(로컬 상태만, 서버 업로드 없음) |</blockquote>
+<p>&gt;</p>
+<blockquote class="info-quote"><span class="tag orange">🟡</span> <strong>판단</strong>: 두 화면 모두 상단에 *&quot;예시 데이터이며 실제 제휴 업체·추모관은 없습니다&quot;* 배너를 고정 노출하므로 **<code>00-14</code> §2.2의 *&quot;목업임을 화면에 명시&quot;* 원칙은 지켜집니다.<strong> <code>03-02</code> §7.2가 막으려던 것은 </strong>&quot;존재하지 않는 업체를 진짜처럼 보여주는 것&quot;** 이지 화면의 존재 자체가 아니었습니다.<br/>
+<span class="tag red">🔴</span> **다만 문구가 *&quot;준비 중으로 둔다&quot;* 로 못 박혀 있으므로, <code>03-02</code> §7.2를 *&quot;실체 없음을 화면에 명시하면 미리보기로 노출 가능&quot;* 으로 개정해야 합니다<strong> — <code>[Opus]</code> 후속 작업(§6 #8). </strong><code>05-01</code> §2.6은 서버 업로드가 없어 위반이 아니지만, 실제 업로드를 붙이는 순간 다시 막힙니다.**</blockquote>
+<h3 class="subsection-title">7.2 크롬 렌더 규칙 (🔄 헤더 드롭다운 반영)</h3>
+<div class="table-container"><table><thead><tr><th>경로</th><th>Header</th><th><strong>모드 드롭다운</strong></th><th>Sidebar</th></tr></thead><tbody><tr><td><code>/</code>(홈)</td><td><span class="tag green">✅</span></td><td><span class="tag green">✅</span> <strong>노출</strong>(🔄 §4.4 — 이전 판은 숨김)</td><td>❌ <strong>숨김</strong></td></tr><tr><td>도메인 페이지 · 모드 있음</td><td><span class="tag green">✅</span></td><td><span class="tag green">✅</span> 현재 모드 표시</td><td><span class="tag green">✅</span> <strong>모드별 메뉴</strong>(§3.1·§3.2)</td></tr><tr><td>도메인 페이지 · 모드 없음</td><td><span class="tag green">✅</span></td><td><span class="tag orange">🟡</span> 라벨 *&quot;메뉴&quot;*</td><td><span class="tag orange">🟡</span> 기존 6개 메뉴(§6 #5)</td></tr><tr><td><code>/partner</code> · <code>/admin</code></td><td>❌</td><td>❌</td><td>❌ (<strong>현행 유지</strong> — <code>isPortalRoute</code>)</td></tr></tbody></table></div>
+<blockquote class="info-quote"><span class="tag green">✅</span> <strong><code>isPortalRoute</code> 패턴을 그대로 확장하면 됩니다</strong> — 새 구조가 아닙니다(§3.3).</blockquote>
+<h3 class="subsection-title">7.3 <span class="tag red">🔴</span> 하지 말 것 (🔄 2026-08-19 재정합 — 2줄 폐기, 2줄 신설)</h3>
+<div class="table-container"><table><thead><tr><th>금지</th><th>이유</th></tr></thead><tbody><tr><td><span class="tag red">🔴</span> <strong>07(<code>/care-guide</code>) 열람에 로그인</strong></td><td><code>07-02</code> 원칙 붕괴. <strong>어느 경로로 들어오든 금지</strong> — §4.2-1의 <strong>유일한 예외를 지우는 일</strong></td></tr><tr><td><span class="tag red">🔴</span> <strong>게이트를 한쪽에만 걸기</strong></td><td><code>domainSlides.tsx</code>(오버레이 CTA)와 <code>modeNav.ts</code>(사이드바) <strong>두 곳을 반드시 함께</strong> 고칠 것 — walkthrough (38)이 고친 불일치 3건의 원인</td></tr><tr><td><span class="tag red">🔴</span> <strong>예시 데이터 화면에서 &quot;예시&quot; 배너 제거</strong></td><td><code>00-14</code> §2.2. <strong>§7.1이 03·05 노출을 허용하는 유일한 근거가 이 배너</strong>입니다</td></tr><tr><td><strong>박스 단위로 로그인 걸기</strong>(다시)</td><td>§4.2-1 — *&quot;소개글은 로그인 없이&quot;* 개발자 확정</td></tr><tr><td><strong>기억한 모드로 홈에서 자동 이동</strong></td><td>§4.3 — 다른 모드로 갈 방법이 사라집니다</td></tr><tr><td><strong>옛 사이드바 라벨 복제</strong></td><td>§5 — 불일치가 두 모드로 번집니다</td></tr><tr><td><strong><code>SCR</code> ID 재사용·당겨쓰기</strong></td><td><code>00-06</code> §말미 — 다음 신규 화면은 <strong><code>SCR-016</code>부터</strong></td></tr><tr><td><strong><code>docs/</code> 수정</strong></td><td><code>CLAUDE.md</code> <code>[Claude:Sonnet]</code>-3</td></tr></tbody></table></div>
+<blockquote class="info-quote"><span class="tag warn">⚠️</span> <strong>폐기된 금지 2줄</strong>(기록):<br/>
+- <del>*&quot;②유가족·③Guest 진입에 로그인&quot;*</del> → <strong>폐기.</strong> ②는 <code>care-guide</code>를 빼고 전부 로그인이 <strong>정상</strong>입니다(§4.2-1).<br/>
+- <del>*&quot;준비 중(03·05) 메뉴를 진입 가능하게&quot;*</del> → <strong>조건부 허용.</strong> &quot;예시&quot; 배너 고지가 전제입니다(§7.1).</blockquote>
+<hr class="divider"/>
+<h2 class="section-title">🔗 8. 관련 문서</h2>
+<div class="table-container"><table><thead><tr><th>문서</th><th>관계</th></tr></thead><tbody><tr><td><strong><code>00-12</code> §6.2·§8 #5</strong></td><td><strong>이 문서가 닫는 미결.</strong> 모드 전환 UX — *막는 것: &quot;프론트 전반&quot;*</td></tr><tr><td><strong><code>00-02</code> §3.1</strong></td><td><strong>모드별 도메인 정본</strong>(§3) · §3.2 <strong>도메인 라벨 정본</strong>(§5)</td></tr><tr><td><strong><code>00-23</code></strong></td><td>진입 4박스. §4.1(로그인 위치)·§5.3(#6 라벨)·§6 #7(모드 기억)이 이 문서로 이어짐. 🔄 <strong>§3 실측표는 이 문서와 함께 재정합됨</strong>(03·05 &quot;실체 없음&quot; 전제 정정)</td></tr><tr><td><strong><code>00-06</code></strong></td><td>🔄 <strong>화면 대장 — <code>SCR-013</code>·<code>SCR-014</code>·<code>SCR-015</code> 신규 등재</strong>(§7.1). §7.4는 파트너 포털 크롬 분리 선례(§3.3)</td></tr><tr><td><code>07-02</code></td><td>유족 화면 우선순위 원칙(§3.2) · <strong><code>care-guide</code> 무로그인 예외의 근거</strong>(§4.2-1)</td></tr><tr><td><strong><code>03-02</code> §7.2</strong></td><td><span class="tag red">🔴</span> *&quot;업체 0건 동안 준비 중&quot;* — <strong><code>/pickup</code> 노출과 충돌.</strong> 개정 필요(§6 #8)</td></tr><tr><td><strong><code>05-01</code> §2.6</strong></td><td><span class="tag orange">🟡</span> 사진 업로드 실서비스 오픈 금지 — <strong><code>/memorial</code> 앨범은 로컬 데모라 현재는 무위반</strong>(§7.1)</td></tr><tr><td><code>00-14</code> §2.2·§2.3</td><td>*&quot;목업임을 화면에 명시&quot;* 원칙(§7.1) · <code>/digital-estate</code> 3도메인 뭉침 지적 — <strong>이번 분리로 해소</strong></td></tr><tr><td><code>00-09</code> §3.1</td><td><span class="tag red">🔴</span> *&quot;사이드바 6개 메뉴&quot;* 로 적혀 있음 — <strong>갱신 필요</strong>(모드별 2개/7개)</td></tr><tr><td><code>00-13</code> §4.5-3</td><td><code>Deceased</code> 블로커 범위(§2.2)</td></tr></tbody></table></div>
+
+  </div>
+</body>
+</html>

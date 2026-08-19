@@ -1,5 +1,5 @@
 import React from 'react';
-import { Package, Flower2 } from 'lucide-react';
+import { Package, Flower2, MessageSquare } from 'lucide-react';
 import { HouseLeafIcon, HandScalesIcon, PhoneHeartIcon, NoteKeyIcon, ChecklistShieldIcon } from '../MenuIcons';
 
 // 박스별 미니 풀스크린 오버레이(BoxDetailOverlay)에 쓰이는 슬라이드 콘텐츠.
@@ -61,6 +61,7 @@ export const domainSlides: Record<string, DomainSlide> = {
     ctaLabel: '장사시설 매칭 이동하기',
     ctaColor: '#5B7065',
     status: 'active',
+    loginRequired: true,
   },
 
   counseling: {
@@ -89,6 +90,7 @@ export const domainSlides: Record<string, DomainSlide> = {
     ctaLabel: '전문가 상담 이동하기',
     ctaColor: 'var(--accent-gold)',
     status: 'active',
+    loginRequired: true,
   },
 
   'care-guide': {
@@ -118,10 +120,38 @@ export const domainSlides: Record<string, DomainSlide> = {
     note: '로그인 없이도 바로 열람하실 수 있습니다',
   },
 
+  obituary: {
+    key: 'obituary',
+    tab: 'obituary',
+    badgeLabel: '모바일 부고장',
+    badgeIcon: <MessageSquare size={20} color="#03543F" />,
+    badgeColor: '#03543F',
+    badgeBg: '#DEF7EC',
+    titleLine1: '부고 소식을 빠르고',
+    titleLine2: '정중하게 전해드립니다',
+    highlightColor: '#5B7065',
+    description:
+      '고인·상주·빈소 정보를 입력하면 모바일 부고장이 자동으로 만들어집니다. 카카오톡으로 바로 공유하세요.',
+    bullets: [
+      '고인·상주·빈소 정보 입력 즉시 부고장 미리보기 생성',
+      '카카오톡 공유 API로 간편 전송(개발중)',
+      '디지털 추모관 오픈 후 추모 페이지 링크 자동 동봉 예정',
+    ],
+    featureIcon: <MessageSquare size={36} color="#03543F" />,
+    featureIconBg: '#DEF7EC',
+    featureBorderColor: '#5B7065',
+    featureTitle: '부고장 자동 생성 & 공유',
+    featureDesc: '입력한 정보로 부고장 프리뷰를 즉시 확인하고, 카카오톡으로 조문객에게 전송할 수 있습니다.',
+    ctaLabel: '모바일 부고장 작성하기',
+    ctaColor: '#5B7065',
+    status: 'active',
+    loginRequired: true,
+  },
+
   'digital-estate': {
     key: 'digital-estate',
     tab: 'digital-estate',
-    badgeLabel: '디지털 자산 · 계정 정산',
+    badgeLabel: '디지털 정산',
     badgeIcon: <PhoneHeartIcon size={20} color="#D4A359" />,
     badgeColor: '#D4A359',
     badgeBg: '#FFFFFF',
@@ -143,6 +173,7 @@ export const domainSlides: Record<string, DomainSlide> = {
     ctaLabel: '미리보기로 살펴보기',
     ctaColor: '#D4A359',
     status: 'preview',
+    loginRequired: true,
   },
 
   'ending-note': {
@@ -172,45 +203,65 @@ export const domainSlides: Record<string, DomainSlide> = {
     loginRequired: true,
   },
 
+  // 08-19 9차(개발자 직접 지시) — 이전엔 domainSlides에서만 comingSoon(잠금)이었지만, 실제로는
+  // DigitalEstatePage 서브탭('physical')에 예시 업체 데이터로 구현돼 있었다. 이제 PickupPage로
+  // 분리 노출하면서 comingSoon → preview로 정정(제휴 업체는 여전히 없다는 사실은 페이지 내
+  // "예시 데이터" 배너로 계속 고지).
   pickup: {
     key: 'pickup',
+    tab: 'pickup',
     badgeLabel: '현물 유품 수거',
     badgeIcon: <Package size={20} color="#6C7A89" />,
     badgeColor: '#6C7A89',
     badgeBg: '#F1F5F9',
     titleLine1: '고인의 유품을',
-    titleLine2: '정중하게 정리해 드릴 예정입니다',
+    titleLine2: '정중하게 정리해 드립니다',
     highlightColor: '#6C7A89',
     description:
-      '지역 기반 유품 정리·수거 전문 업체와 연결하는 서비스를 준비하고 있습니다. 아직 제휴된 업체가 없어, 지금은 상담·연결을 도와드릴 수 없습니다.',
-    bullets: [],
-    featureIcon: <Package size={36} color="#94A3B8" />,
+      '지역 기반 유품 정리·수거 전문 업체와 연결하는 서비스를 준비하고 있습니다. 화면 구성을 먼저 살펴보실 수 있으며, 실제 제휴 업체는 아직 없습니다.',
+    bullets: [
+      '지역별 유품 정리·특수청소 업체 목록(예시)',
+      '정찰제 수거, 소각·기부 대행 안내',
+      '무료 방문 견적 신청 폼(실제 접수는 준비 중)',
+    ],
+    featureIcon: <Package size={36} color="#6C7A89" />,
     featureIconBg: '#F1F5F9',
-    featureBorderColor: '#CBD5E1',
-    featureTitle: '준비 중',
-    featureDesc: '제휴 업체 등록이 완료되는 대로 순차 오픈할 예정입니다.',
-    ctaLabel: '',
-    status: 'comingSoon',
+    featureBorderColor: '#94A3B8',
+    featureTitle: '지역 기반 유품 정리 매칭',
+    featureDesc: '유품 정찰제 수거, 소각 대행 및 특수 청소 업체 화면 구성을 미리 확인하실 수 있습니다.',
+    ctaLabel: '유품 수거 미리보기',
+    ctaColor: '#6C7A89',
+    status: 'preview',
+    loginRequired: true,
   },
 
+  // 08-19 9차 — pickup과 동일한 사유로 comingSoon → preview 정정. DigitalEstatePage 서브탭
+  // ('memorial')에 헌화·방명록·앨범 예시 기능이 이미 구현돼 있었다.
   memorial: {
     key: 'memorial',
+    tab: 'memorial',
     badgeLabel: '디지털 추모관',
     badgeIcon: <Flower2 size={20} color="#6C7A89" />,
     badgeColor: '#6C7A89',
     badgeBg: '#F1F5F9',
     titleLine1: '소중한 기억을 나눌',
-    titleLine2: '온라인 추모 공간을 준비하고 있습니다',
+    titleLine2: '온라인 추모 공간입니다',
     highlightColor: '#6C7A89',
     description:
-      '온라인 방명록과 추모 갤러리를 만들 수 있는 디지털 추모관을 준비하고 있습니다. 아직 화면이 열려 있지 않아 지금은 둘러보실 수 없습니다.',
-    bullets: [],
-    featureIcon: <Flower2 size={36} color="#94A3B8" />,
+      '온라인 방명록과 추모 갤러리로 소중한 기억을 나눠보세요. 화면 구성을 먼저 살펴보실 수 있습니다.',
+    bullets: [
+      '온라인 국화꽃 헌화',
+      '추모 방명록 작성 및 열람',
+      '추모 사진 앨범 등록',
+    ],
+    featureIcon: <Flower2 size={36} color="#6C7A89" />,
     featureIconBg: '#F1F5F9',
-    featureBorderColor: '#CBD5E1',
-    featureTitle: '준비 중',
-    featureDesc: '오픈 시기가 정해지면 이 화면에서 가장 먼저 안내해 드리겠습니다.',
-    ctaLabel: '',
-    status: 'comingSoon',
+    featureBorderColor: '#94A3B8',
+    featureTitle: '온라인 헌화·방명록·앨범',
+    featureDesc: '고인을 기리는 온라인 추모 공간에서 헌화, 방명록, 사진 앨범을 함께 나눠보세요.',
+    ctaLabel: '디지털 추모관 미리보기',
+    ctaColor: '#6C7A89',
+    status: 'preview',
+    loginRequired: true,
   },
 };

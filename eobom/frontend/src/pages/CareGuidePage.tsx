@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { CheckSquare, MessageSquare, ExternalLink, AlertTriangle } from 'lucide-react';
+import { CheckSquare, ExternalLink, AlertTriangle } from 'lucide-react';
 import careGuideTasksData from '../mockData/careGuideTasks.json';
 import { ChecklistShieldIcon } from '../components/MenuIcons';
 
@@ -42,14 +42,22 @@ const SEVERITY_LABEL: Record<CareGuideTask['severity'], { title: string; desc: s
 const LINK_LABEL: Record<string, string> = {
   facility: '장사시설 찾기 →',
   counseling: '전문가 상담 →',
-  'digital-estate': '디지털 자산 정리로 →',
+  'digital-estate': '디지털 정산으로 →',
 };
 
-export const CareGuidePage: React.FC<CareGuidePageProps> = ({ currentUser, onOpenLogin, setActiveTab }) => {
-  const [deceasedName, setDeceasedName] = useState('홍길동');
-  const [mournerName, setMournerName] = useState('홍상주');
-  const [funeralPlace, setFuneralPlace] = useState('서울 평안 장례식장 201호');
-
+// 08-19 8차(개발자 직접 지시) — "모바일 부고장 간편 작성"은 별도 도메인(ObituaryPage,
+// tab: 'obituary')으로 분리했다. 이 페이지(07-02 체크리스트)는 원칙상 로그인 없이 열람돼야
+// 하므로(00-26 §7.3, 07-02 원칙), 로그인이 필요한 부고장 전송 기능과 한 화면에 섞어두지 않는다.
+// 08-19 11차(개발자 직접 지시) — 부고장 카드(잔재)까지 완전히 제거하고, 체크리스트가 전체
+// 폭을 쓰도록 바꿈.
+// 08-19 12차 — "카테고리 헤더가 전체 폭을 걸치는" 구조는 신고·조회(1~2건)·장례 단계(1건)처럼
+// 짧은 카테고리도 매번 줄바꿈을 강제해 스크롤이 쓸데없이 길어졌다. 심각도(순위) 섹션 안에서
+// 카테고리 자체를 "칸반형" 컬럼으로 나란히 배치하도록 바꿨다.
+// 08-19 13차 — 그런데 CSS Grid는 행 단위 배치라, 카테고리별 항목 수가 들쭉날쭉하면(1건~4건)
+// 짧은 컬럼 아래 여백이 그대로 남는 문제가 있었다. Grid 대신 CSS 다단(columns, index.css
+// `.care-guide-columns`/`.care-guide-category`)으로 바꿔 — 신문 단처럼 브라우저가 각 단의
+// 총 높이를 자동으로 맞춰 카테고리 블록을 채워 넣는다. 접기/펼치기 없이도 여백이 크게 준다.
+export const CareGuidePage: React.FC<CareGuidePageProps> = ({ setActiveTab }) => {
   const [tasks, setTasks] = useState<CareGuideTask[]>(careGuideTasksData as CareGuideTask[]);
   const inheritanceRef = useRef<HTMLDivElement>(null);
 
@@ -57,26 +65,17 @@ export const CareGuidePage: React.FC<CareGuidePageProps> = ({ currentUser, onOpe
     setTasks(tasks.map((t) => (t.id === id ? { ...t, checked: !t.checked } : t)));
   };
 
-  const handleSendObituary = () => {
-    if (!currentUser) {
-      alert('⚠️ 모바일 부고장 전송 서비스는 로그인 후 이용하실 수 있습니다.');
-      onOpenLogin?.();
-      return;
-    }
-    alert('💬 [개발중] 카카오톡 부고장 공유 API 연동 기능 개발 중입니다.');
-  };
-
   return (
     <div className="container">
       <div style={{ marginBottom: '1.5rem' }}>
         <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', backgroundColor: '#DEF7EC', color: '#03543F', padding: '0.3rem 0.8rem', borderRadius: '16px', fontSize: '0.85rem', fontWeight: 700, marginBottom: '0.6rem' }}>
-          <ChecklistShieldIcon size={18} color="#03543F" /> 체크리스트 &amp; 쉴드 | 사망 직후 D-Day 필수 행정절차
+          <ChecklistShieldIcon size={18} color="#03543F" /> 사망 직후 D-Day 필수 행정절차
         </div>
         <h1 style={{ color: 'var(--primary-color)', fontSize: '2rem', display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0 }}>
           <ChecklistShieldIcon color="var(--point-color)" size={32} /> 상중 케어 &amp; 사망 행정 가이드
         </h1>
         <p style={{ color: 'var(--text-muted)', marginTop: '0.4rem' }}>
-          사망 후 D-Day별 필수 행정절차 타임라인, 모바일 부고장 작성 및 유족 심리 케어
+          사망 후 D-Day별 필수 행정절차 타임라인을 확인하세요.
         </p>
       </div>
 
@@ -112,45 +111,57 @@ export const CareGuidePage: React.FC<CareGuidePageProps> = ({ currentUser, onOpe
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1.5rem' }}>
-        {/* D-Day 행정절차 타임라인 */}
-        <div style={{ backgroundColor: 'var(--card-bg)', padding: '1.5rem', borderRadius: 'var(--border-radius)', boxShadow: 'var(--box-shadow)' }}>
-          <h3 style={{ color: 'var(--primary-color)', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <CheckSquare color="var(--point-color)" /> D-Day별 행정절차 체크리스트
-          </h3>
+      {/* D-Day 행정절차 타임라인 — 전체 폭 카드, 부고장 카드 제거(별도 페이지로 분리됨) */}
+      <div style={{ backgroundColor: 'var(--card-bg)', padding: '1.5rem', borderRadius: 'var(--border-radius)', boxShadow: 'var(--box-shadow)' }}>
+        <h3 style={{ color: 'var(--primary-color)', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <CheckSquare color="var(--point-color)" /> D-Day별 행정절차 체크리스트
+        </h3>
 
-          {SEVERITY_ORDER.map((severity) => {
-            const group = tasks.filter((t) => t.severity === severity);
-            if (group.length === 0) return null;
-            const meta = SEVERITY_LABEL[severity];
+        {SEVERITY_ORDER.map((severity) => {
+          const group = tasks.filter((t) => t.severity === severity);
+          if (group.length === 0) return null;
+          const meta = SEVERITY_LABEL[severity];
 
-            let lastCategory = '';
+          // 카테고리별로 묶는다 — JSON 배열에 등장하는 순서를 그대로 표시 순서로 쓴다.
+          const categoryOrder: string[] = [];
+          const byCategory = new Map<string, CareGuideTask[]>();
+          group.forEach((t) => {
+            if (!byCategory.has(t.category)) {
+              byCategory.set(t.category, []);
+              categoryOrder.push(t.category);
+            }
+            byCategory.get(t.category)!.push(t);
+          });
 
-            return (
-              <div key={severity} style={{ marginBottom: '1.5rem' }}>
-                <div style={{ marginBottom: '0.6rem' }}>
-                  <span style={{ fontSize: '0.9rem', fontWeight: 700, color: meta.color }}>{meta.title}</span>
-                  <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', margin: '0.15rem 0 0 0' }}>{meta.desc}</p>
-                </div>
+          return (
+            <div key={severity} style={{ marginBottom: '1.5rem' }}>
+              <div style={{ marginBottom: '0.6rem' }}>
+                <span style={{ fontSize: '0.9rem', fontWeight: 700, color: meta.color }}>{meta.title}</span>
+                <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', margin: '0.15rem 0 0 0' }}>{meta.desc}</p>
+              </div>
 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
-                  {group.map((t) => {
-                    const showCategoryHeader = t.category !== lastCategory;
-                    lastCategory = t.category;
-                    const isInheritanceSet = t.category === '상속 승인·포기';
+              {/* 카테고리 = 다단(신문 단) 블록. index.css `.care-guide-columns`가 브라우저의
+                  자동 단 높이 배분으로 짧은/긴 카테고리를 섞어 빈틈을 메운다. */}
+              <div className="care-guide-columns">
+                {categoryOrder.map((category) => {
+                  const items = byCategory.get(category)!;
+                  const isInheritanceSet = category === '상속 승인·포기';
 
-                    return (
-                      <React.Fragment key={t.id}>
-                        {showCategoryHeader && (
-                          <div
-                            ref={isInheritanceSet ? inheritanceRef : undefined}
-                            style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-muted)', marginTop: '0.3rem', textTransform: 'uppercase', letterSpacing: '0.02em' }}
-                          >
-                            {t.category}
-                            {t.conditional && ' (해당하는 경우에만)'}
-                          </div>
-                        )}
+                  return (
+                    <div
+                      key={category}
+                      ref={isInheritanceSet ? inheritanceRef : undefined}
+                      className="care-guide-category"
+                    >
+                      <div style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.02em', marginBottom: '0.6rem' }}>
+                        {category}
+                        {items[0].conditional && ' (해당하는 경우에만)'}
+                      </div>
+
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
+                      {items.map((t) => (
                         <div
+                          key={t.id}
                           onClick={() => toggleTask(t.id)}
                           style={{
                             padding: '0.9rem',
@@ -214,58 +225,20 @@ export const CareGuidePage: React.FC<CareGuidePageProps> = ({ currentUser, onOpe
                             </div>
                           </div>
                         </div>
-                      </React.Fragment>
-                    );
-                  })}
-                </div>
+                      ))}
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
-            );
-          })}
-
-          <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '0.5rem', lineHeight: 1.6 }}>
-            이 체크리스트는 일반적인 안내이며 개별 사정에 따라 다를 수 있습니다. 정확한 기한 판단은
-            전문가 상담을 이용하세요.
-          </p>
-        </div>
-
-        {/* 모바일 부고장 생성 데모 */}
-        <div style={{ backgroundColor: 'var(--card-bg)', padding: '1.5rem', borderRadius: 'var(--border-radius)', boxShadow: 'var(--box-shadow)' }}>
-          <h3 style={{ color: 'var(--primary-color)', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <MessageSquare color="var(--primary-color)" /> 모바일 부고장 간편 작성
-          </h3>
-
-          <div className="form-group">
-            <label className="form-label">고인 성함</label>
-            <input type="text" value={deceasedName} onChange={(e) => setDeceasedName(e.target.value)} className="form-input" />
-          </div>
-          <div className="form-group">
-            <label className="form-label">상주 성함</label>
-            <input type="text" value={mournerName} onChange={(e) => setMournerName(e.target.value)} className="form-input" />
-          </div>
-          <div className="form-group">
-            <label className="form-label">빈소 위치</label>
-            <input type="text" value={funeralPlace} onChange={(e) => setFuneralPlace(e.target.value)} className="form-input" />
-          </div>
-
-          <div style={{
-            marginTop: '1.1rem',
-            padding: '1.2rem',
-            backgroundColor: 'var(--secondary-color)',
-            borderRadius: '8px',
-            border: '1px solid var(--border-color)'
-          }}>
-            <h4 style={{ color: 'var(--primary-color)', fontSize: '0.95rem', marginBottom: '0.5rem' }}>📱 생성된 부고장 프리뷰</h4>
-            <div style={{ backgroundColor: '#FFFFFF', padding: '1rem', borderRadius: '6px', fontSize: '0.9rem', lineHeight: 1.6 }}>
-              [부고] {deceasedName} 님께서 별세하셨기에 아래와 같이 부고를 전합니다.<br/>
-              • 상주: {mournerName}<br/>
-              • 빈소: {funeralPlace}<br/>
-              • 마음 전하실 곳: 카카오뱅크 3333-xx-xxxx
             </div>
-            <button onClick={handleSendObituary} className="btn btn-primary" style={{ width: '100%', marginTop: '1rem' }}>
-              카카오톡 부고장 전송하기 (개발중)
-            </button>
-          </div>
-        </div>
+          );
+        })}
+
+        <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '0.5rem', lineHeight: 1.6 }}>
+          이 체크리스트는 일반적인 안내이며 개별 사정에 따라 다를 수 있습니다. 정확한 기한 판단은
+          전문가 상담을 이용하세요.
+        </p>
       </div>
     </div>
   );

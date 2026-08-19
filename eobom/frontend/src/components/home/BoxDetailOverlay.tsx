@@ -11,6 +11,7 @@ interface BoxDetailOverlayProps {
   slides: DomainSlide[];
   initialIndex?: number;
   onClose: () => void;
+  onSlideChange?: (index: number) => void;
   currentUser?: string | null;
   onOpenLogin?: () => void;
   setActiveTab?: (tab: string) => void;
@@ -21,6 +22,7 @@ export const BoxDetailOverlay: React.FC<BoxDetailOverlayProps> = ({
   slides,
   initialIndex = 0,
   onClose,
+  onSlideChange,
   currentUser,
   onOpenLogin,
   setActiveTab,
@@ -59,6 +61,7 @@ export const BoxDetailOverlay: React.FC<BoxDetailOverlayProps> = ({
       isScrollingRef.current = true;
       activeIndexRef.current = nextIndex;
       setActiveIndex(nextIndex);
+      onSlideChange?.(nextIndex);
       container.scrollTo({ top: nextIndex * container.clientHeight, behavior: 'smooth' });
 
       window.setTimeout(() => {
@@ -68,6 +71,7 @@ export const BoxDetailOverlay: React.FC<BoxDetailOverlayProps> = ({
 
     container.addEventListener('wheel', handleWheel, { passive: false });
     return () => container.removeEventListener('wheel', handleWheel);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [slides.length]);
 
   useEffect(() => {
@@ -85,6 +89,7 @@ export const BoxDetailOverlay: React.FC<BoxDetailOverlayProps> = ({
     }
     activeIndexRef.current = index;
     setActiveIndex(index);
+    onSlideChange?.(index);
   };
 
   return (
@@ -278,8 +283,14 @@ export const BoxDetailOverlay: React.FC<BoxDetailOverlayProps> = ({
                         onOpenLogin?.();
                         return;
                       }
-                      if (slide.tab) setActiveTab?.(slide.tab);
-                      onClose();
+                      if (slide.tab) {
+                        // 다른 화면으로 이동 — onClose()를 부르지 않는다. 뒤로가기로 돌아왔을 때
+                        // 이 오버레이·슬라이드가 그대로 복원돼야 하므로(EntryBoxes.tsx의 URL
+                        // 쿼리 동기화), 이동 직전 URL을 건드리지 않고 그대로 히스토리에 남긴다.
+                        setActiveTab?.(slide.tab);
+                      } else {
+                        onClose();
+                      }
                     }}
                     className="btn btn-primary"
                     style={{

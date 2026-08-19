@@ -16,6 +16,9 @@ import { CounselingPage } from './pages/CounselingPage';
 import { DigitalEstatePage } from './pages/DigitalEstatePage';
 import { EndingNotePage } from './pages/EndingNotePage';
 import { CareGuidePage } from './pages/CareGuidePage';
+import { ObituaryPage } from './pages/ObituaryPage';
+import { PickupPage } from './pages/PickupPage';
+import { MemorialPage } from './pages/MemorialPage';
 import { MyPage } from './pages/MyPage';
 import { PartnerPortalPage } from './pages/PartnerPortalPage';
 import { AdminPage } from './pages/AdminPage';
@@ -231,7 +234,8 @@ function AppShell() {
             onOpenAccountSettings={() => { setMyPageMessage(null); setIsMyPageOpen(true); }}
             currentUser={currentUser}
             onLogout={handleLogout}
-            navMode={isHomeRoute ? null : navMode}
+            navMode={navMode}
+            onSetMode={handleSetNavMode}
           />
 
           {/* 좌측 호버 확장 사이드바 — 홈(4박스가 유일한 진입점)에서는 숨긴다(00-26 §7.2) */}
@@ -267,6 +271,9 @@ function AppShell() {
             <Route path="/digital-estate" element={<DigitalEstatePage {...authProps} />} />
             <Route path="/ending-note" element={<EndingNotePage {...authProps} />} />
             <Route path="/care-guide" element={<CareGuidePage {...authProps} />} />
+            <Route path="/obituary" element={<ObituaryPage {...authProps} />} />
+            <Route path="/pickup" element={<PickupPage {...authProps} />} />
+            <Route path="/memorial" element={<MemorialPage {...authProps} />} />
             <Route
               path="/mypage"
               element={<MyPage {...authProps} onOpenAccountSettings={() => { setMyPageMessage(null); setIsMyPageOpen(true); }} />}

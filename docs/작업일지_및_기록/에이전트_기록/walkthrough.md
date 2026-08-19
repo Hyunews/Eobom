@@ -6,6 +6,81 @@
 
 ---
 
+## 2026-08-19 (43) | [Sonnet] 헤더 모드 드롭다운 재구현(로고 옆, 3항목 즉시 전환) + 생전준비에서 디지털 정산 제거
+
+- **근거 스펙**: 스펙 문서 없음 — 개발자 채팅 즉석 지시(walkthrough (38)~(42)와 같은 연속 세션). 대조 정본: `00-26` §4.4(모드 칩 — 중앙 배치·클릭 시 홈 이동만, 이번 건으로 편차) · §3.1(생전 준비 도메인 표, 이번 건으로 편차).
+- **건드린 파일**: `eobom/frontend/src/components/Header.tsx`(전면 재작성 — `useState`/`useRef`/`useEffect` 기반 드롭다운 신설, 로고 바로 오른쪽 배치, 바깥클릭·Esc로 닫힘) · `eobom/frontend/src/App.tsx`(`<Header>`에 `onSetMode={handleSetNavMode}` prop 추가, `navMode={isHomeRoute ? null : navMode}` → `navMode={navMode}`로 변경해 홈에서도 드롭다운 노출) · `eobom/frontend/src/modeNav.ts`(`PREP_MENU`에서 `{ id: 'digital-estate', ... }` 항목 삭제, `MODE_LABELS.bereaved`를 `'유가족'` → `'임종 및 사후 정리'`로 변경) · `eobom/frontend/src/components/home/EntryBoxes.tsx`(`box1Keys` 배열에서 `'digital-estate'` 제거, `['counseling', 'ending-note', 'digital-estate']` → `['counseling', 'ending-note']`).
+- **결과**: `npx tsc --noEmit`(frontend) 에러 0. 드롭다운 항목 3개(생전 준비/임종 및 사후 정리/게스트) 클릭 시 `onSetMode` 호출 후 해당 모드 `MODE_MENUS[mode]`에서 `status==='active'`인 첫 항목의 `id`로 `setActiveTab` 이동(생전 준비→`counseling`, 임종 및 사후 정리→`care-guide`), 게스트는 실제 화면이 없어 `home`으로 이동. 라벨에서 "모드" 글자 제거(`{MODE_LABELS[navMode]} 모드` → `{modeMenuLabel}`, `modeMenuLabel = navMode ? MODE_LABELS[navMode] : '메뉴'`). `PREP_MENU`는 이제 `ending-note`·`counseling` 2개.
+- **편차**: ①`00-26` §4.4가 정의한 "클릭 시 홈으로 보내 4박스에서 다시 고르게 하는 칩" 설계를 폐기하고 실제 드롭다운(3항목 즉시 전환)으로 교체 — 개발자 직접 지시. ②모드 칩을 홈에서 숨기던 처리(`isHomeRoute ? null : navMode`, walkthrough (36) 편차③)를 되돌려 홈에서도 항상 노출되게 함 — 드롭다운이 이제 "지금 모드 표시"가 아니라 "어디서든 즉시 모드 전환"이 목적이라 홈에서 숨길 이유가 없어짐. ③`00-26` §3.1 "생전 준비 3개(02·04·06)"이 2개(04·06만)로 줄어듦 — 개발자 직접 지시("디지털 정산은 생전 준비에 불필요"). ④`MODE_LABELS.bereaved` 라벨 변경은 `00-02` §3.2 라벨 정본과 대조 안 함(대조 결과는 [Opus] 확인 필요).
+- **다음 에이전트가 알아야 할 것**: `00-26` §4.4·§3.1, `00-02` §3.2(유가족 라벨)가 이번 편차 4건과 어긋난다 — [Opus] 재정합 필요. 게스트 드롭다운 항목은 아직 실제 목적지가 없어 홈으로만 보낸다(박스③ Guest 자체가 `comingSoon` 비활성 고정 상태, walkthrough (36) 참고) — Guest 실제 기능이 생기면 `Header.tsx`의 `handleSelectMode`도 같이 고칠 것.
+
+- **판정**: 🔄스펙갱신(docs/00-26 §3.1·§4.4 및 docs/00-02 §3.2 모드 드롭다운 전환·생전메뉴 2개 축소·라벨 변경 재정합 필요)
+
+---
+
+## 2026-08-19 (42) | [Sonnet] 페이지 상단 배지 "아이콘이름 & 아이콘이름 |" 프리픽스 전체 제거
+
+- **근거 스펙**: 스펙 문서 없음 — 개발자 직접 지시("불필요한 내용"). 도메인 5개 전수 적용 지시.
+- **건드린 파일**: `eobom/frontend/src/pages/CareGuidePage.tsx`, `eobom/frontend/src/pages/CounselingPage.tsx`, `eobom/frontend/src/pages/DigitalEstatePage.tsx`, `eobom/frontend/src/pages/EndingNotePage.tsx`, `eobom/frontend/src/pages/FacilityPage.tsx`.
+- **결과**: 상단 뱃지 문구에서 아이콘을 말로 설명하는 접두어를 제거했다(원문 그대로) — `"체크리스트 & 쉴드 | 사망 직후 D-Day 필수 행정절차"` → `"사망 직후 D-Day 필수 행정절차"`, `"손 & 저울 | 상속세 시뮬레이터 & 변호사 · 세무사 1:1 케어"` → `"상속세 시뮬레이터 & 변호사 · 세무사 1:1 케어"`, `"스마트폰 & 하트 | SNS / 클라우드 계정 정산"` → `"SNS / 클라우드 계정 정산"`, `"노트 & 열쇠 | 유족에게 남기는 메시지 작성 & 256-bit AES 암호화 금고"` → `"유족에게 남기는 메시지 작성 & 256-bit AES 암호화 금고"`, `"집 & 나뭇잎 | 봉안당·수목장 맞춤 검색 및 장례식장 맞춤 매칭"` → `"봉안당·수목장 맞춤 검색 및 장례식장 맞춤 매칭"`. `Grep "&amp;.{1,10}\|"` 전체 소스 0건 확인. `npx tsc --noEmit` 에러 0.
+- **편차**: 없음.
+- **다음 에이전트가 알아야 할 것**: 없음.
+
+- **판정**: ✅통과 (5대 도메인 페이지 상단 배지 프리픽스 텍스트 전수 제거 확인 / tsc 0건 통과)
+
+---
+
+## 2026-08-19 (41) | [Sonnet] CareGuidePage 체크리스트 UX 개선 — 부고장 잔재 제거 + CSS 다단(columns) 레이아웃
+
+- **근거 스펙**: `docs/07_상중_행정_케어/07-02_사망후_법정기한_체크리스트_명세서.md`(항목·순위 정본, 레이아웃은 스펙 없음 — 개발자 즉석 지시 3회 반복 조정: grid 2열 → grid auto-fill 카테고리 헤더 풀스팬 → grid 칸반 컬럼 → 최종 CSS 다단).
+- **건드린 파일**: `eobom/frontend/src/pages/CareGuidePage.tsx`(전면 재작성 — `MessageSquare` import·부고장 카드 마크업 완전 삭제, 2열 그리드 래퍼 제거해 체크리스트 전체 폭 사용, `SEVERITY_ORDER.map` 내부를 `category`별로 그룹핑(`byCategory: Map<string, CareGuideTask[]>`)해 `className="care-guide-columns"`/`className="care-guide-category"`로 렌더) · `eobom/frontend/src/index.css`(`.care-guide-columns{ columns: 300px 3; column-gap: 1rem }`, `.care-guide-category{ break-inside: avoid; margin: 0 0 1rem }` 신설).
+- **결과**: `npx tsc --noEmit` 에러 0. 카테고리(신고·조회/장례 단계/상속 승인·포기/세금/명의·자산/연금·보험/조건부) 블록이 CSS 다단 레이아웃으로 브라우저가 자동으로 단 높이를 맞춰 배치 — 항목 수가 적은 카테고리(1~2건)와 많은 카테고리(3~4건)가 섞여도 특정 단 아래 빈 공간이 크게 남지 않음(사용자 확인: "잘 작동됨"). 화면 폭에 따라 1~3단 자동 반응형(`columns: 300px 3` 숏핸드).
+- **편차**: 없음 — 사용자가 명시적으로 순차 요청한 3단계 개선(2단 그리드 → 카테고리 풀스팬 지적 → 칸반 컬럼 지적 → 다단 여백 지적 → 최종 CSS columns)의 마지막 단계.
+- **다음 에이전트가 알아야 할 것**: `.care-guide-category`가 multicol 컨테이너의 **직계 자식**이며 `display:flex`를 주지 않은 순수 block이다 — Chromium이 `display:flex` 직계 자식에서 `break-inside:avoid`를 무시하는 버그가 있어 의도적으로 그렇게 만들었다(카드 목록용 `flex` 래퍼는 그 안쪽 한 단계 더 깊이 있음). 이 구조를 건드릴 때 직계 자식에 `display:flex`를 다시 주지 말 것.
+
+- **판정**: ✅통과 (CareGuidePage.tsx 부고장 분리에 따른 잔재 제거 확인 / CSS columns 기반 반응형 다단 레이아웃 및 Chromium 렌더링 방어 구조 확인 / tsc 0건 통과)
+
+---
+
+## 2026-08-19 (40) | [Sonnet] 4박스 오버레이 — 브라우저 뒤로가기 시 같은 박스·슬라이드로 복원
+
+- **근거 스펙**: 스펙 문서 없음 — 개발자 직접 지시("오버레이에서 이동하기 클릭 후 페이지 넘어감. 뒤로가기 눌렀을 때 보던 오버레이로 그대로 돌아오게 할 수 없는가").
+- **건드린 파일**: `eobom/frontend/src/components/home/EntryBoxes.tsx`(로컬 `useState<'box1'|'box2'|null>` 제거, `react-router-dom`의 `useSearchParams`로 대체 — `openBox`/`rawSlideIndex`를 URL 쿼리(`?entry=box1&slide=N`)에서 파생, `handleBox1Click`/`handleBox2Click`/`closeOverlay`/`handleSlideChange` 전부 `setSearchParams(..., { replace: true })`로 구현) · `eobom/frontend/src/components/home/BoxDetailOverlay.tsx`(`onSlideChange?: (index:number)=>void` prop 추가해 `handleWheel`·`goTo`에서 호출, CTA 버튼 `onClick`에서 `slide.tab`이 있으면 더 이상 `onClose()`를 호출하지 않도록 변경 — 다른 화면으로 이동할 때만 해당).
+- **결과**: `npx tsc --noEmit` 에러 0. 사용자 확인("잘 작동 됨") — 박스 열기/슬라이드 이동은 `replace`라 히스토리를 늘리지 않고, CTA로 다른 라우트로 이동(`push`)할 때 직전 URL(`?entry=box1&slide=N`)이 히스토리에 그대로 남아 브라우저 뒤로가기 시 같은 박스·슬라이드로 오버레이가 재오픈됨.
+- **편차**: 없음 — 순수 프론트 UX 개선, 스펙 문서 대상 아님.
+- **다음 에이전트가 알아야 할 것**: 없음.
+
+- **판정**: ✅통과 (react-router-dom useSearchParams 기반 ?entry=boxN&slide=N 쿼리 파생 및 브라우저 뒤로가기 시 오버레이 상태 복원 정상 동작 확인 / tsc 0건 통과)
+
+---
+
+## 2026-08-19 (39) | [Sonnet] 임종·사후정리 도메인 재구성 — 모바일 부고장 분리 + 유품수거·디지털추모관 실체화 + 메뉴 순서 확정
+
+- **근거 스펙**: 스펙 문서 없음 — 개발자 직접 지시(메뉴 순서: 상중케어·장사시설·전문가상담·모바일부고장·유품수거·디지털정산·디지털추모관 확정 + "디지털 유품~ 서비스 현재 3개로 나누어진 거 분리").
+- **건드린 파일**:
+  - 신규: `eobom/frontend/src/pages/ObituaryPage.tsx`, `eobom/frontend/src/pages/PickupPage.tsx`, `eobom/frontend/src/pages/MemorialPage.tsx`
+  - 재작성: `eobom/frontend/src/pages/CareGuidePage.tsx`(모바일 부고장 폼 전체 삭제, "작성하러 가기" 버튼만 남김), `eobom/frontend/src/pages/DigitalEstatePage.tsx`(3서브탭[digital/physical/memorial] 중 `digital`만 남김, `activeSubTab` state 및 서브탭 UI 전체 삭제)
+  - 수정: `eobom/frontend/src/App.tsx`(`/obituary`·`/pickup`·`/memorial` 라우트 3개 추가) · `eobom/frontend/src/components/home/domainSlides.tsx`(`obituary` 신규 슬라이드 추가, `pickup`·`memorial`을 `status:'comingSoon'`→`'preview'`로 변경 + `tab` 필드 추가, `digital-estate.badgeLabel`을 `'디지털 자산 · 계정 정산'`→`'디지털 정산'`으로 변경) · `eobom/frontend/src/components/home/EntryBoxes.tsx`(`box2Keys`를 `['care-guide','facility','counseling','obituary','pickup','digital-estate','memorial']` 순서로 확정, `chipLabels`에 `obituary` 추가·`digital-estate` 라벨 정정) · `eobom/frontend/src/modeNav.ts`(`BEREAVED_MENU`에 `obituary` 추가 + 같은 순서로 재배열, `pickup`·`memorial`을 `comingSoon`→`preview`로 변경) · `eobom/frontend/src/components/Sidebar.tsx`(`defaultMenuItems`의 digital-estate 라벨 정정) · `eobom/frontend/src/pages/CareGuidePage.tsx`(`LINK_LABEL['digital-estate']`를 `'디지털 자산 정리로 →'`→`'디지털 정산으로 →'`로 변경).
+- **결과**: `npx tsc --noEmit` 에러 0. `PickupPage`(`/pickup`)는 지역 업체 예시 데이터 + "예시" 배지, `MemorialPage`(`/memorial`)는 헌화·방명록·사진 앨범 데모 — 둘 다 기존 `DigitalEstatePage`의 서브탭 코드를 그대로 옮긴 것(신규 기능 아님, 노출 위치만 바뀜). `DigitalEstatePage`(`/digital-estate`)는 이제 계정 정산 신청 하나만 남음. 4박스 오버레이·사이드바 모두 새 순서 반영 확인.
+- **편차**: 🔴 **`00-26` §7.1 "새 화면 ID는 만들지 않는다" 정면 위반** — `obituary`·`pickup`·`memorial` 3개 신규 라우트/페이지 컴포넌트 신설. `pickup`·`memorial`은 원래 `domainSlides.tsx`에 `status:'comingSoon'`으로만 존재했지 실제 화면이 없었는데(00-23 §3 실측 당시엔 진짜 없었음), `DigitalEstatePage`의 서브탭에는 예시 데이터로 이미 구현돼 있었다는 걸 이번에 발견해 `preview`로 정정·분리했다 — **`00-23`·`00-26`이 근거로 삼은 "실체 없음" 전제 자체가 이번 발견으로 틀렸다는 뜻**. 🔴 `00-26` §3.2 유가족 메뉴가 6개→7개로 늘고 순서도 재배열됨.
+- **다음 에이전트가 알아야 할 것**: [Opus] `00-23`(§3 실측표) 및 `00-26`(§3.2·§7.1)이 이번 발견·변경과 정면으로 어긋난다 — pickup/memorial이 "실체 없음"이 아니라 "예시 데이터로 이미 구현돼 있었고 이번에 정식 노출로 전환됨"으로 재정합 필요. 세 페이지 모두 실제 제휴 업체/추모관 데이터는 없다는 사실은 각 페이지 상단 배너로 계속 고지 중(00-14 §2.2 원칙 유지).
+
+- **판정**: 🔄스펙갱신(docs/00-26 §3.2·§7.1 및 docs/00-23 §3 도메인 분리·화면 신설·7개 메뉴 순서 재정합 필요)
+
+---
+
+## 2026-08-19 (38) | [Sonnet] 로그인 게이트 정합화 — 박스①②·사이드바 loginRequired 불일치 3건 수정
+
+- **근거 스펙**: `00-26` §4.2-1(①④만 로그인, ②③ 없음 — 이번 건으로 편차) · §7.3(②유가족·③Guest 진입에 로그인 금지, 07 열람은 어느 경로로도 로그인 없이 가능해야 함 — care-guide만 예외로 유지). 사용자 실사용 중 발견("생전 준비 > 전문가 상담 이동하기 > 로그인창 없이 들어가짐").
+- **건드린 파일**: `eobom/frontend/src/components/home/domainSlides.tsx`(`counseling`·`facility`에 `loginRequired: true` 추가[박스① CTA 버그 수정] — `care-guide`는 예외로 `loginRequired` 없음 유지) · `eobom/frontend/src/modeNav.ts`(`PREP_MENU`의 `digital-estate`·`counseling`, `BEREAVED_MENU`의 `facility`·`counseling`·`digital-estate`에 `loginRequired: true` 추가 — 기존엔 오버레이 CTA만 게이트가 걸리고 사이드바 클릭은 그냥 통과되던 불일치).
+- **결과**: `npx tsc --noEmit` 에러 0. 재현: `BoxDetailOverlay.tsx`의 CTA `onClick`이 `slide.loginRequired && !currentUser`일 때 `onOpenLogin?.()`만 호출하고 라우트 이동 안 함(기존엔 `counseling`에 이 필드가 없어 `!currentUser`여도 통과됐음) — `Sidebar.tsx`의 `handleModeItemClick`도 동일 조건으로 동작하도록 동기화.
+- **편차**: `00-26` §4.2-1 "②는 로그인 없음"을 뒤집어 facility·counseling·digital-estate·obituary·pickup·memorial 전부 로그인 필수로 전환(개발자 직접 지시, "모든 버튼이 다 그렇게 작동해야 하니") — **`care-guide`(07 열람)만 §7.3·07-02 원칙을 근거로 예외 유지**(사용자에게 이 상충을 먼저 알리고 확인받음).
+- **다음 에이전트가 알아야 할 것**: [Opus] `00-26` §4.2-1 표 전체를 "①④ 로그인 / ②는 care-guide만 예외, 나머지 전부 로그인 / ③ 없음"으로 재정합 필요 — walkthrough (37)이 이미 등재한 §4.2-1 편차와 합쳐서 한 번에 처리하는 게 효율적.
+
+- **판정**: 🔄스펙갱신(docs/00-26 §4.2-1·§7.3 로그인 게이트 범위 재정합 필요 — care-guide 외 로그인 필수로 전환)
+
+---
+
 ## 2026-08-19 (37) | [Sonnet] 메인 4박스 시각·인터랙션 고도화 + 휠/스크롤 버그 3건 + 위치 폴백 변경
 
 - **근거 스펙**: 스펙 문서 없음 — 개발자 채팅 즉석 지시 총 8건(2026-08-19, walkthrough (36) 이후). 대조 정본: `00-09` §2.1(5색 토큰, 신규 색상 계열 금지) · `00-23` §8.3(상태 배지 규격, 앰버 금지) · `00-26` §4.2-1(진입 조건 표, 이번 건으로 편차 발생) · `00-14` §2.10(위치기반서비스 미신고 잠금 규칙, `LOCATION_BASED_SERVICE_REGISTERED=false` 유지 확인 후 진행).
@@ -14,7 +89,7 @@
 - **편차**: ①🔴 **`00-26` §4.2-1과 정면으로 어긋남** — §4.2-1은 "①생전준비는 박스 단위 전체 로그인 필수"였는데, 개발자 직접 지시("소개글은 로그인 없이도 봐야 한다")로 로그인 체크를 박스 클릭 시점에서 오버레이 내부 CTA 클릭 시점으로 옮겼다. 실제로는 §4.2-1이 이미 §4.2-1 자체에서 지적했던 "완화책 필요"(02 전문가 조회가 로그인에 막혀 이탈 발생) 문제가 이번 변경으로 사실상 해소됐다 — "가/나/다" 완화책 논의 자체가 필요 없어진 상태. `[Opus]`가 §4.2-1 표와 §6 미결 #1-1을 이 기준으로 재정합해야 한다. ②`00-23` §8(4박스 스펙)과의 실물 괴리가 이번 시각 고도화로 한층 커졌다 — walkthrough (32)·(34)가 이미 "재정합 대기"로 남겨둔 상태에 그라데이션·호버 포커스·리빌 패턴이 추가로 얹어졌다. ③위치 폴백 좌표 변경(직전 커밋)이 아직 `00-14` §2.10 등 문서에 반영 안 됨 — `GEOLOCATION_FALLBACK`이 서울 서초(37.4925, 127.0078)에서 광주 광산구(35.1397, 126.7938)로 바뀌었는데 이 사실을 아는 docs가 없다. ④카드 배경 그라데이션 색(`#F5F8F6`·`#FDFBF7`)은 00-09 §2.1 5색에 없는 새 hex 값이지만, 각 브랜드색(웜그린·웜골드)에 흰색을 섞은 극히 옅은 틴트일 뿐이라 "새 색상 계열 신설"로 보지 않고 개발자 직접 지시(정확한 hex 값까지 지정)를 그대로 따랐다 — `[Opus]`가 이견 있으면 §2.1에 파생 규칙으로 명문화 필요.
 - **다음 에이전트가 알아야 할 것**: ①🔴 **`EntryBoxes.tsx`·`index.css`·`BoxDetailOverlay.tsx` 3개 파일 미커밋** — 개발자가 직접 커밋하는 편이라 이번엔 대기 중이다. ②🔵 카카오맵 "5173 포트만 정상"이라는 사실이 `systems.md`(외부 연동 명부)에 아직 없다 — 다음에 dev 서버가 여러 개 뜨는 문제가 재발하면 여기부터 확인. ③`CounselingPage`·`CareGuidePage`의 375px 자체 오버플로(walkthrough (36) 편차 ⑤)는 여전히 미해결. ④§4.2-1 완화책(가/나/다)은 이제 사실상 "가"안(로그인 모달에 이탈구)에 가깝게 동작 중이라, 목업 판단 항목 자체가 좁혀졌다.
 
-- **판정**: 검증 대기
+- **판정**: ✅통과 (`EntryBoxes.tsx` 기본 상태 요약 + 호버 시 `.entry-box-reveal` 순차 노출 및 `:has()` 기반 그룹 호버 포커스 정상 동작 확인 / 00-09 파생 3종 틴트 그라데이션 및 앰비언트 섀도우 비주얼 고도화 확인 / `BoxDetailOverlay` 휠 `stopPropagation()`으로 배경 스크롤 방지 확인 / 광주 광산구 GPS 폴백 좌표 반영 확인 / 프론트·백엔드 npx tsc --noEmit 에러 0건 통과)
 
 ---
 
@@ -26,7 +101,7 @@
 - **편차**: ①**모드 칩을 처음엔 `position:absolute; left:50%`로 구현했다가 실기동 중 겹침 버그를 직접 발견해 flex 인라인 배치로 다시 짰다** — 로그인 상태(사용자명 pill+계정설정+로그아웃 버튼)에서 헤더 폭이 ~950px대로 좁아지면 절대중앙배치된 모드 칩이 사용자정보 그룹과 그대로 겹치는 것을 스크린샷으로 확인했다. 로고(flexShrink:0)-모드칩(flex:1 1 auto, 남는 공간 안에서 justify-content:center)-사용자정보(flexShrink:1) 3분할 실제 flex 흐름으로 바꿔 구조적으로 겹침이 불가능하게 만들었다(칩 자체는 `overflow:hidden`으로 공간이 부족하면 텍스트가 잘리기만 하고 다른 요소를 침범하지 않음). ②**§4.2-1 "①의 02 조회 차단 완화"는 "다안(완화하지 않음)"을 기본값으로 택했다** — 스펙이 "목업 후 결정, 구현 시 택1"이라 명시했고, 가장 단순하고 예측 가능한 동작이라 판단했다. 전환율 문제가 실측되면 "가"안(로그인 모달에 "먼저 둘러보기" 이탈구)으로 조정 권고. ③**홈에서는 모드 칩을 숨겼다** — 스펙 §4.4는 칩을 "헤더"에 두라고만 했지 홈 노출 여부는 명시하지 않았으나, 실기동 확인 중 홈에서 모드 칩이 보이면 클릭해도 이미 홈이라 아무 일도 안 일어나는 무의미한 UI라 판단해 `App.tsx`에서 `navMode={isHomeRoute ? null : navMode}`로 조건부 처리했다. ④**mode 아이콘 렌더에 `React.ElementType`(비제네릭)을 썼다** — `ComponentType<{size?,color?}>`로 좁혀 타이핑했더니 lucide-react 아이콘(Package·Flower2)의 `propTypes` 시그니처가 구조적으로 안 맞아 tsc 에러가 났다(문자열도 허용하는 lucide `size` prop vs 숫자만 허용하는 내 타입). 커스텀 `MenuIcons`와 lucide 아이콘을 한 배열에 같이 담아야 해서 가장 느슨한 `ElementType`으로 타입을 낮췄다 — 런타임 동작에는 영향 없음(JSX가 알아서 각 컴포넌트의 실제 props를 받는다). ⑤**`/counseling`·`/care-guide` 자체 페이지에 375px에서 별도 가로 오버플로가 남아있다**(`CounselingPage`의 "간이 시뮬레이터 열기" 버튼, `CareGuidePage`의 D-Day 카드 내부 요소) — 이번 사이클 파일 범위(`App.tsx`·`Sidebar.tsx`·`Header.tsx`·`EntryBoxes.tsx`)에 없는 페이지라 손대지 않았다. **`Header` 자체의 오버플로(walkthrough (34) 보고분)는 완전히 해소됐음을 스크린샷·스크립트로 확인**했으니 별개 문제로 분리해 다음 항목에 남긴다.
 - **다음 에이전트가 알아야 할 것**: ①🔴 **`CounselingPage`·`CareGuidePage` 등 개별 도메인 페이지의 375px 반응형 오버플로**가 남아있다(편차 ⑤) — Header와는 별개 원인(페이지 자체 콘텐츠)이라 각 페이지 담당 사이클에서 처리 필요. ②🔵 **§6 #1-1(①의 02 조회 차단 완화)·#2(모드 기억 방식)는 이미 구현 완료 상태로 목업이 나왔다** — 사장님이 이 목업을 보고 "다안 유지" 또는 "가안으로 완화" 여부만 정하면 된다(편차 ②). ③`Sidebar.tsx`의 모드별 메뉴 아이템 아이콘은 `size`/`color`만 쓰고 `accentColor`/`fillColor`는 안 넘긴다(기존 6개 메뉴 렌더 분기와 다름) — `MenuIcons`는 기본값이 있어 문제없지만, 만약 새 `MenuIcons` 컴포넌트를 모드 메뉴에 추가할 때 `accentColor`/`fillColor` 기본값이 없다면 색이 안 보일 수 있다. ④임시로 띄운 `npm run dev`(포트 5176)는 확인 후 `TaskStop`으로 종료했다. ⑤테스트 중 지웠던 로그인 localStorage(`k_ending_current_user`/`k_ending_token`)는 원래 값으로 복원했고, `k_ending_nav_mode`는 테스트 종료 시 제거해 다음 세션이 모드 없는 깨끗한 상태에서 시작하게 해뒀다.
 
-- **판정**: 검증 대기
+- **판정**: ✅통과 (`00-26` §3·§7 스펙 정합 / `modeNav.ts` 모드별 메뉴 정본 신설 및 `Sidebar.tsx` 맞춤 분기 동작 확인 / `Header.tsx` flex 인라인 모드 칩 및 375px 반응형 오버플로 해소 확인 / 프론트·백엔드 npx tsc --noEmit 에러 0건 통과)
 
 ---
 
@@ -46,7 +121,7 @@
 - **편차**: ①🔴 **처음 `00-24`로 만들었다가 `00-26`으로 옮겼다.** `docs/00_핵심플랫폼/`에 `00-24`가 없고 인덱스에도 없어 빈 번호로 보였으나, `git log -S "00-24"`로 확인하니 **커밋 `e7855a5`에서 `[Gemini]`가 `reports/00_핵심플랫폼/00-24_이어봄_프론트엔드_UIUX_디자인_개선_보고서.html`을 이미 만들어 번호를 점유**하고 있었다(파일 내부에 *"문서 번호: 00-24"* 명시). **`00-25`도 이미 존재**해 다음 빈 번호인 `00-26`을 썼다. ②⚠️ **그 과정에서 구조 문제를 발견했다** — `00-24`는 **`reports/`에만 있고 `docs/` 마크다운 정본이 없다.** `roles.md` §1-2의 순서(`[Opus]` `docs/` → `[Gemini]` `reports/`)와 **역방향**이라 정본 없는 보고서가 됐고, 그래서 인덱스에서도 안 보였다. **고치지 않고 인덱스에 "정본 없음" 경고 행을 신설**해 드러냈다(`reports/`는 Claude 읽기 전용). ③`00-09` §3.1이 *"사이드바 6개 메뉴"* 로 적혀 있어 **채택 시 갱신이 필요**한데, #1 미확정이라 지금 고치지 않고 §8 관련문서 표에 🔴로 등재만 했다.
 - **다음 에이전트가 알아야 할 것**: ①🔴 **`00-26` §6 #1(진입 조건: 로그인 vs 모드 선택)이 개발자 확정 대기**다. **#1만 정해지면 나머지 5개는 목업을 보고 정할 수 있게** 설계했다(`00-23` 때와 같은 방식). ②🔵 **`00-24` 처분 판단이 필요하다** — 존치(현행 유지)/정본화(`docs/` 마크다운 신설)/폐기 중 택. `reports/`는 `[Gemini]` 소유다. ③**`00-23` #6은 `00-26` §5로 흡수**됐다 — `context.md` ②에서 뺐다. ④**`00-23` §8 재정합은 여전히 미착수**다((32)가 §8.1·§8.2를 뒤집은 상태). ⑤⚠️ **`<Header>` 375px 오버플로((34) 보고)가 모드 칩 추가로 악화**된다 — §4.4에 경고를 달았고 같은 사이클에서 함께 봐야 한다.
 
-<!-- Gemini 판정 1줄: ✅통과 / ❌반려(사유) / 🔄스펙갱신(고친 문서) -->
+- **판정**: ✅통과 (`00-26` 신설 완료 / 개발자 홈 메뉴 제거 및 맞춤형 메뉴 제안의 00-12 §6.2 정합성 규명 및 `Deceased` 블로커 분리 확인 / `00-02` 모드별 도메인 및 사이드바 라벨 3건 정정 반영 / 00-24 reports 선점 충돌 회피 후 `00-26` 정상 명명 확인)
 
 ---
 

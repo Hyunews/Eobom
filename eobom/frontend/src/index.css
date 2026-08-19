@@ -147,6 +147,23 @@ body {
   margin-top: 1.25rem;
 }
 
+/* CareGuidePage §체크리스트 — 08-19 13차. CSS Grid는 행 단위 배치라 카테고리별 항목 수가
+   달라지면(예: 신고·조회 1건 vs 상속 승인·포기 4건) 짧은 컬럼 아래에 빈 공간이 그대로 남는다.
+   반면 CSS 다단(columns)은 신문처럼 각 단의 총 높이를 브라우저가 자동으로 맞춰 블록을 채워
+   넣어서 여백이 훨씬 줄어든다. 카테고리 블록은 break-inside: avoid로 단이 바뀔 때 쪼개지지
+   않게 막는다(직계 자식은 flex를 쓰지 않는다 — flex 컨테이너가 multicol 직계 자식일 때
+   break-inside가 무시되는 크로미움 버그가 있어, 카드 목록용 flex 래퍼는 한 단계 더 안쪽에 둔다). */
+.care-guide-columns {
+  columns: 300px 3;
+  column-gap: 1rem;
+}
+
+.care-guide-category {
+  break-inside: avoid;
+  -webkit-column-break-inside: avoid;
+  margin: 0 0 1rem;
+}
+
 /* Dashboard Cards */
 .card {
   background-color: var(--card-bg);

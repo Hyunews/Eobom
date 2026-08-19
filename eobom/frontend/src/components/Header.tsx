@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { UserCheck, LogIn, LogOut, Settings, ChevronDown } from 'lucide-react';
 import { EobomLogo } from './EobomLogo';
-import { MODE_LABELS, type NavMode } from '../modeNav';
+import { MODE_LABELS, MODE_MENUS, type NavMode } from '../modeNav';
 
 interface HeaderProps {
   setActiveTab: (tab: string) => void;
@@ -10,13 +10,56 @@ interface HeaderProps {
   currentUser: string | null;
   onLogout: () => void;
   navMode?: NavMode | null;
+  onSetMode?: (mode: NavMode) => void;
 }
 
-// 00-26 §4.4 A안 — 현재 모드를 알려주고 클릭 시 홈(4박스)으로 돌아가 다른 모드를 고를 수 있게 하는 칩.
-// 로고 클릭도 항상 홈으로 가므로(§4.4 C안, 아래 로고 onClick과 동일) 모드 칩은 "지금 모드가 뭔지
-// 알려주는" 역할이 실질적으로 더 크다. ⚠️ walkthrough (34)가 보고한 375px 헤더 가로 오버플로를
-// 이번에 함께 해소한다 — 모바일에서는 라벨 텍스트를 숨기고 아이콘만 남긴다(index.css 미디어쿼리).
-export const Header: React.FC<HeaderProps> = ({ setActiveTab, onOpenLogin, onOpenAccountSettings, currentUser, onLogout, navMode }) => {
+// 08-19 14차(개발자 직접 지시) — 기존엔 "지금 모드가 뭔지 알려주는" 칩일 뿐이었고(클릭하면
+// 홈으로 보내 4박스에서 다시 고르게 함), 위치도 로고와 우측 버튼 사이 중앙이었다. 이번엔
+// 로고 바로 오른쪽으로 옮기고, 실제로 눌러서 생전 준비/임종 및 사후 정리/게스트 세 군데를
+// 바로 오갈 수 있는 드롭다운으로 바꿨다 — 홈을 거치지 않고 모드를 즉시 전환한다.
+// "게스트"는 아직 실제 화면이 없어(EntryBoxes 박스③ 비활성 고정) 홈으로 보낸다.
+type ModeDropdownKey = NavMode | 'guest';
+const MODE_DROPDOWN_ITEMS: Array<{ key: ModeDropdownKey; label: string }> = [
+  { key: 'prep', label: '생전 준비' },
+  { key: 'bereaved', label: '임종 및 사후 정리' },
+  { key: 'guest', label: '게스트' },
+];
+
+export const Header: React.FC<HeaderProps> = ({ setActiveTab, onOpenLogin, onOpenAccountSettings, currentUser, onLogout, navMode, onSetMode }) => {
+  const [isModeMenuOpen, setIsModeMenuOpen] = useState(false);
+  const modeMenuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!isModeMenuOpen) return;
+    const handleOutside = (e: MouseEvent) => {
+      if (modeMenuRef.current && !modeMenuRef.current.contains(e.target as Node)) {
+        setIsModeMenuOpen(false);
+      }
+    };
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setIsModeMenuOpen(false);
+    };
+    document.addEventListener('mousedown', handleOutside);
+    window.addEventListener('keydown', handleEscape);
+    return () => {
+      document.removeEventListener('mousedown', handleOutside);
+      window.removeEventListener('keydown', handleEscape);
+    };
+  }, [isModeMenuOpen]);
+
+  const handleSelectMode = (key: ModeDropdownKey) => {
+    setIsModeMenuOpen(false);
+    if (key === 'guest') {
+      setActiveTab('home');
+      return;
+    }
+    onSetMode?.(key);
+    const firstActiveItem = MODE_MENUS[key].find((item) => item.status === 'active');
+    setActiveTab(firstActiveItem ? firstActiveItem.id : 'home');
+  };
+
+  const modeMenuLabel = navMode ? MODE_LABELS[navMode] : '메뉴';
+
   return (
     <header style={{
       backgroundColor: 'var(--primary-color)',
@@ -42,36 +85,76 @@ export const Header: React.FC<HeaderProps> = ({ setActiveTab, onOpenLogin, onOpe
           <EobomLogo variant="header" height={42} />
         </div>
 
-        {/* 현재 모드 칩 — 로고와 우측 그룹 사이 남는 공간 안에서 가운데 정렬(절대배치 아님, 겹침 방지).
-            로그인 상태의 사용자명 pill+버튼들과 함께 있어도 겹치지 않도록 실제 flex 흐름에 둔다. */}
-        <div style={{ flex: '1 1 auto', minWidth: 0, display: 'flex', justifyContent: 'center' }}>
-          {navMode && (
-            <button
-              type="button"
-              onClick={() => setActiveTab('home')}
-              title="클릭하면 홈에서 다른 모드를 고를 수 있습니다"
+        {/* 모드 드롭다운 — 로고 바로 오른쪽. 생전 준비 / 임종 및 사후 정리 / 게스트를
+            홈을 거치지 않고 즉시 오갈 수 있다(08-19 14차). */}
+        <div ref={modeMenuRef} style={{ position: 'relative', flexShrink: 0, marginLeft: '0.6rem' }}>
+          <button
+            type="button"
+            onClick={() => setIsModeMenuOpen((v) => !v)}
+            aria-expanded={isModeMenuOpen}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.35rem',
+              backgroundColor: 'rgba(255,255,255,0.12)',
+              border: '1px solid rgba(255,255,255,0.25)',
+              borderRadius: '20px',
+              padding: '0.4rem 0.75rem',
+              color: '#FFFFFF',
+              fontSize: '0.85rem',
+              fontWeight: 700,
+              cursor: 'pointer',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            <span className="header-mode-chip-label">{modeMenuLabel}</span>
+            <ChevronDown size={14} style={{ flexShrink: 0, transform: isModeMenuOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s ease' }} />
+          </button>
+
+          {isModeMenuOpen && (
+            <div
               style={{
-                minWidth: 0,
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.35rem',
-                backgroundColor: 'rgba(255,255,255,0.12)',
-                border: '1px solid rgba(255,255,255,0.25)',
-                borderRadius: '20px',
-                padding: '0.4rem 0.75rem',
-                color: '#FFFFFF',
-                fontSize: '0.85rem',
-                fontWeight: 700,
-                cursor: 'pointer',
-                whiteSpace: 'nowrap',
+                position: 'absolute',
+                top: 'calc(100% + 0.5rem)',
+                left: 0,
+                minWidth: '190px',
+                backgroundColor: '#FFFFFF',
+                borderRadius: '12px',
+                boxShadow: '0 12px 32px rgba(0,0,0,0.2)',
                 overflow: 'hidden',
+                zIndex: 1100,
               }}
             >
-              <span className="header-mode-chip-label">{MODE_LABELS[navMode]} 모드</span>
-              <ChevronDown size={14} style={{ flexShrink: 0 }} />
-            </button>
+              {MODE_DROPDOWN_ITEMS.map((item) => {
+                const isActive = item.key === navMode;
+                return (
+                  <button
+                    key={item.key}
+                    type="button"
+                    onClick={() => handleSelectMode(item.key)}
+                    style={{
+                      display: 'block',
+                      width: '100%',
+                      textAlign: 'left',
+                      padding: '0.75rem 1rem',
+                      fontSize: '0.9rem',
+                      fontWeight: isActive ? 800 : 600,
+                      color: isActive ? 'var(--point-color)' : 'var(--text-main)',
+                      backgroundColor: isActive ? 'var(--secondary-color)' : 'transparent',
+                      border: 'none',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    {item.label}
+                  </button>
+                );
+              })}
+            </div>
           )}
         </div>
+
+        {/* 로고·모드 드롭다운과 우측 그룹 사이 여백 채우기 */}
+        <div style={{ flex: '1 1 auto', minWidth: 0 }} />
 
         {/* 우측 로그인 / 회원가입 상태 버튼 */}
         <div style={{ flexShrink: 1, minWidth: 0, display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
