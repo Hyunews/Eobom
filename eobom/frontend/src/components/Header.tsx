@@ -87,11 +87,12 @@ export const Header: React.FC<HeaderProps> = ({ setActiveTab, onOpenLogin, onOpe
 
         {/* 모드 드롭다운 — 로고 바로 오른쪽. 생전 준비 / 임종 및 사후 정리 / 게스트를
             홈을 거치지 않고 즉시 오갈 수 있다(08-19 14차). */}
-        <div ref={modeMenuRef} style={{ position: 'relative', flexShrink: 0, marginLeft: '0.6rem' }}>
+        <div ref={modeMenuRef} className="header-mode-wrap" style={{ position: 'relative', flexShrink: 0, marginLeft: '0.6rem' }}>
           <button
             type="button"
             onClick={() => setIsModeMenuOpen((v) => !v)}
             aria-expanded={isModeMenuOpen}
+            className="header-mode-trigger"
             style={{
               display: 'flex',
               alignItems: 'center',

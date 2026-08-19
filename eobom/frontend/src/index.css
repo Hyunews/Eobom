@@ -346,6 +346,17 @@ body {
   .header-mode-chip-label {
     display: none;
   }
+
+  /* walkthrough (43)이 로고 옆에 모드 드롭다운을 추가하면서 (36)에서 해소했던 375px
+     오버플로가 다시 열림 — 라벨은 이미 위에서 숨지만 버튼 자체의 여백이 남아있던 문제.
+     아이콘(쉐브론)만 남기고 패딩·간격·좌측 여백을 압축한다. */
+  .header-mode-wrap {
+    margin-left: 0.3rem;
+  }
+  .header-mode-trigger {
+    padding: 0.4rem 0.5rem;
+    gap: 0;
+  }
 }
 
 /* ── 메인 4박스(EntryBoxes) 동적 포커스 인터랙션 + 비주얼 고도화 (2026-08-19) ──

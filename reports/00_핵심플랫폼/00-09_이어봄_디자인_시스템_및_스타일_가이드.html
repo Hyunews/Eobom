@@ -390,15 +390,35 @@
 <li><strong>Max Desktop Container</strong>: <code>max-width: 1440px</code>, <code>margin: 0 auto</code>, <code>padding: 1.75rem 24px</code> (세로 여백 → §2.4)</li>
 <li><strong>Desktop Layout Structure</strong>:</li>
 </ul>
-<p>  * <strong>Top Header (100% Width, 고정 72px)</strong>: 브랜드 로고 + 로그인/회원가입 프로필 칩</p>
-<p>  * <strong>Left Collapsible Sidebar</strong>: <strong>6개 메뉴</strong>(메인 + 5대 도메인) 반응형 사이드바. <code>position: fixed</code>, 기본 <code>72px</code> → 마우스 호버 시 <code>240px</code> 확장. 메뉴 순서는 <strong>도메인 번호와 일치</strong>해야 합니다(→ <code>00_DOCS_INDEX.md</code> 도메인 번호 체계).</p>
+<p>  * <strong>Top Header (100% Width, 고정 72px)</strong>: 브랜드 로고 + <strong>모드 드롭다운</strong>(로고 바로 오른쪽) + 로그인/회원가입 프로필 칩. 🔄 <strong>드롭다운은 2026-08-19 신설</strong> — 규격·동작 정본은 <code>00-26</code> §4.4.</p>
+<p>  * <strong>Left Collapsible Sidebar</strong>: 반응형 사이드바. <code>position: fixed</code>, 기본 <code>72px</code> → 마우스 호버 시 <code>240px</code> 확장. 🔄 <strong>메뉴 구성은 2026-08-19부터 &quot;모드별&quot;입니다 — 아래 🔄 블록.</strong></p>
 <p>  * <strong>Bottom-Right Floating FAB</strong>: ❌ <strong>없습니다</strong> — 아래 <span class="tag blue">🔵</span> 블록.</p>
-<p>  * <strong>메인 홈(<code>SCR-001</code>) 진입 구조</strong>: 히어로 + <strong>4박스 진입 블록</strong> + 에필로그/푸터의 풀페이지 스냅 3섹션. <span class="tag red">🔴</span> <strong>정본은 <code>00-23</code>이며, 현재 <code>00-23</code> §8이 실물과 어긋나 재정합 대기 상태</strong>입니다(walkthrough (32)) — 이 절에 중복 서술하지 않습니다.</p>
+<p>  * <strong>메인 홈(<code>SCR-001</code>) 진입 구조</strong>: 히어로 + <strong>4박스 진입 블록</strong> + 에필로그/푸터의 풀페이지 스냅 3섹션. <strong>정본은 <code>00-23</code></strong> — 이 절에 중복 서술하지 않습니다. <span class="tag green">✅</span> <strong>2026-08-19 재정합 완료</strong> — 박스 안 <strong>항목 목록</strong>은 <code>00-26</code> §3.1·§3.2로 이관됐고, <strong>레이아웃·상태 배지 규격은 <code>00-23</code> §8.3·§8.5</strong>가 계속 정본입니다.</p>
 <blockquote class="info-quote"><span class="tag blue">🔵</span> <strong>2026-08-19 정정 — 우하단 FAB은 제거됐습니다.</strong><br/>
 종전 이 목록은 *&quot;Bottom-Right Floating FAB: 🚨 24시간 긴급 콜&quot;* 을 구조 요소로 명시했으나, 해당 버튼은 <strong>2026-08-18 개발자 지시로 전 페이지에서 제거</strong>됐고 <code>FloatingEmergency.tsx</code>도 삭제됐습니다(walkthrough (32)).<br/>
 <strong>경위는 2단계입니다</strong> — ①<code>00-14</code> §2-4가 *&quot;24시간 긴급콜&quot;* 을 받을 사람이 없는 약속으로 판정해 *&quot;장례식장 바로 찾기&quot;*(도메인 01 시설 검색)로 정정(2026-08-14) → ②그 대체 버튼마저 제거(2026-08-18).<br/>
 <span class="tag warn">⚠️</span> <strong><code>/facility</code>로 가는 단축 진입 경로가 하나 사라졌다는 뜻</strong>입니다. 재도입 여부는 개발자 판단 사항으로 남아 있습니다.</blockquote>
-<blockquote class="info-quote"><strong>고정 크기(헤더 72px, 사이드바 72/240px)는 여백이 아니라 구조값입니다</strong> — §2.4 밀도 조정 대상이 아닙니다. 사이드바 폭은 <code>main-wrapper</code>의 <code>margin-left</code>와 짝을 이루므로 한쪽만 바꾸면 레이아웃이 깨집니다.</blockquote>
+<blockquote class="info-quote">## 🔄 2026-08-19 정정 — <strong>사이드바는 &quot;6개 고정&quot;이 아니라 &quot;모드별&quot;입니다.</strong><br/>
+종전 이 절은 *&quot;<strong>6개 메뉴</strong>(메인 + 5대 도메인), 메뉴 순서는 <strong>도메인 번호와 일치</strong>&quot;* 로 적혀<br/>
+있었습니다. <strong>모드별 네비게이션 개편(<code>00-26</code>)으로 둘 다 바뀌었습니다.</strong></blockquote>
+<p>&gt;</p>
+<blockquote class="info-quote">| 상태 | 메뉴 | 정본 |<br/>
+| :--- | :--- | :--- |<br/>
+| <strong>모드 없음</strong>(직접 URL·북마크 진입) | <strong>6개</strong> — 메인 + 01·02·04·06·07 | <code>Sidebar.tsx</code> <code>defaultMenuItems</code> |<br/>
+| <strong>① 생전 준비 모드</strong> | <strong>2개</strong> — 06 · 02 | <code>modeNav.ts</code> <code>PREP_MENU</code> · <code>00-26</code> §3.1 |<br/>
+| <strong>② 임종 및 사후 정리 모드</strong> | <strong>7개</strong> — 07 · 01 · 02 · 부고장 · 03 · 04 · 05 | <code>modeNav.ts</code> <code>BEREAVED_MENU</code> · <code>00-26</code> §3.2 |<br/>
+| <code>/partner</code> · <code>/admin</code> | ❌ 사이드바 없음 | <code>isPortalRoute</code>(<code>00-06</code> §7.4) |</blockquote>
+<p>&gt;</p>
+<blockquote class="info-quote"><span class="tag red">🔴</span> ***&quot;메뉴 순서 = 도메인 번호&quot;* 규칙은 유가족 모드에서 폐기됐습니다.**<br/>
+유가족 메뉴는 <strong>유족이 겪는 시간 순</strong>(장례 → 행정 → 정리 → 추모)으로 배열됩니다 —<br/>
+근거는 <code>07-02</code>의 *&quot;기한 순이 아니라 판단 순, 되돌릴 수 없는 것부터&quot;* 입니다.<br/>
+<strong>디자인 일관성보다 사별 직후 사용자의 판단 순서가 우선</strong>이라는 판단이며, <code>00-26</code> §3.2가 정본입니다.<br/>
+<span class="tag green">✅</span> <strong>모드 없음(6개)·생전 준비(2개)에서는 도메인 번호 순이 그대로 유효</strong>합니다.</blockquote>
+<p>&gt;</p>
+<blockquote class="info-quote"><span class="tag warn">⚠️</span> <strong>이 절에 메뉴 목록을 다시 적지 마십시오</strong> — 항목이 바뀔 때마다 <code>00-26</code>과 어긋납니다.<br/>
+여기는 <strong>&quot;모드에 따라 달라진다&quot;는 구조</strong>만 적고, 목록은 <code>00-26</code> §3을 참조합니다.</blockquote>
+<blockquote class="info-quote"><strong>고정 크기(헤더 72px, 사이드바 72/240px)는 여백이 아니라 구조값입니다</strong> — §2.4 밀도 조정 대상이 아닙니다. 사이드바 폭은 <code>main-wrapper</code>의 <code>margin-left</code>와 짝을 이루므로 한쪽만 바꾸면 레이아웃이 깨집니다.<br/>
+<span class="tag red">🔴</span> <strong>다만 헤더 72px는 모바일(375px)에서 가로 오버플로가 재발한 상태입니다</strong>(<code>00-26</code> §6 #9) — 로고 + 모드 드롭다운 + 프로필 칩이 한 줄에 들어가지 않습니다. <strong>높이 72px는 구조값이므로 유지하되, 가로 배치는 모바일에서 축약이 필요합니다</strong>(권고: 드롭다운을 아이콘만 노출). <code>[Sonnet]</code> 작업 중 — 확정되면 이 줄을 실제 처리 방식으로 교체할 것.</blockquote>
 <ul>
 <li><strong>Responsive Breakpoints</strong>:</li>
 </ul>
