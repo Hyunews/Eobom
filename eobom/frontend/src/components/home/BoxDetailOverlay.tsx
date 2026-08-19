@@ -47,6 +47,9 @@ export const BoxDetailOverlay: React.FC<BoxDetailOverlayProps> = ({
 
     const handleWheel = (e: WheelEvent) => {
       e.preventDefault();
+      // 이 오버레이가 HomePage의 풀페이지 스크롤 컨테이너 안에 DOM상 중첩돼 있어, stopPropagation
+      // 없이는 같은 휠 이벤트가 부모로 버블링돼 뒤에 가려진 배경(4박스 섹션)까지 같이 스크롤됐다.
+      e.stopPropagation();
       if (isScrollingRef.current) return;
 
       const direction = e.deltaY > 0 ? 1 : -1;

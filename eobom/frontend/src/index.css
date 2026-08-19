@@ -24,6 +24,12 @@
   --transition-speed: 0.3s;
   --box-shadow: 0 8px 30px rgba(26, 43, 76, 0.06);
   --box-shadow-hover: 0 12px 40px rgba(26, 43, 76, 0.12);
+
+  /* 메인 4박스(EntryBoxes) 카드 배경 그라데이션 종점 — 00-09 §2.1 5색 토큰에서 파생한
+     아주 옅은 틴트만 쓴다(새 색상 계열 신설 아님). 슬레이트는 이미 쓰던 회색 토큰(#F1F5F9) 재사용. */
+  --box-tint-green-end: #F5F8F6;
+  --box-tint-gold-end: #FDFBF7;
+  --box-tint-slate-end: #F1F5F9;
 }
 
 * {
@@ -287,10 +293,12 @@ body {
   }
 }
 
-/* 박스①②(상단, 큰 카드)/③④(하단, 높이 약 절반) 위계 — 768px 미만은 스택이라 강제 높이를 걸지 않는다 */
+/* 박스①②(상단, 큰 카드)/③④(하단, 높이 약 절반) 위계 — 768px 미만은 스택이라 강제 높이를 걸지 않는다.
+   2026-08-19 3차: 카드는 줄이고 내부 요소(아이콘·글씨)는 키워서 기본 상태가 허전해 보이지 않게 조정.
+   2026-08-19 4차: Guest·파트너(③④)가 너무 낮아 보인다는 피드백으로 120px→150px 높임. */
 @media (min-width: 768px) {
   .entry-box-primary {
-    min-height: 300px;
+    min-height: 220px;
   }
 
   .entry-box-secondary {
@@ -320,6 +328,104 @@ body {
   .header-btn-label,
   .header-mode-chip-label {
     display: none;
+  }
+}
+
+/* ── 메인 4박스(EntryBoxes) 동적 포커스 인터랙션 + 비주얼 고도화 (2026-08-19) ──
+   기본 상태: 아이콘+제목+한줄설명만. 요약칩·부가버튼(.entry-box-reveal)은 항상 DOM엔 있되
+   호버 가능 기기에서만 접었다가(높이 0) 호버 시 펼친다 — 터치 기기는 media 밖이라 처음부터
+   펼쳐진 채로 보여 터치 UX를 방해하지 않는다(요구사항 ②). */
+
+/* 배경 그라데이션 + 은은한 틴트 테두리 — 항상 적용(호버 여부 무관, 요구사항 ③) */
+.entry-box-tint-green {
+  background: linear-gradient(145deg, #FFFFFF 0%, var(--box-tint-green-end) 100%);
+  border: 1px solid rgba(91, 112, 101, 0.28);
+}
+
+.entry-box-tint-gold {
+  background: linear-gradient(145deg, #FFFFFF 0%, var(--box-tint-gold-end) 100%);
+  border: 1px solid rgba(212, 163, 89, 0.32);
+}
+
+.entry-box-tint-slate {
+  background: linear-gradient(145deg, #FFFFFF 0%, var(--box-tint-slate-end) 100%);
+  border: 1px solid rgba(26, 43, 76, 0.14);
+}
+
+/* 공통 깊이감 — 다중 레이어 소프트 그림자(기본 box-shadow 위에 은은한 광역 그림자를 겹침) */
+.entry-box-card {
+  box-shadow: var(--box-shadow), 0 14px 35px -5px rgba(26, 43, 76, 0.08);
+}
+
+/* 호버 시 펼쳐지는 콘텐츠(칩·CTA·입력창 등) — grid-template-rows 0fr↔1fr 트릭으로
+   콘텐츠 실제 높이에 정확히 맞춰 트랜지션한다(고정 max-height 추정치보다 안전). */
+.entry-box-reveal {
+  display: grid;
+  grid-template-rows: 1fr;
+}
+
+.entry-box-reveal__inner {
+  overflow: hidden;
+  min-height: 0;
+}
+
+@media (hover: hover) {
+  .entry-box-card {
+    transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+      box-shadow 0.35s ease;
+  }
+
+  .entry-box-reveal {
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .entry-box-reveal__inner {
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity 0.3s ease, transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* 호버 또는 키보드 포커스 시 해당 카드만 펼침(스크린리더/키보드 사용자 배려) */
+  .entry-box-card:hover .entry-box-reveal,
+  .entry-box-card:focus-within .entry-box-reveal {
+    grid-template-rows: 1fr;
+  }
+
+  .entry-box-card:hover .entry-box-reveal__inner,
+  .entry-box-card:focus-within .entry-box-reveal__inner {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* 포커스된 카드는 확대+리프트, 나머지 3개는 축소+딤 처리로 시선을 모은다 — 2026-08-19 3차:
+     "커지는 범위가 부족하다"는 피드백으로 대비폭을 키움(1.02→1.06 / 0.98→0.94).
+     :has()가 상단(①②)·하단(③④) 두 그리드 블록을 아우르는 공통 조상에서 형제 상태를 감지한다. */
+  .entry-boxes-focus-group:has(.entry-box-card:hover) .entry-box-card:not(:hover),
+  .entry-boxes-focus-group:has(.entry-box-card:focus-within) .entry-box-card:not(:focus-within) {
+    transform: scale(0.94);
+    opacity: 0.8;
+  }
+
+  .entry-boxes-focus-group:has(.entry-box-card:hover) .entry-box-card:hover,
+  .entry-boxes-focus-group:has(.entry-box-card:focus-within) .entry-box-card:focus-within {
+    transform: translateY(-6px) scale(1.06);
+    z-index: 2;
+  }
+
+  .entry-box-tint-green:hover,
+  .entry-box-tint-green:focus-within {
+    box-shadow: var(--box-shadow-hover), 0 16px 40px -8px rgba(91, 112, 101, 0.22);
+  }
+
+  .entry-box-tint-gold:hover,
+  .entry-box-tint-gold:focus-within {
+    box-shadow: var(--box-shadow-hover), 0 16px 40px -8px rgba(212, 163, 89, 0.26);
+  }
+
+  .entry-box-tint-slate:hover,
+  .entry-box-tint-slate:focus-within {
+    box-shadow: var(--box-shadow-hover), 0 16px 40px -8px rgba(26, 43, 76, 0.14);
   }
 }
 
