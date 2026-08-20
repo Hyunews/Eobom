@@ -52,6 +52,7 @@ PLAN → CONFIRM → CODE/WRITE → SAVE → UPDATE
 |---|---|---|
 | `docs/` (기획 SSOT) | Claude(Opus 모드) | Gemini |
 | `reports/` (시각화 HTML) | Gemini | Claude |
+| ↳ 🔴 **git 커밋 제외**(2026-08-20, 로컬 전용) — 근거·주의는 `roles.md` §1-1 | | |
 | `eobom/`, `.harness/` | Claude | Gemini |
 | `assets/` | 사람 | 둘 다 |
 | `docs/작업일지_및_기록/` | **파일별로 나뉨** → `roles.md` §1-2 | |
@@ -71,7 +72,7 @@ PLAN → CONFIRM → CODE/WRITE → SAVE → UPDATE
 | 종류 | 위치 | 형식 |
 |---|---|---|
 | AI가 읽고 고치는 기획 본문 | `docs/` (도메인별 한글 디렉토리) | Markdown |
-| 사람이 브라우저로 보는 보고서 | `reports/` | HTML / PDF / DOCX |
+| 사람이 브라우저로 보는 보고서 | `reports/` **(커밋 제외·로컬 전용)** | HTML / PDF / DOCX |
 | 원천 데이터·로고 | `assets/` | CSV / PNG 등 |
 | 실제 소스코드 | `eobom/frontend`, `eobom/backend` | — |
 | 에이전트 규칙·메모리·스킬·툴 | `.harness/` | Markdown / 스크립트 |

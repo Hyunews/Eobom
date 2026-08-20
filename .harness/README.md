@@ -41,7 +41,7 @@
 │   └── _meta/                # 하네스 자체 설계 이력
 │
 ├── docs/                     # 📄 기획 SSOT (Claude:Opus 소유) + 작업일지_및_기록/
-├── reports/                  # 📊 사람 열람용 HTML·PDF (Gemini 소유)
+├── reports/                  # 📊 사람 열람용 HTML·PDF (Gemini 소유) — 🔴 git 커밋 제외·로컬 전용
 ├── assets/                   # 📁 원천 CSV·로고 (사람 소유)
 └── eobom/                    # 💻 소스코드 frontend/·backend/ (Claude 소유)
 ```

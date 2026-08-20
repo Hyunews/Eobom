@@ -30,6 +30,17 @@ eobom/backend/backups/
 # 파트너가 업로드한 시설 이미지 (로컬 디스크 저장, 사용자 생성 콘텐츠 — 커밋 대상 아님)
 eobom/backend/uploads/
 
+# reports/ — docs/ 마크다운에서 재생성되는 HTML 시각화 파생물(약 5.3MB).
+# 원본은 docs/가 정본이고 Gemini가 언제든 다시 만든다 → 저장소에 둘 이유가 없다.
+# ⚠️ reports/에만 있고 docs/ 정본이 없는 문서를 만들지 말 것(roles.md §1-2 역방향).
+#    2026-08-20에 00-24가 그 상태였고 docs/00_핵심플랫폼/00-24_...로 정본화해 해소했다.
+reports/
+
+# 일회성 스크린샷 (구현 점검·콘솔 설정 캡처 등) — 대화 중 근거로만 쓰이고 재사용되지 않는다.
+# 브랜드 자산(로고)과 공공데이터 CSV 원본은 계속 커밋한다.
+assets/스크린샷*.png
+assets/모바일부고장페이지.png
+
 # IDE & OS files
 .vscode/
 .idea/
