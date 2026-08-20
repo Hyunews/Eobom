@@ -61,11 +61,19 @@ function parseSchema(schemaText) {
         continue;
       }
 
-      // 단독 `//` 주석 줄: 바로 다음 줄이 필드면 그 필드의 머리말 주석(예: isPartner 위 블록 주석),
-      // 아니면(공백/제약조건/블록끝) 직전 필드 설명이 길어서 줄바꿈된 연속으로 본다(예: unlinkedAt).
+      // 단독 `//` 주석 줄: 뒤따르는 연속 주석 줄을 건너뛴 다음 줄이 필드면, 그 블록 전체가
+      // 해당 필드의 머리말 주석이다(예: isPartner 위 블록 주석). 아니면(공백/제약조건/블록끝)
+      // 직전 필드 설명이 길어서 줄바꿈된 연속으로 본다(예: unlinkedAt).
+      //
+      // ⚠️ 2026-08-20 버그 수정 — 이전에는 `lines[i+1]` 한 줄만 봤다. 그래서 머리말 주석이
+      //    여러 줄이면 **마지막 줄만 해당 필드에 붙고 나머지가 전부 앞 필드로 밀려붙었다.**
+      //    실제로 00-05에서 Obituary.viewCount 설명란에 cardFieldsUpdatedAt 설명이,
+      //    burialSite에 contactPhone 설명이 들어가는 오문서가 생성됐다.
       if (trimmed.startsWith('//') && !isSeparatorComment(trimmed)) {
         const text = trimmed.replace(/^\/\/\s*/, '');
-        if (isFieldLine((lines[i + 1] || '').trim())) {
+        let k = i + 1;
+        while (k < lines.length && lines[k].trim().startsWith('//')) k++;
+        if (isFieldLine((lines[k] || '').trim())) {
           pendingLeading.push(text);
         } else if (model.fields.length) {
           const prev = model.fields[model.fields.length - 1];
