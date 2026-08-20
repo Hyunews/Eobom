@@ -14,10 +14,15 @@ services:
     buildCommand: npm install && npm run build
     startCommand: npm start
     envVars:
+      # 2026-08-20 — DB는 Render Postgres가 아니라 Supabase(서울 리전)를 쓴다.
+      # 무료 Render Postgres는 백업이 없고 수명 제한이 있어 프로덕션 부적합(00-11 §4.1).
+      # 아래 두 값은 Supabase 대시보드 > Connect 에서 복사해 Render 대시보드에 직접 넣는다.
+      #   DATABASE_URL : 런타임용(커넥션 풀러)
+      #   DIRECT_URL   : 마이그레이션용(직결) — 없으면 `prisma migrate deploy`가 실패한다
       - key: DATABASE_URL
-        fromDatabase:
-          name: eobom-db
-          property: connectionString
+        sync: false
+      - key: DIRECT_URL
+        sync: false
       - key: FRONTEND_URL
         value: https://eobom.vercel.app
       - key: JWT_SECRET
@@ -41,7 +46,6 @@ services:
       - key: GOOGLE_CALLBACK_URL
         value: https://eobom-backend.onrender.com/api/auth/google/callback
 
-databases:
-  - name: eobom-db
-    plan: free
-    databaseName: eobom_db
+# databases: 블록 제거(2026-08-20) — Render Postgres를 만들지 않는다.
+# Blueprint를 만드는 순간 무료 Postgres 30일 수명 시계가 도는데, 쓰지도 않을 DB다.
+# DB는 Supabase(서울 리전, 00-17 §3.3 "논점을 만들지 않는다")를 쓴다.
