@@ -103,20 +103,19 @@
 | 대상 | 상태 | 비고 |
 |---|---|---|
 | 프론트엔드 | ✅ 배포됨 | `https://eobom.vercel.app/` |
-| 백엔드 | 🟡 **배포 준비 완료, 미실행** | Render 선택함(→ 아래). `render.yaml` 작성 완료, 사용자가 대시보드에서 Blueprint 생성 필요 |
+| 백엔드 | ✅ **배포됨** (2026-08-20) | `https://eobom-backend.onrender.com` — `/api/health` 200 실측 |
 | 저장소 | private | `github.com/Hyunews/Eobom` |
 
-### 백엔드 배포 — Render (2026-08-07 결정, **08-12 재검토 중**)
+### 백엔드 배포 — Render 웹서비스 + Supabase DB (2026-08-20 실행)
 
-⚠️ 인프라 전략 정본은 **`docs/00_핵심플랫폼/00-11_백엔드_DB_배포_및_인프라_전략_결정서.md`** — 관리형
-클라우드(국내 리전) 권고. 무료 티어는 백업이 없어 **프로덕션 부적합, 스테이징 전용**.
+⚠️ 인프라 전략 정본은 **`docs/00_핵심플랫폼/00-11_백엔드_DB_배포_및_인프라_전략_결정서.md`**.
+**DB는 Render Postgres가 아니라 Supabase**(§4) — `render.yaml`의 `databases:` 블록은 제거했다.
 
-- 설정: 레포 루트 `render.yaml`(Blueprint) — `eobom/backend`가 `rootDir`, Postgres 포함
-- 도메인 고정: `https://eobom-backend.onrender.com`(render.yaml `name` 필드)
-- ⚠️ **무료 Postgres 수명 제한**(30일+유예, 백업 없음). **아직 생성 안 됨** — Blueprint 만드는 순간부터
-  시계가 돈다(08-12 확인). 만료일은 그때 대시보드에서 볼 것.
-- ⚠️ 무료 **웹서비스**는 만료 없이 15분 슬립만 — DB와 정책 다름.
-- 배포 후: (1)3사 콘솔 콜백 재등록 (2)Vercel env `VITE_BACKEND_URL` (3)시설 시딩(`npm run seed`) (4)이미지 스토리지 교체(위 참고).
+- 설정: 레포 루트 `render.yaml`(Blueprint), `eobom/backend`가 `rootDir`
+- ⚠️ 무료 웹서비스는 **15분 슬립** — 첫 요청이 수십 초 걸린다(부고 링크 첫 방문자가 그대로 겪는다)
+- 🔴 `SETTLEMENT_ENCRYPTION_KEY`는 **로컬 `.env`와 같은 값**이어야 한다 — 다르면 기존 암호문 복호화 불가
+- **배포 후 잔여**: (1)3사 콘솔 콜백 재등록 (2)Vercel `VITE_BACKEND_URL` + 재배포 (3)시설 시딩
+  (4)이미지 스토리지 교체(아래)
 
 ### 이미지 저장 — ⚠️ 배포 전 필수 교체 (2026-08-10)
 
