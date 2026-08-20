@@ -15,6 +15,7 @@ import adminRoutes from './routes/adminRoutes';
 import digitalPlatformRoutes from './routes/digitalPlatformRoutes';
 import meRoutes from './routes/meRoutes';
 import memorialRoutes from './routes/memorialRoutes';
+import obituaryRoutes from './routes/obituaryRoutes';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -48,6 +49,7 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/digital-platforms', digitalPlatformRoutes);
 app.use('/api/me', meRoutes);
 app.use('/api/memorials', memorialRoutes);
+app.use('/api/obituaries', obituaryRoutes);
 
 // 기본 헬스체크
 app.get('/api/health', (req, res) => {

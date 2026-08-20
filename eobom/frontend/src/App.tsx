@@ -17,6 +17,7 @@ import { DigitalEstatePage } from './pages/DigitalEstatePage';
 import { EndingNotePage } from './pages/EndingNotePage';
 import { CareGuidePage } from './pages/CareGuidePage';
 import { ObituaryPage } from './pages/ObituaryPage';
+import { ObituaryLandingPage } from './pages/ObituaryLandingPage';
 import { PickupPage } from './pages/PickupPage';
 import { MemorialPage } from './pages/MemorialPage';
 import { MyPage } from './pages/MyPage';
@@ -39,6 +40,12 @@ function AppShell() {
   const isPortalRoute = activeTab === 'partner' || activeTab === 'admin';
   // 00-26 §7.2 — 홈은 4박스가 유일한 진입점이라 사이드바를 숨긴다(Header는 유지).
   const isHomeRoute = activeTab === 'home';
+  // docs 07-03 §6.1 — 부고장 랜딩(/o/:slug)은 껍데기(Header·Sidebar·Footer) 자체가 없는
+  // 독립 페이지다. isPortalRoute가 partner·admin을 껍데기에서 빼는 패턴을 그대로 확장한다 —
+  // 다만 포털은 최소 상단 바라도 남기는 반면, 이쪽은 그것도 없다(조의 화면에 서비스 메뉴가
+  // 붙으면 광고로 읽힌다, §6.1). 카톡 링크를 받은 조문객이 비로그인으로 여는 화면이라
+  // 로그인 게이트도 없다.
+  const isObituaryLandingRoute = /^o\//.test(activeTab);
 
   const [isLoginOpen, setIsLoginOpen] = useState<boolean>(false);
   // 모바일 햄버거 메뉴(드로어) 열림 상태 — 데스크톱은 기존 호버 사이드바 그대로,
@@ -214,6 +221,13 @@ function AppShell() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+      {isObituaryLandingRoute ? (
+        // 껍데기 완전히 없음(§6.1) — Header·Sidebar·main-wrapper·Footer 전부 건너뛴다.
+        <Routes>
+          <Route path="/o/:slug" element={<ObituaryLandingPage />} />
+        </Routes>
+      ) : (
+        <>
       {isPortalRoute ? (
         /* 포털(파트너·운영자) 최소 상단 바 — 로고 + 홈 복귀 링크만. B2C 크롬 대체(00-06 §7.4) */
         <div
@@ -307,6 +321,8 @@ function AppShell() {
         {/* 하단 푸터 (홈 메인 탭은 풀페이지 스냅 스크롤 내부 섹션으로 통합, 포털 경로는 최소 상단 바로 대체) */}
         {!isPortalRoute && activeTab !== 'home' && <Footer />}
       </div>
+        </>
+      )}
 
       {/* 로그인 / 회원가입 데모 모달 */}
       <LoginModal

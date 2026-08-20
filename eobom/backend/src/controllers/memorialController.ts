@@ -6,6 +6,7 @@ import prisma from '../config/prisma';
 import { verifyBearerToken } from './authController';
 import { uploadMemorialPhoto as uploadMiddleware, MEMORIAL_PHOTO_DIR, toPublicMemorialPhotoPath } from '../config/upload';
 import { POLICY } from '../config/policy';
+import { validateFalseReportAgreed } from '../utils/consentGates';
 
 // 온라인 추모관(docs 05-01 §2, §4). 공개범위 기본값은 LINK(§4.2) — 사망 사실+유족 구성이
 // 공개 색인되면 부고 사칭 보이스피싱의 표적 정보가 된다.
@@ -79,8 +80,9 @@ export const createMemorial = async (req: Request, res: Response) => {
   if (!deceasedName?.trim()) {
     return res.status(400).json({ status: 'error', message: '고인 성명은 필수입니다.' });
   }
-  if (falseReportAgreed !== true) {
-    return res.status(400).json({ status: 'error', message: '허위 개설 시 법적 책임을 질 수 있다는 고지에 동의해야 합니다.' });
+  const falseReportError = validateFalseReportAgreed(falseReportAgreed);
+  if (falseReportError) {
+    return res.status(400).json({ status: 'error', message: falseReportError });
   }
   if (visibility !== undefined && !isValidVisibility(visibility)) {
     return res.status(400).json({ status: 'error', message: `visibility는 ${VALID_VISIBILITY.join(', ')} 중 하나여야 합니다.` });
@@ -91,18 +93,35 @@ export const createMemorial = async (req: Request, res: Response) => {
     let memorial;
     for (let attempt = 0; attempt < 3; attempt++) {
       try {
-        memorial = await prisma.memorial.create({
-          data: {
-            slug: generateSlug(),
-            createdByUserId: decoded.id,
-            deceasedName: deceasedName.trim(),
-            deceasedBirthDate: deceasedBirthDate ? new Date(deceasedBirthDate) : null,
-            deceasedDeathDate: deceasedDeathDate ? new Date(deceasedDeathDate) : null,
-            portraitUrl: portraitUrl?.trim() || null,
-            epitaph: epitaph?.trim() || null,
-            visibility: visibility || 'LINK',
-            falseReportAgreedAt: new Date(),
-          },
+        // docs 07-03 §4.1 — Memorial.deceasedId가 필수 FK가 되면서(Obituary와 같은 고인을
+        // 가리켜야 하는 E안 요구), 부고장을 거치지 않고 추모관만 단독 개설하는 이 경로에서도
+        // Deceased를 함께 만들어 연결해야 한다. deceasedBirthDate/deceasedDeathDate는 그대로
+        // Memorial 자체 필드에도 남긴다 — Deceased 도입 이전부터 있던 필드라 05 쪽 소비자(화이트
+        // 리스트 응답 등)를 건드리지 않기 위함이다.
+        const deathDate = deceasedDeathDate ? new Date(deceasedDeathDate) : null;
+        memorial = await prisma.$transaction(async (tx) => {
+          const deceased = await tx.deceased.create({
+            data: {
+              name: deceasedName.trim(),
+              birthDate: deceasedBirthDate ? new Date(deceasedBirthDate) : null,
+              deathDate,
+              registeredBy: decoded.id,
+            },
+          });
+          return tx.memorial.create({
+            data: {
+              slug: generateSlug(),
+              createdByUserId: decoded.id,
+              deceasedId: deceased.id,
+              deceasedName: deceasedName.trim(),
+              deceasedBirthDate: deceasedBirthDate ? new Date(deceasedBirthDate) : null,
+              deceasedDeathDate: deathDate,
+              portraitUrl: portraitUrl?.trim() || null,
+              epitaph: epitaph?.trim() || null,
+              visibility: visibility || 'LINK',
+              falseReportAgreedAt: new Date(),
+            },
+          });
         });
         break;
       } catch (e: any) {

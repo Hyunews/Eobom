@@ -24,6 +24,7 @@ model User {
   memorialTributes    MemorialTribute[] // 남긴 헌화
   memorialGuestbooks  MemorialGuestbook[] // 남긴 방명록
   memorialPhotos      MemorialPhoto[] // 업로드한 추모 사진
+  obituaries          Obituary[] // docs 07-03 §4.2 — 개설한 부고장
   createdAt           DateTime             @default(now()) // 가입 일시
   updatedAt           DateTime             @updatedAt // 최종 수정 일시
 }
@@ -389,6 +390,12 @@ model Memorial {
   createdByUserId String // FK → User — 개설자(상주)
   createdByUser   User   @relation(fields: [createdByUserId], references: [id])
 
+  // docs 07-03 §4.1 — E안(부고장=봉투/추모관=목적지)은 Obituary와 Memorial이 같은 고인을
+  // 가리켜야 한다. 07 부고장 개설 트랜잭션(§5.2)에서 함께 생성·연결된다.
+  deceasedId String
+  deceased   Deceased @relation(fields: [deceasedId], references: [id])
+  obituary   Obituary? // 1:1 역참조 — Obituary.memorialId가 unique라 이 방향은 선택적
+
   deceasedName      String // 고인 성명
   deceasedBirthDate DateTime? // 생년월일 — 공개 응답에서 제외(§4.2, §6.1)
   deceasedDeathDate DateTime? // 사망일
@@ -456,6 +463,95 @@ model MemorialPhoto {
   createdAt        DateTime @default(now()) // 등록 일시
 
   @@index([memorialId, sortOrder])
+}
+
+// ─────────────────────────────────────────────────────────────────
+// 모바일 부고장(Domain 07) — docs/07_상중_행정_케어/07-03_모바일_부고장_카카오톡_전송_구현_기획서.md
+// Phase 1. E안(00-13 §4.5) — 부고장(Obituary)=봉투, 추모관(Memorial)=목적지, 배포 링크는 1개.
+// ─────────────────────────────────────────────────────────────────
+
+// 고인(00-12 §2.1). 07 착수의 전제이므로 여기서 최소 범위로 도입한다.
+// ⚠️ DeathVerification·BereavedRelation·PreDeathDirective는 이번 범위 밖 —
+//    00-12가 확정될 때 이 모델에 붙는다(관계 필드만 미리 열어두지 않는다).
+model Deceased {
+  id           String    @id @default(uuid())
+  userId       String?   @unique // 이어봄 회원이었으면 연결. 비회원 고인이면 null(케이스 B)
+  name         String
+  birthDate    DateTime?           // ⚠️ 공개 응답에서 제외(05-01 §4.1과 동일 사상)
+  deathDate    DateTime?
+  registeredBy String              // 등록한 User — 자칭 유족일 수 있음(00-12 §2.3)
+  createdAt    DateTime  @default(now())
+
+  obituaries   Obituary[]
+  memorials    Memorial[]
+}
+
+// 부고장 — Domain 07 소유. 단명(장례 전후), 배포되는 유일한 링크(00-13 §4.5)
+model Obituary {
+  id              String   @id @default(uuid())
+  slug            String   @unique   // 배포용 추측 불가 토큰(§4.4)
+  deceasedId      String
+  deceased        Deceased @relation(fields: [deceasedId], references: [id])
+  memorialId      String   @unique   // 개설 시 함께 생성된 추모관(00-13 §4.5 · 권고 #3)
+  memorial        Memorial @relation(fields: [memorialId], references: [id])
+  createdByUserId String              // 개설자(상주)
+  createdByUser   User     @relation(fields: [createdByUserId], references: [id])
+
+  // 장례 실무 정보 — 05가 아니라 여기 있다(00-13 §4.5-2)
+  funeralHall     String?             // 빈소(장례식장명)
+  mourningRoom    String?             // 호실
+  funeralHallAddr String?             // 빈소 주소 — 지도/길찾기용
+  facilityId      String?             // FK → Facility. 목록에서 고른 경우만(01 연결)
+  coffinAt        DateTime?           // 입관 — 화면에서는 접어둠(§6.2)
+  funeralAt       DateTime            // 발인 — ✅ 2026-08-20 필수 확정(§6.2-1). 수명 계산 기준(§6.2-4)
+  burialSite      String?             // 장지 — 화면에서는 접어둠(§6.2)
+
+  // 연락처 — ✅ 2026-08-20 개발자 지정. 입력하면 랜딩에 노출(별도 토글 없음, §6.2-2)
+  // ⚠️ 암호화하지 않는다: 입력=공개가 전제라 DB값과 공개값이 항상 같다. 계좌(기본 OFF라
+  //    꺼진 값이 DB에 쌓임)와 달리 암호화가 막아주는 위협이 없다 — 보안 연극을 만들지 않는다.
+  contactPhone    String?
+
+  // 조의금 계좌 — ✅ 2026-08-20 개발자 확정: 기능 도입. 기본 OFF + 유족 토글(§8 #3)
+  accountEnabled  Boolean  @default(false)
+  accountBankCode String?
+  accountNumberEnc String?            // AES-256-GCM. utils/crypto.ts encryptField 재사용
+  accountHolder   String?
+
+  // 카톡 카드에 영정 사용 — ✅ 2026-08-20 확정(§3.3-1). Phase 1~2에는 화면에 노출하지 않는다.
+  // ⚠️ 이미지 스토리지 전환(00-11) 전까지 true로 켤 수 없다 — 켜면 재배포 시 카드가 깨진다.
+  portraitShareEnabled Boolean @default(false)
+
+  // 게이트 — 05-01 §2.3을 07이 승계(00-13 §4.5-3)
+  falseReportAgreedAt DateTime         // 허위 개설 고지 동의 시각
+  resharedNoticeAckAt DateTime         // 재전파 고지 확인 시각(00-13 §8-6)
+
+  shareCount      Int      @default(0) // 집계값만. 수신자 식별 정보는 저장하지 않음
+  viewCount       Int      @default(0)
+
+  // 카드 반영 필드(고인 성함·빈소·호실·발인)가 마지막으로 바뀐 시각(§5.4-2).
+  // ⚠️ updatedAt으로 대체할 수 없다 — 연락처만 고쳐도 updatedAt은 바뀌므로
+  //    "다시 공유하세요" 안내가 잘못 뜬다. 카드 반영 필드에서만 갱신한다.
+  cardFieldsUpdatedAt DateTime?
+  closedAt        DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  mourners        ObituaryMourner[]
+
+  @@index([createdByUserId])
+}
+
+// 상주·유족 — 부고는 관계별로 여러 명을 나란히 적는 것이 관행이다(§4.3)
+model ObituaryMourner {
+  id           String   @id @default(uuid())
+  obituaryId   String
+  obituary     Obituary @relation(fields: [obituaryId], references: [id], onDelete: Cascade)
+  relationship String            // 배우자 | 장남 | 차녀 | 사위 | 며느리 ...
+  name         String
+  isChief      Boolean  @default(false)  // 상주 표시
+  sortOrder    Int      @default(0)
+
+  @@index([obituaryId, sortOrder])
 }
 
 // ─────────────────────────────────────────────────────────────────

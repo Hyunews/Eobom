@@ -43,6 +43,19 @@ export const LOCATION_BASED_SERVICE_REGISTERED = false;
 export const KAKAO_MAP_LOAD_TIMEOUT_MS = 5000;
 export const KAKAO_MAP_LOAD_POLL_INTERVAL_MS = 100;
 
+// 카카오톡 "공유하기" SDK(`t1.kakaocdn.net/kakao_js_sdk`) — 지도 SDK(dapi.kakao.com)와
+// 별개 스크립트·별개 키다(docs 07-03 §3.2). 같은 앱이면 키 값 자체는 같을 수 있으나 용도가
+// 달라 변수명을 분리해 노출한다. Phase 0 #2(사용자 작업) — .env·Vercel env에 값 등록 필요.
+export const KAKAO_JS_KEY = import.meta.env.VITE_KAKAO_JS_KEY || '';
+export const KAKAO_SHARE_SDK_LOAD_TIMEOUT_MS = 5000;
+export const KAKAO_SHARE_SDK_LOAD_POLL_INTERVAL_MS = 100;
+
+// 카톡 카드 이미지(§3.3-1~§3.3-3) — 근조 이미지 확정 완료(Phase 0 ⓒ), eobom/frontend/public/에
+// 커밋됨. ⚠️ 반드시 고정 공개 URL이어야 한다 — 카카오 서버가 imageUrl을 직접 가져가는데
+// localhost·사설 IP(window.location.origin 기반)는 접근할 수 없다(§3.3-3). 브랜드 로고
+// 재사용은 §3.3-2가 금지(서비스 홍보로 읽힘) — eobom-logo-hd.png 임시 물림은 여기서 제거한다.
+export const OBITUARY_CARD_IMAGE_URL = 'https://eobom.vercel.app/obituary-card.png';
+
 // 연락처는 백엔드에 숫자만(하이픈 없이) 저장된다(backend/src/utils/phone.ts와 짝) — 화면 표시용 포맷터.
 // 정확한 지역번호 체계까지는 다루지 않는 근사치 포맷(011자리 서울/지방 구분 등은 생략).
 export const formatPhoneForDisplay = (digits: string): string => {
