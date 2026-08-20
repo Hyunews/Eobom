@@ -61,11 +61,18 @@ app.get('/api/health', (req, res) => {
 });
 
 const scheme = hasLocalCert ? 'https' : 'http';
+
+// 로그에 찍을 공개 주소. 배포 환경에서 localhost로 찍으면 로그를 보는 사람이 헷갈린다
+// (2026-08-20 Render 첫 배포 때 실제로 그랬다). Render는 RENDER_EXTERNAL_URL을 주입한다.
+// 로컬은 인증서 유무에 따라 https/http가 갈리므로 scheme을 그대로 쓴다.
+const publicUrl = process.env.RENDER_EXTERNAL_URL || `${scheme}://localhost:${PORT}`;
+
 const startServer = () => {
   console.log(`===================================================`);
   console.log(`🌿 이어봄 (Eobom) 백엔드 API 서버 구동 완료`);
-  console.log(`📍 서버 주소: ${scheme}://localhost:${PORT}`);
-  console.log(`🔒 소셜 로그인 엔드포인트: ${scheme}://localhost:${PORT}/api/auth/[kakao|naver|google]`);
+  console.log(`📍 서버 주소: ${publicUrl}`);
+  console.log(`🔒 소셜 로그인 엔드포인트: ${publicUrl}/api/auth/[kakao|naver|google]`);
+  console.log(`   (내부 리스닝 포트: ${PORT}${hasLocalCert ? ', mkcert HTTPS' : ''})`);
   console.log(`===================================================`);
 };
 
