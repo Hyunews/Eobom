@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { UserCheck, LogIn, LogOut, Settings, ChevronDown } from 'lucide-react';
+import { UserCheck, LogIn, LogOut, Settings, ChevronDown, Menu } from 'lucide-react';
 import { EobomLogo } from './EobomLogo';
 import { MODE_LABELS, MODE_MENUS, type NavMode } from '../modeNav';
 
@@ -11,6 +11,9 @@ interface HeaderProps {
   onLogout: () => void;
   navMode?: NavMode | null;
   onSetMode?: (mode: NavMode) => void;
+  // 480px 이하에서만 노출되는 햄버거 버튼(.mobile-menu-trigger, index.css) — Sidebar.tsx의
+  // 모바일 드로어를 연다. 사이드바 자체가 없는 홈에서는 App.tsx가 undefined를 넘겨 숨긴다.
+  onOpenMobileMenu?: () => void;
 }
 
 // 08-19 14차(개발자 직접 지시) — 기존엔 "지금 모드가 뭔지 알려주는" 칩일 뿐이었고(클릭하면
@@ -25,7 +28,7 @@ const MODE_DROPDOWN_ITEMS: Array<{ key: ModeDropdownKey; label: string }> = [
   { key: 'guest', label: '게스트' },
 ];
 
-export const Header: React.FC<HeaderProps> = ({ setActiveTab, onOpenLogin, onOpenAccountSettings, currentUser, onLogout, navMode, onSetMode }) => {
+export const Header: React.FC<HeaderProps> = ({ setActiveTab, onOpenLogin, onOpenAccountSettings, currentUser, onLogout, navMode, onSetMode, onOpenMobileMenu }) => {
   const [isModeMenuOpen, setIsModeMenuOpen] = useState(false);
   const modeMenuRef = useRef<HTMLDivElement>(null);
 
@@ -76,6 +79,32 @@ export const Header: React.FC<HeaderProps> = ({ setActiveTab, onOpenLogin, onOpe
         display: 'flex',
         alignItems: 'center'
       }}>
+        {/* 모바일 햄버거 메뉴 버튼 — 480px 이하에서만 보임(.mobile-menu-trigger, index.css).
+            사이드바가 호버로 안 열리는 터치 환경 대체 진입점(2026-08-20 지시, Sidebar.tsx 드로어 연동). */}
+        {onOpenMobileMenu && (
+          <button
+            type="button"
+            onClick={onOpenMobileMenu}
+            aria-label="메뉴 열기"
+            className="mobile-menu-trigger"
+            style={{
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: '38px',
+              height: '38px',
+              marginRight: '0.6rem',
+              borderRadius: '10px',
+              border: '1px solid rgba(255,255,255,0.25)',
+              backgroundColor: 'rgba(255,255,255,0.12)',
+              color: '#FFFFFF',
+              cursor: 'pointer',
+              flexShrink: 0,
+            }}
+          >
+            <Menu size={20} />
+          </button>
+        )}
+
         {/* 브랜드 로고 (공식 Design_Logo.png 가이드 기반 심볼마크 & 워드마크) — 클릭 시 항상 홈(4박스)로(00-26 §4.4 C안) */}
         <div
           onClick={() => setActiveTab('home')}
@@ -178,40 +207,48 @@ export const Header: React.FC<HeaderProps> = ({ setActiveTab, onOpenLogin, onOpe
                 <UserCheck size={16} color="var(--point-light)" style={{ flexShrink: 0 }} />
                 <span className="header-user-name-text">{currentUser}님</span>
               </span>
-              <button
-                onClick={onOpenAccountSettings}
-                style={{
-                  backgroundColor: 'transparent',
-                  color: '#DFDCD7',
-                  border: '1px solid rgba(255,255,255,0.3)',
-                  borderRadius: '6px',
-                  padding: '0.4rem 0.8rem',
-                  fontSize: '0.85rem',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.3rem'
-                }}
+              {/* 480px 이하에서 햄버거+로고+모드칩+사용자칩+이 두 버튼까지 겹치며 헤더가 깨지는 문제(2026-08-20
+                  발견) — 모바일 드로어가 있는 경로(onOpenMobileMenu 존재)에서는 이 두 버튼을 헤더에서 숨기고
+                  Sidebar.tsx 드로어 하단으로 옮긴다. 드로어가 없는 홈에서는 대체 진입점이 없으므로 그대로 둔다. */}
+              <div
+                className={`header-account-buttons${onOpenMobileMenu ? ' header-account-buttons--has-drawer' : ''}`}
+                style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}
               >
-                <Settings size={14} /> <span className="header-btn-label">계정 설정</span>
-              </button>
-              <button
-                onClick={onLogout}
-                style={{
-                  backgroundColor: 'transparent',
-                  color: '#DFDCD7',
-                  border: '1px solid rgba(255,255,255,0.3)',
-                  borderRadius: '6px',
-                  padding: '0.4rem 0.8rem',
-                  fontSize: '0.85rem',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.3rem'
-                }}
-              >
-                <LogOut size={14} /> <span className="header-btn-label">로그아웃</span>
-              </button>
+                <button
+                  onClick={onOpenAccountSettings}
+                  style={{
+                    backgroundColor: 'transparent',
+                    color: '#DFDCD7',
+                    border: '1px solid rgba(255,255,255,0.3)',
+                    borderRadius: '6px',
+                    padding: '0.4rem 0.8rem',
+                    fontSize: '0.85rem',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.3rem'
+                  }}
+                >
+                  <Settings size={14} /> <span className="header-btn-label">계정 설정</span>
+                </button>
+                <button
+                  onClick={onLogout}
+                  style={{
+                    backgroundColor: 'transparent',
+                    color: '#DFDCD7',
+                    border: '1px solid rgba(255,255,255,0.3)',
+                    borderRadius: '6px',
+                    padding: '0.4rem 0.8rem',
+                    fontSize: '0.85rem',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.3rem'
+                  }}
+                >
+                  <LogOut size={14} /> <span className="header-btn-label">로그아웃</span>
+                </button>
+              </div>
             </div>
           ) : (
             <button

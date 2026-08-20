@@ -208,7 +208,7 @@ export const BoxDetailOverlay: React.FC<BoxDetailOverlayProps> = ({
                 display: 'grid',
                 gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
                 gap: '2.2rem',
-                alignItems: 'start',
+                alignItems: 'stretch',
               }}
             >
               <div>
@@ -251,15 +251,6 @@ export const BoxDetailOverlay: React.FC<BoxDetailOverlayProps> = ({
                 <p style={{ fontSize: '1.05rem', color: '#6C7A89', lineHeight: 1.7, marginBottom: '1.4rem' }}>
                   {slide.description}
                 </p>
-                {slide.bullets.length > 0 && (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginBottom: '1.6rem' }}>
-                    {slide.bullets.map((b) => (
-                      <div key={b} style={{ fontSize: '1rem', color: '#1A2B4C', fontWeight: 700 }}>
-                        • {b}
-                      </div>
-                    ))}
-                  </div>
-                )}
 
                 {slide.status === 'comingSoon' ? (
                   <span
@@ -316,6 +307,11 @@ export const BoxDetailOverlay: React.FC<BoxDetailOverlayProps> = ({
                   borderRadius: '24px',
                   boxShadow: '0 12px 35px rgba(26,43,76,0.08)',
                   border: `2px solid ${slide.featureBorderColor}`,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'center',
+                  minHeight: '280px',
+                  height: '100%',
                 }}
               >
                 <div
@@ -336,6 +332,26 @@ export const BoxDetailOverlay: React.FC<BoxDetailOverlayProps> = ({
                   {slide.featureTitle}
                 </h3>
                 <p style={{ color: '#6C7A89', fontSize: '0.95rem', lineHeight: 1.7, margin: 0 }}>{slide.featureDesc}</p>
+
+                {slide.bullets.length > 0 && (
+                  <div
+                    style={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '0.7rem',
+                      marginTop: '1.3rem',
+                      paddingTop: '1.2rem',
+                      borderTop: `1px solid ${slide.featureIconBg}`,
+                    }}
+                  >
+                    {slide.bullets.map((b) => (
+                      <div key={b} style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', fontSize: '0.92rem', color: '#1A2B4C', fontWeight: 600, lineHeight: 1.5 }}>
+                        <span style={{ color: slide.featureBorderColor, fontWeight: 800, flexShrink: 0 }}>•</span>
+                        {b}
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           </section>

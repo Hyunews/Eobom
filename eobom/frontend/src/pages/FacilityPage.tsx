@@ -40,8 +40,12 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
   const [locationError, setLocationError] = useState<string | null>(null);
 
   // 필터 상태 — 구분(예산/종교/하객수/지역 대분류 삭제, 2026-08-10) + 태그(운영주체 등, 2026-08-10 추가)
+  // category/userLocation은 "적용된" 검색 조건(=실제 fetch에 쓰이는 값)이고, categoryDraft/locationProvince/
+  // locationDistrict는 아직 적용 전인 선택값이다. "적용" 버튼을 눌러야 검색이 실행된다(2026-08-20 지시).
   const [category, setCategory] = useState('전체');
+  const [categoryDraft, setCategoryDraft] = useState('전체');
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
+  const [isApplying, setIsApplying] = useState(false);
 
   // 필터/페이지 변경 시 서버에 조건 그대로 위임해서 재조회
   useEffect(() => {
@@ -71,8 +75,7 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
   }, [category, selectedTag, userLocation, page]);
 
   const handleCategoryChange = (value: string) => {
-    setCategory(value);
-    setPage(1);
+    setCategoryDraft(value);
   };
 
   // 카드의 태그를 클릭하면 그 태그로 필터, 이미 선택된 태그를 다시 누르면 해제(토글)
@@ -140,40 +143,51 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
   const provinceOptions = Object.keys(regionsData).sort((a, b) => a.localeCompare(b, 'ko'));
   const districtOptions = locationProvince ? regionsData[locationProvince] || [] : [];
 
+  // 시/도·시/군/구·구분 선택은 이제 즉시 검색을 트리거하지 않는다 — 아래 "적용" 버튼을 눌러야
+  // 실제 검색(userLocation/category 갱신)이 일어난다. 여기서는 선택값(draft)만 갱신한다.
   const handleProvinceChange = (value: string) => {
     setLocationProvince(value);
     setLocationDistrict('');
   };
 
-  // 시/군/구까지 선택되면 그 지역명으로 지오코딩해서 기준 위치를 변경. "선택 안함"이면 자동 감지된 위치로 복귀
-  const handleDistrictChange = async (value: string) => {
+  const handleDistrictChange = (value: string) => {
     setLocationDistrict(value);
-    if (!value) {
-      setLocationProvince('');
-      setLocationError(null);
-      if (detectedLocation) {
-        setUserLocation(detectedLocation);
-        setPage(1);
-      }
-      return;
-    }
+  };
 
-    setIsSearchingLocation(true);
+  // "적용" 버튼: 시/도·시/군/구·구분 선택값을 실제 검색 조건으로 반영한다.
+  // 시/군/구가 "선택 안함"이어도(district === '') 검색은 그대로 실행되어야 한다 — 이 경우
+  // 시/도만 있으면 시/도 단위로, 시/도도 없으면 자동 감지된(또는 기본) 위치로 검색한다.
+  const handleApply = async () => {
+    setIsApplying(true);
     setLocationError(null);
     try {
-      const res = await fetch(`${BACKEND_URL}/api/geo/geocode?query=${encodeURIComponent(`${locationProvince} ${value}`)}`);
-      const data = await res.json();
-      if (!res.ok || data.status !== 'success') {
-        setLocationError(data.message || '해당 위치를 찾을 수 없습니다.');
-        return;
+      if (locationProvince) {
+        setIsSearchingLocation(true);
+        const query = locationDistrict ? `${locationProvince} ${locationDistrict}` : locationProvince;
+        try {
+          const res = await fetch(`${BACKEND_URL}/api/geo/geocode?query=${encodeURIComponent(query)}`);
+          const data = await res.json();
+          if (!res.ok || data.status !== 'success') {
+            setLocationError(data.message || '해당 위치를 찾을 수 없습니다.');
+            return;
+          }
+          setUserLocation({ lat: data.data.lat, lng: data.data.lng });
+          setIsLocationFallback(false); // 사용자가 직접 지정한 위치이므로 더 이상 기본값이 아님
+        } catch (e) {
+          setLocationError('위치 검색 중 오류가 발생했습니다.');
+          return;
+        } finally {
+          setIsSearchingLocation(false);
+        }
+      } else if (detectedLocation) {
+        // 시/도까지 선택 안 함 → 자동 감지(또는 기본) 위치로 검색
+        setUserLocation(detectedLocation);
       }
-      setUserLocation({ lat: data.data.lat, lng: data.data.lng });
-      setIsLocationFallback(false); // 사용자가 직접 지정한 위치이므로 더 이상 기본값이 아님
+
+      setCategory(categoryDraft);
       setPage(1);
-    } catch (e) {
-      setLocationError('위치 검색 중 오류가 발생했습니다.');
     } finally {
-      setIsSearchingLocation(false);
+      setIsApplying(false);
     }
   };
 
@@ -279,11 +293,23 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
 
         <div style={{ flex: '1 1 180px' }}>
           <label className="form-label">구분</label>
-          <select value={category} onChange={(e) => handleCategoryChange(e.target.value)} className="form-select">
+          <select value={categoryDraft} onChange={(e) => handleCategoryChange(e.target.value)} className="form-select">
             <option value="전체">전체 (장례식장/묘지)</option>
             <option value="장례식장">장례식장</option>
             <option value="묘지/수목장">묘지/봉안당/수목장</option>
           </select>
+        </div>
+
+        <div style={{ flex: '0 0 auto' }}>
+          <label className="form-label" style={{ visibility: 'hidden' }}>적용</label>
+          <button
+            onClick={handleApply}
+            disabled={isApplying || isSearchingLocation}
+            className="btn btn-primary"
+            style={{ padding: '0.6rem 1.4rem', whiteSpace: 'nowrap', opacity: isApplying || isSearchingLocation ? 0.7 : 1 }}
+          >
+            {isApplying || isSearchingLocation ? '검색 중...' : '적용'}
+          </button>
         </div>
       </div>
 

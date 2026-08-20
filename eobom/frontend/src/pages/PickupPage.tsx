@@ -12,8 +12,35 @@ interface PickupPageProps {
 }
 
 export const PickupPage: React.FC<PickupPageProps> = () => {
-  const [vendorRegion, setVendorRegion] = useState('전체');
   const vendors = digitalEstateData.vendors;
+
+  // 지역필터 — 기존 "서울/경기" 같은 임의 권역 대신 장사시설(FacilityPage)과 동일하게
+  // 실제 시/도 -> 시/군/구 2단계 선택으로 구현(2026-08-20 지시). 보유 업체(예시) 데이터에서
+  // 직접 뽑아 항상 결과가 있는 지역만 노출한다(FacilityPage의 /api/geo/regions와 같은 원칙).
+  const regionsData = React.useMemo(() => {
+    const map: Record<string, Set<string>> = {};
+    for (const v of vendors) {
+      if (!map[v.province]) map[v.province] = new Set();
+      map[v.province].add(v.district);
+    }
+    const result: Record<string, string[]> = {};
+    Object.keys(map)
+      .sort((a, b) => a.localeCompare(b, 'ko'))
+      .forEach((p) => {
+        result[p] = Array.from(map[p]).sort((a, b) => a.localeCompare(b, 'ko'));
+      });
+    return result;
+  }, [vendors]);
+
+  const [province, setProvince] = useState('');
+  const [district, setDistrict] = useState('');
+  const provinceOptions = Object.keys(regionsData);
+  const districtOptions = province ? regionsData[province] || [] : [];
+
+  const handleProvinceChange = (value: string) => {
+    setProvince(value);
+    setDistrict('');
+  };
 
   return (
     <div className="container">
@@ -41,19 +68,37 @@ export const PickupPage: React.FC<PickupPageProps> = () => {
           아직 없습니다 — 제휴가 시작되면 이 목록이 실제 업체 정보로 교체됩니다.
         </p>
 
-        <div className="form-group" style={{ maxWidth: '300px', marginBottom: '1.1rem' }}>
+        <div className="form-group" style={{ maxWidth: '360px', marginBottom: '1.1rem' }}>
           <label className="form-label">지역 필터</label>
-          <select value={vendorRegion} onChange={(e) => setVendorRegion(e.target.value)} className="form-select">
-            <option value="전체">전체 지역</option>
-            <option value="서울/경기">서울/경기</option>
-            <option value="충청/대전">충청/대전</option>
-            <option value="경상/부산">경상/부산</option>
-          </select>
+          <div style={{ display: 'flex', gap: '0.6rem', flexWrap: 'wrap' }}>
+            <select value={province} onChange={(e) => handleProvinceChange(e.target.value)} className="form-select" style={{ flex: '1 1 140px' }}>
+              <option value="">시/도 선택</option>
+              {provinceOptions.map((p) => (
+                <option key={p} value={p}>
+                  {p}
+                </option>
+              ))}
+            </select>
+            <select
+              value={district}
+              onChange={(e) => setDistrict(e.target.value)}
+              disabled={!province}
+              className="form-select"
+              style={{ flex: '1 1 140px' }}
+            >
+              <option value="">선택 안함</option>
+              {districtOptions.map((d) => (
+                <option key={d} value={d}>
+                  {d}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
 
         <div className="grid">
           {vendors
-            .filter((v) => vendorRegion === '전체' || v.region.includes(vendorRegion))
+            .filter((v) => (!province || v.province === province) && (!district || v.district === district))
             .map((vendor, idx) => (
               <div key={idx} className="card" style={{ borderTop: '4px solid var(--primary-color)', position: 'relative' }}>
                 <span style={{ position: 'absolute', top: '0.7rem', right: '0.7rem', fontSize: '0.7rem', fontWeight: 700, color: '#92400E', backgroundColor: '#FEF3C7', border: '1px solid #FDE68A', borderRadius: '10px', padding: '0.1rem 0.5rem' }}>예시</span>

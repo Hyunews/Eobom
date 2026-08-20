@@ -41,6 +41,9 @@ function AppShell() {
   const isHomeRoute = activeTab === 'home';
 
   const [isLoginOpen, setIsLoginOpen] = useState<boolean>(false);
+  // 모바일 햄버거 메뉴(드로어) 열림 상태 — 데스크톱은 기존 호버 사이드바 그대로,
+  // 480px 이하에서만 Header의 햄버거 버튼으로 열고 Sidebar의 드로어로 보여준다(2026-08-20 지시).
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false);
   const [currentUser, setCurrentUser] = useState<string | null>(() => {
     return localStorage.getItem('k_ending_current_user') || null;
   });
@@ -90,6 +93,11 @@ function AppShell() {
 
     navigate(tab === 'home' ? '/' : `/${tab}`);
   };
+
+  // 탭이 바뀌면(메뉴 클릭이 아닌 다른 경로로 이동한 경우 포함) 열려있던 모바일 드로어를 닫는다.
+  React.useEffect(() => {
+    setIsMobileMenuOpen(false);
+  }, [activeTab]);
 
   // 탭 변경 시 스크롤 처리 (뒤로가기 시 복원, 메뉴 클릭 시 최상단)
   React.useEffect(() => {
@@ -236,9 +244,10 @@ function AppShell() {
             onLogout={handleLogout}
             navMode={isHomeRoute ? null : navMode}
             onSetMode={handleSetNavMode}
+            onOpenMobileMenu={isHomeRoute ? undefined : () => setIsMobileMenuOpen(true)}
           />
 
-          {/* 좌측 호버 확장 사이드바 — 홈(4박스가 유일한 진입점)에서는 숨긴다(00-26 §7.2) */}
+          {/* 좌측 호버 확장 사이드바(데스크톱) + 모바일 드로어 — 홈(4박스가 유일한 진입점)에서는 숨긴다(00-26 §7.2) */}
           {!isHomeRoute && (
             <Sidebar
               activeTab={activeTab}
@@ -246,6 +255,10 @@ function AppShell() {
               navMode={navMode}
               currentUser={currentUser}
               onOpenLogin={() => setIsLoginOpen(true)}
+              mobileOpen={isMobileMenuOpen}
+              onMobileClose={() => setIsMobileMenuOpen(false)}
+              onOpenAccountSettings={() => { setMyPageMessage(null); setIsMyPageOpen(true); }}
+              onLogout={handleLogout}
             />
           )}
         </>

@@ -46,11 +46,11 @@ export const domainSlides: Record<string, DomainSlide> = {
     titleLine2: '안식처를 찾아드립니다',
     highlightColor: '#5B7065',
     description:
-      '현재 위치 기반 반경 탐색, 카카오맵 LBS 핀 마커 연동, 표준 공시 견적 비교 및 1-Touch 방문 답사 예약을 이용해보세요.',
+      '현재 위치 기반 거리순 정렬, 카카오맵 LBS 핀 마커 연동, 시/도·시/군/구 지역 필터로 원하는 시설을 찾아보세요.',
     bullets: [
-      '전국 14개 실제 장례식장 / 봉안당 / 수목장 GPS 연동',
-      '보건복지부 e하늘 장사정보 시스템 투명 가격 공시표 팝업',
-      '전담 지도사 동행 1:1 방문 답사 예약 신청',
+      '카카오맵 실시간 연동으로 거리순 정렬 및 위치 확인',
+      '시/도·시/군/구 지역 필터 + 태그 필터로 원하는 조건만 빠르게 검색',
+      '전화번호 노출 없이 안전한 업체 문의(견적 요청) 폼으로 연결',
     ],
     featureIcon: <HouseLeafIcon size={36} color="#1A2B4C" />,
     featureIconBg: '#F1F5F9',
@@ -75,11 +75,11 @@ export const domainSlides: Record<string, DomainSlide> = {
     titleLine2: '전문가가 1:1 케어합니다',
     highlightColor: 'var(--accent-gold)',
     description:
-      '상속세 자동 시뮬레이터로 공제액을 즉시 계산하고, 분야별 검증된 변호사·세무사와의 비대면 상담을 예약하세요.',
+      '상속세 자동 시뮬레이터로 공제액을 즉시 계산하고, 분야별 검증된 변호사·세무사와의 비대면 상담을 신청하세요.',
     bullets: [
-      '부동산, 예적금 입력 ➔ 예상 상속세액 3초 자동 계산',
-      '변호사 / 세무사 월별 상담 달력 예약 시스템',
-      '상속 등기·유언장 전문가 연결',
+      '변호사·법무사·세무사·행정사·장례지도사 5대 분야 전문가 상담 신청',
+      '총자산·채무·배우자 및 자녀 공제 조건 입력 → 예상 상속세 즉시 계산',
+      '카카오 알림톡·전화·화상·방문 중 원하는 상담 방식 선택 가능',
     ],
     featureIcon: <HandScalesIcon size={36} color="var(--accent-gold)" />,
     featureIconBg: '#FEF3C7',
@@ -105,9 +105,9 @@ export const domainSlides: Record<string, DomainSlide> = {
     highlightColor: '#5B7065',
     description: '사망 후 D-Day 필수 행정절차 타임라인과 모바일 부고장 작성을 한 곳에서 확인하세요.',
     bullets: [
-      '사망진단서, 사망신고 등 정부24 연계 행정 타임라인',
-      '모바일 부고장 간편 작성 & 답례 문자 생성',
-      '정부24 안심상속 원스톱 서비스 바로 연결',
+      '사망진단서·사망신고 등 22개 행정절차를 D-Day 체크리스트로 확인',
+      '정부24 안심상속 원스톱 서비스로 고인의 금융·토지·세금 내역 한 번에 조회',
+      '상속포기·한정승인 등 되돌릴 수 없는 항목을 1순위로 우선 안내',
     ],
     featureIcon: <ChecklistShieldIcon size={36} color="#03543F" />,
     featureIconBg: '#DEF7EC',
@@ -161,9 +161,9 @@ export const domainSlides: Record<string, DomainSlide> = {
     description:
       'SNS·클라우드 계정의 정산과 정리를 도와드립니다. 생전에 미리 위임해두면, 사후에는 유족이 계정마다 직접 해지 절차를 알아보지 않아도 됩니다.',
     bullets: [
-      '인스타그램, 페이스북, 카카오 등 계정 영구 삭제 대행',
-      '생전에 처리 방식을 미리 지정해두는 사전 위임',
-      '정산 진행 상황을 한 화면에서 확인',
+      '네이버·카카오·구글 등 10개 주요 계정의 정산/해지 절차를 한 화면에서 확인',
+      '가족관계증명서·사망진단서 등 증빙 서류를 먼저 업로드해 상속인 확인 절차 진행',
+      '계정별 정산 신청 버튼으로 원하는 계정부터 순서대로 접수(실제 접수는 준비 중)',
     ],
     featureIcon: <PhoneHeartIcon size={36} color="#D4A359" />,
     featureIconBg: '#FEF3C7',
@@ -189,9 +189,9 @@ export const domainSlides: Record<string, DomainSlide> = {
     description:
       '연명의료 의향 메모부터 256-bit AES 최고 등급 암호화 금고, 사후 지정 수신 자동 발송까지 소중한 마음을 안전하게 보관하세요.',
     bullets: [
-      '연명의료 의향 메모 & 장례 방식 사전 선택',
-      '256-bit AES 군사 등급 암호화 메시지 보관함',
-      '사후 2인 유족 승인(Multi-Sig) 시 자동 메시지 개봉 및 발송',
+      '연명의료 의향 메모 & 희망 장례 방식 사전 선택',
+      '유족에게 남기는 메시지 및 비상 자산 정보 암호화 보관',
+      '사망 인증 시 지정 수신인에게 알림톡으로 열람 키 자동 발송',
     ],
     featureIcon: <NoteKeyIcon size={36} color="#1A2B4C" accentColor="#D4A359" fillColor="#5B7065" />,
     featureIconBg: '#FEF3C7',
