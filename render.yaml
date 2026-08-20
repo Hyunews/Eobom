@@ -27,6 +27,13 @@ services:
         value: https://eobom.vercel.app
       - key: JWT_SECRET
         sync: false
+      # 🔴 로컬 .env와 **반드시 같은 값**을 넣는다.
+      # utils/crypto.ts(AES-256-GCM)가 이 키로 정산 계좌·조의금 계좌를 암호화한다.
+      # 키가 다르면 이미 저장된 암호문을 복호화할 수 없다 —
+      # 2026-08-20 기준 Obituary.accountNumberEnc에 실제 데이터 1건이 들어 있다.
+      # (2026-08-20 추가: 이 항목이 빠져 있어 배포 시 계좌 기능이 죽을 뻔했다)
+      - key: SETTLEMENT_ENCRYPTION_KEY
+        sync: false
       - key: KAKAO_CLIENT_ID
         sync: false
       - key: KAKAO_CLIENT_SECRET

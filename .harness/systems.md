@@ -63,6 +63,30 @@
 
 ## 4. 데이터베이스
 
+### 🔴 Supabase 설정 — Data API·RLS는 **끈다** (2026-08-20 결정)
+
+프로젝트 생성 시 Security 3항목을 **전부 OFF**로 두었다. 생성 화면의 경고
+*"Client libraries need Data API to query your database"* 는 **무시해도 된다.**
+
+| 항목 | 설정 | 근거 |
+|---|---|---|
+| Enable Data API | **OFF** | `supabase-js` 의존성 0건·코드 호출 0건(08-20 실측). DB 접근은 **Prisma 23곳 한 경로**뿐 |
+| Automatically expose new tables | **OFF** | Data API가 꺼져 있으면 무의미. Supabase 자체 권고도 OFF |
+| Enable automatic RLS | **OFF** | RLS는 Data API 접근을 막는 장치다. 그게 꺼져 있으면 보호 대상이 없고, Prisma는 소유자 롤이라 어차피 우회한다 |
+
+- **구조가 다르다**: 이어봄은 `브라우저 → Express → Prisma → Postgres`이고, Data API는
+  `브라우저 → PostgREST → Postgres`다. 인증도 Passport+JWT 자체 구현이라 Supabase Auth를 안 쓴다.
+- ⚠️ **Data API를 켜면 공개 응답 화이트리스트가 통째로 우회된다** — `05-01` §4.1·`07-03` §5.3이
+  일부러 뺀 `deceasedBirthDate`·암호화 계좌 필드까지 REST로 조회 가능해진다.
+- 🔴 **언젠가 Data API를 켜야 한다면 RLS를 먼저 켜라.** 순서가 반대면 테이블이 그대로 열린다.
+
+### 🔴 리전 = Seoul (변경 불가)
+
+`00-17` §3.3 — *"해외 리전이 위법이라서"가 아니라 **논점 자체를 만들지 않으려고**"*.
+서울이면 개인정보처리방침의 국외이전 공개 항목이 아예 필요 없어진다.
+**Supabase는 프로젝트 생성 후 리전을 바꿀 수 없다.**
+
+
 | 항목 | 값 |
 |---|---|
 | 로컬 컨테이너 | Docker `eobom-postgres` |
