@@ -54,7 +54,10 @@ export const KAKAO_SHARE_SDK_LOAD_POLL_INTERVAL_MS = 100;
 // 커밋됨. ⚠️ 반드시 고정 공개 URL이어야 한다 — 카카오 서버가 imageUrl을 직접 가져가는데
 // localhost·사설 IP(window.location.origin 기반)는 접근할 수 없다(§3.3-3). 브랜드 로고
 // 재사용은 §3.3-2가 금지(서비스 홍보로 읽힘) — eobom-logo-hd.png 임시 물림은 여기서 제거한다.
-export const OBITUARY_CARD_IMAGE_URL = 'https://eobom.vercel.app/obituary-card.png';
+// 2026-08-21: obituary-card.png → obituary-card-v2.png로 파일명 변경. 같은 URL의 이미지만
+// 바꿔서는(2026-08-20 "카드이미지 수정") 이미 그 URL을 한 번 가져간 카카오 CDN이 예전(꽃이
+// 양쪽 끝에 있던) 이미지를 계속 캐시해서 내보낼 수 있다 — URL 자체를 바꿔 강제로 새로 가져가게 한다.
+export const OBITUARY_CARD_IMAGE_URL = 'https://eobom.vercel.app/obituary-card-v2.png';
 
 // 연락처는 백엔드에 숫자만(하이픈 없이) 저장된다(backend/src/utils/phone.ts와 짝) — 화면 표시용 포맷터.
 // 정확한 지역번호 체계까지는 다루지 않는 근사치 포맷(011자리 서울/지방 구분 등은 생략).

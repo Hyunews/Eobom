@@ -30,7 +30,8 @@
 |---|---|---|
 | 카카오/네이버/구글 OAuth 클라이언트 시크릿 | `eobom/backend/.env` | 3사 소셜 로그인 |
 | JWT 서명키 | `eobom/backend/.env` | |
-| `DATABASE_URL` | `eobom/backend/.env` | 로컬 Docker Postgres |
+| `DATABASE_URL`·`DIRECT_URL` | `eobom/backend/.env` · Render 대시보드 | 로컬=Docker / 배포=Supabase(`systems.md` §4) |
+| `SETTLEMENT_ENCRYPTION_KEY` | `eobom/backend/.env` · Render | 🔴 **양쪽 같은 값** — 다르면 기존 암호문 복호화 불가 |
 | `VITE_KAKAO_MAP_KEY` | `eobom/frontend/.env` | **프론트 번들에 노출됨** — 도메인 제한 필수 |
 
 > `VITE_` 접두사 변수는 빌드 결과물에 그대로 박힌다. 비밀이 아니라 "공개되지만 도메인으로 잠근 키"로 취급할 것.

@@ -4,9 +4,16 @@
 
 export interface ObituaryCardInput {
   deceasedName: string;
+  chiefMournerName?: string | null;
+  chiefMournerRelationship?: string | null;
   funeralHall?: string | null;
   mourningRoom?: string | null;
   funeralAt: string | Date | null;
+  contactPhone?: string | null;
+  accountEnabled?: boolean;
+  accountBankCode?: string | null;
+  accountNumber?: string | null;
+  accountHolder?: string | null;
   cardFieldsUpdatedAt?: string | Date | null; // §5.4-2 — null이 아니면 "·변경" 표기
 }
 
@@ -30,15 +37,26 @@ export const formatObituaryCardTitle = (input: ObituaryCardInput): string => {
   return `[부고${changedTag}] 故 ${input.deceasedName || ''} 님`;
 };
 
-// §3.2 예시: `빈소: ${funeralHall} ${mourningRoom}\n발인: ${formatKST(funeralAt)}`
+// 상주·빈소·발인·연락처·마음 전하실 곳 순으로 값이 있는 항목만 줄바꿈으로 이어붙인다.
 export const formatObituaryCardDescription = (input: ObituaryCardInput): string => {
   const lines: string[] = [];
+  if (input.chiefMournerName) {
+    const rel = input.chiefMournerRelationship ? ` (${input.chiefMournerRelationship})` : '';
+    lines.push(`상주: ${input.chiefMournerName}${rel}`);
+  }
   if (input.funeralHall) {
     const room = input.mourningRoom ? ` ${input.mourningRoom}` : '';
     lines.push(`빈소: ${input.funeralHall}${room}`);
   }
   if (input.funeralAt) {
     lines.push(`발인: ${formatKST(input.funeralAt)}`);
+  }
+  if (input.contactPhone) {
+    lines.push(`연락처: ${input.contactPhone}`);
+  }
+  if (input.accountEnabled && input.accountBankCode && input.accountNumber) {
+    const holder = input.accountHolder ? ` ${input.accountHolder}` : '';
+    lines.push(`마음 전하실 곳: ${input.accountBankCode} ${input.accountNumber}${holder}`);
   }
   return lines.join('\n');
 };
