@@ -236,20 +236,7 @@ export const ObituaryPage: React.FC<ObituaryPageProps> = ({ currentUser, onOpenL
     }
   };
 
-  const cardInput = {
-    deceasedName,
-    chiefMournerName,
-    chiefMournerRelationship,
-    funeralHall,
-    mourningRoom,
-    funeralAt,
-    contactPhone,
-    accountEnabled,
-    accountBankCode,
-    accountNumber,
-    accountHolder,
-    cardFieldsUpdatedAt,
-  };
+  const cardInput = { deceasedName, funeralHall, mourningRoom, funeralAt, cardFieldsUpdatedAt };
   const cardTitle = formatObituaryCardTitle(cardInput);
   const cardDescription = formatObituaryCardDescription(cardInput);
 
