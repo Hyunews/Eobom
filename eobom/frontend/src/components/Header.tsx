@@ -18,14 +18,15 @@ interface HeaderProps {
 
 // 08-19 14차(개발자 직접 지시) — 기존엔 "지금 모드가 뭔지 알려주는" 칩일 뿐이었고(클릭하면
 // 홈으로 보내 4박스에서 다시 고르게 함), 위치도 로고와 우측 버튼 사이 중앙이었다. 이번엔
-// 로고 바로 오른쪽으로 옮기고, 실제로 눌러서 생전 준비/임종 및 사후 정리/게스트 세 군데를
+// 로고 바로 오른쪽으로 옮기고, 실제로 눌러서 생전 준비/임종 및 사후 정리/추모관 세 군데를
 // 바로 오갈 수 있는 드롭다운으로 바꿨다 — 홈을 거치지 않고 모드를 즉시 전환한다.
-// "게스트"는 아직 실제 화면이 없어(EntryBoxes 박스③ 비활성 고정) 홈으로 보낸다.
+// "추모관"(구 게스트)은 링크를 붙여넣어 입장하는 곳이라 전용 화면이 없다(EntryBoxes 박스③) —
+// 홈으로 보내 그 입력창에서 이어가게 한다.
 type ModeDropdownKey = NavMode | 'guest';
 const MODE_DROPDOWN_ITEMS: Array<{ key: ModeDropdownKey; label: string }> = [
   { key: 'prep', label: '생전 준비' },
   { key: 'bereaved', label: '임종 및 사후 정리' },
-  { key: 'guest', label: '게스트' },
+  { key: 'guest', label: '추모관' },
 ];
 
 export const Header: React.FC<HeaderProps> = ({ setActiveTab, onOpenLogin, onOpenAccountSettings, currentUser, onLogout, navMode, onSetMode, onOpenMobileMenu }) => {
