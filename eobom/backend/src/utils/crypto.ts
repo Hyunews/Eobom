@@ -34,3 +34,16 @@ export const decryptField = (stored: string): string => {
   decipher.setAuthTag(Buffer.from(tagB64, 'base64'));
   return Buffer.concat([decipher.update(Buffer.from(dataB64, 'base64')), decipher.final()]).toString('utf8');
 };
+
+// 결정적 해시(HMAC-SHA256) — AES-GCM은 IV가 매번 랜덤이라 암호문으로는 중복검사가 원리적으로
+// 불가능하다(docs 00-27 §4.1). 암호화 키를 그대로 HMAC 키로 재사용하지 않고 domain으로 용도를
+// 분리해서 파생한다 — 새 환경변수를 추가하지 않으면서(render.yaml·Render 대시보드가 같이
+// 늘어난다, systems.md §5) 암호화 키와 인덱스 키를 갈라놓기 위함.
+export const hashField = (plaintext: string, domain: string): string => {
+  const raw = process.env.SETTLEMENT_ENCRYPTION_KEY;
+  if (!raw) {
+    throw new Error('SETTLEMENT_ENCRYPTION_KEY가 설정되지 않았습니다 (.env 확인).');
+  }
+  const hmacKey = crypto.createHash('sha256').update(`${raw}:${domain}`).digest();
+  return crypto.createHmac('sha256', hmacKey).update(plaintext).digest('hex');
+};

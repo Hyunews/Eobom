@@ -602,7 +602,7 @@ export const AdminPage: React.FC = () => {
 
       {showAddressSearch && (
         <AddressSearchModal
-          onSelect={(address) => setExpertEditForm((f) => ({ ...f, officeAddress: address }))}
+          onSelect={(address) => setExpertEditForm((f) => ({ ...f, officeAddress: address.roadAddress || address.jibunAddress }))}
           onClose={() => setShowAddressSearch(false)}
         />
       )}

@@ -384,7 +384,10 @@ export const PartnerPortalPage: React.FC = () => {
       </p>
 
       {showAddressSearch && (
-        <AddressSearchModal onSelect={(address) => setOfficeAddress(address)} onClose={() => setShowAddressSearch(false)} />
+        <AddressSearchModal
+          onSelect={(address) => setOfficeAddress(address.roadAddress || address.jibunAddress)}
+          onClose={() => setShowAddressSearch(false)}
+        />
       )}
     </div>
   );

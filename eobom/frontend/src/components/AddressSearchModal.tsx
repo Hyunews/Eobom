@@ -11,8 +11,18 @@ declare global {
 
 const POSTCODE_SCRIPT_SRC = 'https://t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js';
 
+// 00-28 §3.4 — 우편번호(zonecode)도 필요한 화면(회원 프로필)이 생기면서 문자열 하나였던
+// onSelect를 객체로 넓혔다. 상세주소는 이 위젯이 안 받는 값이라 여기 포함하지 않는다 —
+// 폼에서 별도 입력칸으로 받는다(§3.3). ⚠️ 호출부를 고칠 땐 두 곳(AdminPage.tsx·
+// PartnerPortalPage.tsx)을 같은 커밋에서 동반 수정할 것 — 한쪽만 고치면 타입이 깨진다.
+export interface AddressSearchResult {
+  zonecode: string;
+  roadAddress: string;
+  jibunAddress: string;
+}
+
 interface AddressSearchModalProps {
-  onSelect: (address: string) => void;
+  onSelect: (address: AddressSearchResult) => void;
   onClose: () => void;
 }
 
@@ -28,7 +38,7 @@ export const AddressSearchModal: React.FC<AddressSearchModalProps> = ({ onSelect
       new window.daum.Postcode({
         oncomplete: (data: any) => {
           if (cancelled) return;
-          onSelect(data.roadAddress || data.jibunAddress);
+          onSelect({ zonecode: data.zonecode, roadAddress: data.roadAddress, jibunAddress: data.jibunAddress });
           onClose();
         },
         width: '100%',

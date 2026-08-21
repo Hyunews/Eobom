@@ -33,8 +33,51 @@ model User {
   memorialGuestbooks  MemorialGuestbook[] // 남긴 방명록
   memorialPhotos      MemorialPhoto[] // 업로드한 추모 사진
   obituaries          Obituary[] // docs 07-03 §4.2 — 개설한 부고장
+  familyDesignations  FamilyDesignation[] // docs 00-27 §4 — 생전 지정한 가족(제3자)
+
+  // 00-28 회원 프로필 — 전부 선택(§3.1). 신청 스냅샷과 별개다(§2)
+  contactPhone      String?   // 숫자만 정규화 저장(utils/phone.ts) — Partner·Expert와 동일 규칙
+  phoneVerifiedAt   DateTime? // SMS 본인확인 도입 전까지 항상 null(§8 Phase 3)
+  addressZonecode   String?   // 우편번호
+  addressRoad       String?   // 도로명 주소 — 지역 기반 안내용(§3.3)
+  addressDetail     String?   // 동·호수 — 방문 서비스에서만 필요(§3.3)
+  contactTimePref   String?   // ANYTIME | MORNING | AFTERNOON | EVENING
+  marketingAgreedAt DateTime? // null이면 미동의. 철회 시 다시 null
+  profileUpdatedAt  DateTime? // 프로필을 실제로 채운 시각(가입 updatedAt과 구분)
+
   createdAt           DateTime             @default(now()) // 가입 일시
   updatedAt           DateTime             @updatedAt // 최종 수정 일시
+}
+
+// 생전 가족지정 — 00-27. 지정자가 아직 살아 있으므로 Deceased가 아니라 User에 붙는다(§1.2)
+model FamilyDesignation {
+  id              String    @id @default(uuid())
+  userId          String                        // 지정한 본인(생전)
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  name            String                        // 가족 성함
+  phoneEnc        String                        // 🔴 AES-256-GCM 암호문(불변식 2)
+  phoneHash       String                        // 중복 지정 방지용 인덱스 — §4.1
+  emailEnc        String?                       // 선택. 연락수단 이중화(§5 ⑥)
+  relationship    String                        // SPOUSE|CHILD|PARENT|SIBLING|OTHER
+  relationshipEtc String?                       // OTHER일 때만
+  scope           String    @default("VIEWER")  // PRIMARY | VIEWER (§6)
+  priority        Int       @default(1)         // 연락 순서. ⚠️ 상속순위 아님(불변식 4)
+
+  status          String    @default("DRAFT")   // DRAFT|PENDING|ACCEPTED|DECLINED|EXPIRED
+  inviteToken     String?   @unique             // 통지 링크 토큰(Phase 2). 추측 불가
+  tokenExpiresAt  DateTime?
+  notifiedAt      DateTime?
+  acceptedAt      DateTime?
+  declinedAt      DateTime?
+  acceptedUserId  String?                       // 수락한 가족의 User — 계정 연결 결과(§9)
+
+  lastConfirmedAt DateTime  @default(now())     // 정확도·보유기간 재확인 기준(§7)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@unique([userId, phoneHash])                 // 같은 사람을 두 번 지정하지 못하게
+  @@index([userId, status])
 }
 
 // 소셜 로그인 계정 (User 1:N) — 카카오/네이버/구글 연동 정보, 1인 다계정 연동 지원

@@ -6,6 +6,36 @@
 
 ---
 
+## 2026-08-21 (50) | [Sonnet] 회원 프로필(`00-28`)·생전 가족지정(`00-27`) Phase 1 — 저장까지 구현
+
+- **근거 스펙**: `00-28` §5(User 확장 필드)·§6.1(GET·PATCH /api/me/profile)·§8 Phase 1 · `00-27` §3(불변식 5개)·§4(FamilyDesignation 모델)·§4.1(phoneHash)·§4.2(상한 10명)·§6(scope 2단)·§8.1(라우트 4종)·§8.3(고지 문구)·§10 Phase 1 · `.harness/systems.md` §4(Supabase pg_dump 선행)·§5(배포). 개발자 지시: *"우선적으로 회원 정보란에 정보를 입력하고 DB에 쌓는 건 선행되어야 함(유족 정보 포함)."* → 저장까지만, 통지·수락·계정연결(Phase 2·3)은 범위 밖.
+- **건드린 파일**:
+  - 백엔드: `eobom/backend/prisma/schema.prisma`(User에 8개 nullable 필드 + `familyDesignations` 역참조, `FamilyDesignation` 모델 신설) · `eobom/backend/prisma/migrations/20260821023945_add_user_profile_and_family_designation/migration.sql`(신규) · `eobom/backend/src/utils/crypto.ts`(`hashField` 추가) · `eobom/backend/src/utils/phone.ts`(`maskPhone` 추가) · `eobom/backend/src/controllers/profileController.ts`(신규) · `eobom/backend/src/controllers/familyDesignationController.ts`(신규) · `eobom/backend/src/routes/familyDesignationRoutes.ts`(신규) · `eobom/backend/src/routes/meRoutes.ts`(`GET`·`PATCH /profile` 추가, 머리말 주석 1줄 확장) · `eobom/backend/src/server.ts`(`/api/family-designations` 마운트)
+  - 프론트: `eobom/frontend/src/components/AddressSearchModal.tsx`(`onSelect` 시그니처를 `string` → `{ zonecode, roadAddress, jibunAddress }` 객체로 확장) · `eobom/frontend/src/pages/AdminPage.tsx`(604행 호출부 동반 수정) · `eobom/frontend/src/pages/PartnerPortalPage.tsx`(387행 호출부 동반 수정) · `eobom/frontend/src/components/MyPageProfile.tsx`(신규) · `eobom/frontend/src/components/MyPageFamilyDesignation.tsx`(신규) · `eobom/frontend/src/App.tsx`(모달 상태 2개 + `/mypage` route에 `onOpenProfile`·`onOpenFamilyDesignation` prop 추가) · `eobom/frontend/src/pages/MyPage.tsx`("내 정보"·"가족 지정" 진입 카드 2개 추가)
+- **결과**:
+  - 🔴 **선행 백업 완료** — Docker Desktop이 꺼져 있어(이전 세션부터) 로컬에 `pg_dump` 바이너리가 없었다. Docker Desktop을 띄우고, `docker run --rm -v /c/Users/kilak/Desktop/Eobom_backups:/backup postgres:17-alpine pg_dump -h aws-0-ap-northeast-2.pooler.supabase.com -p 5432 -U postgres.oxvyljtyypnrbnhfbgrs -d postgres -F c -f /backup/eobom_supabase_20260821_113855.dump`로 **Supabase(로컬 Docker 아님)** 를 직접 덤프했다(최초 15 클라이언트로 시도 → "server version mismatch"로 실패 → 17-alpine으로 재시도해 성공). 저장 위치는 저장소 **바깥**(`C:\Users\kilak\Desktop\Eobom_backups\`, git 추적 안 됨) — `.harness/security.md` §1(실제 개인정보 커밋 금지). `pg_restore --list`로 **676 TOC 항목·23개 앱 테이블(User·FamilyDesignation은 신규 이전이라 없음, Facility·Lead·Obituary 등 기존 전부) 데이터 섹션 확인** — 복원 가능한 완전한 백업.
+  - **마이그레이션 로컬 생성·적용** — `npx prisma migrate dev --name add_user_profile_and_family_designation`(로컬 Docker `eobom-postgres`, 5433). 생성된 SQL은 `ALTER TABLE "User" ADD COLUMN`(nullable 8개) + `CREATE TABLE "FamilyDesignation"` + FK 1개뿐 — DROP 없음, 순수 추가만.
+  - **마이그레이션 프로덕션 적용** — `DATABASE_URL=...6543...pgbouncer=true DIRECT_URL=...5432... npx prisma migrate deploy`(임시 env override, `systems.md` §5 관행대로). "17 migrations found... All migrations have been successfully applied." `psql`로 `\d "FamilyDesignation"` 재확인 — 컬럼·인덱스·FK 전부 스펙과 일치.
+  - **빌드**: `npx tsc --noEmit`(backend) 통과 · `npm run build`(backend: `prisma generate && tsc`) 통과, `dist/controllers/{profileController,familyDesignationController}.js`·`dist/routes/{meRoutes,familyDesignationRoutes}.js` 생성 확인 · `npx tsc --noEmit -p .`(frontend) 통과 · `npm run build`(frontend: `tsc && vite build`) 통과.
+  - **브라우저 실기동은 안 함** — 사용자가 dev 서버를 직접 켜는 걸 선호한다는 기존 기록(`feedback_user_starts_dev_server`)에 따라 `npm run dev`를 내가 띄우지 않았다. API 라운드트립(GET/PATCH 프로필, 4종 가족지정 CRUD)과 `AddressSearchModal` 호출부 2곳(`AdminPage`·`PartnerPortalPage`) 회귀는 **미검증** — 다음 항목 참고.
+- **편차**:
+  - 🔴 **`00-28` §8 Phase 1 2번 항목이 문서 자체 오타로 `/api/users/me/profile`이라고 적혀 있다** — 같은 문서 §6.1 표와 개발자의 명시적 지시("새 `/api/users` 네임스페이스를 열지 말 것")는 둘 다 `/api/me/profile`. §6.1·지시를 따라 `/api/me/profile`로 구현했다. **`00-28` §8을 고쳐야 할 사람은 Opus** — 여기선 코드만 맞추고 문서는 손대지 않았다.
+  - `maskPhone`을 `utils/phone.ts`에 새로 export로 뺐다(스펙엔 위치 지정 없음) — `leadController.ts`에 이미 있던 사실상 동일한 private 함수는 그대로 두고 손대지 않았다(리팩터 지시 없었음, 블라스트 반경 최소화).
+  - `FamilyDesignation` 이메일도 GET 응답에서 마스킹했다(로컬파트만, 도메인은 유지) — §8.1 표는 "연락처는 마스킹"만 명시하지만, §3 불변식 2("연락처·이메일은... 어떤 응답에도 평문을 넣지 않는다")가 이메일까지 명확히 포함해서 같은 규칙을 적용했다. 마스킹 정확한 형식은 스펙에 없어 leadController의 이름 마스킹 방식을 참고해 직접 정했다.
+  - 회원 프로필 GET의 상세주소 마스킹 알고리즘(첫 글자만 남김)도 스펙에 정확한 형식이 없어 같은 방식으로 직접 정했다.
+  - `PATCH /api/me/profile`이 `name`·`email`(§3.2 ③④, 기존 컬럼)까지 함께 받는다 — §5 스키마 블록은 신규 8필드만 나열하지만 §3.2가 이름·이메일도 이 화면의 수집 항목으로 명시하고 있어 같은 엔드포인트에 포함시켰다. `name`은 기존 `User.name`이 `NOT NULL`이라 §3.1("전부 선택")의 예외로 두고 빈 값을 400으로 막았다 — 이건 신규 수집 항목이 아니라 기존 필수 컬럼의 무결성 문제다.
+  - 지정 인원 상한(10명, §4.2)은 삽입 전 `count()` 체크로만 막았다 — 동시에 두 요청이 들어오면 이론상 10명을 넘을 수 있는 경쟁조건이 남아 있다. 남용 방지용 소프트 상한이라 지금은 그대로 뒀다.
+- **다음 에이전트가 알아야 할 것**:
+  - **마이그레이션이 이미 로컬·프로덕션(Supabase) 둘 다 적용된 상태**다 — Render가 다음 재배포 때 `npm start`의 `prisma migrate deploy`를 돌려도 새로 적용할 게 없어 그냥 통과한다(정상).
+  - 로컬 Docker(`eobom-postgres`, 5433)를 이번 세션에서 새로 켰다 — Docker Desktop이 꺼져 있던 상태에서 시작했고, 같이 떠 있던 무관한 다른 프로젝트 컨테이너(`phone_node_app`·`phone_postgres_db`)는 건드리지 않았다.
+  - **Phase 2·3(알리기·수락·`inviteToken`·`/invite/:token`·SMS 본인확인)은 의도적으로 전혀 없다** — `MyPageFamilyDesignation.tsx`에 "알리기" 버튼이 없고, `status`는 서버가 항상 `DRAFT`로 고정한다(불변식 1).
+  - ⚠️ **브라우저 회귀 미검증** — 특히 `AddressSearchModal`을 쓰는 `AdminPage`(전문가 사무실 주소)·`PartnerPortalPage`(가입 폼 주소)가 새 객체 시그니처로 여전히 잘 동작하는지, `MyPageProfile`·`MyPageFamilyDesignation`의 저장·삭제 라운드트립을 실제로 눌러봐야 한다.
+  - 백업 파일은 `C:\Users\kilak\Desktop\Eobom_backups\eobom_supabase_20260821_113855.dump`(451,410 bytes, 저장소 밖) — 필요시 `pg_restore -d <대상> eobom_supabase_20260821_113855.dump`로 복원.
+
+<!-- Gemini 판정 1줄: ✅통과 / ❌반려(사유) / 🔄스펙갱신(고친 문서) -->
+
+---
+
 ## 2026-08-21 (49) | [Opus] 07 구현물 ↔ `07-03` 스펙 정합 감사 — 드리프트 5건 판정
 
 - **근거 스펙**: `07-03` §4.2·§4.4·§5.1·§5.2·§5.3·§5.4-2·§6.2·§6.2-3 · `00-13` §6.1(존재 은닉) · `00-23` §2.2·§4.1 · `00-26` §3.3·§4.5 · `05-01` §2.6. 개발자 지시: *"sonnet이 내 요청에 따라(너의 의견 거치지 않은) 변경한 디테일이 많이 있어서 너가 한번 확인할 필요는 있을 것 같아."*

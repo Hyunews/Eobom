@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import { Calendar, MessageSquare, BookOpen, ChevronRight, Camera, Settings, Lock } from 'lucide-react';
+import { Calendar, MessageSquare, BookOpen, ChevronRight, Camera, Settings, Lock, UserCircle, Users } from 'lucide-react';
 import { BACKEND_URL } from '../config';
 
 interface MyPageProps {
   currentUser?: string | null;
   onOpenLogin?: () => void;
   onOpenAccountSettings?: () => void;
+  onOpenProfile?: () => void;
+  onOpenFamilyDesignation?: () => void;
   setActiveTab?: (tab: string) => void;
 }
 
@@ -16,7 +18,7 @@ interface MyProfile {
   role: string;
 }
 
-export const MyPage: React.FC<MyPageProps> = ({ currentUser, onOpenLogin, onOpenAccountSettings, setActiveTab }) => {
+export const MyPage: React.FC<MyPageProps> = ({ currentUser, onOpenLogin, onOpenAccountSettings, onOpenProfile, onOpenFamilyDesignation, setActiveTab }) => {
   const [profile, setProfile] = useState<MyProfile | null>(null);
 
   useEffect(() => {
@@ -190,6 +192,79 @@ export const MyPage: React.FC<MyPageProps> = ({ currentUser, onOpenLogin, onOpen
 
       {/* Archive List */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.9rem' }}>
+        {/* 00-28 §6.3 · 00-27 §8.2 — 내 정보(연락처·주소)와 가족 지정을 마이페이지 안에 나란히 둔다 */}
+        <button
+          onClick={onOpenProfile}
+          className="card"
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            padding: '1rem 1.1rem',
+            cursor: 'pointer',
+            textAlign: 'left',
+            width: '100%'
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            <div
+              style={{
+                width: '44px',
+                height: '44px',
+                borderRadius: '12px',
+                backgroundColor: 'var(--secondary-color)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0
+              }}
+            >
+              <UserCircle size={20} color="var(--point-color)" />
+            </div>
+            <div>
+              <div style={{ fontWeight: 700, color: 'var(--primary-color)' }}>내 정보</div>
+              <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>연락처 · 주소 · 연락 가능 시간대</div>
+            </div>
+          </div>
+          <ChevronRight size={20} color="var(--text-muted)" />
+        </button>
+
+        <button
+          onClick={onOpenFamilyDesignation}
+          className="card"
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            padding: '1rem 1.1rem',
+            cursor: 'pointer',
+            textAlign: 'left',
+            width: '100%'
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            <div
+              style={{
+                width: '44px',
+                height: '44px',
+                borderRadius: '12px',
+                backgroundColor: 'var(--secondary-color)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0
+              }}
+            >
+              <Users size={20} color="var(--point-color)" />
+            </div>
+            <div>
+              <div style={{ fontWeight: 700, color: 'var(--primary-color)' }}>가족 지정</div>
+              <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>생전 준비를 함께할 가족 기록</div>
+            </div>
+          </div>
+          <ChevronRight size={20} color="var(--text-muted)" />
+        </button>
+
         <button
           onClick={() => alert('📅 [개발중] 나의 예약 현황 상세 페이지는 준비 중입니다.')}
           className="card"

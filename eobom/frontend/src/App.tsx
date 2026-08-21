@@ -6,6 +6,8 @@ import { Footer } from './components/Footer';
 import { LoginModal } from './components/LoginModal';
 import { SocialLinkModal } from './components/SocialLinkModal';
 import { MyPageAuthSettings } from './components/MyPageAuthSettings';
+import { MyPageProfile } from './components/MyPageProfile';
+import { MyPageFamilyDesignation } from './components/MyPageFamilyDesignation';
 import { EobomLogo } from './components/EobomLogo';
 import { providerLabel } from './config';
 import { NAV_MODE_STORAGE_KEY, type NavMode } from './modeNav';
@@ -86,6 +88,9 @@ function AppShell() {
   // 마이페이지 소셜 계정 연동 설정 모달 상태
   const [isMyPageOpen, setIsMyPageOpen] = useState<boolean>(false);
   const [myPageMessage, setMyPageMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  // 00-28·00-27 §6.3·§8.2 — 마이페이지 > 내 정보 / 가족 지정 모달 상태(MyPageAuthSettings와 같은 패턴)
+  const [isProfileOpen, setIsProfileOpen] = useState<boolean>(false);
+  const [isFamilyDesignationOpen, setIsFamilyDesignationOpen] = useState<boolean>(false);
 
   // 메뉴/버튼 직접 클릭으로 페이지 이동 시 호출 — 시그니처는 예전 해시 버전과 동일하게 유지해
   // Header/Sidebar/HomePage/MyPage 등 호출부는 손대지 않아도 되게 함.
@@ -312,7 +317,14 @@ function AppShell() {
             <Route path="/memorial" element={<MemorialPage {...authProps} />} />
             <Route
               path="/mypage"
-              element={<MyPage {...authProps} onOpenAccountSettings={() => { setMyPageMessage(null); setIsMyPageOpen(true); }} />}
+              element={
+                <MyPage
+                  {...authProps}
+                  onOpenAccountSettings={() => { setMyPageMessage(null); setIsMyPageOpen(true); }}
+                  onOpenProfile={() => setIsProfileOpen(true)}
+                  onOpenFamilyDesignation={() => setIsFamilyDesignationOpen(true)}
+                />
+              }
             />
             {/* 법적 문서 — docs 00-19/00-21 v0.9 초안. 게시 게이트(00-18 §8.1) 통과 전까지
                 LegalDocLayout 상단 배너로 "시행 준비 중"을 고지한다. */}
@@ -362,6 +374,10 @@ function AppShell() {
         onClose={() => setIsMyPageOpen(false)}
         initialMessage={myPageMessage}
       />
+
+      {/* 마이페이지 > 내 정보(00-28) / 가족 지정(00-27) */}
+      <MyPageProfile isOpen={isProfileOpen} onClose={() => setIsProfileOpen(false)} />
+      <MyPageFamilyDesignation isOpen={isFamilyDesignationOpen} onClose={() => setIsFamilyDesignationOpen(false)} />
     </div>
   );
 }
