@@ -62,11 +62,10 @@ export const Header: React.FC<HeaderProps> = ({ setActiveTab, onOpenLogin, onOpe
       setActiveTab('home');
       return;
     }
+    setActiveTab(firstActiveItem.id);
     if (firstActiveItem.loginRequired && !currentUser) {
       onOpenLogin();
-      return;
     }
-    setActiveTab(firstActiveItem.id);
   };
 
   const modeMenuLabel = navMode ? MODE_LABELS[navMode] : '메뉴';
