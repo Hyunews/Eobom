@@ -27,18 +27,23 @@ const triggerFieldsChanged = (before: TriggerSnapshot, after: TriggerSnapshot): 
   before.mourningRoom !== after.mourningRoom ||
   before.funeralAt.getTime() !== after.funeralAt.getTime();
 
-// 닫혔거나 없으면 404로 존재를 숨긴다(§5.3) — memorialController.findViewableMemorialBySlug와 동일 사상.
-const findViewableObituaryBySlug = (slug: string) =>
-  prisma.obituary
-    .findUnique({
-      where: { slug },
-      include: {
-        deceased: { select: { name: true, deathDate: true } },
-        memorial: { select: { slug: true, portraitUrl: true } },
-        mourners: { orderBy: { sortOrder: 'asc' } },
-      },
-    })
-    .then((o) => (!o || o.closedAt ? null : o));
+// §9 #9 Phase 3 — 발인일(KST 달력 기준) + 3일 자정에 자동 종료(2026-08-20 개발자 확정, §6.2-4).
+// 스케줄러를 새로 들이지 않고 조회 시점에 계산한다(closedAt처럼 DB에 쌓아두지 않음).
+const AUTO_CLOSE_DAYS = 3;
+const isAutoExpired = (funeralAt: Date): boolean => {
+  // funeralAt(UTC 저장값)을 KST 벽시계로 옮겨 "발인일" 달력 날짜를 구한 뒤, 그 날짜의
+  // KST 자정에서 +3일 되는 순간(역시 KST 자정)을 다시 UTC로 환산해 지금과 비교한다.
+  const kst = new Date(funeralAt.getTime() + 9 * 60 * 60 * 1000);
+  const kstMidnightAsUtcMs = Date.UTC(kst.getUTCFullYear(), kst.getUTCMonth(), kst.getUTCDate());
+  const cutoffUtcMs = kstMidnightAsUtcMs + AUTO_CLOSE_DAYS * 24 * 60 * 60 * 1000 - 9 * 60 * 60 * 1000;
+  return Date.now() >= cutoffUtcMs;
+};
+
+// 수동 종료(closedAt) 또는 자동 종료(§6.2-4) 둘 중 하나라도 해당하면 닫힌 것으로 본다.
+// 공개(익명) 조회는 닫혔으면 404로 존재를 숨기고(§5.3), 개설자 본인은 getObituaryBySlug에서
+// 예외적으로 계속 볼 수 있다 — memorialController.findViewableMemorialBySlug와 같은 사상이되
+// 여긴 "본인은 예외"가 하나 더 있어 별도 헬퍼(isObituaryClosed)로만 두고 함수는 합치지 않는다.
+const isObituaryClosed = (o: { closedAt: Date | null; funeralAt: Date }): boolean => !!o.closedAt || isAutoExpired(o.funeralAt);
 
 interface MournerInput {
   name?: string;
@@ -198,15 +203,32 @@ export const createObituary = async (req: Request, res: Response) => {
 };
 
 // 공개 조회 (`GET /api/obituaries/:slug`) — §5.3 화이트리스트. 닫혔거나 없으면 404(존재 은닉).
+// 🔵 §9 #9 Phase 3 — 종료된 뒤에도 개설자 본인은 관리 화면(ObituaryPage.tsx)에서 계속 볼 수 있어야
+// 하므로, Authorization 헤더가 있고 본인 것이면 닫혀 있어도 404를 내리지 않는다(다만 익명 조회는
+// 그대로 404 — 존재 은닉 원칙은 안 건드린다).
 export const getObituaryBySlug = async (req: Request, res: Response) => {
   try {
-    const obituary = await findViewableObituaryBySlug(req.params.slug);
-    if (!obituary) {
+    const decoded = verifyBearerToken(req); // 선택 — 없어도 공개 조회는 그대로 동작(§5.3)
+    const obituary = await prisma.obituary.findUnique({
+      where: { slug: req.params.slug },
+      include: {
+        deceased: { select: { name: true, deathDate: true } },
+        memorial: { select: { slug: true, portraitUrl: true } },
+        mourners: { orderBy: { sortOrder: 'asc' } },
+      },
+    });
+
+    const closed = obituary ? isObituaryClosed(obituary) : false;
+    const isOwner = !!obituary && !!decoded && obituary.createdByUserId === decoded.id;
+    if (!obituary || (closed && !isOwner)) {
       return res.status(404).json({ status: 'error', message: '부고장을 찾을 수 없습니다.' });
     }
 
     // 조회수 집계만(§8 #8) — IP·UA 원문은 저장하지 않는다. 실패해도 조회 자체는 막지 않는다.
-    prisma.obituary.update({ where: { id: obituary.id }, data: { viewCount: { increment: 1 } } }).catch(() => {});
+    // 종료된 뒤 개설자 본인이 확인하러 들어온 방문은 세지 않는다(조문객 조회수가 아니므로).
+    if (!closed) {
+      prisma.obituary.update({ where: { id: obituary.id }, data: { viewCount: { increment: 1 } } }).catch(() => {});
+    }
 
     const data: Record<string, unknown> = {
       deceasedName: obituary.deceased.name,
@@ -221,6 +243,10 @@ export const getObituaryBySlug = async (req: Request, res: Response) => {
       memorialSlug: obituary.memorial.slug,
       cardFieldsUpdatedAt: obituary.cardFieldsUpdatedAt,
       updatedAt: obituary.updatedAt, // §5.4-2 — 랜딩 상단 "최종 수정 시각" 표시용
+      // §9 #9 — 익명 조회에서는 이 경로에 절대 도달하지 않으므로(닫혔으면 위에서 이미 404)
+      // 항상 false/null이라 노출해도 무해하다. 개설자 본인이 볼 때만 실제 값이 들어간다.
+      isClosed: closed,
+      closedAt: obituary.closedAt,
     };
 
     // 연락처 — 입력돼 있으면 그대로 포함(별도 토글 없음, §6.2-2)
@@ -335,5 +361,32 @@ export const updateObituary = async (req: Request, res: Response) => {
   } catch (error) {
     console.error('부고장 수정 실패:', error);
     return res.status(500).json({ status: 'error', message: '부고장 수정 중 오류가 발생했습니다.' });
+  }
+};
+
+// 수동 종료 (`PATCH /api/obituaries/:id/close`) — 개설자만(§9 #9). §6.2-3이 말하는 "실제로 작동하는
+// 유일한 완화책" — 닫으면 연락처·계좌가 실린 랜딩이 그 즉시 404가 된다. 되돌리는 기능은 두지 않는다
+// (§6.2-4의 발인+3일 자동 종료와 마찬가지로 한 방향으로만 간다). 이미 닫혀 있어도 에러 대신 그대로
+// 현재 상태를 돌려준다(버튼을 두 번 눌러도 안전).
+export const closeObituary = async (req: Request, res: Response) => {
+  const decoded = verifyBearerToken(req);
+  if (!decoded) {
+    return res.status(401).json({ status: 'error', message: '로그인이 필요합니다.' });
+  }
+
+  try {
+    const existing = await prisma.obituary.findUnique({ where: { id: req.params.id } });
+    if (!existing || existing.createdByUserId !== decoded.id) {
+      return res.status(404).json({ status: 'error', message: '부고장을 찾을 수 없습니다.' });
+    }
+
+    const updated = existing.closedAt
+      ? existing
+      : await prisma.obituary.update({ where: { id: existing.id }, data: { closedAt: new Date() } });
+
+    return res.json({ status: 'success', data: { closedAt: updated.closedAt } });
+  } catch (error) {
+    console.error('부고장 종료 실패:', error);
+    return res.status(500).json({ status: 'error', message: '부고장 종료 중 오류가 발생했습니다.' });
   }
 };

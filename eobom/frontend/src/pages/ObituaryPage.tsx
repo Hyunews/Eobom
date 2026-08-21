@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { MessageSquare, Send, Copy, Plus, X, ChevronDown, ChevronUp, AlertTriangle, LogIn, Heart } from 'lucide-react';
+import { MessageSquare, Send, Copy, Plus, X, ChevronDown, ChevronUp, AlertTriangle, LogIn, Heart, PowerOff } from 'lucide-react';
 import { BACKEND_URL, OBITUARY_CARD_IMAGE_URL } from '../config';
 import { formatObituaryCardTitle, formatObituaryCardDescription, formatKST } from '../utils/obituaryCard';
 import { ensureKakaoShareReady, shareViaKakao, shareViaWebShareApi, copyObituaryLink, buildObituarySmsHref } from '../utils/kakaoShare';
@@ -73,6 +73,12 @@ export const ObituaryPage: React.FC<ObituaryPageProps> = ({ currentUser, onOpenL
   const [cardFieldsUpdatedAt, setCardFieldsUpdatedAt] = useState<string | null>(null);
   const [updatedAt, setUpdatedAt] = useState<string | null>(null);
 
+  // §9 #9 Phase 3 — 수동 종료(closedAt) 또는 발인+3일 자동 종료(§6.2-4) 둘 중 하나. GET :slug가
+  // 개설자 본인에게는 닫혀도 404 대신 이 값들을 실어준다(obituaryController.getObituaryBySlug).
+  const [isClosed, setIsClosed] = useState(false);
+  const [closedAt, setClosedAt] = useState<string | null>(null);
+  const [isClosing, setIsClosing] = useState(false);
+
   // 클릭 핸들러 안에서 동기 호출해야 팝업 차단을 피한다(§7) — 그래서 로드는 마운트 시점에 미리 시작.
   useEffect(() => {
     ensureKakaoShareReady();
@@ -98,7 +104,12 @@ export const ObituaryPage: React.FC<ObituaryPageProps> = ({ currentUser, onOpenL
       return;
     }
 
-    fetch(`${BACKEND_URL}/api/obituaries/${ref.obituarySlug}`)
+    // 종료된 뒤에도 개설자 본인은 계속 볼 수 있어야 하므로(§9 #9) 토큰을 실어 보낸다 —
+    // 없으면 서버가 익명 조회로 보고 종료 시 404를 준다(obituaryController.getObituaryBySlug).
+    const meToken = sessionStorage.getItem('k_ending_token');
+    fetch(`${BACKEND_URL}/api/obituaries/${ref.obituarySlug}`, {
+      headers: meToken ? { Authorization: `Bearer ${meToken}` } : undefined,
+    })
       .then((res) => res.json())
       .then((data) => {
         if (data.status !== 'success') {
@@ -135,6 +146,8 @@ export const ObituaryPage: React.FC<ObituaryPageProps> = ({ currentUser, onOpenL
 
         setCardFieldsUpdatedAt(o.cardFieldsUpdatedAt || null);
         setUpdatedAt(o.updatedAt || null);
+        setIsClosed(!!o.isClosed);
+        setClosedAt(o.closedAt || null);
         setObituaryUrl(`${window.location.origin}/o/${ref.obituarySlug}`);
         setMemorialUrl(`${window.location.origin}/m/${o.memorialSlug}`);
         // 개설 시 이미 완료한 동의 — 수정 화면에서 다시 요구하지 않는다(체크된 상태로 표시).
@@ -255,6 +268,33 @@ export const ObituaryPage: React.FC<ObituaryPageProps> = ({ currentUser, onOpenL
     if (!obituaryUrl) return;
     const ok = await copyObituaryLink(obituaryUrl);
     setCopyFeedback(ok ? '링크가 복사되었습니다.' : '복사에 실패했습니다. 링크를 직접 선택해 복사해 주세요.');
+  };
+
+  // §6.2-3·§9 #9 — 연락처·계좌 노출을 실제로 막는 유일한 완화책. 되돌릴 수 없다.
+  const handleCloseObituary = async () => {
+    if (!obituaryRef || isClosed) return;
+    if (!window.confirm('부고장을 종료하시겠어요? 종료하면 조문객은 더 이상 이 링크로 볼 수 없습니다. 되돌릴 수 없습니다.')) return;
+
+    setIsClosing(true);
+    setErrorMsg(null);
+    const token = sessionStorage.getItem('k_ending_token');
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/obituaries/${obituaryRef.obituaryId}/close`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+      });
+      const data = await res.json();
+      if (!res.ok || data.status !== 'success') {
+        setErrorMsg(data.message || '부고장 종료에 실패했습니다.');
+        return;
+      }
+      setIsClosed(true);
+      setClosedAt(data.data.closedAt);
+    } catch {
+      setErrorMsg('서버와 통신 중 오류가 발생했습니다.');
+    } finally {
+      setIsClosing(false);
+    }
   };
 
   if (!currentUser) {
@@ -447,42 +487,74 @@ export const ObituaryPage: React.FC<ObituaryPageProps> = ({ currentUser, onOpenL
 
           {obituaryRef && (
             <div style={{ backgroundColor: 'var(--card-bg)', padding: '1.5rem', borderRadius: 'var(--border-radius)', boxShadow: 'var(--box-shadow)' }}>
-              {cardFieldsUpdatedAt && (
-                <div style={{ display: 'flex', gap: '0.6rem', backgroundColor: '#FFEDD5', border: '1px solid #FDBA74', borderRadius: '8px', padding: '0.8rem 0.9rem', marginBottom: '1.1rem' }}>
-                  <AlertTriangle size={18} color="#9A3412" style={{ flexShrink: 0, marginTop: '0.1rem' }} />
-                  <p style={{ fontSize: '0.85rem', color: '#7C2D12', margin: 0, lineHeight: 1.5 }}>
-                    이미 보낸 카드에는 반영되지 않습니다. 아래 버튼으로 다시 공유해 주세요.
-                  </p>
-                </div>
-              )}
+              {isClosed ? (
+                <>
+                  <div style={{ display: 'flex', gap: '0.6rem', backgroundColor: '#F1F5F9', border: '1px solid #CBD5E1', borderRadius: '8px', padding: '0.8rem 0.9rem', marginBottom: '1.1rem' }}>
+                    <PowerOff size={18} color="#475569" style={{ flexShrink: 0, marginTop: '0.1rem' }} />
+                    <p style={{ fontSize: '0.85rem', color: '#334155', margin: 0, lineHeight: 1.5 }}>
+                      종료된 부고장입니다. 조문객은 더 이상 이 링크로 볼 수 없습니다{closedAt ? ` (${formatKST(closedAt)} 종료)` : ' (발인 3일 경과로 자동 종료)'}.
+                    </p>
+                  </div>
+                  <a href={memorialUrl} target="_blank" rel="noreferrer" style={{ fontSize: '0.85rem', color: 'var(--point-color)', fontWeight: 700, textDecoration: 'underline' }}>
+                    연결된 추모관은 계속 열람할 수 있습니다 →
+                  </a>
+                </>
+              ) : (
+                <>
+                  {cardFieldsUpdatedAt && (
+                    <div style={{ display: 'flex', gap: '0.6rem', backgroundColor: '#FFEDD5', border: '1px solid #FDBA74', borderRadius: '8px', padding: '0.8rem 0.9rem', marginBottom: '1.1rem' }}>
+                      <AlertTriangle size={18} color="#9A3412" style={{ flexShrink: 0, marginTop: '0.1rem' }} />
+                      <p style={{ fontSize: '0.85rem', color: '#7C2D12', margin: 0, lineHeight: 1.5 }}>
+                        이미 보낸 카드에는 반영되지 않습니다. 아래 버튼으로 다시 공유해 주세요.
+                      </p>
+                    </div>
+                  )}
 
-              <h3 style={{ color: 'var(--primary-color)', marginBottom: '0.9rem', fontSize: '1.05rem' }}>부고장 공유</h3>
+                  <h3 style={{ color: 'var(--primary-color)', marginBottom: '0.9rem', fontSize: '1.05rem' }}>부고장 공유</h3>
 
-              <button onClick={handleShare} className="btn btn-point" style={{ width: '100%', marginBottom: '0.6rem' }}>
-                <Send size={16} /> 카카오톡으로 부고 알리기
-              </button>
-              <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.6rem' }}>
-                <button onClick={handleCopyLink} className="btn" style={{ flex: 1, backgroundColor: 'var(--secondary-color)', color: 'var(--primary-color)', fontSize: '0.85rem' }}>
-                  <Copy size={15} /> 링크 복사
-                </button>
-                <a href={buildObituarySmsHref(obituaryUrl, deceasedName)} className="btn" style={{ flex: 1, backgroundColor: 'var(--secondary-color)', color: 'var(--primary-color)', fontSize: '0.85rem', textDecoration: 'none' }}>
-                  문자로 보내기
-                </a>
-              </div>
-              {copyFeedback && <p style={{ fontSize: '0.8rem', color: 'var(--point-color)', margin: '0 0 0.6rem 0' }}>{copyFeedback}</p>}
+                  <button onClick={handleShare} className="btn btn-point" style={{ width: '100%', marginBottom: '0.6rem' }}>
+                    <Send size={16} /> 카카오톡으로 부고 알리기
+                  </button>
+                  <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.6rem' }}>
+                    <button onClick={handleCopyLink} className="btn" style={{ flex: 1, backgroundColor: 'var(--secondary-color)', color: 'var(--primary-color)', fontSize: '0.85rem' }}>
+                      <Copy size={15} /> 링크 복사
+                    </button>
+                    <a href={buildObituarySmsHref(obituaryUrl, deceasedName)} className="btn" style={{ flex: 1, backgroundColor: 'var(--secondary-color)', color: 'var(--primary-color)', fontSize: '0.85rem', textDecoration: 'none' }}>
+                      문자로 보내기
+                    </a>
+                  </div>
+                  {copyFeedback && <p style={{ fontSize: '0.8rem', color: 'var(--point-color)', margin: '0 0 0.6rem 0' }}>{copyFeedback}</p>}
 
-              <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', wordBreak: 'break-all', backgroundColor: 'var(--secondary-color)', borderRadius: '6px', padding: '0.6rem 0.7rem', marginBottom: '0.6rem' }}>
-                {obituaryUrl}
-              </div>
+                  <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', wordBreak: 'break-all', backgroundColor: 'var(--secondary-color)', borderRadius: '6px', padding: '0.6rem 0.7rem', marginBottom: '0.6rem' }}>
+                    {obituaryUrl}
+                  </div>
 
-              <a href={memorialUrl} target="_blank" rel="noreferrer" style={{ fontSize: '0.85rem', color: 'var(--point-color)', fontWeight: 700, textDecoration: 'underline' }}>
-                연결된 추모관 미리 보기 →
-              </a>
+                  <a href={memorialUrl} target="_blank" rel="noreferrer" style={{ fontSize: '0.85rem', color: 'var(--point-color)', fontWeight: 700, textDecoration: 'underline' }}>
+                    연결된 추모관 미리 보기 →
+                  </a>
 
-              {updatedAt && (
-                <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '1rem' }}>
-                  최종 수정: {formatKST(updatedAt)}
-                </p>
+                  {updatedAt && (
+                    <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '1rem' }}>
+                      최종 수정: {formatKST(updatedAt)}
+                    </p>
+                  )}
+
+                  {/* §6.2-3·§9 #9 — 연락처·계좌 노출을 실제로 막는 유일한 완화책. 눈에 띄게 둔다. */}
+                  <div style={{ borderTop: '1px solid var(--border-color)', marginTop: '1.2rem', paddingTop: '1.1rem' }}>
+                    <button
+                      type="button"
+                      onClick={handleCloseObituary}
+                      disabled={isClosing}
+                      className="btn"
+                      style={{ width: '100%', backgroundColor: '#FEE2E2', color: '#991B1B', border: '1px solid #FCA5A5' }}
+                    >
+                      <PowerOff size={16} /> {isClosing ? '종료 중...' : '부고장 종료'}
+                    </button>
+                    <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', margin: '0.5rem 0 0 0', lineHeight: 1.5 }}>
+                      종료하면 조문객이 더 이상 이 링크로 볼 수 없습니다(연락처·계좌 노출 방지, 되돌릴 수 없음). 종료하지 않아도 발인 3일 후 자동으로 종료됩니다.
+                    </p>
+                  </div>
+                </>
               )}
             </div>
           )}

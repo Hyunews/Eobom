@@ -6,6 +6,27 @@
 
 ---
 
+## 2026-08-21 (51) | [Sonnet] `07-03` Phase 3 #9 — 부고장 종료(수동 + 발인 3일 자동)
+
+- **근거 스펙**: `07-03` §6.2-3(연락처·계좌 노출을 실제로 막는 유일한 완화책)·§6.2-4(발인+3일 자동 종료, N=3 확정)·§5.3(GET 화이트리스트)·§9 #9(Phase 3 로드맵: "마이페이지 수동 종료 버튼(눈에 띄게) + 발인+3일 자동 종료, 조회 시점 판정으로 구현, 스케줄러 안 들임"). 개발자 지시: *"Phase3 부고장 종료 기능 구현해줘."*
+- **건드린 파일**: `eobom/backend/prisma/schema.prisma`(`Obituary.closedAt`에 설명 주석 추가 — 필드·타입 변경 없음, 마이그레이션 없음) · `eobom/backend/src/controllers/obituaryController.ts`(`AUTO_CLOSE_DAYS`·`isAutoExpired`·`isObituaryClosed` 신설, 기존 `findViewableObituaryBySlug` 제거하고 `getObituaryBySlug`에 인라인 + 본인 예외 처리, `closeObituary` 신규) · `eobom/backend/src/routes/obituaryRoutes.ts`(`PATCH /:id/close` 추가, 머리말 주석 갱신) · `eobom/frontend/src/pages/ObituaryPage.tsx`(`isClosed`·`closedAt`·`isClosing` state, GET 요청에 소유자 토큰 추가, `handleCloseObituary`, "부고장 종료" 버튼 + 종료 시 배너 UI).
+- **결과**:
+  - **자동 종료 판정**: `isAutoExpired(funeralAt)`이 `funeralAt`을 KST 벽시계로 옮겨 "발인일" 달력 날짜를 구하고, 그 날짜+3일의 KST 자정을 UTC로 환산해 `Date.now()`와 비교. 스케줄러·배치 없음 — `getObituaryBySlug` 조회 시점에만 계산(§9 #9 요구사항 그대로). Node 스크립트로 경계값 4건 직접 검증(자정 전 `false`, 자정 정각·직후 `true`, 발인이 KST 23:50인 늦은 케이스도 같은 cutoff로 계산됨) — 파일은 커밋 대상 아닌 임시 스크래치패드에서 실행 후 삭제하지 않고 세션 임시 디렉터리에 남아 있음(레포 밖).
+  - **수동 종료**: `PATCH /api/obituaries/:id/close`(개설자만) — `closedAt`을 지금 시각으로 1회만 세팅, 이미 닫혀 있으면 그대로 반환(버튼 두 번 눌러도 안전, 되돌리기 없음).
+  - **개설자 예외 조회**: `getObituaryBySlug`가 `Authorization` 헤더로 본인 확인이 되면(선택 — 없어도 기존 공개 조회 그대로) 닫혀 있어도 404 대신 `isClosed`·`closedAt`을 실어 보여준다. 익명 조회는 여전히 닫히면 즉시 404(§5.3 존재 은닉 원칙 그대로) — 이 분기에선 `isClosed`가 항상 `false`라 새로 노출한 두 필드가 공개 노출 표면을 넓히지 않는다.
+  - 프론트 `ObituaryPage.tsx`("내 부고장 관리")에 빨간 "부고장 종료" 버튼(확인창 포함)을 공유 패널 하단에, 종료 후에는 공유 버튼들 대신 "종료됨" 배너 + 추모관 링크만 보이도록 분기.
+  - **빌드**: `npx tsc --noEmit`(backend) 통과 · `npm run build`(backend: `prisma generate && tsc`) 통과 · `npx tsc --noEmit -p .`(frontend) 통과 · `npm run build`(frontend: `tsc && vite build`) 통과. `git status --short eobom/backend/prisma/migrations`로 마이그레이션 미생성 확인.
+- **편차**:
+  - `07-03` §9 #9는 한 항목에 "종료"·"공유 집계"·"마이페이지 목록" 셋을 같이 적어뒀지만, 개발자 지시가 명시적으로 "종료 기능"으로 좁혀져 있어 **그것만 구현했다.** `shareCount` 컬럼은 이미 스키마에 있으나 증가시키는 코드는 여전히 없고, 부고장 전용 마이페이지 목록 화면도 만들지 않았다 — 기존 `ObituaryPage.tsx`("내 부고장 관리")가 사실상 그 자리를 대신하고 있어 종료 버튼을 거기 붙였다.
+  - **§5.3 GET 화이트리스트에 없던 `isClosed`·`closedAt`을 추가**했고, **개설자 본인에 한해 종료된 뒤에도 404를 우회**하도록 `getObituaryBySlug`를 바꿨다. 둘 다 스펙 문서에 문장으로 명시되진 않았지만, §9 #9("마이페이지에 종료 버튼")가 성립하려면 필연적으로 필요한 조치라 판단해 추가했다(버튼을 누르려면 종료된 뒤에도 그 부고장을 볼 수 있어야 한다). 익명 조회 경로·존재 은닉 원칙은 그대로 뒀다.
+  - 기존 `findViewableObituaryBySlug` 헬퍼를 지우고 `getObituaryBySlug`에 로직을 인라인했다 — 본인 예외가 붙으면서 "조회 + 필터"를 분리된 순수 함수로 유지하기가 어색해졌기 때문. `isObituaryClosed`만 별도 헬퍼로 남겼다.
+- **다음 에이전트가 알아야 할 것**:
+  - **되돌리기(재오픈) API가 없다** — 수동 종료도, 발인을 다시 미래로 고쳐서 자동 종료를 피하는 것도 스펙엔 없는 부작용일 뿐 의도한 기능은 아니다(query-time 판정 설계상 자연히 그렇게 되는 것뿐).
+  - **공유 집계·마이페이지 목록은 여전히 미구현**이다 — §9 #9의 나머지 조각.
+  - ⚠️ **브라우저 실기동 미검증** — 특히 "부고장 종료" 버튼을 실제로 눌러 랜딩(`/o/:slug`)이 익명으로는 404, 개설자 본인 화면에서는 "종료됨" 배너로 계속 보이는지 실기기로 확인 필요.
+
+---
+
 ## 2026-08-21 (50) | [Sonnet] 회원 프로필(`00-28`)·생전 가족지정(`00-27`) Phase 1 — 저장까지 구현
 
 - **근거 스펙**: `00-28` §5(User 확장 필드)·§6.1(GET·PATCH /api/me/profile)·§8 Phase 1 · `00-27` §3(불변식 5개)·§4(FamilyDesignation 모델)·§4.1(phoneHash)·§4.2(상한 10명)·§6(scope 2단)·§8.1(라우트 4종)·§8.3(고지 문구)·§10 Phase 1 · `.harness/systems.md` §4(Supabase pg_dump 선행)·§5(배포). 개발자 지시: *"우선적으로 회원 정보란에 정보를 입력하고 DB에 쌓는 건 선행되어야 함(유족 정보 포함)."* → 저장까지만, 통지·수락·계정연결(Phase 2·3)은 범위 밖.

@@ -583,7 +583,7 @@ model Obituary {
   // ⚠️ updatedAt으로 대체할 수 없다 — 연락처만 고쳐도 updatedAt은 바뀌므로
   //    "다시 공유하세요" 안내가 잘못 뜬다. 카드 반영 필드에서만 갱신한다.
   cardFieldsUpdatedAt DateTime?
-  closedAt        DateTime?
+  closedAt        DateTime?           // 수동 종료 시각(§9 #9). null이어도 발인+3일 지나면 조회 시점에 자동 종료로 취급(§6.2-4) — 별도 컬럼 없음
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
