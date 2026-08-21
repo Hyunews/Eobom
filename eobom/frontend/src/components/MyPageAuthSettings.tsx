@@ -28,7 +28,7 @@ export const MyPageAuthSettings: React.FC<MyPageAuthSettingsProps> = ({ isOpen, 
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(initialMessage ?? null);
 
   const fetchAccounts = async () => {
-    const token = localStorage.getItem('k_ending_token');
+    const token = sessionStorage.getItem('k_ending_token');
     if (!token) return;
 
     setIsLoading(true);
@@ -62,13 +62,13 @@ export const MyPageAuthSettings: React.FC<MyPageAuthSettingsProps> = ({ isOpen, 
   const linkedProviders = new Set(accounts.map((account) => account.provider));
 
   const handleLink = (provider: string) => {
-    const token = localStorage.getItem('k_ending_token');
+    const token = sessionStorage.getItem('k_ending_token');
     if (!token) return;
     window.location.href = `${BACKEND_URL}/api/auth/${provider.toLowerCase()}/link?token=${encodeURIComponent(token)}`;
   };
 
   const handleUnlink = async (provider: string) => {
-    const token = localStorage.getItem('k_ending_token');
+    const token = sessionStorage.getItem('k_ending_token');
     if (!token) return;
 
     if (accounts.length <= 1) {

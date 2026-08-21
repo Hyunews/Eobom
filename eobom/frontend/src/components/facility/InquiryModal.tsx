@@ -34,7 +34,7 @@ export const InquiryModal: React.FC<InquiryModalProps> = ({ facilityId, facility
       // 저장된 값이 손상됐으면 그냥 빈 값으로 시작 — 자동입력은 편의 기능일 뿐 필수 아님
     }
 
-    const token = localStorage.getItem('k_ending_token');
+    const token = sessionStorage.getItem('k_ending_token');
     if (!token) return;
     fetch(`${BACKEND_URL}/api/auth/me`, { headers: { Authorization: `Bearer ${token}` } })
       .then((res) => res.json())
@@ -55,7 +55,7 @@ export const InquiryModal: React.FC<InquiryModalProps> = ({ facilityId, facility
 
     setIsSubmitting(true);
     try {
-      const token = localStorage.getItem('k_ending_token');
+      const token = sessionStorage.getItem('k_ending_token');
       const res = await fetch(`${BACKEND_URL}/api/facilities/${facilityId}/quotes`, {
         method: 'POST',
         headers: {

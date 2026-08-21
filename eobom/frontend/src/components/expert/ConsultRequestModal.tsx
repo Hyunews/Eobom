@@ -37,7 +37,7 @@ export const ConsultRequestModal: React.FC<ConsultRequestModalProps> = ({ expert
 
     setIsSubmitting(true);
     try {
-      const token = localStorage.getItem('k_ending_token');
+      const token = sessionStorage.getItem('k_ending_token');
       const res = await fetch(`${BACKEND_URL}/api/experts/${expertId}/consult-requests`, {
         method: 'POST',
         headers: {

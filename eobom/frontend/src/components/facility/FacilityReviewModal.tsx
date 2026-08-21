@@ -45,7 +45,7 @@ export const FacilityReviewModal: React.FC<FacilityReviewModalProps> = ({
       return;
     }
 
-    const token = localStorage.getItem('k_ending_token');
+    const token = sessionStorage.getItem('k_ending_token');
     if (!token) {
       alert('⚠️ 리뷰 작성은 로그인 후 이용하실 수 있습니다.');
       onOpenLogin?.();

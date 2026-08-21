@@ -20,7 +20,7 @@ export const MyPage: React.FC<MyPageProps> = ({ currentUser, onOpenLogin, onOpen
   const [profile, setProfile] = useState<MyProfile | null>(null);
 
   useEffect(() => {
-    const token = localStorage.getItem('k_ending_token');
+    const token = sessionStorage.getItem('k_ending_token');
     if (!currentUser || !token) return;
 
     fetch(`${BACKEND_URL}/api/auth/me`, { headers: { Authorization: `Bearer ${token}` } })

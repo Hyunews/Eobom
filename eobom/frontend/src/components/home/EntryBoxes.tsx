@@ -1,6 +1,6 @@
-import React from 'react';
-import { useSearchParams } from 'react-router-dom';
-import { ChevronRight, HeartHandshake, DoorOpen, Building2 } from 'lucide-react';
+import React, { useState } from 'react';
+import { useSearchParams, useNavigate } from 'react-router-dom';
+import { ChevronRight, HeartHandshake, Flower2, Building2 } from 'lucide-react';
 import { ChecklistShieldIcon } from '../MenuIcons';
 import { domainSlides } from './domainSlides';
 import { BoxDetailOverlay } from './BoxDetailOverlay';
@@ -214,6 +214,42 @@ export const EntryBoxes: React.FC<EntryBoxesProps> = ({ currentUser, onOpenLogin
     setSearchParams({ entry: box, slide: String(index) }, { replace: true });
   };
 
+  // ③ 추모관(구 Guest) — 받은 링크(전체 URL이든 "/m/slug"·slug만이든)로 바로 입장.
+  // 다른 오리진 링크는 클라이언트 라우팅으로 못 넘어가므로 하드 리다이렉트로 처리한다.
+  const navigate = useNavigate();
+  const [memorialLinkInput, setMemorialLinkInput] = useState('');
+  const [memorialLinkError, setMemorialLinkError] = useState('');
+
+  const handleMemorialLinkEnter = () => {
+    const raw = memorialLinkInput.trim();
+    if (!raw) {
+      setMemorialLinkError('받으신 추모관 링크를 입력해 주세요.');
+      return;
+    }
+
+    let path: string;
+    let isCrossOrigin = false;
+    try {
+      const url = new URL(raw);
+      path = url.pathname;
+      isCrossOrigin = url.origin !== window.location.origin;
+    } catch {
+      path = raw.startsWith('/') ? raw : `/m/${raw}`;
+    }
+
+    if (!/^\/m\/[^/]+/.test(path)) {
+      setMemorialLinkError('추모관 링크 형식이 아닙니다. 받으신 링크를 다시 확인해 주세요.');
+      return;
+    }
+
+    setMemorialLinkError('');
+    if (isCrossOrigin) {
+      window.location.href = raw;
+    } else {
+      navigate(path);
+    }
+  };
+
   return (
     <div className="entry-boxes-focus-group" style={{ maxWidth: '1200px', width: '100%', margin: '0 auto' }}>
       <h2
@@ -315,13 +351,13 @@ export const EntryBoxes: React.FC<EntryBoxesProps> = ({ currentUser, onOpenLogin
         className="entry-boxes-grid"
         style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginTop: '1.5rem' }}
       >
-        {/* ③ Guest — 링크 전체 붙여넣기(00-23 §4.4). 목업 단계는 비활성 고정, 기존 방식 유지 */}
+        {/* ③ 추모관(구 Guest) — 받으신 링크를 붙여넣으면 바로 입장(00-23 §4.4). 2026-08-21: 목업
+            비활성 고정에서 실제 동작으로 전환 — /m/:slug 랜딩 라우트(App.tsx)가 생기면서 가능해졌다. */}
         <div className="card entry-box-secondary entry-box-card entry-box-tint-slate">
           <BoxHeader
-            icon={<DoorOpen size={24} color="#5B7065" />}
-            title="Guest"
+            icon={<Flower2 size={24} color="#5B7065" />}
+            title="추모관"
             subtitle="받으신 추모관 링크로 입장하세요."
-            badge={<Badge status="comingSoon" />}
             size="sm"
           />
           <RevealContent>
@@ -330,19 +366,21 @@ export const EntryBoxes: React.FC<EntryBoxesProps> = ({ currentUser, onOpenLogin
                 type="text"
                 className="form-input"
                 placeholder="받으신 링크를 그대로 붙여넣어 주세요"
-                disabled
-                title="준비 중인 서비스입니다."
-                style={{ cursor: 'not-allowed', backgroundColor: '#F8F7F4', color: '#94A3B8' }}
+                value={memorialLinkInput}
+                onChange={(e) => {
+                  setMemorialLinkInput(e.target.value);
+                  if (memorialLinkError) setMemorialLinkError('');
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') handleMemorialLinkEnter();
+                }}
               />
-              <button
-                type="button"
-                className="btn"
-                disabled
-                title="준비 중인 서비스입니다."
-                style={{ backgroundColor: '#F1F5F9', color: '#94A3B8', cursor: 'not-allowed' }}
-              >
+              <button type="button" onClick={handleMemorialLinkEnter} className="btn btn-primary">
                 입장
               </button>
+              {memorialLinkError && (
+                <p style={{ fontSize: '0.8rem', color: '#B91C1C', margin: 0 }}>{memorialLinkError}</p>
+              )}
             </div>
           </RevealContent>
         </div>

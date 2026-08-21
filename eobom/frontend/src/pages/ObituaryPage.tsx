@@ -175,7 +175,7 @@ export const ObituaryPage: React.FC<ObituaryPageProps> = ({ currentUser, onOpenL
     setErrorMsg(null);
     setCopyFeedback(null);
 
-    const token = localStorage.getItem('k_ending_token');
+    const token = sessionStorage.getItem('k_ending_token');
     const headers = { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) };
     const payload = {
       deceasedName: deceasedName.trim(),

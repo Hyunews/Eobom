@@ -46,13 +46,21 @@ function AppShell() {
   // 붙으면 광고로 읽힌다, §6.1). 카톡 링크를 받은 조문객이 비로그인으로 여는 화면이라
   // 로그인 게이트도 없다.
   const isObituaryLandingRoute = /^o\//.test(activeTab);
+  // 게스트가 전달받은 추모관 링크(EntryBoxes.tsx 박스③)로 들어오는 화면 — 위 부고장 랜딩과
+  // 같은 이유(비로그인 방문객, 서비스 메뉴가 붙으면 안 됨)로 껍데기 없이 그대로 노출한다.
+  const isMemorialLandingRoute = /^m\//.test(activeTab);
 
   const [isLoginOpen, setIsLoginOpen] = useState<boolean>(false);
   // 모바일 햄버거 메뉴(드로어) 열림 상태 — 데스크톱은 기존 호버 사이드바 그대로,
   // 480px 이하에서만 Header의 햄버거 버튼으로 열고 Sidebar의 드로어로 보여준다(2026-08-20 지시).
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false);
+  // 2026-08-21: localStorage→sessionStorage로 전환(브라우저를 완전히 껐다 켜도 로그인이 남아있던
+  // 문제 수정 — sessionStorage는 브라우저 종료 시 비워진다). 예전에 localStorage에 저장된 값은
+  // 더 이상 안 읽지만 그대로 남아있으면 혼란을 주므로 최초 마운트 시 한 번 같이 지운다.
   const [currentUser, setCurrentUser] = useState<string | null>(() => {
-    return localStorage.getItem('k_ending_current_user') || null;
+    localStorage.removeItem('k_ending_current_user');
+    localStorage.removeItem('k_ending_token');
+    return sessionStorage.getItem('k_ending_current_user') || null;
   });
 
   // 00-26 §4.3 — 진입 모드(생전준비/유가족). localStorage로 날짜를 넘겨 기억한다(유족 행정 절차는
@@ -200,16 +208,16 @@ function AppShell() {
   const handleLoginSuccess = (username: string, provider?: string, token?: string) => {
     const displayName = provider ? `${username} (${provider})` : username;
     setCurrentUser(displayName);
-    localStorage.setItem('k_ending_current_user', displayName);
+    sessionStorage.setItem('k_ending_current_user', displayName);
     if (token) {
-      localStorage.setItem('k_ending_token', token);
+      sessionStorage.setItem('k_ending_token', token);
     }
   };
 
   const handleLogout = () => {
     setCurrentUser(null);
-    localStorage.removeItem('k_ending_current_user');
-    localStorage.removeItem('k_ending_token');
+    sessionStorage.removeItem('k_ending_current_user');
+    sessionStorage.removeItem('k_ending_token');
     alert('로그아웃 되었습니다.');
   };
 
@@ -221,10 +229,11 @@ function AppShell() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-      {isObituaryLandingRoute ? (
+      {isObituaryLandingRoute || isMemorialLandingRoute ? (
         // 껍데기 완전히 없음(§6.1) — Header·Sidebar·main-wrapper·Footer 전부 건너뛴다.
         <Routes>
           <Route path="/o/:slug" element={<ObituaryLandingPage />} />
+          <Route path="/m/:slug" element={<MemorialPage />} />
         </Routes>
       ) : (
         <>
