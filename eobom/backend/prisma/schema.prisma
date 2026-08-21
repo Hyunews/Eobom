@@ -66,10 +66,10 @@ model FamilyDesignation {
 
   status          String    @default("DRAFT")   // DRAFT|PENDING|ACCEPTED|DECLINED|EXPIRED
   inviteToken     String?   @unique             // 통지 링크 토큰(Phase 2). 추측 불가
-  tokenExpiresAt  DateTime?
-  notifiedAt      DateTime?
-  acceptedAt      DateTime?
-  declinedAt      DateTime?
+  tokenExpiresAt  DateTime?                     // 초대 링크 만료 시각. 지나면 status=EXPIRED
+  notifiedAt      DateTime?                     // 통지를 보낸 시각(§2.2 ⓐ 본인 / ⓑ 사망 확인)
+  acceptedAt      DateTime?                     // 가족이 수락한 시각 = 정보주체 동의 시각(§2.1)
+  declinedAt      DateTime?                     // 가족이 거절한 시각. 재지정하려면 다시 통지
   acceptedUserId  String?                       // 수락한 가족의 User — 계정 연결 결과(§9)
 
   lastConfirmedAt DateTime  @default(now())     // 정확도·보유기간 재확인 기준(§7)
