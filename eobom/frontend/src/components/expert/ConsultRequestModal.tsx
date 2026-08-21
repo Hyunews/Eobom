@@ -1,10 +1,13 @@
 import React, { useState } from 'react';
 import { X, Send, ShieldCheck } from 'lucide-react';
 import { BACKEND_URL } from '../../config';
+import { useProfileContact } from '../../hooks/useProfileContact';
 
 // 전문가 상담 신청 — InquiryModal.tsx(장사시설 업체 문의)와 같은 구조.
 // docs/02_전문가_매칭/02-03_전문가_공개노출_및_상담신청_명세서.md §7.2.
 // POST /api/experts/:id/consult-requests 에 연결, 접수번호(EC-YYMMDD-NNNN)를 사용자에게 보여준다.
+// 00-28 §6.4 — 프로필 연락처 재사용은 InquiryModal.tsx와 완전히 같은 훅(useProfileContact)을
+// 쓴다(⚠️ 두 폼의 동작을 다르게 두지 말 것, §6.4-1).
 
 const CHANNEL_OPTIONS: { value: string; label: string }[] = [
   { value: 'ALIMTALK', label: '카카오 알림톡' },
@@ -28,6 +31,10 @@ export const ConsultRequestModal: React.FC<ConsultRequestModalProps> = ({ expert
   const [thirdPartyConsent, setThirdPartyConsent] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const { maskedPhone, profileName, useProfileContact: useProfile, setUseProfileContact: setUseProfile, saveToProfile, setSaveToProfile } =
+    useProfileContact();
+  const isLoggedIn = !!sessionStorage.getItem('k_ending_token');
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!thirdPartyConsent) {
@@ -45,8 +52,10 @@ export const ConsultRequestModal: React.FC<ConsultRequestModalProps> = ({ expert
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
         body: JSON.stringify({
-          applicantName,
-          applicantPhone,
+          // §6.4 — 프로필 값을 쓸 때는 값 자체를 안 보낸다. 서버가 로그인 유저의 프로필에서 직접 읽는다.
+          ...(useProfile ? {} : { applicantName, applicantPhone }),
+          useProfileContact: useProfile,
+          saveToProfile: !useProfile && saveToProfile,
           channel,
           preferredAt: preferredAt || undefined,
           content,
@@ -109,22 +118,45 @@ export const ConsultRequestModal: React.FC<ConsultRequestModalProps> = ({ expert
         </p>
 
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          {maskedPhone && (
+            <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem', color: 'var(--text-main)', cursor: 'pointer' }}>
+              <input type="checkbox" checked={useProfile} onChange={(e) => setUseProfile(e.target.checked)} />
+              내 정보 사용 ({maskedPhone})
+            </label>
+          )}
+
           <div>
             <label className="form-label">이름</label>
-            <input required value={applicantName} onChange={(e) => setApplicantName(e.target.value)} className="form-select" />
+            <input
+              required={!useProfile}
+              disabled={useProfile}
+              value={useProfile ? profileName || '' : applicantName}
+              onChange={(e) => setApplicantName(e.target.value)}
+              className="form-select"
+              style={useProfile ? { backgroundColor: 'var(--secondary-color)', color: 'var(--text-muted)' } : undefined}
+            />
           </div>
 
           <div>
             <label className="form-label">연락처</label>
             <input
-              required
+              required={!useProfile}
+              disabled={useProfile}
               type="tel"
               placeholder="010-0000-0000"
-              value={applicantPhone}
+              value={useProfile ? maskedPhone || '' : applicantPhone}
               onChange={(e) => setApplicantPhone(e.target.value)}
               className="form-select"
+              style={useProfile ? { backgroundColor: 'var(--secondary-color)', color: 'var(--text-muted)' } : undefined}
             />
           </div>
+
+          {!useProfile && isLoggedIn && (
+            <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem', color: 'var(--text-muted)', cursor: 'pointer' }}>
+              <input type="checkbox" checked={saveToProfile} onChange={(e) => setSaveToProfile(e.target.checked)} />
+              다음에도 쓸 수 있게 내 정보에 저장
+            </label>
+          )}
 
           <div>
             <label className="form-label">희망 상담 방식</label>

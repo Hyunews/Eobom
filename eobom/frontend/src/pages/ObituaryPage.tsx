@@ -34,6 +34,9 @@ interface MournerDraft {
 export const ObituaryPage: React.FC<ObituaryPageProps> = ({ currentUser, onOpenLogin }) => {
   const [loading, setLoading] = useState(true);
   const [obituaryRef, setObituaryRef] = useState<StoredObituaryRef | null>(null);
+  // §5.3-2 — 종료·수정은 이 값(서버가 매번 응답으로 확인해준 id)만 쓴다. localStorage의
+  // obituaryId는 "힌트"일 뿐이라 이 값이 없어도(예: 그 필드만 지워졌어도) 동작해야 한다.
+  const [obituaryId, setObituaryId] = useState<string | null>(null);
   const [showMoreFields, setShowMoreFields] = useState(false);
 
   // 필수 4(§6.2): 고인 성함 · 상주 성함 · 빈소 위치 · 발인 일시
@@ -99,13 +102,15 @@ export const ObituaryPage: React.FC<ObituaryPageProps> = ({ currentUser, onOpenL
     try {
       ref = JSON.parse(raw);
     } catch {
-      localStorage.removeItem(STORAGE_KEY);
+      localStorage.removeItem(STORAGE_KEY); // 파싱조차 안 되면 힌트로도 못 쓰므로 이건 지운다
       setLoading(false);
       return;
     }
 
-    // 종료된 뒤에도 개설자 본인은 계속 볼 수 있어야 하므로(§9 #9) 토큰을 실어 보낸다 —
-    // 없으면 서버가 익명 조회로 보고 종료 시 404를 준다(obituaryController.getObituaryBySlug).
+    // §5.3-2 — localStorage 포인터는 "어느 slug를 열어볼지" 힌트일 뿐, 권한 신호가 아니다.
+    // 다른 계정으로 로그인해 있어도 이 fetch 자체는 그대로 나가고, 그 사람 것인지는 서버의
+    // isOwner로만 판정한다(아래). 종료된 뒤에도 개설자 본인은 계속 볼 수 있어야 하므로(§5.3-1)
+    // 토큰을 실어 보낸다 — 없으면 서버가 익명 조회로 보고 종료 시 404를 준다.
     const meToken = sessionStorage.getItem('k_ending_token');
     fetch(`${BACKEND_URL}/api/obituaries/${ref.obituarySlug}`, {
       headers: meToken ? { Authorization: `Bearer ${meToken}` } : undefined,
@@ -113,11 +118,21 @@ export const ObituaryPage: React.FC<ObituaryPageProps> = ({ currentUser, onOpenL
       .then((res) => res.json())
       .then((data) => {
         if (data.status !== 'success') {
+          // 실제로 없어진 경우(삭제 등)만 여기로 온다 — 남의 것이라 막힌 경우는 200 + isOwner:false로
+          // 오므로 이 분기를 안 탄다(§5.3-2). 진짜 없는 것만 정리한다.
           localStorage.removeItem(STORAGE_KEY);
           return;
         }
         const o = data.data;
+
+        // 🔴 §5.3-2 핵심 — 서버가 "당신 것"이라고 확인해준 경우에만 관리 모드로 들어간다.
+        // 아니면 폼을 채우지 않고(남의 데이터를 화면에 띄우는 것이 이번 사고의 본질) 조용히
+        // 개설 화면(초기 상태)에 남는다. 포인터는 지우지 않는다 — 원래 주인이 다시 로그인하면
+        // 살아나야 한다(§5.3-2 마지막 줄).
+        if (!o.isOwner) return;
+
         setObituaryRef(ref);
+        setObituaryId(o.obituaryId);
         setDeceasedName(o.deceasedName || '');
         setDeathDate(o.deceasedDeathDate ? String(o.deceasedDeathDate).slice(0, 16) : '');
         setFuneralHall(o.funeralHall || '');
@@ -226,12 +241,15 @@ export const ObituaryPage: React.FC<ObituaryPageProps> = ({ currentUser, onOpenL
         };
         localStorage.setItem(STORAGE_KEY, JSON.stringify(ref));
         setObituaryRef(ref);
+        setObituaryId(data.data.obituaryId);
         setObituaryUrl(data.data.obituaryUrl);
         setMemorialUrl(data.data.memorialUrl);
         setCardFieldsUpdatedAt(null);
         setUpdatedAt(new Date().toISOString());
       } else {
-        const res = await fetch(`${BACKEND_URL}/api/obituaries/${obituaryRef.obituaryId}`, { method: 'PATCH', headers, body: JSON.stringify(payload) });
+        // §5.3-2 — localStorage가 아니라 서버가 확인해준 obituaryId로 수정한다(obituaryRef가
+        // 있다는 것 자체가 마운트 시 isOwner:true를 이미 통과했다는 뜻이라 obituaryId도 같이 있다).
+        const res = await fetch(`${BACKEND_URL}/api/obituaries/${obituaryId}`, { method: 'PATCH', headers, body: JSON.stringify(payload) });
         const data = await res.json();
         if (!res.ok || data.status !== 'success') {
           setErrorMsg(data.message || '부고장 수정에 실패했습니다.');
@@ -271,15 +289,17 @@ export const ObituaryPage: React.FC<ObituaryPageProps> = ({ currentUser, onOpenL
   };
 
   // §6.2-3·§9 #9 — 연락처·계좌 노출을 실제로 막는 유일한 완화책. 되돌릴 수 없다.
+  // §5.3-2 — localStorage의 obituaryId가 아니라 서버가 준 obituaryId로 종료한다. 그래야
+  // 유족이 기기를 바꿔도(로컬 포인터가 없어도) 종료라는 유일한 회수 수단이 살아 있다.
   const handleCloseObituary = async () => {
-    if (!obituaryRef || isClosed) return;
+    if (!obituaryId || isClosed) return;
     if (!window.confirm('부고장을 종료하시겠어요? 종료하면 조문객은 더 이상 이 링크로 볼 수 없습니다. 되돌릴 수 없습니다.')) return;
 
     setIsClosing(true);
     setErrorMsg(null);
     const token = sessionStorage.getItem('k_ending_token');
     try {
-      const res = await fetch(`${BACKEND_URL}/api/obituaries/${obituaryRef.obituaryId}/close`, {
+      const res = await fetch(`${BACKEND_URL}/api/obituaries/${obituaryId}/close`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
       });

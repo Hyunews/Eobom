@@ -6,6 +6,54 @@
 
 ---
 
+## 2026-08-21 (53) | [Sonnet] `07-03` §5.3-1·§5.3-2 — 부고장 관리화면 교차계정 노출 사고 수정
+
+- **근거 스펙**: `07-03` §5.3-1(개설자 본인은 종료 후에도 조회 가능 — 화이트리스트에 `isOwner`·`obituaryId` 본인 전용 추가)·§5.3-2(소유권은 서버가 판정 — `localStorage`로 판단 금지)·§6.2-3(종료가 연락처·계좌 노출의 유일한 실효 완화). 개발자 지시 계기: *"네이버 계정으로 만든 부고장이 있는 브라우저에서 카카오 계정으로 로그인했더니, 남의 부고장 관리 화면이 그대로 떴다."* — 서버 권한 검증(`createdByUserId`)은 정상, 화면 진입 조건만 결함.
+- **건드린 파일**: `eobom/backend/src/controllers/obituaryController.ts`(`getObituaryBySlug` 응답에 `isOwner === true`일 때만 `isOwner: true`·`obituaryId` 추가) · `eobom/frontend/src/pages/ObituaryPage.tsx`(마운트 `useEffect`를 `data.isOwner === true`로만 관리 모드 진입하도록 재작성, 새 `obituaryId` state 도입해 `handleSubmit`(PATCH)·`handleCloseObituary`가 `localStorage`가 아니라 서버 응답값만 쓰도록 교체). **스키마 변경 없음** — `git status --short eobom/backend/prisma`로 확인.
+- **결과** (로컬 Docker DB against 백엔드를 이번 세션에서 직접 띄워, **계정 2개로 실제 교차 로그인**한 절차를 curl/PowerShell로 재현 — 원문 그대로):
+  1. 데모 로그인 NAVER(계정 A) → `POST /api/obituaries`로 부고장 개설 → `obituarySlug: e4250629fb1105e353435c070297d4fe`, `obituaryId: bad1c060-d707-4d5c-a087-0e3b6c26d59f`.
+  2. 데모 로그인 KAKAO(계정 B, **같은 세션에서 별도 로그인** — 사고 재현) → `GET /api/obituaries/{A의 slug}`를 **B의 토큰으로** 호출 → `status:"success"`(고인 성명 등 공개 데이터는 정상 응답 — §5.3 화이트리스트 자체는 원래도 공개)이지만 **응답 객체에 `isOwner` 키·`obituaryId` 키가 아예 없음**(`PSObject.Properties.Name -contains` 검사로 부재 확인, `null`도 아니고 키 자체가 없음) — §5.3-1이 요구한 정확히 그 형태.
+  3. 익명(토큰 없음)으로 같은 slug 조회 → 동일하게 `isOwner`·`obituaryId` 키 없음.
+  4. **A(진짜 주인) 토큰으로 재조회** → `isOwner: True`, `obituaryId`가 1번에서 만들어진 값과 **정확히 일치**.
+  5. **A의 서버 제공 `obituaryId`로 종료(`PATCH /api/obituaries/{obituaryId}/close`)** 성공 → 종료 후 **익명 조회는 404**, **A 본인 조회는 200 + `isClosed:true`·`isOwner:true`** — (51)에서 미검증으로 남겼던 §9 #9 실기동을 여기서 같이 닫음.
+  - 프론트 코드는 `grep obituaryRef\.obituaryId` 결과 0건 — `handleSubmit`(PATCH)·`handleCloseObituary` 둘 다 서버가 준 `obituaryId` state만 참조하도록 완전히 교체됐음을 코드로 확인(§5.3-2 §8 요구 — `localStorage`의 `obituaryId` 없이도 동작해야 함).
+  - **빌드**: `npx tsc --noEmit`(backend) 통과 · `npm run build`(backend) 통과 · `npx tsc --noEmit -p .`(frontend) 통과 · `npm run build`(frontend) 통과.
+  - 검증에 쓴 로컬 백엔드는 `taskkill`로 종료, 남은 프로세스 없음.
+- **편차**: 없음 — 지시된 A·B 작업(백엔드 화이트리스트 2필드, 프론트 `isOwner` 게이팅 + `obituaryId` 서버 소싱)을 문구 그대로 구현했다. "구현자가 판단하지 않는 것" 4개(익명 응답 불변·서버 권한 완화 금지·`GET /api/me/obituaries` 미생성·`sessionStorage` 미이전)도 전부 지켰다 — 새 라우트를 하나도 안 만들었고 `verifyBearerToken`/`createdByUserId` 비교 로직은 손대지 않았다.
+- **다음 에이전트가 알아야 할 것**:
+  - **브라우저 실기동(클릭 기반)은 여전히 안 함** — 위 절차는 프론트가 실제로 보내는 것과 동일한 헤더·엔드포인트로 API를 직접 호출해 검증한 것이지, 화면에서 "아직 부고장이 없습니다"가 실제로 렌더링되는 것을 눈으로 본 것은 아니다. 코드 상으로는 `if (!o.isOwner) return;`이 `setObituaryRef`·폼 채우기 전부를 감싸고 있어 논리적으로는 맞지만, 실제 화면 확인은 남아 있다.
+  - `07-03` §9 #9의 "이어서" 요청(종료 실기동)은 위 절차 5번으로 API 레벨에서는 닫혔다 — 문서의 `⚠️ 브라우저 실기동 미검증`(925행 근처, (51) 관련 롤업)은 여전히 화면 클릭 기준으로는 미검증 상태로 남겨둔다.
+  - `00-28` Phase 2는 이번 사이클 때문에 뒤로 밀렸다 — 이 항목이 처리된 뒤 이어서 진행하면 된다.
+
+---
+
+## 2026-08-21 (52) | [Sonnet] `00-28` Phase 2 (6번까지) — 문의·상담 폼 프로필 연락처 재사용
+
+- **근거 스펙**: `00-28` §6.4(prefill은 클라이언트가 채우지 않는다 — `useProfileContact` 플래그)·§6.4-1(기존 `localStorage` prefill 제거)·§8 Phase 2(순서 변경 — 6번 먼저, 5번은 이번 범위 밖)·§2(스냅샷 원칙). 개발자 지시로 A(`useProfileContact`)·B(`saveToProfile`)·C(프론트 두 폼 동일 적용)·D(`localStorage` prefill 제거)의 구체 요구사항이 추가로 주어짐.
+- **건드린 파일**: `eobom/backend/src/utils/applicantContact.ts`(신규 — `resolveApplicantContact`·`ProfileContactMissingError`) · `eobom/backend/src/controllers/leadController.ts`(`createQuote`에 `useProfileContact`·`saveToProfile` 처리 추가) · `eobom/backend/src/controllers/expertPublicController.ts`(`submitConsultRequest`에 동일 처리 추가) · `eobom/frontend/src/hooks/useProfileContact.ts`(신규 — `GET /api/me/profile` 조회 + 체크박스 상태 공용 훅) · `eobom/frontend/src/components/facility/InquiryModal.tsx`(`LAST_APPLICANT_KEY` localStorage prefill 완전 삭제 + 1회 정리 코드 + 체크박스 2개) · `eobom/frontend/src/components/expert/ConsultRequestModal.tsx`(동일 체크박스 2개 신규 추가 — 기존엔 prefill 자체가 없었음). **스키마 변경 없음** — `git status --short eobom/backend/prisma`로 마이그레이션 미생성 확인.
+- **결과** (로컬 Docker DB against 백엔드 `npm run dev`를 이번 세션에서 직접 띄워 API를 curl/PowerShell로 실제 호출해 검증 — 절차와 원문 그대로):
+  1. 데모 로그인(KAKAO) → `PATCH /api/me/profile {"contactPhone":"010-1111-2222"}` → `GET /api/me/profile` 응답이 `"contactPhone":"010-****-2222"`로 마스킹됨 확인.
+  2. `POST /api/facilities/kakao_1619199420/quotes {"useProfileContact":true,"thirdPartyConsent":true,"payload":{...}}` → `leadNo:"EB-260821-0001"`. **DB 직접 조회**(`prisma.lead.findUnique`)로 `applicantPhone:"01011112222"`, `applicantName:"카카오 테스트회원"` — 값 자체를 안 보냈는데도 서버가 프로필에서 정확히 복사해 넣음을 확인.
+  3. 같은 유저로 `PATCH /api/me/profile {"contactPhone":"010-3333-4444"}` 실행 후 **`EB-260821-0001`을 다시 조회** → `applicantPhone`은 여전히 `"01011112222"`(변경 전 값) — **§2 스냅샷 불변 원칙이 실제로 지켜짐을 확인.**
+  4. `saveToProfile:true`로 `applicantPhone:"010-9999-8888"` 제출 → `GET /api/me/profile`이 `"contactPhone":"010-9999-8888"`(마스킹 안 됨, **버그**)로 응답 — 원인 규명 후 즉시 수정(아래 편차 참고), 서버 재기동 후 재검증(`010-7777-6666` 입력 → `"010-****-6666"` 정상 마스킹, 해당 Lead의 `applicantPhone`은 `"010-7777-6666"`(원문 그대로) 확인 — 정책대로 스냅샷은 원문, 프로필만 정규화).
+  5. 프로필에 연락처가 없는 유저(GOOGLE 데모)로 `useProfileContact:true` 제출 → `400`(`ProfileContactMissingError`) 확인.
+  6. 비로그인(토큰 없음) + `useProfileContact:true` + 이름/연락처 미입력 제출 → `400`("이름과 연락처는 필수") — 플래그가 무시되고 기존 필수값 검증으로 정상 폴백함을 확인.
+  7. `POST /api/experts/d75681e8-2f33-4034-bb60-3f143772f233/consult-requests {"useProfileContact":true,...}` → `requestNo:"EC-260821-0001"`. DB 조회로 `applicantPhone:"01077776666"` — `createQuote`와 동일하게 동작함을 확인(§C "두 폼 동일" 요구사항).
+  - **빌드**: `npx tsc --noEmit`(backend, 버그 수정 전후 2회) 통과 · `npm run build`(backend) 통과 · `npx tsc --noEmit -p .`(frontend) 통과 · `npm run build`(frontend) 통과.
+  - `grep -rn "LAST_APPLICANT_KEY\|eobom_last_applicant"`로 저장/복원 로직이 완전히 사라지고 1회성 `localStorage.removeItem`만 남았음을 확인.
+  - 검증에 쓴 로컬 백엔드·임시 조회 스크립트는 세션 종료 전 전부 종료·삭제(`taskkill`, `rm _verify_check_lead.js`) — 남은 프로세스 없음.
+- **편차**:
+  - 🔴 **검증 중 실제 버그를 발견해 고쳤다.** `saveToProfile` 최초 구현이 `resolveApplicantContact`가 돌려준 `applicantPhone`(비-프로필 분기에서는 `bodyPhone.trim()` — 하이픈 등 원문 그대로)을 **정규화 없이 그대로 `User.contactPhone`에 썼다.** 이러면 `maskPhone`(11자리 숫자만 가정)이 하이픈 섞인 13자 문자열엔 안 걸려 **평문이 그대로 응답에 노출**된다(§6.1 위반). `Lead.applicantPhone`/`ConsultRequest.applicantPhone`은 원래부터(Phase 2 이전) 원문을 그대로 저장하는 기존 동작이라 그쪽은 안 건드렸고, **`User.contactPhone`에 쓰는 지점에서만 `normalizePhone`을 추가로 걸었다**(`leadController.ts`·`expertPublicController.ts` 둘 다).
+  - 지시 B의 "6번, `saveToProfile:true`면 이름·연락처를 `User.contactPhone`·`profileUpdatedAt`에 반영한다"에서, **목적어(이름·연락처)와 실제 나열된 대상 컬럼(`contactPhone`·`profileUpdatedAt`)이 어긋난다** — `User.name`은 대상 컬럼 목록에 없었다. **목록을 문자 그대로 따라 `User.name`은 덮어쓰지 않았다.** 급하게 입력한 문의 폼 이름으로 계정 전체에 쓰이는 이름을 바꾸는 건 목록에 없는 더 큰 부작용이라 보수적으로 해석했다 — 의도와 다르면 정정 바란다.
+  - 지시에 없던 것 둘을 추가했다: ① 두 컨트롤러가 완전히 같은 로직을 쓰도록 `utils/applicantContact.ts` 공용 함수로 뺐다(복붙이면 나중에 두 폼이 갈릴 수 있어서). ② 프론트도 같은 이유로 `hooks/useProfileContact.ts` 공용 훅으로 뺐다. ③ "다음에도 쓸 수 있게 내 정보에 저장" 체크박스는 로그인 상태에서만 노출되게 했다(비로그인은 저장할 프로필이 없으므로) — §6.4 원문엔 이 조건이 명시돼 있지 않다.
+  - 순서 지시대로 **5번(온보딩)은 만들지 않았다** — 이번 범위는 6번까지.
+- **다음 에이전트가 알아야 할 것**:
+  - 🔵 **5번(가입 직후 온보딩)은 "6번이 실기동 검증된 뒤 판단"하기로 한 항목** — 이번 결과(위 절차)로 6번 실기동 검증은 API 레벨에서 끝났으나, **브라우저에서 체크박스가 실제로 보이고/비활성화되는지(눈으로 보는 실기동)는 아직 안 했다** — 5번 착수 전에 먼저 확인 권장.
+  - `Lead.applicantPhone`/`ConsultRequest.applicantPhone`은 **여전히 사용자가 타이핑한 원문 그대로**(하이픈 포함 가능) 저장된다 — Phase 2 이전부터의 기존 동작이라 이번에 정규화하지 않았다. `User.contactPhone`만 숫자만 저장 규칙을 따른다. 이 비대칭이 낯설게 느껴질 수 있는데, 의도한 것이다(스냅샷 원문 보존 vs 프로필 정규화).
+  - ⚠️ 브라우저 실기동(체크박스 렌더링·비활성화·마스킹 표시가 실제 화면에서 보이는지)은 여전히 미검증 — API 레벨 검증만 했다.
+
+---
+
 ## 2026-08-21 (51) | [Sonnet] `07-03` Phase 3 #9 — 부고장 종료(수동 + 발인 3일 자동)
 
 - **근거 스펙**: `07-03` §6.2-3(연락처·계좌 노출을 실제로 막는 유일한 완화책)·§6.2-4(발인+3일 자동 종료, N=3 확정)·§5.3(GET 화이트리스트)·§9 #9(Phase 3 로드맵: "마이페이지 수동 종료 버튼(눈에 띄게) + 발인+3일 자동 종료, 조회 시점 판정으로 구현, 스케줄러 안 들임"). 개발자 지시: *"Phase3 부고장 종료 기능 구현해줘."*

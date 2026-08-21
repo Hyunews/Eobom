@@ -3,6 +3,8 @@ import { Prisma } from '@prisma/client';
 import prisma from '../config/prisma';
 import { verifyBearerToken } from './authController';
 import { createConsultRequest, ConsentRequiredError, ExpertNotAvailableError } from '../services/consultService';
+import { resolveApplicantContact, ProfileContactMissingError } from '../utils/applicantContact';
+import { normalizePhone } from '../utils/phone';
 
 const DEFAULT_PAGE_SIZE = 20;
 const MAX_PAGE_SIZE = 50;
@@ -100,17 +102,24 @@ const safeConsultRequest = (r: { requestNo: string; status: string; createdAt: D
 
 // 상담 신청 (`POST /api/experts/:id/consult-requests`) — 로그인 불필요(§5.2, 비회원 허용).
 // 로그인 상태면 userId를 함께 남긴다(leadController.createQuote와 동일 패턴).
+// 00-28 §6.4 Phase 2 — useProfileContact·saveToProfile 플래그. createQuote와 완전히 같은 규칙
+// (⚠️ 두 폼의 동작을 다르게 두지 말 것 — §6.4-1).
 export const submitConsultRequest = async (req: Request, res: Response) => {
-  const { applicantName, applicantPhone, channel, preferredAt, content, thirdPartyConsent } = req.body as {
+  const { applicantName, applicantPhone, channel, preferredAt, content, thirdPartyConsent, useProfileContact, saveToProfile } = req.body as {
     applicantName?: string;
     applicantPhone?: string;
     channel?: string;
     preferredAt?: string;
     content?: string;
     thirdPartyConsent?: boolean;
+    useProfileContact?: boolean;
+    saveToProfile?: boolean;
   };
 
-  if (!applicantName?.trim() || !applicantPhone?.trim()) {
+  const decoded = verifyBearerToken(req);
+  const usesProfile = !!useProfileContact && !!decoded;
+
+  if (!usesProfile && (!applicantName?.trim() || !applicantPhone?.trim())) {
     return res.status(400).json({ status: 'error', message: '이름과 연락처는 필수입니다.' });
   }
   if (!channel?.trim() || !content?.trim()) {
@@ -120,23 +129,44 @@ export const submitConsultRequest = async (req: Request, res: Response) => {
     return res.status(400).json({ status: 'error', message: '개인정보 제3자 제공에 동의해야 상담을 신청할 수 있습니다.' });
   }
 
-  const decoded = verifyBearerToken(req);
-
   try {
-    const consultRequest = await prisma.$transaction((tx) =>
-      createConsultRequest(tx, {
+    const consultRequest = await prisma.$transaction(async (tx) => {
+      const contact = await resolveApplicantContact(tx, {
+        useProfileContact: usesProfile,
+        userId: decoded?.id ?? null,
+        bodyName: applicantName,
+        bodyPhone: applicantPhone,
+      });
+
+      const created = await createConsultRequest(tx, {
         expertId: req.params.id,
         userId: decoded?.id ?? null,
-        applicantName: applicantName.trim(),
-        applicantPhone: applicantPhone.trim(),
+        applicantName: contact.applicantName,
+        applicantPhone: contact.applicantPhone,
         channel: channel.trim(),
         preferredAt: preferredAt ? new Date(preferredAt) : null,
         content: content.trim(),
         thirdPartyConsent: true,
-      })
-    );
+      });
+
+      // §8 Phase 2 #6 — 방금 친 값이 최신이므로 기존 프로필 값이 있어도 덮어쓴다.
+      // ⚠️ ConsultRequest.applicantPhone(스냅샷)은 원문 그대로 저장하지만(기존 동작 유지),
+      // User.contactPhone은 프로필 PATCH(profileController.ts)와 같은 규칙으로 숫자만 저장한다
+      // (§3.2 ① — 안 그러면 maskPhone이 하이픈 섞인 문자열엔 마스킹을 못 건다).
+      if (saveToProfile && decoded) {
+        await tx.user.update({
+          where: { id: decoded.id },
+          data: { contactPhone: normalizePhone(contact.applicantPhone), profileUpdatedAt: new Date() },
+        });
+      }
+
+      return created;
+    });
     return res.status(201).json({ status: 'success', data: safeConsultRequest(consultRequest) });
   } catch (error) {
+    if (error instanceof ProfileContactMissingError) {
+      return res.status(400).json({ status: 'error', message: '프로필에 저장된 연락처가 없습니다. 마이페이지에서 먼저 등록해 주세요.' });
+    }
     if (error instanceof ExpertNotAvailableError) {
       return res.status(404).json({ status: 'error', message: '전문가를 찾을 수 없습니다.' });
     }

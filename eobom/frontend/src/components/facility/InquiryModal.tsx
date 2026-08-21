@@ -1,16 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import { X, Send, ShieldCheck } from 'lucide-react';
 import { BACKEND_URL } from '../../config';
+import { useProfileContact } from '../../hooks/useProfileContact';
 
 // 업체 문의 — 전화번호 노출 대신 이 폼을 통해서만 시설에 문의한다(docs 01-05 §9: 전화 문의는
 // 수수료 청구 근거로 증명 불가, 견적요청 폼으로 유도). 기존 POST /api/facilities/:id/quotes
 // (Lead type=QUOTE)에 그대로 연결 — leadNo가 사용자가 말한 "라벨링"에 해당한다.
 
-// 매번 이름·연락처를 다시 치는 불편을 줄이기 위한 자동입력(2026-08-12 대표 지시) — 수정은 항상 가능.
-// User 모델엔 연락처 필드가 없어(소셜 로그인 전제라 수집 안 함) 계정에서 끌어올 수 없다 — 대신
-// 이 브라우저에서 마지막으로 문의할 때 쓴 값을 localStorage에 남겨 다음 문의에 그대로 채운다.
-// 이름은 로그인 상태면 계정 이름(/api/auth/me, provider 접미사 없는 원본)이 로컬 저장값보다 우선한다.
-const LAST_APPLICANT_KEY = 'eobom_last_applicant';
+// 00-28 §6.4-1 — 2026-08-12에 넣었던 localStorage 자동입력(LAST_APPLICANT_KEY)은 걷어냈다.
+// 서버 프로필(useProfileContact 훅)과 두 소스가 충돌하고, 이름·연락처가 브라우저에 무기한
+// 남아 세션 보관 위치 판단(sessionStorage 전환, `00-08`)과도 어긋나기 때문.
 
 interface InquiryModalProps {
   facilityId: string;
@@ -25,25 +24,14 @@ export const InquiryModal: React.FC<InquiryModalProps> = ({ facilityId, facility
   const [thirdPartyConsent, setThirdPartyConsent] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  useEffect(() => {
-    try {
-      const saved = JSON.parse(localStorage.getItem(LAST_APPLICANT_KEY) || '{}');
-      if (saved.name) setApplicantName(saved.name);
-      if (saved.phone) setApplicantPhone(saved.phone);
-    } catch {
-      // 저장된 값이 손상됐으면 그냥 빈 값으로 시작 — 자동입력은 편의 기능일 뿐 필수 아님
-    }
+  const { maskedPhone, profileName, useProfileContact: useProfile, setUseProfileContact: setUseProfile, saveToProfile, setSaveToProfile } =
+    useProfileContact();
+  const isLoggedIn = !!sessionStorage.getItem('k_ending_token');
 
-    const token = sessionStorage.getItem('k_ending_token');
-    if (!token) return;
-    fetch(`${BACKEND_URL}/api/auth/me`, { headers: { Authorization: `Bearer ${token}` } })
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.status === 'success' && data.user?.name) setApplicantName(data.user.name);
-      })
-      .catch(() => {
-        // 계정 이름 조회 실패해도 로컬 저장값(또는 빈 값)으로 계속 진행 — 문의 자체를 막지 않는다
-      });
+  // §6.4-1 — 예전에 이 브라우저에 남아 있을 수 있는 로컬 자동입력 잔재를 1회 정리한다
+  // (App.tsx가 k_ending_current_user에 한 것과 같은 패턴).
+  useEffect(() => {
+    localStorage.removeItem('eobom_last_applicant');
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -63,8 +51,10 @@ export const InquiryModal: React.FC<InquiryModalProps> = ({ facilityId, facility
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
         body: JSON.stringify({
-          applicantName,
-          applicantPhone,
+          // §6.4 — 프로필 값을 쓸 때는 값 자체를 안 보낸다. 서버가 로그인 유저의 프로필에서 직접 읽는다.
+          ...(useProfile ? {} : { applicantName, applicantPhone }),
+          useProfileContact: useProfile,
+          saveToProfile: !useProfile && saveToProfile,
           thirdPartyConsent,
           payload: { message },
         }),
@@ -74,7 +64,6 @@ export const InquiryModal: React.FC<InquiryModalProps> = ({ facilityId, facility
         alert(data.message || '문의 접수에 실패했습니다.');
         return;
       }
-      localStorage.setItem(LAST_APPLICANT_KEY, JSON.stringify({ name: applicantName, phone: applicantPhone }));
       alert(`✅ [${facilityName}]에 문의가 접수되었습니다.\n\n접수번호: ${data.data.leadNo}\n(문의 시 이 번호를 말씀해주시면 빠르게 확인 가능합니다)`);
       onClose();
     } catch {
@@ -126,15 +115,45 @@ export const InquiryModal: React.FC<InquiryModalProps> = ({ facilityId, facility
         </p>
 
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          {maskedPhone && (
+            <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem', color: 'var(--text-main)', cursor: 'pointer' }}>
+              <input type="checkbox" checked={useProfile} onChange={(e) => setUseProfile(e.target.checked)} />
+              내 정보 사용 ({maskedPhone})
+            </label>
+          )}
+
           <div>
             <label className="form-label">이름</label>
-            <input required value={applicantName} onChange={(e) => setApplicantName(e.target.value)} className="form-select" />
+            <input
+              required={!useProfile}
+              disabled={useProfile}
+              value={useProfile ? profileName || '' : applicantName}
+              onChange={(e) => setApplicantName(e.target.value)}
+              className="form-select"
+              style={useProfile ? { backgroundColor: 'var(--secondary-color)', color: 'var(--text-muted)' } : undefined}
+            />
           </div>
 
           <div>
             <label className="form-label">연락처</label>
-            <input required type="tel" placeholder="010-0000-0000" value={applicantPhone} onChange={(e) => setApplicantPhone(e.target.value)} className="form-select" />
+            <input
+              required={!useProfile}
+              disabled={useProfile}
+              type="tel"
+              placeholder="010-0000-0000"
+              value={useProfile ? maskedPhone || '' : applicantPhone}
+              onChange={(e) => setApplicantPhone(e.target.value)}
+              className="form-select"
+              style={useProfile ? { backgroundColor: 'var(--secondary-color)', color: 'var(--text-muted)' } : undefined}
+            />
           </div>
+
+          {!useProfile && isLoggedIn && (
+            <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem', color: 'var(--text-muted)', cursor: 'pointer' }}>
+              <input type="checkbox" checked={saveToProfile} onChange={(e) => setSaveToProfile(e.target.checked)} />
+              다음에도 쓸 수 있게 내 정보에 저장
+            </label>
+          )}
 
           <div>
             <label className="form-label">문의 사항</label>

@@ -294,6 +294,22 @@ function main() {
     ].join('\n');
   }
 
+  // --check: 파일에 쓰지 않고 "지금 문서가 schema.prisma와 맞는가"만 판정한다(harness-doctor §9).
+  // 2026-08-21 신설 — done.md 체크리스트를 넣은 **바로 다음 커밋**에서 또 놓쳤다. 특히
+  // 마이그레이션 없이 주석만 고치면 "DB를 건드렸다"는 자각 자체가 없어 사람이 못 잡는다.
+  // ⚠️ 개행은 정규화해서 비교한다 — git autocrlf 환경에서 CRLF/LF 차이로 영구 빨간불이 되면
+  //    "빨간불 무시" 습관이 생겨 doctor 전체의 신뢰도가 깎인다.
+  if (process.argv.includes('--check')) {
+    const norm = (s) => s.replace(/\r\n/g, '\n');
+    const current = fs.existsSync(DOC_PATH) ? fs.readFileSync(DOC_PATH, 'utf-8') : '';
+    if (norm(current) !== norm(output)) {
+      console.error(`낡음: ${path.relative(ROOT, DOC_PATH)} — schema.prisma와 다릅니다. 인자 없이 다시 실행하세요.`);
+      process.exit(1);
+    }
+    console.log(`동기화됨: ${path.relative(ROOT, DOC_PATH)}`);
+    return;
+  }
+
   fs.writeFileSync(DOC_PATH, output, 'utf-8');
   const modelNames = new Set(models.map((m) => m.name));
   const physicalColumns = models.flatMap((m) => m.fields.filter((f) => !modelNames.has(baseType(f.type))));

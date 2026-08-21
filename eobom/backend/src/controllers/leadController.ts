@@ -4,6 +4,8 @@ import prisma from '../config/prisma';
 import { verifyBearerToken } from './authController';
 import { verifyPartnerBearerToken } from './partnerController';
 import { createLead, ConsentRequiredError, FacilityNotFoundError } from '../services/leadService';
+import { resolveApplicantContact, ProfileContactMissingError } from '../utils/applicantContact';
+import { normalizePhone } from '../utils/phone';
 
 const safeLead = (lead: { leadNo: string; type: string; status: string; createdAt: Date }) => ({
   leadNo: lead.leadNo,
@@ -14,37 +16,65 @@ const safeLead = (lead: { leadNo: string; type: string; status: string; createdA
 
 // 견적요청 (`POST /api/facilities/:id/quotes`) — QUOTE 타입 리드.
 // 로그인 불필요(§10-2 권장안: 비회원 허용). 로그인 상태면 userId를 함께 남긴다.
+// 00-28 §6.4 Phase 2 — useProfileContact(프로필 값 사용)·saveToProfile(신청값을 프로필에 반영)
+// 두 플래그를 받는다. 두 값 모두 비회원이면 무시된다(프로필 자체가 없으므로).
 export const createQuote = async (req: Request, res: Response) => {
-  const { applicantName, applicantPhone, thirdPartyConsent, payload } = req.body as {
+  const { applicantName, applicantPhone, thirdPartyConsent, payload, useProfileContact, saveToProfile } = req.body as {
     applicantName?: string;
     applicantPhone?: string;
     thirdPartyConsent?: boolean;
     payload?: Record<string, unknown>;
+    useProfileContact?: boolean;
+    saveToProfile?: boolean;
   };
 
-  if (!applicantName?.trim() || !applicantPhone?.trim()) {
+  const decoded = verifyBearerToken(req);
+  const usesProfile = !!useProfileContact && !!decoded;
+
+  if (!usesProfile && (!applicantName?.trim() || !applicantPhone?.trim())) {
     return res.status(400).json({ status: 'error', message: '이름과 연락처는 필수입니다.' });
   }
   if (!thirdPartyConsent) {
     return res.status(400).json({ status: 'error', message: '개인정보 제3자 제공에 동의해야 견적요청을 접수할 수 있습니다.' });
   }
 
-  const decoded = verifyBearerToken(req);
-
   try {
-    const lead = await prisma.$transaction((tx) =>
-      createLead(tx, {
+    const lead = await prisma.$transaction(async (tx) => {
+      const contact = await resolveApplicantContact(tx, {
+        useProfileContact: usesProfile,
+        userId: decoded?.id ?? null,
+        bodyName: applicantName,
+        bodyPhone: applicantPhone,
+      });
+
+      const created = await createLead(tx, {
         type: 'QUOTE',
         facilityId: req.params.id,
         userId: decoded?.id ?? null,
-        applicantName: applicantName.trim(),
-        applicantPhone: applicantPhone.trim(),
+        applicantName: contact.applicantName,
+        applicantPhone: contact.applicantPhone,
         payload: payload ?? {},
         thirdPartyConsent: true,
-      })
-    );
+      });
+
+      // §8 Phase 2 #6 — 방금 친 값이 최신이므로 기존 프로필 값이 있어도 덮어쓴다.
+      // ⚠️ Lead.applicantPhone(스냅샷)은 사용자가 입력한 원문 그대로 저장하지만(기존 동작 유지),
+      // User.contactPhone은 프로필 PATCH(profileController.ts)와 같은 규칙으로 숫자만 저장한다
+      // (§3.2 ① — 안 그러면 maskPhone이 하이픈 섞인 문자열엔 마스킹을 못 건다).
+      if (saveToProfile && decoded) {
+        await tx.user.update({
+          where: { id: decoded.id },
+          data: { contactPhone: normalizePhone(contact.applicantPhone), profileUpdatedAt: new Date() },
+        });
+      }
+
+      return created;
+    });
     return res.status(201).json({ status: 'success', data: safeLead(lead) });
   } catch (error) {
+    if (error instanceof ProfileContactMissingError) {
+      return res.status(400).json({ status: 'error', message: '프로필에 저장된 연락처가 없습니다. 마이페이지에서 먼저 등록해 주세요.' });
+    }
     if (error instanceof FacilityNotFoundError) {
       return res.status(404).json({ status: 'error', message: error.message });
     }

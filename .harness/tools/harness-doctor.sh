@@ -292,6 +292,24 @@ else
 fi
 echo
 
+echo "9. DB 명세서(00-05) ↔ schema.prisma 동기화"
+# 2026-08-21 신설. 00-05는 generate-db-doc.js가 schema.prisma 주석에서 만드는 파생물인데,
+# **사람이 손으로 돌려야 한다.** done.md 체크리스트를 추가한 바로 다음 커밋에서 또 놓쳤다
+# (`5888289` — closedAt 주석만 고쳐 마이그레이션이 없었고, 그래서 "DB를 건드렸다"는 자각이 없었다).
+# 체크리스트는 자각한 사람만 체크한다. 그래서 기계가 본다.
+GEN="$ROOT/.harness/tools/generate-db-doc.js"
+if [ -f "$GEN" ] && command -v node >/dev/null 2>&1; then
+  if node "$GEN" --check >/dev/null 2>&1; then
+    ok "00-05가 schema.prisma와 동기화됨"
+  else
+    fail "00-05가 낡음 — \`node .harness/tools/generate-db-doc.js\` 실행 필요(스키마를 고치고 안 돌린 것)"
+  fi
+  CHECKS=$((CHECKS + 1))
+else
+  note "node 또는 generate-db-doc.js 없음 — 스킵"
+fi
+echo
+
 # ── 결과 ─────────────────────────────────────────────────────────
 echo "─────────────────────────────────────"
 if [ "$CHECKS" -eq 0 ]; then

@@ -247,6 +247,10 @@ export const getObituaryBySlug = async (req: Request, res: Response) => {
       // 항상 false/null이라 노출해도 무해하다. 개설자 본인이 볼 때만 실제 값이 들어간다.
       isClosed: closed,
       closedAt: obituary.closedAt,
+      // §5.3-1 — isOwner === true일 때만 싣는다. 익명·타인 응답에는 두 필드를 아예 넣지 않는다
+      // (null도 넣지 않음, accountEnabled 꺼졌을 때 계좌 필드를 통째로 빼는 것과 같은 방식).
+      // 프론트가 이 값으로 관리 모드 진입을 판정한다(§5.3-2 — localStorage는 힌트일 뿐 권한 신호가 아님).
+      ...(isOwner ? { isOwner: true, obituaryId: obituary.id } : {}),
     };
 
     // 연락처 — 입력돼 있으면 그대로 포함(별도 토글 없음, §6.2-2)
