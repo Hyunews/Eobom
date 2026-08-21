@@ -218,6 +218,19 @@ body {
   animation: pulse 1.6s ease-in-out infinite;
 }
 
+/* 스켈레톤 UI 전용 — 07-03 §5 체감 개선(2026-08-21). 위 .animate-pulse는 지도 핀용 scale
+   애니메이션이 섞여 있어 사각 블록엔 안 맞는다 — 불투명도만 바뀌는 별도 애니메이션을 쓴다. */
+@keyframes skeletonPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.55; }
+}
+
+.skeleton-block {
+  background-color: #EAE5DC;
+  border-radius: 6px;
+  animation: skeletonPulse 1.5s ease-in-out infinite;
+}
+
 .grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));

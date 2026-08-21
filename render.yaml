@@ -5,6 +5,12 @@
 # name을 eobom-backend로 고정해서 배포 도메인이 https://eobom-backend.onrender.com 으로
 # 예측 가능하게 만들었다 — 그래야 카카오/네이버/구글 콜백 URL을 배포 전에 미리 등록할 수 있다.
 
+# 🔴 region: 을 적지 않으면 조용히 oregon(미국)이 되고, 생성 후에는 바꿀 수 없다(서비스 재생성 필요).
+# 2026-08-21 실측: 백엔드 oregon ↔ DB 서울이라 DB를 타는 API가 ~1,500ms(미사용 API는 ~165ms).
+# 성능보다 큰 문제는 **개인정보가 미국에서 처리된다**는 것 — Supabase를 서울로 잡은 이유
+# (00-17 §3.3 "논점 자체를 만들지 않는다")가 무효가 된다.
+# 🔵 개발자 판단(08-21): **싱가포르로 옮기지 않는다** — 지연만 줄고 국외이전은 그대로다.
+#    국내 서버로 전환할 때 region을 그에 맞춰 한 번에 정한다(→ pending-approvals.md 인프라 항목).
 services:
   - name: eobom-backend
     type: web

@@ -31,6 +31,43 @@ interface MournerDraft {
   relationship: string;
 }
 
+// 07-03 §5 체감 개선(2026-08-21) — 기존 있던 부고장을 불러오는 동안(DB 왕복 ~1.5초, 인프라
+// 제약이라 이번 범위에서 못 줄임) 흰 화면에 "불러오는 중" 대신 실제 관리 화면(폼+공유 패널)과
+// 같은 자리에 회색 블록을 먼저 잡아 레이아웃이 안 튀게 한다. 처음 쓰는 사람(로컬 포인터 없음)은
+// 이 로딩이 사실상 순간이라 체감 대상이 아니다 — 느린 경로(기존 부고장 재조회)를 기준으로 짰다.
+const ObituaryManageSkeleton: React.FC = () => (
+  <div className="container" style={{ paddingBottom: '3rem' }}>
+    <div style={{ marginBottom: '1.5rem' }}>
+      <div className="skeleton-block" style={{ width: '150px', height: '26px', borderRadius: '16px', marginBottom: '0.6rem' }} />
+      <div className="skeleton-block" style={{ width: '260px', height: '32px', marginBottom: '0.5rem' }} />
+      <div className="skeleton-block" style={{ width: '380px', maxWidth: '90%', height: '16px' }} />
+    </div>
+
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: '1.5rem', alignItems: 'start' }}>
+      {/* 작성 폼 자리 */}
+      <div style={{ backgroundColor: 'var(--card-bg)', padding: '1.5rem', borderRadius: 'var(--border-radius)', boxShadow: 'var(--box-shadow)' }}>
+        {[0, 1, 2, 3, 4].map((i) => (
+          <div key={i} style={{ marginBottom: '1rem' }}>
+            <div className="skeleton-block" style={{ width: '80px', height: '12px', marginBottom: '0.5rem' }} />
+            <div className="skeleton-block" style={{ width: '100%', height: '48px', borderRadius: '8px' }} />
+          </div>
+        ))}
+      </div>
+
+      {/* 카드 미리보기 + 공유 패널 자리 */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+        <div style={{ backgroundColor: '#1A2B4C', borderRadius: '16px', padding: '1.25rem' }}>
+          <div className="skeleton-block" style={{ width: '100%', height: '160px', borderRadius: '10px', backgroundColor: 'rgba(255,255,255,0.15)' }} />
+        </div>
+        <div style={{ backgroundColor: 'var(--card-bg)', padding: '1.5rem', borderRadius: 'var(--border-radius)', boxShadow: 'var(--box-shadow)' }}>
+          <div className="skeleton-block" style={{ width: '100%', height: '48px', borderRadius: '8px', marginBottom: '0.6rem' }} />
+          <div className="skeleton-block" style={{ width: '100%', height: '40px', borderRadius: '8px' }} />
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
 export const ObituaryPage: React.FC<ObituaryPageProps> = ({ currentUser, onOpenLogin }) => {
   const [loading, setLoading] = useState(true);
   const [obituaryRef, setObituaryRef] = useState<StoredObituaryRef | null>(null);
@@ -333,11 +370,7 @@ export const ObituaryPage: React.FC<ObituaryPageProps> = ({ currentUser, onOpenL
   }
 
   if (loading) {
-    return (
-      <div className="container">
-        <p style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '3rem 0' }}>불러오는 중...</p>
-      </div>
-    );
+    return <ObituaryManageSkeleton />;
   }
 
   return (

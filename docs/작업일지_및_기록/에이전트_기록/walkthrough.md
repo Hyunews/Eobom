@@ -6,6 +6,25 @@
 
 ---
 
+## 2026-08-21 (54) | [Sonnet] `07-03` §5 — 부고장 로딩 지연 계측 + 스켈레톤 UI
+
+- **근거 스펙**: `07-03` §5(부고장 조회 지연) 개발자 지시 — 실측 `/api/health`(DB 미사용) ~165ms vs `/api/obituaries/:slug`(DB 사용) ~1,500ms, 원인은 Render(오리건)↔Supabase(서울) 인프라 왕복(이번 범위 밖, `render.yaml`·`pending-approvals.md`). 이번 범위는 "그 제약 안에서 왕복 횟수를 줄이고 체감을 개선하는 것" — A(계측)·B(왕복 줄이기, 조건부)·C(스켈레톤 UI, 무조건).
+- **건드린 파일**: `eobom/frontend/src/index.css`(`.skeleton-block` + `@keyframes skeletonPulse` 신설) · `eobom/frontend/src/pages/ObituaryLandingPage.tsx`(`ObituaryLandingSkeleton` 신설, `loading` 분기 교체) · `eobom/frontend/src/pages/ObituaryPage.tsx`(`ObituaryManageSkeleton` 신설, `loading` 분기 교체). `eobom/backend/src/config/prisma.ts`는 계측을 위해 `log: ['query']`로 **일시** 수정했다가 측정 직후 원상복구했다(`git diff`로 잔여 변경 없음 확인). **스키마 변경 없음.**
+- **결과**:
+  - **A(계측)** — `prisma.ts`에 `new PrismaClient({ log: ['query'] })`를 임시로 넣고 로컬 백엔드(`npm run dev`, Docker DB)를 띄운 뒤, 데모 로그인(GOOGLE)으로 부고장 하나를 만들고 `curl -sk https://localhost:5000/api/obituaries/{slug}`를 **단독 호출**해 그 사이 찍힌 SQL만 잘라냈다. 결과: **총 5개 쿼리** — ① `Obituary` `findUnique`(메인) ② `Deceased` 관계 `SELECT`(`IN ($1)`) ③ `Memorial` 관계 `SELECT` ④ `ObituaryMourner` 관계 `SELECT` ⑤ `Obituary` `UPDATE`(`viewCount`+1, fire-and-forget). **읽기 쿼리 4개**(①~④, `include` 3개가 각각 별도 쿼리로 갈라짐 — 지시가 예상한 그대로) + **쓰기 1개**(⑤, 지시대로 손대지 않음).
+  - **B(왕복 줄이기, 조건부)** — 읽기 쿼리 4개로 "4회 이상" 조건에 해당해 `relationJoins` preview 기능을 검토했다. **결론: 적용 보류.** 이유는 아래 편차 참고.
+  - **C(스켈레톤 UI, 무조건 적용)** — `ObituaryLandingPage.tsx`(조문객이 카톡 링크로 처음 보는 화면)와 `ObituaryPage.tsx`(유족 관리 화면) 둘 다 `loading` 분기를 "불러오는 중" 텍스트에서 **실제 레이아웃과 같은 자리·크기의 회색 블록**(근조 헤더/빈소·발인 로우/상주 로우/추모관 바 — 관리 화면은 폼 5칸 + 카드 미리보기 + 공유 버튼 2개)으로 교체. 기존 `.animate-pulse`(지도 핀용, `scale` 포함)는 사각 블록에 안 맞아 재사용하지 않고 `opacity`만 바뀌는 `.skeleton-block`/`skeletonPulse`를 새로 만들었다.
+  - **빌드**: `npx tsc --noEmit`(backend) 통과 · `npm run build`(backend) — **최초 1회 `EPERM: ... query_engine-windows.dll.node` 실패**(원인: 이번 세션에서 여러 차례 백그라운드로 띄웠던 `npm run dev`(backend) 중 정리가 안 된 좀비 `node.exe` 프로세스 6쌍(12개)이 해당 DLL을 잠그고 있었음 — `Get-CimInstance Win32_Process`로 커맨드라인 확인 후 전부 `taskkill`, 무관한 `chrome-devtools-mcp` 프로세스 4개는 안 건드림) → 재시도 통과 · `npx tsc --noEmit -p .`(frontend) 통과 · `npm run build`(frontend) 통과.
+- **편차**:
+  - 🔵 **B를 보류했다 — 지시된 조건부 경로 그대로다(스펙 위반이 아니라 스펙이 요구한 판단).** `relationJoins`는 `generator client { previewFeatures = [...] }`로 켜는 **스키마 전역** 플래그다. 실제 JOIN 사용(`relationLoadStrategy: 'join'`)은 쿼리 단위로 켤 수 있지만, **기능 자체를 켜는 순간 이 앱의 다른 22개 모델·모든 관계 쿼리가 같은 preview 엔진 동작으로 넘어간다.** 이 프로젝트는 Prisma 5.22.0(최신 7.9.1과 격차 큼)에 회귀 테스트가 없다(`00-15` 근거) — 지시가 명시한 "전역 영향 시 보류" 조건에 정확히 해당해 적용하지 않았다. 대안으로 이 조회 하나만 raw SQL JOIN으로 손수 짜는 방법도 있지만(전역 영향 없음), **지시받은 도구는 `relationJoins`뿐이라 임의로 다른 기법을 새로 들이지 않았다** — 필요하면 다음 사이클에서 판단할 것.
+  - 검증 중 이번 세션이 쌓아둔 **좀비 백엔드 프로세스 12개를 정리**했다 — 지시받은 작업은 아니지만 빌드 자체가 막혀 있어(`EPERM`) 불가피했다. `chrome-devtools-mcp` 등 무관한 프로세스는 커맨드라인을 먼저 확인하고 건드리지 않았다.
+- **다음 에이전트가 알아야 할 것**:
+  - **왕복 4→1 단축은 아직 안 됐다.** `relationJoins`를 GA(Prisma 메이저 업그레이드) 이후 다시 검토하거나, 이 조회 하나에 한해 raw SQL JOIN을 손으로 짜는 방법을 고려할 것 — 후자는 전역 영향이 없지만 타입 안정성을 잃는다는 트레이드오프가 있다.
+  - 스켈레톤은 **레이아웃 자리만** 잡는다 — 실제 필드 유무(예: 익명 조회엔 없는 `계좌`·`장지` 등)에 맞춰 동적으로 칸 수를 바꾸지 않는다(로딩 시점엔 알 수 없으므로 의도적으로 고정 3~5칸).
+  - ⚠️ 브라우저 실기동(스켈레톤이 실제로 먼저 보이고 실데이터로 자연스럽게 전환되는지 육안 확인)은 여전히 안 함 — 코드·계측 수치로만 검증했다.
+
+---
+
 ## 2026-08-21 (53) | [Sonnet] `07-03` §5.3-1·§5.3-2 — 부고장 관리화면 교차계정 노출 사고 수정
 
 - **근거 스펙**: `07-03` §5.3-1(개설자 본인은 종료 후에도 조회 가능 — 화이트리스트에 `isOwner`·`obituaryId` 본인 전용 추가)·§5.3-2(소유권은 서버가 판정 — `localStorage`로 판단 금지)·§6.2-3(종료가 연락처·계좌 노출의 유일한 실효 완화). 개발자 지시 계기: *"네이버 계정으로 만든 부고장이 있는 브라우저에서 카카오 계정으로 로그인했더니, 남의 부고장 관리 화면이 그대로 떴다."* — 서버 권한 검증(`createdByUserId`)은 정상, 화면 진입 조건만 결함.

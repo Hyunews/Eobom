@@ -129,6 +129,13 @@
 **DB는 Render Postgres가 아니라 Supabase**(§4) — `render.yaml`의 `databases:` 블록은 제거했다.
 
 - 설정: 레포 루트 `render.yaml`(Blueprint), `eobom/backend`가 `rootDir`
+- 🔴 **리전 = `oregon`(미국). 백엔드와 DB가 태평양을 사이에 두고 있다**(08-21 실측):
+  `/api/health` ~165ms vs **DB 타는 API ~1,500ms** — 차이 1.3초가 왕복 비용이다.
+  ⚠️ 리전은 `render.yaml`의 `region:` 필드로만 정해지고(생성 화면에 없음) **생성 후 변경 불가**.
+  없으면 조용히 `oregon`이 된다 — 지금이 그 결과다.
+  🔴 **성능보다 국외이전이 크다** — `00-17` §3.3이 Supabase를 서울로 잡아 *"논점을 만들지 않으려"*
+  한 것이 **백엔드가 미국이라 무효**다. → `pending-approvals.md` 인프라 항목(오픈 블로커).
+  🔵 **08-21 개발자 판단: 싱가포르로 안 옮긴다** — 국내 전환 시 한 번에 설정.
 - ⚠️ 무료 웹서비스는 **15분 슬립** — 첫 요청이 수십 초 걸린다(부고 링크 첫 방문자가 그대로 겪는다)
 - 🔴 `SETTLEMENT_ENCRYPTION_KEY`는 **로컬 `.env`와 같은 값**이어야 한다 — 다르면 기존 암호문 복호화 불가
 - **배포 후 잔여**: (1)3사 콘솔 콜백 재등록 (2)Vercel `VITE_BACKEND_URL` + 재배포 (3)시설 시딩

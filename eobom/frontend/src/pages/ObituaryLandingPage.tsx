@@ -37,6 +37,43 @@ const Row: React.FC<{ label: string; children: React.ReactNode }> = ({ label, ch
   </div>
 );
 
+// 07-03 §5 체감 개선(2026-08-21) — 백엔드(Render 오리건)↔DB(Supabase 서울) 왕복 지연(§5 실측
+// ~1.5초)은 이번 범위에서 못 없앤다(인프라 문제, render.yaml 밖). 대신 흰 화면에 "불러오는 중"
+// 텍스트만 뜨던 것을, 실제 렌더와 같은 자리에 회색 블록을 먼저 잡아 레이아웃이 안 튀게 한다.
+const ObituaryLandingSkeleton: React.FC = () => (
+  <div style={{ width: '100%', maxWidth: '460px' }}>
+    <div style={{ backgroundColor: '#FFFFFF', borderRadius: '20px', boxShadow: '0 12px 35px rgba(26,43,76,0.08)', overflow: 'hidden' }}>
+      {/* 근조 헤더 자리 */}
+      <div style={{ backgroundColor: '#1A2B4C', padding: '2rem 1.75rem', textAlign: 'center' }}>
+        <div className="skeleton-block" style={{ width: '160px', height: '12px', margin: '0 auto 0.9rem', backgroundColor: 'rgba(255,255,255,0.18)' }} />
+        <div className="skeleton-block" style={{ width: '190px', height: '24px', margin: '0 auto', backgroundColor: 'rgba(255,255,255,0.24)' }} />
+      </div>
+
+      <div style={{ padding: '1.5rem 1.75rem' }}>
+        {/* 빈소·발인 자리 */}
+        <div style={{ marginBottom: '1.2rem' }}>
+          {[0, 1].map((i) => (
+            <div key={i} style={{ display: 'flex', gap: '1rem', padding: '0.6rem 0', borderBottom: '1px solid #EAE5DC' }}>
+              <div className="skeleton-block" style={{ width: '40px', height: '13px', flexShrink: 0 }} />
+              <div className="skeleton-block" style={{ width: '70%', height: '13px' }} />
+            </div>
+          ))}
+        </div>
+        {/* 상주 자리 */}
+        <div>
+          <div style={{ display: 'flex', gap: '1rem', padding: '0.6rem 0' }}>
+            <div className="skeleton-block" style={{ width: '40px', height: '13px', flexShrink: 0 }} />
+            <div className="skeleton-block" style={{ width: '45%', height: '13px' }} />
+          </div>
+        </div>
+      </div>
+
+      {/* 추모관 들어가기 바 자리 */}
+      <div style={{ height: '52px', backgroundColor: 'var(--secondary-color)', borderTop: '1px solid #EAE5DC' }} />
+    </div>
+  </div>
+);
+
 export const ObituaryLandingPage: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
   const [data, setData] = useState<ObituaryData | null>(null);
@@ -85,7 +122,7 @@ export const ObituaryLandingPage: React.FC = () => {
   if (loading) {
     return (
       <div style={pageShellStyle}>
-        <p style={{ color: '#6C7A89' }}>불러오는 중...</p>
+        <ObituaryLandingSkeleton />
       </div>
     );
   }
