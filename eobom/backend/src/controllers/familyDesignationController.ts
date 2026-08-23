@@ -1,16 +1,23 @@
 import { Request, Response } from 'express';
+import crypto from 'crypto';
 import prisma from '../config/prisma';
 import { verifyBearerToken } from './authController';
 import { normalizePhone, isValidPhoneLength, maskPhone } from '../utils/phone';
 import { encryptField, decryptField, hashField } from '../utils/crypto';
 
-// 00-27 §10 Phase 1 — 생전 가족지정. 이번 범위는 "기록"까지다(§2 확정 — 기록과 통지 분리).
-// 🔴 구현자가 판단하지 않는 것(§3 불변식):
-//  1. status는 항상 DRAFT로 고정 — 클라이언트가 보낸 값은 무시한다. PENDING 이후로 가는 경로 자체가 없다.
-//  2. 연락처·이메일은 암호화 저장하고 어떤 응답에도 평문을 넣지 않는다.
-//  3. "내가 누군가에게 지정됐는지" 조회하는 API는 만들지 않는다 — 아래 4종 외 라우트를 추가하지 말 것.
+// 00-27 §10 Phase 1 — 생전 가족지정 "기록"(§2 확정 — 기록과 통지 분리) + Phase 2(§9.1) —
+// 본인 트리거 초대 링크(발급·조회·수락·거절). "내가 지정됐는지" 조회 API는 여전히 없다(불변식 3)
+// — 아래 초대 관련 3종은 전부 추측 불가 토큰으로만 접근하지, userId로 역질의하지 않는다.
+// 🔴 구현자가 판단하지 않는 것(§3 불변식·§9.1-3):
+//  1. status는 서버만 바꾼다 — 클라이언트가 보낸 값은 무시한다. PENDING은 초대 발급 시,
+//     ACCEPTED/DECLINED는 아래 accept/decline 안에서만 서버가 정한다.
+//  2. 연락처·이메일은 암호화 저장하고 어떤 응답에도 평문을 넣지 않는다. 초대 조회 응답에도
+//     지정자 연락처를 넣지 않는다 — 성함·관계·scope 3개뿐(§9.1-3 ②).
+//  3. "내가 누군가에게 지정됐는지" 조회하는 API는 만들지 않는다 — 초대는 토큰으로만 접근한다.
 //  4. priority는 연락 순서일 뿐 법정상속순위가 아니다 — 계산·표시하지 않는다.
 //  5. 본인은 언제든 하드 삭제할 수 있다.
+//  6. 수락 판정은 초대 토큰 + JWT로만 한다 — localStorage/sessionStorage는 로그인 복귀 경로
+//     기억용일 뿐 권한 근거가 아니다(07-03 §5.3-2 사고와 같은 실수를 반복하지 않는다).
 
 const RELATIONSHIPS = ['SPOUSE', 'CHILD', 'PARENT', 'SIBLING', 'OTHER'] as const;
 const isValidRelationship = (v: unknown): v is (typeof RELATIONSHIPS)[number] =>
@@ -35,6 +42,8 @@ type FamilyDesignationRow = {
   scope: string;
   priority: number;
   status: string;
+  tokenExpiresAt: Date | null;
+  declinedAt: Date | null;
   lastConfirmedAt: Date;
   createdAt: Date;
   updatedAt: Date;
@@ -48,6 +57,8 @@ const maskEmail = (email: string): string => {
 };
 
 // 🔴 GET 응답에 평문 연락처를 넣지 않는다(§8.1) — 복호화는 마스킹하기 위해서만 서버 안에서 잠깐 쓴다.
+// tokenExpiresAt·declinedAt은 본인만 보는 목록이라 노출해도 무해하다 — 프론트가 "링크 만료"·
+// "거절됨" 표시를 만들 때 쓴다(초대 토큰 문자열 자체는 여전히 안 내려간다).
 const serialize = (d: FamilyDesignationRow) => ({
   id: d.id,
   name: d.name,
@@ -58,6 +69,8 @@ const serialize = (d: FamilyDesignationRow) => ({
   scope: d.scope,
   priority: d.priority,
   status: d.status,
+  tokenExpiresAt: d.tokenExpiresAt,
+  declinedAt: d.declinedAt,
   lastConfirmedAt: d.lastConfirmedAt,
   createdAt: d.createdAt,
   updatedAt: d.updatedAt,
@@ -248,5 +261,145 @@ export const deleteFamilyDesignation = async (req: Request, res: Response) => {
   } catch (error) {
     console.error('가족 지정 삭제 실패:', error);
     return res.status(500).json({ status: 'error', message: '삭제 중 오류가 발생했습니다.' });
+  }
+};
+
+// §9.1-6 a — 부고장(즉시성 필요)과 달리 급하지 않다. 짧으면 재발급 요청만 잦아진다.
+const INVITE_TOKEN_EXPIRY_DAYS = 30;
+
+// 초대 링크 발급 (`POST /api/family-designations/:id/invite`) — 개설자만(§9.1).
+// 재발급은 같은 컬럼을 새 값으로 덮어쓰는 것만으로 이전 토큰을 무효화한다(§9.1-1 ③ 회수 수단) —
+// 별도 폐기 테이블이 필요 없다. DRAFT·PENDING(재발송)·DECLINED·EXPIRED 전부 재발급 가능하고,
+// ACCEPTED만 막는다(이미 정보주체 동의가 끝난 건이라 재초대할 이유가 없다).
+export const inviteFamilyDesignation = async (req: Request, res: Response) => {
+  const decoded = verifyBearerToken(req);
+  if (!decoded) {
+    return res.status(401).json({ status: 'error', message: '로그인이 필요합니다.' });
+  }
+
+  try {
+    const existing = await prisma.familyDesignation.findUnique({ where: { id: req.params.id } });
+    if (!existing || existing.userId !== decoded.id) {
+      return res.status(404).json({ status: 'error', message: '가족 지정을 찾을 수 없습니다.' });
+    }
+    if (existing.status === 'ACCEPTED') {
+      return res.status(400).json({ status: 'error', message: '이미 수락된 지정입니다.' });
+    }
+
+    // obituaryController.generateObituarySlug와 동일 방식(randomBytes(16)) — 추측 불가 토큰.
+    const token = crypto.randomBytes(16).toString('hex');
+    const tokenExpiresAt = new Date(Date.now() + INVITE_TOKEN_EXPIRY_DAYS * 24 * 60 * 60 * 1000);
+
+    const updated = await prisma.familyDesignation.update({
+      where: { id: existing.id },
+      data: {
+        inviteToken: token,
+        tokenExpiresAt,
+        notifiedAt: new Date(),
+        status: 'PENDING', // 불변식 1 — 서버가 정한다. 링크를 만들었다고 권한이 생기진 않는다(여전히 0)
+      },
+    });
+
+    return res.json({
+      status: 'success',
+      data: { inviteToken: updated.inviteToken, tokenExpiresAt: updated.tokenExpiresAt, status: updated.status },
+    });
+  } catch (error) {
+    console.error('초대 링크 발급 실패:', error);
+    return res.status(500).json({ status: 'error', message: '초대 링크 발급 중 오류가 발생했습니다.' });
+  }
+};
+
+// 초대 상세 조회 (`GET /api/family-designations/invite/:token`) — 공개. 받는 사람이 아직
+// 회원이 아닐 수 있다(§9.1-2). 🔴 지정자 연락처를 넣지 않는다 — 성함·관계·scope 3개뿐(§9.1-3 ②).
+export const getFamilyInvite = async (req: Request, res: Response) => {
+  try {
+    const designation = await prisma.familyDesignation.findUnique({
+      where: { inviteToken: req.params.token },
+      include: { user: { select: { name: true } } },
+    });
+
+    // 존재하지 않음 · 이미 처리됨(수락/거절) · 아직 발급 전(DRAFT)을 전부 동일하게 취급 —
+    // PENDING이 아니면 이 토큰으로는 더 이상 아무것도 할 수 없다.
+    if (!designation || designation.status !== 'PENDING') {
+      return res.status(404).json({ status: 'error', message: '초대 링크를 찾을 수 없습니다.' });
+    }
+    if (designation.tokenExpiresAt && designation.tokenExpiresAt.getTime() < Date.now()) {
+      return res.status(410).json({ status: 'error', message: '초대 링크가 만료되었습니다.' });
+    }
+
+    return res.json({
+      status: 'success',
+      data: {
+        designatorName: designation.user.name,
+        relationship: designation.relationship,
+        relationshipEtc: designation.relationshipEtc,
+        scope: designation.scope,
+      },
+    });
+  } catch (error) {
+    console.error('초대 조회 실패:', error);
+    return res.status(500).json({ status: 'error', message: '초대 조회 중 오류가 발생했습니다.' });
+  }
+};
+
+// 초대 수락 (`POST /api/family-designations/invite/:token/accept`) — 로그인 필요(누가
+// 수락했는지 acceptedUserId에 남겨야 한다). 🔴 판정은 토큰+JWT로만 한다 — sessionStorage는
+// 로그인 복귀 경로를 기억하는 용도일 뿐 권한 근거가 아니다(불변식 6, 07-03 §5.3-2와 같은 원칙).
+export const acceptFamilyInvite = async (req: Request, res: Response) => {
+  const decoded = verifyBearerToken(req);
+  if (!decoded) {
+    return res.status(401).json({ status: 'error', message: '로그인이 필요합니다.' });
+  }
+
+  try {
+    const designation = await prisma.familyDesignation.findUnique({ where: { inviteToken: req.params.token } });
+    if (!designation || designation.status !== 'PENDING') {
+      return res.status(404).json({ status: 'error', message: '초대 링크를 찾을 수 없습니다.' });
+    }
+    if (designation.tokenExpiresAt && designation.tokenExpiresAt.getTime() < Date.now()) {
+      return res.status(410).json({ status: 'error', message: '초대 링크가 만료되었습니다.' });
+    }
+
+    const updated = await prisma.familyDesignation.update({
+      where: { id: designation.id },
+      data: {
+        status: 'ACCEPTED',
+        acceptedUserId: decoded.id,
+        acceptedAt: new Date(),
+        inviteToken: null, // §9.1-1 ① 1회용 — 수락 즉시 무효화
+      },
+    });
+
+    return res.json({ status: 'success', data: { status: updated.status, acceptedAt: updated.acceptedAt } });
+  } catch (error) {
+    console.error('초대 수락 실패:', error);
+    return res.status(500).json({ status: 'error', message: '수락 처리 중 오류가 발생했습니다.' });
+  }
+};
+
+// 초대 거절 (`POST /api/family-designations/invite/:token/decline`) — 로그인 불필요. 거절은
+// 누가 눌렀는지 저장하지 않는다 — 스키마에 그런 컬럼이 없다(§9.1-6 c "거절 사유는 받지 않는다"와
+// 같은 이유 — 제3자가 제3자에 대해 남긴 기록을 늘리지 않는다).
+export const declineFamilyInvite = async (req: Request, res: Response) => {
+  try {
+    const designation = await prisma.familyDesignation.findUnique({ where: { inviteToken: req.params.token } });
+    if (!designation || designation.status !== 'PENDING') {
+      return res.status(404).json({ status: 'error', message: '초대 링크를 찾을 수 없습니다.' });
+    }
+
+    const updated = await prisma.familyDesignation.update({
+      where: { id: designation.id },
+      data: {
+        status: 'DECLINED',
+        declinedAt: new Date(),
+        inviteToken: null, // 1회용 — 거절도 같은 원칙(§9.1-1 ①)
+      },
+    });
+
+    return res.json({ status: 'success', data: { status: updated.status } });
+  } catch (error) {
+    console.error('초대 거절 실패:', error);
+    return res.status(500).json({ status: 'error', message: '거절 처리 중 오류가 발생했습니다.' });
   }
 };

@@ -43,7 +43,7 @@ const ObituaryManageSkeleton: React.FC = () => (
       <div className="skeleton-block" style={{ width: '380px', maxWidth: '90%', height: '16px' }} />
     </div>
 
-    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: '1.5rem', alignItems: 'start' }}>
+    <div className="auto-grid" style={{ alignItems: 'start' }}>
       {/* 작성 폼 자리 */}
       <div style={{ backgroundColor: 'var(--card-bg)', padding: '1.5rem', borderRadius: 'var(--border-radius)', boxShadow: 'var(--box-shadow)' }}>
         {[0, 1, 2, 3, 4].map((i) => (
@@ -379,7 +379,7 @@ export const ObituaryPage: React.FC<ObituaryPageProps> = ({ currentUser, onOpenL
         <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', backgroundColor: '#DEF7EC', color: '#03543F', padding: '0.3rem 0.8rem', borderRadius: '16px', fontSize: '0.85rem', fontWeight: 700, marginBottom: '0.6rem' }}>
           <MessageSquare size={18} color="#03543F" /> 모바일 부고장
         </div>
-        <h1 style={{ color: 'var(--primary-color)', fontSize: '2rem', display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0 }}>
+        <h1 className="page-title" style={{ color: 'var(--primary-color)', display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0 }}>
           <MessageSquare color="var(--point-color)" size={32} /> {obituaryRef ? '내 부고장 관리' : '모바일 부고장 작성'}
         </h1>
         <p style={{ color: 'var(--text-muted)', marginTop: '0.4rem' }}>
@@ -387,7 +387,12 @@ export const ObituaryPage: React.FC<ObituaryPageProps> = ({ currentUser, onOpenL
         </p>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: obituaryRef ? 'repeat(auto-fit, minmax(340px, 1fr))' : '1fr', gap: '1.5rem', alignItems: 'start' }}>
+      {/* 00-29 §6.1 .auto-grid — 개설 전(단일 폼)은 강제 1열 유지, 관리 모드(2단)만 auto-fit로
+          바꿔 min(280px,100%) 폴백을 태운다(기존 minmax(340px,1fr) 고정값은 375px에서 가로 스크롤 유발). */}
+      <div
+        className={obituaryRef ? 'auto-grid' : undefined}
+        style={obituaryRef ? { alignItems: 'start' } : { display: 'grid', gridTemplateColumns: '1fr', gap: '1.5rem', alignItems: 'start' }}
+      >
         {/* 작성 폼 */}
         <form onSubmit={handleSubmit} style={{ backgroundColor: 'var(--card-bg)', padding: '1.5rem', borderRadius: 'var(--border-radius)', boxShadow: 'var(--box-shadow)' }}>
           <div className="form-group">

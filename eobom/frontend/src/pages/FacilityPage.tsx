@@ -216,7 +216,7 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', backgroundColor: 'rgba(212, 163, 89, 0.25)', color: 'var(--accent-gold)', padding: '0.4rem 0.9rem', borderRadius: '20px', fontSize: '0.85rem', fontWeight: 700, marginBottom: '1rem' }}>
             <HouseLeafIcon size={18} color="var(--accent-gold)" /> 봉안당·수목장 맞춤 검색 및 장례식장 맞춤 매칭
           </div>
-          <h1 style={{ fontSize: '2.3rem', fontWeight: 800, marginBottom: '0.8rem', color: '#FFFFFF', lineHeight: '1.2' }}>
+          <h1 className="page-title" style={{ fontWeight: 800, marginBottom: '0.8rem', color: '#FFFFFF', lineHeight: '1.2' }}>
             장례·묘지 맞춤 비교 매칭
           </h1>
           <p style={{ fontSize: '1.05rem', color: '#CBD5E1', lineHeight: '1.6', margin: 0 }}>

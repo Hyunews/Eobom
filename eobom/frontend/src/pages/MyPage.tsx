@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Calendar, MessageSquare, BookOpen, ChevronRight, Camera, Settings, Lock, UserCircle, Users } from 'lucide-react';
 import { BACKEND_URL } from '../config';
+import { Badge } from '../components/home/EntryBoxes';
 
 interface MyPageProps {
   currentUser?: string | null;
@@ -18,8 +19,15 @@ interface MyProfile {
   role: string;
 }
 
+interface MySummary {
+  leadCount: number;
+  consultCount: number;
+  obituaryCount: number;
+}
+
 export const MyPage: React.FC<MyPageProps> = ({ currentUser, onOpenLogin, onOpenAccountSettings, onOpenProfile, onOpenFamilyDesignation, setActiveTab }) => {
   const [profile, setProfile] = useState<MyProfile | null>(null);
+  const [summary, setSummary] = useState<MySummary | null>(null);
 
   useEffect(() => {
     const token = sessionStorage.getItem('k_ending_token');
@@ -39,6 +47,16 @@ export const MyPage: React.FC<MyPageProps> = ({ currentUser, onOpenLogin, onOpen
       })
       .catch(() => {
         // 조회 실패 시 헤더에 이미 표시 중인 currentUser 문자열만으로 화면을 유지
+      });
+
+    // §1-2 — 3칸 카운터 실데이터. 하드코딩 제거.
+    fetch(`${BACKEND_URL}/api/me/summary`, { headers: { Authorization: `Bearer ${token}` } })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.status === 'success') setSummary(data.data);
+      })
+      .catch(() => {
+        // 조회 실패 시 0으로 표시(아래 ?? 0) — 화면이 깨지지 않게
       });
   }, [currentUser]);
 
@@ -71,13 +89,13 @@ export const MyPage: React.FC<MyPageProps> = ({ currentUser, onOpenLogin, onOpen
 
   const displayName = profile?.name || currentUser.split(' (')[0];
 
+  // §1-1 — FacilityBooking이 2026-08-11 폐기돼 "예약"이라는 개념이 DB에 없다.
+  // Lead(문의)·ConsultRequest(상담)·Obituary(내 부고장) 3개만 실데이터로 센다.
   const stats = [
-    { label: '예약 중', value: 2 },
-    { label: '상담 내역', value: 5 },
-    { label: '보관 문서', value: 12 },
+    { label: '문의 내역', value: summary?.leadCount ?? 0 },
+    { label: '상담 내역', value: summary?.consultCount ?? 0 },
+    { label: '내 부고장', value: summary?.obituaryCount ?? 0 },
   ];
-
-  const endingNoteProgress = 75;
 
   return (
     <div className="container">
@@ -161,18 +179,18 @@ export const MyPage: React.FC<MyPageProps> = ({ currentUser, onOpenLogin, onOpen
           className="btn"
           style={{ backgroundColor: 'var(--secondary-color)', color: 'var(--primary-color)', flexShrink: 0 }}
         >
-          <Settings size={16} /> 계정 설정
+          <Settings size={16} /> 계정 연동
         </button>
       </div>
 
-      {/* 3-Column Stat Counter Box (Dark Navy Surface) */}
+      {/* 3-Column Stat Counter Box (Dark Navy Surface) — 00-29 §6.1 .stat-row: 375px에서
+          숫자·라벨이 한 글자씩 세로로 쪼개지던 고정 repeat(3,1fr)+큰 폰트를 대체 */}
       <div
+        className="stat-row"
         style={{
           backgroundColor: 'var(--primary-color)',
           borderRadius: 'var(--border-radius)',
           padding: '1.3rem 1rem',
-          display: 'grid',
-          gridTemplateColumns: 'repeat(3, 1fr)',
           marginBottom: '1.5rem'
         }}
       >
@@ -184,8 +202,8 @@ export const MyPage: React.FC<MyPageProps> = ({ currentUser, onOpenLogin, onOpen
               borderLeft: idx > 0 ? '1px solid rgba(255,255,255,0.15)' : 'none'
             }}
           >
-            <div style={{ fontSize: '1.8rem', fontWeight: 800, color: '#FFFFFF' }}>{stat.value}</div>
-            <div style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.7)', marginTop: '0.3rem' }}>{stat.label}</div>
+            <div className="stat-row__value" style={{ fontWeight: 800, color: '#FFFFFF' }}>{stat.value}</div>
+            <div className="stat-row__label" style={{ color: 'rgba(255,255,255,0.7)', marginTop: '0.3rem' }}>{stat.label}</div>
           </div>
         ))}
       </div>
@@ -265,17 +283,18 @@ export const MyPage: React.FC<MyPageProps> = ({ currentUser, onOpenLogin, onOpen
           <ChevronRight size={20} color="var(--text-muted)" />
         </button>
 
-        <button
-          onClick={() => alert('📅 [개발중] 나의 예약 현황 상세 페이지는 준비 중입니다.')}
+        {/* §1-4 — FacilityBooking 폐기로 실체가 없는 기능이라 클릭(alert)을 없애고 준비 중 배지로
+            고정한다(§1-3과 같은 처리 — 감추지 않고 준비 중임을 명시, 00-23 §2.2). */}
+        <div
           className="card"
           style={{
             flexDirection: 'row',
             alignItems: 'center',
             justifyContent: 'space-between',
             padding: '1rem 1.1rem',
-            cursor: 'pointer',
-            textAlign: 'left',
-            width: '100%'
+            cursor: 'not-allowed',
+            width: '100%',
+            opacity: 0.7,
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
@@ -291,15 +310,15 @@ export const MyPage: React.FC<MyPageProps> = ({ currentUser, onOpenLogin, onOpen
                 flexShrink: 0
               }}
             >
-              <Calendar size={20} color="var(--point-color)" />
+              <Calendar size={20} color="var(--text-muted)" />
             </div>
             <div>
               <div style={{ fontWeight: 700, color: 'var(--primary-color)' }}>나의 예약 현황</div>
               <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>장례 및 장지 예약 정보 확인</div>
             </div>
           </div>
-          <ChevronRight size={20} color="var(--text-muted)" />
-        </button>
+          <Badge status="comingSoon" />
+        </div>
 
         <button
           onClick={() => setActiveTab?.('counseling')}
@@ -364,33 +383,17 @@ export const MyPage: React.FC<MyPageProps> = ({ currentUser, onOpenLogin, onOpen
               <BookOpen size={20} color="var(--accent-gold)" />
             </div>
             <div>
-              <div style={{ fontWeight: 700, color: 'var(--primary-color)' }}>디지털 엔딩노트</div>
-              <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.3rem' }}>
-                <span
-                  style={{
-                    width: '80px',
-                    height: '6px',
-                    borderRadius: '4px',
-                    backgroundColor: 'var(--border-color)',
-                    overflow: 'hidden',
-                    display: 'inline-block'
-                  }}
-                >
-                  <span
-                    style={{
-                      display: 'block',
-                      width: `${endingNoteProgress}%`,
-                      height: '100%',
-                      backgroundColor: 'var(--point-color)'
-                    }}
-                  />
-                </span>
-                진행 중 {endingNoteProgress}%
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <span style={{ fontWeight: 700, color: 'var(--primary-color)' }}>디지털 엔딩노트</span>
+                <Badge status="preview" />
               </div>
+              {/* §1-3 — EndingNote 모델이 없어 진행률 자체가 존재하지 않는 값이었다. 숫자를
+                  지어내는 대신 modeNav.ts의 status:'preview'와 같은 표시(미리보기)로 통일한다. */}
+              <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginTop: '0.3rem' }}>연명의료·유족 메시지 등을 미리 작성해 볼 수 있어요</div>
             </div>
           </div>
           <button onClick={() => setActiveTab?.('ending-note')} className="btn btn-primary" style={{ height: '40px', padding: '0 1.2rem', fontSize: '0.9rem' }}>
-            이어 쓰기
+            미리보기
           </button>
         </div>
       </div>

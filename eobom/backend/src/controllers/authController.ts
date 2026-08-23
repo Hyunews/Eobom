@@ -194,6 +194,9 @@ export const handleSocialLoginCallback = async (req: Request, res: Response) => 
 
   try {
     // 1단계: 이미 연동된 SocialAccount가 있으면 해당 User로 즉시 로그인
+    // §3-1 — 아래에서 userId·unlinkedAt·id(전부 SocialAccount 자체 컬럼)만 쓰고 최신 User 값은
+    // 어차피 곧이어 user.update가 다시 써서 돌려주므로, 여기서 User 관계를 함께 읽어올 필요가
+    // 없다(include 제거 — 안 쓰는 관계를 매번 실어오지 않는다).
     const existingAccount = await prisma.socialAccount.findUnique({
       where: {
         provider_providerId: {
@@ -201,24 +204,33 @@ export const handleSocialLoginCallback = async (req: Request, res: Response) => 
           providerId: socialUser.providerId,
         },
       },
-      include: { user: true },
     });
 
     if (existingAccount) {
-      const user = await prisma.user.update({
-        where: { id: existingAccount.userId },
-        data: {
-          name: socialUser.name,
-          profileImage: socialUser.profileImage,
-        },
-      });
+      // §3-1 — 로그인 왕복 단축. 백엔드(Render 오리건)↔DB(Supabase 서울)가 왕복당 ~1.3초라
+      // user.update와 (조건부) socialAccount.update를 직렬로 두 번 타면 그 자리에서 느려진다.
+      // $transaction으로 묶어 한 왕복에 처리한다 — 과거엔 연동 해제 복구 케이스가 3왕복(find+
+      // update+update)이었던 걸 2왕복(find+transaction)으로 줄인다.
+      type UserUpdateOp = ReturnType<typeof prisma.user.update>;
+      const ops: [UserUpdateOp, ...ReturnType<typeof prisma.socialAccount.update>[]] = [
+        prisma.user.update({
+          where: { id: existingAccount.userId },
+          data: {
+            name: socialUser.name,
+            profileImage: socialUser.profileImage,
+          },
+        }),
+      ];
       // 과거에 연동 해제(소프트 삭제)했던 계정으로 재로그인한 경우 -> 새 계정을 만들지 않고 그대로 복구
       if (existingAccount.unlinkedAt) {
-        await prisma.socialAccount.update({
-          where: { id: existingAccount.id },
-          data: { unlinkedAt: null, email: socialUser.email },
-        });
+        ops.push(
+          prisma.socialAccount.update({
+            where: { id: existingAccount.id },
+            data: { unlinkedAt: null, email: socialUser.email },
+          })
+        );
       }
+      const [user] = await prisma.$transaction(ops);
       return res.redirect(buildLoginSuccessRedirect(user, socialUser.provider, frontendUrl));
     }
 

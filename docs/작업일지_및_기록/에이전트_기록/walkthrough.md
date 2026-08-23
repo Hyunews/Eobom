@@ -25,6 +25,37 @@
 
 ---
 
+## 2026-08-24 (55) | [Sonnet] 개발자 점검 7건 구현(1~4) + `00-27` Phase 2(5) — 5개 섹션 한 사이클
+
+- **근거 스펙**: `context.md` ⓪(개발자 점검 7건 분류) · `00-29_모바일_대응_전략_검토서.md` §5·§6·§8 · `00-27` §9.1(공유 버튼·초대 링크, 2026-08-21 개발자 확정) · `00-19`(생년월일 미수집, 손대지 않음). 개발자 지시 — MyPage 하드코딩 제거(1) · CareGuidePage 접기(2) · 로그인 속도(3) · 00-29 모바일 반응형(4) · 00-27 Phase 2 초대 링크(5, "⑧ 부고장 isOwner 서버 판정(§5.3-2) 완료 후 시작" 조건부 — (53)에서 이미 완료돼 있어 바로 착수).
+- **건드린 파일**:
+  - 백엔드(신규): `eobom/backend/src/controllers/summaryController.ts`
+  - 백엔드(수정): `eobom/backend/src/routes/meRoutes.ts`(`GET /summary` 추가) · `eobom/backend/src/controllers/authController.ts`(소셜 로그인 기존회원 분기 `$transaction` 병합 + 불필요 `include` 제거) · `eobom/backend/src/controllers/familyDesignationController.ts`(`inviteFamilyDesignation`·`getFamilyInvite`·`acceptFamilyInvite`·`declineFamilyInvite` 4종 + `serialize`에 `tokenExpiresAt`·`declinedAt` 추가) · `eobom/backend/src/routes/familyDesignationRoutes.ts`(4개 라우트 추가)
+  - 프론트(신규): `eobom/frontend/src/pages/FamilyInvitePage.tsx`
+  - 프론트(수정): `eobom/frontend/src/pages/MyPage.tsx`(3칸 카운터 실데이터·엔딩노트 배지·예약현황 배지·"계정 연동"·`.stat-row`) · `eobom/frontend/src/components/Header.tsx`(라벨·로고 래퍼 클래스) · `eobom/frontend/src/components/Sidebar.tsx`(라벨) · `eobom/frontend/src/pages/CareGuidePage.tsx`(접기/펼치기) · `eobom/frontend/src/App.tsx`(warm-up fetch, `/invite/:token` 라우트+로그인 복귀 소비) · `eobom/frontend/src/components/MyPageFamilyDesignation.tsx`(알리기·공유 버튼, 상태 라벨) · `eobom/frontend/src/index.css`(00-29 §6.1 프리미티브 4개 + 375px 헤더 압축) · `eobom/frontend/src/pages/ObituaryPage.tsx`·`CounselingPage.tsx`·`FacilityPage.tsx`(`.page-title`/`.auto-grid` 적용)
+  - **스키마 변경 없음** — `git status --short eobom/backend/prisma`로 확인(00-27 Phase 2 컬럼 6개는 Phase 1 마이그레이션에 이미 존재).
+- **결과** (로컬 Docker DB against 백엔드를 직접 띄워 curl/PowerShell로 검증 — 세션 중 Docker Desktop이 꺼져 있어 재기동함):
+  - **[1] MyPage**: `GET /api/me/summary` 실호출 → `{"leadCount":3,"consultCount":1,"obituaryCount":2}` — 실제 계정 활동 건수와 일치. 3칸을 `$transaction([...])`으로 1왕복 처리(순차 3회였다면 ~4초, 이제 1왕복). "계정 설정"→"계정 연동" 3곳(MyPage.tsx·Header.tsx·Sidebar.tsx) + 관련 주석 2곳까지 전부 치환(`grep -rn "계정 설정"` 결과 UI 텍스트 0건, docs 과거 기록만 남음 — 06-02 §6.1 재발 방지).
+  - **[2] CareGuidePage**: 23항목 전부 기본은 체크박스+기한배지+확인필요배지+제목 한 줄, `note`·근거·바로가기 3종은 `expandedIds: Set<number>`로 펼침. chevron 버튼에 `e.stopPropagation()` 적용(카드 전체 `onClick=toggleTask`와 분리 확인). 각 카드에 `breakInside: 'avoid'` 추가(다단에서 펼친 카드가 단 경계에서 안 쪼개지게).
+  - **[3] 로그인 속도**: `authController.ts` 기존회원 분기 — `user.update`(+ 조건부 `socialAccount.update`)를 `$transaction([...])`으로 묶어 연동해제 복구 케이스를 3왕복(find+update+update)→2왕복(find+transaction)으로 줄임. 안 쓰던 `include: { user: true }`도 제거. `App.tsx`에 `fetch('/api/health').catch(()=>{})` 최초 마운트 1회 추가(무음 warm-up). **⚠️ 실측 전/후 왕복시간은 못 남겼다** — 데모 로그인은 이 코드 경로(`handleSocialLoginCallback`)를 안 타서(별도 `demoLogin` 함수) 로컬에서 재현할 수단이 없었다. 실제 카카오/네이버/구글 로그인으로만 검증 가능 — 다음 담당자 확인 필요.
+  - **[4] 00-29 모바일**: `index.css`에 `.page-title`·`.auto-grid`·`.stat-row`·`.stack-sm` 4개 프리미티브 신설(기존 480/640/768 브레이크포인트만 사용). §5 우선순위 1(MyPage)·2(CareGuidePage 제목)는 완료, 3(ObituaryPage)은 관리 화면 그리드 2곳 교체 완료, 4(FacilityPage·CounselingPage)는 페이지 제목만 교체(그리드 정밀 감사는 미완료). 375px 헤더(`context.md` ①) — 로고+햄버거+모드칩+사용자칩을 직접 합산해보니(로고 SVG 56.7px+워드마크 텍스트 실측 근사 ~177.6px 등) 기존 640px 압축만으로는 375px에서 여전히 초과 추정돼, 480px에서 로고 `scale(0.8)`+사용자명 `max-width` 44px로 추가 압축 — **실제 375px 뷰포트 렌더링 확인은 못 함(계산 추정)**, 다음 담당자가 실기기/DevTools로 확정 필요.
+  - **[5] `00-27` Phase 2**: 계정 A(KAKAO)로 가족 "동생" 등록 → `POST .../invite` → `inviteToken` 발급(`tokenExpiresAt` = 정확히 +30일 확인) → **익명**으로 `GET /invite/:token` 조회 → 응답에 `designatorName`(A의 이름)·`relationship`·`scope`만 있고 **연락처 없음** 확인 → 계정 B(NAVER)로 로그인 후 `.../accept` → DB 직접 조회로 `status:"ACCEPTED"`·`acceptedUserId`=B의 id·`inviteToken:null`(1회용 무효화) 확인. 이어서: 무효화된 토큰 재조회 **404**, 이미 ACCEPTED인 지정 재초대 **400**, 존재하지 않는 토큰 **404**, 별도 지정 하나를 **로그인 없이 거절**(`declinedAt` 기록, `status:"DECLINED"`) 후 **재초대 성공**(새 토큰 발급, 이전 토큰은 여전히 404) — 완료 판정 문구("A 등록→공유→B 가입→수락 시 acceptedUserId=B, 토큰 재사용 거부") 전부 실측 통과.
+  - **빌드**: `npx tsc --noEmit`(backend, 각 섹션마다 반복 실행) 통과 · `npm run build`(backend) 통과 · `npx tsc --noEmit -p .`(frontend, 반복 실행) 통과 · `npm run build`(frontend) 통과.
+- **편차**:
+  - **[4] `.stat-row`의 360px 2단 접기를 구현하지 않았다.** `00-29` §6.1 표는 "≤480px 축소, ≤360px 1열"을 요구하지만, 같은 절 마지막 줄 및 이번 지시 4-1이 재차 "브레이크포인트는 기존 480/640/768만, 네 번째 값 금지"를 못박아 **문서 내부 모순**이었다. 더 구체적·최신인 지시 쪽을 따라 480 하나로 접었다(375px에서 3열 유지 + 폰트 축소만으로 가로 스크롤 없음, §6.2 판정 기준은 통과하는 걸로 계산). `00-29`를 고치는 건 Opus 몫이라 문서는 그대로 뒀다 — §6.1 표의 360px 언급을 삭제하거나 예외로 명시할지 검토 필요.
+  - **[4] §7의 "00-09에 클래스 4개 등재"를 하지 않았다** — docs/는 구현 중 안 고친다는 원칙(`roles.md` §2)에 따라 코드만 만들고 등재는 다음 Opus 사이클로 남겼다.
+  - **[4] 우선순위 4(FacilityPage·CounselingPage)는 페이지 제목만 교체하고 그리드·카드 레이아웃은 못 봤다** — 시간 배분상 5(00-27 Phase 2)까지 이번 사이클에 다 넣어야 해서, "375px 가로 스크롤 없음" 정밀 검증까지는 못 갔다.
+  - **[3] 왕복시간 실측이 없다** — 위 결과 참고. 이론상 절감치(회당 ~1.3초 × 최대 1회)만 코드 구조로 담보했다.
+- **다음 에이전트가 알아야 할 것**:
+  - **브라우저 실기동(클릭·화면 확인)은 전 섹션 공통으로 안 함** — API 레벨(curl/PowerShell)과 코드 리뷰로만 검증했다. 특히 [2] 펼치기/접기 UI, [4] 375px 실제 렌더, [5] `navigator.share` 실제 공유 시트·초대 화면 소셜 로그인 버튼 클릭은 전부 미확인.
+  - [3] 실 소셜 로그인(카카오/네이버/구글 중 하나)으로 로그인 콜백 왕복시간을 실측해 walkthrough에 추가해야 §완료 판정이 완전히 닫힌다.
+  - [4] `00-09`에 반응형 프리미티브 4개 등재 필요(Opus). `.stat-row` 360px 모순도 `00-29`에서 정리 필요.
+  - [4] FacilityPage·CounselingPage의 나머지 인라인 그리드·고정폭 값(§2.2 표 기준)은 미감사 — §5 우선순위 4를 마저 끝내려면 여기부터.
+  - [5] Phase 3(`DeathVerification`, `FamilyDesignation`→`BereavedRelation` 승격)은 여전히 범위 밖. `FamilyInvitePage.tsx`의 소셜 로그인 버튼은 데모 로그인이 아니라 **실제 OAuth**(`/api/auth/kakao` 등)로 연결돼 있어 로컬에서 버튼 클릭 자체는 검증하지 못했다(경로 존재만 코드로 확인).
+  - Docker Desktop이 이번 세션 중간에 꺼져 있었다(재부팅 추정) — 다시 켜고 `eobom-postgres` 컨테이너를 수동으로 `docker start` 했다. 다음에도 로컬 DB 접근 전에 `docker ps` 먼저 확인할 것.
+
+---
+
 ## 2026-08-21 (53) | [Sonnet] `07-03` §5.3-1·§5.3-2 — 부고장 관리화면 교차계정 노출 사고 수정
 
 - **근거 스펙**: `07-03` §5.3-1(개설자 본인은 종료 후에도 조회 가능 — 화이트리스트에 `isOwner`·`obituaryId` 본인 전용 추가)·§5.3-2(소유권은 서버가 판정 — `localStorage`로 판단 금지)·§6.2-3(종료가 연락처·계좌 노출의 유일한 실효 완화). 개발자 지시 계기: *"네이버 계정으로 만든 부고장이 있는 브라우저에서 카카오 계정으로 로그인했더니, 남의 부고장 관리 화면이 그대로 떴다."* — 서버 권한 검증(`createdByUserId`)은 정상, 화면 진입 조건만 결함.

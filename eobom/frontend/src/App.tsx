@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, Link, useLocation, useNavigate, useNavigationType } from 'react-router-dom';
 import { Header } from './components/Header';
 import { Sidebar } from './components/Sidebar';
@@ -9,7 +9,7 @@ import { MyPageAuthSettings } from './components/MyPageAuthSettings';
 import { MyPageProfile } from './components/MyPageProfile';
 import { MyPageFamilyDesignation } from './components/MyPageFamilyDesignation';
 import { EobomLogo } from './components/EobomLogo';
-import { providerLabel } from './config';
+import { providerLabel, BACKEND_URL } from './config';
 import { NAV_MODE_STORAGE_KEY, type NavMode } from './modeNav';
 
 import { HomePage } from './pages/HomePage';
@@ -20,6 +20,7 @@ import { EndingNotePage } from './pages/EndingNotePage';
 import { CareGuidePage } from './pages/CareGuidePage';
 import { ObituaryPage } from './pages/ObituaryPage';
 import { ObituaryLandingPage } from './pages/ObituaryLandingPage';
+import { FamilyInvitePage } from './pages/FamilyInvitePage';
 import { PickupPage } from './pages/PickupPage';
 import { MemorialPage } from './pages/MemorialPage';
 import { MyPage } from './pages/MyPage';
@@ -51,6 +52,9 @@ function AppShell() {
   // 게스트가 전달받은 추모관 링크(EntryBoxes.tsx 박스③)로 들어오는 화면 — 위 부고장 랜딩과
   // 같은 이유(비로그인 방문객, 서비스 메뉴가 붙으면 안 됨)로 껍데기 없이 그대로 노출한다.
   const isMemorialLandingRoute = /^m\//.test(activeTab);
+  // 00-27 §9.1-2 — 가족 지정 초대 링크. 받는 사람은 아직 회원이 아닐 수 있어 사이드바·모드가
+  // 무의미하다(위 두 랜딩과 같은 처리).
+  const isFamilyInviteRoute = /^invite\//.test(activeTab);
 
   const [isLoginOpen, setIsLoginOpen] = useState<boolean>(false);
   // 모바일 햄버거 메뉴(드로어) 열림 상태 — 데스크톱은 기존 호버 사이드바 그대로,
@@ -64,6 +68,13 @@ function AppShell() {
     localStorage.removeItem('k_ending_token');
     return sessionStorage.getItem('k_ending_current_user') || null;
   });
+
+  // §3-2 — 로그인 속도. Render 무료 인스턴스는 15분 미사용 시 슬립하므로, 로그인 버튼을 누른
+  // 시점에 깨우면 이미 늦다. 첫 페이지 로드 때 미리 한 번 깨워둔다 — 완전 무음(실패해도 무시,
+  // 응답을 기다리지도 화면에 표시하지도 않는다).
+  useEffect(() => {
+    fetch(`${BACKEND_URL}/api/health`).catch(() => {});
+  }, []);
 
   // 00-26 §4.3 — 진입 모드(생전준비/유가족). localStorage로 날짜를 넘겨 기억한다(유족 행정 절차는
   // 여러 날에 걸침). ⚠️ 홈으로 돌아오면 4박스는 항상 보여야 하므로, 이 값으로 자동 이동시키지 않는다
@@ -146,7 +157,16 @@ function AppShell() {
 
       if (name) {
         handleLoginSuccess(name, provider || undefined, token || undefined);
-        window.history.replaceState(null, '', '/');
+        // 00-27 §9.1-2 — 초대 링크(/invite/:token)에서 로그인하면 콜백은 항상 '/'로 돌아오고
+        // 토큰은 해시에 없다. FamilyInvitePage.tsx가 로그인 시작 전에 sessionStorage에 심어둔
+        // 값을 여기서 소비해 원래 초대 화면으로 되돌려보낸다 — 없으면(일반 로그인) 그대로 홈.
+        const pendingInviteToken = sessionStorage.getItem('eobom_pending_invite_token');
+        if (pendingInviteToken) {
+          sessionStorage.removeItem('eobom_pending_invite_token');
+          navigate(`/invite/${pendingInviteToken}`, { replace: true });
+        } else {
+          window.history.replaceState(null, '', '/');
+        }
       }
     }
   }, []);
@@ -234,11 +254,12 @@ function AppShell() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-      {isObituaryLandingRoute || isMemorialLandingRoute ? (
+      {isObituaryLandingRoute || isMemorialLandingRoute || isFamilyInviteRoute ? (
         // 껍데기 완전히 없음(§6.1) — Header·Sidebar·main-wrapper·Footer 전부 건너뛴다.
         <Routes>
           <Route path="/o/:slug" element={<ObituaryLandingPage />} />
           <Route path="/m/:slug" element={<MemorialPage />} />
+          <Route path="/invite/:token" element={<FamilyInvitePage />} />
         </Routes>
       ) : (
         <>

@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { CheckSquare, ExternalLink, AlertTriangle } from 'lucide-react';
+import { CheckSquare, ExternalLink, AlertTriangle, ChevronDown, ChevronUp } from 'lucide-react';
 import careGuideTasksData from '../mockData/careGuideTasks.json';
 import { ChecklistShieldIcon } from '../components/MenuIcons';
 
@@ -65,13 +65,25 @@ export const CareGuidePage: React.FC<CareGuidePageProps> = ({ setActiveTab }) =>
     setTasks(tasks.map((t) => (t.id === id ? { ...t, checked: !t.checked } : t)));
   };
 
+  // §2 접기 — 기본은 제목 줄만, 펼쳐야 근거·메모·바로가기가 나온다(23항목이 한 화면에 잡히게).
+  const [expandedIds, setExpandedIds] = useState<Set<number>>(new Set());
+  const toggleExpand = (id: number, e: React.MouseEvent) => {
+    e.stopPropagation(); // 카드 전체에 toggleTask가 걸려 있다 — 안 하면 펼치려다 체크된다
+    setExpandedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
   return (
     <div className="container">
       <div style={{ marginBottom: '1.5rem' }}>
         <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', backgroundColor: '#DEF7EC', color: '#03543F', padding: '0.3rem 0.8rem', borderRadius: '16px', fontSize: '0.85rem', fontWeight: 700, marginBottom: '0.6rem' }}>
           <ChecklistShieldIcon size={18} color="#03543F" /> 사망 직후 D-Day 필수 행정절차
         </div>
-        <h1 style={{ color: 'var(--primary-color)', fontSize: '2rem', display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0 }}>
+        <h1 className="page-title" style={{ color: 'var(--primary-color)', display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0 }}>
           <ChecklistShieldIcon color="var(--point-color)" size={32} /> 상중 케어 &amp; 사망 행정 가이드
         </h1>
         <p style={{ color: 'var(--text-muted)', marginTop: '0.4rem' }}>
@@ -159,7 +171,9 @@ export const CareGuidePage: React.FC<CareGuidePageProps> = ({ setActiveTab }) =>
                       </div>
 
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
-                      {items.map((t) => (
+                      {items.map((t) => {
+                        const isExpanded = expandedIds.has(t.id);
+                        return (
                         <div
                           key={t.id}
                           onClick={() => toggleTask(t.id)}
@@ -169,6 +183,7 @@ export const CareGuidePage: React.FC<CareGuidePageProps> = ({ setActiveTab }) =>
                             backgroundColor: t.checked ? 'var(--secondary-color)' : '#FFFFFF',
                             border: '1px solid var(--border-color)',
                             cursor: 'pointer',
+                            breakInside: 'avoid', // §2 — 다단에서 펼친 카드가 단 경계에서 안 쪼개지게
                           }}
                         >
                           <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
@@ -187,45 +202,59 @@ export const CareGuidePage: React.FC<CareGuidePageProps> = ({ setActiveTab }) =>
                               <span style={{ textDecoration: t.checked ? 'line-through' : 'none', color: t.checked ? 'var(--text-muted)' : 'var(--text-main)', fontSize: '0.95rem', fontWeight: 600 }}>
                                 {t.title}
                               </span>
-                              {t.note && (
-                                <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', margin: '0.3rem 0 0 0', lineHeight: 1.5 }}>{t.note}</p>
+
+                              {isExpanded && (
+                                <>
+                                  {t.note && (
+                                    <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', margin: '0.3rem 0 0 0', lineHeight: 1.5 }}>{t.note}</p>
+                                  )}
+                                  <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', margin: '0.3rem 0 0 0' }}>근거: {t.legalBasis}</p>
+                                  <div style={{ display: 'flex', gap: '0.9rem', flexWrap: 'wrap', marginTop: '0.4rem' }}>
+                                    {t.needsExpertHelp && (
+                                      <button
+                                        type="button"
+                                        onClick={(e) => { e.stopPropagation(); setActiveTab?.('counseling'); }}
+                                        style={{ background: 'none', border: 'none', padding: 0, fontSize: '0.8rem', fontWeight: 700, color: 'var(--point-color)', textDecoration: 'underline', cursor: 'pointer' }}
+                                      >
+                                        {LINK_LABEL.counseling}
+                                      </button>
+                                    )}
+                                    {t.linkTo && (
+                                      <button
+                                        type="button"
+                                        onClick={(e) => { e.stopPropagation(); setActiveTab?.(t.linkTo as string); }}
+                                        style={{ background: 'none', border: 'none', padding: 0, fontSize: '0.8rem', fontWeight: 700, color: 'var(--primary-color)', textDecoration: 'underline', cursor: 'pointer' }}
+                                      >
+                                        {LINK_LABEL[t.linkTo] || '바로가기 →'}
+                                      </button>
+                                    )}
+                                    {t.externalUrl && (
+                                      <a
+                                        href={t.externalUrl}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        onClick={(e) => e.stopPropagation()}
+                                        style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.8rem', fontWeight: 700, color: 'var(--accent-gold)', textDecoration: 'underline' }}
+                                      >
+                                        정부24 바로가기 <ExternalLink size={12} />
+                                      </a>
+                                    )}
+                                  </div>
+                                </>
                               )}
-                              <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', margin: '0.3rem 0 0 0' }}>근거: {t.legalBasis}</p>
-                              <div style={{ display: 'flex', gap: '0.9rem', flexWrap: 'wrap', marginTop: '0.4rem' }}>
-                                {t.needsExpertHelp && (
-                                  <button
-                                    type="button"
-                                    onClick={(e) => { e.stopPropagation(); setActiveTab?.('counseling'); }}
-                                    style={{ background: 'none', border: 'none', padding: 0, fontSize: '0.8rem', fontWeight: 700, color: 'var(--point-color)', textDecoration: 'underline', cursor: 'pointer' }}
-                                  >
-                                    {LINK_LABEL.counseling}
-                                  </button>
-                                )}
-                                {t.linkTo && (
-                                  <button
-                                    type="button"
-                                    onClick={(e) => { e.stopPropagation(); setActiveTab?.(t.linkTo as string); }}
-                                    style={{ background: 'none', border: 'none', padding: 0, fontSize: '0.8rem', fontWeight: 700, color: 'var(--primary-color)', textDecoration: 'underline', cursor: 'pointer' }}
-                                  >
-                                    {LINK_LABEL[t.linkTo] || '바로가기 →'}
-                                  </button>
-                                )}
-                                {t.externalUrl && (
-                                  <a
-                                    href={t.externalUrl}
-                                    target="_blank"
-                                    rel="noreferrer"
-                                    onClick={(e) => e.stopPropagation()}
-                                    style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.8rem', fontWeight: 700, color: 'var(--accent-gold)', textDecoration: 'underline' }}
-                                  >
-                                    정부24 바로가기 <ExternalLink size={12} />
-                                  </a>
-                                )}
-                              </div>
                             </div>
+                            <button
+                              type="button"
+                              onClick={(e) => toggleExpand(t.id, e)}
+                              aria-label={isExpanded ? '접기' : '펼치기'}
+                              style={{ background: 'none', border: 'none', padding: '0.2rem', cursor: 'pointer', color: 'var(--text-muted)', flexShrink: 0 }}
+                            >
+                              {isExpanded ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+                            </button>
                           </div>
                         </div>
-                      ))}
+                        );
+                      })}
                       </div>
                     </div>
                   );

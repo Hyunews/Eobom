@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { X, CheckCircle2, AlertCircle, Loader2, Trash2, Pencil, Plus } from 'lucide-react';
+import { X, CheckCircle2, AlertCircle, Loader2, Trash2, Pencil, Plus, Send } from 'lucide-react';
 import { BACKEND_URL } from '../config';
 
-// 00-27 §8.2·§8.3·§10 Phase 1 — 마이페이지 > 가족 지정. MyPageAuthSettings.tsx와 같은 모달 패턴.
-// 이번 범위는 "기록"까지다(§2) — 알리기·수락·계정연결(Phase 2·3)은 여기 없다. status는 항상
-// DRAFT로만 보인다(서버가 강제, 불변식 1) — 이 화면에 상태 전환 버튼을 만들지 않는다.
+// 00-27 §8.2·§8.3·§10 Phase 1(기록) + §9.1 Phase 2(알리기·공유 버튼). 수락/거절 자체는 받는
+// 사람이 여는 /invite/:token(FamilyInvitePage.tsx)에서 일어난다 — 여기서는 링크를 만들어
+// 전달할 뿐, status를 이 화면에서 직접 바꾸지 않는다(서버만 바꾼다, 불변식 1).
 
 const RELATIONSHIP_OPTIONS: { value: string; label: string }[] = [
   { value: 'SPOUSE', label: '배우자' },
@@ -31,7 +31,21 @@ interface FamilyDesignationItem {
   scope: string;
   priority: number;
   status: string;
+  tokenExpiresAt: string | null;
+  declinedAt: string | null;
 }
+
+// §9.1 — status는 서버만 바꾼다. 여기선 표시만 한다. PENDING은 만료 여부를 tokenExpiresAt으로
+// 직접 판정한다(서버가 EXPIRED로 상태를 미리 바꿔두지 않는다 — 조회 시점 판정, 07-03 §6.2-4와 같은 사상).
+const statusLabel = (item: FamilyDesignationItem): string => {
+  if (item.status === 'ACCEPTED') return '✅ 수락 완료';
+  if (item.status === 'DECLINED') return '거절됨 · 다시 알리기 가능';
+  if (item.status === 'PENDING') {
+    const expired = item.tokenExpiresAt && new Date(item.tokenExpiresAt).getTime() < Date.now();
+    return expired ? '링크 만료 · 다시 알리기 필요' : '알림 발송됨 · 수락 대기 중';
+  }
+  return '아직 알리지 않음';
+};
 
 interface FormState {
   name: string;
@@ -54,6 +68,7 @@ export const MyPageFamilyDesignation: React.FC<MyPageFamilyDesignationProps> = (
   const [items, setItems] = useState<FamilyDesignationItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [invitingId, setInvitingId] = useState<string | null>(null);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   const [showForm, setShowForm] = useState(false);
@@ -180,6 +195,54 @@ export const MyPageFamilyDesignation: React.FC<MyPageFamilyDesignationProps> = (
     }
   };
 
+  // §9.1 — 카카오 SDK를 쓰지 않는다(§9.1-4, 07-03 도메인 이중 등록 문제 재현 방지). 1:1 전달이라
+  // navigator.share(모바일 기본 공유 시트) + 링크 복사 두 가지로 충분하다.
+  const handleInvite = async (item: FamilyDesignationItem) => {
+    const headers = authHeaders();
+    if (!headers) return;
+
+    setInvitingId(item.id);
+    setMessage(null);
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/family-designations/${item.id}/invite`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...headers },
+      });
+      const data = await res.json();
+      if (!res.ok || data.status !== 'success') {
+        setMessage({ type: 'error', text: data.message || '초대 링크 발급에 실패했습니다.' });
+        return;
+      }
+
+      const link = `${window.location.origin}/invite/${data.data.inviteToken}`;
+      const shareText = `${item.name}님, 생전 준비를 위해 가족으로 지정했습니다. 아래 링크에서 확인해 주세요.`;
+
+      let shared = false;
+      if (navigator.share) {
+        try {
+          await navigator.share({ title: '이어봄 가족 지정 안내', text: shareText, url: link });
+          shared = true;
+        } catch {
+          // 공유 시트를 취소한 경우도 포함 — 실패로 보지 않는다(ObituaryPage.tsx와 동일 사상)
+          shared = true;
+        }
+      }
+      if (!shared) {
+        try {
+          await navigator.clipboard.writeText(link);
+          setMessage({ type: 'success', text: '링크가 복사되었습니다. 대화방에 붙여넣어 전달해 주세요.' });
+        } catch {
+          setMessage({ type: 'success', text: `링크: ${link} (복사에 실패해 직접 선택해 복사해 주세요)` });
+        }
+      }
+      await fetchList();
+    } catch {
+      setMessage({ type: 'error', text: '서버와 통신 중 오류가 발생했습니다.' });
+    } finally {
+      setInvitingId(null);
+    }
+  };
+
   return (
     <div
       style={{
@@ -302,10 +365,21 @@ export const MyPageFamilyDesignation: React.FC<MyPageFamilyDesignationProps> = (
                     </div>
                     <div style={{ fontSize: '0.78rem', color: '#9CA3AF', marginTop: '0.15rem' }}>
                       {item.phone}
-                      {item.email ? ` · ${item.email}` : ''} · 아직 알리지 않음
+                      {item.email ? ` · ${item.email}` : ''} · {statusLabel(item)}
                     </div>
                   </div>
                   <div style={{ display: 'flex', gap: '0.4rem', flexShrink: 0 }}>
+                    {item.status !== 'ACCEPTED' && (
+                      <button
+                        type="button"
+                        onClick={() => handleInvite(item)}
+                        disabled={invitingId === item.id}
+                        title="알리기 · 공유"
+                        style={{ background: 'none', border: '1px solid var(--point-color)', borderRadius: '8px', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: invitingId === item.id ? 'not-allowed' : 'pointer', color: 'var(--point-color)' }}
+                      >
+                        {invitingId === item.id ? <Loader2 size={14} /> : <Send size={14} />}
+                      </button>
+                    )}
                     <button
                       type="button"
                       onClick={() => openEditForm(item)}

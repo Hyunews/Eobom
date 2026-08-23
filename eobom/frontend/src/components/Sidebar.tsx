@@ -14,7 +14,7 @@ interface SidebarProps {
   // 데스크톱 호버 사이드바(아래 <aside>)는 이 값과 무관하게 항상 그대로 동작한다.
   mobileOpen?: boolean;
   onMobileClose?: () => void;
-  // 480px 이하에서 헤더가 겹치는 문제로 계정 설정/로그아웃 버튼을 헤더에서 숨기고 여기로
+  // 480px 이하에서 헤더가 겹치는 문제로 계정 연동/로그아웃 버튼을 헤더에서 숨기고 여기로
   // 이관했다(Header.tsx `.header-account-buttons--has-drawer`, 2026-08-20).
   onOpenAccountSettings?: () => void;
   onLogout?: () => void;
@@ -299,7 +299,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, navMo
                 color: '#CBD5E1', cursor: 'pointer', width: '100%', textAlign: 'left', fontSize: '0.9rem',
               }}
             >
-              <Settings size={18} /> 계정 설정
+              <Settings size={18} /> 계정 연동
             </button>
           )}
           {onLogout && (

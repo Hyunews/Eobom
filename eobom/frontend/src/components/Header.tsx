@@ -116,6 +116,7 @@ export const Header: React.FC<HeaderProps> = ({ setActiveTab, onOpenLogin, onOpe
         {/* 브랜드 로고 (공식 Design_Logo.png 가이드 기반 심볼마크 & 워드마크) — 클릭 시 항상 홈(4박스)로(00-26 §4.4 C안) */}
         <div
           onClick={() => setActiveTab('home')}
+          className="header-logo-wrap"
           style={{ flexShrink: 0, cursor: 'pointer', display: 'flex', alignItems: 'center' }}
           title="이어봄 (Eobom) 디지털 엔딩 & 웰다잉 토탈 케어 플랫폼"
         >
@@ -237,7 +238,7 @@ export const Header: React.FC<HeaderProps> = ({ setActiveTab, onOpenLogin, onOpe
                     gap: '0.3rem'
                   }}
                 >
-                  <Settings size={14} /> <span className="header-btn-label">계정 설정</span>
+                  <Settings size={14} /> <span className="header-btn-label">계정 연동</span>
                 </button>
                 <button
                   onClick={onLogout}
