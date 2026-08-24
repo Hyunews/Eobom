@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { X, ShieldCheck } from 'lucide-react';
+import { X, ShieldCheck, Check } from 'lucide-react';
 import { BACKEND_URL } from '../config';
 
 interface LoginModalProps {
@@ -9,12 +9,81 @@ interface LoginModalProps {
   onLoginSuccess: (username: string, provider?: string, token?: string) => void;
 }
 
+// 필수/선택 동의 한 줄 — LoginModal 전용이라 여기서만 쓴다(재사용 시점이 오면 그때 분리).
+const ConsentCheckbox: React.FC<{
+  checked: boolean;
+  onChange: (next: boolean) => void;
+  label: string;
+  required: boolean;
+  href?: string;
+}> = ({ checked, onChange, label, required, href }) => (
+  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.5rem', padding: '0.3rem 0' }}>
+    <label style={{ display: 'flex', alignItems: 'center', gap: '0.55rem', cursor: 'pointer', fontSize: '0.86rem', color: '#4B5563' }}>
+      <span
+        onClick={() => onChange(!checked)}
+        role="checkbox"
+        aria-checked={checked}
+        style={{
+          width: '19px',
+          height: '19px',
+          flexShrink: 0,
+          borderRadius: '5px',
+          border: checked ? 'none' : '1.5px solid #D1D5DB',
+          backgroundColor: checked ? 'var(--point-color)' : '#FFFFFF',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          cursor: 'pointer'
+        }}
+      >
+        {checked && <Check size={13} color="#FFFFFF" strokeWidth={3} />}
+      </span>
+      <span>
+        <span style={{ color: required ? 'var(--primary-color)' : '#6B7280', fontWeight: 600 }}>
+          {required ? '[필수] ' : '[선택] '}
+        </span>
+        {label}
+      </span>
+    </label>
+    {href && (
+      <a href={href} target="_blank" rel="noopener noreferrer" style={{ fontSize: '0.78rem', color: '#9CA3AF', textDecoration: 'underline', flexShrink: 0 }}>
+        보기
+      </a>
+    )}
+  </div>
+);
+
 // B2C 소비자 로그인 전용. 사업자·전문가는 /partner, 운영자는 /admin — 전부 완전히 분리된
 // 별도 인증 체계라 여기엔 관리자 로그인이 없다(2026-08-10, 옛 admin/1234 목업 버튼 제거).
 // 하단에 /partner 진입 링크만 둔다(00-06 §7.3 ①, 2026-08-14) — 헤더 로그인 버튼을 누르고
 // 여기까지 들어온 사업자·전문가가 막다른 길에 걸리지 않도록.
 export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLoginSuccess }) => {
   const navigate = useNavigate();
+
+  // 2026-08-24 추가 — 가입(=최초 소셜 로그인) 시점에 이용약관·개인정보 수집·이용 동의를 전혀
+  // 받고 있지 않던 걸 확인해서(개인정보보호법상 필수) 여기서 막는다. 필수 2개를 통과해야만
+  // 아래 로그인 버튼들이 눌린다 — 링크는 새 탭으로 열어 모달 상태(체크 여부)가 안 날아가게 한다.
+  const [agreedTerms, setAgreedTerms] = useState(false);
+  const [agreedPrivacy, setAgreedPrivacy] = useState(false);
+  const [agreedMarketing, setAgreedMarketing] = useState(false);
+  const allAgreed = agreedTerms && agreedPrivacy && agreedMarketing;
+  const toggleAll = () => {
+    const next = !allAgreed;
+    setAgreedTerms(next);
+    setAgreedPrivacy(next);
+    setAgreedMarketing(next);
+  };
+
+  // 00-19 §9-2-1 구현 요구 — 만 14세 이상 자기신고 게이트(생년월일은 받지 않는다, 최소수집
+  // 원칙). 요구2에 따라 위 이용약관/개인정보 동의와 절대 묶지 않는다 — 완전히 별도 state이고
+  // "전체 동의"(toggleAll/allAgreed)에도 포함시키지 않는다. 요구3에 따라 이 값은 어디로도
+  // 전송하지 않는다(handleSocialLogin의 쿼리, handleMockSocialLogin의 body 어디에도 없음) —
+  // 저장하면 그 자체가 새로운 개인정보 항목이 되므로 로그인 버튼을 막는 순수 로컬 게이트로만 쓴다.
+  const [ageConfirmed, setAgeConfirmed] = useState(false);
+
+  // 요구1/4 — 만 14세 확인 + 필수 동의 2개를 전부 통과해야 소셜/데모 로그인 버튼이 동작한다.
+  const canProceed = agreedTerms && agreedPrivacy && ageConfirmed;
+
   if (!isOpen) return null;
 
   const handlePartnerEntry = () => {
@@ -22,9 +91,17 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin
     navigate('/partner');
   };
 
-  // 소셜 로그인 처리 (카카오, 네이버, 구글) — 백엔드 OAuth 인가 엔드포인트로 리다이렉트
+  // 소셜 로그인 처리 (카카오, 네이버, 구글) — 백엔드 OAuth 인가 엔드포인트로 리다이렉트.
+  // 동의 여부를 쿼리로 실어보내면 백엔드가 OAuth state에 서명해 콜백까지 들고 가서, 실제
+  // 신규 가입(User 생성) 시점에만 termsAgreedAt 등을 스탬프한다(authController.ts 참고).
   const handleSocialLogin = (provider: 'kakao' | 'naver' | 'google') => {
-    window.location.href = `${BACKEND_URL}/api/auth/${provider}`;
+    if (!canProceed) return;
+    const params = new URLSearchParams({
+      consentTerms: agreedTerms ? '1' : '0',
+      consentPrivacy: agreedPrivacy ? '1' : '0',
+      consentMarketing: agreedMarketing ? '1' : '0',
+    });
+    window.location.href = `${BACKEND_URL}/api/auth/${provider}?${params.toString()}`;
   };
 
   // 데모 로그인 (`POST /api/auth/demo-login`) — 2026-08-12 정정: 예전엔 토큰 없이 화면 표시용
@@ -32,11 +109,12 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin
   // 실제로는 인증 토큰이 없어 업체 문의 등 모든 요청이 조용히 익명으로 나가는 혼란이 있었다
   // (walkthrough 2026-08-12 (4)). 실제 백엔드 데모 로그인 API를 호출해 진짜 토큰을 받도록 수정.
   const handleMockSocialLogin = async (providerCode: string) => {
+    if (!canProceed) return;
     try {
       const res = await fetch(`${BACKEND_URL}/api/auth/demo-login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ provider: providerCode }),
+        body: JSON.stringify({ provider: providerCode, termsAgreed: agreedTerms, privacyAgreed: agreedPrivacy }),
       });
       const data = await res.json();
       if (!res.ok || data.status !== 'success') {
@@ -121,11 +199,98 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin
           </p>
         </div>
 
-        {/* 소셜 로그인 3종 전면 배치 */}
+        {/* 만 14세 이상 자기신고(00-19 §9-2-1) — 아래 동의 박스와 절대 섞지 않는다(요구2).
+            생년월일은 받지 않고, 체크 여부도 어디에도 저장하지 않는다(요구3) — 로그인 버튼을
+            잠그는 순수 로컬 게이트일 뿐이다. */}
+        <label
+          onClick={() => setAgeConfirmed((prev) => !prev)}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.55rem',
+            cursor: 'pointer',
+            fontSize: '0.85rem',
+            color: '#4B5563',
+            padding: '0.7rem 0.9rem',
+            border: '1px solid #E5E7EB',
+            borderRadius: '10px',
+            marginBottom: '0.9rem'
+          }}
+        >
+          <span
+            role="checkbox"
+            aria-checked={ageConfirmed}
+            style={{
+              width: '19px',
+              height: '19px',
+              flexShrink: 0,
+              borderRadius: '5px',
+              border: ageConfirmed ? 'none' : '1.5px solid #D1D5DB',
+              backgroundColor: ageConfirmed ? 'var(--primary-color)' : '#FFFFFF',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}
+          >
+            {ageConfirmed && <Check size={13} color="#FFFFFF" strokeWidth={3} />}
+          </span>
+          <span>
+            본인은 <strong style={{ color: 'var(--primary-color)' }}>만 14세 이상</strong>입니다.
+            이어봄은 만 14세 미만 아동의 가입을 받지 않습니다.
+          </span>
+        </label>
+
+        {/* 필수 동의(이용약관·개인정보) 2개 + 선택(마케팅 수신) 1개 — 아래 로그인 버튼은
+            필수 2개가 체크되기 전까지 눌리지 않는다. 최초 가입(신규 소셜 로그인)일 때만 실제로
+            DB에 동의 시각이 기록되고(authController.ts), 기존 회원 재로그인 시에는 이미 최초
+            가입 때 받은 값이라 여기서 다시 체크해도 별도로 덮어써지지 않는다. */}
+        <div style={{ backgroundColor: 'var(--secondary-color)', borderRadius: '14px', padding: '0.8rem 1rem 0.4rem', marginBottom: '1.2rem' }}>
+          <div
+            onClick={toggleAll}
+            role="checkbox"
+            aria-checked={allAgreed}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.55rem',
+              cursor: 'pointer',
+              paddingBottom: '0.55rem',
+              marginBottom: '0.3rem',
+              borderBottom: '1px solid #E5E7EB',
+              fontWeight: 700,
+              fontSize: '0.92rem',
+              color: 'var(--primary-color)'
+            }}
+          >
+            <span
+              style={{
+                width: '19px',
+                height: '19px',
+                flexShrink: 0,
+                borderRadius: '5px',
+                border: allAgreed ? 'none' : '1.5px solid #D1D5DB',
+                backgroundColor: allAgreed ? 'var(--primary-color)' : '#FFFFFF',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}
+            >
+              {allAgreed && <Check size={13} color="#FFFFFF" strokeWidth={3} />}
+            </span>
+            전체 동의합니다
+          </div>
+          <ConsentCheckbox checked={agreedTerms} onChange={setAgreedTerms} label="서비스 이용약관 동의" required href="/terms" />
+          <ConsentCheckbox checked={agreedPrivacy} onChange={setAgreedPrivacy} label="개인정보 수집 및 이용 동의" required href="/privacy" />
+          <ConsentCheckbox checked={agreedMarketing} onChange={setAgreedMarketing} label="마케팅 정보 수신 동의" required={false} />
+        </div>
+
+        {/* 소셜 로그인 3종 전면 배치 — 필수 동의 전까지 비활성화(흐리게 + 클릭 무시) */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem', opacity: canProceed ? 1 : 0.45, pointerEvents: canProceed ? 'auto' : 'none', transition: 'opacity 0.2s ease' }}>
             {/* 1. 카카오 로그인 */}
             <button
               onClick={() => handleSocialLogin('kakao')}
+              disabled={!canProceed}
               style={{
                 width: '100%',
                 height: '52px',
@@ -153,6 +318,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin
             {/* 2. 네이버 로그인 */}
             <button
               onClick={() => handleSocialLogin('naver')}
+              disabled={!canProceed}
               style={{
                 width: '100%',
                 height: '52px',
@@ -178,6 +344,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin
             {/* 3. 구글 로그인 */}
             <button
               onClick={() => handleSocialLogin('google')}
+              disabled={!canProceed}
               style={{
                 width: '100%',
                 height: '52px',
@@ -204,6 +371,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin
               </svg>
               구글 계정으로 시작하기
             </button>
+          </div>
 
             {/* 파트너(사업자·전문가) 진입 분기 — B2C 소셜 로그인과 무관한 별도 인증 체계로 이동
                 (00-06 §7.3 ①). 데모 블록은 오픈 시 제거될 것이므로 그 위에 둔다. */}
@@ -231,7 +399,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin
               <div style={{ fontSize: '0.8rem', color: '#9CA3AF', marginBottom: '0.6rem' }}>
                 [빠른 데모 테스트용 선택]
               </div>
-              <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center', marginBottom: '0.75rem' }}>
+              <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center', marginBottom: '0.75rem', opacity: canProceed ? 1 : 0.45, pointerEvents: canProceed ? 'auto' : 'none', transition: 'opacity 0.2s ease' }}>
                 <button
                   type="button"
                   onClick={() => handleMockSocialLogin('KAKAO')}

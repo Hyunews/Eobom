@@ -3,6 +3,14 @@ import { useParams } from 'react-router-dom';
 import { HeartHandshake, CheckCircle2, XCircle } from 'lucide-react';
 import { BACKEND_URL } from '../config';
 
+interface FamilyInvitePageProps {
+  // App.tsx의 React state를 그대로 받는다 — 예전엔 sessionStorage를 직접 읽었는데, 데모
+  // 로그인은 페이지 리다이렉트 없이 같은 화면에서 즉시 완료돼서 그 방식으론 재렌더가 안
+  // 트리거됐다(실제 소셜 로그인은 전체 리다이렉트로 컴포넌트가 새로 마운트돼 우연히 동작했음).
+  currentUser: string | null;
+  onOpenLogin: () => void;
+}
+
 // 00-27 §9.1 — 가족 지정 초대 수락/거절 화면. App.tsx 레이아웃(Header/Sidebar/Footer) 밖의
 // 독립 페이지다(isObituaryLandingRoute·isMemorialLandingRoute와 같은 처리) — 받는 사람은
 // 아직 회원이 아닐 수 있어 사이드바·모드가 무의미하다.
@@ -51,14 +59,16 @@ const cardStyle: React.CSSProperties = {
   textAlign: 'center',
 };
 
-export const FamilyInvitePage: React.FC = () => {
+export const FamilyInvitePage: React.FC<FamilyInvitePageProps> = ({ currentUser, onOpenLogin }) => {
   const { token } = useParams<{ token: string }>();
   const [view, setView] = useState<ViewState>('loading');
   const [data, setData] = useState<InviteData | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  const currentUser = sessionStorage.getItem('k_ending_current_user');
+  // authToken은 currentUser와 항상 같은 타이밍에 sessionStorage에 같이 쓰인다(App.tsx
+  // handleLoginSuccess) — currentUser prop이 바뀌어 리렌더될 때마다 이 줄도 다시 실행되므로
+  // useState로 따로 안 감싸도 항상 최신 값을 읽는다.
   const authToken = sessionStorage.getItem('k_ending_token');
 
   useEffect(() => {
@@ -80,11 +90,15 @@ export const FamilyInvitePage: React.FC = () => {
       .catch(() => setView('error'));
   }, [token]);
 
-  const handleSocialLogin = (provider: 'kakao' | 'naver' | 'google') => {
+  // 2026-08-24 — 이 화면이 자체 소셜 버튼 3개로 직접 /api/auth/:provider를 호출하던 방식은
+  // 필수 동의(이용약관·개인정보) 쿼리가 없어 새 라우트가드에 전부 튕긴다(authRoutes.ts).
+  // 공용 LoginModal(App.tsx에 이미 라우트 무관하게 항상 렌더돼 있음)을 대신 띄운다 — 동의
+  // 체크박스·데모 로그인까지 그 모달이 전부 처리한다.
+  const handleOpenLogin = () => {
     if (!token) return;
     // §9.1-2 — 로그인 왕복에서 사라지는 토큰 컨텍스트를 로그인 시작 "전에" 보관해둔다.
     sessionStorage.setItem('eobom_pending_invite_token', token);
-    window.location.href = `${BACKEND_URL}/api/auth/${provider}`;
+    onOpenLogin();
   };
 
   const handleAccept = async () => {
@@ -232,29 +246,14 @@ export const FamilyInvitePage: React.FC = () => {
             <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '0.8rem' }}>
               수락하려면 먼저 로그인해 주세요.
             </p>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
-              <button
-                type="button"
-                onClick={() => handleSocialLogin('kakao')}
-                style={{ height: '48px', borderRadius: '10px', border: '1px solid #FEE500', backgroundColor: '#FEE500', color: '#191919', fontWeight: 700, cursor: 'pointer' }}
-              >
-                카카오로 로그인
-              </button>
-              <button
-                type="button"
-                onClick={() => handleSocialLogin('naver')}
-                style={{ height: '48px', borderRadius: '10px', border: 'none', backgroundColor: '#03C75A', color: '#FFFFFF', fontWeight: 700, cursor: 'pointer' }}
-              >
-                네이버로 로그인
-              </button>
-              <button
-                type="button"
-                onClick={() => handleSocialLogin('google')}
-                style={{ height: '48px', borderRadius: '10px', border: '1px solid #D1D5DB', backgroundColor: '#FFFFFF', color: '#374151', fontWeight: 700, cursor: 'pointer' }}
-              >
-                구글로 로그인
-              </button>
-            </div>
+            <button
+              type="button"
+              onClick={handleOpenLogin}
+              className="btn btn-primary"
+              style={{ width: '100%', height: '52px' }}
+            >
+              로그인하고 계속하기
+            </button>
             <button
               type="button"
               onClick={handleDecline}

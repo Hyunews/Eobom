@@ -6,6 +6,48 @@
 
 ---
 
+## 2026-08-24 (57) | [Sonnet] 미기록 변경 2건 소급 기록 — 헤더 여백(clamp) + CareGuidePage 접기 반전
+
+- **근거 스펙**: `context.md` ⓪-4(체크리스트 접기 — `CareGuidePage.tsx` "제목+체크만, 상세는 펼침", `07-02`§3 표시원칙 유지) · 사용자 직접 피드백(2026-08-24, 헤더 로고·로그인 버튼이 화면 가장자리에 붙어 보임). 두 변경 다 이전 턴에서 이미 작업 트리에 반영됐는데 (55)·(56) 어느 walkthrough 기록에도 안 남아 있었다 — 게이트 통과 파일 목록과 작업 트리가 어긋난 상태였다는 걸 이번에 발견해 소급으로 남긴다.
+- **건드린 파일**:
+  - `eobom/frontend/src/index.css` — `.header-inner`의 `padding`을 고정 `1.5rem`에서 `clamp(1.5rem, 4vw, 4.5rem)`으로 변경(640px 이하는 기존 `0.85rem` 오버라이드 그대로 유지). 이번에 주석도 정정(아래 편차 참고).
+  - `eobom/frontend/src/pages/CareGuidePage.tsx` — 카드 `onClick`을 `toggleTask`(체크)에서 `toggleExpand`(펼치기)로 반전. 체크박스에 자체 `onChange={() => toggleTask(t.id)}` + `onClick={(e) => e.stopPropagation()}`를 추가해 체크는 체크박스로만 가능하게 분리. 기한 배지(`t.deadlineLabel` 등)·확인필요 배지를 기본 렌더에서 `isExpanded` 블록 안으로 이동 — 기본 상태는 체크박스+제목 한 줄만 남음. `toggleExpand` 함수의 낡은 주석도 정정(아래 편차 참고).
+  - **스키마 변경 없음.**
+- **결과**: `npx tsc --noEmit`(frontend) 통과 — 두 파일 모두 이 로그 작성 시점 기준 최신 상태에서 재확인. `CareGuidePage.tsx`는 카드 전체 클릭 시 펼침만 토글되고(체크 안 됨), 체크박스 클릭 시 체크만 토글되고 펼침은 안 바뀌는 것을 코드 경로로 확인(두 핸들러 모두 `stopPropagation`으로 상호 간섭 차단). `index.css`는 넓은 화면일수록 헤더 좌우 여백이 커지고 640px 이하에서는 기존 좁은 값으로 복귀하는 구조를 코드로 확인.
+- **편차**:
+  - **(55)의 [2] 서술을 이번 변경이 뒤집는다.** (55)는 "23항목 전부 기본은 체크박스+기한배지+확인필요배지+제목 한 줄"이라고 적었는데, 이번 변경은 기한·확인필요 배지 2종을 펼침 안으로 옮겨 기본 노출을 "체크박스+제목"만 남겼다. 방향이 반대로 보이지만 `context.md` ⓪-4("제목+체크만, 상세는 펼침")이 정본이라, **이번 변경이 정본에 더 가깝다** — (55) 시점 구현이 정본과 어긋나 있었던 쪽.
+  - 같이 정정한 낡은 주석 2건(요청받은 항목): ① `CareGuidePage.tsx`의 `toggleExpand` 주석이 "카드 전체에 `toggleTask`가 걸려 있다"라고 썼는데 지금은 카드 전체가 `toggleExpand`다 — 화살표 버튼이 카드 안에 중첩돼 있어 `stopPropagation`이 없으면 클릭이 버블링돼 `toggleExpand`가 두 번 불린다(펼침→접힘, 아무 일도 안 일어난 것처럼 보임)는 실제 이유로 바꿔 적음. ② `index.css` `.header-inner` 주석이 "640px/480px 이하는 아래 미디어쿼리가 덮어씀"이라고 썼는데, 실제로 `.header-inner` padding 오버라이드는 640px 한 곳(`:666` 부근)뿐이고 480px 미디어쿼리는 로고 `scale`·사용자명 폭만 건드린다 — 정정.
+  - 🔴 **이번 로그 작성 중 새로 발견한 사안(이 항목의 직접 범위 밖)**: `context.md` ⓪-7 — *"메뉴 추모관 링크입력 → 하지 말 것. `00-13`§4.5-1 (나)로 확정 — 정규경로는 부고장 안 버튼"*. 그런데 같은 세션의 다른 작업(Header.tsx의 "추모관" 메뉴 항목, 이 (57) 항목과는 별개 커밋 범위)이 정확히 이 금지된 경로 — 헤더 메뉴 클릭 → 홈의 박스③(추모관 링크 입력창)으로 이동 — 를 구현하고 그 스크롤 버그를 디버깅하는 중이었다. **문서 확정 사항과 최근 작업 방향이 충돌한다.** 이 walkthrough 항목 자체의 작업(헤더 여백·체크리스트 접기)과는 무관하지만, 발견한 시점에 기록해 둔다. 사용자에게 별도로 알림.
+- **다음 에이전트가 알아야 할 것**:
+  - 🔴 **`context.md` ⓪-7 충돌 확인 필요** — `Header.tsx`의 `goToMemorialEntry`(및 관련 `EntryBoxes.tsx`/`HomePage.tsx` 변경분)가 금지된 "메뉴→추모관 링크입력" 경로를 구현 중이다. 사용자 확인 후 (a) 되돌리거나 (b) `00-13`§4.5-1(나)이 말하는 "부고장 안 버튼" 경로로 대체해야 할 수 있다 — Opus 판단 필요 소지도 있음.
+  - `CareGuidePage.tsx`의 접기/펼치기·체크박스 분리 동작과 헤더 여백(`clamp`) 둘 다 브라우저 실기동 확인은 여전히 안 됨 — 코드 경로·타입체크로만 확인.
+  - 이번처럼 "작업 트리엔 있는데 walkthrough엔 없는" 미기록 변경이 또 있을 수 있다 — 다음 담당자가 `git status`/`git diff`와 최근 walkthrough 항목들을 대조해 볼 가치가 있다.
+
+---
+
+## 2026-08-24 (56) | [Sonnet] `context.md` ④-2 회귀 수정 + ②-0 착수 — LoginModal 공용화 + 만14세 게이트
+
+- **근거 스펙**: `context.md` ④-2(08-24 오후 회귀 — `FamilyInvitePage.tsx:87`이 동의쿼리 없이 `/api/auth/:provider`를 직접 호출해, 같은 날 오후에 추가된 동의 라우트가드에 100% 튕겨 초대수락 로그인이 전면 불가해짐) · `context.md` ②-0 · `00-19_개인정보처리방침_초안.md` §9-2-1(만 14세 이상 자기신고 게이트 구현 요구 4항 — ①LoginModal 게이트 ②약관동의와 분리 ③저장 금지 ④데모 버튼도 게이트).
+- **건드린 파일**:
+  - 프론트(수정): `eobom/frontend/src/pages/FamilyInvitePage.tsx`(자체 소셜 버튼 3개 + `handleSocialLogin` 제거, `FamilyInvitePageProps`로 `currentUser`·`onOpenLogin` 수신, 초대 토큰을 `sessionStorage`에 먼저 심고 공용 모달을 여는 `handleOpenLogin`으로 대체, "로그인하고 계속하기" 단일 버튼) · `eobom/frontend/src/App.tsx`(`/invite/:token` 라우트에 `currentUser={currentUser} onOpenLogin={() => setIsLoginOpen(true)}` 전달, `loginError` 메시지 맵에 `consent_required` 추가) · `eobom/frontend/src/components/LoginModal.tsx`(`ageConfirmed` state 신설 — `agreedTerms`/`agreedPrivacy`/`agreedMarketing`/`toggleAll` 클러스터와 코드·화면 모두 분리된 별도 체크박스, `canProceed = agreedTerms && agreedPrivacy && ageConfirmed`로 소셜 3버튼 + 데모 3버튼 공통 게이트)
+  - **스키마 변경 없음** — 이번 사이클은 프론트 전용(백엔드는 앞선 (55) 이후 사이클에서 이미 동의 필드를 추가해둔 상태 그대로).
+- **결과**:
+  - **①(회귀 수정)** — `grep -n "handleSocialLogin\|api/auth" FamilyInvitePage.tsx` 결과 자체 OAuth 호출 0건. 미로그인 상태에서 "로그인하고 계속하기" 클릭 → `sessionStorage.setItem('eobom_pending_invite_token', token)`(§9.1-2 기존 복귀 로직 그대로 보존) → `onOpenLogin()` → App.tsx `isLoginOpen=true` → 공용 `LoginModal`이 뜬다(App.tsx에서 `LoginModal`은 라우트 분기 삼항 바깥이라 초대 화면에서도 항상 마운트돼 있음, 코드 위치 재확인). 데모 로그인은 페이지 리다이렉트가 없어 예전 방식(`sessionStorage.getItem` 1회성 읽기)으론 재렌더가 안 걸렸는데, `currentUser`를 App.tsx state에서 props로 내려받는 구조로 바꿔 `handleMockSocialLogin`의 `onLoginSuccess`+`onClose` 호출 → App.tsx `setCurrentUser` → prop 변경 → `FamilyInvitePage` 리렌더 → 수락/거절 버튼 전환까지 코드 경로로 확인(`authToken`도 `useState` 없이 렌더마다 `sessionStorage`를 즉시 재조회하도록 그대로 둬서 같은 재렌더에 함께 최신화됨).
+  - **②(만14세 게이트, 착수분)** — `ageConfirmed`는 `toggleAll` 함수 본문(`setAgreedTerms`/`setAgreedPrivacy`/`setAgreedMarketing` 3줄)에 포함되지 않음(요구2 코드 확인) — 전체동의를 눌러도 만14세 체크는 안 바뀐다. 화면도 이용약관 박스(`backgroundColor: var(--secondary-color)`)와 분리된 별도 테두리 박스로 그 위에 렌더. `grep -n "ageConfirmed" LoginModal.tsx` 결과 `handleSocialLogin`의 `URLSearchParams`·`handleMockSocialLogin`의 `JSON.stringify` 어디에도 안 실림 — 백엔드로 전송 자체를 안 해 요구3(저장 금지)을 코드 구조로 충족. `canProceed`에 결합해 소셜 3버튼(`disabled` + 래퍼 `pointerEvents:'none'`)과 데모 3버튼(같은 `canProceed` 참조) 전부 동일 게이트(요구1·4).
+  - **빌드**: `npx tsc --noEmit`(frontend) 통과 — App.tsx·FamilyInvitePage.tsx·LoginModal.tsx 수정마다 반복 실행, 전 구간 통과.
+- **편차**:
+  - 브라우저 실기동(초대 링크를 실제로 열어 로그인 모달이 뜨는지, 데모 로그인 후 화면이 수락/거절로 바뀌는지, 만14세 체크박스 클릭 반응) 미검증 — 타입 체크와 코드 경로 추적으로만 확인했다. `context.md` ④-2가 이미 "초대화면 실 소셜버튼 클릭은 실 OAuth라 로컬 검증 불가"를 전제하고 있어 그 부분은 이번에도 동일한 제약.
+  - `context.md`·`00-19` 문서 자체는 구현 중 수정하지 않음(`roles.md` §2 원칙) — ②-0을 ✅로 표시하거나 ④-2의 회귀 하위 항목을 지우는 편집은 다음 Opus 사이클 몫으로 남김.
+  - 만14세 체크박스 문구·모달 내 위치(제목 바로 아래, 동의 박스보다 위)는 `00-19` §9-2-1이 정확한 문구·위치를 못박지 않아 이번에 임의로 정함 — "본인은 만 14세 이상입니다 / 이어봄은 만 14세 미만 아동의 가입을 받지 않습니다"로 작성.
+- **다음 에이전트가 알아야 할 것**:
+  - `context.md` ②-0 뒤에 이어지는 "E-5(a) 본문화, E-5(b)·E-6은 v1.1 전(`00-18`§8.4)"는 이번 범위 밖 — 손대지 않음.
+  - 브라우저 실기동(①②모두) 여전히 미검증 — 다음 담당자가 `npm run dev`로 `/invite/:token`을 직접 열어 로그인 모달·만14세 체크박스·데모 로그인 후 재렌더를 눈으로 확인할 것.
+  - `LoginModal`의 필수 게이트가 3종(이용약관·개인정보·만14세)으로 늘었다 — 앞으로 이 모달에 체크박스를 더 추가할 일이 있으면, "필수 동의 클러스터(`toggleAll`에 포함)"인지 "완전히 별도 게이트(`ageConfirmed`처럼 분리)"인지부터 판단해야 한다(`00-19` §9-2-1 요구2가 그 경계를 가르는 실제 판례다).
+
+- **판정**: ✅통과 (초대수락 로그인 회귀 해소 확인 — LoginModal 공용 호출 및 pending_invite_token 컨텍스트 보존 / 00-19 §9-2-1 만14세 자기신고 게이트 4대 요구사항 충족 및 백엔드 미전송 격리 확인 / tsc 0건 통과 / ⚠️ 단, 브라우저 실기동은 미검증 상태이므로 실기기 확인 권장)
+
+---
+
 ## 2026-08-21 (54) | [Sonnet] `07-03` §5 — 부고장 로딩 지연 계측 + 스켈레톤 UI
 
 - **근거 스펙**: `07-03` §5(부고장 조회 지연) 개발자 지시 — 실측 `/api/health`(DB 미사용) ~165ms vs `/api/obituaries/:slug`(DB 사용) ~1,500ms, 원인은 Render(오리건)↔Supabase(서울) 인프라 왕복(이번 범위 밖, `render.yaml`·`pending-approvals.md`). 이번 범위는 "그 제약 안에서 왕복 횟수를 줄이고 체감을 개선하는 것" — A(계측)·B(왕복 줄이기, 조건부)·C(스켈레톤 UI, 무조건).
@@ -22,6 +64,8 @@
   - **왕복 4→1 단축은 아직 안 됐다.** `relationJoins`를 GA(Prisma 메이저 업그레이드) 이후 다시 검토하거나, 이 조회 하나에 한해 raw SQL JOIN을 손으로 짜는 방법을 고려할 것 — 후자는 전역 영향이 없지만 타입 안정성을 잃는다는 트레이드오프가 있다.
   - 스켈레톤은 **레이아웃 자리만** 잡는다 — 실제 필드 유무(예: 익명 조회엔 없는 `계좌`·`장지` 등)에 맞춰 동적으로 칸 수를 바꾸지 않는다(로딩 시점엔 알 수 없으므로 의도적으로 고정 3~5칸).
   - ⚠️ 브라우저 실기동(스켈레톤이 실제로 먼저 보이고 실데이터로 자연스럽게 전환되는지 육안 확인)은 여전히 안 함 — 코드·계측 수치로만 검증했다.
+
+- **판정**: ✅통과 (07-03 §5 부고장 조회 쿼리 5건 실측 계측 확인 / relationJoins 전역 영향에 따른 보류 판단 타당 / ObituaryLandingPage 및 ObituaryPage 스켈레톤 UI 적용 및 build·tsc 0건 통과 / ⚠️ 브라우저 실기동 미검증)
 
 ---
 
@@ -54,6 +98,8 @@
   - [5] Phase 3(`DeathVerification`, `FamilyDesignation`→`BereavedRelation` 승격)은 여전히 범위 밖. `FamilyInvitePage.tsx`의 소셜 로그인 버튼은 데모 로그인이 아니라 **실제 OAuth**(`/api/auth/kakao` 등)로 연결돼 있어 로컬에서 버튼 클릭 자체는 검증하지 못했다(경로 존재만 코드로 확인).
   - Docker Desktop이 이번 세션 중간에 꺼져 있었다(재부팅 추정) — 다시 켜고 `eobom-postgres` 컨테이너를 수동으로 `docker start` 했다. 다음에도 로컬 DB 접근 전에 `docker ps` 먼저 확인할 것.
 
+- **판정**: ✅통과 (MyPage $transaction 실데이터 집계 및 "계정 연동" 치환 확인 / CareGuidePage 23항목 접기·다단 방어 확인 / 00-27 Phase 2 초대 링크 발급·수락·1회성 무효화 실측 통과 / 00-29 반응형 4대 프리미티브 반영 / 프론트·백엔드 build 및 tsc 0건 통과 / ⚠️ 브라우저 실기동 미검증)
+
 ---
 
 ## 2026-08-21 (53) | [Sonnet] `07-03` §5.3-1·§5.3-2 — 부고장 관리화면 교차계정 노출 사고 수정
@@ -74,6 +120,8 @@
   - **브라우저 실기동(클릭 기반)은 여전히 안 함** — 위 절차는 프론트가 실제로 보내는 것과 동일한 헤더·엔드포인트로 API를 직접 호출해 검증한 것이지, 화면에서 "아직 부고장이 없습니다"가 실제로 렌더링되는 것을 눈으로 본 것은 아니다. 코드 상으로는 `if (!o.isOwner) return;`이 `setObituaryRef`·폼 채우기 전부를 감싸고 있어 논리적으로는 맞지만, 실제 화면 확인은 남아 있다.
   - `07-03` §9 #9의 "이어서" 요청(종료 실기동)은 위 절차 5번으로 API 레벨에서는 닫혔다 — 문서의 `⚠️ 브라우저 실기동 미검증`(925행 근처, (51) 관련 롤업)은 여전히 화면 클릭 기준으로는 미검증 상태로 남겨둔다.
   - `00-28` Phase 2는 이번 사이클 때문에 뒤로 밀렸다 — 이 항목이 처리된 뒤 이어서 진행하면 된다.
+
+- **판정**: ✅통과 (07-03 §5.3-1·§5.3-2 부고장 관리화면 교차계정 노출 차단 확인 — 서버 isOwner/obituaryId 본인 한정 화이트리스트 및 소유권 서버 소싱 / 계정 2개 교차 로그인 API 실측 검증 통과 / build·tsc 0건 통과 / ⚠️ 브라우저 실기동 미검증)
 
 ---
 
@@ -102,6 +150,8 @@
   - `Lead.applicantPhone`/`ConsultRequest.applicantPhone`은 **여전히 사용자가 타이핑한 원문 그대로**(하이픈 포함 가능) 저장된다 — Phase 2 이전부터의 기존 동작이라 이번에 정규화하지 않았다. `User.contactPhone`만 숫자만 저장 규칙을 따른다. 이 비대칭이 낯설게 느껴질 수 있는데, 의도한 것이다(스냅샷 원문 보존 vs 프로필 정규화).
   - ⚠️ 브라우저 실기동(체크박스 렌더링·비활성화·마스킹 표시가 실제 화면에서 보이는지)은 여전히 미검증 — API 레벨 검증만 했다.
 
+- **판정**: ✅통과 (00-28 Phase 2 시설문의·상담신청 프로필 연락처 prefill 및 saveToProfile 적용 확인 / User.contactPhone 정규화 누락 버그 자체 수정 및 스냅샷 불변성 유지 확인 / build·tsc 0건 통과 / ⚠️ 브라우저 실기동 미검증)
+
 ---
 
 ## 2026-08-21 (51) | [Sonnet] `07-03` Phase 3 #9 — 부고장 종료(수동 + 발인 3일 자동)
@@ -122,6 +172,8 @@
   - **되돌리기(재오픈) API가 없다** — 수동 종료도, 발인을 다시 미래로 고쳐서 자동 종료를 피하는 것도 스펙엔 없는 부작용일 뿐 의도한 기능은 아니다(query-time 판정 설계상 자연히 그렇게 되는 것뿐).
   - **공유 집계·마이페이지 목록은 여전히 미구현**이다 — §9 #9의 나머지 조각.
   - ⚠️ **브라우저 실기동 미검증** — 특히 "부고장 종료" 버튼을 실제로 눌러 랜딩(`/o/:slug`)이 익명으로는 404, 개설자 본인 화면에서는 "종료됨" 배너로 계속 보이는지 실기기로 확인 필요.
+
+- **판정**: ✅통과 (07-03 Phase 3 #9 부고장 수동 종료 PATCH 및 KST 기준 발인+3일 자동 종료 쿼리타임 판정 로직 확인 / 종료 후 익명 404 및 본인 예외 조회 분기 확인 / build·tsc 0건 통과 / ⚠️ 브라우저 실기동 미검증)
 
 ---
 

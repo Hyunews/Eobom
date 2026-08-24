@@ -19,10 +19,10 @@ interface HeaderProps {
 // 메인 홈 A안 재구성(2026-08) — 로고 옆 "모드 드롭다운" 1개 대신, 로그인 시에만 보이는
 // "홈"·"생전 준비"·"임종·사후 정리"·"추모관" 4개를 평면 메뉴로 노출한다(개발자 확정 —
 // 비로그인 시 "홈"도 숨김). 헤더는 전역 공용 컴포넌트라 이 변경은 모든 페이지에 적용된다.
-// "생전 준비"·"임종·사후 정리"는 박스를 직접 클릭한 것과 동일하게 ?entry=box1/box2로 이동해
-// BoxDetailOverlay를 바로 연다(EntryBoxes.tsx의 handleBox1Click/handleBox2Click과 동일 목적지 —
-// 풀페이지 섹션까지만 스크롤하던 이전 방식에서 변경, 개발자 확정). "추모관"은 대응하는 오버레이가
-// 없어(박스③은 링크 입력창일 뿐) 홈의 캐러셀 섹션까지만 스크롤한다.
+// 2026-08-24 — "생전 준비"·"임종·사후 정리"는 박스 소개 오버레이가 아니라 실제 화면
+// (/ending-note, /care-guide)으로 직접 이동한다. "추모관"은 대응하는 오버레이가 없어(박스③은
+// 링크 입력창일 뿐) 홈의 진입 4박스 캐러셀에서 박스③이 있는 페이지까지 직접 넘긴다(아래
+// goToMemorialEntry 참고 — 예전엔 섹션 스크롤까지만 해서 캐러셀이 첫 페이지에 멈춰 있는 버그가 있었다).
 export const Header: React.FC<HeaderProps> = ({ setActiveTab, onOpenLogin, onOpenAccountSettings, currentUser, onLogout, onSetMode, onOpenMobileMenu }) => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -32,32 +32,43 @@ export const Header: React.FC<HeaderProps> = ({ setActiveTab, onOpenLogin, onOpe
     setActiveTab('home');
   };
 
-  // 박스①②를 직접 누른 것과 동일한 목적지(?entry=box1|box2)로 보낸다. setActiveTab('home')을
-  // 먼저 불러 "떠나는 탭의 스크롤 위치 저장" 등 기존 부기(簿記)를 그대로 타게 하고, 그 직후
-  // 쿼리스트링을 얹어 push한다(EntryBoxes.tsx의 handleBox1Click/handleBox2Click과 동일하게
-  // — 2026-08 변경: 뒤로가기 한 번으로 오버레이가 닫히게 하려면 "홈(오버레이 없음)"과
-  // "홈+오버레이"가 서로 다른 히스토리 엔트리여야 한다). 오버레이는 화면 전체를 덮는 고정
-  // 레이어라 배경(HomePage) 스크롤 위치는 안 보이지만, 오버레이를 닫았을 때 자연스럽게
-  // "어떤 도움이 필요하신가요" 섹션이 보이도록 eobom_scroll_home도 같이 남겨 둔다.
-  const goToBoxEntry = (box: 'box1' | 'box2', mode: NavMode) => {
-    onSetMode?.(mode);
-    setActiveTab('home');
-    sessionStorage.setItem('eobom_scroll_home', '1');
-    navigate(`/?entry=${box}`);
+  // 2026-08-24 변경 — "생전 준비"·"임종·사후 정리"는 예전엔 홈으로 이동시켜 박스①②의
+  // 풀스크린 오버레이(슬라이드 소개)를 여는 방식이었는데, 로그인 상태에서 헤더로 자주 오가는
+  // 사용자 입장에선 소개 슬라이드보다 실제 화면(엔딩노트 작성기·행정 체크리스트)으로 바로
+  // 가는 게 더 유용하다는 피드백으로 직접 라우트 이동으로 바꿨다. onSetMode는 그대로 유지 —
+  // Sidebar 등 다른 화면의 모드 표시가 여전히 이 클릭을 기준으로 맞아야 한다.
+  const goToEndingNote = () => {
+    onSetMode?.('prep');
+    setActiveTab('ending-note');
   };
 
-  // "추모관"은 대응하는 박스 오버레이가 없어 섹션 스크롤까지만 한다. 홈이 아닌 페이지에서는
-  // "홈으로 이동 후 섹션 스크롤"이 필요한데, setActiveTab('home')이 이동 시점에 eobom_scroll_home을
-  // 지워 최상단(히어로)으로 여는 게 기본 동작이라(App.tsx), 그 직후 세션값을 다시 심어 HomePage
-  // 마운트 시 섹션 1(EntryBoxes)로 열리게 한다. 이미 홈이면 라우트가 안 바뀌어 HomePage가
-  // 리마운트되지 않으므로, "홈으로 스크롤 맨 위" 때와 같은 방식(커스텀 이벤트)으로 알린다.
-  const goToEntrySection = () => {
+  const goToCareGuide = () => {
+    onSetMode?.('bereaved');
+    setActiveTab('care-guide');
+  };
+
+  // "추모관"은 박스③(추모관 링크 입력창)이 대응하는데, 이건 박스①②와 달리 풀스크린
+  // 오버레이가 없고 홈의 진입 4박스 캐러셀 "두 번째 페이지"에만 있다. 예전엔 섹션까지만
+  // 스크롤시켰는데, 캐러셀이 항상 첫 페이지(박스①②)로 시작해서 실제로는 박스③ 링크 입력창이
+  // 안 보이는 채로 끝났다(2026-08-24 확인된 버그) — 그래서 EntryBoxes.tsx가 이미 쓰는
+  // ?entry=box1|box2 쿼리 관례를 box3까지 넓혀서, 페이지 전환까지 시킨다.
+  //
+  // 2026-08-24 추가 수정 — 처음엔 setActiveTab('home')(내부에서 navigate('/') 호출) 다음에
+  // navigate('/?entry=box3')를 또 불렀는데, 홈이 아닌 다른 페이지에서 진입할 때 같은 핸들러
+  // 안에서 navigate()를 연달아 두 번 호출하는 게 두 번째 호출을 씹어버려(홈 맨 위에만 도착,
+  // entry 파라미터가 안 붙음) 실제로 재현됐다 — navigate는 이 함수당 정확히 한 번만 부른다.
+  // setActiveTab이 대신 해주던 "떠나는 페이지 스크롤 위치 기억"만 직접 남겨둔다.
+  const goToMemorialEntry = () => {
     if (isHome) {
       window.dispatchEvent(new Event('eobom:home-scroll-to-entry'));
     } else {
-      setActiveTab('home');
+      const leavingTab = location.pathname.replace(/^\//, '') || 'home';
+      if (leavingTab !== 'home') {
+        sessionStorage.setItem(`eobom_scroll_${leavingTab}`, String(window.scrollY));
+      }
       sessionStorage.setItem('eobom_scroll_home', '1');
     }
+    navigate('/?entry=box3');
   };
 
   return (
@@ -94,9 +105,9 @@ export const Header: React.FC<HeaderProps> = ({ setActiveTab, onOpenLogin, onOpe
         {currentUser && (
           <nav className="header-nav">
             <button type="button" className="header-nav-item" onClick={goHome}>홈</button>
-            <button type="button" className="header-nav-item" onClick={() => goToBoxEntry('box1', 'prep')}>생전 준비</button>
-            <button type="button" className="header-nav-item" onClick={() => goToBoxEntry('box2', 'bereaved')}>임종·사후 정리</button>
-            <button type="button" className="header-nav-item" onClick={goToEntrySection}>추모관</button>
+            <button type="button" className="header-nav-item" onClick={goToEndingNote}>생전 준비</button>
+            <button type="button" className="header-nav-item" onClick={goToCareGuide}>임종·사후 정리</button>
+            <button type="button" className="header-nav-item" onClick={goToMemorialEntry}>추모관</button>
           </nav>
         )}
 

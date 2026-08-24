@@ -533,7 +533,11 @@ body {
   height: 100%;
   display: flex;
   align-items: center;
-  padding: 0 1.5rem;
+  /* 2026-08-24 — 로고(좌)·로그인(우)이 화면 가장자리에 바짝 붙어 보인다는 피드백. 넓은
+     화면일수록 여백이 커지고, 좁아지면 뷰포트 폭에 비례해 자연히 줄어드는 clamp를 쓴다
+     (min은 기존 1.5rem 그대로 — 640px 이하는 아래 미디어쿼리(:666 부근)가 0.85rem으로 덮어씀.
+     480px 미디어쿼리는 .header-inner padding은 안 건드리고 로고 scale·사용자명 폭만 줄인다). */
+  padding: 0 clamp(1.5rem, 4vw, 4.5rem);
 }
 
 .header-logo-wrap {

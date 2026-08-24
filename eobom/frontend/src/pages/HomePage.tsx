@@ -37,6 +37,21 @@ export const HomePage: React.FC<HomePageProps> = ({ currentUser, onOpenLogin, se
     { id: 'footer', title: '플랫폼 하단 정보', icon: Sparkles },
   ];
 
+  // 2026-08-24 — 섹션 1(어떤 도움이 필요하신가요)로 즉시 스크롤. sessionStorage(eobom_scroll_home)를
+  // 마운트 이펙트가 읽어서 복원하는 기존 경로가 다른 라우트(/ending-note 등)에서 막 넘어왔을 때
+  // 간헐적으로 안 먹는 게 실측으로 확인됐다(원인 미확정 — rAF 중첩·ResizeObserver로도 재현됨).
+  // containerRef를 직접 건드리는 이 함수를 EntryBoxes.tsx에 prop으로 내려서, 마운트 타이밍이나
+  // sessionStorage 타이밍과 무관하게 "박스③(?entry=box3) 처리 이펙트가 실제로 실행되는 그 순간"에
+  // 바로 스크롤시킨다 — 그 이펙트 실행 자체는 URL이 box3→빈 값으로 바뀌는 걸로 이미 확인됨.
+  const scrollToEntrySection = React.useCallback(() => {
+    const container = containerRef.current;
+    if (!container) return;
+    const index = 1;
+    container.scrollTop = index * container.clientHeight;
+    setActiveSection(index);
+    sessionStorage.setItem('eobom_scroll_home', String(index));
+  }, []);
+
   // 스크롤 감지 및 이전 홈 스크롤 위치 저장 / 마운트 시 복원
   // ⚠️ 저장·복원 단위를 "섹션 인덱스"로 통일한다(휠 핸들러·인디케이터·scrollToSection과 동일 기준).
   // 예전에는 픽셀 scrollTop을 저장해뒀다가 복원 시 clientHeight로 나눠 섹션 번호를 역산했는데,
@@ -62,11 +77,28 @@ export const HomePage: React.FC<HomePageProps> = ({ currentUser, onOpenLogin, se
     // 마운트 직후(특히 다른 라우트에서 막 이동해 온 시점)엔 컨테이너가 아직 레이아웃을 안 끝내
     // clientHeight가 0으로 읽힐 수 있다 — initialIndex가 0이면 0*0=0이라 눈에 안 띄지만,
     // 1 이상으로 복원할 때(헤더 메뉴로 바로 진입 등)는 엉뚱하게 맨 위에 멈추는 원인이 된다.
-    // 한 프레임 미뤄 레이아웃이 자리잡은 뒤 스크롤한다.
-    requestAnimationFrame(() => {
+    // 2026-08-24: rAF 1번, 중첩 2번 다 시도했는데도 재현됨 — "몇 프레임 뒤면 끝나 있겠지"는
+    // 추측일 뿐이고 실제로 레이아웃이 언제 끝나는지는 페이지 무게(배경 이미지 등)에 따라
+    // 달라진다. 추측을 버리고 ResizeObserver로 컨테이너가 실제 높이를 갖게 되는 순간을 직접
+    // 관찰해서 그때 스크롤을 적용한다 — 이미 높이가 잡혀 있으면(같은 홈 안에서의 재계산 등)
+    // 그 자리에서 바로 적용하고 옵저버는 아예 만들지 않는다.
+    const applyInitialScroll = () => {
       container.scrollTop = initialIndex * container.clientHeight;
       setActiveSection(initialIndex);
-    });
+    };
+
+    let resizeObserver: ResizeObserver | null = null;
+    if (container.clientHeight > 0) {
+      applyInitialScroll();
+    } else {
+      resizeObserver = new ResizeObserver(() => {
+        if (container.clientHeight > 0) {
+          applyInitialScroll();
+          resizeObserver?.disconnect();
+        }
+      });
+      resizeObserver.observe(container);
+    }
 
     const handleScroll = () => {
       const sectionHeight = container.clientHeight;
@@ -102,6 +134,7 @@ export const HomePage: React.FC<HomePageProps> = ({ currentUser, onOpenLogin, se
     window.addEventListener('eobom:home-scroll-top', handleGoTop);
     window.addEventListener('eobom:home-scroll-to-entry', handleGoToEntry);
     return () => {
+      resizeObserver?.disconnect();
       container.removeEventListener('scroll', handleScroll);
       window.removeEventListener('eobom:home-scroll-top', handleGoTop);
       window.removeEventListener('eobom:home-scroll-to-entry', handleGoToEntry);
@@ -356,7 +389,13 @@ export const HomePage: React.FC<HomePageProps> = ({ currentUser, onOpenLogin, se
             }}
           >
             <div style={{ position: 'relative', zIndex: 1, width: '100%' }}>
-              <EntryBoxes currentUser={currentUser} onOpenLogin={onOpenLogin} setActiveTab={setActiveTab} onSetMode={onSetMode} />
+              <EntryBoxes
+                currentUser={currentUser}
+                onOpenLogin={onOpenLogin}
+                setActiveTab={setActiveTab}
+                onSetMode={onSetMode}
+                onRequestScrollIntoView={scrollToEntrySection}
+              />
             </div>
           </section>
 

@@ -6,6 +6,13 @@ import prisma from '../config/prisma';
 export const JWT_SECRET = process.env.JWT_SECRET || 'eobom_jwt_secret_key_2026_well_dying';
 export const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
 
+// 가입 시점 필수 동의(이용약관·개인정보) — 2026-08-24 추가. 마케팅 수신은 선택이라 별도 플래그.
+interface ConsentFlags {
+  terms: boolean;
+  privacy: boolean;
+  marketing: boolean;
+}
+
 interface PendingSocialLinkPayload extends jwt.JwtPayload {
   purpose: 'social_link';
   provider: string;
@@ -14,6 +21,10 @@ interface PendingSocialLinkPayload extends jwt.JwtPayload {
   name: string;
   profileImage?: string;
   existingUserId: string;
+  // [계정 통합/독립 신규 가입] 선택 모달에서 CREATE_NEW를 고르면 그 자리에서 새 User가 생성된다
+  // (§confirmLink) — 그것도 실질적인 신규 가입이라, 최초 로그인 시작 시점에 받은 동의를 여기까지
+  // 그대로 실어 보낸다.
+  consent: ConsentFlags;
 }
 
 interface LinkStatePayload extends jwt.JwtPayload {
@@ -25,6 +36,9 @@ interface LinkStatePayload extends jwt.JwtPayload {
 interface LoginStatePayload extends jwt.JwtPayload {
   purpose: 'login';
   origin?: string;
+  // 로그인 시작 라우트(`GET /:provider`)에서 쿼리로 받아 서명해 넣는다 — 기존 유저 재로그인이면
+  // 콜백에서 무시되고, 신규 가입(User.create)일 때만 이 값을 termsAgreedAt 등으로 스탬프한다.
+  consent: ConsentFlags;
 }
 
 // 로그인/연동 시작 요청(`GET /:provider`, `/:provider/link`)의 Referer로 프론트 오리진을 캡처한다.
@@ -65,6 +79,28 @@ export const resolveFrontendUrl = (state: unknown): string => {
     }
   }
   return FRONTEND_URL;
+};
+
+// state에서 동의 플래그를 복원한다. `purpose: 'link'`(마이페이지 추가 연동) state에는 애초에
+// consent가 없으므로(기존 로그인 유저라 새 동의가 필요 없음), 그 경우와 검증 실패 시 전부
+// false로 폴백 — 신규 유저 생성 분기에서 이 값이 false면 동의 없이 가입시키지 않는다(라우트
+// 단계에서 이미 걸렀어야 정상이지만, state 위변조·만료에 대비한 2차 방어선).
+export const resolveConsent = (state: unknown): ConsentFlags => {
+  if (typeof state === 'string') {
+    try {
+      const decoded = jwt.verify(state, JWT_SECRET) as LinkStatePayload | LoginStatePayload;
+      if (decoded.purpose === 'login' && decoded.consent) {
+        return {
+          terms: !!decoded.consent.terms,
+          privacy: !!decoded.consent.privacy,
+          marketing: !!decoded.consent.marketing,
+        };
+      }
+    } catch {
+      // 무시하고 아래 기본값으로 폴백
+    }
+  }
+  return { terms: false, privacy: false, marketing: false };
 };
 
 // 헬퍼: Authorization 헤더의 Bearer 토큰 검증 (실패 시 null)
@@ -111,7 +147,10 @@ const buildLoginSuccessRedirect = (
 };
 
 // 헬퍼: 이메일 중복 시 [계정 통합 vs 독립 가입] 선택을 위한 10분 만료 임시 토큰 발급
-const generateTempLinkToken = (socialUser: SocialProfile, existingUserId: string) => {
+// consent — 최초 로그인 시작 시점(state)에 받은 동의를 그대로 실어둔다. [독립 신규 가입]을
+// 고르면(confirmLink CREATE_NEW) 실제로 새 User가 생기는데, 그때 다시 동의를 받을 화면이 없어서
+// 여기서 미리 들고 가지 않으면 그 경로만 동의 기록이 비게 된다.
+const generateTempLinkToken = (socialUser: SocialProfile, existingUserId: string, consent: ConsentFlags) => {
   const payload: Omit<PendingSocialLinkPayload, keyof jwt.JwtPayload> = {
     purpose: 'social_link',
     provider: socialUser.provider,
@@ -120,6 +159,7 @@ const generateTempLinkToken = (socialUser: SocialProfile, existingUserId: string
     name: socialUser.name,
     profileImage: socialUser.profileImage,
     existingUserId,
+    consent,
   };
   return jwt.sign(payload, JWT_SECRET, { expiresIn: '10m' });
 };
@@ -192,6 +232,10 @@ export const handleSocialLoginCallback = async (req: Request, res: Response) => 
     return res.redirect(`${frontendUrl}?loginError=auth_failed`);
   }
 
+  // 신규 가입일 때만 쓰인다(1단계 기존 계정 로그인 분기는 이 값을 참조하지 않는다) — 이미
+  // 최초 가입 때 동의를 받은 사람에게 재로그인마다 다시 물을 이유가 없다.
+  const consent = resolveConsent(state);
+
   try {
     // 1단계: 이미 연동된 SocialAccount가 있으면 해당 User로 즉시 로그인
     // §3-1 — 아래에서 userId·unlinkedAt·id(전부 SocialAccount 자체 컬럼)만 쓰고 최신 User 값은
@@ -242,7 +286,7 @@ export const handleSocialLoginCallback = async (req: Request, res: Response) => 
       });
 
       if (existingUserByEmail) {
-        const tempToken = generateTempLinkToken(socialUser, existingUserByEmail.id);
+        const tempToken = generateTempLinkToken(socialUser, existingUserByEmail.id, consent);
         const existingProvider = existingUserByEmail.accounts[0]?.provider || 'UNKNOWN';
         const redirectUrl = `${frontendUrl}/#socialLinkPrompt?tempToken=${tempToken}&email=${encodeURIComponent(
           socialUser.email
@@ -251,12 +295,22 @@ export const handleSocialLoginCallback = async (req: Request, res: Response) => 
       }
     }
 
+    // 필수 동의(이용약관·개인정보) 없이는 신규 가입을 만들지 않는다 — `/api/auth/:provider`
+    // 시작 라우트에서 이미 걸렀어야 정상이지만, state 위변조·만료에 대비한 2차 방어선이다.
+    if (!consent.terms || !consent.privacy) {
+      return res.redirect(`${frontendUrl}?loginError=consent_required`);
+    }
+
     // 3단계: 완전 신규 유저 (User + SocialAccount 동시 생성)
+    const now = new Date();
     const newUser = await prisma.user.create({
       data: {
         email: socialUser.email,
         name: socialUser.name,
         profileImage: socialUser.profileImage,
+        termsAgreedAt: now,
+        privacyAgreedAt: now,
+        marketingAgreedAt: consent.marketing ? now : null,
         accounts: {
           create: {
             provider: socialUser.provider,
@@ -326,6 +380,12 @@ export const confirmLink = async (req: Request, res: Response) => {
     }
 
     if (action === 'CREATE_NEW') {
+      // 여기서도 실질적으로 새 User가 생기므로(독립 신규 가입) 동의가 없으면 만들지 않는다 —
+      // 원래 로그인 시작 시점(state)의 동의가 tempToken까지 실려 왔어야 정상(2차 방어선).
+      if (!payload.consent?.terms || !payload.consent?.privacy) {
+        return res.status(400).json({ status: 'error', message: '이용약관 및 개인정보 수집·이용에 동의가 필요합니다. 다시 로그인해주세요.' });
+      }
+
       // 토큰 발급 후 확정 사이 짧은 틈에 같은 provider+providerId가 이미 (재)연동됐을 가능성 대비
       const alreadyLinked = await prisma.socialAccount.findUnique({
         where: { provider_providerId: { provider: payload.provider, providerId: payload.providerId } },
@@ -336,11 +396,15 @@ export const confirmLink = async (req: Request, res: Response) => {
 
       // User.email은 유니크라서 이미 다른 유저가 쓰는 이메일을 대표 이메일로는 못 씀 -> null로 두고
       // 실제 이메일은 SocialAccount.email(제약 없음)에만 보존
+      const nowLinked = new Date();
       const newUser = await prisma.user.create({
         data: {
           email: null,
           name: payload.name,
           profileImage: payload.profileImage,
+          termsAgreedAt: nowLinked,
+          privacyAgreedAt: nowLinked,
+          marketingAgreedAt: payload.consent.marketing ? nowLinked : null,
           ...(alreadyLinked
             ? {}
             : {
@@ -383,13 +447,24 @@ export const confirmLink = async (req: Request, res: Response) => {
 // 안 하고 있어서 화면에서는 안 보였을 뿐, API를 직접 두드리면 항상 재현됨). 이제 실제 소셜
 // 로그인(User.create)과 동일하게 User 행을 upsert해서 decoded.id가 항상 유효한 FK를 가리키게 한다.
 export const demoLogin = async (req: Request, res: Response) => {
-  const { provider } = req.body; // 'KAKAO' | 'NAVER' | 'GOOGLE' | 'ADMIN'
+  // 이 엔드포인트는 fetch 직접 호출이라 OAuth state 왕복 없이 body로 바로 동의 여부를 받는다
+  // (LoginModal.tsx가 실제 소셜 버튼과 같은 체크박스 상태를 그대로 실어보낸다).
+  const { provider, termsAgreed, privacyAgreed } = req.body as {
+    provider?: string;
+    termsAgreed?: boolean;
+    privacyAgreed?: boolean;
+  }; // 'KAKAO' | 'NAVER' | 'GOOGLE' | 'ADMIN'
 
   // ADMIN 데모 로그인은 개발용 뒷문이다 — 실서비스에서 살아있으면 누구나 role=ADMIN 토큰을
   // 발급받을 수 있다(docs 01-05 §6.4, §11 "구현 시 반드시 지킬 것" 3항). 배포 시 수동으로
   // 지우는 대신, 프로덕션 환경에서는 구조적으로 막아 사람이 잊어도 안전하도록 한다.
   if (provider === 'ADMIN' && process.env.NODE_ENV === 'production') {
     return res.status(403).json({ status: 'error', message: '허용되지 않는 요청입니다.' });
+  }
+
+  // ADMIN 데모는 아래에서 User 행을 만들지 않으므로(순수 토큰 데모) 이 가드 대상이 아니다.
+  if (provider !== 'ADMIN' && (!termsAgreed || !privacyAgreed)) {
+    return res.status(400).json({ status: 'error', message: '이용약관 및 개인정보 수집·이용에 동의가 필요합니다.' });
   }
 
   const demoNames: Record<string, string> = {
@@ -399,7 +474,7 @@ export const demoLogin = async (req: Request, res: Response) => {
     ADMIN: '관리자 (Admin)',
   };
 
-  const name = demoNames[provider] || '테스트 회원';
+  const name = (provider && demoNames[provider]) || '테스트 회원';
   const email = `demo_${(provider || 'user').toLowerCase()}@eobom.co.kr`;
 
   // ADMIN 데모는 B2C User와 무관한 순수 토큰 데모다 — Admin은 별도 모델(§6.4)이라 User 행을
@@ -414,7 +489,9 @@ export const demoLogin = async (req: Request, res: Response) => {
     const dbUser = await prisma.user.upsert({
       where: { email },
       update: { name },
-      create: { email, name },
+      // update 절에는 안 넣는다 — 이미 존재하는 데모 유저를 재로그인할 때마다 최초 동의 시각을
+      // 지금 시각으로 덮어쓰면 안 된다(최초 가입 시점만 기록되는 게 맞다).
+      create: { email, name, termsAgreedAt: new Date(), privacyAgreedAt: new Date() },
     });
 
     const token = generateToken({ id: dbUser.id, name: dbUser.name, email: dbUser.email ?? undefined, provider: provider || 'DEMO' });

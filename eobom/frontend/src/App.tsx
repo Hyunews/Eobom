@@ -223,6 +223,10 @@ function AppShell() {
         google_failed: '구글 로그인에 실패했습니다. 다시 시도해주세요.',
         auth_failed: '소셜 로그인 인증에 실패했습니다. 다시 시도해주세요.',
         server_error: '서버 오류로 로그인에 실패했습니다. 잠시 후 다시 시도해주세요.',
+        // 2026-08-24 — /api/auth/:provider 시작 라우트가 필수 동의(이용약관·개인정보) 쿼리
+        // 없이 호출되면 여기로 리다이렉트한다(authRoutes.ts). LoginModal.tsx를 거치지 않고
+        // 직접 URL을 호출한 경우(예: 구 버전 캐시, 외부 링크)에만 실제로 뜬다.
+        consent_required: '이용약관 및 개인정보 수집·이용 동의가 필요합니다. 로그인 창에서 다시 시도해주세요.',
       };
       alert(messages[loginError] || '로그인에 실패했습니다. 다시 시도해주세요.');
       // 쿼리스트링 정리 (새로고침해도 에러 메시지가 다시 뜨지 않도록)
@@ -259,7 +263,10 @@ function AppShell() {
         <Routes>
           <Route path="/o/:slug" element={<ObituaryLandingPage />} />
           <Route path="/m/:slug" element={<MemorialPage />} />
-          <Route path="/invite/:token" element={<FamilyInvitePage />} />
+          <Route
+            path="/invite/:token"
+            element={<FamilyInvitePage currentUser={currentUser} onOpenLogin={() => setIsLoginOpen(true)} />}
+          />
         </Routes>
       ) : (
         <>

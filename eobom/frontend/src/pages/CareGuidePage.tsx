@@ -68,7 +68,10 @@ export const CareGuidePage: React.FC<CareGuidePageProps> = ({ setActiveTab }) =>
   // §2 접기 — 기본은 제목 줄만, 펼쳐야 근거·메모·바로가기가 나온다(23항목이 한 화면에 잡히게).
   const [expandedIds, setExpandedIds] = useState<Set<number>>(new Set());
   const toggleExpand = (id: number, e: React.MouseEvent) => {
-    e.stopPropagation(); // 카드 전체에 toggleTask가 걸려 있다 — 안 하면 펼치려다 체크된다
+    // 2026-08-24 — 카드 전체의 onClick도 이제 이 toggleExpand다(체크는 체크박스로만, 요청사항).
+    // 화살표 버튼은 카드 안에 중첩돼 있어 stopPropagation이 없으면 클릭이 카드까지 버블링돼
+    // toggleExpand가 두 번 불려(펼침→접힘) 아무 일도 안 일어난 것처럼 보인다.
+    e.stopPropagation();
     setExpandedIds((prev) => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id);
@@ -176,7 +179,7 @@ export const CareGuidePage: React.FC<CareGuidePageProps> = ({ setActiveTab }) =>
                         return (
                         <div
                           key={t.id}
-                          onClick={() => toggleTask(t.id)}
+                          onClick={(e) => toggleExpand(t.id, e)}
                           style={{
                             padding: '0.9rem',
                             borderRadius: '8px',
@@ -187,24 +190,34 @@ export const CareGuidePage: React.FC<CareGuidePageProps> = ({ setActiveTab }) =>
                           }}
                         >
                           <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
-                            <input type="checkbox" checked={t.checked} onChange={() => {}} style={{ width: '20px', height: '20px', marginTop: '0.1rem', flexShrink: 0 }} />
+                            {/* 2026-08-24 — 체크는 이 체크박스로만 한다. 카드/제목을 누르면 펼치기만
+                                동작하도록 바뀌어서(위 onClick), 체크박스는 클릭이 부모까지 안 번지게
+                                막고 자기 것만 토글한다 — 안 그러면 체크하려다 펼쳐지기도 한다. */}
+                            <input
+                              type="checkbox"
+                              checked={t.checked}
+                              onChange={() => toggleTask(t.id)}
+                              onClick={(e) => e.stopPropagation()}
+                              style={{ width: '20px', height: '20px', marginTop: '0.1rem', flexShrink: 0, cursor: 'pointer' }}
+                            />
                             <div style={{ flex: 1, minWidth: 0 }}>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap', marginBottom: '0.3rem' }}>
-                                <span style={{ fontSize: '0.8rem', fontWeight: 700, color: meta.color, backgroundColor: meta.bg, padding: '0.15rem 0.5rem', borderRadius: '4px' }}>
-                                  {t.deadlineLabel}{t.deadlineBase !== '-' ? ` · ${t.deadlineBase} 기준` : ''}
-                                </span>
-                                {!t.verified && (
-                                  <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#92400E', backgroundColor: '#FEF3C7', border: '1px solid #FDE68A', padding: '0.1rem 0.45rem', borderRadius: '4px' }}>
-                                    ⚠️ 확인 필요
-                                  </span>
-                                )}
-                              </div>
                               <span style={{ textDecoration: t.checked ? 'line-through' : 'none', color: t.checked ? 'var(--text-muted)' : 'var(--text-main)', fontSize: '0.95rem', fontWeight: 600 }}>
                                 {t.title}
                               </span>
 
                               {isExpanded && (
                                 <>
+                                  {/* 기한·확인필요 배지 — 기본 상태에선 제목만 남기고, 펼쳤을 때만 보이게 이동 */}
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap', margin: '0.4rem 0 0 0' }}>
+                                    <span style={{ fontSize: '0.8rem', fontWeight: 700, color: meta.color, backgroundColor: meta.bg, padding: '0.15rem 0.5rem', borderRadius: '4px' }}>
+                                      {t.deadlineLabel}{t.deadlineBase !== '-' ? ` · ${t.deadlineBase} 기준` : ''}
+                                    </span>
+                                    {!t.verified && (
+                                      <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#92400E', backgroundColor: '#FEF3C7', border: '1px solid #FDE68A', padding: '0.1rem 0.45rem', borderRadius: '4px' }}>
+                                        ⚠️ 확인 필요
+                                      </span>
+                                    )}
+                                  </div>
                                   {t.note && (
                                     <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', margin: '0.3rem 0 0 0', lineHeight: 1.5 }}>{t.note}</p>
                                   )}

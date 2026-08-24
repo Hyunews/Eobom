@@ -43,6 +43,9 @@ interface EntryBoxesProps {
   onOpenLogin?: () => void;
   setActiveTab?: (tab: string) => void;
   onSetMode?: (mode: NavMode) => void;
+  // HomePage.tsx가 containerRef를 직접 조작하는 함수를 내려준다 — 박스③(?entry=box3)로 진입할 때
+  // 섹션 1로 스크롤시키는 데 쓴다. sessionStorage/마운트 타이밍에 기대지 않는 직접 호출 경로.
+  onRequestScrollIntoView?: () => void;
 }
 
 interface EntryItem {
@@ -192,7 +195,7 @@ const RevealContent: React.FC<{ children: React.ReactNode }> = ({ children }) =>
 // window 참조는 항상 안전하다.
 const getItemsPerPage = () => (window.matchMedia('(max-width: 767px)').matches ? 1 : 2);
 
-export const EntryBoxes: React.FC<EntryBoxesProps> = ({ currentUser, onOpenLogin, setActiveTab, onSetMode }) => {
+export const EntryBoxes: React.FC<EntryBoxesProps> = ({ currentUser, onOpenLogin, setActiveTab, onSetMode, onRequestScrollIntoView }) => {
   // 08-19 10차(개발자 직접 지시) — 오버레이 열림 상태를 로컬 state 대신 URL 쿼리(?entry=box1&slide=N)로
   // 관리한다. CTA로 다른 화면에 이동한 뒤 브라우저 뒤로가기를 누르면, 그 직전에 보고 있던
   // 박스·슬라이드로 그대로 돌아와야 하기 때문 — 로컬 state였다면 페이지 이동 시 컴포넌트가
@@ -283,6 +286,18 @@ export const EntryBoxes: React.FC<EntryBoxesProps> = ({ currentUser, onOpenLogin
     mql.addListener(handleChange);
     return () => mql.removeListener(handleChange);
   }, []);
+
+  // 2026-08-24 — Header.tsx의 "추모관" 메뉴가 ?entry=box3로 진입시킨다. 박스①②와 달리 박스③은
+  // 풀스크린 오버레이가 없어(추모관 링크 입력창일 뿐) 그냥 이 섹션으로 스크롤만 해서는 캐러셀이
+  // 첫 페이지(박스①②)에 멈춰 있어 실제로는 안 보였다 — 캐러셀 페이지 자체를 넘긴다. 박스③은
+  // boxItems 배열의 인덱스 2(0-based)라, itemsPerPage로 나눈 몫이 그 박스가 속한 페이지 번호다.
+  useEffect(() => {
+    if (entryParam === 'box3') {
+      setCurrentPage(Math.floor(2 / itemsPerPage));
+      onRequestScrollIntoView?.();
+      setSearchParams({}, { replace: true });
+    }
+  }, [entryParam, itemsPerPage, setSearchParams, onRequestScrollIntoView]);
 
   const box1Card = (
     // 카드 전체는 더 이상 클릭 대상이 아니다 — "자세히 보기"에 마우스를 올렸을 때만 포인터
