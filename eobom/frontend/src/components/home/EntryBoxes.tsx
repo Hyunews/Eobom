@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { ChevronRight, HeartHandshake, Flower2, Building2 } from 'lucide-react';
+import { ChevronRight, ChevronLeft, HeartHandshake, Flower2, Building2 } from 'lucide-react';
 import { ChecklistShieldIcon } from '../MenuIcons';
 import { domainSlides } from './domainSlides';
 import { BoxDetailOverlay } from './BoxDetailOverlay';
@@ -15,6 +15,10 @@ import type { NavMode } from '../../modeNav';
 // 칩·CTA·부가 버튼은 `.entry-box-reveal`로 감싸 index.css의 @media (hover:hover)에서만 접었다 편다
 // (터치 기기는 이 media 밖이라 처음부터 펼쳐진 채로 보여 터치 UX를 막지 않는다).
 // 카드 배경은 00-09 §2.1 5색 토큰에서 파생한 옅은 그라데이션 틴트(index.css --box-tint-*)로 마감.
+//
+// 2026-08 A안 재구성 — 4박스를 2x2 정적 그리드(00-23 §8.5)에서 좌우 캐러셀(한 화면 2개씩,
+// 모바일 1개씩)로 바꿨다. §8.5와 어긋나는 편차이며 정본 개정 필요(walkthrough 기록 + docs 반영
+// 요청 대상, Opus 소관). 순서(①→②→③→④)·카드 내용·오버레이 진입 방식은 그대로 유지한다.
 
 // 08-19 14차(개발자 직접 지시) — 디지털 정산은 사후 처리 도메인이라 생전 준비에서 제거.
 const box1Keys = ['counseling', 'ending-note'];
@@ -183,13 +187,21 @@ const RevealContent: React.FC<{ children: React.ReactNode }> = ({ children }) =>
   </div>
 );
 
+// 캐러셀 한 페이지에 넣을 박스 개수 — 767px 이하는 1개, 그 위는 2개(기존 .entry-boxes-grid
+// 브레이크포인트 재사용, 00-29 §6.1 "신규 브레이크포인트 금지"). SSR 없는 순수 CSR이라
+// window 참조는 항상 안전하다.
+const getItemsPerPage = () => (window.matchMedia('(max-width: 767px)').matches ? 1 : 2);
+
 export const EntryBoxes: React.FC<EntryBoxesProps> = ({ currentUser, onOpenLogin, setActiveTab, onSetMode }) => {
   // 08-19 10차(개발자 직접 지시) — 오버레이 열림 상태를 로컬 state 대신 URL 쿼리(?entry=box1&slide=N)로
   // 관리한다. CTA로 다른 화면에 이동한 뒤 브라우저 뒤로가기를 누르면, 그 직전에 보고 있던
   // 박스·슬라이드로 그대로 돌아와야 하기 때문 — 로컬 state였다면 페이지 이동 시 컴포넌트가
-  // 언마운트되면서 소실돼 복원할 수 없다. 여닫기/슬라이드 이동은 모두 replace로 처리해 히스토리
-  // 스택을 늘리지 않고(뒤로가기 한 번으로 자연스럽게 홈 진입 이전으로 빠짐), CTA 클릭 시에는
-  // onClose를 부르지 않아(BoxDetailOverlay) 이동 직전 URL이 그대로 히스토리에 남게 한다.
+  // 언마운트되면서 소실돼 복원할 수 없다.
+  // 2026-08 변경(개발자 확정) — "열기"만 push로 바꿨다. 종전엔 열기·슬라이드 이동·닫기를 전부
+  // replace로 처리해 뒤로가기 한 번에 홈 진입 이전으로 바로 빠졌는데, 그러면 X(닫기) 없이는
+  // 오버레이만 따로 못 닫는다는 피드백이 있었다. 이제 열 때만 push로 히스토리 한 칸을 쌓아서,
+  // 뒤로가기 한 번이 "오버레이 닫기"(X 버튼과 동일 결과)가 되게 한다. 슬라이드 이동은 여전히
+  // replace다 — 슬라이드를 넘길 때마다 쌓이면 뒤로가기 여러 번을 오버레이 안에서 소모하게 된다.
   const [searchParams, setSearchParams] = useSearchParams();
   const entryParam = searchParams.get('entry');
   const openBox: 'box1' | 'box2' | null = entryParam === 'box1' || entryParam === 'box2' ? entryParam : null;
@@ -198,12 +210,12 @@ export const EntryBoxes: React.FC<EntryBoxesProps> = ({ currentUser, onOpenLogin
 
   const handleBox1Click = () => {
     onSetMode?.('prep');
-    setSearchParams({ entry: 'box1' }, { replace: true });
+    setSearchParams({ entry: 'box1' });
   };
 
   const handleBox2Click = () => {
     onSetMode?.('bereaved');
-    setSearchParams({ entry: 'box2' }, { replace: true });
+    setSearchParams({ entry: 'box2' });
   };
 
   const closeOverlay = () => {
@@ -250,14 +262,251 @@ export const EntryBoxes: React.FC<EntryBoxesProps> = ({ currentUser, onOpenLogin
     }
   };
 
+  // ── 캐러셀 상태 — 자동재생 없음. 좌우 버튼 / 인디케이터 클릭 / 스와이프 / 방향키로만 이동.
+  const [itemsPerPage, setItemsPerPage] = useState<number>(getItemsPerPage);
+  const [currentPage, setCurrentPage] = useState(0);
+  const touchStartXRef = useRef<number | null>(null);
+  const prevArrowRef = useRef<HTMLButtonElement>(null);
+  const nextArrowRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    const mql = window.matchMedia('(max-width: 767px)');
+    const handleChange = (e: MediaQueryListEvent) => {
+      setItemsPerPage(e.matches ? 1 : 2);
+      setCurrentPage(0);
+    };
+    if (mql.addEventListener) {
+      mql.addEventListener('change', handleChange);
+      return () => mql.removeEventListener('change', handleChange);
+    }
+    // 구형 Safari 폴백
+    mql.addListener(handleChange);
+    return () => mql.removeListener(handleChange);
+  }, []);
+
+  const box1Card = (
+    // 카드 전체는 더 이상 클릭 대상이 아니다 — "자세히 보기"에 마우스를 올렸을 때만 포인터
+    // 커서·클릭이 활성화되도록, 실제 클릭 핸들러는 그 버튼에만 건다(개발자 확정). 호버 시 칩·
+    // "자세히 보기"가 펼쳐지는 동작은 .entry-box-card 클래스 기준이라(태그 무관) 그대로 유지된다.
+    <div
+      key="box1"
+      className="card entry-box-primary entry-box-card entry-box-tint-green"
+      style={{ textAlign: 'left', width: '100%', justifyContent: 'center' }}
+    >
+      <BoxHeader
+        icon={<HeartHandshake size={32} color="var(--point-color)" />}
+        title="생전 준비"
+        subtitle="미리 준비해 두면, 남은 가족이 덜 힘듭니다. 엔딩노트와 가족 지정, 상속 사전 상담까지 마음이 편안할 때 하나씩 남겨두세요."
+        iconBg="rgba(91, 112, 101, 0.12)"
+      />
+      <RevealContent>
+        <ChipRow labels={box1Keys.map((k) => chipLabels[k])} />
+        <button
+          type="button"
+          onClick={handleBox1Click}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.3rem',
+            marginTop: '1.1rem',
+            paddingTop: '1rem',
+            borderTop: '1px solid rgba(91, 112, 101, 0.2)',
+            color: 'var(--point-color)',
+            fontSize: '1rem',
+            fontWeight: 700,
+            background: 'none',
+            border: 'none',
+            borderTopWidth: '1px',
+            borderTopStyle: 'solid',
+            borderTopColor: 'rgba(91, 112, 101, 0.2)',
+            width: '100%',
+            textAlign: 'left',
+            cursor: 'pointer',
+            fontFamily: 'inherit',
+          }}
+        >
+          자세히 보기 <ChevronRight size={18} />
+        </button>
+      </RevealContent>
+    </div>
+  );
+
+  const box2Card = (
+    // box1Card와 동일한 이유로 카드 자체는 클릭 대상이 아니다 — "자세히 보기"에만 클릭을 건다.
+    <div
+      key="box2"
+      className="card entry-box-primary entry-box-card entry-box-tint-gold"
+      style={{ textAlign: 'left', width: '100%', justifyContent: 'center' }}
+    >
+      <BoxHeader
+        icon={<ChecklistShieldIcon size={32} color="#03543F" />}
+        title="임종 및 사후 정리"
+        subtitle="지금 해야 할 일부터 순서대로 안내해 드립니다. 부고장 발송, 장사시설 매칭부터 22개 행정 체크리스트까지 이어집니다."
+        iconBg="rgba(212, 163, 89, 0.16)"
+      />
+      <RevealContent>
+        <ChipRow labels={box2Keys.map((k) => chipLabels[k])} />
+        <button
+          type="button"
+          onClick={handleBox2Click}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.3rem',
+            marginTop: '1.1rem',
+            paddingTop: '1rem',
+            borderTopWidth: '1px',
+            borderTopStyle: 'solid',
+            borderTopColor: 'rgba(212, 163, 89, 0.25)',
+            color: 'var(--point-color)',
+            fontSize: '1rem',
+            fontWeight: 700,
+            background: 'none',
+            border: 'none',
+            width: '100%',
+            textAlign: 'left',
+            cursor: 'pointer',
+            fontFamily: 'inherit',
+          }}
+        >
+          자세히 보기 <ChevronRight size={18} />
+        </button>
+      </RevealContent>
+    </div>
+  );
+
+  const box3Card = (
+    // ③ 추모관(구 Guest) — 받으신 링크를 붙여넣으면 바로 입장(00-23 §4.4).
+    <div key="box3" className="card entry-box-secondary entry-box-card entry-box-tint-slate">
+      <BoxHeader
+        icon={<Flower2 size={24} color="#5B7065" />}
+        title="추모관"
+        subtitle="받으신 추모관 링크로 입장하세요. 온라인 헌화와 방명록으로 마음을 전할 수 있습니다."
+        size="sm"
+      />
+      <RevealContent>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem', marginTop: '0.8rem' }}>
+          <input
+            type="text"
+            className="form-input"
+            placeholder="받으신 링크를 그대로 붙여넣어 주세요"
+            value={memorialLinkInput}
+            onChange={(e) => {
+              setMemorialLinkInput(e.target.value);
+              if (memorialLinkError) setMemorialLinkError('');
+            }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') handleMemorialLinkEnter();
+            }}
+          />
+          <button type="button" onClick={handleMemorialLinkEnter} className="btn btn-primary">
+            입장
+          </button>
+          {memorialLinkError && (
+            <p style={{ fontSize: '0.8rem', color: '#B91C1C', margin: 0 }}>{memorialLinkError}</p>
+          )}
+        </div>
+      </RevealContent>
+    </div>
+  );
+
+  const box4Card = (
+    // ④ 파트너 — 항목 1개뿐이라 기존 방식(목록 1줄) 그대로 유지
+    <div key="box4" className="card entry-box-secondary entry-box-card entry-box-tint-slate">
+      <BoxHeader
+        icon={<Building2 size={24} color="var(--primary-color)" />}
+        title="파트너"
+        subtitle="장사시설·전문가 사업자이신가요? 노출이 아니라 실제 문의가 발생했을 때만 정산됩니다."
+        size="sm"
+      />
+      <RevealContent>
+        <div style={{ marginTop: '0.5rem' }}>
+          {box4Items.map((item) => (
+            <EntryRow key={item.label} item={item} currentUser={currentUser} onOpenLogin={onOpenLogin} setActiveTab={setActiveTab} />
+          ))}
+        </div>
+        <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', margin: '0.5rem 0 0 0' }}>
+          로그인하시면 대시보드로 이동합니다.
+        </p>
+      </RevealContent>
+    </div>
+  );
+
+  // 순서 고정: ①→②→③→④(00-23 §8.5 모바일 스택 순서와 동일). itemsPerPage개씩 잘라 페이지를
+  // 만든다 — 2개씩이면 [①②][③④] 두 페이지(기존 그리드와 같은 짝), 1개씩이면 네 페이지.
+  const boxItems = [box1Card, box2Card, box3Card, box4Card];
+  const pages: React.ReactNode[][] = [];
+  for (let i = 0; i < boxItems.length; i += itemsPerPage) {
+    pages.push(boxItems.slice(i, i + itemsPerPage));
+  }
+  const pageCount = pages.length;
+  const safeCurrentPage = Math.min(currentPage, pageCount - 1);
+
+  const goToPage = (index: number) => {
+    setCurrentPage(Math.min(pageCount - 1, Math.max(0, index)));
+  };
+
+  // 경계(첫/마지막 페이지)에 닿으면 해당 화살표가 disabled로 바뀌는데, 그 순간 포커스가 그
+  // 버튼에 있으면 브라우저가 자동으로 blur시켜 버려(disabled 요소는 포커스를 가질 수 없음)
+  // 방향키 연속 조작이 그 자리에서 끊긴다. 전환 직전(아직 focus가 살아있는 시점)에 "이 화살표가
+  // 곧 비활성화되는가"를 확인해 두었다가, 그렇다면 반대쪽 화살표로 포커스를 옮겨 키보드 조작이
+  // 끊기지 않게 한다.
+  const goPrev = () => {
+    const wasPrevFocused = document.activeElement === prevArrowRef.current;
+    const target = Math.max(0, safeCurrentPage - 1);
+    setCurrentPage(target);
+    if (target === 0 && wasPrevFocused) {
+      requestAnimationFrame(() => nextArrowRef.current?.focus());
+    }
+  };
+  const goNext = () => {
+    const wasNextFocused = document.activeElement === nextArrowRef.current;
+    const target = Math.min(pageCount - 1, safeCurrentPage + 1);
+    setCurrentPage(target);
+    if (target === pageCount - 1 && wasNextFocused) {
+      requestAnimationFrame(() => prevArrowRef.current?.focus());
+    }
+  };
+
+  // 방향키 좌우로도 이동 — 단, 추모관 링크 입력창(box3) 안에서 커서 이동을 가로채지 않는다.
+  const handleCarouselKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    const targetTag = (e.target as HTMLElement).tagName;
+    if (targetTag === 'INPUT' || targetTag === 'TEXTAREA') return;
+    if (e.key === 'ArrowLeft') {
+      e.preventDefault();
+      goPrev();
+    } else if (e.key === 'ArrowRight') {
+      e.preventDefault();
+      goNext();
+    }
+  };
+
+  // 스와이프(터치) — 40px 이상 수평 이동 시에만 페이지 전환으로 인식한다.
+  const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
+    touchStartXRef.current = e.touches[0]?.clientX ?? null;
+  };
+  const handleTouchEnd = (e: React.TouchEvent<HTMLDivElement>) => {
+    const startX = touchStartXRef.current;
+    touchStartXRef.current = null;
+    if (startX === null) return;
+    const endX = e.changedTouches[0]?.clientX ?? startX;
+    const deltaX = endX - startX;
+    const threshold = 40;
+    if (deltaX > threshold) goPrev();
+    else if (deltaX < -threshold) goNext();
+  };
+
   return (
-    <div className="entry-boxes-focus-group" style={{ maxWidth: '1200px', width: '100%', margin: '0 auto' }}>
+    // 2026-08-24: HomePage.tsx 히어로(섹션0)의 .hero-inner와 완전히 같은 폭 규칙(maxWidth 1440·
+    // margin auto·padding 0 6vw)을 재사용한다 — 좌측 화살표의 왼쪽 끝이 히어로 텍스트 박스
+    // (.hero-content-card)의 왼쪽 끝과 정렬되고, 같은 컨테이너라 우측도 자동으로 대칭 정렬된다.
+    <div style={{ width: '100%', maxWidth: '1440px', margin: '0 auto', padding: '0 6vw' }}>
       <h2
         style={{
           fontSize: 'clamp(1.5rem, 2.6vw, 2rem)',
           fontWeight: 800,
           color: '#1A2B4C',
-          fontFamily: "'KoPub World Batang', serif",
+          fontFamily: "'KoPub World Batang', 'KoPubWorld 명조', serif",
           textAlign: 'center',
           marginBottom: '1.4rem',
         }}
@@ -265,146 +514,75 @@ export const EntryBoxes: React.FC<EntryBoxesProps> = ({ currentUser, onOpenLogin
         어떤 도움이 필요하신가요?
       </h2>
 
-      {/* 상단 블록 — ①② 큰 카드(00-23 §8.5) */}
-      <div className="entry-boxes-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
-        {/* ① 생전 준비 — 클릭 시 미니 오버레이(전문가상담·엔딩노트·디지털자산) */}
+      {/* 좌우 캐러셀 — 자동재생 없음. 방향키(←/→)는 이 영역에 포커스가 있을 때 동작한다(추모관
+          입력창 안에서는 커서 이동을 위해 가로채지 않음). 00-23 §8.5의 2x2 정적 그리드를
+          캐러셀로 대체한 편차 — docs 반영 요청서 참고. */}
+      <div className="entry-carousel" onKeyDown={handleCarouselKeyDown}>
         <button
+          ref={prevArrowRef}
           type="button"
-          onClick={handleBox1Click}
-          className="card entry-box-primary entry-box-card entry-box-tint-green"
-          style={{
-            textAlign: 'left',
-            cursor: 'pointer',
-            width: '100%',
-            fontFamily: 'inherit',
-            justifyContent: 'center',
-          }}
+          className="entry-carousel-arrow"
+          onClick={goPrev}
+          disabled={safeCurrentPage === 0}
+          aria-label="이전 항목 보기"
         >
-          <BoxHeader
-            icon={<HeartHandshake size={32} color="var(--point-color)" />}
-            title="생전 준비"
-            subtitle="미리 준비해 두면, 남은 가족이 덜 힘듭니다."
-            iconBg="rgba(91, 112, 101, 0.12)"
-          />
-          <RevealContent>
-            <ChipRow labels={box1Keys.map((k) => chipLabels[k])} />
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.3rem',
-                marginTop: '1.1rem',
-                paddingTop: '1rem',
-                borderTop: '1px solid rgba(91, 112, 101, 0.2)',
-                color: 'var(--point-color)',
-                fontSize: '1rem',
-                fontWeight: 700,
-              }}
-            >
-              자세히 보기 <ChevronRight size={18} />
-            </div>
-          </RevealContent>
+          <ChevronLeft size={22} />
         </button>
 
-        {/* ② 임종 및 사후 정리 — 클릭 시 미니 오버레이(상중케어부터 순서대로) */}
-        <button
-          type="button"
-          onClick={handleBox2Click}
-          className="card entry-box-primary entry-box-card entry-box-tint-gold"
-          style={{
-            textAlign: 'left',
-            cursor: 'pointer',
-            width: '100%',
-            fontFamily: 'inherit',
-            justifyContent: 'center',
-          }}
+        <div
+          className="entry-carousel-viewport"
+          onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEnd}
         >
-          <BoxHeader
-            icon={<ChecklistShieldIcon size={32} color="#03543F" />}
-            title="임종 및 사후 정리"
-            subtitle="지금 해야 할 일부터 순서대로 안내해 드립니다."
-            iconBg="rgba(212, 163, 89, 0.16)"
-          />
-          <RevealContent>
-            <ChipRow labels={box2Keys.map((k) => chipLabels[k])} />
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.3rem',
-                marginTop: '1.1rem',
-                paddingTop: '1rem',
-                borderTop: '1px solid rgba(212, 163, 89, 0.25)',
-                color: 'var(--point-color)',
-                fontSize: '1rem',
-                fontWeight: 700,
-              }}
-            >
-              자세히 보기 <ChevronRight size={18} />
-            </div>
-          </RevealContent>
+          <div
+            className="entry-carousel-track entry-boxes-focus-group"
+            style={{ width: `${pageCount * 100}%`, transform: `translateX(-${safeCurrentPage * (100 / pageCount)}%)` }}
+          >
+            {pages.map((pageItems, pageIndex) => (
+              <div
+                key={pageIndex}
+                className="entry-carousel-page"
+                style={{ width: `${100 / pageCount}%` }}
+                aria-hidden={pageIndex !== safeCurrentPage}
+              >
+                <div
+                  className="entry-boxes-grid"
+                  style={{ display: 'grid', gridTemplateColumns: `repeat(${pageItems.length}, 1fr)`, gap: '1.5rem' }}
+                >
+                  {pageItems}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <button
+          ref={nextArrowRef}
+          type="button"
+          className="entry-carousel-arrow"
+          onClick={goNext}
+          disabled={safeCurrentPage === pageCount - 1}
+          aria-label="다음 항목 보기"
+        >
+          <ChevronRight size={22} />
         </button>
       </div>
 
-      {/* 하단 블록 — ③④ 낮은 카드, 높이 약 절반(00-23 §8.5) */}
-      <div
-        className="entry-boxes-grid"
-        style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginTop: '1.5rem' }}
-      >
-        {/* ③ 추모관(구 Guest) — 받으신 링크를 붙여넣으면 바로 입장(00-23 §4.4). 2026-08-21: 목업
-            비활성 고정에서 실제 동작으로 전환 — /m/:slug 랜딩 라우트(App.tsx)가 생기면서 가능해졌다. */}
-        <div className="card entry-box-secondary entry-box-card entry-box-tint-slate">
-          <BoxHeader
-            icon={<Flower2 size={24} color="#5B7065" />}
-            title="추모관"
-            subtitle="받으신 추모관 링크로 입장하세요."
-            size="sm"
-          />
-          <RevealContent>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem', marginTop: '0.8rem' }}>
-              <input
-                type="text"
-                className="form-input"
-                placeholder="받으신 링크를 그대로 붙여넣어 주세요"
-                value={memorialLinkInput}
-                onChange={(e) => {
-                  setMemorialLinkInput(e.target.value);
-                  if (memorialLinkError) setMemorialLinkError('');
-                }}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') handleMemorialLinkEnter();
-                }}
-              />
-              <button type="button" onClick={handleMemorialLinkEnter} className="btn btn-primary">
-                입장
-              </button>
-              {memorialLinkError && (
-                <p style={{ fontSize: '0.8rem', color: '#B91C1C', margin: 0 }}>{memorialLinkError}</p>
-              )}
-            </div>
-          </RevealContent>
+      {pageCount > 1 && (
+        <div className="entry-carousel-dots" role="tablist" aria-label="박스 페이지 이동">
+          {pages.map((_, pageIndex) => (
+            <button
+              key={pageIndex}
+              type="button"
+              className={`entry-carousel-dot${pageIndex === safeCurrentPage ? ' active' : ''}`}
+              onClick={() => goToPage(pageIndex)}
+              role="tab"
+              aria-selected={pageIndex === safeCurrentPage}
+              aria-label={`${pageIndex + 1}번째 페이지로 이동`}
+            />
+          ))}
         </div>
-
-        {/* ④ 파트너 — 항목 1개뿐이라 기존 방식(목록 1줄) 그대로 유지 */}
-        <div className="card entry-box-secondary entry-box-card entry-box-tint-slate">
-          <BoxHeader
-            icon={<Building2 size={24} color="var(--primary-color)" />}
-            title="파트너"
-            subtitle="장사시설·전문가 사업자이신가요?"
-            size="sm"
-          />
-          <RevealContent>
-            <div style={{ marginTop: '0.5rem' }}>
-              {box4Items.map((item) => (
-                <EntryRow key={item.label} item={item} currentUser={currentUser} onOpenLogin={onOpenLogin} setActiveTab={setActiveTab} />
-              ))}
-            </div>
-            <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', margin: '0.5rem 0 0 0' }}>
-              로그인하시면 대시보드로 이동합니다.
-            </p>
-          </RevealContent>
-        </div>
-      </div>
+      )}
 
       {openBox === 'box1' && (
         <BoxDetailOverlay

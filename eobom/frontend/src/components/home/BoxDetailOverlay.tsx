@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { X, ArrowRight } from 'lucide-react';
+import { X, ArrowRight, ChevronUp, ChevronDown } from 'lucide-react';
 import { DomainSlide } from './domainSlides';
 
 // 4박스 클릭 시 뜨는 박스별 미니 풀스크린 오버레이 — HomePage의 풀페이지 휠 스크롤과
@@ -135,6 +135,32 @@ export const BoxDetailOverlay: React.FC<BoxDetailOverlayProps> = ({
       >
         <X size={22} color="#1A2B4C" />
       </button>
+
+      {/* 위/아래 슬라이드가 더 있음을 알리는 가벼운 힌트 — 원형 배경 없이 반투명 아이콘만
+          (개발자 확정, 2026-08). 메인 홈(HomePage.tsx)과 같은 .scroll-hint 클래스를 공유한다.
+          위/아래 각각 해당 방향에 슬라이드가 있을 때만 노출. */}
+      {activeIndex > 0 && (
+        <button
+          type="button"
+          onClick={() => goTo(activeIndex - 1)}
+          className="scroll-hint scroll-hint--up"
+          aria-label="이전 슬라이드"
+          title="이전 슬라이드"
+        >
+          <ChevronUp size={34} />
+        </button>
+      )}
+      {activeIndex < slides.length - 1 && (
+        <button
+          type="button"
+          onClick={() => goTo(activeIndex + 1)}
+          className="scroll-hint scroll-hint--down"
+          aria-label="다음 슬라이드"
+          title="다음 슬라이드"
+        >
+          <ChevronDown size={34} />
+        </button>
+      )}
 
       {slides.length > 1 && (
         <div

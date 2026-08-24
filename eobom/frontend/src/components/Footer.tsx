@@ -3,24 +3,22 @@ import { Link } from 'react-router-dom';
 import { Phone, ShieldCheck, FileText, Lock } from 'lucide-react';
 import { EobomLogo } from './EobomLogo';
 
-interface FooterProps {
-  isFullPageSnap?: boolean;
-}
-
-export const Footer: React.FC<FooterProps> = ({ isFullPageSnap = false }) => {
+// 2026-08-24 — Header.tsx(A안: 흰 배경 + 평면 메뉴)와 같은 톤으로 재개편. 기존 짙은 네이비 블록
+// 대신 배경을 투명하게 둔다 — HomePage.tsx 섹션2(에필로그)에서는 그 위에 fullpage_03 배경 사진이
+// 깔려 있어 Footer까지 사진이 자연스럽게 이어져 보이고, 다른 페이지(App.tsx)에서는 페이지 배경색
+// (--secondary-color, 크림)이 그대로 비쳐 보여 어느 쪽이든 위화감이 없다.
+// isFullPageSnap(둥근 카드로 띄우는 변형)은 실제로 어디서도 true로 넘겨진 적 없는 죽은 분기였고,
+// 짙은 배경을 전제로 한 그림자·라운딩이라 투명 배경 디자인과 맞지 않아 이번에 정리했다.
+export const Footer: React.FC = () => {
   return (
     <footer
       style={{
-        backgroundColor: '#1A2B4C',
-        color: '#D1D5DB',
-        padding: isFullPageSnap ? '1.75rem 1.75rem 1.3rem 1.75rem' : '2.25rem 1.5rem 1.5rem 1.5rem',
-        marginTop: isFullPageSnap ? 0 : '2.75rem',
-        borderRadius: isFullPageSnap ? '24px' : 0,
-        boxShadow: isFullPageSnap ? '0 16px 40px rgba(26, 43, 76, 0.15)' : 'none',
-        borderTop: isFullPageSnap ? '4px solid var(--accent-gold)' : '5px solid var(--point-color)',
-        maxWidth: isFullPageSnap ? '1200px' : '100%',
-        width: '100%',
-        margin: isFullPageSnap ? '0 auto' : '2.75rem 0 0 0'
+        backgroundColor: 'transparent',
+        color: 'var(--text-muted)',
+        padding: '2.5rem 1.75rem 1.75rem',
+        marginTop: '2rem',
+        borderTop: '1px solid var(--border-color)',
+        width: '100%'
       }}
     >
       <div
@@ -30,16 +28,16 @@ export const Footer: React.FC<FooterProps> = ({ isFullPageSnap = false }) => {
           margin: '0 auto',
           display: 'grid',
           gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
-          gap: '1.75rem',
+          gap: '1.4rem',
           alignItems: 'start'
         }}
       >
-        {/* 열 1: 플랫폼 소개 */}
+        {/* 열 1: 플랫폼 소개 — Header.tsx와 같은 밝은 배경용 심볼(variant="symbol")로 통일 */}
         <div>
           <div style={{ marginBottom: '1rem' }}>
-            <EobomLogo variant="footer" height={36} />
+            <EobomLogo variant="symbol" height={34} />
           </div>
-          <p style={{ fontSize: '0.88rem', lineHeight: 1.7, color: '#9CA3AF', margin: 0 }}>
+          <p style={{ fontSize: '0.88rem', lineHeight: 1.7, color: 'var(--text-muted)', margin: 0 }}>
             생전 준비(엔딩노트, 상속)부터 임종 직후(장례, 묘지) 및 사후 정리(디지털 유품, 사망 행정)까지 단일 플랫폼에서 완결하는 웰다잉 토탈 케어 정보 서비스입니다.
           </p>
         </div>
@@ -48,7 +46,7 @@ export const Footer: React.FC<FooterProps> = ({ isFullPageSnap = false }) => {
         <div>
           <h3
             style={{
-              color: '#FFFFFF',
+              color: 'var(--primary-color)',
               fontSize: '1.05rem',
               fontWeight: 700,
               marginBottom: '0.9rem',
@@ -58,7 +56,7 @@ export const Footer: React.FC<FooterProps> = ({ isFullPageSnap = false }) => {
               lineHeight: 1.2
             }}
           >
-            <Lock size={18} color="#D4A359" /> 보안 &amp; 약관
+            <Lock size={18} color="var(--point-color)" /> 보안 &amp; 약관
           </h3>
           <ul
             style={{
@@ -67,7 +65,7 @@ export const Footer: React.FC<FooterProps> = ({ isFullPageSnap = false }) => {
               margin: 0,
               fontSize: '0.88rem',
               lineHeight: 1.9,
-              color: '#9CA3AF'
+              color: 'var(--text-muted)'
             }}
           >
             {/* "KISA 기준 최고 등급 보안 암호화" 문구 제거(00-14 §2.5(2-7), 2026-08-18 개발자 확정) —
@@ -75,12 +73,12 @@ export const Footer: React.FC<FooterProps> = ({ isFullPageSnap = false }) => {
                 없이 제거하며, 실제 보안 조치가 갖춰지면 그때 추가한다(00-18 §2.3). */}
             <li style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               <Link to="/terms" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'inherit', textDecoration: 'none' }}>
-                <FileText size={16} color="#9CA3AF" /> 서비스 이용약관
+                <FileText size={16} color="var(--text-muted)" /> 서비스 이용약관
               </Link>
             </li>
             <li style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               <Link to="/privacy" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'inherit', textDecoration: 'none' }}>
-                <ShieldCheck size={16} color="#9CA3AF" /> 개인정보 처리방침
+                <ShieldCheck size={16} color="var(--text-muted)" /> 개인정보 처리방침
               </Link>
             </li>
           </ul>
@@ -92,7 +90,7 @@ export const Footer: React.FC<FooterProps> = ({ isFullPageSnap = false }) => {
         <div>
           <h3
             style={{
-              color: '#FFFFFF',
+              color: 'var(--primary-color)',
               fontSize: '1.05rem',
               fontWeight: 700,
               marginBottom: '0.9rem',
@@ -102,13 +100,13 @@ export const Footer: React.FC<FooterProps> = ({ isFullPageSnap = false }) => {
               lineHeight: 1.2
             }}
           >
-            <Phone size={18} color="#D4A359" /> 고객센터
+            <Phone size={18} color="var(--point-color)" /> 고객센터
           </h3>
           <div
             style={{
               fontSize: '1.5rem',
               fontWeight: 800,
-              color: '#D4A359',
+              color: 'var(--primary-color)',
               marginBottom: '0.4rem',
               display: 'flex',
               alignItems: 'center',
@@ -119,37 +117,24 @@ export const Footer: React.FC<FooterProps> = ({ isFullPageSnap = false }) => {
           >
             1588-0000
           </div>
-          <p style={{ fontSize: '0.88rem', lineHeight: 1.7, color: '#9CA3AF', margin: 0 }}>
+          <p style={{ fontSize: '0.88rem', lineHeight: 1.7, color: 'var(--text-muted)', margin: 0 }}>
             장사시설·장례 절차 관련 문의는 전화로 안내해드립니다.
           </p>
         </div>
       </div>
 
-      {/* 파트너 진입 링크 — 카피라이트 줄(법적 고지, 스캔에서 빠짐)에서 분리해 본문 정보로
-          승격(00-06 §7.3 ②). 열 2(보안 & 약관)와 같은 0.88rem. */}
+      {/* 파트너 진입 링크 삭제(개발자 확정, 2026-08) — 파트너 진입은 LoginModal 하단 분기로도
+          가능하다(00-06 §7.3 ①). 링크 제거로 비어난 자리만큼 카피라이트 줄 여백도 같이 줄인다. */}
       <div
         style={{
           width: '100%',
           maxWidth: '1400px',
-          margin: '1.5rem auto 0 auto',
-          paddingTop: '1.25rem',
-          borderTop: '1px solid rgba(255,255,255,0.1)',
-          textAlign: 'center'
-        }}
-      >
-        <Link to="/partner" style={{ fontSize: '0.88rem', color: '#D1D5DB', textDecoration: 'underline', fontWeight: 600 }}>
-          장사시설·전문가 파트너이신가요? →
-        </Link>
-      </div>
-
-      <div
-        style={{
-          width: '100%',
-          maxWidth: '1400px',
-          margin: '0.9rem auto 0 auto',
+          margin: '1.1rem auto 0 auto',
+          paddingTop: '0.9rem',
+          borderTop: '1px solid var(--border-color)',
           textAlign: 'center',
           fontSize: '0.82rem',
-          color: '#6B7280'
+          color: 'var(--text-muted)'
         }}
       >
         Copyright © 2026 이어봄 (Eobom) Total Care Platform. All rights reserved.

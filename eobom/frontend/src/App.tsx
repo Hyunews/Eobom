@@ -291,7 +291,6 @@ function AppShell() {
             onOpenAccountSettings={() => { setMyPageMessage(null); setIsMyPageOpen(true); }}
             currentUser={currentUser}
             onLogout={handleLogout}
-            navMode={isHomeRoute ? null : navMode}
             onSetMode={handleSetNavMode}
             onOpenMobileMenu={isHomeRoute ? undefined : () => setIsMobileMenuOpen(true)}
           />
