@@ -80,7 +80,7 @@ export const MemorialPage: React.FC<MemorialPageProps> = () => {
             <h4 style={{ color: 'var(--primary-color)', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               <MessageSquarePlus color="var(--primary-color)" /> 추모 방명록 작성
             </h4>
-            <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '-0.5rem', marginBottom: '1rem' }}>
+            <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginTop: '-0.5rem', marginBottom: '1rem' }}>
               * 아래 방명록은 화면 구성 예시이며, 실제 작성자·게시물이 아닙니다.
             </p>
             <form onSubmit={handleAddGuestbook} style={{ marginBottom: '1.1rem' }}>
@@ -126,7 +126,7 @@ export const MemorialPage: React.FC<MemorialPageProps> = () => {
             <h4 style={{ color: 'var(--primary-color)', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               <Image color="var(--primary-color)" /> 추모 사진 등록 & 갤러리
             </h4>
-            <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '-0.5rem', marginBottom: '1rem' }}>
+            <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginTop: '-0.5rem', marginBottom: '1rem' }}>
               * 아래 사진은 Unsplash 제공 예시 이미지입니다. 실제 고인의 사진이 아닙니다.
             </p>
             <form onSubmit={handleAddPhoto} style={{ marginBottom: '1.1rem' }}>
@@ -149,7 +149,7 @@ export const MemorialPage: React.FC<MemorialPageProps> = () => {
               {memorialPhotos.map((photo, idx) => (
                 <div key={idx} style={{ borderRadius: '8px', overflow: 'hidden', border: '1px solid var(--border-color)', backgroundColor: 'var(--secondary-color)' }}>
                   <img src={photo.url} alt={photo.title} style={{ width: '100%', height: '100px', objectFit: 'cover' }} />
-                  <p style={{ padding: '0.5rem', fontSize: '0.8rem', fontWeight: 600, textAlign: 'center' }}>{photo.title}</p>
+                  <p style={{ padding: '0.5rem', fontSize: '0.85rem', fontWeight: 600, textAlign: 'center' }}>{photo.title}</p>
                 </div>
               ))}
             </div>

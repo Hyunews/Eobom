@@ -353,7 +353,7 @@ export const BizDashboard: React.FC<BizDashboardProps> = ({ type, name, onLogout
               <div style={{ marginBottom: '0.6rem' }}>
                 <span
                   style={{
-                    fontSize: '0.8rem',
+                    fontSize: '0.85rem',
                     fontWeight: 700,
                     padding: '0.2rem 0.6rem',
                     borderRadius: '10px',
@@ -386,7 +386,7 @@ export const BizDashboard: React.FC<BizDashboardProps> = ({ type, name, onLogout
                 <div key={r.id} style={{ padding: '0.8rem 0', borderTop: '1px solid var(--border-color)' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.3rem' }}>
                     <strong style={{ fontSize: '0.9rem' }}>{r.requestNo}</strong>
-                    <span style={{ fontSize: '0.78rem', fontWeight: 700, color: CONSULT_STATUS_COLOR[r.status] || '#444' }}>
+                    <span style={{ fontSize: '0.85rem', fontWeight: 700, color: CONSULT_STATUS_COLOR[r.status] || '#444' }}>
                       {CONSULT_STATUS_LABELS[r.status] || r.status}
                     </span>
                   </div>
@@ -400,7 +400,7 @@ export const BizDashboard: React.FC<BizDashboardProps> = ({ type, name, onLogout
                         disabled={updatingConsultId === r.id}
                         onClick={() => updateConsultStatus(r.id, 'ACCEPTED')}
                         className="btn"
-                        style={{ backgroundColor: 'var(--secondary-color)', color: 'var(--primary-color)', fontSize: '0.8rem', padding: '0.35rem 0.7rem' }}
+                        style={{ backgroundColor: 'var(--secondary-color)', color: 'var(--primary-color)', fontSize: '0.85rem', padding: '0.35rem 0.7rem' }}
                       >
                         수락
                       </button>
@@ -408,7 +408,7 @@ export const BizDashboard: React.FC<BizDashboardProps> = ({ type, name, onLogout
                         disabled={updatingConsultId === r.id}
                         onClick={() => updateConsultStatus(r.id, 'CANCELLED')}
                         className="btn"
-                        style={{ backgroundColor: '#F1F5F9', color: '#6B7280', fontSize: '0.8rem', padding: '0.35rem 0.7rem' }}
+                        style={{ backgroundColor: '#F1F5F9', color: '#6B7280', fontSize: '0.85rem', padding: '0.35rem 0.7rem' }}
                       >
                         거절
                       </button>
@@ -420,7 +420,7 @@ export const BizDashboard: React.FC<BizDashboardProps> = ({ type, name, onLogout
                         disabled={updatingConsultId === r.id}
                         onClick={() => updateConsultStatus(r.id, 'COMPLETED')}
                         className="btn"
-                        style={{ backgroundColor: 'var(--secondary-color)', color: 'var(--primary-color)', fontSize: '0.8rem', padding: '0.35rem 0.7rem' }}
+                        style={{ backgroundColor: 'var(--secondary-color)', color: 'var(--primary-color)', fontSize: '0.85rem', padding: '0.35rem 0.7rem' }}
                       >
                         상담 완료 처리
                       </button>
@@ -459,7 +459,7 @@ export const BizDashboard: React.FC<BizDashboardProps> = ({ type, name, onLogout
                 <div key={lead.leadNo} style={{ padding: '0.8rem 0', borderTop: '1px solid var(--border-color)' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.4rem', marginBottom: '0.3rem' }}>
                     <strong style={{ fontSize: '0.9rem' }}>{lead.leadNo}</strong>
-                    <span style={{ fontSize: '0.78rem', fontWeight: 700, color: LEAD_STATUS_COLOR[lead.status] || '#444' }}>
+                    <span style={{ fontSize: '0.85rem', fontWeight: 700, color: LEAD_STATUS_COLOR[lead.status] || '#444' }}>
                       {LEAD_STATUS_LABELS[lead.status] || lead.status}
                     </span>
                   </div>
@@ -478,7 +478,7 @@ export const BizDashboard: React.FC<BizDashboardProps> = ({ type, name, onLogout
                         disabled={updatingLeadNo === lead.leadNo}
                         onClick={() => updateLeadStatus(lead.leadNo, 'RESPONDED')}
                         className="btn"
-                        style={{ backgroundColor: 'var(--secondary-color)', color: 'var(--primary-color)', fontSize: '0.8rem', padding: '0.35rem 0.7rem' }}
+                        style={{ backgroundColor: 'var(--secondary-color)', color: 'var(--primary-color)', fontSize: '0.85rem', padding: '0.35rem 0.7rem' }}
                       >
                         응답 완료로 표시
                       </button>
@@ -490,7 +490,7 @@ export const BizDashboard: React.FC<BizDashboardProps> = ({ type, name, onLogout
                         disabled={updatingLeadNo === lead.leadNo}
                         onClick={() => updateLeadStatus(lead.leadNo, 'CONVERTED')}
                         className="btn"
-                        style={{ backgroundColor: '#DEF7EC', color: '#03543F', fontSize: '0.8rem', padding: '0.35rem 0.7rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}
+                        style={{ backgroundColor: '#DEF7EC', color: '#03543F', fontSize: '0.85rem', padding: '0.35rem 0.7rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}
                       >
                         <CheckCircle2 size={14} /> 성사 처리
                       </button>
@@ -498,7 +498,7 @@ export const BizDashboard: React.FC<BizDashboardProps> = ({ type, name, onLogout
                         disabled={updatingLeadNo === lead.leadNo}
                         onClick={() => updateLeadStatus(lead.leadNo, 'LOST')}
                         className="btn"
-                        style={{ backgroundColor: '#F1F5F9', color: '#6B7280', fontSize: '0.8rem', padding: '0.35rem 0.7rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}
+                        style={{ backgroundColor: '#F1F5F9', color: '#6B7280', fontSize: '0.85rem', padding: '0.35rem 0.7rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}
                       >
                         <XCircle size={14} /> 무산 처리
                       </button>
@@ -510,11 +510,11 @@ export const BizDashboard: React.FC<BizDashboardProps> = ({ type, name, onLogout
 
             {leadTotalPages > 1 && (
               <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.8rem', marginTop: '0.8rem' }}>
-                <button disabled={leadPage <= 1} onClick={() => goToLeadPage(leadPage - 1)} className="btn" style={{ backgroundColor: '#F1F5F9', fontSize: '0.8rem', padding: '0.35rem 0.7rem', opacity: leadPage <= 1 ? 0.5 : 1 }}>
+                <button disabled={leadPage <= 1} onClick={() => goToLeadPage(leadPage - 1)} className="btn" style={{ backgroundColor: '#F1F5F9', fontSize: '0.85rem', padding: '0.35rem 0.7rem', opacity: leadPage <= 1 ? 0.5 : 1 }}>
                   이전
                 </button>
                 <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>{leadPage} / {leadTotalPages} 페이지</span>
-                <button disabled={leadPage >= leadTotalPages} onClick={() => goToLeadPage(leadPage + 1)} className="btn" style={{ backgroundColor: '#F1F5F9', fontSize: '0.8rem', padding: '0.35rem 0.7rem', opacity: leadPage >= leadTotalPages ? 0.5 : 1 }}>
+                <button disabled={leadPage >= leadTotalPages} onClick={() => goToLeadPage(leadPage + 1)} className="btn" style={{ backgroundColor: '#F1F5F9', fontSize: '0.85rem', padding: '0.35rem 0.7rem', opacity: leadPage >= leadTotalPages ? 0.5 : 1 }}>
                   다음
                 </button>
               </div>
@@ -541,7 +541,7 @@ export const BizDashboard: React.FC<BizDashboardProps> = ({ type, name, onLogout
                 <div>
                   <strong>{f.name}</strong>
                   <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginLeft: '0.5rem' }}>{f.location}</span>
-                  {f.isPartner && <span style={{ fontSize: '0.75rem', color: '#92400E', marginLeft: '0.5rem' }}>(이미 연동된 시설)</span>}
+                  {f.isPartner && <span style={{ fontSize: '0.85rem', color: '#92400E', marginLeft: '0.5rem' }}>(이미 연동된 시설)</span>}
                 </div>
                 <button onClick={() => submitClaim(f.id)} className="btn" style={{ backgroundColor: 'var(--secondary-color)', color: 'var(--primary-color)', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
                   <Link2 size={14} /> 연동 신청

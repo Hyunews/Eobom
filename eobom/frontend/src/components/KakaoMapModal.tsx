@@ -211,19 +211,19 @@ export const KakaoMapModal: React.FC<KakaoMapModalProps> = ({ facility, userLoca
 
         <div style={{ marginBottom: '1rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <span style={{ fontSize: '0.8rem', backgroundColor: '#FEE500', color: '#191919', padding: '0.2rem 0.6rem', borderRadius: '12px', fontWeight: 800 }}>
+            <span style={{ fontSize: '0.85rem', backgroundColor: '#FEE500', color: '#191919', padding: '0.2rem 0.6rem', borderRadius: '12px', fontWeight: 800 }}>
               Kakao Maps Live Integration
             </span>
             {isMapLoaded ? (
-              <span style={{ fontSize: '0.75rem', backgroundColor: '#DEF7EC', color: '#03543F', padding: '0.2rem 0.5rem', borderRadius: '10px', fontWeight: 700 }}>
+              <span style={{ fontSize: '0.85rem', backgroundColor: '#DEF7EC', color: '#03543F', padding: '0.2rem 0.5rem', borderRadius: '10px', fontWeight: 700 }}>
                 ● 실제 카카오 지도 렌더링 완료
               </span>
             ) : loadFailed ? (
-              <span style={{ fontSize: '0.75rem', backgroundColor: '#FEE2E2', color: '#991B1B', padding: '0.2rem 0.5rem', borderRadius: '10px', fontWeight: 700 }}>
+              <span style={{ fontSize: '0.85rem', backgroundColor: '#FEE2E2', color: '#991B1B', padding: '0.2rem 0.5rem', borderRadius: '10px', fontWeight: 700 }}>
                 ● 지도를 불러오지 못했습니다
               </span>
             ) : (
-              <span style={{ fontSize: '0.75rem', backgroundColor: '#FEF3C7', color: '#92400E', padding: '0.2rem 0.5rem', borderRadius: '10px', fontWeight: 700 }}>
+              <span style={{ fontSize: '0.85rem', backgroundColor: '#FEF3C7', color: '#92400E', padding: '0.2rem 0.5rem', borderRadius: '10px', fontWeight: 700 }}>
                 ● 카카오 지도 렌더링 중...
               </span>
             )}
@@ -274,7 +274,7 @@ export const KakaoMapModal: React.FC<KakaoMapModalProps> = ({ facility, userLoca
                 <div style={{ textAlign: 'center', padding: '0 1.5rem' }}>
                   <MapPin size={32} color="#991B1B" style={{ marginBottom: '0.5rem' }} />
                   <p style={{ fontSize: '0.9rem', color: '#991B1B', fontWeight: 700 }}>지도를 불러오지 못했습니다</p>
-                  <p style={{ fontSize: '0.8rem', color: '#64748B' }}>
+                  <p style={{ fontSize: '0.85rem', color: '#64748B' }}>
                     카카오맵 API 키가 없거나, 개발자 콘솔에서 지도 서비스가 비활성 상태일 수 있습니다.
                   </p>
                 </div>
@@ -282,7 +282,7 @@ export const KakaoMapModal: React.FC<KakaoMapModalProps> = ({ facility, userLoca
                 <div style={{ textAlign: 'center' }}>
                   <MapPin size={32} color="var(--accent-red)" className="animate-pulse" style={{ marginBottom: '0.5rem' }} />
                   <p style={{ fontSize: '0.9rem', color: '#475569', fontWeight: 700 }}>실제 카카오 지도를 불러오는 중입니다...</p>
-                  <p style={{ fontSize: '0.8rem', color: '#94A3B8' }}>{facility.name} (좌표: {lat}, {lng})</p>
+                  <p style={{ fontSize: '0.85rem', color: '#94A3B8' }}>{facility.name} (좌표: {lat}, {lng})</p>
                 </div>
               )}
             </div>

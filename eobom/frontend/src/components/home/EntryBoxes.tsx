@@ -64,7 +64,7 @@ export const Badge: React.FC<{ status: 'preview' | 'comingSoon' }> = ({ status }
     <span
       style={{
         flexShrink: 0,
-        fontSize: '0.75rem',
+        fontSize: '0.85rem',
         fontWeight: 700,
         padding: '0.2rem 0.55rem',
         borderRadius: '4px',
@@ -418,7 +418,7 @@ export const EntryBoxes: React.FC<EntryBoxesProps> = ({ currentUser, onOpenLogin
             입장
           </button>
           {memorialLinkError && (
-            <p style={{ fontSize: '0.8rem', color: '#B91C1C', margin: 0 }}>{memorialLinkError}</p>
+            <p style={{ fontSize: '0.85rem', color: '#B91C1C', margin: 0 }}>{memorialLinkError}</p>
           )}
         </div>
       </RevealContent>

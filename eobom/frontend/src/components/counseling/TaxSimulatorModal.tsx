@@ -179,7 +179,7 @@ export const TaxSimulatorModal: React.FC<TaxSimulatorModalProps> = ({ onClose })
           backgroundColor: '#FFFBEB',
           border: '1px solid #FDE68A',
           borderRadius: '8px',
-          fontSize: '0.8rem',
+          fontSize: '0.85rem',
           color: '#78350F',
         }}>
           <p style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontWeight: 700, marginBottom: '0.5rem' }}>

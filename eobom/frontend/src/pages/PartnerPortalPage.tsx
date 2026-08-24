@@ -379,7 +379,7 @@ export const PartnerPortalPage: React.FC = () => {
         )}
       </div>
 
-      <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', textAlign: 'center', marginTop: '1.2rem' }}>
+      <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', textAlign: 'center', marginTop: '1.2rem' }}>
         가입 신청 후 운영자 심사를 거쳐 승인되면 로그인하실 수 있습니다.
       </p>
 

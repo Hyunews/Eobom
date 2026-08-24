@@ -183,7 +183,7 @@ export const CounselingPage: React.FC<CounselingPageProps> = ({ currentUser, onO
               }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.3rem' }}>
                   <h4 style={{ color: 'var(--primary-color)', fontSize: '1.1rem' }}>{exp.name}</h4>
-                  <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#fff', backgroundColor: 'var(--point-color)', padding: '0.2rem 0.6rem', borderRadius: '10px' }}>
+                  <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#fff', backgroundColor: 'var(--point-color)', padding: '0.2rem 0.6rem', borderRadius: '10px' }}>
                     {CATEGORY_LABEL[exp.category] || exp.category}
                   </span>
                 </div>
@@ -193,7 +193,7 @@ export const CounselingPage: React.FC<CounselingPageProps> = ({ currentUser, onO
                 {exp.specialties.length > 0 && (
                   <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap', marginBottom: '0.5rem' }}>
                     {exp.specialties.map((s, i) => (
-                      <span key={i} style={{ fontSize: '0.75rem', backgroundColor: 'var(--card-bg)', padding: '0.15rem 0.5rem', borderRadius: '4px', color: '#444' }}>
+                      <span key={i} style={{ fontSize: '0.85rem', backgroundColor: 'var(--card-bg)', padding: '0.15rem 0.5rem', borderRadius: '4px', color: '#444' }}>
                         #{s}
                       </span>
                     ))}

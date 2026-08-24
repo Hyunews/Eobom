@@ -159,7 +159,7 @@ export const MyPage: React.FC<MyPageProps> = ({ currentUser, onOpenLogin, onOpen
             <h2 style={{ margin: 0, color: 'var(--primary-color)', fontSize: '1.4rem' }}>{displayName} 님</h2>
             <span
               style={{
-                fontSize: '0.7rem',
+                fontSize: '0.85rem',
                 fontWeight: 800,
                 padding: '0.25rem 0.6rem',
                 borderRadius: '10px',

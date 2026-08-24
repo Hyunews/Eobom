@@ -152,7 +152,7 @@ export const CareGuidePage: React.FC<CareGuidePageProps> = ({ setActiveTab }) =>
             <div key={severity} style={{ marginBottom: '1.5rem' }}>
               <div style={{ marginBottom: '0.6rem' }}>
                 <span style={{ fontSize: '0.9rem', fontWeight: 700, color: meta.color }}>{meta.title}</span>
-                <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', margin: '0.15rem 0 0 0' }}>{meta.desc}</p>
+                <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', margin: '0.15rem 0 0 0' }}>{meta.desc}</p>
               </div>
 
               {/* 카테고리 = 다단(신문 단) 블록. index.css `.care-guide-columns`가 브라우저의
@@ -168,7 +168,7 @@ export const CareGuidePage: React.FC<CareGuidePageProps> = ({ setActiveTab }) =>
                       ref={isInheritanceSet ? inheritanceRef : undefined}
                       className="care-guide-category"
                     >
-                      <div style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.02em', marginBottom: '0.6rem' }}>
+                      <div style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.02em', marginBottom: '0.6rem' }}>
                         {category}
                         {items[0].conditional && ' (해당하는 경우에만)'}
                       </div>
@@ -209,11 +209,11 @@ export const CareGuidePage: React.FC<CareGuidePageProps> = ({ setActiveTab }) =>
                                 <>
                                   {/* 기한·확인필요 배지 — 기본 상태에선 제목만 남기고, 펼쳤을 때만 보이게 이동 */}
                                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap', margin: '0.4rem 0 0 0' }}>
-                                    <span style={{ fontSize: '0.8rem', fontWeight: 700, color: meta.color, backgroundColor: meta.bg, padding: '0.15rem 0.5rem', borderRadius: '4px' }}>
+                                    <span style={{ fontSize: '0.85rem', fontWeight: 700, color: meta.color, backgroundColor: meta.bg, padding: '0.15rem 0.5rem', borderRadius: '4px' }}>
                                       {t.deadlineLabel}{t.deadlineBase !== '-' ? ` · ${t.deadlineBase} 기준` : ''}
                                     </span>
                                     {!t.verified && (
-                                      <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#92400E', backgroundColor: '#FEF3C7', border: '1px solid #FDE68A', padding: '0.1rem 0.45rem', borderRadius: '4px' }}>
+                                      <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#92400E', backgroundColor: '#FEF3C7', border: '1px solid #FDE68A', padding: '0.1rem 0.45rem', borderRadius: '4px' }}>
                                         ⚠️ 확인 필요
                                       </span>
                                     )}
@@ -221,13 +221,13 @@ export const CareGuidePage: React.FC<CareGuidePageProps> = ({ setActiveTab }) =>
                                   {t.note && (
                                     <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', margin: '0.3rem 0 0 0', lineHeight: 1.5 }}>{t.note}</p>
                                   )}
-                                  <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', margin: '0.3rem 0 0 0' }}>근거: {t.legalBasis}</p>
+                                  <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', margin: '0.3rem 0 0 0' }}>근거: {t.legalBasis}</p>
                                   <div style={{ display: 'flex', gap: '0.9rem', flexWrap: 'wrap', marginTop: '0.4rem' }}>
                                     {t.needsExpertHelp && (
                                       <button
                                         type="button"
                                         onClick={(e) => { e.stopPropagation(); setActiveTab?.('counseling'); }}
-                                        style={{ background: 'none', border: 'none', padding: 0, fontSize: '0.8rem', fontWeight: 700, color: 'var(--point-color)', textDecoration: 'underline', cursor: 'pointer' }}
+                                        style={{ background: 'none', border: 'none', padding: 0, fontSize: '0.85rem', fontWeight: 700, color: 'var(--point-color)', textDecoration: 'underline', cursor: 'pointer' }}
                                       >
                                         {LINK_LABEL.counseling}
                                       </button>
@@ -236,7 +236,7 @@ export const CareGuidePage: React.FC<CareGuidePageProps> = ({ setActiveTab }) =>
                                       <button
                                         type="button"
                                         onClick={(e) => { e.stopPropagation(); setActiveTab?.(t.linkTo as string); }}
-                                        style={{ background: 'none', border: 'none', padding: 0, fontSize: '0.8rem', fontWeight: 700, color: 'var(--primary-color)', textDecoration: 'underline', cursor: 'pointer' }}
+                                        style={{ background: 'none', border: 'none', padding: 0, fontSize: '0.85rem', fontWeight: 700, color: 'var(--primary-color)', textDecoration: 'underline', cursor: 'pointer' }}
                                       >
                                         {LINK_LABEL[t.linkTo] || '바로가기 →'}
                                       </button>
@@ -247,7 +247,7 @@ export const CareGuidePage: React.FC<CareGuidePageProps> = ({ setActiveTab }) =>
                                         target="_blank"
                                         rel="noreferrer"
                                         onClick={(e) => e.stopPropagation()}
-                                        style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.8rem', fontWeight: 700, color: 'var(--accent-gold)', textDecoration: 'underline' }}
+                                        style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.85rem', fontWeight: 700, color: 'var(--accent-gold)', textDecoration: 'underline' }}
                                       >
                                         정부24 바로가기 <ExternalLink size={12} />
                                       </a>
@@ -277,7 +277,7 @@ export const CareGuidePage: React.FC<CareGuidePageProps> = ({ setActiveTab }) =>
           );
         })}
 
-        <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '0.5rem', lineHeight: 1.6 }}>
+        <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginTop: '0.5rem', lineHeight: 1.6 }}>
           이 체크리스트는 일반적인 안내이며 개별 사정에 따라 다를 수 있습니다. 정확한 기한 판단은
           전문가 상담을 이용하세요.
         </p>

@@ -346,13 +346,13 @@ export const MyPageFamilyDesignation: React.FC<MyPageFamilyDesignationProps> = (
                   <div style={{ minWidth: 0 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap' }}>
                       <span style={{ fontSize: '0.95rem', fontWeight: 700, color: '#111827' }}>{item.name}</span>
-                      <span style={{ fontSize: '0.75rem', color: '#6B7280' }}>
+                      <span style={{ fontSize: '0.85rem', color: '#6B7280' }}>
                         {RELATIONSHIP_LABEL[item.relationship] || item.relationship}
                         {item.relationship === 'OTHER' && item.relationshipEtc ? `(${item.relationshipEtc})` : ''}
                       </span>
                       <span
                         style={{
-                          fontSize: '0.7rem',
+                          fontSize: '0.85rem',
                           fontWeight: 700,
                           padding: '0.15rem 0.5rem',
                           borderRadius: '999px',
@@ -363,7 +363,7 @@ export const MyPageFamilyDesignation: React.FC<MyPageFamilyDesignationProps> = (
                         {SCOPE_LABEL[item.scope] || item.scope}
                       </span>
                     </div>
-                    <div style={{ fontSize: '0.78rem', color: '#9CA3AF', marginTop: '0.15rem' }}>
+                    <div style={{ fontSize: '0.85rem', color: '#9CA3AF', marginTop: '0.15rem' }}>
                       {item.phone}
                       {item.email ? ` · ${item.email}` : ''} · {statusLabel(item)}
                     </div>
@@ -481,14 +481,14 @@ export const MyPageFamilyDesignation: React.FC<MyPageFamilyDesignationProps> = (
                     className="form-input"
                     style={{ width: '100px' }}
                   />
-                  <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', margin: '0.3rem 0 0 0' }}>
+                  <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', margin: '0.3rem 0 0 0' }}>
                     1순위가 응답이 없을 때 다음 순위로 연락합니다. 법정상속순위와는 무관합니다.
                   </p>
                 </div>
 
                 <div
                   style={{
-                    fontSize: '0.78rem',
+                    fontSize: '0.85rem',
                     color: '#92400E',
                     backgroundColor: '#FEF3C7',
                     border: '1px solid #FDE68A',

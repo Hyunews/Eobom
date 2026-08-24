@@ -212,6 +212,15 @@ body {
   }
 }
 
+/* ── 00-29 §12 조치 A — 모바일 기준선 폰트 확대 ──
+   768px 이하에서만 html font-size를 올린다. 전역으로 걸면 rem 기반 여백 869곳이
+   데스크톱에서도 함께 커져 00-09 §2.4(2026-08-11 밀도 조정)를 되엎는다. */
+@media (max-width: 768px) {
+  html {
+    font-size: var(--base-font-size);
+  }
+}
+
 /* 지도 핀 마커 펄스 애니메이션(KakaoMapModal 전용 — 00-09 §4-3 2026-08-19 정정) */
 @keyframes pulse {
   0%, 100% { opacity: 1; transform: scale(1); }

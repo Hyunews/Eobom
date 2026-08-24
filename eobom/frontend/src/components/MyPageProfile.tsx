@@ -222,7 +222,7 @@ export const MyPageProfile: React.FC<MyPageProfileProps> = ({ isOpen, onClose })
             <div className="form-group" style={{ margin: 0 }}>
               <label className="form-label">연락처</label>
               {current?.contactPhone && !clearPhone && (
-                <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', margin: '0 0 0.35rem 0' }}>
+                <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', margin: '0 0 0.35rem 0' }}>
                   현재 등록된 번호: {current.contactPhone}
                 </p>
               )}
@@ -262,7 +262,7 @@ export const MyPageProfile: React.FC<MyPageProfileProps> = ({ isOpen, onClose })
               <input value={addressRoad} readOnly className="form-input" placeholder="도로명 주소" style={{ marginBottom: '0.5rem' }} />
 
               {current?.addressDetail && !clearDetail && (
-                <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', margin: '0 0 0.35rem 0' }}>
+                <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', margin: '0 0 0.35rem 0' }}>
                   현재 등록된 상세주소: {current.addressDetail}
                 </p>
               )}

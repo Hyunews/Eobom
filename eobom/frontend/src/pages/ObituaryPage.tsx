@@ -424,7 +424,7 @@ export const ObituaryPage: React.FC<ObituaryPageProps> = ({ currentUser, onOpenL
           <div className="form-group">
             <label className="form-label">연락처</label>
             <input type="tel" value={contactPhone} onChange={(e) => setContactPhone(e.target.value)} className="form-input" placeholder="010-0000-0000 (입력하면 부고장에 노출됩니다)" />
-            <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '0.3rem' }}>
+            <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginTop: '0.3rem' }}>
               입력하신 번호는 부고장을 받은 모든 분에게 보입니다.
             </p>
           </div>
@@ -441,7 +441,7 @@ export const ObituaryPage: React.FC<ObituaryPageProps> = ({ currentUser, onOpenL
 
             {accountEnabled && (
               <>
-                <div style={{ fontSize: '0.8rem', color: '#92400E', backgroundColor: '#FEF3C7', border: '1px solid #FDE68A', borderRadius: '6px', padding: '0.6rem 0.75rem', marginBottom: '0.7rem', lineHeight: 1.5 }}>
+                <div style={{ fontSize: '0.85rem', color: '#92400E', backgroundColor: '#FEF3C7', border: '1px solid #FDE68A', borderRadius: '6px', padding: '0.6rem 0.75rem', marginBottom: '0.7rem', lineHeight: 1.5 }}>
                   이 계좌번호는 부고장을 받은 분이 다시 공유할 수 있습니다.
                 </div>
                 <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem' }}>
@@ -529,7 +529,7 @@ export const ObituaryPage: React.FC<ObituaryPageProps> = ({ currentUser, onOpenL
         {/* 미리보기 + (개설 후) 공유/관리 패널 */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
           <div style={{ backgroundColor: '#1A2B4C', color: '#FFFFFF', borderRadius: '16px', padding: '1.25rem', boxShadow: 'var(--box-shadow)' }}>
-            <p style={{ fontSize: '0.75rem', color: '#94A3B8', marginBottom: '0.5rem', textTransform: 'uppercase', letterSpacing: '0.03em' }}>카카오톡 카드 미리보기</p>
+            <p style={{ fontSize: '0.85rem', color: '#94A3B8', marginBottom: '0.5rem', textTransform: 'uppercase', letterSpacing: '0.03em' }}>카카오톡 카드 미리보기</p>
             <div style={{ backgroundColor: '#FFFFFF', borderRadius: '10px', overflow: 'hidden' }}>
               <img src={OBITUARY_CARD_IMAGE_URL} alt="근조 카드 이미지" style={{ width: '100%', height: '120px', objectFit: 'cover', backgroundColor: '#F1F5F9' }} />
               <div style={{ padding: '0.8rem 0.9rem' }}>
@@ -581,9 +581,9 @@ export const ObituaryPage: React.FC<ObituaryPageProps> = ({ currentUser, onOpenL
                       문자로 보내기
                     </a>
                   </div>
-                  {copyFeedback && <p style={{ fontSize: '0.8rem', color: 'var(--point-color)', margin: '0 0 0.6rem 0' }}>{copyFeedback}</p>}
+                  {copyFeedback && <p style={{ fontSize: '0.85rem', color: 'var(--point-color)', margin: '0 0 0.6rem 0' }}>{copyFeedback}</p>}
 
-                  <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', wordBreak: 'break-all', backgroundColor: 'var(--secondary-color)', borderRadius: '6px', padding: '0.6rem 0.7rem', marginBottom: '0.6rem' }}>
+                  <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', wordBreak: 'break-all', backgroundColor: 'var(--secondary-color)', borderRadius: '6px', padding: '0.6rem 0.7rem', marginBottom: '0.6rem' }}>
                     {obituaryUrl}
                   </div>
 
@@ -592,7 +592,7 @@ export const ObituaryPage: React.FC<ObituaryPageProps> = ({ currentUser, onOpenL
                   </a>
 
                   {updatedAt && (
-                    <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '1rem' }}>
+                    <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginTop: '1rem' }}>
                       최종 수정: {formatKST(updatedAt)}
                     </p>
                   )}
@@ -608,7 +608,7 @@ export const ObituaryPage: React.FC<ObituaryPageProps> = ({ currentUser, onOpenL
                     >
                       <PowerOff size={16} /> {isClosing ? '종료 중...' : '부고장 종료'}
                     </button>
-                    <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', margin: '0.5rem 0 0 0', lineHeight: 1.5 }}>
+                    <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', margin: '0.5rem 0 0 0', lineHeight: 1.5 }}>
                       종료하면 조문객이 더 이상 이 링크로 볼 수 없습니다(연락처·계좌 노출 방지, 되돌릴 수 없음). 종료하지 않아도 발인 3일 후 자동으로 종료됩니다.
                     </p>
                   </div>

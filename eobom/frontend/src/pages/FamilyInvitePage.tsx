@@ -216,7 +216,7 @@ export const FamilyInvitePage: React.FC<FamilyInvitePageProps> = ({ currentUser,
           권한: {scope?.label}{scope ? ` (${scope.hint})` : ''}
         </p>
 
-        <div style={{ fontSize: '0.78rem', color: '#92400E', backgroundColor: '#FEF3C7', border: '1px solid #FDE68A', borderRadius: '8px', padding: '0.7rem 0.85rem', marginBottom: '1.4rem', lineHeight: 1.6, textAlign: 'left' }}>
+        <div style={{ fontSize: '0.85rem', color: '#92400E', backgroundColor: '#FEF3C7', border: '1px solid #FDE68A', borderRadius: '8px', padding: '0.7rem 0.85rem', marginBottom: '1.4rem', lineHeight: 1.6, textAlign: 'left' }}>
           수락하시면 사망 통지 등 위 권한이 생깁니다. 거절하셔도 어떤 불이익도 없습니다.
         </div>
 

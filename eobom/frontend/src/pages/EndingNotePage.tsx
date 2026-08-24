@@ -99,14 +99,14 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
             <h3 style={{ color: 'var(--primary-color)', margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               <FileCheck color="var(--point-color)" /> 연명의료 의향 메모 & 장례 희망
             </h3>
-            <span style={{ fontSize: '0.8rem', backgroundColor: 'rgba(26, 43, 76, 0.08)', color: 'var(--primary-color)', padding: '0.2rem 0.6rem', borderRadius: '12px', fontWeight: 600 }}>
+            <span style={{ fontSize: '0.85rem', backgroundColor: 'rgba(26, 43, 76, 0.08)', color: 'var(--primary-color)', padding: '0.2rem 0.6rem', borderRadius: '12px', fontWeight: 600 }}>
               🏥 생전/응급 시 대리인 즉시 열람 가능
             </span>
           </div>
           <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>
             중태 및 응급 시 의료진/지정 대리인이 본인의 연명의료 의향을 생전에 사전 확인할 수 있습니다.
           </p>
-          <div style={{ fontSize: '0.8rem', color: '#92400E', backgroundColor: '#FEF3C7', border: '1px solid #FDE68A', borderRadius: '8px', padding: '0.7rem 0.9rem', marginBottom: '1rem' }}>
+          <div style={{ fontSize: '0.85rem', color: '#92400E', backgroundColor: '#FEF3C7', border: '1px solid #FDE68A', borderRadius: '8px', padding: '0.7rem 0.9rem', marginBottom: '1rem' }}>
             ⚠️ 이 메모는 법적 효력이 없습니다. 법적 효력이 있는 「사전연명의료의향서」는 보건복지부
             지정 등록기관에서 본인이 직접 작성·등록해야 합니다(비용 없음).
           </div>
@@ -129,7 +129,7 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
                 placeholder="예: 홍자녀 (010-1234-5678)" 
                 defaultValue="홍자녀 (010-1234-5678)"
               />
-              <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '0.3rem' }}>
+              <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginTop: '0.3rem' }}>
                 * 응급상황 시 해당 보호자의 휴대전화 SMS 인증 후 연명의료 의향 메모가 1회 열람됩니다.
               </p>
             </div>
@@ -190,7 +190,7 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
             <Key size={18} /> 유족 메시지 & 비밀 보관함 저장
           </button>
 
-          <div style={{ marginTop: '0.85rem', fontSize: '0.8rem', color: '#92400E', backgroundColor: '#FEF3C7', border: '1px solid #FDE68A', borderRadius: '8px', padding: '0.7rem 0.9rem', lineHeight: 1.6 }}>
+          <div style={{ marginTop: '0.85rem', fontSize: '0.85rem', color: '#92400E', backgroundColor: '#FEF3C7', border: '1px solid #FDE68A', borderRadius: '8px', padding: '0.7rem 0.9rem', lineHeight: 1.6 }}>
             ⚠️ 이 기록은 법적 효력이 있는 유언장이 아닙니다. 재산 처분에 관한 의사는 민법이 정한
             방식의 유언장이 따로 필요합니다.{' '}
             {setActiveTab && (

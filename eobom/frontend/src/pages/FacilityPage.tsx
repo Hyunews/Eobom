@@ -251,7 +251,7 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
                     : '현재 위치 자동 감지를 제공하지 않아 기본 위치로 표시 중입니다. 아래에서 시/도·시/군/구를 직접 선택해주세요.'
                 }
                 style={{
-                  fontSize: '0.7rem',
+                  fontSize: '0.85rem',
                   fontWeight: 700,
                   color: '#92400E',
                   backgroundColor: '#FEF3C7',
@@ -288,7 +288,7 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
               ))}
             </select>
           </div>
-          {locationError && <p style={{ color: '#DC2626', fontSize: '0.8rem', margin: '0.4rem 0 0 0' }}>{locationError}</p>}
+          {locationError && <p style={{ color: '#DC2626', fontSize: '0.85rem', margin: '0.4rem 0 0 0' }}>{locationError}</p>}
         </div>
 
         <div style={{ flex: '1 1 180px' }}>
@@ -315,7 +315,7 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
 
       {/* 태그 필터 칩 — 카드까지 스크롤하지 않고도 TAG_CATALOG 등록 태그를 바로 클릭할 수 있게 필터 박스 바로 아래 노출 (2026-08-12 대표 피드백) */}
       <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '0.5rem', marginBottom: '1.2rem' }}>
-        <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>태그:</span>
+        <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>태그:</span>
         {Object.keys(TAG_CATALOG).map((tag) => {
           const active = selectedTag === tag;
           return (
@@ -329,7 +329,7 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
                 border: active ? 'none' : '1px solid var(--border-color)',
                 padding: '0.3rem 0.7rem',
                 borderRadius: '999px',
-                fontSize: '0.78rem',
+                fontSize: '0.85rem',
                 fontWeight: 600,
                 minHeight: 'auto',
                 lineHeight: 1.4
@@ -373,18 +373,18 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
                 ) : (
                   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.3rem', color: 'var(--text-muted)' }}>
                     <ImageIcon size={28} />
-                    <span style={{ fontSize: '0.75rem' }}>등록된 이미지 없음</span>
+                    <span style={{ fontSize: '0.85rem' }}>등록된 이미지 없음</span>
                   </div>
                 )}
               </div>
 
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.6rem' }}>
                 <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center' }}>
-                  <span style={{ fontSize: '0.8rem', backgroundColor: 'var(--secondary-color)', padding: '0.3rem 0.6rem', borderRadius: '6px', fontWeight: 700, color: 'var(--primary-color)' }}>
+                  <span style={{ fontSize: '0.85rem', backgroundColor: 'var(--secondary-color)', padding: '0.3rem 0.6rem', borderRadius: '6px', fontWeight: 700, color: 'var(--primary-color)' }}>
                     {item.type}
                   </span>
                   {distKm && (
-                    <span style={{ fontSize: '0.75rem', backgroundColor: '#FEF3C7', color: 'var(--accent-gold)', padding: '0.25rem 0.5rem', borderRadius: '6px', fontWeight: 700 }}>
+                    <span style={{ fontSize: '0.85rem', backgroundColor: '#FEF3C7', color: 'var(--accent-gold)', padding: '0.25rem 0.5rem', borderRadius: '6px', fontWeight: 700 }}>
                       📍 {distKm} km
                     </span>
                   )}
@@ -416,7 +416,7 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
                       onClick={() => handleTagClick(tag)}
                       title={`"${TAG_CATALOG[tag].label}" 태그로 필터`}
                       style={{
-                        fontSize: '0.75rem',
+                        fontSize: '0.85rem',
                         backgroundColor: selectedTag === tag ? 'var(--point-color)' : '#EAE5DC',
                         color: selectedTag === tag ? '#fff' : '#444',
                         padding: '0.2rem 0.5rem',
@@ -428,7 +428,7 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
                       #{TAG_CATALOG[tag].label}
                     </button>
                   ) : (
-                    <span key={idx} style={{ fontSize: '0.75rem', backgroundColor: '#EAE5DC', padding: '0.2rem 0.5rem', borderRadius: '4px', color: '#444' }}>
+                    <span key={idx} style={{ fontSize: '0.85rem', backgroundColor: '#EAE5DC', padding: '0.2rem 0.5rem', borderRadius: '4px', color: '#444' }}>
                       #{tag}
                     </span>
                   )

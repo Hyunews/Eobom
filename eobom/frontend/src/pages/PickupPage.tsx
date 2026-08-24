@@ -101,7 +101,7 @@ export const PickupPage: React.FC<PickupPageProps> = () => {
             .filter((v) => (!province || v.province === province) && (!district || v.district === district))
             .map((vendor, idx) => (
               <div key={idx} className="card" style={{ borderTop: '4px solid var(--primary-color)', position: 'relative' }}>
-                <span style={{ position: 'absolute', top: '0.7rem', right: '0.7rem', fontSize: '0.7rem', fontWeight: 700, color: '#92400E', backgroundColor: '#FEF3C7', border: '1px solid #FDE68A', borderRadius: '10px', padding: '0.1rem 0.5rem' }}>예시</span>
+                <span style={{ position: 'absolute', top: '0.7rem', right: '0.7rem', fontSize: '0.85rem', fontWeight: 700, color: '#92400E', backgroundColor: '#FEF3C7', border: '1px solid #FDE68A', borderRadius: '10px', padding: '0.1rem 0.5rem' }}>예시</span>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
                   <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--point-color)' }}>📍 {vendor.region}</span>
                   <span style={{ fontWeight: 'bold' }}>★ {vendor.rating}</span>
@@ -109,7 +109,7 @@ export const PickupPage: React.FC<PickupPageProps> = () => {
                 <h4 style={{ color: 'var(--primary-color)', fontSize: '1.2rem', marginBottom: '0.5rem' }}>{vendor.name}</h4>
                 <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap', marginBottom: '1rem' }}>
                   {vendor.tags.map((t, i) => (
-                    <span key={i} style={{ fontSize: '0.8rem', backgroundColor: 'var(--secondary-color)', padding: '0.2rem 0.5rem', borderRadius: '4px' }}>
+                    <span key={i} style={{ fontSize: '0.85rem', backgroundColor: 'var(--secondary-color)', padding: '0.2rem 0.5rem', borderRadius: '4px' }}>
                       #{t}
                     </span>
                   ))}

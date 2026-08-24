@@ -201,7 +201,7 @@ export const MyPageAuthSettings: React.FC<MyPageAuthSettingsProps> = ({ isOpen, 
                   <div>
                     <div style={{ fontSize: '0.95rem', fontWeight: 700, color: '#111827' }}>{providerLabel(provider)}</div>
                     {isLinked && account?.email && (
-                      <div style={{ fontSize: '0.75rem', color: '#9CA3AF' }}>{account.email}</div>
+                      <div style={{ fontSize: '0.85rem', color: '#9CA3AF' }}>{account.email}</div>
                     )}
                   </div>
                 </div>
@@ -220,7 +220,7 @@ export const MyPageAuthSettings: React.FC<MyPageAuthSettingsProps> = ({ isOpen, 
                       color: '#DC2626',
                       borderRadius: '8px',
                       padding: '0.35rem 0.7rem',
-                      fontSize: '0.8rem',
+                      fontSize: '0.85rem',
                       cursor: isLoading ? 'not-allowed' : 'pointer',
                     }}
                   >
@@ -240,7 +240,7 @@ export const MyPageAuthSettings: React.FC<MyPageAuthSettingsProps> = ({ isOpen, 
                       color: 'var(--primary-color)',
                       borderRadius: '8px',
                       padding: '0.35rem 0.7rem',
-                      fontSize: '0.8rem',
+                      fontSize: '0.85rem',
                       cursor: isLoading ? 'not-allowed' : 'pointer',
                     }}
                   >

@@ -134,7 +134,7 @@ export const FacilityReviewModal: React.FC<FacilityReviewModalProps> = ({
                 <span style={{ fontSize: '0.85rem', color: 'var(--point-color)', fontWeight: 700 }}>★ {r.rating}</span>
               </div>
               <p style={{ fontSize: '0.85rem', color: 'var(--text-main)', margin: 0 }}>{r.content}</p>
-              <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.3rem' }}>
+              <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginTop: '0.3rem' }}>
                 {new Date(r.createdAt).toLocaleDateString('ko-KR')}
               </p>
             </div>
@@ -175,9 +175,9 @@ export const FacilityReviewModal: React.FC<FacilityReviewModalProps> = ({
             />
           </div>
 
-          {error && <p style={{ color: '#DC2626', fontSize: '0.8rem', margin: 0 }}>{error}</p>}
+          {error && <p style={{ color: '#DC2626', fontSize: '0.85rem', margin: 0 }}>{error}</p>}
           {justSubmitted && (
-            <p style={{ color: '#059669', fontSize: '0.8rem', margin: 0 }}>✅ 리뷰가 등록되었습니다. 감사합니다!</p>
+            <p style={{ color: '#059669', fontSize: '0.85rem', margin: 0 }}>✅ 리뷰가 등록되었습니다. 감사합니다!</p>
           )}
 
           <button type="submit" disabled={isSubmitting} className="btn btn-primary" style={{ width: '100%' }}>

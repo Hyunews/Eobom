@@ -46,7 +46,7 @@ const ConsentCheckbox: React.FC<{
       </span>
     </label>
     {href && (
-      <a href={href} target="_blank" rel="noopener noreferrer" style={{ fontSize: '0.78rem', color: '#9CA3AF', textDecoration: 'underline', flexShrink: 0 }}>
+      <a href={href} target="_blank" rel="noopener noreferrer" style={{ fontSize: '0.85rem', color: '#9CA3AF', textDecoration: 'underline', flexShrink: 0 }}>
         보기
       </a>
     )}
@@ -185,7 +185,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin
             backgroundColor: 'var(--secondary-color)',
             color: 'var(--primary-color)',
             borderRadius: '20px',
-            fontSize: '0.8rem',
+            fontSize: '0.85rem',
             fontWeight: 600,
             marginBottom: '0.75rem'
           }}>
@@ -396,28 +396,28 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin
 
             {/* 하단 개발용 모의 로그인 버튼 */}
             <div style={{ marginTop: '0.95rem', paddingTop: '0.95rem', borderTop: '1px solid #F3F4F6', textAlign: 'center' }}>
-              <div style={{ fontSize: '0.8rem', color: '#9CA3AF', marginBottom: '0.6rem' }}>
+              <div style={{ fontSize: '0.85rem', color: '#9CA3AF', marginBottom: '0.6rem' }}>
                 [빠른 데모 테스트용 선택]
               </div>
               <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center', marginBottom: '0.75rem', opacity: canProceed ? 1 : 0.45, pointerEvents: canProceed ? 'auto' : 'none', transition: 'opacity 0.2s ease' }}>
                 <button
                   type="button"
                   onClick={() => handleMockSocialLogin('KAKAO')}
-                  style={{ fontSize: '0.78rem', padding: '0.35rem 0.65rem', borderRadius: '6px', border: '1px solid #FEE500', backgroundColor: '#FFFDF0', color: '#191919', cursor: 'pointer' }}
+                  style={{ fontSize: '0.85rem', padding: '0.35rem 0.65rem', borderRadius: '6px', border: '1px solid #FEE500', backgroundColor: '#FFFDF0', color: '#191919', cursor: 'pointer' }}
                 >
                   🟡 카카오(모의)
                 </button>
                 <button
                   type="button"
                   onClick={() => handleMockSocialLogin('NAVER')}
-                  style={{ fontSize: '0.78rem', padding: '0.35rem 0.65rem', borderRadius: '6px', border: '1px solid #03C75A', backgroundColor: '#F0FDF4', color: '#03C75A', cursor: 'pointer' }}
+                  style={{ fontSize: '0.85rem', padding: '0.35rem 0.65rem', borderRadius: '6px', border: '1px solid #03C75A', backgroundColor: '#F0FDF4', color: '#03C75A', cursor: 'pointer' }}
                 >
                   🟢 네이버(모의)
                 </button>
                 <button
                   type="button"
                   onClick={() => handleMockSocialLogin('GOOGLE')}
-                  style={{ fontSize: '0.78rem', padding: '0.35rem 0.65rem', borderRadius: '6px', border: '1px solid #D1D5DB', backgroundColor: '#F9FAFB', color: '#374151', cursor: 'pointer' }}
+                  style={{ fontSize: '0.85rem', padding: '0.35rem 0.65rem', borderRadius: '6px', border: '1px solid #D1D5DB', backgroundColor: '#F9FAFB', color: '#374151', cursor: 'pointer' }}
                 >
                   ⚪ 구글(모의)
                 </button>

@@ -178,7 +178,7 @@ export const InquiryModal: React.FC<InquiryModalProps> = ({ facilityId, facility
               display: 'flex',
               alignItems: 'flex-start',
               gap: '0.5rem',
-              fontSize: '0.8rem',
+              fontSize: '0.85rem',
               color: 'var(--text-muted)',
               backgroundColor: 'var(--card-bg)',
               padding: '0.8rem',
