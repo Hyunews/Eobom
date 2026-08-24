@@ -78,8 +78,12 @@ export const Badge: React.FC<{ status: 'preview' | 'comingSoon' }> = ({ status }
 };
 
 // 클릭 불가 요약 칩 — 박스①②의 호버 펼침 콘텐츠에 쓰인다. 순수 <span>만 써서 어포던스를 안 만든다.
+// 767px 이하는 호버가 없어 RevealContent가 항상 펼쳐진 채로 렌더되는데, 박스②는 칩이 7개라
+// 겹겹이 줄바꿈되며 카드가 뷰포트 세로 길이를 넘어서는 문제가 있었다(2026-08-25 개발자 지적)
+// — index.css `.chip-row` 미디어쿼리로 767px 이하에서 숨긴다("자세히 보기" 진입 후 오버레이에서
+// 항목을 전부 볼 수 있으므로 정보 손실은 아님).
 const ChipRow: React.FC<{ labels: string[] }> = ({ labels }) => (
-  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginTop: '0.9rem' }}>
+  <div className="chip-row" style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginTop: '0.9rem' }}>
     {labels.map((label) => (
       <span
         key={label}
