@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { ArrowRight, ChevronUp, ChevronDown } from 'lucide-react';
 import { domainSlides } from '../components/home/domainSlides';
+import { Footer } from '../components/Footer';
 
 // 2026-08-25 개발자 지시("애초에 굳이 오버레이일 이유가 없음") — 박스①②(생전 준비/임종 및
 // 사후 정리) 클릭 시 뜨던 풀스크린 오버레이(BoxDetailOverlay, 폐지)를 일반 페이지로 바꿨다.
@@ -27,6 +28,14 @@ export const DomainOverviewPage: React.FC<DomainOverviewPageProps> = ({
   setActiveTab,
 }) => {
   const slides = keys.map((k) => domainSlides[k]);
+  // 2026-08-25 재수정 — Footer를 App.tsx가 바깥(body)에 별도로 렌더링했더니, 이 페이지의
+  // 안쪽 스냅 스크롤 컨테이너와 바깥 body 스크롤이 서로 다른 스크롤 위치를 갖는 두 개의
+  // 독립된 스크롤 영역이 되어 "Footer가 다른 페이지 위에 떠 있는 것처럼 보이고, 맨 아래에서
+  // 위로 스크롤하면 안쪽만 움직이고 Footer는 그대로 고정돼 보이는" 문제가 났다(개발자 지적).
+  // 근본 해결은 스크롤 영역을 하나로 합치는 것 — Footer를 도메인 슬라이드와 똑같이 이
+  // 컨테이너 안의 "마지막 섹션"으로 편입한다(App.tsx도 이 두 라우트에서는 바깥 Footer를
+  // 안 그린다). totalSections = 도메인 개수 + Footer 1개.
+  const totalSections = slides.length + 1;
 
   const [activeIndex, setActiveIndex] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -47,26 +56,15 @@ export const DomainOverviewPage: React.FC<DomainOverviewPageProps> = ({
     if (window.matchMedia('(pointer: coarse)').matches) return;
 
     const handleWheel = (e: WheelEvent) => {
-      // 바깥 페이지(body)가 이미 조금이라도 스크롤돼 있으면(=Footer 쪽으로 내려간 상태) 이
-      // 휠 이벤트는 안쪽 슬라이드 내비게이션이 손대지 않고 그대로 네이티브 스크롤에 맡긴다.
-      // 안 그러면 아래로 더 굴려 Footer가 보이기 시작한 다음 위로 되굴렸을 때, 이 핸들러가
-      // container.scrollTo(안쪽 스크롤)만 되돌리고 바깥 body scrollY는 그대로 남아 있어서
-      // "Footer가 화면 최하단에 고정된 것처럼" 보이는 버그가 났다(2026-08-25 실측, 스크린샷
-      // footerbug.png). body가 맨 위(scrollY===0)로 돌아왔을 때만 이 컨테이너가 다시
-      // 휠을 넘겨받는다 — 그 시점엔 안쪽 스크롤 위치가 그대로 보존돼 있어 자연스럽게 이어진다.
-      if (window.scrollY > 0) return;
+      e.preventDefault();
+      if (isScrollingRef.current) return;
 
       const direction = e.deltaY > 0 ? 1 : -1;
       const nextIndex = activeIndexRef.current + direction;
-      // 마지막 도메인에서 아래로 더 굴리면 preventDefault를 걸지 않고 그대로 흘려보낸다 —
-      // 이 페이지는(오버레이와 달리) 뒤에 Footer가 있는 진짜 페이지라, 여기서 무조건
-      // preventDefault를 걸면 마우스 휠로는 Footer에 영원히 닿을 수 없었다(2026-08-25 지적
-      // "footer가 어색함" — 사실은 도달 불가 버그). 범위를 벗어날 때만 네이티브 스크롤에
-      // 맡겨 바깥 페이지(Footer 방향)로 자연스럽게 이어지게 한다.
-      if (nextIndex < 0 || nextIndex >= slides.length) return;
-
-      e.preventDefault();
-      if (isScrollingRef.current) return;
+      // Footer가 이제 이 컨테이너 안의 마지막 섹션이라(위 totalSections 참고), 맨 위·맨
+      // 아래는 진짜 페이지 경계다 — 범위를 벗어나면 그냥 아무것도 안 하면 된다. 바깥에
+      // 별도 스크롤 영역이 없으니 예전처럼 네이티브 스크롤로 넘겨줄 대상 자체가 없다.
+      if (nextIndex < 0 || nextIndex >= totalSections) return;
 
       isScrollingRef.current = true;
       activeIndexRef.current = nextIndex;
@@ -80,7 +78,7 @@ export const DomainOverviewPage: React.FC<DomainOverviewPageProps> = ({
 
     container.addEventListener('wheel', handleWheel, { passive: false });
     return () => container.removeEventListener('wheel', handleWheel);
-  }, [slides.length]);
+  }, [totalSections]);
 
   const goTo = (index: number) => {
     const container = containerRef.current;
@@ -116,7 +114,7 @@ export const DomainOverviewPage: React.FC<DomainOverviewPageProps> = ({
             <ChevronUp size={34} />
           </button>
         )}
-        {activeIndex < slides.length - 1 && (
+        {activeIndex < totalSections - 1 && (
           <button
             type="button"
             onClick={() => goTo(activeIndex + 1)}
@@ -321,6 +319,15 @@ export const DomainOverviewPage: React.FC<DomainOverviewPageProps> = ({
               </div>
             </section>
           ))}
+
+          {/* 마지막 섹션 = Footer (위 totalSections 참고) — 도메인 슬라이드와 같은
+              scroll-snap-align:start 대상이지만, 내용 자체가 세로 중앙 정렬을 요구하는
+              카드형이 아니라 위에서부터 자연스럽게 흐르는 문서형이라 상단 정렬로 바꾸고,
+              화면보다 길어질 수 있는 경우(모바일 3열→1열 접힘 등)를 위해 overflow-y:auto도
+              같이 둔다(index.css `.domain-overview-footer-slide`). */}
+          <section className="domain-overview-slide domain-overview-footer-slide">
+            <Footer />
+          </section>
         </div>
     </div>
   );

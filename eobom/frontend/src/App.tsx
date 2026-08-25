@@ -380,8 +380,11 @@ function AppShell() {
           </Routes>
         </main>
 
-        {/* 하단 푸터 (홈 메인 탭은 풀페이지 스냅 스크롤 내부 섹션으로 통합, 포털 경로는 최소 상단 바로 대체) */}
-        {!isPortalRoute && activeTab !== 'home' && <Footer />}
+        {/* 하단 푸터 (홈 메인 탭·prep·bereaved는 각자의 풀페이지 스냅 스크롤 내부 마지막
+            섹션으로 Footer를 직접 통합한다 — 2026-08-25: DomainOverviewPage를 바깥(body)
+            스크롤과 안쪽 스냅 스크롤이 따로 노는 구조로 뒀더니 "Footer가 다른 페이지 위에
+            뜬 것처럼 보인다"는 지적을 받았다. 포털 경로는 최소 상단 바로 대체) */}
+        {!isPortalRoute && activeTab !== 'home' && activeTab !== 'prep' && activeTab !== 'bereaved' && <Footer />}
       </div>
         </>
       )}

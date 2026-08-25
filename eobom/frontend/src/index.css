@@ -583,6 +583,20 @@ body {
   }
 }
 
+/* Footer 섹션(위 .domain-overview-slide와 같이 붙는 보조 클래스) — 도메인 카드처럼 세로
+   중앙 정렬할 콘텐츠가 아니라 위에서부터 자연스럽게 흐르는 문서형이라 상단 정렬로 바꾸고,
+   Footer.tsx 자체 폭 제한(maxWidth 1400·margin auto)과 겹치지 않도록 좌우 패딩은 0으로
+   비운다(위아래는 유지 — Footer.tsx가 스스로 padding을 갖고 있어도, 화면보다 짧을 때
+   scroll-snap-align:start 대상 안에서 위쪽에 살짝 여유를 준다). 화면보다 길어질 수 있는
+   경우(모바일 3열→1열 접힘 등)의 안전망으로 overflow-y:auto도 둔다. */
+.domain-overview-footer-slide {
+  align-items: flex-start;
+  justify-content: stretch;
+  overflow-y: auto;
+  padding-left: 0;
+  padding-right: 0;
+}
+
 /* ── Responsive Breakpoints ──
    .container 자체의 반응형 padding은 위쪽 정의(라인 ~125) 바로 옆 미디어쿼리에서 함께 관리한다 —
    같은 셀렉터의 규칙이 파일 여기저기 흩어지면 나중에 또 하나만 고치고 지나치기 쉽다. */
