@@ -473,17 +473,14 @@ body {
       min-height: calc(100dvh - var(--header-h));
     }
   }
-
-  /* 위 .fullpage-section--tail만으로는 부족했다 — 스냅 컨테이너(HomePage.tsx
-     .home-scroll-container)가 여전히 mandatory라, 섹션1(엔트리박스)에서 섹션2(꼬리)로
-     내리는 스와이프 도중 스크롤이 다시 섹션1로 끌려 돌아오는 문제가 실기기에서 확인됐다
-     (2026-08-25). proximity는 스냅포인트 근처에서만 스냅하고, 스냅할 대상이 없는 꼬리
-     구간으로 넘어간 스크롤 위치는 그대로 둔다. 인라인 style={{scrollSnapType:'y mandatory'}}
-     (HomePage.tsx)가 있어 !important 필요. */
-  .home-scroll-container {
-    scroll-snap-type: y proximity !important;
-  }
 }
+
+/* 2026-08-25: 한때 여기서 .home-scroll-container(HomePage.tsx 스크롤 컨테이너)의
+   scroll-snap-type을 640px 이하에서 mandatory→proximity로 낮췄었다(섹션1→섹션2(꼬리) 전환
+   시 섹션1로 도로 끌려가는 문제 대응). 그런데 이 속성은 컨테이너 전체에 걸리는 값이라
+   섹션0↔1 전환의 스냅감까지 같이 느슨해져 "풀페이지 휠 전체가 무너진 느낌"이라는 재지적을
+   받고 되돌렸다(개발자 확인) — 위 .fullpage-section--tail의 scroll-snap-align 제거만으로
+   충분한지, 아니면 mandatory로도 여전히 바운스백이 남는지는 다음 실기기 확인이 필요하다. */
 
 /* ── Responsive Breakpoints ──
    .container 자체의 반응형 padding은 위쪽 정의(라인 ~125) 바로 옆 미디어쿼리에서 함께 관리한다 —

@@ -252,11 +252,11 @@ export const HomePage: React.FC<HomePageProps> = ({ currentUser, onOpenLogin, se
         </button>
       )}
 
-      {/* 풀페이지 스냅 스크롤 컨테이너 (전체 베이지 배경) — 640px 이하는 index.css가
-          scroll-snap-type을 mandatory→proximity로 낮춘다. 마지막 섹션(.fullpage-section--tail,
-          2026-08-25)이 콘텐츠 높이만큼 늘어나는 자유 스크롤 꼬리가 된 뒤로, mandatory인 채로는
-          섹션2→3으로 내리는 도중 스냅이 섹션2로 다시 끌어당기는 문제가 실기기에서 확인됐다
-          (개발자 지적) — proximity는 스냅포인트 근처에서만 스냅하고 애매한 위치는 그대로 둔다. */}
+      {/* 풀페이지 스냅 스크롤 컨테이너 (전체 베이지 배경). 2026-08-25: 한때 640px 이하에서
+          index.css가 이 컨테이너의 scroll-snap-type을 mandatory→proximity로 낮췄었는데
+          (섹션1→마지막 섹션 전환 시 도로 끌려가던 문제 대응), 컨테이너 전체에 걸리는 값이라
+          섹션0↔1 스냅감까지 같이 느슨해져 "풀페이지 휠 전체가 이상해졌다"는 재지적을 받고
+          되돌렸다 — mandatory 그대로 유지, className은 훅으로만 남겨둠. */}
       <div
         ref={containerRef}
         className="home-scroll-container"

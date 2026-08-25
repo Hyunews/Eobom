@@ -273,6 +273,7 @@ export const EntryBoxes: React.FC<EntryBoxesProps> = ({ currentUser, onOpenLogin
   const [itemsPerPage, setItemsPerPage] = useState<number>(getItemsPerPage);
   const [currentPage, setCurrentPage] = useState(0);
   const touchStartXRef = useRef<number | null>(null);
+  const touchStartYRef = useRef<number | null>(null);
   const prevArrowRef = useRef<HTMLButtonElement>(null);
   const nextArrowRef = useRef<HTMLButtonElement>(null);
 
@@ -500,17 +501,28 @@ export const EntryBoxes: React.FC<EntryBoxesProps> = ({ currentUser, onOpenLogin
     }
   };
 
-  // 스와이프(터치) — 40px 이상 수평 이동 시에만 페이지 전환으로 인식한다.
+  // 스와이프(터치) — 40px 이상 수평 이동 + 수평 이동량이 수직 이동량보다 뚜렷이 클 때만
+  // 페이지 전환으로 인식한다. 원래는 수직 이동(deltaY)을 아예 안 봐서, 풀페이지 스크롤을
+  // 하려고 아래로 스와이프하는 손짓이 조금만 옆으로 틀어져도(엄지 스와이프는 흔히 대각선이
+  // 된다) 카드가 갑자기 옆 페이지로 넘어가 버렸다 — "카드가 위아래로 움직여서 휠 굴리기
+  // 어렵다"는 실기기 지적(2026-08-25)의 원인으로 추정. 세로 스크롤 제스처는 카드 전환을
+  // 건드리지 않고 그대로 상위 풀페이지 스크롤 컨테이너로 넘어가게 한다.
   const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
     touchStartXRef.current = e.touches[0]?.clientX ?? null;
+    touchStartYRef.current = e.touches[0]?.clientY ?? null;
   };
   const handleTouchEnd = (e: React.TouchEvent<HTMLDivElement>) => {
     const startX = touchStartXRef.current;
+    const startY = touchStartYRef.current;
     touchStartXRef.current = null;
+    touchStartYRef.current = null;
     if (startX === null) return;
     const endX = e.changedTouches[0]?.clientX ?? startX;
+    const endY = e.changedTouches[0]?.clientY ?? startY ?? startX;
     const deltaX = endX - startX;
+    const deltaY = startY !== null ? endY - startY : 0;
     const threshold = 40;
+    if (Math.abs(deltaX) <= Math.abs(deltaY)) return;
     if (deltaX > threshold) goPrev();
     else if (deltaX < -threshold) goNext();
   };
