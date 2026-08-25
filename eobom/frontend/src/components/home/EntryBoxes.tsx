@@ -617,7 +617,6 @@ export const EntryBoxes: React.FC<EntryBoxesProps> = ({ currentUser, onOpenLogin
 
       {openBox === 'box1' && (
         <BoxDetailOverlay
-          boxTitle="생전 준비"
           slides={box1Keys.map((k) => domainSlides[k])}
           initialIndex={Math.min(rawSlideIndex, box1Keys.length - 1)}
           onSlideChange={(index) => handleSlideChange('box1', index)}
@@ -629,7 +628,6 @@ export const EntryBoxes: React.FC<EntryBoxesProps> = ({ currentUser, onOpenLogin
       )}
       {openBox === 'box2' && (
         <BoxDetailOverlay
-          boxTitle="임종 및 사후 정리"
           slides={box2Keys.map((k) => domainSlides[k])}
           initialIndex={Math.min(rawSlideIndex, box2Keys.length - 1)}
           onSlideChange={(index) => handleSlideChange('box2', index)}

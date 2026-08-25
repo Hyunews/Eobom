@@ -25,7 +25,6 @@ import { DomainSlide } from './domainSlides';
 // 표준 해법이라 이후 조상 쪽 CSS가 또 바뀌어도 이 문제가 재발하지 않는다.
 
 interface BoxDetailOverlayProps {
-  boxTitle: string;
   slides: DomainSlide[];
   initialIndex?: number;
   onClose: () => void;
@@ -36,7 +35,6 @@ interface BoxDetailOverlayProps {
 }
 
 export const BoxDetailOverlay: React.FC<BoxDetailOverlayProps> = ({
-  boxTitle,
   slides,
   initialIndex = 0,
   onClose,
@@ -113,24 +111,9 @@ export const BoxDetailOverlay: React.FC<BoxDetailOverlayProps> = ({
 
   return createPortal(
     <div style={{ position: 'fixed', inset: 0, zIndex: 1500, backgroundColor: '#FBF9F5' }}>
-      <div
-        style={{
-          position: 'fixed',
-          top: '1.4rem',
-          left: '1.6rem',
-          zIndex: 1520,
-          fontSize: '0.95rem',
-          fontWeight: 700,
-          color: '#1A2B4C',
-          backgroundColor: '#FFFFFF',
-          padding: '0.5rem 1rem',
-          borderRadius: '20px',
-          boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
-        }}
-      >
-        {boxTitle}
-      </div>
-
+      {/* 2026-08-25 개발자 지시 — 좌측 boxTitle 칩(생전 준비/임종 및 사후 정리 등)은 각 슬라이드
+          안 배지가 이미 같은 정보를 보여줘 중복이라 제거. 닫기 버튼만 남기되 원형 배경·그림자
+          없이 아이콘만 노출한다(.scroll-hint와 같은 "배경 없는 아이콘" 톤). */}
       <button
         type="button"
         onClick={onClose}
@@ -140,19 +123,16 @@ export const BoxDetailOverlay: React.FC<BoxDetailOverlayProps> = ({
           top: '1.2rem',
           right: '1.6rem',
           zIndex: 1520,
-          width: '48px',
-          height: '48px',
-          borderRadius: '50%',
+          background: 'none',
           border: 'none',
-          backgroundColor: '#FFFFFF',
-          boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
+          padding: '0.4rem',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
           cursor: 'pointer',
         }}
       >
-        <X size={22} color="#1A2B4C" />
+        <X size={26} color="#1A2B4C" />
       </button>
 
       {/* 위/아래 슬라이드가 더 있음을 알리는 가벼운 힌트 — 원형 배경 없이 반투명 아이콘만
