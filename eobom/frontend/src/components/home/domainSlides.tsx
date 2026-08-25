@@ -192,7 +192,7 @@ export const domainSlides: Record<string, DomainSlide> = {
     bullets: [
       '연명의료 의향 메모 & 희망 장례 방식 사전 선택',
       '유족에게 남기는 메시지 및 비상 자산 정보 암호화 보관',
-      '사망 인증 시 지정 수신인에게 알림톡으로 열람 키 자동 발송',
+      '사망 확인 후 지정 유족에게 열람 권한 부여',
     ],
     featureIcon: <NoteKeyIcon size={36} color="#1A2B4C" accentColor="#D4A359" fillColor="#5B7065" />,
     featureIconBg: '#FEF3C7',
