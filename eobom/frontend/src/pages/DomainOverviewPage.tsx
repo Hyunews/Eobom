@@ -47,6 +47,15 @@ export const DomainOverviewPage: React.FC<DomainOverviewPageProps> = ({
     if (window.matchMedia('(pointer: coarse)').matches) return;
 
     const handleWheel = (e: WheelEvent) => {
+      // 바깥 페이지(body)가 이미 조금이라도 스크롤돼 있으면(=Footer 쪽으로 내려간 상태) 이
+      // 휠 이벤트는 안쪽 슬라이드 내비게이션이 손대지 않고 그대로 네이티브 스크롤에 맡긴다.
+      // 안 그러면 아래로 더 굴려 Footer가 보이기 시작한 다음 위로 되굴렸을 때, 이 핸들러가
+      // container.scrollTo(안쪽 스크롤)만 되돌리고 바깥 body scrollY는 그대로 남아 있어서
+      // "Footer가 화면 최하단에 고정된 것처럼" 보이는 버그가 났다(2026-08-25 실측, 스크린샷
+      // footerbug.png). body가 맨 위(scrollY===0)로 돌아왔을 때만 이 컨테이너가 다시
+      // 휠을 넘겨받는다 — 그 시점엔 안쪽 스크롤 위치가 그대로 보존돼 있어 자연스럽게 이어진다.
+      if (window.scrollY > 0) return;
+
       const direction = e.deltaY > 0 ? 1 : -1;
       const nextIndex = activeIndexRef.current + direction;
       // 마지막 도메인에서 아래로 더 굴리면 preventDefault를 걸지 않고 그대로 흘려보낸다 —
