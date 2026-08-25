@@ -47,12 +47,17 @@ export const DomainOverviewPage: React.FC<DomainOverviewPageProps> = ({
     if (window.matchMedia('(pointer: coarse)').matches) return;
 
     const handleWheel = (e: WheelEvent) => {
-      e.preventDefault();
-      if (isScrollingRef.current) return;
-
       const direction = e.deltaY > 0 ? 1 : -1;
       const nextIndex = activeIndexRef.current + direction;
+      // 마지막 도메인에서 아래로 더 굴리면 preventDefault를 걸지 않고 그대로 흘려보낸다 —
+      // 이 페이지는(오버레이와 달리) 뒤에 Footer가 있는 진짜 페이지라, 여기서 무조건
+      // preventDefault를 걸면 마우스 휠로는 Footer에 영원히 닿을 수 없었다(2026-08-25 지적
+      // "footer가 어색함" — 사실은 도달 불가 버그). 범위를 벗어날 때만 네이티브 스크롤에
+      // 맡겨 바깥 페이지(Footer 방향)로 자연스럽게 이어지게 한다.
       if (nextIndex < 0 || nextIndex >= slides.length) return;
+
+      e.preventDefault();
+      if (isScrollingRef.current) return;
 
       isScrollingRef.current = true;
       activeIndexRef.current = nextIndex;
