@@ -147,7 +147,12 @@ export const Header: React.FC<HeaderProps> = ({ setActiveTab, onOpenLogin, onOpe
               className="btn btn-point"
               style={{ height: '44px', padding: '0 1.2rem', fontSize: '0.9rem' }}
             >
-              <LogIn size={16} /> <span className="header-btn-label">로그인 / 회원가입</span>
+              {/* 640px 이하는 .header-btn-label이 숨겨져 LogIn 아이콘만 남는데, "출구"처럼
+                  보인다는 지적(2026-08-25 개발자 실기기 확인) — 그 폭에서만 짧은 "로그인" 텍스트를
+                  대신 보여준다(전체 텍스트 "로그인 / 회원가입"은 좁은 헤더에서 폭이 부족하다). */}
+              <LogIn size={16} />{' '}
+              <span className="header-btn-label">로그인 / 회원가입</span>
+              <span className="header-btn-label-short">로그인</span>
             </button>
           )}
         </div>

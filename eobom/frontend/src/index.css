@@ -296,6 +296,23 @@ body {
   animation: scrollHintBounceDown 1.8s ease-in-out infinite;
 }
 
+/* HomePage.tsx의 섹션 이동 위/아래 화살표(.scroll-hint--in-viewport, BoxDetailOverlay는 이
+   클래스를 안 쓰므로 영향 없음)와 우측 점 인디케이터(.home-section-dots) — 데스크톱 마우스
+   조작에서는 효과적이지만 모바일 터치에서는 스와이프로 이미 충분한데 화면 위에 겹쳐 거슬리고
+   (화살표) 카드를 가린다(점 인디케이터)는 지적(2026-08-25 개발자 실기기 확인). */
+@media (max-width: 640px) {
+  .scroll-hint--in-viewport {
+    display: none;
+  }
+
+  /* .home-section-dots(HomePage.tsx)는 style={{ display:'flex' }} 인라인 스타일이 같이 있어
+     !important 없이는 무시된다(.chip-row·.sidebar와 같은 패턴, 2026-08-25 실측으로 재발견 —
+     getComputedStyle이 'none'이 아니라 'flex'를 그대로 반환했다). */
+  .home-section-dots {
+    display: none !important;
+  }
+}
+
 .grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
@@ -455,6 +472,16 @@ body {
     .fullpage-section--tail {
       min-height: calc(100dvh - var(--header-h));
     }
+  }
+
+  /* 위 .fullpage-section--tail만으로는 부족했다 — 스냅 컨테이너(HomePage.tsx
+     .home-scroll-container)가 여전히 mandatory라, 섹션1(엔트리박스)에서 섹션2(꼬리)로
+     내리는 스와이프 도중 스크롤이 다시 섹션1로 끌려 돌아오는 문제가 실기기에서 확인됐다
+     (2026-08-25). proximity는 스냅포인트 근처에서만 스냅하고, 스냅할 대상이 없는 꼬리
+     구간으로 넘어간 스크롤 위치는 그대로 둔다. 인라인 style={{scrollSnapType:'y mandatory'}}
+     (HomePage.tsx)가 있어 !important 필요. */
+  .home-scroll-container {
+    scroll-snap-type: y proximity !important;
   }
 }
 
@@ -691,6 +718,12 @@ body {
   background-color: var(--secondary-color);
 }
 
+/* 로그인 버튼(Header.tsx) 전용 짧은 라벨 — 기본(데스크톱)은 숨김, 640px 이하에서만
+   .header-btn-label(전체 텍스트) 대신 보여준다(아래 640px 블록에서 뒤집음). */
+.header-btn-label-short {
+  display: none;
+}
+
 /* ── Header 반응형 — 00-26 §4.4 + walkthrough(34) 375px 가로 오버플로 해소 이력 승계 ──
    기본(≥641px)은 여백 그대로. 좁은 창에서는 사용자명을 말줄임표로 줄이고 버튼 라벨 텍스트를
    숨겨 아이콘만 남긴다. 평면 메뉴(.header-nav)는 햄버거가 나타나는 640px 이하에서 통째로
@@ -736,6 +769,12 @@ body {
 
   .header-btn-label {
     display: none;
+  }
+
+  /* 로그인 버튼만 아이콘 단독으로 남으면 "출구"처럼 보인다는 지적(2026-08-25) — 짧은
+     "로그인" 텍스트로 대체한다(계정 연동·로그아웃 버튼은 이 클래스를 안 써서 영향 없음). */
+  .header-btn-label-short {
+    display: inline;
   }
 
   /* 계정 연동/로그아웃 버튼은 헤더에서 완전히 숨기고 Sidebar.tsx 모바일 드로어 하단으로

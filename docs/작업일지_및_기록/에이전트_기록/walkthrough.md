@@ -6,6 +6,35 @@
 
 ---
 
+## 2026-08-25 (64) | [Sonnet] (63) 실기기 확인 후 5건 수정 — 스크롤 힌트·점 인디케이터·바운스백·로그인 버튼·로그인 모달
+
+- **근거 스펙**: 사용자 직접 피드백(2026-08-25, (63) 실기기 확인 후) — ① "웹에서 효과적이던 상하 화살표가 모바일에서 거슬림." ② "섹션2→3으로 내리려는데 다시 섹션2로 복귀됨." ③ "오른쪽 점 세 개 표시가 화면을 가림." ④ "로그인 버튼이 출구처럼 보임." ⑤ "로그인 모달이 화면보다 커서 제대로 안 나옴."
+- **건드린 파일**:
+  - `eobom/frontend/src/pages/HomePage.tsx` — 우측 점 인디케이터 div에 `className="home-section-dots"`, 스크롤 컨테이너 div에 `className="home-scroll-container"` 추가(스타일은 안 건드림, 클래스 훅만).
+  - `eobom/frontend/src/index.css`
+    - `.scroll-hint--in-viewport`(HomePage 전용 — BoxDetailOverlay는 이 modifier를 안 씀) 640px 이하 `display:none`(①).
+    - `.home-scroll-container` 640px 이하 `scroll-snap-type: y proximity !important`(② — 인라인 `style={{scrollSnapType:'y mandatory'}}` 때문에 `!important` 필요, `.sidebar`·(62)의 `.chip-row`와 같은 패턴).
+    - `.home-section-dots` 640px 이하 `display: none !important`(③ — 처음엔 `!important` 없이 넣었다가 `getComputedStyle`이 여전히 `flex`를 반환하는 걸 실측으로 발견, 인라인 `style={{display:'flex'}}` 때문 — **같은 세션에서 세 번째로 반복된 실수**, 아래 "다음 에이전트" 참고).
+    - `.header-btn-label-short` 신설(기본 `display:none`, 640px 이하 `display:inline`).
+  - `eobom/frontend/src/components/Header.tsx` — 로그인 버튼에 `<span className="header-btn-label-short">로그인</span>` 추가(기존 `header-btn-label`의 전체 텍스트 "로그인 / 회원가입"는 그대로 유지, 640px 이하에서만 짧은 텍스트로 교체 — ④, 아이콘만 남아 "출구"처럼 보이던 문제를 라벨 복원으로 해결. 전체 텍스트를 그대로 두면 375px에서 폭 계산상 넘칠 것으로 추정돼 짧은 버전을 새로 만듦).
+  - `eobom/frontend/src/components/LoginModal.tsx` — 배경 오버레이에 `overflowY:'auto'`, 모달 카드에 `maxHeight:'90vh'`+`overflowY:'auto'`+`WebkitOverflowScrolling:'touch'` 추가(⑤ — 기존엔 카드 높이 제한이 전혀 없어 콘텐츠가 뷰포트보다 크면 위아래가 화면 밖으로 잘려 나가고 배경에 스크롤도 없어 도달 불가능했음).
+  - `docs/작업일지_및_기록/에이전트_기록/walkthrough.md` — 이 항목.
+- **결과**(`claude-in-chrome`, 500~580px 폭 확보해 실측):
+  - `--header-h`·`.home-section-dots`(`display:none`, `!important` 수정 후 재확인)·`.header-btn-label-short`(`display:inline`, 텍스트 "로그인")·`.header-btn-label`(`display:none`) 전부 `getComputedStyle`로 의도한 값 확인.
+  - **로그인 모달**: `maxHeight` 계산값 531px(뷰포트 590px의 90%)·`overflowY:auto` 확인, 실제로 스크롤해서 동의 체크박스 3개→소셜 로그인 3종→파트너 링크→데모 버튼까지 전부 화면 안에서 도달 가능한 것을 스크린샷으로 확인.
+  - **`.home-scroll-container`의 `scroll-snap-type`**: 🔴 이 브라우저(User-Agent `Chrome/151.0.0.0` — 실존하지 않는 미래 버전, 이 자동화 도구 전용 빌드로 추정)의 CSSOM이 `proximity` 값을 직렬화(serialize)하지 않는 버그/특이 동작을 확인했다. `CSS.supports('scroll-snap-type','y proximity')`는 `true`를 반환하고(문법상 유효) `style.setProperty('scroll-snap-type','y proximity')` 직후 `cssText`를 읽으면 `"scroll-snap-type: y;"`로 strictness 키워드가 사라진 채 나온다(순수 CSSOM 테스트로 재현, `mandatory`는 정상 직렬화됨 — `proximity`만 이 현상). **실제 스크롤 동작이 정말 proximity로 적용되는지, 아니면 이 직렬화 버그가 적용 자체도 막는지는 확인 못 했다** — 데스크톱에서는 `handleWheel`(HomePage.tsx)이 wheel 이벤트를 완전히 가로채(`preventDefault`) 네이티브 CSS 스냅 자체가 아예 개입하지 않아(휠 한 번 = `container.scrollTo(정확히 다음 섹션 배수)`로만 이동, 실측으로 확인: 5틱 스크롤 후 `scrollTop`이 정확히 `2×clientHeight`), 이 자동화 환경에서는 애초에 CSS `scroll-snap-type`이 실제로 관여하는 상황(터치 스크롤)을 재현할 수 없었다.
+  - `npx tsc --noEmit`·`npm run build`(frontend) 둘 다 통과.
+- **편차**: 없음.
+- **다음 에이전트가 알아야 할 것**:
+  - 🔴 **이 코드베이스에서 인라인 `style={{ display: ... }}`가 있는 요소를 CSS 미디어쿼리로 숨기려 할 때마다 `!important`를 까먹는 실수가 이번 세션에서만 세 번 반복됐다** — `.chip-row`((62)), `.home-section-dots`(이번). 매번 "규칙은 넣었는데 `getComputedStyle`로 찍어보니 안 먹힘"이라는 같은 패턴으로 발견했다. **앞으로 인라인 `style` prop이 있는 JSX 요소를 CSS class로 오버라이드할 때는 처음부터 `!important`를 붙이고 시작하거나, 최소한 커밋 전에 `getComputedStyle`로 실제 적용 여부를 확인할 것** — "규칙이 스타일시트에 존재한다"와 "실제로 적용된다"는 다른 확인이다.
+  - 🔴 **`.home-scroll-container`의 `scroll-snap-type: y proximity`가 실제 터치 스크롤에서 바운스백을 막아주는지는 미검증 상태다.** 다음에 실기기(또는 진짜 모바일 에뮬레이션이 되는 환경)에서 가장 먼저 확인해야 한다 — 안 먹히면 대안으로 (a) `scroll-snap-type`을 아예 `none`으로 낮추고 점 인디케이터/스와이프만으로 섹션 이동을 처리하거나, (b) 마지막 섹션 진입 시 JS로 `scroll-snap-type`을 일시적으로 끄는 방법을 검토할 것.
+  - 이번 세션에서 `resize_window`가 다시 간헐적으로 동작했다((63)에서는 5번 연속 실패했었는데 이번엔 몇 번 재시도 후 500~580px을 얻어냈다) — 여전히 예측 불가능하니 매번 `window.innerWidth`로 실제 폭을 확인하고 시작할 것.
+  - LoginModal.tsx와 비슷한 구조(내부 스크롤 없는 고정 카드)를 쓰는 다른 모달(`ConsultRequestModal.tsx`·`InquiryModal.tsx`·`FacilityReviewModal.tsx`·`TaxSimulatorModal.tsx` 등)도 콘텐츠가 길면 같은 문제를 겪을 수 있다 — 이번엔 사용자가 지목한 LoginModal만 고쳤고 나머지는 확인 안 함.
+
+<!-- Gemini 판정: -->
+
+---
+
 ## 2026-08-25 (63) | [Sonnet] 헤더 높이 모바일 축소 + 마지막 섹션(에필로그+Footer) 스냅 해제
 
 - **근거 스펙**: 사용자 직접 피드백(2026-08-25, (62) 이후) — ① "모바일에서 헤더 높이 너무 높아서 자리 많이 차지." ② "섹션3(에필로그)과 Footer가 웹에서는 한 페이지에 자연스럽게 보이는데 모바일에서는 스크롤해야 하고, 그 경계가 이도저도 아닌 모호한 상태." ③ "섹션2(엔트리박스) 페이지가 전체페이지보다 살짝 큼 — 헤더 높이 설정 후 재확인 필요."

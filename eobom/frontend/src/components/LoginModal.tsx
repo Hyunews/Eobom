@@ -141,13 +141,21 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin
       alignItems: 'center',
       justifyContent: 'center',
       zIndex: 3000,
-      padding: '1rem'
+      padding: '1rem',
+      overflowY: 'auto'
     }}>
+      {/* 동의 체크박스 3개 + 소셜 로그인 3종 + 데모 버튼까지 합치면 모바일 화면 높이를
+          넘어서는데(2026-08-25 개발자 실기기 확인), maxHeight/overflowY가 없어 위아래가
+          화면 밖으로 잘려 나가고 배경(overflow 없는 고정 배경)에서도 스크롤할 방법이 없었다.
+          카드 자체를 뷰포트의 90%로 제한하고 내부 스크롤을 허용한다. */}
       <div style={{
         backgroundColor: '#FFFFFF',
         borderRadius: '24px',
         maxWidth: '440px',
         width: '100%',
+        maxHeight: '90vh',
+        overflowY: 'auto',
+        WebkitOverflowScrolling: 'touch',
         padding: '1.9rem 1.5rem',
         boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
         position: 'relative'

@@ -187,8 +187,11 @@ export const HomePage: React.FC<HomePageProps> = ({ currentUser, onOpenLogin, se
 
   return (
     <div className="fullpage-viewport" style={{ position: 'relative', width: '100%', overflow: 'hidden', backgroundColor: '#FBF9F5' }}>
-      {/* 우측 풀페이지 스크롤 네비게이션 인디케이터 (3개 섹션 점) */}
+      {/* 우측 풀페이지 스크롤 네비게이션 인디케이터 (3개 섹션 점) — 640px 이하는
+          index.css에서 숨긴다(좁은 화면에서 카드 위에 겹쳐 보여 콘텐츠를 가린다는
+          지적, 2026-08-25). */}
       <div
+        className="home-section-dots"
         style={{
           position: 'fixed',
           right: '2rem',
@@ -249,9 +252,14 @@ export const HomePage: React.FC<HomePageProps> = ({ currentUser, onOpenLogin, se
         </button>
       )}
 
-      {/* 풀페이지 스냅 스크롤 컨테이너 (전체 베이지 배경) */}
+      {/* 풀페이지 스냅 스크롤 컨테이너 (전체 베이지 배경) — 640px 이하는 index.css가
+          scroll-snap-type을 mandatory→proximity로 낮춘다. 마지막 섹션(.fullpage-section--tail,
+          2026-08-25)이 콘텐츠 높이만큼 늘어나는 자유 스크롤 꼬리가 된 뒤로, mandatory인 채로는
+          섹션2→3으로 내리는 도중 스냅이 섹션2로 다시 끌어당기는 문제가 실기기에서 확인됐다
+          (개발자 지적) — proximity는 스냅포인트 근처에서만 스냅하고 애매한 위치는 그대로 둔다. */}
       <div
         ref={containerRef}
+        className="home-scroll-container"
         style={{
           width: '100%',
           height: '100%',
