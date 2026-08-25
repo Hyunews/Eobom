@@ -342,11 +342,11 @@ function AppShell() {
                 칩과도 공유하는 순서라 domainSlides.tsx에 있다. */}
             <Route
               path="/prep"
-              element={<DomainOverviewPage {...authProps} title="생전 준비" intro="지금 미리 준비해두면 훗날 남겨진 가족의 부담을 크게 덜 수 있습니다." keys={box1Keys} />}
+              element={<DomainOverviewPage {...authProps} title="생전 준비" keys={box1Keys} />}
             />
             <Route
               path="/bereaved"
-              element={<DomainOverviewPage {...authProps} title="임종 및 사후 정리" intro="갑작스러운 이별 앞에서 필요한 절차와 도움을 한 곳에서 확인하세요." keys={box2Keys} />}
+              element={<DomainOverviewPage {...authProps} title="임종 및 사후 정리" keys={box2Keys} />}
             />
             <Route path="/facility" element={<FacilityPage {...authProps} />} />
             <Route path="/counseling" element={<CounselingPage {...authProps} />} />
