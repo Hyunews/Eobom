@@ -5,6 +5,13 @@ import { DomainSlide } from './domainSlides';
 // 4박스 클릭 시 뜨는 박스별 미니 풀스크린 오버레이 — HomePage의 풀페이지 휠 스크롤과
 // 같은 방식(휠 한 번 = 슬라이드 한 칸)을 이 오버레이 안에서 독립적으로 재현한다.
 // X 또는 Esc로 닫으면 원래 4박스 화면으로 돌아간다(라우트 이동 없음).
+// 2026-08-25 — 모바일(≤640px)은 HomePage와 달리 mandatory 스냅을 그대로 유지한다(개발자
+// 지시: "우선 풀페이지 스크롤 형태 그대로"). 대신 슬라이드 하나가 고정 100dvh를 넘던 콘텐츠
+// 오버플로우 문제만 index.css에서 슬라이드를 height:auto+min-height로 풀어 해결했다 — 그래서
+// 슬라이드마다 높이가 달라질 수 있고, 아래 goTo·휠 핸들러의 `index * container.clientHeight`
+// 계산은 그 경우 더 이상 정확하지 않다. 모바일에서는 화살표(.scroll-hint)와 점 인디케이터
+// (.overlay-slide-dots)를 아예 숨겨(index.css) 이 계산식이 호출될 일 자체를 없앴다 — 터치
+// 스와이프는 이 JS를 거치지 않고 네이티브 CSS scroll-snap으로만 동작하므로 영향이 없다.
 
 interface BoxDetailOverlayProps {
   boxTitle: string;
@@ -164,6 +171,7 @@ export const BoxDetailOverlay: React.FC<BoxDetailOverlayProps> = ({
 
       {slides.length > 1 && (
         <div
+          className="overlay-slide-dots"
           style={{
             position: 'fixed',
             right: '2rem',
@@ -228,6 +236,7 @@ export const BoxDetailOverlay: React.FC<BoxDetailOverlayProps> = ({
             }}
           >
             <div
+              className="overlay-slide-grid"
               style={{
                 maxWidth: '1100px',
                 width: '100%',
@@ -327,6 +336,7 @@ export const BoxDetailOverlay: React.FC<BoxDetailOverlayProps> = ({
               </div>
 
               <div
+                className="overlay-slide-feature-card"
                 style={{
                   backgroundColor: '#FFFFFF',
                   padding: '1.75rem',
