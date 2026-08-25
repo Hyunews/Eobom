@@ -315,7 +315,9 @@ body {
 
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  /* min(320px,100%) — 최소 지원 폭 280px에서 고정 320px 트랙이 가로 스크롤을 유발하지 않게
+     한다(.auto-grid·ObituaryPage.tsx가 이미 쓰는 패턴, 2026-08-25 개발자 지시로 전체 재확인). */
+  grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr));
   gap: 1.5rem;
   margin-top: 1.25rem;
 }
@@ -453,34 +455,44 @@ body {
   }
 }
 
-/* HomePage.tsx 마지막 섹션(에필로그+Footer, "섹션3") 전용 — 데스크톱은 이 콘텐츠가 한 화면
-   안에 들어가 문제없지만, 모바일은 Footer.tsx의 3열 그리드가 1열로 접히면서 세로로 훨씬
-   길어져 위 .fullpage-section 고정 높이(뷰포트-헤더)를 크게 넘어선다(2026-08-25 실측:
-   569px 폭에서 섹션 높이 531px인데 실제 콘텐츠는 927px — 396px 초과). 고정 높이 스냅 섹션
-   안에 억지로 욱여넣으면 "스크롤은 되는데 섹션 경계가 애매한" 상태가 된다는 지적(개발자) —
-   마지막 섹션이라 뒤에 스냅할 대상이 없으므로, 높이를 콘텐츠에 맞게 풀고(scroll-snap-align도
-   제거) 자연스러운 일반 스크롤 꼬리로 둔다. .sidebar처럼 인라인 style={{scrollSnapAlign:'start'}}
-   (HomePage.tsx)가 있어 !important 없이는 무시된다. */
+/* HomePage.tsx의 뷰포트 고정 높이 스냅 섹션 2개(엔트리박스="섹션2", 에필로그+Footer="섹션3")
+   전용 — 데스크톱은 둘 다 한 화면에 들어가지만, 모바일은 폭이 좁아지며 내부 콘텐츠(엔트리박스
+   카드, Footer 3열→1열 접힘)가 뷰포트 고정 높이보다 살짝 또는 크게 커진다(2026-08-25 실측:
+   569px 폭에서 섹션3은 927px vs 섹션 높이 531px — 396px 초과. 섹션2도 실기기 폭에 따라 근소하게
+   넘칠 수 있음 — 개발자 지적 "섹션2가 화면에 안 담겨 덜그럭거림"). 고정 높이(overflow:auto
+   인라인)로 두면 안쪽 스크롤 영역과 바깥 스냅 컨테이너가 스크롤 제스처를 서로 가로채려 해
+   덜그럭거리거나(섹션2) "경계가 애매한" 느낌(섹션3)이 났다 — 두 섹션 다 높이를 콘텐츠에
+   맞게 풀어(overflow도 필요 없어짐) 이중 스크롤 자체를 없앤다.
+   🔴 scroll-snap-align은 그대로 둔다(HomePage.tsx 인라인 style={{scrollSnapAlign:'start'}}).
+   한때 섹션3에서만 이 값을 none으로 지웠었는데("뒤에 스냅할 대상이 없다"는 논리), mandatory
+   스냅 타입에서 섹션3이 유효한 스냅 대상이 아니게 되자 오히려 "다음에 스냅할 곳이 없다"는
+   이유로 스크롤이 이전 스냅 대상(섹션2)으로 도로 끌려가는 바운스백이 실기기에서 발생했다
+   (개발자 지적) — start를 유지해 섹션3의 "맨 위"를 유효한 스냅 지점으로 남겨두면, 거기까지는
+   깔끔하게 스냅되고 그 지점을 넘어서는(콘텐츠가 더 있는) 스크롤은 이후에 스냅할 대상이 없으니
+   자유롭게 흘러간다 — mandatory를 컨테이너 전체에서 proximity로 낮추는 시도(되돌려짐, 아래
+   참고)보다 이쪽이 이 라이브러리의 실제 동작과 맞는 것으로 판단. */
 @media (max-width: 640px) {
-  .fullpage-section--tail {
+  .fullpage-section--fluid {
     height: auto;
     min-height: calc(100vh - var(--header-h));
-    scroll-snap-align: none !important;
+    overflow-y: visible !important;
   }
 
   @supports (height: 100dvh) {
-    .fullpage-section--tail {
+    .fullpage-section--fluid {
       min-height: calc(100dvh - var(--header-h));
     }
   }
 }
 
 /* 2026-08-25: 한때 여기서 .home-scroll-container(HomePage.tsx 스크롤 컨테이너)의
-   scroll-snap-type을 640px 이하에서 mandatory→proximity로 낮췄었다(섹션1→섹션2(꼬리) 전환
-   시 섹션1로 도로 끌려가는 문제 대응). 그런데 이 속성은 컨테이너 전체에 걸리는 값이라
-   섹션0↔1 전환의 스냅감까지 같이 느슨해져 "풀페이지 휠 전체가 무너진 느낌"이라는 재지적을
-   받고 되돌렸다(개발자 확인) — 위 .fullpage-section--tail의 scroll-snap-align 제거만으로
-   충분한지, 아니면 mandatory로도 여전히 바운스백이 남는지는 다음 실기기 확인이 필요하다. */
+   scroll-snap-type을 640px 이하에서 mandatory→proximity로 낮췄었다(섹션2→섹션3 전환 시
+   섹션2로 도로 끌려가는 문제 대응). 그런데 이 속성은 컨테이너 전체에 걸리는 값이라 섹션1↔2
+   전환의 스냅감까지 같이 느슨해져 "풀페이지 휠 전체가 무너진 느낌"이라는 재지적을 받고
+   되돌렸다(개발자 확인). 바운스백의 실제 원인은 (a) 위에서 다룬 scroll-snap-align 제거,
+   (b) 엔트리박스 캐러셀의 터치 스와이프 감지가 수직 스크롤 제스처를 옆 페이지 전환으로
+   오인식하던 버그(EntryBoxes.tsx, 별도 수정) 둘이 겹친 것으로 파악돼, mandatory는 그대로 두고
+   두 원인을 각각 고쳤다. */
 
 /* ── Responsive Breakpoints ──
    .container 자체의 반응형 padding은 위쪽 정의(라인 ~125) 바로 옆 미디어쿼리에서 함께 관리한다 —
@@ -791,6 +803,17 @@ body {
 
   .header-user-name-text {
     max-width: 44px;
+  }
+
+  /* 280px 최소 지원 폭 실측(2026-08-25, 개발자 지시) — 0.8배로 줄여도 아이콘+워드마크
+     (~146px)가 비로그인 상태 로그인 버튼(~113px)과 합쳐 278px 뷰포트에서 33px 가로
+     오버플로를 냈다. 아이콘 심볼만 남기고 "이어봄 Eobom" 텍스트는 이 폭에서 뺀다 —
+     로고 클릭 시 홈으로 가는 동작(goHome)은 아이콘만으로도 그대로 유지된다.
+     🔴 .eobom-logo-text는 EobomLogo.tsx에서 style={{ display:'flex' }} 인라인이 같이
+     있어(.chip-row·.home-section-dots와 같은 패턴) !important 없이는 무시된다 —
+     이번엔 처음부터 붙여서 씀. */
+  .header-logo-wrap .eobom-logo-text {
+    display: none !important;
   }
 }
 

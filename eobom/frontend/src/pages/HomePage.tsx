@@ -380,10 +380,13 @@ export const HomePage: React.FC<HomePageProps> = ({ currentUser, onOpenLogin, se
           <div className="duo-photo-scrim" />
 
           {/* ========================================================= */}
-          {/* [섹션 1] 진입 4박스 — 00-23 §8. 새 화면 ID 아님(SCR-001 내부 블록) */}
+          {/* [섹션 1] 진입 4박스 — 00-23 §8. 새 화면 ID 아님(SCR-001 내부 블록) —
+              640px 이하는 index.css `.fullpage-section--fluid`가 고정 높이를 풀어 콘텐츠
+              높이만큼 늘어나게 한다(2026-08-25, 좁은 화면에서 카드가 살짝 넘쳐 안쪽
+              overflow:auto와 바깥 스냅 스크롤이 서로 스크롤 제스처를 다투던 "덜그럭거림" 대응). */}
           {/* ========================================================= */}
           <section
-            className="fullpage-section"
+            className="fullpage-section fullpage-section--fluid"
             style={{
               width: '100%',
               scrollSnapAlign: 'start',
@@ -409,11 +412,13 @@ export const HomePage: React.FC<HomePageProps> = ({ currentUser, onOpenLogin, se
 
           {/* ========================================================= */}
           {/* [섹션 2] 에필로그 & 푸터 (배경은 위 공용 래퍼가 담당, Footer Snap Section) —
-              640px 이하는 index.css `.fullpage-section--tail`이 고정 높이·스냅을 풀어준다
-              (아래 fullpage-section--tail 클래스 참고, 2026-08-25). */}
+              640px 이하는 index.css `.fullpage-section--fluid`가 고정 높이를 풀어준다
+              (2026-08-25). scrollSnapAlign은 그대로 'start'로 둔다 — 없애면 mandatory 스냅이
+              "다음에 스냅할 곳이 없다"며 이전 섹션으로 도로 끌려가는 바운스백이 실기기에서
+              확인됐다(index.css 관련 주석 참고). */}
           {/* ========================================================= */}
           <section
-            className="fullpage-section fullpage-section--tail"
+            className="fullpage-section fullpage-section--fluid"
             style={{
               width: '100%',
               scrollSnapAlign: 'start',

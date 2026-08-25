@@ -113,9 +113,12 @@ export const EobomLogo: React.FC<EobomLogoProps> = ({
         />
       </svg>
 
-      {/* 워드마크 텍스트 (KoPubWorld 명조 스타일) */}
+      {/* 워드마크 텍스트 (KoPubWorld 명조 스타일) — className은 Header.tsx의 헤더 로고에서
+          index.css가 480px 이하(기존 .header-logo-wrap scale(0.8) 재사용)에 숨기는 데 쓴다.
+          280px처럼 아주 좁은 화면에서는 아이콘+워드마크(0.8배 축소해도 ~146px)만으로 로그인
+          버튼과 합쳐 헤더 폭을 넘어섰다(2026-08-25 실측). */}
       {showText && (
-        <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', lineHeight: 1 }}>
+        <div className="eobom-logo-text" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', lineHeight: 1 }}>
           <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.4rem' }}>
             <span
               style={{

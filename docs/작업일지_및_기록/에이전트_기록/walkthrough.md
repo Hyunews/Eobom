@@ -6,6 +6,37 @@
 
 ---
 
+## 2026-08-25 (67) | [Sonnet] 섹션2→3 바운스백 재수정 + 섹션2 덜그럭거림 + 최소 280px 폭 지원
+
+- **근거 스펙**: 사용자 직접 피드백 — "섹션1→2: 문제 해결됨. 섹션2→3: 바운스백 발생. +추가) 섹션2가 화면 전체에 담기지 못해 달그락거리면서 위아래로 움직일 수 있는 상황. +추가) 최소 디스플레이 가로 픽셀 280으로 잡아줘."
+- **원인 분석 및 조치**:
+  1. **섹션2→3 바운스백 재발**: (63)에서 마지막 섹션(에필로그+Footer)의 `scroll-snap-align`을 `none`으로 지웠던 게 원인으로 재판단했다 — "뒤에 스냅할 대상이 없으니 안 걸어도 된다"는 논리였는데, `mandatory` 스냅에서는 오히려 섹션3이 "유효한 스냅 후보가 아예 아니게" 돼 스크롤이 이전 유효 지점(섹션2)으로 되돌아가는 바운스백을 낳았다. `scroll-snap-align: start`를 되살리면 섹션3의 "맨 위"가 유효한 스냅 목표가 되어 거기까지는 깔끔히 스냅되고, 그 지점을 넘어서는(콘텐츠가 더 있는) 스크롤은 뒤에 스냅할 게 없으니 자유롭게 흐른다 — (65)에서 시도했던 "컨테이너 전체를 proximity로" 접근보다 실제 스펙 동작에 맞는 방식으로 판단해 이렇게 바꿨다.
+  2. **섹션2 "덜그럭거림"**: 엔트리박스 섹션도 실기기 폭에 따라 콘텐츠가 고정 높이(뷰포트-헤더)를 근소하게 넘을 수 있는데, 그 섹션 자체에 `overflowY:'auto'`가 걸려 있어 안쪽 overflow 스크롤과 바깥 스냅 스크롤이 스크롤 제스처를 서로 가로채려 들어 흔들리는 느낌을 냈다. (63)에서 마지막 섹션에만 적용했던 "높이를 콘텐츠에 맞게 자동으로 늘리는" 처리를 엔트리박스 섹션에도 똑같이 적용해서, 애초에 안쪽에 넘칠 콘텐츠가 없게(overflow 자체가 발생 안 하게) 만들었다. 클래스명을 `.fullpage-section--tail`(마지막 섹션 전용이라는 의미)에서 `.fullpage-section--fluid`(콘텐츠에 맞춰 늘어난다는 의미)로 일반화해 두 섹션이 공유한다.
+  3. **최소 280px 폭 지원**: `claude-in-chrome`에서 iframe(width:280px, 같은 오리진이라 `contentDocument` 직접 접근 가능 — `resize_window`가 이 세션에서 여전히 신뢰 불가라 대안으로 씀)을 만들어 실측, 두 가지 실제 가로 오버플로를 확인·수정했다.
+     - **헤더**: 로그인 버튼("로그인" 텍스트, (64)에서 추가)과 로고(아이콘+"이어봄 Eobom" 워드마크, 480px 이하 0.8배 축소해도 ~146px)가 합쳐 278px 뷰포트에서 33px 오버플로. `EobomLogo.tsx`에 `className="eobom-logo-text"` 추가하고, 기존 480px 브레이크포인트(`.header-logo-wrap` scale(0.8)) 재사용해 그 폭에서 워드마크 텍스트를 숨기고 아이콘만 남김(`!important` 필요 — 인라인 `style={{display:'flex'}}`가 있어서, 이번엔 처음부터 붙여서 씀).
+     - **그리드 minmax 고정값**: `.grid`(index.css, 320px)·`Footer.tsx`(260px)·`CounselingPage.tsx`(280px)·`EndingNotePage.tsx`(320px)·`BoxDetailOverlay.tsx`(320px)·`MemorialPage.tsx`(300px·130px) 전부 `minmax(Npx, 1fr)` 고정값이 한 트랙 최소폭을 강제해 280px보다 넓으면 무조건 가로 스크롤을 냈다. 이미 이 프로젝트에 있던 해법(`.auto-grid`·`ObituaryPage.tsx`가 쓰는 `minmax(min(Npx, 100%), 1fr)` 패턴, "기존 minmax(340px,1fr) 고정값은 375px에서 가로 스크롤 유발"이라는 선례 주석)을 그대로 적용했다. `AdminPage.tsx`의 동일 패턴은 00-09 §2.5(운영자 화면 밀도 우선) 기존 제외 방침에 따라 이번에도 손대지 않음.
+- **건드린 파일**:
+  - `eobom/frontend/src/index.css` — `.fullpage-section--tail`→`.fullpage-section--fluid`로 일반화·재작성(scroll-snap-align 제거 규칙 삭제, overflow-y:visible 추가), 관련 설명 주석 갱신. `.grid` minmax 수정. `.header-logo-wrap .eobom-logo-text` 480px 이하 숨김 규칙 추가.
+  - `eobom/frontend/src/pages/HomePage.tsx` — 엔트리박스 섹션에 `fullpage-section--fluid` 클래스 추가, 마지막 섹션 클래스명 `--tail`→`--fluid` 변경, 관련 주석 갱신.
+  - `eobom/frontend/src/components/EobomLogo.tsx` — 워드마크 wrapper div에 `className="eobom-logo-text"` 추가.
+  - `eobom/frontend/src/components/Footer.tsx`, `eobom/frontend/src/pages/CounselingPage.tsx`, `eobom/frontend/src/pages/EndingNotePage.tsx`, `eobom/frontend/src/components/home/BoxDetailOverlay.tsx`, `eobom/frontend/src/pages/MemorialPage.tsx`(2곳) — `minmax(Npx, 1fr)` → `minmax(min(Npx, 100%), 1fr)`.
+  - `docs/작업일지_및_기록/에이전트_기록/walkthrough.md` — 이 항목.
+- **결과**(`claude-in-chrome`, iframe 280px 실측):
+  - `document.documentElement.scrollWidth === clientWidth === 278`(가로 스크롤 0) — 헤더 로고 텍스트 숨김 전에는 `scrollWidth 311 vs clientWidth 263`(48px 초과, 로그인 버튼이 33px 튀어나온 게 주범)이었던 것과 대조 확인.
+  - 세 스냅 섹션(0/1/2) 전부 이 폭에서 가로 오버플로 0 확인(스크롤 위치를 각 섹션 시작으로 옮겨가며 재측정).
+  - `fullpage-section--fluid` 두 섹션 모두 `getBoundingClientRect().height === scrollHeight`(안쪽에 남는 overflow 없음), `scroll-snap-align: start` 정상 복원 확인.
+  - `npx tsc --noEmit`·`npm run build`(frontend) 둘 다 통과.
+  - 🔴 **섹션2→3 바운스백이 실제로 없어졌는지는 이번에도 실기기 검증을 못 했다** — CSS 스냅 동작(mandatory + 이제는 유효한 스냅 대상인 섹션3)은 이론과 스펙상으로는 맞지만, 이 자동화 환경(iframe 트릭)은 스크롤 위치를 `scrollTo()`로 즉시 대입하는 것만 확인 가능하고, 실제 터치 제스처 도중의 스냅 판정(모멘텀·중간 정지 등)은 재현 못 한다 — (65)에서도 같은 한계를 겪었다.
+- **편차**: 없음.
+- **다음 에이전트가 알아야 할 것**:
+  - 🔴 **섹션2→3 바운스백은 이번이 세 번째 수정 시도다(63→65→67).** 다음 실기기 확인에서도 재발하면, CSS `scroll-snap-align`/`scroll-snap-type` 조합만으로는 이 정확한 케이스(마지막 섹션이 콘텐츠 초과분만큼 자유 스크롤돼야 하는 상황)를 이 실기기 브라우저가 스펙대로 처리하지 않는다는 뜻일 수 있다 — 그때는 JS로 터치 제스처 종료 시점에 직접 보정하는 방식(데스크톱 `handleWheel`과 비슷한 역할을 터치용으로 별도 구현)을 진지하게 검토할 것.
+  - 280px 실측은 HomePage(+ Header/Footer/EobomLogo/EntryBoxes 등 그 안에서 쓰는 공용 컴포넌트)와, `minmax(Npx,1fr)` 그리드가 있던 나머지 5개 페이지/컴포넌트에 한정했다 — **사이트 전체(20여 개 페이지)를 280px 기준으로 전수 감사하지는 않았다.** 이번에 못 찾은 다른 형태의 고정폭 요소(고정 px width 버튼, min-width 등)가 다른 페이지에 남아있을 수 있다.
+  - `resize_window`가 이 세션에서 계속 불안정해서, 이번엔 같은 오리진 iframe(`iframe.src`+`contentDocument`)으로 임의 폭을 강제하는 방법을 새로 썼다 — `resize_window`보다 훨씬 안정적이었다. 다음에도 좁은 폭 검증이 필요하면 이 방법을 먼저 시도할 것.
+
+<!-- Gemini 판정: -->
+
+---
+
 ## 2026-08-25 (66) | [Sonnet] 캐러셀 터치 스와이프가 수직 스크롤을 가로채던 버그 수정
 
 - **근거 스펙**: 사용자 직접 피드백 — "섹션1→2: 풀페이지 휠 느슨해서 중간에 멈추게 할 수 있음(현재). 섹션2→3: 풀페이지 휠 작동 안 하는 듯함, 또한 엔트리 박스 자체가 위아래로 움직여서 모바일 환경에서 휠 굴리기 어려움."

@@ -27,7 +27,9 @@ export const Footer: React.FC = () => {
           maxWidth: '1400px',
           margin: '0 auto',
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
+          // min(260px,100%) — 최소 지원 폭 280px에서 고정 260px 트랙이 가로 스크롤을 유발하지
+          // 않게 한다(.auto-grid·ObituaryPage.tsx와 같은 패턴, 2026-08-25).
+          gridTemplateColumns: 'repeat(auto-fit, minmax(min(260px, 100%), 1fr))',
           gap: '1.4rem',
           alignItems: 'start'
         }}

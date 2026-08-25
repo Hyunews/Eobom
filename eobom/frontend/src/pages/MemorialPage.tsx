@@ -75,7 +75,7 @@ export const MemorialPage: React.FC<MemorialPageProps> = () => {
           </button>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.5rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(300px, 100%), 1fr))', gap: '1.5rem' }}>
           <div>
             <h4 style={{ color: 'var(--primary-color)', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               <MessageSquarePlus color="var(--primary-color)" /> 추모 방명록 작성
@@ -145,7 +145,7 @@ export const MemorialPage: React.FC<MemorialPageProps> = () => {
               </button>
             </form>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '1rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(130px, 100%), 1fr))', gap: '1rem' }}>
               {memorialPhotos.map((photo, idx) => (
                 <div key={idx} style={{ borderRadius: '8px', overflow: 'hidden', border: '1px solid var(--border-color)', backgroundColor: 'var(--secondary-color)' }}>
                   <img src={photo.url} alt={photo.title} style={{ width: '100%', height: '100px', objectFit: 'cover' }} />
