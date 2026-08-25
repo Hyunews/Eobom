@@ -39,6 +39,11 @@ interface LoginStatePayload extends jwt.JwtPayload {
   // 로그인 시작 라우트(`GET /:provider`)에서 쿼리로 받아 서명해 넣는다 — 기존 유저 재로그인이면
   // 콜백에서 무시되고, 신규 가입(User.create)일 때만 이 값을 termsAgreedAt 등으로 스탬프한다.
   consent: ConsentFlags;
+  // 2026-08-25 — LoginModal.tsx의 "로그인"/"회원가입" 탭 구분. "로그인" 탭은 동의 UI가 없으므로
+  // 콜백에서 신규 가입으로 판정되면(§handleSocialLoginCallback) 그 자리에서 User를 만들지 않고
+  // not_registered로 되돌려 "회원가입" 탭을 열게 한다. 없거나 위조·만료면 'signup'으로 안전
+  // 폴백(기존 동작 그대로 — 동의가 있으면 가입시킴).
+  mode?: 'login' | 'signup';
 }
 
 // 로그인/연동 시작 요청(`GET /:provider`, `/:provider/link`)의 Referer로 프론트 오리진을 캡처한다.
@@ -101,6 +106,22 @@ export const resolveConsent = (state: unknown): ConsentFlags => {
     }
   }
   return { terms: false, privacy: false, marketing: false };
+};
+
+// state에서 로그인 탭 구분(mode)을 복원. 'link' state·검증 실패·구버전 state(mode 없음)는 전부
+// 'signup'으로 폴백 — 기존 동작(동의가 있으면 가입시킴)을 그대로 유지하기 위한 안전한 기본값이다.
+export const resolveMode = (state: unknown): 'login' | 'signup' => {
+  if (typeof state === 'string') {
+    try {
+      const decoded = jwt.verify(state, JWT_SECRET) as LinkStatePayload | LoginStatePayload;
+      if (decoded.purpose === 'login' && decoded.mode === 'login') {
+        return 'login';
+      }
+    } catch {
+      // 무시하고 아래 기본값으로 폴백
+    }
+  }
+  return 'signup';
 };
 
 // 헬퍼: Authorization 헤더의 Bearer 토큰 검증 (실패 시 null)
@@ -235,6 +256,8 @@ export const handleSocialLoginCallback = async (req: Request, res: Response) => 
   // 신규 가입일 때만 쓰인다(1단계 기존 계정 로그인 분기는 이 값을 참조하지 않는다) — 이미
   // 최초 가입 때 동의를 받은 사람에게 재로그인마다 다시 물을 이유가 없다.
   const consent = resolveConsent(state);
+  // "로그인" 탭(동의 UI 없음)에서 시작된 요청인지 — 신규 가입 분기(3단계) 직전에만 참조한다.
+  const mode = resolveMode(state);
 
   try {
     // 1단계: 이미 연동된 SocialAccount가 있으면 해당 User로 즉시 로그인
@@ -293,6 +316,13 @@ export const handleSocialLoginCallback = async (req: Request, res: Response) => 
         )}&existingProvider=${existingProvider}&newProvider=${socialUser.provider}`;
         return res.redirect(redirectUrl);
       }
+    }
+
+    // "로그인" 탭(mode=login)으로 여기까지 왔다는 건 이 소셜 계정으로 가입된 적이 없다는 뜻이다.
+    // 그 탭엔 동의 체크박스 UI가 아예 없으므로, 동의 없이 조용히 새 User를 만드는 대신 가입
+    // 이력이 없다고 알려 프론트가 "회원가입" 탭을 열게 한다(App.tsx loginError 처리부).
+    if (mode === 'login') {
+      return res.redirect(`${frontendUrl}?loginError=not_registered`);
     }
 
     // 필수 동의(이용약관·개인정보) 없이는 신규 가입을 만들지 않는다 — `/api/auth/:provider`

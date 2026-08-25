@@ -1,13 +1,12 @@
 import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { UserCheck, LogIn, LogOut, Settings, Menu } from 'lucide-react';
+import { UserCheck, LogIn, LogOut, Menu } from 'lucide-react';
 import { EobomLogo } from './EobomLogo';
 import type { NavMode } from '../modeNav';
 
 interface HeaderProps {
   setActiveTab: (tab: string) => void;
   onOpenLogin: () => void;
-  onOpenAccountSettings: () => void;
   currentUser: string | null;
   onLogout: () => void;
   onSetMode?: (mode: NavMode) => void;
@@ -23,7 +22,7 @@ interface HeaderProps {
 // (/ending-note, /care-guide)으로 직접 이동한다. "추모관"은 대응하는 오버레이가 없어(박스③은
 // 링크 입력창일 뿐) 홈의 진입 4박스 캐러셀에서 박스③이 있는 페이지까지 직접 넘긴다(아래
 // goToMemorialEntry 참고 — 예전엔 섹션 스크롤까지만 해서 캐러셀이 첫 페이지에 멈춰 있는 버그가 있었다).
-export const Header: React.FC<HeaderProps> = ({ setActiveTab, onOpenLogin, onOpenAccountSettings, currentUser, onLogout, onSetMode, onOpenMobileMenu }) => {
+export const Header: React.FC<HeaderProps> = ({ setActiveTab, onOpenLogin, currentUser, onLogout, onSetMode, onOpenMobileMenu }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const isHome = location.pathname === '/';
@@ -115,7 +114,9 @@ export const Header: React.FC<HeaderProps> = ({ setActiveTab, onOpenLogin, onOpe
         <div className="header-spacer" />
 
         {/* 우측 로그인 / 회원가입 상태 버튼 — 회원가입 전용 버튼·경로는 만들지 않는다(개발자 확정).
-            로그인/회원가입은 기존 LoginModal 하나로 통합돼 있다(소셜 로그인이 곧 최초 가입). */}
+            로그인/회원가입은 기존 LoginModal 하나로 통합돼 있다(소셜 로그인이 곧 최초 가입).
+            2026-08-25 변경: 로그인/회원가입 탭 분리로 전환 — 버튼·경로는 여전히 하나(LoginModal),
+            모달 내부에서 탭으로만 나뉜다(LoginModal.tsx 참고). */}
         <div className="header-actions-wrap">
           {currentUser ? (
             <div className="header-user-group">
@@ -127,15 +128,14 @@ export const Header: React.FC<HeaderProps> = ({ setActiveTab, onOpenLogin, onOpe
                 <UserCheck size={16} color="var(--point-color)" style={{ flexShrink: 0 }} />
                 <span className="header-user-name-text">{currentUser}님</span>
               </span>
-              {/* 480px 이하에서 햄버거+로고+메뉴+사용자칩+이 두 버튼까지 겹치며 헤더가 깨지는 문제(2026-08-20
-                  발견) — 모바일 드로어가 있는 경로(onOpenMobileMenu 존재)에서는 이 두 버튼을 헤더에서 숨기고
-                  Sidebar.tsx 드로어 하단으로 옮긴다. 드로어가 없는 홈에서는 대체 진입점이 없으므로 그대로 둔다. */}
+              {/* 480px 이하에서 햄버거+로고+메뉴+사용자칩+이 버튼까지 겹치며 헤더가 깨지는 문제(2026-08-20
+                  발견) — 모바일 드로어가 있는 경로(onOpenMobileMenu 존재)에서는 이 버튼을 헤더에서 숨기고
+                  Sidebar.tsx 드로어 하단으로 옮긴다. 드로어가 없는 홈에서는 대체 진입점이 없으므로 그대로 둔다.
+                  2026-08-25 — "계정 연동" 버튼은 여기서 제거하고 마이페이지 전용으로 정리했다
+                  (MyPage.tsx가 이미 같은 트리거를 갖고 있다) — 로그아웃만 남는다. */}
               <div
                 className={`header-account-buttons${onOpenMobileMenu ? ' header-account-buttons--has-drawer' : ''}`}
               >
-                <button onClick={onOpenAccountSettings} className="header-outline-btn">
-                  <Settings size={14} /> <span className="header-btn-label">계정 연동</span>
-                </button>
                 <button onClick={onLogout} className="header-outline-btn">
                   <LogOut size={14} /> <span className="header-btn-label">로그아웃</span>
                 </button>
@@ -147,12 +147,12 @@ export const Header: React.FC<HeaderProps> = ({ setActiveTab, onOpenLogin, onOpe
               className="btn btn-point"
               style={{ height: '44px', padding: '0 1.2rem', fontSize: '0.9rem' }}
             >
-              {/* 640px 이하는 .header-btn-label이 숨겨져 LogIn 아이콘만 남는데, "출구"처럼
-                  보인다는 지적(2026-08-25 개발자 실기기 확인) — 그 폭에서만 짧은 "로그인" 텍스트를
-                  대신 보여준다(전체 텍스트 "로그인 / 회원가입"은 좁은 헤더에서 폭이 부족하다). */}
+              {/* 2026-08-25 — 라벨을 "로그인"으로 단순화(로그인/회원가입은 모달 내부 탭으로
+                  분리됨, LoginModal.tsx 참고). "로그인 / 회원가입"이 좁은 헤더에서 잘려 보이던
+                  문제로 640px 이하에서만 짧은 라벨을 대신 보여주던 반응형 전환은 이제 두 라벨이
+                  같은 텍스트가 돼 필요 없어져 제거했다. */}
               <LogIn size={16} />{' '}
-              <span className="header-btn-label">로그인 / 회원가입</span>
-              <span className="header-btn-label-short">로그인</span>
+              <span>로그인</span>
             </button>
           )}
         </div>

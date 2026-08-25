@@ -38,8 +38,13 @@ echo
 
 # ── 1. 부팅 파일 존재 + 용량 예산 ────────────────────────────────
 echo "1. 부팅 파일 (매 세션 로드, 합계 ≤ 11KB)"
+# 🔴 루트 CLAUDE.md가 목록 맨 앞인 이유: .harness/ 안의 3개는 에이전트가 자발적으로 읽어야만
+# 로드되지만, 루트 CLAUDE.md는 **CLI가 매 세션 자동으로** 밀어 넣는다. 즉 실제 부팅 비용은
+# 항상 여기부터 발생한다. 예산에서 빼면 "재고 있는데 안 세는" 항목이 생긴다(설계 원칙 2).
+# (2026-08-25 신설 — 소유권 규칙이 .harness/에만 있어 세션에 로드되지 않았고, Opus가 eobom/에
+#  코드를 쓴 사고가 있었다. 자동 로드되는 자리에 규칙을 두는 것이 이 파일의 존재 이유다.)
 BOOT_TOTAL=0
-for f in "$HARNESS/AGENTS.md" "$HARNESS/memory/context.md" "$HARNESS/memory/pending-approvals.md"; do
+for f in "$ROOT/CLAUDE.md" "$HARNESS/AGENTS.md" "$HARNESS/memory/context.md" "$HARNESS/memory/pending-approvals.md"; do
   CHECKS=$((CHECKS + 1))
   if [ ! -f "$f" ]; then
     fail "없음: ${f#$ROOT/}"
@@ -53,6 +58,18 @@ if [ "$BOOT_TOTAL" -gt 11264 ]; then
   fail "부팅 합계 $((BOOT_TOTAL / 1024))KB > 11KB 예산 초과 — 다이어트 필요"
 else
   ok "부팅 합계 $((BOOT_TOTAL / 1024))KB (예산 11KB 이내)"
+fi
+
+# 🔴 2026-08-25 신설 — context.md는 자기 머리말에 **"3KB 초과 금지"** 를 스스로 적어 두고도
+# 11,272B(3.7배)까지 불어 있었다. **아무도 재지 않는 규칙은 규칙이 아니다.** 합계만 보면
+# 어느 파일이 예산을 먹었는지 안 보여서 "다 같이 조금씩 넘쳤다"로 읽히는데, 실제로는
+# 이 파일 하나가 부팅 예산 11KB를 통째로 쓰고 있었다. 범인을 지목해야 다이어트가 시작된다.
+CHECKS=$((CHECKS + 1))
+CTX_SZ=$(size_of "$HARNESS/memory/context.md")
+if [ "$CTX_SZ" -gt 3072 ]; then
+  fail "context.md ${CTX_SZ}B > 3KB — 자기 머리말이 정한 상한의 $((CTX_SZ * 10 / 3072))/10배. 끝난 항목은 walkthrough.md로 옮길 것"
+else
+  ok "context.md $((CTX_SZ))B (자체 상한 3KB 이내)"
 fi
 echo
 
@@ -176,10 +193,24 @@ echo "5-2. 승인 대기(pending-approvals.md) ↔ \"다음 할 일\" 충돌 검
 PENDING="$HARNESS/memory/pending-approvals.md"
 CHECKS=$((CHECKS + 1))
 if [ -f "$PENDING" ]; then
+  # 🔴 2026-08-25 수정 — 경로형(`docs/…md`)만 찾고 있었다. 그런데 실제 대기 항목은 전부
+  # **문서 ID 표기**(`` `01-05` §10 ``, `` `00-11` §8 ``)로 적혀 있어 하나도 안 잡혔고,
+  # 대기 4건이 살아 있는데 "대기 중인 항목 없음" 🟢가 떴다. 2026-08-07·08-08 사고
+  # 재발 방지용으로 만든 검사가 **정확히 그 사고를 못 잡는 상태로 초록불**이었던 것 —
+  # 설계 원칙 2("검사 대상 0건 = 실패")를 이 스크립트 자신이 위반하고 있었다.
+  # 그래서 ① 문서 ID도 잡고 ② 미체크 항목이 있는데 추출이 0건이면 실패시킨다.
   PENDING_PATHS="$(grep -oE 'docs/[^ *`]+\.md' "$PENDING" 2>/dev/null | sort -u)"
-  if [ -z "$PENDING_PATHS" ]; then
-    ok "대기 중인 항목 없음"
+  PENDING_IDS="$(grep -E '^- \[ \]' "$PENDING" 2>/dev/null | grep -oE '`[0-9]{2}-[0-9]{2}`' | tr -d '`' | sort -u)"
+  # 미체크(`- [ ]`) 항목 수 — 이게 0이 아닌데 위 둘이 다 비면 파서가 깨진 것이다.
+  N_OPEN=$(grep -cE '^- \[ \]' "$PENDING" 2>/dev/null || true)
+  if [ -z "$PENDING_PATHS" ] && [ -z "$PENDING_IDS" ]; then
+    if [ "$N_OPEN" -gt 0 ]; then
+      fail "대기 ${N_OPEN}건이 있는데 참조를 하나도 추출하지 못함 — 파서가 표기 형식을 못 따라감(조용한 통과 방지)"
+    else
+      ok "대기 중인 항목 없음"
+    fi
   else
+    PENDING_PATHS="$(printf '%s\n%s\n' "$PENDING_PATHS" "$PENDING_IDS" | grep -v '^$' | sort -u)"
     CONFLICT=0
     NEXT_TASK="$(sed -n '/^## .*다음 할 일/,/^## /p' "$CTXF" 2>/dev/null | grep -v '^<!--')"
     while IFS= read -r p; do
@@ -227,9 +258,23 @@ echo
 
 # ── 7. 위키링크 무결성 ───────────────────────────────────────────
 echo "7. [[위키링크]] 무결성"
+# 🔴 2026-08-25 — 이 검사는 **현재 아무것도 검사하지 않는다.** 레포 전체에 실제 `[[링크]]`가
+# 0개다(쓰이는 곳은 이 스크립트와 README의 설명문뿐이고, gbrain-doctor는 코드스팬을 걷어내므로
+# 그것도 안 잡힌다). 그런데도 "점검 링크 0개 / 깨진 링크 0개 → ✅"가 🟢로 집계돼 **140건 중
+# 3건 문제**의 분모를 부풀리고 있었다 — 설계 원칙 2가 금지한 "조용한 통과"다.
+#   영구 빨간불로 만들지는 않는다. 위키링크를 안 쓰는 것은 고장이 아니라 선택이고, 고칠 수 없는
+#   빨간불은 "빨간불 무시" 습관을 만들어 doctor 전체의 신뢰를 깎는다(§8 BASELINE 주석과 같은 이유).
+#   대신 **🟢로 세지 않고 ⚪로 내려** 검사가 놀고 있다는 사실이 보이게 한다.
+#   → 위키링크를 실제로 도입하면 이 분기는 저절로 사라진다.
 if [ -x "$HARNESS/tools/gbrain-doctor.sh" ] || [ -f "$HARNESS/tools/gbrain-doctor.sh" ]; then
   if OUT="$(bash "$HARNESS/tools/gbrain-doctor.sh" 2>&1)"; then
-    ok "$(printf '%s' "$OUT" | grep -E '점검 링크' || echo '정상')"
+    LINKN="$(printf '%s' "$OUT" | grep -oE '점검 링크 [0-9]+' | grep -oE '[0-9]+' || echo 0)"
+    if [ "${LINKN:-0}" -eq 0 ]; then
+      note "점검 대상 [[링크]] 0개 — 이 프로젝트는 위키링크를 쓰지 않는다. 검사 유휴(합격으로 세지 않음)"
+      CHECKS=$((CHECKS - 1))  # 아래에서 +1 되므로 상쇄 — 놀고 있는 검사를 항목 수에 넣지 않는다
+    else
+      ok "$(printf '%s' "$OUT" | grep -E '점검 링크')"
+    fi
   else
     printf '%s\n' "$OUT" | grep '❌' | while IFS= read -r l; do red "  $l"; done
     fail "깨진 위키링크 있음"

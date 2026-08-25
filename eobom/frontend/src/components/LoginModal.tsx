@@ -1,12 +1,16 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { X, ShieldCheck, Check } from 'lucide-react';
+import { X, ShieldCheck, Check, AlertCircle } from 'lucide-react';
 import { BACKEND_URL } from '../config';
 
 interface LoginModalProps {
   isOpen: boolean;
   onClose: () => void;
   onLoginSuccess: (username: string, provider?: string, token?: string) => void;
+  // 2026-08-25 — 로그인/회원가입 탭 분리. 기본은 항상 "로그인" 탭. App.tsx가 mode=login 소셜
+  // 로그인이 "가입되지 않은 계정"으로 돌아왔을 때만 "signup"+안내문과 함께 연다.
+  initialTab?: 'login' | 'signup';
+  initialNotice?: string | null;
 }
 
 // 필수/선택 동의 한 줄 — LoginModal 전용이라 여기서만 쓴다(재사용 시점이 오면 그때 분리).
@@ -53,16 +57,124 @@ const ConsentCheckbox: React.FC<{
   </div>
 );
 
+// 소셜 로그인 3종 버튼 — 2026-08-25 탭 분리로 "로그인" 탭(항상 활성)과 "회원가입" 탭(동의 게이트로
+// disabled)이 같은 버튼 마크업을 필요로 해서 분리했다. onSelect만 탭마다 다르다
+// (handleLoginTabSocial vs handleSocialLogin).
+const SocialLoginButtons: React.FC<{
+  onSelect: (provider: 'kakao' | 'naver' | 'google') => void;
+  disabled?: boolean;
+}> = ({ onSelect, disabled = false }) => (
+  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem', opacity: disabled ? 0.45 : 1, pointerEvents: disabled ? 'none' : 'auto', transition: 'opacity 0.2s ease' }}>
+    {/* 1. 카카오 로그인 */}
+    <button
+      onClick={() => onSelect('kakao')}
+      disabled={disabled}
+      style={{
+        width: '100%',
+        height: '52px',
+        backgroundColor: '#FEE500',
+        color: '#191919',
+        border: 'none',
+        borderRadius: '14px',
+        fontSize: '0.98rem',
+        fontWeight: 700,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: '0.75rem',
+        cursor: 'pointer',
+        boxShadow: '0 4px 12px rgba(254, 229, 0, 0.3)',
+        transition: 'transform 0.15s'
+      }}
+    >
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path fillRule="evenodd" clipRule="evenodd" d="M12 3C6.477 3 2 6.484 2 10.782C2 13.567 3.791 16.002 6.5 17.388L5.59 20.738C5.474 21.164 5.952 21.492 6.31 21.254L10.378 18.55C10.906 18.625 11.446 18.665 12 18.665C17.523 18.665 22 15.181 22 10.883C22 6.584 17.523 3 12 3Z" fill="#191919"/>
+      </svg>
+      카카오로 시작하기
+    </button>
+
+    {/* 2. 네이버 로그인 */}
+    <button
+      onClick={() => onSelect('naver')}
+      disabled={disabled}
+      style={{
+        width: '100%',
+        height: '52px',
+        backgroundColor: '#03C75A',
+        color: '#FFFFFF',
+        border: 'none',
+        borderRadius: '14px',
+        fontSize: '0.98rem',
+        fontWeight: 700,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: '0.75rem',
+        cursor: 'pointer',
+        boxShadow: '0 4px 12px rgba(3, 199, 90, 0.3)',
+        transition: 'transform 0.15s'
+      }}
+    >
+      <span style={{ fontWeight: 900, fontSize: '1.2rem', fontFamily: 'sans-serif' }}>N</span>
+      네이버로 시작하기
+    </button>
+
+    {/* 3. 구글 로그인 */}
+    <button
+      onClick={() => onSelect('google')}
+      disabled={disabled}
+      style={{
+        width: '100%',
+        height: '52px',
+        backgroundColor: '#FFFFFF',
+        color: '#3C4043',
+        border: '1.5px solid #E5E7EB',
+        borderRadius: '14px',
+        fontSize: '0.98rem',
+        fontWeight: 700,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: '0.75rem',
+        cursor: 'pointer',
+        boxShadow: '0 2px 6px rgba(0,0,0,0.05)',
+        transition: 'transform 0.15s'
+      }}
+    >
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+        <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+        <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+        <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" fill="#FBBC05"/>
+        <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" fill="#EA4335"/>
+      </svg>
+      구글 계정으로 시작하기
+    </button>
+  </div>
+);
+
 // B2C 소비자 로그인 전용. 사업자·전문가는 /partner, 운영자는 /admin — 전부 완전히 분리된
 // 별도 인증 체계라 여기엔 관리자 로그인이 없다(2026-08-10, 옛 admin/1234 목업 버튼 제거).
 // 하단에 /partner 진입 링크만 둔다(00-06 §7.3 ①, 2026-08-14) — 헤더 로그인 버튼을 누르고
 // 여기까지 들어온 사업자·전문가가 막다른 길에 걸리지 않도록.
-export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLoginSuccess }) => {
+export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLoginSuccess, initialTab, initialNotice }) => {
   const navigate = useNavigate();
+
+  // 2026-08-25 — 로그인/회원가입 탭. 모달이 새로 열릴 때마다 부모가 지정한 값으로 리셋한다
+  // (열려 있는 상태에서 initialTab/initialNotice만 바뀌는 경우는 없음 — App.tsx가 항상
+  // openLoginModal()로 값과 열기를 함께 호출하지만, isOpen 전이를 기준으로 확실히 맞춘다).
+  const [activeTab, setActiveTab] = useState<'login' | 'signup'>(initialTab ?? 'login');
+  const [notice, setNotice] = useState<string | null>(initialNotice ?? null);
+  useEffect(() => {
+    if (isOpen) {
+      setActiveTab(initialTab ?? 'login');
+      setNotice(initialNotice ?? null);
+    }
+  }, [isOpen, initialTab, initialNotice]);
 
   // 2026-08-24 추가 — 가입(=최초 소셜 로그인) 시점에 이용약관·개인정보 수집·이용 동의를 전혀
   // 받고 있지 않던 걸 확인해서(개인정보보호법상 필수) 여기서 막는다. 필수 2개를 통과해야만
   // 아래 로그인 버튼들이 눌린다 — 링크는 새 탭으로 열어 모달 상태(체크 여부)가 안 날아가게 한다.
+  // (회원가입 탭 전용 — 로그인 탭은 동의 UI 자체가 없다, §아래 handleLoginTabSocial.)
   const [agreedTerms, setAgreedTerms] = useState(false);
   const [agreedPrivacy, setAgreedPrivacy] = useState(false);
   const [agreedMarketing, setAgreedMarketing] = useState(false);
@@ -94,14 +206,25 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin
   // 소셜 로그인 처리 (카카오, 네이버, 구글) — 백엔드 OAuth 인가 엔드포인트로 리다이렉트.
   // 동의 여부를 쿼리로 실어보내면 백엔드가 OAuth state에 서명해 콜백까지 들고 가서, 실제
   // 신규 가입(User 생성) 시점에만 termsAgreedAt 등을 스탬프한다(authController.ts 참고).
+  // "회원가입" 탭 전용 — mode=signup을 명시해 서버가 신규 가입 경로를 그대로 타게 한다.
   const handleSocialLogin = (provider: 'kakao' | 'naver' | 'google') => {
     if (!canProceed) return;
     const params = new URLSearchParams({
+      mode: 'signup',
       consentTerms: agreedTerms ? '1' : '0',
       consentPrivacy: agreedPrivacy ? '1' : '0',
       consentMarketing: agreedMarketing ? '1' : '0',
     });
     window.location.href = `${BACKEND_URL}/api/auth/${provider}?${params.toString()}`;
+  };
+
+  // "로그인" 탭 전용 — 동의 체크박스·만14세 확인 UI가 이 탭엔 없으므로 canProceed 게이트를
+  // 거치지 않고 바로 진행한다. mode=login을 실어보내면 authRoutes.ts가 이 요청에 한해 door의
+  // 동의 쿼리 요구를 건너뛰고, authController.ts가 소셜 인증 후 "이미 가입된 계정"일 때만
+  // 로그인시킨다 — 가입 이력이 없는 소셜 계정이면 동의 없이 조용히 새 User를 만드는 대신
+  // loginError=not_registered로 돌려보내 App.tsx가 "회원가입" 탭을 열게 한다.
+  const handleLoginTabSocial = (provider: 'kakao' | 'naver' | 'google') => {
+    window.location.href = `${BACKEND_URL}/api/auth/${provider}?mode=login`;
   };
 
   // 데모 로그인 (`POST /api/auth/demo-login`) — 2026-08-12 정정: 예전엔 토큰 없이 화면 표시용
@@ -207,6 +330,52 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin
           </p>
         </div>
 
+        {/* 로그인/회원가입 탭 — 2026-08-25. 기본 "로그인"은 동의 UI 없이 소셜 버튼만 노출하고
+            (기존 회원 재로그인 전용), "회원가입"에서만 만14세+필수동의 게이트를 거친다. */}
+        <div style={{ display: 'flex', backgroundColor: '#F3F4F6', borderRadius: '12px', padding: '4px', marginBottom: '1.2rem' }}>
+          {(['login', 'signup'] as const).map((tab) => (
+            <button
+              key={tab}
+              type="button"
+              onClick={() => { setActiveTab(tab); setNotice(null); }}
+              style={{
+                flex: 1,
+                border: 'none',
+                borderRadius: '9px',
+                padding: '0.6rem 0',
+                fontSize: '0.92rem',
+                fontWeight: 700,
+                cursor: 'pointer',
+                backgroundColor: activeTab === tab ? '#FFFFFF' : 'transparent',
+                color: activeTab === tab ? 'var(--primary-color)' : '#6B7280',
+                boxShadow: activeTab === tab ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
+                transition: 'all 0.15s'
+              }}
+            >
+              {tab === 'login' ? '로그인' : '회원가입'}
+            </button>
+          ))}
+        </div>
+
+        {notice && (
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', fontSize: '0.85rem', color: '#92400E', backgroundColor: '#FEF3C7', border: '1px solid #FDE68A', borderRadius: '10px', padding: '0.7rem 0.9rem', marginBottom: '1.1rem' }}>
+            <AlertCircle size={16} style={{ flexShrink: 0, marginTop: '0.1rem' }} />
+            <span>{notice}</span>
+          </div>
+        )}
+
+        {/* "로그인" 탭 — 이미 가입된 계정 전용. 동의 체크박스·만14세 확인이 없다(작업 지시 원문).
+            신규 계정이면 handleLoginTabSocial → authController.ts가 가입시키지 않고 되돌려보내
+            App.tsx가 이 모달을 "회원가입" 탭 + 안내문으로 다시 연다. */}
+        {activeTab === 'login' && (
+          <div style={{ marginBottom: '0.5rem' }}>
+            <SocialLoginButtons onSelect={handleLoginTabSocial} />
+          </div>
+        )}
+
+        {/* "회원가입" 탭 — 기존 UI(만14세 게이트 + 필수동의 2 + 선택 1) 그대로. */}
+        {activeTab === 'signup' && (
+        <>
         {/* 만 14세 이상 자기신고(00-19 §9-2-1) — 아래 동의 박스와 절대 섞지 않는다(요구2).
             생년월일은 받지 않고, 체크 여부도 어디에도 저장하지 않는다(요구3) — 로그인 버튼을
             잠그는 순수 로컬 게이트일 뿐이다. */}
@@ -292,95 +461,13 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin
           <ConsentCheckbox checked={agreedMarketing} onChange={setAgreedMarketing} label="마케팅 정보 수신 동의" required={false} />
         </div>
 
-        {/* 소셜 로그인 3종 전면 배치 — 필수 동의 전까지 비활성화(흐리게 + 클릭 무시) */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem', opacity: canProceed ? 1 : 0.45, pointerEvents: canProceed ? 'auto' : 'none', transition: 'opacity 0.2s ease' }}>
-            {/* 1. 카카오 로그인 */}
-            <button
-              onClick={() => handleSocialLogin('kakao')}
-              disabled={!canProceed}
-              style={{
-                width: '100%',
-                height: '52px',
-                backgroundColor: '#FEE500',
-                color: '#191919',
-                border: 'none',
-                borderRadius: '14px',
-                fontSize: '0.98rem',
-                fontWeight: 700,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '0.75rem',
-                cursor: 'pointer',
-                boxShadow: '0 4px 12px rgba(254, 229, 0, 0.3)',
-                transition: 'transform 0.15s'
-              }}
-            >
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path fillRule="evenodd" clipRule="evenodd" d="M12 3C6.477 3 2 6.484 2 10.782C2 13.567 3.791 16.002 6.5 17.388L5.59 20.738C5.474 21.164 5.952 21.492 6.31 21.254L10.378 18.55C10.906 18.625 11.446 18.665 12 18.665C17.523 18.665 22 15.181 22 10.883C22 6.584 17.523 3 12 3Z" fill="#191919"/>
-              </svg>
-              카카오로 시작하기
-            </button>
+        {/* 소셜 로그인 3종 — 필수 동의 전까지 비활성화(흐리게 + 클릭 무시) */}
+        <SocialLoginButtons onSelect={handleSocialLogin} disabled={!canProceed} />
+        </>
+        )}
 
-            {/* 2. 네이버 로그인 */}
-            <button
-              onClick={() => handleSocialLogin('naver')}
-              disabled={!canProceed}
-              style={{
-                width: '100%',
-                height: '52px',
-                backgroundColor: '#03C75A',
-                color: '#FFFFFF',
-                border: 'none',
-                borderRadius: '14px',
-                fontSize: '0.98rem',
-                fontWeight: 700,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '0.75rem',
-                cursor: 'pointer',
-                boxShadow: '0 4px 12px rgba(3, 199, 90, 0.3)',
-                transition: 'transform 0.15s'
-              }}
-            >
-              <span style={{ fontWeight: 900, fontSize: '1.2rem', fontFamily: 'sans-serif' }}>N</span>
-              네이버로 시작하기
-            </button>
-
-            {/* 3. 구글 로그인 */}
-            <button
-              onClick={() => handleSocialLogin('google')}
-              disabled={!canProceed}
-              style={{
-                width: '100%',
-                height: '52px',
-                backgroundColor: '#FFFFFF',
-                color: '#3C4043',
-                border: '1.5px solid #E5E7EB',
-                borderRadius: '14px',
-                fontSize: '0.98rem',
-                fontWeight: 700,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '0.75rem',
-                cursor: 'pointer',
-                boxShadow: '0 2px 6px rgba(0,0,0,0.05)',
-                transition: 'transform 0.15s'
-              }}
-            >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
-                <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-                <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" fill="#FBBC05"/>
-                <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" fill="#EA4335"/>
-              </svg>
-              구글 계정으로 시작하기
-            </button>
-          </div>
-
+        {/* 파트너 진입 링크 + 개발용 데모 로그인 — "로그인"·"회원가입" 두 탭 공통 하단(작업 지시 원문) */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem', marginTop: activeTab === 'login' ? 0 : '0.5rem' }}>
             {/* 파트너(사업자·전문가) 진입 분기 — B2C 소셜 로그인과 무관한 별도 인증 체계로 이동
                 (00-06 §7.3 ①). 데모 블록은 오픈 시 제거될 것이므로 그 위에 둔다. */}
             <div style={{ marginTop: '0.95rem', paddingTop: '0.95rem', borderTop: '1px solid #F3F4F6', textAlign: 'center' }}>
@@ -402,7 +489,10 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin
               </button>
             </div>
 
-            {/* 하단 개발용 모의 로그인 버튼 */}
+            {/* 하단 개발용 모의 로그인 버튼 — 백엔드 demo-login이 termsAgreed/privacyAgreed를
+                요구해서(authController.ts) canProceed(회원가입 탭의 동의+만14세 게이트)에 계속
+                묶어둔다. "로그인" 탭에는 그 게이트 자체가 없어 canProceed가 항상 false이므로,
+                데모 버튼은 이 자리에 노출은 되지만 "회원가입" 탭으로 전환해 동의해야 눌린다. */}
             <div style={{ marginTop: '0.95rem', paddingTop: '0.95rem', borderTop: '1px solid #F3F4F6', textAlign: 'center' }}>
               <div style={{ fontSize: '0.85rem', color: '#9CA3AF', marginBottom: '0.6rem' }}>
                 [빠른 데모 테스트용 선택]

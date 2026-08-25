@@ -6,10 +6,11 @@
 
 ---
 
-## 0. 부팅 — 매 세션 반드시 읽는 것 (이 3개가 전부)
+## 0. 부팅 — 매 세션 반드시 읽는 것 (0번은 자동, 1~3은 직접 연다)
 
 | 순서 | 파일 | 무엇을 얻나 |
 |---|---|---|
+| 0 | **루트 `CLAUDE.md`** | 🔴 **유일하게 자동 로드되는 파일.** 이 표의 1~3은 CLI가 밀어 넣지 않으므로, 읽으라고 시키는 것이 거기 있다. **소유권 규칙(Opus=`docs/` / Sonnet=`eobom/`)도 포인터가 아니라 본문으로 거기 있다** — 2026-08-25 그 규칙이 `.harness/`에만 있어 세션에 로드되지 않았고 Opus가 `eobom/`에 코드를 썼다. |
 | 1 | `.harness/memory/context.md` | **"다음 할 일" 한 줄** + 지금 상태. 맨 위 3줄만 봐도 바로 작업 시작 가능해야 한다. |
 | 2 | `.harness/memory/pending-approvals.md` | **사람 승인 대기 목록. 여기 있는 건 착수 금지.** `context.md`를 통째로 새로 써도 이 파일은 별도라 안 지워진다 — 그게 존재 이유. |
 | 3 | `.harness/AGENTS.md` (이 파일) | 행동 규칙 + 아래 조건부 로드 표 |
@@ -21,7 +22,7 @@
 
 | 작업 유형 | 읽을 파일 |
 |---|---|
-| 에이전트 전환 / 누가 뭘 쓰는지 헷갈릴 때 | `.harness/roles.md` |
+| 🔴 **내 소유 영역 밖 파일을 쓰기 직전**(Opus가 `eobom/`, Sonnet이 `docs/`) · 에이전트 전환 | `.harness/roles.md` |
 | 개인정보·시크릿·외부 발행(배포/공개) 건드릴 때 | `.harness/security.md` |
 | 작업을 "끝났다"고 선언하기 직전 | `.harness/done.md` |
 | `walkthrough.md`·일지에 기록을 남길 때 | `.harness/record.md` |
@@ -48,13 +49,18 @@ PLAN → CONFIRM → CODE/WRITE → SAVE → UPDATE
 
 **중복 검증을 없애는 핵심 규칙.** 상대가 확정한 것은 다시 검토하지 않고 신뢰한다.
 
-| 영역 | 쓰기 | 읽기 |
+| 영역 | 🔴 쓰기 (이 주체만) | 읽기 |
 |---|---|---|
-| `docs/` (기획 SSOT) | Claude(Opus 모드) | Gemini |
+| `docs/` (기획 SSOT) | **`[Claude:Opus]`** | Sonnet · Gemini |
+| `eobom/` (소스코드) | **`[Claude:Sonnet]`** | Opus · Gemini |
 | `reports/` (시각화 HTML) | Gemini | Claude |
 | ↳ 🔴 **git 커밋 제외**(2026-08-20, 로컬 전용) — 근거·주의는 `roles.md` §1-1 | | |
-| `eobom/`, `.harness/` | Claude | Gemini |
+| `.harness/` | Claude(Opus·Sonnet 공용) | Gemini |
 | `assets/` | 사람 | 둘 다 |
+
+🔴 **`docs/`와 `eobom/`은 같은 `Claude`가 아니다.** 2026-08-25까지 이 표가 둘을 `Claude` 하나로
+묶어 둬서, 표를 읽은 Opus가 `eobom/`을 자기 영역으로 해석해 코드를 썼다(전량 revert). **Opus는
+코드를 짜지 않고, Sonnet은 `docs/`를 고치지 않는다.** 강제 장치는 없다 → `roles.md` §1-1.
 | `docs/작업일지_및_기록/` | **파일별로 나뉨** → `roles.md` §1-2 | |
 
 기록 폴더는 양쪽 다 써야 하므로 통째로 한쪽에 주지 않는다. 각자 자기 로그(`claude_tasks.md` / `gemini_tasks.md`)를 쓰고, 일지는 덧붙이기 전용으로 공유한다.

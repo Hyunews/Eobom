@@ -99,6 +99,17 @@ Phase1(§9): ①②⑤⑥✅ / 남은건 ③친구탭개인·④폴백(실기기
 **11-3 사망확인 처리SLA**(3단계 전체가 여기 걸림, 11-4 2인승인과 한뿌리) · **11-11 06 수익지점**
 (비용만 나는 유일 도메인, §3-4와 함께). 🔍확인만 하면 되는 것 4건(비용0)은 §11.4.
 
+**⑩ ✅[개발자 지시] 헤더 "계정 연동" 제거 + LoginModal 로그인/회원가입 탭 분리**(08-25,
+walkthrough(71)) — **[Sonnet] 구현완료**. `Header.tsx`의 "계정 연동" 버튼·`onOpenAccountSettings`
+prop 제거(마이페이지 전용으로 통합, `MyPage.tsx`가 이미 갖고 있던 트리거 재사용). 라벨
+"로그인 / 회원가입"→"로그인". `LoginModal.tsx`에 로그인(동의 UI 없음, 소셜3종만)/회원가입
+(기존 만14세+동의2 게이트) 탭 분리 — `handleSocialLogin`에 `mode=signup`, 로그인 탭 전용
+`handleLoginTabSocial`에 `mode=login`. 백엔드 `authRoutes.ts`(`GET /:provider`)는 mode=login이면
+door의 동의 요구를 건너뛰고, `authController.ts`(`handleSocialLoginCallback`)가 mode=login인데
+신규 유저면(3단계 User.create 직전) 가입시키지 않고 `loginError=not_registered`로 되돌려
+App.tsx가 모달을 회원가입 탭+안내문으로 다시 연다. tsc(FE·BE)·build 통과. 🔴브라우저 실기동
+미검증(실제 OAuth 왕복으로 mode=login 신규/기존 분기 확인 안 함).
+
 ---
 
 ## 지금 상태
@@ -109,6 +120,7 @@ Phase1(§9): ①②⑤⑥✅ / 남은건 ③친구탭개인·④폴백(실기기
 도메인  : 01장사시설/02전문가/03현물수거/04·05(보류)/06엔딩노트/07상중행정
 마지막  : 2026-08-25 [Opus] ①모바일 375px 실계측(`00-29`§10~15·`00-09`§2.3·§3.2) ②`06-04` 엔딩노트 실구현 기획
           [Sonnet] ③06 Phase0 문구정리 + STT Phase1-a 구현(`EndingNotePage.tsx`, walkthrough(70))
+          ④헤더 계정연동 제거 + 로그인/회원가입 탭 분리(walkthrough(71))
 게이트  : 대기 6건(55·56은 ✅통과). 🔴 doctor가 08-24까지 "대기 1건"으로 오보 — `'판정 대기'`만
           세느라 `record.md`§1 빈칸을 못 봤다(수정완료). 판정줄 69 < 판정집계 79 = **표기 없는 옛 항목 10건**
 ```

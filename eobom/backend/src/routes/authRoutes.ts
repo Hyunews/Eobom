@@ -34,15 +34,23 @@ for (const provider of LINKABLE_PROVIDERS) {
   // 프론트 가드는 우회 가능하므로(URL 직접 호출 등) 여기서도 다시 검증한다 — 신규 가입인지
   // 여부는 이 시점엔 알 수 없어(OAuth 인가 전) 기존 유저 재로그인도 매번 쿼리를 요구하게
   // 되지만, LoginModal이 항상 체크된 값으로 호출하므로 실사용 흐름엔 영향이 없다.
+  //
+  // 2026-08-25 추가 — LoginModal.tsx가 "로그인"/"회원가입" 탭으로 나뉘면서 "로그인" 탭엔 동의
+  // 체크박스 UI 자체가 없다(?mode=login으로 호출). 그 탭에서 위 동의 가드를 그대로 적용하면
+  // 기존 회원의 정상 재로그인까지 막히므로, mode=login이면 이 door에서는 통과시키고 대신
+  // handleSocialLoginCallback이 콜백 단계에서 "신규 가입이면 만들지 않고 되돌려보낸다"로
+  // 막는다(§신규 가입 차단은 controller 쪽 주석 참고) — 문 앞이 아니라 실제로 가입이 필요한
+  // 순간에만 막는 셈이라 뚫린 게 아니다.
   router.get(`/${provider}`, (req, res, next) => {
+    const mode = req.query.mode === 'login' ? 'login' : 'signup';
     const consentTerms = req.query.consentTerms === '1';
     const consentPrivacy = req.query.consentPrivacy === '1';
-    if (!consentTerms || !consentPrivacy) {
+    if (mode !== 'login' && (!consentTerms || !consentPrivacy)) {
       const frontendUrl = captureFrontendOrigin(req) || FRONTEND_URL;
       return res.redirect(`${frontendUrl}?loginError=consent_required`);
     }
     const consent = { terms: consentTerms, privacy: consentPrivacy, marketing: req.query.consentMarketing === '1' };
-    const state = jwt.sign({ purpose: 'login', origin: captureFrontendOrigin(req), consent }, JWT_SECRET, { expiresIn: '10m' });
+    const state = jwt.sign({ purpose: 'login', origin: captureFrontendOrigin(req), consent, mode }, JWT_SECRET, { expiresIn: '10m' });
     const options = { ...providerAuthOptions[provider], state };
     return passport.authenticate(provider, options as object)(req, res, next);
   });

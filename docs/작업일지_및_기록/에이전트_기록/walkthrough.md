@@ -6,6 +6,84 @@
 
 ---
 
+## 2026-08-25 (71) | [Sonnet] 헤더 "계정 연동" 제거 + LoginModal 로그인/회원가입 탭 분리
+
+- **근거 스펙**: 스펙 없음 — 사용자가 대화에서 두 작업(①헤더 정리 ②로그인 모달 탭 분리 +
+  백엔드 mode=login 가드)을 파일·줄번호까지 명시해 직접 지시. `docs/`에 해당 스펙 문서는 없음.
+- **건드린 파일**:
+  - `eobom/frontend/src/components/Header.tsx`
+  - `eobom/frontend/src/components/LoginModal.tsx`
+  - `eobom/frontend/src/App.tsx`
+  - `eobom/frontend/src/index.css`
+  - `eobom/backend/src/routes/authRoutes.ts`
+  - `eobom/backend/src/controllers/authController.ts`
+  - `.harness/memory/context.md` — ⑩ 항목 신설.
+  - `docs/작업일지_및_기록/에이전트_기록/claude_tasks.md`·`walkthrough.md`(이 항목).
+- **결과**:
+  - **작업 1(헤더)**: `Header.tsx`에서 "계정 연동" 버튼(`<Settings/>`+`onOpenAccountSettings`
+    onClick)과 `HeaderProps.onOpenAccountSettings` prop을 완전히 제거(더 이상 안 쓰는 `Settings`
+    아이콘 import도 함께 제거). `App.tsx`의 `<Header .../>` 호출에서만 `onOpenAccountSettings`를
+    뺐고, `<Sidebar .../>`·`<MyPage .../>` 호출은 그대로 유지 — `MyPage.tsx:177~183`이 이미
+    같은 prop으로 "계정 연동" 버튼을 갖고 있어(App.tsx:367 그대로) 재사용 조건을 그대로 만족,
+    새 트리거를 추가하지 않았다. `App.tsx`의 `MyPageAuthSettings`(계정 연동 모달 자체,
+    `:101`·`:418` 주석 지점)는 손대지 않고 그대로 유지. 라벨은 `:154` `"로그인 / 회원가입"` →
+    `"로그인"`으로 바꾸고, 이제 두 라벨이 같은 텍스트가 된 `:155`의 `header-btn-label-short`
+    span을 제거 — 딸린 CSS(`index.css`의 `.header-btn-label-short` 기본/640px 규칙 2곳)도 죽은
+    코드가 돼 함께 제거.
+  - **작업 2(로그인 탭 분리)**: `LoginModal.tsx`에 `activeTab`('login'|'signup', 기본 'login')
+    상태 신설, 모달 상단에 탭 스위처 2개 추가. 기존 3개 소셜 버튼(각 20~30줄 스타일 포함)을
+    `SocialLoginButtons` 로컬 컴포넌트로 추출해 두 탭이 공유(중복 마크업 회피) — "로그인" 탭은
+    `<SocialLoginButtons onSelect={handleLoginTabSocial} />`(항상 활성, 동의 UI 없음), "회원가입"
+    탭은 기존 만14세 게이트 + 필수동의2·선택1 + `<SocialLoginButtons onSelect={handleSocialLogin}
+    disabled={!canProceed} />`(기존 로직 그대로). 파트너 진입 링크·데모 로그인 3버튼은 탭
+    조건문 밖 공통 하단에 그대로 유지(지시 원문대로). `initialTab`·`initialNotice` prop 신설 —
+    모달이 열릴 때(`isOpen` true 전이)마다 그 값으로 리셋하는 `useEffect`.
+  - **mode=login 백엔드 가드**: `authRoutes.ts`의 `GET /:provider`에 `mode` 쿼리 판별 추가 —
+    `mode==='login'`이면 기존의 `consentTerms`/`consentPrivacy` door 가드를 건너뛰고
+    `state`에 `mode`를 함께 서명(`purpose:'login', origin, consent, mode`). `mode`가 없거나
+    `'login'`이 아니면 기존 동작(동의 없으면 `loginError=consent_required`) 그대로.
+    `authController.ts`에 `LoginStatePayload.mode?: 'login'|'signup'` 필드 + `resolveMode(state)`
+    헬퍼(위조·만료·`purpose!=='login'`·필드 없음은 전부 `'signup'`으로 안전 폴백) 신설.
+    `handleSocialLoginCallback`에서 1단계(기존 `SocialAccount`)·2단계(이메일 일치 기존 유저,
+    `socialLinkPrompt`)는 그대로 두고, **3단계(완전 신규 `User.create`) 직전**에
+    `if (mode === 'login') return res.redirect('...?loginError=not_registered')`를 추가 —
+    동의 없이 가입시키지 않는다. `App.tsx`의 `loginError` 처리 `useEffect`에 `not_registered`를
+    별도 분기로 추가해 `alert()` 대신 `openLoginModal({ tab: 'signup', notice: '가입되지 않은
+    계정입니다. 아래에서 약관 동의 후 회원가입을 진행해주세요.' })`를 호출하도록 — 기존
+    `messages` 맵의 다른 에러 코드(kakao_failed 등)는 여전히 `alert()`로 그대로 처리.
+    `Header`·`Sidebar`·`FamilyInvitePage`·`authProps`의 4개 `onOpenLogin` 호출부는 전부
+    `() => openLoginModal()`(옵션 없음 = 기본 'login' 탭, notice 없음)로 통일.
+  - **명령 재현**: `npx tsc --noEmit -p .`(`eobom/frontend`) 에러 0. `npx tsc --noEmit`
+    (`eobom/backend`, package.json `build`는 `prisma generate && tsc`이지만 스키마 변경이 없어
+    `tsc --noEmit`만 직접 실행) 에러 0. `npm run build`(`eobom/frontend`) `tsc && vite build`
+    통과, `dist/assets/index-D9p72GEw.js 475.14 kB`. `Grep -n "header-btn-label-short|
+    onOpenAccountSettings.*Header|<Header" eobom/frontend/src` → `Header.tsx`엔 남은 참조 없음
+    (JSX 호출 1건·컴포넌트 정의 1건만, 둘 다 prop 없이). `Grep -n "not_registered|mode=login|
+    resolveMode" eobom` → 프론트(`App.tsx`·`LoginModal.tsx`)·백엔드(`authRoutes.ts`·
+    `authController.ts`) 4개 파일에서 일관되게 연결됨을 확인.
+- **편차**:
+  - "로그인" 탭의 데모 로그인 3버튼(카카오/네이버/구글 모의)은 여전히 `canProceed`(회원가입
+    탭의 동의+만14세 상태)로 활성/비활성이 결정된다 — 지시는 "두 탭 공통 하단에 유지"였고
+    데모 로그인 자체를 어느 탭에서 어떻게 게이트할지는 명시하지 않았다. 백엔드 `demoLogin`이
+    `termsAgreed`/`privacyAgreed`를 필수로 요구하는데(`authController.ts` `demoLogin`) 로그인
+    탭엔 그 값을 만들 UI가 없으므로, "공통 하단에 항상 보이되(지시대로) 로그인 탭에서는
+    비활성 상태로 보이고, 회원가입 탭에서 동의해야 눌리는" 형태로 판단해 그대로 뒀다 — 데모
+    버튼에 한해 별도 동의 없는 경로를 뚫는 것보다 안전한 선택이라고 봤다. 코드에 그 이유를
+    주석으로 남겨뒀다(`LoginModal.tsx` 데모 버튼 블록 바로 위).
+  - `socialLinkPrompt`(2단계, 동일 이메일의 기존 유저를 다른 provider로 발견 — 계정 통합/독립
+    가입 선택 모달)는 `mode`와 무관하게 기존 그대로 뒀다 — 이미 "가입 이력이 있는" 시나리오라
+    지시의 "신규 유저면 막는다" 대상이 아니라고 판단했다.
+- **다음 에이전트가 알아야 할 것**:
+  - 브라우저 실기동 미검증 — 실제 카카오/네이버/구글 OAuth 왕복으로 (a) 로그인 탭에서 이미
+    가입된 계정으로 로그인 시 정상 로그인되는지 (b) 로그인 탭에서 가입 이력 없는 계정으로
+    시도 시 `not_registered` → 회원가입 탭+안내문이 실제로 뜨는지 (c) 회원가입 탭에서 기존
+    플로우(동의+만14세 게이트)가 그대로 동작하는지, 셋 다 코드 리뷰로만 확인했다. 이 세션은
+    dev 서버를 사용자 쪽에서만 기동하는 운용 방식이라 별도 요청 없이는 실행하지 않았다.
+  - `.harness/memory/context.md` §⓪ item 3(마이페이지 카운터 하드코딩 + "계정설정"→"계정 연동"
+    개명)은 이번 작업과 이름만 겹칠 뿐 별개 항목이다 — 그 항목은 아직 미착수.
+
+---
+
 ## 2026-08-25 (70) | [Sonnet] `06-04`§6.4·§10 — Phase 0 문구정리 + STT 초안 Phase 1-a 구현
 
 - **근거 스펙**: docs/06_엔딩노트_유언/06-04_엔딩노트_보관함_실구현_기획서.md §6.4·§10 Phase 0. 법적

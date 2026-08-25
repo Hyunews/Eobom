@@ -859,12 +859,6 @@ body {
   background-color: var(--secondary-color);
 }
 
-/* 로그인 버튼(Header.tsx) 전용 짧은 라벨 — 기본(데스크톱)은 숨김, 640px 이하에서만
-   .header-btn-label(전체 텍스트) 대신 보여준다(아래 640px 블록에서 뒤집음). */
-.header-btn-label-short {
-  display: none;
-}
-
 /* ── Header 반응형 — 00-26 §4.4 + walkthrough(34) 375px 가로 오버플로 해소 이력 승계 ──
    기본(≥641px)은 여백 그대로. 좁은 창에서는 사용자명을 말줄임표로 줄이고 버튼 라벨 텍스트를
    숨겨 아이콘만 남긴다. 평면 메뉴(.header-nav)는 햄버거가 나타나는 640px 이하에서 통째로
@@ -912,14 +906,11 @@ body {
     display: none;
   }
 
-  /* 로그인 버튼만 아이콘 단독으로 남으면 "출구"처럼 보인다는 지적(2026-08-25) — 짧은
-     "로그인" 텍스트로 대체한다(계정 연동·로그아웃 버튼은 이 클래스를 안 써서 영향 없음). */
-  .header-btn-label-short {
-    display: inline;
-  }
+  /* 로그인 버튼은 2026-08-25부터 라벨이 항상 "로그인"(className 없는 plain span)이라
+     이 규칙의 영향을 받지 않고 640px 이하에서도 계속 보인다 — 별도 반응형 처리 불필요. */
 
-  /* 계정 연동/로그아웃 버튼은 헤더에서 완전히 숨기고 Sidebar.tsx 모바일 드로어 하단으로
-     이관한다(햄버거 버튼까지 더해져 헤더 폭이 부족해지는 문제 — 2026-08-20 발견). */
+  /* 로그아웃 버튼은 헤더에서 완전히 숨기고 Sidebar.tsx 모바일 드로어 하단으로 이관한다
+     (햄버거 버튼까지 더해져 헤더 폭이 부족해지는 문제 — 2026-08-20 발견). */
   .header-account-buttons--has-drawer {
     display: none !important;
   }

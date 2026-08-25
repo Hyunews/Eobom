@@ -59,6 +59,16 @@ function AppShell() {
   const isFamilyInviteRoute = /^invite\//.test(activeTab);
 
   const [isLoginOpen, setIsLoginOpen] = useState<boolean>(false);
+  // 2026-08-25 — LoginModal 내부 로그인/회원가입 탭 분리. 기본은 항상 "로그인" 탭으로 열리고,
+  // mode=login 소셜 로그인이 "가입되지 않은 계정"으로 되돌아왔을 때만 "회원가입" 탭 + 안내문과
+  // 함께 연다(아래 loginError 처리부).
+  const [loginModalTab, setLoginModalTab] = useState<'login' | 'signup'>('login');
+  const [loginModalNotice, setLoginModalNotice] = useState<string | null>(null);
+  const openLoginModal = (opts?: { tab?: 'login' | 'signup'; notice?: string }) => {
+    setLoginModalTab(opts?.tab ?? 'login');
+    setLoginModalNotice(opts?.notice ?? null);
+    setIsLoginOpen(true);
+  };
   // 모바일 햄버거 메뉴(드로어) 열림 상태 — 데스크톱은 기존 호버 사이드바 그대로,
   // 480px 이하에서만 Header의 햄버거 버튼으로 열고 Sidebar의 드로어로 보여준다(2026-08-20 지시).
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false);
@@ -219,18 +229,25 @@ function AppShell() {
   React.useEffect(() => {
     const loginError = new URLSearchParams(window.location.search).get('loginError');
     if (loginError) {
-      const messages: Record<string, string> = {
-        kakao_failed: '카카오 로그인에 실패했습니다. 다시 시도해주세요.',
-        naver_failed: '네이버 로그인에 실패했습니다. 다시 시도해주세요.',
-        google_failed: '구글 로그인에 실패했습니다. 다시 시도해주세요.',
-        auth_failed: '소셜 로그인 인증에 실패했습니다. 다시 시도해주세요.',
-        server_error: '서버 오류로 로그인에 실패했습니다. 잠시 후 다시 시도해주세요.',
-        // 2026-08-24 — /api/auth/:provider 시작 라우트가 필수 동의(이용약관·개인정보) 쿼리
-        // 없이 호출되면 여기로 리다이렉트한다(authRoutes.ts). LoginModal.tsx를 거치지 않고
-        // 직접 URL을 호출한 경우(예: 구 버전 캐시, 외부 링크)에만 실제로 뜬다.
-        consent_required: '이용약관 및 개인정보 수집·이용 동의가 필요합니다. 로그인 창에서 다시 시도해주세요.',
-      };
-      alert(messages[loginError] || '로그인에 실패했습니다. 다시 시도해주세요.');
+      // 2026-08-25 — "로그인" 탭(mode=login)으로 소셜 인증까지는 성공했는데 이 소셜 계정으로
+      // 가입된 적이 없는 경우(authController.ts handleSocialLoginCallback). 동의 없이 조용히
+      // 가입시키지 않고, 알림창 대신 모달을 "회원가입" 탭으로 열어 그 자리에서 이어가게 한다.
+      if (loginError === 'not_registered') {
+        openLoginModal({ tab: 'signup', notice: '가입되지 않은 계정입니다. 아래에서 약관 동의 후 회원가입을 진행해주세요.' });
+      } else {
+        const messages: Record<string, string> = {
+          kakao_failed: '카카오 로그인에 실패했습니다. 다시 시도해주세요.',
+          naver_failed: '네이버 로그인에 실패했습니다. 다시 시도해주세요.',
+          google_failed: '구글 로그인에 실패했습니다. 다시 시도해주세요.',
+          auth_failed: '소셜 로그인 인증에 실패했습니다. 다시 시도해주세요.',
+          server_error: '서버 오류로 로그인에 실패했습니다. 잠시 후 다시 시도해주세요.',
+          // 2026-08-24 — /api/auth/:provider 시작 라우트가 필수 동의(이용약관·개인정보) 쿼리
+          // 없이 호출되면 여기로 리다이렉트한다(authRoutes.ts). LoginModal.tsx를 거치지 않고
+          // 직접 URL을 호출한 경우(예: 구 버전 캐시, 외부 링크)에만 실제로 뜬다.
+          consent_required: '이용약관 및 개인정보 수집·이용 동의가 필요합니다. 로그인 창에서 다시 시도해주세요.',
+        };
+        alert(messages[loginError] || '로그인에 실패했습니다. 다시 시도해주세요.');
+      }
       // 쿼리스트링 정리 (새로고침해도 에러 메시지가 다시 뜨지 않도록)
       window.history.replaceState(null, '', window.location.pathname + window.location.hash);
     }
@@ -254,7 +271,7 @@ function AppShell() {
 
   const authProps = {
     currentUser,
-    onOpenLogin: () => setIsLoginOpen(true),
+    onOpenLogin: () => openLoginModal(),
     setActiveTab,
   };
 
@@ -267,7 +284,7 @@ function AppShell() {
           <Route path="/m/:slug" element={<MemorialPage />} />
           <Route
             path="/invite/:token"
-            element={<FamilyInvitePage currentUser={currentUser} onOpenLogin={() => setIsLoginOpen(true)} />}
+            element={<FamilyInvitePage currentUser={currentUser} onOpenLogin={() => openLoginModal()} />}
           />
         </Routes>
       ) : (
@@ -296,8 +313,7 @@ function AppShell() {
           {/* 상단 네비게이션 헤더 */}
           <Header
             setActiveTab={setActiveTab}
-            onOpenLogin={() => setIsLoginOpen(true)}
-            onOpenAccountSettings={() => { setMyPageMessage(null); setIsMyPageOpen(true); }}
+            onOpenLogin={() => openLoginModal()}
             currentUser={currentUser}
             onLogout={handleLogout}
             onSetMode={handleSetNavMode}
@@ -311,7 +327,7 @@ function AppShell() {
               setActiveTab={setActiveTab}
               navMode={navMode}
               currentUser={currentUser}
-              onOpenLogin={() => setIsLoginOpen(true)}
+              onOpenLogin={() => openLoginModal()}
               mobileOpen={isMobileMenuOpen}
               onMobileClose={() => setIsMobileMenuOpen(false)}
               onOpenAccountSettings={() => { setMyPageMessage(null); setIsMyPageOpen(true); }}
@@ -392,11 +408,13 @@ function AppShell() {
         </>
       )}
 
-      {/* 로그인 / 회원가입 데모 모달 */}
+      {/* 로그인 / 회원가입 데모 모달 — 내부에 로그인·회원가입 탭 분리(2026-08-25, LoginModal.tsx) */}
       <LoginModal
         isOpen={isLoginOpen}
         onClose={() => setIsLoginOpen(false)}
         onLoginSuccess={handleLoginSuccess}
+        initialTab={loginModalTab}
+        initialNotice={loginModalNotice}
       />
 
       {/* 가입 시점 동일 이메일 감지 -> [계정 통합] vs [독립 신규 가입] 선택 모달 */}
