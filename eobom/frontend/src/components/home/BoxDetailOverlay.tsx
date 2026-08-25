@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { X, ArrowRight, ChevronUp, ChevronDown } from 'lucide-react';
 import { DomainSlide } from './domainSlides';
 
@@ -15,6 +16,13 @@ import { DomainSlide } from './domainSlides';
 // 모바일에서는 description만으로 충분하다는 개발자 판단으로 피처 카드(아이콘+타이틀+본문+
 // bullets, 아래 .overlay-slide-feature-card)도 index.css에서 통째로 숨긴다 — 웹(≥641px)은
 // 그대로 유지.
+// 2026-08-25 — 실기기 모바일에서 헤더 아래로 boxTitle 칩·닫기 버튼의 잘린 조각이 삐져나와
+// 보이는 버그 확인(스크린샷). 이 오버레이는 EntryBoxes → HomePage.tsx의 .home-scroll-container
+// (overflow-y 스크롤 컨테이너) 안에 DOM으로 중첩돼 있는데, position:fixed 자식이 스크롤 컨테이너
+// 조상 안에서 뷰포트가 아니라 그 조상 기준으로 갇히는 현상이 모바일 WebKit에서 알려져 있다
+// (그 조상 CSS를 하나하나 다 맞춰서 고치는 대신) createPortal로 DOM 자체를 body 바로 아래로
+// 옮겨서 어떤 조상의 overflow·position·stacking-context 설정과도 무관하게 만든다 — 모달/오버레이의
+// 표준 해법이라 이후 조상 쪽 CSS가 또 바뀌어도 이 문제가 재발하지 않는다.
 
 interface BoxDetailOverlayProps {
   boxTitle: string;
@@ -59,8 +67,9 @@ export const BoxDetailOverlay: React.FC<BoxDetailOverlayProps> = ({
 
     const handleWheel = (e: WheelEvent) => {
       e.preventDefault();
-      // 이 오버레이가 HomePage의 풀페이지 스크롤 컨테이너 안에 DOM상 중첩돼 있어, stopPropagation
-      // 없이는 같은 휠 이벤트가 부모로 버블링돼 뒤에 가려진 배경(4박스 섹션)까지 같이 스크롤됐다.
+      // createPortal로 body 직속이 된 뒤에도(위 파일 상단 주석 참고) 네이티브 이벤트는 실제 DOM
+      // 트리를 기준으로 버블링하므로 이제 배경까지 새지는 않지만, preventDefault만으로는 막히지
+      // 않는 환경을 위한 안전망으로 stopPropagation도 그대로 둔다.
       e.stopPropagation();
       if (isScrollingRef.current) return;
 
@@ -102,7 +111,7 @@ export const BoxDetailOverlay: React.FC<BoxDetailOverlayProps> = ({
     onSlideChange?.(index);
   };
 
-  return (
+  return createPortal(
     <div style={{ position: 'fixed', inset: 0, zIndex: 1500, backgroundColor: '#FBF9F5' }}>
       <div
         style={{
@@ -395,6 +404,7 @@ export const BoxDetailOverlay: React.FC<BoxDetailOverlayProps> = ({
           </section>
         ))}
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
