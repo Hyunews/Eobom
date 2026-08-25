@@ -2,7 +2,8 @@ import React from 'react';
 import { Package, Flower2, MessageSquare } from 'lucide-react';
 import { HouseLeafIcon, HandScalesIcon, PhoneHeartIcon, NoteKeyIcon, ChecklistShieldIcon } from '../MenuIcons';
 
-// 박스별 미니 풀스크린 오버레이(BoxDetailOverlay)에 쓰이는 슬라이드 콘텐츠.
+// 박스①②(생전 준비/임종 및 사후 정리) 소개 콘텐츠 — 2026-08-25 이전엔 박스별 미니 풀스크린
+// 오버레이(BoxDetailOverlay, 폐지됨)가 썼고, 지금은 DomainOverviewPage(/prep·/bereaved)가 쓴다.
 // 기존 HomePage 풀페이지 스냅 섹션 1~5(01~05)에 있던 소개 문구를 그대로 옮기되,
 // 03(디지털 유품 정리) 섹션에 뒤섞여 있던 03(현물수거)·04(디지털자산)·05(추모관) 내용은
 // 항목별로 쪼갰다. 03·05는 아직 실체가 없어(00-23 §3 실측) 새로 썼다 — 가짜 목록·숫자 없이
@@ -265,3 +266,12 @@ export const domainSlides: Record<string, DomainSlide> = {
     loginRequired: true,
   },
 };
+
+// 박스①(생전 준비)·박스②(임종 및 사후 정리) 소개에 넣을 도메인 순서 — EntryBoxes.tsx의 박스
+// 카드 요약 칩과 DomainOverviewPage(/prep·/bereaved)가 같은 배열을 공유한다(예전엔 EntryBoxes.tsx
+// 안에 로컬로 있었는데, 오버레이 폐지 후 페이지 쪽도 같은 순서가 필요해져 여기로 옮겼다).
+// 08-19 14차(개발자 직접 지시) — 디지털 정산은 사후 처리 도메인이라 생전 준비에서 제거.
+export const box1Keys = ['counseling', 'ending-note'];
+// 08-19 9차(개발자 직접 지시) — 순서 확정: 상중케어·장사시설·전문가상담·모바일부고장·
+// 유품수거·디지털정산·디지털추모관.
+export const box2Keys = ['care-guide', 'facility', 'counseling', 'obituary', 'pickup', 'digital-estate', 'memorial'];

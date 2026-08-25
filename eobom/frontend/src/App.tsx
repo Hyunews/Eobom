@@ -11,8 +11,10 @@ import { MyPageFamilyDesignation } from './components/MyPageFamilyDesignation';
 import { EobomLogo } from './components/EobomLogo';
 import { providerLabel, BACKEND_URL } from './config';
 import { NAV_MODE_STORAGE_KEY, type NavMode } from './modeNav';
+import { box1Keys, box2Keys } from './components/home/domainSlides';
 
 import { HomePage } from './pages/HomePage';
+import { DomainOverviewPage } from './pages/DomainOverviewPage';
 import { FacilityPage } from './pages/FacilityPage';
 import { CounselingPage } from './pages/CounselingPage';
 import { DigitalEstatePage } from './pages/DigitalEstatePage';
@@ -334,6 +336,18 @@ function AppShell() {
         <main style={{ flexGrow: 1 }}>
           <Routes>
             <Route path="/" element={<HomePage {...authProps} onSetMode={handleSetNavMode} />} />
+            {/* 2026-08-25 — 홈 박스①②(생전 준비/임종 및 사후 정리) 클릭·히어로 CTA가 예전엔
+                풀스크린 오버레이(BoxDetailOverlay, 폐지)를 열었는데, 오버레이일 이유가 없다는
+                지시로 일반 페이지가 됐다. box1Keys·box2Keys는 EntryBoxes.tsx의 박스 카드 요약
+                칩과도 공유하는 순서라 domainSlides.tsx에 있다. */}
+            <Route
+              path="/prep"
+              element={<DomainOverviewPage {...authProps} title="생전 준비" intro="지금 미리 준비해두면 훗날 남겨진 가족의 부담을 크게 덜 수 있습니다." keys={box1Keys} />}
+            />
+            <Route
+              path="/bereaved"
+              element={<DomainOverviewPage {...authProps} title="임종 및 사후 정리" intro="갑작스러운 이별 앞에서 필요한 절차와 도움을 한 곳에서 확인하세요." keys={box2Keys} />}
+            />
             <Route path="/facility" element={<FacilityPage {...authProps} />} />
             <Route path="/counseling" element={<CounselingPage {...authProps} />} />
             <Route path="/digital-estate" element={<DigitalEstatePage {...authProps} />} />

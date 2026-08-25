@@ -2,14 +2,13 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { ChevronRight, ChevronLeft, HeartHandshake, Flower2, Building2 } from 'lucide-react';
 import { ChecklistShieldIcon } from '../MenuIcons';
-import { domainSlides } from './domainSlides';
-import { BoxDetailOverlay } from './BoxDetailOverlay';
+import { box1Keys, box2Keys } from './domainSlides';
 import type { NavMode } from '../../modeNav';
 
 // docs/00_핵심플랫폼/00-23 §8 — 메인화면 진입구조 목업. 사장님 지시(2026-08-18 2차)로
-// 박스①②는 항목 목록을 뺀 "간단 설명"만 남기고, 클릭 시 박스별 미니 풀스크린 오버레이에서
-// 도메인 소개 슬라이드(구 HomePage 섹션 01~05)를 휠로 넘겨보게 바꿨다. 박스③④(Guest·파트너)는
-// 항목이 1개뿐이라 기존 방식(목록 1줄) 그대로 둔다.
+// 박스①②는 항목 목록을 뺀 "간단 설명"만 남기고, 클릭 시 도메인 소개를 보여주는 별도 화면으로
+// 이동하게 바꿨다(그 화면은 풀스크린 오버레이 → 일반 페이지로 재차 변경, 아래 2026-08-25 참고).
+// 박스③④(Guest·파트너)는 항목이 1개뿐이라 기존 방식(목록 1줄) 그대로 둔다.
 // 08-19 시각 정제(00-23 §8.5) — ①②/③④를 별도 그리드 블록으로 나눠 "큰 카드/낮은 카드" 위계 복원.
 // 08-19 2차 — 동적 포커스 인터랙션 고도화. 기본 상태는 [아이콘+제목+한줄설명]만 정갈하게 노출하고,
 // 칩·CTA·부가 버튼은 `.entry-box-reveal`로 감싸 index.css의 @media (hover:hover)에서만 접었다 편다
@@ -18,15 +17,12 @@ import type { NavMode } from '../../modeNav';
 //
 // 2026-08 A안 재구성 — 4박스를 2x2 정적 그리드(00-23 §8.5)에서 좌우 캐러셀(한 화면 2개씩,
 // 모바일 1개씩)로 바꿨다. §8.5와 어긋나는 편차이며 정본 개정 필요(walkthrough 기록 + docs 반영
-// 요청 대상, Opus 소관). 순서(①→②→③→④)·카드 내용·오버레이 진입 방식은 그대로 유지한다.
+// 요청 대상, Opus 소관). 순서(①→②→③→④)·카드 내용은 그대로 유지한다.
+// 2026-08-25 개발자 지시("애초에 굳이 오버레이일 이유가 없음") — 박스①②는 클릭 시 풀스크린
+// 오버레이(BoxDetailOverlay, 폐지) 대신 일반 페이지(/prep·/bereaved, DomainOverviewPage)로
+// 이동한다. 그 페이지가 쓰는 box1Keys·box2Keys는 domainSlides.tsx로 옮겨 여기와 공유한다.
 
-// 08-19 14차(개발자 직접 지시) — 디지털 정산은 사후 처리 도메인이라 생전 준비에서 제거.
-const box1Keys = ['counseling', 'ending-note'];
-// 08-19 9차(개발자 직접 지시) — 순서 확정: 상중케어·장사시설·전문가상담·모바일부고장·
-// 유품수거·디지털정산·디지털추모관.
-const box2Keys = ['care-guide', 'facility', 'counseling', 'obituary', 'pickup', 'digital-estate', 'memorial'];
-
-// 박스 요약 칩 전용 짧은 라벨 — domainSlides.badgeLabel은 오버레이 슬라이드 제목용이라 길다.
+// 박스 요약 칩 전용 짧은 라벨 — domainSlides.badgeLabel은 소개 페이지 제목용이라 길다.
 const chipLabels: Record<string, string> = {
   counseling: '전문가 상담',
   'ending-note': '디지털 엔딩노트',
@@ -200,37 +196,19 @@ const RevealContent: React.FC<{ children: React.ReactNode }> = ({ children }) =>
 const getItemsPerPage = () => (window.matchMedia('(max-width: 767px)').matches ? 1 : 2);
 
 export const EntryBoxes: React.FC<EntryBoxesProps> = ({ currentUser, onOpenLogin, setActiveTab, onSetMode, onRequestScrollIntoView }) => {
-  // 08-19 10차(개발자 직접 지시) — 오버레이 열림 상태를 로컬 state 대신 URL 쿼리(?entry=box1&slide=N)로
-  // 관리한다. CTA로 다른 화면에 이동한 뒤 브라우저 뒤로가기를 누르면, 그 직전에 보고 있던
-  // 박스·슬라이드로 그대로 돌아와야 하기 때문 — 로컬 state였다면 페이지 이동 시 컴포넌트가
-  // 언마운트되면서 소실돼 복원할 수 없다.
-  // 2026-08 변경(개발자 확정) — "열기"만 push로 바꿨다. 종전엔 열기·슬라이드 이동·닫기를 전부
-  // replace로 처리해 뒤로가기 한 번에 홈 진입 이전으로 바로 빠졌는데, 그러면 X(닫기) 없이는
-  // 오버레이만 따로 못 닫는다는 피드백이 있었다. 이제 열 때만 push로 히스토리 한 칸을 쌓아서,
-  // 뒤로가기 한 번이 "오버레이 닫기"(X 버튼과 동일 결과)가 되게 한다. 슬라이드 이동은 여전히
-  // replace다 — 슬라이드를 넘길 때마다 쌓이면 뒤로가기 여러 번을 오버레이 안에서 소모하게 된다.
+  // 박스③(추모관 링크 입력)은 여전히 홈 안 캐러셀 페이지 전환용으로 ?entry=box3 쿼리를 쓴다
+  // (아래 entryParam 참고) — 박스①②만 2026-08-25에 일반 페이지 이동으로 바뀌었다.
   const [searchParams, setSearchParams] = useSearchParams();
   const entryParam = searchParams.get('entry');
-  const openBox: 'box1' | 'box2' | null = entryParam === 'box1' || entryParam === 'box2' ? entryParam : null;
-  const slideParam = Number(searchParams.get('slide'));
-  const rawSlideIndex = Number.isFinite(slideParam) && slideParam >= 0 ? slideParam : 0;
 
   const handleBox1Click = () => {
     onSetMode?.('prep');
-    setSearchParams({ entry: 'box1' });
+    setActiveTab?.('prep');
   };
 
   const handleBox2Click = () => {
     onSetMode?.('bereaved');
-    setSearchParams({ entry: 'box2' });
-  };
-
-  const closeOverlay = () => {
-    setSearchParams({}, { replace: true });
-  };
-
-  const handleSlideChange = (box: 'box1' | 'box2', index: number) => {
-    setSearchParams({ entry: box, slide: String(index) }, { replace: true });
+    setActiveTab?.('bereaved');
   };
 
   // ③ 추모관(구 Guest) — 받은 링크(전체 URL이든 "/m/slug"·slug만이든)로 바로 입장.
@@ -615,28 +593,6 @@ export const EntryBoxes: React.FC<EntryBoxesProps> = ({ currentUser, onOpenLogin
         </div>
       )}
 
-      {openBox === 'box1' && (
-        <BoxDetailOverlay
-          slides={box1Keys.map((k) => domainSlides[k])}
-          initialIndex={Math.min(rawSlideIndex, box1Keys.length - 1)}
-          onSlideChange={(index) => handleSlideChange('box1', index)}
-          onClose={closeOverlay}
-          currentUser={currentUser}
-          onOpenLogin={onOpenLogin}
-          setActiveTab={setActiveTab}
-        />
-      )}
-      {openBox === 'box2' && (
-        <BoxDetailOverlay
-          slides={box2Keys.map((k) => domainSlides[k])}
-          initialIndex={Math.min(rawSlideIndex, box2Keys.length - 1)}
-          onSlideChange={(index) => handleSlideChange('box2', index)}
-          onClose={closeOverlay}
-          currentUser={currentUser}
-          onOpenLogin={onOpenLogin}
-          setActiveTab={setActiveTab}
-        />
-      )}
     </div>
   );
 };

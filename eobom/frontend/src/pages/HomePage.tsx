@@ -1,5 +1,4 @@
 ﻿import React, { useState, useRef, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
 import { Sparkles, ChevronUp, ChevronDown } from 'lucide-react';
 import { Footer } from '../components/Footer';
 import { EntryBoxes } from '../components/home/EntryBoxes';
@@ -36,17 +35,16 @@ export const HomePage: React.FC<HomePageProps> = ({ currentUser, onOpenLogin, se
     window.scrollTo({ top, behavior });
   };
 
-  // 히어로 CTA 2개 — copy.md ①Hero. EntryBoxes.tsx가 같은 ?entry=box1/box2 URL 쿼리를
-  // 읽어 박스별 풀스크린 오버레이(BoxDetailOverlay, position:fixed 전체화면)를 여는 방식을
-  // 그대로 재사용한다 — 여기서 쿼리만 세팅해도 스크롤 위치와 무관하게 오버레이가 뜬다.
-  const [, setHeroSearchParams] = useSearchParams();
+  // 히어로 CTA 2개 — copy.md ①Hero. 2026-08-25 이전엔 EntryBoxes.tsx의 박스①②와 같은
+  // ?entry=box1/box2 쿼리로 풀스크린 오버레이(BoxDetailOverlay, 폐지)를 열었는데, 오버레이
+  // 자체가 없어지면서 박스 클릭과 동일하게 일반 페이지(/prep·/bereaved)로 직접 이동한다.
   const handleHeroPrimaryCTA = () => {
     onSetMode?.('bereaved');
-    setHeroSearchParams({ entry: 'box2' });
+    setActiveTab?.('bereaved');
   };
   const handleHeroSecondaryCTA = () => {
     onSetMode?.('prep');
-    setHeroSearchParams({ entry: 'box1' });
+    setActiveTab?.('prep');
   };
 
   const sections = [
@@ -309,9 +307,8 @@ export const HomePage: React.FC<HomePageProps> = ({ currentUser, onOpenLogin, se
       </div>
 
       {/* 위/아래 더 있음 힌트 — 우측 점 인디케이터만으로는 "더 스크롤할 게 있다"는 게 잘 안
-          보인다는 피드백(2026-08)으로 추가. 박스 상세 오버레이(BoxDetailOverlay.tsx)의 반투명
-          아이콘형 힌트와 같은 스타일(.scroll-hint)로 통일했다 — 원형 배경 없음. 첫/마지막
-          섹션에서는 해당 방향 화살표를 숨긴다. */}
+          보인다는 피드백(2026-08)으로 추가. 원형 배경 없는 반투명 아이콘형(.scroll-hint).
+          첫/마지막 섹션에서는 해당 방향 화살표를 숨긴다. */}
       {activeSection > 0 && (
         <button
           onClick={() => scrollToSection(activeSection - 1)}
