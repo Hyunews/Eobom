@@ -546,7 +546,10 @@ body {
    높이가 눈앞에서 재조정되는 느낌을 낸다(HomePage 쪽에서 실측 확인된 문제, 위 참고). 대신 화살표·
    점 인디케이터를 아예 숨겨서(위 .scroll-hint/.overlay-slide-dots 참고) index*clientHeight 기반
    JS 페이징(goTo·휠 핸들러)이 슬라이드마다 다른 높이와 어긋나도 실제로 호출될 일이 없게 한다
-   (모바일 터치 스와이프는 이 JS를 안 거치고 네이티브 스냅으로만 동작). */
+   (모바일 터치 스와이프는 이 JS를 안 거치고 네이티브 스냅으로만 동작).
+   2026-08-25 개발자 확정: 모바일은 description만으로 충분하다 — 피처 카드(아이콘+타이틀+
+   본문+bullets)를 아예 숨긴다. 웹(≥641px)은 그대로 유지(요구사항). min-height:0 등으로 줄여만
+   보는 절충은 하지 않는다 — display:none으로 완전히 뺀다. */
 @media (max-width: 640px) {
   .overlay-slide {
     height: auto;
@@ -554,12 +557,8 @@ body {
     padding: 1.25rem 1.2rem !important;
   }
 
-  .overlay-slide-grid {
-    gap: 1.4rem !important;
-  }
-
   .overlay-slide-feature-card {
-    min-height: 0 !important;
+    display: none !important;
   }
 }
 

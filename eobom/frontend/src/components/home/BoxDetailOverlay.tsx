@@ -12,6 +12,9 @@ import { DomainSlide } from './domainSlides';
 // 계산은 그 경우 더 이상 정확하지 않다. 모바일에서는 화살표(.scroll-hint)와 점 인디케이터
 // (.overlay-slide-dots)를 아예 숨겨(index.css) 이 계산식이 호출될 일 자체를 없앴다 — 터치
 // 스와이프는 이 JS를 거치지 않고 네이티브 CSS scroll-snap으로만 동작하므로 영향이 없다.
+// 모바일에서는 description만으로 충분하다는 개발자 판단으로 피처 카드(아이콘+타이틀+본문+
+// bullets, 아래 .overlay-slide-feature-card)도 index.css에서 통째로 숨긴다 — 웹(≥641px)은
+// 그대로 유지.
 
 interface BoxDetailOverlayProps {
   boxTitle: string;
@@ -236,7 +239,6 @@ export const BoxDetailOverlay: React.FC<BoxDetailOverlayProps> = ({
             }}
           >
             <div
-              className="overlay-slide-grid"
               style={{
                 maxWidth: '1100px',
                 width: '100%',
