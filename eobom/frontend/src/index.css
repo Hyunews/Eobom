@@ -495,6 +495,13 @@ body {
     scroll-snap-type: none !important;
   }
 
+  /* min-height는 일부러 dvh를 안 쓰고 vh 고정값만 쓴다 — dvh(동적 뷰포트)는 스크롤 중
+     주소창이 접히는 바로 그 순간에 값 자체가 실시간으로 커져서, 스크롤하는 동안 섹션
+     높이가 눈앞에서 재조정되는 "덜컹임"을 만든다(실측 확인, 2026-08-25). vh는 접힘 여부와
+     무관하게 고정이라 스크롤 중 흔들리지 않는다 — 대신 주소창이 펼쳐진 상태에서는 섹션이
+     화면보다 살짝 짧게 보일 수 있는데, 이 폭은 이제 스냅이 없는 자유 스크롤이라 문제되지
+     않는다(예전엔 container.clientHeight와 정확히 맞아야 하는 스냅 계산이 dvh를 요구했지만,
+     지금은 getBoundingClientRect로 섹션 경계를 찾아 그 계산 자체가 없어졌다). */
   .fullpage-section {
     height: auto;
     min-height: calc(100vh - var(--header-h));
@@ -505,12 +512,6 @@ body {
     height: auto;
     overflow-y: visible;
     scroll-snap-align: none !important;
-  }
-
-  @supports (height: 100dvh) {
-    .fullpage-section {
-      min-height: calc(100dvh - var(--header-h));
-    }
   }
 }
 
