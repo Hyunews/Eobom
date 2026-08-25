@@ -669,7 +669,7 @@ export const BizDashboard: React.FC<BizDashboardProps> = ({ type, name, onLogout
                             left: 0,
                             right: 0,
                             textAlign: 'center',
-                            fontSize: '0.65rem',
+                            fontSize: '0.85rem',
                             fontWeight: 700,
                             color: '#fff',
                             backgroundColor: 'var(--point-color)',

@@ -80,7 +80,9 @@ echo
 # 2026-08-10: roles.md가 8188B까지 차서 기록 형식(구 §3)을 record.md로 분리했다.
 # 다시 한계에 닿으면 예산을 올리기 전에 "이 문서에 있을 내용이 맞는지"부터 볼 것.
 echo "2. 조건부 로드 파일"
-for f in roles.md security.md done.md systems.md record.md; do
+# 2026-08-25: memory/backlog.md 추가 — context.md를 3KB로 되돌리려고 진행 중 상세를 옮긴 곳.
+# 부팅에서 빠졌으니 조건부 예산 안에 들어와야 한다(안 재면 여기로 다시 살이 찐다).
+for f in roles.md security.md done.md systems.md record.md memory/backlog.md; do
   CHECKS=$((CHECKS + 1))
   case "$f" in
     roles.md) budget=8192 ;;

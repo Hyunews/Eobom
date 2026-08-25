@@ -6,6 +6,101 @@
 
 ---
 
+## 2026-08-25 (73) | [Sonnet] `07-03` §5.3-2 부고장 소유권 버그 — 검증 결과 **이미 수정돼 있음**
+
+- **근거 스펙**: `docs/07_상중_행정_케어/07-03_모바일_부고장_카카오톡_전송_구현_기획서.md` §5.3-2
+  — *"소유권은 서버가 판정한다 — `localStorage`로 판단하지 않는다."* 사용자 지시: *"소유권을
+  `localStorage`로 판정해 남의 부고장 관리화면이 뜬다(서버 권한은 정상 방어 중). `isOwner`·
+  `obituaryId`를 서버가 판정하도록 고칠 것."*
+- **건드린 파일**: 없음 — 아래 이유로 코드 변경을 하지 않았다.
+- **결과**: `eobom/backend/src/controllers/obituaryController.ts`의 `getObituaryBySlug`(§5.3-1·
+  §5.3-2 구현부, `:209~254`)가 이미 `isOwner = !!obituary && !!decoded && obituary.createdByUserId
+  === decoded.id`로 서버 측 판정을 하고, 응답에 `isOwner`·`obituaryId`는 **`isOwner`가 true일
+  때만** 스프레드로 싣는다(`...(isOwner ? { isOwner: true, obituaryId: obituary.id } : {})`,
+  `:253`). `updateObituary`(`:317`)·`closeObituary`(`:383`) 둘 다 `existing.createdByUserId !==
+  decoded.id`면 404로 막는다 — 서버 권한 검증은 스펙이 요구하는 그대로다.
+  `eobom/frontend/src/pages/ObituaryPage.tsx`도 이미 이 계약을 정확히 따른다: 마운트 시
+  `useEffect`(`:127~211`)가 `localStorage`의 `STORAGE_KEY` 포인터를 **"어느 slug를 조회할지"
+  힌트로만** 쓰고(주석 `:147~150`이 §5.3-2를 직접 인용), 응답을 받은 뒤 `if (!o.isOwner) return;`
+  (`:169`)로 **서버가 확인해주지 않으면 폼을 채우는 모든 `setState`(관리 모드 진입) 이전에
+  즉시 반환**한다. `obituaryId`는 로컬 포인터(`ref.obituaryId`)가 아니라 서버 응답
+  (`o.obituaryId`, `:172`)에서만 세팅되고, `handleSubmit`의 PATCH(`:289`)·`handleCloseObituary`
+  (`:332`·`:339`)도 전부 이 `obituaryId` state만 참조한다 — `grep -n "obituaryRef\.obituaryId"
+  eobom/frontend/src/pages/ObituaryPage.tsx` → **0건**(로컬 포인터의 `obituaryId` 필드를 특권
+  동작에 쓰는 곳이 없음). `localStorage` 포인터는 지우지 않는다는 §5.3-2 규칙도(`if (data.status
+  !== 'success') { localStorage.removeItem(...) }` 분기는 "진짜 삭제된 경우"만 해당, isOwner
+  false 분기에서는 제거하지 않음) 그대로 지켜지고 있다.
+- **편차**: 이번 세션에서 아무것도 고치지 않은 것 자체가 편차다 — 지시는 "고칠 것"이었지만
+  실측 결과 이미 고쳐져 있었다. `git log --oneline -- eobom/frontend/src/pages/ObituaryPage.tsx`로
+  확인한 결과 `5888289 부고장_종료_기능추가`(종료 기능 추가 커밋, `08-21` 무렵으로 추정 — §5.3-2
+  본문의 *"2026-08-21 신설"* 표기와 시기가 맞는다)에서 종료 기능과 함께 이 `isOwner` 게이팅이
+  같이 들어간 것으로 보인다. `.harness/memory/context.md`의 이전 판(오늘 세션 초반에 읽었던 버전)
+  §"⑧ 카톡 부고장" 항목이 *"[Sonnet] 수정중"* 으로 남아 있었는데, 실제로는 그 이후 커밋에서
+  이미 완료됐고 백로그 갱신만 누락된 것으로 판단된다.
+- **다음 에이전트가 알아야 할 것**:
+  - 코드 리뷰(정적 분석)로만 확인했다 — 실제로 "네이버 계정으로 만든 부고장이 있는 브라우저에서
+    카카오 계정으로 로그인" 시나리오를 브라우저로 재현해 이제는 남의 관리 화면이 뜨지 않는지
+    **실기동 검증은 하지 않았다.** 이 세션은 dev 서버를 사용자 쪽에서만 기동하는 운용 방식이라
+    별도 요청 없이는 생략했다. 확신도는 높지만(코드 경로가 명확하고 우회 지점이 없음), 실제
+    재현 확인이 이 항목의 마지막 남은 검증이다.
+  - `context.md`의 "지금 할 일" 4번 항목("`07-03` Phase3 #9 — 소유권 서버판정")을 이번 항목으로
+    종결 처리한다.
+
+---
+
+## 2026-08-25 (72) | [Sonnet] `00-29` §8 조치 B — 모바일 본문 15px 인라인 폰트 상향
+
+- **근거 스펙**: `docs/00_핵심플랫폼/00-29_모바일_대응_전략_검토서.md` §8 #5·#6, §12(조치 A·B).
+  사용자 지시: *"(A) `index.css`에 `@media (max-width:768px){html{font-size:var(--base-font-size)}}`
+  1줄 추가 (B) `0.8rem` 이하 97곳을 `0.85rem`으로. 레이아웃은 건드리지 말 것."*
+- **건드린 파일**:
+  - `eobom/frontend/src/pages/AdminPage.tsx` — 인라인 `fontSize` 12곳(`0.8rem`×9·`0.75rem`×1·
+    `0.72rem`×2) → `0.85rem`.
+  - `eobom/frontend/src/pages/BizDashboard.tsx` — 인라인 `fontSize` 1곳(`0.65rem`) → `0.85rem`.
+  - `eobom/frontend/src/pages/EndingNotePage.tsx` — 인라인 `fontSize` 3곳(`0.8rem`, 이번 세션
+    STT Phase1-a에서 직접 추가했던 값들) → `0.85rem`.
+- **결과**:
+  - **조치 A**: `index.css:218~222`에 **이미 존재**했다 — *"00-29 §12 조치 A — 모바일 기준선
+    폰트 확대"* 주석과 함께 `@media (max-width: 768px) { html { font-size: var(--base-font-size);
+    } }`가 정확히 스펙 문구 그대로 들어가 있었다(`html { }` 규칙이 `index.css` 전체에 이거
+    하나뿐임을 `grep -n "html {" index.css`로 확인). **추가하지 않았다** — 중복 규칙이 될
+    뿐이었다.
+  - **조치 B**: 지시된 "97곳"은 `00-29` 작성 시점(08-25 이른 시각) 실측치였는데, 그 이후 이
+    세션 안에서만도 여러 라운드의 모바일/레이아웃 커밋(`동적뷰포트수정`·`모바일_일반스크롤`·
+    `풀페이지스크롤_수정` 등, `git log --oneline` 확인)이 있었고 그 과정에서 대다수 페이지가
+    이미 `0.85rem` 이상으로 재작성돼 있었다. 재실측(`Grep "fontSize: '0\.(65|7|72|75|78|8)rem'"
+    eobom/frontend/src` 전수) 결과 **현재 남아 있던 것은 16곳뿐**이었다 — 위 3개 파일. 이 16곳을
+    전부 `0.85rem`으로 올렸다. `0.82rem`(5곳, `CareGuidePage`·`Footer`·`FamilyInvitePage`·
+    `ObituaryPage`)은 지시된 "0.8rem 이하" 기준에 안 들어(0.82 > 0.8) **건드리지 않았다** — §하단
+    "다음 에이전트" 참고.
+  - `fontSize`가 아닌 다른 속성(`padding`·`gap`·`borderRadius` 등)에 쓰인 동일 rem 값은 지시대로
+    **하나도 건드리지 않았다** — `AdminPage.tsx:562`의 `gap: '0.8rem'` 등 그대로 둠.
+  - **명령 재현**: `npx tsc --noEmit -p .`(frontend) 에러 0. `npm run build`(frontend) 통과,
+    `dist/assets/index-CXSpX_B1.js 475.15 kB`(폰트 값 치환만이라 번들 크기 변화 없음).
+    `Grep "fontSize: '0\.(65|7|72|75|78|8)rem'" eobom/frontend/src` → 수정 전 16건 → 수정 후
+    **0건**.
+- **편차**:
+  - 🔴 **"97곳"이 아니라 "16곳"을 고쳤다** — 위 결과에 적은 대로, 지시받은 숫자와 실측이 크게
+    달랐다. 셀 수 있는 값(16)을 직접 재확인하고 그 실측대로 진행했다 — 숫자를 맞추려고 없는
+    항목을 만들어내지 않았다.
+  - `BizDashboard.tsx:672`의 `0.65rem`은 절대위치 배지(모서리에 붙는 작은 라벨)의 폰트였다 —
+    `00-29`의 원 실측(375px 소비자 페이지 위주)이 이 파일(파트너/사업자용 내부 대시보드)까지
+    포함했는지 확인할 수 없어, **지시된 숫자 기준("0.8rem 이하")을 그대로 적용**하되 이 특정
+    배지는 레이아웃(절대 위치, 고정 폭 없음)상 커져도 안전해 보인다고 판단해 그대로 올렸다.
+- **다음 에이전트가 알아야 할 것**:
+  - 🟡 `0.82rem` 7곳(`CareGuidePage.tsx:222`·`BizDashboard.tsx:693·701·712`·`Footer.tsx:138`·
+    `FamilyInvitePage.tsx:261`·`ObituaryPage.tsx:539`)은 조치 A 적용 후에도 18px×0.82=14.76px로
+    **여전히 15px 미달**이다. 지시 문구("0.8rem 이하")를 엄격히
+    지키느라 이번엔 안 건드렸지만, "본문 15px" 판정 기준(`00-29`§6.2 ②)을 문자 그대로 적용하면
+    이 7곳도 다음 라운드에서 `0.85rem`으로 올려야 완전히 닫힌다. 사용자 확인 후 진행할 것.
+  - CSS 클래스(`index.css`)의 `font-size` 규칙은 손대지 않았다 — `.stat-row__label`(480px 이하
+    `0.7rem`, `index.css:680`)이 유일하게 낮은 값이지만, 스펙이 명시한 범위는 "인라인"이고
+    이건 클래스 규칙이라 제외했다. 필요하면 별도 판단 요청할 것.
+  - 실기기 시각 검증은 하지 않았다 — 코드 치환만 확인. `00-29`§13이 요구한 실측(375px 폰
+    스크린샷 등)은 여전히 미검증 상태로 남아 있다.
+
+---
+
 ## 2026-08-25 (71) | [Sonnet] 헤더 "계정 연동" 제거 + LoginModal 로그인/회원가입 탭 분리
 
 - **근거 스펙**: 스펙 없음 — 사용자가 대화에서 두 작업(①헤더 정리 ②로그인 모달 탭 분리 +

@@ -352,7 +352,7 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
         </div>
 
         {sttSupported && (
-          <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '0.75rem' }}>
+          <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '0.75rem' }}>
             🎙️ 음성 인식을 위해 말씀하신 내용이 음성인식 서비스로 전송됩니다. 이어봄은 변환된 글만 저장하며 음성 파일은 보관하지 않습니다.
           </p>
         )}
@@ -411,7 +411,7 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
                   <Circle size={16} /> 날인 — 옮겨 쓴 종이에 도장 또는 지장을 찍으세요 (화면에서는 확인할 수 없습니다)
                 </li>
               </ul>
-              <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '0.5rem' }}>
+              <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginTop: '0.5rem' }}>
                 ※ 위 표시는 참고용 안내일 뿐이며, 이어봄이 주소·연월일·성명을 대신 채워 넣지 않습니다.
               </p>
             </div>
@@ -435,7 +435,7 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
               </button>
             </div>
             {copyFeedback && (
-              <p style={{ fontSize: '0.8rem', color: 'var(--point-color)', marginTop: '0.5rem' }}>{copyFeedback}</p>
+              <p style={{ fontSize: '0.85rem', color: 'var(--point-color)', marginTop: '0.5rem' }}>{copyFeedback}</p>
             )}
           </>
         )}

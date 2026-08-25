@@ -25,7 +25,7 @@ const EXPERT_CATEGORY_LABELS: Record<string, string> = {
 
 // 카드 안의 텍스트(0.8~0.85rem)에 맞춘 컴팩트 버튼/입력 크기 — 기본 .btn/.form-select는
 // 시니어 접근성용 56px/52px 터치 타겟이라 이 조밀한 운영자 목록 안에서는 과하게 커 보였다.
-const SMALL_BTN: React.CSSProperties = { height: '34px', padding: '0 0.9rem', fontSize: '0.8rem', borderRadius: '8px' };
+const SMALL_BTN: React.CSSProperties = { height: '34px', padding: '0 0.9rem', fontSize: '0.85rem', borderRadius: '8px' };
 const TAB_BTN: React.CSSProperties = { height: '38px', padding: '0 1rem', fontSize: '0.85rem', borderRadius: '8px' };
 const SMALL_INPUT: React.CSSProperties = { height: '38px', fontSize: '0.85rem' };
 
@@ -377,7 +377,7 @@ export const AdminPage: React.FC = () => {
                   <div style={{ flex: 1, minWidth: '260px', display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
                     <div>
                       <strong style={{ color: 'var(--primary-color)', fontSize: '1.05rem' }}>{p.companyName}</strong>
-                      <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem', marginLeft: '0.6rem' }}>
+                      <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginLeft: '0.6rem' }}>
                         대표 {p.ownerName} · 사업자번호 {p.bizRegNo} · {p.email}
                       </span>
                     </div>
@@ -419,7 +419,7 @@ export const AdminPage: React.FC = () => {
                     <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginLeft: '0.6rem' }}>
                       대표 {p.ownerName} · 사업자번호 {p.bizRegNo} · 담당 {p.contactName}({formatPhoneForDisplay(p.contactPhone)}) · {p.email}
                     </span>
-                    {p.rejectReason && <div style={{ color: '#991B1B', fontSize: '0.8rem' }}>반려 사유: {p.rejectReason}</div>}
+                    {p.rejectReason && <div style={{ color: '#991B1B', fontSize: '0.85rem' }}>반려 사유: {p.rejectReason}</div>}
                   </div>
                 )}
                 {editingPartnerId !== p.id && (
@@ -449,7 +449,7 @@ export const AdminPage: React.FC = () => {
                   <div style={{ flex: 1, minWidth: '260px', display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
                     <div>
                       <strong style={{ color: 'var(--primary-color)', fontSize: '1.05rem' }}>{ex.name}</strong>
-                      <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem', marginLeft: '0.6rem' }}>
+                      <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginLeft: '0.6rem' }}>
                         자격번호 {ex.licenseNo} {ex.licenseOrg && `(${ex.licenseOrg})`} · {ex.email}
                       </span>
                     </div>
@@ -495,15 +495,15 @@ export const AdminPage: React.FC = () => {
                 ) : (
                   <div>
                     <strong style={{ color: 'var(--primary-color)', fontSize: '1.05rem' }}>{ex.name}</strong>
-                    <span style={{ fontSize: '0.75rem', backgroundColor: 'var(--secondary-color)', padding: '0.15rem 0.5rem', borderRadius: '6px', marginLeft: '0.5rem' }}>
+                    <span style={{ fontSize: '0.85rem', backgroundColor: 'var(--secondary-color)', padding: '0.15rem 0.5rem', borderRadius: '6px', marginLeft: '0.5rem' }}>
                       {EXPERT_CATEGORY_LABELS[ex.category] || ex.category}
                     </span>
                     <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginLeft: '0.6rem' }}>
                       자격번호 {ex.licenseNo} {ex.licenseOrg && `(${ex.licenseOrg})`} · {formatPhoneForDisplay(ex.contactPhone)} · {ex.email}
                     </span>
-                    {ex.officeAddress && <div style={{ color: 'var(--text-muted)', fontSize: '0.8rem', marginTop: '0.2rem' }}>사무실: {ex.officeAddress}</div>}
-                    {ex.bio && <div style={{ color: 'var(--text-muted)', fontSize: '0.8rem', marginTop: '0.2rem' }}>{ex.bio}</div>}
-                    {ex.rejectReason && <div style={{ color: '#991B1B', fontSize: '0.8rem' }}>반려 사유: {ex.rejectReason}</div>}
+                    {ex.officeAddress && <div style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginTop: '0.2rem' }}>사무실: {ex.officeAddress}</div>}
+                    {ex.bio && <div style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginTop: '0.2rem' }}>{ex.bio}</div>}
+                    {ex.rejectReason && <div style={{ color: '#991B1B', fontSize: '0.85rem' }}>반려 사유: {ex.rejectReason}</div>}
                   </div>
                 )}
                 {editingExpertId !== ex.id && (
@@ -540,7 +540,7 @@ export const AdminPage: React.FC = () => {
                   <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginLeft: '0.6rem' }}>
                     {c.facility?.location} · 신청 사업자: {c.partner?.companyName}({c.partner?.email})
                   </span>
-                  {c.reviewNote && <div style={{ color: '#92400E', fontSize: '0.8rem' }}>메모: {c.reviewNote}</div>}
+                  {c.reviewNote && <div style={{ color: '#92400E', fontSize: '0.85rem' }}>메모: {c.reviewNote}</div>}
                 </div>
                 {c.status === 'PENDING' && (
                   <div style={{ display: 'flex', gap: '0.5rem' }}>
@@ -566,7 +566,7 @@ export const AdminPage: React.FC = () => {
                       <strong style={{ color: 'var(--primary-color)', fontSize: '0.95rem' }}>{f.name}</strong>
                       <span
                         style={{
-                          fontSize: '0.72rem',
+                          fontSize: '0.85rem',
                           fontWeight: 700,
                           padding: '0.15rem 0.5rem',
                           borderRadius: '8px',
@@ -579,8 +579,8 @@ export const AdminPage: React.FC = () => {
                       </span>
                     </div>
                     <div>
-                      <span style={{ fontSize: '0.72rem', backgroundColor: 'var(--secondary-color)', padding: '0.1rem 0.4rem', borderRadius: '5px' }}>{f.type}</span>
-                      <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem', marginLeft: '0.4rem' }}>{f.location}</span>
+                      <span style={{ fontSize: '0.85rem', backgroundColor: 'var(--secondary-color)', padding: '0.1rem 0.4rem', borderRadius: '5px' }}>{f.type}</span>
+                      <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginLeft: '0.4rem' }}>{f.location}</span>
                     </div>
                   </div>
                 ))}

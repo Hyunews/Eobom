@@ -10,7 +10,7 @@
 
 | 순서 | 파일 | 무엇을 얻나 |
 |---|---|---|
-| 0 | **루트 `CLAUDE.md`** | 🔴 **유일하게 자동 로드되는 파일.** 이 표의 1~3은 CLI가 밀어 넣지 않으므로, 읽으라고 시키는 것이 거기 있다. **소유권 규칙(Opus=`docs/` / Sonnet=`eobom/`)도 포인터가 아니라 본문으로 거기 있다** — 2026-08-25 그 규칙이 `.harness/`에만 있어 세션에 로드되지 않았고 Opus가 `eobom/`에 코드를 썼다. |
+| 0 | **루트 `CLAUDE.md`** | 🔴 **유일하게 자동 로드되는 파일.** 1~3은 CLI가 밀어 넣지 않으므로 읽으라고 시키는 것과 **소유권 규칙 본문**이 거기 있다(2026-08-25 신설 — 그전엔 규칙이 세션에 도달한 적이 없다). |
 | 1 | `.harness/memory/context.md` | **"다음 할 일" 한 줄** + 지금 상태. 맨 위 3줄만 봐도 바로 작업 시작 가능해야 한다. |
 | 2 | `.harness/memory/pending-approvals.md` | **사람 승인 대기 목록. 여기 있는 건 착수 금지.** `context.md`를 통째로 새로 써도 이 파일은 별도라 안 지워진다 — 그게 존재 이유. |
 | 3 | `.harness/AGENTS.md` (이 파일) | 행동 규칙 + 아래 조건부 로드 표 |
@@ -28,6 +28,7 @@
 | `walkthrough.md`·일지에 기록을 남길 때 | `.harness/record.md` |
 | 외부 연동(OAuth·지도·공공데이터·DB·배포) 건드릴 때 | `.harness/systems.md` |
 | 반복 작업(2회차 이상)일 때 | `.harness/skills/README.md` |
+| `context.md`의 할 일을 집었는데 **배경·근거·미검증 항목**이 필요할 때 | `.harness/memory/backlog.md` |
 | 메모리를 남기거나 과거 결정 이유가 궁금할 때 | `.harness/memory/MEMORY.md` → 해당 메모리 |
 | 문서↔코드 링크를 걸 때 | `.harness/memory/g-brain-map.md` |
 
@@ -58,9 +59,8 @@ PLAN → CONFIRM → CODE/WRITE → SAVE → UPDATE
 | `.harness/` | Claude(Opus·Sonnet 공용) | Gemini |
 | `assets/` | 사람 | 둘 다 |
 
-🔴 **`docs/`와 `eobom/`은 같은 `Claude`가 아니다.** 2026-08-25까지 이 표가 둘을 `Claude` 하나로
-묶어 둬서, 표를 읽은 Opus가 `eobom/`을 자기 영역으로 해석해 코드를 썼다(전량 revert). **Opus는
-코드를 짜지 않고, Sonnet은 `docs/`를 고치지 않는다.** 강제 장치는 없다 → `roles.md` §1-1.
+🔴 **`docs/`와 `eobom/`은 같은 `Claude`가 아니다.** **Opus는 코드를 짜지 않고, Sonnet은 `docs/`를
+고치지 않는다.** 강제 장치가 없으니 표가 곧 방어선이다 → `roles.md` §1-1.
 | `docs/작업일지_및_기록/` | **파일별로 나뉨** → `roles.md` §1-2 | |
 
 기록 폴더는 양쪽 다 써야 하므로 통째로 한쪽에 주지 않는다. 각자 자기 로그(`claude_tasks.md` / `gemini_tasks.md`)를 쓰고, 일지는 덧붙이기 전용으로 공유한다.
