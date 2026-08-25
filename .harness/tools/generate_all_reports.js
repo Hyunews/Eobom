@@ -96,11 +96,13 @@ function escapeHtml(text) {
 }
 
 function formatInline(text) {
+  if (!text) return '';
   return escapeHtml(text)
     .replace(/`([^`]+)`/g, '<code>$1</code>')
-    .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
-    .replace(/~~([^~]+)~~/g, '<del>$1</del>')
-    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" class="md-link">$1</a>')
+    .replace(/\*\*([\s\S]+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/~~([\s\S]+?)~~/g, '<del>$1</del>')
+    .replace(/\*([^*\n]+)\*/g, '<em>$1</em>')
+    .replace(/\[([\s\S]+?)\]\(([^)]+)\)/g, '<a href="$2" class="md-link">$1</a>')
     .replace(/PK/g, '<span class="tag pk">PK</span>')
     .replace(/FK → ([A-Za-z0-9_.]+)/g, '<span class="tag fk">FK → $1</span>')
     .replace(/UNIQUE/g, '<span class="tag uk">UNIQUE</span>')
@@ -111,31 +113,54 @@ function formatInline(text) {
     .replace(/⭐/g, '<span class="tag gold">⭐</span>')
     .replace(/⚠️/g, '<span class="tag warn">⚠️</span>')
     .replace(/⬜/g, '<span class="tag gray">⬜</span>')
-    .replace(/🔶/g, '<span class="tag orange">🔶</span>');
+    .replace(/🔶/g, '<span class="tag orange">🔶</span>')
+    .replace(/⏸️|⏸/g, '<span class="tag pause">⏸️</span>')
+    .replace(/❌/g, '<span class="tag red-cross">❌</span>')
+    .replace(/🔄/g, '<span class="tag blue-sync">🔄</span>')
+    .replace(/🔒/g, '<span class="tag lock">🔒</span>')
+    .replace(/🔑/g, '<span class="tag key">🔑</span>');
 }
 
-function mdTableToHtml(markdown) {
-  const lines = markdown.trim().split('\n');
+function parseTable(lines) {
   if (lines.length < 2) return '';
-
   const parseRow = (line) => {
-    const safeLine = line.replace(/\\\|/g, '___PIPE___');
-    return safeLine.split('|').map(s => s.trim().replace(/___PIPE___/g, '|')).filter((_, idx, arr) => idx > 0 && idx < arr.length - 1);
+    let inCode = false;
+    let chars = [];
+    for (let i = 0; i < line.length; i++) {
+      if (line[i] === '`') inCode = !inCode;
+      if (line[i] === '|' && (inCode || (i > 0 && line[i-1] === '\\'))) {
+        chars.push('___PIPE___');
+      } else {
+        chars.push(line[i]);
+      }
+    }
+    const safe = chars.join('');
+    return safe.split('|')
+      .map(s => s.trim().replace(/___PIPE___/g, '|').replace(/\\\|/g, '|'))
+      .filter((_, idx, arr) => idx > 0 && idx < arr.length - 1);
   };
 
   const headers = parseRow(lines[0]);
+  const aligns = parseRow(lines[1]).map(d => {
+    d = d.trim();
+    if (d.startsWith(':') && d.endsWith(':')) return 'center';
+    if (d.endsWith(':')) return 'right';
+    return 'left';
+  });
   const rows = lines.slice(2).map(parseRow);
 
   let html = '<div class="table-container"><table><thead><tr>';
-  headers.forEach(h => {
-    html += `<th>${formatInline(h)}</th>`;
+  headers.forEach((h, idx) => {
+    const align = aligns[idx] || 'left';
+    html += `<th style="text-align:${align};">${formatInline(h)}</th>`;
   });
   html += '</tr></thead><tbody>';
 
   rows.forEach(row => {
     html += '<tr>';
-    row.forEach(cell => {
-      html += `<td>${formatInline(cell)}</td>`;
+    row.forEach((cell, idx) => {
+      const align = aligns[idx] || 'left';
+      html += `<td style="text-align:${align};">${formatInline(cell)}</td>`;
     });
     html += '</tr>';
   });
@@ -144,118 +169,169 @@ function mdTableToHtml(markdown) {
   return html;
 }
 
-function genericMdToHtml(md) {
+function genericMdToHtml(md, options = {}) {
   const lines = md.split(/\r?\n/);
   let html = '';
-  let inTable = false;
-  let tableBuffer = [];
-  let inCode = false;
-  let codeBuffer = [];
-  let inList = false;
-  let inQuote = false;
-  let quoteBuffer = [];
+  let i = 0;
+  let isFirstH1 = !options.isNested;
 
-  const flushQuote = () => {
-    if (inQuote) {
-      html += `<blockquote class="info-quote">${quoteBuffer.join('<br/>\n')}</blockquote>\n`;
-      quoteBuffer = [];
-      inQuote = false;
-    }
-  };
-
-  const flushList = () => {
-    if (inList) {
-      html += `</ul>\n`;
-      inList = false;
-    }
-  };
-
-  let isFirstH1 = true;
-  for (let i = 0; i < lines.length; i++) {
+  while (i < lines.length) {
     const line = lines[i];
 
-    if (line.startsWith('```')) {
-      flushQuote();
-      flushList();
-      if (inCode) {
-        html += `<pre><code>${escapeHtml(codeBuffer.join('\n'))}</code></pre>\n`;
-        codeBuffer = [];
-        inCode = false;
-      } else {
-        inCode = true;
+    // Fenced code blocks
+    if (line.trim().startsWith('```')) {
+      const lang = line.trim().slice(3).trim();
+      const codeLines = [];
+      i++;
+      while (i < lines.length && !lines[i].trim().startsWith('```')) {
+        codeLines.push(lines[i]);
+        i++;
       }
+      i++; // skip closing ```
+      html += `<pre><code${lang ? ` class="language-${lang}"` : ''}>${escapeHtml(codeLines.join('\n'))}</code></pre>\n`;
       continue;
     }
 
-    if (inCode) {
-      codeBuffer.push(line);
+    // Blockquotes (contiguous lines starting with >)
+    if (line.trim().startsWith('>')) {
+      const quoteLines = [];
+      let alertClass = '';
+      while (i < lines.length && (lines[i].trim().startsWith('>') || (lines[i].trim() !== '' && quoteLines.length > 0 && lines[i].startsWith('  ')))) {
+        let content = lines[i].trim();
+        if (content.startsWith('>')) {
+          content = content.replace(/^>\s?/, '');
+        }
+        quoteLines.push(content);
+        i++;
+      }
+      const rawFirst = quoteLines.find(l => l.trim().length > 0) || '';
+      if (rawFirst.includes('⚠️') || rawFirst.includes('[!WARNING]')) alertClass = 'warn';
+      else if (rawFirst.includes('🔴') || rawFirst.includes('[!CAUTION]')) alertClass = 'danger';
+      else if (rawFirst.includes('✅') || rawFirst.includes('🔵')) alertClass = 'info';
+
+      const innerHtml = genericMdToHtml(quoteLines.join('\n'), { isNested: true });
+      html += `<blockquote class="info-quote${alertClass ? ' ' + alertClass : ''}">\n${innerHtml}</blockquote>\n`;
       continue;
     }
 
+    // Tables
     if (line.trim().startsWith('|')) {
-      flushQuote();
-      flushList();
-      inTable = true;
-      tableBuffer.push(line);
-      continue;
-    } else if (inTable) {
-      html += mdTableToHtml(tableBuffer.join('\n')) + '\n';
-      tableBuffer = [];
-      inTable = false;
-    }
-
-    if (line.startsWith('> ')) {
-      flushList();
-      inQuote = true;
-      quoteBuffer.push(formatInline(line.slice(2)));
-      continue;
-    } else {
-      flushQuote();
-    }
-
-    if (line.startsWith('- ') || line.startsWith('* ')) {
-      if (!inList) {
-        html += `<ul>\n`;
-        inList = true;
+      const tableLines = [];
+      while (i < lines.length && lines[i].trim().startsWith('|')) {
+        tableLines.push(lines[i].trim());
+        i++;
       }
-      html += `<li>${formatInline(line.slice(2))}</li>\n`;
+      html += parseTable(tableLines) + '\n';
       continue;
-    } else {
-      flushList();
     }
 
+    // Lists (unordered, ordered, task list)
+    const taskMatch = line.match(/^(\s*)[-*+]\s+\[([ xX])\]\s+(.*)$/);
+    const unordMatch = line.match(/^(\s*)[-*+]\s+(.*)$/);
+    const ordMatch = line.match(/^(\s*)\d+\.\s+(.*)$/);
+
+    if (taskMatch || unordMatch || ordMatch) {
+      const isOrdered = !taskMatch && ordMatch;
+      const tag = isOrdered ? 'ol' : 'ul';
+      html += `<${tag}>\n`;
+
+      while (i < lines.length) {
+        const cur = lines[i];
+        const tMatch = cur.match(/^(\s*)[-*+]\s+\[([ xX])\]\s+(.*)$/);
+        const uMatch = cur.match(/^(\s*)[-*+]\s+(.*)$/);
+        const oMatch = cur.match(/^(\s*)\d+\.\s+(.*)$/);
+
+        if (tMatch) {
+          const checked = tMatch[2].toLowerCase() === 'x';
+          html += `<li class="task-item${checked ? ' checked' : ''}"><span class="task-box${checked ? ' checked' : ''}">${checked ? '☑' : '☐'}</span> ${formatInline(tMatch[3])}</li>\n`;
+          i++;
+        } else if (uMatch && !isOrdered) {
+          html += `<li>${formatInline(uMatch[2])}</li>\n`;
+          i++;
+        } else if (oMatch && isOrdered) {
+          html += `<li>${formatInline(oMatch[2])}</li>\n`;
+          i++;
+        } else {
+          break;
+        }
+      }
+
+      html += `</${tag}>\n`;
+      continue;
+    }
+
+    // Headings
     if (line.startsWith('# ')) {
       if (isFirstH1) {
         isFirstH1 = false;
+        i++;
         continue;
       }
       html += `<h1>${formatInline(line.slice(2))}</h1>\n`;
-    } else if (line.startsWith('## ')) {
+      i++;
+      continue;
+    }
+    if (line.startsWith('## ')) {
       const headingText = line.slice(3);
       const shouldBreak = /^(?:[⚡🔗💰🏢📋🕐]\s*)?(2|3|4|6|8|9)\./.test(headingText.trim());
-      if (shouldBreak) {
+      if (shouldBreak && !options.isNested) {
         html += `<div class="page-break"></div>\n<h2 class="section-title">${formatInline(headingText)}</h2>\n`;
       } else {
         html += `<h2 class="section-title">${formatInline(headingText)}</h2>\n`;
       }
-    } else if (line.startsWith('### ')) {
-      html += `<h3 class="subsection-title">${formatInline(line.slice(4))}</h3>\n`;
-    } else if (line.startsWith('#### ')) {
-      html += `<h4 class="h4-title">${formatInline(line.slice(5))}</h4>\n`;
-    } else if (line.trim() === '---') {
-      html += `<hr class="divider"/>\n`;
-    } else if (line.trim() === '') {
-      // blank line
-    } else {
-      html += `<p>${formatInline(line)}</p>\n`;
+      i++;
+      continue;
     }
-  }
+    if (line.startsWith('### ')) {
+      html += `<h3 class="subsection-title">${formatInline(line.slice(4))}</h3>\n`;
+      i++;
+      continue;
+    }
+    if (line.startsWith('#### ')) {
+      html += `<h4 class="h4-title">${formatInline(line.slice(5))}</h4>\n`;
+      i++;
+      continue;
+    }
+    if (line.startsWith('##### ')) {
+      html += `<h5 class="h5-title">${formatInline(line.slice(6))}</h5>\n`;
+      i++;
+      continue;
+    }
 
-  flushQuote();
-  flushList();
+    // Dividers
+    if (line.trim() === '---' || line.trim() === '***' || line.trim() === '___') {
+      html += '<hr class="divider"/>\n';
+      i++;
+      continue;
+    }
 
-  if (inTable) {
-    html += mdTableToHtml(tableBuffer.join('\n')) + '\n';
+    // Blank lines
+    if (line.trim() === '') {
+      i++;
+      continue;
+    }
+
+    // Contiguous paragraph lines
+    const pLines = [];
+    while (i < lines.length) {
+      const cur = lines[i];
+      if (cur.trim() === '' ||
+          cur.trim().startsWith('```') ||
+          cur.trim().startsWith('>') ||
+          cur.trim().startsWith('|') ||
+          cur.match(/^(\s*)[-*+]\s+/) ||
+          cur.match(/^(\s*)\d+\.\s+/) ||
+          cur.match(/^#{1,6}\s+/) ||
+          cur.trim() === '---' || cur.trim() === '***' || cur.trim() === '___') {
+        break;
+      }
+      pLines.push(cur.trim());
+      i++;
+    }
+    if (pLines.length > 0) {
+      const pText = pLines.join('\n');
+      html += `<p>${formatInline(pText).replace(/\n/g, '<br/>\n')}</p>\n`;
+    }
   }
 
   return html;
@@ -343,14 +419,49 @@ function buildFullHtmlPage(title, subtitle, bodyHtml) {
       margin: 1.2rem 0 0.6rem 0;
       font-weight: 700;
     }
+    .h5-title {
+      font-size: 0.95rem;
+      color: var(--text-muted);
+      margin: 0.8rem 0 0.4rem 0;
+      font-weight: 700;
+    }
     .info-quote {
-      background: #F1F5F9;
+      background: #F8FAFC;
       border-left: 4px solid var(--accent);
-      padding: 0.9rem 1.2rem;
-      margin: 1rem 0;
-      border-radius: 6px;
+      padding: 1.2rem 1.5rem;
+      margin: 1.5rem 0;
+      border-radius: 8px;
       font-size: 0.95rem;
       color: #334155;
+    }
+    .info-quote.warn {
+      background: #FFFBEB;
+      border-left-color: #F59E0B;
+      color: #92400E;
+    }
+    .info-quote.danger {
+      background: #FEF2F2;
+      border-left-color: #EF4444;
+      color: #991B1B;
+    }
+    .info-quote.info {
+      background: #EFF6FF;
+      border-left-color: #3B82F6;
+      color: #1E40AF;
+    }
+    .info-quote .section-title {
+      font-size: 1.25rem;
+      margin: 0.5rem 0 1rem 0;
+      border-left: none;
+      padding-left: 0;
+    }
+    .info-quote .subsection-title {
+      font-size: 1.1rem;
+      margin: 0.8rem 0 0.5rem 0;
+    }
+    .info-quote .table-container {
+      margin: 0.8rem 0;
+      background: #FFFFFF;
     }
     code {
       background: #EFF6FF;
@@ -369,6 +480,7 @@ function buildFullHtmlPage(title, subtitle, bodyHtml) {
       margin: 1rem 0 1.5rem 0;
       font-family: 'Fira Code', Consolas, monospace;
       font-size: 0.9rem;
+      line-height: 1.5;
     }
     pre code {
       background: transparent;
@@ -409,19 +521,56 @@ function buildFullHtmlPage(title, subtitle, bodyHtml) {
       display: inline-block;
       padding: 0.15rem 0.45rem;
       border-radius: 6px;
-      font-size: 0.75rem;
+      font-size: 0.78rem;
       font-weight: 700;
+      line-height: 1.3;
+      vertical-align: middle;
+      margin: 0 0.15rem;
     }
-    .tag.green { background-color: #DCFCE7; color: #166534; }
-    .tag.gray { background-color: #F1F5F9; color: #475569; }
-    .tag.orange { background-color: #FFEDD5; color: #9A3412; }
+    .tag.green { background-color: #DCFCE7; color: #166534; border: 1px solid #BBF7D0; }
+    .tag.gray { background-color: #F1F5F9; color: #475569; border: 1px solid #E2E8F0; }
+    .tag.orange { background-color: #FFEDD5; color: #9A3412; border: 1px solid #FED7AA; }
     .tag.red { background-color: #FEE2E2; color: #991B1B; border: 1px solid #FECACA; }
     .tag.blue { background-color: #DBEAFE; color: #1E40AF; border: 1px solid #BFDBFE; }
-    .tag.gold { background-color: #FEF3C7; color: #92400E; border: 1px solid #FDE68A; font-weight: 700; }
-    .tag.warn { background-color: #FEF3C7; color: #B45309; }
-    .tag.pk { background-color: #FEE2E2; color: #991B1B; }
-    .tag.fk { background-color: #DBEAFE; color: #1E40AF; }
-    .tag.uk { background-color: #DCFCE7; color: #166534; }
+    .tag.gold { background-color: #FEF3C7; color: #92400E; border: 1px solid #FDE68A; }
+    .tag.warn { background-color: #FEF3C7; color: #B45309; border: 1px solid #FDE68A; }
+    .tag.pause { background-color: #EDE9FE; color: #5B21B6; border: 1px solid #DDD6FE; }
+    .tag.red-cross { background-color: #FFE4E6; color: #9F1239; border: 1px solid #FECDD3; }
+    .tag.blue-sync { background-color: #E0F2FE; color: #0369A1; border: 1px solid #BAE6FD; }
+    .tag.lock, .tag.key { background-color: #F3E8FF; color: #6B21A8; border: 1px solid #E9D5FF; }
+    .tag.pk { background-color: #FEE2E2; color: #991B1B; font-family: monospace; }
+    .tag.fk { background-color: #DBEAFE; color: #1E40AF; font-family: monospace; }
+    .tag.uk { background-color: #DCFCE7; color: #166534; font-family: monospace; }
+    .task-item {
+      list-style: none;
+      display: flex;
+      align-items: baseline;
+      gap: 0.5rem;
+      margin-bottom: 0.4rem;
+    }
+    .task-box {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 1.1rem;
+      height: 1.1rem;
+      border: 1.5px solid #94A3B8;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      color: #64748B;
+      background: #FFFFFF;
+      flex-shrink: 0;
+      user-select: none;
+    }
+    .task-box.checked {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: #FFFFFF;
+      font-weight: bold;
+    }
+    .task-item.checked {
+      color: #64748B;
+    }
     del {
       color: #94A3B8;
       text-decoration: line-through;

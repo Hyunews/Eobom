@@ -400,10 +400,12 @@ export const HomePage: React.FC<HomePageProps> = ({ currentUser, onOpenLogin, se
           </section>
 
           {/* ========================================================= */}
-          {/* [섹션 2] 에필로그 & 푸터 (배경은 위 공용 래퍼가 담당, Footer Snap Section) */}
+          {/* [섹션 2] 에필로그 & 푸터 (배경은 위 공용 래퍼가 담당, Footer Snap Section) —
+              640px 이하는 index.css `.fullpage-section--tail`이 고정 높이·스냅을 풀어준다
+              (아래 fullpage-section--tail 클래스 참고, 2026-08-25). */}
           {/* ========================================================= */}
           <section
-            className="fullpage-section"
+            className="fullpage-section fullpage-section--tail"
             style={{
               width: '100%',
               scrollSnapAlign: 'start',
