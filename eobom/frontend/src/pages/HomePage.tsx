@@ -17,6 +17,24 @@ export const HomePage: React.FC<HomePageProps> = ({ currentUser, onOpenLogin, se
   const containerRef = useRef<HTMLDivElement>(null);
   const activeSectionRef = useRef(0);
   const isWheelScrollingRef = useRef(false);
+  // 00-23 §5.4-1: 640px 이하는 스크롤 주체가 container가 아니라 body다(index.css 참고) —
+  // 인덱스 기반 스크롤 함수들이 그 폭에서는 이 배열(섹션 0/1/2의 실제 DOM 엘리먼트)을 기준으로
+  // window.scrollTo를 쓴다. 3개 고정이라 배열 크기를 sections.length에 동적으로 맞추지 않는다.
+  const sectionElsRef = useRef<(HTMLElement | null)[]>([null, null, null]);
+
+  const isMobileLayout = () => window.matchMedia('(max-width: 640px)').matches;
+
+  const getHeaderOffset = () => {
+    const raw = getComputedStyle(document.documentElement).getPropertyValue('--header-h');
+    return parseFloat(raw) || 0;
+  };
+
+  const scrollNativeToIndex = (index: number, behavior: ScrollBehavior) => {
+    const el = sectionElsRef.current[index];
+    if (!el) return;
+    const top = el.getBoundingClientRect().top + window.scrollY - getHeaderOffset();
+    window.scrollTo({ top, behavior });
+  };
 
   // 히어로 CTA 2개 — copy.md ①Hero. EntryBoxes.tsx가 같은 ?entry=box1/box2 URL 쿼리를
   // 읽어 박스별 풀스크린 오버레이(BoxDetailOverlay, position:fixed 전체화면)를 여는 방식을
@@ -44,10 +62,14 @@ export const HomePage: React.FC<HomePageProps> = ({ currentUser, onOpenLogin, se
   // sessionStorage 타이밍과 무관하게 "박스③(?entry=box3) 처리 이펙트가 실제로 실행되는 그 순간"에
   // 바로 스크롤시킨다 — 그 이펙트 실행 자체는 URL이 box3→빈 값으로 바뀌는 걸로 이미 확인됨.
   const scrollToEntrySection = React.useCallback(() => {
-    const container = containerRef.current;
-    if (!container) return;
     const index = 1;
-    container.scrollTop = index * container.clientHeight;
+    if (isMobileLayout()) {
+      scrollNativeToIndex(index, 'auto');
+    } else {
+      const container = containerRef.current;
+      if (!container) return;
+      container.scrollTop = index * container.clientHeight;
+    }
     setActiveSection(index);
     sessionStorage.setItem('eobom_scroll_home', String(index));
   }, []);
@@ -82,8 +104,15 @@ export const HomePage: React.FC<HomePageProps> = ({ currentUser, onOpenLogin, se
     // 달라진다. 추측을 버리고 ResizeObserver로 컨테이너가 실제 높이를 갖게 되는 순간을 직접
     // 관찰해서 그때 스크롤을 적용한다 — 이미 높이가 잡혀 있으면(같은 홈 안에서의 재계산 등)
     // 그 자리에서 바로 적용하고 옵저버는 아예 만들지 않는다.
+    // 00-23 §5.4-1: 640px 이하는 container가 아니라 body가 스크롤 주체다(index.css의
+    // .home-scroll-container overflow 해제 참고) — container.scrollTop 대입은 그 폭에서
+    // 아무 효과가 없으므로 window.scrollTo로 갈라 태운다.
     const applyInitialScroll = () => {
-      container.scrollTop = initialIndex * container.clientHeight;
+      if (isMobileLayout()) {
+        scrollNativeToIndex(initialIndex, 'auto');
+      } else {
+        container.scrollTop = initialIndex * container.clientHeight;
+      }
       setActiveSection(initialIndex);
     };
 
@@ -100,7 +129,12 @@ export const HomePage: React.FC<HomePageProps> = ({ currentUser, onOpenLogin, se
       resizeObserver.observe(container);
     }
 
+    // ≥641px 전용 — container.scrollTop 기준. 640px 이하에서는 container가 실제로 스크롤되지
+    // 않아(overflow 해제) scrollTop이 항상 0이라, 여기서 계산하면 activeSection이 매번 0으로
+    // 잘못 리셋된다 — 그래서 isMobileLayout이면 아무것도 하지 않고 아래 handleWindowScroll에
+    // 맡긴다.
     const handleScroll = () => {
+      if (isMobileLayout()) return;
       const sectionHeight = container.clientHeight;
       if (sectionHeight > 0) {
         const index = Math.round(container.scrollTop / sectionHeight);
@@ -111,11 +145,35 @@ export const HomePage: React.FC<HomePageProps> = ({ currentUser, onOpenLogin, se
       }
     };
 
+    // 640px 이하 전용 — window.scrollY 기준으로 각 섹션의 문서상 top과 비교해 현재 섹션을
+    // 판정한다. 실제로 값이 바뀔 때만 setState해 스크롤 중 불필요한 리렌더를 피한다.
+    const handleWindowScroll = () => {
+      if (!isMobileLayout()) return;
+      const offset = getHeaderOffset();
+      const scrollPos = window.scrollY + offset + 1;
+      let idx = 0;
+      for (let i = 0; i < sectionElsRef.current.length; i++) {
+        const el = sectionElsRef.current[i];
+        if (!el) continue;
+        const top = el.getBoundingClientRect().top + window.scrollY;
+        if (scrollPos >= top) idx = i;
+      }
+      if (idx !== activeSectionRef.current) {
+        activeSectionRef.current = idx;
+        setActiveSection(idx);
+        sessionStorage.setItem('eobom_scroll_home', String(idx));
+      }
+    };
+
     // 이미 홈에 있는 상태에서 "홈으로"(로고 클릭 등)를 다시 누르면 App.tsx의 setActiveTab이
     // navigate('/')를 호출해도 경로가 안 바뀌어 이 컴포넌트가 리마운트되지 않는다 — 그래서
     // App.tsx가 쏘는 커스텀 이벤트를 직접 듣고 맨 위로 스크롤한다(마운트 여부와 무관하게 동작).
     const handleGoTop = () => {
-      container.scrollTop = 0;
+      if (isMobileLayout()) {
+        window.scrollTo({ top: 0, behavior: 'auto' });
+      } else {
+        container.scrollTop = 0;
+      }
       setActiveSection(0);
       sessionStorage.removeItem('eobom_scroll_home');
     };
@@ -125,17 +183,35 @@ export const HomePage: React.FC<HomePageProps> = ({ currentUser, onOpenLogin, se
     // 재실행되지 않으므로, 커스텀 이벤트로 직접 섹션 1(어떤 도움이 필요하신가요)로 스크롤한다.
     const handleGoToEntry = () => {
       const index = 1;
-      container.scrollTop = index * container.clientHeight;
+      if (isMobileLayout()) {
+        scrollNativeToIndex(index, 'auto');
+      } else {
+        container.scrollTop = index * container.clientHeight;
+      }
       setActiveSection(index);
       sessionStorage.setItem('eobom_scroll_home', String(index));
     };
 
+    // 🟡 폭이 640px 경계를 넘나드는 리사이즈(브라우저 창 조정)·기기 회전 시 activeSection이
+    // 직전 스크롤 주체(container 또는 window) 기준값에 멈춰 있을 수 있어 재동기화한다 —
+    // 두 핸들러 다 자기 폭이 아니면 즉시 return하므로 그냥 둘 다 불러도 안전하다.
+    const handleResync = () => {
+      handleScroll();
+      handleWindowScroll();
+    };
+
     container.addEventListener('scroll', handleScroll, { passive: true });
+    window.addEventListener('scroll', handleWindowScroll, { passive: true });
+    window.addEventListener('resize', handleResync);
+    window.addEventListener('orientationchange', handleResync);
     window.addEventListener('eobom:home-scroll-top', handleGoTop);
     window.addEventListener('eobom:home-scroll-to-entry', handleGoToEntry);
     return () => {
       resizeObserver?.disconnect();
       container.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('scroll', handleWindowScroll);
+      window.removeEventListener('resize', handleResync);
+      window.removeEventListener('orientationchange', handleResync);
       window.removeEventListener('eobom:home-scroll-top', handleGoTop);
       window.removeEventListener('eobom:home-scroll-to-entry', handleGoToEntry);
     };
@@ -147,9 +223,14 @@ export const HomePage: React.FC<HomePageProps> = ({ currentUser, onOpenLogin, se
   }, [activeSection]);
 
   // 마우스 휠 한 번 = 섹션 한 칸 이동 (네이티브 scroll-snap은 여러 번 굴려야 겨우 스냅되는 둔감한 반응이라, 휠 델타를 직접 가로채서 즉시 다음/이전 섹션으로 이동시킴)
+  // 00-23 §5.4-1: 640px 이하는 스냅 자체가 없는 네이티브 스크롤이라 이 핸들러를 등록하지
+  // 않는다 — 폭이 아니라 matchMedia('(pointer: coarse)')로 판정한다(터치 입력 자체가 이미
+  // 스와이프로 섹션을 넘기므로, 좁은 창을 쓰는 데스크톱 마우스는 그대로 휠 점프를 유지하고
+  // 넓은 화면의 터치스크린은 제외하기 위함).
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
+    if (window.matchMedia('(pointer: coarse)').matches) return;
 
     const handleWheel = (e: WheelEvent) => {
       e.preventDefault();
@@ -252,11 +333,12 @@ export const HomePage: React.FC<HomePageProps> = ({ currentUser, onOpenLogin, se
         </button>
       )}
 
-      {/* 풀페이지 스냅 스크롤 컨테이너 (전체 베이지 배경). 2026-08-25: 한때 640px 이하에서
-          index.css가 이 컨테이너의 scroll-snap-type을 mandatory→proximity로 낮췄었는데
-          (섹션1→마지막 섹션 전환 시 도로 끌려가던 문제 대응), 컨테이너 전체에 걸리는 값이라
-          섹션0↔1 스냅감까지 같이 느슨해져 "풀페이지 휠 전체가 이상해졌다"는 재지적을 받고
-          되돌렸다 — mandatory 그대로 유지, className은 훅으로만 남겨둠. */}
+      {/* 풀페이지 스냅 스크롤 컨테이너 (전체 베이지 배경). ≥641px은 mandatory 스냅 그대로 유지.
+          00-23 §5.4-1: 640px 이하는 mandatory 스냅과 모바일 가변 높이 섹션이 서로를 부정해
+          바운스백이 났다(예전에 mandatory→proximity로 완화만 해봤다가 섹션0↔1 스냅감까지
+          느슨해져 되돌린 적 있음) — 부분 완화가 아니라 스냅 자체를 index.css에서 끈다
+          (scrollSnapType은 인라인으로 남겨 ≥641px 기본값 역할만 하고, ≤640px 무효화는
+          index.css `.home-scroll-container`가 !important로 담당). */}
       <div
         ref={containerRef}
         className="home-scroll-container"
@@ -279,6 +361,7 @@ export const HomePage: React.FC<HomePageProps> = ({ currentUser, onOpenLogin, se
         {/* [섹션 0] 메인 히어로 — copy.md ①Hero 개정 권고안 + will.png 배경 (2026-08-24) */}
         {/* ========================================================= */}
         <section
+          ref={(el) => { sectionElsRef.current[0] = el; }}
           className="fullpage-section"
           style={{
             width: '100%',
@@ -380,13 +463,11 @@ export const HomePage: React.FC<HomePageProps> = ({ currentUser, onOpenLogin, se
           <div className="duo-photo-scrim" />
 
           {/* ========================================================= */}
-          {/* [섹션 1] 진입 4박스 — 00-23 §8. 새 화면 ID 아님(SCR-001 내부 블록) —
-              640px 이하는 index.css `.fullpage-section--fluid`가 고정 높이를 풀어 콘텐츠
-              높이만큼 늘어나게 한다(2026-08-25, 좁은 화면에서 카드가 살짝 넘쳐 안쪽
-              overflow:auto와 바깥 스냅 스크롤이 서로 스크롤 제스처를 다투던 "덜그럭거림" 대응). */}
+          {/* [섹션 1] 진입 4박스 — 00-23 §8. 새 화면 ID 아님(SCR-001 내부 블록) */}
           {/* ========================================================= */}
           <section
-            className="fullpage-section fullpage-section--fluid"
+            ref={(el) => { sectionElsRef.current[1] = el; }}
+            className="fullpage-section"
             style={{
               width: '100%',
               scrollSnapAlign: 'start',
@@ -411,16 +492,14 @@ export const HomePage: React.FC<HomePageProps> = ({ currentUser, onOpenLogin, se
           </section>
 
           {/* ========================================================= */}
-          {/* [섹션 2] 에필로그 & 푸터 — 2026-08-25 개발자 지시: "웹 모바일 환경에 한해" 이 둘을
-              각자 독립된 풀페이지로 분리한다(섹션3=에필로그, 섹션4=Footer). 데스크톱은 기존
-              그대로 한 화면에 같이 보여야 하므로, 구조를 항상 이렇게(래퍼+자식 두 section) 둔
-              채 CSS만 폭에 따라 바꾼다 — .epilogue-footer-wrapper가 기본(데스크톱)에는 기존
-              .fullpage-section 역할(고정 높이·스냅 대상)을 그대로 하고, 640px 이하에서는 스냅
-              대상 자리를 두 자식(.home-epilogue-section/.home-footer-section)에 넘겨준다
-              (index.css 참고). 이 방식만이 "구조는 하나, 폭에 따라 스냅 단위만 다르다"를
-              가능하게 한다 — 모바일 전용으로 DOM을 아예 다르게 렌더링하지 않아도 된다. */}
+          {/* [섹션 2] 에필로그 & 푸터 — 데스크톱(≥641px)은 래퍼(.epilogue-footer-wrapper)가
+              기존 .fullpage-section 역할(고정 높이·스냅 대상)을 그대로 하고, 두 자식은 그
+              안의 평범한 콘텐츠 블록이다. 00-23 §5.4-1: 640px 이하는 스냅 자체가 없으므로
+              래퍼도 두 자식도 스냅 대상이 아니다 — 그냥 순서대로 흘러가는 콘텐츠(index.css
+              참고). DOM 구조(래퍼+자식 두 section)는 폭과 무관하게 항상 같다. */}
           {/* ========================================================= */}
           <div
+            ref={(el) => { sectionElsRef.current[2] = el; }}
             className="epilogue-footer-wrapper"
             style={{
               width: '100%',
@@ -430,7 +509,7 @@ export const HomePage: React.FC<HomePageProps> = ({ currentUser, onOpenLogin, se
             }}
           >
             {/* [섹션 3] 에필로그 클로징 메시지 — 남는 세로 공간을 채우도록 가운데 정렬
-                (빈 공간이 아닌 실 콘텐츠로 확장). 640px 이하에서는 이 자체가 풀페이지 하나. */}
+                (빈 공간이 아닌 실 콘텐츠로 확장). */}
             <section
               className="home-epilogue-section"
               style={{
@@ -470,9 +549,7 @@ export const HomePage: React.FC<HomePageProps> = ({ currentUser, onOpenLogin, se
             {/* [섹션 4] 하단 푸터 — 배경이 투명해서(Footer.tsx) 위 공용 배경 사진·스크림이 그대로
                 비쳐 보인다(의도된 동작). position:relative로 감싸서 스태킹 컨텍스트를 올려야
                 한다 — 안 그러면 static 요소는 절대 위치인 .duo-photo-bg/-scrim(z-index:auto)
-                보다 항상 먼저(아래에) 그려져, Footer의 텍스트·구분선이 사진 뒤로 숨어버린다.
-                640px 이하에서는 이 자체가 풀페이지 하나(콘텐츠가 한 화면보다 길면 자유 스크롤
-                — .home-footer-section 관련 index.css 주석 참고). */}
+                보다 항상 먼저(아래에) 그려져, Footer의 텍스트·구분선이 사진 뒤로 숨어버린다. */}
             <section className="home-footer-section" style={{ position: 'relative', zIndex: 1 }}>
               <Footer />
             </section>

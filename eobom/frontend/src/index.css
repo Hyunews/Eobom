@@ -455,35 +455,11 @@ body {
   }
 }
 
-/* HomePage.tsx 엔트리박스 섹션("섹션2") 전용 — 데스크톱은 콘텐츠가 뷰포트에 들어가지만,
-   모바일은 폭이 좁아지며 카드 내용이 고정 높이(뷰포트-헤더)를 근소하게 넘을 수 있다
-   (2026-08-25 개발자 지적 "섹션2가 화면에 안 담겨 덜그럭거림" — 고정 높이+overflow:auto
-   인라인이었을 때 안쪽 스크롤과 바깥 스냅 스크롤이 제스처를 서로 가로채려 들어 흔들리는
-   느낌을 냈다). 높이를 콘텐츠에 맞게 풀어(overflow도 필요 없어짐) 이중 스크롤을 없앤다.
-   scroll-snap-align은 그대로 둔다(HomePage.tsx 인라인 style={{scrollSnapAlign:'start'}}) —
-   지우면 mandatory 스냅에서 "다음에 스냅할 곳이 없다"며 이전 섹션으로 도로 끌려가는
-   바운스백이 난다는 게 아래 에필로그/Footer 케이스에서 실측으로 확인됐다. */
-@media (max-width: 640px) {
-  .fullpage-section--fluid {
-    height: auto;
-    min-height: calc(100vh - var(--header-h));
-    overflow-y: visible !important;
-  }
-
-  @supports (height: 100dvh) {
-    .fullpage-section--fluid {
-      min-height: calc(100dvh - var(--header-h));
-    }
-  }
-}
-
-/* HomePage.tsx 에필로그+Footer 영역 — 2026-08-25 개발자 지시: "웹 모바일 환경에 한해" 에필로그
-   (섹션3)와 Footer(섹션4)를 각자 독립된 풀페이지로 분리한다. 데스크톱은 기존처럼 한 화면에
-   같이 보여야 해서, DOM 구조 자체(래퍼 div + 자식 section 2개)는 폭과 무관하게 항상 같고
-   CSS만 폭에 따라 "누가 스냅 대상인가"를 바꾼다.
-   기본(데스크톱, ≥641px): .epilogue-footer-wrapper가 기존 .fullpage-section과 똑같이
-   고정 높이·overflow-y:auto인 스냅 대상 하나로 동작하고, 두 자식은 그 안의 평범한 콘텐츠
-   블록일 뿐이다(scroll-snap-align 없음) — 지금까지의 데스크톱 모습 그대로. */
+/* HomePage.tsx 에필로그+Footer 영역 — 래퍼(epilogue-footer-wrapper) + 자식 section 2개
+   (home-epilogue-section·home-footer-section) 구조는 폭과 무관하게 항상 같다.
+   기본(데스크톱, ≥641px): 래퍼가 고정 높이·overflow-y:auto인 스냅 대상 하나로 동작하고,
+   두 자식은 그 안의 평범한 콘텐츠 블록이다(scroll-snap-align 없음). ≤640px 동작은 아래
+   "모바일 풀페이지 스냅 폐지" 블록에서 일괄 처리한다. */
 .epilogue-footer-wrapper {
   height: calc(100vh - var(--header-h));
   display: flex;
@@ -497,46 +473,46 @@ body {
   }
 }
 
-/* 640px 이하(모바일): 래퍼는 스냅 대상 자리에서 빠지고(고정 높이·스냅 둘 다 해제 —
-   인라인 style={{scrollSnapAlign:'start'}}가 있어 !important 필요, 위 .chip-row 등과 같은
-   패턴) 그냥 두 섹션을 순서대로 흘려보내는 평범한 컨테이너가 된다. 대신 두 자식이 각자
-   scroll-snap-align:start를 받아(인라인이 없어 !important 불필요) 독립된 풀페이지 스냅
-   대상이 된다. 두 섹션 다 min-height만 걸고 height는 고정하지 않는다 — 특히 Footer는
-   3열→1열로 접히며 한 화면보다 훨씬 길어질 수 있는데(2026-08-25 실측: 569px 폭에서 Footer만
-   ~700px), 고정 높이로 자르면 위와 같은 "안쪽 스크롤 vs 바깥 스냅" 충돌이 재발한다 — 대신
-   맨 위(min-height 이내)까지는 스냅으로 딱 맞춰주고, 그보다 긴 나머지는 마지막 섹션이라
-   뒤에 스냅할 대상이 없으니 자유 스크롤로 흘러가게 둔다(위 에필로그/Footer 분리 전 마지막
-   섹션이 쓰던 것과 같은 원리). */
+/* ── 모바일(≤640px) 풀페이지 스냅 폐지 — 00-23 §5.4-1 개발자 확정 ──
+   mandatory 스냅 + 모바일 가변 높이 섹션이 서로를 부정해 바운스백이 났다(부분 예외 패치로는
+   해결 안 되고 스냅 자체를 꺼야 했다 — 이전에 mandatory→proximity로 완화만 해봤다가
+   섹션1↔2 스냅감까지 같이 느슨해져 되돌린 이력이 있다). 이 폭에서는 스냅 없이 body가
+   네이티브로 스크롤한다 — .fullpage-viewport/.home-scroll-container는 더 이상 스크롤
+   주체가 아니므로 clip·내부 스크롤을 모두 풀어야 하는데, .fullpage-viewport의 overflow와
+   .home-scroll-container의 height·overflow-y·-webkit-overflow-scrolling은 전부
+   HomePage.tsx 인라인 style이라 !important 없이는 무시된다(위 .home-section-dots 등과
+   같은 패턴). 각 섹션의 scroll-snap-align도 마찬가지로 인라인이라 !important로 무효화한다. */
 @media (max-width: 640px) {
+  .fullpage-viewport {
+    height: auto;
+    overflow: visible !important;
+  }
+
+  .home-scroll-container {
+    height: auto !important;
+    overflow-y: visible !important;
+    -webkit-overflow-scrolling: auto !important;
+    scroll-snap-type: none !important;
+  }
+
+  .fullpage-section {
+    height: auto;
+    min-height: calc(100vh - var(--header-h));
+    scroll-snap-align: none !important;
+  }
+
   .epilogue-footer-wrapper {
     height: auto;
     overflow-y: visible;
     scroll-snap-align: none !important;
   }
 
-  .home-epilogue-section,
-  .home-footer-section {
-    scroll-snap-align: start;
-    min-height: calc(100vh - var(--header-h));
-    box-sizing: border-box;
-  }
-
   @supports (height: 100dvh) {
-    .home-epilogue-section,
-    .home-footer-section {
+    .fullpage-section {
       min-height: calc(100dvh - var(--header-h));
     }
   }
 }
-
-/* 2026-08-25: 한때 여기서 .home-scroll-container(HomePage.tsx 스크롤 컨테이너)의
-   scroll-snap-type을 640px 이하에서 mandatory→proximity로 낮췄었다(섹션2→섹션3 전환 시
-   섹션2로 도로 끌려가는 문제 대응). 그런데 이 속성은 컨테이너 전체에 걸리는 값이라 섹션1↔2
-   전환의 스냅감까지 같이 느슨해져 "풀페이지 휠 전체가 무너진 느낌"이라는 재지적을 받고
-   되돌렸다(개발자 확인). 바운스백의 실제 원인은 (a) 위에서 다룬 scroll-snap-align 제거,
-   (b) 엔트리박스 캐러셀의 터치 스와이프 감지가 수직 스크롤 제스처를 옆 페이지 전환으로
-   오인식하던 버그(EntryBoxes.tsx, 별도 수정) 둘이 겹친 것으로 파악돼, mandatory는 그대로 두고
-   두 원인을 각각 고쳤다. */
 
 /* ── Responsive Breakpoints ──
    .container 자체의 반응형 padding은 위쪽 정의(라인 ~125) 바로 옆 미디어쿼리에서 함께 관리한다 —
