@@ -455,22 +455,14 @@ body {
   }
 }
 
-/* HomePage.tsx의 뷰포트 고정 높이 스냅 섹션 2개(엔트리박스="섹션2", 에필로그+Footer="섹션3")
-   전용 — 데스크톱은 둘 다 한 화면에 들어가지만, 모바일은 폭이 좁아지며 내부 콘텐츠(엔트리박스
-   카드, Footer 3열→1열 접힘)가 뷰포트 고정 높이보다 살짝 또는 크게 커진다(2026-08-25 실측:
-   569px 폭에서 섹션3은 927px vs 섹션 높이 531px — 396px 초과. 섹션2도 실기기 폭에 따라 근소하게
-   넘칠 수 있음 — 개발자 지적 "섹션2가 화면에 안 담겨 덜그럭거림"). 고정 높이(overflow:auto
-   인라인)로 두면 안쪽 스크롤 영역과 바깥 스냅 컨테이너가 스크롤 제스처를 서로 가로채려 해
-   덜그럭거리거나(섹션2) "경계가 애매한" 느낌(섹션3)이 났다 — 두 섹션 다 높이를 콘텐츠에
-   맞게 풀어(overflow도 필요 없어짐) 이중 스크롤 자체를 없앤다.
-   🔴 scroll-snap-align은 그대로 둔다(HomePage.tsx 인라인 style={{scrollSnapAlign:'start'}}).
-   한때 섹션3에서만 이 값을 none으로 지웠었는데("뒤에 스냅할 대상이 없다"는 논리), mandatory
-   스냅 타입에서 섹션3이 유효한 스냅 대상이 아니게 되자 오히려 "다음에 스냅할 곳이 없다"는
-   이유로 스크롤이 이전 스냅 대상(섹션2)으로 도로 끌려가는 바운스백이 실기기에서 발생했다
-   (개발자 지적) — start를 유지해 섹션3의 "맨 위"를 유효한 스냅 지점으로 남겨두면, 거기까지는
-   깔끔하게 스냅되고 그 지점을 넘어서는(콘텐츠가 더 있는) 스크롤은 이후에 스냅할 대상이 없으니
-   자유롭게 흘러간다 — mandatory를 컨테이너 전체에서 proximity로 낮추는 시도(되돌려짐, 아래
-   참고)보다 이쪽이 이 라이브러리의 실제 동작과 맞는 것으로 판단. */
+/* HomePage.tsx 엔트리박스 섹션("섹션2") 전용 — 데스크톱은 콘텐츠가 뷰포트에 들어가지만,
+   모바일은 폭이 좁아지며 카드 내용이 고정 높이(뷰포트-헤더)를 근소하게 넘을 수 있다
+   (2026-08-25 개발자 지적 "섹션2가 화면에 안 담겨 덜그럭거림" — 고정 높이+overflow:auto
+   인라인이었을 때 안쪽 스크롤과 바깥 스냅 스크롤이 제스처를 서로 가로채려 들어 흔들리는
+   느낌을 냈다). 높이를 콘텐츠에 맞게 풀어(overflow도 필요 없어짐) 이중 스크롤을 없앤다.
+   scroll-snap-align은 그대로 둔다(HomePage.tsx 인라인 style={{scrollSnapAlign:'start'}}) —
+   지우면 mandatory 스냅에서 "다음에 스냅할 곳이 없다"며 이전 섹션으로 도로 끌려가는
+   바운스백이 난다는 게 아래 에필로그/Footer 케이스에서 실측으로 확인됐다. */
 @media (max-width: 640px) {
   .fullpage-section--fluid {
     height: auto;
@@ -480,6 +472,58 @@ body {
 
   @supports (height: 100dvh) {
     .fullpage-section--fluid {
+      min-height: calc(100dvh - var(--header-h));
+    }
+  }
+}
+
+/* HomePage.tsx 에필로그+Footer 영역 — 2026-08-25 개발자 지시: "웹 모바일 환경에 한해" 에필로그
+   (섹션3)와 Footer(섹션4)를 각자 독립된 풀페이지로 분리한다. 데스크톱은 기존처럼 한 화면에
+   같이 보여야 해서, DOM 구조 자체(래퍼 div + 자식 section 2개)는 폭과 무관하게 항상 같고
+   CSS만 폭에 따라 "누가 스냅 대상인가"를 바꾼다.
+   기본(데스크톱, ≥641px): .epilogue-footer-wrapper가 기존 .fullpage-section과 똑같이
+   고정 높이·overflow-y:auto인 스냅 대상 하나로 동작하고, 두 자식은 그 안의 평범한 콘텐츠
+   블록일 뿐이다(scroll-snap-align 없음) — 지금까지의 데스크톱 모습 그대로. */
+.epilogue-footer-wrapper {
+  height: calc(100vh - var(--header-h));
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+}
+
+@supports (height: 100dvh) {
+  .epilogue-footer-wrapper {
+    height: calc(100dvh - var(--header-h));
+  }
+}
+
+/* 640px 이하(모바일): 래퍼는 스냅 대상 자리에서 빠지고(고정 높이·스냅 둘 다 해제 —
+   인라인 style={{scrollSnapAlign:'start'}}가 있어 !important 필요, 위 .chip-row 등과 같은
+   패턴) 그냥 두 섹션을 순서대로 흘려보내는 평범한 컨테이너가 된다. 대신 두 자식이 각자
+   scroll-snap-align:start를 받아(인라인이 없어 !important 불필요) 독립된 풀페이지 스냅
+   대상이 된다. 두 섹션 다 min-height만 걸고 height는 고정하지 않는다 — 특히 Footer는
+   3열→1열로 접히며 한 화면보다 훨씬 길어질 수 있는데(2026-08-25 실측: 569px 폭에서 Footer만
+   ~700px), 고정 높이로 자르면 위와 같은 "안쪽 스크롤 vs 바깥 스냅" 충돌이 재발한다 — 대신
+   맨 위(min-height 이내)까지는 스냅으로 딱 맞춰주고, 그보다 긴 나머지는 마지막 섹션이라
+   뒤에 스냅할 대상이 없으니 자유 스크롤로 흘러가게 둔다(위 에필로그/Footer 분리 전 마지막
+   섹션이 쓰던 것과 같은 원리). */
+@media (max-width: 640px) {
+  .epilogue-footer-wrapper {
+    height: auto;
+    overflow-y: visible;
+    scroll-snap-align: none !important;
+  }
+
+  .home-epilogue-section,
+  .home-footer-section {
+    scroll-snap-align: start;
+    min-height: calc(100vh - var(--header-h));
+    box-sizing: border-box;
+  }
+
+  @supports (height: 100dvh) {
+    .home-epilogue-section,
+    .home-footer-section {
       min-height: calc(100dvh - var(--header-h));
     }
   }

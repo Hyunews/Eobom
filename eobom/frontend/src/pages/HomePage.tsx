@@ -411,26 +411,28 @@ export const HomePage: React.FC<HomePageProps> = ({ currentUser, onOpenLogin, se
           </section>
 
           {/* ========================================================= */}
-          {/* [섹션 2] 에필로그 & 푸터 (배경은 위 공용 래퍼가 담당, Footer Snap Section) —
-              640px 이하는 index.css `.fullpage-section--fluid`가 고정 높이를 풀어준다
-              (2026-08-25). scrollSnapAlign은 그대로 'start'로 둔다 — 없애면 mandatory 스냅이
-              "다음에 스냅할 곳이 없다"며 이전 섹션으로 도로 끌려가는 바운스백이 실기기에서
-              확인됐다(index.css 관련 주석 참고). */}
+          {/* [섹션 2] 에필로그 & 푸터 — 2026-08-25 개발자 지시: "웹 모바일 환경에 한해" 이 둘을
+              각자 독립된 풀페이지로 분리한다(섹션3=에필로그, 섹션4=Footer). 데스크톱은 기존
+              그대로 한 화면에 같이 보여야 하므로, 구조를 항상 이렇게(래퍼+자식 두 section) 둔
+              채 CSS만 폭에 따라 바꾼다 — .epilogue-footer-wrapper가 기본(데스크톱)에는 기존
+              .fullpage-section 역할(고정 높이·스냅 대상)을 그대로 하고, 640px 이하에서는 스냅
+              대상 자리를 두 자식(.home-epilogue-section/.home-footer-section)에 넘겨준다
+              (index.css 참고). 이 방식만이 "구조는 하나, 폭에 따라 스냅 단위만 다르다"를
+              가능하게 한다 — 모바일 전용으로 DOM을 아예 다르게 렌더링하지 않아도 된다. */}
           {/* ========================================================= */}
-          <section
-            className="fullpage-section fullpage-section--fluid"
+          <div
+            className="epilogue-footer-wrapper"
             style={{
               width: '100%',
               scrollSnapAlign: 'start',
-              display: 'flex',
-              flexDirection: 'column',
               position: 'relative',
-              overflowY: 'auto',
               overflowX: 'hidden'
             }}
           >
-            {/* 클로징 메시지 — 남는 세로 공간을 채우도록 가운데 정렬 (빈 공간이 아닌 실 콘텐츠로 확장) */}
-            <div
+            {/* [섹션 3] 에필로그 클로징 메시지 — 남는 세로 공간을 채우도록 가운데 정렬
+                (빈 공간이 아닌 실 콘텐츠로 확장). 640px 이하에서는 이 자체가 풀페이지 하나. */}
+            <section
+              className="home-epilogue-section"
               style={{
                 position: 'relative',
                 zIndex: 1,
@@ -463,16 +465,18 @@ export const HomePage: React.FC<HomePageProps> = ({ currentUser, onOpenLogin, se
               <p style={{ fontSize: '1.05rem', color: '#6C7A89', lineHeight: 1.7, maxWidth: '560px', margin: 0 }}>
                 엔딩노트 작성부터 전국 장사시설 탐색까지, 이어봄이 곁에서 함께합니다.
               </p>
-            </div>
+            </section>
 
-            {/* 하단 푸터 — 배경이 투명해서(Footer.tsx) 위 공용 배경 사진·스크림이 그대로 비쳐
-                보인다(의도된 동작). position:relative로 감싸서 스태킹 컨텍스트를 올려야 한다 —
-                안 그러면 static 요소는 절대 위치인 .duo-photo-bg/-scrim(z-index:auto)보다 항상
-                먼저(아래에) 그려져, Footer의 텍스트·구분선이 사진 뒤로 숨어버린다. */}
-            <div style={{ position: 'relative', zIndex: 1 }}>
+            {/* [섹션 4] 하단 푸터 — 배경이 투명해서(Footer.tsx) 위 공용 배경 사진·스크림이 그대로
+                비쳐 보인다(의도된 동작). position:relative로 감싸서 스태킹 컨텍스트를 올려야
+                한다 — 안 그러면 static 요소는 절대 위치인 .duo-photo-bg/-scrim(z-index:auto)
+                보다 항상 먼저(아래에) 그려져, Footer의 텍스트·구분선이 사진 뒤로 숨어버린다.
+                640px 이하에서는 이 자체가 풀페이지 하나(콘텐츠가 한 화면보다 길면 자유 스크롤
+                — .home-footer-section 관련 index.css 주석 참고). */}
+            <section className="home-footer-section" style={{ position: 'relative', zIndex: 1 }}>
               <Footer />
-            </div>
-          </section>
+            </section>
+          </div>
         </div>
       </div>
     </div>

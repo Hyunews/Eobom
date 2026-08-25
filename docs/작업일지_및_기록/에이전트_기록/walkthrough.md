@@ -6,6 +6,30 @@
 
 ---
 
+## 2026-08-25 (68) | [Sonnet] 모바일 전용 — 에필로그·Footer를 독립된 풀페이지 2개로 분리
+
+- **근거 스펙**: (67) 배포 후 사용자 확인 — "바운스백 문제 해결 확인." 이어서 신규 요청: "웹 모바일 환경에 한해서 섹션3을 풀페이지 전체로 두고, footer만 따로 풀페이지화 할 수 있는가?" — 데스크톱은 지금처럼 한 화면에 같이 보이는 걸 유지하고, 모바일에서만 에필로그와 Footer를 각자 독립된 풀스크린 스냅 섹션으로 나눠 달라는 요청.
+- **구현 방식**: DOM 구조(래퍼 div + 자식 `<section>` 2개)는 폭과 무관하게 항상 동일하게 두고, CSS 미디어쿼리로 "누가 스냅 대상인가"만 바꿨다 — 모바일 전용으로 아예 다른 컴포넌트 트리를 렌더링하는 대신, 이미 (67)에서 검증된 "높이를 콘텐츠에 맞게 풀고 scroll-snap-align:start는 유지" 패턴을 새 구조에 그대로 재적용했다.
+  - **기본(데스크톱, ≥641px)**: `.epilogue-footer-wrapper`가 기존 `.fullpage-section`과 동일하게 고정 높이(`calc(100vh/100dvh - header)`)·`overflow-y:auto`·유일한 스냅 대상(`scrollSnapAlign:'start'`, 인라인) 역할을 그대로 한다. 두 자식 `<section>`(`.home-epilogue-section`·`.home-footer-section`)은 스냅 관련 속성이 전혀 없어 그냥 안의 콘텐츠 블록일 뿐이다 — 지금까지의 데스크톱 화면과 동일.
+  - **640px 이하(모바일)**: 래퍼는 `scroll-snap-align:none !important`로 스냅 대상 자리에서 빠지고 `height:auto`(그냥 흘려보내는 컨테이너)가 된다. 대신 두 자식이 각자 `scroll-snap-align:start`(CSS로만 부여, 인라인 충돌 없어 `!important` 불필요) + `min-height: calc(100vh/100dvh - header)`를 받아 독립된 풀페이지가 된다. `height`는 고정하지 않고 `min-height`만 걸어서, Footer처럼 한 화면보다 콘텐츠가 긴 경우 (67)에서 검증된 "마지막 섹션은 스냅 지점까지만 딱 맞고 그 이후는 자유 스크롤" 동작이 그대로 적용된다.
+- **건드린 파일**:
+  - `eobom/frontend/src/pages/HomePage.tsx` — "[섹션 2] 에필로그 & 푸터" 블록을 `<section className="fullpage-section fullpage-section--fluid">` 하나에서 `<div className="epilogue-footer-wrapper">` + 자식 `<section className="home-epilogue-section">`·`<section className="home-footer-section">` 구조로 재작성. 내부 콘텐츠(배지·h2·p·`<Footer/>`)는 손대지 않음.
+  - `eobom/frontend/src/index.css` — `.fullpage-section--fluid` 설명 주석을 "엔트리박스 섹션 전용"으로 좁혀 정정(에필로그+Footer는 더 이상 이 클래스를 안 씀). `.epilogue-footer-wrapper`(기본 + 640px 이하 스냅 해제) 및 `.home-epilogue-section`/`.home-footer-section`(640px 이하 스냅+min-height 부여) 규칙 신설.
+  - `docs/작업일지_및_기록/에이전트_기록/walkthrough.md` — 이 항목.
+- **결과**(`claude-in-chrome`, 같은 오리진 iframe 2개를 동시에 띄워 모바일(390px)·데스크톱(1200px)을 나란히 비교 — `resize_window` 대신 (67)에서 정착시킨 방법):
+  - **데스크톱(1196px 실측)**: `.epilogue-footer-wrapper` `scroll-snap-align:start`(유일한 스냅 대상), 높이 811px. 자식 둘은 `scroll-snap-align:none`, 높이 각각 523px·288px — **합이 811px로 래퍼 전체와 정확히 일치** = 지금까지와 똑같이 한 화면에 같이 들어감을 수치로 확인.
+  - **모바일(386px 실측)**: `.epilogue-footer-wrapper` `scroll-snap-align:none`(스냅 대상 아님). 자식 둘 다 `scroll-snap-align:start`, 각각 높이 832px(= 그 폭에서의 뷰포트-헤더 min-height, 두 섹션 다 콘텐츠가 그 안에 들어가 floor 값 그대로) — **독립된 풀페이지 2개로 정확히 분리**됨을 확인.
+  - 두 프레임 다 `scrollWidth === clientWidth`(가로 오버플로 0).
+  - `npx tsc --noEmit`·`npm run build`(frontend) 둘 다 통과.
+- **편차**: 없음.
+- **다음 에이전트가 알아야 할 것**:
+  - 이번 실측은 특정 폭(모바일 386px·데스크톱 1196px) 스냅샷이다 — **실제 스크롤 제스처로 4단계(히어로→엔트리박스→에필로그→Footer)를 전부 순서대로 타고 내려가 보는 것**은 (63)·(65)·(67)과 마찬가지로 이 자동화 환경에서 재현 못 했다(터치 모멘텀 스냅 판정 자체를 시뮬레이션할 수 없다는 반복된 한계). 다음 실기기 확인에서 이 4단계 전체를 한 번에 봐 줄 것 — 특히 새로 생긴 엔트리박스→에필로그 전환, 에필로그→Footer 전환 둘 다.
+  - `sections`(HomePage.tsx, `[hero, entry-boxes, footer]` 3개 고정)·점 인디케이터·`handleWheel`(데스크톱 전용)은 이번에 손대지 않았다 — 모바일에서 논리적으로는 이제 스냅 지점이 4개지만 JS는 여전히 3개로 안다. 점 인디케이터·화살표는 이미 640px 이하에서 숨겨져 있어((64)) 영향이 안 보이고, `handleWheel`은 터치가 아니라 마우스 휠 전용이라 모바일 터치 스크롤과 무관하다 — 그래서 지금은 문제가 없지만, 나중에 모바일에서도 점 인디케이터를 다시 보여주자는 요청이 오면 그때는 `sections` 배열이나 인덱스 계산 로직을 4단계에 맞게 손봐야 한다.
+
+<!-- Gemini 판정: -->
+
+---
+
 ## 2026-08-25 (67) | [Sonnet] 섹션2→3 바운스백 재수정 + 섹션2 덜그럭거림 + 최소 280px 폭 지원
 
 - **근거 스펙**: 사용자 직접 피드백 — "섹션1→2: 문제 해결됨. 섹션2→3: 바운스백 발생. +추가) 섹션2가 화면 전체에 담기지 못해 달그락거리면서 위아래로 움직일 수 있는 상황. +추가) 최소 디스플레이 가로 픽셀 280으로 잡아줘."
