@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { ChevronRight, ChevronLeft, HeartHandshake, Flower2, Building2 } from 'lucide-react';
 import { ChecklistShieldIcon } from '../MenuIcons';
-import { box1Keys, box2Keys } from './domainSlides';
+import { box1Keys, box2Keys, box1Intro, box2Intro } from './domainSlides';
 import type { NavMode } from '../../modeNav';
 
 // docs/00_핵심플랫폼/00-23 §8 — 메인화면 진입구조 목업. 사장님 지시(2026-08-18 2차)로
@@ -294,7 +294,7 @@ export const EntryBoxes: React.FC<EntryBoxesProps> = ({ currentUser, onOpenLogin
       <BoxHeader
         icon={<HeartHandshake size={32} color="var(--point-color)" />}
         title="생전 준비"
-        subtitle="미리 준비해 두면, 남은 가족이 덜 힘듭니다. 엔딩노트와 가족 지정, 상속 사전 상담까지 마음이 편안할 때 하나씩 남겨두세요."
+        subtitle={box1Intro}
         iconBg="rgba(91, 112, 101, 0.12)"
       />
       <RevealContent>
@@ -339,7 +339,7 @@ export const EntryBoxes: React.FC<EntryBoxesProps> = ({ currentUser, onOpenLogin
       <BoxHeader
         icon={<ChecklistShieldIcon size={32} color="#03543F" />}
         title="임종 및 사후 정리"
-        subtitle="지금 해야 할 일부터 순서대로 안내해 드립니다. 부고장 발송, 장사시설 매칭부터 22개 행정 체크리스트까지 이어집니다."
+        subtitle={box2Intro}
         iconBg="rgba(212, 163, 89, 0.16)"
       />
       <RevealContent>

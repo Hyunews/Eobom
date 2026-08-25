@@ -11,7 +11,7 @@ import { MyPageFamilyDesignation } from './components/MyPageFamilyDesignation';
 import { EobomLogo } from './components/EobomLogo';
 import { providerLabel, BACKEND_URL } from './config';
 import { NAV_MODE_STORAGE_KEY, type NavMode } from './modeNav';
-import { box1Keys, box2Keys } from './components/home/domainSlides';
+import { box1Keys, box2Keys, box1Intro, box2Intro } from './components/home/domainSlides';
 
 import { HomePage } from './pages/HomePage';
 import { DomainOverviewPage } from './pages/DomainOverviewPage';
@@ -338,15 +338,18 @@ function AppShell() {
             <Route path="/" element={<HomePage {...authProps} onSetMode={handleSetNavMode} />} />
             {/* 2026-08-25 — 홈 박스①②(생전 준비/임종 및 사후 정리) 클릭·히어로 CTA가 예전엔
                 풀스크린 오버레이(BoxDetailOverlay, 폐지)를 열었는데, 오버레이일 이유가 없다는
-                지시로 일반 페이지가 됐다. box1Keys·box2Keys는 EntryBoxes.tsx의 박스 카드 요약
-                칩과도 공유하는 순서라 domainSlides.tsx에 있다. */}
+                지시로 일반 페이지가 됐다. box1Keys·box2Keys·box1Intro·box2Intro는
+                EntryBoxes.tsx의 박스 카드(요약 칩·subtitle)와도 공유하는 정본이라
+                domainSlides.tsx에 있다(00-23 §8.6-1). onSetMode는 이 라우트로 직접 진입해도
+                사이드바·모드 드롭다운이 맞는 모드를 보여주도록 페이지 마운트 시점에 호출된다
+                (00-26 §4.4, DomainOverviewPage.tsx 내부 useEffect 참고). */}
             <Route
               path="/prep"
-              element={<DomainOverviewPage {...authProps} title="생전 준비" keys={box1Keys} />}
+              element={<DomainOverviewPage {...authProps} onSetMode={handleSetNavMode} title="생전 준비" intro={box1Intro} mode="prep" keys={box1Keys} />}
             />
             <Route
               path="/bereaved"
-              element={<DomainOverviewPage {...authProps} title="임종 및 사후 정리" keys={box2Keys} />}
+              element={<DomainOverviewPage {...authProps} onSetMode={handleSetNavMode} title="임종 및 사후 정리" intro={box2Intro} mode="bereaved" keys={box2Keys} />}
             />
             <Route path="/facility" element={<FacilityPage {...authProps} />} />
             <Route path="/counseling" element={<CounselingPage {...authProps} />} />

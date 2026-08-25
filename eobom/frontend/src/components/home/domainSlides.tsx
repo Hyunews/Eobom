@@ -275,3 +275,10 @@ export const box1Keys = ['counseling', 'ending-note'];
 // 08-19 9차(개발자 직접 지시) — 순서 확정: 상중케어·장사시설·전문가상담·모바일부고장·
 // 유품수거·디지털정산·디지털추모관.
 export const box2Keys = ['care-guide', 'facility', 'counseling', 'obituary', 'pickup', 'digital-estate', 'memorial'];
+
+// 00-23 §8.6-1 확정(2026-08-25) — 박스①②(EntryBoxes.tsx의 BoxHeader subtitle)가 정본 문구다.
+// DomainOverviewPage(/prep·/bereaved)의 인트로도 새 문장을 짓지 않고 이 상수를 그대로 재사용한다
+// (예전엔 페이지 쪽에 별도로 지어 넣은 문장이 있었는데, /bereaved의 "갑작스러운 이별 앞에서…"가
+// 07-02 톤 위반이라 정정 지시를 받았다 — 한 곳만 고치면 되도록 문자열을 여기로 올렸다).
+export const box1Intro = '미리 준비해 두면, 남은 가족이 덜 힘듭니다. 엔딩노트와 가족 지정, 상속 사전 상담까지 마음이 편안할 때 하나씩 남겨두세요.';
+export const box2Intro = '지금 해야 할 일부터 순서대로 안내해 드립니다. 부고장 발송, 장사시설 매칭부터 22개 행정 체크리스트까지 이어집니다.';

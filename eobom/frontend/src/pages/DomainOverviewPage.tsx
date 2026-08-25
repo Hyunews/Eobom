@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { ArrowRight, ChevronUp, ChevronDown } from 'lucide-react';
 import { domainSlides } from '../components/home/domainSlides';
 import { Footer } from '../components/Footer';
+import type { NavMode } from '../modeNav';
 
 // 2026-08-25 개발자 지시("애초에 굳이 오버레이일 이유가 없음") — 박스①②(생전 준비/임종 및
 // 사후 정리) 클릭 시 뜨던 풀스크린 오버레이(BoxDetailOverlay, 폐지)를 일반 페이지로 바꿨다.
@@ -14,19 +15,33 @@ import { Footer } from '../components/Footer';
 // 스냅을 유지해야 해서 그 규칙을 공유하면 안 된다).
 interface DomainOverviewPageProps {
   title: string;
+  intro: string;
+  mode: NavMode;
   keys: string[];
   currentUser?: string | null;
   onOpenLogin?: () => void;
   setActiveTab?: (tab: string) => void;
+  onSetMode?: (mode: NavMode) => void;
 }
 
 export const DomainOverviewPage: React.FC<DomainOverviewPageProps> = ({
   title,
+  intro,
+  mode,
   keys,
   currentUser,
   onOpenLogin,
   setActiveTab,
+  onSetMode,
 }) => {
+  // 00-26 §4.4 확정 — /prep·/bereaved로 직접 진입(URL 직입력·새로고침·북마크)해도 사이드바·
+  // 모드 드롭다운이 해당 모드로 맞춰져야 한다. 기존엔 EntryBoxes.tsx 박스 클릭·HomePage 히어로
+  // CTA를 거칠 때만 onSetMode가 불렸는데, 이 라우트로 바로 들어오면 그 클릭 자체가 없어 안
+  // 불렸다 — 라우트 진입 시점에 직접 호출한다.
+  useEffect(() => {
+    onSetMode?.(mode);
+  }, [mode, onSetMode]);
+
   const slides = keys.map((k) => domainSlides[k]);
   // 2026-08-25 재수정 — Footer를 App.tsx가 바깥(body)에 별도로 렌더링했더니, 이 페이지의
   // 안쪽 스냅 스크롤 컨테이너와 바깥 body 스크롤이 서로 다른 스크롤 위치를 갖는 두 개의
@@ -96,10 +111,11 @@ export const DomainOverviewPage: React.FC<DomainOverviewPageProps> = ({
     setActiveIndex(index);
   };
 
-  // 오버레이 시절엔 좌측 상단 boxTitle 칩(페이지 제목)이 있었는데, 각 도메인 슬라이드 안
-  // 배지와 중복된다는 지적(2026-08-25)으로 화면에서는 뺐다 — 대신 탭 타이틀로만 남긴다.
-  // 이 페이지가 풀페이지 스크롤 뷰포트라 화면에 h1을 넣으면 그만큼 뷰포트 높이 계산이
-  // header-h만 빼면 안 되게 꼬인다는 것도 이유.
+  // 오버레이 시절엔 좌측 상단에 boxTitle 칩(그냥 "생전 준비" 같은 이름표)이 있었는데, 각
+  // 도메인 슬라이드 안 배지와 중복된다는 지적(2026-08-25)으로 그건 뺐다. 지금 아래에 다시
+  // 넣는 인트로 문구(EntryBoxes.tsx 박스 subtitle 재사용, 00-23 §8.6-1)는 이름표가 아니라
+  // 실제 설명 문장이라 성격이 다르다 — position:absolute로 얹어서, .domain-overview-viewport의
+  // 높이 계산(calc(100vh - header-h))에 레이아웃 공간을 뺏지 않는다.
   useEffect(() => {
     const prevTitle = document.title;
     document.title = `${title} | 이어봄`;
@@ -110,6 +126,16 @@ export const DomainOverviewPage: React.FC<DomainOverviewPageProps> = ({
 
   return (
     <div className="domain-overview-viewport">
+        {/* 첫 도메인(activeIndex 0)에서만 보인다 — 페이지 진입 시점의 방향 안내용이라, 이후
+            도메인을 넘기면서까지 화면 위에 계속 떠 있을 필요는 없다(화살표·점 인디케이터와
+            달리 내비게이션 기능이 없는 순수 설명 문구라 오래 남으면 그냥 텍스트가 겹쳐 보임). */}
+        {activeIndex === 0 && (
+          <div className="domain-overview-intro">
+            <h1 className="domain-overview-intro-title">{title}</h1>
+            <p className="domain-overview-intro-text">{intro}</p>
+          </div>
+        )}
+
         {activeIndex > 0 && (
           <button
             type="button"

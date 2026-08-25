@@ -557,6 +557,47 @@ body {
   }
 }
 
+/* 00-23 §8.6-1 확정(2026-08-25) — 페이지 인트로(EntryBoxes.tsx 박스 subtitle 재사용). 첫
+   도메인(activeIndex 0)에서만 뜨는 오버레이 배너라 .domain-overview-viewport의 높이 계산에
+   레이아웃 공간을 뺏지 않는다(자세한 이유는 DomainOverviewPage.tsx 주석 참고). */
+.domain-overview-intro {
+  position: absolute;
+  top: 1.4rem;
+  left: 1.6rem;
+  right: 1.6rem;
+  max-width: 640px;
+  z-index: 15;
+  background-color: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(6px);
+  border-radius: 16px;
+  padding: 1rem 1.3rem;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+}
+
+.domain-overview-intro-title {
+  margin: 0 0 0.35rem;
+  font-size: clamp(1.2rem, 2.6vw, 1.6rem);
+  font-weight: 800;
+  color: var(--primary-color);
+  font-family: 'KoPub World Batang', serif;
+}
+
+.domain-overview-intro-text {
+  margin: 0;
+  font-size: 0.95rem;
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+
+@media (max-width: 640px) {
+  .domain-overview-intro {
+    top: 1rem;
+    left: 1rem;
+    right: 1rem;
+    padding: 0.85rem 1.1rem;
+  }
+}
+
 /* 640px 이하 — BoxDetailOverlay 시절과 같은 이유로 고정 높이를 min-height로 풀어 콘텐츠가
    한 화면을 넘는 경우의 안전망을 두고(고정 height + 안쪽 overflow:auto 조합은 스크롤 제스처가
    부딪히는 "덜그럭거림"을 낸 전례가 있어 쓰지 않는다, 위 HomePage 블록 참고), 피처 카드·화살표·
