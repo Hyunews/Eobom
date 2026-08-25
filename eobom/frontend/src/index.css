@@ -567,13 +567,13 @@ body {
 @media (max-width: 640px) {
   .domain-overview-slide {
     height: auto;
-    min-height: 100vh;
+    min-height: calc(100vh - var(--header-h));
     padding: 1.25rem 1.2rem;
   }
 
   @supports (height: 100dvh) {
     .domain-overview-slide {
-      min-height: 100dvh;
+      min-height: calc(100dvh - var(--header-h));
     }
   }
 
