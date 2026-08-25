@@ -55,9 +55,16 @@ export const DomainOverviewPage: React.FC<DomainOverviewPageProps> = ({
     if (!container) return;
     if (window.matchMedia('(pointer: coarse)').matches) return;
 
+    // 트랙패드는 살짝만 스쳐도 deltaY가 나와서 의도치 않게 한 섹션씩 넘어가곤 했다(2026-08-25
+    // "스크롤 민감도" 지적) — 최소 이 정도는 굴려야 한 칸 넘어가도록 문턱값을 둔다. 일반
+    // 마우스 휠 한 클릭(보통 deltaY 100 안팎)은 여유 있게 넘고, 트랙패드의 여운 스크롤(관성
+    // 감속 구간의 작은 값들)만 걸러진다.
+    const WHEEL_THRESHOLD = 24;
+
     const handleWheel = (e: WheelEvent) => {
       e.preventDefault();
       if (isScrollingRef.current) return;
+      if (Math.abs(e.deltaY) < WHEEL_THRESHOLD) return;
 
       const direction = e.deltaY > 0 ? 1 : -1;
       const nextIndex = activeIndexRef.current + direction;
