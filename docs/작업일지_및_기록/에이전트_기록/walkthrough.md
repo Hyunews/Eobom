@@ -6,6 +6,123 @@
 
 ---
 
+## 2026-08-26 (76) | [Sonnet] STT Ⓐ 파일 업로드 실구현 — NCP CLOVA Speech
+
+- **근거 스펙**: `docs/06_엔딩노트_유언/06-04_엔딩노트_보관함_실구현_기획서.md` §6.4-9(업로드 계약·
+  파이프라인·provider 경계) · §6.4-11(NCP CLOVA Speech 확정·약관·동의 3종·환경변수·도메인 설정·
+  m4a) — 2026-08-26 사장님 착수 지시. 사용자가 6개 항목으로 직접 지시.
+- **건드린 파일**:
+  - `eobom/backend/.env.example` — `CLOVA_SPEECH_INVOKE_URL`·`CLOVA_SPEECH_SECRET`·
+    `CLOVA_STT_ENABLED` 자리표시자 3줄.
+  - `eobom/backend/package.json` — `ffmpeg-static@5.3.0` 의존성 추가(npm 레지스트리에서 설치,
+    Windows용 `ffmpeg.exe` 프리빌트 바이너리 자동 다운로드 확인).
+  - `eobom/backend/src/config/uploadAudio.ts` — 신설. `multer.memoryStorage()`, m4a·mp3·wav
+    허용, 20MB 상한.
+  - `eobom/backend/src/services/sttProvider.ts` — 신설. `SttProvider` 인터페이스.
+  - `eobom/backend/src/services/audioConvert.ts` — 신설. ffmpeg stdin→stdout 스트림 mp3 변환.
+  - `eobom/backend/src/services/clovaSpeechProvider.ts` — 신설. `ClovaSpeechProvider implements
+    SttProvider`.
+  - `eobom/backend/src/controllers/sttController.ts` — 신설. `getSttStatus`·`transcribeAudio`.
+  - `eobom/backend/src/routes/sttRoutes.ts` — 신설.
+  - `eobom/backend/src/server.ts` — `/api/stt` 라우트 마운트.
+  - `eobom/frontend/src/pages/EndingNotePage.tsx` — ⑨ 섹션에 업로드 UI 추가(state·핸들러·JSX),
+    `BACKEND_URL` import 추가.
+  - `docs/작업일지_및_기록/에이전트_기록/walkthrough.md`(이 항목)·`claude_tasks.md`·`260826.md`·
+    `.harness/memory/context.md`.
+- **결과**:
+  - **환경변수(항목1)**: `.env.example`에 자리표시자만(실값 없음). 개발자가 이미 `eobom/backend/.env`에
+    실제 Invoke URL·Secret·`CLOVA_STT_ENABLED=false`를 넣어둔 상태를 확인(값은 읽지도 커밋하지도
+    않음, `.env`는 `.gitignore`로 이미 추적 제외).
+  - **서버 파이프라인(항목2)**: `multer.memoryStorage()`(기존 `config/upload.ts`의 diskStorage
+    재사용 안 함, 신규 `config/uploadAudio.ts`). 컨트롤러는 `facilityMediaController.ts`와 같은
+    패턴으로 multer를 라우트가 아니라 컨트롤러 안에서 수동 호출해, 플래그·인증 체크가 업로드
+    파싱보다 먼저 돈다. `SttProvider` 인터페이스(`transcribe(audio: Buffer, mimeType: string):
+    Promise<string>`)로 경계를 두고 `ClovaSpeechProvider`가 구현. m4a류 mimetype
+    (`audio/mp4`·`audio/x-m4a`·`audio/m4a`·`audio/aac`)은 CLOVA의 실제 m4a 지원 여부와 무관하게
+    항상 `audioConvert.ts`(ffmpeg-static, `spawn` stdin/stdout 파이프, `-i pipe:0 ... pipe:1`)로
+    mp3 변환 후 업로드 — 임시 파일 없음. `eobom/backend/uploads/`에 절대 쓰지 않음(memoryStorage
+    자체가 디스크에 안 쓴다).
+  - **🔴 실측 확인 3건(항목3, scratchpad 테스트 스크립트 + 실제 커밋 코드 `ClovaSpeechProvider`를
+    `ts-node`로 직접 호출해 재확인 — 개발자가 이미 넣어둔 실 Invoke URL/Secret으로 라이브 호출)**:
+    - **① Object Storage 결과 경로 낙하 여부** — ✅ **떨어지지 않음, 실측 확인.**
+      `completion:'sync'` + 직접 업로드(`/recognizer/upload`) 조합에서 응답 JSON이
+      `"resultToObs":false`를 그대로 echo했다(요청에서 명시하지 않았는데도 이 조합의 기본값이
+      false). 버킷을 NCP 콘솔에서 직접 열어보지는 못했지만(콘솔 접근 권한 없음), API가 스스로
+      보고하는 처리 설정으로 확인했다 — 수명주기 즉시 삭제 규칙은 그래서 **필수는 아니지만
+      추가 안전망으로 걸어두는 것을 권장**(문서가 이미 권고한 대로).
+    - **② m4a 지원** — ✅ **CLOVA의 실제 지원 여부를 확인할 필요 자체가 없어짐.** m4a를 항상
+      ffmpeg로 mp3 변환 후 올리는 설계라, 실제 m4a 컨테이너 파일(ffmpeg `-c:a aac` 생성) →
+      `convertToMp3()`(stdin/stdout 파이프) → mp3 15,776바이트 → CLOVA 업로드 → `200
+      COMPLETED`까지 실측 재현했다.
+    - **③ KMS 버킷 CLOVA 접근 권한** — 🟡 **①의 결과로 무의미해짐(moot).** `resultToObs:false`
+      라 애초에 버킷에 접근을 시도하지 않으므로 권한 문제가 발생할 여지 자체가 없다. 다만
+      "버킷에 아무것도 안 쌓이는지"를 NCP 콘솔에서 눈으로 한 번 확인하는 건 여전히 권장(내가
+      할 수 없는 부분).
+    - **🔴 실측 중 발견해 실제 코드에 반영한 버그 2건(문서에 없던 것)**: (a) `params`를
+      `Blob(...,{type:'application/json'})`로 감싸 보내면 CLOVA가 항상
+      `"Invalid params: params"` 400을 반환한다 — **일반 문자열 필드**(`form.append('params',
+      JSON.stringify(...))`)로 보내야 정상 파싱된다. (b) 콘솔에서 "화자 인식 끔"으로 설정해도
+      요청 파라미터에 `diarization:{enable:false}`를 **명시적으로 넣지 않으면** `"speaker
+      detect is off"` 400이 난다 — 콘솔 설정이 요청 기본값에 자동 반영되지 않는다. 둘 다 고치고
+      나서 실제 CLOVA 응답 스키마(`text`·`segments[].text`·`result:'COMPLETED'`)까지 실측으로
+      확인해 파싱 로직을 맞췄다.
+  - **업로드 계약(항목4)**: m4a·mp3·wav, 최대 20MB(클라이언트·서버 양쪽 검증). 선택 전 화면에
+    포맷·용량 상한과 "무료 한도가 짧으니 10~30초로 먼저 테스트" 안내. 업로드/변환 단계는
+    `XMLHttpRequest`(fetch는 업로드 진행률을 못 줌)로 `xhr.upload.onload` 이후를 "글로 바꾸는
+    중…"으로 구분 표시.
+  - **UI(항목5)**: 새 화면 없음 — `EndingNotePage.tsx` 기존 ⑨ 섹션 안, Ⓑ(직접 녹음) 바로 아래에
+    구분선을 두고 삽입. `sttUploadEnabled`(마운트 시 `GET /api/stt/status` 조회)가 false면 블록
+    전체 미렌더 — provider·플래그와 무관하게 버튼만 뜨는 사고 방지(서버도 플래그 꺼지면
+    `/transcribe`가 404를 반환해 이중 방어). 동의 체크박스는 컴포넌트 상태로만 존재해 **매번**
+    false로 시작(세션 간 기억 없음), 지정된 문구를 순서 그대로(불리한 문장 먼저) 사용, 바로
+    아래에 "동의하지 않으셔도 직접 녹음과 직접 입력으로 초안을 만드실 수 있습니다" 배치. "본인
+    음성만" 명시 + 검증 약속 문구 없음. 정확도 보증 문구 전혀 없음. 성공 시 결과 텍스트를 Ⓑ와
+    동일한 방식으로 `draftText`에 그대로 이어붙이고(다듬지 않음) `draftConfirmed`를 리셋 —
+    이후 편집·4대요건 안내·인쇄·복사·`.txt`·미저장 고지는 전부 기존 로직 재사용. 실패·타임아웃
+    시 에러 메시지에 "직접 녹음이나 위 입력창에 직접 입력해 이어서 작성해 주세요"를 포함(이미
+    같은 화면 위쪽에 그 입력 수단들이 있다).
+  - **산출물 성격(항목6)**: 서명란·"유언장" 표현 추가 없음 — 기존 STT 섹션 하단의 4대요건
+    안내·"직접 손으로 옮겨 쓰십시오"·⑨ 사후 미전달 고지를 그대로 재사용(새 화면이 아니므로
+    자동으로 상속됨). **저장(1-b)은 착수하지 않음** — `EndingNoteEntry` 모델·마이그레이션 전부
+    미착수, `EndingNotePage.tsx:299`의 "이 초안은 저장되지 않습니다" 문구도 그대로 참이라
+    손대지 않음.
+  - **명령 재현**: `npx tsc --noEmit -p .`(frontend) 에러 0. `npx tsc --noEmit`(backend) 에러 0.
+    `npm run build`(frontend) 통과. `npx ts-node --transpile-only`로 커밋될 실제
+    `ClovaSpeechProvider`를 임시 스크립트(`src/__stt_manual_test.ts`, 검증 직후 삭제·미커밋)로
+    직접 호출 → `"음성에서 인식된 내용이 없습니다"`(무음 사인파 입력이므로 기대한 정상 동작) —
+    이는 인증·업로드·변환·응답 파싱 전 구간이 실제로 살아 있다는 증거다(실제 발화 정확도는
+    마이크가 없는 환경이라 검증 불가, 아래 참고).
+- **편차**:
+  - 🔴 **문서(§6.4-11-6-2)의 "콘솔 도메인 설정(화자 인식 끔)이 이미 반영돼 있다"는 전제가
+    실측으로 반증됐다** — 요청 파라미터에 `diarization.enable:false`를 명시하지 않으면 매
+    요청이 400으로 거부된다. 콘솔 설정은 UI 표시값일 뿐 API 기본 동작에 자동 반영되지 않는
+    것으로 보인다(정확한 사유는 NCP 쪽 사양이라 확인 대상으로 남긴다). 코드에는 명시적으로
+    끄도록 반영했고, 이 발견 자체를 주석과 이 항목에 남긴다.
+  - CLOVA 응답의 정확한 필드 스키마(`params` 인코딩 방식 포함)는 문서에 없어 **실측으로 직접
+    확정**했다 — `AGENTS.md` §6(빨리 바뀌는 정보는 확인 전 단정 금지)에 따라 구현 전 문서만
+    보고 추측하지 않고 실제 API 호출로 검증한 뒤 코드를 확정했다.
+  - 업로드 UI에서 "업로드 중"과 "변환 중"을 구분하기 위해 `fetch` 대신 `XMLHttpRequest`를
+    썼다 — 스펙이 요구한 3단계 구분(§6.4-9-3)을 만족하려면 업로드 진행률 이벤트가 필요했고,
+    `fetch`는 요청 바디 업로드 진행률을 아직 제공하지 않는다.
+- **다음 에이전트가 알아야 할 것**:
+  - 🔴 **실제 한국어 발화 정확도는 검증하지 못했다** — 이 환경엔 마이크·음성 합성 수단이
+    없어 무음 사인파로만 파이프라인(인증·업로드·변환·파싱)을 확인했다. 개발자가 본인 음성으로
+    실제 파일을 올려 텍스트 품질을 확인해야 한다(§6.4-9-8-3 "검증은 개발자 본인 음성으로만"과도
+    합치함 — 무료 월 15분 한도 안에서 10~30초 샘플로).
+  - `CLOVA_STT_ENABLED`는 로컬 `.env`에서 `false`로 그대로 뒀다(사용자 확인) — 실사용자에게
+    열려면 §6.4-11-6 ⓐ(이용자 동의 화면, 이번에 구현 완료)만으로 충분한지, 아니면 `00-19`
+    처리방침에 학습 활용·7일 보관·CLOVA 위탁을 실제로 반영(§6.4-11-5 #3, `[Opus]` 소관)한
+    뒤에 켤지는 사람의 판단이 필요하다 — 코드는 준비됐지만 **플래그를 켜는 결정은 하지 않았다.**
+  - `User.sttDataAgreedAt`(동의 증적)은 이번에 추가하지 않았다 — 스펙(§6.4-11-6-1)이 "실사용
+    공개 시점에 1-b(텍스트 저장)와 함께"로 명시했고, 1-b 자체가 다음 사이클이라 지금은 필요
+    없다. **플래그를 켜기 전에 반드시 먼저 추가할 것** — 개인정보보호법상 동의 입증책임은
+    처리자에게 있다(§6.4-11-6-1 원문 경고).
+  - 실제 라이브 API 호출로 CLOVA 서버 쪽에 요청 로그(및 §6.4-11-2의 7일 보관 규칙에 따라
+    변환된 텍스트 — 이번엔 전부 빈 문자열)가 몇 건 남았다 — 개발자 본인 계정·본인 테스트용
+    도메인이라 문제는 아니지만, 무료 월 15분 한도 중 합계 약 15~20초를 이번 검증에 썼다.
+
+---
+
 ## 2026-08-26 (75) | [Sonnet] 홈 섹션2 박스③④(추모관·파트너) 높이·헤더 크기를 박스①②와 통일
 
 - **근거 스펙**: 스펙 없음 — 사용자가 대화에서 직접 지시. *"추모관 파트너의 마우스오버 하지
