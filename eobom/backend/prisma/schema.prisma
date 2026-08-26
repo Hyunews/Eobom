@@ -34,6 +34,7 @@ model User {
   memorialPhotos      MemorialPhoto[] // 업로드한 추모 사진
   obituaries          Obituary[] // docs 07-03 §4.2 — 개설한 부고장
   familyDesignations  FamilyDesignation[] // docs 00-27 §4 — 생전 지정한 가족(제3자)
+  endingNote          EndingNote? // docs 06-05 §6.1 — 1인 1건. 개봉 상태의 유일한 소유자(§3.2·§3.3)
 
   // 00-28 회원 프로필 — 전부 선택(§3.1). 신청 스냅샷과 별개다(§2)
   contactPhone      String?   // 숫자만 정규화 저장(utils/phone.ts) — Partner·Expert와 동일 규칙
@@ -83,6 +84,8 @@ model FamilyDesignation {
   lastConfirmedAt DateTime  @default(now())     // 정확도·보유기간 재확인 기준(§7)
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
+
+  farewellMessages FarewellMessage[]            // docs 06-05 §6.2 — 이 수신자 앞으로 남긴 편지들
 
   @@unique([userId, phoneHash])                 // 같은 사람을 두 번 지정하지 못하게
   @@index([userId, status])
@@ -611,6 +614,57 @@ model ObituaryMourner {
   sortOrder    Int      @default(0)
 
   @@index([obituaryId, sortOrder])
+}
+
+// ─────────────────────────────────────────────────────────────────
+// 엔딩노트 + 유족 메시지 보관함(Domain 06) — docs/06_엔딩노트_유언/06-04(본체)·06-05(보관함 분리)
+// Phase B(06-05 §8) 범위: EndingNote·FarewellMessage 2개만. EndingNoteEntry·Grant·Log는
+// 이번에 만들지 않는다(§1 작업1) — ⑨(엔딩노트 타이핑 필사 도구)는 아직 서버 저장이 없다.
+// ─────────────────────────────────────────────────────────────────
+
+// 엔딩노트 1건 — User 1:1. 개봉 상태(status)의 유일한 소유자다(06-05 §3.2·§3.3) — FarewellMessage는
+// 자기 상태 필드를 갖지 않고, 이 모델의 status가 RELEASED가 되는 순간 양쪽이 함께 열린다.
+model EndingNote {
+  id     String @id @default(uuid()) // 고유 식별자(UUID)
+  userId String @unique // 이 엔딩노트의 본인(User 1:1)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  status         String    @default("DRAFT") // DRAFT|SEALED|RELEASED|FROZEN — §3.3, 클라이언트가 정하지 않는다
+  sealedAt       DateTime?
+  releasedAt     DateTime?
+  policyAgreedAt DateTime?
+  lastConfirmedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  farewellMessages FarewellMessage[]
+
+  @@index([userId, status])
+}
+
+// 유족 메시지 — 수신자별 1:1이 본체(06-05 §6.2, §2). releaseTiming·status 컬럼을 의도적으로 두지
+// 않는다 — 사후 고정(§3.3)이고 상태 소유자는 EndingNote 하나뿐이다.
+model FarewellMessage {
+  id     String     @id @default(uuid()) // 고유 식별자(UUID)
+  noteId String // FK → EndingNote — 이 편지가 속한 엔딩노트(본인)
+  note   EndingNote @relation(fields: [noteId], references: [id], onDelete: Cascade)
+
+  recipientId String            // FK → FamilyDesignation. 🔴 NOT NULL — "전원에게"는 여기 두지 않는다(§6.2)
+  recipient   FamilyDesignation @relation(fields: [recipientId], references: [id], onDelete: Cascade)
+
+  title   String? // 평문 허용 — 목록 미리보기 표시용(§6.2)
+  bodyEnc String  // 🔴 AES-256-GCM 암호문(utils/crypto.ts encryptField). 평문 컬럼 없음(§6.2)
+
+  mediaKey         String? // ⏸ Phase D(음성). 오브젝트 스토리지 키 — 지금은 항상 null
+  mediaMime        String? // ⏸ Phase D
+  mediaDurationSec Int?    // ⏸ Phase D
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([noteId])
+  @@index([recipientId])
 }
 
 // ─────────────────────────────────────────────────────────────────

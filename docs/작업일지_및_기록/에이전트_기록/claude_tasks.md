@@ -744,3 +744,46 @@ Sonnet이 코드를 파고 있었으나 **아래가 전부 배제됐으므로 �
   음성 합성 수단도 없다. 무음 사인파(`ffmpeg -f lavfi sine=...`)로는 "파이프라인이 도는가"만
   확인할 수 있고 "정확히 인식하는가"는 확인할 수 없다 — 이건 다음에 개발자가 본인 음성으로
   직접 확인해야 하는 영역이라고 명확히 선을 긋고 walkthrough에 남겼다.
+
+## 2026-08-26 [Sonnet] 06-05 Phase B 구현 — 시행착오 기록
+
+- **pg_dump 버전 불일치**: 로컬에 `pg_dump` CLI가 아예 없어 `postgres:15` Docker 이미지로
+  대신하려 했는데 `pg_dump: error: aborting because of server version mismatch (server: 17.6,
+  pg_dump: 15.18)`로 즉시 실패했다 — pg_dump는 자기보다 최신 서버를 덤프 못 한다는 걸 몸으로
+  확인. Supabase가 실제로 Postgres 17 계열이라는 것도 이때 처음 확인됐다(문서엔 버전이 안
+  적혀 있었음). `postgres:17-alpine`을 새로 pull해서 해결 — TOC 684건, `pg_restore --list`로
+  아카이브 무결성까지 확인 후 진행.
+- **Windows Git Bash의 `/tmp` 경로 함정**: `docker exec ... pg_dump ... -f /tmp/xxx.dump`를
+  최초 실행했을 때 "No such file or directory"가 났다 — Git Bash(MSYS)가 `/tmp/...`를 Windows
+  경로로 자동 변환해서 컨테이너 안 명령어에 엉뚱한 호스트 경로를 넘긴 것. `MSYS_NO_PATHCONV=1`로
+  껐더니 원래 원했던 에러(위 버전 불일치)가 비로소 드러났다. 이후 `docker run --rm ... > 호스트파일`
+  형태(컨테이너 안에서 파일을 안 만들고 stdout으로 바로 호스트에 리다이렉트)로 바꿔 이 문제
+  자체를 회피했다.
+- **`npx prisma generate`가 EPERM으로 실패**: `query_engine-windows.dll.node.tmpNNNN` →
+  `query_engine-windows.dll.node` rename이 계속 "operation not permitted"로 실패했다. 원인은
+  사용자가 이미 띄워둔 백엔드 dev 서버(node.exe 다수 확인됨)가 그 dll을 로드해 잠그고 있는
+  것으로 추정 — dev 서버는 사용자가 직접 켜고 끄는 것이라 내가 강제 종료하지 않았다(과거
+  피드백: TaskStop이 자식 프로세스를 확실히 못 죽인다는 것과 같은 이유로 아예 손대지 않음).
+  대신 `index.d.ts`/`index.js`에 실제로 `EndingNote`/`FarewellMessage`가 반영됐는지 직접 grep해
+  **엔진 바이너리 교체만 실패했지 클라이언트 타입/런타임은 이미 최신**임을 확인했다 — 엔진 dll은
+  스키마 무관 범용 바이너리라 버전만 같으면 구버전이 남아있어도 무해하다는 판단.
+- **curl.exe의 한글 인자 mojibake**: 첫 번째 API 실측 시도에서 `curl -d '{"title":"테스트 편지",...}'`로
+  보낸 한글이 DB에 깨진 바이트로 그대로 저장됐다(`�׽�Ʈ ����`) — 처음엔 백엔드
+  인코딩/암복호화 버그로 의심했다. `psql`로 원본 컬럼을 직접 봐도 깨져 있어 "저장이 깨졌다"까지는
+  확인했지만, 같은 요청을 Node `fetch()`(UTF-8 문자열을 그대로 body로 직렬화)로 다시 보내자
+  완벽하게 정상 저장·조회됐다 — Windows Git Bash에서 `curl.exe`(네이티브 실행파일)로 넘기는
+  비-ASCII 커맨드라인 인자가 콘솔 코드페이지 기준으로 재인코딩되는 환경 문제였지, 백엔드
+  코드(`encryptField`/`decryptField`, Express JSON 파서)의 결함이 아니었다. 실제 서비스는
+  브라우저 `fetch()`를 쓰므로 이 문제와 무관하다 — 실제로 Claude in Chrome에서 방금 만든
+  화면으로 편지를 열어보니(재현 스크린샷) 저장된 한글도 정상 표시됐다. 이 mojibake 두 건은
+  테스트 잔여 데이터로 DB에 남아 있고(위 편차·다음 에이전트 섹션 참고), 실제 버그가 아님을
+  확인한 뒤 지우지 않고 배치 정리로 남겨뒀다(테스트 데이터 일괄 정리 원칙).
+- **로그인 없이 실제 API를 실측하는 법**: OAuth 로그인을 재현할 수 없어, 로컬 DB에 이미 있는
+  실 유저 id로 `.env`의 같은 `JWT_SECRET`을 사용해 직접 `jwt.sign({id, aud:'user'}, SECRET)`으로
+  테스트 토큰을 발급해 실제 실행 중인 서버에 요청을 보냈다 — 별도 mock 서버나 코드 우회 없이
+  진짜 라우트·컨트롤러·암복호화·DB를 그대로 통과시켜 검증할 수 있었다.
+- **브라우저 로그인 상태를 코드 없이 재현하는 법**: `App.tsx`를 읽어보니 로그인 판정이
+  `sessionStorage.k_ending_token` 존재가 아니라 `sessionStorage.k_ending_current_user`(표시용
+  이름)로 되어 있었다 — 처음엔 토큰만 심어서 로그인 화면이 그대로 남아 당황했다. 두 키를 모두
+  `javascript_tool`로 심고 나서야 실제 로그인 상태로 렌더됐다 — 이후 편지 목록·미리보기·수정
+  편집기 전체 흐름을 Claude in Chrome으로 스크린샷 검증할 수 있었다.

@@ -1,11 +1,12 @@
-import React, { useEffect, useState } from 'react';
-import { Mail, AlertTriangle, LogIn, UserPlus, Copy, Heart } from 'lucide-react';
+import React, { useCallback, useEffect, useState } from 'react';
+import { Mail, AlertTriangle, LogIn, UserPlus } from 'lucide-react';
 import { BACKEND_URL } from '../config';
+import { FarewellMessageCard, RecipientItem, MessageItem } from '../components/FarewellMessageCard';
 
-// 00-27 §7·§8 Phase A(골격) — docs/06_엔딩노트_유언/06-05_유족메시지_보관함_도메인분리_기획서.md.
-// EndingNotePage.tsx의 자유 텍스트 ③(유족에게 남기는 메시지)이 여기로 분리됐다(§3.1).
-// 🔴 Phase B(FarewellMessage 모델·컨트롤러)가 아직 없다 — 이 화면은 서버에 아무것도 저장하지
-// 않는다. "저장됩니다" 류 문구를 쓰지 않고, 편지는 복사해서 보관하도록 안내한다(§8 Phase A #1).
+// 06-05 §7·§8 Phase B — docs/06_엔딩노트_유언/06-05_유족메시지_보관함_도메인분리_기획서.md.
+// Phase A(골격)에서 나아가 FarewellMessage 모델·컨트롤러가 배선됐다 — 이제 실제로 저장된다.
+// STT(Ⓐ 파일 업로드·Ⓑ 직접 녹음)도 엔딩노트 ⑨에서 이관되어 FarewellMessageCard 안에서 쓰인다
+// (06-05 §4.2 정정, 08-26).
 
 interface FarewellMessagePageProps {
   currentUser?: string | null;
@@ -15,69 +16,45 @@ interface FarewellMessagePageProps {
   onOpenFamilyDesignation?: () => void;
 }
 
-interface RecipientItem {
-  id: string;
-  name: string;
-  relationship: string;
-  relationshipEtc: string | null;
-  scope: string;
-  status: string;
-}
-
-const RELATIONSHIP_LABEL: Record<string, string> = {
-  SPOUSE: '배우자',
-  CHILD: '자녀',
-  PARENT: '부모',
-  SIBLING: '형제자매',
-  OTHER: '기타',
-};
-
-const STATUS_LABEL: Record<string, string> = {
-  DRAFT: '아직 알리지 않음',
-  PENDING: '수락 대기 중',
-  ACCEPTED: '가족으로 연결됨',
-  DECLINED: '거절됨',
-};
-
 export const FarewellMessagePage: React.FC<FarewellMessagePageProps> = ({ currentUser, onOpenLogin, setActiveTab, onOpenFamilyDesignation }) => {
   const [loading, setLoading] = useState(true);
   const [recipients, setRecipients] = useState<RecipientItem[]>([]);
-  // 수신자별 편지 — Phase B(FarewellMessage 모델)가 없어 화면 상태로만 존재한다. 새로고침하면
-  // 사라진다 — 그래서 아래 상시 고지가 복사를 권한다.
-  const [drafts, setDrafts] = useState<Record<string, string>>({});
-  const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [messages, setMessages] = useState<MessageItem[]>([]);
+  const token = currentUser ? sessionStorage.getItem('k_ending_token') : null;
 
-  useEffect(() => {
-    if (!currentUser) {
-      setLoading(false);
-      return;
-    }
-    const token = sessionStorage.getItem('k_ending_token');
-    if (!token) {
-      setLoading(false);
-      return;
-    }
-    fetch(`${BACKEND_URL}/api/family-designations`, { headers: { Authorization: `Bearer ${token}` } })
+  const fetchMessages = useCallback(() => {
+    if (!token) return;
+    fetch(`${BACKEND_URL}/api/farewell-messages`, { headers: { Authorization: `Bearer ${token}` } })
       .then((res) => res.json())
       .then((data) => {
         if (data.status === 'success' && Array.isArray(data.data)) {
-          setRecipients(data.data);
+          setMessages(data.data);
+        }
+      })
+      .catch(() => {});
+  }, [token]);
+
+  useEffect(() => {
+    if (!currentUser || !token) {
+      setLoading(false);
+      return;
+    }
+    Promise.all([
+      fetch(`${BACKEND_URL}/api/family-designations`, { headers: { Authorization: `Bearer ${token}` } }).then((res) => res.json()),
+      fetch(`${BACKEND_URL}/api/farewell-messages`, { headers: { Authorization: `Bearer ${token}` } }).then((res) => res.json()),
+    ])
+      .then(([designationsData, messagesData]) => {
+        if (designationsData.status === 'success' && Array.isArray(designationsData.data)) {
+          setRecipients(designationsData.data);
+        }
+        if (messagesData.status === 'success' && Array.isArray(messagesData.data)) {
+          setMessages(messagesData.data);
         }
       })
       .catch(() => {})
       .finally(() => setLoading(false));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentUser]);
-
-  const handleCopy = async (id: string, text: string) => {
-    if (!text.trim()) return;
-    try {
-      await navigator.clipboard.writeText(text);
-      setCopiedId(id);
-      setTimeout(() => setCopiedId((cur) => (cur === id ? null : cur)), 2000);
-    } catch {
-      // 조용히 무시 — 사용자가 직접 선택해 복사할 수 있다
-    }
-  };
 
   if (!currentUser) {
     return (
@@ -135,41 +112,13 @@ export const FarewellMessagePage: React.FC<FarewellMessagePageProps> = ({ curren
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(340px, 100%), 1fr))', gap: '1.5rem' }}>
           {recipients.map((r) => (
-            <div key={r.id} style={{ backgroundColor: 'var(--card-bg)', padding: '1.5rem', borderRadius: 'var(--border-radius)', boxShadow: 'var(--box-shadow)' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.3rem', flexWrap: 'wrap' }}>
-                <Heart size={16} color="var(--point-color)" />
-                <span style={{ fontSize: '1.05rem', fontWeight: 700, color: 'var(--primary-color)' }}>{r.name}</span>
-                <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-                  {RELATIONSHIP_LABEL[r.relationship] || r.relationship}
-                  {r.relationship === 'OTHER' && r.relationshipEtc ? `(${r.relationshipEtc})` : ''}
-                </span>
-              </div>
-              <p style={{ fontSize: '0.85rem', color: '#9CA3AF', marginBottom: '0.9rem' }}>{STATUS_LABEL[r.status] || r.status}</p>
-
-              <textarea
-                rows={6}
-                value={drafts[r.id] || ''}
-                onChange={(e) => setDrafts((prev) => ({ ...prev, [r.id]: e.target.value }))}
-                className="form-input"
-                style={{ height: 'auto', padding: '1rem', marginBottom: '0.6rem' }}
-                placeholder={`${r.name}님께 남기고 싶은 말을 자유롭게 적어보세요.`}
-              />
-
-              {/* §8 Phase A — 저장 기능이 없다. "저장됩니다"라고 쓰지 않고, 지금 빼가는 방법을 안내한다. */}
-              <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '0.75rem' }}>
-                이 편지는 아직 저장되지 않습니다. 새로고침하면 사라지니, 복사해서 따로 보관해 주세요.
-              </p>
-
-              <button
-                type="button"
-                onClick={() => handleCopy(r.id, drafts[r.id] || '')}
-                disabled={!(drafts[r.id] || '').trim()}
-                className="btn"
-                style={{ width: '100%', backgroundColor: 'var(--secondary-color)', color: 'var(--primary-color)', opacity: (drafts[r.id] || '').trim() ? 1 : 0.5 }}
-              >
-                <Copy size={16} /> {copiedId === r.id ? '복사되었습니다' : '편지 복사'}
-              </button>
-            </div>
+            <FarewellMessageCard
+              key={r.id}
+              recipient={r}
+              messages={messages.filter((m) => m.recipientId === r.id)}
+              token={token}
+              onSaved={fetchMessages}
+            />
           ))}
         </div>
       )}

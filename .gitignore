@@ -30,6 +30,11 @@ eobom/backend/backups/
 # 파트너가 업로드한 시설 이미지 (로컬 디스크 저장, 사용자 생성 콘텐츠 — 커밋 대상 아님)
 eobom/backend/uploads/
 
+# STT 개발용 테스트 음성 — 재생성 가능하고, 이 프로젝트는 음성 파일을 보관하지 않는다(06-05 §5.1)
+eobom/backend/test-audio/*
+!eobom/backend/test-audio/.gitkeep
+!eobom/backend/test-audio/README.md
+
 # reports/ — docs/ 마크다운에서 재생성되는 HTML 시각화 파생물(약 5.3MB).
 # 원본은 docs/가 정본이고 Gemini가 언제든 다시 만든다 → 저장소에 둘 이유가 없다.
 # ⚠️ reports/에만 있고 docs/ 정본이 없는 문서를 만들지 말 것(roles.md §1-2 역방향).

@@ -6,6 +6,75 @@
 
 ---
 
+## 2026-08-26 (77) | [Sonnet] 06-05 Phase B — 유족 메시지 보관함 저장 + STT 이관
+
+- **근거 스펙**: `docs/06_엔딩노트_유언/06-05_유족메시지_보관함_도메인분리_기획서.md` §6(데이터 모델)·
+  §8 Phase B(구현 단계) · `06-04_엔딩노트_보관함_실구현_기획서.md` §6.4-2(정정, 08-26)·§6.4-11(STT
+  provider 재사용) — `[Claude:Opus]` 핸드오프 지시(2026-08-26).
+- **건드린 파일**:
+  - `eobom/backend/prisma/schema.prisma` — `EndingNote`·`FarewellMessage` 모델 신설, `User.endingNote`·
+    `FamilyDesignation.farewellMessages` 역관계 추가
+  - `eobom/backend/prisma/migrations/20260826072515_add_ending_note_and_farewell_message/` — 마이그레이션
+  - `eobom/backend/src/controllers/farewellMessageController.ts` — 신설(list/get/create/update, 전부 본인 것만)
+  - `eobom/backend/src/routes/farewellMessageRoutes.ts` — 신설
+  - `eobom/backend/src/server.ts` — `/api/farewell-messages` 라우트 등록
+  - `eobom/frontend/src/components/VoiceToTextInput.tsx` — 신설. `EndingNotePage.tsx`의 Ⓐ(파일 업로드)·
+    Ⓑ(직접 녹음) STT UI를 그대로 추출
+  - `eobom/frontend/src/components/FarewellMessageCard.tsx` — 신설. 수신자별 편지 목록(미리보기)+
+    작성/수정 편집기, `VoiceToTextInput` 내장, 저장 전 확인 게이트(06-04 §6.4-5)
+  - `eobom/frontend/src/pages/FarewellMessagePage.tsx` — Phase A 골격을 실제 저장(GET/POST/PATCH)으로 교체
+  - `eobom/frontend/src/pages/EndingNotePage.tsx` — ⑨에서 Ⓐ·Ⓑ STT 코드 전부 제거(타이핑 전용으로 축소),
+    고지 문구에 "마음을 전하고 싶으시면 유족 메시지 보관함을 이용해 주세요." 한 줄 추가
+  - `eobom/backend/test-audio/`(`.gitkeep`·`README.md`) — 신설
+  - `.gitignore` — `eobom/backend/test-audio/*` 무시 규칙 추가
+  - `docs/00_핵심플랫폼/00-05_DB_요구사항_및_테이블_사전.md` — `node .harness/tools/generate-db-doc.js`
+    재생성(모델 26개, 설명 없음 26개 — 신설 필드 주석 보강 후 30개→26개로 정리)
+  - `eobom/backend/backups/eobom_pre_farewellmessage_20260826_162332.dump` — 마이그레이션 전 Supabase
+    (운영) `pg_dump` 백업(458KB, TOC 684건, `pg_restore --list`로 정상 아카이브 확인)
+- **결과**:
+  - 로컬 Docker DB(`eobom_db`, 5433)에 `prisma migrate dev`로 마이그레이션 적용 완료. `npx tsc --noEmit`
+    프론트/백엔드 각 0 에러. `npm run build`(frontend, vite)까지 통과. 백엔드 `npm run build`는 내부
+    `prisma generate`가 사용자의 기존 dev 서버 프로세스가 잡고 있는 `query_engine-windows.dll.node`
+    rename에서 EPERM으로 실패 — 코드 문제 아님(client 자체는 `prisma migrate dev` 시점에 이미 정상
+    재생성되어 index.js/d.ts에 `EndingNote`·`FarewellMessage` 반영 확인됨). 사용자가 백엔드 dev
+    서버를 재시작하면 해소된다.
+  - 실행 중인 로컬 백엔드(포트 5000, HTTPS)에 실제 로그인 유저(`d3718f3e-201b-43dc-bc4b-4a9b938d2cd6`)
+    JWT로 POST/GET/PATCH `/api/farewell-messages` 전부 실측: 작성→목록(미리보기)→단건조회(전문)→수정→
+    재조회(수정 반영) 확인. `psql`로 DB 직접 조회해 `bodyEnc`가 `iv:authTag:ciphertext` 형태(평문
+    아님)임을 확인. 남의 `recipientId`와 존재하지 않는 `recipientId` 둘 다 동일한 "받으실 분을 찾을
+    수 없습니다" 404로 응답해 구분되지 않음을 확인.
+  - Claude in Chrome으로 `https://localhost:5173/farewell-messages`·`/ending-note` 실제 렌더 확인:
+    보관함 카드 목록·편지 미리보기·클릭 시 전문 로드→수정 편집기(취소/수정 저장) 정상 동작. 엔딩노트
+    ⑨에는 마이크·업로드 UI가 전혀 없고 타이핑 textarea + 4대요건 체크 + 신규 고지 문구만 남은 것을
+    스크린샷으로 확인.
+  - 🔴 **미검증**: `CLOVA_STT_ENABLED=true`로 켠 로컬에서 실제 m4a 업로드→CLOVA 변환→편지 저장까지의
+    전 구간은 이번 세션에서 실행하지 않았다. 플래그를 켜려면 `.env` 수정 + 백엔드 재시작이 필요해
+    사용자 소관으로 남겨뒀다.
+- **편차**:
+  1. 스펙(§8 Phase B #6)은 컨트롤러·라우트만 언급했으나, 실제 편집 UX(수정 시 전문 로드)에는
+     단건 조회가 필요해 `GET /api/farewell-messages/:id`(본인에게만 전문)를 추가했다 — §7.1
+     완료판정 "목록은 미리보기까지만"과 상충하지 않고, 그 문장이 전제하는 "전문은 단건 조회"를
+     구현한 것이다.
+  2. 삭제(DELETE) API는 만들지 않았다 — 완료판정이 "저장·수정"까지만 요구했고, 06 도메인은
+     로그·보존 원칙이 엄격해 삭제 정책이 정해지지 않은 채로 임의로 만들지 않는 것이 안전하다고
+     판단했다.
+  3. 편지 1건당 길이 상한을 20,000자로 임의 설정했다(§10 항목4 "두되 넉넉히"만 있고 숫자는 미확정
+     — 정식 값은 사람 확정 사항으로 남는다).
+- **다음 에이전트가 알아야 할 것**:
+  - 로컬 DB에 테스트 데이터 2건이 남아있다(`FarewellMessage` id `46a80859…`·`fd6a3b2a…`, 수신자
+    `d4eb2235…`) — 기능 검증용으로 만든 것이라 배치 정리 때 같이 지울 것(사용자 지시: 테스트
+    데이터는 발견 즉시 지우지 않고 나중에 한 번에 정리 — `[[feedback_batch_cleanup_test_data]]`).
+  - `eobom_pre_farewellmessage_20260826_162332.dump`는 이번 마이그레이션 직전 시점의 운영 Supabase
+    스냅샷이다 — 다음 마이그레이션에는 새 시점 백업이 별도로 필요하다.
+  - `CLOVA_STT_ENABLED=true` 실측(m4a→텍스트→편지 저장)은 아직 아무도 해보지 않았다 —
+    `context.md` 블로커에도 동일하게 남겨둠.
+  - 백엔드 `npm run build`가 이번 세션 종료 시점에 EPERM으로 실패한 상태일 수 있다 — 사용자가
+    dev 서버를 재시작하면 사라지는 일시적 파일 잠금이며 코드 결함이 아니다.
+
+<!-- Gemini 판정 대기 -->
+
+---
+
 ## 2026-08-26 (76) | [Sonnet] STT Ⓐ 파일 업로드 실구현 — NCP CLOVA Speech
 
 - **근거 스펙**: `docs/06_엔딩노트_유언/06-04_엔딩노트_보관함_실구현_기획서.md` §6.4-9(업로드 계약·

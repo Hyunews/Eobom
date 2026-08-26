@@ -17,6 +17,7 @@ import meRoutes from './routes/meRoutes';
 import memorialRoutes from './routes/memorialRoutes';
 import obituaryRoutes from './routes/obituaryRoutes';
 import familyDesignationRoutes from './routes/familyDesignationRoutes';
+import farewellMessageRoutes from './routes/farewellMessageRoutes';
 import sttRoutes from './routes/sttRoutes';
 
 const app = express();
@@ -53,6 +54,7 @@ app.use('/api/me', meRoutes);
 app.use('/api/memorials', memorialRoutes);
 app.use('/api/obituaries', obituaryRoutes);
 app.use('/api/family-designations', familyDesignationRoutes);
+app.use('/api/farewell-messages', farewellMessageRoutes);
 app.use('/api/stt', sttRoutes);
 
 // 기본 헬스체크
