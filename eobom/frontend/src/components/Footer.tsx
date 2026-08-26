@@ -117,7 +117,7 @@ export const Footer: React.FC = () => {
               lineHeight: 1.2
             }}
           >
-            1588-0000
+            070-8856-2725
           </div>
           <p style={{ fontSize: '0.88rem', lineHeight: 1.7, color: 'var(--text-muted)', margin: 0 }}>
             장사시설·장례 절차 관련 문의는 전화로 안내해드립니다.

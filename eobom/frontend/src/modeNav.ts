@@ -1,5 +1,5 @@
 import type { ElementType } from 'react';
-import { Package, Flower2, MessageSquare } from 'lucide-react';
+import { Package, Flower2, MessageSquare, Mail } from 'lucide-react';
 import { HouseLeafIcon, HandScalesIcon, PhoneHeartIcon, NoteKeyIcon, ChecklistShieldIcon } from './components/MenuIcons';
 
 // docs/00_핵심플랫폼/00-26 §3 — 모드별 맞춤 사이드바 메뉴 정본 데이터.
@@ -31,8 +31,11 @@ export interface ModeMenuItem {
 // 박스① CTA 게이트와 불일치하던 문제 — 오버레이 CTA와 사이드바 클릭이 다르게 동작했음).
 // 08-19 14차(개발자 직접 지시) — 디지털 정산(계정·자산 정산)은 사후 처리 도메인이라 생전
 // 준비에 불필요 — 제거. 유가족 모드(BEREAVED_MENU)에는 그대로 남는다.
+// 00-27 §7.4(2026-08-26 사장님 확정) — "유족 메시지 보관함"이 ending-note에서 분리된 별도
+// 도메인이 됐다. counseling·ending-note와 동급이라 같은 메뉴에 나란히 둔다.
 const PREP_MENU: ModeMenuItem[] = [
   { id: 'ending-note', label: '디지털 엔딩노트', icon: NoteKeyIcon, status: 'preview', loginRequired: true },
+  { id: 'farewell-messages', label: '유족 메시지 보관함', icon: Mail, status: 'preview', loginRequired: true },
   { id: 'counseling', label: '전문가 매칭', icon: HandScalesIcon, status: 'active', loginRequired: true },
 ];
 

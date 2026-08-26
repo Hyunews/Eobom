@@ -19,6 +19,7 @@ import { FacilityPage } from './pages/FacilityPage';
 import { CounselingPage } from './pages/CounselingPage';
 import { DigitalEstatePage } from './pages/DigitalEstatePage';
 import { EndingNotePage } from './pages/EndingNotePage';
+import { FarewellMessagePage } from './pages/FarewellMessagePage';
 import { CareGuidePage } from './pages/CareGuidePage';
 import { ObituaryPage } from './pages/ObituaryPage';
 import { ObituaryLandingPage } from './pages/ObituaryLandingPage';
@@ -371,6 +372,10 @@ function AppShell() {
             <Route path="/counseling" element={<CounselingPage {...authProps} />} />
             <Route path="/digital-estate" element={<DigitalEstatePage {...authProps} />} />
             <Route path="/ending-note" element={<EndingNotePage {...authProps} />} />
+            <Route
+              path="/farewell-messages"
+              element={<FarewellMessagePage {...authProps} onOpenFamilyDesignation={() => setIsFamilyDesignationOpen(true)} />}
+            />
             <Route path="/care-guide" element={<CareGuidePage {...authProps} />} />
             <Route path="/obituary" element={<ObituaryPage {...authProps} />} />
             <Route path="/pickup" element={<PickupPage {...authProps} />} />

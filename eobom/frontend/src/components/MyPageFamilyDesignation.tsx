@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { X, CheckCircle2, AlertCircle, Loader2, Trash2, Pencil, Plus, Send } from 'lucide-react';
-import { BACKEND_URL } from '../config';
+import { X, CheckCircle2, AlertCircle, AlertTriangle, Loader2, Trash2, Pencil, Plus, Send, Copy } from 'lucide-react';
+import { BACKEND_URL, FAMILY_INVITE_CARD_IMAGE_URL } from '../config';
+import { ensureKakaoShareReady, shareViaKakao } from '../utils/kakaoShare';
 
 // 00-27 §8.2·§8.3·§10 Phase 1(기록) + §9.1 Phase 2(알리기·공유 버튼). 수락/거절 자체는 받는
 // 사람이 여는 /invite/:token(FamilyInvitePage.tsx)에서 일어난다 — 여기서는 링크를 만들어
@@ -74,6 +75,15 @@ export const MyPageFamilyDesignation: React.FC<MyPageFamilyDesignationProps> = (
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<FormState>(emptyForm);
+  // 00-27 §9.1-4 — 방금 발급한 초대 링크. 카카오 공유 성공 여부와 무관하게 링크 복사 버튼을
+  // 항상 같이 보여주기 위해 별도로 들고 있는다(§9.1-4-1 — 자동 분기 뒤에 숨기지 않는다).
+  const [lastInviteLink, setLastInviteLink] = useState<{ itemId: string; url: string } | null>(null);
+
+  // 클릭 핸들러 안에서 동기 호출해야 팝업 차단을 피한다(ObituaryPage.tsx와 동일 패턴) — 로드는
+  // 모달 마운트 시점에 미리 시작해둔다.
+  useEffect(() => {
+    ensureKakaoShareReady();
+  }, []);
 
   const authHeaders = () => {
     const token = sessionStorage.getItem('k_ending_token');
@@ -195,14 +205,18 @@ export const MyPageFamilyDesignation: React.FC<MyPageFamilyDesignationProps> = (
     }
   };
 
-  // §9.1 — 카카오 SDK를 쓰지 않는다(§9.1-4, 07-03 도메인 이중 등록 문제 재현 방지). 1:1 전달이라
-  // navigator.share(모바일 기본 공유 시트) + 링크 복사 두 가지로 충분하다.
+  // 00-27 §9.1-4(2026-08-26 사장님 확정) — 카카오 SDK 도입. 폴백 사다리는 ①카카오톡 공유 →
+  // ②링크 복사(항상 노출)이다. navigator.share는 여기서 쓰지 않는다 — Windows Chrome·Edge에도
+  // 존재해서 "공유창은 떴지만 카톡이 없어 스토어로 감" + "shared=true라 아래 복사 폴백이 죽음"
+  // 문제를 재현했었다(§9.1-4-1, 데스크톱 경로 0개의 원인). 카카오 성공 여부와 무관하게 방금
+  // 발급한 링크를 lastInviteLink로 남겨 복사 버튼을 항상 같이 그린다.
   const handleInvite = async (item: FamilyDesignationItem) => {
     const headers = authHeaders();
     if (!headers) return;
 
     setInvitingId(item.id);
     setMessage(null);
+    setLastInviteLink(null);
     try {
       const res = await fetch(`${BACKEND_URL}/api/family-designations/${item.id}/invite`, {
         method: 'POST',
@@ -215,31 +229,36 @@ export const MyPageFamilyDesignation: React.FC<MyPageFamilyDesignationProps> = (
       }
 
       const link = `${window.location.origin}/invite/${data.data.inviteToken}`;
-      const shareText = `${item.name}님, 생전 준비를 위해 가족으로 지정했습니다. 아래 링크에서 확인해 주세요.`;
 
-      let shared = false;
-      if (navigator.share) {
-        try {
-          await navigator.share({ title: '이어봄 가족 지정 안내', text: shareText, url: link });
-          shared = true;
-        } catch {
-          // 공유 시트를 취소한 경우도 포함 — 실패로 보지 않는다(ObituaryPage.tsx와 동일 사상)
-          shared = true;
-        }
-      }
-      if (!shared) {
-        try {
-          await navigator.clipboard.writeText(link);
-          setMessage({ type: 'success', text: '링크가 복사되었습니다. 대화방에 붙여넣어 전달해 주세요.' });
-        } catch {
-          setMessage({ type: 'success', text: `링크: ${link} (복사에 실패해 직접 선택해 복사해 주세요)` });
-        }
-      }
+      // §9.1-4 카톡 카드 — 실명·관계·"엔딩노트"·"사망 통지" 금지. 단톡방 전원에게 보이는
+      // 미리보기라 누가 누구에게인지는 링크를 연 사람만 FamilyInvitePage에서 보게 한다.
+      // §9.1-4-3 — 버튼 라벨도 "부고 보기"가 아니라 "가족 확인하기"로(생전 지정을 사망 통지로
+      // 오인하지 않도록).
+      shareViaKakao({
+        title: '이어봄 — 가족 확인 요청',
+        description: '가족 확인 요청이 도착했습니다.',
+        imageUrl: FAMILY_INVITE_CARD_IMAGE_URL,
+        url: link,
+        buttonLabel: '가족 확인하기',
+      });
+
+      setLastInviteLink({ itemId: item.id, url: link });
       await fetchList();
     } catch {
       setMessage({ type: 'error', text: '서버와 통신 중 오류가 발생했습니다.' });
     } finally {
       setInvitingId(null);
+    }
+  };
+
+  // §9.1-4-1 — "어느 경로든 링크 복사 버튼은 항상 함께 보이게" — 카카오 성공 여부와 무관하게
+  // 독립적으로 눌린다(handleInvite가 이미 발급해둔 링크를 재사용, 새 토큰을 또 발급하지 않는다).
+  const handleCopyInviteLink = async (url: string) => {
+    try {
+      await navigator.clipboard.writeText(url);
+      setMessage({ type: 'success', text: '링크가 복사되었습니다. 1:1로 전달해 주세요.' });
+    } catch {
+      setMessage({ type: 'success', text: `링크: ${url} (복사에 실패해 직접 선택해 복사해 주세요)` });
     }
   };
 
@@ -299,6 +318,29 @@ export const MyPageFamilyDesignation: React.FC<MyPageFamilyDesignationProps> = (
           생전 준비를 함께할 가족을 미리 기록해 두세요. 최대 10명까지 등록할 수 있습니다.
         </p>
 
+        {/* 00-27 §9.1-4 — "알리기" 버튼을 누르기 전에 상시 노출. 이유를 감추면 지켜지지 않는다는
+            원칙(§9.1-4)에 따라 "단톡방에 보내지 마세요"가 아니라 왜 안 되는지를 그대로 적는다. */}
+        {items.some((item) => item.status !== 'ACCEPTED') && (
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'flex-start',
+              gap: '0.5rem',
+              fontSize: '0.85rem',
+              color: '#92400E',
+              backgroundColor: '#FEF3C7',
+              border: '1px solid #FDE68A',
+              borderRadius: '8px',
+              padding: '0.7rem 0.85rem',
+              marginBottom: '1rem',
+              lineHeight: 1.6,
+            }}
+          >
+            <AlertTriangle size={16} style={{ flexShrink: 0, marginTop: '0.15rem' }} />
+            <span>이 링크를 받은 분은 누구나 수락할 수 있습니다. 반드시 본인에게만 1:1로 보내주세요.</span>
+          </div>
+        )}
+
         {message && (
           <div
             style={{
@@ -334,12 +376,16 @@ export const MyPageFamilyDesignation: React.FC<MyPageFamilyDesignationProps> = (
                 <div
                   key={item.id}
                   style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
                     padding: '0.85rem 1rem',
                     border: '1px solid #E5E7EB',
                     borderRadius: '14px',
+                  }}
+                >
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
                     gap: '0.6rem',
                   }}
                 >
@@ -374,7 +420,7 @@ export const MyPageFamilyDesignation: React.FC<MyPageFamilyDesignationProps> = (
                         type="button"
                         onClick={() => handleInvite(item)}
                         disabled={invitingId === item.id}
-                        title="알리기 · 공유"
+                        title="카카오톡으로 전달"
                         style={{ background: 'none', border: '1px solid var(--point-color)', borderRadius: '8px', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: invitingId === item.id ? 'not-allowed' : 'pointer', color: 'var(--point-color)' }}
                       >
                         {invitingId === item.id ? <Loader2 size={14} /> : <Send size={14} />}
@@ -397,6 +443,35 @@ export const MyPageFamilyDesignation: React.FC<MyPageFamilyDesignationProps> = (
                     </button>
                   </div>
                 </div>
+
+                {/* §9.1-4-1 — 카카오 성공 여부와 무관하게 항상 같이 보이는 링크 복사(handleInvite가
+                    이미 발급한 링크를 재사용, 새 토큰을 또 만들지 않는다). */}
+                {lastInviteLink?.itemId === item.id && (
+                  <div
+                    style={{
+                      marginTop: '0.7rem',
+                      paddingTop: '0.7rem',
+                      borderTop: '1px solid #F1F5F9',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.5rem',
+                      flexWrap: 'wrap',
+                    }}
+                  >
+                    <span style={{ fontSize: '0.85rem', color: '#9CA3AF', wordBreak: 'break-all', flex: 1, minWidth: '160px' }}>
+                      {lastInviteLink.url}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => handleCopyInviteLink(lastInviteLink.url)}
+                      className="btn"
+                      style={{ backgroundColor: 'var(--secondary-color)', color: 'var(--primary-color)', fontSize: '0.85rem', height: '34px', flexShrink: 0 }}
+                    >
+                      <Copy size={14} /> 링크 복사
+                    </button>
+                  </div>
+                )}
+                </div>
               ))}
             </div>
 
@@ -411,6 +486,9 @@ export const MyPageFamilyDesignation: React.FC<MyPageFamilyDesignationProps> = (
                 <div className="form-group" style={{ margin: 0 }}>
                   <label className="form-label">성함 *</label>
                   <input value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} className="form-input" required />
+                  <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginTop: '0.3rem' }}>
+                    가족이 수락할 때 입력할 이름입니다. 평소 부르는 이름과 다르면 수락이 막힐 수 있으니 정확히 입력해 주세요.
+                  </p>
                 </div>
 
                 <div className="form-group" style={{ margin: 0 }}>

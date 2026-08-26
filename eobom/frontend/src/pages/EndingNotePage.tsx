@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { ScrollText, Lock, Key, Send, FileCheck, LogIn, Mic, MicOff, Printer, Copy, Download, CheckCircle2, Circle, AlertTriangle } from 'lucide-react';
+import { ScrollText, FileCheck, LogIn, Mic, MicOff, Printer, Copy, Download, CheckCircle2, Circle, AlertTriangle } from 'lucide-react';
 import { NoteKeyIcon } from '../components/MenuIcons';
 
 interface EndingNotePageProps {
@@ -11,7 +11,6 @@ interface EndingNotePageProps {
 export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onOpenLogin, setActiveTab }) => {
   const [lifeSupport, setLifeSupport] = useState<string>('연명의료 중단 희망');
   const [funeralType, setFuneralType] = useState<string>('가족장 (수목장)');
-  const [vaultSecret, setVaultSecret] = useState<string>('');
 
   // ⑨ 말로 남기는 초안(STT) — Phase 1-a. 서버 저장 없음, 브라우저 임시 저장(localStorage 등)도 하지 않음.
   const [draftText, setDraftText] = useState<string>('');
@@ -199,17 +198,17 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
 
       <div style={{ marginBottom: '1.5rem', filter: !currentUser ? 'blur(3px)' : 'none' }}>
         <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', backgroundColor: '#F1F5F9', color: 'var(--primary-color)', padding: '0.3rem 0.8rem', borderRadius: '16px', fontSize: '0.85rem', fontWeight: 700, marginBottom: '0.6rem' }}>
-          <NoteKeyIcon size={18} color="var(--primary-color)" /> 유족에게 남기는 메시지 작성 &amp; 256-bit AES 암호화 금고
+          <NoteKeyIcon size={18} color="var(--primary-color)" /> 남겨야 할 것을 빠짐없이
         </div>
         <h1 style={{ color: 'var(--primary-color)', fontSize: '2rem', display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0 }}>
-          <NoteKeyIcon color="var(--primary-color)" size={32} /> 디지털 엔딩노트 &amp; 유족 메시지 보관함
+          <NoteKeyIcon color="var(--primary-color)" size={32} /> 디지털 엔딩노트
         </h1>
         <p style={{ color: 'var(--text-muted)', marginTop: '0.4rem' }}>
-          연명의료 의향 메모, 장례 희망 방식, 유족에게 남기는 메시지 &amp; 비밀 보관함 및 사후 자동 발송
+          연명의료 의향 메모, 장례 희망 방식, 말로 남기는 유언 초안까지 표준화된 항목을 차근차근 채워두세요.
         </p>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(320px, 100%), 1fr))', gap: '1.5rem', filter: !currentUser ? 'blur(3px)' : 'none' }}>
+      <div style={{ filter: !currentUser ? 'blur(3px)' : 'none' }}>
         {/* 사전 의향서 작성 */}
         <div style={{ backgroundColor: 'var(--card-bg)', padding: '1.5rem', borderRadius: 'var(--border-radius)', boxShadow: 'var(--box-shadow)' }}>
           <h3 style={{ color: 'var(--primary-color)', margin: '0 0 0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
@@ -260,54 +259,30 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
           </form>
         </div>
 
-        {/* 유족에게 남기는 메시지 & 비밀 보관함 */}
-        <div style={{ backgroundColor: 'var(--card-bg)', padding: '1.5rem', borderRadius: 'var(--border-radius)', boxShadow: 'var(--box-shadow)' }}>
-          <h3 style={{ color: 'var(--primary-color)', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <Lock color="var(--primary-color)" /> 유족에게 남기는 메시지 & 비밀 보관함
-          </h3>
-          <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>
-            사랑하는 자녀와 가족에게 남길 따뜻한 메시지, 비상 예금 계좌, 마스터 비밀번호 등 사후에 꼭 전달되어야 할 마음과 중요한 정보를 안전하게 암호화 보관합니다.
-          </p>
-
-          <div className="form-group">
-            <label className="form-label">유족에게 전달할 메시지 및 비상 자산 정보</label>
-            <textarea
-              rows={4}
-              value={vaultSecret}
-              onChange={(e) => setVaultSecret(e.target.value)}
-              className="form-input"
-              style={{ height: 'auto', padding: '1rem' }}
-              placeholder={'예: 사랑하는 자녀들아, 항상 서로 의지하고 행복하거라.\n국민은행에 주거래 계좌가 있고, 통장은 안방 서랍 두 번째 칸에 있습니다.\n비밀번호는 적지 마세요 — 유족이 서류로 조회할 수 있습니다.'}
-            />
+        {/* 06-05 §7.2 — 크로스 링크는 양방향. 이쪽은 엔딩노트 → 보관함(자유 텍스트 ③이 분리돼
+            나간 자리, §3.1). "저장됩니다" 류의 남은 약속이 없도록 링크만 둔다. */}
+        {setActiveTab && (
+          <div
+            style={{
+              marginTop: '1.5rem',
+              padding: '1rem 1.25rem',
+              backgroundColor: 'var(--secondary-color)',
+              borderRadius: 'var(--border-radius)',
+              fontSize: '0.9rem',
+              color: 'var(--primary-color)',
+              textAlign: 'center',
+            }}
+          >
+            가족 한 분 한 분께 하고 싶은 말이 있으신가요?{' '}
+            <button
+              type="button"
+              onClick={() => setActiveTab('farewell-messages')}
+              style={{ background: 'none', border: 'none', padding: 0, color: 'var(--primary-color)', fontWeight: 700, textDecoration: 'underline', cursor: 'pointer', fontSize: 'inherit' }}
+            >
+              유족 메시지 보관함 →
+            </button>
           </div>
-
-          <button onClick={() => alert('유족 메시지 및 비밀 데이터가 안전하게 암호화 보관되었습니다.')} className="btn btn-primary" style={{ width: '100%' }}>
-            <Key size={18} /> 유족 메시지 & 비밀 보관함 저장
-          </button>
-
-          <div style={{ marginTop: '0.85rem', fontSize: '0.85rem', color: '#92400E', backgroundColor: '#FEF3C7', border: '1px solid #FDE68A', borderRadius: '8px', padding: '0.7rem 0.9rem', lineHeight: 1.6 }}>
-            ⚠️ 이 기록은 법적 효력이 있는 유언장이 아닙니다. 재산 처분에 관한 의사는 민법이 정한
-            방식의 유언장이 따로 필요합니다.{' '}
-            {setActiveTab && (
-              <button
-                type="button"
-                onClick={() => setActiveTab('counseling')}
-                style={{ background: 'none', border: 'none', padding: 0, color: '#92400E', fontWeight: 700, textDecoration: 'underline', cursor: 'pointer', fontSize: 'inherit' }}
-              >
-                유언장 안내 보기 →
-              </button>
-            )}
-          </div>
-
-          <div style={{ marginTop: '1.1rem', paddingTop: '1rem', borderTop: '1px solid var(--border-color)' }}>
-            <h4 style={{ fontSize: '1rem', color: 'var(--primary-color)', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-              <Send size={16} color="var(--point-color)" /> 사후 지정 수신인 메시지
-            </h4>
-            <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-              사망 확인 후 지정 유족에게 열람 권한이 부여됩니다. 실제 열람은 로그인 후 계정 권한으로 이루어집니다.
-            </p>
-          </div>
-        </div>
+        )}
       </div>
 
       {/* ⑨ 말로 남기는 초안 (STT) — Phase 1-a. 서버 저장 없음. localStorage 등 브라우저 임시 저장도 하지 않음 */}

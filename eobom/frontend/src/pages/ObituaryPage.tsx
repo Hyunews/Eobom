@@ -312,7 +312,7 @@ export const ObituaryPage: React.FC<ObituaryPageProps> = ({ currentUser, onOpenL
   const handleShare = async () => {
     if (!obituaryUrl) return;
     setCopyFeedback(null);
-    const params = { title: cardTitle, description: cardDescription, imageUrl: OBITUARY_CARD_IMAGE_URL, url: obituaryUrl };
+    const params = { title: cardTitle, description: cardDescription, imageUrl: OBITUARY_CARD_IMAGE_URL, url: obituaryUrl, buttonLabel: '부고 보기' };
     if (shareViaKakao(params)) return;
     if (await shareViaWebShareApi(params)) return;
     const copied = await copyObituaryLink(obituaryUrl);

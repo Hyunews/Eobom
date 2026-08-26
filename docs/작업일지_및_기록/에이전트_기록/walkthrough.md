@@ -6,6 +6,132 @@
 
 ---
 
+## 2026-08-26 (74) | [Sonnet] 발신번호 · 가족초대 카카오공유+성함대조 · 초대CTA · `06-05` Phase A
+
+- **근거 스펙**: `00-14` §11-2(발신번호) · `00-27` §9.1-4·§9.1-4-1·§9.1-4-2·§9.1-4-3(2026-08-26
+  사장님 확정, 카카오 공유·데스크톱 폴백·수락완료 CTA·성함 대조) · `06-05` §7·§8(Phase A 골격,
+  2026-08-26 사장님 도메인 슬라이드 2개 분리 확정). 사용자가 5개 작업을 한 사이클로 직접 지시.
+- **건드린 파일**:
+  - `eobom/frontend/src/components/Footer.tsx` — 발신번호 1줄.
+  - `eobom/frontend/src/utils/kakaoShare.ts` — `shareViaKakao` 버튼 라벨 파라미터화.
+  - `eobom/frontend/src/config.ts` — `FAMILY_INVITE_CARD_IMAGE_URL` 신설.
+  - `eobom/frontend/src/pages/ObituaryPage.tsx` — `shareViaKakao` 호출부에 `buttonLabel:'부고 보기'` 명시(시그니처 변경 대응).
+  - `eobom/frontend/src/components/MyPageFamilyDesignation.tsx` — 초대 공유 로직 전면 교체 + 사전 경고 + 링크복사 상시노출 + 성함 안내.
+  - `eobom/backend/prisma/schema.prisma` — `FamilyDesignation.acceptAttempts Int @default(0)` 신설.
+  - `eobom/backend/prisma/migrations/20260826005944_family_designation_accept_attempts/` — 마이그레이션.
+  - `eobom/backend/src/controllers/familyDesignationController.ts` — `acceptFamilyInvite` 성함 대조+시도제한, `inviteFamilyDesignation`에 `acceptAttempts` 리셋.
+  - `eobom/frontend/src/pages/FamilyInvitePage.tsx` — 성함 입력란 + 3화면 CTA.
+  - `eobom/frontend/src/pages/FarewellMessagePage.tsx` — 신설.
+  - `eobom/frontend/src/App.tsx` — `/farewell-messages` 라우트 + import.
+  - `eobom/frontend/src/components/Sidebar.tsx` — `defaultMenuItems`에 항목 추가, 아이콘 분기 조정.
+  - `eobom/frontend/src/modeNav.ts` — `PREP_MENU`에 항목 추가.
+  - `eobom/frontend/src/components/home/domainSlides.tsx` — `ending-note` 문구 수정 + `farewell-messages` 슬라이드 신설 + `box1Keys` 갱신.
+  - `eobom/frontend/src/components/home/EntryBoxes.tsx` — `chipLabels`에 항목 추가.
+  - `eobom/frontend/src/pages/EndingNotePage.tsx` — 자유 텍스트 ③(카드2) 제거 + 헤더 문구 수정 + 크로스링크.
+  - `docs/00_핵심플랫폼/00-05_DB_요구사항_및_테이블_사전.md` — `generate-db-doc.js` 재생성(schema 변경 반영).
+  - `.harness/memory/context.md`, `docs/작업일지_및_기록/260826.md`, `claude_tasks.md`, 이 항목.
+- **결과**:
+  - **발신번호**: `Footer.tsx:120` `1588-0000` → `070-8856-2725`. `grep -n "1588-0000" eobom/frontend/src` → 0건.
+  - **가족초대 카카오 공유**: `handleInvite`가 초대 발급 후 `shareViaKakao({title:'이어봄 — 가족 확인
+    요청', description:'가족 확인 요청이 도착했습니다.', imageUrl:FAMILY_INVITE_CARD_IMAGE_URL,
+    url:link, buttonLabel:'가족 확인하기'})`를 호출 — 실명·관계·"엔딩노트"·"사망 통지" 어휘
+    없음(§9.1-4 카드 규칙). `navigator.share`는 코드에서 완전히 제거(주석으로 이유만 남김) —
+    Kakao 성공 여부와 무관하게 매번 `lastInviteLink` 상태에 방금 발급한 링크를 저장해, 각 항목
+    행 아래에 링크 텍스트 + "링크 복사" 버튼을 **항상** 렌더링(§9.1-4-1 "어느 경로든 링크 복사는
+    항상 함께"). 복사 성공 메시지를 "1:1로 전달해 주세요"로(§9.1-4-1 함께 고칠 것). "알리기"
+    버튼을 누르기 **전에** 상시 경고 배너 추가: "이 링크를 받은 분은 누구나 수락할 수 있습니다.
+    반드시 본인에게만 1:1로 보내주세요"(§9.1-4 — 이유를 감추지 않는다).
+  - **`kakaoShare.ts` 재사용 시 고칠 것**(§9.1-4-3 명시): `ShareCardParams`에 `buttonLabel: string`
+    필드 추가(기존 하드코딩 `'부고 보기'` 제거), `ObituaryPage.tsx` 호출부에 `buttonLabel:'부고
+    보기'`를 명시적으로 넣어 부고장 흐름은 그대로 유지.
+  - **성함 대조**(§9.1-4-3): `schema.prisma`에 `acceptAttempts Int @default(0)` 추가 →
+    로컬 dev DB(`localhost:5433`)에 `prisma migrate dev`로 마이그레이션 적용(운영 Supabase DB는
+    건드리지 않음 — 배포 시 `prisma migrate deploy`가 자동 적용). `FamilyInvitePage.tsx`의
+    `ready` 뷰에 "성함" 입력란 추가(지정된 이름은 화면에 노출하지 않음, §9.1-3 ② 유지),
+    `handleAccept`가 `{ name }`을 body로 전송. 백엔드 `acceptFamilyInvite`가
+    `normalizeNameForCompare`(공백 전부 제거)로 `FamilyDesignation.name`과 대조 — 불일치 시
+    `acceptAttempts`를 1 증가시키고 **항상 동일한** "성함이 일치하지 않습니다" 400을 반환(5회
+    도달 시점에도 문구를 바꾸지 않음 — 잠김을 알려주는 것 자체가 유추 단서이므로). 5회 도달 시
+    `inviteToken: null`로 그 자리에서 잠금 — 다음 요청부터는 자연히 "초대 링크를 찾을 수
+    없습니다"(존재 은닉과 같은 방식). `inviteFamilyDesignation`(재발급)이 새 토큰 발급 시
+    `acceptAttempts: 0`으로 리셋. `User.name`은 어디서도 대조에 쓰지 않음(계정 닉네임 문제,
+    §9.1-4-3 반대 근거 그대로 반영).
+  - **§9.1-1 필수 3종 검증**(코드 변경 없음, 기존 정상 확인): ① 1회용 — accept·decline 둘 다
+    `inviteToken: null`. ② 만료 — `getFamilyInvite`·`acceptFamilyInvite` 둘 다
+    `tokenExpiresAt` 체크. ③ 재발급 시 이전 토큰 폐기 — `inviteFamilyDesignation`이 같은
+    로우의 `inviteToken` 컬럼을 새 값으로 덮어써 이전 토큰 문자열은 자연히 조회 불가.
+  - **초대 완료 화면 CTA**(§9.1-4-2): `FamilyInvitePage.tsx`에 `useNavigate` 도입.
+    `accepted` — "이어봄 홈으로"(주, `navigate('/')`) + "내 엔딩노트 만들기"(부,
+    `navigate('/ending-note')`). `declined` — "이어봄 홈으로" 하나만(서비스 권유 없음).
+    `notfound`/`error`(같은 코드 블록) — "이어봄 홈으로" 하나. `expired`는 지시 범위(3개 화면)
+    밖이라 **손대지 않음**(아래 "다음 에이전트" 참고). "이제 ○○님의 엔딩노트를 볼 수 있습니다"
+    류 과장 문구는 쓰지 않음(§9.1-4-2 경고 그대로 반영).
+  - **`06-05` Phase A**: `FarewellMessagePage.tsx` 신설 — `GET /api/family-designations`
+    실데이터로 수신자 카드 렌더링, 카드마다 텍스트에어리어(화면 상태로만 존재, 새로고침 시
+    소실) + "이 편지는 아직 저장되지 않습니다" 상시 고지 + "편지 복사" 버튼. 가족 지정 0명이면
+    빈 화면 대신 "가족 지정하기" 유도 화면(§7.3, `onOpenFamilyDesignation` prop으로
+    `MyPageFamilyDesignation` 모달 재사용 — App.tsx가 이미 갖고 있던 `setIsFamilyDesignationOpen`
+    그대로 연결). §4.3 상시 고지("사망 확인 후 지정하신 분에게 전달됩니다. 재산 분배·상속에
+    관한 내용은 남기지 마세요…") 배치. 하단에 엔딩노트로 가는 크로스링크(§7.2).
+    `App.tsx`에 `/farewell-messages` 라우트 신설. `domainSlides.tsx`의 `ending-note` 슬라이드를
+    `badgeLabel`(→ "디지털 엔딩노트" 단독)·`titleLine2`(→ "빠짐없이 정리합니다")·`description`·
+    `bullets`(자유 메시지·"자동 발송" 표현 제거, STT 항목으로 교체)·`featureDesc`("전송됩니다"
+    → "권한이 부여됩니다")까지 동반 수정(§7.4 명시 요구). `farewell-messages` 슬라이드 신설,
+    `box1Keys`에 추가. `EntryBoxes.tsx` `chipLabels`·`Sidebar.tsx` `defaultMenuItems`·
+    `modeNav.ts` `PREP_MENU`(`ending-note` 바로 뒤) 3곳에 항목 추가. `EndingNotePage.tsx`의
+    자유 텍스트 ③ 카드(메시지+비상자산 텍스트에어리어+"저장" alert 버튼) 전체 삭제, 헤더 배지·
+    h1·설명문을 엔딩노트 단독 내용으로 교정, 하단에 보관함으로 가는 크로스링크 추가.
+  - **명령 재현**: `npx tsc --noEmit -p .`(frontend) 에러 0. `npx tsc --noEmit`(backend) 에러 0.
+    `npm run build`(frontend) 통과, `dist/assets/index-CsnvdPbC.js 482.15 kB`.
+    `node .harness/tools/generate-db-doc.js` 재실행 → `acceptAttempts`가 설명 있는 컬럼으로
+    반영됨(`00-05` §해당 테이블 확인). `Grep "DB 호환|열람 키|SMS 인증|홍자녀|마스터 암호|자동
+    발송" eobom/frontend/src/pages/EndingNotePage.tsx` → 0건(§8 Phase A 완료 판정 문구 그대로
+    재현). `Grep "대화방|navigator\.share" MyPageFamilyDesignation.tsx` → 실제 사용 0건(주석
+    설명 1곳만). `Grep "본인 확인|확인을 거칩니다" FamilyInvitePage.tsx` → 0건.
+- **편차**:
+  - **`FAMILY_INVITE_CARD_IMAGE_URL`을 브랜드 로고(`eobom-logo-hd.png`)로 재사용**했다 —
+    `07-03` §3.3-2가 "브랜드 로고 재사용 금지"를 정했지만 그건 **부고장(죽음을 알리는 카드)에
+    한정된 판단**이었다(홍보로 오인될 위험). 가족 초대는 성격이 다른 서비스 초대 카드라 브랜드
+    아이콘이 오히려 "이어봄에서 온 정상 링크"임을 알리는 역할을 한다고 판단해 새 이미지를
+    만들지 않고 기존 자산을 그대로 가리켰다.
+  - **§4.3 상시 고지에서 "음성"을 뺐다** — 스펙 원문은 "여기에 남기신 글과 음성은…"이지만,
+    Phase A는 텍스트 입력만 있고 음성 입력은 Phase D(⏸, `06-05` §5)라 아직 없다. 없는 기능을
+    고지 문구에 넣으면 그 자체가 새로운 미이행 약속이 되므로 "글은…"으로만 적었다 — Phase D
+    착수 시 이 문구도 같이 넓혀야 한다.
+  - **`schema.prisma` 변경 전 `pg_dump`를 로컬 dev DB(`eobom-postgres`, `localhost:5433`)에만
+    수행했다** — 사용자가 이번 지시에서 막은 것은 "`06-05` Phase B(모델·컨트롤러) 착수"였고,
+    이번 스키마 변경은 성함 대조(작업 3)가 구조적으로 요구하는 별개의 필요였다. 운영 Supabase
+    DB는 건드리지 않았다 — 배포 시 `package.json`의 `start` 스크립트(`prisma migrate deploy &&
+    node dist/server.js`)가 자동 적용한다.
+  - **초대 카드에서 성함 대조 실패 메시지를 5회 시점에도 동일하게 유지**했다 — 스펙은 "실패
+    문구는 성함이 일치하지 않습니다까지만"과 "5회 초과 시 토큰 잠금"을 별도 항목으로 적어뒀지만,
+    잠긴 순간에만 다른 문구(예: "잠겼습니다")를 보여주면 그 문구 자체가 "지금이 5번째"라는
+    유추 단서가 된다고 판단해 응답 문구를 통일했다 — §9.1-4-3의 "유추 단서 금지" 원칙을 문항 밖
+    (실패 문구의 일관성)까지 넓혀 적용한 것이다.
+  - **`FarewellMessagePage.tsx`에 인쇄·`.txt` 다운로드를 넣지 않았다** — `EndingNotePage.tsx`의
+    STT 초안(⑨)은 "자필증서로 옮겨 적어야" 하는 법적 문서라 그 richness가 필요했지만, 유족
+    편지는 그런 법적 동인이 없다. 스코프를 "복사" 버튼 하나로 좁혔다 — 필요하면 다음 라운드에서
+    추가할 수 있다.
+- **다음 에이전트가 알아야 할 것**:
+  - 🔴 **브라우저 실기동 전부 미검증** — 카카오 공유 SDK 실제 왕복(팝업 차단 여부·데스크톱에서
+    실제로 카톡 데스크톱앱이 뜨는지)·성함 대조 성공/실패/5회 잠금 흐름·초대 완료 화면 3개
+    CTA의 실제 라우팅. 이 세션은 dev 서버를 사용자 쪽에서만 기동하는 운용 방식이라 코드
+    리뷰로만 검증했다.
+  - `FamilyInvitePage.tsx`의 `expired`(만료) 화면은 여전히 CTA가 없다 — 사용자 지시가 정확히
+    "accepted·declined·에러 3개"였고 `expired`는 별도 상태라 손대지 않았지만, 구조적으로
+    `notfound`/`error`와 같은 종류의 막다른 길이다. 다음에 넓힐지 확인이 필요하다.
+  - `06-05` Phase B(`EndingNote`·`EndingNoteEntry`·`FarewellMessage` 모델, `farewellMessageController`)는
+    이번 지시대로 착수하지 않았다 — `FarewellMessagePage.tsx`의 편지는 여전히 브라우저 상태
+    로만 존재하고 새로고침하면 사라진다.
+  - `.prisma/client`의 네이티브 쿼리 엔진 바이너리(`query_engine-windows.dll.node`)가 사용자의
+    로컬 백엔드 dev 서버 프로세스에 잠겨 있어 `prisma generate`가 그 파일 교체 단계에서
+    EPERM으로 실패했다(타입 생성(`index.d.ts`)과 런타임 datamodel(`index.js`)은 정상 갱신돼
+    tsc·실제 쿼리 동작엔 영향이 없을 것으로 판단했다 — 다만 실제로 백엔드를 재기동해 신규
+    컬럼이 포함된 쿼리가 도는지 확인은 못 했다). 다음에 이상 동작이 보이면 dev 서버를 잠깐
+    내리고 `npx prisma generate`를 한 번 더 돌려볼 것.
+
+---
+
 ## 2026-08-25 (73) | [Sonnet] `07-03` §5.3-2 부고장 소유권 버그 — 검증 결과 **이미 수정돼 있음**
 
 - **근거 스펙**: `docs/07_상중_행정_케어/07-03_모바일_부고장_카카오톡_전송_구현_기획서.md` §5.3-2

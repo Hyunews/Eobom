@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
-import { HeartHandshake, CheckCircle2, XCircle } from 'lucide-react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { HeartHandshake, CheckCircle2, XCircle, AlertCircle } from 'lucide-react';
 import { BACKEND_URL } from '../config';
 
 interface FamilyInvitePageProps {
@@ -61,10 +61,14 @@ const cardStyle: React.CSSProperties = {
 
 export const FamilyInvitePage: React.FC<FamilyInvitePageProps> = ({ currentUser, onOpenLogin }) => {
   const { token } = useParams<{ token: string }>();
+  const navigate = useNavigate();
   const [view, setView] = useState<ViewState>('loading');
   const [data, setData] = useState<InviteData | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  // 00-27 §9.1-4-3 — 지정 당시 입력받은 이름과 대조하기 위해 수락 시점에 다시 받는다.
+  // 저장하지 않고 accept 요청 본문으로만 보낸다 — 지정된 이름은 이 화면에 노출되지 않는다(§9.1-3 ②).
+  const [enteredName, setEnteredName] = useState('');
 
   // authToken은 currentUser와 항상 같은 타이밍에 sessionStorage에 같이 쓰인다(App.tsx
   // handleLoginSuccess) — currentUser prop이 바뀌어 리렌더될 때마다 이 줄도 다시 실행되므로
@@ -103,12 +107,17 @@ export const FamilyInvitePage: React.FC<FamilyInvitePageProps> = ({ currentUser,
 
   const handleAccept = async () => {
     if (!token || !authToken) return;
+    if (!enteredName.trim()) {
+      setErrorMsg('성함을 입력해 주세요.');
+      return;
+    }
     setIsSubmitting(true);
     setErrorMsg(null);
     try {
       const res = await fetch(`${BACKEND_URL}/api/family-designations/invite/${token}/accept`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${authToken}` },
+        body: JSON.stringify({ name: enteredName.trim() }),
       });
       const json = await res.json();
       if (!res.ok || json.status !== 'success') {
@@ -166,8 +175,12 @@ export const FamilyInvitePage: React.FC<FamilyInvitePageProps> = ({ currentUser,
     return (
       <div style={shellStyle}>
         <div style={cardStyle}>
+          <AlertCircle size={40} color="#94A3B8" style={{ marginBottom: '0.75rem' }} />
           <p style={{ fontSize: '1.05rem', color: '#1A2B4C', fontWeight: 700, marginBottom: '0.5rem' }}>초대 링크를 찾을 수 없습니다.</p>
-          <p style={{ fontSize: '0.9rem', color: '#6C7A89' }}>이미 처리되었거나 잘못된 주소일 수 있습니다.</p>
+          <p style={{ fontSize: '0.9rem', color: '#6C7A89', marginBottom: '1.4rem' }}>이미 처리되었거나 잘못된 주소일 수 있습니다.</p>
+          <button type="button" onClick={() => navigate('/')} className="btn btn-primary" style={{ width: '100%' }}>
+            이어봄 홈으로
+          </button>
         </div>
       </div>
     );
@@ -179,7 +192,14 @@ export const FamilyInvitePage: React.FC<FamilyInvitePageProps> = ({ currentUser,
         <div style={cardStyle}>
           <CheckCircle2 size={40} color="var(--point-color)" style={{ marginBottom: '0.75rem' }} />
           <p style={{ fontSize: '1.1rem', color: '#1A2B4C', fontWeight: 700, marginBottom: '0.5rem' }}>수락되었습니다.</p>
-          <p style={{ fontSize: '0.9rem', color: '#6C7A89' }}>{data?.designatorName}님의 가족으로 연결됐습니다.</p>
+          {/* 00-27 §9.1-4-2 — 수락 결과를 과장하지 않는다. 열람은 사망 확인 이후다(06-04 §8.1). */}
+          <p style={{ fontSize: '0.9rem', color: '#6C7A89', marginBottom: '1.4rem' }}>{data?.designatorName}님의 가족으로 연결됐습니다.</p>
+          <button type="button" onClick={() => navigate('/')} className="btn btn-primary" style={{ width: '100%', marginBottom: '0.6rem' }}>
+            이어봄 홈으로
+          </button>
+          <button type="button" onClick={() => navigate('/ending-note')} className="btn" style={{ width: '100%', backgroundColor: 'var(--secondary-color)', color: 'var(--primary-color)' }}>
+            내 엔딩노트 만들기
+          </button>
         </div>
       </div>
     );
@@ -191,7 +211,11 @@ export const FamilyInvitePage: React.FC<FamilyInvitePageProps> = ({ currentUser,
         <div style={cardStyle}>
           <XCircle size={40} color="#94A3B8" style={{ marginBottom: '0.75rem' }} />
           <p style={{ fontSize: '1.1rem', color: '#1A2B4C', fontWeight: 700, marginBottom: '0.5rem' }}>거절되었습니다.</p>
-          <p style={{ fontSize: '0.9rem', color: '#6C7A89' }}>아무 권한도 부여되지 않았습니다.</p>
+          <p style={{ fontSize: '0.9rem', color: '#6C7A89', marginBottom: '1.4rem' }}>아무 권한도 부여되지 않았습니다.</p>
+          {/* §9.1-4-2 — 거절한 사람에게 서비스 권유를 붙이지 않는다. "홈으로" 하나뿐. */}
+          <button type="button" onClick={() => navigate('/')} className="btn" style={{ width: '100%', backgroundColor: 'var(--secondary-color)', color: 'var(--primary-color)' }}>
+            이어봄 홈으로
+          </button>
         </div>
       </div>
     );
@@ -227,20 +251,33 @@ export const FamilyInvitePage: React.FC<FamilyInvitePageProps> = ({ currentUser,
         )}
 
         {currentUser && authToken ? (
-          <div style={{ display: 'flex', gap: '0.6rem' }}>
-            <button
-              type="button"
-              onClick={handleDecline}
-              disabled={isSubmitting}
-              className="btn"
-              style={{ flex: 1, backgroundColor: 'var(--secondary-color)', color: 'var(--primary-color)' }}
-            >
-              거절
-            </button>
-            <button type="button" onClick={handleAccept} disabled={isSubmitting} className="btn btn-primary" style={{ flex: 1 }}>
-              {isSubmitting ? '처리 중...' : '수락'}
-            </button>
-          </div>
+          <>
+            {/* 00-27 §9.1-4-3 — 오조작 방지 가드레일. 지정된 이름 자체는 이 화면에 노출하지
+                않는다(§9.1-3 ②) — 입력값이 맞는지는 수락을 눌러야 서버가 알려준다. */}
+            <div className="form-group" style={{ margin: '0 0 1rem 0', textAlign: 'left' }}>
+              <label className="form-label">성함</label>
+              <input
+                value={enteredName}
+                onChange={(e) => setEnteredName(e.target.value)}
+                className="form-input"
+                placeholder="본인 성함을 입력해 주세요"
+              />
+            </div>
+            <div style={{ display: 'flex', gap: '0.6rem' }}>
+              <button
+                type="button"
+                onClick={handleDecline}
+                disabled={isSubmitting}
+                className="btn"
+                style={{ flex: 1, backgroundColor: 'var(--secondary-color)', color: 'var(--primary-color)' }}
+              >
+                거절
+              </button>
+              <button type="button" onClick={handleAccept} disabled={isSubmitting} className="btn btn-primary" style={{ flex: 1 }}>
+                {isSubmitting ? '처리 중...' : '수락'}
+              </button>
+            </div>
+          </>
         ) : (
           <>
             <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '0.8rem' }}>

@@ -9,21 +9,24 @@
 
 ## ▶ 다음 할 일
 
-**1. [Claude:Sonnet] `06-05` Phase A — 유족 메시지 보관함**(✅ 08-26 확정, 착수 가능)
-✅ **슬라이드 2개 분리 확정** — `counseling`·`ending-note`와 동급 도메인(`06-05` §7.4).
-🔴 기존 `ending-note` 슬라이드 문구 **동반 수정 필수**(badgeLabel·bullet②·titleLine2가 보관함 내용).
+**1. ✅[Sonnet] `06-05` Phase A 완료**(08-26, walkthrough 74) — `FarewellMessagePage.tsx`
+신설(`/farewell-messages`, 수신자 카드 실데이터+편지 UI, 저장은 Phase B). 슬라이드 분리+
+`ending-note` 문구 동반수정+상호 크로스링크 전부 반영.
 
-**2. [Claude:Sonnet] 초대 흐름 결함 2건**(08-26 사장님 실기기, `00-27` §9.1-4-1·9.1-4-2)
-데스크톱 `navigator.share` 분기가 폴백을 죽임 · 수락완료 화면이 막다른 길(CTA 0개).
+**2. ✅[Sonnet] 초대 흐름 3건 완료**(08-26, `00-27` §9.1-4·9.1-4-1·9.1-4-2·9.1-4-3, walkthrough 74)
+카카오SDK 폴백사다리(①카카오→②링크복사 항상노출, navigator.share 제거)·수락완료 3화면 CTA·
+수락시 성함대조(`acceptAttempts` 컬럼 신설, 5회잠금). §9.1-1 필수3종은 기존에 이미 정상 구현
+확인(코드변경 없음).
 
-**3. [Claude:Sonnet] 발신번호** — `Footer.tsx:120` `1588-0000` → **`070-8856-2725`**(`00-14` §11-2 닫힘).
+**3. ✅[Sonnet] 발신번호 완료**(08-26) — `Footer.tsx` `070-8856-2725`(`00-14` §11-2 닫힘).
 
 **4. [사용자] 남은 확정** — `00-14` §11-3(사망확인 SLA)·§11-11(06 수익지점) · `00-20` 보유기간 ·
 위치정보법 신고. ⏸ 11-1 알림톡은 **발신번호 사전등록**(§11.4 b)이 별건이라 아직 안 열림.
 
-**5. [Claude:Opus] `00-06` 화면ID 신설** — SCR-016·017(`/prep`·`/bereaved`).
+**5. [Claude:Opus] `00-06` 화면ID 신설** — SCR-016·017(`/prep`·`/bereaved`) + `SCR-002-B`(보관함).
 
-**6. [Gemini] 게이트 대기 8건** — walkthrough 70~73 포함.
+**6. [Gemini] 게이트 대기 9건** — walkthrough 70~74 포함.
+🔴 브라우저 실기동 전부 미검증(카카오 공유 왕복·성함대조·CTA 라우팅) — dev 서버는 사용자가 기동.
 
 ## 지금 상태
 
@@ -31,7 +34,7 @@
 프로젝트: 이어봄(Eobom) — 디지털엔딩&웰다잉 토탈케어 플랫폼
 협업체계: Opus(docs/) → Sonnet(eobom/) → Gemini(reports/·검증) · roles.md §1-1
 도메인  : 01장사시설 / 02전문가 / 03현물수거 / 04·05(보류) / 06엔딩노트 / 07상중행정
-마지막  : 2026-08-25 [Opus] 06-05 도메인분리 + 하네스 결함7건 수정 / [Sonnet] walkthrough 70~73
+마지막  : 2026-08-25 [Opus] 06-05 도메인분리 + 하네스 결함7건 수정 / 2026-08-26 [Sonnet] walkthrough 70~74
 ```
 
 - 소스 `eobom/frontend`(React18+Vite5+TS) · `eobom/backend`(Express+Prisma+JWT)

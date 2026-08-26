@@ -69,6 +69,10 @@ interface ShareCardParams {
   description: string;
   imageUrl: string;
   url: string;
+  // 00-27 §9.1-4-3 — 예전엔 '부고 보기'로 하드코딩돼 있었다. 부고장 외 다른 도메인(가족 초대
+  // 등)이 재사용하면서 받는 사람이 죽음과 무관한 카드를 부고로 오인하는 걸 막기 위해 호출부가
+  // 문맥에 맞는 라벨을 직접 넘긴다.
+  buttonLabel: string;
 }
 
 // 1순위: Kakao.Share.sendDefault(§3.2). 클릭 핸들러 안에서 동기 호출되어야 하므로, 호출부는
@@ -84,7 +88,7 @@ export const shareViaKakao = (params: ShareCardParams): boolean => {
         imageUrl: params.imageUrl,
         link: { mobileWebUrl: params.url, webUrl: params.url },
       },
-      buttons: [{ title: '부고 보기', link: { mobileWebUrl: params.url, webUrl: params.url } }],
+      buttons: [{ title: params.buttonLabel, link: { mobileWebUrl: params.url, webUrl: params.url } }],
     });
     return true;
   } catch (e) {

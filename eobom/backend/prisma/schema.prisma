@@ -78,6 +78,7 @@ model FamilyDesignation {
   acceptedAt      DateTime?                     // 가족이 수락한 시각 = 정보주체 동의 시각(§2.1)
   declinedAt      DateTime?                     // 가족이 거절한 시각. 재지정하려면 다시 통지
   acceptedUserId  String?                       // 수락한 가족의 User — 계정 연결 결과(§9)
+  acceptAttempts  Int       @default(0)         // §9.1-4-3 성함 대조 오답 횟수. 5회 초과 시 토큰 잠금(재발급 필요). 입력 이름 자체는 저장하지 않는다
 
   lastConfirmedAt DateTime  @default(now())     // 정확도·보유기간 재확인 기준(§7)
   createdAt       DateTime  @default(now())

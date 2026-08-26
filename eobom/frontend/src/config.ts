@@ -59,6 +59,11 @@ export const KAKAO_SHARE_SDK_LOAD_POLL_INTERVAL_MS = 100;
 // 양쪽 끝에 있던) 이미지를 계속 캐시해서 내보낼 수 있다 — URL 자체를 바꿔 강제로 새로 가져가게 한다.
 export const OBITUARY_CARD_IMAGE_URL = 'https://eobom.vercel.app/obituary-card-v2.png';
 
+// 가족 지정 초대 카드 이미지(00-27 §9.1-4) — 부고장과 달리 이건 서비스 초대 카드라 브랜드
+// 로고 재사용 금지(§3.3-2, obituary 전용 판단)가 적용되지 않는다. 이미 커밋된 로고 파일을
+// 그대로 쓴다 — 새 이미지 자산을 만들지 않는다.
+export const FAMILY_INVITE_CARD_IMAGE_URL = 'https://eobom.vercel.app/eobom-logo-hd.png';
+
 // 연락처는 백엔드에 숫자만(하이픈 없이) 저장된다(backend/src/utils/phone.ts와 짝) — 화면 표시용 포맷터.
 // 정확한 지역번호 체계까지는 다루지 않는 근사치 포맷(011자리 서울/지방 구분 등은 생략).
 export const formatPhoneForDisplay = (digits: string): string => {

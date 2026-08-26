@@ -267,6 +267,12 @@ export const deleteFamilyDesignation = async (req: Request, res: Response) => {
 // §9.1-6 a — 부고장(즉시성 필요)과 달리 급하지 않다. 짧으면 재발급 요청만 잦아진다.
 const INVITE_TOKEN_EXPIRY_DAYS = 30;
 
+// §9.1-4-3 — 단톡방 오수락 가드레일. 보안 통제가 아니라 오조작 방지용이라 임계값이 낮을 필요는
+// 없다 — 지정자에게 재발급을 요청하는 것보다 몇 번 더 시도해보게 두는 편이 정상 사용자에게 낫다.
+const MAX_ACCEPT_NAME_ATTEMPTS = 5;
+// 공백을 전부 제거하고 비교한다(§9.1-4-3) — "홍 길동"과 "홍길동" 같은 표기 흔들림을 흡수한다.
+const normalizeNameForCompare = (s: string): string => s.replace(/\s+/g, '');
+
 // 초대 링크 발급 (`POST /api/family-designations/:id/invite`) — 개설자만(§9.1).
 // 재발급은 같은 컬럼을 새 값으로 덮어쓰는 것만으로 이전 토큰을 무효화한다(§9.1-1 ③ 회수 수단) —
 // 별도 폐기 테이블이 필요 없다. DRAFT·PENDING(재발송)·DECLINED·EXPIRED 전부 재발급 가능하고,
@@ -297,6 +303,7 @@ export const inviteFamilyDesignation = async (req: Request, res: Response) => {
         tokenExpiresAt,
         notifiedAt: new Date(),
         status: 'PENDING', // 불변식 1 — 서버가 정한다. 링크를 만들었다고 권한이 생기진 않는다(여전히 0)
+        acceptAttempts: 0, // §9.1-4-3 — 새 토큰은 새 기회다. 이전 오답 횟수를 이어가지 않는다.
       },
     });
 
@@ -346,10 +353,18 @@ export const getFamilyInvite = async (req: Request, res: Response) => {
 // 초대 수락 (`POST /api/family-designations/invite/:token/accept`) — 로그인 필요(누가
 // 수락했는지 acceptedUserId에 남겨야 한다). 🔴 판정은 토큰+JWT로만 한다 — sessionStorage는
 // 로그인 복귀 경로를 기억하는 용도일 뿐 권한 근거가 아니다(불변식 6, 07-03 §5.3-2와 같은 원칙).
+// §9.1-4-3 — 여기에 성함 대조 가드레일을 더한다. User.name(소셜 닉네임)이 아니라
+// FamilyDesignation.name과 대조한다 — 보안 통제가 아니라 단톡방 오수락 방지용 가드레일이고,
+// §9.1-1의 필수 3종(1회용·만료·재발급 시 폐기)을 대체하지 않는다.
 export const acceptFamilyInvite = async (req: Request, res: Response) => {
   const decoded = verifyBearerToken(req);
   if (!decoded) {
     return res.status(401).json({ status: 'error', message: '로그인이 필요합니다.' });
+  }
+
+  const { name } = req.body as { name?: string };
+  if (!name?.trim()) {
+    return res.status(400).json({ status: 'error', message: '성함을 입력해 주세요.' });
   }
 
   try {
@@ -361,6 +376,21 @@ export const acceptFamilyInvite = async (req: Request, res: Response) => {
       return res.status(410).json({ status: 'error', message: '초대 링크가 만료되었습니다.' });
     }
 
+    // 입력받은 이름은 대조에만 쓰고 저장하지 않는다(§9.1-4-3) — DB에 쓰는 것은 acceptAttempts뿐.
+    if (normalizeNameForCompare(designation.name) !== normalizeNameForCompare(name)) {
+      const attempts = designation.acceptAttempts + 1;
+      await prisma.familyDesignation.update({
+        where: { id: designation.id },
+        data: {
+          acceptAttempts: attempts,
+          // 5회 초과 — 토큰 잠금(회수 수단은 지정자의 재발급뿐). 응답 문구는 아래와 동일하게
+          // 유지한다 — "잠겼다"는 별도 신호를 주면 그 자체가 유추 단서가 된다.
+          ...(attempts >= MAX_ACCEPT_NAME_ATTEMPTS ? { inviteToken: null } : {}),
+        },
+      });
+      return res.status(400).json({ status: 'error', message: '성함이 일치하지 않습니다.' });
+    }
+
     const updated = await prisma.familyDesignation.update({
       where: { id: designation.id },
       data: {
@@ -368,6 +398,7 @@ export const acceptFamilyInvite = async (req: Request, res: Response) => {
         acceptedUserId: decoded.id,
         acceptedAt: new Date(),
         inviteToken: null, // §9.1-1 ① 1회용 — 수락 즉시 무효화
+        acceptAttempts: 0,
       },
     });
 

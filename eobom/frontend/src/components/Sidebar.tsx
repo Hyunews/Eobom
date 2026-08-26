@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { Home, X, Settings, LogOut } from 'lucide-react';
+import { Home, X, Settings, LogOut, Mail } from 'lucide-react';
 import { HouseLeafIcon, HandScalesIcon, PhoneHeartIcon, NoteKeyIcon, ChecklistShieldIcon } from './MenuIcons';
 import { Badge } from './home/EntryBoxes';
 import { MODE_MENUS, type NavMode, type ModeMenuItem, type NavStatus } from '../modeNav';
@@ -35,6 +35,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, navMo
     { id: 'digital-estate', label: '디지털 정산', icon: PhoneHeartIcon },
     { id: 'care-guide', label: '상중 · 행정 케어', icon: ChecklistShieldIcon },
     { id: 'ending-note', label: '디지털 엔딩노트', icon: NoteKeyIcon },
+    { id: 'farewell-messages', label: '유족 메시지 보관함', icon: Mail },
   ];
 
   const modeItems: ModeMenuItem[] | null = navMode ? MODE_MENUS[navMode] : null;
@@ -189,8 +190,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, navMo
                   title={item.label}
                 >
                   <div style={{ flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', width: '28px' }}>
-                    {item.id === 'home' ? (
-                      <Home size={24} color={isActive ? '#FFFFFF' : '#E2E8F0'} />
+                    {/* farewell-messages는 lucide Mail(accentColor/fillColor 미지원) — MenuIcons 전용
+                        prop을 넘기지 않는 이 분기로 home과 함께 묶는다 */}
+                    {item.id === 'home' || item.id === 'farewell-messages' ? (
+                      <IconComponent size={24} color={isActive ? '#FFFFFF' : '#E2E8F0'} />
                     ) : (
                       <IconComponent
                         size={24}

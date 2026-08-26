@@ -1,5 +1,5 @@
 import React from 'react';
-import { Package, Flower2, MessageSquare } from 'lucide-react';
+import { Package, Flower2, MessageSquare, Mail } from 'lucide-react';
 import { HouseLeafIcon, HandScalesIcon, PhoneHeartIcon, NoteKeyIcon, ChecklistShieldIcon } from '../MenuIcons';
 
 // 박스①②(생전 준비/임종 및 사후 정리) 소개 콘텐츠 — 2026-08-25 이전엔 박스별 미니 풀스크린
@@ -177,29 +177,61 @@ export const domainSlides: Record<string, DomainSlide> = {
     loginRequired: true,
   },
 
+  // 00-27 §7.4(2026-08-26 사장님 확정) — "유족 메시지 보관함"은 별도 도메인(farewell-messages)으로
+  // 분리됐다. 이 슬라이드는 표준화된 항목(연명의료·장례희망·유언 초안)만 약속한다 — 자유 형식
+  // 메시지·자동 발송 표현은 아래 farewell-messages 슬라이드 쪽 성질이라 여기 남기지 않는다.
   'ending-note': {
     key: 'ending-note',
     tab: 'ending-note',
-    badgeLabel: '디지털 엔딩노트 / 유족 메시지',
+    badgeLabel: '디지털 엔딩노트',
     badgeIcon: <NoteKeyIcon size={20} color="#1A2B4C" />,
     badgeColor: '#1A2B4C',
     badgeBg: '#FFFFFF',
-    titleLine1: '사랑하는 이들에게 남기는',
-    titleLine2: '256-bit 비밀 메시지',
+    titleLine1: '남겨야 할 것을',
+    titleLine2: '빠짐없이 정리합니다',
     highlightColor: '#5B7065',
     description:
-      '연명의료 의향 메모부터 256-bit AES 최고 등급 암호화 금고, 사후 지정 수신 자동 발송까지 소중한 마음을 안전하게 보관하세요.',
+      '연명의료 의향, 장례 희망 방식, 말로 남기는 유언 초안까지 — 표준화된 항목을 차근차근 채워 남겨두세요.',
     bullets: [
-      '연명의료 의향 메모 & 희망 장례 방식 사전 선택',
-      '유족에게 남기는 메시지 및 비상 자산 정보 암호화 보관',
+      '연명의료 중단 의향 & 희망 장례 방식 사전 선택',
+      '자필증서 유언장 작성을 돕는 말로 남기는 초안(음성 인식)',
       '사망 확인 후 지정 유족에게 열람 권한 부여',
     ],
     featureIcon: <NoteKeyIcon size={36} color="#1A2B4C" accentColor="#D4A359" fillColor="#5B7065" />,
     featureIconBg: '#FEF3C7',
     featureBorderColor: '#D4A359',
     featureTitle: '256-bit AES 보안 금고',
-    featureDesc: '생전에는 철저히 비밀이 보장되며, 사후 사망진단서 확인 및 지정 유족의 이중 동의 완료 시에만 안전하게 복호화되어 전송됩니다.',
+    featureDesc: '생전에는 철저히 비밀이 보장되며, 사후 사망진단서 확인 및 지정 유족의 이중 동의 완료 시에만 안전하게 복호화되어 열람 권한이 부여됩니다.',
     ctaLabel: '디지털 엔딩노트 작성하기',
+    status: 'preview',
+    loginRequired: true,
+  },
+
+  // 🆕 00-27 §7.4 — ending-note에서 분리된 자유 형식 메시지 도메인. Phase A(골격)만 구현돼 있어
+  // status는 preview — 실제 저장은 아직 안 된다(FarewellMessagePage.tsx 참고).
+  'farewell-messages': {
+    key: 'farewell-messages',
+    tab: 'farewell-messages',
+    badgeLabel: '유족 메시지 보관함',
+    badgeIcon: <Mail size={20} color="#1A2B4C" />,
+    badgeColor: '#1A2B4C',
+    badgeBg: '#FFFFFF',
+    titleLine1: '가족 한 분 한 분께',
+    titleLine2: '하고 싶은 말을 그대로',
+    highlightColor: '#5B7065',
+    description:
+      '표준화된 서식이 아니라, 마음이 향하는 대로 편지를 남기는 공간입니다. 사망 확인 후 지정하신 분에게만 전달됩니다.',
+    bullets: [
+      '수신자별로 따로 쓰는 1:1 편지 — 언제든 다시 쓰고 고칠 수 있습니다',
+      '완료해야 할 항목이 없습니다. 생각날 때마다 남기세요',
+      '사망 확인 후 지정하신 분에게만 전달됩니다',
+    ],
+    featureIcon: <Mail size={36} color="#1A2B4C" />,
+    featureIconBg: '#FEF3C7',
+    featureBorderColor: '#D4A359',
+    featureTitle: '수신자별 편지함',
+    featureDesc: '가족을 지정하고 편지를 남겨두시면, 사망 확인 후 지정하신 분에게만 전달됩니다. 재산 분배 등 상속에 관한 내용은 법적 효력이 없으니 남기지 마세요.',
+    ctaLabel: '유족 메시지 보관함 열기',
     status: 'preview',
     loginRequired: true,
   },
@@ -271,7 +303,7 @@ export const domainSlides: Record<string, DomainSlide> = {
 // 카드 요약 칩과 DomainOverviewPage(/prep·/bereaved)가 같은 배열을 공유한다(예전엔 EntryBoxes.tsx
 // 안에 로컬로 있었는데, 오버레이 폐지 후 페이지 쪽도 같은 순서가 필요해져 여기로 옮겼다).
 // 08-19 14차(개발자 직접 지시) — 디지털 정산은 사후 처리 도메인이라 생전 준비에서 제거.
-export const box1Keys = ['counseling', 'ending-note'];
+export const box1Keys = ['counseling', 'ending-note', 'farewell-messages'];
 // 08-19 9차(개발자 직접 지시) — 순서 확정: 상중케어·장사시설·전문가상담·모바일부고장·
 // 유품수거·디지털정산·디지털추모관.
 export const box2Keys = ['care-guide', 'facility', 'counseling', 'obituary', 'pickup', 'digital-estate', 'memorial'];
