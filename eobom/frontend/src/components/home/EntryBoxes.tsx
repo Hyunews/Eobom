@@ -378,7 +378,11 @@ export const EntryBoxes: React.FC<EntryBoxesProps> = ({ currentUser, onOpenLogin
     // ③ 추모관(구 Guest) — 받으신 링크를 붙여넣으면 바로 입장(00-23 §4.4).
     // 2026-08-26 — ①②와 높이·헤더 크기를 통일(entry-box-secondary 200px → primary 300px,
     // BoxHeader size="sm" → 기본값 "lg"). 호버 전 카드가 ①②보다 낮아 보인다는 지적.
-    <div key="box3" className="card entry-box-primary entry-box-card entry-box-tint-slate">
+    <div
+      key="box3"
+      style={{ textAlign: 'left', width: '100%', justifyContent: 'center' }}
+      className="card entry-box-primary entry-box-card entry-box-tint-slate"
+    >
       <BoxHeader
         icon={<Flower2 size={32} color="#5B7065" />}
         title="추모관"
@@ -413,7 +417,11 @@ export const EntryBoxes: React.FC<EntryBoxesProps> = ({ currentUser, onOpenLogin
   const box4Card = (
     // ④ 파트너 — 항목 1개뿐이라 기존 방식(목록 1줄) 그대로 유지
     // 2026-08-26 — ①②와 높이·헤더 크기를 통일(box3Card와 동일 사유).
-    <div key="box4" className="card entry-box-primary entry-box-card entry-box-tint-slate">
+    <div
+      key="box4"
+      style={{ textAlign: 'left', width: '100%', justifyContent: 'center' }}
+      className="card entry-box-primary entry-box-card entry-box-tint-slate"
+    >
       <BoxHeader
         icon={<Building2 size={32} color="var(--primary-color)" />}
         title="파트너"
