@@ -37,7 +37,7 @@ echo "=== 하네스 점검 (root: $ROOT) ==="
 echo
 
 # ── 1. 부팅 파일 존재 + 용량 예산 ────────────────────────────────
-echo "1. 부팅 파일 (매 세션 로드, 합계 ≤ 11KB)"
+echo "1. 부팅 파일 (매 세션 로드, 합계 ≤ 15KB)"
 # 🔴 루트 CLAUDE.md가 목록 맨 앞인 이유: .harness/ 안의 3개는 에이전트가 자발적으로 읽어야만
 # 로드되지만, 루트 CLAUDE.md는 **CLI가 매 세션 자동으로** 밀어 넣는다. 즉 실제 부팅 비용은
 # 항상 여기부터 발생한다. 예산에서 빼면 "재고 있는데 안 세는" 항목이 생긴다(설계 원칙 2).
@@ -54,10 +54,20 @@ for f in "$ROOT/CLAUDE.md" "$HARNESS/AGENTS.md" "$HARNESS/memory/context.md" "$H
   BOOT_TOTAL=$((BOOT_TOTAL + sz))
   echo "     ${f#$ROOT/} — $((sz / 1024))KB (${sz}B)"
 done
-if [ "$BOOT_TOTAL" -gt 11264 ]; then
-  fail "부팅 합계 $((BOOT_TOTAL / 1024))KB > 11KB 예산 초과 — 다이어트 필요"
+# 예산 15KB (2026-08-26 상향, 사장님 승인). 🔴 **먼저 내용을 쳐낸 뒤에 올렸다** — AGENTS.md §9
+# 순서를 지킨 기록이다. 같은 날 context.md를 11,272B → 2,756B로 줄이고(진행 중 상세를
+# memory/backlog.md로 분리) 부팅을 22KB → 14KB로 내렸는데도 11KB에 닿지 못했다.
+#   옛 11KB는 **루트 CLAUDE.md가 없던 시절 숫자**다. 그날 자동 로드 파일이 하나 늘었고
+#   (그게 소유권 사고를 막는 장치라 뺄 수 없다), 남은 셋은 이미 바닥이다:
+#     pending-approvals 3,360B(사람만 지움·§0) + context.md 3,016B(자체 상한 3KB) +
+#     CLAUDE.md 1,884B = 8,260B 고정 → AGENTS.md 몫이 3KB밖에 안 남는다(현재 6.7KB, 규칙 SSOT).
+#   즉 11KB는 **도달 불가**였고, 고칠 수 없는 빨간불은 "빨간불 무시" 습관을 만들어 doctor 전체의
+#   신뢰를 깎는다(§8 BASELINE 주석과 같은 이유).
+# ⚠️ 다음에 또 닿으면 **이 숫자를 올리기 전에** 무엇을 어디로 옮겼는지 여기 먼저 적을 것.
+if [ "$BOOT_TOTAL" -gt 15360 ]; then
+  fail "부팅 합계 $((BOOT_TOTAL / 1024))KB > 15KB 예산 초과 — 다이어트 필요"
 else
-  ok "부팅 합계 $((BOOT_TOTAL / 1024))KB (예산 11KB 이내)"
+  ok "부팅 합계 $((BOOT_TOTAL / 1024))KB (예산 15KB 이내)"
 fi
 
 # 🔴 2026-08-25 신설 — context.md는 자기 머리말에 **"3KB 초과 금지"** 를 스스로 적어 두고도
@@ -84,9 +94,19 @@ echo "2. 조건부 로드 파일"
 # 부팅에서 빠졌으니 조건부 예산 안에 들어와야 한다(안 재면 여기로 다시 살이 찐다).
 for f in roles.md security.md done.md systems.md record.md memory/backlog.md; do
   CHECKS=$((CHECKS + 1))
+  # 2026-08-26 예산 정정 — roles.md 8→10KB · systems.md 6→12KB. AGENTS.md §9 순서대로
+  # **내용부터 봤고, 옮길 곳이 없어서** 올렸다. 근거는 "6KB = 단일 주제"라는 위 전제가
+  # 이 두 파일엔 처음부터 맞지 않았다는 것이다:
+  #   · systems.md = 인증·지도·공공데이터·DB·배포·미구현 **6개 절의 명부**다(조건부 로드 표도
+  #     다섯 주제를 이 파일 하나로 보낸다). 쪼개면 표가 5줄로 늘고 동기화 대상이 5개가 돼
+  #     오히려 나빠진다 — 명부는 한 파일일 때 값어치가 있다.
+  #   · roles.md = 태그표·소유권표 2개·파이프라인·편차 프로토콜·핸드오프 5주제. 2026-08-25에
+  #     Opus/Sonnet 소유권 분리(사고 재발 방지)가 들어가며 더 늘었고, 그건 뺄 수 없는 내용이다.
+  # ⚠️ 그래도 상한이다. 다음에 닿으면 올리기 전에 무엇을 어디로 옮겼는지 여기 먼저 적을 것.
   case "$f" in
-    roles.md) budget=8192 ;;
-    *)        budget=6144 ;;
+    roles.md)         budget=10240 ;;
+    systems.md)       budget=12288 ;;
+    *)                budget=6144 ;;
   esac
   if [ -f "$HARNESS/$f" ]; then
     sz=$(size_of "$HARNESS/$f")
