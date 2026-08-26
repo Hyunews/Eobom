@@ -6,6 +6,37 @@
 
 ---
 
+## 2026-08-26 (78) | [Sonnet] Render 배포본 CLOVA STT 환경변수 누락 진단·해소
+
+- **근거 스펙**: 스펙 없음 — walkthrough(77)의 "🔴 미검증: CLOVA_STT_ENABLED=true 실측" 후속
+  진단 작업. 사용자가 "유족메시지 보관함 > 업로드는 구현 안됨"이라고 보고해 시작.
+- **건드린 파일**: `render.yaml` — `CLOVA_STT_ENABLED`·`CLOVA_SPEECH_INVOKE_URL`·
+  `CLOVA_SPEECH_SECRET` 3개를 `sync: false`로 추가(값은 안 들어감, Render 대시보드 문서화용).
+- **결과**:
+  - 1차 증상(로컬)은 버그가 아니라 의도된 게이팅이었다 — `GET /api/stt/status`가 로컬에서
+    `{enabled:false}`를 반환해 업로드 UI가 정상적으로 숨겨진 것(06-04 §6.4-9-5).
+  - 사용자가 로컬 `.env`를 고치고 재시작했다는데도 여전히 `false` — `netstat`로 5000번 포트를
+    잡은 프로세스(PID)의 시작 시각(`wmic`)이 `.env` 저장 시각보다 15분 앞서 있음을 확인해,
+    `ts-node-dev`가 `.env` 변경은 감시하지 않아 실제로는 재시작되지 않았음을 진단(코드 저장
+    자동재시작과 진짜 프로세스 재시작을 구분하지 못한 것).
+  - 사용자가 실제로는 **배포본(Render)**을 확인 중이라고 정정 — `https://eobom-backend.onrender.com
+    /api/stt/status`를 직접 curl해 여기서도 `false`임을 확인. `render.yaml`의 `envVars` 목록을
+    읽어 `CLOVA_*` 3개가 **처음부터 아예 선언된 적이 없다**는 것을 근본 원인으로 특정 —
+    로컬 개발 중 `.env`에만 넣고 Render Blueprint에 반영을 빠뜨린 것.
+  - 사용자가 Render 대시보드에 3개 값을 직접 등록 → 재배포 후 `/api/stt/status` → `{enabled:true}`
+    확인(`curl`). **사용자가 배포본에서 실제 m4a 업로드→텍스트 변환까지 실기기로 확인 완료** —
+    walkthrough(77)에 남겼던 미검증 항목이 이걸로 해소됨.
+- **편차**: 없음.
+- **다음 에이전트가 알아야 할 것**:
+  - Render 대시보드의 실제 시크릿 값 자체는 이 세션에서 손대지 않았다(사용자가 직접 입력) —
+    `render.yaml`에는 `sync: false` 선언만 있고 값은 레포에 없다.
+  - 앞으로 새 시크릿 환경변수를 추가하는 기능은 **로컬 `.env`와 `render.yaml` 둘 다** 같은
+    커밋에서 챙길 것 — 이번처럼 로컬만 되고 배포본은 몇 주씩 빠져 있을 수 있다.
+
+<!-- Gemini 판정 대기 -->
+
+---
+
 ## 2026-08-26 (77) | [Sonnet] 06-05 Phase B — 유족 메시지 보관함 저장 + STT 이관
 
 - **근거 스펙**: `docs/06_엔딩노트_유언/06-05_유족메시지_보관함_도메인분리_기획서.md` §6(데이터 모델)·

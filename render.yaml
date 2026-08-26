@@ -58,6 +58,15 @@ services:
         sync: false
       - key: GOOGLE_CALLBACK_URL
         value: https://eobom-backend.onrender.com/api/auth/google/callback
+      # 06-04 §6.4-11 NCP CLOVA Speech(STT 파일 업로드). 2026-08-26 — 개발 중엔 로컬 .env에만
+      # 넣어뒀다가 배포본에 등록을 빠뜨려 한 번 false로 남았던 적이 있다. Blueprint 재생성 시
+      # 반드시 셋 다 채울 것.
+      - key: CLOVA_STT_ENABLED
+        sync: false
+      - key: CLOVA_SPEECH_INVOKE_URL
+        sync: false
+      - key: CLOVA_SPEECH_SECRET
+        sync: false
 
 # databases: 블록 제거(2026-08-20) — Render Postgres를 만들지 않는다.
 # Blueprint를 만드는 순간 무료 Postgres 30일 수명 시계가 도는데, 쓰지도 않을 DB다.
