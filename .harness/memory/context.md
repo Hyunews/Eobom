@@ -17,12 +17,13 @@
 **2. [Sonnet] `06-04` Phase 3** — 개봉 절차·`EndingNoteLog`·응급 열람·04·07 연결(§10, Phase 2 완료로
 다음 순번). ⏸ `00-12` 사망확인 확정 전까지는 착수 조건 미충족.
 
-**3. [Gemini] 게이트 대기 5건**(walkthrough 79~83). 🔴 walkthrough(83) 편차 — 가족 조회 API가
+**3. [Gemini] 게이트 대기 6건**(walkthrough 79~84). 🔴 walkthrough(83) 편차 — 가족 조회 API가
 `familyDesignationController.ts`의 "내가 지정됐는지 조회 API는 안 만든다" 불변식과 긴장 관계,
 **사람 판단 필요**.
 
-✅ **08-27** [Sonnet] wt 79~83 · [Opus] `00-06` SCR-016·017 · `00-20` 확정 5건 · **`db-safety.md`
-신설 + doctor §10 소유권 검사**. 🟡 로컬 dev DB 편지 2건·가족 지정 2건 삭제 — 재등록 필요.
+✅ **08-27** [Sonnet] wt 79~84(엔딩노트 Phase1·2 + 모바일 "계정 연동" 잔존 버튼 제거) · [Opus]
+`00-06` SCR-016·017 · `00-20` 확정 5건 · `db-safety.md` 신설. 🟡 로컬 dev DB 편지 2건·가족
+지정 2건 삭제 — 재등록 필요.
 
 ## 지금 상태
 
@@ -30,7 +31,7 @@
 프로젝트: 이어봄(Eobom) — 디지털엔딩&웰다잉 토탈케어 플랫폼
 협업체계: Opus(docs/) → Sonnet(eobom/) → Gemini(reports/·검증) · roles.md §1-1
 도메인  : 01장사시설 / 02전문가 / 03현물수거 / 04·05(보류) / 06엔딩노트 / 07상중행정
-마지막  : 2026-08-27 [Sonnet] walkthrough 70~83 / 2026-08-27 [Opus] 00-06 SCR-016·017 등재
+마지막  : 2026-08-27 [Sonnet] walkthrough 70~84 / 2026-08-27 [Opus] 00-06 SCR-016·017 등재
 ```
 
 - 소스 `eobom/frontend`(React18+Vite5+TS) · `eobom/backend`(Express+Prisma+JWT)

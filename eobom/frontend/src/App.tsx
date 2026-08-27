@@ -331,7 +331,6 @@ function AppShell() {
               onOpenLogin={() => openLoginModal()}
               mobileOpen={isMobileMenuOpen}
               onMobileClose={() => setIsMobileMenuOpen(false)}
-              onOpenAccountSettings={() => { setMyPageMessage(null); setIsMyPageOpen(true); }}
               onLogout={handleLogout}
             />
           )}

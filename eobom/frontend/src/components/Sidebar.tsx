@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { Home, X, Settings, LogOut, Mail } from 'lucide-react';
+import { Home, X, LogOut, Mail } from 'lucide-react';
 import { HouseLeafIcon, HandScalesIcon, PhoneHeartIcon, NoteKeyIcon, ChecklistShieldIcon } from './MenuIcons';
 import { Badge } from './home/EntryBoxes';
 import { MODE_MENUS, type NavMode, type ModeMenuItem, type NavStatus } from '../modeNav';
@@ -14,9 +14,10 @@ interface SidebarProps {
   // 데스크톱 호버 사이드바(아래 <aside>)는 이 값과 무관하게 항상 그대로 동작한다.
   mobileOpen?: boolean;
   onMobileClose?: () => void;
-  // 480px 이하에서 헤더가 겹치는 문제로 계정 연동/로그아웃 버튼을 헤더에서 숨기고 여기로
-  // 이관했다(Header.tsx `.header-account-buttons--has-drawer`, 2026-08-20).
-  onOpenAccountSettings?: () => void;
+  // 480px 이하에서 헤더가 겹치는 문제로 로그아웃 버튼을 헤더에서 숨기고 여기로 이관했다
+  // (Header.tsx `.header-account-buttons--has-drawer`, 2026-08-20). "계정 연동"은 2026-08-25에
+  // 헤더·이 드로어 양쪽에서 제거하고 마이페이지 전용으로 정리했었는데(Header.tsx:134 참고),
+  // 이 드로어 쪽 반영이 빠져 있었다(2026-08-27 사용자 제보 — 모바일 햄버거 메뉴에 아직 남아있음).
   onLogout?: () => void;
 }
 
@@ -25,7 +26,7 @@ interface SidebarProps {
 // 못 따라가서, 확장 시 사이드바가 본문 위에 그대로 올라타 콘텐츠를 가리는 문제가 있었다.
 // 00-26 §3·§7 — navMode가 있으면 모드별 맞춤 메뉴(3개/6개, modeNav.ts), 없으면(직접 URL
 // 진입 등) 기존 6개 메뉴를 라벨만 정정해 그대로 둔다(§6 #5).
-export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, navMode, currentUser, onOpenLogin, mobileOpen, onMobileClose, onOpenAccountSettings, onLogout }) => {
+export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, navMode, currentUser, onOpenLogin, mobileOpen, onMobileClose, onLogout }) => {
   // 공식 6개 네비게이션 메뉴 — 00-26 §5가 잡은 라벨 불일치 3건 정정(장례·묘지 매칭 /
   // 상속·법률 케어 / 디지털 유품 정리 → 00-02 §3.2 정본).
   const defaultMenuItems = [
@@ -289,35 +290,21 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, navMo
         })}
       </div>
 
-      {/* 계정 설정/로그아웃 — 480px 이하에서 헤더에 안 들어가 여기로 옮겨왔다(위 SidebarProps 주석 참고). */}
-      {currentUser && (onOpenAccountSettings || onLogout) && (
+      {/* 로그아웃 — 480px 이하에서 헤더에 안 들어가 여기로 옮겨왔다(위 SidebarProps 주석 참고).
+          "계정 연동"은 여기 두지 않는다 — 마이페이지 전용(Header.tsx:134와 같은 정리, 2026-08-25). */}
+      {currentUser && onLogout && (
         <div style={{ marginTop: '1.2rem', paddingTop: '1rem', borderTop: '1px solid rgba(255,255,255,0.15)', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-          {onOpenAccountSettings && (
-            <button
-              type="button"
-              onClick={() => { onOpenAccountSettings(); onMobileClose?.(); }}
-              style={{
-                display: 'flex', alignItems: 'center', gap: '0.7rem', padding: '0.75rem 0.8rem',
-                borderRadius: '10px', border: '1px solid rgba(255,255,255,0.2)', backgroundColor: 'transparent',
-                color: '#CBD5E1', cursor: 'pointer', width: '100%', textAlign: 'left', fontSize: '0.9rem',
-              }}
-            >
-              <Settings size={18} /> 계정 연동
-            </button>
-          )}
-          {onLogout && (
-            <button
-              type="button"
-              onClick={() => { onLogout(); onMobileClose?.(); }}
-              style={{
-                display: 'flex', alignItems: 'center', gap: '0.7rem', padding: '0.75rem 0.8rem',
-                borderRadius: '10px', border: '1px solid rgba(255,255,255,0.2)', backgroundColor: 'transparent',
-                color: '#CBD5E1', cursor: 'pointer', width: '100%', textAlign: 'left', fontSize: '0.9rem',
-              }}
-            >
-              <LogOut size={18} /> 로그아웃
-            </button>
-          )}
+          <button
+            type="button"
+            onClick={() => { onLogout(); onMobileClose?.(); }}
+            style={{
+              display: 'flex', alignItems: 'center', gap: '0.7rem', padding: '0.75rem 0.8rem',
+              borderRadius: '10px', border: '1px solid rgba(255,255,255,0.2)', backgroundColor: 'transparent',
+              color: '#CBD5E1', cursor: 'pointer', width: '100%', textAlign: 'left', fontSize: '0.9rem',
+            }}
+          >
+            <LogOut size={18} /> 로그아웃
+          </button>
         </div>
       )}
     </div>
