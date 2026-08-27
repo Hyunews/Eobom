@@ -9,19 +9,20 @@
 
 ## ▶ 다음 할 일
 
-**1. ✅[Sonnet] `06-05` Phase B 완료 + 배포본 STT 실사용자 검증 완료**(08-26, walkthrough 77~78) —
-`EndingNote`·`FarewellMessage` 모델+API 배선, STT(Ⓐ업로드·Ⓑ녹음)를 엔딩노트 ⑨에서 보관함으로
-이관. Render `envVars`에 `CLOVA_*` 3개가 누락돼 있던 게 원인 — 등록 후 **사장님이 배포본에서
-업로드→텍스트 변환까지 실기기 확인 완료**(`render.yaml`에도 문서화함).
-🟡 로컬 dev DB에 테스트 편지 2건 남음(배치 정리 대상).
+**1. ✅[Sonnet] `06-05` Phase B + 배포본 STT 검증 + 모바일 인트로 배너 수정**(08-26~27,
+walkthrough 77~79) — `EndingNote`·`FarewellMessage` 모델+API 배선, STT를 보관함으로 이관,
+Render `envVars` 누락 해소(배포본 실기기 확인), `/prep`·`/bereaved` 모바일에서
+`.domain-overview-intro`가 본문을 가리던 문제 수정. 🟡 로컬 dev DB에 테스트 편지 2건 남음
+(배치 정리 대상).
 
 **2. [Claude:Opus] `00-06` 화면ID 신설** — SCR-016·017(`/prep`·`/bereaved`) + `SCR-002-B`(보관함).
 
 **3. [사용자] 남은 확정** — `00-14` §11-3(사망확인 SLA)·§11-11(06 수익지점) · `00-20` 보유기간 ·
 위치정보법 신고. ⏸ 11-1 알림톡은 발신번호 **사전등록**(§11.4 b)이 별건이라 아직 안 열림.
 
-**4. [Gemini] 게이트 대기 13건**(walkthrough 70~78). 🔴 나머지 실기동 미검증.
+**4. [Gemini] 게이트 대기 1건**(walkthrough 79, 70~78은 판정 완료). 🔴 나머지 실기동 미검증.
 
+✅ **08-27 완료**(walkthrough 79) — `/prep`·`/bereaved` 모바일 인트로 배너 수정.
 ✅ **08-26 완료**(walkthrough 74~78) — `06-05` Phase A·B · 초대 흐름 3건 · 발신번호 · 홈 박스③④ ·
 STT Ⓐ 배선+보관함 이관+배포본 실사용자 검증. **가족 연결·STT 업로드 둘 다 실기기 확인 완료**(사장님).
 
@@ -31,7 +32,7 @@ STT Ⓐ 배선+보관함 이관+배포본 실사용자 검증. **가족 연결·
 프로젝트: 이어봄(Eobom) — 디지털엔딩&웰다잉 토탈케어 플랫폼
 협업체계: Opus(docs/) → Sonnet(eobom/) → Gemini(reports/·검증) · roles.md §1-1
 도메인  : 01장사시설 / 02전문가 / 03현물수거 / 04·05(보류) / 06엔딩노트 / 07상중행정
-마지막  : 2026-08-25 [Opus] 06-05 도메인분리 + 하네스 결함7건 수정 / 2026-08-26 [Sonnet] walkthrough 70~78
+마지막  : 2026-08-25 [Opus] 06-05 도메인분리 + 하네스 결함7건 수정 / 2026-08-27 [Sonnet] walkthrough 70~79
 ```
 
 - 소스 `eobom/frontend`(React18+Vite5+TS) · `eobom/backend`(Express+Prisma+JWT)
