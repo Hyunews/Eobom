@@ -191,10 +191,10 @@ export const domainSlides: Record<string, DomainSlide> = {
     titleLine2: '빠짐없이 정리합니다',
     highlightColor: '#5B7065',
     description:
-      '연명의료 의향, 장례 희망 방식, 말로 남기는 유언 초안까지 — 표준화된 항목을 차근차근 채워 남겨두세요.',
+      '연명의료 의향, 장례 희망 방식, 유언장 초안까지 — 표준화된 항목을 차근차근 채워 남겨두세요.',
     bullets: [
       '연명의료 중단 의향 & 희망 장례 방식 사전 선택',
-      '자필증서 유언장 작성을 돕는 말로 남기는 초안(음성 인식)',
+      '자필증서 유언장 작성을 돕는 유언장 초안(직접 입력)',
       '사망 확인 후 지정 유족에게 열람 권한 부여',
     ],
     featureIcon: <NoteKeyIcon size={36} color="#1A2B4C" accentColor="#D4A359" fillColor="#5B7065" />,

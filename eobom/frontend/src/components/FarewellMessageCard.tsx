@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Heart, Plus, Loader2, CheckCircle2, Pencil, X } from 'lucide-react';
+import { Heart, Plus, Loader2, Pencil, X } from 'lucide-react';
 import { BACKEND_URL } from '../config';
 import { VoiceToTextInput } from './VoiceToTextInput';
 
@@ -51,7 +51,6 @@ export const FarewellMessageCard: React.FC<FarewellMessageCardProps> = ({ recipi
   const [editingId, setEditingId] = useState<string | null>(null);
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
-  const [confirmed, setConfirmed] = useState(false);
   const [saving, setSaving] = useState(false);
   const [loadingDetail, setLoadingDetail] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -61,7 +60,6 @@ export const FarewellMessageCard: React.FC<FarewellMessageCardProps> = ({ recipi
     setEditingId(null);
     setTitle('');
     setBody('');
-    setConfirmed(false);
     setError(null);
   };
 
@@ -69,7 +67,6 @@ export const FarewellMessageCard: React.FC<FarewellMessageCardProps> = ({ recipi
     setEditingId(null);
     setTitle('');
     setBody('');
-    setConfirmed(false);
     setError(null);
     setComposerOpen(true);
   };
@@ -87,7 +84,6 @@ export const FarewellMessageCard: React.FC<FarewellMessageCardProps> = ({ recipi
         setEditingId(id);
         setTitle(data.data.title || '');
         setBody(data.data.body || '');
-        setConfirmed(false);
         setComposerOpen(true);
       } else {
         setError(data.message || '편지를 불러오지 못했습니다.');
@@ -170,7 +166,7 @@ export const FarewellMessageCard: React.FC<FarewellMessageCardProps> = ({ recipi
           <input
             type="text"
             value={title}
-            onChange={(e) => { setTitle(e.target.value); setConfirmed(false); }}
+            onChange={(e) => setTitle(e.target.value)}
             className="form-input"
             placeholder="제목 (선택)"
             style={{ marginBottom: '0.75rem' }}
@@ -181,14 +177,13 @@ export const FarewellMessageCard: React.FC<FarewellMessageCardProps> = ({ recipi
             disabled={saving}
             onText={(text) => {
               setBody((prev) => (prev ? `${prev.trimEnd()} ${text}` : text));
-              setConfirmed(false);
             }}
           />
 
           <textarea
             rows={6}
             value={body}
-            onChange={(e) => { setBody(e.target.value); setConfirmed(false); }}
+            onChange={(e) => setBody(e.target.value)}
             className="form-input"
             style={{ height: 'auto', padding: '1rem', marginTop: '0.75rem', marginBottom: '0.6rem' }}
             placeholder={`${recipient.name}님께 남기고 싶은 말을 자유롭게 적어보세요.`}
@@ -200,27 +195,16 @@ export const FarewellMessageCard: React.FC<FarewellMessageCardProps> = ({ recipi
             </div>
           )}
 
-          {/* 06-04 §6.4-5 — 저장 전 편집 확인은 필수 단계로 유지 */}
-          {!confirmed ? (
-            <button
-              type="button"
-              onClick={() => setConfirmed(true)}
-              disabled={!body.trim()}
-              className="btn btn-primary"
-              style={{ width: '100%', opacity: body.trim() ? 1 : 0.5, cursor: body.trim() ? 'pointer' : 'not-allowed' }}
-            >
-              <CheckCircle2 size={18} /> 이 내용을 확인했습니다
+          {/* 06-04 §6.4-5 정정(08-27) — 확인→저장 2단계 대신 명시적 저장 버튼 하나로. 저장을
+              누르는 행위 자체가 확인이다. */}
+          <div style={{ display: 'flex', gap: '0.5rem' }}>
+            <button type="button" onClick={resetComposer} disabled={saving} className="btn" style={{ backgroundColor: 'var(--secondary-color)', color: 'var(--primary-color)' }}>
+              <X size={16} /> 취소
             </button>
-          ) : (
-            <div style={{ display: 'flex', gap: '0.5rem' }}>
-              <button type="button" onClick={resetComposer} disabled={saving} className="btn" style={{ backgroundColor: 'var(--secondary-color)', color: 'var(--primary-color)' }}>
-                <X size={16} /> 취소
-              </button>
-              <button type="button" onClick={handleSave} disabled={saving} className="btn btn-point" style={{ flex: 1 }}>
-                {saving ? <><Loader2 size={16} /> 저장 중…</> : editingId ? '수정 저장' : '편지 저장'}
-              </button>
-            </div>
-          )}
+            <button type="button" onClick={handleSave} disabled={saving || !body.trim()} className="btn btn-point" style={{ flex: 1, opacity: !saving && body.trim() ? 1 : 0.5 }}>
+              {saving ? <><Loader2 size={16} /> 저장 중…</> : '저장'}
+            </button>
+          </div>
         </div>
       )}
     </div>
