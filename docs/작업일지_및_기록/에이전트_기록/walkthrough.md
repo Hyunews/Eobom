@@ -6,6 +6,42 @@
 
 ---
 
+## 2026-08-27 (81) | [Sonnet] ⑩ 장기·조직 기증 의향 추가 + 도메인 페이지 드롭다운 폭 축소
+
+- **근거 스펙**: `docs/06_엔딩노트_유언/06-04_엔딩노트_보관함_실구현_기획서.md` §6.1 ⑩(장기·조직
+  기증 의향, ①과 동일 구조) — walkthrough(80) 작업 중 사용자가 추가 지시. 드롭다운 폭 건은
+  스펙 없음 — 사용자 직접 지시("모든 도메인 페이지의 컨테이너 내부 드롭다운 폭이 너무 넓다").
+- **건드린 파일**:
+  - `eobom/frontend/src/pages/EndingNotePage.tsx` — ⑩ 카드 신설(등록 여부 select + "등록함"
+    선택 시에만 나타나는 등록일 date input, 시신 기증은 별개 제도라는 경고 문구), `prepSaveButtonStyle`에
+    `display:'block'` 추가(아래 CSS 변경과 맞물려 select 옆으로 버튼이 끼어드는 것 방지)
+  - `eobom/frontend/src/index.css` — `.container .form-group:has(> select)`를 `inline-flex`+
+    `max-width:320px`로(데스크톱에서 여러 개가 한 줄에 자연 줄바꿈), 640px 이하에서는
+    `display:block`으로 되돌림(모바일 1줄 1개 유지). 곧바로 뒤따르는 형제 요소(버튼 등)가
+    남는 공간에 끼어들지 않도록 `+ *:not(.form-group)`에 `display:block` 백스톱 추가.
+- **결과**:
+  - `npx tsc --noEmit`·`npm run build`(tsc+vite) 통과.
+  - `grep -rn "<select" --include=*.tsx`로 `.form-group`에 select를 직접 담은 다른 페이지를
+    전수 확인 — `FacilityPage.tsx`·`PickupPage.tsx`는 select가 `.form-group`의 직계 자식이
+    아니라(중간에 flex div) `:has(> select)`에 안 걸림(의도대로 미적용). `MyPageProfile.tsx`·
+    `MyPageFamilyDesignation.tsx`는 App.tsx에서 `.container` 밖(모달)에 렌더돼 영향 없음.
+    실제로 이 규칙이 적용되는 곳은 `EndingNotePage.tsx`뿐임을 확인.
+  - 브라우저(390px 폭 iframe 트릭으로 만든 실제 1296px 뷰포트)에서 ①(연명의료+장례희망)·
+    ⑤(디지털 계정 4개)가 데스크톱에서 2열로, 386px 실측 모바일 뷰포트에서는 다시 1열
+    100%(부모 카드 폭과 동일 실측)로 정상 전환됨을 `getComputedStyle`·`getBoundingClientRect`로
+    직접 확인. 처음엔 백스톱 규칙이 `*`(전체)를 잡아 select 그룹끼리도 서로를 밀어내 전부
+    1열로 깨지는 회귀가 있었고, `:not(.form-group)`을 추가해 재확인 후 해결.
+- **편차**: 없음.
+- **다음 에이전트가 알아야 할 것**:
+  - 이 커밋은 walkthrough(80, 커밋 `78c0f10`)의 이어지는 작업이다 — ⑩ 섹션은 그 커밋 이후
+    사용자가 추가로 지시한 것이라 별도 커밋으로 나뉜다.
+  - `.form-group:has(> select)` 규칙은 `:has()` CSS 셀렉터를 쓴다(모던 브라우저 전제, 이
+    프로젝트가 이미 backdrop-filter·CSS Grid 등 모던 CSS를 쓰고 있어 동일 전제).
+
+<!-- Gemini 판정 대기 -->
+
+---
+
 ## 2026-08-27 (80) | [Sonnet] 엔딩노트 섹션 확장(④~⑧) + ⑨ 개명·정리 + 보관함 저장 간소화
 
 - **근거 스펙**: `docs/06_엔딩노트_유언/06-04_엔딩노트_보관함_실구현_기획서.md` §6.1(8개 섹션)·

@@ -139,6 +139,10 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
     gap: '0.5rem',
   };
   const prepSaveButtonStyle: React.CSSProperties = {
+    // display:'block' — 위 select들을 담은 .form-group이 인라인 배치로 바뀌면서(index.css
+    // .container .form-group:has(> select)), 버튼 기본값인 inline-block 그대로 두면 마지막
+    // select 옆 남는 공간에 버튼이 끼어 들어간다. 새 줄에서 시작하도록 명시적으로 고정.
+    display: 'block',
     marginTop: '1rem',
     fontSize: '0.9rem',
     backgroundColor: 'var(--secondary-color)',
