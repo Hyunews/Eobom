@@ -82,20 +82,17 @@
 
 ### 🔴 Supabase 설정 — Data API·RLS는 **끈다** (2026-08-20 결정)
 
-프로젝트 생성 시 Security 3항목을 **전부 OFF**로 두었다. 생성 화면의 경고
-*"Client libraries need Data API to query your database"* 는 **무시해도 된다.**
-
-| 항목 | 설정 | 근거 |
-|---|---|---|
-| Enable Data API | **OFF** | `supabase-js` 의존성 0건·코드 호출 0건(08-20 실측). DB 접근은 **Prisma 23곳 한 경로**뿐 |
-| Automatically expose new tables | **OFF** | Data API가 꺼져 있으면 무의미. Supabase 자체 권고도 OFF |
-| Enable automatic RLS | **OFF** | RLS는 Data API 접근을 막는 장치다. 그게 꺼져 있으면 보호 대상이 없고, Prisma는 소유자 롤이라 어차피 우회한다 |
+Security 3항목(**Data API · 자동 테이블 노출 · 자동 RLS**)을 **전부 OFF**로 두었다. 생성 화면의 경고
+*"Client libraries need Data API…"* 는 **무시해도 된다** — `supabase-js` 의존성·호출 0건(08-20 실측)이고
+DB 접근은 **Prisma 한 경로**뿐이다. RLS는 Data API를 막는 장치라 그게 꺼지면 보호 대상 자체가 없다.
 
 - **구조가 다르다**: 이어봄은 `브라우저 → Express → Prisma → Postgres`이고, Data API는
   `브라우저 → PostgREST → Postgres`다. 인증도 Passport+JWT 자체 구현이라 Supabase Auth를 안 쓴다.
 - ⚠️ **Data API를 켜면 공개 응답 화이트리스트가 통째로 우회된다** — `05-01` §4.1·`07-03` §5.3이
   일부러 뺀 `deceasedBirthDate`·암호화 계좌 필드까지 REST로 조회 가능해진다.
 - 🔴 **언젠가 Data API를 켜야 한다면 RLS를 먼저 켜라.** 순서가 반대면 테이블이 그대로 열린다.
+- ⚠️ 대시보드 로그의 `pg_pgrst_no_exposed_schemas does not exist`는 **정상**(08-27). Data API를 껐으니
+  PostgREST 노출 스키마가 0개라 나는 로그다. 🔴 **이걸 없애려고 Data API를 켜지 말 것.**
 
 ### 🔴 리전 = Seoul (변경 불가)
 
@@ -114,6 +111,14 @@
 - 주요 모델: `User`·`Facility`·`FacilityBooking`·`Partner`·`Lead` 등(전체는 `schema.prisma`)
 - `Facility` 실데이터 1,552건 적재됨 (서버 페이지네이션 브라우저 검증 완료)
 - ⚠️ 2026-08-05 마이그레이션 실수로 데이터 유실 사고 有. 스키마 변경 전 `pg_dump` 필수(→ `security.md` §6)
+- 🔵 **백업**: `powershell -File .harness/tools/backup-db.ps1`(08-27 신설 — pg_dump가 이 PC에 없어 Docker로 돈다).
+  `eobom/backend/backups/`에 `prod-`/`local-` 접두사로 저장(gitignore). 운영 백업엔 `.env`의
+  **`BACKUP_DATABASE_URL`** 필요 — `DIRECT_URL`은 로컬 Docker DB다.
+  🔴 **Supabase 접속 3종**: ✅ **Session pooler `aws-0-ap-northeast-2.pooler.supabase.com:5432`** /
+  Direct `db.[ref].supabase.co`는 **IPv6 전용**이라 Docker 해석 실패 / Transaction `:6543`은 pg_dump 불가.
+  🔴 pooler 유저명은 **`postgres.[ref]`** — `postgres`면 *"password authentication failed"* 가 떠
+  **원인이 비밀번호처럼 보인다**. 🔴 클라이언트 **`postgres:17-alpine`**(15·16은 version mismatch).
+  ⚠️ 비밀번호의 `#@/?%:` 는 퍼센트 인코딩(`#`는 뒤가 잘림). ⚠️ 같은 시크릿을 `.env`에 두 벌 두지 말 것.
 
 ## 5. 배포
 
@@ -130,14 +135,15 @@
 
 - 설정: 레포 루트 `render.yaml`(Blueprint), `eobom/backend`가 `rootDir`
 - 🔴 **리전 = `oregon`(미국). 백엔드와 DB가 태평양을 사이에 두고 있다**(08-21 실측):
-  `/api/health` ~165ms vs **DB 타는 API ~1,500ms** — 차이 1.3초가 왕복 비용이다.
-  ⚠️ 리전은 `render.yaml`의 `region:` 필드로만 정해지고(생성 화면에 없음) **생성 후 변경 불가**.
-  없으면 조용히 `oregon`이 된다 — 지금이 그 결과다.
-  🔴 **성능보다 국외이전이 크다** — `00-17` §3.3이 Supabase를 서울로 잡아 *"논점을 만들지 않으려"*
-  한 것이 **백엔드가 미국이라 무효**다. → `pending-approvals.md` 인프라 항목(오픈 블로커).
-  🔵 **08-21 개발자 판단: 싱가포르로 안 옮긴다** — 국내 전환 시 한 번에 설정.
+  `/api/health` ~165ms vs **DB 타는 API ~1,500ms**. ⚠️ 리전은 `render.yaml`의 `region:`으로만 정해지고
+  **생성 후 변경 불가** — 없으면 조용히 `oregon`이 된다.
+  🔴 **성능보다 국외이전이 크다** — `00-17` §3.3이 Supabase를 서울로 잡은 것이 **백엔드가 미국이라
+  무효**다(STT 음성도 미국을 먼저 거친다). → `pending-approvals.md` 인프라(오픈 블로커).
+  🔵 08-21 판단: 싱가포르로 안 옮기고 국내 전환 시 한 번에.
 - ⚠️ 무료 웹서비스는 **15분 슬립** — 첫 요청이 수십 초 걸린다(부고 링크 첫 방문자가 그대로 겪는다)
-- 🔴 `SETTLEMENT_ENCRYPTION_KEY`는 **로컬 `.env`와 같은 값**이어야 한다 — 다르면 기존 암호문 복호화 불가
+- 🔵 **정정(08-27)**: 암호화 키는 **로컬과 운영이 다른 값**이다(옛 지시 *"같은 값"* 은 폐기).
+  같으면 로컬 `.env` 유출 = 운영 데이터 유출. **운영 덤프를 로컬에서 못 여는 것이 정상**이고
+  그게 `security.md` §1을 강제한다. 🔴 `render.yaml` 주석도 같이 볼 것.
 - **배포 후 잔여**: (1)3사 콘솔 콜백 재등록 (2)Vercel `VITE_BACKEND_URL` + 재배포 (3)시설 시딩
   (4)이미지 스토리지 교체(아래)
 
@@ -149,11 +155,10 @@
 
 ## 6. 미구현 / 대기
 
-- **로컬 LAN(폰) OAuth**: 보류 — 동적IP 구현 완료, 백엔드 배포로 대체됨.
-- **제휴(`isPartner`) 배지 UI**: 필드는 있으나 최상단고정·VR게이팅 미구현.
-- **360° VR 뷰**: 파노라마 이미지 미확보로 비활성화(코드 제거됨).
-- **카카오 연결해제 웹훅**: 카카오 계정에서 직접 연동해제해도 DB 미반영 — 콘솔 경고 중(08-10).
-  `SocialAccount.unlinkedAt` 재사용, 요청 검증은 공식 문서 확인 후 착수.
+- **로컬 LAN(폰) OAuth**: 보류(백엔드 배포로 대체) · **제휴 배지 UI**: 필드만 있고 미구현 ·
+  **360° VR**: 파노라마 미확보로 비활성화.
+- **카카오 연결해제 웹훅**: 카카오에서 직접 해제해도 DB 미반영 — 콘솔 경고 중(08-10).
+  `SocialAccount.unlinkedAt` 재사용, 요청 검증은 공식 문서 확인 후.
 
 > 사람 승인 대기 항목(예: 가격비교 docs/13)은 여기 안 적는다 → `pending-approvals.md`가 정본.
 
