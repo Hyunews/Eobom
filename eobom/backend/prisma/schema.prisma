@@ -87,6 +87,7 @@ model FamilyDesignation {
 
   farewellMessages FarewellMessage[]            // docs 06-05 §6.2 — 이 수신자 앞으로 남긴 편지들
   endingNoteEntries EndingNoteEntry[]            // docs 06-04 §4.2 — 이 수신자를 지정한 엔딩노트 섹션. Phase 1은 항상 null(전원)이라 실질 데이터는 Phase 2부터
+  endingNoteGrants  EndingNoteGrant[]             // docs 06-04 §4.2·§10 Phase 2 — 이 가족에게 부여된 섹션별 열람 시점
 
   @@unique([userId, phoneHash])                 // 같은 사람을 두 번 지정하지 못하게
   @@index([userId, status])
@@ -642,6 +643,7 @@ model EndingNote {
 
   farewellMessages FarewellMessage[]
   entries          EndingNoteEntry[] // 06-04 §4.2 — 본문·암호문. 운영자 쿼리에 절대 포함하지 않는다(06-03 §3.1 A안)
+  grants           EndingNoteGrant[] // 06-04 §4.2·§10 Phase 2 — 누구에게 어떤 섹션을 언제 여는가
 
   @@index([userId, status])
 }
@@ -693,6 +695,30 @@ model EndingNoteEntry {
 
   @@unique([noteId, section]) // 섹션당 본문 1건 — upsert 대상
   @@index([noteId])
+}
+
+// 열람 시점 부여 — 06-04 §4.2·§7·§10 Phase 2. "누구에게(designation) · 어떤 섹션을 · 언제(timing)
+// 여는가"의 단위. EndingNoteEntry.releaseTiming(섹션의 기본 정책값)과는 별개로, 가족마다 다른
+// 시점을 줄 수 있다 — 예: 배우자는 장례 희망을 생전에, 다른 가족은 사후에만.
+model EndingNoteGrant {
+  id     String     @id @default(uuid()) // 고유 식별자(UUID)
+  noteId String // FK → EndingNote — 이 권한이 속한 엔딩노트(본인)
+  note   EndingNote @relation(fields: [noteId], references: [id], onDelete: Cascade)
+
+  designationId String // FK → FamilyDesignation — 누구에게
+  designation   FamilyDesignation @relation(fields: [designationId], references: [id], onDelete: Cascade)
+
+  section String // §6.1 코드 또는 ALL(모델 정의상 허용). 🔴 WILL_DRAFT(⑨)는 컨트롤러가 항상 거부한다(§7.4 모델 레벨 차단)
+  timing  String // IMMEDIATE|POSTMORTEM. 🔴 EMERGENCY는 Phase 3(응급 열람 확정) 전까지 발급하지 않는다(§13 #1)
+
+  revokedAt DateTime? // 🔴 철회 시각 — null이면 유효(§4.2 "한 번 준 권한을 되돌릴 수 없으면 안 된다")
+
+  createdAt DateTime @default(now()) // 최초 부여 일시
+  updatedAt DateTime @updatedAt // 최종 변경(재부여·철회) 일시
+
+  @@unique([noteId, designationId, section]) // 가족·섹션 조합당 권한 1건 — timing은 덮어써서 바꾼다
+  @@index([noteId])
+  @@index([designationId])
 }
 
 // ─────────────────────────────────────────────────────────────────

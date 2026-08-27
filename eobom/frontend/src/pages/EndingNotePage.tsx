@@ -18,6 +18,7 @@ import {
   Users,
   MapPin,
   HeartPulse,
+  UserPlus,
 } from 'lucide-react';
 import { NoteKeyIcon } from '../components/MenuIcons';
 import { BACKEND_URL } from '../config';
@@ -26,6 +27,9 @@ interface EndingNotePageProps {
   currentUser?: string | null;
   onOpenLogin?: () => void;
   setActiveTab?: (tab: string) => void;
+  // 06-04 §10 Phase 2 #6 — 가족이 0명이면 MyPageFamilyDesignation 모달을 그대로 재사용한다
+  // (FarewellMessagePage와 같은 진입점 패턴).
+  onOpenFamilyDesignation?: () => void;
 }
 
 // 06-04 §6.1-1·§4.2·§10 Phase 1 — 아코디언 전환 + 실제 저장. ①②④⑤⑥⑦⑧⑩(8개)는 아코디언,
@@ -66,6 +70,50 @@ const SECTIONS: SectionMeta[] = [
   { code: 'WILL_LOCATION', title: '유언장 소재 안내', icon: <MapPin color="var(--point-color)" /> },
   { code: 'ORGAN_DONATION', title: '장기·조직 기증 의향', icon: <HeartPulse color="var(--point-color)" /> },
 ];
+
+// §10 Phase 2 — 섹션별 공개 시점. 백엔드 endingNoteController.ts SECTION_ALLOWED_TIMINGS와
+// 동일 목록(§7.1·§13 #5) — EMERGENCY는 Phase 3 전까지 어디에도 없고, WILL_DRAFT는 아예 없다
+// (목록에 없는 섹션은 SectionTimingControl이 렌더링하지 않는다).
+const SECTION_ALLOWED_TIMINGS: Record<string, string[]> = {
+  LIFE_SUPPORT: ['POSTMORTEM'],
+  FUNERAL: ['IMMEDIATE', 'POSTMORTEM'],
+  ASSET: ['POSTMORTEM'],
+  DIGITAL_ACCOUNTS: ['POSTMORTEM'],
+  INSURANCE: ['POSTMORTEM'],
+  CONTACTS: ['IMMEDIATE', 'POSTMORTEM'],
+  WILL_LOCATION: ['POSTMORTEM'],
+  ORGAN_DONATION: ['POSTMORTEM'],
+};
+
+const TIMING_LABEL: Record<string, string> = {
+  IMMEDIATE: '지금부터 공개(생전)',
+  POSTMORTEM: '사후에만 공개',
+};
+
+const RELATIONSHIP_LABEL: Record<string, string> = {
+  SPOUSE: '배우자',
+  CHILD: '자녀',
+  PARENT: '부모',
+  SIBLING: '형제자매',
+  OTHER: '기타',
+};
+
+interface FamilyItem {
+  id: string;
+  name: string;
+  relationship: string;
+  relationshipEtc: string | null;
+  status: string;
+}
+
+interface GrantItem {
+  id: string;
+  designationId: string;
+  section: string;
+  timing: string;
+  revokedAt: string | null;
+  updatedAt: string;
+}
 
 const cardStyle: React.CSSProperties = {
   backgroundColor: 'var(--card-bg)',
@@ -122,7 +170,54 @@ const AccordionSection: React.FC<{
   </div>
 );
 
-export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onOpenLogin, setActiveTab }) => {
+// §10 Phase 2 — 섹션별 공개 시점 UI. WILL_DRAFT처럼 허용 timing이 없는 섹션에서는 아무것도
+// 그리지 않는다(§7.4 모델 레벨 차단이 UI에도 그대로 반영). 🔴 모듈 최상위(AccordionSection과
+// 같은 이유 — 렌더 함수 안에 두면 리렌더마다 재마운트돼 select 포커스가 끊긴다).
+const SectionTimingControl: React.FC<{
+  section: string;
+  family: FamilyItem[];
+  grants: GrantItem[];
+  onChange: (designationId: string, timing: string | null, grantId?: string) => void;
+}> = ({ section, family, grants, onChange }) => {
+  const allowed = SECTION_ALLOWED_TIMINGS[section];
+  if (!allowed || family.length === 0) return null;
+
+  return (
+    <div style={{ marginTop: '1.25rem', paddingTop: '1rem', borderTop: '1px solid var(--border-color)' }}>
+      <div style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--primary-color)', marginBottom: '0.6rem' }}>
+        가족 공개 시점
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+        {family.map((f) => {
+          const activeGrant = grants.find((g) => g.section === section && g.designationId === f.id && !g.revokedAt);
+          return (
+            <div key={f.id} style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', fontSize: '0.85rem', flexWrap: 'wrap' }}>
+              <span style={{ minWidth: '120px', color: 'var(--text-main)' }}>
+                {f.name} ({RELATIONSHIP_LABEL[f.relationship] || f.relationship}
+                {f.relationship === 'OTHER' && f.relationshipEtc ? ` · ${f.relationshipEtc}` : ''})
+              </span>
+              <select
+                value={activeGrant?.timing || ''}
+                onChange={(e) => onChange(f.id, e.target.value || null, activeGrant?.id)}
+                className="form-select"
+                style={{ height: '38px', width: '220px', flexShrink: 0 }}
+              >
+                <option value="">비공개</option>
+                {allowed.map((t) => (
+                  <option key={t} value={t}>
+                    {TIMING_LABEL[t]}
+                  </option>
+                ))}
+              </select>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
+
+export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onOpenLogin, setActiveTab, onOpenFamilyDesignation }) => {
   const token = currentUser ? sessionStorage.getItem('k_ending_token') : null;
 
   // §5 — 작성 시작 시점 동의(06-03). null이면 아직 동의 전 — 서버가 GET으로 내려주는 값이 정본이고,
@@ -138,6 +233,11 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
   // A1 — 아코디언은 한 번에 하나만 펼친다.
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
   const consentRef = useRef<HTMLDivElement>(null);
+
+  // §10 Phase 2 — 공개 시점 지정 대상(ACCEPTED만 — 대기중인 초대에는 권한을 줄 수 없다, 서버도
+  // 같은 규칙으로 한 번 더 막는다)과 현재 권한 목록.
+  const [family, setFamily] = useState<FamilyItem[]>([]);
+  const [grants, setGrants] = useState<GrantItem[]>([]);
 
   const [lifeSupport, setLifeSupport] = useState<string>('연명의료 중단 희망');
   const [funeralType, setFuneralType] = useState<string>('가족장 (수목장)');
@@ -158,41 +258,54 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
   const NOT_A_WILL_NOTICE =
     '이 화면에서 만든 글은 유언장이 아닙니다. 자필증서 유언은 반드시 손으로 직접 쓰셔야 하며, 컴퓨터로 작성한 문서는 효력이 없습니다.';
 
-  // §10 Phase 1 — 조회. 서버가 policyAgreedAt·sectionState·문구·본문 전부를 내려준다(재로그인 복원).
+  // §10 Phase 1·2 — 조회. 서버가 policyAgreedAt·sectionState·문구·본문 전부를 내려준다(재로그인
+  // 복원). 가족 목록·권한 목록도 같이 받아 섹션별 공개 시점 UI를 채운다.
   useEffect(() => {
     if (!currentUser || !token) {
       setNoteLoaded(true);
       return;
     }
-    fetch(`${BACKEND_URL}/api/ending-note`, { headers: { Authorization: `Bearer ${token}` } })
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.status !== 'success') return;
-        const d = data.data;
-        setPolicyAgreedAt(d.policyAgreedAt);
-        setPolicyNotice(d.policyNotice || '');
-        setSectionState(d.sectionState || {});
+    Promise.all([
+      fetch(`${BACKEND_URL}/api/ending-note`, { headers: { Authorization: `Bearer ${token}` } }).then((r) => r.json()),
+      fetch(`${BACKEND_URL}/api/family-designations`, { headers: { Authorization: `Bearer ${token}` } }).then((r) => r.json()),
+      fetch(`${BACKEND_URL}/api/ending-note/grants`, { headers: { Authorization: `Bearer ${token}` } }).then((r) => r.json()),
+    ])
+      .then(([noteData, familyData, grantsData]) => {
+        if (noteData.status === 'success') {
+          const d = noteData.data;
+          setPolicyAgreedAt(d.policyAgreedAt);
+          setPolicyNotice(d.policyNotice || '');
+          setSectionState(d.sectionState || {});
 
-        const bySection: Record<string, any> = {};
-        (d.entries || []).forEach((e: { section: string; value: unknown }) => {
-          bySection[e.section] = e.value;
-        });
+          const bySection: Record<string, any> = {};
+          (d.entries || []).forEach((e: { section: string; value: unknown }) => {
+            bySection[e.section] = e.value;
+          });
 
-        if (bySection.LIFE_SUPPORT?.lifeSupport) setLifeSupport(bySection.LIFE_SUPPORT.lifeSupport);
-        if (bySection.FUNERAL?.funeralType) setFuneralType(bySection.FUNERAL.funeralType);
-        if (bySection.ASSET) setAssetNote(bySection.ASSET.assetNote || '');
-        if (bySection.DIGITAL_ACCOUNTS) setDigitalPrefs(bySection.DIGITAL_ACCOUNTS.digitalPrefs || {});
-        if (bySection.INSURANCE) setInsurance(bySection.INSURANCE.insurance || {});
-        if (bySection.CONTACTS) {
-          setContactsNote(bySection.CONTACTS.contactsNote || '');
-          setPetCaretaker(bySection.CONTACTS.petCaretaker || '');
+          if (bySection.LIFE_SUPPORT?.lifeSupport) setLifeSupport(bySection.LIFE_SUPPORT.lifeSupport);
+          if (bySection.FUNERAL?.funeralType) setFuneralType(bySection.FUNERAL.funeralType);
+          if (bySection.ASSET) setAssetNote(bySection.ASSET.assetNote || '');
+          if (bySection.DIGITAL_ACCOUNTS) setDigitalPrefs(bySection.DIGITAL_ACCOUNTS.digitalPrefs || {});
+          if (bySection.INSURANCE) setInsurance(bySection.INSURANCE.insurance || {});
+          if (bySection.CONTACTS) {
+            setContactsNote(bySection.CONTACTS.contactsNote || '');
+            setPetCaretaker(bySection.CONTACTS.petCaretaker || '');
+          }
+          if (bySection.WILL_LOCATION) setWillLocation(bySection.WILL_LOCATION.willLocation || '');
+          if (bySection.ORGAN_DONATION) {
+            setDonationStatus(bySection.ORGAN_DONATION.donationStatus || '모름');
+            setDonationDate(bySection.ORGAN_DONATION.donationDate || '');
+          }
+          if (bySection.WILL_DRAFT) setDraftText(bySection.WILL_DRAFT.draftText || '');
         }
-        if (bySection.WILL_LOCATION) setWillLocation(bySection.WILL_LOCATION.willLocation || '');
-        if (bySection.ORGAN_DONATION) {
-          setDonationStatus(bySection.ORGAN_DONATION.donationStatus || '모름');
-          setDonationDate(bySection.ORGAN_DONATION.donationDate || '');
+        // §10 Phase 2 #6 — 권한을 줄 수 있는 대상은 ACCEPTED뿐(서버도 upsertEndingNoteGrant에서
+        // 같은 규칙으로 다시 막는다). PENDING/DECLINED/EXPIRED를 섞으면 눌러도 되는 것처럼 보인다.
+        if (familyData.status === 'success' && Array.isArray(familyData.data)) {
+          setFamily(familyData.data.filter((f: FamilyItem) => f.status === 'ACCEPTED'));
         }
-        if (bySection.WILL_DRAFT) setDraftText(bySection.WILL_DRAFT.draftText || '');
+        if (grantsData.status === 'success' && Array.isArray(grantsData.data)) {
+          setGrants(grantsData.data);
+        }
       })
       .catch(() => {})
       .finally(() => setNoteLoaded(true));
@@ -234,6 +347,36 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
         }
       } catch {
         setSavingState((s) => ({ ...s, [section]: 'error' }));
+      }
+    },
+    [token]
+  );
+
+  // §10 Phase 2 — 공개 시점 변경. timing이 null이면 철회, 아니면 upsert. 성공 후 권한 목록을
+  // 다시 조회해 동기화한다(건수가 적어 낙관적 업데이트 없이도 충분히 빠르다 — 어긋난 채로
+  // 남는 위험을 없애는 쪽을 택함).
+  const handleGrantChange = useCallback(
+    async (section: string, designationId: string, timing: string | null, grantId?: string) => {
+      if (!token) return;
+      try {
+        if (timing === null) {
+          if (!grantId) return; // 이미 비공개라 철회할 것이 없음
+          await fetch(`${BACKEND_URL}/api/ending-note/grants/${grantId}/revoke`, {
+            method: 'PATCH',
+            headers: { Authorization: `Bearer ${token}` },
+          });
+        } else {
+          await fetch(`${BACKEND_URL}/api/ending-note/grants`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+            body: JSON.stringify({ designationId, section, timing }),
+          });
+        }
+        const res = await fetch(`${BACKEND_URL}/api/ending-note/grants`, { headers: { Authorization: `Bearer ${token}` } });
+        const data = await res.json();
+        if (data.status === 'success') setGrants(data.data);
+      } catch {
+        // 실패해도 조용히 둔다 — select는 grants state 기반이라 다음 조회 때 실제 상태로 되돌아온다.
       }
     },
     [token]
@@ -371,6 +514,25 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
           )}
         </div>
 
+        {/* §10 Phase 2 #6 — 가족이 0명이면 섹션마다 반복해서 안내하지 않고 여기 한 번만 둔다. */}
+        {policyAgreedAt && noteLoaded && family.length === 0 && (
+          <div style={{ ...cardStyle, padding: '1rem 1.25rem', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.6rem', fontSize: '0.9rem', color: 'var(--text-main)' }}>
+            <UserPlus size={18} color="var(--point-color)" style={{ flexShrink: 0 }} />
+            <span>
+              아직 수락된 가족이 없어 섹션을 생전에 공개할 대상을 지정할 수 없습니다.{' '}
+              {onOpenFamilyDesignation && (
+                <button
+                  type="button"
+                  onClick={onOpenFamilyDesignation}
+                  style={{ background: 'none', border: 'none', padding: 0, color: 'var(--primary-color)', fontWeight: 700, textDecoration: 'underline', cursor: 'pointer', fontSize: 'inherit' }}
+                >
+                  가족 지정하기 →
+                </button>
+              )}
+            </span>
+          </div>
+        )}
+
         <div className="ending-note-layout">
           {/* A3 — 데스크톱 좌측 섹션 목차 고정. 모바일은 CSS로 숨긴다(index.css). */}
           <aside className="ending-note-toc">
@@ -411,6 +573,12 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
                   <option value="자녀 판단에 위임">가족/자녀의 판단에 위임</option>
                 </select>
               </div>
+              <SectionTimingControl
+                section="LIFE_SUPPORT"
+                family={family}
+                grants={grants}
+                onChange={(designationId, timing, grantId) => handleGrantChange('LIFE_SUPPORT', designationId, timing, grantId)}
+              />
             </AccordionSection>
 
             {/* ② 장례 희망 */}
@@ -430,6 +598,12 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
                   <option value="조용한 검소장">최소 인원 검소장</option>
                 </select>
               </div>
+              <SectionTimingControl
+                section="FUNERAL"
+                family={family}
+                grants={grants}
+                onChange={(designationId, timing, grantId) => handleGrantChange('FUNERAL', designationId, timing, grantId)}
+              />
             </AccordionSection>
 
             {/* ④ 자산 소재 안내 */}
@@ -456,6 +630,12 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
                   placeholder="예: 국민은행에 주거래 계좌가 있고, 통장은 안방 서랍 두 번째 칸에 있습니다. 비밀번호는 적지 마세요 — 유족이 서류로 조회할 수 있습니다."
                 />
               </div>
+              <SectionTimingControl
+                section="ASSET"
+                family={family}
+                grants={grants}
+                onChange={(designationId, timing, grantId) => handleGrantChange('ASSET', designationId, timing, grantId)}
+              />
             </AccordionSection>
 
             {/* ⑤ 디지털 계정 처리 의향 */}
@@ -487,6 +667,12 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
                   </select>
                 </div>
               ))}
+              <SectionTimingControl
+                section="DIGITAL_ACCOUNTS"
+                family={family}
+                grants={grants}
+                onChange={(designationId, timing, grantId) => handleGrantChange('DIGITAL_ACCOUNTS', designationId, timing, grantId)}
+              />
             </AccordionSection>
 
             {/* ⑥ 보험·연금 가입 사실 */}
@@ -534,6 +720,12 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
                   )}
                 </div>
               ))}
+              <SectionTimingControl
+                section="INSURANCE"
+                family={family}
+                grants={grants}
+                onChange={(designationId, timing, grantId) => handleGrantChange('INSURANCE', designationId, timing, grantId)}
+              />
             </AccordionSection>
 
             {/* ⑦ 중요 연락처·반려동물 */}
@@ -566,6 +758,12 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
                   placeholder="예: 막내 여동생 김OO"
                 />
               </div>
+              <SectionTimingControl
+                section="CONTACTS"
+                family={family}
+                grants={grants}
+                onChange={(designationId, timing, grantId) => handleGrantChange('CONTACTS', designationId, timing, grantId)}
+              />
             </AccordionSection>
 
             {/* ⑧ 유언장 소재 안내 */}
@@ -590,6 +788,12 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
               <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
                 🔴 이어봄은 유언장 원본·사본을 보관하지 않습니다. 보관 장소만 남겨두세요.
               </p>
+              <SectionTimingControl
+                section="WILL_LOCATION"
+                family={family}
+                grants={grants}
+                onChange={(designationId, timing, grantId) => handleGrantChange('WILL_LOCATION', designationId, timing, grantId)}
+              />
             </AccordionSection>
 
             {/* ⑩ 장기·조직 기증 의향 */}
@@ -620,6 +824,12 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
                   <input type="date" value={donationDate} onChange={(e) => setDonationDate(e.target.value)} className="form-input" />
                 </div>
               )}
+              <SectionTimingControl
+                section="ORGAN_DONATION"
+                family={family}
+                grants={grants}
+                onChange={(designationId, timing, grantId) => handleGrantChange('ORGAN_DONATION', designationId, timing, grantId)}
+              />
             </AccordionSection>
           </div>
         </div>

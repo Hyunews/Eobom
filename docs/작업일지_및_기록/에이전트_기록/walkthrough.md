@@ -6,6 +6,73 @@
 
 ---
 
+## 2026-08-27 (83) | [Sonnet] 엔딩노트 Phase 2 — EndingNoteGrant + 섹션별 공개시점 UI + 가족 조회 API
+
+- **근거 스펙**: `docs/06_엔딩노트_유언/06-04_엔딩노트_보관함_실구현_기획서.md` §10 Phase 2(항목
+  5·6·7)·§7.1(3단 매트릭스)·§7.4(격리 3층)·§13 #1(응급 열람 Phase 3 연기)·§13 #5(즉시 공유는
+  ②⑦만). 사용자 직접 지시 — "범위: EndingNoteGrant 모델 신설 + 섹션별 공개시점 UI + 가족 조회 API."
+- **건드린 파일**:
+  - `eobom/backend/prisma/schema.prisma` — `EndingNoteGrant` 모델 신설(`noteId`+`designationId`+
+    `section` unique, `timing`·`revokedAt`), `EndingNote.grants`·`FamilyDesignation.endingNoteGrants`
+    역방향 관계 추가. 마이그레이션 `20260827055937_ending_note_grant_phase2`(CREATE TABLE만).
+  - `eobom/backend/src/controllers/endingNoteController.ts` — `SECTION_ALLOWED_TIMINGS`(§7.1+§13#5
+    정책 맵) 신설, `listEndingNoteGrants`·`upsertEndingNoteGrant`·`revokeEndingNoteGrant`·
+    `getFamilyVisibleEndingNotes` 4개 함수 추가.
+  - `eobom/backend/src/routes/endingNoteRoutes.ts` — `GET/PUT /grants`·`PATCH /grants/:id/revoke`·
+    `GET /family-view` 라우트 추가.
+  - `eobom/frontend/src/pages/EndingNotePage.tsx` — `SectionTimingControl`(모듈 최상위, 재마운트
+    버그 재발 방지 원칙 동일 적용) 신설해 ①②④⑤⑥⑦⑧⑩ 8개 섹션 각각에 배선, `family`·`grants`
+    state + fetch 추가, 가족 0명일 때 안내 배너(`onOpenFamilyDesignation` 진입점).
+  - `eobom/frontend/src/App.tsx` — `/ending-note` 라우트에 `onOpenFamilyDesignation` prop 연결
+    (`FarewellMessagePage`와 동일 패턴).
+  - `docs/00_핵심플랫폼/00-05_DB_요구사항_및_테이블_사전.md` — `generate-db-doc.js` 재생성.
+  - `eobom/backend/backups/prod-20260827-145756.dump` — 스키마 변경 전 운영 DB 백업(457.1KB,
+    `.harness/tools/backup-db.ps1`, `.gitignore` 대상이라 커밋 안 됨).
+- **결과**:
+  - `npx tsc --noEmit`(frontend·backend) 통과, backend `npm run build` 통과.
+  - **실제 서버로 전 시나리오 검증**(카카오 테스트회원=본인, 구글 테스트회원=가족, 실제 초대
+    발급→수락 흐름까지 API로 실행): ①(LIFE_SUPPORT)에 `IMMEDIATE` 시도 → 400 거부(§13#5 "②⑦만"
+    확인) · ②(FUNERAL)에 `EMERGENCY` 시도 → 400 거부(§13#1 확인) · ⑨(WILL_DRAFT)에 grant 시도 →
+    400 거부(§7.4 모델 레벨 차단 확인) · ①에 `POSTMORTEM`·②에 `IMMEDIATE` 정상 부여 → 200.
+    가족 계정으로 `GET /family-view` 호출 → **②(IMMEDIATE)만 응답에 존재하고 ①(POSTMORTEM)은
+    entries 배열에 키 자체가 없음**(완료 판정 문구 "IMMEDIATE 섹션만 보이고 POSTMORTEM 섹션은
+    제목조차 응답에 없다" 그대로 재현). ② grant 철회 → family-view 재조회 시 entries 빈 배열로
+    사라짐(철회 경로 확인, §4.2).
+  - `generate-db-doc.js` "설명 없음" 25개로 기존과 동일(신규 컬럼 전부 주석 보강).
+  - `harness-doctor.sh` 143/143 통과.
+- **편차**:
+  1. 🔴 **`familyDesignationController.ts` 불변식 3과의 긴장 관계** — 그 파일 머리말은 "내가
+     누군가에게 지정됐는지 조회하는 API는 만들지 않는다"고 명시한다. `getFamilyVisibleEndingNotes`는
+     `acceptedUserId`로 `FamilyDesignation`을 역질의하므로 표면적으로 같은 모양이다. 판단해서
+     진행했다 — 그 불변식은 §9.1(초대 발급~수락 전) 단계에서 "추측 불가 토큰으로만 접근"을
+     지키기 위한 것이고, 여기는 이미 `acceptedAt`으로 동의가 끝난(status=ACCEPTED) 관계에서
+     부여받은 콘텐츠를 열람하는 별개 동작이라 봤다. **이 판단은 사람 확인이 필요하다** —
+     `docs/`는 고치지 않았고, `endingNoteController.ts`에도 같은 메모를 남겨뒀다.
+  2. §13 #5는 즉시 공유를 "②⑦만"이라 했는데, §7.1 표 자체는 ①도 즉시(생전) 🟡선택으로 표시한다.
+     확정 결정(§13 #5)을 표(§7.1)보다 우선해 ①은 `POSTMORTEM`만 허용했다.
+  3. `EndingNoteGrant.section`에 모델 정의상 `ALL`이 허용되지만, 이번 API·UI는 개별 섹션만
+     받는다 — `WILL_DRAFT`를 우회해 전체 포함시키는 경로를 만들지 않기 위해 의도적으로 미구현.
+     필요해지면 그때 "WILL_DRAFT 제외 전체"로 해석하는 로직을 추가하면 된다.
+  4. §7.3 "본인용 열람 이력 노출"은 이번 범위에 포함하지 않았다 — `EndingNoteLog`(Phase 3)가
+     있어야 "언제 열람했는지"를 알 수 있는데, 이번 지시 범위(모델+UI+API 3가지)에 로그는
+     없었다.
+- **다음 에이전트가 알아야 할 것**:
+  - 🔴 **로컬 dev DB 사고**: 검증 후 정리 중 `familyDesignation.deleteMany({ where: { userId } })`로
+    지운다는 게 이번에 만든 테스트 행(1건) 외에 **기존에 있던 가족 지정 2건까지 같이 지워졌다**
+    (해당 계정: 카카오 테스트회원). walkthrough(74) "가족 연결 실기기 확인 완료"의 실데이터였을
+    가능성이 있다 — 복구 불가(로컬 DB라 별도 백업 없었음). 사용자에게 즉시 보고함. **앞으로
+    테스트 정리는 반드시 `id`로 지정 삭제할 것, `userId` 같은 넓은 조건 금지.**
+  - `SECTION_ALLOWED_TIMINGS`는 프론트(`EndingNotePage.tsx`)·백엔드(`endingNoteController.ts`)
+    양쪽에 동일 내용으로 중복 정의돼 있다(프로젝트 기존 관례 — `DIGITAL_ACCOUNT_CHOICES` 등과
+    같은 패턴). 정책이 바뀌면 두 곳 다 고쳐야 한다.
+  - Phase 3(개봉 절차·`EndingNoteLog`·응급 열람·04·07 연결)는 여전히 착수 전 — §10 그대로.
+  - `getFamilyVisibleEndingNotes`가 실제로 쓰이는 프론트 화면(가족용 열람 페이지)은 아직 없다 —
+    이번 지시가 "가족 조회 API"까지만 명시했고 화면은 요청되지 않아 만들지 않았다.
+
+<!-- Gemini 판정 대기 -->
+
+---
+
 ## 2026-08-27 (82) | [Sonnet] 엔딩노트 아코디언 전환 + Phase 1 저장(EndingNoteEntry) + 06 전용 암호화 키 분리
 
 - **근거 스펙**: `docs/06_엔딩노트_유언/06-04_엔딩노트_보관함_실구현_기획서.md` §6.1-1(아코디언)·

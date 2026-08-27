@@ -371,7 +371,10 @@ function AppShell() {
             <Route path="/facility" element={<FacilityPage {...authProps} />} />
             <Route path="/counseling" element={<CounselingPage {...authProps} />} />
             <Route path="/digital-estate" element={<DigitalEstatePage {...authProps} />} />
-            <Route path="/ending-note" element={<EndingNotePage {...authProps} />} />
+            <Route
+              path="/ending-note"
+              element={<EndingNotePage {...authProps} onOpenFamilyDesignation={() => setIsFamilyDesignationOpen(true)} />}
+            />
             <Route
               path="/farewell-messages"
               element={<FarewellMessagePage {...authProps} onOpenFamilyDesignation={() => setIsFamilyDesignationOpen(true)} />}

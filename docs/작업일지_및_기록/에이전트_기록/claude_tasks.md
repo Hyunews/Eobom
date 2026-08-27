@@ -5,6 +5,33 @@
 
 ---
 
+## 2026-08-27 (22) — 엔딩노트 Phase 2 구현 중 삽질, 특히 삭제 사고 `[Sonnet]`
+
+**🔴 테스트 정리 중 실수로 기존 데이터 삭제**: Phase 2 검증(가족 초대→수락→grant→family-view
+전체 플로우를 실 서버로 돌림)을 마친 뒤 테스트 데이터를 지우면서
+`prisma.familyDesignation.deleteMany({ where: { userId: OWNER_ID } })`를 썼다. 이번에 만든 건
+1건뿐인데 실제로는 3건이 삭제됐다 — `카카오 테스트회원` 계정에 **이전부터 있던 가족 지정 2건**이
+같이 지워진 것. `deleteMany` 호출 직후 반환된 `{count: 3}`을 보고서야 알아챘다(먼저 `count`를
+확인하지 않고 성공만 확인했다면 놓쳤을 것). `familyDesignation.findMany()`로 전체를 다시 조회해
+남은 게 1건(다른 계정 소유)뿐임을 확인 → 사용자에게 즉시 보고. **교훈**: Phase 1 때 `EndingNote`를
+같은 방식(`where: { userId }`)으로 지운 건 안전했다(그 계정에 EndingNote가 아예 없었으니까) —
+이번엔 그 판단을 다른 모델(`FamilyDesignation`)에 그대로 옮겨 적용한 게 문제였다. **모델마다
+"이 계정에 내가 만든 것 말고 이미 뭐가 있는지"를 따로 확인해야 한다** — 방금 만든 게 몇 건인지
+알고 있다면 `deleteMany`가 아니라 **그 id들만 배열로 넘겨 지워야** 안전하다.
+
+**가족 초대 흐름을 API로 통째로 재현**: Grant 검증에는 실제로 수락된(ACCEPTED) 가족이 필요해서,
+`POST /api/family-designations` → `POST .../invite` → (다른 유저 토큰으로) `POST
+/invite/:token/accept`까지 3단계를 스크립트 하나에서 순서대로 호출했다. 성함 대조
+(`acceptFamilyInvite`가 `FamilyDesignation.name`과 body의 `name`을 비교)를 몰랐다면 400을
+받고 헤맸을 텐데, 컨트롤러 코드를 먼저 읽어둬서 바로 맞는 이름을 넣었다.
+
+**정책 위반 케이스를 먼저 테스트**: grant API를 만들고 나서 "정상 케이스"보다 "거부돼야 하는
+케이스"부터 스크립트에 넣었다(①에 IMMEDIATE, ②에 EMERGENCY, ⑨에 아무 timing). 전부 400이
+나오는 걸 먼저 확인한 다음에 정상 케이스를 시도 — 검증 순서를 이렇게 잡으니 "그냥 다 통과되는
+게 아닌가"라는 의심을 먼저 지울 수 있어서 이후 정상 케이스 통과가 더 믿을 만했다.
+
+---
+
 ## 2026-08-27 (21) — 엔딩노트 Phase 1 구현 중 삽질 `[Sonnet]`
 
 **Prisma generate EPERM 락**: 스키마 수정 후 `npx prisma generate`가
