@@ -92,7 +92,9 @@ echo
 echo "2. 조건부 로드 파일"
 # 2026-08-25: memory/backlog.md 추가 — context.md를 3KB로 되돌리려고 진행 중 상세를 옮긴 곳.
 # 부팅에서 빠졌으니 조건부 예산 안에 들어와야 한다(안 재면 여기로 다시 살이 찐다).
-for f in roles.md security.md done.md systems.md record.md memory/backlog.md; do
+# 2026-08-27: db-safety.md 추가 — security.md §6이었으나 트리거를 "스키마 변경 전"에서
+# "DB에 쓰는 명령 전"으로 넓히자 주제가 갈려 분리했다. 데이터 유실 2회(08-05·08-27)가 근거.
+for f in roles.md security.md done.md systems.md record.md db-safety.md memory/backlog.md; do
   CHECKS=$((CHECKS + 1))
   # 2026-08-26 예산 정정 — roles.md 8→10KB · systems.md 6→12KB. AGENTS.md §9 순서대로
   # **내용부터 봤고, 옮길 곳이 없어서** 올렸다. 근거는 "6KB = 단일 주제"라는 위 전제가

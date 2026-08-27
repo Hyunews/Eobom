@@ -15,7 +15,7 @@
 | 2 | `.harness/memory/pending-approvals.md` | **사람 승인 대기 목록. 여기 있는 건 착수 금지.** `context.md`를 통째로 새로 써도 이 파일은 별도라 안 지워진다 — 그게 존재 이유. |
 | 3 | `.harness/AGENTS.md` (이 파일) | 행동 규칙 + 아래 조건부 로드 표 |
 
-**부팅 파일 합계 15KB를 넘기지 않는다**(2026-08-26 상향 — 옛 11KB는 루트 `CLAUDE.md`가 없던 시절 숫자라 도달 불가였다. 근거는 `harness-doctor.sh` §1 주석). 넘으면 `tools/harness-doctor.sh`가 실패시킨다 — 부팅이 무거워지면 매 세션 비용이 되기 때문.
+**부팅 파일 합계 15KB를 넘기지 않는다**(근거는 `harness-doctor.sh` §1 주석). 넘으면 doctor가 실패시킨다 — 부팅이 무거워지면 매 세션 비용이 되기 때문.
 🔴 **예산을 올리기 전에 §9 순서를 지킨다** — 내용을 먼저 쳐내고, 그래도 안 되면 *무엇을 어디로 옮겼는지*를 doctor 주석에 남긴 뒤에 올린다.
 `pending-approvals.md`는 사람만 항목을 지운다(승인/반려 의사를 밝혔을 때). 에이전트가 스스로 판단해서 지우지 않는다.
 
@@ -25,6 +25,7 @@
 |---|---|
 | 🔴 **내 소유 영역 밖 파일을 쓰기 직전**(Opus가 `eobom/`, Sonnet이 `docs/`) · 에이전트 전환 | `.harness/roles.md` |
 | 개인정보·시크릿·외부 발행(배포/공개) 건드릴 때 | `.harness/security.md` |
+| 🔴 **DB에 쓰는 명령을 돌리기 직전** — `deleteMany`·`updateMany`·`migrate`·`db push`·정리 스크립트·시드 | `.harness/db-safety.md` |
 | 작업을 "끝났다"고 선언하기 직전 | `.harness/done.md` |
 | `walkthrough.md`·일지에 기록을 남길 때 | `.harness/record.md` |
 | 외부 연동(OAuth·지도·공공데이터·DB·배포) 건드릴 때 | `.harness/systems.md` |
@@ -59,10 +60,9 @@ PLAN → CONFIRM → CODE/WRITE → SAVE → UPDATE
 | ↳ 🔴 **git 커밋 제외**(2026-08-20, 로컬 전용) — 근거·주의는 `roles.md` §1-1 | | |
 | `.harness/` | Claude(Opus·Sonnet 공용) | Gemini |
 | `assets/` | 사람 | 둘 다 |
-
-🔴 **`docs/`와 `eobom/`은 같은 `Claude`가 아니다.** **Opus는 코드를 짜지 않고, Sonnet은 `docs/`를
-고치지 않는다.** 강제 장치가 없으니 표가 곧 방어선이다 → `roles.md` §1-1.
 | `docs/작업일지_및_기록/` | **파일별로 나뉨** → `roles.md` §1-2 | |
+
+🔴 **`docs/`와 `eobom/`은 같은 `Claude`가 아니다** — 본문은 루트 `CLAUDE.md`(자동 로드) · `roles.md` §1-1.
 
 기록 폴더는 양쪽 다 써야 하므로 통째로 한쪽에 주지 않는다. 각자 자기 로그(`claude_tasks.md` / `gemini_tasks.md`)를 쓰고, 일지는 덧붙이기 전용으로 공유한다.
 

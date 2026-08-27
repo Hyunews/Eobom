@@ -110,7 +110,8 @@ DB 접근은 **Prisma 한 경로**뿐이다. RLS는 Data API를 막는 장치라
 
 - 주요 모델: `User`·`Facility`·`FacilityBooking`·`Partner`·`Lead` 등(전체는 `schema.prisma`)
 - `Facility` 실데이터 1,552건 적재됨 (서버 페이지네이션 브라우저 검증 완료)
-- ⚠️ 2026-08-05 마이그레이션 실수로 데이터 유실 사고 有. 스키마 변경 전 `pg_dump` 필수(→ `security.md` §6)
+- 🔴 **데이터 유실 2회**(08-05 마이그레이션 · 08-27 정리 스크립트). **DB에 쓰기 전 백업이 규칙이며
+  스키마 변경만이 아니다** — 트리거·금지패턴·순서는 **`db-safety.md`가 정본**
 - 🔵 **백업**: `powershell -File .harness/tools/backup-db.ps1`(08-27 신설 — pg_dump가 이 PC에 없어 Docker로 돈다).
   `eobom/backend/backups/`에 `prod-`/`local-` 접두사로 저장(gitignore). 운영 백업엔 `.env`의
   **`BACKUP_DATABASE_URL`** 필요 — `DIRECT_URL`은 로컬 Docker DB다.
