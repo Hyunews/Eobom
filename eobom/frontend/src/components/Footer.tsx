@@ -36,7 +36,7 @@ export const Footer: React.FC = () => {
       >
         {/* 열 1: 플랫폼 소개 — Header.tsx와 같은 밝은 배경용 심볼(variant="symbol")로 통일 */}
         <div>
-          <div style={{ marginBottom: '1rem' }}>
+          <div style={{ marginBottom: '0rem' }}>
             <EobomLogo variant="symbol" height={34} />
           </div>
           <p style={{ fontSize: '0.88rem', lineHeight: 1.7, color: 'var(--text-muted)', margin: 0 }}>
