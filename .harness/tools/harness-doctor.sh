@@ -19,13 +19,19 @@ ROOT="$(cd "$HARNESS/.." && pwd)"
 ISSUES=0
 CHECKS=0
 
-red()   { printf '\033[31m%s\033[0m\n' "$1"; }
-green() { printf '\033[32m%s\033[0m\n' "$1"; }
-gray()  { printf '\033[90m%s\033[0m\n' "$1"; }
+red()    { printf '\033[31m%s\033[0m\n' "$1"; }
+green()  { printf '\033[32m%s\033[0m\n' "$1"; }
+gray()   { printf '\033[90m%s\033[0m\n' "$1"; }
+yellow() { printf '\033[33m%s\033[0m\n' "$1"; }
 
 fail() { red "  🔴 $1"; ISSUES=$((ISSUES + 1)); }
 ok()   { green "  🟢 $1"; }
 note() { gray "  ⚪ $1"; }
+# 🟡 warn — 사람이 확인할 것이 있으나 **틀렸다고 단정할 수 없는** 경우. ISSUES를 올리지 않으므로
+# 종료코드가 0으로 남는다. 2026-08-27 신설(§10 소유권 검사).
+#   🔴 남용 금지: 판정이 가능한 검사는 fail로 간다. warn이 늘면 전부 무시당해 §2(조용한 통과
+#   방지)가 무력해진다. **"모드 전환이 있었나"처럼 사람만 답할 수 있는 질문에만 쓴다.**
+warn() { yellow "  🟡 $1"; }
 
 # 줄바꿈을 LF로 정규화해서 잰다. Windows에서 git이 체크아웃하며 CRLF로 바꾸면 줄 수만큼
 # 바이트가 늘어, 내용이 그대로인데도 예산을 넘긴다(2026-08-14: 브랜치 병합 직후 roles.md가
@@ -383,6 +389,50 @@ if [ -f "$GEN" ] && command -v node >/dev/null 2>&1; then
   CHECKS=$((CHECKS + 1))
 else
   note "node 또는 generate-db-doc.js 없음 — 스킵"
+fi
+echo
+
+# ── 10. 소유권 교차 오염 (작업 트리) ─────────────────────────────
+# 왜 있나: `docs/`는 Opus, `eobom/`은 Sonnet 소유인데 **훅도 퍼미션도 둘을 구분하지 못한다**
+#   (roles.md §1-1). 2026-08-25에 Opus가 eobom/에 코드를 써서 전량 revert한 사고가 있었고,
+#   그 위반의 모양이 정확히 **"한 작업 트리에 스펙 변경과 구현 변경이 같이 있는 것"** 이었다.
+#   누가 썼는지는 알 수 없으니 **사람에게 되묻는 것**까지가 이 검사의 역할이다.
+#
+# 🔴 왜 fail이 아니라 warn인가: 한 세션에 Opus→Sonnet 전환이 있으면 **정상인데도 걸린다.**
+#   fail로 두면 정상 세션이 빨간불을 달고 다니게 되고, 그러면 빨간불 자체가 무시된다.
+#
+# 🔵 제외 대상은 실측으로 정했다(2026-08-27, 최근 60커밋).
+#   제외 없이 재면 **10/60(17%)이 걸리는데, 걸린 10건이 전부 `docs/00_DOCS_INDEX.md` 하나**였다
+#   — Opus의 인덱스 갱신이 Sonnet 커밋에 묶여 들어간 것이지 위반이 아니다. 아래 2개를 빼면
+#   같은 60커밋에서 **오탐 0건**이다. 오탐률이 높은 검사는 켜 두나 마나이므로 이 실측이 근거다.
+#     · docs/작업일지_및_기록/ — walkthrough·claude_tasks·일지는 Sonnet이 **써야 한다**(done.md §1)
+#     · docs/00_DOCS_INDEX.md  — 위 실측. ⚠️ 대신 Sonnet이 인덱스를 고쳐도 여기서는 안 잡힌다.
+#   ⚠️ 제외를 늘리기 전에 위 실측을 다시 돌려볼 것. 근거 없이 빼면 검사가 비어 간다(설계 원칙 2).
+echo "10. 소유권 교차 오염 — 스펙(docs/)과 구현(eobom/)이 한 작업 트리에 섞였나"
+CHECKS=$((CHECKS + 1))
+if ! git -C "$ROOT" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+  # 설계 원칙 2 — 검사가 조용히 비활성화되는 것이 제일 위험하다. 스킵이 아니라 실패로 잡는다.
+  fail "git 저장소가 아니라 소유권 검사를 돌릴 수 없다"
+else
+  # 🔴 core.quotepath=false 없으면 한글 경로가 "\355\225\234..."로 이스케이프돼 grep이 전부 빗나간다.
+  # 🔴 cut -c4- 로 XY 상태코드를 떼고, 리네임("old -> new")은 뒤쪽 경로만 본다.
+  OWN_CHANGED=$(git -C "$ROOT" -c core.quotepath=false status --porcelain 2>/dev/null \
+                | cut -c4- | sed 's/.* -> //')
+  OWN_SPEC=$(printf '%s\n' "$OWN_CHANGED" | grep '^docs/' \
+             | grep -v '^docs/작업일지_및_기록/' | grep -v '^docs/00_DOCS_INDEX\.md$' || true)
+  OWN_CODE=$(printf '%s\n' "$OWN_CHANGED" | grep '^eobom/' || true)
+  if [ -n "$OWN_SPEC" ] && [ -n "$OWN_CODE" ]; then
+    warn "스펙 $(printf '%s\n' "$OWN_SPEC" | wc -l | tr -d ' ')개 + 구현 $(printf '%s\n' "$OWN_CODE" | wc -l | tr -d ' ')개가 함께 열려 있다 — 모드 전환이 있었나?"
+    printf '%s\n' "$OWN_SPEC" | head -3 | sed 's/^/       docs  · /'
+    printf '%s\n' "$OWN_CODE" | head -3 | sed 's/^/       eobom · /'
+    gray "       한 사람이 둘 다 고쳤다면 소유권 위반이다(roles.md §1-1). 아니면 커밋을 나눌 것."
+  elif [ -n "$OWN_SPEC" ]; then
+    ok "스펙만 열려 있음 — Opus 작업"
+  elif [ -n "$OWN_CODE" ]; then
+    ok "구현만 열려 있음 — Sonnet 작업"
+  else
+    ok "작업 트리에 스펙·구현 변경 없음"
+  fi
 fi
 echo
 
