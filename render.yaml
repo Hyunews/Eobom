@@ -33,12 +33,17 @@ services:
         value: https://eobom.vercel.app
       - key: JWT_SECRET
         sync: false
-      # 🔴 로컬 .env와 **반드시 같은 값**을 넣는다.
+      # 🔴 로컬 .env와 **다른 값**을 쓴다(2026-08-27 교체). 같으면 로컬 .env 유출이 곧 운영 데이터
+      # 유출이다 — 운영 덤프를 로컬에서 복호화할 수 없는 것이 security.md §1(운영 개인정보를
+      # 로컬로 가져오지 않는다)을 기술적으로 강제한다.
       # utils/crypto.ts(AES-256-GCM)가 이 키로 정산 계좌·조의금 계좌를 암호화한다.
-      # 키가 다르면 이미 저장된 암호문을 복호화할 수 없다 —
-      # 2026-08-20 기준 Obituary.accountNumberEnc에 실제 데이터 1건이 들어 있다.
+      # 옛 주석의 "Obituary.accountNumberEnc 실제 데이터 1건"은 08-27 키 교체 후 정리되어 0건이다.
       # (2026-08-20 추가: 이 항목이 빠져 있어 배포 시 계좌 기능이 죽을 뻔했다)
       - key: SETTLEMENT_ENCRYPTION_KEY
+        sync: false
+      # 06(엔딩노트·유족 메시지) 전용 키(06-04 §13 #4) — 정산 계좌 키와 분리. 로컬과 다른 값을 쓴다.
+      # 🔴 운영 키를 잃으면 유언·편지를 영영 복호화할 수 없다.
+      - key: ENDING_NOTE_ENCRYPTION_KEY
         sync: false
       - key: KAKAO_CLIENT_ID
         sync: false

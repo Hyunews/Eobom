@@ -1332,3 +1332,85 @@ body {
   }
 }
 
+/* EndingNotePage 아코디언 전환(06-04 §6.1-1, 2026-08-27) — 데스크톱은 좌측 섹션 목차 고정 +
+   우측 아코디언, 모바일은 목차 없이 아코디언만(§6.1-1 ③ — 탭 10개가 375px에서 가로 스크롤을
+   만드는 문제를 스크롤형 세로 스택으로 원천 차단). 900px을 기준으로 삼은 이유: 목차 폭
+   220px + 본문 최소 폭을 합쳐도 태블릿 세로(768px)에서는 좁아 보여, 본문이 편해지는 지점부터
+   목차를 보여준다. */
+.ending-note-layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+.ending-note-toc {
+  display: none;
+}
+
+@media (min-width: 900px) {
+  .ending-note-layout {
+    grid-template-columns: 220px 1fr;
+  }
+
+  .ending-note-toc {
+    display: block;
+    position: sticky;
+    top: calc(var(--header-h) + 1.5rem);
+    background-color: var(--card-bg);
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+    padding: 1.1rem 1rem;
+  }
+}
+
+.ending-note-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  min-width: 0; /* grid 자식이 텍스트 폭 때문에 트랙을 넘어서는 것을 막는다(가로 스크롤 방지) */
+}
+
+.ending-note-toc-link {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  width: 100%;
+  background: none;
+  border: none;
+  padding: 0.4rem 0.3rem;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  color: var(--text-main);
+  text-align: left;
+  cursor: pointer;
+}
+
+.ending-note-toc-link:hover {
+  background-color: var(--secondary-color);
+}
+
+/* 아코디언 항목 — CareGuidePage 체크리스트(07-02 §3)와 같은 "제목만 보이고 상세는 펼침" 패턴 */
+.ending-note-accordion-item {
+  overflow: hidden;
+}
+
+.ending-note-accordion-header {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 1.1rem 1.4rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--primary-color);
+}
+
+.ending-note-accordion-body {
+  padding: 0 1.4rem 1.4rem;
+}
+

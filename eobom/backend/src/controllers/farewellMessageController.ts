@@ -1,7 +1,9 @@
 import { Request, Response } from 'express';
 import prisma from '../config/prisma';
 import { verifyBearerToken } from './authController';
-import { encryptField, decryptField } from '../utils/crypto';
+import { encryptNoteField, decryptNoteField } from '../utils/crypto';
+// 06-04 §13 #4(2026-08-27) — 정산 계좌 키(SETTLEMENT_ENCRYPTION_KEY)와 분리된 06 전용 키로 전환.
+// 🔴 운영 DB는 개발자가 이미 FarewellMessage 레코드를 삭제해 0건 확인 완료 — 재암호화 불필요.
 
 // docs 06-05 §6.2·§8 Phase B — 유족 메시지 보관함(수신자별 1:1 편지). 전부 본인 것만(작업2).
 // 🔴 유족이 읽는 라우트는 여기 없다 — 개봉은 06-04 Phase 3이고 엔딩노트와 동시에 열린다(§3.3).
@@ -48,7 +50,7 @@ export const listFarewellMessages = async (req: Request, res: Response) => {
     });
 
     const data = rows.map((r) => {
-      const body = decryptField(r.bodyEnc);
+      const body = decryptNoteField(r.bodyEnc);
       return {
         id: r.id,
         recipientId: r.recipientId,
@@ -97,7 +99,7 @@ export const getFarewellMessage = async (req: Request, res: Response) => {
         id: row.id,
         recipientId: row.recipientId,
         title: row.title,
-        body: decryptField(row.bodyEnc),
+        body: decryptNoteField(row.bodyEnc),
         createdAt: row.createdAt,
         updatedAt: row.updatedAt,
       },
@@ -144,7 +146,7 @@ export const createFarewellMessage = async (req: Request, res: Response) => {
         noteId,
         recipientId: recipient.id,
         title: body.title?.trim() || null,
-        bodyEnc: encryptField(text),
+        bodyEnc: encryptNoteField(text),
       },
       select: { id: true, recipientId: true, title: true, createdAt: true, updatedAt: true },
     });
@@ -186,7 +188,7 @@ export const updateFarewellMessage = async (req: Request, res: Response) => {
       if (text.length > MAX_BODY_LENGTH) {
         return res.status(400).json({ status: 'error', message: `편지는 최대 ${MAX_BODY_LENGTH}자까지 쓰실 수 있습니다.` });
       }
-      bodyEnc = encryptField(text);
+      bodyEnc = encryptNoteField(text);
     }
 
     const updated = await prisma.farewellMessage.update({
@@ -198,7 +200,7 @@ export const updateFarewellMessage = async (req: Request, res: Response) => {
       select: { id: true, recipientId: true, title: true, bodyEnc: true, createdAt: true, updatedAt: true },
     });
 
-    const text = decryptField(updated.bodyEnc);
+    const text = decryptNoteField(updated.bodyEnc);
     return res.json({
       status: 'success',
       data: {

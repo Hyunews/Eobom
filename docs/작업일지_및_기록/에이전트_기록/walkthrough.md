@@ -6,6 +6,93 @@
 
 ---
 
+## 2026-08-27 (82) | [Sonnet] 엔딩노트 아코디언 전환 + Phase 1 저장(EndingNoteEntry) + 06 전용 암호화 키 분리
+
+- **근거 스펙**: `docs/06_엔딩노트_유언/06-04_엔딩노트_보관함_실구현_기획서.md` §6.1-1(아코디언)·
+  §4.2(데이터 모델)·§7(열람 시점)·§10 Phase 1(구현 단계)·§13 #3·#4(확정 항목).
+- **건드린 파일**:
+  - `eobom/backend/prisma/schema.prisma` — `EndingNote.sectionState Json?` 추가, `EndingNoteEntry`
+    모델 신설(`noteId`+`section` unique, `recipientId` FK → `FamilyDesignation`), `FamilyDesignation`에
+    `endingNoteEntries` 역방향 관계 필드 추가. 마이그레이션
+    `20260827043226_ending_note_entry_phase1`(CREATE TABLE + ALTER ADD COLUMN만 — 개발자가 이미
+    `pg_dump`·옛 키 암호문 정리·`SETTLEMENT_ENCRYPTION_KEY` 교체·`ENDING_NOTE_ENCRYPTION_KEY` 등록을
+    완료해 둔 상태였으므로 재암호화 로직 없이 진행).
+  - `eobom/backend/src/utils/crypto.ts` — `encryptNoteField`/`decryptNoteField` 신설
+    (`ENDING_NOTE_ENCRYPTION_KEY` 사용, `getNoteKey`). 기존 `encryptField`/`decryptField`/`hashField`
+    시그니처·호출부는 무변경.
+  - `eobom/backend/src/controllers/farewellMessageController.ts` — `bodyEnc` 암복호화를
+    `encryptField`/`decryptField`(정산 키) → `encryptNoteField`/`decryptNoteField`(06 전용 키)로 전환.
+  - `eobom/backend/src/controllers/endingNoteController.ts`(신규) — `getEndingNote`(GET, 본인 전체
+    조회+복호화)·`agreeEndingNotePolicy`(POST, `policyAgreedAt` 최초 1회 스탬프)·
+    `saveEndingNoteSection`(PUT `/sections/:section`, upsert). `SECTION_TIMING` 맵으로 서버가
+    `releaseTiming`을 결정(클라이언트 값 무시) — `WILL_DRAFT`(⑨)는 항상 `null`, 나머지는 전부
+    `POSTMORTEM`(§13 #1에 따라 `EMERGENCY`는 Phase 3 전까지 어디에도 미부여). `POLICY_NOTICE_TEXT`에
+    `06-03` §5 권고 문구 그대로 보관.
+  - `eobom/backend/src/routes/endingNoteRoutes.ts`(신규), `eobom/backend/src/server.ts`
+    (`app.use('/api/ending-note', endingNoteRoutes)` 추가).
+  - `eobom/backend/.env.example` — `ENDING_NOTE_ENCRYPTION_KEY`·`BACKUP_DATABASE_URL` 자리표시자+주석 추가.
+  - `render.yaml` — `ENDING_NOTE_ENCRYPTION_KEY`(`sync:false`) 추가, `SETTLEMENT_ENCRYPTION_KEY` 주석
+    정정(옛 "로컬과 같은 값" → "로컬과 **다른** 값", "`Obituary.accountNumberEnc` 1건" → 0건).
+  - `eobom/frontend/src/pages/EndingNotePage.tsx` — 전면 재작성. `AccordionSection`을 모듈
+    최상위로 분리(①②④⑤⑥⑦⑧⑩ 8개, 한 번에 하나만 펼침), 데스크톱 좌측 목차(`ending-note-toc`)
+    고정 + 모바일 숨김, `sectionState` 기반 완료 체크(`CheckCircle2`), `06-03` §5 동의 배너(작성
+    시작 시점, 서버가 `policyAgreedAt` 없으면 섹션 저장을 403으로 거부), ⑨는 여전히 아코디언 밖
+    별도 블록이지만 이제 실제 저장(`saveSection('WILL_DRAFT', …)`) — "이 초안은 저장되지 않습니다"
+    문구를 "본인만 볼 수 있으며 유족에게 전달되지 않습니다"로 교체.
+  - `eobom/frontend/src/index.css` — `.ending-note-layout`/`.ending-note-toc`/
+    `.ending-note-toc-link`/`.ending-note-accordion-item`/`-header`/`-body` 신설(900px 기준 목차
+    표시/숨김, 모바일은 단일 컬럼).
+  - `docs/00_핵심플랫폼/00-05_DB_요구사항_및_테이블_사전.md` — `node .harness/tools/generate-db-doc.js`
+    자동 재생성(§13 #4 대응, `EndingNoteEntry` 신규 섹션 반영).
+- **결과**:
+  - `npx tsc --noEmit`(frontend·backend) 통과, backend `npm run build`(prisma generate + tsc) 통과.
+  - **실제 서버 기동 후 curl로 검증**: `POST /api/ending-note/policy-agree` → `policyAgreedAt` 스탬프
+    확인 → `PUT /api/ending-note/sections/ASSET` `{value:{assetNote:"국민은행에 주거래 계좌 있음"}}`
+    → 200 + `releaseTiming:"POSTMORTEM"`(서버 결정) → `PUT .../sections/WILL_DRAFT`에 `releaseTiming:
+    "EMERGENCY"`를 body에 실어 보내는 공격 시도 → 응답은 `releaseTiming:null`로 무시됨(§7.4 확인)
+    → `PUT .../sections/HACKED` → 400 `"알 수 없는 섹션입니다."` → `GET /api/ending-note`로 두
+    섹션 모두 복호화되어 원문 그대로 라운드트립 확인 → 재로그인 복원 확인.
+  - **F1(DB 직접 조회)**: `prisma.endingNoteEntry.findMany`로 `bodyEnc` 원본 조회 —
+    `"NibRWZ1DNkm+10Yb:SsO9PwDh3Msq/97HOpUh4g==:ThOB6uZmw2UuvqyGot0wfzANR26QHU++ESsm4cjbVHWxqxvcfZY6GPKNAtyt9xQaa7qEAhD1Xg=="`
+    형태(IV:authTag:ciphertext, base64) — 평문 "국민은행에 주거래 계좌 있음"이 어디에도 없음을 확인.
+    테스트로 만든 `EndingNote`(카카오 테스트회원)는 검증 직후 삭제해 원상복구.
+  - **D5 확인**: `adminController.ts`에 `EndingNote`/`EndingNoteEntry` 참조 0건(grep) — 운영자
+    API가 이 컨트롤러를 아예 쓰지 않음.
+  - **F2 확인**: `EndingNotePage.tsx`에서 §6.3 금지 어휘(비밀번호·PIN·계좌번호·잔액·주민등록번호·
+    상속지분·유류분) 및 Phase 0에서 이미 제거됐던 옛 문구("철저히 비밀이 보장" 등) grep 0건.
+  - `generate-db-doc.js` 실행 결과 "설명 없음" 25개로 기존과 동일(신규 필드에 전부 주석 보강 —
+    처음엔 `EndingNoteEntry.createdAt/updatedAt` 무주석으로 27개까지 늘었다가 되돌림).
+- **편차**:
+  1. §6.1-1은 "①②④⑤⑥⑦⑧⑨⑩ 9개 섹션"이라 하나, 기존 화면이 ①②를 한 카드로 묶어뒀던 것을
+     이번에 완전히 분리된 아코디언 항목 2개로 나눴다 — 이유: `EndingNoteEntry`가 섹션당 1건이라
+     ①(응급 열람 허용 후보)과 ②(사후 고정)를 같은 저장 단위로 두면 §7.1 시점 분리가 원리적으로
+     불가능해진다. 완료 판정에도 영향 없음(둘 다 저장·복원됨).
+  2. Phase 1에는 시점 선택 UI가 없어(§10 Phase 2 몫) `releaseTiming`을 컨트롤러의 고정 맵
+     (`SECTION_TIMING`)이 결정하게 했다 — ①②⑦에 허용된 `EMERGENCY`도 지금은 전부
+     `POSTMORTEM`으로 둔다. 이유: §13 #1 권고("응급 열람은 Phase 3으로 연기") 그대로 따른 것이라
+     스펙 위반이 아니라 스펙이 이미 지시한 것을 정확히 반영한 것.
+  3. `EndingNoteEntry.title`(§13 #3 "허용")을 저장은 받아두되(nullable), 이번 화면에 사용자가
+     제목을 입력하는 UI는 만들지 않았다 — 목록 화면(운영자·본인 다건 리스트)이 아직 없어 표시할
+     곳이 없다. 값은 항상 `null`로 저장됨. 다음 세션에서 필요해지면 그때 입력 UI를 추가하면 된다.
+- **다음 에이전트가 알아야 할 것**:
+  - 🟡 로컬 dev DB에 `context.md`가 언급한 "테스트 편지 2건"(`FarewellMessage`, 배치 정리
+    대상)이 남아 있다면 **더는 복호화되지 않는다** — `FarewellMessage.bodyEnc`를 이번에
+    `ENDING_NOTE_ENCRYPTION_KEY`로 전환했는데 그 2건은 옛 `SETTLEMENT_ENCRYPTION_KEY`로
+    암호화돼 있다. 사용자 승인 없이 삭제하지 않았다(배치 정리 대상으로 이미 등록돼 있어
+    임의 삭제 금지 원칙 적용) — 배치 정리 시 같이 처리할 것.
+  - Phase 2(`EndingNoteGrant`, 섹션별 시점 UI, 가족 조회 API)·Phase 3(개봉 절차, 응급 열람,
+    04·07 연결)는 여전히 미착수 — §10 그대로.
+  - `EndingNotePage.tsx`의 `AccordionSection`을 컴포넌트 함수 내부가 아니라 모듈 최상위에
+    정의했다 — 렌더 함수 안에 두면 매 렌더마다 새 컴포넌트 타입이 생겨 입력 중 포커스가
+    끊기는 버그가 실제로 있었다(구현 중 발견·직접 수정, 별도 보고 없음).
+  - 로컬 백엔드 dev 서버(ts-node-dev)가 Prisma 쿼리 엔진 dll을 잠그고 있어 `prisma generate`가
+    `EPERM`으로 실패했다 — 사용자가 포트 5000을 내려준 뒤에야 재생성 가능했다. 스키마를 고치는
+    작업 세션에서 백엔드 dev 서버가 떠 있으면 같은 문제가 재현될 수 있다.
+
+<!-- Gemini 판정 대기 -->
+
+---
+
 ## 2026-08-27 (81) | [Sonnet] ⑩ 장기·조직 기증 의향 추가 + 도메인 페이지 드롭다운 폭 축소
 
 - **근거 스펙**: `docs/06_엔딩노트_유언/06-04_엔딩노트_보관함_실구현_기획서.md` §6.1 ⑩(장기·조직

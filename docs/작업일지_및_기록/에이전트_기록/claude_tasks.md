@@ -5,6 +5,45 @@
 
 ---
 
+## 2026-08-27 (21) — 엔딩노트 Phase 1 구현 중 삽질 `[Sonnet]`
+
+**Prisma generate EPERM 락**: 스키마 수정 후 `npx prisma generate`가
+`EPERM: operation not permitted, rename ...query_engine-windows.dll.node.tmpXXXX -> ...query_engine-windows.dll.node`
+로 계속 실패. 4~5회 재시도해도 동일 — 원인은 백엔드 dev 서버(`ts-node-dev --respawn`)가 이미
+로드해 둔 Prisma 쿼리 엔진 dll을 Windows가 잠가서(파일 rename 불가). `tasklist`로는 어느 PID가
+범인인지 특정이 안 됨(node.exe 프로세스 11개, 전부 구분 불가). 개발 서버를 내가 직접 죽이지
+않는 게 방침이라 사용자에게 "백엔드 터미널 잠깐 멈췄다가 다시 켜달라"고 요청 → 사용자가
+포트 5000을 내렸다고 알려준 직후 재시도하니 즉시 성공. **교훈**: 스키마 변경 세션에서 이 락을
+만나면 원인을 더 추적하지 말고 바로 사용자에게 dev 서버 재시작을 요청하는 게 빠르다.
+
+**아코디언 리렌더 버그**: 처음엔 `AccordionSection`을 `EndingNotePage` 컴포넌트 함수 몸통
+안에서 `const AccordionSection: React.FC<...> = (...) => {...}`로 정의했다. 동작은 하는데,
+React가 매 렌더마다 새 함수 identity를 새 컴포넌트 타입으로 취급해서 부모 state가 바뀔 때마다
+(텍스트박스 한 글자 입력 포함) 그 서브트리를 통째로 언마운트→재마운트한다 — 즉 입력창에
+글자를 치면 매 키 입력마다 포커스가 날아가는 버그. 코드 리뷰 중 자체 발견, 사용자 제보 아님.
+`cardStyle`·`cardTitleStyle`·`saveButtonLabel`과 함께 모듈 최상위로 끌어올리고 필요한 값
+(expanded/completed/saveState/onToggle)을 전부 props로 내려주는 방식으로 수정. 이후 8개
+섹션 각각의 `<AccordionSection>` 호출부에 `expanded={expandedSection === 'CODE'}` 등을
+일일이 명시해야 해서 JSX가 길어졌지만 안전한 쪽을 택함.
+
+**API 수동 검증 방법**: 이 세션의 Bash 도구가 한글 경로(`docs/작업일지_및_기록/...`)나
+멀티라인 heredoc/변수치환이 섞인 명령에서 간헐적으로 `exit 127`(`... No such file or
+directory`, 사실상 도구 자체의 cwd 북마크 파일 쓰기 실패로 보임)을 내는 문제가 반복됐다.
+`curl -H "Authorization: Bearer $TOKEN"` 같은 멀티라인 스크립트가 매번 깨져서, 대신 Node
+스크립트(`https.request`, TOKEN을 JS 문자열 리터럴로 하드코딩)를 임시 파일로 만들어 실행하는
+방식으로 우회 — 셸 따옴표 이스케이프 문제를 완전히 피할 수 있어 훨씬 안정적이었다. JWT는
+`jsonwebtoken.sign({..., aud:'user'}, process.env.JWT_SECRET)`으로 기존 DB의 실제 유저
+id를 넣어 직접 발급(OAuth 로그인 없이 인증 우회 — 로컬 dev DB 대상 한정, 운영에서는 절대 이
+방법 쓰지 말 것). 테스트 후 생성된 `EndingNote`/`EndingNoteEntry` 행은 `deleteMany`로 정리.
+
+**`generate-db-doc.js` 코멘트 파싱 특성**: `schema.prisma`에서 한 필드의 `// 주석`을 여러 줄에
+걸쳐 이어 쓰면(다음 줄도 `//`로 시작) 어떤 경우엔 전부 캡처되고(`releaseTiming`) 어떤 경우엔
+첫 줄만 캡처되고 끊긴다(`recipientId` — 바로 다음 줄이 관계 필드 선언이라 그런 듯, 스크립트
+소스는 안 읽어봄). 안전하게 가려면 **한 줄로 길게 쓰는 편이 낫다** — 여러 줄로 쪼개고 싶으면
+생성된 `00-05` 문서를 실제로 열어서 잘림 여부를 확인할 것.
+
+---
+
 ## 2026-08-21 (20) — 카톡 부고 카드 "탭해도 안 열림" 원인 추적 `[Opus 진단]`
 
 증상: 배포본에서 `Kakao.Share.sendDefault` 카드는 정상 도착하는데 **탭하면 아무 반응이 없음.**

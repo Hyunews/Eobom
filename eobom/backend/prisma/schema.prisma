@@ -86,6 +86,7 @@ model FamilyDesignation {
   updatedAt       DateTime  @updatedAt
 
   farewellMessages FarewellMessage[]            // docs 06-05 §6.2 — 이 수신자 앞으로 남긴 편지들
+  endingNoteEntries EndingNoteEntry[]            // docs 06-04 §4.2 — 이 수신자를 지정한 엔딩노트 섹션. Phase 1은 항상 null(전원)이라 실질 데이터는 Phase 2부터
 
   @@unique([userId, phoneHash])                 // 같은 사람을 두 번 지정하지 못하게
   @@index([userId, status])
@@ -618,8 +619,8 @@ model ObituaryMourner {
 
 // ─────────────────────────────────────────────────────────────────
 // 엔딩노트 + 유족 메시지 보관함(Domain 06) — docs/06_엔딩노트_유언/06-04(본체)·06-05(보관함 분리)
-// Phase B(06-05 §8) 범위: EndingNote·FarewellMessage 2개만. EndingNoteEntry·Grant·Log는
-// 이번에 만들지 않는다(§1 작업1) — ⑨(엔딩노트 타이핑 필사 도구)는 아직 서버 저장이 없다.
+// 06-04 §10 Phase 1(2026-08-27)에서 EndingNoteEntry가 추가됐다 — ①②④⑤⑥⑦⑧⑨⑩ 9개 섹션 본문이
+// 이제 실제로 저장된다. EndingNoteGrant·EndingNoteLog는 여전히 Phase 2·3 몫이라 만들지 않는다(§10).
 // ─────────────────────────────────────────────────────────────────
 
 // 엔딩노트 1건 — User 1:1. 개봉 상태(status)의 유일한 소유자다(06-05 §3.2·§3.3) — FarewellMessage는
@@ -632,13 +633,15 @@ model EndingNote {
   status         String    @default("DRAFT") // DRAFT|SEALED|RELEASED|FROZEN — §3.3, 클라이언트가 정하지 않는다
   sealedAt       DateTime?
   releasedAt     DateTime?
-  policyAgreedAt DateTime?
+  policyAgreedAt DateTime? // 06-03 §5 열람 정책 동의 시각 — 가입 시점이 아니라 작성 시작 시점에 스탬프
   lastConfirmedAt DateTime?
+  sectionState   Json?     // 06-04 §4.2·§6.2 — 섹션별 "작성 완료 여부"만(예: {"ASSET":true}). 내용은 절대 넣지 않는다. 서버가 갱신(클라이언트 값 불신)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   farewellMessages FarewellMessage[]
+  entries          EndingNoteEntry[] // 06-04 §4.2 — 본문·암호문. 운영자 쿼리에 절대 포함하지 않는다(06-03 §3.1 A안)
 
   @@index([userId, status])
 }
@@ -665,6 +668,31 @@ model FarewellMessage {
 
   @@index([noteId])
   @@index([recipientId])
+}
+
+// 엔딩노트 본문 — 06-04 §4.2 Phase 1. 섹션별 1건(upsert), 운영자 쿼리에 절대 조인하지 않는다
+// (06-03 §3.1 A안 — 운영자 화면은 EndingNote까지만). §7.4 격리를 3층(API·쿼리·UI)에서 지킨다.
+model EndingNoteEntry {
+  id     String     @id @default(uuid()) // 고유 식별자(UUID)
+  noteId String // FK → EndingNote — 이 섹션이 속한 엔딩노트(본인)
+  note   EndingNote @relation(fields: [noteId], references: [id], onDelete: Cascade)
+
+  section String // §6.1 코드(③ 제외) — LIFE_SUPPORT|FUNERAL|ASSET|DIGITAL_ACCOUNTS|INSURANCE|CONTACTS|WILL_LOCATION|WILL_DRAFT|ORGAN_DONATION
+  title   String? // 평문 허용 — 목록 표시용(§13 #3). 사용자가 붙이는 선택적 제목이며 섹션명(시스템 표시)과 별개
+  bodyEnc String  // 🔴 AES-256-GCM 암호문(utils/crypto.ts encryptNoteField, ENDING_NOTE_ENCRYPTION_KEY). 평문 컬럼 없음
+
+  releaseTiming String? // IMMEDIATE|EMERGENCY|POSTMORTEM(§7.1). 🔴 WILL_DRAFT(⑨)는 항상 null — 어떤
+  // 시점도 부여받지 못한다(§7.4 모델 레벨 차단, 컨트롤러에서 강제). Phase 1은 시점 선택 UI가 없어
+  // 서버가 섹션별 고정값을 붙인다 — EMERGENCY는 Phase 3(응급 열람 확정) 전까지 어디에도 쓰지 않는다(§13 #1)
+
+  recipientId String? // FK → FamilyDesignation. null이면 지정 유족 전원 — 수신자별 분기는 Phase 2(§7.1 시점 UI)부터 실제로 쓰인다
+  recipient FamilyDesignation? @relation(fields: [recipientId], references: [id], onDelete: SetNull)
+
+  updatedAt DateTime @updatedAt // 본인 최종 수정 일시
+  createdAt DateTime @default(now()) // 최초 저장 일시
+
+  @@unique([noteId, section]) // 섹션당 본문 1건 — upsert 대상
+  @@index([noteId])
 }
 
 // ─────────────────────────────────────────────────────────────────
