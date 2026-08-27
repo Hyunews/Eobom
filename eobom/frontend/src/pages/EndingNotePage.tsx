@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ScrollText,
   FileCheck,
@@ -19,6 +19,8 @@ import {
   MapPin,
   HeartPulse,
   UserPlus,
+  ListChecks,
+  X,
 } from 'lucide-react';
 import { NoteKeyIcon } from '../components/MenuIcons';
 import { BACKEND_URL } from '../config';
@@ -217,6 +219,118 @@ const SectionTimingControl: React.FC<{
   );
 };
 
+// "한눈에 보기" 요약 모달 — 06-04 §6.1-1 파생(사용자 직접 지시, 2026-08-27). 아코디언이 한 번에
+// 한 섹션만 보여줘 생긴 "전체를 훑을 방법이 없다"는 구멍을 메운다. 🔴 새 API를 만들지 않는다 —
+// Phase 1·2에서 이미 로드해둔 state(sectionState·grants·각 필드값)만 재구성해서 보여준다.
+// 🔴 자유 서술 필드는 전문을 뿌리지 않는다(엔딩노트는 암호화 저장하는 민감 콘텐츠 — 모달에 펼치면
+// 어깨너머로 다 보인다). ⑨(WILL_DRAFT)는 본인 전용 원칙이 이 모달에도 그대로 적용돼 내용을
+// 절대 표시하지 않고 작성 여부만 보여준다.
+const summarizeFreeText = (text: string): string => {
+  const trimmed = text.trim();
+  if (!trimmed) return '';
+  const lines = trimmed.split('\n').filter((l) => l.trim());
+  const preview = lines.slice(0, 2).join(' ');
+  const truncatedByLines = lines.length > 2;
+  const CAP = 90;
+  const truncatedByLength = preview.length > CAP;
+  const shown = truncatedByLength ? preview.slice(0, CAP) : preview;
+  return `${shown}${truncatedByLines || truncatedByLength ? '…' : ''}`;
+};
+
+interface SummaryRow {
+  code: string;
+  title: string;
+  completed: boolean;
+  valueText: string;
+  timingBadge: string | null;
+  isWillDraft: boolean;
+}
+
+const SummaryModal: React.FC<{
+  rows: SummaryRow[];
+  onClose: () => void;
+  onSelectRow: (code: string) => void;
+}> = ({ rows, onClose, onSelectRow }) => {
+  const anyCompleted = rows.some((r) => r.completed);
+  return (
+    <div
+      className="ending-note-summary-overlay"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+    >
+      <div className="ending-note-summary-panel" role="dialog" aria-modal="true" aria-label="한눈에 보기">
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
+          <h2 style={{ color: 'var(--primary-color)', fontSize: '1.3rem', margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <ListChecks color="var(--point-color)" /> 한눈에 보기
+          </h2>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="닫기"
+            style={{
+              background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)',
+              width: 'var(--min-touch-target)', height: 'var(--min-touch-target)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+            }}
+          >
+            <X size={24} />
+          </button>
+        </div>
+
+        {!anyCompleted && (
+          <div style={{ fontSize: '0.9rem', color: 'var(--text-muted)', backgroundColor: 'var(--secondary-color)', borderRadius: '10px', padding: '0.9rem 1rem', marginBottom: '1rem', lineHeight: 1.6 }}>
+            아직 작성하신 항목이 없습니다. 아래 목록에서 항목을 눌러 하나씩 채워보세요.
+          </div>
+        )}
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
+          {rows.map((row) => (
+            <button
+              key={row.code}
+              type="button"
+              onClick={() => onSelectRow(row.code)}
+              style={{
+                display: 'flex', flexDirection: 'column', gap: '0.35rem', width: '100%', textAlign: 'left',
+                minHeight: 'var(--min-touch-target)', padding: '0.8rem 1rem', borderRadius: '10px',
+                border: '1px solid var(--border-color)', backgroundColor: row.completed ? 'var(--card-bg)' : '#FEF3C7',
+                cursor: 'pointer',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+                <span style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--primary-color)' }}>{row.title}</span>
+                {row.completed ? (
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.8rem', fontWeight: 700, color: '#03543F', backgroundColor: '#DEF7EC', borderRadius: '999px', padding: '0.15rem 0.6rem' }}>
+                    <CheckCircle2 size={13} /> 작성함
+                  </span>
+                ) : (
+                  <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#92400E', backgroundColor: '#FEF3C7', border: '1px solid #FDE68A', borderRadius: '999px', padding: '0.15rem 0.6rem' }}>
+                    미작성
+                  </span>
+                )}
+                {row.timingBadge && (
+                  <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', backgroundColor: '#F1F5F9', borderRadius: '999px', padding: '0.15rem 0.6rem' }}>
+                    {row.timingBadge}
+                  </span>
+                )}
+              </div>
+              {row.isWillDraft ? (
+                <span style={{ fontSize: '18px', lineHeight: 1.7, color: 'var(--text-muted)' }}>
+                  본인 전용 — 내용은 여기 표시되지 않습니다.
+                </span>
+              ) : (
+                row.completed && row.valueText && (
+                  <span style={{ fontSize: '18px', lineHeight: 1.7, color: 'var(--text-main)' }}>{row.valueText}</span>
+                )
+              )}
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
+
 export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onOpenLogin, setActiveTab, onOpenFamilyDesignation }) => {
   const token = currentUser ? sessionStorage.getItem('k_ending_token') : null;
 
@@ -233,6 +347,10 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
   // A1 — 아코디언은 한 번에 하나만 펼친다.
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
   const consentRef = useRef<HTMLDivElement>(null);
+
+  // "한눈에 보기" 요약 모달. summaryTriggerRef는 닫을 때 포커스를 되돌리는 용도(접근성).
+  const [summaryOpen, setSummaryOpen] = useState(false);
+  const summaryTriggerRef = useRef<HTMLButtonElement>(null);
 
   // §10 Phase 2 — 공개 시점 지정 대상(ACCEPTED만 — 대기중인 초대에는 권한을 줄 수 없다, 서버도
   // 같은 규칙으로 한 번 더 막는다)과 현재 권한 목록.
@@ -407,6 +525,99 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
     document.getElementById('ending-note-section-WILL_DRAFT')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
+  // "한눈에 보기" 모달 — ESC로 닫기, 열려 있는 동안 body 스크롤 잠금, 닫히면 트리거 버튼으로
+  // 포커스 복귀(alert()/confirm() 등 브라우저 모달을 쓰지 않는 대신 이 정도는 직접 구현해야 한다).
+  useEffect(() => {
+    if (!summaryOpen) return;
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setSummaryOpen(false);
+    };
+    window.addEventListener('keydown', handleKey);
+    return () => {
+      document.body.style.overflow = prevOverflow;
+      window.removeEventListener('keydown', handleKey);
+      summaryTriggerRef.current?.focus();
+    };
+  }, [summaryOpen]);
+
+  // 섹션의 현재 공개 시점 배지 — 철회되지 않은 grant 중 IMMEDIATE가 하나라도 있으면 "지금부터
+  // 공개"(가장 이른 시점을 대표로 보여준다), 없고 POSTMORTEM만 있으면 "사후에만 공개", 아무
+  // grant도 없으면 배지를 표시하지 않는다(가족별 세부 차이는 아코디언 안 SectionTimingControl에서 본다).
+  const sectionTimingBadge = (code: string): string | null => {
+    const active = grants.filter((g) => g.section === code && !g.revokedAt);
+    if (active.length === 0) return null;
+    return active.some((g) => g.timing === 'IMMEDIATE') ? TIMING_LABEL.IMMEDIATE : TIMING_LABEL.POSTMORTEM;
+  };
+
+  const summaryRows: SummaryRow[] = useMemo(() => {
+    const rows: SummaryRow[] = SECTIONS.map((s) => {
+      const completed = !!sectionState[s.code];
+      let valueText = '';
+      if (completed) {
+        switch (s.code) {
+          case 'LIFE_SUPPORT':
+            valueText = lifeSupport;
+            break;
+          case 'FUNERAL':
+            valueText = funeralType;
+            break;
+          case 'ASSET':
+            valueText = summarizeFreeText(assetNote);
+            break;
+          case 'DIGITAL_ACCOUNTS':
+            valueText = DIGITAL_ACCOUNT_CATEGORIES.map((c) => `${c} ${DIGITAL_ACCOUNT_CHOICES[digitalPrefs[c] || '']}`).join(' · ');
+            break;
+          case 'INSURANCE': {
+            const picked = INSURANCE_ITEMS.filter((item) => insurance[item.key]?.checked).map(
+              (item) => item.label + (insurance[item.key]?.company ? `(${insurance[item.key].company})` : '')
+            );
+            valueText = picked.length > 0 ? picked.join(' · ') : '가입 표시 없음';
+            break;
+          }
+          case 'CONTACTS': {
+            const parts: string[] = [];
+            const c = summarizeFreeText(contactsNote);
+            if (c) parts.push(c);
+            if (petCaretaker.trim()) parts.push(`반려동물: ${petCaretaker.trim()}`);
+            valueText = parts.join(' · ');
+            break;
+          }
+          case 'WILL_LOCATION':
+            valueText = willLocation.trim();
+            break;
+          case 'ORGAN_DONATION':
+            valueText = `${donationStatus}${donationStatus === '등록함' && donationDate ? ` (${donationDate})` : ''}`;
+            break;
+        }
+      }
+      return { code: s.code, title: s.title, completed, valueText, timingBadge: sectionTimingBadge(s.code), isWillDraft: false };
+    });
+    rows.push({
+      code: 'WILL_DRAFT',
+      title: '유언장 초안',
+      completed: !!sectionState.WILL_DRAFT,
+      valueText: '',
+      timingBadge: null,
+      isWillDraft: true,
+    });
+    return rows;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    sectionState, grants, lifeSupport, funeralType, assetNote, digitalPrefs, insurance,
+    contactsNote, petCaretaker, willLocation, donationStatus, donationDate,
+  ]);
+
+  const handleSummaryRowSelect = (code: string) => {
+    setSummaryOpen(false);
+    if (code === 'WILL_DRAFT') {
+      scrollToWillDraft();
+    } else {
+      openSectionFromToc(code);
+    }
+  };
+
   const handleCopyDraft = async () => {
     try {
       await navigator.clipboard.writeText(draftText);
@@ -490,6 +701,18 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
         <p style={{ color: 'var(--text-muted)', marginTop: '0.4rem' }}>
           연명의료 의향 메모, 장례 희망 방식, 유언장 초안까지 표준화된 항목을 차근차근 채워두세요.
         </p>
+        {/* 아코디언은 한 번에 한 섹션만 보여줘 전체를 훑을 방법이 없다 — 그 구멍을 메우는 버튼.
+            🔴 좌측 목차(데스크톱 전용, 모바일은 CSS로 숨김) 아래에 두지 않는다 — 여기 두면
+            데스크톱·모바일 둘 다 보인다. className="btn"이 곧 --min-touch-target(56px)이다. */}
+        <button
+          type="button"
+          ref={summaryTriggerRef}
+          onClick={() => setSummaryOpen(true)}
+          className="btn"
+          style={{ marginTop: '0.9rem', backgroundColor: 'var(--secondary-color)', color: 'var(--primary-color)' }}
+        >
+          <ListChecks size={20} /> 한눈에 보기
+        </button>
       </div>
 
       <div style={{ filter: !currentUser ? 'blur(3px)' : 'none' }}>
@@ -950,6 +1173,10 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
           <p style={{ fontSize: '0.85rem', color: 'var(--point-color)', marginTop: '0.5rem' }}>{copyFeedback}</p>
         )}
       </div>
+
+      {summaryOpen && (
+        <SummaryModal rows={summaryRows} onClose={() => setSummaryOpen(false)} onSelectRow={handleSummaryRowSelect} />
+      )}
     </div>
   );
 };

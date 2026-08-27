@@ -6,6 +6,56 @@
 
 ---
 
+## 2026-08-28 (85) | [Sonnet] 엔딩노트 "한눈에 보기" 요약 모달
+
+- **근거 스펙**: 스펙 없음 — 사용자 직접 지시(작업 지시문 전문에 배치·구성·데이터 소스·모달
+  구현·완료조건까지 상세히 명시됨). 참조 문서로 `docs/06_엔딩노트_유언/06-04_...기획서.md`
+  §6.1-1(아코디언)·§10 Phase 1·2와 `docs/00_핵심플랫폼/00-09_디자인_시스템_및_스타일_가이드.md`
+  §2.3(시니어 접근성 토큰 — `--base-font-size:18px`·`--min-touch-target:56px`·`line-height:1.7`)를
+  지정받음.
+- **건드린 파일**:
+  - `eobom/frontend/src/pages/EndingNotePage.tsx` — `SummaryModal`(모듈 최상위 컴포넌트, 목록
+    새로 정의) 신설, `summarizeFreeText`(자유서술 1~2줄 요약 헬퍼) 신설, `summaryRows`
+    (`useMemo`, `sectionState`·`grants`·각 필드 state로부터 계산, 새 API 없음), `sectionTimingBadge`
+    헬퍼, `handleSummaryRowSelect`(모달 닫고 `openSectionFromToc`/`scrollToWillDraft` 재사용),
+    ESC+body 스크롤 잠금+포커스 복귀 `useEffect`, 트리거 버튼(페이지 헤더 안, 목차 밖).
+  - `eobom/frontend/src/index.css` — `.ending-note-summary-overlay`/`-panel` 신설(LoginModal과
+    같은 오버레이 언어 재사용), `@media (max-width: 640px)`에서 전체화면 시트로 전환.
+- **결과**:
+  - `npx tsc --noEmit`·`npm run build`(tsc+vite) 통과.
+  - **claude-in-chrome으로 실제 브라우저 검증**(로컬 dev 서버, 데모 카카오 로그인 후
+    `/ending-note` 실사용): 로그인 직후 빈 상태 문구("아직 작성하신 항목이 없습니다…") + 9행
+    전부 미작성 배지 확인 → ⑨(유언장 초안) 행이 "본인 전용 — 내용은 여기 표시되지 않습니다"만
+    보이고 실제 텍스트는 없음을 확인 → 행 클릭 시 모달이 닫히고 해당 아코디언이 펼쳐지며
+    스크롤됨(`openSectionFromToc` 재사용 확인) → ② 장례 희망을 실제로 저장(`PUT
+    /api/ending-note/sections/FUNERAL` 200) 후 모달 재오픈 → 해당 행만 "작성함"(초록 배지)+
+    선택값("가족장 (수목장)")이 보이고 빈 상태 문구는 사라짐을 확인 → iframe 375px 폭으로
+    모바일 뷰포트 재현 → 좌측 목차(데스크톱 전용)는 사라지고 "한눈에 보기" 버튼은 그대로
+    노출, 가로 스크롤 없음, 모달이 중앙 팝업 대신 **전체화면 시트**로 전환됨을 스크린샷으로 확인.
+  - 완료 조건 3가지(tsc 통과·데스크톱/375px 버튼·모달 확인·이 walkthrough 기록) 전부 충족.
+- **편차**: 없음 — 지시된 배치·데이터 소스·재사용 대상(`openSectionFromToc`)·금지사항(새 API
+  없음, `docs/` 미수정, `alert()`/`confirm()` 미사용, 아코디언 로직 무변경)을 전부 그대로 따름.
+- **다음 에이전트가 알아야 할 것**:
+  - 검증 중 로컬 dev DB의 카카오 데모 계정(`d3718f3e-201b-43dc-bc4b-4a9b938d2cd6`)에 실제로
+    `EndingNoteEntry`(FUNERAL, "가족장 (수목장)")와 `policyAgreedAt`이 저장됐다. **삭제하지
+    않았다** — `db-safety.md` §4(테스트 데이터는 지우지 않고 남긴다) 적용, 배치 정리 대상으로 남김.
+  - 검증에 쓴 임시 백엔드 서버(`node dist/server.js`)는 종료했고 로그 파일도 정리했다 — 이건
+    내가 만든 스크래치 산출물이라 `db-safety.md` §4 대상이 아니다(그 규칙은 제품 DB 상태 얘기).
+  - `SummaryModal`의 공개 시점 배지 로직은 "섹션에 IMMEDIATE grant가 하나라도 있으면 대표로
+    보여준다"는 단순화다 — 가족별로 시점이 다를 수 있는 세부는 아코디언 안
+    `SectionTimingControl`에서만 보인다. 요약 모달에서 가족별 세부까지 보여달라는 요청이 오면
+    이 배지를 확장해야 한다.
+  - claude-in-chrome `computer:screenshot`이 클릭 직후 30초 타임아웃 나는 경우가 잦았다(원인
+    불명, 페이지 프리즈는 아니었음 — 2~3초 대기 후 재시도하면 항상 성공). `browser_batch` 안에서
+    클릭→즉시 스크린샷을 묶지 말고 클릭→wait→스크린샷으로 나누는 편이 안정적이었다. 또한
+    `resize_window`가 이 세션의 Chrome 창이 최소화 상태(`screenLeft/Top: -32000`)라 계속
+    실패했다 — 대신 `<iframe width:375px>` 주입(과거 walkthrough의 390px iframe 트릭과 같은
+    기법)으로 모바일 뷰포트를 재현했다.
+
+<!-- Gemini 판정 대기 -->
+
+---
+
 ## 2026-08-27 (84) | [Sonnet] 모바일 햄버거 메뉴 "계정 연동" 버튼 잔존 제거
 
 - **근거 스펙**: 스펙 없음 — 사용자 직접 지시("모바일 화면에서 햄버거 메뉴의 계정연동 버튼 아직
