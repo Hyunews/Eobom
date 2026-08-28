@@ -5,6 +5,38 @@
 
 ---
 
+## 2026-08-28 (25) — 추모관 동결 필드 구현·검증 `[Sonnet]`
+
+**`prisma migrate dev` 이후 `prisma generate`가 `EPERM`으로 실패**: `query_engine-windows.dll.node`
+를 `.tmp*` → 실제 파일명으로 rename하는 단계에서 "operation not permitted". 두 번 재시도해도
+동일. `node_modules/.prisma/client/index.d.ts`를 열어보니 `expiresAt`·`frozenAt`·`purgeAt` 타입은
+이미 반영돼 있었다 — TS 코드 생성 단계는 성공했고, 실패한 건 네이티브 바이너리 교체뿐. Windows에서
+파일이 잠긴 채로 rename을 시도하면 나는 전형적인 증상이라(다른 프로세스가 그 dll을 열어둔 상태),
+아마 실행 중이던 backend dev 서버가 원인으로 추정된다(사용자가 dev 서버를 직접 관리하므로 이번엔
+강제로 죽이지 않고 그대로 뒀다). 검증 스크립트를 돌려보니 기존 엔진 바이너리로도 쿼리가 정상
+동작해 기능상 블로커는 아니었다 — walkthrough(87)에 "다음에 dev 서버 잠깐 멈추고 재실행" 메모.
+
+**동작 검증 방식**: 백엔드는 dev 서버를 내가 띄우지 않는 게 이 프로젝트 규칙이라(과거 피드백 —
+TaskStop이 자식 프로세스를 못 죽여서), `curl`로 실제 HTTP 엔드포인트를 때리는 대신
+`eobom/backend/_verify_00_20_scratch.ts`를 임시로 만들어 `ts-node --transpile-only`로 실행 —
+①순수 계산 함수(`calculateMemorialExpiresAt`·`calculateMemorialNoticeDate`)를 고정 날짜로
+어서션 5개, ②`createTribute`·`createGuestbookEntry` 컨트롤러 함수를 mock `Request`/`Response`로
+직접 호출해 동결/활성 추모관 양쪽에서 상태코드까지 확인. 첫 실행에서 `hashVisitor`가
+`req.socket.remoteAddress`를 읽다가 mock에 `socket`이 없어 500이 났다 — 내 코드 버그가 아니라
+mock이 부실했던 것, `socket: { remoteAddress: '127.0.0.1' }` 추가하고 재실행해서 11개 전부 PASS.
+`addMemorialPhoto`는 `multer` 미들웨어가 끼어 있어 mock으로 재현하지 않고 코드 리뷰로만 확인(같은
+`isMemorialFrozen()` 헬퍼, 같은 위치). 검증 끝나고 스크립트 파일은 지웠지만 **DB에 만든 테스트
+행(`Deceased` 1건, `Memorial` 2건 + 헌화·방명록 각 1건)은 `db-safety.md` §4에 따라 지우지
+않고 남겼다** — `context.md` 배치정리 목록에 추가.
+
+**`policy.ts` 상수 이름**: 사용자 지시문은 `MEMORIAL_ACTIVE_DAYS`·
+`MEMORIAL_NOTICE_AFTER_ANNIVERSARY_DAYS`(SCREAMING_SNAKE_CASE, `00-20` §8.1-2 원문과 동일)였는데
+기존 `policy.ts`는 `POLICY.memorial.photoMaxSizeBytes`처럼 단일 객체 + camelCase 관례였다.
+관례를 깨지 않고 `POLICY.memorial.activeDays`/`noticeAfterAnniversaryDays`로 넣되, 주석에
+지시받은 상수 이름을 그대로 적어 검색 가능하게 해뒀다.
+
+---
+
 ## 2026-08-28 (24) — "한눈에 보기" 모달 브라우저 검증 삽질 `[Sonnet]`
 
 **데모 로그인 버튼이 안 눌리던 이유**: `LoginModal.tsx`의 "카카오(모의)" 버튼이 "로그인" 탭에서는

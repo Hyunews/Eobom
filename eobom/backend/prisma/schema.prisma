@@ -475,6 +475,11 @@ model Memorial {
   createdAt DateTime @default(now()) // 개설 일시
   updatedAt DateTime @updatedAt // 최종 수정 일시
 
+  // 보존기간·폐쇄 정책(00-20 §8.1, §8.1-2 확정, 00-22 E-9). 상수는 config/policy.ts가 정본.
+  expiresAt DateTime? // 활성 만료 시점 — 개설 시 createdAt + MEMORIAL_ACTIVE_DAYS, 연장 시 갱신
+  frozenAt  DateTime? // 동결 시각. 값이 있으면 방명록·헌화·사진 "추가"만 차단(읽기·삭제는 유지, §5.1)
+  purgeAt   DateTime? // 완전 파기 예정 시각 — 동결 +3년 또는 폐쇄 요청 +30일이 채운다(§5.2-1, §6.3-1)
+
   tributes  MemorialTribute[] // 헌화 목록
   guestbook MemorialGuestbook[] // 방명록 목록
   photos    MemorialPhoto[] // 사진 앨범

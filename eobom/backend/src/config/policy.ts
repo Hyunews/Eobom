@@ -26,5 +26,9 @@ export const POLICY = {
   memorial: {
     photoMaxSizeBytes: 5 * 1024 * 1024, // docs 05-01 §2.6, §7.1-7 — 시설 이미지와 동일 기준(5MB)
     photoMaxCountPerMemorial: 20, // docs 05-01 §2.6 — 추모관 1개당 업로드 상한
+    // 00-20 §5.2-2·§8.1-2 확정값. 🔴 00-21 제15조("13개월 → 동결")와 같은 값이다 —
+    // 여기를 바꾸면 약관 문구도 같이 고쳐야 한다. 어긋나면 약관이 거짓말이 된다.
+    activeDays: 395, // MEMORIAL_ACTIVE_DAYS — 활성 기간(13개월). 연장 시에도 이 값으로 재설정(1년 아님)
+    noticeAfterAnniversaryDays: 7, // MEMORIAL_NOTICE_AFTER_ANNIVERSARY_DAYS — 만료 통지 = 첫 기일 + 7일
   },
 } as const;

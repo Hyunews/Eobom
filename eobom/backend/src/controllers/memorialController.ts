@@ -7,6 +7,7 @@ import { verifyBearerToken } from './authController';
 import { uploadMemorialPhoto as uploadMiddleware, MEMORIAL_PHOTO_DIR, toPublicMemorialPhotoPath } from '../config/upload';
 import { POLICY } from '../config/policy';
 import { validateFalseReportAgreed } from '../utils/consentGates';
+import { calculateMemorialExpiresAt } from '../utils/memorialLifecycle';
 
 // 온라인 추모관(docs 05-01 §2, §4). 공개범위 기본값은 LINK(§4.2) — 사망 사실+유족 구성이
 // 공개 색인되면 부고 사칭 보이스피싱의 표적 정보가 된다.
@@ -99,6 +100,7 @@ export const createMemorial = async (req: Request, res: Response) => {
         // Memorial 자체 필드에도 남긴다 — Deceased 도입 이전부터 있던 필드라 05 쪽 소비자(화이트
         // 리스트 응답 등)를 건드리지 않기 위함이다.
         const deathDate = deceasedDeathDate ? new Date(deceasedDeathDate) : null;
+        const openedAt = new Date();
         memorial = await prisma.$transaction(async (tx) => {
           const deceased = await tx.deceased.create({
             data: {
@@ -120,6 +122,8 @@ export const createMemorial = async (req: Request, res: Response) => {
               epitaph: epitaph?.trim() || null,
               visibility: visibility || 'LINK',
               falseReportAgreedAt: new Date(),
+              createdAt: openedAt,
+              expiresAt: calculateMemorialExpiresAt(openedAt), // 00-20 §5.2-2 — 개설일 + 395일
             },
           });
         });
@@ -205,6 +209,12 @@ export const updateMemorial = async (req: Request, res: Response) => {
 // 선택이라 verifyBearerToken 실패를 401로 끊지 않고 "없으면 비회원"으로 흘려보낸다.
 // ─────────────────────────────────────────────────────────────────
 
+// 동결 가드(00-20 §5.1, §8.1) — frozenAt 값이 있으면 "추가"만 막는다. 읽기·삭제는 막지 않는다
+// (§5.1 — 동결이 막는 것은 추가뿐. 삭제까지 막으면 신고 들어온 동결 추모관을 아무도 손댈 수 없다).
+// 🔴 방명록·헌화·사진 3개 쓰기 경로 전부에 걸어야 한다 — 하나라도 빠지면 동결이 동결이 아니다.
+const MEMORIAL_FROZEN_MESSAGE = '동결된 추모관입니다. 헌화·방명록·사진을 더 추가할 수 없습니다.';
+const isMemorialFrozen = (memorial: { frozenAt: Date | null }) => memorial.frozenAt !== null;
+
 // 헌화 (`POST /api/memorials/:slug/tributes`) — 비회원 허용(§4.4). 로그인 사용자는 1인 1회
 // (@@unique([memorialId, userId]))로 DB가 보장, 비회원은 visitorHash로 느슨하게 억제만 한다.
 export const createTribute = async (req: Request, res: Response) => {
@@ -215,6 +225,9 @@ export const createTribute = async (req: Request, res: Response) => {
     const memorial = await findViewableMemorialBySlug(req.params.slug);
     if (!memorial) {
       return res.status(404).json({ status: 'error', message: '추모관을 찾을 수 없습니다.' });
+    }
+    if (isMemorialFrozen(memorial)) {
+      return res.status(403).json({ status: 'error', message: MEMORIAL_FROZEN_MESSAGE });
     }
 
     const tribute = await prisma.memorialTribute.create({
@@ -272,6 +285,9 @@ export const createGuestbookEntry = async (req: Request, res: Response) => {
     const memorial = await findViewableMemorialBySlug(req.params.slug);
     if (!memorial) {
       return res.status(404).json({ status: 'error', message: '추모관을 찾을 수 없습니다.' });
+    }
+    if (isMemorialFrozen(memorial)) {
+      return res.status(403).json({ status: 'error', message: MEMORIAL_FROZEN_MESSAGE });
     }
 
     const entry = await prisma.memorialGuestbook.create({
@@ -337,6 +353,10 @@ export const addMemorialPhoto = (req: Request, res: Response) => {
       if (!memorial || memorial.createdByUserId !== decoded.id) {
         fs.unlink(req.file.path, () => {});
         return res.status(404).json({ status: 'error', message: '추모관을 찾을 수 없습니다.' });
+      }
+      if (isMemorialFrozen(memorial)) {
+        fs.unlink(req.file.path, () => {});
+        return res.status(403).json({ status: 'error', message: MEMORIAL_FROZEN_MESSAGE });
       }
 
       const existingCount = await prisma.memorialPhoto.count({ where: { memorialId: memorial.id } });

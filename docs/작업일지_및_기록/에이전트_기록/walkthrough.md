@@ -6,6 +6,64 @@
 
 ---
 
+## 2026-08-28 (87) | [Sonnet] 추모관 보존기간·동결 필드(expiresAt·frozenAt·purgeAt) + 만료 통지 계산 + 동결 가드
+
+- **근거 스펙**: `docs/00_핵심플랫폼/00-20_추모관_보존기간_및_폐쇄정책_검토서.md` §8.1, §8.1-2
+  (08-28 확정분) · `docs/00_핵심플랫폼/00-22_법적_요구사항_체크리스트.md` E-9.
+- **건드린 파일**:
+  - `eobom/backend/prisma/schema.prisma` — `Memorial`에 `expiresAt`·`frozenAt`·`purgeAt`
+    (전부 `DateTime?`) 3필드 추가.
+  - `eobom/backend/prisma/migrations/20260828011414_memorial_lifecycle_fields/` — 신규 마이그레이션
+    (`ALTER TABLE "Memorial" ADD COLUMN expiresAt/frozenAt/purgeAt`, 전부 nullable 추가라 기존 행
+    무영향).
+  - `eobom/backend/src/config/policy.ts` — `POLICY.memorial.activeDays = 395`
+    (`MEMORIAL_ACTIVE_DAYS`) · `POLICY.memorial.noticeAfterAnniversaryDays = 7`
+    (`MEMORIAL_NOTICE_AFTER_ANNIVERSARY_DAYS`) 추가, `00-21` 제15조와 같은 값임을 주석으로 묶음.
+  - `eobom/backend/src/utils/memorialLifecycle.ts` (신규) — `calculateMemorialExpiresAt(from)`
+    (from + 395일), `calculateMemorialNoticeDate(memorial, expiresAt)`(deceasedDeathDate 있으면
+    +372일, 없으면 createdAt+368일 + 가드①②) 순수 함수 2개.
+  - `eobom/backend/src/controllers/memorialController.ts` — `createMemorial`에서 개설 시
+    `expiresAt = calculateMemorialExpiresAt(openedAt)` 설정. `isMemorialFrozen()` 헬퍼 추가 후
+    `createTribute`·`createGuestbookEntry`·`addMemorialPhoto`(업로드된 파일 `fs.unlink` 포함)
+    3개 쓰기 경로 전부에 `frozenAt` 가드(403) 삽입. `deleteGuestbookEntry`·`deleteMemorialPhoto`는
+    건드리지 않음(§5.1 — 동결은 삭제를 막지 않음).
+- **결과**:
+  - `npx tsc --noEmit`(backend) 에러 0.
+  - **DB 쓰기 전 백업**: `powershell -File .harness/tools/backup-db.ps1` →
+    `eobom/backend/backups/prod-20260828-101348.dump`(460.7KB) 생성 확인 후 `npx prisma migrate dev
+    --name memorial_lifecycle_fields`로 로컬 DB(5433)에 적용.
+  - `node .harness/tools/generate-db-doc.js` 실행 → `00-05` 자동생성 구간에 3필드 반영 확인.
+  - **실동작 검증**(1회성 스크립트, 로컬 DB 대상, 실행 후 파일은 삭제·DB 행은 보존):
+    계산 함수 5케이스(395일 만료·372/368일 통지·가드①구조상 미발동 확인·가드② 발동 시
+    `expiresAt-14일`로 당겨짐) 전부 PASS. 컨트롤러 함수를 mock req/res로 직접 호출해
+    `createTribute`·`createGuestbookEntry`를 동결 추모관(403)·활성 추모관(201) 양쪽에서 검증,
+    동결 추모관에 실제로 0건 저장됐음을 `count()`로 재확인 — 전부 PASS.
+  - `addMemorialPhoto`는 multer 미들웨어 때문에 mock으로 재현하지 않고 코드 리뷰로만 확인 —
+    동일한 `isMemorialFrozen()` 헬퍼를 동일 위치(소유권 체크 직후)에 적용해 나머지 2개 경로와
+    구조가 같다.
+- **편차**: 없음. §8.1-2 표의 "expiresAt 계산 | 개설 시 createdAt + 395일"까지 포함해 그대로
+  구현 — §8.1-2 자체가 "상수 2개뿐"이라 부른 이유는 필드 3개가 이미 §8.1에서 정의돼 있었기
+  때문이고, 계산 로직·가드는 §8.1-2 표에 있던 범위 그대로다.
+- **다음 에이전트가 알아야 할 것**:
+  - `prisma generate`의 네이티브 엔진 바이너리 교체가 `EPERM`으로 실패했다(다른 프로세스가
+    `query_engine-windows.dll.node`를 잠근 것으로 추정 — 아마 실행 중이던 백엔드 dev 서버).
+    TS 타입(`index.d.ts`)은 정상 갱신됐고 검증 스크립트도 기존 엔진 바이너리로 문제없이
+    동작했다 — 기능 블로커는 아니지만, 다음에 dev 서버를 잠깐 멈추고 `npx prisma generate`를
+    한 번 더 돌려 바이너리를 깨끗하게 맞춰두는 게 좋다.
+  - **`calculateMemorialNoticeDate`의 결과값은 아직 어디에도 저장되지 않는다** — Memorial에
+    별도 "통지 예정일" 필드가 없다(스펙에도 없음, `expiresAt`·`frozenAt`·`purgeAt` 3개뿐). 실제
+    발송 배치는 이번 범위 밖(`00-20` §8.1-1의 `purgeAt` 배치·파기 전 재확인 통지·폐쇄 유예도
+    전부 범위 밖) — `00-22` E-9의 "소프트 삭제 3종 파기 배치"도 미착수.
+  - `frozenAt`을 세우는 쪽(동결 배치 자체)도 이번 범위 밖 — 지금은 가드만 있고, 실제로
+    `frozenAt`을 채우는 배치job은 아직 없다.
+  - 로컬 DB에 테스트 행이 남아있다(`db-safety.md` §4 — 지우지 않음): `Deceased` 1건
+    (`TEST_00-20_검증`), `Memorial` 2건(slug `test-00-20-frozen-*`, `test-00-20-active-*`,
+    각각 헌화 1건·방명록 1건 포함). `context.md` 배치정리 목록에 추가함.
+
+<!-- Gemini 판정 대기 -->
+
+---
+
 ## 2026-08-28 (86) | [Sonnet] "한눈에 보기" 위치 수정 + 목차 스크롤 시 헤더 겹침 수정
 
 - **근거 스펙**: 스펙 없음 — walkthrough(85) 직후 사용자 직접 지시 2건: ①"한눈에 보기"를 목차
