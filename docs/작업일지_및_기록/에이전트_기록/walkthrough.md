@@ -60,7 +60,7 @@
     (`TEST_00-20_검증`), `Memorial` 2건(slug `test-00-20-frozen-*`, `test-00-20-active-*`,
     각각 헌화 1건·방명록 1건 포함). `context.md` 배치정리 목록에 추가함.
 
-<!-- Gemini 판정 대기 -->
+<!-- Gemini 판정: ✅통과 (frozenAt 가드 3개 쓰기 경로(createTribute·createGuestbookEntry·addMemorialPhoto) 403 차단 및 multer unlink 확인 / calculateMemorialExpiresAt(395일)·calculateMemorialNoticeDate(사망일+372일·개설일+368일·가드①②) §5.2-2 공식 일치 / deleteGuestbookEntry·deleteMemorialPhoto 삭제 유지(§5.1) 확인 / npx tsc --noEmit 백엔드 에러 0 재현) -->
 
 ---
 
