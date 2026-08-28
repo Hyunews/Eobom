@@ -43,7 +43,7 @@ echo "=== 하네스 점검 (root: $ROOT) ==="
 echo
 
 # ── 1. 부팅 파일 존재 + 용량 예산 ────────────────────────────────
-echo "1. 부팅 파일 (매 세션 로드, 합계 ≤ 15KB)"
+echo "1. 부팅 파일 (매 세션 로드, 합계 ≤ 16KB)"
 # 🔴 루트 CLAUDE.md가 목록 맨 앞인 이유: .harness/ 안의 3개는 에이전트가 자발적으로 읽어야만
 # 로드되지만, 루트 CLAUDE.md는 **CLI가 매 세션 자동으로** 밀어 넣는다. 즉 실제 부팅 비용은
 # 항상 여기부터 발생한다. 예산에서 빼면 "재고 있는데 안 세는" 항목이 생긴다(설계 원칙 2).
@@ -70,10 +70,23 @@ done
 #   즉 11KB는 **도달 불가**였고, 고칠 수 없는 빨간불은 "빨간불 무시" 습관을 만들어 doctor 전체의
 #   신뢰를 깎는다(§8 BASELINE 주석과 같은 이유).
 # ⚠️ 다음에 또 닿으면 **이 숫자를 올리기 전에** 무엇을 어디로 옮겼는지 여기 먼저 적을 것.
-if [ "$BOOT_TOTAL" -gt 15360 ]; then
-  fail "부팅 합계 $((BOOT_TOTAL / 1024))KB > 15KB 예산 초과 — 다이어트 필요"
+#
+# 🔵 2026-08-28 — 15KB → 16KB 상향(사장님 승인). **§9 순서대로 먼저 쳐낸 기록:**
+#   · security.md §6(DB 게이트) → db-safety.md 분리      · AGENTS.md §0 부팅예산 연혁 문단 삭제(이 주석과 중복)
+#   · AGENTS.md §2 소유권 강조 문단 → 루트 CLAUDE.md 포인터  · AGENTS.md §7 표 → §2와 중복이라 산문 축약
+#   · AGENTS.md 기록폴더 설명 → roles.md §1-2와 중복      · done.md §4-1 doctor 번호밀림 주석(스테일) 삭제
+#   · context.md 완료항목 3회 압축 → walkthrough           · db-safety.md 머리말 경위 → _meta/
+#   그렇게 걷어내고도 **여유가 4B**였다(15,356/15,360).
+# 🔴 올린 이유는 "자리가 모자라서"가 아니라 **자동 로드 자리에 넣어야만 하는 안전 규칙이 늘었기
+#   때문**이다 — 08-27 DB 유실 2회로 트리거를 부팅 파일에 박았고(조건부 로드는 "위험을 인지한
+#   뒤에야" 열려서 그 사고를 못 막았다), 08-28 DB CONFIRM 조항이 같은 이유로 붙는다.
+#   **이 종류는 뺄 수 없다.** 하루에 ~560B가 이 사유로 늘었다.
+# ⚠️ **1KB 여유는 그런 추가 2건분이다.** 한 달 안에 또 닿으면 답은 세 번째 상향이 아니라
+#   **무언가를 부팅에서 빼는 것**이다(1순위 후보: pending-approvals의 인프라 항목 → backlog.md).
+if [ "$BOOT_TOTAL" -gt 16384 ]; then
+  fail "부팅 합계 $((BOOT_TOTAL / 1024))KB > 16KB 예산 초과 — 다이어트 필요"
 else
-  ok "부팅 합계 $((BOOT_TOTAL / 1024))KB (예산 15KB 이내)"
+  ok "부팅 합계 $((BOOT_TOTAL / 1024))KB (예산 16KB 이내)"
 fi
 
 # 🔴 2026-08-25 신설 — context.md는 자기 머리말에 **"3KB 초과 금지"** 를 스스로 적어 두고도
@@ -100,7 +113,13 @@ echo "2. 조건부 로드 파일"
 # 부팅에서 빠졌으니 조건부 예산 안에 들어와야 한다(안 재면 여기로 다시 살이 찐다).
 # 2026-08-27: db-safety.md 추가 — security.md §6이었으나 트리거를 "스키마 변경 전"에서
 # "DB에 쓰는 명령 전"으로 넓히자 주제가 갈려 분리했다. 데이터 유실 2회(08-05·08-27)가 근거.
-for f in roles.md security.md done.md systems.md record.md db-safety.md memory/backlog.md; do
+#
+# 🔴 2026-08-28: CLAUDE.md·GEMINI.md 추가 — **둘 다 지금까지 한 번도 측정되지 않았다.**
+#   AGENTS.md 머리말이 이 둘을 *"각자의 역할만 덧붙이는 얇은 파일"* 이라 부르는데, **얇은지
+#   재는 사람이 없었다**(GEMINI.md는 9,198B로 이미 얇지 않다). `.harness/CLAUDE.md`는
+#   디렉토리 근접으로 자동 로드돼 매 세션 컨텍스트를 쓰는데도 예산이 없었다 —
+#   §2(context.md가 자기 상한의 3.7배까지 불어 있던 건)와 정확히 같은 구멍이다.
+for f in roles.md security.md done.md systems.md record.md db-safety.md CLAUDE.md GEMINI.md memory/backlog.md; do
   CHECKS=$((CHECKS + 1))
   # 2026-08-26 예산 정정 — roles.md 8→10KB · systems.md 6→12KB. AGENTS.md §9 순서대로
   # **내용부터 봤고, 옮길 곳이 없어서** 올렸다. 근거는 "6KB = 단일 주제"라는 위 전제가
@@ -111,9 +130,18 @@ for f in roles.md security.md done.md systems.md record.md db-safety.md memory/b
   #   · roles.md = 태그표·소유권표 2개·파이프라인·편차 프로토콜·핸드오프 5주제. 2026-08-25에
   #     Opus/Sonnet 소유권 분리(사고 재발 방지)가 들어가며 더 늘었고, 그건 뺄 수 없는 내용이다.
   # ⚠️ 그래도 상한이다. 다음에 닿으면 올리기 전에 무엇을 어디로 옮겼는지 여기 먼저 적을 것.
+  # 🔵 2026-08-28 CLAUDE.md 6KB(사장님 승인) — *"기획·개발 둘의 내용이 모두 들어가야 한다"*.
+  #   이 파일만 **역할 2개**(`[Claude:Opus]` 기획 + `[Claude:Sonnet]` 구현)를 담는다.
+  #   같은 날 "Opus용/Sonnet용으로 쪼개는 안"이 기각됐으므로(→ `_meta/CLAUDE_md_분리_검토.md`)
+  #   **한 파일이 둘을 다 지는 것이 확정 구조**다. 단일 주제 6KB를 그대로 주되, 현재 2,021B라
+  #   3배 여유가 있다 — 여유가 곧 "쪼개지 말라"는 결정의 뒷받침이다.
+  # 🔴 GEMINI.md 10KB는 **잠정치다.** 역할이 하나(문서화·검증)인데 9,198B로 CLAUDE.md의 4.5배다.
+  #   6KB로 잡으면 첫날부터 고칠 수 없는 빨간불이 되어 "빨간불 무시" 습관을 만든다(§1 주석과
+  #   같은 이유). ⚠️ **다음에 GEMINI.md를 손댈 때 내용부터 쳐내고 6KB로 내릴 것.**
   case "$f" in
     roles.md)         budget=10240 ;;
     systems.md)       budget=12288 ;;
+    GEMINI.md)        budget=10240 ;;
     *)                budget=6144 ;;
   esac
   if [ -f "$HARNESS/$f" ]; then
