@@ -701,23 +701,11 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
         <p style={{ color: 'var(--text-muted)', marginTop: '0.4rem' }}>
           연명의료 의향 메모, 장례 희망 방식, 유언장 초안까지 표준화된 항목을 차근차근 채워두세요.
         </p>
-        {/* 아코디언은 한 번에 한 섹션만 보여줘 전체를 훑을 방법이 없다 — 그 구멍을 메우는 버튼.
-            🔴 좌측 목차(데스크톱 전용, 모바일은 CSS로 숨김) 아래에 두지 않는다 — 여기 두면
-            데스크톱·모바일 둘 다 보인다. className="btn"이 곧 --min-touch-target(56px)이다. */}
-        <button
-          type="button"
-          ref={summaryTriggerRef}
-          onClick={() => setSummaryOpen(true)}
-          className="btn"
-          style={{ marginTop: '0.9rem', backgroundColor: 'var(--secondary-color)', color: 'var(--primary-color)' }}
-        >
-          <ListChecks size={20} /> 한눈에 보기
-        </button>
       </div>
 
       <div style={{ filter: !currentUser ? 'blur(3px)' : 'none' }}>
         {/* §5 동의 안내 — 작성 시작 시점(가입 시점 아님)에 받는다. 이미 동의했으면 요약만 보여준다. */}
-        <div ref={consentRef} style={{ ...cardStyle, padding: '1.25rem 1.5rem', marginBottom: '1.5rem' }}>
+        <div id="ending-note-consent" ref={consentRef} style={{ ...cardStyle, padding: '1.25rem 1.5rem', marginBottom: '1.5rem' }}>
           {policyAgreedAt ? (
             <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', margin: 0, display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
               <CheckCircle2 size={16} color="var(--point-color)" /> 열람 정책에 동의하셨습니다({new Date(policyAgreedAt).toLocaleDateString('ko-KR')}).
@@ -772,6 +760,21 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
                 <span>유언장 초안</span>
               </button>
             </nav>
+            {/* 사용자 지시(2026-08-28)로 목차 박스 최하단에 배치 — 데스크톱 전용(목차와 같은 노출
+                범위). 구분선은 별도 wrapper에 둔다 — border-top+padding을 .btn 자체에 얹으면
+                고정 높이(--min-touch-target, border-box)가 눌려 내부 콘텐츠가 위아래 비대칭으로
+                밀린다. className="btn"이 곧 --min-touch-target(56px, 00-09 §2.3). */}
+            <div style={{ marginTop: '0.9rem', paddingTop: '0.9rem', borderTop: '1px solid var(--border-color)' }}>
+              <button
+                type="button"
+                ref={summaryTriggerRef}
+                onClick={() => setSummaryOpen(true)}
+                className="btn"
+                style={{ width: '100%', backgroundColor: 'var(--secondary-color)', color: 'var(--primary-color)', fontSize: '0.9rem' }}
+              >
+                <ListChecks size={18} /> 한눈에 보기
+              </button>
+            </div>
           </aside>
 
           <div className="ending-note-content">
