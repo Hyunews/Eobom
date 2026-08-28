@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Phone, ShieldCheck, FileText, Lock } from 'lucide-react';
+import { Phone, ShieldCheck, FileText, Lock, MessageCircle } from 'lucide-react';
 import { EobomLogo } from './EobomLogo';
 
 // 2026-08-24 — Header.tsx(A안: 흰 배경 + 평면 메뉴)와 같은 톤으로 재개편. 기존 짙은 네이비 블록
@@ -86,9 +86,10 @@ export const Footer: React.FC = () => {
           </ul>
         </div>
 
-        {/* 열 3: 고객센터 — "24h 긴급콜·즉시 파견"은 받을 사람이 없는 약속이라 제거함
-            (00-14 §2-4 → 07-02 §5.3, 2026-08-14 정정). 응답 가능 시간은 아직 사장님 확정 전이라
-            임의로 명시하지 않는다(07-02 §7 미결 #4). */}
+        {/* 열 3: 고객 문의(카카오톡) + 대표번호(전화) — "24h 긴급콜·즉시 파견"은 받을 사람이
+            없는 약속이라 제거함(00-14 §2-4 → 07-02 §5.3, 2026-08-14 정정). 창구를 성격으로
+            분리(07-02 §5.4-1, 2026-08-28) — 일반 이용자(유족)=카카오톡 / 사업자·개인정보
+            요청=전화. 채널 URL·응답시간 값은 §5.4-2-2 확정. */}
         <div>
           <h3
             style={{
@@ -102,7 +103,46 @@ export const Footer: React.FC = () => {
               lineHeight: 1.2
             }}
           >
-            <Phone size={18} color="var(--point-color)" /> 고객센터
+            <MessageCircle size={18} color="var(--point-color)" /> 고객 문의
+          </h3>
+          <a
+            href="https://pf.kakao.com/_LVxdxaX/chat"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              height: 'var(--min-touch-target)',
+              padding: '0 1.5rem',
+              backgroundColor: '#FEE500',
+              color: '#191919',
+              borderRadius: '8px',
+              fontSize: '1rem',
+              fontWeight: 700,
+              textDecoration: 'none',
+              marginBottom: '0.5rem'
+            }}
+          >
+            💬 카카오톡으로 문의하기
+          </a>
+          <p style={{ fontSize: '0.88rem', lineHeight: 1.7, color: 'var(--text-muted)', margin: '0 0 1.4rem' }}>
+            평일 09:00 ~ 17:00
+          </p>
+
+          <h3
+            style={{
+              color: 'var(--primary-color)',
+              fontSize: '1.05rem',
+              fontWeight: 700,
+              marginBottom: '0.9rem',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.4rem',
+              lineHeight: 1.2
+            }}
+          >
+            <Phone size={18} color="var(--point-color)" /> 대표번호
           </h3>
           <div
             style={{
@@ -120,7 +160,7 @@ export const Footer: React.FC = () => {
             070-8856-2725
           </div>
           <p style={{ fontSize: '0.88rem', lineHeight: 1.7, color: 'var(--text-muted)', margin: 0 }}>
-            장사시설·장례 절차 관련 문의는 전화로 안내해드립니다.
+            사업장·전문가 문의 · 개인정보 열람·삭제 요청
           </p>
         </div>
       </div>

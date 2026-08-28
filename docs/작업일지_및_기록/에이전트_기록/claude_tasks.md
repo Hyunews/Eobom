@@ -5,6 +5,41 @@
 
 ---
 
+## 2026-08-28 (26) — Footer 카톡 전환, 사용자 dev 서버(5173) 무응답 삽질 `[Sonnet]`
+
+**브라우저 검증하려는데 사용자가 이미 띄워둔 `localhost:5173`이 매번 "연결이 예기치 않게
+닫힘"으로 실패**: `Get-NetTCPConnection`으로 포트 리스닝 자체는 확인됐고(node PID 3860),
+claude-in-chrome `navigate`도 "Frame with ID 0 is showing error page"를 반환. PowerShell
+`Invoke-WebRequest`·Bash `curl` 둘 다 동일하게 실패해서 처음엔 이 세션의 네트워킹 자체가
+막힌 줄 알았다 — 나중에 별도 포트(4174)에서 재현해보고서야 원인을 깨달았다(아래).
+
+**대체 경로로 `npm run build` + `npx vite preview --port 4174`를 새로 띄웠는데 이것도
+"연결이 예기치 않게 닫힘"**: listener는 뜨는데(`Get-NetTCPConnection`에 4174 확인) 매번
+동일한 에러. 이번엔 백그라운드 프로세스의 stdout 로그 파일을 직접 열어봤더니
+`➜ Local: https://localhost:4174/` — **HTTPS였다.** `http://`로 계속 때리고 있었던 것.
+`curl -sk https://127.0.0.1:4174/`로 바꾸자 바로 200. **원래 5173도 같은 이유였을
+가능성이 높다**(vite.config에 https 설정이 있는 듯) — 굳이 재확인은 안 했다, 사용자의
+dev 서버 창을 건드리고 싶지 않았기 때문. 결과적으로 5173 무응답은 이번 작업과 무관한
+"내가 프로토콜을 잘못 짚었다"였을 가능성이 크지만, 확실하지 않아 walkthrough(88)에는
+"원인 불명"으로 정직하게 남겼다.
+
+**중간에 세션이 usage limit로 한 번 끊겼다** — 그 시점에 백그라운드로 띄워둔 4174 preview
+프로세스가 `killed` 상태로 정리됐다(harness가 아니라 시스템이 정리한 것으로 보임). 재개
+후 그냥 다시 띄웠다 — 문제 없음.
+
+**검증 끝나고 4174 프로세스 정리**: `run_in_background`로 띄운 프로세스라 `TaskStop`
+대신(과거 피드백 — TaskStop이 vite 자식 프로세스를 못 죽인 전례) `Get-NetTCPConnection`
+으로 PID를 직접 찾아 `Stop-Process -Force`로 종료. 종료 후 포트 재확인까지 했다. 사용자의
+원래 5173 프로세스(PID 3860)는 손대지 않았다.
+
+**모바일 뷰 확인은 iframe 주입 트릭 재사용**: `window.claude`... 아니, `javascript_tool`로
+375×700 iframe을 `document.body`에 주입 후 `contentWindow.scrollTo`로 iframe 내부를
+바닥까지 내려서 캡처. `computer` 도구의 `zoom` action은 `region`이 페이지 CSS 픽셀이
+아니라 뭔가 다른 좌표계를 쓰는지 "Region exceeds viewport boundaries"로 실패했다 — 대신
+그냥 `screenshot` action으로 전체 화면을 찍고 iframe 부분만 눈으로 확인했다.
+
+---
+
 ## 2026-08-28 (25) — 추모관 동결 필드 구현·검증 `[Sonnet]`
 
 **`prisma migrate dev` 이후 `prisma generate`가 `EPERM`으로 실패**: `query_engine-windows.dll.node`
