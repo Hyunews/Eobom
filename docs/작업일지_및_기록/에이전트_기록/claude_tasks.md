@@ -5,6 +5,27 @@
 
 ---
 
+## 2026-08-31 (29) — 04-01 §8 1단계 A(`DigitalCleanupItem` 스키마) — 백업·generate 삽질 `[Sonnet]`
+
+**`backup-db.ps1`을 그대로 쓰면 엉뚱한 DB를 백업할 뻔했다**: 지시문은 "`backup-db.ps1` 실행"
+이었지만, 스크립트를 먼저 읽어보니 `.env`의 `BACKUP_DATABASE_URL`(운영 Supabase)을 최우선으로
+읽는다. 실제 마이그레이션 대상은 로컬 Docker(`eobom-postgres`, 5433)인데 그대로 돌렸다면
+"운영을 백업하고 로컬에 무방비로 스키마 변경"이 됐을 것 — `db-safety.md` §2가 정확히 이 함정을
+경고하고 있어서 발견. 대신 같은 문서의 "로컬" 절차(`docker exec ... pg_dump`)로 직접 백업.
+
+**Git Bash의 자동 경로 변환이 `docker exec` 안의 `/tmp/local.dump`까지 건드렸다**: 첫 시도에서
+`pg_dump: could not open output file "C:/Users/.../Temp/local.dump"` 에러 — MSYS가 unix
+스타일 인자를 통째로 윈도우 경로로 치환한 것. `MSYS_NO_PATHCONV=1`을 pg_dump 명령에만 걸어
+해결. 단, 같은 플래그를 `docker cp`의 **목적지**(윈도우 경로)에도 걸면 이번엔 반대로 깨진다
+(`"C:\\c\\Users\\..."`처럼 이중 변환) — `docker cp`는 플래그 없이 그냥 돌려야 목적지 경로가
+정상 변환됐다. 원인이 같은 문제의 반대 방향이라 헷갈리기 쉬움, 다음에 또 이 패턴 나오면
+"컨테이너 쪽 인자만 NO_PATHCONV, 호스트 쪽 인자는 그대로"로 기억할 것.
+
+**`prisma generate`가 `EPERM`으로 실패** — 마이그레이션 자체(`migrate dev`)는 성공했는데 바로
+뒤에 자동으로 도는 `generate`가 `query_engine-windows.dll.node`를 rename하지 못함. 원인은
+사용자가 이미 띄워둔 백엔드 dev 서버(포트 5000)가 그 dll을 물고 있던 것 — 내가 서버를 죽이지
+않고(메모리 규칙) 사용자에게 "잠깐 멈춰달라"고 요청, 멈춘 뒤 `prisma generate` 재실행해 해결.
+
 ## 2026-08-31 (27) — 04-01 0단계·0-b단계, 지시된 줄번호가 이미 틀려있던 경우 `[Sonnet]`
 
 **0단계 지시가 가리킨 `EndingNotePage.tsx:185`가 실제로는 무관한 코드**(`SectionTimingControl`

@@ -430,8 +430,11 @@ model DigitalPlatform {
 // 채워질 수 없다(§3.3, §9.1-1, docs 02-03 §3.2와 동일 논리).
 model DigitalCleanupItem {
   id         String           @id @default(uuid()) // 고유 식별자(UUID)
-  userId     String // FK → User (03-01 §2 원칙, §5.5)
+  userId     String // FK → User (03-01 §2 원칙, §5.5) — "보는 사람"
   user       User             @relation(fields: [userId], references: [id])
+  deceasedId String? // FK → Deceased.id — "누구의 계정에 대한 정리인가". null이면 "내 것"(생전 본인)(04-01 §4.2-1) 🔴 User.id 아님
+  deceased   Deceased?        @relation(fields: [deceasedId], references: [id])
+  origin     String           @default("MANUAL") // MANUAL(직접 추가) | DISCOVERED(STEP 1 발견) | INHERITED(생전 목록 승계)(04-01 §4.2)
   platformId String? // FK → DigitalPlatform (직접 입력 항목이면 null)
   platform   DigitalPlatform? @relation(fields: [platformId], references: [id])
   customName String? // 카탈로그에 없는 서비스를 유족이 직접 추가한 경우
@@ -443,7 +446,7 @@ model DigitalCleanupItem {
   createdAt DateTime @default(now()) // 항목 추가 일시
   updatedAt DateTime @updatedAt // 최종 수정 일시
 
-  @@index([userId, status])
+  @@index([userId, deceasedId, status])
 }
 
 // 온라인 추모관(§4) — 고인 1명당 1개, 유족이 개설(§4.1). 공개범위 기본값은 PUBLIC이 아니라
@@ -553,6 +556,7 @@ model Deceased {
 
   obituaries   Obituary[]
   memorials    Memorial[]
+  cleanupItems DigitalCleanupItem[] // docs 04-01 §4.2-1 — 이 고인 명의의 디지털 정리 진행 항목
 }
 
 // 부고장 — Domain 07 소유. 단명(장례 전후), 배포되는 유일한 링크(00-13 §4.5)

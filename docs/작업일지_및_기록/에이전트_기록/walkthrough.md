@@ -6,6 +6,45 @@
 
 ---
 
+## 2026-08-31 (92) | [Sonnet] 04-01 §8 1단계 A — `DigitalCleanupItem` 스키마 확장
+
+- **근거 스펙**: `docs/04_디지털_자산_정산/04-01_디지털_계정_정리_명세서.md` §4.2·§4.2-1·
+  §4.2-2(A단계) · §10 #5·#6(2026-08-31 확정, wt(91)).
+- **건드린 파일**: `eobom/backend/prisma/schema.prisma` ·
+  `eobom/backend/prisma/migrations/20260831063103_digital_cleanup_item_deceased/migration.sql`(신규) ·
+  `docs/00_핵심플랫폼/00-05_DB_요구사항_및_테이블_사전.md`(자동생성, `generate-db-doc.js` 재실행).
+- **결과**:
+  - `DigitalCleanupItem`에 `deceasedId String?`(FK → `Deceased.id`, `User.id` 아님·§4.2-1) +
+    `origin String @default("MANUAL")`(`MANUAL|DISCOVERED|INHERITED`) 추가. 각 컬럼에 근거
+    조항을 단 한글 주석 부착.
+  - `@@index([userId, status])` → `@@index([userId, deceasedId, status])` 교체(원래 인덱스
+    드롭 후 신규 생성 — `migration.sql` 확인).
+  - `Deceased`에 역참조 `cleanupItems DigitalCleanupItem[]` 추가.
+  - `sourceSettingId`·`inheritedIntent`·`inheritedNote`(B단계)는 **추가하지 않음** —
+    `PreDeathPlatformSetting`이 아직 없어 스코프 밖(§4.2-2).
+  - **DB 쓰기 절차**: `docker exec eobom-postgres pg_dump -U Samil eobom_db -Fc -f /tmp/local.dump`
+    → `docker cp`로 `eobom/backend/backups/local-20260831-152954.dump`(178KB) 확보 후 사람에게
+    CONFIRM 받고 `npx prisma migrate dev --name digital_cleanup_item_deceased` 실행 — 로컬
+    Docker DB(포트 5433)에 정상 적용.
+    🔴 `.harness/tools/backup-db.ps1`은 쓰지 않았다 — `.env`에 `BACKUP_DATABASE_URL`(운영
+    Supabase)이 있어 기본 실행하면 **로컬이 아니라 운영을 뜬다**(`db-safety.md` §2 경고와 정확히
+    같은 함정). 대신 같은 문서 §2의 로컬 절차(`docker exec pg_dump`)를 직접 수행.
+  - `npx prisma generate`가 최초 `EPERM`(`query_engine-windows.dll.node`)으로 실패 — 사용자의
+    백엔드 dev 서버(포트 5000)가 파일을 잠그고 있었음. 사용자에게 서버 중지를 요청받은 뒤
+    재실행해 성공.
+  - `node .harness/tools/generate-db-doc.js` 재실행 — "모델 28개, 물리 컬럼 328개(설명 없음
+    25개)"로 갱신. `DigitalCleanupItem`의 신규 컬럼 2개는 전부 설명 채워짐(00-05:492-493행) —
+    남은 "설명 없음 25개"는 이 모델과 무관한 기존 항목.
+  - `npx tsc --noEmit`(backend) 에러 0. `npx prisma validate` 통과.
+- **편차**: 없음.
+- **다음 에이전트가 알아야 할 것**:
+  - B단계(`sourceSettingId`·`inheritedIntent`·`inheritedNote`)는 `PreDeathPlatformSetting`
+    모델 신설이 선행돼야 착수 가능(§4.2-2).
+  - API(`GET/POST /api/me/cleanup-items`)·프론트(`DigitalEstatePage.tsx` 레거시 카탈로그)는
+    아직 이 신규 컬럼을 쓰지 않는다 — 스키마만 확장된 상태.
+
+<!-- Gemini 판정 1줄: ✅통과 / ❌반려(사유) / 🔄스펙갱신(고친 문서) -->
+
 ## 2026-08-31 (91) | [Opus] 04-01 §10 #5·#6 확정 — `deceasedId` FK 대상 + 승계는 복사
 
 - **근거 스펙**: `docs/00_핵심플랫폼/00-05_DB_요구사항_및_테이블_사전.md`(`DigitalCleanupItem`
