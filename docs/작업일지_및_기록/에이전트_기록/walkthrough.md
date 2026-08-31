@@ -6,6 +6,41 @@
 
 ---
 
+## 2026-08-31 (93) | [Sonnet] `CareGuidePage` 카테고리 박스 가로 배치 + 펼치기 화살표 전용화
+
+- **근거 스펙**: 문서 스펙 없음 — 사용자 직접 지시(2026-08-31, `07-02` 상중 행정 체크리스트
+  화면 대상). "가로 폭 여유가 있으면 카테고리 박스가 가로로 나열돼야 한다" + "펼치기는
+  화살표(아래) 버튼을 눌러야만 동작해야 한다" 2건.
+- **건드린 파일**: `eobom/frontend/src/index.css`(`.care-guide-columns`·`.care-guide-category`)
+  · `eobom/frontend/src/pages/CareGuidePage.tsx`.
+- **결과**:
+  - `index.css`: CSS 다단(`columns: 300px 3`)을 flex-wrap(`display:flex; flex-wrap:wrap;
+    align-items:flex-start; gap:1rem`)으로 교체, `.care-guide-category`는
+    `flex: 1 1 300px`. 다단은 "위→아래 채우고 넘치면 다음 단" 순서라 카테고리 수가 적은
+    구간(예: 3개월 구간의 신고·조회·상속 승인·포기·조건부 3개)에서 가로 여백이 남아도
+    옆으로 나열되지 않고 세로로 쌓이는 문제가 있었다 — flex-wrap은 가로 여유가 있으면
+    옆으로, 없으면 다음 줄로 넘긴다.
+  - `CareGuidePage.tsx`: `toggleExpand` 시그니처를 `(id, e)` + `e.stopPropagation()`에서
+    `(id)` 단일 인자로 변경. 카드 최상위 `<div>`의 `onClick`(카드 전체 클릭으로 펼치기)·
+    `cursor:'pointer'`·`breakInside:'avoid'` 제거. 체크박스·전문가상담 버튼·linkTo 버튼·
+    외부링크 `<a>`에 남아 있던 `stopPropagation()`(카드 클릭 확산을 막던 용도, 이제
+    카드 자체가 안 눌리므로 불필요) 전부 제거. 화살표 버튼만 `onClick={() =>
+    toggleExpand(t.id)}`로 펼치기/접기를 담당.
+  - `npx tsc --noEmit`(frontend) 에러 0.
+  - **실동작 확인**: 사용자가 띄워둔 dev 서버(`https://localhost:5173/care-guide`,
+    claude-in-chrome)에서 확인 — "3개월 안에" 구간의 신고·조회/상속 승인·포기/조건부 3개
+    카테고리 박스가 가로로 나란히 배치됨을 스크린샷으로 확인. 카드 본문(제목 줄) 클릭 시
+    펼쳐지지 않음, 화살표 클릭 시 정상 펼쳐짐/접힘, 체크박스 클릭 시 체크만 되고 펼침
+    상태에 영향 없음(펼쳐진 채로 유지) 확인.
+- **편차**: 없음.
+- **다음 에이전트가 알아야 할 것**:
+  - `.care-guide-columns`/`.care-guide-category`는 이제 flex 기반이다 — 향후 다단(columns)
+    복귀를 검토한다면 이번에 겪은 "짧은 구간 가로 여백 미충전" 문제를 반드시 재확인할 것.
+  - 카드 펼치기는 화살표 버튼 전용이다 — 카드에 새 클릭 핸들러를 추가할 때 실수로 다시
+    카드 전체 클릭 펼치기를 부활시키지 않도록 주의.
+
+<!-- Gemini 판정 1줄: -->
+
 ## 2026-08-31 (92) | [Sonnet] 04-01 §8 1단계 A — `DigitalCleanupItem` 스키마 확장
 
 - **근거 스펙**: `docs/04_디지털_자산_정산/04-01_디지털_계정_정리_명세서.md` §4.2·§4.2-1·

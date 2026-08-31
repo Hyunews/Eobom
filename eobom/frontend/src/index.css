@@ -321,21 +321,21 @@ body {
   margin-top: 1.25rem;
 }
 
-/* CareGuidePage §체크리스트 — 08-19 13차. CSS Grid는 행 단위 배치라 카테고리별 항목 수가
-   달라지면(예: 신고·조회 1건 vs 상속 승인·포기 4건) 짧은 컬럼 아래에 빈 공간이 그대로 남는다.
-   반면 CSS 다단(columns)은 신문처럼 각 단의 총 높이를 브라우저가 자동으로 맞춰 블록을 채워
-   넣어서 여백이 훨씬 줄어든다. 카테고리 블록은 break-inside: avoid로 단이 바뀔 때 쪼개지지
-   않게 막는다(직계 자식은 flex를 쓰지 않는다 — flex 컨테이너가 multicol 직계 자식일 때
-   break-inside가 무시되는 크로미움 버그가 있어, 카드 목록용 flex 래퍼는 한 단계 더 안쪽에 둔다). */
+/* CareGuidePage §체크리스트 — 사용자 직접 지시(2026-08-31)로 CSS 다단(columns)을
+   flex-wrap으로 교체. 다단은 "위→아래로 채우고 넘치면 다음 단" 순서라 카테고리 수가 적은
+   구간(예: 장례 단계 하나뿐)에서 옆에 가로 여백이 남아도 다음 박스가 그 옆으로 오지 않고
+   전부 세로로 쌓이는 문제가 있었다. flex-wrap은 가로 여유가 있으면 옆으로 나열하고, 없으면
+   다음 줄로 넘어가 실제로 요구한 동작과 일치한다. align-items: flex-start로 짧은 박스가
+   같은 줄의 긴 박스 높이에 맞춰 늘어나지 않게 한다(각자 내용만큼만 높이를 쓴다). */
 .care-guide-columns {
-  columns: 300px 3;
-  column-gap: 1rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 1rem;
 }
 
 .care-guide-category {
-  break-inside: avoid;
-  -webkit-column-break-inside: avoid;
-  margin: 0 0 1rem;
+  flex: 1 1 300px;
 }
 
 /* Dashboard Cards */

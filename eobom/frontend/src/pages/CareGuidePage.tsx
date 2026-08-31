@@ -76,9 +76,11 @@ const LINK_LABEL: Record<string, string> = {
 // 짧은 카테고리도 매번 줄바꿈을 강제해 스크롤이 쓸데없이 길어졌다. 심각도(순위) 섹션 안에서
 // 카테고리 자체를 "칸반형" 컬럼으로 나란히 배치하도록 바꿨다.
 // 08-19 13차 — 그런데 CSS Grid는 행 단위 배치라, 카테고리별 항목 수가 들쭉날쭉하면(1건~4건)
-// 짧은 컬럼 아래 여백이 그대로 남는 문제가 있었다. Grid 대신 CSS 다단(columns, index.css
-// `.care-guide-columns`/`.care-guide-category`)으로 바꿔 — 신문 단처럼 브라우저가 각 단의
-// 총 높이를 자동으로 맞춰 카테고리 블록을 채워 넣는다. 접기/펼치기 없이도 여백이 크게 준다.
+// 짧은 컬럼 아래 여백이 그대로 남는 문제가 있었다. 이후 CSS 다단(columns)으로 바꿨으나,
+// 다단은 "위→아래로 채우고 넘치면 다음 단" 순서라 카테고리 수가 적은 구간에서는 가로 여백이
+// 남아도 다음 박스가 그 옆으로 오지 않고 전부 세로로 쌓였다(사용자 지적, 2026-08-31).
+// index.css `.care-guide-columns`/`.care-guide-category`를 flex-wrap으로 다시 교체 —
+// 가로 여유가 있으면 옆으로 나열되고, 없으면 다음 줄로 넘어간다.
 export const CareGuidePage: React.FC<CareGuidePageProps> = ({ setActiveTab }) => {
   const [tasks, setTasks] = useState<CareGuideTask[]>(careGuideTasksData as CareGuideTask[]);
   const inheritanceRef = useRef<HTMLDivElement>(null);
@@ -88,12 +90,9 @@ export const CareGuidePage: React.FC<CareGuidePageProps> = ({ setActiveTab }) =>
   };
 
   // §2 접기 — 기본은 제목 줄만, 펼쳐야 근거·메모·바로가기가 나온다(23항목이 한 화면에 잡히게).
+  // 2026-08-31 — 카드 전체 클릭이 아니라 화살표 버튼을 눌러야만 펼쳐지도록 변경(사용자 지시).
   const [expandedIds, setExpandedIds] = useState<Set<number>>(new Set());
-  const toggleExpand = (id: number, e: React.MouseEvent) => {
-    // 2026-08-24 — 카드 전체의 onClick도 이제 이 toggleExpand다(체크는 체크박스로만, 요청사항).
-    // 화살표 버튼은 카드 안에 중첩돼 있어 stopPropagation이 없으면 클릭이 카드까지 버블링돼
-    // toggleExpand가 두 번 불려(펼침→접힘) 아무 일도 안 일어난 것처럼 보인다.
-    e.stopPropagation();
+  const toggleExpand = (id: number) => {
     setExpandedIds((prev) => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id);
@@ -178,8 +177,8 @@ export const CareGuidePage: React.FC<CareGuidePageProps> = ({ setActiveTab }) =>
                 <span style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--primary-color)' }}>{section.label}</span>
               </div>
 
-              {/* 카테고리 = 다단(신문 단) 블록. index.css `.care-guide-columns`가 브라우저의
-                  자동 단 높이 배분으로 짧은/긴 카테고리를 섞어 빈틈을 메운다. */}
+              {/* 카테고리 = flex 박스. index.css `.care-guide-columns`가 가로 여유가 있으면
+                  옆으로 나열하고, 없으면 다음 줄로 넘긴다. */}
               <div className="care-guide-columns">
                 {categoryOrder.map((category) => {
                   const items = byCategory.get(category)!;
@@ -204,26 +203,19 @@ export const CareGuidePage: React.FC<CareGuidePageProps> = ({ setActiveTab }) =>
                         return (
                         <div
                           key={t.id}
-                          onClick={(e) => toggleExpand(t.id, e)}
                           style={{
                             padding: '0.9rem',
                             borderRadius: '8px',
                             backgroundColor: t.checked ? 'var(--secondary-color)' : '#FFFFFF',
                             border: '1px solid var(--border-color)',
                             ...(emphasisBorder ? { borderLeft: emphasisBorder } : {}),
-                            cursor: 'pointer',
-                            breakInside: 'avoid', // §2 — 다단에서 펼친 카드가 단 경계에서 안 쪼개지게
                           }}
                         >
                           <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
-                            {/* 2026-08-24 — 체크는 이 체크박스로만 한다. 카드/제목을 누르면 펼치기만
-                                동작하도록 바뀌어서(위 onClick), 체크박스는 클릭이 부모까지 안 번지게
-                                막고 자기 것만 토글한다 — 안 그러면 체크하려다 펼쳐지기도 한다. */}
                             <input
                               type="checkbox"
                               checked={t.checked}
                               onChange={() => toggleTask(t.id)}
-                              onClick={(e) => e.stopPropagation()}
                               style={{ width: '20px', height: '20px', marginTop: '0.1rem', flexShrink: 0, cursor: 'pointer' }}
                             />
                             <div style={{ flex: 1, minWidth: 0 }}>
@@ -260,7 +252,7 @@ export const CareGuidePage: React.FC<CareGuidePageProps> = ({ setActiveTab }) =>
                                     {t.needsExpertHelp && (
                                       <button
                                         type="button"
-                                        onClick={(e) => { e.stopPropagation(); setActiveTab?.('counseling'); }}
+                                        onClick={() => setActiveTab?.('counseling')}
                                         style={{ background: 'none', border: 'none', padding: 0, fontSize: '0.85rem', fontWeight: 700, color: 'var(--point-color)', textDecoration: 'underline', cursor: 'pointer' }}
                                       >
                                         {LINK_LABEL.counseling}
@@ -269,7 +261,7 @@ export const CareGuidePage: React.FC<CareGuidePageProps> = ({ setActiveTab }) =>
                                     {t.linkTo && (
                                       <button
                                         type="button"
-                                        onClick={(e) => { e.stopPropagation(); setActiveTab?.(t.linkTo as string); }}
+                                        onClick={() => setActiveTab?.(t.linkTo as string)}
                                         style={{ background: 'none', border: 'none', padding: 0, fontSize: '0.85rem', fontWeight: 700, color: 'var(--primary-color)', textDecoration: 'underline', cursor: 'pointer' }}
                                       >
                                         {LINK_LABEL[t.linkTo] || '바로가기 →'}
@@ -280,7 +272,6 @@ export const CareGuidePage: React.FC<CareGuidePageProps> = ({ setActiveTab }) =>
                                         href={t.externalUrl}
                                         target="_blank"
                                         rel="noreferrer"
-                                        onClick={(e) => e.stopPropagation()}
                                         style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.85rem', fontWeight: 700, color: 'var(--accent-gold)', textDecoration: 'underline' }}
                                       >
                                         정부24 바로가기 <ExternalLink size={12} />
@@ -292,7 +283,7 @@ export const CareGuidePage: React.FC<CareGuidePageProps> = ({ setActiveTab }) =>
                             </div>
                             <button
                               type="button"
-                              onClick={(e) => toggleExpand(t.id, e)}
+                              onClick={() => toggleExpand(t.id)}
                               aria-label={isExpanded ? '접기' : '펼치기'}
                               style={{ background: 'none', border: 'none', padding: '0.2rem', cursor: 'pointer', color: 'var(--text-muted)', flexShrink: 0 }}
                             >

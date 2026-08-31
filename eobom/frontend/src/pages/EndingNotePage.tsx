@@ -1114,7 +1114,7 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
               onChange={(e) => setDraftText(e.target.value)}
               className="form-input"
               style={{ height: 'auto', padding: '1rem', fontSize: largeText ? '1.15rem' : '1rem', lineHeight: 1.7 }}
-              placeholder="- 주소 : \n- 날짜 : \n- 성명 : "
+              placeholder={`- 주소 : \n- 날짜 : \n- 성명 : `}
             />
           </div>
 

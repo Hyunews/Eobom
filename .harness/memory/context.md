@@ -21,10 +21,11 @@
 🆕 `HomePage.tsx` 주석 2곳(38·358) `copy.md` → `00-31` 경로 갱신.
 🆕 **추모관 보존 남은 범위** — 동결·`purgeAt` 배치·통지 2종(`00-20` §8.1-1 · wt(87)).
 ✅ **04 0-b·A단계 완료(08-31, wt90·92)** — 계정 찾기 4번째 줄 + `DigitalCleanupItem`
-`deceasedId`·`origin`·인덱스 교체(마이그레이션 적용, 로컬 백업 `local-20260831-152954.dump`).
-B단계는 `PreDeathPlatformSetting` 신설 이후.
+FK·origin·인덱스 교체(마이그레이션 적용, 로컬 백업 완료). B단계는
+`PreDeathPlatformSetting` 신설 이후.
+✅ **`CareGuidePage` 가로배치+화살표전용(wt93)** 완료.
 
-**3. [Gemini] 게이트 대기 14건**(wt 79~92 · 🔴 편차 2건 = wt(83)·wt(86), 사람 확인 필요).
+**3. [Gemini] 게이트 대기 15건**(wt 79~93 · 🔴 편차 2건 = wt(83)·wt(86), 사람 확인 필요).
 🆕 **reports 재생성** — 신규 `00-31`·`00-32`·**`04-03`** 포함.
 
 🟡 dev DB 삭제분·검증분 7건 — 배치정리 필요(🔴 DB 쓰기 = CONFIRM).
@@ -35,7 +36,7 @@ B단계는 `PreDeathPlatformSetting` 신설 이후.
 프로젝트: 이어봄(Eobom) — 디지털엔딩&웰다잉 토탈케어 플랫폼
 협업체계: Opus(docs/) → Sonnet(eobom/) → Gemini(reports/·검증) · roles.md §1-1
 도메인  : 01장사시설 / 02전문가 / 03현물수거 / 04·05(보류) / 06엔딩노트 / 07상중행정
-마지막  : 2026-08-31 — 완료분은 일지 `260828.md` §1~8·`260831.md` §1 · wt 85~92
+마지막  : 2026-08-31 — 완료분은 일지 `260828.md` §1~8·`260831.md` §1~4 · wt 85~93
 ```
 
 - 소스 `eobom/frontend`(React18+Vite5+TS) · `eobom/backend`(Express+Prisma+JWT)
