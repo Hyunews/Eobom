@@ -44,7 +44,7 @@ const PREP_MENU: ModeMenuItem[] = [
 // loginRequired 누락돼 있던 것도 domainSlides.tsx 박스② CTA 게이트와 맞춰 정정.
 // care-guide만 예외(00-26 §7.3·07-02 원칙 — 07 열람은 어느 경로로 들어오든 로그인 없이 가능).
 const BEREAVED_MENU: ModeMenuItem[] = [
-  { id: 'care-guide', label: '상중·행정 케어', icon: ChecklistShieldIcon, status: 'active' },
+  { id: 'care-guide', label: '상중 행정 가이드', icon: ChecklistShieldIcon, status: 'active' },
   { id: 'facility', label: '장사시설 매칭', icon: HouseLeafIcon, status: 'active', loginRequired: true },
   { id: 'counseling', label: '전문가 매칭', icon: HandScalesIcon, status: 'active', loginRequired: true },
   { id: 'obituary', label: '모바일 부고장', icon: MessageSquare, status: 'active', loginRequired: true },

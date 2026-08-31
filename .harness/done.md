@@ -58,7 +58,7 @@
 2. `docs/작업일지_및_기록/에이전트_기록/walkthrough.md` — 완료 항목 정리
 3. `docs/작업일지_및_기록/에이전트_기록/claude_tasks.md` — 디버깅 과정·시행착오 등 날것 기록
 4. `docs/작업일지_및_기록/YYMMDD.md` — 그날의 실무 작업 일지
-5. `bash .harness/tools/harness-doctor.sh` 실행 → 빨간불 있으면 사용자에게 보고
+5. `bash .harness/tools/harness-doctor.sh` → 🔴는 보고, 🟡(85%)는 **그 자리에서** 걷어낸다
 
 ---
 

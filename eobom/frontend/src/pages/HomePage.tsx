@@ -35,7 +35,7 @@ export const HomePage: React.FC<HomePageProps> = ({ currentUser, onOpenLogin, se
     window.scrollTo({ top, behavior });
   };
 
-  // 히어로 CTA 2개 — copy.md ①Hero. 2026-08-25 이전엔 EntryBoxes.tsx의 박스①②와 같은
+  // 히어로 CTA 2개 — docs/00_핵심플랫폼/00-31 ①Hero. 2026-08-25 이전엔 EntryBoxes.tsx의 박스①②와 같은
   // ?entry=box1/box2 쿼리로 풀스크린 오버레이(BoxDetailOverlay, 폐지)를 열었는데, 오버레이
   // 자체가 없어지면서 박스 클릭과 동일하게 일반 페이지(/prep·/bereaved)로 직접 이동한다.
   const handleHeroPrimaryCTA = () => {
@@ -355,7 +355,7 @@ export const HomePage: React.FC<HomePageProps> = ({ currentUser, onOpenLogin, se
         }}
       >
         {/* ========================================================= */}
-        {/* [섹션 0] 메인 히어로 — copy.md ①Hero 개정 권고안 + will.png 배경 (2026-08-24) */}
+        {/* [섹션 0] 메인 히어로 — docs/00_핵심플랫폼/00-31 ①Hero 개정 권고안 + will.png 배경 (2026-08-24) */}
         {/* ========================================================= */}
         <section
           ref={(el) => { sectionElsRef.current[0] = el; }}

@@ -23,6 +23,7 @@ red()    { printf '\033[31m%s\033[0m\n' "$1"; }
 green()  { printf '\033[32m%s\033[0m\n' "$1"; }
 gray()   { printf '\033[90m%s\033[0m\n' "$1"; }
 yellow() { printf '\033[33m%s\033[0m\n' "$1"; }
+blue()   { printf '\033[36m%s\033[0m\n' "$1"; }
 
 fail() { red "  🔴 $1"; ISSUES=$((ISSUES + 1)); }
 ok()   { green "  🟢 $1"; }
@@ -32,6 +33,87 @@ note() { gray "  ⚪ $1"; }
 #   🔴 남용 금지: 판정이 가능한 검사는 fail로 간다. warn이 늘면 전부 무시당해 §2(조용한 통과
 #   방지)가 무력해진다. **"모드 전환이 있었나"처럼 사람만 답할 수 있는 질문에만 쓴다.**
 warn() { yellow "  🟡 $1"; }
+
+# ── budget_check — 예산 판정 단일 창구 (2026-08-31 신설) ─────────
+# 🔴 지금까지 예산 검사는 **100%에서만** 반응했다. 그래서 예산 문제를 만나는 시점이 늘
+#   작업 도중이었고, 그 자리에서 할 수 있는 선택이 "급하게 줄이기 / 상한 올리기" 둘뿐이었다.
+#   08-26·08-28 두 번의 상향이 전부 그 상황에서 나왔다. **급할 때 내리는 결정이 상한을 올린다.**
+#   85%에서 미리 켜면 다이어트가 사고 대응이 아니라 **정기 정비**가 된다 —
+#   이 검사의 목적은 초과를 잡는 것이 아니라 **초과를 만나지 않는 것**이다.
+# ⚠️ 위 warn 남용 금지 조항의 **승인된 두 번째 용법**: "사람만 답할 수 있는 질문" 외에
+#   **위반이 아니라 접근(接近)** 을 알리는 선행지표. 아직 규칙을 어기지 않았으니 fail이 될 수 없고,
+#   두면 반드시 fail이 되니 ok도 아니다. 🔴 이 예외를 더 늘리지 않는다.
+# 🔵 백분율을 항상 찍는 이유: 바이트는 감이 안 온다. 쓰는 사람이 "몇 %인가"를 늘 보고 있어야
+#   한 줄 더 쓸지 말지를 그 자리에서 판단한다(§9 배수구 규칙이 작동하는 전제).
+WATERMARK=85
+
+# ── 자동 상한 재설정 (2026-08-31 신설, 사장님 지시) ──────────────
+# 🔴 "상시 85% 이상이면 자동으로 재설정한다." 자동이라 **상시의 정의를 코드에 박는다** —
+#   그러지 않으면 이 장치가 곧 "붐빌 때마다 상한이 올라가는" 기계가 된다(그게 원래 문제였다).
+#   조건 넷을 전부 만족할 때만 올린다:
+#     ① 조건부 로드 파일일 것 — **부팅 예산과 `context.md`는 자동 대상이 아니다.**
+#        매 세션 × 매 주체가 지불하는 비용이라 사람이 판단해야 한다(A안으로 74%까지 내려왔다).
+#     ② **서로 다른 날** 두 번 85%를 넘길 것 — 하루 안의 작업 폭주로는 안 올라간다.
+#        (한 세션에서 넘겼다 걷어내면 그걸로 끝. 다음 날 또 넘겨 있어야 "상시"다.)
+#     ③ 그 파일이 **자동 재설정을 받은 적이 없을** 것 — 파일당 딱 한 번.
+#     ④ 새 상한이 20KB 이하일 것.
+#   ③④에 걸리면 올리지 않고 🔴를 낸다: **두 번째 답은 상향이 아니라 분리다**(§9).
+# 새 상한 = 현재 실측이 70%가 되는 크기(1KB 올림). 30% 여유가 이 장치의 목적 —
+#   "실측 + ε"로 정해진 상한들이 전 파일을 상시 99%에 앉혀 놓은 것이 재발 원인이었다.
+# 기록: 덮어쓴 값은 `tools/budgets.tsv`, 경위는 `_meta/예산_이력.md`에 남는다. 사람이 되돌릴 수 있다.
+BUDGET_TSV="$HARNESS/tools/budgets.tsv"       # 파일<TAB>새상한<TAB>재설정일<TAB>당시실측
+BUDGET_WATCH="$HARNESS/tools/budget-watch.tsv" # 파일<TAB>처음 85%를 넘긴 날
+BUDGET_LOG="$HARNESS/_meta/예산_이력.md"
+TODAY=$(date +%F)
+
+budget_override() {  # budget_override <파일키> — 자동 재설정된 상한이 있으면 그 값을 찍는다
+  [ -f "$BUDGET_TSV" ] || return 0
+  awk -F'\t' -v f="$1" '$1==f{v=$2} END{if(v) print v}' "$BUDGET_TSV"
+}
+
+budget_autoreset() {  # budget_autoreset <파일키> <실측B> <현재상한B>
+  local f="$1" sz="$2" lim="$3" pct first new
+  pct=$(( sz * 100 / lim ))
+  if [ "$pct" -lt "$WATERMARK" ]; then           # 해소됐으면 관찰 종료
+    [ -f "$BUDGET_WATCH" ] && grep -v "^$f	" "$BUDGET_WATCH" > "$BUDGET_WATCH.tmp" 2>/dev/null \
+      && mv "$BUDGET_WATCH.tmp" "$BUDGET_WATCH"
+    return 0
+  fi
+  first=$(awk -F'\t' -v f="$f" '$1==f{print $2}' "$BUDGET_WATCH" 2>/dev/null | tail -1)
+  if [ -z "$first" ]; then                        # ② 오늘이 처음 — 올리지 않는다
+    printf '%s\t%s\n' "$f" "$TODAY" >> "$BUDGET_WATCH"
+    gray "       ↳ 오늘 처음 85%를 넘겼다. 걷어내지 않으면 다음 날 상한을 자동 재설정한다"
+    return 0
+  fi
+  [ "$first" = "$TODAY" ] && return 0             # 같은 날 두 번째 실행 — 하루는 하루다
+  if [ -n "$(budget_override "$f")" ]; then       # ③ 이미 한 번 받았다
+    fail "$f — 자동 재설정을 받고도 다시 상시 85%다. **상향이 아니라 분리할 차례**(AGENTS.md §9)"
+    return 0
+  fi
+  new=$(( (sz * 100 / 70 + 1023) / 1024 * 1024 ))
+  if [ "$new" -gt 20480 ]; then                   # ④ 20KB 넘으면 파일을 쪼갤 문제다
+    fail "$f — 자동 재설정하면 $((new / 1024))KB다. 한 파일이 그만한 주제면 **분리**가 답이다(§9)"
+    return 0
+  fi
+  printf '%s\t%s\t%s\t%s\n' "$f" "$new" "$TODAY" "$sz" >> "$BUDGET_TSV"
+  grep -v "^$f	" "$BUDGET_WATCH" > "$BUDGET_WATCH.tmp" 2>/dev/null && mv "$BUDGET_WATCH.tmp" "$BUDGET_WATCH"
+  [ -f "$BUDGET_LOG" ] || printf '# 예산 자동 재설정 이력\n\n> `harness-doctor.sh`가 스스로 적는다. 되돌리려면 `tools/budgets.tsv`의 해당 줄을 지운다.\n> 규칙·근거 → `예산_재발방지_260831.md`\n\n| 날짜 | 파일 | 옛 상한 | 새 상한 | 당시 실측 |\n|---|---|---|---|---|\n' > "$BUDGET_LOG"
+  printf '| %s | `%s` | %dB | **%dB** | %dB (%d%%) |\n' "$TODAY" "$f" "$lim" "$new" "$sz" "$pct" >> "$BUDGET_LOG"
+  blue "  🔵 $f — 상한 자동 재설정 ${lim}B → ${new}B (서로 다른 날 2회 85% 초과 = 상시). 파일당 1회뿐, 다음엔 분리"
+}
+
+budget_check() {  # budget_check <표시이름> <실측B> <상한B>
+  local label="$1" sz="$2" lim="$3" pct
+  pct=$(( sz * 100 / lim ))
+  CHECKS=$((CHECKS + 1))
+  if [ "$sz" -gt "$lim" ]; then
+    fail "$label ${sz}B / ${lim}B (${pct}%) 초과 — 상한을 올리기 전에 AGENTS.md §9 순서"
+  elif [ "$pct" -ge "$WATERMARK" ]; then
+    warn "$label ${sz}B / ${lim}B (${pct}%) · 여유 $((lim - sz))B — 이번 세션 안에 걷어낼 것(§9 배수구)"
+  else
+    ok "$label ${sz}B / ${lim}B (${pct}%)"
+  fi
+}
 
 # 줄바꿈을 LF로 정규화해서 잰다. Windows에서 git이 체크아웃하며 CRLF로 바꾸면 줄 수만큼
 # 바이트가 늘어, 내용이 그대로인데도 예산을 넘긴다(2026-08-14: 브랜치 병합 직후 roles.md가
@@ -49,16 +131,61 @@ echo "1. 부팅 파일 (매 세션 로드, 합계 ≤ 16KB)"
 # 항상 여기부터 발생한다. 예산에서 빼면 "재고 있는데 안 세는" 항목이 생긴다(설계 원칙 2).
 # (2026-08-25 신설 — 소유권 규칙이 .harness/에만 있어 세션에 로드되지 않았고, Opus가 eobom/에
 #  코드를 쓴 사고가 있었다. 자동 로드되는 자리에 규칙을 두는 것이 이 파일의 존재 이유다.)
+#
+# 🔵 2026-08-28 — **재는 대상을 파일 크기에서 "훅이 실제로 내보내는 바이트"로 바꿨다**(사장님 승인).
+#   같은 날 SessionStart 훅(`tools/session-boot.sh`)이 들어오면서 **전달 방식이 프로그래밍
+#   가능해졌는데 계량은 옛날 그대로**였다. 훅 이전에는 "디스크의 파일 4개 합 = 세션 비용"이
+#   참이었지만, 지금은 훅이 파일의 일부만 실을 수 있어 둘이 갈린다(pending-approvals의 "해제됨"
+#   이력이 그 첫 사례 — 파일엔 남기고 세션엔 안 싣는다).
+#   ⚠️ 파일 크기는 **비용의 대리지표**였다. 대리지표와 실물이 갈라지면 실물을 잰다.
+# 🔴 부수 효과가 본전보다 크다: **지금까지 훅이 죽어도 doctor는 통과했다**(파일은 멀쩡하니까).
+#   실제 출력을 재면 훅 고장이 바이트 급감으로 잡힌다 — 설계 원칙 2(검사 대상 0건 = 실패).
 BOOT_TOTAL=0
-for f in "$ROOT/CLAUDE.md" "$HARNESS/AGENTS.md" "$HARNESS/memory/context.md" "$HARNESS/memory/pending-approvals.md"; do
+
+# (1) 루트 CLAUDE.md — 훅이 아니라 CLI가 민다. 훅 출력에 안 들어오므로 따로 더한다.
+CHECKS=$((CHECKS + 1))
+if [ -f "$ROOT/CLAUDE.md" ]; then
+  sz=$(size_of "$ROOT/CLAUDE.md")
+  BOOT_TOTAL=$((BOOT_TOTAL + sz))
+  echo "     CLAUDE.md (CLI 자동 로드) — ${sz}B"
+else
+  fail "없음: CLAUDE.md"
+fi
+
+# (2) 훅이 실제로 내보내는 바이트. 파일을 더하지 않고 스크립트를 돌려서 잰다.
+CHECKS=$((CHECKS + 1))
+BOOT_SH="$HARNESS/tools/session-boot.sh"
+if [ -f "$BOOT_SH" ]; then
+  HOOK_TXT=$(CLAUDE_PROJECT_DIR="$ROOT" bash "$BOOT_SH" 2>/dev/null | tr -d '\r')
+  HOOK_OUT=$(printf '%s' "$HOOK_TXT" | wc -c | tr -d ' ')
+  BOOT_TOTAL=$((BOOT_TOTAL + HOOK_OUT))
+  echo "     session-boot.sh 실제 출력 — ${HOOK_OUT}B"
+  # 🔵 2026-08-31 — 하한선을 **바이트에서 내용으로** 바꿨다. 훅이 절을 골라 싣게 되면서
+  #   "1만B 이상이면 정상"이라는 전제가 깨졌다(정상 출력이 9,956B로 내려왔다). 바이트 하한을
+  #   그때그때 내려 맞추면 결국 아무것도 안 잡는 숫자가 된다.
+  #   대신 **세 덩이가 다 있는가 + 훅이 스스로 낸 🔴가 있는가**를 본다 — 이게 원래 잡고 싶던 것이다.
+  #   (설계 원칙 2 — 훅이 깨졌는데 초록불이 켜지는 일만은 막아야 한다.)
+  BLOCKS=$(printf '%s\n' "$HOOK_TXT" | grep -c '^===== [123]\. ')
+  if [ "$BLOCKS" -ne 3 ]; then
+    fail "훅이 낸 부팅 덩이가 ${BLOCKS}/3개 — session-boot.sh 확인"
+  elif printf '%s\n' "$HOOK_TXT" | grep -q '🔴 파일 없음\|🔴 절 추출 실패\|🔴 첫 `## ` 섹션'; then
+    fail "훅이 스스로 🔴를 냈다 — 부팅 파일 구조가 바뀌었다. 훅 출력을 직접 볼 것"
+  elif [ "$HOOK_OUT" -lt 6144 ]; then
+    fail "훅 출력 ${HOOK_OUT}B — 덩이는 셋인데 내용이 비었다. session-boot.sh 확인"
+  fi
+else
+  fail "없음: .harness/tools/session-boot.sh — .claude/settings.json의 SessionStart 훅이 가리킴"
+fi
+
+# (3) 부팅 3개 실존 — 훅은 파일이 없어도 경고만 찍고 계속하므로(세션을 막지 않는 설계),
+#     "없어졌다"는 판정은 여기서 낸다. 크기는 합계에 더하지 않고 범인 지목용으로만 보여준다.
+for f in "$HARNESS/AGENTS.md" "$HARNESS/memory/context.md" "$HARNESS/memory/pending-approvals.md"; do
   CHECKS=$((CHECKS + 1))
   if [ ! -f "$f" ]; then
     fail "없음: ${f#$ROOT/}"
     continue
   fi
-  sz=$(size_of "$f")
-  BOOT_TOTAL=$((BOOT_TOTAL + sz))
-  echo "     ${f#$ROOT/} — $((sz / 1024))KB (${sz}B)"
+  echo "     (참고) ${f#$ROOT/} — 파일 $(size_of "$f")B"
 done
 # 예산 15KB (2026-08-26 상향, 사장님 승인). 🔴 **먼저 내용을 쳐낸 뒤에 올렸다** — AGENTS.md §9
 # 순서를 지킨 기록이다. 같은 날 context.md를 11,272B → 2,756B로 줄이고(진행 중 상세를
@@ -83,23 +210,20 @@ done
 #   **이 종류는 뺄 수 없다.** 하루에 ~560B가 이 사유로 늘었다.
 # ⚠️ **1KB 여유는 그런 추가 2건분이다.** 한 달 안에 또 닿으면 답은 세 번째 상향이 아니라
 #   **무언가를 부팅에서 빼는 것**이다(1순위 후보: pending-approvals의 인프라 항목 → backlog.md).
-if [ "$BOOT_TOTAL" -gt 16384 ]; then
-  fail "부팅 합계 $((BOOT_TOTAL / 1024))KB > 16KB 예산 초과 — 다이어트 필요"
-else
-  ok "부팅 합계 $((BOOT_TOTAL / 1024))KB (예산 16KB 이내)"
-fi
+#
+# 🔵 2026-08-28 — 위 "1순위 후보"를 실제로 집행했다. 예산 16KB는 **그대로 두고** 실린 양을 줄였다:
+#   · pending-approvals 머리말 483B + "해제됨" 이력 782B → 훅이 안 싣는다(파일엔 그대로)
+#   · 인프라 항목 실측표·리전 주의 ~900B → backlog.md ⑫ (근거는 근거지 결정이 아니다)
+#   여유 62B → 약 2.2KB. 🔴 더 중요한 건 **이력·근거가 앞으로 예산을 먹지 않는다**는 것이다.
+#   같은 압박이 오면 먼저 물을 것: *"이건 결정인가, 결정의 근거인가."* 근거는 backlog로 간다.
+budget_check "부팅 실적재량" "$BOOT_TOTAL" 16384
 
 # 🔴 2026-08-25 신설 — context.md는 자기 머리말에 **"3KB 초과 금지"** 를 스스로 적어 두고도
 # 11,272B(3.7배)까지 불어 있었다. **아무도 재지 않는 규칙은 규칙이 아니다.** 합계만 보면
 # 어느 파일이 예산을 먹었는지 안 보여서 "다 같이 조금씩 넘쳤다"로 읽히는데, 실제로는
 # 이 파일 하나가 부팅 예산 11KB를 통째로 쓰고 있었다. 범인을 지목해야 다이어트가 시작된다.
-CHECKS=$((CHECKS + 1))
 CTX_SZ=$(size_of "$HARNESS/memory/context.md")
-if [ "$CTX_SZ" -gt 3072 ]; then
-  fail "context.md ${CTX_SZ}B > 3KB — 자기 머리말이 정한 상한의 $((CTX_SZ * 10 / 3072))/10배. 끝난 항목은 walkthrough.md로 옮길 것"
-else
-  ok "context.md $((CTX_SZ))B (자체 상한 3KB 이내)"
-fi
+budget_check "context.md(자체 상한)" "$CTX_SZ" 3072
 echo
 
 # ── 2. 조건부 로드 파일 존재 ─────────────────────────────────────
@@ -120,7 +244,7 @@ echo "2. 조건부 로드 파일"
 #   디렉토리 근접으로 자동 로드돼 매 세션 컨텍스트를 쓰는데도 예산이 없었다 —
 #   §2(context.md가 자기 상한의 3.7배까지 불어 있던 건)와 정확히 같은 구멍이다.
 for f in roles.md security.md done.md systems.md record.md db-safety.md CLAUDE.md GEMINI.md memory/backlog.md; do
-  CHECKS=$((CHECKS + 1))
+  # (CHECKS 증가는 budget_check 안에서 한다 — 2026-08-31)
   # 2026-08-26 예산 정정 — roles.md 8→10KB · systems.md 6→12KB. AGENTS.md §9 순서대로
   # **내용부터 봤고, 옮길 곳이 없어서** 올렸다. 근거는 "6KB = 단일 주제"라는 위 전제가
   # 이 두 파일엔 처음부터 맞지 않았다는 것이다:
@@ -138,20 +262,27 @@ for f in roles.md security.md done.md systems.md record.md db-safety.md CLAUDE.m
   # 🔴 GEMINI.md 10KB는 **잠정치다.** 역할이 하나(문서화·검증)인데 9,198B로 CLAUDE.md의 4.5배다.
   #   6KB로 잡으면 첫날부터 고칠 수 없는 빨간불이 되어 "빨간불 무시" 습관을 만든다(§1 주석과
   #   같은 이유). ⚠️ **다음에 GEMINI.md를 손댈 때 내용부터 쳐내고 6KB로 내릴 것.**
+  #   🔴 2026-08-31 주의: 88%라 **자동 재설정 대상**이다(→ 13KB). 위 "내려야 한다"는 의도와
+  #     반대 방향이므로, 자동으로 올라갔다면 `budgets.tsv`의 GEMINI.md 줄을 지워 되돌릴 것.
+  # 🔵 2026-08-28 backlog.md 6→7KB(사장님 승인). **부팅에서 뺀 것이 여기로 왔다** — 인프라
+  #   항목의 실측 근거 ~900B(→ ⑫). 이 파일의 존재 이유가 "부팅에서 뺀 상세의 종착지"이므로
+  #   부팅이 줄면 여기가 느는 것이 정상이다. ⚠️ 다만 상한 없이 늘면 §1의 구멍이 여기로 옮겨온
+  #   것일 뿐이다 — 다음에 닿으면 끝난 항목이 walkthrough.md로 갔는지부터 볼 것.
   case "$f" in
     roles.md)         budget=10240 ;;
     systems.md)       budget=12288 ;;
     GEMINI.md)        budget=10240 ;;
+    memory/backlog.md) budget=7168 ;;
     *)                budget=6144 ;;
   esac
   if [ -f "$HARNESS/$f" ]; then
+    # 자동 재설정된 상한이 있으면 그 값이 이긴다(위 case는 최초값일 뿐이다).
+    ovr=$(budget_override "$f"); [ -n "$ovr" ] && budget=$ovr
     sz=$(size_of "$HARNESS/$f")
-    if [ "$sz" -gt "$budget" ]; then
-      fail "$f — ${sz}B > $((budget / 1024))KB 예산 초과"
-    else
-      ok "$f ($((sz / 1024))KB / $((budget / 1024))KB)"
-    fi
+    budget_check "$f" "$sz" "$budget"
+    budget_autoreset "$f" "$sz" "$budget"
   else
+    CHECKS=$((CHECKS + 1))
     fail "없음: .harness/$f (AGENTS.md 조건부 로드 표가 가리킴)"
   fi
 done
@@ -460,6 +591,83 @@ else
     ok "구현만 열려 있음 — Sonnet 작업"
   else
     ok "작업 트리에 스펙·구현 변경 없음"
+  fi
+fi
+echo
+
+# ── 11. 고아 md — 아무데서도 가리키지 않는 문서 ──────────────────
+# 왜 있나: 2026-08-28 md 전수 점검에서 루트 `copy.md`(15.6KB)와 `image-prompts.md`(39KB)가
+#   나왔다. copy.md는 **`HomePage.tsx`가 주석으로 참조하는 살아있는 정본**인데 `docs/` 밖에
+#   있어 인덱스에도, 스펙 개정 절차에도 안 걸려 있었다(AGENTS.md §7). 아무도 안 재니까
+#   몇 주를 그대로 있었다 — §9가 말하는 조용한 통과다.
+#
+# 판정 기준은 **도달 가능성**이다. 인덱스(`00_DOCS_INDEX.md`)에 실려 있으면 통과 — 인덱스가
+#   문서의 정식 입구이기 때문. 그 외에는 다른 md나 `eobom/` 소스가 이름을 부르면 통과.
+#   🔴 자기 자신은 참조로 안 친다(파일 안의 편입 메모가 자기 이름을 부른다).
+#
+# 참조 키: 앞자리가 `NN-NN`이면 **그 ID**로 찾는다. 문서끼리는 경로가 아니라 `07-04`처럼
+#   ID로 인용하기 때문이다. ID가 없는 하네스 md는 파일명으로 찾는다.
+#
+# 제외 — 참조가 없는 게 **정상인** 것들. 늘리기 전에 "정말 아무도 안 찾아도 되나"를 볼 것.
+#   · docs/작업일지_및_기록/ — 날짜 일지는 추가만 하고 서로 안 부른다
+#   · .harness/_meta/         — 폐기된 검토안 아카이브(현행 규칙이 부르면 오히려 이상하다)
+echo "11. 고아 md — 인덱스에도 없고 아무도 참조하지 않는 문서"
+CHECKS=$((CHECKS + 1))
+if ! git -C "$ROOT" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+  fail "git 저장소가 아니라 고아 md 검사를 돌릴 수 없다"
+else
+  # 🔴 core.quotepath=false 없으면 한글 경로가 "\355\225\234..."로 이스케이프돼
+  #    `*.md` 매칭이 전부 빗나간다(2026-08-28: 117개 중 32개만 잡혔다).
+  ALL_MD=$(git -C "$ROOT" -c core.quotepath=false ls-files -- '*.md' \
+           | grep -v '^docs/작업일지_및_기록/' \
+           | grep -v '^\.harness/_meta/' || true)
+  # 참조가 있을 수 있는 곳 전부 — md 전체(일지·아카이브 포함) + 소스 주석
+  REF_SRC=$(git -C "$ROOT" -c core.quotepath=false ls-files \
+            -- '*.md' '*.ts' '*.tsx' '*.js' '*.jsx' '*.json' 2>/dev/null || true)
+  MD_COUNT=$(printf '%s\n' "$ALL_MD" | grep -c . || true)
+  if [ "$MD_COUNT" -lt 20 ]; then
+    # 설계 원칙 2 — 경로가 바뀌어 대상이 사라지면 초록불이 아니라 빨간불이어야 한다.
+    fail "검사 대상 md가 ${MD_COUNT}개뿐 — ls-files 패턴이 깨졌다(정상은 100개 이상)"
+  else
+    # 🔵 파일마다 전수 grep을 돌면 90회 × 500파일 = 45초가 걸렸다(2026-08-28 실측).
+    #    키 전부를 `grep -oHF -f`에 한 번에 물려 **말뭉치를 1회만 훑는다.** 결과는 `경로:키`.
+    ORPHANS=""
+    TMPD=$(mktemp -d) || TMPD=""
+    if [ -z "$TMPD" ]; then
+      fail "임시 디렉토리를 만들 수 없어 고아 md 검사를 건너뜀"
+    else
+      trap 'rm -rf "$TMPD"' EXIT
+      # 소유 관계: "키<TAB>그 키를 가진 파일". 같은 basename이 여러 곳에 있을 수 있어 1:N이다.
+      printf '%s\n' "$ALL_MD" | while IFS= read -r f; do
+        [ -n "$f" ] || continue
+        base="${f##*/}"
+        case "$base" in
+          [0-9][0-9]-[0-9][0-9]_*) printf '%s\t%s\n' "${base%%_*}" "$f" ;;  # 00-31_랜딩...md → 00-31
+          *)                       printf '%s\t%s\n' "$base" "$f"       ;;  # roles.md → roles.md
+        esac
+      done > "$TMPD/own"
+      cut -f1 "$TMPD/own" | sort -u > "$TMPD/keys"
+      printf '%s\n' "$REF_SRC" | grep . \
+        | (cd "$ROOT" && xargs -d '\n' grep -oHF -f "$TMPD/keys" -- 2>/dev/null) \
+        | sort -u > "$TMPD/hits"
+      # 자기 파일 안에서 자기 키를 부른 건 참조가 아니다(편입 메모가 제 이름을 적는다).
+      ORPHANS=$(awk -F'\t' '
+        NR==FNR { own[$1 SUBSEP $2] = 1; files[$1] = files[$1] "\n" $2; next }
+        { i = index($0, ":"); p = substr($0, 1, i-1); k = substr($0, i+1)
+          if (!((k SUBSEP p) in own)) ref[k] = 1 }
+        END { for (k in files) if (!(k in ref)) { n = split(files[k], a, "\n")
+                for (j = 1; j <= n; j++) if (a[j] != "") print a[j] } }
+      ' "$TMPD/own" "$TMPD/hits" | sort)
+    fi
+
+    ORPHAN_N=$(printf '%s' "$ORPHANS" | grep -c . || true)
+    if [ "$ORPHAN_N" -eq 0 ]; then
+      ok "md ${MD_COUNT}개 전부 도달 가능"
+    else
+      fail "고아 md ${ORPHAN_N}건 — 인덱스에 올리거나, 쓸모가 없으면 지울 것"
+      printf '%s' "$ORPHANS" | grep . | head -10 | sed 's/^/       · /'
+      gray "       docs/면 00_DOCS_INDEX.md에 한 줄 추가가 정답이다(.harness/CLAUDE.md Opus §1)."
+    fi
   fi
 fi
 echo

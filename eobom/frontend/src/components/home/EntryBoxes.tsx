@@ -28,7 +28,7 @@ const chipLabels: Record<string, string> = {
   'ending-note': '디지털 엔딩노트',
   'farewell-messages': '유족 메시지 보관함',
   'digital-estate': '디지털 정산',
-  'care-guide': '상중 케어',
+  'care-guide': '상중 행정',
   obituary: '모바일 부고장',
   facility: '장사시설 매칭',
   memorial: '디지털 추모관',

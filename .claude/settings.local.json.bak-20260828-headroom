@@ -1,0 +1,31 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(command -v node)",
+      "Bash(command -v python)",
+      "Bash(command -v jq)",
+      "Bash(jq --version)",
+      "Read(//c/Program Files/nodejs/node_modules/@anthropic-ai/**)",
+      "Read(//c//**)",
+      "Bash(npm install *)"
+    ]
+  },
+  "env": {
+    "ANTHROPIC_BASE_URL": "http://127.0.0.1:8787",
+    "ENABLE_TOOL_SEARCH": "true"
+  },
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup|resume",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "C:/Users/kilak/AppData/Local/Programs/Python/Python311/Scripts/headroom.EXE wrap selfheal --marker headroom-wrap-selfheal",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}

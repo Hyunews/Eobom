@@ -1,0 +1,17 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup|resume|clear|compact",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.harness/tools/session-boot.sh\"",
+            "timeout": 15,
+            "statusMessage": "하네스 부팅 3개 주입 중..."
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -97,7 +97,7 @@ export const domainSlides: Record<string, DomainSlide> = {
   'care-guide': {
     key: 'care-guide',
     tab: 'care-guide',
-    badgeLabel: '상중 케어 및 사망 행정',
+    badgeLabel: '상중 행정 가이드',
     badgeIcon: <ChecklistShieldIcon size={20} color="#03543F" />,
     badgeColor: '#03543F',
     badgeBg: '#DEF7EC',
@@ -115,7 +115,7 @@ export const domainSlides: Record<string, DomainSlide> = {
     featureBorderColor: '#5B7065',
     featureTitle: '행정절차 타임라인 & 부고장',
     featureDesc: '사망신고·상속포기 등 법정기한이 있는 절차를 D-Day 타임라인으로 안내하고, 모바일 부고장 작성을 도와드립니다.',
-    ctaLabel: '상중 케어 바로 보기',
+    ctaLabel: '상중 행정 가이드 보기',
     ctaColor: '#5B7065',
     status: 'active',
     note: '로그인 없이도 바로 열람하실 수 있습니다',

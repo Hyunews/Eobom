@@ -26,17 +26,39 @@ interface CareGuidePageProps {
   setActiveTab?: (tab: string) => void;
 }
 
-// docs/07_상중_행정_케어/07-02 §2 22항목(+§2.7 조건부 1건) 전수. 표시 순서는 §3 —
-// "기한 순"이 아니라 "판단 순"(severity 우선, 그 안에서 판단 흐름 순). 되돌릴 수 없는 것부터
-// 보여야 한다는 원칙이라, 여기서도 severity로 강제 재그룹핑한다(JSON 순서에 기대지 않음).
-const SEVERITY_ORDER: Array<CareGuideTask['severity']> = ['CRITICAL', 'NORMAL', 'INFO'];
+// docs/07_상중_행정_케어/07-04 §4.1 — 정렬축을 severity 그룹에서 시간축 5구간으로 바꾼다
+// (07-01 §4.2가 지시해 두고 미이행이던 것 — 사망일은 받지 않으므로 구간은 전부 상대 표현).
+// 구간 안의 순서는 §4.2대로 "구간 → severity(CRITICAL→NORMAL→INFO) → 기한"이고, 이 판단은
+// 07-02 §2 흐름과 이미 일치해 각 구간의 id를 그 순서 그대로 나열해 둔다(런타임 재정렬 불필요).
+interface TimeSection {
+  key: string;
+  label: string;
+  ids: number[];
+}
+const TIME_SECTIONS: TimeSection[] = [
+  { key: 'funeral', label: '지금 — 장례 기간', ids: [2, 5, 1, 3, 4] },
+  { key: 'month1', label: '1개월 안에', ids: [6, 8] },
+  { key: 'month3', label: '3개월 안에 — 되돌릴 수 없음', ids: [7, 9, 10, 11, 12, 23] },
+  { key: 'month6', label: '6개월 안에', ids: [13, 14, 15, 16, 17] },
+  { key: 'later', label: '그 이후 / 기한 여유', ids: [20, 21, 22, 18, 19] },
+];
+
+// 07-04 §5.1 — 항목 단위 강조는 여전히 severity 기준이라(구간과는 독립 축) 매핑은 남긴다.
+// 색만으로 구분하지 않는다(00-23 §8.7) — ⭐ 기호 + 글자 배지 + 좌측 테두리 3중으로 겹친다.
 const SEVERITY_LABEL: Record<CareGuideTask['severity'], { title: string; desc: string; color: string; bg: string }> = {
   // 빨간색은 "위험/응급" 톤이 너무 강해 유족에게 불쾌감을 줄 수 있다는 개발자 피드백(2026-08-14)
   // 으로 짙은 앰버(주황)로 교체 — 강조는 유지하되 경보음보다는 "중요 안내" 톤. "확인 필요" 배지
   // (연한 노란빛 amber #FEF3C7/#92400E)와는 톤을 달리해서 겹칠 때도 구분되게 한다.
-  CRITICAL: { title: '1순위 · 되돌릴 수 없는 것', desc: '기한을 놓치면 되돌릴 방법이 없습니다', color: '#9A3412', bg: '#FFEDD5' },
-  NORMAL: { title: '2순위 · 과태료·가산세', desc: '기한을 놓치면 불이익이 있지만 되돌릴 수는 있습니다', color: 'var(--point-color)', bg: '#EAE5DC' },
-  INFO: { title: '3순위 · 실무 편의', desc: '기한 압박은 없지만 정리해두면 좋습니다', color: 'var(--text-muted)', bg: '#F1F5F9' },
+  CRITICAL: { title: '되돌릴 수 없는 것', desc: '기한을 놓치면 되돌릴 방법이 없습니다', color: '#9A3412', bg: '#FFEDD5' },
+  NORMAL: { title: '과태료·가산세', desc: '기한을 놓치면 불이익이 있지만 되돌릴 수는 있습니다', color: 'var(--point-color)', bg: '#EAE5DC' },
+  INFO: { title: '실무 편의', desc: '기한 압박은 없지만 정리해두면 좋습니다', color: 'var(--text-muted)', bg: '#F1F5F9' },
+};
+// 좌측 테두리로 severity를 항상(펼치지 않아도) 드러낸다 — CRITICAL은 굵게 + ⭐배지,
+// INFO는 흐리게, NORMAL은 표시 없음(§5.1 3단 표기).
+const EMPHASIS_BORDER: Record<CareGuideTask['severity'], string | undefined> = {
+  CRITICAL: `4px solid ${SEVERITY_LABEL.CRITICAL.color}`,
+  NORMAL: undefined,
+  INFO: '3px solid #E2E8F0',
 };
 
 const LINK_LABEL: Record<string, string> = {
@@ -84,13 +106,13 @@ export const CareGuidePage: React.FC<CareGuidePageProps> = ({ setActiveTab }) =>
     <div className="container">
       <div style={{ marginBottom: '1.5rem' }}>
         <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', backgroundColor: '#DEF7EC', color: '#03543F', padding: '0.3rem 0.8rem', borderRadius: '16px', fontSize: '0.85rem', fontWeight: 700, marginBottom: '0.6rem' }}>
-          <ChecklistShieldIcon size={18} color="#03543F" /> 사망 직후 D-Day 필수 행정절차
+          <ChecklistShieldIcon size={18} color="#03543F" /> 사망 직후 필수 행정절차
         </div>
         <h1 className="page-title" style={{ color: 'var(--primary-color)', display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0 }}>
-          <ChecklistShieldIcon color="var(--point-color)" size={32} /> 상중 케어 &amp; 사망 행정 가이드
+          <ChecklistShieldIcon color="var(--point-color)" size={32} /> 상중 행정 가이드
         </h1>
         <p style={{ color: 'var(--text-muted)', marginTop: '0.4rem' }}>
-          사망 후 D-Day별 필수 행정절차 타임라인을 확인하세요.
+          사망 후 꼭 해야 할 행정절차를 순서대로 확인하세요.
         </p>
       </div>
 
@@ -126,18 +148,20 @@ export const CareGuidePage: React.FC<CareGuidePageProps> = ({ setActiveTab }) =>
         </div>
       </div>
 
-      {/* D-Day 행정절차 타임라인 — 전체 폭 카드, 부고장 카드 제거(별도 페이지로 분리됨) */}
+      {/* 상중 행정 타임라인 — 전체 폭 카드, 부고장 카드 제거(별도 페이지로 분리됨) */}
       <div style={{ backgroundColor: 'var(--card-bg)', padding: '1.5rem', borderRadius: 'var(--border-radius)', boxShadow: 'var(--box-shadow)' }}>
         <h3 style={{ color: 'var(--primary-color)', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <CheckSquare color="var(--point-color)" /> D-Day별 행정절차 체크리스트
+          <CheckSquare color="var(--point-color)" /> 상중 행정 체크리스트
         </h3>
 
-        {SEVERITY_ORDER.map((severity) => {
-          const group = tasks.filter((t) => t.severity === severity);
+        {TIME_SECTIONS.map((section) => {
+          // §4.1 — 구간별 id를 이미 severity 우선순으로 나열해 뒀으므로 그 순서를 그대로 쓴다.
+          const group = section.ids
+            .map((id) => tasks.find((t) => t.id === id))
+            .filter((t): t is CareGuideTask => Boolean(t));
           if (group.length === 0) return null;
-          const meta = SEVERITY_LABEL[severity];
 
-          // 카테고리별로 묶는다 — JSON 배열에 등장하는 순서를 그대로 표시 순서로 쓴다.
+          // 카테고리별로 묶는다 — 위 순서(구간 내 severity 순)를 그대로 표시 순서로 쓴다.
           const categoryOrder: string[] = [];
           const byCategory = new Map<string, CareGuideTask[]>();
           group.forEach((t) => {
@@ -149,10 +173,9 @@ export const CareGuidePage: React.FC<CareGuidePageProps> = ({ setActiveTab }) =>
           });
 
           return (
-            <div key={severity} style={{ marginBottom: '1.5rem' }}>
+            <div key={section.key} style={{ marginBottom: '1.5rem' }}>
               <div style={{ marginBottom: '0.6rem' }}>
-                <span style={{ fontSize: '0.9rem', fontWeight: 700, color: meta.color }}>{meta.title}</span>
-                <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', margin: '0.15rem 0 0 0' }}>{meta.desc}</p>
+                <span style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--primary-color)' }}>{section.label}</span>
               </div>
 
               {/* 카테고리 = 다단(신문 단) 블록. index.css `.care-guide-columns`가 브라우저의
@@ -176,6 +199,8 @@ export const CareGuidePage: React.FC<CareGuidePageProps> = ({ setActiveTab }) =>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
                       {items.map((t) => {
                         const isExpanded = expandedIds.has(t.id);
+                        const itemMeta = SEVERITY_LABEL[t.severity];
+                        const emphasisBorder = EMPHASIS_BORDER[t.severity];
                         return (
                         <div
                           key={t.id}
@@ -185,6 +210,7 @@ export const CareGuidePage: React.FC<CareGuidePageProps> = ({ setActiveTab }) =>
                             borderRadius: '8px',
                             backgroundColor: t.checked ? 'var(--secondary-color)' : '#FFFFFF',
                             border: '1px solid var(--border-color)',
+                            ...(emphasisBorder ? { borderLeft: emphasisBorder } : {}),
                             cursor: 'pointer',
                             breakInside: 'avoid', // §2 — 다단에서 펼친 카드가 단 경계에서 안 쪼개지게
                           }}
@@ -201,15 +227,23 @@ export const CareGuidePage: React.FC<CareGuidePageProps> = ({ setActiveTab }) =>
                               style={{ width: '20px', height: '20px', marginTop: '0.1rem', flexShrink: 0, cursor: 'pointer' }}
                             />
                             <div style={{ flex: 1, minWidth: 0 }}>
-                              <span style={{ textDecoration: t.checked ? 'line-through' : 'none', color: t.checked ? 'var(--text-muted)' : 'var(--text-main)', fontSize: '0.95rem', fontWeight: 600 }}>
-                                {t.title}
+                              <span style={{ display: 'inline-flex', alignItems: 'center', flexWrap: 'wrap', gap: '0.4rem' }}>
+                                <span style={{ textDecoration: t.checked ? 'line-through' : 'none', color: t.checked ? 'var(--text-muted)' : 'var(--text-main)', fontSize: '0.95rem', fontWeight: 600 }}>
+                                  {t.title}
+                                </span>
+                                {/* §5.1 3단 표기 — CRITICAL만 ⭐+글자 배지, 펼치지 않아도 보인다 */}
+                                {t.severity === 'CRITICAL' && (
+                                  <span style={{ fontSize: '0.78rem', fontWeight: 700, color: itemMeta.color, backgroundColor: itemMeta.bg, padding: '0.1rem 0.4rem', borderRadius: '4px', whiteSpace: 'nowrap' }}>
+                                    ⭐ 되돌릴 수 없음
+                                  </span>
+                                )}
                               </span>
 
                               {isExpanded && (
                                 <>
                                   {/* 기한·확인필요 배지 — 기본 상태에선 제목만 남기고, 펼쳤을 때만 보이게 이동 */}
                                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap', margin: '0.4rem 0 0 0' }}>
-                                    <span style={{ fontSize: '0.85rem', fontWeight: 700, color: meta.color, backgroundColor: meta.bg, padding: '0.15rem 0.5rem', borderRadius: '4px' }}>
+                                    <span style={{ fontSize: '0.85rem', fontWeight: 700, color: itemMeta.color, backgroundColor: itemMeta.bg, padding: '0.15rem 0.5rem', borderRadius: '4px' }}>
                                       {t.deadlineLabel}{t.deadlineBase !== '-' ? ` · ${t.deadlineBase} 기준` : ''}
                                     </span>
                                     {!t.verified && (

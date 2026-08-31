@@ -140,7 +140,7 @@ export const verifyBearerToken = (req: Request): (jwt.JwtPayload & { id: string 
   }
 };
 
-// 헬퍼: JWT 토큰 생성 (로그인 세션용, 7일 만료)
+// 헬퍼: JWT 토큰 생성 (로그인 세션용, 12시간 만료)
 export const generateToken = (user: { id: string; name: string; email?: string; provider: string }) => {
   return jwt.sign(
     {
@@ -151,7 +151,7 @@ export const generateToken = (user: { id: string; name: string; email?: string; 
       aud: 'user',
     },
     JWT_SECRET,
-    { expiresIn: '7d' }
+    { expiresIn: '12h' }
   );
 };
 
@@ -389,17 +389,17 @@ export const confirmLink = async (req: Request, res: Response) => {
       // 과거에 연동 해제됐던 행이 남아있으면 삭제 후 재생성 대신 그대로 복구(소유자 재배정 포함)
       const account = alreadyLinked
         ? await prisma.socialAccount.update({
-            where: { id: alreadyLinked.id },
-            data: { unlinkedAt: null, userId: payload.existingUserId, email: payload.email },
-          })
+          where: { id: alreadyLinked.id },
+          data: { unlinkedAt: null, userId: payload.existingUserId, email: payload.email },
+        })
         : await prisma.socialAccount.create({
-            data: {
-              provider: payload.provider,
-              providerId: payload.providerId,
-              email: payload.email,
-              userId: payload.existingUserId,
-            },
-          });
+          data: {
+            provider: payload.provider,
+            providerId: payload.providerId,
+            email: payload.email,
+            userId: payload.existingUserId,
+          },
+        });
       const user = await prisma.user.findUniqueOrThrow({ where: { id: account.userId } });
 
       return res.json({
@@ -438,14 +438,14 @@ export const confirmLink = async (req: Request, res: Response) => {
           ...(alreadyLinked
             ? {}
             : {
-                accounts: {
-                  create: {
-                    provider: payload.provider,
-                    providerId: payload.providerId,
-                    email: payload.email,
-                  },
+              accounts: {
+                create: {
+                  provider: payload.provider,
+                  providerId: payload.providerId,
+                  email: payload.email,
                 },
-              }),
+              },
+            }),
         },
       });
 
