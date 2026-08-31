@@ -144,7 +144,17 @@ function AppShell() {
   }, [activeTab]);
 
   // 탭 변경 시 스크롤 처리 (뒤로가기 시 복원, 메뉴 클릭 시 최상단)
+  // 🔴 Header.tsx의 "추모관"(?entry=box3)처럼 홈 안의 특정 박스로 바로 진입시키는 경우엔
+  // 이 무조건 top-scroll을 건너뛴다 — HomePage.tsx/EntryBoxes.tsx가 이 이펙트보다 먼저(자식이
+  // 부모보다 먼저 실행되는 React 이펙트 순서) 박스③ 위치로 스크롤해 두는데, 여기서 다시 0으로
+  // 되돌리면 640px 이하(body가 스크롤 주체, index.css §5.4-1)에서 그 결과가 그대로 덮인다.
+  // 🔴 EntryBoxes.tsx가 박스③ 스크롤을 적용한 직후 setSearchParams({}, {replace:true})로
+  // entry= 를 지운다 — 그 값을 deps에 넣으면 지워지는 순간 true→false로 바뀌어 이펙트가 한 번
+  // 더 실행되며 이 아래 top-scroll이 다시 걸려 방금 맞춘 위치를 도로 덮어쓴다(실측 확인,
+  // 2026-08-31). deps는 activeTab만 유지해 "실제로 홈에 막 도착한 그 렌더"의 값만 캡처한다.
+  const skipHomeTopScroll = activeTab === 'home' && location.search.includes('entry=');
   React.useEffect(() => {
+    if (skipHomeTopScroll) return;
     if (activeTab !== 'home') {
       if (navigationType === 'POP') {
         const saved = sessionStorage.getItem(`eobom_scroll_${activeTab}`);
@@ -156,6 +166,7 @@ function AppShell() {
     } else {
       window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab]);
 
   // 백엔드 소셜 로그인 리다이렉트 콜백 파싱 (예: /#loginSuccess?token=...&name=...)
