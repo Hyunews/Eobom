@@ -797,6 +797,32 @@ ${cardsHtml}      </div>
     </section>\n\n`;
   }
 
+  // Add 99.eobom_study section
+  sectionsHtml += `    <!-- 99.eobom_study -->
+    <section class="domain-section">
+      <div class="domain-title">
+        <span>🎓 99. 이어봄 풀스택 &amp; 시스템 아키텍처 마스터 교과서 (\`99.eobom_study/\`)</span>
+        <span class="badge badge-primary">18개 챕터 부트캠프 마스터 과정</span>
+      </div>
+      <div class="report-grid">
+        <div class="report-card" style="border-color: #38bdf8; background: #0f172a; color: #f8fafc;">
+          <h4 style="color: #38bdf8;">📘 00. 전체 마스터 교과서 목차 포털</h4>
+          <p style="color: #94a3b8;">5개 파트 18개 챕터의 전체 학습 로드맵, 진도율 체크 및 도메인 소스코드 파일 매핑 색인 포털입니다.</p>
+          <a href="99.eobom_study/index.html" target="_blank" rel="noopener noreferrer" class="report-link" style="background: #38bdf8; color: #0b1120;">목차 포털 열기 ➔</a>
+        </div>
+        <div class="report-card">
+          <h4>01. 서비스 전체 지도와 3단계 생애주기 모델</h4>
+          <p>웰다잉/상례 문제 정의, 3단계 생애주기 모델, 00~07 도메인 번호 체계 및 EntryBoxes/DomainOverviewPage 실전 문법 해부.</p>
+          <a href="99.eobom_study/01_service_map.html" target="_blank" rel="noopener noreferrer" class="report-link">01장 교과서 열람 ➔</a>
+        </div>
+        <div class="report-card pending">
+          <h4>02. 기술 스택 &amp; 네트워크 인프라 조감도</h4>
+          <p>React 18 + Node Express + PostgreSQL 3계층 아키텍처, 외부 연동 생태계 및 환경변수/Secret 관리 원칙.</p>
+          <a href="#" class="report-link disabled">작성 예정 (2장)</a>
+        </div>
+      </div>
+    </section>\n\n`;
+
   return `<!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -837,9 +863,26 @@ ${cardsHtml}      </div>
 
   <main class="container">
     <div class="stats-bar">
-      <div class="stats-item">전체 도메인: <strong>${domainKeys.length}개 영역</strong></div>
-      <div class="stats-item">HTML 시각화 보고서: <strong>${totalCount}종 전수 자동 연동</strong></div>
+      <div class="stats-item">전체 도메인: <strong>${domainKeys.length + 1}개 영역</strong></div>
+      <div class="stats-item">HTML 시각화 보고서: <strong>${totalCount}종 + 교과서 18장 전수 자동 연동</strong></div>
       <div class="stats-item">최종 동기화: <strong>${todayStr}</strong></div>
+    </div>
+
+    <!-- 🎓 이어봄 풀스택 & 시스템 아키텍처 마스터 교과서 배너 -->
+    <div style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); border: 1px solid #38bdf8; color: white; padding: 24px 28px; border-radius: 12px; margin-bottom: 25px; box-shadow: 0 8px 24px rgba(56,189,248,0.12); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px;">
+      <div>
+        <span style="background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid #38bdf8; padding: 4px 10px; border-radius: 4px; font-size: 0.75rem; font-weight: 800; text-transform: uppercase;">🎓 MASTER BOOTCAMP</span>
+        <h3 style="font-size: 1.3rem; margin: 8px 0 4px 0; color: #fff; font-family: 'Pretendard', sans-serif; font-weight: 800;">📘 이어봄 풀스택 &amp; 시스템 아키텍처 완전정복 교과서</h3>
+        <p style="font-size: 0.9rem; color: #94a3b8; margin: 0;">5개 파트 18개 챕터 전과정 실전 코드 &amp; 라인별 문법 해부 (React 18 · Node Express · Prisma · OAuth/JWT · 암호화 · 하네스)</p>
+      </div>
+      <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+        <a href="99.eobom_study/index.html" target="_blank" rel="noopener noreferrer" style="background: #38bdf8; color: #0b1120; text-decoration: none; padding: 12px 20px; border-radius: 8px; font-weight: 800; font-size: 0.92rem; box-shadow: 0 4px 12px rgba(56,189,248,0.3); transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+          교과서 목차 포털 열기 ➔
+        </a>
+        <a href="99.eobom_study/01_service_map.html" target="_blank" rel="noopener noreferrer" style="background: rgba(255,255,255,0.1); color: #f8fafc; border: 1px solid #475569; text-decoration: none; padding: 12px 18px; border-radius: 8px; font-weight: 700; font-size: 0.92rem; transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.2)'" onmouseout="this.style.background='rgba(255,255,255,0.1)'">
+          01장 본문 읽기 ➔
+        </a>
+      </div>
     </div>
 
     <!-- 🌟 최신 랜딩페이지 디자인 프로토타입 (copy.md v1.0 기반) -->
