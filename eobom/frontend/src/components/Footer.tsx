@@ -86,10 +86,46 @@ export const Footer: React.FC = () => {
           </ul>
         </div>
 
-        {/* 열 3: 고객 문의(카카오톡) + 대표번호(전화) — "24h 긴급콜·즉시 파견"은 받을 사람이
-            없는 약속이라 제거함(00-14 §2-4 → 07-02 §5.3, 2026-08-14 정정). 창구를 성격으로
-            분리(07-02 §5.4-1, 2026-08-28) — 일반 이용자(유족)=카카오톡 / 사업자·개인정보
-            요청=전화. 채널 URL·응답시간 값은 §5.4-2-2 확정. */}
+        {/* 열 3: 대표번호(전화) — "24h 긴급콜·즉시 파견"은 받을 사람이 없는 약속이라
+            제거함(00-14 §2-4 → 07-02 §5.3, 2026-08-14 정정). 창구를 성격으로 분리
+            (07-02 §5.4-1, 2026-08-28) — 사업자·개인정보 요청=전화 / 일반 이용자(유족)=카카오톡.
+            대표번호·고객문의를 별개 박스로 분리(2026-08-31). */}
+        <div>
+          <h3
+            style={{
+              color: 'var(--primary-color)',
+              fontSize: '1.05rem',
+              fontWeight: 700,
+              marginBottom: '0.9rem',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.4rem',
+              lineHeight: 1.2
+            }}
+          >
+            <Phone size={18} color="var(--point-color)" /> 대표번호
+          </h3>
+          <div
+            style={{
+              fontSize: '1.5rem',
+              fontWeight: 800,
+              color: 'var(--primary-color)',
+              marginBottom: '0.4rem',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              letterSpacing: '0.02em',
+              lineHeight: 1.2
+            }}
+          >
+            070-8856-2725
+          </div>
+          <p style={{ fontSize: '0.88rem', lineHeight: 1.7, color: 'var(--text-muted)', margin: 0 }}>
+            사업장·전문가 문의 · 개인정보 열람·삭제 요청
+          </p>
+        </div>
+
+        {/* 열 4: 고객 문의(카카오톡) — 채널 URL·응답시간 값은 §5.4-2-2 확정. */}
         <div>
           <h3
             style={{
@@ -126,41 +162,8 @@ export const Footer: React.FC = () => {
           >
             💬 카카오톡으로 문의하기
           </a>
-          <p style={{ fontSize: '0.88rem', lineHeight: 1.7, color: 'var(--text-muted)', margin: '0 0 1.4rem' }}>
-            평일 09:00 ~ 17:00
-          </p>
-
-          <h3
-            style={{
-              color: 'var(--primary-color)',
-              fontSize: '1.05rem',
-              fontWeight: 700,
-              marginBottom: '0.9rem',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.4rem',
-              lineHeight: 1.2
-            }}
-          >
-            <Phone size={18} color="var(--point-color)" /> 대표번호
-          </h3>
-          <div
-            style={{
-              fontSize: '1.5rem',
-              fontWeight: 800,
-              color: 'var(--primary-color)',
-              marginBottom: '0.4rem',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.5rem',
-              letterSpacing: '0.02em',
-              lineHeight: 1.2
-            }}
-          >
-            070-8856-2725
-          </div>
           <p style={{ fontSize: '0.88rem', lineHeight: 1.7, color: 'var(--text-muted)', margin: 0 }}>
-            사업장·전문가 문의 · 개인정보 열람·삭제 요청
+            평일 09:00 ~ 17:00
           </p>
         </div>
       </div>
