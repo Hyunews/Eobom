@@ -648,11 +648,19 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
     if (!printWindow) return;
     const safeText = draftText.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
     const safeNotice = NOT_A_WILL_NOTICE.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    // 개발자 직접 지시(2026-08-31) — 자필증서 4대 요건 중 성명·날인은 화면이 대신 채울 수 없다
+    // (위 체크리스트 §1137~1142와 동일 근거). 인쇄물 최하단에 옮겨 쓴 뒤 손으로 채울 성명·날인
+    // 칸을 둔다 — 도장·지장 어느 쪽이든 찍을 수 있게 빈 네모칸(seal box)도 같이 준다.
     printWindow.document.write(
       `<html><head><title>유언장 초안</title><style>
         body { font-family: 'Malgun Gothic', sans-serif; font-size: ${largeText ? '22px' : '16px'}; line-height: 1.9; padding: 2.5rem; white-space: pre-wrap; }
         .notice { font-size: 13px; color: #92400E; border: 1px solid #FDE68A; background: #FEF3C7; border-radius: 8px; padding: 0.7rem 0.9rem; margin-bottom: 1.5rem; white-space: normal; }
-      </style></head><body><div class="notice">${safeNotice}</div>${safeText}</body></html>`
+        .signature-box { margin-top: 4rem; padding-top: 1.5rem; border-top: 1px solid #94A3B8; white-space: normal; }
+        .signature-row { display: flex; align-items: flex-end; justify-content: flex-end; gap: 1rem; }
+        .signature-label { font-weight: 700; }
+        .signature-blank { display: inline-block; width: 220px; border-bottom: 1px solid #1F2937; height: 1.4em; }
+        .signature-seal { display: inline-flex; align-items: center; justify-content: center; width: 2.4em; height: 2.4em; border: 1px solid #1F2937; font-size: 0.8em; }
+      </style></head><body><div class="notice">${safeNotice}</div>${safeText}<div class="signature-box"><div class="signature-row"><span class="signature-label">성명</span><span class="signature-blank"></span><span class="signature-seal">(인)</span></div></div></body></html>`
     );
     printWindow.document.close();
     printWindow.focus();

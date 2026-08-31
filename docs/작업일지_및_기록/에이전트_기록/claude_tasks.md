@@ -5,6 +5,17 @@
 
 ---
 
+## 2026-08-31 (31) — `EndingNotePage` 인쇄 날인 칸 — `window.print()` 검증 우회 `[Sonnet]`
+
+**`handlePrintDraft`는 실클릭으로 검증하면 안 된다**: 이 함수는 `printWindow.print()`를
+호출해 OS 네이티브 인쇄 대화상자를 띄운다. alert/confirm과 마찬가지로 모달성 다이얼로그라
+claude-in-chrome 자동화가 멈출 위험이 있어 처음부터 버튼을 누르지 않기로 함. 대신
+`handlePrintDraft`가 만드는 것과 똑같은 HTML/CSS 문자열을 뽑아서, 이미 열려 있는 탭에
+`javascript_tool`로 `document.open()`→`document.write(...)`→`document.close()`를 직접
+실행해 렌더링만 재현 — 실제 인쇄 대화상자 없이 스크린샷으로 레이아웃을 확인할 수 있었다.
+같은 패턴(문서 내부 `window.open`+`.print()` 조합)이 다른 페이지에도 있으면 이 우회법을
+재사용할 것.
+
 ## 2026-08-31 (30) — `CareGuidePage` 가로 배치·화살표 전용 펼치기 `[Sonnet]`
 
 **다단(columns)의 "위→아래 우선" 채움 순서가 사용자 기대와 반대였다**: 08-19 13차에서
