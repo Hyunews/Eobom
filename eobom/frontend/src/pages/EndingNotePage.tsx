@@ -369,7 +369,10 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
   const [donationDate, setDonationDate] = useState<string>('');
 
   // ⑨ 유언장 초안 — 06-04 §6.4-7 모델이 섰으니 저장을 배선한다(더 이상 "저장되지 않습니다"가 아니다).
-  const [draftText, setDraftText] = useState<string>('');
+  // 개발자 직접 수정 26.08.31
+  const [draftText, setDraftText] = useState<string>(
+    `- 주소 : \n- 날짜 : \n- 성명 : \n- 내용 : `
+  );
   const [largeText, setLargeText] = useState<boolean>(false);
   const [copyFeedback, setCopyFeedback] = useState<string | null>(null);
 
