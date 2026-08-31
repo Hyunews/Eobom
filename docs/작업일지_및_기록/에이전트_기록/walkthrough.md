@@ -43,7 +43,7 @@
   - API(`GET/POST /api/me/cleanup-items`)·프론트(`DigitalEstatePage.tsx` 레거시 카탈로그)는
     아직 이 신규 컬럼을 쓰지 않는다 — 스키마만 확장된 상태.
 
-<!-- Gemini 판정 1줄: ✅통과 / ❌반려(사유) / 🔄스펙갱신(고친 문서) -->
+<!-- Gemini 판정: ✅통과 (04-01 §4.2·§4.2-1·§4.2-2 A단계 스펙 전수 일치: deceasedId FK(Deceased.id 대상, User.id 아님), origin @default("MANUAL"), [userId, deceasedId, status] 인덱스 교체, Deceased 역참조 및 migration.sql DDL 완전 부합, prisma validate / tsc 0건) -->
 
 ## 2026-08-31 (91) | [Opus] 04-01 §10 #5·#6 확정 — `deceasedId` FK 대상 + 승계는 복사
 
