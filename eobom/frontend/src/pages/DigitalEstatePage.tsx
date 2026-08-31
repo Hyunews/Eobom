@@ -11,8 +11,9 @@ interface DigitalEstatePageProps {
   onOpenLogin?: () => void;
 }
 
-// 04-01 §0.2 STEP 1 — 두 경로만 노출한다. 1-C(정보주체 권리행사 서비스)는 사망자 대행 가능
-// 여부가 아직 확인 전이라(04-03 §6 #1) 만들지 않는다 — 확인되면 그때 추가한다.
+// 04-01 §0.2 STEP 1 — 두 경로만 노출한다. 1-C(정보주체 권리행사 서비스)는 사망자 대행이
+// ❌ 불가로 확정돼 삭제됐다(04-03 §2.2-1) — 대신 아래 AccountDiscoveryGuide STEP 0 4번째
+// 줄로 들어갔다.
 const DISCOVERY_PATHS = [
   {
     id: '1-A',
@@ -42,7 +43,8 @@ const AccountDiscoveryGuide: React.FC = () => (
       <Search color="var(--point-color)" size={22} /> 계정 찾기
     </h3>
 
-    {/* STEP 0 — 펼침 없이 항상 노출. KISO 정책규정 §28①·§28②를 근거로 인용한다(04-01 §0.2). */}
+    {/* STEP 0 — 펼침 없이 항상 노출되는 4줄. 1~3은 KISO 정책규정 §28①·§28②를 근거로 인용하고,
+        4는 1-C 삭제분이 옮겨온 것이다(04-01 §0.2, 04-03 §2.2-1). */}
     <div style={{ fontSize: '0.9rem', color: '#92400E', backgroundColor: '#FEF3C7', border: '1px solid #FDE68A', borderRadius: '8px', padding: '1rem 1.1rem', marginBottom: '1.5rem', lineHeight: 1.75 }}>
       <p style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', margin: 0, marginBottom: '0.6rem', fontWeight: 700 }}>
         <ShieldAlert size={18} style={{ flexShrink: 0, marginTop: '0.15rem' }} /> 먼저 아셔야 할 것
@@ -54,8 +56,12 @@ const AccountDiscoveryGuide: React.FC = () => (
         2. 받으실 수 있는 것: 계정 폐쇄·구독 해지·추모 전환·공개 게시물 백업(사업자 재량) ·
         사이버머니 등 경제적 가치가 있는 것의 청구 — KISO 정책규정 §28②
       </p>
-      <p style={{ margin: 0 }}>
+      <p style={{ margin: 0, marginBottom: '0.4rem' }}>
         3. 플랫폼은 사망 사실을 자동으로 알지 못합니다 — 알리지 않으면 그대로 남습니다
+      </p>
+      <p style={{ margin: 0 }}>
+        4. 개인정보 포털(privacy.go.kr)의 「본인확인 내역 조회」는 본인만 이용할 수 있습니다 —
+        고인 명의로는 유족이 조회하실 수 없습니다
       </p>
     </div>
 
