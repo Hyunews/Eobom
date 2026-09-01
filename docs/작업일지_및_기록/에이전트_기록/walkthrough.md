@@ -6,6 +6,109 @@
 
 ---
 
+## 2026-09-01 (98) | [Sonnet] `00-34` §8 2단계 — 일반 사용자 12파일 `apiFetch` 이관
+
+- **근거 스펙**: `docs/00_핵심플랫폼/00-34_프론트엔드_공통_레이어_명세서.md` §8 2단계·§9.
+- **건드린 파일**: `eobom/frontend/src/components/facility/InquiryModal.tsx`(§4.3 죽은 키
+  제거분 포함, 아래 편차 참조) · `.../expert/ConsultRequestModal.tsx` ·
+  `.../facility/FacilityReviewModal.tsx` · `.../MyPageAuthSettings.tsx` ·
+  `.../MyPageProfile.tsx` · `.../MyPageFamilyDesignation.tsx` ·
+  `eobom/frontend/src/hooks/useProfileContact.ts` ·
+  `eobom/frontend/src/pages/{EndingNotePage,FamilyInvitePage,FarewellMessagePage,
+  MyPage,ObituaryPage}.tsx`. 정확히 12파일(스펙 §9 기준과 일치).
+- **결과**: 위 12파일의 `fetch(`+`BACKEND_URL`+`sessionStorage.getItem('k_ending_token')`
+  직접 호출을 전부 `apiFetch`/`apiFetchRaw`(`lib/api.ts`, 1단계 신설분)로 교체 — 401 처리가
+  이제 이 12파일 전부에서 공통 세션만료 흐름(`App.tsx`의 `registerSessionExpiredHandler`)을
+  탄다. `FamilyInvitePage.tsx`는 초대조회(비인증, 410 특례라 `apiFetchRaw` 사용)·수락(인증)·
+  거절(비인증) 세 종류가 섞여 있어 `audience` 인자를 케이스별로 다르게 넘김. `MyPage.tsx`·
+  `MyPageAuthSettings.tsx`의 `GET /api/auth/me`는 `{status, user}`를 돌려줘 공통 `{status,
+  data}` 봉투와 달라 `apiFetchRaw`로 남김. `npx tsc --noEmit` 통과(0 errors).
+- **편차**:
+  1. `InquiryModal.tsx`의 §4.3 죽은 키(`eobom_last_applicant`) 제거는 원래 1단계 몫이지만
+     같은 파일의 fetch 호출부를 2단계에서 또 고쳐야 해서 한 파일 안에 두 단계 변경이 섞였다.
+     hunk 단위로 커밋을 쪼개지 않고 **이 2단계 커밋에 그대로 포함**시켰다 — 죽은 코드 제거라
+     동작 위험은 없다고 판단.
+  2. `apiFetch`가 실패 시 던지는 `ApiError`의 메시지는 서버 응답의 `message` 필드를
+     그대로 쓰고, 없을 때만 공통 fallback(`요청 처리 중 오류가 발생했습니다.`)을 쓴다.
+     기존 각 파일이 갖고 있던 개별 fallback 문구(`상담 신청에 실패했습니다.` 등)는
+     사라졌다 — 백엔드 에러 응답은 전수 확인 결과 항상 `message`를 채워 보내 실사용
+     빈도는 거의 0으로 판단(스펙 §5.3의 "55곳 중복 상태 체크 제거" 취지와도 부합).
+  3. `MyPageAuthSettings.tsx`의 `DELETE /api/auth/unlink-provider`는 성공 시 서버가
+     `{status, message}`만 주고 `data` 필드가 없다(공통 봉투 밖) — `apiFetch`는 성공
+     메시지를 못 실어주므로 성공 토스트 문구를 고정 텍스트로 바꿨다.
+  4. `EndingNotePage.tsx`·`FarewellMessagePage.tsx`의 `Promise.all` 3-엔드포인트/2-엔드포인트
+     동시조회가 `apiFetch`로 바뀌며 실패 격리가 사라졌다 — 이전엔 각 엔드포인트가 개별
+     `.then()`에서 성공/실패를 따로 판정했지만, 이제 하나라도 실패하면 전체가 reject된다.
+     같은 유저·같은 토큰으로 동시에 부르는 호출들이라 상관된 실패가 현실적 시나리오라 보고
+     수용.
+- **다음 에이전트가 알아야 할 것**:
+  🔴 **3·4단계는 이번 범위 밖** — `AdminPage.tsx`·`BizDashboard.tsx`·`PartnerPortalPage.tsx`의
+  기존 `authFetch`는 그대로다(3단계), 나머지 비인증 `fetch(`(`LoginModal.tsx`·
+  `FacilityPage.tsx`·`CounselingPage.tsx`·`ObituaryLandingPage.tsx`·`SocialLinkModal.tsx`·
+  `FarewellMessageCard.tsx`·`VoiceToTextInput.tsx` 등)도 손대지 않았다(4단계).
+  🆕 `00-35` 착수 시 `EndingNotePage.tsx` `fetch` 7곳이 이번 이관과 겹친다고 walkthrough(96)이
+  미리 적어뒀다 — 이번 커밋 이후 기준으로 다시 확인할 것(이제 `apiFetch` 호출이라 모양이
+  다르다).
+  ✅ 커밋 완료 — 1단계(`fce4740`)·2단계(`54e23a2`) 분리, 사용자 지시로 에이전트가 직접 커밋(표준 절차의 예외).
+
+## 2026-09-01 (97) | [Sonnet] `00-34` §8 1단계 — `storage.ts`·`api.ts` 신설 + 죽은 키 정리
+
+- **근거 스펙**: `docs/00_핵심플랫폼/00-34_프론트엔드_공통_레이어_명세서.md` §8 1단계·§4·§6.
+- **건드린 파일**: 신규 `eobom/frontend/src/lib/storage.ts` · 신규
+  `eobom/frontend/src/lib/api.ts` · `eobom/frontend/src/App.tsx`.
+- **결과**: `storage.ts`가 저장소 키 11종(§4.2, 죽은 키 `eobom_last_applicant` 1종 제외)의
+  문자열 리터럴을 유일하게 소유 — `USER`는 `sessionStorage`, `ADMIN`/`PARTNER`는
+  `localStorage` 그대로 유지(값은 하나도 안 바꿨음, §4.2 요구사항). `api.ts`가
+  `apiFetch`/`apiFetchRaw` 공통 fetch 파이프라인(URL 조립·Authorization 헤더·
+  `{status,data,message}` 봉투 파싱·401 시 감사별(audience) 콜백 통지)을 신설. `App.tsx`는
+  로그인/로그아웃 시 `storage.ts`의 `setSession`/`clearSession`을 쓰도록 바꾸고, §4.4 레거시
+  localStorage 정리(`clearLegacyUserLocalStorage`)를 마운트 시점으로 옮기고,
+  `registerSessionExpiredHandler('USER', ...)`로 401 콜백을 등록. **이 단계에서 `apiFetch`를
+  쓰는 호출부가 아직 없어 콜백이 실제로 트리거되지 않는다 — 기존 동작 변화 없음**(§8 1단계
+  요구사항). `npx tsc --noEmit` 통과.
+- **편차**: 없음.
+- **다음 에이전트가 알아야 할 것**:
+  🔴 이 커밋 단독으로는 **아무 화면도 안 바뀐다** — 실제 마이그레이션은 2단계
+  (walkthrough(98))에서 12파일에 걸쳐 일어난다. 두 커밋이 순서대로 들어가야 스펙 §8이
+  의도한 "레이어 따로/호출부 따로" 분리가 유지된다.
+  🟡 `apiFetchRaw`는 봉투가 아닌 응답(파일 다운로드·410 같은 상태코드 특례) 전용 탈출구로
+  설계 — 2단계에서 `FamilyInvitePage.tsx`(410 특례)와 `MyPage.tsx`/`MyPageAuthSettings.tsx`
+  (`/api/auth/me`가 `{status,user}`라 봉투 규격 밖)에 실제로 쓰였다.
+
+## 2026-09-01 (96) | [Opus] `phoneHash` 재해시 실행 + `00-35` 엔딩노트 구조 정리 명세
+
+- **근거 스펙**: `00-33` §4.3·§9 ④ · `.harness/db-safety.md` §2 · 기술부채 점검 C-3
+  (`_meta/기술부채_외부지적_점검_260831.md` §8) — 사용자 승인 2026-09-01.
+- **건드린 파일**:
+  신규 `docs/00_핵심플랫폼/00-35_엔딩노트_페이지_구조_정리_명세서.md` ·
+  신규 `docs/트러블슈팅/00_INDEX.md`·`TS-001`·`TS-002` ·
+  `docs/00_DOCS_INDEX.md` · `docs/00_핵심플랫폼/00-33`(§4.4 스펙갱신) ·
+  `.harness/memory/context.md`·`pending-approvals.md` ·
+  `_meta/기술부채_외부지적_점검_260831.md`.
+  🔵 **`eobom/`은 읽기만** — `rotate-keys.ts` 실행은 사용자가 직접.
+- **결과**:
+  1. 🔴 **`phoneHash` 재해시 완료.** db-safety 게이트 전량 통과 — 백업
+     `eobom/backend/backups/local-20260901-rehash.dump`(182,688B, 컨테이너·호스트 양쪽 확인) →
+     대상 1건 확인 → 사용자 승인 → `--confirm` 실행. **검증**: dry-run 재실행
+     `대상 1건 · 이미 일치 1건 · 처리 필요 0건`. 중복 통과 창이 닫혔다.
+  2. `00-33` §4.4 **스펙갱신** — 해시 `v2:` 프리픽스 철회, **dry-run 값 비교**로 검증한다.
+     프리픽스는 *"형식이 v2"* 만 말하고 *"어느 키로 만들었는지"* 는 못 담아 **2차 교체 후 옛 값도
+     통과**시킨다. Sonnet의 `편차: 없음`은 부정확했으나 **구현이 더 낫다고 보고 스펙을 고쳤다.**
+  3. 🆕 `docs/트러블슈팅/` 신설 — **증상으로 찾는 색인**. TS-001(해시 키 파생 결합, ✅ 닫힘) ·
+     TS-002(백업 대상 오인, ✅ 닫힘). 🔴 Opus만 쓴다.
+  4. 🆕 `00-35` 신설 — `EndingNotePage.tsx`(1,196줄) 4단계 정리안. **1·2단계만 착수 승인**,
+     3·4단계는 2단계 완료 후 재판단(§8). §9에 위험 6종을 근거와 함께 기록.
+- **편차**: 없음. **다만 §9 A는 스펙이 아니라 실측 결과다** — `saveEndingNoteSection`이 `value`의
+  형태를 검증하지 않는 것은 `06-04`가 정한 바가 아니라 **현 구현의 성질**이고, 고칠지 여부는
+  아직 아무 문서도 정하지 않았다(별건).
+- **다음 에이전트가 알아야 할 것**:
+  🔴 `00-35` 착수는 **`00-34` C-1 1·2단계 다음**이다 — 같은 파일 `fetch` 7곳이 겹친다.
+  🔴 **프론트엔드에 테스트가 0개다**(`.test.*` 없음, 러너 미설치). `00-35` §7 수동 체크리스트가
+  유일한 안전망이고, 그중 **1번(입력→저장→새로고침)** 외에는 §9 A를 못 잡는다.
+  🟡 운영 DB에는 재해시를 **아직 안 했다** — 이관 시점에 같은 게이트를 다시 밟아야 한다.
+
+---
+
 ## 2026-09-01 (95) | [Sonnet] `00-33` 암호화 키 관리 및 교체 전략 구현
 
 - **근거 스펙**: `docs/00_핵심플랫폼/00-33_암호화_키_관리_및_교체_전략_명세서.md`(확정) — 사용자
