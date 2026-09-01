@@ -11,6 +11,8 @@ import { MyPageFamilyDesignation } from './components/MyPageFamilyDesignation';
 import { EobomLogo } from './components/EobomLogo';
 import { providerLabel, BACKEND_URL } from './config';
 import { NAV_MODE_STORAGE_KEY, type NavMode } from './modeNav';
+import { getDisplayName, setSession, clearSession, clearLegacyUserLocalStorage } from './lib/storage';
+import { registerSessionExpiredHandler } from './lib/api';
 import { box1Keys, box2Keys, box1Intro, box2Intro } from './components/home/domainSlides';
 
 import { HomePage } from './pages/HomePage';
@@ -77,9 +79,8 @@ function AppShell() {
   // 문제 수정 — sessionStorage는 브라우저 종료 시 비워진다). 예전에 localStorage에 저장된 값은
   // 더 이상 안 읽지만 그대로 남아있으면 혼란을 주므로 최초 마운트 시 한 번 같이 지운다.
   const [currentUser, setCurrentUser] = useState<string | null>(() => {
-    localStorage.removeItem('k_ending_current_user');
-    localStorage.removeItem('k_ending_token');
-    return sessionStorage.getItem('k_ending_current_user') || null;
+    clearLegacyUserLocalStorage();
+    return getDisplayName('USER');
   });
 
   // §3-2 — 로그인 속도. Render 무료 인스턴스는 15분 미사용 시 슬립하므로, 로그인 버튼을 누른
@@ -268,18 +269,23 @@ function AppShell() {
   const handleLoginSuccess = (username: string, provider?: string, token?: string) => {
     const displayName = provider ? `${username} (${provider})` : username;
     setCurrentUser(displayName);
-    sessionStorage.setItem('k_ending_current_user', displayName);
-    if (token) {
-      sessionStorage.setItem('k_ending_token', token);
-    }
+    setSession('USER', { displayName, token });
   };
 
-  const handleLogout = () => {
+  // notice가 있으면(apiFetch의 401 세션만료 콜백, 00-34 §5.4·§6) 그 문구를, 없으면(직접
+  // 로그아웃 버튼) 기존 문구를 띄운다.
+  const handleLogout = (notice?: string) => {
     setCurrentUser(null);
-    sessionStorage.removeItem('k_ending_current_user');
-    sessionStorage.removeItem('k_ending_token');
-    alert('로그아웃 되었습니다.');
+    clearSession('USER');
+    alert(notice || '로그아웃 되었습니다.');
   };
+
+  // 00-34 §6 — apiFetch가 일반 사용자 요청에서 401을 받으면 이 콜백을 호출해 세션을 정리하고
+  // 만료를 알린다. 아직 apiFetch를 쓰는 호출부가 없어(2단계에서 이관) 지금은 등록만 해둔 상태.
+  useEffect(() => {
+    registerSessionExpiredHandler('USER', (message) => handleLogout(message));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const authProps = {
     currentUser,
