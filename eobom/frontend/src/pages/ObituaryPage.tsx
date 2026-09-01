@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { MessageSquare, Send, Copy, Plus, X, ChevronDown, ChevronUp, AlertTriangle, LogIn, Heart, PowerOff } from 'lucide-react';
-import { BACKEND_URL, OBITUARY_CARD_IMAGE_URL } from '../config';
+import { OBITUARY_CARD_IMAGE_URL } from '../config';
+import { apiFetch, ApiError } from '../lib/api';
 import { formatObituaryCardTitle, formatObituaryCardDescription, formatKST } from '../utils/obituaryCard';
 import { ensureKakaoShareReady, shareViaKakao, shareViaWebShareApi, copyObituaryLink, buildObituarySmsHref } from '../utils/kakaoShare';
 
@@ -148,20 +149,8 @@ export const ObituaryPage: React.FC<ObituaryPageProps> = ({ currentUser, onOpenL
     // 다른 계정으로 로그인해 있어도 이 fetch 자체는 그대로 나가고, 그 사람 것인지는 서버의
     // isOwner로만 판정한다(아래). 종료된 뒤에도 개설자 본인은 계속 볼 수 있어야 하므로(§5.3-1)
     // 토큰을 실어 보낸다 — 없으면 서버가 익명 조회로 보고 종료 시 404를 준다.
-    const meToken = sessionStorage.getItem('k_ending_token');
-    fetch(`${BACKEND_URL}/api/obituaries/${ref.obituarySlug}`, {
-      headers: meToken ? { Authorization: `Bearer ${meToken}` } : undefined,
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.status !== 'success') {
-          // 실제로 없어진 경우(삭제 등)만 여기로 온다 — 남의 것이라 막힌 경우는 200 + isOwner:false로
-          // 오므로 이 분기를 안 탄다(§5.3-2). 진짜 없는 것만 정리한다.
-          localStorage.removeItem(STORAGE_KEY);
-          return;
-        }
-        const o = data.data;
-
+    apiFetch<any>(`/api/obituaries/${ref.obituarySlug}`, 'USER')
+      .then((o) => {
         // 🔴 §5.3-2 핵심 — 서버가 "당신 것"이라고 확인해준 경우에만 관리 모드로 들어간다.
         // 아니면 폼을 채우지 않고(남의 데이터를 화면에 띄우는 것이 이번 사고의 본질) 조용히
         // 개설 화면(초기 상태)에 남는다. 포인터는 지우지 않는다 — 원래 주인이 다시 로그인하면
@@ -206,7 +195,11 @@ export const ObituaryPage: React.FC<ObituaryPageProps> = ({ currentUser, onOpenL
         setFalseReportAgreed(true);
         setResharedNoticeAck(true);
       })
-      .catch(() => {})
+      .catch(() => {
+        // 실제로 없어진 경우(삭제 등)만 여기로 온다 — 남의 것이라 막힌 경우는 200 + isOwner:false로
+        // 오므로 이 분기를 안 탄다(§5.3-2). 진짜 없는 것만 정리한다.
+        localStorage.removeItem(STORAGE_KEY);
+      })
       .finally(() => setLoading(false));
   }, [currentUser]);
 
@@ -240,8 +233,6 @@ export const ObituaryPage: React.FC<ObituaryPageProps> = ({ currentUser, onOpenL
     setErrorMsg(null);
     setCopyFeedback(null);
 
-    const token = sessionStorage.getItem('k_ending_token');
-    const headers = { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) };
     const payload = {
       deceasedName: deceasedName.trim(),
       deathDate: deathDate || undefined,
@@ -265,40 +256,30 @@ export const ObituaryPage: React.FC<ObituaryPageProps> = ({ currentUser, onOpenL
 
     try {
       if (!obituaryRef) {
-        const res = await fetch(`${BACKEND_URL}/api/obituaries`, { method: 'POST', headers, body: JSON.stringify(payload) });
-        const data = await res.json();
-        if (!res.ok || data.status !== 'success') {
-          setErrorMsg(data.message || '부고장 개설에 실패했습니다.');
-          return;
-        }
+        const data = await apiFetch<any>('/api/obituaries', 'USER', { method: 'POST', body: JSON.stringify(payload) });
         const ref: StoredObituaryRef = {
-          obituaryId: data.data.obituaryId,
-          obituarySlug: data.data.obituarySlug,
-          memorialSlug: data.data.memorialSlug,
+          obituaryId: data.obituaryId,
+          obituarySlug: data.obituarySlug,
+          memorialSlug: data.memorialSlug,
         };
         localStorage.setItem(STORAGE_KEY, JSON.stringify(ref));
         setObituaryRef(ref);
-        setObituaryId(data.data.obituaryId);
-        setObituaryUrl(data.data.obituaryUrl);
-        setMemorialUrl(data.data.memorialUrl);
+        setObituaryId(data.obituaryId);
+        setObituaryUrl(data.obituaryUrl);
+        setMemorialUrl(data.memorialUrl);
         setCardFieldsUpdatedAt(null);
         setUpdatedAt(new Date().toISOString());
       } else {
         // §5.3-2 — localStorage가 아니라 서버가 확인해준 obituaryId로 수정한다(obituaryRef가
         // 있다는 것 자체가 마운트 시 isOwner:true를 이미 통과했다는 뜻이라 obituaryId도 같이 있다).
-        const res = await fetch(`${BACKEND_URL}/api/obituaries/${obituaryId}`, { method: 'PATCH', headers, body: JSON.stringify(payload) });
-        const data = await res.json();
-        if (!res.ok || data.status !== 'success') {
-          setErrorMsg(data.message || '부고장 수정에 실패했습니다.');
-          return;
-        }
-        setUpdatedAt(data.data.updatedAt);
-        if (data.data.cardFieldsChanged) {
-          setCardFieldsUpdatedAt(data.data.cardFieldsUpdatedAt);
+        const data = await apiFetch<any>(`/api/obituaries/${obituaryId}`, 'USER', { method: 'PATCH', body: JSON.stringify(payload) });
+        setUpdatedAt(data.updatedAt);
+        if (data.cardFieldsChanged) {
+          setCardFieldsUpdatedAt(data.cardFieldsUpdatedAt);
         }
       }
-    } catch {
-      setErrorMsg('서버와 통신 중 오류가 발생했습니다.');
+    } catch (e) {
+      setErrorMsg(e instanceof ApiError ? e.message : '서버와 통신 중 오류가 발생했습니다.');
     } finally {
       setIsSubmitting(false);
     }
@@ -334,21 +315,12 @@ export const ObituaryPage: React.FC<ObituaryPageProps> = ({ currentUser, onOpenL
 
     setIsClosing(true);
     setErrorMsg(null);
-    const token = sessionStorage.getItem('k_ending_token');
     try {
-      const res = await fetch(`${BACKEND_URL}/api/obituaries/${obituaryId}/close`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
-      });
-      const data = await res.json();
-      if (!res.ok || data.status !== 'success') {
-        setErrorMsg(data.message || '부고장 종료에 실패했습니다.');
-        return;
-      }
+      const data = await apiFetch<{ closedAt: string }>(`/api/obituaries/${obituaryId}/close`, 'USER', { method: 'PATCH' });
       setIsClosed(true);
-      setClosedAt(data.data.closedAt);
-    } catch {
-      setErrorMsg('서버와 통신 중 오류가 발생했습니다.');
+      setClosedAt(data.closedAt);
+    } catch (e) {
+      setErrorMsg(e instanceof ApiError ? e.message : '서버와 통신 중 오류가 발생했습니다.');
     } finally {
       setIsClosing(false);
     }

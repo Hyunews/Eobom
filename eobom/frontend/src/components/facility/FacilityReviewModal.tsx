@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { X, Star, MessageSquare } from 'lucide-react';
-import { BACKEND_URL } from '../../config';
+import { apiFetch, ApiError } from '../../lib/api';
+import { getToken } from '../../lib/storage';
 
 interface ReviewItem {
   id: string;
@@ -45,8 +46,7 @@ export const FacilityReviewModal: React.FC<FacilityReviewModalProps> = ({
       return;
     }
 
-    const token = sessionStorage.getItem('k_ending_token');
-    if (!token) {
+    if (!getToken('USER')) {
       alert('⚠️ 리뷰 작성은 로그인 후 이용하실 수 있습니다.');
       onOpenLogin?.();
       return;
@@ -59,22 +59,16 @@ export const FacilityReviewModal: React.FC<FacilityReviewModalProps> = ({
     setIsSubmitting(true);
     setError(null);
     try {
-      const res = await fetch(`${BACKEND_URL}/api/facilities/${facility.id}/reviews`, {
+      const data = await apiFetch(`/api/facilities/${facility.id}/reviews`, 'USER', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({ rating, content }),
       });
-      const data = await res.json();
-      if (!res.ok || data.status !== 'success') {
-        setError(data.message || '리뷰 작성에 실패했습니다.');
-        return;
-      }
-      onReviewSubmitted(data.data);
+      onReviewSubmitted(data);
       setContent('');
       setJustSubmitted(true);
       setTimeout(() => setJustSubmitted(false), 3000);
     } catch (e) {
-      setError('서버와 통신 중 오류가 발생했습니다.');
+      setError(e instanceof ApiError ? e.message : '서버와 통신 중 오류가 발생했습니다.');
     } finally {
       setIsSubmitting(false);
     }

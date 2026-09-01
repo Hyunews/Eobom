@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Calendar, MessageSquare, BookOpen, ChevronRight, Camera, Settings, Lock, UserCircle, Users } from 'lucide-react';
-import { BACKEND_URL } from '../config';
+import { apiFetchRaw, apiFetch } from '../lib/api';
+import { getToken } from '../lib/storage';
 import { Badge } from '../components/home/EntryBoxes';
 
 interface MyPageProps {
@@ -30,10 +31,10 @@ export const MyPage: React.FC<MyPageProps> = ({ currentUser, onOpenLogin, onOpen
   const [summary, setSummary] = useState<MySummary | null>(null);
 
   useEffect(() => {
-    const token = sessionStorage.getItem('k_ending_token');
-    if (!currentUser || !token) return;
+    if (!currentUser || !getToken('USER')) return;
 
-    fetch(`${BACKEND_URL}/api/auth/me`, { headers: { Authorization: `Bearer ${token}` } })
+    // /api/auth/me는 {status, user}를 반환해 공통 {status, data} 봉투와 다르다 — apiFetchRaw로 직접 파싱.
+    apiFetchRaw('/api/auth/me', 'USER')
       .then((res) => res.json())
       .then((data) => {
         if (data.status === 'success') {
@@ -50,11 +51,8 @@ export const MyPage: React.FC<MyPageProps> = ({ currentUser, onOpenLogin, onOpen
       });
 
     // §1-2 — 3칸 카운터 실데이터. 하드코딩 제거.
-    fetch(`${BACKEND_URL}/api/me/summary`, { headers: { Authorization: `Bearer ${token}` } })
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.status === 'success') setSummary(data.data);
-      })
+    apiFetch<MySummary>('/api/me/summary', 'USER')
+      .then((data) => setSummary(data))
       .catch(() => {
         // 조회 실패 시 0으로 표시(아래 ?? 0) — 화면이 깨지지 않게
       });

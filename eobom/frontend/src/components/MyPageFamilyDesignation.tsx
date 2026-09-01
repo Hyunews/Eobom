@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { X, CheckCircle2, AlertCircle, AlertTriangle, Loader2, Trash2, Pencil, Plus, Send, Copy } from 'lucide-react';
-import { BACKEND_URL, FAMILY_INVITE_CARD_IMAGE_URL } from '../config';
+import { FAMILY_INVITE_CARD_IMAGE_URL } from '../config';
+import { apiFetch, ApiError } from '../lib/api';
+import { getToken } from '../lib/storage';
 import { ensureKakaoShareReady, shareViaKakao } from '../utils/kakaoShare';
 
 // 00-27 §8.2·§8.3·§10 Phase 1(기록) + §9.1 Phase 2(알리기·공유 버튼). 수락/거절 자체는 받는
@@ -85,19 +87,12 @@ export const MyPageFamilyDesignation: React.FC<MyPageFamilyDesignationProps> = (
     ensureKakaoShareReady();
   }, []);
 
-  const authHeaders = () => {
-    const token = sessionStorage.getItem('k_ending_token');
-    return token ? { Authorization: `Bearer ${token}` } : undefined;
-  };
-
   const fetchList = async () => {
-    const headers = authHeaders();
-    if (!headers) return;
+    if (!getToken('USER')) return;
     setIsLoading(true);
     try {
-      const res = await fetch(`${BACKEND_URL}/api/family-designations`, { headers });
-      const data = await res.json();
-      if (data.status === 'success') setItems(data.data);
+      const data = await apiFetch<FamilyDesignationItem[]>('/api/family-designations', 'USER');
+      setItems(data);
     } catch {
       // 조회 실패는 조용히 무시 — 다시 열면 재시도된다
     } finally {
@@ -140,8 +135,7 @@ export const MyPageFamilyDesignation: React.FC<MyPageFamilyDesignationProps> = (
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const headers = authHeaders();
-    if (!headers) return;
+    if (!getToken('USER')) return;
 
     if (!editingId && !form.phone.trim()) {
       setMessage({ type: 'error', text: '휴대전화번호를 입력해 주세요.' });
@@ -161,45 +155,33 @@ export const MyPageFamilyDesignation: React.FC<MyPageFamilyDesignationProps> = (
       if (form.phone.trim()) body.phone = form.phone.trim();
       if (form.email.trim()) body.email = form.email.trim();
 
-      const res = await fetch(`${BACKEND_URL}/api/family-designations${editingId ? `/${editingId}` : ''}`, {
+      await apiFetch(`/api/family-designations${editingId ? `/${editingId}` : ''}`, 'USER', {
         method: editingId ? 'PATCH' : 'POST',
-        headers: { 'Content-Type': 'application/json', ...headers },
         body: JSON.stringify(body),
       });
-      const data = await res.json();
-      if (!res.ok || data.status !== 'success') {
-        setMessage({ type: 'error', text: data.message || '저장에 실패했습니다.' });
-        return;
-      }
       setMessage({ type: 'success', text: editingId ? '수정되었습니다.' : '등록되었습니다.' });
       setShowForm(false);
       setEditingId(null);
       setForm(emptyForm);
       await fetchList();
-    } catch {
-      setMessage({ type: 'error', text: '서버와 통신 중 오류가 발생했습니다.' });
+    } catch (e) {
+      setMessage({ type: 'error', text: e instanceof ApiError ? e.message : '서버와 통신 중 오류가 발생했습니다.' });
     } finally {
       setIsSaving(false);
     }
   };
 
   const handleDelete = async (item: FamilyDesignationItem) => {
-    const headers = authHeaders();
-    if (!headers) return;
+    if (!getToken('USER')) return;
     if (!window.confirm(`${item.name}님 지정을 삭제하시겠어요?`)) return;
 
     setIsSaving(true);
     setMessage(null);
     try {
-      const res = await fetch(`${BACKEND_URL}/api/family-designations/${item.id}`, { method: 'DELETE', headers });
-      const data = await res.json();
-      if (!res.ok || data.status !== 'success') {
-        setMessage({ type: 'error', text: data.message || '삭제에 실패했습니다.' });
-        return;
-      }
+      await apiFetch(`/api/family-designations/${item.id}`, 'USER', { method: 'DELETE' });
       await fetchList();
-    } catch {
-      setMessage({ type: 'error', text: '서버와 통신 중 오류가 발생했습니다.' });
+    } catch (e) {
+      setMessage({ type: 'error', text: e instanceof ApiError ? e.message : '서버와 통신 중 오류가 발생했습니다.' });
     } finally {
       setIsSaving(false);
     }
@@ -211,24 +193,17 @@ export const MyPageFamilyDesignation: React.FC<MyPageFamilyDesignationProps> = (
   // 문제를 재현했었다(§9.1-4-1, 데스크톱 경로 0개의 원인). 카카오 성공 여부와 무관하게 방금
   // 발급한 링크를 lastInviteLink로 남겨 복사 버튼을 항상 같이 그린다.
   const handleInvite = async (item: FamilyDesignationItem) => {
-    const headers = authHeaders();
-    if (!headers) return;
+    if (!getToken('USER')) return;
 
     setInvitingId(item.id);
     setMessage(null);
     setLastInviteLink(null);
     try {
-      const res = await fetch(`${BACKEND_URL}/api/family-designations/${item.id}/invite`, {
+      const data = await apiFetch<{ inviteToken: string }>(`/api/family-designations/${item.id}/invite`, 'USER', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', ...headers },
       });
-      const data = await res.json();
-      if (!res.ok || data.status !== 'success') {
-        setMessage({ type: 'error', text: data.message || '초대 링크 발급에 실패했습니다.' });
-        return;
-      }
 
-      const link = `${window.location.origin}/invite/${data.data.inviteToken}`;
+      const link = `${window.location.origin}/invite/${data.inviteToken}`;
 
       // §9.1-4 카톡 카드 — 실명·관계·"엔딩노트"·"사망 통지" 금지. 단톡방 전원에게 보이는
       // 미리보기라 누가 누구에게인지는 링크를 연 사람만 FamilyInvitePage에서 보게 한다.
@@ -244,8 +219,8 @@ export const MyPageFamilyDesignation: React.FC<MyPageFamilyDesignationProps> = (
 
       setLastInviteLink({ itemId: item.id, url: link });
       await fetchList();
-    } catch {
-      setMessage({ type: 'error', text: '서버와 통신 중 오류가 발생했습니다.' });
+    } catch (e) {
+      setMessage({ type: 'error', text: e instanceof ApiError ? e.message : '서버와 통신 중 오류가 발생했습니다.' });
     } finally {
       setInvitingId(null);
     }

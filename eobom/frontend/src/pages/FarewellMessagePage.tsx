@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { Mail, AlertTriangle, LogIn, UserPlus } from 'lucide-react';
-import { BACKEND_URL } from '../config';
+import { apiFetch } from '../lib/api';
+import { getToken } from '../lib/storage';
 import { FarewellMessageCard, RecipientItem, MessageItem } from '../components/FarewellMessageCard';
 
 // 06-05 §7·§8 Phase B — docs/06_엔딩노트_유언/06-05_유족메시지_보관함_도메인분리_기획서.md.
@@ -20,17 +21,12 @@ export const FarewellMessagePage: React.FC<FarewellMessagePageProps> = ({ curren
   const [loading, setLoading] = useState(true);
   const [recipients, setRecipients] = useState<RecipientItem[]>([]);
   const [messages, setMessages] = useState<MessageItem[]>([]);
-  const token = currentUser ? sessionStorage.getItem('k_ending_token') : null;
+  const token = currentUser ? getToken('USER') : null;
 
   const fetchMessages = useCallback(() => {
     if (!token) return;
-    fetch(`${BACKEND_URL}/api/farewell-messages`, { headers: { Authorization: `Bearer ${token}` } })
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.status === 'success' && Array.isArray(data.data)) {
-          setMessages(data.data);
-        }
-      })
+    apiFetch<MessageItem[]>('/api/farewell-messages', 'USER')
+      .then((data) => setMessages(data))
       .catch(() => {});
   }, [token]);
 
@@ -40,16 +36,12 @@ export const FarewellMessagePage: React.FC<FarewellMessagePageProps> = ({ curren
       return;
     }
     Promise.all([
-      fetch(`${BACKEND_URL}/api/family-designations`, { headers: { Authorization: `Bearer ${token}` } }).then((res) => res.json()),
-      fetch(`${BACKEND_URL}/api/farewell-messages`, { headers: { Authorization: `Bearer ${token}` } }).then((res) => res.json()),
+      apiFetch<RecipientItem[]>('/api/family-designations', 'USER'),
+      apiFetch<MessageItem[]>('/api/farewell-messages', 'USER'),
     ])
       .then(([designationsData, messagesData]) => {
-        if (designationsData.status === 'success' && Array.isArray(designationsData.data)) {
-          setRecipients(designationsData.data);
-        }
-        if (messagesData.status === 'success' && Array.isArray(messagesData.data)) {
-          setMessages(messagesData.data);
-        }
+        setRecipients(designationsData);
+        setMessages(messagesData);
       })
       .catch(() => {})
       .finally(() => setLoading(false));

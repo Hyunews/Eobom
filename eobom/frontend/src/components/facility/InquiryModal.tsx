@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { X, Send, ShieldCheck } from 'lucide-react';
-import { BACKEND_URL } from '../../config';
+import { apiFetch, ApiError } from '../../lib/api';
+import { getToken } from '../../lib/storage';
 import { useProfileContact } from '../../hooks/useProfileContact';
 
 // 업체 문의 — 전화번호 노출 대신 이 폼을 통해서만 시설에 문의한다(docs 01-05 §9: 전화 문의는
@@ -10,6 +11,8 @@ import { useProfileContact } from '../../hooks/useProfileContact';
 // 00-28 §6.4-1 — 2026-08-12에 넣었던 localStorage 자동입력(LAST_APPLICANT_KEY)은 걷어냈다.
 // 서버 프로필(useProfileContact 훅)과 두 소스가 충돌하고, 이름·연락처가 브라우저에 무기한
 // 남아 세션 보관 위치 판단(sessionStorage 전환, `00-08`)과도 어긋나기 때문.
+// 00-34 §4.3 — 위 정리 당시 남겨뒀던 잔재 정리용 removeItem(eobom_last_applicant)은 저장하는
+// 곳이 없는 죽은 키라 제거했다.
 
 interface InquiryModalProps {
   facilityId: string;
@@ -26,13 +29,7 @@ export const InquiryModal: React.FC<InquiryModalProps> = ({ facilityId, facility
 
   const { maskedPhone, profileName, useProfileContact: useProfile, setUseProfileContact: setUseProfile, saveToProfile, setSaveToProfile } =
     useProfileContact();
-  const isLoggedIn = !!sessionStorage.getItem('k_ending_token');
-
-  // §6.4-1 — 예전에 이 브라우저에 남아 있을 수 있는 로컬 자동입력 잔재를 1회 정리한다
-  // (App.tsx가 k_ending_current_user에 한 것과 같은 패턴).
-  useEffect(() => {
-    localStorage.removeItem('eobom_last_applicant');
-  }, []);
+  const isLoggedIn = !!getToken('USER');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -43,13 +40,8 @@ export const InquiryModal: React.FC<InquiryModalProps> = ({ facilityId, facility
 
     setIsSubmitting(true);
     try {
-      const token = sessionStorage.getItem('k_ending_token');
-      const res = await fetch(`${BACKEND_URL}/api/facilities/${facilityId}/quotes`, {
+      const data = await apiFetch<{ leadNo: string }>(`/api/facilities/${facilityId}/quotes`, 'USER', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
         body: JSON.stringify({
           // §6.4 — 프로필 값을 쓸 때는 값 자체를 안 보낸다. 서버가 로그인 유저의 프로필에서 직접 읽는다.
           ...(useProfile ? {} : { applicantName, applicantPhone }),
@@ -59,15 +51,10 @@ export const InquiryModal: React.FC<InquiryModalProps> = ({ facilityId, facility
           payload: { message },
         }),
       });
-      const data = await res.json();
-      if (!res.ok || data.status !== 'success') {
-        alert(data.message || '문의 접수에 실패했습니다.');
-        return;
-      }
-      alert(`✅ [${facilityName}]에 문의가 접수되었습니다.\n\n접수번호: ${data.data.leadNo}\n(문의 시 이 번호를 말씀해주시면 빠르게 확인 가능합니다)`);
+      alert(`✅ [${facilityName}]에 문의가 접수되었습니다.\n\n접수번호: ${data.leadNo}\n(문의 시 이 번호를 말씀해주시면 빠르게 확인 가능합니다)`);
       onClose();
-    } catch {
-      alert('서버와 통신 중 오류가 발생했습니다.');
+    } catch (err) {
+      alert(err instanceof ApiError ? err.message : '서버와 통신 중 오류가 발생했습니다.');
     } finally {
       setIsSubmitting(false);
     }

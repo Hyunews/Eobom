@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { X, CheckCircle2, AlertCircle, Link2, Unlink, Loader2 } from 'lucide-react';
 import { BACKEND_URL, providerLabel } from '../config';
+import { apiFetchRaw, apiFetch, ApiError } from '../lib/api';
+import { getToken } from '../lib/storage';
 
 interface SocialAccountInfo {
   provider: string;
@@ -28,14 +30,12 @@ export const MyPageAuthSettings: React.FC<MyPageAuthSettingsProps> = ({ isOpen, 
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(initialMessage ?? null);
 
   const fetchAccounts = async () => {
-    const token = sessionStorage.getItem('k_ending_token');
-    if (!token) return;
+    if (!getToken('USER')) return;
 
     setIsLoading(true);
     try {
-      const res = await fetch(`${BACKEND_URL}/api/auth/me`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      // /api/auth/me는 {status, user}를 반환해 공통 {status, data} 봉투와 다르다 — apiFetchRaw로 직접 파싱.
+      const res = await apiFetchRaw('/api/auth/me', 'USER');
       const data = await res.json();
       if (data.status === 'success' && Array.isArray(data.user?.accounts)) {
         setAccounts(data.user.accounts);
@@ -62,14 +62,13 @@ export const MyPageAuthSettings: React.FC<MyPageAuthSettingsProps> = ({ isOpen, 
   const linkedProviders = new Set(accounts.map((account) => account.provider));
 
   const handleLink = (provider: string) => {
-    const token = sessionStorage.getItem('k_ending_token');
+    const token = getToken('USER');
     if (!token) return;
     window.location.href = `${BACKEND_URL}/api/auth/${provider.toLowerCase()}/link?token=${encodeURIComponent(token)}`;
   };
 
   const handleUnlink = async (provider: string) => {
-    const token = sessionStorage.getItem('k_ending_token');
-    if (!token) return;
+    if (!getToken('USER')) return;
 
     if (accounts.length <= 1) {
       setMessage({ type: 'error', text: '최소 1개의 소셜 계정은 연동되어 있어야 합니다.' });
@@ -80,20 +79,16 @@ export const MyPageAuthSettings: React.FC<MyPageAuthSettingsProps> = ({ isOpen, 
     setIsLoading(true);
     setMessage(null);
     try {
-      const res = await fetch(`${BACKEND_URL}/api/auth/unlink-provider`, {
+      // 응답이 {status, message}만 주고 data 필드가 없어 apiFetch가 성공 메시지를 못 실어준다
+      // (00-34 §5.3 봉투 규격 밖) — 해제 성공 문구는 고정 텍스트로 대체.
+      await apiFetch(`/api/auth/unlink-provider`, 'USER', {
         method: 'DELETE',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({ provider }),
       });
-      const data = await res.json();
-      if (!res.ok || data.status !== 'success') {
-        setMessage({ type: 'error', text: data.message || '연동 해제에 실패했습니다.' });
-        return;
-      }
-      setMessage({ type: 'success', text: data.message });
+      setMessage({ type: 'success', text: `${providerLabel(provider)} 연동이 해제되었습니다.` });
       await fetchAccounts();
     } catch (e) {
-      setMessage({ type: 'error', text: '서버와 통신 중 오류가 발생했습니다.' });
+      setMessage({ type: 'error', text: e instanceof ApiError ? e.message : '서버와 통신 중 오류가 발생했습니다.' });
     } finally {
       setIsLoading(false);
     }

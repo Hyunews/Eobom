@@ -23,7 +23,8 @@ import {
   X,
 } from 'lucide-react';
 import { NoteKeyIcon } from '../components/MenuIcons';
-import { BACKEND_URL } from '../config';
+import { apiFetch, ApiError } from '../lib/api';
+import { getToken } from '../lib/storage';
 
 interface EndingNotePageProps {
   currentUser?: string | null;
@@ -332,7 +333,7 @@ const SummaryModal: React.FC<{
 };
 
 export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onOpenLogin, setActiveTab, onOpenFamilyDesignation }) => {
-  const token = currentUser ? sessionStorage.getItem('k_ending_token') : null;
+  const token = currentUser ? getToken('USER') : null;
 
   // §5 — 작성 시작 시점 동의(06-03). null이면 아직 동의 전 — 서버가 GET으로 내려주는 값이 정본이고,
   // 문구(policyNotice)도 서버가 내려준다(화면에 별도로 옮겨 적지 않는다 — 06-03 §5 정본이 한 곳).
@@ -387,45 +388,43 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
       return;
     }
     Promise.all([
-      fetch(`${BACKEND_URL}/api/ending-note`, { headers: { Authorization: `Bearer ${token}` } }).then((r) => r.json()),
-      fetch(`${BACKEND_URL}/api/family-designations`, { headers: { Authorization: `Bearer ${token}` } }).then((r) => r.json()),
-      fetch(`${BACKEND_URL}/api/ending-note/grants`, { headers: { Authorization: `Bearer ${token}` } }).then((r) => r.json()),
+      apiFetch<any>('/api/ending-note', 'USER'),
+      apiFetch<FamilyItem[]>('/api/family-designations', 'USER'),
+      apiFetch<GrantItem[]>('/api/ending-note/grants', 'USER'),
     ])
-      .then(([noteData, familyData, grantsData]) => {
-        if (noteData.status === 'success') {
-          const d = noteData.data;
-          setPolicyAgreedAt(d.policyAgreedAt);
-          setPolicyNotice(d.policyNotice || '');
-          setSectionState(d.sectionState || {});
+      .then(([d, familyList, grantList]) => {
+        setPolicyAgreedAt(d.policyAgreedAt);
+        setPolicyNotice(d.policyNotice || '');
+        setSectionState(d.sectionState || {});
 
-          const bySection: Record<string, any> = {};
-          (d.entries || []).forEach((e: { section: string; value: unknown }) => {
-            bySection[e.section] = e.value;
-          });
+        const bySection: Record<string, any> = {};
+        (d.entries || []).forEach((e: { section: string; value: unknown }) => {
+          bySection[e.section] = e.value;
+        });
 
-          if (bySection.LIFE_SUPPORT?.lifeSupport) setLifeSupport(bySection.LIFE_SUPPORT.lifeSupport);
-          if (bySection.FUNERAL?.funeralType) setFuneralType(bySection.FUNERAL.funeralType);
-          if (bySection.ASSET) setAssetNote(bySection.ASSET.assetNote || '');
-          if (bySection.DIGITAL_ACCOUNTS) setDigitalPrefs(bySection.DIGITAL_ACCOUNTS.digitalPrefs || {});
-          if (bySection.INSURANCE) setInsurance(bySection.INSURANCE.insurance || {});
-          if (bySection.CONTACTS) {
-            setContactsNote(bySection.CONTACTS.contactsNote || '');
-            setPetCaretaker(bySection.CONTACTS.petCaretaker || '');
-          }
-          if (bySection.WILL_LOCATION) setWillLocation(bySection.WILL_LOCATION.willLocation || '');
-          if (bySection.ORGAN_DONATION) {
-            setDonationStatus(bySection.ORGAN_DONATION.donationStatus || '모름');
-            setDonationDate(bySection.ORGAN_DONATION.donationDate || '');
-          }
-          if (bySection.WILL_DRAFT) setDraftText(bySection.WILL_DRAFT.draftText || '');
+        if (bySection.LIFE_SUPPORT?.lifeSupport) setLifeSupport(bySection.LIFE_SUPPORT.lifeSupport);
+        if (bySection.FUNERAL?.funeralType) setFuneralType(bySection.FUNERAL.funeralType);
+        if (bySection.ASSET) setAssetNote(bySection.ASSET.assetNote || '');
+        if (bySection.DIGITAL_ACCOUNTS) setDigitalPrefs(bySection.DIGITAL_ACCOUNTS.digitalPrefs || {});
+        if (bySection.INSURANCE) setInsurance(bySection.INSURANCE.insurance || {});
+        if (bySection.CONTACTS) {
+          setContactsNote(bySection.CONTACTS.contactsNote || '');
+          setPetCaretaker(bySection.CONTACTS.petCaretaker || '');
         }
+        if (bySection.WILL_LOCATION) setWillLocation(bySection.WILL_LOCATION.willLocation || '');
+        if (bySection.ORGAN_DONATION) {
+          setDonationStatus(bySection.ORGAN_DONATION.donationStatus || '모름');
+          setDonationDate(bySection.ORGAN_DONATION.donationDate || '');
+        }
+        if (bySection.WILL_DRAFT) setDraftText(bySection.WILL_DRAFT.draftText || '');
+
         // §10 Phase 2 #6 — 권한을 줄 수 있는 대상은 ACCEPTED뿐(서버도 upsertEndingNoteGrant에서
         // 같은 규칙으로 다시 막는다). PENDING/DECLINED/EXPIRED를 섞으면 눌러도 되는 것처럼 보인다.
-        if (familyData.status === 'success' && Array.isArray(familyData.data)) {
-          setFamily(familyData.data.filter((f: FamilyItem) => f.status === 'ACCEPTED'));
+        if (Array.isArray(familyList)) {
+          setFamily(familyList.filter((f) => f.status === 'ACCEPTED'));
         }
-        if (grantsData.status === 'success' && Array.isArray(grantsData.data)) {
-          setGrants(grantsData.data);
+        if (Array.isArray(grantList)) {
+          setGrants(grantList);
         }
       })
       .catch(() => { })
@@ -436,12 +435,8 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
   const handleAgreePolicy = async () => {
     if (!token) return;
     try {
-      const res = await fetch(`${BACKEND_URL}/api/ending-note/policy-agree`, {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const data = await res.json();
-      if (data.status === 'success') setPolicyAgreedAt(data.data.policyAgreedAt);
+      const data = await apiFetch<{ policyAgreedAt: string }>('/api/ending-note/policy-agree', 'USER', { method: 'POST' });
+      setPolicyAgreedAt(data.policyAgreedAt);
     } catch {
       // 실패해도 재시도 버튼이 곧 같은 요청이라 별도 에러 문구를 두지 않는다.
     }
@@ -453,19 +448,13 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
       if (!token) return;
       setSavingState((s) => ({ ...s, [section]: 'saving' }));
       try {
-        const res = await fetch(`${BACKEND_URL}/api/ending-note/sections/${section}`, {
+        const data = await apiFetch<{ sectionState: Record<string, boolean> }>(`/api/ending-note/sections/${section}`, 'USER', {
           method: 'PUT',
-          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
           body: JSON.stringify({ value }),
         });
-        const data = await res.json();
-        if (data.status === 'success') {
-          setSectionState(data.data.sectionState || {});
-          setSavingState((s) => ({ ...s, [section]: 'saved' }));
-          setTimeout(() => setSavingState((s) => ({ ...s, [section]: 'idle' })), 2000);
-        } else {
-          setSavingState((s) => ({ ...s, [section]: 'error' }));
-        }
+        setSectionState(data.sectionState || {});
+        setSavingState((s) => ({ ...s, [section]: 'saved' }));
+        setTimeout(() => setSavingState((s) => ({ ...s, [section]: 'idle' })), 2000);
       } catch {
         setSavingState((s) => ({ ...s, [section]: 'error' }));
       }
@@ -482,20 +471,15 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
       try {
         if (timing === null) {
           if (!grantId) return; // 이미 비공개라 철회할 것이 없음
-          await fetch(`${BACKEND_URL}/api/ending-note/grants/${grantId}/revoke`, {
-            method: 'PATCH',
-            headers: { Authorization: `Bearer ${token}` },
-          });
+          await apiFetch(`/api/ending-note/grants/${grantId}/revoke`, 'USER', { method: 'PATCH' });
         } else {
-          await fetch(`${BACKEND_URL}/api/ending-note/grants`, {
+          await apiFetch('/api/ending-note/grants', 'USER', {
             method: 'PUT',
-            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
             body: JSON.stringify({ designationId, section, timing }),
           });
         }
-        const res = await fetch(`${BACKEND_URL}/api/ending-note/grants`, { headers: { Authorization: `Bearer ${token}` } });
-        const data = await res.json();
-        if (data.status === 'success') setGrants(data.data);
+        const grantList = await apiFetch<GrantItem[]>('/api/ending-note/grants', 'USER');
+        setGrants(grantList);
       } catch {
         // 실패해도 조용히 둔다 — select는 grants state 기반이라 다음 조회 때 실제 상태로 되돌아온다.
       }

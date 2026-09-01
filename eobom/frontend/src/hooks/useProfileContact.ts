@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { BACKEND_URL } from '../config';
+import { apiFetch } from '../lib/api';
+import { getToken } from '../lib/storage';
 
 // 00-28 §6.4 — 문의·상담 폼에서 로그인 유저의 저장된 연락처를 재사용할지 묻는 공용 훅.
 // InquiryModal.tsx·ConsultRequestModal.tsx가 똑같이 쓴다(⚠️ 두 폼의 동작을 다르게 두지 말 것,
@@ -12,19 +13,18 @@ export const useProfileContact = () => {
   const [saveToProfile, setSaveToProfile] = useState(false);
 
   useEffect(() => {
-    const token = sessionStorage.getItem('k_ending_token');
-    if (!token) return;
-    fetch(`${BACKEND_URL}/api/me/profile`, { headers: { Authorization: `Bearer ${token}` } })
-      .then((res) => res.json())
+    if (!getToken('USER')) return;
+    apiFetch<{ contactPhone?: string; name?: string }>('/api/me/profile', 'USER')
       .then((data) => {
-        if (data.status === 'success' && data.data?.contactPhone) {
-          setMaskedPhone(data.data.contactPhone);
-          setProfileName(data.data.name || null);
+        if (data?.contactPhone) {
+          setMaskedPhone(data.contactPhone);
+          setProfileName(data.name || null);
           setUseProfileContact(true); // 저장된 값이 있으면 기본으로 켜서 "안 치게" 만든다(Phase 2 목표)
         }
       })
       .catch(() => {
-        // 조회 실패는 조용히 무시 — 체크박스가 안 뜰 뿐, 기존처럼 직접 입력하면 된다
+        // 조회 실패는 조용히 무시 — 체크박스가 안 뜰 뿐, 기존처럼 직접 입력하면 된다.
+        // 401은 apiFetch가 세션 정리·만료 알림까지 처리한다(00-34 §5.4).
       });
   }, []);
 

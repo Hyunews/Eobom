@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { X, CheckCircle2, AlertCircle, MapPin, Loader2 } from 'lucide-react';
-import { BACKEND_URL } from '../config';
+import { apiFetch, ApiError } from '../lib/api';
+import { getToken } from '../lib/storage';
 import { AddressSearchModal } from './AddressSearchModal';
 
 // 00-28 §6.3·§8 Phase 1 — 마이페이지 > 내 정보. MyPageAuthSettings.tsx와 같은 모달 패턴.
@@ -51,26 +52,21 @@ export const MyPageProfile: React.FC<MyPageProfileProps> = ({ isOpen, onClose })
   const [marketingAgreed, setMarketingAgreed] = useState(false);
 
   const fetchProfile = async () => {
-    const token = sessionStorage.getItem('k_ending_token');
-    if (!token) return;
+    if (!getToken('USER')) return;
     setIsLoading(true);
     try {
-      const res = await fetch(`${BACKEND_URL}/api/me/profile`, { headers: { Authorization: `Bearer ${token}` } });
-      const data = await res.json();
-      if (data.status === 'success') {
-        const p: ProfileData = data.data;
-        setCurrent(p);
-        setName(p.name || '');
-        setEmail(p.email || '');
-        setContactPhone('');
-        setClearPhone(false);
-        setAddressZonecode(p.addressZonecode || '');
-        setAddressRoad(p.addressRoad || '');
-        setAddressDetail('');
-        setClearDetail(false);
-        setContactTimePref(p.contactTimePref || '');
-        setMarketingAgreed(!!p.marketingAgreedAt);
-      }
+      const p = await apiFetch<ProfileData>('/api/me/profile', 'USER');
+      setCurrent(p);
+      setName(p.name || '');
+      setEmail(p.email || '');
+      setContactPhone('');
+      setClearPhone(false);
+      setAddressZonecode(p.addressZonecode || '');
+      setAddressRoad(p.addressRoad || '');
+      setAddressDetail('');
+      setClearDetail(false);
+      setContactTimePref(p.contactTimePref || '');
+      setMarketingAgreed(!!p.marketingAgreedAt);
     } catch {
       // 조회 실패는 조용히 무시 — 폼이 빈 채로 남아 다시 열면 재시도된다
     } finally {
@@ -89,15 +85,13 @@ export const MyPageProfile: React.FC<MyPageProfileProps> = ({ isOpen, onClose })
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const token = sessionStorage.getItem('k_ending_token');
-    if (!token) return;
+    if (!getToken('USER')) return;
 
     setIsSaving(true);
     setMessage(null);
     try {
-      const res = await fetch(`${BACKEND_URL}/api/me/profile`, {
+      const p = await apiFetch<ProfileData>('/api/me/profile', 'USER', {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({
           name,
           email,
@@ -109,20 +103,14 @@ export const MyPageProfile: React.FC<MyPageProfileProps> = ({ isOpen, onClose })
           marketingAgreed,
         }),
       });
-      const data = await res.json();
-      if (!res.ok || data.status !== 'success') {
-        setMessage({ type: 'error', text: data.message || '저장에 실패했습니다.' });
-        return;
-      }
       setMessage({ type: 'success', text: '저장되었습니다.' });
-      const p: ProfileData = data.data;
       setCurrent(p);
       setContactPhone('');
       setClearPhone(false);
       setAddressDetail('');
       setClearDetail(false);
-    } catch {
-      setMessage({ type: 'error', text: '서버와 통신 중 오류가 발생했습니다.' });
+    } catch (e) {
+      setMessage({ type: 'error', text: e instanceof ApiError ? e.message : '서버와 통신 중 오류가 발생했습니다.' });
     } finally {
       setIsSaving(false);
     }

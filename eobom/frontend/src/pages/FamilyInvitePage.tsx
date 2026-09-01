@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { HeartHandshake, CheckCircle2, XCircle, AlertCircle } from 'lucide-react';
-import { BACKEND_URL } from '../config';
+import { apiFetch, apiFetchRaw, ApiError } from '../lib/api';
+import { getToken, PENDING_INVITE_TOKEN_KEY } from '../lib/storage';
 
 interface FamilyInvitePageProps {
   // App.tsx의 React state를 그대로 받는다 — 예전엔 sessionStorage를 직접 읽었는데, 데모
@@ -70,14 +71,14 @@ export const FamilyInvitePage: React.FC<FamilyInvitePageProps> = ({ currentUser,
   // 저장하지 않고 accept 요청 본문으로만 보낸다 — 지정된 이름은 이 화면에 노출되지 않는다(§9.1-3 ②).
   const [enteredName, setEnteredName] = useState('');
 
-  // authToken은 currentUser와 항상 같은 타이밍에 sessionStorage에 같이 쓰인다(App.tsx
+  // authToken은 currentUser와 항상 같은 타이밍에 저장소에 같이 쓰인다(App.tsx
   // handleLoginSuccess) — currentUser prop이 바뀌어 리렌더될 때마다 이 줄도 다시 실행되므로
   // useState로 따로 안 감싸도 항상 최신 값을 읽는다.
-  const authToken = sessionStorage.getItem('k_ending_token');
+  const authToken = getToken('USER');
 
   useEffect(() => {
     if (!token) return;
-    fetch(`${BACKEND_URL}/api/family-designations/invite/${token}`)
+    apiFetchRaw(`/api/family-designations/invite/${token}`)
       .then(async (res) => {
         const json = await res.json();
         if (res.status === 410) {
@@ -101,7 +102,7 @@ export const FamilyInvitePage: React.FC<FamilyInvitePageProps> = ({ currentUser,
   const handleOpenLogin = () => {
     if (!token) return;
     // §9.1-2 — 로그인 왕복에서 사라지는 토큰 컨텍스트를 로그인 시작 "전에" 보관해둔다.
-    sessionStorage.setItem('eobom_pending_invite_token', token);
+    sessionStorage.setItem(PENDING_INVITE_TOKEN_KEY, token);
     onOpenLogin();
   };
 
@@ -114,19 +115,13 @@ export const FamilyInvitePage: React.FC<FamilyInvitePageProps> = ({ currentUser,
     setIsSubmitting(true);
     setErrorMsg(null);
     try {
-      const res = await fetch(`${BACKEND_URL}/api/family-designations/invite/${token}/accept`, {
+      await apiFetch(`/api/family-designations/invite/${token}/accept`, 'USER', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${authToken}` },
         body: JSON.stringify({ name: enteredName.trim() }),
       });
-      const json = await res.json();
-      if (!res.ok || json.status !== 'success') {
-        setErrorMsg(json.message || '수락 처리에 실패했습니다.');
-        return;
-      }
       setView('accepted');
-    } catch {
-      setErrorMsg('서버와 통신 중 오류가 발생했습니다.');
+    } catch (err) {
+      setErrorMsg(err instanceof ApiError ? err.message : '서버와 통신 중 오류가 발생했습니다.');
     } finally {
       setIsSubmitting(false);
     }
@@ -138,15 +133,10 @@ export const FamilyInvitePage: React.FC<FamilyInvitePageProps> = ({ currentUser,
     setIsSubmitting(true);
     setErrorMsg(null);
     try {
-      const res = await fetch(`${BACKEND_URL}/api/family-designations/invite/${token}/decline`, { method: 'POST' });
-      const json = await res.json();
-      if (!res.ok || json.status !== 'success') {
-        setErrorMsg(json.message || '거절 처리에 실패했습니다.');
-        return;
-      }
+      await apiFetch(`/api/family-designations/invite/${token}/decline`, undefined, { method: 'POST' });
       setView('declined');
-    } catch {
-      setErrorMsg('서버와 통신 중 오류가 발생했습니다.');
+    } catch (err) {
+      setErrorMsg(err instanceof ApiError ? err.message : '서버와 통신 중 오류가 발생했습니다.');
     } finally {
       setIsSubmitting(false);
     }

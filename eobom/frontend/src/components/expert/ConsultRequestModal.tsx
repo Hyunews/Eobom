@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { X, Send, ShieldCheck } from 'lucide-react';
-import { BACKEND_URL } from '../../config';
+import { apiFetch, ApiError } from '../../lib/api';
+import { getToken } from '../../lib/storage';
 import { useProfileContact } from '../../hooks/useProfileContact';
 
 // 전문가 상담 신청 — InquiryModal.tsx(장사시설 업체 문의)와 같은 구조.
@@ -33,7 +34,7 @@ export const ConsultRequestModal: React.FC<ConsultRequestModalProps> = ({ expert
 
   const { maskedPhone, profileName, useProfileContact: useProfile, setUseProfileContact: setUseProfile, saveToProfile, setSaveToProfile } =
     useProfileContact();
-  const isLoggedIn = !!sessionStorage.getItem('k_ending_token');
+  const isLoggedIn = !!getToken('USER');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -44,13 +45,8 @@ export const ConsultRequestModal: React.FC<ConsultRequestModalProps> = ({ expert
 
     setIsSubmitting(true);
     try {
-      const token = sessionStorage.getItem('k_ending_token');
-      const res = await fetch(`${BACKEND_URL}/api/experts/${expertId}/consult-requests`, {
+      const data = await apiFetch<{ requestNo: string }>(`/api/experts/${expertId}/consult-requests`, 'USER', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
         body: JSON.stringify({
           // §6.4 — 프로필 값을 쓸 때는 값 자체를 안 보낸다. 서버가 로그인 유저의 프로필에서 직접 읽는다.
           ...(useProfile ? {} : { applicantName, applicantPhone }),
@@ -62,15 +58,10 @@ export const ConsultRequestModal: React.FC<ConsultRequestModalProps> = ({ expert
           thirdPartyConsent,
         }),
       });
-      const data = await res.json();
-      if (!res.ok || data.status !== 'success') {
-        alert(data.message || '상담 신청에 실패했습니다.');
-        return;
-      }
-      alert(`✅ [${expertName}]님께 상담 신청이 접수되었습니다.\n\n접수번호: ${data.data.requestNo}\n(문의 시 이 번호를 말씀해주시면 빠르게 확인 가능합니다)`);
+      alert(`✅ [${expertName}]님께 상담 신청이 접수되었습니다.\n\n접수번호: ${data.requestNo}\n(문의 시 이 번호를 말씀해주시면 빠르게 확인 가능합니다)`);
       onClose();
-    } catch {
-      alert('서버와 통신 중 오류가 발생했습니다.');
+    } catch (err) {
+      alert(err instanceof ApiError ? err.message : '서버와 통신 중 오류가 발생했습니다.');
     } finally {
       setIsSubmitting(false);
     }
