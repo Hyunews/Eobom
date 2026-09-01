@@ -20,9 +20,22 @@ import familyDesignationRoutes from './routes/familyDesignationRoutes';
 import farewellMessageRoutes from './routes/farewellMessageRoutes';
 import endingNoteRoutes from './routes/endingNoteRoutes';
 import sttRoutes from './routes/sttRoutes';
+import { checkEncryptionKeyStrength } from './utils/crypto';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+
+// 00-33 §7.2 — 약한 암호화 키 부팅 점검. 운영은 기동을 막고(사고를 배포 전에 잡음),
+// 로컬은 경고만 남긴다(개발 편의를 해치지 않음 — 로컬 키는 이미 개발자가 임의 생성한 32바이트
+// hex라 걸리지 않는 게 정상이다).
+const weakKeys = checkEncryptionKeyStrength();
+if (weakKeys.length > 0) {
+  const detail = weakKeys.map((k) => `${k.name}(${k.length}자)`).join(', ');
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error(`암호화 키가 너무 짧습니다 — 운영 환경에서는 기동을 막습니다: ${detail}`);
+  }
+  console.warn(`⚠️  암호화 키가 32자 미만입니다(로컬은 경고만): ${detail}`);
+}
 
 // mkcert로 만든 로컬 인증서가 있으면 HTTPS로 띄운다(프론트가 HTTPS일 때 이 API를 fetch하면
 // mixed content로 막히는 걸 방지). 인증서는 기기별 생성물이라 커밋 안 됨(eobom/.certs/) —

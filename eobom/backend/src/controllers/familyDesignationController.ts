@@ -28,8 +28,9 @@ const isValidScope = (v: unknown): v is (typeof SCOPES)[number] => typeof v === 
 
 const MAX_DESIGNATIONS = 10; // §4.2 — 연락처 수집기로 악용되는 것을 막는 상한
 
-// §4.1 — HMAC 키를 암호화 키와 분리하는 domain 문자열. 새 환경변수를 만들지 않기 위해
-// SETTLEMENT_ENCRYPTION_KEY에서 파생한다(hashField 쪽 구현, utils/crypto.ts).
+// 00-33 §4.2 — HMAC 키를 암호화 키와 분리하는 domain 문자열. hashField는 전용 env
+// HASH_INDEX_KEY를 쓴다(utils/crypto.ts) — 정산 키(SETTLEMENT_ENCRYPTION_KEY) 교체가 이
+// 중복방지 해시를 조용히 깨뜨리지 않도록 키 소스를 분리했다(00-27 §4.1의 옛 파생 방식을 대체).
 const PHONE_HASH_DOMAIN = 'phone-index';
 
 type FamilyDesignationRow = {

@@ -6,6 +6,67 @@
 
 ---
 
+## 2026-09-01 (95) | [Sonnet] `00-33` 암호화 키 관리 및 교체 전략 구현
+
+- **근거 스펙**: `docs/00_핵심플랫폼/00-33_암호화_키_관리_및_교체_전략_명세서.md`(확정) — 사용자
+  핸드오프 지시(2026-09-01, 4단계).
+- **건드린 파일**:
+  `eobom/backend/prisma/schema.prisma`(주석만) ·
+  `eobom/backend/src/utils/crypto.ts` ·
+  `eobom/backend/src/controllers/familyDesignationController.ts`(주석만) ·
+  `eobom/backend/src/server.ts` ·
+  `eobom/backend/.env.example` ·
+  `eobom/backend/.env`(로컬 전용, git 미추적 — `HASH_INDEX_KEY` 추가) ·
+  신규 `eobom/backend/prisma/rotate-keys.ts` ·
+  `docs/00_핵심플랫폼/00-05_DB_요구사항_및_테이블_사전.md`(자동 생성 재실행).
+- **결과**:
+  1. §6.1 — `FarewellMessage.bodyEnc` 스키마 주석 오류 수정(`encryptField` → 실제
+     `encryptNoteField`/`ENDING_NOTE_ENCRYPTION_KEY`). `generate-db-doc.js` 재실행으로 `00-05`
+     반영(설명 없음 25개, 기존과 동일 — 늘지 않음).
+  2. §4 — `hashField`가 `SETTLEMENT_ENCRYPTION_KEY` 파생을 그만두고 전용 env
+     `HASH_INDEX_KEY`를 읽는다. `domain` 인자는 유지. `.env.example`에 `HASH_INDEX_KEY` 추가 +
+     로컬 `.env`에도 임의 32바이트 hex 값 추가(안 넣으면 로컬 개발이 바로 깨짐). 기존
+     `phoneHash` 재해시는 포함하지 않음(지시대로) — `familyDesignationController.ts`의 낡은
+     주석("새 env 안 만들려고 정산 키에서 파생")도 함께 정정.
+  3. §5 — 암호문 저장 형식을 `v2:base64(iv):base64(tag):base64(ct)`로. `encryptField`/
+     `decryptField`/`encryptNoteField`/`decryptNoteField` 4개 함수를 `encryptWith`/`decryptWith`
+     커링 헬퍼로 통합(시그니처는 그대로, 호출부 변경 없음). 복호화 시 프리픽스 없으면 v1로
+     간주해 같은 키(`${ENV}`)로 풀고, 실제 교체가 일어나면 옛 값을 `${ENV}_V1`에 두는 것으로
+     계속 풀리는 구조(§6.3). 강제 재암호화 없음 — `ts-node` 스모크 테스트로 encrypt→decrypt
+     라운드트립, v1(프리픽스 없는 옛 형식 시뮬레이션) 하위호환, 노트 필드, 해시 결정성을 각각
+     확인(전부 통과).
+  4. §6.2 — `prisma/rotate-keys.ts` 신설. `--source=SETTLEMENT|ENDING_NOTE|HASH_INDEX`로
+     키 소스별 분리 실행, `--confirm` 없으면 건수만 출력하는 dry-run이 기본값(db-safety.md
+     게이트를 스크립트 차원에서 보조). 암호문 7컬럼은 배치·건별 처리(멱등 — `v2:` 프리픽스로
+     이미 처리된 행 스킵), `phoneHash`는 `prisma.$transaction`으로 단일 트랜잭션 처리(멱등 —
+     재계산값이 저장값과 같으면 스킵, 프리픽스가 없어 값 비교로 판단). `--confirm` 실행 시
+     종료 후 `NOT LIKE 'v2:%'` 잔여 건수 검증 로그 출력. **작성만 했고 실행하지 않았다**
+     (`--confirm` 없이 로컬에서 실행조차 하지 않음 — 사람 승인 전).
+  5. §7.2 — `server.ts` 부팅 시 `checkEncryptionKeyStrength()` 호출, 32자 미만 키가 있으면
+     `NODE_ENV=production`에서는 `throw`(기동 차단), 아니면 `console.warn`만. 별도 스모크
+     테스트로 짧은 키 탐지 동작 확인.
+  6. 전 구간 `npx tsc --noEmit`(backend) 에러 0. `rotate-keys.ts`는 `prisma/`가 `tsconfig.json`
+     `include`(`src/**/*`) 밖이라 `--strict` 등 프로젝트와 동일 옵션을 직접 지정해 별도
+     타입체크(에러 0, 기존 `seed.ts` 등과 같은 패턴). `npx prisma validate` 통과.
+- **편차**: 없음 — §9 확정 필요 4건 중 ①②③은 스펙 권고안대로 구현(HASH_INDEX_KEY 신설·
+  V1 보관 방식·운영만 기동 차단), ④(재해시 실행 승인)는 지시대로 스크립트 작성까지만 하고
+  실행하지 않음.
+- **다음 에이전트가 알아야 할 것**:
+  - 🔴 **재해시는 아직 실행 안 됨** — 지금 DB의 `phoneHash`는 여전히 옛 파생 키 기준이고,
+    `hashField()`는 이미 `HASH_INDEX_KEY` 기준으로 계산한다. 이 상태에서 가족지정을
+    새로 등록/수정하면 그 행의 `phoneHash`만 새 키 기준이 되어, 같은 사람이 옛 키 시절
+    행과 다른 해시로 중복 없이 통과할 수 있는 창이 이미 열려 있다(§3.2와 동일 현상,
+    상용화 전이라 지시에 따라 허용). `prisma/rotate-keys.ts --source=HASH_INDEX --confirm`을
+    db-safety.md 게이트(사람 승인→백업→파일 확인→건수 확인) 통과 후 실행하면 닫힌다.
+  - `rotate-keys.ts`를 실제로 돌릴 때는 먼저 `--confirm` 없이 실행해 건수를 사람에게
+    보여주고, 승인 받은 뒤에만 `--confirm`을 붙일 것 — 스크립트 자체는 이 순서를 강제하지
+    않는다(호출자 책임).
+  - `SETTLEMENT_ENCRYPTION_KEY_V1`/`ENDING_NOTE_ENCRYPTION_KEY_V1`/`HASH_INDEX_KEY_V1` 환경변수는
+    아직 어디에도 없다 — 실제 키 유출 대응으로 교체할 때 관리자가 그 시점에 `.env`(운영은
+    Render 대시보드)에 직접 추가해야 한다(§6.3, 이번 커밋 범위 밖).
+
+<!-- Gemini 판정 1줄: -->
+
 ## 2026-08-31 (94) | [Sonnet] `EndingNotePage` 유언장 초안 인쇄 — 최하단 성명·날인 칸 추가
 
 - **근거 스펙**: 문서 스펙 없음 — 사용자 직접 지시(2026-08-31). 화면 자필증서 4대 요건

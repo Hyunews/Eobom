@@ -668,7 +668,7 @@ model FarewellMessage {
   recipient   FamilyDesignation @relation(fields: [recipientId], references: [id], onDelete: Cascade)
 
   title   String? // 평문 허용 — 목록 미리보기 표시용(§6.2)
-  bodyEnc String  // 🔴 AES-256-GCM 암호문(utils/crypto.ts encryptField). 평문 컬럼 없음(§6.2)
+  bodyEnc String  // 🔴 AES-256-GCM 암호문(utils/crypto.ts encryptNoteField, ENDING_NOTE_ENCRYPTION_KEY). 평문 컬럼 없음(§6.2)
 
   mediaKey         String? // ⏸ Phase D(음성). 오브젝트 스토리지 키 — 지금은 항상 null
   mediaMime        String? // ⏸ Phase D
