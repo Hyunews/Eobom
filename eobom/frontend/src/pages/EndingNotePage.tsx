@@ -1,30 +1,32 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ScrollText,
-  FileCheck,
-  Flower2,
   LogIn,
   Printer,
   Copy,
   Download,
   CheckCircle2,
   Circle,
-  ChevronDown,
-  ChevronUp,
   AlertTriangle,
-  Landmark,
-  Smartphone,
-  ShieldCheck,
-  Users,
-  MapPin,
-  HeartPulse,
   UserPlus,
   ListChecks,
-  X,
 } from 'lucide-react';
 import { NoteKeyIcon } from '../components/MenuIcons';
 import { apiFetch, ApiError } from '../lib/api';
 import { getToken } from '../lib/storage';
+import {
+  DIGITAL_ACCOUNT_CATEGORIES,
+  DIGITAL_ACCOUNT_CHOICES,
+  INSURANCE_ITEMS,
+  SECTIONS,
+  TIMING_LABEL,
+  NOT_A_WILL_NOTICE,
+} from '../components/endingNote/constants';
+import type { SaveState, FamilyItem, GrantItem, SummaryRow } from '../components/endingNote/types';
+import { cardStyle, cardTitleStyle } from '../components/endingNote/styles';
+import { AccordionSection, saveButtonLabel } from '../components/endingNote/AccordionSection';
+import { SectionTimingControl } from '../components/endingNote/SectionTimingControl';
+import { SummaryModal, summarizeFreeText } from '../components/endingNote/SummaryModal';
 
 interface EndingNotePageProps {
   currentUser?: string | null;
@@ -34,303 +36,6 @@ interface EndingNotePageProps {
   // (FarewellMessagePage와 같은 진입점 패턴).
   onOpenFamilyDesignation?: () => void;
 }
-
-// 06-04 §6.1-1·§4.2·§10 Phase 1 — 아코디언 전환 + 실제 저장. ①②④⑤⑥⑦⑧⑩(8개)는 아코디언,
-// ⑨(유언장 초안)는 별도 블록(§6.1-1 "⑨는 아코디언에 넣지 않는다"). 섹션 코드는 백엔드
-// EndingNoteEntry.section과 1:1로 맞춘다(controllers/endingNoteController.ts SECTION_TIMING과 동일 목록).
-// §6.3 금지 항목(비밀번호·PIN·계좌번호·잔액·주민등록번호·서류파일·상속지분·유류분)을 어느
-// 섹션에도 다시 들여오지 않는다 — ④는 "소재"만, ⑥은 "가입 사실"만, ⑧은 "소재"만 받는다.
-const DIGITAL_ACCOUNT_CATEGORIES = ['이메일', 'SNS', '클라우드', '구독 서비스'] as const;
-const DIGITAL_ACCOUNT_CHOICES: Record<string, string> = {
-  '': '미정',
-  DELETE: '삭제',
-  MEMORIALIZE: '추모 전환',
-  KEEP: '보존',
-};
-
-const INSURANCE_ITEMS = [
-  { key: 'life', label: '생명보험' },
-  { key: 'pension', label: '연금(개인·퇴직)' },
-  { key: 'accident', label: '실손·상해보험' },
-] as const;
-
-type SaveState = 'idle' | 'saving' | 'saved' | 'error';
-
-interface SectionMeta {
-  code: string;
-  title: string;
-  icon: React.ReactNode;
-}
-
-// 표시 순서 = §6.1 순서(③ 제외). WILL_DRAFT(⑨)는 아코디언에 넣지 않으므로 여기 없다 — 별도 블록.
-const SECTIONS: SectionMeta[] = [
-  { code: 'LIFE_SUPPORT', title: '연명의료 의향 메모', icon: <FileCheck color="var(--point-color)" /> },
-  { code: 'FUNERAL', title: '장례 희망', icon: <Flower2 color="var(--point-color)" /> },
-  { code: 'ASSET', title: '자산 소재 안내', icon: <Landmark color="var(--point-color)" /> },
-  { code: 'DIGITAL_ACCOUNTS', title: '디지털 계정 처리 의향', icon: <Smartphone color="var(--point-color)" /> },
-  { code: 'INSURANCE', title: '보험·연금 가입 사실', icon: <ShieldCheck color="var(--point-color)" /> },
-  { code: 'CONTACTS', title: '중요 연락처·반려동물', icon: <Users color="var(--point-color)" /> },
-  { code: 'WILL_LOCATION', title: '유언장 소재 안내', icon: <MapPin color="var(--point-color)" /> },
-  { code: 'ORGAN_DONATION', title: '장기·조직 기증 의향', icon: <HeartPulse color="var(--point-color)" /> },
-];
-
-// §10 Phase 2 — 섹션별 공개 시점. 백엔드 endingNoteController.ts SECTION_ALLOWED_TIMINGS와
-// 동일 목록(§7.1·§13 #5) — EMERGENCY는 Phase 3 전까지 어디에도 없고, WILL_DRAFT는 아예 없다
-// (목록에 없는 섹션은 SectionTimingControl이 렌더링하지 않는다).
-const SECTION_ALLOWED_TIMINGS: Record<string, string[]> = {
-  LIFE_SUPPORT: ['POSTMORTEM'],
-  FUNERAL: ['IMMEDIATE', 'POSTMORTEM'],
-  ASSET: ['POSTMORTEM'],
-  DIGITAL_ACCOUNTS: ['POSTMORTEM'],
-  INSURANCE: ['POSTMORTEM'],
-  CONTACTS: ['IMMEDIATE', 'POSTMORTEM'],
-  WILL_LOCATION: ['POSTMORTEM'],
-  ORGAN_DONATION: ['POSTMORTEM'],
-};
-
-const TIMING_LABEL: Record<string, string> = {
-  IMMEDIATE: '지금부터 공개(생전)',
-  POSTMORTEM: '사후에만 공개',
-};
-
-const RELATIONSHIP_LABEL: Record<string, string> = {
-  SPOUSE: '배우자',
-  CHILD: '자녀',
-  PARENT: '부모',
-  SIBLING: '형제자매',
-  OTHER: '기타',
-};
-
-interface FamilyItem {
-  id: string;
-  name: string;
-  relationship: string;
-  relationshipEtc: string | null;
-  status: string;
-}
-
-interface GrantItem {
-  id: string;
-  designationId: string;
-  section: string;
-  timing: string;
-  revokedAt: string | null;
-  updatedAt: string;
-}
-
-const cardStyle: React.CSSProperties = {
-  backgroundColor: 'var(--card-bg)',
-  borderRadius: 'var(--border-radius)',
-  boxShadow: 'var(--box-shadow)',
-};
-const cardTitleStyle: React.CSSProperties = {
-  color: 'var(--primary-color)',
-  margin: 0,
-  display: 'flex',
-  alignItems: 'center',
-  gap: '0.5rem',
-};
-
-const saveButtonLabel = (state: SaveState | undefined): string => {
-  if (state === 'saving') return '저장 중…';
-  if (state === 'saved') return '저장됨';
-  if (state === 'error') return '저장 실패 — 다시 시도';
-  return '저장';
-};
-
-// A1·§6.1-1 — 아코디언 항목. 접혀 있어도 아이콘·제목·완료표시는 항상 보인다(§6.1-1 "빠짐없이").
-// 🔴 모듈 최상위에 둔다 — EndingNotePage 렌더 함수 안에서 정의하면 매 렌더마다 새 컴포넌트
-// 타입이 생겨, 부모 state가 바뀔 때마다(예: textarea 한 글자 입력) React가 이 서브트리를
-// 통째로 언마운트·재마운트해 입력 포커스가 매 키 입력마다 끊긴다.
-const AccordionSection: React.FC<{
-  meta: SectionMeta;
-  expanded: boolean;
-  completed: boolean;
-  saveState: SaveState | undefined;
-  onToggle: () => void;
-  onSave: () => void;
-  children: React.ReactNode;
-}> = ({ meta, expanded, completed, saveState, onToggle, onSave, children }) => (
-  <div className="ending-note-accordion-item" style={cardStyle} id={`ending-note-section-${meta.code}`}>
-    <button type="button" onClick={onToggle} aria-expanded={expanded} className="ending-note-accordion-header">
-      {meta.icon}
-      <span style={{ flex: 1, textAlign: 'left' }}>{meta.title}</span>
-      {completed && <CheckCircle2 size={18} color="var(--point-color)" />}
-      {expanded ? <ChevronUp size={20} color="var(--text-muted)" /> : <ChevronDown size={20} color="var(--text-muted)" />}
-    </button>
-    {expanded && (
-      <div className="ending-note-accordion-body">
-        {children}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginTop: '1rem' }}>
-          <button type="button" onClick={onSave} className="btn btn-point" disabled={saveState === 'saving'} style={{ fontSize: '0.9rem' }}>
-            {saveButtonLabel(saveState)}
-          </button>
-          {saveState === 'saved' && <span style={{ fontSize: '0.85rem', color: 'var(--point-color)' }}>저장되었습니다.</span>}
-          {saveState === 'error' && <span style={{ fontSize: '0.85rem', color: '#B91C1C' }}>저장에 실패했습니다. 다시 시도해 주세요.</span>}
-        </div>
-      </div>
-    )}
-  </div>
-);
-
-// §10 Phase 2 — 섹션별 공개 시점 UI. WILL_DRAFT처럼 허용 timing이 없는 섹션에서는 아무것도
-// 그리지 않는다(§7.4 모델 레벨 차단이 UI에도 그대로 반영). 🔴 모듈 최상위(AccordionSection과
-// 같은 이유 — 렌더 함수 안에 두면 리렌더마다 재마운트돼 select 포커스가 끊긴다).
-const SectionTimingControl: React.FC<{
-  section: string;
-  family: FamilyItem[];
-  grants: GrantItem[];
-  onChange: (designationId: string, timing: string | null, grantId?: string) => void;
-}> = ({ section, family, grants, onChange }) => {
-  const allowed = SECTION_ALLOWED_TIMINGS[section];
-  if (!allowed || family.length === 0) return null;
-
-  return (
-    <div style={{ marginTop: '1.25rem', paddingTop: '1rem', borderTop: '1px solid var(--border-color)' }}>
-      <div style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--primary-color)', marginBottom: '0.6rem' }}>
-        가족 공개 시점
-      </div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-        {family.map((f) => {
-          const activeGrant = grants.find((g) => g.section === section && g.designationId === f.id && !g.revokedAt);
-          return (
-            <div key={f.id} style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', fontSize: '0.85rem', flexWrap: 'wrap' }}>
-              <span style={{ minWidth: '120px', color: 'var(--text-main)' }}>
-                {f.name} ({RELATIONSHIP_LABEL[f.relationship] || f.relationship}
-                {f.relationship === 'OTHER' && f.relationshipEtc ? ` · ${f.relationshipEtc}` : ''})
-              </span>
-              <select
-                value={activeGrant?.timing || ''}
-                onChange={(e) => onChange(f.id, e.target.value || null, activeGrant?.id)}
-                className="form-select"
-                style={{ height: '38px', width: '220px', flexShrink: 0 }}
-              >
-                <option value="">비공개</option>
-                {allowed.map((t) => (
-                  <option key={t} value={t}>
-                    {TIMING_LABEL[t]}
-                  </option>
-                ))}
-              </select>
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-};
-
-// "한눈에 보기" 요약 모달 — 06-04 §6.1-1 파생(사용자 직접 지시, 2026-08-27). 아코디언이 한 번에
-// 한 섹션만 보여줘 생긴 "전체를 훑을 방법이 없다"는 구멍을 메운다. 🔴 새 API를 만들지 않는다 —
-// Phase 1·2에서 이미 로드해둔 state(sectionState·grants·각 필드값)만 재구성해서 보여준다.
-// 🔴 자유 서술 필드는 전문을 뿌리지 않는다(엔딩노트는 암호화 저장하는 민감 콘텐츠 — 모달에 펼치면
-// 어깨너머로 다 보인다). ⑨(WILL_DRAFT)는 본인 전용 원칙이 이 모달에도 그대로 적용돼 내용을
-// 절대 표시하지 않고 작성 여부만 보여준다.
-const summarizeFreeText = (text: string): string => {
-  const trimmed = text.trim();
-  if (!trimmed) return '';
-  const lines = trimmed.split('\n').filter((l) => l.trim());
-  const preview = lines.slice(0, 2).join(' ');
-  const truncatedByLines = lines.length > 2;
-  const CAP = 90;
-  const truncatedByLength = preview.length > CAP;
-  const shown = truncatedByLength ? preview.slice(0, CAP) : preview;
-  return `${shown}${truncatedByLines || truncatedByLength ? '…' : ''}`;
-};
-
-interface SummaryRow {
-  code: string;
-  title: string;
-  completed: boolean;
-  valueText: string;
-  timingBadge: string | null;
-  isWillDraft: boolean;
-}
-
-const SummaryModal: React.FC<{
-  rows: SummaryRow[];
-  onClose: () => void;
-  onSelectRow: (code: string) => void;
-}> = ({ rows, onClose, onSelectRow }) => {
-  const anyCompleted = rows.some((r) => r.completed);
-  return (
-    <div
-      className="ending-note-summary-overlay"
-      onClick={(e) => {
-        if (e.target === e.currentTarget) onClose();
-      }}
-    >
-      <div className="ending-note-summary-panel" role="dialog" aria-modal="true" aria-label="한눈에 보기">
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
-          <h2 style={{ color: 'var(--primary-color)', fontSize: '1.3rem', margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <ListChecks color="var(--point-color)" /> 한눈에 보기
-          </h2>
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="닫기"
-            style={{
-              background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)',
-              width: 'var(--min-touch-target)', height: 'var(--min-touch-target)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-            }}
-          >
-            <X size={24} />
-          </button>
-        </div>
-
-        {!anyCompleted && (
-          <div style={{ fontSize: '0.9rem', color: 'var(--text-muted)', backgroundColor: 'var(--secondary-color)', borderRadius: '10px', padding: '0.9rem 1rem', marginBottom: '1rem', lineHeight: 1.6 }}>
-            아직 작성하신 항목이 없습니다. 아래 목록에서 항목을 눌러 하나씩 채워보세요.
-          </div>
-        )}
-
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
-          {rows.map((row) => (
-            <button
-              key={row.code}
-              type="button"
-              onClick={() => onSelectRow(row.code)}
-              style={{
-                display: 'flex', flexDirection: 'column', gap: '0.35rem', width: '100%', textAlign: 'left',
-                minHeight: 'var(--min-touch-target)', padding: '0.8rem 1rem', borderRadius: '10px',
-                border: '1px solid var(--border-color)', backgroundColor: row.completed ? 'var(--card-bg)' : '#FEF3C7',
-                cursor: 'pointer',
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
-                <span style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--primary-color)' }}>{row.title}</span>
-                {row.completed ? (
-                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.8rem', fontWeight: 700, color: '#03543F', backgroundColor: '#DEF7EC', borderRadius: '999px', padding: '0.15rem 0.6rem' }}>
-                    <CheckCircle2 size={13} /> 작성함
-                  </span>
-                ) : (
-                  <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#92400E', backgroundColor: '#FEF3C7', border: '1px solid #FDE68A', borderRadius: '999px', padding: '0.15rem 0.6rem' }}>
-                    미작성
-                  </span>
-                )}
-                {row.timingBadge && (
-                  <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', backgroundColor: '#F1F5F9', borderRadius: '999px', padding: '0.15rem 0.6rem' }}>
-                    {row.timingBadge}
-                  </span>
-                )}
-              </div>
-              {row.isWillDraft ? (
-                <span style={{ fontSize: '18px', lineHeight: 1.7, color: 'var(--text-muted)' }}>
-                  본인 전용 — 내용은 여기 표시되지 않습니다.
-                </span>
-              ) : (
-                row.completed && row.valueText && (
-                  <span style={{ fontSize: '18px', lineHeight: 1.7, color: 'var(--text-main)' }}>{row.valueText}</span>
-                )
-              )}
-            </button>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-};
 
 export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onOpenLogin, setActiveTab, onOpenFamilyDesignation }) => {
   const token = currentUser ? getToken('USER') : null;
@@ -376,9 +81,6 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
   );
   const [largeText, setLargeText] = useState<boolean>(false);
   const [copyFeedback, setCopyFeedback] = useState<string | null>(null);
-
-  const NOT_A_WILL_NOTICE =
-    '이 화면에서 만든 글은 유언장이 아닙니다. 자필증서 유언은 반드시 손으로 직접 쓰셔야 하며, 컴퓨터로 작성한 문서는 효력이 없습니다.';
 
   // §10 Phase 1·2 — 조회. 서버가 policyAgreedAt·sectionState·문구·본문 전부를 내려준다(재로그인
   // 복원). 가족 목록·권한 목록도 같이 받아 섹션별 공개 시점 UI를 채운다.
@@ -654,6 +356,248 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
   const hasAddressHint = /\d+(-\d+)?\s*(번지|호)|(로|길)\s*\d+/.test(draftText);
   const hasDateHint = /\d{4}\s*년\s*\d{1,2}\s*월\s*\d{1,2}\s*일/.test(draftText);
 
+  // 00-35 §5.2 — 8개 아코디언 호출부의 본문과 저장 페이로드만 섹션 코드별로 모으고, 나머지
+  // (expanded·completed·saveState·onToggle·onSave)는 SECTIONS 배열 순회로 유도한다.
+  const sectionBodies: Record<string, React.ReactNode> = {
+    LIFE_SUPPORT: (
+      <>
+        <div style={{ fontSize: '0.85rem', color: '#92400E', backgroundColor: '#FEF3C7', border: '1px solid #FDE68A', borderRadius: '8px', padding: '0.7rem 0.9rem', marginBottom: '1rem' }}>
+          ⚠️ 이 메모는 법적 효력이 없습니다. 법적 효력이 있는 「사전연명의료의향서」는 보건복지부
+          지정 등록기관에서 본인이 직접 작성·등록해야 합니다(비용 없음).
+        </div>
+        <div className="form-group">
+          <label className="form-label">연명의료 중단 의향</label>
+          <select value={lifeSupport} onChange={(e) => setLifeSupport(e.target.value)} className="form-select">
+            <option value="연명의료 중단 희망">임종 시 무의미한 연명의료 중단 희망</option>
+            <option value="적극적 치료 희망">가능한 모든 의료 조치 시행 희망</option>
+            <option value="자녀 판단에 위임">가족/자녀의 판단에 위임</option>
+          </select>
+        </div>
+        <SectionTimingControl
+          section="LIFE_SUPPORT"
+          family={family}
+          grants={grants}
+          onChange={(designationId, timing, grantId) => handleGrantChange('LIFE_SUPPORT', designationId, timing, grantId)}
+        />
+      </>
+    ),
+    FUNERAL: (
+      <>
+        <div className="form-group">
+          <label className="form-label">희망하는 장례 방식</label>
+          <select value={funeralType} onChange={(e) => setFuneralType(e.target.value)} className="form-select">
+            <option value="가족장 (수목장)">가족장 후 자연 수목장 안치</option>
+            <option value="일반 장례 (봉안당)">일반 3일장 후 봉안당 안치</option>
+            <option value="조용한 검소장">최소 인원 검소장</option>
+          </select>
+        </div>
+        <SectionTimingControl
+          section="FUNERAL"
+          family={family}
+          grants={grants}
+          onChange={(designationId, timing, grantId) => handleGrantChange('FUNERAL', designationId, timing, grantId)}
+        />
+      </>
+    ),
+    ASSET: (
+      <>
+        <div style={{ fontSize: '0.85rem', color: '#92400E', backgroundColor: '#FEF3C7', border: '1px solid #FDE68A', borderRadius: '8px', padding: '0.7rem 0.9rem', marginBottom: '1rem' }}>
+          🔴 어느 은행·증권사에 거래가 있는지까지만 적어주세요. 계좌번호·잔액·비밀번호는 절대
+          적지 마세요 — 유족은 이 정보 없이도 공적 창구(안심상속 원스톱서비스 등)로 조회할 수 있습니다.
+        </div>
+        <div className="form-group">
+          <label className="form-label">거래 중인 은행·증권사</label>
+          <textarea
+            rows={3}
+            value={assetNote}
+            onChange={(e) => setAssetNote(e.target.value)}
+            className="form-input"
+            style={{ height: 'auto', padding: '1rem' }}
+            placeholder="예: 국민은행에 주거래 계좌가 있고, 통장은 안방 서랍 두 번째 칸에 있습니다. 비밀번호는 적지 마세요 — 유족이 서류로 조회할 수 있습니다."
+          />
+        </div>
+        <SectionTimingControl
+          section="ASSET"
+          family={family}
+          grants={grants}
+          onChange={(designationId, timing, grantId) => handleGrantChange('ASSET', designationId, timing, grantId)}
+        />
+      </>
+    ),
+    DIGITAL_ACCOUNTS: (
+      <>
+        <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>
+          자주 쓰시는 디지털 서비스를 사후에 어떻게 처리하고 싶으신지 미리 정해두세요. 실제 처리는
+          디지털 정산(04) 화면에서 유족이 진행합니다.
+        </p>
+        {DIGITAL_ACCOUNT_CATEGORIES.map((category) => (
+          <div key={category} className="form-group">
+            <label className="form-label">{category}</label>
+            <select
+              value={digitalPrefs[category] || ''}
+              onChange={(e) => setDigitalPrefs((prev) => ({ ...prev, [category]: e.target.value }))}
+              className="form-select"
+            >
+              {Object.entries(DIGITAL_ACCOUNT_CHOICES).map(([value, label]) => (
+                <option key={value || 'undecided'} value={value}>
+                  {label}
+                </option>
+              ))}
+            </select>
+          </div>
+        ))}
+        <SectionTimingControl
+          section="DIGITAL_ACCOUNTS"
+          family={family}
+          grants={grants}
+          onChange={(designationId, timing, grantId) => handleGrantChange('DIGITAL_ACCOUNTS', designationId, timing, grantId)}
+        />
+      </>
+    ),
+    INSURANCE: (
+      <>
+        <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>
+          유족이 존재를 몰라 청구를 못 하는 경우가 가장 흔한 손실입니다. 회사명만 남겨두세요 —
+          증권번호·보장 내역은 받지 않습니다.
+        </p>
+        {INSURANCE_ITEMS.map((item) => (
+          <div key={item.key} style={{ marginBottom: '0.9rem' }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.95rem', color: 'var(--primary-color)', cursor: 'pointer', marginBottom: '0.5rem' }}>
+              <input
+                type="checkbox"
+                checked={!!insurance[item.key]?.checked}
+                onChange={(e) =>
+                  setInsurance((prev) => ({
+                    ...prev,
+                    [item.key]: { checked: e.target.checked, company: prev[item.key]?.company || '' },
+                  }))
+                }
+              />
+              {item.label} 가입
+            </label>
+            {insurance[item.key]?.checked && (
+              <input
+                type="text"
+                value={insurance[item.key]?.company || ''}
+                onChange={(e) =>
+                  setInsurance((prev) => ({
+                    ...prev,
+                    [item.key]: { checked: true, company: e.target.value },
+                  }))
+                }
+                className="form-input"
+                placeholder="가입 회사명만 (예: OO생명)"
+                style={{ marginLeft: '1.6rem', width: 'calc(100% - 1.6rem)' }}
+              />
+            )}
+          </div>
+        ))}
+        <SectionTimingControl
+          section="INSURANCE"
+          family={family}
+          grants={grants}
+          onChange={(designationId, timing, grantId) => handleGrantChange('INSURANCE', designationId, timing, grantId)}
+        />
+      </>
+    ),
+    CONTACTS: (
+      <>
+        <div className="form-group">
+          <label className="form-label">부고를 꼭 알려야 할 사람</label>
+          <textarea
+            rows={3}
+            value={contactsNote}
+            onChange={(e) => setContactsNote(e.target.value)}
+            className="form-input"
+            style={{ height: 'auto', padding: '1rem' }}
+            placeholder="예: 김OO - 대학 동창 - 010-0000-0000 (한 분씩 한 줄로 적어주세요)"
+          />
+        </div>
+        <div className="form-group">
+          <label className="form-label">반려동물을 부탁하고 싶은 분</label>
+          <input
+            type="text"
+            value={petCaretaker}
+            onChange={(e) => setPetCaretaker(e.target.value)}
+            className="form-input"
+            placeholder="예: 막내 여동생 김OO"
+          />
+        </div>
+        <SectionTimingControl
+          section="CONTACTS"
+          family={family}
+          grants={grants}
+          onChange={(designationId, timing, grantId) => handleGrantChange('CONTACTS', designationId, timing, grantId)}
+        />
+      </>
+    ),
+    WILL_LOCATION: (
+      <>
+        <div className="form-group">
+          <label className="form-label">자필증서를 어디에 보관했는지 한 줄로</label>
+          <input
+            type="text"
+            value={willLocation}
+            onChange={(e) => setWillLocation(e.target.value)}
+            className="form-input"
+            placeholder="예: 안방 화장대 서랍 안쪽 서류 봉투"
+          />
+        </div>
+        <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+          🔴 이어봄은 유언장 원본·사본을 보관하지 않습니다. 보관 장소만 남겨두세요.
+        </p>
+        <SectionTimingControl
+          section="WILL_LOCATION"
+          family={family}
+          grants={grants}
+          onChange={(designationId, timing, grantId) => handleGrantChange('WILL_LOCATION', designationId, timing, grantId)}
+        />
+      </>
+    ),
+    ORGAN_DONATION: (
+      <>
+        <div style={{ fontSize: '0.85rem', color: '#92400E', backgroundColor: '#FEF3C7', border: '1px solid #FDE68A', borderRadius: '8px', padding: '0.7rem 0.9rem', marginBottom: '1rem' }}>
+          ⚠️ 이어봄은 등록 여부와 등록일만 보관합니다. 실제 등록은 국립장기조직혈액관리원(사랑의
+          장기기증운동본부 등 등록기관)에서 본인이 직접 해야 하며, 이어봄은 등록을 대행하지 않습니다.
+          🔴 시신 기증(해부용 시신 기증)은 별도 제도입니다 — 이 항목과 섞지 마세요.
+        </div>
+        <div className="form-group">
+          <label className="form-label">장기·조직 기증 등록 여부</label>
+          <select value={donationStatus} onChange={(e) => setDonationStatus(e.target.value)} className="form-select">
+            <option value="등록함">등록함</option>
+            <option value="등록하지 않음">등록하지 않음</option>
+            <option value="모름">모름</option>
+          </select>
+        </div>
+        {donationStatus === '등록함' && (
+          <div className="form-group">
+            <label className="form-label">등록일 (선택)</label>
+            <input type="date" value={donationDate} onChange={(e) => setDonationDate(e.target.value)} className="form-input" />
+          </div>
+        )}
+        <SectionTimingControl
+          section="ORGAN_DONATION"
+          family={family}
+          grants={grants}
+          onChange={(designationId, timing, grantId) => handleGrantChange('ORGAN_DONATION', designationId, timing, grantId)}
+        />
+      </>
+    ),
+  };
+
+  // 🔴 00-35 §5.3 — useMemo로 감싸지 않는다. 값이 바뀌어도 최신 상태를 읽어야 하므로 매 렌더
+  // 재생성이 맞다. 각 키의 값·형태는 이동 전 onSave가 넘기던 것과 완전히 같다.
+  const sectionPayloads: Record<string, () => unknown> = {
+    LIFE_SUPPORT: () => ({ lifeSupport }),
+    FUNERAL: () => ({ funeralType }),
+    ASSET: () => ({ assetNote }),
+    DIGITAL_ACCOUNTS: () => ({ digitalPrefs }),
+    INSURANCE: () => ({ insurance }),
+    CONTACTS: () => ({ contactsNote, petCaretaker }),
+    WILL_LOCATION: () => ({ willLocation }),
+    ORGAN_DONATION: () => ({ donationStatus, donationDate }),
+  };
+
   return (
     <div className="container" style={{ position: 'relative' }}>
       {!currentUser && (
@@ -773,285 +717,20 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
           </aside>
 
           <div className="ending-note-content">
-            {/* ① 연명의료 의향 메모 */}
-            <AccordionSection
-              meta={SECTIONS[0]}
-              expanded={expandedSection === 'LIFE_SUPPORT'}
-              completed={!!sectionState.LIFE_SUPPORT}
-              saveState={savingState.LIFE_SUPPORT}
-              onToggle={() => handleToggleSection('LIFE_SUPPORT')}
-              onSave={() => saveSection('LIFE_SUPPORT', { lifeSupport })}
-            >
-              <div style={{ fontSize: '0.85rem', color: '#92400E', backgroundColor: '#FEF3C7', border: '1px solid #FDE68A', borderRadius: '8px', padding: '0.7rem 0.9rem', marginBottom: '1rem' }}>
-                ⚠️ 이 메모는 법적 효력이 없습니다. 법적 효력이 있는 「사전연명의료의향서」는 보건복지부
-                지정 등록기관에서 본인이 직접 작성·등록해야 합니다(비용 없음).
-              </div>
-              <div className="form-group">
-                <label className="form-label">연명의료 중단 의향</label>
-                <select value={lifeSupport} onChange={(e) => setLifeSupport(e.target.value)} className="form-select">
-                  <option value="연명의료 중단 희망">임종 시 무의미한 연명의료 중단 희망</option>
-                  <option value="적극적 치료 희망">가능한 모든 의료 조치 시행 희망</option>
-                  <option value="자녀 판단에 위임">가족/자녀의 판단에 위임</option>
-                </select>
-              </div>
-              <SectionTimingControl
-                section="LIFE_SUPPORT"
-                family={family}
-                grants={grants}
-                onChange={(designationId, timing, grantId) => handleGrantChange('LIFE_SUPPORT', designationId, timing, grantId)}
-              />
-            </AccordionSection>
-
-            {/* ② 장례 희망 */}
-            <AccordionSection
-              meta={SECTIONS[1]}
-              expanded={expandedSection === 'FUNERAL'}
-              completed={!!sectionState.FUNERAL}
-              saveState={savingState.FUNERAL}
-              onToggle={() => handleToggleSection('FUNERAL')}
-              onSave={() => saveSection('FUNERAL', { funeralType })}
-            >
-              <div className="form-group">
-                <label className="form-label">희망하는 장례 방식</label>
-                <select value={funeralType} onChange={(e) => setFuneralType(e.target.value)} className="form-select">
-                  <option value="가족장 (수목장)">가족장 후 자연 수목장 안치</option>
-                  <option value="일반 장례 (봉안당)">일반 3일장 후 봉안당 안치</option>
-                  <option value="조용한 검소장">최소 인원 검소장</option>
-                </select>
-              </div>
-              <SectionTimingControl
-                section="FUNERAL"
-                family={family}
-                grants={grants}
-                onChange={(designationId, timing, grantId) => handleGrantChange('FUNERAL', designationId, timing, grantId)}
-              />
-            </AccordionSection>
-
-            {/* ④ 자산 소재 안내 */}
-            <AccordionSection
-              meta={SECTIONS[2]}
-              expanded={expandedSection === 'ASSET'}
-              completed={!!sectionState.ASSET}
-              saveState={savingState.ASSET}
-              onToggle={() => handleToggleSection('ASSET')}
-              onSave={() => saveSection('ASSET', { assetNote })}
-            >
-              <div style={{ fontSize: '0.85rem', color: '#92400E', backgroundColor: '#FEF3C7', border: '1px solid #FDE68A', borderRadius: '8px', padding: '0.7rem 0.9rem', marginBottom: '1rem' }}>
-                🔴 어느 은행·증권사에 거래가 있는지까지만 적어주세요. 계좌번호·잔액·비밀번호는 절대
-                적지 마세요 — 유족은 이 정보 없이도 공적 창구(안심상속 원스톱서비스 등)로 조회할 수 있습니다.
-              </div>
-              <div className="form-group">
-                <label className="form-label">거래 중인 은행·증권사</label>
-                <textarea
-                  rows={3}
-                  value={assetNote}
-                  onChange={(e) => setAssetNote(e.target.value)}
-                  className="form-input"
-                  style={{ height: 'auto', padding: '1rem' }}
-                  placeholder="예: 국민은행에 주거래 계좌가 있고, 통장은 안방 서랍 두 번째 칸에 있습니다. 비밀번호는 적지 마세요 — 유족이 서류로 조회할 수 있습니다."
-                />
-              </div>
-              <SectionTimingControl
-                section="ASSET"
-                family={family}
-                grants={grants}
-                onChange={(designationId, timing, grantId) => handleGrantChange('ASSET', designationId, timing, grantId)}
-              />
-            </AccordionSection>
-
-            {/* ⑤ 디지털 계정 처리 의향 */}
-            <AccordionSection
-              meta={SECTIONS[3]}
-              expanded={expandedSection === 'DIGITAL_ACCOUNTS'}
-              completed={!!sectionState.DIGITAL_ACCOUNTS}
-              saveState={savingState.DIGITAL_ACCOUNTS}
-              onToggle={() => handleToggleSection('DIGITAL_ACCOUNTS')}
-              onSave={() => saveSection('DIGITAL_ACCOUNTS', { digitalPrefs })}
-            >
-              <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>
-                자주 쓰시는 디지털 서비스를 사후에 어떻게 처리하고 싶으신지 미리 정해두세요. 실제 처리는
-                디지털 정산(04) 화면에서 유족이 진행합니다.
-              </p>
-              {DIGITAL_ACCOUNT_CATEGORIES.map((category) => (
-                <div key={category} className="form-group">
-                  <label className="form-label">{category}</label>
-                  <select
-                    value={digitalPrefs[category] || ''}
-                    onChange={(e) => setDigitalPrefs((prev) => ({ ...prev, [category]: e.target.value }))}
-                    className="form-select"
-                  >
-                    {Object.entries(DIGITAL_ACCOUNT_CHOICES).map(([value, label]) => (
-                      <option key={value || 'undecided'} value={value}>
-                        {label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              ))}
-              <SectionTimingControl
-                section="DIGITAL_ACCOUNTS"
-                family={family}
-                grants={grants}
-                onChange={(designationId, timing, grantId) => handleGrantChange('DIGITAL_ACCOUNTS', designationId, timing, grantId)}
-              />
-            </AccordionSection>
-
-            {/* ⑥ 보험·연금 가입 사실 */}
-            <AccordionSection
-              meta={SECTIONS[4]}
-              expanded={expandedSection === 'INSURANCE'}
-              completed={!!sectionState.INSURANCE}
-              saveState={savingState.INSURANCE}
-              onToggle={() => handleToggleSection('INSURANCE')}
-              onSave={() => saveSection('INSURANCE', { insurance })}
-            >
-              <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>
-                유족이 존재를 몰라 청구를 못 하는 경우가 가장 흔한 손실입니다. 회사명만 남겨두세요 —
-                증권번호·보장 내역은 받지 않습니다.
-              </p>
-              {INSURANCE_ITEMS.map((item) => (
-                <div key={item.key} style={{ marginBottom: '0.9rem' }}>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.95rem', color: 'var(--primary-color)', cursor: 'pointer', marginBottom: '0.5rem' }}>
-                    <input
-                      type="checkbox"
-                      checked={!!insurance[item.key]?.checked}
-                      onChange={(e) =>
-                        setInsurance((prev) => ({
-                          ...prev,
-                          [item.key]: { checked: e.target.checked, company: prev[item.key]?.company || '' },
-                        }))
-                      }
-                    />
-                    {item.label} 가입
-                  </label>
-                  {insurance[item.key]?.checked && (
-                    <input
-                      type="text"
-                      value={insurance[item.key]?.company || ''}
-                      onChange={(e) =>
-                        setInsurance((prev) => ({
-                          ...prev,
-                          [item.key]: { checked: true, company: e.target.value },
-                        }))
-                      }
-                      className="form-input"
-                      placeholder="가입 회사명만 (예: OO생명)"
-                      style={{ marginLeft: '1.6rem', width: 'calc(100% - 1.6rem)' }}
-                    />
-                  )}
-                </div>
-              ))}
-              <SectionTimingControl
-                section="INSURANCE"
-                family={family}
-                grants={grants}
-                onChange={(designationId, timing, grantId) => handleGrantChange('INSURANCE', designationId, timing, grantId)}
-              />
-            </AccordionSection>
-
-            {/* ⑦ 중요 연락처·반려동물 */}
-            <AccordionSection
-              meta={SECTIONS[5]}
-              expanded={expandedSection === 'CONTACTS'}
-              completed={!!sectionState.CONTACTS}
-              saveState={savingState.CONTACTS}
-              onToggle={() => handleToggleSection('CONTACTS')}
-              onSave={() => saveSection('CONTACTS', { contactsNote, petCaretaker })}
-            >
-              <div className="form-group">
-                <label className="form-label">부고를 꼭 알려야 할 사람</label>
-                <textarea
-                  rows={3}
-                  value={contactsNote}
-                  onChange={(e) => setContactsNote(e.target.value)}
-                  className="form-input"
-                  style={{ height: 'auto', padding: '1rem' }}
-                  placeholder="예: 김OO - 대학 동창 - 010-0000-0000 (한 분씩 한 줄로 적어주세요)"
-                />
-              </div>
-              <div className="form-group">
-                <label className="form-label">반려동물을 부탁하고 싶은 분</label>
-                <input
-                  type="text"
-                  value={petCaretaker}
-                  onChange={(e) => setPetCaretaker(e.target.value)}
-                  className="form-input"
-                  placeholder="예: 막내 여동생 김OO"
-                />
-              </div>
-              <SectionTimingControl
-                section="CONTACTS"
-                family={family}
-                grants={grants}
-                onChange={(designationId, timing, grantId) => handleGrantChange('CONTACTS', designationId, timing, grantId)}
-              />
-            </AccordionSection>
-
-            {/* ⑧ 유언장 소재 안내 */}
-            <AccordionSection
-              meta={SECTIONS[6]}
-              expanded={expandedSection === 'WILL_LOCATION'}
-              completed={!!sectionState.WILL_LOCATION}
-              saveState={savingState.WILL_LOCATION}
-              onToggle={() => handleToggleSection('WILL_LOCATION')}
-              onSave={() => saveSection('WILL_LOCATION', { willLocation })}
-            >
-              <div className="form-group">
-                <label className="form-label">자필증서를 어디에 보관했는지 한 줄로</label>
-                <input
-                  type="text"
-                  value={willLocation}
-                  onChange={(e) => setWillLocation(e.target.value)}
-                  className="form-input"
-                  placeholder="예: 안방 화장대 서랍 안쪽 서류 봉투"
-                />
-              </div>
-              <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                🔴 이어봄은 유언장 원본·사본을 보관하지 않습니다. 보관 장소만 남겨두세요.
-              </p>
-              <SectionTimingControl
-                section="WILL_LOCATION"
-                family={family}
-                grants={grants}
-                onChange={(designationId, timing, grantId) => handleGrantChange('WILL_LOCATION', designationId, timing, grantId)}
-              />
-            </AccordionSection>
-
-            {/* ⑩ 장기·조직 기증 의향 */}
-            <AccordionSection
-              meta={SECTIONS[7]}
-              expanded={expandedSection === 'ORGAN_DONATION'}
-              completed={!!sectionState.ORGAN_DONATION}
-              saveState={savingState.ORGAN_DONATION}
-              onToggle={() => handleToggleSection('ORGAN_DONATION')}
-              onSave={() => saveSection('ORGAN_DONATION', { donationStatus, donationDate })}
-            >
-              <div style={{ fontSize: '0.85rem', color: '#92400E', backgroundColor: '#FEF3C7', border: '1px solid #FDE68A', borderRadius: '8px', padding: '0.7rem 0.9rem', marginBottom: '1rem' }}>
-                ⚠️ 이어봄은 등록 여부와 등록일만 보관합니다. 실제 등록은 국립장기조직혈액관리원(사랑의
-                장기기증운동본부 등 등록기관)에서 본인이 직접 해야 하며, 이어봄은 등록을 대행하지 않습니다.
-                🔴 시신 기증(해부용 시신 기증)은 별도 제도입니다 — 이 항목과 섞지 마세요.
-              </div>
-              <div className="form-group">
-                <label className="form-label">장기·조직 기증 등록 여부</label>
-                <select value={donationStatus} onChange={(e) => setDonationStatus(e.target.value)} className="form-select">
-                  <option value="등록함">등록함</option>
-                  <option value="등록하지 않음">등록하지 않음</option>
-                  <option value="모름">모름</option>
-                </select>
-              </div>
-              {donationStatus === '등록함' && (
-                <div className="form-group">
-                  <label className="form-label">등록일 (선택)</label>
-                  <input type="date" value={donationDate} onChange={(e) => setDonationDate(e.target.value)} className="form-input" />
-                </div>
-              )}
-              <SectionTimingControl
-                section="ORGAN_DONATION"
-                family={family}
-                grants={grants}
-                onChange={(designationId, timing, grantId) => handleGrantChange('ORGAN_DONATION', designationId, timing, grantId)}
-              />
-            </AccordionSection>
+            {/* 00-35 §5.2 — 표시 순서는 SECTIONS 배열 순서(§5.3, 기존 DOM 순서 ①②④⑤⑥⑦⑧⑩와 동일). */}
+            {SECTIONS.map((s) => (
+              <AccordionSection
+                key={s.code}
+                meta={s}
+                expanded={expandedSection === s.code}
+                completed={!!sectionState[s.code]}
+                saveState={savingState[s.code]}
+                onToggle={() => handleToggleSection(s.code)}
+                onSave={() => saveSection(s.code, sectionPayloads[s.code]())}
+              >
+                {sectionBodies[s.code]}
+              </AccordionSection>
+            ))}
           </div>
         </div>
 
