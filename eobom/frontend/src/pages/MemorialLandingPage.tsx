@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { Heart, MessageSquarePlus, Flag } from 'lucide-react';
+import { Heart, MessageSquarePlus, Flag, Share2 } from 'lucide-react';
 import { BACKEND_URL } from '../config';
 import { formatKST } from '../utils/obituaryCard';
+import { shareViaWebShareApi, copyObituaryLink } from '../utils/kakaoShare';
 
 // 추모관 랜딩 — docs 05-01 §6.1-1. App.tsx isMemorialLandingRoute 패턴(ObituaryLandingPage.tsx와
 // 같은 꼴)으로 Header/Sidebar/Footer 밖에서 뜬다. 부고장(ObituaryLandingPage.tsx:213)이 이미
@@ -43,6 +44,7 @@ export const MemorialLandingPage: React.FC = () => {
   const [guestError, setGuestError] = useState<string | null>(null);
 
   const [reportState, setReportState] = useState<'idle' | 'confirming' | 'submitting' | 'done' | 'error'>('idle');
+  const [shareFeedback, setShareFeedback] = useState<string | null>(null);
 
   useEffect(() => {
     if (!slug) return;
@@ -145,6 +147,24 @@ export const MemorialLandingPage: React.FC = () => {
     }
   };
 
+  // 링크 공유(2026-09-02 사용자 리포트) — 부고장에서 들어온 조문객이 이 주소를 다시 알 방법이
+  // URL 직접 복사뿐이었다. ObituaryPage.tsx와 같은 07-03 §7 폴백 사다리(WebShare→클립보드)를
+  // 그대로 재사용 — Kakao.Share는 페이지 마운트 시 ensureKakaoShareReady()를 부르지 않아 뺀다.
+  const handleShare = async () => {
+    if (!slug || !data) return;
+    const url = `${window.location.origin}/m/${slug}`;
+    const shared = await shareViaWebShareApi({
+      title: `故 ${data.deceasedName}님 추모관`,
+      description: '추모관에서 헌화하고 방명록을 남겨주세요.',
+      imageUrl: data.portraitUrl || '',
+      url,
+      buttonLabel: '추모관 보기',
+    });
+    if (shared) return;
+    const copied = await copyObituaryLink(url);
+    setShareFeedback(copied ? '링크가 복사되었습니다.' : '복사에 실패했습니다. 주소창의 링크를 직접 복사해 주세요.');
+  };
+
   const pageShellStyle: React.CSSProperties = {
     minHeight: '100vh',
     backgroundColor: '#FBF9F5',
@@ -213,6 +233,21 @@ export const MemorialLandingPage: React.FC = () => {
             </h1>
             {data.epitaph && (
               <p style={{ fontSize: '0.9rem', color: '#CBD5E1', marginTop: '0.8rem', fontStyle: 'italic' }}>{data.epitaph}</p>
+            )}
+          </div>
+
+          {/* 링크 공유 — 상시 노출(07-03 §7과 같은 원칙). 부고장을 거치지 않고 이 화면에
+              들어온 사람도 다른 유족·조문객에게 이 추모관 주소를 넘길 수 있어야 한다. */}
+          <div style={{ padding: '0.9rem 1.75rem', borderBottom: '1px solid #EAE5DC', textAlign: 'center' }}>
+            <button
+              type="button"
+              onClick={handleShare}
+              style={{ background: 'none', border: '1px solid #CBD5E1', borderRadius: '20px', padding: '0.45rem 1rem', fontSize: '0.85rem', color: 'var(--primary-color)', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}
+            >
+              <Share2 size={14} /> 이 추모관 링크 공유하기
+            </button>
+            {shareFeedback && (
+              <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '0.5rem' }}>{shareFeedback}</p>
             )}
           </div>
 
