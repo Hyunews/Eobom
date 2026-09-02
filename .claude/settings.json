@@ -12,6 +12,19 @@
           }
         ]
       }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Read",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.harness/tools/read-guard.js\"",
+            "timeout": 10,
+            "statusMessage": "통독 가드 확인 중..."
+          }
+        ]
+      }
     ]
   }
 }

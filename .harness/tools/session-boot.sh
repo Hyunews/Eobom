@@ -64,6 +64,7 @@ PAYLOAD="$(
 #   파일에서 지우는 게 아니라 **안 싣는 것**이라 SSOT는 그대로다(pending-approvals 방식과 동일).
 #
 # 싣는 것 : 머리말(3주체 태그) · §0-1(조건부 로드 표) · §1(작업 순서·CONFIRM·DB) · §2(소유권)
+#           · §10(읽기 예산 — 2026-09-02 추가. 매 턴 반복되는 판단이라 상시로 있어야 한다)
 # 빼는 것 : §0  — **부팅 절차. 이 주입이 도착한 시점에 이미 끝난 일이다.** 훅이 안 붙는
 #                 서브에이전트·Gemini CLI는 어차피 파일을 직접 열고, 사람 진입점인 루트
 #                 CLAUDE.md에도 부팅 3개가 그대로 적혀 있다(자동 로드라 규칙 손실 없음).
@@ -78,9 +79,10 @@ emit_rule_sections() {  # emit_rule_sections <표시이름> <경로>
     printf '🔴 파일 없음: %s — 사람에게 알릴 것\n' "$path"
     return
   fi
-  body="$(awk 'BEGIN{keep=1} /^## /{keep=($0 ~ /^## (0-1|1|2)\./)} keep' "$path")"
+  body="$(awk 'BEGIN{keep=1} /^## /{keep=($0 ~ /^## (0-1|1|2|10)\./)} keep' "$path")"
   # 되돌림 조건: 필수 절이 안 잡혔거나 결과가 비정상적으로 작다 = 헤딩 구조가 바뀐 것.
   if ! printf '%s' "$body" | grep -q '^## 2\.' || ! printf '%s' "$body" | grep -q '^## 0-1\.' \
+     || ! printf '%s' "$body" | grep -q '^## 10\.' \
      || [ "$(printf '%s' "$body" | wc -c)" -lt 1500 ]; then
     printf '🔴 절 추출 실패 — 전문을 대신 싣는다. AGENTS.md 헤딩 구조를 사람이 확인할 것.\n'
     cat "$path"
@@ -101,7 +103,7 @@ cat <<'EOF'
 EOF
   emit "1. .harness/memory/context.md — 지금 상태 + 다음 할 일" "$ROOT/.harness/memory/context.md"
   emit_head_section "2. .harness/memory/pending-approvals.md — 🔴 착수 금지 목록 (대기 중 섹션만)" "$ROOT/.harness/memory/pending-approvals.md"
-  emit_rule_sections "3. .harness/AGENTS.md — 행동 규칙 SSOT (§0-1·§1·§2만 · 나머지는 파일에)" "$ROOT/.harness/AGENTS.md"
+  emit_rule_sections "3. .harness/AGENTS.md — 행동 규칙 SSOT (§0-1·§1·§2·§10만 · 나머지는 파일에)" "$ROOT/.harness/AGENTS.md"
   printf '\n===== 부팅 끝 =====\n조건부 로드(§0-1)는 해당 작업일 때만 추가로 읽는다.\n'
 )"
 
