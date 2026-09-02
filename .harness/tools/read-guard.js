@@ -5,8 +5,13 @@
  * 200턴 남기고 열면 2.6M 캐시읽기 토큰 = Opus 기준 약 4달러. 통독 한 번의 값이다.
  * 되돌리려면 .claude/settings.json의 PreToolUse 블록을 지운다. */
 const fs = require('fs');
-const LIMIT_BYTES = 40000;   // 이 크기를 넘으면 limit 없는 Read 차단
+const LIMIT_BYTES = 20000;   // 이 크기를 넘으면 limit 없는 Read 차단
 const MAX_LINES   = 400;     // limit 이 값 이하면 통과
+
+/* 🔴 크기와 무관하게 항상 차단 (2026-09-02) — 아카이빙으로 임계 아래로 내려가도
+ * 통독하면 안 되는 로그. 아카이빙 뒤 "이제 작아졌으니 열어도 된다"가 되면
+ * 아카이빙이 오히려 손해가 된다. */
+const ALWAYS = /(?:^|[\\/])(?:walkthrough|claude_tasks|gemini_tasks)\.md$/i;
 
 let raw = '';
 try { raw = fs.readFileSync(0, 'utf8'); } catch (e) { process.exit(0); }
@@ -20,7 +25,7 @@ if (/\.(png|jpe?g|gif|webp|svg|pdf|ipynb)$/i.test(fp)) process.exit(0);
 
 let size = 0;
 try { size = fs.statSync(fp).size; } catch (e) { process.exit(0); }
-if (size <= LIMIT_BYTES) process.exit(0);
+if (size <= LIMIT_BYTES && !ALWAYS.test(fp)) process.exit(0);
 
 const lim = ti.limit;
 if (typeof lim === 'number' && lim > 0 && lim <= MAX_LINES) process.exit(0);
