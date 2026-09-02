@@ -46,6 +46,10 @@ reports/
 assets/스크린샷*.png
 assets/모바일부고장페이지.png
 
+# 하네스 도구가 돌 때마다 만들었다 지우는 임시 산출물 (harness-doctor.sh)
+# 추적하면 doctor를 돌릴 때마다 워킹트리에 D/M이 떠 잡음이 된다.
+.harness/tools/*.tmp
+
 # IDE & OS files
 .vscode/
 .idea/
