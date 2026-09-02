@@ -136,7 +136,7 @@ export const Header: React.FC<HeaderProps> = ({ setActiveTab, onOpenLogin, curre
               <div
                 className={`header-account-buttons${onOpenMobileMenu ? ' header-account-buttons--has-drawer' : ''}`}
               >
-                <button onClick={onLogout} className="header-outline-btn">
+                <button onClick={() => onLogout()} className="header-outline-btn">
                   <LogOut size={14} /> <span className="header-btn-label">로그아웃</span>
                 </button>
               </div>

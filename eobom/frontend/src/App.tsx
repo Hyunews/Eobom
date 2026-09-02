@@ -281,7 +281,7 @@ function AppShell() {
   const handleLogout = (notice?: string) => {
     setCurrentUser(null);
     clearSession('USER');
-    if (notice) {
+    if (typeof notice === 'string' && notice) {
       openLoginModal({ notice });
     } else {
       alert('로그아웃 되었습니다.');
