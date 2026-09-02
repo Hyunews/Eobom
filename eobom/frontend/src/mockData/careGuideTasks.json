@@ -9,6 +9,7 @@
     "legalBasis": "장사법 §6 (감염병 등 예외)",
     "verified": true,
     "note": "\"언제까지\"가 아니라 \"언제 이후에\" 가능한지의 문제입니다. 모르고 화장을 서두르면 절차가 막힐 수 있습니다.",
+    "irreversibleNote": "화장 후에는 부검·재확인이 불가능합니다",
     "checked": false
   },
   {
@@ -22,6 +23,7 @@
     "verified": true,
     "externalUrl": "https://www.gov.kr",
     "note": "고인의 금융·토지·세금 내역을 한 번에 조회합니다. 채무가 있는지 몰라 3개월(상속포기 기한)을 그냥 넘기는 경우가 많습니다 — 아래 상속 승인·포기 판단의 재료이므로 먼저 하세요.",
+    "irreversibleNote": "이걸 해야 3개월 안에 결정할 수 있습니다",
     "checked": false
   },
   {
@@ -33,6 +35,7 @@
     "severity": "CRITICAL",
     "legalBasis": "안심상속 원스톱 서비스 조회 결과 활용",
     "verified": true,
+    "irreversibleNote": "재산과 빚을 모르면 포기 여부를 정할 수 없습니다",
     "checked": false
   },
   {
@@ -46,6 +49,7 @@
     "verified": true,
     "needsExpertHelp": true,
     "note": "기간이 지나면 단순승인으로 간주되어 고인의 채무가 그대로 넘어옵니다. 다른 항목은 과태료·가산세지만 이 항목만 액수에 상한이 없습니다.",
+    "irreversibleNote": "지나면 빚을 그대로 물려받습니다",
     "checked": false
   },
   {
@@ -59,6 +63,7 @@
     "verified": true,
     "needsExpertHelp": true,
     "note": "3개월을 놓쳤어도 끝이 아닐 수 있습니다 — 중대한 과실 없이 채무 초과 사실을 몰랐다면, 그 사실을 안 날로부터 다시 3개월이 열립니다. 기준일 판단은 법률 판단이라 전문가 상담이 필요합니다.",
+    "irreversibleNote": "이미 늦었더라도 길이 있을 수 있습니다",
     "checked": false
   },
   {
@@ -71,6 +76,7 @@
     "legalBasis": "민법 §1032",
     "verified": true,
     "note": "한정승인만 하고 공고를 빠뜨리면 손해배상 책임 소지가 있습니다.",
+    "irreversibleNote": "공고를 빠뜨리면 그 몫을 상속인이 직접 물어야 합니다",
     "checked": false
   },
   {
@@ -84,6 +90,7 @@
     "verified": true,
     "conditional": true,
     "note": "자필증서·녹음·비밀증서 유언은 법원 검인이 필요합니다. 공정증서 유언은 검인이 불필요합니다 — 어떤 방식으로 남겼는지가 절차를 바꿉니다.",
+    "irreversibleNote": "검인을 마쳐야 유언대로 등기·인출을 진행할 수 있습니다",
     "checked": false
   },
   {

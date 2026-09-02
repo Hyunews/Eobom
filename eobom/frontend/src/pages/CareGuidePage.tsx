@@ -12,6 +12,7 @@ interface CareGuideTask {
   severity: 'CRITICAL' | 'NORMAL' | 'INFO';
   legalBasis: string;
   verified: boolean;
+  irreversibleNote?: string;
   needsExpertHelp?: boolean;
   linkTo?: string;
   externalUrl?: string;
@@ -227,6 +228,12 @@ export const CareGuidePage: React.FC<CareGuidePageProps> = ({ setActiveTab }) =>
                                 {t.severity === 'CRITICAL' && (
                                   <span style={{ fontSize: '0.78rem', fontWeight: 700, color: itemMeta.color, backgroundColor: itemMeta.bg, padding: '0.1rem 0.4rem', borderRadius: '4px', whiteSpace: 'nowrap' }}>
                                     ⭐ 되돌릴 수 없음
+                                  </span>
+                                )}
+                                {/* §5.2 — "되돌릴 수 없음"이 항목마다 다른 뜻이라 배지 옆에 한 줄을 붙인다 */}
+                                {t.severity === 'CRITICAL' && t.irreversibleNote && (
+                                  <span style={{ fontSize: '0.8rem', color: itemMeta.color }}>
+                                    {t.irreversibleNote}
                                   </span>
                                 )}
                               </span>
