@@ -329,24 +329,32 @@ fi
 echo
 
 # ── 5. DOCS_INDEX → reports/ 링크 무결성 ─────────────────────────
-echo "5. docs/00_DOCS_INDEX.md 가 가리키는 reports/ 파일"
+# 🔴 2026-09-02 — reports/ 경로 열은 `00_DOCS_INDEX_상세.md`로 옮겼다(크레딧 분할).
+#   그래서 **두 파일을 함께** 훑는다. 한쪽에만 걸면 옮긴 날 조용히 0건이 되고,
+#   0건은 성공이 아니라 실패다(§9). 아래 IDX_CHECKED 하한이 그것을 잡는다.
+echo "5. 인덱스(00_DOCS_INDEX + _상세)가 가리키는 reports/ 파일"
 INDEX="$ROOT/docs/00_DOCS_INDEX.md"
-if [ -f "$INDEX" ]; then
+INDEX_DETAIL="$ROOT/docs/00_DOCS_INDEX_상세.md"
+if [ -f "$INDEX" ] && [ -f "$INDEX_DETAIL" ]; then
   MISSING=0
   IDX_CHECKED=0
   while IFS= read -r rp; do
     [ -z "$rp" ] && continue
     IDX_CHECKED=$((IDX_CHECKED + 1))
     [ -e "$ROOT/$rp" ] || { fail "인덱스가 가리키는 $rp 없음"; MISSING=$((MISSING + 1)); }
-  done < <(grep -oE '`reports/[^`]+`' "$INDEX" 2>/dev/null | tr -d '`' | sort -u)
+  done < <(grep -hoE '`reports/[^`]+`' "$INDEX" "$INDEX_DETAIL" 2>/dev/null | tr -d '`' | sort -u)
   CHECKS=$((CHECKS + IDX_CHECKED))
-  if [ "$IDX_CHECKED" -eq 0 ]; then
-    note "인덱스에 reports/ 참조 없음"
+  if [ "$IDX_CHECKED" -lt 40 ]; then
+    # 분할 시점 실측 57건. 40 미만이면 참조가 사라진 것이지 "깨끗해진" 것이 아니다.
+    fail "reports/ 참조가 ${IDX_CHECKED}건뿐 — 표 구조가 깨졌다(정상은 50건 이상)"
   elif [ "$MISSING" -eq 0 ]; then
     ok "$IDX_CHECKED개 보고서 링크 전부 실존"
   fi
-else
+elif [ ! -f "$INDEX" ]; then
   fail "docs/00_DOCS_INDEX.md 없음"
+  CHECKS=$((CHECKS + 1))
+else
+  fail "docs/00_DOCS_INDEX_상세.md 없음 — 색인 분할본이 사라졌다(2026-09-02 분할)"
   CHECKS=$((CHECKS + 1))
 fi
 echo
@@ -481,6 +489,42 @@ echo
 # 되풀이할 뿐 독립 확인을 못 하는 구조였다(→ GEMINI.md "검증 범위" 개정).
 echo "8. 검증 게이트 판정 분포"
 WT="$ROOT/docs/작업일지_및_기록/에이전트_기록/walkthrough.md"
+# 🔴 2026-09-02 — 판정이 끝난 옛 항목을 `walkthrough_아카이브_YYMM.md`로 옮겼다(크레딧 분할).
+#   **누적 통계는 아카이브까지 합쳐 센다.** 현행본만 세면 옮긴 날 분모가 133→28로 떨어져
+#   BASELINE(40) 아래로 내려가고, 이 검사가 "표본 부족" note로 **조용히 죽는다**(§9).
+#   🔵 대신 `대기` 수는 현행본만 센다 — 판정 대기는 아카이브로 가지 않는 것이 불변식이라,
+#   아카이브에서 대기가 잡히면 그건 규칙 위반이므로 아래에서 따로 빨간불을 켠다.
+WT_ALL=("$WT")
+while IFS= read -r a; do [ -n "$a" ] && WT_ALL+=("$a"); done < <(
+  ls "$ROOT/docs/작업일지_및_기록/에이전트_기록/"walkthrough_아카이브_*.md 2>/dev/null || true)
+# 🔴 머리말은 세지 않는다 — 첫 `## 20…` 앞줄(안내문·주의문)은 항목 본문이 아니다.
+#   2026-09-02에 아카이브 머리말의 *"…항목은 여기로 오지 않는다"* 한 줄이 그대로 ARC_WAIT=1로
+#   잡혀 빨간불이 켜졌다. **검사가 자기 사용설명서를 세면 문구를 고칠 때마다 통계가 흔들린다.**
+#   `FNR==1{b=0}` 로 파일마다 초기화 — 없으면 두 번째 파일의 머리말이 딸려 들어온다.
+wt_body() { awk 'FNR==1{b=0} /^## 20/{b=1} b' "$@"; }
+# 🔴 2026-09-02 — 미판정 수를 **줄이 아니라 항목 단위**로 센다. 줄로 세면 두 방향으로 틀렸다:
+#   ① 본문 서술에 든 "판정 대기"라는 말이 잡힌다(실제로 2건).
+#   ② **이미 판정이 난 `<!-- Gemini 판정: ✅통과 (…) -->` 4건이 '대기'로 잡혔다** — 옛 패턴이
+#      `<!-- Gemini 판정` 접두어만 봐서, 빈 양식과 채워진 판정을 구별하지 못했다.
+#   실제 표기는 네 형태로 갈려 있다: `판정 대기 -->` / `판정 1줄: -->` / `판정 1줄: ✅통과 …`(빈 양식)
+#   / `판정: ✅통과 (…)`(채워짐) + 별도로 `- **판정**:` 줄.
+#   🔴 그리고 **둘로는 못 나눈다** — 2026-08-07 5개 필드 양식 이전 항목 10건은 판정 필드가
+#   아예 없다. 게이트가 생기기 전에 쓰인 것들이라 앞으로도 판정이 안 붙는다.
+#   이걸 '대기'에 합치면 아카이브 불변식이 **영구 빨간불**이 되고(고칠 수 없는 빨간불은 무시
+#   습관을 만든다 — 아래 BASELINE 주석과 같은 이유), '판정'에 합치면 게이트를 안 거친 항목이
+#   통과로 둔갑한다. **그래서 셋으로 센다: 판정 / 대기 / 무표기.**
+#   ⚠️ 재판정은 `- **판정(재)**:` 로 쓰인 전례가 있어 `^- \*\*판정` 까지만 본다(`**` 강제 금지).
+#   🔴 **전부 줄 첫머리(`^`)에 앵커한다.** 안 그러면 *이 표기법을 설명하는 문장*이 판정으로
+#   세어진다 — 09-02에 walkthrough 항목이 자기 판정 규칙을 적었다가 실제로 그랬다.
+#   실제 표기는 항상 줄 맨 앞에서 시작하고, 서술 속 언급은 백틱 안에 들어가 줄 중간에 온다.
+wt_counts() {   # 출력: "판정수 대기수 무표기수" — 항목 단위, 한 항목은 한 갈래에만 든다
+  awk 'function close_entry(){ if(open){ if(st=="J") j++; else if(st=="W") w++; else u++; open=0 } }
+       FNR==1 { close_entry() }
+       /^## 20/ { close_entry(); open=1; st=""; next }
+       open && st=="" && (/^- \*\*판정/ || /^<!-- Gemini 판정:/) { st="J" }
+       open && st=="" && (/^<!-- Gemini 판정 대기/ || /^<!-- Gemini 판정 1줄/) { st="W" }
+       END { close_entry(); print j+0, w+0, u+0 }' "$@"
+}
 if [ -f "$WT" ]; then
   # ⚠️ **이모지로 세지 않는다.** 이 환경(Git Bash)의 grep은 `🔄`(U+1F504, 4바이트)를 매칭하지
   # 못한다 — `✅`(U+2705, 3바이트)는 되는데 4바이트 문자에서 조용히 0을 낸다. 2026-08-14에
@@ -489,7 +533,7 @@ if [ -f "$WT" ]; then
   #
   # 표본 크기는 "항목 수 − 판정 대기 수"로 잡는다. 판정 표기가 `<!-- Gemini 판정 … -->`와
   # `- **판정**: …` 두 형식으로 섞여 있어 판정 줄을 직접 세면 항목당 여러 줄이 잡히기 때문.
-  TOTAL_ITEMS=$(grep -c '^## 20' "$WT" 2>/dev/null || true)
+  TOTAL_ITEMS=$(grep -hc '^## 20' "${WT_ALL[@]}" 2>/dev/null | awk '{s+=$1} END{print s+0}')
   # 🔴 2026-08-24 수정 — `'판정 대기'`만 세고 있었다. 그런데 `record.md` §1의 고정 양식이 내는
   # 문자열은 `<!-- Gemini 판정 1줄: ... -->`이라 **"판정 대기"를 한 번도 만들지 않는다.**
   # 그래서 미판정 항목이 전부 분모(N_JUDGED)에 판정 완료로 섞여 들어갔다(실측 당시 미판정 7건이
@@ -497,15 +541,32 @@ if [ -f "$WT" ]; then
   # 그쪽은 "판정을 남겨도 숫자가 안 움직임", 이쪽은 "판정을 안 남겼는데 숫자가 올라감".
   # 분모가 부풀면 아래 "개정 이후 전부 통과 = 게이트 작동 증거 없음" 검사가 덜 발화한다.
   # 빈 칸은 Gemini가 판정 시 `- **판정**: …` 줄로 교체하므로 이중 계수되지 않는다.
-  N_WAITING=$(grep -cE '판정 대기|<!-- Gemini 판정' "$WT" 2>/dev/null || true)
-  N_JUDGED=$((TOTAL_ITEMS - N_WAITING))
-  [ "$N_JUDGED" -lt 0 ] && N_JUDGED=0
+  read -r N_JUDGED N_WAITING N_LEGACY <<EOF
+$(wt_counts "${WT_ALL[@]}" 2>/dev/null)
+EOF
+  # 🔵 검산 — 셋의 합이 항목 수와 다르면 파서가 항목 경계를 놓친 것이다(조용히 틀리지 않게).
+  if [ "$((N_JUDGED + N_WAITING + N_LEGACY))" -ne "$TOTAL_ITEMS" ]; then
+    CHECKS=$((CHECKS + 1))
+    fail "판정 집계가 항목 수와 안 맞는다 — ${N_JUDGED}+${N_WAITING}+${N_LEGACY} ≠ ${TOTAL_ITEMS}(파서 점검)"
+  fi
   # 반려·스펙갱신은 판정 줄에 한해 단어로 센다(본문 서술의 같은 단어를 세지 않기 위해).
   # `통과`가 든 줄은 제외한다 — 판정은 셋 중 하나이므로 통과 줄에 나온 "반려"는 판정이 아니라
   # 서술이다(실제 오검출: *"클레임 반려 status=REJECTED 유지"* 를 통과 판정문이 포함하고 있었다).
   # 이 제외 때문에 "빌드는 통과했으나 반려" 같은 줄을 놓칠 수 있으나, 그 방향의 오차는
   # 플래그를 **적게** 세어 검사가 더 쉽게 발화하므로 안전한 쪽이다.
-  N_FLAGS=$(grep '판정' "$WT" 2>/dev/null | grep -v '통과' | grep -cE '스펙갱신|반려' || true)
+  N_FLAGS=$(wt_body "${WT_ALL[@]}" 2>/dev/null | grep '판정' | grep -v '통과' | grep -cE '스펙갱신|반려' || true)
+  # 불변식 검사 — 판정 대기가 아카이브에 있으면 게이트가 두 곳으로 갈라진 것이다.
+  if [ "${#WT_ALL[@]}" -gt 1 ]; then
+    CHECKS=$((CHECKS + 1))
+    read -r _AJ ARC_WAIT _AU <<EOF
+$(wt_counts "${WT_ALL[@]:1}" 2>/dev/null)
+EOF
+    if [ "$ARC_WAIT" -gt 0 ]; then
+      fail "아카이브에 판정 대기 ${ARC_WAIT}건 — 게이트가 두 곳으로 갈라졌다(현행본으로 되돌릴 것)"
+    else
+      ok "아카이브 $(( ${#WT_ALL[@]} - 1 ))개 · 판정 대기 유출 0건"
+    fi
+  fi
   # 기준선: 2026-08-14 규칙 개정 시점의 판정 누적. 그 이전 판정은 구 규칙(코드 열람 금지)
   # 아래에서 내려진 것이라 **구조상 실패가 불가능했다** — 고칠 수 없는 값을 영구 빨간불로
   # 띄우면 "빨간불 무시" 습관이 생겨 doctor 전체의 신뢰도가 깎인다. 개정 이후분만 평가한다.
@@ -517,7 +578,7 @@ if [ -f "$WT" ]; then
   if [ "$N_JUDGED" -eq 0 ]; then
     note "판정 이력 없음 — 스킵"
   else
-    gray "     판정 ${N_JUDGED}건 / 대기 ${N_WAITING}건 · 반려·스펙갱신 ${N_FLAGS}건 · 개정 이후 ${NEW_JUDGED}건"
+    gray "     판정 ${N_JUDGED}건 / 대기 ${N_WAITING}건 / 무표기 ${N_LEGACY}건(08-07 양식 이전) · 반려·스펙갱신 ${N_FLAGS}건 · 개정 이후 ${NEW_JUDGED}건"
     # 10건은 "우연히 전부 완벽"이 설명 가능한 상한선으로 잡은 값이다.
     if [ "$NEW_JUDGED" -ge 10 ] && [ "$NEW_FLAGS" -eq 0 ]; then
       fail "개정 이후 판정 ${NEW_JUDGED}건이 전부 ✅통과 — 게이트 작동 증거 없음(→ GEMINI.md '검증 범위')"

@@ -112,7 +112,8 @@ PLAN → CONFIRM → CODE/WRITE → SAVE → UPDATE
 
 - 🔴 **큰 파일을 통째로 열지 않는다.** `grep -n`으로 위치 → `sed -n 'a,bp'`로 그 절만. 40KB 초과
   통독은 `tools/read-guard.js`(PreToolUse 훅)가 **거부한다** — 규칙으로는 안 지켜져서 코드로 넣었다.
-  대상: `walkthrough.md`(690KB) · `claude_tasks.md` · `00_DOCS_INDEX.md`(116KB) · 60KB↑ 기획서들.
+  대상: `walkthrough_아카이브_*.md`(556KB) · `claude_tasks.md`(160KB) · `walkthrough.md`(131KB)
+  · `00_DOCS_INDEX_상세.md`(94KB) · 60KB↑ 기획서들. **색인은 `00_DOCS_INDEX.md`(36KB)가 정본.**
 - 🔴 **도구 출력도 컨텍스트다.** 훅이 못 막는 경로 — `cat` 전문 · `git diff` 전량 · 광역 `grep`
   (`-A/-B` 남발) · 긴 빌드 로그. 경로·건수를 좁히거나 `head`로 끊는다. **같은 파일을 두 번 읽지 않는다.**
 - 🔴 **모델 단가 차이가 5배다**(캐시읽기 Opus $1.50 vs Sonnet $0.30/MTok). 실측에서 분량이 거의
