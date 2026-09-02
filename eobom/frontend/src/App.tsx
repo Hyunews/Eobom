@@ -272,16 +272,24 @@ function AppShell() {
     setSession('USER', { displayName, token });
   };
 
-  // notice가 있으면(apiFetch의 401 세션만료 콜백, 00-34 §5.4·§6) 그 문구를, 없으면(직접
-  // 로그아웃 버튼) 기존 문구를 띄운다.
+  // notice가 있으면(apiFetch의 401 세션만료 콜백, 00-34 §5.4·§6) 로그인 모달을 안내문과 함께
+  // 열고, 없으면(직접 로그아웃 버튼) 기존처럼 alert. alert()는 탭이 백그라운드일 때 브라우저가
+  // 표시를 미뤄 JS 스레드를 그대로 붙잡아 두는데, 그 사이엔 setCurrentUser(null)이 이미 호출돼
+  // 있어도 리렌더가 막혀 화면은 "로그인된 상태"로 멈춰 있고 이후 API 호출도 전부 401만 반복하는
+  // 것처럼 보인다("사이트 오래 켜두면 로그인은 되어 있는데 연결이 안 됨" 증상). 세션 만료는
+  // 알림 모달(비차단) 쪽으로 옮겨 리렌더가 alert 해제를 기다리지 않게 한다.
   const handleLogout = (notice?: string) => {
     setCurrentUser(null);
     clearSession('USER');
-    alert(notice || '로그아웃 되었습니다.');
+    if (notice) {
+      openLoginModal({ notice });
+    } else {
+      alert('로그아웃 되었습니다.');
+    }
   };
 
   // 00-34 §6 — apiFetch가 일반 사용자 요청에서 401을 받으면 이 콜백을 호출해 세션을 정리하고
-  // 만료를 알린다. 아직 apiFetch를 쓰는 호출부가 없어(2단계에서 이관) 지금은 등록만 해둔 상태.
+  // 로그인 모달로 재로그인을 안내한다.
   useEffect(() => {
     registerSessionExpiredHandler('USER', (message) => handleLogout(message));
     // eslint-disable-next-line react-hooks/exhaustive-deps
