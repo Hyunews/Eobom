@@ -14,6 +14,70 @@
 > 막습니다 — 줄어든 크기를 근거로 여는 순간 아카이빙이 손해로 뒤집힙니다.
 
 ---
+## 2026-09-02 (108) | [Sonnet] `/m/:slug` 실배선 — 오픈 블로커 해소(05-01 §6.1-1)
+
+- **근거 스펙**: `docs/05_디지털_추모관/05-01_온라인_추모관_명세서.md` §6.1-1(컴포넌트 분리·범위) ·
+  §4.1(공개 API·화이트리스트, `tributeCount` 추가) · §6.1(경로).
+- **건드린 파일**: `eobom/backend/src/controllers/memorialController.ts` ·
+  `eobom/frontend/src/pages/MemorialLandingPage.tsx`(신설) · `eobom/frontend/src/App.tsx`.
+- **결과**:
+  - `memorialController.ts` `getMemorialBySlug`: 응답에 `tributeCount`
+    (`prisma.memorialTribute.count({ where: { memorialId: memorial.id } })`, `createTribute`와
+    동일 쿼리) 추가. 화이트리스트 4필드(`deceasedName`·`deceasedDeathDate`·`portraitUrl`·
+    `epitaph`)는 그대로 — 헌화자 목록·식별자는 넣지 않음. 스키마 변경·마이그레이션 없음(조회만).
+  - `MemorialLandingPage.tsx` 신설 — `ObituaryLandingPage.tsx`와 동일 구조(껍데기 없는 랜딩 +
+    `useParams`로 `slug` + 404 화면). `GET /api/memorials/:slug`·`GET .../guestbook`·
+    `POST .../tributes`·`POST .../guestbook`·`POST .../report` 5개 공개 API를 raw `fetch`로 붙임
+    (`ObituaryLandingPage.tsx`와 동일하게 `apiFetch` 미사용). 헌화 버튼+누적 수, 방명록
+    목록+작성, 신고(2단계 인라인 확인 — `window.confirm`·`alert` 미사용) 구현. 사진 앨범은
+    범위에서 제외(공개 조회 API 없음 + 로컬디스크 재배포 소실, `systems.md` §5).
+  - `App.tsx`: `/m/:slug` 라우트(310행)를 `MemorialPage` → `MemorialLandingPage`로 교체.
+    `/memorial`(409행, 앱 탭 · 예시 데이터 배너)은 `MemorialPage` 그대로 유지.
+  - **검증**: `npx tsc --noEmit`(backend) 에러 0 · `npm run build`(frontend) 통과.
+    브라우저 실동작(존재하지 않는 slug → 404, 실제 slug → 헌화/방명록 동작)은 dev 서버를 직접
+    띄우지 않아 미확인 — 사용자 확인 필요.
+- **편차**: 없음.
+- **다음 에이전트가 알아야 할 것**:
+  - 🔴 **실기동 미검증** — dev 서버(프론트+백엔드) 띄운 뒤 `/m/:slug`에서 없는 slug 404,
+    실제 slug 헌화 카운트 증가, 방명록 작성 후 목록 반영을 브라우저로 확인할 것.
+  - 헌화 중복(`P2002` → 409)·동결 추모관(`403`)·신고 확정(`report` → 즉시 `PRIVATE`) 3개 예외
+    경로는 코드로는 처리했으나 실제 응답으로 검증되지 않았다.
+  - 사진 앨범은 이번 범위에서 의도적으로 뺀 것 — `05-01` §6.1-1 표 그대로이며 누락이 아니다.
+
+---
+## 2026-09-02 (107) | [Sonnet] 🔴 소급 기록 — 세션 만료(401) alert→로그인모달 전환 + 후속 버그수정
+
+- **근거 스펙**: 스펙 없음 — 사용자 버그 리포트 2건에 대한 즉흥 구현(`00-34` §6 세션만료 콜백
+  인프라는 기존 스펙). 커밋 `1174ee9`·`dfb157d`가 게이트 기록 없이 커밋돼 있어 `git show`로
+  확인 후 소급 기록.
+- **건드린 파일**: `eobom/frontend/src/App.tsx` · `eobom/frontend/src/components/Header.tsx`.
+- **결과**:
+  - `1174ee9` — "사이트 오래 켜두면 로그인은 되어 있는데 백엔드 연결이 안 된다"는 리포트.
+    원인: `handleLogout`의 `alert(notice || '로그아웃 되었습니다.')`가 탭이 백그라운드일 때
+    브라우저가 표시를 미루며 JS 스레드를 그대로 붙잡아, `setCurrentUser(null)`은 이미 호출돼
+    있어도 리렌더가 막혀 화면이 "로그인 상태"로 멈춰 보이는 것. `notice`가 있을 때(401 세션만료
+    콜백)는 `alert` 대신 기존 회원가입 유도용 `openLoginModal({ notice })` 패턴(비차단)으로
+    전환, 수동 로그아웃 버튼(`notice` 없음)은 `alert` 유지.
+  - `dfb157d` — `1174ee9` 배포 직후 "엔딩노트 페이지에서 로그아웃 시 흰 화면 + React 에러
+    #31(객체를 자식으로 렌더할 수 없음)" 리포트. 원인: `Header.tsx:139`
+    `<button onClick={onLogout}>`이 클릭 `SyntheticEvent`를 그대로 `notice` 인자로 넘기고
+    있었는데, `1174ee9` 이후 `notice`가 진짜로 모달 텍스트 자리에 렌더되면서 이벤트 객체를
+    렌더하려다 크래시. `onClick={() => onLogout()}`로 인자 전달 차단 +
+    `App.tsx` `handleLogout`에 `typeof notice === 'string' && notice` 방어 추가(비슷한 실수
+    재발해도 `alert` 경로로 안전하게 빠짐). 같은 패턴(`onClick={onLogout}` 직접 전달)이 다른
+    곳에 있는지 전수 검색 — `BizDashboard.tsx`는 이미 래핑돼 있어 문제없음 확인.
+  - **검증**: `npx tsc --noEmit`(frontend) 에러 0 · `npm run build`(frontend) 통과. 브라우저
+    실동작(로그아웃 버튼 클릭, 세션만료 시 모달 노출)은 미확인 — 사용자가 직접 확인.
+- **편차**: 없음(문서 없는 즉흥 버그수정이라 편차 판단 대상 아님).
+- **다음 에이전트가 알아야 할 것**:
+  - `onClick={handler}` 형태로 `notice?: string` 같은 선택적 문자열 인자를 받는 콜백을 그대로
+    넘기면, 브라우저가 클릭 이벤트 객체를 그 인자 자리에 채워 넣는다 — 항상 `() => handler()`로
+    감쌀 것. 이번 버그의 근본 원인이었다.
+  - `handleLogout`는 이제 `typeof notice === 'string'`만 모달로 보낸다 — 향후 이 함수에 새
+    호출부를 추가할 때 문자열이 아닌 값을 넘기면 조용히 일반 `alert` 경로로 빠진다(크래시는
+    안 나지만 의도한 안내문이 안 뜬다는 뜻이므로 호출부 타입을 지킬 것).
+
+---
 ## 2026-09-02 (106) | [Sonnet] 07-04 §5.2 완결 — domainSlides D-Day 제거 + CareGuidePage 렌더 + careGuideTasks 3줄
 
 - **근거 스펙**: `docs/07_상중_행정_케어/07-04_상중_행정_가이드_재설계_검토서.md` §4.1-1(화면 안
