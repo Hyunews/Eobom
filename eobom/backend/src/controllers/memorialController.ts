@@ -17,7 +17,7 @@ const isValidVisibility = (v: unknown): v is (typeof VALID_VISIBILITY)[number] =
   typeof v === 'string' && (VALID_VISIBILITY as readonly string[]).includes(v);
 
 // 공개 응답 화이트리스트(§6.1) — deceasedBirthDate·개설자 정보·createdByUserId는 절대 포함하지 않는다.
-// getMemorialBySlug에서 구조분해로 이 4개 필드만 뽑아 응답한다.
+// getMemorialBySlug에서 구조분해로 4필드 + tributeCount(집계 숫자, §4.1)만 뽑아 응답한다.
 
 // slug는 id(UUID)와 별개의 추측 불가 토큰이어야 한다(§4.2, §9.1-2 — "순번·UUID 노출 모두 부적절").
 // id를 그대로 slug로 쓰지 않는 이유: id가 다른 경로(로그·내부 API 응답 등)로 노출되면 그게 곧
@@ -46,7 +46,9 @@ export const getMemorialBySlug = async (req: Request, res: Response) => {
     }
 
     const { deceasedName, deceasedDeathDate, portraitUrl, epitaph } = memorial; // 화이트리스트 4필드만
-    return res.json({ status: 'success', data: { deceasedName, deceasedDeathDate, portraitUrl, epitaph } });
+    // 05-01 §4.1(2026-09-02) — 집계 숫자 1개만 추가. 헌화한 사람의 목록·식별자는 넣지 않는다.
+    const tributeCount = await prisma.memorialTribute.count({ where: { memorialId: memorial.id } });
+    return res.json({ status: 'success', data: { deceasedName, deceasedDeathDate, portraitUrl, epitaph, tributeCount } });
   } catch (error) {
     console.error('추모관 조회 실패:', error);
     return res.status(500).json({ status: 'error', message: '추모관 조회 중 오류가 발생했습니다.' });
