@@ -14,6 +14,18 @@
 > 막습니다 — 줄어든 크기를 근거로 여는 순간 아카이빙이 손해로 뒤집힙니다.
 
 ---
+## 2026-09-03 (116) | [Sonnet] 배포서버 `POST /api/family-designations` 500 진단 — `render.yaml`에 `HASH_INDEX_KEY` 누락
+
+- **근거 스펙**: `docs/00_핵심플랫폼/00-33_암호화_키_관리_및_교체_전략_명세서.md` §4.3-1·§7.2 · `docs/트러블슈팅/TS-001_해시_키_파생_결합.md`(2026-09-01 닫힘, 조치 1 "hashField가 전용 env HASH_INDEX_KEY를 읽도록 변경").
+- **건드린 파일**: `render.yaml`
+- **결과**: 사용자가 배포서버(`https://eobom-backend.onrender.com`)에서 가족추가 시 500을 보고. `familyDesignationController.ts`의 `createFamilyDesignation`이 `hashField(digits, PHONE_HASH_DOMAIN)`을 호출하고, `hashField`는 `requireEnv('HASH_INDEX_KEY')`로 이 env가 없으면 즉시 throw → 컨트롤러 catch에서 500 "추가 중 오류가 발생했습니다."로 응답(`crypto.ts` 84~88행). `git log`로 확인한 결과 `render.yaml`은 2026-08-27(엔딩노트 키 분리 커밋)에 마지막으로 수정됐는데, `HASH_INDEX_KEY`는 2026-09-01(TS-001 조치, wt95)에 신설된 env라 `render.yaml`의 `envVars` 목록에 반영되지 못했다(`.env.example`에는 있음). 서버 부팅 시 `checkEncryptionKeyStrength`는 **존재하는데 짧은** 키만 걸러내고(길이>0 조건) **아예 없는** 키는 걸러내지 못해 부팅은 정상, 요청 시점에만 500이 나는 구조와 정확히 일치.
+  - `render.yaml`에 `HASH_INDEX_KEY` 항목 추가(다른 시크릿과 같은 `sync: false` 형식) — 다음 Blueprint 재생성 시 이 키가 누락되는 재발을 막음.
+  - 🔴 **이 커밋만으로는 실제 배포서버가 고쳐지지 않는다** — Render는 기존에 만들어진 서비스에 `render.yaml` 변경을 자동 반영하지 않는다. 사람이 Render 대시보드에서 `eobom-backend` 서비스에 `HASH_INDEX_KEY`를 직접 추가해야 한다.
+- **편차**: 없음 — 코드(`crypto.ts`·`familyDesignationController.ts`)는 건드리지 않았다. 원인이 배포 설정 누락이라 판단했기 때문.
+- **다음 에이전트가 알아야 할 것**: Render 대시보드에 `HASH_INDEX_KEY` 값 등록 + 서비스 재시작은 **사람이 직접** 해야 완결된다(외부 대시보드 접근 필요, 에이전트가 할 수 없음). 등록 전까지 배포서버의 가족추가는 계속 500이다. 값은 로컬 `.env`와 달라야 하고(운영 유출 시 로컬 재사용 방지, `security.md` §1), `SETTLEMENT_ENCRYPTION_KEY`·`ENDING_NOTE_ENCRYPTION_KEY`와도 달라야 한다(TS-001 재발 방지 규칙, 00-33 §3.3).
+
+<!-- Gemini 판정 1줄: 대기 -->
+
 ## 2026-09-03 (115) | [Sonnet] `00-35` §10.3 2.5단계 — `SectionTimingControl` 호출부 승격
 
 - **근거 스펙**: `docs/00_핵심플랫폼/00-35_엔딩노트_페이지_구조_정리_명세서.md` §10.3 (2026-09-03 사람 승인, 착수 지시 그대로).

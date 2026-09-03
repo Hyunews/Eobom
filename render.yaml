@@ -45,6 +45,11 @@ services:
       # 🔴 운영 키를 잃으면 유언·편지를 영영 복호화할 수 없다.
       - key: ENDING_NOTE_ENCRYPTION_KEY
         sync: false
+      # 가족지정 연락처 중복방지용 결정적 해시 전용 키(00-33 §7.2, TS-001). SETTLEMENT_ENCRYPTION_KEY와
+      # 공유하면 정산 키 교체만으로 중복방지가 조용히 깨진다(TS-001 원인) — 반드시 별도 값.
+      # 🔴 2026-09-01 신설분이라 이 파일에 누락돼 있었다 — POST /api/family-designations 500의 원인.
+      - key: HASH_INDEX_KEY
+        sync: false
       - key: KAKAO_CLIENT_ID
         sync: false
       - key: KAKAO_CLIENT_SECRET
