@@ -94,6 +94,50 @@ export const hashField = (plaintext: string, domain: string): string => {
 export const encryptNoteField = encryptWith('ENDING_NOTE_ENCRYPTION_KEY');
 export const decryptNoteField = decryptWith('ENDING_NOTE_ENCRYPTION_KEY');
 
+// Buffer(음성 등 바이너리) 전용 — docs 06-05 §8 D-1 #11. encryptNoteField와 같은 키
+// (ENDING_NOTE_ENCRYPTION_KEY)·같은 버전 체계(v2, iv, authTag, data 순서)를 쓰되, 텍스트
+// 필드처럼 콜론+base64로 이어붙이면 R2에 올라갈 오브젝트가 base64 팽창(약 33%)만큼 커진다.
+// 그래서 같은 네 요소를 콜론 문자열이 아니라 바이트를 그대로 이어붙인 바이너리로 담는다:
+// [2바이트 'v2'][12바이트 iv][16바이트 authTag][나머지 = 암호문]. R2에는 이 결과만 올라간다
+// (00-11 §5.4-4 — R2에 CMK가 없어 선암호화가 필수).
+const AUTH_TAG_LENGTH = 16;
+const VERSION_MARKER = Buffer.from(CURRENT_VERSION, 'utf8'); // 'v2' = 2바이트
+
+const encryptBufferWith =
+  (keyEnvName: string) =>
+  (plaintext: Buffer): Buffer => {
+    const iv = crypto.randomBytes(IV_LENGTH);
+    const cipher = crypto.createCipheriv(ALGORITHM, resolveKey(keyEnvName, 'v2'), iv);
+    const ciphertext = Buffer.concat([cipher.update(plaintext), cipher.final()]);
+    const authTag = cipher.getAuthTag();
+    return Buffer.concat([VERSION_MARKER, iv, authTag, ciphertext]);
+  };
+
+const decryptBufferWith =
+  (keyEnvName: string) =>
+  (stored: Buffer): Buffer => {
+    const version = stored.subarray(0, VERSION_MARKER.length).toString('utf8');
+    if (version !== CURRENT_VERSION) {
+      throw new Error('암호화된 파일 형식이 올바르지 않습니다.');
+    }
+    const ivStart = VERSION_MARKER.length;
+    const tagStart = ivStart + IV_LENGTH;
+    const dataStart = tagStart + AUTH_TAG_LENGTH;
+    const iv = stored.subarray(ivStart, tagStart);
+    const authTag = stored.subarray(tagStart, dataStart);
+    const data = stored.subarray(dataStart);
+
+    const decipher = crypto.createDecipheriv(ALGORITHM, resolveKey(keyEnvName, 'v2'), iv);
+    decipher.setAuthTag(authTag);
+    return Buffer.concat([decipher.update(data), decipher.final()]);
+  };
+
+// 06(유족 메시지) 음성 전용 — encryptNoteField와 같은 ENDING_NOTE_ENCRYPTION_KEY를 쓴다
+// (텍스트 편지와 음성이 같은 도메인 키를 공유해도 문제가 없다 — 애초에 같은 EndingNote 아래
+// 있는 데이터다). R2에 올리기 전 여기서 먼저 잠근다.
+export const encryptNoteBuffer = encryptBufferWith('ENDING_NOTE_ENCRYPTION_KEY');
+export const decryptNoteBuffer = decryptBufferWith('ENDING_NOTE_ENCRYPTION_KEY');
+
 // 00-33 §7.2 — 부팅 시 약한 키 점검. sha256은 임의 길이 문자열을 32바이트로 맞출 뿐 엔트로피를
 // 만들지 못하므로("eobom1234"도 통과), 원본 문자열 길이로 최소한의 방어선을 둔다.
 // 운영(production)에서는 기동을 막고, 로컬은 경고만 남긴다 — 로컬 개발 편의를 해치지 않기 위함.

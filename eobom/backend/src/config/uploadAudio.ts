@@ -6,6 +6,8 @@ import multer from 'multer';
 
 // 브라우저·OS마다 m4a의 mimetype 판정이 갈린다(흔히 audio/mp4로 온다) — 확장자를 함께 확인해
 // 정상 파일을 mimetype 오탐으로 막지 않는다(§6.4-9-3 — m4a·mp3·wav 3종 모두 받아야 한다).
+// 🔴 06-05 §5.5-4 — webm 추가. Chrome MediaRecorder 기본 출력이 audio/webm;codecs=opus라
+// 없으면 직접 녹음(Ⓑ) 저장·폴백 업로드가 전부 반려된다.
 const ALLOWED_MIME_TYPES = new Set([
   'audio/mpeg',
   'audio/mp3',
@@ -16,8 +18,9 @@ const ALLOWED_MIME_TYPES = new Set([
   'audio/x-m4a',
   'audio/m4a',
   'audio/aac',
+  'audio/webm',
 ]);
-const ALLOWED_EXTENSIONS = new Set(['.mp3', '.wav', '.m4a']);
+const ALLOWED_EXTENSIONS = new Set(['.mp3', '.wav', '.m4a', '.webm']);
 
 // §6.4-11-6-2 — Free 플랜 월 15분. 넉넉히 잡되(20MB ≈ 128kbps 기준 20분 안팎) 한 번의 업로드가
 // 월 한도를 통째로 태우지 않게 보수적으로 둔다. 화면에 선택 전 표시(§6.4-9-3).

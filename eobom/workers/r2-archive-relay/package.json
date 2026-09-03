@@ -1,0 +1,13 @@
+{
+  "name": "eobom-r2-archive-relay",
+  "private": true,
+  "scripts": {
+    "deploy": "wrangler deploy",
+    "dev": "wrangler dev"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20250101.0",
+    "typescript": "^5.3.3",
+    "wrangler": "^3.90.0"
+  }
+}

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Heart, Plus, Loader2, Pencil, X } from 'lucide-react';
 import { BACKEND_URL } from '../config';
-import { VoiceToTextInput } from './VoiceToTextInput';
+import { VoiceToTextInput, SavedMedia } from './VoiceToTextInput';
 
 // 06-05 §7·§8 Phase B — 수신자 카드 1개. 편지 목록(미리보기) + 작성/수정 편집기를 담당한다.
 // §10 항목5 — 수신자 1명에게 여러 통 허용. 카드 안에 편지 목록이 여러 건 쌓일 수 있다.
@@ -51,6 +51,7 @@ export const FarewellMessageCard: React.FC<FarewellMessageCardProps> = ({ recipi
   const [editingId, setEditingId] = useState<string | null>(null);
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
+  const [media, setMedia] = useState<SavedMedia | null>(null); // 06-05 §8 D-2 — 저장된 음성(있으면)
   const [saving, setSaving] = useState(false);
   const [loadingDetail, setLoadingDetail] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -60,6 +61,7 @@ export const FarewellMessageCard: React.FC<FarewellMessageCardProps> = ({ recipi
     setEditingId(null);
     setTitle('');
     setBody('');
+    setMedia(null);
     setError(null);
   };
 
@@ -67,6 +69,7 @@ export const FarewellMessageCard: React.FC<FarewellMessageCardProps> = ({ recipi
     setEditingId(null);
     setTitle('');
     setBody('');
+    setMedia(null);
     setError(null);
     setComposerOpen(true);
   };
@@ -84,6 +87,7 @@ export const FarewellMessageCard: React.FC<FarewellMessageCardProps> = ({ recipi
         setEditingId(id);
         setTitle(data.data.title || '');
         setBody(data.data.body || '');
+        setMedia(null); // 이번 편집에서 새로 녹음/업로드하지 않으면 기존 첨부를 그대로 둔다(서버가 처리)
         setComposerOpen(true);
       } else {
         setError(data.message || '편지를 불러오지 못했습니다.');
@@ -101,10 +105,14 @@ export const FarewellMessageCard: React.FC<FarewellMessageCardProps> = ({ recipi
     setError(null);
     try {
       const isEdit = !!editingId;
+      const mediaFields = media ? { mediaKey: media.mediaKey, mediaMime: media.mediaMime, mediaDurationSec: media.mediaDurationSec } : {};
+      const payload = isEdit
+        ? { title: title.trim() || null, body, ...mediaFields }
+        : { recipientId: recipient.id, title: title.trim() || null, body, ...mediaFields };
       const res = await fetch(`${BACKEND_URL}/api/farewell-messages${isEdit ? `/${editingId}` : ''}`, {
         method: isEdit ? 'PATCH' : 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify(isEdit ? { title: title.trim() || null, body } : { recipientId: recipient.id, title: title.trim() || null, body }),
+        body: JSON.stringify(payload),
       });
       const data = await res.json();
       if (data.status === 'success') {
@@ -178,6 +186,7 @@ export const FarewellMessageCard: React.FC<FarewellMessageCardProps> = ({ recipi
             onText={(text) => {
               setBody((prev) => (prev ? `${prev.trimEnd()} ${text}` : text));
             }}
+            onMediaSaved={setMedia}
           />
 
           <textarea

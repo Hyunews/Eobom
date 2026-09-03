@@ -254,3 +254,33 @@ id를 넣어 직접 발급(OAuth 로그인 없이 인증 우회 — 로컬 dev D
 첫 줄만 캡처되고 끊긴다(`recipientId` — 바로 다음 줄이 관계 필드 선언이라 그런 듯, 스크립트
 소스는 안 읽어봄). 안전하게 가려면 **한 줄로 길게 쓰는 편이 낫다** — 여러 줄로 쪼개고 싶으면
 생성된 `00-05` 문서를 실제로 열어서 잘림 여부를 확인할 것.
+
+## 2026-09-03 (91) — 06-05 Phase D(D-1~D-3) 구현 중 삽질 `[Sonnet]`
+
+**Bash 도구가 한글이 포함된 명령 문자열 자체에서 exit 127**: 파일 경로가 아니라 명령 안에
+한글 리터럴이 섞이면(예: `grep -n "^#" "...보관함_도메인분리_기획서.md"`처럼 따옴표 안 경로도
+포함) 셸 래퍼가 `eval '...'` 뒤 `pwd -P >| .../claude-XXXX-cwd` 북마크 파일 쓰기에서
+`No such file or directory`로 죽는다. 이번 세션 후반에 `wc -l`/`find`로 walkthrough.md·
+claude_tasks.md 줄 수를 세려다 두 번 더 재현됨 — **경로에 한글이 들어가면 Bash가 아니라
+`find ... -path "*한글부분생략*파일명"` 처럼 한글 세그먼트를 와일드카드로 대체**하거나,
+아예 `Read`/`Grep` 전용 도구로 넘어가는 게 유일하게 안정적이었다. 기존 메모리
+(`reference_bash_tool_breaks_on_korean`)와 일치 — 이번엔 "파일 내용"이 아니라 "경로 문자열"
+쪽에서도 똑같이 터진다는 걸 추가로 확인.
+
+**`Edit` 도구가 큰 multi-line `old_string`에서 매칭 실패**: `sttController.ts`의
+`transcribeAudio` 함수 대부분을 한 번의 큰 `Edit`로 바꾸려다 계속 "String to replace not
+found"가 났다. 원인은 실제 에러 메시지 문자열이 내가 타이핑한 것보다 길었던 것
+(`'음성 변환에 실패했습니다. 직접 녹음이나 아래 입력창에 직접 입력해 이어서 작성해 주세요.'`) —
+`Grep -A 6`으로 `catch (error)` 주변을 다시 떠서 정확한 문자열을 확인한 뒤, 한 번에 바꾸는
+대신 import 블록·`getSttStatus`·try/catch 블록을 각각 작은 `Edit` 3~4번으로 쪼개니 전부
+성공. **교훈**: 파일을 새로 Write하지 않고 Edit로 큰 블록을 갈아끼울 땐, 미리 `Grep`으로
+정확한 원문을 한 번 확인하고 작게 쪼개는 편이 재시도 횟수를 줄인다.
+
+**`eobom/backend`의 `npm run build`가 `prisma generate` EPERM으로 막힘**: 08-27과 동일한
+패턴(`EPERM: operation not permitted, rename ...query_engine-windows.dll.node.tmp...`) 재발.
+이번엔 `schema.prisma`를 이번 세션에서 건드리지 않았으므로 굳이 `prisma generate`를 다시
+돌릴 필요가 없다고 판단, `npx tsc --noEmit`을 직접 돌려 타입 에러 0을 확인하는 것으로 대체 —
+사용자에게 dev 서버 재시작을 요청하지 않고도 검증을 마칠 수 있었다. 스키마를 실제로 바꾸는
+세션(D-4)에서는 이 우회가 안 통하니 08-27과 같은 절차(사용자에게 dev 서버 정지 요청)로
+돌아가야 함.
+

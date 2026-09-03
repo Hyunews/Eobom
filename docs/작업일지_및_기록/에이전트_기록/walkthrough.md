@@ -973,3 +973,72 @@
     `04-01` §8 표에서 순서 재확인할 것.
 
 <!-- Gemini 판정: ✅통과 (04-01 §0.2·04-03 §2.2-1 기준 일치: STEP 0 4번째 줄 privacy.go.kr 본인 한정 고지 추가, 1-C 삭제 주석 정리 및 브라우저 4줄 렌더 실측 확인) -->
+
+## 2026-09-03 | [Sonnet] 06-05 Phase D 착수 — D-1~D-3 (음성 R2 저장 + 직접 녹음)
+
+- **근거 스펙**: `docs/06_엔딩노트_유언/06-05_유족메시지_보관함_도메인분리_기획서.md` §8
+  Phase D(D-1~D-3만) · §5.5 전체 · §5.4-2-1 ; `docs/00_핵심플랫폼/00-11_백엔드_DB_배포_및_인프라_전략_결정서.md`
+  §5.4-4(선암호화) · §5.4-5-2(4층 방어) · §5.4-5-3 · §5.4-6-1 · §5.4-6-2. D-4·D-5는 이번 범위 아님.
+- **건드린 파일**:
+  - `eobom/backend/package.json` (`@aws-sdk/client-s3` 추가)
+  - `eobom/backend/src/config/r2.ts` (신규 — 버킷별 S3Client 3개 분리, `isR2Enabled()`)
+  - `eobom/backend/src/utils/crypto.ts` (`encryptNoteBuffer`/`decryptNoteBuffer` 추가)
+  - `eobom/backend/src/services/r2Storage.ts` (신규 — `uploadVoiceObject`/`downloadVoiceObject`)
+  - `eobom/backend/src/config/uploadAudio.ts` (`audio/webm`·`.webm` 허용 추가)
+  - `eobom/backend/src/controllers/sttController.ts` (`storeVoiceAudio` 신규 핸들러,
+    `transcribeAudio`에 R2 업로드+`media` 응답 추가, `getSttStatus`에 `voiceStorageEnabled` 추가)
+  - `eobom/backend/src/routes/sttRoutes.ts` (`POST /store-audio` 라우트 추가)
+  - `eobom/backend/src/controllers/farewellMessageController.ts` (`mediaKey`/`mediaMime`/
+    `mediaDurationSec` 조건부 반영)
+  - `eobom/backend/.env.example` (R2 변수 블록 추가, 값은 전부 공란)
+  - `eobom/frontend/src/components/VoiceToTextInput.tsx` (전면 재작성 — MediaRecorder 본체화)
+  - `eobom/frontend/src/components/FarewellMessageCard.tsx` (`media` 상태·저장 payload 연동)
+  - `eobom/workers/r2-archive-relay/` (신규 프로젝트 — `wrangler.toml`, `src/index.ts`,
+    `package.json`, `tsconfig.json`, `README.md`)
+  - `eobom/backend/prisma/schema.prisma`는 **읽기만** 함 — `mediaKey`/`mediaMime`/
+    `mediaDurationSec`가 이미 nullable로 있어 마이그레이션 불필요, 스키마 미변경.
+- **결과**:
+  - `npx tsc --noEmit`(`eobom/backend`) 에러 0.
+  - `npx tsc --noEmit`(`eobom/frontend`) 에러 0. `npm run build`(frontend, vite build 포함)도
+    이전 확인 시점에 통과.
+  - `npx tsc --noEmit`(`eobom/workers/r2-archive-relay`, `npm install` 후) 에러 0.
+  - R2 3버킷(음성/미디어/문서) 클라이언트 분리 배선, `R2_ENABLED` 기본값 `false`(꺼져 있으면
+    업로드 경로가 열리지 않음) 확인됨.
+  - `VoiceToTextInput.tsx`: MediaRecorder(`audio/webm;codecs=opus` 우선, Safari `audio/mp4`
+    폴백)가 저장을 담당하고 Web Speech는 실시간 자막 보조로만 동작. Web Speech 실패(iOS 등)
+    시 녹음 blob을 Ⓐ 경로(`/api/stt/transcribe`)로 전송해 폴백. "목소리도 함께 남기기"
+    체크박스 기본 ON, 최초 1회 전체화면 안내(`localStorage` 키
+    `eobom_voice_record_notice_seen`)로 처리.
+- **편차**:
+  1. Buffer 암호화 포맷을 텍스트 필드의 `v2:iv:tag:data`(콜론구분 base64)가 아니라
+     `[2바이트 'v2'][12바이트 iv][16바이트 authTag][ciphertext]` 바이너리 패킹으로 채택
+     (`crypto.ts`의 `encryptNoteBuffer`/`decryptNoteBuffer`). base64 대비 ~33% 용량 절감을
+     위해 음성 blob에만 다르게 적용 — 버전 접두("v2") 체계 자체는 유지.
+  2. 스펙 문면상 Ⓐ 파일업로드 경로는 "STT 후 무조건 R2 저장"으로 읽히지만, Ⓑ 저장옵션 기본
+     ON(§5.5 #10)과 모순되지 않도록 Ⓐ·Ⓑ를 하나의 `saveVoiceEnabled` 체크박스로 통합 제어함
+     (사용자가 저장을 껐는데 파일업로드 경로만 강제 저장되는 상황을 막기 위함).
+  3. `POST /api/stt/store-audio` 엔드포인트를 새로 추가 — 원 스펙 11개 항목에 없던 것.
+     Web Speech가 성공해 텍스트를 이미 얻은 경우, 불필요한 Clova 재호출 없이 녹음 blob만
+     저장하기 위해 필요해서 만듦.
+  4. 아카이브 버킷 복제(D-2 #15, `00-11` §5.4-5-2 ②)를 Node 백엔드 코드가 아니라 별도
+     Cloudflare Worker 프로젝트(`eobom/workers/r2-archive-relay`)로 구현. R2 S3 호환 토큰에는
+     "쓰기 전용·삭제 불가" 등급이 없어, "런타임 앱이 아카이브 버킷 토큰을 갖지 않는다"는
+     요건은 네이티브 R2 바인딩(토큰 자체가 없는 구조)으로만 구조적으로 만족 가능.
+- **다음 에이전트가 알아야 할 것**:
+  - 🔵 **실기동 검증 대기** — 사람이 직접 함(2026-09-03 규칙). 이번 세션에서 dev 서버를
+    띄우지 않음.
+  - `.env` 실제 값은 **키 이름만 대조**했고 값은 읽지 않음. R2 자격증명 채우기·`R2_ENABLED=true`
+    전환은 사람 몫.
+  - `eobom/workers/r2-archive-relay/`는 코드만 준비됨 — **미배포**. 버킷 생성·큐 생성·
+    `wrangler login`·`wrangler deploy`·R2 Event Notification 연결 5단계가
+    `eobom/workers/r2-archive-relay/README.md`에 있음. Cloudflare 계정 인증이 필요해
+    에이전트가 대신 못함. 이게 안 끝나면 아카이브 복제(4층 방어 ②)는 여전히 미완.
+  - `eobom/backend`에서 `npm run build`(전체) 도중 `prisma generate`가
+    `EPERM: operation not permitted, rename ...query_engine-windows.dll.node.tmp...`로 실패한
+    적 있음 — Windows 파일 잠금(다른 프로세스가 DLL을 물고 있음) 추정, 이번 세션엔
+    `schema.prisma` 변경이 없었으므로 `npx tsc --noEmit`으로 우회해 에러 0 확인함. 다음
+    세션에서 스키마를 실제로 바꾸는 D-4를 시작할 땐 이 잠금부터 먼저 풀 것(dev 서버 종료 등).
+  - D-4(소프트삭제, 스키마 변경 포함) · D-5(반출)는 이번 세션에서 손대지 않음. D-4는
+    스키마 변경이라 착수 전 `db-safety.md` 백업 절차가 선행돼야 함.
+
+<!-- Gemini 판정 1줄: … -->

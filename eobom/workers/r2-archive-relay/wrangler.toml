@@ -1,0 +1,22 @@
+name = "eobom-r2-archive-relay"
+main = "src/index.ts"
+compatibility_date = "2026-09-03"
+
+# docs 00-11 §5.4-5-2 ② · §5.4-5-3 · 06-05 §8 D-2 #15 — 원본 버킷(eobom-farewell-voice)에
+# 쓰기가 일어나면 그 오브젝트를 아카이브 버킷(eobom-farewell-voice-archive)에 그대로 복제한다.
+# 🔴 두 버킷 모두 R2 바인딩으로 접근한다 — S3 호환 API 액세스 키를 이 워커도 전혀 쓰지 않는다.
+# Node 백엔드(eobom/backend)는 이 워커의 바인딩에 접근할 방법이 없으므로, "아카이브 버킷
+# 토큰을 런타임 앱이 갖지 않는다"는 요건이 애초에 토큰 자체가 없는 형태로 충족된다.
+
+[[r2_buckets]]
+binding = "SOURCE_BUCKET"
+bucket_name = "eobom-farewell-voice"
+
+[[r2_buckets]]
+binding = "ARCHIVE_BUCKET"
+bucket_name = "eobom-farewell-voice-archive"
+
+[[queues.consumers]]
+queue = "eobom-r2-archive-queue"
+max_batch_size = 10
+max_retries = 3

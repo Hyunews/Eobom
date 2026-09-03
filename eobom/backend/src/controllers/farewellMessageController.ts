@@ -117,7 +117,14 @@ export const createFarewellMessage = async (req: Request, res: Response) => {
     return res.status(401).json({ status: 'error', message: '로그인이 필요합니다.' });
   }
 
-  const body = req.body as { recipientId?: string; title?: string; body?: string };
+  const body = req.body as {
+    recipientId?: string;
+    title?: string;
+    body?: string;
+    mediaKey?: string;
+    mediaMime?: string;
+    mediaDurationSec?: number;
+  };
   const text = body.body?.trim();
   if (!body.recipientId) {
     return res.status(400).json({ status: 'error', message: '받으실 분을 선택해 주세요.' });
@@ -141,12 +148,16 @@ export const createFarewellMessage = async (req: Request, res: Response) => {
 
     const noteId = await getOrCreateEndingNoteId(decoded.id);
 
+    // 06-05 §8 D-2 — mediaKey는 /api/stt/transcribe·/api/stt/store-audio가 이미 R2에 올려
+    // 발급한 키를 그대로 받아 적을 뿐이다. 여기서 새로 업로드하지 않는다.
     const created = await prisma.farewellMessage.create({
       data: {
         noteId,
         recipientId: recipient.id,
         title: body.title?.trim() || null,
         bodyEnc: encryptNoteField(text),
+        ...(body.mediaKey ? { mediaKey: body.mediaKey, mediaMime: body.mediaMime || null } : {}),
+        ...(body.mediaDurationSec !== undefined ? { mediaDurationSec: body.mediaDurationSec } : {}),
       },
       select: { id: true, recipientId: true, title: true, createdAt: true, updatedAt: true },
     });
@@ -168,7 +179,13 @@ export const updateFarewellMessage = async (req: Request, res: Response) => {
     return res.status(401).json({ status: 'error', message: '로그인이 필요합니다.' });
   }
 
-  const body = req.body as { title?: string | null; body?: string };
+  const body = req.body as {
+    title?: string | null;
+    body?: string;
+    mediaKey?: string;
+    mediaMime?: string;
+    mediaDurationSec?: number;
+  };
 
   try {
     const existing = await prisma.farewellMessage.findUnique({
@@ -191,11 +208,15 @@ export const updateFarewellMessage = async (req: Request, res: Response) => {
       bodyEnc = encryptNoteField(text);
     }
 
+    // 06-05 §8 D-2 — mediaKey가 실려 오지 않으면 기존 첨부를 그대로 둔다(텍스트만 고치는
+    // 수정에서 첨부가 조용히 지워지면 안 된다).
     const updated = await prisma.farewellMessage.update({
       where: { id: existing.id },
       data: {
         ...(body.title !== undefined ? { title: body.title?.trim() || null } : {}),
         ...(bodyEnc ? { bodyEnc } : {}),
+        ...(body.mediaKey ? { mediaKey: body.mediaKey, mediaMime: body.mediaMime || null } : {}),
+        ...(body.mediaDurationSec !== undefined ? { mediaDurationSec: body.mediaDurationSec } : {}),
       },
       select: { id: true, recipientId: true, title: true, bodyEnc: true, createdAt: true, updatedAt: true },
     });
