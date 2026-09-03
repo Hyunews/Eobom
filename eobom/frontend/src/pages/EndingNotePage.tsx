@@ -164,29 +164,46 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
     [token]
   );
 
-  // §10 Phase 2 — 공개 시점 변경. timing이 null이면 철회, 아니면 upsert. 성공 후 권한 목록을
-  // 다시 조회해 동기화한다(건수가 적어 낙관적 업데이트 없이도 충분히 빠르다 — 어긋난 채로
-  // 남는 위험을 없애는 쪽을 택함).
+  // §10 Phase 2 — 공개 시점 변경. timing이 null이면 철회, 아니면 upsert.
+  // 🔴 낙관적 업데이트(2026-09-03) — select는 요청 전에 먼저 반응한다. 백엔드가 Render(오리건)
+  // ↔ DB Supabase(서울)라 DB를 타는 API가 왕복 ~1.5초 걸리는 게 실측돼 있고(systems.md §5),
+  // PUT/PATCH 후 목록을 통째로 재조회하던 옛 방식은 왕복이 2번 겹쳐 2초 넘게 걸렸다(사람 보고).
+  // 실패 시에는 요청 전 스냅샷으로 되돌려 서버 상태와 어긋난 채로 남기지 않는다.
   const handleGrantChange = useCallback(
     async (section: string, designationId: string, timing: string | null, grantId?: string) => {
       if (!token) return;
+      const snapshot = grants;
+      if (timing === null) {
+        if (!grantId) return; // 이미 비공개라 철회할 것이 없음
+        setGrants((prev) => prev.map((g) => (g.id === grantId ? { ...g, revokedAt: new Date().toISOString() } : g)));
+      } else {
+        setGrants((prev) => {
+          const idx = prev.findIndex((g) => g.designationId === designationId && g.section === section);
+          if (idx === -1) {
+            return [...prev, { id: `temp-${designationId}-${section}`, designationId, section, timing, revokedAt: null, updatedAt: new Date().toISOString() }];
+          }
+          const next = [...prev];
+          next[idx] = { ...next[idx], timing, revokedAt: null };
+          return next;
+        });
+      }
       try {
         if (timing === null) {
-          if (!grantId) return; // 이미 비공개라 철회할 것이 없음
           await apiFetch(`/api/ending-note/grants/${grantId}/revoke`, 'USER', { method: 'PATCH' });
         } else {
-          await apiFetch('/api/ending-note/grants', 'USER', {
+          // 서버가 돌려주는 실제 id로 임시 항목(temp-…)을 교체한다 — 안 하면 바로 이어지는
+          // 철회 요청이 존재하지 않는 temp id로 나간다.
+          const updated = await apiFetch<GrantItem>('/api/ending-note/grants', 'USER', {
             method: 'PUT',
             body: JSON.stringify({ designationId, section, timing }),
           });
+          setGrants((prev) => prev.map((g) => (g.designationId === designationId && g.section === section ? updated : g)));
         }
-        const grantList = await apiFetch<GrantItem[]>('/api/ending-note/grants', 'USER');
-        setGrants(grantList);
       } catch {
-        // 실패해도 조용히 둔다 — select는 grants state 기반이라 다음 조회 때 실제 상태로 되돌아온다.
+        setGrants(snapshot);
       }
     },
-    [token]
+    [token, grants]
   );
 
   // 아코디언 헤더 클릭 — 동의 전이면 펼치지 않고 상단 동의 안내로 스크롤한다.
