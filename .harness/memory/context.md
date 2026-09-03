@@ -22,8 +22,8 @@
 ⏸ 체크8 재검증 대기 · F(체크상태)는 `00-19` 제4조 = Opus 먼저 · 04 B는 `PreDeathPlatformSetting` 뒤.
 ✅ **`06-05` Phase D-1~D-3 완료**(wt120) — R2 배선·업로드/다운로드·`VoiceToTextInput`
 MediaRecorder 본체화. 🐛 실기동 중 webm→CLOVA 변환 누락 버그 발견·수정
-(`clovaSpeechProvider.ts`, tsc 통과) — 🔵 **재검증 대기**. 🔴 **아카이브 Worker 미배포**
-(`eobom/workers/r2-archive-relay/README.md` 5단계, Cloudflare 인증 필요) → 4층 방어 ② 미완.
+(`clovaSpeechProvider.ts`) — 🔵 **재검증 대기**. ✅ **아카이브 Worker 배포·검증 완료**(09-04).
+🟡 후속 = 워커 필터에 `CopyObject`·`CompleteMultipartUpload` 추가(§5.4-5-2-1-1).
 ⏸ D-4(스키마변경, db-safety 선행)·D-5는 다음 세션.
 
 **3. [Gemini]** 게이트 대기 0건(wt102~119 판정 완료) · ✅ reports 재생성 완료.
@@ -35,7 +35,7 @@ MediaRecorder 본체화. 🐛 실기동 중 webm→CLOVA 변환 누락 버그 �
 
 ```text
 프로젝트: 이어봄(Eobom) — 디지털엔딩&웰다잉 토탈케어 플랫폼
-마지막  : 2026-09-03 — wt112·wt114·wt115·wt120(06-05 D-1~D-3) 실기동 검증 대기
+마지막  : 2026-09-04 — 아카이브 Worker 배포 완료 / wt112·114·115·120 실기동 검증 대기
 ```
 
 - 소스 `eobom/frontend`(React18+Vite5+TS) · `eobom/backend`(Express+Prisma+JWT)
@@ -47,6 +47,6 @@ MediaRecorder 본체화. 🐛 실기동 중 webm→CLOVA 변환 누락 버그 �
 
 - 🔴 **06 백엔드 — `Entry`+`Grant` 배선됨**(08-27). `Log`만 0건(Phase 3). 가족용 열람
   화면(프론트) 없음 — API만.
-- 🟡 **이미지 로컬디스크**: 재배포 시 소실 → 추모관사진 오픈금지(`systems.md` §5). 음성은
-  R2 배선 완료(이미지는 미배선). 🔴 아카이브 Worker 미배포는 계속 막힘(위 2번 참고).
+- 🟡 **이미지 로컬디스크**: 재배포 시 소실 → 추모관사진 오픈금지(`systems.md` §5).
+  ✅ 음성은 R2+아카이브 완료 — **이미지는 여전히 미배선**(같은 R2로 옮기면 풀림).
 - **`Deceased` 미확정**: 04·05 묶임(→ `backlog.md` ③).
