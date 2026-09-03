@@ -282,9 +282,9 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
   // 🔴 2026-09-03 — grants가 아니라 savedGrants를 본다. grants는 저장 버튼을 누르기 전
   // 선택만 한 상태도 화면 반응을 위해 낙관적으로 섞여 있어서, "한눈에 보기"에 미저장 값이
   // 비칠 수 있다(사람 지시로 저장 버튼 기준으로 통일).
-  const sectionTimingBadge = (code: string): string | null => {
+  const sectionTimingBadge = (code: string): string => {
     const active = savedGrants.filter((g) => g.section === code && !g.revokedAt);
-    if (active.length === 0) return null;
+    if (active.length === 0) return '비공개';
     return active.some((g) => g.timing === 'IMMEDIATE') ? TIMING_LABEL.IMMEDIATE : TIMING_LABEL.POSTMORTEM;
   };
 
@@ -387,19 +387,27 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
     if (!printWindow) return;
     const safeText = draftText.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
     const safeNotice = NOT_A_WILL_NOTICE.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    const todayStr = new Date().toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' });
     // 개발자 직접 지시(2026-08-31) — 자필증서 4대 요건 중 성명·날인은 화면이 대신 채울 수 없다
     // (위 체크리스트 §1137~1142와 동일 근거). 인쇄물 최하단에 옮겨 쓴 뒤 손으로 채울 성명·날인
     // 칸을 둔다 — 도장·지장 어느 쪽이든 찍을 수 있게 빈 네모칸(seal box)도 같이 준다.
+    // 🔴 2026-09-03 — @page margin:0으로 브라우저가 자동으로 붙이는 인쇄 머리글/바닥글(날짜·문서
+    // 제목·URL·쪽수, 브라우저 설정에 따라 위치가 제각각)을 없애고, 날짜·제목을 직접 그린다
+    // (제목 위치가 "어색하다"는 신고 — 그게 우리 HTML이 아니라 브라우저 기본 헤더였다).
     printWindow.document.write(
       `<html><head><title>유언장 초안</title><style>
+        @page { margin: 0; }
         body { font-family: 'Malgun Gothic', sans-serif; font-size: ${largeText ? '22px' : '16px'}; line-height: 1.9; padding: 2.5rem; white-space: pre-wrap; }
+        .print-header { margin-bottom: 1.5rem; white-space: normal; }
+        .print-date { font-size: 13px; color: #64748B; margin-bottom: 0.3rem; }
+        .print-title { font-size: 22px; font-weight: 800; color: #1F2937; margin: 0; }
         .notice { font-size: 13px; color: #92400E; border: 1px solid #FDE68A; background: #FEF3C7; border-radius: 8px; padding: 0.7rem 0.9rem; margin-bottom: 1.5rem; white-space: normal; }
         .signature-box { margin-top: 4rem; padding-top: 1.5rem; border-top: 1px solid #94A3B8; white-space: normal; }
         .signature-row { display: flex; align-items: flex-end; justify-content: flex-end; gap: 1rem; }
         .signature-label { font-weight: 700; }
         .signature-blank { display: inline-block; width: 220px; border-bottom: 1px solid #1F2937; height: 1.4em; }
         .signature-seal { display: inline-flex; align-items: center; justify-content: center; width: 2.4em; height: 2.4em; border: 1px solid #1F2937; font-size: 0.8em; }
-      </style></head><body><div class="notice">${safeNotice}</div>${safeText}<div class="signature-box"><div class="signature-row"><span class="signature-label">성명</span><span class="signature-blank"></span><span class="signature-seal">(인)</span></div></div></body></html>`
+      </style></head><body><div class="print-header"><div class="print-date">${todayStr}</div><h1 class="print-title">유언장 초안</h1></div><div class="notice">${safeNotice}</div>${safeText}<div class="signature-box"><div class="signature-row"><span class="signature-label">성명</span><span class="signature-blank"></span><span class="signature-seal">(인)</span></div></div></body></html>`
     );
     printWindow.document.close();
     printWindow.focus();
@@ -434,7 +442,7 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
           <label className="form-label">희망하는 장례 방식</label>
           <select value={funeralType} onChange={(e) => setFuneralType(e.target.value)} className="form-select">
             <option value="가족장 (수목장)">가족장 후 자연 수목장 안치</option>
-            <option value="일반 장례 (봉안당)">일반 3일장 후 봉안당 안치</option>
+            <option value="일반 장례 (봉안당)">일반 3일장 진행</option>
             <option value="조용한 검소장">최소 인원 검소장</option>
           </select>
         </div>
@@ -603,6 +611,43 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
     ORGAN_DONATION: () => ({ donationStatus, donationDate }),
   };
 
+  // "취소" 버튼 — 편집 중인 값과 대기 중인 공개 시점 변경을 마지막 저장 스냅샷으로 되돌린다.
+  // 각 case의 기본값은 useState 초기값과 동일하다 — 한 번도 저장된 적 없는 섹션을 취소하면
+  // 처음 화면을 열었을 때와 같은 값으로 돌아가야 하기 때문(초기 로드도 같은 fallback을 쓴다).
+  const resetSection = (section: string) => {
+    const saved: any = savedSectionValues[section] || {};
+    switch (section) {
+      case 'LIFE_SUPPORT':
+        setLifeSupport(saved.lifeSupport ?? '연명의료 중단 희망');
+        break;
+      case 'FUNERAL':
+        setFuneralType(saved.funeralType ?? '가족장 (수목장)');
+        break;
+      case 'ASSET':
+        setAssetNote(saved.assetNote ?? '');
+        break;
+      case 'DIGITAL_ACCOUNTS':
+        setDigitalPrefs(saved.digitalPrefs ?? {});
+        break;
+      case 'INSURANCE':
+        setInsurance(saved.insurance ?? {});
+        break;
+      case 'CONTACTS':
+        setContactsNote(saved.contactsNote ?? '');
+        setPetCaretaker(saved.petCaretaker ?? '');
+        break;
+      case 'WILL_LOCATION':
+        setWillLocation(saved.willLocation ?? '');
+        break;
+      case 'ORGAN_DONATION':
+        setDonationStatus(saved.donationStatus ?? '모름');
+        setDonationDate(saved.donationDate ?? '');
+        break;
+    }
+    delete pendingGrantChangesRef.current[section];
+    setGrants((prev) => [...prev.filter((g) => g.section !== section), ...savedGrants.filter((g) => g.section === section)]);
+  };
+
   return (
     <div className="container" style={{ position: 'relative' }}>
       {!currentUser && (
@@ -732,6 +777,7 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
                 saveState={savingState[s.code]}
                 onToggle={() => handleToggleSection(s.code)}
                 onSave={() => saveSection(s.code, sectionPayloads[s.code]())}
+                onReset={() => resetSection(s.code)}
               >
                 {sectionBodies[s.code]}
                 <SectionTimingControl

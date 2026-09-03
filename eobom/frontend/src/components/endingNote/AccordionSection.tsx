@@ -21,8 +21,9 @@ export const AccordionSection: React.FC<{
   saveState: SaveState | undefined;
   onToggle: () => void;
   onSave: () => void;
+  onReset: () => void;
   children: React.ReactNode;
-}> = ({ meta, expanded, completed, saveState, onToggle, onSave, children }) => (
+}> = ({ meta, expanded, completed, saveState, onToggle, onSave, onReset, children }) => (
   <div className="ending-note-accordion-item" style={cardStyle} id={`ending-note-section-${meta.code}`}>
     <button type="button" onClick={onToggle} aria-expanded={expanded} className="ending-note-accordion-header">
       {meta.icon}
@@ -36,6 +37,9 @@ export const AccordionSection: React.FC<{
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginTop: '1rem' }}>
           <button type="button" onClick={onSave} className="btn btn-point" disabled={saveState === 'saving'} style={{ fontSize: '0.9rem' }}>
             {saveButtonLabel(saveState)}
+          </button>
+          <button type="button" onClick={onReset} disabled={saveState === 'saving'} className="btn" style={{ fontSize: '0.9rem', backgroundColor: '#F1F5F9', color: '#6B7280' }}>
+            취소
           </button>
           {saveState === 'saved' && <span style={{ fontSize: '0.85rem', color: 'var(--point-color)' }}>저장되었습니다.</span>}
           {saveState === 'error' && <span style={{ fontSize: '0.85rem', color: '#B91C1C' }}>저장에 실패했습니다. 다시 시도해 주세요.</span>}
