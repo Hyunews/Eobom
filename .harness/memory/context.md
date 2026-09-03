@@ -21,10 +21,10 @@
 대기**(wt115는 §7+체크8 8섹션). 🔵 **실기동 검증은 사람이 한다**(09-03) — dev서버 안 띄움.
 ⏸ 체크8 재검증 대기 · F(체크상태)는 `00-19` 제4조 = Opus 먼저 · 04 B는 `PreDeathPlatformSetting` 뒤.
 ✅ **`06-05` Phase D-1~D-3 완료**(wt120) — R2 배선·업로드/다운로드·`VoiceToTextInput`
-MediaRecorder 본체화, tsc 3곳(backend·frontend·workers) 통과·스키마 무변경. 🔴 **아카이브
-Worker 미배포**(`eobom/workers/r2-archive-relay/README.md` 5단계, Cloudflare 인증 필요해
-에이전트가 대신 못함) → 4층 방어 ② 아직 미완. ⏸ D-4(스키마변경, db-safety 선행)·D-5는
-다음 세션.
+MediaRecorder 본체화. 🐛 실기동 중 webm→CLOVA 변환 누락 버그 발견·수정
+(`clovaSpeechProvider.ts`, tsc 통과) — 🔵 **재검증 대기**. 🔴 **아카이브 Worker 미배포**
+(`eobom/workers/r2-archive-relay/README.md` 5단계, Cloudflare 인증 필요) → 4층 방어 ② 미완.
+⏸ D-4(스키마변경, db-safety 선행)·D-5는 다음 세션.
 
 **3. [Gemini]** 게이트 대기 0건(wt102~119 판정 완료) · ✅ reports 재생성 완료.
 🟡 옛 스펙갱신 3건 → `backlog.md` ⑭.

@@ -1042,3 +1042,32 @@
     스키마 변경이라 착수 전 `db-safety.md` 백업 절차가 선행돼야 함.
 
 <!-- Gemini 판정 1줄: … -->
+
+## 2026-09-03 | [Sonnet] 06-05 Phase D 실기동 버그 수정 — webm→CLOVA 변환 누락
+
+- **근거 스펙**: `docs/06_엔딩노트_유언/06-05_유족메시지_보관함_도메인분리_기획서.md` §5.5-4
+  (Chrome MediaRecorder 기본 출력 `audio/webm;codecs=opus`). 위 D-1~D-3 항목(wt120)의 후속 수정.
+- **건드린 파일**: `eobom/backend/src/services/clovaSpeechProvider.ts`만.
+- **결과**:
+  - 사용자가 실기동 검증 중 녹음 후 텍스트 변환에서
+    `"음성 변환에 실패했습니다. 아래 입력창에 직접 입력해 주세요."`를 재현해 보고함
+    (`VoiceToTextInput.tsx:161`, `finalizeRecording`의 폴백 catch).
+  - 원인: `clovaSpeechProvider.ts`가 `audio/mp4` 계열(m4a)과 `wav`만 별도 처리하고 그 외
+    mimetype은 전부 "mp3 계열"로 간주해 **원본 바이트를 그대로 `audio/mpeg`로 위장해 CLOVA에
+    전송**하고 있었다 — `audio/webm;codecs=opus`(MediaRecorder 기본값)가 이 else 분기에
+    걸려 컨테이너가 다른 파일을 mp3라고 속여 보냈으니 CLOVA가 디코딩하지 못해 매 요청 실패.
+    이번 세션 앞부분에서 `uploadAudio.ts`에 webm을 업로드 허용 목록에 추가하면서 생긴 결함 —
+    허용은 했는데 변환 경로를 안 태웠음.
+  - 수정: `mimeType.toLowerCase().includes('webm')`이면 기존 m4a와 같은 `convertToMp3()`
+    (ffmpeg stdin→stdout) 경로를 타도록 조건 추가. mimetype에 `;codecs=opus` 파라미터가 붙어
+    있어도 `includes`라 잡힘.
+  - `npx tsc --noEmit`(backend) 에러 0.
+- **편차**: 없음 — 기존 D-1~D-3 구현의 결함 수정.
+- **다음 에이전트가 알아야 할 것**:
+  - 🔵 **실기동 재검증 대기** — 사용자가 직접 재녹음해 텍스트 변환이 되는지 확인해야 함.
+    백엔드가 `ts-node-dev --respawn`으로 떠 있다면 파일 저장 시 자동 재시작되니 별도 조치
+    불필요, 아니라면 재시작 필요.
+  - `storeVoiceAudio`(Web Speech 인식 성공 후 원본만 R2 저장하는 경로)는 CLOVA를 거치지
+    않으므로 이 버그의 영향을 받지 않았음 — 별도 확인 불필요.
+
+<!-- Gemini 판정 1줄: … -->

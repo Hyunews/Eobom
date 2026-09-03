@@ -32,10 +32,13 @@ export class ClovaSpeechProvider implements SttProvider {
     let filename = 'audio.mp3';
     let contentType = 'audio/mpeg';
 
-    if (M4A_LIKE_MIME_TYPES.has(mimeType.toLowerCase())) {
+    const lowerMime = mimeType.toLowerCase();
+    if (M4A_LIKE_MIME_TYPES.has(lowerMime) || lowerMime.includes('webm')) {
       // §6.4-10-3·§6.4-11-7 — stdin→stdout 스트림 변환만. 디스크에 쓰지 않는다.
+      // 🔴 06-05 §5.5-4 — MediaRecorder의 audio/webm;codecs=opus도 CLOVA가 못 읽는 컨테이너라
+      // m4a와 같은 변환 경로를 태운다. mimetype에 ;codecs=... 파라미터가 붙어도 includes로 잡는다.
       uploadBuffer = await convertToMp3(audio);
-    } else if (mimeType.toLowerCase().includes('wav')) {
+    } else if (lowerMime.includes('wav')) {
       filename = 'audio.wav';
       contentType = 'audio/wav';
     }
