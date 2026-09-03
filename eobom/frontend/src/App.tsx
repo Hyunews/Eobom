@@ -24,6 +24,7 @@ import { EndingNotePage } from './pages/EndingNotePage';
 import { FarewellMessagePage } from './pages/FarewellMessagePage';
 import { CareGuidePage } from './pages/CareGuidePage';
 import { ObituaryPage } from './pages/ObituaryPage';
+import { MyObituaryListPage } from './pages/MyObituaryListPage';
 import { ObituaryLandingPage } from './pages/ObituaryLandingPage';
 import { MemorialLandingPage } from './pages/MemorialLandingPage';
 import { FamilyInvitePage } from './pages/FamilyInvitePage';
@@ -406,6 +407,7 @@ function AppShell() {
             />
             <Route path="/care-guide" element={<CareGuidePage {...authProps} />} />
             <Route path="/obituary" element={<ObituaryPage {...authProps} />} />
+            <Route path="/my-obituaries" element={<MyObituaryListPage />} />
             <Route path="/pickup" element={<PickupPage {...authProps} />} />
             <Route path="/memorial" element={<MemorialPage {...authProps} />} />
             <Route

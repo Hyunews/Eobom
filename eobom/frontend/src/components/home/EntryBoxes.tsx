@@ -4,6 +4,7 @@ import { ChevronRight, ChevronLeft, HeartHandshake, Flower2, Building2 } from 'l
 import { ChecklistShieldIcon } from '../MenuIcons';
 import { box1Keys, box2Keys, box1Intro, box2Intro } from './domainSlides';
 import type { NavMode } from '../../modeNav';
+import { parseMemorialLink } from '../../utils/memorialLink';
 
 // docs/00_핵심플랫폼/00-23 §8 — 메인화면 진입구조 목업. 사장님 지시(2026-08-18 2차)로
 // 박스①②는 항목 목록을 뺀 "간단 설명"만 남기고, 클릭 시 도메인 소개를 보여주는 별도 화면으로
@@ -225,26 +226,17 @@ export const EntryBoxes: React.FC<EntryBoxesProps> = ({ currentUser, onOpenLogin
       return;
     }
 
-    let path: string;
-    let isCrossOrigin = false;
-    try {
-      const url = new URL(raw);
-      path = url.pathname;
-      isCrossOrigin = url.origin !== window.location.origin;
-    } catch {
-      path = raw.startsWith('/') ? raw : `/m/${raw}`;
-    }
-
-    if (!/^\/m\/[^/]+/.test(path)) {
+    const parsed = parseMemorialLink(raw);
+    if (!parsed) {
       setMemorialLinkError('추모관 링크 형식이 아닙니다. 받으신 링크를 다시 확인해 주세요.');
       return;
     }
 
     setMemorialLinkError('');
-    if (isCrossOrigin) {
+    if (parsed.isCrossOrigin) {
       window.location.href = raw;
     } else {
-      navigate(path);
+      navigate(parsed.path);
     }
   };
 

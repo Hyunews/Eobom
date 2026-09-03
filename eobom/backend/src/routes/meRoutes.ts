@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { listMyCleanupItems, createCleanupItem, updateCleanupItem } from '../controllers/cleanupController';
 import { listMyMemorials } from '../controllers/memorialController';
+import { listMyObituaries } from '../controllers/obituaryController';
 import { getMyProfile, updateMyProfile } from '../controllers/profileController';
 import { getMySummary } from '../controllers/summaryController';
 
@@ -15,6 +16,7 @@ router.post('/cleanup-items', createCleanupItem);
 router.patch('/cleanup-items/:id', updateCleanupItem);
 
 router.get('/memorials', listMyMemorials);
+router.get('/obituaries', listMyObituaries);
 
 router.get('/profile', getMyProfile);
 router.patch('/profile', updateMyProfile);

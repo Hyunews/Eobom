@@ -1,5 +1,5 @@
 import React from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { UserCheck, LogIn, LogOut, Menu } from 'lucide-react';
 import { EobomLogo } from './EobomLogo';
 import type { NavMode } from '../modeNav';
@@ -23,9 +23,7 @@ interface HeaderProps {
 // 링크 입력창일 뿐) 홈의 진입 4박스 캐러셀에서 박스③이 있는 페이지까지 직접 넘긴다(아래
 // goToMemorialEntry 참고 — 예전엔 섹션 스크롤까지만 해서 캐러셀이 첫 페이지에 멈춰 있는 버그가 있었다).
 export const Header: React.FC<HeaderProps> = ({ setActiveTab, onOpenLogin, currentUser, onLogout, onSetMode, onOpenMobileMenu }) => {
-  const location = useLocation();
   const navigate = useNavigate();
-  const isHome = location.pathname === '/';
 
   const goHome = () => {
     setActiveTab('home');
@@ -46,28 +44,13 @@ export const Header: React.FC<HeaderProps> = ({ setActiveTab, onOpenLogin, curre
     setActiveTab('care-guide');
   };
 
-  // "추모관"은 박스③(추모관 링크 입력창)이 대응하는데, 이건 박스①②와 달리 풀스크린
-  // 오버레이가 없고 홈의 진입 4박스 캐러셀 "두 번째 페이지"에만 있다. 예전엔 섹션까지만
-  // 스크롤시켰는데, 캐러셀이 항상 첫 페이지(박스①②)로 시작해서 실제로는 박스③ 링크 입력창이
-  // 안 보이는 채로 끝났다(2026-08-24 확인된 버그) — 그래서 EntryBoxes.tsx가 이미 쓰는
-  // ?entry=box1|box2 쿼리 관례를 box3까지 넓혀서, 페이지 전환까지 시킨다.
-  //
-  // 2026-08-24 추가 수정 — 처음엔 setActiveTab('home')(내부에서 navigate('/') 호출) 다음에
-  // navigate('/?entry=box3')를 또 불렀는데, 홈이 아닌 다른 페이지에서 진입할 때 같은 핸들러
-  // 안에서 navigate()를 연달아 두 번 호출하는 게 두 번째 호출을 씹어버려(홈 맨 위에만 도착,
-  // entry 파라미터가 안 붙음) 실제로 재현됐다 — navigate는 이 함수당 정확히 한 번만 부른다.
-  // setActiveTab이 대신 해주던 "떠나는 페이지 스크롤 위치 기억"만 직접 남겨둔다.
+  // 00-06 §8(SCR-018, 2026-09-03) — 예전엔 홈의 진입 4박스 캐러셀 "두 번째 페이지"(박스③,
+  // 추모관 링크 입력창)로만 보냈는데, 그러면 부고장을 만든 당사자가 정작 본인이 만든
+  // 부고장·추모관에 다시 들어갈 방법이 없었다(사용자 리포트). 이제 목록+링크입력을 함께 담은
+  // 전용 화면(MyObituaryListPage)으로 직접 보낸다 — 이 메뉴는 로그인 시에만 렌더되므로
+  // (아래 currentUser 가드) 로그아웃 분기는 필요 없다. 홈 박스③ 자체는 그대로 남겨둔다.
   const goToMemorialEntry = () => {
-    if (isHome) {
-      window.dispatchEvent(new Event('eobom:home-scroll-to-entry'));
-    } else {
-      const leavingTab = location.pathname.replace(/^\//, '') || 'home';
-      if (leavingTab !== 'home') {
-        sessionStorage.setItem(`eobom_scroll_${leavingTab}`, String(window.scrollY));
-      }
-      sessionStorage.setItem('eobom_scroll_home', '1');
-    }
-    navigate('/?entry=box3');
+    navigate('/my-obituaries');
   };
 
   return (

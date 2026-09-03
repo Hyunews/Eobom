@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { MessageSquare, Send, Copy, Plus, X, ChevronDown, ChevronUp, AlertTriangle, LogIn, Heart, PowerOff } from 'lucide-react';
 import { OBITUARY_CARD_IMAGE_URL } from '../config';
 import { apiFetch, ApiError } from '../lib/api';
@@ -70,6 +71,7 @@ const ObituaryManageSkeleton: React.FC = () => (
 );
 
 export const ObituaryPage: React.FC<ObituaryPageProps> = ({ currentUser, onOpenLogin }) => {
+  const [searchParams] = useSearchParams();
   const [loading, setLoading] = useState(true);
   const [obituaryRef, setObituaryRef] = useState<StoredObituaryRef | null>(null);
   // §5.3-2 — 종료·수정은 이 값(서버가 매번 응답으로 확인해준 id)만 쓴다. localStorage의
@@ -130,26 +132,33 @@ export const ObituaryPage: React.FC<ObituaryPageProps> = ({ currentUser, onOpenL
       setLoading(false);
       return;
     }
+
+    // 00-06 §8(SCR-018) — 목록 화면("관리" 버튼)에서 특정 부고장을 지목해 들어오는 경로.
+    // 있으면 localStorage 포인터보다 우선한다(부고장이 2개 이상일 때 마지막으로 연 것과
+    // 다른 것을 볼 수 있어야 하므로). 없으면 기존과 동일하게 포인터를 쓴다.
+    const querySlug = searchParams.get('slug');
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) {
-      setLoading(false);
-      return;
+    let ref: StoredObituaryRef | null = null;
+    if (!querySlug) {
+      if (!raw) {
+        setLoading(false);
+        return;
+      }
+      try {
+        ref = JSON.parse(raw);
+      } catch {
+        localStorage.removeItem(STORAGE_KEY); // 파싱조차 안 되면 힌트로도 못 쓰므로 이건 지운다
+        setLoading(false);
+        return;
+      }
     }
+    const targetSlug = querySlug || ref!.obituarySlug;
 
-    let ref: StoredObituaryRef;
-    try {
-      ref = JSON.parse(raw);
-    } catch {
-      localStorage.removeItem(STORAGE_KEY); // 파싱조차 안 되면 힌트로도 못 쓰므로 이건 지운다
-      setLoading(false);
-      return;
-    }
-
-    // §5.3-2 — localStorage 포인터는 "어느 slug를 열어볼지" 힌트일 뿐, 권한 신호가 아니다.
+    // §5.3-2 — 어느 경로로 왔든 slug는 "무엇을 열어볼지" 힌트일 뿐, 권한 신호가 아니다.
     // 다른 계정으로 로그인해 있어도 이 fetch 자체는 그대로 나가고, 그 사람 것인지는 서버의
     // isOwner로만 판정한다(아래). 종료된 뒤에도 개설자 본인은 계속 볼 수 있어야 하므로(§5.3-1)
     // 토큰을 실어 보낸다 — 없으면 서버가 익명 조회로 보고 종료 시 404를 준다.
-    apiFetch<any>(`/api/obituaries/${ref.obituarySlug}`, 'USER')
+    apiFetch<any>(`/api/obituaries/${targetSlug}`, 'USER')
       .then((o) => {
         // 🔴 §5.3-2 핵심 — 서버가 "당신 것"이라고 확인해준 경우에만 관리 모드로 들어간다.
         // 아니면 폼을 채우지 않고(남의 데이터를 화면에 띄우는 것이 이번 사고의 본질) 조용히
@@ -157,7 +166,12 @@ export const ObituaryPage: React.FC<ObituaryPageProps> = ({ currentUser, onOpenL
         // 살아나야 한다(§5.3-2 마지막 줄).
         if (!o.isOwner) return;
 
-        setObituaryRef(ref);
+        // 목록 화면에서 지목해 들어온 경우(querySlug)에도 이후 이 화면을 다시 열면 방금 본
+        // 부고장이 이어지도록 포인터를 갱신한다 — "마지막으로 연 것" 힌트일 뿐 권한 신호는
+        // 아니므로(§5.3-2) 그냥 덮어써도 안전하다.
+        const resolvedRef: StoredObituaryRef = { obituaryId: o.obituaryId, obituarySlug: targetSlug, memorialSlug: o.memorialSlug };
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(resolvedRef));
+        setObituaryRef(resolvedRef);
         setObituaryId(o.obituaryId);
         setDeceasedName(o.deceasedName || '');
         setDeathDate(o.deceasedDeathDate ? String(o.deceasedDeathDate).slice(0, 16) : '');
@@ -189,7 +203,7 @@ export const ObituaryPage: React.FC<ObituaryPageProps> = ({ currentUser, onOpenL
         setUpdatedAt(o.updatedAt || null);
         setIsClosed(!!o.isClosed);
         setClosedAt(o.closedAt || null);
-        setObituaryUrl(`${window.location.origin}/o/${ref.obituarySlug}`);
+        setObituaryUrl(`${window.location.origin}/o/${targetSlug}`);
         setMemorialUrl(`${window.location.origin}/m/${o.memorialSlug}`);
         // 개설 시 이미 완료한 동의 — 수정 화면에서 다시 요구하지 않는다(체크된 상태로 표시).
         setFalseReportAgreed(true);
@@ -197,11 +211,15 @@ export const ObituaryPage: React.FC<ObituaryPageProps> = ({ currentUser, onOpenL
       })
       .catch(() => {
         // 실제로 없어진 경우(삭제 등)만 여기로 온다 — 남의 것이라 막힌 경우는 200 + isOwner:false로
-        // 오므로 이 분기를 안 탄다(§5.3-2). 진짜 없는 것만 정리한다.
-        localStorage.removeItem(STORAGE_KEY);
+        // 오므로 이 분기를 안 탄다(§5.3-2). 진짜 없는 것만 정리한다. querySlug로 들어왔는데 그게
+        // localStorage 포인터와 다른 부고장이면, 포인터가 가리키는 다른(멀쩡한) 부고장까지
+        // 지울 이유가 없으므로 그대로 둔다.
+        if (!querySlug || ref?.obituarySlug === querySlug) {
+          localStorage.removeItem(STORAGE_KEY);
+        }
       })
       .finally(() => setLoading(false));
-  }, [currentUser]);
+  }, [currentUser, searchParams]);
 
   const addMourner = () => setMourners((prev) => [...prev, { name: '', relationship: '' }]);
   const updateMourner = (idx: number, field: keyof MournerDraft, value: string) =>

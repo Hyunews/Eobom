@@ -394,3 +394,40 @@ export const closeObituary = async (req: Request, res: Response) => {
     return res.status(500).json({ status: 'error', message: '부고장 종료 중 오류가 발생했습니다.' });
   }
 };
+
+// 내가 만든 부고장 목록 (`GET /api/me/obituaries`) — 00-06 §8.3(SCR-018), 07-03 §9 9-2 승격.
+// `/api/me/memorials`(listMyMemorials)와는 별개 엔드포인트다 — 이쪽은 부고장 링크(/o/:slug)까지
+// 함께 내려줘야 해서 Obituary를 기준으로, memorial은 denormalize된 표시용 필드만 include한다.
+export const listMyObituaries = async (req: Request, res: Response) => {
+  const decoded = verifyBearerToken(req);
+  if (!decoded) {
+    return res.status(401).json({ status: 'error', message: '로그인이 필요합니다.' });
+  }
+
+  try {
+    const obituaries = await prisma.obituary.findMany({
+      where: { createdByUserId: decoded.id },
+      orderBy: { createdAt: 'desc' },
+      include: { memorial: { select: { slug: true, deceasedName: true, deceasedDeathDate: true } } },
+    });
+
+    const data = obituaries.map((o) => ({
+      id: o.id,
+      slug: o.slug,
+      memorialSlug: o.memorial.slug,
+      deceasedName: o.memorial.deceasedName,
+      deceasedDeathDate: o.memorial.deceasedDeathDate,
+      funeralHall: o.funeralHall,
+      mourningRoom: o.mourningRoom,
+      funeralAt: o.funeralAt,
+      closedAt: o.closedAt,
+      isClosed: isObituaryClosed(o),
+      createdAt: o.createdAt,
+    }));
+
+    return res.json({ status: 'success', data });
+  } catch (error) {
+    console.error('내 부고장 목록 조회 실패:', error);
+    return res.status(500).json({ status: 'error', message: '목록 조회 중 오류가 발생했습니다.' });
+  }
+};
