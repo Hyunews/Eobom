@@ -144,7 +144,15 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
     }
   };
 
+  // 섹션별로 아직 저장 버튼을 안 눌러 서버에 못 나간 "가족 공개 시점" 변경분 — designationId 기준.
+  // useState가 아니라 ref인 이유: 이 값 자체가 화면에 그려지지 않는다(화면은 grants로 그린다) —
+  // 저장 버튼 클릭 시점에만 참조하면 되므로 리렌더를 유발할 필요가 없다.
+  const pendingGrantChangesRef = useRef<Record<string, Record<string, { timing: string | null; grantId?: string }>>>({});
+
   // §7.4 — timing은 서버가 정한다(클라이언트는 value만 보낸다). §6.2 — 응답의 sectionState로 갱신.
+  // 🔴 2026-09-03 — 그 섹션에 대기 중인 "가족 공개 시점" 변경(pendingGrantChangesRef)도 같은
+  // 저장 버튼으로 함께 내보낸다. 공개 시점만 별도로 즉시 저장되면 사람이 보기에 "다른 아코디언
+  // 저장 버튼을 눌렀더니 반영됐다"처럼 인과관계가 헷갈린다 — 본문과 동일하게 저장 버튼이 기준.
   const saveSection = useCallback(
     async (section: string, value: unknown) => {
       if (!token) return;
@@ -155,6 +163,26 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
           body: JSON.stringify({ value }),
         });
         setSectionState(data.sectionState || {});
+
+        const pending = pendingGrantChangesRef.current[section];
+        if (pending) {
+          await Promise.all(
+            Object.entries(pending).map(async ([designationId, change]) => {
+              if (change.timing === null) {
+                if (!change.grantId) return; // 이미 비공개라 철회할 것이 없음
+                await apiFetch(`/api/ending-note/grants/${change.grantId}/revoke`, 'USER', { method: 'PATCH' });
+              } else {
+                const updated = await apiFetch<GrantItem>('/api/ending-note/grants', 'USER', {
+                  method: 'PUT',
+                  body: JSON.stringify({ designationId, section, timing: change.timing }),
+                });
+                setGrants((prev) => prev.map((g) => (g.designationId === designationId && g.section === section ? updated : g)));
+              }
+            })
+          );
+          delete pendingGrantChangesRef.current[section];
+        }
+
         setSavingState((s) => ({ ...s, [section]: 'saved' }));
         setTimeout(() => setSavingState((s) => ({ ...s, [section]: 'idle' })), 2000);
       } catch {
@@ -164,46 +192,29 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
     [token]
   );
 
-  // §10 Phase 2 — 공개 시점 변경. timing이 null이면 철회, 아니면 upsert.
-  // 🔴 낙관적 업데이트(2026-09-03) — select는 요청 전에 먼저 반응한다. 백엔드가 Render(오리건)
-  // ↔ DB Supabase(서울)라 DB를 타는 API가 왕복 ~1.5초 걸리는 게 실측돼 있고(systems.md §5),
-  // PUT/PATCH 후 목록을 통째로 재조회하던 옛 방식은 왕복이 2번 겹쳐 2초 넘게 걸렸다(사람 보고).
-  // 실패 시에는 요청 전 스냅샷으로 되돌려 서버 상태와 어긋난 채로 남기지 않는다.
+  // §10 Phase 2 — 공개 시점 변경. select는 즉시 반응하되(화면=grants 낙관적 갱신), 서버 전송은
+  // 안 한다 — 그 섹션의 "저장" 버튼을 눌러야 나간다(pendingGrantChangesRef에 쌓아만 둠, 위 saveSection 참고).
   const handleGrantChange = useCallback(
-    async (section: string, designationId: string, timing: string | null, grantId?: string) => {
-      if (!token) return;
-      const snapshot = grants;
-      if (timing === null) {
-        if (!grantId) return; // 이미 비공개라 철회할 것이 없음
-        setGrants((prev) => prev.map((g) => (g.id === grantId ? { ...g, revokedAt: new Date().toISOString() } : g)));
-      } else {
-        setGrants((prev) => {
-          const idx = prev.findIndex((g) => g.designationId === designationId && g.section === section);
-          if (idx === -1) {
-            return [...prev, { id: `temp-${designationId}-${section}`, designationId, section, timing, revokedAt: null, updatedAt: new Date().toISOString() }];
-          }
-          const next = [...prev];
-          next[idx] = { ...next[idx], timing, revokedAt: null };
-          return next;
-        });
-      }
-      try {
+    (section: string, designationId: string, timing: string | null, grantId?: string) => {
+      setGrants((prev) => {
         if (timing === null) {
-          await apiFetch(`/api/ending-note/grants/${grantId}/revoke`, 'USER', { method: 'PATCH' });
-        } else {
-          // 서버가 돌려주는 실제 id로 임시 항목(temp-…)을 교체한다 — 안 하면 바로 이어지는
-          // 철회 요청이 존재하지 않는 temp id로 나간다.
-          const updated = await apiFetch<GrantItem>('/api/ending-note/grants', 'USER', {
-            method: 'PUT',
-            body: JSON.stringify({ designationId, section, timing }),
-          });
-          setGrants((prev) => prev.map((g) => (g.designationId === designationId && g.section === section ? updated : g)));
+          if (!grantId) return prev; // 이미 비공개라 철회할 것이 없음
+          return prev.map((g) => (g.id === grantId ? { ...g, revokedAt: new Date().toISOString() } : g));
         }
-      } catch {
-        setGrants(snapshot);
-      }
+        const idx = prev.findIndex((g) => g.designationId === designationId && g.section === section);
+        if (idx === -1) {
+          return [...prev, { id: `temp-${designationId}-${section}`, designationId, section, timing, revokedAt: null, updatedAt: new Date().toISOString() }];
+        }
+        const next = [...prev];
+        next[idx] = { ...next[idx], timing, revokedAt: null };
+        return next;
+      });
+      pendingGrantChangesRef.current[section] = {
+        ...pendingGrantChangesRef.current[section],
+        [designationId]: { timing, grantId },
+      };
     },
-    [token, grants]
+    []
   );
 
   // 아코디언 헤더 클릭 — 동의 전이면 펼치지 않고 상단 동의 안내로 스크롤한다.

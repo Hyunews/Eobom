@@ -14,6 +14,16 @@
 > 막습니다 — 줄어든 크기를 근거로 여는 순간 아카이빙이 손해로 뒤집힙니다.
 
 ---
+## 2026-09-03 (117) | [Sonnet] "가족 공개 시점" 저장을 섹션 저장 버튼과 통합
+
+- **근거 스펙**: 전용 스펙 없음 — 사람 지시(2026-09-03). "각각의 아코디언의 저장버튼이 다른 아코디언의 내용을 반영해서는 안됨"으로 시작된 신고를 조사하는 과정에서, 실제로는 다른 섹션 저장과 무관하게 `handleGrantChange`가 select `onChange` 시점에 저장 버튼 없이 즉시 서버로 나가고 있었음(wt116 이후 낙관적 업데이트 수정, `24fdc77`)을 확인. 우연히 그 백그라운드 요청 완료 시점과 다른 아코디언 저장 클릭이 겹쳐 인과관계처럼 보였을 뿐 실제 크로스 섹션 오염은 아니었다. 이후 사람이 "공개 시점도 저장버튼을 눌러야 반영되게 하라"고 재지시.
+- **건드린 파일**: `eobom/frontend/src/pages/EndingNotePage.tsx`
+- **결과**: `handleGrantChange`에서 네트워크 호출(`PUT /grants`·`PATCH /grants/:id/revoke`)을 제거하고, 대신 `pendingGrantChangesRef`(섹션별·designationId별 대기 변경 맵, `useRef`)에 쌓기만 하도록 변경. `grants` 상태에 대한 낙관적 갱신은 유지해 select 선택은 여전히 즉시 화면에 반영된다. `saveSection`이 본문 PUT 성공 후 `pendingGrantChangesRef.current[section]`을 확인해 대기 중인 변경을 그때 한꺼번에 서버로 보내고 성공 시 비운다(실패 시 남겨둬 재시도 시 다시 나가도록). 결과적으로 본문·공개시점 모두 그 아코디언의 "저장" 버튼을 눌러야만 서버에 반영된다. `npx tsc --noEmit`(frontend) 에러 0, `npm run build`(frontend) 통과.
+- **편차**: 없음 — 사람이 명시적으로 재지시한 사양 변경.
+- **다음 에이전트가 알아야 할 것**: `pendingGrantChangesRef`는 `useState`가 아니라 `useRef`다 — 화면에 그리는 값이 아니라 저장 버튼 클릭 시점에만 참조하면 되므로 의도적으로 리렌더를 안 일으키게 했다. 브라우저 실기동은 안 했다 — 사람이 직접 확인 예정(가족 공개 시점 변경 후 저장 버튼 안 누르고 새로고침 시 되돌아가는지, 저장 버튼 누르면 반영되는지).
+
+<!-- Gemini 판정 1줄: 대기 -->
+
 ## 2026-09-03 (116) | [Sonnet] 배포서버 `POST /api/family-designations` 500 진단 — `render.yaml`에 `HASH_INDEX_KEY` 누락
 
 - **근거 스펙**: `docs/00_핵심플랫폼/00-33_암호화_키_관리_및_교체_전략_명세서.md` §4.3-1·§7.2 · `docs/트러블슈팅/TS-001_해시_키_파생_결합.md`(2026-09-01 닫힘, 조치 1 "hashField가 전용 env HASH_INDEX_KEY를 읽도록 변경").
