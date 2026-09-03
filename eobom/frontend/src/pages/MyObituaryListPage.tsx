@@ -31,7 +31,9 @@ export const MyObituaryListPage: React.FC = () => {
   const navigate = useNavigate();
   const [obituaries, setObituaries] = useState<MyObituary[] | null>(null);
   const [loadError, setLoadError] = useState(false);
-  const [shareFeedback, setShareFeedback] = useState<string | null>(null);
+  // 카드별로 다른 부고장·추모관을 다루므로, 문구도 어느 카드 것인지(id) 함께 들고 그 카드
+  // 아래에만 렌더한다 — 예전엔 전역 문자열 하나라 목록 맨 아래(마지막 카드 밖)에 떴다(사람 리포트).
+  const [feedback, setFeedback] = useState<{ id: string; message: string } | null>(null);
 
   const [linkInput, setLinkInput] = useState('');
   const [linkError, setLinkError] = useState('');
@@ -88,7 +90,7 @@ export const MyObituaryListPage: React.FC = () => {
     if (shareViaKakao(params)) return;
     if (await shareViaWebShareApi(params)) return;
     const copied = await copyObituaryLink(url);
-    setShareFeedback(copied ? '카카오톡 공유를 열 수 없어 링크를 복사했습니다.' : '공유에 실패했습니다. 아래 링크를 직접 복사해 주세요.');
+    setFeedback({ id: o.id, message: copied ? '카카오톡 공유를 열 수 없어 링크를 복사했습니다.' : '공유에 실패했습니다. 아래 링크를 직접 복사해 주세요.' });
   };
 
   // 부고장 삭제 — 진행중·종료 모두 대상, 되돌리기 없음(handleCloseObituary와 같은 window.confirm
@@ -100,7 +102,7 @@ export const MyObituaryListPage: React.FC = () => {
       await apiFetch(`/api/obituaries/${o.id}`, 'USER', { method: 'DELETE' });
       setObituaries((prev) => (prev ? prev.filter((item) => item.id !== o.id) : prev));
     } catch {
-      setShareFeedback('부고장 삭제에 실패했습니다. 잠시 후 다시 시도해주세요.');
+      setFeedback({ id: o.id, message: '부고장 삭제에 실패했습니다. 잠시 후 다시 시도해주세요.' });
     } finally {
       setDeletingId(null);
     }
@@ -110,7 +112,7 @@ export const MyObituaryListPage: React.FC = () => {
   const copyMemorialAddress = async (o: MyObituary) => {
     const url = `${window.location.origin}/m/${o.memorialSlug}`;
     const copied = await copyObituaryLink(url);
-    setShareFeedback(copied ? '추모관 주소가 복사되었습니다.' : '복사에 실패했습니다. 주소창의 링크를 직접 복사해 주세요.');
+    setFeedback({ id: o.id, message: copied ? '추모관 주소가 복사되었습니다.' : '복사에 실패했습니다. 주소창의 링크를 직접 복사해 주세요.' });
   };
 
   const cardStyle: React.CSSProperties = {
@@ -223,13 +225,13 @@ export const MyObituaryListPage: React.FC = () => {
                     <Copy size={13} /> 주소 복사
                   </button>
                 </div>
+
+                {feedback?.id === o.id && (
+                  <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{feedback.message}</p>
+                )}
               </div>
             ))}
           </div>
-        )}
-
-        {shareFeedback && (
-          <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '0.8rem' }}>{shareFeedback}</p>
         )}
 
         <button
