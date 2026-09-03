@@ -14,6 +14,28 @@
 > 막습니다 — 줄어든 크기를 근거로 여는 순간 아카이빙이 손해로 뒤집힙니다.
 
 ---
+## 2026-09-03 (111) | [Sonnet] `MyObituaryListPage` 공유 방식 분리 — 부고장 카톡 / 추모관 주소복사
+
+- **근거 스펙**: 전용 스펙 없음 — 사람 지시(wt110 직후, 2026-09-03). 부고장 공유는 카카오톡
+  링크로 연결돼야 하고, 추모관 쪽은 "공유" 대신 "주소 복사"로 바꿔 주소만 복사되게 하라는
+  구체 지시. `07-03` §7 폴백 사다리(1순위 Kakao.Share→2순위 WebShare→3순위 복사)와
+  `ObituaryPage.tsx`의 기존 구현 패턴을 그대로 재사용해 반영.
+- **건드린 파일**: `eobom/frontend/src/pages/MyObituaryListPage.tsx`.
+- **결과**:
+  - 부고장 "공유" 버튼 — `shareViaWebShareApi` 단독 호출에서 `ObituaryPage.tsx`와 동일한
+    3단 사다리(`shareViaKakao`→`shareViaWebShareApi`→`copyObituaryLink`)로 교체.
+    `Kakao.Share.sendDefault`가 클릭 핸들러 안에서 동기 호출돼야 팝업 차단을 피하므로
+    `ensureKakaoShareReady()`를 마운트 시 `useEffect`로 미리 불러둠. 카드 문구는 기존과
+    동일하게 `formatObituaryCardTitle/Description` 재사용, 이미지는 `OBITUARY_CARD_IMAGE_URL`.
+  - 추모관 쪽 버튼 — 이름을 "공유"→"주소 복사"로 바꾸고 아이콘도 `Share2`→`Copy`로 교체,
+    동작도 공유 시트를 거치지 않고 `copyObituaryLink`만 호출하도록 단순화(`shareMemorial` →
+    `copyMemorialAddress`로 이름 변경).
+- **검증**: `npm run build`(frontend) 통과, 번들 527.54 kB(gzip 151.17 kB). 브라우저 실동작
+  (카톡 공유 시트 노출, 클립보드 복사 문구)은 dev 서버를 띄우지 않아 미확인.
+- **편차**: 없음 — 사람 지시 그대로.
+- **다음 에이전트가 알아야 할 것**: 없음.
+
+---
 ## 2026-09-03 (110) | [Sonnet] `SCR-018` 내 부고장·추모관 — 헤더 진입점 신설
 
 - **근거 스펙**: `docs/00_핵심플랫폼/00-06_화면_설계서_및_와이어프레임.md` §8(`SCR-018`,
