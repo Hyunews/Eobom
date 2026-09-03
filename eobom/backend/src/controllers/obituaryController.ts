@@ -395,6 +395,31 @@ export const closeObituary = async (req: Request, res: Response) => {
   }
 };
 
+// 부고장 삭제 (`DELETE /api/obituaries/:id`) — 개설자만, 되돌리기 없음. 진행중·종료 모두 대상.
+// E안(§9 상단 주석) 그대로 부고장(봉투)만 지운다 — 추모관(목적지)·Deceased는 남긴다. 추모관은
+// listMyMemorials 쪽에서 별도로 관리되는 자원이라 여기서 함께 지우지 않는다.
+// ObituaryMourner는 schema.prisma의 onDelete: Cascade로 함께 정리된다.
+export const deleteObituary = async (req: Request, res: Response) => {
+  const decoded = verifyBearerToken(req);
+  if (!decoded) {
+    return res.status(401).json({ status: 'error', message: '로그인이 필요합니다.' });
+  }
+
+  try {
+    const existing = await prisma.obituary.findUnique({ where: { id: req.params.id } });
+    if (!existing || existing.createdByUserId !== decoded.id) {
+      return res.status(404).json({ status: 'error', message: '부고장을 찾을 수 없습니다.' });
+    }
+
+    await prisma.obituary.delete({ where: { id: existing.id } });
+
+    return res.json({ status: 'success' });
+  } catch (error) {
+    console.error('부고장 삭제 실패:', error);
+    return res.status(500).json({ status: 'error', message: '부고장 삭제 중 오류가 발생했습니다.' });
+  }
+};
+
 // 내가 만든 부고장 목록 (`GET /api/me/obituaries`) — 00-06 §8.3(SCR-018), 07-03 §9 9-2 승격.
 // `/api/me/memorials`(listMyMemorials)와는 별개 엔드포인트다 — 이쪽은 부고장 링크(/o/:slug)까지
 // 함께 내려줘야 해서 Obituary를 기준으로, memorial은 denormalize된 표시용 필드만 include한다.

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Flower2, FileEdit, ExternalLink, Share2, Copy, ArrowRight } from 'lucide-react';
+import { Flower2, FileEdit, ExternalLink, Share2, Copy, ArrowRight, Trash2 } from 'lucide-react';
 import { apiFetch } from '../lib/api';
 import { OBITUARY_CARD_IMAGE_URL } from '../config';
 import { formatKST, formatObituaryCardTitle, formatObituaryCardDescription } from '../utils/obituaryCard';
@@ -35,6 +35,7 @@ export const MyObituaryListPage: React.FC = () => {
 
   const [linkInput, setLinkInput] = useState('');
   const [linkError, setLinkError] = useState('');
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   useEffect(() => {
     apiFetch<MyObituary[]>('/api/me/obituaries', 'USER')
@@ -88,6 +89,21 @@ export const MyObituaryListPage: React.FC = () => {
     if (await shareViaWebShareApi(params)) return;
     const copied = await copyObituaryLink(url);
     setShareFeedback(copied ? '카카오톡 공유를 열 수 없어 링크를 복사했습니다.' : '공유에 실패했습니다. 아래 링크를 직접 복사해 주세요.');
+  };
+
+  // 부고장 삭제 — 진행중·종료 모두 대상, 되돌리기 없음(handleCloseObituary와 같은 window.confirm
+  // 패턴, ObituaryPage.tsx). 부고장(봉투)만 지운다 — 추모관(목적지)은 남는다(백엔드 주석 참고).
+  const deleteObituary = async (o: MyObituary) => {
+    if (!window.confirm(`부고장만 삭제됩니다. 추모관은 삭제되지 않고 그대로 유지됩니다.\n\n故 ${o.deceasedName}님의 부고장을 삭제하시겠어요? 삭제하면 되돌릴 수 없습니다.`)) return;
+    setDeletingId(o.id);
+    try {
+      await apiFetch(`/api/obituaries/${o.id}`, 'USER', { method: 'DELETE' });
+      setObituaries((prev) => (prev ? prev.filter((item) => item.id !== o.id) : prev));
+    } catch {
+      setShareFeedback('부고장 삭제에 실패했습니다. 잠시 후 다시 시도해주세요.');
+    } finally {
+      setDeletingId(null);
+    }
   };
 
   // 추모관은 공유 시트를 거치지 않고 주소만 복사한다 — 사람 지시(2026-09-03).
@@ -162,14 +178,31 @@ export const MyObituaryListPage: React.FC = () => {
                       {o.deceasedDeathDate ? `사망일 ${formatKST(o.deceasedDeathDate)}` : `개설일 ${formatKST(o.createdAt)}`}
                     </p>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => navigate(`/obituary?slug=${o.slug}`)}
-                    className="btn"
-                    style={{ height: '36px', padding: '0 0.8rem', fontSize: '0.82rem', backgroundColor: 'var(--card-bg)', border: '1px solid #CBD5E1', flexShrink: 0 }}
-                  >
-                    관리
-                  </button>
+                  <div style={{ display: 'flex', gap: '0.4rem', flexShrink: 0 }}>
+                    {!o.isClosed && (
+                      <button
+                        type="button"
+                        onClick={() => navigate(`/obituary?slug=${o.slug}`)}
+                        className="btn"
+                        style={{ height: '36px', padding: '0 0.8rem', fontSize: '0.82rem', backgroundColor: 'var(--card-bg)', border: '1px solid #CBD5E1' }}
+                      >
+                        수정
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => deleteObituary(o)}
+                      disabled={deletingId === o.id}
+                      className="btn"
+                      style={{
+                        height: '36px', padding: '0 0.8rem', fontSize: '0.82rem', backgroundColor: 'var(--card-bg)',
+                        border: '1px solid #FCA5A5', color: '#B91C1C', opacity: deletingId === o.id ? 0.6 : 1,
+                        display: 'inline-flex', alignItems: 'center', gap: '0.3rem',
+                      }}
+                    >
+                      <Trash2 size={14} /> 삭제
+                    </button>
+                  </div>
                 </div>
 
                 <div style={linkGroupStyle}>
