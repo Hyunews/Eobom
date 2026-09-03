@@ -382,69 +382,69 @@ export const HomePage: React.FC<HomePageProps> = ({ currentUser, onOpenLogin, se
               화면이 넓을수록 "왼쪽에 쏠려 보인다"는 인상을 준다. 헤더 로고·진입 4박스 등
               나머지 섹션과 같은 중앙 정렬 기준선 안에서, 텍스트만 그 기준선의 왼쪽에 앉힌다. */}
           <div style={{ width: '100%', maxWidth: '1440px', margin: '0 auto', padding: '0 6vw', position: 'relative', zIndex: 1 }}>
-          <div className="hero-content-card" style={{ maxWidth: '640px', width: '100%' }}>
-            <div
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '0.5rem',
-                backgroundColor: '#FFFFFF',
-                border: '1px solid #DFDCD7',
-                padding: '0.45rem 1rem',
-                borderRadius: '20px',
-                fontSize: '0.88rem',
-                color: 'var(--point-color)',
-                fontWeight: 700,
-                marginBottom: '1.3rem',
-                boxShadow: '0 2px 6px rgba(0,0,0,0.04)'
-              }}
-            >
-              <Sparkles size={16} color="var(--point-color)" /> 이어봄 (Eobom) 디지털 엔딩 &amp; 웰다잉 토탈 케어
-            </div>
-
-            <h1
-              style={{
-                fontSize: 'clamp(2rem, 4vw, 3.1rem)',
-                fontWeight: 700,
-                color: '#1A2B4C',
-                lineHeight: 1.35,
-                fontFamily: "'KoPub World Batang', 'KoPubWorld 명조', serif",
-                marginBottom: '1.3rem',
-                letterSpacing: '-0.02em'
-              }}
-            >
-              장례가 끝이 아니었습니다
-            </h1>
-
-            <p style={{ fontSize: '1.12rem', color: '#6C7A89', lineHeight: 1.75, marginBottom: '2.2rem', maxWidth: '560px' }}>
-              미리 남기는 <strong style={{ color: '#1A2B4C', fontWeight: 700 }}>평온한 생전 준비</strong>부터{' '}
-              <strong style={{ color: '#1A2B4C', fontWeight: 700 }}>장사시설 매칭</strong>,{' '}
-              <strong style={{ color: '#1A2B4C', fontWeight: 700 }}>복잡한 사후 행정</strong>, 그리고{' '}
-              <strong style={{ color: '#1A2B4C', fontWeight: 700 }}>영원한 기억의 온라인 추모관</strong>까지.
-              <br />
-              이어봄이 삶의 마지막 여정과 남겨진 가족의 시간을 온전히 연결합니다.
-            </p>
-
-            <div className="hero-cta-row">
-              <button type="button" onClick={handleHeroPrimaryCTA} className="btn btn-primary" style={{ height: '58px', fontSize: '1.05rem' }}>
-                장례 준비 및 사후 정리 →
-              </button>
-              <button
-                type="button"
-                onClick={handleHeroSecondaryCTA}
-                className="btn"
+            <div className="hero-content-card" style={{ maxWidth: '640px', width: '100%' }}>
+              <div
                 style={{
-                  height: '58px',
-                  fontSize: '1.05rem',
-                  backgroundColor: 'transparent',
-                  color: '#1A2B4C',
-                  border: '1.5px solid #1A2B4C'
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '0.5rem',
+                  backgroundColor: '#FFFFFF',
+                  border: '1px solid #DFDCD7',
+                  padding: '0.45rem 1rem',
+                  borderRadius: '20px',
+                  fontSize: '0.88rem',
+                  color: 'var(--point-color)',
+                  fontWeight: 700,
+                  marginBottom: '1.3rem',
+                  boxShadow: '0 2px 6px rgba(0,0,0,0.04)'
                 }}
               >
-                미리 준비하려 합니다 →
-              </button>
+                <Sparkles size={16} color="var(--point-color)" /> 디지털 엔딩 &amp; 웰다잉 토탈 케어 이어봄 (Eobom)
+              </div>
+
+              <h1
+                style={{
+                  fontSize: 'clamp(2rem, 4vw, 3.1rem)',
+                  fontWeight: 700,
+                  color: '#1A2B4C',
+                  lineHeight: 1.35,
+                  fontFamily: "'KoPub World Batang', 'KoPubWorld 명조', serif",
+                  marginBottom: '1.3rem',
+                  letterSpacing: '-0.02em'
+                }}
+              >
+                장례가 끝이 아니었습니다
+              </h1>
+
+              <p style={{ fontSize: '1.12rem', color: '#6C7A89', lineHeight: 1.75, marginBottom: '2.2rem', maxWidth: '560px' }}>
+                미리 남기는 <strong style={{ color: '#1A2B4C', fontWeight: 700 }}>평온한 생전 준비</strong>부터{' '}
+                <strong style={{ color: '#1A2B4C', fontWeight: 700 }}>장사시설 매칭</strong>,{' '}
+                <strong style={{ color: '#1A2B4C', fontWeight: 700 }}>복잡한 사후 행정</strong>, 그리고{' '}
+                <strong style={{ color: '#1A2B4C', fontWeight: 700 }}>영원한 기억의 온라인 추모관</strong>까지.
+                <br />
+                이어봄이 삶의 마지막 여정과 남겨진 가족의 시간을 온전히 연결합니다.
+              </p>
+
+              <div className="hero-cta-row">
+                <button type="button" onClick={handleHeroPrimaryCTA} className="btn btn-primary" style={{ height: '58px', fontSize: '1.05rem' }}>
+                  장례 준비 및 사후 정리 →
+                </button>
+                <button
+                  type="button"
+                  onClick={handleHeroSecondaryCTA}
+                  className="btn"
+                  style={{
+                    height: '58px',
+                    fontSize: '1.05rem',
+                    backgroundColor: 'transparent',
+                    color: '#1A2B4C',
+                    border: '1.5px solid #1A2B4C'
+                  }}
+                >
+                  미리 준비하려 합니다 →
+                </button>
+              </div>
             </div>
-          </div>
           </div>
         </section>
 
