@@ -12,8 +12,8 @@ Cloudflare Worker. 두 버킷 모두 R2 바인딩으로 접근하며 S3 액세�
 완성된다.
 
 1. `npm install` (이 폴더에서)
-2. 아카이브 버킷 생성: `npx wrangler r2 bucket create eobom-farewell-voice-archive`
-3. 큐 생성: `npx wrangler queues create eobom-r2-archive-queue`
+2. 아카이브 버킷 생성: `npx wrangler r2 bucket create eobom-farewell-voice-archive --location apac`
+3. 큐 생성: `npx wrangler queues create eobom-r2-archive-queue --message-retention-period-secs 86400`
 4. 워커 배포: `npm run deploy`
 5. 원본 버킷(`eobom-farewell-voice`)에 Event Notification 규칙 연결 — 대시보드
    (R2 → 버킷 선택 → Settings → Event Notifications → PutObject → 위 큐 지정) 또는
