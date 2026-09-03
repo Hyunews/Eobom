@@ -50,7 +50,7 @@ export const VoiceToTextInput: React.FC<VoiceToTextInputProps> = ({ token, onTex
       .then((data) => {
         if (data.status === 'success') setSttUploadEnabled(!!data.data?.enabled);
       })
-      .catch(() => {});
+      .catch(() => { });
   }, []);
 
   const startRecording = () => {
@@ -228,7 +228,6 @@ export const VoiceToTextInput: React.FC<VoiceToTextInputProps> = ({ token, onTex
 
           <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '0.6rem' }}>
             m4a · mp3 · wav 파일을 올릴 수 있습니다(최대 {MAX_UPLOAD_SIZE_BYTES / 1024 / 1024}MB).
-            무료 인식 한도가 짧아 10~30초 정도의 짧은 파일로 먼저 확인해 보시길 권합니다.
           </p>
 
           <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '0.9rem' }}>
