@@ -14,6 +14,16 @@
 > 막습니다 — 줄어든 크기를 근거로 여는 순간 아카이빙이 손해로 뒤집힙니다.
 
 ---
+## 2026-09-03 (118) | [Sonnet] "한눈에 보기"가 미저장 라이브 값 대신 저장된 스냅샷을 보여주도록 수정
+
+- **근거 스펙**: 전용 스펙 없음 — 사람 지시(2026-09-03, wt117 직후). "한눈에 보기에는 저장된 상태를 기준으로 보여줘야함. 현재 떠있는 상태가 아닌." wt117에서 섹션 저장이 저장 버튼 기준으로 바뀌었는데, `summaryRows`(한눈에 보기 데이터)는 여전히 `lifeSupport`·`funeralType` 등 라이브 입력 상태와 `grants`(낙관적 갱신 포함)를 직접 읽고 있어 미저장 편집분이 요약에 그대로 비치는 문제가 남아있었다.
+- **건드린 파일**: `eobom/frontend/src/pages/EndingNotePage.tsx`
+- **결과**: `savedSectionValues`(섹션별 마지막 저장 payload 스냅샷)와 `savedGrants`(서버 확정 grants 스냅샷) 두 `useState`를 추가. 초기 로드 시 서버 응답으로 채우고, `saveSection`이 본문 PUT과 대기 중인 grant 변경을 성공적으로 반영할 때마다 해당 스냅샷도 같이 갱신한다. `summaryRows`의 각 case와 `sectionTimingBadge`를 라이브 상태(`lifeSupport`·`grants` 등) 대신 `savedSectionValues`·`savedGrants`를 읽도록 전부 교체. 아코디언 안 입력 필드·`SectionTimingControl` select 자체는 그대로 라이브 상태를 써서 즉시 반응은 유지(요약만 저장 기준). `npx tsc --noEmit`(frontend) 에러 0, `npm run build`(frontend) 통과.
+- **편차**: 없음 — 사람이 명시적으로 재지시한 사양 변경.
+- **다음 에이전트가 알아야 할 것**: `savedSectionValues[section]`은 `sectionPayloads[section]()`과 동일한 모양이다(예: `CONTACTS`는 `{contactsNote, petCaretaker}`). 새 섹션을 추가할 때는 `sectionPayloads`·초기 로드의 `bySection` 매핑·`summaryRows`의 case 세 곳을 같은 모양으로 맞춰야 한다. 브라우저 실기동 안 함 — 사람이 직접 확인 예정(어떤 섹션을 편집만 하고 저장 안 한 채 한눈에 보기를 열면 이전 저장값이 보이는지, 저장 후에는 새 값이 보이는지).
+
+<!-- Gemini 판정 1줄: 대기 -->
+
 ## 2026-09-03 (117) | [Sonnet] "가족 공개 시점" 저장을 섹션 저장 버튼과 통합
 
 - **근거 스펙**: 전용 스펙 없음 — 사람 지시(2026-09-03). "각각의 아코디언의 저장버튼이 다른 아코디언의 내용을 반영해서는 안됨"으로 시작된 신고를 조사하는 과정에서, 실제로는 다른 섹션 저장과 무관하게 `handleGrantChange`가 select `onChange` 시점에 저장 버튼 없이 즉시 서버로 나가고 있었음(wt116 이후 낙관적 업데이트 수정, `24fdc77`)을 확인. 우연히 그 백그라운드 요청 완료 시점과 다른 아코디언 저장 클릭이 겹쳐 인과관계처럼 보였을 뿐 실제 크로스 섹션 오염은 아니었다. 이후 사람이 "공개 시점도 저장버튼을 눌러야 반영되게 하라"고 재지시.

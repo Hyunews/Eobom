@@ -62,6 +62,12 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
   // 같은 규칙으로 한 번 더 막는다)과 현재 권한 목록.
   const [family, setFamily] = useState<FamilyItem[]>([]);
   const [grants, setGrants] = useState<GrantItem[]>([]);
+  // 서버에 실제로 저장된 grants 스냅샷 — "한눈에 보기"는 이걸로 그린다. grants는 저장 버튼을
+  // 누르기 전 선택만 한 상태(대기 중)도 화면 반응을 위해 낙관적으로 섞여 있어서 그대로 쓰면 안 된다.
+  const [savedGrants, setSavedGrants] = useState<GrantItem[]>([]);
+  // 섹션별 마지막 저장 값 스냅샷 — "한눈에 보기"가 현재 입력 중(미저장)인 값이 아니라 이걸로
+  // 그린다(2026-09-03 사람 지시). sectionPayloads()가 만드는 것과 동일한 모양으로 저장한다.
+  const [savedSectionValues, setSavedSectionValues] = useState<Record<string, any>>({});
 
   const [lifeSupport, setLifeSupport] = useState<string>('연명의료 중단 희망');
   const [funeralType, setFuneralType] = useState<string>('가족장 (수목장)');
@@ -119,6 +125,7 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
           setDonationDate(bySection.ORGAN_DONATION.donationDate || '');
         }
         if (bySection.WILL_DRAFT) setDraftText(bySection.WILL_DRAFT.draftText || '');
+        setSavedSectionValues(bySection);
 
         // §10 Phase 2 #6 — 권한을 줄 수 있는 대상은 ACCEPTED뿐(서버도 upsertEndingNoteGrant에서
         // 같은 규칙으로 다시 막는다). PENDING/DECLINED/EXPIRED를 섞으면 눌러도 되는 것처럼 보인다.
@@ -127,6 +134,7 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
         }
         if (Array.isArray(grantList)) {
           setGrants(grantList);
+          setSavedGrants(grantList);
         }
       })
       .catch(() => { })
@@ -163,6 +171,7 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
           body: JSON.stringify({ value }),
         });
         setSectionState(data.sectionState || {});
+        setSavedSectionValues((prev) => ({ ...prev, [section]: value }));
 
         const pending = pendingGrantChangesRef.current[section];
         if (pending) {
@@ -171,12 +180,20 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
               if (change.timing === null) {
                 if (!change.grantId) return; // 이미 비공개라 철회할 것이 없음
                 await apiFetch(`/api/ending-note/grants/${change.grantId}/revoke`, 'USER', { method: 'PATCH' });
+                setSavedGrants((prev) => prev.map((g) => (g.id === change.grantId ? { ...g, revokedAt: new Date().toISOString() } : g)));
               } else {
                 const updated = await apiFetch<GrantItem>('/api/ending-note/grants', 'USER', {
                   method: 'PUT',
                   body: JSON.stringify({ designationId, section, timing: change.timing }),
                 });
                 setGrants((prev) => prev.map((g) => (g.designationId === designationId && g.section === section ? updated : g)));
+                setSavedGrants((prev) => {
+                  const idx = prev.findIndex((g) => g.designationId === designationId && g.section === section);
+                  if (idx === -1) return [...prev, updated];
+                  const next = [...prev];
+                  next[idx] = updated;
+                  return next;
+                });
               }
             })
           );
@@ -262,51 +279,62 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
   // 섹션의 현재 공개 시점 배지 — 철회되지 않은 grant 중 IMMEDIATE가 하나라도 있으면 "지금부터
   // 공개"(가장 이른 시점을 대표로 보여준다), 없고 POSTMORTEM만 있으면 "사후에만 공개", 아무
   // grant도 없으면 배지를 표시하지 않는다(가족별 세부 차이는 아코디언 안 SectionTimingControl에서 본다).
+  // 🔴 2026-09-03 — grants가 아니라 savedGrants를 본다. grants는 저장 버튼을 누르기 전
+  // 선택만 한 상태도 화면 반응을 위해 낙관적으로 섞여 있어서, "한눈에 보기"에 미저장 값이
+  // 비칠 수 있다(사람 지시로 저장 버튼 기준으로 통일).
   const sectionTimingBadge = (code: string): string | null => {
-    const active = grants.filter((g) => g.section === code && !g.revokedAt);
+    const active = savedGrants.filter((g) => g.section === code && !g.revokedAt);
     if (active.length === 0) return null;
     return active.some((g) => g.timing === 'IMMEDIATE') ? TIMING_LABEL.IMMEDIATE : TIMING_LABEL.POSTMORTEM;
   };
 
+  // 🔴 2026-09-03 — 각 case는 라이브 입력 상태(lifeSupport 등)가 아니라 savedSectionValues의
+  // 마지막 저장 스냅샷을 읽는다. 모양은 sectionPayloads()가 만드는 것과 동일하다.
   const summaryRows: SummaryRow[] = useMemo(() => {
     const rows: SummaryRow[] = SECTIONS.map((s) => {
       const completed = !!sectionState[s.code];
+      const saved = savedSectionValues[s.code] || {};
       let valueText = '';
       if (completed) {
         switch (s.code) {
           case 'LIFE_SUPPORT':
-            valueText = lifeSupport;
+            valueText = saved.lifeSupport || '';
             break;
           case 'FUNERAL':
-            valueText = funeralType;
+            valueText = saved.funeralType || '';
             break;
           case 'ASSET':
-            valueText = summarizeFreeText(assetNote);
+            valueText = summarizeFreeText(saved.assetNote || '');
             break;
-          case 'DIGITAL_ACCOUNTS':
-            valueText = DIGITAL_ACCOUNT_CATEGORIES.map((c) => `${c} ${DIGITAL_ACCOUNT_CHOICES[digitalPrefs[c] || '']}`).join(' · ');
+          case 'DIGITAL_ACCOUNTS': {
+            const savedPrefs: Record<string, string> = saved.digitalPrefs || {};
+            valueText = DIGITAL_ACCOUNT_CATEGORIES.map((c) => `${c} ${DIGITAL_ACCOUNT_CHOICES[savedPrefs[c] || '']}`).join(' · ');
             break;
+          }
           case 'INSURANCE': {
-            const picked = INSURANCE_ITEMS.filter((item) => insurance[item.key]?.checked).map(
-              (item) => item.label + (insurance[item.key]?.company ? `(${insurance[item.key].company})` : '')
+            const savedInsurance: Record<string, { checked: boolean; company: string }> = saved.insurance || {};
+            const picked = INSURANCE_ITEMS.filter((item) => savedInsurance[item.key]?.checked).map(
+              (item) => item.label + (savedInsurance[item.key]?.company ? `(${savedInsurance[item.key].company})` : '')
             );
             valueText = picked.length > 0 ? picked.join(' · ') : '가입 표시 없음';
             break;
           }
           case 'CONTACTS': {
             const parts: string[] = [];
-            const c = summarizeFreeText(contactsNote);
+            const c = summarizeFreeText(saved.contactsNote || '');
             if (c) parts.push(c);
-            if (petCaretaker.trim()) parts.push(`반려동물: ${petCaretaker.trim()}`);
+            if ((saved.petCaretaker || '').trim()) parts.push(`반려동물: ${saved.petCaretaker.trim()}`);
             valueText = parts.join(' · ');
             break;
           }
           case 'WILL_LOCATION':
-            valueText = willLocation.trim();
+            valueText = (saved.willLocation || '').trim();
             break;
-          case 'ORGAN_DONATION':
-            valueText = `${donationStatus}${donationStatus === '등록함' && donationDate ? ` (${donationDate})` : ''}`;
+          case 'ORGAN_DONATION': {
+            const status = saved.donationStatus || '모름';
+            valueText = `${status}${status === '등록함' && saved.donationDate ? ` (${saved.donationDate})` : ''}`;
             break;
+          }
         }
       }
       return { code: s.code, title: s.title, completed, valueText, timingBadge: sectionTimingBadge(s.code), isWillDraft: false };
@@ -321,10 +349,7 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
     });
     return rows;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    sectionState, grants, lifeSupport, funeralType, assetNote, digitalPrefs, insurance,
-    contactsNote, petCaretaker, willLocation, donationStatus, donationDate,
-  ]);
+  }, [sectionState, savedGrants, savedSectionValues]);
 
   const handleSummaryRowSelect = (code: string) => {
     setSummaryOpen(false);
