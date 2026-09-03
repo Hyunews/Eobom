@@ -373,12 +373,6 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
             <option value="자녀 판단에 위임">가족/자녀의 판단에 위임</option>
           </select>
         </div>
-        <SectionTimingControl
-          section="LIFE_SUPPORT"
-          family={family}
-          grants={grants}
-          onChange={(designationId, timing, grantId) => handleGrantChange('LIFE_SUPPORT', designationId, timing, grantId)}
-        />
       </>
     ),
     FUNERAL: (
@@ -391,12 +385,6 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
             <option value="조용한 검소장">최소 인원 검소장</option>
           </select>
         </div>
-        <SectionTimingControl
-          section="FUNERAL"
-          family={family}
-          grants={grants}
-          onChange={(designationId, timing, grantId) => handleGrantChange('FUNERAL', designationId, timing, grantId)}
-        />
       </>
     ),
     ASSET: (
@@ -416,12 +404,6 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
             placeholder="예: 국민은행에 주거래 계좌가 있고, 통장은 안방 서랍 두 번째 칸에 있습니다. 비밀번호는 적지 마세요 — 유족이 서류로 조회할 수 있습니다."
           />
         </div>
-        <SectionTimingControl
-          section="ASSET"
-          family={family}
-          grants={grants}
-          onChange={(designationId, timing, grantId) => handleGrantChange('ASSET', designationId, timing, grantId)}
-        />
       </>
     ),
     DIGITAL_ACCOUNTS: (
@@ -446,12 +428,6 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
             </select>
           </div>
         ))}
-        <SectionTimingControl
-          section="DIGITAL_ACCOUNTS"
-          family={family}
-          grants={grants}
-          onChange={(designationId, timing, grantId) => handleGrantChange('DIGITAL_ACCOUNTS', designationId, timing, grantId)}
-        />
       </>
     ),
     INSURANCE: (
@@ -492,12 +468,6 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
             )}
           </div>
         ))}
-        <SectionTimingControl
-          section="INSURANCE"
-          family={family}
-          grants={grants}
-          onChange={(designationId, timing, grantId) => handleGrantChange('INSURANCE', designationId, timing, grantId)}
-        />
       </>
     ),
     CONTACTS: (
@@ -523,12 +493,6 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
             placeholder="예: 막내 여동생 김OO"
           />
         </div>
-        <SectionTimingControl
-          section="CONTACTS"
-          family={family}
-          grants={grants}
-          onChange={(designationId, timing, grantId) => handleGrantChange('CONTACTS', designationId, timing, grantId)}
-        />
       </>
     ),
     WILL_LOCATION: (
@@ -546,12 +510,6 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
         <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
           🔴 이어봄은 유언장 원본·사본을 보관하지 않습니다. 보관 장소만 남겨두세요.
         </p>
-        <SectionTimingControl
-          section="WILL_LOCATION"
-          family={family}
-          grants={grants}
-          onChange={(designationId, timing, grantId) => handleGrantChange('WILL_LOCATION', designationId, timing, grantId)}
-        />
       </>
     ),
     ORGAN_DONATION: (
@@ -575,12 +533,6 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
             <input type="date" value={donationDate} onChange={(e) => setDonationDate(e.target.value)} className="form-input" />
           </div>
         )}
-        <SectionTimingControl
-          section="ORGAN_DONATION"
-          family={family}
-          grants={grants}
-          onChange={(designationId, timing, grantId) => handleGrantChange('ORGAN_DONATION', designationId, timing, grantId)}
-        />
       </>
     ),
   };
@@ -729,6 +681,12 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
                 onSave={() => saveSection(s.code, sectionPayloads[s.code]())}
               >
                 {sectionBodies[s.code]}
+                <SectionTimingControl
+                  section={s.code}
+                  family={family}
+                  grants={grants}
+                  onChange={(designationId, timing, grantId) => handleGrantChange(s.code, designationId, timing, grantId)}
+                />
               </AccordionSection>
             ))}
           </div>

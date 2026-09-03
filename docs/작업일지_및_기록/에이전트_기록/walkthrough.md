@@ -14,6 +14,16 @@
 > 막습니다 — 줄어든 크기를 근거로 여는 순간 아카이빙이 손해로 뒤집힙니다.
 
 ---
+## 2026-09-03 (115) | [Sonnet] `00-35` §10.3 2.5단계 — `SectionTimingControl` 호출부 승격
+
+- **근거 스펙**: `docs/00_핵심플랫폼/00-35_엔딩노트_페이지_구조_정리_명세서.md` §10.3 (2026-09-03 사람 승인, 착수 지시 그대로).
+- **건드린 파일**: `eobom/frontend/src/pages/EndingNotePage.tsx`
+- **결과**: `sectionBodies`의 LIFE_SUPPORT·FUNERAL·ASSET·DIGITAL_ACCOUNTS·INSURANCE·CONTACTS·WILL_LOCATION·ORGAN_DONATION 8곳 끝에서 `<SectionTimingControl section="..." family={family} grants={grants} onChange={(designationId, timing, grantId) => handleGrantChange('...', designationId, timing, grantId)} />`(6줄×8=48줄)를 전부 삭제하고, `SECTIONS.map` 렌더 루프의 `{sectionBodies[s.code]}` 바로 뒤에 `<SectionTimingControl section={s.code} family={family} grants={grants} onChange={(designationId, timing, grantId) => handleGrantChange(s.code, designationId, timing, grantId)} />` 1곳만 추가했다. grep 확인 결과 `SectionTimingControl` 호출은 파일 전체에 1곳만 남음(WILL_DRAFT는 순회 밖이라 미영향, §5.3 그대로). `SECTIONS`(constants.tsx) 8개 코드와 `SECTION_ALLOWED_TIMINGS` 8개 키가 정확히 일치함을 확인(§10.3 주의 3 — s.code 어긋남 없음). `npx tsc --noEmit`(frontend) 에러 0, `npm run build`(frontend) 통과 — 파일 817줄(기존 859줄 대비 −42줄, 청크 크기 경고 외 신규 경고 없음).
+- **편차**: 없음.
+- **다음 에이전트가 알아야 할 것**: 브라우저 실기동은 하지 않았다 — 사람이 §7 전체(0~8번, 특히 8번을 8섹션 전부)를 직접 진행할 예정(2026-09-03 사용자 지시, 크레딧 절약). 통과 확인 전까지 "완료"로 취급하지 않는다.
+
+<!-- Gemini 판정 1줄: 대기 -->
+
 ## 2026-09-03 (114) | [Sonnet] `MyObituaryListPage` 삭제 안내문구 + 카드별 피드백 위치 수정
 
 - **근거 스펙**: 전용 스펙 없음 — 사람 지시(2026-09-03, wt112 후속). (1)"삭제 버튼 클릭 시 부고장만 삭제된다는 설명이 떠야 함" (2)"여러개의 추모관 div가 있을 때, 해당 div 아래에 떠야 하는데 상위 div 하단에 떠" 두 건 대응.

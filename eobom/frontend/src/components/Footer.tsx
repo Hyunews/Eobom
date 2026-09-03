@@ -121,7 +121,7 @@ export const Footer: React.FC = () => {
             070-8856-2725
           </div>
           <p style={{ fontSize: '0.88rem', lineHeight: 1.7, color: 'var(--text-muted)', margin: 0 }}>
-            사업장·전문가 문의 · 개인정보 열람·삭제 요청
+            사업장·전문가 문의, 개인정보 열람·삭제 요청
           </p>
         </div>
 
