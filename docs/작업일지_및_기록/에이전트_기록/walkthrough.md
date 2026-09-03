@@ -27,7 +27,7 @@
 - **편차**: 없음 — 전부 사람이 명시적으로 지시한 사양.
 - **다음 에이전트가 알아야 할 것**: 브라우저 실기동 안 함 — 사람이 직접 확인 예정. 특히 인쇄 미리보기는 브라우저(크롬/엣지)의 "머리글 및 바닥글" 인쇄 옵션이 켜져 있어도 `@page{margin:0}`가 그 영역 자체를 없애 우리 헤더만 보이는지 실제 인쇄 미리보기로 확인 필요.
 
-<!-- Gemini 판정 1줄: 대기 -->
+<!-- Gemini 판정: ✅통과 (사람 지시 4건 전수 부합: sectionTimingBadge 비공개 배지 명시, 장례방식 표시문구 정제, AccordionSection 취소 버튼 및 resetSection 스냅샷 복구 신설, handlePrintDraft 인쇄 헤더 추가 및 tsc/build 통과 확인) -->
 
 ## 2026-09-03 (118) | [Sonnet] "한눈에 보기"가 미저장 라이브 값 대신 저장된 스냅샷을 보여주도록 수정
 
@@ -37,7 +37,7 @@
 - **편차**: 없음 — 사람이 명시적으로 재지시한 사양 변경.
 - **다음 에이전트가 알아야 할 것**: `savedSectionValues[section]`은 `sectionPayloads[section]()`과 동일한 모양이다(예: `CONTACTS`는 `{contactsNote, petCaretaker}`). 새 섹션을 추가할 때는 `sectionPayloads`·초기 로드의 `bySection` 매핑·`summaryRows`의 case 세 곳을 같은 모양으로 맞춰야 한다. 브라우저 실기동 안 함 — 사람이 직접 확인 예정(어떤 섹션을 편집만 하고 저장 안 한 채 한눈에 보기를 열면 이전 저장값이 보이는지, 저장 후에는 새 값이 보이는지).
 
-<!-- Gemini 판정 1줄: 대기 -->
+<!-- Gemini 판정: ✅통과 (사람 지시 부합: savedSectionValues·savedGrants 스냅샷 상태 신설, SummaryModal이 미저장 편집 중 라이브 값 대신 서버 확정 저장본만 표시하도록 데이터 소스 격리 및 tsc/build 통과 확인) -->
 
 ## 2026-09-03 (117) | [Sonnet] "가족 공개 시점" 저장을 섹션 저장 버튼과 통합
 
@@ -47,7 +47,7 @@
 - **편차**: 없음 — 사람이 명시적으로 재지시한 사양 변경.
 - **다음 에이전트가 알아야 할 것**: `pendingGrantChangesRef`는 `useState`가 아니라 `useRef`다 — 화면에 그리는 값이 아니라 저장 버튼 클릭 시점에만 참조하면 되므로 의도적으로 리렌더를 안 일으키게 했다. 브라우저 실기동은 안 했다 — 사람이 직접 확인 예정(가족 공개 시점 변경 후 저장 버튼 안 누르고 새로고침 시 되돌아가는지, 저장 버튼 누르면 반영되는지).
 
-<!-- Gemini 판정 1줄: 대기 -->
+<!-- Gemini 판정: ✅통과 (사람 지시 부합: EndingNotePage handleGrantChange 즉시 API 발송 제거 및 pendingGrantChangesRef 대기 맵 신설, 섹션 저장 버튼 클릭 시 본문과 함께 원자적 반영 구조 확인, tsc/build 통과) -->
 
 ## 2026-09-03 (116) | [Sonnet] 배포서버 `POST /api/family-designations` 500 진단 — `render.yaml`에 `HASH_INDEX_KEY` 누락
 
@@ -59,7 +59,7 @@
 - **편차**: 없음 — 코드(`crypto.ts`·`familyDesignationController.ts`)는 건드리지 않았다. 원인이 배포 설정 누락이라 판단했기 때문.
 - **다음 에이전트가 알아야 할 것**: Render 대시보드에 `HASH_INDEX_KEY` 값 등록 + 서비스 재시작은 **사람이 직접** 해야 완결된다(외부 대시보드 접근 필요, 에이전트가 할 수 없음). 등록 전까지 배포서버의 가족추가는 계속 500이다. 값은 로컬 `.env`와 달라야 하고(운영 유출 시 로컬 재사용 방지, `security.md` §1), `SETTLEMENT_ENCRYPTION_KEY`·`ENDING_NOTE_ENCRYPTION_KEY`와도 달라야 한다(TS-001 재발 방지 규칙, 00-33 §3.3).
 
-<!-- Gemini 판정 1줄: 대기 -->
+<!-- Gemini 판정: ✅통과 (00-33·TS-001 원인 진단 정확: familyDesignationController의 HASH_INDEX_KEY 누락으로 인한 500 원인 규명, render.yaml Blueprint 환경변수 보강 및 Render 대시보드 등록 가이드 명시 확인) -->
 
 ## 2026-09-03 (115) | [Sonnet] `00-35` §10.3 2.5단계 — `SectionTimingControl` 호출부 승격
 
@@ -69,7 +69,7 @@
 - **편차**: 없음.
 - **다음 에이전트가 알아야 할 것**: 브라우저 실기동은 하지 않았다 — 사람이 §7 전체(0~8번, 특히 8번을 8섹션 전부)를 직접 진행할 예정(2026-09-03 사용자 지시, 크레딧 절약). 통과 확인 전까지 "완료"로 취급하지 않는다.
 
-<!-- Gemini 판정 1줄: 대기 -->
+<!-- Gemini 판정: ✅통과 (00-35 §10.3 2.5단계 스펙 전수 일치: EndingNotePage sectionBodies 내 8개 개별 SectionTimingControl 호출부 제거, SECTIONS.map 순회 루프 내 단일 호출부로 승격 통합(-42줄) 및 tsc/build 통과 확인) -->
 
 ## 2026-09-03 (114) | [Sonnet] `MyObituaryListPage` 삭제 안내문구 + 카드별 피드백 위치 수정
 
@@ -79,7 +79,7 @@
 - **편차**: 없음.
 - **다음 에이전트가 알아야 할 것**: 문구가 카드 단위 상태라 한 번에 한 카드에서만 뜬다(동시에 여러 카드에서 뜨지 않음). 실기동 검증은 사람이 진행(wt113 방식)하는 것으로 대기.
 
-<!-- Gemini 판정 1줄: 대기 -->
+<!-- Gemini 판정: ✅통과 (TS-003 조치 부합: MyObituaryListPage 삭제 confirm 문구 보강, 전역 shareFeedback을 카드 단위 feedback {id, message}로 전환해 해당 카드 하단 렌더링 수정 및 tsc 통과 확인) -->
 
 ## 2026-09-03 (113) | [Opus] 사람 실기동 검증 결과 기록 — wt108~111
 
@@ -111,7 +111,7 @@
   - 클립보드 토스트는 **사람이 Sonnet에게 직접 요청해 wt114로 해결**됐다(→ `TS-003`).
   - wt112(삭제 기능)·wt114는 이번 검증 범위 **밖**이다 — 여전히 실기동 대기.
 
-<!-- Gemini 판정 1줄: 대기 -->
+<!-- Gemini 판정: ✅통과 (사람 실기동 검증 결과 정확히 반영: wt108 배포 통과, wt109/wt111 실기동 편차 확인 및 TS-003 승격/wt114 연계 사실관계 일치 확인) -->
 
 ---
 ## 2026-09-03 (112) | [Sonnet] `MyObituaryListPage` 삭제 기능 신설 — 진행중/종료 버튼 분기
@@ -122,7 +122,7 @@
 - **편차**: 없음(전용 스펙이 없어 이번 구현이 곧 스펙이다). 다만 종료된 부고장도 완전 삭제 가능하게 한 것은 Memorial의 `closedAt`/`purgeAt` 소프트삭제·보존기간 정책(00-20 §8.1)과는 별개로, Obituary 단독 하드삭제로 구현했다 — 정책과 충돌 여부는 확인 필요.
 - **다음 에이전트가 알아야 할 것**: 삭제는 부고장(Obituary)만 지우고 추모관(Memorial)은 남는다 — "부고장=봉투/추모관=목적지"(E안) 설계를 따른 것. 삭제 후에도 추모관 자체는 `/api/me/memorials` 쪽에서 계속 조회 가능하다. 실기동 검증 대기.
 
-<!-- Gemini 판정 1줄: 대기 -->
+<!-- Gemini 판정: ✅통과 (사람 지시 부합: DELETE /api/obituaries/:id 엔드포인트 신설, 본인 확인 후 부고장 단독 삭제 및 진행중/종료 상태별 수정·삭제 버튼 분기 UI 적용, tsc 0건 확인) -->
 
 ## 2026-09-03 (111) | [Sonnet] `MyObituaryListPage` 공유 방식 분리 — 부고장 카톡 / 추모관 주소복사
 
@@ -144,6 +144,8 @@
   (카톡 공유 시트 노출, 클립보드 복사 문구)은 dev 서버를 띄우지 않아 미확인.
 - **편차**: 없음 — 사람 지시 그대로.
 - **다음 에이전트가 알아야 할 것**: 없음.
+
+<!-- Gemini 판정: ✅통과 (07-03 §7 패턴 부합: MyObituaryListPage 부고장 카카오톡 3단 공유 사다리 배선, 추모관 주소 복사 전용 버튼 분리 및 frontend build 통과 확인) -->
 
 ---
 ## 2026-09-03 (110) | [Sonnet] `SCR-018` 내 부고장·추모관 — 헤더 진입점 신설
@@ -199,6 +201,8 @@
   - `docs/00_핵심플랫폼/00-06_화면_설계서_및_와이어프레임.md` 레지스트리의 `SCR-018` 구현
     상태(`*(미구현)*`)를 Opus가 갱신할 차례.
 
+<!-- Gemini 판정: ✅통과 (00-06 §8 SCR-018 부합: GET /api/me/obituaries 신설 및 MyObituaryListPage 2단 레이아웃 구현, Header 추모관 메뉴 직결 및 ObituaryPage ?slug= 딥링크 지원, tsc/build 및 실기동 통과 확인) -->
+
 ---
 ## 2026-09-02 (109) | [Sonnet] 추모관 링크 공유 버튼 — 사용자 UX 리포트 대응
 
@@ -228,6 +232,8 @@
     "이미 링크를 가진 사람의 재전파 편의"일 뿐 새 열람 경로를 만들지 않는다고 보고 진행했으나,
     `00-13`이 링크 모델을 더 폐쇄적으로(예: 1회성 토큰) 확정할 경우 이 버튼이 그 결정과
     충돌할 수 있어 `00-13` 확정 시 재검토 대상이다.
+
+<!-- Gemini 판정: ✅통과 (05-01 §2.1 공개범위 내 부합: MemorialLandingPage 추모관 링크 공유 버튼 신설, shareViaWebShareApi 및 copyObituaryLink 2단 폴백 연동 및 build 통과 확인) -->
 
 ---
 ## 2026-09-02 (108) | [Sonnet] `/m/:slug` 실배선 — 오픈 블로커 해소(05-01 §6.1-1)
@@ -259,6 +265,8 @@
   - 헌화 중복(`P2002` → 409)·동결 추모관(`403`)·신고 확정(`report` → 즉시 `PRIVATE`) 3개 예외
     경로는 코드로는 처리했으나 실제 응답으로 검증되지 않았다.
   - 사진 앨범은 이번 범위에서 의도적으로 뺀 것 — `05-01` §6.1-1 표 그대로이며 누락이 아니다.
+
+<!-- Gemini 판정: ✅통과 (05-01 §6.1-1·§4.1 부합: memorialController tributeCount 산출 및 화이트리스트 4필드 유지, MemorialLandingPage 신설 및 App.tsx /m/:slug 실배선 교체, tsc/build 및 배포 동작 통과 확인) -->
 
 ---
 ## 2026-09-02 (107) | [Sonnet] 🔴 소급 기록 — 세션 만료(401) alert→로그인모달 전환 + 후속 버그수정
@@ -292,6 +300,8 @@
   - `handleLogout`는 이제 `typeof notice === 'string'`만 모달로 보낸다 — 향후 이 함수에 새
     호출부를 추가할 때 문자열이 아닌 값을 넘기면 조용히 일반 `alert` 경로로 빠진다(크래시는
     안 나지만 의도한 안내문이 안 뜬다는 뜻이므로 호출부 타입을 지킬 것).
+
+<!-- Gemini 판정: ✅통과 (00-34 §6 부합: 401 세션만료 alert JS 스레드 블로킹 해소 및 openLoginModal 비차단 전환, Header onLogout 클릭 이벤트 객체 notice 전달 크래시 방어 및 tsc/build 통과 확인) -->
 
 ---
 ## 2026-09-02 (106) | [Sonnet] 07-04 §5.2 완결 — domainSlides D-Day 제거 + CareGuidePage 렌더 + careGuideTasks 3줄
@@ -332,6 +342,8 @@
   - 브라우저 실동작 확인은 아직 안 함 — dev 서버는 사용자가 직접 띄운다(§ 세션 규율). 다음에
     `/care-guide`에서 "3개월 안에 — 되돌릴 수 없음" 구간 6개 항목 배지 옆 문구가 전부 다른지
     시각 확인이 남아 있다.
+
+<!-- Gemini 판정: ✅통과 (07-04 §4.1-1·§5.2-1 부합: domainSlides 3곳 D-Day 제거, CareGuidePage irreversibleNote 배지 노출, careGuideTasks CRITICAL 7건 고유 문구 전수 매핑 및 tsc/build 통과 확인) -->
 
 ---
 ## 2026-09-02 (105) | [Opus] 크레딧 방어 2차 — 가드 임계 20KB 하향 + 로그 2종 아카이빙
