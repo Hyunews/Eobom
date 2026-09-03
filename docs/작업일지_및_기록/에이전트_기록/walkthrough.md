@@ -14,6 +14,60 @@
 > 막습니다 — 줄어든 크기를 근거로 여는 순간 아카이빙이 손해로 뒤집힙니다.
 
 ---
+## 2026-09-03 (110) | [Sonnet] `SCR-018` 내 부고장·추모관 — 헤더 진입점 신설
+
+- **근거 스펙**: `docs/00_핵심플랫폼/00-06_화면_설계서_및_와이어프레임.md` §8(`SCR-018`,
+  2026-09-03 등재) — 개설자 본인의 부고장·추모관 목록 + 받은 링크 입력 화면. 서버 선행으로
+  `GET /api/me/obituaries` 신설 지시(`07-03` §9 9-2 승격). 사람 지시(2026-09-02, "header의
+  추모관 클릭 시 본인이 생성한 부고장에 접근 가능하도록" + "①목록 페이지 신설 ②헤더 연결")와
+  Opus의 독립 스펙 발행이 같은 결론으로 수렴한 케이스.
+- **건드린 파일**:
+  - 신설: `eobom/backend/src/controllers/obituaryController.ts`(`listMyObituaries`),
+    `eobom/frontend/src/pages/MyObituaryListPage.tsx`,
+    `eobom/frontend/src/utils/memorialLink.ts`.
+  - 수정: `eobom/backend/src/routes/meRoutes.ts`(`GET /obituaries` 등록),
+    `eobom/frontend/src/components/home/EntryBoxes.tsx`(링크 파싱 로직을
+    `memorialLink.ts`로 추출 — 동작 변화 없음, 홈 박스③ 그대로),
+    `eobom/frontend/src/pages/ObituaryPage.tsx`(`?slug=` 쿼리 파라미터 지원),
+    `eobom/frontend/src/components/Header.tsx`(`goToMemorialEntry`가 `/my-obituaries`로
+    직접 이동 — 홈 스크롤 위치 기억용 로직 제거), `eobom/frontend/src/App.tsx`
+    (`/my-obituaries` 라우트 등록).
+- **결과**:
+  - `GET /api/me/obituaries`(`obituaryController.listMyObituaries`) — `createdByUserId`로
+    필터, `Obituary.memorial`(1:1, 개설 트랜잭션에서 denormalize된 `deceasedName`·
+    `deceasedDeathDate`) include. 응답에 `slug`(부고장)·`memorialSlug`(추모관) 둘 다 포함,
+    `isClosed`는 기존 `isObituaryClosed` 헬퍼(발인+3일 자동종료 포함) 재사용.
+    `/api/me/memorials`(`listMyMemorials`)는 스펙이 명시적으로 "이미 충분한 별개 엔드포인트"로
+    지정해 손대지 않음(중간에 확장 시도했다가 스펙 확인 후 원복).
+  - `MyObituaryListPage.tsx` — 2단 레이아웃. ①목록: 행마다 고인명·사망일(또는 개설일)·
+    진행/종료 상태 + 부고장(`/o/:slug`)·추모관(`/m/:slug`) 각각 별도의 열기+공유 버튼,
+    "관리" 버튼은 `/obituary?slug=<obituarySlug>`(`SCR-013`)로. 공유는 새 메커니즘을 만들지
+    않고 `utils/kakaoShare.ts`의 `shareViaWebShareApi`→`copyObituaryLink` 사다리를 재사용
+    (부고장 공유는 `utils/obituaryCard.ts`의 `formatObituaryCardTitle/Description`으로 카드
+    문구도 통일). ②받은 링크 입력: 기존 `EntryBoxes.tsx` 로직을 그대로 옮긴 것.
+  - `ObituaryPage.tsx` — `useSearchParams`로 `?slug=`를 읽어 있으면 localStorage 포인터보다
+    우선 사용. 서버가 `isOwner:true`를 준 경우에만 관리 폼을 채우는 기존 보안 모델(§5.3-2,
+    2026-08-21 사고 재발방지)은 그대로 — 이 변경은 "어느 slug를 조회할지"만 바꾼다. 조회
+    성공 시 localStorage 포인터를 방금 연 부고장으로 갱신(부고장 2개 이상일 때 마지막으로
+    연 것이 이어지도록), 404 실패 시엔 `querySlug`가 기존 포인터와 다른 부고장을 가리켰을
+    경우 포인터를 지우지 않음(멀쩡한 다른 부고장까지 날리지 않기 위함).
+  - `Header.tsx` — "추모관" 메뉴가 홈 박스③이 아니라 `/my-obituaries`로 직접 이동. 이 메뉴는
+    로그인 시에만 렌더돼 로그아웃 분기 불필요(스펙 명시). 홈 박스③(`EntryBoxes.tsx`)은
+    동작 변경 없이 그대로 유지.
+- **검증**: `npx tsc --noEmit -p .`(backend) 통과. `npm run build`(frontend) 통과, 번들
+  527.63 kB(gzip 151.15 kB). 브라우저 실동작(목록 렌더링·공유 버튼·링크 입력·헤더 이동·
+  `ObituaryPage` `?slug=` 딥링크)은 dev 서버를 띄우지 않아 미확인 — 실기동 검증 대기.
+- **편차**: 없음 — `00-06` §8 그대로 구현. (참고: 최초 착수 시 `/api/me/memorials` 확장 +
+  `MyMemorialsPage.tsx`라는 이름으로 시작했으나, 구현 도중 `00-06` §8이 발행된 것을 확인하고
+  스펙 발행 전 상태로 원복 후 스펙대로 재작성함 — 최종 산출물은 편차 없음.)
+- **다음 에이전트가 알아야 할 것**:
+  - 스펙 §8.4에 명시된 아웃오브스코프(부고장 수정/종료는 기존 `SCR-013`에 있음, "추모관 개설"
+    버튼은 `00-12` §6 모드 UX 확정 후, 별도 "추모관 목록" 계층은 현재 1:1 구조라 불필요)는
+    이번에도 그대로 아웃오브스코프로 남겨둠 — 손대지 않음.
+  - `docs/00_핵심플랫폼/00-06_화면_설계서_및_와이어프레임.md` 레지스트리의 `SCR-018` 구현
+    상태(`*(미구현)*`)를 Opus가 갱신할 차례.
+
+---
 ## 2026-09-02 (109) | [Sonnet] 추모관 링크 공유 버튼 — 사용자 UX 리포트 대응
 
 - **근거 스펙**: 전용 스펙 없음 — 사용자 실사용 리포트("부고장을 받아 추모관에 들어간 사람이
