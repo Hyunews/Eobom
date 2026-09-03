@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Flower2, FileEdit, ExternalLink, Share2, ArrowRight } from 'lucide-react';
+import { Flower2, FileEdit, ExternalLink, Share2, Copy, ArrowRight } from 'lucide-react';
 import { apiFetch } from '../lib/api';
+import { OBITUARY_CARD_IMAGE_URL } from '../config';
 import { formatKST, formatObituaryCardTitle, formatObituaryCardDescription } from '../utils/obituaryCard';
 import { parseMemorialLink } from '../utils/memorialLink';
-import { shareViaWebShareApi, copyObituaryLink } from '../utils/kakaoShare';
+import { ensureKakaoShareReady, shareViaKakao, shareViaWebShareApi, copyObituaryLink } from '../utils/kakaoShare';
 
 // 00-06 §8(SCR-018) — Header "추모관" 메뉴가 홈 박스③(링크 입력창)으로만 보내서, 부고장을 만든
 // 당사자가 정작 본인이 만든 부고장·추모관에 다시 들어갈 방법이 없다는 사용자 리포트 대응.
@@ -41,6 +42,12 @@ export const MyObituaryListPage: React.FC = () => {
       .catch(() => setLoadError(true));
   }, []);
 
+  // Kakao.Share.sendDefault는 클릭 핸들러 안에서 동기 호출돼야 팝업 차단을 피한다(§7) —
+  // 그래서 로드는 마운트 시점에 미리 끝내둔다(ObituaryPage.tsx와 같은 패턴).
+  useEffect(() => {
+    ensureKakaoShareReady();
+  }, []);
+
   const handleLinkEnter = () => {
     const raw = linkInput.trim();
     if (!raw) {
@@ -60,6 +67,8 @@ export const MyObituaryListPage: React.FC = () => {
     }
   };
 
+  // 부고장 공유 — 카카오톡으로 연결(§7 폴백 사다리 1순위 Kakao.Share, ObituaryPage.tsx와 동일
+  // 패턴). Kakao SDK가 준비 안 됐거나 실패하면 Web Share API → 링크 복사 순으로 폴백한다.
   const shareObituary = async (o: MyObituary) => {
     const url = `${window.location.origin}/o/${o.slug}`;
     const cardInput = {
@@ -68,30 +77,24 @@ export const MyObituaryListPage: React.FC = () => {
       mourningRoom: o.mourningRoom,
       funeralAt: o.funeralAt,
     };
-    const shared = await shareViaWebShareApi({
+    const params = {
       title: formatObituaryCardTitle(cardInput),
       description: formatObituaryCardDescription(cardInput),
-      imageUrl: '',
+      imageUrl: OBITUARY_CARD_IMAGE_URL,
       url,
       buttonLabel: '부고 보기',
-    });
-    if (shared) return;
+    };
+    if (shareViaKakao(params)) return;
+    if (await shareViaWebShareApi(params)) return;
     const copied = await copyObituaryLink(url);
-    setShareFeedback(copied ? '부고장 링크가 복사되었습니다.' : '복사에 실패했습니다. 주소창의 링크를 직접 복사해 주세요.');
+    setShareFeedback(copied ? '카카오톡 공유를 열 수 없어 링크를 복사했습니다.' : '공유에 실패했습니다. 아래 링크를 직접 복사해 주세요.');
   };
 
-  const shareMemorial = async (o: MyObituary) => {
+  // 추모관은 공유 시트를 거치지 않고 주소만 복사한다 — 사람 지시(2026-09-03).
+  const copyMemorialAddress = async (o: MyObituary) => {
     const url = `${window.location.origin}/m/${o.memorialSlug}`;
-    const shared = await shareViaWebShareApi({
-      title: `故 ${o.deceasedName}님 추모관`,
-      description: '추모관에서 헌화하고 방명록을 남겨주세요.',
-      imageUrl: '',
-      url,
-      buttonLabel: '추모관 보기',
-    });
-    if (shared) return;
     const copied = await copyObituaryLink(url);
-    setShareFeedback(copied ? '추모관 링크가 복사되었습니다.' : '복사에 실패했습니다. 주소창의 링크를 직접 복사해 주세요.');
+    setShareFeedback(copied ? '추모관 주소가 복사되었습니다.' : '복사에 실패했습니다. 주소창의 링크를 직접 복사해 주세요.');
   };
 
   const cardStyle: React.CSSProperties = {
@@ -183,8 +186,8 @@ export const MyObituaryListPage: React.FC = () => {
                   <button type="button" onClick={() => navigate(`/m/${o.memorialSlug}`)} style={iconBtnStyle}>
                     <ExternalLink size={13} /> 열기
                   </button>
-                  <button type="button" onClick={() => shareMemorial(o)} style={iconBtnStyle}>
-                    <Share2 size={13} /> 공유
+                  <button type="button" onClick={() => copyMemorialAddress(o)} style={iconBtnStyle}>
+                    <Copy size={13} /> 주소 복사
                   </button>
                 </div>
               </div>
