@@ -31,8 +31,19 @@
 | 카카오/네이버/구글 OAuth 클라이언트 시크릿 | `eobom/backend/.env` | 3사 소셜 로그인 |
 | JWT 서명키 | `eobom/backend/.env` | |
 | `DATABASE_URL`·`DIRECT_URL` | `eobom/backend/.env` · Render 대시보드 | 로컬=Docker / 배포=Supabase(`systems.md` §4) |
-| `SETTLEMENT_ENCRYPTION_KEY` | `eobom/backend/.env` · Render | 🔴 **양쪽 같은 값** — 다르면 기존 암호문 복호화 불가 |
+| `SETTLEMENT_ENCRYPTION_KEY` | `eobom/backend/.env` · Render | 정산·조의금 계좌 암호화 |
+| `ENDING_NOTE_ENCRYPTION_KEY` | `eobom/backend/.env` · Render | 06 엔딩노트·유족 메시지·R2 음성 선암호화(`00-11` §5.4-4) |
+| `HASH_INDEX_KEY` | `eobom/backend/.env` · Render | 가족지정 연락처 중복방지 해시(`00-33` §4.2). 🔴 정산 키와 **공유 금지** — 그 결합이 TS-001 원인 |
+| `R2_ACCESS_KEY_ID_*`·`R2_SECRET_ACCESS_KEY_*` | `eobom/backend/.env` · Render | 버킷별 3쌍(`00-11` §5.4-6-1). 🔴 로컬은 **`-dev` 버킷 토큰**, 운영 토큰은 Render에만(§5.4-6-3) |
 | `VITE_KAKAO_MAP_KEY` | `eobom/frontend/.env` | **프론트 번들에 노출됨** — 도메인 제한 필수 |
+
+🔴 **암호화·해시 키 3종은 로컬과 운영이 서로 다른 값이다**(2026-08-27 교체). 같으면 로컬 `.env`
+유출이 곧 운영 데이터 유출이고, 운영 덤프를 로컬에서 복호화할 수 없는 것이 §1(운영 개인정보를
+로컬로 가져오지 않는다)을 기술적으로 강제한다. 🔵 로컬 DB와 운영 DB가 별개라 값이 달라도 문제없다.
+
+🔴 **반대로 한 환경 *안에서* 바뀌면 안 된다.** 암호문은 복호화 불가가 되고, `HASH_INDEX_KEY`는
+중복방지가 **조용히** 깨진다(TS-001). 바꿔야 하면 `00-33` §4.3·§5 교체 절차 — 백업 → 전 행
+재암호화·재해시(단일 트랜잭션) → dry-run 값 비교. `db-safety.md` 전 과정이 걸린다.
 
 > `VITE_` 접두사 변수는 빌드 결과물에 그대로 박힌다. 비밀이 아니라 "공개되지만 도메인으로 잠근 키"로 취급할 것.
 
