@@ -303,6 +303,32 @@ export const getFarewellMessageAudio = async (req: Request, res: Response) => {
   }
 };
 
+// 편지 삭제 (`DELETE /api/farewell-messages/:id`) — 06-05 §5.6-7 D-7. 편지 전체(제목·본문)를
+// 지운다. 🟡 첨부 음성이 있었다면 mediaKey를 쥔 행 자체가 사라져 유예 30일 배치가 그 R2 원본을
+// 찾지 못한다 — 배치가 아직 없어(§5.6-4 주석) 지금 당장 막는 장치는 없다. 후속 필요.
+export const deleteFarewellMessage = async (req: Request, res: Response) => {
+  const decoded = verifyBearerToken(req);
+  if (!decoded) {
+    return res.status(401).json({ status: 'error', message: '로그인이 필요합니다.' });
+  }
+  try {
+    const row = await prisma.farewellMessage.findUnique({
+      where: { id: req.params.id },
+      select: { note: { select: { userId: true } } },
+    });
+    if (!row || row.note.userId !== decoded.id) {
+      return res.status(404).json({ status: 'error', message: '편지를 찾을 수 없습니다.' });
+    }
+
+    await prisma.farewellMessage.delete({ where: { id: req.params.id } });
+
+    return res.json({ status: 'success', data: null });
+  } catch (error) {
+    console.error('유족 메시지 삭제 실패:', error);
+    return res.status(500).json({ status: 'error', message: '삭제 중 오류가 발생했습니다.' });
+  }
+};
+
 // 음성 삭제 (`DELETE /api/farewell-messages/:id/audio`) — 06-05 §5.6-4 D-6. 소프트 삭제만 한다.
 // 🔴 mediaKey를 null로 만들지 않는다 — R2 객체를 가리키는 유일한 실마리다. 🔴 런타임 요청
 // 경로에서 DeleteObject를 호출하지 않는다 — 실삭제는 유예 30일 뒤 사람 승인 배치의 몫이다.

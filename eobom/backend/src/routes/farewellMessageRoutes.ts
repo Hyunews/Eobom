@@ -4,6 +4,7 @@ import {
   getFarewellMessage,
   createFarewellMessage,
   updateFarewellMessage,
+  deleteFarewellMessage,
   getFarewellMessageAudio,
   deleteFarewellMessageAudio,
 } from '../controllers/farewellMessageController';
@@ -18,6 +19,7 @@ router.get('/', listFarewellMessages);
 router.get('/:id', getFarewellMessage);
 router.post('/', createFarewellMessage);
 router.patch('/:id', updateFarewellMessage);
+router.delete('/:id', deleteFarewellMessage);
 router.get('/:id/audio', getFarewellMessageAudio);
 router.delete('/:id/audio', deleteFarewellMessageAudio);
 

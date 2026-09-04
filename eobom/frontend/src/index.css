@@ -1470,3 +1470,67 @@ body {
   }
 }
 
+/* 유족메시지 편지 작성/수정 모달(2026-09-05) — 카드 안에 접혀 들어가던 편집기를 위 요약
+   모달과 같은 오버레이 언어로 뺐다. 편지 목록은 뒤에 그대로 남고, 이 모달 하나에만 집중한다. */
+/* 09-05 — 편지 목록 카드 가독성(중장년층 이용자 다수) — 인라인 스타일은 :hover를 못 걸어서
+   여기로 뺐다. */
+.farewell-message-item {
+  text-align: left;
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 1rem 1.15rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  transition: box-shadow var(--transition-speed), border-color var(--transition-speed), transform var(--transition-speed);
+}
+
+.farewell-message-item:hover:not(:disabled) {
+  box-shadow: var(--box-shadow-hover);
+  border-color: var(--point-light);
+  transform: translateY(-2px);
+}
+
+.farewell-message-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 3000;
+  padding: 1rem;
+  overflow-y: auto;
+}
+
+.farewell-message-panel {
+  background-color: var(--card-bg);
+  border-radius: 24px;
+  max-width: 560px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 1.75rem 1.5rem;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+}
+
+@media (max-width: 640px) {
+  .farewell-message-overlay {
+    padding: 0;
+    align-items: stretch;
+  }
+
+  .farewell-message-panel {
+    max-width: none;
+    max-height: none;
+    height: 100%;
+    border-radius: 0;
+  }
+}
+
