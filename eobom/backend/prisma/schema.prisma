@@ -670,9 +670,12 @@ model FarewellMessage {
   title   String? // 평문 허용 — 목록 미리보기 표시용(§6.2)
   bodyEnc String  // 🔴 AES-256-GCM 암호문(utils/crypto.ts encryptNoteField, ENDING_NOTE_ENCRYPTION_KEY). 평문 컬럼 없음(§6.2)
 
-  mediaKey         String? // ⏸ Phase D(음성). 오브젝트 스토리지 키 — 지금은 항상 null
-  mediaMime        String? // ⏸ Phase D
-  mediaDurationSec Int?    // ⏸ Phase D
+  mediaKey         String? // Phase D(음성). R2 오브젝트 키. 🔴 삭제해도 null로 만들지 않는다(§5.6-4)
+  mediaMime        String? // Phase D
+  mediaDurationSec Int?    // Phase D
+  mediaDeletedAt   DateTime? // 🆕 Phase D-6(§5.6-4). 음성만 소프트 삭제한 시각. null이면 정상 첨부.
+  // 🔴 유예 30일 뒤 사람 승인 배치가 원본+아카이브를 지우고 그때 mediaKey를 정리한다 — 런타임
+  // 요청 경로에서 DeleteObject를 호출하지 않는다.
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

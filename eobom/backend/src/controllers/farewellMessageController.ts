@@ -2,6 +2,8 @@ import { Request, Response } from 'express';
 import prisma from '../config/prisma';
 import { verifyBearerToken } from './authController';
 import { encryptNoteField, decryptNoteField } from '../utils/crypto';
+import { isR2Enabled } from '../config/r2';
+import { downloadVoiceObject } from '../services/r2Storage';
 // 06-04 §13 #4(2026-08-27) — 정산 계좌 키(SETTLEMENT_ENCRYPTION_KEY)와 분리된 06 전용 키로 전환.
 // 🔴 운영 DB는 개발자가 이미 FarewellMessage 레코드를 삭제해 0건 확인 완료 — 재암호화 불필요.
 
@@ -44,6 +46,10 @@ export const listFarewellMessages = async (req: Request, res: Response) => {
         recipientId: true,
         title: true,
         bodyEnc: true,
+        mediaKey: true,
+        mediaMime: true,
+        mediaDurationSec: true,
+        mediaDeletedAt: true,
         createdAt: true,
         updatedAt: true,
       },
@@ -51,11 +57,16 @@ export const listFarewellMessages = async (req: Request, res: Response) => {
 
     const data = rows.map((r) => {
       const body = decryptNoteField(r.bodyEnc);
+      // 06-05 §5.6 D-6 — mediaKey 원값은 내려주지 않는다(GET .../:id/audio는 메시지 id로만 연다).
+      const hasAudio = !!r.mediaKey && !r.mediaDeletedAt;
       return {
         id: r.id,
         recipientId: r.recipientId,
         title: r.title,
         preview: body.length > PREVIEW_LENGTH ? `${body.slice(0, PREVIEW_LENGTH)}…` : body,
+        hasAudio,
+        mediaMime: hasAudio ? r.mediaMime : null,
+        mediaDurationSec: hasAudio ? r.mediaDurationSec : null,
         createdAt: r.createdAt,
         updatedAt: r.updatedAt,
       };
@@ -83,6 +94,10 @@ export const getFarewellMessage = async (req: Request, res: Response) => {
         recipientId: true,
         title: true,
         bodyEnc: true,
+        mediaKey: true,
+        mediaMime: true,
+        mediaDurationSec: true,
+        mediaDeletedAt: true,
         createdAt: true,
         updatedAt: true,
         note: { select: { userId: true } },
@@ -93,6 +108,7 @@ export const getFarewellMessage = async (req: Request, res: Response) => {
       return res.status(404).json({ status: 'error', message: '편지를 찾을 수 없습니다.' });
     }
 
+    const hasAudio = !!row.mediaKey && !row.mediaDeletedAt;
     return res.json({
       status: 'success',
       data: {
@@ -100,6 +116,9 @@ export const getFarewellMessage = async (req: Request, res: Response) => {
         recipientId: row.recipientId,
         title: row.title,
         body: decryptNoteField(row.bodyEnc),
+        hasAudio,
+        mediaMime: hasAudio ? row.mediaMime : null,
+        mediaDurationSec: hasAudio ? row.mediaDurationSec : null,
         createdAt: row.createdAt,
         updatedAt: row.updatedAt,
       },
@@ -236,5 +255,81 @@ export const updateFarewellMessage = async (req: Request, res: Response) => {
   } catch (error) {
     console.error('유족 메시지 수정 실패:', error);
     return res.status(500).json({ status: 'error', message: '수정 중 오류가 발생했습니다.' });
+  }
+};
+
+// 음성 듣기 (`GET /api/farewell-messages/:id/audio`) — 06-05 §5.6-3 D-6. 소유권은 메시지
+// 기준(verifyBearerToken). 🔴 mediaKey를 파라미터로 받지 않는다 — 키만 알면 남의 음성이 열린다.
+// 🔴 presigned URL 금지(§5.6-1) — R2엔 선암호화된 바이트만 있어 브라우저가 직접 재생 못 한다.
+// downloadVoiceObject(복호화 포함)로 받아 응답 본문으로 그대로 내보낸다.
+export const getFarewellMessageAudio = async (req: Request, res: Response) => {
+  const decoded = verifyBearerToken(req);
+  if (!decoded) {
+    return res.status(401).json({ status: 'error', message: '로그인이 필요합니다.' });
+  }
+
+  if (!isR2Enabled()) {
+    return res.status(404).json({ status: 'error', message: '음성을 찾을 수 없습니다.' });
+  }
+
+  try {
+    const row = await prisma.farewellMessage.findUnique({
+      where: { id: req.params.id },
+      select: {
+        mediaKey: true,
+        mediaMime: true,
+        mediaDeletedAt: true,
+        note: { select: { userId: true } },
+      },
+    });
+    if (
+      !row ||
+      row.note.userId !== decoded.id ||
+      !row.mediaKey ||
+      row.mediaDeletedAt !== null
+    ) {
+      return res.status(404).json({ status: 'error', message: '음성을 찾을 수 없습니다.' });
+    }
+
+    const buffer = await downloadVoiceObject(row.mediaKey);
+    res.set('Content-Type', row.mediaMime || 'application/octet-stream');
+    res.set('Content-Disposition', 'inline');
+    // 🔴 §5.6-3 — 유언 성격의 음성이 디스크 캐시에 남지 않게 한다.
+    res.set('Cache-Control', 'no-store');
+    return res.send(buffer);
+  } catch (error) {
+    console.error('유족 메시지 음성 조회 실패:', error);
+    return res.status(500).json({ status: 'error', message: '음성을 불러오는 중 오류가 발생했습니다.' });
+  }
+};
+
+// 음성 삭제 (`DELETE /api/farewell-messages/:id/audio`) — 06-05 §5.6-4 D-6. 소프트 삭제만 한다.
+// 🔴 mediaKey를 null로 만들지 않는다 — R2 객체를 가리키는 유일한 실마리다. 🔴 런타임 요청
+// 경로에서 DeleteObject를 호출하지 않는다 — 실삭제는 유예 30일 뒤 사람 승인 배치의 몫이다.
+export const deleteFarewellMessageAudio = async (req: Request, res: Response) => {
+  const decoded = verifyBearerToken(req);
+  if (!decoded) {
+    return res.status(401).json({ status: 'error', message: '로그인이 필요합니다.' });
+  }
+
+  try {
+    const row = await prisma.farewellMessage.findUnique({
+      where: { id: req.params.id },
+      select: { mediaKey: true, mediaDeletedAt: true, note: { select: { userId: true } } },
+    });
+    if (!row || row.note.userId !== decoded.id || !row.mediaKey || row.mediaDeletedAt !== null) {
+      return res.status(404).json({ status: 'error', message: '삭제할 음성이 없습니다.' });
+    }
+
+    await prisma.farewellMessage.update({
+      where: { id: req.params.id },
+      data: { mediaDeletedAt: new Date() },
+      select: { id: true },
+    });
+
+    return res.json({ status: 'success', data: null });
+  } catch (error) {
+    console.error('유족 메시지 음성 삭제 실패:', error);
+    return res.status(500).json({ status: 'error', message: '삭제 중 오류가 발생했습니다.' });
   }
 };

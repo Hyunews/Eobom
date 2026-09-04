@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Mic, MicOff, Upload, Loader2, Check } from 'lucide-react';
+import { Mic, MicOff, Upload, Loader2, Check, Play } from 'lucide-react';
 import { BACKEND_URL } from '../config';
 
 // 06-05 §4.2 정정(08-26) — 말로 남기기(음성 입력 전체)가 엔딩노트 ⑨에서 유족 메시지 보관함으로
@@ -9,6 +9,11 @@ import { BACKEND_URL } from '../config';
 // 🆕 06-05 §5.5(2026-09-03) — Ⓑ가 Web Speech 단독에서 MediaRecorder 본체 + Web Speech 보조
 // 자막 구조로 바뀌었다. Web Speech는 되면 쓰고 안 되면 폴백(§5.5-2)일 뿐, 저장 대상은 항상
 // MediaRecorder가 만든 오디오 blob이다.
+// 🔄 06-05 §5.6-5·§5.6-6 D-6-1(2026-09-04) — 업로드 시점이 "녹음 중지 즉시"에서 "확인 모달의
+// 저장"으로 이동했다. 중지 시 blob은 메모리(ref)에만 두고 모달을 띄운다. STT·R2 호출은 모달의
+// "저장"에서만 일어나고, 그 결과(text·media)를 부모의 onSaveConfirmed에 넘겨 메시지 저장까지
+// 한 흐름으로 끝낸다(§5.6-5 — R2만 올리고 메시지 저장을 남겨두면 고아 구간이 돌아온다).
+// 취소는 blob 폐기 + revokeObjectURL뿐 — 어떤 네트워크 요청도 보내지 않는다.
 
 export interface SavedMedia {
   mediaKey: string;
@@ -18,8 +23,10 @@ export interface SavedMedia {
 
 interface VoiceToTextInputProps {
   token: string | null; // /api/stt/transcribe·/api/stt/store-audio 인증용
-  onText: (text: string) => void; // 인식된 텍스트 조각(최종본)을 부모 편집기로 넘긴다
-  onMediaSaved?: (media: SavedMedia | null) => void; // R2에 저장된 음성 원본(있으면)을 부모에 알린다
+  // 🆕 D-6-1 — Ⓐ 업로드 버튼 클릭, Ⓑ 확인 모달의 "저장" 클릭 시 딱 한 번 호출된다. 텍스트·
+  // 저장된 음성(있으면)·즉시재생용 로컬 blob URL(있으면, §5.6-2)을 한 번에 넘긴다. 실제
+  // 메시지 저장(POST/PATCH)은 이 콜백을 받는 부모의 몫이다.
+  onSaveConfirmed: (text: string, media: SavedMedia | null, localAudioUrl: string | null) => void | Promise<void>;
   disabled?: boolean;
 }
 
@@ -46,30 +53,39 @@ interface UploadResult {
   media?: { mediaKey: string; mediaMime: string };
 }
 
-export const VoiceToTextInput: React.FC<VoiceToTextInputProps> = ({ token, onText, onMediaSaved, disabled }) => {
+export const VoiceToTextInput: React.FC<VoiceToTextInputProps> = ({ token, onSaveConfirmed, disabled }) => {
   const [isRecording, setIsRecording] = useState(false);
-  const [recordingStage, setRecordingStage] = useState<'idle' | 'processing'>('idle');
-  const [interimText, setInterimText] = useState('');
+  const [recordingLiveText, setRecordingLiveText] = useState(''); // 녹음 중 실시간 인식(최종+중간 누적) — 저장 전엔 부모 state를 건드리지 않는다
   const [micError, setMicError] = useState<string | null>(null);
   const [showFirstTimeNotice, setShowFirstTimeNotice] = useState(false);
 
   const [sttUploadEnabled, setSttUploadEnabled] = useState(false);
   const [voiceStorageEnabled, setVoiceStorageEnabled] = useState(false); // R2_ENABLED — /status로만 판단
   const [saveVoiceEnabled, setSaveVoiceEnabled] = useState(true); // §5.5-3 — 기본값 켬
-  // §6.4-11-6-1 — 동의는 "매번" 받는다. 세션 간 기억하지 않으므로 초기값은 항상 false.
+
   const [uploadConsent, setUploadConsent] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploadStage, setUploadStage] = useState<'idle' | 'uploading' | 'processing'>('idle');
   const [uploadError, setUploadError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // 🆕 D-6-1 — 녹음 중지 후 확인 모달(§5.6-6 ③).
+  const [showSaveModal, setShowSaveModal] = useState(false);
+  const [modalStage, setModalStage] = useState<'idle' | 'saving'>('idle');
+  const [modalError, setModalError] = useState<string | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null); // "먼저 들어보기"(§5.6-6 권고) — 로컬 blob, 서버 안 탐
+
   const recognitionRef = useRef<any>(null);
   const shouldListenRef = useRef(false);
   const recognizedAnyFinalRef = useRef(false);
+  const recognizedTextRef = useRef(''); // Web Speech 최종 인식 누적 — 저장 확정 전까지 여기에만 쌓인다
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const recordedChunksRef = useRef<Blob[]>([]);
   const streamRef = useRef<MediaStream | null>(null);
   const recordStartRef = useRef<number>(0);
+  const pendingBlobRef = useRef<Blob | null>(null); // 확정 전 오디오 — 브라우저 메모리에만
+  const pendingMimeRef = useRef<string>('audio/webm');
+  const pendingDurationRef = useRef<number>(0);
 
   const SpeechRecognitionCtor =
     typeof window !== 'undefined' ? (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition : null;
@@ -82,6 +98,13 @@ export const VoiceToTextInput: React.FC<VoiceToTextInputProps> = ({ token, onTex
     streamRef.current = null;
   };
 
+  const revokePreview = () => {
+    setPreviewUrl((prev) => {
+      if (prev) URL.revokeObjectURL(prev);
+      return null;
+    });
+  };
+
   useEffect(() => {
     return () => {
       shouldListenRef.current = false;
@@ -90,7 +113,9 @@ export const VoiceToTextInput: React.FC<VoiceToTextInputProps> = ({ token, onTex
         mediaRecorderRef.current.stop();
       }
       stopMediaStream();
+      revokePreview();
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // §6.4-9-5 — 서버에 물어서만 업로드 UI를 켠다(프론트에 플래그를 직접 심지 않는다).
@@ -125,67 +150,112 @@ export const VoiceToTextInput: React.FC<VoiceToTextInputProps> = ({ token, onTex
     return data.data as UploadResult;
   };
 
-  // [녹음 종료] 이후 처리(§5.5-2) — Web Speech가 한 번이라도 확정 결과를 냈으면 그 텍스트를
-  // 그대로 쓰고, 없으면(iOS 등 인식 실패) blob을 Ⓐ 경로(/transcribe)로 보내 변환을 폴백한다.
-  // 인식 성공 여부와 무관하게 "목소리도 함께 남기기"가 켜져 있으면 원본을 R2에 남긴다.
-  const finalizeRecording = async () => {
+  // [녹음 종료] — 🔴 여기서는 아무것도 서버로 보내지 않는다(§5.6-5). blob을 메모리(ref)에만
+  // 두고 확인 모달을 띄운다. STT·R2 호출은 confirmSavePending(모달의 "저장")에서만 일어난다.
+  const handleRecordingStopped = async () => {
     setIsRecording(false);
-    setInterimText('');
     stopMediaStream();
 
     const chunks = recordedChunksRef.current;
     recordedChunksRef.current = [];
-    if (chunks.length === 0) return;
+    if (chunks.length === 0) {
+      setRecordingLiveText('');
+      return;
+    }
 
     const mimeType = mediaRecorderRef.current?.mimeType || chunks[0].type || 'audio/webm';
     const blob = new Blob(chunks, { type: mimeType });
     const durationSec = Math.max(0, Math.round((Date.now() - recordStartRef.current) / 1000));
+
+    pendingBlobRef.current = blob;
+    pendingMimeRef.current = mimeType;
+    pendingDurationRef.current = durationSec;
+
+    setModalError(null);
+    setModalStage('idle');
+    setShowSaveModal(true);
+  };
+
+  const openPreview = () => {
+    if (previewUrl || !pendingBlobRef.current) return;
+    setPreviewUrl(URL.createObjectURL(pendingBlobRef.current));
+  };
+
+  // 취소 = blob 폐기 + revokeObjectURL. 🔴 어떤 네트워크 요청도 보내지 않는다(§5.6-5·#31).
+  const discardPending = () => {
+    pendingBlobRef.current = null;
+    recognizedAnyFinalRef.current = false;
+    recognizedTextRef.current = '';
+    setRecordingLiveText('');
+    revokePreview();
+    setShowSaveModal(false);
+    setModalStage('idle');
+    setModalError(null);
+  };
+
+  // 저장 = STT(필요 시) → R2 → 메시지 기록까지 한 흐름(§5.6-5·#32). 이 함수는 STT·R2까지만
+  // 하고, 메시지 기록은 결과를 받은 부모(onSaveConfirmed)가 한다.
+  const confirmSavePending = async () => {
+    const blob = pendingBlobRef.current;
+    if (!blob) return;
+    const mimeType = pendingMimeRef.current;
+    const durationSec = pendingDurationRef.current;
     const wantsSave = saveVoiceEnabled && voiceStorageEnabled;
 
-    if (!recognizedAnyFinalRef.current) {
-      // 폴백 — 인식된 텍스트가 없다.
-      if (!sttUploadEnabled) {
-        setMicError('음성 인식에 실패했습니다. 아래 입력창에 직접 입력해 주세요.');
-        return;
-      }
-      setRecordingStage('processing');
-      try {
-        const result = await uploadBlob(blob, mimeType, '/api/stt/transcribe', wantsSave);
-        if (result?.text) {
-          onText(result.text);
-        } else {
-          setMicError('음성 인식에 실패했습니다. 아래 입력창에 직접 입력해 주세요.');
-        }
-        onMediaSaved?.(result?.media ? { ...result.media, mediaDurationSec: durationSec } : null);
-      } catch {
-        setMicError('음성 변환에 실패했습니다. 아래 입력창에 직접 입력해 주세요.');
-      } finally {
-        setRecordingStage('idle');
-      }
-      return;
-    }
+    setModalStage('saving');
+    setModalError(null);
 
-    // Web Speech가 이미 성공했다 — 변환은 필요 없고, 저장만 하면 된다.
-    if (!wantsSave) {
-      onMediaSaved?.(null);
-      return;
-    }
-    setRecordingStage('processing');
     try {
-      const result = await uploadBlob(blob, mimeType, '/api/stt/store-audio', true);
-      onMediaSaved?.(result?.media ? { ...result.media, mediaDurationSec: durationSec } : null);
-    } catch {
-      // 저장 실패가 이미 받은 텍스트를 무효로 만들지는 않는다 — 조용히 넘어간다.
-      onMediaSaved?.(null);
-    } finally {
-      setRecordingStage('idle');
+      let text = '';
+      let media: SavedMedia | null = null;
+
+      if (recognizedAnyFinalRef.current) {
+        // Web Speech가 이미 성공했다 — 변환은 필요 없고, 저장만 하면 된다.
+        text = recognizedTextRef.current.trim();
+        if (wantsSave) {
+          const result = await uploadBlob(blob, mimeType, '/api/stt/store-audio', true);
+          if (result?.media) media = { ...result.media, mediaDurationSec: durationSec };
+        }
+      } else {
+        // 폴백 — 인식된 텍스트가 없다. blob을 Ⓐ 경로(/transcribe)로 보내 변환한다.
+        if (!sttUploadEnabled) {
+          setModalError('음성 인식에 실패했습니다. 취소한 뒤 아래 입력창에 직접 입력해 주세요.');
+          setModalStage('idle');
+          return;
+        }
+        const result = await uploadBlob(blob, mimeType, '/api/stt/transcribe', wantsSave);
+        if (!result?.text) {
+          setModalError('음성 변환에 실패했습니다. 취소한 뒤 아래 입력창에 직접 입력해 주세요.');
+          setModalStage('idle');
+          return;
+        }
+        text = result.text;
+        if (result.media) media = { ...result.media, mediaDurationSec: durationSec };
+      }
+
+      // 🔵 §5.6-2 — 방금 저장한 직후엔 로컬 blob으로 재생(서버 왕복 없음). 소유권은 부모로 넘어간다.
+      const localUrl = URL.createObjectURL(blob);
+      await onSaveConfirmed(text, media, localUrl);
+
+      pendingBlobRef.current = null;
+      recognizedAnyFinalRef.current = false;
+      recognizedTextRef.current = '';
+      setRecordingLiveText('');
+      revokePreview();
+      setShowSaveModal(false);
+      setModalStage('idle');
+    } catch (err) {
+      setModalError(err instanceof Error ? err.message : '저장 중 오류가 발생했습니다.');
+      setModalStage('idle');
     }
   };
 
   const beginRecording = async () => {
     setMicError(null);
     recognizedAnyFinalRef.current = false;
+    recognizedTextRef.current = '';
     recordedChunksRef.current = [];
+    setRecordingLiveText('');
 
     // Web Speech — 되면 좋고 안 되면 생략(§5.5-2). 녹음 자체를 막지 않는다.
     if (SpeechRecognitionCtor) {
@@ -207,9 +277,12 @@ export const VoiceToTextInput: React.FC<VoiceToTextInputProps> = ({ token, onTex
         }
         if (finalChunk) {
           recognizedAnyFinalRef.current = true;
-          onText(finalChunk.trim());
+          recognizedTextRef.current = recognizedTextRef.current
+            ? `${recognizedTextRef.current.trimEnd()} ${finalChunk.trim()}`
+            : finalChunk.trim();
         }
-        setInterimText(interim);
+        // 부모 state는 건드리지 않는다 — 녹음 중엔 이 컴포넌트 안에서만 보여준다.
+        setRecordingLiveText(interim ? `${recognizedTextRef.current} ${interim}`.trim() : recognizedTextRef.current);
       };
 
       recognition.onerror = (event: any) => {
@@ -221,7 +294,6 @@ export const VoiceToTextInput: React.FC<VoiceToTextInputProps> = ({ token, onTex
       };
 
       recognition.onend = () => {
-        setInterimText('');
         if (shouldListenRef.current) {
           try {
             recognition.start();
@@ -257,7 +329,7 @@ export const VoiceToTextInput: React.FC<VoiceToTextInputProps> = ({ token, onTex
         if (e.data.size > 0) recordedChunksRef.current.push(e.data);
       };
       recorder.onstop = () => {
-        void finalizeRecording();
+        void handleRecordingStopped();
       };
       recorder.start();
       recordStartRef.current = Date.now();
@@ -288,7 +360,7 @@ export const VoiceToTextInput: React.FC<VoiceToTextInputProps> = ({ token, onTex
     shouldListenRef.current = false;
     recognitionRef.current?.stop();
     if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
-      mediaRecorderRef.current.stop(); // onstop → finalizeRecording
+      mediaRecorderRef.current.stop(); // onstop → handleRecordingStopped
     } else {
       setIsRecording(false);
     }
@@ -315,14 +387,17 @@ export const VoiceToTextInput: React.FC<VoiceToTextInputProps> = ({ token, onTex
     setSelectedFile(file);
   };
 
+  // Ⓐ 파일 업로드 — §5.6-6 — 별도 확인 모달 없이 "업로드" 버튼 자체가 확인이다. STT + R2 +
+  // 메시지 기록(onSaveConfirmed)까지 한 번에 끝낸다.
   const handleAudioUpload = () => {
     if (!selectedFile || !uploadConsent || !token) return;
+    const file = selectedFile;
 
     setUploadError(null);
     setUploadStage('uploading');
 
     const formData = new FormData();
-    formData.append('audio', selectedFile);
+    formData.append('audio', file);
     // 06-05 §8 D-2 #14 — Ⓐ 경로도 같은 "목소리도 함께 남기기" 선택을 따른다.
     formData.append('saveAudio', saveVoiceEnabled && voiceStorageEnabled ? 'true' : 'false');
 
@@ -349,11 +424,12 @@ export const VoiceToTextInput: React.FC<VoiceToTextInputProps> = ({ token, onTex
       }
       if (xhr.status >= 200 && xhr.status < 300 && data?.status === 'success' && typeof data.data?.text === 'string') {
         const text = data.data.text.trim();
-        onText(text);
-        onMediaSaved?.(data.data.media ? { ...data.data.media } : null);
+        const media: SavedMedia | null = data.data.media ? { ...data.data.media } : null;
+        const localUrl = URL.createObjectURL(file); // §5.6-2 — 방금 올린 원본으로 즉시 재생
         setSelectedFile(null);
         setUploadConsent(false);
         setUploadStage('idle');
+        void onSaveConfirmed(text, media, localUrl);
       } else {
         fail(data?.message || `음성 변환에 실패했습니다. ${fallbackMsg}`);
       }
@@ -378,7 +454,7 @@ export const VoiceToTextInput: React.FC<VoiceToTextInputProps> = ({ token, onTex
             말씀하신 목소리는 글로 바뀌어 편지 내용으로 들어갑니다. 브라우저가 바로 글로 바꾸지
             못하면 네이버 CLOVA Speech로 자동 전송되어 변환됩니다.
             {voiceStorageEnabled && ' "목소리도 함께 남기기"가 켜져 있으면 목소리 원본도 암호화되어 함께 보관되며, 유족이 편지를 열람할 때 함께 들을 수 있습니다.'}
-            이 안내는 처음 한 번만 표시됩니다.
+            녹음을 마치면 저장 여부를 다시 확인합니다. 이 안내는 처음 한 번만 표시됩니다.
           </p>
           <div style={{ display: 'flex', gap: '0.5rem' }}>
             <button type="button" onClick={() => setShowFirstTimeNotice(false)} className="btn" style={{ backgroundColor: 'var(--secondary-color)', color: 'var(--primary-color)' }}>
@@ -386,6 +462,59 @@ export const VoiceToTextInput: React.FC<VoiceToTextInputProps> = ({ token, onTex
             </button>
             <button type="button" onClick={acknowledgeFirstTimeNotice} className="btn btn-point" style={{ flex: 1 }}>
               확인하고 시작하기
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* 🆕 D-6-1 — 녹음 중지 후 확인 모달(§5.6-6 ③④). 저장 전까지 STT·R2·DB 어디에도 쓰지 않는다. */}
+      {showSaveModal && (
+        <div
+          style={{
+            position: 'absolute', inset: 0, zIndex: 10, backgroundColor: 'rgba(255,255,255,0.98)',
+            border: '1px solid var(--border-color)', borderRadius: '10px', padding: '1.1rem',
+            display: 'flex', flexDirection: 'column', gap: '0.75rem', boxShadow: 'var(--box-shadow)',
+            overflowY: 'auto',
+          }}
+        >
+          <p style={{ fontSize: '0.9rem', color: 'var(--primary-color)', fontWeight: 700 }}>
+            텍스트로 변환해서 저장할까요?
+          </p>
+
+          {recordingLiveText && (
+            <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', lineHeight: 1.6, maxHeight: '5rem', overflowY: 'auto' }}>
+              {recordingLiveText}
+            </p>
+          )}
+
+          {!previewUrl ? (
+            <button
+              type="button"
+              onClick={openPreview}
+              disabled={modalStage === 'saving'}
+              className="btn"
+              style={{ backgroundColor: 'var(--secondary-color)', color: 'var(--primary-color)', alignSelf: 'flex-start' }}
+            >
+              <Play size={16} /> 먼저 들어보기
+            </button>
+          ) : (
+            <audio controls src={previewUrl} style={{ width: '100%' }} />
+          )}
+
+          {modalError && (
+            <div style={{ fontSize: '0.85rem', color: '#92400E', backgroundColor: '#FEF3C7', border: '1px solid #FDE68A', borderRadius: '8px', padding: '0.7rem 0.9rem' }}>
+              {modalError}
+            </div>
+          )}
+
+          <p style={{ fontSize: '0.8rem', color: '#B91C1C' }}>취소하면 녹음이 사라집니다.</p>
+
+          <div style={{ display: 'flex', gap: '0.5rem' }}>
+            <button type="button" onClick={discardPending} disabled={modalStage === 'saving'} className="btn" style={{ backgroundColor: 'var(--secondary-color)', color: 'var(--primary-color)' }}>
+              취소
+            </button>
+            <button type="button" onClick={confirmSavePending} disabled={modalStage === 'saving'} className="btn btn-point" style={{ flex: 1 }}>
+              {modalStage === 'saving' ? <><Loader2 size={16} /> 저장 중…</> : '저장'}
             </button>
           </div>
         </div>
@@ -404,8 +533,8 @@ export const VoiceToTextInput: React.FC<VoiceToTextInputProps> = ({ token, onTex
               <MicOff size={18} /> 녹음 멈춤
             </button>
           ) : (
-            <button type="button" onClick={startRecording} disabled={disabled || recordingStage === 'processing'} className="btn btn-point">
-              {recordingStage === 'processing' ? <><Loader2 size={18} /> 처리 중…</> : <><Mic size={18} /> 음성으로 말하기</>}
+            <button type="button" onClick={startRecording} disabled={disabled} className="btn btn-point">
+              <Mic size={18} /> 음성으로 말하기
             </button>
           )
         )}
@@ -446,9 +575,9 @@ export const VoiceToTextInput: React.FC<VoiceToTextInputProps> = ({ token, onTex
         </p>
       )}
 
-      {interimText && (
+      {isRecording && recordingLiveText && (
         <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontStyle: 'italic', marginBottom: '0.5rem' }}>
-          인식 중: {interimText}
+          인식 중: {recordingLiveText}
         </p>
       )}
 

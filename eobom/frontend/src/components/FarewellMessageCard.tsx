@@ -1,10 +1,12 @@
-import React, { useState } from 'react';
-import { Heart, Plus, Loader2, Pencil, X } from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
+import { Heart, Plus, Loader2, Pencil, X, Volume2, Trash2 } from 'lucide-react';
 import { BACKEND_URL } from '../config';
 import { VoiceToTextInput, SavedMedia } from './VoiceToTextInput';
 
 // 06-05 §7·§8 Phase B — 수신자 카드 1개. 편지 목록(미리보기) + 작성/수정 편집기를 담당한다.
 // §10 항목5 — 수신자 1명에게 여러 통 허용. 카드 안에 편지 목록이 여러 건 쌓일 수 있다.
+// 🔄 §5.6·§5.6-5 D-6+D-6-1(2026-09-04) — 음성 듣기·삭제 + 저장 흐름을 doSave(bodyOverride,
+// mediaOverride) 하나로 통일. 수동 저장 버튼과 음성/파일 업로드 확인이 모두 이 함수를 부른다.
 
 export interface RecipientItem {
   id: string;
@@ -20,8 +22,17 @@ export interface MessageItem {
   recipientId: string;
   title: string | null;
   preview: string;
+  hasAudio: boolean;
+  mediaMime: string | null;
+  mediaDurationSec: number | null;
   createdAt: string;
   updatedAt: string;
+}
+
+interface MediaInfo {
+  hasAudio: boolean;
+  mediaMime: string | null;
+  mediaDurationSec: number | null;
 }
 
 const RELATIONSHIP_LABEL: Record<string, string> = {
@@ -43,7 +54,7 @@ interface FarewellMessageCardProps {
   recipient: RecipientItem;
   messages: MessageItem[];
   token: string | null;
-  onSaved: () => void; // 저장/수정 성공 시 부모가 목록을 다시 불러온다
+  onSaved: () => void; // 저장/수정/삭제 성공 시 부모가 목록을 다시 불러온다
 }
 
 export const FarewellMessageCard: React.FC<FarewellMessageCardProps> = ({ recipient, messages, token, onSaved }) => {
@@ -51,26 +62,60 @@ export const FarewellMessageCard: React.FC<FarewellMessageCardProps> = ({ recipi
   const [editingId, setEditingId] = useState<string | null>(null);
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
-  const [media, setMedia] = useState<SavedMedia | null>(null); // 06-05 §8 D-2 — 저장된 음성(있으면)
   const [saving, setSaving] = useState(false);
   const [loadingDetail, setLoadingDetail] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // 🆕 D-6 — 듣기·삭제(§5.6-3·§5.6-4). mediaInfo는 현재 편집 중인 메시지의 첨부 상태.
+  const [mediaInfo, setMediaInfo] = useState<MediaInfo | null>(null);
+  const [audioSrc, setAudioSrc] = useState<string | null>(null); // <audio>에 실제로 물릴 blob URL
+  const [audioLoading, setAudioLoading] = useState(false);
+  const [deletingAudio, setDeletingAudio] = useState(false);
+  const localAudioUrlRef = useRef<string | null>(null); // §5.6-2 — 방금 이 세션에서 저장한 로컬 blob(서버 왕복 없이 재생)
+  const fetchedAudioUrlRef = useRef<string | null>(null); // §5.6-2 — 다시 열어서 서버로 받아온 blob
+
+  const revokeLocalAudio = () => {
+    if (localAudioUrlRef.current) {
+      URL.revokeObjectURL(localAudioUrlRef.current);
+      localAudioUrlRef.current = null;
+    }
+  };
+  const revokeFetchedAudio = () => {
+    if (fetchedAudioUrlRef.current) {
+      URL.revokeObjectURL(fetchedAudioUrlRef.current);
+      fetchedAudioUrlRef.current = null;
+    }
+  };
+
+  useEffect(() => {
+    return () => {
+      revokeLocalAudio();
+      revokeFetchedAudio();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const resetComposer = () => {
     setComposerOpen(false);
     setEditingId(null);
     setTitle('');
     setBody('');
-    setMedia(null);
     setError(null);
+    setMediaInfo(null);
+    setAudioSrc(null);
+    revokeLocalAudio();
+    revokeFetchedAudio();
   };
 
   const openNewComposer = () => {
     setEditingId(null);
     setTitle('');
     setBody('');
-    setMedia(null);
     setError(null);
+    setMediaInfo(null);
+    setAudioSrc(null);
+    revokeLocalAudio();
+    revokeFetchedAudio();
     setComposerOpen(true);
   };
 
@@ -87,7 +132,14 @@ export const FarewellMessageCard: React.FC<FarewellMessageCardProps> = ({ recipi
         setEditingId(id);
         setTitle(data.data.title || '');
         setBody(data.data.body || '');
-        setMedia(null); // 이번 편집에서 새로 녹음/업로드하지 않으면 기존 첨부를 그대로 둔다(서버가 처리)
+        setAudioSrc(null);
+        revokeLocalAudio();
+        revokeFetchedAudio();
+        setMediaInfo({
+          hasAudio: !!data.data.hasAudio,
+          mediaMime: data.data.mediaMime ?? null,
+          mediaDurationSec: data.data.mediaDurationSec ?? null,
+        });
         setComposerOpen(true);
       } else {
         setError(data.message || '편지를 불러오지 못했습니다.');
@@ -99,16 +151,21 @@ export const FarewellMessageCard: React.FC<FarewellMessageCardProps> = ({ recipi
     }
   };
 
-  const handleSave = async () => {
-    if (!token || !body.trim()) return;
+  // 🆕 저장의 실체 — 수동 저장 버튼과 음성/파일 업로드 확인이 모두 이 함수를 부른다.
+  // bodyOverride·mediaOverride를 인자로 직접 받는 이유는 방금 만들어진 값을 React state
+  // 갱신을 기다리지 않고 그대로 넘기기 위해서다(state는 다음 렌더까지 stale하다).
+  const doSave = async (bodyText: string, mediaOverride: SavedMedia | null): Promise<any | null> => {
+    if (!token || !bodyText.trim()) return null;
     setSaving(true);
     setError(null);
     try {
       const isEdit = !!editingId;
-      const mediaFields = media ? { mediaKey: media.mediaKey, mediaMime: media.mediaMime, mediaDurationSec: media.mediaDurationSec } : {};
+      const mediaFields = mediaOverride
+        ? { mediaKey: mediaOverride.mediaKey, mediaMime: mediaOverride.mediaMime, mediaDurationSec: mediaOverride.mediaDurationSec }
+        : {};
       const payload = isEdit
-        ? { title: title.trim() || null, body, ...mediaFields }
-        : { recipientId: recipient.id, title: title.trim() || null, body, ...mediaFields };
+        ? { title: title.trim() || null, body: bodyText, ...mediaFields }
+        : { recipientId: recipient.id, title: title.trim() || null, body: bodyText, ...mediaFields };
       const res = await fetch(`${BACKEND_URL}/api/farewell-messages${isEdit ? `/${editingId}` : ''}`, {
         method: isEdit ? 'PATCH' : 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
@@ -116,15 +173,107 @@ export const FarewellMessageCard: React.FC<FarewellMessageCardProps> = ({ recipi
       });
       const data = await res.json();
       if (data.status === 'success') {
-        resetComposer();
-        onSaved();
-      } else {
-        setError(data.message || '저장에 실패했습니다.');
+        return data.data;
       }
+      setError(data.message || '저장에 실패했습니다.');
+      return null;
     } catch {
       setError('저장 중 오류가 발생했습니다.');
+      return null;
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleSave = async () => {
+    const saved = await doSave(body, null); // 텍스트만 다듬는 저장 — 첨부는 건드리지 않는다
+    if (saved) {
+      resetComposer();
+      onSaved();
+    }
+  };
+
+  // 🆕 D-6-1 — VoiceToTextInput의 onSaveConfirmed. Ⓐ 업로드·Ⓑ 녹음 확인모달 저장 모두
+  // 여기로 들어온다. STT 결과(text)를 본문에 합치고, media가 있으면 즉시 메시지로 저장한다.
+  // 저장 뒤에는 편집기를 닫지 않고 그대로 열어 둔다 — 이후 다듬기는 기존 저장 버튼으로 한다.
+  const handleVoiceSaveConfirmed = async (text: string, voiceMedia: SavedMedia | null, localUrl: string | null) => {
+    const combinedBody = body ? `${body.trimEnd()} ${text}`.trim() : text;
+    setBody(combinedBody);
+
+    const saved = await doSave(combinedBody, voiceMedia);
+    if (!saved) {
+      if (localUrl) URL.revokeObjectURL(localUrl);
+      return;
+    }
+
+    setEditingId(saved.id);
+    onSaved();
+
+    if (voiceMedia) {
+      revokeLocalAudio();
+      localAudioUrlRef.current = localUrl;
+      setAudioSrc(null);
+      setMediaInfo({ hasAudio: true, mediaMime: voiceMedia.mediaMime, mediaDurationSec: voiceMedia.mediaDurationSec ?? null });
+    } else if (localUrl) {
+      URL.revokeObjectURL(localUrl);
+    }
+  };
+
+  // 🆕 D-6 §5.6-2 — 방금 이 세션에서 저장했으면 로컬 blob으로, 다시 열어서 보는 거라면
+  // GET .../audio로 받아온다. presigned URL 없이 인증 fetch → blob → objectURL.
+  const handleListen = async () => {
+    if (audioSrc) return;
+    if (localAudioUrlRef.current) {
+      setAudioSrc(localAudioUrlRef.current);
+      return;
+    }
+    if (!token || !editingId) return;
+    setAudioLoading(true);
+    setError(null);
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/farewell-messages/${editingId}/audio`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) {
+        setError('음성을 불러오지 못했습니다.');
+        return;
+      }
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      fetchedAudioUrlRef.current = url;
+      setAudioSrc(url);
+    } catch {
+      setError('음성을 불러오는 중 오류가 발생했습니다.');
+    } finally {
+      setAudioLoading(false);
+    }
+  };
+
+  // 🆕 D-6 §5.6-4 — 소프트 삭제뿐이다. "즉시 삭제됩니다"가 아니라 유예 기간을 안내한다.
+  const handleDeleteAudio = async () => {
+    if (!token || !editingId) return;
+    if (!window.confirm('이 음성을 삭제하시겠어요? 30일 뒤 완전히 삭제됩니다.')) return;
+    setDeletingAudio(true);
+    setError(null);
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/farewell-messages/${editingId}/audio`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      if (data.status === 'success') {
+        revokeLocalAudio();
+        revokeFetchedAudio();
+        setAudioSrc(null);
+        setMediaInfo((prev) => (prev ? { ...prev, hasAudio: false } : prev));
+        onSaved();
+      } else {
+        setError(data.message || '삭제에 실패했습니다.');
+      }
+    } catch {
+      setError('삭제 중 오류가 발생했습니다.');
+    } finally {
+      setDeletingAudio(false);
     }
   };
 
@@ -157,6 +306,7 @@ export const FarewellMessageCard: React.FC<FarewellMessageCardProps> = ({ recipi
             >
               <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.9rem', fontWeight: 700, color: 'var(--primary-color)' }}>
                 <Pencil size={13} /> {m.title || '(제목 없음)'}
+                {m.hasAudio && <Volume2 size={13} color="var(--point-color)" />}
               </span>
               <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>{m.preview}</span>
               <span style={{ fontSize: '0.75rem', color: '#9CA3AF' }}>{new Date(m.updatedAt).toLocaleString('ko-KR')}</span>
@@ -183,11 +333,20 @@ export const FarewellMessageCard: React.FC<FarewellMessageCardProps> = ({ recipi
           <VoiceToTextInput
             token={token}
             disabled={saving}
-            onText={(text) => {
-              setBody((prev) => (prev ? `${prev.trimEnd()} ${text}` : text));
-            }}
-            onMediaSaved={setMedia}
+            onSaveConfirmed={handleVoiceSaveConfirmed}
           />
+
+          {mediaInfo?.hasAudio && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.75rem', flexWrap: 'wrap' }}>
+              <button type="button" onClick={handleListen} disabled={audioLoading} className="btn" style={{ backgroundColor: 'var(--secondary-color)', color: 'var(--primary-color)' }}>
+                {audioLoading ? <><Loader2 size={15} /> 불러오는 중…</> : <><Volume2 size={15} /> 듣기</>}
+              </button>
+              <button type="button" onClick={handleDeleteAudio} disabled={deletingAudio} className="btn" style={{ backgroundColor: '#FEE2E2', color: '#B91C1C' }}>
+                {deletingAudio ? <><Loader2 size={15} /> 삭제 중…</> : <><Trash2 size={15} /> 음성 삭제</>}
+              </button>
+              {audioSrc && <audio controls autoPlay src={audioSrc} style={{ flexBasis: '100%', width: '100%', marginTop: '0.4rem' }} />}
+            </div>
+          )}
 
           <textarea
             rows={6}
