@@ -1071,3 +1071,67 @@
     않으므로 이 버그의 영향을 받지 않았음 — 별도 확인 불필요.
 
 <!-- Gemini 판정 1줄: … -->
+
+## 2026-09-04 (121) | [Sonnet] 06-05 §5.6 D-4/D-6 — 유족 메시지 음성 듣기·삭제 구현
+
+**근거 스펙**: `docs/06_엔딩노트_유언/06-05_유족메시지_보관함_도메인분리_기획서.md` §5.6
+
+**건드린 파일**:
+- `eobom/backend/prisma/schema.prisma` (`FarewellMessage.mediaDeletedAt` 컬럼 추가)
+- `eobom/backend/prisma/migrations/20260904014100_farewell_message_media_deleted_at/migration.sql` (신규)
+- `eobom/backend/src/controllers/farewellMessageController.ts` (`getFarewellMessageAudio`,
+  `deleteFarewellMessageAudio` 신설 · `listFarewellMessages`/`getFarewellMessage`에 `hasAudio`·
+  `mediaMime`·`mediaDurationSec` 응답 필드 추가)
+- `eobom/backend/src/routes/farewellMessageRoutes.ts` (`GET /:id/audio`, `DELETE /:id/audio`
+  라우트 추가)
+- `eobom/frontend/src/components/FarewellMessageCard.tsx` (`mediaInfo`/`audioSrc` 상태, 인증
+  fetch → blob → `<audio>` objectURL 재생(`handleListen`), 음성 삭제(`handleDeleteAudio`))
+- `eobom/frontend/src/components/VoiceToTextInput.tsx` (전면 재작성 — MediaRecorder 기반 녹음
+  본체, 저장 확인 모달 상태 추가)
+
+**결과**:
+- `GET /api/farewell-messages/:id/audio` — presigned URL 없이 서버가 `downloadVoiceObject`로
+  복호화한 바이트를 `Cache-Control: no-store`로 스트리밍, 소유권은 `note.userId` 기준.
+- `DELETE /api/farewell-messages/:id/audio` — `mediaDeletedAt`만 세팅하는 소프트 삭제. 런타임
+  경로에서 R2 `DeleteObject`를 호출하지 않음(실삭제는 유예 배치 몫, 아직 미구현).
+- `mediaKey`는 API 응답에 내려주지 않고 `hasAudio` boolean으로만 존재 여부 노출.
+- `npx tsc --noEmit`(`eobom/backend`, `eobom/frontend`) 에러 0.
+- 2026-09-04 사람 실기동 검증 통과 — voice-dev 버킷 저장·듣기 재생 확인, 음질은 스피커
+  미사용으로 미확인.
+
+- **편차**: 이 커밋(`4ba7014`)에는 편지 삭제 조항이 없었으나, 다음 커밋(`b611435`)에서
+  `deleteFarewellMessage`(편지 전체 삭제, `DELETE /api/farewell-messages/:id`)가 **하드
+  삭제**(`prisma.farewellMessage.delete`)로 구현됐다. 당시 스펙 §5.6에는 "편지 자체의 삭제"
+  조항이 없었는데도 코드 주석은 아직 존재하지 않던 §5.6-7을 근거로 가리키고 있었다. 첨부
+  음성이 있던 편지를 지우면 `mediaKey`를 쥔 행 자체가 사라져 유예 30일 배치가 R2 원본을
+  다시 찾을 수 없다. 스펙은 2026-09-04에 §5.6-7·§5.6-8로 신설되었고, 수정은 D-7로 예약.
+  → 판정은 "스펙갱신"으로 올라갈 항목이다.
+
+<!-- Gemini 판정 1줄: … -->
+
+## 2026-09-04 (122) | [Sonnet] 06-05 §5.6-5·§5.6-6 — 음성 업로드 시점을 확인 모달의 "저장"으로 이동
+
+**근거 스펙**: `docs/06_엔딩노트_유언/06-05_유족메시지_보관함_도메인분리_기획서.md`
+§5.6-5(D-6-1) · §5.6-6
+
+**건드린 파일**:
+- `eobom/backend/src/controllers/farewellMessageController.ts` (`deleteFarewellMessage`
+  신설 — 편지 전체 삭제, 하드 삭제)
+- `eobom/backend/src/routes/farewellMessageRoutes.ts` (`DELETE /:id` 라우트 추가)
+- `eobom/frontend/src/components/FarewellMessageCard.tsx` (편지 전체 삭제
+  `handleDeleteMessage`/`deletingMessage` 상태, 오디오 아이콘 배지(`Volume2`) 표시)
+- `eobom/frontend/src/components/VoiceToTextInput.tsx` (녹음 종료 직후 즉시 업로드하지
+  않고 저장 확인 모달을 띄운 뒤 모달의 "저장" 클릭(`confirmSavePending`) 시점에만
+  `storeVoiceAudio`로 R2 업로드 · "먼저 들어보기"(`openPreview`, 로컬 blob, 서버 왕복 없음)
+  · `discardPending`으로 취소 시 미업로드 상태 유지)
+- `eobom/frontend/src/index.css` (저장 확인 모달 스타일 64줄 추가)
+
+**결과**:
+- 녹음 직후가 아니라 확인 모달에서 "저장"을 눌러야 R2에 업로드되도록 업로드 시점 이동(D-6-1).
+- `npx tsc --noEmit`(`eobom/backend`, `eobom/frontend`) 에러 0.
+- 2026-09-04 사람 실기동 검증 통과 — voice-dev 버킷 저장·듣기 재생 확인, 음질은 스피커
+  미사용으로 미확인.
+
+- **편차**: 없음.
+
+<!-- Gemini 판정 1줄: … -->
