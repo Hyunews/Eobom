@@ -1135,3 +1135,156 @@
 - **편차**: 없음.
 
 <!-- Gemini 판정 1줄: … -->
+
+## 2026-09-04 (123) | [Sonnet] 06-05 §5.6-7·§5.6-8 D-7+D-8 — 편지 소프트 삭제 전환 + 파기 배치
+
+**근거 스펙**: `docs/06_엔딩노트_유언/06-05_유족메시지_보관함_도메인분리_기획서.md`
+§5.6-7·§5.6-8·§6.2·§8 D-7·D-8
+
+**건드린 파일**:
+- `eobom/backend/prisma/schema.prisma` (`FarewellMessage.deletedAt DateTime?` 추가)
+- `eobom/backend/prisma/migrations/20260904064510_add_farewell_message_deleted_at/migration.sql` (신규)
+- `eobom/backend/src/controllers/farewellMessageController.ts`:
+  - `deleteFarewellMessage` — `prisma.farewellMessage.delete()` 하드 삭제 →
+    `update({ data: { deletedAt: new Date() } })` 소프트 삭제로 교체. "후속 필요" 주석 제거,
+    §5.6-7 참조로 교체.
+  - `listFarewellMessages` — `where`에 `deletedAt: null` 추가.
+  - `getFarewellMessage` — `select`에 `deletedAt` 추가, 404 조건에 `row.deletedAt !== null` 추가.
+  - `updateFarewellMessage` — 404 조건에 `existing.deletedAt !== null` 추가(삭제된 편지 수정 차단).
+  - `getFarewellMessageAudio` — `select`에 `deletedAt` 추가, 404 조건에 `row.deletedAt !== null` 추가.
+  - `deleteFarewellMessageAudio` — 위와 동일하게 `deletedAt` 체크 추가.
+- `eobom/backend/prisma/destroy-farewell-media.ts` (신규) — D-8 파기 배치. dry-run
+  기본/`--confirm` 실행, ①`mediaDeletedAt`+30일→R2 원본 삭제+`mediaKey`·`mediaMime` 정리(행
+  유지), ②`deletedAt`+30일→①선행 후 행 파기. ③ 고아 수거는 스펙대로 미구현.
+- `eobom/frontend/src/components/FarewellMessageCard.tsx` — 편지 삭제 확인 문구를
+  `"이 편지를 삭제하시겠어요? 되돌릴 수 없습니다."` → `"이 편지를 삭제하시겠어요? 30일 뒤
+  완전히 삭제됩니다."`로 교체(음성 삭제 문구와 통일). 주변 주석도 하드 삭제 전제에서
+  소프트 삭제 전제로 수정.
+
+**결과**:
+- db-safety.md 게이트 수행: `docker exec eobom-postgres pg_dump`로 로컬 백업 →
+  `eobom/backend/backups/local-pre-D7-D8-20260904_151709.dump`(186KB) 생성 확인 → 사람 CONFIRM
+  받고 `prisma migrate dev --name add_farewell_message_deleted_at` 실행.
+- 편지 삭제가 소프트 삭제로 전환됨. 목록·단건·오디오 스트리밍·수정·음성삭제 다섯 경로 전부
+  `deletedAt: null`(또는 동등 체크)이 걸려 삭제된 편지가 다시 노출되지 않음.
+  `grep -rln "farewellMessage" eobom/backend/src eobom/frontend/src`로 전수 확인 —
+  `prisma.farewellMessage`를 읽는 곳은 `farewellMessageController.ts`뿐, 다른 컨트롤러에 누락 없음.
+- `destroy-farewell-media.ts`를 `npx ts-node prisma/destroy-farewell-media.ts`(dry-run)로 실행 —
+  컴파일·런타임 정상, "[①음성 만료] 대상 0건 / [②편지 만료] 대상 0건" 출력(현재 30일 경과분
+  없어 대상 0건이 맞는 결과).
+- `npx tsc --noEmit`(`eobom/backend`, `eobom/frontend`) 에러 0. `npx vite build`(frontend) 통과.
+
+- **편차**: §5.6-8은 파기 배치가 "R2 원본과 아카이브를 함께" 지운다고 명시하지만, 실제로
+  구현하지 못했다. `00-11` §5.4-5-2-1·§5.4-6-2에 따르면 아카이브 버킷
+  (`eobom-farewell-voice-archive`)은 백엔드에 S3 자격증명을 아예 주지 않는 구조다
+  (`.env`에 `R2_ACCESS_KEY_ID_ARCHIVE` 류가 없고, `config/r2.ts`에도 `VOICE`·`MEDIA`·`DOCS` 셋뿐
+  — 아카이브는 Cloudflare Worker 바인딩으로만 접근). 이 층이 막으려는 위협 목록에 "정리
+  스크립트"가 명시돼 있어(`00-11` §5.4-5-2 표 ②행), 이 배치 스크립트에 삭제 키를 쥐어주면
+  그 방어 목적 자체가 무너진다. 그래서 `destroy-farewell-media.ts`는 **R2 원본만** 지우고,
+  `--confirm` 실행 시 지운 키 목록을 콘솔에 출력해 사람이 별도 절차(Cloudflare 대시보드·
+  wrangler)로 아카이브를 수동 정리하도록 안내하는 선에서 멈췄다. → 판정 후보: "스펙갱신"
+  (아카이브 수동 정리를 정식 절차로 §5.6-8에 반영) 또는 별도 아카이브 삭제 경로 신설 여부를
+  Opus가 결정해야 함.
+
+**다음 에이전트가 알아야 할 것**:
+- 🔵 실기동 검증 대기 — 편지 삭제 버튼을 눌러 목록에서 사라지는지, DB에서 행이 남고
+  `deletedAt`만 채워졌는지 사람이 직접 확인 필요.
+- `destroy-farewell-media.ts`는 dry-run만 돌려봤다 — `--confirm` 실행은 아직 안 했다(대상
+  0건이라 실행해도 아무 일 없음, 30일 뒤부터 의미 있는 dry-run 가능).
+- 위 편차(아카이브 미삭제)는 `context.md`에도 급한 편차로 올려야 함 — 진행 자체를 막지는
+  않지만 §5.6-8의 "파기 의무" 완결 여부가 걸려 있음.
+
+<!-- Gemini 판정 1줄: … -->
+
+## 2026-09-04 (124) | [Sonnet] 06-05 §5.6-8-1 D-9 — 아카이브 파기 2단계 분리(wt123 편차 후속)
+
+**근거 스펙**: `docs/06_엔딩노트_유언/06-05_유족메시지_보관함_도메인분리_기획서.md`
+§5.6-8-1·§5.6-8-1-1·§8 D-9 (wt123 편차에 대한 Opus 판정 — 같은 세션 중 반영)
+
+**건드린 파일**:
+- `eobom/backend/prisma/destroy-farewell-media.ts` — 전면 수정. R2 원본을 지우기 **전에**
+  `backups/archive-purge-pending.log`에 `{ISO 타임스탬프}\t{key}` 한 줄을 먼저 append(순서
+  고정, §5.6-8-1-1 #45), 그 뒤에 `mediaKey`·`mediaMime`을 비움. `--confirm` 실행이 지운 키가
+  1건 이상이면 종료 메시지에 "아카이브 N건이 남아 있습니다 — 2단계 필요"와 원장 경로·처리
+  안내(`archive-purge-done.log`로 옮기라는 지시)를 출력하도록 추가. 상단 주석의 편차 설명을
+  §5.6-8-1 확정 절차 설명으로 교체.
+
+**결과**:
+- 원장 파일 경로는 `eobom/backend/backups/`(기존 `.gitignore:28`이 이미 커버 — 별도
+  gitignore 추가 불필요, 확인만 함).
+- `npx tsc --noEmit`(`eobom/backend`) 에러 0.
+- `npx ts-node prisma/destroy-farewell-media.ts`(dry-run) 재실행 — 출력 동일(대상 0건, 원장
+  파일 생성 안 됨 — `appendToLedger`는 `confirmed=true`일 때만 호출되므로 dry-run에서 부작용
+  없음을 코드 경로로 확인).
+- 이 스크립트는 여전히 아카이브 버킷 자체는 지우지 않는다 — 그것이 이번 판정의 결론(2단계는
+  사람이 Cloudflare Admin 자격으로, 자동화는 §5.6-8-1 보류 결정).
+
+- **편차**: 없음 — wt123에서 올린 편차에 대한 스펙 갱신(§5.6-8-1 신설)을 그대로 구현.
+
+**다음 에이전트가 알아야 할 것**:
+- 2단계(Admin 자격 아카이브 삭제)는 사람이 손으로 한다 — 이 세션에서 자동화하지 않음(스펙
+  §5.6-8-1 명시 보류).
+- `--confirm` 실행 전 원장 append 로직은 코드만 확인했고 실제 파기 대상이 생긴 뒤에야
+  end-to-end로 검증 가능(현재 대상 0건).
+
+<!-- Gemini 판정 1줄: … -->
+
+## 2026-09-04 (125) | [Sonnet] 06-05 §5.6-8-1-1·§5.6-8-2·§5.6-8-3 D-9 재작업+D-10+D-11 — 원장을 파일→DB로, 환경 판별, 어드민 파기 화면
+
+**근거 스펙**: `docs/06_엔딩노트_유언/06-05_유족메시지_보관함_도메인분리_기획서.md`
+§5.6-8-1-1·§5.6-8-2·§5.6-8-3(-1·-2·-3)·§6.4·§8 D-9~D-11 (09-04 Opus 재판단 — wt124의
+파일 원장이 운영(Render)에서 성립하지 않는다는 지적 반영)
+
+**건드린 파일**:
+- `eobom/backend/prisma/schema.prisma` — `ArchivePurgeQueue`(id/mediaKey/bucket/queuedAt/
+  purgedAt?, §6.4 표 그대로, FarewellMessage와 FK 없음) 신설. 어드민 파기 화면의 감사 로그용
+  `FarewellPurgeAuditLog`(adminId/adminName/targetIds/mediaKeys/count/executedAt, Admin과
+  FK 없음 — 계정이 지워져도 이행 증빙은 남아야 함) 신설. 마이그레이션
+  `20260904074258_add_archive_purge_queue_and_farewell_purge_audit_log` 생성·적용.
+- `eobom/backend/src/services/farewellPurgeService.ts` — 🆕. 파기 로직의 단일 출처.
+  `purgeMediaRow`/`purgeLetterRow`가 **원장 생성 → R2 원본 삭제 → mediaKey 정리** 순서를
+  강제. `isDevEnvironment()`가 `getVoiceBucket()`이 `-dev`로 끝나는지로 환경을 판별해 dev면
+  원장에 쓰지 않음. 서버 재검증용 `isStillMediaExpired`/`isStillLetterExpired` 포함.
+- `eobom/backend/prisma/destroy-farewell-media.ts` — 전면 재작성. 파일 원장(`archive-purge-
+  pending.log`) 코드 전량 제거(기존 로그 파일은 손대지 않음). `farewellPurgeService`의 함수만
+  호출. 시작 시 DB 호스트(비밀번호 제외)/R2 버킷/dev-운영/dry-run 여부를 출력하고, `--confirm`
+  이면 `readline`으로 "yes" 재확인을 받음. 종료 메시지에서 "Admin 자격" 표현 제거 — "본인
+  Cloudflare 로그인(대시보드 또는 wrangler)", "새 토큰 발급하지 않음"으로 교체.
+- `eobom/backend/src/controllers/farewellPurgeController.ts` — 🆕. `listFarewellPurgeExpired`
+  (①②구분 목록) · `listFarewellPendingArchive`(`purgedAt IS NULL`) · `executeFarewellPurge`
+  (서버 재검증 + 건수 일치 확인 + 비밀번호 재인증 + 감사 로그 기록, 검증 실패 항목이 하나라도
+  있으면 요청 전체 거부) · `completeArchivePurge`(2단계 완료 표시만, 아카이브를 지우지 않음).
+  강제 삭제 API·`--force`류 파라미터 없음.
+- `eobom/backend/src/routes/adminRoutes.ts` — 위 4개 엔드포인트를 `/api/admin/farewell-purge/*`
+  로 마운트.
+- `eobom/frontend/src/pages/AdminPage.tsx` — `FAREWELL_PURGE` 탭 추가. ①음성만료/②편지만료
+  목록(체크박스, 일괄 선택 버튼 없음) + 아카이브 2단계 미이행 목록(건별 "완료 표시"). 선택 후
+  "선택 파기" → 모달에서 **건수 직접 입력 + 비밀번호 재입력**을 받아야 실행.
+
+**결과**:
+- `npx tsc --noEmit`(backend·frontend) 에러 0. `npx vite build`(frontend) 통과.
+- DB 쓰기 게이트 통과: `docker exec eobom-postgres pg_dump`로 로컬 백업
+  (`backups/local-pre-D9D11-20260904_164241.dump`, 186KB) 생성 확인 → 사람 CONFIRM
+  ("백업 후 진행") → `npx prisma migrate dev` 실행 → `\dt`로 두 테이블 존재 확인.
+- `npx ts-node prisma/destroy-farewell-media.ts`(dry-run, `--confirm` 없음) 재실행 —
+  배너가 `eobom-farewell-voice-dev`를 dev로 정확히 판별, 대상 0건(현재 만료 데이터 없음),
+  아무것도 쓰지 않음.
+- `--confirm` 실행은 하지 않았다(사용자 지시) — 실기동(어드민 화면 e2e)은 사람 담당으로 대기.
+
+- **편차**: 없음. `walkthrough.md` 편차 필드 명시 요구사항 — **wt124의 파일 원장(`backups/
+  archive-purge-pending.log`) 설계를 이번 스펙 갱신(§5.6-8-1-1 09-04 재판단)으로 되돌림.**
+  사유는 스펙 §5.6-8-1-1에 기록된 대로 Render 파일시스템이 재배포 시 소실되기 때문 —
+  wt124 시점엔 몰랐던 운영 제약이 이번에 드러나 스펙이 먼저 바뀌었고, 이번 커밋은 그 갱신된
+  스펙을 그대로 구현한 것.
+- **추가 결정**: 감사 로그 테이블(`FarewellPurgeAuditLog`)은 §6.4에 명시된 모델이 아니다 —
+  D-11 체크리스트 #57(감사 로그)을 만족시키기 위해 이번 구현에서 새로 도입한 것. `ArchivePurgeQueue`
+  는 지시받은 대로 §6.4 표 필드 그대로 유지(추가 컬럼 없음).
+
+**다음 에이전트가 알아야 할 것**:
+- `--confirm` 실기동 및 어드민 파기 화면 e2e 검증은 아직 안 됨 — 현재 로컬 DB에 만료 대상이
+  0건이라 파기 로직 자체(①②모두)는 실데이터로 검증되지 않았다.
+- `FarewellPurgeAuditLog`는 신규 도입 모델이라 `00-06`(화면 대장)·`00-11`(인프라) 등에
+  별도 언급 없음 — Opus가 필요시 문서화.
+- `00-06`에 `SCR-002-B`뿐 아니라 어드민 파기 화면도 등재 필요(§8 D-11 #60, 기존 backlog).
+
+<!-- Gemini 판정 1줄: … -->

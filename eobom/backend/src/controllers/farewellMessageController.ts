@@ -39,7 +39,7 @@ export const listFarewellMessages = async (req: Request, res: Response) => {
 
   try {
     const rows = await prisma.farewellMessage.findMany({
-      where: { note: { userId: decoded.id } },
+      where: { note: { userId: decoded.id }, deletedAt: null },
       orderBy: { updatedAt: 'desc' },
       select: {
         id: true,
@@ -98,13 +98,14 @@ export const getFarewellMessage = async (req: Request, res: Response) => {
         mediaMime: true,
         mediaDurationSec: true,
         mediaDeletedAt: true,
+        deletedAt: true,
         createdAt: true,
         updatedAt: true,
         note: { select: { userId: true } },
       },
     });
-    // 존재하지 않음과 소유권 없음을 동일하게 404로 응답(familyDesignationController와 동일 원칙)
-    if (!row || row.note.userId !== decoded.id) {
+    // 존재하지 않음과 소유권 없음·삭제됨을 동일하게 404로 응답(familyDesignationController와 동일 원칙)
+    if (!row || row.note.userId !== decoded.id || row.deletedAt !== null) {
       return res.status(404).json({ status: 'error', message: '편지를 찾을 수 없습니다.' });
     }
 
@@ -209,9 +210,9 @@ export const updateFarewellMessage = async (req: Request, res: Response) => {
   try {
     const existing = await prisma.farewellMessage.findUnique({
       where: { id: req.params.id },
-      select: { id: true, note: { select: { userId: true } } },
+      select: { id: true, deletedAt: true, note: { select: { userId: true } } },
     });
-    if (!existing || existing.note.userId !== decoded.id) {
+    if (!existing || existing.note.userId !== decoded.id || existing.deletedAt !== null) {
       return res.status(404).json({ status: 'error', message: '편지를 찾을 수 없습니다.' });
     }
 
@@ -279,6 +280,7 @@ export const getFarewellMessageAudio = async (req: Request, res: Response) => {
         mediaKey: true,
         mediaMime: true,
         mediaDeletedAt: true,
+        deletedAt: true,
         note: { select: { userId: true } },
       },
     });
@@ -286,7 +288,8 @@ export const getFarewellMessageAudio = async (req: Request, res: Response) => {
       !row ||
       row.note.userId !== decoded.id ||
       !row.mediaKey ||
-      row.mediaDeletedAt !== null
+      row.mediaDeletedAt !== null ||
+      row.deletedAt !== null
     ) {
       return res.status(404).json({ status: 'error', message: '음성을 찾을 수 없습니다.' });
     }
@@ -303,9 +306,10 @@ export const getFarewellMessageAudio = async (req: Request, res: Response) => {
   }
 };
 
-// 편지 삭제 (`DELETE /api/farewell-messages/:id`) — 06-05 §5.6-7 D-7. 편지 전체(제목·본문)를
-// 지운다. 🟡 첨부 음성이 있었다면 mediaKey를 쥔 행 자체가 사라져 유예 30일 배치가 그 R2 원본을
-// 찾지 못한다 — 배치가 아직 없어(§5.6-4 주석) 지금 당장 막는 장치는 없다. 후속 필요.
+// 편지 삭제 (`DELETE /api/farewell-messages/:id`) — 06-05 §5.6-7 D-7. 소프트 삭제만 한다.
+// 🔴 행을 지우지 않는다 — mediaKey가 사라지면 R2 원본을 영영 못 찾는다(§5.6-4와 같은 사고).
+// 🔴 런타임 요청 경로에서 R2 DeleteObject를 호출하지 않는다 — 실삭제는 유예 30일 뒤 사람 승인
+// 배치(§5.6-8)의 몫이다.
 export const deleteFarewellMessage = async (req: Request, res: Response) => {
   const decoded = verifyBearerToken(req);
   if (!decoded) {
@@ -314,13 +318,17 @@ export const deleteFarewellMessage = async (req: Request, res: Response) => {
   try {
     const row = await prisma.farewellMessage.findUnique({
       where: { id: req.params.id },
-      select: { note: { select: { userId: true } } },
+      select: { deletedAt: true, note: { select: { userId: true } } },
     });
-    if (!row || row.note.userId !== decoded.id) {
+    if (!row || row.note.userId !== decoded.id || row.deletedAt !== null) {
       return res.status(404).json({ status: 'error', message: '편지를 찾을 수 없습니다.' });
     }
 
-    await prisma.farewellMessage.delete({ where: { id: req.params.id } });
+    await prisma.farewellMessage.update({
+      where: { id: req.params.id },
+      data: { deletedAt: new Date() },
+      select: { id: true },
+    });
 
     return res.json({ status: 'success', data: null });
   } catch (error) {
@@ -341,9 +349,20 @@ export const deleteFarewellMessageAudio = async (req: Request, res: Response) =>
   try {
     const row = await prisma.farewellMessage.findUnique({
       where: { id: req.params.id },
-      select: { mediaKey: true, mediaDeletedAt: true, note: { select: { userId: true } } },
+      select: {
+        mediaKey: true,
+        mediaDeletedAt: true,
+        deletedAt: true,
+        note: { select: { userId: true } },
+      },
     });
-    if (!row || row.note.userId !== decoded.id || !row.mediaKey || row.mediaDeletedAt !== null) {
+    if (
+      !row ||
+      row.note.userId !== decoded.id ||
+      !row.mediaKey ||
+      row.mediaDeletedAt !== null ||
+      row.deletedAt !== null
+    ) {
       return res.status(404).json({ status: 'error', message: '삭제할 음성이 없습니다.' });
     }
 

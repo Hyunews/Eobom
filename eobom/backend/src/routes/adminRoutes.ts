@@ -15,6 +15,12 @@ import {
 } from '../controllers/moderationController';
 import { listClaimsForAdmin, updateClaimStatus } from '../controllers/claimController';
 import { listDigitalPlatformsForAdmin, createDigitalPlatform, updateDigitalPlatform } from '../controllers/digitalPlatformController';
+import {
+  listFarewellPurgeExpired,
+  listFarewellPendingArchive,
+  executeFarewellPurge,
+  completeArchivePurge,
+} from '../controllers/farewellPurgeController';
 
 const router = Router();
 
@@ -51,5 +57,11 @@ router.patch('/memorials/:id/guestbook/:gid/hide', hideMemorialGuestbookEntry);
 
 // 회원 상세 — 도메인 데이터 조인 (docs 04-01 §5.4 · 05-01 §4.4)
 router.get('/users/:id', getUserDetailForAdmin);
+
+// 유족 메시지 파기 (docs 06-05 §5.6-8-3 D-11) — 정상 만료분만, 강제 삭제 경로 없음
+router.get('/farewell-purge/expired', listFarewellPurgeExpired);
+router.get('/farewell-purge/pending-archive', listFarewellPendingArchive);
+router.post('/farewell-purge/execute', executeFarewellPurge);
+router.patch('/farewell-purge/pending-archive/:id/complete', completeArchivePurge);
 
 export default router;

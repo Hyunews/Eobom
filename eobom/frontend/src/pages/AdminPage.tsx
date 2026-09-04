@@ -7,14 +7,18 @@ import { AddressSearchModal } from '../components/AddressSearchModal';
 // docs/01-05 §6.2, docs/02-02. 계정은 seed-admin.ts로만 생성되므로 여기엔 가입 폼이 없다.
 // 공개 메뉴·Footer 어디에도 링크하지 않는다 — 직접 URL(#admin)로만 접근.
 
-type QueueTab = 'PARTNERS' | 'EXPERTS' | 'CLAIMS' | 'FACILITIES';
+type QueueTab = 'PARTNERS' | 'EXPERTS' | 'CLAIMS' | 'FACILITIES' | 'FAREWELL_PURGE';
 
 const TAB_LABELS: Record<QueueTab, string> = {
   PARTNERS: '사업자 가입',
   EXPERTS: '전문가 가입',
   CLAIMS: '시설 연동',
   FACILITIES: '전체 시설',
+  FAREWELL_PURGE: '유족메시지 파기',
 };
+
+// 06-05 §5.6-8-3 D-11 — 선택 대상 하나(파기 목록의 ①음성/②편지 행)
+type PurgeItem = { id: string; type: 'MEDIA' | 'LETTER'; title: string | null; expiredAt: string; hasMedia?: boolean };
 
 const EXPERT_CATEGORY_LABELS: Record<string, string> = {
   LAWYER: '변호사',
@@ -60,6 +64,18 @@ export const AdminPage: React.FC = () => {
   const [editingExpertId, setEditingExpertId] = useState<string | null>(null);
   const [expertEditForm, setExpertEditForm] = useState({ contactPhone: '', officeAddress: '', bio: '' });
   const [showAddressSearch, setShowAddressSearch] = useState(false);
+
+  // 06-05 §5.6-8-3 D-11 — 유족 메시지 파기 화면. 만료분 목록(①음성/②편지) + 선택 파기 +
+  // 아카이브 2단계 미이행 목록. 🔴 일괄 버튼 없음 — 건별 선택만(§5.6-8-3-2).
+  const [farewellMedia, setFarewellMedia] = useState<PurgeItem[]>([]);
+  const [farewellLetter, setFarewellLetter] = useState<PurgeItem[]>([]);
+  const [pendingArchive, setPendingArchive] = useState<any[]>([]);
+  const [selectedPurge, setSelectedPurge] = useState<Set<string>>(new Set()); // key = `${type}:${id}`
+  const [showPurgeConfirm, setShowPurgeConfirm] = useState(false);
+  const [purgeCountInput, setPurgeCountInput] = useState('');
+  const [purgePassword, setPurgePassword] = useState('');
+  const [purgeError, setPurgeError] = useState('');
+  const [purgeSubmitting, setPurgeSubmitting] = useState(false);
 
   const authHeaders = { Authorization: `Bearer ${token}` };
 
@@ -164,14 +180,111 @@ export const AdminPage: React.FC = () => {
     }
   };
 
+  // 06-05 §5.6-8-3-2 D-11 — 만료 대상(①②) + 아카이브 2단계 미이행 목록을 함께 불러온다.
+  const loadFarewellPurge = async () => {
+    if (!token) return;
+    setLoadError('');
+    setSelectedPurge(new Set());
+    try {
+      const [expiredRes, pendingRes] = await Promise.all([
+        authFetch(`${BACKEND_URL}/api/admin/farewell-purge/expired`),
+        authFetch(`${BACKEND_URL}/api/admin/farewell-purge/pending-archive`),
+      ]);
+      if (!expiredRes || !pendingRes) return;
+      const expiredData = await expiredRes.json();
+      const pendingData = await pendingRes.json();
+      if (expiredData.status === 'success') {
+        setFarewellMedia(
+          expiredData.data.media.map((r: any) => ({ id: r.id, type: 'MEDIA', title: r.title, expiredAt: r.mediaDeletedAt })),
+        );
+        setFarewellLetter(
+          expiredData.data.letter.map((r: any) => ({ id: r.id, type: 'LETTER', title: r.title, expiredAt: r.deletedAt, hasMedia: r.hasMedia })),
+        );
+      } else {
+        setLoadError(expiredData.message || '조회 실패');
+      }
+      if (pendingData.status === 'success') setPendingArchive(pendingData.data);
+    } catch {
+      setLoadError('서버와 통신 중 오류가 발생했습니다.');
+    }
+  };
+
   useEffect(() => {
     if (tab === 'FACILITIES') {
       loadFacilities(1);
+    } else if (tab === 'FAREWELL_PURGE') {
+      loadFarewellPurge();
     } else {
       loadQueue();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token, tab, statusFilter]);
+
+  const togglePurgeSelection = (key: string) => {
+    setSelectedPurge((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
+  };
+
+  const openPurgeConfirm = () => {
+    if (selectedPurge.size === 0) return;
+    setPurgeCountInput('');
+    setPurgePassword('');
+    setPurgeError('');
+    setShowPurgeConfirm(true);
+  };
+
+  // 🔴 실행 직전 대상 건수를 사람이 직접 입력해 확인 + 비밀번호 재인증(§5.6-8-3-3 #57·#58).
+  const submitPurgeConfirm = async () => {
+    setPurgeError('');
+    const items: PurgeItem[] = Array.from(selectedPurge).map((key) => {
+      const [type, id] = key.split(':');
+      return { id, type: type as 'MEDIA' | 'LETTER' } as PurgeItem;
+    });
+    if (Number(purgeCountInput) !== items.length) {
+      setPurgeError(`입력한 건수가 선택된 건수(${items.length}건)와 다릅니다.`);
+      return;
+    }
+    if (!purgePassword) {
+      setPurgeError('비밀번호를 입력해주세요.');
+      return;
+    }
+    setPurgeSubmitting(true);
+    try {
+      const res = await authFetch(`${BACKEND_URL}/api/admin/farewell-purge/execute`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          items: items.map((it) => ({ id: it.id, type: it.type })),
+          expectedCount: items.length,
+          password: purgePassword,
+        }),
+      });
+      if (!res) return;
+      const data = await res.json();
+      if (!res.ok || data.status !== 'success') {
+        setPurgeError(data.message || '파기 처리에 실패했습니다.');
+        return;
+      }
+      setShowPurgeConfirm(false);
+      loadFarewellPurge();
+    } catch {
+      setPurgeError('서버와 통신 중 오류가 발생했습니다.');
+    } finally {
+      setPurgeSubmitting(false);
+    }
+  };
+
+  // 아카이브 2단계(사람이 Cloudflare에서 직접 지움) 완료 표시 — 화면은 아카이브를 지우지 않는다(#59).
+  const completeArchiveItem = async (id: string) => {
+    if (!window.confirm('Cloudflare 대시보드에서 이 키를 이미 지웠습니까? 완료로 표시합니다.')) return;
+    const res = await authFetch(`${BACKEND_URL}/api/admin/farewell-purge/pending-archive/${id}/complete`, { method: 'PATCH' });
+    if (!res) return;
+    loadFarewellPurge();
+  };
 
   // 사업자/전문가 "전체 회원" 검색 — 목록 규모가 작아(수십~수백 건) 클라이언트에서 필터
   const normalizedSearch = memberSearch.trim().toLowerCase();
@@ -323,7 +436,7 @@ export const AdminPage: React.FC = () => {
       </div>
 
       <div style={{ display: 'flex', gap: '0.6rem', marginBottom: '1rem', flexWrap: 'wrap' }}>
-        {(['PARTNERS', 'EXPERTS', 'CLAIMS', 'FACILITIES'] as QueueTab[]).map((t) => (
+        {(['PARTNERS', 'EXPERTS', 'CLAIMS', 'FACILITIES', 'FAREWELL_PURGE'] as QueueTab[]).map((t) => (
           <button
             key={t}
             onClick={() => setTab(t)}
@@ -350,6 +463,16 @@ export const AdminPage: React.FC = () => {
             <input value={facilitySearch} onChange={(e) => setFacilitySearch(e.target.value)} placeholder="시설명 검색" className="form-select" style={{ ...SMALL_INPUT, width: '200px' }} />
             <button type="submit" className="btn btn-primary" style={TAB_BTN}>검색</button>
           </form>
+        ) : tab === 'FAREWELL_PURGE' ? (
+          <div style={{ display: 'flex', gap: '0.5rem', marginLeft: 'auto', alignItems: 'center' }}>
+            <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>선택 {selectedPurge.size}건</span>
+            <button onClick={openPurgeConfirm} disabled={selectedPurge.size === 0} className="btn" style={{ ...TAB_BTN, backgroundColor: '#FEE2E2', color: '#991B1B', opacity: selectedPurge.size === 0 ? 0.5 : 1 }}>
+              선택 파기
+            </button>
+            <button onClick={loadFarewellPurge} className="btn" style={{ ...TAB_BTN, backgroundColor: '#F1F5F9' }}>
+              새로고침
+            </button>
+          </div>
         ) : (
           <div style={{ display: 'flex', gap: '0.5rem', marginLeft: 'auto' }}>
             <input value={memberSearch} onChange={(e) => setMemberSearch(e.target.value)} placeholder="이름·상호·이메일 검색" className="form-select" style={{ ...SMALL_INPUT, width: '200px' }} />
@@ -598,7 +721,132 @@ export const AdminPage: React.FC = () => {
               </div>
             </>
           ))}
+
+        {tab === 'FAREWELL_PURGE' && (
+          <>
+            <div>
+              <h3 style={{ fontSize: '1rem', color: 'var(--primary-color)', marginBottom: '0.5rem' }}>
+                ① 음성만 만료 (유예 30일 경과, 편지는 살아 있음) — {farewellMedia.length}건
+              </h3>
+              {farewellMedia.length === 0 ? (
+                <EmptyState />
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '1.2rem' }}>
+                  {farewellMedia.map((item) => {
+                    const key = `MEDIA:${item.id}`;
+                    return (
+                      <label key={key} className="card" style={{ padding: '0.8rem 1rem', display: 'flex', alignItems: 'center', gap: '0.7rem', cursor: 'pointer' }}>
+                        <input type="checkbox" checked={selectedPurge.has(key)} onChange={() => togglePurgeSelection(key)} />
+                        <span style={{ fontSize: '0.9rem' }}>{item.title || '(제목 없음)'}</span>
+                        <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginLeft: 'auto' }}>
+                          음성 삭제 {item.expiredAt ? new Date(item.expiredAt).toLocaleDateString() : ''}
+                        </span>
+                      </label>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            <div>
+              <h3 style={{ fontSize: '1rem', color: 'var(--primary-color)', marginBottom: '0.5rem' }}>
+                ② 편지 전체 만료 (유예 30일 경과, 행 파기 대상) — {farewellLetter.length}건
+              </h3>
+              {farewellLetter.length === 0 ? (
+                <EmptyState />
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '1.2rem' }}>
+                  {farewellLetter.map((item) => {
+                    const key = `LETTER:${item.id}`;
+                    return (
+                      <label key={key} className="card" style={{ padding: '0.8rem 1rem', display: 'flex', alignItems: 'center', gap: '0.7rem', cursor: 'pointer' }}>
+                        <input type="checkbox" checked={selectedPurge.has(key)} onChange={() => togglePurgeSelection(key)} />
+                        <span style={{ fontSize: '0.9rem' }}>{item.title || '(제목 없음)'}</span>
+                        {item.hasMedia && <span style={{ fontSize: '0.75rem', backgroundColor: 'var(--secondary-color)', padding: '0.1rem 0.4rem', borderRadius: '5px' }}>첨부 포함</span>}
+                        <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginLeft: 'auto' }}>
+                          편지 삭제 {item.expiredAt ? new Date(item.expiredAt).toLocaleDateString() : ''}
+                        </span>
+                      </label>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            <div>
+              <h3 style={{ fontSize: '1rem', color: 'var(--primary-color)', marginBottom: '0.5rem' }}>
+                아카이브 2단계 미이행 (Cloudflare 대시보드에서 직접 지운 뒤 완료 표시) — {pendingArchive.length}건
+              </h3>
+              {pendingArchive.length === 0 ? (
+                <EmptyState />
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                  {pendingArchive.map((p) => (
+                    <div key={p.id} className="card" style={{ padding: '0.8rem 1rem', display: 'flex', alignItems: 'center', gap: '0.7rem' }}>
+                      <span style={{ fontSize: '0.85rem', fontFamily: 'monospace' }}>{p.mediaKey}</span>
+                      <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{p.bucket}</span>
+                      <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginLeft: 'auto' }}>
+                        1단계 {new Date(p.queuedAt).toLocaleDateString()}
+                      </span>
+                      <button onClick={() => completeArchiveItem(p.id)} className="btn" style={{ ...SMALL_BTN, backgroundColor: '#DEF7EC', color: '#03543F' }}>
+                        완료 표시
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </>
+        )}
       </div>
+
+      {showPurgeConfirm && (
+        <div
+          style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(15, 23, 42, 0.8)', zIndex: 2100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}
+          onClick={() => !purgeSubmitting && setShowPurgeConfirm(false)}
+        >
+          <div
+            style={{ backgroundColor: '#FFFFFF', borderRadius: '16px', padding: '1.5rem', width: '420px', maxWidth: '100%', display: 'flex', flexDirection: 'column', gap: '0.8rem' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 style={{ color: '#991B1B', fontSize: '1.1rem' }}>파기 실행 확인</h3>
+            <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>
+              선택한 <strong>{selectedPurge.size}건</strong>을 지금 파기합니다. 되돌릴 수 없습니다.
+              건수를 직접 입력하고 비밀번호를 다시 입력하면 실행됩니다.
+            </p>
+            <div>
+              <label style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>대상 건수 입력 ({selectedPurge.size}건)</label>
+              <input
+                type="number"
+                value={purgeCountInput}
+                onChange={(e) => setPurgeCountInput(e.target.value)}
+                className="form-select"
+                style={SMALL_INPUT}
+                placeholder={`${selectedPurge.size}`}
+              />
+            </div>
+            <div>
+              <label style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>비밀번호 재입력</label>
+              <input
+                type="password"
+                value={purgePassword}
+                onChange={(e) => setPurgePassword(e.target.value)}
+                className="form-select"
+                style={SMALL_INPUT}
+              />
+            </div>
+            {purgeError && <div style={{ color: '#991B1B', fontSize: '0.85rem' }}>{purgeError}</div>}
+            <div style={{ display: 'flex', gap: '0.6rem', justifyContent: 'flex-end' }}>
+              <button onClick={() => setShowPurgeConfirm(false)} disabled={purgeSubmitting} className="btn" style={{ ...SMALL_BTN, backgroundColor: '#F1F5F9' }}>
+                취소
+              </button>
+              <button onClick={submitPurgeConfirm} disabled={purgeSubmitting} className="btn" style={{ ...SMALL_BTN, backgroundColor: '#991B1B', color: '#FFFFFF' }}>
+                {purgeSubmitting ? '처리 중...' : '파기 실행'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {showAddressSearch && (
         <AddressSearchModal

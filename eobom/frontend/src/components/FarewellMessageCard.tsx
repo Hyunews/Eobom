@@ -155,12 +155,12 @@ export const FarewellMessageCard: React.FC<FarewellMessageCardProps> = ({ recipi
     }
   };
 
-  // 🆕 D-7 — 편지 전체 삭제. 음성 삭제(handleDeleteAudio)와 달리 소프트 삭제가 아니다 —
-  // 편지 행 자체가 사라진다(제목·본문 모두).
+  // 🔄 D-7(§5.6-7) — 편지 전체 삭제도 소프트 삭제다. 음성 삭제(handleDeleteAudio)와 같은
+  // 유예 30일 · 같은 확인 문구.
   const [deletingMessage, setDeletingMessage] = useState(false);
   const handleDeleteMessage = async () => {
     if (!token || !editingId) return;
-    if (!window.confirm('이 편지를 삭제하시겠어요? 되돌릴 수 없습니다.')) return;
+    if (!window.confirm('이 편지를 삭제하시겠어요? 30일 뒤 완전히 삭제됩니다.')) return;
     setDeletingMessage(true);
     setError(null);
     try {

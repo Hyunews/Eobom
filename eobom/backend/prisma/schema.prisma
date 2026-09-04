@@ -677,6 +677,9 @@ model FarewellMessage {
   // 🔴 유예 30일 뒤 사람 승인 배치가 원본+아카이브를 지우고 그때 mediaKey를 정리한다 — 런타임
   // 요청 경로에서 DeleteObject를 호출하지 않는다.
 
+  deletedAt DateTime? // 🆕 Phase D-7(§5.6-7). 편지 전체를 소프트 삭제한 시각. 🔴 행을 지우지
+  // 않는다 — mediaKey가 사라지면 R2 원본을 영영 못 찾는다. 목록·상세·오디오는 null인 것만 돌려준다.
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -731,6 +734,30 @@ model EndingNoteGrant {
   @@unique([noteId, designationId, section]) // 가족·섹션 조합당 권한 1건 — timing은 덮어써서 바꾼다
   @@index([noteId])
   @@index([designationId])
+}
+
+// 아카이브 파기 2단계의 원장(06-05 §6.4·§5.6-8-1-1). 운영 1단계는 Render에서 돌고 Render
+// 파일시스템은 재배포 시 사라지므로 파일이 아니라 DB 테이블로 둔다. 🔴 개인정보를 담지 않는다
+// — 오브젝트 키뿐이다. 🔴 행을 지우지 않는다(파기 이력 = 의무 이행 증빙). FarewellMessage와
+// FK로 묶지 않는다 — 편지 행이 파기(②)돼도 원장은 남아야 한다.
+model ArchivePurgeQueue {
+  id       String   @id @default(uuid())
+  mediaKey String // 아카이브 버킷에서 지워야 할 키. FarewellMessage.mediaKey의 사본
+  bucket   String // 원본 버킷명 — 나중에 미디어·서류로 확장될 때 구분자
+  queuedAt DateTime @default(now()) // 1단계(원본 삭제)를 돈 시각
+  purgedAt DateTime? // 2단계(사람이 아카이브 삭제) 완료 시각. 🔴 NULL = 미이행 잔량
+}
+
+// 어드민 파기 화면(06-05 §5.6-8-3-3)의 감사 로그 — "누가·언제·몇 건·어떤 키". 파기는 법적
+// 의무라 이행 증빙이 필요하다. Admin과 FK로 묶지 않는다 — 계정이 나중에 지워져도 증빙은 남아야 한다.
+model FarewellPurgeAuditLog {
+  id         String   @id @default(uuid())
+  adminId    String // 실행한 운영자 id(FK 아님)
+  adminName  String // 실행 시점 운영자 이름 스냅샷
+  targetIds  String // 파기한 FarewellMessage.id 목록(콤마 구분)
+  mediaKeys  String // 같이 지운 R2 원본 키 목록(콤마 구분, 없으면 빈 문자열)
+  count      Int // 몇 건
+  executedAt DateTime @default(now())
 }
 
 // ─────────────────────────────────────────────────────────────────
