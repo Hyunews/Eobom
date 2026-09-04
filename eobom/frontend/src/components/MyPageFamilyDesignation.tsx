@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { X, CheckCircle2, AlertCircle, AlertTriangle, Loader2, Trash2, Pencil, Plus, Send, Copy } from 'lucide-react';
 import { FAMILY_INVITE_CARD_IMAGE_URL } from '../config';
 import { apiFetch, ApiError } from '../lib/api';
@@ -77,6 +77,9 @@ export const MyPageFamilyDesignation: React.FC<MyPageFamilyDesignationProps> = (
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<FormState>(emptyForm);
+  // 목록을 스크롤해서 "가족 추가"를 누르면 닫기 버튼이 이미 화면 밖으로 밀려나 있다 —
+  // 폼이 열릴 때 맨 위로 되돌려 닫기 버튼이 항상 보이게 한다.
+  const backdropRef = useRef<HTMLDivElement>(null);
   // 00-27 §9.1-4 — 방금 발급한 초대 링크. 카카오 공유 성공 여부와 무관하게 링크 복사 버튼을
   // 항상 같이 보여주기 위해 별도로 들고 있는다(§9.1-4-1 — 자동 분기 뒤에 숨기지 않는다).
   const [lastInviteLink, setLastInviteLink] = useState<{ itemId: string; url: string } | null>(null);
@@ -110,6 +113,10 @@ export const MyPageFamilyDesignation: React.FC<MyPageFamilyDesignationProps> = (
       setForm(emptyForm);
     }
   }, [isOpen]);
+
+  useEffect(() => {
+    if (showForm) backdropRef.current?.scrollTo({ top: 0 });
+  }, [showForm]);
 
   if (!isOpen) return null;
 
@@ -239,6 +246,7 @@ export const MyPageFamilyDesignation: React.FC<MyPageFamilyDesignationProps> = (
 
   return (
     <div
+      ref={backdropRef}
       style={{
         position: 'fixed',
         top: 0,
@@ -248,13 +256,15 @@ export const MyPageFamilyDesignation: React.FC<MyPageFamilyDesignationProps> = (
         backgroundColor: 'rgba(0, 0, 0, 0.65)',
         backdropFilter: 'blur(4px)',
         display: 'flex',
-        alignItems: 'center',
         justifyContent: 'center',
         zIndex: 3100,
         padding: '1rem',
         overflowY: 'auto',
       }}
     >
+      {/* align-items:center를 부모에 두면 내용이 뷰포트보다 길 때 위쪽이 스크롤로도 닿지 않는
+          채 잘린다(닫기 버튼 실종). margin:auto로 옮기면 짧을 땐 그대로 가운데, 길면 자동으로
+          0이 되어 위가 화면 안에 들어오고 스크롤이 닿는다. */}
       <div
         style={{
           backgroundColor: '#FFFFFF',
@@ -264,7 +274,7 @@ export const MyPageFamilyDesignation: React.FC<MyPageFamilyDesignationProps> = (
           padding: '1.9rem 1.5rem',
           boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
           position: 'relative',
-          margin: '2rem 0',
+          margin: 'auto',
         }}
       >
         <button
