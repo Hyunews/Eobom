@@ -6,14 +6,15 @@ import { OBITUARY_CARD_IMAGE_URL } from '../config';
 import { formatKST, formatObituaryCardTitle, formatObituaryCardDescription } from '../utils/obituaryCard';
 import { ensureKakaoShareReady, shareViaKakao, shareViaWebShareApi, copyObituaryLink, reportObituaryShare } from '../utils/kakaoShare';
 
-// 00-06 §8(SCR-018) — Header "추모관" 메뉴가 홈 박스③(링크 입력창)으로만 보내서, 부고장을 만든
-// 당사자가 정작 본인이 만든 부고장·추모관에 다시 들어갈 방법이 없다는 사용자 리포트 대응.
-// Header 메뉴는 로그인 상태에서만 렌더되므로(Header.tsx currentUser 가드) 이 화면은 항상
-// 로그인 사용자만 본다. `GET /api/me/obituaries` — 부고장 링크(/o/:slug)까지 함께 내려줘야 해서다.
-// 🔄 09-07 사용자 지시 — "부고장과 추모관은 구분해서 관리되어야 한다." 추모관 생성·삭제·
-// 주소복사 같은 관리 액션은 전부 `/memorial` 화면으로 옮겼다. 여기는 부고장만 관리하고,
-// 연결된 추모관이 있으면 "있다면" 열어볼 수 있는 링크 하나만 읽기 전용으로 보여준다
-// (ObituaryLandingPage.tsx의 "추모관 들어가기"와 같은 최소 노출 원칙).
+// 00-06 §8(SCR-018, "내 부고장·추모관") — Header "추모관" 메뉴가 홈 박스③(링크 입력창)으로만
+// 보내서, 부고장을 만든 당사자가 정작 본인이 만든 부고장·추모관에 다시 들어갈 방법이 없다는
+// 사용자 리포트 대응으로 신설됐다. 이 화면은 항상 로그인 사용자만 본다.
+// 🔄 09-07 사용자 지시 — 헤더의 직행 메뉴를 없애고 마이페이지에서만 들어오게 했다(Header.tsx·
+// MyPage.tsx 참고). 같은 지시로 이 화면도 부고장 목록만 있던 것에서 부고장·추모관을 좌우
+// 반반으로 나눠 보여주도록 바뀌었고, 주소도 `/my-obituaries` → `/my-obituaries-memorials`로,
+// 제목도 "내 부고장"에서 "내 부고장·추모관"으로 정정했다(App.tsx 라우트 참고).
+// 추모관 생성·삭제·주소복사 같은 관리 액션은 여전히 `/memorial` 화면 몫이다 — 여기서는 두
+// 목록을 나란히 읽기 전용으로 보여주고, 실제 만들기·닫기는 그 화면으로 안내만 한다.
 
 interface MyObituary {
   id: string;
@@ -29,6 +30,14 @@ interface MyObituary {
   createdAt: string;
 }
 
+interface MyMemorial {
+  id: string;
+  slug: string;
+  deceasedName: string;
+  closedAt: string | null;
+  createdAt: string;
+}
+
 export const MyObituaryListPage: React.FC = () => {
   const navigate = useNavigate();
   const [obituaries, setObituaries] = useState<MyObituary[] | null>(null);
@@ -39,10 +48,19 @@ export const MyObituaryListPage: React.FC = () => {
 
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
+  // 우측 "내 추모관" 목록 — `GET /api/me/memorials`(memorialController.listMyMemorials,
+  // 기존 코드 그대로. MemorialPage.tsx가 쓰는 것과 같은 엔드포인트). 만들기·닫기는 여기서
+  // 하지 않으므로 필드도 표시에 필요한 것만 뽑아 쓴다.
+  const [memorials, setMemorials] = useState<MyMemorial[] | null>(null);
+  const [memorialLoadError, setMemorialLoadError] = useState(false);
+
   useEffect(() => {
     apiFetch<MyObituary[]>('/api/me/obituaries', 'USER')
       .then(setObituaries)
       .catch(() => setLoadError(true));
+    apiFetch<MyMemorial[]>('/api/me/memorials', 'USER')
+      .then(setMemorials)
+      .catch(() => setMemorialLoadError(true));
   }, []);
 
   // Kakao.Share.sendDefault는 클릭 핸들러 안에서 동기 호출돼야 팝업 차단을 피한다(§7) —
@@ -113,136 +131,176 @@ export const MyObituaryListPage: React.FC = () => {
     alignItems: 'center', gap: '0.3rem',
   };
 
+  const moreLinkStyle: React.CSSProperties = {
+    marginTop: '1rem', background: 'none', border: 'none', padding: 0, color: 'var(--point-color)',
+    fontWeight: 700, fontSize: '0.9rem', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '0.3rem',
+  };
+
   return (
-    <div className="container" style={{ paddingBottom: '3rem', maxWidth: '640px' }}>
-      <h2 style={{ marginBottom: '0.3rem' }}>내 부고장</h2>
+    <div className="container" style={{ paddingBottom: '3rem', maxWidth: '860px' }}>
+      <h2 style={{ marginBottom: '0.3rem' }}>내 부고장·추모관</h2>
       <p style={{ color: 'var(--text-muted)', marginBottom: '1.5rem', fontSize: '0.95rem' }}>
-        내가 만든 부고장에 다시 들어가거나 수정할 수 있습니다.
+        내가 만든 부고장과 추모관을 한곳에서 확인할 수 있습니다.
       </p>
 
-      {/* ① 내가 만든 부고장 목록 */}
-      <div style={{ ...cardStyle, marginBottom: '1.5rem' }}>
-        <h4 style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <FileEdit size={18} color="var(--primary-color)" /> 내가 만든 부고장
-        </h4>
+      {/* 부고장·추모관을 좌우 반반으로 — 00-29 §6.1 .auto-grid(min 280px, 375px 가로스크롤 방지) */}
+      <div className="auto-grid" style={{ alignItems: 'start' }}>
+        {/* ① 내가 만든 부고장 목록 */}
+        <div style={cardStyle}>
+          <h4 style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <FileEdit size={18} color="var(--primary-color)" /> 내가 만든 부고장
+          </h4>
 
-        {obituaries === null && !loadError && (
-          <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>불러오는 중...</p>
-        )}
-        {loadError && (
-          <p style={{ color: '#92400E', fontSize: '0.9rem' }}>목록을 불러오지 못했습니다. 잠시 후 다시 시도해주세요.</p>
-        )}
-        {obituaries !== null && obituaries.length === 0 && (
-          <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>아직 만든 부고장이 없습니다.</p>
-        )}
+          {obituaries === null && !loadError && (
+            <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>불러오는 중...</p>
+          )}
+          {loadError && (
+            <p style={{ color: '#92400E', fontSize: '0.9rem' }}>목록을 불러오지 못했습니다. 잠시 후 다시 시도해주세요.</p>
+          )}
+          {obituaries !== null && obituaries.length === 0 && (
+            <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>아직 만든 부고장이 없습니다.</p>
+          )}
 
-        {obituaries !== null && obituaries.length > 0 && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.9rem' }}>
-            {obituaries.map((o) => (
-              <div
-                key={o.id}
-                style={{
-                  padding: '0.9rem 1rem', backgroundColor: 'var(--secondary-color)', borderRadius: '10px',
-                  display: 'flex', flexDirection: 'column', gap: '0.6rem',
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem' }}>
-                  <div>
-                    <p style={{ fontWeight: 700, color: 'var(--text-main)', marginBottom: '0.2rem' }}>
-                      故 {o.deceasedName}
-                      {o.isClosed && (
-                        <span style={{ marginLeft: '0.5rem', fontSize: '0.75rem', fontWeight: 400, color: 'var(--text-muted)' }}>· 종료됨</span>
-                      )}
+          {obituaries !== null && obituaries.length > 0 && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.9rem' }}>
+              {obituaries.map((o) => (
+                <div
+                  key={o.id}
+                  style={{
+                    padding: '0.9rem 1rem', backgroundColor: 'var(--secondary-color)', borderRadius: '10px',
+                    display: 'flex', flexDirection: 'column', gap: '0.6rem',
+                  }}
+                >
+                  {/* 🔄 09-07 사용자 리포트 — 이 카드가 좌우 반반 레이아웃(auto-grid)으로
+                      들어가 폭이 줄면서, "진행중"(수정+삭제 2버튼)일 때만 이름·버튼이
+                      한 줄에 다 안 들어가 깨졌다. flexWrap+minWidth:0으로 좁을 때 버튼 줄이
+                      아래로 떨어지게 한다("종료됨"=삭제 1버튼은 원래도 안 깨졌던 경우). */}
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.6rem 1rem', flexWrap: 'wrap' }}>
+                    <div style={{ minWidth: 0 }}>
+                      <p style={{ fontWeight: 700, color: 'var(--text-main)', marginBottom: '0.2rem' }}>
+                        故 {o.deceasedName}
+                        {o.isClosed && (
+                          <span style={{ marginLeft: '0.5rem', fontSize: '0.75rem', fontWeight: 400, color: 'var(--text-muted)' }}>· 종료됨</span>
+                        )}
+                        {!o.isClosed && (
+                          <span style={{ marginLeft: '0.5rem', fontSize: '0.75rem', fontWeight: 400, color: 'var(--point-color)' }}>· 진행중</span>
+                        )}
+                      </p>
+                      <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                        {o.deceasedDeathDate ? `사망일 ${formatKST(o.deceasedDeathDate)}` : `개설일 ${formatKST(o.createdAt)}`}
+                      </p>
+                    </div>
+                    <div style={{ display: 'flex', gap: '0.4rem', flexShrink: 0 }}>
                       {!o.isClosed && (
-                        <span style={{ marginLeft: '0.5rem', fontSize: '0.75rem', fontWeight: 400, color: 'var(--point-color)' }}>· 진행중</span>
+                        <button
+                          type="button"
+                          onClick={() => navigate(`/obituary?slug=${o.slug}`)}
+                          className="btn"
+                          style={{ height: '36px', padding: '0 0.8rem', fontSize: '0.82rem', backgroundColor: 'var(--card-bg)', border: '1px solid #CBD5E1' }}
+                        >
+                          수정
+                        </button>
                       )}
-                    </p>
-                    <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                      {o.deceasedDeathDate ? `사망일 ${formatKST(o.deceasedDeathDate)}` : `개설일 ${formatKST(o.createdAt)}`}
-                    </p>
-                  </div>
-                  <div style={{ display: 'flex', gap: '0.4rem', flexShrink: 0 }}>
-                    {!o.isClosed && (
                       <button
                         type="button"
-                        onClick={() => navigate(`/obituary?slug=${o.slug}`)}
+                        onClick={() => deleteObituary(o)}
+                        disabled={deletingId === o.id}
                         className="btn"
-                        style={{ height: '36px', padding: '0 0.8rem', fontSize: '0.82rem', backgroundColor: 'var(--card-bg)', border: '1px solid #CBD5E1' }}
+                        style={{
+                          height: '36px', padding: '0 0.8rem', fontSize: '0.82rem', backgroundColor: 'var(--card-bg)',
+                          border: '1px solid #FCA5A5', color: '#B91C1C', opacity: deletingId === o.id ? 0.6 : 1,
+                          display: 'inline-flex', alignItems: 'center', gap: '0.3rem',
+                        }}
                       >
-                        수정
+                        <Trash2 size={14} /> 삭제
                       </button>
-                    )}
-                    <button
-                      type="button"
-                      onClick={() => deleteObituary(o)}
-                      disabled={deletingId === o.id}
-                      className="btn"
-                      style={{
-                        height: '36px', padding: '0 0.8rem', fontSize: '0.82rem', backgroundColor: 'var(--card-bg)',
-                        border: '1px solid #FCA5A5', color: '#B91C1C', opacity: deletingId === o.id ? 0.6 : 1,
-                        display: 'inline-flex', alignItems: 'center', gap: '0.3rem',
-                      }}
-                    >
-                      <Trash2 size={14} /> 삭제
+                    </div>
+                  </div>
+
+                  <div style={linkGroupStyle}>
+                    <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', width: '3.4rem' }}>부고장</span>
+                    <button type="button" onClick={() => navigate(`/o/${o.slug}`)} style={iconBtnStyle}>
+                      <ExternalLink size={13} /> 열기
+                    </button>
+                    <button type="button" onClick={() => shareObituary(o)} style={iconBtnStyle}>
+                      <Share2 size={13} /> 공유
                     </button>
                   </div>
-                </div>
 
-                <div style={linkGroupStyle}>
-                  <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', width: '3.4rem' }}>부고장</span>
-                  <button type="button" onClick={() => navigate(`/o/${o.slug}`)} style={iconBtnStyle}>
-                    <ExternalLink size={13} /> 열기
-                  </button>
-                  <button type="button" onClick={() => shareObituary(o)} style={iconBtnStyle}>
-                    <Share2 size={13} /> 공유
-                  </button>
+                  {feedback?.id === o.id && (
+                    <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{feedback.message}</p>
+                  )}
                 </div>
-                {/* 🔄 09-07 — 추모관 관리(생성·삭제·주소복사)는 /memorial로 옮겼다. 여긴
-                    "있다면" 열어볼 수 있는 링크 하나만 읽기 전용으로. */}
-                {o.memorialSlug && (
+              ))}
+            </div>
+          )}
+
+          <button
+            type="button"
+            // 🔴 09-07 — `/obituary`만 넘기면 그 화면이 localStorage 포인터를 읽어 마지막으로
+            // 본(어쩌면 종료된) 부고장을 다시 불러왔다 — "새로" 만들기가 안 됐다. `?new=1`로
+            // ObituaryPage.tsx가 포인터를 무시하고 빈 폼으로 시작하게 한다(ObituaryPage.tsx
+            // handleStartNew 참고).
+            onClick={() => navigate('/obituary?new=1')}
+            style={moreLinkStyle}
+          >
+            새 부고장 만들기 <ArrowRight size={14} />
+          </button>
+        </div>
+
+        {/* ② 내가 만든 추모관 목록 — 읽기 전용. 만들기·닫기·주소복사는 /memorial 몫(09-07 사용자
+            지시 — "부고장과 추모관은 구분해서 관리되어야 한다") */}
+        <div style={cardStyle}>
+          <h4 style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <Flower2 size={18} color="var(--primary-color)" /> 내가 만든 추모관
+          </h4>
+
+          {memorials === null && !memorialLoadError && (
+            <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>불러오는 중...</p>
+          )}
+          {memorialLoadError && (
+            <p style={{ color: '#92400E', fontSize: '0.9rem' }}>목록을 불러오지 못했습니다. 잠시 후 다시 시도해주세요.</p>
+          )}
+          {memorials !== null && memorials.length === 0 && (
+            <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>아직 만든 추모관이 없습니다.</p>
+          )}
+
+          {memorials !== null && memorials.length > 0 && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.9rem' }}>
+              {memorials.map((m) => (
+                <div
+                  key={m.id}
+                  style={{
+                    padding: '0.9rem 1rem', backgroundColor: 'var(--secondary-color)', borderRadius: '10px',
+                    display: 'flex', flexDirection: 'column', gap: '0.6rem',
+                  }}
+                >
+                  <div>
+                    <p style={{ fontWeight: 700, color: 'var(--text-main)', marginBottom: '0.2rem' }}>
+                      故 {m.deceasedName}
+                      {m.closedAt ? (
+                        <span style={{ marginLeft: '0.5rem', fontSize: '0.75rem', fontWeight: 400, color: 'var(--text-muted)' }}>· 종료됨</span>
+                      ) : (
+                        <span style={{ marginLeft: '0.5rem', fontSize: '0.75rem', fontWeight: 400, color: 'var(--point-color)' }}>· 운영중</span>
+                      )}
+                    </p>
+                    <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>개설일 {formatKST(m.createdAt)}</p>
+                  </div>
                   <div style={linkGroupStyle}>
                     <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', width: '3.4rem' }}>추모관</span>
-                    <button type="button" onClick={() => navigate(`/m/${o.memorialSlug}`)} style={iconBtnStyle}>
+                    <button type="button" onClick={() => navigate(`/m/${m.slug}`)} style={iconBtnStyle}>
                       <ExternalLink size={13} /> 열기
                     </button>
                   </div>
-                )}
+                </div>
+              ))}
+            </div>
+          )}
 
-                {feedback?.id === o.id && (
-                  <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{feedback.message}</p>
-                )}
-              </div>
-            ))}
-          </div>
-        )}
-
-        <button
-          type="button"
-          // 🔴 09-07 — `/obituary`만 넘기면 그 화면이 localStorage 포인터를 읽어 마지막으로
-          // 본(어쩌면 종료된) 부고장을 다시 불러왔다 — "새로" 만들기가 안 됐다. `?new=1`로
-          // ObituaryPage.tsx가 포인터를 무시하고 빈 폼으로 시작하게 한다(ObituaryPage.tsx
-          // handleStartNew 참고).
-          onClick={() => navigate('/obituary?new=1')}
-          style={{ marginTop: '1rem', background: 'none', border: 'none', padding: 0, color: 'var(--point-color)', fontWeight: 700, fontSize: '0.9rem', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}
-        >
-          새 부고장 만들기 <ArrowRight size={14} />
-        </button>
-      </div>
-
-      {/* 🔄 09-07 — 추모관은 완전히 별도 화면에서 만들고 지운다. 부고장 목록에 끼워 넣지
-          않고, 그 화면으로 가는 링크만 안내한다. */}
-      <div style={{ ...cardStyle, marginBottom: '1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-          <Flower2 size={18} color="var(--primary-color)" />
-          <span style={{ fontSize: '0.9rem', color: 'var(--text-main)' }}>추모관은 여기가 아니라 디지털 추모관 화면에서 따로 만들고 관리합니다.</span>
+          <button type="button" onClick={() => navigate('/memorial')} style={moreLinkStyle}>
+            추모관 만들기·관리 <ArrowRight size={14} />
+          </button>
         </div>
-        <button
-          type="button"
-          onClick={() => navigate('/memorial')}
-          style={{ background: 'none', border: 'none', padding: 0, color: 'var(--point-color)', fontWeight: 700, fontSize: '0.9rem', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '0.3rem', whiteSpace: 'nowrap' }}
-        >
-          디지털 추모관으로 <ArrowRight size={14} />
-        </button>
       </div>
     </div>
   );
