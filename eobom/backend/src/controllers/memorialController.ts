@@ -206,6 +206,36 @@ export const updateMemorial = async (req: Request, res: Response) => {
   }
 };
 
+// 🆕 09-07 — "추모관은 따로 추모관 페이지에서 생성/삭제된다"(사용자 지시)의 삭제 쪽.
+// 삭제 (`DELETE /api/memorials/:id`) — 개설자만, 소프트 삭제(closedAt). schema.prisma의
+// closedAt 주석("개설자가 닫음")이 이미 이 용도로 설계돼 있었는데 컨트롤러가 없었다.
+// 🔴 하드 삭제(prisma.memorial.delete)로 만들지 않는다 — 방명록·헌화·사진이 캐스케이드로
+// 통째로 사라진다. findViewableMemorialBySlug가 closedAt 있으면 이미 404 처리하므로
+// 공개 열람은 즉시 막히고, 데이터는 보존기간 정책(00-20 §8.1, purgeAt)이 나중에 정리한다.
+// 이미 닫혀 있어도 에러 대신 현재 상태를 그대로 돌려준다(closeObituary와 같은 멱등 패턴).
+export const closeMemorial = async (req: Request, res: Response) => {
+  const decoded = verifyBearerToken(req);
+  if (!decoded) {
+    return res.status(401).json({ status: 'error', message: '로그인이 필요합니다.' });
+  }
+
+  try {
+    const existing = await prisma.memorial.findUnique({ where: { id: req.params.id } });
+    if (!existing || existing.createdByUserId !== decoded.id) {
+      return res.status(404).json({ status: 'error', message: '추모관을 찾을 수 없습니다.' });
+    }
+
+    const updated = existing.closedAt
+      ? existing
+      : await prisma.memorial.update({ where: { id: existing.id }, data: { closedAt: new Date() } });
+
+    return res.json({ status: 'success', data: { closedAt: updated.closedAt } });
+  } catch (error) {
+    console.error('추모관 삭제 실패:', error);
+    return res.status(500).json({ status: 'error', message: '추모관 삭제 중 오류가 발생했습니다.' });
+  }
+};
+
 // ─────────────────────────────────────────────────────────────────
 // 헌화 · 방명록 · 사진 — 비회원 상호작용을 허용하는 구간(§4.4, §4.5). 로그인 여부는 필수가 아니라
 // 선택이라 verifyBearerToken 실패를 401로 끊지 않고 "없으면 비회원"으로 흘려보낸다.

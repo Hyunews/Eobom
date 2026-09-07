@@ -414,8 +414,6 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
     printWindow.print();
   };
 
-  const hasAddressHint = /\d+(-\d+)?\s*(번지|호)|(로|길)\s*\d+/.test(draftText);
-  const hasDateHint = /\d{4}\s*년\s*\d{1,2}\s*월\s*\d{1,2}\s*일/.test(draftText);
 
   // 00-35 §5.2 — 8개 아코디언 호출부의 본문과 저장 페이로드만 섹션 코드별로 모으고, 나머지
   // (expanded·completed·saveState·onToggle·onSave)는 SECTIONS 배열 순회로 유도한다.
@@ -831,27 +829,28 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
           </div>
 
           <div>
+            {/* 🔄 09-07 사용자 지시 — ① 문구를 짧게(모바일 줄바꿈으로 가독성 저하) ② 정규식
+                기반 자동 검증(hasAddressHint·hasDateHint) 삭제 — 초안 문맥에 따라 오판 가능성이
+                커서, 확인됨/빠짐을 판정하지 않고 네 항목을 똑같은 안내로만 둔다. */}
             <h4 style={{ fontSize: '0.95rem', color: 'var(--primary-color)', marginBottom: '0.5rem' }}>
-              자필증서 유언장의 4대 요건 — 옮겨 쓸 때 빠뜨리지 마세요
+              자필증서 유언장의 4대 요건
             </h4>
             <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-              <li style={{ fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.4rem', color: hasAddressHint ? 'var(--point-color)' : 'var(--text-muted)' }}>
-                {hasAddressHint ? <CheckCircle2 size={16} /> : <Circle size={16} />}
-                주소 — 번지까지 정확히 {hasAddressHint ? '(초안에서 확인됨)' : '(빠졌을 수 있습니다. 번지까지 쓰셔야 합니다)'}
-              </li>
-              <li style={{ fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.4rem', color: hasDateHint ? 'var(--point-color)' : 'var(--text-muted)' }}>
-                {hasDateHint ? <CheckCircle2 size={16} /> : <Circle size={16} />}
-                연월일 {hasDateHint ? '(초안에서 확인됨)' : '(빠졌을 수 있습니다. "2026년 8월 25일"처럼 정확히 쓰셔야 합니다)'}
+              <li style={{ fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'var(--text-muted)' }}>
+                <Circle size={16} /> 주소 — 번지까지
               </li>
               <li style={{ fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'var(--text-muted)' }}>
-                <Circle size={16} /> 성명 — 본인이 직접 확인하세요 (자동으로 확인되지 않습니다)
+                <Circle size={16} /> 연월일 — 예: 2026년 8월 25일
               </li>
               <li style={{ fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'var(--text-muted)' }}>
-                <Circle size={16} /> 날인 — 옮겨 쓴 종이에 도장 또는 지장을 찍으세요 (화면에서는 확인할 수 없습니다)
+                <Circle size={16} /> 성명 — 본인 서명
+              </li>
+              <li style={{ fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'var(--text-muted)' }}>
+                <Circle size={16} /> 날인 — 도장 또는 지장
               </li>
             </ul>
             <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginTop: '0.5rem' }}>
-              ※ 위 표시는 참고용 안내일 뿐이며, 이어봄이 주소·연월일·성명을 대신 채워 넣지 않습니다.
+              ※ 이어봄은 위 항목을 자동으로 확인하지 않습니다. 직접 확인해 주세요.
             </p>
             <div style={{ fontSize: '0.85rem', color: 'var(--primary-color)', backgroundColor: '#F1F5F9', borderRadius: '8px', padding: '0.9rem', marginTop: '0.9rem' }}>
               이 초안을 보고 직접 손으로 옮겨 쓰십시오. 컴퓨터로 작성한 문서는 자필증서 유언장으로 인정되지 않습니다.

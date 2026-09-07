@@ -565,8 +565,12 @@ model Obituary {
   slug            String   @unique   // 배포용 추측 불가 토큰(§4.4)
   deceasedId      String
   deceased        Deceased @relation(fields: [deceasedId], references: [id])
-  memorialId      String   @unique   // 개설 시 함께 생성된 추모관(00-13 §4.5 · 권고 #3)
-  memorial        Memorial @relation(fields: [memorialId], references: [id])
+  // 🔄 09-07 사용자 지시 — 부고장 생성이 추모관 생성을 강제하지 않는다(기존 E안 §4.5·권고#3
+  // "개설 시 함께 생성"을 뒤집음). 추모관은 `/memorial` 화면에서 별도로 생성·삭제되고,
+  // 부고장 작성 화면의 체크박스로 "이 부고장과 함께 새 추모관도 만들기"를 선택했을 때만
+  // 이 자리에 값이 채워진다. null이면 이 부고장엔 연결된 추모관이 없다는 뜻.
+  memorialId      String?  @unique
+  memorial        Memorial? @relation(fields: [memorialId], references: [id])
   createdByUserId String              // 개설자(상주)
   createdByUser   User     @relation(fields: [createdByUserId], references: [id])
 

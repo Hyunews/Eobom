@@ -50,7 +50,12 @@ interface MournerInput {
   relationship?: string;
 }
 
-// 개설 (`POST /api/obituaries`) — §5.2. Deceased+Memorial+Obituary를 한 트랜잭션으로 생성한다.
+// 개설 (`POST /api/obituaries`) — §5.2. Deceased+Obituary를 트랜잭션으로 생성한다.
+// 🔄 09-07 사용자 지시 — 추모관은 더 이상 항상 함께 만들지 않는다. `createMemorial`
+// 체크박스가 켜졌을 때만 같은 트랜잭션에서 Memorial도 만들어 연결한다(옛 동작과 동일한
+// 경로), 꺼져 있으면 memorialId는 null로 남는다 — 추모관은 `/memorial` 화면에서 완전히
+// 별도로 만들고 관리한다. 🔵 기존 부고장에 나중에 추모관을 연결하는 기능은 이번 범위 밖
+// (PATCH /api/obituaries/:id는 memorialId를 받지 않는다) — 필요해지면 별도로 추가.
 // ⚠️ 동의 검증은 utils/consentGates.ts 공용 함수로만 한다 — 여기서 직접 다시 짜면
 // POST /api/memorials의 게이트를 우회하는 뒷문이 생긴다(§5.2 구현 주의).
 export const createObituary = async (req: Request, res: Response) => {
@@ -80,6 +85,8 @@ export const createObituary = async (req: Request, res: Response) => {
     accountHolder?: string;
     falseReportAgreed?: boolean;
     resharedNoticeAck?: boolean;
+    // 🆕 09-07 — "이 부고장과 함께 추모관도 만들기" 체크박스. 기본값 false(명시적으로 켜야 만든다).
+    createMemorial?: boolean;
   };
 
   // 1~2. 동의 게이트(§5.2)
@@ -120,7 +127,7 @@ export const createObituary = async (req: Request, res: Response) => {
   ];
 
   try {
-    let result: { memorial: { slug: string }; obituary: { id: string; slug: string } } | undefined;
+    let result: { memorial: { slug: string } | null; obituary: { id: string; slug: string } } | undefined;
 
     // 극히 낮은 확률의 slug 충돌 대비 — memorialController.createMemorial과 동일 재시도 패턴(§4.4).
     for (let attempt = 0; attempt < 3; attempt++) {
@@ -136,23 +143,26 @@ export const createObituary = async (req: Request, res: Response) => {
             },
           });
 
-          const memorial = await tx.memorial.create({
-            data: {
-              slug: generateMemorialSlug(),
-              createdByUserId: decoded.id,
-              deceasedId: deceased.id,
-              deceasedName: deceased.name,
-              deceasedDeathDate: deceased.deathDate,
-              visibility: 'LINK',
-              falseReportAgreedAt: now,
-            },
-          });
+          // 🔄 09-07 — 체크박스가 켜졌을 때만 추모관을 만든다. 꺼져 있으면 memorial은 null.
+          const memorial = body.createMemorial
+            ? await tx.memorial.create({
+                data: {
+                  slug: generateMemorialSlug(),
+                  createdByUserId: decoded.id,
+                  deceasedId: deceased.id,
+                  deceasedName: deceased.name,
+                  deceasedDeathDate: deceased.deathDate,
+                  visibility: 'LINK',
+                  falseReportAgreedAt: now,
+                },
+              })
+            : null;
 
           const obituary = await tx.obituary.create({
             data: {
               slug: generateObituarySlug(),
               deceasedId: deceased.id,
-              memorialId: memorial.id,
+              memorialId: memorial?.id ?? null,
               createdByUserId: decoded.id,
               funeralHall: body.funeralHall!.trim(),
               funeralHallAddr: body.funeralHallAddr?.trim() || null,
@@ -173,7 +183,7 @@ export const createObituary = async (req: Request, res: Response) => {
             select: { id: true, slug: true },
           });
 
-          return { memorial: { slug: memorial.slug }, obituary };
+          return { memorial: memorial ? { slug: memorial.slug } : null, obituary };
         });
         break;
       } catch (e: any) {
@@ -191,9 +201,9 @@ export const createObituary = async (req: Request, res: Response) => {
         // 본인에게 돌려주는 이 응답에만 추가했다(walkthrough 편차로 기록).
         obituaryId: obituary.id,
         obituarySlug: obituary.slug,
-        memorialSlug: memorial.slug,
+        memorialSlug: memorial?.slug ?? null,
         obituaryUrl: `${FRONTEND_URL}/o/${obituary.slug}`,
-        memorialUrl: `${FRONTEND_URL}/m/${memorial.slug}`,
+        memorialUrl: memorial ? `${FRONTEND_URL}/m/${memorial.slug}` : null,
       },
     });
   } catch (error) {
@@ -240,7 +250,8 @@ export const getObituaryBySlug = async (req: Request, res: Response) => {
       funeralAt: obituary.funeralAt,
       burialSite: obituary.burialSite,
       mourners: obituary.mourners.map((m) => ({ name: m.name, relationship: m.relationship, isChief: m.isChief })),
-      memorialSlug: obituary.memorial.slug,
+      // 🔄 09-07 — memorial이 이제 선택이라 없을 수 있다(체크박스 안 켜고 만든 부고장).
+      memorialSlug: obituary.memorial?.slug ?? null,
       cardFieldsUpdatedAt: obituary.cardFieldsUpdatedAt,
       updatedAt: obituary.updatedAt, // §5.4-2 — 랜딩 상단 "최종 수정 시각" 표시용
       // §9 #9 — 익명 조회에서는 이 경로에 절대 도달하지 않으므로(닫혔으면 위에서 이미 404)
@@ -260,7 +271,7 @@ export const getObituaryBySlug = async (req: Request, res: Response) => {
 
     // 영정 — Phase 3+ portraitShareEnabled가 켜졌을 때만(§3.3-1). Phase 1~2는 화면에 토글이
     // 없어 obituary.portraitShareEnabled가 항상 false이므로 이 분기는 지금은 절대 안 탄다.
-    if (obituary.portraitShareEnabled && obituary.memorial.portraitUrl) {
+    if (obituary.portraitShareEnabled && obituary.memorial?.portraitUrl) {
       data.portraitUrl = obituary.memorial.portraitUrl;
     }
 
@@ -433,15 +444,21 @@ export const listMyObituaries = async (req: Request, res: Response) => {
     const obituaries = await prisma.obituary.findMany({
       where: { createdByUserId: decoded.id },
       orderBy: { createdAt: 'desc' },
-      include: { memorial: { select: { slug: true, deceasedName: true, deceasedDeathDate: true } } },
+      // 🔄 09-07 — memorial이 선택이라 더는 고인명·사망일의 원천일 수 없다(연결 안 된 부고장은
+      // memorial 자체가 null). Obituary 본인의 deceased 관계로 옮긴다 — 생성 시 항상 함께
+      // 만들어지므로(§5.2) 여긴 그대로 있다.
+      include: {
+        deceased: { select: { name: true, deathDate: true } },
+        memorial: { select: { slug: true } },
+      },
     });
 
     const data = obituaries.map((o) => ({
       id: o.id,
       slug: o.slug,
-      memorialSlug: o.memorial.slug,
-      deceasedName: o.memorial.deceasedName,
-      deceasedDeathDate: o.memorial.deceasedDeathDate,
+      memorialSlug: o.memorial?.slug ?? null,
+      deceasedName: o.deceased.name,
+      deceasedDeathDate: o.deceased.deathDate,
       funeralHall: o.funeralHall,
       mourningRoom: o.mourningRoom,
       funeralAt: o.funeralAt,

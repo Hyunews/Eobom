@@ -29,7 +29,7 @@ import { ObituaryLandingPage } from './pages/ObituaryLandingPage';
 import { MemorialLandingPage } from './pages/MemorialLandingPage';
 import { FamilyInvitePage } from './pages/FamilyInvitePage';
 import { PickupPage } from './pages/PickupPage';
-import { MemorialEntryPage } from './pages/MemorialEntryPage';
+import { MemorialPage } from './pages/MemorialPage';
 import { MyPage } from './pages/MyPage';
 import { PartnerPortalPage } from './pages/PartnerPortalPage';
 import { AdminPage } from './pages/AdminPage';
@@ -409,9 +409,9 @@ function AppShell() {
             <Route path="/obituary" element={<ObituaryPage {...authProps} />} />
             <Route path="/my-obituaries" element={<MyObituaryListPage />} />
             <Route path="/pickup" element={<PickupPage {...authProps} />} />
-            {/* 🔄 09-07 — 등록된 추모관이 있으면 /my-obituaries로, 없으면 예시 화면(MemorialPage)으로.
-                판정은 MemorialEntryPage 내부에서 GET /api/me/memorials로 한다. */}
-            <Route path="/memorial" element={<MemorialEntryPage {...authProps} />} />
+            {/* 🔄 09-07 재정정 — 추모관은 부고장과 독립이라 "부고장 있으면 리다이렉트" 판정
+                자체가 의미를 잃었다. MemorialPage가 직접 CRUD를 한다(로그인 시). */}
+            <Route path="/memorial" element={<MemorialPage {...authProps} />} />
             <Route
               path="/mypage"
               element={
