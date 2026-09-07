@@ -233,7 +233,11 @@ export const MyObituaryListPage: React.FC = () => {
 
         <button
           type="button"
-          onClick={() => navigate('/obituary')}
+          // 🔴 09-07 — `/obituary`만 넘기면 그 화면이 localStorage 포인터를 읽어 마지막으로
+          // 본(어쩌면 종료된) 부고장을 다시 불러왔다 — "새로" 만들기가 안 됐다. `?new=1`로
+          // ObituaryPage.tsx가 포인터를 무시하고 빈 폼으로 시작하게 한다(ObituaryPage.tsx
+          // handleStartNew 참고).
+          onClick={() => navigate('/obituary?new=1')}
           style={{ marginTop: '1rem', background: 'none', border: 'none', padding: 0, color: 'var(--point-color)', fontWeight: 700, fontSize: '0.9rem', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}
         >
           새 부고장 만들기 <ArrowRight size={14} />
