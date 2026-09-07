@@ -371,3 +371,22 @@ query_engine-windows.dll.node.tmpNNNN -> query_engine-windows.dll.node`로 두 �
 그 DLL을 누가 잡고 있는지 몰라서 프로세스를 죽이지 않고, 대신 `npx tsc`(emit 포함, prisma
 generate 없이)를 따로 돌려 컴파일 자체는 통과하는 걸 확인하는 쪽으로 검증을 대체했다. 다음에
 같은 EPERM이 나면 스키마 쪽을 의심하지 말고 이 메모부터 볼 것.
+
+
+## 2026-09-07 | 유족 메시지 목록 UI 다듬기 작업 메모
+
+**`onClick={handleDeleteMessage}` 그대로 두면 안 됐다**: `handleDeleteMessage`를 `(id?: string)`
+받게 리팩터하면서, 편집기 하단 삭제 버튼이 원래 `onClick={handleDeleteMessage}`(인자 없이 그대로
+참조)였던 걸 그대로 뒀으면 React가 클릭 시 `SyntheticEvent`를 첫 인자로 넘겨버려서
+`id ?? editingId`가 이벤트 객체로 채워지는 버그가 났을 뻔했다. `onClick={() =>
+handleDeleteMessage()}`로 명시적으로 인자 없이 호출하도록 고쳐서 피함.
+
+**높이 통일은 CSS로, 호버 확대는 JS state로 나눠서 했다**: 박스 높이(148px 고정 + line-clamp)는
+인라인 스타일로는 가상클래스(`:hover`)나 `-webkit-line-clamp`를 못 걸어서 `index.css`로 뺐고,
+아이콘 버튼이 18px→25px로 커지는 건 반대로 순수 CSS `:hover`로 하면 SVG(`lucide-react`의
+`size` prop)까지 같이 못 키워서(속성이라 CSS로 못 건드림) `hoveredMessageId` React state로
+버튼 컨테이너 크기와 아이콘 `size` prop을 동시에 계산해 넘기는 쪽을 택함.
+
+**목록에서 삭제 시 편집기가 닫혀 있으면 에러를 어떻게 보여줄지**: 기존 `error` state는 편집기
+모달 안에서만 렌더된다. 목록 아이템에서 바로 삭제하다 실패하면 모달이 안 열려 있을 수도 있어서,
+그 경우엔 `window.alert`로 폴백하게 함(`composerOpen` 여부로 분기).

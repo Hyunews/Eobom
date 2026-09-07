@@ -1390,3 +1390,26 @@ wt125가 그것을 "추가 결정"으로 정직하게 신고했기에 이번에 
 - 🔵 실기동 검증은 사람이 한다(09-03 지시) — 실제 다운로드해 zip을 열어보는 확인은 안 함.
 
 <!-- Gemini 판정 1줄: … -->
+
+
+## 2026-09-07 (130) | [Sonnet] 유족 메시지 목록 UI 다듬기 — 박스 높이 통일·호버 확대·개별 삭제·버튼 정렬
+
+**근거 스펙**: 스펙 없음 — 사용자 UI 지시 4건(디자인 조정, `06-05` 문서 변경 없음)
+
+**건드린 파일**:
+- `eobom/frontend/src/index.css` — `.farewell-message-item`에 `height: 148px`·`overflow: hidden` 고정 추가. `.farewell-message-title-row`(flex, min-width:0)·`.farewell-message-title-text`(1줄 말줄임 ellipsis)·`.farewell-message-preview`(2줄 `-webkit-line-clamp`) 신설.
+- `eobom/frontend/src/components/FarewellMessageCard.tsx` — ① 목록 각 항목에 `hoveredMessageId` state 추가, 박스 호버 시 우상단 아이콘 버튼이 18px→25px로 커짐(`transition`). ② 다운로드 버튼 옆에 같은 스타일의 삭제 버튼 신설 — `handleDeleteMessage(id?: string)`로 리팩터(기존엔 `editingId` 고정, 이제 목록에서 바로 특정 id를 지울 수 있음. 편집기가 닫혀 있을 때의 실패 메시지는 `error` state 대신 `window.alert`). 상태도 `deletingMessage`(boolean) → `deletingMessageId`(id별)로 교체. ③ "새 편지 쓰기"를 `flex:1` 컨테이너에 넣어 "전체 반출(zip)" 버튼과 같은 줄에 배치 — 둘 다 `className="btn"` + `flex:1`이라 크기 동일.
+- `eobom/frontend/src/pages/FarewellMessagePage.tsx` — 페이지 헤더에 있던 "전체 반출(zip)" 버튼·`exporting` state·`handleExport`를 그대로 두되, 렌더링 위치만 각 `FarewellMessageCard`로 `onExportAll`·`exportingAll` prop을 내려 이동(카드마다 노출 — recipient가 여럿이면 카드 수만큼 같은 전역 액션 버튼이 보임, 의도적 트레이드오프로 판단해 그대로 감).
+
+**결과**:
+- `tsc --noEmit`·`npm run build`(frontend) 통과.
+- 🔵 실기동(브라우저에서 실제 호버·삭제·정렬 확인)은 사람 몫으로 남김(09-03 지시, dev 서버 안 띄움) — CSS 계산치(148px, 25px 등)는 코드로만 검증했고 실제 렌더 결과 스크린샷 확인은 안 함.
+
+**편차**:
+- 🟡 "전체반출 버튼을 새편지쓰기와 같은 줄에" 지시를 recipient 카드 내부로 해석해 구현함 — recipient(수신자)가 2명 이상이면 "전체 반출" 버튼이 카드마다 중복 노출된다(동작은 전부 같은 전역 액션). 사용자가 지시한 게 정확히 이 배치인지, 아니면 페이지 상단에 별도 유지하되 시각적으로만 맞추길 원했는지 확인이 안 된 상태로 진행함 — 화면에서 이상하면 알려달라고 응답에 남김.
+
+**다음 에이전트가 알아야 할 것**:
+- recipient가 여럿인 계정에서 실기동 시 "전체 반출" 버튼 중복 노출이 의도인지 재확인 필요(위 편차 참고).
+- CSS `line-clamp`는 표준 속성이 최근에야 넓게 지원되기 시작했고 `-webkit-line-clamp`를 병기해뒀다 — 오래된 브라우저 호환은 확인 안 함(이 프로젝트 타깃 브라우저 확인 안 됨).
+
+<!-- Gemini 판정 1줄: … -->

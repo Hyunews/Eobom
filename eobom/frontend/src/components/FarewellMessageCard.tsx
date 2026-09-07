@@ -68,9 +68,11 @@ interface FarewellMessageCardProps {
   messages: MessageItem[];
   token: string | null;
   onSaved: () => void; // 저장/수정/삭제 성공 시 부모가 목록을 다시 불러온다
+  onExportAll: () => void; // 🆕 전체 반출(zip) — 부모(FarewellMessagePage)가 소유한 전역 액션. 카드마다 같은 줄에 노출한다.
+  exportingAll: boolean;
 }
 
-export const FarewellMessageCard: React.FC<FarewellMessageCardProps> = ({ recipient, messages, token, onSaved }) => {
+export const FarewellMessageCard: React.FC<FarewellMessageCardProps> = ({ recipient, messages, token, onSaved, onExportAll, exportingAll }) => {
   const [composerOpen, setComposerOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [title, setTitle] = useState('');
@@ -85,6 +87,7 @@ export const FarewellMessageCard: React.FC<FarewellMessageCardProps> = ({ recipi
   const [audioLoading, setAudioLoading] = useState(false);
   const [deletingAudio, setDeletingAudio] = useState(false);
   const [exportingId, setExportingId] = useState<string | null>(null);
+  const [hoveredMessageId, setHoveredMessageId] = useState<string | null>(null); // 🆕 박스 호버 시 목록 버튼 확대용
   const localAudioUrlRef = useRef<string | null>(null); // §5.6-2 — 방금 이 세션에서 저장한 로컬 blob(서버 왕복 없이 재생)
   const fetchedAudioUrlRef = useRef<string | null>(null); // §5.6-2 — 다시 열어서 서버로 받아온 blob
 
@@ -170,29 +173,34 @@ export const FarewellMessageCard: React.FC<FarewellMessageCardProps> = ({ recipi
   };
 
   // 🔄 D-7(§5.6-7) — 편지 전체 삭제도 소프트 삭제다. 음성 삭제(handleDeleteAudio)와 같은
-  // 유예 30일 · 같은 확인 문구.
-  const [deletingMessage, setDeletingMessage] = useState(false);
-  const handleDeleteMessage = async () => {
-    if (!token || !editingId) return;
+  // 유예 30일 · 같은 확인 문구. 🆕 목록에서 편집기를 안 열고 바로 지울 수도 있어(개별 반출과
+  // 같은 자리) id를 인자로 받는다 — 생략하면 지금 편집 중인 편지를 지운다. 편집기가 닫혀
+  // 있으면 error state가 안 보이므로 그때는 alert로 알린다.
+  const [deletingMessageId, setDeletingMessageId] = useState<string | null>(null);
+  const handleDeleteMessage = async (id?: string) => {
+    const targetId = id ?? editingId;
+    if (!token || !targetId) return;
     if (!window.confirm('이 편지를 삭제하시겠어요? 30일 뒤 완전히 삭제됩니다.')) return;
-    setDeletingMessage(true);
+    setDeletingMessageId(targetId);
     setError(null);
     try {
-      const res = await fetch(`${BACKEND_URL}/api/farewell-messages/${editingId}`, {
+      const res = await fetch(`${BACKEND_URL}/api/farewell-messages/${targetId}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
       if (data.status === 'success') {
-        resetComposer();
+        if (editingId === targetId) resetComposer();
         onSaved();
       } else {
-        setError(data.message || '삭제에 실패했습니다.');
+        const msg = data.message || '삭제에 실패했습니다.';
+        if (composerOpen) setError(msg); else window.alert(msg);
       }
     } catch {
-      setError('삭제 중 오류가 발생했습니다.');
+      const msg = '삭제 중 오류가 발생했습니다.';
+      if (composerOpen) setError(msg); else window.alert(msg);
     } finally {
-      setDeletingMessage(false);
+      setDeletingMessageId(null);
     }
   };
 
@@ -368,54 +376,96 @@ export const FarewellMessageCard: React.FC<FarewellMessageCardProps> = ({ recipi
           gap: '0.5rem',
           marginBottom: '1rem'
         }}>
-          {messages.map((m) => (
-            <div key={m.id} style={{ position: 'relative' }}>
-              <button
-                type="button"
-                onClick={() => openEditComposer(m.id)}
-                disabled={loadingDetail}
-                className="farewell-message-item"
-                style={{
-                  backgroundColor: editingId === m.id && composerOpen ? 'var(--secondary-color)' : 'transparent',
-                  cursor: loadingDetail ? 'wait' : 'pointer',
-                  paddingRight: '2.1rem',
-                  width: '100%',
-                }}
+          {messages.map((m) => {
+            const isHovered = hoveredMessageId === m.id;
+            // 🆕 호버 시 25×25 수준으로 커진다 — 평소엔 작게, 손 올렸을 때만 눈에 띄게.
+            const iconBoxSize = isHovered ? 25 : 18;
+            const iconGlyphSize = isHovered ? 17 : 12;
+            return (
+              <div
+                key={m.id}
+                style={{ position: 'relative' }}
+                onMouseEnter={() => setHoveredMessageId(m.id)}
+                onMouseLeave={() => setHoveredMessageId((prev) => (prev === m.id ? null : prev))}
               >
-                <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '1.15rem', fontWeight: 700, color: 'var(--primary-color)' }}>
-                  <Pencil size={14} /> {m.title || '(제목 없음)'}
-                  {m.hasAudio && <Volume2 size={14} color="var(--point-color)" />}
-                </span>
-                <span style={{ fontSize: '1rem', lineHeight: 1.6, color: 'var(--text-muted)' }}>{m.preview}</span>
-                <span style={{ fontSize: '0.9rem', color: '#9CA3AF' }}>{new Date(m.updatedAt).toLocaleString('ko-KR')}</span>
-              </button>
-              {/* §5.4-3-1 항목23-2 — 목록에서 편지 하나만 바로 반출. 편집기를 여는 버튼과
-                  겹치므로 별도 버튼으로 우상단에 얹는다(버튼 중첩은 유효한 HTML이 아니다). */}
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleExportMessage(m.id, m.title || `${recipient.name}에게`);
-                }}
-                disabled={exportingId === m.id}
-                aria-label="이 편지 반출(zip)"
-                title="이 편지 반출(zip)"
-                style={{
-                  position: 'absolute', top: '0.6rem', right: '0.5rem',
-                  background: 'none', border: 'none', padding: '0.2rem',
-                  color: 'var(--text-muted)', cursor: exportingId === m.id ? 'wait' : 'pointer',
-                }}
-              >
-                {exportingId === m.id ? <Loader2 size={14} /> : <Download size={14} />}
-              </button>
-            </div>
-          ))}
+                <button
+                  type="button"
+                  onClick={() => openEditComposer(m.id)}
+                  disabled={loadingDetail}
+                  className="farewell-message-item"
+                  style={{
+                    backgroundColor: editingId === m.id && composerOpen ? 'var(--secondary-color)' : 'transparent',
+                    cursor: loadingDetail ? 'wait' : 'pointer',
+                    paddingRight: '3.4rem',
+                    width: '100%',
+                  }}
+                >
+                  <span className="farewell-message-title-row" style={{ fontSize: '1.15rem', fontWeight: 700, color: 'var(--primary-color)' }}>
+                    <Pencil size={14} style={{ flexShrink: 0 }} />
+                    <span className="farewell-message-title-text">{m.title || '(제목 없음)'}</span>
+                    {m.hasAudio && <Volume2 size={14} color="var(--point-color)" style={{ flexShrink: 0 }} />}
+                  </span>
+                  <span className="farewell-message-preview" style={{ fontSize: '1rem', lineHeight: 1.6, color: 'var(--text-muted)' }}>{m.preview}</span>
+                  <span style={{ fontSize: '0.9rem', color: '#9CA3AF' }}>{new Date(m.updatedAt).toLocaleString('ko-KR')}</span>
+                </button>
+                {/* §5.4-3-1 항목23-2 — 목록에서 편지 하나만 바로 반출·삭제. 편집기를 여는 버튼과
+                    겹치므로 별도 버튼으로 우상단에 얹는다(버튼 중첩은 유효한 HTML이 아니다). */}
+                <div style={{ position: 'absolute', top: '0.5rem', right: '0.5rem', display: 'flex', gap: '0.3rem' }}>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDeleteMessage(m.id);
+                    }}
+                    disabled={deletingMessageId === m.id}
+                    aria-label="편지 삭제"
+                    title="편지 삭제"
+                    style={{
+                      width: iconBoxSize, height: iconBoxSize,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      background: 'none', border: 'none', padding: 0, flexShrink: 0,
+                      color: '#B91C1C', cursor: deletingMessageId === m.id ? 'wait' : 'pointer',
+                      transition: 'width 0.15s ease, height 0.15s ease',
+                    }}
+                  >
+                    {deletingMessageId === m.id ? <Loader2 size={iconGlyphSize} /> : <Trash2 size={iconGlyphSize} />}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleExportMessage(m.id, m.title || `${recipient.name}에게`);
+                    }}
+                    disabled={exportingId === m.id}
+                    aria-label="다운로드"
+                    title="다운로드"
+                    style={{
+                      width: iconBoxSize, height: iconBoxSize,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      background: 'none', border: 'none', padding: 0, flexShrink: 0,
+                      color: 'var(--text-muted)', cursor: exportingId === m.id ? 'wait' : 'pointer',
+                      transition: 'width 0.15s ease, height 0.15s ease',
+                    }}
+                  >
+                    {exportingId === m.id ? <Loader2 size={iconGlyphSize} /> : <Download size={iconGlyphSize} />}
+                  </button>
+                </div>
+              </div>
+            );
+          })}
         </div>
       )}
 
-      <button type="button" onClick={openNewComposer} className="btn" style={{ width: '100%', backgroundColor: 'var(--secondary-color)', color: 'var(--primary-color)' }}>
-        <Plus size={16} /> 새 편지 쓰기
-      </button>
+      {/* 🎨 새 편지 쓰기(카드 전용)와 전체 반출(전역 액션, 부모에서 내려받음)을 같은 줄에
+          같은 크기로 — 둘 다 className="btn" + flex:1이라 폭만 나눠 가지고 높이·폰트는 동일. */}
+      <div style={{ display: 'flex', gap: '0.6rem' }}>
+        <button type="button" onClick={openNewComposer} className="btn" style={{ flex: 1, backgroundColor: 'var(--secondary-color)', color: 'var(--primary-color)' }}>
+          <Plus size={16} /> 새 편지 쓰기
+        </button>
+        <button type="button" onClick={onExportAll} disabled={exportingAll} className="btn" style={{ flex: 1 }}>
+          {exportingAll ? <Loader2 size={16} /> : <Download size={16} />} 전체 다운로드
+        </button>
+      </div>
 
       {/* 🎨 09-05 — 카드 안에 접혀 들어가던 편집기를 모달로 뺐다. 뒤에 편지 목록이 남아 있는
           채로 이 하나에만 집중하게 한다(SummaryModal.tsx와 같은 오버레이 언어 재사용). */}
@@ -530,19 +580,19 @@ export const FarewellMessageCard: React.FC<FarewellMessageCardProps> = ({ recipi
                       cursor: exportingId === editingId ? 'default' : 'pointer', opacity: exportingId === editingId ? 0.6 : 1,
                     }}
                   >
-                    {exportingId === editingId ? <><Loader2 size={14} /> 반출 중…</> : <><Download size={14} /> 이 편지 반출(zip)</>}
+                    {exportingId === editingId ? <><Loader2 size={14} /> 반출 중…</> : <><Download size={14} /> 다운로드</>}
                   </button>
                   <button
                     type="button"
-                    onClick={handleDeleteMessage}
-                    disabled={saving || deletingMessage}
+                    onClick={() => handleDeleteMessage()}
+                    disabled={saving || deletingMessageId === editingId}
                     style={{
                       display: 'inline-flex', alignItems: 'center', gap: '0.3rem', background: 'none', border: 'none',
                       padding: '0.3rem 0.2rem', fontSize: '0.95rem', fontWeight: 600, color: '#B91C1C',
-                      cursor: saving || deletingMessage ? 'default' : 'pointer', opacity: saving || deletingMessage ? 0.6 : 1,
+                      cursor: saving || deletingMessageId === editingId ? 'default' : 'pointer', opacity: saving || deletingMessageId === editingId ? 0.6 : 1,
                     }}
                   >
-                    {deletingMessage ? <><Loader2 size={14} /> 삭제 중…</> : <><Trash2 size={14} /> 이 편지 삭제</>}
+                    {deletingMessageId === editingId ? <><Loader2 size={14} /> 삭제 중…</> : <><Trash2 size={14} /> 삭제</>}
                   </button>
                 </div>
               )}

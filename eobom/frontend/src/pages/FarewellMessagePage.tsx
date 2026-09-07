@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { Mail, AlertTriangle, LogIn, UserPlus, Download, Loader2 } from 'lucide-react';
+import { Mail, AlertTriangle, LogIn, UserPlus } from 'lucide-react';
 import { apiFetch } from '../lib/api';
 import { getToken } from '../lib/storage';
 import { BACKEND_URL } from '../config';
@@ -94,30 +94,16 @@ export const FarewellMessagePage: React.FC<FarewellMessagePageProps> = ({ curren
 
   return (
     <div className="container" style={{ paddingBottom: '3rem' }}>
-      <div style={{ marginBottom: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '1rem', flexWrap: 'wrap' }}>
-        <div>
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', backgroundColor: '#F1F5F9', color: 'var(--primary-color)', padding: '0.3rem 0.8rem', borderRadius: '16px', fontSize: '0.85rem', fontWeight: 700, marginBottom: '0.6rem' }}>
-            <Mail size={18} color="var(--primary-color)" /> 하고 싶은 말을 그대로
-          </div>
-          <h1 className="page-title" style={{ color: 'var(--primary-color)', display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0 }}>
-            <Mail color="var(--point-color)" size={32} /> 유족 메시지 보관함
-          </h1>
-          <p style={{ color: 'var(--text-muted)', marginTop: '0.4rem' }}>
-            가족 한 분 한 분께 따로 남기는 편지입니다. 완료해야 할 항목은 없습니다 — 생각날 때마다 남기세요.
-          </p>
+      <div style={{ marginBottom: '1.5rem' }}>
+        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', backgroundColor: '#F1F5F9', color: 'var(--primary-color)', padding: '0.3rem 0.8rem', borderRadius: '16px', fontSize: '0.85rem', fontWeight: 700, marginBottom: '0.6rem' }}>
+          <Mail size={18} color="var(--primary-color)" /> 하고 싶은 말을 그대로
         </div>
-        {/* 06-05 §5.4-3 — 편지 본문(txt)+음성(mp3)을 zip으로 손에 남긴다. 탈퇴 전 마지막 회수(§5.4-2)와
-            같은 경로를 지금도 상시 열어둔다 — 한 번 놓치면 못 온다는 §5.4-4의 태도를 본인 반출에도 적용. */}
-        <button
-          type="button"
-          onClick={handleExport}
-          disabled={exporting}
-          className="btn"
-          style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', whiteSpace: 'nowrap' }}
-        >
-          {exporting ? <Loader2 size={16} /> : <Download size={16} />}
-          전체 반출(zip)
-        </button>
+        <h1 className="page-title" style={{ color: 'var(--primary-color)', display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0 }}>
+          <Mail color="var(--point-color)" size={32} /> 유족 메시지 보관함
+        </h1>
+        <p style={{ color: 'var(--text-muted)', marginTop: '0.4rem' }}>
+          가족 한 분 한 분께 따로 남기는 편지입니다. 완료해야 할 항목은 없습니다 — 생각날 때마다 남기세요.
+        </p>
       </div>
 
       {/* 06-05 §4.3 — 양쪽(엔딩노트 ⑨ / 보관함)에 상반된 고지를 상시 노출한다. 여기는 "간다" 쪽.
@@ -153,6 +139,8 @@ export const FarewellMessagePage: React.FC<FarewellMessagePageProps> = ({ curren
               messages={messages.filter((m) => m.recipientId === r.id)}
               token={token}
               onSaved={fetchMessages}
+              onExportAll={handleExport}
+              exportingAll={exporting}
             />
           ))}
         </div>
