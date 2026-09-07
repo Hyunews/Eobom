@@ -4,6 +4,7 @@ import { verifyBearerToken } from './authController';
 import { encryptNoteField, decryptNoteField } from '../utils/crypto';
 import { isR2Enabled } from '../config/r2';
 import { downloadVoiceObject } from '../services/r2Storage';
+import { streamFarewellMessageExportZip, setExportZipHeaders } from '../services/farewellMessageExport';
 // 06-04 §13 #4(2026-08-27) — 정산 계좌 키(SETTLEMENT_ENCRYPTION_KEY)와 분리된 06 전용 키로 전환.
 // 🔴 운영 DB는 개발자가 이미 FarewellMessage 레코드를 삭제해 0건 확인 완료 — 재암호화 불필요.
 
@@ -303,6 +304,33 @@ export const getFarewellMessageAudio = async (req: Request, res: Response) => {
   } catch (error) {
     console.error('유족 메시지 음성 조회 실패:', error);
     return res.status(500).json({ status: 'error', message: '음성을 불러오는 중 오류가 발생했습니다.' });
+  }
+};
+
+// 반출 (`GET /api/farewell-messages/export`) — 06-05 §5.4-3 D-5, 항목23. 본인 로그인 상태에서
+// 자기 편지함 전체를 zip으로 내려받는다(탈퇴 전 마지막 회수, §5.4-2). 🔴 라우트 등록 순서상
+// `/:id`보다 먼저 와야 한다 — 안 그러면 "export"가 id로 잡혀 404가 난다(farewellMessageRoutes.ts).
+// 🆕 §5.4-4(사망 시 반출·유족용)은 여기 얹지 않는다 — RELEASED 진입 배선과 유족용 인증이
+// 아직 코드에 없어(Phase C ⏸) 상태 가드를 걸 대상 자체가 없다. Phase C에서 별도 라우트로
+// streamFarewellMessageExportZip을 재사용한다(walkthrough.md 편차 참고).
+export const exportFarewellMessages = async (req: Request, res: Response) => {
+  const decoded = verifyBearerToken(req);
+  if (!decoded) {
+    return res.status(401).json({ status: 'error', message: '로그인이 필요합니다.' });
+  }
+
+  try {
+    setExportZipHeaders(res);
+    await streamFarewellMessageExportZip(decoded.id, res);
+    return res.end();
+  } catch (error) {
+    console.error('유족 메시지 반출 실패:', error);
+    // 🔴 zip 스트리밍이 이미 시작돼 헤더가 나갔을 수 있다 — 그 경우 JSON을 새로 보낼 수 없어
+    // 연결만 끊는다.
+    if (res.headersSent) {
+      return res.end();
+    }
+    return res.status(500).json({ status: 'error', message: '반출 중 오류가 발생했습니다.' });
   }
 };
 

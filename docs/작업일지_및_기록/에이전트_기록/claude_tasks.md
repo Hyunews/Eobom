@@ -299,3 +299,57 @@ webm을 막 추가해놓고 이 provider는 안 고쳐서, 브라우저 기본 �
 쪽 서버 콘솔 로그는 이 세션에서 못 봄 — 다음에 비슷한 "변환 실패" 재현되면 백엔드
 `console.error('STT 변환 실패:', error)` 로그부터 사용자에게 확인 요청하는 게 더 빠를 것).
 
+## 2026-09-04 (92) — 06-05 §5.6-8-3 D-9~D-11 어드민 파기 화면 e2e 검증(더미 데이터) `[Sonnet]`
+
+**"30일 기다리지 않고 어떻게 검증하나" 문제**: wt125에서 어드민 파기 화면(①음성만료/②편지만료
+목록·선택·실행)을 만들었지만 로컬 DB엔 30일 지난 행이 0건이라 화면이 항상 빈 목록으로 보였다.
+실제 30일을 기다리는 대신 — 새 `FarewellMessage` 행 2건을 만들면서 `mediaDeletedAt`/`deletedAt`을
+처음부터 "31일 전" 시각으로 채워 넣는 방법을 씀. 이건 기존 행을 `update`하는 게 아니라 신규
+`create`라서 `AGENTS.md` §1의 "단건 생성은 묻지 않는다" 예외에 해당해 DB 쓰기 CONFIRM 없이
+진행. `noteId`/`recipientId` FK는 기존 `EndingNote`/`FamilyDesignation`에서 하나씩 조회해서 재사용.
+
+**임시 시드 스크립트를 `eobom/backend/prisma/_seed-purge-test.ts`로 뒀다가 실행 직후 삭제**:
+`ts-node`로 돌리려면 `prisma`·`encryptNoteField`를 상대경로로 import해야 해서 스크립트가
+backend 안에 있는 게 제일 깔끔했음. 실행(`npx ts-node prisma/_seed-purge-test.ts`) 후 스크립트
+파일만 지우고, 만든 DB 행 2건은 그대로 뒀다(테스트 데이터는 지우지 않는다는 기존 규칙).
+
+**음성 `mediaKey`는 R2에 실제로 없는 가짜 키를 씀**: `farewell-voice-dev/test-purge-verify-
+nonexistent.webm`. `purgeMediaRow`가 `DeleteObjectCommand`를 그 키로 보내는데, S3 호환
+`DeleteObject`는 존재하지 않는 키를 지워도 에러 없이 성공 처리되는 걸 알고 있어서 실제 업로드
+없이도 안전하게 테스트 가능했다 — 별도 확인 없이 진행.
+
+**검증 결과 DB로 재확인**: 화면에서 사람이 직접 선택 → 건수 입력 → 비밀번호 재인증 → 실행한
+뒤, `psql`로 직접 조회해서 ①행은 `mediaKey`만 비고 행이 남았는지, ②행은 아예 사라졌는지,
+`FarewellPurgeAuditLog`에 `count=2`짜리 1건이 생겼는지, dev 환경이라 `ArchivePurgeQueue`가
+여전히 0건인지 4가지를 다 대조 확인함. 전부 스펙대로였다.
+
+**사용자가 "대상 건수" 입력창에 회색 글씨가 미리 써져 있어서 헷갈렸다고 보고**: 코드
+확인해보니 `value=''`로 시작하고 회색 글씨는 `placeholder`(선택 건수를 힌트로 보여줄 뿐 실제
+입력값 아님)였다 — 버그 아니고 §5.6-8-3-3 #57("건수를 사람이 직접 타이핑해서 확인")의 의도된
+설계. `openPurgeConfirm`이 모달 열 때마다 `purgeCountInput`을 `''`로 리셋하는 것도 확인.
+
+
+
+## 2026-09-07 | D-5 반출(zip) 구현 중 삽질
+
+**`archiver` 최신(8.0.0)을 그대로 깔았다가 tsc부터 막힘**: `import archiver from 'archiver'`가
+`This expression is not callable` 에러. `@types/archiver@8.0.0`을 열어보니 콜러블 팩토리 함수
+선언 자체가 없고 `Archiver`/`ZipArchive` 클래스만 있음 — archiver 패키지 쪽을 봤더니
+`package.json`에 `"type": "module"`, `exports: "./index.js"`이고 실제 소스가 `export class
+ZipArchive extends Archiver`처럼 ESM 전용으로 새로 작성돼 있었다(v8에서 `archiver('zip', opts)`
+팩토리 함수 API 자체를 버림). 이 백엔드는 `tsconfig.json`이 `"module": "CommonJS"`라 ESM 전용
+패키지를 `require`하면 타입 문제 이전에 런타임에서 `ERR_REQUIRE_ESM`이 났을 것 — `npm view
+archiver@7 type`으로 7.x는 `type` 필드가 없어(CJS 기본) 확인 후 `archiver@^7.0.1` +
+`@types/archiver@^6.0.4`(v8 재작성 이전 마지막 타입 버전)로 다운그레이드하니 `archiver('zip',
+{zlib:{level:9}})` 옛 API 그대로 컴파일 통과.
+
+**라우트 순서 함정**: `farewellMessageRoutes.ts`가 `GET /:id`를 이미 갖고 있어서, `GET /export`를
+그 뒤에 등록했으면 Express가 `/export`를 `id === 'export'`로 먼저 매칭해 `getFarewellMessage`가
+불려 404가 났을 것. `/export`를 `/:id`보다 먼저 등록해서 피함(등록 순서 = 매칭 우선순위).
+
+**Bash 도구가 한글이 포함된 커맨드에서 계속 깨짐**: `grep`/`cd`/`tail` 등에 한글 인자(경로든
+문자열이든)가 섞이면 `pwd -P >| ...-cwd: No such file or directory`로 매번 실패했다(트리비얼한
+영문 커맨드는 정상). 이번 세션에서는 한글이 들어가는 모든 파일 조회·추가 작업을 PowerShell
+도구로 옮겨서 우회함 — `walkthrough.md`·`claude_tasks.md`에 append할 때도 PowerShell +
+`[System.IO.File]::AppendAllText(...,[System.Text.UTF8Encoding]::new($false))`로 BOM 없이 붙임
+(기존 파일이 BOM 없는 UTF-8이라 인코딩 맞춤).

@@ -1,7 +1,8 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { Mail, AlertTriangle, LogIn, UserPlus } from 'lucide-react';
+import { Mail, AlertTriangle, LogIn, UserPlus, Download, Loader2 } from 'lucide-react';
 import { apiFetch } from '../lib/api';
 import { getToken } from '../lib/storage';
+import { BACKEND_URL } from '../config';
 import { FarewellMessageCard, RecipientItem, MessageItem } from '../components/FarewellMessageCard';
 
 // 06-05 §7·§8 Phase B — docs/06_엔딩노트_유언/06-05_유족메시지_보관함_도메인분리_기획서.md.
@@ -21,7 +22,35 @@ export const FarewellMessagePage: React.FC<FarewellMessagePageProps> = ({ curren
   const [loading, setLoading] = useState(true);
   const [recipients, setRecipients] = useState<RecipientItem[]>([]);
   const [messages, setMessages] = useState<MessageItem[]>([]);
+  const [exporting, setExporting] = useState(false);
   const token = currentUser ? getToken('USER') : null;
+
+  // 06-05 §5.4-3 D-5 — 전체 반출(zip). presigned URL이 없어(§5.6-1과 같은 이유) 인증 fetch로
+  // 받아 blob URL을 만든 뒤 <a download>로 내려받는다. 실패해도 조용히 두고 버튼을 다시 누르면
+  // 재시도되는 보조 기능이라 별도 에러 배너를 두지 않는다.
+  const handleExport = useCallback(async () => {
+    if (!token) return;
+    setExporting(true);
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/farewell-messages/export`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) return;
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `eobom_유족메시지_${new Date().toISOString().slice(0, 10).replace(/-/g, '')}.zip`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } catch {
+      // 실패는 조용히 삼킨다 — 다시 누르면 재시도된다.
+    } finally {
+      setExporting(false);
+    }
+  }, [token]);
 
   const fetchMessages = useCallback(() => {
     if (!token) return;
@@ -65,16 +94,30 @@ export const FarewellMessagePage: React.FC<FarewellMessagePageProps> = ({ curren
 
   return (
     <div className="container" style={{ paddingBottom: '3rem' }}>
-      <div style={{ marginBottom: '1.5rem' }}>
-        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', backgroundColor: '#F1F5F9', color: 'var(--primary-color)', padding: '0.3rem 0.8rem', borderRadius: '16px', fontSize: '0.85rem', fontWeight: 700, marginBottom: '0.6rem' }}>
-          <Mail size={18} color="var(--primary-color)" /> 하고 싶은 말을 그대로
+      <div style={{ marginBottom: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '1rem', flexWrap: 'wrap' }}>
+        <div>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', backgroundColor: '#F1F5F9', color: 'var(--primary-color)', padding: '0.3rem 0.8rem', borderRadius: '16px', fontSize: '0.85rem', fontWeight: 700, marginBottom: '0.6rem' }}>
+            <Mail size={18} color="var(--primary-color)" /> 하고 싶은 말을 그대로
+          </div>
+          <h1 className="page-title" style={{ color: 'var(--primary-color)', display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0 }}>
+            <Mail color="var(--point-color)" size={32} /> 유족 메시지 보관함
+          </h1>
+          <p style={{ color: 'var(--text-muted)', marginTop: '0.4rem' }}>
+            가족 한 분 한 분께 따로 남기는 편지입니다. 완료해야 할 항목은 없습니다 — 생각날 때마다 남기세요.
+          </p>
         </div>
-        <h1 className="page-title" style={{ color: 'var(--primary-color)', display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0 }}>
-          <Mail color="var(--point-color)" size={32} /> 유족 메시지 보관함
-        </h1>
-        <p style={{ color: 'var(--text-muted)', marginTop: '0.4rem' }}>
-          가족 한 분 한 분께 따로 남기는 편지입니다. 완료해야 할 항목은 없습니다 — 생각날 때마다 남기세요.
-        </p>
+        {/* 06-05 §5.4-3 — 편지 본문(txt)+음성(mp3)을 zip으로 손에 남긴다. 탈퇴 전 마지막 회수(§5.4-2)와
+            같은 경로를 지금도 상시 열어둔다 — 한 번 놓치면 못 온다는 §5.4-4의 태도를 본인 반출에도 적용. */}
+        <button
+          type="button"
+          onClick={handleExport}
+          disabled={exporting}
+          className="btn"
+          style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', whiteSpace: 'nowrap' }}
+        >
+          {exporting ? <Loader2 size={16} /> : <Download size={16} />}
+          전체 반출(zip)
+        </button>
       </div>
 
       {/* 06-05 §4.3 — 양쪽(엔딩노트 ⑨ / 보관함)에 상반된 고지를 상시 노출한다. 여기는 "간다" 쪽.

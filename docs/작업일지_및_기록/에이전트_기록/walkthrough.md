@@ -1288,3 +1288,80 @@
 - `00-06`에 `SCR-002-B`뿐 아니라 어드민 파기 화면도 등재 필요(§8 D-11 #60, 기존 backlog).
 
 <!-- Gemini 판정 1줄: … -->
+
+## 2026-09-04 (126) | [Sonnet] 06-05 §5.6-8-3 D-9~D-11 — 어드민 파기 화면 e2e 실기동 검증(더미 데이터)
+
+- **근거 스펙**: `docs/06_엔딩노트_유언/06-05_유족메시지_보관함_도메인분리_기획서.md` §5.6-8-3(-1·-2·-3), D-9~D-11 (wt125의 "다음 에이전트가 알아야 할 것" 항목 해소).
+- **건드린 파일**: 없음(코드 변경 없음, 검증 전용). 로컬 DB에 `FarewellMessage` 테스트 행 2건을 임시 생성 — 생성용 스크립트(`eobom/backend/prisma/_seed-purge-test.ts`)는 실행 후 삭제, 행은 남겨둠(테스트 데이터 삭제 금지 규칙).
+- **결과**: wt125가 만든 로직을 실데이터로 최초 검증. `mediaDeletedAt`/`deletedAt`을 31일 전으로 백데이트한 테스트 행 2건(①음성 전용 만료 1건, ②편지 전체 만료 1건)이 `findMediaExpired`/`findLetterExpired` 쿼리와 어드민 화면 목록에 정확히 걸리는 것을 확인. 어드민 화면에서 선택 → 대상 건수 직접 입력(placeholder는 힌트일 뿐 실값 아님, 자동 채움 아님을 확인 — 의도된 설계) → 비밀번호 재인증 → 실행까지 사람이 직접 수행. 실행 후 DB 확인: ①행은 `mediaKey`/`mediaMime`만 `null`로 정리되고 행은 유지(§5.6-4 원칙대로), ②행은 행 자체가 삭제됨, `FarewellPurgeAuditLog`에 1건 생성(`count=2`, `targetIds`에 두 id 모두 기록), `ArchivePurgeQueue`는 0건 유지(dev 버킷이라 원장에 안 쓰는 게 정상, §5.6-8-2). `--confirm` 스크립트(`destroy-farewell-media.ts`) 경로는 이번에도 미실기동.
+- **편차**: 없음.
+- **다음 에이전트가 알아야 할 것**: D-9~D-11 e2e 검증 완료 — wt125의 미검증 항목 해소. 남은 미검증은 (1) `prisma/destroy-farewell-media.ts`의 `--confirm` 실행 경로, (2) 운영 버킷(비-dev)에서 `ArchivePurgeQueue`에 실제로 쌓이는지·2단계(Cloudflare 대시보드 수동 삭제 → 완료 표시) 경로 — 둘 다 로컬 dev 환경 특성상 이번 세션에서 확인 불가. 테스트로 만든 음성 행(`7cb2f583-cd04-4511-aa04-2749eba914dc`, mediaKey 이미 정리됨)은 정리 안 해도 되는 상태로 DB에 남아 있음.
+
+<!-- Gemini 판정 1줄: … -->
+
+## 2026-09-04 (127) | [Opus] wt125·wt126 문서 반영 — 감사 로그 모델 소급 기재 + 어드민 파기 탭 화면 대장 등재
+
+**근거 스펙**: `docs/06_엔딩노트_유언/06-05_유족메시지_보관함_도메인분리_기획서.md` §6.4·§8 D-11 #60
+(wt125의 "다음 에이전트가 알아야 할 것" 2·3번째 항목 = *"`FarewellPurgeAuditLog`는 §6.4에 없는
+모델 — Opus가 필요시 문서화"*, *"`00-06`에 어드민 파기 화면 등재 필요"*)
+
+**건드린 파일**(코드 0건 — `docs/`만):
+- `docs/06_엔딩노트_유언/06-05_…기획서.md` — **§6.5 `FarewellPurgeAuditLog` 신설**(7개 필드 표 =
+  `schema.prisma:753~761` 그대로) · §8 D-9·D-10 제목 아래 **`✅ 구현 완료 09-04`** 줄 추가 ·
+  D-11에 **`✅ 구현 + 실기동 검증 완료 09-04(wt125·wt126)`** 줄 추가 · **#60을 `🟡 …등재 필요`
+  → `✅ …등재 완료`** 로 교체
+- `docs/00_핵심플랫폼/00-06_화면_설계서_및_와이어프레임.md` — §3 운영자 화면. 탭 구성 줄에
+  **`/ **유족메시지 파기** 🆕`** 추가 + 그 아래 설명 불릿 1개 신설
+
+**결과**:
+- `06-05` §6.4(`ArchivePurgeQueue`) 하나뿐이던 파기 관련 모델 문서가 **§6.4·§6.5 두 개**가 됐다.
+  §6.5에 **"구현이 먼저였고 문서가 소급"** 이라는 사실과 그 근거(§8 #57)를 명시했다 —
+  나중에 읽는 사람이 *"왜 §6.4 표에 없던 테이블이 코드에 있나"* 를 다시 캐지 않도록.
+- 🔵 **두 모델의 역할 구분을 §6.5 말미에 못 박았다**: 감사 로그 = *"사람이 무엇을 실행했나"*(책임),
+  원장 = *"아카이브에 무엇이 남아 있나"*(잔량). 합치면 둘 다 못 쓴다.
+- 🔴 **새 `SCR` 번호를 발급하지 않았다** — 어드민 파기 화면은 새 화면이 아니라 `SCR-010`
+  (`AdminPage.tsx`)의 **탭**이다(`QueueTab`에 `FAREWELL_PURGE` 추가, 라벨 `'유족메시지 파기'`).
+  따라서 `00-06` §6 "미할당 ID"는 **`SCR-019`부터 그대로**다.
+- `docs/작업일지_및_기록/260904.md` 신설 — 09-04 하루치(wt121~127) 실무 일지. 이 날짜 일지가
+  아예 없었다.
+
+**편차**: 없음(문서 작업). 🔵 다만 **원래 편차였던 것을 문서 쪽에서 닫은 작업**이다 —
+wt125가 스펙에 없는 모델(`FarewellPurgeAuditLog`)을 도입한 것은 그 자체로 편차 신고 대상이었고,
+wt125가 그것을 "추가 결정"으로 정직하게 신고했기에 이번에 🔄스펙갱신으로 흡수할 수 있었다.
+
+**다음 에이전트가 알아야 할 것**:
+- `schema.prisma`가 09-04에 두 번 바뀌었으므로(wt125) `00-05`는 자동 생성본이다 — 이번 Opus
+  작업은 `00-05`를 **손대지 않았다**(생성기 소관).
+- 🔴 남은 미검증은 wt126이 적은 2건 그대로다 — `--confirm` 스크립트 경로, 운영 버킷에서의
+  원장 적재·2단계. dev 환경에서는 확인 불가.
+- ▶ 다음 구현 차례는 **D-5(반출, §5.4-3·§5.4-4)**.
+
+<!-- Gemini 판정 1줄: … -->
+
+
+## 2026-09-07 (128) | [Sonnet] D-5 반출 구현 — zip 꾸러미(§5.4-3) + 본인 반출 라우트/버튼
+
+**근거 스펙**: `docs/06_엔딩노트_유언/06-05_유족메시지_보관함_도메인분리_기획서.md` §5.4-3·§5.4-4·§8 D-5(#23·#24)
+
+**건드린 파일**:
+- `eobom/backend/package.json` — `archiver@^7.0.1`(dependencies) · `@types/archiver@^6.0.4`(devDependencies) 추가
+- `eobom/backend/src/services/farewellMessageExport.ts` 신설 — `streamFarewellMessageExportZip(userId, destination)`: FarewellMessage(deletedAt null) 전량을 조회해 `편지_NN_제목.txt`(복호화 평문) + `편지_NN_제목.mp3`(mediaKey 있고 mediaDeletedAt null이면 downloadVoiceObject로 복호화 후 convertToMp3 재인코딩) + `안내.txt`를 archiver로 destination에 스트리밍. `setExportZipHeaders(res)`가 Content-Type/Content-Disposition(RFC5987)/Cache-Control 설정.
+- `eobom/backend/src/controllers/farewellMessageController.ts` — `exportFarewellMessages` 추가(본인 인증 후 위 서비스 호출)
+- `eobom/backend/src/routes/farewellMessageRoutes.ts` — `GET /export`를 `GET /:id`보다 먼저 등록(순서 안 지키면 export가 id로 먹힘)
+- `eobom/frontend/src/pages/FarewellMessagePage.tsx` — 헤더에 "전체 반출(zip)" 버튼 추가. 인증 fetch→blob→`<a download>`(오디오 듣기 D-6과 같은 패턴, presigned URL 없음)
+
+**결과**:
+- zip에는 편지별 `.txt`(평문, AES-256-GCM 복호화)와 mediaKey 있는 음성만 `.mp3`로 변환해 포함. **암호를 걸지 않음**(§5.4-3 그대로).
+- `npx tsc --noEmit`(backend·frontend) 및 `npm run build`(backend·frontend) 전부 0 에러로 통과.
+- 스키마 변경 없음 — DB 백업 대상 아님.
+
+**편차**:
+- 🔴 **#24(사망 시 반출)를 실제로 배선하지 않았다.** 사전 확인 지시대로 코드베이스를 검색했으나 `RELEASED` 상태 전이 배선이 어디에도 없고(`grep -rn "RELEASED" eobom/backend/src` 0건), 유족(가족)용 인증 메커니즘 자체가 아직 존재하지 않는다(`FamilyDesignation`은 본인이 만드는 레코드일 뿐, 가족이 로그인해 들어오는 경로가 없음). "상태 가드까지만 두라"는 지시를 따르려 해도 가드를 걸 라우트·인증이 없어, 대신 `streamFarewellMessageExportZip`을 **userId 기준으로 범용화**해 Phase C에서 그대로 재사용 가능하게만 해뒀다. §3.3 개봉(RELEASED 배선)·유족 인증은 여전히 Phase C 몫.
+- 이 결과 프론트 버튼("전체 반출")도 **본인용 하나만** 붙였다 — 유족용 다운로드 화면은 없음.
+
+**다음 에이전트가 알아야 할 것**:
+- Phase C 착수 시 `farewellMessageExport.ts`의 두 export 함수를 그대로 재사용할 것 — zip 구성 로직을 새로 짤 필요 없음.
+- `archiver`는 8.x가 ESM 전용(`"type":"module"`)이라 이 CommonJS 백엔드에서 못 쓴다 — **7.x 고정** 필요(이미 package.json에 `^7.0.1`로 고정함, 실수로 8로 올리지 말 것).
+- 🔵 **실기동 검증은 사람이 한다**(09-03 지시) — 실제 zip을 내려받아 열어보는 확인은 안 함. tsc/build까지만.
+
+<!-- Gemini 판정 1줄: … -->
