@@ -4,7 +4,6 @@ import { Flower2, FileEdit, ExternalLink, Share2, ArrowRight, Trash2 } from 'luc
 import { apiFetch } from '../lib/api';
 import { OBITUARY_CARD_IMAGE_URL } from '../config';
 import { formatKST, formatObituaryCardTitle, formatObituaryCardDescription } from '../utils/obituaryCard';
-import { parseMemorialLink } from '../utils/memorialLink';
 import { ensureKakaoShareReady, shareViaKakao, shareViaWebShareApi, copyObituaryLink, reportObituaryShare } from '../utils/kakaoShare';
 
 // 00-06 §8(SCR-018) — Header "추모관" 메뉴가 홈 박스③(링크 입력창)으로만 보내서, 부고장을 만든
@@ -38,8 +37,6 @@ export const MyObituaryListPage: React.FC = () => {
   // 아래에만 렌더한다 — 예전엔 전역 문자열 하나라 목록 맨 아래(마지막 카드 밖)에 떴다(사람 리포트).
   const [feedback, setFeedback] = useState<{ id: string; message: string } | null>(null);
 
-  const [linkInput, setLinkInput] = useState('');
-  const [linkError, setLinkError] = useState('');
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -53,25 +50,6 @@ export const MyObituaryListPage: React.FC = () => {
   useEffect(() => {
     ensureKakaoShareReady();
   }, []);
-
-  const handleLinkEnter = () => {
-    const raw = linkInput.trim();
-    if (!raw) {
-      setLinkError('받으신 추모관 링크를 입력해 주세요.');
-      return;
-    }
-    const parsed = parseMemorialLink(raw);
-    if (!parsed) {
-      setLinkError('추모관 링크 형식이 아닙니다. 받으신 링크를 다시 확인해 주세요.');
-      return;
-    }
-    setLinkError('');
-    if (parsed.isCrossOrigin) {
-      window.location.href = raw;
-    } else {
-      navigate(parsed.path);
-    }
-  };
 
   // 부고장 공유 — 카카오톡으로 연결(§7 폴백 사다리 1순위 Kakao.Share, ObituaryPage.tsx와 동일
   // 패턴). Kakao SDK가 준비 안 됐거나 실패하면 Web Share API → 링크 복사 순으로 폴백한다.
@@ -139,7 +117,7 @@ export const MyObituaryListPage: React.FC = () => {
     <div className="container" style={{ paddingBottom: '3rem', maxWidth: '640px' }}>
       <h2 style={{ marginBottom: '0.3rem' }}>내 부고장</h2>
       <p style={{ color: 'var(--text-muted)', marginBottom: '1.5rem', fontSize: '0.95rem' }}>
-        내가 만든 부고장에 다시 들어가거나, 받으신 링크로 다른 추모관에 입장할 수 있습니다.
+        내가 만든 부고장에 다시 들어가거나 수정할 수 있습니다.
       </p>
 
       {/* ① 내가 만든 부고장 목록 */}
@@ -264,32 +242,6 @@ export const MyObituaryListPage: React.FC = () => {
           style={{ background: 'none', border: 'none', padding: 0, color: 'var(--point-color)', fontWeight: 700, fontSize: '0.9rem', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '0.3rem', whiteSpace: 'nowrap' }}
         >
           디지털 추모관으로 <ArrowRight size={14} />
-        </button>
-      </div>
-
-      {/* ② 받으신 링크로 입장 — 홈 박스③과 같은 규칙(parseMemorialLink) */}
-      <div style={cardStyle}>
-        <h4 style={{ marginBottom: '0.8rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <Flower2 size={18} color="var(--primary-color)" /> 받으신 추모관 링크로 입장
-        </h4>
-        <div className="form-group" style={{ marginBottom: '0.5rem' }}>
-          <input
-            type="text"
-            placeholder="받으신 링크를 그대로 붙여넣어 주세요"
-            value={linkInput}
-            onChange={(e) => {
-              setLinkInput(e.target.value);
-              if (linkError) setLinkError('');
-            }}
-            onKeyDown={(e) => e.key === 'Enter' && handleLinkEnter()}
-            className="form-input"
-          />
-        </div>
-        {linkError && (
-          <p style={{ fontSize: '0.85rem', color: '#B91C1C', marginBottom: '0.6rem' }}>{linkError}</p>
-        )}
-        <button type="button" onClick={handleLinkEnter} className="btn btn-primary" style={{ width: '100%', height: '44px' }}>
-          입장하기
         </button>
       </div>
     </div>

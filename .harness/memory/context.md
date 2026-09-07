@@ -22,9 +22,9 @@ Cloudflare·Supabase·Render 미기재. ⏸ "국가"란 보류(인프라 확정 
 
 **2. [Sonnet]** 🔴 wt112·114·115~120 실기동 대기(wt115=§7+체크8). ⏸ 체크8 재검증·F(체크상태)는
 Opus 먼저·04B는 `PreDeathPlatformSetting` 뒤. 🔵 실기동검증은 사람이 한다(09-03)—dev서버 안띄움.
-✅ `06-05` D-1~D-11+UI다듬기+부고장·추모관분리+사후연결+종료후재작성+공유집계(wt121~140, DB
-마이그레이션 포함) 구현·빌드통과—`walkthrough.md`. 🔴 #24 보류(`backlog.md`⑪). 🟡 미검증(dev한계):
-`--confirm`·운영버킷2단계·공유집계 브라우저 실기동(wt140). ▶ **다음=Phase C**(사망확인SLA 대기).
+✅ `06-05` D-1~D-11+UI다듬기+부고장·추모관정리 전반(wt121~142, DB마이그레이션 포함) 구현·
+빌드통과—`walkthrough.md`. 🔴 #24 보류(`backlog.md`⑪). 🟡 미검증(dev한계): `--confirm`·
+운영버킷2단계·공유집계·LAN링크 실기동(wt140·141). ▶ **다음=Phase C**(사망확인SLA 대기).
 
 **3. [Gemini]** 게이트 대기 0건 · 🟡 옛 스펙갱신 3건 → `backlog.md` ⑭.
 
@@ -34,7 +34,7 @@ Opus 먼저·04B는 `PreDeathPlatformSetting` 뒤. 🔵 실기동검증은 사�
 
 ```text
 프로젝트: 이어봄(Eobom) — 디지털엔딩&웰다잉 토탈케어 플랫폼
-마지막  : 2026-09-07 — 부고장·추모관 분리+사후연결+종료후재작성+공유집계(wt135·137~140) / wt112·114·115 대기
+마지막  : 2026-09-07 — 부고장·추모관 정리 전반(wt135·137~142) / wt112·114·115 대기
 ```
 
 - 소스 `eobom/frontend`(React18+Vite5+TS) · `eobom/backend`(Express+Prisma+JWT)
