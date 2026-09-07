@@ -51,7 +51,9 @@ const BEREAVED_MENU: ModeMenuItem[] = [
   { id: 'obituary', label: '모바일 부고장', icon: MessageSquare, status: 'active', loginRequired: true },
   { id: 'pickup', label: '유품 수거', icon: Package, status: 'preview', loginRequired: true },
   { id: 'digital-estate', label: '디지털 정산', icon: PhoneHeartIcon, status: 'preview', loginRequired: true },
-  { id: 'memorial', label: '디지털 추모관', icon: Flower2, status: 'preview', loginRequired: true },
+  // 🔄 09-07 사용자 지시 — 부고장·추모관 완전 분리(wt135) 이후 실제로 만들고 조회되는
+  // 기능이라 사이드바 "미리보기" 배지를 뗀다(wt131의 ending-note·farewell-messages와 동일 조치).
+  { id: 'memorial', label: '디지털 추모관', icon: Flower2, status: 'active', loginRequired: true },
 ];
 
 export const MODE_MENUS: Record<NavMode, ModeMenuItem[]> = {
