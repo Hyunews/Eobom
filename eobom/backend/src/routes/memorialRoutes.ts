@@ -3,6 +3,7 @@ import {
   getMemorialBySlug,
   createMemorial,
   updateMemorial,
+  closeMemorial,
   createTribute,
   listGuestbook,
   createGuestbookEntry,
@@ -27,6 +28,7 @@ router.post('/:slug/report', reportMemorial); // 신고 접수 — 즉시 PRIVAT
 // 로그인 필요 (§6.2)
 router.post('/', createMemorial);
 router.patch('/:id', updateMemorial); // 개설자만
+router.delete('/:id', closeMemorial); // 개설자만, 소프트 삭제(closedAt)
 router.delete('/:id/guestbook/:gid', deleteGuestbookEntry); // 개설자만
 router.post('/:id/photos', addMemorialPhoto); // 개설자만
 router.delete('/:id/photos/:photoId', deleteMemorialPhoto); // 개설자만

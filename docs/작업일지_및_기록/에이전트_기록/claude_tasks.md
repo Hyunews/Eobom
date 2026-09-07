@@ -434,3 +434,51 @@ handleDeleteMessage()}`로 명시적으로 인자 없이 호출하도록 고쳐�
 바로 전 턴에 내가 "간극 없다"고 backlog에 ✅로 닫아놨던 게 무색하게, **생성 경로만 보고
 삭제 경로는 안 봤던 게 원인** — 반성 포인트. 판정 소스를 리다이렉트 대상이 실제로 쓰는
 `GET /api/me/obituaries`로 바꿔서 구조적으로 어긋날 수 없게 고쳤다.
+
+
+## 2026-09-07 | 추모관 카드 크기 원인 추적 + orphan 열람 구현 메모
+
+**"카드가 실제보다 크다"의 원인을 CSS 수치로는 못 찾았다**: `MemorialPage.tsx`(예시)와
+`MemorialLandingPage.tsx`(실제)의 카드 `maxWidth`(460px)·내부 padding·폰트 크기를 전부
+character-by-character로 비교했는데 완전히 동일했다. `:root`의 `--base-font-size:18px`도
+확인했지만 `body`에만 걸려 있고(`rem`은 `html` 기준이라 무관), `html { font-size }`는
+768px 이하에서만 걸리는 미디어쿼리라 두 페이지에 똑같이 적용된다 — 즉 순수 CSS로는 두
+페이지가 다르게 렌더될 이유가 없었다. 결론: 절대 픽셀은 같아도, 예시 페이지는 사이드바+
+페이지 헤더+경고배너까지 얹힌 맥락 안에 있어 "카드"가 상대적으로 더 도드라져 보이는
+문제로 보고, 실측 대신 방향성 있게(맥락 안에서 더 작은 "미리보기"로 읽히도록) 폭·내부
+요소를 전반적으로 15~20% 축소하는 쪽으로 판단함. 사용자가 다시 크다/작다 피드백을 주면
+그때 미세조정.
+
+**orphan 추모관 판정을 새 백엔드 없이 기존 두 엔드포인트의 차집합으로 풀었다**:
+`GET /api/me/memorials`(전체 소유 추모관)와 `GET /api/me/obituaries`(부고장 목록, 각 항목에
+`memorialSlug` embed)를 둘 다 불러서, memorials 중 obituaries의 memorialSlug 집합에 없는
+것만 orphan으로 판정. `Memorial.closedAt`(개설자가 닫은 것)도 걸러냄. 두 fetch 중 하나라도
+아직 `null`(로딩 중)이면 orphan 계산을 비워둬서, 부고장 목록이 늦게 도착할 때 이미 링크된
+추모관이 잠깐 orphan으로 잘못 뜨는 깜빡임을 막음.
+
+
+## 2026-09-07 | 부고장·추모관 분리 — DB 백업/마이그레이션 삽질 메모
+
+**Git Bash의 MSYS 경로 자동변환이 `docker exec`/`docker cp`를 두 번 깨뜨렸다**: 컨테이너 안
+경로 `/tmp/local-....dump`를 인자로 주면 Git Bash가 이걸 POSIX 절대경로로 오인해
+`C:/Users/.../Temp/local-....dump`로 자동 변환해버려서 `pg_dump`가 없는 파일을 열려고 했다
+(`could not open output file`). `MSYS_NO_PATHCONV=1`을 걸어 우회했더니, 이번엔 그 환경변수가
+**같은 커맨드 안의 호스트 쪽 경로**(`docker cp` 목적지, `/c/Users/...`)까지 변환을 꺼버려서
+`C:\c\Users\...`처럼 드라이브 문자가 중복된 잘못된 경로가 됐다(하네스 Bash 래퍼가 추가로
+한 번 더 변환을 얹는 듯). 해결: **`docker exec`(컨테이너 안 경로만 씀)는
+`MSYS_NO_PATHCONV=1`로, `docker cp`(호스트 경로 포함)는 그냥 기본값으로** 따로 실행 —
+pg_dump는 컨테이너 안 `/tmp`에 먼저 뜨게 하고, 그 다음 별도 커맨드로 `docker cp`만 돌림.
+백업 파일 존재 확인(`ls -la`, 189,452 bytes)까지 하고 나서야 `prisma migrate dev` 진행.
+
+**`prisma migrate dev`도 EPERM을 냈지만 마이그레이션 자체는 이미 끝난 뒤였다**: 출력에
+"Your database is now in sync with your schema." 가 먼저 찍히고, 그 다음 자동으로 도는
+`prisma generate`(post-migrate 훅) 단계에서만 이전에도 겪은 그 query-engine DLL 잠금
+EPERM이 났다. `migration.sql`을 직접 열어 `ALTER COLUMN "memorialId" DROP NOT NULL` +
+FK를 `ON DELETE SET NULL`로 바꾼 것만 있는 걸 확인했고(행 삭제·변형 없음), `node_modules/
+.prisma/client/index.d.ts`에서 `memorialId: string | null` 문자열을 직접 grep해 타입
+파일은 이미 새 스키마로 갱신됐다는 것도 재확인 — `tsc --noEmit`이 정상 통과하는 이유.
+
+**여전히 안 풀린 것**: 이 세션 내내 반복된 `query_engine-windows.dll.node` EPERM은 어떤
+node.exe 프로세스가 그 파일을 잡고 있어서인데, 그게 뭔지 끝내 특정 못 했다(`Get-Process
+node`에 9개 정도가 항상 떠 있음 — 사용자 쪽에서 뭔가 상시로 돌아가는 듯). 다음에 진짜
+`npm run build`(backend, prisma generate 포함)가 필요해지면 이 프로세스들부터 확인 요청할 것.

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Flower2, FileEdit, ExternalLink, Share2, Copy, ArrowRight, Trash2 } from 'lucide-react';
+import { Flower2, FileEdit, ExternalLink, Share2, ArrowRight, Trash2 } from 'lucide-react';
 import { apiFetch } from '../lib/api';
 import { OBITUARY_CARD_IMAGE_URL } from '../config';
 import { formatKST, formatObituaryCardTitle, formatObituaryCardDescription } from '../utils/obituaryCard';
@@ -10,13 +10,16 @@ import { ensureKakaoShareReady, shareViaKakao, shareViaWebShareApi, copyObituary
 // 00-06 §8(SCR-018) — Header "추모관" 메뉴가 홈 박스③(링크 입력창)으로만 보내서, 부고장을 만든
 // 당사자가 정작 본인이 만든 부고장·추모관에 다시 들어갈 방법이 없다는 사용자 리포트 대응.
 // Header 메뉴는 로그인 상태에서만 렌더되므로(Header.tsx currentUser 가드) 이 화면은 항상
-// 로그인 사용자만 본다. `/api/me/memorials`(기존, 손대지 않음)와 별개인 새 엔드포인트
-// `GET /api/me/obituaries`를 쓴다 — 부고장 링크(/o/:slug)까지 함께 내려줘야 해서다.
+// 로그인 사용자만 본다. `GET /api/me/obituaries` — 부고장 링크(/o/:slug)까지 함께 내려줘야 해서다.
+// 🔄 09-07 사용자 지시 — "부고장과 추모관은 구분해서 관리되어야 한다." 추모관 생성·삭제·
+// 주소복사 같은 관리 액션은 전부 `/memorial` 화면으로 옮겼다. 여기는 부고장만 관리하고,
+// 연결된 추모관이 있으면 "있다면" 열어볼 수 있는 링크 하나만 읽기 전용으로 보여준다
+// (ObituaryLandingPage.tsx의 "추모관 들어가기"와 같은 최소 노출 원칙).
 
 interface MyObituary {
   id: string;
   slug: string;
-  memorialSlug: string;
+  memorialSlug: string | null;
   deceasedName: string;
   deceasedDeathDate: string | null;
   funeralHall: string | null;
@@ -31,7 +34,7 @@ export const MyObituaryListPage: React.FC = () => {
   const navigate = useNavigate();
   const [obituaries, setObituaries] = useState<MyObituary[] | null>(null);
   const [loadError, setLoadError] = useState(false);
-  // 카드별로 다른 부고장·추모관을 다루므로, 문구도 어느 카드 것인지(id) 함께 들고 그 카드
+  // 카드별로 다른 부고장을 다루므로, 문구도 어느 카드 것인지(id) 함께 들고 그 카드
   // 아래에만 렌더한다 — 예전엔 전역 문자열 하나라 목록 맨 아래(마지막 카드 밖)에 떴다(사람 리포트).
   const [feedback, setFeedback] = useState<{ id: string; message: string } | null>(null);
 
@@ -108,13 +111,6 @@ export const MyObituaryListPage: React.FC = () => {
     }
   };
 
-  // 추모관은 공유 시트를 거치지 않고 주소만 복사한다 — 사람 지시(2026-09-03).
-  const copyMemorialAddress = async (o: MyObituary) => {
-    const url = `${window.location.origin}/m/${o.memorialSlug}`;
-    const copied = await copyObituaryLink(url);
-    setFeedback({ id: o.id, message: copied ? '추모관 주소가 복사되었습니다.' : '복사에 실패했습니다. 주소창의 링크를 직접 복사해 주세요.' });
-  };
-
   const cardStyle: React.CSSProperties = {
     backgroundColor: 'var(--card-bg)',
     borderRadius: 'var(--border-radius)',
@@ -134,9 +130,9 @@ export const MyObituaryListPage: React.FC = () => {
 
   return (
     <div className="container" style={{ paddingBottom: '3rem', maxWidth: '640px' }}>
-      <h2 style={{ marginBottom: '0.3rem' }}>내 부고장·추모관</h2>
+      <h2 style={{ marginBottom: '0.3rem' }}>내 부고장</h2>
       <p style={{ color: 'var(--text-muted)', marginBottom: '1.5rem', fontSize: '0.95rem' }}>
-        내가 만든 부고장·추모관에 다시 들어가거나, 받으신 링크로 다른 추모관에 입장할 수 있습니다.
+        내가 만든 부고장에 다시 들어가거나, 받으신 링크로 다른 추모관에 입장할 수 있습니다.
       </p>
 
       {/* ① 내가 만든 부고장 목록 */}
@@ -216,15 +212,16 @@ export const MyObituaryListPage: React.FC = () => {
                     <Share2 size={13} /> 공유
                   </button>
                 </div>
-                <div style={linkGroupStyle}>
-                  <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', width: '3.4rem' }}>추모관</span>
-                  <button type="button" onClick={() => navigate(`/m/${o.memorialSlug}`)} style={iconBtnStyle}>
-                    <ExternalLink size={13} /> 열기
-                  </button>
-                  <button type="button" onClick={() => copyMemorialAddress(o)} style={iconBtnStyle}>
-                    <Copy size={13} /> 주소 복사
-                  </button>
-                </div>
+                {/* 🔄 09-07 — 추모관 관리(생성·삭제·주소복사)는 /memorial로 옮겼다. 여긴
+                    "있다면" 열어볼 수 있는 링크 하나만 읽기 전용으로. */}
+                {o.memorialSlug && (
+                  <div style={linkGroupStyle}>
+                    <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', width: '3.4rem' }}>추모관</span>
+                    <button type="button" onClick={() => navigate(`/m/${o.memorialSlug}`)} style={iconBtnStyle}>
+                      <ExternalLink size={13} /> 열기
+                    </button>
+                  </div>
+                )}
 
                 {feedback?.id === o.id && (
                   <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{feedback.message}</p>
@@ -240,6 +237,22 @@ export const MyObituaryListPage: React.FC = () => {
           style={{ marginTop: '1rem', background: 'none', border: 'none', padding: 0, color: 'var(--point-color)', fontWeight: 700, fontSize: '0.9rem', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}
         >
           새 부고장 만들기 <ArrowRight size={14} />
+        </button>
+      </div>
+
+      {/* 🔄 09-07 — 추모관은 완전히 별도 화면에서 만들고 지운다. 부고장 목록에 끼워 넣지
+          않고, 그 화면으로 가는 링크만 안내한다. */}
+      <div style={{ ...cardStyle, marginBottom: '1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+          <Flower2 size={18} color="var(--primary-color)" />
+          <span style={{ fontSize: '0.9rem', color: 'var(--text-main)' }}>추모관은 여기가 아니라 디지털 추모관 화면에서 따로 만들고 관리합니다.</span>
+        </div>
+        <button
+          type="button"
+          onClick={() => navigate('/memorial')}
+          style={{ background: 'none', border: 'none', padding: 0, color: 'var(--point-color)', fontWeight: 700, fontSize: '0.9rem', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '0.3rem', whiteSpace: 'nowrap' }}
+        >
+          디지털 추모관으로 <ArrowRight size={14} />
         </button>
       </div>
 

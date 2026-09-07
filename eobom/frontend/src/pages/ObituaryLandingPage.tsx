@@ -24,7 +24,8 @@ interface ObituaryData {
   burialSite: string | null;
   mourners: Mourner[];
   contactPhone?: string;
-  memorialSlug: string;
+  // 🔄 09-07 — 부고장에 추모관이 연결 안 돼 있을 수 있다(체크박스 안 켜고 만든 경우).
+  memorialSlug: string | null;
   cardFieldsUpdatedAt: string | null;
   updatedAt: string;
   account?: { bankCode: string | null; accountNumber: string | null; holder: string | null };
@@ -208,17 +209,20 @@ export const ObituaryLandingPage: React.FC = () => {
             )}
           </div>
 
-          {/* 추모관 — 링크는 여기서만 노출(00-13 §4.5-1 (나)) */}
-          <a
-            href={`/m/${data.memorialSlug}`}
-            style={{
-              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem',
-              padding: '1rem', backgroundColor: 'var(--secondary-color)', color: 'var(--point-color)',
-              fontWeight: 700, fontSize: '0.95rem', textDecoration: 'none', borderTop: '1px solid #EAE5DC',
-            }}
-          >
-            <Flower2 size={18} /> 추모관 들어가기
-          </a>
+          {/* 추모관 — 링크는 여기서만 노출(00-13 §4.5-1 (나)). 🔄 09-07 — 이제 "있다면"만
+              보여준다. 부고장 개설 시 추모관 체크박스를 켜지 않았으면 연결이 없다. */}
+          {data.memorialSlug && (
+            <a
+              href={`/m/${data.memorialSlug}`}
+              style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem',
+                padding: '1rem', backgroundColor: 'var(--secondary-color)', color: 'var(--point-color)',
+                fontWeight: 700, fontSize: '0.95rem', textDecoration: 'none', borderTop: '1px solid #EAE5DC',
+              }}
+            >
+              <Flower2 size={18} /> 추모관 들어가기
+            </a>
+          )}
         </div>
 
         {/* §5.4-2 — 조문객 쪽 방어선. 카드는 공유 시점 스냅샷이라 바뀔 수 있으니 최종 수정 시각을 알린다. */}

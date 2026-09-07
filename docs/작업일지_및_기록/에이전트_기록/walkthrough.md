@@ -1529,3 +1529,147 @@ div를 없애야함, 다른 도메인 페이지처럼"*)
 **다음 에이전트가 알아야 할 것**: 없음.
 
 <!-- Gemini 판정 1줄: … -->
+
+
+## 2026-09-07 (134) | [Sonnet] 추모관 예시 카드 축소 + orphan 추모관 열람 화면 신설
+
+**근거 스펙**: 스펙 없음 — 사용자 UI 지시(*"추모관 예시 페이지의 추모장이 실제보다 큼"*) +
+`backlog.md`⑮ 후속 처리(*"부고장 지운 뒤 남는 추모관을 다시 볼 화면이 없다"*, wt132에서
+남겨둔 과제, "진행부탁해" 지시로 착수)
+
+**건드린 파일**:
+- `eobom/frontend/src/pages/MemorialPage.tsx` — 예시 카드 축소: `maxWidth` 460px→380px,
+  영정 자리 96px→72px, 남색 헤더 padding 2rem 1.75rem→1.5rem 1.4rem, 제목 1.6rem→1.3rem,
+  헌화·방명록 섹션 padding·폰트도 비례 축소. 바깥 페이지 타이틀도 `fontSize:'2rem'` 고정값
+  대신 다른 도메인 페이지와 같은 `className="page-title"`(반응형 clamp)로 교체 — 지금까지
+  이 페이지만 비반응형이었다.
+- `eobom/frontend/src/pages/MyObituaryListPage.tsx` — "부고장 없이 남은 추모관" 섹션 신설.
+  `GET /api/me/memorials`(기존 배선, 백엔드 무변경)를 새로 호출해 `GET /api/me/obituaries`
+  결과의 `memorialSlug` 집합에 없는(=지금 걸린 부고장이 없는) 것만 `orphanMemorials`로 걸러
+  카드로 보여준다(고인명·개설일/사망일 + "열기"(`/m/:slug`)·"주소 복사" 버튼, 기존 부고장
+  카드의 "추모관" 행과 같은 스타일 재사용). `closedAt`(개설자가 닫은 추모관)은 제외. 둘 중
+  하나라도 아직 로딩 중이면 빈 배열로 둬서 깜빡임(잘못된 orphan 판정)을 막았다. 있을 때만
+  섹션이 보인다 — 흔치 않은 상태라 평소엔 안 보임. `copyMemorialAddress`를 `(o: MyObituary)`
+  단일 인자에서 `(feedbackId, memorialSlug)`로 일반화해 이 섹션에서도 재사용.
+
+**결과**: `tsc --noEmit`·`npm run build`(frontend) 통과. 스키마·백엔드 변경 없음 — DB 백업
+대상 아님.
+
+**편차**: 없음.
+
+**다음 에이전트가 알아야 할 것**:
+- `backlog.md`⑮의 "남는 진짜 과제"가 이걸로 해소됐다 — orphan 추모관도 이제 `/my-obituaries`
+  안에서 열람 가능. ⑮ 항목에 완료 표시할 것.
+- 카드 크기 축소는 수치 감각으로 잡은 것(픽셀 단위 확정 스펙 없음) — 여전히 커 보이면 추가
+  조정 필요.
+
+<!-- Gemini 판정 1줄: … -->
+
+
+## 2026-09-07 (135) | [Sonnet] 🔴 부고장·추모관 완전 분리 — E안(00-13 §4.5) 뒤집음
+
+**근거 스펙**: 스펙 없음(사용자 직접 지시, DB 마이그레이션 CONFIRM 받고 진행). 🔴 **기존
+문서 스펙과 정면으로 다른 방향** — `00-13 §4.5`(E안: "부고장=봉투, 추모관=목적지, **개설 시
+함께 생성**")를 뒤집는다. `docs/`는 건드리지 않았다(Sonnet 소유 아님) — Opus가 `00-13`·
+`07-03`을 이 결정에 맞게 개정해야 한다(아래 "다음 에이전트" 참고).
+
+사용자 지시 원문 요지:
+1. `/my-obituaries`의 부고장과 추모관은 구분해서 관리.
+2. 부고장 개설·카카오톡 전송이 추모관 생성을 강제하지 않는다. 추모관은 `/memorial`
+   화면에서 따로 생성·삭제된다. 부고장 링크 페이지엔 추모관 링크가 "있다면" 노출.
+3. (후속 확인) 연결 방식 = 부고장 작성 폼의 체크박스로 "함께 만들기"를 선택했을 때만 자동
+   생성+연결. 기존 부고장에 나중에 연결하는 기능은 이번 범위 밖.
+
+**DB 마이그레이션**(사람 승인 후 진행, `20260907025104_obituary_memorial_optional`):
+- `Obituary.memorialId`: 필수 unique FK → **선택**(`String?`) unique FK, `onDelete: SetNull`.
+- 🔴 백업 먼저 — `docker exec eobom-postgres pg_dump`로
+  `eobom/backend/prisma/backups/local-20260907_115023.dump`(189,452 bytes) 생성 확인 후 진행.
+  `npx prisma migrate dev`로 적용 — 기존 행 삭제·덮어쓰기 없음(제약만 완화, 데이터 무손실).
+  `npx tsc --noEmit`(backend)로 마이그레이션 후 타입 재검증 통과.
+
+**건드린 파일**:
+- `eobom/backend/prisma/schema.prisma` — 위 필드 변경.
+- `eobom/backend/src/controllers/obituaryController.ts` — `createObituary`가 body의
+  `createMemorial`(boolean, 기본 false) 체크박스 값에 따라 트랜잭션 내 Memorial 생성을
+  건너뛴다(`memorial = body.createMemorial ? await tx.memorial.create(...) : null`).
+  `getObituaryBySlug`·`listMyObituaries`는 `obituary.memorial`이 null일 수 있게 전부
+  옵셔널 체이닝으로 수정 — `listMyObituaries`는 고인명·사망일 출처를 `memorial.deceasedName`
+  (denormalize, null일 수 있음)에서 **`Obituary` 본인의 `deceased` 관계**로 옮겼다(생성 시
+  항상 함께 만들어지므로 안전).
+- `eobom/backend/src/controllers/memorialController.ts` — 🆕 `closeMemorial`
+  (`DELETE /api/memorials/:id`) 신설. schema의 `closedAt`("개설자가 닫음, 소프트 삭제") 필드가
+  설계는 돼 있었는데 컨트롤러가 없었다 — `closeObituary`와 같은 멱등 패턴(이미 닫혀 있으면
+  그대로 반환)으로 채움. 하드 삭제로 만들지 않음(방명록·헌화·사진 캐스케이드 보존).
+- `eobom/backend/src/routes/memorialRoutes.ts` — `DELETE /:id` 라우트 추가.
+- `eobom/frontend/src/pages/ObituaryPage.tsx` — 개설 폼(신규 작성 시에만)에 "[선택] 이 부고장과
+  함께 추모관도 만들기" 체크박스 추가. `StoredObituaryRef.memorialSlug`·`memorialUrl` 관련 로직을
+  전부 null 안전하게. "연결된 추모관 미리 보기"/"계속 열람할 수 있습니다" 링크는 `memorialUrl`이
+  있을 때만 렌더.
+- `eobom/frontend/src/pages/ObituaryLandingPage.tsx` — "추모관 들어가기" 배너를
+  `data.memorialSlug` 있을 때만 렌더(00-13 §4.5-1 (나) 원칙은 유지 — 있을 때 그 자리에서만).
+- `eobom/frontend/src/pages/MyObituaryListPage.tsx` — 요구사항 ①. 각 부고장 카드에서 추모관
+  관리 액션(열기·주소복사)을 없애고, `memorialSlug`가 있을 때만 읽기 전용 "열기" 링크 한 줄만
+  남김. wt134에서 만든 "부고장 없이 남은 추모관" 섹션(orphan 판정)을 통째로 제거 —
+  전제(부고장=추모관 항상 세트)가 깨졌으니 그 판정 자체가 무의미해졌다. 대신 `/memorial`로
+  가는 안내 배너 하나로 교체.
+- `eobom/frontend/src/pages/MemorialPage.tsx` — 전면 재작성. `/memorial`이 이제 진짜 "내
+  추모관" 관리 화면이다 — 로그인 안 했으면 로그인 유도, 로그인했으면 `GET /api/me/memorials`
+  목록(고인명·공개범위·개설일 + 열기·주소복사·삭제) + "새 추모관 만들기" 폼(고인성명 필수,
+  사망일·비문·공개범위 선택, 허위개설 동의 필수 체크박스) → `POST /api/memorials`. 이전 예시
+  목업 데이터·마운트 시 리다이렉트 판정은 전부 삭제.
+- `eobom/frontend/src/pages/MemorialEntryPage.tsx` **삭제** — "부고장 있으면 리다이렉트" 판정이
+  전제 자체를 잃어 무의미해졌다.
+- `eobom/frontend/src/App.tsx` — `/memorial` 라우트를 `MemorialEntryPage`에서 `MemorialPage`로
+  되돌림(직접 관리 화면이니 리다이렉트 래퍼가 필요 없어짐).
+
+**결과**: `tsc --noEmit`·`npm run build`(frontend), `tsc --noEmit`(backend) 전부 통과. 마이그레이션
+적용 확인(로컬 dev DB). 🔴 backend `npm run build`의 `prisma generate` 단계는 이번에도 다른
+node 프로세스가 잡고 있는 파일 잠금(EPERM)으로 실패했으나 `.d.ts`는 이미 갱신됐고(마이그레이션
+직후 `prisma migrate dev`가 자체적으로 generate를 한 번 더 시도한 것도 같은 이유로 실패 — 타입
+파일은 정상 반영됨, `grep`으로 `memorialId: string | null` 확인) `tsc --noEmit`으로 재검증했다.
+
+**편차**:
+- 🔴 **`00-13 §4.5`(E안) 정면 반전** — 스펙 문서가 이 세션 종료 시점 기준 코드와 다른 말을 하고
+  있다. Opus가 `00-13`·`07-03`(부고장 개설 플로우 설명)을 이번 결정(체크박스로 선택적 생성,
+  기존 부고장에 사후 연결 없음)에 맞게 갱신해야 한다 — 안 그러면 다음 세션이 옛 스펙을 정본으로
+  믿고 되돌릴 위험이 있다.
+- 🟡 wt134가 만든 "부고장 없이 남은 추모관" 기능은 이번 결정으로 전제가 사라져 되돌렸다
+  (`backlog.md`⑮도 함께 정리 필요).
+
+**다음 에이전트가 알아야 할 것**:
+- **[Claude:Opus] 확인요청** — `00-13 §4.5`·`07-03`(부고장 카카오톡 전송 기획서)이 "부고장
+  개설 시 추모관 항상 함께 생성"을 전제로 쓰여 있다. 이번 코드 변경(체크박스로 선택, 실행 결과는
+  `walkthrough.md` wt135)에 맞춰 문서를 갱신할 것. 특히 §4.5-1 (나)("추모관 링크는 부고장
+  랜딩에서만 노출")는 이제 "있을 때만"으로 조건이 붙었다는 점도 반영.
+- 기존 부고장에 나중에 추모관을 연결하는 기능(뒤늦게 체크박스를 켜는 것과 동등한 효과)은
+  이번 범위 밖 — `PATCH /api/obituaries/:id`가 `memorialId`를 받지 않는다. 필요해지면
+  ObituaryPage.tsx 수정 폼에 같은 체크박스를 추가하고 백엔드에 필드 하나만 열면 된다(구조는
+  이미 대비돼 있음).
+- 마이그레이션 백업 파일은 `eobom/backend/prisma/backups/local-20260907_115023.dump`에 있다
+  (git에 커밋할지는 사람 판단 — `.gitignore` 확인 안 함).
+
+<!-- Gemini 판정 1줄: … -->
+
+
+## 2026-09-07 (136) | [Sonnet] 유언장 초안 — 4대 요건 문구 축약 + 자동검증 제거
+
+**근거 스펙**: 스펙 없음 — 사용자 UI 지시(*"자필증서 유언장의 4대요건을 간단하게... 검증절차는
+없애줘(글이 쓰여진 상황에따라 오판할 가능성 큼)"*)
+
+**건드린 파일**:
+- `eobom/frontend/src/pages/EndingNotePage.tsx` — `hasAddressHint`(정규식으로 번지·호 패턴
+  탐지)·`hasDateHint`(정규식으로 "YYYY년 M월 D일" 패턴 탐지) 계산과, 그 값에 따라 체크마크
+  색·"(초안에서 확인됨)"/"(빠졌을 수 있습니다...)" 문구를 바꾸던 로직을 통째로 삭제. 네 항목
+  (주소·연월일·성명·날인) 모두 같은 스타일(회색 `Circle` 아이콘)의 짧은 한 줄로 통일 —
+  "주소 — 번지까지", "연월일 — 예: 2026년 8월 25일", "성명 — 본인 서명", "날인 — 도장 또는
+  지장". 하단 안내문도 "위 표시는 참고용...대신 채워 넣지 않습니다" → "이어봄은 위 항목을
+  자동으로 확인하지 않습니다. 직접 확인해 주세요."로 축약.
+
+**결과**: `tsc --noEmit`·`npm run build`(frontend) 통과. `CheckCircle2` import는 파일 내 다른
+곳(섹션 완료 표시)에 계속 쓰여 dangling import 없음.
+
+**편차**: 없음.
+
+**다음 에이전트가 알아야 할 것**: 없음.
+
+<!-- Gemini 판정 1줄: … -->

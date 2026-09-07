@@ -25,7 +25,9 @@ const STORAGE_KEY = 'eobom_my_obituary';
 interface StoredObituaryRef {
   obituaryId: string;
   obituarySlug: string;
-  memorialSlug: string;
+  // 🔄 09-07 — 부고장 개설이 더는 추모관을 강제하지 않는다(체크박스로 선택). null이면
+  // 연결된 추모관이 없다는 뜻.
+  memorialSlug: string | null;
 }
 
 interface MournerDraft {
@@ -106,6 +108,8 @@ export const ObituaryPage: React.FC<ObituaryPageProps> = ({ currentUser, onOpenL
   // 동의 2건(§6.2 — 05-01 §2.3 승계 + 00-13 §8-6)
   const [falseReportAgreed, setFalseReportAgreed] = useState(false);
   const [resharedNoticeAck, setResharedNoticeAck] = useState(false);
+  // 🆕 09-07 — "이 부고장과 함께 추모관도 만들기" 체크박스(개설 시에만 의미가 있다).
+  const [createMemorial, setCreateMemorial] = useState(false);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -204,7 +208,7 @@ export const ObituaryPage: React.FC<ObituaryPageProps> = ({ currentUser, onOpenL
         setIsClosed(!!o.isClosed);
         setClosedAt(o.closedAt || null);
         setObituaryUrl(`${window.location.origin}/o/${targetSlug}`);
-        setMemorialUrl(`${window.location.origin}/m/${o.memorialSlug}`);
+        setMemorialUrl(o.memorialSlug ? `${window.location.origin}/m/${o.memorialSlug}` : '');
         // 개설 시 이미 완료한 동의 — 수정 화면에서 다시 요구하지 않는다(체크된 상태로 표시).
         setFalseReportAgreed(true);
         setResharedNoticeAck(true);
@@ -270,6 +274,8 @@ export const ObituaryPage: React.FC<ObituaryPageProps> = ({ currentUser, onOpenL
       accountHolder: accountEnabled ? accountHolder.trim() : undefined,
       falseReportAgreed,
       resharedNoticeAck,
+      // 개설(POST)에서만 의미가 있다 — PATCH 쪽은 컨트롤러가 이 필드를 아예 읽지 않는다.
+      ...(obituaryRef ? {} : { createMemorial }),
     };
 
     try {
@@ -284,7 +290,7 @@ export const ObituaryPage: React.FC<ObituaryPageProps> = ({ currentUser, onOpenL
         setObituaryRef(ref);
         setObituaryId(data.obituaryId);
         setObituaryUrl(data.obituaryUrl);
-        setMemorialUrl(data.memorialUrl);
+        setMemorialUrl(data.memorialUrl || '');
         setCardFieldsUpdatedAt(null);
         setUpdatedAt(new Date().toISOString());
       } else {
@@ -494,6 +500,14 @@ export const ObituaryPage: React.FC<ObituaryPageProps> = ({ currentUser, onOpenL
 
           {!obituaryRef && (
             <div style={{ backgroundColor: 'var(--secondary-color)', borderRadius: '8px', padding: '1rem', marginTop: '0.5rem', marginBottom: '1.25rem', display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
+              {/* 🔄 09-07 사용자 지시 — 부고장 개설이 더는 추모관을 자동으로 만들지 않는다.
+                  이 체크박스를 켜야만 개설 시 추모관도 함께 만들어 연결한다(꺼두면 나중에
+                  /memorial에서 따로 만들 수 있다 — 이 화면에서 기존 부고장에 뒤늦게 연결하는
+                  기능은 없다). */}
+              <label style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', fontSize: '0.85rem', cursor: 'pointer' }}>
+                <input type="checkbox" checked={createMemorial} onChange={(e) => setCreateMemorial(e.target.checked)} style={{ marginTop: '0.2rem' }} />
+                <span>[선택] 이 부고장과 함께 추모관도 만들기 — 조문객이 온라인으로 헌화·방명록을 남길 수 있는 공간입니다. 나중에 &lsquo;디지털 추모관&rsquo; 화면에서 따로 만들 수도 있습니다.</span>
+              </label>
               <label style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', fontSize: '0.85rem', cursor: 'pointer' }}>
                 <input type="checkbox" checked={falseReportAgreed} onChange={(e) => setFalseReportAgreed(e.target.checked)} style={{ marginTop: '0.2rem' }} />
                 <span>[필수] 허위로 부고장을 개설할 경우 법적 책임을 질 수 있다는 점에 동의합니다.</span>
@@ -543,9 +557,11 @@ export const ObituaryPage: React.FC<ObituaryPageProps> = ({ currentUser, onOpenL
                       종료된 부고장입니다. 조문객은 더 이상 이 링크로 볼 수 없습니다{closedAt ? ` (${formatKST(closedAt)} 종료)` : ' (발인 3일 경과로 자동 종료)'}.
                     </p>
                   </div>
-                  <a href={memorialUrl} target="_blank" rel="noreferrer" style={{ fontSize: '0.85rem', color: 'var(--point-color)', fontWeight: 700, textDecoration: 'underline' }}>
-                    연결된 추모관은 계속 열람할 수 있습니다 →
-                  </a>
+                  {memorialUrl && (
+                    <a href={memorialUrl} target="_blank" rel="noreferrer" style={{ fontSize: '0.85rem', color: 'var(--point-color)', fontWeight: 700, textDecoration: 'underline' }}>
+                      연결된 추모관은 계속 열람할 수 있습니다 →
+                    </a>
+                  )}
                 </>
               ) : (
                 <>
@@ -577,9 +593,12 @@ export const ObituaryPage: React.FC<ObituaryPageProps> = ({ currentUser, onOpenL
                     {obituaryUrl}
                   </div>
 
-                  <a href={memorialUrl} target="_blank" rel="noreferrer" style={{ fontSize: '0.85rem', color: 'var(--point-color)', fontWeight: 700, textDecoration: 'underline' }}>
-                    연결된 추모관 미리 보기 →
-                  </a>
+                  {/* 🔄 09-07 — 추모관은 이제 선택이라 없을 수 있다("있다면"만 보여준다). */}
+                  {memorialUrl && (
+                    <a href={memorialUrl} target="_blank" rel="noreferrer" style={{ fontSize: '0.85rem', color: 'var(--point-color)', fontWeight: 700, textDecoration: 'underline' }}>
+                      연결된 추모관 미리 보기 →
+                    </a>
+                  )}
 
                   {updatedAt && (
                     <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginTop: '1rem' }}>
