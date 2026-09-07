@@ -1,5 +1,4 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
 import { UserCheck, LogIn, LogOut, Menu } from 'lucide-react';
 import { EobomLogo } from './EobomLogo';
 import type { NavMode } from '../modeNav';
@@ -16,15 +15,15 @@ interface HeaderProps {
 }
 
 // 메인 홈 A안 재구성(2026-08) — 로고 옆 "모드 드롭다운" 1개 대신, 로그인 시에만 보이는
-// "홈"·"생전 준비"·"임종·사후 정리"·"추모관" 4개를 평면 메뉴로 노출한다(개발자 확정 —
+// "홈"·"생전 준비"·"임종·사후 정리" 3개를 평면 메뉴로 노출한다(개발자 확정 —
 // 비로그인 시 "홈"도 숨김). 헤더는 전역 공용 컴포넌트라 이 변경은 모든 페이지에 적용된다.
 // 2026-08-24 — "생전 준비"·"임종·사후 정리"는 박스 소개 오버레이가 아니라 실제 화면
-// (/ending-note, /care-guide)으로 직접 이동한다. "추모관"은 대응하는 오버레이가 없어(박스③은
-// 링크 입력창일 뿐) 홈의 진입 4박스 캐러셀에서 박스③이 있는 페이지까지 직접 넘긴다(아래
-// goToMemorialEntry 참고 — 예전엔 섹션 스크롤까지만 해서 캐러셀이 첫 페이지에 멈춰 있는 버그가 있었다).
+// (/ending-note, /care-guide)으로 직접 이동한다.
+// 🔄 09-07 사용자 지시 — 예전엔 네 번째 메뉴로 "내 부고장"(→ `/my-obituaries-memorials`,
+// 구 라벨 "추모관")이 있었다. 사이드바의 "디지털 추모관"(→ `/memorial`, 다른 화면)과 이름이
+// 겹쳐 혼란이 있었던 데다, 그 화면은 이제 **마이페이지에서만** 들어가게 정리해 헤더에서는
+// 아예 뺐다(MyPage.tsx의 "내 부고장" 통계 칸이 그 유일한 통로가 됨).
 export const Header: React.FC<HeaderProps> = ({ setActiveTab, onOpenLogin, currentUser, onLogout, onSetMode, onOpenMobileMenu }) => {
-  const navigate = useNavigate();
-
   const goHome = () => {
     setActiveTab('home');
   };
@@ -42,15 +41,6 @@ export const Header: React.FC<HeaderProps> = ({ setActiveTab, onOpenLogin, curre
   const goToCareGuide = () => {
     onSetMode?.('bereaved');
     setActiveTab('care-guide');
-  };
-
-  // 00-06 §8(SCR-018, 2026-09-03) — 예전엔 홈의 진입 4박스 캐러셀 "두 번째 페이지"(박스③,
-  // 추모관 링크 입력창)로만 보냈는데, 그러면 부고장을 만든 당사자가 정작 본인이 만든
-  // 부고장·추모관에 다시 들어갈 방법이 없었다(사용자 리포트). 이제 목록+링크입력을 함께 담은
-  // 전용 화면(MyObituaryListPage)으로 직접 보낸다 — 이 메뉴는 로그인 시에만 렌더되므로
-  // (아래 currentUser 가드) 로그아웃 분기는 필요 없다. 홈 박스③ 자체는 그대로 남겨둔다.
-  const goToMemorialEntry = () => {
-    navigate('/my-obituaries');
   };
 
   return (
@@ -80,7 +70,7 @@ export const Header: React.FC<HeaderProps> = ({ setActiveTab, onOpenLogin, curre
           <EobomLogo variant="symbol" height={42} />
         </div>
 
-        {/* 헤더 메뉴 — 4개 전부 로그인 상태에서만 노출(개발자 확정, 비로그인 시 "홈"도 숨김).
+        {/* 헤더 메뉴 — 3개 전부 로그인 상태에서만 노출(개발자 확정, 비로그인 시 "홈"도 숨김).
             판별은 기존 인증 상태(currentUser)를 그대로 쓴다 — 새 상태를 만들지 않는다.
             비로그인 시에는 메뉴 전체가 렌더되지 않을 뿐이라 레이아웃은 그대로 유지된다
             (header-spacer가 남는 공간을 흡수한다). */}
@@ -89,7 +79,6 @@ export const Header: React.FC<HeaderProps> = ({ setActiveTab, onOpenLogin, curre
             <button type="button" className="header-nav-item" onClick={goHome}>홈</button>
             <button type="button" className="header-nav-item" onClick={goToEndingNote}>생전 준비</button>
             <button type="button" className="header-nav-item" onClick={goToCareGuide}>임종·사후 정리</button>
-            <button type="button" className="header-nav-item" onClick={goToMemorialEntry}>추모관</button>
           </nav>
         )}
 

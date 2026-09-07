@@ -407,7 +407,10 @@ function AppShell() {
             />
             <Route path="/care-guide" element={<CareGuidePage {...authProps} />} />
             <Route path="/obituary" element={<ObituaryPage {...authProps} />} />
-            <Route path="/my-obituaries" element={<MyObituaryListPage />} />
+            {/* 🔄 09-07 사용자 지시 — 헤더 직행 메뉴를 없애고 마이페이지에서만 들어오게
+                하면서 주소도 정정(부고장·추모관 반반 화면이 됐으므로 `/my-obituaries`만으로는
+                이제 부정확하다). */}
+            <Route path="/my-obituaries-memorials" element={<MyObituaryListPage />} />
             <Route path="/pickup" element={<PickupPage {...authProps} />} />
             {/* 🔄 09-07 재정정 — 추모관은 부고장과 독립이라 "부고장 있으면 리다이렉트" 판정
                 자체가 의미를 잃었다. MemorialPage가 직접 CRUD를 한다(로그인 시). */}

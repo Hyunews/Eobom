@@ -89,10 +89,13 @@ export const MyPage: React.FC<MyPageProps> = ({ currentUser, onOpenLogin, onOpen
 
   // §1-1 — FacilityBooking이 2026-08-11 폐기돼 "예약"이라는 개념이 DB에 없다.
   // Lead(문의)·ConsultRequest(상담)·Obituary(내 부고장) 3개만 실데이터로 센다.
-  const stats = [
+  // 🔄 09-07 사용자 지시 — 헤더의 "내 부고장" 직행 메뉴를 없애면서, `/my-obituaries-memorials`
+  // (부고장·추모관 반반 화면)로 가는 통로를 마이페이지 하나로 좁혔다. 문의·상담은 아직 갈 곳이
+  // 없어(내역 화면 미구현) 클릭 불가 상태로 둔다 — 숫자만 있고 링크는 부고장 칸에만 건다.
+  const stats: { label: string; value: number; to?: string }[] = [
     { label: '문의 내역', value: summary?.leadCount ?? 0 },
     { label: '상담 내역', value: summary?.consultCount ?? 0 },
-    { label: '내 부고장', value: summary?.obituaryCount ?? 0 },
+    { label: '내 부고장', value: summary?.obituaryCount ?? 0, to: 'my-obituaries-memorials' },
   ];
 
   return (
@@ -195,9 +198,11 @@ export const MyPage: React.FC<MyPageProps> = ({ currentUser, onOpenLogin, onOpen
         {stats.map((stat, idx) => (
           <div
             key={stat.label}
+            onClick={stat.to ? () => setActiveTab?.(stat.to!) : undefined}
             style={{
               textAlign: 'center',
-              borderLeft: idx > 0 ? '1px solid rgba(255,255,255,0.15)' : 'none'
+              borderLeft: idx > 0 ? '1px solid rgba(255,255,255,0.15)' : 'none',
+              cursor: stat.to ? 'pointer' : 'default',
             }}
           >
             <div className="stat-row__value" style={{ fontWeight: 800, color: '#FFFFFF' }}>{stat.value}</div>
