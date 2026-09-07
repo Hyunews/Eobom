@@ -4,7 +4,13 @@ import { verifyBearerToken } from './authController';
 import { encryptNoteField, decryptNoteField } from '../utils/crypto';
 import { isR2Enabled } from '../config/r2';
 import { downloadVoiceObject } from '../services/r2Storage';
-import { streamFarewellMessageExportZip, setExportZipHeaders } from '../services/farewellMessageExport';
+import {
+  streamFarewellMessageExportZip,
+  streamSingleFarewellMessageExportZip,
+  findExportableFarewellMessage,
+  exportFilenameLabelOf,
+  setExportZipHeaders,
+} from '../services/farewellMessageExport';
 // 06-04 §13 #4(2026-08-27) — 정산 계좌 키(SETTLEMENT_ENCRYPTION_KEY)와 분리된 06 전용 키로 전환.
 // 🔴 운영 DB는 개발자가 이미 FarewellMessage 레코드를 삭제해 0건 확인 완료 — 재암호화 불필요.
 
@@ -327,6 +333,35 @@ export const exportFarewellMessages = async (req: Request, res: Response) => {
     console.error('유족 메시지 반출 실패:', error);
     // 🔴 zip 스트리밍이 이미 시작돼 헤더가 나갔을 수 있다 — 그 경우 JSON을 새로 보낼 수 없어
     // 연결만 끊는다.
+    if (res.headersSent) {
+      return res.end();
+    }
+    return res.status(500).json({ status: 'error', message: '반출 중 오류가 발생했습니다.' });
+  }
+};
+
+// 단건 반출 (`GET /api/farewell-messages/:id/export`) — 06-05 §5.4-3-1 D-5, 항목23-1. 유족이
+// 당장 필요한 건 대개 한 통이라 전체(#23)와 별도로 건별 다운로드를 둔다. 🔴 소유권은 메시지
+// 기준(getFarewellMessage와 같은 3조건 — 없음·소유자 아님·소프트 삭제됨만 404). 🔴 음성이
+// 없거나 mediaDeletedAt이 있어도 404가 아니다 — findExportableFarewellMessage는 그 두 가지를
+// 걸러내지 않고 txt만 담은 zip을 그대로 만든다.
+export const exportFarewellMessage = async (req: Request, res: Response) => {
+  const decoded = verifyBearerToken(req);
+  if (!decoded) {
+    return res.status(401).json({ status: 'error', message: '로그인이 필요합니다.' });
+  }
+
+  try {
+    const row = await findExportableFarewellMessage(decoded.id, req.params.id);
+    if (!row) {
+      return res.status(404).json({ status: 'error', message: '편지를 찾을 수 없습니다.' });
+    }
+
+    setExportZipHeaders(res, exportFilenameLabelOf(row));
+    await streamSingleFarewellMessageExportZip(row, res);
+    return res.end();
+  } catch (error) {
+    console.error('유족 메시지 단건 반출 실패:', error);
     if (res.headersSent) {
       return res.end();
     }

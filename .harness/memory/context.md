@@ -25,8 +25,8 @@ F(체크상태)는 `00-19` 제4조 = Opus 먼저 · 04 B는 `PreDeathPlatformSet
 ✅ `06-05` D-1~D-4·D-6·D-6-1 완료 + 실기동 통과(09-04).
 ✅ D-7~D-11+어드민 e2e 전부 통과(09-04, 상세 `walkthrough.md`126·`260904.md`).
 🟡 미검증: `--confirm` 경로·운영버킷 2단계.
-✅ D-5 #23(zip반출) 구현+빌드통과(wt128, 실기동대기). 🔴 #24 보류 — 상세 `backlog.md`⑪.
-▶ **다음 = Phase C(§3.3) 또는 backlog**.
+✅ D-5 #23(전체)·#23-1·#23-2(단건) 반출 전부 구현+빌드통과(wt128·wt129, 실기동대기).
+🔴 #24(사망시) 보류 — 상세 `backlog.md`⑪. ▶ **다음 = Phase C(§3.3) 또는 backlog**.
 
 **3. [Gemini]** 게이트 대기 0건 · 🟡 옛 스펙갱신 3건 → `backlog.md` ⑭.
 
@@ -36,7 +36,7 @@ F(체크상태)는 `00-19` 제4조 = Opus 먼저 · 04 B는 `PreDeathPlatformSet
 
 ```text
 프로젝트: 이어봄(Eobom) — 디지털엔딩&웰다잉 토탈케어 플랫폼
-마지막  : 2026-09-07 — D-5 zip반출(wt128) 구현+빌드통과, #24는 Phase C 대기 / wt112·114·115 대기
+마지막  : 2026-09-07 — D-5 전체+단건 zip반출(wt128·129) 구현+빌드통과 / wt112·114·115 대기
 ```
 
 - 소스 `eobom/frontend`(React18+Vite5+TS) · `eobom/backend`(Express+Prisma+JWT)

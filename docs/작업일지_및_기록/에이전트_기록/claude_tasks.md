@@ -353,3 +353,21 @@ archiver@7 type`으로 7.x는 `type` 필드가 없어(CJS 기본) 확인 후 `ar
 도구로 옮겨서 우회함 — `walkthrough.md`·`claude_tasks.md`에 append할 때도 PowerShell +
 `[System.IO.File]::AppendAllText(...,[System.Text.UTF8Encoding]::new($false))`로 BOM 없이 붙임
 (기존 파일이 BOM 없는 UTF-8이라 인코딩 맞춤).
+
+
+## 2026-09-07 | D-5 #23-1·#23-2(단건 반출) 작업 메모
+
+**리팩터 방향 결정**: #23(전체)이 이미 archiver 스트리밍 로직을 통째로 갖고 있던 걸, "rows 조회"와
+"zip 빌드"로 쪼갤지, 아니면 필터 인자 하나만 추가할지 잠깐 고민했다. 요청서가 "두 벌로 만들지
+않는다"를 못박아서, 조회부는 두 함수(`streamFarewellMessageExportZip`=전체 조회,
+`findExportableFarewellMessage`=단건 조회+소유권 확인)로 분리하고 실제 archiver 조립은
+`buildFarewellMessageZip(rows, destination)` 하나로 합쳤다 — 단건은 rows 배열 길이가 1인
+케이스일 뿐이라는 모델링.
+
+**`npm run build`(backend)가 `prisma generate` 단계에서 `EPERM:
+query_engine-windows.dll.node.tmpNNNN -> query_engine-windows.dll.node`로 두 번 연속 실패**.
+스키마를 안 건드렸으니 내 코드 문제는 아닐 텐데 싶어 `Get-Process node`로 봤더니 node.exe가
+9개 떠 있었다(사용자 쪽에서 뭔가 돌아가고 있는 걸로 보임 — dev 서버든 에디터의 TS 서버든).
+그 DLL을 누가 잡고 있는지 몰라서 프로세스를 죽이지 않고, 대신 `npx tsc`(emit 포함, prisma
+generate 없이)를 따로 돌려 컴파일 자체는 통과하는 걸 확인하는 쪽으로 검증을 대체했다. 다음에
+같은 EPERM이 나면 스키마 쪽을 의심하지 말고 이 메모부터 볼 것.

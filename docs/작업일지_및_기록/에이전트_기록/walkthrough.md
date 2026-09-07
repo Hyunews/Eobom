@@ -1365,3 +1365,28 @@ wt125가 그것을 "추가 결정"으로 정직하게 신고했기에 이번에 
 - 🔵 **실기동 검증은 사람이 한다**(09-03 지시) — 실제 zip을 내려받아 열어보는 확인은 안 함. tsc/build까지만.
 
 <!-- Gemini 판정: ✅통과 (06-05 §5.4-3 zip 꾸러미 스펙 전수 일치: 본문 txt 평문 복호화·음성 mp3 재인코딩·안내 txt 스트리밍 및 무암호화 부합, 라우트 순서·Content-Disposition 헤더·프론트 다운로드 배선 확인, #24 보류 편차는 RELEASED 전이 및 유족 인증 체계 부재에 따른 불가피한 사유로 타당하며 Phase C 연계 문서화 확인, backend/frontend tsc 및 build 0건 통과) -->
+
+
+## 2026-09-07 (129) | [Sonnet] D-5 #23-1·#23-2 — 편지 단건 반출
+
+**근거 스펙**: `docs/06_엔딩노트_유언/06-05_유족메시지_보관함_도메인분리_기획서.md` §5.4-3-1·§8 D-5(#23-1·#23-2)
+
+**건드린 파일**:
+- `eobom/backend/src/services/farewellMessageExport.ts` — 리팩터. `streamFarewellMessageExportZip`(#23, 전체)이 직접 하던 archiver 로직을 `buildFarewellMessageZip(rows, destination)` 사설 함수로 뽑아, 전체·단건이 **같은 빌더 하나**를 탄다(요청서 🔴 지시 그대로). `findExportableFarewellMessage(userId, messageId)`(소유권 3조건 확인 후 행 반환, 없으면 null) · `streamSingleFarewellMessageExportZip(row, destination)` · `exportFilenameLabelOf` · `buildExportZipFilename(label?)`(단건이면 `eobom_유족메시지_{라벨}_{YYYYMMDD}.zip`, 없으면 기존 전체용 이름) 신설/확장.
+- `eobom/backend/src/controllers/farewellMessageController.ts` — `exportFarewellMessage`(단건) 추가. 404 조건은 `getFarewellMessage`와 동일한 3가지(없음·소유자 아님·`deletedAt`)만 — 음성 없음/`mediaDeletedAt`은 걸러내지 않고 txt만 담은 zip을 그대로 만든다(요청서 지시대로).
+- `eobom/backend/src/routes/farewellMessageRoutes.ts` — `GET /:id/export` 추가(`/:id/audio`와 같은 자리 — 세그먼트가 둘이라 `/:id`·`/export`(전체) 어느 쪽과도 안 겹침).
+- `eobom/frontend/src/components/FarewellMessageCard.tsx` — 목록 각 항목 우상단에 아이콘 버튼(편집기 여는 버튼과 별개 — 버튼 중첩은 유효 HTML이 아니라 `position:relative` 래퍼 안에 형제로 둠) + 편집 패널 하단(삭제 버튼 옆)에 "이 편지 반출(zip)" 버튼. `handleExportMessage(id, label)` — fetch→blob→`a.download`→`revokeObjectURL`(전체 반출과 같은 패턴, presigned URL 없음). 파일명은 `buildExportFilename(label)`로 백엔드 `eobom_유족메시지_{라벨}_{YYYYMMDD}.zip` 규칙을 프론트에서도 그대로 재현(`sanitizeForFilename` 40자 절단·금지문자 제거까지 동일).
+
+**결과**:
+- `GET /api/farewell-messages/:id/export`가 해당 편지 1건만(txt + 있으면 mp3 + 안내.txt) zip으로 스트리밍. 음성이 없어도 404가 아니라 txt 한 장짜리 zip이 나온다(§5.4-3-1 그대로, text/plain으로 안 바꿈).
+- `npx tsc --noEmit`(backend·frontend) 통과. backend는 `npx tsc`(emit 포함, `npm run build`가 쓰는 것과 동일 컴파일러 호출) 통과 — `dist/services/farewellMessageExport.js` 등 갱신 확인. frontend는 `npm run build`(`tsc && vite build`) 통과.
+- 🟡 `npm run build`(backend)의 `prisma generate` 단계는 이번에 `EPERM: ... query_engine-windows.dll.node` 파일 잠금으로 실패했다 — **내 변경과 무관**(`schema.prisma` 안 건드림, 이 세션에서 dev 서버도 안 띄움). 다른 node 프로세스가 그 DLL을 잡고 있는 것으로 보임(`Get-Process node`에 9개 떠 있었음). 죽이지 않고 `npx tsc`로 컴파일만 재검증함.
+
+**편차**: 없음 — 요청서 지시(같은 빌더 재사용·zip 유지·404 3조건·`<a download>` 패턴·파일명 규칙)를 그대로 따랐다.
+
+**다음 에이전트가 알아야 할 것**:
+- `npm run build`(backend)를 다시 돌릴 때 `prisma generate`가 또 EPERM이 나면, 그건 낡은 node 프로세스의 파일 잠금 문제다 — 스키마·코드 문제로 오인해 스키마를 건드리지 말 것. 사람에게 dev 서버/워처가 떠 있는지 확인을 요청하는 게 먼저다.
+- Phase C 착수 시 여전히 `findExportableFarewellMessage`·`buildFarewellMessageZip`을 그대로 재사용하면 된다(전체 반출 wt128의 편차 메모, `backlog.md` ⑪ 참고).
+- 🔵 실기동 검증은 사람이 한다(09-03 지시) — 실제 다운로드해 zip을 열어보는 확인은 안 함.
+
+<!-- Gemini 판정 1줄: … -->

@@ -1,7 +1,20 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Heart, Plus, Loader2, Pencil, X, Volume2, Trash2 } from 'lucide-react';
+import { Heart, Plus, Loader2, Pencil, X, Volume2, Trash2, Download } from 'lucide-react';
 import { BACKEND_URL } from '../config';
 import { VoiceToTextInput, SavedMedia } from './VoiceToTextInput';
+
+// 06-05 §5.4-3-1 D-5 항목23-2 — 건별 반출 파일명. 백엔드 farewellMessageExport.ts의
+// sanitizeForFilename·buildExportZipFilename과 규칙을 맞춘다(40자 절단·금지문자 제거).
+const sanitizeForFilename = (raw: string): string =>
+  raw.replace(/[\\/:*?"<>|]/g, '').trim().slice(0, 40) || '무제';
+
+const buildExportFilename = (label: string): string => {
+  const now = new Date();
+  const y = now.getFullYear();
+  const m = String(now.getMonth() + 1).padStart(2, '0');
+  const d = String(now.getDate()).padStart(2, '0');
+  return `eobom_유족메시지_${sanitizeForFilename(label)}_${y}${m}${d}.zip`;
+};
 
 // 06-05 §7·§8 Phase B — 수신자 카드 1개. 편지 목록(미리보기) + 작성/수정 편집기를 담당한다.
 // §10 항목5 — 수신자 1명에게 여러 통 허용. 카드 안에 편지 목록이 여러 건 쌓일 수 있다.
@@ -71,6 +84,7 @@ export const FarewellMessageCard: React.FC<FarewellMessageCardProps> = ({ recipi
   const [audioSrc, setAudioSrc] = useState<string | null>(null); // <audio>에 실제로 물릴 blob URL
   const [audioLoading, setAudioLoading] = useState(false);
   const [deletingAudio, setDeletingAudio] = useState(false);
+  const [exportingId, setExportingId] = useState<string | null>(null);
   const localAudioUrlRef = useRef<string | null>(null); // §5.6-2 — 방금 이 세션에서 저장한 로컬 blob(서버 왕복 없이 재생)
   const fetchedAudioUrlRef = useRef<string | null>(null); // §5.6-2 — 다시 열어서 서버로 받아온 blob
 
@@ -308,6 +322,32 @@ export const FarewellMessageCard: React.FC<FarewellMessageCardProps> = ({ recipi
     }
   };
 
+  // 🆕 §5.4-3-1 D-5 항목23-1 — 건별 반출(zip). <a href>로 못 받는다(Bearer 못 실음, §5.6-3과
+  // 같은 이유) — fetch → blob URL → a.download → revokeObjectURL(전체 반출과 같은 패턴).
+  const handleExportMessage = async (id: string, label: string) => {
+    if (!token) return;
+    setExportingId(id);
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/farewell-messages/${id}/export`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) return;
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = buildExportFilename(label);
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } catch {
+      // 실패는 조용히 삼킨다 — 다시 누르면 재시도된다(전체 반출과 같은 태도).
+    } finally {
+      setExportingId(null);
+    }
+  };
+
   return (
     <div style={{ backgroundColor: 'var(--card-bg)', padding: '1.5rem', borderRadius: 'var(--border-radius)', boxShadow: 'var(--box-shadow)' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.3rem', flexWrap: 'wrap' }}>
@@ -329,24 +369,46 @@ export const FarewellMessageCard: React.FC<FarewellMessageCardProps> = ({ recipi
           marginBottom: '1rem'
         }}>
           {messages.map((m) => (
-            <button
-              key={m.id}
-              type="button"
-              onClick={() => openEditComposer(m.id)}
-              disabled={loadingDetail}
-              className="farewell-message-item"
-              style={{
-                backgroundColor: editingId === m.id && composerOpen ? 'var(--secondary-color)' : 'transparent',
-                cursor: loadingDetail ? 'wait' : 'pointer',
-              }}
-            >
-              <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '1.15rem', fontWeight: 700, color: 'var(--primary-color)' }}>
-                <Pencil size={14} /> {m.title || '(제목 없음)'}
-                {m.hasAudio && <Volume2 size={14} color="var(--point-color)" />}
-              </span>
-              <span style={{ fontSize: '1rem', lineHeight: 1.6, color: 'var(--text-muted)' }}>{m.preview}</span>
-              <span style={{ fontSize: '0.9rem', color: '#9CA3AF' }}>{new Date(m.updatedAt).toLocaleString('ko-KR')}</span>
-            </button>
+            <div key={m.id} style={{ position: 'relative' }}>
+              <button
+                type="button"
+                onClick={() => openEditComposer(m.id)}
+                disabled={loadingDetail}
+                className="farewell-message-item"
+                style={{
+                  backgroundColor: editingId === m.id && composerOpen ? 'var(--secondary-color)' : 'transparent',
+                  cursor: loadingDetail ? 'wait' : 'pointer',
+                  paddingRight: '2.1rem',
+                  width: '100%',
+                }}
+              >
+                <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '1.15rem', fontWeight: 700, color: 'var(--primary-color)' }}>
+                  <Pencil size={14} /> {m.title || '(제목 없음)'}
+                  {m.hasAudio && <Volume2 size={14} color="var(--point-color)" />}
+                </span>
+                <span style={{ fontSize: '1rem', lineHeight: 1.6, color: 'var(--text-muted)' }}>{m.preview}</span>
+                <span style={{ fontSize: '0.9rem', color: '#9CA3AF' }}>{new Date(m.updatedAt).toLocaleString('ko-KR')}</span>
+              </button>
+              {/* §5.4-3-1 항목23-2 — 목록에서 편지 하나만 바로 반출. 편집기를 여는 버튼과
+                  겹치므로 별도 버튼으로 우상단에 얹는다(버튼 중첩은 유효한 HTML이 아니다). */}
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleExportMessage(m.id, m.title || `${recipient.name}에게`);
+                }}
+                disabled={exportingId === m.id}
+                aria-label="이 편지 반출(zip)"
+                title="이 편지 반출(zip)"
+                style={{
+                  position: 'absolute', top: '0.6rem', right: '0.5rem',
+                  background: 'none', border: 'none', padding: '0.2rem',
+                  color: 'var(--text-muted)', cursor: exportingId === m.id ? 'wait' : 'pointer',
+                }}
+              >
+                {exportingId === m.id ? <Loader2 size={14} /> : <Download size={14} />}
+              </button>
+            </div>
           ))}
         </div>
       )}
@@ -457,7 +519,19 @@ export const FarewellMessageCard: React.FC<FarewellMessageCardProps> = ({ recipi
               {/* 🎨 위험 구역 — 취소·저장과 같은 줄에 있으면 오탭 위험이 크다. 구분선 + 작은
               텍스트버튼으로 무게를 낮추고 우측 정렬로 눈에 덜 띄게 뺐다. */}
               {editingId && (
-                <div style={{ display: 'flex', justifyContent: 'flex-end', borderTop: '1px solid var(--border-color)', paddingTop: '0.75rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid var(--border-color)', paddingTop: '0.75rem' }}>
+                  <button
+                    type="button"
+                    onClick={() => handleExportMessage(editingId, title.trim() || `${recipient.name}에게`)}
+                    disabled={exportingId === editingId}
+                    style={{
+                      display: 'inline-flex', alignItems: 'center', gap: '0.3rem', background: 'none', border: 'none',
+                      padding: '0.3rem 0.2rem', fontSize: '0.95rem', fontWeight: 600, color: 'var(--primary-color)',
+                      cursor: exportingId === editingId ? 'default' : 'pointer', opacity: exportingId === editingId ? 0.6 : 1,
+                    }}
+                  >
+                    {exportingId === editingId ? <><Loader2 size={14} /> 반출 중…</> : <><Download size={14} /> 이 편지 반출(zip)</>}
+                  </button>
                   <button
                     type="button"
                     onClick={handleDeleteMessage}
