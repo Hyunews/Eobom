@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { MessageSquare, Send, Copy, Plus, X, ChevronDown, ChevronUp, AlertTriangle, LogIn, Heart, PowerOff } from 'lucide-react';
+import { MessageSquare, Send, Copy, Plus, X, ChevronDown, ChevronUp, AlertTriangle, LogIn, Heart, PowerOff, Flower2, Loader2 } from 'lucide-react';
 import { OBITUARY_CARD_IMAGE_URL } from '../config';
 import { apiFetch, ApiError } from '../lib/api';
 import { formatObituaryCardTitle, formatObituaryCardDescription, formatKST } from '../utils/obituaryCard';
@@ -73,7 +73,7 @@ const ObituaryManageSkeleton: React.FC = () => (
 );
 
 export const ObituaryPage: React.FC<ObituaryPageProps> = ({ currentUser, onOpenLogin }) => {
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [loading, setLoading] = useState(true);
   const [obituaryRef, setObituaryRef] = useState<StoredObituaryRef | null>(null);
   // §5.3-2 — 종료·수정은 이 값(서버가 매번 응답으로 확인해준 id)만 쓴다. localStorage의
@@ -108,12 +108,10 @@ export const ObituaryPage: React.FC<ObituaryPageProps> = ({ currentUser, onOpenL
   // 동의 2건(§6.2 — 05-01 §2.3 승계 + 00-13 §8-6)
   const [falseReportAgreed, setFalseReportAgreed] = useState(false);
   const [resharedNoticeAck, setResharedNoticeAck] = useState(false);
-  // 🆕 09-07 — "이 부고장과 함께 추모관도 만들기" 체크박스. 개설(POST)에도, 수정(PATCH·
-  // "사후 연결", `00-13` §4.5-4-2 ㉮)에도 같은 체크박스를 쓴다. `memorialFalseReportAgreed`는
-  // 수정 화면 전용 동의 — 개설 시의 `falseReportAgreed`(부고장 자체 동의)와는 별개다. 이미
-  // 완료한 동의를 재사용하면 "지금 이 행동"에 대한 동의가 아니게 된다.
+  // 🆕 09-07 — "이 부고장과 함께 추모관도 만들기" 체크박스. 개설(POST)에서만 쓴다 — 수정
+  // 화면에서 뒤늦게 추모관을 연결하는 "사후 연결"(`00-13` §4.5-4-2 ㉮)은 체크→저장이 아니라
+  // 공유 패널의 버튼 하나(handleCreateMemorial)로 처리한다(사용자 지시 09-07).
   const [createMemorial, setCreateMemorial] = useState(false);
-  const [memorialFalseReportAgreed, setMemorialFalseReportAgreed] = useState(false);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -130,6 +128,46 @@ export const ObituaryPage: React.FC<ObituaryPageProps> = ({ currentUser, onOpenL
   const [closedAt, setClosedAt] = useState<string | null>(null);
   const [isClosing, setIsClosing] = useState(false);
 
+  // 🆕 09-07 사용자 지시 — 부고장이 종료된 뒤에도 이 화면에 다시 들어오면 항상 그 종료된
+  // 부고장(localStorage 포인터)만 보였다. 새로 하나 더 쓸 방법이 화면에 없었다 — 포인터를
+  // 지우고 폼 전체를 개설 화면 초기값으로 되돌린다. `/obituary?new=1`로 들어와도 같은 걸
+  // 한다(MyObituaryListPage.tsx의 "새 부고장 만들기"도 이 경로를 쓴다 — 그 링크도 예전엔
+  // 포인터가 남아 있으면 마지막으로 본 부고장을 다시 불러와 버그였다).
+  const handleStartNew = () => {
+    localStorage.removeItem(STORAGE_KEY);
+    setObituaryRef(null);
+    setObituaryId(null);
+    setShowMoreFields(false);
+    setDeceasedName('');
+    setChiefMournerName('');
+    setChiefMournerRelationship('');
+    setFuneralHall('');
+    setFuneralAt('');
+    setContactPhone('');
+    setAccountEnabled(false);
+    setAccountBankCode('');
+    setAccountNumber('');
+    setAccountHolder('');
+    setDeathDate('');
+    setMourningRoom('');
+    setFuneralHallAddr('');
+    setCoffinAt('');
+    setBurialSite('');
+    setMourners([]);
+    setFalseReportAgreed(false);
+    setResharedNoticeAck(false);
+    setCreateMemorial(false);
+    setObituaryUrl('');
+    setMemorialUrl('');
+    setCardFieldsUpdatedAt(null);
+    setUpdatedAt(null);
+    setIsClosed(false);
+    setClosedAt(null);
+    setErrorMsg(null);
+    setCopyFeedback(null);
+    if (searchParams.toString()) setSearchParams({}, { replace: true });
+  };
+
   // 클릭 핸들러 안에서 동기 호출해야 팝업 차단을 피한다(§7) — 그래서 로드는 마운트 시점에 미리 시작.
   useEffect(() => {
     ensureKakaoShareReady();
@@ -137,6 +175,15 @@ export const ObituaryPage: React.FC<ObituaryPageProps> = ({ currentUser, onOpenL
 
   useEffect(() => {
     if (!currentUser) {
+      setLoading(false);
+      return;
+    }
+    // 🆕 09-07 — /obituary?new=1로 들어오면 포인터·querySlug를 전부 무시하고 빈 개설 화면으로
+    // 시작한다. 이 useEffect는 이미 마운트된 컴포넌트에서 searchParams만 바뀌어도 다시
+    // 돌므로(라우트 자체는 그대로라 리마운트가 아님), 이전에 채워졌을 state를 명시적으로
+    // 비워야 한다 — handleStartNew를 그대로 재사용.
+    if (searchParams.get('new')) {
+      handleStartNew();
       setLoading(false);
       return;
     }
@@ -250,12 +297,6 @@ export const ObituaryPage: React.FC<ObituaryPageProps> = ({ currentUser, onOpenL
       setErrorMsg('허위 개설 고지와 재전파 고지에 모두 동의해야 합니다.');
       return;
     }
-    // 🆕 09-07 — 수정 화면에서 "사후 연결" 체크박스를 켰다면 이 자리에서도 같은 게이트가
-    // 필요하다(§4.5-3 대가 2 — 추모관이 만들어지는 자리마다).
-    if (obituaryRef && !memorialUrl && createMemorial && !memorialFalseReportAgreed) {
-      setErrorMsg('허위로 추모관을 개설할 경우 법적 책임을 질 수 있다는 점에 동의해야 합니다.');
-      return;
-    }
     if (accountEnabled && (!accountBankCode.trim() || !accountNumber.trim() || !accountHolder.trim())) {
       setErrorMsg('마음 전하실 곳을 켰다면 은행 · 계좌번호 · 예금주를 모두 입력해야 합니다.');
       return;
@@ -284,11 +325,10 @@ export const ObituaryPage: React.FC<ObituaryPageProps> = ({ currentUser, onOpenL
       accountHolder: accountEnabled ? accountHolder.trim() : undefined,
       falseReportAgreed,
       resharedNoticeAck,
-      createMemorial,
-      // 🆕 09-07 — PATCH(수정) 쪽만 이 필드를 읽는다. 뒤에 와서 위 falseReportAgreed를
-      // 덮어쓴다 — 개설 동의(POST)와 사후 연결 동의(PATCH)는 서로 다른 행동에 대한 동의라
-      // 같은 값을 재사용하지 않는다.
-      ...(obituaryRef ? { falseReportAgreed: memorialFalseReportAgreed } : {}),
+      // 개설(POST)에서만 의미가 있다 — 수정 화면의 "사후 연결"은 이 폼이 아니라 공유 패널의
+      // 전용 버튼(handleCreateMemorial)으로 처리한다(사용자 지시 09-07 — 체크→저장 형태 대신
+      // 버튼 하나로).
+      ...(obituaryRef ? {} : { createMemorial }),
     };
 
     try {
@@ -314,27 +354,46 @@ export const ObituaryPage: React.FC<ObituaryPageProps> = ({ currentUser, onOpenL
         if (data.cardFieldsChanged) {
           setCardFieldsUpdatedAt(data.cardFieldsUpdatedAt);
         }
-        // 🆕 09-07 — 사후 연결로 방금 추모관이 새로 생겼을 때만 응답에 실려 온다.
-        if (data.memorialUrl) {
-          setMemorialUrl(data.memorialUrl);
-          setCreateMemorial(false);
-          setMemorialFalseReportAgreed(false);
-          setObituaryRef((prev) => (prev ? { ...prev, memorialSlug: data.memorialSlug } : prev));
-          const raw = localStorage.getItem(STORAGE_KEY);
-          if (raw) {
-            try {
-              const stored: StoredObituaryRef = JSON.parse(raw);
-              localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...stored, memorialSlug: data.memorialSlug }));
-            } catch {
-              // 파싱 안 되면 힌트로도 못 쓰던 상태 — 여기서 새로 만들지 않는다.
-            }
-          }
-        }
       }
     } catch (e) {
       setErrorMsg(e instanceof ApiError ? e.message : '서버와 통신 중 오류가 발생했습니다.');
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  // 🆕 09-07 사용자 지시 — 사후 연결(`00-13` §4.5-4-2 ㉮)을 "체크박스 → 폼 저장"이 아니라
+  // 공유 패널의 버튼 하나로 처리한다. 다른 필드는 건드리지 않도록 최소 payload만 보낸다
+  // (updateObituary는 각 필드를 `!== undefined`로만 갱신하므로 나머지는 그대로 남는다).
+  // 동의는 별도 화면을 만들지 않고 confirm 다이얼로그로 받는다(deleteObituary 등과 같은 패턴).
+  const [linkingMemorial, setLinkingMemorial] = useState(false);
+  const handleCreateMemorial = async () => {
+    if (!obituaryId || linkingMemorial) return;
+    if (!window.confirm('추모관을 만들어 이 부고장에 연결합니다.\n\n허위로 추모관을 개설할 경우 법적 책임을 질 수 있다는 점에 동의하십니까?')) return;
+    setLinkingMemorial(true);
+    setErrorMsg(null);
+    try {
+      const data = await apiFetch<any>(`/api/obituaries/${obituaryId}`, 'USER', {
+        method: 'PATCH',
+        body: JSON.stringify({ createMemorial: true, falseReportAgreed: true }),
+      });
+      if (data.memorialUrl) {
+        setMemorialUrl(data.memorialUrl);
+        setObituaryRef((prev) => (prev ? { ...prev, memorialSlug: data.memorialSlug } : prev));
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) {
+          try {
+            const stored: StoredObituaryRef = JSON.parse(raw);
+            localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...stored, memorialSlug: data.memorialSlug }));
+          } catch {
+            // 파싱 안 되면 힌트로도 못 쓰던 상태 — 여기서 새로 만들지 않는다.
+          }
+        }
+      }
+    } catch (e) {
+      setErrorMsg(e instanceof ApiError ? e.message : '추모관 연결 중 오류가 발생했습니다.');
+    } finally {
+      setLinkingMemorial(false);
     }
   };
 
@@ -412,12 +471,11 @@ export const ObituaryPage: React.FC<ObituaryPageProps> = ({ currentUser, onOpenL
         </p>
       </div>
 
-      {/* 00-29 §6.1 .auto-grid — 개설 전(단일 폼)은 강제 1열 유지, 관리 모드(2단)만 auto-fit로
-          바꿔 min(280px,100%) 폴백을 태운다(기존 minmax(340px,1fr) 고정값은 375px에서 가로 스크롤 유발). */}
-      <div
-        className={obituaryRef ? 'auto-grid' : undefined}
-        style={obituaryRef ? { alignItems: 'start' } : { display: 'grid', gridTemplateColumns: '1fr', gap: '1.5rem', alignItems: 'start' }}
-      >
+      {/* 00-29 §6.1 .auto-grid — min(280px,100%) 폴백으로 375px 가로 스크롤 방지(기존
+          minmax(340px,1fr) 고정값은 375px에서 스크롤 유발). 개설 전(폼)·관리 모드(2단) 모두
+          같은 2열 그리드를 써서 폼 박스 크기가 동일하게 유지되도록 한다(09-07 사용자 지시 —
+          개설 전 폼이 강제 1열 탓에 컨테이너 전체 폭(1440px)까지 늘어나 있었음). */}
+      <div className="auto-grid" style={{ alignItems: 'start' }}>
         {/* 작성 폼 */}
         <form onSubmit={handleSubmit} style={{ backgroundColor: 'var(--card-bg)', padding: '1.5rem', borderRadius: 'var(--border-radius)', boxShadow: 'var(--box-shadow)' }}>
           <div className="form-group">
@@ -531,8 +589,8 @@ export const ObituaryPage: React.FC<ObituaryPageProps> = ({ currentUser, onOpenL
             <div style={{ backgroundColor: 'var(--secondary-color)', borderRadius: '8px', padding: '1rem', marginTop: '0.5rem', marginBottom: '1.25rem', display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
               {/* 🔄 09-07 사용자 지시 — 부고장 개설이 더는 추모관을 자동으로 만들지 않는다.
                   이 체크박스를 켜야만 개설 시 추모관도 함께 만들어 연결한다. 꺼두면 나중에
-                  아래(수정 화면)의 같은 체크박스로 "사후 연결"하거나 /memorial에서 독립적으로
-                  만들 수 있다(`00-13` §4.5-4-2 ㉮). */}
+                  공유 패널의 "추모관 만들기" 버튼(사후 연결, `00-13` §4.5-4-2 ㉮)이나
+                  /memorial에서 독립적으로 만들 수 있다. */}
               <label style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', fontSize: '0.85rem', cursor: 'pointer' }}>
                 <input type="checkbox" checked={createMemorial} onChange={(e) => setCreateMemorial(e.target.checked)} style={{ marginTop: '0.2rem' }} />
                 <span>[선택] 이 부고장과 함께 추모관도 만들기 — 조문객이 온라인으로 헌화·방명록을 남길 수 있는 공간입니다. 나중에 &lsquo;디지털 추모관&rsquo; 화면에서 따로 만들 수도 있습니다.</span>
@@ -545,25 +603,6 @@ export const ObituaryPage: React.FC<ObituaryPageProps> = ({ currentUser, onOpenL
                 <input type="checkbox" checked={resharedNoticeAck} onChange={(e) => setResharedNoticeAck(e.target.checked)} style={{ marginTop: '0.2rem' }} />
                 <span>[필수] 이 부고장을 전달받은 분이 다시 다른 곳에 공유할 수 있다는 점을 확인했습니다.</span>
               </label>
-            </div>
-          )}
-
-          {/* 🆕 09-07 — 사후 연결(`00-13` §4.5-4-2 ㉮). 개설 때 체크박스를 꺼둔 부고장도
-              여기서 뒤늦게 추모관을 만들어 연결할 수 있다. 이미 연결돼 있으면(memorialUrl 있음)
-              더 만들 게 없으므로 숨긴다 — 역방향(추모관에서 부고장 만들기)은 만들지 않는다
-              (§4.5-4-2 권고). */}
-          {obituaryRef && !memorialUrl && (
-            <div style={{ backgroundColor: 'var(--secondary-color)', borderRadius: '8px', padding: '1rem', marginTop: '0.5rem', marginBottom: '1.25rem', display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
-              <label style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', fontSize: '0.85rem', cursor: 'pointer' }}>
-                <input type="checkbox" checked={createMemorial} onChange={(e) => setCreateMemorial(e.target.checked)} style={{ marginTop: '0.2rem' }} />
-                <span>[선택] 지금 추모관도 만들어 연결하기 — 조문객이 온라인으로 헌화·방명록을 남길 수 있는 공간입니다.</span>
-              </label>
-              {createMemorial && (
-                <label style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', fontSize: '0.85rem', cursor: 'pointer' }}>
-                  <input type="checkbox" checked={memorialFalseReportAgreed} onChange={(e) => setMemorialFalseReportAgreed(e.target.checked)} style={{ marginTop: '0.2rem' }} />
-                  <span>[필수] 허위로 추모관을 개설할 경우 법적 책임을 질 수 있다는 점에 동의합니다.</span>
-                </label>
-              )}
             </div>
           )}
 
@@ -605,10 +644,19 @@ export const ObituaryPage: React.FC<ObituaryPageProps> = ({ currentUser, onOpenL
                       종료된 부고장입니다. 조문객은 더 이상 이 링크로 볼 수 없습니다{closedAt ? ` (${formatKST(closedAt)} 종료)` : ' (발인 3일 경과로 자동 종료)'}.
                     </p>
                   </div>
-                  {memorialUrl && (
+                  {/* 🆕 09-07 사용자 지시 — 종료된 부고장 화면에 다시 들어와도 새로 하나 쓸
+                      방법이 없었다. 눈에 띄게 위에 둔다. */}
+                  <button type="button" onClick={handleStartNew} className="btn btn-point" style={{ width: '100%', marginBottom: '1.1rem' }}>
+                    <Plus size={16} /> 새 부고장 작성하기
+                  </button>
+                  {memorialUrl ? (
                     <a href={memorialUrl} target="_blank" rel="noreferrer" style={{ fontSize: '0.85rem', color: 'var(--point-color)', fontWeight: 700, textDecoration: 'underline' }}>
                       연결된 추모관은 계속 열람할 수 있습니다 →
                     </a>
+                  ) : (
+                    <button type="button" onClick={handleCreateMemorial} disabled={linkingMemorial} className="btn" style={{ backgroundColor: 'var(--secondary-color)', color: 'var(--primary-color)', fontSize: '0.85rem' }}>
+                      {linkingMemorial ? <><Loader2 size={15} /> 만드는 중...</> : <><Flower2 size={15} /> 추모관 만들기</>}
+                    </button>
                   )}
                 </>
               ) : (
@@ -641,11 +689,17 @@ export const ObituaryPage: React.FC<ObituaryPageProps> = ({ currentUser, onOpenL
                     {obituaryUrl}
                   </div>
 
-                  {/* 🔄 09-07 — 추모관은 이제 선택이라 없을 수 있다("있다면"만 보여준다). */}
-                  {memorialUrl && (
+                  {/* 🔄 09-07 — 추모관은 이제 선택이라 없을 수 있다("있다면"만 보여준다).
+                      없으면 "사후 연결"(`00-13` §4.5-4-2 ㉮) 버튼 하나로 바로 만든다 —
+                      체크박스→저장 형태가 아니라 버튼 하나로(사용자 지시). */}
+                  {memorialUrl ? (
                     <a href={memorialUrl} target="_blank" rel="noreferrer" style={{ fontSize: '0.85rem', color: 'var(--point-color)', fontWeight: 700, textDecoration: 'underline' }}>
                       연결된 추모관 미리 보기 →
                     </a>
+                  ) : (
+                    <button type="button" onClick={handleCreateMemorial} disabled={linkingMemorial} className="btn" style={{ backgroundColor: 'var(--secondary-color)', color: 'var(--primary-color)', fontSize: '0.85rem' }}>
+                      {linkingMemorial ? <><Loader2 size={15} /> 만드는 중...</> : <><Flower2 size={15} /> 추모관 만들기</>}
+                    </button>
                   )}
 
                   {updatedAt && (

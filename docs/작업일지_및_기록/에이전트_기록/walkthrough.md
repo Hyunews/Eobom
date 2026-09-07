@@ -1764,3 +1764,70 @@ Opus가 09-07 오전 반영). 사용자가 ㉮(사후 연결)를 명시적으로
 문장은 이제 사실이 아니다 — Opus가 확인 시 갱신 필요(㉮ 구현 완료로 표시).
 
 <!-- Gemini 판정 1줄: … -->
+
+
+## 2026-09-07 (138) | [Sonnet] 사후 연결 UX 변경 — 체크박스→저장 대신 버튼 하나
+
+**근거 스펙**: `docs/00_핵심플랫폼/00-13_추모관_공유링크_모델_결정서.md` §4.5-4-2 ㉮. 사용자
+직접 지시로 wt137의 UX를 교체 — *"지금 구현된 것처럼, 체크→저장 형태가 아닌, 부고장 공유
+쪽에 버튼 하나로 추가 가능하도록. (수정의 체크 저장은 없어야함.)"*
+
+**건드린 파일**:
+- `eobom/backend/src/controllers/obituaryController.ts` — **변경 없음.** wt137의
+  `updateObituary`(`createMemorial`+`falseReportAgreed` 부분 업데이트, 각 필드
+  `!== undefined`로만 갱신)가 이미 "다른 필드는 안 건드리고 이 두 값만 보내는" 최소 요청을
+  그대로 지원해서 백엔드는 그대로 재사용.
+- `eobom/frontend/src/pages/ObituaryPage.tsx` — wt137에서 넣었던 **수정 폼 안의 체크박스+
+  동의 블록을 제거**. 대신 "부고장 공유" 패널의 `{memorialUrl ? <a>연결된 추모관...</a> :
+  ...}` 자리(닫힘·진행중 두 분기 다)에 `handleCreateMemorial` 버튼("추모관 만들기")을
+  추가 — 클릭 시 `window.confirm(...)`으로 허위개설 동의를 받고(다른 화면의
+  `deleteObituary` 등과 같은 confirm 패턴), 확인되면 `PATCH /api/obituaries/:id`에
+  `{ createMemorial: true, falseReportAgreed: true }`만 보낸다. 개설(POST) 폼의 체크박스는
+  그대로 유지(요구사항 1, 이미 OK 확인됨). `memorialFalseReportAgreed` state·수정 폼 검증
+  분기를 전부 제거.
+
+**결과**: `tsc --noEmit`·`npm run build`(frontend) 통과. 백엔드 변경 없어 재검증 불필요
+(wt137에서 이미 통과).
+
+**편차**: 없음 — 사용자가 지정한 대로("버튼 하나로") 구현.
+
+**다음 에이전트가 알아야 할 것**: `00-13` §4.5-4-2 ㉮의 "부고장 수정 폼에 같은 체크박스"
+문구가 실제 구현(버튼 방식)과 달라졌다 — Opus가 확인 시 문구만 정정하면 된다(로직·엔드포인트는
+wt137 그대로라 재작업 없음).
+
+<!-- Gemini 판정 1줄: … -->
+
+
+## 2026-09-07 (139) | [Sonnet] 종료된 부고장 화면에서 새 부고장 작성 가능하게
+
+**근거 스펙**: 스펙 없음 — 사용자 UI 버그 리포트(*"부고장 종료후 부고장 페이지 접근 시,
+새롭게 부고장 작성할 수 있어야 함"*)
+
+**원인**: `ObituaryPage.tsx`는 `slug` 쿼리파라미터가 없으면 항상 `localStorage`
+포인터(`eobom_my_obituary`)로 "마지막으로 본 부고장"을 다시 불러왔다. 부고장을 종료해도
+포인터는 안 지워지므로, `/obituary`에 다시 들어오면 종료된 그 부고장의 관리 화면만
+보이고 빈 개설 폼으로 갈 방법이 화면에 없었다. `MyObituaryListPage.tsx`의 "새 부고장
+만들기" 링크도 `navigate('/obituary')`만 호출해 같은 포인터를 다시 태우는 동일한 버그였다
+(부고장이 종료됐는지와 무관하게 항상 있던 문제 — 오늘 종료 상태에서 처음 발견됨).
+
+**건드린 파일**:
+- `eobom/frontend/src/pages/ObituaryPage.tsx` — `handleStartNew()` 신설: `localStorage`
+  포인터 삭제 + 모든 폼 필드·동의·`obituaryRef`/`obituaryId`/`isClosed` 등을 개설 화면
+  초기값으로 리셋, `?slug=`/`?new=` 쿼리파라미터도 지운다. ① 종료된 부고장 관리 패널
+  상단에 "새 부고장 작성하기" 버튼(`btn btn-point`, 눈에 띄게)을 추가해 이 함수를 직접
+  호출. ② 마운트 이펙트가 `searchParams.get('new')`를 먼저 확인해 있으면 포인터·
+  `querySlug` 로딩을 건너뛰고 바로 `handleStartNew()`를 불러 빈 폼으로 시작 —
+  `/obituary?new=1`로 들어오는 모든 경로(다른 페이지의 링크 포함)가 이걸 탄다.
+- `eobom/frontend/src/pages/MyObituaryListPage.tsx` — "새 부고장 만들기" 버튼을
+  `navigate('/obituary')` → `navigate('/obituary?new=1')`로 교체. 위와 같은 근본 버그를
+  이 진입점에서도 함께 고쳤다(사용자가 종료 상태로 한정해 리포트했지만 원인이 상태와
+  무관해 같이 잡음 — 편차 아님, 같은 버그의 다른 진입점).
+
+**결과**: `tsc --noEmit`·`npm run build`(frontend) 통과. 백엔드 변경 없음.
+
+**편차**: 없음. `MyObituaryListPage.tsx` 수정은 리포트 범위를 살짝 넘지만 정확히 같은
+원인이라 별도 버그로 남겨두지 않고 같이 고쳤다 — 필요하면 언제든 알려달라고 응답에 남김.
+
+**다음 에이전트가 알아야 할 것**: 없음.
+
+<!-- Gemini 판정 1줄: … -->
