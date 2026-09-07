@@ -1,4 +1,5 @@
 import { KAKAO_JS_KEY, KAKAO_SHARE_SDK_LOAD_TIMEOUT_MS, KAKAO_SHARE_SDK_LOAD_POLL_INTERVAL_MS } from '../config';
+import { apiFetch } from '../lib/api';
 
 // 카카오톡 "공유하기" — docs 07-03 §3.2·§7(폴백 사다리). 지도 SDK(KakaoMapModal.tsx)와 같은
 // 폴링+타임아웃 패턴을 쓰되 스크립트·초기화 방식이 다르다(공유는 Kakao.init 필요).
@@ -123,4 +124,11 @@ export const copyObituaryLink = async (url: string): Promise<boolean> => {
 export const buildObituarySmsHref = (url: string, deceasedName: string): string => {
   const body = encodeURIComponent(`[부고] 故 ${deceasedName} 님 - ${url}`);
   return `sms:?body=${body}`;
+};
+
+// 공유 집계(07-03 §5.1·§9 9-1) — 폴백 사다리 중 하나가 "성공"했을 때(카톡 공유 시트가 열렸거나,
+// Web Share API가 끝났거나, 링크 복사가 됐을 때) 호출부가 호출하는 fire-and-forget 카운터.
+// 인증 불필요·수신자 정보 없음. await하지 않는다 — 집계 실패가 공유 흐름을 막으면 안 된다(§5.1).
+export const reportObituaryShare = (slug: string): void => {
+  apiFetch(`/api/obituaries/${slug}/share`, undefined, { method: 'POST' }).catch(() => {});
 };

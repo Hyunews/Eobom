@@ -1831,3 +1831,19 @@ wt137 그대로라 재작업 없음).
 **다음 에이전트가 알아야 할 것**: 없음.
 
 <!-- Gemini 판정 1줄: … -->
+
+
+## 2026-09-07 (140) | [Sonnet] 부고장 공유 집계(§9 9-1) 구현
+
+- **근거 스펙**: docs/07_상중_행정_케어/07-03_모바일_부고장_카카오톡_전송_구현_기획서.md §5.1 · §8 #7·#8 · §9 9-1
+- **건드린 파일**:
+  - `eobom/backend/src/controllers/obituaryController.ts` — `shareObituary` 신설(findUnique로 slug 조회 → `isObituaryClosed`면 404 → `shareCount: { increment: 1 } }`)
+  - `eobom/backend/src/routes/obituaryRoutes.ts` — `router.post('/:slug/share', shareObituary)` 추가, 상단 주석의 "share 집계는 범위 밖" 문구 갱신
+  - `eobom/frontend/src/utils/kakaoShare.ts` — `reportObituaryShare(slug)` 신설(`apiFetch('/api/obituaries/:slug/share', undefined, { method: 'POST' }).catch(() => {})`, await하지 않는 fire-and-forget)
+  - `eobom/frontend/src/pages/ObituaryPage.tsx` — `handleShare`의 세 분기(Kakao 성공/WebShare 성공/링크복사 성공) 각각에서 `obituaryRef`가 있을 때 `reportObituaryShare(obituaryRef.obituarySlug)` 호출
+  - `eobom/frontend/src/pages/MyObituaryListPage.tsx` — `shareObituary`(로컬 함수)의 동일 세 분기에서 `reportObituaryShare(o.slug)` 호출
+- **결과**: `shareCount` 컬럼(schema.prisma:605, 기존 존재·마이그레이션 불필요)이 공유 성공 시 +1 된다. 인증 불필요, 수신자 식별 정보 미저장, 404 처리는 `getObituaryBySlug`와 동일하게 종료된 부고장·미존재 slug를 구분하지 않음(존재 은닉 원칙 §5.3 일관). `tsc --noEmit`(frontend·backend) 통과. `npm run build` 미실행(타입체크만) — 프론트 dev 서버 실기동은 사람 몫(2026-09-03 지시).
+- **편차**: 없음 — §5.1 표의 라우트·인증·동작을 그대로 구현.
+- **다음 에이전트가 알아야 할 것**: `handleCopyLink`(ObituaryPage.tsx의 "링크 복사" 전용 버튼, handleShare와 별개)는 집계 대상에 포함하지 않았다 — 사용자 지시가 "kakaoShare.ts 공유 성공 경로"로 좁혀져 있었고 그 버튼은 폴백 사다리 바깥의 별도 액션이기 때문. 필요하면 별도 지시로 추가. 실기동 검증 대기(카톡 공유/Web Share/링크복사 각 경로에서 `shareCount`가 실제로 오르는지 브라우저로 확인 필요).
+
+<!-- Gemini 판정 1줄: 대기 -->

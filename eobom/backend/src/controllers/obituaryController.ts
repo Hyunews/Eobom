@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import crypto from 'crypto';
 import prisma from '../config/prisma';
-import { verifyBearerToken, FRONTEND_URL } from './authController';
+import { verifyBearerToken, FRONTEND_URL, captureFrontendOrigin } from './authController';
 import { validateFalseReportAgreed, validateResharedNoticeAck } from '../utils/consentGates';
 import { encryptField, decryptField } from '../utils/crypto';
 
@@ -193,6 +193,11 @@ export const createObituary = async (req: Request, res: Response) => {
     }
 
     const { memorial, obituary } = result!;
+    // LAN(휴대폰 실기기)으로 카카오 공유를 테스트할 때 링크가 `localhost`로 나가면 다른 기기에서
+    // 못 연다 — authController.captureFrontendOrigin과 같은 방식으로 요청 Referer가 신뢰되는
+    // 개발 호스트(localhost·127.0.0.1·사설 대역 + 5173 포트)면 그 오리진을 쓰고, 아니면(배포
+    // 환경 등) FRONTEND_URL로 폴백한다.
+    const frontendOrigin = captureFrontendOrigin(req) || FRONTEND_URL;
     return res.status(201).json({
       status: 'success',
       data: {
@@ -202,8 +207,8 @@ export const createObituary = async (req: Request, res: Response) => {
         obituaryId: obituary.id,
         obituarySlug: obituary.slug,
         memorialSlug: memorial?.slug ?? null,
-        obituaryUrl: `${FRONTEND_URL}/o/${obituary.slug}`,
-        memorialUrl: memorial ? `${FRONTEND_URL}/m/${memorial.slug}` : null,
+        obituaryUrl: `${frontendOrigin}/o/${obituary.slug}`,
+        memorialUrl: memorial ? `${frontendOrigin}/m/${memorial.slug}` : null,
       },
     });
   } catch (error) {
@@ -413,7 +418,7 @@ export const updateObituary = async (req: Request, res: Response) => {
         cardFieldsChanged,
         // 🆕 09-07 — 사후 연결로 방금 만들어졌을 때만 실려 온다. 프론트가 이 값이 있을 때만
         // memorialUrl을 채운다(그 외에는 기존 값을 그대로 둔다 — 이미 연결돼 있었을 수도 있어서).
-        ...(memorial ? { memorialSlug: memorial.slug, memorialUrl: `${FRONTEND_URL}/m/${memorial.slug}` } : {}),
+        ...(memorial ? { memorialSlug: memorial.slug, memorialUrl: `${captureFrontendOrigin(req) || FRONTEND_URL}/m/${memorial.slug}` } : {}),
       },
     });
   } catch (error) {
@@ -471,6 +476,25 @@ export const deleteObituary = async (req: Request, res: Response) => {
   } catch (error) {
     console.error('부고장 삭제 실패:', error);
     return res.status(500).json({ status: 'error', message: '부고장 삭제 중 오류가 발생했습니다.' });
+  }
+};
+
+// 공유 집계 (`POST /api/obituaries/:slug/share`) — 인증 불필요(§5.1). 카카오톡 공유 성공 뒤
+// 프런트가 호출하는 fire-and-forget 집계로, 실패해도 사용자 흐름을 막지 않는다(§5.1 "실패해도 무시").
+// 수신자 식별 정보는 받지도 저장하지도 않는다 — 컬럼은 카운터 하나뿐(§8 #7·#8, `shareCount`).
+// 존재 은닉 원칙(§5.3)과 일관되도록 종료된 부고장·미존재 slug를 같은 404로 응답한다.
+export const shareObituary = async (req: Request, res: Response) => {
+  try {
+    const obituary = await prisma.obituary.findUnique({ where: { slug: req.params.slug } });
+    if (!obituary || isObituaryClosed(obituary)) {
+      return res.status(404).json({ status: 'error', message: '부고장을 찾을 수 없습니다.' });
+    }
+
+    await prisma.obituary.update({ where: { id: obituary.id }, data: { shareCount: { increment: 1 } } });
+    return res.json({ status: 'success' });
+  } catch (error) {
+    console.error('공유 집계 실패:', error);
+    return res.status(500).json({ status: 'error', message: '공유 집계 중 오류가 발생했습니다.' });
   }
 };
 
