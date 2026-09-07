@@ -125,13 +125,22 @@ wt(38)(39)(43) 2026-08-19 판정이 전부 *"재정합 필요"* 로 끝나 있�
 🔴 **새어 있었다면 구조 문제다.** `done.md` §4는 스펙갱신이 나오면 *"Opus가 `docs/` 수정"* 이라고만
 정하고 **반영했는지 되짚는 자리가 없다.** 확인 결과를 보고 재제출 표시를 강제할지 같이 정할 것.
 
-## ⑮ `/memorial` 진입 분기 — `/api/me/memorials`↔`/api/me/obituaries` 간극 (09-07, wt131)
+## ⑮ `/memorial` 진입 분기 — `/api/me/memorials`↔`/api/me/obituaries` 간극 (09-07, wt131·wt132)
 
-`Sidebar`에서 "디지털 추모관" 클릭 시 등록된 추모관이 있으면 `/my-obituaries`로 보내도록
-`MemorialEntryPage.tsx`를 신설했다(스펙 없음, 사용자 UI 지시). 판정은 `GET /api/me/memorials`
-(기존 배선, `meRoutes.ts:18`)로 하는데, 이동 대상 `/my-obituaries`는 `GET /api/me/obituaries`
-기반 목록이다. **부고장 없이 추모관만 단독 개설한 계정**(`memorialController.ts createMemorial`
-경로 — 부고장을 거치지 않아도 개설 가능)은 리다이렉트는 되지만 `/my-obituaries` 목록에는 안
-보이는 간극이 생긴다. 이번에 새로 만든 문제는 아니고(두 엔드포인트가 원래 별개 자원) 실기동
-검증(사람) 때 그런 계정이 있으면 확인 필요 — 있으면 `/my-obituaries`가 memorials도 함께
-보여주도록 넓히는 스펙 판단이 필요하다(Opus 몫).
+🔴 **09-07 재정정 — 실제로 터졌다.** 09-07 중간에 한 번 "생성 경로가 없으니 간극 없다"고
+✅ 닫았었는데(창설 시점 얘기만 봄), **삭제 경로를 못 봤다.** `deleteObituary`는 부고장만
+지우고 추모관·`Deceased`는 의도적으로 남긴다(E안 §9). 그래서 **부고장을 삭제한 사용자**가
+정확히 이 간극에 걸렸다 — `/memorial` 클릭 → `GET /api/me/memorials`엔 그 추모관이 여전히
+있어 `/my-obituaries`로 보내지는데, `/api/me/obituaries`는 0건이라 "아직 만든 부고장이
+없습니다"만 뜨는 막다른 화면(사용자 리포트, wt132에서 수정).
+
+✅ **wt132에서 급한 불은 껐다** — 판정 소스를 `/api/me/memorials`에서 `/api/me/obituaries`로
+바꿔, 부고장이 없으면 예시 페이지로 떨어지게 했다(막다른 화면은 해소).
+
+🟡 **남는 진짜 과제**: 부고장을 지운 뒤에도 살아있는 그 추모관(orphan `Memorial` 행)을 **볼 수
+있는 화면이 여전히 없다** — `/my-obituaries`는 부고장 기준이라 안 보여주고, `/memorial`은
+이제 예시로 떨어진다. `/m/:slug` 직링크를 사용자가 따로 보관하고 있어야만 열람 가능. 부고장
+삭제가 "추모관은 의도적으로 보존"이라면(E안 §9), 그 보존된 추모관에 다시 접근할 경로도
+있어야 앞뒤가 맞는다 — `/my-obituaries`를 orphan memorial까지 보여주게 넓힐지, 별도 화면을
+둘지는 스펙 판단 필요(Opus 몫). `POST /api/memorials`(단독 개설)가 프론트 호출자 없는 죽은
+코드라는 점도 그대로 남아 있다.

@@ -199,30 +199,18 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
 
   return (
     <div className="container" style={{ paddingBottom: '3rem' }}>
-      {/* 히어로 헤더 */}
-      <div
-        style={{
-          marginBottom: '1.75rem',
-          backgroundColor: 'var(--primary-color)',
-          color: '#FFFFFF',
-          padding: '1.75rem',
-          borderRadius: '24px',
-          boxShadow: 'var(--box-shadow)',
-          position: 'relative',
-          overflow: 'hidden'
-        }}
-      >
-        <div style={{ position: 'relative', zIndex: 2, maxWidth: '750px' }}>
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', backgroundColor: 'rgba(212, 163, 89, 0.25)', color: 'var(--accent-gold)', padding: '0.4rem 0.9rem', borderRadius: '20px', fontSize: '0.85rem', fontWeight: 700, marginBottom: '1rem' }}>
-            <HouseLeafIcon size={18} color="var(--accent-gold)" /> 봉안당·수목장 맞춤 검색 및 장례식장 맞춤 매칭
-          </div>
-          <h1 className="page-title" style={{ fontWeight: 800, marginBottom: '0.8rem', color: '#FFFFFF', lineHeight: '1.2' }}>
-            장례·묘지 맞춤 비교 매칭
-          </h1>
-          <p style={{ fontSize: '1.05rem', color: '#CBD5E1', lineHeight: '1.6', margin: 0 }}>
-            현재 위치 기반 거리순 정렬과 카카오맵 LBS 핀 마커 연동을 만나보세요.
-          </p>
+      {/* 🔄 09-07 사용자 지시 — 다른 도메인 페이지(CounselingPage 등)처럼 타이틀을 감싸던
+          히어로 박스(진한 배경·패딩·둥근 모서리 카드)를 없애고 배지+제목+설명만 남긴다. */}
+      <div style={{ marginBottom: '1.5rem' }}>
+        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', backgroundColor: '#FEF3C7', color: 'var(--accent-gold)', padding: '0.3rem 0.8rem', borderRadius: '16px', fontSize: '0.85rem', fontWeight: 700, marginBottom: '0.6rem' }}>
+          <HouseLeafIcon size={18} color="var(--accent-gold)" /> 봉안당·수목장 맞춤 검색 및 장례식장 맞춤 매칭
         </div>
+        <h1 className="page-title" style={{ color: 'var(--primary-color)', display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0 }}>
+          <HouseLeafIcon color="var(--point-color)" size={32} /> 장례·묘지 맞춤 비교 매칭
+        </h1>
+        <p style={{ color: 'var(--text-muted)', marginTop: '0.4rem' }}>
+          현재 위치 기반 거리순 정렬과 카카오맵 LBS 핀 마커 연동을 만나보세요.
+        </p>
       </div>
 
       {/* 위치 + 구분 (2026-08-10 병합 — 예산/종교/하객수/지역 대분류 필터는 삭제) */}

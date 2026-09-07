@@ -1454,17 +1454,78 @@ wt125가 그것을 "추가 결정"으로 정직하게 신고했기에 이번에 
   제거로 해석했다. 홈 화면 박스①(`domainSlides.tsx`)의 같은 두 항목(`ending-note`·
   `farewell-messages`)도 `status: 'preview'`라 같은 배지가 떠 있는데, 사용자가 "사이드바"라고
   명시했으므로 **여기는 손대지 않았다** — 필요하면 별도로 알려달라고 응답에 남김.
-- 🟡 `/memorial` 진입 분기 판정 기준을 "`Memorial` 레코드가 1건이라도 있는가"(`GET
+- ~~🟡 `/memorial` 진입 분기 판정 기준을 "`Memorial` 레코드가 1건이라도 있는가"(`GET
   /api/me/memorials`)로 잡았다. 부고장 없이 추모관만 단독 개설한 경우도 이 배열에 잡히지만,
   이동 대상인 `/my-obituaries`(`GET /api/me/obituaries` 기반)는 부고장이 있는 것만 보여줘서,
   "추모관은 있는데 부고장은 없는" 계정은 리다이렉트는 되는데 목록엔 안 보이는 간극이 생길 수
-  있다. 기존에도 있던 두 엔드포인트 간 간극이라 이번 작업으로 새로 만든 문제는 아니지만,
-  실기동 확인 대상으로 남겨둔다.
+  있다.~~ **🔴 09-07 정정(같은 날, 사용자 지적).** 이 우려는 틀렸다 — `POST /api/memorials`
+  (추모관 단독 개설)를 부르는 프론트 코드가 없다(`grep` 0건 확인). 실제 개설 경로는
+  `POST /api/obituaries` 하나뿐이라 모든 `Memorial`은 반드시 `Obituary`를 동반한다. 즉
+  `/api/me/memorials`와 `/api/me/obituaries`는 지금 실질적으로 같은 집합이라 간극이 없다.
+  상세는 `backlog.md`⑮.
 
 **다음 에이전트가 알아야 할 것**:
 - `GET /api/me/memorials`는 이번에 프론트에서 처음 호출을 붙인 것 — 백엔드 자체는 기존 코드
   그대로(`memorialController.ts:listMyMemorials`, `meRoutes.ts:18`), 손대지 않았다.
 - 홈 화면(`domainSlides.tsx`)의 "미리보기" 배지 제거는 이번 범위 밖 — 요청 오면 `PREP_MENU`와
   같은 방식으로 `status: 'preview' → 'active'`.
+
+<!-- Gemini 판정 1줄: … -->
+
+
+## 2026-09-07 (132) | [Sonnet] `/memorial` 진입 분기 버그 수정 — 부고장 삭제 후 막다른 리다이렉트
+
+**근거 스펙**: 스펙 없음 — wt131에서 내가 만든 버그의 사용자 리포트 대응
+(*"내 부고장 삭제 이후 > 추모관 클릭 안들어가짐. 추모관도 함께 삭제된 것인가? 추모관
+예시페이지도 안 나옴"*)
+
+**건드린 파일**:
+- `eobom/frontend/src/pages/MemorialEntryPage.tsx` — 판정 소스를 `GET /api/me/memorials` →
+  `GET /api/me/obituaries`로 교체(`hasMemorial` state를 `hasObituary`로 이름도 바꿈).
+
+**원인**: `deleteObituary`(`obituaryController.ts:398`)는 부고장만 지우고 추모관·`Deceased`는
+의도적으로 남긴다(E안 §9 설계, 주석에 명시). wt131에서 `/memorial` 진입 판정을
+`GET /api/me/memorials`(추모관 존재 여부)로 걸었더니, 부고장을 지운 뒤에도 그 추모관 행이
+여전히 남아 있어 `hasMemorial=true`가 되고 `/my-obituaries`로 리다이렉트됐다. 그런데
+`/my-obituaries`는 `GET /api/me/obituaries` 기반이라 부고장이 0건이면 "아직 만든 부고장이
+없습니다"만 뜬다 — 결과적으로 실제 추모관도, 예시 페이지도 안 보이는 막다른 화면이 됐다.
+사용자가 그 증상을 정확히 리포트해서 잡음.
+
+**결과**: 리다이렉트 판정을 리다이렉트 대상(`/my-obituaries`)이 실제로 쓰는 것과 같은 데이터
+소스로 맞췄다 — "거기 가면 보여줄 게 있는가"를 그 화면 자신의 데이터로 직접 물으므로 더는
+어긋날 수 없다. `tsc --noEmit`·`npm run build`(frontend) 통과.
+
+**편차**: 없음(버그 수정, 스펙과 무관).
+
+**다음 에이전트가 알아야 할 것**:
+- 사용자 질문 1("추모관도 함께 삭제된 것인가")의 답은 **아니오** — 부고장 삭제는 추모관·
+  `Deceased`를 지우지 않는다(설계 의도, `obituaryController.ts:398` 주석). 이번 수정과
+  무관하게 원래부터 그렇다.
+- 부고장 없이 추모관만 남은 계정(방금 사례처럼 부고장을 지운 경우)은 이제 예시 페이지로
+  떨어지지, 자기 실제(orphan) 추모관을 보여주는 화면은 여전히 없다 — `backlog.md`⑮에 이미
+  적어둔 남는 과제이고 이번 수정 범위 밖(그 추모관의 `/m/:slug` 링크를 사용자가 따로
+  보관해뒀다면 그걸로는 계속 열람 가능).
+
+<!-- Gemini 판정 1줄: … -->
+
+
+## 2026-09-07 (133) | [Sonnet] `/facility` 헤더를 다른 도메인 페이지와 같은 형태로 통일
+
+**근거 스펙**: 스펙 없음 — 사용자 UI 지시(*"장례시설 매칭(/facility)의 타이틀 등을 묶고 있는
+div를 없애야함, 다른 도메인 페이지처럼"*)
+
+**건드린 파일**:
+- `eobom/frontend/src/pages/FacilityPage.tsx` — 제목·배지·설명을 감싸던 "히어로 헤더" 박스
+  (진한 배경 `var(--primary-color)`·패딩 1.75rem·둥근 모서리 24px·box-shadow)를 없애고,
+  `CounselingPage.tsx` 등과 같은 형태(`<div style={{marginBottom:'1.5rem'}}>` 안에 배지+
+  `<h1 className="page-title">`+`<p>`만)로 교체. 문구(배지 텍스트·제목·설명)는 그대로 두고
+  배경·아이콘 색만 밝은 톤(`#FEF3C7`/`var(--accent-gold)`, `CounselingPage`와 동일 팔레트)으로
+  바꿨다.
+
+**결과**: `tsc --noEmit`·`npm run build`(frontend) 통과.
+
+**편차**: 없음.
+
+**다음 에이전트가 알아야 할 것**: 없음.
 
 <!-- Gemini 판정 1줄: … -->

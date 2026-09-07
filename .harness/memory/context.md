@@ -22,9 +22,10 @@ Cloudflare·Supabase·Render 미기재. ⏸ "국가"란 보류(인프라 확정 
 **2. [Sonnet]** 🔴 **wt112·114·115~120 실기동 대기**(wt115=§7+체크8). ⏸ 체크8 재검증 ·
 F(체크상태)는 `00-19` 제4조 = Opus 먼저 · 04 B는 `PreDeathPlatformSetting` 뒤.
 🔵 **실기동 검증은 사람이 한다**(09-03) — dev서버 안 띄움.
-✅ `06-05` D-1~D-11(#23·#23-1·#23-2 포함, wt121~129) + UI 다듬기(wt130·131) 전부 구현·
-빌드통과 — 상세는 `walkthrough.md`. 🔴 #24(사망시 반출) 보류 — `backlog.md`⑪.
-🟡 미검증(dev 한계): `--confirm` 경로·운영버킷 2단계. ▶ 다음=Phase C(§3.3)/backlog.
+✅ `06-05` D-1~D-11(#23·#23-1·#23-2, wt121~129)+UI다듬기(wt130·131)+버그수정(wt132)+
+`/facility`헤더통일(wt133) 전부 구현·빌드통과 — 상세 `walkthrough.md`. 🔴 #24 보류
+(`backlog.md`⑪). 🟡 미검증(dev한계): `--confirm`·운영버킷2단계 · orphan추모관 열람화면
+없음(`backlog.md`⑮). ▶ 다음=Phase C(§3.3)/backlog.
 
 **3. [Gemini]** 게이트 대기 0건 · 🟡 옛 스펙갱신 3건 → `backlog.md` ⑭.
 
@@ -34,7 +35,7 @@ F(체크상태)는 `00-19` 제4조 = Opus 먼저 · 04 B는 `PreDeathPlatformSet
 
 ```text
 프로젝트: 이어봄(Eobom) — 디지털엔딩&웰다잉 토탈케어 플랫폼
-마지막  : 2026-09-07 — D-5 반출(wt128·129)+UI다듬기(wt130·131) 구현+빌드통과 / wt112·114·115 대기
+마지막  : 2026-09-07 — D-5반출·UI다듬기·추모관진입버그수정(wt128~132) 구현+빌드통과 / wt112·114·115 대기
 ```
 
 - 소스 `eobom/frontend`(React18+Vite5+TS) · `eobom/backend`(Express+Prisma+JWT)
