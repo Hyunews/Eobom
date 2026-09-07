@@ -293,6 +293,10 @@ export const getObituaryBySlug = async (req: Request, res: Response) => {
 
 // 수정 (`PATCH /api/obituaries/:id`) — 개설자만. 카드 반영 필드(§5.4-2)가 바뀌면
 // cardFieldsUpdatedAt을 갱신해 프론트가 "다시 공유해 주세요" 안내를 띄울 수 있게 한다.
+// 🆕 09-07 — `00-13` §4.5-4-2 ㉮(사후 연결) 채택. 개설 시 추모관 체크박스를 꺼뒀던 부고장도
+// 수정 폼의 같은 체크박스로 나중에 추모관을 만들어 연결할 수 있다. 🔴 이미 연결돼 있으면
+// 아무것도 하지 않는다(멱등) — 두 번째 추모관을 또 만들지 않는다. 🔴 §4.5-4-3의 "역방향은
+// 만들지 않는다" 권고대로, 추모관 쪽에서 부고장을 만드는 기능은 두지 않는다.
 export const updateObituary = async (req: Request, res: Response) => {
   const decoded = verifyBearerToken(req);
   if (!decoded) {
@@ -313,6 +317,8 @@ export const updateObituary = async (req: Request, res: Response) => {
     accountBankCode?: string | null;
     accountNumber?: string | null; // 평문 입력 → encryptField로 암호화해서만 저장
     accountHolder?: string | null;
+    createMemorial?: boolean;
+    falseReportAgreed?: boolean;
   };
 
   if (body.accountEnabled && (!body.accountBankCode?.trim() || !body.accountNumber?.trim() || !body.accountHolder?.trim())) {
@@ -322,11 +328,18 @@ export const updateObituary = async (req: Request, res: Response) => {
   try {
     const existing = await prisma.obituary.findUnique({
       where: { id: req.params.id },
-      include: { deceased: { select: { id: true, name: true } } },
+      include: { deceased: { select: { id: true, name: true, deathDate: true } } },
     });
     // 존재하지 않음과 소유권 없음을 동일하게 404로 응답(memorialController.updateMemorial과 동일 사상)
     if (!existing || existing.createdByUserId !== decoded.id) {
       return res.status(404).json({ status: 'error', message: '부고장을 찾을 수 없습니다.' });
+    }
+
+    // 🔴 §4.5-3 대가 2 — 추모관이 만들어지는 자리마다 허위 개설 고지 동의가 있어야 한다.
+    // 이미 연결돼 있으면(멱등 분기) 물을 필요가 없다.
+    const willCreateMemorial = !!body.createMemorial && !existing.memorialId;
+    if (willCreateMemorial && !body.falseReportAgreed) {
+      return res.status(400).json({ status: 'error', message: '허위로 추모관을 개설할 경우 법적 책임을 질 수 있다는 점에 동의해야 합니다.' });
     }
 
     const before: TriggerSnapshot = {
@@ -342,17 +355,35 @@ export const updateObituary = async (req: Request, res: Response) => {
       funeralAt: body.funeralAt !== undefined ? new Date(body.funeralAt) : before.funeralAt,
     };
     const cardFieldsChanged = triggerFieldsChanged(before, after);
+    const afterDeathDate = body.deathDate !== undefined ? (body.deathDate ? new Date(body.deathDate) : null) : existing.deceased.deathDate;
     const now = new Date();
 
-    const [, updatedObituary] = await prisma.$transaction([
-      prisma.deceased.update({
+    const { updatedObituary, memorial } = await prisma.$transaction(async (tx) => {
+      await tx.deceased.update({
         where: { id: existing.deceased.id },
         data: {
           ...(body.deceasedName !== undefined ? { name: after.deceasedName } : {}),
-          ...(body.deathDate !== undefined ? { deathDate: body.deathDate ? new Date(body.deathDate) : null } : {}),
+          ...(body.deathDate !== undefined ? { deathDate: afterDeathDate } : {}),
         },
-      }),
-      prisma.obituary.update({
+      });
+
+      // 🆕 09-07 — 사후 연결. 새 Deceased를 또 만들지 않고 이 부고장의 기존 deceasedId를
+      // 그대로 재사용한다(같은 고인을 두 번 입력하는 경로를 만들지 않기 위해 — §4.5-3 대가 1).
+      const newMemorial = willCreateMemorial
+        ? await tx.memorial.create({
+            data: {
+              slug: generateMemorialSlug(),
+              createdByUserId: decoded.id,
+              deceasedId: existing.deceased.id,
+              deceasedName: after.deceasedName,
+              deceasedDeathDate: afterDeathDate,
+              visibility: 'LINK',
+              falseReportAgreedAt: now,
+            },
+          })
+        : null;
+
+      const updated = await tx.obituary.update({
         where: { id: existing.id },
         data: {
           ...(body.funeralHall !== undefined ? { funeralHall: after.funeralHall! } : {}),
@@ -368,11 +399,23 @@ export const updateObituary = async (req: Request, res: Response) => {
           ...(body.accountNumber !== undefined ? { accountNumberEnc: body.accountEnabled && body.accountNumber ? encryptField(body.accountNumber.trim()) : null } : {}),
           ...(body.accountHolder !== undefined ? { accountHolder: body.accountEnabled ? body.accountHolder?.trim() || null : null } : {}),
           ...(cardFieldsChanged ? { cardFieldsUpdatedAt: now } : {}),
+          ...(newMemorial ? { memorialId: newMemorial.id } : {}),
         },
-      }),
-    ]);
+      });
 
-    return res.json({ status: 'success', data: { ...updatedObituary, cardFieldsChanged } });
+      return { updatedObituary: updated, memorial: newMemorial };
+    });
+
+    return res.json({
+      status: 'success',
+      data: {
+        ...updatedObituary,
+        cardFieldsChanged,
+        // 🆕 09-07 — 사후 연결로 방금 만들어졌을 때만 실려 온다. 프론트가 이 값이 있을 때만
+        // memorialUrl을 채운다(그 외에는 기존 값을 그대로 둔다 — 이미 연결돼 있었을 수도 있어서).
+        ...(memorial ? { memorialSlug: memorial.slug, memorialUrl: `${FRONTEND_URL}/m/${memorial.slug}` } : {}),
+      },
+    });
   } catch (error) {
     console.error('부고장 수정 실패:', error);
     return res.status(500).json({ status: 'error', message: '부고장 수정 중 오류가 발생했습니다.' });

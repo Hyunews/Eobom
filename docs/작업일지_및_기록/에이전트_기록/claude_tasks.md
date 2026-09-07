@@ -482,3 +482,20 @@ FK를 `ON DELETE SET NULL`로 바꾼 것만 있는 걸 확인했고(행 삭제·
 node.exe 프로세스가 그 파일을 잡고 있어서인데, 그게 뭔지 끝내 특정 못 했다(`Get-Process
 node`에 9개 정도가 항상 떠 있음 — 사용자 쪽에서 뭔가 상시로 돌아가는 듯). 다음에 진짜
 `npm run build`(backend, prisma generate 포함)가 필요해지면 이 프로세스들부터 확인 요청할 것.
+
+
+## 2026-09-07 | 사후 연결(㉮) 구현 메모
+
+**"어느 Deceased를 쓰나"가 핵심 판단 포인트였다**: `updateObituary`에서 추모관을 새로
+만들 때, `createObituary`처럼 새 `Deceased`를 또 만들면 안 됐다 — 이미 그 부고장이
+`existing.deceased.id`를 갖고 있으니 그걸 그대로 `memorial.deceasedId`로 재사용해야
+"같은 고인 두 번 입력" 문제(`00-13` §4.5-3 대가 1)를 이 경로에서는 피할 수 있다. 이름·사망일도
+방금 폼에서 고친 값(`after.deceasedName`/`afterDeathDate`)을 그대로 Memorial의 denormalize
+필드에 넣어서 어긋나지 않게 함.
+
+**"falseReportAgreed"를 재사용하면 안 된다는 걸 프론트에서 놓칠 뻔했다**: 수정 화면은
+이미 `setFalseReportAgreed(true)`로 고정해둔 상태(부고장 개설 시 이미 동의 완료)라, 그
+state를 그대로 추모관 사후 연결 동의로도 흘려보내면 사용자가 실제로 체크한 적 없는데
+동의한 것으로 서버에 전송될 뻔했다. 별도 state(`memorialFalseReportAgreed`, 기본 false)로
+분리해서 막음 — PATCH 페이로드에서 `falseReportAgreed` 키를 뒤에서 덮어쓰는 방식으로 두
+동의를 분리.

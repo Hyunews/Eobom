@@ -1673,3 +1673,94 @@ node 프로세스가 잡고 있는 파일 잠금(EPERM)으로 실패했으나 `.
 **다음 에이전트가 알아야 할 것**: 없음.
 
 <!-- Gemini 판정 1줄: … -->
+
+
+## 2026-09-07 (137) | [Claude:Opus] 문서반영 — 부고장·추모관 분리(wt135)와 유언장 자동판정 제거(wt136)
+
+- **근거 스펙**: 사용자 지시(2026-09-07) + `walkthrough.md` wt135·wt136. 🔴 **구현이 먼저 끝난
+  뒤의 문서 반영**이다 — `00-13` §7.3 항목 3(08-14 개발자 확정)을 뒤집는 내용이라, 문서를 그대로
+  두면 다음 세션이 옛 스펙을 정본으로 믿고 되돌릴 위험이 있었다.
+- **건드린 파일**:
+  `docs/00_핵심플랫폼/00-13_추모관_공유링크_모델_결정서.md`,
+  `docs/00_핵심플랫폼/00-05_DB_요구사항_및_테이블_사전.md`,
+  `docs/00_DOCS_INDEX.md`,
+  `docs/07_상중_행정_케어/07-03_모바일_부고장_카카오톡_전송_구현_기획서.md`,
+  `docs/06_엔딩노트_유언/06-04_엔딩노트_보관함_실구현_기획서.md`,
+  `.harness/memory/context.md`
+- **결과**:
+  - `00-13` — 🆕 **§4.5-4 신설**(§4.5-4-1 새 동작표 · §4.5-4-2 §2.3 구멍 · §4.5-4-3 안 바뀐 것).
+    문서 상단에 09-07 배너 추가. §2.3 말미에 구멍 경고 추가. §4.5 작동도의
+    `(개설 시 추모관 자동 동반 생성)` 줄과 비교표 **개설 횟수** 행에 폐기 표시(취소선).
+    §4.5-1에 *"추모관이 있을 때만 버튼 노출"* 단서. §4.5-3 대가 3건 재평가(2번 게이트가 두 자리로,
+    1번 `Deceased` 필요성 상승). §6.3 스키마 `memorialId String @unique` →
+    `String? @unique` + `onDelete: SetNull` 주석. §7.3 항목 3 취소선 + 새 권고.
+    §8 #6 위치 정정(고지가 07 폼 **과** `/memorial` 폼 양쪽에 필요).
+  - `00-05` — `Obituary.memorialId` 행을 `String`/`NOT NULL` → `String?`/**NULL 허용** ·
+    `onDelete: SetNull` · 마이그레이션명 `20260907025104_obituary_memorial_optional` 기재.
+    `Memorial.obituary` 역참조 행에 "정방향도 선택" 단서.
+  - `07-03` — 상단 09-07 배너. §5.1 `POST /api/obituaries` 설명에 체크박스 조건 추가.
+    §5.2 개설 트랜잭션 의사코드에서 `Memorial 생성`을 `createMemorial === true`일 때만으로,
+    응답을 `{ obituarySlug, obituaryUrl, memorialSlug?, memorialUrl? }`로 바꿈. 기존
+    *"✅ `00-13` §7.3 #3 그대로입니다"* 블록을 🔴 뒤집힘 안내로 교체(+ `listMyObituaries`의 고인명
+    출처가 `Memorial.deceasedName` → `Obituary.deceased`라는 주의). §5.3 화이트리스트의
+    `memorialSlug`에 "있을 때만" 단서. 스키마 `memorialId`/`memorial` 2줄 nullable.
+    §6 랜딩 와이어에 "추모관 없으면 줄 자체가 없음". 자동종료 절에 "추모관 없는 부고장은
+    종료=끝" 단서. §10 완료판정 2번·검증표 2번을 **체크박스 On/Off 두 경로 재검증**으로 교체
+    (기존 판정 근거 *"`memorialId`가 필수 `@unique` FK라 `Memorial` 없이는 개설 불가"* 가 무효).
+  - `06-04` — §6.4-5의 🟡 *"요건 체크는 안내로"* 불릿에 09-07 정정 블록 추가. 자동판정을 뺀 이유를
+    **오판 비용의 비대칭**으로 적었다(안 뜨면 불편, 잘못 뜨면 무효 유언장을 유효로 믿게 만듦).
+    §6.4-6 1-a·§3 표의 *"요건 체크"* 는 **이용자가 스스로 대조하는 체크리스트**로 읽는다고 명시.
+  - `00_DOCS_INDEX.md` — 05·07 도메인 절에 09-07 변경 3~4줄 추가(05는 *"07 개설에 종속"* 이
+    풀렸다는 점 + `MemorialPage` 목업 딱지 해제).
+  - `context.md` — 항목 0의 *"갱신 필요"* 를 ✅로 바꾸고 **남은 판단(`00-13` §4.5-4-2)** 을 등재.
+    크기 3,048 bytes(3KB 한도 내).
+- **편차**: 없음 — 다만 **요청 범위를 두 곳 넘겼다.** ① `00-05`(DB 사전)의 `Obituary.memorialId`가
+  `NOT NULL`로 적혀 있어 스키마 SSOT가 코드와 어긋난 상태였다. ② `00_DOCS_INDEX.md`의 05·07 요약이
+  옛 종속 관계를 설명하고 있었다. 둘 다 이번 결정으로 **사실이 아니게 된 문장**이라 같이 고쳤다.
+- **다음 에이전트가 알아야 할 것**:
+  - 🔴 **`00-13` §4.5-4-2가 사람 판단 대기**다. 추모관이 선택제가 되면서 §2.3(조문객이 받는 링크는
+    한 개)에 구멍이 생겼다 — 추모관을 따로 만든 유족은 링크 2개를 들게 된다.
+    **㉮ 사후 연결**(부고장 수정 폼 체크박스 + `PATCH /api/obituaries/:id`가 `memorialId` 수용,
+    🟡 권고) / **㉯ 방치** 중 택일. ㉮면 [Sonnet] 소작업이고 구조는 wt135에서 이미 대비돼 있다.
+  - 🔴 **`00-06` 화면 설계서는 이번에 손대지 않았다.** `SCR-018`(내 부고장·추모관)과 `/memorial`
+    화면이 wt135에서 크게 바뀌었으므로(orphan 섹션 제거, `MemorialEntryPage.tsx` 삭제,
+    `MemorialPage`가 실 관리 화면으로 재작성) **화면 대장 갱신이 남아 있다.**
+  - `00-04`(기능·API 명세)에 🆕 `DELETE /api/memorials/:id`가 등재돼 있지 않다. 이번엔 경로 목록
+    한 줄(L120)만 확인했고 표에는 넣지 않았다.
+  - `07-03` §10 검증표 2번은 **재검증 대기**로 바뀌었다 — 실기동은 사람이 한다(09-03).
+
+<!-- Gemini 판정 1줄: … -->
+
+
+## 2026-09-07 (137) | [Sonnet] 부고장 사후 연결 — `00-13` §4.5-4-2 ㉮ 채택 구현
+
+**근거 스펙**: `docs/00_핵심플랫폼/00-13_추모관_공유링크_모델_결정서.md` §4.5-4-2(㉮ 권고,
+Opus가 09-07 오전 반영). 사용자가 ㉮(사후 연결)를 명시적으로 선택 — *"사후 연결(부고장 수정
+폼에 같은 체크박스) 필요."*
+
+**건드린 파일**:
+- `eobom/backend/src/controllers/obituaryController.ts` — `updateObituary`(PATCH
+  `/api/obituaries/:id`)에 `createMemorial`·`falseReportAgreed`(추모관 전용, 부고장 자체
+  동의와 별개) 필드 추가. `willCreateMemorial = createMemorial && !existing.memorialId`일
+  때만(멱등 — 이미 연결돼 있으면 무시) `$transaction` 콜백 안에서 Memorial을 새로 만들어
+  연결한다. 🔴 **새 `Deceased`를 만들지 않고 그 부고장의 기존 `deceasedId`를 재사용** —
+  §4.5-3 대가 1("같은 고인을 두 번 입력하는 경로")을 이 경로에서는 만들지 않기 위함. 응답에
+  `memorialSlug`/`memorialUrl`을 새로 생겼을 때만 실어 보낸다.
+- `eobom/frontend/src/pages/ObituaryPage.tsx` — 수정 화면 전용 두 번째 체크박스 블록 신설
+  (`obituaryRef && !memorialUrl`일 때만 노출 — 이미 연결돼 있으면 안 보임. 역방향은 안 만듦,
+  §4.5-4-2 권고). `createMemorial` state는 개설·수정 두 블록이 공유(동시에 보이지 않으므로
+  충돌 없음). `memorialFalseReportAgreed`는 수정 전용 새 state — 개설 시 이미 완료한
+  `falseReportAgreed`를 재사용하지 않는다(그 동의는 "부고장 개설"에 대한 것이지 "지금
+  추모관을 만드는 것"에 대한 것이 아니므로). PATCH 성공 응답에 `memorialUrl`이 실려 오면
+  화면·`localStorage` 포인터(`StoredObituaryRef.memorialSlug`)를 갱신.
+
+**결과**: `tsc --noEmit`(backend·frontend), `npm run build`(frontend) 통과. backend
+`npm run build`는 사용자가 dev 서버를 다시 띄워 `prisma generate`가 또 EPERM(같은 잠금) —
+스키마 변경 없는 작업이라 `tsc --noEmit`만으로 충분히 검증됨.
+
+**편차**: 없음 — §4.5-4-2 ㉮ 그대로, 역방향(추모관→부고장 생성) 미구현 권고도 준수.
+
+**다음 에이전트가 알아야 할 것**: `00-13` §4.5-4-2의 "🔴 지금은 사후 연결 수단이 없습니다"
+문장은 이제 사실이 아니다 — Opus가 확인 시 갱신 필요(㉮ 구현 완료로 표시).
+
+<!-- Gemini 판정 1줄: … -->

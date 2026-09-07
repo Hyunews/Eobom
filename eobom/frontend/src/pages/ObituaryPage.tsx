@@ -108,8 +108,12 @@ export const ObituaryPage: React.FC<ObituaryPageProps> = ({ currentUser, onOpenL
   // 동의 2건(§6.2 — 05-01 §2.3 승계 + 00-13 §8-6)
   const [falseReportAgreed, setFalseReportAgreed] = useState(false);
   const [resharedNoticeAck, setResharedNoticeAck] = useState(false);
-  // 🆕 09-07 — "이 부고장과 함께 추모관도 만들기" 체크박스(개설 시에만 의미가 있다).
+  // 🆕 09-07 — "이 부고장과 함께 추모관도 만들기" 체크박스. 개설(POST)에도, 수정(PATCH·
+  // "사후 연결", `00-13` §4.5-4-2 ㉮)에도 같은 체크박스를 쓴다. `memorialFalseReportAgreed`는
+  // 수정 화면 전용 동의 — 개설 시의 `falseReportAgreed`(부고장 자체 동의)와는 별개다. 이미
+  // 완료한 동의를 재사용하면 "지금 이 행동"에 대한 동의가 아니게 된다.
   const [createMemorial, setCreateMemorial] = useState(false);
+  const [memorialFalseReportAgreed, setMemorialFalseReportAgreed] = useState(false);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -246,6 +250,12 @@ export const ObituaryPage: React.FC<ObituaryPageProps> = ({ currentUser, onOpenL
       setErrorMsg('허위 개설 고지와 재전파 고지에 모두 동의해야 합니다.');
       return;
     }
+    // 🆕 09-07 — 수정 화면에서 "사후 연결" 체크박스를 켰다면 이 자리에서도 같은 게이트가
+    // 필요하다(§4.5-3 대가 2 — 추모관이 만들어지는 자리마다).
+    if (obituaryRef && !memorialUrl && createMemorial && !memorialFalseReportAgreed) {
+      setErrorMsg('허위로 추모관을 개설할 경우 법적 책임을 질 수 있다는 점에 동의해야 합니다.');
+      return;
+    }
     if (accountEnabled && (!accountBankCode.trim() || !accountNumber.trim() || !accountHolder.trim())) {
       setErrorMsg('마음 전하실 곳을 켰다면 은행 · 계좌번호 · 예금주를 모두 입력해야 합니다.');
       return;
@@ -274,8 +284,11 @@ export const ObituaryPage: React.FC<ObituaryPageProps> = ({ currentUser, onOpenL
       accountHolder: accountEnabled ? accountHolder.trim() : undefined,
       falseReportAgreed,
       resharedNoticeAck,
-      // 개설(POST)에서만 의미가 있다 — PATCH 쪽은 컨트롤러가 이 필드를 아예 읽지 않는다.
-      ...(obituaryRef ? {} : { createMemorial }),
+      createMemorial,
+      // 🆕 09-07 — PATCH(수정) 쪽만 이 필드를 읽는다. 뒤에 와서 위 falseReportAgreed를
+      // 덮어쓴다 — 개설 동의(POST)와 사후 연결 동의(PATCH)는 서로 다른 행동에 대한 동의라
+      // 같은 값을 재사용하지 않는다.
+      ...(obituaryRef ? { falseReportAgreed: memorialFalseReportAgreed } : {}),
     };
 
     try {
@@ -300,6 +313,22 @@ export const ObituaryPage: React.FC<ObituaryPageProps> = ({ currentUser, onOpenL
         setUpdatedAt(data.updatedAt);
         if (data.cardFieldsChanged) {
           setCardFieldsUpdatedAt(data.cardFieldsUpdatedAt);
+        }
+        // 🆕 09-07 — 사후 연결로 방금 추모관이 새로 생겼을 때만 응답에 실려 온다.
+        if (data.memorialUrl) {
+          setMemorialUrl(data.memorialUrl);
+          setCreateMemorial(false);
+          setMemorialFalseReportAgreed(false);
+          setObituaryRef((prev) => (prev ? { ...prev, memorialSlug: data.memorialSlug } : prev));
+          const raw = localStorage.getItem(STORAGE_KEY);
+          if (raw) {
+            try {
+              const stored: StoredObituaryRef = JSON.parse(raw);
+              localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...stored, memorialSlug: data.memorialSlug }));
+            } catch {
+              // 파싱 안 되면 힌트로도 못 쓰던 상태 — 여기서 새로 만들지 않는다.
+            }
+          }
         }
       }
     } catch (e) {
@@ -501,9 +530,9 @@ export const ObituaryPage: React.FC<ObituaryPageProps> = ({ currentUser, onOpenL
           {!obituaryRef && (
             <div style={{ backgroundColor: 'var(--secondary-color)', borderRadius: '8px', padding: '1rem', marginTop: '0.5rem', marginBottom: '1.25rem', display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
               {/* 🔄 09-07 사용자 지시 — 부고장 개설이 더는 추모관을 자동으로 만들지 않는다.
-                  이 체크박스를 켜야만 개설 시 추모관도 함께 만들어 연결한다(꺼두면 나중에
-                  /memorial에서 따로 만들 수 있다 — 이 화면에서 기존 부고장에 뒤늦게 연결하는
-                  기능은 없다). */}
+                  이 체크박스를 켜야만 개설 시 추모관도 함께 만들어 연결한다. 꺼두면 나중에
+                  아래(수정 화면)의 같은 체크박스로 "사후 연결"하거나 /memorial에서 독립적으로
+                  만들 수 있다(`00-13` §4.5-4-2 ㉮). */}
               <label style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', fontSize: '0.85rem', cursor: 'pointer' }}>
                 <input type="checkbox" checked={createMemorial} onChange={(e) => setCreateMemorial(e.target.checked)} style={{ marginTop: '0.2rem' }} />
                 <span>[선택] 이 부고장과 함께 추모관도 만들기 — 조문객이 온라인으로 헌화·방명록을 남길 수 있는 공간입니다. 나중에 &lsquo;디지털 추모관&rsquo; 화면에서 따로 만들 수도 있습니다.</span>
@@ -516,6 +545,25 @@ export const ObituaryPage: React.FC<ObituaryPageProps> = ({ currentUser, onOpenL
                 <input type="checkbox" checked={resharedNoticeAck} onChange={(e) => setResharedNoticeAck(e.target.checked)} style={{ marginTop: '0.2rem' }} />
                 <span>[필수] 이 부고장을 전달받은 분이 다시 다른 곳에 공유할 수 있다는 점을 확인했습니다.</span>
               </label>
+            </div>
+          )}
+
+          {/* 🆕 09-07 — 사후 연결(`00-13` §4.5-4-2 ㉮). 개설 때 체크박스를 꺼둔 부고장도
+              여기서 뒤늦게 추모관을 만들어 연결할 수 있다. 이미 연결돼 있으면(memorialUrl 있음)
+              더 만들 게 없으므로 숨긴다 — 역방향(추모관에서 부고장 만들기)은 만들지 않는다
+              (§4.5-4-2 권고). */}
+          {obituaryRef && !memorialUrl && (
+            <div style={{ backgroundColor: 'var(--secondary-color)', borderRadius: '8px', padding: '1rem', marginTop: '0.5rem', marginBottom: '1.25rem', display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
+              <label style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', fontSize: '0.85rem', cursor: 'pointer' }}>
+                <input type="checkbox" checked={createMemorial} onChange={(e) => setCreateMemorial(e.target.checked)} style={{ marginTop: '0.2rem' }} />
+                <span>[선택] 지금 추모관도 만들어 연결하기 — 조문객이 온라인으로 헌화·방명록을 남길 수 있는 공간입니다.</span>
+              </label>
+              {createMemorial && (
+                <label style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', fontSize: '0.85rem', cursor: 'pointer' }}>
+                  <input type="checkbox" checked={memorialFalseReportAgreed} onChange={(e) => setMemorialFalseReportAgreed(e.target.checked)} style={{ marginTop: '0.2rem' }} />
+                  <span>[필수] 허위로 추모관을 개설할 경우 법적 책임을 질 수 있다는 점에 동의합니다.</span>
+                </label>
+              )}
             </div>
           )}
 
