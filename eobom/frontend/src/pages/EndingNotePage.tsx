@@ -790,25 +790,6 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
             ))}
           </div>
         </div>
-
-        {/* 06-05 §7.2 — 크로스 링크는 양방향. */}
-        {setActiveTab && (
-          <div
-            style={{
-              marginTop: '1.5rem', padding: '1rem 1.25rem', backgroundColor: 'var(--secondary-color)',
-              borderRadius: 'var(--border-radius)', fontSize: '0.9rem', color: 'var(--primary-color)', textAlign: 'center',
-            }}
-          >
-            가족 한 분 한 분께 하고 싶은 말이 있으신가요?{' '}
-            <button
-              type="button"
-              onClick={() => setActiveTab('farewell-messages')}
-              style={{ background: 'none', border: 'none', padding: 0, color: 'var(--primary-color)', fontWeight: 700, textDecoration: 'underline', cursor: 'pointer', fontSize: 'inherit' }}
-            >
-              유족 메시지 보관함 →
-            </button>
-          </div>
-        )}
       </div>
 
       {/* ⑨ 유언장 초안 — A2: 아코디언에 넣지 않는다. §6.4-7 모델이 섰으니 이제 저장을 배선한다. */}
@@ -884,6 +865,7 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
             onClick={() => saveSection('WILL_DRAFT', { draftText })}
             className="btn btn-point"
             disabled={savingState.WILL_DRAFT === 'saving' || !policyAgreedAt}
+            style={{ minWidth: '140px' }}
           >
             {saveButtonLabel(savingState.WILL_DRAFT)}
           </button>

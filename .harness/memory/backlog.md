@@ -124,3 +124,14 @@ wt(38)(39)(43) 2026-08-19 판정이 전부 *"재정합 필요"* 로 끝나 있�
 
 🔴 **새어 있었다면 구조 문제다.** `done.md` §4는 스펙갱신이 나오면 *"Opus가 `docs/` 수정"* 이라고만
 정하고 **반영했는지 되짚는 자리가 없다.** 확인 결과를 보고 재제출 표시를 강제할지 같이 정할 것.
+
+## ⑮ `/memorial` 진입 분기 — `/api/me/memorials`↔`/api/me/obituaries` 간극 (09-07, wt131)
+
+`Sidebar`에서 "디지털 추모관" 클릭 시 등록된 추모관이 있으면 `/my-obituaries`로 보내도록
+`MemorialEntryPage.tsx`를 신설했다(스펙 없음, 사용자 UI 지시). 판정은 `GET /api/me/memorials`
+(기존 배선, `meRoutes.ts:18`)로 하는데, 이동 대상 `/my-obituaries`는 `GET /api/me/obituaries`
+기반 목록이다. **부고장 없이 추모관만 단독 개설한 계정**(`memorialController.ts createMemorial`
+경로 — 부고장을 거치지 않아도 개설 가능)은 리다이렉트는 되지만 `/my-obituaries` 목록에는 안
+보이는 간극이 생긴다. 이번에 새로 만든 문제는 아니고(두 엔드포인트가 원래 별개 자원) 실기동
+검증(사람) 때 그런 계정이 있으면 확인 필요 — 있으면 `/my-obituaries`가 memorials도 함께
+보여주도록 넓히는 스펙 판단이 필요하다(Opus 몫).

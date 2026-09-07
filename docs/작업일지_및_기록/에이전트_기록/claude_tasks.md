@@ -390,3 +390,31 @@ handleDeleteMessage()}`로 명시적으로 인자 없이 호출하도록 고쳐�
 **목록에서 삭제 시 편집기가 닫혀 있으면 에러를 어떻게 보여줄지**: 기존 `error` state는 편집기
 모달 안에서만 렌더된다. 목록 아이템에서 바로 삭제하다 실패하면 모달이 안 열려 있을 수도 있어서,
 그 경우엔 `window.alert`로 폴백하게 함(`composerOpen` 여부로 분기).
+
+
+## 2026-09-07 | 사이드바 미리보기·엔딩노트·추모관 진입분기 작업 메모
+
+**"사이드바의 미리보기"가 뭘 가리키는지부터 찾아야 했다**: `Sidebar.tsx`엔 미리보기 텍스트가
+아예 없어서 처음엔 헷갈렸다. `Sidebar.tsx`가 `item.status !== 'active'`일 때 `<Badge>`를
+그리고, `Badge`가 `status==='preview'`면 "미리보기" 문자열을 찍는 걸 확인(`EntryBoxes.tsx:73`).
+`modeNav.ts`의 `PREP_MENU`에서 `ending-note`·`farewell-messages` 둘 다 `status:'preview'`로
+박혀 있던 걸 찾아서 고침. 홈 화면(`domainSlides.tsx`)에도 같은 두 키가 `status:'preview'`로
+따로 있는데, 사용자가 "사이드바"라고 콕 집어서 그쪽은 안 건드림.
+
+**"저장 버튼 폭 넓히기"도 어느 버튼인지 특정해야 했다**: `EndingNotePage.tsx` 안에 저장 버튼이
+두 군데다 — 아코디언 섹션 공용(`AccordionSection.tsx`, "저장"+"취소" 나란히, 이미 길이 비슷)과
+유언장 초안(WILL_DRAFT) 줄("저장"+"큰 글씨로 보기"+"인쇄하기"+"텍스트 복사"+".txt 내려받기",
+"저장"만 2글자라 확실히 좁아 보임). 후자로 판단하고 `minWidth:140px`만 추가.
+
+**`/memorial` 예시 페이지를 실제 구현과 맞추면서 실제 페이지에 "없는" 기능(사진 앨범)을
+먼저 확인했다**: `MemorialLandingPage.tsx`(`/m/:slug`, 실제 구현) 주석에 "사진 앨범은 이번
+범위에서 뺀다(공개 조회 API 없음 + 로컬디스크라 재배포 시 소실)"이라고 명시돼 있어서, 옛
+예시 페이지에 있던 사진 앨범 섹션을 단순히 스타일만 맞추는 게 아니라 **통째로 들어냄** —
+"형태를 일치시킨다"는 지시를 있는 기능 스타일 맞추기가 아니라 없는 기능도 안 보여주는 것까지
+포함해서 해석함.
+
+**"등록된 추모관 있음" 판정에 쓸 API를 찾다가 죽어있던 엔드포인트를 발견**:
+`memorialController.ts`의 `listMyMemorials`가 `GET /api/me/memorials`용으로 주석까지 달려
+있는데 프론트 어디서도 호출하는 곳이 없었다(`grep`으로 0건 확인). 라우트 자체는
+`meRoutes.ts:18`에 이미 등록돼 있어서 백엔드는 안 건드리고 프론트(`MemorialEntryPage.tsx`)에서
+처음으로 호출을 붙임.

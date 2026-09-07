@@ -34,8 +34,9 @@ export interface ModeMenuItem {
 // 00-27 §7.4(2026-08-26 사장님 확정) — "유족 메시지 보관함"이 ending-note에서 분리된 별도
 // 도메인이 됐다. counseling·ending-note와 동급이라 같은 메뉴에 나란히 둔다.
 const PREP_MENU: ModeMenuItem[] = [
-  { id: 'ending-note', label: '디지털 엔딩노트', icon: NoteKeyIcon, status: 'preview', loginRequired: true },
-  { id: 'farewell-messages', label: '유족 메시지 보관함', icon: Mail, status: 'preview', loginRequired: true },
+  // 🔄 09-07 사용자 지시 — 둘 다 실제로 저장·조회가 되는 기능이라 사이드바 "미리보기" 배지를 뗀다.
+  { id: 'ending-note', label: '디지털 엔딩노트', icon: NoteKeyIcon, status: 'active', loginRequired: true },
+  { id: 'farewell-messages', label: '유족 메시지 보관함', icon: Mail, status: 'active', loginRequired: true },
   { id: 'counseling', label: '전문가 매칭', icon: HandScalesIcon, status: 'active', loginRequired: true },
 ];
 

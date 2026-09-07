@@ -1413,3 +1413,58 @@ wt125가 그것을 "추가 결정"으로 정직하게 신고했기에 이번에 
 - CSS `line-clamp`는 표준 속성이 최근에야 넓게 지원되기 시작했고 `-webkit-line-clamp`를 병기해뒀다 — 오래된 브라우저 호환은 확인 안 함(이 프로젝트 타깃 브라우저 확인 안 됨).
 
 <!-- Gemini 판정 1줄: … -->
+
+
+## 2026-09-07 (131) | [Sonnet] 사이드바 미리보기 배지 제거 · 엔딩노트 저장버튼·크로스링크 정리 · 추모관 진입 분기
+
+**근거 스펙**: 스펙 없음 — 사용자 UI 지시 4건(`06-05`·`05-01` 문서 변경 없음)
+
+**건드린 파일**:
+- `eobom/frontend/src/modeNav.ts` — `PREP_MENU`의 `ending-note`·`farewell-messages` `status`를
+  `'preview'` → `'active'`로. `Sidebar.tsx`가 `status !== 'active'`일 때만 `<Badge>`("미리보기")를
+  그리므로, 실제로 두 화면 다 저장·조회가 되는 지금은 배지가 거짓 정보였다.
+- `eobom/frontend/src/pages/EndingNotePage.tsx` — ① §7.2 크로스 링크 div("가족 한 분 한 분께
+  하고 싶은 말이 있으신가요? 유족 메시지 보관함 →") 삭제. ② 유언장 초안(WILL_DRAFT) 저장 버튼에
+  `minWidth: '140px'` — 같은 줄의 "큰 글씨로 보기"·"인쇄하기"·"텍스트 복사"·".txt 내려받기"보다
+  텍스트가 짧아("저장" 2글자) 유독 좁아 보이던 것을 맞췄다. 아코디언 섹션 공용 저장 버튼
+  (`AccordionSection.tsx`)은 옆 "취소" 버튼과 이미 길이가 비슷해 손대지 않음.
+- `eobom/frontend/src/pages/MemorialPage.tsx` — 전면 재작성. 기존엔 `DigitalEstatePage`에서
+  갈라져 나온 옛 목업(연한 배경 헤더 + 방명록/사진 앨범 2열)이었는데, 실제 구현
+  (`MemorialLandingPage.tsx`, `/m/:slug`)과 형태가 달랐다. 남색(`#1A2B4C`) 헤더(영정 자리·"삼가
+  고인의 명복을 빕니다"·故 OOO·비문) → 헌화(카운트+버튼) → 방명록(이름·관계·메시지 폼+목록)
+  순서로 재구성하고, **사진 앨범 섹션은 삭제**했다 — 실제 구현에도 없다(로컬디스크 저장이라
+  재배포 시 소실돼 범위 밖으로 뺀 기능, `systems.md` §5). `digitalEstate.json`의
+  `memorialPhotos`/`guestbookList` 목업 의존을 없애고 컴포넌트 안에 직접 목업 3건을 둠.
+- `eobom/frontend/src/pages/MemorialEntryPage.tsx` 신설 — `/memorial` 라우트의 진입 판정 전담.
+  로그인 + 토큰이 있으면 `GET /api/me/memorials`(기존에 이미 배선돼 있었으나 프론트에서 한
+  번도 안 부르고 있던 엔드포인트, `meRoutes.ts`)를 불러 배열 길이 0 초과면
+  `<Navigate to="/my-obituaries" replace />`, 아니면 `MemorialPage`(예시)를 그대로 렌더.
+  비로그인·조회 실패는 안전하게 예시 페이지로 떨어진다(기존 동작 유지).
+- `eobom/frontend/src/App.tsx` — `/memorial` 라우트 element를 `<MemorialPage {...authProps}/>`
+  에서 `<MemorialEntryPage {...authProps}/>`로 교체. import도 함께 변경.
+
+**결과**:
+- `tsc --noEmit`·`npm run build`(frontend) 통과.
+- 🔵 실기동 검증은 사람 몫(09-03 지시, dev 서버 안 띄움) — 특히 `GET /api/me/memorials` 응답 형태가
+  실제로 배열인지, 추모관을 만든 계정으로 사이드바 클릭 시 `/my-obituaries`로 실제 넘어가는지는
+  코드 검토로만 확인했고 브라우저로 확인 안 함.
+
+**편차**:
+- 🟡 "사이드바의 미리보기 삭제" 지시를 문자 그대로 `Sidebar.tsx`/`modeNav.ts`의 `Badge`("미리보기")
+  제거로 해석했다. 홈 화면 박스①(`domainSlides.tsx`)의 같은 두 항목(`ending-note`·
+  `farewell-messages`)도 `status: 'preview'`라 같은 배지가 떠 있는데, 사용자가 "사이드바"라고
+  명시했으므로 **여기는 손대지 않았다** — 필요하면 별도로 알려달라고 응답에 남김.
+- 🟡 `/memorial` 진입 분기 판정 기준을 "`Memorial` 레코드가 1건이라도 있는가"(`GET
+  /api/me/memorials`)로 잡았다. 부고장 없이 추모관만 단독 개설한 경우도 이 배열에 잡히지만,
+  이동 대상인 `/my-obituaries`(`GET /api/me/obituaries` 기반)는 부고장이 있는 것만 보여줘서,
+  "추모관은 있는데 부고장은 없는" 계정은 리다이렉트는 되는데 목록엔 안 보이는 간극이 생길 수
+  있다. 기존에도 있던 두 엔드포인트 간 간극이라 이번 작업으로 새로 만든 문제는 아니지만,
+  실기동 확인 대상으로 남겨둔다.
+
+**다음 에이전트가 알아야 할 것**:
+- `GET /api/me/memorials`는 이번에 프론트에서 처음 호출을 붙인 것 — 백엔드 자체는 기존 코드
+  그대로(`memorialController.ts:listMyMemorials`, `meRoutes.ts:18`), 손대지 않았다.
+- 홈 화면(`domainSlides.tsx`)의 "미리보기" 배지 제거는 이번 범위 밖 — 요청 오면 `PREP_MENU`와
+  같은 방식으로 `status: 'preview' → 'active'`.
+
+<!-- Gemini 판정 1줄: … -->
