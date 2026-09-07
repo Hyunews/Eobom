@@ -4,7 +4,7 @@ import { MessageSquare, Send, Copy, Plus, X, ChevronDown, ChevronUp, AlertTriang
 import { OBITUARY_CARD_IMAGE_URL } from '../config';
 import { apiFetch, ApiError } from '../lib/api';
 import { formatObituaryCardTitle, formatObituaryCardDescription, formatKST } from '../utils/obituaryCard';
-import { ensureKakaoShareReady, shareViaKakao, shareViaWebShareApi, copyObituaryLink, buildObituarySmsHref } from '../utils/kakaoShare';
+import { ensureKakaoShareReady, shareViaKakao, shareViaWebShareApi, copyObituaryLink, buildObituarySmsHref, reportObituaryShare } from '../utils/kakaoShare';
 
 // 모바일 부고장 작성 화면(SCR-014 개편) — docs 07-03 §6.2 Phase 1 전면 재작성.
 // 이전 목업의 useState('홍길동') 하드코딩 초기값을 전부 제거했다 — 경황 없는 유족이 남의
@@ -402,13 +402,22 @@ export const ObituaryPage: React.FC<ObituaryPageProps> = ({ currentUser, onOpenL
   const cardDescription = formatObituaryCardDescription(cardInput);
 
   // 폴백 사다리(§7): 1순위 Kakao.Share → 2순위 Web Share API → 3순위 링크 복사.
+  // 셋 중 하나라도 성공하면 공유 집계(§9 9-1)를 호출한다 — handleShare는 obituaryRef가 있을
+  // 때만(관리 모드 패널) 렌더되는 버튼에서 호출되므로 obituarySlug가 항상 있다.
   const handleShare = async () => {
     if (!obituaryUrl) return;
     setCopyFeedback(null);
     const params = { title: cardTitle, description: cardDescription, imageUrl: OBITUARY_CARD_IMAGE_URL, url: obituaryUrl, buttonLabel: '부고 보기' };
-    if (shareViaKakao(params)) return;
-    if (await shareViaWebShareApi(params)) return;
+    if (shareViaKakao(params)) {
+      if (obituaryRef) reportObituaryShare(obituaryRef.obituarySlug);
+      return;
+    }
+    if (await shareViaWebShareApi(params)) {
+      if (obituaryRef) reportObituaryShare(obituaryRef.obituarySlug);
+      return;
+    }
     const copied = await copyObituaryLink(obituaryUrl);
+    if (copied && obituaryRef) reportObituaryShare(obituaryRef.obituarySlug);
     setCopyFeedback(copied ? '카카오톡 공유를 열 수 없어 링크를 복사했습니다. 대화방에 붙여넣어 전달해 주세요.' : '공유에 실패했습니다. 아래 링크를 직접 복사해 주세요.');
   };
 

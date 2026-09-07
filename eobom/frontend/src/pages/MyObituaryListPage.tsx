@@ -5,7 +5,7 @@ import { apiFetch } from '../lib/api';
 import { OBITUARY_CARD_IMAGE_URL } from '../config';
 import { formatKST, formatObituaryCardTitle, formatObituaryCardDescription } from '../utils/obituaryCard';
 import { parseMemorialLink } from '../utils/memorialLink';
-import { ensureKakaoShareReady, shareViaKakao, shareViaWebShareApi, copyObituaryLink } from '../utils/kakaoShare';
+import { ensureKakaoShareReady, shareViaKakao, shareViaWebShareApi, copyObituaryLink, reportObituaryShare } from '../utils/kakaoShare';
 
 // 00-06 §8(SCR-018) — Header "추모관" 메뉴가 홈 박스③(링크 입력창)으로만 보내서, 부고장을 만든
 // 당사자가 정작 본인이 만든 부고장·추모관에 다시 들어갈 방법이 없다는 사용자 리포트 대응.
@@ -90,9 +90,16 @@ export const MyObituaryListPage: React.FC = () => {
       url,
       buttonLabel: '부고 보기',
     };
-    if (shareViaKakao(params)) return;
-    if (await shareViaWebShareApi(params)) return;
+    if (shareViaKakao(params)) {
+      reportObituaryShare(o.slug);
+      return;
+    }
+    if (await shareViaWebShareApi(params)) {
+      reportObituaryShare(o.slug);
+      return;
+    }
     const copied = await copyObituaryLink(url);
+    if (copied) reportObituaryShare(o.slug);
     setFeedback({ id: o.id, message: copied ? '카카오톡 공유를 열 수 없어 링크를 복사했습니다.' : '공유에 실패했습니다. 아래 링크를 직접 복사해 주세요.' });
   };
 
