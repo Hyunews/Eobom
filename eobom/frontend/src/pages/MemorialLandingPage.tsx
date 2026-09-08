@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { Heart, MessageSquarePlus, Flag, Share2 } from 'lucide-react';
+import { Heart, MessageSquarePlus, Share2 } from 'lucide-react';
 import { BACKEND_URL } from '../config';
 import { formatKST } from '../utils/obituaryCard';
 import { shareViaWebShareApi, copyObituaryLink } from '../utils/kakaoShare';
@@ -10,6 +10,12 @@ import { shareViaWebShareApi, copyObituaryLink } from '../utils/kakaoShare';
 // `/m/${slug}` 링크를 뿌리고 있어 로그인 불필요 — slug를 아는 누구나 들어올 수 있다.
 // 🔴 사진 앨범은 이번 범위에서 뺀다(공개 조회 API 없음 + 로컬디스크라 재배포 시 소실,
 // systems.md §5).
+// 🔄 09-07 사용자 지시 — 조문객이 직접 누르는 "신고하기" 버튼(+확인 단계)을 없앴다. 백엔드
+// `POST /api/memorials/:slug/report`·운영자 콘솔의 심사(`reviewMemorialReport`)는 코드는
+// 그대로 두지만, 이 버튼이 유일한 호출부였다 — 이제 새 `reportedAt`이 채워질 방법이 없으므로
+// 운영자 화면의 "복구/비공개 유지" 버튼(reportedAt 있을 때만 노출)도 앞으로는 사실상 안 뜬다.
+// 방명록 개별 글 숨기기(`hideMemorialGuestbookEntry`, AdminPage.tsx "방명록 보기")는 신고
+// 여부와 무관하게 그대로 동작한다.
 
 interface MemorialData {
   deceasedName: string;
@@ -43,7 +49,6 @@ export const MemorialLandingPage: React.FC = () => {
   const [guestSubmitting, setGuestSubmitting] = useState(false);
   const [guestError, setGuestError] = useState<string | null>(null);
 
-  const [reportState, setReportState] = useState<'idle' | 'confirming' | 'submitting' | 'done' | 'error'>('idle');
   const [shareFeedback, setShareFeedback] = useState<string | null>(null);
 
   useEffect(() => {
@@ -131,22 +136,6 @@ export const MemorialLandingPage: React.FC = () => {
     }
   };
 
-  const handleReportConfirm = async () => {
-    if (!slug) return;
-    setReportState('submitting');
-    try {
-      const res = await fetch(`${BACKEND_URL}/api/memorials/${slug}/report`, { method: 'POST' });
-      const json = await res.json();
-      if (json.status !== 'success') {
-        setReportState('error');
-        return;
-      }
-      setReportState('done');
-    } catch {
-      setReportState('error');
-    }
-  };
-
   // 링크 공유(2026-09-02 사용자 리포트) — 부고장에서 들어온 조문객이 이 주소를 다시 알 방법이
   // URL 직접 복사뿐이었다. ObituaryPage.tsx와 같은 07-03 §7 폴백 사다리(WebShare→클립보드)를
   // 그대로 재사용 — Kakao.Share는 페이지 마운트 시 ensureKakaoShareReady()를 부르지 않아 뺀다.
@@ -174,8 +163,8 @@ export const MemorialLandingPage: React.FC = () => {
   };
   const cardStyle: React.CSSProperties = {
     backgroundColor: '#FFFFFF',
-    borderRadius: '20px',
-    boxShadow: '0 12px 35px rgba(26,43,76,0.08)',
+    borderRadius: 'var(--r-lg)',
+    boxShadow: 'var(--el-2)',
     overflow: 'hidden',
   };
 
@@ -200,17 +189,6 @@ export const MemorialLandingPage: React.FC = () => {
     );
   }
 
-  if (reportState === 'done') {
-    return (
-      <div style={pageShellStyle}>
-        <div style={{ textAlign: 'center', maxWidth: '360px', paddingTop: '3rem' }}>
-          <p style={{ fontSize: '1.05rem', color: '#1A2B4C', fontWeight: 700, marginBottom: '0.5rem' }}>신고가 접수되었습니다.</p>
-          <p style={{ fontSize: '0.9rem', color: '#6C7A89' }}>확인이 끝날 때까지 이 추모관은 비공개로 전환됩니다.</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div style={pageShellStyle}>
       <div style={{ width: '100%', maxWidth: '460px' }}>
@@ -225,14 +203,14 @@ export const MemorialLandingPage: React.FC = () => {
               />
             )}
             <p style={{ fontSize: '0.85rem', color: '#94A3B8', letterSpacing: '0.1em', marginBottom: '0.6rem' }}>삼가 고인의 명복을 빕니다</p>
-            <h1 style={{ fontSize: '1.6rem', fontWeight: 800, margin: 0, fontFamily: "'KoPub World Batang', serif" }}>
+            <h1 style={{ fontSize: '1.6rem', fontWeight: 'var(--fw-bold)', margin: 0, fontFamily: "'KoPub World Batang', serif" }}>
               故 {data.deceasedName}
               {data.deceasedDeathDate && (
-                <span style={{ fontSize: '0.95rem', fontWeight: 400, color: '#CBD5E1' }}> ( ~ {formatKST(data.deceasedDeathDate).split(' ').slice(0, 2).join(' ')})</span>
+                <span style={{ fontSize: '0.95rem', fontWeight: 400, color: 'var(--border-color)' }}> ( ~ {formatKST(data.deceasedDeathDate).split(' ').slice(0, 2).join(' ')})</span>
               )}
             </h1>
             {data.epitaph && (
-              <p style={{ fontSize: '0.9rem', color: '#CBD5E1', marginTop: '0.8rem', fontStyle: 'italic' }}>{data.epitaph}</p>
+              <p style={{ fontSize: '0.9rem', color: 'var(--border-color)', marginTop: '0.8rem', fontStyle: 'italic' }}>{data.epitaph}</p>
             )}
           </div>
 
@@ -242,7 +220,7 @@ export const MemorialLandingPage: React.FC = () => {
             <button
               type="button"
               onClick={handleShare}
-              style={{ background: 'none', border: '1px solid #CBD5E1', borderRadius: '20px', padding: '0.45rem 1rem', fontSize: '0.85rem', color: 'var(--primary-color)', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}
+              style={{ background: 'none', border: '1px solid var(--border-color)', borderRadius: 'var(--r-lg)', padding: '0.45rem 1rem', fontSize: '0.85rem', color: 'var(--primary-color)', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}
             >
               <Share2 size={14} /> 이 추모관 링크 공유하기
             </button>
@@ -265,10 +243,10 @@ export const MemorialLandingPage: React.FC = () => {
               <Heart color="#FFFFFF" size={18} /> 헌화하기
             </button>
             {tributeState === 'duplicate' && (
-              <p style={{ fontSize: '0.85rem', color: '#92400E', marginTop: '0.6rem' }}>이미 헌화하셨습니다.</p>
+              <p style={{ fontSize: '0.85rem', color: 'var(--state-warn-fg)', marginTop: '0.6rem' }}>이미 헌화하셨습니다.</p>
             )}
             {tributeState === 'error' && (
-              <p style={{ fontSize: '0.85rem', color: '#92400E', marginTop: '0.6rem' }}>헌화 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.</p>
+              <p style={{ fontSize: '0.85rem', color: 'var(--state-warn-fg)', marginTop: '0.6rem' }}>헌화 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.</p>
             )}
           </div>
 
@@ -308,7 +286,7 @@ export const MemorialLandingPage: React.FC = () => {
                 />
               </div>
               {guestError && (
-                <p style={{ fontSize: '0.85rem', color: '#92400E', marginBottom: '0.6rem' }}>{guestError}</p>
+                <p style={{ fontSize: '0.85rem', color: 'var(--state-warn-fg)', marginBottom: '0.6rem' }}>{guestError}</p>
               )}
               <button type="submit" disabled={guestSubmitting} className="btn btn-primary" style={{ width: '100%', height: '44px', fontSize: '0.95rem', opacity: guestSubmitting ? 0.6 : 1 }}>
                 방명록 남기기
@@ -320,7 +298,7 @@ export const MemorialLandingPage: React.FC = () => {
                 <p style={{ fontSize: '0.85rem', color: '#94A3B8', textAlign: 'center', padding: '1rem 0' }}>아직 남겨진 글이 없습니다.</p>
               )}
               {guestbook.map((g) => (
-                <div key={g.id} style={{ padding: '0.9rem', backgroundColor: 'var(--secondary-color)', borderRadius: '8px', borderLeft: '3px solid var(--primary-color)' }}>
+                <div key={g.id} style={{ padding: '0.9rem', backgroundColor: 'var(--secondary-color)', borderRadius: 'var(--r-sm)', borderLeft: '3px solid var(--primary-color)' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '0.2rem' }}>
                     <span style={{ fontWeight: 600, color: 'var(--primary-color)' }}>
                       {g.authorName}{g.relationToDeceased ? ` · ${g.relationToDeceased}` : ''}
@@ -332,41 +310,9 @@ export const MemorialLandingPage: React.FC = () => {
               ))}
             </div>
           </div>
-
-          {/* 신고 */}
-          <div style={{ borderTop: '1px solid #EAE5DC', padding: '1rem 1.75rem' }}>
-            {reportState === 'idle' && (
-              <button
-                type="button"
-                onClick={() => setReportState('confirming')}
-                style={{ background: 'none', border: 'none', padding: 0, fontSize: '0.8rem', color: '#94A3B8', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}
-              >
-                <Flag size={12} /> 이 추모관 신고하기
-              </button>
-            )}
-            {reportState === 'confirming' && (
-              <div style={{ fontSize: '0.85rem', color: '#1A2B4C' }}>
-                <p style={{ marginBottom: '0.6rem' }}>정말 신고하시겠습니까? 접수 즉시 이 추모관은 비공개로 전환됩니다.</p>
-                <div style={{ display: 'flex', gap: '0.6rem' }}>
-                  <button type="button" onClick={handleReportConfirm} style={{ background: '#9A3412', color: '#FFFFFF', border: 'none', borderRadius: '6px', padding: '0.4rem 0.8rem', fontSize: '0.8rem', cursor: 'pointer' }}>
-                    신고 확정
-                  </button>
-                  <button type="button" onClick={() => setReportState('idle')} style={{ background: '#E2E8F0', color: '#1A2B4C', border: 'none', borderRadius: '6px', padding: '0.4rem 0.8rem', fontSize: '0.8rem', cursor: 'pointer' }}>
-                    취소
-                  </button>
-                </div>
-              </div>
-            )}
-            {reportState === 'submitting' && (
-              <p style={{ fontSize: '0.8rem', color: '#94A3B8' }}>신고 접수 중...</p>
-            )}
-            {reportState === 'error' && (
-              <p style={{ fontSize: '0.8rem', color: '#92400E' }}>신고 접수 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.</p>
-            )}
-          </div>
         </div>
 
-        <p style={{ textAlign: 'center', fontSize: '0.85rem', color: '#CBD5E1', marginTop: '1rem' }}>이어봄</p>
+        <p style={{ textAlign: 'center', fontSize: '0.85rem', color: 'var(--border-color)', marginTop: '1rem' }}>이어봄</p>
       </div>
     </div>
   );
