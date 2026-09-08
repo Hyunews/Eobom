@@ -43,7 +43,7 @@
 ├── docs/                     # 📄 기획 SSOT (Claude:Opus 소유) + 작업일지_및_기록/
 ├── reports/                  # 📊 사람 열람용 HTML·PDF (Gemini 소유) — 🔴 git 커밋 제외·로컬 전용
 ├── assets/                   # 📁 원천 CSV·로고 (사람 소유)
-└── eobom/                    # 💻 소스코드 frontend/·backend/ (Claude 소유)
+└── eobomDev/                 # 💻 소스코드 frontend/·backend/ (Claude 소유)
 ```
 
 ---
@@ -53,7 +53,7 @@
 ```
 [Claude:Opus]   docs/ 기획 확정
    ↓  (Sonnet은 재검토하지 않고 그대로 신뢰하고 구현)
-[Claude:Sonnet] eobom/ 구현 + walkthrough.md 요약
+[Claude:Sonnet] eobomDev/ 구현 + walkthrough.md 요약
    ↓
 ★ [Gemini] walkthrough.md만 읽고 통과/반려 — 통과하면 재확인 없이 종료
    (스펙갱신 판정이면 docs/ 수정은 Opus가. Gemini는 docs/ 쓰기 권한 없음)

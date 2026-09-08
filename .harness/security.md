@@ -28,14 +28,14 @@
 
 | 시크릿 | 위치 | 비고 |
 |---|---|---|
-| 카카오/네이버/구글 OAuth 클라이언트 시크릿 | `eobom/backend/.env` | 3사 소셜 로그인 |
-| JWT 서명키 | `eobom/backend/.env` | |
-| `DATABASE_URL`·`DIRECT_URL` | `eobom/backend/.env` · Render 대시보드 | 로컬=Docker / 배포=Supabase(`systems.md` §4) |
-| `SETTLEMENT_ENCRYPTION_KEY` | `eobom/backend/.env` · Render | 정산·조의금 계좌 암호화 |
-| `ENDING_NOTE_ENCRYPTION_KEY` | `eobom/backend/.env` · Render | 06 엔딩노트·유족 메시지·R2 음성 선암호화(`00-11` §5.4-4) |
-| `HASH_INDEX_KEY` | `eobom/backend/.env` · Render | 가족지정 연락처 중복방지 해시(`00-33` §4.2). 🔴 정산 키와 **공유 금지** — 그 결합이 TS-001 원인 |
-| `R2_ACCESS_KEY_ID_*`·`R2_SECRET_ACCESS_KEY_*` | `eobom/backend/.env` · Render | 버킷별 3쌍(`00-11` §5.4-6-1). 🔴 로컬은 **`-dev` 버킷 토큰**, 운영 토큰은 Render에만(§5.4-6-3) |
-| `VITE_KAKAO_MAP_KEY` | `eobom/frontend/.env` | **프론트 번들에 노출됨** — 도메인 제한 필수 |
+| 카카오/네이버/구글 OAuth 클라이언트 시크릿 | `eobomDev/backend/.env` | 3사 소셜 로그인 |
+| JWT 서명키 | `eobomDev/backend/.env` | |
+| `DATABASE_URL`·`DIRECT_URL` | `eobomDev/backend/.env` · Render 대시보드 | 로컬=Docker / 배포=Supabase(`systems.md` §4) |
+| `SETTLEMENT_ENCRYPTION_KEY` | `eobomDev/backend/.env` · Render | 정산·조의금 계좌 암호화 |
+| `ENDING_NOTE_ENCRYPTION_KEY` | `eobomDev/backend/.env` · Render | 06 엔딩노트·유족 메시지·R2 음성 선암호화(`00-11` §5.4-4) |
+| `HASH_INDEX_KEY` | `eobomDev/backend/.env` · Render | 가족지정 연락처 중복방지 해시(`00-33` §4.2). 🔴 정산 키와 **공유 금지** — 그 결합이 TS-001 원인 |
+| `R2_ACCESS_KEY_ID_*`·`R2_SECRET_ACCESS_KEY_*` | `eobomDev/backend/.env` · Render | 버킷별 3쌍(`00-11` §5.4-6-1). 🔴 로컬은 **`-dev` 버킷 토큰**, 운영 토큰은 Render에만(§5.4-6-3) |
+| `VITE_KAKAO_MAP_KEY` | `eobomDev/frontend/.env` | **프론트 번들에 노출됨** — 도메인 제한 필수 |
 
 🔴 **암호화·해시 키 3종은 로컬과 운영이 서로 다른 값이다**(2026-08-27 교체). 같으면 로컬 `.env`
 유출이 곧 운영 데이터 유출이고, 운영 덤프를 로컬에서 복호화할 수 없는 것이 §1(운영 개인정보를
@@ -72,7 +72,7 @@
 - 🔴 **DB 쓰기 게이트는 `db-safety.md`가 정본이다**(2026-08-27 분리 — 트리거가 명령 단위로
   넓어지면서 이 문서의 주제를 벗어났다). **DB에 쓰기 전 백업이며 스키마 변경만이 아니다.**
   유실 2회(08-05 마이그레이션 · 08-27 정리 스크립트).
-- 🔴 **백업 파일에는 개인정보가 들어간다.** `eobom/backend/backups/`는 gitignore이며 **절대
+- 🔴 **백업 파일에는 개인정보가 들어간다.** `eobomDev/backend/backups/`는 gitignore이며 **절대
   커밋하지 않는다**(§1).
 - **엔딩노트**: 사후 전달 콘텐츠는 저장 시 암호화(AES-256) 전제로 설계한다. 평문 저장 구현을
   임시로라도 만들지 않는다 — 임시가 그대로 남는다.

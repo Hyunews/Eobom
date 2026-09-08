@@ -14,7 +14,7 @@
 
 ## In-Repo 하네스 모델 (G5)
 
-- 2026-08-07부로 외장 두뇌 모델을 폐기했다. 이 레포는 코드 저장소이기도 하다 — `eobom/`에 실제 소스코드가, `.harness/`에 에이전트 규칙·메모리·스킬·툴이, 루트 `docs/`·`reports/`·`assets/`에 기획 SSOT·산출물·원천 자산이 같은 저장소 안에 공존한다 (자세한 배경은 `.harness/_meta/스펙초안.md` 참고).
+- 2026-08-07부로 외장 두뇌 모델을 폐기했다. 이 레포는 코드 저장소이기도 하다 — `eobomDev/`에 실제 소스코드가, `.harness/`에 에이전트 규칙·메모리·스킬·툴이, 루트 `docs/`·`reports/`·`assets/`에 기획 SSOT·산출물·원천 자산이 같은 저장소 안에 공존한다 (자세한 배경은 `.harness/_meta/스펙초안.md` 참고).
 - 실행 원칙: 에이전트는 항상 이 레포 루트에서 띄운다.
 - 🔴 **정정(2026-08-25)**: 옛 문장은 *"그래야 **AGENTS.md 규칙이 로드됨**"* 이었다. **사실이 아니다.**
   CLI가 자동으로 밀어 넣는 것은 **루트 `CLAUDE.md`** 뿐이고, `.harness/AGENTS.md`는 레포 루트에서
@@ -27,7 +27,7 @@
 
 | 노트 | 코드 경로 | 상태 |
 |---|---|---|
-| [eobom](file:///c:/Users/kilak/Desktop/Eobom/.harness/memory/context.md) | `c:\Users\kilak\Desktop\Eobom\eobom` | 진행중 (Domain 01 프론트엔드 구현 — 카카오맵 연동) |
+| [eobom](file:///c:/Users/kilak/Desktop/Eobom/.harness/memory/context.md) | `c:\Users\kilak\Desktop\Eobom\eobomDev` | 진행중 (Domain 01 프론트엔드 구현 — 카카오맵 연동) |
 
 > 현재는 단일 프로젝트(eobom) 구조라 `.harness/memory/context.md` 하나로 관리한다. 별도 프로젝트가 추가되면 그때 프로젝트별 노트 분리를 재검토한다.
 

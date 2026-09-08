@@ -13,7 +13,7 @@ const fs = require('fs');
 const path = require('path');
 
 const ROOT = path.resolve(__dirname, '..', '..');
-const BACKEND_PRISMA_DIR = path.join(ROOT, 'eobom', 'backend', 'prisma');
+const BACKEND_PRISMA_DIR = path.join(ROOT, 'eobomDev', 'backend', 'prisma');
 const SCHEMA_PATH = path.join(BACKEND_PRISMA_DIR, 'schema.prisma');
 const MIGRATIONS_DIR = path.join(BACKEND_PRISMA_DIR, 'migrations');
 const DOC_PATH = path.join(ROOT, 'docs', '00_핵심플랫폼', '00-05_DB_요구사항_및_테이블_사전.md');
@@ -271,8 +271,8 @@ function main() {
       '> **문서 목적**: 이어봄 (Eobom) PostgreSQL 데이터베이스(`eobom_db`)의 핵심 테이블 스키마 컬럼 및 관계(Relationship) 사전을 정의합니다.',
       '>',
       '> **관리 방식(2026-08-10 개편)**: 이 문서는 두 구간으로 나뉜다.',
-      '> 1. **자동 생성 구간**(아래 `AUTO-GENERATED` 마커 사이) — `eobom/backend/prisma/schema.prisma`의 한글 주석 +',
-      '>    `eobom/backend/prisma/migrations/`의 타임스탬프에서 `node .harness/tools/generate-db-doc.js`로 추출한다.',
+      '> 1. **자동 생성 구간**(아래 `AUTO-GENERATED` 마커 사이) — `eobomDev/backend/prisma/schema.prisma`의 한글 주석 +',
+      '>    `eobomDev/backend/prisma/migrations/`의 타임스탬프에서 `node .harness/tools/generate-db-doc.js`로 추출한다.',
       '>    스키마가 바뀌면 이 구간을 직접 고치지 말고, **schema.prisma의 주석을 고친 뒤 스크립트를 재실행**할 것',
       '>    — 두 곳이 갈라지는 걸(drift) 막기 위함. **표 형식(컬럼|타입|제약조건|설명)은 고정** — 이 문서를 파싱해',
       '>    다른 문서를 만드는 후속 작업이 있으므로 형식을 바꾸려면 그 파서도 함께 볼 것.',

@@ -12,7 +12,7 @@
 | 태그 | 담당 | 전환 방법 |
 |---|---|---|
 | `[Claude:Opus]` | 기획·설계 `docs/` | CLI `/model opus` |
-| `[Claude:Sonnet]` | 개발·구현 `eobom/` | CLI `/model sonnet` |
+| `[Claude:Sonnet]` | 개발·구현 `eobomDev/` | CLI `/model sonnet` |
 | `[Gemini]` | 기계적 문서화 `reports/` + 교차검증 | Antigravity 창 |
 | `[사용자]` | 계정·대시보드·승인 | — |
 
@@ -27,14 +27,14 @@ Gemini에겐 **기계적 문서화와 판정만** 준다. 자기가 안 한 일�
 | 영역 | 🔴 쓰기 (이 주체만) | 읽기 | 비고 |
 |---|---|---|---|
 | `docs/` (기획 SSOT) | **`[Claude:Opus]`** | Sonnet · Gemini | 도메인 명세·API/DB 스펙. **Sonnet은 구현 중에도 고치지 않는다**(§2-1) |
-| `eobom/frontend`, `eobom/backend` | **`[Claude:Sonnet]`** | Opus · Gemini | 실제 소스코드. 🔴 **Opus는 한 줄도 쓰지 않는다** — 스펙이 서면 §6 핸드오프로 넘긴다 |
+| `eobomDev/frontend`, `eobomDev/backend` | **`[Claude:Sonnet]`** | Opus · Gemini | 실제 소스코드. 🔴 **Opus는 한 줄도 쓰지 않는다** — 스펙이 서면 §6 핸드오프로 넘긴다 |
 | `reports/` (HTML·PDF) | **Gemini** | Claude | `docs/` 정본의 시각화본. 🔴 **2026-08-20부터 git 커밋 제외**(로컬 전용) — 아래 |
 | `.harness/` (규칙·메모리·툴) | **Claude**(Opus·Sonnet 공용) | Gemini | 하네스 유지보수. 예외 → §1-2 `context.md` |
 | `assets/` (원천 데이터·로고) | **사람** | 둘 다 | 에이전트가 임의 추가 금지 |
 
 > 🔴 **지키는 장치가 없다.** 훅도 퍼미션도 Opus/Sonnet을 구분하지 못한다(훅은 모델을 모른다).
 > **표가 곧 방어선**이라 이 규칙만은 자동 로드되는 **루트 `CLAUDE.md`** 에도 중복해 둔다.
-> 2026-08-25까지 이 표가 둘을 `Claude` 하나로 뭉쳐 둬서 Opus가 `eobom/`에 코드를 썼다(전량 revert).
+> 2026-08-25까지 이 표가 둘을 `Claude` 하나로 뭉쳐 둬서 Opus가 `eobomDev/`에 코드를 썼다(전량 revert).
 > *"같은 권한이라 못 나눈다"* 는 옛 근거는 틀렸다 — **강제 불가 ≠ 규칙 부재.**
 > 🔴 위반의 표준 형태: *"충돌 파일을 조사해 보니 안 겹치더라 → 그럼 짜도 되겠다."*
 > **안 겹친다는 사실은 소유권과 무관하다.**

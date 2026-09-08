@@ -15,7 +15,7 @@
 | 구글 OAuth | ✅ 실연동 완료 | 〃 |
 
 - 스펙 정본: `docs/00_핵심플랫폼/00-08_소셜로그인_및_계정통합_명세서.md`
-- 시크릿: `eobom/backend/.env` (→ `security.md` §3)
+- 시크릿: `eobomDev/backend/.env` (→ `security.md` §3)
 - ⚠️ **프로덕션 콜백 URL 미등록** — 백엔드가 아직 배포되지 않아 실서비스 로그인 불가
 - ⚠️ **로컬 콜백은 https 필수** — 인증서 존재 시 백엔드가 HTTPS만 서빙(`server.ts`). http로 두면 `ERR_EMPTY_RESPONSE`(08-10 실장애, 해결). 3사 콘솔에 `https://localhost:5000/api/auth/<provider>/callback` 등록 완료.
 
@@ -46,7 +46,7 @@
   않는다. 검증은 카카오 서버가 공유를 처리할 때 일어난다.
 - ⚠️ **이미 보낸 카드는 소급 복구되지 않는다** — 전송 시점에 링크가 굳는다. 등록 후 **새로 보내** 확인할 것.
 - 링크용 웹 도메인은 **프론트(`https://eobom.vercel.app`)만** 넣는다. 백엔드는 링크 대상이 아니다.
-- 키: `VITE_KAKAO_MAP_KEY`(`eobom/frontend/.env`) — 프론트 번들 노출, 도메인제한 필수
+- 키: `VITE_KAKAO_MAP_KEY`(`eobomDev/frontend/.env`) — 프론트 번들 노출, 도메인제한 필수
   - ⚠️ **지도와 공유는 같은 JavaScript 키**(앱 1개당 1개, 콘솔 키 이름 `Eobom_KakaoMap`은 식별용 라벨일 뿐).
     공유 쪽 코드는 `VITE_KAKAO_JS_KEY`를 읽으므로 **같은 값으로 한 줄 추가**한다(개명 금지 — `KakaoMapModal.tsx:57` 동반 수정 발생).
 - 활성화: 카카오 디벨로퍼 > 이어봄앱 > 제품설정 > 카카오맵 > ON (**공유는 별도 활성화·검수 없음**)
@@ -106,14 +106,14 @@ DB 접근은 **Prisma 한 경로**뿐이다. RLS는 Data API를 막는 장치라
 | 로컬 컨테이너 | Docker `eobom-postgres` |
 | 포트 | **5433** (기본 5432 아님) |
 | ORM | Prisma |
-| 접속 문자열 | `eobom/backend/.env`의 `DATABASE_URL` |
+| 접속 문자열 | `eobomDev/backend/.env`의 `DATABASE_URL` |
 
 - 주요 모델: `User`·`Facility`·`FacilityBooking`·`Partner`·`Lead` 등(전체는 `schema.prisma`)
 - `Facility` 실데이터 1,552건 적재됨 (서버 페이지네이션 브라우저 검증 완료)
 - 🔴 **데이터 유실 2회**(08-05 마이그레이션 · 08-27 정리 스크립트). **DB에 쓰기 전 백업이 규칙이며
   스키마 변경만이 아니다** — 트리거·금지패턴·순서는 **`db-safety.md`가 정본**
 - 🔵 **백업**: `powershell -File .harness/tools/backup-db.ps1`(08-27 신설 — pg_dump가 이 PC에 없어 Docker로 돈다).
-  `eobom/backend/backups/`에 `prod-`/`local-` 접두사로 저장(gitignore). 운영 백업엔 `.env`의
+  `eobomDev/backend/backups/`에 `prod-`/`local-` 접두사로 저장(gitignore). 운영 백업엔 `.env`의
   **`BACKUP_DATABASE_URL`** 필요 — `DIRECT_URL`은 로컬 Docker DB다.
   🔴 **Supabase 접속 3종**: ✅ **Session pooler `aws-0-ap-northeast-2.pooler.supabase.com:5432`** /
   Direct `db.[ref].supabase.co`는 **IPv6 전용**이라 Docker 해석 실패 / Transaction `:6543`은 pg_dump 불가.
@@ -134,7 +134,7 @@ DB 접근은 **Prisma 한 경로**뿐이다. RLS는 Data API를 막는 장치라
 ⚠️ 인프라 전략 정본은 **`docs/00_핵심플랫폼/00-11_백엔드_DB_배포_및_인프라_전략_결정서.md`**.
 **DB는 Render Postgres가 아니라 Supabase**(§4) — `render.yaml`의 `databases:` 블록은 제거했다.
 
-- 설정: 레포 루트 `render.yaml`(Blueprint), `eobom/backend`가 `rootDir`
+- 설정: 레포 루트 `render.yaml`(Blueprint), `eobomDev/backend`가 `rootDir`
 - 🔴 **리전 = `oregon`(미국). 백엔드와 DB가 태평양을 사이에 두고 있다**(08-21 실측):
   `/api/health` ~165ms vs **DB 타는 API ~1,500ms**. ⚠️ 리전은 `render.yaml`의 `region:`으로만 정해지고
   **생성 후 변경 불가** — 없으면 조용히 `oregon`이 된다.
@@ -150,7 +150,7 @@ DB 접근은 **Prisma 한 경로**뿐이다. RLS는 Data API를 막는 장치라
 
 ### 이미지 저장 — ⚠️ 배포 전 필수 교체 (2026-08-10)
 
-업로드 사진이 백엔드 로컬 디스크(`eobom/backend/uploads/`)에 저장된다. Render는 재배포 시 디스크
+업로드 사진이 백엔드 로컬 디스크(`eobomDev/backend/uploads/`)에 저장된다. Render는 재배포 시 디스크
 초기화 → **이미지 전부 소실.** 실배포 전 S3 등으로 교체 필수(신규 외부 연동, 승인 필요).
 **추모 사진도 여기 묶인다** — 스토리지 교체 전 추모관 오픈 금지(`05-01` §2.6).
 

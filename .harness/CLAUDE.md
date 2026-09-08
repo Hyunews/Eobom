@@ -9,7 +9,7 @@
 3. **구현은 하지 않는다**: 스펙이 서면 `[Claude:Sonnet]` 핸드오프 블록을 출력하고 넘긴다.
 
 ## `[Claude:Sonnet]` — 개발·구현
-1. **구현**: `docs/`의 확정 스펙을 근거로 `eobom/frontend/`·`eobom/backend/` 소스코드 작성. 스펙을 재해석·재검토하지 않고 그대로 신뢰한다(→ `roles.md` §2).
+1. **구현**: `docs/`의 확정 스펙을 근거로 `eobomDev/frontend/`·`eobomDev/backend/` 소스코드 작성. 스펙을 재해석·재검토하지 않고 그대로 신뢰한다(→ `roles.md` §2).
 2. **빌드/테스트**: 타입 에러·런타임 오류 수정. 코드 품질은 Gemini가 아니라 Claude의 책임이다.
 3. **구현 중 `docs/`를 고치지 않는다**: 권한은 있지만 기획 판단은 Opus 몫이다. 편차는 `walkthrough.md`의 `편차` 필드로 올린다.
 

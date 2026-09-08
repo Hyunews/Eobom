@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /* PreToolUse(Write|Edit) 가드 — 00-09 §6.4 P-5 드리프트 차단.
- * eobom/frontend/src 하위 신규 코드에서 하드코딩 HEX와 §6.2 스케일 밖 fontSize를 잡는다.
+ * eobomDev/frontend/src 하위 신규 코드에서 하드코딩 HEX와 §6.2 스케일 밖 fontSize를 잡는다.
  * 🔴 기존 1,304곳은 아직 위반 상태라 차단이 아니라 경고로 시작한다(exit 1 — 비차단).
  * 화이트리스트(token-guard-whitelist.txt)에 있는 파일을 Write로 통째로 덮어쓸 때만 건너뛴다.
  * Edit의 new_string은 화이트리스트 여부와 무관하게 항상 검사한다 — 그게 "신규 코드"다.
@@ -8,7 +8,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const SRC_MARKER = /eobom[\\/]frontend[\\/]src[\\/]/;
+const SRC_MARKER = /eobomDev[\\/]frontend[\\/]src[\\/]/;
 const HEX_RE = /#(?:[0-9a-fA-F]{8}|[0-9a-fA-F]{6}|[0-9a-fA-F]{4}|[0-9a-fA-F]{3})\b/g;
 // §6.2 6칸 스케일. 리터럴로 이 값을 써도 var(--fs-*) 미사용은 여전히 드리프트지만,
 // 우선은 스케일 "밖" 값만 잡는다 — 안쪽 리터럴은 P-4 이관 대상으로 남겨둔다.
@@ -30,7 +30,7 @@ function loadWhitelist() {
 
 function relSrcPath(filePath) {
   const norm = filePath.replace(/\\/g, '/');
-  const m = norm.match(/eobom\/frontend\/src\/(.+)$/);
+  const m = norm.match(/eobomDev\/frontend\/src\/(.+)$/);
   return m ? m[1] : null;
 }
 

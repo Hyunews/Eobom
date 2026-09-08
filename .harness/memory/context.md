@@ -9,6 +9,10 @@
 
 ## ▶ 다음 할 일
 
+🔴 **경로 개명 진행중(09-09)** — `eobom/` → `eobomDev/`. **`docs/`·`.harness/`·루트 `CLAUDE.md` 41파일 96곳 반영 완료(Opus).**
+🔴 **폴더 자체는 아직 안 바뀜** — 그 전까지 `backup-db.ps1`·`token-guard.js`·`generate-db-doc.js`·`watch-backend.ps1`이 **깨진 경로를 본다.**
+▶ **[Sonnet] 착수**: `git mv` + `render.yaml`(`rootDir`)·`.gitignore`·`eobom/` 내부 자기참조. 로그·일지·트러블슈팅은 **기록이라 안 고침**.
+
 **0. [Opus] 🔴 `00-19` 제6조·제7조** — 위탁·국외이전 보류(08-18) 근거 소멸.
 Cloudflare·Supabase·Render 미기재. ⏸ "국가"란 보류(인프라 대기 — `pending-approvals.md`).
 ✅ R2분리·`00-13`§4.5-4·`07-03`·`06-04` 갱신 · §4.5-4-2 ㉮ 문서정정 필요. 🆕 `00-36`·`00-37`
@@ -37,7 +41,7 @@ Cloudflare·Supabase·Render 미기재. ⏸ "국가"란 보류(인프라 대기 
 
 프로젝트: **이어봄(Eobom)** — 디지털엔딩&웰다잉 토탈케어 플랫폼 · 마지막 2026-09-08(wt174)
 
-- 소스 `eobom/frontend`(React18+Vite5+TS) · `eobom/backend`(Express+Prisma+JWT)
+- 소스 `eobomDev/frontend`(React18+Vite5+TS) · `eobomDev/backend`(Express+Prisma+JWT)
 - 목차 `docs/00_DOCS_INDEX.md` / 저장위치 `AGENTS.md` §7
 - 🔴 **20KB↑ 통독 차단**(훅) — `grep -n`→`sed -n` 또는 `limit≤400`. 로그 3종은 **크기 무관**(§10).
 

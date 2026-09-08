@@ -25,8 +25,8 @@ param(
 $ErrorActionPreference = 'Stop'
 
 $root    = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
-$envFile = Join-Path $root 'eobom\backend\.env'
-$outDir  = Join-Path $root 'eobom\backend\backups'
+$envFile = Join-Path $root 'eobomDev\backend\.env'
+$outDir  = Join-Path $root 'eobomDev\backend\backups'
 
 if (-not (Test-Path $envFile)) { Write-Host "[X] .env 없음: $envFile" -ForegroundColor Red; exit 1 }
 
@@ -120,7 +120,7 @@ $tag   = if ($isLocal) { 'local' } else { 'prod' }
 $name  = "$tag-$stamp.dump"
 
 Write-Host "DB 백업 시작 — postgres:$PgVersion-alpine (Docker)"
-Write-Host "  출력: eobom/backend/backups/$name"
+Write-Host "  출력: eobomDev/backend/backups/$name"
 Write-Host "  ※ .gitignore에 등록된 폴더다. 개인정보가 들어가므로 절대 커밋하지 않는다(security.md §1)."
 
 # -Fc = custom format(압축 + pg_restore로 선택 복원 가능). 평문 .sql보다 다루기 좋다.

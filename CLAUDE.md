@@ -7,8 +7,8 @@
 
 | 모드 | 쓰는 곳 | 🔴 쓰지 않는 곳 |
 |---|---|---|
-| `[Claude:Opus]` 기획·설계 | `docs/` · `.harness/` | **`eobom/`** |
-| `[Claude:Sonnet]` 개발·구현 | `eobom/` | **`docs/`** |
+| `[Claude:Opus]` 기획·설계 | `docs/` · `.harness/` | **`eobomDev/`** |
+| `[Claude:Sonnet]` 개발·구현 | `eobomDev/` | **`docs/`** |
 
 - **Opus는 코드를 짜지 않는다.** 스펙이 서면 핸드오프 블록을 출력하고 **멈춘다.**
   🔴 *"충돌 없으니 이 정도는"* 도 안 된다(08-25 실제 위반·전량 revert). **미끄러져도 경고가 안 뜬다.**
