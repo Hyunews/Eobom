@@ -734,7 +734,11 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
         <div className="ending-note-layout">
           {/* A3 — 데스크톱 좌측 섹션 목차 고정. 모바일은 CSS로 숨긴다(index.css). */}
           <aside className="ending-note-toc">
-            <div style={{ fontWeight: 700, color: 'var(--primary-color)', marginBottom: '0.75rem', fontSize: '0.9rem' }}>목차</div>
+            {/* 2026-09-08 — 목차 라벨은 실제 제목(우측 아코디언 헤더, 1.05rem·700·primary)과
+                경쟁하지 않도록 캡션 취급으로 낮추고(§6.3 #2, 한 덩어리에 볼드 하나), 대신
+                CareGuidePage `.care-guide-category`와 같은 처리(대문자+자간)로 "이건 라벨"임을
+                또렷하게 한다 — 목차 링크 쪽을 올리는 만큼 라벨이 items보다 작아 보이던 걸 상쇄. */}
+            <div style={{ fontWeight: 'var(--fw-medium)', color: 'var(--text-muted)', marginBottom: '0.75rem', fontSize: 'var(--fs-caption)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>목차</div>
             <nav style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
               {SECTIONS.map((s) => (
                 <button key={s.code} type="button" onClick={() => openSectionFromToc(s.code)} className="ending-note-toc-link">

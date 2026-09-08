@@ -148,7 +148,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, navMo
                       className="sidebar-label"
                       style={{
                         fontSize: '0.98rem',
-                        fontWeight: isActive ? 800 : 600,
+                        fontWeight: isActive ? 'var(--fw-bold)' : 600,
                         color: isComingSoon ? '#94A3B8' : isActive ? '#FFFFFF' : '#F8FAFC'
                       }}
                     >
@@ -209,7 +209,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, navMo
                     className="sidebar-label"
                     style={{
                       fontSize: '0.98rem',
-                      fontWeight: isActive ? 800 : 600,
+                      fontWeight: isActive ? 'var(--fw-bold)' : 600,
                       color: isActive ? '#FFFFFF' : '#F8FAFC'
                     }}
                   >
@@ -282,7 +282,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, navMo
                 <span style={{ flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', width: '26px' }}>
                   <IconComp size={22} color={isComingSoon ? 'var(--text-muted)' : isActive ? '#FFFFFF' : 'var(--secondary-dark)'} />
                 </span>
-                <span style={{ fontSize: '0.95rem', fontWeight: isActive ? 800 : 600 }}>{item.label}</span>
+                <span style={{ fontSize: '0.95rem', fontWeight: isActive ? 'var(--fw-bold)' : 600 }}>{item.label}</span>
               </span>
               {item.status !== 'active' && <Badge status={item.status === 'preview' ? 'preview' : 'comingSoon'} />}
             </button>

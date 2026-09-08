@@ -37,11 +37,11 @@ interface TimeSection {
   ids: number[];
 }
 const TIME_SECTIONS: TimeSection[] = [
-  { key: 'funeral', label: '지금 — 장례 기간', ids: [2, 5, 1, 3, 4] },
-  { key: 'month1', label: '1개월 안에', ids: [6, 8] },
-  { key: 'month3', label: '3개월 안에 — 되돌릴 수 없음', ids: [7, 9, 10, 11, 12, 23] },
-  { key: 'month6', label: '6개월 안에', ids: [13, 14, 15, 16, 17] },
-  { key: 'later', label: '그 이후 / 기한 여유', ids: [20, 21, 22, 18, 19] },
+  { key: 'funeral', label: '장례 기간 (즉시)', ids: [2, 5, 1, 3, 4] },
+  { key: 'month1', label: '1개월 이내', ids: [6, 8] },
+  { key: 'month3', label: '3개월', ids: [7, 9, 10, 11, 12, 23] },
+  { key: 'month6', label: '6개월', ids: [13, 14, 15, 16, 17] },
+  { key: 'later', label: '이후/수시로', ids: [20, 21, 22, 18, 19] },
 ];
 
 // 07-04 §5.1 — 항목 단위 강조는 여전히 severity 기준이라(구간과는 독립 축) 매핑은 남긴다.
@@ -228,100 +228,100 @@ export const CareGuidePage: React.FC<CareGuidePageProps> = ({ setActiveTab }) =>
                         )}
 
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--sp-2)' }}>
-                        {items.map((t) => {
-                          const itemMeta = SEVERITY_LABEL[t.severity];
-                          const emphasisBorder = EMPHASIS_BORDER[t.severity];
-                          const hasLinks = Boolean(t.needsExpertHelp || t.linkTo || t.externalUrl);
-                          return (
-                          <div
-                            key={t.id}
-                            style={{
-                              padding: 'var(--sp-3)',
-                              borderRadius: 'var(--r-sm)',
-                              backgroundColor: t.checked ? 'var(--secondary-color)' : '#FFFFFF',
-                              border: '1px solid var(--border-color)',
-                              ...(emphasisBorder ? { borderLeft: emphasisBorder } : {}),
-                            }}
-                          >
-                            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 'var(--sp-3)' }}>
-                              <input
-                                type="checkbox"
-                                checked={t.checked}
-                                onChange={() => toggleTask(t.id)}
-                                style={{ width: '20px', height: '20px', marginTop: '0.15rem', flexShrink: 0, cursor: 'pointer' }}
-                              />
-                              <div style={{ flex: 1, minWidth: 0 }}>
-                                {/* 1줄 — 체크·제목·기한 배지(항상 노출)·⭐. 근거(legalBasis)는
+                          {items.map((t) => {
+                            const itemMeta = SEVERITY_LABEL[t.severity];
+                            const emphasisBorder = EMPHASIS_BORDER[t.severity];
+                            const hasLinks = Boolean(t.needsExpertHelp || t.linkTo || t.externalUrl);
+                            return (
+                              <div
+                                key={t.id}
+                                style={{
+                                  padding: 'var(--sp-3)',
+                                  borderRadius: 'var(--r-sm)',
+                                  backgroundColor: t.checked ? 'var(--secondary-color)' : '#FFFFFF',
+                                  border: '1px solid var(--border-color)',
+                                  ...(emphasisBorder ? { borderLeft: emphasisBorder } : {}),
+                                }}
+                              >
+                                <div style={{ display: 'flex', alignItems: 'flex-start', gap: 'var(--sp-3)' }}>
+                                  <input
+                                    type="checkbox"
+                                    checked={t.checked}
+                                    onChange={() => toggleTask(t.id)}
+                                    style={{ width: '20px', height: '20px', marginTop: '0.15rem', flexShrink: 0, cursor: 'pointer' }}
+                                  />
+                                  <div style={{ flex: 1, minWidth: 0 }}>
+                                    {/* 1줄 — 체크·제목·기한 배지(항상 노출)·⭐. 근거(legalBasis)는
                                     title 툴팁으로 내린다(§8-8-2) — 조문 번호는 유족에게 정보가 아니다. */}
-                                <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 'var(--sp-2)' }}>
-                                  <span
-                                    title={`근거: ${t.legalBasis}`}
-                                    style={{ textDecoration: t.checked ? 'line-through' : 'none', color: t.checked ? 'var(--text-muted)' : 'var(--text-main)', fontSize: 'var(--fs-body)', fontWeight: 'var(--fw-medium)' }}
-                                  >
-                                    {t.title}
-                                  </span>
-                                  {/* 기한 배지 — 한 카드에 볼드는 하나만(§6.3 #2)이라 이 배지가 그 하나다.
+                                    <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 'var(--sp-2)' }}>
+                                      <span
+                                        title={`근거: ${t.legalBasis}`}
+                                        style={{ textDecoration: t.checked ? 'line-through' : 'none', color: t.checked ? 'var(--text-muted)' : 'var(--text-main)', fontSize: 'var(--fs-body)', fontWeight: 'var(--fw-medium)' }}
+                                      >
+                                        {t.title}
+                                      </span>
+                                      {/* 기한 배지 — 한 카드에 볼드는 하나만(§6.3 #2)이라 이 배지가 그 하나다.
                                       §8-8-4 — deadlineShort 미신설이라 원문을 그대로 넣고 줄바꿈을 허용한다. */}
-                                  <span style={{ fontSize: 'var(--fs-caption)', fontWeight: 'var(--fw-bold)', color: itemMeta.color, backgroundColor: itemMeta.bg, padding: '0.15rem var(--sp-2)', borderRadius: 'var(--r-sm)', fontVariantNumeric: 'tabular-nums' }}>
-                                    {t.deadlineLabel}{t.deadlineBase !== '-' ? ` · ${t.deadlineBase} 기준` : ''}
-                                  </span>
-                                  {t.severity === 'CRITICAL' && (
-                                    <span style={{ fontSize: 'var(--fs-caption)', color: itemMeta.color, whiteSpace: 'nowrap' }}>
-                                      ⭐ 되돌릴 수 없음
-                                    </span>
-                                  )}
-                                  {!t.verified && (
-                                    <span style={{ fontSize: 'var(--fs-caption)', color: 'var(--state-warn-fg)', backgroundColor: 'var(--state-warn-bg)', padding: '0.1rem 0.4rem', borderRadius: 'var(--r-sm)', whiteSpace: 'nowrap' }}>
-                                      ⚠️ 확인 필요
-                                    </span>
-                                  )}
-                                </div>
+                                      <span style={{ fontSize: 'var(--fs-caption)', fontWeight: 'var(--fw-bold)', color: itemMeta.color, backgroundColor: itemMeta.bg, padding: '0.15rem var(--sp-2)', borderRadius: 'var(--r-sm)', fontVariantNumeric: 'tabular-nums' }}>
+                                        {t.deadlineLabel}{t.deadlineBase !== '-' ? ` · ${t.deadlineBase} 기준` : ''}
+                                      </span>
+                                      {t.severity === 'CRITICAL' && (
+                                        <span style={{ fontSize: 'var(--fs-caption)', color: itemMeta.color, whiteSpace: 'nowrap' }}>
+                                          ⭐ 되돌릴 수 없음
+                                        </span>
+                                      )}
+                                      {!t.verified && (
+                                        <span style={{ fontSize: 'var(--fs-caption)', color: 'var(--state-warn-fg)', backgroundColor: 'var(--state-warn-bg)', padding: '0.1rem 0.4rem', borderRadius: 'var(--r-sm)', whiteSpace: 'nowrap' }}>
+                                          ⚠️ 확인 필요
+                                        </span>
+                                      )}
+                                    </div>
 
-                                {/* 2줄 — irreversibleNote 또는 note (있을 때만) */}
-                                {(t.irreversibleNote || t.note) && (
-                                  <p style={{ fontSize: 'var(--fs-caption)', color: 'var(--text-muted)', margin: 'var(--sp-2) 0 0 0', lineHeight: 1.5 }}>
-                                    {t.irreversibleNote || t.note}
-                                  </p>
-                                )}
+                                    {/* 2줄 — irreversibleNote 또는 note (있을 때만) */}
+                                    {(t.irreversibleNote || t.note) && (
+                                      <p style={{ fontSize: 'var(--fs-caption)', color: 'var(--text-muted)', margin: 'var(--sp-2) 0 0 0', lineHeight: 1.5 }}>
+                                        {t.irreversibleNote || t.note}
+                                      </p>
+                                    )}
 
-                                {/* 3줄 — 링크. 6개 항목만 해당 */}
-                                {hasLinks && (
-                                  <div style={{ display: 'flex', gap: 'var(--sp-4)', flexWrap: 'wrap', marginTop: 'var(--sp-2)' }}>
-                                    {t.needsExpertHelp && (
-                                      <button
-                                        type="button"
-                                        onClick={() => setActiveTab?.('counseling')}
-                                        style={{ background: 'none', border: 'none', padding: 0, fontSize: 'var(--fs-caption)', color: 'var(--point-color)', textDecoration: 'underline', cursor: 'pointer' }}
-                                      >
-                                        {LINK_LABEL.counseling}
-                                      </button>
-                                    )}
-                                    {t.linkTo && (
-                                      <button
-                                        type="button"
-                                        onClick={() => setActiveTab?.(t.linkTo as string)}
-                                        style={{ background: 'none', border: 'none', padding: 0, fontSize: 'var(--fs-caption)', color: 'var(--primary-color)', textDecoration: 'underline', cursor: 'pointer' }}
-                                      >
-                                        {LINK_LABEL[t.linkTo] || '바로가기 →'}
-                                      </button>
-                                    )}
-                                    {t.externalUrl && (
-                                      <a
-                                        href={t.externalUrl}
-                                        target="_blank"
-                                        rel="noreferrer"
-                                        style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', fontSize: 'var(--fs-caption)', color: 'var(--accent-gold)', textDecoration: 'underline' }}
-                                      >
-                                        정부24 바로가기 <ExternalLink size={12} />
-                                      </a>
+                                    {/* 3줄 — 링크. 6개 항목만 해당 */}
+                                    {hasLinks && (
+                                      <div style={{ display: 'flex', gap: 'var(--sp-4)', flexWrap: 'wrap', marginTop: 'var(--sp-2)' }}>
+                                        {t.needsExpertHelp && (
+                                          <button
+                                            type="button"
+                                            onClick={() => setActiveTab?.('counseling')}
+                                            style={{ background: 'none', border: 'none', padding: 0, fontSize: 'var(--fs-caption)', color: 'var(--point-color)', textDecoration: 'underline', cursor: 'pointer' }}
+                                          >
+                                            {LINK_LABEL.counseling}
+                                          </button>
+                                        )}
+                                        {t.linkTo && (
+                                          <button
+                                            type="button"
+                                            onClick={() => setActiveTab?.(t.linkTo as string)}
+                                            style={{ background: 'none', border: 'none', padding: 0, fontSize: 'var(--fs-caption)', color: 'var(--primary-color)', textDecoration: 'underline', cursor: 'pointer' }}
+                                          >
+                                            {LINK_LABEL[t.linkTo] || '바로가기 →'}
+                                          </button>
+                                        )}
+                                        {t.externalUrl && (
+                                          <a
+                                            href={t.externalUrl}
+                                            target="_blank"
+                                            rel="noreferrer"
+                                            style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', fontSize: 'var(--fs-caption)', color: 'var(--accent-gold)', textDecoration: 'underline' }}
+                                          >
+                                            정부24 바로가기 <ExternalLink size={12} />
+                                          </a>
+                                        )}
+                                      </div>
                                     )}
                                   </div>
-                                )}
+                                </div>
                               </div>
-                            </div>
-                          </div>
-                          );
-                        })}
+                            );
+                          })}
                         </div>
                       </div>
                     );

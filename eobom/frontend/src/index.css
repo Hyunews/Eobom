@@ -1439,6 +1439,10 @@ body {
   min-width: 0; /* grid 자식이 텍스트 폭 때문에 트랙을 넘어서는 것을 막는다(가로 스크롤 방지) */
 }
 
+/* 2026-09-08 — 우측 아코디언 헤더(.ending-note-accordion-header, 1.05rem·700·primary)와
+   같은 문구를 가리키는데 이쪽은 0.85rem·기본굵기·text-main이라 밸런스가 안 맞아 보였다
+   (사용자 지적). 크기는 사이드바 역할에 맞게 작게 유지하되(caption 그대로), 굵기·색을
+   fw-medium+primary-color로 올려 "같은 항목을 가리킨다"는 느낌을 준다. */
 .ending-note-toc-link {
   display: flex;
   align-items: center;
@@ -1448,8 +1452,9 @@ body {
   border: none;
   padding: 0.4rem 0.3rem;
   border-radius: var(--r-sm);
-  font-size: 0.85rem;
-  color: var(--text-main);
+  font-size: var(--fs-caption);
+  font-weight: var(--fw-medium);
+  color: var(--primary-color);
   text-align: left;
   cursor: pointer;
 }
