@@ -49,17 +49,17 @@ const TIME_SECTIONS: TimeSection[] = [
 const SEVERITY_LABEL: Record<CareGuideTask['severity'], { title: string; desc: string; color: string; bg: string }> = {
   // 빨간색은 "위험/응급" 톤이 너무 강해 유족에게 불쾌감을 줄 수 있다는 개발자 피드백(2026-08-14)
   // 으로 짙은 앰버(주황)로 교체 — 강조는 유지하되 경보음보다는 "중요 안내" 톤. "확인 필요" 배지
-  // (연한 노란빛 amber #FEF3C7/#92400E)와는 톤을 달리해서 겹칠 때도 구분되게 한다.
-  CRITICAL: { title: '되돌릴 수 없는 것', desc: '기한을 놓치면 되돌릴 방법이 없습니다', color: '#9A3412', bg: '#FFEDD5' },
+  // (연한 노란빛 amber var(--state-warn-bg)/var(--state-warn-fg))와는 톤을 달리해서 겹칠 때도 구분되게 한다.
+  CRITICAL: { title: '되돌릴 수 없는 것', desc: '기한을 놓치면 되돌릴 방법이 없습니다', color: 'var(--state-critical-fg)', bg: 'var(--state-critical-bg)' },
   NORMAL: { title: '과태료·가산세', desc: '기한을 놓치면 불이익이 있지만 되돌릴 수는 있습니다', color: 'var(--point-color)', bg: '#EAE5DC' },
-  INFO: { title: '실무 편의', desc: '기한 압박은 없지만 정리해두면 좋습니다', color: 'var(--text-muted)', bg: '#F1F5F9' },
+  INFO: { title: '실무 편의', desc: '기한 압박은 없지만 정리해두면 좋습니다', color: 'var(--text-muted)', bg: 'var(--surface-subtle)' },
 };
 // 좌측 테두리로 severity를 항상(펼치지 않아도) 드러낸다 — CRITICAL은 굵게 + ⭐배지,
 // INFO는 흐리게, NORMAL은 표시 없음(§5.1 3단 표기).
 const EMPHASIS_BORDER: Record<CareGuideTask['severity'], string | undefined> = {
   CRITICAL: `4px solid ${SEVERITY_LABEL.CRITICAL.color}`,
   NORMAL: undefined,
-  INFO: '3px solid #E2E8F0',
+  INFO: '3px solid var(--secondary-dark)',
 };
 
 const LINK_LABEL: Record<string, string> = {
@@ -90,14 +90,14 @@ export const CareGuidePage: React.FC<CareGuidePageProps> = ({ setActiveTab }) =>
     setTasks(tasks.map((t) => (t.id === id ? { ...t, checked: !t.checked } : t)));
   };
 
-  // §2 접기 — 기본은 제목 줄만, 펼쳐야 근거·메모·바로가기가 나온다(23항목이 한 화면에 잡히게).
-  // 2026-08-31 — 카드 전체 클릭이 아니라 화살표 버튼을 눌러야만 펼쳐지도록 변경(사용자 지시).
-  const [expandedIds, setExpandedIds] = useState<Set<number>>(new Set());
-  const toggleExpand = (id: number) => {
-    setExpandedIds((prev) => {
+  // 07-04 §8-8-2(2026-09-08) — 항목 아코디언을 없앤다. 접기는 구간 5개에만 두고, 기본은
+  // "지금 — 장례 기간"만 펼친다. 카드는 항상 기한·⭐을 보여주므로 펼쳐야만 보이던 정보가 없다.
+  const [openSections, setOpenSections] = useState<Set<string>>(new Set(['funeral']));
+  const toggleSection = (key: string) => {
+    setOpenSections((prev) => {
       const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
       return next;
     });
   };
@@ -105,8 +105,8 @@ export const CareGuidePage: React.FC<CareGuidePageProps> = ({ setActiveTab }) =>
   return (
     <div className="container">
       <div style={{ marginBottom: '1.5rem' }}>
-        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', backgroundColor: '#DEF7EC', color: '#03543F', padding: '0.3rem 0.8rem', borderRadius: '16px', fontSize: '0.85rem', fontWeight: 700, marginBottom: '0.6rem' }}>
-          <ChecklistShieldIcon size={18} color="#03543F" /> 사망 직후 필수 행정절차
+        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', backgroundColor: 'var(--state-ok-bg)', color: 'var(--state-ok-fg)', padding: '0.3rem 0.8rem', borderRadius: 'var(--r-lg)', fontSize: '0.85rem', fontWeight: 700, marginBottom: '0.6rem' }}>
+          <ChecklistShieldIcon size={18} color="var(--state-ok-fg)" /> 사망 직후 필수 행정절차
         </div>
         <h1 className="page-title" style={{ color: 'var(--primary-color)', display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0 }}>
           <ChecklistShieldIcon color="var(--point-color)" size={32} /> 상중 행정 가이드
@@ -118,10 +118,10 @@ export const CareGuidePage: React.FC<CareGuidePageProps> = ({ setActiveTab }) =>
 
       {/* §3.1 최상단 고정 배너 — 유족은 체크리스트를 끝까지 스크롤하지 않는다. 한 줄이라도
           남으려면 최상단이어야 한다. */}
-      <div style={{ backgroundColor: '#FFEDD5', border: '2px solid #FDBA74', borderRadius: '12px', padding: '1.1rem 1.3rem', marginBottom: '1.5rem', display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
-        <AlertTriangle color="#9A3412" size={24} style={{ flexShrink: 0, marginTop: '0.1rem' }} />
+      <div style={{ backgroundColor: 'var(--state-critical-bg)', border: '2px solid var(--state-critical-bg)', borderRadius: 'var(--r-md)', padding: '1.1rem 1.3rem', marginBottom: '1.5rem', display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
+        <AlertTriangle color="var(--state-critical-fg)" size={24} style={{ flexShrink: 0, marginTop: '0.1rem' }} />
         <div style={{ flex: 1 }}>
-          <h3 style={{ color: '#9A3412', fontSize: '1.05rem', margin: '0 0 0.4rem 0' }}>
+          <h3 style={{ color: 'var(--state-critical-fg)', fontSize: '1.05rem', margin: '0 0 0.4rem 0' }}>
             고인에게 빚이 있을 수 있다면, 3개월 안에 결정해야 합니다.
           </h3>
           <p style={{ fontSize: '0.9rem', color: '#7C2D12', margin: '0 0 0.75rem 0', lineHeight: 1.6 }}>
@@ -132,7 +132,7 @@ export const CareGuidePage: React.FC<CareGuidePageProps> = ({ setActiveTab }) =>
               type="button"
               onClick={() => inheritanceRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
               className="btn"
-              style={{ backgroundColor: '#FFFFFF', color: '#9A3412', border: '1px solid #FDBA74', height: '38px', fontSize: '0.85rem', padding: '0 1rem' }}
+              style={{ backgroundColor: '#FFFFFF', color: 'var(--state-critical-fg)', border: '1px solid var(--state-critical-bg)', height: '38px', fontSize: '0.85rem', padding: '0 1rem' }}
             >
               내용 보기
             </button>
@@ -140,7 +140,7 @@ export const CareGuidePage: React.FC<CareGuidePageProps> = ({ setActiveTab }) =>
               type="button"
               onClick={() => setActiveTab?.('counseling')}
               className="btn"
-              style={{ backgroundColor: '#9A3412', color: '#FFFFFF', height: '38px', fontSize: '0.85rem', padding: '0 1rem' }}
+              style={{ backgroundColor: 'var(--state-critical-fg)', color: '#FFFFFF', height: '38px', fontSize: '0.85rem', padding: '0 1rem' }}
             >
               전문가 상담
             </button>
@@ -172,95 +172,126 @@ export const CareGuidePage: React.FC<CareGuidePageProps> = ({ setActiveTab }) =>
             byCategory.get(t.category)!.push(t);
           });
 
+          // §8-8-2 — 구간 3은 접혀 있어도 ⭐과 붉은 테두리를 유지한다(§8-7-3).
+          const isMonth3 = section.key === 'month3';
+          const isOpen = openSections.has(section.key);
+
           return (
-            <div key={section.key} style={{ marginBottom: '1.5rem' }}>
-              <div style={{ marginBottom: '0.6rem' }}>
-                <span style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--primary-color)' }}>{section.label}</span>
-              </div>
+            <div key={section.key} style={{ marginBottom: 'var(--sp-6)' }}>
+              {/* §8-8-2 — 구간 3 강조는 전체를 들여쓰지 않고 이 버튼 자체를 색 있는 띠로
+                  만든다(2026-09-08 재수정). borderLeft+paddingLeft를 섹션 전체에 걸면 위
+                  구간의 하위 항목처럼 보인다는 지적(들여쓰기 착시) — 버튼 폭 전체에 배경·좌측
+                  테두리를 줘서 "구간 하나가 강조됐다"로 읽히게 한다. */}
+              <button
+                type="button"
+                onClick={() => toggleSection(section.key)}
+                aria-expanded={isOpen}
+                className="care-guide-section-toggle"
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 'var(--sp-2)', width: '100%',
+                  border: 'none', padding: 'var(--sp-2) var(--sp-3)', margin: '0 0 var(--sp-2) 0',
+                  cursor: 'pointer', textAlign: 'left', color: 'var(--primary-color)',
+                  ...(isMonth3
+                    ? { background: 'var(--state-critical-bg)', borderLeft: '4px solid var(--state-critical-fg)' }
+                    : { background: 'none' }),
+                }}
+              >
+                {isOpen ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+                <span style={{ fontFamily: 'var(--font-serif)', fontSize: 'var(--fs-section)' }}>{section.label}</span>
+                {isMonth3 && <span style={{ color: 'var(--state-critical-fg)' }}>⭐</span>}
+                <span style={{ fontSize: 'var(--fs-caption)', color: 'var(--text-muted)', fontVariantNumeric: 'tabular-nums' }}>
+                  ({group.length})
+                </span>
+              </button>
 
               {/* 카테고리 = flex 박스. index.css `.care-guide-columns`가 가로 여유가 있으면
-                  옆으로 나열하고, 없으면 다음 줄로 넘긴다. */}
-              <div className="care-guide-columns">
-                {categoryOrder.map((category) => {
-                  const items = byCategory.get(category)!;
-                  const isInheritanceSet = category === '상속 승인·포기';
+                  옆으로 나열하고, 없으면 다음 줄로 넘긴다. §8-8-2 — 카테고리 헤더는 그 구간에
+                  2개 이상일 때만 노출한다. */}
+              {isOpen && (
+                <div className="care-guide-columns">
+                  {categoryOrder.map((category) => {
+                    const items = byCategory.get(category)!;
+                    const isInheritanceSet = category === '상속 승인·포기';
+                    const showCategoryHeader = categoryOrder.length > 1;
 
-                  return (
-                    <div
-                      key={category}
-                      ref={isInheritanceSet ? inheritanceRef : undefined}
-                      className="care-guide-category"
-                    >
-                      <div style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.02em', marginBottom: '0.6rem' }}>
-                        {category}
-                        {items[0].conditional && ' (해당하는 경우에만)'}
-                      </div>
+                    return (
+                      <div
+                        key={category}
+                        ref={isInheritanceSet ? inheritanceRef : undefined}
+                        className="care-guide-category"
+                      >
+                        {showCategoryHeader && (
+                          <div style={{ fontSize: 'var(--fs-caption)', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.02em', marginBottom: 'var(--sp-2)' }}>
+                            {category}
+                            {items[0].conditional && ' (해당하는 경우에만)'}
+                          </div>
+                        )}
 
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
-                      {items.map((t) => {
-                        const isExpanded = expandedIds.has(t.id);
-                        const itemMeta = SEVERITY_LABEL[t.severity];
-                        const emphasisBorder = EMPHASIS_BORDER[t.severity];
-                        return (
-                        <div
-                          key={t.id}
-                          style={{
-                            padding: '0.9rem',
-                            borderRadius: '8px',
-                            backgroundColor: t.checked ? 'var(--secondary-color)' : '#FFFFFF',
-                            border: '1px solid var(--border-color)',
-                            ...(emphasisBorder ? { borderLeft: emphasisBorder } : {}),
-                          }}
-                        >
-                          <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
-                            <input
-                              type="checkbox"
-                              checked={t.checked}
-                              onChange={() => toggleTask(t.id)}
-                              style={{ width: '20px', height: '20px', marginTop: '0.1rem', flexShrink: 0, cursor: 'pointer' }}
-                            />
-                            <div style={{ flex: 1, minWidth: 0 }}>
-                              <span style={{ display: 'inline-flex', alignItems: 'center', flexWrap: 'wrap', gap: '0.4rem' }}>
-                                <span style={{ textDecoration: t.checked ? 'line-through' : 'none', color: t.checked ? 'var(--text-muted)' : 'var(--text-main)', fontSize: '0.95rem', fontWeight: 600 }}>
-                                  {t.title}
-                                </span>
-                                {/* §5.1 3단 표기 — CRITICAL만 ⭐+글자 배지, 펼치지 않아도 보인다 */}
-                                {t.severity === 'CRITICAL' && (
-                                  <span style={{ fontSize: '0.78rem', fontWeight: 700, color: itemMeta.color, backgroundColor: itemMeta.bg, padding: '0.1rem 0.4rem', borderRadius: '4px', whiteSpace: 'nowrap' }}>
-                                    ⭐ 되돌릴 수 없음
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--sp-2)' }}>
+                        {items.map((t) => {
+                          const itemMeta = SEVERITY_LABEL[t.severity];
+                          const emphasisBorder = EMPHASIS_BORDER[t.severity];
+                          const hasLinks = Boolean(t.needsExpertHelp || t.linkTo || t.externalUrl);
+                          return (
+                          <div
+                            key={t.id}
+                            style={{
+                              padding: 'var(--sp-3)',
+                              borderRadius: 'var(--r-sm)',
+                              backgroundColor: t.checked ? 'var(--secondary-color)' : '#FFFFFF',
+                              border: '1px solid var(--border-color)',
+                              ...(emphasisBorder ? { borderLeft: emphasisBorder } : {}),
+                            }}
+                          >
+                            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 'var(--sp-3)' }}>
+                              <input
+                                type="checkbox"
+                                checked={t.checked}
+                                onChange={() => toggleTask(t.id)}
+                                style={{ width: '20px', height: '20px', marginTop: '0.15rem', flexShrink: 0, cursor: 'pointer' }}
+                              />
+                              <div style={{ flex: 1, minWidth: 0 }}>
+                                {/* 1줄 — 체크·제목·기한 배지(항상 노출)·⭐. 근거(legalBasis)는
+                                    title 툴팁으로 내린다(§8-8-2) — 조문 번호는 유족에게 정보가 아니다. */}
+                                <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 'var(--sp-2)' }}>
+                                  <span
+                                    title={`근거: ${t.legalBasis}`}
+                                    style={{ textDecoration: t.checked ? 'line-through' : 'none', color: t.checked ? 'var(--text-muted)' : 'var(--text-main)', fontSize: 'var(--fs-body)', fontWeight: 'var(--fw-medium)' }}
+                                  >
+                                    {t.title}
                                   </span>
-                                )}
-                                {/* §5.2 — "되돌릴 수 없음"이 항목마다 다른 뜻이라 배지 옆에 한 줄을 붙인다 */}
-                                {t.severity === 'CRITICAL' && t.irreversibleNote && (
-                                  <span style={{ fontSize: '0.8rem', color: itemMeta.color }}>
-                                    {t.irreversibleNote}
+                                  {/* 기한 배지 — 한 카드에 볼드는 하나만(§6.3 #2)이라 이 배지가 그 하나다.
+                                      §8-8-4 — deadlineShort 미신설이라 원문을 그대로 넣고 줄바꿈을 허용한다. */}
+                                  <span style={{ fontSize: 'var(--fs-caption)', fontWeight: 'var(--fw-bold)', color: itemMeta.color, backgroundColor: itemMeta.bg, padding: '0.15rem var(--sp-2)', borderRadius: 'var(--r-sm)', fontVariantNumeric: 'tabular-nums' }}>
+                                    {t.deadlineLabel}{t.deadlineBase !== '-' ? ` · ${t.deadlineBase} 기준` : ''}
                                   </span>
-                                )}
-                              </span>
-
-                              {isExpanded && (
-                                <>
-                                  {/* 기한·확인필요 배지 — 기본 상태에선 제목만 남기고, 펼쳤을 때만 보이게 이동 */}
-                                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap', margin: '0.4rem 0 0 0' }}>
-                                    <span style={{ fontSize: '0.85rem', fontWeight: 700, color: itemMeta.color, backgroundColor: itemMeta.bg, padding: '0.15rem 0.5rem', borderRadius: '4px' }}>
-                                      {t.deadlineLabel}{t.deadlineBase !== '-' ? ` · ${t.deadlineBase} 기준` : ''}
+                                  {t.severity === 'CRITICAL' && (
+                                    <span style={{ fontSize: 'var(--fs-caption)', color: itemMeta.color, whiteSpace: 'nowrap' }}>
+                                      ⭐ 되돌릴 수 없음
                                     </span>
-                                    {!t.verified && (
-                                      <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#92400E', backgroundColor: '#FEF3C7', border: '1px solid #FDE68A', padding: '0.1rem 0.45rem', borderRadius: '4px' }}>
-                                        ⚠️ 확인 필요
-                                      </span>
-                                    )}
-                                  </div>
-                                  {t.note && (
-                                    <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', margin: '0.3rem 0 0 0', lineHeight: 1.5 }}>{t.note}</p>
                                   )}
-                                  <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', margin: '0.3rem 0 0 0' }}>근거: {t.legalBasis}</p>
-                                  <div style={{ display: 'flex', gap: '0.9rem', flexWrap: 'wrap', marginTop: '0.4rem' }}>
+                                  {!t.verified && (
+                                    <span style={{ fontSize: 'var(--fs-caption)', color: 'var(--state-warn-fg)', backgroundColor: 'var(--state-warn-bg)', padding: '0.1rem 0.4rem', borderRadius: 'var(--r-sm)', whiteSpace: 'nowrap' }}>
+                                      ⚠️ 확인 필요
+                                    </span>
+                                  )}
+                                </div>
+
+                                {/* 2줄 — irreversibleNote 또는 note (있을 때만) */}
+                                {(t.irreversibleNote || t.note) && (
+                                  <p style={{ fontSize: 'var(--fs-caption)', color: 'var(--text-muted)', margin: 'var(--sp-2) 0 0 0', lineHeight: 1.5 }}>
+                                    {t.irreversibleNote || t.note}
+                                  </p>
+                                )}
+
+                                {/* 3줄 — 링크. 6개 항목만 해당 */}
+                                {hasLinks && (
+                                  <div style={{ display: 'flex', gap: 'var(--sp-4)', flexWrap: 'wrap', marginTop: 'var(--sp-2)' }}>
                                     {t.needsExpertHelp && (
                                       <button
                                         type="button"
                                         onClick={() => setActiveTab?.('counseling')}
-                                        style={{ background: 'none', border: 'none', padding: 0, fontSize: '0.85rem', fontWeight: 700, color: 'var(--point-color)', textDecoration: 'underline', cursor: 'pointer' }}
+                                        style={{ background: 'none', border: 'none', padding: 0, fontSize: 'var(--fs-caption)', color: 'var(--point-color)', textDecoration: 'underline', cursor: 'pointer' }}
                                       >
                                         {LINK_LABEL.counseling}
                                       </button>
@@ -269,7 +300,7 @@ export const CareGuidePage: React.FC<CareGuidePageProps> = ({ setActiveTab }) =>
                                       <button
                                         type="button"
                                         onClick={() => setActiveTab?.(t.linkTo as string)}
-                                        style={{ background: 'none', border: 'none', padding: 0, fontSize: '0.85rem', fontWeight: 700, color: 'var(--primary-color)', textDecoration: 'underline', cursor: 'pointer' }}
+                                        style={{ background: 'none', border: 'none', padding: 0, fontSize: 'var(--fs-caption)', color: 'var(--primary-color)', textDecoration: 'underline', cursor: 'pointer' }}
                                       >
                                         {LINK_LABEL[t.linkTo] || '바로가기 →'}
                                       </button>
@@ -279,32 +310,24 @@ export const CareGuidePage: React.FC<CareGuidePageProps> = ({ setActiveTab }) =>
                                         href={t.externalUrl}
                                         target="_blank"
                                         rel="noreferrer"
-                                        style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.85rem', fontWeight: 700, color: 'var(--accent-gold)', textDecoration: 'underline' }}
+                                        style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', fontSize: 'var(--fs-caption)', color: 'var(--accent-gold)', textDecoration: 'underline' }}
                                       >
                                         정부24 바로가기 <ExternalLink size={12} />
                                       </a>
                                     )}
                                   </div>
-                                </>
-                              )}
+                                )}
+                              </div>
                             </div>
-                            <button
-                              type="button"
-                              onClick={() => toggleExpand(t.id)}
-                              aria-label={isExpanded ? '접기' : '펼치기'}
-                              style={{ background: 'none', border: 'none', padding: '0.2rem', cursor: 'pointer', color: 'var(--text-muted)', flexShrink: 0 }}
-                            >
-                              {isExpanded ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
-                            </button>
                           </div>
+                          );
+                        })}
                         </div>
-                        );
-                      })}
                       </div>
-                    </div>
-                  );
-                })}
-              </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           );
         })}
