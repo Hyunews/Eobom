@@ -2140,3 +2140,150 @@ wt137 그대로라 재작업 없음).
 - **다음 에이전트가 알아야 할 것**: 이 배너는 한 세션 안에서 A~F 시안 비교(아티팩트) → E 선택 → 테두리 리본형 재수정 → 버튼 한 줄 배치까지 4단계를 거쳤다. 최종 형태: 좌우 테두리 없음(위아래 선만) + 좌상단 원형 뱃지 + 제목 한 줄 + "본문+버튼 2개"가 한 줄. 추가로 손볼 요청이 오면 이 히스토리(wt159~162)를 먼저 확인할 것.
 
 <!-- Gemini 판정 1줄: 대기 -->
+
+
+## 2026-09-08 (163) | [Sonnet] 07-04 §8-9 — 상중 행정 가이드 구간 소속 2건 수정 (id23 구간1 이동 · id12 conditional 보강)
+
+- **근거 스펙**: docs/07_상중_행정_케어/07-04.md §8-9 (2026-09-08 확정)
+- **건드린 파일**: eobom/frontend/src/pages/CareGuidePage.tsx , eobom/frontend/src/mockData/careGuideTasks.json
+- **결과**: (1) `TIME_SECTIONS`(CareGuidePage.tsx 39~44행) — funeral.ids를 `[2,5,1,3,4]` → `[2,5,1,3,4,23]`, month3.ids를 `[7,9,10,11,12,23]` → `[7,9,10,11,12]`로 수정. (2) careGuideTasks.json id 12 — `"title": "한정승인 후 채권자 공고"` → `"한정승인을 했다면 — 채권자 공고"`, `"conditional": true` 추가(deadlineLabel"5일"·deadlineBase"한정승인일"·category"상속 승인·포기"는 미변경). `tsc --noEmit`·`npm run build`(frontend) 통과.
+- **편차**: id12에 `conditional: true`를 추가했지만 CareGuidePage.tsx 렌더 로직(228~232행)은 카테고리 헤더의 "(해당하는 경우에만)" 라벨을 그 카테고리 **첫 번째 항목**(`items[0].conditional`)으로만 판정한다. month3 구간의 "상속 승인·포기" 카테고리는 표시 순서가 `[9,10,11,12]`라 `items[0]`이 id9(비조건부)이고, 그래서 id12에 conditional을 붙여도 화면상 카테고리 헤더에는 아무 표시 변화가 없다 — id23(그 카테고리에 단독이라 items[0]이 자기 자신)과 다르게 처리된다. 현재는 title 문구("한정승인을 했다면 —")만 조건부임을 알린다. 항목 단위 조건부 배지가 필요하면 별도 스펙 판단(Opus) 필요 — 이번 작업 범위(JSON 데이터·섹션 배열 수정)를 벗어나 렌더 로직은 건드리지 않았다.
+  부수 효과: id23을 funeral 구간으로 옮기며 그 구간 카테고리가 2종("장례 단계"·"조건부 (유언이 있는 경우)")이 되어, §8-8-2 `categoryOrder.length > 1` 조건에 따라 이전에는 없던 카테고리 헤더가 funeral 구간에도 새로 노출된다(기존 렌더 로직 그대로 동작한 결과이며 코드 변경 아님).
+- **다음 에이전트가 알아야 할 것**: 🔵 실기동 검증 대기 — 사람이 `/care-guide`에서 구간1(5건, 새 카테고리 헤더 2종 노출)·구간3(5건으로 축소)·id12 문구·id12 conditional 무표시(위 편차)를 확인해야 한다. id12 조건부를 id23처럼 시각적으로 드러내려면 렌더 로직(카테고리 헤더 판정을 items[0]이 아니라 카테고리 내 전원 conditional 여부로 바꾸거나, 항목별 배지 추가) 변경이 필요 — Opus 스펙 판단 후 착수.
+
+<!-- Gemini 판정 대기 -->
+
+
+## 2026-09-08 (164) | [Sonnet] 유족 메시지 보관함 — 개인별 박스 보드(반응형 2열) + 새 편지 쓰기 A/B/C 탭 재설계
+
+- **근거 스펙**: 스펙 없음 — 사용자가 디자인 아티팩트(시안 비교 → 확정)로 직접 지시한 즉흥 구현. `docs/06_엔딩노트_유언/06-05_유족메시지_보관함_도메인분리_기획서.md`는 도메인 분리(백엔드)까지만 다루고 이번 UI 재설계는 범위 밖 — 필요하면 `[Claude:Opus]`가 반영 여부 판단.
+- **건드린 파일**: eobom/frontend/src/pages/FarewellMessagePage.tsx , eobom/frontend/src/components/FarewellMessageCard.tsx , eobom/frontend/src/components/VoiceToTextInput.tsx , eobom/frontend/src/index.css
+- **결과**:
+  1) FarewellMessagePage.tsx — 수신자 카드 그리드를 인라인 스타일(`repeat(auto-fit, minmax(min(340px,100%),1fr))`, 화면이 넓으면 3열 이상 벌어질 수 있었음)에서 `className="farewell-board-grid"`로 교체. index.css에 정의: 기본 1열, `@media (min-width:720px)`에서 `repeat(2,1fr)` — 반응형으로 한 줄에 최대 2개.
+  2) FarewellMessageCard.tsx 편지 목록 — 148px 고정 높이·`repeat(auto-fill, minmax(300px,1fr))` 타일 그리드를 `.farewell-message-list`/`.farewell-message-row` 한 줄 리스트로 교체(높이 고정 해제, 박스 폭을 그대로 써서 `-webkit-line-clamp:2` 미리보기가 실제로 더 길게 보임). 삭제·다운로드 아이콘은 절대좌표 오버레이 대신 우측 메타 컬럼(`.farewell-message-meta`)으로 이동, 호버 시 아이콘 확대(iconBoxSize/iconGlyphSize) 로직은 그대로 유지.
+  3) 새 편지 쓰기 모달 — 제목 입력 아래 A(`<Upload/>` 음성 파일 업로드)·B(`<Mic/>` 음성 녹음)·C(`<Pencil/>` 직접 쓰기) 탭 신설(`activeMethod` state, 기본값 `'write'`). 탭 옆 `.farewell-composer-body`(그리드 200px+1fr, 620px 미만에서 1열로 접힘)의 `.farewell-composer-rail`이 탭별 설명을 담당 — A/B는 "자동으로 글로 바뀝니다" + 네이버 CLOVA Speech 전송·7일 보관 안내(VoiceToTextInput 기존 동의 문구와 같은 내용), C는 "무엇을 남길까 고민된다면" 소재 힌트 3개. 패널 폭 560px→760px(`.farewell-message-panel`).
+  4) VoiceToTextInput.tsx — `mode: 'upload' | 'record'` prop 신설. 첫방문 안내·녹음 확인모달·mic 에러·"목소리로 말하기" 섹션은 `mode==='record'`에서만, Ⓐ 업로드 섹션은 `mode==='upload'`에서만 그린다. `sttUploadEnabled`가 꺼져 있으면 A 탭엔 안내 문구("지금은 음성 파일 업로드를 사용할 수 없습니다")만 남긴다. `mediaInfo`·`audioSrc`·`audioLoading`·`deletingAudio`·`onListen`·`onDeleteAudio` props와 그 렌더(듣기·삭제 버튼 + `<audio>`)를 컴포넌트에서 완전히 뺐다 — FarewellMessageCard가 제목 입력 바로 아래 `.farewell-audio-attached` 행으로 탭과 무관하게 항상 렌더한다.
+  5) FarewellMessageCard.tsx에서 VoiceToTextInput 호출에 `key={activeMethod}` — 탭 전환 시 강제 재마운트시켜, 녹음 중 다른 탭으로 넘어가도 기존 언마운트 클린업(스트림·MediaRecorder 정지)이 확실히 돈다.
+  `npx tsc --noEmit`·`npm run build`(둘 다 eobom/frontend) 통과.
+- **편차**:
+  - A/B/C 탭은 (사용자가 지시한 대로) 항상 3개 다 보인다 — 서버 플래그(`CLOVA_STT_ENABLED`)가 꺼져 있거나 브라우저가 녹음을 지원하지 않아도 탭 자체를 숨기지 않고, 탭 안에서 안내 문구로 대체했다(탭이 사라졌다 나타났다 하지 않게).
+  - 기존 음성 첨부 듣기·삭제 UI를 VoiceToTextInput 밖(`.farewell-audio-attached`)으로 옮겼다 — "직접 쓰기" 탭에서는 VoiceToTextInput 자체가 마운트되지 않아, 그 안에 있던 기존 구조로는 첨부 음성 관리가 그 탭에서 사라지는 문제가 생기기 때문. 탭 셋 중 어느 것을 선택해도 관리 가능하도록 부모로 끌어올렸다.
+  - 기본 활성 탭을 사용자가 나열한 순서상 A가 아니라 C(직접 쓰기)로 정했다 — 모달을 열자마자 마이크/파일 권한과 무관한 쪽이 안전하다는 판단(권한 팝업이 뜻밖에 뜨는 상황을 피함). 다른 기본값을 원하면 `activeMethod` 초기값(FarewellMessageCard.tsx 78행 부근) 한 줄만 바꾸면 된다.
+- **다음 에이전트가 알아야 할 것**: 🔵 실기동 검증 대기(사람, 09-03 방침) — `/farewell-messages`에서 ① 720px 기준 2열↔1열 전환, ② 박스 안 편지가 안 잘리고 한 줄씩 보이는지, ③ A/B/C 탭 전환 시 사이드노트 설명이 같이 바뀌는지, ④ B 탭 실제 녹음→저장 흐름(로직은 손대지 않았지만 렌더 배선을 바꿨으니 재확인 필요), ⑤ 첨부 음성이 있는 편지를 열었을 때 상단 "첨부된 음성" 행에서 듣기·삭제가 정상 동작하는지 확인 필요.
+
+<!-- Gemini 판정 대기 -->
+
+
+## 2026-09-08 (165) | [Sonnet] 유족메시지 박스보드·편지목록·새편지 탭 — wt164 후속 미세조정 4건
+
+- **근거 스펙**: 스펙 없음 — 사용자 직접 지시(연속 피드백 4건, wt164 실기동 확인 중 지적).
+- **건드린 파일**: eobom/frontend/src/index.css , eobom/frontend/src/components/FarewellMessageCard.tsx
+- **결과**:
+  1) 박스 보드 1개일 때 반으로 좁혀지던 것 — `.farewell-board-grid`의 720px 이상 규칙을 `repeat(2, 1fr)`(수신자 1명이어도 무조건 2열)에서 `repeat(auto-fit, minmax(max(360px, calc(50% - 0.75rem)), 1fr))`로 교체. 항목 1개면 1열(꽉 채움), 2개 이상이면 2열까지만 접힌다 — 열 수 상한(2)은 그대로.
+  2) 편지 목록 행의 날짜·삭제·다운로드 상하 순서 변경 — `.farewell-message-meta` 안에서 날짜(위)·버튼줄(아래)이던 순서를 버튼줄(위)·날짜(아래)로 뒤집었다(FarewellMessageCard.tsx).
+  3) 삭제·다운로드 아이콘 기본 크기 확대 — `iconBoxSize`/`iconGlyphSize` 기본값을 18px/12px → 24px/16px, 호버값을 25px/17px → 30px/20px로 키움(더 이상 텍스트 위에 겹쳐 있지 않고 전용 칸에 있어 평소에도 눌러야 할 만큼 커야 한다는 지시).
+  4) 새 편지 쓰기 기본 탭을 C(직접 쓰기)에서 A(음성 파일 업로드)로 변경 — `activeMethod` 초기값과 `resetComposer`·`openNewComposer`·`openEditComposer` 3곳의 리셋값을 모두 `'upload'`로.
+  `npx tsc --noEmit`·`npm run build`(둘 다 eobom/frontend) 통과.
+- **편차**: 없음 — 전부 사용자가 명시한 대로.
+- **다음 에이전트가 알아야 할 것**: 🔵 실기동 검증 대기 — 사람이 ①수신자 1/2/3명 각각 폭, ②편지 행 버튼·날짜 순서, ③아이콘 커진 크기, ④모달 기본 탭이 A로 열리는지 확인.
+
+<!-- Gemini 판정 대기 -->
+
+
+## 2026-09-08 (166) | [Sonnet] 유족메시지 보관함 — 박스 그리드 폐기, "사이드바+상세"로 재구현 + 가족 0명 시 사이드바 CTA
+
+- **근거 스펙**: 스펙 없음 — 사용자 직접 지시. 디자인 아티팩트(네 가지 뼈대 비교: 사이드바+상세·아코디언·포커스 캐러셀·미리보기+펼치기)에서 "사이드바+상세로 결정" 확정.
+- **건드린 파일**: eobom/frontend/src/pages/FarewellMessagePage.tsx , eobom/frontend/src/components/FarewellMessageCard.tsx , eobom/frontend/src/index.css
+- **결과**:
+  1) FarewellMessagePage.tsx — `recipients.length===0` 전용 중앙 카드 분기와 `.farewell-board-grid`(박스 그리드, wt164~165) 분기를 하나로 합쳐 `.farewell-board-shell > .farewell-board-layout`(사이드바 220px + 상세 1fr)로 재구성. `selectedRecipientId` state 신설(수신자 목록이 바뀌면 유효하지 않은 선택을 첫 번째 수신자로 재조정하는 useEffect 포함). 사이드바는 이름·관계·통수만 나열하는 버튼 목록, 상세 칸은 선택된 수신자 하나만 `<FarewellMessageCard key={selectedRecipient.id} .../>`로 렌더(key로 수신자 전환 시 강제 재마운트 — 열려 있던 편집기가 다른 사람 것으로 새는 걸 막는다).
+  2) 가족 지정 0명일 때 — 사이드바가 목록 대신 `.farewell-board-add`("+ 가족 추가") 버튼 하나로 바뀌고, 상세 칸엔 안내 문구만 남는다. 버튼은 기존에 이미 배선돼 있던 `onOpenFamilyDesignation` prop을 그대로 호출 — App.tsx가 이걸 `MyPageFamilyDesignation` 모달(마이페이지에서 쓰는 그 모달, 이미 `isFamilyDesignationOpen` state로 전역 렌더 중)을 여는 데 연결해 두었으므로 별도 배선 없이 그대로 재사용된다.
+  3) FarewellMessageCard.tsx — 더 이상 자기 박스(배경·그림자·패딩)를 그리지 않는다(부모 `.farewell-board-shell`이 그 역할). 이름/관계/상태 줄과 "새 편지 쓰기·전체 다운로드" 버튼을 한 줄(제목+액션, 구분선 아래로 목록)로 재배치 — 기존엔 액션 버튼이 목록 맨 아래에 있었다. 편지 0통일 때 "아직 남긴 편지가 없습니다" 문구 추가(전엔 아무 표시 없었음). `RELATIONSHIP_LABEL` export 추가(FarewellMessagePage 사이드바에서 재사용).
+  4) index.css — `.farewell-board-grid`(+ 반응형 2열 트릭) 전체 삭제, `.farewell-board-shell`·`.farewell-board-layout`·`.farewell-board-sidebar`·`.farewell-board-recipient`·`.farewell-board-avatar`·`.farewell-board-add`·`.farewell-board-empty` 신설(680px 미만은 사이드바가 가로 스크롤 행으로 접힘).
+  `npx tsc --noEmit`·`npm run build`(둘 다 eobom/frontend) 통과.
+- **편차**: "가족 추가" 버튼은 사용자가 명시한 대로 **가족 0명일 때만** 사이드바에 나타난다(1명 이상이면 사이드바는 목록만, 추가 버튼 없음) — 이후 필요하면(예: 항상 노출) 알려주면 됨.
+- **다음 에이전트가 알아야 할 것**: 🔵 실기동 검증 대기 — 사람이 ①가족 0명일 때 사이드바 버튼→MyPageFamilyDesignation 모달이 실제로 열리는지, ②가족 1명 이상일 때 사이드바 클릭으로 상세가 전환되는지, ③680px 미만에서 사이드바가 가로 스크롤 행으로 바뀌는지, ④수신자 전환 시 열려 있던 편지 편집기가 깨끗이 닫히는지 확인 필요.
+
+<!-- Gemini 판정 대기 -->
+
+
+## 2026-09-08 (167) | [Sonnet] 유족메시지 상세 칸 — 목업(md-detail) 타이포·색 디테일 반영
+
+- **근거 스펙**: 스펙 없음 — 사용자 직접 지시("미리 만들어준 html의 md-detail 박스부분을 비슷하게 구현해줬으면 해, 디자인 측면에서"). 근거는 이전에 승인받은 디자인 아티팩트(사이드바+상세 옵션)의 CSS.
+- **건드린 파일**: eobom/frontend/src/components/FarewellMessageCard.tsx , eobom/frontend/src/index.css
+- **결과**: wt166에서 구조(헤더+구분선+액션, 편지 줄)는 이미 옮겼지만 놓쳤던 타이포·색 디테일 2가지를 마저 반영.
+  1) 아티팩트에서 `h1~h4`가 전부 `--font-serif`(KoPub World Batang)였던 것 — 상세 칸의 받는 분 이름(1.5rem)과 편지 제목(1.1rem→1.15rem)에 `fontFamily: 'var(--font-serif)'`를 명시 추가. 지금까지는 본문 산세리프(Noto Sans/Pretendard)로만 렌더돼 "편지" 느낌이 덜했다.
+  2) 아티팩트에서 음성 첨부 표시(🔊)는 `--gold-ink`(포인트 그린과 구분되는 금색 계열)였던 것 — 편지 줄의 `Volume2` 아이콘 색을 `var(--point-color)`(초록, 연필 아이콘과 같은 색이라 구분이 약했음)에서 `var(--accent-gold)`로 교체.
+  3) index.css에 `.farewell-message-row:first-child{padding-top:0;}` 추가 — 헤더 구분선 바로 아래 첫 줄의 여분 위쪽 여백을 없애 아티팩트와 같은 밀착도로 맞춤.
+  `npx tsc --noEmit`·`npm run build`(eobom/frontend) 통과.
+- **편차**: 없음 — 목업 CSS 값을 그대로 가져왔다.
+- **다음 에이전트가 알아야 할 것**: 🔵 실기동 검증 대기 — 사람이 편지 제목·받는 분 이름이 명조체로 보이는지, 음성 첨부 아이콘이 금색으로 바뀌었는지 확인.
+
+<!-- Gemini 판정 대기 -->
+
+
+## 2026-09-08 (168) | [Sonnet] 유족메시지 상세 칸 — 편지 줄 폭 축소·내부 여백 확대·날짜/버튼 재배치
+
+- **근거 스펙**: 스펙 없음 — 사용자 직접 지시("내부 편지(회색배경) 박스의 넓이를 줄이고, 내부 margin은 조금 더 높이기. 날짜와 삭제 다운로드 버튼의 위치를 확인하고 재조정할 필요 있음").
+- **건드린 파일**: eobom/frontend/src/index.css
+- **결과**:
+  1) `.farewell-message-list`에 `max-width: 640px` 추가 — 사이드바+상세로 넓어진 뒤 편지 줄이 상세 칸 가장자리까지 늘어나 있었다. 텍스트 칸만 좁히지 않고 목록 전체(제목·미리보기·메타 칸 전부)를 묶어서 좁혔다 — 그래야 날짜·버튼이 텍스트에서 멀리 떨어져 보이지 않는다.
+  2) `.farewell-message-item`(호버 시 회색 `var(--surface-subtle)` 배경이 뜨는 클릭 영역) 내부 padding을 `var(--sp-2)`(8px)→`var(--sp-3)`(12px)로 키우고, 상쇄용 음수 margin도 같이 맞춰 바깥 위치는 그대로 유지했다.
+  3) `.farewell-message-meta`에 `align-self: stretch`+`justify-content: space-between` 추가 — 버튼줄은 항상 줄 맨 위, 날짜는 항상 줄 맨 아래로 고정된다(전엔 `flex-direction:column`으로 위아래 붙어 있어 미리보기가 1줄일 때와 2줄일 때 날짜 위치가 들쭉날쭉했다).
+  `npx tsc --noEmit`·`npm run build`(eobom/frontend) 통과.
+- **편차**: 없음.
+- **다음 에이전트가 알아야 할 것**: 🔵 실기동 검증 대기 — 사람이 편지 줄 폭이 640px로 좁아졌는지, 클릭 영역 여백이 넉넉해졌는지, 미리보기 줄 수가 다른 편지끼리도 날짜가 항상 줄 맨 아래에 고정되는지 확인.
+
+<!-- Gemini 판정 대기 -->
+
+
+## 2026-09-08 (169) | [Sonnet] 유족메시지 상세 칸 — reports/farewell_messages_redesign.html 시안 B 포팅
+
+- **근거 스펙**: 스펙 없음 — 사용자 직접 지시("reports/farewell_messages_redesign.html 파일을 기준으로 farewell-board-shell 재구성. 사이드바는 지금처럼 두되 나머지 부분에 있어 최대한 html의 형태를 쓸 수 있도록"). `reports/`는 Gemini 소유(읽기 전용)라 **읽기만** 하고 고치지 않았다 — 그 파일 자체는 Gemini가 만든 4가지 시안(A 상단칩+전폭카드/B 2단 우편함/C 타임라인/비교뷰) 묶음 목업이고, 이 중 사이드바+상세 2단 구조인 **시안 B**(`.board-layout-b`/`.sidebar-b`/`.content-b`/`.letter-row-b`)를 포팅 대상으로 판단했다(현재 구조와 일치하는 유일한 시안).
+- **건드린 파일**: eobom/frontend/src/components/FarewellMessageCard.tsx , eobom/frontend/src/index.css
+- **결과**: 사이드바(FarewellMessagePage.tsx의 `.farewell-board-sidebar` 등)는 지시대로 손대지 않았다. 상세 칸(FarewellMessageCard)을 시안 B 마크업에 맞춰 재구성:
+  1) 헤더 — "OOO님께 남기는 글"(명조 h2) + "총 N통의 편지가 보관되어 있습니다 · {상태}"(부제, 원본엔 없던 상태 문구를 통수 옆에 붙여 정보 손실 없앰 — 관계는 사이드바에 이미 있어 뺐다) + 액션 2개(새 편지 쓰기=진한 남색 solid 버튼, 전체 다운로드=테두리 사각 아이콘 전용 버튼, 시안 B 그대로).
+  2) 편지 줄 — 이전(호버 시 회색 배경 뜨는 클릭 영역 전체) 구조를 버리고 시안 B의 "회색 박스 걷어낸 경계선 리스트"로: ①배지(🎙 음성 첨부 / 📄 텍스트, `hasAudio`로 분기)+날짜 한 줄 → ②제목(명조, 클릭 가능, 호버 시 금색으로 변함 — 이제 이것만 편집기를 연다) → ③미리보기 2줄 클램프 → ④우측 정렬 다운로드·삭제 아이콘(테두리 사각 버튼, 시안 B `.item-icon-btn` 그대로 — 이 과정에서 직전(wt165) "호버 시 커지는" 아이콘 크기 애니메이션은 제거하고 시안처럼 정적 크기+호버 시 배경·테두리 반전으로 바꿨다). 날짜 형식도 시간 포함 로컬 문자열 → "2026. 09. 04." 형식으로 시안과 맞췄다(`formatLetterDate` 신설).
+  3) index.css — `.farewell-message-body`·`-title-row`·`-title-text`·`-meta`(구 메타 칸 구조) 삭제, `.farewell-message-row-top`·`-badge`(+`--audio`/`--text` 변형)·`-row-actions`·`-icon-btn`(+`--danger` 변형) 신설. 토큰은 리포트의 새 변수(`--accent`, `--text-body` 등)를 쓰지 않고 실제 앱에 이미 있는 토큰(`--primary-color`·`--accent-gold`·`--text-muted`·`--text-hint`·`--border-color`·`--surface-subtle`·`--state-danger-fg/bg`·`--font-serif`)으로 전부 치환해 이식했다.
+  `npx tsc --noEmit`·`npm run build`(eobom/frontend) 통과.
+- **편차**:
+  - 상태 문구(가족으로 연결됨 등)는 시안 B 원본엔 없다 — 뺐다가 사이드바(관계·통수)만으론 못 채우는 정보라 판단해 통수 옆에 살려뒀다.
+  - 아이콘 버튼 호버 애니메이션(크기 성장)을 정적 배경 반전으로 바꿨다 — 시안 B가 그 방식이고, 사각 테두리 버튼 자체가 이미 클릭 가능함을 드러내므로 크기 성장은 더 필요 없다고 판단. 직전 wt165의 "기본 사이즈를 더욱 키우기" 지시와 다소 배치되지만, 이번 지시("최대한 html 형태를 쓸 수 있도록")를 우선했다 — 필요하면 아이콘 크기(현재 15px, 버튼 34px)를 다시 키울 수 있다.
+- **다음 에이전트가 알아야 할 것**: 🔵 실기동 검증 대기 — 사람이 편지 목록이 시안 B와 비슷하게 보이는지(배지·명조 제목·아이콘 버튼), 제목 클릭으로만 편집기가 열리는지, 음성 첨부 배지가 `hasAudio` 값에 맞게 뜨는지 확인 필요.
+
+<!-- Gemini 판정 대기 -->
+
+
+## 2026-09-08 (170) | [Sonnet] 유족메시지 보관함 — 전달 고지 배너를 경고 톤에서 안내 톤으로
+
+- **근거 스펙**: 스펙 없음 — 사용자 직접 지시("'여기에 남기신 글은 사후 지정하신 분에게 전달됩니다.' 부분의 배경색 및 느낌표를 경고의 느낌이 아닌 알림의 느낌이 나도록"). 🔵 참고: 이 배너 문구 자체(재산분배 경고 문장 삭제 등)는 이번 세션 밖에서 이미 바뀌어 있던 상태였다(도구가 파일 변경 감지) — 문구는 그대로 두고 톤만 바꿨다.
+- **건드린 파일**: eobom/frontend/src/pages/FarewellMessagePage.tsx
+- **결과**: `AlertTriangle`(느낌표 삼각형) → `Info`(원형 i) 아이콘으로 교체(import도 같이 교체). 배경·테두리를 경고색(`--state-warn-bg`/`--state-warn-fg`, 호박색)에서 중립 안내색(`backgroundColor: var(--surface-subtle)`, `border: 1px solid var(--border-color)`, 본문 `color: var(--text-muted)`, 아이콘 `color: var(--point-color)`, 강조 텍스트 `color: var(--primary-color)`)으로 교체. `npx tsc --noEmit`·`npm run build`(eobom/frontend) 통과.
+- **편차**: 없음.
+- **다음 에이전트가 알아야 할 것**: 🔵 실기동 검증 대기 — 사람이 배너가 경고보다 안내로 읽히는지 확인. CareGuidePage의 §3.1 배너(비슷한 이유로 amber→네이비 톤 전환한 선례, wt155~162)와 같은 방향의 조정이다.
+
+<!-- Gemini 판정 대기 -->
+
+
+## 2026-09-08 (171) | [Sonnet] 전달고지 배너 — 배경만 흰색으로
+
+- **근거 스펙**: 스펙 없음 — 사용자 직접 지시(wt170 확인 후 "배경 박스만 흰색으로").
+- **건드린 파일**: eobom/frontend/src/pages/FarewellMessagePage.tsx
+- **결과**: wt170에서 `var(--surface-subtle)`로 바꿨던 배경을 `var(--card-bg)`(흰색)로. 테두리·아이콘·텍스트 색은 wt170 그대로 유지. `npx tsc --noEmit`·`npm run build`(eobom/frontend) 통과.
+- **편차**: 없음.
+- **다음 에이전트가 알아야 할 것**: 없음.
+
+<!-- Gemini 판정 대기 -->
+
+
+## 2026-09-08 (172) | [Sonnet] 편지 수정 — 저장 기준별 탭 자동 선택 + 사이드노트 박스 높이 버그 수정
+
+- **근거 스펙**: 스펙 없음 — 사용자 직접 지시("각 편지를 클릭했을 때, 저장된 기준에 따라 탭이 다르게 나와야함" / "편지 수정에서 사이드 설명의 끝이 아니고 바닥까지 박스가 늘어져있음").
+- **건드린 파일**: eobom/frontend/src/components/FarewellMessageCard.tsx , eobom/frontend/src/index.css
+- **결과**:
+  1) `openEditComposer` — 지금까지 편지를 열면 무조건 A(업로드) 탭으로 고정돼 있던 걸, 저장된 데이터 기준으로 바꿈: `hasAudio`가 false면 C(직접 쓰기)로 바로 열어 본문을 곧장 수정할 수 있게 하고, true면 `mediaMime`으로 Ⓐ업로드/Ⓑ녹음을 추정해 그 탭을 연다 — 녹음(MediaRecorder)은 거의 항상 `webm`/opus로 저장되고(VoiceToTextInput.tsx의 RECORDER_MIME_CANDIDATES) 업로드는 m4a·mp3·wav가 대부분이라, mediaMime에 `webm`이 포함되면 B(녹음), 아니면 A(업로드)로 분기. (제작 시점의 "실제 입력 방법"은 저장되지 않아 완벽히 복원할 수 없다 — mediaMime은 그나마 남아 있는 가장 근접한 단서다.)
+  2) index.css `.farewell-composer-body`(사이드노트+본문 그리드)에 `align-items: start` 추가 — grid 기본값(stretch)이라 사이드노트(`.farewell-composer-rail`, 회색 배경)가 본문 칸 높이만큼 늘어나 글이 끝난 뒤에도 회색 박스가 바닥까지 이어져 보이던 것을 고쳤다.
+  `npx tsc --noEmit`·`npm run build`(eobom/frontend) 통과.
+- **편차**: 없음 — 다만 mediaMime 기반 A/B 추정은 정확한 저장값이 아니라 휴리스틱이라는 한계는 편차가 아니라 "다음 에이전트가 알아야 할 것"으로 남긴다.
+- **다음 에이전트가 알아야 할 것**: 🔵 실기동 검증 대기 — 사람이 ①텍스트만 있는 편지를 열면 C 탭으로 열리는지, ②녹음으로 남긴 편지는 B, 업로드로 남긴 편지는 A로 열리는지(휴리스틱이라 100% 보장 안 됨 — 어긋나면 실제 입력 방법을 DB에 별도 저장하는 스펙 변경이 필요), ③사이드노트 박스가 이제 글 길이만큼만 회색으로 보이는지 확인.
+
+<!-- Gemini 판정 대기 -->
