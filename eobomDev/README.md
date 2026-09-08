@@ -9,7 +9,7 @@
 
 | # | 함정 | 결과 |
 | :---: | :--- | :--- |
-| 1 | **주소창에 `https://`를 명시해야 한다** | `eobom/.certs/`에 mkcert 인증서가 있으면 **백엔드·프론트 모두 HTTPS만 서빙**한다. `http://`로 접속하면 TLS 포트에 평문이 들어가 **`ERR_EMPTY_RESPONSE`** — 버그가 아니다(2026-08-10 실장애) |
+| 1 | **주소창에 `https://`를 명시해야 한다** | `eobomDev/.certs/`에 mkcert 인증서가 있으면 **백엔드·프론트 모두 HTTPS만 서빙**한다. `http://`로 접속하면 TLS 포트에 평문이 들어가 **`ERR_EMPTY_RESPONSE`** — 버그가 아니다(2026-08-10 실장애) |
 | 2 | **DB 포트는 `5433`이다** | 기본값 5432가 **아니다**. Docker 컨테이너가 `5433 → 5432`로 매핑돼 있다 |
 
 두 항목의 정본은 `.harness/systems.md` §1·§4다.
@@ -19,7 +19,7 @@
 ## 📁 구조
 
 ```text
-eobom/
+eobomDev/
 ├── frontend/                 # React 18 + Vite 5 + TS
 │   ├── public/               # 정적 리소스 (로고, obituary-card.png 등)
 │   ├── src/
@@ -60,7 +60,7 @@ docker ps --filter "name=eobom-postgres"     # 이미 있으면 그대로 사용
 ### 2. 백엔드
 
 ```bash
-cd eobom/backend
+cd eobomDev/backend
 npm install
 cp .env.example .env          # 값 채우기 (DATABASE_URL·JWT_SECRET·OAuth 3사)
 npx prisma migrate deploy     # 마이그레이션 16개 적용 → 스키마 생성
@@ -82,7 +82,7 @@ npm run dev                   # https://localhost:5000
 ### 3. 프론트엔드
 
 ```bash
-cd eobom/frontend
+cd eobomDev/frontend
 npm install
 cp .env.example .env          # VITE_KAKAO_MAP_KEY · VITE_KAKAO_JS_KEY
 npm run dev                   # https://localhost:5173  ← https 필수(위 함정 #1)
@@ -112,7 +112,7 @@ npm run dev                   # https://localhost:5173  ← https 필수(위 함
 ## 🔧 스키마를 바꿨다면
 
 ```bash
-cd eobom/backend
+cd eobomDev/backend
 # 0. pg_dump 먼저!
 npx prisma migrate dev --name <변경_요약>
 node ../../.harness/tools/generate-db-doc.js   # 00-05 테이블 사전 갱신

@@ -38,7 +38,7 @@ if (weakKeys.length > 0) {
 }
 
 // mkcert로 만든 로컬 인증서가 있으면 HTTPS로 띄운다(프론트가 HTTPS일 때 이 API를 fetch하면
-// mixed content로 막히는 걸 방지). 인증서는 기기별 생성물이라 커밋 안 됨(eobom/.certs/) —
+// mixed content로 막히는 걸 방지). 인증서는 기기별 생성물이라 커밋 안 됨(eobomDev/.certs/) —
 // Render 등 배포 환경엔 이 파일이 없으므로 자동으로 아래 http 경로로 폴백된다(정상 동작).
 const certDir = path.resolve(__dirname, '../../.certs');
 const certPath = path.join(certDir, 'localhost+2.pem');

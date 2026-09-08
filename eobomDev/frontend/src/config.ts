@@ -50,7 +50,7 @@ export const KAKAO_JS_KEY = import.meta.env.VITE_KAKAO_JS_KEY || '';
 export const KAKAO_SHARE_SDK_LOAD_TIMEOUT_MS = 5000;
 export const KAKAO_SHARE_SDK_LOAD_POLL_INTERVAL_MS = 100;
 
-// 카톡 카드 이미지(§3.3-1~§3.3-3) — 근조 이미지 확정 완료(Phase 0 ⓒ), eobom/frontend/public/에
+// 카톡 카드 이미지(§3.3-1~§3.3-3) — 근조 이미지 확정 완료(Phase 0 ⓒ), eobomDev/frontend/public/에
 // 커밋됨. ⚠️ 반드시 고정 공개 URL이어야 한다 — 카카오 서버가 imageUrl을 직접 가져가는데
 // localhost·사설 IP(window.location.origin 기반)는 접근할 수 없다(§3.3-3). 브랜드 로고
 // 재사용은 §3.3-2가 금지(서비스 홍보로 읽힘) — eobom-logo-hd.png 임시 물림은 여기서 제거한다.

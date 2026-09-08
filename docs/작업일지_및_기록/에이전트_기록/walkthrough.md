@@ -2313,3 +2313,18 @@ wt137 그대로라 재작업 없음).
 - **다음 에이전트가 알아야 할 것**: 🔵 로그인 필요 화면이라 §11 DoD #1~#7·#9(마스터·디테일 전환, 리더 모달, 레일 접기, 767↔769 리사이즈 시 입력값 유지, 1280px 스크린샷 대조)는 사람이 실기기로 로그인해 확인해야 한다(00-29 §15). 🟡 위 편차(1)(2)는 Opus 판정 필요 — 특히 (1)은 Desktop 스크린샷이 노트 박스 높이만큼 전후 달라질 수 있어 DoD #8 판정 시 참고. 다음=Phase 2 ② `CareGuidePage`(§8.1-3, Phase1.5[B]로 선행 조건은 닫힘) → ③ `EndingNotePage`.
 
 <!-- Gemini 판정 대기 -->
+
+
+## 2026-09-09 (175) | [Sonnet] 개발 경로 개명 — eobom/ → eobomDev/ (폴더 이동 + 배포·gitignore·내부 자기참조)
+
+- **근거 스펙**: 스펙 없음 — `[Claude:Sonnet]` 핸드오프 지시("개발 경로 개명 — eobom/ → eobomDev/", Opus가 docs/·.harness/·루트 CLAUDE.md 41파일 96곳 선행 반영 완료 후 폴더 이동만 남은 상태).
+- **건드린 파일**: `git mv eobom eobomDev`(199개 항목 rename 추적) · `render.yaml`(L19 rootDir) · `.gitignore`(L25·28·32·35·36·37, 6줄) · `eobomDev/README.md`(L12·L22 트리 루트·L63·L85·L115) · `eobomDev/backend/src/server.ts`(L41) · `eobomDev/frontend/src/config.ts`(L53) · `eobomDev/frontend/vite.config.ts`(L8) · `eobomDev/workers/r2-archive-relay/wrangler.toml`(L8) · `eobomDev/workers/r2-archive-relay/README.md`(L6).
+- **결과**: `git mv`는 처음 "Permission denied"로 실패 — `eobom/frontend`를 물고 있던 esbuild 프로세스 2개(pid 20548·38708)와 좀비 vite dev 서버 2개(pid 29504·26288, 배경 bash 35944·30772)를 종료 후 재시도해 성공. `.gitignore` 수정 직후 `git status --ignored=matching`으로 `eobomDev/.certs/`·`eobomDev/backend/backups/`·`eobomDev/backend/uploads/` 셋 다 `!!`(무시됨)로 확인 — 개인정보·백업 유출 없음. `eobomDev/frontend`에서 `npm run build`(tsc+vite) 통과, `eobomDev/backend`에서 `npm run build`(prisma generate+tsc) 통과. `node .harness/tools/token-guard.js` — `SRC_MARKER`가 이미 `eobomDev[\\/]frontend[\\/]src[\\/]`를 잡음(Opus 선행 반영 확인, exit 0). `node .harness/tools/generate-db-doc.js` 재실행 — prisma 경로 정상 해석(모델 31개·컬럼 351개), `git status`로 `00-05` 파일 diff 없음 확인(idempotent 재생성이라 내용 변경 없음, `docs/` 소유권 침범 아님). `grep -rn "eobom[/\\](frontend|backend|workers|\.certs)"` 잔여 확인 — `docs/작업일지_및_기록/`·`docs/트러블슈팅/`·`.harness/_meta/` 산하 로그·일지 17개 파일만 남음(핸드오프 지시대로 기록이라 정상, 미수정).
+- **편차**: `eobomDev/README.md` L22(디렉터리 트리 다이어그램 루트 `eobom/`)를 핸드오프 목록(L12·L63·L85·L115)에는 없었지만 함께 `eobomDev/`로 수정 — 같은 파일 안에서 나머지 3곳만 고치고 트리 루트만 옛 이름으로 남기면 바로 옆에서 눈에 띄게 어긋나는 상태였다.
+- **다음 에이전트가 알아야 할 것**:
+  - 🔴 **[사람] 핸드오프 §7 외부 설정 확인 필요** — (1) Vercel 프로젝트의 Root Directory가 `eobom/frontend`로 잡혀 있으면 `eobomDev/frontend`로 변경해야 다음 배포가 성공한다. (2) Render가 `render.yaml` Blueprint가 아니라 대시보드 수동 설정으로 `rootDir`을 잡고 있다면 그쪽도 별도로 바꿔야 한다 — 이번 세션에서는 Render/Vercel 대시보드에 접근하지 않아 어느 쪽인지 확인 못 함.
+  - 다음에 dev 서버를 다시 띄울 때는 새 경로(`eobomDev/frontend`, `eobomDev/backend`)에서 띄워야 한다 — 옛 `eobom/` 디렉터리는 더 이상 존재하지 않는다.
+  - DB에는 아무것도 쓰지 않았다(이 작업은 DB 무관, 핸드오프 지시 §5 그대로).
+  - 커밋하지 않고 멈춤 — 초안 메시지만 제시, 사람이 직접 커밋.
+
+<!-- Gemini 판정 대기 -->
