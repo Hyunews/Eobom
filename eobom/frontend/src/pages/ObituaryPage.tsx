@@ -470,10 +470,10 @@ export const ObituaryPage: React.FC<ObituaryPageProps> = ({ currentUser, onOpenL
     <div className="container" style={{ paddingBottom: '3rem' }}>
       <div style={{ marginBottom: '1.5rem' }}>
         <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', backgroundColor: 'var(--state-ok-bg)', color: 'var(--state-ok-fg)', padding: '0.3rem 0.8rem', borderRadius: 'var(--r-lg)', fontSize: '0.85rem', fontWeight: 700, marginBottom: '0.6rem' }}>
-          <MessageSquare size={18} color="var(--state-ok-fg)" /> 모바일 부고장
+          <MessageSquare size={18} color="var(--state-ok-fg)" /> 모바일 부고장 공유
         </div>
         <h1 className="page-title" style={{ color: 'var(--primary-color)', display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0 }}>
-          <MessageSquare color="var(--point-color)" size={32} /> {obituaryRef ? '내 부고장 관리' : '모바일 부고장 작성'}
+          <MessageSquare color="var(--point-color)" size={32} /> {obituaryRef ? '부고장 관리' : '모바일 부고장 작성'}
         </h1>
         <p style={{ color: 'var(--text-muted)', marginTop: '0.4rem' }}>
           {obituaryRef ? '입력한 내용은 즉시 부고장 페이지에 반영됩니다. 빈소·발인 등이 바뀌면 아래에서 고쳐주세요.' : '고인 성함, 상주, 빈소, 발인 일시만 입력하면 3분 안에 부고장을 만들 수 있습니다.'}
