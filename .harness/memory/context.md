@@ -9,9 +9,8 @@
 
 ## ▶ 다음 할 일
 
-🔴 **경로 개명 진행중(09-09)** — `eobom/` → `eobomDev/`. **`docs/`·`.harness/`·루트 `CLAUDE.md` 41파일 96곳 반영 완료(Opus).**
-🔴 **폴더 자체는 아직 안 바뀜** — 그 전까지 `backup-db.ps1`·`token-guard.js`·`generate-db-doc.js`·`watch-backend.ps1`이 **깨진 경로를 본다.**
-▶ **[Sonnet] 착수**: `git mv` + `render.yaml`(`rootDir`)·`.gitignore`·`eobom/` 내부 자기참조. 로그·일지·트러블슈팅은 **기록이라 안 고침**.
+✅ **경로개명 완료(09-09,wt175)** — `eobom/`→`eobomDev/` git mv+render.yaml+.gitignore+내부참조 반영, 빌드 통과.
+🔴 **[사람]** Vercel/Render 대시보드 rootDir이 `eobom/*`면 `eobomDev/*`로 변경 필요(안 하면 배포 실패). 커밋 대기(초안만 제시).
 
 **0. [Opus] 🔴 `00-19` 제6조·제7조** — 위탁·국외이전 보류(08-18) 근거 소멸.
 Cloudflare·Supabase·Render 미기재. ⏸ "국가"란 보류(인프라 대기 — `pending-approvals.md`).

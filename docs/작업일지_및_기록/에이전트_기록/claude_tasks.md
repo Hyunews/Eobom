@@ -628,3 +628,30 @@ state를 그대로 추모관 사후 연결 동의로도 흘려보내면 사용�
   형제 칸(본문, 텍스트에어리어 있어 훨씬 큼) 높이에 맞춰 사이드노트도 늘어난 것. grid
   컨테이너에 align-items:start 한 줄로 해결.
 - `npx tsc --noEmit`·`npm run build`(eobom/frontend) 통과.
+
+## 2026-09-09 [Sonnet] eobom→eobomDev 경로 개명 메모
+
+- 착수 전 git status가 dirty(41개 — Opus의 docs/·.harness/·루트 CLAUDE.md 문서 변경, 아직
+  미커밋)였다. 핸드오프 지시("0. 착수 전: git status 깨끗한지 확인, 지저분하면 사람에게
+  커밋 요청하고 멈춘다")를 그대로 따라 AskUserQuestion으로 확인 — 사용자가 직접 먼저
+  커밋(`2c10b66 eobomDev_Opus작업`)했다고 답해 그 이후 진행.
+- `git mv eobom eobomDev`가 첫 시도에서 "fatal: renaming 'eobom' failed: Permission denied"로
+  실패. `Get-CimInstance Win32_Process`로 커맨드라인에 `eobom`이 들어간 프로세스를 뒤져서
+  원인 특정 — esbuild.exe 2개(vite 내부 프로세스, `eobom/frontend/node_modules` 아래)와
+  실제 vite dev 서버 node.exe 2개(백그라운드 bash로 `nohup npm run dev`로 띄운 것, 세션
+  중 내가 과거에 실행해둔 것으로 추정)가 폴더를 물고 있었다. `Get-Process | Where
+  ProcessName -match 'node|vite|esbuild'`만으로는 어느 게 eobom을 물고 있는지 안 보여서
+  (Path가 exe 경로만 나옴) CommandLine 기준 grep이 필요했다. 넷 다 Stop-Process 후 재시도해
+  성공.
+- `.gitignore`에서 `eobom/backend/backups/`와 `eobom/backend/prisma/backups/`는 다른
+  경로다 — 후자는 gitignore 대상이 아니라 이미 git이 추적 중인 파일(`local-*.dump`)이어서
+  `git mv` 결과에 `R  eobom/backend/prisma/backups/... -> eobomDev/backend/prisma/backups/...`로
+  그대로 나타났다. 처음엔 이게 개인정보 백업 유출인가 헷갈렸는데, `.gitignore` L28 패턴과
+  실제 경로가 다르다는 걸 확인하고 오탐으로 정리(원래도 추적되던 파일이라 이번 작업과 무관).
+- 잔여 확인 grep(`eobom[/\\](frontend|backend|workers|\.certs)`)에서 Bash 도구가 한글 경로
+  때문에 "No such file or directory"로 계속 죽었다(git-bash가 UTF-8 한글 경로+eval 조합을
+  못 씀) — Grep 전용 도구로 바꾸니 정상 동작. 이후 파일 크기·라인 수 확인도 PowerShell
+  `Get-Content`가 인코딩 미지정 시 한글 멀티바이트를 오분할해 라인 수를 실제보다 적게
+  세는 걸 발견(walkthrough.md 실제 2316줄인데 인코딩 미지정 시 1655줄로 나옴) —
+  `-Encoding UTF8`을 명시하거나, Read 도구에 일부러 큰 offset을 줘서 "shorter than
+  offset" 경고로 진짜 줄 수를 역산하는 방식으로 우회.

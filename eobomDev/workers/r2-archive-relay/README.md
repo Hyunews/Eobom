@@ -3,7 +3,7 @@
 docs `00-11` §5.4-5-2 ②·§5.4-5-3, `06-05` §8 D-2 #15 — 유족 메시지 음성 버킷
 (`eobom-farewell-voice`) 쓰기를 아카이브 버킷(`eobom-farewell-voice-archive`)에 복제하는
 Cloudflare Worker. 두 버킷 모두 R2 바인딩으로 접근하며 S3 액세스 키를 쓰지 않는다 — Node
-백엔드(`eobom/backend`)는 이 워커의 바인딩에 접근할 방법이 없다.
+백엔드(`eobomDev/backend`)는 이 워커의 바인딩에 접근할 방법이 없다.
 
 ## 🔴 이 폴더는 코드만 준비돼 있고 배포되지 않았다
 
