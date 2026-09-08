@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { Calendar, MessageSquare, BookOpen, ChevronRight, Camera, Settings, Lock, UserCircle, Users } from 'lucide-react';
+import { MessageSquare, BookOpen, ChevronRight, Camera, Settings, Lock, UserCircle, Users, Mail, Flower2, MessageCircle } from 'lucide-react';
+import { PhoneHeartIcon } from '../components/MenuIcons';
 import { apiFetchRaw, apiFetch } from '../lib/api';
 import { getToken } from '../lib/storage';
 import { Badge } from '../components/home/EntryBoxes';
@@ -25,6 +26,25 @@ interface MySummary {
   consultCount: number;
   obituaryCount: number;
 }
+
+// 00-36 M-1 — 마이페이지를 "내 자산 허브"로 개편(2026-09-07, 서버 변경 0건 · 이미 있는
+// 라우트·API를 잇기만 함). §4.1 3구역 구조를 그대로 옮긴다: A=나, B=내가 남긴 것,
+// C=내 활동과 계정. B구역이 이번 개편의 핵심 — 유족 메시지 보관함·부고장·추모관처럼 이미
+// 구현이 끝난 기능들이 마이페이지에 입구가 없었다(§3.1).
+const sectionTitleStyle: React.CSSProperties = {
+  fontSize: '0.8rem', fontWeight: 'var(--fw-bold)', color: 'var(--text-muted)', textTransform: 'uppercase',
+  letterSpacing: '0.04em', margin: '0.6rem 0 0.1rem',
+};
+
+const cardButtonStyle: React.CSSProperties = {
+  flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+  padding: '1rem 1.1rem', cursor: 'pointer', textAlign: 'left', width: '100%',
+};
+
+const iconBoxStyle: React.CSSProperties = {
+  width: '44px', height: '44px', borderRadius: 'var(--r-md)', backgroundColor: 'var(--secondary-color)',
+  display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+};
 
 export const MyPage: React.FC<MyPageProps> = ({ currentUser, onOpenLogin, onOpenAccountSettings, onOpenProfile, onOpenFamilyDesignation, setActiveTab }) => {
   const [profile, setProfile] = useState<MyProfile | null>(null);
@@ -89,9 +109,10 @@ export const MyPage: React.FC<MyPageProps> = ({ currentUser, onOpenLogin, onOpen
 
   // §1-1 — FacilityBooking이 2026-08-11 폐기돼 "예약"이라는 개념이 DB에 없다.
   // Lead(문의)·ConsultRequest(상담)·Obituary(내 부고장) 3개만 실데이터로 센다.
-  // 🔄 09-07 사용자 지시 — 헤더의 "내 부고장" 직행 메뉴를 없애면서, `/my-obituaries-memorials`
-  // (부고장·추모관 반반 화면)로 가는 통로를 마이페이지 하나로 좁혔다. 문의·상담은 아직 갈 곳이
-  // 없어(내역 화면 미구현) 클릭 불가 상태로 둔다 — 숫자만 있고 링크는 부고장 칸에만 건다.
+  // 🔴 wt144 — "내 부고장" 칸이 `/my-obituaries-memorials`(부고장·추모관 반반 화면)의 유일한
+  // 진입점이다(헤더 직행 메뉴 삭제됨, 00-36 §3.1). 이 칸의 `to`를 절대 떨어뜨리지 말 것 —
+  // 떨어뜨리면 그 화면 전체가 닫힌다. 아래 B구역 카드는 그 진입점을 이중화하는 안전장치일 뿐,
+  // 이 대신은 아니다. 문의·상담은 M-2에서 `GET /api/me/leads`가 생기기 전까지 링크 없이 숫자만.
   const stats: { label: string; value: number; to?: string }[] = [
     { label: '문의 내역', value: summary?.leadCount ?? 0 },
     { label: '상담 내역', value: summary?.consultCount ?? 0 },
@@ -132,7 +153,7 @@ export const MyPage: React.FC<MyPageProps> = ({ currentUser, onOpenLogin, onOpen
             {profile?.profileImage ? (
               <img src={profile.profileImage} alt={displayName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
             ) : (
-              <span style={{ fontSize: '1.8rem', fontWeight: 800, color: 'var(--primary-color)' }}>{displayName.charAt(0)}</span>
+              <span style={{ fontSize: '1.8rem', fontWeight: 'var(--fw-bold)', color: 'var(--primary-color)' }}>{displayName.charAt(0)}</span>
             )}
           </div>
           <div
@@ -161,9 +182,9 @@ export const MyPage: React.FC<MyPageProps> = ({ currentUser, onOpenLogin, onOpen
             <span
               style={{
                 fontSize: '0.85rem',
-                fontWeight: 800,
+                fontWeight: 'var(--fw-bold)',
                 padding: '0.25rem 0.6rem',
-                borderRadius: '10px',
+                borderRadius: 'var(--r-sm)',
                 backgroundColor: 'var(--accent-gold)',
                 color: '#FFFFFF',
                 letterSpacing: '0.03em'
@@ -205,200 +226,132 @@ export const MyPage: React.FC<MyPageProps> = ({ currentUser, onOpenLogin, onOpen
               cursor: stat.to ? 'pointer' : 'default',
             }}
           >
-            <div className="stat-row__value" style={{ fontWeight: 800, color: '#FFFFFF' }}>{stat.value}</div>
+            <div className="stat-row__value" style={{ fontWeight: 'var(--fw-bold)', color: '#FFFFFF' }}>{stat.value}</div>
             <div className="stat-row__label" style={{ color: 'rgba(255,255,255,0.7)', marginTop: '0.3rem' }}>{stat.label}</div>
           </div>
         ))}
       </div>
 
-      {/* Archive List */}
+      {/* Archive List — 00-36 §4.1 3구역(A 나 / B 내가 남긴 것 / C 내 활동과 계정) */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.9rem' }}>
+        <p style={sectionTitleStyle}>나</p>
+
         {/* 00-28 §6.3 · 00-27 §8.2 — 내 정보(연락처·주소)와 가족 지정을 마이페이지 안에 나란히 둔다 */}
-        <button
-          onClick={onOpenProfile}
-          className="card"
-          style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            padding: '1rem 1.1rem',
-            cursor: 'pointer',
-            textAlign: 'left',
-            width: '100%'
-          }}
-        >
+        <button onClick={onOpenProfile} className="card" style={cardButtonStyle}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-            <div
-              style={{
-                width: '44px',
-                height: '44px',
-                borderRadius: '12px',
-                backgroundColor: 'var(--secondary-color)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                flexShrink: 0
-              }}
-            >
+            <div style={iconBoxStyle}>
               <UserCircle size={20} color="var(--point-color)" />
             </div>
             <div>
               <div style={{ fontWeight: 700, color: 'var(--primary-color)' }}>내 정보</div>
-              <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>연락처 · 주소 · 연락 가능 시간대</div>
             </div>
           </div>
           <ChevronRight size={20} color="var(--text-muted)" />
         </button>
 
-        <button
-          onClick={onOpenFamilyDesignation}
-          className="card"
-          style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            padding: '1rem 1.1rem',
-            cursor: 'pointer',
-            textAlign: 'left',
-            width: '100%'
-          }}
-        >
+        <button onClick={onOpenFamilyDesignation} className="card" style={cardButtonStyle}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-            <div
-              style={{
-                width: '44px',
-                height: '44px',
-                borderRadius: '12px',
-                backgroundColor: 'var(--secondary-color)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                flexShrink: 0
-              }}
-            >
+            <div style={iconBoxStyle}>
               <Users size={20} color="var(--point-color)" />
             </div>
             <div>
               <div style={{ fontWeight: 700, color: 'var(--primary-color)' }}>가족 지정</div>
-              <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>생전 준비를 함께할 가족 기록</div>
             </div>
           </div>
           <ChevronRight size={20} color="var(--text-muted)" />
         </button>
 
-        {/* §1-4 — FacilityBooking 폐기로 실체가 없는 기능이라 클릭(alert)을 없애고 준비 중 배지로
-            고정한다(§1-3과 같은 처리 — 감추지 않고 준비 중임을 명시, 00-23 §2.2). */}
-        <div
-          className="card"
-          style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            padding: '1rem 1.1rem',
-            cursor: 'not-allowed',
-            width: '100%',
-            opacity: 0.7,
-          }}
-        >
+        <p style={sectionTitleStyle}>내가 남긴 것</p>
+
+        {/* §1-3·00-36 M-1 #5 — EndingNote는 이제 Entry·Grant까지 배선된 실동작 기능이라
+            "preview" 배지가 거짓 정보였다(modeNav.ts의 ending-note도 이미 wt131에서
+            'active'로 정정됨). 배지를 떼고 다른 활성 카드와 같은 형태로 통일한다. */}
+        <button onClick={() => setActiveTab?.('ending-note')} className="card" style={cardButtonStyle}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-            <div
-              style={{
-                width: '44px',
-                height: '44px',
-                borderRadius: '12px',
-                backgroundColor: 'var(--secondary-color)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                flexShrink: 0
-              }}
-            >
-              <Calendar size={20} color="var(--text-muted)" />
+            <div style={iconBoxStyle}>
+              <BookOpen size={20} color="var(--accent-gold)" />
             </div>
             <div>
-              <div style={{ fontWeight: 700, color: 'var(--primary-color)' }}>나의 예약 현황</div>
-              <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>장례 및 장지 예약 정보 확인</div>
+              <div style={{ fontWeight: 700, color: 'var(--primary-color)' }}>디지털 엔딩노트</div>
+            </div>
+          </div>
+          <ChevronRight size={20} color="var(--text-muted)" />
+        </button>
+
+        {/* 00-36 §3.1 최우선 구멍 — 06-05 D-1~D-11(편지·음성·반출까지)이 다 구현됐는데
+            마이페이지엔 입구가 없었다. 사이드바와 같은 라우트로 연결. */}
+        <button onClick={() => setActiveTab?.('farewell-messages')} className="card" style={cardButtonStyle}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            <div style={iconBoxStyle}>
+              <Mail size={20} color="var(--point-color)" />
+            </div>
+            <div>
+              <div style={{ fontWeight: 700, color: 'var(--primary-color)' }}>유족 메시지 보관함</div>
+            </div>
+          </div>
+          <ChevronRight size={20} color="var(--text-muted)" />
+        </button>
+
+        {/* 🔴 통계 "내 부고장" 칸과 같은 목적지(`/my-obituaries-memorials`)로 가는 두 번째
+            입구 — 그 화면의 유일한 통로를 이중화하는 안전장치(00-36 §3.1 마지막 문단).
+            통계 칸을 지우거나 링크를 떼도 이 카드가 남아 있으면 화면이 닫히지 않는다. */}
+        <button onClick={() => setActiveTab?.('my-obituaries-memorials')} className="card" style={cardButtonStyle}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            <div style={iconBoxStyle}>
+              <Flower2 size={20} color="var(--point-color)" />
+            </div>
+            <div>
+              <div style={{ fontWeight: 700, color: 'var(--primary-color)' }}>내 부고장 · 추모관</div>
+            </div>
+          </div>
+          <ChevronRight size={20} color="var(--text-muted)" />
+        </button>
+
+        {/* modeNav.ts의 digital-estate는 여전히 status:'preview'(제 목업 데이터) — 사이드바와
+            같은 배지로 통일해 "곧 나올 기능"이라는 인상을 다르게 주지 않는다. */}
+        <button onClick={() => setActiveTab?.('digital-estate')} className="card" style={cardButtonStyle}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            <div style={iconBoxStyle}>
+              <PhoneHeartIcon size={20} color="var(--point-color)" />
+            </div>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <span style={{ fontWeight: 700, color: 'var(--primary-color)' }}>디지털 자산 정리</span>
+                <Badge status="preview" />
+              </div>
+            </div>
+          </div>
+          <ChevronRight size={20} color="var(--text-muted)" />
+        </button>
+
+        <p style={sectionTitleStyle}>내 활동과 계정</p>
+
+        {/* 00-36 §6 확정#1 — "나의 예약 현황"(FacilityBooking 폐기로 실체 없음)을 지우는 대신
+            "문의 내역"으로 교체해 M-2(`GET /api/me/leads`)가 채울 자리로 전용한다. comingSoon
+            배지는 그대로 — 예약과 달리 이건 실제로 곧 나올 기능이라 배지가 다시 정당하다. */}
+        <div className="card" style={{ ...cardButtonStyle, cursor: 'not-allowed', opacity: 0.7 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            <div style={iconBoxStyle}>
+              <MessageCircle size={20} color="var(--text-muted)" />
+            </div>
+            <div>
+              <div style={{ fontWeight: 700, color: 'var(--primary-color)' }}>문의 내역</div>
             </div>
           </div>
           <Badge status="comingSoon" />
         </div>
 
-        <button
-          onClick={() => setActiveTab?.('counseling')}
-          className="card"
-          style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            padding: '1rem 1.1rem',
-            cursor: 'pointer',
-            textAlign: 'left',
-            width: '100%'
-          }}
-        >
+        <button onClick={() => setActiveTab?.('counseling')} className="card" style={cardButtonStyle}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-            <div
-              style={{
-                width: '44px',
-                height: '44px',
-                borderRadius: '12px',
-                backgroundColor: 'var(--secondary-color)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                flexShrink: 0
-              }}
-            >
+            <div style={iconBoxStyle}>
               <MessageSquare size={20} color="var(--point-color)" />
             </div>
             <div>
               <div style={{ fontWeight: 700, color: 'var(--primary-color)' }}>상담 신청 내역</div>
-              <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>법률, 세무 및 심리 케어 기록</div>
             </div>
           </div>
           <ChevronRight size={20} color="var(--text-muted)" />
         </button>
-
-        <div
-          className="card"
-          style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            padding: '1rem 1.1rem',
-            flexWrap: 'wrap',
-            gap: '1rem'
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-            <div
-              style={{
-                width: '44px',
-                height: '44px',
-                borderRadius: '12px',
-                backgroundColor: 'var(--secondary-color)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                flexShrink: 0
-              }}
-            >
-              <BookOpen size={20} color="var(--accent-gold)" />
-            </div>
-            <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <span style={{ fontWeight: 700, color: 'var(--primary-color)' }}>디지털 엔딩노트</span>
-                <Badge status="preview" />
-              </div>
-              {/* §1-3 — EndingNote 모델이 없어 진행률 자체가 존재하지 않는 값이었다. 숫자를
-                  지어내는 대신 modeNav.ts의 status:'preview'와 같은 표시(미리보기)로 통일한다. */}
-              <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginTop: '0.3rem' }}>연명의료·유족 메시지 등을 미리 작성해 볼 수 있어요</div>
-            </div>
-          </div>
-          <button onClick={() => setActiveTab?.('ending-note')} className="btn btn-primary" style={{ height: '40px', padding: '0 1.2rem', fontSize: '0.9rem' }}>
-            미리보기
-          </button>
-        </div>
       </div>
     </div>
   );
