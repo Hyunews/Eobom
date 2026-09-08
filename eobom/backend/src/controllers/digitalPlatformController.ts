@@ -1,6 +1,5 @@
 import { Request, Response } from 'express';
 import prisma from '../config/prisma';
-import { verifyAdminBearerToken } from './adminController';
 
 // 디지털 플랫폼 안내 카탈로그(docs 04-01 §3.1) — 운영자가 관리하는 마스터 데이터.
 // 금융·가상자산 플랫폼은 이 테이블에 절대 넣지 않는다(§3.2 C분류) — 관리자 화면에서 등록을
@@ -47,13 +46,26 @@ export const listPublicDigitalPlatforms = async (req: Request, res: Response) =>
 
 // 운영자 전체 조회 (`GET /api/admin/digital-platforms`) — 미공개 항목도 포함
 export const listDigitalPlatformsForAdmin = async (req: Request, res: Response) => {
-  const decoded = verifyAdminBearerToken(req);
-  if (!decoded) {
-    return res.status(401).json({ status: 'error', message: '인증 토큰이 없거나 유효하지 않습니다.' });
-  }
-
   try {
+    // 00-37 §3.1 — select 명시. 마스터 데이터라 민감 필드는 없지만(§4.2 회원·추모관과 달리
+    // 전부 운영자가 직접 관리하는 값), 원칙은 예외 없이 적용한다.
     const platforms = await prisma.digitalPlatform.findMany({
+      select: {
+        id: true,
+        name: true,
+        category: true,
+        actionType: true,
+        officialUrl: true,
+        requiredDocs: true,
+        guideSummary: true,
+        estimatedDays: true,
+        needsAgentHelp: true,
+        isPublished: true,
+        lastVerifiedAt: true,
+        sortOrder: true,
+        createdAt: true,
+        updatedAt: true,
+      },
       orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
     });
     return res.json({ status: 'success', data: platforms });
@@ -66,11 +78,6 @@ export const listDigitalPlatformsForAdmin = async (req: Request, res: Response) 
 // 신규 등록 (`POST /api/admin/digital-platforms`) — 등록만으로 공개되지 않는다(isPublished 기본 false).
 // §3.1: 공식 고객센터 문서를 확인한 뒤 lastVerifiedAt과 함께 채울 것. 확인 못 했으면 만들지 않는 게 낫다.
 export const createDigitalPlatform = async (req: Request, res: Response) => {
-  const decoded = verifyAdminBearerToken(req);
-  if (!decoded) {
-    return res.status(401).json({ status: 'error', message: '인증 토큰이 없거나 유효하지 않습니다.' });
-  }
-
   const {
     name,
     category,
@@ -137,11 +144,6 @@ export const createDigitalPlatform = async (req: Request, res: Response) => {
 
 // 수정 (`PATCH /api/admin/digital-platforms/:id`) — lastVerifiedAt 갱신도 이 엔드포인트로 처리(§6.3)
 export const updateDigitalPlatform = async (req: Request, res: Response) => {
-  const decoded = verifyAdminBearerToken(req);
-  if (!decoded) {
-    return res.status(401).json({ status: 'error', message: '인증 토큰이 없거나 유효하지 않습니다.' });
-  }
-
   const body = req.body as {
     name?: string;
     category?: string;

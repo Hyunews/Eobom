@@ -775,7 +775,33 @@ model Admin {
   passwordHash     String // bcrypt 해시 (평문 저장 금지)
   refreshTokenHash String? // 발급된 refresh token의 sha256 해시 (회전·재사용 탐지용)
   name             String // 운영자 이름
+  // 00-37 §3.3 권한 등급 2단계. OPERATOR(심사·신고 처리·조회) | SUPERADMIN(위 전부 + 파기 실행·
+  // 회원 정지/탈퇴 처리·정산값 변경·운영자 계정 관리). 기존 계정은 마이그레이션 기본값으로
+  // 전부 SUPERADMIN이 된다(계정이 몇 개 없는 지금이 등급을 넣기 가장 싼 시점, §3.3).
+  role             String  @default("SUPERADMIN")
 
   createdAt DateTime @default(now()) // 계정 생성 일시 (seed-admin.ts로만 생성됨)
   updatedAt DateTime @updatedAt // 최종 수정 일시
+}
+
+// 운영자 조회·처리 감사 로그(00-37 §3.2 "조회도 기록한다"). 회원 상세(`GET /admin/users/:id`)처럼
+// 개인정보를 여는 API가 누가 언제 열었는지 기록이 없던 구멍을 막는다. `FarewellPurgeAuditLog`
+// (06-05 §6.5)와 같은 목적의 선례지만, 그 모델은 파기 전용으로 필드가 특화돼 있어 일반화해
+// 합치지 않고 나란히 둔다(00-37 §7 확정#2). Admin과 FK로 묶지 않는다 — 계정이 나중에 지워져도
+// 증빙은 남아야 한다(FarewellPurgeAuditLog와 동일 원칙). 🔴 대상의 내용은 남기지 않는다 —
+// 로그 자체가 두 번째 유출 경로가 되는 것을 막는다(§3.2).
+// 🔵 A-1은 모델 신설까지다 — 기존 엔드포인트(getUserDetailForAdmin 등)에 실제로 기록을 남기는
+// 배선은 00-37 §6 A-2 #8(회원 탭) 범위다. 지금은 쓰는 코드가 없어 테이블이 비어 있는 게 정상.
+model AdminAuditLog {
+  id         String   @id @default(uuid()) // 고유 식별자(UUID)
+  adminId    String // 실행한 운영자 id(FK 아님)
+  adminName  String // 실행 시점 운영자 이름 스냅샷
+  action     String // VIEW | APPROVE | REJECT | SUSPEND | PURGE
+  targetType String // 대상 종류 — 예: User, Memorial, Partner, Expert, FacilityClaim
+  targetId   String // 대상 레코드 id
+  reason     String? // 사유(선택)
+  createdAt  DateTime @default(now()) // 기록 시각
+
+  @@index([targetType, targetId])
+  @@index([adminId])
 }

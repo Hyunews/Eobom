@@ -21,11 +21,6 @@ type PurgeItem = { id: string; type: 'MEDIA' | 'LETTER' };
 
 // 만료 대상 목록 (`GET /api/admin/farewell-purge/expired`) — ①②를 구분해서 표시(#54).
 export const listFarewellPurgeExpired = async (req: Request, res: Response) => {
-  const decoded = verifyAdminBearerToken(req);
-  if (!decoded) {
-    return res.status(401).json({ status: 'error', message: '인증 토큰이 없거나 유효하지 않습니다.' });
-  }
-
   try {
     const [media, letter] = await Promise.all([findMediaExpired(), findLetterExpired()]);
     return res.json({
@@ -43,11 +38,6 @@ export const listFarewellPurgeExpired = async (req: Request, res: Response) => {
 
 // 아카이브 2단계 미이행 목록 (`GET /api/admin/farewell-purge/pending-archive`) — purgedAt IS NULL(#59).
 export const listFarewellPendingArchive = async (req: Request, res: Response) => {
-  const decoded = verifyAdminBearerToken(req);
-  if (!decoded) {
-    return res.status(401).json({ status: 'error', message: '인증 토큰이 없거나 유효하지 않습니다.' });
-  }
-
   try {
     const pending = await listPendingArchivePurge();
     return res.json({ status: 'success', data: pending });
@@ -62,11 +52,9 @@ export const listFarewellPendingArchive = async (req: Request, res: Response) =>
 // 실패하면 요청 전체를 거부한다(부분 실행하지 않음 — 목록이 낡았다는 뜻이라 새로 불러와야 한다).
 // 🟡 파기 화면 한정 재인증 — 비밀번호 재입력(#58).
 export const executeFarewellPurge = async (req: Request, res: Response) => {
-  const decoded = verifyAdminBearerToken(req);
-  if (!decoded) {
-    return res.status(401).json({ status: 'error', message: '인증 토큰이 없거나 유효하지 않습니다.' });
-  }
-
+  // 라우터 미들웨어(requireAdminAuth)가 이미 검증을 마쳤으므로 non-null 단정 — 감사로그에
+  // 남길 admin id·name이 필요해 여기서만 다시 값을 꺼낸다(00-37 A-1 #1).
+  const decoded = verifyAdminBearerToken(req)!;
   const { items, expectedCount, password } = req.body as {
     items?: PurgeItem[];
     expectedCount?: number;
@@ -135,11 +123,6 @@ export const executeFarewellPurge = async (req: Request, res: Response) => {
 // 아카이브 2단계 완료 표시 (`PATCH /api/admin/farewell-purge/pending-archive/:id/complete`) — 화면은
 // 아카이브를 지우지 않는다. 사람이 대시보드에서 지운 뒤 완료 표시만 한다(#59).
 export const completeArchivePurge = async (req: Request, res: Response) => {
-  const decoded = verifyAdminBearerToken(req);
-  if (!decoded) {
-    return res.status(401).json({ status: 'error', message: '인증 토큰이 없거나 유효하지 않습니다.' });
-  }
-
   try {
     const row = await prisma.archivePurgeQueue.update({
       where: { id: req.params.id },

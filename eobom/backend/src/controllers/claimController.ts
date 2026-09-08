@@ -1,7 +1,6 @@
 import { Request, Response } from 'express';
 import prisma from '../config/prisma';
 import { verifyPartnerBearerToken } from './partnerController';
-import { verifyAdminBearerToken } from './adminController';
 
 // 시설 소유권 클레임 — 사업자(Partner)가 자기 시설을 "이게 제 시설입니다"라고 신청하고,
 // 운영자가 심사해서 승인하면 Facility.partnerId가 채워진다 (docs 01-05 §3.3, §3.4).
@@ -87,16 +86,18 @@ export const listMyFacilities = async (req: Request, res: Response) => {
 
 // 클레임 심사 큐 (`GET /api/admin/claims?status=PENDING`)
 export const listClaimsForAdmin = async (req: Request, res: Response) => {
-  const decoded = verifyAdminBearerToken(req);
-  if (!decoded) {
-    return res.status(401).json({ status: 'error', message: '인증 토큰이 없거나 유효하지 않습니다.' });
-  }
-
   const status = (req.query.status as string) || undefined;
   try {
+    // 00-37 §3.1 — select 명시.
     const claims = await prisma.facilityClaim.findMany({
       where: status ? { status } : {},
-      include: {
+      select: {
+        id: true,
+        status: true,
+        evidenceUrl: true,
+        reviewNote: true,
+        reviewedAt: true,
+        createdAt: true,
         facility: { select: { id: true, name: true, location: true, partnerId: true } },
         partner: { select: { id: true, companyName: true, ownerName: true, email: true, status: true } },
       },
@@ -112,11 +113,6 @@ export const listClaimsForAdmin = async (req: Request, res: Response) => {
 // 클레임 승인/반려 (`PATCH /api/admin/claims/:id/status`) — 승인 시 Facility.partnerId + isPartner를
 // 같은 트랜잭션에서 갱신한다(§3.4). 이미 다른 파트너에게 연동된 시설이면 승인 자체를 막는다.
 export const updateClaimStatus = async (req: Request, res: Response) => {
-  const decoded = verifyAdminBearerToken(req);
-  if (!decoded) {
-    return res.status(401).json({ status: 'error', message: '인증 토큰이 없거나 유효하지 않습니다.' });
-  }
-
   const { status, reviewNote } = req.body as { status?: string; reviewNote?: string };
   if (!status || !['APPROVED', 'REJECTED'].includes(status)) {
     return res.status(400).json({ status: 'error', message: "status는 'APPROVED' 또는 'REJECTED'여야 합니다." });
