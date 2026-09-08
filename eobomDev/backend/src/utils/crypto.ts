@@ -49,28 +49,28 @@ const parseStored = (
 
 const encryptWith =
   (keyEnvName: string) =>
-  (plaintext: string): string => {
-    const iv = crypto.randomBytes(IV_LENGTH);
-    const cipher = crypto.createCipheriv(ALGORITHM, resolveKey(keyEnvName, 'v2'), iv);
-    const ciphertext = Buffer.concat([cipher.update(plaintext, 'utf8'), cipher.final()]);
-    const authTag = cipher.getAuthTag();
-    return `${CURRENT_VERSION}:${iv.toString('base64')}:${authTag.toString('base64')}:${ciphertext.toString('base64')}`;
-  };
+    (plaintext: string): string => {
+      const iv = crypto.randomBytes(IV_LENGTH);
+      const cipher = crypto.createCipheriv(ALGORITHM, resolveKey(keyEnvName, 'v2'), iv);
+      const ciphertext = Buffer.concat([cipher.update(plaintext, 'utf8'), cipher.final()]);
+      const authTag = cipher.getAuthTag();
+      return `${CURRENT_VERSION}:${iv.toString('base64')}:${authTag.toString('base64')}:${ciphertext.toString('base64')}`;
+    };
 
 const decryptWith =
   (keyEnvName: string) =>
-  (stored: string): string => {
-    const { version, iv, tag, data } = parseStored(stored);
-    const decipher = crypto.createDecipheriv(
-      ALGORITHM,
-      resolveKey(keyEnvName, version),
-      Buffer.from(iv, 'base64'),
-    );
-    decipher.setAuthTag(Buffer.from(tag, 'base64'));
-    return Buffer.concat([decipher.update(Buffer.from(data, 'base64')), decipher.final()]).toString(
-      'utf8',
-    );
-  };
+    (stored: string): string => {
+      const { version, iv, tag, data } = parseStored(stored);
+      const decipher = crypto.createDecipheriv(
+        ALGORITHM,
+        resolveKey(keyEnvName, version),
+        Buffer.from(iv, 'base64'),
+      );
+      decipher.setAuthTag(Buffer.from(tag, 'base64'));
+      return Buffer.concat([decipher.update(Buffer.from(data, 'base64')), decipher.final()]).toString(
+        'utf8',
+      );
+    };
 
 export const encryptField = encryptWith('SETTLEMENT_ENCRYPTION_KEY');
 export const decryptField = decryptWith('SETTLEMENT_ENCRYPTION_KEY');
@@ -105,32 +105,32 @@ const VERSION_MARKER = Buffer.from(CURRENT_VERSION, 'utf8'); // 'v2' = 2바이�
 
 const encryptBufferWith =
   (keyEnvName: string) =>
-  (plaintext: Buffer): Buffer => {
-    const iv = crypto.randomBytes(IV_LENGTH);
-    const cipher = crypto.createCipheriv(ALGORITHM, resolveKey(keyEnvName, 'v2'), iv);
-    const ciphertext = Buffer.concat([cipher.update(plaintext), cipher.final()]);
-    const authTag = cipher.getAuthTag();
-    return Buffer.concat([VERSION_MARKER, iv, authTag, ciphertext]);
-  };
+    (plaintext: Buffer): Buffer => {
+      const iv = crypto.randomBytes(IV_LENGTH);
+      const cipher = crypto.createCipheriv(ALGORITHM, resolveKey(keyEnvName, 'v2'), iv);
+      const ciphertext = Buffer.concat([cipher.update(plaintext), cipher.final()]);
+      const authTag = cipher.getAuthTag();
+      return Buffer.concat([VERSION_MARKER, iv, authTag, ciphertext]);
+    };
 
 const decryptBufferWith =
   (keyEnvName: string) =>
-  (stored: Buffer): Buffer => {
-    const version = stored.subarray(0, VERSION_MARKER.length).toString('utf8');
-    if (version !== CURRENT_VERSION) {
-      throw new Error('암호화된 파일 형식이 올바르지 않습니다.');
-    }
-    const ivStart = VERSION_MARKER.length;
-    const tagStart = ivStart + IV_LENGTH;
-    const dataStart = tagStart + AUTH_TAG_LENGTH;
-    const iv = stored.subarray(ivStart, tagStart);
-    const authTag = stored.subarray(tagStart, dataStart);
-    const data = stored.subarray(dataStart);
+    (stored: Buffer): Buffer => {
+      const version = stored.subarray(0, VERSION_MARKER.length).toString('utf8');
+      if (version !== CURRENT_VERSION) {
+        throw new Error('암호화된 파일 형식이 올바르지 않습니다.');
+      }
+      const ivStart = VERSION_MARKER.length;
+      const tagStart = ivStart + IV_LENGTH;
+      const dataStart = tagStart + AUTH_TAG_LENGTH;
+      const iv = stored.subarray(ivStart, tagStart);
+      const authTag = stored.subarray(tagStart, dataStart);
+      const data = stored.subarray(dataStart);
 
-    const decipher = crypto.createDecipheriv(ALGORITHM, resolveKey(keyEnvName, 'v2'), iv);
-    decipher.setAuthTag(authTag);
-    return Buffer.concat([decipher.update(data), decipher.final()]);
-  };
+      const decipher = crypto.createDecipheriv(ALGORITHM, resolveKey(keyEnvName, 'v2'), iv);
+      decipher.setAuthTag(authTag);
+      return Buffer.concat([decipher.update(data), decipher.final()]);
+    };
 
 // 06(유족 메시지) 음성 전용 — encryptNoteField와 같은 ENDING_NOTE_ENCRYPTION_KEY를 쓴다
 // (텍스트 편지와 음성이 같은 도메인 키를 공유해도 문제가 없다 — 애초에 같은 EndingNote 아래
