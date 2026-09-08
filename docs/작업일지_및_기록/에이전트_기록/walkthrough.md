@@ -2298,3 +2298,18 @@ wt137 그대로라 재작업 없음).
 - **다음 에이전트가 알아야 할 것**: 🟡 index.css 안에 이번 치환 대상(§4.5)에 포함되지 않은 소형 rem 폰트 리터럴이 남아있다(예: `:794 font-size:0.85rem`·`:1596·1948 font-size:0.78rem`·`:1781·1834 font-size:0.8rem` 등 — index.css 자체는 §4.5의 "38개 파일"에 포함되지 않아 손대지 않음). 루트 16px화로 이 값들도 동일하게 작아졌을 것이라 DoD #2(≥16px/≥14px) 전수 검사 시 걸릴 수 있다 — Phase 2 착수 전 Opus 확인 필요. 🔵 로그인 필요 화면(MyPage·ObituaryPage·EndingNotePage 등)의 DoD #1~#7 실측은 에이전트가 로그인 화면을 닫을 수 없어(`00-29` §15) 사람이 실기기로 확인해야 한다.
 
 <!-- Gemini 판정 대기 -->
+
+
+## 2026-09-08 (174) | [Sonnet] 00-38 Phase 1.5 + Phase 2 ① — Farewell 적응형 분리
+
+- **근거 스펙**: docs/00_핵심플랫폼/00-38_적응형_모바일_UX_개편_명세서.md §4.5-1·§5.3·§6·§8.1-1 ⓐ~ⓕ·§11. 고지 문구는 docs/06_엔딩노트_유언/06-05_유족메시지_보관함_도메인분리_기획서.md §4.3(09-08 블록).
+- **건드린 파일**:
+  - Phase 1.5[A] eobom/frontend/src/index.css — `.stat-row__label`·`.header-outline-btn`·`.farewell-message-badge`·`.farewell-rail-label`·`.farewell-result-label`·`.farewell-board-recipient-sub` font-size 7곳 → `var(--fs-body)`/`var(--fs-caption)`, `.stat-row__label` ≤480px 0.7rem 규칙 삭제.
+  - Phase 1.5[B] eobom/frontend/src/pages/CareGuidePage.tsx — 카테고리 헤더의 `{items[0].conditional && ' (해당하는 경우에만)'}` 삭제(`conditional` 필드 자체는 데이터에 유지).
+  - Phase 2① 신설: eobom/frontend/src/components/farewell/{types.ts, FarewellNotice.tsx, FarewellDesktopView.tsx, FarewellMobileView.tsx}
+  - Phase 2① 수정: eobom/frontend/src/pages/FarewellMessagePage.tsx(상태·핸들러만 남기고 `useIsMobile()`로 뷰 분기) · eobom/frontend/src/components/FarewellMessageCard.tsx(레일 접기 `railOpen` 상태 신설, textarea를 인라인 스타일 대신 `.farewell-composer-textarea` 클래스로) · eobom/frontend/src/index.css(오버레이/패널 640→768px, `max-height:100dvh`·좌우 `--gutter-page`, 컴포저 620→768px·레일 order -1(위)+토글/접기 CSS, `.farewell-message-preview` ≤768px 숨김, `.farewell-board-layout` 계열 ≤680px 죽은 CSS 삭제, `.farewell-mobile-list`·`.farewell-mobile-back` 신설).
+- **결과**: `npm run build`(tsc+vite) 통과. `FarewellMessagePage`가 §6.1 구조(부모=상태 5개+핸들러 3개+`onOpenFamilyDesignation` 분기만, `FarewellDesktopView`=기존 JSX 그대로, `FarewellMobileView`=1단계 수신자 목록→2단계 뒤로가기+`FarewellNotice`+`FarewellMessageCard` 재사용)로 분리됨. §8.1-1 ⓕ 자동선택 effect에 `isMobile` deps 추가(모바일→데스크톱 전환 시 상세 칸 빈 채로 안 남게). `FarewellMessageCard`는 §8.1-1 ⓔ대로 쪼개지 않고 두 뷰가 그대로 재사용 — 리더/컴포저의 모바일 대응은 CSS(+ `railOpen`만 신규 로컬 state)로 처리. 06-05 §4.3 고지 문구를 원문으로 복원(`FarewellNotice.tsx`, Desktop은 위치 그대로 상단·Mobile은 컴포저 바로 위). 로그인 게이트 화면(비로그인 상태)에서 dev 서버로 실기동 확인 — 콘솔 에러 0건, `FarewellMessagePage`→`useIsMobile` 모듈 로딩 정상.
+- **편차**: (1) 06-05 §4.3 고지 텍스트 복원을 Desktop에도 적용했다 — 스펙 ⓒ는 문면상 모바일 섹션에 있지만 "함께 정정"이 원문 대조 기준 수정이라 읽었고, ⓓ(데스크톱 회귀 0)는 레이아웃 동일성이지 카피 버그 수정까지 막는 것은 아니라고 판단했다. Opus 판단 대기. (2) 레일 접기(`railOpen`)를 `FarewellMessageCard` 내부 로컬 state로 추가했다 — §6.2가 금지하는 것은 페이지 상태를 뷰에 두는 것이고, 이 state는 카드 자체의 순수 표현용 토글이라 규칙 위반이 아니라고 판단했다. (3) `.farewell-board-layout`/`-sidebar`/`-recipient` 문서화 안 된 ≤680px 미디어쿼리를 삭제했다 — Desktop뷰가 이제 >768px에서만 마운트돼 도달 불가능한 죽은 CSS가 됐기 때문(직접 유발한 결과라 같은 커밋에서 정리).
+- **다음 에이전트가 알아야 할 것**: 🔵 로그인 필요 화면이라 §11 DoD #1~#7·#9(마스터·디테일 전환, 리더 모달, 레일 접기, 767↔769 리사이즈 시 입력값 유지, 1280px 스크린샷 대조)는 사람이 실기기로 로그인해 확인해야 한다(00-29 §15). 🟡 위 편차(1)(2)는 Opus 판정 필요 — 특히 (1)은 Desktop 스크린샷이 노트 박스 높이만큼 전후 달라질 수 있어 DoD #8 판정 시 참고. 다음=Phase 2 ② `CareGuidePage`(§8.1-3, Phase1.5[B]로 선행 조건은 닫힘) → ③ `EndingNotePage`.
+
+<!-- Gemini 판정 대기 -->

@@ -228,7 +228,6 @@ export const CareGuidePage: React.FC<CareGuidePageProps> = ({ setActiveTab }) =>
                         {showCategoryHeader && (
                           <div style={{ fontSize: 'var(--fs-caption)', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.02em', marginBottom: 'var(--sp-2)' }}>
                             {category}
-                            {items[0].conditional && ' (해당하는 경우에만)'}
                           </div>
                         )}
 

@@ -24,19 +24,17 @@ Cloudflare·Supabase·Render 미기재. ⏸ "국가"란 보류(인프라 대기 
 **모바일만** 개정. 🟡 사람확정 1건(비차단)=본문16px 실기기 확인(§12.1).
 
 **2. [Sonnet]** 🔴 wt112·114·115~120·164~172 실기동 대기(사람, 09-03). ⏸ 체크8·F는 Opus 먼저·
-04B는 `PreDeathPlatformSetting` 뒤. ✅ wt121~173 빌드통과(상세 walkthrough).
-🔴 #24 보류(⑪)·🟡미검증 ⑯. ✅ `00-38` Phase1 완료(wt173) + **Opus판정 3건 종결**: index.css잔여
-=스펙구멍→§4.5-1(font-size 7곳·`.stat-row__label` 0.7rem폐기=`00-09`§3.2) · HomePage ref미러링
-=통과→§5.3 · wt163 id12 `conditional`무표시=스펙미비→`07-04`§8-9-2-1(마커삭제·분모용으로만).
-▶ **다음=`00-38` Phase1.5**(A: index.css 7곳 · B: CareGuidePage.tsx:231 삭제)
-→ **Phase2 ① Farewell**(상세 §8.1-1 ⓐ~ⓕ 확정) → ② CareGuide → ③ EndingNote → `00-37` A-3.
-🔵 로그인화면 DoD는 사람 실기기 몫(`00-29`§15).
+04B는 `PreDeathPlatformSetting` 뒤. ✅ wt121~174 빌드통과(상세 walkthrough).
+🔴 #24 보류(⑪)·🟡미검증 ⑯. ✅ `00-38` Phase1.5+Phase2①Farewell분리 완료(wt174).
+🟡 Opus판정 대기 2건(wt174편차): 고지복원 Desktop도적용=ⓓ충돌?·레일접기
+`railOpen` 로컬state=§6.2#1 위반아님 판단. ▶다음=Phase2②`CareGuidePage`→③`EndingNote`→
+`00-37`A-3. 🔵 로그인DoD 사람몫(`00-29`§15) — wt174는 콘솔에러0만 확인.
 
 **3. [Gemini]** 게이트 0건 · 🟡 옛 스펙갱신 3건 → ⑭. 🟡 dev DB 삭제분 7건 — D-8(🔴 CONFIRM).
 
 ## 지금 상태
 
-프로젝트: **이어봄(Eobom)** — 디지털엔딩&웰다잉 토탈케어 플랫폼 · 마지막 2026-09-08(wt173)
+프로젝트: **이어봄(Eobom)** — 디지털엔딩&웰다잉 토탈케어 플랫폼 · 마지막 2026-09-08(wt174)
 
 - 소스 `eobom/frontend`(React18+Vite5+TS) · `eobom/backend`(Express+Prisma+JWT)
 - 목차 `docs/00_DOCS_INDEX.md` / 저장위치 `AGENTS.md` §7
