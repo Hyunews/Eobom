@@ -791,7 +791,7 @@ body {
 }
 
 .stat-row__label {
-  font-size: 0.85rem;
+  font-size: var(--fs-caption);
 }
 
 @media (max-width: 480px) {
@@ -799,9 +799,8 @@ body {
     font-size: 1.3rem;
   }
 
-  .stat-row__label {
-    font-size: 0.7rem;
-  }
+  /* 00-38 §4.5-1 — .stat-row__label 축소 규칙 폐기(2026-09-08). 11.2px는 6070 페르소나에게
+     읽히지 않는다. 칸이 좁으면 글자를 줄이지 않고 칸을 바꾼다(§8.2 — 4자리 이상은 2×2/세로 스택). */
 }
 
 .stack-sm {
@@ -970,7 +969,7 @@ body {
   border: 1px solid var(--border-color);
   border-radius: var(--r-sm);
   padding: 0.4rem 0.8rem;
-  font-size: 0.85rem;
+  font-size: var(--fs-caption);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -1593,7 +1592,7 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
-  font-size: 0.78rem;
+  font-size: var(--fs-caption);
   font-weight: 700;
   padding: 0.2rem 0.65rem;
   border-radius: var(--r-full);
@@ -1641,6 +1640,21 @@ body {
   line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+}
+
+/* 00-38 §8.1-1 ⓑ 2단계 — "[날짜 + 한 줄 제목]만" (원칙 5). 목록에 본문 조각을 흘리지 않는다. */
+@media (max-width: 768px) {
+  .farewell-message-preview {
+    display: none;
+  }
+}
+
+/* 00-38 §8.1-1 컴포저 — 편지 본문 textarea. 클래스로 빼서 모바일에서만(≤768px) 리더
+   타이포그래피(--fs-lead·--lh-reader)로 오버라이드한다 — 인라인 스타일이면 미디어쿼리로
+   덮어쓸 수 없다. 기본값(데스크톱)은 기존 인라인 값과 동일해 DoD #8(회귀 0)을 지킨다. */
+.farewell-composer-textarea {
+  font-size: 1.15rem;
+  line-height: 1.65;
 }
 
 .farewell-message-row-actions {
@@ -1709,7 +1723,10 @@ body {
   box-shadow: var(--el-3);
 }
 
-@media (max-width: 640px) {
+/* 00-38 §8.1-1 ⓑ "리더" — FarewellMobileView가 뜨는 폭(≤768px, useIsMobile 기본값)과 맞춘다.
+   과거 640px 기준이던 것을 768px로 올렸다 — 621~768px 구간에서 데스크톱 2단 그리드가 그대로
+   남아 있던 구멍을 닫는다. max-height는 vh가 아니라 100dvh(§5.1 — 주소창에 잘리지 않는다). */
+@media (max-width: 768px) {
   .farewell-message-overlay {
     padding: 0;
     align-items: stretch;
@@ -1717,9 +1734,17 @@ body {
 
   .farewell-message-panel {
     max-width: none;
-    max-height: none;
-    height: 100%;
+    max-height: 100dvh;
+    height: 100dvh;
     border-radius: 0;
+    padding-left: var(--gutter-page);
+    padding-right: var(--gutter-page);
+  }
+
+  /* 본문 --fs-lead·--lh-reader·좌우 --gutter-page(원칙 5 몰입형 리더) */
+  .farewell-composer-textarea {
+    font-size: var(--fs-lead);
+    line-height: var(--lh-reader);
   }
 }
 
@@ -1778,7 +1803,7 @@ body {
 }
 
 .farewell-rail-label {
-  font-size: 0.8rem;
+  font-size: var(--fs-body);
   font-weight: 700;
   color: var(--text-muted);
   margin: 0 0 0.6rem 0;
@@ -1830,8 +1855,17 @@ body {
   min-width: 0;
 }
 
+/* 00-38 §8.1-1 ⓑ "컴포저" — 모바일 전용 레일 접기 토글. 데스크톱은 기본 숨김(항상 펼침) */
+.farewell-composer-rail-toggle {
+  display: none;
+}
+
+.farewell-composer-rail-content {
+  display: block;
+}
+
 .farewell-result-label {
-  font-size: 0.8rem;
+  font-size: var(--fs-body);
   font-weight: 700;
   color: var(--text-muted);
   margin: 0.9rem 0 0.4rem;
@@ -1860,17 +1894,43 @@ body {
   min-width: 160px;
 }
 
-@media (max-width: 620px) {
+/* 00-38 §8.1-1 ⓑ "컴포저" — 620px→768px로 상향(FarewellMobileView가 뜨는 폭과 일치, §4.5-1과
+   같은 이유로 구멍이 있었다). 레일은 본문 "아래"가 아니라 "위"로 접어 올린다(order:-1) —
+   힌트 목록은 기본 접힌 상태(railOpen=false)이고 데스크톱은 이 규칙 자체가 적용되지 않는다. */
+@media (max-width: 768px) {
   .farewell-composer-body {
     grid-template-columns: 1fr;
   }
 
   .farewell-composer-rail {
-    order: 2;
+    order: -1;
   }
 
   .farewell-composer-main {
     order: 1;
+  }
+
+  .farewell-composer-rail-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    background: none;
+    border: none;
+    font-size: var(--fs-caption);
+    font-weight: 700;
+    color: var(--text-muted);
+    padding: 0;
+    cursor: pointer;
+  }
+
+  .farewell-composer-rail-content {
+    display: none;
+    margin-top: 0.6rem;
+  }
+
+  .farewell-composer-rail-content.is-open {
+    display: block;
   }
 }
 
@@ -1945,7 +2005,7 @@ body {
 }
 
 .farewell-board-recipient-sub {
-  font-size: 0.78rem;
+  font-size: var(--fs-caption);
   color: var(--text-muted);
 }
 
@@ -1978,20 +2038,37 @@ body {
   margin: 0 auto;
 }
 
-@media (max-width: 680px) {
-  .farewell-board-layout {
-    grid-template-columns: 1fr;
-  }
+/* 00-38 §8.1-1 ⓑ — 이 구간(≤680px)의 옛 오버라이드는 삭제한다. .farewell-board-layout은
+   이제 FarewellDesktopView에서만 렌더되고, Desktop뷰는 useIsMobile()이 false일 때(>768px)만
+   마운트되므로 ≤680px는 절대 도달하지 않는다(죽은 CSS). 같은 폭 구간의 모바일 UI는
+   FarewellMobileView 전용 클래스(.farewell-mobile-list 등, 아래)가 대신한다.
 
-  .farewell-board-sidebar {
-    flex-direction: row;
-    overflow-x: auto;
-    gap: 0.5rem;
-    padding-bottom: 0.3rem;
-  }
+   1단계 — 받는 분 목록. .farewell-board-recipient(아바타+이름+관계·N통)를 그대로 재사용하되
+   세로 목록으로 쓴다(§8.1-1 ⓑ). 히트 영역 ≥56px(DoD #5). */
+.farewell-mobile-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
 
-  .farewell-board-recipient {
-    flex-shrink: 0;
-  }
+.farewell-mobile-list .farewell-board-recipient {
+  min-height: 56px;
+}
+
+/* 2단계 — 상단 "← 이름" 뒤로가기. history.pushState를 쓰지 않는다(§6.3) — 화면 내 상태 전환. */
+.farewell-mobile-back {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  background: none;
+  border: none;
+  padding: 0.5rem 0;
+  margin-bottom: 1rem;
+  font-family: var(--font-serif);
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--primary-color);
+  cursor: pointer;
+  min-height: 44px;
 }
 

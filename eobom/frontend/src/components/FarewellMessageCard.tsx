@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Heart, Plus, Loader2, Pencil, X, Volume2, Trash2, Download, Upload, Mic, FileText } from 'lucide-react';
+import { Heart, Plus, Loader2, Pencil, X, Volume2, Trash2, Download, Upload, Mic, FileText, ChevronDown } from 'lucide-react';
 import { BACKEND_URL } from '../config';
 import { VoiceToTextInput, SavedMedia } from './VoiceToTextInput';
 
@@ -92,6 +92,9 @@ export const FarewellMessageCard: React.FC<FarewellMessageCardProps> = ({ recipi
   const [saving, setSaving] = useState(false);
   const [loadingDetail, setLoadingDetail] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // 00-38 §8.1-1 ⓑ "컴포저" — 모바일에서만 레일(작성 안내)을 접어 올린다. 기본 접힌 상태.
+  // 데스크톱은 index.css가 이 상태와 무관하게 항상 펼쳐서 보여준다(폭 기준 CSS 오버라이드).
+  const [railOpen, setRailOpen] = useState(false);
 
   // 🆕 D-6 — 듣기·삭제(§5.6-3·§5.6-4). mediaInfo는 현재 편집 중인 메시지의 첨부 상태.
   const [mediaInfo, setMediaInfo] = useState<MediaInfo | null>(null);
@@ -132,6 +135,7 @@ export const FarewellMessageCard: React.FC<FarewellMessageCardProps> = ({ recipi
     setMediaInfo(null);
     setAudioSrc(null);
     setActiveMethod('upload');
+    setRailOpen(false);
     revokeLocalAudio();
     revokeFetchedAudio();
   };
@@ -552,34 +556,47 @@ export const FarewellMessageCard: React.FC<FarewellMessageCardProps> = ({ recipi
             <div className="farewell-composer-body">
               {/* 탭별 설명(특히 STT 안내)을 본문에 끼워 넣지 않고 옆 사이드노트가 맡는다. */}
               <aside className="farewell-composer-rail">
-                {activeMethod === 'upload' && (
-                  <>
-                    <p className="farewell-rail-label">A. 음성 파일 업로드</p>
-                    <p className="farewell-rail-desc">
-                      <Mic size={14} />
-                      <span><strong>자동으로 글로 바뀝니다.</strong> 음성 파일이 네이버 클라우드 CLOVA Speech로 전송되어 변환되며, 변환된 텍스트는 네이버에 7일간 보관된 뒤 삭제됩니다.</span>
-                    </p>
-                  </>
-                )}
-                {activeMethod === 'record' && (
-                  <>
-                    <p className="farewell-rail-label">B. 음성 녹음</p>
-                    <p className="farewell-rail-desc">
-                      <Mic size={14} />
-                      <span><strong>말씀하신 목소리는 글로 바뀌어 편지 내용으로 들어갑니다.</strong> 브라우저가 바로 바꾸지 못하면 네이버 CLOVA Speech로 자동 전송되어 변환됩니다. 녹음을 마치면 저장 여부를 다시 확인합니다.</span>
-                    </p>
-                  </>
-                )}
-                {activeMethod === 'write' && (
-                  <>
-                    <p className="farewell-rail-label">무엇을 남길까 고민된다면</p>
-                    <ul className="farewell-rail-hints">
-                      <li>요즘 근황</li>
-                      <li>고마웠던 순간</li>
-                      <li>못다한 말</li>
-                    </ul>
-                  </>
-                )}
+                {/* 00-38 §8.1-1 ⓑ — 모바일 전용 접기 버튼. 데스크톱은 index.css가 폭 기준으로
+                    숨기고 아래 콘텐츠를 항상 펼쳐서 보여준다(railOpen 상태와 무관). */}
+                <button
+                  type="button"
+                  className="farewell-composer-rail-toggle"
+                  onClick={() => setRailOpen((o) => !o)}
+                  aria-expanded={railOpen}
+                >
+                  <span>작성 안내</span>
+                  <ChevronDown size={16} style={{ transform: railOpen ? 'rotate(180deg)' : undefined, transition: 'transform 0.2s ease' }} />
+                </button>
+                <div className={`farewell-composer-rail-content${railOpen ? ' is-open' : ''}`}>
+                  {activeMethod === 'upload' && (
+                    <>
+                      <p className="farewell-rail-label">A. 음성 파일 업로드</p>
+                      <p className="farewell-rail-desc">
+                        <Mic size={14} />
+                        <span><strong>자동으로 글로 바뀝니다.</strong> 음성 파일이 네이버 클라우드 CLOVA Speech로 전송되어 변환되며, 변환된 텍스트는 네이버에 7일간 보관된 뒤 삭제됩니다.</span>
+                      </p>
+                    </>
+                  )}
+                  {activeMethod === 'record' && (
+                    <>
+                      <p className="farewell-rail-label">B. 음성 녹음</p>
+                      <p className="farewell-rail-desc">
+                        <Mic size={14} />
+                        <span><strong>말씀하신 목소리는 글로 바뀌어 편지 내용으로 들어갑니다.</strong> 브라우저가 바로 바꾸지 못하면 네이버 CLOVA Speech로 자동 전송되어 변환됩니다. 녹음을 마치면 저장 여부를 다시 확인합니다.</span>
+                      </p>
+                    </>
+                  )}
+                  {activeMethod === 'write' && (
+                    <>
+                      <p className="farewell-rail-label">무엇을 남길까 고민된다면</p>
+                      <ul className="farewell-rail-hints">
+                        <li>요즘 근황</li>
+                        <li>고마웠던 순간</li>
+                        <li>못다한 말</li>
+                      </ul>
+                    </>
+                  )}
+                </div>
               </aside>
 
               <div className="farewell-composer-main">
@@ -600,8 +617,8 @@ export const FarewellMessageCard: React.FC<FarewellMessageCardProps> = ({ recipi
                       rows={activeMethod === 'write' ? 7 : 5}
                       value={body}
                       onChange={(e) => setBody(e.target.value)}
-                      className="form-input"
-                      style={{ height: 'auto', padding: '1rem', fontSize: '1.15rem', lineHeight: 1.65 }}
+                      className="form-input farewell-composer-textarea"
+                      style={{ height: 'auto', padding: '1rem' }}
                       placeholder={`${recipient.name}님께 남기고 싶은 말을 자유롭게 적어보세요.`}
                     />
                   </div>
