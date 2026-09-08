@@ -6,7 +6,7 @@ import { Prisma } from '@prisma/client';
 // 스냅샷 컬럼(Lead.applicantPhone 등)에 복사한다 — §2 스냅샷 원칙이 조인 없이 자동으로 지켜진다.
 // leadController.createQuote · expertPublicController.submitConsultRequest 둘 다 같은 규칙을
 // 쓴다(⚠️ 두 폼의 동작을 다르게 두지 말 것 — §6.4-1).
-export class ProfileContactMissingError extends Error {}
+export class ProfileContactMissingError extends Error { }
 
 interface ResolveParams {
   useProfileContact: boolean;
