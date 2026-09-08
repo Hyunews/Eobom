@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { CheckSquare, ExternalLink, AlertTriangle, ChevronDown, ChevronUp } from 'lucide-react';
+import { CheckSquare, ExternalLink, AlertCircle, ChevronDown, ChevronUp } from 'lucide-react';
 import careGuideTasksData from '../mockData/careGuideTasks.json';
 import { ChecklistShieldIcon } from '../components/MenuIcons';
 
@@ -117,33 +117,39 @@ export const CareGuidePage: React.FC<CareGuidePageProps> = ({ setActiveTab }) =>
       </div>
 
       {/* §3.1 최상단 고정 배너 — 유족은 체크리스트를 끝까지 스크롤하지 않는다. 한 줄이라도
-          남으려면 최상단이어야 한다. */}
-      <div style={{ backgroundColor: 'var(--state-critical-bg)', border: '2px solid var(--state-critical-bg)', borderRadius: 'var(--r-md)', padding: '1.1rem 1.3rem', marginBottom: '1.5rem', display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
-        <AlertTriangle color="var(--state-critical-fg)" size={24} style={{ flexShrink: 0, marginTop: '0.1rem' }} />
-        <div style={{ flex: 1 }}>
-          <h3 style={{ color: 'var(--state-critical-fg)', fontSize: '1.05rem', margin: '0 0 0.4rem 0' }}>
-            고인에게 빚이 있을 수 있다면, 3개월 안에 결정해야 합니다.
-          </h3>
-          <p style={{ fontSize: '0.9rem', color: '#7C2D12', margin: '0 0 0.75rem 0', lineHeight: 1.6 }}>
+          남으려면 최상단이어야 한다.
+          2026-09-08 — 시안 A~F 중 "E. 미니멀 아웃라인"으로 교체(사용자 선택), 그 뒤 사용자
+          지시로 테두리만 리본형(시안 C형 — 위아래 가로줄만, 좌우·모서리 없음)으로 재수정.
+          면을 칠하지 않고 위아래 선만 두르고, 경고는 모서리에 걸친 작은 뱃지 하나가 담당한다 —
+          "소리치지 않지만 놓치지 않는" 쪽. */}
+      <div style={{ backgroundColor: 'var(--card-bg)', borderTop: '1.5px solid var(--primary-color)', borderBottom: '1.5px solid var(--primary-color)', padding: '1.15rem 1.3rem 1.15rem 1.5rem', marginBottom: '1.5rem', position: 'relative' }}>
+        <span style={{ position: 'absolute', top: '-12px', left: '-12px', width: '26px', height: '26px', borderRadius: 'var(--r-full)', backgroundColor: 'var(--state-critical-fg)', border: '2px solid var(--card-bg)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <AlertCircle color="#FFFFFF" size={14} strokeWidth={2.5} />
+        </span>
+        <h3 style={{ color: 'var(--text-main)', fontSize: '0.98rem', fontWeight: 700, margin: '0 0 0.4rem 0' }}>
+          고인에게 빚이 있을 수 있다면, 3개월 안에 결정해야 합니다.
+        </h3>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap' }}>
+          <p style={{ fontSize: '0.87rem', color: 'var(--text-muted)', margin: 0, lineHeight: 1.6, flex: '1 1 320px' }}>
             상속포기·한정승인 기한은 상속개시를 안 날로부터 3개월입니다. 지나면 채무를 그대로 물려받습니다.
           </p>
-          <div style={{ display: 'flex', gap: '0.6rem', flexWrap: 'wrap' }}>
-            <button
-              type="button"
-              onClick={() => inheritanceRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
-              className="btn"
-              style={{ backgroundColor: '#FFFFFF', color: 'var(--state-critical-fg)', border: '1px solid var(--state-critical-bg)', height: '38px', fontSize: '0.85rem', padding: '0 1rem' }}
-            >
-              내용 보기
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveTab?.('counseling')}
-              className="btn"
-              style={{ backgroundColor: 'var(--state-critical-fg)', color: '#FFFFFF', height: '38px', fontSize: '0.85rem', padding: '0 1rem' }}
-            >
-              전문가 상담
-            </button>
+          <div style={{ display: 'flex', gap: '0.6rem', flexShrink: 0 }}>
+          <button
+            type="button"
+            onClick={() => inheritanceRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+            className="btn"
+            style={{ background: 'none', color: 'var(--text-muted)', border: '1px solid var(--border-color)', height: '38px', fontSize: '0.85rem', padding: '0 1rem' }}
+          >
+            내용 보기
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab?.('counseling')}
+            className="btn"
+            style={{ backgroundColor: 'var(--primary-color)', color: '#FFFFFF', height: '38px', fontSize: '0.85rem', padding: '0 1rem' }}
+          >
+            전문가 상담
+          </button>
           </div>
         </div>
       </div>
@@ -178,10 +184,11 @@ export const CareGuidePage: React.FC<CareGuidePageProps> = ({ setActiveTab }) =>
 
           return (
             <div key={section.key} style={{ marginBottom: 'var(--sp-6)' }}>
-              {/* §8-8-2 — 구간 3 강조는 전체를 들여쓰지 않고 이 버튼 자체를 색 있는 띠로
-                  만든다(2026-09-08 재수정). borderLeft+paddingLeft를 섹션 전체에 걸면 위
-                  구간의 하위 항목처럼 보인다는 지적(들여쓰기 착시) — 버튼 폭 전체에 배경·좌측
-                  테두리를 줘서 "구간 하나가 강조됐다"로 읽히게 한다. */}
+              {/* §8-8-2 — 구간 3 강조는 전체를 들여쓰지 않고 이 버튼 자체에 좌측 테두리로
+                  만든다(2026-09-08 재수정 → 배경색은 사용자 지시로 제거, 테두리만 유지).
+                  borderLeft+paddingLeft를 섹션 전체에 걸면 위 구간의 하위 항목처럼 보인다는
+                  지적(들여쓰기 착시) — 버튼 폭 전체에 좌측 테두리를 줘서 "구간 하나가
+                  강조됐다"로 읽히게 한다. */}
               <button
                 type="button"
                 onClick={() => toggleSection(section.key)}
@@ -189,11 +196,9 @@ export const CareGuidePage: React.FC<CareGuidePageProps> = ({ setActiveTab }) =>
                 className="care-guide-section-toggle"
                 style={{
                   display: 'flex', alignItems: 'center', gap: 'var(--sp-2)', width: '100%',
-                  border: 'none', padding: 'var(--sp-2) var(--sp-3)', margin: '0 0 var(--sp-2) 0',
+                  background: 'none', border: 'none', padding: 'var(--sp-2) var(--sp-3)', margin: '0 0 var(--sp-2) 0',
                   cursor: 'pointer', textAlign: 'left', color: 'var(--primary-color)',
-                  ...(isMonth3
-                    ? { background: 'var(--state-critical-bg)', borderLeft: '4px solid var(--state-critical-fg)' }
-                    : { background: 'none' }),
+                  ...(isMonth3 ? { borderLeft: '4px solid var(--state-critical-fg)' } : {}),
                 }}
               >
                 {isOpen ? <ChevronUp size={18} /> : <ChevronDown size={18} />}

@@ -2094,3 +2094,49 @@ wt137 그대로라 재작업 없음).
 - **다음 에이전트가 알아야 할 것**: 이 패턴("목차/캡션 라벨은 muted+caption+uppercase, 목차 링크는 caption+medium+primary")은 다른 페이지의 유사 사이드바 목차가 생기면 재사용할 수 있다. `.ending-note-toc` 자체(박스 배경·패딩)와 "한눈에 보기" 버튼은 이번에 손대지 않았다.
 
 <!-- Gemini 판정 1줄: 대기 -->
+
+
+## 2026-09-08 (159) | [Sonnet] CareGuide "3개월" 구간 버튼 배경색(살구색) 제거
+
+- **근거 스펙**: 스펙 없음 — 사용자 요청("체크리스트의 3개월 버튼 살구색 배경색 삭제"). wt156에서 들여쓰기 착시를 고치며 붙인 `background: var(--state-critical-bg)`(#FFEDD5, 살구색)가 대상.
+- **건드린 파일**: `eobom/frontend/src/pages/CareGuidePage.tsx` — `isMonth3` 구간 토글 버튼 스타일에서 `background: 'var(--state-critical-bg)'`를 제거하고 `borderLeft: '4px solid var(--state-critical-fg)'`(좌측 강조 테두리)만 남김. 나머지 구간과 같은 `background: 'none'`으로 통일.
+- **결과**: `tsc --noEmit`·`npm run build`(frontend) 통과. 부수 효과로 `.care-guide-section-toggle:hover`의 `background-color` 규칙이 이제 이 구간에도 정상 적용됨(전에는 인라인 `background`가 막고 있었음).
+- **편차**: 없음.
+- **다음 에이전트가 알아야 할 것**: "3개월" 구간 강조는 이제 좌측 4px 테두리(`--state-critical-fg`) + 제목 줄 ⭐ 배지 2가지만 남았다(07-04 §8-7-3 "접혀 있어도 ⭐와 붉은 테두리 유지" 요건은 테두리로 계속 충족). CareGuidePage.tsx의 `TIME_SECTIONS` 라벨 문구(장례 기간(즉시)/1개월 이내/3개월/6개월/이후·수시로)는 이번 세션 사이 사용자가 직접 수정해 둔 상태였다 — Opus 쪽 07-04 문서와 문구가 다를 수 있으니 다음에 07-04를 다시 볼 때 대조 확인 필요.
+
+<!-- Gemini 판정 1줄: 대기 -->
+
+
+## 2026-09-08 (160) | [Sonnet] CareGuide 최상단 alert 배너 글자색 중립화
+
+- **근거 스펙**: 스펙 없음 — 사용자 직접 지시(2026-09-08). 근거: 00-23 §8.7(색만으로 구분 금지) — 아이콘·제목 문구·배경 3중으로 이미 경고가 전달되므로 글자까지 붉을 필요 없음.
+- **건드린 파일**: `eobom/frontend/src/pages/CareGuidePage.tsx` §3.1 최상단 배너(121~127행) — `h3`(124행) `color: 'var(--state-critical-fg)'` → `'var(--text-main)'`, `p`(126행) `color: '#7C2D12'`(하드코딩) → `'var(--text-main)'`(00-09 §6.4 P-1 토큰 치환도 겸함). `--text-muted`는 사용자 지시로 배제 — 배경 `--state-critical-bg`(#FFEDD5) 위에서 `#6C7A89`가 4.5:1 대비를 못 넘겨서다.
+- **결과**: `tsc --noEmit`·`npm run build`(frontend) 통과.
+- **편차**: 없음 — 지시받은 두 줄만 정확히 교체. `AlertTriangle` 아이콘 색·배경·테두리·버튼 2개 색은 지시대로 그대로 유지.
+- **다음 에이전트가 알아야 할 것**: 없음.
+
+<!-- Gemini 판정 1줄: 대기 -->
+
+
+## 2026-09-08 (161) | [Sonnet] CareGuide 최상단 배너 — 시안 "E. 미니멀 아웃라인"으로 교체
+
+- **근거 스펙**: 스펙 없음 — 사용자 요청으로 아티팩트에 시안 A~F 6종을 만들어 보여준 뒤, 사용자가 "E로 가자"로 선택.
+- **건드린 파일**: `eobom/frontend/src/pages/CareGuidePage.tsx` §3.1 최상단 배너(121행 부근) — 살구색(`--state-critical-bg`) 배경 채움 카드를 없애고, 흰 배경(`--card-bg`) + 네이비(`--primary-color`) 1.5px 테두리 + 좌상단 모서리에 걸친 26px 원형 뱃지(배경 `--state-critical-fg`, 흰 아이콘)로 교체. 아이콘은 `AlertTriangle`(삼각형, 더는 미사용) → `AlertCircle`(원형, 뱃지 모양과 맞춤)로 교체(lucide-react import 갱신). 버튼 2개는 우측 정렬로 이동, "내용 보기"는 배경 없음+회색 텍스트+`--border-color` 테두리(고스트), "전문가 상담"은 `--primary-color` 배경 흰 텍스트(기존엔 둘 다 critical 색 계열이었음).
+- **결과**: `tsc --noEmit`·`npm run build`(frontend) 통과. Claude-in-Chrome으로 `/care-guide` 실제 렌더 확인 — 시안 그대로(흰 카드·네이비 테두리·좌상단 주황 원형 뱃지·우측 정렬 버튼 2개) 나옴.
+- **편차**: 없음 — 사용자가 고른 시안 그대로 옮김.
+- **다음 에이전트가 알아야 할 것**: 이 배너에 쓰인 "면 대신 테두리 + 모서리 뱃지 + 액션은 브랜드 네이비" 조합은 이번 리뷰에서 나온 새 패턴이다 — 다른 화면의 유사 경고 배너(예: `DigitalEstatePage.tsx`·`FamilyInvitePage.tsx` 등의 warn 배너)를 나중에 손볼 일이 생기면 참고할 수 있다. 시안 A~F 원본은 아티팩트(`https://claude.ai/code/artifact/9cac1c37-447c-4aa9-b5d4-0ebca1ce3c86`, 개인 소유)에 남아있다.
+
+<!-- Gemini 판정 1줄: 대기 -->
+
+
+## 2026-09-08 (162) | [Sonnet] CareGuide 최상단 배너 — 테두리 리본형 전환 + 버튼을 본문과 한 줄로
+
+- **근거 스펙**: 스펙 없음 — 사용자 직접 지시 2건. (1) "테두리만 리본형태로 변경" — AskUserQuestion으로 3가지 리본 해석(모서리 리본 플래그/상하 리본 띠/노치형 테두리)을 미리보기와 함께 제시해 "상하 리본 띠(시안 C형)"를 확인받음. (2) "내용보기·전문가 상담 버튼을 내용과 같은 라인으로 올리자".
+- **건드린 파일**: `eobom/frontend/src/pages/CareGuidePage.tsx` §3.1 배너(121행 부근) —
+  - 테두리: `border: '1.5px solid var(--primary-color)'` + `borderRadius: 'var(--r-lg)'`(둥근 사각 전체 테두리) → `borderTop`/`borderBottom`만 `1.5px solid var(--primary-color)`, `borderRadius` 제거(좌우 변·모서리 없는 리본 띠 모양). 모서리 원형 뱃지는 그대로 유지.
+  - 레이아웃: 본문 `<p>`와 버튼 2개가 각각 별도 줄(세로 스택)이던 것을 `display:flex, justifyContent:space-between`인 한 줄로 합침 — `<p>`는 `flex:'1 1 320px'`로 남는 공간을 채우고, 버튼 그룹은 `flexShrink:0`으로 우측에 붙는다. 좁은 화면에서는 `flexWrap:'wrap'`으로 자동으로 다음 줄로 넘어간다.
+- **결과**: `tsc --noEmit`·`npm run build`(frontend) 통과. Claude-in-Chrome으로 `/care-guide` 두 변경 모두 실제 렌더 확인 — 위아래 네이비 선만 있는 리본 띠 모양, 본문과 버튼 2개가 한 줄에 정렬.
+- **편차**: 없음.
+- **다음 에이전트가 알아야 할 것**: 이 배너는 한 세션 안에서 A~F 시안 비교(아티팩트) → E 선택 → 테두리 리본형 재수정 → 버튼 한 줄 배치까지 4단계를 거쳤다. 최종 형태: 좌우 테두리 없음(위아래 선만) + 좌상단 원형 뱃지 + 제목 한 줄 + "본문+버튼 2개"가 한 줄. 추가로 손볼 요청이 오면 이 히스토리(wt159~162)를 먼저 확인할 것.
+
+<!-- Gemini 판정 1줄: 대기 -->
