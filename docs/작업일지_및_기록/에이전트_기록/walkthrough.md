@@ -2070,3 +2070,27 @@ wt137 그대로라 재작업 없음).
 - **다음 에이전트가 알아야 할 것**: (1) `alignItems: 'center'`·900px/820px 임계값은 `/prep`의 "상속세" 슬라이드 1개로 실측한 값이다 — `box1Keys`·`box2Keys`의 다른 슬라이드(설명 길이·note 유무가 제각각)는 육안 확인을 못 했으니, 특히 설명이 긴 슬라이드가 있다면 한 번 더 훑어볼 것. (2) 임계값은 "정확한 접힘 지점"이 아니라 여유를 둔 안전망이라, 콘텐츠가 지금보다 훨씬 길어지는 슬라이드가 추가되면 820px로도 부족할 수 있다.
 
 <!-- Gemini 판정: ✅통과 (회귀 결함 2건 정상 수정: DomainOverviewPage 세로 중앙 정렬 및 900px/820px 반응형 가드로 배너 겹침 해소, CareGuide 3개월 구간 버튼 강조 띠 전환 확인, tsc/build 통과) -->
+
+
+## 2026-09-08 (157) | [Sonnet] 프론트 폰트 크기·서식 전수 점검 + Sidebar.tsx 800 잔여 버그 수정
+
+- **근거 스펙**: 스펙 없음 — 사용자 요청("프론트 폰트 크기·서식 통일 안 됨, 점검 부탁"). `00-09`§6.2(타입 6칸 스케일)가 이 점검의 판단 기준.
+- **건드린 파일**: `eobom/frontend/src/components/Sidebar.tsx` — `fontWeight: isActive ? 800 : 600`(3곳, 148·209·283행 부근) → `isActive ? 'var(--fw-bold)' : 600`. wt155 P-3에서 `fontWeight: 800`(리터럴) 패턴만 정규식 치환하면서 삼항연산자 형태를 놓친 잔여 버그.
+- **결과**: `node` 스크립트로 `eobom/frontend/src` 전수 집계 — 리터럴 `fontSize` 559회(서로 다른 값 33종), `var(--fs-*)` 참조는 11회뿐. 상위 5종(0.85/0.9/0.95/1/1.05rem)이 559회 중 약 75%. 페이지 제목급 `clamp()` 정의가 `--fs-title`·`--fs-display`(토큰, 미사용)를 포함해 총 8곳에서 서로 다른 값으로 존재(`.page-title`·`EntryBoxes.tsx`·`DomainOverviewPage.tsx`·`HomePage.tsx` 2곳·`.domain-overview-intro-title`). `--font-serif` 토큰도 9곳에서 리터럴 `'KoPub World Batang', ...` 문자열로 우회(그중 4곳은 `'명조'` 폴백 누락). `tsc --noEmit`·`npm run build`(frontend) 통과.
+- **편차**: 없음.
+- **다음 에이전트가 알아야 할 것**: 사용자에게 (a) 본문 5종 전체 이관 (b) AdminPage·BizDashboard부터 (c) 제목 clamp() 8곳 통일만 먼저, 3가지 중 선택지를 물었고 **"지금은 보류"** 로 답변받음 — 이번엔 위 800 버그 수정만 반영하고 나머지는 손대지 않았다. 다음에 이 작업을 다시 꺼내면 위 집계 수치(559회/33종/8곳 clamp/9곳 font-serif 우회)를 그대로 재사용할 수 있다(재현: `grep -o "font-?[sS]ize:..." eobom/frontend/src` 계열, 정확한 집계 스크립트는 세션 스크래치패드에 있었으나 세션 종료 후 사라짐 — 필요하면 새로 짜야 함).
+
+<!-- Gemini 판정: ✅통과 (00-09 §6.2 부합: Sidebar.tsx 삼항 연산자 내 잔여 fontWeight 800 3곳 'var(--fw-bold)' 치환 확인, 폰트 서식 집계 및 frontend tsc/build 통과) -->
+
+
+## 2026-09-08 (158) | [Sonnet] 디지털 엔딩노트 목차 박스 폰트 밸런스 조정
+
+- **근거 스펙**: 스펙 없음 — 사용자 요청("목차 박스의 폰트를 다른 폰트와 밸런스 있게").
+- **건드린 파일**:
+  - `eobom/frontend/src/pages/EndingNotePage.tsx` — "목차" 라벨(736행 부근)을 `fontWeight: 700, color: var(--primary-color), fontSize: '0.9rem'`에서 `fontWeight: var(--fw-medium), color: var(--text-muted), fontSize: var(--fs-caption), textTransform: uppercase, letterSpacing: 0.04em`로 변경 — `CareGuidePage.tsx`의 `.care-guide-category` 라벨과 같은 처리.
+  - `eobom/frontend/src/index.css` — `.ending-note-toc-link`(1442행 부근)의 `font-size: 0.85rem`(리터럴) → `var(--fs-caption)`, `color: var(--text-main)` → `var(--primary-color)`, `font-weight` 미지정(기본 400) → `var(--fw-medium)` 추가.
+- **결과**: 우측 아코디언 섹션 헤더(`.ending-note-accordion-header`, 1.05rem·700·`--primary-color`)와 좌측 목차 링크가 **같은 텍스트를 가리키는데 완전히 다른 굵기·색**(0.85rem·기본굵기·`--text-main`)이었던 것을 수정 — 크기는 사이드바 역할에 맞게 caption(0.85rem)으로 유지하되 굵기·색을 medium+primary로 올려 "이건 저 제목을 가리키는 목차다"가 시각적으로 드러나게 함. "목차" 라벨 자체는 반대로 볼드+navy에서 muted 캡션으로 낮춰(§6.3 #2, 한 덩어리에 볼드 하나) 아래 항목들과 경쟁하지 않게 함. Claude-in-Chrome으로 `/ending-note`(로그인 게이트 blur는 JS로 임시 제거해 확인)에서 목차-헤더 텍스트를 나란히 놓고 비교 확인. `tsc --noEmit`·`npm run build`(frontend) 통과.
+- **편차**: 없음.
+- **다음 에이전트가 알아야 할 것**: 이 패턴("목차/캡션 라벨은 muted+caption+uppercase, 목차 링크는 caption+medium+primary")은 다른 페이지의 유사 사이드바 목차가 생기면 재사용할 수 있다. `.ending-note-toc` 자체(박스 배경·패딩)와 "한눈에 보기" 버튼은 이번에 손대지 않았다.
+
+<!-- Gemini 판정 1줄: 대기 -->
