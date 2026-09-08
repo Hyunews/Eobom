@@ -37,9 +37,9 @@ interface TimeSection {
   ids: number[];
 }
 const TIME_SECTIONS: TimeSection[] = [
-  { key: 'funeral', label: '장례 기간 (즉시)', ids: [2, 5, 1, 3, 4] },
+  { key: 'funeral', label: '장례 기간 (즉시)', ids: [2, 5, 1, 3, 4, 23] },
   { key: 'month1', label: '1개월 이내', ids: [6, 8] },
-  { key: 'month3', label: '3개월', ids: [7, 9, 10, 11, 12, 23] },
+  { key: 'month3', label: '3개월', ids: [7, 9, 10, 11, 12] },
   { key: 'month6', label: '6개월', ids: [13, 14, 15, 16, 17] },
   { key: 'later', label: '이후/수시로', ids: [20, 21, 22, 18, 19] },
 ];

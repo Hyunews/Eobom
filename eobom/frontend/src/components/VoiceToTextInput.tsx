@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Mic, MicOff, Upload, Loader2, Check, Play, Volume2, Trash2 } from 'lucide-react';
+import { Mic, MicOff, Upload, Loader2, Check, Play } from 'lucide-react';
 import { BACKEND_URL } from '../config';
 
 // 06-05 §4.2 정정(08-26) — 말로 남기기(음성 입력 전체)가 엔딩노트 ⑨에서 유족 메시지 보관함으로
@@ -28,15 +28,10 @@ interface VoiceToTextInputProps {
   // 메시지 저장(POST/PATCH)은 이 콜백을 받는 부모의 몫이다.
   onSaveConfirmed: (text: string, media: SavedMedia | null, localAudioUrl: string | null) => void | Promise<void>;
   disabled?: boolean;
-  // 🆕 09-04 — 파일선택/업로드/듣기/삭제를 한 줄에 나란히 보여달라는 요청으로, 이미 저장된
-  // 음성의 듣기·삭제(부모 FarewellMessageCard 소유 — 토큰·편지 id를 알아야 해서 로직은 그대로 부모에 둔다)를
-  // 이 컴포넌트의 버튼 행에 얹어서 렌더만 여기서 한다.
-  mediaInfo?: { hasAudio: boolean } | null;
-  audioSrc?: string | null;
-  audioLoading?: boolean;
-  deletingAudio?: boolean;
-  onListen?: () => void;
-  onDeleteAudio?: () => void;
+  // 🆕 07-04 §8-9 후속(2026-09-08) — 새 편지 쓰기가 제목 아래 A/B/C 탭으로 바뀌면서, 이 컴포넌트는
+  // 이제 Ⓐ(업로드)·Ⓑ(녹음) 둘 중 하나만 그린다. 이미 첨부된 음성의 듣기·삭제는 탭과 무관하게
+  // 항상 보여야 하므로 FarewellMessageCard가 직접 렌더한다(이 컴포넌트에서 뺐다).
+  mode: 'upload' | 'record';
 }
 
 const ALLOWED_AUDIO_EXTENSIONS = ['.m4a', '.mp3', '.wav', '.webm'];
@@ -63,8 +58,7 @@ interface UploadResult {
 }
 
 export const VoiceToTextInput: React.FC<VoiceToTextInputProps> = ({
-  token, onSaveConfirmed, disabled,
-  mediaInfo, audioSrc, audioLoading, deletingAudio, onListen, onDeleteAudio,
+  token, onSaveConfirmed, disabled, mode,
 }) => {
   const [isRecording, setIsRecording] = useState(false);
   const [recordingLiveText, setRecordingLiveText] = useState(''); // 녹음 중 실시간 인식(최종+중간 누적) — 저장 전엔 부모 state를 건드리지 않는다
@@ -463,7 +457,7 @@ export const VoiceToTextInput: React.FC<VoiceToTextInputProps> = ({
 
   return (
     <div style={{ position: 'relative' }}>
-      {showFirstTimeNotice && (
+      {mode === 'record' && showFirstTimeNotice && (
         <div
           style={{
             position: 'absolute', inset: 0, zIndex: 10, backgroundColor: 'rgba(255,255,255,0.98)',
@@ -492,7 +486,7 @@ export const VoiceToTextInput: React.FC<VoiceToTextInputProps> = ({
       )}
 
       {/* 🆕 D-6-1 — 녹음 중지 후 확인 모달(§5.6-6 ③④). 저장 전까지 STT·R2·DB 어디에도 쓰지 않는다. */}
-      {showSaveModal && (
+      {mode === 'record' && showSaveModal && (
         <div
           style={{
             position: 'absolute', inset: 0, zIndex: 10, backgroundColor: 'rgba(255,255,255,0.98)',
@@ -544,16 +538,14 @@ export const VoiceToTextInput: React.FC<VoiceToTextInputProps> = ({
         </div>
       )}
 
-      {micError && (
+      {mode === 'record' && micError && (
         <div style={{ fontSize: '0.95rem', color: 'var(--state-warn-fg)', backgroundColor: 'var(--state-warn-bg)', border: '1px solid var(--state-warn-bg)', borderRadius: 'var(--r-sm)', padding: '0.7rem 0.9rem', marginBottom: '1rem' }}>
           {micError}
         </div>
       )}
 
-      <h4 style={{ fontSize: '1.05rem', color: 'var(--primary-color)', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-        <Mic size={16} color="var(--point-color)" /> 목소리로 말하기
-      </h4>
-
+      {mode === 'record' && (
+      <>
       {!recordingSupported && !sttSupported && (
         <div style={{ fontSize: '0.95rem', color: 'var(--text-muted)', backgroundColor: 'var(--surface-subtle)', borderRadius: 'var(--r-sm)', padding: '0.7rem 0.9rem', marginBottom: '1rem' }}>
           이 브라우저에서는 음성 입력을 지원하지 않습니다. 아래 입력창에 직접 입력해 주세요.
@@ -608,123 +600,93 @@ export const VoiceToTextInput: React.FC<VoiceToTextInputProps> = ({
           인식 중: {recordingLiveText}
         </p>
       )}
+      </>
+      )}
 
-      {/* Ⓐ 파일 업로드 — CLOVA_STT_ENABLED가 꺼져 있으면(기본값) 업로드 UI는 숨고, 이미 저장된
-          음성의 듣기·삭제만 있으면 그 줄은 남는다. */}
-      {(sttUploadEnabled || mediaInfo?.hasAudio) && (
-        // 🐛 녹음 중엔 파일 업로드가 동시에 끼어들 수 있었다(둘이 서로 몰랐다 — 이중 저장 위험).
-        // 녹음 중엔 업로드 쪽만 잠근다(듣기·삭제는 기존 저장분이라 녹음과 무관 — 계속 열어둔다).
-        <div style={{ marginTop: '0.5rem', paddingTop: '1rem', borderTop: '1px solid var(--border-color)' }}>
-          {sttUploadEnabled && (
-            <div style={{ opacity: isRecording ? 0.45 : 1, pointerEvents: isRecording ? 'none' : 'auto', transition: 'opacity 0.15s' }}>
-              <h4 style={{ fontSize: '1.05rem', color: 'var(--primary-color)', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                <Upload size={16} color="var(--point-color)" /> 녹음해 둔 음성 파일 올리기
-              </h4>
+      {/* Ⓐ 파일 업로드 — mode="upload"에서만 그린다. 서버 플래그(CLOVA_STT_ENABLED)가 꺼져
+          있으면 안내만 남기고 버튼은 숨긴다(§8-9 후속 — 탭 자체는 항상 있으므로 안내가 필요하다). */}
+      {mode === 'upload' && !sttUploadEnabled && (
+        <div style={{ fontSize: '0.95rem', color: 'var(--text-muted)', backgroundColor: 'var(--surface-subtle)', borderRadius: 'var(--r-sm)', padding: '0.7rem 0.9rem' }}>
+          지금은 음성 파일 업로드를 사용할 수 없습니다. "직접 쓰기" 탭을 이용해 주세요.
+        </div>
+      )}
+      {mode === 'upload' && sttUploadEnabled && (
+        <div>
+          <h4 style={{ fontSize: '1.05rem', color: 'var(--primary-color)', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+            <Upload size={16} color="var(--point-color)" /> 녹음해 둔 음성 파일 올리기
+          </h4>
 
-              {isRecording && (
-                <p style={{ fontSize: '0.88rem', color: 'var(--state-danger-fg)', marginBottom: '0.6rem' }}>
-                  녹음 중에는 파일을 올릴 수 없습니다. 녹음을 멈춘 뒤 이용해 주세요.
-                </p>
-              )}
+          <p style={{ fontSize: '0.95rem', color: 'var(--text-muted)', marginBottom: '0.25rem' }}>
+            m4a · mp3 · wav · webm 파일을 올릴 수 있습니다(최대 {MAX_UPLOAD_SIZE_BYTES / 1024 / 1024}MB).
+          </p>
+          <p style={{ fontSize: '0.95rem', color: 'var(--text-muted)', marginBottom: '0.9rem' }}>
+            본인의 음성만 올려주세요. 다른 분의 음성인지 이어봄이 확인할 방법은 없습니다.
+          </p>
 
-              <p style={{ fontSize: '0.95rem', color: 'var(--text-muted)', marginBottom: '0.25rem' }}>
-                m4a · mp3 · wav · webm 파일을 올릴 수 있습니다(최대 {MAX_UPLOAD_SIZE_BYTES / 1024 / 1024}MB).
-              </p>
-              <p style={{ fontSize: '0.95rem', color: 'var(--text-muted)', marginBottom: '0.9rem' }}>
-                본인의 음성만 올려주세요. 다른 분의 음성인지 이어봄이 확인할 방법은 없습니다.
-              </p>
+          <label style={{ display: 'flex', alignItems: 'flex-start', gap: '0.55rem', cursor: 'pointer', fontSize: '0.95rem', color: '#4B5563', marginBottom: '0.4rem' }}>
+            <span
+              onClick={(e) => { e.preventDefault(); setUploadConsent((v) => !v); }}
+              role="checkbox"
+              aria-checked={uploadConsent}
+              style={{
+                width: '19px', height: '19px', flexShrink: 0, marginTop: '0.1rem', borderRadius: 'var(--r-sm)',
+                border: uploadConsent ? 'none' : '1.5px solid var(--border-color)',
+                backgroundColor: uploadConsent ? 'var(--point-color)' : '#FFFFFF',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
+              }}
+            >
+              {uploadConsent && <Check size={13} color="#FFFFFF" strokeWidth={3} />}
+            </span>
+            <span>
+              <strong style={{ color: 'var(--primary-color)' }}>(필수)</strong> 음성 파일이 네이버 클라우드
+              CLOVA Speech로 전송되며, 네이버의 음성인식 성능 향상에 활용될 수 있습니다. 변환된 텍스트는
+              네이버에 7일간 보관된 뒤 삭제됩니다.
+              {voiceStorageEnabled
+                ? ' "목소리도 함께 남기기"가 켜져 있으면 이 파일도 이어봄에 암호화되어 함께 보관됩니다.'
+                : ' 이어봄은 음성 파일을 보관하지 않습니다.'}
+            </span>
+          </label>
+          <p style={{ fontSize: '0.95rem', color: 'var(--text-muted)', marginBottom: '0.9rem', marginLeft: '1.75rem' }}>
+            동의하지 않으셔도 직접 입력으로 편지를 남기실 수 있습니다.
+          </p>
 
-              <label style={{ display: 'flex', alignItems: 'flex-start', gap: '0.55rem', cursor: 'pointer', fontSize: '0.95rem', color: '#4B5563', marginBottom: '0.4rem' }}>
-                <span
-                  onClick={(e) => { e.preventDefault(); setUploadConsent((v) => !v); }}
-                  role="checkbox"
-                  aria-checked={uploadConsent}
-                  style={{
-                    width: '19px', height: '19px', flexShrink: 0, marginTop: '0.1rem', borderRadius: 'var(--r-sm)',
-                    border: uploadConsent ? 'none' : '1.5px solid var(--border-color)',
-                    backgroundColor: uploadConsent ? 'var(--point-color)' : '#FFFFFF',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
-                  }}
-                >
-                  {uploadConsent && <Check size={13} color="#FFFFFF" strokeWidth={3} />}
-                </span>
-                <span>
-                  <strong style={{ color: 'var(--primary-color)' }}>(필수)</strong> 음성 파일이 네이버 클라우드
-                  CLOVA Speech로 전송되며, 네이버의 음성인식 성능 향상에 활용될 수 있습니다. 변환된 텍스트는
-                  네이버에 7일간 보관된 뒤 삭제됩니다.
-                  {voiceStorageEnabled
-                    ? ' "목소리도 함께 남기기"가 켜져 있으면 이 파일도 이어봄에 암호화되어 함께 보관됩니다.'
-                    : ' 이어봄은 음성 파일을 보관하지 않습니다.'}
-                </span>
-              </label>
-              <p style={{ fontSize: '0.95rem', color: 'var(--text-muted)', marginBottom: '0.9rem', marginLeft: '1.75rem' }}>
-                동의하지 않으셔도 직접 입력으로 편지를 남기실 수 있습니다.
-              </p>
-
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept=".m4a,.mp3,.wav,.webm,audio/mp4,audio/x-m4a,audio/mpeg,audio/wav,audio/webm"
-                onChange={handleAudioFileSelect}
-                disabled={disabled || isRecording || !uploadConsent || uploadStage !== 'idle'}
-                style={{ display: 'none' }}
-              />
-            </div>
-          )}
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".m4a,.mp3,.wav,.webm,audio/mp4,audio/x-m4a,audio/mpeg,audio/wav,audio/webm"
+            onChange={handleAudioFileSelect}
+            disabled={disabled || !uploadConsent || uploadStage !== 'idle'}
+            style={{ display: 'none' }}
+          />
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
-            {sttUploadEnabled && (
-              <>
-                <button
-                  type="button"
-                  onClick={() => fileInputRef.current?.click()}
-                  disabled={disabled || isRecording || !uploadConsent || uploadStage !== 'idle'}
-                  style={actionBtnStyle('var(--secondary-color)', 'var(--primary-color)', disabled || isRecording || !uploadConsent || uploadStage !== 'idle')}
-                >
-                  파일 선택
-                </button>
-                <button
-                  type="button"
-                  onClick={handleAudioUpload}
-                  disabled={disabled || isRecording || !uploadConsent || !selectedFile || uploadStage !== 'idle'}
-                  style={actionBtnStyle('var(--point-color)', '#FFFFFF', disabled || isRecording || !uploadConsent || !selectedFile || uploadStage !== 'idle')}
-                >
-                  {uploadStage === 'uploading' ? (
-                    <><Loader2 size={16} /> 업로드 중…</>
-                  ) : uploadStage === 'processing' ? (
-                    <><Loader2 size={16} /> 글로 바꾸는 중…</>
-                  ) : (
-                    <>업로드</>
-                  )}
-                </button>
-              </>
-            )}
-            {mediaInfo?.hasAudio && (
-              <>
-                <button
-                  type="button"
-                  onClick={onListen}
-                  disabled={audioLoading}
-                  style={actionBtnStyle('var(--secondary-color)', 'var(--primary-color)', !!audioLoading)}
-                >
-                  {audioLoading ? <><Loader2 size={16} /> 불러오는 중…</> : <><Volume2 size={16} /> 듣기</>}
-                </button>
-                <button
-                  type="button"
-                  onClick={onDeleteAudio}
-                  disabled={deletingAudio}
-                  style={actionBtnStyle('var(--state-danger-bg)', 'var(--state-danger-fg)', !!deletingAudio)}
-                >
-                  {deletingAudio ? <><Loader2 size={16} /> 삭제 중…</> : <><Trash2 size={16} /> 음성 삭제</>}
-                </button>
-              </>
-            )}
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={disabled || !uploadConsent || uploadStage !== 'idle'}
+              style={actionBtnStyle('var(--secondary-color)', 'var(--primary-color)', disabled || !uploadConsent || uploadStage !== 'idle')}
+            >
+              파일 선택
+            </button>
+            <button
+              type="button"
+              onClick={handleAudioUpload}
+              disabled={disabled || !uploadConsent || !selectedFile || uploadStage !== 'idle'}
+              style={actionBtnStyle('var(--point-color)', '#FFFFFF', disabled || !uploadConsent || !selectedFile || uploadStage !== 'idle')}
+            >
+              {uploadStage === 'uploading' ? (
+                <><Loader2 size={16} /> 업로드 중…</>
+              ) : uploadStage === 'processing' ? (
+                <><Loader2 size={16} /> 글로 바꾸는 중…</>
+              ) : (
+                <>업로드</>
+              )}
+            </button>
           </div>
 
           {selectedFile && (
             <p style={{ marginTop: '0.5rem', fontSize: '0.95rem', color: 'var(--text-muted)' }}>{selectedFile.name}</p>
           )}
-          {audioSrc && <audio controls autoPlay src={audioSrc} style={{ marginTop: '0.6rem', width: '100%' }} />}
 
           {uploadError && (
             <div style={{ marginTop: '0.7rem', fontSize: '0.95rem', color: 'var(--state-warn-fg)', backgroundColor: 'var(--state-warn-bg)', border: '1px solid var(--state-warn-bg)', borderRadius: 'var(--r-sm)', padding: '0.7rem 0.9rem' }}>

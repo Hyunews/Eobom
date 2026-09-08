@@ -519,3 +519,112 @@ state를 그대로 추모관 사후 연결 동의로도 흘려보내면 사용�
 "복사됨" 분기와는 별개로, ObituaryPage.tsx에는 상시 노출되는 "링크 복사" 버튼이 하나 더 있다
 (`handleCopyLink`). 사용자 지시가 "kakaoShare.ts 공유 성공 경로"로 명시돼 있어 그 버튼은 건드리지
 않았다 — 필요하면 후속 지시로 처리.
+
+## 2026-09-08 [Sonnet] 07-04 §8-9 구현 메모
+
+- TIME_SECTIONS·careGuideTasks.json 수정 자체는 단순 치환이라 시행착오 없음.
+- 지시문에 있던 확인사항("12번도 id23과 같은 표기가 붙는지 확인")을 검증하려고 CareGuidePage.tsx의
+  카테고리 헤더 렌더 코드(215~233행)를 다시 읽음 — `showCategoryHeader = categoryOrder.length > 1`이고
+  "(해당하는 경우에만)" 라벨은 `items[0].conditional`만 본다는 걸 확인. id23은 자기 카테고리("조건부
+  (유언이 있는 경우)")에 단독이라 items[0]=자신이지만, id12는 "상속 승인·포기" 카테고리 안에서
+  순서상 9,10,11 다음(4번째)이라 items[0]=id9(비조건부)라 라벨이 안 붙는다 — 편차로 walkthrough(163)에
+  기록. 렌더 로직은 이번 작업 범위 밖이라 손대지 않음.
+- id23을 funeral로 옮기면서 그 구간 categoryOrder가 1종("장례 단계")→2종("장례 단계"+"조건부...")이 되어
+  카테고리 헤더가 새로 노출되는 부수효과도 같이 확인(§8-8-2 로직 그대로 작동, 코드 변경 아님).
+- `npx tsc --noEmit`·`npm run build`(둘 다 eobom/frontend) 통과 확인.
+
+## 2026-09-08 [Sonnet] 유족 메시지 보관함/새 편지 쓰기 재설계 구현 메모
+
+- 순서: 디자인 아티팩트로 시안 3안씩 제시 → 사용자가 "개인별 보드 박스형태"(보관함)와
+  "제목 아래 A/B/C 탭 + 사이드노트 설명"(모달)로 확정 → 이번 턴에서 실제 코드에 반영.
+- VoiceToTextInput.tsx가 Ⓐ파일업로드·Ⓑ녹음을 한 컴포넌트 안에서 항상 같이 그리고 있어서,
+  탭으로 배타적으로 보여주려면 `mode` prop을 추가해 섹션별로 게이팅해야 했다. 이 과정에서
+  "이미 첨부된 음성 듣기·삭제" 버튼이 Ⓐ 블록 안에 얹혀 있던 걸 발견 — 그대로 두면 "직접 쓰기"
+  탭에서 기존 음성을 관리할 방법이 없어지는 회귀였다. FarewellMessageCard로 끌어올려
+  탭과 무관하게 항상 보이는 `.farewell-audio-attached` 행으로 뺐다(props 6개
+  mediaInfo/audioSrc/audioLoading/deletingAudio/onListen/onDeleteAudio 제거 — 프롭 드릴링도 줄어듦).
+- 탭 전환 시 VoiceToTextInput을 그대로 두면(같은 JSX 호출 위치) React가 같은 인스턴스를
+  재사용해 내부 state(isRecording 등)가 넘어간다 — 녹음 중 다른 탭으로 가면 마이크가 계속
+  켜진 채 UI만 사라지는 버그가 될 뻔했다. `key={activeMethod}`로 강제 재마운트시켜 기존
+  언마운트 클린업(stream/MediaRecorder 정지)이 돌게 했다.
+- 편지 목록 리스트화(148px 고정 타일 제거)는 CSS 클래스만 갈아끼우면 됐다(`.farewell-message-item`
+  등 클래스명은 재사용, 내부 레이아웃만 flex row로 변경) — JSX 구조는 아이콘 위치 정도만 손댐.
+- `npx tsc --noEmit`·`npm run build`(eobom/frontend) 통과 확인.
+
+## 2026-09-08 [Sonnet] wt164 후속 미세조정 4건 메모
+
+- `repeat(2,1fr)`은 그리드 트랙 개수를 하드코딩해서 항목이 1개뿐이어도 무조건 2칸으로
+  나뉜다 — auto-fit + minmax(50%-gap, 1fr) 트릭으로 바꾸면 "최대 2열, 1개면 꽉 채움"을
+  동시에 만족한다(트랙 최소폭을 컨테이너 절반으로 못박아 3열 이상은 애초에 못 들어감).
+- 나머지 3건(날짜/버튼 순서, 아이콘 크기, 기본 탭)은 전부 단순 값/순서 변경이라 로직 변경
+  없음. `npx tsc --noEmit`·`npm run build`(eobom/frontend) 통과 확인.
+
+## 2026-09-08 [Sonnet] 박스 그리드 → 사이드바+상세 전환 메모
+
+- 사용자가 아티팩트 4안 중 "사이드바+상세" 확정 + "가족 0명이면 사이드바에 가족추가 버튼,
+  마이페이지 모달 재사용"을 같은 메시지에 붙여 요청.
+- 가족추가 모달 배선은 이미 다 돼 있었다 — App.tsx가 `MyPageFamilyDesignation`을 전역
+  렌더하고 `onOpenFamilyDesignation` prop으로 열도록 해뒀고, FarewellMessagePage는 원래도
+  그 prop을 받아 옛 빈 상태 카드의 버튼에 연결해 뒀었다. 이번엔 그 버튼을 사이드바 안으로
+  옮기기만 하면 됐다 — 새 배선 불필요.
+- FarewellMessageCard가 자기 박스(배경·그림자)를 그리는 걸 그만두고 부모(shell)가 대신
+  하게 하면서, 액션 버튼(새 편지 쓰기·전체 다운로드) 위치를 목록 맨 아래 → 제목 옆 상단으로
+  옮겼다 — 상세 칸이 "OOO님께 쓴 편지" 같은 헤더+액션 조합으로 읽히도록.
+- `<FarewellMessageCard key={selectedRecipient.id}>`로 강제 재마운트 — key 없이 두면 수신자를
+  바꿔도 컴포넌트 인스턴스가 재사용되어 열려 있던 편집기 state(composerOpen 등)가 새 수신자
+  화면에 그대로 남는 버그가 될 뻔했다(직전 VoiceToTextInput mode 전환 때와 같은 패턴).
+- `npx tsc --noEmit`·`npm run build`(eobom/frontend) 통과.
+
+## 2026-09-08 [Sonnet] md-detail 목업 디테일 반영 메모
+
+- 구조는 wt166에서 이미 옮겼는데, 사용자가 "디자인 측면에서 비슷하게"라고 콕 집어 다시
+  요청 — 목업 CSS를 줄 단위로 다시 대조해보니 타이포(h1~h4 전부 --font-serif)와 색
+  (hasAudio 아이콘 --gold-ink)이 실제 코드엔 안 들어가 있었다. 구조만 옮기고 마감 디테일을
+  놓친 케이스 — 다음에 아티팩트 기반 구현할 땐 구조뿐 아니라 폰트-패밀리·색 지정까지
+  한 줄씩 대조하는 게 나을 듯.
+- `npx tsc --noEmit`·`npm run build`(eobom/frontend) 통과.
+
+## 2026-09-08 [Sonnet] 편지 줄 폭/여백/메타 재배치 메모
+
+- "내부 편지(회색배경) 박스"는 `.farewell-message-item`(호버 시 --surface-subtle 회색 배경이
+  뜨는 클릭 영역)을 가리킨 것으로 해석. 폭은 텍스트 칸만이 아니라 `.farewell-message-list`
+  전체(메타 칸 포함)를 640px로 묶어야 날짜·버튼이 텍스트와 같이 붙어 좁아진다 — 텍스트만
+  좁히면 메타 칸이 넓은 컨테이너 안에서 뚝 떨어져 보이는 문제가 생겨서 리스트 단위로 caps.
+- 날짜/버튼 재배치는 "확인하고 재조정"이라는 모호한 지시라 직접 판단 — 미리보기 줄 수가
+  편지마다 달라 메타 칸(flex-direction:column)이 그냥 위에서부터 쌓이면 날짜 위치가
+  들쭉날쭉했다. align-self:stretch + justify-content:space-between으로 버튼=항상 위,
+  날짜=항상 아래 고정.
+- `npx tsc --noEmit`·`npm run build`(eobom/frontend) 통과.
+
+## 2026-09-08 [Sonnet] reports/ 파일 기반 포팅 메모
+
+- reports/farewell_messages_redesign.html은 46KB(read-guard 걸림) — offset/limit 400줄씩
+  3번 나눠 읽음(1~400, 401~800, 801~1200). 시안이 4개(A/B/C/비교) 들어있어서 어느 걸
+  포팅해야 할지부터 판단 필요했다 — "사이드바는 지금처럼 두되"라는 사용자 말과 매칭되는
+  건 2단 그리드 구조인 시안 B뿐이라 그걸로 확정.
+- 리포트의 CSS 변수(--accent, --text-body, --bg-paper 등)는 실제 앱 토큰과 이름이 달라서
+  값 대 값으로 옮기지 않고 역할로 매핑했다(--accent→--accent-gold, --secondary→--point-color
+  등). reports/는 Gemini 소유 읽기 전용이라 그 파일 자체는 건드리지 않음 — 참고만 함.
+- "회색 배경 박스" 관련 사용자 언급이 두 번째 나온 뒤에야(이번 메시지에서 리포트 링크로)
+  진짜 의도(전체 아키텍처를 시안 B로 갈아끼우는 것)가 명확해졌다 — 직전 턴(wt168)의
+  폭/여백 미세조정은 결과적으로 이번에 구조 자체가 바뀌면서 상당 부분 대체됨.
+- `npx tsc --noEmit`·`npm run build`(eobom/frontend) 통과.
+
+## 2026-09-08 [Sonnet] 전달고지 배너 톤 변경 메모
+
+- 파일이 세션 밖에서 이미 수정돼 있었다(문구가 "재산분배 경고" 문장 없이 짧아짐, 하네스가
+  diff로 알려줌) — 되돌리지 않고 그 위에 톤(색·아이콘)만 바꿨다.
+  --state-warn-fg/bg(호박색)는 애초에 amber가 "경고" 톤이라 CareGuidePage §3.1도 같은
+  이유로 이미 갈아탄 전례(wt155~162)가 있어 그 방향을 그대로 따랐다.
+- `npx tsc --noEmit`·`npm run build`(eobom/frontend) 통과.
+
+## 2026-09-08 [Sonnet] 편지수정 탭 선택 + 사이드노트 늘어짐 메모
+
+- "저장된 기준"을 실제로 DB에 남아있는 값(hasAudio, mediaMime)으로만 판단해야 했다 — 어떤
+  입력 방법(파일업로드 vs 녹음)으로 만들어졌는지 자체는 저장 안 되므로 완벽 복원 불가.
+  mediaMime에 webm이 있으면 녹음(브라우저 MediaRecorder 기본 포맷), 아니면 업로드로 추정 —
+  100% 정확하진 않지만 유일하게 남은 단서.
+- 사이드노트 박스가 바닥까지 늘어진 원인은 CSS Grid의 align-items 기본값(stretch) —
+  형제 칸(본문, 텍스트에어리어 있어 훨씬 큼) 높이에 맞춰 사이드노트도 늘어난 것. grid
+  컨테이너에 align-items:start 한 줄로 해결.
+- `npx tsc --noEmit`·`npm run build`(eobom/frontend) 통과.

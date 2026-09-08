@@ -1545,49 +1545,126 @@ body {
 
 /* 유족메시지 편지 작성/수정 모달(2026-09-05) — 카드 안에 접혀 들어가던 편집기를 위 요약
    모달과 같은 오버레이 언어로 뺐다. 편지 목록은 뒤에 그대로 남고, 이 모달 하나에만 집중한다. */
-/* 09-05 — 편지 목록 카드 가독성(중장년층 이용자 다수) — 인라인 스타일은 :hover를 못 걸어서
-   여기로 뺐다. */
-.farewell-message-item {
-  text-align: left;
-  border: 1px solid var(--border-color);
-  border-radius: var(--r-md);
-  padding: 1rem 1.15rem;
+/* 🔄 09-08 4차 — reports/farewell_messages_redesign.html 시안 B(2단 우편함 정제형)를
+   그대로 포팅했다. "회색 배경 박스"(호버 시 뜨던 클릭 영역)를 걷어내고, 경계선만으로
+   구분되는 리스트로 — 배지(음성/텍스트)+날짜 → 제목(클릭) → 미리보기 → 우측 액션. */
+.farewell-message-list {
   display: flex;
   flex-direction: column;
-  gap: 0.3rem;
-  height: 148px; /* 🆕 09-07 — 편지마다 제목/미리보기 길이가 달라도 박스 높이를 통일 */
-  box-sizing: border-box;
-  overflow: hidden;
-  transition: box-shadow var(--transition-speed), border-color var(--transition-speed), transform var(--transition-speed);
+  max-width: 640px;
+}
+
+.farewell-message-row {
+  padding: 1.4rem 0;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.farewell-message-row:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.farewell-message-row:first-child {
+  padding-top: 0;
+}
+
+.farewell-message-row-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.farewell-message-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 0.2rem 0.65rem;
+  border-radius: var(--r-full);
+  white-space: nowrap;
+}
+
+.farewell-message-badge--audio {
+  background-color: rgba(212, 163, 89, 0.14);
+  border: 1px solid rgba(212, 163, 89, 0.35);
+  color: var(--accent-gold);
+}
+
+.farewell-message-badge--text {
+  background-color: var(--surface-subtle);
+  color: var(--text-muted);
+}
+
+.farewell-message-item {
+  display: block;
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0 0 0.4rem 0;
+  text-align: left;
+  font-family: var(--font-serif);
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--primary-color);
+  transition: color var(--transition-speed);
 }
 
 .farewell-message-item:hover:not(:disabled) {
-  box-shadow: var(--box-shadow-hover);
-  border-color: var(--point-light);
-  transform: translateY(-2px);
+  color: var(--accent-gold);
 }
 
-/* 🆕 09-07 — 높이를 고정한 대신 넘치는 텍스트는 잘라낸다. 제목은 1줄 말줄임, 미리보기는 2줄까지. */
-.farewell-message-title-row {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  min-width: 0;
-}
-
-.farewell-message-title-text {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  min-width: 0;
-}
-
+/* 🔄 09-08 — 잘려서 안 읽히던 문제의 핵심. 폭이 넉넉해진 만큼 2줄에서 담을 수 있는
+   글자 수 자체가 늘어난다(클램프는 유지 — 아주 긴 편지가 박스 높이를 무한정 늘리지 않도록). */
 .farewell-message-preview {
+  font-size: 0.95rem;
+  line-height: 1.65;
+  color: var(--text-muted);
+  margin: 0 0 0.75rem 0;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+}
+
+.farewell-message-row-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+.farewell-message-icon-btn {
+  width: 34px;
+  height: 34px;
+  border-radius: var(--r-sm);
+  border: 1px solid transparent;
+  background: none;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background-color var(--transition-speed), border-color var(--transition-speed), color var(--transition-speed);
+}
+
+.farewell-message-icon-btn:hover:not(:disabled) {
+  background-color: var(--surface-subtle);
+  border-color: var(--border-color);
+  color: var(--primary-color);
+}
+
+.farewell-message-icon-btn--danger:hover:not(:disabled) {
+  background-color: var(--state-danger-bg);
+  border-color: var(--state-danger-fg);
+  color: var(--state-danger-fg);
+}
+
+.farewell-message-icon-btn:disabled {
+  cursor: wait;
+  opacity: 0.6;
 }
 
 .farewell-message-overlay {
@@ -1610,7 +1687,7 @@ body {
 .farewell-message-panel {
   background-color: var(--card-bg);
   border-radius: var(--r-lg);
-  max-width: 560px;
+  max-width: 760px; /* 🔄 09-08 — A/B/C 탭 + 사이드노트를 나란히 두려고 560px에서 넓혔다 */
   width: 100%;
   max-height: 90vh;
   overflow-y: auto;
@@ -1630,6 +1707,278 @@ body {
     max-height: none;
     height: 100%;
     border-radius: 0;
+  }
+}
+
+/* 🆕 07-04 §8-9 후속(2026-09-08) — 새 편지 쓰기: 제목 아래 A(음성 파일 업로드)·B(음성 녹음)·
+   C(직접 쓰기) 탭. 방법별 설명(특히 STT 안내)은 본문에 끼워 넣지 않고 옆 사이드노트가 맡는다. */
+.farewell-method-tabs {
+  display: flex;
+  gap: 1.2rem;
+  border-bottom: 1px solid var(--border-color);
+  margin-bottom: 1.1rem;
+}
+
+.farewell-method-tabs button {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: none;
+  border: none;
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  padding: 0 0 0.65rem;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  cursor: pointer;
+}
+
+.farewell-method-tabs button.active {
+  color: var(--primary-color);
+  border-bottom-color: var(--point-color);
+}
+
+.farewell-method-tabs button:hover:not(.active):not(:disabled) {
+  color: var(--primary-color);
+}
+
+.farewell-method-tabs button:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+
+/* 🔄 09-08 6차 — grid 기본값(align-items:stretch)이라 사이드노트 칸이 본문 칸 높이만큼
+   늘어나, 글이 끝난 뒤에도 회색 배경이 바닥까지 이어져 보였다. align-items:start로
+   내용만큼만 차지하게 한다. */
+.farewell-composer-body {
+  display: grid;
+  grid-template-columns: 200px 1fr;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+.farewell-composer-rail {
+  background-color: var(--surface-subtle);
+  border-radius: var(--r-md);
+  padding: 1.1rem 1.15rem;
+}
+
+.farewell-rail-label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  margin: 0 0 0.6rem 0;
+}
+
+.farewell-rail-desc {
+  display: flex;
+  gap: 0.5rem;
+  align-items: flex-start;
+  font-size: 0.9rem;
+  line-height: 1.65;
+  color: var(--text-main);
+  margin: 0;
+}
+
+.farewell-rail-desc svg {
+  flex-shrink: 0;
+  margin-top: 0.15rem;
+  color: var(--point-color);
+}
+
+.farewell-rail-hints {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.farewell-rail-hints li {
+  font-size: 0.92rem;
+  color: var(--text-main);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.farewell-rail-hints li::before {
+  content: '';
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background-color: var(--accent-gold);
+  flex-shrink: 0;
+}
+
+.farewell-composer-main {
+  min-width: 0;
+}
+
+.farewell-result-label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  margin: 0.9rem 0 0.4rem;
+}
+
+/* 🆕 09-08 — 이미 첨부된 음성의 듣기·삭제는 탭(작성 방법)과 무관하게 항상 보인다.
+   VoiceToTextInput 안에 있던 걸 빼서 여기(제목 입력 바로 아래)로 옮겼다. */
+.farewell-audio-attached {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem;
+  background-color: var(--surface-subtle);
+  border-radius: var(--r-sm);
+  padding: 0.7rem 0.9rem;
+  margin-bottom: 1rem;
+}
+
+.farewell-audio-attached-label {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.9rem;
+  color: var(--text-main);
+  flex: 1;
+  min-width: 160px;
+}
+
+@media (max-width: 620px) {
+  .farewell-composer-body {
+    grid-template-columns: 1fr;
+  }
+
+  .farewell-composer-rail {
+    order: 2;
+  }
+
+  .farewell-composer-main {
+    order: 1;
+  }
+}
+
+/* 🔄 09-08 재재수정 — 박스 그리드(개인별 카드를 늘어놓는 방식)를 버리고 "사이드바+상세"로
+   교체. 왼쪽엔 받는 분 이름만, 오른쪽엔 고른 한 사람의 편지만 폭 전체로 — 여러 사람의
+   내용이 나란히 좁아지는 느낌 자체가 안 생긴다(디자인 시안 비교 후 사용자 확정). */
+.farewell-board-shell {
+  background-color: var(--card-bg);
+  border-radius: var(--border-radius);
+  box-shadow: var(--box-shadow);
+  padding: 1.5rem;
+}
+
+.farewell-board-layout {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: 1.75rem;
+}
+
+.farewell-board-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.farewell-board-recipient {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  border: 1.5px solid transparent;
+  border-radius: var(--r-md);
+  padding: 0.6rem 0.7rem;
+  background: none;
+  text-align: left;
+  transition: background-color var(--transition-speed), border-color var(--transition-speed);
+}
+
+.farewell-board-recipient:hover {
+  background-color: var(--surface-subtle);
+}
+
+.farewell-board-recipient.active {
+  background-color: var(--secondary-color);
+  border-color: var(--point-color);
+}
+
+.farewell-board-avatar {
+  width: 2.2rem;
+  height: 2.2rem;
+  border-radius: var(--r-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-serif);
+  font-size: 0.95rem;
+  font-weight: 700;
+  flex-shrink: 0;
+  background-color: var(--secondary-color);
+  color: var(--point-color);
+}
+
+.farewell-board-recipient-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.farewell-board-recipient-name {
+  font-family: var(--font-serif);
+  font-size: 1rem;
+  color: var(--primary-color);
+}
+
+.farewell-board-recipient-sub {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+/* 🆕 09-08 — 가족 지정 0명일 때 사이드바가 이 버튼 하나로 바뀐다. 눌러면 MyPage에서
+   쓰는 MyPageFamilyDesignation 모달을 그대로 연다(onOpenFamilyDesignation prop). */
+.farewell-board-add {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border: 1.5px dashed var(--border-color);
+  border-radius: var(--r-md);
+  padding: 0.9rem 0.8rem;
+  background: none;
+  color: var(--point-color);
+  font-size: 0.95rem;
+  font-weight: 700;
+  transition: background-color var(--transition-speed), border-color var(--transition-speed);
+}
+
+.farewell-board-add:hover {
+  background-color: var(--surface-subtle);
+  border-color: var(--point-color);
+}
+
+.farewell-board-empty {
+  text-align: center;
+  padding: 2.5rem 1rem;
+  max-width: 420px;
+  margin: 0 auto;
+}
+
+@media (max-width: 680px) {
+  .farewell-board-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .farewell-board-sidebar {
+    flex-direction: row;
+    overflow-x: auto;
+    gap: 0.5rem;
+    padding-bottom: 0.3rem;
+  }
+
+  .farewell-board-recipient {
+    flex-shrink: 0;
   }
 }
 

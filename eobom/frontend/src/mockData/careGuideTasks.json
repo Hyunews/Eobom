@@ -69,12 +69,13 @@
   {
     "id": 12,
     "category": "상속 승인·포기",
-    "title": "한정승인 후 채권자 공고",
+    "title": "한정승인을 했다면 — 채권자 공고",
     "deadlineLabel": "5일",
     "deadlineBase": "한정승인일",
     "severity": "CRITICAL",
     "legalBasis": "민법 §1032",
     "verified": true,
+    "conditional": true,
     "note": "한정승인만 하고 공고를 빠뜨리면 손해배상 책임 소지가 있습니다.",
     "irreversibleNote": "공고를 빠뜨리면 그 몫을 상속인이 직접 물어야 합니다",
     "checked": false
