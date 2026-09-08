@@ -125,7 +125,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, navMo
                     alignItems: 'center',
                     justifyContent: 'space-between',
                     gap: '0.6rem',
-                    padding: '0.9rem 0.85rem',
+                    padding: '0.9rem var(--fs-body)',
                     borderRadius: 'var(--r-md)',
                     border: isActive ? '1.5px solid var(--accent-gold)' : '1px solid transparent',
                     borderLeft: isActive ? '5px solid var(--accent-gold)' : '1px solid transparent',
@@ -140,7 +140,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, navMo
                   }}
                   title={item.label}
                 >
-                  <span style={{ display: 'flex', alignItems: 'center', gap: '0.85rem', minWidth: 0 }}>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: 'var(--fs-body)', minWidth: 0 }}>
                     <span style={{ flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', width: '28px' }}>
                       <IconComponent size={24} color={isComingSoon ? 'var(--text-muted)' : isActive ? '#FFFFFF' : 'var(--secondary-dark)'} />
                     </span>
@@ -174,8 +174,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, navMo
                   style={{
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '0.85rem',
-                    padding: '0.9rem 0.85rem',
+                    gap: 'var(--fs-body)',
+                    padding: '0.9rem var(--fs-body)',
                     borderRadius: 'var(--r-md)',
                     border: isActive ? '1.5px solid var(--accent-gold)' : '1px solid transparent',
                     borderLeft: isActive ? '5px solid var(--accent-gold)' : '1px solid transparent',
@@ -267,7 +267,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, navMo
                 alignItems: 'center',
                 justifyContent: 'space-between',
                 gap: '0.6rem',
-                padding: '0.85rem 0.8rem',
+                padding: 'var(--fs-body) var(--fs-body)',
                 borderRadius: 'var(--r-md)',
                 border: isActive ? '1.5px solid var(--accent-gold)' : '1px solid transparent',
                 borderLeft: isActive ? '5px solid var(--accent-gold)' : '1px solid transparent',
@@ -278,7 +278,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, navMo
                 textAlign: 'left',
               }}
             >
-              <span style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', minWidth: 0 }}>
+              <span style={{ display: 'flex', alignItems: 'center', gap: 'var(--fs-body)', minWidth: 0 }}>
                 <span style={{ flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', width: '26px' }}>
                   <IconComp size={22} color={isComingSoon ? 'var(--text-muted)' : isActive ? '#FFFFFF' : 'var(--secondary-dark)'} />
                 </span>
@@ -298,7 +298,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, navMo
             type="button"
             onClick={() => { onLogout(); onMobileClose?.(); }}
             style={{
-              display: 'flex', alignItems: 'center', gap: '0.7rem', padding: '0.75rem 0.8rem',
+              display: 'flex', alignItems: 'center', gap: 'var(--fs-caption)', padding: 'var(--fs-caption) var(--fs-body)',
               borderRadius: 'var(--r-sm)', border: '1px solid rgba(255,255,255,0.2)', backgroundColor: 'transparent',
               color: 'var(--border-color)', cursor: 'pointer', width: '100%', textAlign: 'left', fontSize: '0.9rem',
             }}

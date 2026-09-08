@@ -113,29 +113,29 @@ export const FacilityReviewModal: React.FC<FacilityReviewModalProps> = ({
         <h3 style={{ color: 'var(--primary-color)', marginBottom: '0.4rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
           <MessageSquare color="var(--point-color)" /> [{facility.name}] 이용 후기
         </h3>
-        <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>
+        <p style={{ fontSize: 'var(--fs-body)', color: 'var(--text-muted)', marginBottom: '1rem' }}>
           평균 평점 ★ {facility.effectiveRating ?? facility.rating} · 리뷰 {facility.reviews.length}건
         </p>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', marginBottom: '1.1rem', maxHeight: '260px', overflowY: 'auto' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--fs-body)', marginBottom: '1.1rem', maxHeight: '260px', overflowY: 'auto' }}>
           {facility.reviews.length === 0 && (
-            <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>아직 작성된 리뷰가 없습니다. 첫 리뷰를 남겨주세요.</p>
+            <p style={{ fontSize: 'var(--fs-body)', color: 'var(--text-muted)' }}>아직 작성된 리뷰가 없습니다. 첫 리뷰를 남겨주세요.</p>
           )}
           {facility.reviews.map((r) => (
-            <div key={r.id} style={{ border: '1px solid var(--border-color)', borderRadius: 'var(--r-sm)', padding: '0.8rem 1rem' }}>
+            <div key={r.id} style={{ border: '1px solid var(--border-color)', borderRadius: 'var(--r-sm)', padding: 'var(--fs-body) 1rem' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.3rem' }}>
                 <strong style={{ fontSize: '0.9rem', color: 'var(--primary-color)' }}>{r.user.name}</strong>
-                <span style={{ fontSize: '0.85rem', color: 'var(--point-color)', fontWeight: 700 }}>★ {r.rating}</span>
+                <span style={{ fontSize: 'var(--fs-body)', color: 'var(--point-color)', fontWeight: 700 }}>★ {r.rating}</span>
               </div>
-              <p style={{ fontSize: '0.85rem', color: 'var(--text-main)', margin: 0 }}>{r.content}</p>
-              <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginTop: '0.3rem' }}>
+              <p style={{ fontSize: 'var(--fs-body)', color: 'var(--text-main)', margin: 0 }}>{r.content}</p>
+              <p style={{ fontSize: 'var(--fs-body)', color: 'var(--text-muted)', marginTop: '0.3rem' }}>
                 {new Date(r.createdAt).toLocaleDateString('ko-KR')}
               </p>
             </div>
           ))}
         </div>
 
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 'var(--fs-body)' }}>
           <div>
             <label className="form-label">별점</label>
             <div style={{ display: 'flex', gap: '0.3rem' }}>
@@ -160,7 +160,7 @@ export const FacilityReviewModal: React.FC<FacilityReviewModalProps> = ({
               onChange={(e) => setContent(e.target.value)}
               style={{
                 width: '100%',
-                padding: '0.8rem',
+                padding: 'var(--fs-body)',
                 borderRadius: 'var(--r-sm)',
                 border: '1px solid var(--border-color)',
                 fontSize: '0.9rem',
@@ -169,9 +169,9 @@ export const FacilityReviewModal: React.FC<FacilityReviewModalProps> = ({
             />
           </div>
 
-          {error && <p style={{ color: 'var(--state-danger-fg)', fontSize: '0.85rem', margin: 0 }}>{error}</p>}
+          {error && <p style={{ color: 'var(--state-danger-fg)', fontSize: 'var(--fs-body)', margin: 0 }}>{error}</p>}
           {justSubmitted && (
-            <p style={{ color: 'var(--state-ok-fg)', fontSize: '0.85rem', margin: 0 }}>✅ 리뷰가 등록되었습니다. 감사합니다!</p>
+            <p style={{ color: 'var(--state-ok-fg)', fontSize: 'var(--fs-body)', margin: 0 }}>✅ 리뷰가 등록되었습니다. 감사합니다!</p>
           )}
 
           <button type="submit" disabled={isSubmitting} className="btn btn-primary" style={{ width: '100%' }}>

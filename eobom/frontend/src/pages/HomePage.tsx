@@ -1,7 +1,8 @@
-﻿import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Sparkles, ChevronUp, ChevronDown } from 'lucide-react';
 import { Footer } from '../components/Footer';
 import { EntryBoxes } from '../components/home/EntryBoxes';
+import { useIsMobile } from '../hooks/useIsMobile';
 import type { NavMode } from '../modeNav';
 
 interface HomePageProps {
@@ -21,7 +22,16 @@ export const HomePage: React.FC<HomePageProps> = ({ currentUser, onOpenLogin, se
   // window.scrollTo를 쓴다. 3개 고정이라 배열 크기를 sections.length에 동적으로 맞추지 않는다.
   const sectionElsRef = useRef<(HTMLElement | null)[]>([null, null, null]);
 
-  const isMobileLayout = () => window.matchMedia('(max-width: 640px)').matches;
+  // 00-38 §5.2 — useIsMobile(640)으로 통일. 값은 그대로 640 유지. 아래 스크롤/휠 핸들러는
+  // 마운트 시 1회 등록되는 effect 안에서 isMobileLayout()을 호출하므로(:216 deps 참고),
+  // 훅의 렌더 시점 스냅샷을 그대로 클로저에 캡처하면 리사이즈 이후 값이 굳어버린다 —
+  // ref로 최신값을 계속 미러링해 기존의 "항상 그 시점 실제 뷰포트를 본다" 동작을 유지한다.
+  const isMobile640 = useIsMobile(640);
+  const isMobile640Ref = useRef(isMobile640);
+  useEffect(() => {
+    isMobile640Ref.current = isMobile640;
+  }, [isMobile640]);
+  const isMobileLayout = () => isMobile640Ref.current;
 
   const getHeaderOffset = () => {
     const raw = getComputedStyle(document.documentElement).getPropertyValue('--header-h');
@@ -282,7 +292,7 @@ export const HomePage: React.FC<HomePageProps> = ({ currentUser, onOpenLogin, se
           gap: '1rem',
           backgroundColor: 'rgba(26, 43, 76, 0.75)',
           backdropFilter: 'blur(8px)',
-          padding: '0.8rem 0.6rem',
+          padding: 'var(--fs-body) 0.6rem',
           borderRadius: 'var(--r-lg)',
           boxShadow: 'var(--el-2)'
         }}
@@ -522,7 +532,7 @@ export const HomePage: React.FC<HomePageProps> = ({ currentUser, onOpenLogin, se
                 gap: '1.3rem'
               }}
             >
-              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', backgroundColor: 'var(--state-warn-bg)', color: 'var(--accent-gold)', padding: '0.4rem 1rem', borderRadius: 'var(--r-lg)', fontSize: '0.85rem', fontWeight: 700 }}>
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', backgroundColor: 'var(--state-warn-bg)', color: 'var(--accent-gold)', padding: '0.4rem 1rem', borderRadius: 'var(--r-lg)', fontSize: 'var(--fs-body)', fontWeight: 700 }}>
                 <Sparkles size={15} color="var(--accent-gold)" /> 이어봄과 함께하는 존엄하고 따뜻한 준비
               </div>
               <h2

@@ -92,7 +92,7 @@ export const FarewellMessagePage: React.FC<FarewellMessagePageProps> = ({ curren
     return (
       <div className="container">
         <div style={{ backgroundColor: 'var(--card-bg)', padding: '2.5rem 1.75rem', borderRadius: 'var(--border-radius)', boxShadow: 'var(--box-shadow)', textAlign: 'center', maxWidth: '480px', margin: '2rem auto' }}>
-          <Mail color="var(--point-color)" size={40} style={{ marginBottom: '0.75rem' }} />
+          <Mail color="var(--point-color)" size={40} style={{ marginBottom: 'var(--fs-caption)' }} />
           <h2 style={{ color: 'var(--primary-color)', marginBottom: '0.5rem' }}>유족 메시지 보관함</h2>
           <p style={{ color: 'var(--text-muted)', marginBottom: '1.5rem' }}>가족에게 남기는 편지는 로그인 후 작성하실 수 있습니다.</p>
           <button onClick={onOpenLogin} className="btn btn-point" style={{ width: '100%' }}>
@@ -106,7 +106,7 @@ export const FarewellMessagePage: React.FC<FarewellMessagePageProps> = ({ curren
   return (
     <div className="container" style={{ paddingBottom: '3rem' }}>
       <div style={{ marginBottom: '1.5rem' }}>
-        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', backgroundColor: 'var(--surface-subtle)', color: 'var(--primary-color)', padding: '0.3rem 0.8rem', borderRadius: 'var(--r-lg)', fontSize: '0.85rem', fontWeight: 700, marginBottom: '0.6rem' }}>
+        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', backgroundColor: 'var(--surface-subtle)', color: 'var(--primary-color)', padding: '0.3rem var(--fs-body)', borderRadius: 'var(--r-lg)', fontSize: 'var(--fs-body)', fontWeight: 700, marginBottom: '0.6rem' }}>
           <Mail size={18} color="var(--primary-color)" /> 하고 싶은 말을 그대로
         </div>
         <h1 className="page-title" style={{ color: 'var(--primary-color)', display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0 }}>
@@ -121,7 +121,7 @@ export const FarewellMessagePage: React.FC<FarewellMessagePageProps> = ({ curren
           검증은 약속하지 않는다(06-04 §6.4-2-3와 같은 태도) — 무엇을 남겼는지 이어봄은 알 수 없다.
           🔄 09-08 5차(사용자 지시) — 경고(amber) 톤이 아니라 안내(알림) 톤으로. 느낌표 삼각형
           대신 원형 i 아이콘, 배경은 --state-warn-bg 대신 중립 --surface-subtle. */}
-      <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', fontSize: '0.9rem', color: 'var(--text-muted)', backgroundColor: 'var(--card-bg)', border: '1px solid var(--border-color)', borderRadius: 'var(--r-sm)', padding: '0.85rem 1rem', marginBottom: '1.5rem', lineHeight: 1.6 }}>
+      <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', fontSize: '0.9rem', color: 'var(--text-muted)', backgroundColor: 'var(--card-bg)', border: '1px solid var(--border-color)', borderRadius: 'var(--r-sm)', padding: 'var(--fs-body) 1rem', marginBottom: '1.5rem', lineHeight: 1.6 }}>
         <Info size={18} color="var(--point-color)" style={{ flexShrink: 0, marginTop: '0.15rem' }} />
         <span>
           여기에 남기신 글은 사후 <strong style={{ color: 'var(--primary-color)' }}>지정하신 분에게 전달</strong>됩니다.
@@ -167,7 +167,7 @@ export const FarewellMessagePage: React.FC<FarewellMessagePageProps> = ({ curren
             <div className="farewell-board-detail">
               {recipients.length === 0 ? (
                 <div className="farewell-board-empty">
-                  <UserPlus color="var(--point-color)" size={36} style={{ marginBottom: '0.75rem' }} />
+                  <UserPlus color="var(--point-color)" size={36} style={{ marginBottom: 'var(--fs-caption)' }} />
                   <h2 style={{ color: 'var(--primary-color)', marginBottom: '0.5rem', fontSize: '1.15rem' }}>아직 지정된 가족이 없습니다</h2>
                   <p style={{ color: 'var(--text-muted)', lineHeight: 1.6 }}>
                     편지를 남기려면 먼저 받으실 분을 가족으로 지정해 주세요. 수신자가 없으면 사후에도 전달되지 않습니다.

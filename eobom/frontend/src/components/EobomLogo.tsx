@@ -19,7 +19,7 @@ export const EobomLogo: React.FC<EobomLogoProps> = ({
   const subTextColor = isDarkBg ? '#D4A359' : '#5B7065';
 
   return (
-    <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.75rem', userSelect: 'none' }}>
+    <div style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--fs-caption)', userSelect: 'none' }}>
       {/* 공식 Design_Logo.png 기반 SVG 심볼마크 (무한대 + 악수하는 손 + 봄의 잎사귀) */}
       <svg
         width={height * 1.35}

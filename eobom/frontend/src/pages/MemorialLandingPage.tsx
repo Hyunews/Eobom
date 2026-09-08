@@ -202,7 +202,7 @@ export const MemorialLandingPage: React.FC = () => {
                 style={{ width: '96px', height: '96px', borderRadius: '50%', objectFit: 'cover', margin: '0 auto 1rem', border: '3px solid rgba(255,255,255,0.3)' }}
               />
             )}
-            <p style={{ fontSize: '0.85rem', color: '#94A3B8', letterSpacing: '0.1em', marginBottom: '0.6rem' }}>삼가 고인의 명복을 빕니다</p>
+            <p style={{ fontSize: 'var(--fs-body)', color: '#94A3B8', letterSpacing: '0.1em', marginBottom: '0.6rem' }}>삼가 고인의 명복을 빕니다</p>
             <h1 style={{ fontSize: '1.6rem', fontWeight: 'var(--fw-bold)', margin: 0, fontFamily: "'KoPub World Batang', serif" }}>
               故 {data.deceasedName}
               {data.deceasedDeathDate && (
@@ -210,7 +210,7 @@ export const MemorialLandingPage: React.FC = () => {
               )}
             </h1>
             {data.epitaph && (
-              <p style={{ fontSize: '0.9rem', color: 'var(--border-color)', marginTop: '0.8rem', fontStyle: 'italic' }}>{data.epitaph}</p>
+              <p style={{ fontSize: '0.9rem', color: 'var(--border-color)', marginTop: 'var(--fs-body)', fontStyle: 'italic' }}>{data.epitaph}</p>
             )}
           </div>
 
@@ -220,12 +220,12 @@ export const MemorialLandingPage: React.FC = () => {
             <button
               type="button"
               onClick={handleShare}
-              style={{ background: 'none', border: '1px solid var(--border-color)', borderRadius: 'var(--r-lg)', padding: '0.45rem 1rem', fontSize: '0.85rem', color: 'var(--primary-color)', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}
+              style={{ background: 'none', border: '1px solid var(--border-color)', borderRadius: 'var(--r-lg)', padding: '0.45rem 1rem', fontSize: 'var(--fs-body)', color: 'var(--primary-color)', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}
             >
               <Share2 size={14} /> 이 추모관 링크 공유하기
             </button>
             {shareFeedback && (
-              <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '0.5rem' }}>{shareFeedback}</p>
+              <p style={{ fontSize: 'var(--fs-body)', color: 'var(--text-muted)', marginTop: '0.5rem' }}>{shareFeedback}</p>
             )}
           </div>
 
@@ -243,10 +243,10 @@ export const MemorialLandingPage: React.FC = () => {
               <Heart color="#FFFFFF" size={18} /> 헌화하기
             </button>
             {tributeState === 'duplicate' && (
-              <p style={{ fontSize: '0.85rem', color: 'var(--state-warn-fg)', marginTop: '0.6rem' }}>이미 헌화하셨습니다.</p>
+              <p style={{ fontSize: 'var(--fs-body)', color: 'var(--state-warn-fg)', marginTop: '0.6rem' }}>이미 헌화하셨습니다.</p>
             )}
             {tributeState === 'error' && (
-              <p style={{ fontSize: '0.85rem', color: 'var(--state-warn-fg)', marginTop: '0.6rem' }}>헌화 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.</p>
+              <p style={{ fontSize: 'var(--fs-body)', color: 'var(--state-warn-fg)', marginTop: '0.6rem' }}>헌화 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.</p>
             )}
           </div>
 
@@ -281,25 +281,25 @@ export const MemorialLandingPage: React.FC = () => {
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
                   className="form-input"
-                  style={{ height: '80px', padding: '0.75rem' }}
+                  style={{ height: '80px', padding: 'var(--fs-caption)' }}
                   required
                 />
               </div>
               {guestError && (
-                <p style={{ fontSize: '0.85rem', color: 'var(--state-warn-fg)', marginBottom: '0.6rem' }}>{guestError}</p>
+                <p style={{ fontSize: 'var(--fs-body)', color: 'var(--state-warn-fg)', marginBottom: '0.6rem' }}>{guestError}</p>
               )}
               <button type="submit" disabled={guestSubmitting} className="btn btn-primary" style={{ width: '100%', height: '44px', fontSize: '0.95rem', opacity: guestSubmitting ? 0.6 : 1 }}>
                 방명록 남기기
               </button>
             </form>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', maxHeight: '300px', overflowY: 'auto' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--fs-caption)', maxHeight: '300px', overflowY: 'auto' }}>
               {guestbook.length === 0 && (
-                <p style={{ fontSize: '0.85rem', color: '#94A3B8', textAlign: 'center', padding: '1rem 0' }}>아직 남겨진 글이 없습니다.</p>
+                <p style={{ fontSize: 'var(--fs-body)', color: '#94A3B8', textAlign: 'center', padding: '1rem 0' }}>아직 남겨진 글이 없습니다.</p>
               )}
               {guestbook.map((g) => (
                 <div key={g.id} style={{ padding: '0.9rem', backgroundColor: 'var(--secondary-color)', borderRadius: 'var(--r-sm)', borderLeft: '3px solid var(--primary-color)' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '0.2rem' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 'var(--fs-body)', color: 'var(--text-muted)', marginBottom: '0.2rem' }}>
                     <span style={{ fontWeight: 600, color: 'var(--primary-color)' }}>
                       {g.authorName}{g.relationToDeceased ? ` · ${g.relationToDeceased}` : ''}
                     </span>
@@ -312,7 +312,7 @@ export const MemorialLandingPage: React.FC = () => {
           </div>
         </div>
 
-        <p style={{ textAlign: 'center', fontSize: '0.85rem', color: 'var(--border-color)', marginTop: '1rem' }}>이어봄</p>
+        <p style={{ textAlign: 'center', fontSize: 'var(--fs-body)', color: 'var(--border-color)', marginTop: '1rem' }}>이어봄</p>
       </div>
     </div>
   );

@@ -5,6 +5,7 @@ import { ChecklistShieldIcon } from '../MenuIcons';
 import { box1Keys, box2Keys, box1Intro, box2Intro } from './domainSlides';
 import type { NavMode } from '../../modeNav';
 import { parseMemorialLink } from '../../utils/memorialLink';
+import { useIsMobile } from '../../hooks/useIsMobile';
 
 // docs/00_핵심플랫폼/00-23 §8 — 메인화면 진입구조 목업. 사장님 지시(2026-08-18 2차)로
 // 박스①②는 항목 목록을 뺀 "간단 설명"만 남기고, 클릭 시 도메인 소개를 보여주는 별도 화면으로
@@ -62,7 +63,7 @@ export const Badge: React.FC<{ status: 'preview' | 'comingSoon' }> = ({ status }
     <span
       style={{
         flexShrink: 0,
-        fontSize: '0.85rem',
+        fontSize: 'var(--fs-body)',
         fontWeight: 700,
         padding: '0.2rem 0.55rem',
         borderRadius: 'var(--r-sm)',
@@ -90,7 +91,7 @@ const ChipRow: React.FC<{ labels: string[] }> = ({ labels }) => (
           fontWeight: 600,
           color: '#6C7A89',
           backgroundColor: 'var(--surface-subtle)',
-          padding: '0.35rem 0.85rem',
+          padding: '0.35rem var(--fs-body)',
           borderRadius: 'var(--r-full)',
         }}
       >
@@ -160,7 +161,7 @@ const BoxHeader: React.FC<{
   return (
     <div>
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '0.5rem' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--fs-body)' }}>
           <div
             style={{
               width: boxSize,
@@ -191,11 +192,6 @@ const RevealContent: React.FC<{ children: React.ReactNode }> = ({ children }) =>
     <div className="entry-box-reveal__inner">{children}</div>
   </div>
 );
-
-// 캐러셀 한 페이지에 넣을 박스 개수 — 767px 이하는 1개, 그 위는 2개(기존 .entry-boxes-grid
-// 브레이크포인트 재사용, 00-29 §6.1 "신규 브레이크포인트 금지"). SSR 없는 순수 CSR이라
-// window 참조는 항상 안전하다.
-const getItemsPerPage = () => (window.matchMedia('(max-width: 767px)').matches ? 1 : 2);
 
 export const EntryBoxes: React.FC<EntryBoxesProps> = ({ currentUser, onOpenLogin, setActiveTab, onSetMode, onRequestScrollIntoView }) => {
   // 박스③(추모관 링크 입력)은 여전히 홈 안 캐러셀 페이지 전환용으로 ?entry=box3 쿼리를 쓴다
@@ -241,27 +237,22 @@ export const EntryBoxes: React.FC<EntryBoxesProps> = ({ currentUser, onOpenLogin
   };
 
   // ── 캐러셀 상태 — 자동재생 없음. 좌우 버튼 / 인디케이터 클릭 / 스와이프 / 방향키로만 이동.
-  const [itemsPerPage, setItemsPerPage] = useState<number>(getItemsPerPage);
+  // 캐러셀 한 페이지에 넣을 박스 개수 — 767px 이하는 1개, 그 위는 2개(기존 .entry-boxes-grid
+  // 브레이크포인트 재사용, 00-29 §6.1 "신규 브레이크포인트 금지"). 00-38 §5.2 — useIsMobile로
+  // 통일하되 값(767)은 그대로 유지한다.
+  const isMobile = useIsMobile(767);
+  const itemsPerPage = isMobile ? 1 : 2;
   const [currentPage, setCurrentPage] = useState(0);
   const touchStartXRef = useRef<number | null>(null);
   const touchStartYRef = useRef<number | null>(null);
   const prevArrowRef = useRef<HTMLButtonElement>(null);
   const nextArrowRef = useRef<HTMLButtonElement>(null);
 
+  // 브레이크포인트가 바뀌면(회전·창 크기 변경) 현재 페이지를 리셋한다 — itemsPerPage가
+  // 바뀐 채로 이전 페이지 인덱스를 유지하면 범위를 벗어날 수 있다.
   useEffect(() => {
-    const mql = window.matchMedia('(max-width: 767px)');
-    const handleChange = (e: MediaQueryListEvent) => {
-      setItemsPerPage(e.matches ? 1 : 2);
-      setCurrentPage(0);
-    };
-    if (mql.addEventListener) {
-      mql.addEventListener('change', handleChange);
-      return () => mql.removeEventListener('change', handleChange);
-    }
-    // 구형 Safari 폴백
-    mql.addListener(handleChange);
-    return () => mql.removeListener(handleChange);
-  }, []);
+    setCurrentPage(0);
+  }, [isMobile]);
 
   // 2026-08-24 — Header.tsx의 "추모관" 메뉴가 ?entry=box3로 진입시킨다. 박스①②와 달리 박스③은
   // 풀스크린 오버레이가 없어(추모관 링크 입력창일 뿐) 그냥 이 섹션으로 스크롤만 해서는 캐러셀이
@@ -381,7 +372,7 @@ export const EntryBoxes: React.FC<EntryBoxesProps> = ({ currentUser, onOpenLogin
         subtitle="받으신 추모관 링크로 입장하세요. 온라인 헌화와 방명록으로 마음을 전할 수 있습니다."
       />
       <RevealContent>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem', marginTop: '0.8rem' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem', marginTop: 'var(--fs-body)' }}>
           <input
             type="text"
             className="form-input"
@@ -399,7 +390,7 @@ export const EntryBoxes: React.FC<EntryBoxesProps> = ({ currentUser, onOpenLogin
             입장
           </button>
           {memorialLinkError && (
-            <p style={{ fontSize: '0.85rem', color: 'var(--state-danger-fg)', margin: 0 }}>{memorialLinkError}</p>
+            <p style={{ fontSize: 'var(--fs-body)', color: 'var(--state-danger-fg)', margin: 0 }}>{memorialLinkError}</p>
           )}
         </div>
       </RevealContent>
@@ -425,7 +416,7 @@ export const EntryBoxes: React.FC<EntryBoxesProps> = ({ currentUser, onOpenLogin
             <EntryRow key={item.label} item={item} currentUser={currentUser} onOpenLogin={onOpenLogin} setActiveTab={setActiveTab} />
           ))}
         </div>
-        <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', margin: '0.5rem 0 0 0' }}>
+        <p style={{ fontSize: 'var(--fs-body)', color: 'var(--text-muted)', margin: '0.5rem 0 0 0' }}>
           로그인하시면 대시보드로 이동합니다.
         </p>
       </RevealContent>

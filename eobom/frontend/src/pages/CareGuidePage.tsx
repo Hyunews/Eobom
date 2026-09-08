@@ -105,7 +105,7 @@ export const CareGuidePage: React.FC<CareGuidePageProps> = ({ setActiveTab }) =>
   return (
     <div className="container">
       <div style={{ marginBottom: '1.5rem' }}>
-        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', backgroundColor: 'var(--state-ok-bg)', color: 'var(--state-ok-fg)', padding: '0.3rem 0.8rem', borderRadius: 'var(--r-lg)', fontSize: '0.85rem', fontWeight: 700, marginBottom: '0.6rem' }}>
+        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', backgroundColor: 'var(--state-ok-bg)', color: 'var(--state-ok-fg)', padding: '0.3rem var(--fs-body)', borderRadius: 'var(--r-lg)', fontSize: 'var(--fs-body)', fontWeight: 700, marginBottom: '0.6rem' }}>
           <ChecklistShieldIcon size={18} color="var(--state-ok-fg)" /> 사망 직후 필수 행정절차
         </div>
         <h1 className="page-title" style={{ color: 'var(--primary-color)', display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0 }}>
@@ -138,7 +138,7 @@ export const CareGuidePage: React.FC<CareGuidePageProps> = ({ setActiveTab }) =>
             type="button"
             onClick={() => inheritanceRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
             className="btn"
-            style={{ background: 'none', color: 'var(--text-muted)', border: '1px solid var(--border-color)', height: '38px', fontSize: '0.85rem', padding: '0 1rem' }}
+            style={{ background: 'none', color: 'var(--text-muted)', border: '1px solid var(--border-color)', height: '38px', fontSize: 'var(--fs-body)', padding: '0 1rem' }}
           >
             내용 보기
           </button>
@@ -146,7 +146,7 @@ export const CareGuidePage: React.FC<CareGuidePageProps> = ({ setActiveTab }) =>
             type="button"
             onClick={() => setActiveTab?.('counseling')}
             className="btn"
-            style={{ backgroundColor: 'var(--primary-color)', color: '#FFFFFF', height: '38px', fontSize: '0.85rem', padding: '0 1rem' }}
+            style={{ backgroundColor: 'var(--primary-color)', color: '#FFFFFF', height: '38px', fontSize: 'var(--fs-body)', padding: '0 1rem' }}
           >
             전문가 상담
           </button>
@@ -337,7 +337,7 @@ export const CareGuidePage: React.FC<CareGuidePageProps> = ({ setActiveTab }) =>
           );
         })}
 
-        <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginTop: '0.5rem', lineHeight: 1.6 }}>
+        <p style={{ fontSize: 'var(--fs-body)', color: 'var(--text-muted)', marginTop: '0.5rem', lineHeight: 1.6 }}>
           이 체크리스트는 일반적인 안내이며 개별 사정에 따라 다를 수 있습니다. 정확한 기한 판단은
           전문가 상담을 이용하세요.
         </p>

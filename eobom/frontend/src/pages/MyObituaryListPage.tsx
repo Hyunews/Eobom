@@ -126,7 +126,7 @@ export const MyObituaryListPage: React.FC = () => {
   };
 
   const iconBtnStyle: React.CSSProperties = {
-    height: '32px', padding: '0 0.6rem', fontSize: '0.78rem', backgroundColor: 'var(--card-bg)',
+    height: '32px', padding: '0 0.6rem', fontSize: 'var(--fs-caption)', backgroundColor: 'var(--card-bg)',
     border: '1px solid var(--border-color)', borderRadius: 'var(--r-sm)', cursor: 'pointer', display: 'inline-flex',
     alignItems: 'center', gap: '0.3rem',
   };
@@ -180,13 +180,13 @@ export const MyObituaryListPage: React.FC = () => {
                       <p style={{ fontWeight: 700, color: 'var(--text-main)', marginBottom: '0.2rem' }}>
                         故 {o.deceasedName}
                         {o.isClosed && (
-                          <span style={{ marginLeft: '0.5rem', fontSize: '0.75rem', fontWeight: 400, color: 'var(--text-muted)' }}>· 종료됨</span>
+                          <span style={{ marginLeft: '0.5rem', fontSize: 'var(--fs-caption)', fontWeight: 400, color: 'var(--text-muted)' }}>· 종료됨</span>
                         )}
                         {!o.isClosed && (
-                          <span style={{ marginLeft: '0.5rem', fontSize: '0.75rem', fontWeight: 400, color: 'var(--point-color)' }}>· 진행중</span>
+                          <span style={{ marginLeft: '0.5rem', fontSize: 'var(--fs-caption)', fontWeight: 400, color: 'var(--point-color)' }}>· 진행중</span>
                         )}
                       </p>
-                      <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                      <p style={{ fontSize: 'var(--fs-body)', color: 'var(--text-muted)' }}>
                         {o.deceasedDeathDate ? `사망일 ${formatKST(o.deceasedDeathDate)}` : `개설일 ${formatKST(o.createdAt)}`}
                       </p>
                     </div>
@@ -196,7 +196,7 @@ export const MyObituaryListPage: React.FC = () => {
                           type="button"
                           onClick={() => navigate(`/obituary?slug=${o.slug}`)}
                           className="btn"
-                          style={{ height: '36px', padding: '0 0.8rem', fontSize: '0.82rem', backgroundColor: 'var(--card-bg)', border: '1px solid var(--border-color)' }}
+                          style={{ height: '36px', padding: '0 var(--fs-body)', fontSize: '0.82rem', backgroundColor: 'var(--card-bg)', border: '1px solid var(--border-color)' }}
                         >
                           수정
                         </button>
@@ -207,7 +207,7 @@ export const MyObituaryListPage: React.FC = () => {
                         disabled={deletingId === o.id}
                         className="btn"
                         style={{
-                          height: '36px', padding: '0 0.8rem', fontSize: '0.82rem', backgroundColor: 'var(--card-bg)',
+                          height: '36px', padding: '0 var(--fs-body)', fontSize: '0.82rem', backgroundColor: 'var(--card-bg)',
                           border: '1px solid var(--state-danger-bg)', color: 'var(--state-danger-fg)', opacity: deletingId === o.id ? 0.6 : 1,
                           display: 'inline-flex', alignItems: 'center', gap: '0.3rem',
                         }}
@@ -218,7 +218,7 @@ export const MyObituaryListPage: React.FC = () => {
                   </div>
 
                   <div style={linkGroupStyle}>
-                    <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', width: '3.4rem' }}>부고장</span>
+                    <span style={{ fontSize: 'var(--fs-caption)', color: 'var(--text-muted)', width: '3.4rem' }}>부고장</span>
                     <button type="button" onClick={() => navigate(`/o/${o.slug}`)} style={iconBtnStyle}>
                       <ExternalLink size={13} /> 열기
                     </button>
@@ -228,7 +228,7 @@ export const MyObituaryListPage: React.FC = () => {
                   </div>
 
                   {feedback?.id === o.id && (
-                    <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{feedback.message}</p>
+                    <p style={{ fontSize: 'var(--fs-body)', color: 'var(--text-muted)' }}>{feedback.message}</p>
                   )}
                 </div>
               ))}
@@ -279,15 +279,15 @@ export const MyObituaryListPage: React.FC = () => {
                     <p style={{ fontWeight: 700, color: 'var(--text-main)', marginBottom: '0.2rem' }}>
                       故 {m.deceasedName}
                       {m.closedAt ? (
-                        <span style={{ marginLeft: '0.5rem', fontSize: '0.75rem', fontWeight: 400, color: 'var(--text-muted)' }}>· 종료됨</span>
+                        <span style={{ marginLeft: '0.5rem', fontSize: 'var(--fs-caption)', fontWeight: 400, color: 'var(--text-muted)' }}>· 종료됨</span>
                       ) : (
-                        <span style={{ marginLeft: '0.5rem', fontSize: '0.75rem', fontWeight: 400, color: 'var(--point-color)' }}>· 운영중</span>
+                        <span style={{ marginLeft: '0.5rem', fontSize: 'var(--fs-caption)', fontWeight: 400, color: 'var(--point-color)' }}>· 운영중</span>
                       )}
                     </p>
-                    <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>개설일 {formatKST(m.createdAt)}</p>
+                    <p style={{ fontSize: 'var(--fs-body)', color: 'var(--text-muted)' }}>개설일 {formatKST(m.createdAt)}</p>
                   </div>
                   <div style={linkGroupStyle}>
-                    <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', width: '3.4rem' }}>추모관</span>
+                    <span style={{ fontSize: 'var(--fs-caption)', color: 'var(--text-muted)', width: '3.4rem' }}>추모관</span>
                     <button type="button" onClick={() => navigate(`/m/${m.slug}`)} style={iconBtnStyle}>
                       <ExternalLink size={13} /> 열기
                     </button>

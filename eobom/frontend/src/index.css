@@ -18,7 +18,7 @@
   --font-body: 'Pretendard', 'Noto Sans KR', sans-serif;
   --font-serif: 'KoPub World Batang', 'KoPubWorld 명조', serif;
 
-  --base-font-size: 18px;
+  /* 00-38 §4.4 #1 — --base-font-size(18px) 폐기. 00-29 §12 조치 A 철회 */
   --min-touch-target: 56px;
   --border-radius: var(--r-md);
   /* 헤더 높이 — 2026-08 A안 재구성 시 72px→85px로 상향(개발자 확정). 사이드바 top·본문
@@ -40,13 +40,27 @@
      아래 새 토큰의 별칭으로 삼는다(값은 새 토큰 쪽이 정본). */
   --sp-1: 4px;  --sp-2: 8px;  --sp-3: 12px;
   --sp-4: 16px; --sp-6: 24px; --sp-8: 32px;
+  /* 00-38 §4.1 — 신설 2칸. 규칙은 그대로: --sp-N = N × 4px */
+  --sp-10: 40px;  /* 섹션 사이 최소 간격(원칙 3) */
+  --sp-14: 56px;  /* 화면 단위 구분 · 리더 상하 여백 */
 
-  --fs-caption: 0.85rem;
-  --fs-body:    0.95rem;
-  --fs-lead:    1.05rem;
-  --fs-section: 1.3rem;
-  --fs-title:   clamp(1.5rem, 3vw, 1.9rem);
-  --fs-display: clamp(1.9rem, 4vw, 2.6rem);
+  /* 00-38 §4.1 — 적응형 거터. 헤더/드로어(chrome)와 본문(page)의 여백을 분리한다(원칙 1) */
+  --gutter-page:    28px;  /* 본문 .container 좌우 (모바일) */
+  --gutter-chrome:  16px;  /* 헤더 · 드로어 · 바텀시트 손잡이 좌우 */
+  --gutter-page-sm: 20px;  /* ≤359px 안전판 */
+
+  /* 00-38 §4.2 — 타입 스케일 개정(루트 16px 기준). 간격·색·모서리·그림자·모션은 그대로 */
+  --fs-caption: 0.875rem;                          /* 14px — 보조 하한 */
+  --fs-body:    1rem;                              /* 16px — 본문 표준 */
+  --fs-lead:    1.125rem;                          /* 18px — 리드문·리더 본문 */
+  --fs-section: 1.25rem;                           /* 20px — 섹션 제목 */
+  --fs-title:   clamp(1.375rem, 4.5vw, 1.75rem);   /* 22 → 28px */
+  --fs-display: clamp(1.625rem, 6vw, 2.25rem);     /* 26 → 36px */
+
+  /* 00-38 §4.3 — 행간 토큰 신설 */
+  --lh-tight:  1.35;  /* 제목 */
+  --lh-body:   1.8;   /* 본문 기본 — 00-09 §2.3의 1.7을 개정 */
+  --lh-reader: 1.9;   /* 몰입 리더 · 긴 글(원칙 5) */
 
   --fw-normal: 400;  --fw-medium: 600;  --fw-bold: 700;
 
@@ -100,8 +114,8 @@
 
 body {
   font-family: var(--font-body);
-  font-size: var(--base-font-size);
-  line-height: 1.7;
+  font-size: var(--fs-body);
+  line-height: var(--lh-body);
   color: var(--text-main);
   background-color: var(--secondary-color);
   min-height: 100vh;
@@ -226,7 +240,8 @@ body {
   transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
   flex-direction: column;
-  padding: 1.1rem;
+  /* 00-38 §4.1 — 좌우는 --gutter-chrome(16px)을 명시한다. .container 거터를 상속하지 않는다 */
+  padding: 1.1rem var(--gutter-chrome);
   overflow-y: auto;
   box-shadow: 4px 0 24px rgba(0, 0, 0, 0.25);
 }
@@ -256,26 +271,23 @@ body {
   flex-grow: 1;
 }
 
+/* 00-38 §4.1 — 헤더(chrome)와 본문(page) 여백 분리. ≤480px 구간은 아래로 흡수 */
 @media (max-width: 768px) {
   .container {
-    padding: 32px 24px;
+    padding: var(--sp-10) var(--gutter-page); /* 40px 28px */
   }
 }
 
-@media (max-width: 480px) {
+/* 00-38 §4.1 — ≤359px 안전판 */
+@media (max-width: 359px) {
   .container {
-    padding: 28px 20px;
+    padding-left: var(--gutter-page-sm);
+    padding-right: var(--gutter-page-sm);
   }
 }
 
-/* ── 00-29 §12 조치 A — 모바일 기준선 폰트 확대 ──
-   768px 이하에서만 html font-size를 올린다. 전역으로 걸면 rem 기반 여백 869곳이
-   데스크톱에서도 함께 커져 00-09 §2.4(2026-08-11 밀도 조정)를 되엎는다. */
-@media (max-width: 768px) {
-  html {
-    font-size: var(--base-font-size);
-  }
-}
+/* 00-38 §4.4 #2 — 00-29 §12 조치 A 철회. 모바일 루트 폰트 확대를 하지 않는다
+   (§4.5의 rem 리터럴 318곳 치환과 같은 커밋 — index.css:174 참조) */
 
 /* 지도 핀 마커 펄스 애니메이션(KakaoMapModal 전용 — 00-09 §4-3 2026-08-19 정정) */
 @keyframes pulse {
@@ -857,8 +869,8 @@ body {
   align-items: center;
   /* 2026-08-24 — 로고(좌)·로그인(우)이 화면 가장자리에 바짝 붙어 보인다는 피드백. 넓은
      화면일수록 여백이 커지고, 좁아지면 뷰포트 폭에 비례해 자연히 줄어드는 clamp를 쓴다
-     (min은 기존 1.5rem 그대로 — 640px 이하는 아래 미디어쿼리(:666 부근)가 0.85rem으로 덮어씀.
-     480px 미디어쿼리는 .header-inner padding은 안 건드리고 로고 scale·사용자명 폭만 줄인다). */
+     (min은 기존 1.5rem 그대로 — 640px 이하는 아래 미디어쿼리가 --gutter-chrome(16px, 00-38 §4.1)로
+     덮어씀. 480px 미디어쿼리는 .header-inner padding은 안 건드리고 로고 scale·사용자명 폭만 줄인다). */
   padding: 0 clamp(1.5rem, 4vw, 4.5rem);
 }
 
@@ -998,7 +1010,8 @@ body {
   }
 
   .header-inner {
-    padding: 0 0.85rem;
+    /* 00-38 §4.1 — --gutter-chrome(16px) 명시. .container의 본문 거터(28px)를 상속하지 않는다 */
+    padding: 0 var(--gutter-chrome);
   }
 
   .header-nav {

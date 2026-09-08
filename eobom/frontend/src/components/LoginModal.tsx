@@ -50,7 +50,7 @@ const ConsentCheckbox: React.FC<{
       </span>
     </label>
     {href && (
-      <a href={href} target="_blank" rel="noopener noreferrer" style={{ fontSize: '0.85rem', color: 'var(--text-hint)', textDecoration: 'underline', flexShrink: 0 }}>
+      <a href={href} target="_blank" rel="noopener noreferrer" style={{ fontSize: 'var(--fs-body)', color: 'var(--text-hint)', textDecoration: 'underline', flexShrink: 0 }}>
         보기
       </a>
     )}
@@ -64,7 +64,7 @@ const SocialLoginButtons: React.FC<{
   onSelect: (provider: 'kakao' | 'naver' | 'google') => void;
   disabled?: boolean;
 }> = ({ onSelect, disabled = false }) => (
-  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem', opacity: disabled ? 0.45 : 1, pointerEvents: disabled ? 'none' : 'auto', transition: 'opacity 0.2s ease' }}>
+  <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--fs-body)', opacity: disabled ? 0.45 : 1, pointerEvents: disabled ? 'none' : 'auto', transition: 'opacity 0.2s ease' }}>
     {/* 1. 카카오 로그인 */}
     <button
       onClick={() => onSelect('kakao')}
@@ -81,7 +81,7 @@ const SocialLoginButtons: React.FC<{
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        gap: '0.75rem',
+        gap: 'var(--fs-caption)',
         cursor: 'pointer',
         boxShadow: '0 4px 12px rgba(254, 229, 0, 0.3)',
         transition: 'transform 0.15s'
@@ -109,7 +109,7 @@ const SocialLoginButtons: React.FC<{
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        gap: '0.75rem',
+        gap: 'var(--fs-caption)',
         cursor: 'pointer',
         boxShadow: '0 4px 12px rgba(3, 199, 90, 0.3)',
         transition: 'transform 0.15s'
@@ -135,7 +135,7 @@ const SocialLoginButtons: React.FC<{
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        gap: '0.75rem',
+        gap: 'var(--fs-caption)',
         cursor: 'pointer',
         boxShadow: 'var(--el-1)',
         transition: 'transform 0.15s'
@@ -316,9 +316,9 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin
             backgroundColor: 'var(--secondary-color)',
             color: 'var(--primary-color)',
             borderRadius: 'var(--r-lg)',
-            fontSize: '0.85rem',
+            fontSize: 'var(--fs-body)',
             fontWeight: 600,
-            marginBottom: '0.75rem'
+            marginBottom: 'var(--fs-caption)'
           }}>
             <ShieldCheck size={14} /> 안전하고 빠른 3초 간편로그인
           </div>
@@ -358,7 +358,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin
         </div>
 
         {notice && (
-          <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', fontSize: '0.85rem', color: 'var(--state-warn-fg)', backgroundColor: 'var(--state-warn-bg)', border: '1px solid var(--state-warn-bg)', borderRadius: 'var(--r-sm)', padding: '0.7rem 0.9rem', marginBottom: '1.1rem' }}>
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', fontSize: 'var(--fs-body)', color: 'var(--state-warn-fg)', backgroundColor: 'var(--state-warn-bg)', border: '1px solid var(--state-warn-bg)', borderRadius: 'var(--r-sm)', padding: 'var(--fs-caption) 0.9rem', marginBottom: '1.1rem' }}>
             <AlertCircle size={16} style={{ flexShrink: 0, marginTop: '0.1rem' }} />
             <span>{notice}</span>
           </div>
@@ -386,9 +386,9 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin
             alignItems: 'center',
             gap: '0.55rem',
             cursor: 'pointer',
-            fontSize: '0.85rem',
+            fontSize: 'var(--fs-body)',
             color: '#4B5563',
-            padding: '0.7rem 0.9rem',
+            padding: 'var(--fs-caption) 0.9rem',
             border: '1px solid var(--secondary-dark)',
             borderRadius: 'var(--r-sm)',
             marginBottom: '0.9rem'
@@ -421,7 +421,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin
             필수 2개가 체크되기 전까지 눌리지 않는다. 최초 가입(신규 소셜 로그인)일 때만 실제로
             DB에 동의 시각이 기록되고(authController.ts), 기존 회원 재로그인 시에는 이미 최초
             가입 때 받은 값이라 여기서 다시 체크해도 별도로 덮어써지지 않는다. */}
-        <div style={{ backgroundColor: 'var(--secondary-color)', borderRadius: 'var(--r-md)', padding: '0.8rem 1rem 0.4rem', marginBottom: '1.2rem' }}>
+        <div style={{ backgroundColor: 'var(--secondary-color)', borderRadius: 'var(--r-md)', padding: 'var(--fs-body) 1rem 0.4rem', marginBottom: '1.2rem' }}>
           <div
             onClick={toggleAll}
             role="checkbox"
@@ -467,7 +467,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin
         )}
 
         {/* 파트너 진입 링크 + 개발용 데모 로그인 — "로그인"·"회원가입" 두 탭 공통 하단(작업 지시 원문) */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem', marginTop: activeTab === 'login' ? 0 : '0.5rem' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--fs-body)', marginTop: activeTab === 'login' ? 0 : '0.5rem' }}>
             {/* 파트너(사업자·전문가) 진입 분기 — B2C 소셜 로그인과 무관한 별도 인증 체계로 이동
                 (00-06 §7.3 ①). 데모 블록은 오픈 시 제거될 것이므로 그 위에 둔다. */}
             <div style={{ marginTop: '0.95rem', paddingTop: '0.95rem', borderTop: '1px solid var(--surface-subtle)', textAlign: 'center' }}>
@@ -494,28 +494,28 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin
                 묶어둔다. "로그인" 탭에는 그 게이트 자체가 없어 canProceed가 항상 false이므로,
                 데모 버튼은 이 자리에 노출은 되지만 "회원가입" 탭으로 전환해 동의해야 눌린다. */}
             <div style={{ marginTop: '0.95rem', paddingTop: '0.95rem', borderTop: '1px solid var(--surface-subtle)', textAlign: 'center' }}>
-              <div style={{ fontSize: '0.85rem', color: 'var(--text-hint)', marginBottom: '0.6rem' }}>
+              <div style={{ fontSize: 'var(--fs-body)', color: 'var(--text-hint)', marginBottom: '0.6rem' }}>
                 [빠른 데모 테스트용 선택]
               </div>
-              <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center', marginBottom: '0.75rem', opacity: canProceed ? 1 : 0.45, pointerEvents: canProceed ? 'auto' : 'none', transition: 'opacity 0.2s ease' }}>
+              <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center', marginBottom: 'var(--fs-caption)', opacity: canProceed ? 1 : 0.45, pointerEvents: canProceed ? 'auto' : 'none', transition: 'opacity 0.2s ease' }}>
                 <button
                   type="button"
                   onClick={() => handleMockSocialLogin('KAKAO')}
-                  style={{ fontSize: '0.85rem', padding: '0.35rem 0.65rem', borderRadius: 'var(--r-sm)', border: '1px solid #FEE500', backgroundColor: '#FFFDF0', color: '#191919', cursor: 'pointer' }}
+                  style={{ fontSize: 'var(--fs-body)', padding: '0.35rem 0.65rem', borderRadius: 'var(--r-sm)', border: '1px solid #FEE500', backgroundColor: '#FFFDF0', color: '#191919', cursor: 'pointer' }}
                 >
                   🟡 카카오(모의)
                 </button>
                 <button
                   type="button"
                   onClick={() => handleMockSocialLogin('NAVER')}
-                  style={{ fontSize: '0.85rem', padding: '0.35rem 0.65rem', borderRadius: 'var(--r-sm)', border: '1px solid #03C75A', backgroundColor: '#F0FDF4', color: '#03C75A', cursor: 'pointer' }}
+                  style={{ fontSize: 'var(--fs-body)', padding: '0.35rem 0.65rem', borderRadius: 'var(--r-sm)', border: '1px solid #03C75A', backgroundColor: '#F0FDF4', color: '#03C75A', cursor: 'pointer' }}
                 >
                   🟢 네이버(모의)
                 </button>
                 <button
                   type="button"
                   onClick={() => handleMockSocialLogin('GOOGLE')}
-                  style={{ fontSize: '0.85rem', padding: '0.35rem 0.65rem', borderRadius: 'var(--r-sm)', border: '1px solid var(--border-color)', backgroundColor: '#F9FAFB', color: '#374151', cursor: 'pointer' }}
+                  style={{ fontSize: 'var(--fs-body)', padding: '0.35rem 0.65rem', borderRadius: 'var(--r-sm)', border: '1px solid var(--border-color)', backgroundColor: '#F9FAFB', color: '#374151', cursor: 'pointer' }}
                 >
                   ⚪ 구글(모의)
                 </button>

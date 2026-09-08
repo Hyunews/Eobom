@@ -152,9 +152,9 @@ export const MyPageAuthSettings: React.FC<MyPageAuthSettingsProps> = ({ isOpen, 
             style={{
               backgroundColor: message.type === 'success' ? 'var(--state-ok-bg)' : 'var(--state-danger-bg)',
               color: message.type === 'success' ? 'var(--state-ok-fg)' : 'var(--state-danger-fg)',
-              padding: '0.75rem',
+              padding: 'var(--fs-caption)',
               borderRadius: 'var(--r-sm)',
-              fontSize: '0.85rem',
+              fontSize: 'var(--fs-body)',
               marginBottom: '0.95rem',
               display: 'flex',
               alignItems: 'center',
@@ -166,7 +166,7 @@ export const MyPageAuthSettings: React.FC<MyPageAuthSettingsProps> = ({ isOpen, 
           </div>
         )}
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--fs-caption)' }}>
           {ALL_PROVIDERS.map((provider) => {
             const account = accounts.find((a) => a.provider === provider);
             const isLinked = linkedProviders.has(provider);
@@ -196,7 +196,7 @@ export const MyPageAuthSettings: React.FC<MyPageAuthSettingsProps> = ({ isOpen, 
                   <div>
                     <div style={{ fontSize: '0.95rem', fontWeight: 700, color: '#111827' }}>{providerLabel(provider)}</div>
                     {isLinked && account?.email && (
-                      <div style={{ fontSize: '0.85rem', color: 'var(--text-hint)' }}>{account.email}</div>
+                      <div style={{ fontSize: 'var(--fs-body)', color: 'var(--text-hint)' }}>{account.email}</div>
                     )}
                   </div>
                 </div>
@@ -214,8 +214,8 @@ export const MyPageAuthSettings: React.FC<MyPageAuthSettingsProps> = ({ isOpen, 
                       border: '1px solid var(--state-danger-bg)',
                       color: 'var(--state-danger-fg)',
                       borderRadius: 'var(--r-sm)',
-                      padding: '0.35rem 0.7rem',
-                      fontSize: '0.85rem',
+                      padding: '0.35rem var(--fs-caption)',
+                      fontSize: 'var(--fs-body)',
                       cursor: isLoading ? 'not-allowed' : 'pointer',
                     }}
                   >
@@ -234,8 +234,8 @@ export const MyPageAuthSettings: React.FC<MyPageAuthSettingsProps> = ({ isOpen, 
                       border: '1px solid var(--primary-color)',
                       color: 'var(--primary-color)',
                       borderRadius: 'var(--r-sm)',
-                      padding: '0.35rem 0.7rem',
-                      fontSize: '0.85rem',
+                      padding: '0.35rem var(--fs-caption)',
+                      fontSize: 'var(--fs-body)',
                       cursor: isLoading ? 'not-allowed' : 'pointer',
                     }}
                   >

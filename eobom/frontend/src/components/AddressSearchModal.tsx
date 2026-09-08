@@ -105,8 +105,8 @@ export const AddressSearchModal: React.FC<AddressSearchModalProps> = ({ onSelect
           onClick={onClose}
           style={{
             position: 'absolute',
-            top: '0.8rem',
-            right: '0.8rem',
+            top: 'var(--fs-body)',
+            right: 'var(--fs-body)',
             border: 'none',
             background: 'var(--bg-card)',
             borderRadius: '50%',
@@ -121,7 +121,7 @@ export const AddressSearchModal: React.FC<AddressSearchModalProps> = ({ onSelect
         >
           <X size={18} color="var(--primary-color)" />
         </button>
-        <h3 style={{ margin: '0 0 0.8rem 0', fontSize: '1.1rem', color: 'var(--primary-color)' }}>주소 검색</h3>
+        <h3 style={{ margin: '0 0 var(--fs-body) 0', fontSize: '1.1rem', color: 'var(--primary-color)' }}>주소 검색</h3>
         <div ref={containerRef} style={{ width: '100%', height: '420px' }} />
       </div>
     </div>

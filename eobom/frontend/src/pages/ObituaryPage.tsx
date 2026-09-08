@@ -451,7 +451,7 @@ export const ObituaryPage: React.FC<ObituaryPageProps> = ({ currentUser, onOpenL
     return (
       <div className="container">
         <div style={{ backgroundColor: 'var(--card-bg)', padding: '2.5rem 1.75rem', borderRadius: 'var(--border-radius)', boxShadow: 'var(--box-shadow)', textAlign: 'center', maxWidth: '480px', margin: '2rem auto' }}>
-          <MessageSquare color="var(--point-color)" size={40} style={{ marginBottom: '0.75rem' }} />
+          <MessageSquare color="var(--point-color)" size={40} style={{ marginBottom: 'var(--fs-caption)' }} />
           <h2 style={{ color: 'var(--primary-color)', marginBottom: '0.5rem' }}>모바일 부고장 작성</h2>
           <p style={{ color: 'var(--text-muted)', marginBottom: '1.5rem' }}>부고장 작성 및 관리는 로그인 후 이용하실 수 있습니다.</p>
           <button onClick={onOpenLogin} className="btn btn-point" style={{ width: '100%' }}>
@@ -469,7 +469,7 @@ export const ObituaryPage: React.FC<ObituaryPageProps> = ({ currentUser, onOpenL
   return (
     <div className="container" style={{ paddingBottom: '3rem' }}>
       <div style={{ marginBottom: '1.5rem' }}>
-        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', backgroundColor: 'var(--state-ok-bg)', color: 'var(--state-ok-fg)', padding: '0.3rem 0.8rem', borderRadius: 'var(--r-lg)', fontSize: '0.85rem', fontWeight: 700, marginBottom: '0.6rem' }}>
+        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', backgroundColor: 'var(--state-ok-bg)', color: 'var(--state-ok-fg)', padding: '0.3rem var(--fs-body)', borderRadius: 'var(--r-lg)', fontSize: 'var(--fs-body)', fontWeight: 700, marginBottom: '0.6rem' }}>
           <MessageSquare size={18} color="var(--state-ok-fg)" /> 모바일 부고장 공유
         </div>
         <h1 className="page-title" style={{ color: 'var(--primary-color)', display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0 }}>
@@ -516,7 +516,7 @@ export const ObituaryPage: React.FC<ObituaryPageProps> = ({ currentUser, onOpenL
           <div className="form-group">
             <label className="form-label">연락처</label>
             <input type="tel" value={contactPhone} onChange={(e) => setContactPhone(e.target.value)} className="form-input" placeholder="010-0000-0000 (입력하면 부고장에 노출됩니다)" />
-            <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginTop: '0.3rem' }}>
+            <p style={{ fontSize: 'var(--fs-body)', color: 'var(--text-muted)', marginTop: '0.3rem' }}>
               입력하신 번호는 부고장을 받은 모든 분에게 보입니다.
             </p>
           </div>
@@ -524,7 +524,7 @@ export const ObituaryPage: React.FC<ObituaryPageProps> = ({ currentUser, onOpenL
           {/* 마음 전하실 곳 — 명시적 토글, 기본 OFF(§6.2-2). 연락처와 달리 "입력=노출"이 아니라
               토글 자체가 경고를 띄울 자리다 — 켜는 순간 재전파 경고를 보여준다. */}
           <div className="form-group" style={{ backgroundColor: 'var(--secondary-color)', borderRadius: 'var(--r-sm)', padding: '0.9rem 1rem' }}>
-            <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', marginBottom: accountEnabled ? '0.8rem' : 0 }}>
+            <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', marginBottom: accountEnabled ? 'var(--fs-body)' : 0 }}>
               <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontWeight: 700, color: 'var(--primary-color)', fontSize: '0.92rem' }}>
                 <Heart size={16} color="var(--point-color)" /> 마음 전하실 곳
               </span>
@@ -533,7 +533,7 @@ export const ObituaryPage: React.FC<ObituaryPageProps> = ({ currentUser, onOpenL
 
             {accountEnabled && (
               <>
-                <div style={{ fontSize: '0.85rem', color: 'var(--state-warn-fg)', backgroundColor: 'var(--state-warn-bg)', border: '1px solid var(--state-warn-bg)', borderRadius: 'var(--r-sm)', padding: '0.6rem 0.75rem', marginBottom: '0.7rem', lineHeight: 1.5 }}>
+                <div style={{ fontSize: 'var(--fs-body)', color: 'var(--state-warn-fg)', backgroundColor: 'var(--state-warn-bg)', border: '1px solid var(--state-warn-bg)', borderRadius: 'var(--r-sm)', padding: '0.6rem var(--fs-caption)', marginBottom: 'var(--fs-caption)', lineHeight: 1.5 }}>
                   이 계좌번호는 부고장을 받은 분이 다시 공유할 수 있습니다.
                 </div>
                 <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem' }}>
@@ -582,12 +582,12 @@ export const ObituaryPage: React.FC<ObituaryPageProps> = ({ currentUser, onOpenL
                   <div key={idx} style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem' }}>
                     <input value={m.relationship} onChange={(e) => updateMourner(idx, 'relationship', e.target.value)} className="form-input" placeholder="관계 (예: 장남)" style={{ flex: 1 }} />
                     <input value={m.name} onChange={(e) => updateMourner(idx, 'name', e.target.value)} className="form-input" placeholder="성함" style={{ flex: 1.5 }} />
-                    <button type="button" onClick={() => removeMourner(idx)} className="btn" style={{ backgroundColor: 'var(--secondary-color)', padding: '0 0.8rem' }}>
+                    <button type="button" onClick={() => removeMourner(idx)} className="btn" style={{ backgroundColor: 'var(--secondary-color)', padding: '0 var(--fs-body)' }}>
                       <X size={16} />
                     </button>
                   </div>
                 ))}
-                <button type="button" onClick={addMourner} className="btn" style={{ backgroundColor: 'var(--secondary-color)', color: 'var(--primary-color)', fontSize: '0.85rem', height: '40px' }}>
+                <button type="button" onClick={addMourner} className="btn" style={{ backgroundColor: 'var(--secondary-color)', color: 'var(--primary-color)', fontSize: 'var(--fs-body)', height: '40px' }}>
                   <Plus size={16} /> 유족 추가
                 </button>
               </div>
@@ -600,15 +600,15 @@ export const ObituaryPage: React.FC<ObituaryPageProps> = ({ currentUser, onOpenL
                   이 체크박스를 켜야만 개설 시 추모관도 함께 만들어 연결한다. 꺼두면 나중에
                   공유 패널의 "추모관 만들기" 버튼(사후 연결, `00-13` §4.5-4-2 ㉮)이나
                   /memorial에서 독립적으로 만들 수 있다. */}
-              <label style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', fontSize: '0.85rem', cursor: 'pointer' }}>
+              <label style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', fontSize: 'var(--fs-body)', cursor: 'pointer' }}>
                 <input type="checkbox" checked={createMemorial} onChange={(e) => setCreateMemorial(e.target.checked)} style={{ marginTop: '0.2rem' }} />
                 <span>[선택] 이 부고장과 함께 추모관도 만들기 — 조문객이 온라인으로 헌화·방명록을 남길 수 있는 공간입니다. 나중에 &lsquo;디지털 추모관&rsquo; 화면에서 따로 만들 수도 있습니다.</span>
               </label>
-              <label style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', fontSize: '0.85rem', cursor: 'pointer' }}>
+              <label style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', fontSize: 'var(--fs-body)', cursor: 'pointer' }}>
                 <input type="checkbox" checked={falseReportAgreed} onChange={(e) => setFalseReportAgreed(e.target.checked)} style={{ marginTop: '0.2rem' }} />
                 <span>[필수] 허위로 부고장을 개설할 경우 법적 책임을 질 수 있다는 점에 동의합니다.</span>
               </label>
-              <label style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', fontSize: '0.85rem', cursor: 'pointer' }}>
+              <label style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', fontSize: 'var(--fs-body)', cursor: 'pointer' }}>
                 <input type="checkbox" checked={resharedNoticeAck} onChange={(e) => setResharedNoticeAck(e.target.checked)} style={{ marginTop: '0.2rem' }} />
                 <span>[필수] 이 부고장을 전달받은 분이 다시 다른 곳에 공유할 수 있다는 점을 확인했습니다.</span>
               </label>
@@ -616,7 +616,7 @@ export const ObituaryPage: React.FC<ObituaryPageProps> = ({ currentUser, onOpenL
           )}
 
           {errorMsg && (
-            <div style={{ fontSize: '0.85rem', color: 'var(--state-danger-fg)', backgroundColor: 'var(--state-danger-bg)', border: '1px solid var(--state-danger-bg)', borderRadius: 'var(--r-sm)', padding: '0.7rem 0.9rem', marginBottom: '1rem' }}>
+            <div style={{ fontSize: 'var(--fs-body)', color: 'var(--state-danger-fg)', backgroundColor: 'var(--state-danger-bg)', border: '1px solid var(--state-danger-bg)', borderRadius: 'var(--r-sm)', padding: 'var(--fs-caption) 0.9rem', marginBottom: '1rem' }}>
               {errorMsg}
             </div>
           )}
@@ -629,10 +629,10 @@ export const ObituaryPage: React.FC<ObituaryPageProps> = ({ currentUser, onOpenL
         {/* 미리보기 + (개설 후) 공유/관리 패널 */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
           <div style={{ backgroundColor: '#1A2B4C', color: '#FFFFFF', borderRadius: 'var(--r-lg)', padding: '1.25rem', boxShadow: 'var(--box-shadow)' }}>
-            <p style={{ fontSize: '0.85rem', color: '#94A3B8', marginBottom: '0.5rem', textTransform: 'uppercase', letterSpacing: '0.03em' }}>카카오톡 카드 미리보기</p>
+            <p style={{ fontSize: 'var(--fs-body)', color: '#94A3B8', marginBottom: '0.5rem', textTransform: 'uppercase', letterSpacing: '0.03em' }}>카카오톡 카드 미리보기</p>
             <div style={{ backgroundColor: '#FFFFFF', borderRadius: 'var(--r-sm)', overflow: 'hidden' }}>
               <img src={OBITUARY_CARD_IMAGE_URL} alt="근조 카드 이미지" style={{ width: '100%', height: '120px', objectFit: 'cover', backgroundColor: 'var(--surface-subtle)' }} />
-              <div style={{ padding: '0.8rem 0.9rem' }}>
+              <div style={{ padding: 'var(--fs-body) 0.9rem' }}>
                 <p style={{ color: '#1A2B4C', fontWeight: 'var(--fw-bold)', fontSize: '0.95rem', margin: '0 0 0.3rem 0' }}>
                   {cardTitle || '[부고] 故 ○○○ 님'}
                 </p>
@@ -647,9 +647,9 @@ export const ObituaryPage: React.FC<ObituaryPageProps> = ({ currentUser, onOpenL
             <div style={{ backgroundColor: 'var(--card-bg)', padding: '1.5rem', borderRadius: 'var(--border-radius)', boxShadow: 'var(--box-shadow)' }}>
               {isClosed ? (
                 <>
-                  <div style={{ display: 'flex', gap: '0.6rem', backgroundColor: 'var(--surface-subtle)', border: '1px solid var(--border-color)', borderRadius: 'var(--r-sm)', padding: '0.8rem 0.9rem', marginBottom: '1.1rem' }}>
+                  <div style={{ display: 'flex', gap: '0.6rem', backgroundColor: 'var(--surface-subtle)', border: '1px solid var(--border-color)', borderRadius: 'var(--r-sm)', padding: 'var(--fs-body) 0.9rem', marginBottom: '1.1rem' }}>
                     <PowerOff size={18} color="#475569" style={{ flexShrink: 0, marginTop: '0.1rem' }} />
-                    <p style={{ fontSize: '0.85rem', color: '#334155', margin: 0, lineHeight: 1.5 }}>
+                    <p style={{ fontSize: 'var(--fs-body)', color: '#334155', margin: 0, lineHeight: 1.5 }}>
                       종료된 부고장입니다. 조문객은 더 이상 이 링크로 볼 수 없습니다{closedAt ? ` (${formatKST(closedAt)} 종료)` : ' (발인 3일 경과로 자동 종료)'}.
                     </p>
                   </div>
@@ -659,11 +659,11 @@ export const ObituaryPage: React.FC<ObituaryPageProps> = ({ currentUser, onOpenL
                     <Plus size={16} /> 새 부고장 작성하기
                   </button>
                   {memorialUrl ? (
-                    <a href={memorialUrl} target="_blank" rel="noreferrer" style={{ fontSize: '0.85rem', color: 'var(--point-color)', fontWeight: 700, textDecoration: 'underline' }}>
+                    <a href={memorialUrl} target="_blank" rel="noreferrer" style={{ fontSize: 'var(--fs-body)', color: 'var(--point-color)', fontWeight: 700, textDecoration: 'underline' }}>
                       연결된 추모관은 계속 열람할 수 있습니다 →
                     </a>
                   ) : (
-                    <button type="button" onClick={handleCreateMemorial} disabled={linkingMemorial} className="btn" style={{ backgroundColor: 'var(--secondary-color)', color: 'var(--primary-color)', fontSize: '0.85rem' }}>
+                    <button type="button" onClick={handleCreateMemorial} disabled={linkingMemorial} className="btn" style={{ backgroundColor: 'var(--secondary-color)', color: 'var(--primary-color)', fontSize: 'var(--fs-body)' }}>
                       {linkingMemorial ? <><Loader2 size={15} /> 만드는 중...</> : <><Flower2 size={15} /> 추모관 만들기</>}
                     </button>
                   )}
@@ -671,9 +671,9 @@ export const ObituaryPage: React.FC<ObituaryPageProps> = ({ currentUser, onOpenL
               ) : (
                 <>
                   {cardFieldsUpdatedAt && (
-                    <div style={{ display: 'flex', gap: '0.6rem', backgroundColor: 'var(--state-critical-bg)', border: '1px solid var(--state-critical-bg)', borderRadius: 'var(--r-sm)', padding: '0.8rem 0.9rem', marginBottom: '1.1rem' }}>
+                    <div style={{ display: 'flex', gap: '0.6rem', backgroundColor: 'var(--state-critical-bg)', border: '1px solid var(--state-critical-bg)', borderRadius: 'var(--r-sm)', padding: 'var(--fs-body) 0.9rem', marginBottom: '1.1rem' }}>
                       <AlertTriangle size={18} color="var(--state-critical-fg)" style={{ flexShrink: 0, marginTop: '0.1rem' }} />
-                      <p style={{ fontSize: '0.85rem', color: '#7C2D12', margin: 0, lineHeight: 1.5 }}>
+                      <p style={{ fontSize: 'var(--fs-body)', color: '#7C2D12', margin: 0, lineHeight: 1.5 }}>
                         이미 보낸 카드에는 반영되지 않습니다. 아래 버튼으로 다시 공유해 주세요.
                       </p>
                     </div>
@@ -685,16 +685,16 @@ export const ObituaryPage: React.FC<ObituaryPageProps> = ({ currentUser, onOpenL
                     <Send size={16} /> 카카오톡으로 부고 알리기
                   </button>
                   <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.6rem' }}>
-                    <button onClick={handleCopyLink} className="btn" style={{ flex: 1, backgroundColor: 'var(--secondary-color)', color: 'var(--primary-color)', fontSize: '0.85rem' }}>
+                    <button onClick={handleCopyLink} className="btn" style={{ flex: 1, backgroundColor: 'var(--secondary-color)', color: 'var(--primary-color)', fontSize: 'var(--fs-body)' }}>
                       <Copy size={15} /> 링크 복사
                     </button>
-                    <a href={buildObituarySmsHref(obituaryUrl, deceasedName)} className="btn" style={{ flex: 1, backgroundColor: 'var(--secondary-color)', color: 'var(--primary-color)', fontSize: '0.85rem', textDecoration: 'none' }}>
+                    <a href={buildObituarySmsHref(obituaryUrl, deceasedName)} className="btn" style={{ flex: 1, backgroundColor: 'var(--secondary-color)', color: 'var(--primary-color)', fontSize: 'var(--fs-body)', textDecoration: 'none' }}>
                       문자로 보내기
                     </a>
                   </div>
-                  {copyFeedback && <p style={{ fontSize: '0.85rem', color: 'var(--point-color)', margin: '0 0 0.6rem 0' }}>{copyFeedback}</p>}
+                  {copyFeedback && <p style={{ fontSize: 'var(--fs-body)', color: 'var(--point-color)', margin: '0 0 0.6rem 0' }}>{copyFeedback}</p>}
 
-                  <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', wordBreak: 'break-all', backgroundColor: 'var(--secondary-color)', borderRadius: 'var(--r-sm)', padding: '0.6rem 0.7rem', marginBottom: '0.6rem' }}>
+                  <div style={{ fontSize: 'var(--fs-body)', color: 'var(--text-muted)', wordBreak: 'break-all', backgroundColor: 'var(--secondary-color)', borderRadius: 'var(--r-sm)', padding: '0.6rem var(--fs-caption)', marginBottom: '0.6rem' }}>
                     {obituaryUrl}
                   </div>
 
@@ -702,17 +702,17 @@ export const ObituaryPage: React.FC<ObituaryPageProps> = ({ currentUser, onOpenL
                       없으면 "사후 연결"(`00-13` §4.5-4-2 ㉮) 버튼 하나로 바로 만든다 —
                       체크박스→저장 형태가 아니라 버튼 하나로(사용자 지시). */}
                   {memorialUrl ? (
-                    <a href={memorialUrl} target="_blank" rel="noreferrer" style={{ fontSize: '0.85rem', color: 'var(--point-color)', fontWeight: 700, textDecoration: 'underline' }}>
+                    <a href={memorialUrl} target="_blank" rel="noreferrer" style={{ fontSize: 'var(--fs-body)', color: 'var(--point-color)', fontWeight: 700, textDecoration: 'underline' }}>
                       연결된 추모관 미리 보기 →
                     </a>
                   ) : (
-                    <button type="button" onClick={handleCreateMemorial} disabled={linkingMemorial} className="btn" style={{ backgroundColor: 'var(--secondary-color)', color: 'var(--primary-color)', fontSize: '0.85rem' }}>
+                    <button type="button" onClick={handleCreateMemorial} disabled={linkingMemorial} className="btn" style={{ backgroundColor: 'var(--secondary-color)', color: 'var(--primary-color)', fontSize: 'var(--fs-body)' }}>
                       {linkingMemorial ? <><Loader2 size={15} /> 만드는 중...</> : <><Flower2 size={15} /> 추모관 만들기</>}
                     </button>
                   )}
 
                   {updatedAt && (
-                    <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginTop: '1rem' }}>
+                    <p style={{ fontSize: 'var(--fs-body)', color: 'var(--text-muted)', marginTop: '1rem' }}>
                       최종 수정: {formatKST(updatedAt)}
                     </p>
                   )}
@@ -728,7 +728,7 @@ export const ObituaryPage: React.FC<ObituaryPageProps> = ({ currentUser, onOpenL
                     >
                       <PowerOff size={16} /> {isClosing ? '종료 중...' : '부고장 종료'}
                     </button>
-                    <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', margin: '0.5rem 0 0 0', lineHeight: 1.5 }}>
+                    <p style={{ fontSize: 'var(--fs-body)', color: 'var(--text-muted)', margin: '0.5rem 0 0 0', lineHeight: 1.5 }}>
                       종료하면 조문객이 더 이상 이 링크로 볼 수 없습니다(연락처·계좌 노출 방지, 되돌릴 수 없음). 종료하지 않아도 발인 3일 후 자동으로 종료됩니다.
                     </p>
                   </div>

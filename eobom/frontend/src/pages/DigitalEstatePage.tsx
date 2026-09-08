@@ -127,7 +127,7 @@ export const DigitalEstatePage: React.FC<DigitalEstatePageProps> = ({ currentUse
   return (
     <div className="container">
       <div style={{ marginBottom: '1.5rem' }}>
-        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', backgroundColor: 'var(--state-warn-bg)', color: 'var(--accent-gold)', padding: '0.3rem 0.8rem', borderRadius: 'var(--r-lg)', fontSize: '0.85rem', fontWeight: 700, marginBottom: '0.6rem' }}>
+        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', backgroundColor: 'var(--state-warn-bg)', color: 'var(--accent-gold)', padding: '0.3rem var(--fs-body)', borderRadius: 'var(--r-lg)', fontSize: 'var(--fs-body)', fontWeight: 700, marginBottom: '0.6rem' }}>
           <PhoneHeartIcon size={18} color="var(--accent-gold)" /> SNS / 클라우드 계정 정산
         </div>
         <h1 style={{ color: 'var(--primary-color)', fontSize: '2rem', display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0 }}>
@@ -143,7 +143,7 @@ export const DigitalEstatePage: React.FC<DigitalEstatePageProps> = ({ currentUse
       {/* 아래 카탈로그(업로드·건별 신청 목록)는 Step 5(04-01 §8) 전면 개편 대상 — "정산" 문구·
           OCR 검증 표기·업로드 유도를 포함한 기존 목업 그대로다. Step 0-b는 위 계정 찾기 섹션만
           추가하고 이 블록은 건드리지 않는다(스펙 §8 표에 단계가 나뉘어 있음). */}
-      <div style={{ fontSize: '0.85rem', color: 'var(--state-warn-fg)', backgroundColor: 'var(--state-warn-bg)', border: '1px solid var(--state-warn-bg)', borderRadius: 'var(--r-sm)', padding: '0.7rem 1rem', marginBottom: '1.25rem', lineHeight: 1.6 }}>
+      <div style={{ fontSize: 'var(--fs-body)', color: 'var(--state-warn-fg)', backgroundColor: 'var(--state-warn-bg)', border: '1px solid var(--state-warn-bg)', borderRadius: 'var(--r-sm)', padding: 'var(--fs-caption) 1rem', marginBottom: '1.25rem', lineHeight: 1.6 }}>
         ⚠️ 이 페이지는 화면 구성을 보여드리기 위한 <strong>예시 데이터</strong>로 채워져 있습니다.
         실제 정산 신청·검증 기능은 준비 중입니다(00-14 §2.2).
       </div>
@@ -157,7 +157,7 @@ export const DigitalEstatePage: React.FC<DigitalEstatePageProps> = ({ currentUse
         <div style={{ border: '2px dashed var(--border-color)', padding: '1.5rem', textAlign: 'center', borderRadius: 'var(--r-md)', backgroundColor: 'var(--secondary-color)', marginBottom: '1.75rem' }}>
           <Upload color="var(--primary-color)" size={36} style={{ marginBottom: '0.5rem' }} />
           <h4 style={{ color: 'var(--primary-color)', marginBottom: '0.25rem' }}>📌 필수 증빙 서류 업로드 (가족관계증명서 / 사망진단서)</h4>
-          <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>제출하신 서류는 상속인 확인 절차에 사용될 예정입니다. (자동 검증 기능은 준비 중)</p>
+          <p style={{ fontSize: 'var(--fs-body)', color: 'var(--text-muted)', marginBottom: '1rem' }}>제출하신 서류는 상속인 확인 절차에 사용될 예정입니다. (자동 검증 기능은 준비 중)</p>
 
           <input type="file" id="doc-file-input" onChange={handleFileUpload} style={{ display: 'none' }} />
           <label htmlFor="doc-file-input" className="btn btn-primary" style={{ cursor: 'pointer' }}>

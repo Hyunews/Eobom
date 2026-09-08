@@ -33,7 +33,7 @@ interface ObituaryData {
 
 const Row: React.FC<{ label: string; children: React.ReactNode }> = ({ label, children }) => (
   <div style={{ display: 'flex', gap: '1rem', padding: '0.6rem 0', borderBottom: '1px solid #EAE5DC' }}>
-    <span style={{ width: '52px', flexShrink: 0, fontSize: '0.85rem', fontWeight: 700, color: '#6C7A89' }}>{label}</span>
+    <span style={{ width: '52px', flexShrink: 0, fontSize: 'var(--fs-body)', fontWeight: 700, color: '#6C7A89' }}>{label}</span>
     <span style={{ fontSize: '0.95rem', color: '#1A2B4C', lineHeight: 1.5 }}>{children}</span>
   </div>
 );
@@ -154,7 +154,7 @@ export const ObituaryLandingPage: React.FC = () => {
         <div style={{ backgroundColor: '#FFFFFF', borderRadius: 'var(--r-lg)', boxShadow: 'var(--el-2)', overflow: 'hidden' }}>
           {/* 근조 헤더 */}
           <div style={{ backgroundColor: '#1A2B4C', color: '#FFFFFF', padding: '2rem 1.75rem', textAlign: 'center' }}>
-            <p style={{ fontSize: '0.85rem', color: '#94A3B8', letterSpacing: '0.1em', marginBottom: '0.6rem' }}>삼가 고인의 명복을 빕니다</p>
+            <p style={{ fontSize: 'var(--fs-body)', color: '#94A3B8', letterSpacing: '0.1em', marginBottom: '0.6rem' }}>삼가 고인의 명복을 빕니다</p>
             <h1 style={{ fontSize: '1.6rem', fontWeight: 'var(--fw-bold)', margin: 0, fontFamily: "'KoPub World Batang', serif" }}>
               故 {data.deceasedName}
               {data.deceasedDeathDate && (
@@ -171,7 +171,7 @@ export const ObituaryLandingPage: React.FC = () => {
                   {data.funeralHall}
                   {data.mourningRoom ? ` ${data.mourningRoom}` : ''}
                   {kakaoMapUrl && (
-                    <a href={kakaoMapUrl} target="_blank" rel="noreferrer" style={{ marginLeft: '0.5rem', fontSize: '0.85rem', color: 'var(--point-color)', fontWeight: 700, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '0.2rem' }}>
+                    <a href={kakaoMapUrl} target="_blank" rel="noreferrer" style={{ marginLeft: '0.5rem', fontSize: 'var(--fs-body)', color: 'var(--point-color)', fontWeight: 700, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '0.2rem' }}>
                       <Navigation size={12} /> 길찾기
                     </a>
                   )}
@@ -191,7 +191,7 @@ export const ObituaryLandingPage: React.FC = () => {
               {data.contactPhone && (
                 <Row label="연락처">
                   {data.contactPhone}
-                  <a href={`tel:${data.contactPhone}`} style={{ marginLeft: '0.6rem', fontSize: '0.85rem', color: 'var(--point-color)', fontWeight: 700, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '0.2rem' }}>
+                  <a href={`tel:${data.contactPhone}`} style={{ marginLeft: '0.6rem', fontSize: 'var(--fs-body)', color: 'var(--point-color)', fontWeight: 700, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '0.2rem' }}>
                     <Phone size={12} /> 전화 걸기
                   </a>
                 </Row>
@@ -201,7 +201,7 @@ export const ObituaryLandingPage: React.FC = () => {
             {/* 마음 전하실 곳 — accountEnabled일 때만(Phase 1~2엔 화면 토글이 없어 항상 비어 있음) */}
             {data.account && (
               <div style={{ backgroundColor: 'var(--surface-subtle)', borderRadius: 'var(--r-sm)', padding: '0.9rem 1rem', marginBottom: '0.5rem' }}>
-                <p style={{ fontSize: '0.85rem', fontWeight: 700, color: '#1A2B4C', marginBottom: '0.3rem' }}>마음 전하실 곳</p>
+                <p style={{ fontSize: 'var(--fs-body)', fontWeight: 700, color: '#1A2B4C', marginBottom: '0.3rem' }}>마음 전하실 곳</p>
                 <p style={{ fontSize: '0.95rem', color: '#1A2B4C', margin: 0 }}>
                   {data.account.bankCode} {data.account.accountNumber} ({data.account.holder})
                 </p>
@@ -226,10 +226,10 @@ export const ObituaryLandingPage: React.FC = () => {
         </div>
 
         {/* §5.4-2 — 조문객 쪽 방어선. 카드는 공유 시점 스냅샷이라 바뀔 수 있으니 최종 수정 시각을 알린다. */}
-        <p style={{ textAlign: 'center', fontSize: '0.85rem', color: '#94A3B8', marginTop: '1rem' }}>
+        <p style={{ textAlign: 'center', fontSize: 'var(--fs-body)', color: '#94A3B8', marginTop: '1rem' }}>
           최종 수정: {formatKST(data.updatedAt)} · 정보는 유족이 언제든 바꿀 수 있습니다.
         </p>
-        <p style={{ textAlign: 'center', fontSize: '0.85rem', color: 'var(--border-color)', marginTop: '0.4rem' }}>이어봄</p>
+        <p style={{ textAlign: 'center', fontSize: 'var(--fs-body)', color: 'var(--border-color)', marginTop: '0.4rem' }}>이어봄</p>
       </div>
     </div>
   );

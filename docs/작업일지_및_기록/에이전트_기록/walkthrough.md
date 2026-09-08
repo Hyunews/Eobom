@@ -2287,3 +2287,14 @@ wt137 그대로라 재작업 없음).
 - **다음 에이전트가 알아야 할 것**: 🔵 실기동 검증 대기 — 사람이 ①텍스트만 있는 편지를 열면 C 탭으로 열리는지, ②녹음으로 남긴 편지는 B, 업로드로 남긴 편지는 A로 열리는지(휴리스틱이라 100% 보장 안 됨 — 어긋나면 실제 입력 방법을 DB에 별도 저장하는 스펙 변경이 필요), ③사이드노트 박스가 이제 글 길이만큼만 회색으로 보이는지 확인.
 
 <!-- Gemini 판정 대기 -->
+
+
+## 2026-09-08 (173) | [Sonnet] 00-38 Phase 1 — 적응형 모바일 UX 기반 작업
+
+- **근거 스펙**: docs/00_핵심플랫폼/00-38_적응형_모바일_UX_개편_명세서.md §4·§4.5·§5·§11 (Phase 1, 화면 구조 변경 없음)
+- **건드린 파일**: eobom/frontend/src/index.css(토큰 신설·개정, `--base-font-size` 폐기, `.container` 거터 분리, `.header-inner`·`.mobile-drawer-panel` 좌우 `--gutter-chrome` 명시) · eobom/frontend/src/hooks/useIsMobile.ts(신설) · eobom/frontend/src/components/home/EntryBoxes.tsx·eobom/frontend/src/pages/HomePage.tsx(기존 matchMedia 호출부를 `useIsMobile`로 통일, 값 유지: 767·640) · 그 외 소형 rem 리터럴(0.85/0.8/0.78/0.75/0.7rem → `var(--fs-body)`/`var(--fs-caption)`) 기계적 치환 34개 파일(AdminPage·BizDashboard·PartnerPortalPage 제외, §4.5).
+- **결과**: 총 37개 파일 변경(§4.5 대상 334곳 치환 포함, 스펙 추정치 "약 318곳/38개 파일"과 근접). `npm run build`(tsc+vite) 통과. 실기동 확인(dev 서버, 360px) — `/facility`에서 `.container` padding `40px 28px`(=`var(--sp-10) var(--gutter-page)`) 실측, `.header-inner` padding `16px` 실측, `document.documentElement.scrollWidth`(345) ≤ `innerWidth`(360)로 가로 오버플로 0, `body` font-size 16px. 데스크톱(1920px)에서 `.header-inner` padding 72px(기존 clamp, 미변경) 확인.
+- **편차**: HomePage.tsx의 `isMobileLayout`은 스크롤/휠 핸들러가 마운트 시 1회만 등록되는 effect 안에서 호출돼(`useEffect(...,[sections.length])`), `useIsMobile(640)`의 렌더 스냅샷을 그대로 클로저에 캡처하면 리사이즈 이후 값이 굳는다 — `useIsMobile(640)` 반환값을 ref로 미러링해(`isMobile640Ref`) 그 ref를 읽는 방식으로 우회했다(§5.2 "값은 그대로" 취지 유지, 동작은 기존과 동일).
+- **다음 에이전트가 알아야 할 것**: 🟡 index.css 안에 이번 치환 대상(§4.5)에 포함되지 않은 소형 rem 폰트 리터럴이 남아있다(예: `:794 font-size:0.85rem`·`:1596·1948 font-size:0.78rem`·`:1781·1834 font-size:0.8rem` 등 — index.css 자체는 §4.5의 "38개 파일"에 포함되지 않아 손대지 않음). 루트 16px화로 이 값들도 동일하게 작아졌을 것이라 DoD #2(≥16px/≥14px) 전수 검사 시 걸릴 수 있다 — Phase 2 착수 전 Opus 확인 필요. 🔵 로그인 필요 화면(MyPage·ObituaryPage·EndingNotePage 등)의 DoD #1~#7 실측은 에이전트가 로그인 화면을 닫을 수 없어(`00-29` §15) 사람이 실기기로 확인해야 한다.
+
+<!-- Gemini 판정 대기 -->

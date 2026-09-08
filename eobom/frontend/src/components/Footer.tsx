@@ -132,7 +132,7 @@ export const Footer: React.FC = () => {
               color: 'var(--primary-color)',
               fontSize: '1.05rem',
               fontWeight: 700,
-              marginBottom: '0.7rem',
+              marginBottom: 'var(--fs-caption)',
               display: 'flex',
               alignItems: 'center',
               gap: '0.4rem',

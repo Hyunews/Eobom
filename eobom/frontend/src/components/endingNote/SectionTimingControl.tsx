@@ -16,14 +16,14 @@ export const SectionTimingControl: React.FC<{
 
   return (
     <div style={{ marginTop: '1.25rem', paddingTop: '1rem', borderTop: '1px solid var(--border-color)' }}>
-      <div style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--primary-color)', marginBottom: '0.6rem' }}>
+      <div style={{ fontSize: 'var(--fs-body)', fontWeight: 700, color: 'var(--primary-color)', marginBottom: '0.6rem' }}>
         가족 공개 시점
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
         {family.map((f) => {
           const activeGrant = grants.find((g) => g.section === section && g.designationId === f.id && !g.revokedAt);
           return (
-            <div key={f.id} style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', fontSize: '0.85rem', flexWrap: 'wrap' }}>
+            <div key={f.id} style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', fontSize: 'var(--fs-body)', flexWrap: 'wrap' }}>
               <span style={{ minWidth: '120px', color: 'var(--text-main)' }}>
                 {f.name} ({RELATIONSHIP_LABEL[f.relationship] || f.relationship}
                 {f.relationship === 'OTHER' && f.relationshipEtc ? ` · ${f.relationshipEtc}` : ''})
