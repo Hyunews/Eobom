@@ -16,7 +16,7 @@ History API 기반(HistoryRouter/BrowserRouter 방식) — 즉 URL이 `/#facilit
 - URL이 전부 `/#tab` 형태라 카카오톡 등으로 링크를 공유하면 링크 미리보기·검색엔진이 페이지를 구분하지 못한다 (SPA인데도 사실상 한 페이지로만 보임).
 - 탭이 하나 늘 때마다 `App.tsx` 안에서 스크롤 복원·해시 파싱 로직을 손으로 맞춰야 했다(실수 여지).
 
-**바꾸지 않아도 되는 이유가 없었던 이유**: 프론트가 Vercel에 배포되는데, 이미 `eobom/frontend/vercel.json`에
+**바꾸지 않아도 되는 이유가 없었던 이유**: 프론트가 Vercel에 배포되는데, 이미 `eobomDev/frontend/vercel.json`에
 `{ "source": "/(.*)", "destination": "/index.html" }` SPA 캐치올 rewrite가 미리 들어가 있었다 — 즉 인프라 쪽은
 이미 History 기반 라우팅을 받아들일 준비가 되어 있었고, 프론트 코드만 뒤처져 있었다.
 
@@ -40,9 +40,9 @@ History API 기반(HistoryRouter/BrowserRouter 방식) — 즉 URL이 `/#facilit
 
 ## 3. 건드린 파일
 
-- **수정**: `eobom/frontend/src/App.tsx` (전면 재작성 — 아래 §4 상세)
-- **신규 의존성**: `react-router-dom` (`^6`) — `eobom/frontend/package.json`
-- **변경 없음(이미 준비돼 있었음)**: `eobom/frontend/vercel.json` — SPA rewrite 기존 설정 그대로 재사용
+- **수정**: `eobomDev/frontend/src/App.tsx` (전면 재작성 — 아래 §4 상세)
+- **신규 의존성**: `react-router-dom` (`^6`) — `eobomDev/frontend/package.json`
+- **변경 없음(이미 준비돼 있었음)**: `eobomDev/frontend/vercel.json` — SPA rewrite 기존 설정 그대로 재사용
 - **변경 없음**: `Header.tsx`, `Sidebar.tsx`, `HomePage.tsx`, `MyPage.tsx`, 백엔드(`authController.ts`) 전부 — §5 참고
 
 ---

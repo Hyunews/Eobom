@@ -28,7 +28,7 @@
 
 | 작업 유형 | 읽을 파일 |
 |---|---|
-| 🔴 **내 소유 영역 밖 파일을 쓰기 직전**(Opus가 `eobom/`, Sonnet이 `docs/`) · 에이전트 전환 | `.harness/roles.md` |
+| 🔴 **내 소유 영역 밖 파일을 쓰기 직전**(Opus가 `eobomDev/`, Sonnet이 `docs/`) · 에이전트 전환 | `.harness/roles.md` |
 | 개인정보·시크릿·외부 발행(배포/공개) 건드릴 때 | `.harness/security.md` |
 | 🔴 **DB에 쓰는 명령을 돌리기 직전** — `deleteMany`·`updateMany`·`migrate`·`db push`·정리 스크립트·시드 | `.harness/db-safety.md` |
 | 작업을 "끝났다"고 선언하기 직전 | `.harness/done.md` |
@@ -65,14 +65,14 @@ PLAN → CONFIRM → CODE/WRITE → SAVE → UPDATE
 | 영역 | 🔴 쓰기 (이 주체만) | 읽기 |
 |---|---|---|
 | `docs/` (기획 SSOT) | **`[Claude:Opus]`** | Sonnet · Gemini |
-| `eobom/` (소스코드) | **`[Claude:Sonnet]`** | Opus · Gemini |
+| `eobomDev/` (소스코드) | **`[Claude:Sonnet]`** | Opus · Gemini |
 | `reports/` (시각화 HTML) | Gemini | Claude |
 | ↳ 🔴 **git 커밋 제외**(2026-08-20, 로컬 전용) — 근거·주의는 `roles.md` §1-1 | | |
 | `.harness/` | Claude(Opus·Sonnet 공용) | Gemini |
 | `assets/` | 사람 | 둘 다 |
 | `docs/작업일지_및_기록/` | **파일별로 나뉨** → `roles.md` §1-2 | |
 
-🔴 **`docs/`와 `eobom/`은 같은 `Claude`가 아니다** — 본문은 루트 `CLAUDE.md`(자동 로드) · `roles.md` §1-1.
+🔴 **`docs/`와 `eobomDev/`은 같은 `Claude`가 아니다** — 본문은 루트 `CLAUDE.md`(자동 로드) · `roles.md` §1-1.
 
 검증 게이트는 **`walkthrough.md` 단 한 곳**이며 결과는 통과 / 반려 / 스펙갱신 3가지다.
 구현이 기획과 틀어지는 **편차 처리 절차는 `roles.md` §2-1** — 조용히 다르게 구현하거나 `docs/`를 직접 고치지 않는다.
@@ -86,7 +86,7 @@ PLAN → CONFIRM → CODE/WRITE → SAVE → UPDATE
 
 **같은 내용을 두 형식으로 둔다** — `docs/`(**AI가 읽고 고치는 정본**, Markdown, 도메인별 한글
 디렉토리) ↔ `reports/`(**사람이 브라우저로 보는 것**, HTML/PDF, 커밋 제외·로컬 전용).
-나머지는 §2 소유권 표와 같다 — `assets/`(원천 데이터·로고) · `eobom/`(소스) · `.harness/`(규칙·메모리·툴).
+나머지는 §2 소유권 표와 같다 — `assets/`(원천 데이터·로고) · `eobomDev/`(소스) · `.harness/`(규칙·메모리·툴).
 
 - **같은 문서를 두 곳에 복사하지 않는다.** 한 곳이 정본이고 나머지는 링크로 참조한다.
 - 코드·기획·하네스가 **한 레포에 공존**한다(옛 외장 두뇌 전제는 2026-08-07 폐기 → `_meta/`).

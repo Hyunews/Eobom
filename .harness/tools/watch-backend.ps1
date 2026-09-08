@@ -45,7 +45,7 @@ while ($true) {
             # Windows 시스템 비프음 (서버 복구)
             [console]::Beep(880, 300)
         } else {
-            Write-StatusLine -IsUp $false -Detail "에이전트 작업 중 종료됐을 수 있음 — 재기동: cd eobom\backend && npm run dev"
+            Write-StatusLine -IsUp $false -Detail "에이전트 작업 중 종료됐을 수 있음 — 재기동: cd eobomDev\backend && npm run dev"
             # Windows 시스템 경고음 (서버 다운)
             [console]::Beep(440, 500)
             [console]::Beep(330, 700)

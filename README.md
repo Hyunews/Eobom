@@ -29,7 +29,7 @@ Eobom/
 └── render.yaml     백엔드 배포 Blueprint
 ```
 
-> ⚠️ **Prisma 스키마·마이그레이션은 `eobom/backend/prisma/`에만 있습니다.** 저장소 루트에서
+> ⚠️ **Prisma 스키마·마이그레이션은 `eobomDev/backend/prisma/`에만 있습니다.** 저장소 루트에서
 > `prisma` 명령을 실행하지 마십시오 — 2026-08-20까지 루트에 빈 `prisma/` 잔여물이 있어
 > 헷갈릴 소지가 있었고, 제거했습니다.
 
@@ -60,7 +60,7 @@ Eobom/
 | 주체 | 쓰는 곳 | 하는 일 |
 | :--- | :--- | :--- |
 | **Claude:Opus** | `docs/` · `.harness/` | 기획·설계·스펙 확정 |
-| **Claude:Sonnet** | `eobom/` | 확정 스펙대로 구현 |
+| **Claude:Sonnet** | `eobomDev/` | 확정 스펙대로 구현 |
 | **Gemini** | `reports/` | 시각화 + 교차검증 |
 
 - 검증 게이트는 **`docs/작업일지_및_기록/에이전트_기록/walkthrough.md` 한 곳**입니다.
