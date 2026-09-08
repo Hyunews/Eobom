@@ -92,12 +92,12 @@ export const AddressSearchModal: React.FC<AddressSearchModalProps> = ({ onSelect
       <div
         style={{
           backgroundColor: '#FFFFFF',
-          borderRadius: '16px',
+          borderRadius: 'var(--r-lg)',
           padding: '1rem',
           width: '440px',
           maxWidth: '100%',
           position: 'relative',
-          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+          boxShadow: 'var(--el-3)',
         }}
         onClick={(e) => e.stopPropagation()}
       >

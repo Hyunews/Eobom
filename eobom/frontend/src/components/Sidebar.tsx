@@ -126,13 +126,13 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, navMo
                     justifyContent: 'space-between',
                     gap: '0.6rem',
                     padding: '0.9rem 0.85rem',
-                    borderRadius: '12px',
+                    borderRadius: 'var(--r-md)',
                     border: isActive ? '1.5px solid var(--accent-gold)' : '1px solid transparent',
                     borderLeft: isActive ? '5px solid var(--accent-gold)' : '1px solid transparent',
                     backgroundColor: isActive ? 'var(--point-color)' : 'transparent',
-                    color: isComingSoon ? '#94A3B8' : isActive ? '#FFFFFF' : '#CBD5E1',
+                    color: isComingSoon ? '#94A3B8' : isActive ? '#FFFFFF' : 'var(--border-color)',
                     cursor: isComingSoon ? 'not-allowed' : 'pointer',
-                    transition: 'all 0.2s ease-in-out',
+                    transition: 'border-color var(--dur-2) var(--ease-in-out), background-color var(--dur-2) var(--ease-in-out), color var(--dur-2) var(--ease-in-out), box-shadow var(--dur-2) var(--ease-in-out)',
                     whiteSpace: 'nowrap',
                     width: '100%',
                     textAlign: 'left',
@@ -142,7 +142,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, navMo
                 >
                   <span style={{ display: 'flex', alignItems: 'center', gap: '0.85rem', minWidth: 0 }}>
                     <span style={{ flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', width: '28px' }}>
-                      <IconComponent size={24} color={isComingSoon ? '#64748B' : isActive ? '#FFFFFF' : '#E2E8F0'} />
+                      <IconComponent size={24} color={isComingSoon ? 'var(--text-muted)' : isActive ? '#FFFFFF' : 'var(--secondary-dark)'} />
                     </span>
                     <span
                       className="sidebar-label"
@@ -176,13 +176,13 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, navMo
                     alignItems: 'center',
                     gap: '0.85rem',
                     padding: '0.9rem 0.85rem',
-                    borderRadius: '12px',
+                    borderRadius: 'var(--r-md)',
                     border: isActive ? '1.5px solid var(--accent-gold)' : '1px solid transparent',
                     borderLeft: isActive ? '5px solid var(--accent-gold)' : '1px solid transparent',
                     backgroundColor: isActive ? 'var(--point-color)' : 'transparent',
-                    color: isActive ? '#FFFFFF' : '#CBD5E1',
+                    color: isActive ? '#FFFFFF' : 'var(--border-color)',
                     cursor: 'pointer',
-                    transition: 'all 0.2s ease-in-out',
+                    transition: 'border-color var(--dur-2) var(--ease-in-out), background-color var(--dur-2) var(--ease-in-out), color var(--dur-2) var(--ease-in-out), box-shadow var(--dur-2) var(--ease-in-out)',
                     whiteSpace: 'nowrap',
                     width: '100%',
                     textAlign: 'left',
@@ -194,11 +194,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, navMo
                     {/* farewell-messages는 lucide Mail(accentColor/fillColor 미지원) — MenuIcons 전용
                         prop을 넘기지 않는 이 분기로 home과 함께 묶는다 */}
                     {item.id === 'home' || item.id === 'farewell-messages' ? (
-                      <IconComponent size={24} color={isActive ? '#FFFFFF' : '#E2E8F0'} />
+                      <IconComponent size={24} color={isActive ? '#FFFFFF' : 'var(--secondary-dark)'} />
                     ) : (
                       <IconComponent
                         size={24}
-                        color={isActive ? '#FFFFFF' : '#E2E8F0'}
+                        color={isActive ? '#FFFFFF' : 'var(--secondary-dark)'}
                         accentColor={isActive ? '#FDE047' : '#D4A359'}
                         fillColor={isActive ? '#FFFFFF' : '#5B7065'}
                       />
@@ -229,7 +229,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, navMo
     />
     <div ref={drawerRef} className={`mobile-drawer-panel${mobileOpen ? ' is-open' : ''}`} role="dialog" aria-modal="true" aria-hidden={!mobileOpen}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.2rem' }}>
-        <span style={{ color: '#FFFFFF', fontWeight: 800, fontSize: '1.05rem' }}>메뉴</span>
+        <span style={{ color: '#FFFFFF', fontWeight: 'var(--fw-bold)', fontSize: '1.05rem' }}>메뉴</span>
         <button
           type="button"
           onClick={onMobileClose}
@@ -268,11 +268,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, navMo
                 justifyContent: 'space-between',
                 gap: '0.6rem',
                 padding: '0.85rem 0.8rem',
-                borderRadius: '12px',
+                borderRadius: 'var(--r-md)',
                 border: isActive ? '1.5px solid var(--accent-gold)' : '1px solid transparent',
                 borderLeft: isActive ? '5px solid var(--accent-gold)' : '1px solid transparent',
                 backgroundColor: isActive ? 'var(--point-color)' : 'transparent',
-                color: isComingSoon ? '#94A3B8' : isActive ? '#FFFFFF' : '#CBD5E1',
+                color: isComingSoon ? '#94A3B8' : isActive ? '#FFFFFF' : 'var(--border-color)',
                 cursor: isComingSoon ? 'not-allowed' : 'pointer',
                 width: '100%',
                 textAlign: 'left',
@@ -280,7 +280,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, navMo
             >
               <span style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', minWidth: 0 }}>
                 <span style={{ flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', width: '26px' }}>
-                  <IconComp size={22} color={isComingSoon ? '#64748B' : isActive ? '#FFFFFF' : '#E2E8F0'} />
+                  <IconComp size={22} color={isComingSoon ? 'var(--text-muted)' : isActive ? '#FFFFFF' : 'var(--secondary-dark)'} />
                 </span>
                 <span style={{ fontSize: '0.95rem', fontWeight: isActive ? 800 : 600 }}>{item.label}</span>
               </span>
@@ -299,8 +299,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, navMo
             onClick={() => { onLogout(); onMobileClose?.(); }}
             style={{
               display: 'flex', alignItems: 'center', gap: '0.7rem', padding: '0.75rem 0.8rem',
-              borderRadius: '10px', border: '1px solid rgba(255,255,255,0.2)', backgroundColor: 'transparent',
-              color: '#CBD5E1', cursor: 'pointer', width: '100%', textAlign: 'left', fontSize: '0.9rem',
+              borderRadius: 'var(--r-sm)', border: '1px solid rgba(255,255,255,0.2)', backgroundColor: 'transparent',
+              color: 'var(--border-color)', cursor: 'pointer', width: '100%', textAlign: 'left', fontSize: '0.9rem',
             }}
           >
             <LogOut size={18} /> 로그아웃

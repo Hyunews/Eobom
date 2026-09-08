@@ -95,7 +95,7 @@ export const FarewellMessagePage: React.FC<FarewellMessagePageProps> = ({ curren
   return (
     <div className="container" style={{ paddingBottom: '3rem' }}>
       <div style={{ marginBottom: '1.5rem' }}>
-        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', backgroundColor: '#F1F5F9', color: 'var(--primary-color)', padding: '0.3rem 0.8rem', borderRadius: '16px', fontSize: '0.85rem', fontWeight: 700, marginBottom: '0.6rem' }}>
+        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', backgroundColor: 'var(--surface-subtle)', color: 'var(--primary-color)', padding: '0.3rem 0.8rem', borderRadius: 'var(--r-lg)', fontSize: '0.85rem', fontWeight: 700, marginBottom: '0.6rem' }}>
           <Mail size={18} color="var(--primary-color)" /> 하고 싶은 말을 그대로
         </div>
         <h1 className="page-title" style={{ color: 'var(--primary-color)', display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0 }}>
@@ -108,7 +108,7 @@ export const FarewellMessagePage: React.FC<FarewellMessagePageProps> = ({ curren
 
       {/* 06-05 §4.3 — 양쪽(엔딩노트 ⑨ / 보관함)에 상반된 고지를 상시 노출한다. 여기는 "간다" 쪽.
           검증은 약속하지 않는다(06-04 §6.4-2-3와 같은 태도) — 무엇을 남겼는지 이어봄은 알 수 없다. */}
-      <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', fontSize: '0.9rem', color: '#92400E', backgroundColor: '#FEF3C7', border: '1px solid #FDE68A', borderRadius: '8px', padding: '0.85rem 1rem', marginBottom: '1.5rem', lineHeight: 1.6 }}>
+      <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', fontSize: '0.9rem', color: 'var(--state-warn-fg)', backgroundColor: 'var(--state-warn-bg)', border: '1px solid var(--state-warn-bg)', borderRadius: 'var(--r-sm)', padding: '0.85rem 1rem', marginBottom: '1.5rem', lineHeight: 1.6 }}>
         <AlertTriangle size={18} style={{ flexShrink: 0, marginTop: '0.15rem' }} />
         <span>
           여기에 남기신 글은 <strong>사망 확인 후 지정하신 분에게 전달됩니다.</strong> 재산 분배·상속에

@@ -87,7 +87,7 @@ export const ConsultRequestModal: React.FC<ConsultRequestModalProps> = ({ expert
       <div
         style={{
           backgroundColor: '#FFFFFF',
-          borderRadius: '20px',
+          borderRadius: 'var(--r-lg)',
           padding: '1.5rem',
           maxWidth: '520px',
           width: '100%',
@@ -175,7 +175,7 @@ export const ConsultRequestModal: React.FC<ConsultRequestModalProps> = ({ expert
               style={{
                 width: '100%',
                 padding: '0.8rem',
-                borderRadius: '8px',
+                borderRadius: 'var(--r-sm)',
                 border: '1px solid var(--border-color)',
                 fontSize: '0.9rem',
                 height: '100px',
@@ -192,7 +192,7 @@ export const ConsultRequestModal: React.FC<ConsultRequestModalProps> = ({ expert
               color: 'var(--text-muted)',
               backgroundColor: 'var(--card-bg)',
               padding: '0.8rem',
-              borderRadius: '8px',
+              borderRadius: 'var(--r-sm)',
               cursor: 'pointer',
             }}
           >
@@ -206,7 +206,7 @@ export const ConsultRequestModal: React.FC<ConsultRequestModalProps> = ({ expert
           </label>
 
           <div style={{ display: 'flex', gap: '0.8rem', marginTop: '0.5rem' }}>
-            <button type="button" onClick={onClose} className="btn" style={{ flex: 1, backgroundColor: '#E2E8F0' }}>
+            <button type="button" onClick={onClose} className="btn" style={{ flex: 1, backgroundColor: 'var(--secondary-dark)' }}>
               취소
             </button>
             <button type="submit" disabled={isSubmitting} className="btn btn-primary" style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem' }}>

@@ -283,8 +283,8 @@ export const HomePage: React.FC<HomePageProps> = ({ currentUser, onOpenLogin, se
           backgroundColor: 'rgba(26, 43, 76, 0.75)',
           backdropFilter: 'blur(8px)',
           padding: '0.8rem 0.6rem',
-          borderRadius: '30px',
-          boxShadow: '0 8px 24px rgba(0,0,0,0.2)'
+          borderRadius: 'var(--r-lg)',
+          boxShadow: 'var(--el-2)'
         }}
       >
         {sections.map((sec, idx) => (
@@ -298,7 +298,7 @@ export const HomePage: React.FC<HomePageProps> = ({ currentUser, onOpenLogin, se
               backgroundColor: activeSection === idx ? '#D4A359' : 'rgba(255, 255, 255, 0.4)',
               border: activeSection === idx ? '2px solid #FFFFFF' : 'none',
               cursor: 'pointer',
-              transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+              transition: 'width var(--dur-2) var(--ease-in-out), height var(--dur-2) var(--ease-in-out), background-color var(--dur-2) var(--ease-in-out), border var(--dur-2) var(--ease-in-out)',
               padding: 0
             }}
             title={`${sec.title} (섹션 ${idx + 1})`}
@@ -391,12 +391,12 @@ export const HomePage: React.FC<HomePageProps> = ({ currentUser, onOpenLogin, se
                   backgroundColor: '#FFFFFF',
                   border: '1px solid #DFDCD7',
                   padding: '0.45rem 1rem',
-                  borderRadius: '20px',
+                  borderRadius: 'var(--r-lg)',
                   fontSize: '0.88rem',
                   color: 'var(--point-color)',
                   fontWeight: 700,
                   marginBottom: '1.3rem',
-                  boxShadow: '0 2px 6px rgba(0,0,0,0.04)'
+                  boxShadow: 'var(--el-1)'
                 }}
               >
                 <Sparkles size={16} color="var(--point-color)" /> 디지털 엔딩 &amp; 웰다잉 토탈 케어 이어봄 (Eobom)
@@ -522,14 +522,14 @@ export const HomePage: React.FC<HomePageProps> = ({ currentUser, onOpenLogin, se
                 gap: '1.3rem'
               }}
             >
-              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', backgroundColor: '#FEF3C7', color: 'var(--accent-gold)', padding: '0.4rem 1rem', borderRadius: '20px', fontSize: '0.85rem', fontWeight: 700 }}>
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', backgroundColor: 'var(--state-warn-bg)', color: 'var(--accent-gold)', padding: '0.4rem 1rem', borderRadius: 'var(--r-lg)', fontSize: '0.85rem', fontWeight: 700 }}>
                 <Sparkles size={15} color="var(--accent-gold)" /> 이어봄과 함께하는 존엄하고 따뜻한 준비
               </div>
               <h2
                 style={{
                   fontSize: 'clamp(1.8rem, 3vw, 2.6rem)',
                   color: '#1A2B4C',
-                  fontWeight: 800,
+                  fontWeight: 'var(--fw-bold)',
                   margin: 0,
                   lineHeight: 1.35,
                   fontFamily: "'KoPub World Batang', serif"

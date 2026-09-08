@@ -457,7 +457,7 @@ export const VoiceToTextInput: React.FC<VoiceToTextInputProps> = ({
   const actionBtnStyle = (bg: string, color: string, isDisabled: boolean): React.CSSProperties => ({
     display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '0.35rem',
     height: '42px', minWidth: '112px', padding: '0 1rem', fontSize: '1rem', fontWeight: 600,
-    borderRadius: '8px', border: 'none', whiteSpace: 'nowrap',
+    borderRadius: 'var(--r-sm)', border: 'none', whiteSpace: 'nowrap',
     backgroundColor: bg, color, opacity: isDisabled ? 0.5 : 1, cursor: isDisabled ? 'not-allowed' : 'pointer',
   });
 
@@ -467,7 +467,7 @@ export const VoiceToTextInput: React.FC<VoiceToTextInputProps> = ({
         <div
           style={{
             position: 'absolute', inset: 0, zIndex: 10, backgroundColor: 'rgba(255,255,255,0.98)',
-            border: '1px solid var(--border-color)', borderRadius: '10px', padding: '1.1rem',
+            border: '1px solid var(--border-color)', borderRadius: 'var(--r-sm)', padding: '1.1rem',
             display: 'flex', flexDirection: 'column', gap: '0.75rem', boxShadow: 'var(--box-shadow)',
           }}
         >
@@ -496,7 +496,7 @@ export const VoiceToTextInput: React.FC<VoiceToTextInputProps> = ({
         <div
           style={{
             position: 'absolute', inset: 0, zIndex: 10, backgroundColor: 'rgba(255,255,255,0.98)',
-            border: '1px solid var(--border-color)', borderRadius: '10px', padding: '1.1rem',
+            border: '1px solid var(--border-color)', borderRadius: 'var(--r-sm)', padding: '1.1rem',
             display: 'flex', flexDirection: 'column', gap: '0.75rem', boxShadow: 'var(--box-shadow)',
             overflowY: 'auto',
           }}
@@ -526,12 +526,12 @@ export const VoiceToTextInput: React.FC<VoiceToTextInputProps> = ({
           )}
 
           {modalError && (
-            <div style={{ fontSize: '0.95rem', color: '#92400E', backgroundColor: '#FEF3C7', border: '1px solid #FDE68A', borderRadius: '8px', padding: '0.7rem 0.9rem' }}>
+            <div style={{ fontSize: '0.95rem', color: 'var(--state-warn-fg)', backgroundColor: 'var(--state-warn-bg)', border: '1px solid var(--state-warn-bg)', borderRadius: 'var(--r-sm)', padding: '0.7rem 0.9rem' }}>
               {modalError}
             </div>
           )}
 
-          <p style={{ fontSize: '0.88rem', color: '#B91C1C' }}>취소하면 녹음이 사라집니다.</p>
+          <p style={{ fontSize: '0.88rem', color: 'var(--state-danger-fg)' }}>취소하면 녹음이 사라집니다.</p>
 
           <div style={{ display: 'flex', gap: '0.5rem' }}>
             <button type="button" onClick={discardPending} disabled={modalStage === 'saving'} style={actionBtnStyle('var(--secondary-color)', 'var(--primary-color)', modalStage === 'saving')}>
@@ -545,7 +545,7 @@ export const VoiceToTextInput: React.FC<VoiceToTextInputProps> = ({
       )}
 
       {micError && (
-        <div style={{ fontSize: '0.95rem', color: '#92400E', backgroundColor: '#FEF3C7', border: '1px solid #FDE68A', borderRadius: '8px', padding: '0.7rem 0.9rem', marginBottom: '1rem' }}>
+        <div style={{ fontSize: '0.95rem', color: 'var(--state-warn-fg)', backgroundColor: 'var(--state-warn-bg)', border: '1px solid var(--state-warn-bg)', borderRadius: 'var(--r-sm)', padding: '0.7rem 0.9rem', marginBottom: '1rem' }}>
           {micError}
         </div>
       )}
@@ -555,7 +555,7 @@ export const VoiceToTextInput: React.FC<VoiceToTextInputProps> = ({
       </h4>
 
       {!recordingSupported && !sttSupported && (
-        <div style={{ fontSize: '0.95rem', color: 'var(--text-muted)', backgroundColor: '#F1F5F9', borderRadius: '8px', padding: '0.7rem 0.9rem', marginBottom: '1rem' }}>
+        <div style={{ fontSize: '0.95rem', color: 'var(--text-muted)', backgroundColor: 'var(--surface-subtle)', borderRadius: 'var(--r-sm)', padding: '0.7rem 0.9rem', marginBottom: '1rem' }}>
           이 브라우저에서는 음성 입력을 지원하지 않습니다. 아래 입력창에 직접 입력해 주세요.
         </div>
       )}
@@ -576,8 +576,8 @@ export const VoiceToTextInput: React.FC<VoiceToTextInputProps> = ({
             role="checkbox"
             aria-checked={saveVoiceEnabled}
             style={{
-              width: '17px', height: '17px', flexShrink: 0, borderRadius: '5px',
-              border: saveVoiceEnabled ? 'none' : '1.5px solid #D1D5DB',
+              width: '17px', height: '17px', flexShrink: 0, borderRadius: 'var(--r-sm)',
+              border: saveVoiceEnabled ? 'none' : '1.5px solid var(--border-color)',
               backgroundColor: saveVoiceEnabled ? 'var(--point-color)' : '#FFFFFF',
               display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
             }}
@@ -591,7 +591,7 @@ export const VoiceToTextInput: React.FC<VoiceToTextInputProps> = ({
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem', flexWrap: 'wrap' }}>
         {recordingSupported && (
           isRecording ? (
-            <button type="button" onClick={stopRecording} disabled={disabled} style={actionBtnStyle('#B91C1C', '#FFFFFF', !!disabled)}>
+            <button type="button" onClick={stopRecording} disabled={disabled} style={actionBtnStyle('var(--state-danger-fg)', '#FFFFFF', !!disabled)}>
               <MicOff size={16} /> 녹음 멈춤
             </button>
           ) : (
@@ -622,7 +622,7 @@ export const VoiceToTextInput: React.FC<VoiceToTextInputProps> = ({
               </h4>
 
               {isRecording && (
-                <p style={{ fontSize: '0.88rem', color: '#B91C1C', marginBottom: '0.6rem' }}>
+                <p style={{ fontSize: '0.88rem', color: 'var(--state-danger-fg)', marginBottom: '0.6rem' }}>
                   녹음 중에는 파일을 올릴 수 없습니다. 녹음을 멈춘 뒤 이용해 주세요.
                 </p>
               )}
@@ -640,8 +640,8 @@ export const VoiceToTextInput: React.FC<VoiceToTextInputProps> = ({
                   role="checkbox"
                   aria-checked={uploadConsent}
                   style={{
-                    width: '19px', height: '19px', flexShrink: 0, marginTop: '0.1rem', borderRadius: '5px',
-                    border: uploadConsent ? 'none' : '1.5px solid #D1D5DB',
+                    width: '19px', height: '19px', flexShrink: 0, marginTop: '0.1rem', borderRadius: 'var(--r-sm)',
+                    border: uploadConsent ? 'none' : '1.5px solid var(--border-color)',
                     backgroundColor: uploadConsent ? 'var(--point-color)' : '#FFFFFF',
                     display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
                   }}
@@ -713,7 +713,7 @@ export const VoiceToTextInput: React.FC<VoiceToTextInputProps> = ({
                   type="button"
                   onClick={onDeleteAudio}
                   disabled={deletingAudio}
-                  style={actionBtnStyle('#FEE2E2', '#B91C1C', !!deletingAudio)}
+                  style={actionBtnStyle('var(--state-danger-bg)', 'var(--state-danger-fg)', !!deletingAudio)}
                 >
                   {deletingAudio ? <><Loader2 size={16} /> 삭제 중…</> : <><Trash2 size={16} /> 음성 삭제</>}
                 </button>
@@ -727,7 +727,7 @@ export const VoiceToTextInput: React.FC<VoiceToTextInputProps> = ({
           {audioSrc && <audio controls autoPlay src={audioSrc} style={{ marginTop: '0.6rem', width: '100%' }} />}
 
           {uploadError && (
-            <div style={{ marginTop: '0.7rem', fontSize: '0.95rem', color: '#92400E', backgroundColor: '#FEF3C7', border: '1px solid #FDE68A', borderRadius: '8px', padding: '0.7rem 0.9rem' }}>
+            <div style={{ marginTop: '0.7rem', fontSize: '0.95rem', color: 'var(--state-warn-fg)', backgroundColor: 'var(--state-warn-bg)', border: '1px solid var(--state-warn-bg)', borderRadius: 'var(--r-sm)', padding: '0.7rem 0.9rem' }}>
               {uploadError}
             </div>
           )}

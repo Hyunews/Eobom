@@ -268,11 +268,11 @@ export const MyPageFamilyDesignation: React.FC<MyPageFamilyDesignationProps> = (
       <div
         style={{
           backgroundColor: '#FFFFFF',
-          borderRadius: '24px',
+          borderRadius: 'var(--r-lg)',
           maxWidth: '520px',
           width: '100%',
           padding: '1.9rem 1.5rem',
-          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+          boxShadow: 'var(--el-3)',
           position: 'relative',
           margin: 'auto',
         }}
@@ -283,7 +283,7 @@ export const MyPageFamilyDesignation: React.FC<MyPageFamilyDesignationProps> = (
             position: 'absolute',
             top: '1.25rem',
             right: '1.25rem',
-            background: '#F3F4F6',
+            background: 'var(--surface-subtle)',
             border: 'none',
             borderRadius: '50%',
             width: '36px',
@@ -292,13 +292,13 @@ export const MyPageFamilyDesignation: React.FC<MyPageFamilyDesignationProps> = (
             alignItems: 'center',
             justifyContent: 'center',
             cursor: 'pointer',
-            color: '#6B7280',
+            color: 'var(--text-muted)',
           }}
         >
           <X size={20} />
         </button>
 
-        <h2 style={{ color: 'var(--primary-color)', fontSize: '1.4rem', fontWeight: 800, margin: '0 0 0.4rem 0' }}>가족 지정</h2>
+        <h2 style={{ color: 'var(--primary-color)', fontSize: '1.4rem', fontWeight: 'var(--fw-bold)', margin: '0 0 0.4rem 0' }}>가족 지정</h2>
         <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', margin: '0 0 1.1rem 0' }}>
           생전 준비를 함께할 가족을 미리 기록해 두세요. 최대 10명까지 등록할 수 있습니다.
         </p>
@@ -312,10 +312,10 @@ export const MyPageFamilyDesignation: React.FC<MyPageFamilyDesignationProps> = (
               alignItems: 'flex-start',
               gap: '0.5rem',
               fontSize: '0.85rem',
-              color: '#92400E',
-              backgroundColor: '#FEF3C7',
-              border: '1px solid #FDE68A',
-              borderRadius: '8px',
+              color: 'var(--state-warn-fg)',
+              backgroundColor: 'var(--state-warn-bg)',
+              border: '1px solid var(--state-warn-bg)',
+              borderRadius: 'var(--r-sm)',
               padding: '0.7rem 0.85rem',
               marginBottom: '1rem',
               lineHeight: 1.6,
@@ -329,10 +329,10 @@ export const MyPageFamilyDesignation: React.FC<MyPageFamilyDesignationProps> = (
         {message && (
           <div
             style={{
-              backgroundColor: message.type === 'success' ? '#ECFDF5' : '#FDE8E8',
-              color: message.type === 'success' ? '#065F46' : '#9B1C1C',
+              backgroundColor: message.type === 'success' ? 'var(--state-ok-bg)' : 'var(--state-danger-bg)',
+              color: message.type === 'success' ? 'var(--state-ok-fg)' : 'var(--state-danger-fg)',
               padding: '0.75rem',
-              borderRadius: '8px',
+              borderRadius: 'var(--r-sm)',
               fontSize: '0.85rem',
               marginBottom: '0.95rem',
               display: 'flex',
@@ -346,7 +346,7 @@ export const MyPageFamilyDesignation: React.FC<MyPageFamilyDesignationProps> = (
         )}
 
         {isLoading ? (
-          <div style={{ display: 'flex', justifyContent: 'center', padding: '2rem 0', color: '#9CA3AF' }}>
+          <div style={{ display: 'flex', justifyContent: 'center', padding: '2rem 0', color: 'var(--text-hint)' }}>
             <Loader2 size={20} />
           </div>
         ) : (
@@ -362,8 +362,8 @@ export const MyPageFamilyDesignation: React.FC<MyPageFamilyDesignationProps> = (
                   key={item.id}
                   style={{
                     padding: '0.85rem 1rem',
-                    border: '1px solid #E5E7EB',
-                    borderRadius: '14px',
+                    border: '1px solid var(--secondary-dark)',
+                    borderRadius: 'var(--r-md)',
                   }}
                 >
                 <div
@@ -377,7 +377,7 @@ export const MyPageFamilyDesignation: React.FC<MyPageFamilyDesignationProps> = (
                   <div style={{ minWidth: 0 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap' }}>
                       <span style={{ fontSize: '0.95rem', fontWeight: 700, color: '#111827' }}>{item.name}</span>
-                      <span style={{ fontSize: '0.85rem', color: '#6B7280' }}>
+                      <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
                         {RELATIONSHIP_LABEL[item.relationship] || item.relationship}
                         {item.relationship === 'OTHER' && item.relationshipEtc ? `(${item.relationshipEtc})` : ''}
                       </span>
@@ -386,15 +386,15 @@ export const MyPageFamilyDesignation: React.FC<MyPageFamilyDesignationProps> = (
                           fontSize: '0.85rem',
                           fontWeight: 700,
                           padding: '0.15rem 0.5rem',
-                          borderRadius: '999px',
-                          backgroundColor: item.scope === 'PRIMARY' ? '#FEF3C7' : '#F1F5F9',
-                          color: item.scope === 'PRIMARY' ? '#92400E' : '#475569',
+                          borderRadius: 'var(--r-full)',
+                          backgroundColor: item.scope === 'PRIMARY' ? 'var(--state-warn-bg)' : 'var(--surface-subtle)',
+                          color: item.scope === 'PRIMARY' ? 'var(--state-warn-fg)' : '#475569',
                         }}
                       >
                         {SCOPE_LABEL[item.scope] || item.scope}
                       </span>
                     </div>
-                    <div style={{ fontSize: '0.85rem', color: '#9CA3AF', marginTop: '0.15rem' }}>
+                    <div style={{ fontSize: '0.85rem', color: 'var(--text-hint)', marginTop: '0.15rem' }}>
                       {item.phone}
                       {item.email ? ` · ${item.email}` : ''} · {statusLabel(item)}
                     </div>
@@ -406,7 +406,7 @@ export const MyPageFamilyDesignation: React.FC<MyPageFamilyDesignationProps> = (
                         onClick={() => handleInvite(item)}
                         disabled={invitingId === item.id}
                         title="카카오톡으로 전달"
-                        style={{ background: 'none', border: '1px solid var(--point-color)', borderRadius: '8px', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: invitingId === item.id ? 'not-allowed' : 'pointer', color: 'var(--point-color)' }}
+                        style={{ background: 'none', border: '1px solid var(--point-color)', borderRadius: 'var(--r-sm)', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: invitingId === item.id ? 'not-allowed' : 'pointer', color: 'var(--point-color)' }}
                       >
                         {invitingId === item.id ? <Loader2 size={14} /> : <Send size={14} />}
                       </button>
@@ -414,7 +414,7 @@ export const MyPageFamilyDesignation: React.FC<MyPageFamilyDesignationProps> = (
                     <button
                       type="button"
                       onClick={() => openEditForm(item)}
-                      style={{ background: 'none', border: '1px solid #D1D5DB', borderRadius: '8px', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#6B7280' }}
+                      style={{ background: 'none', border: '1px solid var(--border-color)', borderRadius: 'var(--r-sm)', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--text-muted)' }}
                     >
                       <Pencil size={14} />
                     </button>
@@ -422,7 +422,7 @@ export const MyPageFamilyDesignation: React.FC<MyPageFamilyDesignationProps> = (
                       type="button"
                       onClick={() => handleDelete(item)}
                       disabled={isSaving}
-                      style={{ background: 'none', border: '1px solid #FCA5A5', borderRadius: '8px', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: isSaving ? 'not-allowed' : 'pointer', color: '#DC2626' }}
+                      style={{ background: 'none', border: '1px solid var(--state-danger-bg)', borderRadius: 'var(--r-sm)', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: isSaving ? 'not-allowed' : 'pointer', color: 'var(--state-danger-fg)' }}
                     >
                       <Trash2 size={14} />
                     </button>
@@ -436,14 +436,14 @@ export const MyPageFamilyDesignation: React.FC<MyPageFamilyDesignationProps> = (
                     style={{
                       marginTop: '0.7rem',
                       paddingTop: '0.7rem',
-                      borderTop: '1px solid #F1F5F9',
+                      borderTop: '1px solid var(--surface-subtle)',
                       display: 'flex',
                       alignItems: 'center',
                       gap: '0.5rem',
                       flexWrap: 'wrap',
                     }}
                   >
-                    <span style={{ fontSize: '0.85rem', color: '#9CA3AF', wordBreak: 'break-all', flex: 1, minWidth: '160px' }}>
+                    <span style={{ fontSize: '0.85rem', color: 'var(--text-hint)', wordBreak: 'break-all', flex: 1, minWidth: '160px' }}>
                       {lastInviteLink.url}
                     </span>
                     <button
@@ -552,10 +552,10 @@ export const MyPageFamilyDesignation: React.FC<MyPageFamilyDesignationProps> = (
                 <div
                   style={{
                     fontSize: '0.85rem',
-                    color: '#92400E',
-                    backgroundColor: '#FEF3C7',
-                    border: '1px solid #FDE68A',
-                    borderRadius: '8px',
+                    color: 'var(--state-warn-fg)',
+                    backgroundColor: 'var(--state-warn-bg)',
+                    border: '1px solid var(--state-warn-bg)',
+                    borderRadius: 'var(--r-sm)',
                     padding: '0.7rem 0.85rem',
                     lineHeight: 1.6,
                   }}

@@ -71,7 +71,7 @@ export const CounselingPage: React.FC<CounselingPageProps> = ({ currentUser, onO
   return (
     <div className="container">
       <div style={{ marginBottom: '1.5rem' }}>
-        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', backgroundColor: '#FEF3C7', color: 'var(--accent-gold)', padding: '0.3rem 0.8rem', borderRadius: '16px', fontSize: '0.85rem', fontWeight: 700, marginBottom: '0.6rem' }}>
+        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', backgroundColor: 'var(--state-warn-bg)', color: 'var(--accent-gold)', padding: '0.3rem 0.8rem', borderRadius: 'var(--r-lg)', fontSize: '0.85rem', fontWeight: 700, marginBottom: '0.6rem' }}>
           <HandScalesIcon size={18} color="var(--accent-gold)" /> 상속세 시뮬레이터 &amp; 변호사 · 세무사 1:1 케어
         </div>
         <h1 className="page-title" style={{ color: 'var(--primary-color)', display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0 }}>
@@ -147,7 +147,7 @@ export const CounselingPage: React.FC<CounselingPageProps> = ({ currentUser, onO
                 onClick={() => setSelectedCategory(cat.value)}
                 style={{
                   padding: '0.5rem 1rem',
-                  borderRadius: '20px',
+                  borderRadius: 'var(--r-lg)',
                   border: '1px solid var(--border-color)',
                   backgroundColor: selectedCategory === cat.value ? 'var(--primary-color)' : 'var(--secondary-color)',
                   color: selectedCategory === cat.value ? '#FFFFFF' : 'var(--text-main)',
@@ -178,12 +178,12 @@ export const CounselingPage: React.FC<CounselingPageProps> = ({ currentUser, onO
               <div key={exp.id} style={{
                 padding: '1rem',
                 border: '1px solid var(--border-color)',
-                borderRadius: '8px',
+                borderRadius: 'var(--r-sm)',
                 backgroundColor: 'var(--secondary-color)'
               }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.3rem' }}>
                   <h4 style={{ color: 'var(--primary-color)', fontSize: '1.1rem' }}>{exp.name}</h4>
-                  <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#fff', backgroundColor: 'var(--point-color)', padding: '0.2rem 0.6rem', borderRadius: '10px' }}>
+                  <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#fff', backgroundColor: 'var(--point-color)', padding: '0.2rem 0.6rem', borderRadius: 'var(--r-sm)' }}>
                     {CATEGORY_LABEL[exp.category] || exp.category}
                   </span>
                 </div>
@@ -193,7 +193,7 @@ export const CounselingPage: React.FC<CounselingPageProps> = ({ currentUser, onO
                 {exp.specialties.length > 0 && (
                   <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap', marginBottom: '0.5rem' }}>
                     {exp.specialties.map((s, i) => (
-                      <span key={i} style={{ fontSize: '0.85rem', backgroundColor: 'var(--card-bg)', padding: '0.15rem 0.5rem', borderRadius: '4px', color: '#444' }}>
+                      <span key={i} style={{ fontSize: '0.85rem', backgroundColor: 'var(--card-bg)', padding: '0.15rem 0.5rem', borderRadius: 'var(--r-sm)', color: '#444' }}>
                         #{s}
                       </span>
                     ))}

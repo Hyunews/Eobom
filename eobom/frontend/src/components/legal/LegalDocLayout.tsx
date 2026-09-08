@@ -16,9 +16,9 @@ export const LegalDocLayout: React.FC<LegalDocLayoutProps> = ({ title, effective
     <div className="container" style={{ maxWidth: '860px', paddingBottom: '4rem' }}>
       <div
         style={{
-          backgroundColor: '#FFEDD5',
-          border: '2px solid #FDBA74',
-          borderRadius: '12px',
+          backgroundColor: 'var(--state-critical-bg)',
+          border: '2px solid var(--state-critical-bg)',
+          borderRadius: 'var(--r-md)',
           padding: '1rem 1.2rem',
           marginBottom: '1.75rem',
           display: 'flex',
@@ -26,10 +26,10 @@ export const LegalDocLayout: React.FC<LegalDocLayoutProps> = ({ title, effective
           gap: '0.7rem'
         }}
       >
-        <AlertTriangle color="#9A3412" size={22} style={{ flexShrink: 0, marginTop: '0.1rem' }} />
+        <AlertTriangle color="var(--state-critical-fg)" size={22} style={{ flexShrink: 0, marginTop: '0.1rem' }} />
         <div>
-          <strong style={{ color: '#9A3412', fontSize: '0.95rem' }}>시행 준비 중 — 공식 게시본이 아닙니다</strong>
-          <p style={{ color: '#9A3412', fontSize: '0.85rem', margin: '0.25rem 0 0 0', lineHeight: 1.6 }}>
+          <strong style={{ color: 'var(--state-critical-fg)', fontSize: '0.95rem' }}>시행 준비 중 — 공식 게시본이 아닙니다</strong>
+          <p style={{ color: 'var(--state-critical-fg)', fontSize: '0.85rem', margin: '0.25rem 0 0 0', lineHeight: 1.6 }}>
             아래 내용은 공식 시행 전 초안이며, 일부 항목은 확정되는 대로 채워집니다.
           </p>
         </div>
@@ -70,7 +70,7 @@ export const LegalChapter: React.FC<{ title: string; children: React.ReactNode }
         fontSize: '0.85rem',
         fontWeight: 700,
         padding: '0.3rem 0.9rem',
-        borderRadius: '14px',
+        borderRadius: 'var(--r-md)',
         marginBottom: '1.25rem'
       }}
     >
@@ -97,7 +97,7 @@ export const LegalTable: React.FC<{ headers: string[]; rows: (string | React.Rea
               style={{
                 textAlign: 'left',
                 padding: '0.6rem 0.75rem',
-                backgroundColor: '#F1F5F9',
+                backgroundColor: 'var(--surface-subtle)',
                 color: 'var(--primary-color)',
                 borderBottom: `2px solid var(--border-color)`,
                 whiteSpace: 'nowrap'

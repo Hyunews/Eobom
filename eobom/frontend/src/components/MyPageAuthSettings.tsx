@@ -114,11 +114,11 @@ export const MyPageAuthSettings: React.FC<MyPageAuthSettingsProps> = ({ isOpen, 
       <div
         style={{
           backgroundColor: '#FFFFFF',
-          borderRadius: '24px',
+          borderRadius: 'var(--r-lg)',
           maxWidth: '440px',
           width: '100%',
           padding: '1.9rem 1.5rem',
-          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+          boxShadow: 'var(--el-3)',
           position: 'relative',
         }}
       >
@@ -128,7 +128,7 @@ export const MyPageAuthSettings: React.FC<MyPageAuthSettingsProps> = ({ isOpen, 
             position: 'absolute',
             top: '1.25rem',
             right: '1.25rem',
-            background: '#F3F4F6',
+            background: 'var(--surface-subtle)',
             border: 'none',
             borderRadius: '50%',
             width: '36px',
@@ -137,23 +137,23 @@ export const MyPageAuthSettings: React.FC<MyPageAuthSettingsProps> = ({ isOpen, 
             alignItems: 'center',
             justifyContent: 'center',
             cursor: 'pointer',
-            color: '#6B7280',
+            color: 'var(--text-muted)',
           }}
         >
           <X size={20} />
         </button>
 
-        <h2 style={{ color: 'var(--primary-color)', fontSize: '1.4rem', fontWeight: 800, margin: '0 0 1.1rem 0' }}>
+        <h2 style={{ color: 'var(--primary-color)', fontSize: '1.4rem', fontWeight: 'var(--fw-bold)', margin: '0 0 1.1rem 0' }}>
           연동된 소셜 계정
         </h2>
 
         {message && (
           <div
             style={{
-              backgroundColor: message.type === 'success' ? '#ECFDF5' : '#FDE8E8',
-              color: message.type === 'success' ? '#065F46' : '#9B1C1C',
+              backgroundColor: message.type === 'success' ? 'var(--state-ok-bg)' : 'var(--state-danger-bg)',
+              color: message.type === 'success' ? 'var(--state-ok-fg)' : 'var(--state-danger-fg)',
               padding: '0.75rem',
-              borderRadius: '8px',
+              borderRadius: 'var(--r-sm)',
               fontSize: '0.85rem',
               marginBottom: '0.95rem',
               display: 'flex',
@@ -179,8 +179,8 @@ export const MyPageAuthSettings: React.FC<MyPageAuthSettingsProps> = ({ isOpen, 
                   alignItems: 'center',
                   justifyContent: 'space-between',
                   padding: '0.9rem 1rem',
-                  border: '1px solid #E5E7EB',
-                  borderRadius: '14px',
+                  border: '1px solid var(--secondary-dark)',
+                  borderRadius: 'var(--r-md)',
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
@@ -190,13 +190,13 @@ export const MyPageAuthSettings: React.FC<MyPageAuthSettingsProps> = ({ isOpen, 
                       height: '10px',
                       borderRadius: '50%',
                       backgroundColor: PROVIDER_STYLE[provider].dot,
-                      border: provider === 'GOOGLE' ? '1px solid #D1D5DB' : 'none',
+                      border: provider === 'GOOGLE' ? '1px solid var(--border-color)' : 'none',
                     }}
                   />
                   <div>
                     <div style={{ fontSize: '0.95rem', fontWeight: 700, color: '#111827' }}>{providerLabel(provider)}</div>
                     {isLinked && account?.email && (
-                      <div style={{ fontSize: '0.85rem', color: '#9CA3AF' }}>{account.email}</div>
+                      <div style={{ fontSize: '0.85rem', color: 'var(--text-hint)' }}>{account.email}</div>
                     )}
                   </div>
                 </div>
@@ -211,9 +211,9 @@ export const MyPageAuthSettings: React.FC<MyPageAuthSettingsProps> = ({ isOpen, 
                       alignItems: 'center',
                       gap: '0.3rem',
                       background: 'none',
-                      border: '1px solid #FCA5A5',
-                      color: '#DC2626',
-                      borderRadius: '8px',
+                      border: '1px solid var(--state-danger-bg)',
+                      color: 'var(--state-danger-fg)',
+                      borderRadius: 'var(--r-sm)',
                       padding: '0.35rem 0.7rem',
                       fontSize: '0.85rem',
                       cursor: isLoading ? 'not-allowed' : 'pointer',
@@ -233,7 +233,7 @@ export const MyPageAuthSettings: React.FC<MyPageAuthSettingsProps> = ({ isOpen, 
                       background: 'none',
                       border: '1px solid var(--primary-color)',
                       color: 'var(--primary-color)',
-                      borderRadius: '8px',
+                      borderRadius: 'var(--r-sm)',
                       padding: '0.35rem 0.7rem',
                       fontSize: '0.85rem',
                       cursor: isLoading ? 'not-allowed' : 'pointer',
@@ -248,7 +248,7 @@ export const MyPageAuthSettings: React.FC<MyPageAuthSettingsProps> = ({ isOpen, 
         </div>
 
         {isLoading && (
-          <div style={{ display: 'flex', justifyContent: 'center', marginTop: '1rem', color: '#9CA3AF' }}>
+          <div style={{ display: 'flex', justifyContent: 'center', marginTop: '1rem', color: 'var(--text-hint)' }}>
             <Loader2 size={18} />
           </div>
         )}

@@ -144,7 +144,7 @@ export const MemorialPage: React.FC<MemorialPageProps> = ({ currentUser, onOpenL
     <div className="container" style={{ paddingBottom: '3rem' }}>
       <div style={{ marginBottom: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '1rem', flexWrap: 'wrap' }}>
         <div>
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', backgroundColor: '#F1F5F9', color: '#6C7A89', padding: '0.3rem 0.8rem', borderRadius: '16px', fontSize: '0.85rem', fontWeight: 700, marginBottom: '0.6rem' }}>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', backgroundColor: 'var(--surface-subtle)', color: '#6C7A89', padding: '0.3rem 0.8rem', borderRadius: 'var(--r-lg)', fontSize: '0.85rem', fontWeight: 700, marginBottom: '0.6rem' }}>
             <Flower2 size={18} color="#6C7A89" /> 온라인 추모 공간
           </div>
           <h1 className="page-title" style={{ color: 'var(--primary-color)', display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0 }}>
@@ -185,12 +185,12 @@ export const MemorialPage: React.FC<MemorialPageProps> = ({ currentUser, onOpenL
                 <option value="PRIVATE">비공개 — 나만 볼 수 있음</option>
               </select>
             </div>
-            <label style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', fontSize: '0.85rem', cursor: 'pointer', backgroundColor: 'var(--secondary-color)', borderRadius: '8px', padding: '0.8rem', marginBottom: '1rem' }}>
+            <label style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', fontSize: '0.85rem', cursor: 'pointer', backgroundColor: 'var(--secondary-color)', borderRadius: 'var(--r-sm)', padding: '0.8rem', marginBottom: '1rem' }}>
               <input type="checkbox" checked={falseReportAgreed} onChange={(e) => setFalseReportAgreed(e.target.checked)} style={{ marginTop: '0.2rem' }} />
               <span>[필수] 허위로 추모관을 개설할 경우 법적 책임을 질 수 있다는 점에 동의합니다.</span>
             </label>
             {formError && (
-              <div style={{ fontSize: '0.85rem', color: '#991B1B', backgroundColor: '#FEE2E2', border: '1px solid #FECACA', borderRadius: '8px', padding: '0.7rem 0.9rem', marginBottom: '1rem' }}>
+              <div style={{ fontSize: '0.85rem', color: 'var(--state-danger-fg)', backgroundColor: 'var(--state-danger-bg)', border: '1px solid var(--state-danger-bg)', borderRadius: 'var(--r-sm)', padding: '0.7rem 0.9rem', marginBottom: '1rem' }}>
                 {formError}
               </div>
             )}
@@ -213,7 +213,7 @@ export const MemorialPage: React.FC<MemorialPageProps> = ({ currentUser, onOpenL
           <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>불러오는 중...</p>
         )}
         {loadError && (
-          <p style={{ color: '#92400E', fontSize: '0.9rem' }}>목록을 불러오지 못했습니다. 잠시 후 다시 시도해주세요.</p>
+          <p style={{ color: 'var(--state-warn-fg)', fontSize: '0.9rem' }}>목록을 불러오지 못했습니다. 잠시 후 다시 시도해주세요.</p>
         )}
         {memorials !== null && activeMemorials.length === 0 && (
           <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>아직 만든 추모관이 없습니다.</p>
@@ -225,7 +225,7 @@ export const MemorialPage: React.FC<MemorialPageProps> = ({ currentUser, onOpenL
               <div
                 key={m.id}
                 style={{
-                  padding: '0.9rem 1rem', backgroundColor: 'var(--secondary-color)', borderRadius: '10px',
+                  padding: '0.9rem 1rem', backgroundColor: 'var(--secondary-color)', borderRadius: 'var(--r-sm)',
                   display: 'flex', flexDirection: 'column', gap: '0.6rem',
                 }}
               >
@@ -248,7 +248,7 @@ export const MemorialPage: React.FC<MemorialPageProps> = ({ currentUser, onOpenL
                     className="btn"
                     style={{
                       height: '36px', padding: '0 0.8rem', fontSize: '0.82rem', backgroundColor: 'var(--card-bg)',
-                      border: '1px solid #FCA5A5', color: '#B91C1C', opacity: deletingId === m.id ? 0.6 : 1,
+                      border: '1px solid var(--state-danger-bg)', color: 'var(--state-danger-fg)', opacity: deletingId === m.id ? 0.6 : 1,
                       display: 'inline-flex', alignItems: 'center', gap: '0.3rem', flexShrink: 0,
                     }}
                   >
@@ -260,14 +260,14 @@ export const MemorialPage: React.FC<MemorialPageProps> = ({ currentUser, onOpenL
                   <button
                     type="button"
                     onClick={() => navigate(`/m/${m.slug}`)}
-                    style={{ height: '32px', padding: '0 0.6rem', fontSize: '0.78rem', backgroundColor: 'var(--card-bg)', border: '1px solid #CBD5E1', borderRadius: '8px', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}
+                    style={{ height: '32px', padding: '0 0.6rem', fontSize: '0.78rem', backgroundColor: 'var(--card-bg)', border: '1px solid var(--border-color)', borderRadius: 'var(--r-sm)', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}
                   >
                     <ExternalLink size={13} /> 열기
                   </button>
                   <button
                     type="button"
                     onClick={() => copyAddress(m.id, m.slug)}
-                    style={{ height: '32px', padding: '0 0.6rem', fontSize: '0.78rem', backgroundColor: 'var(--card-bg)', border: '1px solid #CBD5E1', borderRadius: '8px', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}
+                    style={{ height: '32px', padding: '0 0.6rem', fontSize: '0.78rem', backgroundColor: 'var(--card-bg)', border: '1px solid var(--border-color)', borderRadius: 'var(--r-sm)', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}
                   >
                     <Copy size={13} /> 주소 복사
                   </button>

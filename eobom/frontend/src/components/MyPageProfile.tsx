@@ -137,11 +137,11 @@ export const MyPageProfile: React.FC<MyPageProfileProps> = ({ isOpen, onClose })
       <div
         style={{
           backgroundColor: '#FFFFFF',
-          borderRadius: '24px',
+          borderRadius: 'var(--r-lg)',
           maxWidth: '480px',
           width: '100%',
           padding: '1.9rem 1.5rem',
-          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+          boxShadow: 'var(--el-3)',
           position: 'relative',
           margin: '2rem 0',
         }}
@@ -152,7 +152,7 @@ export const MyPageProfile: React.FC<MyPageProfileProps> = ({ isOpen, onClose })
             position: 'absolute',
             top: '1.25rem',
             right: '1.25rem',
-            background: '#F3F4F6',
+            background: 'var(--surface-subtle)',
             border: 'none',
             borderRadius: '50%',
             width: '36px',
@@ -161,13 +161,13 @@ export const MyPageProfile: React.FC<MyPageProfileProps> = ({ isOpen, onClose })
             alignItems: 'center',
             justifyContent: 'center',
             cursor: 'pointer',
-            color: '#6B7280',
+            color: 'var(--text-muted)',
           }}
         >
           <X size={20} />
         </button>
 
-        <h2 style={{ color: 'var(--primary-color)', fontSize: '1.4rem', fontWeight: 800, margin: '0 0 0.4rem 0' }}>내 정보</h2>
+        <h2 style={{ color: 'var(--primary-color)', fontSize: '1.4rem', fontWeight: 'var(--fw-bold)', margin: '0 0 0.4rem 0' }}>내 정보</h2>
         <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', margin: '0 0 1.1rem 0' }}>
           연락처·주소는 문의·상담을 넣을 때마다 다시 입력하지 않도록 미리 저장해두는 용도입니다. 전부 선택 입력이며 언제든 지울 수 있습니다.
         </p>
@@ -175,10 +175,10 @@ export const MyPageProfile: React.FC<MyPageProfileProps> = ({ isOpen, onClose })
         {message && (
           <div
             style={{
-              backgroundColor: message.type === 'success' ? '#ECFDF5' : '#FDE8E8',
-              color: message.type === 'success' ? '#065F46' : '#9B1C1C',
+              backgroundColor: message.type === 'success' ? 'var(--state-ok-bg)' : 'var(--state-danger-bg)',
+              color: message.type === 'success' ? 'var(--state-ok-fg)' : 'var(--state-danger-fg)',
               padding: '0.75rem',
-              borderRadius: '8px',
+              borderRadius: 'var(--r-sm)',
               fontSize: '0.85rem',
               marginBottom: '0.95rem',
               display: 'flex',
@@ -192,7 +192,7 @@ export const MyPageProfile: React.FC<MyPageProfileProps> = ({ isOpen, onClose })
         )}
 
         {isLoading ? (
-          <div style={{ display: 'flex', justifyContent: 'center', padding: '2rem 0', color: '#9CA3AF' }}>
+          <div style={{ display: 'flex', justifyContent: 'center', padding: '2rem 0', color: 'var(--text-hint)' }}>
             <Loader2 size={20} />
           </div>
         ) : (
@@ -231,7 +231,7 @@ export const MyPageProfile: React.FC<MyPageProfileProps> = ({ isOpen, onClose })
                       setContactPhone('');
                     }}
                     className="btn"
-                    style={{ backgroundColor: clearPhone ? '#FEE2E2' : 'var(--secondary-color)', color: clearPhone ? '#991B1B' : 'var(--primary-color)', flexShrink: 0, fontSize: '0.85rem' }}
+                    style={{ backgroundColor: clearPhone ? 'var(--state-danger-bg)' : 'var(--secondary-color)', color: clearPhone ? 'var(--state-danger-fg)' : 'var(--primary-color)', flexShrink: 0, fontSize: '0.85rem' }}
                   >
                     {clearPhone ? '삭제 취소' : '삭제'}
                   </button>
@@ -270,7 +270,7 @@ export const MyPageProfile: React.FC<MyPageProfileProps> = ({ isOpen, onClose })
                       setAddressDetail('');
                     }}
                     className="btn"
-                    style={{ backgroundColor: clearDetail ? '#FEE2E2' : 'var(--secondary-color)', color: clearDetail ? '#991B1B' : 'var(--primary-color)', flexShrink: 0, fontSize: '0.85rem' }}
+                    style={{ backgroundColor: clearDetail ? 'var(--state-danger-bg)' : 'var(--secondary-color)', color: clearDetail ? 'var(--state-danger-fg)' : 'var(--primary-color)', flexShrink: 0, fontSize: '0.85rem' }}
                   >
                     {clearDetail ? '삭제 취소' : '삭제'}
                   </button>

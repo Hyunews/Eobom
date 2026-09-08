@@ -108,7 +108,7 @@ export const Footer: React.FC = () => {
           <div
             style={{
               fontSize: '1.5rem',
-              fontWeight: 800,
+              fontWeight: 'var(--fw-bold)',
               color: 'var(--primary-color)',
               marginBottom: '0.4rem',
               display: 'flex',
@@ -132,7 +132,7 @@ export const Footer: React.FC = () => {
               color: 'var(--primary-color)',
               fontSize: '1.05rem',
               fontWeight: 700,
-              marginBottom: '0.9rem',
+              marginBottom: '0.7rem',
               display: 'flex',
               alignItems: 'center',
               gap: '0.4rem',
@@ -153,16 +153,16 @@ export const Footer: React.FC = () => {
               padding: '0 1.5rem',
               backgroundColor: '#FEE500',
               color: '#191919',
-              borderRadius: '8px',
+              borderRadius: 'var(--r-sm)',
               fontSize: '1rem',
               fontWeight: 700,
               textDecoration: 'none',
               marginBottom: '0.5rem'
             }}
           >
-            💬 카카오톡으로 문의하기
+            카카오톡으로 문의하기
           </a>
-          <p style={{ fontSize: '0.88rem', lineHeight: 1.7, color: 'var(--text-muted)', margin: 0 }}>
+          <p style={{ fontSize: '0.88rem', lineHeight: 1.7, color: 'var(--text-muted)', margin: 0, marginLeft: '0.4rem' }}>
             평일 09:00 ~ 17:00
           </p>
         </div>
