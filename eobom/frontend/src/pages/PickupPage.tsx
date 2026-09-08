@@ -45,7 +45,7 @@ export const PickupPage: React.FC<PickupPageProps> = () => {
   return (
     <div className="container">
       <div style={{ marginBottom: '1.5rem' }}>
-        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', backgroundColor: 'var(--surface-subtle)', color: '#6C7A89', padding: '0.3rem 0.8rem', borderRadius: 'var(--r-lg)', fontSize: '0.85rem', fontWeight: 700, marginBottom: '0.6rem' }}>
+        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', backgroundColor: 'var(--surface-subtle)', color: '#6C7A89', padding: '0.3rem var(--fs-body)', borderRadius: 'var(--r-lg)', fontSize: 'var(--fs-body)', fontWeight: 700, marginBottom: '0.6rem' }}>
           <Package size={18} color="#6C7A89" /> 지역 기반 현물 유품 정리 매칭
         </div>
         <h1 style={{ color: 'var(--primary-color)', fontSize: '2rem', display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0 }}>
@@ -56,7 +56,7 @@ export const PickupPage: React.FC<PickupPageProps> = () => {
         </p>
       </div>
 
-      <div style={{ fontSize: '0.85rem', color: 'var(--state-warn-fg)', backgroundColor: 'var(--state-warn-bg)', border: '1px solid var(--state-warn-bg)', borderRadius: 'var(--r-sm)', padding: '0.7rem 1rem', marginBottom: '1.25rem', lineHeight: 1.6 }}>
+      <div style={{ fontSize: 'var(--fs-body)', color: 'var(--state-warn-fg)', backgroundColor: 'var(--state-warn-bg)', border: '1px solid var(--state-warn-bg)', borderRadius: 'var(--r-sm)', padding: 'var(--fs-caption) 1rem', marginBottom: '1.25rem', lineHeight: 1.6 }}>
         ⚠️ 이 페이지는 화면 구성을 보여드리기 위한 <strong>예시 데이터</strong>로 채워져 있습니다.
         아래 업체·평점은 실존하지 않으며, 실제 제휴 업체는 아직 없습니다.
       </div>
@@ -101,15 +101,15 @@ export const PickupPage: React.FC<PickupPageProps> = () => {
             .filter((v) => (!province || v.province === province) && (!district || v.district === district))
             .map((vendor, idx) => (
               <div key={idx} className="card" style={{ borderTop: '4px solid var(--primary-color)', position: 'relative' }}>
-                <span style={{ position: 'absolute', top: '0.7rem', right: '0.7rem', fontSize: '0.85rem', fontWeight: 700, color: 'var(--state-warn-fg)', backgroundColor: 'var(--state-warn-bg)', border: '1px solid var(--state-warn-bg)', borderRadius: 'var(--r-sm)', padding: '0.1rem 0.5rem' }}>예시</span>
+                <span style={{ position: 'absolute', top: 'var(--fs-caption)', right: 'var(--fs-caption)', fontSize: 'var(--fs-body)', fontWeight: 700, color: 'var(--state-warn-fg)', backgroundColor: 'var(--state-warn-bg)', border: '1px solid var(--state-warn-bg)', borderRadius: 'var(--r-sm)', padding: '0.1rem 0.5rem' }}>예시</span>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-                  <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--point-color)' }}>📍 {vendor.region}</span>
+                  <span style={{ fontSize: 'var(--fs-body)', fontWeight: 600, color: 'var(--point-color)' }}>📍 {vendor.region}</span>
                   <span style={{ fontWeight: 'bold' }}>★ {vendor.rating}</span>
                 </div>
                 <h4 style={{ color: 'var(--primary-color)', fontSize: '1.2rem', marginBottom: '0.5rem' }}>{vendor.name}</h4>
                 <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap', marginBottom: '1rem' }}>
                   {vendor.tags.map((t, i) => (
-                    <span key={i} style={{ fontSize: '0.85rem', backgroundColor: 'var(--secondary-color)', padding: '0.2rem 0.5rem', borderRadius: 'var(--r-sm)' }}>
+                    <span key={i} style={{ fontSize: 'var(--fs-body)', backgroundColor: 'var(--secondary-color)', padding: '0.2rem 0.5rem', borderRadius: 'var(--r-sm)' }}>
                       #{t}
                     </span>
                   ))}

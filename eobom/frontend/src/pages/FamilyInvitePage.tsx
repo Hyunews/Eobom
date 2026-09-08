@@ -165,7 +165,7 @@ export const FamilyInvitePage: React.FC<FamilyInvitePageProps> = ({ currentUser,
     return (
       <div style={shellStyle}>
         <div style={cardStyle}>
-          <AlertCircle size={40} color="#94A3B8" style={{ marginBottom: '0.75rem' }} />
+          <AlertCircle size={40} color="#94A3B8" style={{ marginBottom: 'var(--fs-caption)' }} />
           <p style={{ fontSize: '1.05rem', color: '#1A2B4C', fontWeight: 700, marginBottom: '0.5rem' }}>초대 링크를 찾을 수 없습니다.</p>
           <p style={{ fontSize: '0.9rem', color: '#6C7A89', marginBottom: '1.4rem' }}>이미 처리되었거나 잘못된 주소일 수 있습니다.</p>
           <button type="button" onClick={() => navigate('/')} className="btn btn-primary" style={{ width: '100%' }}>
@@ -180,7 +180,7 @@ export const FamilyInvitePage: React.FC<FamilyInvitePageProps> = ({ currentUser,
     return (
       <div style={shellStyle}>
         <div style={cardStyle}>
-          <CheckCircle2 size={40} color="var(--point-color)" style={{ marginBottom: '0.75rem' }} />
+          <CheckCircle2 size={40} color="var(--point-color)" style={{ marginBottom: 'var(--fs-caption)' }} />
           <p style={{ fontSize: '1.1rem', color: '#1A2B4C', fontWeight: 700, marginBottom: '0.5rem' }}>수락되었습니다.</p>
           {/* 00-27 §9.1-4-2 — 수락 결과를 과장하지 않는다. 열람은 사망 확인 이후다(06-04 §8.1). */}
           <p style={{ fontSize: '0.9rem', color: '#6C7A89', marginBottom: '1.4rem' }}>{data?.designatorName}님의 가족으로 연결됐습니다.</p>
@@ -199,7 +199,7 @@ export const FamilyInvitePage: React.FC<FamilyInvitePageProps> = ({ currentUser,
     return (
       <div style={shellStyle}>
         <div style={cardStyle}>
-          <XCircle size={40} color="#94A3B8" style={{ marginBottom: '0.75rem' }} />
+          <XCircle size={40} color="#94A3B8" style={{ marginBottom: 'var(--fs-caption)' }} />
           <p style={{ fontSize: '1.1rem', color: '#1A2B4C', fontWeight: 700, marginBottom: '0.5rem' }}>거절되었습니다.</p>
           <p style={{ fontSize: '0.9rem', color: '#6C7A89', marginBottom: '1.4rem' }}>아무 권한도 부여되지 않았습니다.</p>
           {/* §9.1-4-2 — 거절한 사람에게 서비스 권유를 붙이지 않는다. "홈으로" 하나뿐. */}
@@ -220,7 +220,7 @@ export const FamilyInvitePage: React.FC<FamilyInvitePageProps> = ({ currentUser,
   return (
     <div style={shellStyle}>
       <div style={cardStyle}>
-        <HeartHandshake size={40} color="var(--point-color)" style={{ marginBottom: '0.75rem' }} />
+        <HeartHandshake size={40} color="var(--point-color)" style={{ marginBottom: 'var(--fs-caption)' }} />
         <h1 style={{ fontSize: '1.3rem', color: '#1A2B4C', fontFamily: "'KoPub World Batang', serif", marginBottom: '0.6rem' }}>
           {data?.designatorName}님이 당신을 가족으로 지정했습니다
         </h1>
@@ -230,12 +230,12 @@ export const FamilyInvitePage: React.FC<FamilyInvitePageProps> = ({ currentUser,
           권한: {scope?.label}{scope ? ` (${scope.hint})` : ''}
         </p>
 
-        <div style={{ fontSize: '0.85rem', color: 'var(--state-warn-fg)', backgroundColor: 'var(--state-warn-bg)', border: '1px solid var(--state-warn-bg)', borderRadius: 'var(--r-sm)', padding: '0.7rem 0.85rem', marginBottom: '1.4rem', lineHeight: 1.6, textAlign: 'left' }}>
+        <div style={{ fontSize: 'var(--fs-body)', color: 'var(--state-warn-fg)', backgroundColor: 'var(--state-warn-bg)', border: '1px solid var(--state-warn-bg)', borderRadius: 'var(--r-sm)', padding: 'var(--fs-caption) var(--fs-body)', marginBottom: '1.4rem', lineHeight: 1.6, textAlign: 'left' }}>
           수락하시면 사망 통지 등 위 권한이 생깁니다. 거절하셔도 어떤 불이익도 없습니다.
         </div>
 
         {errorMsg && (
-          <div style={{ fontSize: '0.85rem', color: 'var(--state-danger-fg)', backgroundColor: 'var(--state-danger-bg)', border: '1px solid var(--state-danger-bg)', borderRadius: 'var(--r-sm)', padding: '0.7rem 0.9rem', marginBottom: '1rem' }}>
+          <div style={{ fontSize: 'var(--fs-body)', color: 'var(--state-danger-fg)', backgroundColor: 'var(--state-danger-bg)', border: '1px solid var(--state-danger-bg)', borderRadius: 'var(--r-sm)', padding: 'var(--fs-caption) 0.9rem', marginBottom: '1rem' }}>
             {errorMsg}
           </div>
         )}
@@ -270,7 +270,7 @@ export const FamilyInvitePage: React.FC<FamilyInvitePageProps> = ({ currentUser,
           </>
         ) : (
           <>
-            <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '0.8rem' }}>
+            <p style={{ fontSize: 'var(--fs-body)', color: 'var(--text-muted)', marginBottom: 'var(--fs-body)' }}>
               수락하려면 먼저 로그인해 주세요.
             </p>
             <button

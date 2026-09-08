@@ -26,8 +26,8 @@ Cloudflare·Supabase·Render 미기재. ⏸ "국가"란 보류(인프라 대기 
 **2. [Sonnet]** 🔴 wt112·114·115~120·164~172 실기동 대기. ⏸ 체크8·F는 Opus 먼저·04B는
 `PreDeathPlatformSetting` 뒤. 🔵 실기동검증은 사람(09-03). ✅ wt121~172 빌드통과(상세 walkthrough).
 🟡 wt163 편차: id12 conditional 화면 무표시 — Opus 판단 대기. 🔴 #24 보류(⑪)·🟡미검증 ⑯.
-▶ **다음=`00-38` Phase1**(토큰·조치A철회·rem리터럴318곳치환·거터분리·`useIsMobile`) → Phase2
-그룹1(Farewell→CareGuide→EndingNote) → `00-37` A-3→A-4. 🔴 Phase1 #2·#3은 **같은 커밋**.
+✅ `00-38` Phase1 완료(wt173, 빌드·360px실측 통과). 🟡 index.css 잔여rem·로그인화면 DoD 미검증.
+▶ **다음=Phase2 그룹1**(Farewell→CareGuide→EndingNote) → `00-37` A-3→A-4.
 
 **3. [Gemini]** 게이트 0건 · 🟡 옛 스펙갱신 3건 → ⑭. 🟡 dev DB 삭제분 7건 — D-8(🔴 CONFIRM).
 

@@ -71,7 +71,7 @@ export const CounselingPage: React.FC<CounselingPageProps> = ({ currentUser, onO
   return (
     <div className="container">
       <div style={{ marginBottom: '1.5rem' }}>
-        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', backgroundColor: 'var(--state-warn-bg)', color: 'var(--accent-gold)', padding: '0.3rem 0.8rem', borderRadius: 'var(--r-lg)', fontSize: '0.85rem', fontWeight: 700, marginBottom: '0.6rem' }}>
+        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', backgroundColor: 'var(--state-warn-bg)', color: 'var(--accent-gold)', padding: '0.3rem var(--fs-body)', borderRadius: 'var(--r-lg)', fontSize: 'var(--fs-body)', fontWeight: 700, marginBottom: '0.6rem' }}>
           <HandScalesIcon size={18} color="var(--accent-gold)" /> 상속세 시뮬레이터 &amp; 변호사 · 세무사 1:1 케어
         </div>
         <h1 className="page-title" style={{ color: 'var(--primary-color)', display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0 }}>
@@ -102,7 +102,7 @@ export const CounselingPage: React.FC<CounselingPageProps> = ({ currentUser, onO
           textAlign: 'left',
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--fs-body)' }}>
           <div style={{
             width: '44px',
             height: '44px',
@@ -117,7 +117,7 @@ export const CounselingPage: React.FC<CounselingPageProps> = ({ currentUser, onO
           </div>
           <div>
             <p style={{ fontWeight: 700, color: 'var(--primary-color)', margin: 0 }}>상속세, 대략 얼마나 나올까요?</p>
-            <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', margin: 0 }}>배우자·자녀 수 등 조건을 입력하면 예상 세액을 단계별로 계산해드립니다</p>
+            <p style={{ fontSize: 'var(--fs-body)', color: 'var(--text-muted)', margin: 0 }}>배우자·자녀 수 등 조건을 입력하면 예상 세액을 단계별로 계산해드립니다</p>
           </div>
         </div>
         <span style={{ display: 'flex', alignItems: 'center', gap: '0.2rem', color: 'var(--point-color)', fontWeight: 700, fontSize: '0.9rem', flexShrink: 0 }}>
@@ -183,24 +183,24 @@ export const CounselingPage: React.FC<CounselingPageProps> = ({ currentUser, onO
               }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.3rem' }}>
                   <h4 style={{ color: 'var(--primary-color)', fontSize: '1.1rem' }}>{exp.name}</h4>
-                  <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#fff', backgroundColor: 'var(--point-color)', padding: '0.2rem 0.6rem', borderRadius: 'var(--r-sm)' }}>
+                  <span style={{ fontSize: 'var(--fs-body)', fontWeight: 700, color: '#fff', backgroundColor: 'var(--point-color)', padding: '0.2rem 0.6rem', borderRadius: 'var(--r-sm)' }}>
                     {CATEGORY_LABEL[exp.category] || exp.category}
                   </span>
                 </div>
                 {exp.licenseOrg && (
-                  <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '0.3rem' }}>{exp.licenseOrg}</p>
+                  <p style={{ fontSize: 'var(--fs-body)', color: 'var(--text-muted)', marginBottom: '0.3rem' }}>{exp.licenseOrg}</p>
                 )}
                 {exp.specialties.length > 0 && (
                   <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap', marginBottom: '0.5rem' }}>
                     {exp.specialties.map((s, i) => (
-                      <span key={i} style={{ fontSize: '0.85rem', backgroundColor: 'var(--card-bg)', padding: '0.15rem 0.5rem', borderRadius: 'var(--r-sm)', color: '#444' }}>
+                      <span key={i} style={{ fontSize: 'var(--fs-body)', backgroundColor: 'var(--card-bg)', padding: '0.15rem 0.5rem', borderRadius: 'var(--r-sm)', color: '#444' }}>
                         #{s}
                       </span>
                     ))}
                   </div>
                 )}
                 {exp.bio && (
-                  <p style={{ fontSize: '0.85rem', color: 'var(--text-main)', marginBottom: '0.75rem' }}>{exp.bio}</p>
+                  <p style={{ fontSize: 'var(--fs-body)', color: 'var(--text-main)', marginBottom: 'var(--fs-caption)' }}>{exp.bio}</p>
                 )}
                 <button
                   onClick={() => handleOpenConsultModal(exp)}

@@ -93,9 +93,9 @@ export const SocialLinkModal: React.FC<SocialLinkModalProps> = ({
             style={{
               backgroundColor: 'var(--state-danger-bg)',
               color: 'var(--state-danger-fg)',
-              padding: '0.75rem',
+              padding: 'var(--fs-caption)',
               borderRadius: 'var(--r-sm)',
-              fontSize: '0.85rem',
+              fontSize: 'var(--fs-body)',
               marginBottom: '1rem',
               display: 'flex',
               alignItems: 'center',
@@ -107,7 +107,7 @@ export const SocialLinkModal: React.FC<SocialLinkModalProps> = ({
           </div>
         )}
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--fs-caption)' }}>
           <button
             type="button"
             disabled={isSubmitting}
@@ -162,7 +162,7 @@ export const SocialLinkModal: React.FC<SocialLinkModalProps> = ({
               background: 'none',
               border: 'none',
               color: 'var(--text-hint)',
-              fontSize: '0.85rem',
+              fontSize: 'var(--fs-body)',
               cursor: isSubmitting ? 'not-allowed' : 'pointer',
               marginTop: '0.25rem',
             }}

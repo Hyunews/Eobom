@@ -97,13 +97,13 @@ export const InquiryModal: React.FC<InquiryModalProps> = ({ facilityId, facility
         <h3 style={{ color: 'var(--primary-color)', marginBottom: '0.4rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
           <Send color="var(--point-color)" size={20} /> [{facilityName}] 업체 문의
         </h3>
-        <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '1.1rem' }}>
+        <p style={{ fontSize: 'var(--fs-body)', color: 'var(--text-muted)', marginBottom: '1.1rem' }}>
           문의 내용을 남겨주시면 담당자가 확인 후 연락드립니다.
         </p>
 
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           {maskedPhone && (
-            <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem', color: 'var(--text-main)', cursor: 'pointer' }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: 'var(--fs-body)', color: 'var(--text-main)', cursor: 'pointer' }}>
               <input type="checkbox" checked={useProfile} onChange={(e) => setUseProfile(e.target.checked)} />
               내 정보 사용 ({maskedPhone})
             </label>
@@ -136,7 +136,7 @@ export const InquiryModal: React.FC<InquiryModalProps> = ({ facilityId, facility
           </div>
 
           {!useProfile && isLoggedIn && (
-            <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem', color: 'var(--text-muted)', cursor: 'pointer' }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: 'var(--fs-body)', color: 'var(--text-muted)', cursor: 'pointer' }}>
               <input type="checkbox" checked={saveToProfile} onChange={(e) => setSaveToProfile(e.target.checked)} />
               다음에도 쓸 수 있게 내 정보에 저장
             </label>
@@ -151,7 +151,7 @@ export const InquiryModal: React.FC<InquiryModalProps> = ({ facilityId, facility
               onChange={(e) => setMessage(e.target.value)}
               style={{
                 width: '100%',
-                padding: '0.8rem',
+                padding: 'var(--fs-body)',
                 borderRadius: 'var(--r-sm)',
                 border: '1px solid var(--border-color)',
                 fontSize: '0.9rem',
@@ -165,10 +165,10 @@ export const InquiryModal: React.FC<InquiryModalProps> = ({ facilityId, facility
               display: 'flex',
               alignItems: 'flex-start',
               gap: '0.5rem',
-              fontSize: '0.85rem',
+              fontSize: 'var(--fs-body)',
               color: 'var(--text-muted)',
               backgroundColor: 'var(--card-bg)',
-              padding: '0.8rem',
+              padding: 'var(--fs-body)',
               borderRadius: 'var(--r-sm)',
               cursor: 'pointer',
             }}
@@ -182,7 +182,7 @@ export const InquiryModal: React.FC<InquiryModalProps> = ({ facilityId, facility
             </span>
           </label>
 
-          <div style={{ display: 'flex', gap: '0.8rem', marginTop: '0.5rem' }}>
+          <div style={{ display: 'flex', gap: 'var(--fs-body)', marginTop: '0.5rem' }}>
             <button type="button" onClick={onClose} className="btn" style={{ flex: 1, backgroundColor: 'var(--secondary-dark)' }}>
               취소
             </button>

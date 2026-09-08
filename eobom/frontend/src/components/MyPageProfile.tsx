@@ -168,7 +168,7 @@ export const MyPageProfile: React.FC<MyPageProfileProps> = ({ isOpen, onClose })
         </button>
 
         <h2 style={{ color: 'var(--primary-color)', fontSize: '1.4rem', fontWeight: 'var(--fw-bold)', margin: '0 0 0.4rem 0' }}>내 정보</h2>
-        <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', margin: '0 0 1.1rem 0' }}>
+        <p style={{ fontSize: 'var(--fs-body)', color: 'var(--text-muted)', margin: '0 0 1.1rem 0' }}>
           연락처·주소는 문의·상담을 넣을 때마다 다시 입력하지 않도록 미리 저장해두는 용도입니다. 전부 선택 입력이며 언제든 지울 수 있습니다.
         </p>
 
@@ -177,9 +177,9 @@ export const MyPageProfile: React.FC<MyPageProfileProps> = ({ isOpen, onClose })
             style={{
               backgroundColor: message.type === 'success' ? 'var(--state-ok-bg)' : 'var(--state-danger-bg)',
               color: message.type === 'success' ? 'var(--state-ok-fg)' : 'var(--state-danger-fg)',
-              padding: '0.75rem',
+              padding: 'var(--fs-caption)',
               borderRadius: 'var(--r-sm)',
-              fontSize: '0.85rem',
+              fontSize: 'var(--fs-body)',
               marginBottom: '0.95rem',
               display: 'flex',
               alignItems: 'center',
@@ -210,7 +210,7 @@ export const MyPageProfile: React.FC<MyPageProfileProps> = ({ isOpen, onClose })
             <div className="form-group" style={{ margin: 0 }}>
               <label className="form-label">연락처</label>
               {current?.contactPhone && !clearPhone && (
-                <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', margin: '0 0 0.35rem 0' }}>
+                <p style={{ fontSize: 'var(--fs-body)', color: 'var(--text-muted)', margin: '0 0 0.35rem 0' }}>
                   현재 등록된 번호: {current.contactPhone}
                 </p>
               )}
@@ -231,7 +231,7 @@ export const MyPageProfile: React.FC<MyPageProfileProps> = ({ isOpen, onClose })
                       setContactPhone('');
                     }}
                     className="btn"
-                    style={{ backgroundColor: clearPhone ? 'var(--state-danger-bg)' : 'var(--secondary-color)', color: clearPhone ? 'var(--state-danger-fg)' : 'var(--primary-color)', flexShrink: 0, fontSize: '0.85rem' }}
+                    style={{ backgroundColor: clearPhone ? 'var(--state-danger-bg)' : 'var(--secondary-color)', color: clearPhone ? 'var(--state-danger-fg)' : 'var(--primary-color)', flexShrink: 0, fontSize: 'var(--fs-body)' }}
                   >
                     {clearPhone ? '삭제 취소' : '삭제'}
                   </button>
@@ -250,7 +250,7 @@ export const MyPageProfile: React.FC<MyPageProfileProps> = ({ isOpen, onClose })
               <input value={addressRoad} readOnly className="form-input" placeholder="도로명 주소" style={{ marginBottom: '0.5rem' }} />
 
               {current?.addressDetail && !clearDetail && (
-                <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', margin: '0 0 0.35rem 0' }}>
+                <p style={{ fontSize: 'var(--fs-body)', color: 'var(--text-muted)', margin: '0 0 0.35rem 0' }}>
                   현재 등록된 상세주소: {current.addressDetail}
                 </p>
               )}
@@ -270,7 +270,7 @@ export const MyPageProfile: React.FC<MyPageProfileProps> = ({ isOpen, onClose })
                       setAddressDetail('');
                     }}
                     className="btn"
-                    style={{ backgroundColor: clearDetail ? 'var(--state-danger-bg)' : 'var(--secondary-color)', color: clearDetail ? 'var(--state-danger-fg)' : 'var(--primary-color)', flexShrink: 0, fontSize: '0.85rem' }}
+                    style={{ backgroundColor: clearDetail ? 'var(--state-danger-bg)' : 'var(--secondary-color)', color: clearDetail ? 'var(--state-danger-fg)' : 'var(--primary-color)', flexShrink: 0, fontSize: 'var(--fs-body)' }}
                   >
                     {clearDetail ? '삭제 취소' : '삭제'}
                   </button>

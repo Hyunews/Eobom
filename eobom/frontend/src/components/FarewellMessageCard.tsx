@@ -388,7 +388,7 @@ export const FarewellMessageCard: React.FC<FarewellMessageCardProps> = ({ recipi
           <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.4rem', color: 'var(--primary-color)', margin: '0 0 0.25rem 0' }}>
             {recipient.name}님께 남기는 글
           </h2>
-          <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+          <span style={{ fontSize: 'var(--fs-body)', color: 'var(--text-muted)' }}>
             총 {messages.length}통의 편지가 보관되어 있습니다 · {STATUS_LABEL[recipient.status] || recipient.status}
           </span>
         </div>
@@ -429,7 +429,7 @@ export const FarewellMessageCard: React.FC<FarewellMessageCardProps> = ({ recipi
                     <FileText size={12} /> 텍스트
                   </span>
                 )}
-                <span style={{ fontSize: '0.85rem', color: 'var(--text-hint)' }}>{formatLetterDate(m.updatedAt)}</span>
+                <span style={{ fontSize: 'var(--fs-body)', color: 'var(--text-hint)' }}>{formatLetterDate(m.updatedAt)}</span>
               </div>
               <button
                 type="button"
@@ -478,7 +478,7 @@ export const FarewellMessageCard: React.FC<FarewellMessageCardProps> = ({ recipi
           }}
         >
           <div className="farewell-message-panel" role="dialog" aria-modal="true" aria-label={editingId ? '편지 수정' : '새 편지 쓰기'}>
-            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '0.75rem', marginBottom: '1.2rem' }}>
+            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 'var(--fs-caption)', marginBottom: '1.2rem' }}>
               <div>
                 <p style={{ fontFamily: 'var(--font-serif)', fontSize: '0.95rem', color: 'var(--accent-gold)', margin: '0 0 0.15rem 0' }}>{recipient.name}님께</p>
                 <h2 style={{ color: 'var(--primary-color)', fontSize: '1.55rem', fontWeight: 700, margin: 0, display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
@@ -607,7 +607,7 @@ export const FarewellMessageCard: React.FC<FarewellMessageCardProps> = ({ recipi
                   </div>
 
                   {error && (
-                    <div style={{ fontSize: '1rem', lineHeight: 1.6, color: 'var(--state-warn-fg)', backgroundColor: 'var(--state-warn-bg)', border: '1px solid var(--state-warn-bg)', borderRadius: 'var(--r-sm)', padding: '0.7rem 0.9rem' }}>
+                    <div style={{ fontSize: '1rem', lineHeight: 1.6, color: 'var(--state-warn-fg)', backgroundColor: 'var(--state-warn-bg)', border: '1px solid var(--state-warn-bg)', borderRadius: 'var(--r-sm)', padding: 'var(--fs-caption) 0.9rem' }}>
                       {error}
                     </div>
                   )}
@@ -646,7 +646,7 @@ export const FarewellMessageCard: React.FC<FarewellMessageCardProps> = ({ recipi
                   {/* 🎨 위험 구역 — 취소·저장과 같은 줄에 있으면 오탭 위험이 크다. 구분선 + 작은
                   텍스트버튼으로 무게를 낮추고 우측 정렬로 눈에 덜 띄게 뺐다. */}
                   {editingId && (
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid var(--border-color)', paddingTop: '0.75rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid var(--border-color)', paddingTop: 'var(--fs-caption)' }}>
                       <button
                         type="button"
                         onClick={() => handleExportMessage(editingId, title.trim() || `${recipient.name}에게`)}

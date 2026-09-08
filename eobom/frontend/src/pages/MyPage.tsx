@@ -32,7 +32,7 @@ interface MySummary {
 // C=내 활동과 계정. B구역이 이번 개편의 핵심 — 유족 메시지 보관함·부고장·추모관처럼 이미
 // 구현이 끝난 기능들이 마이페이지에 입구가 없었다(§3.1).
 const sectionTitleStyle: React.CSSProperties = {
-  fontSize: '0.8rem', fontWeight: 'var(--fw-bold)', color: 'var(--text-muted)', textTransform: 'uppercase',
+  fontSize: 'var(--fs-body)', fontWeight: 'var(--fw-bold)', color: 'var(--text-muted)', textTransform: 'uppercase',
   letterSpacing: '0.04em', margin: '0.6rem 0 0.1rem',
 };
 
@@ -181,7 +181,7 @@ export const MyPage: React.FC<MyPageProps> = ({ currentUser, onOpenLogin, onOpen
             <h2 style={{ margin: 0, color: 'var(--primary-color)', fontSize: '1.4rem' }}>{displayName} 님</h2>
             <span
               style={{
-                fontSize: '0.85rem',
+                fontSize: 'var(--fs-body)',
                 fontWeight: 'var(--fw-bold)',
                 padding: '0.25rem 0.6rem',
                 borderRadius: 'var(--r-sm)',

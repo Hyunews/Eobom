@@ -75,7 +75,7 @@ export const TaxSimulatorModal: React.FC<TaxSimulatorModalProps> = ({ onClose })
         <h3 style={{ color: 'var(--primary-color)', marginBottom: '0.4rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
           <Calculator color="var(--point-color)" /> 상속세 간이 시뮬레이터
         </h3>
-        <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '1.1rem' }}>
+        <p style={{ fontSize: 'var(--fs-body)', color: 'var(--text-muted)', marginBottom: '1.1rem' }}>
           아래 조건을 입력하면 예상 상속세를 단계별로 계산해드립니다.
         </p>
 
@@ -83,19 +83,19 @@ export const TaxSimulatorModal: React.FC<TaxSimulatorModalProps> = ({ onClose })
           <div className="form-group">
             <label className="form-label">총 상속재산가액 (만원)</label>
             <input type="number" min={0} value={totalAsset} onChange={(e) => setTotalAsset(Number(e.target.value))} className="form-input" />
-            <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>* 약 {(totalAsset / 10000).toFixed(2)}억원 (부동산·예금·주식 등 전체)</span>
+            <span style={{ fontSize: 'var(--fs-body)', color: 'var(--text-muted)' }}>* 약 {(totalAsset / 10000).toFixed(2)}억원 (부동산·예금·주식 등 전체)</span>
           </div>
 
           <div className="form-group">
             <label className="form-label">채무 및 장례비용 (만원)</label>
             <input type="number" min={0} value={debtAndFuneralCost} onChange={(e) => setDebtAndFuneralCost(Number(e.target.value))} className="form-input" />
-            <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>* 고인의 채무, 장례비 등 (과세가액에서 차감)</span>
+            <span style={{ fontSize: 'var(--fs-body)', color: 'var(--text-muted)' }}>* 고인의 채무, 장례비 등 (과세가액에서 차감)</span>
           </div>
 
           <div className="form-group">
             <label className="form-label">그중 순수 금융재산가액 (만원)</label>
             <input type="number" min={0} value={financialAsset} onChange={(e) => setFinancialAsset(Number(e.target.value))} className="form-input" />
-            <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>* 총 상속재산 중 예금·보험·주식 등 (부동산 제외, 금융재산공제 계산용)</span>
+            <span style={{ fontSize: 'var(--fs-body)', color: 'var(--text-muted)' }}>* 총 상속재산 중 예금·보험·주식 등 (부동산 제외, 금융재산공제 계산용)</span>
           </div>
 
           <div className="form-group">
@@ -121,7 +121,7 @@ export const TaxSimulatorModal: React.FC<TaxSimulatorModalProps> = ({ onClose })
                 onChange={(e) => setSpouseInheritedAmount(e.target.value)}
                 className="form-input"
               />
-              <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>* 배우자공제는 실제 상속액 기준(최소 5억~최대 30억)</span>
+              <span style={{ fontSize: 'var(--fs-body)', color: 'var(--text-muted)' }}>* 배우자공제는 실제 상속액 기준(최소 5억~최대 30억)</span>
             </div>
           )}
 
@@ -151,7 +151,7 @@ export const TaxSimulatorModal: React.FC<TaxSimulatorModalProps> = ({ onClose })
           }}>
             <h4 style={{ color: 'var(--primary-color)', marginBottom: '0.6rem' }}>📊 예상 상속세 산출 결과</h4>
 
-            <div style={{ fontSize: '0.85rem', color: 'var(--text-main)', display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+            <div style={{ fontSize: 'var(--fs-body)', color: 'var(--text-main)', display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
               <Row label="상속세 과세가액" value={`${fmt(taxResult.taxableBase)} 만원`} />
               <Row label="기초공제/일괄공제(큰 금액)" value={`- ${fmt(taxResult.basicOrLumpSumDeduction)} 만원`} />
               <Row
@@ -166,7 +166,7 @@ export const TaxSimulatorModal: React.FC<TaxSimulatorModalProps> = ({ onClose })
               <Row label="신고세액공제 (3%, 기한 내 신고 가정)" value={`- ${fmt(taxResult.reportingDeduction)} 만원`} />
             </div>
 
-            <p style={{ fontSize: '1.3rem', fontWeight: 700, color: 'var(--accent-red)', margin: '0.8rem 0 0 0' }}>
+            <p style={{ fontSize: '1.3rem', fontWeight: 700, color: 'var(--accent-red)', margin: 'var(--fs-body) 0 0 0' }}>
               최종 예상 상속세액: 약 {fmt(taxResult.finalTax)} 만원 ({(taxResult.finalTax / 10000).toFixed(2)} 억원)
             </p>
           </div>
@@ -179,7 +179,7 @@ export const TaxSimulatorModal: React.FC<TaxSimulatorModalProps> = ({ onClose })
           backgroundColor: '#FFFBEB',
           border: '1px solid var(--state-warn-bg)',
           borderRadius: 'var(--r-sm)',
-          fontSize: '0.85rem',
+          fontSize: 'var(--fs-body)',
           color: '#78350F',
         }}>
           <p style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontWeight: 700, marginBottom: '0.5rem' }}>

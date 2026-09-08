@@ -299,7 +299,7 @@ export const MyPageFamilyDesignation: React.FC<MyPageFamilyDesignationProps> = (
         </button>
 
         <h2 style={{ color: 'var(--primary-color)', fontSize: '1.4rem', fontWeight: 'var(--fw-bold)', margin: '0 0 0.4rem 0' }}>가족 지정</h2>
-        <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', margin: '0 0 1.1rem 0' }}>
+        <p style={{ fontSize: 'var(--fs-body)', color: 'var(--text-muted)', margin: '0 0 1.1rem 0' }}>
           생전 준비를 함께할 가족을 미리 기록해 두세요. 최대 10명까지 등록할 수 있습니다.
         </p>
 
@@ -311,12 +311,12 @@ export const MyPageFamilyDesignation: React.FC<MyPageFamilyDesignationProps> = (
               display: 'flex',
               alignItems: 'flex-start',
               gap: '0.5rem',
-              fontSize: '0.85rem',
+              fontSize: 'var(--fs-body)',
               color: 'var(--state-warn-fg)',
               backgroundColor: 'var(--state-warn-bg)',
               border: '1px solid var(--state-warn-bg)',
               borderRadius: 'var(--r-sm)',
-              padding: '0.7rem 0.85rem',
+              padding: 'var(--fs-caption) var(--fs-body)',
               marginBottom: '1rem',
               lineHeight: 1.6,
             }}
@@ -331,9 +331,9 @@ export const MyPageFamilyDesignation: React.FC<MyPageFamilyDesignationProps> = (
             style={{
               backgroundColor: message.type === 'success' ? 'var(--state-ok-bg)' : 'var(--state-danger-bg)',
               color: message.type === 'success' ? 'var(--state-ok-fg)' : 'var(--state-danger-fg)',
-              padding: '0.75rem',
+              padding: 'var(--fs-caption)',
               borderRadius: 'var(--r-sm)',
-              fontSize: '0.85rem',
+              fontSize: 'var(--fs-body)',
               marginBottom: '0.95rem',
               display: 'flex',
               alignItems: 'center',
@@ -353,7 +353,7 @@ export const MyPageFamilyDesignation: React.FC<MyPageFamilyDesignationProps> = (
           <>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem', marginBottom: '1rem' }}>
               {items.length === 0 && !showForm && (
-                <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', textAlign: 'center', padding: '1rem 0' }}>
+                <p style={{ fontSize: 'var(--fs-body)', color: 'var(--text-muted)', textAlign: 'center', padding: '1rem 0' }}>
                   아직 지정된 가족이 없습니다.
                 </p>
               )}
@@ -361,7 +361,7 @@ export const MyPageFamilyDesignation: React.FC<MyPageFamilyDesignationProps> = (
                 <div
                   key={item.id}
                   style={{
-                    padding: '0.85rem 1rem',
+                    padding: 'var(--fs-body) 1rem',
                     border: '1px solid var(--secondary-dark)',
                     borderRadius: 'var(--r-md)',
                   }}
@@ -377,13 +377,13 @@ export const MyPageFamilyDesignation: React.FC<MyPageFamilyDesignationProps> = (
                   <div style={{ minWidth: 0 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap' }}>
                       <span style={{ fontSize: '0.95rem', fontWeight: 700, color: '#111827' }}>{item.name}</span>
-                      <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                      <span style={{ fontSize: 'var(--fs-body)', color: 'var(--text-muted)' }}>
                         {RELATIONSHIP_LABEL[item.relationship] || item.relationship}
                         {item.relationship === 'OTHER' && item.relationshipEtc ? `(${item.relationshipEtc})` : ''}
                       </span>
                       <span
                         style={{
-                          fontSize: '0.85rem',
+                          fontSize: 'var(--fs-body)',
                           fontWeight: 700,
                           padding: '0.15rem 0.5rem',
                           borderRadius: 'var(--r-full)',
@@ -394,7 +394,7 @@ export const MyPageFamilyDesignation: React.FC<MyPageFamilyDesignationProps> = (
                         {SCOPE_LABEL[item.scope] || item.scope}
                       </span>
                     </div>
-                    <div style={{ fontSize: '0.85rem', color: 'var(--text-hint)', marginTop: '0.15rem' }}>
+                    <div style={{ fontSize: 'var(--fs-body)', color: 'var(--text-hint)', marginTop: '0.15rem' }}>
                       {item.phone}
                       {item.email ? ` · ${item.email}` : ''} · {statusLabel(item)}
                     </div>
@@ -434,8 +434,8 @@ export const MyPageFamilyDesignation: React.FC<MyPageFamilyDesignationProps> = (
                 {lastInviteLink?.itemId === item.id && (
                   <div
                     style={{
-                      marginTop: '0.7rem',
-                      paddingTop: '0.7rem',
+                      marginTop: 'var(--fs-caption)',
+                      paddingTop: 'var(--fs-caption)',
                       borderTop: '1px solid var(--surface-subtle)',
                       display: 'flex',
                       alignItems: 'center',
@@ -443,14 +443,14 @@ export const MyPageFamilyDesignation: React.FC<MyPageFamilyDesignationProps> = (
                       flexWrap: 'wrap',
                     }}
                   >
-                    <span style={{ fontSize: '0.85rem', color: 'var(--text-hint)', wordBreak: 'break-all', flex: 1, minWidth: '160px' }}>
+                    <span style={{ fontSize: 'var(--fs-body)', color: 'var(--text-hint)', wordBreak: 'break-all', flex: 1, minWidth: '160px' }}>
                       {lastInviteLink.url}
                     </span>
                     <button
                       type="button"
                       onClick={() => handleCopyInviteLink(lastInviteLink.url)}
                       className="btn"
-                      style={{ backgroundColor: 'var(--secondary-color)', color: 'var(--primary-color)', fontSize: '0.85rem', height: '34px', flexShrink: 0 }}
+                      style={{ backgroundColor: 'var(--secondary-color)', color: 'var(--primary-color)', fontSize: 'var(--fs-body)', height: '34px', flexShrink: 0 }}
                     >
                       <Copy size={14} /> 링크 복사
                     </button>
@@ -467,11 +467,11 @@ export const MyPageFamilyDesignation: React.FC<MyPageFamilyDesignationProps> = (
                 </button>
               )
             ) : (
-              <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', borderTop: '1px solid var(--border-color)', paddingTop: '1rem' }}>
+              <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 'var(--fs-caption)', borderTop: '1px solid var(--border-color)', paddingTop: '1rem' }}>
                 <div className="form-group" style={{ margin: 0 }}>
                   <label className="form-label">성함 *</label>
                   <input value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} className="form-input" required />
-                  <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginTop: '0.3rem' }}>
+                  <p style={{ fontSize: 'var(--fs-body)', color: 'var(--text-muted)', marginTop: '0.3rem' }}>
                     가족이 수락할 때 입력할 이름입니다. 평소 부르는 이름과 다르면 수락이 막힐 수 있으니 정확히 입력해 주세요.
                   </p>
                 </div>
@@ -544,19 +544,19 @@ export const MyPageFamilyDesignation: React.FC<MyPageFamilyDesignationProps> = (
                     className="form-input"
                     style={{ width: '100px' }}
                   />
-                  <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', margin: '0.3rem 0 0 0' }}>
+                  <p style={{ fontSize: 'var(--fs-body)', color: 'var(--text-muted)', margin: '0.3rem 0 0 0' }}>
                     1순위가 응답이 없을 때 다음 순위로 연락합니다. 법정상속순위와는 무관합니다.
                   </p>
                 </div>
 
                 <div
                   style={{
-                    fontSize: '0.85rem',
+                    fontSize: 'var(--fs-body)',
                     color: 'var(--state-warn-fg)',
                     backgroundColor: 'var(--state-warn-bg)',
                     border: '1px solid var(--state-warn-bg)',
                     borderRadius: 'var(--r-sm)',
-                    padding: '0.7rem 0.85rem',
+                    padding: 'var(--fs-caption) var(--fs-body)',
                     lineHeight: 1.6,
                   }}
                 >

@@ -462,7 +462,7 @@ export const VoiceToTextInput: React.FC<VoiceToTextInputProps> = ({
           style={{
             position: 'absolute', inset: 0, zIndex: 10, backgroundColor: 'rgba(255,255,255,0.98)',
             border: '1px solid var(--border-color)', borderRadius: 'var(--r-sm)', padding: '1.1rem',
-            display: 'flex', flexDirection: 'column', gap: '0.75rem', boxShadow: 'var(--box-shadow)',
+            display: 'flex', flexDirection: 'column', gap: 'var(--fs-caption)', boxShadow: 'var(--box-shadow)',
           }}
         >
           <p style={{ fontSize: '1rem', color: 'var(--primary-color)', fontWeight: 700 }}>
@@ -491,7 +491,7 @@ export const VoiceToTextInput: React.FC<VoiceToTextInputProps> = ({
           style={{
             position: 'absolute', inset: 0, zIndex: 10, backgroundColor: 'rgba(255,255,255,0.98)',
             border: '1px solid var(--border-color)', borderRadius: 'var(--r-sm)', padding: '1.1rem',
-            display: 'flex', flexDirection: 'column', gap: '0.75rem', boxShadow: 'var(--box-shadow)',
+            display: 'flex', flexDirection: 'column', gap: 'var(--fs-caption)', boxShadow: 'var(--box-shadow)',
             overflowY: 'auto',
           }}
         >
@@ -520,7 +520,7 @@ export const VoiceToTextInput: React.FC<VoiceToTextInputProps> = ({
           )}
 
           {modalError && (
-            <div style={{ fontSize: '0.95rem', color: 'var(--state-warn-fg)', backgroundColor: 'var(--state-warn-bg)', border: '1px solid var(--state-warn-bg)', borderRadius: 'var(--r-sm)', padding: '0.7rem 0.9rem' }}>
+            <div style={{ fontSize: '0.95rem', color: 'var(--state-warn-fg)', backgroundColor: 'var(--state-warn-bg)', border: '1px solid var(--state-warn-bg)', borderRadius: 'var(--r-sm)', padding: 'var(--fs-caption) 0.9rem' }}>
               {modalError}
             </div>
           )}
@@ -539,7 +539,7 @@ export const VoiceToTextInput: React.FC<VoiceToTextInputProps> = ({
       )}
 
       {mode === 'record' && micError && (
-        <div style={{ fontSize: '0.95rem', color: 'var(--state-warn-fg)', backgroundColor: 'var(--state-warn-bg)', border: '1px solid var(--state-warn-bg)', borderRadius: 'var(--r-sm)', padding: '0.7rem 0.9rem', marginBottom: '1rem' }}>
+        <div style={{ fontSize: '0.95rem', color: 'var(--state-warn-fg)', backgroundColor: 'var(--state-warn-bg)', border: '1px solid var(--state-warn-bg)', borderRadius: 'var(--r-sm)', padding: 'var(--fs-caption) 0.9rem', marginBottom: '1rem' }}>
           {micError}
         </div>
       )}
@@ -547,7 +547,7 @@ export const VoiceToTextInput: React.FC<VoiceToTextInputProps> = ({
       {mode === 'record' && (
       <>
       {!recordingSupported && !sttSupported && (
-        <div style={{ fontSize: '0.95rem', color: 'var(--text-muted)', backgroundColor: 'var(--surface-subtle)', borderRadius: 'var(--r-sm)', padding: '0.7rem 0.9rem', marginBottom: '1rem' }}>
+        <div style={{ fontSize: '0.95rem', color: 'var(--text-muted)', backgroundColor: 'var(--surface-subtle)', borderRadius: 'var(--r-sm)', padding: 'var(--fs-caption) 0.9rem', marginBottom: '1rem' }}>
           이 브라우저에서는 음성 입력을 지원하지 않습니다. 아래 입력창에 직접 입력해 주세요.
         </div>
       )}
@@ -580,7 +580,7 @@ export const VoiceToTextInput: React.FC<VoiceToTextInputProps> = ({
         </label>
       )}
 
-      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem', flexWrap: 'wrap' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--fs-caption)', marginBottom: '0.5rem', flexWrap: 'wrap' }}>
         {recordingSupported && (
           isRecording ? (
             <button type="button" onClick={stopRecording} disabled={disabled} style={actionBtnStyle('var(--state-danger-fg)', '#FFFFFF', !!disabled)}>
@@ -606,7 +606,7 @@ export const VoiceToTextInput: React.FC<VoiceToTextInputProps> = ({
       {/* Ⓐ 파일 업로드 — mode="upload"에서만 그린다. 서버 플래그(CLOVA_STT_ENABLED)가 꺼져
           있으면 안내만 남기고 버튼은 숨긴다(§8-9 후속 — 탭 자체는 항상 있으므로 안내가 필요하다). */}
       {mode === 'upload' && !sttUploadEnabled && (
-        <div style={{ fontSize: '0.95rem', color: 'var(--text-muted)', backgroundColor: 'var(--surface-subtle)', borderRadius: 'var(--r-sm)', padding: '0.7rem 0.9rem' }}>
+        <div style={{ fontSize: '0.95rem', color: 'var(--text-muted)', backgroundColor: 'var(--surface-subtle)', borderRadius: 'var(--r-sm)', padding: 'var(--fs-caption) 0.9rem' }}>
           지금은 음성 파일 업로드를 사용할 수 없습니다. "직접 쓰기" 탭을 이용해 주세요.
         </div>
       )}
@@ -689,7 +689,7 @@ export const VoiceToTextInput: React.FC<VoiceToTextInputProps> = ({
           )}
 
           {uploadError && (
-            <div style={{ marginTop: '0.7rem', fontSize: '0.95rem', color: 'var(--state-warn-fg)', backgroundColor: 'var(--state-warn-bg)', border: '1px solid var(--state-warn-bg)', borderRadius: 'var(--r-sm)', padding: '0.7rem 0.9rem' }}>
+            <div style={{ marginTop: 'var(--fs-caption)', fontSize: '0.95rem', color: 'var(--state-warn-fg)', backgroundColor: 'var(--state-warn-bg)', border: '1px solid var(--state-warn-bg)', borderRadius: 'var(--r-sm)', padding: 'var(--fs-caption) 0.9rem' }}>
               {uploadError}
             </div>
           )}
