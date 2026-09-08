@@ -1,0 +1,67 @@
+# 00-09 §6.4 P-5 — token-guard.js 화이트리스트. eobom/frontend/src 기준 상대경로.
+# 2026-09-08 시점 기존 파일 스냅샷(1,304곳 인라인 기존 위반 보유) — 이 목록에 있는 파일을
+# Write로 통째로 덮어쓸 때는 훅이 건너뛴다. 새로 생기는 파일과, 기존 파일에 Edit으로 붙는
+# new_string은 화이트리스트와 무관하게 항상 검사한다(그게 "신규 코드"다).
+# 새 파일이 정착해 기존 관례를 따르는 게 확인되면 이 줄을 추가해 편입한다.
+App.tsx
+components/AddressSearchModal.tsx
+components/counseling/TaxSimulatorModal.tsx
+components/endingNote/AccordionSection.tsx
+components/endingNote/constants.tsx
+components/endingNote/SectionTimingControl.tsx
+components/endingNote/styles.ts
+components/endingNote/SummaryModal.tsx
+components/endingNote/types.ts
+components/EobomLogo.tsx
+components/expert/ConsultRequestModal.tsx
+components/facility/FacilityReviewModal.tsx
+components/facility/InquiryModal.tsx
+components/facility/tagCatalog.ts
+components/FarewellMessageCard.tsx
+components/Footer.tsx
+components/Header.tsx
+components/home/domainSlides.tsx
+components/home/EntryBoxes.tsx
+components/KakaoMapModal.tsx
+components/legal/LegalDocLayout.tsx
+components/LoginModal.tsx
+components/MenuIcons.tsx
+components/MyPageAuthSettings.tsx
+components/MyPageFamilyDesignation.tsx
+components/MyPageProfile.tsx
+components/Sidebar.tsx
+components/SocialLinkModal.tsx
+components/VoiceToTextInput.tsx
+config.ts
+hooks/useProfileContact.ts
+index.css
+lib/api.ts
+lib/storage.ts
+main.tsx
+modeNav.ts
+pages/AdminPage.tsx
+pages/BizDashboard.tsx
+pages/CareGuidePage.tsx
+pages/CounselingPage.tsx
+pages/DigitalEstatePage.tsx
+pages/DomainOverviewPage.tsx
+pages/EndingNotePage.tsx
+pages/FacilityPage.tsx
+pages/FamilyInvitePage.tsx
+pages/FarewellMessagePage.tsx
+pages/HomePage.tsx
+pages/MemorialLandingPage.tsx
+pages/MemorialPage.tsx
+pages/MyObituaryListPage.tsx
+pages/MyPage.tsx
+pages/ObituaryLandingPage.tsx
+pages/ObituaryPage.tsx
+pages/PartnerPortalPage.tsx
+pages/PickupPage.tsx
+pages/PrivacyPage.tsx
+pages/TermsPage.tsx
+utils/inheritanceTax.ts
+utils/kakaoShare.ts
+utils/memorialLink.ts
+utils/obituaryCard.ts
+vite-env.d.ts

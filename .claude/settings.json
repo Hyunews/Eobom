@@ -24,6 +24,17 @@
             "statusMessage": "통독 가드 확인 중..."
           }
         ]
+      },
+      {
+        "matcher": "Write|Edit|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.harness/tools/token-guard.js\"",
+            "timeout": 10,
+            "statusMessage": "토큰 드리프트 가드 확인 중..."
+          }
+        ]
       }
     ]
   }
