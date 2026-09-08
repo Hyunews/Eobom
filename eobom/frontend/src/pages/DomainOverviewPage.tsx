@@ -208,7 +208,7 @@ export const DomainOverviewPage: React.FC<DomainOverviewPageProps> = ({
                   display: 'grid',
                   gridTemplateColumns: 'repeat(auto-fit, minmax(min(320px, 100%), 1fr))',
                   gap: '2.2rem',
-                  alignItems: 'stretch',
+                  alignItems: 'center',
                 }}
               >
                 <div>
