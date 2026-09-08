@@ -1847,3 +1847,212 @@ wt137 그대로라 재작업 없음).
 - **다음 에이전트가 알아야 할 것**: `handleCopyLink`(ObituaryPage.tsx의 "링크 복사" 전용 버튼, handleShare와 별개)는 집계 대상에 포함하지 않았다 — 사용자 지시가 "kakaoShare.ts 공유 성공 경로"로 좁혀져 있었고 그 버튼은 폴백 사다리 바깥의 별도 액션이기 때문. 필요하면 별도 지시로 추가. 실기동 검증 대기(카톡 공유/Web Share/링크복사 각 경로에서 `shareCount`가 실제로 오르는지 브라우저로 확인 필요).
 
 <!-- Gemini 판정 1줄: 대기 -->
+
+
+## 2026-09-07 (141) | [Sonnet] 부고장/추모관 공유 링크 — LAN IP 접속 시 localhost 대신 실제 접속 오리진 사용
+
+- **근거 스펙**: 스펙 없음 — 사용자 실기기(LAN) 테스트 리포트 대응. `authController.ts`의 기존 `captureFrontendOrigin`(카카오 OAuth 리다이렉트용, 로그인 시작 요청의 Referer로 프론트 오리진을 감지하는 로직)을 그대로 재사용.
+- **건드린 파일**: `eobom/backend/src/controllers/obituaryController.ts`
+  - `captureFrontendOrigin`을 `authController`에서 추가 import.
+  - `createObituary` 응답의 `obituaryUrl`·`memorialUrl` — `${FRONTEND_URL}/...` → `${captureFrontendOrigin(req) || FRONTEND_URL}/...`로 변경(지역변수 `frontendOrigin`으로 한 번만 계산).
+  - `updateObituary`의 사후 연결 응답 `memorialUrl` — 동일하게 `captureFrontendOrigin(req) || FRONTEND_URL`로 교체.
+- **결과**: 부고장을 `http://192.168.0.111:5173`(또는 등록된 다른 사설 대역 IP) + 포트 5173에서 만들면, 응답의 공유 링크가 `.env`의 `FRONTEND_URL`(기본값 `http://localhost:5173`) 대신 그 접속 주소를 그대로 쓴다. 배포 환경 등 Referer가 신뢰 대상이 아니면 기존과 동일하게 `FRONTEND_URL`로 폴백 — 동작 분기 없음. `tsc --noEmit`(backend) 통과.
+- **편차**: 없음.
+- **다음 에이전트가 알아야 할 것**: 이미 `localhost`로 만들어진 기존 부고장의 저장된 링크 값 자체는 안 바뀐다(그 값은 생성 시점에 응답으로 한 번 내려간 문자열). `/obituary` 관리 화면을 재접속해서 보는 링크는 `ObituaryPage.tsx`가 `window.location.origin` 기준으로 다시 계산하므로 그 경로는 이미 문제 없었음(사용자 확인 필요 항목은 새로 만드는 부고장 한정). LAN IP로 접속 시 로그인 세션(localStorage 토큰)이 `localhost`와 별도로 저장되므로 그 주소에서 재로그인이 필요하다는 점을 사용자에게 안내함.
+
+<!-- Gemini 판정 1줄: 대기 -->
+
+## 2026-09-07 (142) | [Sonnet] 사이드바 "디지털 추모관" 미리보기 배지 제거 + `/my-obituaries` 링크 입장 박스 제거
+
+- **근거 스펙**: 스펙 없음 — 사용자 UI 지시 2건.
+- **건드린 파일**:
+  - `eobom/frontend/src/modeNav.ts` — `BEREAVED_MENU`의 `memorial` 항목 `status: 'preview'` → `'active'`(wt131에서 `ending-note`·`farewell-messages`에 적용했던 것과 동일 조치 — `Sidebar.tsx`가 `status !== 'active'`일 때만 "미리보기" `Badge`를 그림).
+  - `eobom/frontend/src/pages/MyObituaryListPage.tsx` — "② 받으신 링크로 입장" 카드(입력창 + `입장하기` 버튼) 전체 삭제. 함께 쓰이던 `linkInput`·`linkError` state, `handleLinkEnter` 함수, `parseMemorialLink` import 제거. 상단 안내 문구("...받으신 링크로 다른 추모관에 입장할 수 있습니다")도 그 기능 언급을 뺀 문장으로 수정.
+- **결과**: `tsc --noEmit`(frontend) 통과. `/my-obituaries` 화면에는 이제 "내가 만든 부고장" 목록 카드와 "추모관은 디지털 추모관 화면에서" 안내 카드 2개만 남는다.
+- **편차**: 없음. `utils/memorialLink.ts`(`parseMemorialLink` 정의)는 홈 화면 박스③(`EntryBoxes.tsx`)이 여전히 쓰고 있어 그대로 둠 — 삭제하지 않음.
+- **다음 에이전트가 알아야 할 것**: 홈 화면(`domainSlides.tsx`)의 "미리보기" 배지·링크 입장창은 이번 범위 밖(wt131과 같은 스코프 원칙 — "사이드바"라고 명시된 요청만 처리). 필요하면 별도 지시로.
+
+<!-- Gemini 판정 1줄: 대기 -->
+
+
+## 2026-09-07 (143) | [Sonnet] 헤더 "추모관" 메뉴 라벨 → "내 부고장" 정정
+
+- **근거 스펙**: 스펙 없음 — 사용자 지시. 헤더의 "추모관" 메뉴가 실제로는 `/my-obituaries`(MyObituaryListPage, "내 부고장")로 가는 유일한 통로인데, 사이드바에 별도로 "디지털 추모관"(→ `/memorial`)이 있어 같은 이름이 서로 다른 화면을 가리키는 혼란이 있었음.
+- **건드린 파일**: `eobom/frontend/src/components/Header.tsx` — 헤더 4개 메뉴 중 네 번째 버튼 라벨 `추모관` → `내 부고장`(목적지 페이지 h2 제목과 통일). 함수명(`goToMemorialEntry`)·라우트(`/my-obituaries`)는 그대로 두고 라벨만 변경, 관련 주석 3곳(상단 헤더 설명 주석·`goToMemorialEntry` 위 주석) 갱신.
+- **결과**: `tsc --noEmit`(frontend) 통과. 로그인 상태 헤더 4개 메뉴가 "홈·생전 준비·임종·사후 정리·내 부고장"이 된다.
+- **편차**: 함수명은 라벨과 안 맞게 됐지만(`goToMemorialEntry`인데 라벨은 "내 부고장") 호출부가 1곳뿐이고 이름 변경이 diff 잡음만 늘려 그대로 둠 — 필요하면 후속 정리 대상.
+- **다음 에이전트가 알아야 할 것**: 없음.
+
+<!-- Gemini 판정 1줄: 대기 -->
+
+
+## 2026-09-07 (144) | [Sonnet] "내 부고장" 헤더 메뉴 제거 + 마이페이지 단일 진입화 + 부고장·추모관 반반 화면 개편
+
+- **근거 스펙**: 스펙 없음 — 사용자 UI/IA 지시 3건(연속). `00-36`(마이페이지 정보구조 개편 기획서, 09-07 신설)의 M-1 방향("내 부고장·추모관 통계 칸에 링크를 건다", SCR-018 화면명 "내 부고장·추모관")과 대체로 부합하지만, **헤더 메뉴 완전 제거**와 **주소 이름 변경**은 그 문서에 없는 이번 사용자의 추가 결정 — 편차 항목 참고.
+- **건드린 파일**:
+  - `eobom/frontend/src/components/Header.tsx` — 4번째 메뉴 버튼("내 부고장")과 `goToMemorialEntry` 함수, 관련 `useNavigate` import 전부 삭제. 헤더 메뉴는 이제 "홈·생전 준비·임종·사후 정리" 3개.
+  - `eobom/frontend/src/App.tsx` — 라우트 `/my-obituaries` → `/my-obituaries-memorials`로 변경(`MyObituaryListPage` 그대로 연결).
+  - `eobom/frontend/src/pages/MyPage.tsx` — `stats` 배열에 `to` 필드 추가, "내 부고장" 통계 칸에만 `onClick={() => setActiveTab?.('my-obituaries-memorials')}` + `cursor: pointer` 연결(문의·상담은 갈 곳이 없어 그대로 둠, `00-36` §6 확정#3과 일치).
+  - `eobom/frontend/src/pages/MyObituaryListPage.tsx` — 전면 개편. 제목 "내 부고장" → "내 부고장·추모관"(SCR-018 화면명과 통일). 기존 "추모관은 여기가 아니라 디지털 추모관 화면에서..." 링크아웃 박스를 실제 "내가 만든 추모관" 목록 카드로 교체(`GET /api/me/memorials` 신규 호출 — 백엔드는 기존 `listMyMemorials` 그대로, 새 API 없음). 컨테이너를 `.auto-grid`로 감싸 부고장 카드·추모관 카드를 좌우 반반(데스크톱)으로 배치, `maxWidth`도 640px→860px로 확장. 추모관 카드는 읽기 전용(열기 버튼만) + 하단 "추모관 만들기·관리 →"로 `/memorial` 안내 — 실제 생성·삭제는 여전히 그 화면 몫(기존 설계 유지).
+- **결과**: `tsc --noEmit`(frontend) 통과. 로그인 후 "내 부고장" 페이지는 마이페이지 통계 칸을 통해서만 들어갈 수 있고, 그 화면엔 부고장·추모관 목록이 나란히 보인다.
+- **편차**: `00-36`은 헤더 메뉴를 없애라고 하지 않았고 주소 이름도 그대로 `/my-obituaries`를 계속 쓰는 전제였다(§6 M-1 표·본문에 그 경로가 여러 번 그대로 인용됨). 이번 사용자 지시로 **헤더 메뉴 삭제 + 주소를 `/my-obituaries-memorials`로 변경**했으므로, `00-36` 본문의 해당 경로·헤더 관련 서술은 이제 낡았다 — `[Claude:Opus]`가 다음에 그 문서를 열면 정정 필요.
+- **다음 에이전트가 알아야 할 것**: `MyObituaryListPage.tsx` 컴포넌트/파일명은 그대로 뒀다(부고장·추모관을 함께 보여주는 화면인데 이름은 부고장 목록만 뜻해 실제와 어긋난다) — 필요하면 후속으로 `MyObituaryMemorialListPage.tsx` 등으로 리네이밍 고려. `MemorialPage.tsx:10` 주석의 `/my-obituaries` 언급은 이미 폐기된 과거 동작을 설명하는 역사적 코멘트라 손대지 않음.
+
+<!-- Gemini 판정 1줄: 대기 -->
+
+
+## 2026-09-07 (145) | [Sonnet] 내 부고장·추모관 화면 — "진행중" 부고장 카드 레이아웃 깨짐 수정(wt144 회귀)
+
+- **근거 스펙**: 스펙 없음 — 사용자 UI 버그 리포트("진행중 박스 내부에 수정버튼이 하나 더 들어가면서 내부 디자인 망가짐").
+- **건드린 파일**: `eobom/frontend/src/pages/MyObituaryListPage.tsx` — 부고장 카드 상단 행(이름·상태 + 수정/삭제 버튼)의 `justifyContent: space-between` 플렉스 컨테이너에 `flexWrap: 'wrap'` 추가, 왼쪽 이름 블록에 `minWidth: 0` 추가, `gap`을 `'1rem'` → `'0.6rem 1rem'`(줄바꿈 시 위아래 간격도 확보)로 변경.
+- **결과**: wt144에서 이 카드가 좌우 반반(auto-grid) 레이아웃으로 들어가 폭이 좁아지면서, "진행중"(수정+삭제 2버튼)일 때만 이름·버튼이 한 줄에 안 들어가 깨지던 것을 고쳤다 — 좁을 때 버튼 줄이 이름 아래로 자연스럽게 떨어진다. "종료됨"(삭제 1버튼)은 원래 버튼 수가 적어 이 문제가 없었다. `tsc --noEmit`(frontend) 통과.
+- **편차**: 없음.
+- **다음 에이전트가 알아야 할 것**: 실기동(브라우저) 확인 대기 — 특히 auto-grid 최소폭(280px)에서 실제로 자연스럽게 줄바꿈되는지는 코드 검토로만 확인했다.
+
+<!-- Gemini 판정 1줄: 대기 -->
+
+
+## 2026-09-07 (146) | [Sonnet] 내 부고장 카드 — 개별 "추모관: 열기" 서브링크 제거(옆 추모관 박스와 중복)
+
+- **근거 스펙**: 스펙 없음 — 사용자 지시. wt144에서 오른쪽에 독립된 "내가 만든 추모관" 목록 카드가 생겼으므로, 각 부고장 카드 안에 있던 개별 "추모관: 열기" 서브링크(wt144가 "어느 부고장에 어느 추모관이 연결됐는지 안 보인다"는 이유로 일부러 남겨뒀던 것)가 중복이라는 판단.
+- **건드린 파일**: `eobom/frontend/src/pages/MyObituaryListPage.tsx` — `o.memorialSlug && (...)` 블록(추모관 서브링크 행 + 관련 주석) 삭제.
+- **결과**: `tsc --noEmit`(frontend) 통과. `MyObituary` 인터페이스의 `memorialSlug` 필드 자체는 그대로 뒀다(백엔드 응답에 여전히 실려오고, 다른 곳에서 쓸 수도 있어 제거하지 않음 — 현재는 미사용).
+- **편차**: 없음.
+- **다음 에이전트가 알아야 할 것**: 없음.
+
+<!-- Gemini 판정 1줄: 대기 -->
+
+
+## 2026-09-07 (147) | [Sonnet] 00-36 M-1 잔여 구현 — 마이페이지 3구역 개편(B구역 신설·엔딩노트 배지 재판정) + 카드 설명문 제거
+
+- **근거 스펙**: docs/00_핵심플랫폼/00-36_마이페이지_정보구조_점검_및_개편_기획서.md §4.1·§5·§6 M-1 #1·#3·#4·#5(#2는 wt144로 기완료)
+- **건드린 파일**: `eobom/frontend/src/pages/MyPage.tsx`
+  - B구역("내가 남긴 것") 신설 + 카드 3장 추가: 유족 메시지 보관함(`farewell-messages`) · 내 부고장·추모관(`my-obituaries-memorials`) · 디지털 자산 정리(`digital-estate`, `Badge status="preview"` 유지 — modeNav.ts의 digital-estate가 여전히 preview라 사이드바와 통일).
+  - 기존 카드 5장을 A(나: 내 정보·가족 지정)/B(위 3장 + 엔딩노트)/C(내 활동과 계정: 문의 내역·상담 신청 내역) 3구역으로 재배치, `sectionTitleStyle`로 구역 소제목 추가.
+  - "나의 예약 현황"(comingSoon, 실체 없음) → "문의 내역"(comingSoon 배지 유지, M-2에서 `GET /api/me/leads` 붙으면 해제)으로 교체하고 C구역 맨 위로 이동.
+  - 엔딩노트 `<Badge status="preview" />` 제거 — `Entry`·`Grant`가 배선된 실동작 기능이라(modeNav.ts의 ending-note도 wt131에서 이미 'active') 배지가 거짓 정보였음. 다른 활성 카드와 같은 `button+ChevronRight` 형태로 통일, "미리보기" 버튼 문구도 제거.
+  - (사용자 후속 지시) 모든 카드의 설명문(예: "연락처·주소·연락 가능 시간대")을 제거하고 제목만 남김 — 8곳.
+  - 🔴 통계 "내 부고장" 칸(`stats` 배열의 `to: 'my-obituaries-memorials'`)은 그대로 유지 — `/my-obituaries-memorials`의 유일한 진입점(헤더 메뉴 삭제됨, wt144)이라 이 링크를 건드리지 않았음. B구역의 "내 부고장·추모관" 카드는 그 진입점을 이중화하는 별도 카드.
+- **결과**: `tsc --noEmit`·`npm run build`(frontend) 통과.
+- **편차**: 없음.
+- **다음 에이전트가 알아야 할 것**: 실기동(브라우저) 검증 대기. M-2(문의 목록 API 신설)·M-3(회원 탈퇴)·M-4(계정 반출)는 이번 범위 밖.
+
+<!-- Gemini 판정 1줄: 대기 -->
+
+## 2026-09-07 (148) | [Sonnet] 00-37 A-1 구현 — 운영자 라우터 가드 미들웨어화 + select 명시 + AdminAuditLog 신설 + Admin.role
+
+- **근거 스펙**: docs/00_핵심플랫폼/00-37_운영자_콘솔_확장_및_접근분리_기획서.md §2.3·§3.1·§3.2·§3.3·§6 A-1(#1~#4)
+- **건드린 파일**:
+  - `eobom/backend/src/controllers/adminController.ts` — `requireAdminAuth` 미들웨어 신설(export). `getMe`는 `verifyAdminBearerToken(req)!`로 non-null 단정만 남기고 401 분기 제거. `getUserDetailForAdmin`은 가드 통째로 제거(이후 decoded 미사용).
+  - `eobom/backend/src/routes/adminRoutes.ts` — `/login`·`/refresh` 다음에 `router.use(requireAdminAuth)` 삽입. 그 아래 17개 라우트는 전부 이 미들웨어를 거친다.
+  - `eobom/backend/src/controllers/moderationController.ts` — 11개 핸들러의 개별 401 가드 블록 전부 제거(전부 decoded 재사용 없음 확인 후 `replace_all`). `verifyAdminBearerToken` import 제거. `listConsultRequestsForAdmin`(consultRequest.findMany)·`listMemorialsForAdmin`(memorial.findMany)에 없던 `select` 명시 추가(§3.1) — 전자는 기존 반환 필드 1:1 그대로 옮김(동작 불변), 후자는 화면이 아직 없어(2026-09-07 실측, AdminPage.tsx에 소비 코드 0건) 신고 심사에 필요한 필드로 좁힘(생년월일 제외 — 공개 응답과 같은 원칙 §4.2).
+  - `eobom/backend/src/controllers/claimController.ts` — `listClaimsForAdmin`·`updateClaimStatus` 가드 제거, import 정리(Partner 쪽 `verifyPartnerBearerToken`은 그대로). `listClaimsForAdmin`의 `facilityClaim.findMany`에 select 명시 추가(기존 반환 필드 1:1).
+  - `eobom/backend/src/controllers/digitalPlatformController.ts` — 3개 핸들러 가드 제거, import 제거. `listDigitalPlatformsForAdmin`(select 아예 없었음)에 전체 필드 명시 select 추가(마스터 데이터라 민감 필드는 없음).
+  - `eobom/backend/src/controllers/farewellPurgeController.ts` — `listFarewellPurgeExpired`·`listFarewellPendingArchive`·`completeArchivePurge` 가드 제거. `executeFarewellPurge`는 감사로그(`FarewellPurgeAuditLog`)에 `adminId`·`adminName`이 필요해 `verifyAdminBearerToken(req)!` 한 줄만 남김.
+  - `eobom/backend/prisma/schema.prisma` — `Admin.role String @default("SUPERADMIN")` 추가(§3.3, 기존 계정 자동 SUPERADMIN). `AdminAuditLog` 모델 신설(§3.2) — `adminId`·`adminName`·`action`·`targetType`·`targetId`·`reason?`·`createdAt`, Admin과 FK 없음(FarewellPurgeAuditLog와 동일 원칙). 🔵 **모델만 신설 — 기존 엔드포인트에 실제 기록을 남기는 배선은 안 함**(그건 §6 A-2 #8 범위, 지금 쓰는 코드 0건).
+- **DB 작업**: 🔴 스키마 변경 — `db-safety.md` 절차대로 로컬 DB 백업 먼저 실행(`docker exec eobom-postgres pg_dump ...`) → `backups/local-eobom_db-preAdminAuditLog-20260907_162104.dump`(190,606B) 생성 확인 → 사용자에게 AskUserQuestion으로 명시적 CONFIRM 받음("진행 (권장)" 선택) → `npx prisma migrate dev --name admin_audit_log_and_role` 실행, DB 적용 완료(`prisma migrate status` = "up to date"). `node .harness/tools/generate-db-doc.js` 재실행 완료(00-05 갱신, 설명 없음 개수 안 늘어남 — 새 필드 전부 주석 있음).
+- **결과**: `tsc --noEmit`(backend) 통과. 마이그레이션 DB 적용 완료.
+- **편차**: 없음 — §6 A-1 #1~#4를 정의된 범위(가드·select·모델 신설) 그대로 구현, §6 A-2(회원 탭 등)로 명시된 배선은 하지 않음.
+- **다음 에이전트가 알아야 할 것**:
+  - 🔴 **`npx prisma generate`가 실패한 상태다** — `EPERM: ... query_engine-windows.dll.node` 파일 잠금(사용자의 백엔드 dev 서버(`ts-node-dev --respawn`)가 물고 있는 것으로 추정, node 프로세스 9개 확인). **DB 마이그레이션 자체는 정상 적용됐지만 TS 클라이언트 타입은 아직 마이그레이션 이전 스냅샷이다.** 지금 코드가 `Admin.role`·`AdminAuditLog`를 참조하지 않아 당장 빌드는 깨지지 않지만, A-2에서 이 필드들을 쓰려면 그 전에 **사용자가 dev 서버를 멈추고 `npx prisma generate`를 다시 돌려야** 한다(에이전트가 사용자 프로세스를 직접 종료하지 않음, 2026-09-03 방침).
+  - A-2(추모관 탭·카탈로그 탭·상담 탭·회원 탭 + 열람 감사로그 기록), A-3(홈 대시보드), A-4(부고장 관리+감사로그 화면)는 이번 범위 밖.
+  - §7 확정 #5(운영자 refresh 30일 단축)·#6(운영 JWT_SECRET 환경변수 설정 여부 확인)는 A-1 체크리스트에 없어 손대지 않음 — 필요하면 별도 지시.
+
+<!-- Gemini 판정 1줄: 대기 -->
+
+
+## 2026-09-07 (149) | [Sonnet] 00-37 A-2 구현 — 운영자 콘솔 4개 탭(추모관 신고·디지털 카탈로그·상담 신청·회원) + 회원 상세 열람 감사로그 배선
+
+- **근거 스펙**: docs/00_핵심플랫폼/00-37_운영자_콘솔_확장_및_접근분리_기획서.md §6 A-2(#5~#8)
+- **건드린 파일**:
+  - `eobom/backend/src/controllers/adminController.ts` — `listUsersForAdmin` 신설(`GET /api/admin/users`, `q`/`page`/`pageSize` 지원, `facilityController.getFacilities`와 같은 응답 형태 `{count,page,pageSize,totalPages,data}`, select는 id·name·email·role·createdAt만). `getUserDetailForAdmin`에 조회 성공 시 `prisma.adminAuditLog.create({action:'VIEW', targetType:'User', ...})` 추가(§3.2·A-2 #8) — 감사로그 insert는 별도 try/catch로 감싸 실패해도 조회 응답은 그대로 나가게 함.
+  - `eobom/backend/src/controllers/moderationController.ts` — `listMemorialGuestbookForAdmin` 신설(`GET /api/admin/memorials/:id/guestbook`, select: id·authorName·relationToDeceased·message·hiddenAt·createdAt).
+  - `eobom/backend/src/routes/adminRoutes.ts` — `router.get('/users', listUsersForAdmin)`, `router.get('/memorials/:id/guestbook', listMemorialGuestbookForAdmin)` 추가.
+  - `eobom/frontend/src/pages/AdminPage.tsx` — `QueueTab`에 `MEMORIALS`·`DIGITAL_PLATFORMS`·`CONSULT_REQUESTS`·`MEMBERS` 4개 추가, 탭바·상단 필터 영역·본문 렌더링·로드 함수·useEffect 분기까지 기존 5개 탭과 같은 스타일 상수(`SMALL_BTN`/`TAB_BTN`/`SMALL_INPUT`)·`card` 클래스·`authFetch` 패턴 그대로 확장. 추모관 탭은 신고만/전체 토글 + 복구(LINK/PUBLIC)·비공개유지 액션 + 방명록 펼쳐보기·숨기기. 카탈로그 탭은 신규 등록 폼(비공개로 생성) + 공개 토글(공개 전환 시 lastVerifiedAt 없으면 확인 후 오늘 날짜로 채움). 상담 탭은 상태 필터 + 읽기 전용 목록. 회원 탭은 검색+페이지네이션 목록(FACILITIES 탭 패턴 재사용) + 클릭 시 상세 모달(감사로그 기록된다는 안내 문구 포함).
+- **결과**: `tsc --noEmit`·`npm run build` 둘 다 통과(frontend·backend).
+- **편차**: 🔵 `listMemorialGuestbookForAdmin`(`GET /admin/memorials/:id/guestbook`)은 00-37 문서에 없던 신규 엔드포인트다. 방명록 숨김(`hideMemorialGuestbookEntry`, 기존 API)이 어떤 `gid`를 숨길지 볼 방법이 서버에 전혀 없어서(문서가 나열한 3개 API 중 목록 API가 빠져 있었음) 최소로 추가했다 — A-2 전문의 "서버 변경 거의 없음"의 "거의"에 해당하는 예외.
+- **다음 에이전트가 알아야 할 것**:
+  - 실기동(브라우저) 검증 대기 — 특히 추모관 방명록 숨기기·디지털 카탈로그 공개 토글·회원 상세 열람 시 실제로 `AdminAuditLog` 행이 쌓이는지는 dev 서버로 확인 안 함(2026-09-03 방침).
+  - A-3(홈 대시보드 — `GET /admin/dashboard`, 로그인 후 첫 화면을 홈으로), A-4(부고장 관리 탭 + 감사로그 열람 화면)는 이번 범위 밖.
+  - 승인/거절 등 다른 액션(파트너·전문가·클레임 등)에는 감사로그를 붙이지 않았다 — 문서가 §3.2·A-2 #8에서 명시한 건 회원 상세 열람 하나뿐이라 그 범위만 구현.
+
+<!-- Gemini 판정 1줄: 대기 -->
+
+
+## 2026-09-07 (150) | [Sonnet] wt149 코드 리뷰 — 방명록 새로고침 버그 수정
+
+- **근거 스펙**: 스펙 없음 — wt149(00-37 A-2) 산출물을 직접 검토하며 발견한 버그 수정.
+- **건드린 파일**: `eobom/frontend/src/pages/AdminPage.tsx` — 추모관 탭의 `hideGuestbookEntry`가 `toggleGuestbook(memorialId)`를 연달아 두 번 호출해 "닫았다 다시 열기"로 새로고침을 흉내내던 것을 고쳤다. `toggleGuestbook`을 열기 전용 로직(`loadGuestbook`)과 토글 판정 로직으로 분리하고, `hideGuestbookEntry`는 `loadGuestbook(memorialId)`을 직접 호출하도록 변경.
+- **결과**: `tsc --noEmit`·`npm run build`(frontend) 재통과 확인.
+- **편차**: 없음(버그 수정).
+- **다음 에이전트가 알아야 할 것**: **버그였던 이유** — `openGuestbookId`는 `hideGuestbookEntry` 함수 실행 시점에 캡처된 클로저 값이라, 같은 함수 안에서 `toggleGuestbook`을 두 번 불러도 두 호출 모두 같은(리렌더 전) 값을 본다. 방명록이 열려 있는 상태에서 숨기기를 누르면: 1차 호출이 `openGuestbookId === memorialId` 조건에 걸려 "닫기"(`setOpenGuestbookId(null)`) 분기를 타고 반환, 2차 호출도 아직 리렌더가 안 일어나 여전히 같은 조건이 참이라 또 "닫기" 분기를 탄다 — 결과적으로 목록을 다시 불러오는 "열기" 분기(`else`)는 한 번도 실행되지 않고 패널만 닫혔다. React 상태 갱신이 비동기/배치 처리된다는 점을 놓친 전형적인 실수. 브라우저 실기동 재검증은 여전히 대기 상태(2026-09-03 방침).
+
+<!-- Gemini 판정 1줄: 대기 -->
+
+
+## 2026-09-07 (151) | [Sonnet] 추모관 "신고하기" 버튼 제거 + 운영자 탭 라벨 정리
+
+- **근거 스펙**: 스펙 없음 — 사용자 지시. 조문객이 직접 추모관을 신고하는 self-report 기능을 없애기로 함.
+- **건드린 파일**:
+  - `eobom/frontend/src/pages/MemorialLandingPage.tsx` — "이 추모관 신고하기" 버튼과 확인 단계(`reportState` 상태머신 전체: idle/confirming/submitting/done/error), `handleReportConfirm`, 완료 화면(`if (reportState === 'done')`), `Flag` import 삭제. 백엔드 `POST /api/memorials/:slug/report`·`reviewMemorialReport`는 코드 그대로 남김(호출부만 사라짐) — 편차 아님, 요청 범위가 버튼 삭제였음.
+  - `eobom/frontend/src/pages/AdminPage.tsx` — 탭 라벨 `추모관 신고` → `추모관`. `memorialReportedOnly` 기본값을 `true`→`false`로 변경(신규 신고가 더는 안 들어오므로 기본 true면 탭이 거의 항상 빈 화면으로 보임 — 탭을 열었을 때 전체 추모관이 보이게).
+- **결과**: `tsc --noEmit`·`npm run build`(frontend) 통과.
+- **편차**: 없음.
+- **다음 에이전트가 알아야 할 것**: 🔴 admin 탭의 "복구(LINK/PUBLIC)"·"비공개 유지" 버튼은 `reportedAt`이 있을 때만 노출되는데, self-report 경로가 사라져 **앞으로 새로 만들어지는 추모관은 이 조건을 절대 만족하지 못한다** — 사실상 죽은 액션이 됐다(기존 테스트 데이터로 reportedAt이 이미 채워진 몇 건만 예외). 운영자가 신고 없이도 추모관을 직접 비공개 전환하고 싶다면 별도 액션이 필요한데, 이번 지시 범위 밖이라 손대지 않았다. 방명록 개별 숨기기(`hideMemorialGuestbookEntry`)는 신고 여부와 무관하게 그대로 동작한다.
+
+<!-- Gemini 판정 1줄: 대기 -->
+
+
+## 2026-09-07 (152) | [Sonnet] 운영자 추모관 탭 — "미확인 신고만 보기" 체크박스 제거 + 방명록 보기/숨기기 버튼 분리
+
+- **근거 스펙**: 스펙 없음 — 사용자 지시.
+- **건드린 파일**: `eobom/frontend/src/pages/AdminPage.tsx`
+  - `memorialReportedOnly` state·관련 `useEffect`·체크박스 UI 전부 제거. `loadMemorials`는 이제 항상 `?reported=false`(전체 목록)로 호출 — wt151에서 self-report 경로가 없어져 이 체크박스가 어차피 무의미해진 데 이어, 이번엔 완전히 뺐다.
+  - 방명록 "보기"/"닫기" 라벨이 바뀌는 토글 버튼 하나였던 것을 "방명록 보기"(`loadGuestbook` 호출)·"방명록 숨기기"(열려 있을 때만 노출, `setOpenGuestbookId(null)`) 두 개의 별개 버튼으로 분리. 이제 안 쓰는 `toggleGuestbook` 함수 삭제.
+- **결과**: `tsc --noEmit`·`npm run build`(frontend) 통과.
+- **편차**: 없음.
+- **다음 에이전트가 알아야 할 것**: "방명록 숨기기"는 UI 패널을 닫는 동작이지, 방명록 전체를 비공개 처리하는 모더레이션 액션이 아니다 — 글 하나하나를 비공개 처리하는 건 패널을 연 상태에서 각 항목 옆의 "숨기기" 버튼(기존 `hideGuestbookEntry`)이다. 이름이 비슷해 헷갈릴 수 있어 남겨둔다.
+
+<!-- Gemini 판정 1줄: 대기 -->
+
+
+## 2026-09-07 (153) | [Sonnet] wt152 재정정 — "방명록 보기" 단일 토글로 복귀, "숨기기" 개념 정정
+
+- **근거 스펙**: 스펙 없음 — 사용자가 wt152의 해석이 틀렸다고 정정. "숨기기"는 화면(패널)을 닫는 게 아니라 **방명록 글 자체를 신고 등의 사유로 비공개 처리하는 모더레이션 기능**이며, 지금 웹에는 신고 버튼이 없으니(wt151) **유선·카톡 문의로 들어온 신고를 운영자가 대신 처리**하라고 있는 기능이라는 설명.
+- **건드린 파일**: `eobom/frontend/src/pages/AdminPage.tsx`
+  - wt152에서 분리했던 "방명록 보기"/"방명록 숨기기" 카드 레벨 버튼 2개를 다시 **"방명록 보기" 토글 버튼 하나**로 되돌림(열려있으면 "닫기", 닫혀있으면 "보기" — `toggleGuestbook` 함수 재도입, 단 wt150에서 고친 "직접 `loadGuestbook` 호출" 버그 수정분은 그대로 유지).
+  - 패널을 펼쳤을 때 각 방명록 글 옆에 있는 기존 "숨기기" 버튼(`hideGuestbookEntry`, 실제 모더레이션 액션)에는 손대지 않고, `title` 툴팁만 추가해 "유선·카톡 등으로 신고가 접수된 글을 비공개 처리합니다(웹 신고 버튼은 없음)"라고 목적을 명시.
+- **결과**: `tsc --noEmit`·`npm run build`(frontend) 통과.
+- **편차**: 없음(정정).
+- **다음 에이전트가 알아야 할 것**: "방명록 보기/닫기"(패널 여닫기)와 "숨기기"(글 하나를 비공개 처리)는 서로 다른 개념이다 — 헷갈리지 말 것. wt152에서 이걸 착각해 "숨기기"를 패널 닫기 버튼으로 잘못 만들었던 것을 이번에 되돌렸다.
+
+<!-- Gemini 판정 1줄: 대기 -->
+
+
+## 2026-09-07 (154) | [Sonnet] 운영자 추모관 탭 — "추모관 숨기기"(전체 비공개) 버튼 신설, 신고 여부 무관하게 상시 노출
+
+- **근거 스펙**: 스펙 없음 — 사용자 지시. "방명록 글만 숨겨지고 추모관 자체를 숨기는 기능이 없다"는 지적. wt151에서 예견했던 문제("복구/비공개유지 버튼이 reportedAt 조건에 갇혀 사실상 죽었다")가 실제로 지적된 것.
+- **건드린 파일**: `eobom/frontend/src/pages/AdminPage.tsx` — 추모관 카드의 복구/비공개 버튼 노출 조건을 `m.reportedAt && !m.reviewedAt`(신고 여부 기준) → `m.visibility === 'PRIVATE'`(현재 공개범위 기준)로 교체. `PRIVATE`가 아니면 "추모관 숨기기"(확인창 후 `decideMemorial(id,'CONFIRM')`) 버튼, `PRIVATE`면 "복구(링크 공개)"/"복구(전체 공개)" 버튼을 보여준다. 백엔드는 손대지 않음 — `PATCH /api/admin/memorials/:id/review`(`reviewMemorialReport`)가 애초에 `reportedAt`을 검사하지 않아 그대로 재사용된다.
+- **결과**: `tsc --noEmit`·`npm run build`(frontend) 통과.
+- **편차**: 없음.
+- **다음 에이전트가 알아야 할 것**: `m.reportedAt`·`m.reviewedAt` 필드는 여전히 카드 상단에 "신고 접수 YYYY-MM-DD"로 정보 표시만 하고, 이제 버튼 노출 조건에는 안 쓰인다. 신고 여부와 무관하게 운영자가 언제든 공개범위를 뒤집을 수 있는 게 지금 설계 의도(유선·카톡 신고 대응).
+
+<!-- Gemini 판정 1줄: 대기 -->
+
+
+## 2026-09-08 (155) | [Sonnet] 00-09 §6 토큰 정본 이관(P-1~P-5) + 07-04 §8-8 CareGuide 아코디언 제거
+
+- **근거 스펙**: `docs/00_핵심플랫폼/00-09_디자인_시스템_및_스타일_가이드.md` §6(토큰 정본·이관 계획) + `docs/07_상중_행정_케어/07-04_상중_행정_가이드_재설계_검토서.md` §8-8(아코디언 재설계). 8-8-3(다음 3걸음·요약 띠·분모 변경·인쇄)과 8-8-4(`deadlineShort` 필드 신설)는 사용자 지시 범위 밖이라 이번 작업에서 제외.
+- **건드린 파일**:
+  - `eobom/frontend/src/index.css` — `:root`에 §6.2 토큰(간격 `--sp-*` 6·타입 `--fs-*` 6·굵기 `--fw-*` 3·radius `--r-*` 4·그림자 `--el-*` 3·모션 `--dur-*`/`--ease-*` 5) 신설. 기존 `--border-radius`·`--box-shadow`·`--transition-speed`는 유지(237곳 참조). `--surface-subtle`(#F3F0EA)·`--text-hint`(#94A3B8) 신설. `--state-critical/warn/danger/ok-fg/bg` 8개 신설. 전역 `:focus-visible`(2px solid var(--point-color), offset 2px)과 `prefers-reduced-motion` 블록 추가. `.btn`·`.entry-carousel-dot::after`의 `transition: all` 2건을 속성 명시로 교체. `border-radius`/`box-shadow` 리터럴 다수를 토큰으로 치환. `.care-guide-section-toggle` hover 클래스 신설.
+  - `eobom/frontend/src/pages/*.tsx`(31개 페이지)·`components/**/*.tsx` — Tailwind 회색 10종(`#6B7280` `#64748B` `#9CA3AF` `#F1F5F9` `#F3F4F6` `#E5E7EB` `#E2E8F0` `#D1D5DB` `#CBD5E1`)을 `--text-muted`/`--text-hint`/`--surface-subtle`/`--secondary-dark`/`--border-color`로 전량 치환(135건). 상태색 변형(`#B91C1C` `#DC2626` `#FCA5A5` `#FECACA` `#FDE68A` `#FDBA74` `#9B1C1C` `#065F46` `#059669` `#ECFDF5` `#FDE8E8` 등)을 4쌍(critical/warn/danger/ok)으로 흡수(246건). `borderRadius`/`border-radius` 16종을 `--r-sm/md/lg/full`로(218건, `50%`는 원 모양 유지 목적상 제외). `boxShadow` 중 Tailwind `0 25px 50px -12px rgba(0,0,0,.25)`(9곳)를 `--el-3`으로, 나머지 단일 회색조 그림자를 `--el-1/2`로(23건). `fontWeight: 800/900`(31건) → `var(--fw-bold)`. 남은 `transition: 'all ...'` 6건을 속성 명시 + `--dur-*`/`--ease-*`로 교체(`components/LoginModal.tsx`·`components/Sidebar.tsx`·`pages/DomainOverviewPage.tsx`·`pages/HomePage.tsx`).
+  - `eobom/frontend/src/components/KakaoMapModal.tsx`·`pages/EndingNotePage.tsx` — 자동 치환이 별도 문서 컨텍스트(Kakao `InfoWindow`는 iframe, `window.open`+`document.write` 인쇄창)에 `var(--...)` 토큰을 심어 렌더링이 깨지는 걸 발견해 해당 두 곳만 리터럴 값(`#6C7A89`·`#92400E`·`#FEF3C7`·`700`·`12px`·`8px`)으로 되돌림 — `:root`가 없는 문서라 CSS 커스텀 프로퍼티가 해석되지 않는다.
+  - `eobom/frontend/src/pages/CareGuidePage.tsx` — §8-8-2대로 항목 아코디언 제거(`expandedIds`·`toggleExpand` 삭제). 카드는 1줄(체크·제목·기한 배지 상시 노출·⭐)/2줄(`irreversibleNote` 또는 `note`)/3줄(링크, 6개 항목만)로 고정. `legalBasis`(근거)는 제목 `title` 툴팁으로 이동. 접기는 구간(`TIME_SECTIONS`) 5개 단위로만 두고 기본은 `funeral`만 펼침(`openSections` state 신설). `month3` 구간은 접혀 있어도 토글 버튼 줄에 ⭐과 좌측 4px 붉은 테두리(`var(--state-critical-fg)`)를 유지. 카테고리 헤더는 `categoryOrder.length > 1`일 때만 노출. 구간 제목은 `var(--font-serif)`+`var(--fs-section)`, 기한 배지는 `font-variant-numeric: tabular-nums`이자 카드 안 유일한 `var(--fw-bold)`(크래프트 규칙 #2), `deadlineLabel` 원문을 자르지 않고 `white-space: nowrap` 없이 줄바꿈 허용.
+  - `.claude/settings.json` — `PreToolUse` 배열에 `Write|Edit|MultiEdit` 매처로 `token-guard.js` 훅 추가.
+  - `.harness/tools/token-guard.js`(신설) — `eobom/frontend/src` 하위 신규 코드(Write의 새 파일, Edit/MultiEdit의 `new_string`)에서 하드코딩 HEX와 §6.2 스케일 밖 `fontSize`(허용: `0.85/0.95/1.05/1.3rem`, `clamp`, `var(--fs-*)`)를 잡는다. exit 1(비차단 경고)만 쓰고 exit 2(차단)는 쓰지 않음 — 기존 1,304곳이 아직 위반 상태라서. 화이트리스트에 있는 파일을 `Write`로 통째로 덮어쓸 때만 건너뛴다.
+  - `.harness/tools/token-guard-whitelist.txt`(신설) — 2026-09-08 시점 `eobom/frontend/src` 기존 파일 62개 전수 스냅샷(상대경로).
+- **결과**: 매 단계(P-1~P-4)마다 `npx tsc --noEmit`·`npm run build`(`eobom/frontend`) 통과 확인. 최종 산출물 `dist/assets/index-*.css` 21.15KB(빌드 시각 기준), JS 청크 경고(500KB 초과)는 기존과 동일(이번 작업과 무관, 코드 스플리팅 이슈). `token-guard.js`를 3개 시나리오(신규 파일 위반 감지·화이트리스트 파일 `Write` 통과·화이트리스트 파일 `Edit`의 `new_string` 위반 감지)로 수동 실행해 exit 코드(0/0/1) 확인.
+- **편차**: (1) P-2 색 치환 범위를 사용자가 든 예시 목록보다 넓혀, 같은 4상태 패밀리에 속한 변형(`#9B1C1C`·`#065F46`·`#059669`·`#ECFDF5`·`#FDE8E8`)까지 흡수했다 — §6.2-2 "같은 의미에 한 쌍만" 원칙을 따른 것. (2) `border-radius` 압축 시 `50%`(원형 아바타·아이콘)는 4칸 스케일 대상에서 제외했다 — `999px`(`--r-full`)로 바꾸면 정사각형 요소는 동일하게 보이지만 가로세로 비율이 다른 요소(필 모양 버튼 등)의 렌더 결과가 달라질 위험이 있어 보수적으로 남김. (3) 자동 치환 도중 발견한 iframe/인쇄창 버그(KakaoMapModal·EndingNotePage)는 P-2/P-3의 부작용이라 같은 커밋 범위에서 직접 리터럴로 되돌려 수정 — 스펙 밖 추가 수정이지만 회귀 방지 목적.
+- **다음 에이전트가 알아야 할 것**: (1) P-4는 07-04 §8-8-2(아코디언 제거)까지만 구현했고, §8-8-3(다음 3걸음·요약 띠·분모 변경·인쇄)과 §8-8-4(`deadlineShort` 필드, `07-02` 개정 동반)는 미착수. (2) `token-guard.js`는 경고 전용(exit 1)이라 Claude Code 훅이 실제로 얼마나 눈에 띄게 노출하는지(터미널)는 실사용 확인이 안 됨 — 사람이 실제 Edit 중 경고가 뜨는지 한 번 확인 권장. (3) 나머지 `borderRadius: '50%'`(18곳, 원형 요소)와 Kakao/Naver 브랜드 글로우 `boxShadow`(로그인 버튼 2곳), `Sidebar.tsx`의 방향성 드로어 그림자(`4px 0 20px`)는 의도적으로 토큰화하지 않고 리터럴로 남김. (4) 실기동 검증(다크 대비·hover·접기 동작 등)은 사람이 진행.
+
+<!-- Gemini 판정 1줄: 대기 -->
