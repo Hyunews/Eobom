@@ -94,7 +94,7 @@ export const FacilityReviewModal: React.FC<FacilityReviewModalProps> = ({
       <div
         style={{
           backgroundColor: '#FFFFFF',
-          borderRadius: '20px',
+          borderRadius: 'var(--r-lg)',
           padding: '1.5rem',
           maxWidth: '520px',
           width: '100%',
@@ -122,7 +122,7 @@ export const FacilityReviewModal: React.FC<FacilityReviewModalProps> = ({
             <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>아직 작성된 리뷰가 없습니다. 첫 리뷰를 남겨주세요.</p>
           )}
           {facility.reviews.map((r) => (
-            <div key={r.id} style={{ border: '1px solid var(--border-color)', borderRadius: '10px', padding: '0.8rem 1rem' }}>
+            <div key={r.id} style={{ border: '1px solid var(--border-color)', borderRadius: 'var(--r-sm)', padding: '0.8rem 1rem' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.3rem' }}>
                 <strong style={{ fontSize: '0.9rem', color: 'var(--primary-color)' }}>{r.user.name}</strong>
                 <span style={{ fontSize: '0.85rem', color: 'var(--point-color)', fontWeight: 700 }}>★ {r.rating}</span>
@@ -161,7 +161,7 @@ export const FacilityReviewModal: React.FC<FacilityReviewModalProps> = ({
               style={{
                 width: '100%',
                 padding: '0.8rem',
-                borderRadius: '8px',
+                borderRadius: 'var(--r-sm)',
                 border: '1px solid var(--border-color)',
                 fontSize: '0.9rem',
                 height: '70px',
@@ -169,9 +169,9 @@ export const FacilityReviewModal: React.FC<FacilityReviewModalProps> = ({
             />
           </div>
 
-          {error && <p style={{ color: '#DC2626', fontSize: '0.85rem', margin: 0 }}>{error}</p>}
+          {error && <p style={{ color: 'var(--state-danger-fg)', fontSize: '0.85rem', margin: 0 }}>{error}</p>}
           {justSubmitted && (
-            <p style={{ color: '#059669', fontSize: '0.85rem', margin: 0 }}>✅ 리뷰가 등록되었습니다. 감사합니다!</p>
+            <p style={{ color: 'var(--state-ok-fg)', fontSize: '0.85rem', margin: 0 }}>✅ 리뷰가 등록되었습니다. 감사합니다!</p>
           )}
 
           <button type="submit" disabled={isSubmitting} className="btn btn-primary" style={{ width: '100%' }}>

@@ -366,7 +366,7 @@ export const FarewellMessageCard: React.FC<FarewellMessageCardProps> = ({ recipi
           {recipient.relationship === 'OTHER' && recipient.relationshipEtc ? `(${recipient.relationshipEtc})` : ''}
         </span>
       </div>
-      <p style={{ fontSize: '0.95rem', color: '#9CA3AF', marginBottom: '0.9rem' }}>{STATUS_LABEL[recipient.status] || recipient.status}</p>
+      <p style={{ fontSize: '0.95rem', color: 'var(--text-hint)', marginBottom: '0.9rem' }}>{STATUS_LABEL[recipient.status] || recipient.status}</p>
 
       {/* 저장된 편지 목록 — 미리보기까지만(전문은 편집기를 열어야 보인다) */}
       {messages.length > 0 && (
@@ -406,7 +406,7 @@ export const FarewellMessageCard: React.FC<FarewellMessageCardProps> = ({ recipi
                     {m.hasAudio && <Volume2 size={14} color="var(--point-color)" style={{ flexShrink: 0 }} />}
                   </span>
                   <span className="farewell-message-preview" style={{ fontSize: '1rem', lineHeight: 1.6, color: 'var(--text-muted)' }}>{m.preview}</span>
-                  <span style={{ fontSize: '0.9rem', color: '#9CA3AF' }}>{new Date(m.updatedAt).toLocaleString('ko-KR')}</span>
+                  <span style={{ fontSize: '0.9rem', color: 'var(--text-hint)' }}>{new Date(m.updatedAt).toLocaleString('ko-KR')}</span>
                 </button>
                 {/* §5.4-3-1 항목23-2 — 목록에서 편지 하나만 바로 반출·삭제. 편집기를 여는 버튼과
                     겹치므로 별도 버튼으로 우상단에 얹는다(버튼 중첩은 유효한 HTML이 아니다). */}
@@ -424,7 +424,7 @@ export const FarewellMessageCard: React.FC<FarewellMessageCardProps> = ({ recipi
                       width: iconBoxSize, height: iconBoxSize,
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                       background: 'none', border: 'none', padding: 0, flexShrink: 0,
-                      color: '#B91C1C', cursor: deletingMessageId === m.id ? 'wait' : 'pointer',
+                      color: 'var(--state-danger-fg)', cursor: deletingMessageId === m.id ? 'wait' : 'pointer',
                       transition: 'width 0.15s ease, height 0.15s ease',
                     }}
                   >
@@ -530,7 +530,7 @@ export const FarewellMessageCard: React.FC<FarewellMessageCardProps> = ({ recipi
               />
 
               {error && (
-                <div style={{ fontSize: '1rem', lineHeight: 1.6, color: '#92400E', backgroundColor: '#FEF3C7', border: '1px solid #FDE68A', borderRadius: '8px', padding: '0.7rem 0.9rem' }}>
+                <div style={{ fontSize: '1rem', lineHeight: 1.6, color: 'var(--state-warn-fg)', backgroundColor: 'var(--state-warn-bg)', border: '1px solid var(--state-warn-bg)', borderRadius: 'var(--r-sm)', padding: '0.7rem 0.9rem' }}>
                   {error}
                 </div>
               )}
@@ -545,7 +545,7 @@ export const FarewellMessageCard: React.FC<FarewellMessageCardProps> = ({ recipi
                   style={{
                     display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '0.35rem',
                     flex: 1, height: '46px', padding: '0 1rem', fontSize: '1.15rem', fontWeight: 700,
-                    borderRadius: '8px', border: 'none', cursor: saving ? 'default' : 'pointer',
+                    borderRadius: 'var(--r-sm)', border: 'none', cursor: saving ? 'default' : 'pointer',
                     backgroundColor: 'var(--secondary-color)', color: 'var(--primary-color)',
                   }}
                 >
@@ -558,7 +558,7 @@ export const FarewellMessageCard: React.FC<FarewellMessageCardProps> = ({ recipi
                   style={{
                     display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '0.35rem',
                     flex: 1, height: '46px', padding: '0 1rem', fontSize: '1.15rem', fontWeight: 700,
-                    borderRadius: '8px', border: 'none', cursor: saving || !body.trim() ? 'default' : 'pointer',
+                    borderRadius: 'var(--r-sm)', border: 'none', cursor: saving || !body.trim() ? 'default' : 'pointer',
                     backgroundColor: 'var(--point-color)', color: '#FFFFFF', opacity: !saving && body.trim() ? 1 : 0.5,
                   }}
                 >
@@ -588,7 +588,7 @@ export const FarewellMessageCard: React.FC<FarewellMessageCardProps> = ({ recipi
                     disabled={saving || deletingMessageId === editingId}
                     style={{
                       display: 'inline-flex', alignItems: 'center', gap: '0.3rem', background: 'none', border: 'none',
-                      padding: '0.3rem 0.2rem', fontSize: '0.95rem', fontWeight: 600, color: '#B91C1C',
+                      padding: '0.3rem 0.2rem', fontSize: '0.95rem', fontWeight: 600, color: 'var(--state-danger-fg)',
                       cursor: saving || deletingMessageId === editingId ? 'default' : 'pointer', opacity: saving || deletingMessageId === editingId ? 0.6 : 1,
                     }}
                   >

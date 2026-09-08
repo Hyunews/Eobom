@@ -53,7 +53,7 @@ export const SummaryModal: React.FC<{
         </div>
 
         {!anyCompleted && (
-          <div style={{ fontSize: '0.9rem', color: 'var(--text-muted)', backgroundColor: 'var(--secondary-color)', borderRadius: '10px', padding: '0.9rem 1rem', marginBottom: '1rem', lineHeight: 1.6 }}>
+          <div style={{ fontSize: '0.9rem', color: 'var(--text-muted)', backgroundColor: 'var(--secondary-color)', borderRadius: 'var(--r-sm)', padding: '0.9rem 1rem', marginBottom: '1rem', lineHeight: 1.6 }}>
             아직 작성하신 항목이 없습니다. 아래 목록에서 항목을 눌러 하나씩 채워보세요.
           </div>
         )}
@@ -66,24 +66,24 @@ export const SummaryModal: React.FC<{
               onClick={() => onSelectRow(row.code)}
               style={{
                 display: 'flex', flexDirection: 'column', gap: '0.35rem', width: '100%', textAlign: 'left',
-                minHeight: 'var(--min-touch-target)', padding: '0.8rem 1rem', borderRadius: '10px',
-                border: '1px solid var(--border-color)', backgroundColor: row.completed ? 'var(--card-bg)' : '#FEF3C7',
+                minHeight: 'var(--min-touch-target)', padding: '0.8rem 1rem', borderRadius: 'var(--r-sm)',
+                border: '1px solid var(--border-color)', backgroundColor: row.completed ? 'var(--card-bg)' : 'var(--state-warn-bg)',
                 cursor: 'pointer',
               }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
                 <span style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--primary-color)' }}>{row.title}</span>
                 {row.completed ? (
-                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.8rem', fontWeight: 700, color: '#03543F', backgroundColor: '#DEF7EC', borderRadius: '999px', padding: '0.15rem 0.6rem' }}>
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.8rem', fontWeight: 700, color: 'var(--state-ok-fg)', backgroundColor: 'var(--state-ok-bg)', borderRadius: 'var(--r-full)', padding: '0.15rem 0.6rem' }}>
                     <CheckCircle2 size={13} /> 작성함
                   </span>
                 ) : (
-                  <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#92400E', backgroundColor: '#FEF3C7', border: '1px solid #FDE68A', borderRadius: '999px', padding: '0.15rem 0.6rem' }}>
+                  <span style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--state-warn-fg)', backgroundColor: 'var(--state-warn-bg)', border: '1px solid var(--state-warn-bg)', borderRadius: 'var(--r-full)', padding: '0.15rem 0.6rem' }}>
                     미작성
                   </span>
                 )}
                 {row.timingBadge && (
-                  <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', backgroundColor: '#F1F5F9', borderRadius: '999px', padding: '0.15rem 0.6rem' }}>
+                  <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', backgroundColor: 'var(--surface-subtle)', borderRadius: 'var(--r-full)', padding: '0.15rem 0.6rem' }}>
                     {row.timingBadge}
                   </span>
                 )}

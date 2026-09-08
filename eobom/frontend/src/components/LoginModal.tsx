@@ -31,8 +31,8 @@ const ConsentCheckbox: React.FC<{
           width: '19px',
           height: '19px',
           flexShrink: 0,
-          borderRadius: '5px',
-          border: checked ? 'none' : '1.5px solid #D1D5DB',
+          borderRadius: 'var(--r-sm)',
+          border: checked ? 'none' : '1.5px solid var(--border-color)',
           backgroundColor: checked ? 'var(--point-color)' : '#FFFFFF',
           display: 'flex',
           alignItems: 'center',
@@ -43,14 +43,14 @@ const ConsentCheckbox: React.FC<{
         {checked && <Check size={13} color="#FFFFFF" strokeWidth={3} />}
       </span>
       <span>
-        <span style={{ color: required ? 'var(--primary-color)' : '#6B7280', fontWeight: 600 }}>
+        <span style={{ color: required ? 'var(--primary-color)' : 'var(--text-muted)', fontWeight: 600 }}>
           {required ? '[필수] ' : '[선택] '}
         </span>
         {label}
       </span>
     </label>
     {href && (
-      <a href={href} target="_blank" rel="noopener noreferrer" style={{ fontSize: '0.85rem', color: '#9CA3AF', textDecoration: 'underline', flexShrink: 0 }}>
+      <a href={href} target="_blank" rel="noopener noreferrer" style={{ fontSize: '0.85rem', color: 'var(--text-hint)', textDecoration: 'underline', flexShrink: 0 }}>
         보기
       </a>
     )}
@@ -75,7 +75,7 @@ const SocialLoginButtons: React.FC<{
         backgroundColor: '#FEE500',
         color: '#191919',
         border: 'none',
-        borderRadius: '14px',
+        borderRadius: 'var(--r-md)',
         fontSize: '0.98rem',
         fontWeight: 700,
         display: 'flex',
@@ -103,7 +103,7 @@ const SocialLoginButtons: React.FC<{
         backgroundColor: '#03C75A',
         color: '#FFFFFF',
         border: 'none',
-        borderRadius: '14px',
+        borderRadius: 'var(--r-md)',
         fontSize: '0.98rem',
         fontWeight: 700,
         display: 'flex',
@@ -115,7 +115,7 @@ const SocialLoginButtons: React.FC<{
         transition: 'transform 0.15s'
       }}
     >
-      <span style={{ fontWeight: 900, fontSize: '1.2rem', fontFamily: 'sans-serif' }}>N</span>
+      <span style={{ fontWeight: 'var(--fw-bold)', fontSize: '1.2rem', fontFamily: 'sans-serif' }}>N</span>
       네이버로 시작하기
     </button>
 
@@ -128,8 +128,8 @@ const SocialLoginButtons: React.FC<{
         height: '52px',
         backgroundColor: '#FFFFFF',
         color: '#3C4043',
-        border: '1.5px solid #E5E7EB',
-        borderRadius: '14px',
+        border: '1.5px solid var(--secondary-dark)',
+        borderRadius: 'var(--r-md)',
         fontSize: '0.98rem',
         fontWeight: 700,
         display: 'flex',
@@ -137,7 +137,7 @@ const SocialLoginButtons: React.FC<{
         justifyContent: 'center',
         gap: '0.75rem',
         cursor: 'pointer',
-        boxShadow: '0 2px 6px rgba(0,0,0,0.05)',
+        boxShadow: 'var(--el-1)',
         transition: 'transform 0.15s'
       }}
     >
@@ -273,14 +273,14 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin
           카드 자체를 뷰포트의 90%로 제한하고 내부 스크롤을 허용한다. */}
       <div style={{
         backgroundColor: '#FFFFFF',
-        borderRadius: '24px',
+        borderRadius: 'var(--r-lg)',
         maxWidth: '440px',
         width: '100%',
         maxHeight: '90vh',
         overflowY: 'auto',
         WebkitOverflowScrolling: 'touch',
         padding: '1.9rem 1.5rem',
-        boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+        boxShadow: 'var(--el-3)',
         position: 'relative'
       }}>
         {/* 닫기 버튼 */}
@@ -290,7 +290,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin
             position: 'absolute',
             top: '1.25rem',
             right: '1.25rem',
-            background: '#F3F4F6',
+            background: 'var(--surface-subtle)',
             border: 'none',
             borderRadius: '50%',
             width: '36px',
@@ -299,8 +299,8 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin
             alignItems: 'center',
             justifyContent: 'center',
             cursor: 'pointer',
-            color: '#6B7280',
-            transition: 'all 0.2s'
+            color: 'var(--text-muted)',
+            transition: 'background-color var(--dur-1) var(--ease-out), color var(--dur-1) var(--ease-out)'
           }}
         >
           <X size={20} />
@@ -315,24 +315,24 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin
             padding: '0.4rem 0.9rem',
             backgroundColor: 'var(--secondary-color)',
             color: 'var(--primary-color)',
-            borderRadius: '20px',
+            borderRadius: 'var(--r-lg)',
             fontSize: '0.85rem',
             fontWeight: 600,
             marginBottom: '0.75rem'
           }}>
             <ShieldCheck size={14} /> 안전하고 빠른 3초 간편로그인
           </div>
-          <h2 style={{ color: 'var(--primary-color)', fontSize: '1.6rem', fontWeight: 800, margin: '0 0 0.4rem 0' }}>
+          <h2 style={{ color: 'var(--primary-color)', fontSize: '1.6rem', fontWeight: 'var(--fw-bold)', margin: '0 0 0.4rem 0' }}>
             이어봄 시작하기
           </h2>
-          <p style={{ fontSize: '0.9rem', color: '#6B7280', margin: 0, lineHeight: 1.5 }}>
+          <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', margin: 0, lineHeight: 1.5 }}>
             소셜 계정으로 로그인하고<br />엔딩노트 및 웰다잉 토탈 케어 서비스를 이용해보세요.
           </p>
         </div>
 
         {/* 로그인/회원가입 탭 — 2026-08-25. 기본 "로그인"은 동의 UI 없이 소셜 버튼만 노출하고
             (기존 회원 재로그인 전용), "회원가입"에서만 만14세+필수동의 게이트를 거친다. */}
-        <div style={{ display: 'flex', backgroundColor: '#F3F4F6', borderRadius: '12px', padding: '4px', marginBottom: '1.2rem' }}>
+        <div style={{ display: 'flex', backgroundColor: 'var(--surface-subtle)', borderRadius: 'var(--r-md)', padding: '4px', marginBottom: '1.2rem' }}>
           {(['login', 'signup'] as const).map((tab) => (
             <button
               key={tab}
@@ -341,15 +341,15 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin
               style={{
                 flex: 1,
                 border: 'none',
-                borderRadius: '9px',
+                borderRadius: 'var(--r-sm)',
                 padding: '0.6rem 0',
                 fontSize: '0.92rem',
                 fontWeight: 700,
                 cursor: 'pointer',
                 backgroundColor: activeTab === tab ? '#FFFFFF' : 'transparent',
-                color: activeTab === tab ? 'var(--primary-color)' : '#6B7280',
+                color: activeTab === tab ? 'var(--primary-color)' : 'var(--text-muted)',
                 boxShadow: activeTab === tab ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
-                transition: 'all 0.15s'
+                transition: 'background-color var(--dur-1) var(--ease-out), color var(--dur-1) var(--ease-out), box-shadow var(--dur-1) var(--ease-out)'
               }}
             >
               {tab === 'login' ? '로그인' : '회원가입'}
@@ -358,7 +358,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin
         </div>
 
         {notice && (
-          <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', fontSize: '0.85rem', color: '#92400E', backgroundColor: '#FEF3C7', border: '1px solid #FDE68A', borderRadius: '10px', padding: '0.7rem 0.9rem', marginBottom: '1.1rem' }}>
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', fontSize: '0.85rem', color: 'var(--state-warn-fg)', backgroundColor: 'var(--state-warn-bg)', border: '1px solid var(--state-warn-bg)', borderRadius: 'var(--r-sm)', padding: '0.7rem 0.9rem', marginBottom: '1.1rem' }}>
             <AlertCircle size={16} style={{ flexShrink: 0, marginTop: '0.1rem' }} />
             <span>{notice}</span>
           </div>
@@ -389,8 +389,8 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin
             fontSize: '0.85rem',
             color: '#4B5563',
             padding: '0.7rem 0.9rem',
-            border: '1px solid #E5E7EB',
-            borderRadius: '10px',
+            border: '1px solid var(--secondary-dark)',
+            borderRadius: 'var(--r-sm)',
             marginBottom: '0.9rem'
           }}
         >
@@ -401,8 +401,8 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin
               width: '19px',
               height: '19px',
               flexShrink: 0,
-              borderRadius: '5px',
-              border: ageConfirmed ? 'none' : '1.5px solid #D1D5DB',
+              borderRadius: 'var(--r-sm)',
+              border: ageConfirmed ? 'none' : '1.5px solid var(--border-color)',
               backgroundColor: ageConfirmed ? 'var(--primary-color)' : '#FFFFFF',
               display: 'flex',
               alignItems: 'center',
@@ -421,7 +421,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin
             필수 2개가 체크되기 전까지 눌리지 않는다. 최초 가입(신규 소셜 로그인)일 때만 실제로
             DB에 동의 시각이 기록되고(authController.ts), 기존 회원 재로그인 시에는 이미 최초
             가입 때 받은 값이라 여기서 다시 체크해도 별도로 덮어써지지 않는다. */}
-        <div style={{ backgroundColor: 'var(--secondary-color)', borderRadius: '14px', padding: '0.8rem 1rem 0.4rem', marginBottom: '1.2rem' }}>
+        <div style={{ backgroundColor: 'var(--secondary-color)', borderRadius: 'var(--r-md)', padding: '0.8rem 1rem 0.4rem', marginBottom: '1.2rem' }}>
           <div
             onClick={toggleAll}
             role="checkbox"
@@ -433,7 +433,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin
               cursor: 'pointer',
               paddingBottom: '0.55rem',
               marginBottom: '0.3rem',
-              borderBottom: '1px solid #E5E7EB',
+              borderBottom: '1px solid var(--secondary-dark)',
               fontWeight: 700,
               fontSize: '0.92rem',
               color: 'var(--primary-color)'
@@ -444,8 +444,8 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin
                 width: '19px',
                 height: '19px',
                 flexShrink: 0,
-                borderRadius: '5px',
-                border: allAgreed ? 'none' : '1.5px solid #D1D5DB',
+                borderRadius: 'var(--r-sm)',
+                border: allAgreed ? 'none' : '1.5px solid var(--border-color)',
                 backgroundColor: allAgreed ? 'var(--primary-color)' : '#FFFFFF',
                 display: 'flex',
                 alignItems: 'center',
@@ -470,7 +470,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem', marginTop: activeTab === 'login' ? 0 : '0.5rem' }}>
             {/* 파트너(사업자·전문가) 진입 분기 — B2C 소셜 로그인과 무관한 별도 인증 체계로 이동
                 (00-06 §7.3 ①). 데모 블록은 오픈 시 제거될 것이므로 그 위에 둔다. */}
-            <div style={{ marginTop: '0.95rem', paddingTop: '0.95rem', borderTop: '1px solid #F3F4F6', textAlign: 'center' }}>
+            <div style={{ marginTop: '0.95rem', paddingTop: '0.95rem', borderTop: '1px solid var(--surface-subtle)', textAlign: 'center' }}>
               <button
                 type="button"
                 onClick={handlePartnerEntry}
@@ -493,29 +493,29 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin
                 요구해서(authController.ts) canProceed(회원가입 탭의 동의+만14세 게이트)에 계속
                 묶어둔다. "로그인" 탭에는 그 게이트 자체가 없어 canProceed가 항상 false이므로,
                 데모 버튼은 이 자리에 노출은 되지만 "회원가입" 탭으로 전환해 동의해야 눌린다. */}
-            <div style={{ marginTop: '0.95rem', paddingTop: '0.95rem', borderTop: '1px solid #F3F4F6', textAlign: 'center' }}>
-              <div style={{ fontSize: '0.85rem', color: '#9CA3AF', marginBottom: '0.6rem' }}>
+            <div style={{ marginTop: '0.95rem', paddingTop: '0.95rem', borderTop: '1px solid var(--surface-subtle)', textAlign: 'center' }}>
+              <div style={{ fontSize: '0.85rem', color: 'var(--text-hint)', marginBottom: '0.6rem' }}>
                 [빠른 데모 테스트용 선택]
               </div>
               <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center', marginBottom: '0.75rem', opacity: canProceed ? 1 : 0.45, pointerEvents: canProceed ? 'auto' : 'none', transition: 'opacity 0.2s ease' }}>
                 <button
                   type="button"
                   onClick={() => handleMockSocialLogin('KAKAO')}
-                  style={{ fontSize: '0.85rem', padding: '0.35rem 0.65rem', borderRadius: '6px', border: '1px solid #FEE500', backgroundColor: '#FFFDF0', color: '#191919', cursor: 'pointer' }}
+                  style={{ fontSize: '0.85rem', padding: '0.35rem 0.65rem', borderRadius: 'var(--r-sm)', border: '1px solid #FEE500', backgroundColor: '#FFFDF0', color: '#191919', cursor: 'pointer' }}
                 >
                   🟡 카카오(모의)
                 </button>
                 <button
                   type="button"
                   onClick={() => handleMockSocialLogin('NAVER')}
-                  style={{ fontSize: '0.85rem', padding: '0.35rem 0.65rem', borderRadius: '6px', border: '1px solid #03C75A', backgroundColor: '#F0FDF4', color: '#03C75A', cursor: 'pointer' }}
+                  style={{ fontSize: '0.85rem', padding: '0.35rem 0.65rem', borderRadius: 'var(--r-sm)', border: '1px solid #03C75A', backgroundColor: '#F0FDF4', color: '#03C75A', cursor: 'pointer' }}
                 >
                   🟢 네이버(모의)
                 </button>
                 <button
                   type="button"
                   onClick={() => handleMockSocialLogin('GOOGLE')}
-                  style={{ fontSize: '0.85rem', padding: '0.35rem 0.65rem', borderRadius: '6px', border: '1px solid #D1D5DB', backgroundColor: '#F9FAFB', color: '#374151', cursor: 'pointer' }}
+                  style={{ fontSize: '0.85rem', padding: '0.35rem 0.65rem', borderRadius: 'var(--r-sm)', border: '1px solid var(--border-color)', backgroundColor: '#F9FAFB', color: '#374151', cursor: 'pointer' }}
                 >
                   ⚪ 구글(모의)
                 </button>

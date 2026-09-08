@@ -20,7 +20,7 @@
 
   --base-font-size: 18px;
   --min-touch-target: 56px;
-  --border-radius: 12px;
+  --border-radius: var(--r-md);
   /* 헤더 높이 — 2026-08 A안 재구성 시 72px→85px로 상향(개발자 확정). 사이드바 top·본문
      min-height·풀페이지 뷰포트 계산 등 헤더 아래를 기준으로 하는 값들이 전부 이 토큰을 참조하므로
      한 곳만 바꾸면 어긋나지 않는다. */
@@ -30,10 +30,66 @@
   --box-shadow-hover: 0 12px 40px rgba(26, 43, 76, 0.12);
 
   /* 메인 4박스(EntryBoxes) 카드 배경 그라데이션 종점 — 00-09 §2.1 5색 토큰에서 파생한
-     아주 옅은 틴트만 쓴다(새 색상 계열 신설 아님). 슬레이트는 이미 쓰던 회색 토큰(#F1F5F9) 재사용. */
+     아주 옅은 틴트만 쓴다(새 색상 계열 신설 아님). 슬레이트는 §6.2-1 --surface-subtle 재사용. */
   --box-tint-green-end: #F5F8F6;
   --box-tint-gold-end: #FDFBF7;
-  --box-tint-slate-end: #F1F5F9;
+  --box-tint-slate-end: var(--surface-subtle);
+
+  /* ── 00-09 §6.2 토큰 정본 — 간격 6 · 타입 6 · 굵기 3 · radius 4 · 그림자 3 · 모션 5.
+     기존 --border-radius·--box-shadow·--transition-speed는 237곳이 참조 중이라 남기고
+     아래 새 토큰의 별칭으로 삼는다(값은 새 토큰 쪽이 정본). */
+  --sp-1: 4px;  --sp-2: 8px;  --sp-3: 12px;
+  --sp-4: 16px; --sp-6: 24px; --sp-8: 32px;
+
+  --fs-caption: 0.85rem;
+  --fs-body:    0.95rem;
+  --fs-lead:    1.05rem;
+  --fs-section: 1.3rem;
+  --fs-title:   clamp(1.5rem, 3vw, 1.9rem);
+  --fs-display: clamp(1.9rem, 4vw, 2.6rem);
+
+  --fw-normal: 400;  --fw-medium: 600;  --fw-bold: 700;
+
+  --r-sm: 8px;
+  --r-md: 12px;   /* = 기존 --border-radius */
+  --r-lg: 16px;
+  --r-full: 999px;
+
+  --el-1: 0 1px 2px rgba(26, 43, 76, .06);
+  --el-2: 0 8px 30px rgba(26, 43, 76, .06);   /* = 기존 --box-shadow */
+  --el-3: 0 20px 45px rgba(26, 43, 76, .14);
+
+  --dur-1: 120ms;  /* 색·투명도 */
+  --dur-2: 200ms;  /* 이동·크기 */
+  --dur-3: 320ms;  /* 진입·모달 */
+  --ease-out:    cubic-bezier(.2, .8, .2, 1);
+  --ease-in-out: cubic-bezier(.4, 0, .2, 1);
+
+  /* §6.2-1 웜 뉴트럴 매핑 — --text-muted·--secondary-dark·--border-color는 이미 위에
+     있어 재선언하지 않는다. --text-hint(#94A3B8)는 §2.2에 값만 정의돼 있던 것을 변수로 신설. */
+  --surface-subtle: #F3F0EA;
+  --text-hint: #94A3B8;
+
+  /* §6.2-2 상태색 — 의미마다 한 쌍만 */
+  --state-critical-fg: #9A3412; --state-critical-bg: #FFEDD5;
+  --state-warn-fg:     #92400E; --state-warn-bg:     #FEF3C7;
+  --state-danger-fg:   #991B1B; --state-danger-bg:   #FEE2E2;
+  --state-ok-fg:       #03543F; --state-ok-bg:       #DEF7EC;
+}
+
+/* §6.3 #6 — 전역 포커스 표시 + 모션 축소 대응 */
+:focus-visible {
+  outline: 2px solid var(--point-color);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 * {
@@ -240,7 +296,7 @@ body {
 
 .skeleton-block {
   background-color: #EAE5DC;
-  border-radius: 6px;
+  border-radius: var(--r-sm);
   animation: skeletonPulse 1.5s ease-in-out infinite;
 }
 
@@ -338,6 +394,16 @@ body {
   flex: 1 1 300px;
 }
 
+/* §8-8-2 구간 접기 토글 — hover는 색만(§6.3 #5), 그림자·이동 없음 */
+.care-guide-section-toggle {
+  border-radius: var(--r-sm);
+  transition: background-color var(--dur-1) var(--ease-out);
+}
+
+.care-guide-section-toggle:hover {
+  background-color: var(--surface-subtle);
+}
+
 /* Dashboard Cards */
 .card {
   background-color: var(--card-bg);
@@ -383,10 +449,10 @@ body {
   padding: 0 1.8rem;
   font-size: 1.1rem;
   font-weight: 600;
-  border-radius: 8px;
+  border-radius: var(--r-sm);
   border: none;
   cursor: pointer;
-  transition: all var(--transition-speed);
+  transition: background-color var(--dur-1) var(--ease-out);
   gap: 0.5rem;
   text-decoration: none;
 }
@@ -426,7 +492,7 @@ body {
   height: 52px;
   padding: 0 1rem;
   font-size: 1rem;
-  border-radius: 8px;
+  border-radius: var(--r-sm);
   border: 1px solid var(--border-color);
   background-color: var(--card-bg);
   color: var(--text-main);
@@ -602,15 +668,15 @@ body {
   z-index: 15;
   background-color: rgba(255, 255, 255, 0.9);
   backdrop-filter: blur(6px);
-  border-radius: 16px;
+  border-radius: var(--r-lg);
   padding: 1rem 1.3rem;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+  box-shadow: var(--el-1);
 }
 
 .domain-overview-intro-title {
   margin: 0 0 0.35rem;
   font-size: clamp(1.2rem, 2.6vw, 1.6rem);
-  font-weight: 800;
+  font-weight: var(--fw-bold);
   color: var(--primary-color);
   font-family: 'KoPub World Batang', serif;
 }
@@ -807,7 +873,7 @@ body {
   width: 38px;
   height: 38px;
   margin-right: 0.6rem;
-  border-radius: 10px;
+  border-radius: var(--r-sm);
   border: 1px solid var(--border-color);
   background-color: var(--secondary-color);
   color: var(--text-main);
@@ -830,7 +896,7 @@ body {
   align-items: center;
   min-height: var(--min-touch-target);
   padding: 0 1rem;
-  border-radius: 10px;
+  border-radius: var(--r-sm);
   border: none;
   background: none;
   font-family: var(--font-body);
@@ -871,7 +937,7 @@ body {
   color: var(--text-main);
   background-color: var(--secondary-color);
   padding: 0.4rem 0.8rem;
-  border-radius: 20px;
+  border-radius: var(--r-lg);
   display: flex;
   align-items: center;
   gap: 0.4rem;
@@ -888,7 +954,7 @@ body {
   background-color: transparent;
   color: var(--text-main);
   border: 1px solid var(--border-color);
-  border-radius: 6px;
+  border-radius: var(--r-sm);
   padding: 0.4rem 0.8rem;
   font-size: 0.85rem;
   cursor: pointer;
@@ -1177,12 +1243,12 @@ body {
   height: 9px;
   border-radius: 50%;
   background-color: var(--border-color);
-  transition: all 0.2s ease;
+  transition: width var(--dur-2) var(--ease-out), border-radius var(--dur-2) var(--ease-out), background-color var(--dur-2) var(--ease-out);
 }
 
 .entry-carousel-dot.active::after {
   width: 22px;
-  border-radius: 5px;
+  border-radius: var(--r-sm);
   background-color: var(--point-color);
 }
 
@@ -1379,7 +1445,7 @@ body {
   background: none;
   border: none;
   padding: 0.4rem 0.3rem;
-  border-radius: 6px;
+  border-radius: var(--r-sm);
   font-size: 0.85rem;
   color: var(--text-main);
   text-align: left;
@@ -1446,14 +1512,14 @@ body {
 
 .ending-note-summary-panel {
   background-color: var(--card-bg);
-  border-radius: 24px;
+  border-radius: var(--r-lg);
   max-width: 560px;
   width: 100%;
   max-height: 90vh;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   padding: 1.75rem 1.5rem;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  box-shadow: var(--el-3);
 }
 
 @media (max-width: 640px) {
@@ -1477,7 +1543,7 @@ body {
 .farewell-message-item {
   text-align: left;
   border: 1px solid var(--border-color);
-  border-radius: 12px;
+  border-radius: var(--r-md);
   padding: 1rem 1.15rem;
   display: flex;
   flex-direction: column;
@@ -1536,14 +1602,14 @@ body {
 
 .farewell-message-panel {
   background-color: var(--card-bg);
-  border-radius: 24px;
+  border-radius: var(--r-lg);
   max-width: 560px;
   width: 100%;
   max-height: 90vh;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   padding: 1.75rem 1.5rem;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  box-shadow: var(--el-3);
 }
 
 @media (max-width: 640px) {

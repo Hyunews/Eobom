@@ -399,9 +399,9 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
         @page { margin: 0; }
         body { font-family: 'Malgun Gothic', sans-serif; font-size: ${largeText ? '22px' : '16px'}; line-height: 1.9; padding: 2.5rem; white-space: pre-wrap; }
         .print-header { margin-bottom: 1.5rem; white-space: normal; }
-        .print-date { font-size: 13px; color: #64748B; margin-bottom: 0.3rem; }
-        .print-title { font-size: 22px; font-weight: 800; color: #1F2937; margin: 0; }
-        .notice { font-size: 13px; color: #92400E; border: 1px solid #FDE68A; background: #FEF3C7; border-radius: 8px; padding: 0.7rem 0.9rem; margin-bottom: 1.5rem; white-space: normal; }
+        .print-date { font-size: 13px; color: #6C7A89; margin-bottom: 0.3rem; }
+        .print-title { font-size: 22px; font-weight: 700; color: #1F2937; margin: 0; }
+        .notice { font-size: 13px; color: #92400E; border: 1px solid #FEF3C7; background: #FEF3C7; border-radius: 8px; padding: 0.7rem 0.9rem; margin-bottom: 1.5rem; white-space: normal; }
         .signature-box { margin-top: 4rem; padding-top: 1.5rem; border-top: 1px solid #94A3B8; white-space: normal; }
         .signature-row { display: flex; align-items: flex-end; justify-content: flex-end; gap: 1rem; }
         .signature-label { font-weight: 700; }
@@ -420,7 +420,7 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
   const sectionBodies: Record<string, React.ReactNode> = {
     LIFE_SUPPORT: (
       <>
-        <div style={{ fontSize: '0.85rem', color: '#92400E', backgroundColor: '#FEF3C7', border: '1px solid #FDE68A', borderRadius: '8px', padding: '0.7rem 0.9rem', marginBottom: '1rem' }}>
+        <div style={{ fontSize: '0.85rem', color: 'var(--state-warn-fg)', backgroundColor: 'var(--state-warn-bg)', border: '1px solid var(--state-warn-bg)', borderRadius: 'var(--r-sm)', padding: '0.7rem 0.9rem', marginBottom: '1rem' }}>
           ⚠️ 이 메모는 법적 효력이 없습니다. 법적 효력이 있는 「사전연명의료의향서」는 보건복지부
           지정 등록기관에서 본인이 직접 작성·등록해야 합니다(비용 없음).
         </div>
@@ -448,7 +448,7 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
     ),
     ASSET: (
       <>
-        <div style={{ fontSize: '0.85rem', color: '#92400E', backgroundColor: '#FEF3C7', border: '1px solid #FDE68A', borderRadius: '8px', padding: '0.7rem 0.9rem', marginBottom: '1rem' }}>
+        <div style={{ fontSize: '0.85rem', color: 'var(--state-warn-fg)', backgroundColor: 'var(--state-warn-bg)', border: '1px solid var(--state-warn-bg)', borderRadius: 'var(--r-sm)', padding: '0.7rem 0.9rem', marginBottom: '1rem' }}>
           🔴 어느 은행·증권사에 거래가 있는지까지만 적어주세요. 계좌번호·잔액·비밀번호는 절대
           적지 마세요 — 유족은 이 정보 없이도 공적 창구(안심상속 원스톱서비스 등)로 조회할 수 있습니다.
         </div>
@@ -573,7 +573,7 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
     ),
     ORGAN_DONATION: (
       <>
-        <div style={{ fontSize: '0.85rem', color: '#92400E', backgroundColor: '#FEF3C7', border: '1px solid #FDE68A', borderRadius: '8px', padding: '0.7rem 0.9rem', marginBottom: '1rem' }}>
+        <div style={{ fontSize: '0.85rem', color: 'var(--state-warn-fg)', backgroundColor: 'var(--state-warn-bg)', border: '1px solid var(--state-warn-bg)', borderRadius: 'var(--r-sm)', padding: '0.7rem 0.9rem', marginBottom: '1rem' }}>
           ⚠️ 이어봄은 등록 여부와 등록일만 보관합니다. 실제 등록은 국립장기조직혈액관리원(사랑의
           장기기증운동본부 등 등록기관)에서 본인이 직접 해야 하며, 이어봄은 등록을 대행하지 않습니다.
           🔴 시신 기증(해부용 시신 기증)은 별도 제도입니다 — 이 항목과 섞지 마세요.
@@ -656,8 +656,8 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
           padding: '1.5rem', textAlign: 'center', borderRadius: 'var(--border-radius)'
         }}>
           <div style={{
-            backgroundColor: '#FFFFFF', padding: '2.2rem 1.75rem', borderRadius: '16px',
-            boxShadow: '0 12px 40px rgba(0,0,0,0.15)', maxWidth: '520px', border: '2px solid var(--primary-color)'
+            backgroundColor: '#FFFFFF', padding: '2.2rem 1.75rem', borderRadius: 'var(--r-lg)',
+            boxShadow: 'var(--el-3)', maxWidth: '520px', border: '2px solid var(--primary-color)'
           }}>
             <div style={{
               width: '64px', height: '64px', backgroundColor: 'var(--secondary-color)', borderRadius: '50%',
@@ -679,7 +679,7 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
       )}
 
       <div style={{ marginBottom: '1.5rem', filter: !currentUser ? 'blur(3px)' : 'none' }}>
-        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', backgroundColor: '#F1F5F9', color: 'var(--primary-color)', padding: '0.3rem 0.8rem', borderRadius: '16px', fontSize: '0.85rem', fontWeight: 700, marginBottom: '0.6rem' }}>
+        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', backgroundColor: 'var(--surface-subtle)', color: 'var(--primary-color)', padding: '0.3rem 0.8rem', borderRadius: 'var(--r-lg)', fontSize: '0.85rem', fontWeight: 700, marginBottom: '0.6rem' }}>
           <NoteKeyIcon size={18} color="var(--primary-color)" /> 남겨야 할 것을 빠짐없이
         </div>
         <h1 style={{ color: 'var(--primary-color)', fontSize: '2rem', display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0 }}>
@@ -797,7 +797,7 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
           {sectionState.WILL_DRAFT && <CheckCircle2 size={18} color="var(--point-color)" />}
         </h3>
 
-        <div style={{ fontSize: '0.85rem', color: '#92400E', backgroundColor: '#FEF3C7', border: '1px solid #FDE68A', borderRadius: '8px', padding: '0.7rem 0.9rem', margin: '0.75rem 0', display: 'flex', alignItems: 'flex-start', gap: '0.5rem', fontWeight: 700 }}>
+        <div style={{ fontSize: '0.85rem', color: 'var(--state-warn-fg)', backgroundColor: 'var(--state-warn-bg)', border: '1px solid var(--state-warn-bg)', borderRadius: 'var(--r-sm)', padding: '0.7rem 0.9rem', margin: '0.75rem 0', display: 'flex', alignItems: 'flex-start', gap: '0.5rem', fontWeight: 700 }}>
           <AlertTriangle size={18} style={{ flexShrink: 0, marginTop: '0.1rem' }} />
           <span>{NOT_A_WILL_NOTICE}</span>
         </div>
@@ -807,7 +807,7 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
         </p>
 
         {/* §6.4-2·§7.1 — 본인 전용, 사후에도 유족에게 전달되지 않는다. 대신 보관함으로 안내한다. */}
-        <div style={{ fontSize: '0.85rem', color: '#92400E', backgroundColor: '#FEF3C7', border: '1px solid #FDE68A', borderRadius: '8px', padding: '0.7rem 0.9rem', marginBottom: '1rem', display: 'flex', alignItems: 'flex-start', gap: '0.5rem' }}>
+        <div style={{ fontSize: '0.85rem', color: 'var(--state-warn-fg)', backgroundColor: 'var(--state-warn-bg)', border: '1px solid var(--state-warn-bg)', borderRadius: 'var(--r-sm)', padding: '0.7rem 0.9rem', marginBottom: '1rem', display: 'flex', alignItems: 'flex-start', gap: '0.5rem' }}>
           <AlertTriangle size={18} style={{ flexShrink: 0, marginTop: '0.1rem' }} />
           <span>
             이 초안은 본인만 볼 수 있으며 유족에게 전달되지 않습니다.
@@ -852,7 +852,7 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
             <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginTop: '0.5rem' }}>
               ※ 이어봄은 위 항목을 자동으로 확인하지 않습니다. 직접 확인해 주세요.
             </p>
-            <div style={{ fontSize: '0.85rem', color: 'var(--primary-color)', backgroundColor: '#F1F5F9', borderRadius: '8px', padding: '0.9rem', marginTop: '0.9rem' }}>
+            <div style={{ fontSize: '0.85rem', color: 'var(--primary-color)', backgroundColor: 'var(--surface-subtle)', borderRadius: 'var(--r-sm)', padding: '0.9rem', marginTop: '0.9rem' }}>
               이 초안을 보고 직접 손으로 옮겨 쓰십시오. 컴퓨터로 작성한 문서는 자필증서 유언장으로 인정되지 않습니다.
             </div>
           </div>
@@ -882,7 +882,7 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
           </button>
         </div>
         {savingState.WILL_DRAFT === 'error' && (
-          <p style={{ fontSize: '0.85rem', color: '#B91C1C', marginTop: '0.5rem' }}>저장에 실패했습니다. 다시 시도해 주세요.</p>
+          <p style={{ fontSize: '0.85rem', color: 'var(--state-danger-fg)', marginTop: '0.5rem' }}>저장에 실패했습니다. 다시 시도해 주세요.</p>
         )}
         {copyFeedback && (
           <p style={{ fontSize: '0.85rem', color: 'var(--point-color)', marginTop: '0.5rem' }}>{copyFeedback}</p>

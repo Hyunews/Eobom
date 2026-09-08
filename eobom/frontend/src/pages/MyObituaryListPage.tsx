@@ -127,7 +127,7 @@ export const MyObituaryListPage: React.FC = () => {
 
   const iconBtnStyle: React.CSSProperties = {
     height: '32px', padding: '0 0.6rem', fontSize: '0.78rem', backgroundColor: 'var(--card-bg)',
-    border: '1px solid #CBD5E1', borderRadius: '8px', cursor: 'pointer', display: 'inline-flex',
+    border: '1px solid var(--border-color)', borderRadius: 'var(--r-sm)', cursor: 'pointer', display: 'inline-flex',
     alignItems: 'center', gap: '0.3rem',
   };
 
@@ -155,7 +155,7 @@ export const MyObituaryListPage: React.FC = () => {
             <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>불러오는 중...</p>
           )}
           {loadError && (
-            <p style={{ color: '#92400E', fontSize: '0.9rem' }}>목록을 불러오지 못했습니다. 잠시 후 다시 시도해주세요.</p>
+            <p style={{ color: 'var(--state-warn-fg)', fontSize: '0.9rem' }}>목록을 불러오지 못했습니다. 잠시 후 다시 시도해주세요.</p>
           )}
           {obituaries !== null && obituaries.length === 0 && (
             <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>아직 만든 부고장이 없습니다.</p>
@@ -167,7 +167,7 @@ export const MyObituaryListPage: React.FC = () => {
                 <div
                   key={o.id}
                   style={{
-                    padding: '0.9rem 1rem', backgroundColor: 'var(--secondary-color)', borderRadius: '10px',
+                    padding: '0.9rem 1rem', backgroundColor: 'var(--secondary-color)', borderRadius: 'var(--r-sm)',
                     display: 'flex', flexDirection: 'column', gap: '0.6rem',
                   }}
                 >
@@ -196,7 +196,7 @@ export const MyObituaryListPage: React.FC = () => {
                           type="button"
                           onClick={() => navigate(`/obituary?slug=${o.slug}`)}
                           className="btn"
-                          style={{ height: '36px', padding: '0 0.8rem', fontSize: '0.82rem', backgroundColor: 'var(--card-bg)', border: '1px solid #CBD5E1' }}
+                          style={{ height: '36px', padding: '0 0.8rem', fontSize: '0.82rem', backgroundColor: 'var(--card-bg)', border: '1px solid var(--border-color)' }}
                         >
                           수정
                         </button>
@@ -208,7 +208,7 @@ export const MyObituaryListPage: React.FC = () => {
                         className="btn"
                         style={{
                           height: '36px', padding: '0 0.8rem', fontSize: '0.82rem', backgroundColor: 'var(--card-bg)',
-                          border: '1px solid #FCA5A5', color: '#B91C1C', opacity: deletingId === o.id ? 0.6 : 1,
+                          border: '1px solid var(--state-danger-bg)', color: 'var(--state-danger-fg)', opacity: deletingId === o.id ? 0.6 : 1,
                           display: 'inline-flex', alignItems: 'center', gap: '0.3rem',
                         }}
                       >
@@ -259,7 +259,7 @@ export const MyObituaryListPage: React.FC = () => {
             <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>불러오는 중...</p>
           )}
           {memorialLoadError && (
-            <p style={{ color: '#92400E', fontSize: '0.9rem' }}>목록을 불러오지 못했습니다. 잠시 후 다시 시도해주세요.</p>
+            <p style={{ color: 'var(--state-warn-fg)', fontSize: '0.9rem' }}>목록을 불러오지 못했습니다. 잠시 후 다시 시도해주세요.</p>
           )}
           {memorials !== null && memorials.length === 0 && (
             <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>아직 만든 추모관이 없습니다.</p>
@@ -271,7 +271,7 @@ export const MyObituaryListPage: React.FC = () => {
                 <div
                   key={m.id}
                   style={{
-                    padding: '0.9rem 1rem', backgroundColor: 'var(--secondary-color)', borderRadius: '10px',
+                    padding: '0.9rem 1rem', backgroundColor: 'var(--secondary-color)', borderRadius: 'var(--r-sm)',
                     display: 'flex', flexDirection: 'column', gap: '0.6rem',
                   }}
                 >

@@ -94,7 +94,7 @@ export const KakaoMapModal: React.FC<KakaoMapModalProps> = ({ facility, userLoca
         const iwContent = `
           <div style="padding:10px 14px; border-radius:12px; font-family:sans-serif; font-size:12px; line-height:1.4;">
             <strong style="color:#1E293B; font-size:13px;">📍 ${facility.name}</strong><br/>
-            <span style="color:#64748B;">${facility.location}</span>
+            <span style="color:#6C7A89;">${facility.location}</span>
           </div>
         `;
         const infowindow = new window.kakao.maps.InfoWindow({
@@ -178,11 +178,11 @@ export const KakaoMapModal: React.FC<KakaoMapModalProps> = ({ facility, userLoca
       <div
         style={{
           backgroundColor: '#FFFFFF',
-          borderRadius: '20px',
+          borderRadius: 'var(--r-lg)',
           padding: '1.5rem',
           maxWidth: '720px',
           width: '100%',
-          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+          boxShadow: 'var(--el-3)',
           position: 'relative',
           maxHeight: '90vh',
           overflowY: 'auto'
@@ -211,25 +211,25 @@ export const KakaoMapModal: React.FC<KakaoMapModalProps> = ({ facility, userLoca
 
         <div style={{ marginBottom: '1rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <span style={{ fontSize: '0.85rem', backgroundColor: '#FEE500', color: '#191919', padding: '0.2rem 0.6rem', borderRadius: '12px', fontWeight: 800 }}>
+            <span style={{ fontSize: '0.85rem', backgroundColor: '#FEE500', color: '#191919', padding: '0.2rem 0.6rem', borderRadius: 'var(--r-md)', fontWeight: 'var(--fw-bold)' }}>
               Kakao Maps Live Integration
             </span>
             {isMapLoaded ? (
-              <span style={{ fontSize: '0.85rem', backgroundColor: '#DEF7EC', color: '#03543F', padding: '0.2rem 0.5rem', borderRadius: '10px', fontWeight: 700 }}>
+              <span style={{ fontSize: '0.85rem', backgroundColor: 'var(--state-ok-bg)', color: 'var(--state-ok-fg)', padding: '0.2rem 0.5rem', borderRadius: 'var(--r-sm)', fontWeight: 700 }}>
                 ● 실제 카카오 지도 렌더링 완료
               </span>
             ) : loadFailed ? (
-              <span style={{ fontSize: '0.85rem', backgroundColor: '#FEE2E2', color: '#991B1B', padding: '0.2rem 0.5rem', borderRadius: '10px', fontWeight: 700 }}>
+              <span style={{ fontSize: '0.85rem', backgroundColor: 'var(--state-danger-bg)', color: 'var(--state-danger-fg)', padding: '0.2rem 0.5rem', borderRadius: 'var(--r-sm)', fontWeight: 700 }}>
                 ● 지도를 불러오지 못했습니다
               </span>
             ) : (
-              <span style={{ fontSize: '0.85rem', backgroundColor: '#FEF3C7', color: '#92400E', padding: '0.2rem 0.5rem', borderRadius: '10px', fontWeight: 700 }}>
+              <span style={{ fontSize: '0.85rem', backgroundColor: 'var(--state-warn-bg)', color: 'var(--state-warn-fg)', padding: '0.2rem 0.5rem', borderRadius: 'var(--r-sm)', fontWeight: 700 }}>
                 ● 카카오 지도 렌더링 중...
               </span>
             )}
           </div>
 
-          <h3 style={{ fontSize: '1.5rem', color: 'var(--primary-color)', marginTop: '0.5rem', marginBottom: '0.2rem', display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 800 }}>
+          <h3 style={{ fontSize: '1.5rem', color: 'var(--primary-color)', marginTop: '0.5rem', marginBottom: '0.2rem', display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 'var(--fw-bold)' }}>
             <MapPin color="var(--accent-red)" /> {facility.name}
           </h3>
           <p style={{ fontSize: '0.95rem', color: 'var(--text-muted)' }}>
@@ -242,9 +242,9 @@ export const KakaoMapModal: React.FC<KakaoMapModalProps> = ({ facility, userLoca
           style={{
             position: 'relative',
             height: '360px',
-            borderRadius: '16px',
+            borderRadius: 'var(--r-lg)',
             overflow: 'hidden',
-            backgroundColor: '#E2E8F0',
+            backgroundColor: 'var(--secondary-dark)',
             border: '1px solid var(--border-color)'
           }}
         >
@@ -260,21 +260,21 @@ export const KakaoMapModal: React.FC<KakaoMapModalProps> = ({ facility, userLoca
                 left: 0,
                 right: 0,
                 bottom: 0,
-                backgroundImage: `radial-gradient(#CBD5E1 1px, transparent 1px)`,
+                backgroundImage: `radial-gradient(var(--border-color) 1px, transparent 1px)`,
                 backgroundSize: '16px 16px',
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
                 justifyContent: 'center',
-                backgroundColor: '#F1F5F9',
+                backgroundColor: 'var(--surface-subtle)',
                 zIndex: 2
               }}
             >
               {loadFailed ? (
                 <div style={{ textAlign: 'center', padding: '0 1.5rem' }}>
-                  <MapPin size={32} color="#991B1B" style={{ marginBottom: '0.5rem' }} />
-                  <p style={{ fontSize: '0.9rem', color: '#991B1B', fontWeight: 700 }}>지도를 불러오지 못했습니다</p>
-                  <p style={{ fontSize: '0.85rem', color: '#64748B' }}>
+                  <MapPin size={32} color="var(--state-danger-fg)" style={{ marginBottom: '0.5rem' }} />
+                  <p style={{ fontSize: '0.9rem', color: 'var(--state-danger-fg)', fontWeight: 700 }}>지도를 불러오지 못했습니다</p>
+                  <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
                     카카오맵 API 키가 없거나, 개발자 콘솔에서 지도 서비스가 비활성 상태일 수 있습니다.
                   </p>
                 </div>
@@ -291,7 +291,7 @@ export const KakaoMapModal: React.FC<KakaoMapModalProps> = ({ facility, userLoca
 
         {/* 편의 정보 */}
         <div style={{ marginTop: '1.2rem', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.8rem' }}>
-          <div style={{ backgroundColor: 'var(--card-bg)', padding: '0.9rem', borderRadius: '12px', fontSize: '0.85rem' }}>
+          <div style={{ backgroundColor: 'var(--card-bg)', padding: '0.9rem', borderRadius: 'var(--r-md)', fontSize: '0.85rem' }}>
             <p style={{ fontWeight: 700, color: 'var(--primary-color)', marginBottom: '0.4rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
               <ShieldCheck size={16} color="var(--point-color)" /> 주차 및 보증 정보
             </p>
@@ -299,7 +299,7 @@ export const KakaoMapModal: React.FC<KakaoMapModalProps> = ({ facility, userLoca
             <p style={{ margin: 0, color: 'var(--text-muted)' }}>• 24시간 장례지도사 상주</p>
           </div>
 
-          <div style={{ backgroundColor: 'var(--card-bg)', padding: '0.9rem', borderRadius: '12px', fontSize: '0.85rem' }}>
+          <div style={{ backgroundColor: 'var(--card-bg)', padding: '0.9rem', borderRadius: 'var(--r-md)', fontSize: '0.85rem' }}>
             <p style={{ fontWeight: 700, color: 'var(--primary-color)', marginBottom: '0.4rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
               <Clock size={16} color="var(--point-color)" /> 빠른 방문 안내
             </p>
@@ -319,7 +319,7 @@ export const KakaoMapModal: React.FC<KakaoMapModalProps> = ({ facility, userLoca
               flex: 1,
               backgroundColor: '#FEE500',
               color: '#191919',
-              fontWeight: 800,
+              fontWeight: 'var(--fw-bold)',
               fontSize: '0.95rem',
               display: 'flex',
               alignItems: 'center',
@@ -341,7 +341,7 @@ export const KakaoMapModal: React.FC<KakaoMapModalProps> = ({ facility, userLoca
               flex: 1,
               backgroundColor: 'var(--secondary-color)',
               color: 'var(--primary-color)',
-              fontWeight: 800,
+              fontWeight: 'var(--fw-bold)',
               fontSize: '0.95rem',
               display: 'flex',
               alignItems: 'center',

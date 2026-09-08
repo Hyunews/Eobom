@@ -70,18 +70,18 @@ export const SocialLinkModal: React.FC<SocialLinkModalProps> = ({
       <div
         style={{
           backgroundColor: '#FFFFFF',
-          borderRadius: '24px',
+          borderRadius: 'var(--r-lg)',
           maxWidth: '440px',
           width: '100%',
           padding: '1.9rem 1.5rem',
-          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+          boxShadow: 'var(--el-3)',
         }}
       >
         <div style={{ textAlign: 'center', marginBottom: '1.3rem' }}>
-          <h2 style={{ color: 'var(--primary-color)', fontSize: '1.4rem', fontWeight: 800, margin: '0 0 0.6rem 0' }}>
+          <h2 style={{ color: 'var(--primary-color)', fontSize: '1.4rem', fontWeight: 'var(--fw-bold)', margin: '0 0 0.6rem 0' }}>
             이미 가입된 이메일이에요
           </h2>
-          <p style={{ fontSize: '0.9rem', color: '#6B7280', margin: 0, lineHeight: 1.6 }}>
+          <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', margin: 0, lineHeight: 1.6 }}>
             <strong>{email}</strong>로 이미 <strong>{providerLabel(existingProvider)}</strong> 계정이 가입되어 있어요.
             <br />
             지금 로그인하신 <strong>{providerLabel(newProvider)}</strong> 계정을 어떻게 처리할까요?
@@ -91,10 +91,10 @@ export const SocialLinkModal: React.FC<SocialLinkModalProps> = ({
         {errorMessage && (
           <div
             style={{
-              backgroundColor: '#FDE8E8',
-              color: '#9B1C1C',
+              backgroundColor: 'var(--state-danger-bg)',
+              color: 'var(--state-danger-fg)',
               padding: '0.75rem',
-              borderRadius: '8px',
+              borderRadius: 'var(--r-sm)',
               fontSize: '0.85rem',
               marginBottom: '1rem',
               display: 'flex',
@@ -137,8 +137,8 @@ export const SocialLinkModal: React.FC<SocialLinkModalProps> = ({
               height: '52px',
               backgroundColor: '#FFFFFF',
               color: '#374151',
-              border: '1.5px solid #E5E7EB',
-              borderRadius: '14px',
+              border: '1.5px solid var(--secondary-dark)',
+              borderRadius: 'var(--r-md)',
               fontSize: '0.95rem',
               fontWeight: 600,
               display: 'flex',
@@ -161,7 +161,7 @@ export const SocialLinkModal: React.FC<SocialLinkModalProps> = ({
               width: '100%',
               background: 'none',
               border: 'none',
-              color: '#9CA3AF',
+              color: 'var(--text-hint)',
               fontSize: '0.85rem',
               cursor: isSubmitting ? 'not-allowed' : 'pointer',
               marginTop: '0.25rem',

@@ -54,8 +54,8 @@ const cardStyle: React.CSSProperties = {
   width: '100%',
   maxWidth: '420px',
   backgroundColor: '#FFFFFF',
-  borderRadius: '20px',
-  boxShadow: '0 12px 35px rgba(26,43,76,0.08)',
+  borderRadius: 'var(--r-lg)',
+  boxShadow: 'var(--el-2)',
   padding: '2rem 1.75rem',
   textAlign: 'center',
 };
@@ -230,12 +230,12 @@ export const FamilyInvitePage: React.FC<FamilyInvitePageProps> = ({ currentUser,
           권한: {scope?.label}{scope ? ` (${scope.hint})` : ''}
         </p>
 
-        <div style={{ fontSize: '0.85rem', color: '#92400E', backgroundColor: '#FEF3C7', border: '1px solid #FDE68A', borderRadius: '8px', padding: '0.7rem 0.85rem', marginBottom: '1.4rem', lineHeight: 1.6, textAlign: 'left' }}>
+        <div style={{ fontSize: '0.85rem', color: 'var(--state-warn-fg)', backgroundColor: 'var(--state-warn-bg)', border: '1px solid var(--state-warn-bg)', borderRadius: 'var(--r-sm)', padding: '0.7rem 0.85rem', marginBottom: '1.4rem', lineHeight: 1.6, textAlign: 'left' }}>
           수락하시면 사망 통지 등 위 권한이 생깁니다. 거절하셔도 어떤 불이익도 없습니다.
         </div>
 
         {errorMsg && (
-          <div style={{ fontSize: '0.85rem', color: '#991B1B', backgroundColor: '#FEE2E2', border: '1px solid #FECACA', borderRadius: '8px', padding: '0.7rem 0.9rem', marginBottom: '1rem' }}>
+          <div style={{ fontSize: '0.85rem', color: 'var(--state-danger-fg)', backgroundColor: 'var(--state-danger-bg)', border: '1px solid var(--state-danger-bg)', borderRadius: 'var(--r-sm)', padding: '0.7rem 0.9rem', marginBottom: '1rem' }}>
             {errorMsg}
           </div>
         )}

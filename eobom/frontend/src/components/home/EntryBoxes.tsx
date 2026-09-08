@@ -65,9 +65,9 @@ export const Badge: React.FC<{ status: 'preview' | 'comingSoon' }> = ({ status }
         fontSize: '0.85rem',
         fontWeight: 700,
         padding: '0.2rem 0.55rem',
-        borderRadius: '4px',
+        borderRadius: 'var(--r-sm)',
         color: preview ? '#475569' : '#94A3B8',
-        backgroundColor: preview ? '#E2E8F0' : '#F1F5F9',
+        backgroundColor: preview ? 'var(--secondary-dark)' : 'var(--surface-subtle)',
       }}
     >
       {preview ? '미리보기' : '준비 중'}
@@ -89,9 +89,9 @@ const ChipRow: React.FC<{ labels: string[] }> = ({ labels }) => (
           fontSize: '0.92rem',
           fontWeight: 600,
           color: '#6C7A89',
-          backgroundColor: '#F1F5F9',
+          backgroundColor: 'var(--surface-subtle)',
           padding: '0.35rem 0.85rem',
-          borderRadius: '999px',
+          borderRadius: 'var(--r-full)',
         }}
       >
         {label}
@@ -153,7 +153,7 @@ const BoxHeader: React.FC<{
   badge?: React.ReactNode;
   size?: 'lg' | 'sm';
   iconBg?: string;
-}> = ({ icon, title, subtitle, badge, size = 'lg', iconBg = '#F1F5F9' }) => {
+}> = ({ icon, title, subtitle, badge, size = 'lg', iconBg = 'var(--surface-subtle)' }) => {
   // 2026-08-19 3차 — 카드는 줄이고(index.css min-height 축소) 내부 요소는 키워서 균형을 맞춘다.
   const boxSize = size === 'lg' ? '64px' : '48px';
   const titleSize = size === 'lg' ? '1.5rem' : '1.3rem';
@@ -166,7 +166,7 @@ const BoxHeader: React.FC<{
               width: boxSize,
               height: boxSize,
               flexShrink: 0,
-              borderRadius: '16px',
+              borderRadius: 'var(--r-lg)',
               backgroundColor: iconBg,
               display: 'flex',
               alignItems: 'center',
@@ -175,7 +175,7 @@ const BoxHeader: React.FC<{
           >
             {icon}
           </div>
-          <h3 style={{ fontSize: titleSize, fontWeight: 800, color: 'var(--primary-color)', margin: 0 }}>{title}</h3>
+          <h3 style={{ fontSize: titleSize, fontWeight: 'var(--fw-bold)', color: 'var(--primary-color)', margin: 0 }}>{title}</h3>
         </div>
         {badge}
       </div>
@@ -330,7 +330,7 @@ export const EntryBoxes: React.FC<EntryBoxesProps> = ({ currentUser, onOpenLogin
       style={{ textAlign: 'left', width: '100%', justifyContent: 'center' }}
     >
       <BoxHeader
-        icon={<ChecklistShieldIcon size={32} color="#03543F" />}
+        icon={<ChecklistShieldIcon size={32} color="var(--state-ok-fg)" />}
         title="임종 및 사후 정리"
         subtitle={box2Intro}
         iconBg="rgba(212, 163, 89, 0.16)"
@@ -399,7 +399,7 @@ export const EntryBoxes: React.FC<EntryBoxesProps> = ({ currentUser, onOpenLogin
             입장
           </button>
           {memorialLinkError && (
-            <p style={{ fontSize: '0.85rem', color: '#B91C1C', margin: 0 }}>{memorialLinkError}</p>
+            <p style={{ fontSize: '0.85rem', color: 'var(--state-danger-fg)', margin: 0 }}>{memorialLinkError}</p>
           )}
         </div>
       </RevealContent>
@@ -515,7 +515,7 @@ export const EntryBoxes: React.FC<EntryBoxesProps> = ({ currentUser, onOpenLogin
       <h2
         style={{
           fontSize: 'clamp(1.5rem, 2.6vw, 2rem)',
-          fontWeight: 800,
+          fontWeight: 'var(--fw-bold)',
           color: '#1A2B4C',
           fontFamily: "'KoPub World Batang', 'KoPubWorld 명조', serif",
           textAlign: 'center',

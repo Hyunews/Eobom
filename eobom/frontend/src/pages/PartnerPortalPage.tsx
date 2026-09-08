@@ -158,7 +158,7 @@ export const PartnerPortalPage: React.FC = () => {
   return (
     <div className="container" style={{ maxWidth: '560px', padding: '2.2rem 1rem' }}>
       <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
-        <h1 style={{ fontSize: '1.8rem', color: 'var(--primary-color)', fontWeight: 800, marginBottom: '0.5rem' }}>
+        <h1 style={{ fontSize: '1.8rem', color: 'var(--primary-color)', fontWeight: 'var(--fw-bold)', marginBottom: '0.5rem' }}>
           사업자·전문가 파트너 포털
         </h1>
         <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem' }}>
@@ -234,32 +234,32 @@ export const PartnerPortalPage: React.FC = () => {
         <div
           style={{
             padding: '0.8rem 1rem',
-            borderRadius: '10px',
+            borderRadius: 'var(--r-sm)',
             marginBottom: '1.2rem',
             fontSize: '0.88rem',
-            backgroundColor: resultMessage.type === 'error' ? '#FEE2E2' : resultMessage.type === 'success' ? '#DEF7EC' : '#FEF3C7',
-            color: resultMessage.type === 'error' ? '#991B1B' : resultMessage.type === 'success' ? '#03543F' : '#92400E',
+            backgroundColor: resultMessage.type === 'error' ? 'var(--state-danger-bg)' : resultMessage.type === 'success' ? 'var(--state-ok-bg)' : 'var(--state-warn-bg)',
+            color: resultMessage.type === 'error' ? 'var(--state-danger-fg)' : resultMessage.type === 'success' ? 'var(--state-ok-fg)' : 'var(--state-warn-fg)',
           }}
         >
           {resultMessage.text}
         </div>
       )}
 
-      <div style={{ backgroundColor: 'var(--card-bg)', borderRadius: '20px', padding: '1.5rem', boxShadow: 'var(--box-shadow)' }}>
+      <div style={{ backgroundColor: 'var(--card-bg)', borderRadius: 'var(--r-lg)', padding: '1.5rem', boxShadow: 'var(--box-shadow)' }}>
         {mode === 'LOGIN' ? (
           <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             <div>
               <label className="form-label">이메일</label>
               <div style={{ position: 'relative' }}>
                 <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} className="form-select" style={{ paddingLeft: '2.4rem' }} />
-                <Mail size={16} style={{ position: 'absolute', left: '0.8rem', top: '12px', color: '#9CA3AF' }} />
+                <Mail size={16} style={{ position: 'absolute', left: '0.8rem', top: '12px', color: 'var(--text-hint)' }} />
               </div>
             </div>
             <div>
               <label className="form-label">비밀번호</label>
               <div style={{ position: 'relative' }}>
                 <input type="password" required value={password} onChange={(e) => setPassword(e.target.value)} className="form-select" style={{ paddingLeft: '2.4rem' }} />
-                <Lock size={16} style={{ position: 'absolute', left: '0.8rem', top: '12px', color: '#9CA3AF' }} />
+                <Lock size={16} style={{ position: 'absolute', left: '0.8rem', top: '12px', color: 'var(--text-hint)' }} />
               </div>
             </div>
             <button type="submit" disabled={isSubmitting} className="btn btn-primary">
@@ -369,7 +369,7 @@ export const PartnerPortalPage: React.FC = () => {
               <textarea
                 value={bio}
                 onChange={(e) => setBio(e.target.value)}
-                style={{ width: '100%', padding: '0.8rem', borderRadius: '8px', border: '1px solid var(--border-color)', fontSize: '0.9rem', height: '70px' }}
+                style={{ width: '100%', padding: '0.8rem', borderRadius: 'var(--r-sm)', border: '1px solid var(--border-color)', fontSize: '0.9rem', height: '70px' }}
               />
             </div>
             <button type="submit" disabled={isSubmitting} className="btn btn-primary">

@@ -38,11 +38,11 @@ export const AccordionSection: React.FC<{
           <button type="button" onClick={onSave} className="btn btn-point" disabled={saveState === 'saving'} style={{ fontSize: '0.9rem' }}>
             {saveButtonLabel(saveState)}
           </button>
-          <button type="button" onClick={onReset} disabled={saveState === 'saving'} className="btn" style={{ fontSize: '0.9rem', backgroundColor: '#F1F5F9', color: '#6B7280' }}>
+          <button type="button" onClick={onReset} disabled={saveState === 'saving'} className="btn" style={{ fontSize: '0.9rem', backgroundColor: 'var(--surface-subtle)', color: 'var(--text-muted)' }}>
             취소
           </button>
           {saveState === 'saved' && <span style={{ fontSize: '0.85rem', color: 'var(--point-color)' }}>저장되었습니다.</span>}
-          {saveState === 'error' && <span style={{ fontSize: '0.85rem', color: '#B91C1C' }}>저장에 실패했습니다. 다시 시도해 주세요.</span>}
+          {saveState === 'error' && <span style={{ fontSize: '0.85rem', color: 'var(--state-danger-fg)' }}>저장에 실패했습니다. 다시 시도해 주세요.</span>}
         </div>
       </div>
     )}

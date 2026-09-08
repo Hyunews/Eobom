@@ -56,7 +56,7 @@ export const TaxSimulatorModal: React.FC<TaxSimulatorModalProps> = ({ onClose })
       <div
         style={{
           backgroundColor: '#FFFFFF',
-          borderRadius: '20px',
+          borderRadius: 'var(--r-lg)',
           padding: '1.5rem',
           maxWidth: '560px',
           width: '100%',
@@ -146,7 +146,7 @@ export const TaxSimulatorModal: React.FC<TaxSimulatorModalProps> = ({ onClose })
             marginTop: '1.1rem',
             padding: '1.2rem',
             backgroundColor: 'var(--secondary-color)',
-            borderRadius: '8px',
+            borderRadius: 'var(--r-sm)',
             borderLeft: '4px solid var(--primary-color)'
           }}>
             <h4 style={{ color: 'var(--primary-color)', marginBottom: '0.6rem' }}>📊 예상 상속세 산출 결과</h4>
@@ -177,8 +177,8 @@ export const TaxSimulatorModal: React.FC<TaxSimulatorModalProps> = ({ onClose })
           marginTop: '1.2rem',
           padding: '1rem 1.2rem',
           backgroundColor: '#FFFBEB',
-          border: '1px solid #FDE68A',
-          borderRadius: '8px',
+          border: '1px solid var(--state-warn-bg)',
+          borderRadius: 'var(--r-sm)',
           fontSize: '0.85rem',
           color: '#78350F',
         }}>

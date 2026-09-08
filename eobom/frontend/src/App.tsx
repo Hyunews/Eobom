@@ -326,13 +326,13 @@ function AppShell() {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            boxShadow: '0 2px 10px rgba(0,0,0,0.12)'
+            boxShadow: 'var(--el-1)'
           }}
         >
           <Link to="/" style={{ display: 'inline-flex', lineHeight: 0 }}>
             <EobomLogo variant="header" height={30} />
           </Link>
-          <Link to="/" style={{ fontSize: '0.9rem', color: '#D1D5DB', textDecoration: 'underline' }}>
+          <Link to="/" style={{ fontSize: '0.9rem', color: 'var(--border-color)', textDecoration: 'underline' }}>
             이어봄 홈으로
           </Link>
         </div>

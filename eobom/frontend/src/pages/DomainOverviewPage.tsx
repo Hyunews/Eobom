@@ -174,8 +174,8 @@ export const DomainOverviewPage: React.FC<DomainOverviewPageProps> = ({
               backgroundColor: 'rgba(26, 43, 76, 0.75)',
               backdropFilter: 'blur(8px)',
               padding: '0.8rem 0.6rem',
-              borderRadius: '30px',
-              boxShadow: '0 8px 24px rgba(0,0,0,0.2)',
+              borderRadius: 'var(--r-lg)',
+              boxShadow: 'var(--el-2)',
             }}
           >
             {slides.map((slide, idx) => (
@@ -190,7 +190,7 @@ export const DomainOverviewPage: React.FC<DomainOverviewPageProps> = ({
                   backgroundColor: activeIndex === idx ? '#D4A359' : 'rgba(255, 255, 255, 0.4)',
                   border: activeIndex === idx ? '2px solid #FFFFFF' : 'none',
                   cursor: 'pointer',
-                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                  transition: 'width var(--dur-2) var(--ease-in-out), height var(--dur-2) var(--ease-in-out), background-color var(--dur-2) var(--ease-in-out), border var(--dur-2) var(--ease-in-out)',
                   padding: 0,
                 }}
               />
@@ -219,12 +219,12 @@ export const DomainOverviewPage: React.FC<DomainOverviewPageProps> = ({
                       gap: '0.5rem',
                       backgroundColor: slide.badgeBg,
                       padding: '0.4rem 1rem',
-                      borderRadius: '20px',
+                      borderRadius: 'var(--r-lg)',
                       fontSize: '0.85rem',
                       color: slide.badgeColor,
-                      fontWeight: 800,
+                      fontWeight: 'var(--fw-bold)',
                       marginBottom: '1.2rem',
-                      boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
+                      boxShadow: 'var(--el-1)',
                     }}
                   >
                     {slide.badgeIcon} {slide.badgeLabel}
@@ -237,7 +237,7 @@ export const DomainOverviewPage: React.FC<DomainOverviewPageProps> = ({
                   <h2
                     style={{
                       fontSize: 'clamp(1.5rem, 3.2vw, 2.1rem)',
-                      fontWeight: 800,
+                      fontWeight: 'var(--fw-bold)',
                       color: '#1A2B4C',
                       fontFamily: "'KoPub World Batang', serif",
                       marginBottom: '1.1rem',
@@ -259,9 +259,9 @@ export const DomainOverviewPage: React.FC<DomainOverviewPageProps> = ({
                         fontSize: '0.85rem',
                         fontWeight: 700,
                         color: '#94A3B8',
-                        backgroundColor: '#F1F5F9',
+                        backgroundColor: 'var(--surface-subtle)',
                         padding: '0.6rem 1.2rem',
-                        borderRadius: '10px',
+                        borderRadius: 'var(--r-sm)',
                       }}
                     >
                       준비 중인 서비스입니다.
@@ -283,7 +283,7 @@ export const DomainOverviewPage: React.FC<DomainOverviewPageProps> = ({
                         backgroundColor: slide.ctaColor,
                         padding: '1rem 2.2rem',
                         fontSize: '1.05rem',
-                        borderRadius: '16px',
+                        borderRadius: 'var(--r-lg)',
                         fontWeight: 700,
                         display: 'inline-flex',
                         alignItems: 'center',
@@ -300,8 +300,8 @@ export const DomainOverviewPage: React.FC<DomainOverviewPageProps> = ({
                   style={{
                     backgroundColor: '#FFFFFF',
                     padding: '1.75rem',
-                    borderRadius: '24px',
-                    boxShadow: '0 12px 35px rgba(26,43,76,0.08)',
+                    borderRadius: 'var(--r-lg)',
+                    boxShadow: 'var(--el-2)',
                     border: `2px solid ${slide.featureBorderColor}`,
                     display: 'flex',
                     flexDirection: 'column',
@@ -315,7 +315,7 @@ export const DomainOverviewPage: React.FC<DomainOverviewPageProps> = ({
                       width: '64px',
                       height: '64px',
                       backgroundColor: slide.featureIconBg,
-                      borderRadius: '20px',
+                      borderRadius: 'var(--r-lg)',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
@@ -324,7 +324,7 @@ export const DomainOverviewPage: React.FC<DomainOverviewPageProps> = ({
                   >
                     {slide.featureIcon}
                   </div>
-                  <h3 style={{ fontSize: '1.3rem', color: '#1A2B4C', fontWeight: 800, marginBottom: '0.8rem' }}>
+                  <h3 style={{ fontSize: '1.3rem', color: '#1A2B4C', fontWeight: 'var(--fw-bold)', marginBottom: '0.8rem' }}>
                     {slide.featureTitle}
                   </h3>
                   <p style={{ color: '#6C7A89', fontSize: '0.95rem', lineHeight: 1.7, margin: 0 }}>{slide.featureDesc}</p>
@@ -342,7 +342,7 @@ export const DomainOverviewPage: React.FC<DomainOverviewPageProps> = ({
                     >
                       {slide.bullets.map((b) => (
                         <div key={b} style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', fontSize: '0.92rem', color: '#1A2B4C', fontWeight: 600, lineHeight: 1.5 }}>
-                          <span style={{ color: slide.featureBorderColor, fontWeight: 800, flexShrink: 0 }}>•</span>
+                          <span style={{ color: slide.featureBorderColor, fontWeight: 'var(--fw-bold)', flexShrink: 0 }}>•</span>
                           {b}
                         </div>
                       ))}

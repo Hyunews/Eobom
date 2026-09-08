@@ -28,11 +28,11 @@ const CONSULT_STATUS_LABELS: Record<string, string> = {
   INVALID: '무효 처리',
 };
 const CONSULT_STATUS_COLOR: Record<string, string> = {
-  REQUESTED: '#92400E',
+  REQUESTED: 'var(--state-warn-fg)',
   ACCEPTED: '#1D4ED8',
-  COMPLETED: '#03543F',
-  CANCELLED: '#6B7280',
-  INVALID: '#991B1B',
+  COMPLETED: 'var(--state-ok-fg)',
+  CANCELLED: 'var(--text-muted)',
+  INVALID: 'var(--state-danger-fg)',
 };
 
 // 업체 문의 리드 상태 라벨·색상 (docs 01-05 §4.3 상태머신)
@@ -45,12 +45,12 @@ const LEAD_STATUS_LABELS: Record<string, string> = {
   INVALID: '무효 처리',
 };
 const LEAD_STATUS_COLOR: Record<string, string> = {
-  REQUESTED: '#92400E',
+  REQUESTED: 'var(--state-warn-fg)',
   NOTIFIED: '#1D4ED8',
   RESPONDED: '#5B7065',
-  CONVERTED: '#03543F',
-  LOST: '#6B7280',
-  INVALID: '#991B1B',
+  CONVERTED: 'var(--state-ok-fg)',
+  LOST: 'var(--text-muted)',
+  INVALID: 'var(--state-danger-fg)',
 };
 const LEAD_TYPE_LABELS: Record<string, string> = { QUOTE: '업체 문의', CONSULT: '상담신청', CALL: '전화클릭' };
 
@@ -341,7 +341,7 @@ export const BizDashboard: React.FC<BizDashboardProps> = ({ type, name, onLogout
           <ShieldCheck size={24} color="var(--point-color)" />
           <h2 style={{ color: 'var(--primary-color)', margin: 0 }}>{name}</h2>
         </div>
-        <button onClick={() => onLogout()} className="btn" style={{ backgroundColor: '#E2E8F0' }}>
+        <button onClick={() => onLogout()} className="btn" style={{ backgroundColor: 'var(--secondary-dark)' }}>
           로그아웃
         </button>
       </div>
@@ -349,16 +349,16 @@ export const BizDashboard: React.FC<BizDashboardProps> = ({ type, name, onLogout
       {type === 'EXPERT' ? (
         <>
           {expertProfile && (
-            <div style={{ backgroundColor: 'var(--card-bg)', borderRadius: '16px', padding: '1.1rem', boxShadow: 'var(--box-shadow)', marginBottom: '1.2rem' }}>
+            <div style={{ backgroundColor: 'var(--card-bg)', borderRadius: 'var(--r-lg)', padding: '1.1rem', boxShadow: 'var(--box-shadow)', marginBottom: '1.2rem' }}>
               <div style={{ marginBottom: '0.6rem' }}>
                 <span
                   style={{
                     fontSize: '0.85rem',
                     fontWeight: 700,
                     padding: '0.2rem 0.6rem',
-                    borderRadius: '10px',
-                    backgroundColor: expertProfile.status === 'APPROVED' ? '#DEF7EC' : '#FEF3C7',
-                    color: expertProfile.status === 'APPROVED' ? '#03543F' : '#92400E',
+                    borderRadius: 'var(--r-sm)',
+                    backgroundColor: expertProfile.status === 'APPROVED' ? 'var(--state-ok-bg)' : 'var(--state-warn-bg)',
+                    color: expertProfile.status === 'APPROVED' ? 'var(--state-ok-fg)' : 'var(--state-warn-fg)',
                   }}
                 >
                   {STATUS_LABELS[expertProfile.status] || expertProfile.status}
@@ -377,7 +377,7 @@ export const BizDashboard: React.FC<BizDashboardProps> = ({ type, name, onLogout
           )}
 
           {/* 받은 상담 신청 (docs 02-03 §7.3) — 장사시설의 "클레임 신청 현황"과 대칭되는 위치 */}
-          <div style={{ backgroundColor: 'var(--card-bg)', borderRadius: '16px', padding: '1.1rem', boxShadow: 'var(--box-shadow)' }}>
+          <div style={{ backgroundColor: 'var(--card-bg)', borderRadius: 'var(--r-lg)', padding: '1.1rem', boxShadow: 'var(--box-shadow)' }}>
             <h3 style={{ color: 'var(--primary-color)', marginBottom: '0.8rem' }}>받은 상담 신청</h3>
             {consultRequests.length === 0 ? (
               <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>아직 받은 상담 신청이 없습니다.</p>
@@ -408,7 +408,7 @@ export const BizDashboard: React.FC<BizDashboardProps> = ({ type, name, onLogout
                         disabled={updatingConsultId === r.id}
                         onClick={() => updateConsultStatus(r.id, 'CANCELLED')}
                         className="btn"
-                        style={{ backgroundColor: '#F1F5F9', color: '#6B7280', fontSize: '0.85rem', padding: '0.35rem 0.7rem' }}
+                        style={{ backgroundColor: 'var(--surface-subtle)', color: 'var(--text-muted)', fontSize: '0.85rem', padding: '0.35rem 0.7rem' }}
                       >
                         거절
                       </button>
@@ -434,7 +434,7 @@ export const BizDashboard: React.FC<BizDashboardProps> = ({ type, name, onLogout
       ) : (
         <>
           {/* 받은 업체 문의(리드) — docs 01-05 §11 4단계. 지금까지 적재만 되고 볼 방법이 없던 화면 */}
-          <div style={{ backgroundColor: 'var(--card-bg)', borderRadius: '16px', padding: '1.1rem', boxShadow: 'var(--box-shadow)', marginBottom: '1.2rem' }}>
+          <div style={{ backgroundColor: 'var(--card-bg)', borderRadius: 'var(--r-lg)', padding: '1.1rem', boxShadow: 'var(--box-shadow)', marginBottom: '1.2rem' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.6rem', marginBottom: '0.8rem' }}>
               <h3 style={{ color: 'var(--primary-color)', margin: 0, display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                 <Inbox size={18} /> 받은 업체 문의 <span style={{ color: 'var(--text-muted)', fontWeight: 400, fontSize: '0.85rem' }}>(총 {leadCount}건)</span>
@@ -490,7 +490,7 @@ export const BizDashboard: React.FC<BizDashboardProps> = ({ type, name, onLogout
                         disabled={updatingLeadNo === lead.leadNo}
                         onClick={() => updateLeadStatus(lead.leadNo, 'CONVERTED')}
                         className="btn"
-                        style={{ backgroundColor: '#DEF7EC', color: '#03543F', fontSize: '0.85rem', padding: '0.35rem 0.7rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}
+                        style={{ backgroundColor: 'var(--state-ok-bg)', color: 'var(--state-ok-fg)', fontSize: '0.85rem', padding: '0.35rem 0.7rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}
                       >
                         <CheckCircle2 size={14} /> 성사 처리
                       </button>
@@ -498,7 +498,7 @@ export const BizDashboard: React.FC<BizDashboardProps> = ({ type, name, onLogout
                         disabled={updatingLeadNo === lead.leadNo}
                         onClick={() => updateLeadStatus(lead.leadNo, 'LOST')}
                         className="btn"
-                        style={{ backgroundColor: '#F1F5F9', color: '#6B7280', fontSize: '0.85rem', padding: '0.35rem 0.7rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}
+                        style={{ backgroundColor: 'var(--surface-subtle)', color: 'var(--text-muted)', fontSize: '0.85rem', padding: '0.35rem 0.7rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}
                       >
                         <XCircle size={14} /> 무산 처리
                       </button>
@@ -510,11 +510,11 @@ export const BizDashboard: React.FC<BizDashboardProps> = ({ type, name, onLogout
 
             {leadTotalPages > 1 && (
               <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.8rem', marginTop: '0.8rem' }}>
-                <button disabled={leadPage <= 1} onClick={() => goToLeadPage(leadPage - 1)} className="btn" style={{ backgroundColor: '#F1F5F9', fontSize: '0.85rem', padding: '0.35rem 0.7rem', opacity: leadPage <= 1 ? 0.5 : 1 }}>
+                <button disabled={leadPage <= 1} onClick={() => goToLeadPage(leadPage - 1)} className="btn" style={{ backgroundColor: 'var(--surface-subtle)', fontSize: '0.85rem', padding: '0.35rem 0.7rem', opacity: leadPage <= 1 ? 0.5 : 1 }}>
                   이전
                 </button>
                 <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>{leadPage} / {leadTotalPages} 페이지</span>
-                <button disabled={leadPage >= leadTotalPages} onClick={() => goToLeadPage(leadPage + 1)} className="btn" style={{ backgroundColor: '#F1F5F9', fontSize: '0.85rem', padding: '0.35rem 0.7rem', opacity: leadPage >= leadTotalPages ? 0.5 : 1 }}>
+                <button disabled={leadPage >= leadTotalPages} onClick={() => goToLeadPage(leadPage + 1)} className="btn" style={{ backgroundColor: 'var(--surface-subtle)', fontSize: '0.85rem', padding: '0.35rem 0.7rem', opacity: leadPage >= leadTotalPages ? 0.5 : 1 }}>
                   다음
                 </button>
               </div>
@@ -522,7 +522,7 @@ export const BizDashboard: React.FC<BizDashboardProps> = ({ type, name, onLogout
           </div>
 
           {/* 시설 검색 + 클레임 신청 */}
-          <div style={{ backgroundColor: 'var(--card-bg)', borderRadius: '16px', padding: '1.1rem', boxShadow: 'var(--box-shadow)', marginBottom: '1.2rem' }}>
+          <div style={{ backgroundColor: 'var(--card-bg)', borderRadius: 'var(--r-lg)', padding: '1.1rem', boxShadow: 'var(--box-shadow)', marginBottom: '1.2rem' }}>
             <h3 style={{ color: 'var(--primary-color)', marginBottom: '0.8rem' }}>내 시설 찾아 연동하기</h3>
             <form onSubmit={handleSearch} style={{ display: 'flex', gap: '0.6rem', marginBottom: '1rem' }}>
               <input
@@ -541,7 +541,7 @@ export const BizDashboard: React.FC<BizDashboardProps> = ({ type, name, onLogout
                 <div>
                   <strong>{f.name}</strong>
                   <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginLeft: '0.5rem' }}>{f.location}</span>
-                  {f.isPartner && <span style={{ fontSize: '0.85rem', color: '#92400E', marginLeft: '0.5rem' }}>(이미 연동된 시설)</span>}
+                  {f.isPartner && <span style={{ fontSize: '0.85rem', color: 'var(--state-warn-fg)', marginLeft: '0.5rem' }}>(이미 연동된 시설)</span>}
                 </div>
                 <button onClick={() => submitClaim(f.id)} className="btn" style={{ backgroundColor: 'var(--secondary-color)', color: 'var(--primary-color)', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
                   <Link2 size={14} /> 연동 신청
@@ -551,7 +551,7 @@ export const BizDashboard: React.FC<BizDashboardProps> = ({ type, name, onLogout
           </div>
 
           {/* 내 연동 신청 상태 (FacilityClaim) */}
-          <div style={{ backgroundColor: 'var(--card-bg)', borderRadius: '16px', padding: '1.1rem', boxShadow: 'var(--box-shadow)', marginBottom: '1.2rem' }}>
+          <div style={{ backgroundColor: 'var(--card-bg)', borderRadius: 'var(--r-lg)', padding: '1.1rem', boxShadow: 'var(--box-shadow)', marginBottom: '1.2rem' }}>
             <h3 style={{ color: 'var(--primary-color)', marginBottom: '0.8rem' }}>연동 신청 현황</h3>
             {myClaims.length === 0 ? (
               <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>신청한 연동이 없습니다.</p>
@@ -559,7 +559,7 @@ export const BizDashboard: React.FC<BizDashboardProps> = ({ type, name, onLogout
               myClaims.map((c) => (
                 <div key={c.id} style={{ padding: '0.5rem 0', borderTop: '1px solid var(--border-color)', fontSize: '0.9rem' }}>
                   <strong>{c.facility?.name}</strong>
-                  <span style={{ marginLeft: '0.5rem', color: c.status === 'APPROVED' ? '#03543F' : c.status === 'REJECTED' ? '#991B1B' : '#92400E' }}>
+                  <span style={{ marginLeft: '0.5rem', color: c.status === 'APPROVED' ? 'var(--state-ok-fg)' : c.status === 'REJECTED' ? 'var(--state-danger-fg)' : 'var(--state-warn-fg)' }}>
                     {STATUS_LABELS[c.status] || c.status}
                   </span>
                 </div>
@@ -568,7 +568,7 @@ export const BizDashboard: React.FC<BizDashboardProps> = ({ type, name, onLogout
           </div>
 
           {/* 연동 완료된 내 시설 — 시설 사진 업로드 (소비자 화면 이미지 박스에 그대로 노출됨) */}
-          <div style={{ backgroundColor: 'var(--card-bg)', borderRadius: '16px', padding: '1.1rem', boxShadow: 'var(--box-shadow)' }}>
+          <div style={{ backgroundColor: 'var(--card-bg)', borderRadius: 'var(--r-lg)', padding: '1.1rem', boxShadow: 'var(--box-shadow)' }}>
             <h3 style={{ color: 'var(--primary-color)', marginBottom: '0.8rem' }}>연동된 내 시설</h3>
             {myFacilities.length === 0 ? (
               <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>아직 연동된 시설이 없습니다. 위에서 검색 후 연동을 신청해주세요.</p>
@@ -589,7 +589,7 @@ export const BizDashboard: React.FC<BizDashboardProps> = ({ type, name, onLogout
                           <img
                             src={`${BACKEND_URL}${img}`}
                             alt={f.name}
-                            style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '8px', border: isCover ? '2px solid var(--accent-gold)' : '1px solid var(--border-color)' }}
+                            style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 'var(--r-sm)', border: isCover ? '2px solid var(--accent-gold)' : '1px solid var(--border-color)' }}
                           />
                           <button
                             onClick={() => handleImageDelete(f.id, img)}
@@ -602,7 +602,7 @@ export const BizDashboard: React.FC<BizDashboardProps> = ({ type, name, onLogout
                               height: '20px',
                               borderRadius: '50%',
                               border: 'none',
-                              backgroundColor: '#991B1B',
+                              backgroundColor: 'var(--state-danger-fg)',
                               color: '#FFFFFF',
                               cursor: 'pointer',
                               display: 'flex',
@@ -625,8 +625,8 @@ export const BizDashboard: React.FC<BizDashboardProps> = ({ type, name, onLogout
                               borderRadius: '50%',
                               border: 'none',
                               backgroundColor: isCover ? 'var(--accent-gold)' : '#FFFFFF',
-                              color: isCover ? '#FFFFFF' : '#9CA3AF',
-                              boxShadow: '0 1px 4px rgba(0,0,0,0.25)',
+                              color: isCover ? '#FFFFFF' : 'var(--text-hint)',
+                              boxShadow: 'var(--el-1)',
                               cursor: isCover ? 'default' : 'pointer',
                               opacity: settingCoverPath === img ? 0.5 : 1,
                               display: 'flex',
@@ -644,7 +644,7 @@ export const BizDashboard: React.FC<BizDashboardProps> = ({ type, name, onLogout
                         style={{
                           width: '72px',
                           height: '72px',
-                          borderRadius: '8px',
+                          borderRadius: 'var(--r-sm)',
                           border: '1px dashed var(--border-color)',
                           display: 'flex',
                           alignItems: 'center',
@@ -660,7 +660,7 @@ export const BizDashboard: React.FC<BizDashboardProps> = ({ type, name, onLogout
                         <img
                           src={pendingImages[f.id].previewUrl}
                           alt="선택한 사진 미리보기"
-                          style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '8px', border: '2px dashed var(--point-color)', opacity: uploadingId === f.id ? 0.5 : 1 }}
+                          style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 'var(--r-sm)', border: '2px dashed var(--point-color)', opacity: uploadingId === f.id ? 0.5 : 1 }}
                         />
                         <span
                           style={{
@@ -673,7 +673,7 @@ export const BizDashboard: React.FC<BizDashboardProps> = ({ type, name, onLogout
                             fontWeight: 700,
                             color: '#fff',
                             backgroundColor: 'var(--point-color)',
-                            borderRadius: '0 0 8px 8px',
+                            borderRadius: '0 0 var(--r-sm) var(--r-sm)',
                             padding: '0.1rem 0',
                           }}
                         >
@@ -698,7 +698,7 @@ export const BizDashboard: React.FC<BizDashboardProps> = ({ type, name, onLogout
                         disabled={uploadingId === f.id}
                         onClick={() => cancelPendingImage(f.id)}
                         className="btn"
-                        style={{ backgroundColor: '#F1F5F9', color: '#6B7280', fontSize: '0.82rem', padding: '0.45rem 0.8rem' }}
+                        style={{ backgroundColor: 'var(--surface-subtle)', color: 'var(--text-muted)', fontSize: '0.82rem', padding: '0.45rem 0.8rem' }}
                       >
                         취소
                       </button>
@@ -711,7 +711,7 @@ export const BizDashboard: React.FC<BizDashboardProps> = ({ type, name, onLogout
                       gap: '0.4rem',
                       fontSize: '0.82rem',
                       padding: '0.45rem 0.8rem',
-                      borderRadius: '8px',
+                      borderRadius: 'var(--r-sm)',
                       backgroundColor: 'var(--secondary-color)',
                       color: 'var(--primary-color)',
                       cursor: 'pointer',

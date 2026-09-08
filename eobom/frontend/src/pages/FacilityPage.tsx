@@ -202,7 +202,7 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
       {/* 🔄 09-07 사용자 지시 — 다른 도메인 페이지(CounselingPage 등)처럼 타이틀을 감싸던
           히어로 박스(진한 배경·패딩·둥근 모서리 카드)를 없애고 배지+제목+설명만 남긴다. */}
       <div style={{ marginBottom: '1.5rem' }}>
-        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', backgroundColor: '#FEF3C7', color: 'var(--accent-gold)', padding: '0.3rem 0.8rem', borderRadius: '16px', fontSize: '0.85rem', fontWeight: 700, marginBottom: '0.6rem' }}>
+        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', backgroundColor: 'var(--state-warn-bg)', color: 'var(--accent-gold)', padding: '0.3rem 0.8rem', borderRadius: 'var(--r-lg)', fontSize: '0.85rem', fontWeight: 700, marginBottom: '0.6rem' }}>
           <HouseLeafIcon size={18} color="var(--accent-gold)" /> 봉안당·수목장 맞춤 검색 및 장례식장 맞춤 매칭
         </div>
         <h1 className="page-title" style={{ color: 'var(--primary-color)', display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0 }}>
@@ -218,7 +218,7 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
         style={{
           backgroundColor: 'var(--card-bg)',
           padding: '1.1rem',
-          borderRadius: '20px',
+          borderRadius: 'var(--r-lg)',
           marginBottom: '1.75rem',
           boxShadow: 'var(--box-shadow)',
           border: '1px solid var(--border-color)',
@@ -241,10 +241,10 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
                 style={{
                   fontSize: '0.85rem',
                   fontWeight: 700,
-                  color: '#92400E',
-                  backgroundColor: '#FEF3C7',
+                  color: 'var(--state-warn-fg)',
+                  backgroundColor: 'var(--state-warn-bg)',
                   padding: '0.15rem 0.5rem',
-                  borderRadius: '10px',
+                  borderRadius: 'var(--r-sm)',
                   cursor: 'help'
                 }}
               >
@@ -276,7 +276,7 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
               ))}
             </select>
           </div>
-          {locationError && <p style={{ color: '#DC2626', fontSize: '0.85rem', margin: '0.4rem 0 0 0' }}>{locationError}</p>}
+          {locationError && <p style={{ color: 'var(--state-danger-fg)', fontSize: '0.85rem', margin: '0.4rem 0 0 0' }}>{locationError}</p>}
         </div>
 
         <div style={{ flex: '1 1 180px' }}>
@@ -316,7 +316,7 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
                 color: active ? '#fff' : 'var(--primary-color)',
                 border: active ? 'none' : '1px solid var(--border-color)',
                 padding: '0.3rem 0.7rem',
-                borderRadius: '999px',
+                borderRadius: 'var(--r-full)',
                 fontSize: '0.85rem',
                 fontWeight: 600,
                 minHeight: 'auto',
@@ -368,11 +368,11 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
 
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.6rem' }}>
                 <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center' }}>
-                  <span style={{ fontSize: '0.85rem', backgroundColor: 'var(--secondary-color)', padding: '0.3rem 0.6rem', borderRadius: '6px', fontWeight: 700, color: 'var(--primary-color)' }}>
+                  <span style={{ fontSize: '0.85rem', backgroundColor: 'var(--secondary-color)', padding: '0.3rem 0.6rem', borderRadius: 'var(--r-sm)', fontWeight: 700, color: 'var(--primary-color)' }}>
                     {item.type}
                   </span>
                   {distKm && (
-                    <span style={{ fontSize: '0.85rem', backgroundColor: '#FEF3C7', color: 'var(--accent-gold)', padding: '0.25rem 0.5rem', borderRadius: '6px', fontWeight: 700 }}>
+                    <span style={{ fontSize: '0.85rem', backgroundColor: 'var(--state-warn-bg)', color: 'var(--accent-gold)', padding: '0.25rem 0.5rem', borderRadius: 'var(--r-sm)', fontWeight: 700 }}>
                       📍 {distKm} km
                     </span>
                   )}
@@ -390,9 +390,9 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
                 • 종교: {item.religion} | • 하객: {item.guests}
               </p>
 
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', backgroundColor: 'var(--card-bg)', padding: '0.6rem 0.8rem', borderRadius: '8px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', backgroundColor: 'var(--card-bg)', padding: '0.6rem 0.8rem', borderRadius: 'var(--r-sm)' }}>
                 <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>예상 기본 비용</span>
-                <span style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--point-color)' }}>{item.price}</span>
+                <span style={{ fontSize: '1.2rem', fontWeight: 'var(--fw-bold)', color: 'var(--point-color)' }}>{item.price}</span>
               </div>
 
               {/* 태그 목록 — TAG_CATALOG에 등록된 값(예: 공설/사설)만 클릭 가능한 필터, 나머지는 그냥 라벨 */}
@@ -408,7 +408,7 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
                         backgroundColor: selectedTag === tag ? 'var(--point-color)' : '#EAE5DC',
                         color: selectedTag === tag ? '#fff' : '#444',
                         padding: '0.2rem 0.5rem',
-                        borderRadius: '4px',
+                        borderRadius: 'var(--r-sm)',
                         border: 'none',
                         cursor: 'pointer',
                       }}
@@ -416,7 +416,7 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
                       #{TAG_CATALOG[tag].label}
                     </button>
                   ) : (
-                    <span key={idx} style={{ fontSize: '0.85rem', backgroundColor: '#EAE5DC', padding: '0.2rem 0.5rem', borderRadius: '4px', color: '#444' }}>
+                    <span key={idx} style={{ fontSize: '0.85rem', backgroundColor: '#EAE5DC', padding: '0.2rem 0.5rem', borderRadius: 'var(--r-sm)', color: '#444' }}>
                       #{tag}
                     </span>
                   )

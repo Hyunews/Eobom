@@ -43,7 +43,7 @@ const Row: React.FC<{ label: string; children: React.ReactNode }> = ({ label, ch
 // 텍스트만 뜨던 것을, 실제 렌더와 같은 자리에 회색 블록을 먼저 잡아 레이아웃이 안 튀게 한다.
 const ObituaryLandingSkeleton: React.FC = () => (
   <div style={{ width: '100%', maxWidth: '460px' }}>
-    <div style={{ backgroundColor: '#FFFFFF', borderRadius: '20px', boxShadow: '0 12px 35px rgba(26,43,76,0.08)', overflow: 'hidden' }}>
+    <div style={{ backgroundColor: '#FFFFFF', borderRadius: 'var(--r-lg)', boxShadow: 'var(--el-2)', overflow: 'hidden' }}>
       {/* 근조 헤더 자리 */}
       <div style={{ backgroundColor: '#1A2B4C', padding: '2rem 1.75rem', textAlign: 'center' }}>
         <div className="skeleton-block" style={{ width: '160px', height: '12px', margin: '0 auto 0.9rem', backgroundColor: 'rgba(255,255,255,0.18)' }} />
@@ -151,14 +151,14 @@ export const ObituaryLandingPage: React.FC = () => {
   return (
     <div style={pageShellStyle}>
       <div style={{ width: '100%', maxWidth: '460px' }}>
-        <div style={{ backgroundColor: '#FFFFFF', borderRadius: '20px', boxShadow: '0 12px 35px rgba(26,43,76,0.08)', overflow: 'hidden' }}>
+        <div style={{ backgroundColor: '#FFFFFF', borderRadius: 'var(--r-lg)', boxShadow: 'var(--el-2)', overflow: 'hidden' }}>
           {/* 근조 헤더 */}
           <div style={{ backgroundColor: '#1A2B4C', color: '#FFFFFF', padding: '2rem 1.75rem', textAlign: 'center' }}>
             <p style={{ fontSize: '0.85rem', color: '#94A3B8', letterSpacing: '0.1em', marginBottom: '0.6rem' }}>삼가 고인의 명복을 빕니다</p>
-            <h1 style={{ fontSize: '1.6rem', fontWeight: 800, margin: 0, fontFamily: "'KoPub World Batang', serif" }}>
+            <h1 style={{ fontSize: '1.6rem', fontWeight: 'var(--fw-bold)', margin: 0, fontFamily: "'KoPub World Batang', serif" }}>
               故 {data.deceasedName}
               {data.deceasedDeathDate && (
-                <span style={{ fontSize: '0.95rem', fontWeight: 400, color: '#CBD5E1' }}> ( ~ {formatKST(data.deceasedDeathDate).split(' ').slice(0, 2).join(' ')})</span>
+                <span style={{ fontSize: '0.95rem', fontWeight: 400, color: 'var(--border-color)' }}> ( ~ {formatKST(data.deceasedDeathDate).split(' ').slice(0, 2).join(' ')})</span>
               )}
             </h1>
           </div>
@@ -200,7 +200,7 @@ export const ObituaryLandingPage: React.FC = () => {
 
             {/* 마음 전하실 곳 — accountEnabled일 때만(Phase 1~2엔 화면 토글이 없어 항상 비어 있음) */}
             {data.account && (
-              <div style={{ backgroundColor: '#F1F5F9', borderRadius: '10px', padding: '0.9rem 1rem', marginBottom: '0.5rem' }}>
+              <div style={{ backgroundColor: 'var(--surface-subtle)', borderRadius: 'var(--r-sm)', padding: '0.9rem 1rem', marginBottom: '0.5rem' }}>
                 <p style={{ fontSize: '0.85rem', fontWeight: 700, color: '#1A2B4C', marginBottom: '0.3rem' }}>마음 전하실 곳</p>
                 <p style={{ fontSize: '0.95rem', color: '#1A2B4C', margin: 0 }}>
                   {data.account.bankCode} {data.account.accountNumber} ({data.account.holder})
@@ -229,7 +229,7 @@ export const ObituaryLandingPage: React.FC = () => {
         <p style={{ textAlign: 'center', fontSize: '0.85rem', color: '#94A3B8', marginTop: '1rem' }}>
           최종 수정: {formatKST(data.updatedAt)} · 정보는 유족이 언제든 바꿀 수 있습니다.
         </p>
-        <p style={{ textAlign: 'center', fontSize: '0.85rem', color: '#CBD5E1', marginTop: '0.4rem' }}>이어봄</p>
+        <p style={{ textAlign: 'center', fontSize: '0.85rem', color: 'var(--border-color)', marginTop: '0.4rem' }}>이어봄</p>
       </div>
     </div>
   );
