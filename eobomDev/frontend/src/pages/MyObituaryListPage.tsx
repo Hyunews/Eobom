@@ -196,7 +196,7 @@ export const MyObituaryListPage: React.FC = () => {
                           type="button"
                           onClick={() => navigate(`/obituary?slug=${o.slug}`)}
                           className="btn"
-                          style={{ height: '36px', padding: '0 var(--sp-4)', fontSize: '0.82rem', backgroundColor: 'var(--card-bg)', border: '1px solid var(--border-color)' }}
+                          style={{ height: '36px', padding: '0 var(--sp-4)', fontSize: 'var(--fs-body)', backgroundColor: 'var(--card-bg)', border: '1px solid var(--border-color)' }}
                         >
                           수정
                         </button>
@@ -207,7 +207,7 @@ export const MyObituaryListPage: React.FC = () => {
                         disabled={deletingId === o.id}
                         className="btn"
                         style={{
-                          height: '36px', padding: '0 var(--sp-4)', fontSize: '0.82rem', backgroundColor: 'var(--card-bg)',
+                          height: '36px', padding: '0 var(--sp-4)', fontSize: 'var(--fs-body)', backgroundColor: 'var(--card-bg)',
                           border: '1px solid var(--state-danger-bg)', color: 'var(--state-danger-fg)', opacity: deletingId === o.id ? 0.6 : 1,
                           display: 'inline-flex', alignItems: 'center', gap: '0.3rem',
                         }}

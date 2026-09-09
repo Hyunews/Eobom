@@ -525,7 +525,7 @@ export const VoiceToTextInput: React.FC<VoiceToTextInputProps> = ({
             </div>
           )}
 
-          <p style={{ fontSize: '0.88rem', color: 'var(--state-danger-fg)' }}>취소하면 녹음이 사라집니다.</p>
+          <p style={{ fontSize: 'var(--fs-body)', color: 'var(--state-danger-fg)' }}>취소하면 녹음이 사라집니다.</p>
 
           <div style={{ display: 'flex', gap: '0.5rem' }}>
             <button type="button" onClick={discardPending} disabled={modalStage === 'saving'} style={actionBtnStyle('var(--secondary-color)', 'var(--primary-color)', modalStage === 'saving')}>

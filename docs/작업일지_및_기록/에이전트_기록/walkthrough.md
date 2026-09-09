@@ -2366,3 +2366,38 @@ wt137 그대로라 재작업 없음).
 
 <!-- Gemini 판정 1줄: … -->
 
+
+## 2026-09-09 | wt178 — Phase 1.7 §4.5-4 구간 치환 E→F→G (fontSize 구간규칙, 열거식 표 대체)
+
+- **근거 스펙**: docs/00_핵심플랫폼/00-38_적응형_모바일_UX_개편_명세서.md §4.5-4 · §10 Phase 1.7 (§4.5·§4.5-2 옛 열거표는 §4.5-4로 대체됨)
+- **건드린 파일** (18개 파일, E 44곳 + F 1곳 + G 1곳 = 46회 편집, 실 위치 45곳 — G가 E의 1곳을 덮음):
+  - `index.css`(E 3곳: `:1012` `.header-nav-item` · `:1782` `.farewell-method-tabs button` · `:1854` `.farewell-rail-hints li`, 전부 `0.92rem`)
+  - `components/Footer.tsx`(E 5곳 `0.88rem`×4·`0.82rem`×1(`:190`) + **G 1곳**: `:190`을 다시 `var(--fs-caption)`로 덮음)
+  - `components/FooterMobile.tsx`(E 3곳 `0.82`·`0.85rem`×2 + **F 1곳**: `:97` `0.78rem`→`var(--fs-caption)`)
+  - `components/home/EntryBoxes.tsx`(E 1, `0.92rem`)
+  - `components/legal/LegalDocLayout.tsx`(E 1, `0.88rem`)
+  - `components/LoginModal.tsx`(E 6: `0.86`×1·`0.98`×3·`0.92`×2)
+  - `components/MyPageProfile.tsx`(E 1, `0.88rem`)
+  - `components/Sidebar.tsx`(E 2, `0.98rem`×2)
+  - `components/VoiceToTextInput.tsx`(E 1, `0.88rem`)
+  - `pages/CareGuidePage.tsx`(E 2: `0.98`·`0.87rem`)
+  - `pages/DigitalEstatePage.tsx`(E 4: `0.82`×2·`0.88`×2)
+  - `pages/DomainOverviewPage.tsx`(E 1, `0.92rem`)
+  - `pages/FamilyInvitePage.tsx`(E 2: `0.92`·`0.82rem`)
+  - `pages/HomePage.tsx`(E 1, `0.88rem`)
+  - `pages/MemorialPage.tsx`(E 1, `0.82rem` — `height:'36px'`는 §4.5-5 Phase3 몫이라 손대지 않음)
+  - `pages/MyObituaryListPage.tsx`(E 2, `0.82rem`×2 — 마찬가지로 `height:'36px'` 미변경)
+  - `pages/ObituaryPage.tsx`(E 2: `0.92`·`0.82rem`)
+  - `pages/PrivacyPage.tsx`(E 6, `0.88rem`×6)
+- **결과**: E→F→G 순서 고정으로 스크립트 치환(E는 Node 정규식 스크립트로 `0.82·0.85·0.86·0.87·0.88·0.92·0.98rem` 리터럴 정확히 매칭해 `var(--fs-body)`로, F·G는 각 1곳이라 Edit로 수기 처리). 운영자 3화면(`AdminPage.tsx`·`BizDashboard.tsx`·`PartnerPortalPage.tsx`) 제외 유지.
+  - **검증(스펙 지정 grep 그대로 재현)**:
+    - `grep -rnE "fontSize:\s*['\"]0\.(7[0-9]?|8[0-9]?|9[1-9])rem['\"]" eobomDev/frontend/src --include=*.tsx | grep -v "AdminPage.tsx\|BizDashboard.tsx\|PartnerPortalPage.tsx"` → 잔여 0
+    - `grep -nE "font-size:\s*0\.(7[0-9]?|8[0-9]?|9[1-9])rem" eobomDev/frontend/src/index.css` → 잔여 0
+    - D 회귀 확인: `grep -rnE "(gap|margin|marginBottom|marginTop|padding|paddingTop|right|top):\s*['\"\`][^'\"\`]*var\(--fs-(body|caption)\)" eobomDev/frontend/src` → 잔여 0 (Phase 1.6 D 결과 그대로 유지됨)
+  - **빌드**: `cd eobomDev/frontend && npm run build`(`tsc && vite build`) → 에러 0, 통과 (`dist/assets/index-*.css 27.86 kB`, `index-*.js 587.50 kB`, "built in 4.74s")
+  - **실기동**: 하지 않음(사람 몫). "실기동 검증 대기"로 남긴다. 사람이 확인할 때 함께 봐야 할 것: `FooterMobile` 펼침 패널이 `.footer-mobile-panel`의 `max-height:170px`(index.css:575)를 넘지 않는지 — 계산상 3줄×line-height 1.8×16px≈86px+여백≈100px로 여유 있으나 wt176이 13.6px 기준으로 잡은 값이라 재확인 필요.
+- **편차**: 없음. `height:'36px'` 3곳(`MemorialPage.tsx:250`·`MyObituaryListPage.tsx:199·210`)은 지시대로 이번엔 fontSize만 바꾸고 그대로 뒀다(§4.5-5, Phase 3 몫).
+- **다음 에이전트가 알아야 할 것**: DoD #2(360px 요소 전수)·데스크톱 1280px 회귀 확인 모두 사람 실기동 대기. 다음 작업은 Phase 2 ② `CareGuidePage`(§8.1-3) — 이번에 `CareGuidePage.tsx`도 fontSize 2곳(`0.98`·`0.87rem`)이 `var(--fs-body)`로 바뀌었으니 분리 작업 시 최신 상태 기준으로 진행할 것.
+
+<!-- Gemini 판정 1줄: … -->
+

@@ -46,7 +46,7 @@ export const FooterMobile: React.FC = () => {
       >
         <MessageCircle size={18} /> 카카오톡으로 문의하기
       </a>
-      <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', margin: '0 0 1rem' }}>
+      <p style={{ fontSize: 'var(--fs-body)', color: 'var(--text-muted)', margin: '0 0 1rem' }}>
         평일 09:00 ~ 17:00
       </p>
 
@@ -64,7 +64,7 @@ export const FooterMobile: React.FC = () => {
           border: 'none',
           borderTop: '1px dashed var(--border-color)',
           padding: '0.6rem 0',
-          fontSize: '0.85rem',
+          fontSize: 'var(--fs-body)',
           fontWeight: 600,
           color: 'var(--point-color)',
           cursor: 'pointer'
@@ -75,7 +75,7 @@ export const FooterMobile: React.FC = () => {
       </button>
 
       <div className={`footer-mobile-panel${isOpen ? ' open' : ''}`}>
-        <div style={{ padding: '0.3rem 0.25rem 0.5rem', fontSize: '0.85rem', color: 'var(--text-muted)', lineHeight: 1.8 }}>
+        <div style={{ padding: '0.3rem 0.25rem 0.5rem', fontSize: 'var(--fs-body)', color: 'var(--text-muted)', lineHeight: 1.8 }}>
           <div style={{ display: 'flex', justifyContent: 'center', gap: '0.5rem', marginBottom: '0.3rem' }}>
             <Link to="/terms" style={{ color: 'var(--primary-color)', textDecoration: 'underline', textUnderlineOffset: '2px' }}>
               서비스 이용약관
@@ -94,7 +94,7 @@ export const FooterMobile: React.FC = () => {
           paddingTop: '0.9rem',
           marginTop: '0.4rem',
           borderTop: '1px solid var(--border-color)',
-          fontSize: '0.78rem',
+          fontSize: 'var(--fs-caption)',
           color: 'var(--text-muted)',
           paddingBottom: '1.3rem'
         }}

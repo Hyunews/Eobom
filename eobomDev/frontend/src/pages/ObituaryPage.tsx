@@ -525,7 +525,7 @@ export const ObituaryPage: React.FC<ObituaryPageProps> = ({ currentUser, onOpenL
               토글 자체가 경고를 띄울 자리다 — 켜는 순간 재전파 경고를 보여준다. */}
           <div className="form-group" style={{ backgroundColor: 'var(--secondary-color)', borderRadius: 'var(--r-sm)', padding: '0.9rem 1rem' }}>
             <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', marginBottom: accountEnabled ? 'var(--fs-body)' : 0 }}>
-              <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontWeight: 700, color: 'var(--primary-color)', fontSize: '0.92rem' }}>
+              <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontWeight: 700, color: 'var(--primary-color)', fontSize: 'var(--fs-body)' }}>
                 <Heart size={16} color="var(--point-color)" /> 마음 전하실 곳
               </span>
               <input type="checkbox" checked={accountEnabled} onChange={(e) => setAccountEnabled(e.target.checked)} style={{ width: '20px', height: '20px' }} />
@@ -636,7 +636,7 @@ export const ObituaryPage: React.FC<ObituaryPageProps> = ({ currentUser, onOpenL
                 <p style={{ color: '#1A2B4C', fontWeight: 'var(--fw-bold)', fontSize: 'var(--fs-body)', margin: '0 0 0.3rem 0' }}>
                   {cardTitle || '[부고] 故 ○○○ 님'}
                 </p>
-                <p style={{ color: 'var(--text-muted)', fontSize: '0.82rem', margin: 0, whiteSpace: 'pre-line' }}>
+                <p style={{ color: 'var(--text-muted)', fontSize: 'var(--fs-body)', margin: 0, whiteSpace: 'pre-line' }}>
                   {cardDescription || '빈소·발인 정보를 입력하면 여기에 표시됩니다.'}
                 </p>
               </div>

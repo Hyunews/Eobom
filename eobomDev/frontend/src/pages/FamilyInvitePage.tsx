@@ -224,7 +224,7 @@ export const FamilyInvitePage: React.FC<FamilyInvitePageProps> = ({ currentUser,
         <h1 style={{ fontSize: '1.3rem', color: '#1A2B4C', fontFamily: "'KoPub World Batang', serif", marginBottom: '0.6rem' }}>
           {data?.designatorName}님이 당신을 가족으로 지정했습니다
         </h1>
-        <p style={{ fontSize: '0.92rem', color: '#6C7A89', lineHeight: 1.6, marginBottom: '1.4rem' }}>
+        <p style={{ fontSize: 'var(--fs-body)', color: '#6C7A89', lineHeight: 1.6, marginBottom: '1.4rem' }}>
           관계: {relationshipText}
           <br />
           권한: {scope?.label}{scope ? ` (${scope.hint})` : ''}
@@ -285,7 +285,7 @@ export const FamilyInvitePage: React.FC<FamilyInvitePageProps> = ({ currentUser,
               type="button"
               onClick={handleDecline}
               disabled={isSubmitting}
-              style={{ marginTop: '1rem', background: 'none', border: 'none', fontSize: '0.82rem', color: 'var(--text-muted)', textDecoration: 'underline', cursor: 'pointer' }}
+              style={{ marginTop: '1rem', background: 'none', border: 'none', fontSize: 'var(--fs-body)', color: 'var(--text-muted)', textDecoration: 'underline', cursor: 'pointer' }}
             >
               로그인 없이 거절만 하기
             </button>

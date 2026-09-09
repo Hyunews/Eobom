@@ -126,11 +126,11 @@ export const CareGuidePage: React.FC<CareGuidePageProps> = ({ setActiveTab }) =>
         <span style={{ position: 'absolute', top: '-12px', left: '-12px', width: '26px', height: '26px', borderRadius: 'var(--r-full)', backgroundColor: 'var(--state-critical-fg)', border: '2px solid var(--card-bg)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <AlertCircle color="#FFFFFF" size={14} strokeWidth={2.5} />
         </span>
-        <h3 style={{ color: 'var(--text-main)', fontSize: '0.98rem', fontWeight: 700, margin: '0 0 0.4rem 0' }}>
+        <h3 style={{ color: 'var(--text-main)', fontSize: 'var(--fs-body)', fontWeight: 700, margin: '0 0 0.4rem 0' }}>
           고인에게 빚이 있을 수 있다면, 3개월 안에 결정해야 합니다.
         </h3>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap' }}>
-          <p style={{ fontSize: '0.87rem', color: 'var(--text-muted)', margin: 0, lineHeight: 1.6, flex: '1 1 320px' }}>
+          <p style={{ fontSize: 'var(--fs-body)', color: 'var(--text-muted)', margin: 0, lineHeight: 1.6, flex: '1 1 320px' }}>
             상속포기·한정승인 기한은 상속개시를 안 날로부터 3개월입니다. 지나면 채무를 그대로 물려받습니다.
           </p>
           <div style={{ display: 'flex', gap: '0.6rem', flexShrink: 0 }}>

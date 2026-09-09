@@ -48,7 +48,7 @@ export const Footer: React.FC = () => {
           <div style={{ marginBottom: '0rem' }}>
             <EobomLogo variant="symbol" height={34} />
           </div>
-          <p style={{ fontSize: '0.88rem', lineHeight: 1.7, color: 'var(--text-muted)', margin: 0 }}>
+          <p style={{ fontSize: 'var(--fs-body)', lineHeight: 1.7, color: 'var(--text-muted)', margin: 0 }}>
             생전 준비(엔딩노트, 상속)부터 임종 직후(장례, 묘지) 및 사후 정리(디지털 유품, 사망 행정)까지 단일 플랫폼에서 완결하는 웰다잉 토탈 케어 정보 서비스입니다.
           </p>
         </div>
@@ -74,7 +74,7 @@ export const Footer: React.FC = () => {
               listStyle: 'none',
               padding: 0,
               margin: 0,
-              fontSize: '0.88rem',
+              fontSize: 'var(--fs-body)',
               lineHeight: 1.9,
               color: 'var(--text-muted)'
             }}
@@ -129,7 +129,7 @@ export const Footer: React.FC = () => {
           >
             070-8856-2725
           </div>
-          <p style={{ fontSize: '0.88rem', lineHeight: 1.7, color: 'var(--text-muted)', margin: 0 }}>
+          <p style={{ fontSize: 'var(--fs-body)', lineHeight: 1.7, color: 'var(--text-muted)', margin: 0 }}>
             사업장·전문가 문의, 개인정보 열람·삭제 요청
           </p>
         </div>
@@ -171,7 +171,7 @@ export const Footer: React.FC = () => {
           >
             카카오톡으로 문의하기
           </a>
-          <p style={{ fontSize: '0.88rem', lineHeight: 1.7, color: 'var(--text-muted)', margin: 0, marginLeft: '0.4rem' }}>
+          <p style={{ fontSize: 'var(--fs-body)', lineHeight: 1.7, color: 'var(--text-muted)', margin: 0, marginLeft: '0.4rem' }}>
             평일 09:00 ~ 17:00
           </p>
         </div>
@@ -187,7 +187,7 @@ export const Footer: React.FC = () => {
           paddingTop: '0.9rem',
           borderTop: '1px solid var(--border-color)',
           textAlign: 'center',
-          fontSize: '0.82rem',
+          fontSize: 'var(--fs-caption)',
           color: 'var(--text-muted)'
         }}
       >

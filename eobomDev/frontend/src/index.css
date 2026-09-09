@@ -1009,7 +1009,7 @@ body {
 
   .header-nav-item {
     padding: 0 0.6rem;
-    font-size: 0.92rem;
+    font-size: var(--fs-body);
   }
 }
 
@@ -1779,7 +1779,7 @@ body {
   gap: 0.4rem;
   background: none;
   border: none;
-  font-size: 0.92rem;
+  font-size: var(--fs-body);
   font-weight: 700;
   color: var(--text-muted);
   padding: 0 0 0.65rem;
@@ -1851,7 +1851,7 @@ body {
 }
 
 .farewell-rail-hints li {
-  font-size: 0.92rem;
+  font-size: var(--fs-body);
   color: var(--text-main);
   display: flex;
   align-items: center;

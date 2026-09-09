@@ -247,7 +247,7 @@ export const MemorialPage: React.FC<MemorialPageProps> = ({ currentUser, onOpenL
                     disabled={deletingId === m.id}
                     className="btn"
                     style={{
-                      height: '36px', padding: '0 var(--sp-4)', fontSize: '0.82rem', backgroundColor: 'var(--card-bg)',
+                      height: '36px', padding: '0 var(--sp-4)', fontSize: 'var(--fs-body)', backgroundColor: 'var(--card-bg)',
                       border: '1px solid var(--state-danger-bg)', color: 'var(--state-danger-fg)', opacity: deletingId === m.id ? 0.6 : 1,
                       display: 'inline-flex', alignItems: 'center', gap: '0.3rem', flexShrink: 0,
                     }}
