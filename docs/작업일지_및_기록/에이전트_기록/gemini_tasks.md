@@ -229,3 +229,26 @@
   - 판정 결과: ✅통과 34건, 🔄스펙갱신 5건 (누적: 판정 177건 / 대기 0건 / 반려·스펙갱신 12건).
   - 빌드/컴파일 검증: backend `tsc -p tsconfig.json` 0건, frontend `tsc -p tsconfig.json` 0건, `frontend build` 통과 확인.
 - [x] **하네스 무결성**: `harness-doctor.sh` #8 게이트 점검 대기 0건 확인.
+
+---
+
+### 22. 2026-09-09 Walkthrough 미판정 40건 전수 검증 게이트 판정 및 전체 HTML 보고서 71종 최신화 완료 (대기 0건)
+- [x] **전체 HTML 보고서 71종 일괄 재생성 & 포털(`reports/index.html`) 최신화 완료**:
+  - `generate_all_reports.js` 실행으로 전체 71종 명세서 및 트러블슈팅(TS-001~003) 시각화 동기화 완료.
+- [x] **Walkthrough 40건 전수 게이트 판정 (대기 0건 달성)**:
+  - 2026-09-08 ~ 2026-09-09 기간 내 미판정 항목 40건(wt158 ~ wt186) 전수 검증 게이트 판정 기록 완료.
+  - 판정 결과: ✅통과 39건, 🔄스펙갱신 1건 (wt163: CareGuide id12 conditional 표시 렌더 로직 미연계에 따른 카테고리 헤더 표시 스펙 검토 필요).
+  - 누적 통계: 판정 217건 / 대기 0건 / 반려·스펙갱신 14건.
+- [x] **주요 구현 및 기획 정합 검증**:
+  - `wt173~174`: `00-38` 적응형 모바일 UX Phase 1~2 기반 작업 (360px 뷰포트 기준, `useIsMobile` 훅 신설, FarewellDesktopView / FarewellMobileView 적응형 분리).
+  - `wt175`: 루트 개발 디렉토리 `eobom/` ➔ `eobomDev/` 이동 및 `render.yaml`, 배포 설정, gitignore 동기화.
+  - `wt176`: `FooterMobile` 아코디언 컴포넌트 신설 및 모바일 분기 배선.
+  - `wt177~178`: `00-38` Phase 1.6 & 1.7 폰트 및 간격 토큰 전역 치환.
+  - `wt179 (정정 1~10)`: `ObituaryPage` 카카오톡 카드 미리보기 실측 정합, 쿨톤 대안(#DCE3E8), 우상단 40px 아이콘 칩/호버 확장, `.main-wrapper` 뷰포트 높이 캡 및 가로 스크롤(1200px) 실기동 통과.
+  - `wt180`: `00-09` §6.3 규칙1 명조체(--font-serif) 제목 한정 적용 및 `.section-title` 프리미티브 신설.
+  - `wt181~182`: `07-04` §8 #6 확정(F단계 차단 해제), `07-02` §2-1 deadlineShort 23건 명세화, `07-03` §7-1 문자보내기 모바일 전용(≤768px) 스펙갱신.
+  - `wt183`: `CareGuidePage` 적응형 분리, deadlineShort 배선 및 모바일 칩 필터 구현.
+  - `wt184~185`: `07-03` §6.4 조문객 화면 미리보기(ObituaryView 분리 + 조회수 가드 + 모달) 기획 및 구현 완료.
+  - `wt186`: `components/` 도메인별 폴더화 정리 (`farewell/`, `mypage/`, `lib/modeNav.ts` 이동 및 13개 파일 import 동기화).
+- [x] **하네스 무결성**: `harness-doctor.sh` 검증 완료 (대기 0건 확인).
+
