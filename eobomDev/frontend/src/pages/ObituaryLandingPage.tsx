@@ -34,7 +34,7 @@ interface ObituaryData {
 const Row: React.FC<{ label: string; children: React.ReactNode }> = ({ label, children }) => (
   <div style={{ display: 'flex', gap: '1rem', padding: '0.6rem 0', borderBottom: '1px solid #EAE5DC' }}>
     <span style={{ width: '52px', flexShrink: 0, fontSize: 'var(--fs-body)', fontWeight: 700, color: '#6C7A89' }}>{label}</span>
-    <span style={{ fontSize: '0.95rem', color: '#1A2B4C', lineHeight: 1.5 }}>{children}</span>
+    <span style={{ fontSize: 'var(--fs-body)', color: '#1A2B4C', lineHeight: 1.5 }}>{children}</span>
   </div>
 );
 
@@ -133,7 +133,7 @@ export const ObituaryLandingPage: React.FC = () => {
       <div style={pageShellStyle}>
         <div style={{ textAlign: 'center', maxWidth: '360px', paddingTop: '3rem' }}>
           <p style={{ fontSize: '1.05rem', color: '#1A2B4C', fontWeight: 700, marginBottom: '0.5rem' }}>부고장을 찾을 수 없습니다.</p>
-          <p style={{ fontSize: '0.9rem', color: '#6C7A89' }}>링크가 만료되었거나 잘못된 주소일 수 있습니다.</p>
+          <p style={{ fontSize: 'var(--fs-body)', color: '#6C7A89' }}>링크가 만료되었거나 잘못된 주소일 수 있습니다.</p>
         </div>
       </div>
     );
@@ -158,7 +158,7 @@ export const ObituaryLandingPage: React.FC = () => {
             <h1 style={{ fontSize: '1.6rem', fontWeight: 'var(--fw-bold)', margin: 0, fontFamily: "'KoPub World Batang', serif" }}>
               故 {data.deceasedName}
               {data.deceasedDeathDate && (
-                <span style={{ fontSize: '0.95rem', fontWeight: 400, color: 'var(--border-color)' }}> ( ~ {formatKST(data.deceasedDeathDate).split(' ').slice(0, 2).join(' ')})</span>
+                <span style={{ fontSize: 'var(--fs-body)', fontWeight: 400, color: 'var(--border-color)' }}> ( ~ {formatKST(data.deceasedDeathDate).split(' ').slice(0, 2).join(' ')})</span>
               )}
             </h1>
           </div>
@@ -202,7 +202,7 @@ export const ObituaryLandingPage: React.FC = () => {
             {data.account && (
               <div style={{ backgroundColor: 'var(--surface-subtle)', borderRadius: 'var(--r-sm)', padding: '0.9rem 1rem', marginBottom: '0.5rem' }}>
                 <p style={{ fontSize: 'var(--fs-body)', fontWeight: 700, color: '#1A2B4C', marginBottom: '0.3rem' }}>마음 전하실 곳</p>
-                <p style={{ fontSize: '0.95rem', color: '#1A2B4C', margin: 0 }}>
+                <p style={{ fontSize: 'var(--fs-body)', color: '#1A2B4C', margin: 0 }}>
                   {data.account.bankCode} {data.account.accountNumber} ({data.account.holder})
                 </p>
               </div>
@@ -217,7 +217,7 @@ export const ObituaryLandingPage: React.FC = () => {
               style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem',
                 padding: '1rem', backgroundColor: 'var(--secondary-color)', color: 'var(--point-color)',
-                fontWeight: 700, fontSize: '0.95rem', textDecoration: 'none', borderTop: '1px solid #EAE5DC',
+                fontWeight: 700, fontSize: 'var(--fs-body)', textDecoration: 'none', borderTop: '1px solid #EAE5DC',
               }}
             >
               <Flower2 size={18} /> 추모관 들어가기

@@ -45,7 +45,7 @@ export const PickupPage: React.FC<PickupPageProps> = () => {
   return (
     <div className="container">
       <div style={{ marginBottom: '1.5rem' }}>
-        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', backgroundColor: 'var(--surface-subtle)', color: '#6C7A89', padding: '0.3rem var(--fs-body)', borderRadius: 'var(--r-lg)', fontSize: 'var(--fs-body)', fontWeight: 700, marginBottom: '0.6rem' }}>
+        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', backgroundColor: 'var(--surface-subtle)', color: '#6C7A89', padding: '0.3rem var(--sp-4)', borderRadius: 'var(--r-lg)', fontSize: 'var(--fs-body)', fontWeight: 700, marginBottom: '0.6rem' }}>
           <Package size={18} color="#6C7A89" /> 지역 기반 현물 유품 정리 매칭
         </div>
         <h1 style={{ color: 'var(--primary-color)', fontSize: '2rem', display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0 }}>
@@ -56,14 +56,14 @@ export const PickupPage: React.FC<PickupPageProps> = () => {
         </p>
       </div>
 
-      <div style={{ fontSize: 'var(--fs-body)', color: 'var(--state-warn-fg)', backgroundColor: 'var(--state-warn-bg)', border: '1px solid var(--state-warn-bg)', borderRadius: 'var(--r-sm)', padding: 'var(--fs-caption) 1rem', marginBottom: '1.25rem', lineHeight: 1.6 }}>
+      <div style={{ fontSize: 'var(--fs-body)', color: 'var(--state-warn-fg)', backgroundColor: 'var(--state-warn-bg)', border: '1px solid var(--state-warn-bg)', borderRadius: 'var(--r-sm)', padding: 'var(--sp-3) 1rem', marginBottom: '1.25rem', lineHeight: 1.6 }}>
         ⚠️ 이 페이지는 화면 구성을 보여드리기 위한 <strong>예시 데이터</strong>로 채워져 있습니다.
         아래 업체·평점은 실존하지 않으며, 실제 제휴 업체는 아직 없습니다.
       </div>
 
       <div style={{ backgroundColor: 'var(--card-bg)', padding: '1.5rem', borderRadius: 'var(--border-radius)', boxShadow: 'var(--box-shadow)' }}>
         <h3 style={{ color: 'var(--primary-color)', marginBottom: '0.5rem' }}>지역 기반 현물 유품 정리 전문 업체 연결</h3>
-        <p style={{ fontSize: '0.95rem', color: 'var(--text-muted)', marginBottom: '1.1rem' }}>
+        <p style={{ fontSize: 'var(--fs-body)', color: 'var(--text-muted)', marginBottom: '1.1rem' }}>
           유품 정찰제 수거, 소각 대행 및 특수 청소 업체 화면 구성 예시입니다. 실제 제휴 업체는
           아직 없습니다 — 제휴가 시작되면 이 목록이 실제 업체 정보로 교체됩니다.
         </p>
@@ -101,7 +101,7 @@ export const PickupPage: React.FC<PickupPageProps> = () => {
             .filter((v) => (!province || v.province === province) && (!district || v.district === district))
             .map((vendor, idx) => (
               <div key={idx} className="card" style={{ borderTop: '4px solid var(--primary-color)', position: 'relative' }}>
-                <span style={{ position: 'absolute', top: 'var(--fs-caption)', right: 'var(--fs-caption)', fontSize: 'var(--fs-body)', fontWeight: 700, color: 'var(--state-warn-fg)', backgroundColor: 'var(--state-warn-bg)', border: '1px solid var(--state-warn-bg)', borderRadius: 'var(--r-sm)', padding: '0.1rem 0.5rem' }}>예시</span>
+                <span style={{ position: 'absolute', top: 'var(--sp-3)', right: 'var(--sp-3)', fontSize: 'var(--fs-body)', fontWeight: 700, color: 'var(--state-warn-fg)', backgroundColor: 'var(--state-warn-bg)', border: '1px solid var(--state-warn-bg)', borderRadius: 'var(--r-sm)', padding: '0.1rem 0.5rem' }}>예시</span>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
                   <span style={{ fontSize: 'var(--fs-body)', fontWeight: 600, color: 'var(--point-color)' }}>📍 {vendor.region}</span>
                   <span style={{ fontWeight: 'bold' }}>★ {vendor.rating}</span>

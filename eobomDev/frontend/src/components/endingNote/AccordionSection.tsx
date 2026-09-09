@@ -34,11 +34,11 @@ export const AccordionSection: React.FC<{
     {expanded && (
       <div className="ending-note-accordion-body">
         {children}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--fs-caption)', marginTop: '1rem' }}>
-          <button type="button" onClick={onSave} className="btn btn-point" disabled={saveState === 'saving'} style={{ fontSize: '0.9rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--sp-3)', marginTop: '1rem' }}>
+          <button type="button" onClick={onSave} className="btn btn-point" disabled={saveState === 'saving'} style={{ fontSize: 'var(--fs-body)' }}>
             {saveButtonLabel(saveState)}
           </button>
-          <button type="button" onClick={onReset} disabled={saveState === 'saving'} className="btn" style={{ fontSize: '0.9rem', backgroundColor: 'var(--surface-subtle)', color: 'var(--text-muted)' }}>
+          <button type="button" onClick={onReset} disabled={saveState === 'saving'} className="btn" style={{ fontSize: 'var(--fs-body)', backgroundColor: 'var(--surface-subtle)', color: 'var(--text-muted)' }}>
             취소
           </button>
           {saveState === 'saved' && <span style={{ fontSize: 'var(--fs-body)', color: 'var(--point-color)' }}>저장되었습니다.</span>}

@@ -102,7 +102,7 @@ export const FarewellMessagePage: React.FC<FarewellMessagePageProps> = ({ curren
     return (
       <div className="container">
         <div style={{ backgroundColor: 'var(--card-bg)', padding: '2.5rem 1.75rem', borderRadius: 'var(--border-radius)', boxShadow: 'var(--box-shadow)', textAlign: 'center', maxWidth: '480px', margin: '2rem auto' }}>
-          <Mail color="var(--point-color)" size={40} style={{ marginBottom: 'var(--fs-caption)' }} />
+          <Mail color="var(--point-color)" size={40} style={{ marginBottom: 'var(--sp-3)' }} />
           <h2 style={{ color: 'var(--primary-color)', marginBottom: '0.5rem' }}>유족 메시지 보관함</h2>
           <p style={{ color: 'var(--text-muted)', marginBottom: '1.5rem' }}>가족에게 남기는 편지는 로그인 후 작성하실 수 있습니다.</p>
           <button onClick={onOpenLogin} className="btn btn-point" style={{ width: '100%' }}>

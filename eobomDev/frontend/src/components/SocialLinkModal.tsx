@@ -81,7 +81,7 @@ export const SocialLinkModal: React.FC<SocialLinkModalProps> = ({
           <h2 style={{ color: 'var(--primary-color)', fontSize: '1.4rem', fontWeight: 'var(--fw-bold)', margin: '0 0 0.6rem 0' }}>
             이미 가입된 이메일이에요
           </h2>
-          <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', margin: 0, lineHeight: 1.6 }}>
+          <p style={{ fontSize: 'var(--fs-body)', color: 'var(--text-muted)', margin: 0, lineHeight: 1.6 }}>
             <strong>{email}</strong>로 이미 <strong>{providerLabel(existingProvider)}</strong> 계정이 가입되어 있어요.
             <br />
             지금 로그인하신 <strong>{providerLabel(newProvider)}</strong> 계정을 어떻게 처리할까요?
@@ -93,7 +93,7 @@ export const SocialLinkModal: React.FC<SocialLinkModalProps> = ({
             style={{
               backgroundColor: 'var(--state-danger-bg)',
               color: 'var(--state-danger-fg)',
-              padding: 'var(--fs-caption)',
+              padding: 'var(--sp-3)',
               borderRadius: 'var(--r-sm)',
               fontSize: 'var(--fs-body)',
               marginBottom: '1rem',
@@ -107,7 +107,7 @@ export const SocialLinkModal: React.FC<SocialLinkModalProps> = ({
           </div>
         )}
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--fs-caption)' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--sp-3)' }}>
           <button
             type="button"
             disabled={isSubmitting}
@@ -139,7 +139,7 @@ export const SocialLinkModal: React.FC<SocialLinkModalProps> = ({
               color: '#374151',
               border: '1.5px solid var(--secondary-dark)',
               borderRadius: 'var(--r-md)',
-              fontSize: '0.95rem',
+              fontSize: 'var(--fs-body)',
               fontWeight: 600,
               display: 'flex',
               alignItems: 'center',

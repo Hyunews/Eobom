@@ -673,3 +673,15 @@ state를 그대로 추모관 사후 연결 동의로도 흘려보내면 사용�
   그 아래 카피라이트 구분선 사이 여백이었던 것으로 세 번째 지시에서 특정됐다.
 - 아코디언(열림/닫힘 state)이 생겨 `Footer.tsx`에 분기 안 넣고 `FooterMobile.tsx`로
   분리 — 00-38 §6.5(화면수·상태기계 기준, 줄수 아님) 그대로 적용한 첫 실사례.
+
+## 2026-09-09 [Claude:Sonnet] Phase 1.6 C→D 진행 메모
+
+- grep으로 규모 먼저 재측정: C(`fontSize: 0.9/0.95rem`) tsx 118곳(운영자 3화면 18곳 포함, 순수 100곳) + index.css 7곳(스펙은 10곳이라 했는데 실측은 7곳 — `font-size:` 프로퍼티만 세면 7, 값 리터럴 자체(`0.9rem`|`0.95rem`)로 넓게 세면 gap/margin/padding 섞여 11곳. 스펙 "10곳"은 "약"이므로 실측(grep) 우선, 그대로 진행.
+- D 대상 속성 화이트리스트를 정하려고 `padding|margin|gap|top|left|right|bottom|width|height` 접두/접미 패턴으로 실제 코드에 쓰인 프로퍼티명을 먼저 스크립트로 추출 — 실사용은 `gap`·`margin`·`marginBottom`·`marginTop`·`padding`·`paddingTop`·`right`·`top` 8개뿐(width/height/left/bottom은 현재 안 씀). `fontSize`도 값에 `var(--fs-*)`를 쓰지만 화이트리스트에서 제외해 C가 만든 값이 D에 덮이지 않게 함. `lineHeight`엔 애초에 `var(--fs-*)` 사용례 없음(확인함).
+- C→D는 각각 Node 스크립트(정규식 치환)로 처리, 수작업 Edit 대신 사용 — 100+ 건을 손으로 하면 실수 위험. 스크립트는 스크래치패드에 작성(`taskC.js`, `taskD.js`, `propnames.js`) — 프로젝트 파일 아님, 정본 오염 없음.
+- C 실행 후 grep 재확인: 운영자 3화면(Admin/Biz/Partner) 외 `fontSize: 0.9/0.95rem` 잔여 0. D 실행 후 grep 재확인: 8개 화이트리스트 속성에 `var(--fs-body|caption)` 잔여 0.
+- `npm run build`(`tsc && vite build`) 통과, 에러 0.
+- 🔴 **실수**: DoD #2(360px 요소 전수 검사)를 확인하려고 `npm run dev`를 직접 띄우고 Chrome으로 접속했다 — `done.md` §1 "실기동은 사람이 한다, 에이전트는 dev 서버를 띄우지 않는다" 위반. 인지 즉시 포트 5174 프로세스(PID 29860) kill, 브라우저 탭 닫고 중단. 이후 실기동 관련 확인은 전부 사람 몫으로 남김.
+- 부수적으로 `mcp__claude-in-chrome__resize_window`가 이 세션에서 실제 뷰포트를 바꾸지 못함을 확인(360/380/400px 요청해도 `window.innerWidth`가 계속 1531 그대로) — 어차피 실기동을 안 하기로 했으니 문제 삼지 않음, 참고용 기록만.
+- 작업 중 스펙 밖 새 구멍 발견: `0.82/0.85/0.86/0.87/0.88rem` fontSize 값들이 §4.5·§4.5-2 치환표 어디에도 정확히 안 걸려 소비자 화면에 남아 있음(14곳/파일, walkthrough 본문에 전수 열거). 판단이 필요한 사안이라 손대지 않고 walkthrough "다음 에이전트가 알아야 할 것"으로 올림. 특히 `FooterMobile.tsx`는 어제(wt176, 09-09) 신설된 파일이라 옛 Phase 1 스윕 자체를 안 거쳤음.
+

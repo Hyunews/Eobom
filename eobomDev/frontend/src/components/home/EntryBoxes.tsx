@@ -91,7 +91,7 @@ const ChipRow: React.FC<{ labels: string[] }> = ({ labels }) => (
           fontWeight: 600,
           color: '#6C7A89',
           backgroundColor: 'var(--surface-subtle)',
-          padding: '0.35rem var(--fs-body)',
+          padding: '0.35rem var(--sp-4)',
           borderRadius: 'var(--r-full)',
         }}
       >
@@ -161,7 +161,7 @@ const BoxHeader: React.FC<{
   return (
     <div>
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '0.5rem' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--fs-body)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--sp-4)' }}>
           <div
             style={{
               width: boxSize,
@@ -372,7 +372,7 @@ export const EntryBoxes: React.FC<EntryBoxesProps> = ({ currentUser, onOpenLogin
         subtitle="받으신 추모관 링크로 입장하세요. 온라인 헌화와 방명록으로 마음을 전할 수 있습니다."
       />
       <RevealContent>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem', marginTop: 'var(--fs-body)' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem', marginTop: 'var(--sp-4)' }}>
           <input
             type="text"
             className="form-input"

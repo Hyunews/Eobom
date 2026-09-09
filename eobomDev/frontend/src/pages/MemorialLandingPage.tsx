@@ -183,7 +183,7 @@ export const MemorialLandingPage: React.FC = () => {
       <div style={pageShellStyle}>
         <div style={{ textAlign: 'center', maxWidth: '360px', paddingTop: '3rem' }}>
           <p style={{ fontSize: '1.05rem', color: '#1A2B4C', fontWeight: 700, marginBottom: '0.5rem' }}>추모관을 찾을 수 없습니다.</p>
-          <p style={{ fontSize: '0.9rem', color: '#6C7A89' }}>링크가 만료되었거나 잘못된 주소일 수 있습니다.</p>
+          <p style={{ fontSize: 'var(--fs-body)', color: '#6C7A89' }}>링크가 만료되었거나 잘못된 주소일 수 있습니다.</p>
         </div>
       </div>
     );
@@ -206,11 +206,11 @@ export const MemorialLandingPage: React.FC = () => {
             <h1 style={{ fontSize: '1.6rem', fontWeight: 'var(--fw-bold)', margin: 0, fontFamily: "'KoPub World Batang', serif" }}>
               故 {data.deceasedName}
               {data.deceasedDeathDate && (
-                <span style={{ fontSize: '0.95rem', fontWeight: 400, color: 'var(--border-color)' }}> ( ~ {formatKST(data.deceasedDeathDate).split(' ').slice(0, 2).join(' ')})</span>
+                <span style={{ fontSize: 'var(--fs-body)', fontWeight: 400, color: 'var(--border-color)' }}> ( ~ {formatKST(data.deceasedDeathDate).split(' ').slice(0, 2).join(' ')})</span>
               )}
             </h1>
             {data.epitaph && (
-              <p style={{ fontSize: '0.9rem', color: 'var(--border-color)', marginTop: 'var(--fs-body)', fontStyle: 'italic' }}>{data.epitaph}</p>
+              <p style={{ fontSize: 'var(--fs-body)', color: 'var(--border-color)', marginTop: 'var(--sp-4)', fontStyle: 'italic' }}>{data.epitaph}</p>
             )}
           </div>
 
@@ -231,7 +231,7 @@ export const MemorialLandingPage: React.FC = () => {
 
           {/* 헌화 */}
           <div style={{ textAlign: 'center', padding: '1.5rem', backgroundColor: 'var(--secondary-color)' }}>
-            <p style={{ fontSize: '0.95rem', color: 'var(--text-muted)', marginBottom: '0.9rem' }}>
+            <p style={{ fontSize: 'var(--fs-body)', color: 'var(--text-muted)', marginBottom: '0.9rem' }}>
               지금까지 <strong style={{ color: 'var(--primary-color)' }}>{tributeCount}번</strong> 헌화되었습니다.
             </p>
             <button
@@ -281,19 +281,19 @@ export const MemorialLandingPage: React.FC = () => {
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
                   className="form-input"
-                  style={{ height: '80px', padding: 'var(--fs-caption)' }}
+                  style={{ height: '80px', padding: 'var(--sp-3)' }}
                   required
                 />
               </div>
               {guestError && (
                 <p style={{ fontSize: 'var(--fs-body)', color: 'var(--state-warn-fg)', marginBottom: '0.6rem' }}>{guestError}</p>
               )}
-              <button type="submit" disabled={guestSubmitting} className="btn btn-primary" style={{ width: '100%', height: '44px', fontSize: '0.95rem', opacity: guestSubmitting ? 0.6 : 1 }}>
+              <button type="submit" disabled={guestSubmitting} className="btn btn-primary" style={{ width: '100%', height: '44px', fontSize: 'var(--fs-body)', opacity: guestSubmitting ? 0.6 : 1 }}>
                 방명록 남기기
               </button>
             </form>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--fs-caption)', maxHeight: '300px', overflowY: 'auto' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--sp-3)', maxHeight: '300px', overflowY: 'auto' }}>
               {guestbook.length === 0 && (
                 <p style={{ fontSize: 'var(--fs-body)', color: '#94A3B8', textAlign: 'center', padding: '1rem 0' }}>아직 남겨진 글이 없습니다.</p>
               )}
@@ -305,7 +305,7 @@ export const MemorialLandingPage: React.FC = () => {
                     </span>
                     <span>{formatKST(g.createdAt)}</span>
                   </div>
-                  <p style={{ fontSize: '0.95rem', color: 'var(--text-main)', whiteSpace: 'pre-wrap' }}>{g.message}</p>
+                  <p style={{ fontSize: 'var(--fs-body)', color: 'var(--text-main)', whiteSpace: 'pre-wrap' }}>{g.message}</p>
                 </div>
               ))}
             </div>

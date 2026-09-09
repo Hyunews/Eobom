@@ -202,7 +202,7 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
       {/* 🔄 09-07 사용자 지시 — 다른 도메인 페이지(CounselingPage 등)처럼 타이틀을 감싸던
           히어로 박스(진한 배경·패딩·둥근 모서리 카드)를 없애고 배지+제목+설명만 남긴다. */}
       <div style={{ marginBottom: '1.5rem' }}>
-        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', backgroundColor: 'var(--state-warn-bg)', color: 'var(--accent-gold)', padding: '0.3rem var(--fs-body)', borderRadius: 'var(--r-lg)', fontSize: 'var(--fs-body)', fontWeight: 700, marginBottom: '0.6rem' }}>
+        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', backgroundColor: 'var(--state-warn-bg)', color: 'var(--accent-gold)', padding: '0.3rem var(--sp-4)', borderRadius: 'var(--r-lg)', fontSize: 'var(--fs-body)', fontWeight: 700, marginBottom: '0.6rem' }}>
           <HouseLeafIcon size={18} color="var(--accent-gold)" /> 봉안당·수목장 맞춤 검색 및 장례식장 맞춤 매칭
         </div>
         <h1 className="page-title" style={{ color: 'var(--primary-color)', display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0 }}>
@@ -315,7 +315,7 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
                 backgroundColor: active ? 'var(--point-color)' : 'var(--card-bg)',
                 color: active ? '#fff' : 'var(--primary-color)',
                 border: active ? 'none' : '1px solid var(--border-color)',
-                padding: '0.3rem var(--fs-caption)',
+                padding: '0.3rem var(--sp-3)',
                 borderRadius: 'var(--r-full)',
                 fontSize: 'var(--fs-body)',
                 fontWeight: 600,
@@ -331,7 +331,7 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
 
       {/* 시설 카드 목록 */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-        <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem', margin: 0 }}>
+        <p style={{ color: 'var(--text-muted)', fontSize: 'var(--fs-body)', margin: 0 }}>
           총 <strong style={{ color: 'var(--primary-color)' }}>{totalCount}개</strong> 시설이 검색되었습니다. ({page}/{totalPages} 페이지)
         </p>
       </div>
@@ -382,15 +382,15 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
 
               <h3 style={{ fontSize: '1.25rem', color: 'var(--primary-color)', marginBottom: '0.4rem', fontWeight: 700 }}>{item.name}</h3>
 
-              <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '0.3rem', marginBottom: '0.4rem' }}>
+              <p style={{ fontSize: 'var(--fs-body)', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '0.3rem', marginBottom: '0.4rem' }}>
                 <MapPin size={16} color="var(--point-color)" /> {item.location}
               </p>
 
-              <p style={{ fontSize: 'var(--fs-body)', color: 'var(--text-main)', marginBottom: 'var(--fs-body)' }}>
+              <p style={{ fontSize: 'var(--fs-body)', color: 'var(--text-main)', marginBottom: 'var(--sp-4)' }}>
                 • 종교: {item.religion} | • 하객: {item.guests}
               </p>
 
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', backgroundColor: 'var(--card-bg)', padding: '0.6rem var(--fs-body)', borderRadius: 'var(--r-sm)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', backgroundColor: 'var(--card-bg)', padding: '0.6rem var(--sp-4)', borderRadius: 'var(--r-sm)' }}>
                 <span style={{ fontSize: 'var(--fs-body)', color: 'var(--text-muted)' }}>예상 기본 비용</span>
                 <span style={{ fontSize: '1.2rem', fontWeight: 'var(--fw-bold)', color: 'var(--point-color)' }}>{item.price}</span>
               </div>

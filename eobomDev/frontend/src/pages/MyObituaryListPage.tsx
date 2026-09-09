@@ -133,13 +133,13 @@ export const MyObituaryListPage: React.FC = () => {
 
   const moreLinkStyle: React.CSSProperties = {
     marginTop: '1rem', background: 'none', border: 'none', padding: 0, color: 'var(--point-color)',
-    fontWeight: 700, fontSize: '0.9rem', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '0.3rem',
+    fontWeight: 700, fontSize: 'var(--fs-body)', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '0.3rem',
   };
 
   return (
     <div className="container" style={{ paddingBottom: '3rem', maxWidth: '860px' }}>
       <h2 style={{ marginBottom: '0.3rem' }}>내 부고장·추모관</h2>
-      <p style={{ color: 'var(--text-muted)', marginBottom: '1.5rem', fontSize: '0.95rem' }}>
+      <p style={{ color: 'var(--text-muted)', marginBottom: '1.5rem', fontSize: 'var(--fs-body)' }}>
         내가 만든 부고장과 추모관을 한곳에서 확인할 수 있습니다.
       </p>
 
@@ -152,13 +152,13 @@ export const MyObituaryListPage: React.FC = () => {
           </h4>
 
           {obituaries === null && !loadError && (
-            <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>불러오는 중...</p>
+            <p style={{ color: 'var(--text-muted)', fontSize: 'var(--fs-body)' }}>불러오는 중...</p>
           )}
           {loadError && (
-            <p style={{ color: 'var(--state-warn-fg)', fontSize: '0.9rem' }}>목록을 불러오지 못했습니다. 잠시 후 다시 시도해주세요.</p>
+            <p style={{ color: 'var(--state-warn-fg)', fontSize: 'var(--fs-body)' }}>목록을 불러오지 못했습니다. 잠시 후 다시 시도해주세요.</p>
           )}
           {obituaries !== null && obituaries.length === 0 && (
-            <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>아직 만든 부고장이 없습니다.</p>
+            <p style={{ color: 'var(--text-muted)', fontSize: 'var(--fs-body)' }}>아직 만든 부고장이 없습니다.</p>
           )}
 
           {obituaries !== null && obituaries.length > 0 && (
@@ -196,7 +196,7 @@ export const MyObituaryListPage: React.FC = () => {
                           type="button"
                           onClick={() => navigate(`/obituary?slug=${o.slug}`)}
                           className="btn"
-                          style={{ height: '36px', padding: '0 var(--fs-body)', fontSize: '0.82rem', backgroundColor: 'var(--card-bg)', border: '1px solid var(--border-color)' }}
+                          style={{ height: '36px', padding: '0 var(--sp-4)', fontSize: '0.82rem', backgroundColor: 'var(--card-bg)', border: '1px solid var(--border-color)' }}
                         >
                           수정
                         </button>
@@ -207,7 +207,7 @@ export const MyObituaryListPage: React.FC = () => {
                         disabled={deletingId === o.id}
                         className="btn"
                         style={{
-                          height: '36px', padding: '0 var(--fs-body)', fontSize: '0.82rem', backgroundColor: 'var(--card-bg)',
+                          height: '36px', padding: '0 var(--sp-4)', fontSize: '0.82rem', backgroundColor: 'var(--card-bg)',
                           border: '1px solid var(--state-danger-bg)', color: 'var(--state-danger-fg)', opacity: deletingId === o.id ? 0.6 : 1,
                           display: 'inline-flex', alignItems: 'center', gap: '0.3rem',
                         }}
@@ -256,13 +256,13 @@ export const MyObituaryListPage: React.FC = () => {
           </h4>
 
           {memorials === null && !memorialLoadError && (
-            <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>불러오는 중...</p>
+            <p style={{ color: 'var(--text-muted)', fontSize: 'var(--fs-body)' }}>불러오는 중...</p>
           )}
           {memorialLoadError && (
-            <p style={{ color: 'var(--state-warn-fg)', fontSize: '0.9rem' }}>목록을 불러오지 못했습니다. 잠시 후 다시 시도해주세요.</p>
+            <p style={{ color: 'var(--state-warn-fg)', fontSize: 'var(--fs-body)' }}>목록을 불러오지 못했습니다. 잠시 후 다시 시도해주세요.</p>
           )}
           {memorials !== null && memorials.length === 0 && (
-            <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>아직 만든 추모관이 없습니다.</p>
+            <p style={{ color: 'var(--text-muted)', fontSize: 'var(--fs-body)' }}>아직 만든 추모관이 없습니다.</p>
           )}
 
           {memorials !== null && memorials.length > 0 && (

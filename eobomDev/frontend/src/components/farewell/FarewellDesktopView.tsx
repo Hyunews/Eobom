@@ -25,7 +25,7 @@ export const FarewellDesktopView: React.FC<FarewellViewProps> = ({
   return (
     <div className="container" style={{ paddingBottom: '3rem' }}>
       <div style={{ marginBottom: '1.5rem' }}>
-        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', backgroundColor: 'var(--surface-subtle)', color: 'var(--primary-color)', padding: '0.3rem var(--fs-body)', borderRadius: 'var(--r-lg)', fontSize: 'var(--fs-body)', fontWeight: 700, marginBottom: '0.6rem' }}>
+        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', backgroundColor: 'var(--surface-subtle)', color: 'var(--primary-color)', padding: '0.3rem var(--sp-4)', borderRadius: 'var(--r-lg)', fontSize: 'var(--fs-body)', fontWeight: 700, marginBottom: '0.6rem' }}>
           <Mail size={18} color="var(--primary-color)" /> 하고 싶은 말을 그대로
         </div>
         <h1 className="page-title" style={{ color: 'var(--primary-color)', display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0 }}>
@@ -81,7 +81,7 @@ export const FarewellDesktopView: React.FC<FarewellViewProps> = ({
             <div className="farewell-board-detail">
               {recipients.length === 0 ? (
                 <div className="farewell-board-empty">
-                  <UserPlus color="var(--point-color)" size={36} style={{ marginBottom: 'var(--fs-caption)' }} />
+                  <UserPlus color="var(--point-color)" size={36} style={{ marginBottom: 'var(--sp-3)' }} />
                   <h2 style={{ color: 'var(--primary-color)', marginBottom: '0.5rem', fontSize: '1.15rem' }}>아직 지정된 가족이 없습니다</h2>
                   <p style={{ color: 'var(--text-muted)', lineHeight: 1.6 }}>
                     편지를 남기려면 먼저 받으실 분을 가족으로 지정해 주세요. 수신자가 없으면 사후에도 전달되지 않습니다.
@@ -111,7 +111,7 @@ export const FarewellDesktopView: React.FC<FarewellViewProps> = ({
             padding: '1rem 1.25rem',
             backgroundColor: 'var(--secondary-color)',
             borderRadius: 'var(--border-radius)',
-            fontSize: '0.9rem',
+            fontSize: 'var(--fs-body)',
             color: 'var(--primary-color)',
             textAlign: 'center',
           }}

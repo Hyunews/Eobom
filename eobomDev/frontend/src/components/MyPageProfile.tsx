@@ -177,7 +177,7 @@ export const MyPageProfile: React.FC<MyPageProfileProps> = ({ isOpen, onClose })
             style={{
               backgroundColor: message.type === 'success' ? 'var(--state-ok-bg)' : 'var(--state-danger-bg)',
               color: message.type === 'success' ? 'var(--state-ok-fg)' : 'var(--state-danger-fg)',
-              padding: 'var(--fs-caption)',
+              padding: 'var(--sp-3)',
               borderRadius: 'var(--r-sm)',
               fontSize: 'var(--fs-body)',
               marginBottom: '0.95rem',

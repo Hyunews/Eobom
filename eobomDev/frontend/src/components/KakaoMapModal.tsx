@@ -232,7 +232,7 @@ export const KakaoMapModal: React.FC<KakaoMapModalProps> = ({ facility, userLoca
           <h3 style={{ fontSize: '1.5rem', color: 'var(--primary-color)', marginTop: '0.5rem', marginBottom: '0.2rem', display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 'var(--fw-bold)' }}>
             <MapPin color="var(--accent-red)" /> {facility.name}
           </h3>
-          <p style={{ fontSize: '0.95rem', color: 'var(--text-muted)' }}>
+          <p style={{ fontSize: 'var(--fs-body)', color: 'var(--text-muted)' }}>
             주소: {facility.location} (현재 위치에서 <strong style={{ color: 'var(--point-color)' }}>{distance} km</strong>)
           </p>
         </div>
@@ -273,7 +273,7 @@ export const KakaoMapModal: React.FC<KakaoMapModalProps> = ({ facility, userLoca
               {loadFailed ? (
                 <div style={{ textAlign: 'center', padding: '0 1.5rem' }}>
                   <MapPin size={32} color="var(--state-danger-fg)" style={{ marginBottom: '0.5rem' }} />
-                  <p style={{ fontSize: '0.9rem', color: 'var(--state-danger-fg)', fontWeight: 700 }}>지도를 불러오지 못했습니다</p>
+                  <p style={{ fontSize: 'var(--fs-body)', color: 'var(--state-danger-fg)', fontWeight: 700 }}>지도를 불러오지 못했습니다</p>
                   <p style={{ fontSize: 'var(--fs-body)', color: 'var(--text-muted)' }}>
                     카카오맵 API 키가 없거나, 개발자 콘솔에서 지도 서비스가 비활성 상태일 수 있습니다.
                   </p>
@@ -281,7 +281,7 @@ export const KakaoMapModal: React.FC<KakaoMapModalProps> = ({ facility, userLoca
               ) : (
                 <div style={{ textAlign: 'center' }}>
                   <MapPin size={32} color="var(--accent-red)" className="animate-pulse" style={{ marginBottom: '0.5rem' }} />
-                  <p style={{ fontSize: '0.9rem', color: '#475569', fontWeight: 700 }}>실제 카카오 지도를 불러오는 중입니다...</p>
+                  <p style={{ fontSize: 'var(--fs-body)', color: '#475569', fontWeight: 700 }}>실제 카카오 지도를 불러오는 중입니다...</p>
                   <p style={{ fontSize: 'var(--fs-body)', color: '#94A3B8' }}>{facility.name} (좌표: {lat}, {lng})</p>
                 </div>
               )}
@@ -290,7 +290,7 @@ export const KakaoMapModal: React.FC<KakaoMapModalProps> = ({ facility, userLoca
         </div>
 
         {/* 편의 정보 */}
-        <div style={{ marginTop: '1.2rem', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--fs-body)' }}>
+        <div style={{ marginTop: '1.2rem', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--sp-4)' }}>
           <div style={{ backgroundColor: 'var(--card-bg)', padding: '0.9rem', borderRadius: 'var(--r-md)', fontSize: 'var(--fs-body)' }}>
             <p style={{ fontWeight: 700, color: 'var(--primary-color)', marginBottom: '0.4rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
               <ShieldCheck size={16} color="var(--point-color)" /> 주차 및 보증 정보
@@ -309,7 +309,7 @@ export const KakaoMapModal: React.FC<KakaoMapModalProps> = ({ facility, userLoca
         </div>
 
         {/* 카카오맵 내비게이션 & 로드뷰 외출 버튼 */}
-        <div style={{ marginTop: '1.2rem', display: 'flex', gap: 'var(--fs-body)' }}>
+        <div style={{ marginTop: '1.2rem', display: 'flex', gap: 'var(--sp-4)' }}>
           <a
             href={kakaoMapNavUrl}
             target="_blank"
@@ -320,13 +320,13 @@ export const KakaoMapModal: React.FC<KakaoMapModalProps> = ({ facility, userLoca
               backgroundColor: '#FEE500',
               color: '#191919',
               fontWeight: 'var(--fw-bold)',
-              fontSize: '0.95rem',
+              fontSize: 'var(--fs-body)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               gap: '0.4rem',
               textDecoration: 'none',
-              padding: 'var(--fs-body)'
+              padding: 'var(--sp-4)'
             }}
           >
             <Navigation size={18} /> 카카오맵 길찾기 <ExternalLink size={14} />
@@ -342,13 +342,13 @@ export const KakaoMapModal: React.FC<KakaoMapModalProps> = ({ facility, userLoca
               backgroundColor: 'var(--secondary-color)',
               color: 'var(--primary-color)',
               fontWeight: 'var(--fw-bold)',
-              fontSize: '0.95rem',
+              fontSize: 'var(--fs-body)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               gap: '0.4rem',
               textDecoration: 'none',
-              padding: 'var(--fs-body)'
+              padding: 'var(--sp-4)'
             }}
           >
             <MapPin size={18} /> 로드뷰 바로가기 <ExternalLink size={14} />

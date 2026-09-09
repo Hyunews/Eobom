@@ -166,7 +166,7 @@ export const TaxSimulatorModal: React.FC<TaxSimulatorModalProps> = ({ onClose })
               <Row label="신고세액공제 (3%, 기한 내 신고 가정)" value={`- ${fmt(taxResult.reportingDeduction)} 만원`} />
             </div>
 
-            <p style={{ fontSize: '1.3rem', fontWeight: 700, color: 'var(--accent-red)', margin: 'var(--fs-body) 0 0 0' }}>
+            <p style={{ fontSize: '1.3rem', fontWeight: 700, color: 'var(--accent-red)', margin: 'var(--sp-4) 0 0 0' }}>
               최종 예상 상속세액: 약 {fmt(taxResult.finalTax)} 만원 ({(taxResult.finalTax / 10000).toFixed(2)} 억원)
             </p>
           </div>

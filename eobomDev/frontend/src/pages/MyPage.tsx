@@ -94,7 +94,7 @@ export const MyPage: React.FC<MyPageProps> = ({ currentUser, onOpenLogin, onOpen
         >
           <Lock size={36} color="#FFFFFF" style={{ marginBottom: '1rem' }} />
           <h2 style={{ color: '#FFFFFF', margin: '0 0 0.6rem 0', fontSize: '1.3rem' }}>마이페이지는 로그인 후 이용하실 수 있어요</h2>
-          <p style={{ color: 'rgba(255,255,255,0.75)', fontSize: '0.9rem', marginBottom: '1.1rem' }}>
+          <p style={{ color: 'rgba(255,255,255,0.75)', fontSize: 'var(--fs-body)', marginBottom: '1.1rem' }}>
             예약 현황, 상담 내역, 엔딩노트 진행 상황을 한눈에 확인하세요.
           </p>
           <button onClick={onOpenLogin} className="btn btn-point">
@@ -193,7 +193,7 @@ export const MyPage: React.FC<MyPageProps> = ({ currentUser, onOpenLogin, onOpen
               {profile?.role === 'ADMIN' ? 'ADMIN' : 'MEMBER'}
             </span>
           </div>
-          <p style={{ margin: 0, color: 'var(--text-muted)', fontSize: '0.9rem' }}>{profile?.email || '이메일 정보 없음'}</p>
+          <p style={{ margin: 0, color: 'var(--text-muted)', fontSize: 'var(--fs-body)' }}>{profile?.email || '이메일 정보 없음'}</p>
         </div>
 
         <button

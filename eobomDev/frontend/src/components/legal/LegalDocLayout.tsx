@@ -23,12 +23,12 @@ export const LegalDocLayout: React.FC<LegalDocLayoutProps> = ({ title, effective
           marginBottom: '1.75rem',
           display: 'flex',
           alignItems: 'flex-start',
-          gap: 'var(--fs-caption)'
+          gap: 'var(--sp-3)'
         }}
       >
         <AlertTriangle color="var(--state-critical-fg)" size={22} style={{ flexShrink: 0, marginTop: '0.1rem' }} />
         <div>
-          <strong style={{ color: 'var(--state-critical-fg)', fontSize: '0.95rem' }}>시행 준비 중 — 공식 게시본이 아닙니다</strong>
+          <strong style={{ color: 'var(--state-critical-fg)', fontSize: 'var(--fs-body)' }}>시행 준비 중 — 공식 게시본이 아닙니다</strong>
           <p style={{ color: 'var(--state-critical-fg)', fontSize: 'var(--fs-body)', margin: '0.25rem 0 0 0', lineHeight: 1.6 }}>
             아래 내용은 공식 시행 전 초안이며, 일부 항목은 확정되는 대로 채워집니다.
           </p>
@@ -36,7 +36,7 @@ export const LegalDocLayout: React.FC<LegalDocLayoutProps> = ({ title, effective
       </div>
 
       <h1 style={{ color: 'var(--primary-color)', fontSize: '1.9rem', margin: '0 0 0.3rem 0' }}>{title}</h1>
-      <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '2rem' }}>{effectiveDateLabel}</p>
+      <p style={{ color: 'var(--text-muted)', fontSize: 'var(--fs-body)', marginBottom: '2rem' }}>{effectiveDateLabel}</p>
 
       <div style={{ color: 'var(--primary-color)', lineHeight: 1.8 }}>{children}</div>
 
@@ -52,10 +52,10 @@ export const LegalDocLayout: React.FC<LegalDocLayoutProps> = ({ title, effective
 // 조(條) 단위 섹션 — 제목(h2) + 본문.
 export const LegalArticle: React.FC<{ title: string; children: React.ReactNode }> = ({ title, children }) => (
   <section style={{ marginBottom: '2.25rem' }}>
-    <h2 style={{ color: 'var(--primary-color)', fontSize: '1.2rem', marginBottom: 'var(--fs-caption)', paddingBottom: '0.5rem', borderBottom: '1px solid var(--border-color)' }}>
+    <h2 style={{ color: 'var(--primary-color)', fontSize: '1.2rem', marginBottom: 'var(--sp-3)', paddingBottom: '0.5rem', borderBottom: '1px solid var(--border-color)' }}>
       {title}
     </h2>
-    <div style={{ fontSize: '0.95rem', color: '#374151' }}>{children}</div>
+    <div style={{ fontSize: 'var(--fs-body)', color: '#374151' }}>{children}</div>
   </section>
 );
 
@@ -82,12 +82,12 @@ export const LegalChapter: React.FC<{ title: string; children: React.ReactNode }
 
 // 항 번호가 매겨진 목록 — 법령 표기(1. 2. 3.)와 시각적으로 맞춘 순서 목록.
 export const LegalList: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-  <ol style={{ paddingLeft: '1.4rem', margin: '0 0 var(--fs-caption) 0', lineHeight: 1.85 }}>{children}</ol>
+  <ol style={{ paddingLeft: '1.4rem', margin: '0 0 var(--sp-3) 0', lineHeight: 1.85 }}>{children}</ol>
 );
 
 // 표 — 처리 목적/보유기간 등 표 형태 조항용.
 export const LegalTable: React.FC<{ headers: string[]; rows: (string | React.ReactNode)[][] }> = ({ headers, rows }) => (
-  <div style={{ overflowX: 'auto', margin: 'var(--fs-caption) 0 1.25rem 0' }}>
+  <div style={{ overflowX: 'auto', margin: 'var(--sp-3) 0 1.25rem 0' }}>
     <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.88rem' }}>
       <thead>
         <tr>
@@ -96,7 +96,7 @@ export const LegalTable: React.FC<{ headers: string[]; rows: (string | React.Rea
               key={h}
               style={{
                 textAlign: 'left',
-                padding: '0.6rem var(--fs-caption)',
+                padding: '0.6rem var(--sp-3)',
                 backgroundColor: 'var(--surface-subtle)',
                 color: 'var(--primary-color)',
                 borderBottom: `2px solid var(--border-color)`,
@@ -112,7 +112,7 @@ export const LegalTable: React.FC<{ headers: string[]; rows: (string | React.Rea
         {rows.map((row, i) => (
           <tr key={i}>
             {row.map((cell, j) => (
-              <td key={j} style={{ padding: '0.6rem var(--fs-caption)', borderBottom: '1px solid var(--border-color)', verticalAlign: 'top' }}>
+              <td key={j} style={{ padding: '0.6rem var(--sp-3)', borderBottom: '1px solid var(--border-color)', verticalAlign: 'top' }}>
                 {cell}
               </td>
             ))}

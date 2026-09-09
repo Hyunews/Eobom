@@ -292,7 +292,7 @@ export const HomePage: React.FC<HomePageProps> = ({ currentUser, onOpenLogin, se
           gap: '1rem',
           backgroundColor: 'rgba(26, 43, 76, 0.75)',
           backdropFilter: 'blur(8px)',
-          padding: 'var(--fs-body) 0.6rem',
+          padding: 'var(--sp-4) 0.6rem',
           borderRadius: 'var(--r-lg)',
           boxShadow: 'var(--el-2)'
         }}
