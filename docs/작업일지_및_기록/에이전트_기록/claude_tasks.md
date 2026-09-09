@@ -707,3 +707,24 @@ state를 그대로 추모관 사후 연결 동의로도 흘려보내면 사용�
 - 최소폭 1024px, 관리모드 maxWidth 520px, 모달 maxWidth 560px은 전부 근거 문서 없는 임의값 — walkthrough에 명시해뒀다. 사람이 보고 다르게 요청하면 조정 예정.
 - 실기동(360px/좁은 창 실제 렌더)은 이번에도 안 함 — 지난 실수 반복 안 함.
 
+
+## 2026-09-09 [Claude:Opus] wt181 — 삽질 3건 (도구·환경)
+
+- **Bash 도구가 한글 경로에서 죽는다.** `ls docs/00_공통_기반/`·`sed -n '369,395p' docs/00_DOCS_INDEX_상세.md`
+  같이 **인자에 한글이 들어가면** `pwd -P >| /c/.../claude-xxxx-cwd: No such file or directory`로
+  exit 127. 파일명이 순ASCII인 `docs/00_DOCS_INDEX.md`는 잘 된다.
+  → **회피**: 한글 경로 읽기는 Read/Grep/Glob 도구, 또는 PowerShell(`Get-Content ... -Encoding utf8`).
+  🔵 이번에 `docs/00_공통_기반/`을 찾다 실패했는데 **애초에 그 디렉토리가 없었다**(`00-38`은 `docs/00_핵심플랫폼/`).
+  Glob으로 `docs/**/00-38*` 한 번에 찾는 게 빨랐다.
+- **Bash heredoc에 백틱이 들어가면 안 된다.** 인덱스 요약 4줄을 파이썬으로 패치하려고 `python - <<'PY'`
+  안에 마크다운 백틱(`` `min-width:1200px` ``)을 넣었더니 **셸이 명령 치환으로 먹어** `min-width:1200px:
+  command not found` 5줄. 인용 heredoc(`<<'PY'`)이어도 이 환경에선 안 막혔다.
+  → **회피**: 스크립트를 **스크래치패드 `.py` 파일로 Write한 뒤** `python <경로>` 실행. 백틱·이모지 안전.
+- **`node .harness/tools/harness-doctor.js`는 없다** — 확장자가 `.sh`다(`bash .harness/tools/harness-doctor.sh`).
+  `AGENTS.md` §10이 `node .harness/tools/usage-report.js`를 예로 들어서 doctor도 js로 착각했다.
+- 🔵 **`context.md` 3KB 다이어트 실측** — 3859B에서 시작해 6번 줄여 3064B. 가장 크게 준 것은
+  **완료 항목의 상세를 정본 문서로 밀어내고 포인터만 남긴 것**(wt179 3줄 → `정본=00-38 §6.4-1·§8.2-1` 한 조각,
+  약 300B). 한국어는 글자당 3B라 **문장 다듬기보다 항목 이관이 효율이 10배**다.
+- ⚠️ 중간에 `git diff --stat`에 `eobomDev/frontend/src/pages/ObituaryPage.tsx`가 12줄 변경으로 한 번 떴다가
+  다음 호출에서 사라졌다(그 사이 나는 그 파일을 읽기만 했다). **사람이 실기동 중 편집·복구한 것으로 보인다.**
+  Opus 세션에서 `eobomDev/`가 diff에 뜨면 **내가 안 만졌는지 먼저 확인**할 것 — 소유권 위반으로 오인하기 쉽다.
