@@ -40,7 +40,7 @@ export const FarewellMobileView: React.FC<FarewellViewProps> = ({
         <div style={{ display: 'flex', justifyContent: 'center', padding: '3rem 0', color: 'var(--text-muted)' }}>불러오는 중...</div>
       ) : recipients.length === 0 ? (
         <div className="farewell-board-empty">
-          <UserPlus color="var(--point-color)" size={36} style={{ marginBottom: 'var(--fs-caption)' }} />
+          <UserPlus color="var(--point-color)" size={36} style={{ marginBottom: 'var(--sp-3)' }} />
           <h2 style={{ color: 'var(--primary-color)', marginBottom: '0.5rem', fontSize: '1.15rem' }}>아직 지정된 가족이 없습니다</h2>
           <p style={{ color: 'var(--text-muted)', lineHeight: 1.6, marginBottom: '1.25rem' }}>
             편지를 남기려면 먼저 받으실 분을 가족으로 지정해 주세요. 수신자가 없으면 사후에도 전달되지 않습니다.
@@ -104,7 +104,7 @@ export const FarewellMobileView: React.FC<FarewellViewProps> = ({
             padding: '1rem 1.25rem',
             backgroundColor: 'var(--secondary-color)',
             borderRadius: 'var(--border-radius)',
-            fontSize: '0.9rem',
+            fontSize: 'var(--fs-body)',
             color: 'var(--primary-color)',
             textAlign: 'center',
           }}

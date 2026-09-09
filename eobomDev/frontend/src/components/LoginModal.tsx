@@ -64,7 +64,7 @@ const SocialLoginButtons: React.FC<{
   onSelect: (provider: 'kakao' | 'naver' | 'google') => void;
   disabled?: boolean;
 }> = ({ onSelect, disabled = false }) => (
-  <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--fs-body)', opacity: disabled ? 0.45 : 1, pointerEvents: disabled ? 'none' : 'auto', transition: 'opacity 0.2s ease' }}>
+  <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--sp-4)', opacity: disabled ? 0.45 : 1, pointerEvents: disabled ? 'none' : 'auto', transition: 'opacity 0.2s ease' }}>
     {/* 1. 카카오 로그인 */}
     <button
       onClick={() => onSelect('kakao')}
@@ -81,7 +81,7 @@ const SocialLoginButtons: React.FC<{
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        gap: 'var(--fs-caption)',
+        gap: 'var(--sp-3)',
         cursor: 'pointer',
         boxShadow: '0 4px 12px rgba(254, 229, 0, 0.3)',
         transition: 'transform 0.15s'
@@ -109,7 +109,7 @@ const SocialLoginButtons: React.FC<{
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        gap: 'var(--fs-caption)',
+        gap: 'var(--sp-3)',
         cursor: 'pointer',
         boxShadow: '0 4px 12px rgba(3, 199, 90, 0.3)',
         transition: 'transform 0.15s'
@@ -135,7 +135,7 @@ const SocialLoginButtons: React.FC<{
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        gap: 'var(--fs-caption)',
+        gap: 'var(--sp-3)',
         cursor: 'pointer',
         boxShadow: 'var(--el-1)',
         transition: 'transform 0.15s'
@@ -318,14 +318,14 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin
             borderRadius: 'var(--r-lg)',
             fontSize: 'var(--fs-body)',
             fontWeight: 600,
-            marginBottom: 'var(--fs-caption)'
+            marginBottom: 'var(--sp-3)'
           }}>
             <ShieldCheck size={14} /> 안전하고 빠른 3초 간편로그인
           </div>
           <h2 style={{ color: 'var(--primary-color)', fontSize: '1.6rem', fontWeight: 'var(--fw-bold)', margin: '0 0 0.4rem 0' }}>
             이어봄 시작하기
           </h2>
-          <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', margin: 0, lineHeight: 1.5 }}>
+          <p style={{ fontSize: 'var(--fs-body)', color: 'var(--text-muted)', margin: 0, lineHeight: 1.5 }}>
             소셜 계정으로 로그인하고<br />엔딩노트 및 웰다잉 토탈 케어 서비스를 이용해보세요.
           </p>
         </div>
@@ -358,7 +358,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin
         </div>
 
         {notice && (
-          <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', fontSize: 'var(--fs-body)', color: 'var(--state-warn-fg)', backgroundColor: 'var(--state-warn-bg)', border: '1px solid var(--state-warn-bg)', borderRadius: 'var(--r-sm)', padding: 'var(--fs-caption) 0.9rem', marginBottom: '1.1rem' }}>
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', fontSize: 'var(--fs-body)', color: 'var(--state-warn-fg)', backgroundColor: 'var(--state-warn-bg)', border: '1px solid var(--state-warn-bg)', borderRadius: 'var(--r-sm)', padding: 'var(--sp-3) 0.9rem', marginBottom: '1.1rem' }}>
             <AlertCircle size={16} style={{ flexShrink: 0, marginTop: '0.1rem' }} />
             <span>{notice}</span>
           </div>
@@ -388,7 +388,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin
             cursor: 'pointer',
             fontSize: 'var(--fs-body)',
             color: '#4B5563',
-            padding: 'var(--fs-caption) 0.9rem',
+            padding: 'var(--sp-3) 0.9rem',
             border: '1px solid var(--secondary-dark)',
             borderRadius: 'var(--r-sm)',
             marginBottom: '0.9rem'
@@ -421,7 +421,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin
             필수 2개가 체크되기 전까지 눌리지 않는다. 최초 가입(신규 소셜 로그인)일 때만 실제로
             DB에 동의 시각이 기록되고(authController.ts), 기존 회원 재로그인 시에는 이미 최초
             가입 때 받은 값이라 여기서 다시 체크해도 별도로 덮어써지지 않는다. */}
-        <div style={{ backgroundColor: 'var(--secondary-color)', borderRadius: 'var(--r-md)', padding: 'var(--fs-body) 1rem 0.4rem', marginBottom: '1.2rem' }}>
+        <div style={{ backgroundColor: 'var(--secondary-color)', borderRadius: 'var(--r-md)', padding: 'var(--sp-4) 1rem 0.4rem', marginBottom: '1.2rem' }}>
           <div
             onClick={toggleAll}
             role="checkbox"
@@ -467,7 +467,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin
         )}
 
         {/* 파트너 진입 링크 + 개발용 데모 로그인 — "로그인"·"회원가입" 두 탭 공통 하단(작업 지시 원문) */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--fs-body)', marginTop: activeTab === 'login' ? 0 : '0.5rem' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--sp-4)', marginTop: activeTab === 'login' ? 0 : '0.5rem' }}>
             {/* 파트너(사업자·전문가) 진입 분기 — B2C 소셜 로그인과 무관한 별도 인증 체계로 이동
                 (00-06 §7.3 ①). 데모 블록은 오픈 시 제거될 것이므로 그 위에 둔다. */}
             <div style={{ marginTop: '0.95rem', paddingTop: '0.95rem', borderTop: '1px solid var(--surface-subtle)', textAlign: 'center' }}>
@@ -478,7 +478,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin
                   background: 'none',
                   border: 'none',
                   cursor: 'pointer',
-                  fontSize: '0.9rem',
+                  fontSize: 'var(--fs-body)',
                   fontWeight: 600,
                   color: 'var(--primary-color)',
                   textDecoration: 'underline',
@@ -497,7 +497,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin
               <div style={{ fontSize: 'var(--fs-body)', color: 'var(--text-hint)', marginBottom: '0.6rem' }}>
                 [빠른 데모 테스트용 선택]
               </div>
-              <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center', marginBottom: 'var(--fs-caption)', opacity: canProceed ? 1 : 0.45, pointerEvents: canProceed ? 'auto' : 'none', transition: 'opacity 0.2s ease' }}>
+              <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center', marginBottom: 'var(--sp-3)', opacity: canProceed ? 1 : 0.45, pointerEvents: canProceed ? 'auto' : 'none', transition: 'opacity 0.2s ease' }}>
                 <button
                   type="button"
                   onClick={() => handleMockSocialLogin('KAKAO')}

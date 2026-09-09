@@ -125,7 +125,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, navMo
                     alignItems: 'center',
                     justifyContent: 'space-between',
                     gap: '0.6rem',
-                    padding: '0.9rem var(--fs-body)',
+                    padding: '0.9rem var(--sp-4)',
                     borderRadius: 'var(--r-md)',
                     border: isActive ? '1.5px solid var(--accent-gold)' : '1px solid transparent',
                     borderLeft: isActive ? '5px solid var(--accent-gold)' : '1px solid transparent',
@@ -140,7 +140,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, navMo
                   }}
                   title={item.label}
                 >
-                  <span style={{ display: 'flex', alignItems: 'center', gap: 'var(--fs-body)', minWidth: 0 }}>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: 'var(--sp-4)', minWidth: 0 }}>
                     <span style={{ flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', width: '28px' }}>
                       <IconComponent size={24} color={isComingSoon ? 'var(--text-muted)' : isActive ? '#FFFFFF' : 'var(--secondary-dark)'} />
                     </span>
@@ -174,8 +174,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, navMo
                   style={{
                     display: 'flex',
                     alignItems: 'center',
-                    gap: 'var(--fs-body)',
-                    padding: '0.9rem var(--fs-body)',
+                    gap: 'var(--sp-4)',
+                    padding: '0.9rem var(--sp-4)',
                     borderRadius: 'var(--r-md)',
                     border: isActive ? '1.5px solid var(--accent-gold)' : '1px solid transparent',
                     borderLeft: isActive ? '5px solid var(--accent-gold)' : '1px solid transparent',
@@ -267,7 +267,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, navMo
                 alignItems: 'center',
                 justifyContent: 'space-between',
                 gap: '0.6rem',
-                padding: 'var(--fs-body) var(--fs-body)',
+                padding: 'var(--sp-4) var(--sp-4)',
                 borderRadius: 'var(--r-md)',
                 border: isActive ? '1.5px solid var(--accent-gold)' : '1px solid transparent',
                 borderLeft: isActive ? '5px solid var(--accent-gold)' : '1px solid transparent',
@@ -278,11 +278,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, navMo
                 textAlign: 'left',
               }}
             >
-              <span style={{ display: 'flex', alignItems: 'center', gap: 'var(--fs-body)', minWidth: 0 }}>
+              <span style={{ display: 'flex', alignItems: 'center', gap: 'var(--sp-4)', minWidth: 0 }}>
                 <span style={{ flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', width: '26px' }}>
                   <IconComp size={22} color={isComingSoon ? 'var(--text-muted)' : isActive ? '#FFFFFF' : 'var(--secondary-dark)'} />
                 </span>
-                <span style={{ fontSize: '0.95rem', fontWeight: isActive ? 'var(--fw-bold)' : 600 }}>{item.label}</span>
+                <span style={{ fontSize: 'var(--fs-body)', fontWeight: isActive ? 'var(--fw-bold)' : 600 }}>{item.label}</span>
               </span>
               {item.status !== 'active' && <Badge status={item.status === 'preview' ? 'preview' : 'comingSoon'} />}
             </button>
@@ -298,9 +298,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, navMo
             type="button"
             onClick={() => { onLogout(); onMobileClose?.(); }}
             style={{
-              display: 'flex', alignItems: 'center', gap: 'var(--fs-caption)', padding: 'var(--fs-caption) var(--fs-body)',
+              display: 'flex', alignItems: 'center', gap: 'var(--sp-3)', padding: 'var(--sp-3) var(--sp-4)',
               borderRadius: 'var(--r-sm)', border: '1px solid rgba(255,255,255,0.2)', backgroundColor: 'transparent',
-              color: 'var(--border-color)', cursor: 'pointer', width: '100%', textAlign: 'left', fontSize: '0.9rem',
+              color: 'var(--border-color)', cursor: 'pointer', width: '100%', textAlign: 'left', fontSize: 'var(--fs-body)',
             }}
           >
             <LogOut size={18} /> 로그아웃

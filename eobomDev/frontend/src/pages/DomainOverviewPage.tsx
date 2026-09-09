@@ -173,7 +173,7 @@ export const DomainOverviewPage: React.FC<DomainOverviewPageProps> = ({
               gap: '1rem',
               backgroundColor: 'rgba(26, 43, 76, 0.75)',
               backdropFilter: 'blur(8px)',
-              padding: 'var(--fs-body) 0.6rem',
+              padding: 'var(--sp-4) 0.6rem',
               borderRadius: 'var(--r-lg)',
               boxShadow: 'var(--el-2)',
             }}
@@ -324,17 +324,17 @@ export const DomainOverviewPage: React.FC<DomainOverviewPageProps> = ({
                   >
                     {slide.featureIcon}
                   </div>
-                  <h3 style={{ fontSize: '1.3rem', color: '#1A2B4C', fontWeight: 'var(--fw-bold)', marginBottom: 'var(--fs-body)' }}>
+                  <h3 style={{ fontSize: '1.3rem', color: '#1A2B4C', fontWeight: 'var(--fw-bold)', marginBottom: 'var(--sp-4)' }}>
                     {slide.featureTitle}
                   </h3>
-                  <p style={{ color: '#6C7A89', fontSize: '0.95rem', lineHeight: 1.7, margin: 0 }}>{slide.featureDesc}</p>
+                  <p style={{ color: '#6C7A89', fontSize: 'var(--fs-body)', lineHeight: 1.7, margin: 0 }}>{slide.featureDesc}</p>
 
                   {slide.bullets.length > 0 && (
                     <div
                       style={{
                         display: 'flex',
                         flexDirection: 'column',
-                        gap: 'var(--fs-caption)',
+                        gap: 'var(--sp-3)',
                         marginTop: '1.3rem',
                         paddingTop: '1.2rem',
                         borderTop: `1px solid ${slide.featureIconBg}`,

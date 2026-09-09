@@ -332,7 +332,7 @@ function AppShell() {
           <Link to="/" style={{ display: 'inline-flex', lineHeight: 0 }}>
             <EobomLogo variant="header" height={30} />
           </Link>
-          <Link to="/" style={{ fontSize: '0.9rem', color: 'var(--border-color)', textDecoration: 'underline' }}>
+          <Link to="/" style={{ fontSize: 'var(--fs-body)', color: 'var(--border-color)', textDecoration: 'underline' }}>
             이어봄 홈으로
           </Link>
         </div>

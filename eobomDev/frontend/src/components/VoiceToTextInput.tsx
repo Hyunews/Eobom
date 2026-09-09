@@ -462,13 +462,13 @@ export const VoiceToTextInput: React.FC<VoiceToTextInputProps> = ({
           style={{
             position: 'absolute', inset: 0, zIndex: 10, backgroundColor: 'rgba(255,255,255,0.98)',
             border: '1px solid var(--border-color)', borderRadius: 'var(--r-sm)', padding: '1.1rem',
-            display: 'flex', flexDirection: 'column', gap: 'var(--fs-caption)', boxShadow: 'var(--box-shadow)',
+            display: 'flex', flexDirection: 'column', gap: 'var(--sp-3)', boxShadow: 'var(--box-shadow)',
           }}
         >
           <p style={{ fontSize: '1rem', color: 'var(--primary-color)', fontWeight: 700 }}>
             🎙️ 목소리를 녹음합니다
           </p>
-          <p style={{ fontSize: '0.95rem', color: 'var(--text-muted)', lineHeight: 1.6 }}>
+          <p style={{ fontSize: 'var(--fs-body)', color: 'var(--text-muted)', lineHeight: 1.6 }}>
             말씀하신 목소리는 글로 바뀌어 편지 내용으로 들어갑니다. 브라우저가 바로 글로 바꾸지
             못하면 네이버 CLOVA Speech로 자동 전송되어 변환됩니다.
             {voiceStorageEnabled && ' "목소리도 함께 남기기"가 켜져 있으면 목소리 원본도 암호화되어 함께 보관되며, 유족이 편지를 열람할 때 함께 들을 수 있습니다.'}
@@ -491,7 +491,7 @@ export const VoiceToTextInput: React.FC<VoiceToTextInputProps> = ({
           style={{
             position: 'absolute', inset: 0, zIndex: 10, backgroundColor: 'rgba(255,255,255,0.98)',
             border: '1px solid var(--border-color)', borderRadius: 'var(--r-sm)', padding: '1.1rem',
-            display: 'flex', flexDirection: 'column', gap: 'var(--fs-caption)', boxShadow: 'var(--box-shadow)',
+            display: 'flex', flexDirection: 'column', gap: 'var(--sp-3)', boxShadow: 'var(--box-shadow)',
             overflowY: 'auto',
           }}
         >
@@ -500,7 +500,7 @@ export const VoiceToTextInput: React.FC<VoiceToTextInputProps> = ({
           </p>
 
           {recordingLiveText && (
-            <p style={{ fontSize: '0.95rem', color: 'var(--text-muted)', lineHeight: 1.6, maxHeight: '5rem', overflowY: 'auto' }}>
+            <p style={{ fontSize: 'var(--fs-body)', color: 'var(--text-muted)', lineHeight: 1.6, maxHeight: '5rem', overflowY: 'auto' }}>
               {recordingLiveText}
             </p>
           )}
@@ -520,7 +520,7 @@ export const VoiceToTextInput: React.FC<VoiceToTextInputProps> = ({
           )}
 
           {modalError && (
-            <div style={{ fontSize: '0.95rem', color: 'var(--state-warn-fg)', backgroundColor: 'var(--state-warn-bg)', border: '1px solid var(--state-warn-bg)', borderRadius: 'var(--r-sm)', padding: 'var(--fs-caption) 0.9rem' }}>
+            <div style={{ fontSize: 'var(--fs-body)', color: 'var(--state-warn-fg)', backgroundColor: 'var(--state-warn-bg)', border: '1px solid var(--state-warn-bg)', borderRadius: 'var(--r-sm)', padding: 'var(--sp-3) 0.9rem' }}>
               {modalError}
             </div>
           )}
@@ -539,7 +539,7 @@ export const VoiceToTextInput: React.FC<VoiceToTextInputProps> = ({
       )}
 
       {mode === 'record' && micError && (
-        <div style={{ fontSize: '0.95rem', color: 'var(--state-warn-fg)', backgroundColor: 'var(--state-warn-bg)', border: '1px solid var(--state-warn-bg)', borderRadius: 'var(--r-sm)', padding: 'var(--fs-caption) 0.9rem', marginBottom: '1rem' }}>
+        <div style={{ fontSize: 'var(--fs-body)', color: 'var(--state-warn-fg)', backgroundColor: 'var(--state-warn-bg)', border: '1px solid var(--state-warn-bg)', borderRadius: 'var(--r-sm)', padding: 'var(--sp-3) 0.9rem', marginBottom: '1rem' }}>
           {micError}
         </div>
       )}
@@ -547,13 +547,13 @@ export const VoiceToTextInput: React.FC<VoiceToTextInputProps> = ({
       {mode === 'record' && (
       <>
       {!recordingSupported && !sttSupported && (
-        <div style={{ fontSize: '0.95rem', color: 'var(--text-muted)', backgroundColor: 'var(--surface-subtle)', borderRadius: 'var(--r-sm)', padding: 'var(--fs-caption) 0.9rem', marginBottom: '1rem' }}>
+        <div style={{ fontSize: 'var(--fs-body)', color: 'var(--text-muted)', backgroundColor: 'var(--surface-subtle)', borderRadius: 'var(--r-sm)', padding: 'var(--sp-3) 0.9rem', marginBottom: '1rem' }}>
           이 브라우저에서는 음성 입력을 지원하지 않습니다. 아래 입력창에 직접 입력해 주세요.
         </div>
       )}
 
       {recordingSupported && (
-        <p style={{ fontSize: '0.95rem', color: 'var(--text-muted)', marginBottom: '0.6rem' }}>
+        <p style={{ fontSize: 'var(--fs-body)', color: 'var(--text-muted)', marginBottom: '0.6rem' }}>
           말씀하신 내용은 글로 바뀌어 편지에 들어갑니다.
           {voiceStorageEnabled
             ? ' "목소리도 함께 남기기"가 켜져 있으면 목소리 원본도 암호화되어 함께 보관됩니다.'
@@ -562,7 +562,7 @@ export const VoiceToTextInput: React.FC<VoiceToTextInputProps> = ({
       )}
 
       {recordingSupported && voiceStorageEnabled && (
-        <label style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', cursor: 'pointer', fontSize: '0.95rem', color: '#4B5563', marginBottom: '0.9rem' }}>
+        <label style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', cursor: 'pointer', fontSize: 'var(--fs-body)', color: '#4B5563', marginBottom: '0.9rem' }}>
           <span
             onClick={(e) => { e.preventDefault(); if (!disabled && !isRecording) setSaveVoiceEnabled((v) => !v); }}
             role="checkbox"
@@ -580,7 +580,7 @@ export const VoiceToTextInput: React.FC<VoiceToTextInputProps> = ({
         </label>
       )}
 
-      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--fs-caption)', marginBottom: '0.5rem', flexWrap: 'wrap' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--sp-3)', marginBottom: '0.5rem', flexWrap: 'wrap' }}>
         {recordingSupported && (
           isRecording ? (
             <button type="button" onClick={stopRecording} disabled={disabled} style={actionBtnStyle('var(--state-danger-fg)', '#FFFFFF', !!disabled)}>
@@ -592,11 +592,11 @@ export const VoiceToTextInput: React.FC<VoiceToTextInputProps> = ({
             </button>
           )
         )}
-        {isRecording && <span style={{ fontSize: '0.95rem', color: 'var(--point-color)' }}>● 듣고 있습니다…</span>}
+        {isRecording && <span style={{ fontSize: 'var(--fs-body)', color: 'var(--point-color)' }}>● 듣고 있습니다…</span>}
       </div>
 
       {isRecording && recordingLiveText && (
-        <p style={{ fontSize: '0.95rem', color: 'var(--text-muted)', fontStyle: 'italic', marginBottom: '0.5rem' }}>
+        <p style={{ fontSize: 'var(--fs-body)', color: 'var(--text-muted)', fontStyle: 'italic', marginBottom: '0.5rem' }}>
           인식 중: {recordingLiveText}
         </p>
       )}
@@ -606,7 +606,7 @@ export const VoiceToTextInput: React.FC<VoiceToTextInputProps> = ({
       {/* Ⓐ 파일 업로드 — mode="upload"에서만 그린다. 서버 플래그(CLOVA_STT_ENABLED)가 꺼져
           있으면 안내만 남기고 버튼은 숨긴다(§8-9 후속 — 탭 자체는 항상 있으므로 안내가 필요하다). */}
       {mode === 'upload' && !sttUploadEnabled && (
-        <div style={{ fontSize: '0.95rem', color: 'var(--text-muted)', backgroundColor: 'var(--surface-subtle)', borderRadius: 'var(--r-sm)', padding: 'var(--fs-caption) 0.9rem' }}>
+        <div style={{ fontSize: 'var(--fs-body)', color: 'var(--text-muted)', backgroundColor: 'var(--surface-subtle)', borderRadius: 'var(--r-sm)', padding: 'var(--sp-3) 0.9rem' }}>
           지금은 음성 파일 업로드를 사용할 수 없습니다. "직접 쓰기" 탭을 이용해 주세요.
         </div>
       )}
@@ -616,14 +616,14 @@ export const VoiceToTextInput: React.FC<VoiceToTextInputProps> = ({
             <Upload size={16} color="var(--point-color)" /> 녹음해 둔 음성 파일 올리기
           </h4>
 
-          <p style={{ fontSize: '0.95rem', color: 'var(--text-muted)', marginBottom: '0.25rem' }}>
+          <p style={{ fontSize: 'var(--fs-body)', color: 'var(--text-muted)', marginBottom: '0.25rem' }}>
             m4a · mp3 · wav · webm 파일을 올릴 수 있습니다(최대 {MAX_UPLOAD_SIZE_BYTES / 1024 / 1024}MB).
           </p>
-          <p style={{ fontSize: '0.95rem', color: 'var(--text-muted)', marginBottom: '0.9rem' }}>
+          <p style={{ fontSize: 'var(--fs-body)', color: 'var(--text-muted)', marginBottom: '0.9rem' }}>
             본인의 음성만 올려주세요. 다른 분의 음성인지 이어봄이 확인할 방법은 없습니다.
           </p>
 
-          <label style={{ display: 'flex', alignItems: 'flex-start', gap: '0.55rem', cursor: 'pointer', fontSize: '0.95rem', color: '#4B5563', marginBottom: '0.4rem' }}>
+          <label style={{ display: 'flex', alignItems: 'flex-start', gap: '0.55rem', cursor: 'pointer', fontSize: 'var(--fs-body)', color: '#4B5563', marginBottom: '0.4rem' }}>
             <span
               onClick={(e) => { e.preventDefault(); setUploadConsent((v) => !v); }}
               role="checkbox"
@@ -646,7 +646,7 @@ export const VoiceToTextInput: React.FC<VoiceToTextInputProps> = ({
                 : ' 이어봄은 음성 파일을 보관하지 않습니다.'}
             </span>
           </label>
-          <p style={{ fontSize: '0.95rem', color: 'var(--text-muted)', marginBottom: '0.9rem', marginLeft: '1.75rem' }}>
+          <p style={{ fontSize: 'var(--fs-body)', color: 'var(--text-muted)', marginBottom: '0.9rem', marginLeft: '1.75rem' }}>
             동의하지 않으셔도 직접 입력으로 편지를 남기실 수 있습니다.
           </p>
 
@@ -685,11 +685,11 @@ export const VoiceToTextInput: React.FC<VoiceToTextInputProps> = ({
           </div>
 
           {selectedFile && (
-            <p style={{ marginTop: '0.5rem', fontSize: '0.95rem', color: 'var(--text-muted)' }}>{selectedFile.name}</p>
+            <p style={{ marginTop: '0.5rem', fontSize: 'var(--fs-body)', color: 'var(--text-muted)' }}>{selectedFile.name}</p>
           )}
 
           {uploadError && (
-            <div style={{ marginTop: 'var(--fs-caption)', fontSize: '0.95rem', color: 'var(--state-warn-fg)', backgroundColor: 'var(--state-warn-bg)', border: '1px solid var(--state-warn-bg)', borderRadius: 'var(--r-sm)', padding: 'var(--fs-caption) 0.9rem' }}>
+            <div style={{ marginTop: 'var(--sp-3)', fontSize: 'var(--fs-body)', color: 'var(--state-warn-fg)', backgroundColor: 'var(--state-warn-bg)', border: '1px solid var(--state-warn-bg)', borderRadius: 'var(--r-sm)', padding: 'var(--sp-3) 0.9rem' }}>
               {uploadError}
             </div>
           )}

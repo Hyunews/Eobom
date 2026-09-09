@@ -155,7 +155,7 @@ export const FamilyInvitePage: React.FC<FamilyInvitePageProps> = ({ currentUser,
       <div style={shellStyle}>
         <div style={cardStyle}>
           <p style={{ fontSize: '1.05rem', color: '#1A2B4C', fontWeight: 700, marginBottom: '0.5rem' }}>초대 링크가 만료되었습니다.</p>
-          <p style={{ fontSize: '0.9rem', color: '#6C7A89' }}>보내신 분에게 새 링크를 다시 요청해 주세요.</p>
+          <p style={{ fontSize: 'var(--fs-body)', color: '#6C7A89' }}>보내신 분에게 새 링크를 다시 요청해 주세요.</p>
         </div>
       </div>
     );
@@ -165,9 +165,9 @@ export const FamilyInvitePage: React.FC<FamilyInvitePageProps> = ({ currentUser,
     return (
       <div style={shellStyle}>
         <div style={cardStyle}>
-          <AlertCircle size={40} color="#94A3B8" style={{ marginBottom: 'var(--fs-caption)' }} />
+          <AlertCircle size={40} color="#94A3B8" style={{ marginBottom: 'var(--sp-3)' }} />
           <p style={{ fontSize: '1.05rem', color: '#1A2B4C', fontWeight: 700, marginBottom: '0.5rem' }}>초대 링크를 찾을 수 없습니다.</p>
-          <p style={{ fontSize: '0.9rem', color: '#6C7A89', marginBottom: '1.4rem' }}>이미 처리되었거나 잘못된 주소일 수 있습니다.</p>
+          <p style={{ fontSize: 'var(--fs-body)', color: '#6C7A89', marginBottom: '1.4rem' }}>이미 처리되었거나 잘못된 주소일 수 있습니다.</p>
           <button type="button" onClick={() => navigate('/')} className="btn btn-primary" style={{ width: '100%' }}>
             이어봄 홈으로
           </button>
@@ -180,10 +180,10 @@ export const FamilyInvitePage: React.FC<FamilyInvitePageProps> = ({ currentUser,
     return (
       <div style={shellStyle}>
         <div style={cardStyle}>
-          <CheckCircle2 size={40} color="var(--point-color)" style={{ marginBottom: 'var(--fs-caption)' }} />
+          <CheckCircle2 size={40} color="var(--point-color)" style={{ marginBottom: 'var(--sp-3)' }} />
           <p style={{ fontSize: '1.1rem', color: '#1A2B4C', fontWeight: 700, marginBottom: '0.5rem' }}>수락되었습니다.</p>
           {/* 00-27 §9.1-4-2 — 수락 결과를 과장하지 않는다. 열람은 사망 확인 이후다(06-04 §8.1). */}
-          <p style={{ fontSize: '0.9rem', color: '#6C7A89', marginBottom: '1.4rem' }}>{data?.designatorName}님의 가족으로 연결됐습니다.</p>
+          <p style={{ fontSize: 'var(--fs-body)', color: '#6C7A89', marginBottom: '1.4rem' }}>{data?.designatorName}님의 가족으로 연결됐습니다.</p>
           <button type="button" onClick={() => navigate('/')} className="btn btn-primary" style={{ width: '100%', marginBottom: '0.6rem' }}>
             이어봄 홈으로
           </button>
@@ -199,9 +199,9 @@ export const FamilyInvitePage: React.FC<FamilyInvitePageProps> = ({ currentUser,
     return (
       <div style={shellStyle}>
         <div style={cardStyle}>
-          <XCircle size={40} color="#94A3B8" style={{ marginBottom: 'var(--fs-caption)' }} />
+          <XCircle size={40} color="#94A3B8" style={{ marginBottom: 'var(--sp-3)' }} />
           <p style={{ fontSize: '1.1rem', color: '#1A2B4C', fontWeight: 700, marginBottom: '0.5rem' }}>거절되었습니다.</p>
-          <p style={{ fontSize: '0.9rem', color: '#6C7A89', marginBottom: '1.4rem' }}>아무 권한도 부여되지 않았습니다.</p>
+          <p style={{ fontSize: 'var(--fs-body)', color: '#6C7A89', marginBottom: '1.4rem' }}>아무 권한도 부여되지 않았습니다.</p>
           {/* §9.1-4-2 — 거절한 사람에게 서비스 권유를 붙이지 않는다. "홈으로" 하나뿐. */}
           <button type="button" onClick={() => navigate('/')} className="btn" style={{ width: '100%', backgroundColor: 'var(--secondary-color)', color: 'var(--primary-color)' }}>
             이어봄 홈으로
@@ -220,7 +220,7 @@ export const FamilyInvitePage: React.FC<FamilyInvitePageProps> = ({ currentUser,
   return (
     <div style={shellStyle}>
       <div style={cardStyle}>
-        <HeartHandshake size={40} color="var(--point-color)" style={{ marginBottom: 'var(--fs-caption)' }} />
+        <HeartHandshake size={40} color="var(--point-color)" style={{ marginBottom: 'var(--sp-3)' }} />
         <h1 style={{ fontSize: '1.3rem', color: '#1A2B4C', fontFamily: "'KoPub World Batang', serif", marginBottom: '0.6rem' }}>
           {data?.designatorName}님이 당신을 가족으로 지정했습니다
         </h1>
@@ -230,12 +230,12 @@ export const FamilyInvitePage: React.FC<FamilyInvitePageProps> = ({ currentUser,
           권한: {scope?.label}{scope ? ` (${scope.hint})` : ''}
         </p>
 
-        <div style={{ fontSize: 'var(--fs-body)', color: 'var(--state-warn-fg)', backgroundColor: 'var(--state-warn-bg)', border: '1px solid var(--state-warn-bg)', borderRadius: 'var(--r-sm)', padding: 'var(--fs-caption) var(--fs-body)', marginBottom: '1.4rem', lineHeight: 1.6, textAlign: 'left' }}>
+        <div style={{ fontSize: 'var(--fs-body)', color: 'var(--state-warn-fg)', backgroundColor: 'var(--state-warn-bg)', border: '1px solid var(--state-warn-bg)', borderRadius: 'var(--r-sm)', padding: 'var(--sp-3) var(--sp-4)', marginBottom: '1.4rem', lineHeight: 1.6, textAlign: 'left' }}>
           수락하시면 사망 통지 등 위 권한이 생깁니다. 거절하셔도 어떤 불이익도 없습니다.
         </div>
 
         {errorMsg && (
-          <div style={{ fontSize: 'var(--fs-body)', color: 'var(--state-danger-fg)', backgroundColor: 'var(--state-danger-bg)', border: '1px solid var(--state-danger-bg)', borderRadius: 'var(--r-sm)', padding: 'var(--fs-caption) 0.9rem', marginBottom: '1rem' }}>
+          <div style={{ fontSize: 'var(--fs-body)', color: 'var(--state-danger-fg)', backgroundColor: 'var(--state-danger-bg)', border: '1px solid var(--state-danger-bg)', borderRadius: 'var(--r-sm)', padding: 'var(--sp-3) 0.9rem', marginBottom: '1rem' }}>
             {errorMsg}
           </div>
         )}
@@ -270,7 +270,7 @@ export const FamilyInvitePage: React.FC<FamilyInvitePageProps> = ({ currentUser,
           </>
         ) : (
           <>
-            <p style={{ fontSize: 'var(--fs-body)', color: 'var(--text-muted)', marginBottom: 'var(--fs-body)' }}>
+            <p style={{ fontSize: 'var(--fs-body)', color: 'var(--text-muted)', marginBottom: 'var(--sp-4)' }}>
               수락하려면 먼저 로그인해 주세요.
             </p>
             <button

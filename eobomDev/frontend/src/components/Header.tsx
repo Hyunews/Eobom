@@ -117,7 +117,7 @@ export const Header: React.FC<HeaderProps> = ({ setActiveTab, onOpenLogin, curre
             <button
               onClick={onOpenLogin}
               className="btn btn-point"
-              style={{ height: '44px', padding: '0 1.2rem', fontSize: '0.9rem' }}
+              style={{ height: '44px', padding: '0 1.2rem', fontSize: 'var(--fs-body)' }}
             >
               {/* 2026-08-25 — 라벨을 "로그인"으로 단순화(로그인/회원가입은 모달 내부 탭으로
                   분리됨, LoginModal.tsx 참고). "로그인 / 회원가입"이 좁은 헤더에서 잘려 보이던

@@ -420,7 +420,7 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
   const sectionBodies: Record<string, React.ReactNode> = {
     LIFE_SUPPORT: (
       <>
-        <div style={{ fontSize: 'var(--fs-body)', color: 'var(--state-warn-fg)', backgroundColor: 'var(--state-warn-bg)', border: '1px solid var(--state-warn-bg)', borderRadius: 'var(--r-sm)', padding: 'var(--fs-caption) 0.9rem', marginBottom: '1rem' }}>
+        <div style={{ fontSize: 'var(--fs-body)', color: 'var(--state-warn-fg)', backgroundColor: 'var(--state-warn-bg)', border: '1px solid var(--state-warn-bg)', borderRadius: 'var(--r-sm)', padding: 'var(--sp-3) 0.9rem', marginBottom: '1rem' }}>
           ⚠️ 이 메모는 법적 효력이 없습니다. 법적 효력이 있는 「사전연명의료의향서」는 보건복지부
           지정 등록기관에서 본인이 직접 작성·등록해야 합니다(비용 없음).
         </div>
@@ -448,7 +448,7 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
     ),
     ASSET: (
       <>
-        <div style={{ fontSize: 'var(--fs-body)', color: 'var(--state-warn-fg)', backgroundColor: 'var(--state-warn-bg)', border: '1px solid var(--state-warn-bg)', borderRadius: 'var(--r-sm)', padding: 'var(--fs-caption) 0.9rem', marginBottom: '1rem' }}>
+        <div style={{ fontSize: 'var(--fs-body)', color: 'var(--state-warn-fg)', backgroundColor: 'var(--state-warn-bg)', border: '1px solid var(--state-warn-bg)', borderRadius: 'var(--r-sm)', padding: 'var(--sp-3) 0.9rem', marginBottom: '1rem' }}>
           🔴 어느 은행·증권사에 거래가 있는지까지만 적어주세요. 계좌번호·잔액·비밀번호는 절대
           적지 마세요 — 유족은 이 정보 없이도 공적 창구(안심상속 원스톱서비스 등)로 조회할 수 있습니다.
         </div>
@@ -497,7 +497,7 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
         </p>
         {INSURANCE_ITEMS.map((item) => (
           <div key={item.key} style={{ marginBottom: '0.9rem' }}>
-            <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.95rem', color: 'var(--primary-color)', cursor: 'pointer', marginBottom: '0.5rem' }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: 'var(--fs-body)', color: 'var(--primary-color)', cursor: 'pointer', marginBottom: '0.5rem' }}>
               <input
                 type="checkbox"
                 checked={!!insurance[item.key]?.checked}
@@ -573,7 +573,7 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
     ),
     ORGAN_DONATION: (
       <>
-        <div style={{ fontSize: 'var(--fs-body)', color: 'var(--state-warn-fg)', backgroundColor: 'var(--state-warn-bg)', border: '1px solid var(--state-warn-bg)', borderRadius: 'var(--r-sm)', padding: 'var(--fs-caption) 0.9rem', marginBottom: '1rem' }}>
+        <div style={{ fontSize: 'var(--fs-body)', color: 'var(--state-warn-fg)', backgroundColor: 'var(--state-warn-bg)', border: '1px solid var(--state-warn-bg)', borderRadius: 'var(--r-sm)', padding: 'var(--sp-3) 0.9rem', marginBottom: '1rem' }}>
           ⚠️ 이어봄은 등록 여부와 등록일만 보관합니다. 실제 등록은 국립장기조직혈액관리원(사랑의
           장기기증운동본부 등 등록기관)에서 본인이 직접 해야 하며, 이어봄은 등록을 대행하지 않습니다.
           🔴 시신 기증(해부용 시신 기증)은 별도 제도입니다 — 이 항목과 섞지 마세요.
@@ -665,7 +665,7 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
             }}>
               🔒
             </div>
-            <h2 style={{ color: 'var(--primary-color)', fontSize: '1.6rem', marginBottom: 'var(--fs-caption)', fontWeight: 700 }}>
+            <h2 style={{ color: 'var(--primary-color)', fontSize: '1.6rem', marginBottom: 'var(--sp-3)', fontWeight: 700 }}>
               로그인이 필요한 회원 전용 서비스입니다
             </h2>
             <p style={{ color: 'var(--text-muted)', fontSize: '1rem', lineHeight: 1.6, marginBottom: '1.5rem' }}>
@@ -679,7 +679,7 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
       )}
 
       <div style={{ marginBottom: '1.5rem', filter: !currentUser ? 'blur(3px)' : 'none' }}>
-        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', backgroundColor: 'var(--surface-subtle)', color: 'var(--primary-color)', padding: '0.3rem var(--fs-body)', borderRadius: 'var(--r-lg)', fontSize: 'var(--fs-body)', fontWeight: 700, marginBottom: '0.6rem' }}>
+        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', backgroundColor: 'var(--surface-subtle)', color: 'var(--primary-color)', padding: '0.3rem var(--sp-4)', borderRadius: 'var(--r-lg)', fontSize: 'var(--fs-body)', fontWeight: 700, marginBottom: '0.6rem' }}>
           <NoteKeyIcon size={18} color="var(--primary-color)" /> 남겨야 할 것을 빠짐없이
         </div>
         <h1 style={{ color: 'var(--primary-color)', fontSize: '2rem', display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0 }}>
@@ -699,10 +699,10 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
             </p>
           ) : (
             <>
-              <h3 style={{ ...cardTitleStyle, marginBottom: 'var(--fs-caption)' }}>
+              <h3 style={{ ...cardTitleStyle, marginBottom: 'var(--sp-3)' }}>
                 <AlertTriangle color="var(--point-color)" size={20} /> 작성을 시작하기 전에 확인해 주세요
               </h3>
-              <p style={{ fontSize: '0.9rem', color: 'var(--text-main)', whiteSpace: 'pre-line', lineHeight: 1.7, marginBottom: '1rem' }}>
+              <p style={{ fontSize: 'var(--fs-body)', color: 'var(--text-main)', whiteSpace: 'pre-line', lineHeight: 1.7, marginBottom: '1rem' }}>
                 {policyNotice || '이어봄은 회원님이 작성한 내용을 암호화하여 보관하며, 운영자는 내용을 열람하지 않습니다.'}
               </p>
               <button type="button" onClick={handleAgreePolicy} className="btn btn-point" disabled={!noteLoaded}>
@@ -714,7 +714,7 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
 
         {/* §10 Phase 2 #6 — 가족이 0명이면 섹션마다 반복해서 안내하지 않고 여기 한 번만 둔다. */}
         {policyAgreedAt && noteLoaded && family.length === 0 && (
-          <div style={{ ...cardStyle, padding: '1rem 1.25rem', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.6rem', fontSize: '0.9rem', color: 'var(--text-main)' }}>
+          <div style={{ ...cardStyle, padding: '1rem 1.25rem', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.6rem', fontSize: 'var(--fs-body)', color: 'var(--text-main)' }}>
             <UserPlus size={18} color="var(--point-color)" style={{ flexShrink: 0 }} />
             <span>
               아직 수락된 가족이 없어 섹션을 생전에 공개할 대상을 지정할 수 없습니다.{' '}
@@ -738,7 +738,7 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
                 경쟁하지 않도록 캡션 취급으로 낮추고(§6.3 #2, 한 덩어리에 볼드 하나), 대신
                 CareGuidePage `.care-guide-category`와 같은 처리(대문자+자간)로 "이건 라벨"임을
                 또렷하게 한다 — 목차 링크 쪽을 올리는 만큼 라벨이 items보다 작아 보이던 걸 상쇄. */}
-            <div style={{ fontWeight: 'var(--fw-medium)', color: 'var(--text-muted)', marginBottom: 'var(--fs-caption)', fontSize: 'var(--fs-caption)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>목차</div>
+            <div style={{ fontWeight: 'var(--fw-medium)', color: 'var(--text-muted)', marginBottom: 'var(--sp-3)', fontSize: 'var(--fs-caption)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>목차</div>
             <nav style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
               {SECTIONS.map((s) => (
                 <button key={s.code} type="button" onClick={() => openSectionFromToc(s.code)} className="ending-note-toc-link">
@@ -761,7 +761,7 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
                 ref={summaryTriggerRef}
                 onClick={() => setSummaryOpen(true)}
                 className="btn"
-                style={{ width: '100%', backgroundColor: 'var(--secondary-color)', color: 'var(--primary-color)', fontSize: '0.9rem' }}
+                style={{ width: '100%', backgroundColor: 'var(--secondary-color)', color: 'var(--primary-color)', fontSize: 'var(--fs-body)' }}
               >
                 <ListChecks size={18} /> 한눈에 보기
               </button>
@@ -801,7 +801,7 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
           {sectionState.WILL_DRAFT && <CheckCircle2 size={18} color="var(--point-color)" />}
         </h3>
 
-        <div style={{ fontSize: 'var(--fs-body)', color: 'var(--state-warn-fg)', backgroundColor: 'var(--state-warn-bg)', border: '1px solid var(--state-warn-bg)', borderRadius: 'var(--r-sm)', padding: 'var(--fs-caption) 0.9rem', margin: 'var(--fs-caption) 0', display: 'flex', alignItems: 'flex-start', gap: '0.5rem', fontWeight: 700 }}>
+        <div style={{ fontSize: 'var(--fs-body)', color: 'var(--state-warn-fg)', backgroundColor: 'var(--state-warn-bg)', border: '1px solid var(--state-warn-bg)', borderRadius: 'var(--r-sm)', padding: 'var(--sp-3) 0.9rem', margin: 'var(--sp-3) 0', display: 'flex', alignItems: 'flex-start', gap: '0.5rem', fontWeight: 700 }}>
           <AlertTriangle size={18} style={{ flexShrink: 0, marginTop: '0.1rem' }} />
           <span>{NOT_A_WILL_NOTICE}</span>
         </div>
@@ -811,7 +811,7 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
         </p>
 
         {/* §6.4-2·§7.1 — 본인 전용, 사후에도 유족에게 전달되지 않는다. 대신 보관함으로 안내한다. */}
-        <div style={{ fontSize: 'var(--fs-body)', color: 'var(--state-warn-fg)', backgroundColor: 'var(--state-warn-bg)', border: '1px solid var(--state-warn-bg)', borderRadius: 'var(--r-sm)', padding: 'var(--fs-caption) 0.9rem', marginBottom: '1rem', display: 'flex', alignItems: 'flex-start', gap: '0.5rem' }}>
+        <div style={{ fontSize: 'var(--fs-body)', color: 'var(--state-warn-fg)', backgroundColor: 'var(--state-warn-bg)', border: '1px solid var(--state-warn-bg)', borderRadius: 'var(--r-sm)', padding: 'var(--sp-3) 0.9rem', marginBottom: '1rem', display: 'flex', alignItems: 'flex-start', gap: '0.5rem' }}>
           <AlertTriangle size={18} style={{ flexShrink: 0, marginTop: '0.1rem' }} />
           <span>
             이 초안은 본인만 볼 수 있으며 유족에게 전달되지 않습니다.
@@ -836,7 +836,7 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
             {/* 🔄 09-07 사용자 지시 — ① 문구를 짧게(모바일 줄바꿈으로 가독성 저하) ② 정규식
                 기반 자동 검증(hasAddressHint·hasDateHint) 삭제 — 초안 문맥에 따라 오판 가능성이
                 커서, 확인됨/빠짐을 판정하지 않고 네 항목을 똑같은 안내로만 둔다. */}
-            <h4 style={{ fontSize: '0.95rem', color: 'var(--primary-color)', marginBottom: '0.5rem' }}>
+            <h4 style={{ fontSize: 'var(--fs-body)', color: 'var(--primary-color)', marginBottom: '0.5rem' }}>
               자필증서 유언장의 4대 요건
             </h4>
             <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>

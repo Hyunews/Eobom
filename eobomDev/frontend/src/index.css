@@ -711,7 +711,7 @@ body {
 
 .domain-overview-intro-text {
   margin: 0;
-  font-size: 0.95rem;
+  font-size: var(--fs-body);
   color: var(--text-muted);
   line-height: 1.6;
 }
@@ -962,7 +962,7 @@ body {
 
 .header-user-chip {
   min-width: 0;
-  font-size: 0.9rem;
+  font-size: var(--fs-body);
   color: var(--text-main);
   background-color: var(--secondary-color);
   padding: 0.4rem 0.8rem;
@@ -1647,7 +1647,7 @@ body {
 /* 🔄 09-08 — 잘려서 안 읽히던 문제의 핵심. 폭이 넉넉해진 만큼 2줄에서 담을 수 있는
    글자 수 자체가 늘어난다(클램프는 유지 — 아주 긴 편지가 박스 높이를 무한정 늘리지 않도록). */
 .farewell-message-preview {
-  font-size: 0.95rem;
+  font-size: var(--fs-body);
   line-height: 1.65;
   color: var(--text-muted);
   margin: 0 0 0.75rem 0;
@@ -1829,7 +1829,7 @@ body {
   display: flex;
   gap: 0.5rem;
   align-items: flex-start;
-  font-size: 0.9rem;
+  font-size: var(--fs-body);
   line-height: 1.65;
   color: var(--text-main);
   margin: 0;
@@ -1904,7 +1904,7 @@ body {
   display: flex;
   align-items: center;
   gap: 0.4rem;
-  font-size: 0.9rem;
+  font-size: var(--fs-body);
   color: var(--text-main);
   flex: 1;
   min-width: 160px;
@@ -2001,7 +2001,7 @@ body {
   align-items: center;
   justify-content: center;
   font-family: var(--font-serif);
-  font-size: 0.95rem;
+  font-size: var(--fs-body);
   font-weight: 700;
   flex-shrink: 0;
   background-color: var(--secondary-color);
@@ -2037,7 +2037,7 @@ body {
   padding: 0.9rem 0.8rem;
   background: none;
   color: var(--point-color);
-  font-size: 0.95rem;
+  font-size: var(--fs-body);
   font-weight: 700;
   transition: background-color var(--transition-speed), border-color var(--transition-speed);
 }

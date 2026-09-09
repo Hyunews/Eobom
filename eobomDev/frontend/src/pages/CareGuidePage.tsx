@@ -105,7 +105,7 @@ export const CareGuidePage: React.FC<CareGuidePageProps> = ({ setActiveTab }) =>
   return (
     <div className="container">
       <div style={{ marginBottom: '1.5rem' }}>
-        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', backgroundColor: 'var(--state-ok-bg)', color: 'var(--state-ok-fg)', padding: '0.3rem var(--fs-body)', borderRadius: 'var(--r-lg)', fontSize: 'var(--fs-body)', fontWeight: 700, marginBottom: '0.6rem' }}>
+        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', backgroundColor: 'var(--state-ok-bg)', color: 'var(--state-ok-fg)', padding: '0.3rem var(--sp-4)', borderRadius: 'var(--r-lg)', fontSize: 'var(--fs-body)', fontWeight: 700, marginBottom: '0.6rem' }}>
           <ChecklistShieldIcon size={18} color="var(--state-ok-fg)" /> 사망 직후 필수 행정절차
         </div>
         <h1 className="page-title" style={{ color: 'var(--primary-color)', display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0 }}>

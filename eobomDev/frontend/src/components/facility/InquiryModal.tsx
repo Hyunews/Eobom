@@ -151,10 +151,10 @@ export const InquiryModal: React.FC<InquiryModalProps> = ({ facilityId, facility
               onChange={(e) => setMessage(e.target.value)}
               style={{
                 width: '100%',
-                padding: 'var(--fs-body)',
+                padding: 'var(--sp-4)',
                 borderRadius: 'var(--r-sm)',
                 border: '1px solid var(--border-color)',
-                fontSize: '0.9rem',
+                fontSize: 'var(--fs-body)',
                 height: '100px',
               }}
             />
@@ -168,7 +168,7 @@ export const InquiryModal: React.FC<InquiryModalProps> = ({ facilityId, facility
               fontSize: 'var(--fs-body)',
               color: 'var(--text-muted)',
               backgroundColor: 'var(--card-bg)',
-              padding: 'var(--fs-body)',
+              padding: 'var(--sp-4)',
               borderRadius: 'var(--r-sm)',
               cursor: 'pointer',
             }}
@@ -182,7 +182,7 @@ export const InquiryModal: React.FC<InquiryModalProps> = ({ facilityId, facility
             </span>
           </label>
 
-          <div style={{ display: 'flex', gap: 'var(--fs-body)', marginTop: '0.5rem' }}>
+          <div style={{ display: 'flex', gap: 'var(--sp-4)', marginTop: '0.5rem' }}>
             <button type="button" onClick={onClose} className="btn" style={{ flex: 1, backgroundColor: 'var(--secondary-dark)' }}>
               취소
             </button>

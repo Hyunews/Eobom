@@ -71,7 +71,7 @@ export const CounselingPage: React.FC<CounselingPageProps> = ({ currentUser, onO
   return (
     <div className="container">
       <div style={{ marginBottom: '1.5rem' }}>
-        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', backgroundColor: 'var(--state-warn-bg)', color: 'var(--accent-gold)', padding: '0.3rem var(--fs-body)', borderRadius: 'var(--r-lg)', fontSize: 'var(--fs-body)', fontWeight: 700, marginBottom: '0.6rem' }}>
+        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', backgroundColor: 'var(--state-warn-bg)', color: 'var(--accent-gold)', padding: '0.3rem var(--sp-4)', borderRadius: 'var(--r-lg)', fontSize: 'var(--fs-body)', fontWeight: 700, marginBottom: '0.6rem' }}>
           <HandScalesIcon size={18} color="var(--accent-gold)" /> 상속세 시뮬레이터 &amp; 변호사 · 세무사 1:1 케어
         </div>
         <h1 className="page-title" style={{ color: 'var(--primary-color)', display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0 }}>
@@ -102,7 +102,7 @@ export const CounselingPage: React.FC<CounselingPageProps> = ({ currentUser, onO
           textAlign: 'left',
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--fs-body)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--sp-4)' }}>
           <div style={{
             width: '44px',
             height: '44px',
@@ -120,7 +120,7 @@ export const CounselingPage: React.FC<CounselingPageProps> = ({ currentUser, onO
             <p style={{ fontSize: 'var(--fs-body)', color: 'var(--text-muted)', margin: 0 }}>배우자·자녀 수 등 조건을 입력하면 예상 세액을 단계별로 계산해드립니다</p>
           </div>
         </div>
-        <span style={{ display: 'flex', alignItems: 'center', gap: '0.2rem', color: 'var(--point-color)', fontWeight: 700, fontSize: '0.9rem', flexShrink: 0 }}>
+        <span style={{ display: 'flex', alignItems: 'center', gap: '0.2rem', color: 'var(--point-color)', fontWeight: 700, fontSize: 'var(--fs-body)', flexShrink: 0 }}>
           간이 시뮬레이터 열기 <ChevronRight size={18} />
         </span>
       </button>
@@ -152,7 +152,7 @@ export const CounselingPage: React.FC<CounselingPageProps> = ({ currentUser, onO
                   backgroundColor: selectedCategory === cat.value ? 'var(--primary-color)' : 'var(--secondary-color)',
                   color: selectedCategory === cat.value ? '#FFFFFF' : 'var(--text-main)',
                   fontWeight: selectedCategory === cat.value ? 600 : 400,
-                  fontSize: '0.9rem',
+                  fontSize: 'var(--fs-body)',
                   cursor: 'pointer'
                 }}
               >
@@ -170,7 +170,7 @@ export const CounselingPage: React.FC<CounselingPageProps> = ({ currentUser, onO
             <p style={{ fontWeight: 600, marginBottom: '0.4rem' }}>
               {selectedCategory === '전체' ? '아직 입점한 전문가가 없습니다.' : `${CATEGORY_LABEL[selectedCategory]} 분야에 입점한 전문가가 아직 없습니다.`}
             </p>
-            <p style={{ fontSize: '0.9rem' }}>준비되는 대로 순차적으로 노출됩니다.</p>
+            <p style={{ fontSize: 'var(--fs-body)' }}>준비되는 대로 순차적으로 노출됩니다.</p>
           </div>
         ) : (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(280px, 100%), 1fr))', gap: '1rem' }}>
@@ -200,12 +200,12 @@ export const CounselingPage: React.FC<CounselingPageProps> = ({ currentUser, onO
                   </div>
                 )}
                 {exp.bio && (
-                  <p style={{ fontSize: 'var(--fs-body)', color: 'var(--text-main)', marginBottom: 'var(--fs-caption)' }}>{exp.bio}</p>
+                  <p style={{ fontSize: 'var(--fs-body)', color: 'var(--text-main)', marginBottom: 'var(--sp-3)' }}>{exp.bio}</p>
                 )}
                 <button
                   onClick={() => handleOpenConsultModal(exp)}
                   className="btn btn-primary"
-                  style={{ width: '100%', height: '44px', fontSize: '0.95rem' }}
+                  style={{ width: '100%', height: '44px', fontSize: 'var(--fs-body)' }}
                 >
                   <MessageCircle size={16} /> 상담 신청
                 </button>

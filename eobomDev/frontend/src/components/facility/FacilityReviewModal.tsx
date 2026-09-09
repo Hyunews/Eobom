@@ -117,14 +117,14 @@ export const FacilityReviewModal: React.FC<FacilityReviewModalProps> = ({
           평균 평점 ★ {facility.effectiveRating ?? facility.rating} · 리뷰 {facility.reviews.length}건
         </p>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--fs-body)', marginBottom: '1.1rem', maxHeight: '260px', overflowY: 'auto' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--sp-4)', marginBottom: '1.1rem', maxHeight: '260px', overflowY: 'auto' }}>
           {facility.reviews.length === 0 && (
             <p style={{ fontSize: 'var(--fs-body)', color: 'var(--text-muted)' }}>아직 작성된 리뷰가 없습니다. 첫 리뷰를 남겨주세요.</p>
           )}
           {facility.reviews.map((r) => (
-            <div key={r.id} style={{ border: '1px solid var(--border-color)', borderRadius: 'var(--r-sm)', padding: 'var(--fs-body) 1rem' }}>
+            <div key={r.id} style={{ border: '1px solid var(--border-color)', borderRadius: 'var(--r-sm)', padding: 'var(--sp-4) 1rem' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.3rem' }}>
-                <strong style={{ fontSize: '0.9rem', color: 'var(--primary-color)' }}>{r.user.name}</strong>
+                <strong style={{ fontSize: 'var(--fs-body)', color: 'var(--primary-color)' }}>{r.user.name}</strong>
                 <span style={{ fontSize: 'var(--fs-body)', color: 'var(--point-color)', fontWeight: 700 }}>★ {r.rating}</span>
               </div>
               <p style={{ fontSize: 'var(--fs-body)', color: 'var(--text-main)', margin: 0 }}>{r.content}</p>
@@ -135,7 +135,7 @@ export const FacilityReviewModal: React.FC<FacilityReviewModalProps> = ({
           ))}
         </div>
 
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 'var(--fs-body)' }}>
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 'var(--sp-4)' }}>
           <div>
             <label className="form-label">별점</label>
             <div style={{ display: 'flex', gap: '0.3rem' }}>
@@ -160,10 +160,10 @@ export const FacilityReviewModal: React.FC<FacilityReviewModalProps> = ({
               onChange={(e) => setContent(e.target.value)}
               style={{
                 width: '100%',
-                padding: 'var(--fs-body)',
+                padding: 'var(--sp-4)',
                 borderRadius: 'var(--r-sm)',
                 border: '1px solid var(--border-color)',
-                fontSize: '0.9rem',
+                fontSize: 'var(--fs-body)',
                 height: '70px',
               }}
             />

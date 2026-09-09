@@ -45,7 +45,7 @@ const AccountDiscoveryGuide: React.FC = () => (
 
     {/* STEP 0 — 펼침 없이 항상 노출되는 4줄. 1~3은 KISO 정책규정 §28①·§28②를 근거로 인용하고,
         4는 1-C 삭제분이 옮겨온 것이다(04-01 §0.2, 04-03 §2.2-1). */}
-    <div style={{ fontSize: '0.9rem', color: 'var(--state-warn-fg)', backgroundColor: 'var(--state-warn-bg)', border: '1px solid var(--state-warn-bg)', borderRadius: 'var(--r-sm)', padding: '1rem 1.1rem', marginBottom: '1.5rem', lineHeight: 1.75 }}>
+    <div style={{ fontSize: 'var(--fs-body)', color: 'var(--state-warn-fg)', backgroundColor: 'var(--state-warn-bg)', border: '1px solid var(--state-warn-bg)', borderRadius: 'var(--r-sm)', padding: '1rem 1.1rem', marginBottom: '1.5rem', lineHeight: 1.75 }}>
       <p style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', margin: 0, marginBottom: '0.6rem', fontWeight: 700 }}>
         <ShieldAlert size={18} style={{ flexShrink: 0, marginTop: '0.15rem' }} /> 먼저 아셔야 할 것
       </p>
@@ -67,7 +67,7 @@ const AccountDiscoveryGuide: React.FC = () => (
 
     {/* STEP 1 — 계정 찾기 경로 2개. 신청·수령은 유족 본인이 직접 한다(§0.5) — 이어봄이 대신
         신청하지 않는다. */}
-    <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>
+    <p style={{ fontSize: 'var(--fs-body)', color: 'var(--text-muted)', marginBottom: '1rem' }}>
       아래 두 곳은 전부 무료 공공 서비스입니다. 이어봄은 대신 신청하지 않으며, 신청과 결과 수령은
       직접 하셔야 합니다.
     </p>
@@ -127,7 +127,7 @@ export const DigitalEstatePage: React.FC<DigitalEstatePageProps> = ({ currentUse
   return (
     <div className="container">
       <div style={{ marginBottom: '1.5rem' }}>
-        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', backgroundColor: 'var(--state-warn-bg)', color: 'var(--accent-gold)', padding: '0.3rem var(--fs-body)', borderRadius: 'var(--r-lg)', fontSize: 'var(--fs-body)', fontWeight: 700, marginBottom: '0.6rem' }}>
+        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', backgroundColor: 'var(--state-warn-bg)', color: 'var(--accent-gold)', padding: '0.3rem var(--sp-4)', borderRadius: 'var(--r-lg)', fontSize: 'var(--fs-body)', fontWeight: 700, marginBottom: '0.6rem' }}>
           <PhoneHeartIcon size={18} color="var(--accent-gold)" /> SNS / 클라우드 계정 정산
         </div>
         <h1 style={{ color: 'var(--primary-color)', fontSize: '2rem', display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0 }}>
@@ -143,14 +143,14 @@ export const DigitalEstatePage: React.FC<DigitalEstatePageProps> = ({ currentUse
       {/* 아래 카탈로그(업로드·건별 신청 목록)는 Step 5(04-01 §8) 전면 개편 대상 — "정산" 문구·
           OCR 검증 표기·업로드 유도를 포함한 기존 목업 그대로다. Step 0-b는 위 계정 찾기 섹션만
           추가하고 이 블록은 건드리지 않는다(스펙 §8 표에 단계가 나뉘어 있음). */}
-      <div style={{ fontSize: 'var(--fs-body)', color: 'var(--state-warn-fg)', backgroundColor: 'var(--state-warn-bg)', border: '1px solid var(--state-warn-bg)', borderRadius: 'var(--r-sm)', padding: 'var(--fs-caption) 1rem', marginBottom: '1.25rem', lineHeight: 1.6 }}>
+      <div style={{ fontSize: 'var(--fs-body)', color: 'var(--state-warn-fg)', backgroundColor: 'var(--state-warn-bg)', border: '1px solid var(--state-warn-bg)', borderRadius: 'var(--r-sm)', padding: 'var(--sp-3) 1rem', marginBottom: '1.25rem', lineHeight: 1.6 }}>
         ⚠️ 이 페이지는 화면 구성을 보여드리기 위한 <strong>예시 데이터</strong>로 채워져 있습니다.
         실제 정산 신청·검증 기능은 준비 중입니다(00-14 §2.2).
       </div>
 
       <div style={{ backgroundColor: 'var(--card-bg)', padding: '1.5rem', borderRadius: 'var(--border-radius)', boxShadow: 'var(--box-shadow)' }}>
         <h3 style={{ color: 'var(--primary-color)', marginBottom: '0.5rem' }}>고인 디지털 계정 정산 신청</h3>
-        <p style={{ fontSize: '0.95rem', color: 'var(--text-muted)', marginBottom: '1.1rem' }}>
+        <p style={{ fontSize: 'var(--fs-body)', color: 'var(--text-muted)', marginBottom: '1.1rem' }}>
           정당한 상속인 확인을 위해 아래 <strong>증빙 서류(가족관계증명서 / 사망진단서)를 먼저 업로드</strong>해 주세요.
         </p>
 
@@ -169,7 +169,7 @@ export const DigitalEstatePage: React.FC<DigitalEstatePageProps> = ({ currentUse
               <h5 style={{ color: 'var(--point-color)', display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.5rem' }}>
                 <CheckCircle2 size={16} /> 현재 업로드 완료된 서류 목록:
               </h5>
-              <ul style={{ listStyle: 'none', paddingLeft: '0.5rem', fontSize: '0.9rem' }}>
+              <ul style={{ listStyle: 'none', paddingLeft: '0.5rem', fontSize: 'var(--fs-body)' }}>
                 {uploadedFiles.map((f, i) => (
                   <li key={i} style={{ padding: '0.25rem 0' }}>📄 {f} (OCR 검증 완료)</li>
                 ))}
@@ -184,9 +184,9 @@ export const DigitalEstatePage: React.FC<DigitalEstatePageProps> = ({ currentUse
             <div key={acc.id} style={{ padding: '1rem', border: '1px solid var(--border-color)', borderRadius: 'var(--r-sm)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
                 <h4 style={{ color: 'var(--primary-color)', fontSize: '1.1rem' }}>{acc.name}</h4>
-                <p style={{ fontSize: '0.9rem', color: 'var(--point-color)', fontWeight: 500 }}>{acc.status}</p>
+                <p style={{ fontSize: 'var(--fs-body)', color: 'var(--point-color)', fontWeight: 500 }}>{acc.status}</p>
               </div>
-              <button onClick={() => handleApplyAccount(acc.name)} className="btn btn-point" style={{ height: '42px', fontSize: '0.9rem' }}>
+              <button onClick={() => handleApplyAccount(acc.name)} className="btn btn-point" style={{ height: '42px', fontSize: 'var(--fs-body)' }}>
                 정산 신청 (개발중)
               </button>
             </div>

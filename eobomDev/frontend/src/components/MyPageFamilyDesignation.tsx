@@ -316,7 +316,7 @@ export const MyPageFamilyDesignation: React.FC<MyPageFamilyDesignationProps> = (
               backgroundColor: 'var(--state-warn-bg)',
               border: '1px solid var(--state-warn-bg)',
               borderRadius: 'var(--r-sm)',
-              padding: 'var(--fs-caption) var(--fs-body)',
+              padding: 'var(--sp-3) var(--sp-4)',
               marginBottom: '1rem',
               lineHeight: 1.6,
             }}
@@ -331,7 +331,7 @@ export const MyPageFamilyDesignation: React.FC<MyPageFamilyDesignationProps> = (
             style={{
               backgroundColor: message.type === 'success' ? 'var(--state-ok-bg)' : 'var(--state-danger-bg)',
               color: message.type === 'success' ? 'var(--state-ok-fg)' : 'var(--state-danger-fg)',
-              padding: 'var(--fs-caption)',
+              padding: 'var(--sp-3)',
               borderRadius: 'var(--r-sm)',
               fontSize: 'var(--fs-body)',
               marginBottom: '0.95rem',
@@ -361,7 +361,7 @@ export const MyPageFamilyDesignation: React.FC<MyPageFamilyDesignationProps> = (
                 <div
                   key={item.id}
                   style={{
-                    padding: 'var(--fs-body) 1rem',
+                    padding: 'var(--sp-4) 1rem',
                     border: '1px solid var(--secondary-dark)',
                     borderRadius: 'var(--r-md)',
                   }}
@@ -376,7 +376,7 @@ export const MyPageFamilyDesignation: React.FC<MyPageFamilyDesignationProps> = (
                 >
                   <div style={{ minWidth: 0 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap' }}>
-                      <span style={{ fontSize: '0.95rem', fontWeight: 700, color: '#111827' }}>{item.name}</span>
+                      <span style={{ fontSize: 'var(--fs-body)', fontWeight: 700, color: '#111827' }}>{item.name}</span>
                       <span style={{ fontSize: 'var(--fs-body)', color: 'var(--text-muted)' }}>
                         {RELATIONSHIP_LABEL[item.relationship] || item.relationship}
                         {item.relationship === 'OTHER' && item.relationshipEtc ? `(${item.relationshipEtc})` : ''}
@@ -434,8 +434,8 @@ export const MyPageFamilyDesignation: React.FC<MyPageFamilyDesignationProps> = (
                 {lastInviteLink?.itemId === item.id && (
                   <div
                     style={{
-                      marginTop: 'var(--fs-caption)',
-                      paddingTop: 'var(--fs-caption)',
+                      marginTop: 'var(--sp-3)',
+                      paddingTop: 'var(--sp-3)',
                       borderTop: '1px solid var(--surface-subtle)',
                       display: 'flex',
                       alignItems: 'center',
@@ -467,7 +467,7 @@ export const MyPageFamilyDesignation: React.FC<MyPageFamilyDesignationProps> = (
                 </button>
               )
             ) : (
-              <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 'var(--fs-caption)', borderTop: '1px solid var(--border-color)', paddingTop: '1rem' }}>
+              <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 'var(--sp-3)', borderTop: '1px solid var(--border-color)', paddingTop: '1rem' }}>
                 <div className="form-group" style={{ margin: 0 }}>
                   <label className="form-label">성함 *</label>
                   <input value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} className="form-input" required />
@@ -556,7 +556,7 @@ export const MyPageFamilyDesignation: React.FC<MyPageFamilyDesignationProps> = (
                     backgroundColor: 'var(--state-warn-bg)',
                     border: '1px solid var(--state-warn-bg)',
                     borderRadius: 'var(--r-sm)',
-                    padding: 'var(--fs-caption) var(--fs-body)',
+                    padding: 'var(--sp-3) var(--sp-4)',
                     lineHeight: 1.6,
                   }}
                 >

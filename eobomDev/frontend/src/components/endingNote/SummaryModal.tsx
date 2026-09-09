@@ -53,7 +53,7 @@ export const SummaryModal: React.FC<{
         </div>
 
         {!anyCompleted && (
-          <div style={{ fontSize: '0.9rem', color: 'var(--text-muted)', backgroundColor: 'var(--secondary-color)', borderRadius: 'var(--r-sm)', padding: '0.9rem 1rem', marginBottom: '1rem', lineHeight: 1.6 }}>
+          <div style={{ fontSize: 'var(--fs-body)', color: 'var(--text-muted)', backgroundColor: 'var(--secondary-color)', borderRadius: 'var(--r-sm)', padding: '0.9rem 1rem', marginBottom: '1rem', lineHeight: 1.6 }}>
             아직 작성하신 항목이 없습니다. 아래 목록에서 항목을 눌러 하나씩 채워보세요.
           </div>
         )}
@@ -66,7 +66,7 @@ export const SummaryModal: React.FC<{
               onClick={() => onSelectRow(row.code)}
               style={{
                 display: 'flex', flexDirection: 'column', gap: '0.35rem', width: '100%', textAlign: 'left',
-                minHeight: 'var(--min-touch-target)', padding: 'var(--fs-body) 1rem', borderRadius: 'var(--r-sm)',
+                minHeight: 'var(--min-touch-target)', padding: 'var(--sp-4) 1rem', borderRadius: 'var(--r-sm)',
                 border: '1px solid var(--border-color)', backgroundColor: row.completed ? 'var(--card-bg)' : 'var(--state-warn-bg)',
                 cursor: 'pointer',
               }}

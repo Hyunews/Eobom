@@ -451,7 +451,7 @@ export const ObituaryPage: React.FC<ObituaryPageProps> = ({ currentUser, onOpenL
     return (
       <div className="container">
         <div style={{ backgroundColor: 'var(--card-bg)', padding: '2.5rem 1.75rem', borderRadius: 'var(--border-radius)', boxShadow: 'var(--box-shadow)', textAlign: 'center', maxWidth: '480px', margin: '2rem auto' }}>
-          <MessageSquare color="var(--point-color)" size={40} style={{ marginBottom: 'var(--fs-caption)' }} />
+          <MessageSquare color="var(--point-color)" size={40} style={{ marginBottom: 'var(--sp-3)' }} />
           <h2 style={{ color: 'var(--primary-color)', marginBottom: '0.5rem' }}>모바일 부고장 작성</h2>
           <p style={{ color: 'var(--text-muted)', marginBottom: '1.5rem' }}>부고장 작성 및 관리는 로그인 후 이용하실 수 있습니다.</p>
           <button onClick={onOpenLogin} className="btn btn-point" style={{ width: '100%' }}>
@@ -469,7 +469,7 @@ export const ObituaryPage: React.FC<ObituaryPageProps> = ({ currentUser, onOpenL
   return (
     <div className="container" style={{ paddingBottom: '3rem' }}>
       <div style={{ marginBottom: '1.5rem' }}>
-        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', backgroundColor: 'var(--state-ok-bg)', color: 'var(--state-ok-fg)', padding: '0.3rem var(--fs-body)', borderRadius: 'var(--r-lg)', fontSize: 'var(--fs-body)', fontWeight: 700, marginBottom: '0.6rem' }}>
+        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', backgroundColor: 'var(--state-ok-bg)', color: 'var(--state-ok-fg)', padding: '0.3rem var(--sp-4)', borderRadius: 'var(--r-lg)', fontSize: 'var(--fs-body)', fontWeight: 700, marginBottom: '0.6rem' }}>
           <MessageSquare size={18} color="var(--state-ok-fg)" /> 모바일 부고장 공유
         </div>
         <h1 className="page-title" style={{ color: 'var(--primary-color)', display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0 }}>
@@ -533,7 +533,7 @@ export const ObituaryPage: React.FC<ObituaryPageProps> = ({ currentUser, onOpenL
 
             {accountEnabled && (
               <>
-                <div style={{ fontSize: 'var(--fs-body)', color: 'var(--state-warn-fg)', backgroundColor: 'var(--state-warn-bg)', border: '1px solid var(--state-warn-bg)', borderRadius: 'var(--r-sm)', padding: '0.6rem var(--fs-caption)', marginBottom: 'var(--fs-caption)', lineHeight: 1.5 }}>
+                <div style={{ fontSize: 'var(--fs-body)', color: 'var(--state-warn-fg)', backgroundColor: 'var(--state-warn-bg)', border: '1px solid var(--state-warn-bg)', borderRadius: 'var(--r-sm)', padding: '0.6rem var(--sp-3)', marginBottom: 'var(--sp-3)', lineHeight: 1.5 }}>
                   이 계좌번호는 부고장을 받은 분이 다시 공유할 수 있습니다.
                 </div>
                 <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem' }}>
@@ -548,7 +548,7 @@ export const ObituaryPage: React.FC<ObituaryPageProps> = ({ currentUser, onOpenL
           <button
             type="button"
             onClick={() => setShowMoreFields((v) => !v)}
-            style={{ background: 'none', border: 'none', color: 'var(--point-color)', fontWeight: 700, fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '0.3rem', cursor: 'pointer', padding: 0, marginBottom: '1rem' }}
+            style={{ background: 'none', border: 'none', color: 'var(--point-color)', fontWeight: 700, fontSize: 'var(--fs-body)', display: 'flex', alignItems: 'center', gap: '0.3rem', cursor: 'pointer', padding: 0, marginBottom: '1rem' }}
           >
             {showMoreFields ? <ChevronUp size={16} /> : <ChevronDown size={16} />} 선택 정보 더보기 (별세 일시·호실·입관·장지·유족 추가)
           </button>
@@ -582,7 +582,7 @@ export const ObituaryPage: React.FC<ObituaryPageProps> = ({ currentUser, onOpenL
                   <div key={idx} style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem' }}>
                     <input value={m.relationship} onChange={(e) => updateMourner(idx, 'relationship', e.target.value)} className="form-input" placeholder="관계 (예: 장남)" style={{ flex: 1 }} />
                     <input value={m.name} onChange={(e) => updateMourner(idx, 'name', e.target.value)} className="form-input" placeholder="성함" style={{ flex: 1.5 }} />
-                    <button type="button" onClick={() => removeMourner(idx)} className="btn" style={{ backgroundColor: 'var(--secondary-color)', padding: '0 var(--fs-body)' }}>
+                    <button type="button" onClick={() => removeMourner(idx)} className="btn" style={{ backgroundColor: 'var(--secondary-color)', padding: '0 var(--sp-4)' }}>
                       <X size={16} />
                     </button>
                   </div>
@@ -616,7 +616,7 @@ export const ObituaryPage: React.FC<ObituaryPageProps> = ({ currentUser, onOpenL
           )}
 
           {errorMsg && (
-            <div style={{ fontSize: 'var(--fs-body)', color: 'var(--state-danger-fg)', backgroundColor: 'var(--state-danger-bg)', border: '1px solid var(--state-danger-bg)', borderRadius: 'var(--r-sm)', padding: 'var(--fs-caption) 0.9rem', marginBottom: '1rem' }}>
+            <div style={{ fontSize: 'var(--fs-body)', color: 'var(--state-danger-fg)', backgroundColor: 'var(--state-danger-bg)', border: '1px solid var(--state-danger-bg)', borderRadius: 'var(--r-sm)', padding: 'var(--sp-3) 0.9rem', marginBottom: '1rem' }}>
               {errorMsg}
             </div>
           )}
@@ -632,8 +632,8 @@ export const ObituaryPage: React.FC<ObituaryPageProps> = ({ currentUser, onOpenL
             <p style={{ fontSize: 'var(--fs-body)', color: '#94A3B8', marginBottom: '0.5rem', textTransform: 'uppercase', letterSpacing: '0.03em' }}>카카오톡 카드 미리보기</p>
             <div style={{ backgroundColor: '#FFFFFF', borderRadius: 'var(--r-sm)', overflow: 'hidden' }}>
               <img src={OBITUARY_CARD_IMAGE_URL} alt="근조 카드 이미지" style={{ width: '100%', height: '120px', objectFit: 'cover', backgroundColor: 'var(--surface-subtle)' }} />
-              <div style={{ padding: 'var(--fs-body) 0.9rem' }}>
-                <p style={{ color: '#1A2B4C', fontWeight: 'var(--fw-bold)', fontSize: '0.95rem', margin: '0 0 0.3rem 0' }}>
+              <div style={{ padding: 'var(--sp-4) 0.9rem' }}>
+                <p style={{ color: '#1A2B4C', fontWeight: 'var(--fw-bold)', fontSize: 'var(--fs-body)', margin: '0 0 0.3rem 0' }}>
                   {cardTitle || '[부고] 故 ○○○ 님'}
                 </p>
                 <p style={{ color: 'var(--text-muted)', fontSize: '0.82rem', margin: 0, whiteSpace: 'pre-line' }}>
@@ -647,7 +647,7 @@ export const ObituaryPage: React.FC<ObituaryPageProps> = ({ currentUser, onOpenL
             <div style={{ backgroundColor: 'var(--card-bg)', padding: '1.5rem', borderRadius: 'var(--border-radius)', boxShadow: 'var(--box-shadow)' }}>
               {isClosed ? (
                 <>
-                  <div style={{ display: 'flex', gap: '0.6rem', backgroundColor: 'var(--surface-subtle)', border: '1px solid var(--border-color)', borderRadius: 'var(--r-sm)', padding: 'var(--fs-body) 0.9rem', marginBottom: '1.1rem' }}>
+                  <div style={{ display: 'flex', gap: '0.6rem', backgroundColor: 'var(--surface-subtle)', border: '1px solid var(--border-color)', borderRadius: 'var(--r-sm)', padding: 'var(--sp-4) 0.9rem', marginBottom: '1.1rem' }}>
                     <PowerOff size={18} color="#475569" style={{ flexShrink: 0, marginTop: '0.1rem' }} />
                     <p style={{ fontSize: 'var(--fs-body)', color: '#334155', margin: 0, lineHeight: 1.5 }}>
                       종료된 부고장입니다. 조문객은 더 이상 이 링크로 볼 수 없습니다{closedAt ? ` (${formatKST(closedAt)} 종료)` : ' (발인 3일 경과로 자동 종료)'}.
@@ -671,7 +671,7 @@ export const ObituaryPage: React.FC<ObituaryPageProps> = ({ currentUser, onOpenL
               ) : (
                 <>
                   {cardFieldsUpdatedAt && (
-                    <div style={{ display: 'flex', gap: '0.6rem', backgroundColor: 'var(--state-critical-bg)', border: '1px solid var(--state-critical-bg)', borderRadius: 'var(--r-sm)', padding: 'var(--fs-body) 0.9rem', marginBottom: '1.1rem' }}>
+                    <div style={{ display: 'flex', gap: '0.6rem', backgroundColor: 'var(--state-critical-bg)', border: '1px solid var(--state-critical-bg)', borderRadius: 'var(--r-sm)', padding: 'var(--sp-4) 0.9rem', marginBottom: '1.1rem' }}>
                       <AlertTriangle size={18} color="var(--state-critical-fg)" style={{ flexShrink: 0, marginTop: '0.1rem' }} />
                       <p style={{ fontSize: 'var(--fs-body)', color: '#7C2D12', margin: 0, lineHeight: 1.5 }}>
                         이미 보낸 카드에는 반영되지 않습니다. 아래 버튼으로 다시 공유해 주세요.
@@ -694,7 +694,7 @@ export const ObituaryPage: React.FC<ObituaryPageProps> = ({ currentUser, onOpenL
                   </div>
                   {copyFeedback && <p style={{ fontSize: 'var(--fs-body)', color: 'var(--point-color)', margin: '0 0 0.6rem 0' }}>{copyFeedback}</p>}
 
-                  <div style={{ fontSize: 'var(--fs-body)', color: 'var(--text-muted)', wordBreak: 'break-all', backgroundColor: 'var(--secondary-color)', borderRadius: 'var(--r-sm)', padding: '0.6rem var(--fs-caption)', marginBottom: '0.6rem' }}>
+                  <div style={{ fontSize: 'var(--fs-body)', color: 'var(--text-muted)', wordBreak: 'break-all', backgroundColor: 'var(--secondary-color)', borderRadius: 'var(--r-sm)', padding: '0.6rem var(--sp-3)', marginBottom: '0.6rem' }}>
                     {obituaryUrl}
                   </div>
 
