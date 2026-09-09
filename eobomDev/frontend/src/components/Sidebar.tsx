@@ -147,7 +147,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, navMo
                     <span
                       className="sidebar-label"
                       style={{
-                        fontSize: '0.98rem',
+                        fontSize: 'var(--fs-body)',
                         fontWeight: isActive ? 'var(--fw-bold)' : 600,
                         color: isComingSoon ? '#94A3B8' : isActive ? '#FFFFFF' : '#F8FAFC'
                       }}
@@ -208,7 +208,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, navMo
                   <span
                     className="sidebar-label"
                     style={{
-                      fontSize: '0.98rem',
+                      fontSize: 'var(--fs-body)',
                       fontWeight: isActive ? 'var(--fw-bold)' : 600,
                       color: isActive ? '#FFFFFF' : '#F8FAFC'
                     }}

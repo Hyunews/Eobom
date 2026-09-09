@@ -75,15 +75,15 @@ const AccountDiscoveryGuide: React.FC = () => (
       {DISCOVERY_PATHS.map((path) => (
         <div key={path.id} style={{ padding: '1.1rem', border: '1px solid var(--border-color)', borderRadius: 'var(--r-sm)', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
           <h4 style={{ color: 'var(--primary-color)', fontSize: '1.02rem', margin: 0 }}>{path.label}</h4>
-          <p style={{ fontSize: '0.82rem', color: 'var(--point-color)', fontWeight: 600, margin: 0 }}>{path.provider}</p>
-          <p style={{ fontSize: '0.88rem', color: 'var(--text-main)', margin: 0, lineHeight: 1.6 }}>{path.what}</p>
-          <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', margin: 0 }}>기한 · {path.deadline}</p>
+          <p style={{ fontSize: 'var(--fs-body)', color: 'var(--point-color)', fontWeight: 600, margin: 0 }}>{path.provider}</p>
+          <p style={{ fontSize: 'var(--fs-body)', color: 'var(--text-main)', margin: 0, lineHeight: 1.6 }}>{path.what}</p>
+          <p style={{ fontSize: 'var(--fs-body)', color: 'var(--text-muted)', margin: 0 }}>기한 · {path.deadline}</p>
           <a
             href={path.url}
             target="_blank"
             rel="noopener noreferrer"
             className="btn btn-point"
-            style={{ marginTop: '0.4rem', height: '40px', fontSize: '0.88rem', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem' }}
+            style={{ marginTop: '0.4rem', height: '40px', fontSize: 'var(--fs-body)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem' }}
           >
             신청 페이지로 이동 <ExternalLink size={15} />
           </a>

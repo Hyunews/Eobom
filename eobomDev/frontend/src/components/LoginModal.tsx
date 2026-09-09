@@ -22,7 +22,7 @@ const ConsentCheckbox: React.FC<{
   href?: string;
 }> = ({ checked, onChange, label, required, href }) => (
   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.5rem', padding: '0.3rem 0' }}>
-    <label style={{ display: 'flex', alignItems: 'center', gap: '0.55rem', cursor: 'pointer', fontSize: '0.86rem', color: '#4B5563' }}>
+    <label style={{ display: 'flex', alignItems: 'center', gap: '0.55rem', cursor: 'pointer', fontSize: 'var(--fs-body)', color: '#4B5563' }}>
       <span
         onClick={() => onChange(!checked)}
         role="checkbox"
@@ -76,7 +76,7 @@ const SocialLoginButtons: React.FC<{
         color: '#191919',
         border: 'none',
         borderRadius: 'var(--r-md)',
-        fontSize: '0.98rem',
+        fontSize: 'var(--fs-body)',
         fontWeight: 700,
         display: 'flex',
         alignItems: 'center',
@@ -104,7 +104,7 @@ const SocialLoginButtons: React.FC<{
         color: '#FFFFFF',
         border: 'none',
         borderRadius: 'var(--r-md)',
-        fontSize: '0.98rem',
+        fontSize: 'var(--fs-body)',
         fontWeight: 700,
         display: 'flex',
         alignItems: 'center',
@@ -130,7 +130,7 @@ const SocialLoginButtons: React.FC<{
         color: '#3C4043',
         border: '1.5px solid var(--secondary-dark)',
         borderRadius: 'var(--r-md)',
-        fontSize: '0.98rem',
+        fontSize: 'var(--fs-body)',
         fontWeight: 700,
         display: 'flex',
         alignItems: 'center',
@@ -343,7 +343,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin
                 border: 'none',
                 borderRadius: 'var(--r-sm)',
                 padding: '0.6rem 0',
-                fontSize: '0.92rem',
+                fontSize: 'var(--fs-body)',
                 fontWeight: 700,
                 cursor: 'pointer',
                 backgroundColor: activeTab === tab ? '#FFFFFF' : 'transparent',
@@ -435,7 +435,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin
               marginBottom: '0.3rem',
               borderBottom: '1px solid var(--secondary-dark)',
               fontWeight: 700,
-              fontSize: '0.92rem',
+              fontSize: 'var(--fs-body)',
               color: 'var(--primary-color)'
             }}
           >

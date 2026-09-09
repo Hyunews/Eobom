@@ -341,7 +341,7 @@ export const DomainOverviewPage: React.FC<DomainOverviewPageProps> = ({
                       }}
                     >
                       {slide.bullets.map((b) => (
-                        <div key={b} style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', fontSize: '0.92rem', color: '#1A2B4C', fontWeight: 600, lineHeight: 1.5 }}>
+                        <div key={b} style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', fontSize: 'var(--fs-body)', color: '#1A2B4C', fontWeight: 600, lineHeight: 1.5 }}>
                           <span style={{ color: slide.featureBorderColor, fontWeight: 'var(--fw-bold)', flexShrink: 0 }}>•</span>
                           {b}
                         </div>

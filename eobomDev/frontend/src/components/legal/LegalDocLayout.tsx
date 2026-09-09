@@ -88,7 +88,7 @@ export const LegalList: React.FC<{ children: React.ReactNode }> = ({ children })
 // 표 — 처리 목적/보유기간 등 표 형태 조항용.
 export const LegalTable: React.FC<{ headers: string[]; rows: (string | React.ReactNode)[][] }> = ({ headers, rows }) => (
   <div style={{ overflowX: 'auto', margin: 'var(--sp-3) 0 1.25rem 0' }}>
-    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.88rem' }}>
+    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 'var(--fs-body)' }}>
       <thead>
         <tr>
           {headers.map((h) => (

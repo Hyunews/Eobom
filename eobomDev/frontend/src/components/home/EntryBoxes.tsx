@@ -87,7 +87,7 @@ const ChipRow: React.FC<{ labels: string[] }> = ({ labels }) => (
       <span
         key={label}
         style={{
-          fontSize: '0.92rem',
+          fontSize: 'var(--fs-body)',
           fontWeight: 600,
           color: '#6C7A89',
           backgroundColor: 'var(--surface-subtle)',

@@ -402,7 +402,7 @@ export const HomePage: React.FC<HomePageProps> = ({ currentUser, onOpenLogin, se
                   border: '1px solid #DFDCD7',
                   padding: '0.45rem 1rem',
                   borderRadius: 'var(--r-lg)',
-                  fontSize: '0.88rem',
+                  fontSize: 'var(--fs-body)',
                   color: 'var(--point-color)',
                   fontWeight: 700,
                   marginBottom: '1.3rem',

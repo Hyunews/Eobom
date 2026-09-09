@@ -289,7 +289,7 @@ export const MyPageProfile: React.FC<MyPageProfileProps> = ({ isOpen, onClose })
               </select>
             </div>
 
-            <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.88rem', color: 'var(--text-main)', cursor: 'pointer' }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: 'var(--fs-body)', color: 'var(--text-main)', cursor: 'pointer' }}>
               <input type="checkbox" checked={marketingAgreed} onChange={(e) => setMarketingAgreed(e.target.checked)} />
               마케팅 정보 수신에 동의합니다 (선택)
             </label>

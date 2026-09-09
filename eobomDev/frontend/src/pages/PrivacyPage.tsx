@@ -42,7 +42,7 @@ export const PrivacyPage: React.FC = () => {
             ['6', '고충처리 및 분쟁 대응', '문의 접수·처리, 처리 결과 통보, 분쟁 시 사실관계 확인'],
           ]}
         />
-        <p style={{ color: 'var(--text-muted)', fontSize: '0.88rem' }}>
+        <p style={{ color: 'var(--text-muted)', fontSize: 'var(--fs-body)' }}>
           회사는 이용자의 개인정보를 광고·마케팅 목적으로 이용하지 않으며, 별도의 마케팅 수신 동의를 받지 않습니다.
         </p>
       </LegalArticle>
@@ -76,7 +76,7 @@ export const PrivacyPage: React.FC = () => {
             ['헌화 참여자(비회원 포함)', '중복 참여 방지를 위한 식별값(해시) — 제11조 참조'],
           ]}
         />
-        <p style={{ color: 'var(--text-muted)', fontSize: '0.88rem' }}>
+        <p style={{ color: 'var(--text-muted)', fontSize: 'var(--fs-body)' }}>
           고인(사망한 사람)에 관한 정보는 「개인정보 보호법」상 살아 있는 개인에 관한 정보가 아니므로 법률상 개인정보에 해당하지 않습니다.
           그러나 회사는 고인의 정보가 유족의 정보와 밀접하게 결합되어 있고 그 성격이 매우 민감하다는 점을 고려하여, 이 처리방침의 모든 보호
           조치를 고인의 정보에도 동일하게 적용합니다.
@@ -155,7 +155,7 @@ export const PrivacyPage: React.FC = () => {
             ['유품 정리·수거 업체', '수거 견적 상담', '이름, 연락처, 요청 내용', '목적 달성 후 파기(해당 서비스 개시 시 적용)'],
           ]}
         />
-        <p style={{ color: 'var(--text-muted)', fontSize: '0.88rem' }}>
+        <p style={{ color: 'var(--text-muted)', fontSize: 'var(--fs-body)' }}>
           제휴 사업자가 아닌 시설에 문의하시는 경우, 회사는 이용자의 개인정보를 누구에게도 전달하지 않습니다. 이 경우 회사가 직접 안내해
           드립니다.
         </p>
@@ -171,7 +171,7 @@ export const PrivacyPage: React.FC = () => {
             ['카카오(주)', '좌표 → 지역명 변환'],
           ]}
         />
-        <p style={{ color: 'var(--text-muted)', fontSize: '0.88rem' }}>
+        <p style={{ color: 'var(--text-muted)', fontSize: 'var(--fs-body)' }}>
           결제·문자·알림 발송 등은 현재 도입하지 않았으므로 수탁자가 없습니다. 도입 시 이 표를 갱신하고 사전에 공지합니다.
         </p>
       </LegalArticle>
@@ -188,7 +188,7 @@ export const PrivacyPage: React.FC = () => {
             ['Google LLC', '미국', '이메일 주소, 프로필 정보', '구글 계정으로 로그인하는 시점에 API 호출', '소셜 로그인 인증', '연동 해제 시까지'],
           ]}
         />
-        <p style={{ color: 'var(--text-muted)', fontSize: '0.88rem' }}>카카오·네이버 로그인은 국내 사업자이므로 국외 이전에 해당하지 않습니다.</p>
+        <p style={{ color: 'var(--text-muted)', fontSize: 'var(--fs-body)' }}>카카오·네이버 로그인은 국내 사업자이므로 국외 이전에 해당하지 않습니다.</p>
       </LegalArticle>
 
       <LegalArticle title="제8조 (개인정보의 파기 절차 및 방법)">
@@ -216,7 +216,7 @@ export const PrivacyPage: React.FC = () => {
           권리 행사는 서면·전자우편 등을 통하여 하실 수 있으며, 회사는 지체 없이 조치합니다. 정보주체의 대리인을 통하여 하실 수도 있으며, 이
           경우 위임장을 제출하셔야 합니다.
         </p>
-        <p style={{ color: 'var(--text-muted)', fontSize: '0.88rem' }}>회사는 권리 행사를 이유로 이용자에게 어떠한 불이익도 주지 않습니다.</p>
+        <p style={{ color: 'var(--text-muted)', fontSize: 'var(--fs-body)' }}>회사는 권리 행사를 이유로 이용자에게 어떠한 불이익도 주지 않습니다.</p>
 
         <h3 style={{ fontSize: '1rem', color: 'var(--primary-color)', margin: '0.5rem 0' }}>9-2. 만 14세 미만 아동</h3>
         <p>이어봄은 만 14세 미만 아동을 대상으로 하는 서비스가 아니며, 만 14세 미만 아동의 회원 가입을 받지 않습니다.</p>
