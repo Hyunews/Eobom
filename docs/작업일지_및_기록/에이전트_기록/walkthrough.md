@@ -2401,3 +2401,217 @@ wt137 그대로라 재작업 없음).
 
 <!-- Gemini 판정 1줄: … -->
 
+
+## 2026-09-09 | wt179 — 부고장 관리 미리보기 우선 표시(모달 수정) + 데스크톱 컨테이너 최소폭·가로 스크롤
+
+- **근거 스펙**: 스펙 없음 — 즉흥구현. 사람이 직접 두 가지를 지시(세션 중 텍스트 요청, docs/ 문서화 없음):
+  1. 부고장 관리 페이지: 부고장 생성 후에는 미리보기·공유가 먼저 나오고, 수정은 버튼→모달로.
+  2. 데스크톱 소비자 화면 전체: 일정 폭 이하로는 더 줄이지 않고 가로 스크롤(AskUserQuestion으로 범위 확인 — "소비자용 페이지 전체, 모바일 반응형은 그대로 유지" 확정, 운영자 3화면 제외).
+- **건드린 파일**:
+  - `eobomDev/frontend/src/pages/ObituaryPage.tsx` — 구조 재작성
+  - `eobomDev/frontend/src/index.css` — `.container`/`.main-wrapper` 규칙 추가
+- **결과**:
+  1. **ObituaryPage.tsx**: 기존엔 `<form>`(수정 폼)과 미리보기+공유 패널이 `.auto-grid` 2열에 항상 나란히 있었다. `formCard`·`previewCard`·`managePanel` 세 JSX를 컴포넌트 함수 안의 `const`로 추출해 두 레이아웃에서 재사용하도록 재작성:
+     - `obituaryRef`가 있을 때(관리 모드): `previewCard` → "부고장 정보 수정" 버튼(`<Pencil>` 아이콘) → `managePanel`(공유/종료) 순으로 세로 스택(`maxWidth:520px`, 중앙 정렬 — 데스크톱·모바일 공통, 별도 미디어쿼리 불필요). 버튼 클릭 시 `isEditOpen` state로 `formCard`를 모달(고정 오버레이, `maxWidth:560px`, `maxHeight:90vh` 내부 스크롤, X 닫기 버튼, 오버레이 클릭으로도 닫힘)에 띄운다. `handleSubmit`의 PATCH(수정) 성공 분기에 `setIsEditOpen(false)`를 추가해 저장 성공 시 모달이 자동으로 닫히고 갱신된 미리보기/공유 패널이 보이게 했다.
+     - `obituaryRef`가 없을 때(최초 작성): 기존 `.auto-grid` 2열(`formCard` + `previewCard`) 그대로 — 이 경로는 손대지 않았다(09-07 지시로 이미 확정된 레이아웃).
+     - `Pencil` 아이콘을 `lucide-react`에서 추가 import.
+  2. **index.css**: `.container`의 `@media (max-width:359px)` 블록 바로 뒤에 `@media (min-width:769px) { .main-wrapper{overflow-x:auto} .main-wrapper .container{min-width:1024px} }` 추가. `.main-wrapper`는 `App.tsx`에서 소비자 화면에만 붙는 클래스(`className={isPortalRoute ? undefined : 'main-wrapper'}`)라 `AdminPage`·`BizDashboard`·`PartnerPortalPage`는 자동으로 영향 밖 — JS 쪽은 전혀 건드리지 않고 CSS 선택자 스코프만으로 제외했다(`grep -n "main-wrapper" eobomDev/frontend/src` → `App.tsx`·`index.css`·`Sidebar.tsx`(주석뿐) 3곳만, 페이지 컴포넌트에 없음을 확인). `HomePage`·`prep`·`bereaved`(`DomainOverviewPage`)는애초 `.container`를 안 쓰고 `.fullpage-viewport`/`.domain-overview-viewport`를 쓰므로 이 규칙의 영향을 받지 않는다(확인함). 최소폭 값 `1024px`은 근거 문서가 없는 임의 선택 — 사용자가 실제로 보고 조정을 요청할 수 있다.
+  - **빌드**: `cd eobomDev/frontend && npm run build`(`tsc && vite build`) → 에러 0, 통과 (두 변경 각각 별도로 빌드 확인).
+  - **실기동**: 하지 않음(사람 몫, 2026-09-03 지시). 특히 이번 2번 항목(가로 스크롤)은 실제 좁은 창에서 스크롤바가 자연스럽게 나타나는지, Header(`position:sticky`)·Sidebar(`position:fixed`)가 콘텐츠와 시각적으로 어색하지 않은지 실제로 봐야 한다 — CSS 추론상으로는 문제없다고 판단했지만 브라우저 렌더링 확인은 못 했다.
+- **편차**: 스펙 자체가 없어 "편차"라는 개념이 성립하지 않지만, 구현 중 판단이 필요했던 지점을 남긴다: (a) 관리 모드 레이아웃을 `maxWidth:520px` 중앙 정렬 단일 컬럼으로 정했다(사용자가 구체적 폭을 지정하지 않음) — 데스크톱에서 기존 2열보다 좁아 보일 수 있다. (b) "수정" 버튼 문구·위치(미리보기 카드 바로 아래, 공유 패널 위)는 사용자가 지정하지 않아 임의로 정했다. (c) `.container` 최소폭 `1024px`도 임의값.
+- **다음 에이전트가 알아야 할 것**: 이 두 변경 모두 docs/에 근거 문서가 없다 — Opus가 필요하다고 판단하면 00-38 또는 부고장 관련 스펙 문서(07-03)에 사후 반영을 검토할 수 있다(강제 아님). 사람이 실기동에서 (a)(b)(c) 임의값에 대해 다른 지시를 주면 그에 맞춰 조정할 것.
+
+<!-- Gemini 판정 1줄: … -->
+
+
+## 2026-09-09 | wt179 정정 — 관리 모드 레이아웃을 2열(좌:미리보기+수정, 우:공유)로 변경
+
+- **근거 스펙**: 스펙 없음 — 즉흥구현(wt179 직후 사람이 레이아웃을 직접 정정: "미리보기와 수정(왼쪽) 공유(오른쪽)으로 구성해줘").
+- **건드린 파일**: `eobomDev/frontend/src/pages/ObituaryPage.tsx`
+- **결과**: wt179에서 관리 모드를 `maxWidth:520px` 중앙 정렬 단일 컬럼(미리보기→수정버튼→공유패널 세로 스택)으로 짰던 것을, 기존 `.auto-grid` 2열로 되돌리되 좌/우 내용을 바꿨다 — **왼쪽**: `previewCard` + "부고장 정보 수정" 버튼(세로 스택), **오른쪽**: `managePanel`(공유/종료). 데스크톱은 2열 나란히, 모바일은 `.auto-grid`가 자동으로 1열 스택(왼쪽 블록이 먼저, 오른쪽이 다음 — DOM 순서 그대로). 수정 버튼→모달 방식(`isEditOpen`)은 그대로 유지, 레이아웃 컨테이너만 교체.
+  - **빌드**: `npm run build` → 에러 0, 통과.
+  - **실기동**: 안 함(사람 몫).
+- **편차**: 없음(사람이 직접 준 배치 지시를 그대로 반영).
+- **다음 에이전트가 알아야 할 것**: wt179 항목의 "관리 모드 레이아웃"에 대한 서술(단일 컬럼)은 이 정정으로 대체됐다 — 이 항목이 최신 상태다.
+
+<!-- Gemini 판정 1줄: … -->
+
+
+## 2026-09-09 | wt179 정정2 — 카카오톡 카드 미리보기를 실제 스크린샷에 맞춰 수정
+
+- **근거 스펙**: 스펙 없음 — 즉흥구현. 사람이 실제 카카오톡 카드 스크린샷을 `assets/obituary_card.png`로 제공하고 미리보기 불일치 수정을 요청.
+- **건드린 파일**: `eobomDev/frontend/src/pages/ObituaryPage.tsx`
+- **결과**: `assets/obituary_card.png`(206×353px)를 PowerShell `System.Drawing`으로 픽셀 샘플링해 실측 후 `previewCard`를 재작성.
+  - 실측값: 이미지 영역이 `height:120px·objectFit:cover`가 아니라 **거의 정사각형**(y=0~207/353, 크림색 배경 `rgb(240,234,224)`)이었다 — 기존 코드는 짧고 넓은 띠 모양으로 잘라 실제와 달랐다. → `aspectRatio:'1/1'` 컨테이너(배경 `#F0EAE0`) + `objectFit:cover`로 교체.
+  - 실측: 제목은 진한 회색/검정에 가까움(`#1A2B4C` 남색이 아니었다) → `#1F2937`로, 설명 텍스트는 `--fs-body`가 아니라 더 작은 `--fs-caption`이 실제에 가까움.
+  - **기존 코드에 아예 없던 요소 2개를 추가**: (1) 실측 `rgb(246,247,248)` 연회색 둥근 버튼 "부고장 보기"(x=5~195, 거의 풀폭). (2) 하단 출처 행 — "이어봄" 텍스트 + 아이콘(`<EobomLogo variant="symbol" height={16}>`) + 우측 `ChevronRight` 화살표, 위쪽 얇은 회색 보더로 버튼과 구분.
+  - `lucide-react`에서 `ChevronRight` 추가 import, `EobomLogo` 컴포넌트 신규 import.
+  - **빌드**: `npm run build` → 에러 0, 통과.
+  - **실기동**: 안 함(사람 몫) — 이번엔 특히 시각적 비교라 사람이 직접 렌더 결과를 스크린샷과 다시 대조해줄 필요가 있다.
+- **편차**: 없음(실제 이미지 픽셀 실측을 그대로 반영). 다만 픽셀 샘플링 기반 근사치라 폰트 굵기·정확한 컬러 hex·버튼 모서리 반경 등은 완전히 동일하지 않을 수 있다.
+- **다음 에이전트가 알아야 할 것**: `cardTitle`/`cardDescription` 텍스트 생성 로직(`utils/obituaryCard.ts`)은 이미 실제 카드와 일치했다(예: "[부고] 故 홍길동 님", "빈소:.../발인:...") — 이번엔 미리보기 목업의 **스타일**만 고쳤다. 사람이 재확인 후 색상·간격 미세조정을 요청할 수 있다.
+
+<!-- Gemini 판정 1줄: … -->
+
+
+## 2026-09-09 | wt179 정정3 — 카드 폭 좁힘에 맞춰 배경·버튼 폭 조정
+
+- **근거 스펙**: 스펙 없음 — 즉흥구현. 사람이 `previewCard`의 흰 카드 wrapper에 직접
+  `width:'67%', minWidth:'220px', margin:'0 auto'`를 넣어 카톡 대화창 말풍선처럼 좁혔고(단,
+  `minWidth`를 `minwidth`로 오타 — 이번에 같이 고침), "다른 부분도 맞춰라 + 배경색은 알아서
+  정해라"를 요청.
+- **건드린 파일**: `eobomDev/frontend/src/pages/ObituaryPage.tsx`
+- **결과**:
+  1. `minwidth` → `minWidth` 오타 수정(React 인라인 스타일 camelCase 규칙).
+  2. `previewCard` 바깥 wrapper 배경을 `#1A2B4C`(남색)→`#D9D4CB`(연한 웜그레이·베이지)로 교체 —
+     좁아진 흰 카드가 양옆에 넓은 배경을 두고 "떠 있는" 모양이 됐는데, 남색은 카톡 대화창
+     바탕으로 어색해서 카톡 대화창에 가까운 중성 톤으로 바꿨다(정확한 카톡 색 고증은 아님,
+     "알아서" 요청에 따른 톤 선택). 텍스트색도 `#FFFFFF`/`#94A3B8`(어두운 배경용)에서
+     `var(--text-main)`/`var(--text-muted)`(밝은 배경용)로 맞춰 바꿈. 흰 카드에 살짝
+     `box-shadow`를 추가해 옅어진 배경 대비 "카드가 떠 있는" 느낌을 유지.
+  3. 관리 모드에서 `previewCard` 바로 아래 "부고장 정보 수정" 버튼도 같은
+     `width:'67%', minWidth:'220px', margin:'0 auto'`로 맞춰 폭을 통일.
+  4. `ObituaryManageSkeleton`(로딩 스켈레톤)의 자리표시 박스도 배경 `#D9D4CB`·내부 블록
+     `width:'67%'/minWidth:'220px'/margin:'0 auto'`로 맞춰, 로딩→실제 전환 시 색·폭이 안 튀게 함.
+  - **빌드**: `npm run build` → 에러 0, 통과.
+  - **실기동**: 안 함(사람 몫).
+- **편차**: 없음(사람 지시 그대로 반영 + 배경색은 위임받은 재량 선택).
+- **다음 에이전트가 알아야 할 것**: 배경색 `#D9D4CB`는 근거 문서 없는 재량 선택이다 — 사람이 다른 색을 원하면 바로 바꿀 것. 흰 카드 폭(`67%`/`220px`)은 사람이 직접 정한 값이라 그대로 유지.
+
+<!-- Gemini 판정 1줄: … -->
+
+
+## 2026-09-09 | wt179 정정4 — 배경색 확정(쿨톤 대안) + 미리보기·공유 섹션 최대폭 축소
+
+- **근거 스펙**: 스펙 없음 — 즉흥구현. 배경색 시안 아티팩트(https://claude.ai/code/artifact/233d3558-9c55-43bc-b606-f2676e29bfac)에서 사람이 "쿨톤 대안"(#DCE3E8)을 선택하고, 미리보기·공유 두 섹션이 데스크톱 넓은 화면에서 너무 넓다며 축소 지시.
+- **건드린 파일**: `eobomDev/frontend/src/pages/ObituaryPage.tsx`
+- **결과**:
+  1. `previewCard` 배경 `#D9D4CB`→`#DCE3E8`(쿨톤 대안, 확정).
+  2. `previewCard`·"부고장 정보 수정" 버튼·`managePanel`(공유 섹션) 셋 다 `maxWidth:'420px', margin:'0 auto'` 추가 — `.auto-grid` 컬럼 자체가 넓은 데스크톱에서 무한정 늘어나던 것을 통일된 420px로 캡. 버튼은 기존 `width:67%/minWidth:220px`에 `maxWidth:420px`를 더해 `min(67% of 컬럼, 420px)`로 동작.
+  3. `ObituaryManageSkeleton`(로딩 자리표시)도 배경 `#DCE3E8`·`maxWidth:420px`로 맞춤(양쪽 자리 모두).
+  - **빌드**: `npm run build` → 에러 0, 통과.
+  - **실기동**: 안 함(사람 몫).
+- **편차**: 없음(사람 지시·아티팩트 선택 그대로 반영).
+- **다음 에이전트가 알아야 할 것**: `420px`는 두 섹션을 시각적으로 맞추기 위해 이번에 새로 정한 값(근거 문서 없음) — 사람이 다르게 원하면 바로 조정.
+
+<!-- Gemini 판정 1줄: … -->
+
+
+## 2026-09-09 | wt179 정정5 — 미리보기 카드 왼쪽 정렬(카톡 수신 느낌)·섹션 360px·섹션간 여백 축소
+
+- **근거 스펙**: 스펙 없음 — 즉흥구현. 사람 지시: "카드 섹션의 카드를 카톡 온 것처럼 왼쪽에 붙이고 섹션을 360px로 구성. 섹션간의 margin 줄이기."
+- **건드린 파일**: `eobomDev/frontend/src/pages/ObituaryPage.tsx`
+- **결과**:
+  1. `previewCard` 흰 카드: `margin:'0 auto'`(가운데)→`margin:'0'`(왼쪽 고정) — 카톡 수신 메시지처럼 섹션 왼쪽에 붙음.
+  2. `previewCard` 섹션 자체: `maxWidth:420px`→`360px`(섹션의 가운데 정렬은 유지 — 좁아진 건 섹션 크기, 왼쪽 붙임은 그 안의 카드).
+  3. "부고장 정보 수정" 버튼: `maxWidth:420px`→`360px`, `margin:'0 auto'`→`margin:'0'`(카드와 같은 왼쪽 정렬로 통일).
+  4. 간격 축소: 미리보기-버튼 사이(`flex gap`) `1.25rem`→`0.75rem`, 좌(미리보기+버튼)·우(공유) 두 컬럼 사이(`.auto-grid` gap, 인라인으로 오버라이드) 기본값→`1rem`.
+  5. `ObituaryManageSkeleton`(로딩 자리표시)도 같은 폭(360px)·왼쪽 정렬·좁은 간격(0.75rem)으로 맞춤.
+  - **건드리지 않은 것**: `managePanel`(공유 섹션)은 이번 지시에 폭 언급이 없어 기존 `maxWidth:420px`·가운데 정렬 그대로 뒀다 — 코드 주석에 이유를 남겨뒀다.
+  - **빌드**: `npm run build` → 에러 0, 통과.
+  - **실기동**: 안 함(사람 몫).
+- **편차**: 없음(지시 그대로, 다만 "섹션간 margin"을 두 곳(미리보기↔버튼 flex gap, 좌우 grid gap)으로 해석해 둘 다 줄였다 — 구체적으로 어느 gap인지 명시되지 않아 판단이 들어간 지점).
+- **다음 에이전트가 알아야 할 것**: 공유 섹션(420px·중앙정렬)과 미리보기 섹션(360px·왼쪽정렬)이 이제 서로 다른 폭·정렬 규칙을 쓴다 — 의도된 상태(사람이 미리보기만 지목)이지 실수가 아니다.
+
+<!-- Gemini 판정 1줄: … -->
+
+
+## 2026-09-09 | wt179 정정6 — 카드 폭 +20%, 공유 섹션 버튼·폰트 축소
+
+- **근거 스펙**: 스펙 없음 — 즉흥구현. 사람 지시: "카드의 넓이는 20%정도 더 늘려줘, 그리고 공유 섹션의 버튼 및 내부 폰트를 섹션넓이 크기가 줄어든 만큼 줄여야함."
+- **건드린 파일**: `eobomDev/frontend/src/pages/ObituaryPage.tsx`
+- **결과**:
+  1. `previewCard` 흰 카드 폭 `67%`→`80%`(20%↑, 67×1.2≈80.4를 반올림).
+  2. `managePanel`(공유 섹션) 전체: 본문 텍스트 `fontSize:'var(--fs-body)'`(16px)→`'var(--fs-caption)'`(14px) 전수 교체(약 10곳: 종료 안내·경고 배너·추모관 링크 2곳·복사 피드백·URL 표시·최종수정일·종료 경고문), `h3` "부고장 공유" 제목 `1.05rem`→`0.95rem`. 버튼류(`className="btn"` 7곳: 새 부고장 작성·추모관 만들기 2곳·카카오톡 공유·링크 복사·문자 보내기·부고장 종료) 전부 `fontSize:'var(--fs-caption)', padding:'0 1.2rem'` 추가(기존 `.btn` 기본 1.1rem/1.8rem 패딩 대비 축소).
+  - **의도적으로 손대지 않은 것**: 버튼 `height`(`.btn`의 `var(--min-touch-target)`) — 접근성 터치 타깃 규정이라 폭·글자만 줄이고 높이는 그대로 뒀다. "섹션 폭이 줄어든 비율"을 정확히 역산할 근거가 없어(그리드 컬럼이 유동폭이었어서 "줄기 전" 폭을 알 수 없음), 디자인 시스템 두 단계 타입 스케일(`--fs-body`→`--fs-caption`, 정확히 12.5%↓)과 버튼 패딩 축소(1.8rem→1.2rem, 33%↓)로 "체감상 확실히 좁아진 만큼" 줄이는 방식으로 판단해 처리했다.
+  - **빌드**: `npm run build` → 에러 0, 통과.
+  - **실기동**: 안 함(사람 몫).
+- **편차**: "섹션 폭이 줄어든 만큼"을 정확한 비율로 역산하지 못해 판단이 들어갔다(위 설명 참고). 사람이 보고 더/덜 줄이라고 하면 조정.
+- **다음 에이전트가 알아야 할 것**: 없음.
+
+<!-- Gemini 판정 1줄: … -->
+
+
+## 2026-09-09 | wt179 정정7 — 카드 섹션 +20%, 간격 버그 원인 진단·수정, 수정 버튼 시인성 확보
+
+- **근거 스펙**: 스펙 없음 — 즉흥구현. 사람 지시: "'카드 섹션만' 20%정도 전체 넓이 늘린다. 미리보기와 공유 사이 간격이 여전히 너무 넓은데 문제 파악하고 좁힌다. 부고장 정보 수정 버튼이 버튼처럼 보이도록 조치한다."
+- **건드린 파일**: `eobomDev/frontend/src/pages/ObituaryPage.tsx`
+- **결과**:
+  1. **미리보기 섹션 폭 +20%**: `previewCard`·수정 버튼 `maxWidth` `360→432px`(공유 섹션 `managePanel`은 지시대로 그대로 420px).
+  2. **간격 버그 원인 진단**: 직전 시도(auto-grid의 `gap`을 1rem으로 줄임)가 안 먹힌 이유 — `.auto-grid`는 컬럼을 `1fr`로 늘려 꽉 채우는 그리드라(`00-29`§6.1), `00-38`에서 `.container`에 `min-width:1024px`을 넣은 뒤로 각 그리드 컬럼이 콘텐츠(432px/420px)보다 훨씬 넓어졌다. 그 안에서 `previewCard`·`managePanel`을 `margin:'0 auto'`로 "컬럼 중앙 정렬" 해뒀던 탓에, 두 콘텐츠 사이에 **(컬럼 여유폭×2 + grid gap)**만큼의 여백이 생겼다 — `gap` 값 자체를 줄여도 컬럼 안쪽 여백은 그대로라 체감 차이가 없었던 것.
+     - **수정**: 바깥 레이아웃을 `.auto-grid`(1fr 스트레치 그리드)에서 `display:'flex', flexWrap:'wrap', gap:'1rem'`로 교체 — 각 섹션이 콘텐츠 폭만큼만(`flex:'0 1 432px'` / `flex:'0 1 420px'`) 차지하고, 남는 공간은 줄 끝(오른쪽)으로 밀려나 두 섹션 사이엔 정확히 `gap`(1rem)만 남는다. `managePanel`의 `margin:'0 auto'`·`width:'100%'`(그리드 중앙정렬·꽉채우기용, flex에서는 오히려 전체 줄을 독점해버려 옆에 못 붙는 부작용을 냄)도 제거했다.
+     - 768px 이하에서는 두 섹션 폭 합(432+420+16=868)이 뷰포트를 넘어 `flex-wrap`이 자동으로 줄바꿈(세로 스택)한다 — 기존 `.auto-grid`가 하던 모바일 반응형 역할을 그대로 유지.
+  3. **수정 버튼이 버튼처럼 안 보이는 문제**: 배경색 `var(--secondary-color)`(#FBF9F5)가 `body`의 페이지 배경색과 완전히 같은 색이라(`index.css` `body{background-color:var(--secondary-color)}`), 버튼이 페이지에 녹아 들어 경계가 안 보였다. → 흰 배경(`var(--card-bg)`) + 테두리(`1px solid var(--border-color)`) + 그림자(`var(--box-shadow)`)로 교체해 카드처럼 도드라지게 했다.
+  - **빌드**: `npm run build` → 에러 0, 통과.
+  - **실기동**: 안 함(사람 몫) — 특히 이번 flex-wrap 교체는 실제 좁은 창에서 줄바꿈이 자연스러운지 확인 필요.
+- **편차**: 없음.
+- **다음 에이전트가 알아야 할 것**: `.auto-grid`(1fr 스트레치 그리드)는 "컨텐츠를 컬럼 폭 안에서 고정폭으로 두고 싶은" 레이아웃에는 안 맞는다 — 이번처럼 그리드 컬럼보다 좁은 고정폭 콘텐츠를 나란히 붙이고 싶으면 flex-wrap을 쓸 것. 이 교훈은 다른 `.auto-grid` 사용처(예: CareGuidePage, MemorialPage 등)에서 비슷한 "간격이 안 줄어든다" 문제가 나오면 참고.
+
+<!-- Gemini 판정 1줄: … -->
+
+
+## 2026-09-09 | wt179 정정8 — 두 섹션 그룹 가운데 정렬, 버튼 디자인 개선, 가로 스크롤 버그 수정
+
+- **근거 스펙**: 스펙 없음 — 즉흥구현. 사람 지시: "두 섹션을 담는 div 가운데 정렬 필요. 수정 버튼 너무 인위적, 디자인 요소 추가. 종전에 구현한 일정 넓이 이하에서의 좌우 스크롤 구현 안됨."
+- **건드린 파일**: `eobomDev/frontend/src/pages/ObituaryPage.tsx`, `eobomDev/frontend/src/index.css`
+- **결과**:
+  1. **두 섹션 그룹 가운데 정렬**: 직전 정정에서 `.auto-grid`→flex-wrap으로 바꾸며 그룹 자체가 `justify-content` 기본값(`flex-start`)이라 왼쪽에 붙어 있었다. `justifyContent:'center'` 추가.
+  2. **수정 버튼 디자인**: 흰 배경+회색 테두리가 "인위적"이라는 지적 — 브랜드 포인트 컬러(`--point-color`, 웜그린) 계열의 옅은 세이지(`#E3E8E1`, 배경색 시안 탐색 때 나왔던 "브랜드 포인트 계열" 옵션 재사용)로 교체, 텍스트·아이콘도 `--point-color`로, 굵게(`fontWeight:700`). 카드 섹션(`#DCE3E8`)과 톤이 이어지면서도 브랜드 포인트 컬러로 "의도된 버튼"처럼 보이게 했다.
+  3. **가로 스크롤 미작동 — 원인 진단 및 수정(`index.css`, 사이트 전역)**: `body`→`#root`→(App 루트 div)→`.main-wrapper`→`main`이 전부 `display:flex(column)`으로 겹겹이 쌓여 있는데, 플렉스 아이템의 "자동 최소 크기"(`min-width:auto` 기본값)가 자식의 `min-content`를 그대로 물려받는다 — `.container`의 `min-width:1024px`가 `main`→`.main-wrapper`→그 위 조상들로 계속 위로 전파돼, `.main-wrapper`가 `overflow-x:auto`로 실제로 가두기도 전에 그 바깥(결국 `body`/`html`)까지 통째로 1024px+로 늘어나 버렸다. 그래서 `.main-wrapper` 안에 갇힌 스크롤이 아니라 페이지 전체가 밀리거나 아무 변화도 안 보이는 것처럼 됐던 것 — `min-width:1024px` 자체(→00-38 §4.1 근처 규칙)나 `overflow-x:auto` 선언 자체는 문법상 문제 없었다. → `.main-wrapper`·`.main-wrapper > main` 양쪽에 `min-width:0`을 추가해 이 전파를 차단.
+  - **빌드**: `npm run build` → 에러 0, 통과.
+  - **실기동**: 안 함(사람 몫). 🔴 특히 3번(가로 스크롤)은 CSS 이론적 분석으로 도출한 수정이라 — 실제 좁은 창에서 `.main-wrapper`에 스크롤바가 뜨는지, Header·Sidebar는 그대로 있고 본문만 스크롤되는지 실기동 확인이 꼭 필요하다.
+- **편차**: 없음.
+- **다음 에이전트가 알아야 할 것**: 3번 수정은 `.container`를 쓰는 모든 소비자 페이지에 영향을 준다(사이트 전역 CSS) — ObituaryPage 외 다른 페이지에서도 실기동 시 함께 확인할 것. 만약 `min-width:0` 추가로도 여전히 안 되면, 다음으로 의심할 지점은 `.main-wrapper`에 명시적 `width: calc(100vw - 72px)`(사이드바 폭 제외) 같은 뷰포트 기준 고정폭을 직접 주는 방법이다(이번엔 min-width:0으로 자동전파를 끊는 더 가벼운 수정을 먼저 시도함).
+
+<!-- Gemini 판정 1줄: … -->
+
+
+## 2026-09-09 | wt179 정정9 — 수정 버튼 아이콘 칩 확정+호버 확장, 가로 스크롤 실제 원인 재발견·수정
+
+- **근거 스펙**: 스펙 없음 — 즉흥구현. 사람이 버튼 크기 시안(https://claude.ai/code/artifact/67bd9670-095a-40b0-a64e-69f965d6c54a) 중 "아이콘 칩"을 선택, 이어서 "마우스오버 시 수정하기 글자가 가로로 펼쳐지며 표시" 요청. 별도로 "가로 스크롤 해결이 안 되는 것 같다"며 실제 스크린샷(`assets/scroll.png`, `/facility` 861px 창)을 제공.
+- **건드린 파일**: `eobomDev/frontend/src/pages/ObituaryPage.tsx`, `eobomDev/frontend/src/index.css`
+- **결과**:
+  1. **수정 버튼 → 아이콘 칩**: 카드 아래 별도 버튼(67%/432px 가로폭)을 없애고, `previewCard`의 흰 카드 우상단에 40×40px 원형 아이콘 버튼으로 이동(`position:absolute`, 카드에 `position:relative` 추가). `previewCard`가 작성 모드에서도 재사용되므로 `{obituaryRef && (...)}`로 감싸 관리 모드에서만 뜨게 했다. 🔴 40px는 이 프로젝트 접근성 기준(`--min-touch-target:56px`) 미만 — 시안에서 경고 표시 후 사용자가 명시적으로 선택.
+  2. **호버 확장 라벨**: `.obituary-edit-chip` 클래스 신설(`index.css`) — 기본 40px 원형, `:hover`/`:focus-visible`에서 128px 알약형으로 폭이 전환되며 내부 `.chip-label`("수정하기")이 `max-width`+`opacity` 트랜지션으로 나타난다. `width:auto`는 브라우저가 트랜지션을 보간 못 해 고정폭(128px)으로 설계했다. `prefers-reduced-motion` 대응 포함.
+  3. **가로 스크롤 — 진짜 원인 재발견**: 사람이 준 스크린샷(`/facility`, 861px 창)에서 확인됨 — 콘텐츠(필터 드롭다운)가 창 오른쪽 끝에서 스크롤 없이 그냥 잘려 있었다. 지난 수정(`min-width:0`)은 "왜 전파되는지"는 맞게 짚었지만, 그 수정 이후에도 스크롤바가 안 보였던 **두 번째 원인**을 놓쳤다: `.main-wrapper`는 `min-height`만 있고 `height`가 없어서 페이지 콘텐츠 길이만큼 계속 자라는 박스였다 — `overflow-x:auto`인 요소의 가로 스크롤바는 그 요소의 **바닥**에 붙는데, 그 바닥이 페이지 맨 아래(수천 px 아래)에 있어 화면에는 사실상 닿을 수 없는 위치에 스크롤바가 존재했던 것이다(그래서 스크롤이 "없는 것처럼" 보였다).
+     - **수정**: `@media (min-width:769px)` 안에서 `.main-wrapper`를 `min-height` 대신 `height: calc(100vh - var(--header-h))`로 캡하고 `overflow-y: auto`를 명시 추가 — `.main-wrapper` 자체가 "헤더 아래 화면 전체"를 차지하는 스크롤 패널이 되어, 가로·세로 스크롤바 둘 다 항상 화면 안(패널 우측 끝·하단)에 있게 된다. 페이지 내 `position:sticky` 요소(EndingNote 목차 등)는 가장 가까운 스크롤 조상 기준으로 붙는데, 이 패널이 정확히 "헤더 아래 화면 전체"라 기존과 시각적으로 동일하게 동작할 것으로 판단(이론적 분석, 실측은 아님).
+  - **빌드**: `npm run build` → 에러 0, 통과.
+  - **실기동**: 안 함(사람 몫). 🔴 가로 스크롤은 이번이 두 번째 시도라 **반드시 실기동으로 재확인 필요** — 특히 (a) `/facility`를 861px 정도로 좁혀 스크롤바가 화면 안에 보이는지, (b) 세로 스크롤(페이지를 아래로 내리는 것)이 이제 `.main-wrapper` 내부 스크롤로 바뀌었는데 브라우저 주소창 자동 숨김 등 다른 상호작용과 안 부딪히는지, (c) EndingNote 목차 같은 sticky 요소가 여전히 잘 붙는지.
+- **편차**: 없음.
+- **다음 에이전트가 알아야 할 것**: 가로 스크롤 기능이 벌써 두 번 실패했다 — 이번에도 실기동에서 안 되면, `.main-wrapper`를 뷰포트 높이로 캡하는 접근 자체를 재고하고(예: Header까지 포함한 더 바깥쪽 래퍼에 스크롤을 주거나, `.container` min-width를 아예 포기하는 대안) 사람과 다시 상의할 것.
+
+<!-- Gemini 판정 1줄: … -->
+
+
+## 2026-09-09 | wt179 정정10 — 가로 스크롤 실기동 통과(임계값 조정) + 수정 칩 패딩 축소
+
+- **근거 스펙**: 스펙 없음 — 즉흥구현. 사람이 `/facility`에서 가로 스크롤 실기동 통과를 확인, "걸리는 최소폭을 조금 더 크게" 요청 + 펼쳐진 수정 버튼 좌우 여백이 크다는 지적.
+- **건드린 파일**: `eobomDev/frontend/src/index.css`
+- **결과**:
+  1. `.main-wrapper .container`의 `min-width` `1024→1200px`.
+  2. `.obituary-edit-chip:hover` 폭 `128→104px`, 좌우 패딩 축소(우 0.9rem→0.55rem·좌 0.75rem→0.6rem), 라벨 `margin-left` `0.4rem→0.3rem`.
+  - **빌드**: `npm run build` → 에러 0, 통과.
+  - **실기동**: 🔵 **가로 스크롤 기능 자체는 `/facility`에서 실기동 통과 확인됨**(사람 확인, wt179 정정9의 `.main-wrapper` 높이 캡 수정이 유효했다). 이번 임계값·패딩 조정분은 아직 실기동 전.
+- **참고(질문에 대한 답, 코드 변경 아님)**: 사람이 "메인페이지(홈)는 가로 스크롤이 작동 안 하는데 의도된 것인가"라고 물음 — **의도된 것이다.** `.main-wrapper .container`로 스코프한 규칙인데, `HomePage`·`prep`·`bereaved`(`DomainOverviewPage`)는 `.container`를 아예 안 쓰고 `.fullpage-viewport`/`.domain-overview-viewport`(풀블리드 스냅스크롤 히어로 레이아웃)를 쓴다 — 원래부터 화면 폭을 꽉 채우는 다른 설계라 이 규칙 대상이 아니다. 사람이 그쪽에도 같은 보호를 원하면 별도 작업(다른 클래스 대상)이 필요하다고 답함.
+- **편차**: 없음.
+- **다음 에이전트가 알아야 할 것**: 홈/생전준비/임종정리 3개 화면에 같은 "최소폭+가로스크롤"을 원하면 `.fullpage-viewport`/`.domain-overview-viewport` 쪽에 별도로 검토해야 한다 — 지금까지는 요청 없음.
+
+<!-- Gemini 판정 1줄: … -->
+
+
+## 2026-09-09 | wt180 — 명조체(--font-serif) 사용처 정리, 00-09 §6.3 규칙1 적용
+
+- **근거 스펙**: `docs/00_핵심플랫폼/00-09_디자인_시스템_및_스타일_가이드.md` §6.3 크래프트 규칙 1("명조는 화면 제목(--fs-title·--fs-display)에만, 본문은 산세리프") · §6.5(`.section-title` 프리미티브 계획). 사람이 "유족메시지 보관함 이름·편지 등의 궁서체 같은 폰트가 통일감 없어 보인다"고 지적 → 분석 후 "규칙대로 정리해줘" 승인받아 진행.
+- **건드린 파일**: `eobomDev/frontend/src/index.css`, `eobomDev/frontend/src/pages/HomePage.tsx`, `.../DomainOverviewPage.tsx`, `.../FamilyInvitePage.tsx`, `.../MemorialLandingPage.tsx`, `.../ObituaryLandingPage.tsx`, `.../CareGuidePage.tsx`, `eobomDev/frontend/src/components/home/EntryBoxes.tsx`, `.../FarewellMessageCard.tsx`
+- **결과**: 전체 13곳(9개 파일)을 실측(폰트 크기 vs `--fs-title`/`--fs-display` 22px+ 기준)으로 판정해 둘로 나눴다.
+  1. **`.section-title` 프리미티브 신설**(`index.css`, `font-family: var(--font-serif)` 한 줄) — 00-09 §6.5가 이름만 정해두고 안 만들었던 클래스. 명조체를 쓰는 유일한 통로로 만들었다.
+  2. **명조체 유지 + 토큰/클래스로 통일(9곳, 전부 22px 이상 제목급)**: `HomePage.tsx` 히어로 h1·섹션 h2, `EntryBoxes.tsx` "어떤 도움이 필요하신가요?" h2, `DomainOverviewPage.tsx` 인트로 타이틀(`.domain-overview-intro-title`, CSS)·섹션 h2(인라인), `FamilyInvitePage.tsx`·`MemorialLandingPage.tsx`·`ObituaryLandingPage.tsx`의 페이지 h1, `FarewellMessageCard.tsx`의 "OOO님께 남기는 글"(22.4px, 카드 헤더). 전부 하드코딩 폰트 문자열(파일마다 fallback 체인이 미묘하게 다름 — 드리프트)을 지우고 `.section-title` 클래스(또는 이미 있던 CSS 클래스는 `var(--font-serif)` 토큰)로 교체했다.
+  3. **명조체 제거(4곳, 전부 제목이 아닌 이름·라벨급)**: `.farewell-message-item`·`.farewell-board-avatar`(아바타 이니셜)·`.farewell-board-recipient-name`·`.farewell-mobile-back`(index.css) + `FarewellMessageCard.tsx`의 편지 작성 모달 "OOO님께" 이글brow(16px)·`CareGuidePage.tsx` 아코디언 섹션 라벨(20px, `--fs-section`이라 22px 기준 미달). 전부 `font-family` 선언을 지워 body 기본 고딕을 상속받게 했다 — 사람이 지적한 "유족메시지 이름"이 정확히 여기 포함된다.
+  - **손대지 않은 것**: `EobomLogo.tsx`의 "이어봄" 워드마크 텍스트(명조 스타일이 브랜드 로고 자체의 의도된 디자인, 코드 주석에 이미 명시돼 있음) — 화면 제목이 아니라 로고라 이번 규칙 대상이 아니다.
+  - **빌드**: `npm run build` → 에러 0, 통과. `grep -rn "KoPub World Batang"` 최종 확인 — 토큰 선언 1곳 + `EobomLogo.tsx`(의도적 예외) 1곳만 남고 나머지 전부 토큰/클래스 경유로 정리됨.
+  - **실기동**: 안 함(사람 몫) — 특히 폰트가 사라진 4곳(유족메시지 이름·아바타·편지 모달 라벨·CareGuide 섹션 라벨)이 시각적으로 자연스러운지 확인 필요.
+- **편차**: 없음 — 다만 경계선 판정 2곳을 기록해 둔다. (a) `FamilyInvitePage.tsx` h1은 1.3rem(20.8px)로 `--fs-title` 기준(22px)에 살짝 못 미치지만, 다른 두 랜딩페이지 h1과 같은 역할(공유 링크 페이지 제목)이라 명조 유지로 판정. (b) `FarewellMessageCard.tsx`의 "OOO님께 남기는 글"(22.4px)은 이름을 포함하지만 크기 기준상 제목급이라 유지 — "이름엔 무조건 명조 금지"가 아니라 "크기 기준"으로 판정했다.
+- **다음 에이전트가 알아야 할 것**: 앞으로 명조체가 필요하면 `className="section-title"`을 쓸 것 — 새 하드코딩 문자열을 또 만들면 이번 정리가 무의미해진다(00-09 §6.4 P-5 드리프트 훅이 아직 없어 코드 리뷰로만 막을 수 있음).
+
+<!-- Gemini 판정 1줄: … -->
+

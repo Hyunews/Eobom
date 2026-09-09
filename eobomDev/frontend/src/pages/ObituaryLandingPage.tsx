@@ -155,7 +155,8 @@ export const ObituaryLandingPage: React.FC = () => {
           {/* 근조 헤더 */}
           <div style={{ backgroundColor: '#1A2B4C', color: '#FFFFFF', padding: '2rem 1.75rem', textAlign: 'center' }}>
             <p style={{ fontSize: 'var(--fs-body)', color: '#94A3B8', letterSpacing: '0.1em', marginBottom: '0.6rem' }}>삼가 고인의 명복을 빕니다</p>
-            <h1 style={{ fontSize: '1.6rem', fontWeight: 'var(--fw-bold)', margin: 0, fontFamily: "'KoPub World Batang', serif" }}>
+            {/* 🔄 2026-09-09 — 하드코딩 문자열 → .section-title 프리미티브(폰트 정리 요청). */}
+            <h1 className="section-title" style={{ fontSize: '1.6rem', fontWeight: 'var(--fw-bold)', margin: 0 }}>
               故 {data.deceasedName}
               {data.deceasedDeathDate && (
                 <span style={{ fontSize: 'var(--fs-body)', fontWeight: 400, color: 'var(--border-color)' }}> ( ~ {formatKST(data.deceasedDeathDate).split(' ').slice(0, 2).join(' ')})</span>

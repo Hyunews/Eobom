@@ -389,7 +389,10 @@ export const FarewellMessageCard: React.FC<FarewellMessageCardProps> = ({ recipi
           나오므로 여기선 뺐고, 대신 통수 옆에 상태를 붙여 정보 손실은 없앴다. */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap', marginBottom: '1.5rem', paddingBottom: '1rem', borderBottom: '1px solid var(--border-color)' }}>
         <div>
-          <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.4rem', color: 'var(--primary-color)', margin: '0 0 0.25rem 0' }}>
+          {/* 🔄 2026-09-09 — 22.4px는 --fs-title(22~28px) 범위라 화면 제목급으로 보고
+              명조체를 유지하되, 하드코딩 문자열 대신 .section-title 프리미티브로 옮겼다
+              (00-09 §6.3 규칙1·§6.5, 폰트 정리 요청). */}
+          <h2 className="section-title" style={{ fontSize: '1.4rem', color: 'var(--primary-color)', margin: '0 0 0.25rem 0' }}>
             {recipient.name}님께 남기는 글
           </h2>
           <span style={{ fontSize: 'var(--fs-body)', color: 'var(--text-muted)' }}>
@@ -484,7 +487,9 @@ export const FarewellMessageCard: React.FC<FarewellMessageCardProps> = ({ recipi
           <div className="farewell-message-panel" role="dialog" aria-modal="true" aria-label={editingId ? '편지 수정' : '새 편지 쓰기'}>
             <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 'var(--sp-3)', marginBottom: '1.2rem' }}>
               <div>
-                <p style={{ fontFamily: 'var(--font-serif)', fontSize: 'var(--fs-body)', color: 'var(--accent-gold)', margin: '0 0 0.15rem 0' }}>{recipient.name}님께</p>
+                {/* 🔄 2026-09-09 — 16px 작은 라벨이라 화면 제목이 아니다. 명조체 제거
+                    (00-09 §6.3 규칙1, 폰트 정리 요청). */}
+                <p style={{ fontSize: 'var(--fs-body)', color: 'var(--accent-gold)', margin: '0 0 0.15rem 0' }}>{recipient.name}님께</p>
                 <h2 style={{ color: 'var(--primary-color)', fontSize: '1.55rem', fontWeight: 700, margin: 0, display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
                   <Heart size={20} color="var(--point-color)" /> {editingId ? '편지 수정' : '새 편지 쓰기'}
                 </h2>

@@ -234,12 +234,13 @@ export const DomainOverviewPage: React.FC<DomainOverviewPageProps> = ({
                       {slide.note}
                     </div>
                   )}
+                  {/* 🔄 2026-09-09 — 하드코딩 문자열 → .section-title 프리미티브(폰트 정리 요청). */}
                   <h2
+                    className="section-title"
                     style={{
                       fontSize: 'clamp(1.5rem, 3.2vw, 2.1rem)',
                       fontWeight: 'var(--fw-bold)',
                       color: '#1A2B4C',
-                      fontFamily: "'KoPub World Batang', serif",
                       marginBottom: '1.1rem',
                       lineHeight: 1.3,
                     }}
