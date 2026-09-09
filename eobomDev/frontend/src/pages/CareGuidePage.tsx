@@ -178,17 +178,13 @@ export const CareGuidePage: React.FC<CareGuidePageProps> = ({ setActiveTab }) =>
             byCategory.get(t.category)!.push(t);
           });
 
-          // §8-8-2 — 구간 3은 접혀 있어도 ⭐과 붉은 테두리를 유지한다(§8-7-3).
+          // §8-8-2 — 구간 3은 접혀 있어도 ⭐을 유지한다. 좌측 테두리는 펼쳤을 때 하위
+          // 항목에 이미 붉은 테두리(emphasisBorder)가 걸려 이중 강조라 제거(2026-09-09 사용자 지시).
           const isMonth3 = section.key === 'month3';
           const isOpen = openSections.has(section.key);
 
           return (
             <div key={section.key} style={{ marginBottom: 'var(--sp-6)' }}>
-              {/* §8-8-2 — 구간 3 강조는 전체를 들여쓰지 않고 이 버튼 자체에 좌측 테두리로
-                  만든다(2026-09-08 재수정 → 배경색은 사용자 지시로 제거, 테두리만 유지).
-                  borderLeft+paddingLeft를 섹션 전체에 걸면 위 구간의 하위 항목처럼 보인다는
-                  지적(들여쓰기 착시) — 버튼 폭 전체에 좌측 테두리를 줘서 "구간 하나가
-                  강조됐다"로 읽히게 한다. */}
               <button
                 type="button"
                 onClick={() => toggleSection(section.key)}
@@ -198,7 +194,6 @@ export const CareGuidePage: React.FC<CareGuidePageProps> = ({ setActiveTab }) =>
                   display: 'flex', alignItems: 'center', gap: 'var(--sp-2)', width: '100%',
                   background: 'none', border: 'none', padding: 'var(--sp-2) var(--sp-3)', margin: '0 0 var(--sp-2) 0',
                   cursor: 'pointer', textAlign: 'left', color: 'var(--primary-color)',
-                  ...(isMonth3 ? { borderLeft: '4px solid var(--state-critical-fg)' } : {}),
                 }}
               >
                 {isOpen ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
