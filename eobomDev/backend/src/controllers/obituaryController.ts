@@ -240,8 +240,9 @@ export const getObituaryBySlug = async (req: Request, res: Response) => {
     }
 
     // 조회수 집계만(§8 #8) — IP·UA 원문은 저장하지 않는다. 실패해도 조회 자체는 막지 않는다.
-    // 종료된 뒤 개설자 본인이 확인하러 들어온 방문은 세지 않는다(조문객 조회수가 아니므로).
-    if (!closed) {
+    // 개설자 본인이 확인하러 들어온 방문은 세지 않는다(조문객 조회수가 아니므로) —
+    // 종료 후뿐 아니라 활성 중에도 마찬가지다(07-03 §6.4 ⓒ, 이전엔 활성 중 본인 방문이 새고 있었다).
+    if (!closed && !isOwner) {
       prisma.obituary.update({ where: { id: obituary.id }, data: { viewCount: { increment: 1 } } }).catch(() => {});
     }
 
