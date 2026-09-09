@@ -9,8 +9,8 @@
 
 ## ▶ 다음 할 일
 
-✅ **경로개명 완료(09-09,wt175)** — `eobom/`→`eobomDev/` git mv+render.yaml+.gitignore+내부참조 반영, 빌드 통과.
-🔴 **[사람]** Vercel/Render 대시보드 rootDir이 `eobom/*`면 `eobomDev/*`로 변경 필요(안 하면 배포 실패). 커밋 대기(초안만 제시).
+✅ **경로개명(wt175)·Footer모바일 아코디언(wt176)** 완료(09-09) — 둘 다 빌드 통과, 커밋 대기(초안만 제시).
+🔴 **[사람]** Vercel/Render rootDir `eobom/*`→`eobomDev/*` 확인. 🔵 wt176 실기동(360px, 패널높이 안 잘리는지) 대기.
 
 **0. [Opus] 🔴 `00-19` 제6조·제7조** — 위탁·국외이전 보류(08-18) 근거 소멸.
 Cloudflare·Supabase·Render 미기재. ⏸ "국가"란 보류(인프라 대기 — `pending-approvals.md`).
@@ -38,7 +38,7 @@ Cloudflare·Supabase·Render 미기재. ⏸ "국가"란 보류(인프라 대기 
 
 ## 지금 상태
 
-프로젝트: **이어봄(Eobom)** — 디지털엔딩&웰다잉 토탈케어 플랫폼 · 마지막 2026-09-08(wt174)
+프로젝트: **이어봄(Eobom)** — 디지털엔딩&웰다잉 토탈케어 플랫폼 · 마지막 2026-09-09(wt176)
 
 - 소스 `eobomDev/frontend`(React18+Vite5+TS) · `eobomDev/backend`(Express+Prisma+JWT)
 - 목차 `docs/00_DOCS_INDEX.md` / 저장위치 `AGENTS.md` §7

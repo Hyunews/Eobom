@@ -565,6 +565,22 @@ body {
   }
 }
 
+/* FooterMobile.tsx — 약관·대표번호 아코디언(2026-09-09, 사용자 지시, 00-38 §6.5). */
+.footer-mobile-toggle-icon {
+  transition: transform 0.2s ease;
+}
+.footer-mobile-toggle-icon.open {
+  transform: rotate(180deg);
+}
+.footer-mobile-panel {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.28s ease;
+}
+.footer-mobile-panel.open {
+  max-height: 170px;
+}
+
 /* HomePage.tsx 에필로그+Footer 영역 — 래퍼(epilogue-footer-wrapper) + 자식 section 2개
    (home-epilogue-section·home-footer-section) 구조는 폭과 무관하게 항상 같다.
    기본(데스크톱, ≥641px): 래퍼가 고정 높이·overflow-y:auto인 스냅 대상 하나로 동작하고,

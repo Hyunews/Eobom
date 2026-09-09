@@ -2,6 +2,8 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Phone, ShieldCheck, FileText, Lock, MessageCircle } from 'lucide-react';
 import { EobomLogo } from './EobomLogo';
+import { FooterMobile } from './FooterMobile';
+import { useIsMobile } from '../hooks/useIsMobile';
 
 // 2026-08-24 — Header.tsx(A안: 흰 배경 + 평면 메뉴)와 같은 톤으로 재개편. 기존 짙은 네이비 블록
 // 대신 배경을 투명하게 둔다 — HomePage.tsx 섹션2(에필로그)에서는 그 위에 fullpage_03 배경 사진이
@@ -10,6 +12,13 @@ import { EobomLogo } from './EobomLogo';
 // isFullPageSnap(둥근 카드로 띄우는 변형)은 실제로 어디서도 true로 넘겨진 적 없는 죽은 분기였고,
 // 짙은 배경을 전제로 한 그림자·라운딩이라 투명 배경 디자인과 맞지 않아 이번에 정리했다.
 export const Footer: React.FC = () => {
+  // 2026-09-09 — 사용자 지시. 데스크톱 4열 그리드를 모바일에 그대로 쌓으면 본문보다 길어져
+  // FooterMobile(아코디언)로 분리(00-38 §6.5). 데스크톱(>768px)은 아래 그대로 유지.
+  const isMobile = useIsMobile(768);
+  if (isMobile) {
+    return <FooterMobile />;
+  }
+
   return (
     <footer
       style={{
