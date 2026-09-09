@@ -3,7 +3,7 @@ import { Mail, LogIn } from 'lucide-react';
 import { apiFetch } from '../lib/api';
 import { getToken } from '../lib/storage';
 import { BACKEND_URL } from '../config';
-import { RecipientItem, MessageItem } from '../components/FarewellMessageCard';
+import { RecipientItem, MessageItem } from '../components/farewell/FarewellMessageCard';
 import { FarewellDesktopView } from '../components/farewell/FarewellDesktopView';
 import { FarewellMobileView } from '../components/farewell/FarewellMobileView';
 import { useIsMobile } from '../hooks/useIsMobile';

@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Heart, Plus, Loader2, Pencil, X, Volume2, Trash2, Download, Upload, Mic, FileText, ChevronDown } from 'lucide-react';
-import { BACKEND_URL } from '../config';
+import { BACKEND_URL } from '../../config';
 import { VoiceToTextInput, SavedMedia } from './VoiceToTextInput';
 
 // 06-05 §5.4-3-1 D-5 항목23-2 — 건별 반출 파일명. 백엔드 farewellMessageExport.ts의

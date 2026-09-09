@@ -2,7 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { Home, X, LogOut, Mail } from 'lucide-react';
 import { HouseLeafIcon, HandScalesIcon, PhoneHeartIcon, NoteKeyIcon, ChecklistShieldIcon } from './MenuIcons';
 import { Badge } from './home/EntryBoxes';
-import { MODE_MENUS, type NavMode, type ModeMenuItem, type NavStatus } from '../modeNav';
+import { MODE_MENUS, type NavMode, type ModeMenuItem, type NavStatus } from '../lib/modeNav';
 
 interface SidebarProps {
   activeTab: string;

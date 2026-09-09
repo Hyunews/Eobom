@@ -1,6 +1,6 @@
 import React from 'react';
 import { Mail, UserPlus } from 'lucide-react';
-import { FarewellMessageCard, RELATIONSHIP_LABEL } from '../FarewellMessageCard';
+import { FarewellMessageCard, RELATIONSHIP_LABEL } from './FarewellMessageCard';
 import { FarewellNotice } from './FarewellNotice';
 import type { FarewellViewProps } from './types';
 

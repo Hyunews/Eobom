@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Mic, MicOff, Upload, Loader2, Check, Play } from 'lucide-react';
-import { BACKEND_URL } from '../config';
+import { BACKEND_URL } from '../../config';
 
 // 06-05 §4.2 정정(08-26) — 말로 남기기(음성 입력 전체)가 엔딩노트 ⑨에서 유족 메시지 보관함으로
 // 이관됐다. EndingNotePage.tsx에 인라인으로 있던 Ⓐ(파일 업로드)·Ⓑ(직접 녹음) UI를 그대로

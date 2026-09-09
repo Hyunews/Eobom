@@ -25,11 +25,11 @@
 
 🆕**`00-38`**적응형모바일UX.🟡사람확정=본문16px실기기(§12.1).
 
-**2.[Sonnet]**🔴wt112·114·115~120·164~172실기동대기(사람,09-03).⏸체크8·04B=`PreDeathPlatformSetting`뒤.✅wt121~174빌드통과.🔴#24보류⑪·🟡미검증⑯.
-✅wt177~180완료(fontSize·간격토큰·§6.4-1·명조체통일)—🟡실기동360px·1280회귀남음.
-✅wt183=②`CareGuide`적응형분리+§8-8-5+`deadlineShort`,tsc·build0·🟡실기동대기·🔴json사람커밋편입
-(확인요,편차①).✅wt185=§6.4=`ObituaryView`분리+조회수가드(`!closed&&!isOwner`)+미리보기모달,
-tsc·build0·🟡실기동대기.▶다음=③`EndingNote`→`00-37`A-3.
+**2.[Sonnet]**🔴wt112~172실기동대기(사람,09-03).⏸체크8·04B=`PreDeathPlatformSetting`뒤.
+✅wt121~180빌드통과(fontSize·간격토큰·§6.4-1·명조체)—🟡실기동360px·1280회귀남음.
+✅wt183~186완료(②`CareGuide`적응형분리·`deadlineShort`/§6.4`ObituaryView`분리+조회수가드+미리보기
+모달/`components/`정리git mv4건)—전부tsc·build0·🟡실기동대기·🔴wt183json사람커밋편입(확인요).
+▶다음=③`EndingNote`→`00-37`A-3.
 🟡§4.5-5:터치타깃`36px`3곳vs`--min-touch-target:56px`→Phase3(Obituary수정칩40px도같이).
 🟡`ObituaryPage`(개설폼만)·`MyPage`는Phase3착수시§6.5ⓒ재판정(❌유력).관리모드는§8.2-1로✅완료.
 

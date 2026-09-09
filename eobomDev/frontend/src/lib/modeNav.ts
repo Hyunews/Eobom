@@ -1,6 +1,6 @@
 import type { ElementType } from 'react';
 import { Package, Flower2, MessageSquare, Mail } from 'lucide-react';
-import { HouseLeafIcon, HandScalesIcon, PhoneHeartIcon, NoteKeyIcon, ChecklistShieldIcon } from './components/MenuIcons';
+import { HouseLeafIcon, HandScalesIcon, PhoneHeartIcon, NoteKeyIcon, ChecklistShieldIcon } from '../components/MenuIcons';
 
 // docs/00_핵심플랫폼/00-26 §3 — 모드별 맞춤 사이드바 메뉴 정본 데이터.
 // 라벨은 00-02 §3.2 정본(00-26 §5가 잡은 사이드바 라벨 불일치 3건 정정 포함) 그대로 쓴다.

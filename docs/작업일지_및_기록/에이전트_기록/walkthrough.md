@@ -2723,3 +2723,17 @@ wt137 그대로라 재작업 없음).
 - **다음 에이전트가 알아야 할 것**: 🔴 커밋은 사람이 한다 — 이 항목은 커밋 전 상태로 기록됐다. 🟡 미리보기와 실제 화면이 이제 의도적으로 다르다(추모관 유무) — 이 컴포넌트를 또 고칠 때 "미리보기=실제와 100% 동일"이라고 가정하지 말 것.
 
 <!-- Gemini 판정 1줄: ✅통과 / ❌반려(사유) / 🔄스펙갱신(고친 문서) -->
+
+## 2026-09-09 | wt186 [Claude:Sonnet] `components/` 정리 — 파일 4개 이동(`git mv`, import 경로만)
+
+- **근거 스펙**: 스펙 없음 — 사용자 직접 지시(원칙: *"소유 도메인이 하나면 그 폴더, 소유가 없거나 껍데기면 루트"*). 동작 변경 0, import 경로만 고치는 작업.
+- **건드린 파일(이동, `git mv`)**: `components/FarewellMessageCard.tsx→components/farewell/` · `components/VoiceToTextInput.tsx→components/farewell/` · `components/MyPageProfile.tsx`·`MyPageAuthSettings.tsx`·`MyPageFamilyDesignation.tsx→components/mypage/`(신설) · `modeNav.ts→lib/modeNav.ts`.
+  **건드린 파일(import 경로만 수정)**: 이동 4파일 자체(내부 상대 import) · `components/farewell/FarewellDesktopView.tsx`·`FarewellMobileView.tsx`·`types.ts` · `pages/FarewellMessagePage.tsx` · `components/mypage/MyPageProfile.tsx`(`AddressSearchModal` 경로) · `App.tsx` · `components/Header.tsx`·`Sidebar.tsx`·`home/EntryBoxes.tsx` · `pages/DomainOverviewPage.tsx`·`HomePage.tsx`.
+- **결과**: 지시받은 4건 전부 `git mv`로 이동(`git status`가 전부 `R`/`RM`로 인식 — blame 연속성 확보). 이동한 파일 내부의 `../config`류 상대 import를 새 깊이에 맞게 `../../config`로, 외부 importer 13곳의 import 경로를 지시받은 대로 고쳤다. 🔴 **지시서에 없던 것 1건 발견·수정**: `modeNav.ts`가 "내부 상대 import 없음"으로 안내됐으나 실제로는 `./components/MenuIcons`를 import하고 있었다 — `src/lib/`로 옮기며 `../components/MenuIcons`로 정정(안 고쳤으면 빌드가 깨졌을 것).
+  검증: `grep -rn "components/FarewellMessageCard\|components/VoiceToTextInput\|components/MyPage\|from '\(\.\./\)*modeNav'" src` → **0건**. `npx tsc --noEmit -p .`·`npm run build`(둘 다 `eobomDev/frontend`) 에러 0(그대로 실행 확인, 기존 vite 청크 크기 경고만).
+  **실기동**: 하지 않음 — **"실기동 검증 대기"**로 남긴다(사람 몫, 2026-09-03 지시). 순수 경로 이동이라 회귀 대상은 좁다 — 확인할 것은 파일을 옮긴 4개 도메인 화면(작별의 편지·마이페이지 3종·전역 네비게이션 모드)이 평소대로 뜨는지 정도.
+  건드리지 않음(지시대로): `KakaoMapModal`·`ObituaryView`·`AddressSearchModal`·레이아웃 묶기·페이지 도메인 분할·큰 파일 쪼개기.
+- **편차**: `modeNav.ts`의 "내부 상대 import 없음" 서술이 실제와 달랐던 것 1건(위 결과에 기술) — 지시의 오류를 발견해 정정한 것이지 내가 지시와 다르게 구현한 게 아니므로 스펙 편차는 아니다. 그 외 없음.
+- **다음 에이전트가 알아야 할 것**: 🔴 커밋은 사람이 한다 — 이 항목은 커밋 전 상태(git mv는 스테이징됨, 이후 import 수정은 워킹트리에 얹혀 `RM` 상태)로 기록됐다. 🔵 `git diff --staged --stat -M`으로 확인 시 rename이 정상 인식됨(`{ => farewell}/FarewellMessageCard.tsx` 형태) — 커밋 시 blame 연속성 문제 없음.
+
+<!-- Gemini 판정 1줄: ✅통과 / ❌반려(사유) / 🔄스펙갱신(고친 문서) -->

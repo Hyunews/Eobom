@@ -3,7 +3,7 @@ import { Sparkles, ChevronUp, ChevronDown } from 'lucide-react';
 import { Footer } from '../components/Footer';
 import { EntryBoxes } from '../components/home/EntryBoxes';
 import { useIsMobile } from '../hooks/useIsMobile';
-import type { NavMode } from '../modeNav';
+import type { NavMode } from '../lib/modeNav';
 
 interface HomePageProps {
   currentUser?: string | null;
