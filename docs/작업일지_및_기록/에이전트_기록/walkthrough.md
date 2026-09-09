@@ -2693,3 +2693,33 @@ wt137 그대로라 재작업 없음).
   🟡 **폼 state → `ObituaryData` 형태 맞추기**가 유일한 실제 작업량이다(`mourners` 배열의 `isChief`·`sortOrder`, `deceasedDeathDate` 등). 서버 응답과 폼 state의 필드명이 다르면 **어댑터 하나를 두고 그 자리를 한 곳으로 모은다** — 두 곳에서 각자 변환하면 미리보기와 실제가 어긋난다.
 
 <!-- Gemini 판정 1줄: ✅통과 / ❌반려(사유) / 🔄스펙갱신(고친 문서) -->
+
+## 2026-09-09 | wt185 [Claude:Sonnet] `07-03` §6.4 조문객 화면 미리보기 구현 — `ObituaryView` 분리 + 조회수 가드 + 모달
+
+- **근거 스펙**: `docs/07_상중_행정_케어/07-03_모바일_부고장_카카오톡_전송_구현_기획서.md` §6.4 ⓐ~ⓓ(wt184에서 신설). 사용자가 착수 순서를 `ⓑ→ⓒ→ⓐ·ⓓ`로 직접 지정.
+- **건드린 파일**: `eobomDev/frontend/src/components/ObituaryView.tsx`(신규) · `eobomDev/frontend/src/pages/ObituaryLandingPage.tsx` · `eobomDev/frontend/src/pages/ObituaryPage.tsx` · `eobomDev/backend/src/controllers/obituaryController.ts`
+- **결과**:
+  1) **ⓑ 컴포넌트 추출** — `ObituaryLandingPage.tsx`(237줄)의 표현부(파생값 `chief`·`rest`·`kakaoMapUrl` + 카드 마크업, 구 `:142~237`)를 `components/ObituaryView.tsx`(`ObituaryView({ data: ObituaryData })`)로 그대로 옮겼다(로직 변경 없음, 순수 위치 이동). `ObituaryLandingPage.tsx`는 `useParams`·`fetch`·`noindex` meta·로딩 스켈레톤·`notFound`만 남는 118줄 껍데기가 됐고, 성공 분기는 `<ObituaryView data={data} />` 한 줄. `Row` 헬퍼·`Mourner`/`ObituaryData` 인터페이스도 함께 이동(랜딩 페이지는 `ObituaryView`에서 타입만 재사용).
+  2) **ⓒ 조회수 가드** — `obituaryController.ts:244`를 `if (!closed)` → `if (!closed && !isOwner)`로. 주석도 "종료된 뒤"→"활성 중에도 마찬가지" 정정.
+  3) **ⓐ·ⓓ 미리보기 버튼+모달** — `ObituaryPage.tsx` 공유 패널(`managePanel`)에 `조문객 화면 미리보기` 버튼(링크복사·문자보내기와 같은 보조 버튼 군, 카카오톡 버튼보다 아래)을 추가. 클릭 시 뜨는 모달은 기존 수정 모달(`isEditOpen`)과 같은 배경(`rgba(0,0,0,.65)`+`blur(4px)`)·`zIndex:3000`·배경클릭 닫힘·내부 `stopPropagation` 패턴을 재사용하되 `maxWidth:460px`(랜딩 카드와 동일)·`maxHeight:90dvh`(🔴 수정 모달은 그대로 `90vh` — 손대지 않음, Phase 3에서 모달 5종과 함께 통일)로 별도 구성. 모달 안에 `#FBF9F5` 배경 + `2.5rem 1rem` 여백을 재현하고 그 안에 §6.4 ⓓ 고지 두 줄("조문객에게 보이는 화면입니다.../수정하면...") + `<ObituaryView data={buildPreviewData()} />`.
+  4) **어댑터** — `buildPreviewData()` 함수 하나로 폼 state(`deceasedName`·`deathDate`·`funeralHall`·`funeralHallAddr`·`mourningRoom`·`coffinAt`·`funeralAt`·`burialSite`·`chiefMournerName`/`chiefMournerRelationship`·`mourners`·`contactPhone`·`accountEnabled`+`accountBankCode`/`accountNumber`/`accountHolder`·`obituaryRef.memorialSlug`·`cardFieldsUpdatedAt`·`updatedAt`) → `ObituaryData` 변환을 한 곳에 모았다(호출부 1곳 — 모달 렌더 직전).
+  검증: `npx tsc --noEmit -p .`(`eobomDev/frontend`·`eobomDev/backend` 둘 다) · `npm run build`(`eobomDev/frontend`) 전부 에러 0(그대로 실행 확인, 기존 vite 청크 크기 경고만).
+  **실기동**: 하지 않음 — **"실기동 검증 대기"**로 남긴다(사람 몫, 2026-09-03 지시). 확인할 것: `ObituaryView` 추출 후 랜딩(`/o/{slug}`) 4개 조건부 렌더(빈소 길찾기 링크·연락처 전화걸기·계좌·추모관 줄)가 그대로인지(회귀 대상으로 지정받음), 미리보기 모달이 실제 `/o/{slug}` 렌더와 동일하게 보이는지, `!isOwner` 조회수 가드가 실제로 본인 방문을 안 세는지(백엔드 로그 확인 필요 — 프론트에서는 검증 불가).
+- **편차**: **없음.** 스펙 순서(ⓑ→ⓒ→ⓐ·ⓓ)·값(460px·90dvh·#FBF9F5·고지 문구)을 전부 지정받은 대로 구현했다. 다만 `ObituaryView`의 위치를 `components/`로 뒀다(스펙은 파일 위치를 명시하지 않음) — 랜딩·관리 두 페이지가 공유하는 프레젠테이션 컴포넌트라 `pages/`보다 `components/`가 이 저장소의 기존 배치 관례(`FarewellMessageCard.tsx` 등)에 맞는다고 판단.
+- **다음 에이전트가 알아야 할 것**:
+  🔴 **커밋은 사람이 한다** — 이 항목은 커밋 전 상태로 기록됐다.
+  🟡 `buildPreviewData()`의 `updatedAt: updatedAt ?? new Date().toISOString()` — 폼이 아직 서버에 한 번도 저장되지 않은 극단적 상황(이론상 `managePanel`은 `obituaryRef` 존재 시에만 렌더되므로 `updatedAt`이 없을 일은 없어야 한다)을 대비한 폴백이다. 실기동에서 이 폴백이 실제로 타는지는 확인 대상이 아니다(정상 경로에서는 항상 서버 값이 있다).
+  🔵 `ObituaryView.tsx`는 이제 랜딩·미리보기 모달 두 곳에서 쓰인다 — 다음에 이 컴포넌트를 고칠 때는 **두 화면 모두**에 영향이 간다는 걸 염두에 둘 것.
+  🟡 이 항목은 원래 `wt184`로 잘못 번호가 매겨졌었다 — Opus의 §6.4 신설 세션(같은 날 wt184 선점)과 동시에 쓰이면서 겹쳤고, 발견 즉시 `wt185`로 정정하고 Opus 항목 뒤로 재배치했다.
+
+<!-- Gemini 판정 1줄: ✅통과 / ❌반려(사유) / 🔄스펙갱신(고친 문서) -->
+
+## 2026-09-09 | wt185 정정 — 미리보기에서 추모관 관련 제외
+
+- **근거 스펙**: 스펙 없음 — 사용자 직접 지시("조문객 화면 미리보기에 추모관 관련은 빼기").
+- **건드린 파일**: `eobomDev/frontend/src/pages/ObituaryPage.tsx`
+- **결과**: `buildPreviewData()`의 `memorialSlug`를 `obituaryRef?.memorialSlug ?? null` → 항상 `null`로 고정. `ObituaryView` 자체(따라서 실제 `/o/{slug}` 랜딩)는 손대지 않았다 — 추모관이 있으면 그대로 노출되고, **이 미리보기 모달에서만** "추모관 들어가기" 바가 안 뜬다. `npx tsc --noEmit -p .`·`npm run build`(`eobomDev/frontend`) 통과.
+- **편차**: 없음(지시 그대로).
+- **다음 에이전트가 알아야 할 것**: 🔴 커밋은 사람이 한다 — 이 항목은 커밋 전 상태로 기록됐다. 🟡 미리보기와 실제 화면이 이제 의도적으로 다르다(추모관 유무) — 이 컴포넌트를 또 고칠 때 "미리보기=실제와 100% 동일"이라고 가정하지 말 것.
+
+<!-- Gemini 판정 1줄: ✅통과 / ❌반려(사유) / 🔄스펙갱신(고친 문서) -->

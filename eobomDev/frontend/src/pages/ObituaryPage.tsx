@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { MessageSquare, Send, Copy, Plus, X, ChevronDown, ChevronUp, ChevronRight, AlertTriangle, LogIn, Heart, PowerOff, Flower2, Loader2, Pencil } from 'lucide-react';
+import { MessageSquare, Send, Copy, Plus, X, ChevronDown, ChevronUp, ChevronRight, AlertTriangle, LogIn, Heart, PowerOff, Flower2, Loader2, Pencil, Eye } from 'lucide-react';
 import { OBITUARY_CARD_IMAGE_URL } from '../config';
 import { EobomLogo } from '../components/EobomLogo';
+import { ObituaryView, type ObituaryData } from '../components/ObituaryView';
 import { apiFetch, ApiError } from '../lib/api';
 import { formatObituaryCardTitle, formatObituaryCardDescription, formatKST } from '../utils/obituaryCard';
 import { ensureKakaoShareReady, shareViaKakao, shareViaWebShareApi, copyObituaryLink, buildObituarySmsHref, reportObituaryShare } from '../utils/kakaoShare';
@@ -137,6 +138,9 @@ export const ObituaryPage: React.FC<ObituaryPageProps> = ({ currentUser, onOpenL
 
   // 🆕 2026-09-09 사용자 지시 — 관리 모드(obituaryRef 있음)에서 수정 폼을 모달로 연다.
   const [isEditOpen, setIsEditOpen] = useState(false);
+  // 07-03 §6.4 — 조문객 화면 미리보기 모달. fetch 없이 이미 든 폼 state를 그대로 쓴다
+  // (수정 즉시 반영·조회수 오염 0, §6.4 ⓑ).
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
 
   // 🆕 09-07 사용자 지시 — 부고장이 종료된 뒤에도 이 화면에 다시 들어오면 항상 그 종료된
   // 부고장(localStorage 포인터)만 보였다. 새로 하나 더 쓸 방법이 화면에 없었다 — 포인터를
@@ -691,6 +695,31 @@ export const ObituaryPage: React.FC<ObituaryPageProps> = ({ currentUser, onOpenL
     </div>
   );
 
+  // 07-03 §6.4 ⓑ — 폼 state → ObituaryData 변환 어댑터. 미리보기 모달 한 곳에서만 부른다 —
+  // 두 곳에서 각자 변환하면 미리보기와 실제 카드가 어긋난다.
+  const buildPreviewData = (): ObituaryData => ({
+    deceasedName,
+    deceasedDeathDate: deathDate || null,
+    funeralHall: funeralHall || null,
+    funeralHallAddr: funeralHallAddr || null,
+    mourningRoom: mourningRoom || null,
+    coffinAt: coffinAt || null,
+    funeralAt,
+    burialSite: burialSite || null,
+    mourners: [
+      ...(chiefMournerName.trim() ? [{ name: chiefMournerName, relationship: chiefMournerRelationship, isChief: true }] : []),
+      ...mourners.filter((m) => m.name.trim()).map((m) => ({ ...m, isChief: false })),
+    ],
+    contactPhone: contactPhone || undefined,
+    // 🔴 사용자 지시(2026-09-09) — 이 미리보기에서는 추모관 관련(들어가기 바)을 뺀다.
+    // 실제 /o/{slug}는 그대로 memorialSlug가 있으면 노출한다 — ObituaryView 자체는 안 건드리고
+    // 이 어댑터에서만 null로 고정한다.
+    memorialSlug: null,
+    cardFieldsUpdatedAt,
+    updatedAt: updatedAt ?? new Date().toISOString(),
+    account: accountEnabled ? { bankCode: accountBankCode || null, accountNumber: accountNumber || null, holder: accountHolder || null } : undefined,
+  });
+
   const managePanel = (
     // 🔄 2026-09-09 — 왼쪽 미리보기 섹션 폭을 줄인 것과 맞춰 공유 섹션도 maxWidth:420px로
     // 줄였다(사용자 지시 "공유 섹션도 줄인다"). 이후 미리보기 섹션만 360px로 한 번 더 줄었는데
@@ -752,6 +781,11 @@ export const ObituaryPage: React.FC<ObituaryPageProps> = ({ currentUser, onOpenL
               </a>
             )}
           </div>
+          {/* 07-03 §6.4 ⓐ — 링크복사·문자로보내기와 같은 보조 버튼 군. 1순위(카카오톡) 버튼보다
+          위에 두지 않는다 — 이 화면의 목적은 공유다. */}
+          <button type="button" onClick={() => setIsPreviewOpen(true)} className="btn" style={{ width: '100%', marginBottom: '0.6rem', backgroundColor: 'var(--secondary-color)', color: 'var(--primary-color)', fontSize: 'var(--fs-caption)', padding: '0 1.2rem' }}>
+            <Eye size={15} /> 조문객 화면 미리보기
+          </button>
           {copyFeedback && <p style={{ fontSize: 'var(--fs-caption)', color: 'var(--point-color)', margin: '0 0 0.6rem 0' }}>{copyFeedback}</p>}
 
           <div style={{ fontSize: 'var(--fs-caption)', color: 'var(--text-muted)', wordBreak: 'break-all', backgroundColor: 'var(--secondary-color)', borderRadius: 'var(--r-sm)', padding: '0.6rem var(--sp-3)', marginBottom: '0.6rem' }}>
@@ -861,6 +895,54 @@ export const ObituaryPage: React.FC<ObituaryPageProps> = ({ currentUser, onOpenL
                   <X size={18} />
                 </button>
                 {formCard}
+              </div>
+            </div>
+          )}
+
+          {/* 07-03 §6.4 ⓐ·ⓓ — 조문객 화면 미리보기. 수정 모달과 같은 배경/블러/zIndex 패턴을
+          재사용하되, 🔴 이 모달은 90dvh를 쓴다(수정 모달의 90vh는 Phase 3에서 모달 5종과
+          함께 통일 — 지금 건드리지 않는다). */}
+          {isPreviewOpen && (
+            <div
+              onClick={() => setIsPreviewOpen(false)}
+              style={{
+                position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+                backgroundColor: 'rgba(0, 0, 0, 0.65)', backdropFilter: 'blur(4px)',
+                display: 'flex', alignItems: 'flex-start', justifyContent: 'center',
+                zIndex: 3000, padding: '2rem 1rem', overflowY: 'auto'
+              }}
+            >
+              <div
+                onClick={(e) => e.stopPropagation()}
+                style={{ position: 'relative', maxWidth: '460px', width: '100%', maxHeight: '90dvh', overflowY: 'auto', WebkitOverflowScrolling: 'touch', borderRadius: 'var(--r-lg)' }}
+              >
+                <button
+                  type="button"
+                  onClick={() => setIsPreviewOpen(false)}
+                  style={{
+                    position: 'absolute', top: '1rem', right: '1rem',
+                    background: 'var(--surface-subtle)', border: 'none', borderRadius: '50%',
+                    width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    cursor: 'pointer', color: 'var(--text-muted)', zIndex: 1
+                  }}
+                >
+                  <X size={18} />
+                </button>
+                {/* §6.4 ⓐ 배경 — 랜딩 껍데기의 #FBF9F5 + 좌우 여백을 모달 안에서 재현한다.
+                카드만 떠 있으면 실제 화면과 인상이 다르다. */}
+                <div style={{ backgroundColor: '#FBF9F5', padding: '2.5rem 1rem', display: 'flex', justifyContent: 'center' }}>
+                  <div style={{ width: '100%', maxWidth: '460px' }}>
+                    {/* §6.4 ⓓ — §5.4-2의 책임 경계를 미리보기를 보는 순간에도 말한다. */}
+                    <div style={{ display: 'flex', gap: '0.6rem', backgroundColor: 'var(--surface-subtle)', border: '1px solid var(--border-color)', borderRadius: 'var(--r-sm)', padding: 'var(--sp-4) 0.9rem', marginBottom: '1.25rem' }}>
+                      <Eye size={16} color="var(--text-muted)" style={{ flexShrink: 0, marginTop: '0.15rem' }} />
+                      <p style={{ fontSize: 'var(--fs-caption)', color: 'var(--text-muted)', margin: 0, lineHeight: 1.5 }}>
+                        조문객에게 보이는 화면입니다.<br />
+                        수정하면 이 화면은 바로 바뀌지만, 이미 보낸 카카오톡 카드는 바뀌지 않습니다.
+                      </p>
+                    </div>
+                    <ObituaryView data={buildPreviewData()} />
+                  </div>
+                </div>
               </div>
             </div>
           )}
