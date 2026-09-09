@@ -6,6 +6,7 @@ import { EobomLogo } from '../components/EobomLogo';
 import { apiFetch, ApiError } from '../lib/api';
 import { formatObituaryCardTitle, formatObituaryCardDescription, formatKST } from '../utils/obituaryCard';
 import { ensureKakaoShareReady, shareViaKakao, shareViaWebShareApi, copyObituaryLink, buildObituarySmsHref, reportObituaryShare } from '../utils/kakaoShare';
+import { useIsMobile } from '../hooks/useIsMobile';
 
 // 모바일 부고장 작성 화면(SCR-014 개편) — docs 07-03 §6.2 Phase 1 전면 재작성.
 // 이전 목업의 useState('홍길동') 하드코딩 초기값을 전부 제거했다 — 경황 없는 유족이 남의
@@ -83,6 +84,9 @@ export const ObituaryPage: React.FC<ObituaryPageProps> = ({ currentUser, onOpenL
   // obituaryId는 "힌트"일 뿐이라 이 값이 없어도(예: 그 필드만 지워졌어도) 동작해야 한다.
   const [obituaryId, setObituaryId] = useState<string | null>(null);
   const [showMoreFields, setShowMoreFields] = useState(false);
+  // sms: 링크는 모바일 OS 문자 앱 핸들러 전제 — 데스크탑엔 핸들러가 없어 눌러도 반응이 없다.
+  // §7 폴백 사다리 4번은 원래 "모바일 전용" 보조 버튼이라 데스크탑에선 숨기고 3번(링크 복사)이 대신 채운다.
+  const isMobile = useIsMobile();
 
   // 필수 4(§6.2): 고인 성함 · 상주 성함 · 빈소 위치 · 발인 일시
   const [deceasedName, setDeceasedName] = useState('');
@@ -742,9 +746,11 @@ export const ObituaryPage: React.FC<ObituaryPageProps> = ({ currentUser, onOpenL
             <button onClick={handleCopyLink} className="btn" style={{ flex: 1, backgroundColor: 'var(--secondary-color)', color: 'var(--primary-color)', fontSize: 'var(--fs-caption)', padding: '0 1.2rem' }}>
               <Copy size={15} /> 링크 복사
             </button>
-            <a href={buildObituarySmsHref(obituaryUrl, deceasedName)} className="btn" style={{ flex: 1, backgroundColor: 'var(--secondary-color)', color: 'var(--primary-color)', fontSize: 'var(--fs-caption)', padding: '0 1.2rem', textDecoration: 'none' }}>
-              문자로 보내기
-            </a>
+            {isMobile && (
+              <a href={buildObituarySmsHref(obituaryUrl, deceasedName)} className="btn" style={{ flex: 1, backgroundColor: 'var(--secondary-color)', color: 'var(--primary-color)', fontSize: 'var(--fs-caption)', padding: '0 1.2rem', textDecoration: 'none' }}>
+                문자로 보내기
+              </a>
+            )}
           </div>
           {copyFeedback && <p style={{ fontSize: 'var(--fs-caption)', color: 'var(--point-color)', margin: '0 0 0.6rem 0' }}>{copyFeedback}</p>}
 
