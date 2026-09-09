@@ -503,12 +503,13 @@ export const EntryBoxes: React.FC<EntryBoxesProps> = ({ currentUser, onOpenLogin
     // margin auto·padding 0 6vw)을 재사용한다 — 좌측 화살표의 왼쪽 끝이 히어로 텍스트 박스
     // (.hero-content-card)의 왼쪽 끝과 정렬되고, 같은 컨테이너라 우측도 자동으로 대칭 정렬된다.
     <div style={{ width: '100%', maxWidth: '1440px', margin: '0 auto', padding: '0 6vw' }}>
+      {/* 🔄 2026-09-09 — 하드코딩 문자열 → .section-title 프리미티브(폰트 정리 요청). */}
       <h2
+        className="section-title"
         style={{
           fontSize: 'clamp(1.5rem, 2.6vw, 2rem)',
           fontWeight: 'var(--fw-bold)',
           color: '#1A2B4C',
-          fontFamily: "'KoPub World Batang', 'KoPubWorld 명조', serif",
           textAlign: 'center',
           marginBottom: '1.4rem',
         }}

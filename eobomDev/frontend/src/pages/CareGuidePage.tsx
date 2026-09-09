@@ -197,7 +197,10 @@ export const CareGuidePage: React.FC<CareGuidePageProps> = ({ setActiveTab }) =>
                 }}
               >
                 {isOpen ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
-                <span style={{ fontFamily: 'var(--font-serif)', fontSize: 'var(--fs-section)' }}>{section.label}</span>
+                {/* 🔄 2026-09-09 — --fs-section(20px)은 00-09 §6.3 규칙1이 정한 명조 대상
+                    (--fs-title·--fs-display, 22px~)보다 작다 — 아코디언 목록 항목이라 화면
+                    제목이 아니다. 명조체 제거(폰트 정리 요청). */}
+                <span style={{ fontSize: 'var(--fs-section)' }}>{section.label}</span>
                 {isMonth3 && <span style={{ color: 'var(--state-critical-fg)' }}>⭐</span>}
                 <span style={{ fontSize: 'var(--fs-caption)', color: 'var(--text-muted)', fontVariantNumeric: 'tabular-nums' }}>
                   ({group.length})

@@ -412,13 +412,15 @@ export const HomePage: React.FC<HomePageProps> = ({ currentUser, onOpenLogin, se
                 <Sparkles size={16} color="var(--point-color)" /> 디지털 엔딩 &amp; 웰다잉 토탈 케어 이어봄 (Eobom)
               </div>
 
+              {/* 🔄 2026-09-09 — 하드코딩 문자열 → .section-title 프리미티브(00-09 §6.3
+                  규칙1·§6.5, 폰트 정리 요청). */}
               <h1
+                className="section-title"
                 style={{
                   fontSize: 'clamp(2rem, 4vw, 3.1rem)',
                   fontWeight: 700,
                   color: '#1A2B4C',
                   lineHeight: 1.35,
-                  fontFamily: "'KoPub World Batang', 'KoPubWorld 명조', serif",
                   marginBottom: '1.3rem',
                   letterSpacing: '-0.02em'
                 }}
@@ -535,14 +537,15 @@ export const HomePage: React.FC<HomePageProps> = ({ currentUser, onOpenLogin, se
               <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', backgroundColor: 'var(--state-warn-bg)', color: 'var(--accent-gold)', padding: '0.4rem 1rem', borderRadius: 'var(--r-lg)', fontSize: 'var(--fs-body)', fontWeight: 700 }}>
                 <Sparkles size={15} color="var(--accent-gold)" /> 이어봄과 함께하는 존엄하고 따뜻한 준비
               </div>
+              {/* 🔄 2026-09-09 — 하드코딩 문자열 → .section-title 프리미티브(폰트 정리 요청). */}
               <h2
+                className="section-title"
                 style={{
                   fontSize: 'clamp(1.8rem, 3vw, 2.6rem)',
                   color: '#1A2B4C',
                   fontWeight: 'var(--fw-bold)',
                   margin: 0,
-                  lineHeight: 1.35,
-                  fontFamily: "'KoPub World Batang', serif"
+                  lineHeight: 1.35
                 }}
               >
                 당신과 사랑하는 가족의<br />

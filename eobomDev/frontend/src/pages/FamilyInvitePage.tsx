@@ -221,7 +221,8 @@ export const FamilyInvitePage: React.FC<FamilyInvitePageProps> = ({ currentUser,
     <div style={shellStyle}>
       <div style={cardStyle}>
         <HeartHandshake size={40} color="var(--point-color)" style={{ marginBottom: 'var(--sp-3)' }} />
-        <h1 style={{ fontSize: '1.3rem', color: '#1A2B4C', fontFamily: "'KoPub World Batang', serif", marginBottom: '0.6rem' }}>
+        {/* 🔄 2026-09-09 — 하드코딩 문자열 → .section-title 프리미티브(폰트 정리 요청). */}
+        <h1 className="section-title" style={{ fontSize: '1.3rem', color: '#1A2B4C', marginBottom: '0.6rem' }}>
           {data?.designatorName}님이 당신을 가족으로 지정했습니다
         </h1>
         <p style={{ fontSize: 'var(--fs-body)', color: '#6C7A89', lineHeight: 1.6, marginBottom: '1.4rem' }}>

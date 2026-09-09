@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { MessageSquare, Send, Copy, Plus, X, ChevronDown, ChevronUp, AlertTriangle, LogIn, Heart, PowerOff, Flower2, Loader2 } from 'lucide-react';
+import { MessageSquare, Send, Copy, Plus, X, ChevronDown, ChevronUp, ChevronRight, AlertTriangle, LogIn, Heart, PowerOff, Flower2, Loader2, Pencil } from 'lucide-react';
 import { OBITUARY_CARD_IMAGE_URL } from '../config';
+import { EobomLogo } from '../components/EobomLogo';
 import { apiFetch, ApiError } from '../lib/api';
 import { formatObituaryCardTitle, formatObituaryCardDescription, formatKST } from '../utils/obituaryCard';
 import { ensureKakaoShareReady, shareViaKakao, shareViaWebShareApi, copyObituaryLink, buildObituarySmsHref, reportObituaryShare } from '../utils/kakaoShare';
@@ -59,11 +60,13 @@ const ObituaryManageSkeleton: React.FC = () => (
       </div>
 
       {/* 카드 미리보기 + 공유 패널 자리 */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-        <div style={{ backgroundColor: '#1A2B4C', borderRadius: 'var(--r-lg)', padding: '1.25rem' }}>
-          <div className="skeleton-block" style={{ width: '100%', height: '160px', borderRadius: 'var(--r-sm)', backgroundColor: 'rgba(255,255,255,0.15)' }} />
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+        {/* 🔄 2026-09-09 — 실제 previewCard 배경(#DCE3E8, 쿨톤 대안)·최대폭(360px)·왼쪽 정렬에
+            맞춰 스켈레톤도 맞췄다(로딩→실제 전환 시 색·폭·정렬이 튀지 않게). */}
+        <div style={{ backgroundColor: '#DCE3E8', borderRadius: 'var(--r-lg)', padding: '1.25rem', maxWidth: '360px', margin: '0' }}>
+          <div className="skeleton-block" style={{ width: '67%', minWidth: '220px', height: '160px', borderRadius: 'var(--r-sm)', margin: '0', backgroundColor: 'rgba(255,255,255,0.6)' }} />
         </div>
-        <div style={{ backgroundColor: 'var(--card-bg)', padding: '1.5rem', borderRadius: 'var(--border-radius)', boxShadow: 'var(--box-shadow)' }}>
+        <div style={{ backgroundColor: 'var(--card-bg)', padding: '1.5rem', borderRadius: 'var(--border-radius)', boxShadow: 'var(--box-shadow)', maxWidth: '360px', margin: '0', width: '100%' }}>
           <div className="skeleton-block" style={{ width: '100%', height: '48px', borderRadius: 'var(--r-sm)', marginBottom: '0.6rem' }} />
           <div className="skeleton-block" style={{ width: '100%', height: '40px', borderRadius: 'var(--r-sm)' }} />
         </div>
@@ -127,6 +130,9 @@ export const ObituaryPage: React.FC<ObituaryPageProps> = ({ currentUser, onOpenL
   const [isClosed, setIsClosed] = useState(false);
   const [closedAt, setClosedAt] = useState<string | null>(null);
   const [isClosing, setIsClosing] = useState(false);
+
+  // 🆕 2026-09-09 사용자 지시 — 관리 모드(obituaryRef 있음)에서 수정 폼을 모달로 연다.
+  const [isEditOpen, setIsEditOpen] = useState(false);
 
   // 🆕 09-07 사용자 지시 — 부고장이 종료된 뒤에도 이 화면에 다시 들어오면 항상 그 종료된
   // 부고장(localStorage 포인터)만 보였다. 새로 하나 더 쓸 방법이 화면에 없었다 — 포인터를
@@ -354,6 +360,7 @@ export const ObituaryPage: React.FC<ObituaryPageProps> = ({ currentUser, onOpenL
         if (data.cardFieldsChanged) {
           setCardFieldsUpdatedAt(data.cardFieldsUpdatedAt);
         }
+        setIsEditOpen(false);
       }
     } catch (e) {
       setErrorMsg(e instanceof ApiError ? e.message : '서버와 통신 중 오류가 발생했습니다.');
@@ -466,6 +473,324 @@ export const ObituaryPage: React.FC<ObituaryPageProps> = ({ currentUser, onOpenL
     return <ObituaryManageSkeleton />;
   }
 
+  // 🔄 2026-09-09 사용자 지시 — 부고장이 이미 있으면(obituaryRef) 미리보기·공유가 먼저 보이고,
+  // 수정 폼은 "수정" 버튼으로 여는 모달 안으로 옮긴다. 개설 전(폼만 있는 상태)은 기존 2열
+  // 그리드를 그대로 쓴다. formCard·previewCard·managePanel을 변수로 빼서 두 레이아웃에서
+  // 같은 JSX를 재사용한다(중복 없이, 데스크톱·모바일 공통).
+  const formCard = (
+    <form onSubmit={handleSubmit} style={{ backgroundColor: 'var(--card-bg)', padding: '1.5rem', borderRadius: 'var(--border-radius)', boxShadow: 'var(--box-shadow)' }}>
+      <div className="form-group">
+        <label className="form-label">고인 성함 *</label>
+        <input value={deceasedName} onChange={(e) => setDeceasedName(e.target.value)} className="form-input" placeholder="예: 홍길동" required />
+      </div>
+
+      <div style={{ display: 'flex', gap: '0.6rem' }}>
+        <div className="form-group" style={{ flex: 2 }}>
+          <label className="form-label">상주 성함 *</label>
+          <input value={chiefMournerName} onChange={(e) => setChiefMournerName(e.target.value)} className="form-input" placeholder="예: 홍상주" required />
+        </div>
+        <div className="form-group" style={{ flex: 1 }}>
+          <label className="form-label">고인과의 관계</label>
+          <input value={chiefMournerRelationship} onChange={(e) => setChiefMournerRelationship(e.target.value)} className="form-input" placeholder="상주" />
+        </div>
+      </div>
+
+      <div className="form-group">
+        <label className="form-label">빈소 위치 *</label>
+        <input value={funeralHall} onChange={(e) => setFuneralHall(e.target.value)} className="form-input" placeholder="예: 서울 평안 장례식장" required />
+      </div>
+
+      <div className="form-group">
+        <label className="form-label">발인 일시 *</label>
+        <input type="datetime-local" value={funeralAt} onChange={(e) => setFuneralAt(e.target.value)} className="form-input" required />
+      </div>
+
+      <div className="form-group">
+        <label className="form-label">연락처</label>
+        <input type="tel" value={contactPhone} onChange={(e) => setContactPhone(e.target.value)} className="form-input" placeholder="010-0000-0000 (입력하면 부고장에 노출됩니다)" />
+        <p style={{ fontSize: 'var(--fs-body)', color: 'var(--text-muted)', marginTop: '0.3rem' }}>
+          입력하신 번호는 부고장을 받은 모든 분에게 보입니다.
+        </p>
+      </div>
+
+      {/* 마음 전하실 곳 — 명시적 토글, 기본 OFF(§6.2-2). 연락처와 달리 "입력=노출"이 아니라
+              토글 자체가 경고를 띄울 자리다 — 켜는 순간 재전파 경고를 보여준다. */}
+      <div className="form-group" style={{ backgroundColor: 'var(--secondary-color)', borderRadius: 'var(--r-sm)', padding: '0.9rem 1rem' }}>
+        <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', marginBottom: accountEnabled ? 'var(--fs-body)' : 0 }}>
+          <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontWeight: 700, color: 'var(--primary-color)', fontSize: 'var(--fs-body)' }}>
+            <Heart size={16} color="var(--point-color)" /> 마음 전하실 곳
+          </span>
+          <input type="checkbox" checked={accountEnabled} onChange={(e) => setAccountEnabled(e.target.checked)} style={{ width: '20px', height: '20px' }} />
+        </label>
+
+        {accountEnabled && (
+          <>
+            <div style={{ fontSize: 'var(--fs-body)', color: 'var(--state-warn-fg)', backgroundColor: 'var(--state-warn-bg)', border: '1px solid var(--state-warn-bg)', borderRadius: 'var(--r-sm)', padding: '0.6rem var(--sp-3)', marginBottom: 'var(--sp-3)', lineHeight: 1.5 }}>
+              이 계좌번호는 부고장을 받은 분이 다시 공유할 수 있습니다.
+            </div>
+            <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem' }}>
+              <input value={accountBankCode} onChange={(e) => setAccountBankCode(e.target.value)} className="form-input" placeholder="은행명 (예: 국민은행)" style={{ flex: 1 }} />
+              <input value={accountHolder} onChange={(e) => setAccountHolder(e.target.value)} className="form-input" placeholder="예금주" style={{ flex: 1 }} />
+            </div>
+            <input value={accountNumber} onChange={(e) => setAccountNumber(e.target.value)} className="form-input" placeholder="계좌번호" />
+          </>
+        )}
+      </div>
+
+      <button
+        type="button"
+        onClick={() => setShowMoreFields((v) => !v)}
+        style={{ background: 'none', border: 'none', color: 'var(--point-color)', fontWeight: 700, fontSize: 'var(--fs-body)', display: 'flex', alignItems: 'center', gap: '0.3rem', cursor: 'pointer', padding: 0, marginBottom: '1rem' }}
+      >
+        {showMoreFields ? <ChevronUp size={16} /> : <ChevronDown size={16} />} 선택 정보 더보기 (별세 일시·호실·입관·장지·유족 추가)
+      </button>
+
+      {showMoreFields && (
+        <div style={{ borderTop: '1px solid var(--border-color)', paddingTop: '1rem', marginBottom: '0.5rem' }}>
+          <div className="form-group">
+            <label className="form-label">별세 일시</label>
+            <input type="datetime-local" value={deathDate} onChange={(e) => setDeathDate(e.target.value)} className="form-input" />
+          </div>
+          <div className="form-group">
+            <label className="form-label">빈소 주소 (길찾기용)</label>
+            <input value={funeralHallAddr} onChange={(e) => setFuneralHallAddr(e.target.value)} className="form-input" placeholder="예: 서울특별시 강남구 ..." />
+          </div>
+          <div className="form-group">
+            <label className="form-label">호실</label>
+            <input value={mourningRoom} onChange={(e) => setMourningRoom(e.target.value)} className="form-input" placeholder="예: 201호" />
+          </div>
+          <div className="form-group">
+            <label className="form-label">입관</label>
+            <input type="datetime-local" value={coffinAt} onChange={(e) => setCoffinAt(e.target.value)} className="form-input" />
+          </div>
+          <div className="form-group">
+            <label className="form-label">장지</label>
+            <input value={burialSite} onChange={(e) => setBurialSite(e.target.value)} className="form-input" placeholder="예: OO추모공원" />
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">유족 추가</label>
+            {mourners.map((m, idx) => (
+              <div key={idx} style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                <input value={m.relationship} onChange={(e) => updateMourner(idx, 'relationship', e.target.value)} className="form-input" placeholder="관계 (예: 장남)" style={{ flex: 1 }} />
+                <input value={m.name} onChange={(e) => updateMourner(idx, 'name', e.target.value)} className="form-input" placeholder="성함" style={{ flex: 1.5 }} />
+                <button type="button" onClick={() => removeMourner(idx)} className="btn" style={{ backgroundColor: 'var(--secondary-color)', padding: '0 var(--sp-4)' }}>
+                  <X size={16} />
+                </button>
+              </div>
+            ))}
+            <button type="button" onClick={addMourner} className="btn" style={{ backgroundColor: 'var(--secondary-color)', color: 'var(--primary-color)', fontSize: 'var(--fs-body)', height: '40px' }}>
+              <Plus size={16} /> 유족 추가
+            </button>
+          </div>
+        </div>
+      )}
+
+      {!obituaryRef && (
+        <div style={{ backgroundColor: 'var(--secondary-color)', borderRadius: 'var(--r-sm)', padding: '1rem', marginTop: '0.5rem', marginBottom: '1.25rem', display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
+          {/* 🔄 09-07 사용자 지시 — 부고장 개설이 더는 추모관을 자동으로 만들지 않는다.
+                  이 체크박스를 켜야만 개설 시 추모관도 함께 만들어 연결한다. 꺼두면 나중에
+                  공유 패널의 "추모관 만들기" 버튼(사후 연결, `00-13` §4.5-4-2 ㉮)이나
+                  /memorial에서 독립적으로 만들 수 있다. */}
+          <label style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', fontSize: 'var(--fs-body)', cursor: 'pointer' }}>
+            <input type="checkbox" checked={createMemorial} onChange={(e) => setCreateMemorial(e.target.checked)} style={{ marginTop: '0.2rem' }} />
+            <span>[선택] 이 부고장과 함께 추모관도 만들기 — 조문객이 온라인으로 헌화·방명록을 남길 수 있는 공간입니다. 나중에 &lsquo;디지털 추모관&rsquo; 화면에서 따로 만들 수도 있습니다.</span>
+          </label>
+          <label style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', fontSize: 'var(--fs-body)', cursor: 'pointer' }}>
+            <input type="checkbox" checked={falseReportAgreed} onChange={(e) => setFalseReportAgreed(e.target.checked)} style={{ marginTop: '0.2rem' }} />
+            <span>[필수] 허위로 부고장을 개설할 경우 법적 책임을 질 수 있다는 점에 동의합니다.</span>
+          </label>
+          <label style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', fontSize: 'var(--fs-body)', cursor: 'pointer' }}>
+            <input type="checkbox" checked={resharedNoticeAck} onChange={(e) => setResharedNoticeAck(e.target.checked)} style={{ marginTop: '0.2rem' }} />
+            <span>[필수] 이 부고장을 전달받은 분이 다시 다른 곳에 공유할 수 있다는 점을 확인했습니다.</span>
+          </label>
+        </div>
+      )}
+
+      {errorMsg && (
+        <div style={{ fontSize: 'var(--fs-body)', color: 'var(--state-danger-fg)', backgroundColor: 'var(--state-danger-bg)', border: '1px solid var(--state-danger-bg)', borderRadius: 'var(--r-sm)', padding: 'var(--sp-3) 0.9rem', marginBottom: '1rem' }}>
+          {errorMsg}
+        </div>
+      )}
+
+      <button type="submit" disabled={isSubmitting} className="btn btn-primary" style={{ width: '100%' }}>
+        {isSubmitting ? '처리 중...' : obituaryRef ? '수정 사항 저장' : '부고장 만들기'}
+      </button>
+    </form>
+  );
+
+  // 🔄 2026-09-09 — 실제 카카오톡 카드 스크린샷(assets/obituary_card.png)과 대조해 정정.
+  // 기존엔 이미지가 height:120px·cover로 잘려 실제(거의 정사각형, 크림색 배경)와 달랐고,
+  // "부고장 보기" 버튼 행·"이어봄" 출처 행이 아예 빠져 있었다. 실측(픽셀 샘플링) 기준:
+  // 이미지 영역 크림색 배경 rgb(240,234,224)·버튼 배경 rgb(246,247,248), 이미지:본문 비율
+  // 약 207:145(전체 353중).
+  const previewCard = (
+    // 🔄 2026-09-09 — 배경색 "쿨톤 대안"(#DCE3E8) 확정. 카드는 카톡 수신 메시지처럼
+    // (가운데 정렬이 아니라) 왼쪽에 붙인다. 섹션(이 바깥 박스) 자체 폭은 360→432px(20%↑,
+    // "카드 섹션만 늘려라"는 사용자 지시 — 공유 섹션(managePanel)은 그대로 420px).
+    <div style={{ backgroundColor: '#DCE3E8', color: 'var(--text-main)', borderRadius: 'var(--r-lg)', padding: '1.25rem', boxShadow: 'var(--box-shadow)', maxWidth: '432px', margin: '0' }}>
+      <p style={{ fontSize: 'var(--fs-body)', color: 'var(--text-muted)', marginBottom: '0.5rem', textTransform: 'uppercase', letterSpacing: '0.03em' }}>카카오톡 카드 미리보기</p>
+      {/* 🔄 2026-09-09 — 카드 폭 20%↑(67%→80%, 사용자 지시). position:relative는 관리 모드
+          수정 버튼(아이콘 칩)을 카드 우상단에 절대배치하기 위한 기준점. */}
+      <div style={{ backgroundColor: '#FFFFFF', borderRadius: 'var(--r-sm)', overflow: 'hidden', width: '80%', minWidth: '220px', margin: '0', boxShadow: '0 2px 8px rgba(0,0,0,0.12)', position: 'relative' }}>
+        {/* 🔄 2026-09-09 — "수정" 버튼을 아래 별도 버튼에서 카드 우상단 아이콘 칩으로 교체
+            (버튼 크기 시안 5개 중 사용자가 "아이콘 칩" 선택). obituaryRef가 있을 때(관리 모드)만
+            뜬다 — previewCard가 작성 모드에서도 재사용되기 때문. 🔴 40×40px는 이 프로젝트
+            접근성 기준 --min-touch-target(56px) 미만이다 — 사용자에게 명시적으로 알리고
+            선택받았다(시안 아티팩트에 경고 표시함). */}
+        {obituaryRef && (
+          // 🆕 2026-09-09 사용자 지시 — 마우스오버 시 "수정하기" 글자가 가로로 펼쳐지며
+          // 나타난다(.obituary-edit-chip, index.css). 아이콘 칩 자체가 40px라 접근성
+          // 터치 타깃 미만인 건 여전하다(시안에서 사용자에게 알리고 선택받음) — 다만
+          // 호버로 라벨이 보이면 최소한 클릭 전 "이게 뭔지"는 더 분명해진다.
+          <button
+            type="button"
+            onClick={() => setIsEditOpen(true)}
+            aria-label="부고장 정보 수정"
+            className="obituary-edit-chip"
+            style={{
+              position: 'absolute', top: '0.6rem', right: '0.6rem', zIndex: 1,
+              height: '40px',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              backgroundColor: '#E3E8E1', color: 'var(--point-color)',
+              border: '1px solid rgba(91, 112, 101, 0.3)', boxShadow: '0 2px 6px rgba(0,0,0,0.15)',
+              cursor: 'pointer'
+            }}
+          >
+            <Pencil size={16} style={{ flexShrink: 0 }} />
+            <span className="chip-label">수정하기</span>
+          </button>
+        )}
+        <div style={{ backgroundColor: '#F0EAE0', aspectRatio: '1 / 1' }}>
+          <img src={OBITUARY_CARD_IMAGE_URL} alt="근조 카드 이미지" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+        </div>
+        <div style={{ padding: '0.9rem 0.9rem 0' }}>
+          <p style={{ color: '#1F2937', fontWeight: 'var(--fw-bold)', fontSize: 'var(--fs-body)', margin: '0 0 0.3rem 0' }}>
+            {cardTitle || '[부고] 故 ○○○ 님'}
+          </p>
+          <p style={{ color: '#6B7280', fontSize: 'var(--fs-caption)', margin: 0, whiteSpace: 'pre-line', lineHeight: 1.5 }}>
+            {cardDescription || '빈소·발인 정보를 입력하면 여기에 표시됩니다.'}
+          </p>
+        </div>
+        <div style={{ padding: '0.7rem 0.9rem 0' }}>
+          <div style={{ backgroundColor: '#F6F7F8', borderRadius: 'var(--r-sm)', textAlign: 'center', padding: '0.6rem', fontSize: 'var(--fs-caption)', fontWeight: 700, color: '#1F2937' }}>
+            부고장 보기
+          </div>
+        </div>
+        <div style={{ margin: '0.7rem 0.9rem 0', borderTop: '1px solid #EDEDED', padding: '0.6rem 0', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <span style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: 'var(--fs-caption)', color: '#9CA3AF' }}>
+            <EobomLogo variant="symbol" height={16} /> 이어봄
+          </span>
+          <ChevronRight size={14} color="#9CA3AF" />
+        </div>
+      </div>
+    </div>
+  );
+
+  const managePanel = (
+    // 🔄 2026-09-09 — 왼쪽 미리보기 섹션 폭을 줄인 것과 맞춰 공유 섹션도 maxWidth:420px로
+    // 줄였다(사용자 지시 "공유 섹션도 줄인다"). 이후 미리보기 섹션만 360px로 한 번 더 줄었는데
+    // (왼쪽 정렬로 바뀌며), 공유 섹션은 별도 지시가 없어 420px 그대로 뒀다.
+    // 🆕 2026-09-09 — "섹션 폭이 줄어든 만큼 버튼·내부 폰트도 줄여라"(사용자 지시)에 따라
+    // 이 패널 안의 본문 텍스트는 --fs-body(16px)→--fs-caption(14px)로, 버튼류는
+    // 좌우 패딩을 1.8rem(.btn 기본)→1.2rem으로 줄였다. 🔴 버튼 높이(--min-touch-target)는
+    // 접근성 터치 타깃 규정(§4.5-5 논의)이라 손대지 않았다 — 폭·글자만 줄인다.
+    // 🔄 2026-09-09 — flex-wrap 레이아웃으로 바뀌며 `margin:0 auto`·`width:100%`(그리드 컬럼
+    // 중앙정렬·꽉채우기용)는 더 이상 안 맞는다 — flex 아이템이 `width:100%`면 부모 행 전체를
+    // 차지하려 들어 옆 섹션이 못 붙는다. 콘텐츠 폭대로 놓이게 두고 maxWidth만 상한으로 둔다.
+    <div style={{ backgroundColor: 'var(--card-bg)', padding: '1.5rem', borderRadius: 'var(--border-radius)', boxShadow: 'var(--box-shadow)', flex: '0 1 420px' }}>
+      {isClosed ? (
+        <>
+          <div style={{ display: 'flex', gap: '0.6rem', backgroundColor: 'var(--surface-subtle)', border: '1px solid var(--border-color)', borderRadius: 'var(--r-sm)', padding: 'var(--sp-4) 0.9rem', marginBottom: '1.1rem' }}>
+            <PowerOff size={18} color="#475569" style={{ flexShrink: 0, marginTop: '0.1rem' }} />
+            <p style={{ fontSize: 'var(--fs-caption)', color: '#334155', margin: 0, lineHeight: 1.5 }}>
+              종료된 부고장입니다. 조문객은 더 이상 이 링크로 볼 수 없습니다{closedAt ? ` (${formatKST(closedAt)} 종료)` : ' (발인 3일 경과로 자동 종료)'}.
+            </p>
+          </div>
+          {/* 🆕 09-07 사용자 지시 — 종료된 부고장 화면에 다시 들어와도 새로 하나 쓸
+                      방법이 없었다. 눈에 띄게 위에 둔다. */}
+          <button type="button" onClick={handleStartNew} className="btn btn-point" style={{ width: '100%', marginBottom: '1.1rem', fontSize: 'var(--fs-caption)', padding: '0 1.2rem' }}>
+            <Plus size={16} /> 새 부고장 작성하기
+          </button>
+          {memorialUrl ? (
+            <a href={memorialUrl} target="_blank" rel="noreferrer" style={{ fontSize: 'var(--fs-caption)', color: 'var(--point-color)', fontWeight: 700, textDecoration: 'underline' }}>
+              연결된 추모관은 계속 열람할 수 있습니다 →
+            </a>
+          ) : (
+            <button type="button" onClick={handleCreateMemorial} disabled={linkingMemorial} className="btn" style={{ backgroundColor: 'var(--secondary-color)', color: 'var(--primary-color)', fontSize: 'var(--fs-caption)', padding: '0 1.2rem' }}>
+              {linkingMemorial ? <><Loader2 size={15} /> 만드는 중...</> : <><Flower2 size={15} /> 추모관 만들기</>}
+            </button>
+          )}
+        </>
+      ) : (
+        <>
+          {cardFieldsUpdatedAt && (
+            <div style={{ display: 'flex', gap: '0.6rem', backgroundColor: 'var(--state-critical-bg)', border: '1px solid var(--state-critical-bg)', borderRadius: 'var(--r-sm)', padding: 'var(--sp-4) 0.9rem', marginBottom: '1.1rem' }}>
+              <AlertTriangle size={18} color="var(--state-critical-fg)" style={{ flexShrink: 0, marginTop: '0.1rem' }} />
+              <p style={{ fontSize: 'var(--fs-caption)', color: '#7C2D12', margin: 0, lineHeight: 1.5 }}>
+                이미 보낸 카드에는 반영되지 않습니다. 아래 버튼으로 다시 공유해 주세요.
+              </p>
+            </div>
+          )}
+
+          <h3 style={{ color: 'var(--primary-color)', marginBottom: '0.9rem', fontSize: '0.95rem' }}>부고장 공유</h3>
+
+          <button onClick={handleShare} className="btn btn-point" style={{ width: '100%', marginBottom: '0.6rem', fontSize: 'var(--fs-caption)', padding: '0 1.2rem' }}>
+            <Send size={16} /> 카카오톡으로 부고 알리기
+          </button>
+          <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.6rem' }}>
+            <button onClick={handleCopyLink} className="btn" style={{ flex: 1, backgroundColor: 'var(--secondary-color)', color: 'var(--primary-color)', fontSize: 'var(--fs-caption)', padding: '0 1.2rem' }}>
+              <Copy size={15} /> 링크 복사
+            </button>
+            <a href={buildObituarySmsHref(obituaryUrl, deceasedName)} className="btn" style={{ flex: 1, backgroundColor: 'var(--secondary-color)', color: 'var(--primary-color)', fontSize: 'var(--fs-caption)', padding: '0 1.2rem', textDecoration: 'none' }}>
+              문자로 보내기
+            </a>
+          </div>
+          {copyFeedback && <p style={{ fontSize: 'var(--fs-caption)', color: 'var(--point-color)', margin: '0 0 0.6rem 0' }}>{copyFeedback}</p>}
+
+          <div style={{ fontSize: 'var(--fs-caption)', color: 'var(--text-muted)', wordBreak: 'break-all', backgroundColor: 'var(--secondary-color)', borderRadius: 'var(--r-sm)', padding: '0.6rem var(--sp-3)', marginBottom: '0.6rem' }}>
+            {obituaryUrl}
+          </div>
+
+          {/* 🔄 09-07 — 추모관은 이제 선택이라 없을 수 있다("있다면"만 보여준다).
+                      없으면 "사후 연결"(`00-13` §4.5-4-2 ㉮) 버튼 하나로 바로 만든다 —
+                      체크박스→저장 형태가 아니라 버튼 하나로(사용자 지시). */}
+          {memorialUrl ? (
+            <a href={memorialUrl} target="_blank" rel="noreferrer" style={{ fontSize: 'var(--fs-caption)', color: 'var(--point-color)', fontWeight: 700, textDecoration: 'underline' }}>
+              연결된 추모관 미리 보기 →
+            </a>
+          ) : (
+            <button type="button" onClick={handleCreateMemorial} disabled={linkingMemorial} className="btn" style={{ backgroundColor: 'var(--secondary-color)', color: 'var(--primary-color)', fontSize: 'var(--fs-caption)', padding: '0 1.2rem' }}>
+              {linkingMemorial ? <><Loader2 size={15} /> 만드는 중...</> : <><Flower2 size={15} /> 추모관 만들기</>}
+            </button>
+          )}
+
+          {updatedAt && (
+            <p style={{ fontSize: 'var(--fs-caption)', color: 'var(--text-muted)', marginTop: '1rem' }}>
+              최종 수정: {formatKST(updatedAt)}
+            </p>
+          )}
+
+          {/* §6.2-3·§9 #9 — 연락처·계좌 노출을 실제로 막는 유일한 완화책. 눈에 띄게 둔다. */}
+          <div style={{ borderTop: '1px solid var(--border-color)', marginTop: '1.2rem', paddingTop: '1.1rem' }}>
+            <button
+              type="button"
+              onClick={handleCloseObituary}
+              disabled={isClosing}
+              className="btn"
+              style={{ width: '100%', backgroundColor: 'var(--state-danger-bg)', color: 'var(--state-danger-fg)', border: '1px solid var(--state-danger-bg)', fontSize: 'var(--fs-caption)', padding: '0 1.2rem' }}
+            >
+              <PowerOff size={16} /> {isClosing ? '종료 중...' : '부고장 종료'}
+            </button>
+            <p style={{ fontSize: 'var(--fs-caption)', color: 'var(--text-muted)', margin: '0.5rem 0 0 0', lineHeight: 1.5 }}>
+              종료하면 조문객이 더 이상 이 링크로 볼 수 없습니다(연락처·계좌 노출 방지, 되돌릴 수 없음). 종료하지 않아도 발인 3일 후 자동으로 종료됩니다.
+            </p>
+          </div>
+        </>
+      )}
+    </div>
+  );
+
   return (
     <div className="container" style={{ paddingBottom: '3rem' }}>
       <div style={{ marginBottom: '1.5rem' }}>
@@ -480,264 +805,71 @@ export const ObituaryPage: React.FC<ObituaryPageProps> = ({ currentUser, onOpenL
         </p>
       </div>
 
-      {/* 00-29 §6.1 .auto-grid — min(280px,100%) 폴백으로 375px 가로 스크롤 방지(기존
-          minmax(340px,1fr) 고정값은 375px에서 스크롤 유발). 개설 전(폼)·관리 모드(2단) 모두
-          같은 2열 그리드를 써서 폼 박스 크기가 동일하게 유지되도록 한다(09-07 사용자 지시 —
-          개설 전 폼이 강제 1열 탓에 컨테이너 전체 폭(1440px)까지 늘어나 있었음). */}
-      <div className="auto-grid" style={{ alignItems: 'start' }}>
-        {/* 작성 폼 */}
-        <form onSubmit={handleSubmit} style={{ backgroundColor: 'var(--card-bg)', padding: '1.5rem', borderRadius: 'var(--border-radius)', boxShadow: 'var(--box-shadow)' }}>
-          <div className="form-group">
-            <label className="form-label">고인 성함 *</label>
-            <input value={deceasedName} onChange={(e) => setDeceasedName(e.target.value)} className="form-input" placeholder="예: 홍길동" required />
-          </div>
-
-          <div style={{ display: 'flex', gap: '0.6rem' }}>
-            <div className="form-group" style={{ flex: 2 }}>
-              <label className="form-label">상주 성함 *</label>
-              <input value={chiefMournerName} onChange={(e) => setChiefMournerName(e.target.value)} className="form-input" placeholder="예: 홍상주" required />
+      {obituaryRef ? (
+        <>
+          {/* 🔄 2026-09-09 — 관리 모드: 왼쪽(미리보기+수정)·오른쪽(공유). 수정은 버튼→모달.
+              🔴 간격 버그 진단: `.auto-grid`는 컬럼을 `1fr`로 늘려 채우는 그리드라(00-29 §6.1),
+              `.container` min-width:1024px(00-38) 이후 각 컬럼이 콘텐츠(432px/420px)보다
+              훨씬 넓어졌다. 그 안에서 콘텐츠를 `margin:0 auto`로 "컬럼 중앙 정렬"해 뒀던 탓에
+              두 컨텐츠 사이에 (컬럼 여유폭 + grid gap)만큼 넓은 여백이 생겼다 — gap 자체를
+              줄여도 컬럼 안쪽 여백은 그대로라 안 좁아졌던 것. `.auto-grid`(1fr 스트레치) 대신
+              flex-wrap으로 바꿔 컨텐츠 폭만큼만 차지하게 하고, 남는 공간은 오른쪽(줄 끝)으로
+              보낸다 — 두 섹션 사이는 정확히 gap만큼만 남는다. 768px 이하에서는 두 섹션 폭
+              합(432+420+16)이 뷰포트를 넘어서 자동으로 줄바꿈(세로 스택)된다. */}
+          {/* 🔄 2026-09-09 — 두 섹션 그룹 전체가 컨테이너 안에서 왼쪽으로 치우쳐 보인다는
+              지적으로 justifyContent:center 추가 — .container가 넓어도(00-38 min-width:1024px)
+              두 섹션(432+420+gap)이 가운데로 모인다. */}
+          {/* 🔄 2026-09-09 — 수정 버튼을 카드 아래 별도 버튼에서 카드 우상단 아이콘 칩으로
+              옮기면서(사용자가 시안 5개 중 선택) 이 왼쪽 칸엔 이제 previewCard 하나뿐이다. */}
+          <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'flex-start', justifyContent: 'center', gap: '1rem' }}>
+            <div style={{ flex: '0 1 432px' }}>
+              {previewCard}
             </div>
-            <div className="form-group" style={{ flex: 1 }}>
-              <label className="form-label">고인과의 관계</label>
-              <input value={chiefMournerRelationship} onChange={(e) => setChiefMournerRelationship(e.target.value)} className="form-input" placeholder="상주" />
-            </div>
+            {managePanel}
           </div>
 
-          <div className="form-group">
-            <label className="form-label">빈소 위치 *</label>
-            <input value={funeralHall} onChange={(e) => setFuneralHall(e.target.value)} className="form-input" placeholder="예: 서울 평안 장례식장" required />
-          </div>
-
-          <div className="form-group">
-            <label className="form-label">발인 일시 *</label>
-            <input type="datetime-local" value={funeralAt} onChange={(e) => setFuneralAt(e.target.value)} className="form-input" required />
-          </div>
-
-          <div className="form-group">
-            <label className="form-label">연락처</label>
-            <input type="tel" value={contactPhone} onChange={(e) => setContactPhone(e.target.value)} className="form-input" placeholder="010-0000-0000 (입력하면 부고장에 노출됩니다)" />
-            <p style={{ fontSize: 'var(--fs-body)', color: 'var(--text-muted)', marginTop: '0.3rem' }}>
-              입력하신 번호는 부고장을 받은 모든 분에게 보입니다.
-            </p>
-          </div>
-
-          {/* 마음 전하실 곳 — 명시적 토글, 기본 OFF(§6.2-2). 연락처와 달리 "입력=노출"이 아니라
-              토글 자체가 경고를 띄울 자리다 — 켜는 순간 재전파 경고를 보여준다. */}
-          <div className="form-group" style={{ backgroundColor: 'var(--secondary-color)', borderRadius: 'var(--r-sm)', padding: '0.9rem 1rem' }}>
-            <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', marginBottom: accountEnabled ? 'var(--fs-body)' : 0 }}>
-              <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontWeight: 700, color: 'var(--primary-color)', fontSize: 'var(--fs-body)' }}>
-                <Heart size={16} color="var(--point-color)" /> 마음 전하실 곳
-              </span>
-              <input type="checkbox" checked={accountEnabled} onChange={(e) => setAccountEnabled(e.target.checked)} style={{ width: '20px', height: '20px' }} />
-            </label>
-
-            {accountEnabled && (
-              <>
-                <div style={{ fontSize: 'var(--fs-body)', color: 'var(--state-warn-fg)', backgroundColor: 'var(--state-warn-bg)', border: '1px solid var(--state-warn-bg)', borderRadius: 'var(--r-sm)', padding: '0.6rem var(--sp-3)', marginBottom: 'var(--sp-3)', lineHeight: 1.5 }}>
-                  이 계좌번호는 부고장을 받은 분이 다시 공유할 수 있습니다.
-                </div>
-                <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem' }}>
-                  <input value={accountBankCode} onChange={(e) => setAccountBankCode(e.target.value)} className="form-input" placeholder="은행명 (예: 국민은행)" style={{ flex: 1 }} />
-                  <input value={accountHolder} onChange={(e) => setAccountHolder(e.target.value)} className="form-input" placeholder="예금주" style={{ flex: 1 }} />
-                </div>
-                <input value={accountNumber} onChange={(e) => setAccountNumber(e.target.value)} className="form-input" placeholder="계좌번호" />
-              </>
-            )}
-          </div>
-
-          <button
-            type="button"
-            onClick={() => setShowMoreFields((v) => !v)}
-            style={{ background: 'none', border: 'none', color: 'var(--point-color)', fontWeight: 700, fontSize: 'var(--fs-body)', display: 'flex', alignItems: 'center', gap: '0.3rem', cursor: 'pointer', padding: 0, marginBottom: '1rem' }}
-          >
-            {showMoreFields ? <ChevronUp size={16} /> : <ChevronDown size={16} />} 선택 정보 더보기 (별세 일시·호실·입관·장지·유족 추가)
-          </button>
-
-          {showMoreFields && (
-            <div style={{ borderTop: '1px solid var(--border-color)', paddingTop: '1rem', marginBottom: '0.5rem' }}>
-              <div className="form-group">
-                <label className="form-label">별세 일시</label>
-                <input type="datetime-local" value={deathDate} onChange={(e) => setDeathDate(e.target.value)} className="form-input" />
-              </div>
-              <div className="form-group">
-                <label className="form-label">빈소 주소 (길찾기용)</label>
-                <input value={funeralHallAddr} onChange={(e) => setFuneralHallAddr(e.target.value)} className="form-input" placeholder="예: 서울특별시 강남구 ..." />
-              </div>
-              <div className="form-group">
-                <label className="form-label">호실</label>
-                <input value={mourningRoom} onChange={(e) => setMourningRoom(e.target.value)} className="form-input" placeholder="예: 201호" />
-              </div>
-              <div className="form-group">
-                <label className="form-label">입관</label>
-                <input type="datetime-local" value={coffinAt} onChange={(e) => setCoffinAt(e.target.value)} className="form-input" />
-              </div>
-              <div className="form-group">
-                <label className="form-label">장지</label>
-                <input value={burialSite} onChange={(e) => setBurialSite(e.target.value)} className="form-input" placeholder="예: OO추모공원" />
-              </div>
-
-              <div className="form-group">
-                <label className="form-label">유족 추가</label>
-                {mourners.map((m, idx) => (
-                  <div key={idx} style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem' }}>
-                    <input value={m.relationship} onChange={(e) => updateMourner(idx, 'relationship', e.target.value)} className="form-input" placeholder="관계 (예: 장남)" style={{ flex: 1 }} />
-                    <input value={m.name} onChange={(e) => updateMourner(idx, 'name', e.target.value)} className="form-input" placeholder="성함" style={{ flex: 1.5 }} />
-                    <button type="button" onClick={() => removeMourner(idx)} className="btn" style={{ backgroundColor: 'var(--secondary-color)', padding: '0 var(--sp-4)' }}>
-                      <X size={16} />
-                    </button>
-                  </div>
-                ))}
-                <button type="button" onClick={addMourner} className="btn" style={{ backgroundColor: 'var(--secondary-color)', color: 'var(--primary-color)', fontSize: 'var(--fs-body)', height: '40px' }}>
-                  <Plus size={16} /> 유족 추가
+          {isEditOpen && (
+            <div
+              onClick={() => setIsEditOpen(false)}
+              style={{
+                position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+                backgroundColor: 'rgba(0, 0, 0, 0.65)', backdropFilter: 'blur(4px)',
+                display: 'flex', alignItems: 'flex-start', justifyContent: 'center',
+                zIndex: 3000, padding: '2rem 1rem', overflowY: 'auto'
+              }}
+            >
+              <div
+                onClick={(e) => e.stopPropagation()}
+                style={{ position: 'relative', maxWidth: '560px', width: '100%', maxHeight: '90vh', overflowY: 'auto', WebkitOverflowScrolling: 'touch' }}
+              >
+                <button
+                  type="button"
+                  onClick={() => setIsEditOpen(false)}
+                  style={{
+                    position: 'absolute', top: '1rem', right: '1rem',
+                    background: 'var(--surface-subtle)', border: 'none', borderRadius: '50%',
+                    width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    cursor: 'pointer', color: 'var(--text-muted)', zIndex: 1
+                  }}
+                >
+                  <X size={18} />
                 </button>
+                {formCard}
               </div>
             </div>
           )}
-
-          {!obituaryRef && (
-            <div style={{ backgroundColor: 'var(--secondary-color)', borderRadius: 'var(--r-sm)', padding: '1rem', marginTop: '0.5rem', marginBottom: '1.25rem', display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
-              {/* 🔄 09-07 사용자 지시 — 부고장 개설이 더는 추모관을 자동으로 만들지 않는다.
-                  이 체크박스를 켜야만 개설 시 추모관도 함께 만들어 연결한다. 꺼두면 나중에
-                  공유 패널의 "추모관 만들기" 버튼(사후 연결, `00-13` §4.5-4-2 ㉮)이나
-                  /memorial에서 독립적으로 만들 수 있다. */}
-              <label style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', fontSize: 'var(--fs-body)', cursor: 'pointer' }}>
-                <input type="checkbox" checked={createMemorial} onChange={(e) => setCreateMemorial(e.target.checked)} style={{ marginTop: '0.2rem' }} />
-                <span>[선택] 이 부고장과 함께 추모관도 만들기 — 조문객이 온라인으로 헌화·방명록을 남길 수 있는 공간입니다. 나중에 &lsquo;디지털 추모관&rsquo; 화면에서 따로 만들 수도 있습니다.</span>
-              </label>
-              <label style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', fontSize: 'var(--fs-body)', cursor: 'pointer' }}>
-                <input type="checkbox" checked={falseReportAgreed} onChange={(e) => setFalseReportAgreed(e.target.checked)} style={{ marginTop: '0.2rem' }} />
-                <span>[필수] 허위로 부고장을 개설할 경우 법적 책임을 질 수 있다는 점에 동의합니다.</span>
-              </label>
-              <label style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', fontSize: 'var(--fs-body)', cursor: 'pointer' }}>
-                <input type="checkbox" checked={resharedNoticeAck} onChange={(e) => setResharedNoticeAck(e.target.checked)} style={{ marginTop: '0.2rem' }} />
-                <span>[필수] 이 부고장을 전달받은 분이 다시 다른 곳에 공유할 수 있다는 점을 확인했습니다.</span>
-              </label>
-            </div>
-          )}
-
-          {errorMsg && (
-            <div style={{ fontSize: 'var(--fs-body)', color: 'var(--state-danger-fg)', backgroundColor: 'var(--state-danger-bg)', border: '1px solid var(--state-danger-bg)', borderRadius: 'var(--r-sm)', padding: 'var(--sp-3) 0.9rem', marginBottom: '1rem' }}>
-              {errorMsg}
-            </div>
-          )}
-
-          <button type="submit" disabled={isSubmitting} className="btn btn-primary" style={{ width: '100%' }}>
-            {isSubmitting ? '처리 중...' : obituaryRef ? '수정 사항 저장' : '부고장 만들기'}
-          </button>
-        </form>
-
-        {/* 미리보기 + (개설 후) 공유/관리 패널 */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-          <div style={{ backgroundColor: '#1A2B4C', color: '#FFFFFF', borderRadius: 'var(--r-lg)', padding: '1.25rem', boxShadow: 'var(--box-shadow)' }}>
-            <p style={{ fontSize: 'var(--fs-body)', color: '#94A3B8', marginBottom: '0.5rem', textTransform: 'uppercase', letterSpacing: '0.03em' }}>카카오톡 카드 미리보기</p>
-            <div style={{ backgroundColor: '#FFFFFF', borderRadius: 'var(--r-sm)', overflow: 'hidden' }}>
-              <img src={OBITUARY_CARD_IMAGE_URL} alt="근조 카드 이미지" style={{ width: '100%', height: '120px', objectFit: 'cover', backgroundColor: 'var(--surface-subtle)' }} />
-              <div style={{ padding: 'var(--sp-4) 0.9rem' }}>
-                <p style={{ color: '#1A2B4C', fontWeight: 'var(--fw-bold)', fontSize: 'var(--fs-body)', margin: '0 0 0.3rem 0' }}>
-                  {cardTitle || '[부고] 故 ○○○ 님'}
-                </p>
-                <p style={{ color: 'var(--text-muted)', fontSize: 'var(--fs-body)', margin: 0, whiteSpace: 'pre-line' }}>
-                  {cardDescription || '빈소·발인 정보를 입력하면 여기에 표시됩니다.'}
-                </p>
-              </div>
-            </div>
+        </>
+      ) : (
+        // 00-29 §6.1 .auto-grid — min(280px,100%) 폴백으로 375px 가로 스크롤 방지(기존
+        // minmax(340px,1fr) 고정값은 375px에서 스크롤 유발). 개설 전 폼이 강제 1열 탓에
+        // 컨테이너 전체 폭(1440px)까지 늘어나던 것도 방지한다(09-07 사용자 지시).
+        <div className="auto-grid" style={{ alignItems: 'start' }}>
+          {formCard}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+            {previewCard}
           </div>
-
-          {obituaryRef && (
-            <div style={{ backgroundColor: 'var(--card-bg)', padding: '1.5rem', borderRadius: 'var(--border-radius)', boxShadow: 'var(--box-shadow)' }}>
-              {isClosed ? (
-                <>
-                  <div style={{ display: 'flex', gap: '0.6rem', backgroundColor: 'var(--surface-subtle)', border: '1px solid var(--border-color)', borderRadius: 'var(--r-sm)', padding: 'var(--sp-4) 0.9rem', marginBottom: '1.1rem' }}>
-                    <PowerOff size={18} color="#475569" style={{ flexShrink: 0, marginTop: '0.1rem' }} />
-                    <p style={{ fontSize: 'var(--fs-body)', color: '#334155', margin: 0, lineHeight: 1.5 }}>
-                      종료된 부고장입니다. 조문객은 더 이상 이 링크로 볼 수 없습니다{closedAt ? ` (${formatKST(closedAt)} 종료)` : ' (발인 3일 경과로 자동 종료)'}.
-                    </p>
-                  </div>
-                  {/* 🆕 09-07 사용자 지시 — 종료된 부고장 화면에 다시 들어와도 새로 하나 쓸
-                      방법이 없었다. 눈에 띄게 위에 둔다. */}
-                  <button type="button" onClick={handleStartNew} className="btn btn-point" style={{ width: '100%', marginBottom: '1.1rem' }}>
-                    <Plus size={16} /> 새 부고장 작성하기
-                  </button>
-                  {memorialUrl ? (
-                    <a href={memorialUrl} target="_blank" rel="noreferrer" style={{ fontSize: 'var(--fs-body)', color: 'var(--point-color)', fontWeight: 700, textDecoration: 'underline' }}>
-                      연결된 추모관은 계속 열람할 수 있습니다 →
-                    </a>
-                  ) : (
-                    <button type="button" onClick={handleCreateMemorial} disabled={linkingMemorial} className="btn" style={{ backgroundColor: 'var(--secondary-color)', color: 'var(--primary-color)', fontSize: 'var(--fs-body)' }}>
-                      {linkingMemorial ? <><Loader2 size={15} /> 만드는 중...</> : <><Flower2 size={15} /> 추모관 만들기</>}
-                    </button>
-                  )}
-                </>
-              ) : (
-                <>
-                  {cardFieldsUpdatedAt && (
-                    <div style={{ display: 'flex', gap: '0.6rem', backgroundColor: 'var(--state-critical-bg)', border: '1px solid var(--state-critical-bg)', borderRadius: 'var(--r-sm)', padding: 'var(--sp-4) 0.9rem', marginBottom: '1.1rem' }}>
-                      <AlertTriangle size={18} color="var(--state-critical-fg)" style={{ flexShrink: 0, marginTop: '0.1rem' }} />
-                      <p style={{ fontSize: 'var(--fs-body)', color: '#7C2D12', margin: 0, lineHeight: 1.5 }}>
-                        이미 보낸 카드에는 반영되지 않습니다. 아래 버튼으로 다시 공유해 주세요.
-                      </p>
-                    </div>
-                  )}
-
-                  <h3 style={{ color: 'var(--primary-color)', marginBottom: '0.9rem', fontSize: '1.05rem' }}>부고장 공유</h3>
-
-                  <button onClick={handleShare} className="btn btn-point" style={{ width: '100%', marginBottom: '0.6rem' }}>
-                    <Send size={16} /> 카카오톡으로 부고 알리기
-                  </button>
-                  <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.6rem' }}>
-                    <button onClick={handleCopyLink} className="btn" style={{ flex: 1, backgroundColor: 'var(--secondary-color)', color: 'var(--primary-color)', fontSize: 'var(--fs-body)' }}>
-                      <Copy size={15} /> 링크 복사
-                    </button>
-                    <a href={buildObituarySmsHref(obituaryUrl, deceasedName)} className="btn" style={{ flex: 1, backgroundColor: 'var(--secondary-color)', color: 'var(--primary-color)', fontSize: 'var(--fs-body)', textDecoration: 'none' }}>
-                      문자로 보내기
-                    </a>
-                  </div>
-                  {copyFeedback && <p style={{ fontSize: 'var(--fs-body)', color: 'var(--point-color)', margin: '0 0 0.6rem 0' }}>{copyFeedback}</p>}
-
-                  <div style={{ fontSize: 'var(--fs-body)', color: 'var(--text-muted)', wordBreak: 'break-all', backgroundColor: 'var(--secondary-color)', borderRadius: 'var(--r-sm)', padding: '0.6rem var(--sp-3)', marginBottom: '0.6rem' }}>
-                    {obituaryUrl}
-                  </div>
-
-                  {/* 🔄 09-07 — 추모관은 이제 선택이라 없을 수 있다("있다면"만 보여준다).
-                      없으면 "사후 연결"(`00-13` §4.5-4-2 ㉮) 버튼 하나로 바로 만든다 —
-                      체크박스→저장 형태가 아니라 버튼 하나로(사용자 지시). */}
-                  {memorialUrl ? (
-                    <a href={memorialUrl} target="_blank" rel="noreferrer" style={{ fontSize: 'var(--fs-body)', color: 'var(--point-color)', fontWeight: 700, textDecoration: 'underline' }}>
-                      연결된 추모관 미리 보기 →
-                    </a>
-                  ) : (
-                    <button type="button" onClick={handleCreateMemorial} disabled={linkingMemorial} className="btn" style={{ backgroundColor: 'var(--secondary-color)', color: 'var(--primary-color)', fontSize: 'var(--fs-body)' }}>
-                      {linkingMemorial ? <><Loader2 size={15} /> 만드는 중...</> : <><Flower2 size={15} /> 추모관 만들기</>}
-                    </button>
-                  )}
-
-                  {updatedAt && (
-                    <p style={{ fontSize: 'var(--fs-body)', color: 'var(--text-muted)', marginTop: '1rem' }}>
-                      최종 수정: {formatKST(updatedAt)}
-                    </p>
-                  )}
-
-                  {/* §6.2-3·§9 #9 — 연락처·계좌 노출을 실제로 막는 유일한 완화책. 눈에 띄게 둔다. */}
-                  <div style={{ borderTop: '1px solid var(--border-color)', marginTop: '1.2rem', paddingTop: '1.1rem' }}>
-                    <button
-                      type="button"
-                      onClick={handleCloseObituary}
-                      disabled={isClosing}
-                      className="btn"
-                      style={{ width: '100%', backgroundColor: 'var(--state-danger-bg)', color: 'var(--state-danger-fg)', border: '1px solid var(--state-danger-bg)' }}
-                    >
-                      <PowerOff size={16} /> {isClosing ? '종료 중...' : '부고장 종료'}
-                    </button>
-                    <p style={{ fontSize: 'var(--fs-body)', color: 'var(--text-muted)', margin: '0.5rem 0 0 0', lineHeight: 1.5 }}>
-                      종료하면 조문객이 더 이상 이 링크로 볼 수 없습니다(연락처·계좌 노출 방지, 되돌릴 수 없음). 종료하지 않아도 발인 3일 후 자동으로 종료됩니다.
-                    </p>
-                  </div>
-                </>
-              )}
-            </div>
-          )}
         </div>
-      </div>
+      )}
     </div>
   );
 };

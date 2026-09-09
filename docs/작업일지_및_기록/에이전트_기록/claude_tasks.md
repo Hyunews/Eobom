@@ -696,3 +696,14 @@ state를 그대로 추모관 사후 연결 동의로도 흘려보내면 사용�
 - `npm run build` 통과. 이번엔 dev 서버를 띄우지 않았다(지난 wt177에서 규칙 위반했던 것 반복 안 함).
 - `height:'36px'` 3곳(MemorialPage/MyObituaryListPage)은 지시대로 손대지 않음 — grep 결과에 해당 줄들이 fontSize만 바뀌고 height는 그대로인 것 육안 확인.
 
+
+## 2026-09-09 [Claude:Sonnet] wt179 진행 메모
+
+- 사용자가 Opus 스펙 없이 직접 두 가지 요청 — 평소 Opus->Sonnet 핸드오프 체계 밖의 요청이라 잠깐 고민했으나, record.md가 "근거 스펙: 없으면 스펙 없음 — 즉흥구현 명시"를 명시적으로 허용하는 걸 확인하고 직접 구현으로 진행.
+- 2번 요청("일정 수준 이하 가로 크기")의 적용 범위가 불명확해서(운영자 3화면? 부고장 페이지만? 소비자 전체?) AskUserQuestion으로 확인 — "소비자용 페이지 전체, 모바일 반응형은 그대로 유지"로 확정받고 진행. 짐작으로 밀어붙였으면 범위를 잘못 잡았을 뻔.
+- ObituaryPage.tsx 재구성: 원래 `<form>`과 미리보기+공유 패널이 하나의 `return(...)` JSX 트리 안에 인라인으로 박혀 있어서, 코드 전체를 다시 타이핑하지 않고 "경계만" 편집하는 전략을 씀 — `<form ...>` 여는 태그 직전을 `const formCard = (`로, `</form>` 직후를 `);`로 끊는 식. 140줄짜리 폼 내용을 한 글자도 다시 안 치고 그대로 재사용(오타/누락 위험 원천 차단).
+- .main-wrapper가 App.tsx에서 `isPortalRoute ? undefined : 'main-wrapper'`로만 붙는다는 걸 먼저 확인해서, `.main-wrapper .container` 선택자 하나로 운영자 3화면을 JS 변경 없이 CSS만으로 제외했다. `grep -rn "main-wrapper"`로 이 클래스를 쓰는 곳이 App.tsx/index.css/Sidebar.tsx(주석) 3곳뿐임을 재확인.
+- HomePage·prep·bereaved(DomainOverviewPage)는 `.container`를 아예 안 쓰는 걸 grep으로 확인 후 최소폭 규칙에서 자연히 제외됨을 검증(별도 예외 처리 불필요).
+- 최소폭 1024px, 관리모드 maxWidth 520px, 모달 maxWidth 560px은 전부 근거 문서 없는 임의값 — walkthrough에 명시해뒀다. 사람이 보고 다르게 요청하면 조정 예정.
+- 실기동(360px/좁은 창 실제 렌더)은 이번에도 안 함 — 지난 실수 반복 안 함.
+
