@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { ArrowRight, ChevronUp, ChevronDown } from 'lucide-react';
 import { domainSlides } from '../components/home/domainSlides';
 import { Footer } from '../components/Footer';
-import type { NavMode } from '../modeNav';
+import type { NavMode } from '../lib/modeNav';
 
 // 2026-08-25 개발자 지시("애초에 굳이 오버레이일 이유가 없음") — 박스①②(생전 준비/임종 및
 // 사후 정리) 클릭 시 뜨던 풀스크린 오버레이(BoxDetailOverlay, 폐지)를 일반 페이지로 바꿨다.

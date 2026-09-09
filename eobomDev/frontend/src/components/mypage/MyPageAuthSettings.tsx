@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { X, CheckCircle2, AlertCircle, Link2, Unlink, Loader2 } from 'lucide-react';
-import { BACKEND_URL, providerLabel } from '../config';
-import { apiFetchRaw, apiFetch, ApiError } from '../lib/api';
-import { getToken } from '../lib/storage';
+import { BACKEND_URL, providerLabel } from '../../config';
+import { apiFetchRaw, apiFetch, ApiError } from '../../lib/api';
+import { getToken } from '../../lib/storage';
 
 interface SocialAccountInfo {
   provider: string;

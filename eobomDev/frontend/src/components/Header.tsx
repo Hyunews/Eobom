@@ -1,7 +1,7 @@
 import React from 'react';
 import { UserCheck, LogIn, LogOut, Menu } from 'lucide-react';
 import { EobomLogo } from './EobomLogo';
-import type { NavMode } from '../modeNav';
+import type { NavMode } from '../lib/modeNav';
 
 interface HeaderProps {
   setActiveTab: (tab: string) => void;

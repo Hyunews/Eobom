@@ -1,9 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { X, CheckCircle2, AlertCircle, AlertTriangle, Loader2, Trash2, Pencil, Plus, Send, Copy } from 'lucide-react';
-import { FAMILY_INVITE_CARD_IMAGE_URL } from '../config';
-import { apiFetch, ApiError } from '../lib/api';
-import { getToken } from '../lib/storage';
-import { ensureKakaoShareReady, shareViaKakao } from '../utils/kakaoShare';
+import { FAMILY_INVITE_CARD_IMAGE_URL } from '../../config';
+import { apiFetch, ApiError } from '../../lib/api';
+import { getToken } from '../../lib/storage';
+import { ensureKakaoShareReady, shareViaKakao } from '../../utils/kakaoShare';
 
 // 00-27 §8.2·§8.3·§10 Phase 1(기록) + §9.1 Phase 2(알리기·공유 버튼). 수락/거절 자체는 받는
 // 사람이 여는 /invite/:token(FamilyInvitePage.tsx)에서 일어난다 — 여기서는 링크를 만들어

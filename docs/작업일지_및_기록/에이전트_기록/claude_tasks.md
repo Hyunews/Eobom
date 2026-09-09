@@ -760,3 +760,15 @@ state를 그대로 추모관 사후 연결 동의로도 흘려보내면 사용�
   **교훈**: `walkthrough.md`처럼 여러 에이전트가 거의 동시에 끝에 덧붙이는 로그 파일은, Edit
   적용 후에도 **다시 grep으로 새 항목의 번호가 유일한지 재확인**한다 — "적용됐다"가 "번호가
   안 겹쳤다"를 보장하지 않는다.
+
+## 2026-09-09 [Claude:Sonnet] wt186 — 삽질/메모
+
+- `components/` 정리 지시서(사용자)가 "`modeNav.ts`는 내부 상대 import 없음"이라고 적어 뒀는데,
+  실제로 열어보니 `import {...} from './components/MenuIcons'`가 있었다. `git mv`만 하고
+  넘어갔으면 `src/lib/modeNav.ts`가 된 뒤 `./components/MenuIcons`를 찾다가 존재하지 않는
+  `src/lib/components/MenuIcons`를 가리켜 빌드가 깨졌을 것.
+  → **회피**: 이동 대상 파일은 지시서의 "내부 import 없음" 같은 요약을 그대로 믿지 않고
+  `grep -n "^import" <파일>`로 한 번 더 직접 확인한다 — 지시서도 사람이 쓴 것이라 놓칠 수 있다.
+- `git mv` 자체는 문제없이 됐고(`git status`가 전부 `R`/`RM`로 인식), 이후 import 경로를 고치는
+  `Edit` 호출은 파일 내용만 바꿀 뿐 다시 `git add`하지 않아도 rename 인식엔 영향이 없었다
+  (`git diff --staged --stat -M`으로 확인 — 커밋은 사람 몫이라 굳이 재스테이징하지 않았다).

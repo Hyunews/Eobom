@@ -3,7 +3,7 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import { ChevronRight, ChevronLeft, HeartHandshake, Flower2, Building2 } from 'lucide-react';
 import { ChecklistShieldIcon } from '../MenuIcons';
 import { box1Keys, box2Keys, box1Intro, box2Intro } from './domainSlides';
-import type { NavMode } from '../../modeNav';
+import type { NavMode } from '../../lib/modeNav';
 import { parseMemorialLink } from '../../utils/memorialLink';
 import { useIsMobile } from '../../hooks/useIsMobile';
 
