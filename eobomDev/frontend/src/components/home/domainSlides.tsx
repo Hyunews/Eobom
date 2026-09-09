@@ -230,7 +230,7 @@ export const domainSlides: Record<string, DomainSlide> = {
     featureIconBg: 'var(--state-warn-bg)',
     featureBorderColor: '#D4A359',
     featureTitle: '수신자별 편지함',
-    featureDesc: '가족을 지정하고 편지를 남겨두시면, 사망 확인 후 지정하신 분에게만 전달됩니다. 재산 분배 등 상속에 관한 내용은 법적 효력이 없으니 남기지 마세요.',
+    featureDesc: '가족을 지정하고 편지를 남겨두시면, 사망 확인 후 지정하신 분에게만 전달됩니다.',
     ctaLabel: '유족 메시지 보관함 열기',
     status: 'preview',
     loginRequired: true,
