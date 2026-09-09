@@ -2328,3 +2328,17 @@ wt137 그대로라 재작업 없음).
   - 커밋하지 않고 멈춤 — 초안 메시지만 제시, 사람이 직접 커밋.
 
 <!-- Gemini 판정 대기 -->
+
+
+## 2026-09-09 (176) | [Sonnet] Footer 모바일 압축 — FooterMobile 아코디언 신설
+
+- **근거 스펙**: 스펙 없음 — 사용자 직접 지시("Footer 너무 글이 많기에 모바일 화면에서 불필요하게 늘어짐, 데스크탑은 그대로"). 목업(Artifact 3안 비교: Before/아코디언/압축형)을 먼저 만들어 검토받고, "안 A(아코디언)"로 확정 후 반영(전화상담 버튼 제거, 전화번호 줄바꿈, 로고 확대, 펼침 패널 여백 축소 — 총 3회 피드백 반영) → 실 구현.
+- **건드린 파일**:
+  - `eobomDev/frontend/src/components/FooterMobile.tsx` — 신설. 로고(`EobomLogo variant="symbol" height={38}`, 데스크톱보다 확대) + 카카오톡 문의 버튼(전체 너비, `var(--min-touch-target)`) + 운영시간 한 줄 + "약관·대표번호 안내 보기/접기" 토글(`useState`) + 펼침 패널(이용약관·개인정보처리방침 링크, "사업장·전문가 문의, 개인정보 열람·삭제:" 다음 줄에 전화번호) + 카피라이트.
+  - `eobomDev/frontend/src/components/Footer.tsx` — `useIsMobile(768)`로 분기 추가. `isMobile`이면 `<FooterMobile />` 반환 후 조기 return, 데스크톱 4열 그리드 JSX는 전혀 손대지 않음.
+  - `eobomDev/frontend/src/index.css` — `.footer-mobile-toggle-icon`(+`.open`, 화살표 회전) · `.footer-mobile-panel`(+`.open`, `max-height:0→170px` 트랜지션) 신설.
+- **결과**: `npx tsc --noEmit`·`npm run build`(tsc+vite) 통과. 데스크톱(>768px)은 `Footer.tsx` 기존 JSX가 그대로 렌더되어 회귀 없음(코드 자체를 안 건드림). 모바일(≤768px)은 로고+카카오 버튼+운영시간만 접힌 상태로 보이고, 토글을 누르면 약관 링크 2개 + 전화번호가 패널로 펼쳐진다.
+- **편차**: 없음 — 목업 검토 3라운드를 거쳐 사용자가 최종 승인한 디자인 그대로 구현.
+- **다음 에이전트가 알아야 할 것**: 🔵 실기동(브라우저, 360px) 검증 대기 — 토글 열고닫기 애니메이션·펼침 패널 높이(`max-height:170px`)가 실제 폰트 렌더링에서 내용이 잘리지 않는지 확인 필요(코드 검토로 3줄 분량 계산해 여유를 뒀지만 실측 아님). `FooterMobile.tsx`는 이번에 아코디언 상태기계가 생겨 분리한 것이라(00-38 §6.5) 향후 Footer 관련 편집 시 데스크톱은 `Footer.tsx`, 모바일은 `FooterMobile.tsx` 둘 다 확인해야 한다.
+
+<!-- Gemini 판정 대기 -->
