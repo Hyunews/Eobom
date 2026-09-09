@@ -679,7 +679,7 @@ export const ObituaryPage: React.FC<ObituaryPageProps> = ({ currentUser, onOpenL
         </div>
         <div style={{ margin: '0.7rem 0.9rem 0', borderTop: '1px solid #EDEDED', padding: '0.6rem 0', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <span style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: 'var(--fs-caption)', color: '#9CA3AF' }}>
-            <EobomLogo variant="symbol" height={16} /> 이어봄
+            이어봄
           </span>
           <ChevronRight size={14} color="#9CA3AF" />
         </div>
