@@ -728,3 +728,21 @@ state를 그대로 추모관 사후 연결 동의로도 흘려보내면 사용�
 - ⚠️ 중간에 `git diff --stat`에 `eobomDev/frontend/src/pages/ObituaryPage.tsx`가 12줄 변경으로 한 번 떴다가
   다음 호출에서 사라졌다(그 사이 나는 그 파일을 읽기만 했다). **사람이 실기동 중 편집·복구한 것으로 보인다.**
   Opus 세션에서 `eobomDev/`가 diff에 뜨면 **내가 안 만졌는지 먼저 확인**할 것 — 소유권 위반으로 오인하기 쉽다.
+
+## 2026-09-09 [Claude:Sonnet] wt183 — 삽질/메모
+
+- 한글 경로 Bash 버그(wt181이 이미 기록한 것)를 그대로 재현 — `tail`/`ls`로
+  `docs/작업일지_및_기록/에이전트_기록/walkthrough.md`에 접근하려던 시도 3번 다 `exit 127`
+  (`pwd -P >| ...cwd: No such file or directory`). Grep 도구(`-A` 컨텍스트)와
+  PowerShell `Get-Content -Raw -Encoding UTF8`로 우회 — wt181 메모 그대로 유효함을 재확인.
+- `careGuideTasks.json`에 `deadlineShort` 필드를 채우는 스크립트를 처음엔 `Bash node -e "..."`로
+  인라인 시도했다가 중첩 따옴표(한국어 문자열 + 작은따옴표 이스케이프)가 셸에서 깨져 `exit 127`.
+  스크래치패드에 `.js` 파일로 Write 후 `node <경로>` 실행으로 즉시 해결 — wt181의 "복잡한 인라인
+  스크립트는 파일로 뺀다"는 교훈과 정확히 같은 유형.
+- 스크립트 실행 뒤 `git status`를 봤더니 `careGuideTasks.json`이 **이미 커밋된 상태**(HEAD와 diff 0)라
+  한순간 "내 스크립트가 실패했나" 의심했다. `git show --stat a3fd81e`로 그 커밋(사람, `07-03` §7-1
+  스펙갱신)에 이 파일이 32줄 삽입으로 같이 실려 있음을 확인했고, `walkthrough.md`의 wt181 항목이
+  "🔴 `eobomDev/` 무변경 — Opus 세션"이라 명시해 둔 걸 다시 읽어 Opus가 미리 넣은 게 아님을
+  재확인 — 결론: 내가 이번 세션에 쓴 값이 사람의 광역 커밋(`git add -A`류)에 편입된 것.
+  **교훈**: `git status`가 "변경 없음"으로 보여도 방금 내가 쓴 파일이면 `git show --stat <최신커밋>`
+  으로 그 커밋에 실렸는지부터 확인한다 — 조용히 사라진 게 아니라 이미 실려 있을 수 있다.

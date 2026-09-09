@@ -2,12 +2,15 @@ import React, { useState, useRef } from 'react';
 import { CheckSquare, ExternalLink, AlertCircle, ChevronDown, ChevronUp } from 'lucide-react';
 import careGuideTasksData from '../mockData/careGuideTasks.json';
 import { ChecklistShieldIcon } from '../components/MenuIcons';
+import { useIsMobile } from '../hooks/useIsMobile';
 
 interface CareGuideTask {
   id: number;
   category: string;
   title: string;
   deadlineLabel: string;
+  // 07-02 §2-1 — 배지용 축약(6자 이내). 없으면 deadlineLabel을 그대로 쓴다(옵셔널 폴백).
+  deadlineShort?: string;
   deadlineBase: string;
   severity: 'CRITICAL' | 'NORMAL' | 'INFO';
   legalBasis: string;
@@ -19,7 +22,23 @@ interface CareGuideTask {
   conditional?: boolean;
   note?: string;
   checked: boolean;
+  // 07-02 §2-1 ⓒ — id 11·13·17. 축약 배지만 보면 뜻이 달라지는 3건이라 카드 2줄째에
+  // deadlineLabel 원문을 강제로 병기한다(07-04 §8-8-4).
+  deadlineOriginalRequired?: boolean;
 }
+
+// 배지 텍스트 — deadlineShort 우선, 없으면 원문(07-02 §2-1 옵셔널 폴백).
+const getBadgeText = (t: CareGuideTask): string => t.deadlineShort ?? t.deadlineLabel;
+
+// 카드 2줄째 — deadlineOriginalRequired면 deadlineLabel 원문을 irreversibleNote/note 앞에 붙인다
+// (07-02 §2-1 ⓒ). 나머지 20건은 기존 로직 그대로.
+const getNoteLine = (t: CareGuideTask): string | undefined => {
+  const parts = [
+    t.deadlineOriginalRequired ? t.deadlineLabel : undefined,
+    t.irreversibleNote || t.note,
+  ].filter((v): v is string => Boolean(v));
+  return parts.length > 0 ? parts.join(' · ') : undefined;
+};
 
 interface CareGuidePageProps {
   currentUser?: string | null;
@@ -85,6 +104,9 @@ const LINK_LABEL: Record<string, string> = {
 export const CareGuidePage: React.FC<CareGuidePageProps> = ({ setActiveTab }) => {
   const [tasks, setTasks] = useState<CareGuideTask[]>(careGuideTasksData as CareGuideTask[]);
   const inheritanceRef = useRef<HTMLDivElement>(null);
+  // 00-38 §8.1-2·§8.1-3 — 상태 기계 자체가 다르다(데스크톱=구간 접기, 모바일=칩 필터).
+  // CSS로 감출 수 없어 분기한다.
+  const isMobile = useIsMobile();
 
   const toggleTask = (id: number) => {
     setTasks(tasks.map((t) => (t.id === id ? { ...t, checked: !t.checked } : t)));
@@ -92,6 +114,7 @@ export const CareGuidePage: React.FC<CareGuidePageProps> = ({ setActiveTab }) =>
 
   // 07-04 §8-8-2(2026-09-08) — 항목 아코디언을 없앤다. 접기는 구간 5개에만 두고, 기본은
   // "지금 — 장례 기간"만 펼친다. 카드는 항상 기한·⭐을 보여주므로 펼쳐야만 보이던 정보가 없다.
+  // 🔴 데스크톱 전용 상태 — 모바일은 구간 접기가 없다(§8.1-3).
   const [openSections, setOpenSections] = useState<Set<string>>(new Set(['funeral']));
   const toggleSection = (key: string) => {
     setOpenSections((prev) => {
@@ -101,6 +124,16 @@ export const CareGuidePage: React.FC<CareGuidePageProps> = ({ setActiveTab }) =>
       return next;
     });
   };
+
+  // 00-38 §8.1-3 ① — 모바일 전용 카테고리 칩(필터, 유일 경로 아님). null = "전체".
+  const [activeCategory, setActiveCategory] = useState<string | null>(null);
+  const mobileCategories: string[] = [];
+  TIME_SECTIONS.forEach((section) => {
+    section.ids.forEach((id) => {
+      const t = tasks.find((x) => x.id === id);
+      if (t && !mobileCategories.includes(t.category)) mobileCategories.push(t.category);
+    });
+  });
 
   return (
     <div className="container">
@@ -160,6 +193,155 @@ export const CareGuidePage: React.FC<CareGuidePageProps> = ({ setActiveTab }) =>
           <CheckSquare color="var(--point-color)" /> 상중 행정 체크리스트
         </h3>
 
+        {isMobile ? (
+          <>
+            {/* 00-38 §8.1-3 ① — 가로 스크롤 카테고리 칩. 필터일 뿐 유일 경로 아니다
+                (§6.4 3조건 — "전체"가 기본이라 칩을 안 써도 전부 보인다). */}
+            <div style={{ display: 'flex', gap: 'var(--sp-2)', overflowX: 'auto', WebkitOverflowScrolling: 'touch', paddingBottom: 'var(--sp-2)', marginBottom: 'var(--sp-3)' }}>
+              {['전체', ...mobileCategories].map((cat) => {
+                const isActive = cat === '전체' ? activeCategory === null : activeCategory === cat;
+                return (
+                  <button
+                    key={cat}
+                    type="button"
+                    onClick={() => setActiveCategory(cat === '전체' ? null : cat)}
+                    style={{
+                      flexShrink: 0, whiteSpace: 'nowrap', cursor: 'pointer',
+                      border: `1px solid ${isActive ? 'var(--primary-color)' : 'var(--border-color)'}`,
+                      backgroundColor: isActive ? 'var(--primary-color)' : '#FFFFFF',
+                      color: isActive ? '#FFFFFF' : 'var(--text-main)',
+                      borderRadius: 'var(--r-full)', padding: '0.4rem var(--sp-4)', fontSize: 'var(--fs-caption)',
+                    }}
+                  >
+                    {cat}
+                  </button>
+                );
+              })}
+            </div>
+
+            {TIME_SECTIONS.map((section) => {
+              const group = section.ids
+                .map((id) => tasks.find((t) => t.id === id))
+                .filter((t): t is CareGuideTask => Boolean(t))
+                .filter((t) => activeCategory === null || t.category === activeCategory);
+              if (group.length === 0) return null;
+              const isMonth3 = section.key === 'month3';
+
+              return (
+                <div key={section.key} style={{ marginBottom: 'var(--sp-5)' }}>
+                  {/* 00-38 §8.1-3 ② — 시간축 섹션 구분선. 접기 없음(구간 제목 + 1px 선) */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--sp-2)', padding: 'var(--sp-2) 0', marginBottom: 'var(--sp-2)', borderBottom: '1px solid var(--border-color)' }}>
+                    <span style={{ fontSize: 'var(--fs-section)' }}>{section.label}</span>
+                    {isMonth3 && <span style={{ color: 'var(--state-critical-fg)' }}>⭐</span>}
+                    <span style={{ fontSize: 'var(--fs-caption)', color: 'var(--text-muted)', fontVariantNumeric: 'tabular-nums' }}>
+                      ({group.length})
+                    </span>
+                  </div>
+
+                  {group.map((t) => {
+                    const itemMeta = SEVERITY_LABEL[t.severity];
+                    const hasLinks = Boolean(t.needsExpertHelp || t.linkTo || t.externalUrl);
+                    const noteLine = getNoteLine(t);
+                    return (
+                      // 00-38 §9.2 채택안 D — 체크박스 유지·히트 영역은 행 전체(≥56px), 액션은 별도 버튼.
+                      // §9.3 — CRITICAL만 좌측 3px 색선(데스크톱 4px보다 얇춤, 정보가 아니라 두께만 줄인 것).
+                      <div
+                        key={t.id}
+                        role="checkbox"
+                        aria-checked={t.checked}
+                        tabIndex={0}
+                        onClick={() => toggleTask(t.id)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            toggleTask(t.id);
+                          }
+                        }}
+                        style={{
+                          display: 'flex', alignItems: 'flex-start', gap: 'var(--sp-3)',
+                          minHeight: 'var(--min-touch-target)', padding: 'var(--sp-3) var(--sp-2)',
+                          borderBottom: '1px solid var(--border-color)', cursor: 'pointer',
+                          backgroundColor: t.checked ? 'var(--secondary-color)' : 'transparent',
+                          ...(t.severity === 'CRITICAL' ? { borderLeft: `3px solid ${SEVERITY_LABEL.CRITICAL.color}` } : {}),
+                        }}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={t.checked}
+                          readOnly
+                          style={{ width: '20px', height: '20px', marginTop: '0.15rem', flexShrink: 0, pointerEvents: 'none' }}
+                        />
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 'var(--sp-2)' }}>
+                            <span
+                              title={`근거: ${t.legalBasis}`}
+                              style={{ textDecoration: t.checked ? 'line-through' : 'none', color: t.checked ? 'var(--text-muted)' : 'var(--text-main)', fontSize: 'var(--fs-body)', fontWeight: 'var(--fw-medium)' }}
+                            >
+                              {t.title}
+                            </span>
+                            <span style={{ fontSize: 'var(--fs-caption)', fontWeight: 'var(--fw-bold)', color: itemMeta.color, backgroundColor: itemMeta.bg, padding: '0.15rem var(--sp-2)', borderRadius: 'var(--r-sm)', fontVariantNumeric: 'tabular-nums' }}>
+                              {getBadgeText(t)}
+                            </span>
+                            {t.severity === 'CRITICAL' && (
+                              <span style={{ fontSize: 'var(--fs-caption)', color: itemMeta.color, whiteSpace: 'nowrap' }}>
+                                ⭐ 되돌릴 수 없음
+                              </span>
+                            )}
+                            {!t.verified && (
+                              <span style={{ fontSize: 'var(--fs-caption)', color: 'var(--state-warn-fg)', backgroundColor: 'var(--state-warn-bg)', padding: '0.1rem 0.4rem', borderRadius: 'var(--r-sm)', whiteSpace: 'nowrap' }}>
+                                ⚠️ 확인 필요
+                              </span>
+                            )}
+                          </div>
+
+                          {noteLine && (
+                            <p style={{ fontSize: 'var(--fs-caption)', color: 'var(--text-muted)', margin: 'var(--sp-2) 0 0 0', lineHeight: 1.5 }}>
+                              {noteLine}
+                            </p>
+                          )}
+
+                          {hasLinks && (
+                            <div onClick={(e) => e.stopPropagation()} style={{ display: 'flex', gap: 'var(--sp-4)', flexWrap: 'wrap', marginTop: 'var(--sp-2)' }}>
+                              {t.needsExpertHelp && (
+                                <button
+                                  type="button"
+                                  onClick={() => setActiveTab?.('counseling')}
+                                  style={{ background: 'none', border: 'none', padding: 0, fontSize: 'var(--fs-caption)', color: 'var(--point-color)', textDecoration: 'underline', cursor: 'pointer' }}
+                                >
+                                  {LINK_LABEL.counseling}
+                                </button>
+                              )}
+                              {t.linkTo && (
+                                <button
+                                  type="button"
+                                  onClick={() => setActiveTab?.(t.linkTo as string)}
+                                  style={{ background: 'none', border: 'none', padding: 0, fontSize: 'var(--fs-caption)', color: 'var(--primary-color)', textDecoration: 'underline', cursor: 'pointer' }}
+                                >
+                                  {LINK_LABEL[t.linkTo] || '바로가기 →'}
+                                </button>
+                              )}
+                              {t.externalUrl && (
+                                <a
+                                  href={t.externalUrl}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', fontSize: 'var(--fs-caption)', color: 'var(--accent-gold)', textDecoration: 'underline' }}
+                                >
+                                  정부24 바로가기 <ExternalLink size={12} />
+                                </a>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              );
+            })}
+          </>
+        ) : (
+        <>
         {TIME_SECTIONS.map((section) => {
           // §4.1 — 구간별 id를 이미 severity 우선순으로 나열해 뒀으므로 그 순서를 그대로 쓴다.
           const group = section.ids
@@ -263,9 +445,9 @@ export const CareGuidePage: React.FC<CareGuidePageProps> = ({ setActiveTab }) =>
                                         {t.title}
                                       </span>
                                       {/* 기한 배지 — 한 카드에 볼드는 하나만(§6.3 #2)이라 이 배지가 그 하나다.
-                                      §8-8-4 — deadlineShort 미신설이라 원문을 그대로 넣고 줄바꿈을 허용한다. */}
+                                      07-02 §2-1 — deadlineShort(6자 이내 축약)를 쓴다. */}
                                       <span style={{ fontSize: 'var(--fs-caption)', fontWeight: 'var(--fw-bold)', color: itemMeta.color, backgroundColor: itemMeta.bg, padding: '0.15rem var(--sp-2)', borderRadius: 'var(--r-sm)', fontVariantNumeric: 'tabular-nums' }}>
-                                        {t.deadlineLabel}{t.deadlineBase !== '-' ? ` · ${t.deadlineBase} 기준` : ''}
+                                        {getBadgeText(t)}{t.deadlineBase !== '-' ? ` · ${t.deadlineBase} 기준` : ''}
                                       </span>
                                       {t.severity === 'CRITICAL' && (
                                         <span style={{ fontSize: 'var(--fs-caption)', color: itemMeta.color, whiteSpace: 'nowrap' }}>
@@ -279,10 +461,11 @@ export const CareGuidePage: React.FC<CareGuidePageProps> = ({ setActiveTab }) =>
                                       )}
                                     </div>
 
-                                    {/* 2줄 — irreversibleNote 또는 note (있을 때만) */}
-                                    {(t.irreversibleNote || t.note) && (
+                                    {/* 2줄 — id 11·13·17은 deadlineLabel 원문 + irreversibleNote/note(07-02 §2-1 ⓒ),
+                                    나머지는 irreversibleNote 또는 note (있을 때만) */}
+                                    {getNoteLine(t) && (
                                       <p style={{ fontSize: 'var(--fs-caption)', color: 'var(--text-muted)', margin: 'var(--sp-2) 0 0 0', lineHeight: 1.5 }}>
-                                        {t.irreversibleNote || t.note}
+                                        {getNoteLine(t)}
                                       </p>
                                     )}
 
@@ -333,6 +516,8 @@ export const CareGuidePage: React.FC<CareGuidePageProps> = ({ setActiveTab }) =>
             </div>
           );
         })}
+        </>
+        )}
 
         <p style={{ fontSize: 'var(--fs-body)', color: 'var(--text-muted)', marginTop: '0.5rem', lineHeight: 1.6 }}>
           이 체크리스트는 일반적인 안내이며 개별 사정에 따라 다를 수 있습니다. 정확한 기한 판단은
