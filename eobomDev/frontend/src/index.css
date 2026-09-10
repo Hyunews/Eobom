@@ -848,6 +848,18 @@ body {
   scroll-snap-type: y mandatory;
   scroll-behavior: smooth;
   -webkit-overflow-scrolling: touch;
+  /* 🆕 2026-09-10 사람 리포트 — 모바일에서 "왼쪽 여백이 부족하고 전체적으로 왼쪽으로
+     쏠려 보인다"는 지적. overflow-y:scroll은 실제 오버플로 여부와 무관하게 스크롤바 트랙을
+     항상 예약해둔다 — 터치 기기의 오버레이 스크롤바는 자리를 안 먹지만, 데스크톱 브라우저의
+     모바일 에뮬레이션(예: Chrome 반응형 보기)처럼 비오버레이 스크롤바 환경에서는 그 트랙(약
+     15px)만큼 콘텐츠 상자 자체가 오른쪽에서 줄어들어, 가운데 정렬된 내용이 왼쪽으로 밀려
+     보인다. 스크롤 기능(스냅·휠)은 그대로 두고 스크롤바만 시각적으로 없앤다(자리도 안 먹게) —
+     가로 스크롤 캐러셀 등에서 쓰는 표준 기법. */
+  scrollbar-width: none;
+}
+
+.domain-overview-scroll::-webkit-scrollbar {
+  display: none;
 }
 
 .domain-overview-slide {
