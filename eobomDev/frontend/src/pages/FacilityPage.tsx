@@ -226,7 +226,7 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
           히어로 박스(진한 배경·패딩·둥근 모서리 카드)를 없애고 배지+제목+설명만 남긴다. */}
       <div style={{ marginBottom: '1.5rem' }}>
         <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', backgroundColor: 'var(--state-warn-bg)', color: 'var(--accent-gold)', padding: '0.3rem var(--sp-4)', borderRadius: 'var(--r-lg)', fontSize: 'var(--fs-body)', fontWeight: 700, marginBottom: '0.6rem' }}>
-          <HouseLeafIcon size={18} color="var(--accent-gold)" /> 봉안당·수목장 맞춤 검색 및 장례식장 맞춤 매칭
+          <HouseLeafIcon size={18} color="var(--accent-gold)" /> 장사시설 맞춤 검색
         </div>
         <h1 className="page-title" style={{ color: 'var(--primary-color)', display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0 }}>
           <HouseLeafIcon color="var(--point-color)" size={32} /> 장례·묘지 맞춤 비교 매칭
