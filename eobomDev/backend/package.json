@@ -13,7 +13,8 @@
     "seed": "ts-node prisma/seed.ts",
     "seed:admin": "ts-node prisma/seed-admin.ts",
     "sync:kakao-funeral": "ts-node prisma/sync-kakao-funeral.ts",
-    "import:facility-csv": "ts-node prisma/import-facility-csv.ts"
+    "import:facility-csv": "ts-node prisma/import-facility-csv.ts",
+    "import:facility-mohw": "ts-node prisma/import-facility-mohw.ts"
   },
   "prisma": {
     "seed": "ts-node prisma/seed.ts"

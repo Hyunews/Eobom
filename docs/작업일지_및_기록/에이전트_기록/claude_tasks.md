@@ -747,6 +747,37 @@ state를 그대로 추모관 사후 연결 동의로도 흘려보내면 사용�
   **교훈**: `git status`가 "변경 없음"으로 보여도 방금 내가 쓴 파일이면 `git show --stat <최신커밋>`
   으로 그 커밋에 실렸는지부터 확인한다 — 조용히 사라진 게 아니라 이미 실려 있을 수 있다.
 
+## 2026-09-10 [Claude:Sonnet] wt187 — 장례식장 공공 API 재적재, 삽질/메모
+
+- **`prisma migrate dev`가 기본으로 로컬 Docker를 겨냥한다는 걸 늦게 알았다.** `backup-db.ps1`로
+  운영(Supabase) 백업을 먼저 떴는데, 곧바로 `npx prisma migrate dev`를 돌렸더니 로그에
+  `Datasource ... at "localhost:5433"`이 찍혀서야 알아챘다 — `schema.prisma`의
+  `DATABASE_URL`/`DIRECT_URL`이 `.env`에서 로컬을 가리키고 있었다(`db-safety.md`가 정확히
+  경고하는 "backup-db.ps1은 운영을 뜨는데 실제 작업은 로컬"패턴). 다행히 추가형 nullable
+  컬럼이라 로컬 마이그레이션 자체는 무해했지만, **어느 DB가 진짜 대상인지**를 사람에게 다시
+  확인해야 했다 — "둘 다"였다. → **회피**: 운영에 실제로 쓰려면 `DATABASE_URL`/`DIRECT_URL`을
+  커맨드 앞에서 `BACKUP_DATABASE_URL` 값으로 오버라이드해 `prisma migrate deploy`(dev 아님)를
+  따로 돌려야 한다. **교훈**: DB 쓰기 작업을 시작하기 전에 `schema.prisma`의 datasource 주석과
+  `.env`의 `DATABASE_URL`이 실제로 어느 호스트를 가리키는지 먼저 확인한다 — "백업을 운영에
+  떴으니 이후 명령도 운영"이라고 가정하면 안 된다. 두 명령(백업 vs 마이그레이션/쓰기)이
+  각자 다른 env var를 본다.
+- **1차 dry-run에서 삭제 후보가 93건 나와 사용자 예상(~40건)을 크게 초과.** 서울아산병원·
+  삼성서울병원처럼 명백히 존재할 병원 장례식장까지 삭제 목록에 있어 바로 의심하고 멈췄다.
+  원인: 지역 매칭 키가 공공데이터 정식 시/도명("서울특별시")과 카카오발 DB `location`의
+  축약형("서울")을 그대로 비교해 대부분의 지역에서 매칭이 실패했다(`normalizeAddressProvince`는
+  광주·전남 병합만 처리하지 축약형 변환은 안 한다). `sync-kakao-funeral.ts`의 `REGIONS` 축약
+  배열을 재사용해 고쳤다. **교훈**: "왜 대형 병원이 삭제 대상에?"처럼 상식과 어긋나는 자동화
+  결과가 나오면 숫자를 그대로 승인받으러 가지 말고, 구체적인 사례 1~2건을 실제 원본 데이터와
+  대조해 원인을 먼저 잡는다 — 이번엔 그 대조 덕에 65건까지 줄였고, 남은 65건도 전수 대조로
+  "진짜 중복·진짜 표기 차이"임을 확인한 뒤에야 사람에게 승인을 구했다.
+- Bash 도구가 **한글 검색 패턴**에서도 죽는 걸 새로 확인했다(기존엔 한글 "경로"만 알려져 있었다).
+  `grep "서울아산병원" file.xml` 처럼 패턴 자체가 한글이면 경로가 순수 ASCII여도 `exit 127`
+  (`pwd -P >| ...cwd: No such file or directory`)이 났다. → Grep 도구로 우회.
+- `docker exec ... pg_dump -f /tmp/x.dump`가 git-bash의 자동 경로 변환 때문에
+  `/tmp/x.dump`가 `C:/Users/.../Temp/x.dump`로 바뀌어 컨테이너 안에서 "파일을 열 수 없음"으로
+  실패했다. → `MSYS_NO_PATHCONV=1`을 명령 앞에 붙여 우회(컨테이너 내부 경로는 그대로 전달돼야
+  한다).
+
 ## 2026-09-09 [Claude:Sonnet] wt185 — 삽질/메모
 
 - `walkthrough.md`에 항목을 추가하려고 Edit를 호출했더니 "파일이 마지막으로 읽은 뒤 디스크에서
