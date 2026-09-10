@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { Prisma } from '@prisma/client';
 import prisma from '../config/prisma';
 import { verifyBearerToken } from './authController';
+import { rawKeysForDisplayProvince } from '../utils/address';
 
 const DEFAULT_PAGE_SIZE = 30;
 const MAX_PAGE_SIZE = 50;
@@ -16,9 +17,13 @@ const haversineKm = (lat1: number, lng1: number, lat2: number, lng2: number) => 
 };
 
 // Prisma where절 구성 — 2026-08-10 필터 간소화: 예산/종교/하객수/지역(대분류) 필터 제거,
-// 위치는 lat/lng 기반 거리순 정렬(getFacilities)로 대체한다. 남은 건 구분(category)뿐이다.
+// 위치는 lat/lng 기반 거리순 정렬(getFacilities)로 대체한다. 남은 건 구분(category)뿐이었으나
+// 2026-09-10 사람 지시로 지역(province/district) 하드 필터를 다시 추가했다(아래 참고) — q 검색의
+// OR과 함께 여러 OR 그룹이 필요해져 where.AND 배열로 묶는다(단순히 where.OR을 두 번 대입하면
+// 뒤가 앞을 덮어써 버린다).
 const buildWhere = (query: Request['query']): Prisma.FacilityWhereInput => {
   const where: Prisma.FacilityWhereInput = {};
+  const andConditions: Prisma.FacilityWhereInput[] = [];
 
   const category = query.category as string | undefined;
   if (category && category !== '전체') {
@@ -33,10 +38,44 @@ const buildWhere = (query: Request['query']): Prisma.FacilityWhereInput => {
     where.tags = { has: tag.trim() };
   }
 
-  // 이름 검색 — 파트너가 자기 시설을 찾아 클레임 신청할 때 사용(docs 01-05 §3.3)
+  // 이름 검색 — 원래 파트너가 자기 시설을 찾아 클레임 신청할 때 쓰던 것(docs 01-05 §3.3)을
+  // 2026-09-10부터 FacilityPage 공개 검색창(시설명 검색)에도 그대로 재사용한다.
+  // 🔴 2026-09-10 — name만 보면 "여수"처럼 지역명으로 검색할 때 이름에 그 지역명이 실제로 들어간
+  // 시설만 걸려 대부분 빠졌다(지역명이 이름에 들어가는 건 드묾). location(도로명 주소)도 같이
+  // OR로 봐서 "여수를 포함한 모든 장사시설"이 나오게 한다.
   const q = query.q as string | undefined;
   if (q && q.trim()) {
-    where.name = { contains: q.trim(), mode: 'insensitive' };
+    const term = q.trim();
+    andConditions.push({
+      OR: [
+        { name: { contains: term, mode: 'insensitive' } },
+        { location: { contains: term, mode: 'insensitive' } },
+      ],
+    });
+  }
+
+  // 🔴 2026-09-10 사람 지시 — 시/도·시/군/구를 선택하고 검색하면 지금까지는 그 지역 좌표로
+  // 거리순 정렬만 될 뿐, 다른 지역 시설도 그대로 섞여 나왔다(하드 필터가 아니었다). 이제 province가
+  // 오면 실제로 그 지역에 걸리는 시설만 남긴다.
+  // province는 프론트 드롭다운에 뜨는 축약 표시명('서울'·'전남광주' 등, PROVINCE_ALIASES 값)이라
+  // DB에 저장된 원본 표기(정식 명칭 또는 다른 축약형, 예: '충북' 표시는 실제로 '충청북도'로
+  // 저장돼 있음)와 다를 수 있다 — rawKeysForDisplayProvince로 원본 후보들을 얻어 그중 하나로
+  // 시작하는 location만 남긴다(location.startsWith, 여러 후보라 또 OR 그룹).
+  const province = query.province as string | undefined;
+  if (province && province.trim()) {
+    const rawKeys = rawKeysForDisplayProvince(province.trim());
+    andConditions.push({ OR: rawKeys.map((key) => ({ location: { startsWith: key } })) });
+  }
+
+  // district는 getRegions()가 location의 두 번째 토큰을 그대로 뽑아 옵션으로 내놓은 값이라
+  // location 문자열에 원본 그대로 들어있다 — contains로 충분하다.
+  const district = query.district as string | undefined;
+  if (district && district.trim()) {
+    where.location = { contains: district.trim(), mode: 'insensitive' };
+  }
+
+  if (andConditions.length > 0) {
+    where.AND = andConditions;
   }
 
   return where;

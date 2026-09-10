@@ -96,10 +96,21 @@ export const PickupPage: React.FC<PickupPageProps> = () => {
         <h1 style={{ color: 'var(--primary-color)', fontSize: '2rem', display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0 }}>
           <Package color="var(--point-color)" size={32} /> 유품 수거
         </h1>
-        <p style={{ color: 'var(--text-muted)', marginTop: '0.4rem' }}>
+        <p className="page-subtitle" style={{ color: 'var(--text-muted)', marginTop: '0.4rem' }}>
           지역 기반 유품 정리·수거 전문 업체와 연결해 드립니다.
         </p>
       </div>
+
+      {/* 🔴 00-21 §0.2-1 해제 조건 2 — 위치기반서비스 약관(제20조)이 잠긴 동안 이용자가 위치
+          수집을 알 수 있는 유일한 자리. GPS 권한 팝업은 마운트 시 자동으로 뜨므로(위 useEffect)
+          뷰포트와 무관하게 항상 먼저 렌더한다. FacilityPage와 동일 조건(01·03만 위치 수집,
+          §0.2-1) — 2026-09-10 FacilityPage 복구와 함께 이 페이지도 원래 빠져 있던 걸 추가. */}
+      {LOCATION_FEATURE_ENABLED && (
+        <p style={{ fontSize: 'var(--fs-caption)', color: 'var(--text-muted)', margin: '0 0 1rem' }}>
+          가까운 지역의 유품 정리 업체를 먼저 보여드리기 위해 현재 위치를 사용합니다. 허용하지
+          않아도 아래에서 지역을 직접 선택할 수 있습니다.
+        </p>
+      )}
 
       <div style={{ fontSize: 'var(--fs-body)', color: 'var(--state-warn-fg)', backgroundColor: 'var(--state-warn-bg)', border: '1px solid var(--state-warn-bg)', borderRadius: 'var(--r-sm)', padding: 'var(--sp-3) 1rem', marginBottom: '1.25rem', lineHeight: 1.6 }}>
         ⚠️ 이 페이지는 화면 구성을 보여드리기 위한 <strong>예시 데이터</strong>로 채워져 있습니다.

@@ -144,7 +144,7 @@ export const CareGuidePage: React.FC<CareGuidePageProps> = ({ setActiveTab }) =>
         <h1 className="page-title" style={{ color: 'var(--primary-color)', display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0 }}>
           <ChecklistShieldIcon color="var(--point-color)" size={32} /> 상중 행정 가이드
         </h1>
-        <p style={{ color: 'var(--text-muted)', marginTop: '0.4rem' }}>
+        <p className="page-subtitle" style={{ color: 'var(--text-muted)', marginTop: '0.4rem' }}>
           사망 후 꼭 해야 할 행정절차를 순서대로 확인하세요.
         </p>
       </div>

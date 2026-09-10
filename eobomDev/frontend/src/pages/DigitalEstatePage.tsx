@@ -133,7 +133,7 @@ export const DigitalEstatePage: React.FC<DigitalEstatePageProps> = ({ currentUse
         <h1 style={{ color: 'var(--primary-color)', fontSize: '2rem', display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0 }}>
           <PhoneHeartIcon color="var(--accent-gold)" size={32} /> 디지털 정산
         </h1>
-        <p style={{ color: 'var(--text-muted)', marginTop: '0.4rem' }}>
+        <p className="page-subtitle" style={{ color: 'var(--text-muted)', marginTop: '0.4rem' }}>
           고인의 SNS·클라우드 계정 정산을 신청하세요.
         </p>
       </div>
