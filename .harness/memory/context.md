@@ -29,8 +29,10 @@ source=mohw).
 ✅wt121~186빌드통과(폰트·간격토큰·`CareGuide`적응형·§6.4`ObituaryView`·components정리)—🟡실기동
 360px·1280회귀남음·🔴wt183json사람커밋편입(확인요).
 ✅wt187=장례식장재적재(로컬+운영)—601→1073건,전부source=mohw.regionKey버그(카카오축약시도명↔
-공공정식명)발견·수정,지오코딩실패4건보류—상세는walkthrough wt187.▶다음=③`EndingNote`→`00-37`A-3.
-🟡터치타깃36px3곳+Phase3재판정(`ObituaryPage`·`MyPage`)은그대로대기.
+공공정식명)발견·수정,지오코딩실패4건보류—상세는walkthrough wt187.
+✅wt188=위치기능ON(Facility GPS+Pickup지역기본값,사람4결정)—config.ts상수분리(FEATURE=true/
+LEGAL=false유지).tsc+build+localhost실기동✅(거부/타임아웃은환경상팝업불가→로직검증).상세→wt09-10.
+▶다음=③`EndingNote`→`00-37`A-3.🟡터치타깃36px3곳+Phase3재판정(`ObituaryPage`·`MyPage`)대기.
 
 **3.[Gemini]**게이트0건·🟡옛스펙갱신3건→⑭.🟡devDB삭제분7건—D-8(🔴CONFIRM).
 

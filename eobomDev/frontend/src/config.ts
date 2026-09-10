@@ -32,12 +32,25 @@ export const providerLabel = (provider: string): string => PROVIDER_LABELS[provi
 // 서울 서초 값에서 변경. 실제 위치가 아니므로 사용하는 곳에서 반드시 폴백 배지를 함께 노출할 것.
 export const GEOLOCATION_FALLBACK = { lat: 35.1397, lng: 126.7938 };
 
+// 🔴 이 분리는 00-14 §2.9가 경고한 '약관 없이 기능만 살아 있는' 상태를 **의도적으로** 만든
+// 것이다. 2026-09-10 사람 결정 — 실서비스 개시 전에 방통위 신고 예정이며, 신고 완료 시
+// LOCATION_LEGAL_PUBLISHED를 true로 올린다. 버그가 아니므로 되돌리지 말 것.
+//
+// 기존에는 상수 하나(LOCATION_BASED_SERVICE_REGISTERED)가 (1) GPS 자동감지 기능과
+// (2) TermsPage 제6장·PrivacyPage 제3-6조 게시를 함께 묶고 있었다. 사람 결정(2026-09-10)으로
+// 둘을 분리한다 — 기능은 지금 켜되, 조문은 신고 완료 전까지 계속 미게시로 둔다.
+
+// GPS 자동감지 기능 스위치 — FacilityPage(01 장사시설)·PickupPage(03 유품수거)에서만 쓰인다.
+// 신고 여부와 무관하게 기능 자체는 켠다(2026-09-10 사람 결정 ①). 신고 완료/철회 시 Vercel
+// env(VITE_LOCATION_FEATURE)로 배포 재빌드 없이 전환할 수 있도록 env override를 우선한다.
+export const LOCATION_FEATURE_ENABLED = import.meta.env.VITE_LOCATION_FEATURE !== 'false';
+
 // 위치기반서비스사업 신고 완료 여부 — docs 00-21 §0.2 잠금 규칙(docs 00-14 §2.10).
-// 신고가 실제로 확인되기 전까지 반드시 false로 둔다. false인 동안:
-//   (1) FacilityPage가 navigator.geolocation.getCurrentPosition을 호출하지 않고
-//   (2) TermsPage가 제6장(위치기반서비스)을, PrivacyPage가 제3-6조(위치정보)를 렌더링하지 않는다.
-// 방통위 신고가 실제로 완료된 것이 확인된 뒤에만 true로 바꾼다 — 조문과 기능은 한 쌍이다.
-export const LOCATION_BASED_SERVICE_REGISTERED = false;
+// 신고가 실제로 확인되기 전까지 반드시 false로 둔다. false인 동안 TermsPage가 제6장(위치기반
+// 서비스)을, PrivacyPage가 제3-6조(위치정보)를 렌더링하지 않는다 — 빈칸(00-22 B-2~B-4 미확인)이
+// 남은 조문을 게시하는 것이 미게시보다 나쁘다. 방통위 신고가 실제로 완료된 것이 확인된 뒤에만
+// true로 바꾼다.
+export const LOCATION_LEGAL_PUBLISHED = false;
 
 // 카카오맵 SDK 로드 대기 타임아웃(ms) — 이 시간 안에 안 뜨면 무한 스피너 대신 실패 상태로 전환.
 export const KAKAO_MAP_LOAD_TIMEOUT_MS = 5000;

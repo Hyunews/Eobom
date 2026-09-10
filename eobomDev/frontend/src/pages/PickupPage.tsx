@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Package } from 'lucide-react';
 import digitalEstateData from '../mockData/digitalEstate.json';
+import { BACKEND_URL, LOCATION_FEATURE_ENABLED } from '../config';
 
 // 08-19 9차(개발자 직접 지시) — DigitalEstatePage 서브탭 3개(digital/physical/memorial) 중
 // "현물 유품 정리(physical)"를 별도 도메인(tab: 'pickup')으로 분리. 내용은 그대로 옮겼다
@@ -41,6 +42,50 @@ export const PickupPage: React.FC<PickupPageProps> = () => {
     setProvince(value);
     setDistrict('');
   };
+
+  // GPS 허용 시 지역 필터의 기본값을 자동 선택한다(2026-09-10 사람 결정 — FacilityPage와 달리
+  // 좌표 정렬은 만들지 않는다, province/district 텍스트 필터만 채운다). 거부·실패 시 지금처럼
+  // 빈 필터로 둔다 — 회귀 없음.
+  useEffect(() => {
+    if (!(LOCATION_FEATURE_ENABLED && navigator.geolocation && window.isSecureContext)) return;
+
+    const applyRegionFromPosition = (lat: number, lng: number) => {
+      fetch(`${BACKEND_URL}/api/geo/reverse?lat=${lat}&lng=${lng}`)
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.status !== 'success') return;
+          const detectedProvince = data.data.province as string;
+          if (!provinceOptions.includes(detectedProvince)) return; // 예시 업체 데이터에 없는 지역이면 그대로 빈 채로 둔다
+          setProvince(detectedProvince);
+          const detectedDistrict = data.data.district as string;
+          if (regionsData[detectedProvince]?.includes(detectedDistrict)) setDistrict(detectedDistrict);
+        })
+        .catch(() => {});
+    };
+
+    // enableHighAccuracy:false — IP 수준 정확도면 충분하다(결정 ③). timeout 없이 두면 이용자가
+    // 권한 팝업을 무시할 때 콜백이 영영 안 불릴 수 있어 8초로 제한한다.
+    const requestPosition = () => {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => applyRegionFromPosition(pos.coords.latitude, pos.coords.longitude),
+        () => {},
+        { timeout: 8000, maximumAge: 300000, enableHighAccuracy: false }
+      );
+    };
+
+    // 거부는 브라우저가 기억한다 — 미리 상태를 보고 'denied'면 팝업을 다시 띄우지 않는다.
+    if (navigator.permissions?.query) {
+      navigator.permissions
+        .query({ name: 'geolocation' })
+        .then((status) => {
+          if (status.state !== 'denied') requestPosition();
+        })
+        .catch(requestPosition);
+    } else {
+      requestPosition();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <div className="container">

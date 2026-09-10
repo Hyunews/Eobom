@@ -1,11 +1,12 @@
 import React from 'react';
 import { LegalDocLayout, LegalArticle, LegalList, LegalTable } from '../components/legal/LegalDocLayout';
-import { LOCATION_BASED_SERVICE_REGISTERED } from '../config';
+import { LOCATION_LEGAL_PUBLISHED } from '../config';
 
 // docs/00_핵심플랫폼/00-19_개인정보처리방침_초안.md 본문(제1~14조)을 그대로 옮긴 화면.
 // 제3-6조(위치정보)는 방통위 위치기반서비스사업 신고 완료를 전제로 작성됐다(docs 00-21 §0.2
-// 잠금 규칙). 신고 완료가 확인되기 전까지 LOCATION_BASED_SERVICE_REGISTERED는 false로 유지되고
-// 이 화면은 제3-6조를 렌더링하지 않는다 — FacilityPage의 GPS 자동 감지 중단과 한 쌍이다.
+// 잠금 규칙). 신고 완료가 확인되기 전까지 LOCATION_LEGAL_PUBLISHED는 false로 유지되고
+// 이 화면은 제3-6조를 렌더링하지 않는다. GPS 자동감지 기능 자체는 LOCATION_FEATURE_ENABLED로
+// 별도 제어되며 2026-09-10부터 이미 켜져 있다 — 조문 미게시가 기능 중단을 의미하지 않는다.
 export const PrivacyPage: React.FC = () => {
   return (
     <LegalDocLayout title="이어봄(Eobom) 개인정보처리방침" effectiveDateLabel="시행일: 추후 공지">
@@ -103,7 +104,7 @@ export const PrivacyPage: React.FC = () => {
         />
 
         {/* 3-6(위치정보) — 방통위 위치기반서비스사업 신고 완료 전까지 렌더링하지 않는다(00-21 §0.2). */}
-        {LOCATION_BASED_SERVICE_REGISTERED && (
+        {LOCATION_LEGAL_PUBLISHED && (
           <>
             <h3 style={{ fontSize: '1rem', color: 'var(--primary-color)', margin: '0.5rem 0' }}>3-6. 위치정보</h3>
             <p>
