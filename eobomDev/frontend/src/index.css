@@ -349,6 +349,9 @@ body {
   overflow: hidden;
   white-space: nowrap;
   transition: width 0.25s ease, border-radius 0.25s ease, padding 0.25s ease;
+  /* 모바일 사파리/크롬 기본 탭 하이라이트는 border-radius를 무시하고 사각형으로 번쩍여,
+     40px 원형 칩과 어긋나 보인다(사람 리포트: "파랗게 사각형 반투명 상자"). 꺼둔다. */
+  -webkit-tap-highlight-color: transparent;
 }
 
 .obituary-edit-chip .chip-label {

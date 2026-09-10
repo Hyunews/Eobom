@@ -282,18 +282,34 @@ export const ObituaryPage: React.FC<ObituaryPageProps> = ({ currentUser, onOpenL
     // 🔴 2026-09-10 사람 리포트 — 여기서부터가 이전엔 localStorage 포인터로만 targetSlug를
     // 정하던 자리다. 같은 계정이 기기를 바꿔 들어오면 그 기기의 로컬 포인터(없거나, 다른
     // 부고장을 가리키거나)에 따라 다른 화면이 떴다. GET /api/me/obituaries로 계정 기준
-    // 목록을 받아와 targetSlug를 정한다 — 진행 중(안 닫힌) 것 중 가장 최근 걸 우선하고,
-    // 전부 종료됐으면 가장 최근 걸 연다(createdAt desc로 내려오므로 list[0]). 여러 개 중
-    // 특정 걸 고르려면 "내 부고장 목록"에서 slug를 지정해 들어와야 한다(querySlug 경로).
-    apiFetch<{ slug: string; isClosed: boolean }[]>('/api/me/obituaries', 'USER')
+    // 목록을 받아와 targetSlug를 정한다 — 진행 중(안 닫힌) 것 중 가장 최근 걸 우선한다.
+    // 🆕 2026-09-10 사람 지시 — 종료된 것까지 이 바로가기로 계속 뜨면 안 된다. 종료 후
+    // 일주일이 지난 건 더는 후보에 넣지 않고(최근 일주일 이내 종료된 것만 후보), 그마저도
+    // 없으면 빈 개설 화면으로 보낸다. 일주일이 지난 종료 부고장은 여전히 존재하고 "내 부고장
+    // 목록"에서 slug를 지정해 들어가면(querySlug 경로) 그대로 열람·재확인할 수 있다 — 여기서
+    // 막는 건 "바로가기 기본값"일 뿐이다.
+    const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
+    apiFetch<{ slug: string; isClosed: boolean; closedAt: string | null }[]>('/api/me/obituaries', 'USER')
       .then((list) => {
         if (!Array.isArray(list) || list.length === 0) {
           localStorage.removeItem(STORAGE_KEY);
           setLoading(false);
           return;
         }
-        const target = list.find((o) => !o.isClosed) || list[0];
-        loadBySlug(target.slug);
+        const active = list.find((o) => !o.isClosed);
+        if (active) {
+          loadBySlug(active.slug);
+          return;
+        }
+        const recentlyClosed = list
+          .filter((o) => o.isClosed && o.closedAt && Date.now() - new Date(o.closedAt).getTime() <= SEVEN_DAYS_MS)
+          .sort((a, b) => new Date(b.closedAt as string).getTime() - new Date(a.closedAt as string).getTime())[0];
+        if (recentlyClosed) {
+          loadBySlug(recentlyClosed.slug);
+          return;
+        }
+        localStorage.removeItem(STORAGE_KEY);
+        setLoading(false);
       })
       .catch(() => setLoading(false));
   }, [currentUser, searchParams]);
