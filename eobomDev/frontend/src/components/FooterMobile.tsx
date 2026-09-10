@@ -20,7 +20,8 @@ export const FooterMobile: React.FC = () => {
         backgroundColor: 'transparent',
         color: 'var(--text-muted)',
         padding: '0.9rem 1.5rem 0',
-        textAlign: 'center'
+        textAlign: 'center',
+        width: '100%'
       }}
     >
       <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '0.9rem' }}>

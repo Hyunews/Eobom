@@ -966,8 +966,8 @@ body {
    scroll-snap-align:start 대상 안에서 위쪽에 살짝 여유를 준다). 화면보다 길어질 수 있는
    경우(모바일 3열→1열 접힘 등)의 안전망으로 overflow-y:auto도 둔다. */
 .domain-overview-footer-slide {
-  align-items: flex-start;
-  justify-content: stretch;
+  flex-direction: column;
+  align-items: stretch;
   overflow-y: auto;
   padding-left: 0;
   padding-right: 0;
