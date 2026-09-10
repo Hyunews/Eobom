@@ -2,14 +2,19 @@
 @import url('https://fonts.googleapis.com/css2?family=KoPub+World+Batang:wght@400;700&family=Noto+Sans+KR:wght@300;400;500;700&family=Outfit:wght@400;500;600;700&display=swap');
 
 :root {
-  --primary-color: #1A2B4C;    /* 공식 Deep Navy */
+  --primary-color: #1A2B4C;
+  /* 공식 Deep Navy */
   --primary-light: #283C66;
-  --point-color: #5B7065;      /* 공식 Warm Green */
+  --point-color: #5B7065;
+  /* 공식 Warm Green */
   --point-light: #71887D;
-  --accent-gold: #D4A359;      /* 공식 Warm Gold */
-  --secondary-color: #FBF9F5;  /* 공식 Soft Cream Background */
+  --accent-gold: #D4A359;
+  /* 공식 Warm Gold */
+  --secondary-color: #FBF9F5;
+  /* 공식 Soft Cream Background */
   --secondary-dark: #EAE5DC;
-  --accent-red: #DC2626;       /* 긴급 알림 Red */
+  --accent-red: #DC2626;
+  /* 긴급 알림 Red */
   --text-main: #1A2B4C;
   --text-muted: #6C7A89;
   --border-color: #DFDCD7;
@@ -38,45 +43,70 @@
   /* ── 00-09 §6.2 토큰 정본 — 간격 6 · 타입 6 · 굵기 3 · radius 4 · 그림자 3 · 모션 5.
      기존 --border-radius·--box-shadow·--transition-speed는 237곳이 참조 중이라 남기고
      아래 새 토큰의 별칭으로 삼는다(값은 새 토큰 쪽이 정본). */
-  --sp-1: 4px;  --sp-2: 8px;  --sp-3: 12px;
-  --sp-4: 16px; --sp-6: 24px; --sp-8: 32px;
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-6: 24px;
+  --sp-8: 32px;
   /* 00-38 §4.1 — 신설 2칸. 규칙은 그대로: --sp-N = N × 4px */
-  --sp-10: 40px;  /* 섹션 사이 최소 간격(원칙 3) */
-  --sp-14: 56px;  /* 화면 단위 구분 · 리더 상하 여백 */
+  --sp-10: 40px;
+  /* 섹션 사이 최소 간격(원칙 3) */
+  --sp-14: 56px;
+  /* 화면 단위 구분 · 리더 상하 여백 */
 
   /* 00-38 §4.1 — 적응형 거터. 헤더/드로어(chrome)와 본문(page)의 여백을 분리한다(원칙 1) */
-  --gutter-page:    28px;  /* 본문 .container 좌우 (모바일) */
-  --gutter-chrome:  16px;  /* 헤더 · 드로어 · 바텀시트 손잡이 좌우 */
-  --gutter-page-sm: 20px;  /* ≤359px 안전판 */
+  --gutter-page: 28px;
+  /* 본문 .container 좌우 (모바일) */
+  --gutter-chrome: 16px;
+  /* 헤더 · 드로어 · 바텀시트 손잡이 좌우 */
+  --gutter-page-sm: 20px;
+  /* ≤359px 안전판 */
 
   /* 00-38 §4.2 — 타입 스케일 개정(루트 16px 기준). 간격·색·모서리·그림자·모션은 그대로 */
-  --fs-caption: 0.875rem;                          /* 14px — 보조 하한 */
-  --fs-body:    1rem;                              /* 16px — 본문 표준 */
-  --fs-lead:    1.125rem;                          /* 18px — 리드문·리더 본문 */
-  --fs-section: 1.25rem;                           /* 20px — 섹션 제목 */
-  --fs-title:   clamp(1.375rem, 4.5vw, 1.75rem);   /* 22 → 28px */
-  --fs-display: clamp(1.625rem, 6vw, 2.25rem);     /* 26 → 36px */
+  --fs-caption: 0.875rem;
+  /* 14px — 보조 하한 */
+  --fs-body: 1rem;
+  /* 16px — 본문 표준 */
+  --fs-lead: 1.125rem;
+  /* 18px — 리드문·리더 본문 */
+  --fs-section: 1.25rem;
+  /* 20px — 섹션 제목 */
+  --fs-title: clamp(1.375rem, 4.5vw, 1.75rem);
+  /* 22 → 28px */
+  --fs-display: clamp(1.625rem, 6vw, 2.25rem);
+  /* 26 → 36px */
 
   /* 00-38 §4.3 — 행간 토큰 신설 */
-  --lh-tight:  1.35;  /* 제목 */
-  --lh-body:   1.8;   /* 본문 기본 — 00-09 §2.3의 1.7을 개정 */
-  --lh-reader: 1.9;   /* 몰입 리더 · 긴 글(원칙 5) */
+  --lh-tight: 1.35;
+  /* 제목 */
+  --lh-body: 1.8;
+  /* 본문 기본 — 00-09 §2.3의 1.7을 개정 */
+  --lh-reader: 1.9;
+  /* 몰입 리더 · 긴 글(원칙 5) */
 
-  --fw-normal: 400;  --fw-medium: 600;  --fw-bold: 700;
+  --fw-normal: 400;
+  --fw-medium: 600;
+  --fw-bold: 700;
 
   --r-sm: 8px;
-  --r-md: 12px;   /* = 기존 --border-radius */
+  --r-md: 12px;
+  /* = 기존 --border-radius */
   --r-lg: 16px;
   --r-full: 999px;
 
   --el-1: 0 1px 2px rgba(26, 43, 76, .06);
-  --el-2: 0 8px 30px rgba(26, 43, 76, .06);   /* = 기존 --box-shadow */
+  --el-2: 0 8px 30px rgba(26, 43, 76, .06);
+  /* = 기존 --box-shadow */
   --el-3: 0 20px 45px rgba(26, 43, 76, .14);
 
-  --dur-1: 120ms;  /* 색·투명도 */
-  --dur-2: 200ms;  /* 이동·크기 */
-  --dur-3: 320ms;  /* 진입·모달 */
-  --ease-out:    cubic-bezier(.2, .8, .2, 1);
+  --dur-1: 120ms;
+  /* 색·투명도 */
+  --dur-2: 200ms;
+  /* 이동·크기 */
+  --dur-3: 320ms;
+  /* 진입·모달 */
+  --ease-out: cubic-bezier(.2, .8, .2, 1);
   --ease-in-out: cubic-bezier(.4, 0, .2, 1);
 
   /* §6.2-1 웜 뉴트럴 매핑 — --text-muted·--secondary-dark·--border-color는 이미 위에
@@ -85,10 +115,14 @@
   --text-hint: #94A3B8;
 
   /* §6.2-2 상태색 — 의미마다 한 쌍만 */
-  --state-critical-fg: #9A3412; --state-critical-bg: #FFEDD5;
-  --state-warn-fg:     #92400E; --state-warn-bg:     #FEF3C7;
-  --state-danger-fg:   #991B1B; --state-danger-bg:   #FEE2E2;
-  --state-ok-fg:       #03543F; --state-ok-bg:       #DEF7EC;
+  --state-critical-fg: #9A3412;
+  --state-critical-bg: #FFEDD5;
+  --state-warn-fg: #92400E;
+  --state-warn-bg: #FEF3C7;
+  --state-danger-fg: #991B1B;
+  --state-danger-bg: #FEE2E2;
+  --state-ok-fg: #03543F;
+  --state-ok-bg: #DEF7EC;
 }
 
 /* §6.3 #6 — 전역 포커스 표시 + 모션 축소 대응 */
@@ -98,7 +132,10 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
+
+  *,
+  *::before,
+  *::after {
     animation-duration: .01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: .01ms !important;
@@ -176,7 +213,8 @@ body {
 
 /* Sidebar Margin Space for Main Layout */
 .main-wrapper {
-  margin-left: 72px; /* 사이드바 기본 넓이 */
+  margin-left: 72px;
+  /* 사이드바 기본 넓이 */
   transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
   flex-direction: column;
@@ -184,7 +222,7 @@ body {
   flex-grow: 1;
 }
 
-.sidebar:hover ~ .main-wrapper {
+.sidebar:hover~.main-wrapper {
   margin-left: 240px;
 }
 
@@ -196,6 +234,7 @@ body {
    재현). 640px로 넓혀서 헤더가 좁아지는 시점과 압축이 걸리는 시점을 맞춘다 — 아래 Header 관련
    블록들도 전부 같은 640px로 통일했다(따로 놀면 또 이 틈이 생긴다). */
 @media (max-width: 640px) {
+
   /* Sidebar.tsx의 <aside className="sidebar">에 인라인 style={{ display: 'flex' }}가 같이
      있어서(레이아웃용) 인라인 스타일이 외부 스타일시트보다 우선한다 — !important 없이는
      여기서 display:none이 무시되고 사이드바가 그대로 남아 본문을 가린다(2026-08-20 발견,
@@ -205,7 +244,7 @@ body {
   }
 
   .main-wrapper,
-  .sidebar:hover ~ .main-wrapper {
+  .sidebar:hover~.main-wrapper {
     margin-left: 0;
   }
 }
@@ -261,6 +300,7 @@ body {
 }
 
 @media (min-width: 641px) {
+
   .mobile-drawer-overlay,
   .mobile-drawer-panel {
     display: none !important;
@@ -284,7 +324,8 @@ body {
 /* 00-38 §4.1 — 헤더(chrome)와 본문(page) 여백 분리. ≤480px 구간은 아래로 흡수 */
 @media (max-width: 768px) {
   .container {
-    padding: var(--sp-10) var(--gutter-page); /* 40px 28px */
+    padding: var(--sp-10) var(--gutter-page);
+    /* 40px 28px */
   }
 }
 
@@ -302,6 +343,7 @@ body {
    .main-wrapper는 소비자 화면에만 쓰는 클래스다(App.tsx — Admin/BizDashboard/PartnerPortalPage는
    이 클래스 없이 렌더되므로 자동으로 영향 밖). 모바일(≤768px) 쪽 규칙은 건드리지 않는다. */
 @media (min-width: 769px) {
+
   /* 🔴 2026-09-09 — 사람이 "가로 스크롤이 구현 안 됨"을 지적해 재점검. 원인: body>#root>
      (App 루트 div)>.main-wrapper>main이 전부 display:flex(column)로 겹겹이 싸여 있고,
      플렉스 아이템의 "자동 최소 크기"(min-width:auto 기본값)는 내용물의 min-content를
@@ -328,7 +370,7 @@ body {
     min-width: 0;
   }
 
-  .main-wrapper > main {
+  .main-wrapper>main {
     min-width: 0;
   }
 
@@ -383,6 +425,7 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
+
   .obituary-edit-chip,
   .obituary-edit-chip .chip-label {
     transition: none;
@@ -394,8 +437,17 @@ body {
 
 /* 지도 핀 마커 펄스 애니메이션(KakaoMapModal 전용 — 00-09 §4-3 2026-08-19 정정) */
 @keyframes pulse {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.6; transform: scale(1.15); }
+
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 0.6;
+    transform: scale(1.15);
+  }
 }
 
 .animate-pulse {
@@ -405,8 +457,15 @@ body {
 /* 스켈레톤 UI 전용 — 07-03 §5 체감 개선(2026-08-21). 위 .animate-pulse는 지도 핀용 scale
    애니메이션이 섞여 있어 사각 블록엔 안 맞는다 — 불투명도만 바뀌는 별도 애니메이션을 쓴다. */
 @keyframes skeletonPulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.55; }
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.55;
+  }
 }
 
 .skeleton-block {
@@ -419,13 +478,27 @@ body {
    원형 배경 없이 반투명 아이콘형(개발자 확정, 2026-08). 위/아래 각각 해당 방향에 콘텐츠가
    있을 때만 노출(끝에서는 숨김). */
 @keyframes scrollHintBounceUp {
-  0%, 100% { transform: translate(-50%, 0); }
-  50% { transform: translate(-50%, -6px); }
+
+  0%,
+  100% {
+    transform: translate(-50%, 0);
+  }
+
+  50% {
+    transform: translate(-50%, -6px);
+  }
 }
 
 @keyframes scrollHintBounceDown {
-  0%, 100% { transform: translate(-50%, 0); }
-  50% { transform: translate(-50%, 6px); }
+
+  0%,
+  100% {
+    transform: translate(-50%, 0);
+  }
+
+  50% {
+    transform: translate(-50%, 6px);
+  }
 }
 
 /* 2026-08-24: 배경 칩은 취향이 아니라는 피드백으로 원복 — 배경/테두리 없이 아이콘만 유지하되
@@ -602,7 +675,8 @@ body {
   color: var(--primary-color);
 }
 
-.form-input, .form-select {
+.form-input,
+.form-select {
   width: 100%;
   height: 52px;
   padding: 0 1rem;
@@ -633,7 +707,7 @@ body {
    것을 막는다 — 단, 다음 형제가 또 다른 .form-group(select 그룹들끼리 나란히 줄바꿈되어야
    하는 경우)이면 이 규칙에서 제외한다. 그 형제 요소 자체에 이미 display:flex 같은 인라인
    스타일이 있으면(더 높은 우선순위) 이 규칙은 조용히 무시되고 그쪽이 이긴다. */
-.container .form-group:has(> select) + *:not(.form-group) {
+.container .form-group:has(> select)+*:not(.form-group) {
   display: block;
 }
 
@@ -646,7 +720,8 @@ body {
   }
 }
 
-.form-input:focus, .form-select:focus {
+.form-input:focus,
+.form-select:focus {
   outline: none;
   border-color: var(--primary-color);
   box-shadow: 0 0 0 3px rgba(26, 43, 76, 0.1);
@@ -662,6 +737,7 @@ body {
 }
 
 @supports (height: 100dvh) {
+
   .fullpage-viewport,
   .fullpage-section {
     height: calc(100dvh - var(--header-h));
@@ -672,14 +748,17 @@ body {
 .footer-mobile-toggle-icon {
   transition: transform 0.2s ease;
 }
+
 .footer-mobile-toggle-icon.open {
   transform: rotate(180deg);
 }
+
 .footer-mobile-panel {
   max-height: 0;
   overflow: hidden;
   transition: max-height 0.28s ease;
 }
+
 .footer-mobile-panel.open {
   max-height: 170px;
 }
@@ -836,7 +915,8 @@ body {
    가렸다 — 이건 폭이 아니라 높이 문제라 폭 media query만으로는 못 잡는다 → `max-height`
    조건을 추가. 콘텐츠 분량은 슬라이드마다 달라 정확한 경계를 못 박기보다 여유를 두었다
    (사용자 신고: "애매한 창크기에서 가리는 현상"). */
-@media (max-width: 900px), (max-height: 820px) {
+@media (max-width: 900px),
+(max-height: 820px) {
   .domain-overview-slide {
     height: auto;
     min-height: calc(100vh - var(--header-h));
@@ -901,6 +981,7 @@ body {
    순수 표시/숨김 마커로만 쓴다. 각 페이지의 제목 아래 설명 <p>에 className="page-subtitle"만
    추가하면 된다. */
 .page-subtitle {}
+
 @media (max-width: 768px) {
   .page-subtitle {
     display: none;
@@ -989,7 +1070,8 @@ body {
   position: sticky;
   top: 0;
   z-index: 1000;
-  height: var(--header-h); /* 2026-08 개발자 확정: 72px → 85px */
+  height: var(--header-h);
+  /* 2026-08 개발자 확정: 72px → 85px */
   border-bottom: 1px solid var(--border-color);
 }
 
@@ -1130,6 +1212,7 @@ body {
 }
 
 @media (max-width: 640px) {
+
   /* 헤더 높이(--header-h)는 .sidebar top·.main-wrapper min-height·.fullpage-section 높이
      계산이 전부 참조하는 단일 토큰이다(:root 정의부 주석 참고) — 여기서 한 번만 낮추면
      전부 같이 줄어든다. 데스크톱 85px은 A안 재구성 당시 확정값이라 그대로 두고, 모바일
@@ -1437,14 +1520,12 @@ body {
 .hero-photo-scrim {
   position: absolute;
   inset: 0;
-  background: linear-gradient(
-    100deg,
-    rgba(251, 249, 245, 0.98) 0%,
-    rgba(251, 249, 245, 0.95) 30%,
-    rgba(251, 249, 245, 0.72) 46%,
-    rgba(251, 249, 245, 0.25) 62%,
-    rgba(26, 43, 76, 0.06) 100%
-  );
+  background: linear-gradient(100deg,
+      rgba(251, 249, 245, 0.98) 0%,
+      rgba(251, 249, 245, 0.95) 30%,
+      rgba(251, 249, 245, 0.72) 46%,
+      rgba(251, 249, 245, 0.25) 62%,
+      rgba(26, 43, 76, 0.06) 100%);
 }
 
 .hero-content-card {
@@ -1458,6 +1539,7 @@ body {
    히어로 <section>에 붙인 클래스 — flex-direction만 이걸로 뒤집는다(inline style은
    display:flex·alignItems만 정의, flexDirection은 비워둬서 여기서 덮어써도 안 깨짐). */
 @media (max-width: 768px) {
+
   /* 🔴 .fullpage-section 기본값(위)이 이 폭에서 height를 뷰포트 높이에 "고정"한다(641~768px
      구간은 아직 스냅이 살아있음, ≤640만 height:auto로 풀림 — 705행 근처 참고). 고정 height는
      내용이 넘치면 overflow:hidden에 잘리므로 height는 auto로 풀어야 한다. 대신 min-height는
@@ -1468,7 +1550,11 @@ body {
   .hero-section {
     flex-direction: column;
     align-items: stretch;
-    padding: 0 0 1.5rem !important;
+    /* 🔴 2026-09-10 사람 리포트 — 여기 padding-bottom:1.5rem 때문에 흰 카드 밑에 섹션 자체의
+       배경색(#FBF9F5, 흰색과 미묘하게 다른 톤)이 두꺼운 띠로 드러났다("히어로·섹션2 사이
+       두꺼운 줄"). 카드(.hero-content-card)가 화면 끝까지 채우게 하려면 섹션 자체에 여백을
+       주면 안 된다 — 0으로 없앤다. */
+    padding: 0 !important;
     height: auto !important;
     min-height: calc(100vh - var(--header-h)) !important;
   }
@@ -1482,8 +1568,23 @@ body {
     background-position: 72% 40%;
   }
 
+  /* 🔄 2026-09-10 사람 지시 — 사진 아래쪽 경계가 각져서 "잘린" 느낌이 났다. 위쪽은 사진을
+     그대로 두고, 아래쪽만 살짝 페이드시켜 바로 밑 흰 카드로 부드럽게 이어지게 한다.
+     🔴 기존 규칙(위)의 inset:0은 .hero-section(한 화면 높이)을 기준으로 꽉 채운다 — 사진
+     밴드는 190px뿐이라 inset:0을 그대로 두면 스크림이 카드 영역까지 뒤덮어버린다. top:0 +
+     height를 사진과 똑같이 190px로 명시해 사진 위에만 정확히 겹치게 한다.
+     🔄 2026-09-10 재지적 — "이음매가 거의 안 보일 정도로". 처음 값(크림색 0.95)은 색이
+     카드(.hero-content-card, 순백 #FFFFFF)와 미묘하게 달랐고 완전 불투명도 아니어서 경계가
+     남았다. 카드와 완전히 같은 흰색·완전 불투명(1)으로 끝나게 하고, 페이드 시작점도 앞당겨
+     전환 구간을 길게 늘린다. */
   .hero-photo-scrim {
-    display: none;
+    display: block;
+    inset: auto;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 190px;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0) 25%, rgba(255, 255, 255, 1) 100%);
   }
 
   /* 🔴 2026-09-10 사람 재지적 — min-height로 섹션 전체는 한 화면 높이가 됐지만, 흰 카드는
@@ -1502,7 +1603,11 @@ body {
   }
 
   /* 목업 패턴2 그대로 — 사진과 흰 영역 경계를 각지고 단순하게(사람 지시: simple is best).
-     장식적 라운딩·겹침 없이 이어 붙인다. */
+     장식적 라운딩·겹침 없이 이어 붙인다.
+     🔄 2026-09-10 — 내용을 화면 세로 중앙(justify-content:center)에 두면 흰 영역이 길어질수록
+     내용이 아래로 처져 보였다("내용을 위로 올려달라") — 중앙 대신 사진 쪽에 가깝게 위로
+     당긴다. flex-start + 여백만 살짝 주는 방식이라 화면이 아무리 길어도 내용은 항상 사진
+     바로 아래쪽에 고정된다. */
   .hero-content-card {
     background: var(--card-bg);
     padding: 1.6rem 1.3rem;
@@ -1510,7 +1615,7 @@ body {
     width: 100%;
     display: flex;
     flex-direction: column;
-    justify-content: center;
+    justify-content: flex-start;
   }
 }
 
@@ -1541,16 +1646,14 @@ body {
      뱃지는 이미 자체 배경(#FEF3C7)이 있어서 불필요했고, 좁은 구간에서 급격히 진해졌다 옅어지는
      구간이 스크롤 중 눈에 띄는 "띠"처럼 보였다. 전체를 완만하게 단조 증가하는 곡선 하나로
      바꿔 경계에서 튀는 지점이 없게 한다. */
-  background: linear-gradient(
-    180deg,
-    rgba(251, 249, 245, 0.5) 0%,
-    rgba(251, 249, 245, 0.4) 20%,
-    rgba(251, 249, 245, 0.35) 40%,
-    rgba(251, 249, 245, 0.5) 55%,
-    rgba(251, 249, 245, 0.68) 70%,
-    rgba(251, 249, 245, 0.84) 85%,
-    rgba(251, 249, 245, 0.96) 100%
-  );
+  background: linear-gradient(180deg,
+      rgba(251, 249, 245, 0.5) 0%,
+      rgba(251, 249, 245, 0.4) 20%,
+      rgba(251, 249, 245, 0.35) 40%,
+      rgba(251, 249, 245, 0.5) 55%,
+      rgba(251, 249, 245, 0.68) 70%,
+      rgba(251, 249, 245, 0.84) 85%,
+      rgba(251, 249, 245, 0.96) 100%);
 }
 
 /* 768px 이하 — 카드가 이미 자체 불투명 배경을 갖고 있어 히어로 때와 같은 "방향성 그라데이션이
@@ -1561,16 +1664,14 @@ body {
    (개발자 지적) — 전 구간을 한 단 더 짙게(더 옅은 크림 쪽으로) 올렸다. */
 @media (max-width: 768px) {
   .duo-photo-scrim {
-    background: linear-gradient(
-      180deg,
-      rgba(251, 249, 245, 0.78) 0%,
-      rgba(251, 249, 245, 0.7) 20%,
-      rgba(251, 249, 245, 0.65) 40%,
-      rgba(251, 249, 245, 0.76) 55%,
-      rgba(251, 249, 245, 0.87) 70%,
-      rgba(251, 249, 245, 0.94) 85%,
-      rgba(251, 249, 245, 0.99) 100%
-    );
+    background: linear-gradient(180deg,
+        rgba(251, 249, 245, 0.78) 0%,
+        rgba(251, 249, 245, 0.7) 20%,
+        rgba(251, 249, 245, 0.65) 40%,
+        rgba(251, 249, 245, 0.76) 55%,
+        rgba(251, 249, 245, 0.87) 70%,
+        rgba(251, 249, 245, 0.94) 85%,
+        rgba(251, 249, 245, 0.99) 100%);
   }
 }
 
@@ -1580,29 +1681,31 @@ body {
   }
 }
 
-/* 🆕 2026-09-10 사람 지시 — 진입 카드(섹션1) 구간만 지금보다 더 불투명하게. `.duo-photo-scrim`은
-   섹션2(에필로그·푸터)까지 이어지는 공용 레이어라 그 자체를 더 진하게 하면 "에필로그·푸터는 현재
-   상태 유지"라는 별도 지시를 어긴다 — 그래서 진입 카드 섹션 안에만(HomePage.tsx가 그 <section>에
-   직접 얹는 오버레이) 크림색을 한 겹 더 쌓는다. 데스크톱은 기본값 없음(그대로 유지), 768px
-   이하에서만 나타난다. */
+/* 🔄 2026-09-10 사람 확정 — 목업 검토 후 P2(사진 없이 앱 기본 크림 배경) 채택 + 위아래 이음매만
+   그라데이션으로 지운다. `.duo-photo-scrim`은 섹션2(엔트리 카드)~섹션3(에필로그·푸터)까지 이어지는
+   공용 레이어라 그 자체를 고치면 "에필로그·푸터는 현재 상태 유지" 지시를 어긴다 — 그래서 섹션2
+   안에만(HomePage.tsx가 그 <section>에 직접 얹는 오버레이) 아래 그라데이션을 깐다.
+     · 맨 위(0px~56px): 흰색 → 크림 — 히어로 흰 카드와 색이 겹쳐 이음매 자체가 안 보인다.
+     · 중간: 카드 영역 전체를 페이지 기본 크림(--secondary-color)으로 평평하게 채운다(P2) —
+       사진이 안 비쳐서 카드 가독성이 가장 좋다.
+     · 맨 아래(마지막 84px): 크림 → 투명 — 이 오버레이가 걷히면서, 원래부터 있던(계속 그려지고
+       있던) `.duo-photo-scrim`이 그 지점에서 갖는 값 그대로 이어받는다. 그 공용 스크림이
+       섹션2→섹션3에 걸쳐 원래 하나의 연속 그라데이션이라, 이 오버레이만 투명해지면 자연히
+       섹션3 시작부와 값이 맞아떨어진다(별도로 맞출 값을 계산할 필요가 없다). */
 .entry-extra-scrim {
   display: none;
 }
 
-/* 🔄 2026-09-10 — 처음엔 0.4/0.3으로 뒀는데 "너무 투명하다"는 재지적으로 한 단 더 올렸다.
-   `.duo-photo-scrim`(공용) 위에 겹쳐지는 값이라 최종 체감 불투명도는 두 레이어 합성값이다. */
 @media (max-width: 768px) {
   .entry-extra-scrim {
     display: block;
     position: absolute;
     inset: 0;
-    background: rgba(251, 249, 245, 0.7);
-  }
-}
-
-@media (max-width: 480px) {
-  .entry-extra-scrim {
-    background: rgba(251, 249, 245, 0.55);
+    background: linear-gradient(180deg,
+        #FFFFFF 0%,
+        var(--secondary-color) 56px,
+        var(--secondary-color) calc(100% - 84px),
+        rgba(251, 249, 245, 0) 100%);
   }
 }
 
@@ -1649,7 +1752,8 @@ body {
   display: flex;
   flex-direction: column;
   gap: 1rem;
-  min-width: 0; /* grid 자식이 텍스트 폭 때문에 트랙을 넘어서는 것을 막는다(가로 스크롤 방지) */
+  min-width: 0;
+  /* grid 자식이 텍스트 폭 때문에 트랙을 넘어서는 것을 막는다(가로 스크롤 방지) */
 }
 
 /* 2026-09-08 — 우측 아코디언 헤더(.ending-note-accordion-header, 1.05rem·700·primary)와
@@ -1916,7 +2020,8 @@ body {
 .farewell-message-panel {
   background-color: var(--card-bg);
   border-radius: var(--r-lg);
-  max-width: 760px; /* 🔄 09-08 — A/B/C 탭 + 사이드노트를 나란히 두려고 560px에서 넓혔다 */
+  max-width: 760px;
+  /* 🔄 09-08 — A/B/C 탭 + 사이드노트를 나란히 두려고 560px에서 넓혔다 */
   width: 100%;
   max-height: 90vh;
   overflow-y: auto;
@@ -2274,4 +2379,3 @@ body {
   cursor: pointer;
   min-height: 44px;
 }
-
