@@ -252,3 +252,14 @@
   - `wt186`: `components/` 도메인별 폴더화 정리 (`farewell/`, `mypage/`, `lib/modeNav.ts` 이동 및 13개 파일 import 동기화).
 - [x] **하네스 무결성**: `harness-doctor.sh` 검증 완료 (대기 0건 확인).
 
+---
+
+### 23. 2026-09-10 위치정보 기반 시설 탐색 활성화 및 공공 API 재적재 게이트 판정 완료 (대기 0건)
+- [x] **Walkthrough 3건 게이트 판정 완료 (대기 0건 유지)**:
+  - `wt186 [Claude:Opus] 장례식장 정본을 공공 API로 확정` ➔ **✅통과** (보건복지부 ODMS_DATA_04_1 공공데이터 정본 확정, systems.md·security.md 동기화 확인).
+  - `wt187 [Claude:Sonnet] 장례식장 재적재 실행` ➔ **✅통과** (1,080건 공공데이터 재적재, Facility 4컬럼 확장, CTPV_SHORT 매칭, 65건 삭제 가드 및 로컬/운영 동기화 확인).
+  - `2026-09-10 위치정보 기반 시설 탐색 활성화` ➔ **✅통과** (사용자 결정 4건 전수 부합: `config.ts`의 `LOCATION_FEATURE_ENABLED`/`LOCATION_LEGAL_PUBLISHED` 분리, `FacilityPage` GPS 고지문구·8초 타임아웃·직선거리 배지, `PickupPage` GPS 지역필터 기본값 연동, `geoController.ts` reverse province/district 응답 확장, `tsc` 통과).
+  - 누적 통계: 판정 220건 / 대기 0건 / 반려·스펙갱신 14건.
+- [x] **하네스 무결성**: `harness-doctor.sh` #8 게이트 점검 대기 0건 확인.
+
+

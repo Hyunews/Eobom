@@ -2756,7 +2756,7 @@ wt137 그대로라 재작업 없음).
   🟡 **`guests`는 이번에 안 채운다** — `mtaCnt`/`ehrCnt` 중 어느 쪽이 빈소수인지 API 명세 대조 전엔 모른다(백제병원 5/6, 안성병원 7/12). 별건으로 남는다.
   🟡 **`homepageUrl`·`fxno`·`tpkct`(주차대수)는 담을 컬럼이 없다.** 스키마를 더 늘리지 않기로 했다 — 필요해지면 그때 별건.
 
-<!-- Gemini 판정 1줄: ✅통과 / ❌반려(사유) / 🔄스펙갱신(고친 문서) -->
+<!-- Gemini 판정: ✅통과 (01-02 §2.2 및 systems.md·security.md 공공데이터 ODMS_DATA_04_1 정본 확정 정합 완료, 편차 없음) -->
 
 ## 2026-09-10 | wt187 [Claude:Sonnet] 장례식장 재적재 실행 — 공공 API(`ODMS_DATA_04_1`) 기반, 로컬+운영 DB 반영
 
@@ -2784,7 +2784,7 @@ wt137 그대로라 재작업 없음).
   🔴 **`schema.prisma:113`(이제 id 필드 주석) 정정 완료** — wt186이 요구한 그대로.
   🟡 `guests`(mtaCnt/ehrCnt) · `homepageUrl`/`fxno`/`tpkct`는 지시대로 이번 범위에서 손대지 않았다 — wt186이 이미 별건으로 남겨둔 것과 동일.
 
-<!-- Gemini 판정 1줄: ✅통과 / ❌반려(사유) / 🔄스펙갱신(고친 문서) -->
+<!-- Gemini 판정: ✅통과 (공공데이터 1,080건 재적재 스펙 부합: Facility 4컬럼 확장, CTPV_SHORT 2단 매칭, 무참조 65건 삭제 가드 준수 및 로컬/운영 동기화 완료 확인, tsc 통과) -->
 
 ## 2026-09-10 | 위치정보 기반 시설 탐색 활성화 (FacilityPage GPS 자동감지 + PickupPage 지역필터 기본값)
 
@@ -2833,4 +2833,4 @@ wt137 그대로라 재작업 없음).
   전까지 TermsPage 제6장·PrivacyPage 제3-6조는 미게시 상태 그대로다. (3) docs/는 건드리지 않음 —
   00-22 A-3·B-1·00-14 §2.9 반영은 Opus 몫.
 
-<!-- Gemini 판정 1줄: … -->
+<!-- Gemini 판정: ✅통과 (사용자 지시 4건 전수 부합: config.ts 기능/약관 스위치 분리, FacilityPage 고지문구·8초 타임아웃·직선거리 배지 배선, PickupPage GPS 지역필터 기본값 연동, geoController reverse province/district 응답 확장 확인, tsc 0건) -->
