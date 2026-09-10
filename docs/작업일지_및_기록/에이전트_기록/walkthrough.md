@@ -2757,3 +2757,31 @@ wt137 그대로라 재작업 없음).
   🟡 **`homepageUrl`·`fxno`·`tpkct`(주차대수)는 담을 컬럼이 없다.** 스키마를 더 늘리지 않기로 했다 — 필요해지면 그때 별건.
 
 <!-- Gemini 판정 1줄: ✅통과 / ❌반려(사유) / 🔄스펙갱신(고친 문서) -->
+
+## 2026-09-10 | wt187 [Claude:Sonnet] 장례식장 재적재 실행 — 공공 API(`ODMS_DATA_04_1`) 기반, 로컬+운영 DB 반영
+
+- **근거 스펙**: 사람 직접 지시(2026-09-09~10, 상세 프롬프트) · `docs/01_장사시설_매칭/01-02_공공데이터_및_API_상업적_이용_법률_검토서.md` §2.2(wt186) · `.harness/systems.md` §2·§3 · `.harness/db-safety.md`
+- **건드린 파일**: `eobomDev/backend/prisma/schema.prisma`(`Facility`에 `publicName`·`source`·`sourceRef`·`syncedAt` 4컬럼 + id 주석 정정) · `eobomDev/backend/prisma/migrations/20260909233018_facility_public_data_fields/` · `eobomDev/backend/prisma/import-facility-mohw.ts`(신규) · `eobomDev/backend/package.json`(`import:facility-mohw` 스크립트) · `docs/00_핵심플랫폼/00-05_DB_요구사항_및_테이블_사전.md`(자동 생성 갱신) · `assets/보건복지부_전국 장례식장 현황_20260401.xml`(신규, 원본 3페이지 그대로) · **DB 데이터**(로컬 Docker + 운영 Supabase 둘 다, 아래 참고)
+- **결과**:
+  1) **스키마**: `Facility`에 4컬럼 추가(전부 옵셔널/기본값 있음 — 무손실). `id` 필드 주석을 "접두사로 출처 구분"에서 "최초 생성 경로의 흔적일 뿐, 출처는 source 컬럼이 정본"으로 정정(지시대로).
+  2) **수집**: XML 3페이지(pageNo 1·2·3, numOfRows 500) 수집 — 총 1080건, `res.on('data')` 문자열 이어붙이기 대신 `arrayBuffer()`→`Buffer`→`toString('utf8')`로 chunk 경계 한글 깨짐을 원천 차단. 시도별 분포 자가검증 **경기 183 / 전남 124 / 경북 121 / 세종 6 전부 일치**. 라이브러리 없이 정규식으로 파싱(실측: 중첩 없음, `&amp;` 표준 엔티티만 존재, CDATA 없음 확인 후 직접 디코더 작성).
+  3) **매칭**: ①전화번호 숫자만 비교 ②`${ctpv 축약형} ${sigungu}` + 정규화 이름(괄호 제거·법인 접두 제거·공백/구두점 제거·소문자) 순. 🔴 **1차 dry-run에서 버그 발견·수정** — regionKey가 공공데이터의 정식 시/도명("서울특별시")을 그대로 썼는데 DB의 카카오발 `location`은 전부 축약형("서울")이라 지역+이름 매칭이 거의 전멸했다(1차 삭제후보 93건, 서울아산병원·삼성서울병원 등 대형 병원까지 삭제 대상으로 잘못 잡힘). `sync-kakao-funeral.ts`의 `REGIONS` 축약 어휘를 가져와 `CTPV_SHORT` 매핑을 추가하고 `normalizeAddressProvince`와 조합해 재검증 → 삭제후보 93→65건으로 정정, 남은 65건을 전수 대조해 **①DB 기존 중복행(f_* 수기시드 vs kakao_* 가 같은 실제 시설을 가리키는 경우, 약 10건 — 매칭은 kakao_ 쪽이 전화번호로 잡고 f_* 쪽만 고아로 남음) ②공식명·담당전화가 카카오 표기와 실제로 다른 건(예: "서울특별시 서울의료원 장례식장" vs DB "서울의료원 장례식장", 전화번호도 다름)** 임을 확인 — 지정된 정규화 규칙 밖의 잔여 케이스로, 버그가 아니라 알고리즘의 명시된 한계.
+  4) **필드 매핑**: 매칭 행은 `location`(정규화 통과)·`phone`·`tags`(`[gubun, operType]`)·`amenities`(5개 중 '설치'만)·`publicName`·`source='mohw'`·`sourceRef`·`syncedAt` 갱신, `name`·`price`·`rating`·`religion`·`guests`·`images`·`isPartner`·`partnerId`는 손대지 않음(id도 유지). 신규 행은 `name=publicName=fcltNm` + 위 필드 + 플레이스홀더(`가격 정보 준비중`/`전체 종교`/`전체 규모`) + 지오코딩 좌표.
+  5) **지오코딩**: 카카오 주소검색 API, 신규 후보 541건 중 537건 성공·4건 실패(주소에 콤마·건물 부기가 섞인 케이스, 목록 보고 — 적재 보류).
+  6) **삭제 가드**: 미매칭 65건 전부 리뷰·클레임·리드·`partnerId`·`images` **0건** 확인 후 삭제(가드 통과 — 지시된 "0건이면 그대로" 경로).
+  7) 🔴 **DB 실행 대상 확인 필요성 발견** — `prisma migrate dev`가 기본으로 **로컬 Docker(`localhost:5433`)** 를 겨냥한다는 걸 뒤늦게 알아차림(`backup-db.ps1`은 운영 Supabase를 뜬다 — `db-safety.md`가 경고하는 정확히 그 혼동). 사람에게 확인한 결과 **로컬·운영 둘 다 정본(동기화 대상)** — 마이그레이션은 `prisma migrate dev`(로컬) + `DATABASE_URL/DIRECT_URL`을 `BACKUP_DATABASE_URL`로 오버라이드한 `prisma migrate deploy`(운영) 두 번 적용. 실제 반영도 같은 방식으로 두 DB에 동일 실행 — **결과 완전히 동일**(update 539 / create 537 / delete 65, 둘 다 601→1073건).
+  검증: `npx tsc --noEmit -p .`(backend) 통과. dry-run 2회(로컬·운영, 수정 전후) + 실제 반영 2회(로컬·운영) 전부 로그 확인. 반영 후 `groupBy(source)` 조회로 1073건 전부 `source='mohw'` 확인, 샘플 레코드(`kakao_8596577`→매칭, `mohw_0308`→신규) 필드 정상 확인. `node .harness/tools/generate-db-doc.js` 실행 — 4개 컬럼 설명 전부 반영, "설명 없음" 건수 증가 없음.
+  **실기동**: 프론트(`/facility`)에서 실제 렌더는 확인하지 않음(사람 몫, 2026-09-03 지시) — 지오코딩된 신규 537건·수정된 539건이 화면에 정상 표시되는지, 태그(`amenities` 신규 5종)가 프론트 필터 카탈로그와 충돌 없는지 확인 필요.
+- **편차**:
+  ① `id = 'mohw_' + <순번>` — 원 지시 문장이 "id = 'mohw_' +"에서 끊겨 있어(줄바꿈 유실로 추정) 값을 직접 판단했다. 기존 두 전례(CSV: `bongan_NNN` 순번 패딩 / 카카오: `kakao_<placeId>` 외부 안정 id)를 참고해, 공공데이터엔 안정적 외부 id가 없으므로 CSV 전례를 따라 **신규 행 안에서의 1-index 4자리 패딩**(`mohw_0001`~)을 썼다. 재대조는 id가 아니라 전화·`sourceRef`로 하므로 id 안정성이 결과에 영향 없음.
+  ② `deleteMany`의 `where`에 `type: '장례식장'`을 명시 지시대로 추가했지만, 애초에 삭제 후보 목록 자체가 `type: '장례식장'`으로 조회된 601건에서만 뽑혀 논리적으로 이중 방어였다 — 그대로 유지(지시 그대로, 손해 없음).
+  ③ **로컬+운영 이중 실행은 원 지시서에 없던 것** — 원 지시는 DB 하나를 전제로 쓰여 있었다. 사람 확인 후 두 DB 모두에 동일하게 적용했다(위 결과 7번).
+- **다음 에이전트가 알아야 할 것**:
+  🔴 **커밋은 사람이 한다** — 이 항목은 커밋 전 상태로 기록됐다. `eobomDev/backend/backups/`의 백업 덤프 2개(`prod-20260910-082936.dump`·`local-20260910-084500.dump`)는 `.gitignore` 대상이라 커밋 걱정은 없다.
+  🟡 지오코딩 실패 4건(경기 안양·의정부, 충남 서천, 전북 순창)은 DB에 없다 — 주소 정제 후 수동 재시도하거나 다음 갱신 때 자연히 잡힐 것.
+  🟡 삭제된 65건 중 `f_*` 계열(약 10건)은 사실상 "이미 kakao_로 중복 존재하던 시드 데이터 정리"였다 — 실질적으로 데이터가 사라진 게 아니라 중복이 없어진 것.
+  🔵 `CTPV_SHORT` 매핑(17개 시/도 축약형)은 `sync-kakao-funeral.ts`의 `REGIONS`와 값이 같다 — 다음에 이런 매칭 코드를 또 쓰게 되면 공통 유틸(`utils/`)로 뽑아내는 걸 고려할 것(이번엔 한 파일에서만 쓰여 안 뽑았다).
+  🔴 **`schema.prisma:113`(이제 id 필드 주석) 정정 완료** — wt186이 요구한 그대로.
+  🟡 `guests`(mtaCnt/ehrCnt) · `homepageUrl`/`fxno`/`tpkct`는 지시대로 이번 범위에서 손대지 않았다 — wt186이 이미 별건으로 남겨둔 것과 동일.
+
+<!-- Gemini 판정 1줄: ✅통과 / ❌반려(사유) / 🔄스펙갱신(고친 문서) -->
