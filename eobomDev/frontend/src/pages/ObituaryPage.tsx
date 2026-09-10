@@ -19,10 +19,14 @@ interface ObituaryPageProps {
   setActiveTab?: (tab: string) => void;
 }
 
-// GET /api/me/obituaries가 Phase 1 범위 밖(§5.1 중 POST·GET :slug·PATCH만)이라, "내가 이미
-// 부고장을 만들었는지"는 이 브라우저에 남겨둔 참조로만 판단한다 — 공개 GET :slug로 다시
-// 불러와 편집 모드로 전환한다. 서버 DB가 정본이고 이건 그저 "어느 걸 다시 열지"에 대한
-// 로컬 포인터일 뿐이다(§5.4 — 입력값 자체는 서버 Obituary 레코드에 저장됨).
+// 🔄 2026-09-10 — 위 주석은 GET /api/me/obituaries가 Phase 1 범위 밖이던 시절 근거였는데,
+// 그 엔드포인트가 이후 승격돼(00-06 §8.3 SCR-018) 이제 계정 기준으로 "내가 이미 부고장을
+// 만들었는지"를 물을 수 있다. 그런데도 이 로컬 포인터만으로 targetSlug를 정해서, 같은
+// 계정이 다른 기기로 들어오면 그 기기에 남은(혹은 없는) 포인터에 따라 다른 화면이 뜨는
+// 문제가 실제로 보고됐다(사람 리포트). 이제 slug 쿼리가 없을 때는 이 포인터 대신
+// GET /api/me/obituaries로 계정 기준 targetSlug를 정한다 — 아래 useEffect 참고. 이 상수와
+// 포인터 자체는 종료(handleCloseObituary 등, §5.3-2)처럼 "어느 걸 다시 열지" 힌트 용도로는
+// 여전히 쓴다(§5.4 — 입력값 자체는 서버 Obituary 레코드에 저장됨).
 const STORAGE_KEY = 'eobom_my_obituary';
 
 interface StoredObituaryRef {
@@ -203,91 +207,95 @@ export const ObituaryPage: React.FC<ObituaryPageProps> = ({ currentUser, onOpenL
     }
 
     // 00-06 §8(SCR-018) — 목록 화면("관리" 버튼)에서 특정 부고장을 지목해 들어오는 경로.
-    // 있으면 localStorage 포인터보다 우선한다(부고장이 2개 이상일 때 마지막으로 연 것과
-    // 다른 것을 볼 수 있어야 하므로). 없으면 기존과 동일하게 포인터를 쓴다.
+    // 있으면 아래 계정 기준 조회보다 우선한다(부고장이 2개 이상일 때 특정한 걸 봐야 하므로).
     const querySlug = searchParams.get('slug');
-    const raw = localStorage.getItem(STORAGE_KEY);
-    let ref: StoredObituaryRef | null = null;
-    if (!querySlug) {
-      if (!raw) {
-        setLoading(false);
-        return;
-      }
-      try {
-        ref = JSON.parse(raw);
-      } catch {
-        localStorage.removeItem(STORAGE_KEY); // 파싱조차 안 되면 힌트로도 못 쓰므로 이건 지운다
-        setLoading(false);
-        return;
-      }
-    }
-    const targetSlug = querySlug || ref!.obituarySlug;
 
     // §5.3-2 — 어느 경로로 왔든 slug는 "무엇을 열어볼지" 힌트일 뿐, 권한 신호가 아니다.
     // 다른 계정으로 로그인해 있어도 이 fetch 자체는 그대로 나가고, 그 사람 것인지는 서버의
     // isOwner로만 판정한다(아래). 종료된 뒤에도 개설자 본인은 계속 볼 수 있어야 하므로(§5.3-1)
     // 토큰을 실어 보낸다 — 없으면 서버가 익명 조회로 보고 종료 시 404를 준다.
-    apiFetch<any>(`/api/obituaries/${targetSlug}`, 'USER')
-      .then((o) => {
-        // 🔴 §5.3-2 핵심 — 서버가 "당신 것"이라고 확인해준 경우에만 관리 모드로 들어간다.
-        // 아니면 폼을 채우지 않고(남의 데이터를 화면에 띄우는 것이 이번 사고의 본질) 조용히
-        // 개설 화면(초기 상태)에 남는다. 포인터는 지우지 않는다 — 원래 주인이 다시 로그인하면
-        // 살아나야 한다(§5.3-2 마지막 줄).
-        if (!o.isOwner) return;
+    const loadBySlug = (targetSlug: string) => {
+      apiFetch<any>(`/api/obituaries/${targetSlug}`, 'USER')
+        .then((o) => {
+          // 🔴 §5.3-2 핵심 — 서버가 "당신 것"이라고 확인해준 경우에만 관리 모드로 들어간다.
+          // 아니면 폼을 채우지 않고(남의 데이터를 화면에 띄우는 것이 이번 사고의 본질) 조용히
+          // 개설 화면(초기 상태)에 남는다. 포인터는 지우지 않는다 — 원래 주인이 다시 로그인하면
+          // 살아나야 한다(§5.3-2 마지막 줄).
+          if (!o.isOwner) return;
 
-        // 목록 화면에서 지목해 들어온 경우(querySlug)에도 이후 이 화면을 다시 열면 방금 본
-        // 부고장이 이어지도록 포인터를 갱신한다 — "마지막으로 연 것" 힌트일 뿐 권한 신호는
-        // 아니므로(§5.3-2) 그냥 덮어써도 안전하다.
-        const resolvedRef: StoredObituaryRef = { obituaryId: o.obituaryId, obituarySlug: targetSlug, memorialSlug: o.memorialSlug };
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(resolvedRef));
-        setObituaryRef(resolvedRef);
-        setObituaryId(o.obituaryId);
-        setDeceasedName(o.deceasedName || '');
-        setDeathDate(o.deceasedDeathDate ? String(o.deceasedDeathDate).slice(0, 16) : '');
-        setFuneralHall(o.funeralHall || '');
-        setFuneralHallAddr(o.funeralHallAddr || '');
-        setMourningRoom(o.mourningRoom || '');
-        setCoffinAt(o.coffinAt ? String(o.coffinAt).slice(0, 16) : '');
-        setFuneralAt(o.funeralAt ? String(o.funeralAt).slice(0, 16) : '');
-        setBurialSite(o.burialSite || '');
-        setContactPhone(o.contactPhone || '');
+          // 목록 화면에서 지목해 들어온 경우(querySlug)에도 이후 이 화면을 다시 열면 방금 본
+          // 부고장이 이어지도록 포인터를 갱신한다 — "마지막으로 연 것" 힌트일 뿐 권한 신호는
+          // 아니므로(§5.3-2) 그냥 덮어써도 안전하다.
+          const resolvedRef: StoredObituaryRef = { obituaryId: o.obituaryId, obituarySlug: targetSlug, memorialSlug: o.memorialSlug };
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(resolvedRef));
+          setObituaryRef(resolvedRef);
+          setObituaryId(o.obituaryId);
+          setDeceasedName(o.deceasedName || '');
+          setDeathDate(o.deceasedDeathDate ? String(o.deceasedDeathDate).slice(0, 16) : '');
+          setFuneralHall(o.funeralHall || '');
+          setFuneralHallAddr(o.funeralHallAddr || '');
+          setMourningRoom(o.mourningRoom || '');
+          setCoffinAt(o.coffinAt ? String(o.coffinAt).slice(0, 16) : '');
+          setFuneralAt(o.funeralAt ? String(o.funeralAt).slice(0, 16) : '');
+          setBurialSite(o.burialSite || '');
+          setContactPhone(o.contactPhone || '');
 
-        if (o.account) {
-          setAccountEnabled(true);
-          setAccountBankCode(o.account.bankCode || '');
-          setAccountNumber(o.account.accountNumber || '');
-          setAccountHolder(o.account.holder || '');
-        }
+          if (o.account) {
+            setAccountEnabled(true);
+            setAccountBankCode(o.account.bankCode || '');
+            setAccountNumber(o.account.accountNumber || '');
+            setAccountHolder(o.account.holder || '');
+          }
 
-        const list = Array.isArray(o.mourners) ? o.mourners : [];
-        const chief = list.find((m: any) => m.isChief);
-        const rest = list.filter((m: any) => !m.isChief);
-        if (chief) {
-          setChiefMournerName(chief.name || '');
-          setChiefMournerRelationship(chief.relationship || '');
-        }
-        setMourners(rest.map((m: any) => ({ name: m.name || '', relationship: m.relationship || '' })));
+          const list = Array.isArray(o.mourners) ? o.mourners : [];
+          const chief = list.find((m: any) => m.isChief);
+          const rest = list.filter((m: any) => !m.isChief);
+          if (chief) {
+            setChiefMournerName(chief.name || '');
+            setChiefMournerRelationship(chief.relationship || '');
+          }
+          setMourners(rest.map((m: any) => ({ name: m.name || '', relationship: m.relationship || '' })));
 
-        setCardFieldsUpdatedAt(o.cardFieldsUpdatedAt || null);
-        setUpdatedAt(o.updatedAt || null);
-        setIsClosed(!!o.isClosed);
-        setClosedAt(o.closedAt || null);
-        setObituaryUrl(`${window.location.origin}/o/${targetSlug}`);
-        setMemorialUrl(o.memorialSlug ? `${window.location.origin}/m/${o.memorialSlug}` : '');
-        // 개설 시 이미 완료한 동의 — 수정 화면에서 다시 요구하지 않는다(체크된 상태로 표시).
-        setFalseReportAgreed(true);
-        setResharedNoticeAck(true);
-      })
-      .catch(() => {
-        // 실제로 없어진 경우(삭제 등)만 여기로 온다 — 남의 것이라 막힌 경우는 200 + isOwner:false로
-        // 오므로 이 분기를 안 탄다(§5.3-2). 진짜 없는 것만 정리한다. querySlug로 들어왔는데 그게
-        // localStorage 포인터와 다른 부고장이면, 포인터가 가리키는 다른(멀쩡한) 부고장까지
-        // 지울 이유가 없으므로 그대로 둔다.
-        if (!querySlug || ref?.obituarySlug === querySlug) {
+          setCardFieldsUpdatedAt(o.cardFieldsUpdatedAt || null);
+          setUpdatedAt(o.updatedAt || null);
+          setIsClosed(!!o.isClosed);
+          setClosedAt(o.closedAt || null);
+          setObituaryUrl(`${window.location.origin}/o/${targetSlug}`);
+          setMemorialUrl(o.memorialSlug ? `${window.location.origin}/m/${o.memorialSlug}` : '');
+          // 개설 시 이미 완료한 동의 — 수정 화면에서 다시 요구하지 않는다(체크된 상태로 표시).
+          setFalseReportAgreed(true);
+          setResharedNoticeAck(true);
+        })
+        .catch(() => {
+          // 실제로 없어진 경우(삭제 등)만 여기로 온다 — 남의 것이라 막힌 경우는 200 + isOwner:false로
+          // 오므로 이 분기를 안 탄다(§5.3-2). 진짜 없는 것만 정리한다.
           localStorage.removeItem(STORAGE_KEY);
+        })
+        .finally(() => setLoading(false));
+    };
+
+    if (querySlug) {
+      loadBySlug(querySlug);
+      return;
+    }
+
+    // 🔴 2026-09-10 사람 리포트 — 여기서부터가 이전엔 localStorage 포인터로만 targetSlug를
+    // 정하던 자리다. 같은 계정이 기기를 바꿔 들어오면 그 기기의 로컬 포인터(없거나, 다른
+    // 부고장을 가리키거나)에 따라 다른 화면이 떴다. GET /api/me/obituaries로 계정 기준
+    // 목록을 받아와 targetSlug를 정한다 — 진행 중(안 닫힌) 것 중 가장 최근 걸 우선하고,
+    // 전부 종료됐으면 가장 최근 걸 연다(createdAt desc로 내려오므로 list[0]). 여러 개 중
+    // 특정 걸 고르려면 "내 부고장 목록"에서 slug를 지정해 들어와야 한다(querySlug 경로).
+    apiFetch<{ slug: string; isClosed: boolean }[]>('/api/me/obituaries', 'USER')
+      .then((list) => {
+        if (!Array.isArray(list) || list.length === 0) {
+          localStorage.removeItem(STORAGE_KEY);
+          setLoading(false);
+          return;
         }
+        const target = list.find((o) => !o.isClosed) || list[0];
+        loadBySlug(target.slug);
       })
-      .finally(() => setLoading(false));
+      .catch(() => setLoading(false));
   }, [currentUser, searchParams]);
 
   const addMourner = () => setMourners((prev) => [...prev, { name: '', relationship: '' }]);
