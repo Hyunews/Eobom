@@ -275,14 +275,6 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
               </span>
             )}
           </div>
-          {LOCATION_FEATURE_ENABLED && (
-            // 정식 약관 조문(TermsPage 제6장·PrivacyPage 제3-6조)이 아직 미게시라 이 한 줄이
-            // 최소 고지를 대신한다 — 권한 팝업이 뜨기 전에 왜 위치를 쓰는지 먼저 알린다.
-            <p style={{ fontSize: 'var(--fs-body)', color: 'var(--text-muted)', margin: '0 0 0.6rem' }}>
-              가까운 장례식장을 먼저 보여드리기 위해 현재 위치를 사용합니다. 허용하지 않아도
-              아래에서 지역을 직접 선택할 수 있습니다.
-            </p>
-          )}
           <div style={{ display: 'flex', gap: '0.6rem', flexWrap: 'wrap' }}>
             <select value={locationProvince} onChange={(e) => handleProvinceChange(e.target.value)} className="form-select" style={{ flex: '1 1 140px' }}>
               <option value="">시/도 선택</option>
