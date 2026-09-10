@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { X, ShieldCheck, Check, AlertCircle } from 'lucide-react';
 import { BACKEND_URL } from '../config';
+import { PENDING_RETURN_PATH_KEY } from '../lib/storage';
 
 interface LoginModalProps {
   isOpen: boolean;
@@ -215,6 +216,9 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin
       consentPrivacy: agreedPrivacy ? '1' : '0',
       consentMarketing: agreedMarketing ? '1' : '0',
     });
+    // 🆕 2026-09-10 — 전체 페이지 리다이렉트라 SPA 라우트가 끊긴다. 콜백은 항상 '/'로 돌아오므로
+    // (App.tsx), 지금 경로를 저장해뒀다가 로그인 성공 후 되돌아가게 한다(prep·bereaved 등).
+    sessionStorage.setItem(PENDING_RETURN_PATH_KEY, window.location.pathname);
     window.location.href = `${BACKEND_URL}/api/auth/${provider}?${params.toString()}`;
   };
 
@@ -224,6 +228,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin
   // 로그인시킨다 — 가입 이력이 없는 소셜 계정이면 동의 없이 조용히 새 User를 만드는 대신
   // loginError=not_registered로 돌려보내 App.tsx가 "회원가입" 탭을 열게 한다.
   const handleLoginTabSocial = (provider: 'kakao' | 'naver' | 'google') => {
+    sessionStorage.setItem(PENDING_RETURN_PATH_KEY, window.location.pathname);
     window.location.href = `${BACKEND_URL}/api/auth/${provider}?mode=login`;
   };
 

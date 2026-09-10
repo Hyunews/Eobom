@@ -51,7 +51,7 @@ export const domainSlides: Record<string, DomainSlide> = {
     bullets: [
       '카카오맵 실시간 연동으로 거리순 정렬 및 위치 확인',
       '시/도·시/군/구 지역 필터 + 태그 필터로 원하는 조건만 빠르게 검색',
-      '전화번호 노출 없이 안전한 업체 문의(견적 요청) 폼으로 연결',
+      '전화번호 노출 없이 안전한 상담(견적 요청) 폼으로 연결',
     ],
     featureIcon: <HouseLeafIcon size={36} color="#1A2B4C" />,
     featureIconBg: 'var(--surface-subtle)',

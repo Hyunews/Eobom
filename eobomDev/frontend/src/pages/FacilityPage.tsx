@@ -715,11 +715,11 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
                 </button>
                 <button
                   onClick={() => setInquiryFacility(item)}
-                  title="업체 문의"
+                  title="상담"
                   className="btn btn-primary"
                   style={{ display: 'flex', alignItems: 'center', gap: isMobile ? 0 : '0.25rem', padding: isMobile ? '0.6rem 1rem' : '0.5rem 1rem', fontSize: 'var(--fs-body)', whiteSpace: 'nowrap', fontWeight: 700 }}
                 >
-                  <Send size={14} /> {!isMobile && '업체 문의'}
+                  <Send size={14} /> {!isMobile && '상담'}
                 </button>
               </div>
             </div>
@@ -850,7 +850,7 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
                 )}
               </div>
 
-              {/* 액션 버튼 그룹 — 전화 직통·견적비교·답사예약 삭제(2026-08-10), 업체 문의로 대체 */}
+              {/* 액션 버튼 그룹 — 전화 직통·견적비교·답사예약 삭제(2026-08-10), 상담으로 대체 */}
               <div style={{ marginTop: 'auto', display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
                 {/* 카카오맵 지도 버튼 */}
                 <button
@@ -871,7 +871,8 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
                   <Map size={16} /> 카카오 지도
                 </button>
 
-                {/* 업체 문의 버튼 */}
+                {/* 상담 버튼 — 🔄 2026-09-10 사람 지시, "업체 문의"에서 개명. MyPage 히어로
+                    통계의 "상담 내역"(전문가+업체 합산)과 용어를 맞춘다. */}
                 <button
                   onClick={() => setInquiryFacility(item)}
                   className="btn btn-primary"
@@ -885,7 +886,7 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
                     fontWeight: 700
                   }}
                 >
-                  <Send size={16} /> 업체 문의
+                  <Send size={16} /> 상담
                 </button>
               </div>
             </div>
@@ -954,7 +955,7 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
         />
       )}
 
-      {/* 업체 문의 모달 */}
+      {/* 상담 모달 */}
       {inquiryFacility && (
         <InquiryModal
           facilityId={inquiryFacility.id}
