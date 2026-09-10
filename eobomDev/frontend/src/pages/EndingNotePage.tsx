@@ -685,7 +685,7 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
         <h1 style={{ color: 'var(--primary-color)', fontSize: '2rem', display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0 }}>
           <NoteKeyIcon color="var(--primary-color)" size={32} /> 디지털 엔딩노트
         </h1>
-        <p style={{ color: 'var(--text-muted)', marginTop: '0.4rem' }}>
+        <p className="page-subtitle" style={{ color: 'var(--text-muted)', marginTop: '0.4rem' }}>
           연명의료 의향 메모, 장례 희망 방식, 유언장 초안까지 표준화된 항목을 차근차근 채워두세요.
         </p>
       </div>

@@ -1,31 +1,11 @@
 import { Request, Response } from 'express';
 import prisma from '../config/prisma';
-import { GWANGJU_DISTRICTS, MERGED_PROVINCE } from '../utils/address';
+import { GWANGJU_DISTRICTS, MERGED_PROVINCE_DISPLAY, PROVINCE_ALIASES } from '../utils/address';
 
 const KAKAO_KEY = process.env.KAKAO_CLIENT_ID;
 
-// 시/도 표기 정규화 (CSV 원본은 정식 명칭, 카카오 검색 결과는 축약형이라 하나로 통일)
-// 광주·전남은 2026년 전남광주통합특별시 출범으로 하나의 시/도로 합쳐 노출한다.
-const PROVINCE_ALIASES: Record<string, string> = {
-  서울특별시: '서울', 서울: '서울',
-  부산광역시: '부산', 부산: '부산',
-  대구광역시: '대구', 대구: '대구',
-  인천광역시: '인천', 인천: '인천',
-  광주광역시: MERGED_PROVINCE, 광주: MERGED_PROVINCE,
-  대전광역시: '대전', 대전: '대전',
-  울산광역시: '울산', 울산: '울산',
-  세종특별자치시: '세종', 세종: '세종',
-  경기도: '경기', 경기: '경기',
-  강원도: '강원', 강원특별자치도: '강원', 강원: '강원',
-  충청북도: '충북', 충북: '충북',
-  충청남도: '충남', 충남: '충남',
-  전라북도: '전북', 전북특별자치도: '전북', 전북: '전북',
-  전라남도: MERGED_PROVINCE, 전남: MERGED_PROVINCE,
-  전남광주통합특별시: MERGED_PROVINCE,
-  경상북도: '경북', 경북: '경북',
-  경상남도: '경남', 경남: '경남',
-  제주특별자치도: '제주', 제주: '제주',
-};
+// PROVINCE_ALIASES·MERGED_PROVINCE_DISPLAY 정의는 utils/address.ts로 옮겼다(2026-09-10) —
+// facilityController의 지역 필터가 같은 별칭표를 공용으로 써야 해서 공용 유틸로 승격.
 
 // 실제 보유 시설 데이터에서 시/도 -> 시/군/구 목록을 추출 (`GET /api/geo/regions`)
 // 하드코딩된 행정구역 목록 대신, 우리가 실제로 가진 시설의 주소에서 뽑아 항상 결과가 있는 지역만 노출
@@ -91,12 +71,15 @@ export const reverseGeocode = async (req: Request, res: Response) => {
   }
 };
 
-// "전남광주통합특별시 여수시" 같은 병합 시/도 질의를 카카오가 아는 옛 명칭으로 되돌린다.
+// "전남광주 여수시" 같은 병합 시/도 질의를 카카오가 아는 옛 명칭으로 되돌린다.
 // 카카오 로컬 API 주소 데이터는 아직 통합 이전 행정구역 기준이라, 병합 명칭을 그대로 보내면
-// 주소 검색·키워드 검색 둘 다 실패한다 — 화면 표시는 통합명, 카카오 호출은 옛 명칭으로 이원화.
+// 주소 검색·키워드 검색 둘 다 실패한다 — 화면 표시(축약명)는 카카오 호출은 옛 명칭으로 이원화.
+// 프론트가 보내는 값은 항상 PROVINCE_ALIASES가 내놓은 표시명(MERGED_PROVINCE_DISPLAY)이므로
+// 여기 기준도 그 표시명으로 맞춘다 — 정식 명칭(MERGED_PROVINCE)은 DB 저장용일 뿐 검색 질의로는
+// 들어오지 않는다.
 const resolveKakaoQuery = (query: string): string => {
   const tokens = query.trim().split(/\s+/);
-  if (tokens[0] !== MERGED_PROVINCE || !tokens[1]) return query;
+  if (tokens[0] !== MERGED_PROVINCE_DISPLAY || !tokens[1]) return query;
   const legacyProvince = GWANGJU_DISTRICTS.has(tokens[1]) ? '광주광역시' : '전라남도';
   return [legacyProvince, ...tokens.slice(1)].join(' ');
 };

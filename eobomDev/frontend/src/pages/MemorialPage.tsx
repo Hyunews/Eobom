@@ -150,7 +150,7 @@ export const MemorialPage: React.FC<MemorialPageProps> = ({ currentUser, onOpenL
           <h1 className="page-title" style={{ color: 'var(--primary-color)', display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0 }}>
             <Flower2 color="var(--point-color)" size={32} /> 디지털 추모관
           </h1>
-          <p style={{ color: 'var(--text-muted)', marginTop: '0.4rem' }}>
+          <p className="page-subtitle" style={{ color: 'var(--text-muted)', marginTop: '0.4rem' }}>
             조문객이 온라인으로 헌화·방명록을 남길 수 있는 공간입니다. 부고장과 별개로 여기서 직접 만들고 지웁니다.
           </p>
         </div>

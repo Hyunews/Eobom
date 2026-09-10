@@ -892,6 +892,18 @@ body {
   font-size: clamp(1.4rem, 5vw, 2rem);
 }
 
+/* 🔴 2026-09-10 사용자 지시 — 도메인 페이지 제목 아래 한 줄 설명(예: FacilityPage "현재 위치
+   기반 거리순 정렬과…")을 모바일에서 숨긴다. 상단 크롬을 줄여 콘텐츠 첫 줄까지 ≤1스크롤이라는
+   00-38 §3.4 원칙과 같은 방향 — 색상·여백은 각 페이지가 인라인 스타일로 이미 정하므로 이 클래스는
+   순수 표시/숨김 마커로만 쓴다. 각 페이지의 제목 아래 설명 <p>에 className="page-subtitle"만
+   추가하면 된다. */
+.page-subtitle {}
+@media (max-width: 768px) {
+  .page-subtitle {
+    display: none;
+  }
+}
+
 .auto-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr));

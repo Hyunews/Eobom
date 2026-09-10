@@ -77,7 +77,7 @@ export const CounselingPage: React.FC<CounselingPageProps> = ({ currentUser, onO
         <h1 className="page-title" style={{ color: 'var(--primary-color)', display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0 }}>
           <HandScalesIcon color="var(--point-color)" size={32} /> 상속 · 법률 · 세무 비대면 전문가 상담
         </h1>
-        <p style={{ color: 'var(--text-muted)' }}>
+        <p className="page-subtitle" style={{ color: 'var(--text-muted)' }}>
           변호사, 세무사, 행정사, 장례지도사 분야별 상담 신청 및 상속세 자동 시뮬레이터
         </p>
       </div>
