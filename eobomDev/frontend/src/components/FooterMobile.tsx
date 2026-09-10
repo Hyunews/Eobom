@@ -10,18 +10,21 @@ export const FooterMobile: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
+    // 🔄 2026-09-10 사람 지시 — 에필로그와 하나의 섹션처럼 보이도록 위쪽 구분선(borderTop)과
+    // marginTop을 없앴다(에필로그 쪽 padding-bottom이 늘어서 여백은 여전히 있음, 다만 "선으로
+    // 뚝 끊는" 느낌만 뺀다). 전체 세로 비중에서 푸터가 차지하는 몫을 줄이라는 지시에 따라 안쪽
+    // padding·항목 사이 간격도 함께 좁혔다. 배경(backgroundColor:'transparent')은 "현재 상태
+    // 유지" 지시대로 그대로 둔다 — 섹션3 배경 처리 자체는 안 건드림.
     <footer
       style={{
         backgroundColor: 'transparent',
         color: 'var(--text-muted)',
-        padding: '1.75rem 1.5rem 0',
-        marginTop: '2rem',
-        borderTop: '1px solid var(--border-color)',
+        padding: '0.9rem 1.5rem 0',
         textAlign: 'center'
       }}
     >
-      <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1.1rem' }}>
-        <EobomLogo variant="symbol" height={38} />
+      <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '0.9rem' }}>
+        <EobomLogo variant="symbol" height={34} />
       </div>
 
       <a
@@ -41,12 +44,13 @@ export const FooterMobile: React.FC = () => {
           fontSize: '1rem',
           fontWeight: 700,
           textDecoration: 'none',
-          marginBottom: '0.55rem'
+          marginBottom: '0.45rem',
+          whiteSpace: 'nowrap'
         }}
       >
         <MessageCircle size={18} /> 카카오톡으로 문의하기
       </a>
-      <p style={{ fontSize: 'var(--fs-body)', color: 'var(--text-muted)', margin: '0 0 1rem' }}>
+      <p style={{ fontSize: 'var(--fs-body)', color: 'var(--text-muted)', margin: '0 0 0.7rem' }}>
         평일 09:00 ~ 17:00
       </p>
 
@@ -91,15 +95,16 @@ export const FooterMobile: React.FC = () => {
 
       <div
         style={{
-          paddingTop: '0.9rem',
-          marginTop: '0.4rem',
+          paddingTop: '0.8rem',
+          marginTop: '0.3rem',
           borderTop: '1px solid var(--border-color)',
           fontSize: 'var(--fs-caption)',
           color: 'var(--text-muted)',
-          paddingBottom: '1.3rem'
+          paddingBottom: '1rem',
+          lineHeight: 1.6
         }}
       >
-        Copyright © 2026 이어봄 (Eobom) Total Care Platform. All rights reserved.
+        Copyright © 2026 이어봄 (Eobom)<br />Total Care Platform. All rights reserved.
       </div>
     </footer>
   );

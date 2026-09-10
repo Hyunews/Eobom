@@ -33,6 +33,11 @@ export const HomePage: React.FC<HomePageProps> = ({ currentUser, onOpenLogin, se
   }, [isMobile640]);
   const isMobileLayout = () => isMobile640Ref.current;
 
+  // 🆕 2026-09-10 사람 지시 — 히어로 수직 분할(모바일)은 index.css .hero-section의
+  // @media (max-width:768px)과 짝이다. 반드시 같은 768을 써야 한다 — JS와 CSS 브레이크포인트가
+  // 어긋나면 문구만 먼저(또는 늦게) 바뀌는 깜빡임 버그가 난다(FacilityPage.tsx 같은 실수 반복 금지).
+  const isHeroStacked = useIsMobile(768);
+
   const getHeaderOffset = () => {
     const raw = getComputedStyle(document.documentElement).getPropertyValue('--header-h');
     return parseFloat(raw) || 0;
@@ -369,7 +374,7 @@ export const HomePage: React.FC<HomePageProps> = ({ currentUser, onOpenLogin, se
         {/* ========================================================= */}
         <section
           ref={(el) => { sectionElsRef.current[0] = el; }}
-          className="fullpage-section"
+          className="fullpage-section hero-section"
           style={{
             width: '100%',
             scrollSnapAlign: 'start',
@@ -391,7 +396,7 @@ export const HomePage: React.FC<HomePageProps> = ({ currentUser, onOpenLogin, se
               이게 없으면 텍스트 박스가 뷰포트 왼쪽 끝에 그대로 붙어버려(패딩 몇 px만 떨어짐),
               화면이 넓을수록 "왼쪽에 쏠려 보인다"는 인상을 준다. 헤더 로고·진입 4박스 등
               나머지 섹션과 같은 중앙 정렬 기준선 안에서, 텍스트만 그 기준선의 왼쪽에 앉힌다. */}
-          <div style={{ width: '100%', maxWidth: '1440px', margin: '0 auto', padding: '0 6vw', position: 'relative', zIndex: 1 }}>
+          <div className="hero-body" style={{ width: '100%', maxWidth: '1440px', margin: '0 auto', padding: '0 6vw', position: 'relative', zIndex: 1 }}>
             <div className="hero-content-card" style={{ maxWidth: '640px', width: '100%' }}>
               <div
                 style={{
@@ -406,10 +411,15 @@ export const HomePage: React.FC<HomePageProps> = ({ currentUser, onOpenLogin, se
                   color: 'var(--point-color)',
                   fontWeight: 700,
                   marginBottom: '1.3rem',
-                  boxShadow: 'var(--el-1)'
+                  boxShadow: 'var(--el-1)',
+                  whiteSpace: 'nowrap'
                 }}
               >
-                <Sparkles size={16} color="var(--point-color)" /> 디지털 엔딩 &amp; 웰다잉 토탈 케어 이어봄 (Eobom)
+                {/* 🔄 2026-09-10 사람 지시 — "모든 섹션에서 줄바꿈으로 화면이 지저분해지지
+                    않게" 유의하라는 지시. 이 배지는 풀 문구("...이어봄 (Eobom)")가 360px에서
+                    줄바꿈되거나 pill이 화면 폭을 넘겼다 — 모바일은 로고에 이미 브랜드명이
+                    있으니 뒤쪽("이어봄 (Eobom)")을 빼고 한 줄에 확실히 들어가는 길이로 줄인다. */}
+                <Sparkles size={16} color="var(--point-color)" /> {isHeroStacked ? '디지털 엔딩 & 웰다잉 토탈 케어' : '디지털 엔딩 & 웰다잉 토탈 케어 이어봄 (Eobom)'}
               </div>
 
               {/* 🔄 2026-09-09 — 하드코딩 문자열 → .section-title 프리미티브(00-09 §6.3
@@ -428,17 +438,27 @@ export const HomePage: React.FC<HomePageProps> = ({ currentUser, onOpenLogin, se
                 장례가 끝이 아니었습니다
               </h1>
 
-              <p style={{ fontSize: '1.12rem', color: '#6C7A89', lineHeight: 1.75, marginBottom: '2.2rem', maxWidth: '560px' }}>
-                미리 남기는 <strong style={{ color: '#1A2B4C', fontWeight: 700 }}>평온한 생전 준비</strong>부터{' '}
-                <strong style={{ color: '#1A2B4C', fontWeight: 700 }}>장사시설 매칭</strong>,{' '}
-                <strong style={{ color: '#1A2B4C', fontWeight: 700 }}>복잡한 사후 행정</strong>, 그리고{' '}
-                <strong style={{ color: '#1A2B4C', fontWeight: 700 }}>영원한 기억의 온라인 추모관</strong>까지.
-                <br />
-                이어봄이 삶의 마지막 여정과 남겨진 가족의 시간을 온전히 연결합니다.
-              </p>
+              {/* 🔄 2026-09-10 사람 지시 — 모바일 수직 분할(목업 패턴2)에서는 "생전 준비·
+                  장사시설 매칭·사후 행정·추모관"을 나열하던 문장을 통째로 뺀다("simple is
+                  best" — 그 4개는 바로 아래 섹션(진입 카드)에서 각자 카드로 이미 소개된다,
+                  중복). 데스크톱은 기존 좌우 분할이라 지금 문장 그대로 둔다. */}
+              {isHeroStacked ? (
+                <p style={{ fontSize: '1.02rem', color: '#6C7A89', lineHeight: 1.7, marginBottom: '1.6rem' }}>
+                  이어봄이 삶의 마지막 여정과 남겨진 가족의 시간을 온전히 연결합니다.
+                </p>
+              ) : (
+                <p style={{ fontSize: '1.12rem', color: '#6C7A89', lineHeight: 1.75, marginBottom: '2.2rem', maxWidth: '560px' }}>
+                  미리 남기는 <strong style={{ color: '#1A2B4C', fontWeight: 700 }}>평온한 생전 준비</strong>부터{' '}
+                  <strong style={{ color: '#1A2B4C', fontWeight: 700 }}>장사시설 매칭</strong>,{' '}
+                  <strong style={{ color: '#1A2B4C', fontWeight: 700 }}>복잡한 사후 행정</strong>, 그리고{' '}
+                  <strong style={{ color: '#1A2B4C', fontWeight: 700 }}>영원한 기억의 온라인 추모관</strong>까지.
+                  <br />
+                  이어봄이 삶의 마지막 여정과 남겨진 가족의 시간을 온전히 연결합니다.
+                </p>
+              )}
 
               <div className="hero-cta-row">
-                <button type="button" onClick={handleHeroPrimaryCTA} className="btn btn-primary" style={{ height: '58px', fontSize: '1.05rem' }}>
+                <button type="button" onClick={handleHeroPrimaryCTA} className="btn btn-primary" style={{ height: '58px', fontSize: '1.05rem', whiteSpace: 'nowrap' }}>
                   장례 준비 및 사후 정리 →
                 </button>
                 <button
@@ -450,7 +470,8 @@ export const HomePage: React.FC<HomePageProps> = ({ currentUser, onOpenLogin, se
                     fontSize: '1.05rem',
                     backgroundColor: 'transparent',
                     color: '#1A2B4C',
-                    border: '1.5px solid #1A2B4C'
+                    border: '1.5px solid #1A2B4C',
+                    whiteSpace: 'nowrap'
                   }}
                 >
                   미리 준비하려 합니다 →
@@ -489,6 +510,14 @@ export const HomePage: React.FC<HomePageProps> = ({ currentUser, onOpenLogin, se
               overflowY: 'auto'
             }}
           >
+            {/* 🆕 2026-09-10 사람 지시 — 진입 카드 구간은 "불투명 카드 느낌 + 지금의 엔트리
+                박스를 혼합": EntryBoxes 자체(카드·캐러셀)는 손대지 않고, 이 구간의 배경만
+                공용 .duo-photo-scrim 위에 추가로 한 겹 더 깔아 지금보다 진하게 만든다.
+                .duo-photo-scrim은 섹션2(에필로그+푸터)까지 이어지는 공용 그라데이션이라
+                거길 건드리면 "현재 상태 유지" 지시를 어기게 된다 — 그래서 그쪽은 그대로 두고
+                이 섹션 안에만(position:relative 기준) 별도 오버레이를 얹는다. 모바일 전용
+                (index.css .entry-extra-scrim, 768px 이하) — 데스크톱은 원래 그대로. */}
+            <div className="entry-extra-scrim" />
             <div style={{ position: 'relative', zIndex: 1, width: '100%' }}>
               <EntryBoxes
                 currentUser={currentUser}
@@ -530,11 +559,17 @@ export const HomePage: React.FC<HomePageProps> = ({ currentUser, onOpenLogin, se
                 justifyContent: 'center',
                 alignItems: 'center',
                 textAlign: 'center',
-                padding: '2.5rem 1.5rem',
+                // 🔄 2026-09-10 사람 지시 — 에필로그·푸터가 "하나의 섹션"으로 보이되 에필로그
+                // 쪽 비중을 올리고 푸터는 줄인다. 640px 이하(이 래퍼가 스냅 없이 순서대로
+                // 흐르는 폭, isMobile640 — 위 §5.4-1 주석과 같은 기준)에서 위아래 여백을
+                // 키워 에필로그가 더 넓게 차지하게 하고, 아래 FooterMobile 쪽 여백은 줄인다.
+                padding: isMobile640 ? '3.4rem 1.5rem 2.2rem' : '2.5rem 1.5rem',
                 gap: '1.3rem'
               }}
             >
-              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', backgroundColor: 'var(--state-warn-bg)', color: 'var(--accent-gold)', padding: '0.4rem 1rem', borderRadius: 'var(--r-lg)', fontSize: 'var(--fs-body)', fontWeight: 700 }}>
+              {/* 🔄 2026-09-10 — 17자 문구가 360px 배지 안에서 줄바꿈 위험이 있어(사람 지시:
+                  줄바꿈으로 화면이 지저분해지지 않게) 모바일에서 한 단 작은 크기로 줄인다. */}
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', backgroundColor: 'var(--state-warn-bg)', color: 'var(--accent-gold)', padding: isMobile640 ? '0.35rem 0.8rem' : '0.4rem 1rem', borderRadius: 'var(--r-lg)', fontSize: isMobile640 ? 'var(--fs-caption)' : 'var(--fs-body)', fontWeight: 700, whiteSpace: 'nowrap' }}>
                 <Sparkles size={15} color="var(--accent-gold)" /> 이어봄과 함께하는 존엄하고 따뜻한 준비
               </div>
               {/* 🔄 2026-09-09 — 하드코딩 문자열 → .section-title 프리미티브(폰트 정리 요청). */}

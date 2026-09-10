@@ -52,7 +52,8 @@ const LEAD_STATUS_COLOR: Record<string, string> = {
   LOST: 'var(--text-muted)',
   INVALID: 'var(--state-danger-fg)',
 };
-const LEAD_TYPE_LABELS: Record<string, string> = { QUOTE: '업체 문의', CONSULT: '상담신청', CALL: '전화클릭' };
+// 🔄 2026-09-10 — QUOTE 라벨 "업체 문의"→"업체 상담"(FacilityPage·InquiryModal과 용어 통일, 사람 지시).
+const LEAD_TYPE_LABELS: Record<string, string> = { QUOTE: '업체 상담', CONSULT: '상담신청', CALL: '전화클릭' };
 
 export const BizDashboard: React.FC<BizDashboardProps> = ({ type, name, onLogout }) => {
   const token = localStorage.getItem('eobom_biz_token');

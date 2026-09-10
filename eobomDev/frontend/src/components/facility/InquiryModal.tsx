@@ -95,7 +95,7 @@ export const InquiryModal: React.FC<InquiryModalProps> = ({ facilityId, facility
         </button>
 
         <h3 style={{ color: 'var(--primary-color)', marginBottom: '0.4rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <Send color="var(--point-color)" size={20} /> [{facilityName}] 업체 문의
+          <Send color="var(--point-color)" size={20} /> [{facilityName}] 상담
         </h3>
         <p style={{ fontSize: 'var(--fs-body)', color: 'var(--text-muted)', marginBottom: '1.1rem' }}>
           문의 내용을 남겨주시면 담당자가 확인 후 연락드립니다.

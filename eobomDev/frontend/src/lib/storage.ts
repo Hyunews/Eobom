@@ -33,6 +33,11 @@ const KEYS = {
 
 // 계정군과 무관한 비인증 보조 키(§2.2) — 로그인 전 초대 토큰 보관 · 스크롤 위치 복원.
 export const PENDING_INVITE_TOKEN_KEY = 'eobom_pending_invite_token';
+// 🆕 2026-09-10 사람 리포트 — 소셜 로그인은 전체 페이지 리다이렉트(OAuth 인가 → 백엔드 콜백)라
+// SPA 라우트가 끊긴다. 콜백은 항상 '/'로 돌아오므로(App.tsx), prep·bereaved처럼 라우트로 들어간
+// 화면에서 로그인하면 무조건 홈으로 튕겼다. 리다이렉트 직전 현재 경로를 여기 저장해뒀다가
+// loginSuccess 처리 시 그 경로로 돌려보낸다(PENDING_INVITE_TOKEN_KEY와 같은 패턴).
+export const PENDING_RETURN_PATH_KEY = 'eobom_pending_return_path';
 export const SCROLL_HOME_KEY = 'eobom_scroll_home';
 export const scrollTabKey = (tab: string): string => `eobom_scroll_${tab}`;
 

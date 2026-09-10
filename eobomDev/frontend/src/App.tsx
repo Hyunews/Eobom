@@ -11,7 +11,7 @@ import { MyPageFamilyDesignation } from './components/mypage/MyPageFamilyDesigna
 import { EobomLogo } from './components/EobomLogo';
 import { providerLabel, BACKEND_URL } from './config';
 import { NAV_MODE_STORAGE_KEY, type NavMode } from './lib/modeNav';
-import { getDisplayName, setSession, clearSession, clearLegacyUserLocalStorage } from './lib/storage';
+import { getDisplayName, setSession, clearSession, clearLegacyUserLocalStorage, PENDING_RETURN_PATH_KEY } from './lib/storage';
 import { registerSessionExpiredHandler } from './lib/api';
 import { box1Keys, box2Keys, box1Intro, box2Intro } from './components/home/domainSlides';
 
@@ -188,10 +188,18 @@ function AppShell() {
         // 토큰은 해시에 없다. FamilyInvitePage.tsx가 로그인 시작 전에 sessionStorage에 심어둔
         // 값을 여기서 소비해 원래 초대 화면으로 되돌려보낸다 — 없으면(일반 로그인) 그대로 홈.
         const pendingInviteToken = sessionStorage.getItem('eobom_pending_invite_token');
+        // 🆕 2026-09-10 사람 리포트 — prep·bereaved 같은 라우트 화면에서 소셜 로그인하면
+        // 콜백이 항상 '/'로 돌아와 무조건 홈으로 튕겼다. LoginModal.tsx가 리다이렉트 직전
+        // 저장해둔 경로가 있으면(초대 토큰이 없을 때만 — 초대 흐름이 우선) 그리로 돌려보낸다.
+        const pendingReturnPath = sessionStorage.getItem(PENDING_RETURN_PATH_KEY);
         if (pendingInviteToken) {
           sessionStorage.removeItem('eobom_pending_invite_token');
           navigate(`/invite/${pendingInviteToken}`, { replace: true });
+        } else if (pendingReturnPath && pendingReturnPath !== '/') {
+          sessionStorage.removeItem(PENDING_RETURN_PATH_KEY);
+          navigate(pendingReturnPath, { replace: true });
         } else {
+          sessionStorage.removeItem(PENDING_RETURN_PATH_KEY);
           window.history.replaceState(null, '', '/');
         }
       }
