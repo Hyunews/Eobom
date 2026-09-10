@@ -409,7 +409,7 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
                       title="지도상 직선거리입니다. 실제 이동 거리는 카카오맵에서 확인해주세요."
                       style={{ fontSize: 'var(--fs-body)', backgroundColor: 'var(--state-warn-bg)', color: 'var(--accent-gold)', padding: '0.25rem 0.5rem', borderRadius: 'var(--r-sm)', fontWeight: 700, cursor: 'help' }}
                     >
-                      📍 직선 {distKm}km
+                      📍{distKm}km
                     </span>
                   )}
                 </div>
@@ -461,61 +461,61 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
 
               {/* 액션 버튼 그룹 — 전화 직통·견적비교·답사예약 삭제(2026-08-10), 업체 문의로 대체 */}
               <div style={{ marginTop: 'auto', display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
-                  {/* 카카오맵 지도 버튼 */}
-                  <button
-                    onClick={() => setSelectedMapFacility(item)}
-                    className="btn"
-                    style={{
-                      flex: '1 1 0',
-                      minWidth: '100px',
-                      backgroundColor: '#FEE500',
-                      color: '#191919',
-                      fontSize: 'var(--fs-body)',
-                      padding: '0.6rem 0.4rem',
-                      whiteSpace: 'nowrap',
-                      gap: '0.3rem',
-                      fontWeight: 700
-                    }}
-                  >
-                    <Map size={16} /> 카카오 지도
-                  </button>
+                {/* 카카오맵 지도 버튼 */}
+                <button
+                  onClick={() => setSelectedMapFacility(item)}
+                  className="btn"
+                  style={{
+                    flex: '1 1 0',
+                    minWidth: '100px',
+                    backgroundColor: '#FEE500',
+                    color: '#191919',
+                    fontSize: 'var(--fs-body)',
+                    padding: '0.6rem 0.4rem',
+                    whiteSpace: 'nowrap',
+                    gap: '0.3rem',
+                    fontWeight: 700
+                  }}
+                >
+                  <Map size={16} /> 카카오 지도
+                </button>
 
-                  {/* 업체 문의 버튼 */}
-                  <button
-                    onClick={() => setInquiryFacility(item)}
-                    className="btn btn-primary"
-                    style={{
-                      flex: '1 1 0',
-                      minWidth: '100px',
-                      fontSize: 'var(--fs-body)',
-                      padding: '0.6rem 0.4rem',
-                      whiteSpace: 'nowrap',
-                      gap: '0.3rem',
-                      fontWeight: 700
-                    }}
-                  >
-                    <Send size={16} /> 업체 문의
-                  </button>
+                {/* 업체 문의 버튼 */}
+                <button
+                  onClick={() => setInquiryFacility(item)}
+                  className="btn btn-primary"
+                  style={{
+                    flex: '1 1 0',
+                    minWidth: '100px',
+                    fontSize: 'var(--fs-body)',
+                    padding: '0.6rem 0.4rem',
+                    whiteSpace: 'nowrap',
+                    gap: '0.3rem',
+                    fontWeight: 700
+                  }}
+                >
+                  <Send size={16} /> 업체 문의
+                </button>
 
-                  {/* 리뷰 버튼 */}
-                  <button
-                    onClick={() => setReviewFacility(item)}
-                    className="btn"
-                    style={{
-                      flex: '1 1 0',
-                      minWidth: '100px',
-                      backgroundColor: 'var(--card-bg)',
-                      color: 'var(--primary-color)',
-                      border: '1px solid var(--border-color)',
-                      fontSize: 'var(--fs-body)',
-                      padding: '0.6rem 0.4rem',
-                      whiteSpace: 'nowrap',
-                      gap: '0.3rem',
-                      fontWeight: 700
-                    }}
-                  >
-                    <MessageSquare size={16} /> 리뷰 {item.reviews?.length ? `(${item.reviews.length})` : ''}
-                  </button>
+                {/* 리뷰 버튼 */}
+                <button
+                  onClick={() => setReviewFacility(item)}
+                  className="btn"
+                  style={{
+                    flex: '1 1 0',
+                    minWidth: '100px',
+                    backgroundColor: 'var(--card-bg)',
+                    color: 'var(--primary-color)',
+                    border: '1px solid var(--border-color)',
+                    fontSize: 'var(--fs-body)',
+                    padding: '0.6rem 0.4rem',
+                    whiteSpace: 'nowrap',
+                    gap: '0.3rem',
+                    fontWeight: 700
+                  }}
+                >
+                  <MessageSquare size={16} /> 리뷰 {item.reviews?.length ? `(${item.reviews.length})` : ''}
+                </button>
               </div>
             </div>
           );
