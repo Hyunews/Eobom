@@ -77,7 +77,14 @@ export const reverseGeocode = async (req: Request, res: Response) => {
       return res.status(404).json({ status: 'error', message: '해당 좌표의 지역 정보를 찾을 수 없습니다.' });
     }
     const { region_1depth_name, region_2depth_name } = data.documents[0].address;
-    return res.json({ status: 'success', data: { region: `${region_1depth_name} ${region_2depth_name}` } });
+    // province/district — PickupPage처럼 시/도 텍스트 필터 기본값을 자동 선택해야 하는 화면을 위해
+    // region과 별개로 내려준다. province는 PROVINCE_ALIASES로 정규화(위 getRegions/geocode와 동일
+    // 기준), district는 카카오 원본(예: "강남구")을 그대로 쓴다 — 필터 옵션과 표기가 같다.
+    const province = PROVINCE_ALIASES[region_1depth_name] || region_1depth_name;
+    return res.json({
+      status: 'success',
+      data: { region: `${region_1depth_name} ${region_2depth_name}`, province, district: region_2depth_name }
+    });
   } catch (error) {
     console.error('역지오코딩 실패:', error);
     return res.status(500).json({ status: 'error', message: '위치 조회 중 오류가 발생했습니다.' });

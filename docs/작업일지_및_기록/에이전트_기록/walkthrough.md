@@ -2785,3 +2785,52 @@ wt137 그대로라 재작업 없음).
   🟡 `guests`(mtaCnt/ehrCnt) · `homepageUrl`/`fxno`/`tpkct`는 지시대로 이번 범위에서 손대지 않았다 — wt186이 이미 별건으로 남겨둔 것과 동일.
 
 <!-- Gemini 판정 1줄: ✅통과 / ❌반려(사유) / 🔄스펙갱신(고친 문서) -->
+
+## 2026-09-10 | 위치정보 기반 시설 탐색 활성화 (FacilityPage GPS 자동감지 + PickupPage 지역필터 기본값)
+
+- **근거 스펙**: 스펙 없음 — 사람(개발자) 직접 지시(대화 지시문, 2026-09-10). 결정 4건: ①방통위 신고는
+  미루고 기능은 켠다 ②위치정보는 01 장사시설·03 유품수거에서만 수집 ③정확도는 IP 수준이면 충분
+  ④거리는 직선거리로 충분.
+- **건드린 파일**:
+  - eobomDev/frontend/src/config.ts — `LOCATION_BASED_SERVICE_REGISTERED` 상수 1개를
+    `LOCATION_FEATURE_ENABLED`(기능 스위치, 기본 true, `VITE_LOCATION_FEATURE=false`로 끌 수 있음)와
+    `LOCATION_LEGAL_PUBLISHED`(조문 게시 스위치, false 유지)로 분리.
+  - eobomDev/frontend/src/pages/FacilityPage.tsx — GPS 자동 감지 재개(`LOCATION_FEATURE_ENABLED` 분기),
+    `navigator.permissions.query('geolocation')`로 `denied` 사전 확인 후 스킵, `getCurrentPosition`에
+    `{ timeout: 8000, maximumAge: 300000, enableHighAccuracy: false }` 옵션 추가, 권한 팝업 전에
+    "가까운 장례식장을 먼저 보여드리기 위해 현재 위치를 사용합니다. 허용하지 않아도 아래에서 지역을
+    직접 선택할 수 있습니다." 한 줄 고지 렌더, 거리 배지 "📍 {km} km" → "📍 직선 {km}km"(title 툴팁
+    "지도상 직선거리입니다. 실제 이동 거리는 카카오맵에서 확인해주세요." 추가).
+  - eobomDev/frontend/src/pages/PickupPage.tsx — 페이지 접근 시 GPS 자동 감지(동일 permissions/timeout
+    패턴) → `/api/geo/reverse`로 province/district를 얻어 vendor 지역 필터 기본값을 자동 선택(province가
+    `provinceOptions`에 없거나 거부/실패 시 지금처럼 빈 필터 유지, 회귀 없음). 좌표·거리 정렬은 추가하지
+    않음.
+  - eobomDev/frontend/src/pages/TermsPage.tsx, PrivacyPage.tsx — `LOCATION_BASED_SERVICE_REGISTERED` →
+    `LOCATION_LEGAL_PUBLISHED`로 교체(값은 그대로 false, 제6장·제3-6조 계속 미게시).
+  - eobomDev/backend/src/controllers/geoController.ts — `GET /api/geo/reverse` 응답에 `province`(기존
+    `PROVINCE_ALIASES`로 정규화)·`district`(카카오 원본) 필드 추가(기존 `region` 필드는 그대로 유지).
+- **결과**: `tsc --noEmit`(frontend·backend 각각) 통과, `npx vite build` 통과(598.97kB 청크 경고는
+  기존부터 있던 것, 이번 변경과 무관). 로컬 HTTPS(mkcert, `https://localhost:5174`/`https://localhost:5000`)
+  실기동 확인 — permissions API가 이미 `granted` 상태인 환경이라 실제 GPS 좌표(35.2085, 126.8127)로
+  `/facility` 접속 시 "위치: 전남광주통합특별시 광산구"로 자동 표시되고 카드에 "📍 직선 2.0km"~"직선
+  3.5km"가 찍힘을 확인. 시/도·시/군/구 직접 선택(서울→강남구, 적용)도 "위치: 서울 강남구"로 정상 반영·
+  거리 재계산 확인. `/pickup`은 같은 실좌표로 접속 시 province가 `전남광주통합특별시`로 정규화돼
+  vendor 목데이터의 `광주`와 매칭되지 않아 필터가 빈 채로 유지됨(아래 편차 참고, 설계대로의 graceful
+  실패). 서울 좌표(37.4979, 127.0276)로 `/api/geo/reverse` 응답을 넣어 매칭 로직을 재현한 결과
+  `province: "서울"`은 vendor 옵션과 일치해 자동 선택됨을 확인(district는 vendor 목데이터에 "서초구"가
+  없어 district만 미선택 — 의도된 부분 매칭).
+- **편차**: PickupPage의 GPS 자동 지역 매칭은 `province`가 `PROVINCE_ALIASES`로 정규화된 값(예:
+  광주·전남 → `전남광주통합특별시`)과 vendor 목데이터의 원래 표기(`광주`, `전남` 없음)가 어긋나는
+  지역에서는 매칭되지 않고 빈 필터로 남는다. 지시문이 "업체 데이터에 lat/lng·거리 정렬을 넣지 마라
+  (범위 밖)"라 명시했고 실패 시 동작도 "지금처럼 빈 필터로 둔다(회귀 없음)"였으므로 이 상태로 남김 —
+  PickupPage가 예시 데이터에서 실제 제휴 데이터로 바뀔 때 함께 재검토 필요.
+- **다음 에이전트가 알아야 할 것**: (1) 거부/무응답(타임아웃) 시나리오는 이 원격 브라우저 자동화
+  환경이 `chrome://settings`에 접근할 수 없어(네이티브 권한 프롬프트를 직접 토글 불가) 실브라우저
+  거부 팝업으로 재현하지 못했다 — 대신 FacilityPage/PickupPage와 동일한 permissions·getCurrentPosition
+  콜백 로직을 그대로 복제해 `denied`/타임아웃 콜백 분기가 올바른 폴백(`GEOLOCATION_FALLBACK`,
+  `isFallback:true`)으로 귀결되는 것을 확인했다. 사람이 실기기(모바일 등)에서 권한 거부·무응답을
+  한 번 더 확인해보는 걸 권한다. (2) `LOCATION_LEGAL_PUBLISHED`는 여전히 false — 방통위 신고 완료
+  전까지 TermsPage 제6장·PrivacyPage 제3-6조는 미게시 상태 그대로다. (3) docs/는 건드리지 않음 —
+  00-22 A-3·B-1·00-14 §2.9 반영은 Opus 몫.
+
+<!-- Gemini 판정 1줄: … -->

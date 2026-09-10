@@ -1,12 +1,13 @@
 import React from 'react';
 import { LegalDocLayout, LegalArticle, LegalChapter, LegalList, LegalTable } from '../components/legal/LegalDocLayout';
-import { LOCATION_BASED_SERVICE_REGISTERED } from '../config';
+import { LOCATION_LEGAL_PUBLISHED } from '../config';
 
 // docs/00_핵심플랫폼/00-21_서비스_이용약관_초안.md 본문(제10~18조·22~24조·부칙)을 그대로 옮긴 화면.
 // 제10~18조는 docs 00-18 §7.2에 배치된 고유 조항 9개를 문장화한 것으로 새로 판단한 내용이 없다.
 // 새로 쓴 것은 제6장(제19~21조, 위치기반서비스)뿐이며, 이 장은 방통위 신고 완료를 "가정"하고
 // 작성됐다(2026-08-18 개발자 지시). §0.2 잠금 규칙에 따라 신고 완료가 확인되기 전까지는
-// LOCATION_BASED_SERVICE_REGISTERED가 false로 유지되고, 이 화면은 제6장을 렌더링하지 않는다.
+// LOCATION_LEGAL_PUBLISHED가 false로 유지되고, 이 화면은 제6장을 렌더링하지 않는다. GPS 자동감지
+// 기능 자체는 LOCATION_FEATURE_ENABLED로 별도 제어되며 2026-09-10부터 이미 켜져 있다.
 export const TermsPage: React.FC = () => {
   return (
     <LegalDocLayout title="이어봄(Eobom) 서비스 이용약관" effectiveDateLabel="시행일: 추후 공지">
@@ -235,8 +236,9 @@ export const TermsPage: React.FC = () => {
       </LegalChapter>
 
       {/* 제6장(제19~21조 위치기반서비스) — 방통위 위치기반서비스사업 신고 완료 전까지 렌더링하지
-          않는다(docs 00-21 §0.2 잠금 규칙). 조문과 FacilityPage의 GPS 자동 감지 기능은 한 쌍이다. */}
-      {LOCATION_BASED_SERVICE_REGISTERED && (
+          않는다(docs 00-21 §0.2 잠금 규칙). 2026-09-10부터 기능(LOCATION_FEATURE_ENABLED)은 켜져
+          있지만 이 조문(LOCATION_LEGAL_PUBLISHED)은 신고 완료 전까지 별도로 계속 잠긴다. */}
+      {LOCATION_LEGAL_PUBLISHED && (
         <LegalChapter title="제6장 위치기반서비스">
           <LegalArticle title="제19조 (위치기반서비스의 내용)">
             <LegalList>

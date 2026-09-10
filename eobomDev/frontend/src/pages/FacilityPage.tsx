@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { MapPin, Map, Image as ImageIcon, Send, MessageSquare } from 'lucide-react';
-import { BACKEND_URL, GEOLOCATION_FALLBACK, LOCATION_BASED_SERVICE_REGISTERED } from '../config';
+import { BACKEND_URL, GEOLOCATION_FALLBACK, LOCATION_FEATURE_ENABLED } from '../config';
 import { KakaoMapModal } from '../components/KakaoMapModal';
 import { InquiryModal } from '../components/facility/InquiryModal';
 import { FacilityReviewModal } from '../components/facility/FacilityReviewModal';
@@ -99,19 +99,42 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
       setDetectedLocation(loc);
       setIsLocationFallback(isFallback);
     };
-    // 🔴 위치기반서비스사업 신고 완료 전까지 실시간 GPS 자동 감지를 하지 않는다
-    // (docs 00-21 §0.2 잠금 규칙, docs 00-14 §2.7~§2.10). 신고 없이 getCurrentPosition을 호출하면
-    // 약관 없이 기능만 살아 있는 상태가 되어 그 자체가 문제였다(00-14 §2.9). 대신 기본 위치로
-    // 시작하고, 이용자는 아래 시/도·시/군/구 직접 선택(트랙 B)으로 원하는 지역을 고를 수 있다 —
-    // 자동 감지만 꺼졌을 뿐 기능은 그대로다. LOCATION_BASED_SERVICE_REGISTERED가 true로 바뀌면
-    // 이 분기가 실제 GPS 감지를 재개한다.
-    if (LOCATION_BASED_SERVICE_REGISTERED && navigator.geolocation && window.isSecureContext) {
+
+    // 2026-09-10 사람 결정 ① — 방통위 신고는 미루고 기능은 켠다(약관 게시는 별도로
+    // LOCATION_LEGAL_PUBLISHED가 잠근다, config.ts 참고). 실서비스 개시 전 신고 예정.
+    if (!(LOCATION_FEATURE_ENABLED && navigator.geolocation && window.isSecureContext)) {
+      applyDetected(GEOLOCATION_FALLBACK, true);
+      return;
+    }
+
+    // 결정 ③ — 정확도는 IP 수준이면 충분하고 주소 직접 선택 기능이 이미 있다.
+    // enableHighAccuracy:false로 GPS 칩 대신 빠른 위치(WiFi/IP 기반)를 쓴다.
+    // timeout 기본값이 무한이라 이용자가 권한 팝업을 무시하면 두 콜백 모두 안 불리고
+    // locationName이 "위치 확인 중..."에 영구 고정된다 — 8초 뒤 폴백으로 넘어가게 한다.
+    const requestPosition = () => {
       navigator.geolocation.getCurrentPosition(
         (pos) => applyDetected({ lat: pos.coords.latitude, lng: pos.coords.longitude }, false),
-        () => applyDetected(GEOLOCATION_FALLBACK, true)
+        () => applyDetected(GEOLOCATION_FALLBACK, true),
+        { timeout: 8000, maximumAge: 300000, enableHighAccuracy: false }
       );
+    };
+
+    // 거부는 브라우저가 기억한다 — 한 번 거부하면 다시 팝업이 안 뜨고 즉시 실패 콜백만 온다.
+    // permissions API로 미리 상태를 보고 'denied'면 아예 호출하지 않고 바로 폴백으로 넘긴다
+    // (미지원 브라우저는 permissions?.query가 없으니 그냥 requestPosition으로 진행).
+    if (navigator.permissions?.query) {
+      navigator.permissions
+        .query({ name: 'geolocation' })
+        .then((status) => {
+          if (status.state === 'denied') {
+            applyDetected(GEOLOCATION_FALLBACK, true);
+          } else {
+            requestPosition();
+          }
+        })
+        .catch(requestPosition);
     } else {
-      applyDetected(GEOLOCATION_FALLBACK, true);
+      requestPosition();
     }
   }, []);
 
@@ -234,7 +257,7 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
             {isLocationFallback && (
               <span
                 title={
-                  LOCATION_BASED_SERVICE_REGISTERED
+                  LOCATION_FEATURE_ENABLED
                     ? '실제 위치를 확인하지 못해 기본 위치로 표시 중입니다. https 또는 localhost가 아닌 주소에서는 브라우저가 위치 확인을 차단합니다. 아래에서 시/도·시/군/구를 직접 선택해주세요.'
                     : '현재 위치 자동 감지를 제공하지 않아 기본 위치로 표시 중입니다. 아래에서 시/도·시/군/구를 직접 선택해주세요.'
                 }
@@ -252,6 +275,14 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
               </span>
             )}
           </div>
+          {LOCATION_FEATURE_ENABLED && (
+            // 정식 약관 조문(TermsPage 제6장·PrivacyPage 제3-6조)이 아직 미게시라 이 한 줄이
+            // 최소 고지를 대신한다 — 권한 팝업이 뜨기 전에 왜 위치를 쓰는지 먼저 알린다.
+            <p style={{ fontSize: 'var(--fs-body)', color: 'var(--text-muted)', margin: '0 0 0.6rem' }}>
+              가까운 장례식장을 먼저 보여드리기 위해 현재 위치를 사용합니다. 허용하지 않아도
+              아래에서 지역을 직접 선택할 수 있습니다.
+            </p>
+          )}
           <div style={{ display: 'flex', gap: '0.6rem', flexWrap: 'wrap' }}>
             <select value={locationProvince} onChange={(e) => handleProvinceChange(e.target.value)} className="form-select" style={{ flex: '1 1 140px' }}>
               <option value="">시/도 선택</option>
@@ -372,8 +403,13 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
                     {item.type}
                   </span>
                   {distKm && (
-                    <span style={{ fontSize: 'var(--fs-body)', backgroundColor: 'var(--state-warn-bg)', color: 'var(--accent-gold)', padding: '0.25rem 0.5rem', borderRadius: 'var(--r-sm)', fontWeight: 700 }}>
-                      📍 {distKm} km
+                    // 결정 ④ — haversine 직선거리다(실 이동거리 아님). 그대로 "3.2km"만 찍으면
+                    // 이동거리로 오해할 수 있어 "직선"을 라벨에 명시한다. 실거리는 카카오맵에서 본다.
+                    <span
+                      title="지도상 직선거리입니다. 실제 이동 거리는 카카오맵에서 확인해주세요."
+                      style={{ fontSize: 'var(--fs-body)', backgroundColor: 'var(--state-warn-bg)', color: 'var(--accent-gold)', padding: '0.25rem 0.5rem', borderRadius: 'var(--r-sm)', fontWeight: 700, cursor: 'help' }}
+                    >
+                      📍 직선 {distKm}km
                     </span>
                   )}
                 </div>
