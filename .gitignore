@@ -42,10 +42,26 @@ eobomDev/backend/test-audio/*
 #    2026-08-20에 00-24가 그 상태였고 docs/00_핵심플랫폼/00-24_...로 정본화해 해소했다.
 reports/
 
-# 일회성 스크린샷 (구현 점검·콘솔 설정 캡처 등) — 대화 중 근거로만 쓰이고 재사용되지 않는다.
-# 브랜드 자산(로고)과 공공데이터 CSV 원본은 계속 커밋한다.
-assets/스크린샷*.png
-assets/모바일부고장페이지.png
+# assets/ — 2026-09-10 사람 지시로 **기본 제외**로 뒤집었다(그전에는 스크린샷만 열거해 뺐다).
+# 대부분이 대화 중 근거로만 쓰이고 재사용되지 않는 캡처인데 용량은 가장 크다(fullpage 3장 3.4MB,
+# 상중.png 1.8MB). 앞으로 넣는 캡처는 규칙을 안 고쳐도 자동으로 빠진다.
+#
+# 🔴 아래 예외 6종은 반드시 커밋한다 — 빠지면 이 PC 밖에서 재현·검증이 불가능해진다:
+#   ① 공공데이터 원본(CSV·XML) — systems.md §3이 "assets/에 원본 보관"을 정본으로 적었고,
+#      다음 갱신 때 무엇이 생기고 사라졌는지 판정할 유일한 근거다(가공본만 남기면 대조 불가).
+#   ② 브랜드 자산(로고) — 원산이다. 빌드용 사본은 frontend/public/에 따로 있다.
+#   ③ 문서가 본문에서 가리키는 파일 — obituary_card.png(00-38 §8.2-1 카톡 카드 픽셀 실측 근거)·
+#      scroll.png(00-38 §6.4-1 가로 스크롤 미작동 증거)·CLOVA 약관 PDF(06-04).
+#      🔴 제외하면 문서가 없는 파일을 가리키게 되고 harness-doctor.sh #4(유령 경로)가 잡는다.
+# ⚠️ 새 파일을 여기 넣고 문서에서 백틱 경로로 인용하려면 예외 한 줄을 함께 추가할 것.
+assets/*
+!assets/보건복지부_*.csv
+!assets/보건복지부_*.xml
+!assets/Design_Logo.png
+!assets/eobom-logo*.png
+!assets/CLOVASpeech*.pdf
+!assets/obituary_card.png
+!assets/scroll.png
 
 # 하네스 도구가 돌 때마다 만들었다 지우는 임시 산출물 (harness-doctor.sh)
 # 추적하면 doctor를 돌릴 때마다 워킹트리에 D/M이 떠 잡음이 된다.
