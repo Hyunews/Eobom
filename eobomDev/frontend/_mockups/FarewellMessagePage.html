@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>FarewellMessagePage 360px 목업 — 회색 설명문 제거 + 줄글 축약</title>
+<style>
+  :root{
+    --primary-color:#1A2B4C; --point-color:#5B7065; --text-main:#1A2B4C; --text-muted:#6C7A89;
+    --border-color:#DFDCD7; --card-bg:#FFFFFF; --secondary-color:#FBF9F5; --surface-subtle:#F3F0EA;
+    --r-sm:8px; --r-md:12px; --r-full:999px; --sp-3:12px; --sp-4:16px;
+    --min-touch-target:56px; --box-shadow:0 8px 30px rgba(26,43,76,.06);
+  }
+  *{box-sizing:border-box;}
+  body{margin:0; padding:24px; background:#EDEAE3; color:var(--text-main); font-family:'Malgun Gothic','Apple SD Gothic Neo',sans-serif;}
+  h1.doc-title{font-size:1.3rem; margin:0 0 4px;}
+  .summary{
+    background:#fff; border:1px solid var(--border-color); border-radius:var(--r-md);
+    padding:16px 20px; margin-bottom:28px; max-width:1000px; line-height:1.7; font-size:0.92rem;
+  }
+  .summary b{color:var(--primary-color);}
+  .frames{display:flex; gap:32px; flex-wrap:wrap; align-items:flex-start;}
+  .frame-col{width:360px;}
+  .frame-label{font-weight:700; font-size:0.95rem; margin-bottom:10px;}
+  .frame-label.before{color:#92400E;}
+  .frame-label.after{color:#03543F;}
+  .frame{
+    width:360px; min-height:640px; background:var(--card-bg);
+    border:6px solid #333; border-radius:28px; box-shadow:0 10px 30px rgba(0,0,0,.25);
+    padding:20px 20px 32px; overflow:hidden;
+  }
+  .page-title{color:var(--primary-color); font-size:1.3rem; margin:0; display:flex; align-items:center; gap:8px;}
+  .page-sub{color:var(--text-muted); margin:6px 0 0; font-size:15px; line-height:1.5;}
+  .strike{text-decoration:line-through; opacity:.4;}
+  .removed-tag{
+    display:inline-block; font-size:11px; font-weight:700; color:#DC2626; background:#FEE2E2;
+    border-radius:6px; padding:2px 6px; margin-left:8px; vertical-align:middle;
+  }
+  .kept-tag{
+    display:inline-block; font-size:11px; font-weight:700; color:#03543F; background:#DEF7EC;
+    border-radius:6px; padding:2px 6px; margin-left:8px; vertical-align:middle;
+  }
+
+  .list{margin-top:18px; border-top:1px solid var(--border-color);}
+  .row{
+    display:flex; align-items:center; gap:12px; min-height:var(--min-touch-target);
+    padding:12px 4px; border-bottom:1px solid var(--border-color);
+  }
+  .avatar{
+    width:40px; height:40px; border-radius:var(--r-full); background:var(--surface-subtle);
+    color:var(--primary-color); font-weight:700; display:flex; align-items:center; justify-content:center; flex-shrink:0;
+  }
+  .rname{font-weight:700; font-size:15px; color:var(--text-main);}
+  .rsub{font-size:13px; color:var(--text-muted); margin-top:2px;}
+
+  .divider{margin:28px 0 14px; border-top:1px dashed #C9A227; position:relative;}
+  .divider span{position:absolute; top:-11px; left:0; background:var(--card-bg); padding-right:8px; font-size:12px; font-weight:700; color:#92400E;}
+
+  .empty{text-align:center; padding:24px 8px;}
+  .empty h2{font-size:1.05rem; color:var(--primary-color); margin:10px 0 6px;}
+  .empty p{font-size:14px; color:var(--text-muted); line-height:1.6; margin:0 0 14px;}
+  .empty .btn{
+    display:inline-flex; align-items:center; gap:6px; background:var(--point-color); color:#fff;
+    border:none; border-radius:var(--r-sm); padding:0 18px; height:44px; font-size:14px; font-weight:700;
+  }
+
+  .checkpoints{max-width:1000px; margin-top:32px; background:#fff; border:1px solid var(--border-color); border-radius:var(--r-md); padding:20px 24px; font-size:0.92rem; line-height:1.8;}
+  .checkpoints h2{font-size:1rem; margin:0 0 10px; color:var(--primary-color);}
+</style>
+</head>
+<body>
+
+<h1 class="doc-title">FarewellMessagePage — 1번(재작업), 새 지침 2건 반영 목업</h1>
+
+<div class="summary">
+  <b>발견한 문제 2개</b> / <b>제안한 변경 2개</b> / <b>데스크톱(1280px) 영향 여부: 없음</b> — 데스크톱 뷰(<code>FarewellDesktopView.tsx</code>)는 손대지 않고 <code>FarewellMobileView.tsx</code>만 수정.
+  <br><br>
+  <b>지침</b>: (1) 모든 도메인 페이지 제목 아래 회색 설명문을 모바일에서 제거. (2) 줄글을 최대한 축약.
+  <br>
+  <b>근거</b>: <code>FarewellMobileView.tsx:34-36</code>(제목 아래 설명문, 인라인 style — 08-28 전면 도입된 <code>.page-subtitle</code>(index.css:1000, ≤768px 자동 숨김) 클래스를 안 쓰고 있어서 자동 규칙이 안 먹었다) · <code>:45-47</code>(빈 상태 줄글 2문장).
+  <br><br>
+  <b>제외한 것</b>: <code>FarewellNotice.tsx</code>(전달 고지·재산분배 경고)는 06-05 §4.3 원문 복원(wt174, 이미 한 번 삭제됐다가 되돌린 이력)이라 이번 축약 대상에서 뺐다 — 법적/운영 안내 문구는 "줄글"이 아니라 "고지"로 본다.
+</div>
+
+<div class="frames">
+
+  <div class="frame-col">
+    <div class="frame-label before">🔴 현재안</div>
+    <div class="frame">
+      <h1 class="page-title">✉️ 유족 메시지 보관함</h1>
+      <p class="page-sub">가족 한 분 한 분께 따로 남기는 편지입니다. 완료해야 할 항목은 없습니다 — 생각날 때마다 남기세요.<span class="removed-tag">① 제거 대상</span></p>
+
+      <div class="list">
+        <div class="row"><span class="avatar">김</span><span><span class="rname">김OO</span><span class="rsub">배우자 · 3통</span></span></div>
+        <div class="row"><span class="avatar">이</span><span><span class="rname">이OO</span><span class="rsub">자녀 · 1통</span></span></div>
+      </div>
+
+      <div class="divider"><span>빈 상태(가족 미지정)일 때</span></div>
+      <div class="empty">
+        <div style="font-size:28px;">👪</div>
+        <h2>아직 지정된 가족이 없습니다</h2>
+        <p>편지를 남기려면 먼저 받으실 분을 가족으로 지정해 주세요. 수신자가 없으면 사후에도 전달되지 않습니다.<span class="removed-tag">② 축약 대상</span></p>
+        <button class="btn">+ 가족 추가</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="frame-col">
+    <div class="frame-label after">✅ 개선안</div>
+    <div class="frame">
+      <h1 class="page-title">✉️ 유족 메시지 보관함</h1>
+      <!-- ① 설명문 완전 제거 -->
+
+      <div class="list">
+        <div class="row"><span class="avatar">김</span><span><span class="rname">김OO</span><span class="rsub">배우자 · 3통</span></span></div>
+        <div class="row"><span class="avatar">이</span><span><span class="rname">이OO</span><span class="rsub">자녀 · 1통</span></span></div>
+      </div>
+
+      <div class="divider"><span>빈 상태(가족 미지정)일 때</span></div>
+      <div class="empty">
+        <div style="font-size:28px;">👪</div>
+        <h2>아직 지정된 가족이 없습니다</h2>
+        <p>받으실 분을 먼저 가족으로 지정해 주세요.<span class="kept-tag">② 축약</span></p>
+        <button class="btn">+ 가족 추가</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="checkpoints">
+  <h2>사람이 확인할 체크포인트</h2>
+  1. 제목 아래 설명문을 모바일에서 <b>완전히 제거</b>하는 방향이 맞습니까? (데스크톱에는 그대로 남습니다)<br>
+  2. 빈 상태 문구를 "편지를 남기려면 먼저 받으실 분을 가족으로 지정해 주세요. 수신자가 없으면 사후에도 전달되지 않습니다." → "받으실 분을 먼저 가족으로 지정해 주세요."로 줄이면서 <b>"사후에도 전달 안 됨" 경고를 뺐는데</b>, 이 정보는 안 남겨도 됩니까?<br>
+  3. <code>FarewellNotice.tsx</code>의 전달·재산분배 고지문(법적 성격)은 이번 축약 대상에서 뺀 판단이 맞습니까?<br>
+  4. 이 판정 기준(설명문=제거, 안내/경고 고지=유지, 나머지 줄글=문장 압축)을 <b>이후 22페이지 전체에 동일하게 적용</b>해도 되겠습니까?
+  <br><br>
+  승인해 주시면 구현하고, 같은 기준으로 나머지 페이지 루프를 이어가겠습니다.
+</div>
+
+</body>
+</html>

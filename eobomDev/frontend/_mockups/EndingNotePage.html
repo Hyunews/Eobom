@@ -1,0 +1,321 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>EndingNotePage 360px 목업 — 현재안 vs 개선안</title>
+<style>
+  :root{
+    --primary-color:#1A2B4C; --point-color:#5B7065; --text-main:#1A2B4C; --text-muted:#6C7A89;
+    --border-color:#DFDCD7; --card-bg:#FFFFFF; --secondary-color:#FBF9F5; --surface-subtle:#F3F0EA;
+    --state-warn-fg:#92400E; --state-warn-bg:#FEF3C7; --state-ok-fg:#03543F; --state-ok-bg:#DEF7EC;
+    --r-sm:8px; --r-md:12px; --r-lg:16px; --r-full:999px;
+    --sp-2:8px; --sp-3:12px; --sp-4:16px; --sp-6:24px;
+    --fs-caption:0.875rem; --fs-body:1rem; --fs-lead:1.125rem; --fs-section:1.25rem;
+    --min-touch-target:56px; --box-shadow:0 8px 30px rgba(26,43,76,.06);
+    --gutter-page:28px;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; padding:24px; background:#EDEAE3; color:var(--text-main);
+    font-family:'Malgun Gothic','Apple SD Gothic Neo',sans-serif;
+  }
+  h1{font-size:1.3rem; margin:0 0 4px;}
+  .summary{
+    background:#fff; border:1px solid var(--border-color); border-radius:var(--r-md);
+    padding:16px 20px; margin-bottom:28px; max-width:1000px; line-height:1.7; font-size:0.92rem;
+  }
+  .summary b{color:var(--primary-color);}
+  .frames{display:flex; gap:32px; flex-wrap:wrap; align-items:flex-start;}
+  .frame-col{width:360px;}
+  .frame-label{
+    font-weight:700; font-size:0.95rem; margin-bottom:10px; display:flex; align-items:center; gap:6px;
+  }
+  .frame-label.before{color:#92400E;}
+  .frame-label.after{color:#03543F;}
+  .frame{
+    width:360px; height:700px; overflow-y:auto; background:var(--card-bg);
+    border:6px solid #333; border-radius:28px; box-shadow:0 10px 30px rgba(0,0,0,.25);
+    position:relative;
+  }
+  .frame-inner{padding:16px 20px 40px;}
+
+  .page-badge{
+    display:inline-flex; align-items:center; gap:6px; background:var(--surface-subtle);
+    color:var(--primary-color); padding:4px 16px; border-radius:var(--r-lg); font-size:14px;
+    font-weight:700; margin-bottom:8px;
+  }
+  .page-title{color:var(--primary-color); font-size:1.4rem; margin:0 0 6px;}
+  .page-sub{color:var(--text-muted); font-size:14px; margin:0 0 20px;}
+
+  /* ── 현재안: 아코디언 스택 ── */
+  .acc-item{
+    background:#fff; border:1px solid var(--border-color); border-radius:var(--r-md);
+    margin-bottom:12px; overflow:hidden;
+  }
+  .acc-header{
+    width:100%; display:flex; align-items:center; gap:10px; padding:16px 20px;
+    background:none; border:none; font-size:16px; font-weight:700; color:var(--primary-color);
+    cursor:pointer; text-align:left;
+  }
+  .acc-header .ttl{flex:1;}
+  .acc-header .chk{color:var(--point-color); font-size:15px;}
+  .acc-header .chev{color:var(--text-muted);}
+  .acc-body{padding:0 20px 20px; border-top:1px solid var(--border-color);}
+  .warn-box{
+    font-size:14px; color:var(--state-warn-fg); background:var(--state-warn-bg);
+    border:1px solid var(--state-warn-bg); border-radius:var(--r-sm); padding:12px 14px; margin:14px 0 12px; line-height:1.6;
+  }
+  .form-group{margin-bottom:14px;}
+  .form-label{display:block; font-size:14px; font-weight:600; color:var(--text-main); margin-bottom:6px;}
+  .form-select,.form-input,.form-textarea{
+    width:100%; padding:12px 14px; border:1px solid var(--border-color); border-radius:var(--r-sm);
+    font-size:15px; color:var(--text-main); background:#fff; font-family:inherit;
+  }
+  .form-textarea{resize:none;}
+  .acc-actions{display:flex; align-items:center; gap:12px; margin-top:14px;}
+  .btn{
+    padding:0 18px; height:44px; border-radius:var(--r-sm); border:none; font-size:15px;
+    font-weight:700; cursor:pointer; display:inline-flex; align-items:center; gap:6px;
+  }
+  .btn-point{background:var(--point-color); color:#fff;}
+  .btn-ghost{background:var(--surface-subtle); color:var(--text-muted);}
+  .flag{
+    position:absolute; top:10px; right:-34px; background:#DC2626; color:#fff; font-size:11px;
+    font-weight:700; padding:4px 8px; border-radius:6px; transform:rotate(6deg); white-space:nowrap;
+  }
+  .measure{
+    font-size:12px; color:#DC2626; font-weight:700; text-align:center; padding:6px 0;
+    border-top:1px dashed #DC2626; margin-top:6px;
+  }
+
+  /* ── 개선안: 목차 리스트 ── */
+  .toc-list{background:#fff; border:1px solid var(--border-color); border-radius:var(--r-md); overflow:hidden; margin-bottom:20px;}
+  .toc-row{
+    width:100%; display:flex; align-items:center; gap:10px; min-height:var(--min-touch-target);
+    padding:14px 20px; background:none; border:none; border-bottom:1px solid var(--border-color);
+    font-size:16px; color:var(--text-main); text-align:left; cursor:pointer;
+  }
+  .toc-row:last-child{border-bottom:none;}
+  .toc-row .ttl{flex:1; font-weight:500;}
+  .status-pill{
+    font-size:13px; font-weight:700; padding:3px 10px; border-radius:var(--r-full); flex-shrink:0; white-space:nowrap;
+  }
+  .status-pill.done{color:var(--state-ok-fg); background:var(--state-ok-bg);}
+  .status-pill.todo{color:var(--text-muted); background:var(--surface-subtle);}
+  .toc-row .chev{color:var(--text-muted); flex-shrink:0;}
+
+  .willcard{
+    background:#fff; border:1px solid var(--border-color); border-radius:var(--r-md); padding:20px;
+  }
+  .willcard h3{color:var(--primary-color); font-size:16px; margin:0 0 12px; display:flex; align-items:center; gap:6px;}
+  .not-a-will{
+    display:flex; gap:8px; font-size:14px; color:var(--text-muted); background:var(--card-bg);
+    border:1px solid var(--border-color); border-radius:var(--r-sm); padding:12px 14px; line-height:1.6; margin-bottom:14px;
+  }
+
+  /* ── 리더 모달 (전체화면 시트, .ending-note-summary-overlay ≤640px 패턴 재사용) ── */
+  .reader-overlay{
+    position:absolute; inset:0; background:rgba(0,0,0,.65); backdrop-filter:blur(4px);
+    display:none; z-index:50;
+  }
+  .reader-overlay.open{display:block;}
+  .reader-sheet{
+    position:absolute; inset:0; background:var(--card-bg); display:flex; flex-direction:column;
+  }
+  .reader-head{
+    display:flex; align-items:center; gap:10px; padding:16px 20px; border-bottom:1px solid var(--border-color); flex-shrink:0;
+  }
+  .reader-head button{background:none; border:none; font-size:20px; cursor:pointer; color:var(--text-main); padding:4px;}
+  .reader-head .rttl{font-size:17px; font-weight:700; color:var(--primary-color);}
+  .reader-body{flex:1; overflow-y:auto; padding:20px;}
+  .reader-foot{
+    display:flex; gap:12px; padding:14px 20px; border-top:1px solid var(--border-color); flex-shrink:0;
+  }
+  .reader-foot .btn{flex:1; justify-content:center;}
+
+  .checkpoints{max-width:1000px; margin-top:32px; background:#fff; border:1px solid var(--border-color); border-radius:var(--r-md); padding:20px 24px; font-size:0.92rem; line-height:1.8;}
+  .checkpoints h2{font-size:1rem; margin:0 0 10px; color:var(--primary-color);}
+</style>
+</head>
+<body>
+
+<h1>EndingNotePage — 3번 순서, 모바일 360px 목업</h1>
+
+<div class="summary">
+  <b>발견한 문제 3개</b> / <b>제안한 변경 2개</b> / <b>데스크톱(1280px) 영향 여부: 없음</b> — 모바일 전용 컴포넌트만 신설(<code>useIsMobile()</code> 분기), 데스크톱은 기존 좌측 목차 + 아코디언 그대로 유지(00-38 §8.1-2).
+  <br><br>
+  <b>근거 스펙</b>: docs/00_핵심플랫폼/00-38_적응형_모바일_UX_개편_명세서.md §8.1-2 (목업 방향 이미 확정) ·
+  <code>EndingNotePage.tsx:734-793</code>(현재 구조) · <code>AccordionSection.tsx</code> · <code>index.css:1741-1832</code>
+</div>
+
+<div class="frames">
+
+  <div class="frame-col">
+    <div class="frame-label before">🔴 현재안 — 8개 아코디언 동시 스택</div>
+    <div class="frame" id="frame-before">
+      <div class="frame-inner">
+        <div class="page-badge">📝 남겨야 할 것을 빠짐없이</div>
+        <h2 class="page-title">디지털 엔딩노트</h2>
+        <p class="page-sub">연명의료 의향 메모, 장례 희망 방식, 유언장 초안까지 표준화된 항목을 차근차근 채워두세요.</p>
+
+        <!-- ① 펼친 상태 — 문제1·2 시연 -->
+        <div class="acc-item">
+          <button class="acc-header">
+            <span class="ttl">연명의료 의향 메모</span>
+            <span class="chk">✓</span>
+            <span class="chev">▲</span>
+          </button>
+          <div class="acc-body">
+            <div class="warn-box">⚠️ 이 메모는 법적 효력이 없습니다. 법적 효력이 있는 「사전연명의료의향서」는 보건복지부 지정 등록기관에서 본인이 직접 작성·등록해야 합니다(비용 없음).</div>
+            <div class="form-group">
+              <label class="form-label">연명의료 중단 의향</label>
+              <select class="form-select"><option>임종 시 무의미한 연명의료 중단 희망</option></select>
+            </div>
+            <div class="acc-actions">
+              <button class="btn btn-point">저장</button>
+              <button class="btn btn-ghost">취소</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="acc-item"><button class="acc-header"><span class="ttl">장례 희망</span><span class="chk">✓</span><span class="chev">▼</span></button></div>
+        <div class="acc-item"><button class="acc-header"><span class="ttl">자산 소재 안내</span><span class="chev">▼</span></button></div>
+        <div class="acc-item"><button class="acc-header"><span class="ttl">디지털 계정 처리 의향</span><span class="chk">✓</span><span class="chev">▼</span></button></div>
+        <div class="acc-item" style="position:relative;">
+          <button class="acc-header"><span class="ttl">보험·연금 가입 사실</span><span class="chev">▼</span></button>
+        </div>
+        <div class="acc-item" style="position:relative;">
+          <button class="acc-header"><span class="ttl">중요 연락처·반려동물</span><span class="chk">✓</span><span class="chev">▼</span></button>
+          <span class="flag">③ 타이트</span>
+        </div>
+        <div class="acc-item"><button class="acc-header"><span class="ttl">유언장 소재 안내</span><span class="chk">✓</span><span class="chev">▼</span></button></div>
+        <div class="acc-item"><button class="acc-header"><span class="ttl">장기·조직 기증 의향</span><span class="chev">▼</span></button></div>
+
+        <div class="measure">↑ 헤더 8개 + 펼친 항목 1개 = 화면 3장 분량 스크롤. 하나 열면 나머지 7개가 계속 화면에 남아 포커스가 분산됨(문제②)</div>
+
+        <div class="willcard" style="margin-top:20px;">
+          <h3>📜 유언장 초안</h3>
+          <div class="not-a-will">🔴 이 화면에서 만든 글은 유언장이 아닙니다. 자필증서 유언은 반드시 손으로 직접 쓰셔야 하며, 컴퓨터로 작성한 문서는 효력이 없습니다.</div>
+          <textarea class="form-textarea" rows="4" placeholder="유언장 초안 내용을 직접 입력해 주세요."></textarea>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="frame-col">
+    <div class="frame-label after">✅ 개선안 — 목차 리스트 + 포커스 리더 모달</div>
+    <div class="frame" id="frame-after">
+      <div class="frame-inner">
+        <div class="page-badge">📝 남겨야 할 것을 빠짐없이</div>
+        <h2 class="page-title">디지털 엔딩노트</h2>
+        <p class="page-sub">연명의료 의향 메모, 장례 희망 방식, 유언장 초안까지 표준화된 항목을 차근차근 채워두세요.</p>
+
+        <div class="toc-list">
+          <button class="toc-row" onclick="openReader('LIFE_SUPPORT')"><span class="ttl">연명의료 의향 메모</span><span class="status-pill done">완료</span><span class="chev">›</span></button>
+          <button class="toc-row" onclick="openReader('FUNERAL')"><span class="ttl">장례 희망</span><span class="status-pill done">완료</span><span class="chev">›</span></button>
+          <button class="toc-row" onclick="openReader('ASSET')"><span class="ttl">자산 소재 안내</span><span class="status-pill todo">미작성</span><span class="chev">›</span></button>
+          <button class="toc-row" onclick="openReader('DIGITAL_ACCOUNTS')"><span class="ttl">디지털 계정 처리 의향</span><span class="status-pill done">완료</span><span class="chev">›</span></button>
+          <button class="toc-row" onclick="openReader('INSURANCE')"><span class="ttl">보험·연금 가입 사실</span><span class="status-pill todo">미작성</span><span class="chev">›</span></button>
+          <button class="toc-row" onclick="openReader('CONTACTS')"><span class="ttl">중요 연락처·반려동물</span><span class="status-pill todo">미작성</span><span class="chev">›</span></button>
+          <button class="toc-row" onclick="openReader('WILL_LOCATION')"><span class="ttl">유언장 소재 안내</span><span class="status-pill done">완료</span><span class="chev">›</span></button>
+          <button class="toc-row" onclick="openReader('ORGAN_DONATION')"><span class="ttl">장기·조직 기증 의향</span><span class="status-pill todo">미작성</span><span class="chev">›</span></button>
+        </div>
+
+        <div class="measure" style="border-color:#03543F; color:#03543F;">↑ 8행 = 헤더 하나당 56px, 목록 전체가 첫 화면에 거의 다 보임. 탭하면 그 섹션 하나만 모달로 (→ 오른쪽 하단 "열어보기" 눌러 시연)</div>
+
+        <div class="willcard" style="margin-top:20px;">
+          <h3>📜 유언장 초안</h3>
+          <div class="not-a-will">🔴 이 화면에서 만든 글은 유언장이 아닙니다. 자필증서 유언은 반드시 손으로 직접 쓰셔야 하며, 컴퓨터로 작성한 문서는 효력이 없습니다.</div>
+          <textarea class="form-textarea" rows="4" placeholder="유언장 초안 내용을 직접 입력해 주세요."></textarea>
+          <p style="font-size:13px; color:var(--text-muted); margin-top:10px;">※ 목록 밖 별도 카드 — 변경 없음(00-38 §8.1-2 요구사항이 이미 충족돼 있음)</p>
+        </div>
+      </div>
+
+      <!-- 포커스 리더 모달 -->
+      <div class="reader-overlay" id="reader-overlay">
+        <div class="reader-sheet">
+          <div class="reader-head">
+            <button onclick="closeReader()">←</button>
+            <span class="rttl" id="reader-title">섹션 제목</span>
+          </div>
+          <div class="reader-body" id="reader-content"></div>
+          <div class="reader-foot">
+            <button class="btn btn-point" style="flex:1;">저장</button>
+            <button class="btn btn-ghost" style="flex:1;" onclick="closeReader()">취소</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="checkpoints">
+  <h2>사람이 확인할 체크포인트</h2>
+  1. 개선안 우측 목록에서 아무 행이나 눌러 리더 모달이 "그 섹션 하나만" 전체화면으로 열리는 방향이 맞습니까? (뒤로가기 ← 로 목록 복귀)<br>
+  2. 상태 배지는 "완료/미작성" 텍스트 배지로 충분합니까, 아니면 현재안처럼 체크 아이콘(✓)이 더 낫습니까?<br>
+  3. 유언장 초안 카드를 목록 "밖"에 그대로 두는 배치(스크롤 최하단, 별도 카드)가 맞습니까?<br>
+  4. 목차 리스트 행의 제목 정렬(왼쪽) · 상태 배지 + 화살표(오른쪽) 순서가 자연스럽습니까?<br>
+  5. 완료 배지 색(연한 초록 <code>--state-ok-bg</code>)이 다른 페이지(MyPage 등)와 톤이 맞습니까?
+  <br><br>
+  승인해 주시면 구현하겠습니다.
+</div>
+
+<script>
+  var CONTENT = {
+    LIFE_SUPPORT: {
+      title: '연명의료 의향 메모',
+      html: '<div class="warn-box">⚠️ 이 메모는 법적 효력이 없습니다. 법적 효력이 있는 「사전연명의료의향서」는 보건복지부 지정 등록기관에서 본인이 직접 작성·등록해야 합니다(비용 없음).</div>'
+        + '<div class="form-group"><label class="form-label">연명의료 중단 의향</label><select class="form-select"><option>임종 시 무의미한 연명의료 중단 희망</option><option>가능한 모든 의료 조치 시행 희망</option><option>가족/자녀의 판단에 위임</option></select></div>'
+    },
+    FUNERAL: {
+      title: '장례 희망',
+      html: '<div class="form-group"><label class="form-label">희망하는 장례 방식</label><select class="form-select"><option>가족장 후 자연 수목장 안치</option><option>일반 3일장 진행</option><option>최소 인원 검소장</option></select></div>'
+    },
+    ASSET: {
+      title: '자산 소재 안내',
+      html: '<div class="warn-box">🔴 어느 은행·증권사에 거래가 있는지까지만 적어주세요. 계좌번호·잔액·비밀번호는 절대 적지 마세요 — 유족은 이 정보 없이도 공적 창구(안심상속 원스톱서비스 등)로 조회할 수 있습니다.</div>'
+        + '<div class="form-group"><label class="form-label">거래 중인 은행·증권사</label><textarea class="form-textarea" rows="3" placeholder="예: 국민은행에 주거래 계좌가 있고, 통장은 안방 서랍 두 번째 칸에 있습니다."></textarea></div>'
+    },
+    DIGITAL_ACCOUNTS: {
+      title: '디지털 계정 처리 의향',
+      html: '<p style="font-size:14px;color:var(--text-muted);margin-bottom:12px;">자주 쓰시는 디지털 서비스를 사후에 어떻게 처리하고 싶으신지 미리 정해두세요.</p>'
+        + ['이메일','SNS','클라우드','구독 서비스'].map(function(c){return '<div class="form-group"><label class="form-label">'+c+'</label><select class="form-select"><option>미정</option><option>삭제</option><option>추모 전환</option><option>보존</option></select></div>';}).join('')
+    },
+    INSURANCE: {
+      title: '보험·연금 가입 사실',
+      html: '<p style="font-size:14px;color:var(--text-muted);margin-bottom:12px;">유족이 존재를 몰라 청구를 못 하는 경우가 가장 흔한 손실입니다. 회사명만 남겨두세요.</p>'
+        + '<label style="display:flex;align-items:center;gap:8px;font-size:15px;color:var(--primary-color);margin-bottom:10px;"><input type="checkbox" checked> 생명보험 가입</label>'
+        + '<label style="display:flex;align-items:center;gap:8px;font-size:15px;color:var(--primary-color);margin-bottom:10px;"><input type="checkbox"> 연금(개인·퇴직) 가입</label>'
+        + '<label style="display:flex;align-items:center;gap:8px;font-size:15px;color:var(--primary-color);"><input type="checkbox"> 실손·상해보험 가입</label>'
+    },
+    CONTACTS: {
+      title: '중요 연락처·반려동물',
+      html: '<div class="form-group"><label class="form-label">부고를 꼭 알려야 할 사람</label><textarea class="form-textarea" rows="3" placeholder="예: 김OO - 대학 동창 - 010-0000-0000"></textarea></div>'
+        + '<div class="form-group"><label class="form-label">반려동물을 부탁하고 싶은 분</label><input class="form-input" placeholder="예: 막내 여동생 김OO"></div>'
+    },
+    WILL_LOCATION: {
+      title: '유언장 소재 안내',
+      html: '<div class="form-group"><label class="form-label">자필증서를 어디에 보관했는지 한 줄로</label><input class="form-input" placeholder="예: 안방 화장대 서랍 안쪽 서류 봉투"></div>'
+        + '<p style="font-size:14px;color:var(--text-muted);">🔴 이어봄은 유언장 원본·사본을 보관하지 않습니다. 보관 장소만 남겨두세요.</p>'
+    },
+    ORGAN_DONATION: {
+      title: '장기·조직 기증 의향',
+      html: '<div class="warn-box">⚠️ 이어봄은 등록 여부와 등록일만 보관합니다. 실제 등록은 국립장기조직혈액관리원에서 본인이 직접 해야 합니다.</div>'
+        + '<div class="form-group"><label class="form-label">장기·조직 기증 등록 여부</label><select class="form-select"><option>등록함</option><option>등록하지 않음</option><option selected>모름</option></select></div>'
+    }
+  };
+
+  function openReader(code){
+    var c = CONTENT[code];
+    document.getElementById('reader-title').textContent = c.title;
+    document.getElementById('reader-content').innerHTML = c.html;
+    document.getElementById('reader-overlay').classList.add('open');
+  }
+  function closeReader(){
+    document.getElementById('reader-overlay').classList.remove('open');
+  }
+</script>
+
+</body>
+</html>

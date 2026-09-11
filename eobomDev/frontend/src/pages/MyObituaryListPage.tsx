@@ -139,7 +139,7 @@ export const MyObituaryListPage: React.FC = () => {
   return (
     <div className="container" style={{ paddingBottom: '3rem', maxWidth: '860px' }}>
       <h2 style={{ marginBottom: '0.3rem' }}>내 부고장·추모관</h2>
-      <p style={{ color: 'var(--text-muted)', marginBottom: '1.5rem', fontSize: 'var(--fs-body)' }}>
+      <p className="page-subtitle" style={{ color: 'var(--text-muted)', marginBottom: '1.5rem', fontSize: 'var(--fs-body)' }}>
         내가 만든 부고장과 추모관을 한곳에서 확인할 수 있습니다.
       </p>
 
@@ -171,59 +171,46 @@ export const MyObituaryListPage: React.FC = () => {
                     display: 'flex', flexDirection: 'column', gap: '0.6rem',
                   }}
                 >
-                  {/* 🔄 09-07 사용자 리포트 — 이 카드가 좌우 반반 레이아웃(auto-grid)으로
-                      들어가 폭이 줄면서, "진행중"(수정+삭제 2버튼)일 때만 이름·버튼이
-                      한 줄에 다 안 들어가 깨졌다. flexWrap+minWidth:0으로 좁을 때 버튼 줄이
-                      아래로 떨어지게 한다("종료됨"=삭제 1버튼은 원래도 안 깨졌던 경우). */}
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.6rem 1rem', flexWrap: 'wrap' }}>
-                    <div style={{ minWidth: 0 }}>
-                      <p style={{ fontWeight: 700, color: 'var(--text-main)', marginBottom: '0.2rem' }}>
-                        故 {o.deceasedName}
-                        {o.isClosed && (
-                          <span style={{ marginLeft: '0.5rem', fontSize: 'var(--fs-caption)', fontWeight: 400, color: 'var(--text-muted)' }}>· 종료됨</span>
-                        )}
-                        {!o.isClosed && (
-                          <span style={{ marginLeft: '0.5rem', fontSize: 'var(--fs-caption)', fontWeight: 400, color: 'var(--point-color)' }}>· 진행중</span>
-                        )}
-                      </p>
-                      <p style={{ fontSize: 'var(--fs-body)', color: 'var(--text-muted)' }}>
-                        {o.deceasedDeathDate ? `사망일 ${formatKST(o.deceasedDeathDate)}` : `개설일 ${formatKST(o.createdAt)}`}
-                      </p>
-                    </div>
-                    <div style={{ display: 'flex', gap: '0.4rem', flexShrink: 0 }}>
-                      {!o.isClosed && (
-                        <button
-                          type="button"
-                          onClick={() => navigate(`/obituary?slug=${o.slug}`)}
-                          className="btn"
-                          style={{ height: '36px', padding: '0 var(--sp-4)', fontSize: 'var(--fs-body)', backgroundColor: 'var(--card-bg)', border: '1px solid var(--border-color)' }}
-                        >
-                          수정
-                        </button>
+                  {/* 🔄 2026-09-11 사람 지시(모바일 검증 루프 6번 재점검 2차) — 09-07에 도입했던
+                      "이름/날짜 옆에 수정·삭제, 그 아래 부고장/열기/공유" 2행 구조가 360px에서
+                      이름+날짜 블록과 큰 버튼(36px, --sp-4 패딩)이 한 줄에 안 들어가 버튼이
+                      아래로 떨어졌다. 사람 지시대로 수정·삭제를 열기·공유와 같은 크기(iconBtnStyle,
+                      32px)로 줄이고 같은 줄(부고장 링크 행)로 합쳐 — 이름/날짜 줄은 이제 버튼과
+                      폭을 다투지 않으므로 wrap 자체가 필요 없어진다. */}
+                  <div>
+                    <p style={{ fontWeight: 700, color: 'var(--text-main)', marginBottom: '0.2rem' }}>
+                      故 {o.deceasedName}
+                      {o.isClosed && (
+                        <span style={{ marginLeft: '0.5rem', fontSize: 'var(--fs-caption)', fontWeight: 400, color: 'var(--text-muted)' }}>· 종료됨</span>
                       )}
-                      <button
-                        type="button"
-                        onClick={() => deleteObituary(o)}
-                        disabled={deletingId === o.id}
-                        className="btn"
-                        style={{
-                          height: '36px', padding: '0 var(--sp-4)', fontSize: 'var(--fs-body)', backgroundColor: 'var(--card-bg)',
-                          border: '1px solid var(--state-danger-bg)', color: 'var(--state-danger-fg)', opacity: deletingId === o.id ? 0.6 : 1,
-                          display: 'inline-flex', alignItems: 'center', gap: '0.3rem',
-                        }}
-                      >
-                        <Trash2 size={14} /> 삭제
-                      </button>
-                    </div>
+                      {!o.isClosed && (
+                        <span style={{ marginLeft: '0.5rem', fontSize: 'var(--fs-caption)', fontWeight: 400, color: 'var(--point-color)' }}>· 진행중</span>
+                      )}
+                    </p>
+                    <p style={{ fontSize: 'var(--fs-body)', color: 'var(--text-muted)' }}>
+                      {o.deceasedDeathDate ? `사망일 ${formatKST(o.deceasedDeathDate)}` : `개설일 ${formatKST(o.createdAt)}`}
+                    </p>
                   </div>
 
                   <div style={linkGroupStyle}>
-                    <span style={{ fontSize: 'var(--fs-caption)', color: 'var(--text-muted)', width: '3.4rem' }}>부고장</span>
                     <button type="button" onClick={() => navigate(`/o/${o.slug}`)} style={iconBtnStyle}>
                       <ExternalLink size={13} /> 열기
                     </button>
                     <button type="button" onClick={() => shareObituary(o)} style={iconBtnStyle}>
                       <Share2 size={13} /> 공유
+                    </button>
+                    {!o.isClosed && (
+                      <button type="button" onClick={() => navigate(`/obituary?slug=${o.slug}`)} style={iconBtnStyle}>
+                        수정
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => deleteObituary(o)}
+                      disabled={deletingId === o.id}
+                      style={{ ...iconBtnStyle, border: '1px solid var(--state-danger-bg)', color: 'var(--state-danger-fg)', opacity: deletingId === o.id ? 0.6 : 1 }}
+                    >
+                      <Trash2 size={13} /> 삭제
                     </button>
                   </div>
 
@@ -287,7 +274,6 @@ export const MyObituaryListPage: React.FC = () => {
                     <p style={{ fontSize: 'var(--fs-body)', color: 'var(--text-muted)' }}>개설일 {formatKST(m.createdAt)}</p>
                   </div>
                   <div style={linkGroupStyle}>
-                    <span style={{ fontSize: 'var(--fs-caption)', color: 'var(--text-muted)', width: '3.4rem' }}>추모관</span>
                     <button type="button" onClick={() => navigate(`/m/${m.slug}`)} style={iconBtnStyle}>
                       <ExternalLink size={13} /> 열기
                     </button>

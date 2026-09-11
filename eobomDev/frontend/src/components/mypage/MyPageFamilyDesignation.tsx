@@ -245,38 +245,14 @@ export const MyPageFamilyDesignation: React.FC<MyPageFamilyDesignationProps> = (
   };
 
   return (
-    <div
-      ref={backdropRef}
-      style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        backgroundColor: 'rgba(0, 0, 0, 0.65)',
-        backdropFilter: 'blur(4px)',
-        display: 'flex',
-        justifyContent: 'center',
-        zIndex: 3100,
-        padding: '1rem',
-        overflowY: 'auto',
-      }}
-    >
+    <div ref={backdropRef} className="myfamily-modal-backdrop">
       {/* align-items:center를 부모에 두면 내용이 뷰포트보다 길 때 위쪽이 스크롤로도 닿지 않는
           채 잘린다(닫기 버튼 실종). margin:auto로 옮기면 짧을 땐 그대로 가운데, 길면 자동으로
-          0이 되어 위가 화면 안에 들어오고 스크롤이 닿는다. */}
-      <div
-        style={{
-          backgroundColor: '#FFFFFF',
-          borderRadius: 'var(--r-lg)',
-          maxWidth: '520px',
-          width: '100%',
-          padding: '1.9rem 1.5rem',
-          boxShadow: 'var(--el-3)',
-          position: 'relative',
-          margin: 'auto',
-        }}
-      >
+          0이 되어 위가 화면 안에 들어오고 스크롤이 닿는다.
+          🔄 2026-09-11 모바일 검증 루프 7번 — 인라인 스타일을 .myfamily-modal-backdrop/-panel
+          클래스로 옮김(값은 그대로, index.css 참고). ≤768px 바텀시트 규칙은 미디어쿼리라
+          인라인으로는 못 걸어 클래스 이전이 전제조건이었다(모달 4종 공통 규칙, §6.5 ⓒ). */}
+      <div className="myfamily-modal-panel">
         <button
           onClick={onClose}
           style={{

@@ -516,12 +516,14 @@ export const ObituaryPage: React.FC<ObituaryPageProps> = ({ currentUser, onOpenL
         <input value={deceasedName} onChange={(e) => setDeceasedName(e.target.value)} className="form-input" placeholder="예: 홍길동" required />
       </div>
 
-      <div style={{ display: 'flex', gap: '0.6rem' }}>
-        <div className="form-group" style={{ flex: 2 }}>
+      {/* 00-38 §6.5 ⓒ — 화면·상태 변화 없는 "배치만" 변경이라 분리 없이 isMobile로 방향만
+          바꾼다(2026-09-11 사람 승인). 데스크톱은 그대로 가로 2:1. */}
+      <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: '0.6rem' }}>
+        <div className="form-group" style={{ flex: isMobile ? undefined : 2 }}>
           <label className="form-label">상주 성함 *</label>
           <input value={chiefMournerName} onChange={(e) => setChiefMournerName(e.target.value)} className="form-input" placeholder="예: 홍상주" required />
         </div>
-        <div className="form-group" style={{ flex: 1 }}>
+        <div className="form-group" style={{ flex: isMobile ? undefined : 1 }}>
           <label className="form-label">고인과의 관계</label>
           <input value={chiefMournerRelationship} onChange={(e) => setChiefMournerRelationship(e.target.value)} className="form-input" placeholder="상주" />
         </div>
@@ -560,9 +562,10 @@ export const ObituaryPage: React.FC<ObituaryPageProps> = ({ currentUser, onOpenL
             <div style={{ fontSize: 'var(--fs-body)', color: 'var(--state-warn-fg)', backgroundColor: 'var(--state-warn-bg)', border: '1px solid var(--state-warn-bg)', borderRadius: 'var(--r-sm)', padding: '0.6rem var(--sp-3)', marginBottom: 'var(--sp-3)', lineHeight: 1.5 }}>
               이 계좌번호는 부고장을 받은 분이 다시 공유할 수 있습니다.
             </div>
-            <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem' }}>
-              <input value={accountBankCode} onChange={(e) => setAccountBankCode(e.target.value)} className="form-input" placeholder="은행명 (예: 국민은행)" style={{ flex: 1 }} />
-              <input value={accountHolder} onChange={(e) => setAccountHolder(e.target.value)} className="form-input" placeholder="예금주" style={{ flex: 1 }} />
+            {/* 2026-09-11 사람 승인 — 상주 성함/관계와 같은 이유로 모바일만 세로 스택. */}
+            <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: '0.5rem', marginBottom: '0.5rem' }}>
+              <input value={accountBankCode} onChange={(e) => setAccountBankCode(e.target.value)} className="form-input" placeholder="은행명 (예: 국민은행)" style={{ flex: isMobile ? undefined : 1 }} />
+              <input value={accountHolder} onChange={(e) => setAccountHolder(e.target.value)} className="form-input" placeholder="예금주" style={{ flex: isMobile ? undefined : 1 }} />
             </div>
             <input value={accountNumber} onChange={(e) => setAccountNumber(e.target.value)} className="form-input" placeholder="계좌번호" />
           </>
@@ -626,7 +629,8 @@ export const ObituaryPage: React.FC<ObituaryPageProps> = ({ currentUser, onOpenL
                   /memorial에서 독립적으로 만들 수 있다. */}
           <label style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', fontSize: 'var(--fs-body)', cursor: 'pointer' }}>
             <input type="checkbox" checked={createMemorial} onChange={(e) => setCreateMemorial(e.target.checked)} style={{ marginTop: '0.2rem' }} />
-            <span>[선택] 이 부고장과 함께 추모관도 만들기 — 조문객이 온라인으로 헌화·방명록을 남길 수 있는 공간입니다. 나중에 &lsquo;디지털 추모관&rsquo; 화면에서 따로 만들 수도 있습니다.</span>
+            {/* 2026-09-11 사람 승인 — 줄글 축약. */}
+            <span>[선택] 추모관도 함께 만들기 — 헌화·방명록 공간(나중에 따로 만들기 가능)</span>
           </label>
           <label style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', fontSize: 'var(--fs-body)', cursor: 'pointer' }}>
             <input type="checkbox" checked={falseReportAgreed} onChange={(e) => setFalseReportAgreed(e.target.checked)} style={{ marginTop: '0.2rem' }} />

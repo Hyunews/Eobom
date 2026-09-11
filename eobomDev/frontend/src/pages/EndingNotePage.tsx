@@ -10,10 +10,13 @@ import {
   AlertTriangle,
   UserPlus,
   ListChecks,
+  ChevronRight,
+  ChevronLeft,
 } from 'lucide-react';
 import { NoteKeyIcon } from '../components/MenuIcons';
 import { apiFetch, ApiError } from '../lib/api';
 import { getToken } from '../lib/storage';
+import { useIsMobile } from '../hooks/useIsMobile';
 import {
   DIGITAL_ACCOUNT_CATEGORIES,
   DIGITAL_ACCOUNT_CHOICES,
@@ -50,9 +53,11 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
   const [sectionState, setSectionState] = useState<Record<string, boolean>>({});
   const [savingState, setSavingState] = useState<Record<string, SaveState>>({});
 
-  // A1 — 아코디언은 한 번에 하나만 펼친다.
+  // A1 — 아코디언은 한 번에 하나만 펼친다. 00-38 §8.1-2 — 모바일에서는 같은 state를
+  // "리더 모달로 연 섹션"으로 재해석한다(목차 리스트 + 그 섹션 하나만 전체화면 모달).
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
   const consentRef = useRef<HTMLDivElement>(null);
+  const isMobile = useIsMobile();
 
   // "한눈에 보기" 요약 모달. summaryTriggerRef는 닫을 때 포커스를 되돌리는 용도(접근성).
   const [summaryOpen, setSummaryOpen] = useState(false);
@@ -275,6 +280,22 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
       summaryTriggerRef.current?.focus();
     };
   }, [summaryOpen]);
+
+  // 00-38 §8.1-2 — 모바일 리더 모달. 같은 패턴(ESC로 닫기·body 스크롤 잠금)을 재사용한다.
+  // 데스크톱은 expandedSection이 인라인 아코디언을 펼칠 뿐 모달이 아니므로 isMobile로 가드.
+  useEffect(() => {
+    if (!isMobile || !expandedSection) return;
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setExpandedSection(null);
+    };
+    window.addEventListener('keydown', handleKey);
+    return () => {
+      document.body.style.overflow = prevOverflow;
+      window.removeEventListener('keydown', handleKey);
+    };
+  }, [isMobile, expandedSection]);
 
   // 섹션의 현재 공개 시점 배지 — 철회되지 않은 grant 중 IMMEDIATE가 하나라도 있으면 "지금부터
   // 공개"(가장 이른 시점을 대표로 보여준다), 없고 POSTMORTEM만 있으면 "사후에만 공개", 아무
@@ -703,7 +724,10 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
                 <AlertTriangle color="var(--point-color)" size={20} /> 작성을 시작하기 전에 확인해 주세요
               </h3>
               <p style={{ fontSize: 'var(--fs-body)', color: 'var(--text-main)', whiteSpace: 'pre-line', lineHeight: 1.7, marginBottom: '1rem' }}>
-                {policyNotice || '이어봄은 회원님이 작성한 내용을 암호화하여 보관하며, 운영자는 내용을 열람하지 않습니다.'}
+                {/* 2026-09-11 사람 지시 — 줄글 축약. 🟡 서버 policyNotice(06-03 §5 정본)가
+                    아직 이 축약본으로 안 바뀌었으면 로드 전 짧은 순간만 보이는 폴백이다 —
+                    서버 문구 자체를 바꾸는 건 이번 프론트엔드 작업 범위 밖(백엔드/06-03 소관). */}
+                {policyNotice || '작성 내용은 암호화 보관되며, 운영자는 열람하지 않습니다.'}
               </p>
               <button type="button" onClick={handleAgreePolicy} className="btn btn-point" disabled={!noteLoaded}>
                 동의하고 시작하기
@@ -769,30 +793,113 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
           </aside>
 
           <div className="ending-note-content">
-            {/* 00-35 §5.2 — 표시 순서는 SECTIONS 배열 순서(§5.3, 기존 DOM 순서 ①②④⑤⑥⑦⑧⑩와 동일). */}
-            {SECTIONS.map((s) => (
-              <AccordionSection
-                key={s.code}
-                meta={s}
-                expanded={expandedSection === s.code}
-                completed={!!sectionState[s.code]}
-                saveState={savingState[s.code]}
-                onToggle={() => handleToggleSection(s.code)}
-                onSave={() => saveSection(s.code, sectionPayloads[s.code]())}
-                onReset={() => resetSection(s.code)}
-              >
-                {sectionBodies[s.code]}
-                <SectionTimingControl
-                  section={s.code}
-                  family={family}
-                  grants={grants}
-                  onChange={(designationId, timing, grantId) => handleGrantChange(s.code, designationId, timing, grantId)}
-                />
-              </AccordionSection>
-            ))}
+            {/* 00-35 §5.2 — 표시 순서는 SECTIONS 배열 순서(§5.3, 기존 DOM 순서 ①②④⑤⑥⑦⑧⑩와 동일).
+                00-38 §8.1-2 — 모바일은 8개 아코디언 동시 스택 대신 목차 리스트(제목+완료 배지만).
+                탭하면 그 섹션 하나만 아래 리더 모달로 연다(같은 expandedSection state 재사용). */}
+            {isMobile ? (
+              // 🔄 2026-09-11 사람 지시 — 모바일 진입 버튼을 한 번 추가했으나("한눈에 보기"가
+              // 데스크톱 목차 안에만 있어 모바일에 통로가 없던 문제), 재확인 후 "모바일에는
+              // 아예 없는 게 낫다"로 최종 결정. 버튼을 되돌리고 모바일 접근 없음을 의도된
+              // 상태로 확정한다 — 되돌린 이력만 남긴다.
+              <div className="ending-note-mobile-toclist">
+                {SECTIONS.map((s) => (
+                  <button
+                    key={s.code}
+                    type="button"
+                    className="ending-note-mobile-tocrow"
+                    onClick={() => handleToggleSection(s.code)}
+                  >
+                    <span className="ttl">{s.title}</span>
+                    <span className={`ending-note-status-pill${sectionState[s.code] ? ' done' : ' todo'}`}>
+                      {sectionState[s.code] ? '완료' : '미작성'}
+                    </span>
+                    <ChevronRight size={18} color="var(--text-muted)" />
+                  </button>
+                ))}
+              </div>
+            ) : (
+              SECTIONS.map((s) => (
+                <AccordionSection
+                  key={s.code}
+                  meta={s}
+                  expanded={expandedSection === s.code}
+                  completed={!!sectionState[s.code]}
+                  saveState={savingState[s.code]}
+                  onToggle={() => handleToggleSection(s.code)}
+                  onSave={() => saveSection(s.code, sectionPayloads[s.code]())}
+                  onReset={() => resetSection(s.code)}
+                >
+                  {sectionBodies[s.code]}
+                  <SectionTimingControl
+                    section={s.code}
+                    family={family}
+                    grants={grants}
+                    onChange={(designationId, timing, grantId) => handleGrantChange(s.code, designationId, timing, grantId)}
+                  />
+                </AccordionSection>
+              ))
+            )}
           </div>
         </div>
       </div>
+
+      {/* 00-38 §8.1-2 — 모바일 포커스 리더 모달. 그 섹션 하나만, 저장 버튼 하단 고정.
+          expandedSection은 위 목차 리스트와 공유하는 같은 state(데스크톱에서는 아코디언 펼침에 쓰인다). */}
+      {isMobile && expandedSection && (
+        <div className="ending-note-reader-overlay" onClick={() => setExpandedSection(null)}>
+          <div className="ending-note-reader-sheet" onClick={(e) => e.stopPropagation()}>
+            <div className="ending-note-reader-head">
+              <button type="button" onClick={() => setExpandedSection(null)} aria-label="목록으로">
+                <ChevronLeft size={22} />
+              </button>
+              <span className="ending-note-reader-title">
+                {SECTIONS.find((s) => s.code === expandedSection)?.title}
+              </span>
+            </div>
+            <div className="ending-note-reader-body">
+              {sectionBodies[expandedSection]}
+              <SectionTimingControl
+                section={expandedSection}
+                family={family}
+                grants={grants}
+                onChange={(designationId, timing, grantId) => handleGrantChange(expandedSection, designationId, timing, grantId)}
+              />
+            </div>
+            <div className="ending-note-reader-foot">
+              <button
+                type="button"
+                onClick={() => saveSection(expandedSection, sectionPayloads[expandedSection]())}
+                className="btn btn-point"
+                disabled={savingState[expandedSection] === 'saving'}
+                style={{ flex: 1, fontSize: 'var(--fs-body)' }}
+              >
+                {saveButtonLabel(savingState[expandedSection])}
+              </button>
+              <button
+                type="button"
+                // 🔴 2026-09-11 사람 리포트 — 데스크톱 아코디언의 "취소"는 값만 되돌리고 안
+                // 접히지만(AccordionSection.tsx), 모바일은 화면 전체를 덮는 시트라 안 닫히면
+                // "취소가 반응이 없다"로 느껴진다. 여기만 리더 시트도 함께 닫는다(사람 지시).
+                onClick={() => {
+                  resetSection(expandedSection);
+                  setExpandedSection(null);
+                }}
+                disabled={savingState[expandedSection] === 'saving'}
+                className="btn"
+                style={{ flex: 1, fontSize: 'var(--fs-body)', backgroundColor: 'var(--surface-subtle)', color: 'var(--text-muted)' }}
+              >
+                취소
+              </button>
+            </div>
+            {savingState[expandedSection] === 'saved' && (
+              <p style={{ textAlign: 'center', fontSize: 'var(--fs-caption)', color: 'var(--point-color)', margin: '0.5rem 0 0' }}>저장되었습니다.</p>
+            )}
+            {savingState[expandedSection] === 'error' && (
+              <p style={{ textAlign: 'center', fontSize: 'var(--fs-caption)', color: 'var(--state-danger-fg)', margin: '0.5rem 0 0' }}>저장에 실패했습니다. 다시 시도해 주세요.</p>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* ⑨ 유언장 초안 — A2: 아코디언에 넣지 않는다. §6.4-7 모델이 섰으니 이제 저장을 배선한다. */}
       <div id="ending-note-section-WILL_DRAFT" style={{ ...cardStyle, padding: '1.5rem', marginTop: '1.5rem', filter: !currentUser ? 'blur(3px)' : 'none' }}>

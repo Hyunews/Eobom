@@ -1831,6 +1831,120 @@ body {
   padding: 0 1.4rem 1.4rem;
 }
 
+/* 00-38 §8.1-2(2026-09-11) — 모바일 목차 리스트. 8개 아코디언 동시 스택 대신 제목+완료
+   배지만 보여주는 행. `.care-guide-columns` 옆 행 리스트가 아니라 `.farewell-mobile-list`처럼
+   카드 하나(border) 안에 행을 쌓는 쪽을 택했다 — 8행이라 개별 카드로 나누면 테두리가 8겹 된다. */
+.ending-note-mobile-toclist {
+  background-color: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: var(--r-md);
+  overflow: hidden;
+}
+
+.ending-note-mobile-tocrow {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  min-height: var(--min-touch-target);
+  padding: var(--sp-3) 1.25rem;
+  background: none;
+  border: none;
+  border-bottom: 1px solid var(--border-color);
+  font-size: var(--fs-body);
+  color: var(--text-main);
+  text-align: left;
+  cursor: pointer;
+}
+
+.ending-note-mobile-tocrow:last-child {
+  border-bottom: none;
+}
+
+.ending-note-mobile-tocrow .ttl {
+  flex: 1;
+  font-weight: var(--fw-medium);
+}
+
+.ending-note-status-pill {
+  flex-shrink: 0;
+  font-size: var(--fs-caption);
+  font-weight: var(--fw-bold);
+  padding: 0.15rem var(--sp-3);
+  border-radius: var(--r-full);
+  white-space: nowrap;
+}
+
+.ending-note-status-pill.done {
+  color: var(--state-ok-fg);
+  background-color: var(--state-ok-bg);
+}
+
+.ending-note-status-pill.todo {
+  color: var(--text-muted);
+  background-color: var(--surface-subtle);
+}
+
+/* 00-38 §8.1-2 — 포커스 리더 모달. `.ending-note-summary-overlay`(≤640px 전체화면 시트)와
+   같은 오버레이 언어를 쓰되, 모바일 전용 컴포넌트라 처음부터 전체화면으로 고정한다
+   (요약 모달처럼 데스크톱 중앙 팝업 단계가 없다 — isMobile일 때만 마운트되므로). */
+.ending-note-reader-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  z-index: 3000;
+  display: flex;
+}
+
+.ending-note-reader-sheet {
+  background-color: var(--card-bg);
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.ending-note-reader-head {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: var(--sp-4) var(--gutter-page);
+  border-bottom: 1px solid var(--border-color);
+  flex-shrink: 0;
+}
+
+.ending-note-reader-head button {
+  background: none;
+  border: none;
+  padding: 0.25rem;
+  color: var(--text-main);
+  cursor: pointer;
+  display: flex;
+}
+
+.ending-note-reader-title {
+  font-size: var(--fs-lead);
+  font-weight: 700;
+  color: var(--primary-color);
+}
+
+.ending-note-reader-body {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: var(--sp-4) var(--gutter-page);
+}
+
+.ending-note-reader-foot {
+  display: flex;
+  gap: var(--sp-3);
+  padding: var(--sp-3) var(--gutter-page);
+  border-top: 1px solid var(--border-color);
+  flex-shrink: 0;
+}
+
 /* "한눈에 보기" 요약 모달(2026-08-27, 사용자 지시) — LoginModal.tsx와 같은 오버레이 언어
    (반투명 검정+블러, 24px 라운드 카드)를 재사용한다. 640px 이하는 중앙 팝업 대신 전체화면
    시트로 바꾼다 — 좁은 화면에서 카드 여백보다 목록 확보가 우선이라는 지시. */
@@ -1874,6 +1988,143 @@ body {
     max-height: none;
     height: 100%;
     border-radius: 0;
+  }
+}
+
+/* 🆕 모달 4종 바텀시트 공통 규칙(00-38 §8.2 파생, 2026-09-11 모바일 검증 루프 7번) —
+   MyPageFamilyDesignation·LoginModal·InquiryModal·AddressSearchModal. 각 클래스의
+   기본(비-모바일) 값은 그동안 각 파일에 있던 인라인 스타일과 동일하다(색·블러·z-index·
+   데스크톱 폭·패딩은 그대로) — 인라인이던 걸 클래스로만 옮긴 것. 미디어쿼리 하나가
+   4개 클래스에 동시 적용되는 게 "공통 규칙"의 실체다(인라인 스타일은 media로 못 덮으므로
+   클래스 이전이 전제조건, §6.5 ⓒ). SummaryModal은 모바일 진입 자체가 없어 대상에서 제외
+   (2026-09-11 사람 확정). */
+.myfamily-modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(4px);
+  display: flex;
+  justify-content: center;
+  z-index: 3100;
+  padding: 1rem;
+  overflow-y: auto;
+}
+
+.myfamily-modal-panel {
+  background-color: #FFFFFF;
+  border-radius: var(--r-lg);
+  max-width: 520px;
+  width: 100%;
+  padding: 1.9rem 1.5rem;
+  box-shadow: var(--el-3);
+  position: relative;
+  margin: auto;
+}
+
+.login-modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 3000;
+  padding: 1rem;
+  overflow-y: auto;
+}
+
+.login-modal-panel {
+  background-color: #FFFFFF;
+  border-radius: var(--r-lg);
+  max-width: 440px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 1.9rem 1.5rem;
+  box-shadow: var(--el-3);
+  position: relative;
+}
+
+.inquiry-modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(15, 23, 42, 0.75);
+  backdrop-filter: blur(8px);
+  z-index: 2200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.inquiry-modal-panel {
+  background-color: #FFFFFF;
+  border-radius: var(--r-lg);
+  padding: 1.5rem;
+  max-width: 520px;
+  width: 100%;
+  position: relative;
+}
+
+.address-modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(15, 23, 42, 0.8);
+  z-index: 2100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.address-modal-panel {
+  background-color: #FFFFFF;
+  border-radius: var(--r-lg);
+  padding: 1rem;
+  width: 440px;
+  max-width: 100%;
+  position: relative;
+  box-shadow: var(--el-3);
+}
+
+@media (max-width: 768px) {
+  .myfamily-modal-backdrop,
+  .login-modal-backdrop,
+  .inquiry-modal-backdrop,
+  .address-modal-backdrop {
+    align-items: flex-end;
+    padding: 0;
+  }
+
+  .myfamily-modal-panel,
+  .login-modal-panel,
+  .inquiry-modal-panel,
+  .address-modal-panel {
+    max-width: none;
+    width: 100%;
+    margin: 0;
+    border-radius: 16px 16px 0 0;
+    max-height: 88dvh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-left: var(--gutter-chrome);
+    padding-right: var(--gutter-chrome);
+    padding-top: 1.4rem;
+    padding-bottom: 1.75rem;
   }
 }
 

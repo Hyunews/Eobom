@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>MyPage — 5번, 360px 실측 + §6.5 재판정</title>
+<style>
+  :root{
+    --primary-color:#1A2B4C; --point-color:#5B7065; --accent-gold:#D4A359;
+    --secondary-color:#FBF9F5; --card-bg:#FFFFFF; --text-muted:#6C7A89;
+    --box-shadow:0 8px 30px rgba(26,43,76,0.06); --r-sm:8px; --r-lg:16px;
+    --fs-caption:0.875rem; --fw-bold:700;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0; padding:24px; background:#EDEAE3; color:var(--primary-color); font-family:'Malgun Gothic','Apple SD Gothic Neo',sans-serif;}
+  h1.doc-title{font-size:1.3rem; margin:0 0 4px;}
+  .summary{background:#fff; border:1px solid #DFDCD7; border-radius:12px; padding:16px 20px; margin-bottom:28px; max-width:1000px; line-height:1.8; font-size:0.92rem;}
+  .summary b{color:var(--primary-color);}
+  .verdict{display:inline-block; font-weight:800; color:#03543F; background:#DEF7EC; border-radius:6px; padding:2px 8px; margin-left:2px;}
+  .frames{display:flex; gap:32px; flex-wrap:wrap; align-items:flex-start;}
+  .frame-col{width:360px;}
+  .frame-label{font-weight:700; font-size:0.95rem; margin-bottom:10px; color:#03543F;}
+  .frame{width:360px; background:#EFEAE0; border:6px solid #333; border-radius:28px; box-shadow:0 10px 30px rgba(0,0,0,.25); padding:18px 14px;}
+
+  /* ── 아래부터는 MyPage.tsx 실제 인라인 스타일을 그대로 옮긴 것(색·수치 동일) ── */
+  .hero{background:linear-gradient(165deg, var(--primary-color) 0%, #223a63 100%); border-radius:var(--r-lg); padding:1.25rem; position:relative;}
+  .settings-btn{position:absolute; top:0.9rem; right:0.9rem; width:30px; height:30px; border-radius:50%; background:rgba(255,255,255,0.14); color:#fff; display:flex; align-items:center; justify-content:center; font-size:14px;}
+  .hero-top{display:flex; align-items:center; gap:0.9rem; padding-right:2.2rem;}
+  .avatar{width:58px; height:58px; border-radius:50%; background:rgba(255,255,255,0.12); display:flex; align-items:center; justify-content:center; border:2px solid rgba(255,255,255,0.4); flex-shrink:0; color:#fff; font-weight:700; font-size:1.25rem;}
+  .name-row{display:flex; align-items:center; gap:0.5rem; margin-bottom:0.2rem; flex-wrap:nowrap; min-width:0;}
+  .name-row h2{margin:0; color:#fff; font-size:1.15rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0;}
+  .role-badge{font-size:0.68rem; font-weight:700; padding:0.2rem 0.5rem; border-radius:var(--r-sm); background:var(--accent-gold); color:#fff; flex-shrink:0;}
+  .email{margin:0; color:rgba(255,255,255,0.68); font-size:0.82rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .hr{height:1px; background:rgba(255,255,255,0.15); margin:1.1rem 0 0.9rem;}
+  .stat-row{display:grid; grid-template-columns:repeat(3,1fr);}
+  .stat-col{text-align:center;}
+  .stat-col+.stat-col{border-left:1px solid rgba(255,255,255,0.14);}
+  .stat-val{font-weight:700; color:#fff; font-size:1.3rem;} /* ≤480px 브레이크포인트 적용값 */
+  .stat-lbl-row{display:flex; align-items:center; justify-content:center; gap:0.2rem; margin-top:0.25rem;}
+  .stat-lbl{color:rgba(255,255,255,0.7); font-size:var(--fs-caption); white-space:nowrap;}
+
+  .section-title{font-size:var(--fs-caption); font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.04em; margin:14px 0 6px;}
+  .panel{background:var(--card-bg); border-radius:var(--r-lg); box-shadow:var(--box-shadow); overflow:hidden; margin-bottom:0.9rem;}
+  .row{display:flex; align-items:center; justify-content:space-between; padding:0.85rem 1rem; border-bottom:1px solid var(--secondary-color);}
+  .row:last-child{border-bottom:none;}
+  .row-left{display:flex; align-items:center; gap:0.8rem; min-width:0;}
+  .icon-box{width:36px; height:36px; border-radius:var(--r-sm); background:var(--secondary-color); display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:15px;}
+  .row-label{font-weight:700; color:var(--primary-color); font-size:1rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0;}
+  .chev{color:var(--text-muted); flex-shrink:0;}
+  .coming{opacity:0.6;}
+  .badge-soon{font-size:0.68rem; font-weight:700; padding:0.15rem 0.45rem; border-radius:6px; background:#F3F0EA; color:var(--text-muted);}
+
+  .checkpoints{max-width:1000px; margin-top:8px; background:#fff; border:1px solid #DFDCD7; border-radius:12px; padding:20px 24px; font-size:0.92rem; line-height:1.8;}
+  .checkpoints h2{font-size:1rem; margin:0 0 10px; color:var(--primary-color);}
+</style>
+</head>
+<body>
+
+<h1 class="doc-title">MyPage — 5번, 360px 실측 + Phase 3 §6.5 재판정</h1>
+
+<div class="summary">
+  <b>발견한 문제 0건</b> / <b>제안한 변경 0건</b> / <b>데스크톱(1280px) 영향 여부: 없음</b>(코드 변경이 없으므로).
+  <br><br>
+  <b>§6.5 ⓒ 재판정</b>: <span class="verdict">❌ 분리 불필요</span> — 00-38 §8·§6.5 ⓓ가 예측한 대로 뒤집혔다.
+  <code>MyPage.tsx</code>는 2026-09-10 사람 지시로 <b>데스크톱도 이미 <code>maxWidth:560px</code> 단일 열</b>로
+  고정돼 있다(`MyPage.tsx:72` `contentColStyle`) — 즉 모바일에서 "2단→1단"으로 바뀌는 게 아니라
+  <b>데스크톱·모바일이 애초에 같은 1열 구조</b>다. 화면 수·상태 기계 모두 뷰포트에 따라 달라지지 않는다
+  (히어로 패널 + 목록 패널 3개, 조건 분기 없음).
+  <br><br>
+  <b>규칙 1(제목 아래 회색 설명문 제거)</b>: 해당 없음 — `MyPage.tsx`는 다른 8개 페이지와 달리
+  <code>.page-subtitle</code>(h1+설명문 헤더)을 쓰지 않는다. "내 자산 허브" 히어로 패널 구조라 이 규칙이
+  적용될 요소 자체가 없다.
+  <br>
+  <b>규칙 2(줄글 최대 축약)</b>: 로그인 상태 본문에는 축약할 줄글이 없다(메뉴 라벨은 전부 2~8자 단문).
+  비로그인 잠금 오버레이의 안내문 한 줄(`MyPage.tsx:123` "예약 현황, 상담 내역, 엔딩노트 진행 상황을
+  한눈에 확인하세요")은 뷰포트와 무관하게 항상 같은 문구라 이번 루프의 "모바일에서만 제거/축약" 대상이
+  아니다. 🟡 다만 <b>"예약 현황"은 00-36 §6에서 이미 폐기된 개념</b>(FacilityBooking 폐기, `MyPage.tsx:142`
+  주석)이라 문구 자체가 낡았다 — 이건 모바일 UX가 아니라 콘텐츠 정합성 편차이므로 <code>context.md</code>에
+  별도로 남기고 이번 판정에는 포함하지 않는다.
+  <br><br>
+  <b>근거(360px 안전 확인)</b>: 히어로 아바타(58px 고정)+텍스트(`min-width:0`+ellipsis)+설정 버튼
+  (`paddingRight:2.2rem`로 자리 미리 확보) 조합이 `MyPage.tsx:227-241`에서 이미 좁은 폭을 전제로 짜여
+  있음. `.stat-row`는 3열 그리드 고정(`index.css:1014-1017`)이고 ≤480px에서 숫자만 1.3rem으로
+  축소(`index.css:1027-1030`) — 실제 값(상담/문의/부고장 카운트)이 3자리를 넘길 일이 없어 00-38이
+  우려한 "4자리 이상 2×2" 케이스가 발생하지 않는다. `.container`의 `min-width:1200px`(`index.css:379`)은
+  <code>@media (min-width:769px)</code> 안에만 있어 모바일에는 적용되지 않음(`index.css:345`) — 가로
+  스크롤 위험 없음.
+</div>
+
+<div class="frames">
+  <div class="frame-col">
+    <div class="frame-label">✅ 현재안 그대로(360px) — 변경 없음</div>
+    <div class="frame">
+      <div class="hero">
+        <div class="settings-btn">⚙</div>
+        <div class="hero-top">
+          <div class="avatar">김</div>
+          <div style="flex:1; min-width:0;">
+            <div class="name-row">
+              <h2>김이봄 님</h2>
+              <span class="role-badge">MEMBER</span>
+            </div>
+            <p class="email">warmsky02@example.com</p>
+          </div>
+        </div>
+        <div class="hr"></div>
+        <div class="stat-row">
+          <div class="stat-col"><div class="stat-val">3</div><div class="stat-lbl-row"><span class="stat-lbl">💬 상담 내역</span></div></div>
+          <div class="stat-col"><div class="stat-val">0</div><div class="stat-lbl-row"><span class="stat-lbl">✈ 문의 내역</span></div></div>
+          <div class="stat-col"><div class="stat-val">1</div><div class="stat-lbl-row"><span class="stat-lbl">🌷 내 부고장</span></div></div>
+        </div>
+      </div>
+
+      <div class="section-title">나</div>
+      <div class="panel">
+        <div class="row"><div class="row-left"><div class="icon-box">👤</div><div class="row-label">내 정보</div></div><div class="chev">›</div></div>
+        <div class="row"><div class="row-left"><div class="icon-box">👪</div><div class="row-label">가족 지정</div></div><div class="chev">›</div></div>
+      </div>
+
+      <div class="section-title">내가 남긴 것</div>
+      <div class="panel">
+        <div class="row"><div class="row-left"><div class="icon-box">📖</div><div class="row-label">디지털 엔딩노트</div></div><div class="chev">›</div></div>
+        <div class="row"><div class="row-left"><div class="icon-box">✉</div><div class="row-label">유족 메시지 보관함</div></div><div class="chev">›</div></div>
+        <div class="row"><div class="row-left"><div class="icon-box">🌷</div><div class="row-label">내 부고장 · 추모관</div></div><div class="chev">›</div></div>
+        <div class="row"><div class="row-left"><div class="icon-box">📱</div><div class="row-label">디지털 자산 정리</div></div><div class="chev">›</div></div>
+      </div>
+
+      <div class="section-title">내 활동과 계정</div>
+      <div class="panel">
+        <div class="row"><div class="row-left"><div class="icon-box">💬</div><div class="row-label">상담 신청 내역</div></div><div class="chev">›</div></div>
+        <div class="row coming"><div class="row-left"><div class="icon-box">✈</div><div class="row-label">문의 내역</div></div><span class="badge-soon">준비중</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="checkpoints">
+  <h2>승인 요청 사항</h2>
+  1. Phase 3 재판정 결과 <b>MyPage는 ❌(분리하지 않음)</b>로 확정 — 00-38 §8 표의 "🟡 재판정" 상태를
+     "❌ 확정(2026-09-11 재판정)"으로 문서 갱신 필요(Opus 소관, <code>docs/00-38</code> 수정은 Sonnet이
+     하지 않음 → context.md에 [Opus] 요청으로 남김).<br>
+  2. <b>코드 변경 없음</b> — 4번(ObituaryPage)까지와 달리 이번 회차는 구현(④) 단계에서 손댈 파일이 없다.
+     승인되는 대로 6번(<code>MyObituaryListPage</code>)으로 넘어간다.<br>
+  3. 🟡 "예약 현황" 낡은 문구(`MyPage.tsx:123`)는 이번 루프 범위 밖 별건으로 <code>context.md</code>에
+     기록만 하고 넘어가도 되는지 확인 요청.
+</div>
+
+</body>
+</html>
