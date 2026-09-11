@@ -165,9 +165,14 @@ export const CareGuidePage: React.FC<CareGuidePageProps> = ({ setActiveTab }) =>
           고인에게 빚이 있을 수 있다면, 3개월 안에 결정해야 합니다.
         </h3>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap' }}>
-          <p style={{ fontSize: 'var(--fs-body)', color: 'var(--text-muted)', margin: 0, lineHeight: 1.6, flex: '1 1 320px' }}>
-            상속포기·한정승인 기한은 상속개시를 안 날로부터 3개월입니다. 지나면 채무를 그대로 물려받습니다.
-          </p>
+          {/* 2026-09-11 사람 지시 — 모바일은 위 h3 제목("3개월 안에 결정해야 합니다")과
+              내용이 겹쳐 이 줄글 자체를 없앤다. 데스크톱은 축약본("지나면 채무를 그대로
+              물려받습니다" 삭제)만 남긴다. */}
+          {!isMobile && (
+            <p style={{ fontSize: 'var(--fs-body)', color: 'var(--text-muted)', margin: 0, lineHeight: 1.6, flex: '1 1 320px' }}>
+              상속포기·한정승인 기한은 상속개시를 안 날로부터 3개월입니다.
+            </p>
+          )}
           <div style={{ display: 'flex', gap: '0.6rem', flexShrink: 0 }}>
           <button
             type="button"

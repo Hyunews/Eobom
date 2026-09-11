@@ -120,7 +120,7 @@ export const MyPage: React.FC<MyPageProps> = ({ currentUser, onOpenLogin, onOpen
           <Lock size={36} color="#FFFFFF" style={{ marginBottom: '1rem' }} />
           <h2 style={{ color: '#FFFFFF', margin: '0 0 0.6rem 0', fontSize: '1.3rem' }}>마이페이지는 로그인 후 이용하실 수 있어요</h2>
           <p style={{ color: 'rgba(255,255,255,0.75)', fontSize: 'var(--fs-body)', marginBottom: '1.1rem' }}>
-            예약 현황, 상담 내역, 엔딩노트 진행 상황을 한눈에 확인하세요.
+            부고장 현황, 상담 내역, 엔딩노트 진행 상황을 한눈에 확인하세요.
           </p>
           <button onClick={onOpenLogin} className="btn btn-point">
             🔑 로그인 / 회원가입 하러가기
@@ -158,9 +158,9 @@ export const MyPage: React.FC<MyPageProps> = ({ currentUser, onOpenLogin, onOpen
   // 연결된 데이터 소스가 없는 별개 채널(예: 향후 카톡 문의) 자리로, 아래 "내 활동과 계정"
   // 패널의 comingSoon 행과 마찬가지로 항상 0으로 둔다.
   const stats: { label: string; value: number; to?: string; Icon: LucideIcon }[] = [
-    { label: '상담 내역', value: (summary?.consultCount ?? 0) + (summary?.leadCount ?? 0), Icon: MessageCircle },
-    { label: '문의 내역', value: 0, Icon: Send },
-    { label: '내 부고장', value: summary?.obituaryCount ?? 0, to: 'my-obituaries-memorials', Icon: Flower2 },
+    { label: '상담', value: (summary?.consultCount ?? 0) + (summary?.leadCount ?? 0), Icon: MessageCircle },
+    { label: '문의', value: 0, Icon: Send },
+    { label: '부고장', value: summary?.obituaryCount ?? 0, to: 'my-obituaries-memorials', Icon: Flower2 },
   ];
 
   return (
@@ -342,17 +342,14 @@ export const MyPage: React.FC<MyPageProps> = ({ currentUser, onOpenLogin, onOpen
           <ChevronRight size={18} color="var(--text-muted)" style={{ flexShrink: 0 }} />
         </button>
 
-        {/* modeNav.ts의 digital-estate는 여전히 status:'preview'(제 목업 데이터) — 사이드바와
-            같은 배지로 통일해 "곧 나올 기능"이라는 인상을 다르게 주지 않는다. */}
+        {/* 🔄 2026-09-11 사람 지시 — "미리보기" 배지 제거(모바일 검증 루프 5번). modeNav.ts의
+            digital-estate는 여전히 status:'preview'지만, 이 목록에서는 다른 행과 동일하게 보여준다. */}
         <button onClick={() => setActiveTab?.('digital-estate')} style={panelRowStyle(true)}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', minWidth: 0 }}>
             <div style={iconBoxStyle}>
               <PhoneHeartIcon size={18} color="var(--point-color)" />
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', minWidth: 0 }}>
-              <span style={rowLabelStyle}>디지털 자산 정리</span>
-              <Badge status="preview" />
-            </div>
+            <div style={rowLabelStyle}>디지털 자산 정리</div>
           </div>
           <ChevronRight size={18} color="var(--text-muted)" style={{ flexShrink: 0 }} />
         </button>

@@ -61,32 +61,11 @@ export const InquiryModal: React.FC<InquiryModalProps> = ({ facilityId, facility
   };
 
   return (
-    <div
-      style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        backgroundColor: 'rgba(15, 23, 42, 0.75)',
-        backdropFilter: 'blur(8px)',
-        zIndex: 2200,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: '1rem',
-      }}
-    >
-      <div
-        style={{
-          backgroundColor: '#FFFFFF',
-          borderRadius: 'var(--r-lg)',
-          padding: '1.5rem',
-          maxWidth: '520px',
-          width: '100%',
-          position: 'relative',
-        }}
-      >
+    // 🔄 2026-09-11 모바일 검증 루프 7번 — 인라인 스타일을 .inquiry-modal-backdrop/-panel로
+    // 옮김(값 동일). ≤768px 공통 규칙(index.css)이 max-height:88dvh+overflow-y:auto를 걸어줘,
+    // 원래 모바일에서 내용이 넘쳐도 스크롤할 방법이 없던 문제(보호장치 자체가 없었음)가 해소된다.
+    <div className="inquiry-modal-backdrop">
+      <div className="inquiry-modal-panel">
         <button
           onClick={onClose}
           style={{ position: 'absolute', top: '1.2rem', right: '1.2rem', border: 'none', background: 'none', cursor: 'pointer' }}

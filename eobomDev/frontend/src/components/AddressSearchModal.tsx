@@ -73,34 +73,11 @@ export const AddressSearchModal: React.FC<AddressSearchModalProps> = ({ onSelect
   }, [onSelect, onClose]);
 
   return (
-    <div
-      style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        backgroundColor: 'rgba(15, 23, 42, 0.8)',
-        zIndex: 2100,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: '1rem',
-      }}
-      onClick={onClose}
-    >
-      <div
-        style={{
-          backgroundColor: '#FFFFFF',
-          borderRadius: 'var(--r-lg)',
-          padding: '1rem',
-          width: '440px',
-          maxWidth: '100%',
-          position: 'relative',
-          boxShadow: 'var(--el-3)',
-        }}
-        onClick={(e) => e.stopPropagation()}
-      >
+    // 🔄 2026-09-11 모바일 검증 루프 7번 — 인라인 스타일을 .address-modal-backdrop/-panel로
+    // 옮김(값 동일). ≤768px 공통 규칙(index.css)이 바텀시트로 바꾸고 max-height:88dvh+
+    // overflow-y:auto를 걸어줌 — 안의 다음 우편번호 위젯(420px 고정 높이)도 여유 있게 들어간다.
+    <div className="address-modal-backdrop" onClick={onClose}>
+      <div className="address-modal-panel" onClick={(e) => e.stopPropagation()}>
         <button
           onClick={onClose}
           style={{

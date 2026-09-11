@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>ObituaryPage(개설 폼) 360px 목업 — 필드쌍 스택 + 줄글 축약</title>
+<style>
+  :root{
+    --primary-color:#1A2B4C; --point-color:#5B7065; --text-main:#1A2B4C; --text-muted:#6C7A89;
+    --border-color:#DFDCD7; --card-bg:#FFFFFF; --secondary-color:#FBF9F5; --surface-subtle:#F3F0EA;
+    --state-warn-fg:#92400E; --state-warn-bg:#FEF3C7;
+    --r-sm:8px; --r-md:12px;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0; padding:24px; background:#EDEAE3; color:var(--text-main); font-family:'Malgun Gothic','Apple SD Gothic Neo',sans-serif;}
+  h1.doc-title{font-size:1.3rem; margin:0 0 4px;}
+  .summary{background:#fff; border:1px solid var(--border-color); border-radius:var(--r-md); padding:16px 20px; margin-bottom:28px; max-width:1000px; line-height:1.7; font-size:0.92rem;}
+  .summary b{color:var(--primary-color);}
+  .frames{display:flex; gap:32px; flex-wrap:wrap; align-items:flex-start;}
+  .frame-col{width:360px;}
+  .frame-label{font-weight:700; font-size:0.95rem; margin-bottom:10px;}
+  .frame-label.before{color:#92400E;}
+  .frame-label.after{color:#03543F;}
+  .frame{width:360px; background:var(--card-bg); border:6px solid #333; border-radius:28px; box-shadow:0 10px 30px rgba(0,0,0,.25); padding:20px;}
+  .form-group{margin-bottom:1.1rem;}
+  .form-label{display:block; font-weight:600; margin-bottom:0.5rem; color:var(--primary-color); font-size:15px;}
+  .form-input{width:100%; height:44px; padding:0 12px; font-size:14px; border-radius:var(--r-sm); border:1px solid var(--border-color); background:#fff; color:var(--text-main);}
+  .row-flex{display:flex; gap:0.6rem;}
+  .row-flex.stack{flex-direction:column; gap:0;}
+  .warn-flag{display:inline-block; font-size:11px; font-weight:700; color:#DC2626; background:#FEE2E2; border-radius:6px; padding:2px 6px; margin-left:6px;}
+  .ok-flag{display:inline-block; font-size:11px; font-weight:700; color:#03543F; background:#DEF7EC; border-radius:6px; padding:2px 6px; margin-left:6px;}
+  .checkbox-block{background:var(--secondary-color); border-radius:var(--r-sm); padding:0.9rem 1rem; display:flex; flex-direction:column; gap:0.6rem;}
+  .checkbox-block label{display:flex; align-items:flex-start; gap:0.5rem; font-size:14px; cursor:pointer;}
+  .checkbox-block input{margin-top:0.2rem;}
+  .divider{margin:24px 0 12px; border-top:1px dashed #C9A227; position:relative;}
+  .divider span{position:absolute; top:-11px; left:0; background:var(--card-bg); padding-right:8px; font-size:12px; font-weight:700; color:#92400E;}
+  .checkpoints{max-width:1000px; margin-top:32px; background:#fff; border:1px solid var(--border-color); border-radius:var(--r-md); padding:20px 24px; font-size:0.92rem; line-height:1.8;}
+  .checkpoints h2{font-size:1rem; margin:0 0 10px; color:var(--primary-color);}
+</style>
+</head>
+<body>
+
+<h1 class="doc-title">ObituaryPage(개설 폼 본체) — 4번, 360px 목업</h1>
+
+<div class="summary">
+  <b>발견한 문제 2개</b> / <b>제안한 변경 2개</b> / <b>데스크톱(1280px) 영향 여부: 없음</b> — <code>isMobile</code>(이미 임포트됨, `ObituaryPage.tsx:94`)로만 가르고 CSS/inline만 바꾼다. 별도 모바일 컴포넌트를 만들지 않는다.
+  <br><br>
+  <b>§6.5 판정</b>: ❌ 분리 불필요 — 화면 수·상태 기계 변화 없음, 순수 "배치"(2단→1단) 변경. 00-38 §8.2·§6.5 ⓓ가 이미 이 결론을 예측해 뒀다("배치 변경에 가깝다").
+  <br><br>
+  <b>규칙 1(설명문 제거)</b>: `ObituaryPage.tsx:867`가 이미 <code>className="page-subtitle"</code>를 써서 모바일 자동 숨김 — 손댈 것 없음.
+  <br>
+  <b>근거</b>: `ObituaryPage.tsx:519-528`(상주 성함/관계) · `:563-566`(은행명/예금주) · `:606-612`(유족 관계/성함/삭제버튼) — 셋 다 <code>display:flex</code>에 wrap 없이 나란히 배치돼 360px에서 입력창 폭이 80~120px대로 좁아짐.
+</div>
+
+<div class="frames">
+
+  <div class="frame-col">
+    <div class="frame-label before">🔴 현재안</div>
+    <div class="frame">
+      <div class="form-group"><label class="form-label">고인 성함 *</label><input class="form-input" placeholder="예: 홍길동"></div>
+
+      <div class="row-flex">
+        <div class="form-group" style="flex:2;"><label class="form-label">상주 성함 *</label><input class="form-input" placeholder="예: 홍상주"></div>
+        <div class="form-group" style="flex:1;"><label class="form-label">관계</label><input class="form-input" placeholder="상주"></div>
+      </div>
+      <span class="warn-flag">① 필드폭 ~82px</span>
+
+      <div class="divider"><span>선택 정보 더보기 → 유족 추가</span></div>
+      <div class="form-group">
+        <label class="form-label">유족 추가</label>
+        <div class="row-flex" style="margin-bottom:0.5rem;">
+          <input class="form-input" placeholder="관계 (예: 장남)" style="flex:1;">
+          <input class="form-input" placeholder="성함" style="flex:1.5;">
+          <button style="flex-shrink:0; width:40px; border:none; border-radius:8px; background:var(--secondary-color);">✕</button>
+        </div>
+      </div>
+      <span class="warn-flag">① 3칸 압축</span>
+
+      <div class="divider"><span>추모관 체크박스</span></div>
+      <div class="checkbox-block">
+        <label><input type="checkbox"><span>[선택] 이 부고장과 함께 추모관도 만들기 — 조문객이 온라인으로 헌화·방명록을 남길 수 있는 공간입니다. 나중에 '디지털 추모관' 화면에서 따로 만들 수도 있습니다.<span class="warn-flag">② 축약대상</span></span></label>
+      </div>
+    </div>
+  </div>
+
+  <div class="frame-col">
+    <div class="frame-label after">✅ 개선안</div>
+    <div class="frame">
+      <div class="form-group"><label class="form-label">고인 성함 *</label><input class="form-input" placeholder="예: 홍길동"></div>
+
+      <div class="row-flex stack">
+        <div class="form-group"><label class="form-label">상주 성함 *</label><input class="form-input" placeholder="예: 홍상주"></div>
+        <div class="form-group"><label class="form-label">관계</label><input class="form-input" placeholder="상주"></div>
+      </div>
+      <span class="ok-flag">① 모바일만 세로 스택(768px 이하)</span>
+
+      <div class="divider"><span>선택 정보 더보기 → 유족 추가</span></div>
+      <div class="form-group">
+        <label class="form-label">유족 추가</label>
+        <div class="row-flex stack" style="margin-bottom:0.5rem; gap:0.5rem;">
+          <input class="form-input" placeholder="관계 (예: 장남)">
+          <input class="form-input" placeholder="성함">
+          <button style="width:100%; height:40px; border:none; border-radius:8px; background:var(--secondary-color); color:var(--text-muted);">✕ 이 유족 삭제</button>
+        </div>
+      </div>
+      <span class="ok-flag">① 세로 스택 + 삭제 버튼 전체폭</span>
+
+      <div class="divider"><span>추모관 체크박스</span></div>
+      <div class="checkbox-block">
+        <label><input type="checkbox"><span>[선택] 추모관도 함께 만들기 — 헌화·방명록 공간(나중에 따로 만들기 가능)<span class="ok-flag">② 축약</span></span></label>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="checkpoints">
+  <h2>사람이 확인할 체크포인트</h2>
+  1. 상주 성함/관계, 유족 추가(관계·성함·삭제)를 <b>모바일(≤768px)에서만 세로로 스택</b>하는 방향이 맞습니까? (데스크톱은 기존 가로 배치 그대로)<br>
+  2. 유족 삭제 버튼을 모바일에서 아이콘(✕)만 → <b>"✕ 이 유족 삭제" 전체폭 버튼</b>으로 바꿨는데, 이 방향이 맞습니까?<br>
+  3. 추모관 체크박스 설명을 "이 부고장과 함께 추모관도 만들기 — 조문객이 온라인으로 헌화·방명록을 남길 수 있는 공간입니다. 나중에 '디지털 추모관' 화면에서 따로 만들 수도 있습니다." → "추모관도 함께 만들기 — 헌화·방명록 공간(나중에 따로 만들기 가능)"로 줄여도 됩니까?<br>
+  4. 연락처 안내("입력하신 번호는 부고장을 받은 모든 분에게 보입니다.")·계좌 경고("이 계좌번호는 부고장을 받은 분이 다시 공유할 수 있습니다.")·필수 동의 2건(허위신고·재공유)은 이미 한 문장씩이라 그대로 두는 게 맞습니까, 아니면 이것도 더 줄일까요?
+  <br><br>
+  승인해 주시면 구현하겠습니다.
+</div>
+
+</body>
+</html>

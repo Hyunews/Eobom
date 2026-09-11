@@ -257,37 +257,15 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin
   };
 
   return (
-    <div style={{
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-      backgroundColor: 'rgba(0, 0, 0, 0.65)',
-      backdropFilter: 'blur(4px)',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      zIndex: 3000,
-      padding: '1rem',
-      overflowY: 'auto'
-    }}>
+    <div className="login-modal-backdrop">
       {/* 동의 체크박스 3개 + 소셜 로그인 3종 + 데모 버튼까지 합치면 모바일 화면 높이를
           넘어서는데(2026-08-25 개발자 실기기 확인), maxHeight/overflowY가 없어 위아래가
           화면 밖으로 잘려 나가고 배경(overflow 없는 고정 배경)에서도 스크롤할 방법이 없었다.
-          카드 자체를 뷰포트의 90%로 제한하고 내부 스크롤을 허용한다. */}
-      <div style={{
-        backgroundColor: '#FFFFFF',
-        borderRadius: 'var(--r-lg)',
-        maxWidth: '440px',
-        width: '100%',
-        maxHeight: '90vh',
-        overflowY: 'auto',
-        WebkitOverflowScrolling: 'touch',
-        padding: '1.9rem 1.5rem',
-        boxShadow: 'var(--el-3)',
-        position: 'relative'
-      }}>
+          카드 자체를 뷰포트의 90%로 제한하고 내부 스크롤을 허용한다.
+          🔄 2026-09-11 모바일 검증 루프 7번 — 인라인 스타일을 .login-modal-backdrop/-panel로
+          옮김(값 동일). ≤768px에서는 이 90vh 대신 공통 규칙의 max-height:88dvh(주소창에
+          안 잘리는 dvh)가 소스 순서상 나중이라 자동으로 이긴다(index.css). */}
+      <div className="login-modal-panel">
         {/* 닫기 버튼 */}
         <button
           onClick={onClose}

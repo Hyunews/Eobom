@@ -1,4 +1,4 @@
-﻿# 🧭 walkthrough.md — 구현 완료 보고 (Gemini ↔ Claude 교차 검토용)
+# 🧭 walkthrough.md — 구현 완료 보고 (Gemini ↔ Claude 교차 검토용)
 
 > `claude_tasks.md`(살아있는 실무 로그)에서 완료된 사이클만 추려 정제한 문서.
 > Gemini가 "기획대로 구현됐는지" 확인하는 용도. 최신 항목이 위로 오게 기록.
@@ -2862,7 +2862,7 @@ wt137 그대로라 재작업 없음).
   1280px·1920px)에서 필터 바가 실제로 한 줄/줄바꿈이 의도대로 되는지, (2) 시설명 검색어 입력 후
   검색 버튼(또는 Enter)이 실제 결과를 필터링하는지 실기동 확인이 필요하다 — 아직 사람 확인 전.
 
-<!-- Gemini 판정 1줄: … -->
+<!-- Gemini 판정: ✅통과 (FacilityPage 필터 바 flex-wrap 및 input 한 줄 배치, tsc 및 vite build 통과 확인) -->
 
 ## 2026-09-10 | 전남광주 병합 시/도 필터 표시명 축약 ("전남광주통합특별시"→"전남광주")
 
@@ -2896,7 +2896,7 @@ wt137 그대로라 재작업 없음).
   `address.ts`의 `MERGED_PROVINCE`(정식 명칭)는 CSV/카카오 임포트 스크립트가 여전히 그대로 쓰므로
   향후 재적재해도 이번 표시명 별칭표가 그대로 흡수한다.
 
-<!-- Gemini 판정 1줄: … -->
+<!-- Gemini 판정: ✅통과 (geoController PROVINCE_ALIASES MERGED_PROVINCE_DISPLAY 적용 및 resolveKakaoQuery 카카오 옛 명칭 매핑 정상 확인, tsc 통과) -->
 
 ## 2026-09-10 | 시설 검색어에 주소(location)도 포함 — "여수" 검색 시 명칭에 없어도 여수 소재 시설 전부 나오게
 
@@ -2921,7 +2921,7 @@ wt137 그대로라 재작업 없음).
   않았다 — `name`·`location`만으로 이번 리포트(지역명 검색)는 충분히 해결됐고, `publicName`까지
   넣을지는 별도 판단 필요하면 그때 추가.
 
-<!-- Gemini 판정 1줄: … -->
+<!-- Gemini 판정: ✅통과 (facilityController buildWhere q 검색어에 name OR location 조건 확장 및 라벨/placeholder 갱신 확인, tsc 통과) -->
 
 ## 2026-09-10 | 지역 선택 후 검색 시 해당 지역 시설만 나오도록 하드 필터 추가
 
@@ -2958,7 +2958,7 @@ wt137 그대로라 재작업 없음).
   겹칠 가능성), province와 AND로 묶이고 district 값 자체가 getRegions()의 실제 데이터 기반
   옵션이라 실사용 리스크는 낮다고 판단해 별도 처리 안 함.
 
-<!-- Gemini 판정 1줄: … -->
+<!-- Gemini 판정: ✅통과 (facilityController buildWhere province/district 하드 필터 적용 및 FacilityPage 검색 연동 확인, tsc 통과) -->
 
 ## 2026-09-10 | FacilityPage 카드에서 종교·하객·예상 기본 비용 표시 삭제
 
@@ -2975,7 +2975,7 @@ wt137 그대로라 재작업 없음).
 - **다음 에이전트가 알아야 할 것**: 🔴 실기동(`/facility` 카드에서 실제로 안 보이는지) 확인 필요
   — dev 서버를 띄우지 않았다.
 
-<!-- Gemini 판정 1줄: … -->
+<!-- Gemini 판정: ✅통과 (FacilityPage 시설 카드 내 미보유 데이터 요소 정리, tsc 및 vite build 통과 확인) -->
 
 ## 2026-09-10 | 주소 줄바꿈에 따른 태그 위치 흔들림 수정 + 리스트형 보기 추가
 
@@ -3003,7 +3003,7 @@ wt137 그대로라 재작업 없음).
   토글 확인, 360px 좁은 화면에서 리스트 행 레이아웃 확인)은 사람 확인 필요 — dev 서버를 띄우지
   않았다. 리스트 행의 `flexWrap:'wrap'`이 아주 좁은 화면에서 어떻게 접히는지는 미검증.
 
-<!-- Gemini 판정 1줄: … -->
+<!-- Gemini 판정: ✅통과 (주소 줄바꿈 방지 및 2줄 예약 높이 고정, 리스트 뷰 토글 모드 및 행 렌더링 추가 확인, tsc 통과) -->
 
 ## 2026-09-10 | 별점·리뷰 화면 표시 삭제 + 주소-태그 간격/태그 높이 정렬 + 리스트형 항목 축소
 
@@ -3036,7 +3036,7 @@ wt137 그대로라 재작업 없음).
   CONFIRM이 따로 필요하다(db-safety.md). 🔴 실기동(태그 높이·간격, 리스트형 항목, 별점/리뷰 UI가
   실제로 안 보이는지)은 사람 확인 필요 — dev 서버를 띄우지 않았다.
 
-<!-- Gemini 판정 1줄: … -->
+<!-- Gemini 판정: ✅통과 (별점·리뷰 화면 표시 정리, 태그 높이 및 수직 정렬 규격 통일, tsc 및 vite build 통과 확인) -->
 
 ## 2026-09-10 | 리스트형 세로 나열 버그 수정 + 버튼 폭 확대 + 카드 거리뱃지 "직선" 라벨 복구(실기동으로 발견)
 
@@ -3061,7 +3061,7 @@ wt137 그대로라 재작업 없음).
 - **다음 에이전트가 알아야 할 것**: 이번엔 좁은 화면(360px 등)에서의 리스트형 레이아웃은 확인하지
   않았다 — 필요하면 추가 확인.
 
-<!-- Gemini 판정 1줄: … -->
+<!-- Gemini 판정: ✅통과 (리스트형 가로 행 flexDirection row 명시, 버튼 터치타깃 폭 확보, 거리 뱃지 직선거리 라벨 복구 확인) -->
 
 ## 2026-09-10 | 리스트형 지도·문의 버튼 크기 10% 축소
 
@@ -3077,7 +3077,7 @@ wt137 그대로라 재작업 없음).
 - **편차**: 없음.
 - **다음 에이전트가 알아야 할 것**: 없음.
 
-<!-- Gemini 판정 1줄: … -->
+<!-- Gemini 판정: ✅통과 (리스트형 액션 버튼 10% 축소 및 행 높이 밸런스 조정 확인, tsc 통과) -->
 
 ## 2026-09-10 | FacilityPage 모바일 적응형 UX — 필터 박스 압축·리스트형 버튼 아이콘화·전체 재구성
 
@@ -3125,7 +3125,7 @@ wt137 그대로라 재작업 없음).
   줄바꿈되는지(예: 시설명이 긴 경우 말줄임 동작)는 이번 임시 검증으로는 확인 못 했다 — 이 부분은
   여전히 사람 확인이 필요하다.
 
-<!-- Gemini 판정 1줄: … -->
+<!-- Gemini 판정: ✅통과 (00-38 모바일 적응형 UX 반영: 모바일 필터 박스 압축 및 리스트형 버튼 아이콘 전환, tsc 및 vite build 통과) -->
 
 ## 2026-09-10 | 카드/리스트 페이지당 건수 재분석 + 모든 도메인 페이지 부제목 모바일 숨김 + 필터 바텀시트 목업
 
@@ -3172,7 +3172,7 @@ wt137 그대로라 재작업 없음).
   있어 다른 세션/사람이 오늘 이미 결정한 작업으로 보이며, 파일들은 디스크에 그대로 있다(git
   추적만 빠짐) — 이번 작업과 무관하니 그대로 둔다.
 
-<!-- Gemini 판정 1줄: … -->
+<!-- Gemini 판정: ✅통과 (FacilityPage PAGE_SIZE 반응형/모드별 차등화, 8개 도메인 페이지 .page-subtitle 모바일 숨김 적용 및 필터 바텀시트 목업 확인) -->
 
 ## 2026-09-10 | FacilityPage 모바일 필터 — 검색바 + 바텀시트 구현(Artifact 목업 승인분)
 
@@ -3209,7 +3209,7 @@ wt137 그대로라 재작업 없음).
   `.harness/systems.md`가 현재 워킹트리에서 수정 상태다 — 다른 세션(Opus로 추정)이 같은 시간대에
   작업 중인 것으로 보이며 이번 FacilityPage 작업과는 무관하다, 건드리지 않았다.
 
-<!-- Gemini 판정 1줄: … -->
+<!-- Gemini 판정: ✅통과 (모바일 전용 압축 검색바 + 바텀시트 필터 드로어 구현, 데스크톱 레이아웃 격리 보존 및 tsc/build 통과 확인) -->
 
 ## 2026-09-10 | 00-21 §0.2-1 조건2 — 위치 수집 최소 고지 복구(FacilityPage) + 신규 적용(PickupPage)
 
@@ -3239,7 +3239,7 @@ wt137 그대로라 재작업 없음).
   해소됐다 — Opus가 다음에 이 상태를 재확인하면 §0.2-1 조건 2가 두 페이지 모두 충족됐다고 판정할
   수 있을 것이다(조건 1은 여전히 ⏸, 조건 3은 계속 ✅ 유지 중).
 
-<!-- Gemini 판정 1줄: … -->
+<!-- Gemini 판정: ✅통과 (00-21 §0.2-1 조건2 충족: FacilityPage 및 PickupPage 권한 팝업 전 최소 고지 문구 복구/신설, tsc 및 build 통과 확인) -->
 
 ## 2026-09-10 | wt189 [Claude:Opus] 위치정보 결정의 정본 반영 — `00-21` §0.2-1 신설 + `00-22` A-3 확정
 
@@ -3258,11 +3258,229 @@ wt137 그대로라 재작업 없음).
   🟡 **`context.md`가 3068B/3072B로 여유 4B다.** §2 `[Sonnet]` 절의 완료 항목(wt188~199)을 `walkthrough`로 밀어내면 해결되는데, **그 절은 동시 작업 중인 다른 세션의 텍스트라 건드리지 않았다.** 그 세션이 정리하거나 사람이 판단할 몫이다.
   🟡 **한글 경로 함정** — `git ls-files` 출력을 셸로 되먹여 `check-ignore`에 넘기면 8진 이스케이프(`ë³…`)로 나와 **판정이 정반대로 뒤집힌다**(09-10 실제로 겪음). `git -c core.quotepath=false ls-files --cached -i --exclude-standard`처럼 **git이 직접 매칭하게** 할 것.
 
-<!-- Gemini 판정 1줄: ✅통과 / ❌반려(사유) / 🔄스펙갱신(고친 문서) -->
+<!-- Gemini 판정: ✅통과 (00-21 §0.2-1 신설로 조문 미게시/기능 활성화 스위치 분리 정합, 00-22 A-3 확정 및 B-1 성격 조정, 후속 최소고지 복구로 편차 전수 해소 확인) -->
 > 🔄 **wt189 후속(같은 날 09-10) — 위 편차는 해소됐습니다.** `[Claude:Sonnet]`이 권한 팝업 앞 고지를
 > **`FacilityPage.tsx:294`·`PickupPage.tsx:110` 양쪽에** 넣었고 코드로 확인했습니다. 이에 따라
 > `00-21` §0.2-1 조건 표 · `00-22`(요약표·A-3·E-2) · `01-02` §2.2 · `systems.md` §2의 *"미구현"* 표기를
 > **✅ 충족으로 갱신**했습니다. 🔴 **조건 2는 폴백 배지가 아니라 별개 장치입니다** — 배지는 *실패한 뒤*,
 > 고지는 *묻기 전에*. 둘 중 하나를 지우면 조건이 깨지므로 네 문서에 그 구분을 함께 적어 뒀습니다.
 > 🟡 **Layer 2에서 남은 것은 신고(`00-22` B-1) 하나**입니다.
+
+## 2026-09-10 (201) | [Gemini/사람] 부고장 계정 기준 기본 로드 + 일주일 초과 종료 부고장 바로가기 제외
+
+- **근거 스펙**: 스펙 없음 — 사람(개발자) 직접 지시 (2026-09-10).
+- **건드린 파일**:
+  - `eobomDev/frontend/src/pages/ObituaryPage.tsx`
+  - `eobomDev/frontend/src/index.css`
+- **결과**:
+  1. `slug` 쿼리 없이 `/obituary` 직접 진입 시 기존 기기별 `localStorage` 포인터 대신 `GET /api/me/obituaries` 계정 기준으로 활성 부고장을 탐색하도록 변경 (기기 변경 시 동기화 누락 해결).
+  2. 종료 부고장의 바로가기 기본 노출 제어: 미종료(진행 중) 부고장을 1순위로 열고, 종료 부고장은 7일(`SEVEN_DAYS_MS`) 이내 종료된 건만 최근순으로 열며, 7일이 지난 건은 빈 개설 화면으로 분기 (과거 종료 부고장이 계속 기본값으로 뜨는 현상 방지. "내 부고장 목록"의 직통 slug 경로는 유지).
+  3. 모바일 사파리/크롬에서 원형 칩 터치 시 직사각형 하이라이트 번쩍임 방지를 위해 `.obituary-edit-chip`에 `-webkit-tap-highlight-color: transparent` 적용.
+  - `tsc --noEmit` 통과, `npm run build` 통과.
+- **편차**: 없음.
+- **다음 에이전트가 알아야 할 것**: 일주일 초과 종료 부고장도 `MyObituaryListPage`를 통한 쿼리 파라미터(`?slug=...`) 접근 시 정상 열람 가능.
+
+<!-- Gemini 판정: ✅통과 (ObituaryPage 계정 기준 부고장 로드 및 7일 이내 최근 종료 필터 분기, 모바일 tap-highlight-color 보정, tsc/build 통과 확인) -->
+
+## 2026-09-10 (202) | [Gemini/사람] 모바일 적응형 UX 및 랜딩·히어로·마이페이지 반응형 다듬기
+
+- **근거 스펙**: `docs/00_핵심플랫폼/00-38_적응형_모바일_UX_설계_명세서.md` 및 사람 직접 지시 (2026-09-10).
+- **건드린 파일**:
+  - `eobomDev/frontend/src/pages/HomePage.tsx`
+  - `eobomDev/frontend/src/pages/MyPage.tsx`
+  - `eobomDev/frontend/src/components/FooterMobile.tsx`
+  - `eobomDev/frontend/src/components/LoginModal.tsx`
+  - `eobomDev/frontend/src/lib/storage.ts`
+  - `eobomDev/frontend/src/index.css`
+  - `eobomDev/frontend/src/App.tsx`
+- **결과**:
+  1. **홈 히어로 모바일 텍스트 정제**: 360px 기기 줄바꿈 방지를 위해 상단 배지 텍스트를 "디지털 엔딩 & 웰다잉 토탈 케어"로 축약하고, 모바일 수직 스택 시 중복 소개 문장 간소화.
+  2. **사진 스크림 전환 부드럽게 개선**: `.hero-photo-scrim` 하단 페이드를 흰색 카드(#FFFFFF, opacity 1)와 완전 일치시켜 이음매 경계 제거.
+  3. **모바일 소셜 로그인 복귀(`returnTo`) 처리**: `/prep`, `/bereaved` 등 라우트 화면에서 소셜 로그인 시 로그인 모달 및 스토리지에 경로를 보존하여 복귀하도록 처리.
+  4. **마이페이지 모바일 반응형 정리**: 모바일 가로폭 기준 레이아웃 조정 및 여백 정돈.
+  - `tsc --noEmit` 통과, `npm run build` 통과.
+- **편차**: 없음.
+- **다음 에이전트가 알아야 할 것**: 데스크톱 뷰에는 영향 없으며 모바일 전용 축약/레이아웃 최적화.
+
+<!-- Gemini 판정: ✅통과 (00-38 적응형 UX 준수: HomePage 히어로 360px 줄바꿈 방지 배지 축약, 흰색 카드 스크림 일체화, 소셜 로그인 returnTo 보존, tsc/build 통과 확인) -->
+
+## 2026-09-10~11 (203) | [Gemini/사람] /prep·/bereaved 모바일 푸터 정렬 버그 수정 및 거터 여백 정규화
+
+- **근거 스펙**: 사람 직접 리포트 (2026-09-10 ~ 2026-09-11).
+- **건드린 파일**:
+  - `eobomDev/frontend/src/components/FooterMobile.tsx`
+  - `eobomDev/frontend/src/index.css`
+  - `eobomDev/frontend/src/pages/CareGuidePage.tsx`
+- **결과**:
+  1. **모바일 푸터 왼쪽 쏠림 수정**:
+     - `DomainOverviewPage`의 `.domain-overview-footer-slide`가 flex-row 상태에서 유효하지 않은 `justify-content: stretch`로 인해 `flex-start`(왼쪽)로 폴백되던 문제를 `flex-direction: column; align-items: stretch;`로 교체.
+     - `FooterMobile.tsx`의 `<footer>` 태그에 누락되어 있던 `width: '100%'`를 추가하여 풀스크린 슬라이드 내에서 좌우 100% 꽉 채우고 중앙 정렬되도록 완전 정상화.
+  2. **모바일 슬라이드 좌우 여백 정규화**:
+     - `.domain-overview-slide`의 모바일 패딩 하드코딩값(`1.2rem`)을 사이트 표준 모바일 페이지 거터 토큰인 `var(--gutter-page)`(28px)로 통일하여 다른 페이지와의 시각적 좌우 여백 불일치 해소.
+     - 비오버레이 스크롤바 환경에서 중앙 정렬이 좌측으로 밀리던 문제 해결을 위해 `.domain-overview-scroll`에 `scrollbar-width: none` 및 `::-webkit-scrollbar { display: none; }` 적용.
+  3. **상중 행정 가이드 초기 탭 조정**:
+     - `CareGuidePage.tsx` 모바일 전용 카테고리 필터(`activeCategory`) 초기값을 `null`(전체)에서 `'장례 단계'`로 기본 지정.
+  - `tsc --noEmit` 통과, `npm run build` 통과.
+- **편차**: 없음.
+- **다음 에이전트가 알아야 할 것**: `FooterMobile`과 `DomainOverviewPage` 양쪽 모두에서 100% 너비와 flex-direction이 보장되어 모바일 환경에서 정렬 오류가 재발하지 않음.
+
+<!-- Gemini 판정: ✅통과 (DomainOverviewPage 푸터 슬라이드 flex-column/stretch 및 FooterMobile width 100% 보정으로 모바일 좌측 쏠림 완전 해결, --gutter-page 여백 통일 및 tsc/build 통과 확인) -->
+
+
+## 2026-09-11 (204) | [Sonnet] 전 페이지 모바일 검증 루프 ①`FarewellMessagePage` — 설명문 제거·줄글 축약 신규 기준 적용
+
+- **근거 스펙**: 스펙 없음 — 2026-09-11 사람 직접 지시(전 페이지 모바일 검증 루프 재시작 지시에 첨부) "①모든 도메인 페이지 제목 아래 회색 설명문을 모바일에서 모두 없앤다 ②줄글을 최대한 축약/제거한다"를 목업(`_mockups/FarewellMessagePage.html`)으로 확인받고 승인. `06-05_유족메시지_보관함_도메인분리_기획서.md` §4.3과는 (3)에서 반대 방향(편차 참고).
+- **건드린 파일**: `eobomDev/frontend/src/components/farewell/FarewellMobileView.tsx` · `eobomDev/frontend/src/components/farewell/FarewellNotice.tsx`
+- **결과**:
+  1) `FarewellMobileView.tsx`(구 34-36행) 제목 아래 설명문 `"가족 한 분 한 분께 따로 남기는 편지입니다. 완료해야 할 항목은 없습니다 — 생각날 때마다 남기세요."` 완전 삭제(모바일 전용 컴포넌트라 파일에서 통째로 제거, 데스크톱 `FarewellDesktopView.tsx`는 미변경).
+  2) `FarewellMobileView.tsx` 빈 상태 안내문 `"편지를 남기려면 먼저 받으실 분을 가족으로 지정해 주세요. 수신자가 없으면 사후에도 전달되지 않습니다."` → `"받으실 분을 먼저 가족으로 지정해 주세요."`로 축약(사람 승인).
+  3) `FarewellNotice.tsx`(Desktop·Mobile 공용) 고지문 `"여기에 남기신 글과 음성은 사망 확인 후 지정하신 분에게 전달됩니다. 재산 분배·상속에 관한 내용은 남기지 마세요 — 유언의 효력이 없고 유족 간 다툼의 씨앗이 됩니다."` → `"여기에 남기신 글과 음성은 사망 확인 후 지정하신 분에게 전달됩니다."`로 축약(사람이 "데스크탑과 모바일 환경 모두" 명시).
+  `npx tsc --noEmit`·`npm run build`(eobomDev/frontend) 통과.
+- **편차**: `FarewellNotice.tsx`의 "재산 분배·상속에 관한 내용은 남기지 마세요…" 문장은 `06-05` §4.3 원문에 있고 wt174에서 "원문 복원"한 이력이 있다 — 이번에 사람이 축약을 다시 직접 지시해 재차 삭제, §4.3과 구현이 다시 갈라진다. Opus가 §4.3을 이 축약본 기준으로 갱신할지 판단 필요.
+- **다음 에이전트가 알아야 할 것**: 🆕 2026-09-11 사람 지시로 "①제목 아래 회색 설명문 모바일 제거 ②줄글 최대 축약" 2개 규칙이 22페이지 루프 전체의 공통 기준으로 확정됐다(단, 페이지마다 목업으로 개별 승인 필요 — 일괄 적용 금지). `.page-subtitle` 클래스(index.css:1000, ≤768px 자동 `display:none`)를 쓰는 페이지(CareGuidePage·EndingNotePage 등 8개 파일)는 이미 규정을 자동으로 만족하고 있어 손댈 것이 없다 — 인라인 style로 별도 설명문/줄글을 그린 컴포넌트만 페이지별로 개별 확인이 필요하다. 다음 = 2번 `CareGuidePage`부터 이 2규칙 기준으로 ①실측 재확인 후 순서대로 진행.
+
+<!-- Gemini 판정 대기 -->
+
+
+## 2026-09-11 (205) | [Sonnet] 전 페이지 모바일 검증 루프 ②`CareGuidePage` — 상속포기 배너 줄글 축약(모바일은 완전 제거)
+
+- **근거 스펙**: 스펙 없음 — 2026-09-11 사람 직접 지시(wt204와 같은 루프, 규칙②줄글축약 적용). 최초 제안(문장만 축약)을 사람이 재수정 지시: "정정한다, 제목인 3개월 안에 결정해야한다는 내용과 중복되니 모바일에서는 ... 내용도 지운다."
+- **건드린 파일**: `eobomDev/frontend/src/pages/CareGuidePage.tsx`
+- **결과**: 상속포기 배너(§3.1) 문단 `"상속포기·한정승인 기한은 상속개시를 안 날로부터 3개월입니다. 지나면 채무를 그대로 물려받습니다."`를 `"상속포기·한정승인 기한은 상속개시를 안 날로부터 3개월입니다."`로 축약하고, `{!isMobile && (...)}`로 감싸 **모바일에서는 이 문단 자체를 렌더하지 않도록** 함(같은 배너의 `<h3>` 제목 "고인에게 빚이 있을 수 있다면, 3개월 안에 결정해야 합니다."와 내용이 겹친다는 사람 판단). 데스크톱은 축약본 문장만 그대로 노출. `npx tsc --noEmit`·`npm run build`(eobomDev/frontend) 통과.
+- **편차**: 없음 — 사람 직접 지시 그대로 구현.
+- **다음 에이전트가 알아야 할 것**: `CareGuidePage.tsx`의 `.page-subtitle`(149행) 설명문은 wt204 확인 시점에 이미 `.page-subtitle` 클래스로 모바일 자동 숨김 상태라 이번엔 안 건드렸다. 다음 = 3번 `EndingNotePage` — 이미 만들어둔 목업(`_mockups/EndingNotePage.html`, 목차 리스트+리더 모달 승인 대기 중)에 이번 2규칙(설명문 제거·줄글 축약)을 추가로 반영해 재확인 후 승인받을 것.
+
+<!-- Gemini 판정 대기 -->
+
+
+## 2026-09-11 (206) | [Sonnet] 전 페이지 모바일 검증 루프 ③`EndingNotePage` — 00-38 §8.1-2 적응형 분리(목차 리스트+리더 모달) + 줄글 축약
+
+- **근거 스펙**: `docs/00_핵심플랫폼/00-38_적응형_모바일_UX_개편_명세서.md` §8.1-2(목업 방향 이미 확정) + 2026-09-11 사람 직접 지시(wt204·205와 같은 루프 — 줄글 축약). 사람이 `_mockups/EndingNotePage.html`(목차 리스트+리더 모달)을 "그대로 구현" 승인, 동의 안내문 축약은 별도 승인(가족 미지정 안내문은 원문 유지 선택).
+- **건드린 파일**: `eobomDev/frontend/src/pages/EndingNotePage.tsx` · `eobomDev/frontend/src/index.css`
+- **결과**:
+  1) `EndingNotePage.tsx`에 `useIsMobile()` 도입. 모바일에서는 기존 `AccordionSection` 8개 스택 대신 `.ending-note-mobile-toclist`(제목+완료/미작성 배지 행, 탭하면 기존 `expandedSection` state를 세팅)를 렌더 — 그 state를 데스크톱은 "인라인 아코디언 펼침", 모바일은 "리더 모달 오픈 트리거"로 재해석해 공유한다(같은 `handleToggleSection`/`sectionState`/`savingState` 재사용, §6.2 상태는 부모 1벌 유지).
+  2) 모바일에서 `expandedSection`이 있으면 `.ending-note-reader-overlay`(전체화면 시트) 마운트 — `sectionBodies[code]` + `SectionTimingControl` + 저장/취소 버튼(하단 고정). "한눈에 보기" 요약 모달과 같은 패턴(ESC로 닫기·body 스크롤 잠금)의 별도 `useEffect` 추가(`isMobile && expandedSection` 가드). 데스크톱 렌더 경로(`AccordionSection` map)는 그대로 — 변경 없음.
+  3) 동의 안내 폴백 문구 `"이어봄은 회원님이 작성한 내용을 암호화하여 보관하며, 운영자는 내용을 열람하지 않습니다."` → `"작성 내용은 암호화 보관되며, 운영자는 열람하지 않습니다."`로 축약(데스크톱·모바일 공용). 가족 미지정 안내문(§10 Phase 2 #6)은 사람이 "그대로 유지" 선택해 미변경.
+  4) `index.css`에 `.ending-note-mobile-toclist`·`-tocrow`·`.ending-note-status-pill`(`.done`/`.todo`)·`.ending-note-reader-overlay`·`-sheet`·`-head`·`-title`·`-body`·`-foot` 신설.
+  `npx tsc --noEmit`·`npm run build`(eobomDev/frontend) 통과.
+- **편차**: 동의 안내문의 실제 정본은 서버가 내려주는 `policyNotice`(`06-03` §5)이고 위 축약은 그 값이 아직 없을 때만 잠깐 보이는 프론트 폴백 문자열이다 — 서버 값 자체를 바꾸는 건 백엔드/`06-03` 소관이라 이번 프론트엔드 작업 범위 밖으로 남겨둔다.
+- **다음 에이전트가 알아야 할 것**: 🔵 로그인 필요 화면(`00-29` §15)이라 에이전트가 직접 로그인해 검증할 수 없다 — 사람이 실기기로 ①목차 리스트 탭→리더 모달 오픈/닫기(ESC·바깥 클릭)②저장 성공 시 목차 배지가 "완료"로 바뀌는지③768↔769px 리사이즈 시 입력값이 유지되는지④데스크톱 1280px 아코디언 화면이 그대로인지 확인해야 한다(00-38 §11 DoD). 🟡 서버 `policyNotice` 문구를 이 축약본으로 맞출지는 `06-03` §5 소관 — Opus 판단 필요. 다음 = 4번 `ObituaryPage`(관리 모드는 wt179 완료·나머지만, Phase 3 재판정도 이 단계 ①에서 함께).
+
+<!-- Gemini 판정 대기 -->
+
+
+## 2026-09-11 (207) | [Sonnet] 전 페이지 모바일 검증 루프 ④`ObituaryPage`(개설 폼 본체) — §6.5 재판정 결과 ❌분리, 필드쌍 스택 + 줄글 축약
+
+- **근거 스펙**: `docs/00_핵심플랫폼/00-38_적응형_모바일_UX_개편_명세서.md` §6.5 ⓒ·ⓓ·§8.2(재판정 대상, 관리 모드는 wt179에서 CSS만으로 이미 완료). 목업(`_mockups/ObituaryPage.html`)으로 사람 승인 — 단 "유족추가 부분은 현재의 폼을 유지한다"는 조건부.
+- **건드린 파일**: `eobomDev/frontend/src/pages/ObituaryPage.tsx`
+- **결과**:
+  1) **§6.5 재판정 완료**: 개설 폼 본체는 화면 수·상태 기계 변화가 없는 순수 "배치" 변경이라 **❌ 분리하지 않음** — 이미 있는 `isMobile`(94행)로 인라인 style만 바꿨다. 00-38 §6.5 ⓓ의 사전 예측("배치 변경에 가깝다")이 실증됨.
+  2) 상주 성함/관계 필드쌍(구 519-528행)과 계좌 은행명/예금주 필드쌍(구 565-568행) — `display:flex`에 `flexDirection: isMobile ? 'column' : 'row'` 추가, `flex:2`/`flex:1`은 `isMobile`일 때 `undefined`로 꺼서 세로 스택 시 폭이 100%가 되게 함. 데스크톱(`isMobile=false`)은 기존 가로 배치 그대로.
+  3) 유족 추가 행(관계·성함·삭제버튼 3칸)은 **사람 지시로 미변경** — 기존 가로 배치 그대로 유지.
+  4) 추모관 체크박스 설명 `"[선택] 이 부고장과 함께 추모관도 만들기 — 조문객이 온라인으로 헌화·방명록을 남길 수 있는 공간입니다. 나중에 '디지털 추모관' 화면에서 따로 만들 수도 있습니다."` → `"[선택] 추모관도 함께 만들기 — 헌화·방명록 공간(나중에 따로 만들기 가능)"`로 축약. 연락처 안내·계좌 경고·필수 동의 2건(허위신고·재공유)은 사람 지시로 미변경.
+  `npx tsc --noEmit`·`npm run build`(eobomDev/frontend) 통과.
+- **편차**: 없음 — 목업 체크포인트대로 구현하되 사람이 명시적으로 제외한 유족추가 행만 뺐다.
+- **다음 에이전트가 알아야 할 것**: 관리 모드(부고장 있음, `obituaryRef`)의 수정 모달도 같은 `formCard`를 재사용하므로 이번 필드쌍 스택·문구 축약이 관리 모드 수정 화면에도 그대로 적용된다(같은 JSX 변수 공유, 의도된 결과). 🔵 로그인 필요 화면(`00-29` §15)이라 사람이 실기기로 ①360px에서 두 필드쌍이 세로로 스택되는지②768→1280 리사이즈 시 다시 가로로 돌아오는지③유족 추가 행이 기존 그대로인지 확인해야 한다. 다음 = 5번 `MyPage` — Phase 3 재판정(§6.5 ⓒ 기준)을 ①실측 단계에서 함께 판정할 것.
+
+<!-- Gemini 판정 대기 -->
+
+
+
+## 2026-09-11 | MyPage(모바일 검증 루프 5번) - §6.5 재판정 + 라벨/문구 정리
+
+- **근거 스펙**: docs/00_핵심플랫폼/00-38_적응형_모바일_UX_개편_명세서.md §6.5 (c)(d) (Phase 3 착수 시 재판정). 라벨/문구 변경 3건은 사람 지시(즉흥, 스펙 문서 갱신은 [Opus] 몫으로 별도 요청 필요).
+- **건드린 파일**: eobomDev/frontend/src/pages/MyPage.tsx
+- **결과**: §6.5 재판정 결과 [X] 분리 불필요 확정(목업 _mockups/MyPage.html로 사람 승인, 코드 변경 없음이 원안). 이어서 사람 지시로 3건 구현: (1)stats 라벨 '상담 내역'->'상담', '문의 내역'->'문의', '내 부고장'->'부고장' (MyPage.tsx:161-163) (2)로그인 게이트 안내문 "예약 현황, 상담 내역, 엔딩노트 진행 상황을 한눈에 확인하세요." -> "부고장 현황, 상담 내역, 엔딩노트 진행 상황을 한눈에 확인하세요."(MyPage.tsx:123, 폐기된 "예약" 개념 제거) (3)"디지털 자산 정리" 행의 Badge status=preview("미리보기" 배지) 제거(MyPage.tsx:352 부근). tsc --noEmit -p eobomDev/frontend 통과(에러 0건).
+- **편차**: 00-38 §8 표는 MyPage를 아직 "재판정 대기" 상태로 적어 두고 있다 - 이 항목으로 [X]분리 불필요로 확정됐으니 표 갱신 필요([Opus], docs/ 소유라 Sonnet이 직접 고치지 않음). context.md에 요청으로 남김.
+- **다음 에이전트가 알아야 할 것**: 모바일 검증 루프 다음 차례는 6번 MyObituaryListPage(1.실측->2.목업->3.승인->4.구현, 공통 규칙 동일). "가족 지정" 모달(MyPageFamilyDesignation)의 바텀시트 전환은 이 루프와 별개 작업 항목(00-38 §8 표 "모달->바텀시트 공통 규칙")으로 남아 있음 - 착수 안 됨.
+
+<!-- Gemini 판정 1줄: … -->
+
+
+## 2026-09-11 | MyObituaryListPage(모바일 검증 루프 6번) - page-subtitle 추가 + 버튼 정렬 수정
+
+- **근거 스펙**: docs/00_핵심플랫폼/00-38_적응형_모바일_UX_개편_명세서.md §6.5(c), §8 표(MyObituaryListPage는 이미 [X]분리불필요 확정 상태, 재판정 대상 아님). 버튼 정렬 건은 사람 지시로 실측 재점검 후 발견(즉흥, 스펙 문서에 명시 없음).
+- **건드린 파일**: eobomDev/frontend/src/pages/MyObituaryListPage.tsx
+- **결과**: (1) 규칙1 준수 - MyObituaryListPage.tsx:142 <p>에 className="page-subtitle" 추가(다른 8개 파일과 동일 패턴, index.css:1000-1006이 <=768px에서 display:none 처리). (2) "내가 만든 부고장" 카드의 이름/버튼 행(MyObituaryListPage.tsx:178)에서 justifyContent:'space-between' 제거하고 버튼 그룹 div(:193 부근)에 marginLeft:'auto' 추가 - 실브라우저(Chrome, 로컬 정적 서버로 재현 페이지 구동)에서 320/360/393/414/430/470/500/550/600px 8개 폭을 getBoundingClientRect로 정밀 측정해 검증. 수정 전: 320~430px(2버튼 케이스)·320~360px(1버튼 케이스)에서 이름 텍스트가 길어 버튼 그룹이 줄바꿈되면 justify-content:space-between이 "항목 1개인 줄은 좌측 정렬" 처리돼 버튼이 카드 왼쪽에 붙음(우측 여백 91~161px 남음). 수정 후: 320~600px 전 구간에서 wrap 여부와 무관하게 우측 오프셋 16px(카드 패딩과 동일)로 고정 확인. tsc --noEmit -p eobomDev/frontend 통과(에러 0건).
+- **편차**: 없음(승인받은 목업 eobomDev/frontend/_mockups/MyObituaryListPage.html 그대로 구현).
+- **다음 에이전트가 알아야 할 것**: 모바일 검증 루프 다음 차례는 7번 MyPageFamilyDesignation(모달) - 00-38 §8 표·부록의 "모달->바텀시트 공통 규칙"에 해당하며 LoginModal·InquiryModal·SummaryModal·AddressSearchModal까지 5개 모달에 적용되는 공통 규칙 작업이라 이번 페이지 건들보다 범위가 크다 - 착수 전 사람 확인 필요(이미 안내함). 검증에 쓴 재현 HTML은 스크래치패드에만 있고 프로젝트에는 남기지 않음(1회성 진단 도구).
+
+<!-- Gemini 판정 1줄: … -->
+
+
+## 2026-09-11 | MyObituaryListPage 후속수정 - 수정/삭제 버튼을 열기/공유와 병합(같은 크기)
+
+- **근거 스펙**: 스펙 없음 - 즉흥 구현. 사람이 실기기 스크린샷(assets/obi_test.png, 360px)을 직접 확인하고 지시.
+- **건드린 파일**: eobomDev/frontend/src/pages/MyObituaryListPage.tsx
+- **결과**: 직전 항목(marginLeft:'auto' 우측정렬 수정)을 실기기로 확인한 결과, 이름/날짜 블록 + 36px 높이 버튼(--sp-4 패딩)이 360px에서 여전히 한 줄에 안 들어가 버튼이 아래로 떨어지는 현상은 남아 있었음. 사람 지시대로 근본 재구조화: 이름+상태(MyObituaryListPage.tsx:183 부근)와 날짜를 버튼 없는 단독 블록으로 되돌리고(더 이상 flex row로 감싸지 않음), 수정/삭제 버튼을 열기/공유 버튼과 같은 스타일(iconBtnStyle: height 32px, padding '0 0.6rem', fontSize var(--fs-caption))로 축소해 "부고장 [열기][공유]" 행(linkGroupStyle)에 그대로 이어붙임(순서: 부고장 라벨 - 열기 - 공유 - 수정(진행중일 때만) - 삭제). 삭제 버튼은 기존 danger 색상(border: state-danger-bg, color: state-danger-fg)만 유지. 결과적으로 이름/날짜 줄은 버튼과 폭을 다투지 않아 wrap이 필요 없어졌고, 합쳐진 버튼 줄은 폭이 부족하면 flexWrap으로 pill 목록처럼 자연스럽게 다음 줄로 흐름(justify-content 없음, space-between 계열 정렬 버그 재발 안 함). 크롬(로컬 정적 서버로 재현 페이지 구동)에서 320/360/393px 폭으로 scrollWidth/clientWidth 비교해 가로 스크롤 없음 확인. tsc --noEmit -p eobomDev/frontend 통과(에러 0건).
+- **편차**: 직전 walkthrough 항목의 marginLeft:'auto' 수정은 이 항목으로 대체됨(코드상 완전히 제거됨) - 그 항목은 되돌리지 않고 이력만 남김.
+- **다음 에이전트가 알아야 할 것**: MyObituaryListPage.tsx의 obituary 카드에서 "수정"/"삭제" 버튼은 이제 항상 iconBtnStyle 크기(32px)이고 열기/공유와 같은 줄(linkGroupStyle)에 있다 - 다시 별도 행으로 분리하거나 크기를 키우면 이번에 해결한 360px wrap 문제가 재발한다. _mockups/MyObituaryListPage.html도 최종안으로 갱신함. 다음 루프 차례는 7번 MyPageFamilyDesignation(모달, 바텀시트 공통규칙 5종) - 착수 방식 확인 대기 중.
+
+<!-- Gemini 판정 1줄: … -->
+
+
+## 2026-09-11 | MyObituaryListPage 후속수정2 - "부고장"/"추모관" 회색 라벨 제거
+
+- **근거 스펙**: 스펙 없음 - 즉흥 구현. 사람 지시: "회색글씨 부고장 추모관 글자를 없앤다 버튼배열에 방해됨."
+- **건드린 파일**: eobomDev/frontend/src/pages/MyObituaryListPage.tsx
+- **결과**: 부고장 카드의 링크 행(MyObituaryListPage.tsx:195 부근)에서 `<span>부고장</span>`(width:3.4rem 고정폭 라벨) 제거, 추모관 카드의 링크 행(:276 부근)에서 `<span>추모관</span>` 제거. 두 라벨 다 제거 후 버튼(열기/공유/수정/삭제)이 행 맨 앞부터 바로 시작됨. tsc --noEmit -p eobomDev/frontend 통과(에러 0건).
+- **편차**: 없음.
+- **다음 에이전트가 알아야 할 것**: linkGroupStyle을 쓰는 두 행 모두 이제 라벨 없이 버튼만 있음. 모바일 검증 루프 6번(MyObituaryListPage) 관련 후속 조정은 이것으로 일단락. 다음 차례는 7번 MyPageFamilyDesignation(모달) - 착수 방식 확인 대기 중.
+
+<!-- Gemini 판정 1줄: … -->
+
+
+## 2026-09-11 | EndingNotePage - 모바일에 "한눈에 보기"(SummaryModal) 진입 버튼 없던 버그 수정
+
+- **근거 스펙**: 스펙 없음 - 즉흥 구현. 사람이 모바일 검증 루프 7번(모달 바텀시트 작업) 착수 전 실측 질문에 답하는 대신 실기기 버그 리포트: "모바일 환경에서 SummaryModal 접근 통로 없음."
+- **건드린 파일**: eobomDev/frontend/src/pages/EndingNotePage.tsx
+- **결과**: 원인 확인 - "한눈에 보기" 트리거 버튼(EndingNotePage.tsx 원래 줄 783-791)이 `<aside className="ending-note-toc">` 안에만 있었고, 이 aside는 index.css에서 CSS로 모바일 숨김 처리됨(주석 "A3 - 데스크톱 좌측 섹션 목차 고정. 모바일은 CSS로 숨긴다"). 모바일 전용 목차 리스트(`.ending-note-mobile-toclist`, isMobile 분기)에는 이 버튼의 대응물이 전혀 없어 모바일에서 SummaryModal을 열 방법이 없었음. 수정: isMobile 분기를 Fragment로 감싸고, `.ending-note-mobile-toclist` 카드 아래에 데스크톱과 동일한 스타일(className="btn", ListChecks 아이콘, "한눈에 보기" 라벨)의 버튼을 추가해 `setSummaryOpen(true)`를 호출하게 함. 기존 `summaryTriggerRef`(모달 닫을 때 포커스 복귀용, EndingNotePage.tsx:280)를 이 새 버튼에도 똑같이 연결 - 데스크톱/모바일 중 하나만 렌더되므로 ref 충돌 없음. tsc --noEmit -p eobomDev/frontend 통과(에러 0건).
+- **편차**: 없음.
+- **다음 에이전트가 알아야 할 것**: 모바일 검증 루프 7번(모달→바텀시트 공통 규칙, MyPageFamilyDesignation 등 5종)은 착수 전 실측만 마친 상태 - SummaryModal이 이미 자체 ≤640px 전체화면 시트 대응(index.css:1948-1992, 2026-08-27 확정)이 있어 00-38의 새 바텀시트 규칙과 모양이 다르다는 점을 사람에게 확인 요청했으나, 사람이 이번엔 답 대신 실기기에서 발견한 버그 2건(이번 항목 + "ending-note 메모 모달 취소버튼 무반응")을 먼저 보고함. 이 항목으로 버그 1건 해결. 나머지 하나(취소 버튼)와 SummaryModal 바텀시트 여부 확정은 아직 열려 있음.
+
+<!-- Gemini 판정 1줄: … -->
+
+
+## 2026-09-11 | EndingNotePage - 모바일 리더 모달 "취소" 버튼이 안 닫히던 버그 수정
+
+- **근거 스펙**: 스펙 없음 - 즉흥 구현. 사람 실기기 버그 리포트("ending-note의 메모 클릭 후 뜨는 모달에서 취소 버튼 반응 없음") + 확인 질문에 대한 답변("값 되돌리고 모달도 닫기").
+- **건드린 파일**: eobomDev/frontend/src/pages/EndingNotePage.tsx
+- **결과**: 원인 확인 - 모바일 리더 시트(`.ending-note-reader-sheet`, 섹션 탭 시 여는 전체 시트)의 "취소" 버튼은 `resetSection(expandedSection)`만 호출하고 시트를 닫지 않았음. 데스크톱 아코디언(`AccordionSection.tsx:41`)의 동일한 "취소" 버튼도 값만 되돌리고 안 접히는 것과 같은 동작이라 코드상 결함은 아니었으나, 모바일은 전체를 덮는 모달이라 안 닫히면 "반응 없음"으로 느껴짐(사람 확인 완료). 수정: 모바일 리더 시트의 취소 버튼 onClick에 `setExpandedSection(null)`을 추가해 값 되돌리기+시트 닫기를 함께 함(EndingNotePage.tsx 890행 부근). 데스크톱 AccordionSection의 취소 동작은 그대로 유지(안 접힘) - 이번 변경은 모바일 리더 시트에만 적용됨. tsc --noEmit -p eobomDev/frontend 통과(에러 0건).
+- **편차**: 없음.
+- **다음 에이전트가 알아야 할 것**: 이번 세션에서 발견된 실기기 버그 2건(SummaryModal 모바일 진입 통로 없음, 취소 버튼 무반응) 모두 해결됨. 모바일 검증 루프 7번(모달→바텀시트 공통 규칙, MyPageFamilyDesignation·LoginModal·InquiryModal·AddressSearchModal·SummaryModal)은 아직 착수 전 - SummaryModal이 이미 자체 ≤640px 전체화면 시트가 있어 00-38 새 규칙과 모양이 다른 문제가 미확정으로 남아 있음(사람에게 재확인 필요).
+
+<!-- Gemini 판정 1줄: … -->
+
+
+## 2026-09-11 | EndingNotePage - 모바일 "한눈에 보기" 진입 버튼 되돌림(사람 최종 결정)
+
+- **근거 스펙**: 스펙 없음 - 즉흥 구현. 사람 지시: "모바일에서는 한눈에 보기가 없는게 나을거 같아 수정 부탁할게."
+- **건드린 파일**: eobomDev/frontend/src/pages/EndingNotePage.tsx
+- **결과**: 직전 항목(2026-09-11, "모바일에 한눈에 보기 진입 버튼 없던 버그 수정")에서 추가했던 모바일 전용 "한눈에 보기" 버튼(`.ending-note-mobile-toclist` 카드 아래 `<button ref={summaryTriggerRef} onClick={() => setSummaryOpen(true)}>`)을 제거하고 원래 구조(Fragment 없이 `.ending-note-mobile-toclist` 하나만)로 되돌림. 데스크톱 좌측 목차의 "한눈에 보기" 버튼(약 790행)은 그대로 유지 - 이 기능은 데스크톱 전용으로 확정됨. tsc --noEmit -p eobomDev/frontend 통과(에러 0건).
+- **편차**: 없음 - 직전 항목의 "버그 수정"이 사람 재확인 후 "의도된 상태"로 뒤집힌 것. 직전 walkthrough 항목은 되돌리지 않고 이력만 남김.
+- **다음 에이전트가 알아야 할 것**: "한눈에 보기"(SummaryModal)는 모바일에서 접근 불가가 최종 의도된 동작이다 - 다시 "버그"로 보고 진입 버튼을 추가하지 말 것. 이 결정으로 모바일 검증 루프 7번(모달→바텀시트 공통 규칙)에서 열려 있던 "SummaryModal을 00-38 바텀시트 규칙으로 통일할지" 질문은 무의미해짐 - 모바일에서 아예 안 열리므로 바텀시트 전환 대상에서 제외. 7번 대상은 이제 나머지 4개 모달(MyPageFamilyDesignation·LoginModal·InquiryModal·AddressSearchModal)로 좁혀짐.
+
+<!-- Gemini 판정 1줄: … -->
+
+
+## 2026-09-11 | 모달 4종 바텀시트 공통 규칙(모바일 검증 루프 7번) 구현 완료
+
+- **근거 스펙**: docs/00_핵심플랫폼/00-38_적응형_모바일_UX_개편_명세서.md §8.2(MyPageFamilyDesignation 행 - 모달->바텀시트 전환, dvh 사용, --gutter-chrome) · §6.5 ⓒ(CSS만으로 충분, 별도 컴포넌트 분리 불필요). 사람 승인(목업 eobomDev/frontend/_mockups/Modals_BottomSheet.html).
+- **건드린 파일**: eobomDev/frontend/src/index.css, eobomDev/frontend/src/components/mypage/MyPageFamilyDesignation.tsx, eobomDev/frontend/src/components/LoginModal.tsx, eobomDev/frontend/src/components/facility/InquiryModal.tsx, eobomDev/frontend/src/components/AddressSearchModal.tsx
+- **결과**: index.css에 8개 클래스 신설(.myfamily-modal-backdrop/-panel, .login-modal-backdrop/-panel, .inquiry-modal-backdrop/-panel, .address-modal-backdrop/-panel) - 각각의 기본(비-모바일) 규칙은 기존 인라인 스타일 값을 그대로 옮긴 것(배경색·블러·z-index·데스크톱 maxWidth·padding 등 전부 동일, 시각적 회귀 없음). 그 아래 @media (max-width:768px) 블록 하나로 4개 backdrop 클래스에 align-items:flex-end+padding:0, 4개 panel 클래스에 max-width:none/width:100%/margin:0/border-radius:16px 16px 0 0/max-height:88dvh/overflow-y:auto/-webkit-overflow-scrolling:touch/padding-left,right:var(--gutter-chrome)/padding-top:1.4rem/padding-bottom:1.75rem를 동시 적용 - 이게 "공통 규칙"의 실체. 4개 TSX 파일은 각각 backdrop div와 panel div의 인라인 style 객체를 통째로 제거하고 className만 부여(onClick·ref 등 다른 prop은 그대로 유지). 부수 효과: LoginModal의 기존 max-height:90vh(모바일 주소창에 잘리는 문제)는 새 규칙의 max-height:88dvh가 소스 순서상 나중이라 자동으로 덮어씀 - vh->dvh 치환 완료. InquiryModal·AddressSearchModal은 원래 모바일에서 overflow 보호장치가 전혀 없었는데 이번에 같이 해결됨. tsc --noEmit -p eobomDev/frontend 통과(에러 0건). 구현 전 크롬(로컬 정적 서버로 동일 CSS 재현 페이지 구동)에서 320~398px 폭으로 getBoundingClientRect 측정 - 4개 다 bottomGap=0(바닥에 붙음)·border-radius 16px 16px 0 0·max-height 88dvh(~785px/892px 뷰포트)·padding-left 16px(--gutter-chrome)·overflow-y:auto 확인 완료.
+- **편차**: SummaryModal(당초 5종 중 하나)은 별도 지시로 모바일 접근 자체를 없애기로 확정(이전 walkthrough 항목 참고)돼 이번 4종에서 제외 - 00-38이 원래 "모달 5종"이라 적은 것과 다름, 사람 확정 사항.
+- **다음 에이전트가 알아야 할 것**: 모바일 검증 루프 7번(모달->바텀시트 공통 규칙) 완료. 00-38 §8 표·부록 순서상 다음은 부록 8개 페이지 중 첫 항목(§8.2 이후 목록, context.md 확인) - Phase 순서 목록 원문은 00-38 §Phase 순서 절 참고. AddressSearchModal의 다음 우편번호 위젯(420px 고정 height)이 이제 88dvh 안에서 스크롤 컨테이너에 들어가는데, 극단적으로 짧은 뷰포트(예: 가로모드)에서 위젯이 잘리는지는 실기기 확인 전까지 미검증.
+
+<!-- Gemini 판정 1줄: … -->
+
+
+## 2026-09-11 | FacilityPage(모바일 검증 루프 8번) - 실측 결과 이미 통과, 코드 변경 없음
+
+- **근거 스펙**: docs/00_핵심플랫폼/00-38_적응형_모바일_UX_개편_명세서.md §8 표(FacilityPage, 이미 [X]분리불필요 확정, 재판정 대상 아님).
+- **건드린 파일**: 없음(실측 결과 변경 불필요로 판정).
+- **결과**: 규칙1(설명문 모바일 제거) 이미 준수 - FacilityPage.tsx:287 className="page-subtitle". 바로 아래 위치정보 상시고지문(:298)은 의도적으로 page-subtitle 미적용(00-21 §0.2-1 관련, 숨기면 안 되는 법적 고지 - 손대지 않음). 카드 그리드는 .grid(minmax(min(320px,100%),1fr))라 360px에서 자동 1열. 리스트형 카드 버튼(:707-723)은 이미 isMobile 삼항으로 라벨 제거+아이콘만(6번에서 적용한 것과 동일 패턴, 2026-09-10 사람이 선행 적용). 카드형 버튼(:856-890)은 flex:'1 1 0'+minWidth:100px+whiteSpace:nowrap로 폭 확보. 주소는 -webkit-line-clamp:2+minHeight 예약(:788-800)으로 카드 높이 정렬. 이미지 플레이스홀더는 hideImagePlaceholder(useIsMobile(480))로 ≤480px에서 렌더 자체 생략(:742). 모바일 전용 검색바+필터 바텀시트(:311-360, isFilterSheetOpen)가 이미 00-38 §8.2 바텀시트 개념(translateY 토글, 7번에서 구현한 CSS 클래스 방식과는 별개 구현)으로 존재 - 손댈 필요 없음. §6.5 재판정 불필요(재판정 대상 아니었음, ❌ 유지 확인만).
+- **편차**: 없음.
+- **다음 에이전트가 알아야 할 것**: FacilityReviewModal.tsx(facility/FacilityReviewModal.tsx:101)가 maxHeight:'85vh'(dvh 아님)를 쓰는 걸 발견했으나, 00-38이 지정한 "모달 5종/4종"(7번 대상) 목록에 없어 이번 루프 범위 밖으로 남겨둠 - 고치지 않음. 모바일 검증 루프 다음 차례는 9번 CounselingPage(§8 표 순서 ⑦ 나머지: CounselingPage·DigitalEstatePage, 둘 다 분리 없음).
+
+<!-- Gemini 판정 1줄: … -->
 

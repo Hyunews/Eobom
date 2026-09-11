@@ -24,16 +24,14 @@ export const FarewellMobileView: React.FC<FarewellViewProps> = ({
 
   return (
     <div className="container" style={{ paddingBottom: '3rem' }}>
-      {/* §8.1-1 ⓒ — 상단 크롬 4단(배지+h1+설명문+안내박스) → 1단(h1+설명문만). 배지는
+      {/* §8.1-1 ⓒ — 상단 크롬 4단(배지+h1+설명문+안내박스) → 1단(h1만). 배지는
           h1이 같은 말을 하므로 모바일에서 제거. 아이콘 32px → 24px. 고지 박스는 아래
-          2단계(컴포저 직전)로 이동했으므로 여기서는 렌더하지 않는다. */}
+          2단계(컴포저 직전)로 이동했으므로 여기서는 렌더하지 않는다.
+          2026-09-11 사람 지시 — 제목 아래 설명문은 모바일 전 페이지 공통으로 제거. */}
       <div style={{ marginBottom: '1.25rem' }}>
         <h1 className="page-title" style={{ color: 'var(--primary-color)', display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0 }}>
           <Mail color="var(--point-color)" size={24} /> 유족 메시지 보관함
         </h1>
-        <p style={{ color: 'var(--text-muted)', marginTop: '0.4rem' }}>
-          가족 한 분 한 분께 따로 남기는 편지입니다. 완료해야 할 항목은 없습니다 — 생각날 때마다 남기세요.
-        </p>
       </div>
 
       {loading ? (
@@ -43,7 +41,8 @@ export const FarewellMobileView: React.FC<FarewellViewProps> = ({
           <UserPlus color="var(--point-color)" size={36} style={{ marginBottom: 'var(--sp-3)' }} />
           <h2 style={{ color: 'var(--primary-color)', marginBottom: '0.5rem', fontSize: '1.15rem' }}>아직 지정된 가족이 없습니다</h2>
           <p style={{ color: 'var(--text-muted)', lineHeight: 1.6, marginBottom: '1.25rem' }}>
-            편지를 남기려면 먼저 받으실 분을 가족으로 지정해 주세요. 수신자가 없으면 사후에도 전달되지 않습니다.
+            {/* 2026-09-11 사람 지시 — 줄글 축약. */}
+            받으실 분을 먼저 가족으로 지정해 주세요.
           </p>
           <button type="button" onClick={onOpenFamilyDesignation} className="farewell-board-add">
             <UserPlus size={18} /> 가족 추가

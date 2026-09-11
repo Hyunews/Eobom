@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>MyObituaryListPage — 6번, 360px 실측 + 목업</title>
+<style>
+  :root{
+    --primary-color:#1A2B4C; --point-color:#5B7065; --text-muted:#6C7A89; --card-bg:#FFFFFF;
+    --secondary-color:#FBF9F5; --border-color:#DFDCD7; --r-sm:8px; --box-shadow:0 8px 30px rgba(26,43,76,0.06);
+  }
+  *{box-sizing:border-box;}
+  body{margin:0; padding:24px; background:#EDEAE3; color:var(--primary-color); font-family:'Malgun Gothic','Apple SD Gothic Neo',sans-serif;}
+  h1.doc-title{font-size:1.3rem; margin:0 0 4px;}
+  .summary{background:#fff; border:1px solid var(--border-color); border-radius:12px; padding:16px 20px; margin-bottom:28px; max-width:1000px; line-height:1.8; font-size:0.92rem;}
+  .summary b{color:var(--primary-color);}
+  .verdict{display:inline-block; font-weight:800; color:#03543F; background:#DEF7EC; border-radius:6px; padding:2px 8px;}
+  .frames{display:flex; gap:32px; flex-wrap:wrap; align-items:flex-start;}
+  .frame-col{width:360px;}
+  .frame-label{font-weight:700; font-size:0.95rem; margin-bottom:10px;}
+  .frame-label.before{color:#92400E;}
+  .frame-label.after{color:#03543F;}
+  .frame{width:360px; background:var(--card-bg); border:6px solid #333; border-radius:28px; box-shadow:0 10px 30px rgba(0,0,0,.25); padding:18px 16px;}
+  .page-title{margin:0 0 0.3rem; font-size:1.15rem;}
+  .subtitle{color:var(--text-muted); margin-bottom:1.2rem; font-size:0.85rem;}
+  .subtitle.hidden{display:none;}
+  .strike-note{font-size:11px; color:#92400E; margin-bottom:1.2rem; font-style:italic;}
+  .card{background:var(--card-bg); border-radius:12px; box-shadow:var(--box-shadow); padding:1rem;}
+  .card h4{margin:0 0 0.8rem; font-size:0.95rem; display:flex; align-items:center; gap:0.4rem;}
+  .item{padding:0.8rem 0.9rem; background:var(--secondary-color); border-radius:var(--r-sm); margin-bottom:0.7rem;}
+  .item .name{font-weight:700; font-size:0.9rem;}
+  .item .date{font-size:0.78rem; color:var(--text-muted); margin-top:2px;}
+  .item .btns{display:flex; gap:0.4rem; margin-top:0.6rem; flex-wrap:wrap;}
+  .item .btns button{height:30px; padding:0 0.6rem; font-size:0.78rem; border-radius:var(--r-sm); border:1px solid var(--border-color); background:#fff;}
+  .more{color:var(--point-color); font-weight:700; font-size:0.85rem; margin-top:0.4rem;}
+  .checkpoints{max-width:1000px; margin-top:8px; background:#fff; border:1px solid var(--border-color); border-radius:12px; padding:20px 24px; font-size:0.92rem; line-height:1.8;}
+  .checkpoints h2{font-size:1rem; margin:0 0 10px; color:var(--primary-color);}
+</style>
+</head>
+<body>
+
+<h1 class="doc-title">MyObituaryListPage — 6번, 360px 실측 + 목업</h1>
+
+<div class="summary">
+  <b>발견한 문제 2건</b> / <b>제안한 변경 2건</b> / <b>데스크톱(1280px) 영향 여부: 없음</b>
+  — 클래스 1개 추가 + 인라인 스타일 2줄 조정뿐, 구조·컴포넌트 분리 없음.
+  <br><br>
+  <b>§6.5 판정</b>: <span class="verdict">❌ 분리 불필요(기존 판정 유지)</span> — 00-38 §8 표에 이미
+  ❌로 확정돼 있고(🟡 재판정 대상 아님), §6.5 ⓒ 예시 표에도 "그룹 3 전부·`MyObituaryListPage`"가
+  "배치만 변경 → CSS로 한다"의 예로 직접 실려 있다. 실측 결과도 일치: 좌(부고장)·우(추모관) 목록은
+  `.auto-grid`(`minmax(min(280px,100%),1fr)`, `index.css:1008-1011`)라 360px에서 자동으로 1열이 됨.
+  화면 수·상태 기계 변화 없음 — 재판정 불필요.
+  <br><br>
+  <b>규칙 1(제목 아래 회색 설명문 제거)</b>: 🔴 <b>미준수 발견</b> — `MyObituaryListPage.tsx:141-144`의
+  `<h2>내 부고장·추모관</h2>` 아래 `<p>내가 만든 부고장과 추모관을 한곳에서 확인할 수 있습니다.</p>`가
+  다른 8개 페이지와 달리 `className="page-subtitle"`(`index.css:1000-1006`, ≤768px에서 `display:none`)을
+  안 쓰고 인라인 스타일만 있어 모바일에서도 그대로 노출된다. <b>제안: 이 `<p>`에
+  `className="page-subtitle"` 한 줄만 추가</b> — 다른 8개 파일과 동일한 기존 패턴 재사용, 새 CSS 없음.
+  <br>
+  <b>규칙 2(줄글 최대 축약)</b>: 해당 없음 — 카드 안 문구(이름·상태·날짜·안내 문구)는 전부 짧은
+  상태 텍스트라 축약할 줄글이 없음.
+  <br><br>
+  <b>🔴 재점검(사람 지시)으로 새로 발견 — "수정/삭제" 버튼 줄 위치</b>: `MyObituaryListPage.tsx:178`의
+  이름·버튼 행이 `justifyContent:'space-between'` + `flexWrap:'wrap'`이다. 코드만 보고 "이미 wrap 대비돼
+  있다"고 1차 판정했던 것을 정정 — 실제로 <b>브라우저에 그대로 재현해 360px 등 8개 폭(320~600)에서
+  `getBoundingClientRect`로 정밀 측정</b>했더니, 이름이 길어 한 줄에 못 들어가 버튼 줄이 아래로
+  wrap될 때 <code>justify-content:space-between</code>이 <b>한 줄에 항목이 1개뿐이면 왼쪽 정렬</b>로
+  떨어지는 CSS 특성 때문에 수정·삭제 버튼이 카드 오른쪽이 아니라 <b>왼쪽에 붙어 버렸다</b>. 실측값:
+  360px에서 2버튼(수정+삭제)·1버튼(삭제만) 모두 wrap, 버튼 그룹이 카드 좌측 여백에서 16px만
+  떨어진 채(우측은 91~161px 남음) 뜬다 — 바로 아래 "부고장 [열기][공유]" 행도 같은 좌측 정렬이라
+  두 줄이 시각적으로 구분 없이 한 묶음처럼 보인다(실제 폰 폭 320~430px 전부 해당, 470px 이상에서만
+  원래 의도한 우측 정렬이 됨). <s>1차 제안: `justifyContent:'space-between'` 제거 +
+  버튼 그룹 `div`에 `marginLeft:'auto'` 추가</s> — 구현·승인까지 끝냈으나, 실기기 스크린샷
+  확인 후 사람이 후속 지시.
+  <br><br>
+  <b>🔴 2차 수정(사람 지시, 실기기 스크린샷 `assets/obi_test.png` 확인 후)</b>: 우측 정렬로도
+  이름·날짜 블록과 36px 높이 버튼(`--sp-4` 패딩)이 360px 한 줄에 안 들어가 버튼이 여전히
+  아래로 떨어졌다. <b>최종안: 수정·삭제 버튼을 열기·공유와 같은 크기(`iconBtnStyle`, 32px 높이·
+  0.6rem 패딩·`--fs-caption` 폰트)로 줄이고, "부고장 [열기][공유]" 줄에 합친다</b> — 이름·날짜
+  줄은 이제 버튼과 폭을 다투지 않으므로 wrap 자체가 없어진다. 합친 버튼 줄(부고장+열기+공유+
+  수정+삭제)이 폭이 부족하면 pill 목록처럼 자연스럽게 다음 줄로 흐르되(`space-between` 없음),
+  이전처럼 좌/우로 어긋나는 정렬 문제는 없다. 크롬 320/360/393px 재현+측정으로 가로 스크롤
+  없음(`scrollWidth`=`clientWidth`) 확인.
+</div>
+
+<p style="max-width:1000px; font-size:0.85rem; color:var(--text-muted); margin:0 0 8px;">
+  아래 두 프레임은 실제 크롬 렌더링을 360px 폭에서 그대로 캡처해 재현한 것(수치는 getBoundingClientRect 실측값 기준).
+</p>
+<div class="frames">
+  <div class="frame-col">
+    <div class="frame-label before">🔴 현재안 — 설명문 노출 + 버튼 좌측 정렬(wrap 시)</div>
+    <div class="frame">
+      <p class="page-title" style="font-weight:700;">내 부고장·추모관</p>
+      <p class="subtitle">내가 만든 부고장과 추모관을 한곳에서 확인할 수 있습니다.</p>
+      <div class="card">
+        <h4>📝 내가 만든 부고장</h4>
+        <div class="item">
+          <div class="name">故 홍길동 <span style="font-weight:400;color:var(--point-color);font-size:0.78rem;">· 진행중</span></div>
+          <div class="date">사망일 2026.09.01</div>
+          <div class="btns" style="justify-content:flex-start;"><button>수정</button><button style="color:#991B1B;border-color:#FEE2E2;">🗑 삭제</button></div>
+          <div class="btns" style="justify-content:flex-start; margin-top:0.5rem;"><span style="font-size:0.78rem; color:var(--text-muted); width:3.4rem; align-self:center;">부고장</span><button>🔗 열기</button><button>↗ 공유</button></div>
+        </div>
+        <div class="item">
+          <div class="name">故 김철수 <span style="font-weight:400;color:var(--text-muted);font-size:0.78rem;">· 종료됨</span></div>
+          <div class="date">사망일 2026.08.15</div>
+          <div class="btns" style="justify-content:flex-start;"><button style="color:#991B1B;border-color:#FEE2E2;">🗑 삭제</button></div>
+        </div>
+        <div class="strike-note">↑ 두 카드 다 버튼이 카드 왼쪽에 붙어, 바로 위 이름·날짜와도 아래 "부고장" 행과도 시각적으로 안 구분됨</div>
+        <div class="more">새 부고장 만들기 →</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="frame-col">
+    <div class="frame-label after">✅ 최종안 — 설명문 숨김 + 수정·삭제를 열기·공유와 병합(같은 크기)</div>
+    <div class="frame">
+      <p class="page-title" style="font-weight:700;">내 부고장·추모관</p>
+      <p class="subtitle hidden">내가 만든 부고장과 추모관을 한곳에서 확인할 수 있습니다.</p>
+      <div class="card">
+        <h4>📝 내가 만든 부고장</h4>
+        <div class="item">
+          <div class="name">故 홍길동 <span style="font-weight:400;color:var(--point-color);font-size:0.78rem;">· 진행중</span></div>
+          <div class="date">사망일 2026.09.01</div>
+          <div class="btns" style="justify-content:flex-start; margin-top:0.5rem;">
+            <button>🔗 열기</button><button>↗ 공유</button><button>수정</button>
+            <button style="color:#991B1B;border-color:#FEE2E2;">🗑 삭제</button>
+          </div>
+        </div>
+        <div class="item">
+          <div class="name">故 김철수 <span style="font-weight:400;color:var(--text-muted);font-size:0.78rem;">· 종료됨</span></div>
+          <div class="date">사망일 2026.08.15</div>
+          <div class="btns" style="justify-content:flex-start; margin-top:0.5rem;">
+            <button>🔗 열기</button><button>↗ 공유</button>
+            <button style="color:#991B1B;border-color:#FEE2E2;">🗑 삭제</button>
+          </div>
+        </div>
+        <div class="strike-note" style="color:#03543F;">↑ 이름·날짜 줄은 버튼과 폭을 다투지 않아 wrap 자체가 안 생김. 버튼은 전부 같은 크기(32px)라 넘치면 pill 목록처럼 자연스럽게 다음 줄로 흐름. "부고장"/"추모관" 회색 라벨은 버튼 배열에 방해돼 제거함(2026-09-11 3차 지시)</div>
+        <div class="more">새 부고장 만들기 →</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="checkpoints">
+  <h2>진행 내역(구현 완료)</h2>
+  1. `MyObituaryListPage.tsx:142`의 `<p>`에 <code>className="page-subtitle"</code> 추가 — ✅완료.<br>
+  2. <s>버튼 그룹에 `marginLeft:'auto'` 추가</s> — ✅ 1차 구현·승인 완료했으나, 실기기 확인 후
+     사람이 근본 재구조화 지시.<br>
+  3. 수정·삭제 버튼을 `iconBtnStyle`(32px)로 축소해 "부고장 [열기][공유]" 줄에 병합 — ✅완료
+     (`MyObituaryListPage.tsx:195-214`). 크롬 320/360/393px 재현 측정, 가로 스크롤 없음 확인,
+     `tsc --noEmit` 통과.<br>
+  4. §6.5 재판정 불필요(기존 ❌ 유지) — 이견 없으면 문서 갱신 요청도 없음.<br>
+  5. 다음 = 7번 `MyPageFamilyDesignation`(모달) — 00-38 §8 표·부록의 "⑥ 모달 → 바텀시트 공통
+     규칙"에 해당. 모달 5종(`MyPageFamilyDesignation`·`LoginModal`·`InquiryModal`·`SummaryModal`·
+     `AddressSearchModal`) 공통 규칙이라 범위가 크다 — 착수 방식 확인 대기 중.
+</div>
+
+</body>
+</html>
