@@ -126,7 +126,9 @@ export const CareGuidePage: React.FC<CareGuidePageProps> = ({ setActiveTab }) =>
   };
 
   // 00-38 §8.1-3 ① — 모바일 전용 카테고리 칩(필터, 유일 경로 아님). null = "전체".
-  const [activeCategory, setActiveCategory] = useState<string | null>(null);
+  // 2026-09-11 사람 지시 — 첫 진입 기본값을 "전체"가 아니라 "장례 단계"로. 데스크톱은 이
+  // state를 안 쓰므로(구간 접기 방식) 영향 없음.
+  const [activeCategory, setActiveCategory] = useState<string | null>('장례 단계');
   const mobileCategories: string[] = [];
   TIME_SECTIONS.forEach((section) => {
     section.ids.forEach((id) => {

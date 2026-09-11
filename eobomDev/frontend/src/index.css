@@ -932,7 +932,12 @@ body {
   .domain-overview-slide {
     height: auto;
     min-height: calc(100vh - var(--header-h));
-    padding: 1.25rem 1.2rem;
+    /* 🔄 2026-09-11 사람 리포트("/prep·/bereaved 왼쪽 여백 부족", 실기기 재현) — 하드코딩
+       1.2rem(19.2px)이 사이트 표준 모바일 거터(.container의 --gutter-page, 28px)보다
+       8.8px 좁아 다른 페이지 대비 여백이 눈에 띄게 좁았다. 09-10 scrollbar-width:none
+       수정(위 .domain-overview-scroll)은 데스크톱 비오버레이 스크롤바 전용 원인이라
+       실기기(오버레이 스크롤바)엔 효과가 없었다 — 좌우 패딩을 토큰으로 맞춘다. */
+    padding: 1.25rem var(--gutter-page);
   }
 
   @supports (height: 100dvh) {
