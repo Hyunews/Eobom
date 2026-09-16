@@ -9,7 +9,7 @@
 
 ## ▶ 다음 할 일
 
-🔴**[사람]**Vercel/Render rootDir`eobom/*`→`eobomDev/*`확인(wt175).🔵실기동=360px·1280회귀(→§2).
+🔴**WSL서git금지**—autocrlf없음·커밋=전줄LF 09-16.🔵실기동=360px·1280회귀(→§2).
 
 **0.[Opus]**🔴`00-19`제6·7조—위탁·국외이전보류(08-18)근거소멸.Cloudflare·Supabase·Render미기재.
 ⏸"국가"란보류(인프라대기).✅R2분리·`00-13`§4.5-4·`07-03`·`06-04`갱신·§4.5-4-2㉮문서정정필요.
@@ -28,13 +28,13 @@
 **2.[Sonnet]**🔴wt112~172실기동대기(사람,09-03).⏸체크8·04B=`PreDeathPlatformSetting`뒤.
 🔴wt183json사람커밋편입대기.
 🆕전페이지모바일검증루프(09-11)—①실측②목업③승인④구현,몰아서금지.순서=00-38§8표13개→부록8개.
-✅5번MyPage·6번MyObituaryListPage완료(상세→walkthrough).🔴00-38§8표MyPage행갱신([Opus]).
+✅5번MyPage·6번MyObituaryList완료(→walkthrough).🔴00-38§8표MyPage행갱신([Opus]).
 🟡height:36px3곳(Memorial:250·MyObituaryList:199·210)=Phase3보류
-✅7번=모달4종바텀시트공통규칙(index.css8클래스+media1개,SummaryModal은제외).
-✅8번FacilityPage=이미통과(변경0건).상세는전부walkthrough.
+✅7번=모달4종바텀시트공통규칙(index.css8클래스+media1개,SummaryModal제외).
+✅8번Facility=통과(변경0).
 **▶다음=9번CounselingPage**(§8표⑦나머지:CounselingPage·DigitalEstatePage,분리없음).
 
-**3.[Gemini]**게이트0건(wt203까지 전수 완료)·🟡옛스펙갱신3건→⑭.🟡devDB삭제분7건—D-8(🔴CONFIRM).
+**3.[Gemini]**게이트0건(wt203전수)·🟡옛스펙갱신3건→⑭.🟡devDB삭제분7건—D-8(🔴CONFIRM).✅reports구경로정리완료(09-16,보류8건외전건해소).
 
 ## 지금 상태
 

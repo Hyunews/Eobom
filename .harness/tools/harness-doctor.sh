@@ -290,7 +290,7 @@ echo
 
 # ── 3. 소유권 디렉토리 실존 ──────────────────────────────────────
 echo "3. 소유권 영역 디렉토리 (roles.md 기준)"
-for d in docs reports assets eobom "docs/작업일지_및_기록/에이전트_기록"; do
+for d in docs reports assets eobomDev "docs/작업일지_및_기록/에이전트_기록"; do
   CHECKS=$((CHECKS + 1))
   if [ -d "$ROOT/$d" ]; then
     ok "$d/"
@@ -305,7 +305,7 @@ echo "4. 유령 경로 검사 (.harness/*.md 안의 백틱 경로)"
 GHOST=0
 PATHS_CHECKED=0
 while IFS= read -r mdfile; do
-  # 백틱으로 감싼 것 중 경로처럼 생긴 것만 (docs/ eobom/ reports/ assets/ .harness/ 로 시작)
+  # 백틱으로 감싼 것 중 경로처럼 생긴 것만 (docs/ eobomDev/ reports/ assets/ .harness/ 로 시작)
   while IFS= read -r p; do
     [ -z "$p" ] && continue
     p="${p%/}"
@@ -318,7 +318,7 @@ while IFS= read -r mdfile; do
       fail "${mdfile#$ROOT/} → \`$p\` (실존하지 않음)"
       GHOST=$((GHOST + 1))
     fi
-  done < <(grep -oE '`(docs|reports|assets|eobom|\.harness)/[^`]*`' "$mdfile" 2>/dev/null | tr -d '`' | sort -u)
+  done < <(grep -oE '`(docs|reports|assets|eobomDev|\.harness)/[^`]*`' "$mdfile" 2>/dev/null | tr -d '`' | sort -u)
 done < <(find "$HARNESS" -maxdepth 1 -name '*.md')
 CHECKS=$((CHECKS + PATHS_CHECKED))
 if [ "$PATHS_CHECKED" -eq 0 ]; then
@@ -613,7 +613,7 @@ fi
 echo
 
 # ── 10. 소유권 교차 오염 (작업 트리) ─────────────────────────────
-# 왜 있나: `docs/`는 Opus, `eobom/`은 Sonnet 소유인데 **훅도 퍼미션도 둘을 구분하지 못한다**
+# 왜 있나: `docs/`는 Opus, `eobomDev/`는 Sonnet 소유인데 **훅도 퍼미션도 둘을 구분하지 못한다**
 #   (roles.md §1-1). 2026-08-25에 Opus가 eobom/에 코드를 써서 전량 revert한 사고가 있었고,
 #   그 위반의 모양이 정확히 **"한 작업 트리에 스펙 변경과 구현 변경이 같이 있는 것"** 이었다.
 #   누가 썼는지는 알 수 없으니 **사람에게 되묻는 것**까지가 이 검사의 역할이다.
@@ -628,7 +628,7 @@ echo
 #     · docs/작업일지_및_기록/ — walkthrough·claude_tasks·일지는 Sonnet이 **써야 한다**(done.md §1)
 #     · docs/00_DOCS_INDEX.md  — 위 실측. ⚠️ 대신 Sonnet이 인덱스를 고쳐도 여기서는 안 잡힌다.
 #   ⚠️ 제외를 늘리기 전에 위 실측을 다시 돌려볼 것. 근거 없이 빼면 검사가 비어 간다(설계 원칙 2).
-echo "10. 소유권 교차 오염 — 스펙(docs/)과 구현(eobom/)이 한 작업 트리에 섞였나"
+echo "10. 소유권 교차 오염 — 스펙(docs/)과 구현(eobomDev/)이 한 작업 트리에 섞였나"
 CHECKS=$((CHECKS + 1))
 if ! git -C "$ROOT" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
   # 설계 원칙 2 — 검사가 조용히 비활성화되는 것이 제일 위험하다. 스킵이 아니라 실패로 잡는다.
@@ -640,11 +640,11 @@ else
                 | cut -c4- | sed 's/.* -> //')
   OWN_SPEC=$(printf '%s\n' "$OWN_CHANGED" | grep '^docs/' \
              | grep -v '^docs/작업일지_및_기록/' | grep -v '^docs/00_DOCS_INDEX\.md$' || true)
-  OWN_CODE=$(printf '%s\n' "$OWN_CHANGED" | grep '^eobom/' || true)
+  OWN_CODE=$(printf '%s\n' "$OWN_CHANGED" | grep '^eobomDev/' || true)
   if [ -n "$OWN_SPEC" ] && [ -n "$OWN_CODE" ]; then
     warn "스펙 $(printf '%s\n' "$OWN_SPEC" | wc -l | tr -d ' ')개 + 구현 $(printf '%s\n' "$OWN_CODE" | wc -l | tr -d ' ')개가 함께 열려 있다 — 모드 전환이 있었나?"
     printf '%s\n' "$OWN_SPEC" | head -3 | sed 's/^/       docs  · /'
-    printf '%s\n' "$OWN_CODE" | head -3 | sed 's/^/       eobom · /'
+    printf '%s\n' "$OWN_CODE" | head -3 | sed 's/^/       eobomDev · /'
     gray "       한 사람이 둘 다 고쳤다면 소유권 위반이다(roles.md §1-1). 아니면 커밋을 나눌 것."
   elif [ -n "$OWN_SPEC" ]; then
     ok "스펙만 열려 있음 — Opus 작업"
@@ -663,7 +663,7 @@ echo
 #   몇 주를 그대로 있었다 — §9가 말하는 조용한 통과다.
 #
 # 판정 기준은 **도달 가능성**이다. 인덱스(`00_DOCS_INDEX.md`)에 실려 있으면 통과 — 인덱스가
-#   문서의 정식 입구이기 때문. 그 외에는 다른 md나 `eobom/` 소스가 이름을 부르면 통과.
+#   문서의 정식 입구이기 때문. 그 외에는 다른 md나 `eobomDev/` 소스가 이름을 부르면 통과.
 #   🔴 자기 자신은 참조로 안 친다(파일 안의 편입 메모가 자기 이름을 부른다).
 #
 # 참조 키: 앞자리가 `NN-NN`이면 **그 ID**로 찾는다. 문서끼리는 경로가 아니라 `07-04`처럼

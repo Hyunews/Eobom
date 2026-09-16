@@ -10,7 +10,7 @@
 | 목적 | 여기로 |
 | :--- | :--- |
 | **지금 뭘 해야 하나** | [`.harness/memory/context.md`](.harness/memory/context.md) |
-| **코드를 돌려보고 싶다** | [`eobom/README.md`](eobom/README.md) — ⚠️ **`https://` 필수 · DB 포트 5433** |
+| **코드를 돌려보고 싶다** | [`eobomDev/README.md`](eobomDev/README.md) — ⚠️ **`https://` 필수 · DB 포트 5433** |
 | **기획을 읽고 싶다** | [`docs/00_DOCS_INDEX.md`](docs/00_DOCS_INDEX.md) |
 | **외부 연동이 왜 안 되나** | [`.harness/systems.md`](.harness/systems.md) |
 | **AI 에이전트로 작업한다** | [`.harness/AGENTS.md`](.harness/AGENTS.md) ← **행동 규칙 정본** |
@@ -21,7 +21,7 @@
 
 ```text
 Eobom/
-├── eobom/          💻 소스코드 — frontend/(React18+Vite5+TS) · backend/(Express+Prisma+JWT)
+├── eobomDev/       💻 소스코드 — frontend/(React18+Vite5+TS) · backend/(Express+Prisma+JWT)
 ├── docs/           📄 기획 SSOT (Markdown) + 작업일지_및_기록/
 ├── .harness/       🤖 에이전트 규칙·메모리·툴
 ├── assets/         📁 원천 데이터 (복지부 CSV, 로고)

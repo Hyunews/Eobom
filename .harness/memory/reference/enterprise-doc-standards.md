@@ -15,12 +15,12 @@ created: "2026-07-29"
 
 실제 세부 구현 스펙 및 AI 하달용 프롬프트는 `.harness/skills/enterprise-document-design/` 폴더에 아카이빙되어 있습니다.
 
-* **통합 가이드 (`SKILL.md`)**: `file:///c:/Users/kilak/Desktop/Eobom/.harness/skills/enterprise-document-design/SKILL.md`
-* **01. 공공/대기업 보고서 규격**: `file:///c:/Users/kilak/Desktop/Eobom/.harness/skills/enterprise-document-design/01_public_enterprise_report.md`
-* **02. HTML/웹 대시보드 시각화**: `file:///c:/Users/kilak/Desktop/Eobom/.harness/skills/enterprise-document-design/02_web_html_visualization.md`
-* **03. 학술 논문 및 연구 서식**: `file:///c:/Users/kilak/Desktop/Eobom/.harness/skills/enterprise-document-design/03_academic_paper_style.md`
-* **04. 다이어그램 및 인포그래픽**: `file:///c:/Users/kilak/Desktop/Eobom/.harness/skills/enterprise-document-design/04_infographic_diagram_specs.md`
-* **05. AI 하달용 프롬프트 템플릿**: `file:///c:/Users/kilak/Desktop/Eobom/.harness/skills/enterprise-document-design/05_ai_worker_prompt_template.md`
+* **통합 가이드 (`SKILL.md`)**: `file:///d:/Eobom/.harness/skills/enterprise-document-design/SKILL.md`
+* **01. 공공/대기업 보고서 규격**: `file:///d:/Eobom/.harness/skills/enterprise-document-design/01_public_enterprise_report.md`
+* **02. HTML/웹 대시보드 시각화**: `file:///d:/Eobom/.harness/skills/enterprise-document-design/02_web_html_visualization.md`
+* **03. 학술 논문 및 연구 서식**: `file:///d:/Eobom/.harness/skills/enterprise-document-design/03_academic_paper_style.md`
+* **04. 다이어그램 및 인포그래픽**: `file:///d:/Eobom/.harness/skills/enterprise-document-design/04_infographic_diagram_specs.md`
+* **05. AI 하달용 프롬프트 템플릿**: `file:///d:/Eobom/.harness/skills/enterprise-document-design/05_ai_worker_prompt_template.md`
 
 ---
 
