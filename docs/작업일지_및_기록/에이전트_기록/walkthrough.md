@@ -3484,3 +3484,19 @@ wt137 그대로라 재작업 없음).
 
 <!-- Gemini 판정 1줄: … -->
 
+
+
+## 2026-09-16 | 9번 CounselingPage 모바일 대응 재구현 (00-38 §8 표 ⑦) — 9c36db2 revert 후
+
+- **근거 스펙**: `docs/00_핵심플랫폼/00-38_적응형_모바일_UX_개편_명세서.md` §8.3(줄755, CounselingPage 행) — "`minmax`·`repeat` 각 1곳 → `.auto-grid`. `TaxSimulatorModal`은 §8.2 바텀시트 공통 규칙 적용". §8.2(줄709)가 바텀시트 공통 규칙 대상으로 명시한 모달은 `LoginModal`·`InquiryModal`·`SummaryModal`·`AddressSearchModal`(+기준 `MyPageFamilyDesignation`)이고 `ConsultRequestModal`은 이 목록에 없다.
+- **건드린 파일**: `eobomDev/frontend/src/pages/CounselingPage.tsx`, `eobomDev/frontend/src/components/counseling/TaxSimulatorModal.tsx`, `eobomDev/frontend/src/components/expert/ConsultRequestModal.tsx`, `eobomDev/frontend/src/index.css`. `_mockups/CounselingPage.html`은 삭제 상태로 둠.
+- **결과**:
+  1. `CounselingPage.tsx:176` 전문가 카드 그리드 — `style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(min(280px, 100%), 1fr))', gap:'1rem' }}` → `className="auto-grid"`.
+  2. `TaxSimulatorModal.tsx` — 인라인 backdrop/panel 스타일을 `.tax-sim-modal-backdrop`/`.tax-sim-modal-panel`로 추출(`index.css`). 데스크톱 기본값은 원래 인라인 값과 동일(rgba(15,23,42,0.75) 배경·blur(8px)·zIndex 2200·maxWidth 560px·maxHeight 90vh). 768px 이하에서 기존 `.myfamily-modal-*`·`.login-modal-*`·`.inquiry-modal-*`·`.address-modal-*` 4종이 쓰던 `@media (max-width: 768px)` 바텀시트 블록(`align-items:flex-end`·`border-radius:16px 16px 0 0`·`max-height:88dvh`·`--gutter-chrome` 패딩)에 5번째로 합류.
+  3. `ConsultRequestModal.tsx` — 인라인 backdrop/panel 스타일을 `.consult-modal-backdrop`/`.consult-modal-panel`로 추출. 원래 `maxHeight`/`overflow`가 전혀 없어 7필드 폼(이름·연락처·상담방식·일시·내용·동의문구·제출버튼)이 짧은 화면에서 하단 제출 버튼까지 스크롤이 안 닿던 실제 버그를 `max-height:88dvh; overflow-y:auto;`로 고침(목업 승인 체크포인트 ②의 수치를 그대로 씀). 바텀시트 미디어쿼리에는 합류시키지 않아 중앙 정렬을 모바일에서도 유지.
+  4. `tsc --noEmit`(frontend·backend 각각) 에러 0. `npm run build`는 안 돌림.
+  5. 실기동(360px·1280 회귀)은 사람이 하는 것 — 미검증.
+- **편차**: `9c36db2`(같은 제목의 이전 커밋)를 `git revert --no-commit`으로 되돌리고 이 항목으로 다시 구현했다. 되돌린 이유·이전 구현이 스펙·목업과 어떻게 어긋났는지는 `backlog.md` ⑰에 상세 기록. 되돌려진 커밋에 있던 시뮬레이터 배너 `flexWrap` 수정·페이지 제목 모바일 축약(`useIsMobile`)·분야 필터 가로 스크롤은 `00-38` §8.3에 없는 항목이라 이번 재구현에 포함하지 않음(필요하면 별도로 다시 지시받아 처리).
+- **다음 에이전트가 알아야 할 것**: 실기동 검증 대기(사람). `backlog.md` ⑰의 Gemini 판정도 별도로 남을 것 — 이 항목과 함께 확인.
+
+<!-- Gemini 판정 1줄: 대기 -->

@@ -32,7 +32,8 @@
 🟡height:36px3곳(Memorial:250·MyObituaryList:199·210)=Phase3보류
 ✅7번=모달4종바텀시트공통규칙(index.css8클래스+media1개,SummaryModal제외).
 ✅8번Facility=통과(변경0).
-**▶다음=9번CounselingPage**(§8표⑦나머지:CounselingPage·DigitalEstatePage,분리없음).
+✅9번=00-38§8.3구현.tsc0.실기동대기.🔴9c36db2revert(Opus위반+스펙어긋남→backlog⑰)
+**▶다음=DigitalEstatePage**(§8표⑦나머지,분리없음).
 
 **3.[Gemini]**게이트0건(wt203전수)·🟡옛스펙갱신3건→⑭.🟡devDB삭제분7건—D-8(🔴CONFIRM).✅reports구경로정리완료(09-16,보류8건외전건해소).
 

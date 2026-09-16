@@ -37,34 +37,8 @@ export const TaxSimulatorModal: React.FC<TaxSimulatorModalProps> = ({ onClose })
   const fmt = (v: number) => Math.round(v).toLocaleString();
 
   return (
-    <div
-      style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        backgroundColor: 'rgba(15, 23, 42, 0.75)',
-        backdropFilter: 'blur(8px)',
-        zIndex: 2200,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: '1rem',
-      }}
-    >
-      <div
-        style={{
-          backgroundColor: '#FFFFFF',
-          borderRadius: 'var(--r-lg)',
-          padding: '1.5rem',
-          maxWidth: '560px',
-          width: '100%',
-          maxHeight: '90vh',
-          overflowY: 'auto',
-          position: 'relative',
-        }}
-      >
+    <div className="tax-sim-modal-backdrop">
+      <div className="tax-sim-modal-panel">
         <button
           onClick={onClose}
           style={{ position: 'absolute', top: '1.2rem', right: '1.2rem', border: 'none', background: 'none', cursor: 'pointer' }}
