@@ -27,7 +27,7 @@
 
 | 노트 | 코드 경로 | 상태 |
 |---|---|---|
-| [eobom](file:///d:/Eobom/.harness/memory/context.md) | `d:\Eobom\eobomDev` | 진행중 (Domain 01 프론트엔드 구현 — 카카오맵 연동) |
+| [eobom](context.md) | `eobomDev/`(저장소 루트 기준) | 진행중 (Domain 01 프론트엔드 구현 — 카카오맵 연동) |
 
 > 현재는 단일 프로젝트(eobom) 구조라 `.harness/memory/context.md` 하나로 관리한다. 별도 프로젝트가 추가되면 그때 프로젝트별 노트 분리를 재검토한다.
 
