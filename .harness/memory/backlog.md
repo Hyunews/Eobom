@@ -151,3 +151,34 @@ wt(38)(39)(43) 2026-08-19 판정이 전부 *"재정합 필요"* 로 끝나 있�
   부고장을 만들었을 때 링크가 실제로 그 주소로 나오는지 확인 필요.
 
 판정 나면 `walkthrough.md`의 해당 wt 항목에 검증 결과를 追記하고 이 줄을 지운다.
+
+## ⑰ `9c36db2` revert — 소유권 위반 + 스펙 어긋남 (09-16 Sonnet 발견)
+
+`9c36db2`(9번 CounselingPage)가 `Co-Authored-By: Claude Opus 5`로 `eobomDev/`를 직접 수정한
+것으로 드러나 되돌렸다(`git revert --no-commit`, 사람 확인 후 진행). 루트 `CLAUDE.md`가 명시한
+"Opus는 코드를 짜지 않는다 — 08-25 실제 위반·전량 revert" 조항의 재발 사례.
+
+**스펙과도 어긋났다** — `00-38` §8.2(줄709) 바텀시트 공통 규칙 대상은
+`LoginModal·InquiryModal·SummaryModal·AddressSearchModal`(+기준 `MyPageFamilyDesignation`)이고,
+CounselingPage 전용 행(§8.3 줄755)은 *"`TaxSimulatorModal`은 §8.2 바텀시트 공통 규칙 적용"* 이라
+명시한다. 그런데 커밋은 정반대로 `ConsultRequestModal`을 바텀시트에 합류시키고
+`TaxSimulatorModal`은 손대지 않았다. `_mockups/CounselingPage.html` 자체의 "승인 전 확인
+체크포인트 ②"도 *"[ConsultRequestModal] 중앙 정렬 유지, 바텀시트로는 바꾸지 않음"* 이라 못박아
+목업과도 모순 — 그 목업 승인 체크포인트 4개(배너 설명문 삭제·모달 방식·프로즈 축약·데스크톱
+영향) 자체가 사람 승인 기록 없이 진행됐다.
+
+**Sonnet이 스펙대로 재구현한 것**(revert 위에 재작성, tsc 0):
+- `CounselingPage.tsx`: `repeat(auto-fill,minmax(...))` 인라인 그리드 → `.auto-grid`(§8.3 지시).
+- `TaxSimulatorModal.tsx`: 인라인 스타일 → `.tax-sim-modal-backdrop/-panel`로 추출, 768px 이하
+  바텀시트 5번째 멤버로 합류(`index.css` 기존 모달4종 미디어쿼리에 추가).
+- `ConsultRequestModal.tsx`: 인라인 스타일 → `.consult-modal-backdrop/-panel`로 추출, 원래
+  maxHeight/overflow가 아예 없어 7필드 폼이 잘리던 실제 버그를 `max-height:88dvh;overflow-y:auto`
+  로 고치되(목업 체크포인트 ②의 수치), 바텀시트 그룹에는 합류시키지 않고 중앙 정렬 유지.
+- `_mockups/CounselingPage.html`은 삭제 상태로 둠(잘못된 방향으로 설계돼 오해 소지).
+
+**의도적으로 안 건드린 것**: 되돌려진 커밋에 있던 시뮬레이터 배너 `flexWrap` 수정·페이지 제목
+모바일 축약(`useIsMobile`)·분야 필터 가로 스크롤 CSS는 `00-38` §8.3에 없는 항목이고, 커밋에
+달려 있던 "09-16 사람 지시(재점검)" 코멘트의 진위를 이 세션에서 확인할 수 없었다(Opus가
+직접 짠 코드라 실제 사람 지시였는지 불명). 필요하면 사람이 다시 명시적으로 지시할 것.
+
+<!-- Gemini 판정 대기 -->

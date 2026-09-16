@@ -2101,11 +2101,77 @@ body {
   box-shadow: var(--el-3);
 }
 
+/* TaxSimulatorModal(CounselingPage) — 00-38 §8.3(CounselingPage 행)이 명시적으로 지목한
+   대상: "TaxSimulatorModal은 §8.2 바텀시트 공통 규칙 적용". 기본값은 기존 인라인 스타일과
+   동일(배경·블러·z-index·520→560px 폭·90vh 안전장치는 원래 있던 것을 클래스로만 옮김),
+   768px 이하에서 아래 미디어쿼리로 다른 4종과 같은 바텀시트에 합류한다. */
+.tax-sim-modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(15, 23, 42, 0.75);
+  backdrop-filter: blur(8px);
+  z-index: 2200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  overflow-y: auto;
+}
+
+.tax-sim-modal-panel {
+  background-color: #FFFFFF;
+  border-radius: var(--r-lg);
+  padding: 1.5rem;
+  max-width: 560px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  position: relative;
+}
+
+/* 상담 신청 모달(ConsultRequestModal) — 필드 7개짜리 폼이라 위/아래로 잘리는 버그가
+   있었다(원래 maxHeight/overflow가 아예 없었음). 00-38 §8.2 목록(LoginModal·InquiryModal·
+   AddressSearchModal·MyPageFamilyDesignation)에는 없는 모달이라 바텀시트에는 합류시키지
+   않고, 중앙 정렬을 유지한 채 dvh 안전장치만 추가한다(모바일 주소창에 잘리지 않도록
+   vh 대신 dvh — 00-38 §8.2와 같은 이유). */
+.consult-modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(15, 23, 42, 0.75);
+  backdrop-filter: blur(8px);
+  z-index: 2200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  overflow-y: auto;
+}
+
+.consult-modal-panel {
+  background-color: #FFFFFF;
+  border-radius: var(--r-lg);
+  padding: 1.5rem;
+  max-width: 520px;
+  width: 100%;
+  max-height: 88dvh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  position: relative;
+}
+
 @media (max-width: 768px) {
   .myfamily-modal-backdrop,
   .login-modal-backdrop,
   .inquiry-modal-backdrop,
-  .address-modal-backdrop {
+  .address-modal-backdrop,
+  .tax-sim-modal-backdrop {
     align-items: flex-end;
     padding: 0;
   }
@@ -2113,7 +2179,8 @@ body {
   .myfamily-modal-panel,
   .login-modal-panel,
   .inquiry-modal-panel,
-  .address-modal-panel {
+  .address-modal-panel,
+  .tax-sim-modal-panel {
     max-width: none;
     width: 100%;
     margin: 0;

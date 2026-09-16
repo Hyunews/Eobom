@@ -173,7 +173,7 @@ export const CounselingPage: React.FC<CounselingPageProps> = ({ currentUser, onO
             <p style={{ fontSize: 'var(--fs-body)' }}>준비되는 대로 순차적으로 노출됩니다.</p>
           </div>
         ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(280px, 100%), 1fr))', gap: '1rem' }}>
+          <div className="auto-grid">
             {experts.map((exp) => (
               <div key={exp.id} style={{
                 padding: '1rem',
