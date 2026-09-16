@@ -124,7 +124,7 @@
   - `eobom/frontend/src/` (컴포넌트, 페이지, 스타일 토큰 `index.css`)
   - 웰다잉 브랜드 비주얼 감성, 4박스 인터랙션, 사이드바 레이아웃 시프트, 모바일 하단 탭 바, 도메인별 세부 UI 디테일, 6070 시니어 접근성 등 진단.
 - [x] **보고서 HTML 단독 소유 생성**:
-  - [`reports/00_핵심플랫폼/00-24_이어봄_프론트엔드_UIUX_디자인_개선_보고서.html`](file:///c:/Users/kilak/Desktop/Eobom/reports/00_핵심플랫폼/00-24_이어봄_프론트엔드_UIUX_디자인_개선_보고서.html)
+  - [`reports/00_핵심플랫폼/00-24_이어봄_프론트엔드_UIUX_디자인_개선_보고서.html`](../../../reports/00_핵심플랫폼/00-24_이어봄_프론트엔드_UIUX_디자인_개선_보고서.html)
 - [x] **단계별 3단계 개선 로드맵 수립**:
   - Phase 1 (Quick Wins: 컬러 대비율, 4박스 힌트 칩, 진행률 바, 터치 피드백)
   - Phase 2 (Visual Polish: 사이드바 드로어화, 모바일 하단 탭바, 상속세 배너 프리미엄화)
@@ -279,5 +279,17 @@
   - `wt203`: `/prep`·`/bereaved` 도메인 소개 페이지 모바일 푸터 왼쪽 쏠림(flex-row / width 누락) 완전 해결, 모바일 슬라이드 패딩 `--gutter-page`(28px) 정규화.
 - [x] **하네스 무결성**: `context.md` (2917B / 3072B, 94.9%), `walkthrough.md` 대기열 0건 확인.
 
+---
 
-
+### 25. 2026-09-16 reports/ 구 경로(eobom/ → eobomDev/) 정리 완료
+- [x] **HTML 보고서 재생성 자동 해소 (9건)**:
+  - `node .harness/tools/generate_all_reports.js` 실행 ➔ `reports/트러블슈팅/TS-001·002·003.html` 9건 자동 해소 완료 (`docs/트러블슈팅` 정본 반영).
+- [x] **비재생성 대상 직접 정정**:
+  - `reports/99.eobom_study/index.html`: `eobom/` ➔ `eobomDev/` 24건 치환 완료 (localStorage `eobom_study_progress` 보존).
+  - `reports/99.eobom_study/01_service_map.html`: 코드 워크스루 내 컴포넌트 경로 `eobom/` ➔ `eobomDev/` 치환 완료.
+  - `reports/style.css`: 구현 정본 안내 주석 `eobom/` ➔ `eobomDev/` 1건 치환 완료.
+  - `reports/home_redesign/b.html`: 이미지 경로 `../../eobom/` ➔ `../../eobomDev/` 1건 치환 완료.
+  - 컨테이너명(`eobom-postgres`), DB명(`eobom_db`), 폴더명(`99.eobom_study`) 일체 보존.
+- [x] **보류 대상 보존**:
+  - `reports/기술부채_외부지적_점검_260831.html` (2건, 원본 `_meta` 보류) 및 `reports/_archive/` (아카이브 보존) 미수정 유지.
+- [x] **최종 검증**: `reports/` 내 `eobom/` 잔여 확인 결과 보류 대상(기술부채 2건 + 아카이브) 외 구 경로 0건 확인 완료.

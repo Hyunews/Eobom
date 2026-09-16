@@ -102,7 +102,7 @@ cat <<'EOF'
 사람이 "세션 불러오기"라고 말하지 않아도 매 세션(시작·재개·clear·compact) 들어온다.
 
 🔴 이 내용을 다시 읽겠다고 파일을 또 열지 말 것 — 이미 아래에 전문이 있다.
-🔴 지금 모드가 Opus(기획, docs/·.harness/)인지 Sonnet(구현, eobom/)인지 먼저 확인할 것.
+🔴 지금 모드가 Opus(기획, docs/·.harness/)인지 Sonnet(구현, eobomDev/)인지 먼저 확인할 것.
 🔴 pending-approvals.md "대기 중" 항목은 착수 금지.
 EOF
   emit "1. .harness/memory/context.md — 지금 상태 + 다음 할 일" "$ROOT/.harness/memory/context.md"

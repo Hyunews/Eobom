@@ -13,7 +13,7 @@ const fs = require('fs');
 const path = require('path');
 const os = require('os');
 
-const DIR = path.join(os.homedir(), '.claude', 'projects', 'C--Users-kilak-Desktop-Eobom');
+const DIR = path.join(os.homedir(), '.claude', 'projects', 'D--Eobom');
 const PRICE = {
   opus:   { in: 15, out: 75, cw: 18.75, cr: 1.5 },
   sonnet: { in: 3,  out: 15, cw: 3.75,  cr: 0.3 },

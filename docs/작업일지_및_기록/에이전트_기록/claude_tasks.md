@@ -1,7 +1,7 @@
 # 🟧 claude_tasks.md — Claude(코딩/구현) 전용 작업 로그
 
 > 살아있는 실무 로그. 디버깅 잡담, 체크리스트, 진행 중 상태를 가감 없이 남기는 곳.
-> 한 사이클이 끝나면 중요한 것만 추려서 [`walkthrough.md`](walkthrough.md)로 정제하고, 그 최신 한 줄만 [`context.md`](context.md)에 반영한다.
+> 한 사이클이 끝나면 중요한 것만 추려서 [`walkthrough.md`](walkthrough.md)로 정제하고, 그 최신 한 줄만 [`context.md`](../../../.harness/memory/context.md)에 반영한다.
 
 > 🔴 **2026-09-02 — 2026-08-26 이하 41건은 아카이브로 옮겼습니다.**
 > [`claude_tasks_아카이브_2608.md`](claude_tasks_아카이브_2608.md) (160KB → 22KB)
