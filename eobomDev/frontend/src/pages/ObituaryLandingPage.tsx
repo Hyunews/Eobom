@@ -82,12 +82,14 @@ export const ObituaryLandingPage: React.FC = () => {
       .finally(() => setLoading(false));
   }, [slug]);
 
+  // 00-38 §4.1 — 좌우 여백을 토큰화(값은 그대로 16px, --gutter-chrome과 정확히 일치).
+  // §8.4 — 조문객 100%가 모바일로 보는 화면이라 구조는 그대로 두고 거터만 맞춘다.
   const pageShellStyle: React.CSSProperties = {
     minHeight: '100vh',
     backgroundColor: '#FBF9F5',
     display: 'flex',
     justifyContent: 'center',
-    padding: '2.5rem 1rem',
+    padding: '2.5rem var(--gutter-chrome)',
   };
 
   if (loading) {

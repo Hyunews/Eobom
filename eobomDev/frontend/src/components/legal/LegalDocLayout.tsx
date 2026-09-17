@@ -38,7 +38,9 @@ export const LegalDocLayout: React.FC<LegalDocLayoutProps> = ({ title, effective
       <h1 style={{ color: 'var(--primary-color)', fontSize: '1.9rem', margin: '0 0 0.3rem 0' }}>{title}</h1>
       <p style={{ color: 'var(--text-muted)', fontSize: 'var(--fs-body)', marginBottom: '2rem' }}>{effectiveDateLabel}</p>
 
-      <div style={{ color: 'var(--primary-color)', lineHeight: 1.8 }}>{children}</div>
+      {/* 00-38 §4.3·§8.5 — 법정 고지 본문은 "몰입 리더·긴 글"에 해당해 --lh-reader(1.9)를 쓴다.
+          기존 1.8(=--lh-body 기본값)과 거의 같아 시각 차이는 미미하지만, 토큰 밖 리터럴을 없앤다. */}
+      <div style={{ color: 'var(--primary-color)', lineHeight: 'var(--lh-reader)' }}>{children}</div>
 
       <div style={{ marginTop: '3rem', paddingTop: '1.5rem', borderTop: '1px solid var(--border-color)' }}>
         <Link to="/" style={{ color: 'var(--point-color)', fontWeight: 600, textDecoration: 'none' }}>
@@ -82,7 +84,7 @@ export const LegalChapter: React.FC<{ title: string; children: React.ReactNode }
 
 // 항 번호가 매겨진 목록 — 법령 표기(1. 2. 3.)와 시각적으로 맞춘 순서 목록.
 export const LegalList: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-  <ol style={{ paddingLeft: '1.4rem', margin: '0 0 var(--sp-3) 0', lineHeight: 1.85 }}>{children}</ol>
+  <ol style={{ paddingLeft: '1.4rem', margin: '0 0 var(--sp-3) 0', lineHeight: 'var(--lh-reader)' }}>{children}</ol>
 );
 
 // 표 — 처리 목적/보유기간 등 표 형태 조항용.

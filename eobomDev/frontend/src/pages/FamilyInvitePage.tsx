@@ -41,13 +41,15 @@ interface InviteData {
 
 type ViewState = 'loading' | 'ready' | 'expired' | 'notfound' | 'accepted' | 'declined' | 'error';
 
+// 00-38 §8.5 — 초대 링크를 카톡·문자로 받아 여는 화면이라 랜딩(ObituaryLanding·MemorialLanding)과
+// 성격이 같아 Phase 4에 편입됐다. 좌우 여백을 토큰화(값은 그대로 16px, --gutter-chrome과 일치).
 const shellStyle: React.CSSProperties = {
   minHeight: '100vh',
   backgroundColor: '#FBF9F5',
   display: 'flex',
   justifyContent: 'center',
   alignItems: 'center',
-  padding: '2.5rem 1rem',
+  padding: '2.5rem var(--gutter-chrome)',
 };
 
 const cardStyle: React.CSSProperties = {

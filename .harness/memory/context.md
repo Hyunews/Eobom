@@ -10,6 +10,8 @@
 ## ▶ 다음 할 일
 
 🔴**WSL서git금지**—autocrlf없음·커밋=전줄LF 09-16.🔵실기동=360px·1280회귀(→§2).
+🔴🔴09-17CRLF오염—`fa4547d`·`5b2d95b` 5개파일(index.css등)줄바꿈만오염,코드는멀쩡(tsc·build
+통과).재정규화커밋+`.gitattributes`(eol=lf)필요→**사람확인후진행**(backlog⑱).
 
 **0.[Opus]**🔴`00-19`제6·7조—위탁·국외이전보류(08-18)근거소멸.Cloudflare·Supabase·Render미기재.
 ⏸"국가"란보류(인프라대기).✅R2분리·`00-13`§4.5-4·`07-03`·`06-04`갱신·§4.5-4-2㉮문서정정필요.
@@ -27,10 +29,9 @@
 
 **2.[Sonnet]**🔴wt112~172실기동대기(사람,09-03).⏸체크8·04B=`PreDeathPlatformSetting`뒤.
 🔴wt183json사람커밋편입대기.
-✅**검증루프5~10완료(09-17)**—MyPage·MyObituaryList·모달4종·Facility·Counseling(⑰)·DigitalEstate.
-🔴**11~13(그룹4)은루프에없었다**—"13개완료"는오독,Phase4미착수(→`00-38`§8상태열).
-✅**00-38§8표갱신+§8.3-1(모달2개)+§8.5부록판정완료(09-17)**.
-🔴**다음=Phase4**:Home·ObituaryLanding·MemorialLanding+FamilyInvite→Privacy·Terms(§8.5).
+✅**00-38전체완료(09-17)**—§8표13개+§8.5부록(FamilyInvite·Privacy·Terms·DomainOverview=
+변경0)전부tsc·build통과.Pickup=⏸03뒤·Admin계열⏸보류,지시대로안건드림.
+🔴**다음=Opus**—문서갱신+실기동종합확인요청(→walkthrough09-17항목들).
 🟡height:36px3곳(Memorial:250·MyObituaryList:199·210)=Phase3보류.
 
 **3.[Gemini]**게이트0건(wt203전수)·🟡옛스펙갱신3건→⑭.🟡devDB삭제분7건—D-8(🔴CONFIRM).✅reports구경로정리완료(09-16,보류8건외전건해소).
