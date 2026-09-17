@@ -178,7 +178,7 @@ export const CareGuidePage: React.FC<CareGuidePageProps> = ({ setActiveTab }) =>
             type="button"
             onClick={() => inheritanceRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
             className="btn"
-            style={{ background: 'none', color: 'var(--text-muted)', border: '1px solid var(--border-color)', height: '38px', fontSize: 'var(--fs-body)', padding: '0 1rem' }}
+            style={{ background: 'none', color: 'var(--text-muted)', border: '1px solid var(--border-color)', height: '44px', fontSize: 'var(--fs-body)', padding: '0 1rem' }}
           >
             내용 보기
           </button>
@@ -186,7 +186,7 @@ export const CareGuidePage: React.FC<CareGuidePageProps> = ({ setActiveTab }) =>
             type="button"
             onClick={() => setActiveTab?.('counseling')}
             className="btn"
-            style={{ backgroundColor: 'var(--primary-color)', color: '#FFFFFF', height: '38px', fontSize: 'var(--fs-body)', padding: '0 1rem' }}
+            style={{ backgroundColor: 'var(--primary-color)', color: '#FFFFFF', height: '44px', fontSize: 'var(--fs-body)', padding: '0 1rem' }}
           >
             전문가 상담
           </button>
@@ -203,8 +203,10 @@ export const CareGuidePage: React.FC<CareGuidePageProps> = ({ setActiveTab }) =>
         {isMobile ? (
           <>
             {/* 00-38 §8.1-3 ① — 가로 스크롤 카테고리 칩. 필터일 뿐 유일 경로 아니다
-                (§6.4 3조건 — "전체"가 기본이라 칩을 안 써도 전부 보인다). */}
-            <div style={{ display: 'flex', gap: 'var(--sp-2)', overflowX: 'auto', WebkitOverflowScrolling: 'touch', paddingBottom: 'var(--sp-2)', marginBottom: 'var(--sp-3)' }}>
+                (§6.4 3조건 — "전체"가 기본이라 칩을 안 써도 전부 보인다).
+                §11.1 ⓑ #1·#2 — 스크롤바 숨김 + 엣지투엣지는 .chip-track(index.css)이 처리한다.
+                좌우 padding은 그 클래스 몫이라 여기서는 shorthand padding을 쓰지 않는다. */}
+            <div className="chip-track" style={{ display: 'flex', gap: 'var(--sp-2)', overflowX: 'auto', WebkitOverflowScrolling: 'touch', paddingBottom: 'var(--sp-2)', marginBottom: 'var(--sp-3)' }}>
               {['전체', ...mobileCategories].map((cat) => {
                 const isActive = cat === '전체' ? activeCategory === null : activeCategory === cat;
                 return (
@@ -214,6 +216,7 @@ export const CareGuidePage: React.FC<CareGuidePageProps> = ({ setActiveTab }) =>
                     onClick={() => setActiveCategory(cat === '전체' ? null : cat)}
                     style={{
                       flexShrink: 0, whiteSpace: 'nowrap', cursor: 'pointer',
+                      display: 'inline-flex', alignItems: 'center', justifyContent: 'center', minHeight: '44px',
                       border: `1px solid ${isActive ? 'var(--primary-color)' : 'var(--border-color)'}`,
                       backgroundColor: isActive ? 'var(--primary-color)' : '#FFFFFF',
                       color: isActive ? '#FFFFFF' : 'var(--text-main)',
@@ -272,11 +275,14 @@ export const CareGuidePage: React.FC<CareGuidePageProps> = ({ setActiveTab }) =>
                           ...(t.severity === 'CRITICAL' ? { borderLeft: `3px solid ${SEVERITY_LABEL.CRITICAL.color}` } : {}),
                         }}
                       >
+                        {/* §11.1 ⓑ #3 — 실측 20×20px, §9.2가 정한 24px 미달. 행 전체(≥56px,
+                            role="checkbox")가 이미 히트 영역이라 어디를 눌러도 토글되지만,
+                            체크박스 자체의 시각 크기도 24px로 키운다. */}
                         <input
                           type="checkbox"
                           checked={t.checked}
                           readOnly
-                          style={{ width: '20px', height: '20px', marginTop: '0.15rem', flexShrink: 0, pointerEvents: 'none' }}
+                          style={{ width: '24px', height: '24px', marginTop: '0.1rem', flexShrink: 0, pointerEvents: 'none' }}
                         />
                         <div style={{ flex: 1, minWidth: 0 }}>
                           <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 'var(--sp-2)' }}>
