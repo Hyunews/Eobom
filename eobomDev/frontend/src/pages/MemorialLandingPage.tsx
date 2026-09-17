@@ -154,12 +154,14 @@ export const MemorialLandingPage: React.FC = () => {
     setShareFeedback(copied ? '링크가 복사되었습니다.' : '복사에 실패했습니다. 주소창의 링크를 직접 복사해 주세요.');
   };
 
+  // 00-38 §4.1 — 좌우 여백을 토큰화(값은 그대로 16px, --gutter-chrome과 정확히 일치).
+  // §8.4 — 토큰·거터만 적용, 본체(MemorialPage)는 범위 밖.
   const pageShellStyle: React.CSSProperties = {
     minHeight: '100vh',
     backgroundColor: '#FBF9F5',
     display: 'flex',
     justifyContent: 'center',
-    padding: '2.5rem 1rem',
+    padding: '2.5rem var(--gutter-chrome)',
   };
   const cardStyle: React.CSSProperties = {
     backgroundColor: '#FFFFFF',

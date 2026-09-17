@@ -201,3 +201,68 @@ CounselingPage 전용 행(§8.3 줄755)은 *"`TaxSimulatorModal`은 §8.2 바텀
 너무 큼" 지적 반영). 전부 `tsc` 에러 0, walkthrough 09-16·09-17 항목에 기록됨. **⑰ 닫음.**
 
 <!-- Gemini 판정 대기 -->
+
+## ⑱ 🔴 CRLF 줄바꿈 오염 — 09-17 Phase 4 작업 중 발견, 사람 판단 필요
+
+**경위**: 09-16 세션 초반 `core.autocrlf`가 로컬에 `true`로 켜져 있던 것을 발견해 `false`로
+껐다(Claude 메모리 `wsl-git-forbidden` 참고 — 저장소 밖이라 위키링크로 걸지 않는다). 그런데 그 끄기 작업 **이전에** 이미 여러 커밋이
+`autocrlf=true`인 채로 만들어졌고, 그 시점 작업 트리 파일이 전부 CRLF로 체크아웃돼 있던 상태에서
+커밋된 탓에 **일부 파일의 git 커밋 자체에 CRLF가 그대로 박혔다**(정상이라면 `autocrlf=true`가
+add 시점에 LF로 되돌렸어야 하는데, 이 환경에서는 그렇게 안 됐다 — 원인 미상, 재현 필요시 확인).
+
+**피해 범위(확인됨)** — `fa4547d`(10번수정)·`5b2d95b`(9번 CounselingPage 재구현) 커밋이 건드린
+5개 소스 파일의 **HEAD 블롭 자체**가 CRLF다:
+`eobomDev/frontend/src/index.css`(해당 커밋 diff가 "5441줄 변경"으로 찍힘 — 실제 의미있는 변경은
+수십 줄 수준이었는데 전체 파일이 두 번 다시 쓰인 것처럼 보임) ·
+`eobomDev/frontend/src/pages/CounselingPage.tsx`(472줄) ·
+`eobomDev/frontend/src/components/counseling/TaxSimulatorModal.tsx`(374줄) ·
+`eobomDev/frontend/src/pages/DigitalEstatePage.tsx`(396줄) ·
+`eobomDev/frontend/src/components/expert/ConsultRequestModal.tsx`.
+`.harness/memory/*.md`(context·backlog)와 `walkthrough.md`는 **오염 안 됨**(확인함, LF 유지).
+
+**영향**: 코드 자체(런타임 동작)는 멀쩡하다 — `tsc`·`npm run build` 전부 통과했고 이 세션에서
+실제로 브라우저에 띄워 확인도 했다. **오염된 것은 git 히스토리의 diff 가독성뿐**이다 —
+`git show fa4547d`·`git blame`이 실제 변경과 무관한 줄을 대량으로 걸어 보여준다. `record.md`가
+요구하는 "반증 가능한 결과"(건드린 파일·정확한 변경 내용)가 그 두 커밋에 한해 사실상 깨졌다.
+
+**이번 세션에서 한 것**: Phase 4 작업 중 똑같은 일이 **또** 일어나려는 걸 잡았다 — 편집한 4개
+파일(`LegalDocLayout.tsx`·`FamilyInvitePage.tsx`·`MemorialLandingPage.tsx`·`ObituaryLandingPage.tsx`)
+의 작업 트리 사본이 전부 CRLF로 떠 있어(각 파일 HEAD 블롭은 LF) 그대로 뒀으면 5번째 오염
+커밋이 될 뻔했다. PowerShell `[System.IO.File]::ReadAllText/WriteAllText`로 4개 파일을 **LF로
+재정규화**(내용은 그대로, 줄바꿈만) → `git diff`가 실제 변경분(13줄 추가/5줄 삭제)만 보여주는
+것으로 확인. **Phase 4 커밋은 깨끗하다.**
+
+🔴 **닫힌 5개 파일은 그대로 뒀다** — 이미 커밋된 히스토리를 건드리는 건 사람 판단 영역이라
+(`AGENTS.md` §4 에스컬레이션 — "되돌리기 어려운 것"에 가깝다) 임의로 정규화 커밋을 만들지 않았다.
+
+🔄 **2026-09-17 `[Opus]` 재측정 — 위 경위·범위 2건을 정정한다**(본문은 기록으로 남긴다).
+
+**① 경위 정정** — *"`core.autocrlf`가 `true`로 켜져 있던 것을 발견해 `false`로 껐다"* 는 반대다.
+09-16 세션이 한 것은 **repo-local에 `true`를 넣은 것**이다(그 전에는 local 설정이 아예 없었고,
+`C:\ProgramData\Git\config`의 `true`만 있어 WSL이 못 봤다 — WSL 88건 vs Windows 19건). 지금
+`.git/config`는 **`false`** 이므로 **09-17에 누군가 `true`→`false`로 바꾼 것**이다.
+🔴 `false`면 작업 트리의 CRLF가 **그대로 커밋된다** — 끄는 쪽이 오염을 부르는 방향이다.
+
+**② 범위 정정 — "5개 파일"이 아니다.** `git cat-file`로 HEAD 블롭을 직접 세면
+🔴 **285개 중 177개(62%)가 이미 CRLF**다. `index.css`는 `b6e2f70`(09-11, 문제의 세션들보다
+앞선다)부터 **계속 CRLF**였고 `README.md`는 `ba93691`부터 그렇다. 즉 **09-16·09-17 커밋이
+오염을 만든 것이 아니라, 원래 CRLF이던 파일을 그대로 유지한 것**이다.
+🔵 *"`index.css` diff가 5441줄"* 도 이 커밋들이 만든 현상이 아니다 — 블롭은 앞뒤 커밋 모두 CRLF다
+(2649 → 2693 → 2716 → 2727). **보는 쪽의 `autocrlf` 값에 따라 diff가 요동친 것**에 가깝다.
+
+**그래서 권장 1(5개 파일만 재정규화)은 부분 처방이다.** 62%가 CRLF인 상태에서 5개만 LF로 바꾸면
+혼재가 더 심해진다. 🔴 **전면 재정규화 1회** 아니면 **현상 유지** 중 하나를 골라야 하고, 어느 쪽이든
+**권장 2(`.gitattributes`)가 먼저**다 — 그게 없으면 세션마다 `autocrlf`가 뒤집히는 일이 또 생긴다
+(09-16 `true` → 09-17 `false`가 실제로 그랬다). 🟡 `.sh`는 LF여야 하므로 `* text=auto eol=lf`로
+일괄 지정하되 `*.ps1 text eol=crlf`만 예외로 두는 편이 안전하다.
+
+**권장(사람 확인 후 진행)**:
+1. 위 5개 파일을 LF로 재정규화하는 **별도 커밋**(내용 변경 없음, 순수 줄바꿈 — 메시지에
+   명시해 향후 `git blame`이 헷갈리지 않게 한다).
+2. 재발 방지 — 저장소 루트에 `.gitattributes` 신설: `* text=auto eol=lf` (또는 최소
+   `*.ts *.tsx *.css *.md text eol=lf`). 이러면 `core.autocrlf` 로컬 설정과 무관하게 커밋되는
+   내용이 항상 LF로 강제된다 — 09-16·09-17에 두 번 겪은 이 사고 유형의 근본 차단.
+3. (2)를 넣으면 첫 커밋 시 `git add --renormalize .`가 필요할 수 있다(대량 diff 예상 — 미리
+   경고하고 진행).
+
+<!-- Gemini 판정 대기 -->

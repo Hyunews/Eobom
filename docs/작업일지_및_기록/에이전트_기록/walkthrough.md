@@ -3562,3 +3562,35 @@ wt137 그대로라 재작업 없음).
 - **다음 에이전트가 알아야 할 것**: 실기동 검증 대기(사람) — 특히 360px에서 `page-title` 클래스 추가 후 제목이 실제로 줄어드는지 확인. **00-38 §8 표 ⑦(모바일 검증 루프, 09-11 시작)이 이 항목으로 13개 전부 완료** — `context.md` 2번 갱신 필요([Opus]에게 §8 표 상태 갱신 요청도 함께).
 
 <!-- Gemini 판정 1줄: 대기 -->
+
+## 2026-09-17 | 00-38 Phase 4 착수 — HomePage·ObituaryLandingPage·MemorialLandingPage·FamilyInvitePage·PrivacyPage·TermsPage
+
+- **근거 스펙**: `docs/00_핵심플랫폼/00-38_적응형_모바일_UX_개편_명세서.md` §8.4(그룹4 — 홈·랜딩형, 줄805~811) + §8.5(부록 판정, 줄813~829, 2026-09-17 Opus 확정) + §4.1(여백 토큰) + §4.3(--lh-reader) + §5.2(useIsMobile 훅 통일).
+- **건드린 파일**: `eobomDev/frontend/src/components/legal/LegalDocLayout.tsx`, `eobomDev/frontend/src/pages/FamilyInvitePage.tsx`, `eobomDev/frontend/src/pages/MemorialLandingPage.tsx`, `eobomDev/frontend/src/pages/ObituaryLandingPage.tsx`. `HomePage.tsx`는 실측만 하고 변경 0(아래 참고).
+- **결과**:
+  1. `HomePage.tsx` — §4.5(소형 rem) 리터럴 0건. §5.2가 요구한 `EntryBoxes.tsx`의 `useIsMobile(767)` 전환은 이미 완료돼 있었고(주석에 §5.2 명시), `HomePage.tsx` 자체의 `useIsMobile(640)`+ref미러링도 문서(줄395)가 "통과, 스펙갱신 불요"로 이미 판정해 둔 상태. 좌우 거터 관련 raw px 패딩도 없음(레이아웃은 `00-23`이 정본이라 이번 범위 밖). **변경 0.**
+  2. `ObituaryLandingPage.tsx`·`MemorialLandingPage.tsx`·`FamilyInvitePage.tsx` — 셋 다 App.tsx 레이아웃 밖 독립 페이지로 동일한 `pageShellStyle`/`shellStyle` 패턴을 쓰고 있었고, 좌우 여백이 `padding: '2.5rem 1rem'`로 raw 리터럴(16px)이었다. `1rem` → `var(--gutter-chrome)`로 토큰화(값은 16px로 동일 — `--gutter-chrome`과 정확히 일치해 시각 변화 없음). `FamilyInvitePage.tsx`는 §8.5가 Phase 4에 편입시킨 부록 1순위.
+  3. `PrivacyPage.tsx`·`TermsPage.tsx` — 두 페이지 다 공용 컴포넌트 `LegalDocLayout.tsx`(`LegalDocLayout`/`LegalArticle`/`LegalList`/`LegalTable`)를 쓰고 있어, 그 컴포넌트 한 곳만 고치면 두 페이지에 전부 적용된다. 본문 wrapper `lineHeight: 1.8` → `lineHeight: 'var(--lh-reader)'`(1.9), `LegalList`의 `lineHeight: 1.85` → 동일 토큰으로 통일. `.container` 거터는 이미 클래스로 적용돼 있어 손댈 것 없었음. 페이지 파일 자체는 변경 0(전부 공용 컴포넌트에서 처리).
+  4. `tsc --noEmit`(frontend) 에러 0. `npm run build` 통과(청크 경고는 기존 것, 이번 변경과 무관).
+  5. 실기동(360px·1280 회귀)은 사람이 하는 것 — 미검증.
+- **편차**: 없음(스펙이 지시한 "토큰·거터만" 원칙을 그대로 따름 — 세 랜딩형 페이지·`HomePage` 레이아웃 구조는 손대지 않았고, 부록 판정에 따라 `FamilyInvitePage`만 추가로 Phase 4에 포함시켰다).
+- **다음 에이전트가 알아야 할 것**: 🔴 **이번 작업 중 심각한 줄바꿈(CRLF) 오염을 발견해 별도로 처리·기록함 — `backlog.md` 신규 항목(⑱) 참고, 사람 확인 필요.** 실기동은 사람 몫으로 미검증. Phase 4 본체(그룹4)는 이걸로 끝 — 다음은 §8.5 순서상 `DomainOverviewPage`·`PickupPage`("다음" 판정, `00-23` 정본과 맞물림) 또는 Opus 판단에 따른 후속.
+
+<!-- Gemini 판정 1줄: 대기 -->
+
+## 2026-09-17 | 00-38 §8.5 부록 마지막 — DomainOverviewPage 실측, 변경 0
+
+- **근거 스펙**: `docs/00_핵심플랫폼/00-38_적응형_모바일_UX_개편_명세서.md` §8.5(줄825, 🔴착수 판정) + §8.5-1(줄837~850, 착수 시 함정 — `HomePage` 규칙과 반대: 모바일 스냅 유지, `.domain-overview-*` 별도 클래스, 휠 핸들러는 `matchMedia('(pointer: coarse)')`로 판정하고 §5.2 L376이 이미 "건드리지 않는다"로 확정) + §4(토큰) + 원칙 3(탈박스화)·원칙 4(크롬 감량).
+- **건드린 파일**: 없음(실측 결과 변경 불필요로 판정).
+- **결과**:
+  1. §8.5-1이 지정한 함정(스냅 유지·클래스 분리·`pointer:coarse` 판정)은 코드 자체(`DomainOverviewPage.tsx:7~15,64~71` 주석)가 이미 명시적으로 "HomePage 규칙과 공유하면 안 된다"고 밝혀두고 있고, 실제로도 그렇게 구현돼 있어 **손대지 않았다**(지시대로).
+  2. §4.5(소형 rem 리터럴): `fontSize` 전수 확인 — `'1.05rem'`·`'1.3rem'`뿐, 전부 DoD 기준선(16px) 위. 0건.
+  3. §4.1(거터): `.domain-overview-slide`의 모바일(≤900px) 좌우 패딩은 **이미 09-11에 고쳐져 있었다**(`index.css:935~940` 주석 — "하드코딩 1.2rem이 사이트 표준 거터(--gutter-page)보다 8.8px 좁았다"는 사람 실기기 리포트로 `var(--gutter-page)`로 토큰화 완료). 데스크톱 기본값(`padding: 1.5rem 2.2rem`, ≤900px 미디어쿼리 밖)은 모바일 거터 토큰 대상이 아니라 그대로 둠.
+  4. 원칙 3(탈박스화): 피처 카드(`:299~352`)가 단일 테두리·단일 그림자 — 박스-in-박스 없음.
+  5. 원칙 4(크롬 감량): 인트로 배너(`.domain-overview-intro`)가 이미 ≤900px에서 숨김 처리(`index.css:962~964`, "배지·제목·CTA를 가린다"는 08-27 지적으로 이미 닫힌 항목) — 첫 화면 콘텐츠까지 크롬 단수가 과하지 않음.
+  6. `box1Intro`/`box2Intro` 공유 상수 확인(사용자 요청) — `domainSlides.tsx`에서 export된 동일 상수를 `EntryBoxes.tsx`(`subtitle` prop, :281·:326)와 `App.tsx`의 `DomainOverviewPage` 라우트 wiring(`intro` prop, :399·:403)이 **똑같이 import해서 쓴다** — 별도 사본이 없어 두 화면이 어긋날 수 없는 구조. 문제 없음.
+  7. `tsc --noEmit`(frontend) 에러 0. `npm run build` 통과.
+- **편차**: 없음.
+- **다음 에이전트가 알아야 할 것**: 이걸로 **00-38 §8.5 착수 3건(FamilyInvitePage·PrivacyPage·TermsPage·DomainOverviewPage — 실제로는 4개 파일)이 전부 끝났다.** `PickupPage`는 §8.5가 🟡"다음"(도메인 03 `CleanupRequest` 백엔드 선행 필요)으로 이미 확정해 손대지 않음 — 지시대로 보류. `AdminPage`·`BizDashboard`·`PartnerPortalPage`는 ⏸보류 확정. **00-38 전체(§8 표 13개 + §8.5 부록 4개)가 이걸로 마무리** — `context.md`·`00-38` 문서의 남은 진행 상태 갱신은 [Opus] 몫.
+
+<!-- Gemini 판정 1줄: 대기 -->
