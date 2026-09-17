@@ -27,9 +27,10 @@
 
 **2.[Sonnet]**🔴wt112~172실기동대기(사람,09-03).⏸체크8·04B=`PreDeathPlatformSetting`뒤.
 🔴wt183json사람커밋편입대기.
-✅**00-38§8표13개모바일검증루프완료(09-17)**—5MyPage·6MyObituaryList·7모달4종·8Facility·
-9Counseling(사람확인완료,backlog⑰)·10DigitalEstate(h1 page-title누락1건tsc0,실기동대기).
-🔴00-38§8표전체갱신+**다음=부록8개착수여부판단**([Opus]).
+✅**검증루프5~10완료(09-17)**—MyPage·MyObituaryList·모달4종·Facility·Counseling(⑰)·DigitalEstate.
+🔴**11~13(그룹4)은루프에없었다**—"13개완료"는오독,Phase4미착수(→`00-38`§8상태열).
+✅**00-38§8표갱신+§8.3-1(모달2개)+§8.5부록판정완료(09-17)**.
+🔴**다음=Phase4**:Home·ObituaryLanding·MemorialLanding+FamilyInvite→Privacy·Terms(§8.5).
 🟡height:36px3곳(Memorial:250·MyObituaryList:199·210)=Phase3보류.
 
 **3.[Gemini]**게이트0건(wt203전수)·🟡옛스펙갱신3건→⑭.🟡devDB삭제분7건—D-8(🔴CONFIRM).✅reports구경로정리완료(09-16,보류8건외전건해소).
