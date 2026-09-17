@@ -4,6 +4,7 @@ import { BACKEND_URL } from '../config';
 import { ConsultRequestModal } from '../components/expert/ConsultRequestModal';
 import { TaxSimulatorModal } from '../components/counseling/TaxSimulatorModal';
 import { HandScalesIcon } from '../components/MenuIcons';
+import { useIsMobile } from '../hooks/useIsMobile';
 
 interface CounselingPageProps {
   currentUser?: string | null;
@@ -32,6 +33,9 @@ interface PublicExpert {
 }
 
 export const CounselingPage: React.FC<CounselingPageProps> = ({ currentUser, onOpenLogin }) => {
+  // 09-16 사용자 지시 — 제목이 길어 모바일에서 줄바꿈되던 것을 "전문가 상담"으로 축약
+  // (데스크톱 문구는 그대로 유지).
+  const isMobile = useIsMobile();
   // 분야 선택 필터 — 2026-08-11 Domain02 Stage 1: 서버 GET /api/experts 실연동으로 전환
   const [selectedCategory, setSelectedCategory] = useState<string>('전체');
   const [experts, setExperts] = useState<PublicExpert[]>([]);
@@ -72,25 +76,30 @@ export const CounselingPage: React.FC<CounselingPageProps> = ({ currentUser, onO
     <div className="container">
       <div style={{ marginBottom: '1.5rem' }}>
         <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', backgroundColor: 'var(--state-warn-bg)', color: 'var(--accent-gold)', padding: '0.3rem var(--sp-4)', borderRadius: 'var(--r-lg)', fontSize: 'var(--fs-body)', fontWeight: 700, marginBottom: '0.6rem' }}>
-          <HandScalesIcon size={18} color="var(--accent-gold)" /> 상속세 시뮬레이터 &amp; 변호사 · 세무사 1:1 케어
+          <HandScalesIcon size={18} color="var(--accent-gold)" /> 상속세 시뮬레이터 &amp; 전문가 상담
         </div>
         <h1 className="page-title" style={{ color: 'var(--primary-color)', display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0 }}>
-          <HandScalesIcon color="var(--point-color)" size={32} /> 상속 · 법률 · 세무 비대면 전문가 상담
+          <HandScalesIcon color="var(--point-color)" size={32} /> {isMobile ? '전문가 상담' : '상속 · 법률 · 세무 비대면 전문가 상담'}
         </h1>
         <p className="page-subtitle" style={{ color: 'var(--text-muted)' }}>
           변호사, 세무사, 행정사, 장례지도사 분야별 상담 신청 및 상속세 자동 시뮬레이터
         </p>
       </div>
 
-      {/* 상속세 시뮬레이터 진입 배너 — 클릭 시 모달로 열림 */}
+      {/* 상속세 시뮬레이터 진입 배너 — 클릭 시 모달로 열림.
+          09-16 사용자 지시 — 설명 줄글이 모바일에서 지저분해 헤드라인만 남기고 제거,
+          CTA 문구도 축약("간이 시뮬레이터 열기" → "계산하기"). flexWrap 안전장치는 유지
+          (극단적으로 좁은 화면에서 CTA가 다음 줄로 내려가도 깨지지 않도록). */}
       <button
+        className="counsel-sim-banner"
         onClick={() => setIsSimulatorOpen(true)}
         style={{
           width: '100%',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          gap: '1rem',
+          flexWrap: 'wrap',
+          gap: '0.6rem 1rem',
           padding: '1rem 1.1rem',
           marginBottom: '1.1rem',
           borderRadius: 'var(--border-radius)',
@@ -102,10 +111,10 @@ export const CounselingPage: React.FC<CounselingPageProps> = ({ currentUser, onO
           textAlign: 'left',
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--sp-4)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--sp-3)' }}>
           <div style={{
-            width: '44px',
-            height: '44px',
+            width: '38px',
+            height: '38px',
             borderRadius: '50%',
             backgroundColor: 'var(--secondary-color)',
             display: 'flex',
@@ -113,15 +122,12 @@ export const CounselingPage: React.FC<CounselingPageProps> = ({ currentUser, onO
             justifyContent: 'center',
             flexShrink: 0,
           }}>
-            <Calculator color="var(--point-color)" size={22} />
+            <Calculator color="var(--point-color)" size={20} />
           </div>
-          <div>
-            <p style={{ fontWeight: 700, color: 'var(--primary-color)', margin: 0 }}>상속세, 대략 얼마나 나올까요?</p>
-            <p style={{ fontSize: 'var(--fs-body)', color: 'var(--text-muted)', margin: 0 }}>배우자·자녀 수 등 조건을 입력하면 예상 세액을 단계별로 계산해드립니다</p>
-          </div>
+          <p style={{ fontSize: 'var(--fs-lead)', fontWeight: 700, color: 'var(--primary-color)', margin: 0 }}>상속세, 대략 얼마나 나올까요?</p>
         </div>
-        <span style={{ display: 'flex', alignItems: 'center', gap: '0.2rem', color: 'var(--point-color)', fontWeight: 700, fontSize: 'var(--fs-body)', flexShrink: 0 }}>
-          간이 시뮬레이터 열기 <ChevronRight size={18} />
+        <span className="counsel-sim-banner-cta" style={{ display: 'flex', alignItems: 'center', gap: '0.2rem', color: 'var(--point-color)', fontWeight: 700, fontSize: 'var(--fs-body)', flexShrink: 0 }}>
+          계산하기 <ChevronRight size={18} />
         </span>
       </button>
 
@@ -137,15 +143,19 @@ export const CounselingPage: React.FC<CounselingPageProps> = ({ currentUser, onO
           <Video color="var(--primary-color)" /> 분야별 전문가 상담
         </h3>
 
-        {/* 분야 선택 필터 */}
-        <div className="form-group" style={{ marginBottom: '1.1rem' }}>
+        {/* 분야 선택 필터 — 09-16 사용자 지시: 슬라이드(가로 스크롤)로 넘길 수 있게.
+            CareGuidePage(§8.1-3①)와 같은 패턴 — flexWrap:nowrap + overflowX:auto,
+            각 버튼 flexShrink:0 + whiteSpace:nowrap로 줄바꿈 대신 옆으로 밀려나게 한다. */}
+        <div className="form-group" style={{ marginBottom: '0.7rem' }}>
           <label className="form-label">분야 선택</label>
-          <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', gap: '0.6rem', flexWrap: 'nowrap', overflowX: 'auto', WebkitOverflowScrolling: 'touch', padding: '0.2rem 0.15rem 0.85rem' }}>
             {CATEGORY_TABS.map((cat) => (
               <button
                 key={cat.value}
                 onClick={() => setSelectedCategory(cat.value)}
                 style={{
+                  flexShrink: 0,
+                  whiteSpace: 'nowrap',
                   padding: '0.5rem 1rem',
                   borderRadius: 'var(--r-lg)',
                   border: '1px solid var(--border-color)',

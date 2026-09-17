@@ -1005,6 +1005,17 @@ body {
   }
 }
 
+/* CounselingPage 시뮬레이터 배너 — 09-16 사용자 지시. 설명 줄글을 제거하고 헤드라인+CTA만
+   남긴 뒤에도, 아주 좁은 화면(320px 등)에서 헤드라인이 길어지면 CTA와 한 줄에 못 들어갈 수
+   있다. 그 경우 CTA를 flex-basis:100%로 다음 줄로 내려 헤드라인 줄에 폭을 돌려준다(데스크톱은
+   한 줄에 다 들어가 미적용, JSX 쪽 flexWrap:'wrap'과 짝). */
+@media (max-width: 768px) {
+  .counsel-sim-banner-cta {
+    flex-basis: 100%;
+    justify-content: flex-end;
+  }
+}
+
 .auto-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr));

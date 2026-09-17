@@ -3500,3 +3500,65 @@ wt137 그대로라 재작업 없음).
 - **다음 에이전트가 알아야 할 것**: 실기동 검증 대기(사람). `backlog.md` ⑰의 Gemini 판정도 별도로 남을 것 — 이 항목과 함께 확인.
 
 <!-- Gemini 판정 1줄: 대기 -->
+
+## 2026-09-16 | 9번 CounselingPage 후속 — 사용자 직접 지시 3건(줄글 정리·필터 슬라이드·제목 축약)
+
+- **근거 스펙**: 스펙 없음 — 사용자 채팅 직접 지시. "1. 줄글 나열이 모바일 화면에서 지저분해서 정리필요. 2. 분야의 각 버튼을 슬라이드로 넘길 수 있도록 구현. 3. 제목 등 전문가 상담 으로 요약." (앞서 되돌린 `9c36db2`의 목업 `_mockups/CounselingPage.html` 개선안과 방향은 같지만, 이번엔 사람이 이 세션에 직접 낸 지시라 진위 문제가 없다 — 경위는 `backlog.md` ⑰.)
+- **건드린 파일**: `eobomDev/frontend/src/pages/CounselingPage.tsx`, `eobomDev/frontend/src/components/counseling/TaxSimulatorModal.tsx`, `eobomDev/frontend/src/index.css`.
+- **결과**:
+  1. `CounselingPage.tsx` 시뮬레이터 배너 — 설명 문단 `<p>배우자·자녀 수 등 조건을 입력하면 예상 세액을 단계별로 계산해드립니다</p>` 삭제, 헤드라인 `<p>상속세, 대략 얼마나 나올까요?</p>`만 남김. CTA `간이 시뮬레이터 열기` → `계산하기`. `flexWrap:'wrap'` 안전장치 유지(극단적으로 좁은 화면 대비).
+  2. `CounselingPage.tsx` 페이지 제목 — `useIsMobile()` 훅 도입, `{isMobile ? '전문가 상담' : '상속 · 법률 · 세무 비대면 전문가 상담'}`.
+  3. `CounselingPage.tsx` 분야 선택 필터 — `flexWrap:'wrap'` → `flexWrap:'nowrap', overflowX:'auto', WebkitOverflowScrolling:'touch'`, 각 버튼에 `flexShrink:0, whiteSpace:'nowrap'` 추가(가로 슬라이드). `CareGuidePage`(§8.1-3①)와 동일 패턴.
+  4. `TaxSimulatorModal.tsx` "계산 기준 및 참고사항" — 4개 `<p>` 문단(반영 항목·미반영 항목·법적 근거·면책)을 `<ul>` 3개 `<li>` + 굵은 경고 문단 1줄로 재구성. 수치·법적 근거 문구는 그대로 유지(삭제 없음), 형식만 문단→목록.
+  5. `index.css` — `.counsel-sim-banner-cta`에 `@media (max-width: 768px) { flex-basis: 100%; justify-content: flex-end; }` 추가(헤드라인이 길어져도 CTA가 다음 줄로 안전하게 내려가도록).
+  6. `tsc --noEmit`(frontend) 에러 0. `npm run build`는 안 돌림.
+  7. 실기동(360px·1280 회귀)은 사람이 하는 것 — 미검증.
+- **편차**: 없음(사용자 직접 지시 그대로 구현).
+- **다음 에이전트가 알아야 할 것**: 실기동 검증 대기(사람). `backlog.md` ⑰가 이 항목으로 닫힘 — Gemini 판정 시 ⑰와 함께 확인.
+
+<!-- Gemini 판정 1줄: 대기 -->
+
+## 2026-09-16 | 9번 CounselingPage 2차 후속 — 배지 문구·헤드라인 폰트·필터 여백 (사용자 직접 지시)
+
+- **근거 스펙**: 스펙 없음 — 사용자 채팅 직접 지시. "1. 변호사,세무사 1:1케어 > 전문가 상담 으로 변경. 2. 상속세,~나올까요? 부분의 폰트 키우기. 3. 분야 선택 버튼과 좌우스크롤간의 여백 너무 없이 딱붙어있음."
+- **건드린 파일**: `eobomDev/frontend/src/pages/CounselingPage.tsx`.
+- **결과**:
+  1. 상단 배지 — `상속세 시뮬레이터 & 변호사 · 세무사 1:1 케어` → `상속세 시뮬레이터 & 전문가 상담`.
+  2. 시뮬레이터 배너 헤드라인 `상속세, 대략 얼마나 나올까요?` — `fontSize` 미지정(기본 상속) → `var(--fs-lead)`(1.125rem)로 키움.
+  3. 분야 선택 가로 스크롤 필터 — 버튼 사이 `gap` `0.5rem`→`0.6rem`, 스크롤 컨테이너에 `padding: '0.2rem 0.15rem 0.4rem'` 추가(기존엔 `paddingBottom`만 있어 좌우·위가 카드 경계에 딱 붙어 있었음).
+  4. `tsc --noEmit`(frontend) 에러 0.
+  5. 실기동은 사람 몫 — 미검증.
+- **편차**: 없음(사용자 직접 지시 그대로 구현).
+- **다음 에이전트가 알아야 할 것**: 실기동 검증 대기(사람). `backlog.md` ⑰ 계속.
+
+<!-- Gemini 판정 1줄: 대기 -->
+
+## 2026-09-16 | 9번 CounselingPage 3차 후속 — 필터 스크롤바-버튼 간 여백 확대 (사용자 직접 지시)
+
+- **근거 스펙**: 스펙 없음 — 사용자 채팅 직접 지시. "가로 스크롤 자체와 버튼 사이의 공간을 말하는거임. 슬라이드 할때 뜨는 스크롤과 버튼 간의 공간!" (2차 후속에서 넣은 `paddingBottom: '0.4rem'`으로는 부족하다는 지적).
+- **건드린 파일**: `eobomDev/frontend/src/pages/CounselingPage.tsx`.
+- **결과**: 분야 선택 가로 스크롤 컨테이너의 `padding` 하단값을 `0.4rem` → `0.85rem`으로 키워 버튼 행과 (스크롤 시 나타나는) 스크롤바 사이 여백을 확대. 전체 세로 리듬 유지를 위해 바깥 `form-group`의 `marginBottom`은 `1.1rem` → `0.7rem`으로 줄여 상쇄(카드 하단 "전문가 카드 목록" 사이 총 간격은 이전과 비슷하게 유지). `tsc --noEmit` 에러 0.
+- **편차**: 없음.
+- **다음 에이전트가 알아야 할 것**: 실기동 검증 대기(사람) — 특히 이 패딩 값이 실제 브라우저(오버레이 스크롤바 vs 항상 표시 스크롤바)에서 충분한지 확인 필요.
+
+<!-- Gemini 판정 1줄: 대기 -->
+
+## 2026-09-16 | 9번 CounselingPage 4차 후속 — 시뮬레이터 배너 아이콘 크기 축소 (사용자 직접 지시)
+
+- **근거 스펙**: 스펙 없음 — 사용자 채팅 직접 지시. "계산기 아이콘이 차지하는 영역이 너무 큼(추측컨대 div가 가진 여백이 좌우로 큰듯)."
+- **건드린 파일**: `eobomDev/frontend/src/pages/CounselingPage.tsx`.
+- **결과**: 시뮬레이터 배너의 아이콘 원(circle) `44px`→`38px`, 내부 `Calculator` 아이콘 `size={22}`→`size={20}`(비율 유지, 22/44=50%→20/38≈53%), 원과 헤드라인 사이 `gap`을 `var(--sp-4)`(16px)→`var(--sp-3)`(12px)로 줄임. 브라우저(1280px)에서 확대 스크린샷으로 축소 확인. `tsc --noEmit`(frontend) 에러 0.
+- **편차**: 없음.
+- **다음 에이전트가 알아야 할 것**: 실기동 검증 대기(사람) — 이번엔 브라우저 리사이즈 도구가 500px 밑으로 안정적으로 안 내려가 모바일 폭에서 재확인은 못 함(1280px에서만 육안 확인). 360px 등 좁은 폭에서 비율이 괜찮은지 마지막 확인 필요.
+
+<!-- Gemini 판정 1줄: 대기 -->
+
+## 2026-09-17 | 10번 DigitalEstatePage(모바일 검증 루프 마지막) — 실측 후 h1 page-title 클래스 누락 1건 수정
+
+- **근거 스펙**: `docs/00_핵심플랫폼/00-38_적응형_모바일_UX_개편_명세서.md` §8.3(줄756, DigitalEstatePage 행 — "§4.5 치환 효과가 가장 큰 화면") + §8.3 그룹 공통행(줄753 — "그리드 → 1열 카드 스트림").
+- **건드린 파일**: `eobomDev/frontend/src/pages/DigitalEstatePage.tsx`.
+- **결과**: 실측 먼저 — §4.5(0.7~0.98rem 소형 리터럴 치환) 대상 `fontSize` 리터럴은 이 파일에 **0건**(이미 전부 `var(--fs-body)`이거나 `1.02rem`/`1.1rem`/`2rem`으로 DoD 기준선 위, 별도 전역 작업에서 선반영된 것으로 보임). 그리드(:74, `repeat(auto-fit, minmax(min(280px,100%),1fr))`)는 `auto-fit`이라 이미 좁은 화면에서 1열로 자동 접혀 기능상 문제없어 그대로 둠(FacilityPage 8번이 통과한 것과 같은 판단). 대신 `<h1>`(:133)이 다른 4개 페이지(CounselingPage·FacilityPage·CareGuidePage·ObituaryPage·MemorialPage)와 달리 `className="page-title"` 없이 `fontSize:'2rem'`을 고정값으로 박아둔 것을 발견 — 좁은 화면(`clamp(1.4rem, 5vw, 2rem)`의 하한 없이 항상 32px)에서 375px 가로 스크롤·줄바꿈 위험. `className="page-title"` 추가 + 인라인 `fontSize` 제거로 수정(데스크톱 렌더는 동일, `clamp` 상한이 2rem이라 시각 차이 없음). `tsc --noEmit`(frontend) 에러 0. 1280px 브라우저에서 회귀 확인(시각 동일).
+- **편차**: 없음. `.btn`류 인라인 `height:'40px'/'42px'`(`--min-touch-target` 56px 미달)는 CounselingPage 등 여러 페이지에 이미 널리 퍼진 기존 패턴이라 이번 범위에서 손대지 않음 — `backlog.md` §4.5-5 터치타깃 Phase 3 몫.
+- **다음 에이전트가 알아야 할 것**: 실기동 검증 대기(사람) — 특히 360px에서 `page-title` 클래스 추가 후 제목이 실제로 줄어드는지 확인. **00-38 §8 표 ⑦(모바일 검증 루프, 09-11 시작)이 이 항목으로 13개 전부 완료** — `context.md` 2번 갱신 필요([Opus]에게 §8 표 상태 갱신 요청도 함께).
+
+<!-- Gemini 판정 1줄: 대기 -->
