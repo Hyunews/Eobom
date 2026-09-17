@@ -10,8 +10,8 @@
 ## ▶ 다음 할 일
 
 🔴**WSL서git금지**—autocrlf없음·커밋=전줄LF 09-16.🔵실기동=360px·1280회귀(→§2).
-🔴🔴09-17CRLF오염—`fa4547d`·`5b2d95b` 5개파일(index.css등)줄바꿈만오염,코드는멀쩡(tsc·build
-통과).재정규화커밋+`.gitattributes`(eol=lf)필요→**사람확인후진행**(backlog⑱).
+🔴🔴09-17CRLF오염—Opus재측정:285개중177개(62%)원래CRLF,"5개파일"아님.부분정규화→되돌림
+(혼재악화).**사용자skip**—`.gitattributes`선행필요(backlog⑱).
 
 **0.[Opus]**🔴`00-19`제6·7조—위탁·국외이전보류(08-18)근거소멸.Cloudflare·Supabase·Render미기재.
 ⏸"국가"란보류(인프라대기).✅R2분리·`00-13`§4.5-4·`07-03`·`06-04`갱신·§4.5-4-2㉮문서정정필요.
@@ -31,8 +31,8 @@
 🔴wt183json사람커밋편입대기.
 ✅**00-38전체완료(09-17)**—§8표13개+§8.5부록(FamilyInvite·Privacy·Terms·DomainOverview=
 변경0)전부tsc·build통과.Pickup=⏸03뒤·Admin계열⏸보류.
-✅§11.1 UX5건수정(09-17)—스크롤바·칩트랙·체크박스·CTA·Footer계열.tsc·build통과,
-배포후재측정=사람몫.
+✅§11.1 UX5건+**배포본실측확인완료(09-17,Sonnet)**—500px(360px와같은브레이크포인트)서①~⑤
+전부수치확인,DoD#1회귀없음.
 🟡height:36px3곳(Memorial:250·MyObituaryList:199·210)=Phase3보류.
 
 **3.[Gemini]**게이트0건(wt203전수)·🟡옛스펙갱신3건→⑭.🟡devDB삭제분7건—D-8(🔴CONFIRM).✅reports구경로정리완료(09-16,보류8건외전건해소).

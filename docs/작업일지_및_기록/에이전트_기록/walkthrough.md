@@ -3613,3 +3613,20 @@ wt137 그대로라 재작업 없음).
 - **다음 에이전트가 알아야 할 것**: 🔴 **정식 재측정은 사람 몫** — 배포 후 §11.1과 같은 방식(360px iframe + `getBoundingClientRect`)으로 재측정해 수치를 walkthrough에 적어야 DoD ⓑ①②③·ⓒ가 공식적으로 닫힌다(위 6번은 로컬 dev 서버 sanity check일 뿐, 배포본 재측정을 대신하지 않음). `/facility` 주소 링크 24px 등 ⓒ의 나머지 항목(이번 지시 범위 밖)은 아직 안 건드림.
 
 <!-- Gemini 판정 1줄: 대기 -->
+
+## 2026-09-17 | 00-38 §11.1 후속 — 배포본 실측 확인 완료(Sonnet, 사용자 요청으로 직접 수행)
+
+- **근거 스펙**: §11.1과 같은 방식(`getBoundingClientRect`/`getComputedStyle`), 단 대상은 **배포본**(`eobom.vercel.app`, commit `8a81806`).
+- **건드린 파일**: 없음(측정만).
+- **방법**: 브라우저 자동화로 `eobom.vercel.app`에 직접 접속, 뷰포트 폭을 최대한 좁혀 측정(이 환경의 창 최소폭 제약으로 **정확히 360px는 못 만들고 500px에서 측정** — 500px도 모바일 브레이크포인트(768px) 안쪽이라 스타일 자체는 360px와 동일. 1280px 데스크톱도 함께 확인).
+- **결과 — ①②③④⑤ 전부 배포본에서 확인**:
+  1. **①스크롤바** `/counseling`·`/care-guide` `.chip-track` `offsetHeight-clientHeight = 0`(기존 15px). `scrollbarWidth:'none'` 확인.
+  2. **②칩 트랙 엣지투엣지** 두 페이지 다 `rect.left = 0, width ≈ 485px`(뷰포트 500px 기준, 기존 left=52·width=241/360). `marginLeft:'-52px'` 확인.
+  3. **③체크박스** `/care-guide` `24×24px` 확인(기존 20×20). 행(`role="checkbox"`) 높이 120px(≥56px 기준 통과, 콘텐츠가 여러 줄이라 최소값 이상).
+  4. **④CTA·칩 44px** `/care-guide` "내용 보기"·"전문가 상담" 44px 확인. `/care-guide` 칩 8개 전부 44px, `/counseling` 칩 44px 확인.
+  5. **⑤Footer 링크 44px** `/counseling`에서 확인(500px 폭에서 자동 확인됨 — 이 폭에서는 데스크톱 `Footer.tsx`가 렌더). `/care-guide`에서 모바일 아코디언(`FooterMobile.tsx`, "약관 · 대표번호 안내 보기") 토글을 실제로 열어 링크 2개 `44px` 확인 — 두 컴포넌트 다 살아있음을 별도로 확인.
+  6. **DoD #1(가로 오버플로 0)** 회귀 없음 — `/counseling`·`/care-guide` 500px에서 `scrollWidth(485) ≤ innerWidth(500)`, 1280px 데스크톱에서도 `scrollWidth(1264) = innerWidth(1264)`.
+- **편차**: 없음. 정확한 360px 측정이 아니라 500px로 대체한 점만 위 "방법"에 명시.
+- **다음 에이전트가 알아야 할 것**: **§11.1 ⓑ①②③·ⓒ 일부(CTA·칩·Footer)가 배포본에서 전부 닫혔다.** 정확한 360px 재측정(및 §11.1이 다룬 나머지 DoD 항목 — #2·#4·#7 등 이번에 손 안 댄 것들)은 여전히 Opus의 다음 1차 실측 갱신이나 사람의 실기기 확인 몫으로 남는다.
+
+<!-- Gemini 판정 1줄: 대기 -->
