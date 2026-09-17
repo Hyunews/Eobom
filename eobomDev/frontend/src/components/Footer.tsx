@@ -82,13 +82,16 @@ export const Footer: React.FC = () => {
             {/* "KISA 기준 최고 등급 보안 암호화" 문구 제거(00-14 §2.5(2-7), 2026-08-18 개발자 확정) —
                 그런 등급 제도가 존재하지 않고 ISMS-P 미인증 상태에서 인증 사칭으로 읽힘. 대체 문구
                 없이 제거하며, 실제 보안 조치가 갖춰지면 그때 추가한다(00-18 §2.3). */}
-            <li style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <Link to="/terms" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'inherit', textDecoration: 'none' }}>
+            {/* 00-38 §11.1 ⓒ — 실측 29px, DoD #5(보조 액션 ≥44px) 미달. 전 페이지 공통 컴포넌트라
+                여기 한 곳만 고치면 10개 화면이 함께 닫힌다. 글자·아이콘 크기는 그대로 두고
+                minHeight로 히트 영역만 늘린다(§9.2와 같은 원칙 — 작은 걸 지키려고 큰 걸 안 내준다). */}
+            <li style={{ display: 'flex', alignItems: 'center' }}>
+              <Link to="/terms" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', minHeight: '44px', color: 'inherit', textDecoration: 'none' }}>
                 <FileText size={16} color="var(--text-muted)" /> 서비스 이용약관
               </Link>
             </li>
-            <li style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <Link to="/privacy" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'inherit', textDecoration: 'none' }}>
+            <li style={{ display: 'flex', alignItems: 'center' }}>
+              <Link to="/privacy" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', minHeight: '44px', color: 'inherit', textDecoration: 'none' }}>
                 <ShieldCheck size={16} color="var(--text-muted)" /> 개인정보 처리방침
               </Link>
             </li>

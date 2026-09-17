@@ -30,8 +30,9 @@
 **2.[Sonnet]**🔴wt112~172실기동대기(사람,09-03).⏸체크8·04B=`PreDeathPlatformSetting`뒤.
 🔴wt183json사람커밋편입대기.
 ✅**00-38전체완료(09-17)**—§8표13개+§8.5부록(FamilyInvite·Privacy·Terms·DomainOverview=
-변경0)전부tsc·build통과.Pickup=⏸03뒤·Admin계열⏸보류,지시대로안건드림.
-🔴**다음=Opus**—문서갱신+실기동종합확인요청(→walkthrough09-17항목들).
+변경0)전부tsc·build통과.Pickup=⏸03뒤·Admin계열⏸보류.
+✅§11.1 UX5건수정(09-17)—스크롤바·칩트랙·체크박스·CTA·Footer계열.tsc·build통과,
+배포후재측정=사람몫.
 🟡height:36px3곳(Memorial:250·MyObituaryList:199·210)=Phase3보류.
 
 **3.[Gemini]**게이트0건(wt203전수)·🟡옛스펙갱신3건→⑭.🟡devDB삭제분7건—D-8(🔴CONFIRM).✅reports구경로정리완료(09-16,보류8건외전건해소).

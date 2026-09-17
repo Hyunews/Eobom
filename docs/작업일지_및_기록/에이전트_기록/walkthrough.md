@@ -3594,3 +3594,22 @@ wt137 그대로라 재작업 없음).
 - **다음 에이전트가 알아야 할 것**: 이걸로 **00-38 §8.5 착수 3건(FamilyInvitePage·PrivacyPage·TermsPage·DomainOverviewPage — 실제로는 4개 파일)이 전부 끝났다.** `PickupPage`는 §8.5가 🟡"다음"(도메인 03 `CleanupRequest` 백엔드 선행 필요)으로 이미 확정해 손대지 않음 — 지시대로 보류. `AdminPage`·`BizDashboard`·`PartnerPortalPage`는 ⏸보류 확정. **00-38 전체(§8 표 13개 + §8.5 부록 4개)가 이걸로 마무리** — `context.md`·`00-38` 문서의 남은 진행 상태 갱신은 [Opus] 몫.
 
 <!-- Gemini 판정 1줄: 대기 -->
+
+## 2026-09-17 | 00-38 §11.1 1차 실측 후속 — UX 3건 + 공통 2건 수정 (Opus 360px 실측 기반)
+
+- **근거 스펙**: `docs/00_핵심플랫폼/00-38_적응형_모바일_UX_개편_명세서.md` §11.1 ⓑ(우선 3건)·ⓒ(공통 반복). Opus가 2026-09-17 `eobom.vercel.app`을 360px iframe에 띄워 `getBoundingClientRect` 실측한 결과.
+- **건드린 파일**: `eobomDev/frontend/src/index.css`(`.chip-track` 클래스 신설), `eobomDev/frontend/src/pages/CareGuidePage.tsx`, `eobomDev/frontend/src/pages/CounselingPage.tsx`, `eobomDev/frontend/src/components/Footer.tsx`, `eobomDev/frontend/src/components/FooterMobile.tsx`.
+- **결과**:
+  1. **①가로 스크롤바(실측 15px)** — `.chip-track`(index.css 신설)에 `scrollbar-width:none` + `::-webkit-scrollbar{display:none}` 추가, `CareGuidePage.tsx`·`CounselingPage.tsx`의 칩 트랙에 `className="chip-track"` 적용. **09-16 대응(paddingBottom 0.3→0.85rem)은 증상 대응이었던 게 맞아 되돌림** — `CounselingPage.tsx` paddingBottom을 `0.85rem`→`0.3rem`으로 원복.
+  2. **②칩 트랙 갇힘(실측 left=52px·width=241px/360px)** — `.chip-track`에 `margin-left/right: calc(-1 * (var(--gutter-page) + 1.5rem))` + 같은 값의 `padding-left/right`로 부모(.container 28px + 카드 1.5rem)의 이중 패딩을 뚫고 엣지투엣지로 흘림. `≤359px`(`--gutter-page-sm`) 구간도 같은 방식으로 맞춰 DoD #1(가로 오버플로 0)이 그 구간에서 깨지지 않게 함.
+  3. **③care-guide 체크박스(실측 20×20px 5개)** — `24×24px`로 확대(`CareGuidePage.tsx` 모바일 체크리스트 행만, 데스크톱 카드형은 범위 밖이라 미변경). 행 자체는 이미 `role="checkbox"`+`minHeight:var(--min-touch-target)`(56px)+`onClick`으로 행 전체가 토글 대상이었다(§9.2 기 구현) — 추가 변경 불필요.
+  4. **④CTA 38px→44px, 필터 칩 35~42px→44px** — `CareGuidePage.tsx`의 "내용 보기"·"전문가 상담" 버튼 `height:'38px'`→`'44px'`. `CareGuidePage.tsx`·`CounselingPage.tsx` 필터 칩 버튼에 `minHeight:'44px'` + `display:inline-flex; alignItems:center` 추가.
+  5. **⑤푸터 약관·개인정보 링크 29px→44px** — `Footer.tsx`(데스크톱)와 **`FooterMobile.tsx`(모바일 전용 별도 컴포넌트 — 실기기가 실제로 렌더하는 건 이쪽이라 이것도 같이 고쳐야 10개 화면이 닫힌다, 처음엔 놓쳤다가 로컬 검증 중 발견)** 둘 다 `minHeight:'44px'` 추가.
+  6. **로컬 검증**(사람이 배포본 360px 재측정을 대신하지 않음 — 그 앞단 sanity check): dev 서버(`localhost:5173`, `getBoundingClientRect`/`getComputedStyle`)에서 `/care-guide`·`/counseling` 500px 폭 확인 —
+     `.chip-track`: `offsetHeight-clientHeight=0`(스크롤바 숨김 확인, 기존 15px) · `rect.left=0, width≈485/500px`(엣지투엣지 확인, 기존 left=52·width=241/360) · `scrollbarWidth:'none'` 확인.
+     체크박스 `24×24px` 확인. CTA·칩 버튼 `height=44px` 확인. `Footer`·`FooterMobile` 링크 `height=44px` 확인(데스크톱 1280px·모바일 500px 둘 다).
+  7. `tsc --noEmit`(frontend) 에러 0. `npm run build` 통과.
+- **편차**: DoD #8(데스크톱 회귀 0) 관련 — `CareGuidePage.tsx`의 CTA 버튼(`height 38→44px`)은 `!isMobile` 조건 없이 데스크톱에서도 함께 렌더돼 데스크톱 높이도 6px 커진다. 스펙 §11(DoD #8 표)이 명시한 예외("접근성 수정처럼 모바일과 무관하게 옳은 변경은 허용하되 walkthrough에 미리 적는다")에 해당해 사전 고지로 여기 남긴다 — 픽셀 동결 위반이 아니라 의도된 예외.
+- **다음 에이전트가 알아야 할 것**: 🔴 **정식 재측정은 사람 몫** — 배포 후 §11.1과 같은 방식(360px iframe + `getBoundingClientRect`)으로 재측정해 수치를 walkthrough에 적어야 DoD ⓑ①②③·ⓒ가 공식적으로 닫힌다(위 6번은 로컬 dev 서버 sanity check일 뿐, 배포본 재측정을 대신하지 않음). `/facility` 주소 링크 24px 등 ⓒ의 나머지 항목(이번 지시 범위 밖)은 아직 안 건드림.
+
+<!-- Gemini 판정 1줄: 대기 -->

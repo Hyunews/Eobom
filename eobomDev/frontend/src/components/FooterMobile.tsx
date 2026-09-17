@@ -81,12 +81,14 @@ export const FooterMobile: React.FC = () => {
 
       <div className={`footer-mobile-panel${isOpen ? ' open' : ''}`}>
         <div style={{ padding: '0.3rem 0.25rem 0.5rem', fontSize: 'var(--fs-body)', color: 'var(--text-muted)', lineHeight: 1.8 }}>
-          <div style={{ display: 'flex', justifyContent: 'center', gap: '0.5rem', marginBottom: '0.3rem' }}>
-            <Link to="/terms" style={{ color: 'var(--primary-color)', textDecoration: 'underline', textUnderlineOffset: '2px' }}>
+          {/* 00-38 §11.1 ⓒ — 실측 29px(데스크톱 Footer.tsx와 같은 위반), DoD #5(보조 액션
+              ≥44px) 미달. 글자 크기·밑줄은 그대로 두고 minHeight로 히트 영역만 늘린다. */}
+          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem', marginBottom: '0.3rem' }}>
+            <Link to="/terms" style={{ display: 'inline-flex', alignItems: 'center', minHeight: '44px', color: 'var(--primary-color)', textDecoration: 'underline', textUnderlineOffset: '2px' }}>
               서비스 이용약관
             </Link>
             <span style={{ color: 'var(--border-color)' }}>·</span>
-            <Link to="/privacy" style={{ color: 'var(--primary-color)', textDecoration: 'underline', textUnderlineOffset: '2px' }}>
+            <Link to="/privacy" style={{ display: 'inline-flex', alignItems: 'center', minHeight: '44px', color: 'var(--primary-color)', textDecoration: 'underline', textUnderlineOffset: '2px' }}>
               개인정보 처리방침
             </Link>
           </div>

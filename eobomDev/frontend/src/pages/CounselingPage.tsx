@@ -145,10 +145,15 @@ export const CounselingPage: React.FC<CounselingPageProps> = ({ currentUser, onO
 
         {/* 분야 선택 필터 — 09-16 사용자 지시: 슬라이드(가로 스크롤)로 넘길 수 있게.
             CareGuidePage(§8.1-3①)와 같은 패턴 — flexWrap:nowrap + overflowX:auto,
-            각 버튼 flexShrink:0 + whiteSpace:nowrap로 줄바꿈 대신 옆으로 밀려나게 한다. */}
+            각 버튼 flexShrink:0 + whiteSpace:nowrap로 줄바꿈 대신 옆으로 밀려나게 한다.
+            §11.1 ⓑ #1 — 09-16엔 "버튼-스크롤바 간 여백"이 좁다는 지적에 paddingBottom을
+            0.3→0.85rem으로 늘려 대응했는데, 실측해 보니 진짜 원인은 여백이 아니라 데스크톱
+            클래식 스크롤바(15px)가 그대로 노출돼 있던 것이었다. .chip-track(index.css)이
+            스크롤바 자체를 숨기므로 그 대응값은 원래대로 되돌린다. 좌우 padding도 .chip-track
+            몫이라 shorthand 대신 세로만 남긴다. */}
         <div className="form-group" style={{ marginBottom: '0.7rem' }}>
           <label className="form-label">분야 선택</label>
-          <div style={{ display: 'flex', gap: '0.6rem', flexWrap: 'nowrap', overflowX: 'auto', WebkitOverflowScrolling: 'touch', padding: '0.2rem 0.15rem 0.85rem' }}>
+          <div className="chip-track" style={{ display: 'flex', gap: '0.6rem', flexWrap: 'nowrap', overflowX: 'auto', WebkitOverflowScrolling: 'touch', paddingTop: '0.2rem', paddingBottom: '0.3rem' }}>
             {CATEGORY_TABS.map((cat) => (
               <button
                 key={cat.value}
@@ -156,6 +161,10 @@ export const CounselingPage: React.FC<CounselingPageProps> = ({ currentUser, onO
                 style={{
                   flexShrink: 0,
                   whiteSpace: 'nowrap',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  minHeight: '44px',
                   padding: '0.5rem 1rem',
                   borderRadius: 'var(--r-lg)',
                   border: '1px solid var(--border-color)',
