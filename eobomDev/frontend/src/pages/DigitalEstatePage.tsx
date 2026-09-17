@@ -130,7 +130,7 @@ export const DigitalEstatePage: React.FC<DigitalEstatePageProps> = ({ currentUse
         <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', backgroundColor: 'var(--state-warn-bg)', color: 'var(--accent-gold)', padding: '0.3rem var(--sp-4)', borderRadius: 'var(--r-lg)', fontSize: 'var(--fs-body)', fontWeight: 700, marginBottom: '0.6rem' }}>
           <PhoneHeartIcon size={18} color="var(--accent-gold)" /> SNS / 클라우드 계정 정산
         </div>
-        <h1 style={{ color: 'var(--primary-color)', fontSize: '2rem', display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0 }}>
+        <h1 className="page-title" style={{ color: 'var(--primary-color)', display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0 }}>
           <PhoneHeartIcon color="var(--accent-gold)" size={32} /> 디지털 정산
         </h1>
         <p className="page-subtitle" style={{ color: 'var(--text-muted)', marginTop: '0.4rem' }}>
