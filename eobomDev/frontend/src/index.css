@@ -180,73 +180,14 @@ body {
   min-height: 100vh;
 }
 
-/* ── 좌측 호버 확장 사이드바 (Sidebar.tsx) ──
-   width/margin-left 둘 다 순수 CSS :hover로 제어한다 — 사이드바가 확장될 때
-   .main-wrapper의 margin-left도 같은 값(240px)으로 함께 밀리게 해서, 확장된
-   사이드바가 본문을 덮어버리던 문제(콘텐츠 가림)를 근본적으로 없앤다.
-   2026-08-20: Sidebar.tsx가 <aside class="sidebar"> 뒤에 모바일 드로어 두 div를 형제로
-   더 렌더하게 되면서 .main-wrapper가 더 이상 .sidebar의 "바로 다음" 형제가 아니게 됐다 —
-   인접 형제 선택자(+)는 깨지므로 일반 형제 선택자(~)로 바꿔 사이에 뭐가 끼어도 안전하게 한다. */
-.sidebar {
-  position: fixed;
-  left: 0;
-  top: var(--header-h);
-  bottom: 0;
-  width: 72px;
-  z-index: 900;
-  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  overflow: hidden;
-}
-
-.sidebar:hover {
-  width: 240px;
-}
-
-.sidebar-label {
-  opacity: 0;
-  transition: opacity 0.25s ease;
-}
-
-.sidebar:hover .sidebar-label {
-  opacity: 1;
-}
-
-/* Sidebar Margin Space for Main Layout */
+/* 00-39 §6-3(2026-09-18) — 좌측 72px 호버 사이드바(.sidebar) 폐지, 모드별 메뉴는
+   Header.tsx의 헤더 드롭다운(.hdr-mode, design-v2.css)이 대신한다. .main-wrapper는
+   더 이상 사이드바 폭만큼 밀릴 필요가 없어 margin-left를 없앴다. */
 .main-wrapper {
-  margin-left: 72px;
-  /* 사이드바 기본 넓이 */
-  transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
   flex-direction: column;
   min-height: calc(100vh - var(--header-h));
   flex-grow: 1;
-}
-
-.sidebar:hover~.main-wrapper {
-  margin-left: 240px;
-}
-
-/* 640px 이하(터치 환경 + 좁은 창)에서는 호버가 안정적으로 동작하지 않아 사이드바 레일 자체를
-   없애고 Header의 햄버거 버튼 + 아래 모바일 드로어로 대체한다(2026-08-20 지시). 본문은 사이드바가
-   차지하던 여백 없이 전체 폭을 쓴다.
-   2026-08-20 추가 조사: 원래 이 기준선이 480px이었는데, 481~767px 구간은 어떤 압축 CSS도 안 걸려
-   로그인 사용자칩+계정설정+로그아웃 버튼이 풀사이즈로 겹치는 기존 버그가 있었다(실측 544px에서
-   재현). 640px로 넓혀서 헤더가 좁아지는 시점과 압축이 걸리는 시점을 맞춘다 — 아래 Header 관련
-   블록들도 전부 같은 640px로 통일했다(따로 놀면 또 이 틈이 생긴다). */
-@media (max-width: 640px) {
-
-  /* Sidebar.tsx의 <aside className="sidebar">에 인라인 style={{ display: 'flex' }}가 같이
-     있어서(레이아웃용) 인라인 스타일이 외부 스타일시트보다 우선한다 — !important 없이는
-     여기서 display:none이 무시되고 사이드바가 그대로 남아 본문을 가린다(2026-08-20 발견,
-     아래 .header-account-buttons--has-drawer와 동일 원인). */
-  .sidebar {
-    display: none !important;
-  }
-
-  .main-wrapper,
-  .sidebar:hover~.main-wrapper {
-    margin-left: 0;
-  }
 }
 
 /* ── 모바일 햄버거 메뉴 트리거(Header.tsx) ── */
@@ -1167,8 +1108,9 @@ body {
   flex-shrink: 0;
 }
 
-/* 헤더 평면 메뉴 — 4개(홈/생전 준비/임종·사후 정리/추모관) 전부 로그인 시에만 노출한다
-   (Header.tsx에서 조건 렌더, 2026-08 개발자 확정 — 비로그인 시 "홈"도 숨김).
+/* 헤더 평면 메뉴 — 홈/생전 준비/임종·사후 정리 3개, 로그인 여부와 무관하게 항상 노출한다
+   (00-39 §6-3, 2026-09-18 사람 확정 — 사이드바 폐지로 비로그인 사용자의 유일한 내비게이션
+   수단이 됨). 뒤 두 개는 .hdr-mode 호버 드롭다운을 갖는다(design-v2.css).
    최소 터치 타겟(56px)을 확보하되 헤더 높이(--header-h) 안에서 세로 중앙 정렬된다. */
 .header-nav {
   display: flex;
@@ -1272,14 +1214,14 @@ body {
 
 @media (max-width: 640px) {
 
-  /* 헤더 높이(--header-h)는 .sidebar top·.main-wrapper min-height·.fullpage-section 높이
-     계산이 전부 참조하는 단일 토큰이다(:root 정의부 주석 참고) — 여기서 한 번만 낮추면
-     전부 같이 줄어든다. 데스크톱 85px은 A안 재구성 당시 확정값이라 그대로 두고, 모바일
+  /* 헤더 높이(--header-h)는 .main-wrapper min-height·.fullpage-section 높이 계산이 전부
+     참조하는 단일 토큰이다(:root 정의부 주석 참고) — 여기서 한 번만 낮추면 전부 같이
+     줄어든다. 데스크톱 85px은 A안 재구성 당시 확정값이라 그대로 두고, 모바일
      (햄버거로 바뀌는 640px 이하, 로고·평면 메뉴 대신 아이콘만 남는 구간)만 낮춘다
      (2026-08-25 개발자 지적 — 헤더가 화면을 너무 많이 차지함 + 홈 풀페이지 스냅 섹션이
      그만큼 헤더 높이를 빼앗겨 콘텐츠가 화면 아래로 밀리는 문제와도 연결).
      🔄 2026-09-10 사람 지시 — 모바일 헤더를 10%가량 더 낮춘다(64px → 58px, 64*0.9=57.6 반올림).
-     이 토큰 하나만 바꾸면 위 주석대로 .sidebar·.main-wrapper·.fullpage-section·새로 추가한
+     이 토큰 하나만 바꾸면 위 주석대로 .main-wrapper·.fullpage-section·새로 추가한
      .hero-section min-height까지 전부 같이 따라간다. */
   :root {
     --header-h: 58px;

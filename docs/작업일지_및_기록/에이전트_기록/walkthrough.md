@@ -3630,3 +3630,25 @@ wt137 그대로라 재작업 없음).
 - **다음 에이전트가 알아야 할 것**: **§11.1 ⓑ①②③·ⓒ 일부(CTA·칩·Footer)가 배포본에서 전부 닫혔다.** 정확한 360px 재측정(및 §11.1이 다룬 나머지 DoD 항목 — #2·#4·#7 등 이번에 손 안 댄 것들)은 여전히 Opus의 다음 1차 실측 갱신이나 사람의 실기기 확인 몫으로 남는다.
 
 <!-- Gemini 판정 1줄: 대기 -->
+
+## 2026-09-18 | [Sonnet] 00-39 그룹① 대표 `/care-guide` 재구현 — 사이드바 폐지·헤더 드롭다운·문서형 레이아웃
+
+- **근거 스펙**: `docs/00_핵심플랫폼/00-39_디자인_기준_재정립_명세서.md` §3~§7·§9(그룹① 대표 = care-guide).
+- **건드린 파일**: `eobomDev/frontend/src/pages/CareGuidePage.tsx`(전면 재작성), `eobomDev/frontend/src/styles/design-v2.css`(신규), `eobomDev/frontend/src/lib/legalLink.ts`(신규), `eobomDev/frontend/src/components/Header.tsx`, `eobomDev/frontend/src/components/Sidebar.tsx`, `eobomDev/frontend/src/main.tsx`, `eobomDev/frontend/src/index.css`.
+- **결과**:
+  1. **인라인 스타일 0개** — `CareGuidePage.tsx`의 기존 `style={{}}` 56개를 전부 `design-v2.css`의 `.v2-*` 클래스로 치환(`grep -c "style=" CareGuidePage.tsx` = 0). `index.css`(기존 토큰과 얽힘)에 넣지 않고 새 파일로 분리, `:root`에 `--v2-*` 토큰(§3 색·§4 글자·§5 레이아웃 값)을 독립 선언.
+  2. **레이아웃** — 좌측 기한별 목차 236px(`--v2-toc-width`, 데스크톱 sticky) + 읽기 폭 764px 고정(`--v2-reading-width`), `.container`(120px 패딩·1200px min-width 강제) 미사용으로 우회.
+  3. **목록** — `.v2-item-row`: 체크박스+제목+기한만(설명문 제거, §6-1). 체크박스 클릭만 완료 처리, 제목 클릭은 모달 오픈(§6-8·9, 별도 핸들러). CRITICAL은 제목 위 12px 빨간 글자 "되돌릴 수 없음"(색 배지 대신, 규칙5). 기한은 우측 정렬 회색.
+  4. **모달** — `.v2-modal`: 제목·기한·근거 세 줄만(규칙10), 해설·조언 문장 없음(규칙11 — 기존 `note`/`irreversibleNote` 표시 로직 삭제, 필드 자체는 JSON에 유지). 모바일은 CSS가 같은 마크업을 바텀시트(`align-items:flex-end`, 하단 닫기 버튼)로 전환.
+  5. **법령 링크(§6-14)** — `legalLink.ts`의 `getLegalLink()`가 우선순위 3단을 구현: ①기관 특정 3건(정부24 id7·안심상속 id9·18은 `gov.kr`, e하늘 id4는 실제 URL 미확인이라 라벨만 노출) ②법령 13건은 `https://www.law.go.kr/법령/{법령명}/{제N조}` 생성(`§`→`제N조`, 항 `①②③` 제거) ③근거 없는 6건(id 1·3·17·19·21·22)은 줄 생략.
+  6. **구간 이동(§7)** — 웹 좌측 목차·모바일 상단 가로 탭이 같은 `TIME_SECTIONS` 5구간을 공유(`IntersectionObserver`로 `activeSectionKey` 동기화). 기존 데스크톱 아코디언(구간 접기)·모바일 카테고리 칩 필터는 전부 제거 — §1 확정("A 문서형")에 맞춰 상시 펼침 문서 스크롤 구조로 교체.
+  7. **헤더 드롭다운(규칙3)** — `Header.tsx`의 "생전 준비"/"임종·사후 정리" 버튼에 `.hdr-mode-panel` 호버(+`:focus-within`) 드롭다운 추가, 항목은 `modeNav.ts`(`MODE_MENUS`) 그대로, `status:'preview'`는 "준비 중" 배지. `Sidebar.tsx`의 데스크톱 `<aside className="sidebar">`(72px 호버 확장 바) 전체 삭제 — 모바일 드로어(햄버거)는 그대로 둠. `index.css`의 `.sidebar`/`.sidebar:hover`/`.main-wrapper` margin-left 로직 삭제.
+  8. **🔴 사람 확정 사항(2026-09-18, 세션 중 질문)** — 사이드바 삭제로 비로그인 사용자가 내비게이션 수단을 완전히 잃는 문제를 발견해 확인 요청 → "헤더 드롭다운을 항상 노출(권장)"으로 확정. `Header.tsx`의 `{currentUser && (...)}` 게이트를 제거해 메뉴 자체는 로그인 여부와 무관하게 항상 노출, 개별 항목 클릭 시에만 `loginRequired`면 로그인 모달로 게이트(Sidebar가 쓰던 것과 같은 패턴).
+  9. `npx tsc --noEmit`(frontend) 에러 0, `npm run build`(frontend) 통과(청크 크기 경고만, 기존에도 있던 것).
+- **편차**:
+  - **행 CTA 버튼 삭제** — 기존 목록 행의 "장사시설 찾기 →"·"전문가 상담 →"·"정부24 바로가기" 인라인 버튼(6개 항목)을 전부 뺐다. §6-1이 "한 줄은 제목+기한이 전부"를 웹·모바일 공통으로 못박았고, §6.4 규칙10이 모달을 3줄로 캡핑해 이 CTA들을 모달에도 넣을 자리가 없다. 대신 헤더 드롭다운(`BEREAVED_MENU`)이 facility·counseling·digital-estate를 항상 노출하므로 중복 진입점으로 판단해 제거 — 스펙에 명시된 결정은 아니라 편차로 남긴다.
+  - **`--header-h`(85px/58px) 미변경** — §5 표는 76px/50px을 명시하지만, 이 토큰은 홈 풀페이지 스냅 섹션 등 care-guide 밖 전역 레이아웃에도 쓰여 블래스트 반경이 이 작업 범위를 넘는다고 판단해 손대지 않았다. 다음 그룹(⑤ 홈) 작업 시 재검토 필요.
+  - **e하늘 장사정보시스템(id4) 링크 없음** — 실제 URL을 실측하지 못해 라벨만 표시(href 없음). §6-14 순위1은 "그 사이트로" 링크를 요구하므로 완전한 스펙 이행은 아니다.
+- **다음 에이전트가 알아야 할 것**: 🔴 **실기동 검증 대기** — 브라우저로 열어보지 않았다. 특히 (a) 헤더 드롭다운 호버/포커스 동작, (b) 모바일 바텀시트 모달, (c) IntersectionObserver 기반 목차 활성 상태, (d) 법령 링크 실제 클릭 결과(law.go.kr 조문 단위 정확도)는 사람 확인 필요. e하늘 실제 URL을 확인하면 `legalLink.ts`의 `INSTITUTION_LINKS[4].href`를 채울 것. 00-39 §9.1 표대로면 다음은 같은 그룹①의 나머지 4개(facility·counseling·pickup·my-obituaries, 시안 불필요)에 이번 `.v2-*` 클래스를 그대로 적용하는 것.
+
+<!-- Gemini 판정 1줄: 대기 -->

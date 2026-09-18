@@ -1,7 +1,7 @@
 import React from 'react';
-import { UserCheck, LogIn, LogOut, Menu } from 'lucide-react';
+import { UserCheck, LogIn, LogOut, Menu, ChevronDown } from 'lucide-react';
 import { EobomLogo } from './EobomLogo';
-import type { NavMode } from '../lib/modeNav';
+import { MODE_MENUS, type NavMode, type ModeMenuItem } from '../lib/modeNav';
 
 interface HeaderProps {
   setActiveTab: (tab: string) => void;
@@ -14,11 +14,15 @@ interface HeaderProps {
   onOpenMobileMenu?: () => void;
 }
 
-// 메인 홈 A안 재구성(2026-08) — 로고 옆 "모드 드롭다운" 1개 대신, 로그인 시에만 보이는
-// "홈"·"생전 준비"·"임종·사후 정리" 3개를 평면 메뉴로 노출한다(개발자 확정 —
-// 비로그인 시 "홈"도 숨김). 헤더는 전역 공용 컴포넌트라 이 변경은 모든 페이지에 적용된다.
+// 메인 홈 A안 재구성(2026-08) — 로고 옆 "모드 드롭다운" 1개 대신 "홈"·"생전 준비"·
+// "임종·사후 정리" 3개를 평면 메뉴로 노출한다. 헤더는 전역 공용 컴포넌트라 이 변경은
+// 모든 페이지에 적용된다.
 // 2026-08-24 — "생전 준비"·"임종·사후 정리"는 박스 소개 오버레이가 아니라 실제 화면
 // (/ending-note, /care-guide)으로 직접 이동한다.
+// 🔄 00-39 §6-3(2026-09-18) — 좌측 72px 사이드바 폐지에 따라 두 모드 버튼에 호버
+// 드롭다운을 달아 그 사이드바가 하던 역할(모드별 세부 메뉴 진입)을 대신한다. 동시에
+// 사람 확정으로 이 메뉴 전체를 비로그인 상태에서도 노출한다("홈" 숨김 방침 해제) —
+// 사이드바가 없어지면 비로그인 사용자가 페이지를 옮겨 다닐 다른 수단이 없기 때문이다.
 // 🔄 09-07 사용자 지시 — 예전엔 네 번째 메뉴로 "내 부고장"(→ `/my-obituaries-memorials`,
 // 구 라벨 "추모관")이 있었다. 사이드바의 "디지털 추모관"(→ `/memorial`, 다른 화면)과 이름이
 // 겹쳐 혼란이 있었던 데다, 그 화면은 이제 **마이페이지에서만** 들어가게 정리해 헤더에서는
@@ -41,6 +45,20 @@ export const Header: React.FC<HeaderProps> = ({ setActiveTab, onOpenLogin, curre
   const goToCareGuide = () => {
     onSetMode?.('bereaved');
     setActiveTab('care-guide');
+  };
+
+  // 00-39 §6-3(2026-09-18) — 좌측 72px 사이드바 폐지, 모드 버튼 호버 드롭다운으로 대체.
+  // 메뉴 구성은 modeNav.ts(MODE_MENUS)가 정본. 개별 항목은 Sidebar.tsx가 쓰던 것과 같은
+  // loginRequired 게이트를 그대로 따른다 — 헤더 메뉴 자체는 로그인 여부와 무관하게 항상
+  // 노출한다(비로그인 사용자가 사이드바 없이도 페이지를 옮겨 다닐 수 있어야 하므로,
+  // 2026-09-18 사람 확정 — 항목 클릭 시 loginRequired면 로그인 모달로 게이트).
+  const goToModeItem = (mode: NavMode, item: ModeMenuItem) => {
+    if (item.loginRequired && !currentUser) {
+      onOpenLogin();
+      return;
+    }
+    onSetMode?.(mode);
+    setActiveTab(item.id);
   };
 
   return (
@@ -70,17 +88,48 @@ export const Header: React.FC<HeaderProps> = ({ setActiveTab, onOpenLogin, curre
           <EobomLogo variant="symbol" height={42} />
         </div>
 
-        {/* 헤더 메뉴 — 3개 전부 로그인 상태에서만 노출(개발자 확정, 비로그인 시 "홈"도 숨김).
-            판별은 기존 인증 상태(currentUser)를 그대로 쓴다 — 새 상태를 만들지 않는다.
-            비로그인 시에는 메뉴 전체가 렌더되지 않을 뿐이라 레이아웃은 그대로 유지된다
-            (header-spacer가 남는 공간을 흡수한다). */}
-        {currentUser && (
-          <nav className="header-nav">
-            <button type="button" className="header-nav-item" onClick={goHome}>홈</button>
-            <button type="button" className="header-nav-item" onClick={goToEndingNote}>생전 준비</button>
-            <button type="button" className="header-nav-item" onClick={goToCareGuide}>임종·사후 정리</button>
-          </nav>
-        )}
+        {/* 헤더 메뉴 — 00-39 §6-3(2026-09-18) 사람 확정으로 로그인 여부와 무관하게 항상
+            노출한다(사이드바 폐지로 비로그인 사용자의 유일한 내비게이션 수단이 됨). 로그인이
+            필요한 개별 항목은 클릭 시 goToModeItem이 로그인 모달로 게이트한다. */}
+        <nav className="header-nav">
+          <button type="button" className="header-nav-item" onClick={goHome}>홈</button>
+          <div className="hdr-mode">
+            <button type="button" className="header-nav-item hdr-mode-trigger" onClick={goToEndingNote}>
+              생전 준비 <ChevronDown size={14} />
+            </button>
+            <div className="hdr-mode-panel">
+              {MODE_MENUS.prep.map((item) => (
+                <button
+                  key={item.id}
+                  type="button"
+                  className="hdr-mode-item"
+                  onClick={() => goToModeItem('prep', item)}
+                >
+                  <span>{item.label}</span>
+                  {item.status === 'preview' && <span className="hdr-mode-badge">준비 중</span>}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="hdr-mode">
+            <button type="button" className="header-nav-item hdr-mode-trigger" onClick={goToCareGuide}>
+              임종·사후 정리 <ChevronDown size={14} />
+            </button>
+            <div className="hdr-mode-panel">
+              {MODE_MENUS.bereaved.map((item) => (
+                <button
+                  key={item.id}
+                  type="button"
+                  className="hdr-mode-item"
+                  onClick={() => goToModeItem('bereaved', item)}
+                >
+                  <span>{item.label}</span>
+                  {item.status === 'preview' && <span className="hdr-mode-badge">준비 중</span>}
+                </button>
+              ))}
+            </div>
+          </div>
+        </nav>
 
         {/* 로고·메뉴와 우측 그룹 사이 여백 채우기 */}
         <div className="header-spacer" />

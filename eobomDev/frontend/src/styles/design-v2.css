@@ -1,0 +1,551 @@
+/* docs/00_핵심플랫폼/00-39 디자인 기준 재정립 명세서 — 값과 규칙의 새 정본.
+   index.css(기존 토큰 100KB와 얽혀 있음)에 넣지 않고 새 파일로 분리한다(00-39 §9.3).
+   여기 선언하는 --v2-* 토큰은 기존 --primary-color 등과 독립이다 — 백지에서 시작한다.
+   그룹 ①(목록·체크리스트) 대표 `/care-guide`에서 뽑은 규칙이고, 다음 그룹이 확장한다(§9). */
+
+:root {
+  /* §3 색 */
+  --v2-bg: #FDFCFA;
+  --v2-text-main: #22303F;
+  --v2-text-muted: #5C6773;
+  --v2-text-faint: #8A9199;
+  --v2-text-label: #A29B90;
+  --v2-divider: #EFEBE4;
+  --v2-divider-strong: #ECE7DF;
+  --v2-urgent: #C0392B;
+  --v2-point: #5B7065;
+  --v2-selected-bg: #F5F2EC;
+  --v2-input-border: #B9B3AA;
+  --v2-btn-border: #D8D2C8;
+  --v2-modal-shadow: 0 24px 70px rgba(34, 48, 63, 0.26);
+
+  /* §4 글자 */
+  --v2-font-serif: 'KoPub World Batang', 'Noto Serif KR', serif;
+  --v2-font-sans: 'Pretendard', 'Noto Sans KR', sans-serif;
+  --v2-fs-page-title: 40px;
+  --v2-fs-page-title-mobile: 27px;
+  --v2-fs-section-title: 24px;
+  --v2-fs-modal-title: 20px;
+  --v2-fs-item-title: 19px;
+  --v2-fs-item-title-mobile: 17px;
+  --v2-fs-body: 17px;
+  --v2-fs-support: 15px;
+  --v2-fs-support-mobile: 14px;
+  --v2-fs-label: 13px;
+  --v2-fs-label-mobile: 12px;
+  --v2-lh-title: 1.4;
+
+  /* §5 레이아웃 */
+  --v2-gutter-web: 40px;
+  --v2-gutter-mobile: 20px;
+  --v2-toc-width: 236px;
+  --v2-reading-width: 764px;
+  --v2-item-pad-v: 23px;
+  --v2-item-pad-v-mobile: 19px;
+}
+
+/* ── §6.1 구조 — 카드·그림자 없음, 1px 선과 여백으로 구분 ── */
+.v2-page {
+  background: var(--v2-bg);
+  color: var(--v2-text-main);
+  font-family: var(--v2-font-sans);
+  padding: 48px var(--v2-gutter-web) 96px;
+}
+
+.v2-page-head {
+  max-width: calc(var(--v2-toc-width) + var(--v2-reading-width) + 48px);
+  margin: 0 auto 40px;
+}
+
+.v2-page-title {
+  font-family: var(--v2-font-serif);
+  font-weight: 600;
+  font-size: var(--v2-fs-page-title);
+  letter-spacing: -0.5px;
+  line-height: var(--v2-lh-title);
+  margin: 0;
+}
+
+.v2-page-subtitle {
+  font-size: var(--v2-fs-body);
+  color: var(--v2-text-muted);
+  margin: 10px 0 0;
+}
+
+/* §5 — 목차 236px + 읽기 폭 764px 고정. 넓은 화면도 채우지 않는다 */
+.v2-guide-shell {
+  display: flex;
+  align-items: flex-start;
+  gap: 48px;
+  max-width: calc(var(--v2-toc-width) + var(--v2-reading-width) + 48px);
+  margin: 0 auto;
+}
+
+.v2-guide-toc {
+  width: var(--v2-toc-width);
+  flex-shrink: 0;
+  position: sticky;
+  top: calc(var(--header-h) + 24px);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.v2-toc-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 10px 12px;
+  border: none;
+  background: none;
+  border-radius: 4px;
+  font-size: var(--v2-fs-support);
+  color: var(--v2-text-muted);
+  cursor: pointer;
+  text-align: left;
+}
+
+.v2-toc-item.is-current {
+  background: var(--v2-selected-bg);
+  color: var(--v2-text-main);
+  font-weight: 700;
+}
+
+.v2-toc-count {
+  font-variant-numeric: tabular-nums;
+  color: var(--v2-text-faint);
+  font-size: var(--v2-fs-label);
+}
+
+.v2-guide-main {
+  width: var(--v2-reading-width);
+  max-width: 100%;
+  min-width: 0;
+}
+
+.v2-section {
+  margin-bottom: 40px;
+}
+
+.v2-section-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-bottom: 10px;
+  margin-bottom: 4px;
+  border-bottom: 1px solid var(--v2-divider-strong);
+}
+
+.v2-section-title {
+  font-family: var(--v2-font-serif);
+  font-size: var(--v2-fs-section-title);
+  font-weight: 600;
+}
+
+.v2-section-count {
+  font-size: var(--v2-fs-label);
+  color: var(--v2-text-faint);
+  font-variant-numeric: tabular-nums;
+}
+
+.v2-category-label {
+  font-size: var(--v2-fs-label);
+  color: var(--v2-text-label);
+  letter-spacing: 0.02em;
+  margin: 20px 0 4px;
+}
+
+/* ── §6.3 조작 · §6-1 목록 한 줄(제목+기한만, 웹·모바일 공통) ── */
+.v2-item-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: var(--v2-item-pad-v) 0;
+  border-bottom: 1px solid var(--v2-divider);
+}
+
+.v2-item-checkbox {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  accent-color: var(--v2-point);
+  border: 1.5px solid var(--v2-input-border);
+  cursor: pointer;
+}
+
+.v2-item-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  cursor: pointer;
+  background: none;
+  border: none;
+  text-align: left;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+}
+
+.v2-item-urgent-flag {
+  font-size: 12px;
+  color: var(--v2-urgent);
+  font-weight: 600;
+}
+
+.v2-item-title {
+  font-size: var(--v2-fs-item-title);
+  font-weight: 700;
+  text-wrap: pretty;
+}
+
+.v2-item-row.is-checked .v2-item-title {
+  color: var(--v2-text-faint);
+  text-decoration: line-through;
+}
+
+.v2-item-deadline {
+  flex-shrink: 0;
+  font-size: var(--v2-fs-support);
+  color: var(--v2-text-faint);
+  text-align: right;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── §6.4 모달(안내) — 제목·기한·근거 세 줄뿐(규칙10) ── */
+.v2-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(34, 48, 63, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  padding: 24px;
+}
+
+.v2-modal {
+  width: 540px;
+  max-width: 100%;
+  background: var(--v2-bg);
+  box-shadow: var(--v2-modal-shadow);
+  padding: 40px;
+  border-radius: 2px;
+}
+
+.v2-modal-eyebrow {
+  font-size: 12px;
+  color: var(--v2-urgent);
+  font-weight: 600;
+  margin: 0 0 8px;
+}
+
+.v2-modal-title {
+  font-family: var(--v2-font-serif);
+  font-size: var(--v2-fs-modal-title);
+  font-weight: 600;
+  line-height: var(--v2-lh-title);
+  margin: 0 0 28px;
+}
+
+.v2-modal-row {
+  display: flex;
+  gap: 20px;
+  padding: 16px 0;
+  border-top: 1px solid var(--v2-divider);
+}
+
+.v2-modal-row:first-of-type {
+  border-top: none;
+  padding-top: 0;
+}
+
+.v2-modal-label {
+  width: 64px;
+  flex-shrink: 0;
+  font-size: var(--v2-fs-label);
+  color: var(--v2-text-label);
+}
+
+.v2-modal-value {
+  font-size: var(--v2-fs-body);
+  color: var(--v2-text-main);
+  line-height: 1.6;
+}
+
+.v2-modal-basis-link {
+  color: var(--v2-point);
+  text-decoration: underline;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* 웹은 법령 부연(괄호)까지 표시, 모바일은 조문까지만(규칙12) */
+.v2-modal-extra {
+  color: var(--v2-text-muted);
+}
+
+.v2-modal-close {
+  display: none;
+}
+
+/* ── §6.6 버튼 — 밑줄이 아니라 테두리 ── */
+.v2-btn-outline {
+  height: 44px;
+  padding: 0 18px;
+  border: 1px solid var(--v2-btn-border);
+  background: none;
+  border-radius: 4px;
+  font-size: var(--v2-fs-support);
+  color: var(--v2-text-main);
+  cursor: pointer;
+}
+
+.v2-btn-solid {
+  height: 44px;
+  padding: 0 18px;
+  border: 1px solid var(--v2-urgent);
+  background: var(--v2-urgent);
+  border-radius: 4px;
+  font-size: var(--v2-fs-support);
+  color: #FFFFFF;
+  cursor: pointer;
+}
+
+/* ── 상속 경고 배너(리본형 — 위아래 1.5px 선만) ── */
+.v2-callout {
+  border-top: 1.5px solid var(--v2-urgent);
+  border-bottom: 1.5px solid var(--v2-urgent);
+  padding: 20px 0;
+  margin-bottom: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.v2-callout-title {
+  font-size: var(--v2-fs-body);
+  font-weight: 700;
+  margin: 0 0 4px;
+}
+
+.v2-callout-desc {
+  font-size: var(--v2-fs-support);
+  color: var(--v2-text-muted);
+  margin: 0;
+}
+
+.v2-callout-actions {
+  display: flex;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.v2-footnote {
+  font-size: var(--v2-fs-support);
+  color: var(--v2-text-muted);
+  margin-top: 24px;
+  line-height: 1.6;
+}
+
+/* ── Header 모드 드롭다운(00-39 §6-3) — Header.tsx `.hdr-mode` ── */
+.hdr-mode {
+  position: relative;
+}
+
+.hdr-mode-trigger {
+  display: inline-flex !important;
+  align-items: center;
+  gap: 4px;
+}
+
+.hdr-mode-panel {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  min-width: 220px;
+  background: var(--v2-bg);
+  border: 1px solid var(--v2-divider-strong);
+  box-shadow: 0 12px 32px rgba(34, 48, 63, 0.14);
+  padding: 6px;
+  opacity: 0;
+  transform: translateY(-4px);
+  pointer-events: none;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+  z-index: 1100;
+}
+
+.hdr-mode:hover .hdr-mode-panel,
+.hdr-mode:focus-within .hdr-mode-panel {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+.hdr-mode-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  padding: 10px 12px;
+  border: none;
+  background: none;
+  border-radius: 4px;
+  font-size: var(--v2-fs-support);
+  color: var(--v2-text-main);
+  cursor: pointer;
+  white-space: nowrap;
+  text-align: left;
+}
+
+.hdr-mode-item:hover {
+  background: var(--v2-selected-bg);
+}
+
+.hdr-mode-badge {
+  font-size: 11px;
+  color: var(--v2-text-faint);
+  background: var(--v2-divider);
+  padding: 2px 6px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+
+/* ── 모바일 상단 가로 탭(구간 이동, §7) — 768px 미만에서만 노출 ── */
+.v2-mobile-tabs {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 12px;
+  margin-bottom: 8px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.v2-mobile-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.v2-mobile-tab {
+  flex-shrink: 0;
+  white-space: nowrap;
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--v2-divider-strong);
+  background: none;
+  font-size: var(--v2-fs-label);
+  color: var(--v2-text-muted);
+  cursor: pointer;
+}
+
+.v2-mobile-tab.is-active {
+  background: var(--v2-text-main);
+  border-color: var(--v2-text-main);
+  color: #FFFFFF;
+}
+
+.v2-row-chevron {
+  flex-shrink: 0;
+  color: var(--v2-text-faint);
+}
+
+@media (min-width: 768px) {
+  .v2-mobile-tabs {
+    display: none;
+  }
+
+  .v2-row-chevron {
+    display: none;
+  }
+}
+
+/* ── §6.5 모바일 — 간소화, 좌측 목차 대신 가로 탭, 모달 → 바텀시트 ── */
+@media (max-width: 767px) {
+  .v2-page {
+    padding: 24px var(--v2-gutter-mobile) 64px;
+  }
+
+  .v2-page-title {
+    font-size: var(--v2-fs-page-title-mobile);
+  }
+
+  .v2-page-subtitle {
+    display: none;
+    /* 규칙12 — 부제를 두지 않는다 */
+  }
+
+  .v2-guide-shell {
+    display: block;
+  }
+
+  .v2-guide-toc {
+    display: none;
+    /* 좌측 목차 대신 .v2-mobile-tabs(가로 탭) */
+  }
+
+  .v2-guide-main {
+    width: 100%;
+  }
+
+  .v2-item-title {
+    font-size: var(--v2-fs-item-title-mobile);
+  }
+
+  .v2-item-deadline {
+    font-size: var(--v2-fs-support-mobile);
+  }
+
+  .v2-item-row {
+    padding: var(--v2-item-pad-v-mobile) 0;
+  }
+
+  .v2-callout {
+    display: block;
+    padding: 16px 0;
+  }
+
+  .v2-callout-desc {
+    display: none;
+    /* 2026-09-11 사람 지시 — 모바일은 제목과 내용이 겹쳐 줄글을 없앤다 */
+  }
+
+  .v2-callout-actions {
+    margin-top: 12px;
+  }
+
+  /* 모달 → 바텀시트, 닫기는 X가 아니라 하단 버튼 */
+  .v2-modal-overlay {
+    align-items: flex-end;
+    padding: 0;
+  }
+
+  .v2-modal {
+    width: 100%;
+    border-radius: 16px 16px 0 0;
+    padding: 24px 20px calc(20px + env(safe-area-inset-bottom));
+  }
+
+  .v2-modal-extra {
+    display: none;
+    /* 규칙12 — 모바일은 근거를 조문까지만 */
+  }
+
+  .v2-modal-close {
+    display: block;
+    width: 100%;
+    height: 48px;
+    margin-top: 20px;
+    border: 1px solid var(--v2-btn-border);
+    background: none;
+    border-radius: 4px;
+    font-size: var(--v2-fs-support);
+    color: var(--v2-text-main);
+    cursor: pointer;
+  }
+}
