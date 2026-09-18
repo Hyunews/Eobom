@@ -55,7 +55,7 @@ export const TaxSimulatorModal: React.FC<TaxSimulatorModalProps> = ({ onClose })
 
         {/* 00-39 §8 #7 — A형(입력·결과 2단). 왼쪽에서 입력·계산하면 오른쪽에 결과가 뜬다.
             767px 이하는 .v2-two-col이 1단으로 접어 입력 다음에 결과가 이어진다. */}
-        <div className="v2-two-col">
+        <div className="v2-two-col tax-sim-two-col">
           <form onSubmit={handleCalculateTax} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             <div className="v2-field">
               <label>총 상속재산가액 (만원)</label>
@@ -63,16 +63,19 @@ export const TaxSimulatorModal: React.FC<TaxSimulatorModalProps> = ({ onClose })
               <span className="v2-field-hint">* 약 {(totalAsset / 10000).toFixed(2)}억원 (부동산·예금·주식 등 전체)</span>
             </div>
 
-            <div className="v2-field">
-              <label>채무 및 장례비용 (만원)</label>
-              <input type="number" min={0} value={debtAndFuneralCost} onChange={(e) => setDebtAndFuneralCost(Number(e.target.value))} className="v2-input" />
-              <span className="v2-field-hint">* 고인의 채무, 장례비 등 (과세가액에서 차감)</span>
-            </div>
-
-            <div className="v2-field">
-              <label>그중 순수 금융재산가액 (만원)</label>
-              <input type="number" min={0} value={financialAsset} onChange={(e) => setFinancialAsset(Number(e.target.value))} className="v2-input" />
-              <span className="v2-field-hint">* 총 상속재산 중 예금·보험·주식 등 (부동산 제외, 금융재산공제 계산용)</span>
+            {/* 채무·금융재산 — 한 줄로 묶어 입력 칸 세로 길이를 줄임(사용자 실기동 지시,
+                2026-09-18: "산출결과랑 높이가 맞게"). §6.8 확정값(높이·글자·간격)은 그대로. */}
+            <div style={{ display: 'flex', gap: '1rem' }}>
+              <div className="v2-field" style={{ flex: 1 }}>
+                <label>채무 및 장례비용 (만원)</label>
+                <input type="number" min={0} value={debtAndFuneralCost} onChange={(e) => setDebtAndFuneralCost(Number(e.target.value))} className="v2-input" />
+                <span className="v2-field-hint">* 과세가액에서 차감</span>
+              </div>
+              <div className="v2-field" style={{ flex: 1 }}>
+                <label>그중 순수 금융재산 (만원)</label>
+                <input type="number" min={0} value={financialAsset} onChange={(e) => setFinancialAsset(Number(e.target.value))} className="v2-input" />
+                <span className="v2-field-hint">* 부동산 제외</span>
+              </div>
             </div>
 
             <div className="v2-field">
@@ -120,30 +123,39 @@ export const TaxSimulatorModal: React.FC<TaxSimulatorModalProps> = ({ onClose })
 
           <div>
             {taxResult ? (
-              <div style={{
+              <div className="tax-sim-result-box" style={{
                 padding: '1.2rem',
                 backgroundColor: 'var(--secondary-color)',
                 borderRadius: 'var(--r-sm)',
-                borderLeft: '4px solid var(--primary-color)'
+                borderLeft: '4px solid var(--primary-color)',
+                display: 'flex',
+                flexDirection: 'column',
+                /* 박스가 입력 칸 높이에 맞춰 늘어나면(위 .tax-sim-result-box) 내용이 위쪽에 몰리고
+                   아래가 빈다 — 폰트·간격을 추측해서 채우는 대신 space-between으로 "최종 세액"을
+                   박스 맨 아래에 고정한다. 늘어난 만큼이 얼마든 항상 자연스럽게 채워진다. */
+                justifyContent: 'space-between',
+                gap: '0.8rem',
               }}>
-                <h4 style={{ color: 'var(--primary-color)', marginBottom: '0.6rem' }}>📊 예상 상속세 산출 결과</h4>
+                <div>
+                  <h4 style={{ color: 'var(--primary-color)', marginBottom: '0.6rem' }}>📊 예상 상속세 산출 결과</h4>
 
-                <div style={{ fontSize: 'var(--fs-body)', color: 'var(--text-main)', display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
-                  <Row label="상속세 과세가액" value={`${fmt(taxResult.taxableBase)} 만원`} />
-                  <Row label="기초공제/일괄공제(큰 금액)" value={`- ${fmt(taxResult.basicOrLumpSumDeduction)} 만원`} />
-                  <Row
-                    label={`배우자공제${taxResult.spouseDeductionIsEstimated ? ' (법정상속분 추정)' : ''}`}
-                    value={`- ${fmt(taxResult.spouseDeduction)} 만원`}
-                  />
-                  <Row label="금융재산 상속공제" value={`- ${fmt(taxResult.financialAssetDeduction)} 만원`} />
-                  <div style={{ borderTop: '1px dashed var(--border-color)', margin: '0.3rem 0' }} />
-                  <Row label="과세표준" value={`${fmt(taxResult.taxBase)} 만원`} bold />
-                  <Row label="적용 최고세율 구간" value={`${taxResult.bracketRate}%`} />
-                  <Row label="산출세액" value={`${fmt(taxResult.calculatedTax)} 만원`} />
-                  <Row label="신고세액공제 (3%, 기한 내 신고 가정)" value={`- ${fmt(taxResult.reportingDeduction)} 만원`} />
+                  <div style={{ fontSize: '14px', color: 'var(--text-main)', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                    <Row label="상속세 과세가액" value={`${fmt(taxResult.taxableBase)} 만원`} />
+                    <Row label="기초·일괄공제(큰 금액)" value={`- ${fmt(taxResult.basicOrLumpSumDeduction)} 만원`} />
+                    <Row
+                      label={`배우자공제${taxResult.spouseDeductionIsEstimated ? '(추정)' : ''}`}
+                      value={`- ${fmt(taxResult.spouseDeduction)} 만원`}
+                    />
+                    <Row label="금융재산 상속공제" value={`- ${fmt(taxResult.financialAssetDeduction)} 만원`} />
+                    <div style={{ borderTop: '1px dashed var(--border-color)', margin: '0.2rem 0' }} />
+                    <Row label="과세표준" value={`${fmt(taxResult.taxBase)} 만원`} bold />
+                    <Row label="최고세율 구간" value={`${taxResult.bracketRate}%`} />
+                    <Row label="산출세액" value={`${fmt(taxResult.calculatedTax)} 만원`} />
+                    <Row label="신고세액공제(3%)" value={`- ${fmt(taxResult.reportingDeduction)} 만원`} />
+                  </div>
                 </div>
 
-                <p style={{ fontSize: '1.3rem', fontWeight: 700, color: 'var(--accent-red)', margin: 'var(--sp-4) 0 0 0' }}>
+                <p style={{ fontSize: '1.3rem', fontWeight: 700, color: 'var(--accent-red)', margin: 0 }}>
                   최종 예상 상속세액: 약 {fmt(taxResult.finalTax)} 만원 ({(taxResult.finalTax / 10000).toFixed(2)} 억원)
                 </p>
               </div>
@@ -189,8 +201,8 @@ export const TaxSimulatorModal: React.FC<TaxSimulatorModalProps> = ({ onClose })
 };
 
 const Row: React.FC<{ label: string; value: string; bold?: boolean }> = ({ label, value, bold }) => (
-  <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: bold ? 700 : 400 }}>
-    <span style={{ color: 'var(--text-muted)' }}>{label}</span>
-    <span>{value}</span>
+  <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', alignItems: 'flex-start', fontWeight: bold ? 700 : 400 }}>
+    <span style={{ color: 'var(--text-muted)', minWidth: 0 }}>{label}</span>
+    <span style={{ flexShrink: 0, whiteSpace: 'nowrap', textAlign: 'right' }}>{value}</span>
   </div>
 );
