@@ -77,6 +77,10 @@ export const CareGuidePage: React.FC<CareGuidePageProps> = ({ setActiveTab }) =>
   );
 
   // 00-39 §7 — 구간 이동은 웹 좌측 목차(세로)·모바일 상단 탭(가로) 둘 다 같은 상태를 공유한다.
+  // 🔄 2026-09-18 사람 지시 — 모바일은 스크롤로 다음 구간이 "내려오지" 않는다. 탭을 누르면
+  // 그 구간만 보이고 나머지는 CSS(design-v2.css `.v2-section`)가 숨긴다(모든 걸 한 페이지에
+  // 담지 않는다). 이 옵저버는 웹 좌측 목차의 스크롤 스파이 전용 — 모바일은 항상 activeSectionKey
+  // 하나만 화면에 있어 관찰해도 자기 자신만 다시 확인하는 것이라 무해하다.
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
@@ -109,7 +113,8 @@ export const CareGuidePage: React.FC<CareGuidePageProps> = ({ setActiveTab }) =>
 
       <div className="v2-guide-shell">
         <div className="v2-guide-main">
-          {/* §3.1 최상단 고정 배너 — 유족은 끝까지 스크롤하지 않는다. 리본형(위아래 1.5px 선만) */}
+          {/* §3.1 최상단 고정 배너 — 유족은 끝까지 스크롤하지 않는다. 리본형(위아래 1.5px 선만).
+              모바일은 통째로 숨긴다(design-v2.css, 2026-09-18 사람 지시). */}
           <div className="v2-callout">
             <div>
               <p className="v2-callout-title">고인에게 빚이 있을 수 있다면, 3개월 안에 결정해야 합니다.</p>
@@ -129,7 +134,8 @@ export const CareGuidePage: React.FC<CareGuidePageProps> = ({ setActiveTab }) =>
             </div>
           </div>
 
-          {/* 모바일 전용 — 좌측 목차 대신 가로 탭(§7) */}
+          {/* 모바일 전용 — 좌측 목차 대신 가로 탭(§7). 스크롤 앵커가 아니라 구간 전환(탭당
+              하나만 표시, 2026-09-18 사람 지시) */}
           <div className="v2-mobile-tabs">
             {sectionsWithItems.map((s) => (
               <button
@@ -158,7 +164,7 @@ export const CareGuidePage: React.FC<CareGuidePageProps> = ({ setActiveTab }) =>
             return (
               <div
                 key={section.key}
-                className="v2-section"
+                className={`v2-section${activeSectionKey === section.key ? ' is-active-section' : ''}`}
                 data-section-key={section.key}
                 ref={(el) => {
                   sectionRefs.current[section.key] = el;
