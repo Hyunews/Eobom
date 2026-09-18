@@ -53,98 +53,105 @@ export const TaxSimulatorModal: React.FC<TaxSimulatorModalProps> = ({ onClose })
           아래 조건을 입력하면 예상 상속세를 단계별로 계산해드립니다.
         </p>
 
-        <form onSubmit={handleCalculateTax} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-          <div className="form-group">
-            <label className="form-label">총 상속재산가액 (만원)</label>
-            <input type="number" min={0} value={totalAsset} onChange={(e) => setTotalAsset(Number(e.target.value))} className="form-input" />
-            <span style={{ fontSize: 'var(--fs-body)', color: 'var(--text-muted)' }}>* 약 {(totalAsset / 10000).toFixed(2)}억원 (부동산·예금·주식 등 전체)</span>
-          </div>
+        {/* 00-39 §8 #7 — A형(입력·결과 2단). 왼쪽에서 입력·계산하면 오른쪽에 결과가 뜬다.
+            767px 이하는 .v2-two-col이 1단으로 접어 입력 다음에 결과가 이어진다. */}
+        <div className="v2-two-col">
+          <form onSubmit={handleCalculateTax} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <div className="v2-field">
+              <label>총 상속재산가액 (만원)</label>
+              <input type="number" min={0} value={totalAsset} onChange={(e) => setTotalAsset(Number(e.target.value))} className="v2-input" />
+              <span className="v2-field-hint">* 약 {(totalAsset / 10000).toFixed(2)}억원 (부동산·예금·주식 등 전체)</span>
+            </div>
 
-          <div className="form-group">
-            <label className="form-label">채무 및 장례비용 (만원)</label>
-            <input type="number" min={0} value={debtAndFuneralCost} onChange={(e) => setDebtAndFuneralCost(Number(e.target.value))} className="form-input" />
-            <span style={{ fontSize: 'var(--fs-body)', color: 'var(--text-muted)' }}>* 고인의 채무, 장례비 등 (과세가액에서 차감)</span>
-          </div>
+            <div className="v2-field">
+              <label>채무 및 장례비용 (만원)</label>
+              <input type="number" min={0} value={debtAndFuneralCost} onChange={(e) => setDebtAndFuneralCost(Number(e.target.value))} className="v2-input" />
+              <span className="v2-field-hint">* 고인의 채무, 장례비 등 (과세가액에서 차감)</span>
+            </div>
 
-          <div className="form-group">
-            <label className="form-label">그중 순수 금융재산가액 (만원)</label>
-            <input type="number" min={0} value={financialAsset} onChange={(e) => setFinancialAsset(Number(e.target.value))} className="form-input" />
-            <span style={{ fontSize: 'var(--fs-body)', color: 'var(--text-muted)' }}>* 총 상속재산 중 예금·보험·주식 등 (부동산 제외, 금융재산공제 계산용)</span>
-          </div>
+            <div className="v2-field">
+              <label>그중 순수 금융재산가액 (만원)</label>
+              <input type="number" min={0} value={financialAsset} onChange={(e) => setFinancialAsset(Number(e.target.value))} className="v2-input" />
+              <span className="v2-field-hint">* 총 상속재산 중 예금·보험·주식 등 (부동산 제외, 금융재산공제 계산용)</span>
+            </div>
 
-          <div className="form-group">
-            <label className="form-label">배우자 유무</label>
+            <div className="v2-field">
+              <label>배우자 유무</label>
+              <div style={{ display: 'flex', gap: '1rem' }}>
+                <label style={{ cursor: 'pointer' }}>
+                  <input type="radio" checked={hasSpouse} onChange={() => setHasSpouse(true)} /> 배우자 있음
+                </label>
+                <label style={{ cursor: 'pointer' }}>
+                  <input type="radio" checked={!hasSpouse} onChange={() => { setHasSpouse(false); setSpouseInheritedAmount(''); }} /> 배우자 없음
+                </label>
+              </div>
+            </div>
+
+            {hasSpouse && (
+              <div className="v2-field">
+                <label>배우자 실제 상속액 (만원, 선택)</label>
+                <input
+                  type="number"
+                  min={0}
+                  placeholder="비워두면 법정상속분으로 자동 추정"
+                  value={spouseInheritedAmount}
+                  onChange={(e) => setSpouseInheritedAmount(e.target.value)}
+                  className="v2-input"
+                />
+                <span className="v2-field-hint">* 배우자공제는 실제 상속액 기준(최소 5억~최대 30억)</span>
+              </div>
+            )}
+
             <div style={{ display: 'flex', gap: '1rem' }}>
-              <label style={{ cursor: 'pointer' }}>
-                <input type="radio" checked={hasSpouse} onChange={() => setHasSpouse(true)} /> 배우자 있음
-              </label>
-              <label style={{ cursor: 'pointer' }}>
-                <input type="radio" checked={!hasSpouse} onChange={() => { setHasSpouse(false); setSpouseInheritedAmount(''); }} /> 배우자 없음
-              </label>
+              <div className="v2-field" style={{ flex: 1 }}>
+                <label>자녀 수</label>
+                <input type="number" min={0} value={childrenCount} onChange={(e) => setChildrenCount(Number(e.target.value))} className="v2-input" />
+              </div>
+              <div className="v2-field" style={{ flex: 1 }}>
+                <label>65세 이상 상속인 수</label>
+                <input type="number" min={0} value={elderlyCount} onChange={(e) => setElderlyCount(Number(e.target.value))} className="v2-input" />
+              </div>
             </div>
+
+            <button type="submit" className="btn btn-point" style={{ width: '100%' }}>
+              상속세 산출하기
+            </button>
+          </form>
+
+          <div>
+            {taxResult ? (
+              <div style={{
+                padding: '1.2rem',
+                backgroundColor: 'var(--secondary-color)',
+                borderRadius: 'var(--r-sm)',
+                borderLeft: '4px solid var(--primary-color)'
+              }}>
+                <h4 style={{ color: 'var(--primary-color)', marginBottom: '0.6rem' }}>📊 예상 상속세 산출 결과</h4>
+
+                <div style={{ fontSize: 'var(--fs-body)', color: 'var(--text-main)', display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+                  <Row label="상속세 과세가액" value={`${fmt(taxResult.taxableBase)} 만원`} />
+                  <Row label="기초공제/일괄공제(큰 금액)" value={`- ${fmt(taxResult.basicOrLumpSumDeduction)} 만원`} />
+                  <Row
+                    label={`배우자공제${taxResult.spouseDeductionIsEstimated ? ' (법정상속분 추정)' : ''}`}
+                    value={`- ${fmt(taxResult.spouseDeduction)} 만원`}
+                  />
+                  <Row label="금융재산 상속공제" value={`- ${fmt(taxResult.financialAssetDeduction)} 만원`} />
+                  <div style={{ borderTop: '1px dashed var(--border-color)', margin: '0.3rem 0' }} />
+                  <Row label="과세표준" value={`${fmt(taxResult.taxBase)} 만원`} bold />
+                  <Row label="적용 최고세율 구간" value={`${taxResult.bracketRate}%`} />
+                  <Row label="산출세액" value={`${fmt(taxResult.calculatedTax)} 만원`} />
+                  <Row label="신고세액공제 (3%, 기한 내 신고 가정)" value={`- ${fmt(taxResult.reportingDeduction)} 만원`} />
+                </div>
+
+                <p style={{ fontSize: '1.3rem', fontWeight: 700, color: 'var(--accent-red)', margin: 'var(--sp-4) 0 0 0' }}>
+                  최종 예상 상속세액: 약 {fmt(taxResult.finalTax)} 만원 ({(taxResult.finalTax / 10000).toFixed(2)} 억원)
+                </p>
+              </div>
+            ) : (
+              <p className="v2-empty">왼쪽 조건을 입력하고 &ldquo;상속세 산출하기&rdquo;를 누르면 결과가 여기 표시됩니다.</p>
+            )}
           </div>
-
-          {hasSpouse && (
-            <div className="form-group">
-              <label className="form-label">배우자 실제 상속액 (만원, 선택)</label>
-              <input
-                type="number"
-                min={0}
-                placeholder="비워두면 법정상속분으로 자동 추정"
-                value={spouseInheritedAmount}
-                onChange={(e) => setSpouseInheritedAmount(e.target.value)}
-                className="form-input"
-              />
-              <span style={{ fontSize: 'var(--fs-body)', color: 'var(--text-muted)' }}>* 배우자공제는 실제 상속액 기준(최소 5억~최대 30억)</span>
-            </div>
-          )}
-
-          <div style={{ display: 'flex', gap: '1rem' }}>
-            <div className="form-group" style={{ flex: 1 }}>
-              <label className="form-label">자녀 수</label>
-              <input type="number" min={0} value={childrenCount} onChange={(e) => setChildrenCount(Number(e.target.value))} className="form-input" />
-            </div>
-            <div className="form-group" style={{ flex: 1 }}>
-              <label className="form-label">65세 이상 상속인 수</label>
-              <input type="number" min={0} value={elderlyCount} onChange={(e) => setElderlyCount(Number(e.target.value))} className="form-input" />
-            </div>
-          </div>
-
-          <button type="submit" className="btn btn-point" style={{ width: '100%' }}>
-            상속세 산출하기
-          </button>
-        </form>
-
-        {taxResult && (
-          <div style={{
-            marginTop: '1.1rem',
-            padding: '1.2rem',
-            backgroundColor: 'var(--secondary-color)',
-            borderRadius: 'var(--r-sm)',
-            borderLeft: '4px solid var(--primary-color)'
-          }}>
-            <h4 style={{ color: 'var(--primary-color)', marginBottom: '0.6rem' }}>📊 예상 상속세 산출 결과</h4>
-
-            <div style={{ fontSize: 'var(--fs-body)', color: 'var(--text-main)', display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
-              <Row label="상속세 과세가액" value={`${fmt(taxResult.taxableBase)} 만원`} />
-              <Row label="기초공제/일괄공제(큰 금액)" value={`- ${fmt(taxResult.basicOrLumpSumDeduction)} 만원`} />
-              <Row
-                label={`배우자공제${taxResult.spouseDeductionIsEstimated ? ' (법정상속분 추정)' : ''}`}
-                value={`- ${fmt(taxResult.spouseDeduction)} 만원`}
-              />
-              <Row label="금융재산 상속공제" value={`- ${fmt(taxResult.financialAssetDeduction)} 만원`} />
-              <div style={{ borderTop: '1px dashed var(--border-color)', margin: '0.3rem 0' }} />
-              <Row label="과세표준" value={`${fmt(taxResult.taxBase)} 만원`} bold />
-              <Row label="적용 최고세율 구간" value={`${taxResult.bracketRate}%`} />
-              <Row label="산출세액" value={`${fmt(taxResult.calculatedTax)} 만원`} />
-              <Row label="신고세액공제 (3%, 기한 내 신고 가정)" value={`- ${fmt(taxResult.reportingDeduction)} 만원`} />
-            </div>
-
-            <p style={{ fontSize: '1.3rem', fontWeight: 700, color: 'var(--accent-red)', margin: 'var(--sp-4) 0 0 0' }}>
-              최종 예상 상속세액: 약 {fmt(taxResult.finalTax)} 만원 ({(taxResult.finalTax / 10000).toFixed(2)} 억원)
-            </p>
-          </div>
-        )}
+        </div>
 
         {/* 참고사항 — 계산 기준·반영 범위·면책. utils/inheritanceTax.ts의 실제 계산 범위와 반드시 일치시킬 것 */}
         <div style={{

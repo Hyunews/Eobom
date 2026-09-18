@@ -2109,7 +2109,8 @@ body {
   background-color: #FFFFFF;
   border-radius: var(--r-lg);
   padding: 1.5rem;
-  max-width: 560px;
+  /* 00-39 §8 #7 — A형(입력·결과 2단) 채택으로 560px→680px. 두 칸이 나란히 놓일 여유가 필요해서다. */
+  max-width: 680px;
   width: 100%;
   max-height: 90vh;
   overflow-y: auto;
