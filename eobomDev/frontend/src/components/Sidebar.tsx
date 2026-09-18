@@ -11,7 +11,6 @@ interface SidebarProps {
   currentUser?: string | null;
   onOpenLogin?: () => void;
   // 모바일 드로어(≤480px) 열림 상태 — App.tsx가 Header의 햄버거 버튼과 함께 관리한다.
-  // 데스크톱 호버 사이드바(아래 <aside>)는 이 값과 무관하게 항상 그대로 동작한다.
   mobileOpen?: boolean;
   onMobileClose?: () => void;
   // 480px 이하에서 헤더가 겹치는 문제로 로그아웃 버튼을 헤더에서 숨기고 여기로 이관했다
@@ -21,11 +20,9 @@ interface SidebarProps {
   onLogout?: () => void;
 }
 
-// width/margin-left 확장 동기화는 순수 CSS(:hover)로 처리한다(→ index.css `.sidebar`) —
-// 이전엔 이 컴포넌트의 React state로 width만 넓히고 .main-wrapper의 margin-left는
-// 못 따라가서, 확장 시 사이드바가 본문 위에 그대로 올라타 콘텐츠를 가리는 문제가 있었다.
 // 00-26 §3·§7 — navMode가 있으면 모드별 맞춤 메뉴(3개/6개, modeNav.ts), 없으면(직접 URL
-// 진입 등) 기존 6개 메뉴를 라벨만 정정해 그대로 둔다(§6 #5).
+// 진입 등) 기존 6개 메뉴를 라벨만 정정해 그대로 둔다(§6 #5). 모바일 드로어에서만 쓴다
+// (00-39 §6-3 — 데스크톱 사이드바는 폐지, Header.tsx 드롭다운이 대신함).
 export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, navMode, currentUser, onOpenLogin, mobileOpen, onMobileClose, onLogout }) => {
   // 공식 6개 네비게이션 메뉴 — 00-26 §5가 잡은 라벨 불일치 3건 정정(장례·묘지 매칭 /
   // 상속·법률 케어 / 디지털 유품 정리 → 00-02 §3.2 정본).
@@ -40,15 +37,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, navMo
   ];
 
   const modeItems: ModeMenuItem[] | null = navMode ? MODE_MENUS[navMode] : null;
-
-  const handleModeItemClick = (item: ModeMenuItem) => {
-    if (item.status === 'comingSoon') return;
-    if (item.loginRequired && !currentUser) {
-      onOpenLogin?.();
-      return;
-    }
-    setActiveTab(item.id);
-  };
 
   // 모바일 드로어용 — 데스크톱의 두 분기(모드별/기본)와 같은 데이터를 쓰되, 아이콘 컴포넌트별
   // accentColor/fillColor 같은 추가 prop 없이 size/color만으로 통일해서 그린다(모든 MenuIcons가
@@ -90,136 +78,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, navMo
 
   return (
     <>
-    <aside
-      className="sidebar"
-      style={{
-        backgroundColor: 'var(--primary-color)',
-        color: '#FFFFFF',
-        boxShadow: '4px 0 20px rgba(0,0,0,0.15)',
-        display: 'flex',
-        flexDirection: 'column',
-        padding: '1rem 0.5rem'
-      }}
-    >
-      <div
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '0.65rem',
-          width: '100%'
-        }}
-      >
-        {modeItems
-          ? modeItems.map((item) => {
-              const IconComponent = item.icon;
-              const isActive = activeTab === item.id;
-              const isComingSoon = item.status === 'comingSoon';
-
-              return (
-                <button
-                  key={item.id}
-                  onClick={() => handleModeItemClick(item)}
-                  disabled={isComingSoon}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    gap: '0.6rem',
-                    padding: '0.9rem var(--sp-4)',
-                    borderRadius: 'var(--r-md)',
-                    border: isActive ? '1.5px solid var(--accent-gold)' : '1px solid transparent',
-                    borderLeft: isActive ? '5px solid var(--accent-gold)' : '1px solid transparent',
-                    backgroundColor: isActive ? 'var(--point-color)' : 'transparent',
-                    color: isComingSoon ? '#94A3B8' : isActive ? '#FFFFFF' : 'var(--border-color)',
-                    cursor: isComingSoon ? 'not-allowed' : 'pointer',
-                    transition: 'border-color var(--dur-2) var(--ease-in-out), background-color var(--dur-2) var(--ease-in-out), color var(--dur-2) var(--ease-in-out), box-shadow var(--dur-2) var(--ease-in-out)',
-                    whiteSpace: 'nowrap',
-                    width: '100%',
-                    textAlign: 'left',
-                    boxShadow: isActive ? '0 4px 14px rgba(91, 112, 101, 0.5)' : 'none'
-                  }}
-                  title={item.label}
-                >
-                  <span style={{ display: 'flex', alignItems: 'center', gap: 'var(--sp-4)', minWidth: 0 }}>
-                    <span style={{ flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', width: '28px' }}>
-                      <IconComponent size={24} color={isComingSoon ? 'var(--text-muted)' : isActive ? '#FFFFFF' : 'var(--secondary-dark)'} />
-                    </span>
-                    <span
-                      className="sidebar-label"
-                      style={{
-                        fontSize: 'var(--fs-body)',
-                        fontWeight: isActive ? 'var(--fw-bold)' : 600,
-                        color: isComingSoon ? '#94A3B8' : isActive ? '#FFFFFF' : '#F8FAFC'
-                      }}
-                    >
-                      {item.label}
-                    </span>
-                  </span>
-                  {item.status !== 'active' && (
-                    <span className="sidebar-label">
-                      <Badge status={item.status === 'preview' ? 'preview' : 'comingSoon'} />
-                    </span>
-                  )}
-                </button>
-              );
-            })
-          : defaultMenuItems.map((item) => {
-              const IconComponent = item.icon;
-              const isActive = activeTab === item.id;
-
-              return (
-                <button
-                  key={item.id}
-                  onClick={() => setActiveTab(item.id)}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 'var(--sp-4)',
-                    padding: '0.9rem var(--sp-4)',
-                    borderRadius: 'var(--r-md)',
-                    border: isActive ? '1.5px solid var(--accent-gold)' : '1px solid transparent',
-                    borderLeft: isActive ? '5px solid var(--accent-gold)' : '1px solid transparent',
-                    backgroundColor: isActive ? 'var(--point-color)' : 'transparent',
-                    color: isActive ? '#FFFFFF' : 'var(--border-color)',
-                    cursor: 'pointer',
-                    transition: 'border-color var(--dur-2) var(--ease-in-out), background-color var(--dur-2) var(--ease-in-out), color var(--dur-2) var(--ease-in-out), box-shadow var(--dur-2) var(--ease-in-out)',
-                    whiteSpace: 'nowrap',
-                    width: '100%',
-                    textAlign: 'left',
-                    boxShadow: isActive ? '0 4px 14px rgba(91, 112, 101, 0.5)' : 'none'
-                  }}
-                  title={item.label}
-                >
-                  <div style={{ flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', width: '28px' }}>
-                    {/* farewell-messages는 lucide Mail(accentColor/fillColor 미지원) — MenuIcons 전용
-                        prop을 넘기지 않는 이 분기로 home과 함께 묶는다 */}
-                    {item.id === 'home' || item.id === 'farewell-messages' ? (
-                      <IconComponent size={24} color={isActive ? '#FFFFFF' : 'var(--secondary-dark)'} />
-                    ) : (
-                      <IconComponent
-                        size={24}
-                        color={isActive ? '#FFFFFF' : 'var(--secondary-dark)'}
-                        accentColor={isActive ? '#FDE047' : '#D4A359'}
-                        fillColor={isActive ? '#FFFFFF' : '#5B7065'}
-                      />
-                    )}
-                  </div>
-
-                  <span
-                    className="sidebar-label"
-                    style={{
-                      fontSize: 'var(--fs-body)',
-                      fontWeight: isActive ? 'var(--fw-bold)' : 600,
-                      color: isActive ? '#FFFFFF' : '#F8FAFC'
-                    }}
-                  >
-                    {item.label}
-                  </span>
-                </button>
-              );
-            })}
-      </div>
-    </aside>
+    {/* 00-39 §6-3(2026-09-18) — 데스크톱 좌측 72px 호버 사이드바 폐지. 모드별 메뉴는
+        Header.tsx의 헤더 드롭다운이 대신한다. 이 컴포넌트는 이제 모바일 드로어 전용. */}
 
     {/* 모바일 드로어(≤480px) — 데스크톱 호버 사이드바가 터치 환경에서는 열리지 않는 문제의 대체
         진입점(2026-08-20 지시). 481px 이상에서는 index.css가 강제로 숨긴다. */}
