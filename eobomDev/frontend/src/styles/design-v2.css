@@ -25,6 +25,7 @@
   --v2-fs-page-title: 40px;
   --v2-fs-page-title-mobile: 27px;
   --v2-fs-section-title: 24px;
+  --v2-fs-section-title-mobile: 18px;
   --v2-fs-modal-title: 20px;
   --v2-fs-item-title: 19px;
   --v2-fs-item-title-mobile: 17px;
@@ -59,7 +60,9 @@
 
 .v2-page-title {
   font-family: var(--v2-font-serif);
-  font-weight: 600;
+  /* 2026-09-18 사람 지시 — 모바일에서 구간 제목(24px/700)과 크기 차가 작아(27px) 페이지
+     제목이 눌려 보인다는 지적으로 600→700. 구간 제목도 모바일 전용으로 더 줄인다(아래). */
+  font-weight: 700;
   font-size: var(--v2-fs-page-title);
   letter-spacing: -0.5px;
   line-height: var(--v2-lh-title);
@@ -140,7 +143,8 @@
 .v2-section-title {
   font-family: var(--v2-font-serif);
   font-size: var(--v2-fs-section-title);
-  font-weight: 600;
+  /* 2026-09-18 사람 지시 — 구간 제목이 허전해 보인다는 피드백으로 600→700(굵기만, 크기는 그대로) */
+  font-weight: 700;
 }
 
 .v2-section-count {
@@ -475,6 +479,12 @@
     font-size: var(--v2-fs-page-title-mobile);
   }
 
+  /* 2026-09-18 사람 지시 — 모바일은 페이지 제목(27px)과 구간 제목(기존 24px)이 너무 가까워
+     위계가 흐려졌다. 구간 제목만 축소해 페이지 제목이 분명히 더 크게 보이게 한다. */
+  .v2-section-title {
+    font-size: var(--v2-fs-section-title-mobile);
+  }
+
   .v2-page-subtitle {
     display: none;
     /* 규칙12 — 부제를 두지 않는다 */
@@ -505,18 +515,21 @@
     padding: var(--v2-item-pad-v-mobile) 0;
   }
 
+  /* 2026-09-18 사람 지시 — 모바일은 상속 경고 배너(제목·설명·내용보기·전문가상담) 자체를
+     통째로 없앤다. 상속 안내는 해당 구간(3개월)을 눌러 들어가면 그 안의 항목으로 만난다. */
   .v2-callout {
-    display: block;
-    padding: 16px 0;
-  }
-
-  .v2-callout-desc {
     display: none;
-    /* 2026-09-11 사람 지시 — 모바일은 제목과 내용이 겹쳐 줄글을 없앤다 */
   }
 
-  .v2-callout-actions {
-    margin-top: 12px;
+  /* 2026-09-18 사람 지시 — 구간 탭은 "내려가는" 스크롤 앵커가 아니라 각 구간을 별도로
+     보여주는 전환이다. 한 번에 하나의 구간만 렌더(모든 것을 한 페이지에 담지 않는다).
+     CareGuidePage.tsx가 탭에서 고른 구간에만 `.is-active-section`을 단다. */
+  .v2-section {
+    display: none;
+  }
+
+  .v2-section.is-active-section {
+    display: block;
   }
 
   /* 모달 → 바텀시트, 닫기는 X가 아니라 하단 버튼 */

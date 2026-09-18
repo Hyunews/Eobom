@@ -3652,3 +3652,28 @@ wt137 그대로라 재작업 없음).
 - **다음 에이전트가 알아야 할 것**: 🔴 **실기동 검증 대기** — 브라우저로 열어보지 않았다. 특히 (a) 헤더 드롭다운 호버/포커스 동작, (b) 모바일 바텀시트 모달, (c) IntersectionObserver 기반 목차 활성 상태, (d) 법령 링크 실제 클릭 결과(law.go.kr 조문 단위 정확도)는 사람 확인 필요. e하늘 실제 URL을 확인하면 `legalLink.ts`의 `INSTITUTION_LINKS[4].href`를 채울 것. 00-39 §9.1 표대로면 다음은 같은 그룹①의 나머지 4개(facility·counseling·pickup·my-obituaries, 시안 불필요)에 이번 `.v2-*` 클래스를 그대로 적용하는 것.
 
 <!-- Gemini 판정 1줄: 대기 -->
+
+## 2026-09-18 | [Sonnet] care-guide 후속 — 모바일 배너 제거·구간 탭 전환식·구간 제목 굵기 (사용자 직접 지시)
+
+- **근거 스펙**: 전용 스펙 없음 — 위 항목(00-39 그룹① care-guide 재구현) 직후 사용자 직접 지시 2건.
+- **건드린 파일**: `eobomDev/frontend/src/pages/CareGuidePage.tsx`, `eobomDev/frontend/src/styles/design-v2.css`.
+- **결과**:
+  1. **모바일 상속 배너 제거** — "(모바일 환경 한정) 고인에게 빚~ 내용보기·전문가 상담 버튼까지 전부 삭제" 지시. `design-v2.css`의 `@media (max-width:767px)`에 `.v2-callout { display:none; }` 추가(기존엔 제목+버튼만 남기고 설명문만 숨기던 상태였음 — 이번엔 통째로 숨김). 웹은 그대로 노출.
+  2. **모바일 구간 탭 = 스크롤 앵커 → 전환식** — "기한버튼 눌렀을 때 내려가는 게 아니라 각각의 것들이 뜰 수 있도록, 모든 것을 한 페이지에 담지 않는다" 지시. `CareGuidePage.tsx`의 각 `.v2-section`에 `activeSectionKey`와 일치할 때만 `is-active-section` 클래스를 추가하고, `design-v2.css` 모바일 미디어쿼리에 `.v2-section{display:none} .v2-section.is-active-section{display:block}` 추가 — 탭을 누르면 그 구간 하나만 렌더된 것처럼 보이고 나머지는 DOM엔 있지만 안 보인다. 데스크톱은 변경 없음(좌측 목차 스크롤 스파이 그대로).
+  3. **구간 제목 굵기** — "장례 기간 (즉시)" 같은 구간 제목이 허전하다는 지적에 3가지 시안(좌측 포인트 컬러바/굵기만 올리기/옅은 배경 밴드)을 제시했고 "굵기만 올리기"로 확정. `.v2-section-title`의 `font-weight`를 600→700(크기·서체는 그대로).
+  4. `npx tsc --noEmit`(frontend) 에러 0, `npm run build`(frontend) 통과.
+- **편차**: 없음 — 전부 사용자가 명시적으로 지시했거나 제시한 시안 중 직접 고른 것.
+- **다음 에이전트가 알아야 할 것**: 🔴 **실기동 검증 대기**(위 항목과 동일 사유, dev 서버 미기동). 모바일 구간 전환은 CSS `display:none/block` 토글이라 애니메이션 없이 즉시 전환된다 — 실기기에서 딱딱하게 느껴지면 트랜지션 추가를 고려할 것(이번엔 지시 범위 밖이라 손대지 않음). `.v2-section`을 나머지 4개 화면(facility 등)에 이식할 때 이 모바일 표시/숨김 규칙도 함께 따라간다는 점 유의.
+
+<!-- Gemini 판정 1줄: 대기 -->
+
+## 2026-09-18 | [Sonnet] care-guide 후속 2 — 모바일 페이지 제목·구간 제목 위계 정리 (사용자 직접 지시)
+
+- **근거 스펙**: 전용 스펙 없음 — 사용자 직접 지시. "모바일 화면에서도 상중행정가이드 제목과 장례기간(분류?제목) 간의 폰트 사이즈 및 굵기 조정 필요", "상중 행정 가이드 제목 굵기 더 높일 필요 있음."
+- **건드린 파일**: `eobomDev/frontend/src/styles/design-v2.css`.
+- **원인**: 직전 항목에서 구간 제목(`.v2-section-title`) `font-weight`를 600→700으로 올렸는데, 모바일에서 페이지 제목(27px/600)과 구간 제목(24px/700)의 크기 차가 3px뿐이라 더 굵은 구간 제목이 오히려 페이지 제목보다 도드라져 보이는 역전이 생겼다.
+- **결과**: `--v2-fs-section-title-mobile: 18px` 신설 후 `@media(max-width:767px)`에 `.v2-section-title { font-size: var(--v2-fs-section-title-mobile) }` 추가(데스크톱은 24px 그대로). `.v2-page-title`의 `font-weight`를 600→700으로 올려(전 breakpoint 공통 규칙) 구간 제목과 굵기를 맞추고, 모바일 기준 27px(제목) vs 18px(구간)로 크기 격차를 벌려 위계를 재확립. `npx tsc --noEmit`(frontend) 에러 0, `npm run build`(frontend) 통과.
+- **편차**: 없음 — 사용자가 명시적으로 지시.
+- **다음 에이전트가 알아야 할 것**: 🔴 실기동 검증 대기(dev 서버 미기동, 위 항목들과 동일). 데스크톱은 이번 변경의 영향을 받지 않는다(구간 제목 24px는 그대로, 페이지 제목만 700으로 전 breakpoint 공통 상향). 실기기에서 봤을 때도 위계가 충분한지 확인 필요.
+
+<!-- Gemini 판정 1줄: 대기 -->
