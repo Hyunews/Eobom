@@ -2109,8 +2109,9 @@ body {
   background-color: #FFFFFF;
   border-radius: var(--r-lg);
   padding: 1.5rem;
-  /* 00-39 §8 #7 — A형(입력·결과 2단) 채택으로 560px→680px. 두 칸이 나란히 놓일 여유가 필요해서다. */
-  max-width: 680px;
+  /* 00-39 §8 #7 — A형(입력·결과 2단) 채택으로 560px→680px→800px. 결과 칸 라벨이 값과 한 줄을
+     다투다 줄바꿈되는 문제(2026-09-18, 사용자 3차 지적)로 재확대 — 모바일은 100%라 영향 없음. */
+  max-width: 800px;
   width: 100%;
   max-height: 90vh;
   overflow-y: auto;
