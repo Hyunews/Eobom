@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { Video, Calculator, MessageCircle, ChevronRight } from 'lucide-react';
+import { Calculator, ChevronRight } from 'lucide-react';
 import { BACKEND_URL } from '../config';
 import { ConsultRequestModal } from '../components/expert/ConsultRequestModal';
 import { TaxSimulatorModal } from '../components/counseling/TaxSimulatorModal';
-import { HandScalesIcon } from '../components/MenuIcons';
-import { useIsMobile } from '../hooks/useIsMobile';
+import '../styles/design-v2.css';
+
+// 00-39 §9.1 — 그룹①(목록·체크리스트) 대표 care-guide에서 뽑은 클래스를 시안 없이 그대로 적용.
+// 전문가 카드(테두리·배경 있는 박스)는 규칙1(카드·그림자 금지)에 따라 행 목록으로 바꾸고,
+// licenseOrg·specialties·bio는 §6-8·9(체크/안내 분리)와 같은 원리로 행 클릭 → 모달로 옮겼다.
 
 interface CounselingPageProps {
   currentUser?: string | null;
@@ -33,9 +36,6 @@ interface PublicExpert {
 }
 
 export const CounselingPage: React.FC<CounselingPageProps> = ({ currentUser, onOpenLogin }) => {
-  // 09-16 사용자 지시 — 제목이 길어 모바일에서 줄바꿈되던 것을 "전문가 상담"으로 축약
-  // (데스크톱 문구는 그대로 유지).
-  const isMobile = useIsMobile();
   // 분야 선택 필터 — 2026-08-11 Domain02 Stage 1: 서버 GET /api/experts 실연동으로 전환
   const [selectedCategory, setSelectedCategory] = useState<string>('전체');
   const [experts, setExperts] = useState<PublicExpert[]>([]);
@@ -43,6 +43,8 @@ export const CounselingPage: React.FC<CounselingPageProps> = ({ currentUser, onO
 
   // 상담 신청 모달 상태
   const [consultTarget, setConsultTarget] = useState<PublicExpert | null>(null);
+  // 전문가 상세 보기 모달 상태(행 클릭) — licenseOrg·specialties·bio는 여기서만 본다
+  const [detailTarget, setDetailTarget] = useState<PublicExpert | null>(null);
   // 상속세 시뮬레이터 모달 상태 — 원래 본문에 있었으나 포션이 커서 버튼으로 여는 모달로 분리(2026-08-11)
   const [isSimulatorOpen, setIsSimulatorOpen] = useState(false);
 
@@ -73,166 +75,128 @@ export const CounselingPage: React.FC<CounselingPageProps> = ({ currentUser, onO
   }, [selectedCategory]);
 
   return (
-    <div className="container">
-      <div style={{ marginBottom: '1.5rem' }}>
-        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', backgroundColor: 'var(--state-warn-bg)', color: 'var(--accent-gold)', padding: '0.3rem var(--sp-4)', borderRadius: 'var(--r-lg)', fontSize: 'var(--fs-body)', fontWeight: 700, marginBottom: '0.6rem' }}>
-          <HandScalesIcon size={18} color="var(--accent-gold)" /> 상속세 시뮬레이터 &amp; 전문가 상담
-        </div>
-        <h1 className="page-title" style={{ color: 'var(--primary-color)', display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0 }}>
-          <HandScalesIcon color="var(--point-color)" size={32} /> {isMobile ? '전문가 상담' : '상속 · 법률 · 세무 비대면 전문가 상담'}
+    <div className="v2-page">
+      <div className="v2-page-head">
+        <h1 className="v2-page-title">
+          <span className="v2-desktop-only">상속 · 법률 · 세무 비대면 전문가 상담</span>
+          <span className="v2-mobile-only">전문가 상담</span>
         </h1>
-        <p className="page-subtitle" style={{ color: 'var(--text-muted)' }}>
-          변호사, 세무사, 행정사, 장례지도사 분야별 상담 신청 및 상속세 자동 시뮬레이터
-        </p>
+        <p className="v2-page-subtitle">변호사, 세무사, 행정사, 장례지도사 분야별 상담 신청 및 상속세 자동 시뮬레이터</p>
       </div>
 
-      {/* 상속세 시뮬레이터 진입 배너 — 클릭 시 모달로 열림.
-          09-16 사용자 지시 — 설명 줄글이 모바일에서 지저분해 헤드라인만 남기고 제거,
-          CTA 문구도 축약("간이 시뮬레이터 열기" → "계산하기"). flexWrap 안전장치는 유지
-          (극단적으로 좁은 화면에서 CTA가 다음 줄로 내려가도 깨지지 않도록). */}
-      <button
-        className="counsel-sim-banner"
-        onClick={() => setIsSimulatorOpen(true)}
-        style={{
-          width: '100%',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          flexWrap: 'wrap',
-          gap: '0.6rem 1rem',
-          padding: '1rem 1.1rem',
-          marginBottom: '1.1rem',
-          borderRadius: 'var(--border-radius)',
-          border: '1px solid var(--border-color)',
-          backgroundColor: 'var(--card-bg)',
-          boxShadow: 'var(--box-shadow)',
-          borderLeft: '5px solid var(--point-color)',
-          cursor: 'pointer',
-          textAlign: 'left',
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--sp-3)' }}>
-          <div style={{
-            width: '38px',
-            height: '38px',
-            borderRadius: '50%',
-            backgroundColor: 'var(--secondary-color)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            flexShrink: 0,
-          }}>
-            <Calculator color="var(--point-color)" size={20} />
-          </div>
-          <p style={{ fontSize: 'var(--fs-lead)', fontWeight: 700, color: 'var(--primary-color)', margin: 0 }}>상속세, 대략 얼마나 나올까요?</p>
-        </div>
-        <span className="counsel-sim-banner-cta" style={{ display: 'flex', alignItems: 'center', gap: '0.2rem', color: 'var(--point-color)', fontWeight: 700, fontSize: 'var(--fs-body)', flexShrink: 0 }}>
-          계산하기 <ChevronRight size={18} />
-        </span>
-      </button>
+      <div className="v2-content">
+        {/* 상속세 시뮬레이터 진입 배너 — 클릭 시 모달로 열림 */}
+        <button type="button" className="v2-banner" onClick={() => setIsSimulatorOpen(true)}>
+          <span className="v2-banner-title">
+            <Calculator size={16} /> 상속세, 대략 얼마나 나올까요?
+          </span>
+          <span className="v2-banner-cta">
+            계산하기 <ChevronRight size={16} />
+          </span>
+        </button>
 
-      {/* 전문가 상담 신청 & 분야 필터 */}
-      <div style={{
-        backgroundColor: 'var(--card-bg)',
-        padding: '1.5rem',
-        borderRadius: 'var(--border-radius)',
-        boxShadow: 'var(--box-shadow)',
-        borderTop: '5px solid var(--primary-color)'
-      }}>
-        <h3 style={{ color: 'var(--primary-color)', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <Video color="var(--primary-color)" /> 분야별 전문가 상담
-        </h3>
-
-        {/* 분야 선택 필터 — 09-16 사용자 지시: 슬라이드(가로 스크롤)로 넘길 수 있게.
-            CareGuidePage(§8.1-3①)와 같은 패턴 — flexWrap:nowrap + overflowX:auto,
-            각 버튼 flexShrink:0 + whiteSpace:nowrap로 줄바꿈 대신 옆으로 밀려나게 한다.
-            §11.1 ⓑ #1 — 09-16엔 "버튼-스크롤바 간 여백"이 좁다는 지적에 paddingBottom을
-            0.3→0.85rem으로 늘려 대응했는데, 실측해 보니 진짜 원인은 여백이 아니라 데스크톱
-            클래식 스크롤바(15px)가 그대로 노출돼 있던 것이었다. .chip-track(index.css)이
-            스크롤바 자체를 숨기므로 그 대응값은 원래대로 되돌린다. 좌우 padding도 .chip-track
-            몫이라 shorthand 대신 세로만 남긴다. */}
-        <div className="form-group" style={{ marginBottom: '0.7rem' }}>
-          <label className="form-label">분야 선택</label>
-          <div className="chip-track" style={{ display: 'flex', gap: '0.6rem', flexWrap: 'nowrap', overflowX: 'auto', WebkitOverflowScrolling: 'touch', paddingTop: '0.2rem', paddingBottom: '0.3rem' }}>
-            {CATEGORY_TABS.map((cat) => (
-              <button
-                key={cat.value}
-                onClick={() => setSelectedCategory(cat.value)}
-                style={{
-                  flexShrink: 0,
-                  whiteSpace: 'nowrap',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  minHeight: '44px',
-                  padding: '0.5rem 1rem',
-                  borderRadius: 'var(--r-lg)',
-                  border: '1px solid var(--border-color)',
-                  backgroundColor: selectedCategory === cat.value ? 'var(--primary-color)' : 'var(--secondary-color)',
-                  color: selectedCategory === cat.value ? '#FFFFFF' : 'var(--text-main)',
-                  fontWeight: selectedCategory === cat.value ? 600 : 400,
-                  fontSize: 'var(--fs-body)',
-                  cursor: 'pointer'
-                }}
-              >
-                {cat.label}
-              </button>
-            ))}
-          </div>
+        {/* 분야 선택 필터 — 모든 화면에서 가로 스크롤(§9.1이 잇는 그룹①의 칩 패턴) */}
+        <div className="v2-chip-row">
+          {CATEGORY_TABS.map((cat) => (
+            <button
+              key={cat.value}
+              type="button"
+              className={`v2-chip${selectedCategory === cat.value ? ' is-active' : ''}`}
+              onClick={() => setSelectedCategory(cat.value)}
+            >
+              {cat.label}
+            </button>
+          ))}
         </div>
 
-        {/* 전문가 카드 목록 */}
+        {/* 전문가 목록 — 제목(이름)+분야만, 상세는 모달(§6-1·§6-8·9) */}
         {isLoading ? (
-          <p style={{ color: 'var(--text-muted)', textAlign: 'center', padding: '1.5rem 0' }}>불러오는 중...</p>
+          <p className="v2-empty">불러오는 중...</p>
         ) : experts.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '1.75rem 1rem', color: 'var(--text-muted)' }}>
-            <p style={{ fontWeight: 600, marginBottom: '0.4rem' }}>
-              {selectedCategory === '전체' ? '아직 입점한 전문가가 없습니다.' : `${CATEGORY_LABEL[selectedCategory]} 분야에 입점한 전문가가 아직 없습니다.`}
-            </p>
-            <p style={{ fontSize: 'var(--fs-body)' }}>준비되는 대로 순차적으로 노출됩니다.</p>
-          </div>
+          <p className="v2-empty">
+            {selectedCategory === '전체' ? '아직 입점한 전문가가 없습니다.' : `${CATEGORY_LABEL[selectedCategory]} 분야에 입점한 전문가가 아직 없습니다.`}
+            {' '}준비되는 대로 순차적으로 노출됩니다.
+          </p>
         ) : (
-          <div className="auto-grid">
-            {experts.map((exp) => (
-              <div key={exp.id} style={{
-                padding: '1rem',
-                border: '1px solid var(--border-color)',
-                borderRadius: 'var(--r-sm)',
-                backgroundColor: 'var(--secondary-color)'
-              }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.3rem' }}>
-                  <h4 style={{ color: 'var(--primary-color)', fontSize: '1.1rem' }}>{exp.name}</h4>
-                  <span style={{ fontSize: 'var(--fs-body)', fontWeight: 700, color: '#fff', backgroundColor: 'var(--point-color)', padding: '0.2rem 0.6rem', borderRadius: 'var(--r-sm)' }}>
-                    {CATEGORY_LABEL[exp.category] || exp.category}
-                  </span>
-                </div>
-                {exp.licenseOrg && (
-                  <p style={{ fontSize: 'var(--fs-body)', color: 'var(--text-muted)', marginBottom: '0.3rem' }}>{exp.licenseOrg}</p>
-                )}
-                {exp.specialties.length > 0 && (
-                  <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap', marginBottom: '0.5rem' }}>
-                    {exp.specialties.map((s, i) => (
-                      <span key={i} style={{ fontSize: 'var(--fs-body)', backgroundColor: 'var(--card-bg)', padding: '0.15rem 0.5rem', borderRadius: 'var(--r-sm)', color: '#444' }}>
-                        #{s}
-                      </span>
-                    ))}
-                  </div>
-                )}
-                {exp.bio && (
-                  <p style={{ fontSize: 'var(--fs-body)', color: 'var(--text-main)', marginBottom: 'var(--sp-3)' }}>{exp.bio}</p>
-                )}
-                <button
-                  onClick={() => handleOpenConsultModal(exp)}
-                  className="btn btn-primary"
-                  style={{ width: '100%', height: '44px', fontSize: 'var(--fs-body)' }}
-                >
-                  <MessageCircle size={16} /> 상담 신청
-                </button>
-              </div>
-            ))}
-          </div>
+          experts.map((exp) => (
+            // 2026-09-18 사용자 지시 — 행의 어느 부분을 눌러도 모달이 뜨도록 행 전체를 버튼화.
+            // 데스크톱만 이름 옆에 분야를 붙이고 우측에 간단 소개를 추가(모바일은 현상 유지).
+            <div
+              key={exp.id}
+              className="v2-list-row is-clickable"
+              role="button"
+              tabIndex={0}
+              onClick={() => setDetailTarget(exp)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  setDetailTarget(exp);
+                }
+              }}
+            >
+              <span className="v2-list-title">
+                {exp.name}
+                <span className="v2-desktop-only v2-list-inline-meta"> {CATEGORY_LABEL[exp.category] || exp.category}</span>
+              </span>
+              <span className="v2-list-meta v2-mobile-only">{CATEGORY_LABEL[exp.category] || exp.category}</span>
+              {exp.bio && <span className="v2-list-intro v2-desktop-only">{exp.bio}</span>}
+              <ChevronRight size={16} className="v2-row-chevron" />
+            </div>
+          ))
         )}
       </div>
+
+      {/* 전문가 상세 모달 */}
+      {detailTarget && (
+        <div className="v2-modal-overlay" role="dialog" aria-modal="true" onClick={() => setDetailTarget(null)}>
+          <div className="v2-modal" onClick={(e) => e.stopPropagation()}>
+            <h3 className="v2-modal-title">{detailTarget.name}</h3>
+
+            <div className="v2-modal-row">
+              <span className="v2-modal-label">분야</span>
+              <span className="v2-modal-value">{CATEGORY_LABEL[detailTarget.category] || detailTarget.category}</span>
+            </div>
+
+            {detailTarget.licenseOrg && (
+              <div className="v2-modal-row">
+                <span className="v2-modal-label">자격</span>
+                <span className="v2-modal-value">{detailTarget.licenseOrg}</span>
+              </div>
+            )}
+
+            {detailTarget.specialties.length > 0 && (
+              <div className="v2-modal-row">
+                <span className="v2-modal-label">전문</span>
+                <span className="v2-modal-value">{detailTarget.specialties.map((s) => `#${s}`).join(' ')}</span>
+              </div>
+            )}
+
+            {detailTarget.bio && (
+              <div className="v2-modal-row">
+                <span className="v2-modal-label">소개</span>
+                <span className="v2-modal-value">{detailTarget.bio}</span>
+              </div>
+            )}
+
+            <div className="v2-modal-actions">
+              <button
+                type="button"
+                className="v2-btn-primary"
+                onClick={() => {
+                  setDetailTarget(null);
+                  handleOpenConsultModal(detailTarget);
+                }}
+              >
+                상담 신청
+              </button>
+            </div>
+
+            <button type="button" className="v2-modal-close" onClick={() => setDetailTarget(null)}>
+              닫기
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* 상담 신청 모달 */}
       {consultTarget && (

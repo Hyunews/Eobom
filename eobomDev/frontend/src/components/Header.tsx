@@ -106,7 +106,7 @@ export const Header: React.FC<HeaderProps> = ({ setActiveTab, onOpenLogin, curre
                   onClick={() => goToModeItem('prep', item)}
                 >
                   <span>{item.label}</span>
-                  {item.status === 'preview' && <span className="hdr-mode-badge">준비 중</span>}
+                  {item.status === 'preview' && <span className="v2-badge-neutral">준비 중</span>}
                 </button>
               ))}
             </div>
@@ -124,7 +124,7 @@ export const Header: React.FC<HeaderProps> = ({ setActiveTab, onOpenLogin, curre
                   onClick={() => goToModeItem('bereaved', item)}
                 >
                   <span>{item.label}</span>
-                  {item.status === 'preview' && <span className="hdr-mode-badge">준비 중</span>}
+                  {item.status === 'preview' && <span className="v2-badge-neutral">준비 중</span>}
                 </button>
               ))}
             </div>

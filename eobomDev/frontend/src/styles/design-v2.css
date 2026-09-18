@@ -298,26 +298,360 @@
 }
 
 /* ── §6.6 버튼 — 밑줄이 아니라 테두리 ── */
-.v2-btn-outline {
+.v2-btn-outline,
+.v2-btn-solid,
+.v2-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
   height: 44px;
   padding: 0 18px;
+  border-radius: 4px;
+  font-size: var(--v2-fs-support);
+  cursor: pointer;
+}
+
+.v2-btn-outline {
   border: 1px solid var(--v2-btn-border);
   background: none;
+  color: var(--v2-text-main);
+}
+
+.v2-btn-solid {
+  border: 1px solid var(--v2-urgent);
+  background: var(--v2-urgent);
+  color: #FFFFFF;
+}
+
+/* 일반 CTA(예: 견적 신청) — 긴급/경고 의미가 아니므로 urgent 대신 point 색을 쓴다 */
+.v2-btn-primary {
+  border: 1px solid var(--v2-point);
+  background: var(--v2-point);
+  color: #FFFFFF;
+}
+
+.v2-modal-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin: 24px 0 0;
+}
+
+/* ── 그룹①(목록·체크리스트) 공용 — care-guide 대표에서 뽑은 패턴을 나머지 4개
+   (facility·counseling·pickup·my-obituaries)가 그대로 이어 쓴다(00-39 §9.1) ── */
+
+/* §5 — 좌측 목차가 없는 화면(펼침 목록이 아닌 화면)도 읽기 폭 764px은 그대로 고정한다 */
+.v2-content {
+  width: var(--v2-reading-width);
+  max-width: 100%;
+  margin: 0 auto;
+}
+
+/* 체크박스가 없는 일반 목록 행(업체·상담사·부고장 등) — §6.1 구조(1px 선+여백)는 그대로 */
+.v2-list-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: var(--v2-item-pad-v) 0;
+  border-bottom: 1px solid var(--v2-divider);
+}
+
+/* 행 전체가 클릭 영역인 경우(내부에 별도 .v2-list-main 버튼 없이 행 자체가 role=button) */
+.v2-list-row.is-clickable {
+  cursor: pointer;
+}
+
+.v2-list-inline-meta {
+  font-size: var(--v2-fs-support);
+  font-weight: 400;
+  color: var(--v2-text-muted);
+}
+
+.v2-list-intro {
+  flex: 1 1 40%;
+  max-width: 50%;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--v2-fs-support);
+  color: var(--v2-text-muted);
+  text-align: right;
+}
+
+.v2-list-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  background: none;
+  border: none;
+  text-align: left;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+}
+
+.v2-list-title {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--v2-fs-item-title);
+  font-weight: 700;
+}
+
+.v2-list-meta {
+  flex-shrink: 0;
+  font-size: var(--v2-fs-support);
+  color: var(--v2-text-faint);
+  text-align: right;
+  white-space: nowrap;
+}
+
+.v2-badge-neutral {
+  font-size: 11px;
+  color: var(--v2-text-faint);
+  background: var(--v2-divider);
+  padding: 2px 6px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+
+.v2-empty {
+  font-size: var(--v2-fs-support);
+  color: var(--v2-text-muted);
+  padding: 24px 0;
+}
+
+/* 확대 카드 그리드(2열) — 2026-09-18 사람이 목업 시안 A로 확정(Pickup). 카드도 규칙1대로
+   그림자 없이 테두리만 쓴다. */
+.v2-card-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+
+@media (max-width: 767px) {
+  .v2-card-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.v2-card {
+  border: 1px solid var(--v2-divider-strong);
   border-radius: 4px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.v2-card-title {
+  font-size: var(--v2-fs-item-title);
+  font-weight: 700;
+  margin: 0;
+  background: none;
+  border: none;
+  padding: 0;
+  text-align: left;
+  cursor: pointer;
+  color: inherit;
+  font-family: inherit;
+}
+
+.v2-card-meta {
+  font-size: var(--v2-fs-support);
+  color: var(--v2-text-muted);
+  margin: 0;
+}
+
+.v2-card-cta {
+  margin-top: 8px;
+}
+
+/* 목록 바로 아래 붙는 CTA(예: "새 부고장 만들기") — 목록과 간격이 없어 붙어 보인다는 지적 */
+.v2-list-footer-btn {
+  margin-top: 16px;
+}
+
+.v2-error-text {
+  font-size: var(--v2-fs-support);
+  color: var(--v2-urgent);
+}
+
+.v2-status-active {
+  color: var(--v2-point);
+  font-weight: 400;
+}
+
+.v2-status-closed {
+  color: var(--v2-text-faint);
+  font-weight: 400;
+}
+
+/* 화면 폭에 따라 문구 자체가 바뀌는 자리(짧은 제목 등) — JS 분기 없이 CSS로 전환 */
+.v2-desktop-only {
+  display: inline;
+}
+
+.v2-mobile-only {
+  display: none;
+}
+
+@media (max-width: 767px) {
+  .v2-desktop-only {
+    display: none;
+  }
+
+  .v2-mobile-only {
+    display: inline;
+  }
+}
+
+/* 가로 스크롤 칩(분야·카테고리 필터) — 모바일 전용 탭(.v2-mobile-tab)과 달리 모든 화면에서 쓴다 */
+.v2-chip-row {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+  margin-bottom: 24px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.v2-chip-row::-webkit-scrollbar {
+  display: none;
+}
+
+.v2-chip {
+  flex-shrink: 0;
+  white-space: nowrap;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 16px;
+  border-radius: 999px;
+  border: 1px solid var(--v2-btn-border);
+  background: none;
   font-size: var(--v2-fs-support);
   color: var(--v2-text-main);
   cursor: pointer;
 }
 
-.v2-btn-solid {
-  height: 44px;
-  padding: 0 18px;
-  border: 1px solid var(--v2-urgent);
-  background: var(--v2-urgent);
-  border-radius: 4px;
-  font-size: var(--v2-fs-support);
+.v2-chip.is-active {
+  background: var(--v2-text-main);
+  border-color: var(--v2-text-main);
   color: #FFFFFF;
+}
+
+/* 중립 배너(예: 시뮬레이터 진입) — 상속 경고 배너(.v2-callout)와 같은 리본형이지만
+   urgent 색이 아니라 중립 선을 쓴다(긴급·경고 의미가 아니므로) */
+.v2-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  width: 100%;
+  border-top: 1px solid var(--v2-divider-strong);
+  border-bottom: 1px solid var(--v2-divider-strong);
+  /* 2026-09-18 사람 지시(3차) — 좌우 16px은 유지, 상하 높이는 키울 필요 없다고 해서
+     44px→28px로 되돌림(요소 간 gap은 좌우 배치용이라 그대로 둠). */
+  padding: 28px 16px;
+  gap: 28px;
+  margin-bottom: 40px;
+  background: none;
   cursor: pointer;
+  text-align: left;
+}
+
+.v2-banner-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--v2-fs-body);
+  font-weight: 700;
+  color: var(--v2-text-main);
+  margin: 0;
+}
+
+.v2-banner-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--v2-point);
+  font-weight: 700;
+  font-size: var(--v2-fs-support);
+  flex-shrink: 0;
+}
+
+.v2-two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
+  align-items: start;
+}
+
+@media (max-width: 767px) {
+  .v2-two-col {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+}
+
+/* 안내 문구(정보/경고) — 카드·그림자 없이 여백으로만 구분(규칙1) */
+.v2-notice {
+  font-size: var(--v2-fs-support);
+  color: var(--v2-text-muted);
+  line-height: 1.6;
+  margin: 0 0 20px;
+}
+
+.v2-notice-warn {
+  font-size: var(--v2-fs-support);
+  color: var(--state-warn-fg);
+  background: var(--state-warn-bg);
+  border: 1px solid var(--state-warn-bg);
+  border-radius: 4px;
+  padding: 12px 16px;
+  margin: 0 0 24px;
+  line-height: 1.6;
+}
+
+.v2-filter-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 24px;
+}
+
+.v2-location-line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--v2-fs-support);
+  color: var(--v2-text-muted);
+  margin-bottom: 16px;
+}
+
+.v2-select,
+.v2-input {
+  flex: 1 1 160px;
+  height: 44px;
+  padding: 0 12px;
+  border: 1px solid var(--v2-btn-border);
+  border-radius: 4px;
+  background: var(--v2-bg);
+  color: var(--v2-text-main);
+  font-size: var(--v2-fs-support);
+}
+
+.v2-input {
+  flex: 2 1 220px;
 }
 
 /* ── 상속 경고 배너(리본형 — 위아래 1.5px 선만) ── */
@@ -413,14 +747,6 @@
   background: var(--v2-selected-bg);
 }
 
-.hdr-mode-badge {
-  font-size: 11px;
-  color: var(--v2-text-faint);
-  background: var(--v2-divider);
-  padding: 2px 6px;
-  border-radius: 3px;
-  flex-shrink: 0;
-}
 
 /* ── 모바일 상단 가로 탭(구간 이동, §7) — 768px 미만에서만 노출 ── */
 .v2-mobile-tabs {

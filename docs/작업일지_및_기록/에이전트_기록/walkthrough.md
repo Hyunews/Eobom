@@ -3677,3 +3677,52 @@ wt137 그대로라 재작업 없음).
 - **다음 에이전트가 알아야 할 것**: 🔴 실기동 검증 대기(dev 서버 미기동, 위 항목들과 동일). 데스크톱은 이번 변경의 영향을 받지 않는다(구간 제목 24px는 그대로, 페이지 제목만 700으로 전 breakpoint 공통 상향). 실기기에서 봤을 때도 위계가 충분한지 확인 필요.
 
 <!-- Gemini 판정 1줄: 대기 -->
+
+## 2026-09-18 | [Sonnet] 00-39 그룹① 나머지 3개 — PickupPage·MyObituaryListPage·CounselingPage에 `.v2-*` 클래스 적용
+
+- **근거 스펙**: `docs/00_핵심플랫폼/00-39_디자인_기준_재정립_명세서.md` §9.1("①은 시안 없이 바로 구현할 수 있다 — facility·counseling·pickup·my-obituaries"). 대표(care-guide)에서 뽑은 `styles/design-v2.css`의 `.v2-*` 클래스를 이어 썼다.
+- **건드린 파일**: `eobomDev/frontend/src/pages/PickupPage.tsx`, `eobomDev/frontend/src/pages/MyObituaryListPage.tsx`, `eobomDev/frontend/src/pages/CounselingPage.tsx`, `eobomDev/frontend/src/styles/design-v2.css`, `eobomDev/frontend/src/components/Header.tsx`(배지 클래스명 정리).
+- **결과**:
+  1. **공용 클래스 신설**(`design-v2.css`) — `.v2-content`(좌측 목차 없는 화면도 764px 읽기 폭 고정), `.v2-list-row`/`.v2-list-main`/`.v2-list-title`/`.v2-list-meta`(체크박스 없는 일반 목록 행), `.v2-badge-neutral`(기존 `.hdr-mode-badge`를 이 이름으로 통합 — Header.tsx도 같이 갱신), `.v2-empty`/`.v2-error-text`(빈 상태·에러 문구), `.v2-notice`/`.v2-notice-warn`(안내·경고 배너), `.v2-filter-row`/`.v2-select`(지역 필터 셀렉트), `.v2-chip-row`/`.v2-chip`(가로 스크롤 칩, 모든 화면에서 노출 — 모바일 전용인 `.v2-mobile-tab`과 구분), `.v2-banner`/`.v2-banner-title`/`.v2-banner-cta`(중립색 진입 배너), `.v2-btn-primary`(urgent 대신 point색 CTA), `.v2-modal-actions`(모달 내 버튼 그룹, flex+gap), `.v2-two-col`(2단 목록, 768px 미만 1단), `.v2-desktop-only`/`.v2-mobile-only`(문구 자체가 바뀌는 자리를 JS 분기 없이 CSS로 전환). `.v2-btn-outline`/`.v2-btn-solid`/`.v2-btn-primary` 공통으로 `display:inline-flex` 추가(아이콘+텍스트 정렬).
+  2. **PickupPage** — 카드형 업체 그리드(`.card`, 그림자)를 `.v2-list-row` 목록으로 교체, 클릭 시 모달(지역·평점·태그·"무료 방문 견적 신청" CTA). 인라인 56→0(정확히는 기존 전체를 v2 클래스로).
+  3. **MyObituaryListPage** — 좌우 2단 카드(부고장/추모관)를 `.v2-two-col` + `.v2-list-row`로 교체. 행 액션(열기·공유·수정·삭제)은 §6-8·9(체크/안내 분리)와 같은 원리로 행 클릭 → 모달 안으로 이동(기존엔 행에 4개 버튼이 늘어서 있었음).
+  4. **CounselingPage** — 전문가 카드 그리드를 `.v2-list-row` 목록으로 교체(제목=이름, 우측=분야), `licenseOrg`·`specialties`·`bio`는 모달로. 분야 필터 칩은 `.v2-chip-row`(모든 화면 노출)로, 시뮬레이터 배너는 `.v2-banner`(중립색 리본형)로. `useIsMobile` 훅 제거 — 모바일 축약 제목("전문가 상담")은 `.v2-desktop-only`/`.v2-mobile-only` CSS 토글로 대체.
+  5. `npx tsc --noEmit`(frontend) 에러 0, `npm run build`(frontend) 통과(3개 파일 각각 개별 확인 + 최종 통합 확인).
+- **편차**:
+  - **행 내 상세정보를 전부 모달로 이동** — §6-1(목록은 제목+기한만)을 그대로 이어 쓴 결과, 각 페이지의 부가 정보(평점·태그·자격·소개·상태·일자)가 전부 클릭 후 모달에서만 보인다. 스펙이 이 3개 화면을 위해 별도로 이렇게 정하진 않았고, care-guide 패턴을 문자 그대로 확장한 판단이다.
+  - **FacilityPage(968줄) 제외** — 카드/리스트 뷰 전환, 썸네일, 카카오맵·상담 버튼 직접 노출, 모바일 필터 바텀시트 등 09-10에 사람이 여러 차례 직접 지시해 다듬은 기능이 많아, care-guide 패턴으로 그대로 바꾸면 실질적 기능 후퇴가 된다고 판단해 사람에게 범위를 확인 요청 → **"이번엔 보류"**로 확정. 손대지 않았다.
+- **다음 에이전트가 알아야 할 것**: 🔴 실기동 검증 대기(dev 서버 미기동). FacilityPage는 다음에 별도로 범위(①색·타이포만 교체 vs ②전면 재구성)를 다시 정하고 진행할 것 — 이번 세션에서 옵션만 제시했고 사람이 보류를 택했다. `.v2-badge-neutral`로 이름을 바꾼 배지 클래스를 쓰는 곳이 늘면(Header.tsx 외) 한 곳(design-v2.css)만 고치면 된다.
+
+<!-- Gemini 판정 1줄: 대기 -->
+
+## 2026-09-18 | [Sonnet] 그룹① 실기동 피드백 반영 — Pickup·MyObituaryList·Counseling 8건 + 목업 2건
+
+- **근거 스펙**: 전용 스펙 없음 — 사람이 위 항목들을 실기동 확인 후 화면별 직접 지시.
+- **건드린 파일**: `eobomDev/frontend/src/pages/PickupPage.tsx`, `eobomDev/frontend/src/pages/CounselingPage.tsx`, `eobomDev/frontend/src/pages/MyObituaryListPage.tsx`, `eobomDev/frontend/src/styles/design-v2.css`.
+- **결과**:
+  1. **공통 CSS 버그 수정** — `.v2-list-title`에 `min-width:0`·`overflow:hidden`·`text-overflow:ellipsis`·`white-space:nowrap` 추가. 원인: `flex:1`인데 축소 제약이 없어 좁은 화면(모바일)에서 제목이 줄바꿈되고 있었다(Pickup 업체명 2줄 문제, 1-4a). 공용 클래스라 세 화면 모두에 적용됨.
+  2. **`/pickup`** — ⓐ "예시 데이터로 채워져 있습니다..." 경고 문단(`.v2-notice-warn`) 삭제(1-2, "예시" 배지·CTA "(예시)"·alert는 00-14 §2.2 최소 고지로 유지) ⓑ 위치 고지 문구를 두 문장→한 문장으로 축약(1-4b) ⓒ FacilityPage 수준으로 위치·검색 UX 보강(1-3) — `locationName`/`isLocationFallback` 상태 신설(위치 미확인 시 `GEOLOCATION_FALLBACK` 표시), 지역 선택을 draft/적용 분리(검색 버튼으로 확정, GPS 자동감지는 즉시 적용), 업체명·지역 자유 검색창 추가. 🔴 업체(vendors) 데이터에 좌표가 없어 거리순 정렬은 만들지 않았다(표시·필터만 FacilityPage와 동등, 정렬은 다름 — 편차 참조).
+  3. **`/my-obituarylist`** — 목록과 "새 부고장 만들기"/"추모관 만들기·관리" 버튼 사이 `margin-top:16px`(`.v2-list-footer-btn`) 추가(2-1).
+  4. **`/counseling`** — ⓐ 시뮬레이터 배너(`.v2-banner`) 안쪽 여백 20px→28px(3-1) ⓑ 전문가 행 전체를 `role="button"`으로 클릭 가능하게(기존엔 이름 부분만 버튼이었음, 3-4) ⓒ 데스크톱만 "이름 / 분야" 한 줄 + 우측에 간단소개(`bio`) 추가, 모바일은 기존 그대로(`.v2-desktop-only`/`.v2-mobile-only` 토글, 3-3).
+  5. **디자인 목업 2건 발행**(캔버스, 시안 확정 전) — /pickup 업체 카드 2열 확대안 3종(A 심플 카드 / B 사진 자리 포함 / C 가로 확장형), 상속세 계산기 모달 재구성 2종(A 입력·결과 2단 / B 구간 구분+참고사항 접기). 실제 코드는 아직 안 바꿈 — 사람이 방향을 고르면 그때 구현.
+  6. `npx tsc --noEmit`(frontend) 에러 0, `npm run build`(frontend) 통과.
+- **편차**:
+  - **Pickup 거리순 정렬 없음** — "facility처럼 검색 기능 필요" 지시를 표시(위치명·기본값 배지)·필터(지역 draft/적용)·자유 검색까지는 그대로 따랐지만, FacilityPage의 거리순 정렬(haversine)은 vendors 목업 데이터에 좌표가 없어 구현하지 않았다. 좌표를 추가하지 않는 한 정렬은 못 맞춘다.
+  - **3-2(계산기 모달 재구성)·1-1(Pickup 카드 확대)은 코드 미반영** — 사람이 "목업 필요"라고 명시해 실제 페이지는 그대로 두고 캔버스 시안만 냈다.
+  - **3-4 괄호 메모("모달 내 지역 정보, 가입시 받아놔야 함")는 구현하지 않음** — 전문가 회원가입 흐름·DB 스키마에 지역 필드를 추가해야 하는 별도 작업이라 이번 범위 밖으로 판단, `context.md`에 다음 할 일로 남긴다.
+- **다음 에이전트가 알아야 할 것**: 🔴 실기동 검증 대기. 목업 캔버스(Artifact, 사람 소유)에서 방향을 고르면: Pickup은 A/B/C 중 하나로 `PickupPage.tsx`의 `.v2-list-row` 블록을 카드 그리드로 교체, 계산기는 A/B 중 하나로 `TaxSimulatorModal.tsx`를 재구성(이 컴포넌트는 아직 구 토큰 체계라 v2 클래스로 옮길지도 같이 정할 것). 전문가 프로필에 지역(region) 필드가 없다 — 3-4 요구사항을 실제로 채우려면 회원가입 폼·`PublicExpert` 타입·백엔드 스키마 3곳을 함께 바꿔야 한다.
+
+<!-- Gemini 판정 1줄: 대기 -->
+
+## 2026-09-18 | [Sonnet] Pickup 카드형 시안 A 채택 구현 + Counseling 후속 3건
+
+- **근거 스펙**: 전용 스펙 없음 — 사람이 목업 캔버스에서 "시안 A 선택"(Pickup) + 직접 지시 3건(Counseling).
+- **건드린 파일**: `eobomDev/frontend/src/pages/PickupPage.tsx`, `eobomDev/frontend/src/pages/CounselingPage.tsx`, `eobomDev/frontend/src/styles/design-v2.css`.
+- **결과**:
+  1. **Pickup 시안 A 채택** — 사람이 "save한 기준으로"라고 해 캔버스를 다시 읽어(`Artifact` read → `seed-canvas.mjs --extract`) `Main.dc.html`(시안 A)의 저장된 상태를 확인한 결과, 원래 목업에 있던 "예시" 배지·★평점·태그 칩을 카드 면에서 직접 지워두고 CTA 버튼 문구도 "무료 방문 견적 신청"→"견적 신청"으로 줄여 놓았다(사람이 편집기에서 저장). 이 저장된 형태를 그대로 실제 코드에 옮겼다: `.v2-list-row` 목록 → `.v2-card-grid`(2열, 모바일 1열) + `.v2-card`(테두리만, 그림자 없음). 카드 면 = 제목·지역(📍만, 평점 없음)·CTA뿐. 제목 클릭 시 기존 모달(지역·평점·태그·정식 CTA)이 그대로 열린다 — 평점·태그·"예시" 배지는 모달로 이동, 카드의 "견적 신청" 버튼은 모달을 거치지 않고 바로 같은 alert를 띄우는 지름길.
+  2. **Counseling 후속 3건**(직접 지시) — ⓐ `.v2-banner`(계산기 진입 배너) 내부 간격을 28px→44px(패딩)·16px→28px(요소 간 gap)로 대폭 확대 ⓑ 전문가 행의 "이름 / 분야" 표기에서 "/" 구분자 삭제(공백만 유지) ⓒ "상속 변호사" 같은 분야 텍스트(`.v2-list-inline-meta`) 폰트 크기를 이름과 같던 19px→15px(`--v2-fs-support`)로 축소.
+  3. `npx tsc --noEmit`(frontend) 에러 0, `npm run build`(frontend) 통과.
+- **편차**: 없음 — Pickup은 사람이 캔버스에서 직접 편집·저장한 상태를 그대로 코드화했고, Counseling 3건은 문구 그대로 구현.
+- **다음 에이전트가 알아야 할 것**: 🔴 실기동 검증 대기. **my-obituarylist는 사람이 "통과"로 확정 — 추가 변경 없음.** 상속세 계산기 모달(TaxA/TaxB) 재구성은 아직 미결 — 다음에 방향을 고르면 `TaxSimulatorModal.tsx`에 반영. 캔버스를 다시 읽을 땐 `Artifact` action:"read"(파일 미지정) → 결과가 가리키는 로컬 파일을 `seed-canvas.mjs --extract --to <새 빈 폴더>`로 풀어야 사람이 편집기에서 직접 고친 내용까지 반영된다(처음 발행한 내 작업 파일을 그대로 믿으면 사람이 캔버스에서 지운 요소가 남아있는 채로 구현하게 된다 — 이번에 실제로 그랬다).
+
+<!-- Gemini 판정 1줄: 대기 -->
