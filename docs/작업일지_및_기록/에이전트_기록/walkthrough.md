@@ -3726,3 +3726,20 @@ wt137 그대로라 재작업 없음).
 - **다음 에이전트가 알아야 할 것**: 🔴 실기동 검증 대기. **my-obituarylist는 사람이 "통과"로 확정 — 추가 변경 없음.** 상속세 계산기 모달(TaxA/TaxB) 재구성은 아직 미결 — 다음에 방향을 고르면 `TaxSimulatorModal.tsx`에 반영. 캔버스를 다시 읽을 땐 `Artifact` action:"read"(파일 미지정) → 결과가 가리키는 로컬 파일을 `seed-canvas.mjs --extract --to <새 빈 폴더>`로 풀어야 사람이 편집기에서 직접 고친 내용까지 반영된다(처음 발행한 내 작업 파일을 그대로 믿으면 사람이 캔버스에서 지운 요소가 남아있는 채로 구현하게 된다 — 이번에 실제로 그랬다).
 
 <!-- Gemini 판정 1줄: 대기 -->
+
+## 2026-09-18 | [Sonnet] 상속세 계산기 모달 A형(입력·결과 2단) 재구성 — `00-39` §8 #7
+
+- **근거 스펙**: `docs/00_핵심플랫폼/00-39_디자인_기준_재정립_명세서.md` §8 #7("A형 채택")·§6.8(폼·입력 확정값 — 높이 44/48px·글자 16px·라벨/보조문구 13px·항목 간 16px).
+- **건드린 파일**: `eobomDev/frontend/src/components/counseling/TaxSimulatorModal.tsx`, `eobomDev/frontend/src/styles/design-v2.css`, `eobomDev/frontend/src/index.css`, `docs/00_핵심플랫폼/00-39_디자인_기준_재정립_명세서.md`(§6.7 표 등재 — 사용자가 이번 채팅에서 직접 지시).
+- **결과**:
+  1. `design-v2.css`에 `.v2-field`(라벨+입력+보조문구를 세로로 묶는 flex column, gap 6px) · `.v2-field label`(13px, `--v2-fs-label`) · `.v2-field-hint`(13px, `--v2-text-muted`) 신설. `.v2-select`/`.v2-input`은 기존 필터 행 용도와 상자 스타일(높이·패딩·글자)을 공유하도록 남기되, 값 자체를 §6.8 확정값(패딩 `0 12px`→`0 14px`, 글자 `--v2-fs-support`(15px)→`16px`)으로 갱신하고 767px 이하 `height:48px` 미디어쿼리를 추가했다. `flex-basis`(행 안 배치 비율)는 `.v2-filter-row .v2-select`/`.v2-filter-row .v2-input`으로 스코프를 좁혀, `.v2-field`(세로 flex) 안에서 가로축 flex-basis가 세로 높이를 침범하지 않게 했다.
+  2. `TaxSimulatorModal.tsx` — 옛 `.form-group`/`.form-label`/`.form-input`(index.css:619, 52px) 8곳 전부를 `.v2-field`+`<label>`+`.v2-input`+`.v2-field-hint`로 교체. 폼 전체를 `.v2-two-col`(768px 미만 1단)로 감싸 왼쪽=입력 폼(계산 버튼 포함), 오른쪽=결과(계산 전에는 `.v2-empty` 안내 문구)로 분리 — A형("입력·결과 2단").
+  3. `index.css` `.tax-sim-modal-panel` `max-width` 560px→680px — 2단이 나란히 놓일 폭 확보(스펙에 수치 지정 없음, 이번 구현 판단).
+  4. `docs/00-39` §6.7 표에 `.v2-field`/`.v2-input`/`.v2-field-hint` 행 추가(사용자 지시).
+  5. `npx tsc --noEmit`(frontend) 에러 0, `npm run build`(frontend) 통과.
+- **편차**:
+  - `.tax-sim-modal-panel` 폭을 680px로 늘린 것 — §8 #7은 A형 채택과 입력 칸 축소만 확정했고 모달 폭은 스펙에 없다. 2단이 560px 안에서는 각 칸이 좁아져 폭을 넓혔다.
+  - `.v2-input`/`.v2-select`(필터 행용, `PickupPage.tsx`)의 글자 16px·패딩 14px·모바일 높이 48px 변경 — §6.8이 이 클래스명을 그대로 재사용하라고 지시했고 파일 상단 주석("정본은 design-v2.css")도 이를 뒷받침해 공유 정의를 새 확정값으로 갱신했다. `PickupPage.tsx` 코드는 건드리지 않았지만 시각적으로 검색창 글자가 15px→16px로 커진다(부작용, 실기동에서 확인 필요).
+- **다음 에이전트가 알아야 할 것**: 🔴 실기동 검증 대기(dev 서버 미기동, 모바일 767px 이하 1단 전환·바텀시트 배치 실기기 확인 필요). `00-39` §9.2가 예고한 대로 그룹②(폼) 첫 시안 `obituary`가 `.v2-field`/`.v2-input`/`.v2-field-hint`를 그대로 물려받을 차례다.
+
+<!-- Gemini 판정 1줄: 대기 -->

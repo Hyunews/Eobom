@@ -638,20 +638,51 @@
   margin-bottom: 16px;
 }
 
+/* 상자 스타일은 여기서 공유(§6.8 확정값 — 높이 44/48px·글자 16px·좌우 패딩 14px).
+   flex 배치(행 안에서 몇 대 몇으로 늘어날지)는 쓰는 자리마다 달라 아래 .v2-filter-row에서 따로 준다 —
+   .v2-field(§6.8, 폼 세로 배치) 안에서는 flex-basis가 세로축을 침범하면 안 되기 때문. */
 .v2-select,
 .v2-input {
-  flex: 1 1 160px;
   height: 44px;
-  padding: 0 12px;
+  padding: 0 14px;
   border: 1px solid var(--v2-btn-border);
   border-radius: 4px;
   background: var(--v2-bg);
   color: var(--v2-text-main);
-  font-size: var(--v2-fs-support);
+  font-size: 16px;
 }
 
-.v2-input {
+.v2-filter-row .v2-select {
+  flex: 1 1 160px;
+}
+
+.v2-filter-row .v2-input {
   flex: 2 1 220px;
+}
+
+@media (max-width: 767px) {
+  .v2-select,
+  .v2-input {
+    height: 48px;
+  }
+}
+
+/* ── §6.8 폼·입력 — 상속세 계산기 모달에서 나온 그룹②의 첫 씨앗. .v2-field가 라벨+입력+보조문구를
+   세로로 묶는다(간격 16px는 필드 사이 간격이라 이 안이 아니라 필드를 나열하는 쪽 gap으로 준다). */
+.v2-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.v2-field label {
+  font-size: var(--v2-fs-label);
+  color: var(--v2-text-label);
+}
+
+.v2-field-hint {
+  font-size: var(--v2-fs-label);
+  color: var(--v2-text-muted);
 }
 
 /* ── 상속 경고 배너(리본형 — 위아래 1.5px 선만) ── */
