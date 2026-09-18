@@ -29,13 +29,13 @@
 
 **2.[Sonnet]**🔴wt112~172실기동대기(사람,09-03).⏸체크8·04B=`PreDeathPlatformSetting`뒤.
 🔴wt183json사람커밋편입대기.
-✅**00-38전체완료(09-17)**—§8표13개+§8.5부록(FamilyInvite·Privacy·Terms·DomainOverview=
-변경0)전부tsc·build통과.Pickup=⏸03뒤·Admin계열⏸보류.
+✅**00-38§8전체완료(09-17)**—표13개+부록4개,tsc·build통과.Pickup=⏸03뒤·Admin계열⏸보류.
+
 ✅§11.1 UX5건+**배포본실측확인완료(09-17,Sonnet)**—500px(360px와같은브레이크포인트)서①~⑤
 전부수치확인,DoD#1회귀없음.
 🟡height:36px3곳(Memorial:250·MyObituaryList:199·210)=Phase3보류.
 
-**3.[Gemini]**게이트0건(wt203전수)·🟡옛스펙갱신3건→⑭.🟡devDB삭제분7건—D-8(🔴CONFIRM).✅reports구경로정리완료(09-16,보류8건외전건해소).
+**3.[Gemini]**게이트0건(wt203전수)·🟡옛스펙3건→⑭.🟡devDB삭제분7건—D-8(🔴CONFIRM).✅reports경로정리완료(09-16).
 
 ## 지금 상태
 
@@ -46,6 +46,6 @@
 
 ## 지금 막고 있는 것
 
-- 🔴**06백엔드**—`Entry`+`Grant`배선됨(08-27).`Log`0건.가족열람화면없음—API만.
+- 🔴**06백엔드**—`Entry`+`Grant`배선(08-27).`Log`0건·가족열람화면없음(→backlog_06).
 - 🟡**이미지로컬디스크**:재배포시소실→추모관사진오픈금지(systems§5).이미지미배선(R2이전시해결).
 - **`Deceased`미확정**:04·05묶임(→backlog③).
