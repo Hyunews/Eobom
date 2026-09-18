@@ -829,3 +829,23 @@ state를 그대로 추모관 사후 연결 동의로도 흘려보내면 사용�
   이 세션 항목도 관행을 따라 파일 끝에 추가했다. read-guard 훅이 이 두 로그를 크기 무관하게
   막아서(`.harness/AGENTS.md` §10) `Grep`으로 최근 날짜 패턴만 찾아 위치를 확인하고 `Read`는
   그 근방 몇십 줄만 좁혀서 열었다 — 전문 통독을 피했다.
+
+## 2026-09-18 [Claude:Sonnet] 그룹① 실기동 피드백 반영 — 삽질/메모
+
+- **Pickup 업체명 2줄 버그의 진짜 원인**: `.v2-list-title`이 `flex:1`인데 `min-width:0`이
+  없었다 — flex 아이템의 기본 `min-width`는 `auto`(content-based)라 좁은 화면에서 줄어들지
+  못하고 대신 줄바꿈된다. `min-width:0` + `overflow:hidden`+`text-overflow:ellipsis`+
+  `white-space:nowrap`을 같이 줘야 "잘림"으로 바뀐다 — 셋 중 하나만 빠져도 도로 줄바꿈된다.
+  → **회피**: 목록 행처럼 "이미지/아이콘 + 유동폭 제목 + 고정폭 메타"를 flex로 짤 때는
+  유동폭 요소에 `min-width:0`을 습관적으로 같이 준다.
+- **Design 캔버스(시안 목업) 워크플로 첫 사용** — `/design` 스킬 실행 → 정적 `.dc.html`
+  아트보드 여러 개(작업 디렉터리에 먼저 저장) → `seed-canvas.mjs --template ... --out ...
+  --artboard ... --canvas canvas.json` → `--check`로 파싱 검증 → `artifact-capabilities`
+  스킬로 이 계정의 capability 로스터 확인(이번엔 `self`·`downloads` 둘 다 있었음) →
+  `Artifact` 툴로 `contract: "0.1.31"`(이 페이로드 전용 고정 버전, 최신 아님) +
+  `capabilities: {"self":{}, "downloads":{}}`로 발행. 코드 전면 재작성 전에 "다양한 목업"을
+  요청받으면 이 경로를 쓰면 된다 — 실제 코드는 안 건드리고 방향만 먼저 정할 수 있다.
+- **Bash 도구가 이 세션 내내 간헐적으로 깨졌다** — `cd`로 디렉터리를 옮긴 뒤 다른 명령을
+  실행하면 `No such file or directory`(cwd 추적용 임시 파일 관련)로 실패하는 경우가 여러 번
+  있었다. → **회피**: 같은 증상이 나면 PowerShell 도구로 같은 명령을 재시도 — 이번 세션에서
+  전부 우회됐다(node 스크립트 실행·바이트 크기 확인 등).

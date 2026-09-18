@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Flower2, FileEdit, ExternalLink, Share2, ArrowRight, Trash2 } from 'lucide-react';
+import { ExternalLink, ChevronRight } from 'lucide-react';
 import { apiFetch } from '../lib/api';
 import { OBITUARY_CARD_IMAGE_URL } from '../config';
 import { formatKST, formatObituaryCardTitle, formatObituaryCardDescription } from '../utils/obituaryCard';
 import { ensureKakaoShareReady, shareViaKakao, shareViaWebShareApi, copyObituaryLink, reportObituaryShare } from '../utils/kakaoShare';
+import '../styles/design-v2.css';
 
 // 00-06 §8(SCR-018, "내 부고장·추모관") — Header "추모관" 메뉴가 홈 박스③(링크 입력창)으로만
 // 보내서, 부고장을 만든 당사자가 정작 본인이 만든 부고장·추모관에 다시 들어갈 방법이 없다는
@@ -15,6 +16,8 @@ import { ensureKakaoShareReady, shareViaKakao, shareViaWebShareApi, copyObituary
 // 제목도 "내 부고장"에서 "내 부고장·추모관"으로 정정했다(App.tsx 라우트 참고).
 // 추모관 생성·삭제·주소복사 같은 관리 액션은 여전히 `/memorial` 화면 몫이다 — 여기서는 두
 // 목록을 나란히 읽기 전용으로 보여주고, 실제 만들기·닫기는 그 화면으로 안내만 한다.
+// 00-39 §9.1 — 그룹①(목록·체크리스트) 대표 care-guide에서 뽑은 클래스를 시안 없이 그대로 적용.
+// 행 액션(열기·공유·수정·삭제)은 §6-8·9(체크/안내 분리)와 같은 원리로 행 클릭 → 모달로 옮겼다.
 
 interface MyObituary {
   id: string;
@@ -38,15 +41,16 @@ interface MyMemorial {
   createdAt: string;
 }
 
+type ModalTarget = { type: 'obituary'; id: string } | { type: 'memorial'; id: string } | null;
+
 export const MyObituaryListPage: React.FC = () => {
   const navigate = useNavigate();
   const [obituaries, setObituaries] = useState<MyObituary[] | null>(null);
   const [loadError, setLoadError] = useState(false);
-  // 카드별로 다른 부고장을 다루므로, 문구도 어느 카드 것인지(id) 함께 들고 그 카드
-  // 아래에만 렌더한다 — 예전엔 전역 문자열 하나라 목록 맨 아래(마지막 카드 밖)에 떴다(사람 리포트).
+  // 모달별로 다른 부고장을 다루므로, 문구도 어느 항목 것인지(id) 함께 들고 그 모달 안에만 렌더한다.
   const [feedback, setFeedback] = useState<{ id: string; message: string } | null>(null);
-
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [modalTarget, setModalTarget] = useState<ModalTarget>(null);
 
   // 우측 "내 추모관" 목록 — `GET /api/me/memorials`(memorialController.listMyMemorials,
   // 기존 코드 그대로. MemorialPage.tsx가 쓰는 것과 같은 엔드포인트). 만들기·닫기는 여기서
@@ -107,6 +111,7 @@ export const MyObituaryListPage: React.FC = () => {
     try {
       await apiFetch(`/api/obituaries/${o.id}`, 'USER', { method: 'DELETE' });
       setObituaries((prev) => (prev ? prev.filter((item) => item.id !== o.id) : prev));
+      setModalTarget(null);
     } catch {
       setFeedback({ id: o.id, message: '부고장 삭제에 실패했습니다. 잠시 후 다시 시도해주세요.' });
     } finally {
@@ -114,180 +119,158 @@ export const MyObituaryListPage: React.FC = () => {
     }
   };
 
-  const cardStyle: React.CSSProperties = {
-    backgroundColor: 'var(--card-bg)',
-    borderRadius: 'var(--border-radius)',
-    boxShadow: 'var(--box-shadow)',
-    padding: '1.5rem',
-  };
-
-  const linkGroupStyle: React.CSSProperties = {
-    display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap',
-  };
-
-  const iconBtnStyle: React.CSSProperties = {
-    height: '32px', padding: '0 0.6rem', fontSize: 'var(--fs-caption)', backgroundColor: 'var(--card-bg)',
-    border: '1px solid var(--border-color)', borderRadius: 'var(--r-sm)', cursor: 'pointer', display: 'inline-flex',
-    alignItems: 'center', gap: '0.3rem',
-  };
-
-  const moreLinkStyle: React.CSSProperties = {
-    marginTop: '1rem', background: 'none', border: 'none', padding: 0, color: 'var(--point-color)',
-    fontWeight: 700, fontSize: 'var(--fs-body)', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '0.3rem',
-  };
+  const modalObituary = modalTarget?.type === 'obituary' ? obituaries?.find((o) => o.id === modalTarget.id) ?? null : null;
+  const modalMemorial = modalTarget?.type === 'memorial' ? memorials?.find((m) => m.id === modalTarget.id) ?? null : null;
 
   return (
-    <div className="container" style={{ paddingBottom: '3rem', maxWidth: '860px' }}>
-      <h2 style={{ marginBottom: '0.3rem' }}>내 부고장·추모관</h2>
-      <p className="page-subtitle" style={{ color: 'var(--text-muted)', marginBottom: '1.5rem', fontSize: 'var(--fs-body)' }}>
-        내가 만든 부고장과 추모관을 한곳에서 확인할 수 있습니다.
-      </p>
+    <div className="v2-page">
+      <div className="v2-page-head">
+        <h1 className="v2-page-title">내 부고장·추모관</h1>
+        <p className="v2-page-subtitle">내가 만든 부고장과 추모관을 한곳에서 확인할 수 있습니다.</p>
+      </div>
 
-      {/* 부고장·추모관을 좌우 반반으로 — 00-29 §6.1 .auto-grid(min 280px, 375px 가로스크롤 방지) */}
-      <div className="auto-grid" style={{ alignItems: 'start' }}>
-        {/* ① 내가 만든 부고장 목록 */}
-        <div style={cardStyle}>
-          <h4 style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <FileEdit size={18} color="var(--primary-color)" /> 내가 만든 부고장
-          </h4>
-
-          {obituaries === null && !loadError && (
-            <p style={{ color: 'var(--text-muted)', fontSize: 'var(--fs-body)' }}>불러오는 중...</p>
-          )}
-          {loadError && (
-            <p style={{ color: 'var(--state-warn-fg)', fontSize: 'var(--fs-body)' }}>목록을 불러오지 못했습니다. 잠시 후 다시 시도해주세요.</p>
-          )}
-          {obituaries !== null && obituaries.length === 0 && (
-            <p style={{ color: 'var(--text-muted)', fontSize: 'var(--fs-body)' }}>아직 만든 부고장이 없습니다.</p>
-          )}
-
-          {obituaries !== null && obituaries.length > 0 && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.9rem' }}>
-              {obituaries.map((o) => (
-                <div
-                  key={o.id}
-                  style={{
-                    padding: '0.9rem 1rem', backgroundColor: 'var(--secondary-color)', borderRadius: 'var(--r-sm)',
-                    display: 'flex', flexDirection: 'column', gap: '0.6rem',
-                  }}
-                >
-                  {/* 🔄 2026-09-11 사람 지시(모바일 검증 루프 6번 재점검 2차) — 09-07에 도입했던
-                      "이름/날짜 옆에 수정·삭제, 그 아래 부고장/열기/공유" 2행 구조가 360px에서
-                      이름+날짜 블록과 큰 버튼(36px, --sp-4 패딩)이 한 줄에 안 들어가 버튼이
-                      아래로 떨어졌다. 사람 지시대로 수정·삭제를 열기·공유와 같은 크기(iconBtnStyle,
-                      32px)로 줄이고 같은 줄(부고장 링크 행)로 합쳐 — 이름/날짜 줄은 이제 버튼과
-                      폭을 다투지 않으므로 wrap 자체가 필요 없어진다. */}
-                  <div>
-                    <p style={{ fontWeight: 700, color: 'var(--text-main)', marginBottom: '0.2rem' }}>
-                      故 {o.deceasedName}
-                      {o.isClosed && (
-                        <span style={{ marginLeft: '0.5rem', fontSize: 'var(--fs-caption)', fontWeight: 400, color: 'var(--text-muted)' }}>· 종료됨</span>
-                      )}
-                      {!o.isClosed && (
-                        <span style={{ marginLeft: '0.5rem', fontSize: 'var(--fs-caption)', fontWeight: 400, color: 'var(--point-color)' }}>· 진행중</span>
-                      )}
-                    </p>
-                    <p style={{ fontSize: 'var(--fs-body)', color: 'var(--text-muted)' }}>
-                      {o.deceasedDeathDate ? `사망일 ${formatKST(o.deceasedDeathDate)}` : `개설일 ${formatKST(o.createdAt)}`}
-                    </p>
-                  </div>
-
-                  <div style={linkGroupStyle}>
-                    <button type="button" onClick={() => navigate(`/o/${o.slug}`)} style={iconBtnStyle}>
-                      <ExternalLink size={13} /> 열기
-                    </button>
-                    <button type="button" onClick={() => shareObituary(o)} style={iconBtnStyle}>
-                      <Share2 size={13} /> 공유
-                    </button>
-                    {!o.isClosed && (
-                      <button type="button" onClick={() => navigate(`/obituary?slug=${o.slug}`)} style={iconBtnStyle}>
-                        수정
-                      </button>
-                    )}
-                    <button
-                      type="button"
-                      onClick={() => deleteObituary(o)}
-                      disabled={deletingId === o.id}
-                      style={{ ...iconBtnStyle, border: '1px solid var(--state-danger-bg)', color: 'var(--state-danger-fg)', opacity: deletingId === o.id ? 0.6 : 1 }}
-                    >
-                      <Trash2 size={13} /> 삭제
-                    </button>
-                  </div>
-
-                  {feedback?.id === o.id && (
-                    <p style={{ fontSize: 'var(--fs-body)', color: 'var(--text-muted)' }}>{feedback.message}</p>
-                  )}
-                </div>
-              ))}
+      <div className="v2-content">
+        <div className="v2-two-col">
+          {/* ① 내가 만든 부고장 목록 */}
+          <div>
+            <div className="v2-section-head">
+              <h2 className="v2-section-title">내가 만든 부고장</h2>
+              {obituaries !== null && <span className="v2-section-count">({obituaries.length})</span>}
             </div>
-          )}
 
-          <button
-            type="button"
-            // 🔴 09-07 — `/obituary`만 넘기면 그 화면이 localStorage 포인터를 읽어 마지막으로
-            // 본(어쩌면 종료된) 부고장을 다시 불러왔다 — "새로" 만들기가 안 됐다. `?new=1`로
-            // ObituaryPage.tsx가 포인터를 무시하고 빈 폼으로 시작하게 한다(ObituaryPage.tsx
-            // handleStartNew 참고).
-            onClick={() => navigate('/obituary?new=1')}
-            style={moreLinkStyle}
-          >
-            새 부고장 만들기 <ArrowRight size={14} />
-          </button>
-        </div>
+            {obituaries === null && !loadError && <p className="v2-empty">불러오는 중...</p>}
+            {loadError && <p className="v2-error-text">목록을 불러오지 못했습니다. 잠시 후 다시 시도해주세요.</p>}
+            {obituaries !== null && obituaries.length === 0 && <p className="v2-empty">아직 만든 부고장이 없습니다.</p>}
 
-        {/* ② 내가 만든 추모관 목록 — 읽기 전용. 만들기·닫기·주소복사는 /memorial 몫(09-07 사용자
-            지시 — "부고장과 추모관은 구분해서 관리되어야 한다") */}
-        <div style={cardStyle}>
-          <h4 style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <Flower2 size={18} color="var(--primary-color)" /> 내가 만든 추모관
-          </h4>
+            {obituaries?.map((o) => (
+              <div key={o.id} className="v2-list-row">
+                <button type="button" className="v2-list-main" onClick={() => setModalTarget({ type: 'obituary', id: o.id })}>
+                  <span className="v2-list-title">
+                    故 {o.deceasedName}
+                    <span className={o.isClosed ? 'v2-status-closed' : 'v2-status-active'}> · {o.isClosed ? '종료됨' : '진행중'}</span>
+                  </span>
+                </button>
+                <span className="v2-list-meta">
+                  {o.deceasedDeathDate ? formatKST(o.deceasedDeathDate) : formatKST(o.createdAt)}
+                </span>
+                <ChevronRight size={16} className="v2-row-chevron" />
+              </div>
+            ))}
 
-          {memorials === null && !memorialLoadError && (
-            <p style={{ color: 'var(--text-muted)', fontSize: 'var(--fs-body)' }}>불러오는 중...</p>
-          )}
-          {memorialLoadError && (
-            <p style={{ color: 'var(--state-warn-fg)', fontSize: 'var(--fs-body)' }}>목록을 불러오지 못했습니다. 잠시 후 다시 시도해주세요.</p>
-          )}
-          {memorials !== null && memorials.length === 0 && (
-            <p style={{ color: 'var(--text-muted)', fontSize: 'var(--fs-body)' }}>아직 만든 추모관이 없습니다.</p>
-          )}
+            <button type="button" className="v2-btn-outline v2-list-footer-btn" onClick={() => navigate('/obituary?new=1')}>
+              새 부고장 만들기
+            </button>
+          </div>
 
-          {memorials !== null && memorials.length > 0 && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.9rem' }}>
-              {memorials.map((m) => (
-                <div
-                  key={m.id}
-                  style={{
-                    padding: '0.9rem 1rem', backgroundColor: 'var(--secondary-color)', borderRadius: 'var(--r-sm)',
-                    display: 'flex', flexDirection: 'column', gap: '0.6rem',
-                  }}
-                >
-                  <div>
-                    <p style={{ fontWeight: 700, color: 'var(--text-main)', marginBottom: '0.2rem' }}>
-                      故 {m.deceasedName}
-                      {m.closedAt ? (
-                        <span style={{ marginLeft: '0.5rem', fontSize: 'var(--fs-caption)', fontWeight: 400, color: 'var(--text-muted)' }}>· 종료됨</span>
-                      ) : (
-                        <span style={{ marginLeft: '0.5rem', fontSize: 'var(--fs-caption)', fontWeight: 400, color: 'var(--point-color)' }}>· 운영중</span>
-                      )}
-                    </p>
-                    <p style={{ fontSize: 'var(--fs-body)', color: 'var(--text-muted)' }}>개설일 {formatKST(m.createdAt)}</p>
-                  </div>
-                  <div style={linkGroupStyle}>
-                    <button type="button" onClick={() => navigate(`/m/${m.slug}`)} style={iconBtnStyle}>
-                      <ExternalLink size={13} /> 열기
-                    </button>
-                  </div>
-                </div>
-              ))}
+          {/* ② 내가 만든 추모관 목록 — 읽기 전용. 만들기·닫기·주소복사는 /memorial 몫(09-07 사용자
+              지시 — "부고장과 추모관은 구분해서 관리되어야 한다") */}
+          <div>
+            <div className="v2-section-head">
+              <h2 className="v2-section-title">내가 만든 추모관</h2>
+              {memorials !== null && <span className="v2-section-count">({memorials.length})</span>}
             </div>
-          )}
 
-          <button type="button" onClick={() => navigate('/memorial')} style={moreLinkStyle}>
-            추모관 만들기·관리 <ArrowRight size={14} />
-          </button>
+            {memorials === null && !memorialLoadError && <p className="v2-empty">불러오는 중...</p>}
+            {memorialLoadError && <p className="v2-error-text">목록을 불러오지 못했습니다. 잠시 후 다시 시도해주세요.</p>}
+            {memorials !== null && memorials.length === 0 && <p className="v2-empty">아직 만든 추모관이 없습니다.</p>}
+
+            {memorials?.map((m) => (
+              <div key={m.id} className="v2-list-row">
+                <button type="button" className="v2-list-main" onClick={() => setModalTarget({ type: 'memorial', id: m.id })}>
+                  <span className="v2-list-title">
+                    故 {m.deceasedName}
+                    <span className={m.closedAt ? 'v2-status-closed' : 'v2-status-active'}> · {m.closedAt ? '종료됨' : '운영중'}</span>
+                  </span>
+                </button>
+                <span className="v2-list-meta">{formatKST(m.createdAt)}</span>
+                <ChevronRight size={16} className="v2-row-chevron" />
+              </div>
+            ))}
+
+            <button type="button" className="v2-btn-outline v2-list-footer-btn" onClick={() => navigate('/memorial')}>
+              추모관 만들기·관리
+            </button>
+          </div>
         </div>
       </div>
+
+      {modalObituary && (
+        <div className="v2-modal-overlay" role="dialog" aria-modal="true" onClick={() => setModalTarget(null)}>
+          <div className="v2-modal" onClick={(e) => e.stopPropagation()}>
+            <h3 className="v2-modal-title">故 {modalObituary.deceasedName}</h3>
+
+            <div className="v2-modal-row">
+              <span className="v2-modal-label">상태</span>
+              <span className="v2-modal-value">{modalObituary.isClosed ? '종료됨' : '진행중'}</span>
+            </div>
+
+            <div className="v2-modal-row">
+              <span className="v2-modal-label">일자</span>
+              <span className="v2-modal-value">
+                {modalObituary.deceasedDeathDate
+                  ? `사망일 ${formatKST(modalObituary.deceasedDeathDate)}`
+                  : `개설일 ${formatKST(modalObituary.createdAt)}`}
+              </span>
+            </div>
+
+            <div className="v2-modal-actions">
+              <button type="button" className="v2-btn-outline" onClick={() => navigate(`/o/${modalObituary.slug}`)}>
+                <ExternalLink size={14} /> 열기
+              </button>
+              <button type="button" className="v2-btn-outline" onClick={() => shareObituary(modalObituary)}>
+                공유
+              </button>
+              {!modalObituary.isClosed && (
+                <button type="button" className="v2-btn-outline" onClick={() => navigate(`/obituary?slug=${modalObituary.slug}`)}>
+                  수정
+                </button>
+              )}
+              <button
+                type="button"
+                className="v2-btn-outline"
+                onClick={() => deleteObituary(modalObituary)}
+                disabled={deletingId === modalObituary.id}
+              >
+                삭제
+              </button>
+            </div>
+
+            {feedback?.id === modalObituary.id && <p className="v2-notice">{feedback.message}</p>}
+
+            <button type="button" className="v2-modal-close" onClick={() => setModalTarget(null)}>
+              닫기
+            </button>
+          </div>
+        </div>
+      )}
+
+      {modalMemorial && (
+        <div className="v2-modal-overlay" role="dialog" aria-modal="true" onClick={() => setModalTarget(null)}>
+          <div className="v2-modal" onClick={(e) => e.stopPropagation()}>
+            <h3 className="v2-modal-title">故 {modalMemorial.deceasedName}</h3>
+
+            <div className="v2-modal-row">
+              <span className="v2-modal-label">상태</span>
+              <span className="v2-modal-value">{modalMemorial.closedAt ? '종료됨' : '운영중'}</span>
+            </div>
+
+            <div className="v2-modal-row">
+              <span className="v2-modal-label">일자</span>
+              <span className="v2-modal-value">개설일 {formatKST(modalMemorial.createdAt)}</span>
+            </div>
+
+            <div className="v2-modal-actions">
+              <button type="button" className="v2-btn-outline" onClick={() => navigate(`/m/${modalMemorial.slug}`)}>
+                <ExternalLink size={14} /> 열기
+              </button>
+            </div>
+
+            <button type="button" className="v2-modal-close" onClick={() => setModalTarget(null)}>
+              닫기
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

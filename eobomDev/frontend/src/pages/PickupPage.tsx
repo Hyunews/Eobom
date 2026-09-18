@@ -1,11 +1,16 @@
-import React, { useState, useEffect } from 'react';
-import { Package } from 'lucide-react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { Search } from 'lucide-react';
 import digitalEstateData from '../mockData/digitalEstate.json';
-import { BACKEND_URL, LOCATION_FEATURE_ENABLED } from '../config';
+import { BACKEND_URL, GEOLOCATION_FALLBACK, LOCATION_FEATURE_ENABLED } from '../config';
+import '../styles/design-v2.css';
 
 // 08-19 9차(개발자 직접 지시) — DigitalEstatePage 서브탭 3개(digital/physical/memorial) 중
 // "현물 유품 정리(physical)"를 별도 도메인(tab: 'pickup')으로 분리. 내용은 그대로 옮겼다
-// (예시 업체 데이터, "예시" 배지 등 — 00-14 §2.2 원칙 유지).
+// (예시 업체 데이터 — 00-14 §2.2 원칙 유지, "예시" 배지·CTA 문구·alert로 계속 고지한다).
+// 00-39 §9.1 — 그룹①(목록·체크리스트) 대표 care-guide에서 뽑은 클래스를 시안 없이 그대로 적용.
+// 🔄 2026-09-18 사용자 지시 — 위치 자동감지 표시·검색 기능을 FacilityPage 수준으로 맞춘다.
+// 다만 업체(vendors) 데이터에 좌표가 없어 거리순 정렬은 만들지 않는다(province/district
+// 텍스트 필터 + 자유 검색만).
 
 interface PickupPageProps {
   currentUser?: string | null;
@@ -18,7 +23,7 @@ export const PickupPage: React.FC<PickupPageProps> = () => {
   // 지역필터 — 기존 "서울/경기" 같은 임의 권역 대신 장사시설(FacilityPage)과 동일하게
   // 실제 시/도 -> 시/군/구 2단계 선택으로 구현(2026-08-20 지시). 보유 업체(예시) 데이터에서
   // 직접 뽑아 항상 결과가 있는 지역만 노출한다(FacilityPage의 /api/geo/regions와 같은 원칙).
-  const regionsData = React.useMemo(() => {
+  const regionsData = useMemo(() => {
     const map: Record<string, Set<string>> = {};
     for (const v of vendors) {
       if (!map[v.province]) map[v.province] = new Set();
@@ -32,43 +37,82 @@ export const PickupPage: React.FC<PickupPageProps> = () => {
       });
     return result;
   }, [vendors]);
+  const provinceOptions = Object.keys(regionsData);
 
+  // 적용된(검색 버튼을 눌러 실제로 반영된) 조건 — FacilityPage와 같은 draft/적용 분리 패턴.
   const [province, setProvince] = useState('');
   const [district, setDistrict] = useState('');
-  const provinceOptions = Object.keys(regionsData);
-  const districtOptions = province ? regionsData[province] || [] : [];
+  const [searchText, setSearchText] = useState('');
+  // 아직 적용 전인 선택값
+  const [provinceDraft, setProvinceDraft] = useState('');
+  const [districtDraft, setDistrictDraft] = useState('');
+  const [searchTextDraft, setSearchTextDraft] = useState('');
 
-  const handleProvinceChange = (value: string) => {
-    setProvince(value);
-    setDistrict('');
+  const [selectedVendorIdx, setSelectedVendorIdx] = useState<number | null>(null);
+  const districtDraftOptions = provinceDraft ? regionsData[provinceDraft] || [] : [];
+
+  // 위치 표시 — FacilityPage와 같은 표시(위치명 + 기본값 배지)만 두고, 업체 데이터에
+  // 좌표가 없어 거리순 정렬은 만들지 않는다.
+  const [locationName, setLocationName] = useState('위치 확인 중...');
+  const [isLocationFallback, setIsLocationFallback] = useState(false);
+
+  const handleProvinceDraftChange = (value: string) => {
+    setProvinceDraft(value);
+    setDistrictDraft('');
   };
 
-  // GPS 허용 시 지역 필터의 기본값을 자동 선택한다(2026-09-10 사람 결정 — FacilityPage와 달리
-  // 좌표 정렬은 만들지 않는다, province/district 텍스트 필터만 채운다). 거부·실패 시 지금처럼
-  // 빈 필터로 둔다 — 회귀 없음.
-  useEffect(() => {
-    if (!(LOCATION_FEATURE_ENABLED && navigator.geolocation && window.isSecureContext)) return;
+  // "검색" 버튼 — 선택값(draft)을 실제 검색 조건으로 반영한다(2026-09-10 FacilityPage와 동일 원칙).
+  const handleSearch = () => {
+    setProvince(provinceDraft);
+    setDistrict(districtDraft);
+    setSearchText(searchTextDraft.trim());
+  };
 
-    const applyRegionFromPosition = (lat: number, lng: number) => {
+  const handleSearchTextKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') handleSearch();
+  };
+
+  // GPS 허용 시 지역 필터를 자동으로 채우고 즉시 적용한다(2026-09-10 사람 결정 — 좌표 정렬은
+  // 만들지 않는다, province/district 텍스트 필터만). 거부·실패 시 기본 위치(GEOLOCATION_FALLBACK)를
+  // 표시만 하고 필터는 채우지 않는다 — 다른 사람 위치로 검색 결과가 좁아지면 안 되기 때문.
+  useEffect(() => {
+    if (!LOCATION_FEATURE_ENABLED) return;
+
+    const showLocationName = (lat: number, lng: number, isFallback: boolean, applyAsFilter: boolean) => {
       fetch(`${BACKEND_URL}/api/geo/reverse?lat=${lat}&lng=${lng}`)
         .then((res) => res.json())
         .then((data) => {
-          if (data.status !== 'success') return;
+          if (data.status !== 'success') {
+            setLocationName('위치 확인 실패');
+            return;
+          }
+          setLocationName(data.data.region);
+          setIsLocationFallback(isFallback);
+          if (!applyAsFilter) return;
           const detectedProvince = data.data.province as string;
           if (!provinceOptions.includes(detectedProvince)) return; // 예시 업체 데이터에 없는 지역이면 그대로 빈 채로 둔다
+          setProvinceDraft(detectedProvince);
           setProvince(detectedProvince);
           const detectedDistrict = data.data.district as string;
-          if (regionsData[detectedProvince]?.includes(detectedDistrict)) setDistrict(detectedDistrict);
+          if (regionsData[detectedProvince]?.includes(detectedDistrict)) {
+            setDistrictDraft(detectedDistrict);
+            setDistrict(detectedDistrict);
+          }
         })
-        .catch(() => {});
+        .catch(() => setLocationName('위치 확인 실패'));
     };
 
-    // enableHighAccuracy:false — IP 수준 정확도면 충분하다(결정 ③). timeout 없이 두면 이용자가
+    if (!(navigator.geolocation && window.isSecureContext)) {
+      showLocationName(GEOLOCATION_FALLBACK.lat, GEOLOCATION_FALLBACK.lng, true, false);
+      return;
+    }
+
+    // enableHighAccuracy:false — IP 수준 정확도면 충분하다. timeout 없이 두면 이용자가
     // 권한 팝업을 무시할 때 콜백이 영영 안 불릴 수 있어 8초로 제한한다.
     const requestPosition = () => {
       navigator.geolocation.getCurrentPosition(
-        (pos) => applyRegionFromPosition(pos.coords.latitude, pos.coords.longitude),
-        () => {},
+        (pos) => showLocationName(pos.coords.latitude, pos.coords.longitude, false, true),
+        () => showLocationName(GEOLOCATION_FALLBACK.lat, GEOLOCATION_FALLBACK.lng, true, false),
         { timeout: 8000, maximumAge: 300000, enableHighAccuracy: false }
       );
     };
@@ -78,7 +122,11 @@ export const PickupPage: React.FC<PickupPageProps> = () => {
       navigator.permissions
         .query({ name: 'geolocation' })
         .then((status) => {
-          if (status.state !== 'denied') requestPosition();
+          if (status.state === 'denied') {
+            showLocationName(GEOLOCATION_FALLBACK.lat, GEOLOCATION_FALLBACK.lng, true, false);
+          } else {
+            requestPosition();
+          }
         })
         .catch(requestPosition);
     } else {
@@ -87,96 +135,141 @@ export const PickupPage: React.FC<PickupPageProps> = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const filteredVendors = useMemo(() => {
+    const q = searchText.trim();
+    return vendors.filter((v) => {
+      if (province && v.province !== province) return false;
+      if (district && v.district !== district) return false;
+      if (q && !v.name.includes(q) && !v.region.includes(q)) return false;
+      return true;
+    });
+  }, [vendors, province, district, searchText]);
+
+  const selectedVendor = selectedVendorIdx !== null ? filteredVendors[selectedVendorIdx] : null;
+
   return (
-    <div className="container">
-      <div style={{ marginBottom: '1.5rem' }}>
-        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', backgroundColor: 'var(--surface-subtle)', color: '#6C7A89', padding: '0.3rem var(--sp-4)', borderRadius: 'var(--r-lg)', fontSize: 'var(--fs-body)', fontWeight: 700, marginBottom: '0.6rem' }}>
-          <Package size={18} color="#6C7A89" /> 지역 기반 현물 유품 정리 매칭
+    <div className="v2-page">
+      <div className="v2-page-head">
+        <h1 className="v2-page-title">유품 수거</h1>
+        <p className="v2-page-subtitle">지역 기반 유품 정리·수거 전문 업체와 연결해 드립니다.</p>
+      </div>
+
+      <div className="v2-content">
+        {/* 🔴 00-21 §0.2-1 해제 조건 2 — 위치기반서비스 약관(제20조)이 잠긴 동안 이용자가 위치
+            수집을 알 수 있는 유일한 자리. GPS 권한 팝업은 마운트 시 자동으로 뜨므로(위 useEffect)
+            뷰포트와 무관하게 항상 먼저 렌더한다. FacilityPage와 동일 조건(01·03만 위치 수집,
+            §0.2-1). 🔄 2026-09-18 사용자 지시 — 문구가 길다는 지적으로 한 문장으로 축약
+            (핵심 고지만 남기고, 직접 선택 가능하다는 부연은 뺀다 — 아래 셀렉트가 그 사실을
+            바로 보여준다). */}
+        {LOCATION_FEATURE_ENABLED && <p className="v2-notice">가까운 지역 업체를 보여드리기 위해 위치 정보를 사용합니다.</p>}
+
+        {LOCATION_FEATURE_ENABLED && (
+          <p className="v2-location-line">
+            📍 현재 위치: {locationName}
+            {isLocationFallback && (
+              <span className="v2-badge-neutral" title="실제 위치를 확인하지 못해 기본 위치로 표시 중입니다. 아래에서 지역을 직접 선택해주세요.">
+                기본값
+              </span>
+            )}
+          </p>
+        )}
+
+        <div className="v2-filter-row">
+          <select value={provinceDraft} onChange={(e) => handleProvinceDraftChange(e.target.value)} className="v2-select">
+            <option value="">시/도 선택</option>
+            {provinceOptions.map((p) => (
+              <option key={p} value={p}>
+                {p}
+              </option>
+            ))}
+          </select>
+          <select
+            value={districtDraft}
+            onChange={(e) => setDistrictDraft(e.target.value)}
+            disabled={!provinceDraft}
+            className="v2-select"
+          >
+            <option value="">선택 안함</option>
+            {districtDraftOptions.map((d) => (
+              <option key={d} value={d}>
+                {d}
+              </option>
+            ))}
+          </select>
+          <input
+            type="text"
+            value={searchTextDraft}
+            onChange={(e) => setSearchTextDraft(e.target.value)}
+            onKeyDown={handleSearchTextKeyDown}
+            placeholder="업체명 또는 지역명으로 검색"
+            className="v2-input"
+          />
+          <button type="button" className="v2-btn-primary" onClick={handleSearch}>
+            <Search size={16} /> 검색
+          </button>
         </div>
-        <h1 style={{ color: 'var(--primary-color)', fontSize: '2rem', display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0 }}>
-          <Package color="var(--point-color)" size={32} /> 유품 수거
-        </h1>
-        <p className="page-subtitle" style={{ color: 'var(--text-muted)', marginTop: '0.4rem' }}>
-          지역 기반 유품 정리·수거 전문 업체와 연결해 드립니다.
-        </p>
+
+        {filteredVendors.length === 0 && <p className="v2-empty">조건에 맞는 업체가 없습니다.</p>}
+
+        {/* 2026-09-18 사람 확정 — 목업 시안 A(확대 카드형, 2열). 얇은 목록 행 대신 카드로
+            바꾸고, 카드 면에는 제목·지역·CTA만 둔다(배지·평점·태그는 제목 클릭 시 모달로). */}
+        <div className="v2-card-grid">
+          {filteredVendors.map((vendor, idx) => (
+            <div key={idx} className="v2-card">
+              <button type="button" className="v2-card-title" onClick={() => setSelectedVendorIdx(idx)}>
+                {vendor.name}
+              </button>
+              <p className="v2-card-meta">📍 {vendor.region}</p>
+              <button
+                type="button"
+                className="v2-btn-primary v2-card-cta"
+                onClick={() =>
+                  alert('🚧 예시 업체입니다. 실제 제휴 서비스는 준비 중이라 이 견적 신청은 접수되지 않습니다.')
+                }
+              >
+                견적 신청
+              </button>
+            </div>
+          ))}
+        </div>
       </div>
 
-      {/* 🔴 00-21 §0.2-1 해제 조건 2 — 위치기반서비스 약관(제20조)이 잠긴 동안 이용자가 위치
-          수집을 알 수 있는 유일한 자리. GPS 권한 팝업은 마운트 시 자동으로 뜨므로(위 useEffect)
-          뷰포트와 무관하게 항상 먼저 렌더한다. FacilityPage와 동일 조건(01·03만 위치 수집,
-          §0.2-1) — 2026-09-10 FacilityPage 복구와 함께 이 페이지도 원래 빠져 있던 걸 추가. */}
-      {LOCATION_FEATURE_ENABLED && (
-        <p style={{ fontSize: 'var(--fs-caption)', color: 'var(--text-muted)', margin: '0 0 1rem' }}>
-          가까운 지역의 유품 정리 업체를 먼저 보여드리기 위해 현재 위치를 사용합니다. 허용하지
-          않아도 아래에서 지역을 직접 선택할 수 있습니다.
-        </p>
-      )}
+      {selectedVendor && (
+        <div className="v2-modal-overlay" role="dialog" aria-modal="true" onClick={() => setSelectedVendorIdx(null)}>
+          <div className="v2-modal" onClick={(e) => e.stopPropagation()}>
+            <p className="v2-modal-eyebrow">예시 데이터</p>
+            <h3 className="v2-modal-title">{selectedVendor.name}</h3>
 
-      <div style={{ fontSize: 'var(--fs-body)', color: 'var(--state-warn-fg)', backgroundColor: 'var(--state-warn-bg)', border: '1px solid var(--state-warn-bg)', borderRadius: 'var(--r-sm)', padding: 'var(--sp-3) 1rem', marginBottom: '1.25rem', lineHeight: 1.6 }}>
-        ⚠️ 이 페이지는 화면 구성을 보여드리기 위한 <strong>예시 데이터</strong>로 채워져 있습니다.
-        아래 업체·평점은 실존하지 않으며, 실제 제휴 업체는 아직 없습니다.
-      </div>
+            <div className="v2-modal-row">
+              <span className="v2-modal-label">지역</span>
+              <span className="v2-modal-value">
+                📍 {selectedVendor.region} · ★ {selectedVendor.rating}
+              </span>
+            </div>
 
-      <div style={{ backgroundColor: 'var(--card-bg)', padding: '1.5rem', borderRadius: 'var(--border-radius)', boxShadow: 'var(--box-shadow)' }}>
-        <h3 style={{ color: 'var(--primary-color)', marginBottom: '0.5rem' }}>지역 기반 현물 유품 정리 전문 업체 연결</h3>
-        <p style={{ fontSize: 'var(--fs-body)', color: 'var(--text-muted)', marginBottom: '1.1rem' }}>
-          유품 정찰제 수거, 소각 대행 및 특수 청소 업체 화면 구성 예시입니다. 실제 제휴 업체는
-          아직 없습니다 — 제휴가 시작되면 이 목록이 실제 업체 정보로 교체됩니다.
-        </p>
+            <div className="v2-modal-row">
+              <span className="v2-modal-label">태그</span>
+              <span className="v2-modal-value">{selectedVendor.tags.map((t) => `#${t}`).join(' ')}</span>
+            </div>
 
-        <div className="form-group" style={{ maxWidth: '360px', marginBottom: '1.1rem' }}>
-          <label className="form-label">지역 필터</label>
-          <div style={{ display: 'flex', gap: '0.6rem', flexWrap: 'wrap' }}>
-            <select value={province} onChange={(e) => handleProvinceChange(e.target.value)} className="form-select" style={{ flex: '1 1 140px' }}>
-              <option value="">시/도 선택</option>
-              {provinceOptions.map((p) => (
-                <option key={p} value={p}>
-                  {p}
-                </option>
-              ))}
-            </select>
-            <select
-              value={district}
-              onChange={(e) => setDistrict(e.target.value)}
-              disabled={!province}
-              className="form-select"
-              style={{ flex: '1 1 140px' }}
-            >
-              <option value="">선택 안함</option>
-              {districtOptions.map((d) => (
-                <option key={d} value={d}>
-                  {d}
-                </option>
-              ))}
-            </select>
+            <div className="v2-modal-actions">
+              <button
+                type="button"
+                className="v2-btn-primary"
+                onClick={() =>
+                  alert('🚧 예시 업체입니다. 실제 제휴 서비스는 준비 중이라 이 견적 신청은 접수되지 않습니다.')
+                }
+              >
+                무료 방문 견적 신청 (예시)
+              </button>
+            </div>
+
+            <button type="button" className="v2-modal-close" onClick={() => setSelectedVendorIdx(null)}>
+              닫기
+            </button>
           </div>
         </div>
-
-        <div className="grid">
-          {vendors
-            .filter((v) => (!province || v.province === province) && (!district || v.district === district))
-            .map((vendor, idx) => (
-              <div key={idx} className="card" style={{ borderTop: '4px solid var(--primary-color)', position: 'relative' }}>
-                <span style={{ position: 'absolute', top: 'var(--sp-3)', right: 'var(--sp-3)', fontSize: 'var(--fs-body)', fontWeight: 700, color: 'var(--state-warn-fg)', backgroundColor: 'var(--state-warn-bg)', border: '1px solid var(--state-warn-bg)', borderRadius: 'var(--r-sm)', padding: '0.1rem 0.5rem' }}>예시</span>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-                  <span style={{ fontSize: 'var(--fs-body)', fontWeight: 600, color: 'var(--point-color)' }}>📍 {vendor.region}</span>
-                  <span style={{ fontWeight: 'bold' }}>★ {vendor.rating}</span>
-                </div>
-                <h4 style={{ color: 'var(--primary-color)', fontSize: '1.2rem', marginBottom: '0.5rem' }}>{vendor.name}</h4>
-                <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap', marginBottom: '1rem' }}>
-                  {vendor.tags.map((t, i) => (
-                    <span key={i} style={{ fontSize: 'var(--fs-body)', backgroundColor: 'var(--secondary-color)', padding: '0.2rem 0.5rem', borderRadius: 'var(--r-sm)' }}>
-                      #{t}
-                    </span>
-                  ))}
-                </div>
-                <button onClick={() => alert('🚧 예시 업체입니다. 실제 제휴 서비스는 준비 중이라 이 견적 신청은 접수되지 않습니다.')} className="btn btn-primary" style={{ marginTop: 'auto', width: '100%' }}>
-                  무료 방문 견적 신청 (예시)
-                </button>
-              </div>
-            ))}
-        </div>
-      </div>
+      )}
     </div>
   );
 };
