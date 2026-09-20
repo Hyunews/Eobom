@@ -4,7 +4,24 @@
  * 🔴 기존 1,304곳은 아직 위반 상태라 차단이 아니라 경고로 시작한다(exit 1 — 비차단).
  * 화이트리스트(token-guard-whitelist.txt)에 있는 파일을 Write로 통째로 덮어쓸 때만 건너뛴다.
  * Edit의 new_string은 화이트리스트 여부와 무관하게 항상 검사한다 — 그게 "신규 코드"다.
- * 되돌리려면 .claude/settings.json의 이 PreToolUse 블록을 지운다. */
+ * 되돌리려면 .claude/settings.json의 이 PreToolUse 블록을 지운다.
+ *
+ * 🔴 2026-09-18 비활성 — settings.json에서 제거함(JSON은 주석 불가라 주석으로 남기면 설정 전체가 깨진다).
+ * 재가동 전 조건: 허용값을 00-39 §3(색)·§4(글자) 기준으로 고쳐 쓸 것.
+ *   네 값(ALLOWED_REM)만 허용하는 방식은 00-39 §4에서 금지됨 — 그대로 켜면 새 디자인이 전부 위반.
+ * 재가동 방법: .claude/settings.json의 hooks.PreToolUse 배열에 아래 항목을 추가한다.
+ *   {
+ *     "matcher": "Write|Edit|MultiEdit",
+ *     "hooks": [
+ *       {
+ *         "type": "command",
+ *         "command": "node \"$CLAUDE_PROJECT_DIR/.harness/tools/token-guard.js\"",
+ *         "timeout": 10,
+ *         "statusMessage": "토큰 드리프트 가드 확인 중..."
+ *       }
+ *     ]
+ *   }
+ */
 const fs = require('fs');
 const path = require('path');
 
