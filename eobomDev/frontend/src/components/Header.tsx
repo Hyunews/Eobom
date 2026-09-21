@@ -32,21 +32,8 @@ export const Header: React.FC<HeaderProps> = ({ setActiveTab, onOpenLogin, curre
     setActiveTab('home');
   };
 
-  // 2026-08-24 변경 — "생전 준비"·"임종·사후 정리"는 예전엔 홈으로 이동시켜 박스①②의
-  // 풀스크린 오버레이(슬라이드 소개)를 여는 방식이었는데, 로그인 상태에서 헤더로 자주 오가는
-  // 사용자 입장에선 소개 슬라이드보다 실제 화면(엔딩노트 작성기·행정 체크리스트)으로 바로
-  // 가는 게 더 유용하다는 피드백으로 직접 라우트 이동으로 바꿨다. onSetMode는 그대로 유지 —
-  // Sidebar 등 다른 화면의 모드 표시가 여전히 이 클릭을 기준으로 맞아야 한다.
-  const goToEndingNote = () => {
-    onSetMode?.('prep');
-    setActiveTab('ending-note');
-  };
-
-  const goToCareGuide = () => {
-    onSetMode?.('bereaved');
-    setActiveTab('care-guide');
-  };
-
+  // onSetMode는 유지 — Sidebar 등 다른 화면의 모드 표시가 여전히 이 클릭을 기준으로 맞아야 한다.
+  // (2026-08-24 — 모드 버튼은 소개 오버레이가 아니라 실제 화면으로 직접 이동한다.)
   // 00-39 §6-3(2026-09-18) — 좌측 72px 사이드바 폐지, 모드 버튼 호버 드롭다운으로 대체.
   // 메뉴 구성은 modeNav.ts(MODE_MENUS)가 정본. 개별 항목은 Sidebar.tsx가 쓰던 것과 같은
   // loginRequired 게이트를 그대로 따른다 — 헤더 메뉴 자체는 로그인 여부와 무관하게 항상
@@ -60,6 +47,10 @@ export const Header: React.FC<HeaderProps> = ({ setActiveTab, onOpenLogin, curre
     onSetMode?.(mode);
     setActiveTab(item.id);
   };
+
+  // 모드 버튼 자체를 클릭하면 그 드롭다운의 첫 항목 화면으로 간다(MODE_MENUS가 정본이라
+  // 메뉴 순서가 바뀌어도 따라간다). 첫 항목의 loginRequired 게이트도 같이 적용된다.
+  const goToModeFirst = (mode: NavMode) => goToModeItem(mode, MODE_MENUS[mode][0]);
 
   return (
     <header className="site-header">
@@ -94,7 +85,7 @@ export const Header: React.FC<HeaderProps> = ({ setActiveTab, onOpenLogin, curre
         <nav className="header-nav">
           <button type="button" className="header-nav-item" onClick={goHome}>홈</button>
           <div className="hdr-mode">
-            <button type="button" className="header-nav-item hdr-mode-trigger" onClick={goToEndingNote}>
+            <button type="button" className="header-nav-item hdr-mode-trigger" onClick={() => goToModeFirst('prep')}>
               생전 준비 <ChevronDown size={14} />
             </button>
             <div className="hdr-mode-panel">
@@ -112,7 +103,7 @@ export const Header: React.FC<HeaderProps> = ({ setActiveTab, onOpenLogin, curre
             </div>
           </div>
           <div className="hdr-mode">
-            <button type="button" className="header-nav-item hdr-mode-trigger" onClick={goToCareGuide}>
+            <button type="button" className="header-nav-item hdr-mode-trigger" onClick={() => goToModeFirst('bereaved')}>
               임종·사후 정리 <ChevronDown size={14} />
             </button>
             <div className="hdr-mode-panel">

@@ -781,8 +781,10 @@
   z-index: 1100;
 }
 
+/* 마우스 클릭으로 생긴 포커스로는 열어두지 않는다(:focus-within은 클릭 후에도 패널이 고정됨) —
+   키보드 이동(:focus-visible)일 때만 유지해 접근성은 남긴다. */
 .hdr-mode:hover .hdr-mode-panel,
-.hdr-mode:focus-within .hdr-mode-panel {
+.hdr-mode:has(:focus-visible) .hdr-mode-panel {
   opacity: 1;
   transform: translateY(0);
   pointer-events: auto;
