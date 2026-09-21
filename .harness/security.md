@@ -64,7 +64,7 @@
 - `reports/` 산출물을 사내·대외로 공유
 - 외부 API에 실데이터 전송, 새 외부 서비스 연동
 
-> 현재 저장소는 **private**(`github.com/Hyunews/Eobom`). public 전환 시 `docs/` 전체를 개인정보·사업 기밀 관점에서 재검토해야 한다(`reports/`는 2026-08-20부터 커밋 제외 → `roles.md` §1-1).
+> 🔴 **2026-09-21 정정 — 저장소는 현재 `PUBLIC`이다**(`github.com/Hyunews/Eobom`). 아래 *"private이라는 것 하나"* 라던 방어선은 **이미 없다** → §6-1. public 전환 시 `docs/` 전체를 개인정보·사업 기밀 관점에서 재검토해야 한다(`reports/`는 2026-08-20부터 커밋 제외 → `roles.md` §1-1).
 >
 > 🔴 **public 전환·협업자 추가·외주 투입은 "지금 파일을 지우면 되는" 문제가 아니다.** git 히스토리는 파일을 삭제해도 과거 커밋에 남으므로, **전환 시점이 아니라 전환을 검토하는 시점에** 히스토리 전체를 대상으로 판단해야 한다. 지금까지의 실질적 방어선은 **저장소가 private이라는 것 하나**다.
 
@@ -73,10 +73,39 @@
 - 🔴 **DB 쓰기 게이트는 `db-safety.md`가 정본이다**(2026-08-27 분리 — 트리거가 명령 단위로
   넓어지면서 이 문서의 주제를 벗어났다). **DB에 쓰기 전 백업이며 스키마 변경만이 아니다.**
   유실 2회(08-05 마이그레이션 · 08-27 정리 스크립트).
-- 🔴 **백업 파일에는 개인정보가 들어간다.** `eobomDev/backend/backups/`는 gitignore이며 **절대
-  커밋하지 않는다**(§1).
+- 🔴 **백업 파일에는 개인정보가 들어간다. 절대 커밋하지 않는다**(§1).
+  🔴🔴 **2026-09-21 — 이 규칙이 실제로 깨졌다.** 아래 §6-1.
 - **엔딩노트**: 사후 전달 콘텐츠는 저장 시 암호화(AES-256) 전제로 설계한다. 평문 저장 구현을
   임시로라도 만들지 않는다 — 임시가 그대로 남는다.
+
+### 6-1. 🔴🔴 2026-09-21 사고 — **DB 덤프 2개가 공개 저장소에 올라가 있다**
+
+| 무엇 | 사실 |
+| :--- | :--- |
+| 파일 | `eobomDev/backend/prisma/backups/local-20260907_115023.dump`(189KB) · `local-20260921_132135.dump`(252KB) |
+| 커밋 | `07d10c3` · `e6be50b` — **둘 다 `origin/main`에 push됨** |
+| 저장소 | 🔴 **`github.com/Hyunews/Eobom` = PUBLIC** (아래 §5 문구는 *private* 이라고 적혀 있었다 — 낡은 기술) |
+| 들어 있는 것 | 로컬 개발 DB **전체**(`-Fc`). `User.email`·`refreshToken` · `Lead.applicantPhone`·`ConsultRequest.applicantPhone`(🔴 **평문 연락처**) · `FamilyDesignation.phoneEnc`(암호문) · `Admin`·`Partner`·`Expert.passwordHash`(bcrypt) 등 |
+
+🔴 **원인은 규칙이 아니라 경로였다.** `.gitignore`는 `eobomDev/backend/backups/`·`/backups/`를
+막고 있었는데 `backup-db.ps1`이 실제로 떨어뜨리는 곳은 **`eobomDev/backend/prisma/backups/`** 다.
+**규칙은 있었고 그물만 어긋나 있었다** — 그래서 아무 경고 없이 두 번 통과했다.
+
+🔴 **`.gitignore`에 실제 경로를 추가했다**(2026-09-21). 재발은 막혔지만 **이미 올라간 것은
+그대로 남아 있다** — 아래는 사람이 정한다.
+
+| 순서 | 무엇 | 누가 |
+| :---: | :--- | :--- |
+| 1 | **저장소를 private으로** — 가장 빠른 봉쇄 (`gh repo edit Hyunews/Eobom --visibility private`) | 사람 |
+| 2 | 추적 해제 + 커밋 (`git rm --cached <두 파일>`) | 사람 |
+| 3 | **히스토리에서 제거**(`git filter-repo`/BFG + force push) — 🔴 파괴적. public이었으므로 **force push 후에도 GitHub에 dangling commit이 남을 수 있어** 지원팀 GC 요청까지 해야 완전하다 | 사람 결정 |
+| 4 | **회전** — `User.refreshToken` 무효화(🔴 DB 쓰기 = 백업+CONFIRM) · `Admin`·`Partner`·`Expert` 비밀번호 변경 | 사람 결정 |
+| 5 | 덤프에 **실제 지인·테스터의 연락처**가 들어 있는지 확인 → 있으면 고지 여부 판단 | 사람 |
+
+🔵 **덤프는 개발 DB다.** 운영 데이터는 아니지만 `security.md` §1이 막는 것은 *"실제 개인정보"*
+이지 *"운영 DB"* 가 아니다 — 지인·테스터의 실제 연락처면 그대로 해당한다.
+
+---
 
 ## 7. 의심스러우면
 

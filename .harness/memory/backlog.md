@@ -94,6 +94,21 @@ wt(38)(39)(43) 2026-08-19 판정이 전부 *"재정합 필요"* 로 끝나 있�
 2. 그다음 **전면 재정규화 1회**(`git add --renormalize .` — 177개가 바뀌는 **대형 커밋**, 순수 줄바꿈임을 메시지에 명시) **또는 현상 유지**. 🔵 *"5개 파일만"* 은 부분 처방이라 권하지
    않는다 — 62%가 CRLF인데 5개만 LF로 바꾸면 혼재가 심해진다.
 
+## ⑳ 🔴🔴 DB 덤프 2개가 **공개 저장소**에 올라가 있다 (09-21 발견 · 사람 결정 필요)
+
+전문은 **`security.md` §6-1**. 요약만 둔다.
+
+- `prisma/backups/local-20260907_115023.dump`·`local-20260921_132135.dump` → 커밋 `07d10c3`·`e6be50b`,
+  **둘 다 `origin/main`에 push됨**. 저장소는 🔴 **PUBLIC**(`security.md` §5는 *private* 이라고 적고 있었다).
+- 들어 있는 것: 로컬 개발 DB 전체. `User.email`·`refreshToken`, **평문 연락처**(`Lead.applicantPhone`·
+  `ConsultRequest.applicantPhone`), `passwordHash`(bcrypt) 등.
+- 🔴 원인 = **`.gitignore` 경로 어긋남**. `eobomDev/backend/backups/`를 막는데 실제 경로는
+  `eobomDev/backend/prisma/backups/`였다. ✅ **09-21 `.gitignore`에 추가해 재발은 막았다.**
+- 🔴 **사람이 정할 것 5가지** — ①저장소 private 전환 ②`git rm --cached` ③히스토리 제거(force
+  push·파괴적) ④`refreshToken`·비밀번호 회전 ⑤실제 지인·테스터 연락처 포함 여부 확인·고지 판단.
+
+---
+
 ## ⑲ 마이페이지 후속 9건 — Opus 기획 필요 (09-21 사용자 지시 · Sonnet 사실조사)
 
 **구현 끝(Sonnet)**: ① 카톡 부고 알리기 버튼 아이콘 = `MessageCircle`(푸터 `Footer.tsx`·`FooterMobile.tsx`와 같은 말풍선) ② mypage 시안 아이콘 — 상담=편지비행기(`Send`)·문의=말풍선(`MessageCircle`), 캔버스 `https://claude.ai/artifact/FmacNUuzKECyG5bQfzxx8q` v3 ⑦ "디지털 자산 정리" → "디지털 정산"(`MyPage.tsx` 라벨·시안). 🟡 `MyPage.tsx`의 통계·행 아이콘은 **시안 확정 뒤 구현**하며 지금은 그대로(상담=`MessageCircle`·문의=`Send`).

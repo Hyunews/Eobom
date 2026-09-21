@@ -26,6 +26,10 @@ eobomDev/.certs/
 
 # DB 백업 (User/SocialAccount 등 실제 개인정보 포함 — 절대 커밋 금지, security.md §1)
 eobomDev/backend/backups/
+# 🔴 2026-09-21 — backup-db.ps1이 실제로 떨어뜨리는 경로. 위 줄이 이걸 못 막아 덤프 2개가
+# 공개 저장소에 올라갔다(security.md §6-1). 개인정보가 들어 있으므로 절대 커밋하지 않는다.
+eobomDev/backend/prisma/backups/
+*.dump
 /backups/
 
 # 파트너가 업로드한 시설 이미지 (로컬 디스크 저장, 사용자 생성 콘텐츠 — 커밋 대상 아님)
@@ -73,4 +77,5 @@ assets/*
 .DS_Store
 Thumbs.db
 
-
+# BFG repo-cleaner
+bfg*.jar
