@@ -72,6 +72,10 @@ export const KAKAO_SHARE_SDK_LOAD_POLL_INTERVAL_MS = 100;
 // 양쪽 끝에 있던) 이미지를 계속 캐시해서 내보낼 수 있다 — URL 자체를 바꿔 강제로 새로 가져가게 한다.
 export const OBITUARY_CARD_IMAGE_URL = 'https://eobom.vercel.app/obituary-card-v2.png';
 
+// 카카오톡 채널 1:1 문의 — 푸터(Footer·FooterMobile)와 마이페이지 "카카오톡으로 문의하기"(00-36 §4.1
+// D구역)가 같은 주소를 쓴다. 문의는 카톡 안에서 끝나므로 우리 DB에는 남지 않는다(00-36 §6 #5).
+export const KAKAO_CHANNEL_CHAT_URL = 'https://pf.kakao.com/_LVxdxaX/chat';
+
 // 가족 지정 초대 카드 이미지(00-27 §9.1-4) — 부고장과 달리 이건 서비스 초대 카드라 브랜드
 // 로고 재사용 금지(§3.3-2, obituary 전용 판단)가 적용되지 않는다. 이미 커밋된 로고 파일을
 // 그대로 쓴다 — 새 이미지 자산을 만들지 않는다.

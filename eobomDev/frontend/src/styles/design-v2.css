@@ -1342,3 +1342,227 @@
     max-height: 92dvh;
   }
 }
+
+/* ── 그룹② 허브형(mypage·나에게 공유된 것) — 00-36 §4.1 · 00-39 §6 "훑는 목록"(카드·그림자 없이
+   1px 구분선 행). 시안: Design 캔버스 "그룹② mypage 시안" v4 ── */
+
+/* 프로필 — 이름이 페이지 제목이다(제목 줄을 따로 두지 않는다) */
+.v2-profile {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.v2-profile-avatar {
+  width: 72px;
+  height: 72px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--v2-selected-bg);
+  border: 1px solid var(--v2-divider-strong);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  font-family: var(--v2-font-serif);
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--v2-point);
+}
+
+.v2-profile-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.v2-profile-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.v2-profile-name {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.v2-profile-name .v2-page-title {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.v2-profile-email {
+  margin: 0;
+  font-size: var(--v2-fs-support);
+  color: var(--v2-text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 통계 — 카드 없이 위아래 1px 선 사이에 칸을 세로선으로 나눈다 */
+.v2-stat-row {
+  display: flex;
+  margin-top: 32px;
+  border-top: 1px solid var(--v2-divider-strong);
+  border-bottom: 1px solid var(--v2-divider-strong);
+}
+
+.v2-stat {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  padding: 20px 0 20px 24px;
+  border: none;
+  border-left: 1px solid var(--v2-divider-strong);
+  background: none;
+  font-family: inherit;
+  text-align: left;
+  color: inherit;
+}
+
+.v2-stat:first-child {
+  border-left: none;
+}
+
+button.v2-stat {
+  cursor: pointer;
+}
+
+.v2-stat-value {
+  font-size: 32px;
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--v2-text-main);
+  font-variant-numeric: tabular-nums;
+}
+
+.v2-stat-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: var(--v2-fs-support);
+  color: var(--v2-text-muted);
+}
+
+.v2-hub-section {
+  margin-top: 48px;
+}
+
+/* 이동 행 — 아이콘 + 이름 + (›|외부링크). 행 전체가 클릭 영역(규칙 8-1). <button>·<a> 모두 쓴다 */
+.v2-nav-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  min-height: 64px;
+  box-sizing: border-box;
+  padding: 19px 0;
+  border: none;
+  border-bottom: 1px solid var(--v2-divider);
+  background: none;
+  font-family: inherit;
+  text-align: left;
+  color: var(--v2-text-main);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.v2-nav-row-icon {
+  flex-shrink: 0;
+  display: flex;
+  color: var(--v2-point);
+}
+
+.v2-nav-row-label {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--v2-fs-body);
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.v2-nav-row-meta {
+  flex-shrink: 0;
+  font-size: var(--v2-fs-support);
+  color: var(--v2-text-faint);
+  font-variant-numeric: tabular-nums;
+}
+
+.v2-nav-row-arrow {
+  flex-shrink: 0;
+  display: flex;
+  color: var(--v2-text-faint);
+}
+
+/* 구간 제목 줄 오른쪽 끝의 보조 글자(예: 지정 관계) */
+.v2-section-head-meta {
+  margin-left: auto;
+  font-size: var(--v2-fs-support);
+  color: var(--v2-text-faint);
+  white-space: nowrap;
+}
+
+@media (max-width: 767px) {
+  .v2-profile {
+    gap: 14px;
+  }
+
+  .v2-profile-avatar {
+    width: 56px;
+    height: 56px;
+    font-size: 22px;
+  }
+
+  .v2-profile-body {
+    gap: 4px;
+  }
+
+  .v2-profile-email {
+    font-size: var(--v2-fs-support-mobile);
+  }
+
+  .v2-stat-row {
+    margin-top: 24px;
+  }
+
+  .v2-stat {
+    align-items: center;
+    padding: 16px 0;
+    text-align: center;
+  }
+
+  .v2-stat-value {
+    font-size: 26px;
+  }
+
+  .v2-stat-label {
+    font-size: var(--v2-fs-label);
+  }
+
+  .v2-hub-section {
+    margin-top: 32px;
+  }
+
+  .v2-nav-row {
+    min-height: 56px;
+    padding: 16px 0;
+  }
+
+  .v2-nav-row-meta,
+  .v2-section-head-meta {
+    font-size: var(--v2-fs-label);
+  }
+}

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { MessageCircle, ChevronDown } from 'lucide-react';
 import { EobomLogo } from './EobomLogo';
+import { KAKAO_CHANNEL_CHAT_URL } from '../config';
 
 // 2026-09-09 — 사용자 지시. 데스크톱 Footer(4열 그리드, Footer.tsx)를 모바일 폭에 그대로
 // 쌓으면 4섹션이 완전히 펼쳐져 본문보다 길어진다. 로고+카카오 CTA만 먼저 보이고 약관·대표번호는
@@ -29,7 +30,7 @@ export const FooterMobile: React.FC = () => {
       </div>
 
       <a
-        href="https://pf.kakao.com/_LVxdxaX/chat"
+        href={KAKAO_CHANNEL_CHAT_URL}
         target="_blank"
         rel="noopener noreferrer"
         style={{

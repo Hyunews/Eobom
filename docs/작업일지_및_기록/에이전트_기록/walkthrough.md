@@ -3879,3 +3879,23 @@ wt137 그대로라 재작업 없음).
 - **다음 에이전트가 알아야 할 것**: `docs/`에 "디지털 자산 정리" 표기가 남아 있을 수 있다(Opus 몫, 미확인). ⑲의 결정이 나오기 전에는 mypage 구현에 착수하지 않는다.
 
 <!-- Gemini 판정 1줄: 대기 -->
+
+## 2026-09-21 | [Sonnet] 00-36 M-1.5 — 마이페이지 그룹② 허브형 재구성 + "나에게 공유된 것"(SCR-020) 신설
+
+- **근거 스펙**: `docs/00_핵심플랫폼/00-36_마이페이지_정보구조_점검_및_개편_기획서.md` §4.1(구조도)·§4.4~§4.6·§5 M-1.5(5-1~5-4) · `00-39` §6(훑는 목록)·§6.8-1 규칙 21 · Opus 핸드오프(M-1.5 5개 + 캔버스 v4). 시안: Design 캔버스 `https://claude.ai/artifact/FmacNUuzKECyG5bQfzxx8q` v4(마이페이지 웹·모바일 + SCR-020 S1~S4).
+- **건드린 파일**: `eobomDev/frontend/src/pages/MyPage.tsx`(전면 재작성), `eobomDev/frontend/src/pages/FamilySharedPage.tsx`(신설), `eobomDev/frontend/src/App.tsx`, `eobomDev/frontend/src/styles/design-v2.css`, `eobomDev/frontend/src/config.ts`, `eobomDev/frontend/src/components/Footer.tsx`, `eobomDev/frontend/src/components/FooterMobile.tsx`, `.harness/memory/backlog.md`, `.harness/memory/context.md`. 서버 변경 0건.
+- **결과**:
+  1. **5-1** 통계 `문의` 칸 삭제(`stats` 배열에서 `{ label: '문의', value: 0, Icon: Send }` 제거 → 상담·부고장 2칸). 행 `문의 내역`(`comingSoon` 배지·`disabled`) → `카카오톡으로 문의하기`(`<a target="_blank" rel="noreferrer">`, `MessageCircle` 아이콘, 배지·숫자 없음). URL은 푸터와 같은 값을 `config.ts`의 `KAKAO_CHANNEL_CHAT_URL`로 뽑아 `Footer.tsx`·`FooterMobile.tsx`도 그 상수를 쓰게 했다(하드코딩 `"https://pf.kakao.com/_LVxdxaX/chat"` 2곳 → 상수, 동작 동일).
+  2. **5-2** C구역 `나에게 공유된 것` — 행 `나를 가족으로 지정한 분`(`Inbox`) → 신설 라우트 `/family-shared`(`App.tsx`) → `FamilySharedPage`(SCR-020). `GET /api/ending-note/family-view`를 `apiFetch`로 호출해 지정자별 구간(`{ownerName} 님` + `지정 관계 · {관계}`) + 열람 가능 섹션 행 + 섹션 열람 모달(`.v2-modal`)을 그린다. 빈 상태 `아직 공유받은 것이 없습니다.` 한 줄(권유 문구 없음), 지정자는 있고 섹션이 없으면 `지금 볼 수 있는 항목이 없습니다.` 표시 필드는 응답에 있는 것뿐 — 연락처·이메일·다른 수락자·POSTMORTEM 섹션은 응답에 없어 그릴 수 없다. 모달 값은 `FUNERAL.funeralType`·`CONTACTS.contactsNote/petCaretaker` 두 섹션만 해석(IMMEDIATE 허용 섹션, `constants.tsx` `SECTION_ALLOWED_TIMINGS`).
+  3. **5-3** D구역 `내 활동과 계정` 맨 아래 `로그아웃` 행(`LogOut`) — `MyPage`에 `onLogout` prop 추가, `App.tsx`가 `onLogout={() => handleLogout()}` 전달(기존 `alert('로그아웃 되었습니다.')` 경로 그대로).
+  4. **5-4** 아이콘 — 상담(통계 칸·`상담 신청 내역` 행) = `Send`, 카카오톡 문의 = `MessageCircle`.
+  5. **스킨 전환(00-39)**: 옛 `.container` + 남색 그라데이션 히어로 + 그림자 패널(`panelStyle` 등 인라인 41곳)을 `.v2-page`/`.v2-content`(764px)·`.v2-profile`·`.v2-stat-row`·`.v2-hub-section`·`.v2-nav-row` 클래스로 교체(`design-v2.css` 약 200줄 추가). 프로필은 이름이 페이지 제목(`.v2-page-title`), 계정 연동은 웹 글자 버튼·모바일 아이콘 버튼. 비회원 화면도 `.v2-empty` + `.v2-btn-primary`로 정리. 라벨 `디지털 정산` 유지.
+  6. `npx tsc --noEmit -p .`(frontend) 에러 0, `npm run build`(frontend) 통과(1540 modules, built in 6.21s). 🔴 dev 서버 미기동(방침) — 실기동은 사람이 확인.
+- **편차**:
+  - **금색 카메라 배지 삭제** — 프로필 사진 우하단 `title="프로필 사진 변경 (개발중)"` 배지(동작 없음)와 `--accent-gold` MEMBER 배지·엔딩노트 아이콘 색을 시안(v3)에서 제거했고 사용자 이의가 없어 구현도 같게 했다. `00-36` §4.1은 프로필 카드를 "현행 유지"라 적었으나 이는 내용(이름·사진·계정 연동)이라 판단.
+  - 핸드오프 5-1은 "C구역 `문의 내역`"이라 썼으나 `00-36` §4.1 구조도·표는 그 행이 **D구역**(`내 활동과 계정`)이라 구조도를 따랐다.
+  - **SCR-020에 `scope`(주 연락자/열람자)와 수락한 날짜가 없다** — `family-view` 응답에 그 필드가 없고 M-1.5는 서버 0건이라 표시하지 못했다. `00-36` §4.6-1이 요구하는 항목이므로 서버 응답 확장(M-2 범위로 볼지)을 Opus가 정해야 한다. 지정 관계는 응답의 `relationship`을 그대로 썼다(지정자가 나를 어떻게 지정했는지의 뜻인지 문구는 Opus 확인 필요).
+  - 구조도(§4.1)에 있으나 이번 범위 밖이라 **그리지 않은 행**: `내가 남긴 방명록`(M-2)·`개인정보·동의`·`내 데이터 반출`·`회원 탈퇴`(M-3)·`내 상담 내역`(M-2 — 현재 `상담 신청 내역` 행이 `counseling`을 여는 오연결 그대로). 캔버스 v4에는 완성 구조로 그려 놓았다.
+- **다음 에이전트가 알아야 할 것**: `index.css`의 `.stat-row` 계열·`Badge`(`EntryBoxes`)는 마이페이지에서 안 쓰게 됐다(다른 화면 사용 여부 미확인 — 지우지 않음). `SCR-020`의 `scope`·수락일·수락 철회(§4.6-2, `POST /api/family-designations/accepted/:id/withdraw`)는 서버 작업 뒤에 같은 화면에 붙인다. 캔버스는 사람이 편집기에서 `Main.dc.html` 래퍼에 `width:1362px;height:1055px`를 붙여 둔 상태였으나 내용 변경은 없어 v4가 덮어썼다.
+
+<!-- Gemini 판정 1줄: 대기 -->

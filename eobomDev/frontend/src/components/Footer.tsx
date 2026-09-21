@@ -4,6 +4,7 @@ import { Phone, ShieldCheck, FileText, Lock, MessageCircle } from 'lucide-react'
 import { EobomLogo } from './EobomLogo';
 import { FooterMobile } from './FooterMobile';
 import { useIsMobile } from '../hooks/useIsMobile';
+import { KAKAO_CHANNEL_CHAT_URL } from '../config';
 
 // 2026-08-24 — Header.tsx(A안: 흰 배경 + 평면 메뉴)와 같은 톤으로 재개편. 기존 짙은 네이비 블록
 // 대신 배경을 투명하게 둔다 — HomePage.tsx 섹션2(에필로그)에서는 그 위에 fullpage_03 배경 사진이
@@ -154,7 +155,7 @@ export const Footer: React.FC = () => {
             <MessageCircle size={18} color="var(--point-color)" /> 고객 문의
           </h3>
           <a
-            href="https://pf.kakao.com/_LVxdxaX/chat"
+            href={KAKAO_CHANNEL_CHAT_URL}
             target="_blank"
             rel="noopener noreferrer"
             style={{
