@@ -125,6 +125,7 @@ async function main(): Promise<void> {
       `   - ${p.user.id.slice(0, 8)}… 만료 ${p.user.deletionScheduledAt?.toISOString()}` +
         ` · 지움: 편지 ${p.letters}(첨부 ${p.lettersWithMedia}) 방명록 ${p.guestbookEntries} 리뷰 ${p.facilityReviews} 정리항목 ${p.cleanupItems} 지정가족 ${p.designations}` +
         ` · 철회: 수락한 지정 ${p.acceptedDesignations}` +
+        ` · 연결 끊음(건은 남김): 상담 ${p.detached.leads + p.detached.consultRequests} 헌화 ${p.detached.tributes}` +
         ` · 남김: 추모관 ${p.keeps.memorials} 추모사진 ${p.keeps.memorialPhotos} 부고장 ${p.keeps.obituaries}`,
     );
   }

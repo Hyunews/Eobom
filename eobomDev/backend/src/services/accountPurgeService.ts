@@ -16,7 +16,9 @@ import { purgeLetterRow } from './farewellPurgeService';
 //             · 지정한 가족(→Grant Cascade) · SocialAccount(로그인 경로 차단)
 //      철회 : 내가 수락한 쪽의 가족 지정(acceptedUserId) — 00-27 §9.2 철회와 같은 처리(DECLINED + Grant 전량 revoke).
 //             acceptedUserId는 FK가 아니라 남겨두면 지정자 화면에 유령 가족이 남는다.
-//      남김 : 추모관·추모 사진·부고장(00-36 §6 #2) · 헌화(익명 해시) · Lead·ConsultRequest(정산 증거)
+//      끊음 : Lead·ConsultRequest·MemorialTribute의 userId → null. 건 자체는 남긴다(정산 증거 / 조문 기록)
+//             🔴 SetNull은 행을 지워야 발동하는데 우리는 안 지우므로 직접 null로 만든다(§5.6-8-4)
+//      남김 : 추모관·추모 사진·부고장(00-36 §6 #2)
 //      비움 : User 행 — 아래 ANONYMIZED. 남는 것은 id·createdAt·purgedAt(+동의 시각·탈퇴 시각 이력)뿐.
 
 export type ExpiredAccount = {
@@ -34,6 +36,7 @@ export type AccountPlan = {
   cleanupItems: number;
   designations: number; // 내가 지정한 가족 — 삭제
   acceptedDesignations: number; // 내가 수락한 쪽 — 철회 처리
+  detached: { leads: number; consultRequests: number; tributes: number }; // userId를 null로 끊는 것(건은 남김)
   // 🔵 아래는 지우지 않는다 — 보고용
   keeps: { memorials: number; memorialPhotos: number; obituaries: number };
 };
@@ -73,7 +76,7 @@ export async function isStillAccountExpired(id: string): Promise<boolean> {
 // 무엇이 몇 건인지 센다(dry-run 출력 겸 실행 전 범위 확인). 조회뿐이다.
 export async function planAccount(user: ExpiredAccount): Promise<AccountPlan> {
   const userId = user.id;
-  const [letters, lettersWithMedia, guestbookEntries, facilityReviews, cleanupItems, designations, acceptedDesignations, memorials, memorialPhotos, obituaries] =
+  const [letters, lettersWithMedia, guestbookEntries, facilityReviews, cleanupItems, designations, acceptedDesignations, memorials, memorialPhotos, obituaries, leads, consultRequests, tributes] =
     await prisma.$transaction([
       prisma.farewellMessage.count({ where: { note: { userId } } }),
       prisma.farewellMessage.count({ where: { note: { userId }, mediaKey: { not: null } } }),
@@ -85,6 +88,9 @@ export async function planAccount(user: ExpiredAccount): Promise<AccountPlan> {
       prisma.memorial.count({ where: { createdByUserId: userId } }),
       prisma.memorialPhoto.count({ where: { uploadedByUserId: userId } }),
       prisma.obituary.count({ where: { createdByUserId: userId } }),
+      prisma.lead.count({ where: { userId } }),
+      prisma.consultRequest.count({ where: { userId } }),
+      prisma.memorialTribute.count({ where: { userId } }),
     ]);
   return {
     user,
@@ -95,6 +101,7 @@ export async function planAccount(user: ExpiredAccount): Promise<AccountPlan> {
     cleanupItems,
     designations,
     acceptedDesignations,
+    detached: { leads, consultRequests, tributes },
     keeps: { memorials, memorialPhotos, obituaries },
   };
 }
@@ -126,6 +133,11 @@ export async function purgeAccount(user: ExpiredAccount): Promise<{ purged: bool
     prisma.memorialGuestbook.deleteMany({ where: { userId: user.id } }),
     prisma.facilityReview.deleteMany({ where: { userId: user.id } }),
     prisma.digitalCleanupItem.deleteMany({ where: { userId: user.id } }),
+    // 🔴 SetNull 관계는 행을 지우지 않으면 발동하지 않는다 — 배치가 직접 끊는다(06-05 §5.6-8-4). 안 끊으면 Lead.applicantPhone 같은
+    // 평문 스냅샷이 회원 id에 계속 묶인다. 건 자체는 남긴다(정산 증거 / 조문 기록).
+    prisma.lead.updateMany({ where: { userId: user.id }, data: { userId: null } }),
+    prisma.consultRequest.updateMany({ where: { userId: user.id }, data: { userId: null } }),
+    prisma.memorialTribute.updateMany({ where: { userId: user.id }, data: { userId: null } }),
     prisma.familyDesignation.deleteMany({ where: { userId: user.id } }), // EndingNoteGrant Cascade
     prisma.endingNote.deleteMany({ where: { userId: user.id } }), // EndingNoteEntry·잔여 FarewellMessage Cascade
     prisma.socialAccount.deleteMany({ where: { userId: user.id } }), // 🔴 로그인 경로 차단

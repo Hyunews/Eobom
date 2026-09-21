@@ -569,7 +569,12 @@ export const getCurrentUser = async (req: Request, res: Response) => {
   if (!user) {
     return res.json({ status: 'success', user: decoded });
   }
-  // 🔴 익명화된 계정(06-05 §5.6-8 ④)의 남은 토큰 — 데모 토큰(DB에 없음)과 구분해 여기서 끊는다
+  // 🔴 회원 상태 판정 순서(06-05 §5.6-8-4) — 이 순서를 바꾸지 않는다:
+  //   ① purgedAt != null                                → 파기 완료. 여기서 401로 끊는다(복구 안내도 띄우지 않는다)
+  //   ② purgedAt == null && deletionRequestedAt != null → 유예 중. 아래 응답의 deletion* 필드로 프런트가 복구 안내를 띄운다
+  //   ③ 둘 다 null                                       → 정상 회원
+  // deletionRequestedAt은 파기 뒤에도 이행 증빙으로 남으므로, ①을 먼저 보지 않으면 껍데기가 "유예 중"으로 판정된다.
+  // (데모 토큰처럼 DB에 없는 경우는 위 !user 분기와 구분된다.)
   if (user.purgedAt) {
     return res.status(401).json({ status: 'error', message: '인증 토큰이 없거나 유효하지 않습니다.' });
   }
