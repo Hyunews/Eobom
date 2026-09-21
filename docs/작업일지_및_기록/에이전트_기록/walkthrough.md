@@ -3914,3 +3914,23 @@ wt137 그대로라 재작업 없음).
 - **다음 에이전트가 알아야 할 것**: 새 모달을 만들 때 오버레이에 `onClick`을 직접 달지 말고 `backdropCloseProps`를 쓴다. 🟡 폼 모달(로그인·상담 신청·업체 상담·내 정보 등)은 이제 배경을 잘못 눌러도 입력하던 값이 사라진다 — 지시대로 구현했으나 입력값이 있을 때 닫기 확인을 둘지는 Opus가 정할 일이다.
 
 <!-- Gemini 판정 1줄: 대기 -->
+
+## 2026-09-21 | [Sonnet] 00-36 M-2 — 내 상담 내역(SCR-019)·family-view 확장·내 방명록 API
+
+- **근거 스펙**: `docs/00_핵심플랫폼/00-36_마이페이지_정보구조_점검_및_개편_기획서.md` §4.4(내 상담 내역)·§4.6-1-1(family-view 확장·확정 문구)·§5 M-2 #6·#7·#7-1·#7-2·§6 #8 · `00-39` §6(훑는 목록)·`.v2-modal` · Opus 핸드오프(M-2 착수). 스키마 변경·DB 쓰기 0건(전부 SELECT).
+- **건드린 파일**: `eobomDev/backend/src/controllers/meActivityController.ts`(신설), `eobomDev/backend/src/routes/meRoutes.ts`, `eobomDev/backend/src/controllers/endingNoteController.ts`, `eobomDev/frontend/src/pages/MyConsultationsPage.tsx`(신설), `eobomDev/frontend/src/pages/FamilySharedPage.tsx`, `eobomDev/frontend/src/pages/MyPage.tsx`, `eobomDev/frontend/src/App.tsx`, `eobomDev/frontend/src/styles/design-v2.css`, `.harness/memory/context.md`.
+- **결과**:
+  1. **`GET /api/me/leads`**·**`GET /api/me/consult-requests`**(`meActivityController.ts`, `meRoutes.ts`에 등록) — 둘 다 `where: { userId: decoded.id }`(토큰의 값만 사용), `select`로 컬럼 화이트리스트, `orderBy createdAt desc`, `take 100`. 내리는 것: Lead=`leadNo`→`no`·`type`·`facility.name`→`facilityName`·요약·`statusGroup`·`thirdPartyConsentAt`·`createdAt` / ConsultRequest=`requestNo`→`no`·`channel`·`expert.name`→`expertName`·`categorySnapshot`→`category`·요약·`statusGroup`·`thirdPartyConsentAt`·`createdAt`. **내리지 않는 것**(select에 없음): `billable`·`billedAmount`·`commissionPolicyId`·`settlementId`·`disputeReason`·`partnerId`·`applicantName`·`applicantPhone`·`payload` 원문·`statusHistory`. 상태 4단계 접기: Lead `REQUESTED·NOTIFIED→RECEIVED`/`RESPONDED→IN_PROGRESS`/`CONVERTED→DONE`/`LOST·INVALID→CLOSED`, ConsultRequest `REQUESTED→RECEIVED`/`ACCEPTED→IN_PROGRESS`/`COMPLETED→DONE`/`CANCELLED·INVALID→CLOSED`(모르는 값은 `RECEIVED`). payload 요약: `CALL`→`전화 문의 버튼을 누름`, 그 외→`payload.message`만 읽어 60자 절단(모르는 키는 읽지 않음). ConsultRequest 요약은 `content` 60자 절단.
+  2. **`GET /api/me/guestbook-entries`** — `MemorialGuestbook where { userId, deletedByOwnerAt: null, hiddenAt: null }`, 본문·관계·작성일 + `memorial {slug, deceasedName, isClosed}`. 🔴 삭제 엔드포인트는 만들지 않았다(§6 #8 미정).
+  3. **`family-view` 확장·왕복 축소**(`endingNoteController.getFamilyVisibleEndingNotes` 함수 전체 교체): 응답에 `scope`(`PRIMARY|VIEWER`)·`acceptedAt` 추가, 그 외 필드는 늘리지 않음(연락처·`priority` 없음). 질의 `1 + 3n`회 → **2회(n과 무관)** — ① `familyDesignation.findMany`에 `user.endingNote`·`endingNoteGrants(IMMEDIATE·미철회)` 관계 조인 ② `endingNoteEntry.findMany`를 `OR [{noteId, section in [...]}]` 한 번. 노트 없는 지정은 예전처럼 응답에서 제외, `WILL_DRAFT` 재차단 유지, `orderBy acceptedAt asc` 추가.
+  4. **프런트** — 신설 `MyConsultationsPage.tsx`(`/my-consultations`, `App.tsx` 라우트): 두 API를 `Promise.allSettled`로 병렬 호출해 `createdAt` 최신순 한 목록, 행 = 제목(시설명 또는 `비제휴 업체` / 전문가명+직역)·`방식 · 신청일`·상태(접수됨/진행 중/완료/종료)·›, 행 클릭 → `.v2-modal`(접수번호·방식·신청일·상태·내용·제3자 제공 동의 시각), 빈 상태 `아직 신청하신 상담이 없습니다.` + `상담 신청` 버튼. `MyPage.tsx` 행 `상담 신청 내역`(→`counseling`) → **`내 상담 내역`(→`my-consultations`)**. `FamilySharedPage.tsx`: 제목 줄 오른쪽 `지정 관계 · {관계}` → `나를 {관계}로 지정 · {주 연락자|열람자}`(받침 판정 `withRo`), 구간 아래 `{YYYY-MM-DD} 수락함`, `scope`·`acceptedAt`은 선택 필드(옛 응답 호환). `design-v2.css`에 `.v2-nav-row-text`·`.v2-nav-row-sub`·`.v2-hub-foot` 추가.
+  5. 검증: `npx tsc --noEmit -p .`(backend·frontend 각각) 에러 0, `npm run build`(frontend) 통과. **스모크**(임시 스크립트 `_smoke_m2.ts`, 실행 뒤 삭제 — 저장소에 없음): 존재하지 않는 `userId` 토큰으로 컨트롤러 4개 직접 호출 → 전부 `200 {"status":"success","data":[]}`, 인증 없이 `listMyLeads` → `401`(쿼리가 런타임에서 유효함을 확인). 🔴 **개발 DB에 수락된 가족 지정(`status=ACCEPTED`)이 0건이라 `family-view`의 데이터 있는 경로(조인·OR 조회·응답 모양)는 실행해 보지 못했다** — 타입체크로만 검증.
+- **편차**:
+  - 핸드오프 3번은 API만 적어 **내가 남긴 방명록 화면·마이페이지 행은 만들지 않았다**(스펙에 화면(SCR)이 없고, 눌러도 갈 곳 없는 행을 만들지 않는 원칙). API만 소비자 없이 존재한다.
+  - 전화 문의(`type=CALL`)는 "버튼을 누른 기록"이지 접수된 상담이 아닌데 `00-36` §4.4가 목록에 넣도록 해서 넣었고 상태는 항상 `접수됨`이다 — 사실과 어긋난 표시일 수 있어 Opus 확인이 필요하다(요약은 `전화 문의 버튼을 누름`으로 사실대로 적음).
+  - 응답 필드명은 `no`(접수번호)·`statusGroup` 등 스펙에 명시가 없어 내가 정했다(`leadNo`/`requestNo`를 `no`로 통일).
+  - 목록 상한 100건(스펙에 없음) — 페이지네이션은 없다.
+  - SCR-019는 Design 캔버스 시안 없이 `00-39` 훑는 목록 규칙을 그대로 적용했다(캔버스에 없음).
+- **다음 에이전트가 알아야 할 것**: M-3(회원 탈퇴)은 스키마 변경이라 `backup-db.ps1` → 파일 확인 → 사람 CONFIRM → migrate → `generate-db-doc.js` 순서. `family-view`의 `1 + 3n → 2회` 개선은 데이터 있는 실측을 못 했으니 사람이 지정 2건 이상 계정으로 응답 시간과 응답 모양(`scope`·`acceptedAt` 포함, 연락처 없음)을 한 번 확인할 것.
+
+<!-- Gemini 판정 1줄: 대기 -->

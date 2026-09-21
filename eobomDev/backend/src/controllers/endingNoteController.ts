@@ -307,6 +307,15 @@ export const revokeEndingNoteGrant = async (req: Request, res: Response) => {
 // 알아내지 못하게 막는 데 목적이 있다. 여기는 이미 acceptedAt으로 동의가 끝난(status=ACCEPTED)
 // 관계에서, 부여받은 콘텐츠를 열람하는 것이라 별개 동작으로 보고 진행했다. 이 판단은 walkthrough
 // 편차 필드로 올려 Opus 확인을 받는다 — docs/는 고치지 않았다.
+//
+// 🔄 2026-09-21 00-36 §4.6-1-1·M-2 #7-2 — 응답에 `scope`·`acceptedAt`을 더했다(근거: 00-27 §9.1-6 b 수락
+// 화면 표시 항목 · §2.1 본인의 동의 시각). 🔴 그 외 필드는 늘리지 않는다 — 연락처·이메일은 불변식 2,
+// `priority`는 불변식 4(연락 순서일 뿐 상속순위가 아니다).
+//
+// 🔴 왕복 수 = **2회, 지정 건수 n과 무관**. 예전엔 노트·권한·항목을 지정마다 따로 물어 `1 + 3n`번이었다.
+// Render(오리건)↔DB(서울) 왕복이 회당 ~1.3초라 지정 2건이면 ~9초였다(summaryController와 같은 이유).
+//   ① 지정 + 지정자 이름 + 지정자의 노트 id + 이 지정에 부여된 IMMEDIATE 권한을 **관계 조인 한 번**에
+//   ② 필요한 (노트, 섹션) 쌍의 항목을 **OR 조건 한 번**에
 export const getFamilyVisibleEndingNotes = async (req: Request, res: Response) => {
   const decoded = verifyBearerToken(req);
   if (!decoded) {
@@ -316,49 +325,58 @@ export const getFamilyVisibleEndingNotes = async (req: Request, res: Response) =
   try {
     const designations = await prisma.familyDesignation.findMany({
       where: { acceptedUserId: decoded.id, status: 'ACCEPTED' },
+      orderBy: { acceptedAt: 'asc' },
       select: {
         id: true,
-        userId: true,
         relationship: true,
         relationshipEtc: true,
-        user: { select: { name: true } },
+        scope: true,
+        acceptedAt: true,
+        user: { select: { name: true, endingNote: { select: { id: true } } } },
+        endingNoteGrants: {
+          where: { timing: 'IMMEDIATE', revokedAt: null },
+          select: { noteId: true, section: true },
+        },
       },
     });
 
-    const results = [];
-    for (const d of designations) {
-      const note = await prisma.endingNote.findUnique({ where: { userId: d.userId }, select: { id: true } });
-      if (!note) continue;
-
-      const grants = await prisma.endingNoteGrant.findMany({
-        where: { noteId: note.id, designationId: d.id, timing: 'IMMEDIATE', revokedAt: null },
-        select: { section: true },
-      });
+    // 지정마다 (노트 id, 열람 가능 섹션) 확정. 노트가 없는 지정은 예전처럼 응답에서 뺀다.
+    const plans = designations.flatMap((d) => {
+      const noteId = d.user.endingNote?.id;
+      if (!noteId) return [];
       // 🔴 §7.4 — WILL_DRAFT는 grant 자체가 생성 불가능하지만, 혹시 모를 오염을 대비해 한 번 더 거른다.
-      const sections = grants.map((g) => g.section).filter((s) => s !== 'WILL_DRAFT');
+      const sections = d.endingNoteGrants
+        .filter((g) => g.noteId === noteId)
+        .map((g) => g.section)
+        .filter((s) => s !== 'WILL_DRAFT');
+      return [{ d, noteId, sections }];
+    });
 
-      let entries: Array<{ section: string; title: string | null; value: unknown; updatedAt: Date }> = [];
-      if (sections.length > 0) {
-        const rows = await prisma.endingNoteEntry.findMany({
-          where: { noteId: note.id, section: { in: sections } },
-          select: { section: true, title: true, bodyEnc: true, updatedAt: true },
-        });
-        entries = rows.map((r) => ({
+    const wanted = plans.filter((p) => p.sections.length > 0);
+    const rows =
+      wanted.length > 0
+        ? await prisma.endingNoteEntry.findMany({
+            where: { OR: wanted.map((p) => ({ noteId: p.noteId, section: { in: p.sections } })) },
+            select: { noteId: true, section: true, title: true, bodyEnc: true, updatedAt: true },
+          })
+        : [];
+
+    const results = plans.map(({ d, noteId, sections }) => ({
+      designationId: d.id,
+      ownerName: d.user.name,
+      relationship: d.relationship,
+      relationshipEtc: d.relationshipEtc,
+      scope: d.scope, // PRIMARY | VIEWER
+      acceptedAt: d.acceptedAt,
+      entries: rows
+        .filter((r) => r.noteId === noteId && sections.includes(r.section))
+        .map((r) => ({
           section: r.section,
           title: r.title,
           value: JSON.parse(decryptNoteField(r.bodyEnc)),
           updatedAt: r.updatedAt,
-        }));
-      }
-
-      results.push({
-        designationId: d.id,
-        ownerName: d.user.name,
-        relationship: d.relationship,
-        relationshipEtc: d.relationshipEtc,
-        entries,
-      });
-    }
+        })),
+    }));
 
     return res.json({ status: 'success', data: results });
   } catch (error) {

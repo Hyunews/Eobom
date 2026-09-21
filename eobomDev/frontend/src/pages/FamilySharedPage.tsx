@@ -15,8 +15,9 @@ import { backdropCloseProps } from '../utils/backdropClose';
 // 🔴 과장 금지 — "○○님의 엔딩노트를 볼 수 있습니다" 류 문구를 쓰지 않는다. 실제로 열리는 것은
 // IMMEDIATE로 부여된 섹션뿐이다(현재 FUNERAL·CONTACTS). 🔴 빈 상태에 권유 문구를 붙이지 않는다.
 //
-// 🟡 SCR-020이 요구하는 scope(주 연락자/열람자)·수락한 날짜는 family-view 응답에 없어서 표시하지
-// 못한다(서버 변경은 M-1.5 범위 밖). 지정 관계는 응답의 relationship을 그대로 쓴다.
+// 🔄 2026-09-21 M-2(00-36 §4.6-1-1) — family-view 응답에 scope·acceptedAt이 더해져 표시한다. 🔴 문구는 초대
+// 수락 화면과 같은 말이다: relationship은 **지정자가 적은 값**이라 "자녀"는 내가 그분의 자녀라는 뜻 —
+// "지정 관계 · 자녀"는 방향이 빠져 반대로 읽히므로 "나를 자녀로 지정 · 주 연락자"로 쓴다.
 
 interface FamilyViewEntry {
   section: string;
@@ -30,6 +31,9 @@ interface FamilyViewItem {
   ownerName: string;
   relationship: string;
   relationshipEtc: string | null;
+  // 서버 확장 전 응답과도 호환되도록 선택값으로 둔다(00-36 §4.6-1-1)
+  scope?: string;
+  acceptedAt?: string | null;
   entries: FamilyViewEntry[];
 }
 
@@ -46,12 +50,32 @@ const formatDate = (iso: string): string => {
   return `${d.getFullYear()}.${mm}.${dd}`;
 };
 
+// "2026-09-14 수락함" — 초대 화면과 같은 날짜 표기(하이픈)
+const formatDashDate = (iso: string): string => formatDate(iso).replace(/\./g, '-');
+
+const SCOPE_LABEL: Record<string, string> = { PRIMARY: '주 연락자', VIEWER: '열람자' };
+
+// 조사 "로/으로" — 받침이 없거나 ㄹ이면 "로", 그 밖의 받침이면 "으로"
+const withRo = (word: string): string => {
+  const code = word.charCodeAt(word.length - 1) - 0xac00;
+  if (code < 0 || code > 11171) return `${word}로`;
+  const jong = code % 28;
+  return jong === 0 || jong === 8 ? `${word}로` : `${word}으로`;
+};
+
 const sectionTitle = (code: string): string => SECTIONS.find((s) => s.code === code)?.title ?? code;
 
 const relationLabel = (item: FamilyViewItem): string =>
   item.relationship === 'OTHER' && item.relationshipEtc
     ? item.relationshipEtc
     : RELATIONSHIP_LABEL[item.relationship] ?? item.relationship;
+
+// 제목 줄 오른쪽 문구 — 관계 + scope(00-36 §4.6-1-1 확정 문구: "나를 자녀로 지정 · 주 연락자")
+const designationPhrase = (item: FamilyViewItem): string => {
+  const base = `나를 ${withRo(relationLabel(item))} 지정`;
+  const scope = item.scope ? SCOPE_LABEL[item.scope] : undefined;
+  return scope ? `${base} · ${scope}` : base;
+};
 
 // 섹션별 저장 모양(EndingNotePage.tsx sectionPayloads와 같다). IMMEDIATE가 허용되는 두 섹션만 다룬다 —
 // 그 밖의 값이 오면(백엔드가 막고 있지만) 그리지 않는다. 모르는 필드를 추측해 보여주지 않는다.
@@ -107,7 +131,7 @@ export const FamilySharedPage: React.FC<FamilySharedPageProps> = ({ currentUser,
           <section key={item.designationId} className="v2-hub-section">
             <div className="v2-section-head">
               <h2 className="v2-section-title">{item.ownerName} 님</h2>
-              <span className="v2-section-head-meta">지정 관계 · {relationLabel(item)}</span>
+              <span className="v2-section-head-meta">{designationPhrase(item)}</span>
             </div>
             {item.entries.length === 0 ? (
               <p className="v2-empty" style={{ margin: 0, borderBottom: '1px solid var(--v2-divider)' }}>지금 볼 수 있는 항목이 없습니다.</p>
@@ -120,6 +144,7 @@ export const FamilySharedPage: React.FC<FamilySharedPageProps> = ({ currentUser,
                 </button>
               ))
             )}
+            {item.acceptedAt && <p className="v2-hub-foot">{formatDashDate(item.acceptedAt)} 수락함</p>}
           </section>
         ))}
       </div>

@@ -205,9 +205,9 @@ export const MyPage: React.FC<MyPageProps> = ({ currentUser, onOpenLogin, onOpen
         </HubSection>
 
         <HubSection title="내 활동과 계정">
-          {/* 🔴 "상담 신청 내역"은 지금 신청 화면(counseling)을 연다 — 이름과 목적지가 어긋난 오연결이다.
-              M-2가 내 상담 내역 목록(SCR-019)을 만들 때 함께 고친다(00-36 §5 M-2 #7). */}
-          <NavRow icon={<Send size={20} />} label="상담 신청 내역" onClick={go('counseling')} />
+          {/* 🔄 2026-09-21 M-2(00-36 §5 #6·#7) — "상담 신청 내역"이 신청 화면(counseling)을 열던 오연결을
+              고쳤다. 이제 SCR-019 "내 상담 내역"(업체 상담 + 전문가 상담 한 목록)으로 간다. */}
+          <NavRow icon={<Send size={20} />} label="내 상담 내역" onClick={go('my-consultations')} />
           {/* 5-1 — 푸터와 같은 URL·같은 말풍선 아이콘, 새 창. 문의는 카톡 안에서 끝나므로 숫자·배지를 달지 않는다 */}
           <NavRow icon={<MessageCircle size={20} />} label="카카오톡으로 문의하기" href={KAKAO_CHANNEL_CHAT_URL} />
           {/* 5-3 — 사이드바 폐지(00-39 §6 규칙 3) 뒤 모바일에는 로그아웃 진입점이 헤더 드롭다운뿐이다 */}

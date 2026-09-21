@@ -32,6 +32,7 @@ import { PickupPage } from './pages/PickupPage';
 import { MemorialPage } from './pages/MemorialPage';
 import { MyPage } from './pages/MyPage';
 import { FamilySharedPage } from './pages/FamilySharedPage';
+import { MyConsultationsPage } from './pages/MyConsultationsPage';
 import { PartnerPortalPage } from './pages/PartnerPortalPage';
 import { AdminPage } from './pages/AdminPage';
 import { TermsPage } from './pages/TermsPage';
@@ -438,6 +439,8 @@ function AppShell() {
             />
             {/* 00-36 §4.6(SCR-020) — 마이페이지 나에게 공유된 것 구간의 착지 화면 */}
             <Route path="/family-shared" element={<FamilySharedPage {...authProps} />} />
+            {/* 00-36 §4.4(SCR-019) — 마이페이지 `내 활동과 계정` > `내 상담 내역`의 착지 화면 */}
+            <Route path="/my-consultations" element={<MyConsultationsPage {...authProps} />} />
             {/* 법적 문서 — docs 00-19/00-21 v0.9 초안. 게시 게이트(00-18 §8.1) 통과 전까지
                 LegalDocLayout 상단 배너로 "시행 준비 중"을 고지한다. */}
             <Route path="/terms" element={<TermsPage />} />

@@ -1507,7 +1507,33 @@ button.v2-stat {
   color: var(--v2-text-faint);
 }
 
-/* 구간 제목 줄 오른쪽 끝의 보조 글자(예: 지정 관계) */
+/* 두 줄 이동 행(제목 + 흐린 보조 줄) — 내 상담 내역처럼 "어디에 · 어떻게 · 언제"를 함께 보여주는 목록 */
+.v2-nav-row-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.v2-nav-row-sub {
+  font-size: var(--v2-fs-support);
+  font-weight: 400;
+  color: var(--v2-text-faint);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 구간 맨 아래 흐린 한 줄(예: "2026-09-14 수락함") */
+.v2-hub-foot {
+  margin: 0;
+  padding: 12px 0 0;
+  font-size: var(--v2-fs-support);
+  color: var(--v2-text-faint);
+}
+
+/* 구간 제목 줄 오른쪽 끝의 보조 글자(예: 나를 자녀로 지정 · 주 연락자) */
 .v2-section-head-meta {
   margin-left: auto;
   font-size: var(--v2-fs-support);
