@@ -3816,3 +3816,66 @@ wt137 그대로라 재작업 없음).
 - **다음 에이전트가 알아야 할 것**: 🔴 **중요 — 이 프로젝트에서 UI 레이아웃 작업은 이제 dev 서버 실측이 아니라 `design` 스킬(Claude Design 캔버스)을 먼저 쓰고 그걸 정본으로 구현한다.** `.harness/` 문서(`AGENTS.md` 등)에는 아직 이 규칙이 정식 반영 안 됨 — 개인 메모리에만 있으니 `[Claude:Opus]`가 다음에 정식 문서화할지 검토할 것. 이번 수정은 실기동 확인을 안 했으니(방침상) 사람이 눈으로 한 번 봐 주는 게 안전하다 — 단 "봐달라"는 요청이지 "네가 실측해서 고쳐달라"는 요청이 아니다.
 
 <!-- Gemini 판정 1줄: 대기 -->
+
+## 2026-09-21 | [Sonnet] 헤더 모드 드롭다운 — 클릭 후 고정 제거·버튼 클릭 시 첫 항목으로 이동 (사용자 직접 지시)
+
+- **근거 스펙**: `docs/00_핵심플랫폼/00-39_디자인_기준_재정립_명세서.md` §6-3(헤더 드롭다운) · 사용자 직접 지시("호버했다가 다른 쪽으로 움직이면 잘 닫히나, 클릭하면 고정되는 현상 제거. 메뉴 자체 클릭 시 첫 번째 페이지로")
+- **건드린 파일**: `eobomDev/frontend/src/styles/design-v2.css`, `eobomDev/frontend/src/components/Header.tsx`
+- **결과**:
+  1. `design-v2.css`: `.hdr-mode:focus-within .hdr-mode-panel` → `.hdr-mode:has(:focus-visible) .hdr-mode-panel`. 마우스 클릭으로 생긴 포커스로는 패널이 열려 있지 않고, 키보드 Tab 이동일 때만 유지(접근성 보존).
+  2. `Header.tsx`: `goToEndingNote`·`goToCareGuide` 삭제 → `goToModeFirst(mode) = goToModeItem(mode, MODE_MENUS[mode][0])` 신설, 두 트리거 `onClick`을 `() => goToModeFirst('prep')` / `() => goToModeFirst('bereaved')`로 교체. 이동 대상은 이전과 같은 `ending-note` / `care-guide`(`modeNav.ts` 첫 항목).
+  3. `npx tsc --noEmit -p .`(frontend) 에러 0. 사람이 실기동 확인 후 커밋(`c2e9899`).
+- **편차**: 없음. 부작용 1건 — 트리거 클릭에도 첫 항목의 `loginRequired` 게이트가 적용된다(비로그인이 "생전 준비"를 누르면 로그인 모달. "임종·사후 정리"는 `care-guide`가 게이트 없음이라 그대로 이동).
+- **다음 에이전트가 알아야 할 것**: 메뉴 항목을 클릭한 직후 마우스가 패널 위에 있으면 패널은 마우스가 벗어날 때까지 남는다(즉시 닫으려면 React 상태가 필요해 넣지 않음).
+
+<!-- Gemini 판정 1줄: 대기 -->
+
+## 2026-09-21 | [Sonnet] 00-39 그룹② 대표 `obituary` 재구현 — 입력|미리보기 2단(sticky)·필드별 오류·체크 행·폼 모달
+
+- **근거 스펙**: `docs/00_핵심플랫폼/00-39_디자인_기준_재정립_명세서.md` §6.8(폼·입력)·§9.1(그룹② 대표=`obituary`) · 시안 = Design 캔버스 `https://claude.ai/artifact/QnsvwHQ2VcdTQncwJdoS7F`(W1·W2·M1·M2·W3·M3) · 사용자 직접 지시 다수(아래 결과 ⑤)
+- **건드린 파일**: `eobomDev/frontend/src/pages/ObituaryPage.tsx`, `eobomDev/frontend/src/components/ObituaryView.tsx`, `eobomDev/frontend/src/styles/design-v2.css`
+- **결과**:
+  1. `ObituaryPage.tsx` 폼: `formCard`를 파일 상단에 신설한 `FormField`·`FormSection` + `.v2-form*` 클래스로 재작성. 브라우저 기본 검증(`required`) 대신 `<form noValidate>` + `fieldErrors` 상태 + `FIELD_ERROR_ORDER`로 칸별 오류(붉은 테두리 + 칸 아래 문장)·제출 실패 시 첫 오류 칸 포커스. 옛 `requiredMissing` 삭제. 필수는 라벨 옆 붉은 "필수"(`.v2-req`), 선택은 `.v2-opt`. 토글·동의는 `.v2-check` 44px 행. 접힘 "선택 정보"는 `.v2-more`.
+  2. 레이아웃: 페이지 껍데기 `.container` → `.v2-page` / `.v2-page-head`(제목 `.v2-page-title`). 개설 전 화면 `.auto-grid` → `.v2-form-shell.is-2col`(입력 560px | 미리보기 열 `.v2-form-aside`, `position: sticky; top: 24px` — 스크롤 컨테이너가 `.main-wrapper`라 헤더 높이를 더하지 않음). ≤767px는 옆 열이 숨고 폼 안 `.v2-form-preview-inline`(확인 사항 앞)에 나온다.
+  3. 수정 모달: 인라인 스타일 오버레이 → `.v2-modal-overlay` + `.v2-modal.is-form`(X 버튼 제거, [취소][수정 사항 저장], 저장 중 `저장 중…` 비활성). 모바일은 기존 규칙대로 바텀시트.
+  4. 미리보기 카드: `previewCard`를 `.v2-kakao-stage`/`.v2-kakao-card`(+`kakaoCard` 변수)로 클래스화. 관리 모드 라벨 "카카오톡 카드 미리보기"를 stage 안쪽 맨 위로 옮겨 오른쪽 공유 패널과 위쪽 맞춤. 제목 폴백 정정 — `formatObituaryCardTitle`이 이름이 비어도 `[부고] 故  님`을 돌려줘 `cardTitle || '[부고] 故 ○○○ 님'`이 죽은 코드였다 → `deceasedName.trim() ? cardTitle : '[부고] 故 ○○○ 님'`. 개설 전 미리보기 제목 밑 회색 안내 문단은 두지 않음.
+  5. 사용자 직접 지시 반영: 카톡 버튼 `btn btn-point` → 인라인 `#FEE500`/글자 `#191919`; "추모관 만들기" 2곳에 `width: '100%'`; 공유 패널 순서를 `조문객 화면 미리보기` → `링크 복사`로 교체(복사 문구 `copyFeedback`은 링크 복사 줄 아래); 링크 주소 문자열 박스(`{obituaryUrl}` 표시 div) 삭제; `Heart` import 삭제.
+  6. `ObituaryView.tsx`: `Row`의 줄 높이 불일치 수정 — 라벨 칸에 `lineHeight` 없음·링크가 `inline-flex`+12px 아이콘이라 그 줄만 커짐 → `ROW_LINE_HEIGHT = 1.5`·`rowLinkStyle` 신설, 값 칸을 flex(가운데 정렬·`columnGap 0.6rem`·줄바꿈), `padding 0.6rem → 0.75rem`. 첫 그룹(빈소·입관·발인·장지) `marginBottom: '1.2rem'` 삭제. 문구 삭제 1건: `최종 수정: {…} · 정보는 유족이 언제든 바꿀 수 있습니다.` → `최종 수정: {…}`(→ 스펙 범위 안, Opus 확인).
+  7. `design-v2.css`: `.v2-form-shell`·`.v2-form-aside`·`.v2-form`·`.v2-form-section`·`.v2-form-row`·`.v2-req`·`.v2-opt`·`.v2-check`·`.v2-more*`·`.v2-form-submit`·`.v2-kakao-*`·`.v2-modal.is-form`·`.v2-icon-btn` 등 약 390줄 추가(폼 안 조정은 `.v2-form` 하위로 한정해 계산기·필터의 `.v2-input`은 영향 없음).
+  8. `npx tsc --noEmit -p .`(frontend) 에러 0, `npm run build`(frontend) 통과. 🔴 dev 서버 미기동(방침) — 사람이 실기동 확인 후 커밋(`1abc82f`).
+- **편차**:
+  - `00-39` §5(읽기 폭 764px)의 예외 — 입력|미리보기 2단이 1048px(560+48+440). 사용자 지시("입력/미리보기 양쪽 구성이 핵심")이며 Opus가 §5-1로 등재.
+  - §6.8 표와 다른 값 2건을 시안 확인 요청으로 제시하고 사람이 이의 없이 진행: 라벨색 `#5C6773`(표는 `#A29B90`, 대비 약 2.6:1이라 입력 라벨로 읽기 어려움)·입력 테두리 `#B9B3AA`(`.v2-input` 기본은 `#D8D2C8`, 폼 안에서만 덮어씀).
+  - 🔴 조문객 미리보기 모달 고지 두 번째 줄 `수정하면 이 화면은 바로 바뀌지만, 이미 보낸 카카오톡 카드는 바뀌지 않습니다.`를 **사용자 지시로 삭제**했으나 이는 `07-03` §6.4 ⓓ(§5.4-2 책임 경계) 위반이었다 → 다음 항목에서 복구.
+- **다음 에이전트가 알아야 할 것**: `ObituaryManageSkeleton`(로딩 스켈레톤)은 옛 카드 모양 그대로라 새 폼과 조금 다르다(미조정). `ObituaryPage.tsx`가 작업 중 CRLF로 바뀌어 있어 커밋본(LF) 기준으로 LF 정규화했다(`git ls-files --eol` → `i/lf w/lf`). Design 캔버스에는 "카드 미리보기" 제목 밑 회색 설명 삭제분이 반영 안 돼 있다(구현이 정본).
+
+<!-- Gemini 판정 1줄: 대기 -->
+
+## 2026-09-21 | [Sonnet] 07-03 §6.4 ⓓ 고지 복구 — 조문객 화면 미리보기 모달 상단 두 번째 줄
+
+- **근거 스펙**: `docs/07_상중_행정_케어/07-03_모바일_부고장_카카오톡_전송_구현_기획서.md` §6.4 ⓓ(2026-09-21 확인 절) + §5.4-2(책임 경계) · Opus 핸드오프("두 번째 줄 복구, `ObituaryView` 문구 삭제는 스펙 범위 안이라 그대로")
+- **건드린 파일**: `eobomDev/frontend/src/pages/ObituaryPage.tsx`
+- **결과**:
+  1. 미리보기 모달 상단 고지 `<p>`: `조문객에게 보이는 화면입니다.` → `조문객에게 보이는 화면입니다.<br />` + `수정하면 이 화면은 바로 바뀌지만, 이미 보낸 카카오톡 카드는 바뀌지 않습니다.`(§6.4 ⓓ 코드블록과 글자 그대로 일치).
+  2. `ObituaryView.tsx`의 `· 정보는 유족이 언제든 바꿀 수 있습니다.` 삭제는 그대로 둠(지시).
+  3. `npx tsc --noEmit -p .`(frontend) 에러 0.
+  4. 이 수정은 별도 커밋이 아니라 Opus의 문서 커밋 `2f76263`에 함께 들어갔다(작업 트리 변경이 그 커밋에 묶임) — `git show HEAD:eobomDev/frontend/src/pages/ObituaryPage.tsx`에서 두 줄 모두 확인.
+- **편차**: 없음.
+- **다음 에이전트가 알아야 할 것**: 같은 날 사용자 지시("이 문장 삭제")가 스펙 §6.4 ⓓ와 충돌했다 — 기획 문서에 명시된 고지는 사용자 구두 지시보다 먼저 스펙 확인이 필요하다. 문서 커밋에 코드가 묶여 들어간 점은 게이트가 파일 목록으로 대조할 때 참고.
+
+<!-- Gemini 판정 1줄: 대기 -->
+
+## 2026-09-21 | [Sonnet] 카톡 부고 알리기 버튼 아이콘 교체 + 마이페이지 "디지털 정산" 개명 + mypage 시안 아이콘 (사용자 직접 지시)
+
+- **근거 스펙**: 스펙 없음 — 사용자 직접 지시 3건(① 카톡 부고 알리기 버튼 아이콘을 푸터의 말풍선처럼 ② mypage 시안: 상담=편지비행기·문의(카카오톡)=말풍선 ⑦ "디지털 자산 정리 > 디지털 정산"). 개명은 `modeNav.ts`의 `digital-estate` 라벨("디지털 정산")과 맞추는 것.
+- **건드린 파일**: `eobomDev/frontend/src/pages/ObituaryPage.tsx`, `eobomDev/frontend/src/pages/MyPage.tsx`, `.harness/memory/backlog.md`(⑲ 신설), `.harness/memory/context.md`(포인터 1줄). Design 캔버스(`https://claude.ai/artifact/FmacNUuzKECyG5bQfzxx8q` v3)는 저장소 밖.
+- **결과**:
+  1. `ObituaryPage.tsx`: lucide import `Send` → `MessageCircle`, 버튼 `<Send size={16} /> 카카오톡으로 부고 알리기` → `<MessageCircle size={16} /> …`(`Footer.tsx`·`FooterMobile.tsx`의 "카카오톡으로 문의하기"와 같은 아이콘). `Send`는 이 파일에서 그 한 곳뿐이었다.
+  2. `MyPage.tsx`: 행 라벨 `디지털 자산 정리` → `디지털 정산`(+ 주석 1줄).
+  3. mypage 시안(캔버스): 상담 통계·"상담 신청 내역" 행 = `Send`(편지비행기), 문의 통계·"문의 내역" 행 = `MessageCircle`(말풍선), "디지털 정산" 개명.
+  4. `npx tsc --noEmit -p .`(frontend) 에러 0. 🔴 `MyPage.tsx`가 작업 트리에서 CRLF(커밋본 LF)여서 LF로 정규화 — `git diff --stat` 5줄.
+  5. 사용자 지시 나머지 6건(③ 카톡 문의 집계·연결 ④ 상담 내역 페이지 ⑤ 회원 탈퇴 ⑥ 개인정보 동의 on/off ⑧ 나에게 공유된 엔딩노트 ⑨ 내가 수락한 가족 지정)은 스펙·결정이 필요해 구현하지 않고 `backlog.md` ⑲에 코드 사실과 함께 남겼다.
+- **편차**: 없음. 단 `MyPage.tsx`의 실제 통계·행 아이콘(상담=`MessageCircle`·문의=`Send`)은 시안과 반대인 채로 뒀다 — 시안 확정 뒤 구현할 때 함께 바꾼다(코드 주석의 "InquiryModal·CounselingPage 아이콘 재사용" 근거도 그때 정정).
+- **다음 에이전트가 알아야 할 것**: `docs/`에 "디지털 자산 정리" 표기가 남아 있을 수 있다(Opus 몫, 미확인). ⑲의 결정이 나오기 전에는 mypage 구현에 착수하지 않는다.
+
+<!-- Gemini 판정 1줄: 대기 -->

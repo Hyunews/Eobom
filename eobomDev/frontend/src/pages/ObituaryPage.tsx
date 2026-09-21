@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { MessageSquare, Send, Copy, Plus, X, ChevronDown, ChevronUp, ChevronRight, AlertTriangle, LogIn, PowerOff, Flower2, Loader2, Pencil, Eye } from 'lucide-react';
+import { MessageSquare, MessageCircle, Copy, Plus, X, ChevronDown, ChevronUp, ChevronRight, AlertTriangle, LogIn, PowerOff, Flower2, Loader2, Pencil, Eye } from 'lucide-react';
 import { OBITUARY_CARD_IMAGE_URL } from '../config';
 import { EobomLogo } from '../components/EobomLogo';
 import { ObituaryView, type ObituaryData } from '../components/ObituaryView';
@@ -886,7 +886,8 @@ export const ObituaryPage: React.FC<ObituaryPageProps> = ({ currentUser, onOpenL
 
           {/* 카카오 브랜드 노랑(#FEE500) + 검정 계열 글자(#191919) — 카카오 공유 버튼 가이드 색 */}
           <button onClick={handleShare} className="btn" style={{ width: '100%', marginBottom: '0.6rem', fontSize: 'var(--fs-caption)', padding: '0 1.2rem', backgroundColor: '#FEE500', color: '#191919', border: '1px solid #FEE500' }}>
-            <Send size={16} /> 카카오톡으로 부고 알리기
+            {/* 푸터의 "카카오톡으로 문의하기"(Footer.tsx·FooterMobile.tsx)와 같은 말풍선 아이콘 */}
+            <MessageCircle size={16} /> 카카오톡으로 부고 알리기
           </button>
           {/* 07-03 §6.4 ⓐ — 조문객 화면 미리보기는 링크복사·문자로보내기와 같은 보조 버튼 군. 1순위
           (카카오톡) 버튼보다 위에 두지 않는다 — 이 화면의 목적은 공유다. 🔄 09-21 사용자 지시 —

@@ -56,7 +56,7 @@ const iconBoxStyle: React.CSSProperties = {
   display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
 };
 
-// 🔴 2026-09-10 — 행 텍스트("디지털 자산 정리" 등)가 배지·아이콘과 한 줄에 있다가 좁은
+// 🔴 2026-09-10 — 행 텍스트("디지털 정산" 등, 09-21 개명 전 "디지털 자산 정리")가 배지·아이콘과 한 줄에 있다가 좁은
 // 화면에서 줄바꿈되는 걸 막는다. 늘어나지 않게 min-width:0으로 flex 자식을 줄일 수 있게 하고,
 // 넘치면 줄바꿈 대신 말줄임(ellipsis)으로 받는다 — 그래도 줄바꿈되는 대신 잘리는 쪽이 낫다.
 // 🔄 2026-09-10 — 0.95rem이 데스크탑에서 너무 작다는 지적으로 1rem으로 키움.
@@ -349,7 +349,7 @@ export const MyPage: React.FC<MyPageProps> = ({ currentUser, onOpenLogin, onOpen
             <div style={iconBoxStyle}>
               <PhoneHeartIcon size={18} color="var(--point-color)" />
             </div>
-            <div style={rowLabelStyle}>디지털 자산 정리</div>
+            <div style={rowLabelStyle}>디지털 정산</div>
           </div>
           <ChevronRight size={18} color="var(--text-muted)" style={{ flexShrink: 0 }} />
         </button>
