@@ -1023,7 +1023,8 @@ export const ObituaryPage: React.FC<ObituaryPageProps> = ({ currentUser, onOpenL
                     <div style={{ display: 'flex', gap: '0.6rem', backgroundColor: 'var(--surface-subtle)', border: '1px solid var(--border-color)', borderRadius: 'var(--r-sm)', padding: 'var(--sp-4) 0.9rem', marginBottom: '1.25rem' }}>
                       <Eye size={16} color="var(--text-muted)" style={{ flexShrink: 0, marginTop: '0.15rem' }} />
                       <p style={{ fontSize: 'var(--fs-caption)', color: 'var(--text-muted)', margin: 0, lineHeight: 1.5 }}>
-                        조문객에게 보이는 화면입니다.
+                        조문객에게 보이는 화면입니다.<br />
+                        수정하면 이 화면은 바로 바뀌지만, 이미 보낸 카카오톡 카드는 바뀌지 않습니다.
                       </p>
                     </div>
                     <ObituaryView data={buildPreviewData()} />
