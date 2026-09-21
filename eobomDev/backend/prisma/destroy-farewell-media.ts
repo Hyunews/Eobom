@@ -9,10 +9,12 @@
 //   npx ts-node prisma/destroy-farewell-media.ts              (dry-run — 몇 건을 지울지 출력만)
 //   npx ts-node prisma/destroy-farewell-media.ts --confirm    (실제 삭제)
 //
-// 한 배치가 두 만료를 본다(§5.6-8):
+// 한 배치가 네 만료를 본다(§5.6-8):
 //   ① mediaDeletedAt + 30일 — R2 원본 삭제 → mediaKey·mediaMime 정리. 행은 남긴다.
 //   ② deletedAt + 30일 — mediaKey가 있으면 ①을 먼저 하고, 그다음 행을 파기한다.
 //   ③ 고아 객체 스윕은 이번에 만들지 않는다(⏸ §5.6-8 ③).
+//   ④ User.deletionScheduledAt 경과(회원 탈퇴 유예 만료) — 그 회원의 ①②를 먼저, 그다음 계정 파기.
+//      추모관은 대상이 아니라서, 추모관을 가진 회원은 FK에 막혀 보류로만 보고한다(accountPurgeService.ts).
 //
 // 🔴 아카이브는 이 스크립트가 지우지 않는다(§5.6-8-1 D-9) — 백엔드는 아카이브 버킷에 대한
 // S3 자격증명을 원천적으로 갖지 않는다(새 토큰도 발급하지 않는다). 파기는 2단계다:
@@ -34,6 +36,7 @@ import {
   findLetterExpired,
   countPendingArchivePurge,
 } from '../src/services/farewellPurgeService';
+import { findAccountExpired, planAccount, purgeAccount } from '../src/services/accountPurgeService';
 
 const confirmed = process.argv.includes('--confirm');
 
@@ -74,7 +77,7 @@ async function printTargetBanner(): Promise<void> {
 }
 
 async function main(): Promise<void> {
-  console.log(`=== 유족 메시지 파기 배치 (${confirmed ? '실행 모드' : 'dry-run — 건수만 출력'}) ===`);
+  console.log(`=== 파기 배치 — 유족 메시지·회원 탈퇴 (${confirmed ? '실행 모드' : 'dry-run — 건수만 출력'}) ===`);
   await printTargetBanner();
 
   if (!confirmed) {
@@ -109,6 +112,41 @@ async function main(): Promise<void> {
   }
 
   // ③ 고아 객체 스윕 — ⏸ 이번에 만들지 않는다(§5.6-8 ③).
+
+  // ④ 회원 탈퇴 유예 만료 — 그 회원의 편지 ①②를 먼저 돌린 뒤 계정을 파기한다(§5.6-8 ④, accountPurgeService).
+  // 🔴 추모관은 대상이 아니다. 추모관·추모 사진을 가진 회원은 FK(RESTRICT)에 막히므로 파기하지 않고 보류로 보고한다.
+  const accountsExpired = await findAccountExpired();
+  const plans = [];
+  for (const u of accountsExpired) plans.push(await planAccount(u));
+  const deletable = plans.filter((p) => !p.blockedBy);
+  const blocked = plans.filter((p) => p.blockedBy);
+  console.log(`[④회원 탈퇴 만료] 대상 ${plans.length}명 (파기 가능 ${deletable.length} · 보류 ${blocked.length})`);
+  for (const p of plans) {
+    // 🔴 이메일·이름 등 개인정보는 찍지 않는다 — id 앞 8자리만(security.md §1)
+    const label = p.user.id.slice(0, 8);
+    console.log(
+      `   - ${label}… 만료 ${p.user.deletionScheduledAt?.toISOString()} · 편지 ${p.letters}(첨부 ${p.lettersWithMedia}) · 방명록 ${p.guestbookEntries} · 부고장 ${p.obituaries} · 정리항목 ${p.cleanupItems}` +
+        (p.blockedBy ? ` · 🔴보류: 추모관 ${p.blockedBy.memorials}·추모사진 ${p.blockedBy.memorialPhotos} 소유` : ''),
+    );
+  }
+  if (confirmed) {
+    let done = 0;
+    for (const p of deletable) {
+      try {
+        const r = await purgeAccount(p.user);
+        if (r.purged) {
+          done++;
+          purgedKeys.push(...r.keys);
+        } else {
+          console.log(`   - ${p.user.id.slice(0, 8)}… 건너뜀: ${r.reason}`);
+        }
+      } catch (e) {
+        // 한 계정의 실패가 나머지를 막지 않는다. 그 계정은 User가 남아 있어 다음 실행에서 이어진다.
+        console.error(`   - ${p.user.id.slice(0, 8)}… 🔴 실패 — 이 계정은 파기되지 않았다(재실행 가능):`, e);
+      }
+    }
+    console.log(`[④회원 탈퇴 만료] 완료: ${done}명 파기${blocked.length ? ` · 🔴 보류 ${blocked.length}명은 추모관 FK 결정 후 처리` : ''}`);
+  }
 
   // 🟡 "완료"라고만 찍으면 절반만 지운 상태를 다 지운 것으로 오인한다(§5.6-8-1-1 #48).
   if (confirmed && !isDevEnvironment()) {

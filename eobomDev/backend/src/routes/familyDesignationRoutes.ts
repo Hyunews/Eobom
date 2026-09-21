@@ -8,6 +8,7 @@ import {
   getFamilyInvite,
   acceptFamilyInvite,
   declineFamilyInvite,
+  withdrawAcceptedDesignation,
 } from '../controllers/familyDesignationController';
 
 // 00-27 §8.1 Phase 1(기록) + §9.1 Phase 2(초대 링크). 전부 본인 것만(초대 발급 포함), 인증은
@@ -25,5 +26,6 @@ router.post('/:id/invite', inviteFamilyDesignation); // 개설자만(§9.1)
 router.get('/invite/:token', getFamilyInvite); // 공개 — 받는 사람은 아직 회원이 아닐 수 있다
 router.post('/invite/:token/accept', acceptFamilyInvite); // 로그인 필요
 router.post('/invite/:token/decline', declineFamilyInvite); // 로그인 불필요
+router.post('/accepted/:id/withdraw', withdrawAcceptedDesignation); // 수락한 본인만(§9.2) — DECLINED로, 그 지정의 열람 권한 전부 철회
 
 export default router;

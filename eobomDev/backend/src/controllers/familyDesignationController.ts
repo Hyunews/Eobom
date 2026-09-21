@@ -435,3 +435,46 @@ export const declineFamilyInvite = async (req: Request, res: Response) => {
     return res.status(500).json({ status: 'error', message: '거절 처리 중 오류가 발생했습니다.' });
   }
 };
+
+// 수락한 쪽의 철회 (`POST /api/family-designations/accepted/:id/withdraw`) — 00-27 §9.2.
+// 수락 시각이 정보주체의 동의 시각(§2.1)이므로 수락한 가족에게도 동의를 거두는 길이 있어야 한다.
+// 🔴 본인만(§3-1 세 조건): 본인 JWT의 acceptedUserId로만 조회하고(① 입력값으로 남을 지목 불가),
+// status=ACCEPTED만 본다(②) — 남의 건·수락 전 건은 전부 같은 404라 존재가 드러나지 않는다.
+// 🔵 새 상태를 만들지 않는다 — 기존 DECLINED를 쓴다. 지정자 화면은 acceptedAt != null && status == DECLINED로
+// "수락 후 거두심"을 구분한다(새 필드 없음). 🔴 사유는 받지 않는다(§9.1-6 c와 같은 규칙).
+// 🔴 재지정은 새 토큰 발급으로만 — acceptedAt은 지우지 않으므로 이력이 남고, 관계가 저절로 되살아나지 않는다.
+export const withdrawAcceptedDesignation = async (req: Request, res: Response) => {
+  const decoded = verifyBearerToken(req);
+  if (!decoded) {
+    return res.status(401).json({ status: 'error', message: '로그인이 필요합니다.' });
+  }
+
+  try {
+    const designation = await prisma.familyDesignation.findFirst({
+      where: { id: req.params.id, acceptedUserId: decoded.id, status: 'ACCEPTED' },
+      select: { id: true },
+    });
+    if (!designation) {
+      return res.status(404).json({ status: 'error', message: '수락한 가족 지정을 찾을 수 없습니다.' });
+    }
+
+    const now = new Date();
+    // 한 트랜잭션 — 상태만 바뀌고 권한이 남는 중간 상태가 없어야 한다. grant 철회는 삭제가 아니라 revokedAt(이력 보존).
+    // where는 이 designationId 하나로 좁힌다(db-safety.md §3: 소유자 단위 updateMany 금지).
+    await prisma.$transaction([
+      prisma.familyDesignation.update({
+        where: { id: designation.id },
+        data: { status: 'DECLINED', declinedAt: now, acceptedUserId: null, inviteToken: null },
+      }),
+      prisma.endingNoteGrant.updateMany({
+        where: { designationId: designation.id, revokedAt: null },
+        data: { revokedAt: now },
+      }),
+    ]);
+
+    return res.json({ status: 'success' });
+  } catch (error) {
+    console.error('수락 철회 실패:', error);
+    return res.status(500).json({ status: 'error', message: '철회 처리 중 오류가 발생했습니다.' });
+  }
+};
