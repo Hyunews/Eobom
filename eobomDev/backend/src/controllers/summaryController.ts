@@ -15,7 +15,9 @@ export const getMySummary = async (req: Request, res: Response) => {
 
   try {
     const [leadCount, consultCount, obituaryCount] = await prisma.$transaction([
-      prisma.lead.count({ where: { userId: decoded.id } }),
+      // 🔄 2026-09-21 00-36 §4.4-1 — 전화 버튼 클릭(CALL)은 상담이 아니라 이벤트라 세지 않는다. 목록
+      // (`GET /api/me/leads`)과 같은 조건이어야 "상담 3"을 눌렀을 때 목록 건수와 어긋나지 않는다.
+      prisma.lead.count({ where: { userId: decoded.id, type: { not: 'CALL' } } }),
       prisma.consultRequest.count({ where: { userId: decoded.id } }),
       prisma.obituary.count({ where: { createdByUserId: decoded.id } }),
     ]);

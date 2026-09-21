@@ -88,14 +88,17 @@ export const createQuote = async (req: Request, res: Response) => {
 
 // 전화 문의 클릭 이벤트 (`POST /api/facilities/:id/call-events`) — 익명, 개인정보 없음(§4.1).
 // 청구 근거로 쓰지 않는다(§9 — 통화 연결·성사 여부를 우리가 증명할 수 없음). 지표 집계 전용.
+// 🔄 2026-09-21 00-36 §4.4-1 — `userId`를 **넣지 않는다**(항상 null). 이 이벤트는 문서(01-05 §4.1 "❌ 익명
+// 이벤트 · 기본 비청구")대로 익명이어야 하는데 로그인 상태면 userId를 붙여 저장하고 있었다. 청구에도 안 쓰는
+// 이벤트에 개인 식별자를 남길 이유가 없다(00-19 최소수집). 그 결과 "내 상담 내역"에도 잡히지 않는다.
+// 이미 쌓인 행은 지우지 않는다(updateMany는 백업+CONFIRM 대상) — 조회 쪽 필터(`type: { not: 'CALL' }`)가 가린다.
 export const createCallEvent = async (req: Request, res: Response) => {
-  const decoded = verifyBearerToken(req);
   try {
     const lead = await prisma.$transaction((tx) =>
       createLead(tx, {
         type: 'CALL',
         facilityId: req.params.id,
-        userId: decoded?.id ?? null,
+        userId: null,
         payload: {},
         thirdPartyConsent: false, // CALL은 동의 대상이 아님 — leadService가 무시한다
       })

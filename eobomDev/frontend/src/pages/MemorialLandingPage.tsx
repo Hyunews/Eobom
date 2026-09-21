@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { Heart, MessageSquarePlus, Share2 } from 'lucide-react';
 import { BACKEND_URL } from '../config';
+import { apiFetchRaw } from '../lib/api';
 import { formatKST } from '../utils/obituaryCard';
 import { shareViaWebShareApi, copyObituaryLink } from '../utils/kakaoShare';
 
@@ -115,9 +116,12 @@ export const MemorialLandingPage: React.FC = () => {
     setGuestSubmitting(true);
     setGuestError(null);
     try {
-      const res = await fetch(`${BACKEND_URL}/api/memorials/${slug}/guestbook`, {
+      // 🔄 2026-09-21 — 로그인 토큰을 함께 보낸다(apiFetchRaw 'USER'). 백엔드(createGuestbookEntry)는 토큰이 오면
+      // userId를 저장하는데, 예전엔 plain fetch라 토큰이 안 실려 **로그인한 채 쓴 글도 비회원 글(userId=null)** 로
+      // 저장됐다 → 마이페이지 "내가 남긴 방명록"(SCR-021, userId 일치)에 안 떴다. 토큰이 없으면 예전처럼 비회원 글.
+      // 유효하지 않은 토큰이어도 이 라우트는 401을 내지 않고 비회원으로 취급한다(verifyBearerToken → null).
+      const res = await apiFetchRaw(`/api/memorials/${slug}/guestbook`, 'USER', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ authorName, relationToDeceased, message }),
       });
       const json = await res.json();

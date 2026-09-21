@@ -3934,3 +3934,36 @@ wt137 그대로라 재작업 없음).
 - **다음 에이전트가 알아야 할 것**: M-3(회원 탈퇴)은 스키마 변경이라 `backup-db.ps1` → 파일 확인 → 사람 CONFIRM → migrate → `generate-db-doc.js` 순서. `family-view`의 `1 + 3n → 2회` 개선은 데이터 있는 실측을 못 했으니 사람이 지정 2건 이상 계정으로 응답 시간과 응답 모양(`scope`·`acceptedAt` 포함, 연락처 없음)을 한 번 확인할 것.
 
 <!-- Gemini 판정 1줄: 대기 -->
+
+## 2026-09-21 | [Sonnet] M-2 후속 3건 — CALL 제외·SCR-021 내가 남긴 방명록·SCR-019 잘림 표시 (00-36 §4.4-1·§4.7·§6 #9)
+
+- **근거 스펙**: `docs/00_핵심플랫폼/00-36_마이페이지_정보구조_점검_및_개편_기획서.md` §4.4-1(CALL 제외)·§4.7(SCR-021)·§6 #9(100건 잘림) · `docs/01_장사시설_매칭/01-05_장사시설_사업자회원_및_리드_수수료_정산_명세서.md` §4.1(CALL=익명 이벤트·기본 비청구) · Opus 핸드오프. 스키마 변경·DB 쓰기 0건.
+- **건드린 파일**: `eobomDev/backend/src/controllers/leadController.ts`, `eobomDev/backend/src/controllers/meActivityController.ts`, `eobomDev/backend/src/controllers/summaryController.ts`, `eobomDev/frontend/src/pages/MyConsultationsPage.tsx`, `eobomDev/frontend/src/pages/MyGuestbookPage.tsx`(신설), `eobomDev/frontend/src/pages/MyPage.tsx`, `eobomDev/frontend/src/App.tsx`, `.harness/memory/context.md`.
+- **결과**:
+  1. **CALL 제외**: ① 적재 — `leadController.createCallEvent`에서 `const decoded = verifyBearerToken(req);`를 지우고 `userId: decoded?.id ?? null` → `userId: null`(항상 익명). ② 조회 — `meActivityController.listMyLeads`의 `where`를 `{ userId: decoded.id }` → `{ userId: decoded.id, type: { not: 'CALL' } }`. ③ 기존 행 미수정(`updateMany` 안 씀). 카톡 상담은 Lead에 얹지 않았다. **문서에 없는 추가 1건**: `summaryController.getMySummary`의 `prisma.lead.count`에도 `type: { not: 'CALL' }`를 넣었다 — 안 넣으면 마이페이지 통계 "상담 n"에는 기존 CALL 행이 세이고 목록에는 안 보여 숫자와 목록이 어긋난다. CALL 잔재 정리: `summarizeLeadPayload`에서 CALL 분기·인자 `type` 삭제, `MyConsultationsPage.LEAD_TYPE_LABEL`에서 `CALL: '전화 문의'` 삭제.
+  2. **SCR-021**: `MyGuestbookPage.tsx`(`/my-guestbook`, `App.tsx` 라우트) — `GET /api/me/guestbook-entries`(M-2에서 만든 것, `deletedByOwnerAt`·`hiddenAt` 제외·`userId` 일치)를 호출, 행 = 추모관 고인 성함(`<Link to="/m/:slug">` 행 전체)·내 글 한 줄(말줄임 `.v2-nav-row-sub`)·작성일. 빈 상태 `아직 남기신 글이 없습니다.` 한 줄(권유 없음). 🔴 읽기 전용 — 삭제 버튼·문구 없음. `MyPage.tsx` `내가 남긴 것` 구간에 행 `내가 남긴 방명록`(`PenLine`, `go('my-guestbook')`) 추가.
+  3. **잘림 표시**: 서버가 세 목록 모두 `take: LIST_LIMIT + 1`(101건)로 읽어 내려주고, 프런트가 100건만 그린다. 101건째가 왔으면(또는 상담 두 목록을 합쳐 100건 초과) 목록 끝에 `최근 100건까지만 표시됩니다.`(`.v2-hub-foot`). "정확히 100건인 사람에게 없는 잘림을 알리지 않기 위해" 한 건 더 읽는 방식을 골랐다. 같은 처리를 SCR-021에도 적용(스펙은 SCR-019만 명시).
+  4. 검증: `npx tsc --noEmit -p .`(backend·frontend) 에러 0, `npm run build`(frontend) 통과. 스모크(임시 `_smoke_m2b.ts`, 실행 뒤 삭제 — SELECT만): 개발 DB에서 `type='CALL'` 행 **0건**(`userId` 있는 것도 0), `type != CALL & userId 있음` 5건, 필터 쿼리(`type: { not: 'CALL' }`) 정상 실행. 🔴 dev 서버 미기동 — 화면 실기동은 사람이 확인.
+  5. 캔버스 `https://claude.ai/artifact/FmacNUuzKECyG5bQfzxx8q` v7 — SCR-019(웹·모바일, 잘림 줄 포함)·SCR-021(웹·모바일) 아트보드 4장 추가(기존 아트보드·인덱스 키 보존, 새 항목만 추가).
+- **편차**:
+  - `getMySummary` 필터 추가(위 1)는 스펙에 명시가 없는 확장이다 — 통계와 목록의 일관성 때문이며 Opus 확인 필요.
+  - 잘림 표시를 스펙의 "100건 초과"에 맞추려고 서버 응답이 최대 **101건**이 됐다(스펙의 "100건 상한" 문구와 미세하게 다름). 프런트가 100건으로 자른다.
+  - 화면(SCR-019 보완·SCR-021)은 개발 DB에 방명록 테스트 글이 없어 실제 렌더를 보지 못했다.
+- **다음 에이전트가 알아야 할 것**: M-3(회원 탈퇴)의 스키마 변경은 **두 개** — `User`(`deletionRequestedAt`·`deletionScheduledAt`) + `MemorialGuestbook`(`deletedByAuthorAt`)를 **한 번의 마이그레이션**으로. 순서: `backup-db.ps1` → 파일 생성 확인 → 사람 CONFIRM → migrate → `generate-db-doc.js`. SCR-021 삭제 버튼과 `DELETE /api/me/guestbook-entries/:id`(개설자용과 분리)는 그 마이그레이션 뒤에 켠다.
+
+<!-- Gemini 판정 1줄: 대기 -->
+
+## 2026-09-21 | [Sonnet] 마이페이지 후속 — 방명록 작성 시 로그인 토큰 누락 수정·구간 순서 변경·로그아웃/회원 탈퇴 최하단 한 줄 (사용자 직접 지시)
+
+- **근거 스펙**: 스펙 없음 — 사용자 직접 지시 3건(① 내 부고장·추모관과 디지털 정산 위치 변경 ② 방명록을 남겼는데 "내가 남긴 방명록"에 안 뜸 ③ 로그아웃·회원 탈퇴를 작은 글자 최하단 한 줄, "내 활동과 계정"과 별개, 탈퇴는 빨간 글자). 관련: `00-36` §4.7(SCR-021)·§4.3(회원 탈퇴).
+- **건드린 파일**: `eobomDev/frontend/src/pages/MemorialLandingPage.tsx`, `eobomDev/frontend/src/pages/MyPage.tsx`, `eobomDev/frontend/src/styles/design-v2.css`. Design 캔버스 `https://claude.ai/artifact/FmacNUuzKECyG5bQfzxx8q` v8(저장소 밖).
+- **결과**:
+  1. **방명록 미표시 원인 = 프런트가 로그인 토큰을 안 실어 보냄.** `MemorialLandingPage.handleGuestbookSubmit`이 plain `fetch(..., { headers: { 'Content-Type': 'application/json' } })`였다 → 백엔드 `createGuestbookEntry`는 `verifyBearerToken(req)`가 성공해야 `userId`를 저장하는데 토큰이 없어 **로그인한 채 쓴 글도 `userId=null`(비회원 글)** 로 저장 → `GET /api/me/guestbook-entries`(`userId` 일치)에 안 잡힘. 수정: `fetch` → `apiFetchRaw('/api/memorials/${slug}/guestbook', 'USER', { method: 'POST', body })`(토큰이 있으면 `Authorization`이 붙고, 없으면 예전처럼 비회원 글). 백엔드 변경 없음. 진단: 개발 DB `MemorialGuestbook` 6건 전부 `userId` null(SELECT, 임시 스크립트 `_smoke_gb.ts` 실행 뒤 삭제).
+  2. **위치 변경**: `MyPage.tsx` `내가 남긴 것` 구간에서 `내 부고장 · 추모관`과 `디지털 정산`의 순서를 맞바꿈(엔딩노트 → 유족 메시지 보관함 → **디지털 정산 → 내 부고장·추모관** → 내가 남긴 방명록).
+  3. **로그아웃·회원 탈퇴**: `내 활동과 계정` 구간의 `로그아웃` 행 삭제(`LogOut` import 삭제), 구간 밖 최하단에 `.v2-account-foot`(위 1px 선·가운데 정렬 한 줄) + `.v2-account-foot-btn`(13px 글자, 터치 타깃 44px 유지)로 `로그아웃`(보조 글자색)·`회원 탈퇴`(`.is-danger` 빨간 글자). `회원 탈퇴`는 M-3 흐름이 없어 `.v2-modal`로 "회원 탈퇴 기능을 준비하고 있습니다." + 닫기만 띄운다(`backdropCloseProps` 적용).
+  4. 캔버스 v8: 위 순서·최하단 한 줄 반영(마이페이지 웹·모바일).
+  5. `npx tsc --noEmit -p .`(frontend) 에러 0, `npm run build`(frontend) 통과. 🔴 dev 서버 미기동 — 실기동은 사람이 확인.
+- **편차**: `회원 탈퇴` 버튼이 아직 실제 탈퇴 흐름이 아니다(M-3 선행: 스키마 변경·백업·CONFIRM) — "준비 중" 모달로 대신했고, 눌러도 아무 일 없는 버튼을 피하려는 임시 처리다. 사용자 지시 1번("위치 변경")을 두 행의 **순서 맞바꿈**으로 해석했다.
+- **다음 에이전트가 알아야 할 것**: 🔴 **이미 남긴 방명록 글은 회원 글로 복구되지 않는다** — 저장 시점에 작성자를 식별할 값이 남지 않았다(`userId=null`, 작성자명은 자유 입력). 수정 배포 뒤 **새로 남긴 글**부터 "내가 남긴 방명록"에 뜬다. 🟡 같은 원인의 인접 버그: `handleTribute`(헌화)도 plain `fetch`라 토큰이 안 간다 — 로그인 사용자 1인 1회 보장(`@@unique([memorialId, userId])`)이 실제로는 작동하지 않는다. 이번엔 지시 범위 밖이라 손대지 않았다.
+
+<!-- Gemini 판정 1줄: 대기 -->

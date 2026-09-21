@@ -1533,6 +1533,32 @@ button.v2-stat {
   color: var(--v2-text-faint);
 }
 
+/* 마이페이지 최하단 — 구간과 별개인 작은 글자 한 줄(로그아웃 · 회원 탈퇴). 탈퇴는 빨간 글자를 유지한다.
+   글자는 작아도 터치 타깃은 44px 이상(padding으로 확보) */
+.v2-account-foot {
+  margin-top: 64px;
+  padding-top: 8px;
+  border-top: 1px solid var(--v2-divider-strong);
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+}
+
+.v2-account-foot-btn {
+  min-height: 44px;
+  padding: 0 14px;
+  border: none;
+  background: none;
+  font-family: inherit;
+  font-size: var(--v2-fs-label);
+  color: var(--v2-text-muted);
+  cursor: pointer;
+}
+
+.v2-account-foot-btn.is-danger {
+  color: var(--v2-urgent);
+}
+
 /* 구간 제목 줄 오른쪽 끝의 보조 글자(예: 나를 자녀로 지정 · 주 연락자) */
 .v2-section-head-meta {
   margin-left: auto;

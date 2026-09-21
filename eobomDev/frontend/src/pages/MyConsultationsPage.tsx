@@ -11,8 +11,12 @@ import '../styles/design-v2.css';
 //
 // 🔴 내부 상태(CONVERTED·LOST 등)는 서버가 이미 4단계로 접어 내려준다 — 여기서 원본 상태를 다시 만들지 않는다.
 // 🔴 서버가 안 내려주는 값(연락처·정산 필드·payload 원문)은 애초에 이 화면에 없다.
-// 🟡 전화 문의(type=CALL)는 "버튼을 누른 기록"이지 접수된 상담이 아니다(leadController.createCallEvent) —
-// 그래도 00-36 §4.4가 목록에 넣도록 했으므로 넣되, 요약을 사실 그대로("전화 문의 버튼을 누름") 보여준다.
+// 🔄 2026-09-21 00-36 §4.4-1 — 전화 문의(type=CALL)는 상담이 아니라 "버튼을 누른 기록"이라 서버가 목록에서
+// 뺐다(`GET /api/me/leads`의 `type: { not: 'CALL' }`). 카카오톡 문의도 Lead에 얹지 않아 이 목록에 없다.
+// 🔴 00-36 §6 #9 — 목록은 최신순 100건까지만 보여준다. 서버가 101건째까지 내려주므로(meActivityController
+// LIST_LIMIT + 1) 101건째가 왔는지로 "잘렸다"를 정확히 알고, 잘렸으면 목록 끝에 한 줄을 단다.
+// 조용히 잘리면 6070 이용자에게는 "내 기록이 사라졌다"가 된다.
+const LIST_LIMIT = 100;
 
 type StatusGroup = 'RECEIVED' | 'IN_PROGRESS' | 'DONE' | 'CLOSED';
 
@@ -55,7 +59,7 @@ const STATUS_LABEL: Record<StatusGroup, string> = {
   CLOSED: '종료',
 };
 
-const LEAD_TYPE_LABEL: Record<string, string> = { QUOTE: '견적 문의', CONSULT: '상담 문의', CALL: '전화 문의' };
+const LEAD_TYPE_LABEL: Record<string, string> = { QUOTE: '견적 문의', CONSULT: '상담 문의' };
 const CHANNEL_LABEL: Record<string, string> = { ALIMTALK: '알림톡', PHONE: '전화', VIDEO: '화상', VISIT: '방문' };
 // CounselingPage.tsx CATEGORY_TABS와 같은 라벨(02-05 §3.3 5대 직역)
 const CATEGORY_LABEL: Record<string, string> = {
@@ -82,6 +86,7 @@ interface MyConsultationsPageProps {
 
 export const MyConsultationsPage: React.FC<MyConsultationsPageProps> = ({ currentUser, onOpenLogin, setActiveTab }) => {
   const [items, setItems] = useState<Item[] | null>(null);
+  const [truncated, setTruncated] = useState(false);
   const [loadError, setLoadError] = useState(false);
   const [open, setOpen] = useState<Item | null>(null);
 
@@ -122,7 +127,10 @@ export const MyConsultationsPage: React.FC<MyConsultationsPageProps> = ({ curren
               createdAt: r.createdAt,
             }))
           : [];
-      setItems([...leads, ...consults].sort((a, b) => b.createdAt.localeCompare(a.createdAt)));
+      const merged = [...leads, ...consults].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+      // 어느 쪽이든 101건째가 왔거나 합쳐서 100건을 넘으면 잘린 것 — 100건까지만 그린다
+      setTruncated(leads.length > LIST_LIMIT || consults.length > LIST_LIMIT || merged.length > LIST_LIMIT);
+      setItems(merged.slice(0, LIST_LIMIT));
     });
   }, [currentUser]);
 
@@ -164,6 +172,7 @@ export const MyConsultationsPage: React.FC<MyConsultationsPageProps> = ({ curren
                 <span className="v2-nav-row-arrow"><ChevronRight size={18} /></span>
               </button>
             ))}
+            {truncated && <p className="v2-hub-foot">최근 {LIST_LIMIT}건까지만 표시됩니다.</p>}
           </div>
         )}
       </div>

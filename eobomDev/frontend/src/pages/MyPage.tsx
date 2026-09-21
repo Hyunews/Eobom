@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { BookOpen, ChevronRight, Settings, UserCircle, Users, Mail, Flower2, MessageCircle, Send, Inbox, LogOut, ExternalLink, type LucideIcon } from 'lucide-react';
+import { BookOpen, ChevronRight, Settings, UserCircle, Users, Mail, Flower2, MessageCircle, Send, Inbox, ExternalLink, PenLine, type LucideIcon } from 'lucide-react';
 import { PhoneHeartIcon } from '../components/MenuIcons';
 import { apiFetchRaw, apiFetch } from '../lib/api';
 import { getToken } from '../lib/storage';
 import { KAKAO_CHANNEL_CHAT_URL } from '../config';
+import { backdropCloseProps } from '../utils/backdropClose';
 import '../styles/design-v2.css';
 
 interface MyPageProps {
@@ -32,8 +33,8 @@ interface MySummary {
 // 🔄 2026-09-21 M-1.5(00-36 §5) — 그룹② 허브형 재구성. 시안: Design 캔버스 "그룹② mypage 시안" v4.
 // 규칙 정본은 00-39 §6 "훑는 목록" — 카드·그림자 없이 1px 구분선 행, 명조 구간 제목, 읽기 폭 764px.
 // 구조는 00-36 §4.1(4구역): 나 / 내가 남긴 것 / 나에게 공유된 것 / 내 활동과 계정.
-// 이번 범위(M-1.5, 서버 0건)에 없는 자리 — 내가 남긴 방명록·내 상담 내역 목록(M-2), 개인정보·동의·
-// 내 데이터 반출·회원 탈퇴(M-3) — 는 아직 그리지 않는다. 눌러도 아무 일도 없는 행을 만들지 않는다.
+// 🔄 M-2(2026-09-21)로 `내 상담 내역`(SCR-019)·`내가 남긴 방명록`(SCR-021) 행이 생겼다. 아직 그리지 않는 자리 —
+// 개인정보·동의·내 데이터 반출·회원 탈퇴(M-3) — 는 눌러도 아무 일도 없는 행을 만들지 않으려고 비워 뒀다.
 //
 // 🔴 "부고장" 통계 칸과 아래 "내 부고장 · 추모관" 행은 같은 목적지(`/my-obituaries-memorials`)로 가는
 // 두 입구다 — 그 화면의 유일한 통로를 이중화하는 안전장치(00-36 §3.1 마지막 문단). 통계 칸을 지우거나
@@ -81,6 +82,7 @@ const HubSection: React.FC<{ title: string; children: React.ReactNode }> = ({ ti
 export const MyPage: React.FC<MyPageProps> = ({ currentUser, onOpenLogin, onOpenAccountSettings, onOpenProfile, onOpenFamilyDesignation, onLogout, setActiveTab }) => {
   const [profile, setProfile] = useState<MyProfile | null>(null);
   const [summary, setSummary] = useState<MySummary | null>(null);
+  const [withdrawInfoOpen, setWithdrawInfoOpen] = useState(false);
 
   useEffect(() => {
     if (!currentUser || !getToken('USER')) return;
@@ -192,9 +194,12 @@ export const MyPage: React.FC<MyPageProps> = ({ currentUser, onOpenLogin, onOpen
           {/* 00-36 §3.1 최우선 구멍 — 06-05 D-1~D-11(편지·음성·반출까지)이 다 구현됐는데
               마이페이지엔 입구가 없었다. 사이드바와 같은 라우트로 연결. */}
           <NavRow icon={<Mail size={20} />} label="유족 메시지 보관함" onClick={go('farewell-messages')} />
-          <NavRow icon={<Flower2 size={20} />} label="내 부고장 · 추모관" onClick={go('my-obituaries-memorials')} />
-          {/* 🔄 2026-09-21 사람 지시 — "디지털 자산 정리" → "디지털 정산"(modeNav.ts 라벨과 일치) */}
+          {/* 🔄 2026-09-21 사람 지시 — "디지털 자산 정리" → "디지털 정산"(modeNav.ts 라벨과 일치), 그리고 이 행을
+              "내 부고장 · 추모관" 위로 올렸다(둘의 순서를 맞바꿈). */}
           <NavRow icon={<PhoneHeartIcon size={20} color="currentColor" />} label="디지털 정산" onClick={go('digital-estate')} />
+          <NavRow icon={<Flower2 size={20} />} label="내 부고장 · 추모관" onClick={go('my-obituaries-memorials')} />
+          {/* 00-36 §4.7(SCR-021) — 추모관에 내가 회원으로 남긴 글. 1차는 읽기 전용 */}
+          <NavRow icon={<PenLine size={20} />} label="내가 남긴 방명록" onClick={go('my-guestbook')} />
         </HubSection>
 
         {/* 00-36 §4.6(SCR-020) — 행은 하나다. 공유된 엔딩노트와 수락한 가족 지정은 같은
@@ -210,10 +215,31 @@ export const MyPage: React.FC<MyPageProps> = ({ currentUser, onOpenLogin, onOpen
           <NavRow icon={<Send size={20} />} label="내 상담 내역" onClick={go('my-consultations')} />
           {/* 5-1 — 푸터와 같은 URL·같은 말풍선 아이콘, 새 창. 문의는 카톡 안에서 끝나므로 숫자·배지를 달지 않는다 */}
           <NavRow icon={<MessageCircle size={20} />} label="카카오톡으로 문의하기" href={KAKAO_CHANNEL_CHAT_URL} />
-          {/* 5-3 — 사이드바 폐지(00-39 §6 규칙 3) 뒤 모바일에는 로그아웃 진입점이 헤더 드롭다운뿐이다 */}
-          <NavRow icon={<LogOut size={20} />} label="로그아웃" onClick={onLogout} />
         </HubSection>
+
+        {/* 🔄 2026-09-21 사람 지시 — 로그아웃·회원 탈퇴는 "내 활동과 계정" 구간의 행이 아니라 그 밖의 **최하단
+            한 줄 작은 글자 버튼**이다. 5-3의 이유(사이드바 폐지 뒤 모바일에 로그아웃 진입점이 헤더 드롭다운뿐)는
+            그대로. 회원 탈퇴는 빨간 글자를 유지한다(되돌릴 수 없는 행동 — 00-39 규칙 5와 같은 결). */}
+        <div className="v2-account-foot">
+          <button type="button" className="v2-account-foot-btn" onClick={onLogout}>로그아웃</button>
+          <button type="button" className="v2-account-foot-btn is-danger" onClick={() => setWithdrawInfoOpen(true)}>회원 탈퇴</button>
+        </div>
       </div>
+
+      {/* 🟡 회원 탈퇴 흐름(00-36 §4.3·M-3)은 아직 없다 — 스키마 변경(User 삭제대기 컬럼)과 백업·CONFIRM이 선행이다.
+          그때까지 이 버튼은 "준비 중"임을 사실대로 알리기만 한다(눌러도 아무 일도 없는 버튼을 만들지 않으려고).
+          M-3에서 이 모달을 ①지워지는 것 목록 ②반출 유도 ③30일 유예 고지 ④확인 흐름으로 교체한다. */}
+      {withdrawInfoOpen && (
+        <div className="v2-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="withdraw-info-title" {...backdropCloseProps(() => setWithdrawInfoOpen(false))}>
+          <div className="v2-modal" onClick={(e) => e.stopPropagation()}>
+            <h3 id="withdraw-info-title" className="v2-modal-title">회원 탈퇴</h3>
+            <p className="v2-modal-value" style={{ margin: 0 }}>회원 탈퇴 기능을 준비하고 있습니다.</p>
+            <div className="v2-modal-actions">
+              <button type="button" className="v2-btn-outline" onClick={() => setWithdrawInfoOpen(false)}>닫기</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
