@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { X, ShieldCheck, Check, AlertCircle } from 'lucide-react';
 import { BACKEND_URL } from '../config';
 import { PENDING_RETURN_PATH_KEY } from '../lib/storage';
+import { backdropCloseProps } from '../utils/backdropClose';
 
 interface LoginModalProps {
   isOpen: boolean;
@@ -257,7 +258,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin
   };
 
   return (
-    <div className="login-modal-backdrop">
+    <div className="login-modal-backdrop" {...backdropCloseProps(onClose)}>
       {/* 동의 체크박스 3개 + 소셜 로그인 3종 + 데모 버튼까지 합치면 모바일 화면 높이를
           넘어서는데(2026-08-25 개발자 실기기 확인), maxHeight/overflowY가 없어 위아래가
           화면 밖으로 잘려 나가고 배경(overflow 없는 고정 배경)에서도 스크롤할 방법이 없었다.

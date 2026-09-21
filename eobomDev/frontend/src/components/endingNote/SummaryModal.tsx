@@ -1,6 +1,7 @@
 import React from 'react';
 import { ListChecks, CheckCircle2, X } from 'lucide-react';
 import type { SummaryRow } from './types';
+import { backdropCloseProps } from '../../utils/backdropClose';
 
 // "한눈에 보기" 요약 모달 — 06-04 §6.1-1 파생(사용자 직접 지시, 2026-08-27). 아코디언이 한 번에
 // 한 섹션만 보여줘 생긴 "전체를 훑을 방법이 없다"는 구멍을 메운다. 🔴 새 API를 만들지 않는다 —
@@ -29,9 +30,7 @@ export const SummaryModal: React.FC<{
   return (
     <div
       className="ending-note-summary-overlay"
-      onClick={(e) => {
-        if (e.target === e.currentTarget) onClose();
-      }}
+      {...backdropCloseProps(onClose)}
     >
       <div className="ending-note-summary-panel" role="dialog" aria-modal="true" aria-label="한눈에 보기">
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>

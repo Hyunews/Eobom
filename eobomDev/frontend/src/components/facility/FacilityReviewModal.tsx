@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { X, Star, MessageSquare } from 'lucide-react';
 import { apiFetch, ApiError } from '../../lib/api';
 import { getToken } from '../../lib/storage';
+import { backdropCloseProps } from '../../utils/backdropClose';
 
 interface ReviewItem {
   id: string;
@@ -76,6 +77,7 @@ export const FacilityReviewModal: React.FC<FacilityReviewModalProps> = ({
 
   return (
     <div
+      {...backdropCloseProps(onClose)}
       style={{
         position: 'fixed',
         top: 0,

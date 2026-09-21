@@ -3899,3 +3899,18 @@ wt137 그대로라 재작업 없음).
 - **다음 에이전트가 알아야 할 것**: `index.css`의 `.stat-row` 계열·`Badge`(`EntryBoxes`)는 마이페이지에서 안 쓰게 됐다(다른 화면 사용 여부 미확인 — 지우지 않음). `SCR-020`의 `scope`·수락일·수락 철회(§4.6-2, `POST /api/family-designations/accepted/:id/withdraw`)는 서버 작업 뒤에 같은 화면에 붙인다. 캔버스는 사람이 편집기에서 `Main.dc.html` 래퍼에 `width:1362px;height:1055px`를 붙여 둔 상태였으나 내용 변경은 없어 v4가 덮어썼다.
 
 <!-- Gemini 판정 1줄: 대기 -->
+
+## 2026-09-21 | [Sonnet] 모달 배경(오버레이) 클릭으로 닫기 — 전 모달 공통 (사용자 직접 지시)
+
+- **근거 스펙**: 스펙 없음 — 사용자 직접 지시("공통사항. 모달이 떴을 때, 모달 밖 클릭 시 모달 닫히도록"). `00-39` §6.8-1 규칙 21(폼 모달은 X가 아니라 하단 [취소]로 닫는다)과는 충돌하지 않는다 — 닫는 수단을 **추가**하는 것.
+- **건드린 파일**: `eobomDev/frontend/src/utils/backdropClose.ts`(신설), 그리고 모달 19곳 — `components/`: `AddressSearchModal`·`KakaoMapModal`·`LoginModal`·`SocialLinkModal`·`counseling/TaxSimulatorModal`·`endingNote/SummaryModal`·`expert/ConsultRequestModal`·`facility/FacilityReviewModal`·`facility/InquiryModal`·`farewell/FarewellMessageCard`·`mypage/MyPageAuthSettings`·`mypage/MyPageFamilyDesignation`·`mypage/MyPageProfile` / `pages/`: `CareGuidePage`·`CounselingPage`·`PickupPage`·`MyObituaryListPage`·`FamilySharedPage`·`ObituaryPage`(수정 모달·조문객 미리보기 모달 2곳).
+- **결과**:
+  1. 공용 헬퍼 `backdropCloseProps(onClose)` — 배경 `<div>`에 `{...backdropCloseProps(onClose)}`를 펼친다. **`pointerdown` 대상과 `click` 대상이 모두 배경 자신일 때만** 닫는다.
+  2. **배경 클릭으로 안 닫히던 10곳**(`TaxSimulatorModal`·`ConsultRequestModal`·`FacilityReviewModal`·`InquiryModal`·`KakaoMapModal`·`LoginModal`·`SocialLinkModal`·`MyPageAuthSettings`·`MyPageFamilyDesignation`·`MyPageProfile`)에 신규 적용. 인라인 스타일 오버레이 5곳은 `style` 앞에 spread 한 줄 삽입.
+  3. **이미 닫히던 9곳**(`AddressSearchModal` `onClick={onClose}` · `SummaryModal`/`FarewellMessageCard`의 `e.target === e.currentTarget` 검사 · `CareGuidePage`·`CounselingPage`·`PickupPage`·`MyObituaryListPage`(2곳)·`FamilySharedPage`·`ObituaryPage`(2곳)의 `onClick={() => …}`)는 같은 헬퍼로 교체 — 기존 방식은 **패널 안에서 글자를 드래그하다 배경에서 마우스를 놓으면 click이 배경에 나가 닫혔다**(유족 편지 작성기에서는 쓰던 글이 사라진다). `FarewellMessageCard`는 `!saving` 가드를 그대로 유지: `{...backdropCloseProps(() => { if (!saving) resetComposer(); })}`.
+  4. `npx tsc --noEmit -p .`·`npm run build`(frontend) 통과. 🔴 dev 서버 미기동 — 실기동은 사람이 확인.
+  5. 줄바꿈: 커밋본이 LF인 파일은 LF로, `TaxSimulatorModal.tsx`는 커밋본이 CRLF라 CRLF로 저장 — `git diff --stat` 파일당 2~5줄.
+- **편차**: 없음. 단 손대지 않은 것: `AdminPage`의 확인·상세 모달 2곳(이미 `onClick`으로 닫히며 `!purgeSubmitting` 가드가 있어 운영자 화면이라 뒀다)·`EndingNotePage`의 섹션 리더 오버레이(이미 닫힘)·`FacilityPage` 모바일 필터 시트(별도 배경 요소, 이미 닫힘)·`Sidebar` 드로어. 이 4곳은 드래그 오작동 가능성이 남아 있다.
+- **다음 에이전트가 알아야 할 것**: 새 모달을 만들 때 오버레이에 `onClick`을 직접 달지 말고 `backdropCloseProps`를 쓴다. 🟡 폼 모달(로그인·상담 신청·업체 상담·내 정보 등)은 이제 배경을 잘못 눌러도 입력하던 값이 사라진다 — 지시대로 구현했으나 입력값이 있을 때 닫기 확인을 둘지는 Opus가 정할 일이다.
+
+<!-- Gemini 판정 1줄: 대기 -->

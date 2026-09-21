@@ -4,6 +4,7 @@ import { BACKEND_URL } from '../config';
 import { ConsultRequestModal } from '../components/expert/ConsultRequestModal';
 import { TaxSimulatorModal } from '../components/counseling/TaxSimulatorModal';
 import '../styles/design-v2.css';
+import { backdropCloseProps } from '../utils/backdropClose';
 
 // 00-39 §9.1 — 그룹①(목록·체크리스트) 대표 care-guide에서 뽑은 클래스를 시안 없이 그대로 적용.
 // 전문가 카드(테두리·배경 있는 박스)는 규칙1(카드·그림자 금지)에 따라 행 목록으로 바꾸고,
@@ -148,7 +149,7 @@ export const CounselingPage: React.FC<CounselingPageProps> = ({ currentUser, onO
 
       {/* 전문가 상세 모달 */}
       {detailTarget && (
-        <div className="v2-modal-overlay" role="dialog" aria-modal="true" onClick={() => setDetailTarget(null)}>
+        <div className="v2-modal-overlay" role="dialog" aria-modal="true" {...backdropCloseProps(() => setDetailTarget(null))}>
           <div className="v2-modal" onClick={(e) => e.stopPropagation()}>
             <h3 className="v2-modal-title">{detailTarget.name}</h3>
 

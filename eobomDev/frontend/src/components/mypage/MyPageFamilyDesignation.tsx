@@ -4,6 +4,7 @@ import { FAMILY_INVITE_CARD_IMAGE_URL } from '../../config';
 import { apiFetch, ApiError } from '../../lib/api';
 import { getToken } from '../../lib/storage';
 import { ensureKakaoShareReady, shareViaKakao } from '../../utils/kakaoShare';
+import { backdropCloseProps } from '../../utils/backdropClose';
 
 // 00-27 §8.2·§8.3·§10 Phase 1(기록) + §9.1 Phase 2(알리기·공유 버튼). 수락/거절 자체는 받는
 // 사람이 여는 /invite/:token(FamilyInvitePage.tsx)에서 일어난다 — 여기서는 링크를 만들어
@@ -245,7 +246,7 @@ export const MyPageFamilyDesignation: React.FC<MyPageFamilyDesignationProps> = (
   };
 
   return (
-    <div ref={backdropRef} className="myfamily-modal-backdrop">
+    <div ref={backdropRef} className="myfamily-modal-backdrop" {...backdropCloseProps(onClose)}>
       {/* align-items:center를 부모에 두면 내용이 뷰포트보다 길 때 위쪽이 스크롤로도 닿지 않는
           채 잘린다(닫기 버튼 실종). margin:auto로 옮기면 짧을 땐 그대로 가운데, 길면 자동으로
           0이 되어 위가 화면 안에 들어오고 스크롤이 닿는다.

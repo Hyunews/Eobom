@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { X } from 'lucide-react';
+import { backdropCloseProps } from '../utils/backdropClose';
 
 // 다음(카카오) 우편번호 서비스 — 별도 API 키 없이 무료로 쓸 수 있는 공개 주소검색 위젯.
 // 도로명 주소를 정확히 선택하게 해서 관리자·전문가가 직접 타이핑하며 생기는 주소 오탈자를 없앤다.
@@ -76,7 +77,7 @@ export const AddressSearchModal: React.FC<AddressSearchModalProps> = ({ onSelect
     // 🔄 2026-09-11 모바일 검증 루프 7번 — 인라인 스타일을 .address-modal-backdrop/-panel로
     // 옮김(값 동일). ≤768px 공통 규칙(index.css)이 바텀시트로 바꾸고 max-height:88dvh+
     // overflow-y:auto를 걸어줌 — 안의 다음 우편번호 위젯(420px 고정 높이)도 여유 있게 들어간다.
-    <div className="address-modal-backdrop" onClick={onClose}>
+    <div className="address-modal-backdrop" {...backdropCloseProps(onClose)}>
       <div className="address-modal-panel" onClick={(e) => e.stopPropagation()}>
         <button
           onClick={onClose}

@@ -3,6 +3,7 @@ import { X, CheckCircle2, AlertCircle, Link2, Unlink, Loader2 } from 'lucide-rea
 import { BACKEND_URL, providerLabel } from '../../config';
 import { apiFetchRaw, apiFetch, ApiError } from '../../lib/api';
 import { getToken } from '../../lib/storage';
+import { backdropCloseProps } from '../../utils/backdropClose';
 
 interface SocialAccountInfo {
   provider: string;
@@ -96,6 +97,7 @@ export const MyPageAuthSettings: React.FC<MyPageAuthSettingsProps> = ({ isOpen, 
 
   return (
     <div
+      {...backdropCloseProps(onClose)}
       style={{
         position: 'fixed',
         top: 0,

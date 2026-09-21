@@ -6,6 +6,7 @@ import { OBITUARY_CARD_IMAGE_URL } from '../config';
 import { formatKST, formatObituaryCardTitle, formatObituaryCardDescription } from '../utils/obituaryCard';
 import { ensureKakaoShareReady, shareViaKakao, shareViaWebShareApi, copyObituaryLink, reportObituaryShare } from '../utils/kakaoShare';
 import '../styles/design-v2.css';
+import { backdropCloseProps } from '../utils/backdropClose';
 
 // 00-06 §8(SCR-018, "내 부고장·추모관") — Header "추모관" 메뉴가 홈 박스③(링크 입력창)으로만
 // 보내서, 부고장을 만든 당사자가 정작 본인이 만든 부고장·추모관에 다시 들어갈 방법이 없다는
@@ -195,7 +196,7 @@ export const MyObituaryListPage: React.FC = () => {
       </div>
 
       {modalObituary && (
-        <div className="v2-modal-overlay" role="dialog" aria-modal="true" onClick={() => setModalTarget(null)}>
+        <div className="v2-modal-overlay" role="dialog" aria-modal="true" {...backdropCloseProps(() => setModalTarget(null))}>
           <div className="v2-modal" onClick={(e) => e.stopPropagation()}>
             <h3 className="v2-modal-title">故 {modalObituary.deceasedName}</h3>
 
@@ -245,7 +246,7 @@ export const MyObituaryListPage: React.FC = () => {
       )}
 
       {modalMemorial && (
-        <div className="v2-modal-overlay" role="dialog" aria-modal="true" onClick={() => setModalTarget(null)}>
+        <div className="v2-modal-overlay" role="dialog" aria-modal="true" {...backdropCloseProps(() => setModalTarget(null))}>
           <div className="v2-modal" onClick={(e) => e.stopPropagation()}>
             <h3 className="v2-modal-title">故 {modalMemorial.deceasedName}</h3>
 

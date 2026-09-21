@@ -3,6 +3,7 @@ import { ChevronRight } from 'lucide-react';
 import { apiFetch } from '../lib/api';
 import { SECTIONS, RELATIONSHIP_LABEL } from '../components/endingNote/constants';
 import '../styles/design-v2.css';
+import { backdropCloseProps } from '../utils/backdropClose';
 
 // 00-36 §4.6-1(SCR-020) — "나에게 공유된 것". 나를 가족으로 지정한 분별로, 지금 열람할 수 있는
 // 엔딩노트 섹션을 보여준다. 데이터는 `GET /api/ending-note/family-view`(이미 구현됨) — 서버 변경 0건(M-1.5).
@@ -124,7 +125,7 @@ export const FamilySharedPage: React.FC<FamilySharedPageProps> = ({ currentUser,
       </div>
 
       {open && (
-        <div className="v2-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="family-shared-title" onClick={() => setOpen(null)}>
+        <div className="v2-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="family-shared-title" {...backdropCloseProps(() => setOpen(null))}>
           <div className="v2-modal" onClick={(e) => e.stopPropagation()}>
             <h3 id="family-shared-title" className="v2-modal-title">{sectionTitle(open.entry.section)}</h3>
             {fields.length === 0 ? (

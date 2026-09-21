@@ -3,6 +3,7 @@ import { Search } from 'lucide-react';
 import digitalEstateData from '../mockData/digitalEstate.json';
 import { BACKEND_URL, GEOLOCATION_FALLBACK, LOCATION_FEATURE_ENABLED } from '../config';
 import '../styles/design-v2.css';
+import { backdropCloseProps } from '../utils/backdropClose';
 
 // 08-19 9차(개발자 직접 지시) — DigitalEstatePage 서브탭 3개(digital/physical/memorial) 중
 // "현물 유품 정리(physical)"를 별도 도메인(tab: 'pickup')으로 분리. 내용은 그대로 옮겼다
@@ -235,7 +236,7 @@ export const PickupPage: React.FC<PickupPageProps> = () => {
       </div>
 
       {selectedVendor && (
-        <div className="v2-modal-overlay" role="dialog" aria-modal="true" onClick={() => setSelectedVendorIdx(null)}>
+        <div className="v2-modal-overlay" role="dialog" aria-modal="true" {...backdropCloseProps(() => setSelectedVendorIdx(null))}>
           <div className="v2-modal" onClick={(e) => e.stopPropagation()}>
             <p className="v2-modal-eyebrow">예시 데이터</p>
             <h3 className="v2-modal-title">{selectedVendor.name}</h3>

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { X, Calculator, Info } from 'lucide-react';
 import { calculateInheritanceTax, InheritanceTaxBreakdown } from '../../utils/inheritanceTax';
+import { backdropCloseProps } from '../../utils/backdropClose';
 
 // 상속세 간이 시뮬레이터 — 원래 CounselingPage 본문에 있었으나 화면 포션을 너무 많이 차지해
 // 버튼으로 여는 모달로 분리(2026-08-11). 계산 로직은 utils/inheritanceTax.ts, 반영/미반영 범위는
@@ -37,7 +38,7 @@ export const TaxSimulatorModal: React.FC<TaxSimulatorModalProps> = ({ onClose })
   const fmt = (v: number) => Math.round(v).toLocaleString();
 
   return (
-    <div className="tax-sim-modal-backdrop">
+    <div className="tax-sim-modal-backdrop" {...backdropCloseProps(onClose)}>
       <div className="tax-sim-modal-panel">
         <button
           onClick={onClose}

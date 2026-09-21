@@ -3,6 +3,7 @@ import { X, Send, ShieldCheck } from 'lucide-react';
 import { apiFetch, ApiError } from '../../lib/api';
 import { getToken } from '../../lib/storage';
 import { useProfileContact } from '../../hooks/useProfileContact';
+import { backdropCloseProps } from '../../utils/backdropClose';
 
 // 전문가 상담 신청 — InquiryModal.tsx(장사시설 업체 문의)와 같은 구조.
 // docs/02_전문가_매칭/02-03_전문가_공개노출_및_상담신청_명세서.md §7.2.
@@ -68,7 +69,7 @@ export const ConsultRequestModal: React.FC<ConsultRequestModalProps> = ({ expert
   };
 
   return (
-    <div className="consult-modal-backdrop">
+    <div className="consult-modal-backdrop" {...backdropCloseProps(onClose)}>
       <div className="consult-modal-panel">
         <button
           onClick={onClose}

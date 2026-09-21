@@ -8,6 +8,7 @@ import { apiFetch, ApiError } from '../lib/api';
 import { formatObituaryCardTitle, formatObituaryCardDescription, formatKST } from '../utils/obituaryCard';
 import { ensureKakaoShareReady, shareViaKakao, shareViaWebShareApi, copyObituaryLink, buildObituarySmsHref, reportObituaryShare } from '../utils/kakaoShare';
 import { useIsMobile } from '../hooks/useIsMobile';
+import { backdropCloseProps } from '../utils/backdropClose';
 
 // 모바일 부고장 작성 화면(SCR-014 개편) — docs 07-03 §6.2 Phase 1 전면 재작성.
 // 이전 목업의 useState('홍길동') 하드코딩 초기값을 전부 제거했다 — 경황 없는 유족이 남의
@@ -979,7 +980,7 @@ export const ObituaryPage: React.FC<ObituaryPageProps> = ({ currentUser, onOpenL
           </div>
 
           {isEditOpen && (
-            <div className="v2-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="ob-edit-title" onClick={() => setIsEditOpen(false)}>
+            <div className="v2-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="ob-edit-title" {...backdropCloseProps(() => setIsEditOpen(false))}>
               <div className="v2-modal is-form" onClick={(e) => e.stopPropagation()}>
                 <h2 id="ob-edit-title" className="v2-modal-title">부고장 수정</h2>
                 {formCard}
@@ -992,7 +993,7 @@ export const ObituaryPage: React.FC<ObituaryPageProps> = ({ currentUser, onOpenL
           함께 통일 — 지금 건드리지 않는다). */}
           {isPreviewOpen && (
             <div
-              onClick={() => setIsPreviewOpen(false)}
+              {...backdropCloseProps(() => setIsPreviewOpen(false))}
               style={{
                 position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
                 backgroundColor: 'rgba(0, 0, 0, 0.65)', backdropFilter: 'blur(4px)',

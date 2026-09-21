@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { AlertCircle, Link2, UserPlus } from 'lucide-react';
 import { BACKEND_URL, providerLabel } from '../config';
+import { backdropCloseProps } from '../utils/backdropClose';
 
 interface SocialLinkModalProps {
   isOpen: boolean;
@@ -52,6 +53,7 @@ export const SocialLinkModal: React.FC<SocialLinkModalProps> = ({
 
   return (
     <div
+      {...backdropCloseProps(onClose)}
       style={{
         position: 'fixed',
         top: 0,

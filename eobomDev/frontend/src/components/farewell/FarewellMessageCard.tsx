@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Heart, Plus, Loader2, Pencil, X, Volume2, Trash2, Download, Upload, Mic, FileText, ChevronDown } from 'lucide-react';
 import { BACKEND_URL } from '../../config';
 import { VoiceToTextInput, SavedMedia } from './VoiceToTextInput';
+import { backdropCloseProps } from '../../utils/backdropClose';
 
 // 06-05 §5.4-3-1 D-5 항목23-2 — 건별 반출 파일명. 백엔드 farewellMessageExport.ts의
 // sanitizeForFilename·buildExportZipFilename과 규칙을 맞춘다(40자 절단·금지문자 제거).
@@ -480,9 +481,7 @@ export const FarewellMessageCard: React.FC<FarewellMessageCardProps> = ({ recipi
       {composerOpen && (
         <div
           className="farewell-message-overlay"
-          onClick={(e) => {
-            if (e.target === e.currentTarget && !saving) resetComposer();
-          }}
+          {...backdropCloseProps(() => { if (!saving) resetComposer(); })}
         >
           <div className="farewell-message-panel" role="dialog" aria-modal="true" aria-label={editingId ? '편지 수정' : '새 편지 쓰기'}>
             <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 'var(--sp-3)', marginBottom: '1.2rem' }}>

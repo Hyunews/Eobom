@@ -3,6 +3,7 @@ import { X, Send, ShieldCheck } from 'lucide-react';
 import { apiFetch, ApiError } from '../../lib/api';
 import { getToken } from '../../lib/storage';
 import { useProfileContact } from '../../hooks/useProfileContact';
+import { backdropCloseProps } from '../../utils/backdropClose';
 
 // 업체 문의 — 전화번호 노출 대신 이 폼을 통해서만 시설에 문의한다(docs 01-05 §9: 전화 문의는
 // 수수료 청구 근거로 증명 불가, 견적요청 폼으로 유도). 기존 POST /api/facilities/:id/quotes
@@ -64,7 +65,7 @@ export const InquiryModal: React.FC<InquiryModalProps> = ({ facilityId, facility
     // 🔄 2026-09-11 모바일 검증 루프 7번 — 인라인 스타일을 .inquiry-modal-backdrop/-panel로
     // 옮김(값 동일). ≤768px 공통 규칙(index.css)이 max-height:88dvh+overflow-y:auto를 걸어줘,
     // 원래 모바일에서 내용이 넘쳐도 스크롤할 방법이 없던 문제(보호장치 자체가 없었음)가 해소된다.
-    <div className="inquiry-modal-backdrop">
+    <div className="inquiry-modal-backdrop" {...backdropCloseProps(onClose)}>
       <div className="inquiry-modal-panel">
         <button
           onClick={onClose}

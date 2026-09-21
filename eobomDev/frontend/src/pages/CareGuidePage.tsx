@@ -3,6 +3,7 @@ import { ExternalLink, ChevronRight } from 'lucide-react';
 import careGuideTasksData from '../mockData/careGuideTasks.json';
 import { getLegalLink } from '../lib/legalLink';
 import '../styles/design-v2.css';
+import { backdropCloseProps } from '../utils/backdropClose';
 
 interface CareGuideTask {
   id: number;
@@ -233,7 +234,7 @@ export const CareGuidePage: React.FC<CareGuidePageProps> = ({ setActiveTab }) =>
       {/* §6.4 모달 — 제목·기한·근거 세 줄뿐(규칙10), 해설·조언 문장 없음(규칙11).
           모바일은 CSS(design-v2.css)가 같은 마크업을 바텀시트로 바꾼다. */}
       {modalTask && (
-        <div className="v2-modal-overlay" role="dialog" aria-modal="true" onClick={() => setModalTaskId(null)}>
+        <div className="v2-modal-overlay" role="dialog" aria-modal="true" {...backdropCloseProps(() => setModalTaskId(null))}>
           <div className="v2-modal" onClick={(e) => e.stopPropagation()}>
             {modalTask.severity === 'CRITICAL' && <p className="v2-modal-eyebrow">되돌릴 수 없음</p>}
             <h3 className="v2-modal-title">{modalTask.title}</h3>

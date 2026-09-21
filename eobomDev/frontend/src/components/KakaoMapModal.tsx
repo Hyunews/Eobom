@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { X, MapPin, Navigation, ExternalLink, ShieldCheck, Clock } from 'lucide-react';
 import { GEOLOCATION_FALLBACK, KAKAO_MAP_LOAD_TIMEOUT_MS, KAKAO_MAP_LOAD_POLL_INTERVAL_MS } from '../config';
+import { backdropCloseProps } from '../utils/backdropClose';
 
 interface KakaoMapModalProps {
   facility: {
@@ -160,6 +161,7 @@ export const KakaoMapModal: React.FC<KakaoMapModalProps> = ({ facility, userLoca
 
   return (
     <div
+      {...backdropCloseProps(onClose)}
       style={{
         position: 'fixed',
         top: 0,

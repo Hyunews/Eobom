@@ -3,6 +3,7 @@ import { X, CheckCircle2, AlertCircle, MapPin, Loader2 } from 'lucide-react';
 import { apiFetch, ApiError } from '../../lib/api';
 import { getToken } from '../../lib/storage';
 import { AddressSearchModal } from '../AddressSearchModal';
+import { backdropCloseProps } from '../../utils/backdropClose';
 
 // 00-28 §6.3·§8 Phase 1 — 마이페이지 > 내 정보. MyPageAuthSettings.tsx와 같은 모달 패턴.
 // 🔴 연락처·상세주소는 GET 응답이 마스킹돼서 온다(§6.1) — 그래서 이 두 필드만 "현재 값 표시 +
@@ -118,6 +119,7 @@ export const MyPageProfile: React.FC<MyPageProfileProps> = ({ isOpen, onClose })
 
   return (
     <div
+      {...backdropCloseProps(onClose)}
       style={{
         position: 'fixed',
         top: 0,
