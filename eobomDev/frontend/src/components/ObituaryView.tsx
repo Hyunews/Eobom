@@ -31,10 +31,20 @@ export interface ObituaryData {
   account?: { bankCode: string | null; accountNumber: string | null; holder: string | null };
 }
 
+// 🔄 2026-09-21 줄 높이 통일 — 줄마다 높이가 달랐던 원인: ① 라벨 칸에는 line-height가 없고 값 칸만
+// 1.5여서 두 칸의 줄 높이가 어긋남 ② 길찾기·전화 걸기 링크가 inline-flex + 12px 아이콘이라 그 줄만
+// 줄 상자가 커짐 ③ 링크 간격이 링크마다 marginLeft로 제각각. → 라벨·값 모두 같은 line-height,
+// 값 칸을 flex(가운데 정렬·gap·줄바꿈)로 두어 링크가 줄 높이를 바꾸지 못하게 했다.
+const ROW_LINE_HEIGHT = 1.5;
+const rowLinkStyle: React.CSSProperties = {
+  display: 'inline-flex', alignItems: 'center', gap: '0.25rem',
+  fontSize: 'var(--fs-body)', lineHeight: ROW_LINE_HEIGHT, color: 'var(--point-color)', fontWeight: 700, textDecoration: 'none',
+};
+
 const Row: React.FC<{ label: string; children: React.ReactNode }> = ({ label, children }) => (
-  <div style={{ display: 'flex', gap: '1rem', padding: '0.6rem 0', borderBottom: '1px solid #EAE5DC' }}>
-    <span style={{ width: '52px', flexShrink: 0, fontSize: 'var(--fs-body)', fontWeight: 700, color: '#6C7A89' }}>{label}</span>
-    <span style={{ fontSize: 'var(--fs-body)', color: '#1A2B4C', lineHeight: 1.5 }}>{children}</span>
+  <div style={{ display: 'flex', alignItems: 'flex-start', gap: '1rem', padding: '0.75rem 0', borderBottom: '1px solid #EAE5DC' }}>
+    <span style={{ width: '52px', flexShrink: 0, fontSize: 'var(--fs-body)', fontWeight: 700, lineHeight: ROW_LINE_HEIGHT, color: '#6C7A89' }}>{label}</span>
+    <span style={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', flexWrap: 'wrap', columnGap: '0.6rem', fontSize: 'var(--fs-body)', lineHeight: ROW_LINE_HEIGHT, color: '#1A2B4C' }}>{children}</span>
   </div>
 );
 
@@ -63,14 +73,16 @@ export const ObituaryView: React.FC<{ data: ObituaryData }> = ({ data }) => {
         </div>
 
         <div style={{ padding: '1.5rem 1.75rem' }}>
-          {/* 빈소·입관·발인·장지 */}
-          <div style={{ marginBottom: '1.2rem' }}>
+          {/* 빈소·입관·발인·장지 — 아래 그룹(상주·유족·연락처)과 같은 행 리듬으로 이어지도록 그룹 사이
+              여백(marginBottom)을 두지 않는다. 있으면 이 그룹 마지막 행 아래만 간격이 벌어져 줄 높이가
+              제각각으로 보인다(2026-09-21 사용자 지시). */}
+          <div>
             {data.funeralHall && (
               <Row label="빈소">
                 {data.funeralHall}
                 {data.mourningRoom ? ` ${data.mourningRoom}` : ''}
                 {kakaoMapUrl && (
-                  <a href={kakaoMapUrl} target="_blank" rel="noreferrer" style={{ marginLeft: '0.5rem', fontSize: 'var(--fs-body)', color: 'var(--point-color)', fontWeight: 700, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '0.2rem' }}>
+                  <a href={kakaoMapUrl} target="_blank" rel="noreferrer" style={rowLinkStyle}>
                     <Navigation size={12} /> 길찾기
                   </a>
                 )}
@@ -90,7 +102,7 @@ export const ObituaryView: React.FC<{ data: ObituaryData }> = ({ data }) => {
             {data.contactPhone && (
               <Row label="연락처">
                 {data.contactPhone}
-                <a href={`tel:${data.contactPhone}`} style={{ marginLeft: '0.6rem', fontSize: 'var(--fs-body)', color: 'var(--point-color)', fontWeight: 700, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '0.2rem' }}>
+                <a href={`tel:${data.contactPhone}`} style={rowLinkStyle}>
                   <Phone size={12} /> 전화 걸기
                 </a>
               </Row>
@@ -126,7 +138,7 @@ export const ObituaryView: React.FC<{ data: ObituaryData }> = ({ data }) => {
 
       {/* §5.4-2 — 조문객 쪽 방어선. 카드는 공유 시점 스냅샷이라 바뀔 수 있으니 최종 수정 시각을 알린다. */}
       <p style={{ textAlign: 'center', fontSize: 'var(--fs-body)', color: '#94A3B8', marginTop: '1rem' }}>
-        최종 수정: {formatKST(data.updatedAt)} · 정보는 유족이 언제든 바꿀 수 있습니다.
+        최종 수정: {formatKST(data.updatedAt)}
       </p>
       <p style={{ textAlign: 'center', fontSize: 'var(--fs-body)', color: 'var(--border-color)', marginTop: '0.4rem' }}>이어봄</p>
     </div>
