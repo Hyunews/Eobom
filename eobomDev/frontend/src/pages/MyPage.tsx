@@ -4,7 +4,7 @@ import { PhoneHeartIcon } from '../components/MenuIcons';
 import { apiFetchRaw, apiFetch } from '../lib/api';
 import { getToken } from '../lib/storage';
 import { KAKAO_CHANNEL_CHAT_URL } from '../config';
-import { backdropCloseProps } from '../utils/backdropClose';
+import { WithdrawalModal } from '../components/mypage/WithdrawalModal';
 import '../styles/design-v2.css';
 
 interface MyPageProps {
@@ -33,8 +33,9 @@ interface MySummary {
 // 🔄 2026-09-21 M-1.5(00-36 §5) — 그룹② 허브형 재구성. 시안: Design 캔버스 "그룹② mypage 시안" v4.
 // 규칙 정본은 00-39 §6 "훑는 목록" — 카드·그림자 없이 1px 구분선 행, 명조 구간 제목, 읽기 폭 764px.
 // 구조는 00-36 §4.1(4구역): 나 / 내가 남긴 것 / 나에게 공유된 것 / 내 활동과 계정.
-// 🔄 M-2(2026-09-21)로 `내 상담 내역`(SCR-019)·`내가 남긴 방명록`(SCR-021) 행이 생겼다. 아직 그리지 않는 자리 —
-// 개인정보·동의·내 데이터 반출·회원 탈퇴(M-3) — 는 눌러도 아무 일도 없는 행을 만들지 않으려고 비워 뒀다.
+// 🔄 M-2(2026-09-21)로 `내 상담 내역`(SCR-019)·`내가 남긴 방명록`(SCR-021) 행이 생겼고, M-3로 최하단의
+// `회원 탈퇴`가 4단계 확인 흐름(WithdrawalModal)이 됐다. 아직 그리지 않는 자리 — 개인정보·동의·내 데이터
+// 반출 — 는 눌러도 아무 일도 없는 행을 만들지 않으려고 비워 뒀다.
 //
 // 🔴 "부고장" 통계 칸과 아래 "내 부고장 · 추모관" 행은 같은 목적지(`/my-obituaries-memorials`)로 가는
 // 두 입구다 — 그 화면의 유일한 통로를 이중화하는 안전장치(00-36 §3.1 마지막 문단). 통계 칸을 지우거나
@@ -82,7 +83,7 @@ const HubSection: React.FC<{ title: string; children: React.ReactNode }> = ({ ti
 export const MyPage: React.FC<MyPageProps> = ({ currentUser, onOpenLogin, onOpenAccountSettings, onOpenProfile, onOpenFamilyDesignation, onLogout, setActiveTab }) => {
   const [profile, setProfile] = useState<MyProfile | null>(null);
   const [summary, setSummary] = useState<MySummary | null>(null);
-  const [withdrawInfoOpen, setWithdrawInfoOpen] = useState(false);
+  const [withdrawalOpen, setWithdrawalOpen] = useState(false);
 
   useEffect(() => {
     if (!currentUser || !getToken('USER')) return;
@@ -222,23 +223,18 @@ export const MyPage: React.FC<MyPageProps> = ({ currentUser, onOpenLogin, onOpen
             그대로. 회원 탈퇴는 빨간 글자를 유지한다(되돌릴 수 없는 행동 — 00-39 규칙 5와 같은 결). */}
         <div className="v2-account-foot">
           <button type="button" className="v2-account-foot-btn" onClick={onLogout}>로그아웃</button>
-          <button type="button" className="v2-account-foot-btn is-danger" onClick={() => setWithdrawInfoOpen(true)}>회원 탈퇴</button>
+          <button type="button" className="v2-account-foot-btn is-danger" onClick={() => setWithdrawalOpen(true)}>회원 탈퇴</button>
         </div>
       </div>
 
-      {/* 🟡 회원 탈퇴 흐름(00-36 §4.3·M-3)은 아직 없다 — 스키마 변경(User 삭제대기 컬럼)과 백업·CONFIRM이 선행이다.
-          그때까지 이 버튼은 "준비 중"임을 사실대로 알리기만 한다(눌러도 아무 일도 없는 버튼을 만들지 않으려고).
-          M-3에서 이 모달을 ①지워지는 것 목록 ②반출 유도 ③30일 유예 고지 ④확인 흐름으로 교체한다. */}
-      {withdrawInfoOpen && (
-        <div className="v2-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="withdraw-info-title" {...backdropCloseProps(() => setWithdrawInfoOpen(false))}>
-          <div className="v2-modal" onClick={(e) => e.stopPropagation()}>
-            <h3 id="withdraw-info-title" className="v2-modal-title">회원 탈퇴</h3>
-            <p className="v2-modal-value" style={{ margin: 0 }}>회원 탈퇴 기능을 준비하고 있습니다.</p>
-            <div className="v2-modal-actions">
-              <button type="button" className="v2-btn-outline" onClick={() => setWithdrawInfoOpen(false)}>닫기</button>
-            </div>
-          </div>
-        </div>
+      {/* 🔄 M-3(2026-09-21) — 회원 탈퇴 4단계 확인 흐름(00-36 §4.3). 신청은 시각 두 개만 찍고 아무것도 지우지
+          않는다(30일 유예 · 소프트 삭제). 신청이 끝나 "확인"을 누르면 로그아웃한다. */}
+      {withdrawalOpen && (
+        <WithdrawalModal
+          onClose={() => setWithdrawalOpen(false)}
+          onDone={() => { setWithdrawalOpen(false); onLogout?.(); }}
+          onGoExport={() => { setWithdrawalOpen(false); setActiveTab?.('farewell-messages'); }}
+        />
       )}
     </div>
   );

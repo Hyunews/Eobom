@@ -42,7 +42,7 @@ export const MemorialLandingPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
 
   const [tributeCount, setTributeCount] = useState(0);
-  const [tributeState, setTributeState] = useState<'idle' | 'submitting' | 'error' | 'duplicate'>('idle');
+  const [tributeState, setTributeState] = useState<'idle' | 'submitting' | 'error' | 'duplicate' | 'done'>('idle');
 
   const [authorName, setAuthorName] = useState('');
   const [relationToDeceased, setRelationToDeceased] = useState('');
@@ -85,8 +85,26 @@ export const MemorialLandingPage: React.FC = () => {
       .catch(() => {});
   }, [slug, notFound]);
 
+  // 🔄 2026-09-21 사용자 지시 — 헌화는 로그인 정보를 보내지 않는다(비회원도 하는 상호작용이라 계정과 무관하게 둔다).
+  // 대신 **1인 1회 제한을 이 브라우저의 localStorage에 저장**한다(추모관마다 키 하나). 서버는 비회원 헌화를
+  // 막지 않으므로(visitorHash는 느슨한 억제뿐) 여기서 막는 것이 사실상 유일한 제한이다 — 다른 브라우저·기기·
+  // 저장소 삭제로는 다시 할 수 있다("큰 문제 아님", 사용자 확인). 저장소가 막힌 환경(시크릿 모드 등)에서는
+  // 조용히 넘어가고 제한만 없어진다.
+  const tributeStorageKey = slug ? `eobom_tributed_${slug}` : null;
+  const markTributed = () => {
+    if (!tributeStorageKey) return;
+    try { localStorage.setItem(tributeStorageKey, '1'); } catch { /* 저장 불가 환경 — 제한 없이 진행 */ }
+  };
+
+  useEffect(() => {
+    if (!tributeStorageKey) return;
+    try {
+      if (localStorage.getItem(tributeStorageKey) === '1') setTributeState('duplicate');
+    } catch { /* 저장 불가 환경 */ }
+  }, [tributeStorageKey]);
+
   const handleTribute = async () => {
-    if (!slug || tributeState === 'submitting') return;
+    if (!slug || tributeState === 'submitting' || tributeState === 'duplicate' || tributeState === 'done') return;
     setTributeState('submitting');
     try {
       const res = await fetch(`${BACKEND_URL}/api/memorials/${slug}/tributes`, {
@@ -96,6 +114,7 @@ export const MemorialLandingPage: React.FC = () => {
       });
       const json = await res.json();
       if (res.status === 409) {
+        markTributed();
         setTributeState('duplicate');
         return;
       }
@@ -104,7 +123,8 @@ export const MemorialLandingPage: React.FC = () => {
         return;
       }
       setTributeCount(json.data.tributeCount);
-      setTributeState('idle');
+      markTributed();
+      setTributeState('done');
     } catch {
       setTributeState('error');
     }
@@ -243,14 +263,17 @@ export const MemorialLandingPage: React.FC = () => {
             </p>
             <button
               onClick={handleTribute}
-              disabled={tributeState === 'submitting'}
+              disabled={tributeState === 'submitting' || tributeState === 'duplicate' || tributeState === 'done'}
               className="btn btn-point"
-              style={{ opacity: tributeState === 'submitting' ? 0.6 : 1 }}
+              style={{ opacity: tributeState === 'idle' || tributeState === 'error' ? 1 : 0.6 }}
             >
               <Heart color="#FFFFFF" size={18} /> 헌화하기
             </button>
             {tributeState === 'duplicate' && (
               <p style={{ fontSize: 'var(--fs-body)', color: 'var(--state-warn-fg)', marginTop: '0.6rem' }}>이미 헌화하셨습니다.</p>
+            )}
+            {tributeState === 'done' && (
+              <p style={{ fontSize: 'var(--fs-body)', color: 'var(--text-muted)', marginTop: '0.6rem' }}>헌화하셨습니다.</p>
             )}
             {tributeState === 'error' && (
               <p style={{ fontSize: 'var(--fs-body)', color: 'var(--state-warn-fg)', marginTop: '0.6rem' }}>헌화 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.</p>

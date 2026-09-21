@@ -53,6 +53,13 @@ model User {
   termsAgreedAt   DateTime? // 서비스 이용약관 동의 시각(필수) — 신규 가입이면 항상 채워짐
   privacyAgreedAt DateTime? // 개인정보 수집·이용 동의 시각(필수) — 신규 가입이면 항상 채워짐
 
+  // 회원 탈퇴 — docs 00-36 §4.3·M-3, 06-05 §5.4-2·§5.4-2-1(소프트 삭제 = **시각 필드 방식**). 상태 문자열을
+  // 새로 만들지 않는다. 둘 다 null이면 정상 회원. 🔴 런타임에서 행·파일을 지우지 않는다 — 실삭제는
+  // SCR-010 파기 탭의 운영자 승인 배치(06-05 §5.6-8 ④)만. 🔴 되살리기는 자동이 아니다: 유예 중 로그인하면
+  // 복구 안내를 먼저 띄우고 사용자가 "계속 이용"을 눌러야 두 필드를 비운다.
+  deletionRequestedAt DateTime? // 탈퇴를 요청한 시각(null이면 탈퇴 요청 없음)
+  deletionScheduledAt DateTime? // 유예 만료 시각 = 요청 + 30일. 이 시각이 지나면 파기 배치 대상
+
   createdAt           DateTime             @default(now()) // 가입 일시
   updatedAt           DateTime             @updatedAt // 최종 수정 일시
 }
@@ -522,6 +529,7 @@ model MemorialGuestbook {
   relationToDeceased String? // 고인과의 관계 (예: '친구')
   message            String // 본문
   deletedByOwnerAt   DateTime? // 상주가 삭제(§4.5) — 소프트 삭제
+  deletedByAuthorAt  DateTime? // 🆕 작성자 본인이 삭제(00-36 §4.7-1) — 소프트 삭제. deletedByOwnerAt을 재사용하면 "상주가 지웠다"로 기록이 오염돼 따로 둔다
   hiddenAt           DateTime? // 운영자 강제 비공개 — 소프트 삭제로 원문 보존
   createdAt          DateTime  @default(now()) // 작성 일시
 

@@ -567,6 +567,10 @@ export const getCurrentUser = async (req: Request, res: Response) => {
       role: user.role,
       profileImage: user.profileImage,
       accounts: user.accounts,
+      // 00-36 M-3 — 탈퇴 유예 중이면 시각이 온다. 프런트가 로그인 직후 **복구 안내**를 먼저 띄우는 근거이며,
+      // 이 조회가 두 필드를 비우지는 않는다(되살리기는 사용자가 "계속 이용"을 눌러 DELETE로만).
+      deletionRequestedAt: user.deletionRequestedAt,
+      deletionScheduledAt: user.deletionScheduledAt,
     },
   });
 };

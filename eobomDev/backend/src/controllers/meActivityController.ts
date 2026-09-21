@@ -137,10 +137,9 @@ export const listMyConsultRequests = async (req: Request, res: Response) => {
 
 // 내가 남긴 방명록 (`GET /api/me/guestbook-entries`) — 00-36 M-2 #7-1. **회원으로 쓴 글만**(userId 일치).
 // 비회원 글은 `userId`가 null이라 원래 잡히지 않는다. 개설자가 지웠거나(deletedByOwnerAt) 운영자가 숨긴
-// (hiddenAt) 글은 더는 어디에도 보이지 않으므로 목록에서도 뺀다.
-// 🔴 1차는 읽기 전용이다(00-36 §4.7). 내 글 삭제는 허용으로 확정됐지만(§6 #8) `deletedByAuthorAt` 컬럼이
-// 필요한 스키마 변경이라 M-3 마이그레이션에 묶는다 — 그때 `DELETE /api/me/guestbook-entries/:id`를 따로 둔다.
-// 기존 개설자용 `DELETE /api/memorials/:id/guestbook/:gid`와 **같은 엔드포인트를 쓰지 않는다**(권한 판정이 섞인다).
+// (hiddenAt) 글, 작성자 본인이 지운(deletedByAuthorAt) 글은 더는 어디에도 보이지 않으므로 목록에서도 뺀다.
+// 내 글 삭제는 아래 `deleteMyGuestbookEntry`(M-3 마이그레이션의 `deletedByAuthorAt`) — 개설자용
+// `DELETE /api/memorials/:id/guestbook/:gid`와 **같은 엔드포인트를 쓰지 않는다**(권한 판정이 섞인다).
 export const listMyGuestbookEntries = async (req: Request, res: Response) => {
   const decoded = verifyBearerToken(req);
   if (!decoded) {
@@ -149,7 +148,7 @@ export const listMyGuestbookEntries = async (req: Request, res: Response) => {
 
   try {
     const rows = await prisma.memorialGuestbook.findMany({
-      where: { userId: decoded.id, deletedByOwnerAt: null, hiddenAt: null },
+      where: { userId: decoded.id, deletedByOwnerAt: null, hiddenAt: null, deletedByAuthorAt: null },
       orderBy: { createdAt: 'desc' },
       take: LIST_LIMIT + 1,
       select: {
@@ -172,5 +171,32 @@ export const listMyGuestbookEntries = async (req: Request, res: Response) => {
   } catch (error) {
     console.error('내 방명록 목록 조회 실패:', error);
     return res.status(500).json({ status: 'error', message: '목록 조회 중 오류가 발생했습니다.' });
+  }
+};
+
+// 내 방명록 글 삭제 (`DELETE /api/me/guestbook-entries/:id`) — 00-36 §4.7-1(§6 #8 확정: 허용, **소프트 삭제**).
+// 🔴 행을 지우지 않는다: `deletedByAuthorAt`만 찍는다(이 테이블은 deletedByOwnerAt·hiddenAt도 원문을 보존한다 —
+// 본인 삭제만 하드 삭제로 두면 혼자 다른 규칙이 된다). deletedByOwnerAt을 재사용하지 않는다("상주가 지웠다"로 오염).
+// 🔴 소유 판정은 서버가 토큰에서 꺼낸 userId 일치로만 한다. 없는 글·남의 글·이미 지운 글을 **같은 404**로 답해
+// 다른 사람 글의 존재 여부를 알리지 않는다. 갱신은 검증한 id 한 건에만 건다(where: { id }).
+export const deleteMyGuestbookEntry = async (req: Request, res: Response) => {
+  const decoded = verifyBearerToken(req);
+  if (!decoded) {
+    return res.status(401).json({ status: 'error', message: '로그인이 필요합니다.' });
+  }
+
+  try {
+    const entry = await prisma.memorialGuestbook.findFirst({
+      where: { id: req.params.id, userId: decoded.id, deletedByAuthorAt: null },
+      select: { id: true },
+    });
+    if (!entry) {
+      return res.status(404).json({ status: 'error', message: '삭제할 글을 찾을 수 없습니다.' });
+    }
+    await prisma.memorialGuestbook.update({ where: { id: entry.id }, data: { deletedByAuthorAt: new Date() } });
+    return res.json({ status: 'success', data: { id: entry.id } });
+  } catch (error) {
+    console.error('내 방명록 글 삭제 실패:', error);
+    return res.status(500).json({ status: 'error', message: '삭제 처리 중 오류가 발생했습니다.' });
   }
 };

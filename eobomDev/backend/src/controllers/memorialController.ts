@@ -289,7 +289,7 @@ export const listGuestbook = async (req: Request, res: Response) => {
     }
 
     const entries = await prisma.memorialGuestbook.findMany({
-      where: { memorialId: memorial.id, deletedByOwnerAt: null, hiddenAt: null },
+      where: { memorialId: memorial.id, deletedByOwnerAt: null, hiddenAt: null, deletedByAuthorAt: null },
       select: { id: true, authorName: true, relationToDeceased: true, message: true, createdAt: true },
       orderBy: { createdAt: 'desc' },
     });

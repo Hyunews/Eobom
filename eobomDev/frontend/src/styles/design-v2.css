@@ -1239,9 +1239,34 @@
   font-size: 16px;
 }
 
-.v2-btn-primary:disabled {
+.v2-btn-primary:disabled,
+.v2-btn-solid:disabled,
+.v2-btn-outline:disabled {
   opacity: 0.6;
   cursor: default;
+}
+
+/* 회원 탈퇴 모달의 "지워지는 것 / 남는 것" 목록 — 이름 + 건수 한 줄씩, 1px 구분선 */
+.v2-withdraw-list {
+  margin: 0 0 16px;
+  padding: 0;
+  list-style: none;
+}
+
+.v2-withdraw-list li {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--v2-divider);
+  font-size: var(--v2-fs-support);
+  color: var(--v2-text-main);
+}
+
+.v2-withdraw-list li span:last-child {
+  color: var(--v2-text-muted);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
 }
 
 /* 행 안의 아이콘 버튼(유족 삭제) — 옆 입력 칸과 높이를 맞춘다 */
@@ -1507,6 +1532,32 @@ button.v2-stat {
   color: var(--v2-text-faint);
 }
 
+/* 이동 행 + 오른쪽 작은 동작 버튼(예: 내가 남긴 방명록의 "삭제") — 링크 안에 버튼을 넣을 수 없어 행을 감싼다 */
+.v2-nav-row-wrap {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  border-bottom: 1px solid var(--v2-divider);
+}
+
+.v2-nav-row-wrap .v2-nav-row {
+  flex: 1;
+  min-width: 0;
+  border-bottom: none;
+}
+
+.v2-row-action {
+  flex-shrink: 0;
+  min-height: 44px;
+  padding: 0 12px;
+  border: none;
+  background: none;
+  font-family: inherit;
+  font-size: var(--v2-fs-support);
+  color: var(--v2-text-muted);
+  cursor: pointer;
+}
+
 /* 두 줄 이동 행(제목 + 흐린 보조 줄) — 내 상담 내역처럼 "어디에 · 어떻게 · 언제"를 함께 보여주는 목록 */
 .v2-nav-row-text {
   flex: 1;
@@ -1533,14 +1584,12 @@ button.v2-stat {
   color: var(--v2-text-faint);
 }
 
-/* 마이페이지 최하단 — 구간과 별개인 작은 글자 한 줄(로그아웃 · 회원 탈퇴). 탈퇴는 빨간 글자를 유지한다.
-   글자는 작아도 터치 타깃은 44px 이상(padding으로 확보) */
+/* 마이페이지 최하단 — 구간과 별개인 작은 글자 한 줄(로그아웃 · 회원 탈퇴), 오른쪽 정렬·위 구분선 없음
+   (2026-09-21 사용자 지시). 탈퇴는 빨간 글자를 유지한다. 글자는 작아도 터치 타깃은 44px 이상(padding으로 확보) */
 .v2-account-foot {
-  margin-top: 64px;
-  padding-top: 8px;
-  border-top: 1px solid var(--v2-divider-strong);
+  margin-top: 48px;
   display: flex;
-  justify-content: center;
+  justify-content: flex-end;
   gap: 8px;
 }
 

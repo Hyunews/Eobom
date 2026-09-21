@@ -34,6 +34,7 @@ import { MyPage } from './pages/MyPage';
 import { FamilySharedPage } from './pages/FamilySharedPage';
 import { MyConsultationsPage } from './pages/MyConsultationsPage';
 import { MyGuestbookPage } from './pages/MyGuestbookPage';
+import { AccountRecoveryModal } from './components/AccountRecoveryModal';
 import { PartnerPortalPage } from './pages/PartnerPortalPage';
 import { AdminPage } from './pages/AdminPage';
 import { TermsPage } from './pages/TermsPage';
@@ -501,6 +502,8 @@ function AppShell() {
       {/* 마이페이지 > 내 정보(00-28) / 가족 지정(00-27) */}
       <MyPageProfile isOpen={isProfileOpen} onClose={() => setIsProfileOpen(false)} />
       <MyPageFamilyDesignation isOpen={isFamilyDesignationOpen} onClose={() => setIsFamilyDesignationOpen(false)} />
+      {/* 00-36 M-3 — 탈퇴 유예 중 로그인 시 복구 안내를 먼저 띄운다(자동 복구 아님). 어느 화면에서든 뜬다. */}
+      <AccountRecoveryModal currentUser={currentUser} onLogout={() => handleLogout()} />
     </div>
   );
 }
