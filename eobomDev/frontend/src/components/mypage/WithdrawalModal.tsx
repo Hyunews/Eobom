@@ -23,12 +23,11 @@ interface Preview {
     letters: number;
     voices: number;
     endingNoteSections: number;
-    obituaries: number;
     guestbookEntries: number;
     facilityReviews: number;
     familyDesignations: number;
   };
-  willRemain: { memorials: number; consultations: number };
+  willRemain: { obituaries: number; memorials: number; consultations: number };
 }
 
 type Step = 'delete' | 'export' | 'grace' | 'confirm' | 'done';
@@ -93,7 +92,6 @@ export const WithdrawalModal: React.FC<WithdrawalModalProps> = ({ onClose, onDon
         { label: '유족 메시지(편지)', n: w.letters, text: `${w.letters}통` },
         { label: '그중 음성 첨부', n: w.voices, text: `${w.voices}건` },
         { label: '엔딩노트 섹션', n: w.endingNoteSections, text: `${w.endingNoteSections}개` },
-        { label: '부고장', n: w.obituaries, text: `${w.obituaries}건` },
         { label: '내가 남긴 방명록', n: w.guestbookEntries, text: `${w.guestbookEntries}건` },
         { label: '시설 후기', n: w.facilityReviews, text: `${w.facilityReviews}건` },
         { label: '가족 지정', n: w.familyDesignations, text: `${w.familyDesignations}건` },
@@ -133,14 +131,15 @@ export const WithdrawalModal: React.FC<WithdrawalModalProps> = ({ onClose, onDon
                 ))}
               </ul>
             )}
-            {/* 🔴 남는 것을 반드시 고지 — 추모관은 00-20 보존정책 + 타인의 방명록이 있어 함께 지워지지 않고, 이미 접수된
-                상담·문의는 계약·정산 증거라 연결만 끊기고 건은 남는다(00-36 §6 #2·M-3) */}
+            {/* 🔴 남는 것을 반드시 고지 — 부고장·추모관은 1:1(봉투/목적지, 07-03 §4.1 E안)이고 추모관은 00-20 보존정책 +
+                타인의 방명록이 있어 함께 지워지지 않는다. 이미 접수된 상담·문의는 계약·정산 증거라 건은 남는다(00-36 §6 #2·M-3) */}
             <p className="v2-modal-value" style={{ margin: '0 0 8px', fontWeight: 700 }}>남는 것</p>
             <ul className="v2-withdraw-list">
+              <li><span>부고장</span><span>{preview.willRemain.obituaries}건 · 함께 지워지지 않습니다</span></li>
               <li><span>추모관</span><span>{preview.willRemain.memorials}개 · 함께 지워지지 않습니다</span></li>
               <li><span>이미 접수된 상담·문의</span><span>{preview.willRemain.consultations}건 · 연결만 끊기고 남습니다</span></li>
             </ul>
-            <p className="v2-check-sub" style={{ margin: '0 0 8px' }}>추모관은 탈퇴 뒤에도 남으며, 닫기는 마이페이지의 추모관 화면에서 따로 하실 수 있습니다.</p>
+            <p className="v2-check-sub" style={{ margin: '0 0 8px' }}>부고장·추모관은 남습니다. 추모관 닫기는 마이페이지의 추모관 화면에서 따로 하실 수 있습니다.</p>
             <div className="v2-modal-actions">
               <button type="button" className="v2-btn-outline" onClick={onClose}>취소</button>
               <button type="button" className="v2-btn-primary" onClick={() => setStep('export')}>다음</button>

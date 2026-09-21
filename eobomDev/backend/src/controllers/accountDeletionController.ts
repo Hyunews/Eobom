@@ -31,24 +31,24 @@ export const getDeletionPreview = async (req: Request, res: Response) => {
       letters,
       voices,
       endingNoteSections,
-      obituaries,
       guestbookEntries,
       facilityReviews,
       familyDesignations,
+      obituaries,
       memorials,
       leads,
       consultRequests,
     ] = await prisma.$transaction([
-      prisma.user.findUnique({ where: { id: userId }, select: { deletionRequestedAt: true, deletionScheduledAt: true } }),
+      prisma.user.findFirst({ where: { id: userId, purgedAt: null }, select: { deletionRequestedAt: true, deletionScheduledAt: true } }),
       // 지워지는 것
       prisma.farewellMessage.count({ where: { note: { userId }, deletedAt: null } }),
       prisma.farewellMessage.count({ where: { note: { userId }, deletedAt: null, mediaKey: { not: null }, mediaDeletedAt: null } }),
       prisma.endingNoteEntry.count({ where: { note: { userId } } }),
-      prisma.obituary.count({ where: { createdByUserId: userId } }),
       prisma.memorialGuestbook.count({ where: { userId, deletedByOwnerAt: null, hiddenAt: null, deletedByAuthorAt: null } }),
       prisma.facilityReview.count({ where: { userId } }),
       prisma.familyDesignation.count({ where: { userId } }),
       // 남는 것
+      prisma.obituary.count({ where: { createdByUserId: userId } }),
       prisma.memorial.count({ where: { createdByUserId: userId } }),
       prisma.lead.count({ where: { userId, type: { not: 'CALL' } } }),
       prisma.consultRequest.count({ where: { userId } }),
@@ -68,12 +68,12 @@ export const getDeletionPreview = async (req: Request, res: Response) => {
           letters, // 유족 메시지(편지)
           voices, // 그중 음성 첨부가 있는 것
           endingNoteSections,
-          obituaries,
           guestbookEntries,
           facilityReviews,
           familyDesignations,
         },
         willRemain: {
+          obituaries, // 부고장 — 추모관과 1:1(봉투/목적지, 07-03 §4.1 E안)이라 함께 남긴다(00-36 §6 #2)
           memorials, // 추모관 — 함께 지워지지 않는다(닫기는 따로)
           consultations: leads + consultRequests, // 이미 접수된 상담·문의
         },
@@ -94,8 +94,9 @@ export const requestAccountDeletion = async (req: Request, res: Response) => {
   }
 
   try {
-    const user = await prisma.user.findUnique({
-      where: { id: decoded.id },
+    // 🔴 purgedAt: null — 이미 익명화된 계정(유령)은 없는 회원으로 취급한다
+    const user = await prisma.user.findFirst({
+      where: { id: decoded.id, purgedAt: null },
       select: { id: true, deletionRequestedAt: true, deletionScheduledAt: true },
     });
     if (!user) {
@@ -132,7 +133,7 @@ export const cancelAccountDeletion = async (req: Request, res: Response) => {
   }
 
   try {
-    const user = await prisma.user.findUnique({ where: { id: decoded.id }, select: { id: true, deletionRequestedAt: true } });
+    const user = await prisma.user.findFirst({ where: { id: decoded.id, purgedAt: null }, select: { id: true, deletionRequestedAt: true } });
     if (!user) {
       return res.status(404).json({ status: 'error', message: '회원 정보를 찾을 수 없습니다.' });
     }

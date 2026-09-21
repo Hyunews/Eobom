@@ -59,6 +59,10 @@ model User {
   // 복구 안내를 먼저 띄우고 사용자가 "계속 이용"을 눌러야 두 필드를 비운다.
   deletionRequestedAt DateTime? // 탈퇴를 요청한 시각(null이면 탈퇴 요청 없음)
   deletionScheduledAt DateTime? // 유예 만료 시각 = 요청 + 30일. 이 시각이 지나면 파기 배치 대상
+  // 파기 완료 시각 — 06-05 §5.6-8 ④. 🔴 User 행은 지우지 않고 익명화(tombstone)한다: Memorial.createdByUserId가
+  // 00-20 동결·연장·폐쇄·신고 처리 주체라 FK를 끊을 수 없고, 추모관·부고장은 탈퇴 후에도 남는다(00-36 §6 #2).
+  // 값이 있으면 유령 계정 — 로그인·조회 경로 전부 purgedAt: null 가드를 건다. 남는 것은 id·createdAt·purgedAt뿐.
+  purgedAt            DateTime?
 
   createdAt           DateTime             @default(now()) // 가입 일시
   updatedAt           DateTime             @updatedAt // 최종 수정 일시

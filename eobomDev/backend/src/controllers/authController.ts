@@ -195,6 +195,12 @@ const handleLinkCallback = async (req: Request, res: Response, userId: string, f
   }
 
   try {
+    // 🔴 익명화된 계정(06-05 §5.6-8 ④)에 소셜 계정을 새로 붙이면 로그인 경로가 되살아난다 — 12시간 안에 남은 토큰으로도 막는다
+    const owner = await prisma.user.findFirst({ where: { id: userId, purgedAt: null }, select: { id: true } });
+    if (!owner) {
+      return res.redirect(`${frontendUrl}/#mypage?linkError=auth_failed`);
+    }
+
     const existing = await prisma.socialAccount.findUnique({
       where: { provider_providerId: { provider: socialUser.provider, providerId: socialUser.providerId } },
     });
@@ -264,12 +270,13 @@ export const handleSocialLoginCallback = async (req: Request, res: Response) => 
     // §3-1 — 아래에서 userId·unlinkedAt·id(전부 SocialAccount 자체 컬럼)만 쓰고 최신 User 값은
     // 어차피 곧이어 user.update가 다시 써서 돌려주므로, 여기서 User 관계를 함께 읽어올 필요가
     // 없다(include 제거 — 안 쓰는 관계를 매번 실어오지 않는다).
-    const existingAccount = await prisma.socialAccount.findUnique({
+    // 🔴 user: { purgedAt: null } — 익명화된 계정으로는 로그인하지 않는다. 파기 때 SocialAccount를 지우므로 원래 안 걸리지만
+    // 이중 방어다(지우기 실패·수동 복구 등에 대비). findUnique는 관계 필터를 못 받아 findFirst를 쓴다(같은 유니크 키라 결과 동일).
+    const existingAccount = await prisma.socialAccount.findFirst({
       where: {
-        provider_providerId: {
-          provider: socialUser.provider,
-          providerId: socialUser.providerId,
-        },
+        provider: socialUser.provider,
+        providerId: socialUser.providerId,
+        user: { purgedAt: null },
       },
     });
 
@@ -303,8 +310,8 @@ export const handleSocialLoginCallback = async (req: Request, res: Response) => 
 
     // 2단계: 연동 기록은 없지만 동일 이메일의 기존 유저가 있으면 -> 계정 통합/독립 가입 선택 모달로 유도
     if (socialUser.email) {
-      const existingUserByEmail = await prisma.user.findUnique({
-        where: { email: socialUser.email },
+      const existingUserByEmail = await prisma.user.findFirst({
+        where: { email: socialUser.email, purgedAt: null }, // 🔴 익명화 계정은 email이 null이라 원래 안 걸리지만 이중 방어
         include: { accounts: { where: { unlinkedAt: null } } },
       });
 
@@ -378,6 +385,11 @@ export const confirmLink = async (req: Request, res: Response) => {
 
   try {
     if (action === 'MERGE') {
+      // 🔴 tempToken(10분) 발급 뒤 그 계정이 익명화됐을 수 있다 — 소셜 계정을 붙이기 전에 막는다
+      const target = await prisma.user.findFirst({ where: { id: payload.existingUserId, purgedAt: null }, select: { id: true } });
+      if (!target) {
+        return res.status(401).json({ status: 'error', message: '유효하지 않거나 만료된 요청입니다. 다시 로그인해주세요.' });
+      }
       // 이미 다른 소셜로 SocialAccount가 연동됐을 가능성 대비 (중복 클릭 등) 재확인
       const alreadyLinked = await prisma.socialAccount.findUnique({
         where: { provider_providerId: { provider: payload.provider, providerId: payload.providerId } },
@@ -556,6 +568,10 @@ export const getCurrentUser = async (req: Request, res: Response) => {
   });
   if (!user) {
     return res.json({ status: 'success', user: decoded });
+  }
+  // 🔴 익명화된 계정(06-05 §5.6-8 ④)의 남은 토큰 — 데모 토큰(DB에 없음)과 구분해 여기서 끊는다
+  if (user.purgedAt) {
+    return res.status(401).json({ status: 'error', message: '인증 토큰이 없거나 유효하지 않습니다.' });
   }
 
   return res.json({

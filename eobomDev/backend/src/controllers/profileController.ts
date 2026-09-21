@@ -66,7 +66,8 @@ export const getMyProfile = async (req: Request, res: Response) => {
   }
 
   try {
-    const user = await prisma.user.findUnique({ where: { id: decoded.id }, select: PROFILE_SELECT });
+    // 🔴 purgedAt: null — 익명화된 계정(06-05 §5.6-8 ④)은 없는 회원으로 취급한다
+    const user = await prisma.user.findFirst({ where: { id: decoded.id, purgedAt: null }, select: PROFILE_SELECT });
     if (!user) {
       return res.status(404).json({ status: 'error', message: '회원을 찾을 수 없습니다.' });
     }
@@ -127,7 +128,7 @@ export const updateMyProfile = async (req: Request, res: Response) => {
 
   try {
     const updated = await prisma.user.update({
-      where: { id: decoded.id },
+      where: { id: decoded.id, purgedAt: null }, // 🔴 익명화된 계정에 다시 값을 채우지 못하게 — 없으면 P2025
       data: {
         ...(body.name !== undefined ? { name: body.name!.trim() } : {}),
         ...(body.email !== undefined ? { email: body.email?.trim() || null } : {}),
@@ -146,6 +147,9 @@ export const updateMyProfile = async (req: Request, res: Response) => {
   } catch (error: any) {
     if (error?.code === 'P2002') {
       return res.status(409).json({ status: 'error', message: '이미 사용 중인 이메일입니다.' });
+    }
+    if (error?.code === 'P2025') {
+      return res.status(404).json({ status: 'error', message: '회원을 찾을 수 없습니다.' });
     }
     console.error('프로필 수정 실패:', error);
     return res.status(500).json({ status: 'error', message: '프로필 수정 중 오류가 발생했습니다.' });
