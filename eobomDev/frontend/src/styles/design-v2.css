@@ -1667,3 +1667,274 @@ button.v2-stat {
     font-size: var(--v2-fs-label);
   }
 }
+
+
+/* ── 그룹② 안내형 — digital-estate에서 나온 것(00-39 §9.3-2, Opus 등재 대기) ──
+   텍스트 입력 없이 "할 수 있는 것 / 없는 것" 두 열 + 링크 카드로 이뤄진 화면(2026-09-21 사람이 데모 A안 확정).
+   기존 .v2-section·.v2-notice·.v2-card·.v2-btn-*를 그대로 쓰고, 아래는 새로 만든 것뿐이다. */
+
+/* 줄글 영역 — 어절 단위로 끊고(한글은 기본값이면 음절 중간에서 끊긴다) 마지막 줄이 한 글자만 남지 않게 한다(규칙 13) */
+.v2-prose {
+  word-break: keep-all;
+  overflow-wrap: break-word;
+  text-wrap: pretty;
+}
+
+/* 링크 버튼(<a>)은 밑줄이 없어야 버튼으로 읽힌다 */
+a.v2-btn-primary,
+a.v2-btn-outline,
+a.v2-btn-solid {
+  text-decoration: none;
+}
+
+/* 받으실 수 없는 것 / 있는 것 — 제목과 항목은 같은 16px(00-38 §3.2 본문 표준), 구분은 굵기로만 한다 */
+.v2-do-cols {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 0 48px;
+  margin-top: 24px;
+}
+
+.v2-do-head {
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.6;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--v2-btn-border);
+}
+
+.v2-do-list li {
+  display: flex;
+  gap: 10px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--v2-divider);
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+/* 짧은 한 줄 항목이 이어지는 목록(받으실 수 있는 것) — 위아래 간격 14px → 10px */
+.v2-do-list.is-compact li {
+  padding: 10px 0;
+}
+
+/* 근거 표기 호버 카드 — 표기(KISO 정책규정 §28①)에 마우스를 올리거나 포커스하면 조문 원문을 띄운다(데스크톱만).
+   카드는 표기 바로 아래에 붙이고(위 6px은 투명한 다리 — 마우스가 표기에서 카드로 내려가는 사이 카드가 닫히지 않게 한다) */
+.v2-tip {
+  position: relative;
+  display: inline-block;
+}
+
+.v2-tip-trigger {
+  padding: 0;
+  border: none;
+  background: none;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: help;
+  text-decoration: underline dotted;
+  text-underline-offset: 3px;
+}
+
+.v2-tip-panel {
+  display: none;
+  position: absolute;
+  left: 0;
+  top: 100%;
+  z-index: 20;
+  width: 320px;
+  padding-top: 6px;
+}
+
+.v2-tip-box {
+  display: block;
+  padding: 14px 16px;
+  background: var(--v2-bg);
+  border: 1px solid var(--v2-btn-border);
+  border-radius: 4px;
+  box-shadow: 0 8px 24px rgba(34, 48, 63, 0.16);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.6;
+  color: var(--v2-text-main);
+}
+
+.v2-tip-label {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--v2-text-muted);
+}
+
+@media (min-width: 768px) {
+  .v2-tip:hover .v2-tip-panel,
+  .v2-tip:focus-within .v2-tip-panel {
+    display: block;
+  }
+}
+
+/* 항목 앞 ✕/✓ — 첫 줄 가운데에 맞춘다(줄 높이 25.6px − 아이콘 16px) */
+.v2-do-list svg {
+  flex-shrink: 0;
+  margin-top: 5px;
+}
+
+.v2-do-list .is-no svg {
+  color: var(--v2-urgent);
+}
+
+.v2-do-list .is-yes svg {
+  color: var(--v2-point);
+}
+
+.v2-do-text {
+  min-width: 0;
+}
+
+/* 한 항목 안의 의미 단위 줄 — <br>로 박지 않고 블록으로 나눈다. 단위가 길면 그 안에서 알아서 접힌다 */
+.v2-do-line {
+  display: block;
+}
+
+.v2-do-src {
+  display: block;
+  margin-top: 4px;
+  font-size: var(--v2-fs-label);
+  line-height: 1.5;
+  color: var(--v2-text-muted);
+}
+
+/* 웹: 좌우 2단 — 왼쪽 = 받으실 수 없는 것/있는 것(세로로 쌓음), 오른쪽 = 서비스 카드 2장(세로로 쌓음).
+   764px 읽기 폭 안에서 두 칸이 각 358px */
+.v2-guide-split {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 0 48px;
+  align-items: start;
+  margin-top: 24px;
+}
+
+.v2-card-grid.is-stack {
+  grid-template-columns: 1fr;
+}
+
+/* 폭이 좁아져 읽기 폭(764px)을 못 채우면(화면 843px 이하 = 764 + 좌우 여백 40×2 − 1) 서비스 칸이 아래로 내려간다.
+   내려가면 각 칸이 넓어지므로 안쪽은 예전처럼 2열로 되돌린다. 767px 이하는 모바일 요약 행으로 바뀌어 아래 규칙이 맡는다 */
+@media (min-width: 768px) and (max-width: 843px) {
+  .v2-guide-split {
+    grid-template-columns: 1fr;
+    gap: 28px;
+  }
+
+  .v2-guide-split .v2-do-cols.is-stack,
+  .v2-guide-split .v2-card-grid.is-stack {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .v2-guide-split .v2-do-cols.is-stack {
+    gap: 0 48px;
+  }
+}
+
+/* 모달 안에서는 폭과 상관없이 한 열로 쌓는다 */
+.v2-do-cols.is-stack {
+  grid-template-columns: 1fr;
+  gap: 28px;
+  margin-top: 0;
+}
+
+/* 화면 폭에 따라 덩어리째 바뀌는 자리(웹=두 열·카드 / 모바일=제목+설명 행·모달). .v2-desktop-only/.v2-mobile-only는
+   inline이라 블록을 감쌀 수 없어 따로 둔다 */
+.v2-web-block {
+  display: block;
+}
+
+.v2-mobile-block {
+  display: none;
+}
+
+.v2-mobile-flex {
+  display: none;
+}
+
+/* 내용이 화면보다 길 수 있는 모달(바텀시트) — 제목·닫기 버튼은 고정하고 본문만 스크롤한다 */
+.v2-modal.is-scroll {
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100dvh - 32px);
+}
+
+.v2-modal.is-scroll .v2-modal-title {
+  flex-shrink: 0;
+  margin-bottom: 20px;
+}
+
+.v2-modal-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+/* 모바일 요약 행 — 제목 + 간단설명. 설명은 잘리지 않게 줄바꿈하고, 흐린 색이 아니라 본문 보조색을 쓴다(15px 글자라 대비 확보) */
+.v2-mobile-block .v2-nav-row-sub {
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
+  line-height: 1.5;
+  color: var(--v2-text-muted);
+}
+
+/* 링크가 없는 카드 제목(.v2-card-title은 누르는 제목이라 cursor:pointer) */
+.v2-card-title.is-static {
+  cursor: default;
+}
+
+.v2-card-provider {
+  font-size: var(--v2-fs-support);
+  font-weight: 600;
+  color: var(--v2-point);
+  margin: 0;
+}
+
+.v2-card-text {
+  font-size: var(--v2-fs-support);
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* 두 카드의 버튼을 같은 높이에 맞춘다 — 본문 줄 수가 달라도 버튼은 아래로 밀어 정렬 */
+.v2-prose .v2-card-cta {
+  margin-top: auto;
+}
+
+@media (max-width: 767px) {
+  .v2-web-block {
+    display: none;
+  }
+
+  .v2-mobile-block {
+    display: block;
+  }
+
+  .v2-mobile-flex {
+    display: flex;
+  }
+
+  .v2-do-src {
+    font-size: var(--v2-fs-label-mobile);
+  }
+
+  /* 모바일에는 호버가 없어 원문 카드가 열리지 않는다 — 표기는 밑줄 없는 글자로만 둔다 */
+  .v2-tip-trigger {
+    text-decoration: none;
+    cursor: default;
+    pointer-events: none;
+  }
+
+  /* 모바일은 1단 — 왼쪽 칸(.v2-web-block)이 숨겨지고 오른쪽 칸(요약 행)만 남는다 */
+  .v2-guide-split {
+    grid-template-columns: 1fr;
+    margin-top: 0;
+  }
+}
