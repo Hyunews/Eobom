@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Search } from 'lucide-react';
 import digitalEstateData from '../mockData/digitalEstate.json';
 import { BACKEND_URL, GEOLOCATION_FALLBACK, LOCATION_FEATURE_ENABLED } from '../config';
+import { LocationSearchBox } from '../components/LocationSearchBox';
 import '../styles/design-v2.css';
 import { backdropCloseProps } from '../utils/backdropClose';
 
@@ -164,51 +164,29 @@ export const PickupPage: React.FC<PickupPageProps> = () => {
             바로 보여준다). */}
         {LOCATION_FEATURE_ENABLED && <p className="v2-notice">가까운 지역 업체를 보여드리기 위해 위치 정보를 사용합니다.</p>}
 
-        {LOCATION_FEATURE_ENABLED && (
-          <p className="v2-location-line">
-            📍 현재 위치: {locationName}
-            {isLocationFallback && (
-              <span className="v2-badge-neutral" title="실제 위치를 확인하지 못해 기본 위치로 표시 중입니다. 아래에서 지역을 직접 선택해주세요.">
-                기본값
-              </span>
-            )}
-          </p>
-        )}
-
-        <div className="v2-filter-row">
-          <select value={provinceDraft} onChange={(e) => handleProvinceDraftChange(e.target.value)} className="v2-select">
-            <option value="">시/도 선택</option>
-            {provinceOptions.map((p) => (
-              <option key={p} value={p}>
-                {p}
-              </option>
-            ))}
-          </select>
-          <select
-            value={districtDraft}
-            onChange={(e) => setDistrictDraft(e.target.value)}
-            disabled={!provinceDraft}
-            className="v2-select"
-          >
-            <option value="">선택 안함</option>
-            {districtDraftOptions.map((d) => (
-              <option key={d} value={d}>
-                {d}
-              </option>
-            ))}
-          </select>
-          <input
-            type="text"
-            value={searchTextDraft}
-            onChange={(e) => setSearchTextDraft(e.target.value)}
-            onKeyDown={handleSearchTextKeyDown}
-            placeholder="업체명 또는 지역명으로 검색"
-            className="v2-input"
-          />
-          <button type="button" className="v2-btn-primary" onClick={handleSearch}>
-            <Search size={16} /> 검색
-          </button>
-        </div>
+        {/* 🔄 2026-09-22 사용자 지시 — facility(FacilityPage.tsx)의 검색창을 기준으로 맞춘다.
+            "현재 위치: X" 표시·기본값 배지가 이 박스 안으로 옮겨져 위 별도 줄은 없앴다. */}
+        <LocationSearchBox
+          locationName={locationName}
+          isLocationFallback={isLocationFallback}
+          fallbackTitle={
+            LOCATION_FEATURE_ENABLED
+              ? '실제 위치를 확인하지 못해 기본 위치로 표시 중입니다. https 또는 localhost가 아닌 주소에서는 브라우저가 위치 확인을 차단합니다. 아래에서 지역을 직접 선택해주세요.'
+              : '현재 위치 자동 감지를 제공하지 않아 기본 위치로 표시 중입니다. 아래에서 지역을 직접 선택해주세요.'
+          }
+          provinceOptions={provinceOptions}
+          districtOptions={districtDraftOptions}
+          province={provinceDraft}
+          district={districtDraft}
+          onProvinceChange={handleProvinceDraftChange}
+          onDistrictChange={setDistrictDraft}
+          searchLabel="업체명·지역 검색"
+          searchPlaceholder="업체명 또는 지역명으로 검색"
+          searchTextDraft={searchTextDraft}
+          onSearchTextChange={setSearchTextDraft}
+          onSearchTextKeyDown={handleSearchTextKeyDown}
+          onSearch={handleSearch}
+        />
 
         {filteredVendors.length === 0 && <p className="v2-empty">조건에 맞는 업체가 없습니다.</p>}
 

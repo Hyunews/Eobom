@@ -870,6 +870,7 @@
   4. 옛 토큰(`--primary-color`·`--point-color`·`--card-bg`·`--secondary-color`·`--text-muted`·`--fs-*`·`--sp-*` 등) 전량 제거, `page-title`/`page-subtitle` 클래스도 `.v2-page-title`/`.v2-page-subtitle`로 교체. 장식 배지("온라인 추모 공간")와 제목 아이콘은 뺐다 — my-obituaries·counseling 등 이미 이관된 그룹① 화면 어디에도 그런 배지가 없어 규칙 5(긴급도 배지 금지)와 같은 결로 판단.
   5. 기능은 그대로: 만들기(POST /api/memorials)·삭제(DELETE, 소프트)·주소복사(copyObituaryLink)·공개범위 3종. 백엔드 변경 없음.
   6. 검증: `npx tsc --noEmit -p .`·`npm run build`(frontend) 통과. dev 서버는 기동 확인만(응답 200 미확인 — HTTPS 자체서명 인증서로 curl 실패, 즉시 kill) 하고 렌더 스크린샷 대조는 안 했다 — 사람 실기동 확인 정책(dev 서버는 사람이 직접 확인) 때문에 여기서 멈춤.
+  7. **사람 피드백 반영(같은 날)** — ⓐ "새 추모관 만들기" 버튼을 좌측 정렬에서 우측 정렬로(감싸는 `flex`+`justify-content: flex-end`). ⓑ 부제 "조문객이 온라인으로 헌화·방명록을 남길 수 있는 공간입니다. 부고장과 별개로 여기서 직접 만들고 지웁니다."가 *"AI가 만든 md파일 내용 같다"*는 지적 — 두 번째 문장(부고장과의 내부 분리 로직 설명, 사용자에게 불필요)을 통째로 빼고 "조문객이 헌화·방명록을 남길 수 있는 추모 공간입니다."로 축약([[feedback_no_ai_tone_ui_copy]] 09-22 추가 지적과 같은 신호 — 화면 문구에 내부 설계 이유를 옮기지 않는다).
 - **편차**:
   - 🔴 **만들기 폼을 모달이 아니라 인라인으로 유지**했다. 규칙 21("수정은 새 화면이 아니라 모달")은 문언상 *수정*에 대한 것이고 *만들기*는 명시가 없어, 기존 UX(목록 위 인라인 확장 카드)를 유지하는 쪽으로 판단했다 — 사람이 다른 판단을 하면 `.v2-modal.is-form`(560px)로 옮기면 된다.
   - 삭제 확인 문구가 §6.4 규칙 10(안내 모달은 세 줄: 제목·기한·근거)을 문자 그대로 따르지 않는다 — §6.4는 법정기한 안내 모달용이라 확인/취소 모달에는 기계적으로 안 맞았고, 대신 규칙 11(해설·조언 없이 사실만)의 정신만 가져와 결과(링크 무효화)와 남는 것(방명록·헌화)만 진술했다.
@@ -877,5 +878,24 @@
   1. 00-39 §9.1 표(465·471·473행)가 아직 "🟡 memorial 남음"으로 돼 있다 — Opus가 이 완료를 반영해야 함(Sonnet은 docs/ 쓰기 금지).
   2. `memorial` 완료로 그룹① 4개(care-guide·counseling·pickup·my-obituaries) + facility + memorial = 전부 v2 이관 완료. 남은 그룹은 ②(ending-note·farewell-messages 미착수)·③·④·⑤·⑥(보류).
   3. 사람 실기동 검증 대기(만들기 폼 제출 흐름·삭제 2단계 모달 실제 클릭 확인 안 됨).
+
+<!-- Gemini 판정 1줄: 대기 -->
+
+## 2026-09-22 | [Sonnet] 사람 직접 지시 4건 — 사이드바 배지 제거·검색창 통일·04-01 §0.2-0 카드 문구·memorial 아이콘
+
+- **근거 스펙**: docs/04_디지털_자산_정산/04-01_디지털_계정_정리_명세서.md §0.2-0(2026-09-22 개발자 승인 — STEP1 카드 화면 문구 확정 표) · 사람 직접 지시 3건(사이드바 배지·검색창 통일·버튼 아이콘, 문서 근거 없음).
+- **건드린 파일**: eobomDev/frontend/src/lib/modeNav.ts, eobomDev/frontend/src/pages/DigitalEstatePage.tsx, eobomDev/frontend/src/pages/FacilityPage.tsx, eobomDev/frontend/src/pages/PickupPage.tsx, eobomDev/frontend/src/pages/MemorialPage.tsx. 신규: eobomDev/frontend/src/components/LocationSearchBox.tsx.
+- **결과**:
+  1. **사이드바 "준비 중" 배지 제거** — `modeNav.ts`의 `pickup`·`digital-estate` `status`를 `'preview'` → `'active'`로. 둘 다 로그인·API 없이 정적 콘텐츠(vendors 목업·계정 찾기 안내)로 완결돼 있어 wt131·wt135(ending-note·memorial)와 같은 조치.
+  2. **facility 검색창 기준으로 pickup 검색창 통일 + 모듈화**(사람 지시) — `LocationSearchBox.tsx` 신설. FacilityPage가 §8 #5로 그대로 두던 옛 `.form-select`/`.form-input`/`.form-label`/`.btn.btn-primary` 박스(배경·테두리·그림자 있는 카드, "위치: X" 헤딩+MapPin 아이콘, 기본값 배지, 시/도·시/군/구 셀렉트, 라벨 붙은 검색어 입력, 검색 버튼)를 그대로 컴포넌트로 뽑아 양쪽 페이지가 재사용한다. facility는 `구분`(카테고리) 셀렉트를 `extraField`로 끼워 넣고, pickup은 생략. PickupPage가 쓰던 `.v2-filter-row`/`.v2-select`/`.v2-input`/`.v2-btn-primary`와 별도의 "📍 현재 위치" 줄(`.v2-location-line`)은 걷어내고 이 박스 하나로 합쳤다.
+  3. **04-01 §0.2-0 구현** — `DigitalEstatePage.tsx`의 `DISCOVERY_STEPS` 카드 3장(기관 줄·웹 설명·모바일 설명·3번 카드 제목)을 §0.2-0 표 그대로 교체. `DiscoveryStep`에 `deadlineLabel` 필드를 추가해 아래 줄 라벨을 카드마다 다르게(신청 기한 / 결과 확인 / 처리 기간, 고정 "기한" 제거). 3번 카드의 옛 `provider`("1-B에서 확인된 카드사에 개별 청구")가 화면에 내부 번호 `1-B`를 그대로 노출하고 있던 것을 발견해 표대로 `"각 카드사"`로 고쳤다(§0.2-0 규칙 ① 위반 수정). `step.id`(`1-A`·`1-B`·`1-B-1`)는 React `key`로만 쓰이고 화면에는 안 나가는 것을 확인.
+  4. **MemorialPage "새 추모관 만들기" 버튼에 `Plus` 아이콘 추가**(사람 지시 — 원래 코드에 있던 아이콘을 v2 재작성 때 뺐던 것 복원, ObituaryPage.tsx "새 부고장 작성하기"와 같은 패턴).
+  5. 검증: `npx tsc --noEmit -p .`·`npm run build`(frontend) 매 단계 통과.
+- **편차**:
+  - 🔴 **`LocationSearchBox`가 00-39 §9.1 흐름과 반대 방향이다.** 그룹①(facility·pickup 포함)은 옛 클래스 → `.v2-*` 클래스로 이관하는 게 지금까지 방향이었는데, 이번 지시는 반대로 pickup을 facility의 옛 `.form-select`/`.form-input`/`.btn` 스타일로 되돌렸다. 사람이 이 화면에 한해 직접 지시한 것이라 그대로 구현했다 — `00-39` §6.7 클래스 표에 이 역행이 반영돼야 하는지는 Opus 판단 필요.
+- **다음 에이전트가 알아야 할 것**:
+  1. `LocationSearchBox`는 현재 facility·pickup 2곳에서만 쓴다. 다른 위치 검색 화면이 생기면 이 컴포넌트를 먼저 확인할 것.
+  2. 04-01 §0.2-1(사실 오류 3건)은 이미 이전 세션에서 코드에 반영돼 있었다(주석에 "2026-09-22 §0.2-1 정정" 기존 존재) — 이번엔 §0.2-0(화면 문구) 부분만 새로 했다.
+  3. 사람 실기동 검증 대기 — 사이드바 배지 제거·검색창 두 화면·04-01 카드 3장 실제 렌더 확인 안 됨.
 
 <!-- Gemini 판정 1줄: 대기 -->

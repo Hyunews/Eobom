@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ExternalLink, Copy, ChevronRight, LogIn } from 'lucide-react';
+import { ExternalLink, Copy, ChevronRight, LogIn, Plus } from 'lucide-react';
 import { apiFetch, ApiError } from '../lib/api';
 import { formatKST } from '../utils/obituaryCard';
 import { copyObituaryLink } from '../utils/kakaoShare';
@@ -185,14 +185,16 @@ export const MemorialPage: React.FC<MemorialPageProps> = ({ currentUser, onOpenL
     <div className="v2-page">
       <div className="v2-page-head">
         <h1 className="v2-page-title">디지털 추모관</h1>
-        <p className="v2-page-subtitle">조문객이 온라인으로 헌화·방명록을 남길 수 있는 공간입니다. 부고장과 별개로 여기서 직접 만들고 지웁니다.</p>
+        <p className="v2-page-subtitle">조문객이 헌화·방명록을 남길 수 있는 추모 공간입니다.</p>
       </div>
 
       <div className="v2-content">
         {!formOpen && (
-          <button type="button" className="v2-btn-primary" style={{ marginBottom: '24px' }} onClick={() => setFormOpen(true)}>
-            새 추모관 만들기
-          </button>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '24px' }}>
+            <button type="button" className="v2-btn-primary" onClick={() => setFormOpen(true)}>
+              <Plus size={16} /> 새 추모관 만들기
+            </button>
+          </div>
         )}
 
         {formOpen && (

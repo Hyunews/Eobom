@@ -34,12 +34,18 @@ interface DigitalEstatePageProps {
 // 1-B-1(확인된 카드사에 개별 청구)에서 나온다. url이 있는 단계만 신청 버튼/외부 링크 행을 그린다.
 // 1-C(정보주체 권리행사 서비스)는 사망자 대행이 ❌ 불가로 확정돼 삭제됐다(04-03 §2.2-1) — 대신 아래
 // STEP 0의 「본인확인 내역 조회」 항목으로 들어갔다.
+// 🔄 2026-09-22 §0.2-0 — 카드 문구(기관 줄·웹/모바일 설명·3번 카드 제목)를 §0.2-0 표 그대로 옮겼다.
+// 아래 줄 라벨도 "기한"으로 고정하지 않고 카드마다 다른 성격을 그대로 말한다(신청 기한·결과 확인·
+// 처리 기간, §0.2-0 규칙 ④). 3번 카드의 옛 `provider`("1-B에서 확인된 카드사에 개별 청구")는 화면에
+// 내부 번호(1-B)가 그대로 노출되는 자리였다 — §0.2-0 규칙 ①(내부 번호 화면 노출 금지) 위반이라
+// 표대로 "각 카드사"로 고쳤다.
 type DiscoveryStep = {
   id: string;
   label: string;
   provider: string;
   what: string;
   mobileWhat: string;
+  deadlineLabel: string;
   deadline: string;
   url?: string;
 };
@@ -49,8 +55,9 @@ const DISCOVERY_STEPS: DiscoveryStep[] = [
     id: '1-A',
     label: '안심상속 원스톱',
     provider: '정부24 · 주민센터',
-    what: '고인 명의로 거래 중인 금융기관·카드사 목록이 나옵니다.',
-    mobileWhat: '고인 명의로 거래 중인 금융기관 목록 조회',
+    what: '고인 명의의 금융기관·카드사를 한 번에 조회합니다.',
+    mobileWhat: '고인 명의 금융기관·카드사 한 번에 조회',
+    deadlineLabel: '신청 기한',
     deadline: '사망하신 달의 말일부터 1년 안에',
     url: 'https://www.gov.kr/portal/onestopSvc/safeInheritance',
   },
@@ -58,16 +65,18 @@ const DISCOVERY_STEPS: DiscoveryStep[] = [
     id: '1-B',
     label: '상속인 금융거래 조회',
     provider: '금융감독원',
-    what: '안심상속을 신청하면 함께 신청됩니다 — 따로 하지 않으셔도 됩니다. 거래한 금융회사와 예금액·채무액을 알려주며, 상세 거래내역은 해당 금융회사에 직접 확인하셔야 합니다.',
-    mobileWhat: '안심상속에 포함됩니다 — 따로 신청하지 않으셔도 됩니다',
+    what: '안심상속을 신청하면 함께 접수됩니다. 금융회사별 예금액과 채무액을 알려 줍니다.',
+    mobileWhat: '안심상속 신청 시 함께 접수',
+    deadlineLabel: '결과 확인',
     deadline: '신청 15~20일 뒤부터 결과 확인 · 3개월간 최대 5회',
   },
   {
     id: '1-B-1',
-    label: '카드사 정기결제 내역 청구',
-    provider: '1-B에서 확인된 카드사에 개별 청구',
-    what: '구독 서비스 이름은 여기서 나옵니다 — 위 조회 결과에는 없습니다.',
-    mobileWhat: '구독 서비스 이름은 카드사에 개별 청구해야 나옵니다',
+    label: '카드사 정기결제 내역',
+    provider: '각 카드사',
+    what: '어떤 구독에 결제됐는지는 카드사에 요청해야 알 수 있습니다.',
+    mobileWhat: '구독 이름은 카드사에 요청해야 확인',
+    deadlineLabel: '처리 기간',
     deadline: '카드사별로 다름',
   },
 ];
@@ -278,7 +287,7 @@ const AccountDiscoveryGuide: React.FC = () => {
                   <h3 className="v2-card-title is-static">{step.label}</h3>
                   <p className="v2-card-provider">{step.provider}</p>
                   <p className="v2-card-text">{step.what}</p>
-                  <p className="v2-card-meta">기한 · {step.deadline}</p>
+                  <p className="v2-card-meta">{step.deadlineLabel} · {step.deadline}</p>
                   {step.url && (
                     <a href={step.url} target="_blank" rel="noopener noreferrer" className="v2-btn-primary v2-card-cta">
                       신청 페이지로 이동 <ExternalLink size={15} />

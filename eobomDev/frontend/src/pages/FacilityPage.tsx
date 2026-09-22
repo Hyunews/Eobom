@@ -5,6 +5,7 @@ import { KakaoMapModal } from '../components/KakaoMapModal';
 import { InquiryModal } from '../components/facility/InquiryModal';
 import { HouseLeafIcon } from '../components/MenuIcons';
 import { TAG_CATALOG, isFilterableTag } from '../components/facility/tagCatalog';
+import { LocationSearchBox } from '../components/LocationSearchBox';
 import { useIsMobile } from '../hooks/useIsMobile';
 
 // 🔴 TEMP(2026-09-10 사람 지시) — 개발 중 테스트 편의로 아래 위치정보 고지 문구를 화면에서만
@@ -412,112 +413,43 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
       {/* 위치 + 구분 (2026-08-10 병합 — 예산/종교/하객수/지역 대분류 필터는 삭제) — 데스크톱 전용,
           모바일은 위 압축 검색바 + 아래 바텀시트로 대체된다. */}
       {!isMobile && (
-        <div
-          style={{
-            backgroundColor: 'var(--v2-bg)',
-            // 2026-09-22 — .v2-content가 764px·2열이던 시점에 정한 값(필드가 자주 줄바꿈돼
-            // 상자가 커 보여서 안쪽 여백·칸 간격을 줄임). 이후 §5 개정으로 1048px·3열이 됐지만
-            // 값은 그대로 둬도 괜찮아 유지한다(사람 지시: 필터박스 크기 조정).
-            padding: '0.9rem',
-            borderRadius: 'var(--r-lg)',
-            marginBottom: '1.75rem',
-            boxShadow: 'var(--box-shadow)',
-            border: '1px solid var(--v2-divider-strong)',
-            display: 'flex',
-            flexWrap: 'wrap',
-            alignItems: 'flex-end',
-            gap: '0.9rem'
-          }}
-        >
-          <div style={{ flex: '2 1 320px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'var(--v2-text-main)', fontWeight: 700, marginBottom: '0.6rem' }}>
-              <MapPin size={18} color="var(--v2-point)" /> 위치: {locationName}
-              {isLocationFallback && (
-                <span
-                  title={
-                    LOCATION_FEATURE_ENABLED
-                      ? '실제 위치를 확인하지 못해 기본 위치로 표시 중입니다. https 또는 localhost가 아닌 주소에서는 브라우저가 위치 확인을 차단합니다. 아래에서 시/도·시/군/구를 직접 선택해주세요.'
-                      : '현재 위치 자동 감지를 제공하지 않아 기본 위치로 표시 중입니다. 아래에서 시/도·시/군/구를 직접 선택해주세요.'
-                  }
-                  style={{
-                    fontSize: 'var(--v2-fs-support)',
-                    fontWeight: 700,
-                    color: 'var(--state-warn-fg)',
-                    backgroundColor: 'var(--state-warn-bg)',
-                    padding: '0.15rem 0.5rem',
-                    borderRadius: 'var(--r-sm)',
-                    cursor: 'help'
-                  }}
-                >
-                  ⚠ 실제 위치 아님(기본값)
-                </span>
-              )}
-            </div>
-            <div style={{ display: 'flex', gap: '0.6rem', flexWrap: 'wrap' }}>
-              <select value={locationProvince} onChange={(e) => handleProvinceChange(e.target.value)} className="form-select" style={{ flex: '1 1 140px' }}>
-                <option value="">시/도 선택</option>
-                {provinceOptions.map((p) => (
-                  <option key={p} value={p}>
-                    {p}
-                  </option>
-                ))}
-              </select>
-              <select
-                value={locationDistrict}
-                onChange={(e) => handleDistrictChange(e.target.value)}
-                disabled={!locationProvince || isSearchingLocation}
-                className="form-select"
-                style={{ flex: '1 1 180px' }}
-              >
-                <option value="">선택 안함</option>
-                {districtOptions.map((d) => (
-                  <option key={d} value={d}>
-                    {d}
-                  </option>
-                ))}
+        <LocationSearchBox
+          locationName={locationName}
+          isLocationFallback={isLocationFallback}
+          fallbackTitle={
+            LOCATION_FEATURE_ENABLED
+              ? '실제 위치를 확인하지 못해 기본 위치로 표시 중입니다. https 또는 localhost가 아닌 주소에서는 브라우저가 위치 확인을 차단합니다. 아래에서 시/도·시/군/구를 직접 선택해주세요.'
+              : '현재 위치 자동 감지를 제공하지 않아 기본 위치로 표시 중입니다. 아래에서 시/도·시/군/구를 직접 선택해주세요.'
+          }
+          locationError={locationError}
+          provinceOptions={provinceOptions}
+          districtOptions={districtOptions}
+          province={locationProvince}
+          district={locationDistrict}
+          onProvinceChange={handleProvinceChange}
+          onDistrictChange={handleDistrictChange}
+          districtDisabled={isSearchingLocation}
+          extraField={
+            // form-select·form-input·form-label은 사이트 전역 공용 클래스(index.css)라 여기서만
+            // 색을 바꾸면 focus 테두리 효과가 인라인에 가려 죽는다(00-39 §8 #5, 그림자·호버·포커스
+            // 류 상태효과는 안 바꾼다는 원칙과 같은 이유) — 페이지 로컬 리스킨 범위 밖이라 그대로 둔다.
+            <div style={{ flex: '1 1 140px' }}>
+              <label className="form-label">구분</label>
+              <select value={categoryDraft} onChange={(e) => handleCategoryChange(e.target.value)} className="form-select">
+                <option value="전체">전체</option>
+                <option value="장례식장">장례식장</option>
+                <option value="묘지/수목장">묘지/봉안당/수목장</option>
               </select>
             </div>
-            {locationError && <p style={{ color: 'var(--state-danger-fg)', fontSize: 'var(--v2-fs-support)', margin: '0.4rem 0 0 0' }}>{locationError}</p>}
-          </div>
-
-          {/* form-select·form-input·form-label은 사이트 전역 공용 클래스(index.css)라 여기서만
-              색을 바꾸면 focus 테두리 효과가 인라인에 가려 죽는다(00-39 §8 #5, 그림자·호버·포커스
-              류 상태효과는 안 바꾼다는 원칙과 같은 이유) — 페이지 로컬 리스킨 범위 밖이라 그대로 둔다. */}
-          <div style={{ flex: '1 1 140px' }}>
-            <label className="form-label">구분</label>
-            <select value={categoryDraft} onChange={(e) => handleCategoryChange(e.target.value)} className="form-select">
-              <option value="전체">전체</option>
-              <option value="장례식장">장례식장</option>
-              <option value="묘지/수목장">묘지/봉안당/수목장</option>
-            </select>
-          </div>
-
-          <div style={{ flex: '1.6 1 220px' }}>
-            <label className="form-label">시설명·지역 검색</label>
-            <input
-              type="text"
-              value={searchTextDraft}
-              onChange={(e) => setSearchTextDraft(e.target.value)}
-              onKeyDown={handleSearchTextKeyDown}
-              placeholder="시설 이름 또는 지역명으로 검색"
-              className="form-input"
-              style={{ width: '100%' }}
-            />
-          </div>
-
-          <div style={{ flex: '0 0 auto' }}>
-            <label className="form-label" style={{ visibility: 'hidden' }}>검색</label>
-            <button
-              onClick={handleSearch}
-              disabled={isApplying || isSearchingLocation}
-              className="btn btn-primary"
-              style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '0.35rem', padding: '0.6rem 1.4rem', whiteSpace: 'nowrap', opacity: isApplying || isSearchingLocation ? 0.7 : 1 }}
-            >
-              <Search size={16} />
-              {isApplying || isSearchingLocation ? '검색 중...' : '검색'}
-            </button>
-          </div>
-        </div>
+          }
+          searchLabel="시설명·지역 검색"
+          searchPlaceholder="시설 이름 또는 지역명으로 검색"
+          searchTextDraft={searchTextDraft}
+          onSearchTextChange={setSearchTextDraft}
+          onSearchTextKeyDown={handleSearchTextKeyDown}
+          onSearch={handleSearch}
+          isSearching={isApplying || isSearchingLocation}
+        />
       )}
 
       {/* 모바일 필터 바텀시트 — 위치·구분만 담는다(검색어는 압축 검색바가 상시 노출, 태그는
