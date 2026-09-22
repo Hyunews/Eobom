@@ -1,4 +1,4 @@
-import React, { useId, useState } from 'react';
+import React, { useEffect, useId, useRef, useState } from 'react';
 import { X, Check, ExternalLink, ChevronRight } from 'lucide-react';
 import { backdropCloseProps } from '../utils/backdropClose';
 
@@ -28,26 +28,49 @@ interface DigitalEstatePageProps {
   onOpenLogin?: () => void;
 }
 
-// 04-01 §0.2 STEP 1 — 두 경로만 노출한다. 1-C(정보주체 권리행사 서비스)는 사망자 대행이
-// ❌ 불가로 확정돼 삭제됐다(04-03 §2.2-1) — 대신 아래 STEP 0의 「본인확인 내역 조회」 항목으로 들어갔다.
-const DISCOVERY_PATHS = [
+// 04-01 §0.2 STEP 1 — 1-A → 1-B → 1-B-1 단계 구조(2026-09-22 §0.2-1 정정).
+// 병렬 두 경로가 아니다 — 1-B(금감원 상속인 금융거래 조회)는 1-A(안심상속)를 신청하면 함께 신청되는
+// 연계 서비스라 별도 신청 버튼을 두지 않는다(은행연합회 소비자포털). 구독 서비스 이름은 1-B 결과에 없고
+// 1-B-1(확인된 카드사에 개별 청구)에서 나온다. url이 있는 단계만 신청 버튼/외부 링크 행을 그린다.
+// 1-C(정보주체 권리행사 서비스)는 사망자 대행이 ❌ 불가로 확정돼 삭제됐다(04-03 §2.2-1) — 대신 아래
+// STEP 0의 「본인확인 내역 조회」 항목으로 들어갔다.
+type DiscoveryStep = {
+  id: string;
+  label: string;
+  provider: string;
+  what: string;
+  mobileWhat: string;
+  deadline: string;
+  url?: string;
+};
+
+const DISCOVERY_STEPS: DiscoveryStep[] = [
   {
     id: '1-A',
     label: '안심상속 원스톱',
     provider: '정부24 · 주민센터',
     what: '고인 명의로 거래 중인 금융기관·카드사 목록이 나옵니다.',
+    mobileWhat: '고인 명의로 거래 중인 금융기관 목록 조회',
     deadline: '사망하신 달의 말일부터 1년 안에',
     url: 'https://www.gov.kr/portal/onestopSvc/safeInheritance',
   },
   {
     id: '1-B',
     label: '상속인 금융거래 조회',
-    provider: '금융감독원 → 확인된 카드사에 정기결제 내역 개별 청구',
-    what: '구독 서비스가 이름 그대로 나옵니다.',
-    deadline: '조회 결과 확인 20일 이내 · 결과 보관 3개월',
-    url: 'https://www.fss.or.kr/fss/cvpl/inhCerEc/main.do?menuNo=200010',
+    provider: '금융감독원',
+    what: '안심상속을 신청하면 함께 신청됩니다 — 따로 하지 않으셔도 됩니다. 거래한 금융회사와 예금액·채무액을 알려주며, 상세 거래내역은 해당 금융회사에 직접 확인하셔야 합니다.',
+    mobileWhat: '안심상속에 포함됩니다 — 따로 신청하지 않으셔도 됩니다',
+    deadline: '신청 15~20일 뒤부터 결과 확인 · 3개월간 최대 5회',
   },
-] as const;
+  {
+    id: '1-B-1',
+    label: '카드사 정기결제 내역 청구',
+    provider: '1-B에서 확인된 카드사에 개별 청구',
+    what: '구독 서비스 이름은 여기서 나옵니다 — 위 조회 결과에는 없습니다.',
+    mobileWhat: '구독 서비스 이름은 카드사에 개별 청구해야 나옵니다',
+    deadline: '카드사별로 다름',
+  },
+];
 
 const GUIDE_TITLE = '먼저 아셔야 할 것';
 const GUIDE_TITLE_ID = 'digital-estate-guide-title';
@@ -59,14 +82,70 @@ const KISO_28 = {
   '②': '다만 피상속인의 계정 중 사이버머니 등 경제적 가치가 있는 디지털 정보의 경우 관계 법령 및 약관에 따라 이를 상속인에게 제공할 수 있다.',
 } as const;
 
-// 근거 표기 — 데스크톱에서 마우스를 올리거나 키보드로 포커스하면 조문 원문을 띄운다(2026-09-21 사람 지시).
-// 모바일은 호버가 없고 화면이 좁아 CSS가 원문 카드를 숨긴다(표기만 남는다). useId — 같은 목록이 웹 칸과 모달에 두 번 그려져 id가 겹치면 안 된다.
+// 근거 표기 — 데스크톱은 마우스를 올리거나 키보드로 포커스하면 조문 원문을 띄운다(2026-09-21 사람 지시 — 이 동작은 그대로).
+// 🔄 2026-09-22 보완 — 호버가 없는 모바일도 표기를 누르면 열린다(기본은 접힘). 원문 카드는 닫혀 있을 때도 sr-only로 DOM에 남아
+// aria-describedby가 스크린리더에 원문을 읽어준다. Escape로 닫을 수 있다(WCAG 1.4.13 Dismissible).
+// 열림 = 눌러 열어둠(open) 또는 (마우스 호버 · 키보드 포커스) 중 Escape로 닫지 않은 것. CSS는 .is-open만 본다.
+// useId — 같은 목록이 웹 칸과 모달에 두 번 그려져 id가 겹치면 안 된다.
+const isWideScreen = () => window.matchMedia('(min-width: 768px)').matches;
+
 const Kiso28Src: React.FC<{ clause: keyof typeof KISO_28 }> = ({ clause }) => {
   const tipId = useId();
+  const ref = useRef<HTMLSpanElement>(null);
+  const [pinned, setPinned] = useState(false);
+  const [hovered, setHovered] = useState(false);
+  const [focused, setFocused] = useState(false);
+  const [dismissed, setDismissed] = useState(false);
+  const visible = pinned || (!dismissed && (hovered || focused));
+
+  // Escape로 닫은 표시는 마우스도 포커스도 떠나면 풀어, 다음에 다시 호버·포커스하면 열리게 한다
+  useEffect(() => {
+    if (!hovered && !focused) setDismissed(false);
+  }, [hovered, focused]);
+
+  // 열려 있는 동안만 듣는다. Escape는 캡처 단계에서 먼저 받아 멈춘다 — 안 그러면 카드만 닫으려던 Escape가 바텀시트 모달까지 닫는다.
+  // 마우스만 올린 상태(포커스 없음)에서도 닫혀야 해서 요소가 아니라 document에서 듣는다.
+  useEffect(() => {
+    if (!visible) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape') return;
+      e.stopPropagation();
+      setPinned(false);
+      setDismissed(true);
+    };
+    const onPointerDown = (e: PointerEvent) => {
+      if (!ref.current?.contains(e.target as Node)) setPinned(false);
+    };
+    document.addEventListener('keydown', onKeyDown, true);
+    document.addEventListener('pointerdown', onPointerDown);
+    return () => {
+      document.removeEventListener('keydown', onKeyDown, true);
+      document.removeEventListener('pointerdown', onPointerDown);
+    };
+  }, [visible]);
+
+  const toggle = () => {
+    if (visible) {
+      setPinned(false);
+      setDismissed(true);
+    } else {
+      setPinned(true);
+    }
+  };
+
   return (
     <span className="v2-do-src">
-      <span className="v2-tip">
-        <button type="button" className="v2-tip-trigger" aria-describedby={tipId}>
+      <span
+        ref={ref}
+        className={visible ? 'v2-tip is-open' : 'v2-tip'}
+        // 호버는 마우스 + 넓은 화면만 — 터치의 가짜 mouseenter나 좁은 창에서 카드가 펼쳐져 줄이 밀리지 않게 한다
+        onPointerEnter={(e) => e.pointerType === 'mouse' && isWideScreen() && setHovered(true)}
+        onPointerLeave={() => setHovered(false)}
+        // 포커스는 키보드로 온 것만 — 눌러서 생긴 포커스까지 세면 두 번째 누름으로 접히지 않는다
+        onFocus={(e) => e.target.matches(':focus-visible') && setFocused(true)}
+        onBlur={() => setFocused(false)}
+      >
+        <button type="button" className="v2-tip-trigger" aria-describedby={tipId} aria-expanded={visible} onClick={toggle}>
           KISO 정책규정 §28{clause}
         </button>
         <span role="tooltip" id={tipId} className="v2-tip-panel">
@@ -149,7 +228,8 @@ const DoColumns: React.FC<{ stack?: boolean }> = ({ stack }) => (
 
 // 04-01 §0.2 STEP 0·1 — "계정 찾기". 정적 콘텐츠 + 외부 링크뿐이라 스키마·API 없이 이 파일 안에서만
 // 완결된다. 🔴 사망일 입력칸을 두지 않는다 — 기한은 항상 구간 라벨만 보여준다(§0.6 · 07-04 §3.1-1과 같은 규칙).
-// 구간 제목은 두 링크를 함께 설명하는 말이다 — 안심상속은 금융기관·카드사 목록, 금융거래 조회는 카드사 정기결제(구독)를 알려준다.
+// 구간 제목은 STEP 1 세 단계를 함께 설명하는 말이다 — 안심상속(1-A)은 금융기관·카드사 목록,
+// 금융거래 조회(1-B)는 예금액·채무액(안심상속에 포함), 카드사 개별 청구(1-B-1)가 구독 이름을 알려준다.
 const AccountDiscoveryGuide: React.FC = () => {
   // 모바일은 화면에 들어올 때 열려 있다. 웹에서는 모달 자체가 CSS로 숨겨져(.v2-mobile-flex) 이 값이 화면에 영향이 없다.
   const [guideOpen, setGuideOpen] = useState(true);
@@ -177,7 +257,7 @@ const AccountDiscoveryGuide: React.FC = () => {
             <button type="button" className="v2-nav-row" onClick={() => setGuideOpen(true)} aria-haspopup="dialog">
               <span className="v2-nav-row-text">
                 <span className="v2-nav-row-label">{GUIDE_TITLE}</span>
-                <span className="v2-nav-row-sub">고인의 아이디·비밀번호는 받으실 수 없습니다</span>
+                <span className="v2-nav-row-sub">고인의 아이디·비밀번호는 받으실 수 없습니다.</span>
               </span>
               <span className="v2-nav-row-arrow">
                 <ChevronRight size={18} />
@@ -185,39 +265,53 @@ const AccountDiscoveryGuide: React.FC = () => {
             </button>
           </div>
 
-          {/* STEP 1 — 계정 찾기 경로 2개. 신청·수령은 유족 본인이 직접 한다(§0.5) — 이어봄이 대신 신청하지 않는다.
+          {/* STEP 1 — 계정 찾기 1-A→1-B→1-B-1 단계 3개. 신청 버튼은 1-A(url 있음)에만 둔다 — 1-B는 1-A를
+              신청하면 함께 신청되는 연계 서비스라 따로 누를 데가 없다(§0.2-1). 신청·수령은 유족 본인이
+              직접 한다(§0.5) — 이어봄이 대신 신청하지 않는다.
               (2026-09-21 사람 지시로 이 사실을 알리던 안내 문장 "아래 두 곳은 전부 무료 공공 서비스입니다…"을 화면에서 뺐다) */}
 
-          {/* 웹 — 카드 2장을 세로로 */}
+          {/* 웹 — 카드 3장을 세로로. url 없는 카드는 신청 버튼을 그리지 않는다 */}
           <div className="v2-web-block">
             <div className="v2-card-grid is-stack">
-              {DISCOVERY_PATHS.map((path) => (
-                <div key={path.id} className="v2-card">
-                  <h3 className="v2-card-title is-static">{path.label}</h3>
-                  <p className="v2-card-provider">{path.provider}</p>
-                  <p className="v2-card-text">{path.what}</p>
-                  <p className="v2-card-meta">기한 · {path.deadline}</p>
-                  <a href={path.url} target="_blank" rel="noopener noreferrer" className="v2-btn-primary v2-card-cta">
-                    신청 페이지로 이동 <ExternalLink size={15} />
-                  </a>
+              {DISCOVERY_STEPS.map((step) => (
+                <div key={step.id} className="v2-card">
+                  <h3 className="v2-card-title is-static">{step.label}</h3>
+                  <p className="v2-card-provider">{step.provider}</p>
+                  <p className="v2-card-text">{step.what}</p>
+                  <p className="v2-card-meta">기한 · {step.deadline}</p>
+                  {step.url && (
+                    <a href={step.url} target="_blank" rel="noopener noreferrer" className="v2-btn-primary v2-card-cta">
+                      신청 페이지로 이동 <ExternalLink size={15} />
+                    </a>
+                  )}
                 </div>
               ))}
             </div>
           </div>
 
-          {/* 모바일 — 제목 + 간단설명 행. 행 전체가 외부 링크(규칙 8-1). 제공처·기한은 생략한다 */}
+          {/* 모바일 — 제목 + 간단설명 행. url이 있으면 행 전체가 외부 링크(규칙 8-1), 없으면(1-B·1-B-1)
+              누를 데가 없는 정보 행(.is-static)이라 화살표 없이 정적으로 둔다. 제공처·기한은 생략한다 */}
           <div className="v2-mobile-block">
-            {DISCOVERY_PATHS.map((path) => (
-              <a key={path.id} href={path.url} target="_blank" rel="noopener noreferrer" className="v2-nav-row">
-                <span className="v2-nav-row-text">
-                  <span className="v2-nav-row-label">{path.label}</span>
-                  <span className="v2-nav-row-sub">{path.what}</span>
-                </span>
-                <span className="v2-nav-row-arrow">
-                  <ExternalLink size={16} />
-                </span>
-              </a>
-            ))}
+            {DISCOVERY_STEPS.map((step) =>
+              step.url ? (
+                <a key={step.id} href={step.url} target="_blank" rel="noopener noreferrer" className="v2-nav-row">
+                  <span className="v2-nav-row-text">
+                    <span className="v2-nav-row-label">{step.label}</span>
+                    <span className="v2-nav-row-sub">{step.mobileWhat}</span>
+                  </span>
+                  <span className="v2-nav-row-arrow">
+                    <ExternalLink size={16} />
+                  </span>
+                </a>
+              ) : (
+                <div key={step.id} className="v2-nav-row is-static">
+                  <span className="v2-nav-row-text">
+                    <span className="v2-nav-row-label">{step.label}</span>
+                    <span className="v2-nav-row-sub">{step.mobileWhat}</span>
+                  </span>
+                </div>
+              ),
+            )}
           </div>
         </div>
       </div>
