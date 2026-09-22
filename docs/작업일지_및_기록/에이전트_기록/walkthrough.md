@@ -814,7 +814,7 @@
 - **편차**: `회원 탈퇴` 버튼이 아직 실제 탈퇴 흐름이 아니다(M-3 선행: 스키마 변경·백업·CONFIRM) — "준비 중" 모달로 대신했고, 눌러도 아무 일 없는 버튼을 피하려는 임시 처리다. 사용자 지시 1번("위치 변경")을 두 행의 **순서 맞바꿈**으로 해석했다.
 - **다음 에이전트가 알아야 할 것**: 🔴 **이미 남긴 방명록 글은 회원 글로 복구되지 않는다** — 저장 시점에 작성자를 식별할 값이 남지 않았다(`userId=null`, 작성자명은 자유 입력). 수정 배포 뒤 **새로 남긴 글**부터 "내가 남긴 방명록"에 뜬다. 🟡 같은 원인의 인접 버그: `handleTribute`(헌화)도 plain `fetch`라 토큰이 안 간다 — 로그인 사용자 1인 1회 보장(`@@unique([memorialId, userId])`)이 실제로는 작동하지 않는다. 이번엔 지시 범위 밖이라 손대지 않았다.
 
-<!-- Gemini 판정 1줄: 대기 -->
+<!-- Gemini 판정 1줄: ✅통과 (MemorialLandingPage.tsx에 apiFetchRaw 적용 확인 / MyPage.tsx 구간 순서 및 .v2-account-foot 최하단 버튼 배치 확인 / 프런트엔드 빌드 재현 통과) -->
 
 ## 2026-09-21 | [Sonnet] M-3 회원 탈퇴(30일 유예·소프트 삭제) + 내 방명록 본인 삭제 + 헌화 1인 1회(localStorage) + 최하단 줄 정렬
 
@@ -833,5 +833,28 @@
   - 유예 중인 계정도 서버 API는 그대로 쓸 수 있다(복구 안내는 프런트 모달이 막을 뿐) — 서버 쪽 차단은 스펙에 없어 만들지 않았다.
   - 이번 화면들(WithdrawalModal·AccountRecoveryModal·삭제 확인)은 Design 캔버스 시안 없이 `00-39` 규칙 18·19·21과 `.v2-modal`을 그대로 적용했다.
 - **다음 에이전트가 알아야 할 것**: ① 파기 배치 ④ 스크립트(`destroy-farewell-media.ts` 패턴 — dry-run 기본·`--confirm`·그 회원의 ①② 먼저) ② `prisma/backups/local-20260921_132135.dump`는 커밋하지 않은 상태의 미추적 파일이다(직전 `local-20260907_115023.dump`는 커밋돼 있다 — 개발 DB 사용자 이메일 등이 들어 있으니 커밋 여부는 사람이 정할 것) ③ 헌화는 이제 로그인 정보를 안 보내므로 `@@unique([memorialId, userId])`는 실질적으로 쓰이지 않는다(사용자 확인: "큰 문제 아님") ④ 방명록을 로그인 상태로 새로 써야 `내가 남긴 방명록`에 뜬다(이미 쌓인 `userId=null` 글은 복구 불가).
+
+<!-- Gemini 판정 1줄: ✅통과 (schema.prisma 3개 컬럼 및 migration SQL 실존 확인 / 4개 엔드포인트 meRoutes 등록 및 obituaries·memorials willRemain 귀속 확인 / WithdrawalModal·AccountRecoveryModal·MyGuestbookPage 삭제 UI 실장 확인 / backend tsc 및 frontend build 재현 통과) -->
+
+## 2026-09-22 | [Sonnet] FacilityPage v2 이관(00-39 §8 #5) + §5 레이아웃 값 개정(전 화면)
+
+- **근거 스펙**: docs/00_핵심플랫폼/00-39_디자인_기준_재정립_명세서.md §8 #5(facility 겉모양만 v2로, 구조·기능·그림자·호버 불변) · §6-1-1(카드 허용, 그림자+호버는 규칙으로 안 정함) · §6.1 규칙2(본문 읽기폭 고정 — 이번에 사람 지시로 실질 대체됨, 아래 편차 참고) · Opus 핸드오프(옛값→새값 대응표 확인 요청) + 사람 직접 지시 다수(세션 중 여러 차례 정정).
+- **건드린 파일**: eobomDev/frontend/src/pages/FacilityPage.tsx, eobomDev/frontend/src/styles/design-v2.css. 캔버스 "장사시설 페이지 시안 — v2 통일"(https://claude.ai/artifact/LVbmAGMkxY38JvfRhMsqsK)은 최종적으로 **기각**(사람 지시 — CareGuidePage 실측을 정본으로 재작업).
+- **결과**:
+  1. **색·서체·글자크기 토큰 교체**(§8 #5) — var(--primary-color)→var(--v2-text-main), var(--point-color)→var(--v2-point), var(--text-muted)→var(--v2-text-muted), var(--card-bg)→var(--v2-bg), var(--secondary-color)→var(--v2-selected-bg), 검색창·페이지버튼 테두리→var(--v2-btn-border), 필터 상자 테두리→var(--v2-divider-strong). var(--accent-gold)·var(--state-warn-*)는 거리·상단 배지에서 걷어내고(경고가 아니라 정보) var(--v2-text-faint)+중립 배경으로, "실제 위치 아님" 경고는 진짜 경고라 state-warn-* 유지. var(--fs-body)→var(--v2-fs-support)(15px) 일괄, 부제만 var(--v2-fs-body)(17px), 카드/리스트 제목(시설명)은 var(--v2-fs-item-title)(19px)/모바일 -mobile(17px), var(--fs-caption)은 문맥별로 15px 또는 13px(var(--v2-fs-label)). 제목 className을 page-title→v2-page-title, 감싸는 div를 v2-page-head로 교체(CareGuidePage와 동일 클래스).
+     🔴 **의도적으로 안 건드린 곳**: .form-select·.form-input·.form-label(전역 공용 클래스, 여기서 인라인으로 색을 얹으면 :focus 테두리가 죽는다) · className="btn btn-primary"인데 배경색이 인라인으로 없는 버튼(검색·적용하고 검색·상담 버튼의 배경 — .btn-primary:hover가 인라인에 가려 사라지는 걸 피함, 크기만 v2로 바꿈). 새 클래스 .v2-tag(카드 안 태그, 선택 상태 표현용) 1개 추가 — 기존 .v2-badge-neutral(칠해진 고정 배지)로는 선택 강조를 표현 못 해 사람이 4번째 예외로 승인.
+  2. **여백·폭 표준화**(§5, 전 화면 영향) — --v2-gutter-web 40→80px, --v2-gutter-mobile 20→24px, .v2-page padding 48/40/96→96/80/96(모바일 24/20/64→32/24/72). .v2-content 폭을 var(--v2-reading-width)(764px 고정)에서 calc(var(--v2-toc-width) + var(--v2-reading-width) + 48px)(1048px, .v2-page-head와 동일)로 — "제목 박스와 본문 박스 폭이 다르다"는 지적에서 시작해 care-guide처럼 맞춤(care-guide는 .v2-guide-shell이 처음부터 같은 계산식이라 원래 맞아 있었음). .v2-card-grid(pickup 등)를 고정 2열→auto-fit minmax(min(320px,100%),1fr)(facility의 .grid와 동일 패턴)로 바꿔 1048px에서 자동 3열.
+     실측(dev서버, getBoundingClientRect): /facility·/pickup 제목 y좌표 181px로 동일, 제목·본문 박스 폭 둘 다 1048px, 카드 그리드 열 수 둘 다 3, pickup 카드 폭 336px.
+  3. **facility 카드 크기 축소** — 카드 이미지 박스 160→120px, 필터 상자 안쪽 여백 1.1rem→0.9rem·칸 간격 1.2rem→0.9rem. §5 개정으로 폭이 764→1048px(2→3열)로 다시 넓어졌지만 값은 유지(카드 폭이 336px 안팎으로 비슷해 문제 없음) — 관련 주석 4곳(FacilityPage.tsx:297·299·416·765)을 1048px·3열 기준으로 정정.
+  4. 검증: 매 단계 npx tsc --noEmit -p .·npm run build(frontend) 통과. dev서버 임시 기동(작업 종료 시마다 kill)으로 CareGuidePage·PickupPage·CounselingPage 실제 렌더와 비교해 색·크기·폭을 맞췄다(design 캔버스 대신 실기동 대조를 쓴 이유는 캔버스가 실제 화면과 상당히 달랐던 것으로 09-22 세션 중 확인됨 — 아래 편차 참고). 🔴 로그인 필요 화면 없음, DB 쓰기 0건.
+- **편차**:
+  - 🔴 **캔버스를 정본으로 안 썼다.** 처음 캔버스로 시안을 만들었는데(그림자 카드+배지+태그 칩+세그먼트 토글 등 새 시각 요소 다수) 사람이 "다른 페이지와 통일성이 없다"고 지적, dev서버로 /pickup·/counseling 실측해보니 실제 화면은 훨씬 밋밋했다(채운 배지 없음, 세그먼트 토글 없음, 필드 라벨 없음). 결국 사람이 캔버스 자체를 기각하고 "먼저 옛값→새값 대응표를 보여달라"로 방식을 바꿨다. feedback_design_tool_over_live_testing(09-18, "무조건 Design 캔버스")과 결이 다른 예외 사례 — Design 캔버스가 실제 구현된 화면과 크게 벌어질 수 있다는 반례로 메모리 갱신 검토 필요.
+  - 🔴 **§6.1 규칙2(본문 읽기폭 고정) 사실상 무력화.** .v2-content를 764→1048px로 바꾼 것은 이 규칙(체크리스트·법정문구 화면도 넓은 화면을 안 채운다)과 정면 충돌한다. 사람이 "전화면 다 푼다"고 명시적으로 확정했으나(09-22), 문서(00-39 §6.1)는 아직 그 문구 그대로다 — Opus가 규칙2를 삭제/수정할지 판단 필요.
+  - 카드 안 태그용 신설 클래스 .v2-tag는 §6.7 클래스 등재 대상이나 아직 문서에 없다.
+  - .form-select/.form-input/.form-button류의 배경색은 이번에 안 바꿨다 — facility의 검색창·"검색" 버튼 등 일부는 여전히 옛 primary-color 계열로 남아 있다(§8 #5 완전 이관은 아님, 위 1번 참고).
+- **다음 에이전트가 알아야 할 것**:
+  1. 00-39 문서 갱신 필요 3건 — ① §5 수치(gutter-web/mobile·.v2-page padding·.v2-content 폭 계산식·.v2-card-grid auto-fit) ② §6.1 규칙2 문구(읽기폭 고정 원칙과 이번 결정의 관계 정리) ③ §6.7 클래스 등재에 .v2-tag 추가.
+  2. .v2-content 폭 확대로 다른 8개 화면(DigitalEstatePage·MyGuestbookPage·MyPage·MyConsultationsPage·FamilySharedPage·MyObituaryListPage·PickupPage·CounselingPage)도 영향권이다 — 이번에 각 화면 내부까지 실기동으로 훑지는 못했다. 특히 여러 줄 문단이 있는 화면이 새로 생기면 764px(var(--v2-reading-width))로 개별 캡을 씌울 것(이번 점검에서 9개 화면 모두 해당 없음 확인됨 — .v2-do-list 등 목록류는 제외 대상).
+  3. facility 실기동 검증 대기 — 이번 세션은 dev서버 임시 기동+즉시 종료로 스냅샷만 비교했고, 사람의 실제 화면 확인은 아직이다.
 
 <!-- Gemini 판정 1줄: 대기 -->

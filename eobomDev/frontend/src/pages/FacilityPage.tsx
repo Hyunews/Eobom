@@ -294,9 +294,11 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
         </p>
       </div>
 
-      {/* 2026-09-22 사람 지시 — 본문을 다른 v2 화면처럼 .v2-content(764px 고정, 가운데 정렬)로 감싼다.
+      {/* 2026-09-22 사람 지시 — 본문을 다른 v2 화면처럼 .v2-content로 감싼다(가운데 정렬).
           지금까지는 .container 전체 폭(최대 1440px)을 다 써서 카드가 3~4열로 넓게 퍼졌었다.
-          764px면 .grid(auto-fit minmax(320px,1fr))가 자동으로 2열이 된다 — 그리드 CSS 자체는 안 바꿨다. */}
+          .v2-content는 이후 §5 개정으로 1048px(제목 줄 .v2-page-head와 같은 폭)이 됐고,
+          .grid(auto-fit minmax(320px,1fr))가 폭에 맞춰 자동 최대 3열까지 나온다 —
+          그리드 CSS 자체는 안 바꿨다. */}
       <div className="v2-content">
       {/* 🔴 00-21 §0.2-1 해제 조건 2 — 위치기반서비스 약관(제20조)이 LOCATION_LEGAL_PUBLISHED=false로
           잠긴 동안, 이용자가 위치 수집을 알 수 있는 유일한 자리다. GPS 권한 팝업은 컴포넌트
@@ -413,8 +415,9 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
         <div
           style={{
             backgroundColor: 'var(--v2-bg)',
-            // 2026-09-22 — 764px로 좁아진 폭에서 필드가 더 자주 줄바꿈돼 상자가 커 보였다.
-            // 안쪽 여백·칸 사이 간격을 조금 줄임(사람 지시: 필터박스 크기 조정).
+            // 2026-09-22 — .v2-content가 764px·2열이던 시점에 정한 값(필드가 자주 줄바꿈돼
+            // 상자가 커 보여서 안쪽 여백·칸 간격을 줄임). 이후 §5 개정으로 1048px·3열이 됐지만
+            // 값은 그대로 둬도 괜찮아 유지한다(사람 지시: 필터박스 크기 조정).
             padding: '0.9rem',
             borderRadius: 'var(--r-lg)',
             marginBottom: '1.75rem',
@@ -762,8 +765,9 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
                     style={{
                       width: 'calc(100% + 2.5rem)',
                       margin: '-1.25rem -1.25rem 1rem -1.25rem',
-                      // 2026-09-22 — 764px·2열로 좁아지며 카드 폭이 줄어 160px가 과하게 커 보였다.
-                      // 120px로 낮춤(사람 지시: 카드 크기 조정으로 해결).
+                      // 2026-09-22 — .v2-content가 764px·2열이던 시점에 정한 값(카드 폭이 줄어
+                      // 160px가 과하게 커 보여 120px로 낮춤, 사람 지시: 카드 크기 조정으로 해결).
+                      // 이후 §5 개정으로 1048px·3열이 됐지만 카드 폭이 약 336px로 비슷해 유지한다.
                       height: '120px',
                       backgroundColor: 'var(--v2-selected-bg)',
                       display: 'flex',
