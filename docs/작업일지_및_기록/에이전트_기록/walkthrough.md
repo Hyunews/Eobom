@@ -858,3 +858,24 @@
   3. facility 실기동 검증 대기 — 이번 세션은 dev서버 임시 기동+즉시 종료로 스냅샷만 비교했고, 사람의 실제 화면 확인은 아직이다.
 
 <!-- Gemini 판정 1줄: 대기 -->
+
+## 2026-09-22 | [Sonnet] memorial v2 이관(00-39 §9.1 그룹① 편입) — 완료
+
+- **근거 스펙**: docs/00_핵심플랫폼/00-39_디자인_기준_재정립_명세서.md §9.1(2026-09-22 개발자 지시로 `memorial`이 그룹⑦ 미정 → 그룹① 목록·체크리스트로 편입) · §6.7(목록 클래스) · §6.8·§6.8-1(폼 클래스, 그룹② 대표 `obituary`에서 확정) · §6.4(안내 모달).
+- **건드린 파일**: eobomDev/frontend/src/pages/MemorialPage.tsx (전면 재작성). CSS 신규 클래스 없음 — 기존 §6.7·§6.8 클래스만 재사용.
+- **결과**:
+  1. **목록** — `MyObituaryListPage.tsx`(my-obituaries)의 행·모달 패턴을 그대로 적용: `.v2-page`/`.v2-page-head`/`.v2-content`/`.v2-list-row`/`.v2-list-main`/`.v2-list-title`/`.v2-list-meta`/`.v2-row-chevron`. 공개범위(`VISIBILITY_LABEL`)는 상태(진행중/종료) 표시가 아니라서 `.v2-status-active`가 아닌 `.v2-list-inline-meta`(중립 회색, MyObituaryListPage 밖에서는 처음 쓴 조합이나 §6.7에 이미 있는 기존 클래스)로 달았다.
+  2. **만들기 폼** — 접이식 인라인 폼(기존 UX 유지, 별도 화면·모달로 옮기지 않음)을 §6.8·§6.8-1 클래스로 재작성: `.v2-form`/`.v2-form-section.is-plain`/`.v2-field`/`.v2-input`/`.v2-select`/`.v2-check`. 폭은 옆 미리보기가 없어 `.v2-form-shell`(1048px) 대신 모달 폼과 같은 560px로 직접 캡(규칙 21의 폼 모달 폭과 통일). 필수(성함·허위개설 동의)는 `.v2-req`, 선택(사망일·추모문구)은 `.v2-opt`. 오류는 브라우저 기본 검증 대신 칸별 `.v2-error-text` + 폼 위 요약 한 줄(`확인이 필요한 항목이 N개 있습니다`) + 첫 오류 칸 포커스(규칙 17). 제출 버튼은 상태를 글자로 말한다(`만드는 중…`, 규칙 19).
+  3. **삭제 확인** — `window.confirm` 제거, `WithdrawalModal.tsx`의 단계형 확인 패턴을 빌려 목록 행 클릭 → 상세 모달(`modalStep: 'detail'`, 열기·주소복사·삭제) → 삭제 버튼 → 같은 모달 안에서 `confirm-delete` 단계(사실만 진술, 해설 없음)로 전환 → 커밋 버튼만 `.v2-btn-solid`(urgent 빨강), 나머지는 `.v2-btn-outline`. 삭제 진행 중에는 배경 클릭으로 안 닫히게 `closeModal`에서 `deletingId` 가드.
+  4. 옛 토큰(`--primary-color`·`--point-color`·`--card-bg`·`--secondary-color`·`--text-muted`·`--fs-*`·`--sp-*` 등) 전량 제거, `page-title`/`page-subtitle` 클래스도 `.v2-page-title`/`.v2-page-subtitle`로 교체. 장식 배지("온라인 추모 공간")와 제목 아이콘은 뺐다 — my-obituaries·counseling 등 이미 이관된 그룹① 화면 어디에도 그런 배지가 없어 규칙 5(긴급도 배지 금지)와 같은 결로 판단.
+  5. 기능은 그대로: 만들기(POST /api/memorials)·삭제(DELETE, 소프트)·주소복사(copyObituaryLink)·공개범위 3종. 백엔드 변경 없음.
+  6. 검증: `npx tsc --noEmit -p .`·`npm run build`(frontend) 통과. dev 서버는 기동 확인만(응답 200 미확인 — HTTPS 자체서명 인증서로 curl 실패, 즉시 kill) 하고 렌더 스크린샷 대조는 안 했다 — 사람 실기동 확인 정책(dev 서버는 사람이 직접 확인) 때문에 여기서 멈춤.
+- **편차**:
+  - 🔴 **만들기 폼을 모달이 아니라 인라인으로 유지**했다. 규칙 21("수정은 새 화면이 아니라 모달")은 문언상 *수정*에 대한 것이고 *만들기*는 명시가 없어, 기존 UX(목록 위 인라인 확장 카드)를 유지하는 쪽으로 판단했다 — 사람이 다른 판단을 하면 `.v2-modal.is-form`(560px)로 옮기면 된다.
+  - 삭제 확인 문구가 §6.4 규칙 10(안내 모달은 세 줄: 제목·기한·근거)을 문자 그대로 따르지 않는다 — §6.4는 법정기한 안내 모달용이라 확인/취소 모달에는 기계적으로 안 맞았고, 대신 규칙 11(해설·조언 없이 사실만)의 정신만 가져와 결과(링크 무효화)와 남는 것(방명록·헌화)만 진술했다.
+- **다음 에이전트가 알아야 할 것**:
+  1. 00-39 §9.1 표(465·471·473행)가 아직 "🟡 memorial 남음"으로 돼 있다 — Opus가 이 완료를 반영해야 함(Sonnet은 docs/ 쓰기 금지).
+  2. `memorial` 완료로 그룹① 4개(care-guide·counseling·pickup·my-obituaries) + facility + memorial = 전부 v2 이관 완료. 남은 그룹은 ②(ending-note·farewell-messages 미착수)·③·④·⑤·⑥(보류).
+  3. 사람 실기동 검증 대기(만들기 폼 제출 흐름·삭제 2단계 모달 실제 클릭 확인 안 됨).
+
+<!-- Gemini 판정 1줄: 대기 -->

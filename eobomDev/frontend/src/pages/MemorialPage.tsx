@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Flower2, Plus, ExternalLink, Copy, Trash2, LogIn, Loader2 } from 'lucide-react';
+import { ExternalLink, Copy, ChevronRight, LogIn } from 'lucide-react';
 import { apiFetch, ApiError } from '../lib/api';
 import { formatKST } from '../utils/obituaryCard';
 import { copyObituaryLink } from '../utils/kakaoShare';
+import { backdropCloseProps } from '../utils/backdropClose';
+import '../styles/design-v2.css';
 
 // 🔄 09-07 사용자 지시 — "추모관은 부고장 생성에 딸리지 않고, 추모관 페이지에서 따로
 // 생성/삭제된다." 이 화면이 그 "추모관 페이지"다. 기존엔 MemorialEntryPage가 "부고장이
@@ -11,6 +13,11 @@ import { copyObituaryLink } from '../utils/kakaoShare';
 // 그 판정 자체가 의미를 잃었다 — 여기서 직접 CRUD를 한다. 백엔드는 이미 있던
 // `POST /api/memorials`(createMemorial)·`GET /api/me/memorials`(listMyMemorials)에
 // `DELETE /api/memorials/:id`(closeMemorial, 소프트 삭제)만 새로 얹었다.
+// 🔄 00-39 §9.1(2026-09-22 개발자 지시) — `memorial`이 그룹⑦(미정)에서 그룹①(목록·체크리스트)로
+// 편입됐다. 목록은 `my-obituaries`(MyObituaryListPage.tsx)와 같은 행·모달 클래스를 그대로 쓰고,
+// 만들기 폼은 §6.8·§6.8-1(그룹② obituary에서 확정된 규칙), 삭제 확인은 `window.confirm` 대신
+// §6.4 모달(WithdrawalModal.tsx의 단계형 확인 패턴)로 옮겼다. 기능(만들기·삭제·주소복사·공개
+// 범위)은 그대로 — 옛 토큰(`--primary-color` 등)과 인라인 스타일만 걷어냈다.
 
 interface MemorialPageProps {
   currentUser?: string | null;
@@ -33,12 +40,24 @@ const VISIBILITY_LABEL: Record<string, string> = {
   PUBLIC: '전체 공개',
 };
 
+type FieldErrorKey = 'deceased' | 'falseReport';
+
+// 화면 위→아래 순서 — 제출 실패 시 첫 오류 칸으로 포커스를 옮기는 데 쓴다(00-39 규칙 17 ④)
+const FIELD_ERROR_ORDER: { key: FieldErrorKey; id: string }[] = [
+  { key: 'deceased', id: 'mem-deceased' },
+  { key: 'falseReport', id: 'mem-false-report' },
+];
+
+type ModalStep = 'detail' | 'confirm-delete';
+
 export const MemorialPage: React.FC<MemorialPageProps> = ({ currentUser, onOpenLogin }) => {
   const navigate = useNavigate();
   const [memorials, setMemorials] = useState<MyMemorial[] | null>(null);
   const [loadError, setLoadError] = useState(false);
   const [feedback, setFeedback] = useState<{ id: string; message: string } | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [modalTarget, setModalTarget] = useState<MyMemorial | null>(null);
+  const [modalStep, setModalStep] = useState<ModalStep>('detail');
 
   const [formOpen, setFormOpen] = useState(false);
   const [deceasedName, setDeceasedName] = useState('');
@@ -47,7 +66,11 @@ export const MemorialPage: React.FC<MemorialPageProps> = ({ currentUser, onOpenL
   const [visibility, setVisibility] = useState('LINK');
   const [falseReportAgreed, setFalseReportAgreed] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [formError, setFormError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<Partial<Record<FieldErrorKey, string>>>({});
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  const clearFieldError = (key: FieldErrorKey) =>
+    setFieldErrors((prev) => (prev[key] ? { ...prev, [key]: undefined } : prev));
 
   const fetchMemorials = () => {
     apiFetch<MyMemorial[]>('/api/me/memorials', 'USER')
@@ -67,21 +90,27 @@ export const MemorialPage: React.FC<MemorialPageProps> = ({ currentUser, onOpenL
     setEpitaph('');
     setVisibility('LINK');
     setFalseReportAgreed(false);
-    setFormError(null);
+    setFieldErrors({});
+    setErrorMsg(null);
   };
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!deceasedName.trim()) {
-      setFormError('고인 성함은 필수입니다.');
+    // 00-39 규칙 17 — 브라우저 기본 검증(required) 대신 칸마다 오류를 붙인다.
+    const errs: Partial<Record<FieldErrorKey, string>> = {};
+    if (!deceasedName.trim()) errs.deceased = '고인 성함을 입력해 주세요.';
+    if (!falseReportAgreed) errs.falseReport = '확인이 필요한 항목입니다.';
+    const errCount = Object.keys(errs).length;
+    if (errCount > 0) {
+      setFieldErrors(errs);
+      setErrorMsg(`확인이 필요한 항목이 ${errCount}개 있습니다. 붉게 표시된 곳을 확인해 주세요.`);
+      const first = FIELD_ERROR_ORDER.find((f) => errs[f.key]);
+      if (first) document.getElementById(first.id)?.focus();
       return;
     }
-    if (!falseReportAgreed) {
-      setFormError('허위 개설 시 법적 책임을 질 수 있다는 점에 동의해야 합니다.');
-      return;
-    }
+    setFieldErrors({});
+    setErrorMsg(null);
     setSubmitting(true);
-    setFormError(null);
     try {
       await apiFetch('/api/memorials', 'USER', {
         method: 'POST',
@@ -96,28 +125,41 @@ export const MemorialPage: React.FC<MemorialPageProps> = ({ currentUser, onOpenL
       resetForm();
       fetchMemorials();
     } catch (err) {
-      setFormError(err instanceof ApiError ? err.message : '추모관 개설 중 오류가 발생했습니다.');
+      setErrorMsg(err instanceof ApiError ? err.message : '추모관 개설 중 오류가 발생했습니다.');
     } finally {
       setSubmitting(false);
     }
   };
 
-  const copyAddress = async (id: string, slug: string) => {
-    const url = `${window.location.origin}/m/${slug}`;
+  const copyAddress = async (m: MyMemorial) => {
+    const url = `${window.location.origin}/m/${m.slug}`;
     const copied = await copyObituaryLink(url);
-    setFeedback({ id, message: copied ? '추모관 주소가 복사되었습니다.' : '복사에 실패했습니다. 주소창의 링크를 직접 복사해 주세요.' });
+    setFeedback({ id: m.id, message: copied ? '추모관 주소가 복사되었습니다.' : '복사에 실패했습니다. 주소창의 링크를 직접 복사해 주세요.' });
+  };
+
+  const closeModal = () => {
+    if (deletingId) return;
+    setModalTarget(null);
+    setModalStep('detail');
+  };
+
+  const openModal = (m: MyMemorial) => {
+    setModalTarget(m);
+    setModalStep('detail');
   };
 
   // 소프트 삭제(closedAt) — 방명록·헌화·사진은 남기고 공개 열람만 즉시 막는다
   // (memorialController.closeMemorial 주석 참고). 되돌리는 UI는 두지 않는다.
   const handleDelete = async (m: MyMemorial) => {
-    if (!window.confirm(`故 ${m.deceasedName}님의 추모관을 삭제하시겠어요?\n\n삭제하면 이 추모관 링크로 더는 들어올 수 없습니다. 방명록·헌화 기록은 보관 기간 동안 남아 있습니다.`)) return;
     setDeletingId(m.id);
     try {
       await apiFetch(`/api/memorials/${m.id}`, 'USER', { method: 'DELETE' });
       setMemorials((prev) => (prev ? prev.filter((item) => item.id !== m.id) : prev));
+      setModalTarget(null);
+      setModalStep('detail');
     } catch {
       setFeedback({ id: m.id, message: '삭제에 실패했습니다. 잠시 후 다시 시도해주세요.' });
+      setModalStep('detail');
     } finally {
       setDeletingId(null);
     }
@@ -125,13 +167,12 @@ export const MemorialPage: React.FC<MemorialPageProps> = ({ currentUser, onOpenL
 
   if (!currentUser) {
     return (
-      <div className="container">
-        <div style={{ backgroundColor: 'var(--card-bg)', padding: '2.5rem 1.75rem', borderRadius: 'var(--border-radius)', boxShadow: 'var(--box-shadow)', textAlign: 'center', maxWidth: '480px', margin: '2rem auto' }}>
-          <Flower2 color="var(--point-color)" size={40} style={{ marginBottom: 'var(--sp-3)' }} />
-          <h2 style={{ color: 'var(--primary-color)', marginBottom: '0.5rem' }}>디지털 추모관</h2>
-          <p style={{ color: 'var(--text-muted)', marginBottom: '1.5rem' }}>추모관을 만들고 관리하려면 로그인해 주세요.</p>
-          <button onClick={onOpenLogin} className="btn btn-point" style={{ width: '100%' }}>
-            <LogIn size={18} /> 로그인 / 회원가입
+      <div className="v2-page">
+        <div className="v2-content">
+          <h1 className="v2-page-title">디지털 추모관</h1>
+          <p className="v2-empty">추모관을 만들고 관리하려면 로그인해 주세요.</p>
+          <button type="button" className="v2-btn-primary" onClick={onOpenLogin}>
+            <LogIn size={16} /> 로그인 / 회원가입
           </button>
         </div>
       </div>
@@ -141,146 +182,196 @@ export const MemorialPage: React.FC<MemorialPageProps> = ({ currentUser, onOpenL
   const activeMemorials = (memorials ?? []).filter((m) => !m.closedAt);
 
   return (
-    <div className="container" style={{ paddingBottom: '3rem' }}>
-      <div style={{ marginBottom: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '1rem', flexWrap: 'wrap' }}>
-        <div>
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', backgroundColor: 'var(--surface-subtle)', color: '#6C7A89', padding: '0.3rem var(--sp-4)', borderRadius: 'var(--r-lg)', fontSize: 'var(--fs-body)', fontWeight: 700, marginBottom: '0.6rem' }}>
-            <Flower2 size={18} color="#6C7A89" /> 온라인 추모 공간
-          </div>
-          <h1 className="page-title" style={{ color: 'var(--primary-color)', display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0 }}>
-            <Flower2 color="var(--point-color)" size={32} /> 디지털 추모관
-          </h1>
-          <p className="page-subtitle" style={{ color: 'var(--text-muted)', marginTop: '0.4rem' }}>
-            조문객이 온라인으로 헌화·방명록을 남길 수 있는 공간입니다. 부고장과 별개로 여기서 직접 만들고 지웁니다.
-          </p>
-        </div>
+    <div className="v2-page">
+      <div className="v2-page-head">
+        <h1 className="v2-page-title">디지털 추모관</h1>
+        <p className="v2-page-subtitle">조문객이 온라인으로 헌화·방명록을 남길 수 있는 공간입니다. 부고장과 별개로 여기서 직접 만들고 지웁니다.</p>
+      </div>
+
+      <div className="v2-content">
         {!formOpen && (
-          <button type="button" onClick={() => setFormOpen(true)} className="btn btn-point" style={{ whiteSpace: 'nowrap' }}>
-            <Plus size={16} /> 새 추모관 만들기
+          <button type="button" className="v2-btn-primary" style={{ marginBottom: '24px' }} onClick={() => setFormOpen(true)}>
+            새 추모관 만들기
           </button>
         )}
-      </div>
 
-      {formOpen && (
-        <div style={{ backgroundColor: 'var(--card-bg)', padding: '1.5rem', borderRadius: 'var(--border-radius)', boxShadow: 'var(--box-shadow)', marginBottom: '1.5rem' }}>
-          <h3 style={{ color: 'var(--primary-color)', marginBottom: '1rem', fontSize: '1.1rem' }}>새 추모관 만들기</h3>
-          <form onSubmit={handleCreate}>
-            <div className="form-group">
-              <label className="form-label">고인 성함</label>
-              <input type="text" value={deceasedName} onChange={(e) => setDeceasedName(e.target.value)} className="form-input" placeholder="예: 홍길동" required />
-            </div>
-            <div className="form-group">
-              <label className="form-label">사망일 (선택)</label>
-              <input type="date" value={deceasedDeathDate} onChange={(e) => setDeceasedDeathDate(e.target.value)} className="form-input" />
-            </div>
-            <div className="form-group">
-              <label className="form-label">추모 문구 (선택)</label>
-              <input type="text" value={epitaph} onChange={(e) => setEpitaph(e.target.value)} className="form-input" placeholder="예: 늘 그리운 모습으로 기억합니다" />
-            </div>
-            <div className="form-group">
-              <label className="form-label">공개 범위</label>
-              <select value={visibility} onChange={(e) => setVisibility(e.target.value)} className="form-select">
-                <option value="LINK">링크로만 공개 — 주소를 아는 사람만</option>
-                <option value="PUBLIC">전체 공개</option>
-                <option value="PRIVATE">비공개 — 나만 볼 수 있음</option>
-              </select>
-            </div>
-            <label style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', fontSize: 'var(--fs-body)', cursor: 'pointer', backgroundColor: 'var(--secondary-color)', borderRadius: 'var(--r-sm)', padding: 'var(--sp-4)', marginBottom: '1rem' }}>
-              <input type="checkbox" checked={falseReportAgreed} onChange={(e) => setFalseReportAgreed(e.target.checked)} style={{ marginTop: '0.2rem' }} />
-              <span>[필수] 허위로 추모관을 개설할 경우 법적 책임을 질 수 있다는 점에 동의합니다.</span>
-            </label>
-            {formError && (
-              <div style={{ fontSize: 'var(--fs-body)', color: 'var(--state-danger-fg)', backgroundColor: 'var(--state-danger-bg)', border: '1px solid var(--state-danger-bg)', borderRadius: 'var(--r-sm)', padding: 'var(--sp-3) 0.9rem', marginBottom: '1rem' }}>
-                {formError}
+        {formOpen && (
+          <form onSubmit={handleCreate} className="v2-form" style={{ maxWidth: '560px', marginBottom: '32px' }}>
+            <section className="v2-form-section is-plain">
+              <div className="v2-field">
+                <label htmlFor="mem-deceased">
+                  고인 성함
+                  <span className="v2-req">필수</span>
+                </label>
+                <input
+                  id="mem-deceased"
+                  type="text"
+                  className="v2-input"
+                  value={deceasedName}
+                  placeholder="예: 홍길동"
+                  aria-invalid={fieldErrors.deceased ? true : undefined}
+                  aria-describedby={fieldErrors.deceased ? 'mem-deceased-err' : undefined}
+                  onChange={(e) => { setDeceasedName(e.target.value); clearFieldError('deceased'); }}
+                />
+                {fieldErrors.deceased && <span id="mem-deceased-err" className="v2-error-text">{fieldErrors.deceased}</span>}
               </div>
-            )}
-            <div style={{ display: 'flex', gap: '0.6rem' }}>
-              <button type="button" onClick={resetForm} disabled={submitting} className="btn" style={{ flex: 1, backgroundColor: 'var(--secondary-color)', color: 'var(--primary-color)' }}>
-                취소
-              </button>
-              <button type="submit" disabled={submitting} className="btn btn-point" style={{ flex: 1 }}>
-                {submitting ? <><Loader2 size={16} /> 만드는 중...</> : '추모관 만들기'}
-              </button>
+
+              <div className="v2-field">
+                <label htmlFor="mem-death-date">
+                  사망일
+                  <span className="v2-opt">선택</span>
+                </label>
+                <input
+                  id="mem-death-date"
+                  type="date"
+                  className="v2-input"
+                  value={deceasedDeathDate}
+                  onChange={(e) => setDeceasedDeathDate(e.target.value)}
+                />
+              </div>
+
+              <div className="v2-field">
+                <label htmlFor="mem-epitaph">
+                  추모 문구
+                  <span className="v2-opt">선택</span>
+                </label>
+                <input
+                  id="mem-epitaph"
+                  type="text"
+                  className="v2-input"
+                  value={epitaph}
+                  placeholder="예: 늘 그리운 모습으로 기억합니다"
+                  onChange={(e) => setEpitaph(e.target.value)}
+                />
+              </div>
+
+              <div className="v2-field">
+                <label htmlFor="mem-visibility">공개 범위</label>
+                <select id="mem-visibility" className="v2-select" value={visibility} onChange={(e) => setVisibility(e.target.value)}>
+                  <option value="LINK">링크로만 공개 — 주소를 아는 사람만</option>
+                  <option value="PUBLIC">전체 공개</option>
+                  <option value="PRIVATE">비공개 — 나만 볼 수 있음</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="v2-check" htmlFor="mem-false-report">
+                  <input
+                    id="mem-false-report"
+                    type="checkbox"
+                    checked={falseReportAgreed}
+                    aria-invalid={fieldErrors.falseReport ? true : undefined}
+                    onChange={(e) => { setFalseReportAgreed(e.target.checked); clearFieldError('falseReport'); }}
+                  />
+                  <span><span className="v2-req">필수</span> 허위로 추모관을 개설할 경우 법적 책임을 질 수 있다는 점에 동의합니다.</span>
+                </label>
+                {fieldErrors.falseReport && <p className="v2-error-text v2-check-error" style={{ margin: 0 }}>{fieldErrors.falseReport}</p>}
+              </div>
+            </section>
+
+            <div className="v2-form-submit">
+              {errorMsg && <p role="alert" className="v2-error-text" style={{ margin: 0 }}>{errorMsg}</p>}
+              <div style={{ display: 'flex', gap: '12px' }}>
+                <button type="button" className="v2-btn-outline" style={{ flex: 1 }} onClick={resetForm} disabled={submitting}>
+                  취소
+                </button>
+                <button type="submit" className="v2-btn-primary" style={{ flex: 1 }} disabled={submitting} aria-busy={submitting}>
+                  {submitting ? '만드는 중…' : '추모관 만들기'}
+                </button>
+              </div>
             </div>
           </form>
+        )}
+
+        <div className="v2-section-head">
+          <h2 className="v2-section-title">내 추모관</h2>
+          {memorials !== null && <span className="v2-section-count">({activeMemorials.length})</span>}
+        </div>
+
+        {memorials === null && !loadError && <p className="v2-empty">불러오는 중...</p>}
+        {loadError && <p className="v2-error-text">목록을 불러오지 못했습니다. 잠시 후 다시 시도해주세요.</p>}
+        {memorials !== null && activeMemorials.length === 0 && <p className="v2-empty">아직 만든 추모관이 없습니다.</p>}
+
+        {activeMemorials.map((m) => (
+          <div key={m.id} className="v2-list-row">
+            <button type="button" className="v2-list-main" onClick={() => openModal(m)}>
+              <span className="v2-list-title">
+                故 {m.deceasedName}
+                <span className="v2-list-inline-meta"> · {VISIBILITY_LABEL[m.visibility] || m.visibility}</span>
+              </span>
+            </button>
+            <span className="v2-list-meta">
+              {m.deceasedDeathDate ? `사망일 ${formatKST(m.deceasedDeathDate)}` : `개설일 ${formatKST(m.createdAt)}`}
+            </span>
+            <ChevronRight size={16} className="v2-row-chevron" />
+          </div>
+        ))}
+      </div>
+
+      {modalTarget && (
+        <div className="v2-modal-overlay" role="dialog" aria-modal="true" {...backdropCloseProps(closeModal)}>
+          <div className="v2-modal" onClick={(e) => e.stopPropagation()}>
+            {modalStep === 'detail' ? (
+              <>
+                <h3 className="v2-modal-title">故 {modalTarget.deceasedName}</h3>
+
+                <div className="v2-modal-row">
+                  <span className="v2-modal-label">공개 범위</span>
+                  <span className="v2-modal-value">{VISIBILITY_LABEL[modalTarget.visibility] || modalTarget.visibility}</span>
+                </div>
+
+                <div className="v2-modal-row">
+                  <span className="v2-modal-label">일자</span>
+                  <span className="v2-modal-value">
+                    {modalTarget.deceasedDeathDate
+                      ? `사망일 ${formatKST(modalTarget.deceasedDeathDate)}`
+                      : `개설일 ${formatKST(modalTarget.createdAt)}`}
+                  </span>
+                </div>
+
+                <div className="v2-modal-actions">
+                  <button type="button" className="v2-btn-outline" onClick={() => navigate(`/m/${modalTarget.slug}`)}>
+                    <ExternalLink size={14} /> 열기
+                  </button>
+                  <button type="button" className="v2-btn-outline" onClick={() => copyAddress(modalTarget)}>
+                    <Copy size={14} /> 주소 복사
+                  </button>
+                  <button type="button" className="v2-btn-outline" onClick={() => setModalStep('confirm-delete')}>
+                    삭제
+                  </button>
+                </div>
+
+                {feedback?.id === modalTarget.id && <p className="v2-notice">{feedback.message}</p>}
+
+                <button type="button" className="v2-modal-close" onClick={closeModal}>
+                  닫기
+                </button>
+              </>
+            ) : (
+              <>
+                <h3 className="v2-modal-title">추모관을 삭제하시겠어요?</h3>
+                <p className="v2-modal-value" style={{ margin: '0 0 16px' }}>
+                  삭제하면 이 추모관 링크로 더는 들어올 수 없습니다. 방명록·헌화 기록은 보관 기간 동안 남아 있습니다.
+                </p>
+                <div className="v2-modal-actions">
+                  <button type="button" className="v2-btn-outline" onClick={() => setModalStep('detail')} disabled={deletingId === modalTarget.id}>
+                    취소
+                  </button>
+                  <button
+                    type="button"
+                    className="v2-btn-solid"
+                    onClick={() => handleDelete(modalTarget)}
+                    disabled={deletingId === modalTarget.id}
+                    aria-busy={deletingId === modalTarget.id}
+                  >
+                    {deletingId === modalTarget.id ? '삭제 중…' : '삭제'}
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
         </div>
       )}
-
-      <div style={{ backgroundColor: 'var(--card-bg)', padding: '1.5rem', borderRadius: 'var(--border-radius)', boxShadow: 'var(--box-shadow)' }}>
-        <h4 style={{ marginBottom: '1rem', color: 'var(--primary-color)' }}>내 추모관</h4>
-
-        {memorials === null && !loadError && (
-          <p style={{ color: 'var(--text-muted)', fontSize: 'var(--fs-body)' }}>불러오는 중...</p>
-        )}
-        {loadError && (
-          <p style={{ color: 'var(--state-warn-fg)', fontSize: 'var(--fs-body)' }}>목록을 불러오지 못했습니다. 잠시 후 다시 시도해주세요.</p>
-        )}
-        {memorials !== null && activeMemorials.length === 0 && (
-          <p style={{ color: 'var(--text-muted)', fontSize: 'var(--fs-body)' }}>아직 만든 추모관이 없습니다.</p>
-        )}
-
-        {activeMemorials.length > 0 && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.9rem' }}>
-            {activeMemorials.map((m) => (
-              <div
-                key={m.id}
-                style={{
-                  padding: '0.9rem 1rem', backgroundColor: 'var(--secondary-color)', borderRadius: 'var(--r-sm)',
-                  display: 'flex', flexDirection: 'column', gap: '0.6rem',
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem' }}>
-                  <div>
-                    <p style={{ fontWeight: 700, color: 'var(--text-main)', marginBottom: '0.2rem' }}>
-                      故 {m.deceasedName}
-                      <span style={{ marginLeft: '0.5rem', fontSize: 'var(--fs-caption)', fontWeight: 400, color: 'var(--text-muted)' }}>
-                        · {VISIBILITY_LABEL[m.visibility] || m.visibility}
-                      </span>
-                    </p>
-                    <p style={{ fontSize: 'var(--fs-body)', color: 'var(--text-muted)' }}>
-                      {m.deceasedDeathDate ? `사망일 ${formatKST(m.deceasedDeathDate)}` : `개설일 ${formatKST(m.createdAt)}`}
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => handleDelete(m)}
-                    disabled={deletingId === m.id}
-                    className="btn"
-                    style={{
-                      height: '36px', padding: '0 var(--sp-4)', fontSize: 'var(--fs-body)', backgroundColor: 'var(--card-bg)',
-                      border: '1px solid var(--state-danger-bg)', color: 'var(--state-danger-fg)', opacity: deletingId === m.id ? 0.6 : 1,
-                      display: 'inline-flex', alignItems: 'center', gap: '0.3rem', flexShrink: 0,
-                    }}
-                  >
-                    <Trash2 size={14} /> 삭제
-                  </button>
-                </div>
-
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap' }}>
-                  <button
-                    type="button"
-                    onClick={() => navigate(`/m/${m.slug}`)}
-                    style={{ height: '32px', padding: '0 0.6rem', fontSize: 'var(--fs-caption)', backgroundColor: 'var(--card-bg)', border: '1px solid var(--border-color)', borderRadius: 'var(--r-sm)', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}
-                  >
-                    <ExternalLink size={13} /> 열기
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => copyAddress(m.id, m.slug)}
-                    style={{ height: '32px', padding: '0 0.6rem', fontSize: 'var(--fs-caption)', backgroundColor: 'var(--card-bg)', border: '1px solid var(--border-color)', borderRadius: 'var(--r-sm)', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}
-                  >
-                    <Copy size={13} /> 주소 복사
-                  </button>
-                </div>
-
-                {feedback?.id === m.id && (
-                  <p style={{ fontSize: 'var(--fs-body)', color: 'var(--text-muted)' }}>{feedback.message}</p>
-                )}
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
     </div>
   );
 };
