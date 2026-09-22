@@ -525,6 +525,17 @@ wt_counts() {   # 출력: "판정수 대기수 무표기수" — 항목 단위, 
        open && st=="" && (/^<!-- Gemini 판정 대기/ || /^<!-- Gemini 판정 1줄/) { st="W" }
        END { close_entry(); print j+0, w+0, u+0 }' "$@"
 }
+# 🔴 2026-09-22 — 아카이브 기준(`record.md` §2-1)이 없어 09-02 43KB → 09-22 549KB로 불었다.
+#   고칠 수 있는 경고라 🟡로 둔다(판정 대기가 많으면 더 못 줄이는 경우도 있다).
+CHECKS=$((CHECKS + 1))
+if [ -f "$WT" ]; then
+  WT_BYTES=$(wc -c < "$WT" | tr -d ' ')
+  if [ "$WT_BYTES" -gt 153600 ]; then
+    warn "walkthrough.md ${WT_BYTES}B > 150KB — 아카이브 시점(record.md §2-1)"
+  else
+    ok "walkthrough.md ${WT_BYTES}B ≤ 150KB"
+  fi
+fi
 if [ -f "$WT" ]; then
   # ⚠️ **이모지로 세지 않는다.** 이 환경(Git Bash)의 grep은 `🔄`(U+1F504, 4바이트)를 매칭하지
   # 못한다 — `✅`(U+2705, 3바이트)는 되는데 4바이트 문자에서 조용히 0을 낸다. 2026-08-14에

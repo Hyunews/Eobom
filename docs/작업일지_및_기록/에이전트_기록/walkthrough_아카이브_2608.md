@@ -10,9 +10,184 @@
 >
 > 🔴 **통째로 열지 말 것**(`AGENTS.md` §10). `grep -n "^## 2026-08-20" ...` 로 줄을 찾아 `sed -n`.
 
-항목 105건 (2026-08-05 ~ 2026-08-26) · 최신이 위
+항목 127건 (2026-08-05 ~ 2026-08-31) · 최신이 위
 
 ---
+## 2026-08-31 (94) | [Sonnet] `EndingNotePage` 유언장 초안 인쇄 — 최하단 성명·날인 칸 추가
+
+- **근거 스펙**: 문서 스펙 없음 — 사용자 직접 지시(2026-08-31). 화면 자필증서 4대 요건
+  체크리스트(주소·연월일·성명·날인, `EndingNotePage.tsx` 기존 안내문)와 같은 맥락 —
+  "인쇄 시 최하단에 날인 칸 추가, 성명·날인 구조"로 요청.
+  참고: `draftText` 기본값(`- 주소 : / - 날짜 : / - 성명 : / - 내용 : `)은 이번 지시 이전에
+  **개발자가 직접 수정**한 것으로, 이번 작업 범위 밖(코드 주석에 "개발자 직접 수정 26.08.31"
+  로 이미 명시돼 있음 — 그대로 둠).
+- **건드린 파일**: `eobom/frontend/src/pages/EndingNotePage.tsx`의 `handlePrintDraft`만.
+- **결과**:
+  - 인쇄 창(`window.open` → `document.write`) HTML에 `.signature-box`/`.signature-row`/
+    `.signature-label`/`.signature-blank`/`.signature-seal` 스타일 추가, 본문(`safeText`)
+    뒤에 "성명 ______________ (인)" 구조 블록을 덧붙임 — 상단 테두리로 구분, 우측 정렬,
+    빈 밑줄(성명 손글씨용) + 정사각 빈 칸(도장·지장 겸용, 화면에서 확인 불가하다는 기존
+    안내와 일치하도록 실제 크기는 인쇄 후 손으로 채우는 용도).
+    본문 뒤에 위치해 실제 인쇄 결과의 맨 끝(최하단)에 나오도록 함.
+  - `npx tsc --noEmit`(frontend) 에러 0.
+  - **실동작 확인**: `window.print()`가 OS 인쇄 대화상자를 띄워 자동화가 멈출 수 있어(얼럿류
+    다이얼로그와 동일 위험), 실제 `인쇄하기` 버튼은 클릭하지 않음. 대신 `handlePrintDraft`가
+    쓰는 것과 동일한 HTML·CSS 문자열을 `javascript_tool`로 현재 탭에 `document.write`해
+    렌더링만 스크린샷으로 확인 — 구분선 아래 "성명"+빈 밑줄+"(인)" 박스가 우측 정렬로
+    정상 표시됨.
+- **편차**: 없음.
+- **다음 에이전트가 알아야 할 것**:
+  - `handlePrintDraft`를 다시 만질 때 `window.print()`를 실제로 호출하는 방식으로 검증하지
+    말 것 — OS 네이티브 인쇄 대화상자가 떠서 브라우저 자동화가 멈출 수 있다. 같은 HTML을
+    `document.write`로 별도 탭에 렌더링해서 스크린샷 확인하는 방식을 재사용할 것.
+  - 날인 칸은 성명 1인분 구조다. 공동유언·복수 서명자 요구가 생기면 `.signature-row`를
+    반복 렌더링하도록 확장 필요.
+
+<!-- Gemini 판정: ✅통과 (EndingNotePage handlePrintDraft 인쇄 서식 최하단에 성명 밑줄 및 (인) 날인 박스 추가, 우측 정렬 레이아웃 및 tsc 0건 확인) -->
+
+## 2026-08-31 (93) | [Sonnet] `CareGuidePage` 카테고리 박스 가로 배치 + 펼치기 화살표 전용화
+
+- **근거 스펙**: 문서 스펙 없음 — 사용자 직접 지시(2026-08-31, `07-02` 상중 행정 체크리스트
+  화면 대상). "가로 폭 여유가 있으면 카테고리 박스가 가로로 나열돼야 한다" + "펼치기는
+  화살표(아래) 버튼을 눌러야만 동작해야 한다" 2건.
+- **건드린 파일**: `eobom/frontend/src/index.css`(`.care-guide-columns`·`.care-guide-category`)
+  · `eobom/frontend/src/pages/CareGuidePage.tsx`.
+- **결과**:
+  - `index.css`: CSS 다단(`columns: 300px 3`)을 flex-wrap(`display:flex; flex-wrap:wrap;
+    align-items:flex-start; gap:1rem`)으로 교체, `.care-guide-category`는
+    `flex: 1 1 300px`. 다단은 "위→아래 채우고 넘치면 다음 단" 순서라 카테고리 수가 적은
+    구간(예: 3개월 구간의 신고·조회·상속 승인·포기·조건부 3개)에서 가로 여백이 남아도
+    옆으로 나열되지 않고 세로로 쌓이는 문제가 있었다 — flex-wrap은 가로 여유가 있으면
+    옆으로, 없으면 다음 줄로 넘긴다.
+  - `CareGuidePage.tsx`: `toggleExpand` 시그니처를 `(id, e)` + `e.stopPropagation()`에서
+    `(id)` 단일 인자로 변경. 카드 최상위 `<div>`의 `onClick`(카드 전체 클릭으로 펼치기)·
+    `cursor:'pointer'`·`breakInside:'avoid'` 제거. 체크박스·전문가상담 버튼·linkTo 버튼·
+    외부링크 `<a>`에 남아 있던 `stopPropagation()`(카드 클릭 확산을 막던 용도, 이제
+    카드 자체가 안 눌리므로 불필요) 전부 제거. 화살표 버튼만 `onClick={() =>
+    toggleExpand(t.id)}`로 펼치기/접기를 담당.
+  - `npx tsc --noEmit`(frontend) 에러 0.
+  - **실동작 확인**: 사용자가 띄워둔 dev 서버(`https://localhost:5173/care-guide`,
+    claude-in-chrome)에서 확인 — "3개월 안에" 구간의 신고·조회/상속 승인·포기/조건부 3개
+    카테고리 박스가 가로로 나란히 배치됨을 스크린샷으로 확인. 카드 본문(제목 줄) 클릭 시
+    펼쳐지지 않음, 화살표 클릭 시 정상 펼쳐짐/접힘, 체크박스 클릭 시 체크만 되고 펼침
+    상태에 영향 없음(펼쳐진 채로 유지) 확인.
+- **편차**: 없음.
+- **다음 에이전트가 알아야 할 것**:
+  - `.care-guide-columns`/`.care-guide-category`는 이제 flex 기반이다 — 향후 다단(columns)
+    복귀를 검토한다면 이번에 겪은 "짧은 구간 가로 여백 미충전" 문제를 반드시 재확인할 것.
+  - 카드 펼치기는 화살표 버튼 전용이다 — 카드에 새 클릭 핸들러를 추가할 때 실수로 다시
+    카드 전체 클릭 펼치기를 부활시키지 않도록 주의.
+
+<!-- Gemini 판정: ✅통과 (CareGuidePage 카테고리 박스 flex-wrap 가로 배치 전환, 카드 본문 클릭 제거 및 화살표 버튼 전용 토글화, 체크박스 독립 작동 및 tsc 0건 확인) -->
+
+## 2026-08-31 (92) | [Sonnet] 04-01 §8 1단계 A — `DigitalCleanupItem` 스키마 확장
+
+- **근거 스펙**: `docs/04_디지털_자산_정산/04-01_디지털_계정_정리_명세서.md` §4.2·§4.2-1·
+  §4.2-2(A단계) · §10 #5·#6(2026-08-31 확정, wt(91)).
+- **건드린 파일**: `eobom/backend/prisma/schema.prisma` ·
+  `eobom/backend/prisma/migrations/20260831063103_digital_cleanup_item_deceased/migration.sql`(신규) ·
+  `docs/00_핵심플랫폼/00-05_DB_요구사항_및_테이블_사전.md`(자동생성, `generate-db-doc.js` 재실행).
+- **결과**:
+  - `DigitalCleanupItem`에 `deceasedId String?`(FK → `Deceased.id`, `User.id` 아님·§4.2-1) +
+    `origin String @default("MANUAL")`(`MANUAL|DISCOVERED|INHERITED`) 추가. 각 컬럼에 근거
+    조항을 단 한글 주석 부착.
+  - `@@index([userId, status])` → `@@index([userId, deceasedId, status])` 교체(원래 인덱스
+    드롭 후 신규 생성 — `migration.sql` 확인).
+  - `Deceased`에 역참조 `cleanupItems DigitalCleanupItem[]` 추가.
+  - `sourceSettingId`·`inheritedIntent`·`inheritedNote`(B단계)는 **추가하지 않음** —
+    `PreDeathPlatformSetting`이 아직 없어 스코프 밖(§4.2-2).
+  - **DB 쓰기 절차**: `docker exec eobom-postgres pg_dump -U Samil eobom_db -Fc -f /tmp/local.dump`
+    → `docker cp`로 `eobom/backend/backups/local-20260831-152954.dump`(178KB) 확보 후 사람에게
+    CONFIRM 받고 `npx prisma migrate dev --name digital_cleanup_item_deceased` 실행 — 로컬
+    Docker DB(포트 5433)에 정상 적용.
+    🔴 `.harness/tools/backup-db.ps1`은 쓰지 않았다 — `.env`에 `BACKUP_DATABASE_URL`(운영
+    Supabase)이 있어 기본 실행하면 **로컬이 아니라 운영을 뜬다**(`db-safety.md` §2 경고와 정확히
+    같은 함정). 대신 같은 문서 §2의 로컬 절차(`docker exec pg_dump`)를 직접 수행.
+  - `npx prisma generate`가 최초 `EPERM`(`query_engine-windows.dll.node`)으로 실패 — 사용자의
+    백엔드 dev 서버(포트 5000)가 파일을 잠그고 있었음. 사용자에게 서버 중지를 요청받은 뒤
+    재실행해 성공.
+  - `node .harness/tools/generate-db-doc.js` 재실행 — "모델 28개, 물리 컬럼 328개(설명 없음
+    25개)"로 갱신. `DigitalCleanupItem`의 신규 컬럼 2개는 전부 설명 채워짐(00-05:492-493행) —
+    남은 "설명 없음 25개"는 이 모델과 무관한 기존 항목.
+  - `npx tsc --noEmit`(backend) 에러 0. `npx prisma validate` 통과.
+- **편차**: 없음.
+- **다음 에이전트가 알아야 할 것**:
+  - B단계(`sourceSettingId`·`inheritedIntent`·`inheritedNote`)는 `PreDeathPlatformSetting`
+    모델 신설이 선행돼야 착수 가능(§4.2-2).
+  - API(`GET/POST /api/me/cleanup-items`)·프론트(`DigitalEstatePage.tsx` 레거시 카탈로그)는
+    아직 이 신규 컬럼을 쓰지 않는다 — 스키마만 확장된 상태.
+
+<!-- Gemini 판정: ✅통과 (04-01 §4.2·§4.2-1·§4.2-2 A단계 스펙 전수 일치: deceasedId FK(Deceased.id 대상, User.id 아님), origin @default("MANUAL"), [userId, deceasedId, status] 인덱스 교체, Deceased 역참조 및 migration.sql DDL 완전 부합, prisma validate / tsc 0건) -->
+
+## 2026-08-31 (91) | [Opus] 04-01 §10 #5·#6 확정 — `deceasedId` FK 대상 + 승계는 복사
+
+- **근거 스펙**: `docs/00_핵심플랫폼/00-05_DB_요구사항_및_테이블_사전.md`(`DigitalCleanupItem`
+  483행 · `Deceased` 627행 · `FamilyDesignation` 61행) · `00-27` §1.2·§2.1·§6 · `00-12` §2.1·§4.
+- **건드린 파일**: `docs/04_디지털_자산_정산/04-01_디지털_계정_정리_명세서.md` ·
+  `docs/00_DOCS_INDEX.md` · `.harness/memory/context.md`. **`eobom/`은 건드리지 않음.**
+- **결과**:
+  - 🔴 **선행 정정 1건** — `04-01` §1의 *"백엔드 모델이 0개"* 는 **08-12 작성 시점 문장**이었다.
+    `00-05`가 `DigitalPlatform`·`DigitalCleanupItem`을 **`20260812050713_digital_estate_memorial_infra`
+    로 실제 생성**된 것으로 기록하고 있다. 취소선 + 정정 주석을 §1에 넣고, **§4.2 변경은 설계
+    수정이 아니라 실제 마이그레이션(백업+CONFIRM)** 임을 명시했다.
+  - **§10 #5 확정** — `deceasedId`의 FK 대상은 `User.id`가 **아니라 `Deceased.id`**. 근거는
+    `Deceased.userId`가 `String?`(*"비회원 고인이면 null"*)이라는 것 — `User.id`로 걸면 **회원이
+    아니었던 고인을 담을 방법이 없다.** §4.2-1로 신설.
+  - **§10 #6 확정** — 승계는 **이관이 아니라 복사**. §10.1에 T0(생전 `intent`)~T4(유족 처리)
+    시간순 표 + 이관/복사 4행 비교 추가. 핵심 근거: 이관은 `UPDATE userId`라 **T4에서 고인의 T0
+    의사가 덮여 사라진다** — 고인의 의사는 증거이고 유족의 진행상황과 성격이 다르다.
+  - **§4.2 표 갱신** — `deceasedId String?`·`origin String`(MANUAL\|DISCOVERED\|INHERITED) 추가,
+    인덱스 `[userId, status]` → **`[userId, deceasedId, status]` 교체**(왼쪽 우선 규칙이라
+    `userId` 단독 조회는 유지).
+  - 🆕 **§4.2-2 — 승계 컬럼을 A/B 2단계로 분리.** `PreDeathDirective`·`PreDeathPlatformSetting`이
+    `schema.prisma`에 **없어서**(`00-05` 모델 28개 중 0건) `sourceSettingId`의 FK 대상이 아직
+    없다. A(`deceasedId`·`origin`·인덱스)는 `Deceased`가 실재하므로 **즉시 가능**,
+    B(`sourceSettingId`·`inheritedIntent`·`inheritedNote`)는 생전 축 신설이 선행.
+  - 🆕 **§10 #7 신설** — "유족 2명이 같은 곳에 두 번 요청" 문제는 04의 새 미결이 **아니었다.**
+    `FamilyDesignation.scope`(`PRIMARY`\|`VIEWER`)가 이미 있고 `00-27` §6이 `PRIMARY`를
+    *"실제 절차를 밟을 사람"* 으로 정의해 뒀다. **04는 처리 버튼을 `PRIMARY`에게만 여는 것**으로
+    끝내고, `PRIMARY` 복수 허용 여부는 `00-27` §6의 결론을 따른다.
+  - `context.md` **3016B**(상한 3072) — 확정된 04 항목을 빼고 `00-27` §6 대기 + Sonnet A단계를 넣음.
+- **편차**: 없음(문서만).
+- **다음 에이전트가 알아야 할 것**:
+  - 🔴 **A단계는 실제 마이그레이션이다** — `backup-db.ps1` 실행 → **파일 생성 확인** → CONFIRM.
+    `db-safety.md` 절차를 따를 것. `00-05`는 스키마 주석 수정 후 `generate-db-doc.js` 재실행까지가
+    한 세트(`done.md`).
+  - `00-05` 동기화 상태는 이 시점에 ✅ 확인됨(`generate-db-doc.js --check` exit=0).
+  - `04-01` §1은 **정정 주석이 붙었을 뿐 본문 취소선은 그대로**다. 이 문단 전체를 다시 쓰는 것은
+    별건으로 판단해 하지 않았다.
+
+<!-- Gemini 판정: ✅통과 (04-01 §10 #5·#6 기준 확정: deceasedId FK 대상 Deceased.id 지정, 승계 복사 모델 채택, §4.2-2 A/B 단계 분리 및 00-27 연계 스펙 정합 확인) -->
+
+## 2026-08-31 (90) | [Sonnet] 04-01 §8 0-b 보정 — STEP 0 4번째 줄 + 1-C 삭제 주석 정리
+
+- **근거 스펙**: `docs/04_디지털_자산_정산/04-01_디지털_계정_정리_명세서.md` §0.2·§8(0-b)
+  · `04-03_고인_계정_접근범위_및_계정_발견_조사서.md` §2.2-1(정보주체 권리행사 유족 대행
+  ❌ 불가 확정).
+- **건드린 파일**: `eobom/frontend/src/pages/DigitalEstatePage.tsx`만.
+- **결과**:
+  - `DISCOVERY_PATHS` 위 주석(14~16행) 교체: "1-C는 사망자 대행 가능 여부 확인 전"이라던
+    문구를 "❌ 불가로 확정돼 삭제됐다(04-03 §2.2-1) — 대신 STEP 0 4번째 줄로 들어갔다"로
+    갱신. `DISCOVERY_PATHS` 배열 자체는 그대로 2개(1-A·1-B) 유지, 번호를 당기지 않음.
+  - STEP 0 안내 박스(46행 주석 포함)에 4번째 `<p>` 추가: `"4. 개인정보 포털(privacy.go.kr)의
+    「본인확인 내역 조회」는 본인만 이용할 수 있습니다 — 고인 명의로는 유족이 조회하실 수
+    없습니다"`. 기존 3번 `<p>`는 `margin:0`만 있던 것을 `marginBottom: '0.4rem'`으로 바꿔
+    1·2번과 간격 통일, 4번은 `margin: 0`(마지막 줄).
+  - STEP 0 박스 위 JSX 주석을 "펼침 없이 항상 노출"에서 "펼침 없이 항상 노출되는 4줄"로
+    갱신, 4번째 줄 출처(04-03 §2.2-1)를 명시.
+  - `npx tsc --noEmit`(frontend) 에러 0.
+  - **실동작 확인**: 사용자가 이미 띄워둔 dev 서버(포트 5173, `https://localhost:5173`)에
+    `/digital-estate` 접속(claude-in-chrome) — STEP 0 박스가 4줄로 렌더되고 1~4번 간격이
+    고르게 나오는 것 스크린샷으로 확인. STEP 1 카드 2개(1-A·1-B)는 그대로 유지됨을 확인.
+- **편차**: 없음.
+- **다음 에이전트가 알아야 할 것**:
+  - `04-03` §6-1의 "04 확인 1건"(정보주체 권리행사 사망자 대행 가능 여부)은 이번 건으로
+    **닫혔다** — ❌ 불가로 확정. `context.md`의 해당 대기 항목은 정리 대상.
+  - 1~6단계 중 나머지(1-6단계)는 이 확인 이후 착수 가능 상태가 됐으니, 다음 착수 시
+    `04-01` §8 표에서 순서 재확인할 것.
+
+<!-- Gemini 판정: ✅통과 (04-01 §0.2·04-03 §2.2-1 기준 일치: STEP 0 4번째 줄 privacy.go.kr 본인 한정 고지 추가, 1-C 삭제 주석 정리 및 브라우저 4줄 렌더 실측 확인) -->
+
 ## 2026-08-31 (89) | [Sonnet] 04-01 §8 0단계·0-b단계 — 비밀번호 placeholder 확인 + 계정 찾기 정적 화면
 
 - **근거 스펙**: `docs/04_디지털_자산_정산/04-01_디지털_계정_정리_명세서.md` §0.2(STEP 0·1)
@@ -2449,7 +2624,7 @@
 
 ## 2026-08-12 (16) | [Opus] `03-03` Domain 03 도메인 기획서 신설 — 상위 기획 공백 복구
 
-- **근거 스펙**: 대표 문제제기("domain03에 대한 명확한 구조나 검증 등 기획이 부족하다고 판단, 중간에 멈추고 상의"). 대표 지시로 결정 3건을 확정하지 않고 **기획서 먼저 작성**(개설 게이트·신고 정책은 "기획서 만들고 다시", 중복 추모관은 "나중에 다룰 것").
+- **근거 스펙**: 대표 문제제기("domain03에 대한 명확한 구조나 검증 등 기획이 부족하다고 판단, 중간에 멈추고 상의"). 개발자 지시로 결정 3건을 확정하지 않고 **기획서 먼저 작성**(개설 게이트·신고 정책은 "기획서 만들고 다시", 중복 추모관은 "나중에 다룰 것").
 - **건드린 파일**: `docs/03_디지털_유품_추모관/03-03_...기획서.md`(신규), `03-02`(상위문서 배너), `docs/00_DOCS_INDEX.md`
 - **결과**:
   - **대표 진단이 맞았고, 원인이 문서 계보에 그대로 드러났다** — 01은 상위 기획 4건(`01-01`~`01-04`) 뒤에 확정 스펙(`01-05`), 02는 2건(`02-01`·`02-02`) 뒤에 스펙(`02-03`)을 세웠는데 **03만 0건에서 곧바로 `03-02`로 직행**했다(`03-01`은 운영자 연동 부수 메모라 도메인 기획이 아님). Sonnet이 구현 중 부딪힌 편차 3건은 전부 이 공백의 증상이었다.
@@ -2580,7 +2755,7 @@
 
 ## 2026-08-12 (10) | `03-02` §9 1단계 — Domain 03 스키마 6개 모델 + 마이그레이션
 
-- **근거 스펙**: `docs/03_디지털_유품_추모관/03-02_...명세서.md` §5(데이터 모델), §9 1단계, §9.1(반드시 지킬 것 9개). 대표 지시로 §9 구현순서 1단계부터 착수.
+- **근거 스펙**: `docs/03_디지털_유품_추모관/03-02_...명세서.md` §5(데이터 모델), §9 1단계, §9.1(반드시 지킬 것 9개). 개발자 지시로 §9 구현순서 1단계부터 착수.
 - **건드린 파일**: `eobom/backend/prisma/schema.prisma`(6개 모델 신규 + `User` 역관계 5개 추가), 신규 마이그레이션 `20260812050713_digital_estate_memorial_infra`, `docs/00-05`(자동생성 재실행) → `reports/00-05.html`(재생성)
 - **결과**:
   - **`DigitalPlatform`·`DigitalCleanupItem`·`Memorial`·`MemorialTribute`·`MemorialGuestbook`·`MemorialPhoto` 6개 모델을 스펙 §5 그대로 추가**. §9.1-1 원칙(고인 자격증명·증빙서류 컬럼 없음)을 지켜 어떤 모델에도 파일 업로드·서류 관련 컬럼을 두지 않았다 — `DigitalCleanupItem`은 상태·메모만, 증빙 파일 컬럼 자체가 없다.
@@ -2603,7 +2778,7 @@
 
 ## 2026-08-12 (9) | [Opus] 하네스 부팅 예산 구조 정리 — `AGENTS.md` 중복 4개 절 삭제
 
-- **근거 스펙**: 스펙 없음 — 대표 지시("md파일 관련 비용/예산 문제 해결"). 08-12 세션에서 부팅 예산 초과로 **6회 이상 반복해서 바이트를 깎던** 상황의 근본 원인 제거.
+- **근거 스펙**: 스펙 없음 — 개발자 지시("md파일 관련 비용/예산 문제 해결"). 08-12 세션에서 부팅 예산 초과로 **6회 이상 반복해서 바이트를 깎던** 상황의 근본 원인 제거.
 - **건드린 파일**: `.harness/AGENTS.md`, `.harness/memory/MEMORY.md`, `.harness/record.md`, `.harness/_meta/부팅예산_구조정리_260812.md`(신규 — 하네스 구조 변경이라 실무 일지 아닌 `_meta/`에 기록)
 - **결과**:
   - **원인은 예산이 아니라 중복이었다.** `AGENTS.md` 혼자 6,499B로 부팅 예산의 58%를 먹고 있었고, 그 §3(재사용)·§4(메모리)·§5(G-Brain)·§8(작업일지)이 각각 `skills/README.md`·`MEMORY.md`·`g-brain-map.md`·`record.md`와 거의 그대로 중복이었다. **즉 `AGENTS.md`가 자기 자신의 §7 "같은 문서를 두 곳에 복사하지 않는다"를 위반**하고 있었다.
@@ -2648,7 +2823,7 @@
 
 ## 2026-08-12 (7) | [Opus] `03-02` 디지털 계정 정리 · 온라인 추모관 정식 명세서 신규 작성
 
-- **근거 스펙**: 대표 지시("docs/03 정식 명세서 작성, 현물 유품 수거업체는 계정 형태 기획 보류라 제외하고 디지털 계정 삭제 + 추모관만, `03-01` 메모의 `userId` FK 원칙 반영"). 선행 문서 `03-01`(메모), 참조 패턴 `02-03`·`01-05`.
+- **근거 스펙**: 개발자 지시("docs/03 정식 명세서 작성, 현물 유품 수거업체는 계정 형태 기획 보류라 제외하고 디지털 계정 삭제 + 추모관만, `03-01` 메모의 `userId` FK 원칙 반영"). 선행 문서 `03-01`(메모), 참조 패턴 `02-03`·`01-05`.
 - **건드린 파일**: `docs/03_디지털_유품_추모관/03-02_...명세서.md`(신규), `docs/00_DOCS_INDEX.md`, `docs/00_핵심플랫폼/00-06`(SCR-011 부여), `docs/03_디지털_유품_추모관/03-01`(승계 배너), `.harness/systems.md`(§5 추모 사진 의존성)
 - **결과**:
   - **이 도메인의 성격 자체를 재정의한 것이 핵심** — 기존 목업(`mockData/digitalEstate.json`)은 "계정 정산 대행"을 약속하면서 **가상자산 출금·카카오뱅크 정산·정산금 환급**까지 걸어놨는데, 이건 미구현이 아니라 **해서는 안 되는 것**이라 판단했다. 근거: ① 주요 플랫폼 어디도 제3자 대행 창구(API·B2B 채널)를 열지 않아 대행할 기술적 경로 자체가 없음 ② 고인 계정 자격증명을 받아 로그인하는 것은 정보통신망법 침해 소지 ③ 금융·가상자산 개입은 무인가 영업 리스크. 그래서 **Domain 03을 "대행"이 아니라 "안내 + 진행 추적"으로 재정의**하고, 위임 대행이 필요한 유족은 **Domain 02의 행정사(`ADMINISTRATIVE_SCRIVENER`)로 연결**하도록 했다 — `02-03` §7.1이 이미 이 직역을 "디지털 유품 행정사"로 명명해둔 것과 맞물린다. 기존 `ConsultRequest` 인프라를 그대로 재사용하므로 새 과금·정산 구조가 필요 없다.
@@ -2735,7 +2910,7 @@
 
 ## 2026-08-12 (3) | 파트너 리드 조회 화면 구현 — `01-05` §11 4단계
 
-- **근거 스펙**: `docs/01_장사시설_매칭/01-05_...명세서.md` §6.1(`GET /api/partner/leads`·`/:leadNo`·`PATCH /:leadNo/status`)·§4.3(상태머신)·§7.1(동의 없는 리드 노출 금지)·§7.3(응답 후 마스킹). 대표 지시로 명시적으로 이 4개 절을 지정받음.
+- **근거 스펙**: `docs/01_장사시설_매칭/01-05_...명세서.md` §6.1(`GET /api/partner/leads`·`/:leadNo`·`PATCH /:leadNo/status`)·§4.3(상태머신)·§7.1(동의 없는 리드 노출 금지)·§7.3(응답 후 마스킹). 개발자 지시로 명시적으로 이 4개 절을 지정받음.
 - **건드린 파일**:
   - 백엔드: `src/controllers/leadController.ts`(파트너용 3개 엔드포인트 추가 — 기존 `createQuote`/`createCallEvent`가 있던 파일에 이어 붙임), `src/routes/partnerRoutes.ts`(라우트 3개 등록)
   - 프론트: `src/pages/BizDashboard.tsx`(FACILITY 계정 화면에 "받은 업체 문의" 섹션 신설 — EXPERT의 "받은 상담 신청"과 대칭 위치)
@@ -2760,7 +2935,7 @@
 
 ## 2026-08-12 (2) | 반응형/사이드바 레이아웃 재점검 — 사이드바 확장 시 콘텐츠 가림 버그 수정 + 한글 줄바꿈 + 모바일 뷰포트 대응
 
-- **근거 스펙**: 스펙 없음 — 대표 지시("사이드바 및 창 크기에 따라 변하는 것을 재점검, 특정 사이즈에서 사이드바가 내용을 가리거나 줄글이 어색하게 나오는 현상 있음, 모바일 웹앱도 고려").
+- **근거 스펙**: 스펙 없음 — 개발자 지시("사이드바 및 창 크기에 따라 변하는 것을 재점검, 특정 사이즈에서 사이드바가 내용을 가리거나 줄글이 어색하게 나오는 현상 있음, 모바일 웹앱도 고려").
 - **건드린 파일**:
   - `src/index.css`(`body` word-break 추가, 죽은 `.hero-*` 블록 제거, `.sidebar`/`.sidebar-label`/`.main-wrapper` CSS 재작성, `.fullpage-viewport`/`.fullpage-section` 신설)
   - `src/components/Sidebar.tsx`(React `isHovered` state 제거 → CSS `:hover`로 전환)
@@ -2807,7 +2982,7 @@
 
 ## 2026-08-11 (13) | [Opus] 오늘 구현분 반영 — docs 6건 스펙 정합화 (편차 해소 + 문서 부패 정리)
 
-- **근거 스펙**: 대표 지시("walkthrough 참고해서 오늘 작업한 내용에 따라 md파일 정리"). 오늘 walkthrough `(1)`~`(12)`를 근거로 `docs/`를 실제 구현에 맞춰 정정. `roles.md` §2-1에 따라 **왜 고쳤는지**를 각 문서 안에 인용구로 남김.
+- **근거 스펙**: 개발자 지시("walkthrough 참고해서 오늘 작업한 내용에 따라 md파일 정리"). 오늘 walkthrough `(1)`~`(12)`를 근거로 `docs/`를 실제 구현에 맞춰 정정. `roles.md` §2-1에 따라 **왜 고쳤는지**를 각 문서 안에 인용구로 남김.
 - **건드린 파일**: `docs/01_장사시설_매칭/01-05`, `01-01`, `docs/02_전문가_매칭/02-03`, `02-01`, `docs/00_핵심플랫폼/00-04`, `00-06`, `00-09`, `docs/00_DOCS_INDEX.md`
 - **결과**:
   - **`01-05` 7곳 정정 (밀린 편차 해소)** — ①§4.1 `BOOKING` 유형 폐기(3타입으로), `QUOTE`는 표시문구만 "업체 문의"로 바꾸고 **enum 값은 유지**(과거 정산 근거 보존) ②§5.3 `FacilityBooking` 절 폐기 표시 ③Lead 모델 주석 ④§7.1 동의 고지에서 "답사 예약 연락" 제거 ⑤§9 "전화는 보조 수단" → 전화 노출 자체가 제거됐음을 명시 ⑥§6.1·§6.2 API 표에 ✅/⬜ 구현상태 열 신설 + 실제 추가분(사진 업로드, 정보수정) 반영 ⑦§11 구현순서표에 진행상태 반영.
@@ -2855,7 +3030,7 @@
 
 ## 2026-08-11 (11) | 03/05 관리자 열람범위 설계 메모 + 운영자 대시보드 회원검색·전체시설 조회 추가
 
-- **근거 스펙**: 스펙 없음 — 대표 지시("03 05 관련해서 md파일 만들어둬줘" + "가능한 부분 한에서 대시보드 업글"). 03/05는 정식 스펙 작성 권한이 `[Claude:Opus]`지만, 이번엔 대표가 `[Claude:Sonnet]`에게 메모 문서 작성을 직접 지시함(02-02 문서와 동일한 예외 패턴).
+- **근거 스펙**: 스펙 없음 — 개발자 지시("03 05 관련해서 md파일 만들어둬줘" + "가능한 부분 한에서 대시보드 업글"). 03/05는 정식 스펙 작성 권한이 `[Claude:Opus]`지만, 이번엔 대표가 `[Claude:Sonnet]`에게 메모 문서 작성을 직접 지시함(02-02 문서와 동일한 예외 패턴).
 - **건드린 파일**:
   - 신규 문서: `docs/03_디지털_유품_추모관/03-01_관리자_회원연동_설계_메모.md`, `docs/05_엔딩노트_유언/05-01_관리자_열람범위_설계_메모.md`
   - 문서 수정: `docs/00_DOCS_INDEX.md`(03/05 도메인 표에 신규 문서 행 추가)
@@ -2901,7 +3076,7 @@
 
 ## 2026-08-11 (9) | 전체 페이지 여백/밀도 축소 완료 (Header/Sidebar/Footer + 9개 페이지 + 9개 모달)
 
-- **근거 스펙**: 스펙 없음 — 대표 지시("전체 다 진행해줘"). 이전 세션에서 `index.css`의 `.container`/`.grid`/`.card`/`.form-group`/`.hero-*` 축소를 완료한 뒤 이어서 진행.
+- **근거 스펙**: 스펙 없음 — 개발자 지시("전체 다 진행해줘"). 이전 세션에서 `index.css`의 `.container`/`.grid`/`.card`/`.form-group`/`.hero-*` 축소를 완료한 뒤 이어서 진행.
 - **건드린 파일**:
   - 본인 직접 수정: `eobom/frontend/src/components/Header.tsx`, `Sidebar.tsx`, `Footer.tsx`
   - 서브에이전트 4개에 병렬 위임: `src/pages/AdminPage.tsx`·`BizDashboard.tsx`·`CareGuidePage.tsx`·`CounselingPage.tsx`·`DigitalEstatePage.tsx`·`EndingNotePage.tsx`·`FacilityPage.tsx`·`HomePage.tsx`·`MyPage.tsx`·`PartnerPortalPage.tsx`, `src/components/LoginModal.tsx`·`SocialLinkModal.tsx`·`KakaoMapModal.tsx`·`MyPageAuthSettings.tsx`·`facility/InquiryModal.tsx`·`facility/FacilityReviewModal.tsx`·`expert/ConsultRequestModal.tsx`·`counseling/TaxSimulatorModal.tsx`
@@ -2965,7 +3140,7 @@
 
 ## 2026-08-11 (6) | Domain01 폐기 코드 정리(VRViewerModal·FacilityBooking) + Domain02 Stage 1 구현
 
-- **근거 스펙**: `docs/02_전문가_매칭/02-03_전문가_공개노출_및_상담신청_명세서.md` §9 구현순서 1~7단계 전부. 대표 지시로 `VRViewerModal.tsx`·`FacilityBooking` 삭제 확정(02-03 이전 대화에서 "VR은 제휴 혜택 재설계와 엮여 대표 확정 대기"로 보류됐던 항목이 이번에 확정됨).
+- **근거 스펙**: `docs/02_전문가_매칭/02-03_전문가_공개노출_및_상담신청_명세서.md` §9 구현순서 1~7단계 전부. 개발자 지시로 `VRViewerModal.tsx`·`FacilityBooking` 삭제 확정(02-03 이전 대화에서 "VR은 제휴 혜택 재설계와 엮여 대표 확정 대기"로 보류됐던 항목이 이번에 확정됨).
 - **건드린 파일**:
   - 삭제: `eobom/frontend/src/components/VRViewerModal.tsx`, `eobom/frontend/src/mockData/experts.json`
   - 스키마: `eobom/backend/prisma/schema.prisma`(`FacilityBooking` 모델 제거, `User.facilityBookings`/`Facility.bookings` 관계 제거, `Lead.type`에서 `BOOKING` 제거, `ConsultRequest`+`ConsultNumberCounter` 신설, `Expert.isPublished`+`consultRequests` 관계 추가) + 마이그레이션 2건(`20260811011202_drop_facility_booking`, `20260811011506_expert_consult_request_infra`)
@@ -3020,7 +3195,7 @@
 
 ## 2026-08-11 (4) | 도메인 번호 체계 재편 — 메뉴 순서 정렬 + 문서 ID 도메인별 재부여
 
-- **근거 스펙**: 스펙 없음 — 대표 지시("웹 메뉴 순서대로 도메인 순서를 맞추자", "01~04 사후/05 본인", "도메인별 01부터 재시작"). `[Claude:Opus]` 기획 판단으로 순서 확정 후 실행.
+- **근거 스펙**: 스펙 없음 — 개발자 지시("웹 메뉴 순서대로 도메인 순서를 맞추자", "01~04 사후/05 본인", "도메인별 01부터 재시작"). `[Claude:Opus]` 기획 판단으로 순서 확정 후 실행.
 - **건드린 파일**:
   - 폴더 rename(`git mv`, 이력 보존): `docs/`·`reports/` 각 5개 — `01_장례_묘지_매칭`→`01_장사시설_매칭`, `04_상속세_전문가상담`→`02_전문가_매칭`, `02_디지털_유산`→`03_디지털_유품_추모관`, `05_케어가이드`→`04_상중_행정_케어`, `03_엔딩노트`→`05_엔딩노트_유언`
   - 파일 rename: docs 19건 + reports 16건 (`<도메인>-<순번>` 형식)
@@ -3045,7 +3220,7 @@
 
 ## 2026-08-11 (3) | DB 테이블 명세서(docs/05) 자동 생성 스크립트 + 컬럼 주석 전수 보강 (+ 제약조건·테이블 생성일 보강)
 
-- **근거 스펙**: 스펙 없음 — 대표 지시 2단계. ① "schema 한글 주석만으론 부족, 유지보수·이관용으로 최대한 자세히", "각 컬럼 설명 꼭 있어야 함". ② 1차 결과물 확인 후 후속 요청: "컬럼별 PK/FK/NN 같은 제약조건 없음 — 컬럼/타입/제약조건/설명 4열로, 각 테이블 최초 생성일·최근 수정일도". 즉흥 구현이나 하네스 §7(Dual Document Policy, "같은 문서 두 곳에 복사 금지") 원칙과 정확히 일치.
+- **근거 스펙**: 스펙 없음 — 개발자 지시 2단계. ① "schema 한글 주석만으론 부족, 유지보수·이관용으로 최대한 자세히", "각 컬럼 설명 꼭 있어야 함". ② 1차 결과물 확인 후 후속 요청: "컬럼별 PK/FK/NN 같은 제약조건 없음 — 컬럼/타입/제약조건/설명 4열로, 각 테이블 최초 생성일·최근 수정일도". 즉흥 구현이나 하네스 §7(Dual Document Policy, "같은 문서 두 곳에 복사 금지") 원칙과 정확히 일치.
 - **건드린 파일**:
   - 신규: `.harness/tools/generate-db-doc.js` (의존성 없는 순수 Node 스크립트)
   - 수정: `eobom/backend/prisma/schema.prisma` — 13개 모델 전체 물리 컬럼(146개)에 누락됐던 한글 인라인 주석 보강, `User`/`SocialAccount` 모델 설명 주석 신설, FK 스칼라 필드의 "FK → X.id"만 있던 설명을 제약조건 열 신설 후 의미있는 설명으로 재작성(예: `userId`→"리뷰 작성자")
@@ -3068,13 +3243,13 @@
   - 제약조건 자동 추출은 `@default(...)` 값은 안 담는다(PK/FK/UNIQUE/NULL만) — 필요해지면 `annotateConstraints()`에 태그 추가.
   - 백엔드 dev 서버가 `query_engine-windows.dll.node`를 잠그고 있어 `prisma generate`가 EPERM으로 실패했음(기존에도 기록된 이슈) — 주석만 바꾼 거라 클라이언트 재생성이 실질적으로 불필요해 넘어갔다. 실제 스키마(필드/타입) 변경이 있으면 dev 서버 내리고 재생성할 것.
 
-- **판정**: ✅통과 (스펙 없음 — 대표 지시 기반 DB 스키마 자동 추출 스크립트 구축 및 docs/00-05 명세서 갱신 확인)
+- **판정**: ✅통과 (스펙 없음 — 개발자 지시 기반 DB 스키마 자동 추출 스크립트 구축 및 docs/00-05 명세서 갱신 확인)
 
 ---
 
 ## 2026-08-11 (2) | 시설 태그(#해시태그) 클릭 필터 + TAG_CATALOG 관리 체계
 
-- **근거 스펙**: 스펙 없음 — 대표 지시("태그 필요하면 구성 후 별도 관리 파일 또는 md 명세서"). `docs/01_장례_묘지_매칭/19` 신설.
+- **근거 스펙**: 스펙 없음 — 개발자 지시("태그 필요하면 구성 후 별도 관리 파일 또는 md 명세서"). `docs/01_장례_묘지_매칭/19` 신설.
 - **건드린 파일**:
   - 프론트 신규: `src/components/facility/tagCatalog.ts`, `docs/01_장례_묘지_매칭/19_시설_태그_분류_체계_명세서.md`
   - 프론트 수정: `src/pages/FacilityPage.tsx`(태그 필터 상태·클릭 핸들러·카드 태그 클릭 가능화·활성 필터 칩)
@@ -3090,13 +3265,13 @@
   - **브라우저 클릭 E2E 미검증**(자동화 도구 없음) — 카드 태그 클릭 → 필터 적용 → 칩에서 해제까지 사용자 확인 필요.
   - 마케팅 문구 태그(~50종)는 여전히 필터링 불가 상태로 남아 있음 — 필요해지면 `TAG_CATALOG`에 각각 등록하거나, 별도 카테고리 축(예: "부대시설 강조")을 설계해야 함.
 
-- **판정**: ✅통과 (스펙 없음 — 대표 지시 기반 TAG_CATALOG 화이트리스트 필터링 및 docs/01-06 명세서 작성 확인)
+- **판정**: ✅통과 (스펙 없음 — 개발자 지시 기반 TAG_CATALOG 화이트리스트 필터링 및 docs/01-06 명세서 작성 확인)
 
 ---
 
 ## 2026-08-11 (1) | URL 라우팅 해시 → HistoryRouter(BrowserRouter) 전환
 
-- **근거 스펙**: 스펙 없음 — 대표 지시("HistoryRouter 스타일로 변경, 변경점 자세히 md로"). `docs/00_핵심플랫폼/18` 신설(Gemini HTML 보고서화 예정).
+- **근거 스펙**: 스펙 없음 — 개발자 지시("HistoryRouter 스타일로 변경, 변경점 자세히 md로"). `docs/00_핵심플랫폼/18` 신설(Gemini HTML 보고서화 예정).
 - **건드린 파일**:
   - 프론트 전면 재작성: `src/App.tsx` (`AppShell` 분리, `BrowserRouter`+`Routes`/`Route` 도입)
   - 신규 의존성: `react-router-dom@^6` (`package.json`)
@@ -3114,13 +3289,13 @@
   - **Vercel 배포 후 딥링크 새로고침 확인 필요** — `vercel.json` rewrite가 실제 배포본에도 적용되는지는 로컬에서 검증 불가.
   - 기존에 `#facility` 형태로 공유/북마크된 링크는 이제 홈으로만 떨어짐(자동 리다이렉트 없음) — docs/18 §7에 트레이드오프 기록, 필요시 하위호환 리다이렉트 추가 검토.
 
-- **판정**: ✅통과 (스펙 없음 — 대표 지시 기반 BrowserRouter 전환 및 docs/00-10 라우팅 메모 작성 확인)
+- **판정**: ✅통과 (스펙 없음 — 개발자 지시 기반 BrowserRouter 전환 및 docs/00-10 라우팅 메모 작성 확인)
 
 ---
 
 ## 2026-08-10 (6) | 전남·광주 주소 표기 통합 ("전남광주통합특별시")
 
-- **근거 스펙**: 스펙 없음 — 대표 지시(전남+광주 주소 표기를 "전남광주통합특별시"로 통합, DB의 기존 시설 주소도 전부 수정). `docs/00_핵심플랫폼/05` 등 정식 스펙 문서엔 지역 표기 정책이 없어 즉흥 구현.
+- **근거 스펙**: 스펙 없음 — 개발자 지시(전남+광주 주소 표기를 "전남광주통합특별시"로 통합, DB의 기존 시설 주소도 전부 수정). `docs/00_핵심플랫폼/05` 등 정식 스펙 문서엔 지역 표기 정책이 없어 즉흥 구현.
 - **건드린 파일**:
   - 백엔드 신규: `src/utils/address.ts`(`MERGED_PROVINCE`, `GWANGJU_DISTRICTS`, `normalizeAddressProvince`)
   - 백엔드 수정: `src/controllers/geoController.ts`(`PROVINCE_ALIASES` 병합 + `resolveKakaoQuery` 신설), `prisma/import-facility-csv.ts`, `prisma/sync-kakao-funeral.ts`, `prisma/seed-data/facilities.json`(`f_jeolla_1` 주소)
@@ -3137,13 +3312,13 @@
   - `docs/`에 이 정책(지역 표기 통합)을 기록한 정식 스펙이 없다 — `[Claude:Opus]`가 필요 시 `docs/00_핵심플랫폼/05` 또는 신규 문서에 반영 검토.
   - `GWANGJU_DISTRICTS`(동/서/남/북/광산구)는 하드코딩 — 향후 행정구역이 또 바뀌면 여기부터 볼 것.
 
-- **판정**: ✅통과 (스펙 없음 — 대표 지시 기반 전남·광주 주소 표기 통합 및 카카오 지오코딩 2원화 처리 확인)
+- **판정**: ✅통과 (스펙 없음 — 개발자 지시 기반 전남·광주 주소 표기 통합 및 카카오 지오코딩 2원화 처리 확인)
 
 ---
 
 ## 2026-08-10 (5) | FacilityPage 개편: 필터 간소화 + 전화 비노출 + 업체 문의 + 이미지 업로드
 
-- **근거 스펙**: 스펙 없음 — 대표 지시(필터 축소, 전화번호 비노출, 견적비교/답사예약 삭제, 업체 문의 폼, 시설 이미지). 즉흥 구현이나 docs 16 §9(전화 문의는 수수료 근거 불가)와 정확히 같은 방향.
+- **근거 스펙**: 스펙 없음 — 개발자 지시(필터 축소, 전화번호 비노출, 견적비교/답사예약 삭제, 업체 문의 폼, 시설 이미지). 즉흥 구현이나 docs 16 §9(전화 문의는 수수료 근거 불가)와 정확히 같은 방향.
 - **건드린 파일**:
   - 프론트 신규: `src/components/facility/InquiryModal.tsx`
   - 프론트 수정: `src/pages/FacilityPage.tsx`(전면 재작성), `src/pages/BizDashboard.tsx`(이미지 업로드 UI), `src/config.ts`(변경 없음, 기존 GEOLOCATION_FALLBACK 재사용)
@@ -3188,7 +3363,7 @@
 
 ## 2026-08-10 (3) | 운영자 승인 대시보드 + 시설 클레임(연동) API + 사업자/전문가 대시보드
 
-- **근거 스펙**: `docs/16` §6.2(운영자 어드민)·§3.3(시설 클레임), `docs/17` §4. 정식 스펙 문서 갱신 없이 기존 문서의 "다음 단계"로 명시돼 있던 부분을 그대로 구현(대표 지시: "관리자 페이지와 사업자/전문가 대시보드 만들어야 함").
+- **근거 스펙**: `docs/16` §6.2(운영자 어드민)·§3.3(시설 클레임), `docs/17` §4. 정식 스펙 문서 갱신 없이 기존 문서의 "다음 단계"로 명시돼 있던 부분을 그대로 구현(개발자 지시: "관리자 페이지와 사업자/전문가 대시보드 만들어야 함").
 - **건드린 파일**:
   - 백엔드 신규: `prisma/schema.prisma`(+마이그레이션 `20260810141549_admin_account`), `prisma/seed-admin.ts`, `src/controllers/adminController.ts`, `src/controllers/moderationController.ts`, `src/controllers/claimController.ts`, `src/routes/adminRoutes.ts`
   - 백엔드 수정: `src/routes/partnerRoutes.ts`(클레임 라우트), `src/controllers/facilityController.ts`(이름 검색 `q` 파라미터), `src/server.ts`(adminRoutes 마운트), `package.json`(`seed:admin` 스크립트)
@@ -3212,7 +3387,7 @@
 
 ## 2026-08-10 (2) | 전문가(변호사·세무사·행정사·장례지도사) 계정 체계 + OAuth 로컬 HTTPS 콜백 수정
 
-- **근거 스펙**: `docs/04_상속세_전문가상담/17_전문가_계정_체계_구현_메모.md` (정식 스펙 아님 — 대표 지시로 구현 중 작성한 메모, §12.5 방식대로 예외 처리했음을 문서 자체에 명시함). 참고: `docs/15`(전문가상담 도메인, 법적 근거).
+- **근거 스펙**: `docs/04_상속세_전문가상담/17_전문가_계정_체계_구현_메모.md` (정식 스펙 아님 — 개발자 지시로 구현 중 작성한 메모, §12.5 방식대로 예외 처리했음을 문서 자체에 명시함). 참고: `docs/15`(전문가상담 도메인, 법적 근거).
 - **건드린 파일**:
   - 백엔드 신규: `prisma/schema.prisma`(+마이그레이션 `20260810134356_expert_account`), `src/controllers/expertController.ts`, `src/routes/expertRoutes.ts`
   - 백엔드 수정: `src/server.ts`(expertRoutes 마운트), `.env`/`.env.example`(3사 OAuth 콜백 URL http→https)

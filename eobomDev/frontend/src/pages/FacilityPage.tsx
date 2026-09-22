@@ -274,28 +274,37 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
   };
 
   return (
-    <div className="container" style={{ paddingBottom: '3rem' }}>
+    // 2026-09-22 사람 지시 — 여백을 다른 v2 화면과 같은 표준(96/80/96, 모바일 32/24/72)으로 맞춘다.
+    // .container 클래스의 옛 120px 전방위 여백은 인라인으로 완전히 덮어쓴다(design-v2.css .v2-page와 같은 값).
+    <div className="container" style={{ padding: isMobile ? '32px 24px 72px' : '96px 80px 96px' }}>
       {/* 🔄 09-07 사용자 지시 — 다른 도메인 페이지(CounselingPage 등)처럼 타이틀을 감싸던
           히어로 박스(진한 배경·패딩·둥근 모서리 카드)를 없애고 배지+제목+설명만 남긴다. */}
-      <div style={{ marginBottom: '1.5rem' }}>
-        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', backgroundColor: 'var(--state-warn-bg)', color: 'var(--accent-gold)', padding: '0.3rem var(--sp-4)', borderRadius: 'var(--r-lg)', fontSize: 'var(--fs-body)', fontWeight: 700, marginBottom: '0.6rem' }}>
-          <HouseLeafIcon size={18} color="var(--accent-gold)" /> 장사시설 맞춤 검색
-        </div>
-        <h1 className="page-title" style={{ color: 'var(--primary-color)', display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0 }}>
-          <HouseLeafIcon color="var(--point-color)" size={32} /> 장례·묘지 맞춤 비교 매칭
+      {/* 2026-09-22 — 다른 v2 화면과 같은 .v2-page-head 클래스로 교체(폭 제한 calc(...)+아래 여백
+          40px가 한 번에 들어온다). 직접 marginBottom만 넣던 자리라 24px로 처져 있었다. */}
+      <div className="v2-page-head">
+        {/* 00-39 §8 #5 — 배경색·서체·글자색·크기만 v2로. 경고색이 아니라 정보 배지라 state-warn 대신
+            중립 선택배경 + 포인트색(사람 확정 09-22)을 쓴다. */}
+        <h1 className="v2-page-title" style={{ color: 'var(--v2-text-main)', display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0 }}>
+          장례·묘지 맞춤 비교 매칭
         </h1>
-        <p className="page-subtitle" style={{ color: 'var(--text-muted)', marginTop: '0.4rem' }}>
+        {/* page-subtitle 클래스는 그대로 — 모바일 숨김(display:none ≤768px)이 이 클래스의 역할이라
+            v2-page-subtitle로 바꾸면 그 배치 동작이 사라진다(00-39 §8 #5, 배치는 유지). */}
+        <p className="page-subtitle" style={{ color: 'var(--v2-text-muted)', fontSize: 'var(--v2-fs-body)', marginTop: '0.4rem' }}>
           현재 위치 기반 거리순 정렬과 카카오맵 LBS 핀 마커 연동을 만나보세요.
         </p>
       </div>
 
+      {/* 2026-09-22 사람 지시 — 본문을 다른 v2 화면처럼 .v2-content(764px 고정, 가운데 정렬)로 감싼다.
+          지금까지는 .container 전체 폭(최대 1440px)을 다 써서 카드가 3~4열로 넓게 퍼졌었다.
+          764px면 .grid(auto-fit minmax(320px,1fr))가 자동으로 2열이 된다 — 그리드 CSS 자체는 안 바꿨다. */}
+      <div className="v2-content">
       {/* 🔴 00-21 §0.2-1 해제 조건 2 — 위치기반서비스 약관(제20조)이 LOCATION_LEGAL_PUBLISHED=false로
           잠긴 동안, 이용자가 위치 수집을 알 수 있는 유일한 자리다. GPS 권한 팝업은 컴포넌트
           마운트 시 자동으로 뜨므로(아래 useEffect) 이 한 줄은 뷰포트·바텀시트 열림 여부와 무관하게
           항상 먼저 렌더돼야 한다 — .page-subtitle(모바일 숨김 대상)과 달리 절대 숨기지 않는다.
           (2026-09-10 발견 — wt188에서 구현했다가 이후 필터 UI 리팩터 중 유실됨, 00-21이 지적해 복구.) */}
       {LOCATION_FEATURE_ENABLED && !HIDE_LOCATION_NOTICE_FOR_DEV && (
-        <p style={{ fontSize: 'var(--fs-caption)', color: 'var(--text-muted)', margin: '0 0 1rem' }}>
+        <p style={{ fontSize: 'var(--v2-fs-support)', color: 'var(--v2-text-muted)', margin: '0 0 1rem' }}>
           가까운 장례식장을 먼저 보여드리기 위해 현재 위치를 사용합니다. 허용하지 않아도 아래에서
           지역을 직접 선택할 수 있습니다.
         </p>
@@ -315,8 +324,8 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
               display: 'flex',
               alignItems: 'center',
               gap: '0.5rem',
-              backgroundColor: 'var(--card-bg)',
-              border: '1px solid var(--border-color)',
+              backgroundColor: 'var(--v2-bg)',
+              border: '1px solid var(--v2-btn-border)',
               borderRadius: 'var(--r-lg)',
               boxShadow: 'var(--box-shadow)',
               padding: '0.6rem 0.7rem',
@@ -329,7 +338,7 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
               aria-label="검색"
               style={{ flexShrink: 0, background: 'none', border: 'none', padding: 0, display: 'flex', cursor: 'pointer', opacity: isApplying || isSearchingLocation ? 0.5 : 1 }}
             >
-              <Search size={18} color="var(--text-muted)" />
+              <Search size={18} color="var(--v2-text-muted)" />
             </button>
             <input
               type="text"
@@ -337,7 +346,7 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
               onChange={(e) => setSearchTextDraft(e.target.value)}
               onKeyDown={handleSearchTextKeyDown}
               placeholder="시설 이름 또는 지역명으로 검색"
-              style={{ flex: '1 1 auto', minWidth: 0, border: 'none', outline: 'none', background: 'transparent', fontSize: 'var(--fs-body)', color: 'var(--text-main)' }}
+              style={{ flex: '1 1 auto', minWidth: 0, border: 'none', outline: 'none', background: 'transparent', fontSize: 'var(--v2-fs-support)', color: 'var(--v2-text-main)' }}
             />
             <button
               onClick={() => setIsFilterSheetOpen(true)}
@@ -349,7 +358,7 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
                 height: '2.4rem',
                 borderRadius: 'var(--r-sm)',
                 border: 'none',
-                backgroundColor: 'var(--primary-color)',
+                backgroundColor: 'var(--v2-text-main)',
                 color: '#fff',
                 display: 'flex',
                 alignItems: 'center',
@@ -358,7 +367,8 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
               }}
             >
               <SlidersHorizontal size={17} />
-              {/* 적용된(draft 아님) 조건이 기본값과 다를 때만 점 배지 — 지금 뭔가 필터링 중임을 알림 */}
+              {/* 적용된(draft 아님) 조건이 기본값과 다를 때만 점 배지 — 지금 뭔가 필터링 중임을 알림.
+                  경고가 아니라 정보라 포인트색으로(00-39 §8 #5, 09-22 확정) */}
               {(appliedProvince || category !== '전체') && (
                 <span
                   style={{
@@ -368,8 +378,8 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
                     width: '0.6rem',
                     height: '0.6rem',
                     borderRadius: '50%',
-                    backgroundColor: 'var(--accent-gold)',
-                    border: '2px solid var(--card-bg)'
+                    backgroundColor: 'var(--v2-point)',
+                    border: '2px solid var(--v2-bg)'
                   }}
                 />
               )}
@@ -386,9 +396,9 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
               border: 'none',
               padding: '0 0.2rem',
               marginBottom: '0.6rem',
-              fontSize: 'var(--fs-body)',
+              fontSize: 'var(--v2-fs-support)',
               fontWeight: 700,
-              color: 'var(--point-color)',
+              color: 'var(--v2-point)',
               cursor: 'pointer'
             }}
           >
@@ -402,21 +412,23 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
       {!isMobile && (
         <div
           style={{
-            backgroundColor: 'var(--card-bg)',
-            padding: '1.1rem',
+            backgroundColor: 'var(--v2-bg)',
+            // 2026-09-22 — 764px로 좁아진 폭에서 필드가 더 자주 줄바꿈돼 상자가 커 보였다.
+            // 안쪽 여백·칸 사이 간격을 조금 줄임(사람 지시: 필터박스 크기 조정).
+            padding: '0.9rem',
             borderRadius: 'var(--r-lg)',
             marginBottom: '1.75rem',
             boxShadow: 'var(--box-shadow)',
-            border: '1px solid var(--border-color)',
+            border: '1px solid var(--v2-divider-strong)',
             display: 'flex',
             flexWrap: 'wrap',
             alignItems: 'flex-end',
-            gap: '1.2rem'
+            gap: '0.9rem'
           }}
         >
           <div style={{ flex: '2 1 320px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'var(--primary-color)', fontWeight: 700, marginBottom: '0.6rem' }}>
-              <MapPin size={18} color="var(--point-color)" /> 위치: {locationName}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'var(--v2-text-main)', fontWeight: 700, marginBottom: '0.6rem' }}>
+              <MapPin size={18} color="var(--v2-point)" /> 위치: {locationName}
               {isLocationFallback && (
                 <span
                   title={
@@ -425,7 +437,7 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
                       : '현재 위치 자동 감지를 제공하지 않아 기본 위치로 표시 중입니다. 아래에서 시/도·시/군/구를 직접 선택해주세요.'
                   }
                   style={{
-                    fontSize: 'var(--fs-body)',
+                    fontSize: 'var(--v2-fs-support)',
                     fontWeight: 700,
                     color: 'var(--state-warn-fg)',
                     backgroundColor: 'var(--state-warn-bg)',
@@ -462,9 +474,12 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
                 ))}
               </select>
             </div>
-            {locationError && <p style={{ color: 'var(--state-danger-fg)', fontSize: 'var(--fs-body)', margin: '0.4rem 0 0 0' }}>{locationError}</p>}
+            {locationError && <p style={{ color: 'var(--state-danger-fg)', fontSize: 'var(--v2-fs-support)', margin: '0.4rem 0 0 0' }}>{locationError}</p>}
           </div>
 
+          {/* form-select·form-input·form-label은 사이트 전역 공용 클래스(index.css)라 여기서만
+              색을 바꾸면 focus 테두리 효과가 인라인에 가려 죽는다(00-39 §8 #5, 그림자·호버·포커스
+              류 상태효과는 안 바꾼다는 원칙과 같은 이유) — 페이지 로컬 리스킨 범위 밖이라 그대로 둔다. */}
           <div style={{ flex: '1 1 140px' }}>
             <label className="form-label">구분</label>
             <select value={categoryDraft} onChange={(e) => handleCategoryChange(e.target.value)} className="form-select">
@@ -512,7 +527,7 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
             style={{
               position: 'fixed',
               inset: 0,
-              backgroundColor: 'rgba(26, 43, 76, 0.4)',
+              backgroundColor: 'rgba(34, 48, 63, 0.35)',
               opacity: isFilterSheetOpen ? 1 : 0,
               pointerEvents: isFilterSheetOpen ? 'auto' : 'none',
               transition: 'opacity 0.25s ease',
@@ -528,7 +543,7 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
               left: 0,
               right: 0,
               bottom: 0,
-              backgroundColor: 'var(--card-bg)',
+              backgroundColor: 'var(--v2-bg)',
               borderRadius: 'var(--r-lg) var(--r-lg) 0 0',
               boxShadow: '0 -12px 30px rgba(26, 43, 76, 0.2)',
               padding: '0.6rem 1.1rem 1.5rem',
@@ -539,20 +554,20 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
               zIndex: 2001
             }}
           >
-            <div style={{ width: '2.25rem', height: '0.25rem', backgroundColor: 'var(--border-color)', borderRadius: '0.15rem', margin: '0 auto 0.9rem' }} />
+            <div style={{ width: '2.25rem', height: '0.25rem', backgroundColor: 'var(--v2-btn-border)', borderRadius: '0.15rem', margin: '0 auto 0.9rem' }} />
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
-              <span style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--primary-color)' }}>필터</span>
+              <span style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--v2-text-main)' }}>필터</span>
               <button
                 onClick={() => setIsFilterSheetOpen(false)}
                 aria-label="닫기"
-                style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: '0.2rem', display: 'flex' }}
+                style={{ background: 'none', border: 'none', color: 'var(--v2-text-muted)', cursor: 'pointer', padding: '0.2rem', display: 'flex' }}
               >
                 <X size={20} />
               </button>
             </div>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'var(--primary-color)', fontWeight: 700, marginBottom: '0.5rem' }}>
-              <MapPin size={16} color="var(--point-color)" /> 위치: {locationName}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'var(--v2-text-main)', fontWeight: 700, marginBottom: '0.5rem' }}>
+              <MapPin size={16} color="var(--v2-point)" /> 위치: {locationName}
               {isLocationFallback && (
                 <span
                   title={
@@ -561,7 +576,7 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
                       : '현재 위치 자동 감지를 제공하지 않아 기본 위치로 표시 중입니다. 아래에서 시/도·시/군/구를 직접 선택해주세요.'
                   }
                   style={{
-                    fontSize: 'var(--fs-caption)',
+                    fontSize: 'var(--v2-fs-label)',
                     fontWeight: 700,
                     color: 'var(--state-warn-fg)',
                     backgroundColor: 'var(--state-warn-bg)',
@@ -598,7 +613,7 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
                 ))}
               </select>
             </div>
-            {locationError && <p style={{ color: 'var(--state-danger-fg)', fontSize: 'var(--fs-body)', margin: '0 0 0.6rem' }}>{locationError}</p>}
+            {locationError && <p style={{ color: 'var(--state-danger-fg)', fontSize: 'var(--v2-fs-support)', margin: '0 0 0.6rem' }}>{locationError}</p>}
 
             <label className="form-label" style={{ marginTop: '0.6rem' }}>구분</label>
             <select value={categoryDraft} onChange={(e) => handleCategoryChange(e.target.value)} className="form-select" style={{ width: '100%', marginBottom: '1.2rem' }}>
@@ -625,7 +640,7 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
 
       {/* 태그 필터 칩 — 카드까지 스크롤하지 않고도 TAG_CATALOG 등록 태그를 바로 클릭할 수 있게 필터 박스 바로 아래 노출 (2026-08-12 대표 피드백) */}
       <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '0.5rem', marginBottom: '1.2rem' }}>
-        <span style={{ fontSize: 'var(--fs-body)', color: 'var(--text-muted)' }}>태그:</span>
+        <span style={{ fontSize: 'var(--v2-fs-support)', color: 'var(--v2-text-muted)' }}>태그:</span>
         {Object.keys(TAG_CATALOG).map((tag) => {
           const active = selectedTag === tag;
           return (
@@ -634,12 +649,12 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
               onClick={() => handleTagClick(tag)}
               className="btn"
               style={{
-                backgroundColor: active ? 'var(--point-color)' : 'var(--card-bg)',
-                color: active ? '#fff' : 'var(--primary-color)',
-                border: active ? 'none' : '1px solid var(--border-color)',
+                backgroundColor: active ? 'var(--v2-point)' : 'var(--v2-bg)',
+                color: active ? '#fff' : 'var(--v2-text-main)',
+                border: active ? 'none' : '1px solid var(--v2-btn-border)',
                 padding: '0.3rem var(--sp-3)',
                 borderRadius: 'var(--r-full)',
-                fontSize: 'var(--fs-body)',
+                fontSize: 'var(--v2-fs-support)',
                 fontWeight: 600,
                 minHeight: 'auto',
                 lineHeight: 1.4
@@ -653,18 +668,18 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
 
       {/* 시설 목록 — 카드형/리스트형 전환(2026-09-10) */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '0.6rem' }}>
-        <p style={{ color: 'var(--text-muted)', fontSize: 'var(--fs-body)', margin: 0 }}>
-          총 <strong style={{ color: 'var(--primary-color)' }}>{totalCount}개</strong> 시설이 검색되었습니다. ({page}/{totalPages} 페이지)
+        <p style={{ color: 'var(--v2-text-muted)', fontSize: 'var(--v2-fs-support)', margin: 0 }}>
+          총 <strong style={{ color: 'var(--v2-text-main)' }}>{totalCount}개</strong> 시설이 검색되었습니다. ({page}/{totalPages} 페이지)
         </p>
-        <div style={{ display: 'flex', gap: '0.3rem', backgroundColor: 'var(--secondary-color)', padding: '0.2rem', borderRadius: 'var(--r-sm)' }}>
+        <div style={{ display: 'flex', gap: '0.3rem', backgroundColor: 'var(--v2-selected-bg)', padding: '0.2rem', borderRadius: 'var(--r-sm)' }}>
           <button
             onClick={() => setViewMode('card')}
             title="카드형 보기"
             style={{
               display: 'flex', alignItems: 'center', gap: '0.3rem',
-              padding: '0.4rem 0.7rem', fontSize: 'var(--fs-body)', fontWeight: 700, border: 'none', borderRadius: 'var(--r-sm)', cursor: 'pointer',
-              backgroundColor: viewMode === 'card' ? 'var(--card-bg)' : 'transparent',
-              color: viewMode === 'card' ? 'var(--primary-color)' : 'var(--text-muted)',
+              padding: '0.4rem 0.7rem', fontSize: 'var(--v2-fs-support)', fontWeight: 700, border: 'none', borderRadius: 'var(--r-sm)', cursor: 'pointer',
+              backgroundColor: viewMode === 'card' ? 'var(--v2-bg)' : 'transparent',
+              color: viewMode === 'card' ? 'var(--v2-text-main)' : 'var(--v2-text-muted)',
               boxShadow: viewMode === 'card' ? 'var(--box-shadow)' : 'none'
             }}
           >
@@ -675,9 +690,9 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
             title="리스트형 보기"
             style={{
               display: 'flex', alignItems: 'center', gap: '0.3rem',
-              padding: '0.4rem 0.7rem', fontSize: 'var(--fs-body)', fontWeight: 700, border: 'none', borderRadius: 'var(--r-sm)', cursor: 'pointer',
-              backgroundColor: viewMode === 'list' ? 'var(--card-bg)' : 'transparent',
-              color: viewMode === 'list' ? 'var(--primary-color)' : 'var(--text-muted)',
+              padding: '0.4rem 0.7rem', fontSize: 'var(--v2-fs-support)', fontWeight: 700, border: 'none', borderRadius: 'var(--r-sm)', cursor: 'pointer',
+              backgroundColor: viewMode === 'list' ? 'var(--v2-bg)' : 'transparent',
+              color: viewMode === 'list' ? 'var(--v2-text-main)' : 'var(--v2-text-muted)',
               boxShadow: viewMode === 'list' ? 'var(--box-shadow)' : 'none'
             }}
           >
@@ -694,9 +709,10 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
           {facilities.map((item) => (
             <div key={item.id} className="card" style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: '1rem', padding: '0.8rem 1.1rem' }}>
               <div style={{ flex: '1 1 auto', minWidth: 0 }}>
-                <h3 style={{ fontSize: '1.05rem', color: 'var(--primary-color)', margin: '0 0 0.2rem', fontWeight: 700 }}>{item.name}</h3>
-                <p style={{ fontSize: 'var(--fs-body)', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '0.3rem', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  <MapPin size={14} color="var(--point-color)" style={{ flexShrink: 0 }} /> {item.location}
+                {/* 00-39 §4 항목 제목(19px/모바일17px) 확정값 — 시설명은 이 화면의 "항목 제목"이다 */}
+                <h3 style={{ fontSize: isMobile ? 'var(--v2-fs-item-title-mobile)' : 'var(--v2-fs-item-title)', color: 'var(--v2-text-main)', margin: '0 0 0.2rem', fontWeight: 700 }}>{item.name}</h3>
+                <p style={{ fontSize: 'var(--v2-fs-support)', color: 'var(--v2-text-muted)', display: 'flex', alignItems: 'center', gap: '0.3rem', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  <MapPin size={14} color="var(--v2-point)" style={{ flexShrink: 0 }} /> {item.location}
                 </p>
               </div>
 
@@ -709,15 +725,17 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
                   onClick={() => setSelectedMapFacility(item)}
                   title="카카오 지도"
                   className="btn"
-                  style={{ display: 'flex', alignItems: 'center', gap: isMobile ? 0 : '0.25rem', padding: isMobile ? '0.6rem 1rem' : '0.5rem 1rem', fontSize: 'var(--fs-body)', whiteSpace: 'nowrap', fontWeight: 700, backgroundColor: '#FEE500', color: '#191919' }}
+                  style={{ display: 'flex', alignItems: 'center', gap: isMobile ? 0 : '0.25rem', padding: isMobile ? '0.6rem 1rem' : '0.5rem 1rem', fontSize: 'var(--v2-fs-support)', whiteSpace: 'nowrap', fontWeight: 700, backgroundColor: '#FEE500', color: '#191919' }}
                 >
                   <Map size={14} /> {!isMobile && '카카오 지도'}
                 </button>
+                {/* btn-primary 배경은 인라인으로 안 건드린다 — .btn-primary:hover(index.css)가 그대로
+                    살아 있어야 해서다(00-39 §8 #5, 호버 효과 불변). 크기만 v2로. */}
                 <button
                   onClick={() => setInquiryFacility(item)}
                   title="상담"
                   className="btn btn-primary"
-                  style={{ display: 'flex', alignItems: 'center', gap: isMobile ? 0 : '0.25rem', padding: isMobile ? '0.6rem 1rem' : '0.5rem 1rem', fontSize: 'var(--fs-body)', whiteSpace: 'nowrap', fontWeight: 700 }}
+                  style={{ display: 'flex', alignItems: 'center', gap: isMobile ? 0 : '0.25rem', padding: isMobile ? '0.6rem 1rem' : '0.5rem 1rem', fontSize: 'var(--v2-fs-support)', whiteSpace: 'nowrap', fontWeight: 700 }}
                 >
                   <Send size={14} /> {!isMobile && '상담'}
                 </button>
@@ -728,171 +746,176 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
       )}
 
       {viewMode === 'card' && (
-      <div className="grid">
-        {facilities.map((item) => {
-          const distKm = typeof item.distanceKm === 'number' ? item.distanceKm.toFixed(1) : null;
-          const thumbnail = Array.isArray(item.images) && item.images.length > 0 ? `${BACKEND_URL}${item.images[0]}` : null;
+        <div className="grid">
+          {facilities.map((item) => {
+            const distKm = typeof item.distanceKm === 'number' ? item.distanceKm.toFixed(1) : null;
+            const thumbnail = Array.isArray(item.images) && item.images.length > 0 ? `${BACKEND_URL}${item.images[0]}` : null;
 
-          return (
-            <div key={item.id} className="card" style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-              {/* 이미지 박스 — 파트너가 BizDashboard에서 올린 사진(없으면 플레이스홀더).
+            return (
+              <div key={item.id} className="card" style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+                {/* 이미지 박스 — 파트너가 BizDashboard에서 올린 사진(없으면 플레이스홀더).
                   00-38 §8.3 FacilityPage 지침 ② — 이미지가 실제로 있으면 항상 보여주지만,
                   없는 시설의 "등록된 이미지 없음" 플레이스홀더는 ≤480px에서 아예 렌더하지
                   않는다(카드 높이의 150px을 차지해 모바일 스크롤 부담이 컸다). */}
-              {(thumbnail || !hideImagePlaceholder) && (
-                <div
-                  style={{
-                    width: 'calc(100% + 2.5rem)',
-                    margin: '-1.25rem -1.25rem 1rem -1.25rem',
-                    height: '160px',
-                    backgroundColor: 'var(--secondary-color)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    overflow: 'hidden'
-                  }}
-                >
-                  {thumbnail ? (
-                    <img src={thumbnail} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                  ) : (
-                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.3rem', color: 'var(--text-muted)' }}>
-                      <ImageIcon size={28} />
-                      <span style={{ fontSize: 'var(--fs-body)' }}>등록된 이미지 없음</span>
-                    </div>
+                {(thumbnail || !hideImagePlaceholder) && (
+                  <div
+                    style={{
+                      width: 'calc(100% + 2.5rem)',
+                      margin: '-1.25rem -1.25rem 1rem -1.25rem',
+                      // 2026-09-22 — 764px·2열로 좁아지며 카드 폭이 줄어 160px가 과하게 커 보였다.
+                      // 120px로 낮춤(사람 지시: 카드 크기 조정으로 해결).
+                      height: '120px',
+                      backgroundColor: 'var(--v2-selected-bg)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      overflow: 'hidden'
+                    }}
+                  >
+                    {thumbnail ? (
+                      <img src={thumbnail} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    ) : (
+                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.3rem', color: 'var(--v2-text-muted)' }}>
+                        <ImageIcon size={28} />
+                        <span style={{ fontSize: 'var(--v2-fs-support)' }}>등록된 이미지 없음</span>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center', marginBottom: '0.6rem' }}>
+                  <span style={{ fontSize: 'var(--v2-fs-support)', backgroundColor: 'var(--v2-selected-bg)', padding: '0.3rem 0.6rem', borderRadius: 'var(--r-sm)', fontWeight: 700, color: 'var(--v2-text-main)' }}>
+                    {item.type}
+                  </span>
+                  {distKm && (
+                    // 결정 ④ — haversine 직선거리다(실 이동거리 아님). title 툴팁으로 안내하고
+                    // 라벨은 "직선" 없이 표기(2026-09-10 사람 지시로 라벨에서만 제거).
+                    // 09-22 — 경고가 아니라 정보라 경고색(state-warn) 대신 중립 배경+흐린 글자로(00-39 §3 #8A9199).
+                    <span
+                      title="지도상 직선거리입니다. 실제 이동 거리는 카카오맵에서 확인해주세요."
+                      style={{ fontSize: 'var(--v2-fs-support)', backgroundColor: 'var(--v2-selected-bg)', color: 'var(--v2-text-faint)', padding: '0.25rem 0.5rem', borderRadius: 'var(--r-sm)', fontWeight: 700, cursor: 'help' }}
+                    >
+                      📍{distKm}km
+                    </span>
                   )}
                 </div>
-              )}
 
-              <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center', marginBottom: '0.6rem' }}>
-                <span style={{ fontSize: 'var(--fs-body)', backgroundColor: 'var(--secondary-color)', padding: '0.3rem 0.6rem', borderRadius: 'var(--r-sm)', fontWeight: 700, color: 'var(--primary-color)' }}>
-                  {item.type}
-                </span>
-                {distKm && (
-                  // 결정 ④ — haversine 직선거리다(실 이동거리 아님). title 툴팁으로 안내하고
-                  // 라벨은 "직선" 없이 표기(2026-09-10 사람 지시로 라벨에서만 제거).
-                  <span
-                    title="지도상 직선거리입니다. 실제 이동 거리는 카카오맵에서 확인해주세요."
-                    style={{ fontSize: 'var(--fs-body)', backgroundColor: 'var(--state-warn-bg)', color: 'var(--accent-gold)', padding: '0.25rem 0.5rem', borderRadius: 'var(--r-sm)', fontWeight: 700, cursor: 'help' }}
-                  >
-                    📍{distKm}km
-                  </span>
-                )}
-              </div>
+                {/* 00-39 §4 항목 제목(19px/모바일17px) 확정값 */}
+                <h3 style={{ fontSize: isMobile ? 'var(--v2-fs-item-title-mobile)' : 'var(--v2-fs-item-title)', color: 'var(--v2-text-main)', marginBottom: '0.4rem', fontWeight: 700 }}>{item.name}</h3>
 
-              <h3 style={{ fontSize: '1.25rem', color: 'var(--primary-color)', marginBottom: '0.4rem', fontWeight: 700 }}>{item.name}</h3>
-
-              {/* 🔴 2026-09-10 사람 지시 — 주소가 한 줄/두 줄이냐에 따라 이 아래(태그·버튼) 시작
+                {/* 🔴 2026-09-10 사람 지시 — 주소가 한 줄/두 줄이냐에 따라 이 아래(태그·버튼) 시작
                   위치가 카드마다 들쭉날쭉했다. 항상 2줄 높이(minHeight)를 예약하고, 2줄을 넘는
                   주소는 -webkit-line-clamp로 말줄임 처리해 모든 카드의 태그 줄이 같은 높이에서
                   시작하게 고정한다. */}
-              <p style={{ fontSize: 'var(--fs-body)', color: 'var(--text-muted)', display: 'flex', alignItems: 'flex-start', gap: '0.3rem', marginBottom: '0.4rem', minHeight: 'calc(var(--fs-body) * 1.3 * 2)', lineHeight: 1.3 }}>
-                <MapPin size={16} color="var(--point-color)" style={{ flexShrink: 0, marginTop: '0.15rem' }} />
-                <span
-                  style={{
-                    display: '-webkit-box',
-                    WebkitLineClamp: 2,
-                    WebkitBoxOrient: 'vertical',
-                    overflow: 'hidden',
-                  }}
-                >
-                  {item.location}
-                </span>
-              </p>
+                <p style={{ fontSize: 'var(--v2-fs-support)', color: 'var(--v2-text-muted)', display: 'flex', alignItems: 'flex-start', gap: '0.3rem', marginBottom: '0.4rem', minHeight: 'calc(var(--v2-fs-support) * 1.3 * 2)', lineHeight: 1.3 }}>
+                  <MapPin size={16} color="var(--v2-point)" style={{ flexShrink: 0, marginTop: '0.15rem' }} />
+                  <span
+                    style={{
+                      display: '-webkit-box',
+                      WebkitLineClamp: 2,
+                      WebkitBoxOrient: 'vertical',
+                      overflow: 'hidden',
+                    }}
+                  >
+                    {item.location}
+                  </span>
+                </p>
 
-              {/* 종교/하객/예상 기본 비용 표시 삭제(2026-09-10 사람 지시) — item.religion·item.guests·
+                {/* 종교/하객/예상 기본 비용 표시 삭제(2026-09-10 사람 지시) — item.religion·item.guests·
                   item.price는 더 이상 카드에서 안 쓰지만 API 응답·DB 필드 자체는 그대로 둔다. */}
 
-              {/* 태그 목록 — TAG_CATALOG에 등록된 값(예: 공설/사설)만 클릭 가능한 필터, 나머지는 그냥 라벨.
+                {/* 태그 목록 — TAG_CATALOG에 등록된 값(예: 공설/사설)만 클릭 가능한 필터, 나머지는 그냥 라벨.
                   🔴 2026-09-10 — 주소 블록과 간격이 좁아 붙어 보였다(marginTop 추가) + <button>은
                   브라우저 기본 line-height·font가 <span>과 달라 같은 padding이어도 텍스트 높이가
                   미묘하게 어긋났다(fontFamily:'inherit'+lineHeight+inline-flex로 통일). */}
-              <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap', marginTop: '0.6rem', marginBottom: '1.2rem' }}>
-                {item.tags.map((tag: string, idx: number) =>
-                  isFilterableTag(tag) ? (
-                    <button
-                      key={idx}
-                      onClick={() => handleTagClick(tag)}
-                      title={`"${TAG_CATALOG[tag].label}" 태그로 필터`}
-                      style={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        fontFamily: 'inherit',
-                        fontSize: 'var(--fs-body)',
-                        lineHeight: 'var(--lh-body)',
-                        backgroundColor: selectedTag === tag ? 'var(--point-color)' : '#EAE5DC',
-                        color: selectedTag === tag ? '#fff' : '#444',
-                        padding: '0.2rem 0.5rem',
-                        borderRadius: 'var(--r-sm)',
-                        border: 'none',
-                        cursor: 'pointer',
-                      }}
-                    >
-                      #{TAG_CATALOG[tag].label}
-                    </button>
-                  ) : (
-                    <span
-                      key={idx}
-                      style={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        fontFamily: 'inherit',
-                        fontSize: 'var(--fs-body)',
-                        lineHeight: 'var(--lh-body)',
-                        backgroundColor: '#EAE5DC',
-                        padding: '0.2rem 0.5rem',
-                        borderRadius: 'var(--r-sm)',
-                        color: '#444',
-                      }}
-                    >
-                      #{tag}
-                    </span>
-                  )
-                )}
-              </div>
+                <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap', marginTop: '0.6rem', marginBottom: '1.2rem' }}>
+                  {item.tags.map((tag: string, idx: number) =>
+                    isFilterableTag(tag) ? (
+                      <button
+                        key={idx}
+                        onClick={() => handleTagClick(tag)}
+                        title={`"${TAG_CATALOG[tag].label}" 태그로 필터`}
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          fontFamily: 'inherit',
+                          fontSize: 'var(--v2-fs-support)',
+                          lineHeight: 'var(--lh-body)',
+                          backgroundColor: selectedTag === tag ? 'var(--v2-point)' : 'var(--v2-divider)',
+                          color: selectedTag === tag ? '#fff' : 'var(--v2-text-muted)',
+                          padding: '0.2rem 0.5rem',
+                          borderRadius: 'var(--r-sm)',
+                          border: 'none',
+                          cursor: 'pointer',
+                        }}
+                      >
+                        #{TAG_CATALOG[tag].label}
+                      </button>
+                    ) : (
+                      <span
+                        key={idx}
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          fontFamily: 'inherit',
+                          fontSize: 'var(--v2-fs-support)',
+                          lineHeight: 'var(--lh-body)',
+                          backgroundColor: 'var(--v2-divider)',
+                          padding: '0.2rem 0.5rem',
+                          borderRadius: 'var(--r-sm)',
+                          color: 'var(--v2-text-muted)',
+                        }}
+                      >
+                        #{tag}
+                      </span>
+                    )
+                  )}
+                </div>
 
-              {/* 액션 버튼 그룹 — 전화 직통·견적비교·답사예약 삭제(2026-08-10), 상담으로 대체 */}
-              <div style={{ marginTop: 'auto', display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
-                {/* 카카오맵 지도 버튼 */}
-                <button
-                  onClick={() => setSelectedMapFacility(item)}
-                  className="btn"
-                  style={{
-                    flex: '1 1 0',
-                    minWidth: '100px',
-                    backgroundColor: '#FEE500',
-                    color: '#191919',
-                    fontSize: 'var(--fs-body)',
-                    padding: '0.6rem 0.4rem',
-                    whiteSpace: 'nowrap',
-                    gap: '0.3rem',
-                    fontWeight: 700
-                  }}
-                >
-                  <Map size={16} /> 카카오 지도
-                </button>
+                {/* 액션 버튼 그룹 — 전화 직통·견적비교·답사예약 삭제(2026-08-10), 상담으로 대체 */}
+                <div style={{ marginTop: 'auto', display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
+                  {/* 카카오맵 지도 버튼 */}
+                  <button
+                    onClick={() => setSelectedMapFacility(item)}
+                    className="btn"
+                    style={{
+                      flex: '1 1 0',
+                      minWidth: '100px',
+                      backgroundColor: '#FEE500',
+                      color: '#191919',
+                      fontSize: 'var(--v2-fs-support)',
+                      padding: '0.6rem 0.4rem',
+                      whiteSpace: 'nowrap',
+                      gap: '0.3rem',
+                      fontWeight: 700
+                    }}
+                  >
+                    <Map size={16} /> 카카오 지도
+                  </button>
 
-                {/* 상담 버튼 — 🔄 2026-09-10 사람 지시, "업체 문의"에서 개명. MyPage 히어로
-                    통계의 "상담 내역"(전문가+업체 합산)과 용어를 맞춘다. */}
-                <button
-                  onClick={() => setInquiryFacility(item)}
-                  className="btn btn-primary"
-                  style={{
-                    flex: '1 1 0',
-                    minWidth: '100px',
-                    fontSize: 'var(--fs-body)',
-                    padding: '0.6rem 0.4rem',
-                    whiteSpace: 'nowrap',
-                    gap: '0.3rem',
-                    fontWeight: 700
-                  }}
-                >
-                  <Send size={16} /> 상담
-                </button>
+                  {/* 상담 버튼 — 🔄 2026-09-10 사람 지시, "업체 문의"에서 개명. MyPage 히어로
+                    통계의 "상담 내역"(전문가+업체 합산)과 용어를 맞춘다.
+                    배경은 인라인으로 안 건드린다 — .btn-primary:hover가 그대로 살아 있어야 해서(00-39 §8 #5). */}
+                  <button
+                    onClick={() => setInquiryFacility(item)}
+                    className="btn btn-primary"
+                    style={{
+                      flex: '1 1 0',
+                      minWidth: '100px',
+                      fontSize: 'var(--v2-fs-support)',
+                      padding: '0.6rem 0.4rem',
+                      whiteSpace: 'nowrap',
+                      gap: '0.3rem',
+                      fontWeight: 700
+                    }}
+                  >
+                    <Send size={16} /> 상담
+                  </button>
+                </div>
               </div>
-            </div>
-          );
-        })}
-      </div>
+            );
+          })}
+        </div>
       )}
 
       {/* 페이지네이션 */}
@@ -902,7 +925,7 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
             onClick={() => goToPage(Math.max(1, page - 1))}
             disabled={page === 1}
             className="btn"
-            style={{ padding: '0.5rem 0.9rem', backgroundColor: 'var(--card-bg)', border: '1px solid var(--border-color)', color: 'var(--primary-color)', opacity: page === 1 ? 0.5 : 1 }}
+            style={{ padding: '0.5rem 0.9rem', backgroundColor: 'var(--v2-bg)', border: '1px solid var(--v2-btn-border)', color: 'var(--v2-text-main)', opacity: page === 1 ? 0.5 : 1 }}
           >
             이전
           </button>
@@ -915,7 +938,7 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
             }, [])
             .map((p, idx) =>
               p === -1 ? (
-                <span key={`ellipsis-${idx}`} style={{ padding: '0.5rem 0.3rem', color: 'var(--text-muted)' }}>
+                <span key={`ellipsis-${idx}`} style={{ padding: '0.5rem 0.3rem', color: 'var(--v2-text-muted)' }}>
                   …
                 </span>
               ) : (
@@ -925,9 +948,9 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
                   className="btn"
                   style={{
                     padding: '0.5rem 0.9rem',
-                    backgroundColor: p === page ? 'var(--primary-color)' : 'var(--card-bg)',
-                    color: p === page ? '#FFFFFF' : 'var(--primary-color)',
-                    border: '1px solid var(--border-color)',
+                    backgroundColor: p === page ? 'var(--v2-text-main)' : 'var(--v2-bg)',
+                    color: p === page ? '#FFFFFF' : 'var(--v2-text-main)',
+                    border: '1px solid var(--v2-btn-border)',
                     fontWeight: p === page ? 700 : 400
                   }}
                 >
@@ -939,12 +962,13 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
             onClick={() => goToPage(Math.min(totalPages, page + 1))}
             disabled={page === totalPages}
             className="btn"
-            style={{ padding: '0.5rem 0.9rem', backgroundColor: 'var(--card-bg)', border: '1px solid var(--border-color)', color: 'var(--primary-color)', opacity: page === totalPages ? 0.5 : 1 }}
+            style={{ padding: '0.5rem 0.9rem', backgroundColor: 'var(--v2-bg)', border: '1px solid var(--v2-btn-border)', color: 'var(--v2-text-main)', opacity: page === totalPages ? 0.5 : 1 }}
           >
             다음
           </button>
         </div>
       )}
+      </div>
 
       {/* 카카오맵 LBS 모달 */}
       {selectedMapFacility && (
