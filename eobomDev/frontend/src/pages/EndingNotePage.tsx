@@ -13,10 +13,10 @@ import {
   ChevronRight,
   ChevronLeft,
 } from 'lucide-react';
-import { NoteKeyIcon } from '../components/MenuIcons';
 import { apiFetch, ApiError } from '../lib/api';
 import { getToken } from '../lib/storage';
 import { useIsMobile } from '../hooks/useIsMobile';
+import { backdropCloseProps } from '../utils/backdropClose';
 import {
   DIGITAL_ACCOUNT_CATEGORIES,
   DIGITAL_ACCOUNT_CHOICES,
@@ -26,10 +26,17 @@ import {
   NOT_A_WILL_NOTICE,
 } from '../components/endingNote/constants';
 import type { SaveState, FamilyItem, GrantItem, SummaryRow } from '../components/endingNote/types';
-import { cardStyle, cardTitleStyle } from '../components/endingNote/styles';
 import { AccordionSection, saveButtonLabel } from '../components/endingNote/AccordionSection';
 import { SectionTimingControl } from '../components/endingNote/SectionTimingControl';
 import { SummaryModal, summarizeFreeText } from '../components/endingNote/SummaryModal';
+import '../styles/design-v2.css';
+
+// 00-39 §9.1 그룹②(폼·입력) — obituary(§6.8·§6.8-1)의 필드 규칙을 그대로 물려받는다(§9.2 표
+// "mypage는 같은 그룹이므로 obituary에서 나온 규칙을 적용만 한다"와 같은 원리). 다만 이 화면은
+// 하나의 폼이 아니라 "8개 섹션이 각자 접고 펴고 저장되는" 새 형태라 그 틀(.v2-note-shell·
+// .v2-accordion-*)만 새로 만들었다 — design-v2.css 참고, §6.7 클래스 등재는 Opus 몫.
+// 구조(데스크톱 좌측 목차+아코디언, 모바일 목차 리스트+전체화면 리더, 00-38 §8.1-2)는 그대로
+// 두고 토큰·클래스만 옮겼다(§8 #5와 같은 원칙).
 
 interface EndingNotePageProps {
   currentUser?: string | null;
@@ -441,13 +448,13 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
   const sectionBodies: Record<string, React.ReactNode> = {
     LIFE_SUPPORT: (
       <>
-        <div style={{ fontSize: 'var(--fs-body)', color: 'var(--state-warn-fg)', backgroundColor: 'var(--state-warn-bg)', border: '1px solid var(--state-warn-bg)', borderRadius: 'var(--r-sm)', padding: 'var(--sp-3) 0.9rem', marginBottom: '1rem' }}>
+        <p className="v2-notice-warn">
           ⚠️ 이 메모는 법적 효력이 없습니다. 법적 효력이 있는 「사전연명의료의향서」는 보건복지부
           지정 등록기관에서 본인이 직접 작성·등록해야 합니다(비용 없음).
-        </div>
-        <div className="form-group">
-          <label className="form-label">연명의료 중단 의향</label>
-          <select value={lifeSupport} onChange={(e) => setLifeSupport(e.target.value)} className="form-select">
+        </p>
+        <div className="v2-field">
+          <label htmlFor="en-life-support">연명의료 중단 의향</label>
+          <select id="en-life-support" value={lifeSupport} onChange={(e) => setLifeSupport(e.target.value)} className="v2-select">
             <option value="연명의료 중단 희망">임종 시 무의미한 연명의료 중단 희망</option>
             <option value="적극적 치료 희망">가능한 모든 의료 조치 시행 희망</option>
             <option value="자녀 판단에 위임">가족/자녀의 판단에 위임</option>
@@ -456,31 +463,30 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
       </>
     ),
     FUNERAL: (
-      <>
-        <div className="form-group">
-          <label className="form-label">희망하는 장례 방식</label>
-          <select value={funeralType} onChange={(e) => setFuneralType(e.target.value)} className="form-select">
-            <option value="가족장 (수목장)">가족장 후 자연 수목장 안치</option>
-            <option value="일반 장례 (봉안당)">일반 3일장 진행</option>
-            <option value="조용한 검소장">최소 인원 검소장</option>
-          </select>
-        </div>
-      </>
+      <div className="v2-field">
+        <label htmlFor="en-funeral-type">희망하는 장례 방식</label>
+        <select id="en-funeral-type" value={funeralType} onChange={(e) => setFuneralType(e.target.value)} className="v2-select">
+          <option value="가족장 (수목장)">가족장 후 자연 수목장 안치</option>
+          <option value="일반 장례 (봉안당)">일반 3일장 진행</option>
+          <option value="조용한 검소장">최소 인원 검소장</option>
+        </select>
+      </div>
     ),
     ASSET: (
       <>
-        <div style={{ fontSize: 'var(--fs-body)', color: 'var(--state-warn-fg)', backgroundColor: 'var(--state-warn-bg)', border: '1px solid var(--state-warn-bg)', borderRadius: 'var(--r-sm)', padding: 'var(--sp-3) 0.9rem', marginBottom: '1rem' }}>
+        <p className="v2-notice-warn">
           🔴 어느 은행·증권사에 거래가 있는지까지만 적어주세요. 계좌번호·잔액·비밀번호는 절대
           적지 마세요 — 유족은 이 정보 없이도 공적 창구(안심상속 원스톱서비스 등)로 조회할 수 있습니다.
-        </div>
-        <div className="form-group">
-          <label className="form-label">거래 중인 은행·증권사</label>
+        </p>
+        <div className="v2-field">
+          <label htmlFor="en-asset-note">거래 중인 은행·증권사</label>
           <textarea
+            id="en-asset-note"
             rows={3}
             value={assetNote}
             onChange={(e) => setAssetNote(e.target.value)}
-            className="form-input"
-            style={{ height: 'auto', padding: '1rem' }}
+            className="v2-input"
+            style={{ height: 'auto', padding: '12px 14px' }}
             placeholder="예: 국민은행에 주거래 계좌가 있고, 통장은 안방 서랍 두 번째 칸에 있습니다. 비밀번호는 적지 마세요 — 유족이 서류로 조회할 수 있습니다."
           />
         </div>
@@ -488,17 +494,18 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
     ),
     DIGITAL_ACCOUNTS: (
       <>
-        <p style={{ fontSize: 'var(--fs-body)', color: 'var(--text-muted)', marginBottom: '1rem' }}>
+        <p className="v2-notice">
           자주 쓰시는 디지털 서비스를 사후에 어떻게 처리하고 싶으신지 미리 정해두세요. 실제 처리는
           디지털 정산(04) 화면에서 유족이 진행합니다.
         </p>
         {DIGITAL_ACCOUNT_CATEGORIES.map((category) => (
-          <div key={category} className="form-group">
-            <label className="form-label">{category}</label>
+          <div key={category} className="v2-field">
+            <label htmlFor={`en-digital-${category}`}>{category}</label>
             <select
+              id={`en-digital-${category}`}
               value={digitalPrefs[category] || ''}
               onChange={(e) => setDigitalPrefs((prev) => ({ ...prev, [category]: e.target.value }))}
-              className="form-select"
+              className="v2-select"
             >
               {Object.entries(DIGITAL_ACCOUNT_CHOICES).map(([value, label]) => (
                 <option key={value || 'undecided'} value={value}>
@@ -512,14 +519,15 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
     ),
     INSURANCE: (
       <>
-        <p style={{ fontSize: 'var(--fs-body)', color: 'var(--text-muted)', marginBottom: '1rem' }}>
+        <p className="v2-notice">
           유족이 존재를 몰라 청구를 못 하는 경우가 가장 흔한 손실입니다. 회사명만 남겨두세요 —
           증권번호·보장 내역은 받지 않습니다.
         </p>
         {INSURANCE_ITEMS.map((item) => (
-          <div key={item.key} style={{ marginBottom: '0.9rem' }}>
-            <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: 'var(--fs-body)', color: 'var(--primary-color)', cursor: 'pointer', marginBottom: '0.5rem' }}>
+          <div key={item.key} style={{ marginBottom: '14px' }}>
+            <label className="v2-check" htmlFor={`en-insurance-${item.key}`} style={{ padding: '0 0 6px' }}>
               <input
+                id={`en-insurance-${item.key}`}
                 type="checkbox"
                 checked={!!insurance[item.key]?.checked}
                 onChange={(e) =>
@@ -529,7 +537,7 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
                   }))
                 }
               />
-              {item.label} 가입
+              <span>{item.label} 가입</span>
             </label>
             {insurance[item.key]?.checked && (
               <input
@@ -541,9 +549,9 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
                     [item.key]: { checked: true, company: e.target.value },
                   }))
                 }
-                className="form-input"
+                className="v2-input"
                 placeholder="가입 회사명만 (예: OO생명)"
-                style={{ marginLeft: '1.6rem', width: 'calc(100% - 1.6rem)' }}
+                style={{ marginLeft: '32px', width: 'calc(100% - 32px)' }}
               />
             )}
           </div>
@@ -552,24 +560,26 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
     ),
     CONTACTS: (
       <>
-        <div className="form-group">
-          <label className="form-label">부고를 꼭 알려야 할 사람</label>
+        <div className="v2-field">
+          <label htmlFor="en-contacts-note">부고를 꼭 알려야 할 사람</label>
           <textarea
+            id="en-contacts-note"
             rows={3}
             value={contactsNote}
             onChange={(e) => setContactsNote(e.target.value)}
-            className="form-input"
-            style={{ height: 'auto', padding: '1rem' }}
+            className="v2-input"
+            style={{ height: 'auto', padding: '12px 14px' }}
             placeholder="예: 김OO - 대학 동창 - 010-0000-0000 (한 분씩 한 줄로 적어주세요)"
           />
         </div>
-        <div className="form-group">
-          <label className="form-label">반려동물을 부탁하고 싶은 분</label>
+        <div className="v2-field">
+          <label htmlFor="en-pet-caretaker">반려동물을 부탁하고 싶은 분</label>
           <input
+            id="en-pet-caretaker"
             type="text"
             value={petCaretaker}
             onChange={(e) => setPetCaretaker(e.target.value)}
-            className="form-input"
+            className="v2-input"
             placeholder="예: 막내 여동생 김OO"
           />
         </div>
@@ -577,40 +587,39 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
     ),
     WILL_LOCATION: (
       <>
-        <div className="form-group">
-          <label className="form-label">자필증서를 어디에 보관했는지 한 줄로</label>
+        <div className="v2-field">
+          <label htmlFor="en-will-location">자필증서를 어디에 보관했는지 한 줄로</label>
           <input
+            id="en-will-location"
             type="text"
             value={willLocation}
             onChange={(e) => setWillLocation(e.target.value)}
-            className="form-input"
+            className="v2-input"
             placeholder="예: 안방 화장대 서랍 안쪽 서류 봉투"
           />
+          <span className="v2-field-hint">🔴 이어봄은 유언장 원본·사본을 보관하지 않습니다. 보관 장소만 남겨두세요.</span>
         </div>
-        <p style={{ fontSize: 'var(--fs-body)', color: 'var(--text-muted)' }}>
-          🔴 이어봄은 유언장 원본·사본을 보관하지 않습니다. 보관 장소만 남겨두세요.
-        </p>
       </>
     ),
     ORGAN_DONATION: (
       <>
-        <div style={{ fontSize: 'var(--fs-body)', color: 'var(--state-warn-fg)', backgroundColor: 'var(--state-warn-bg)', border: '1px solid var(--state-warn-bg)', borderRadius: 'var(--r-sm)', padding: 'var(--sp-3) 0.9rem', marginBottom: '1rem' }}>
+        <p className="v2-notice-warn">
           ⚠️ 이어봄은 등록 여부와 등록일만 보관합니다. 실제 등록은 국립장기조직혈액관리원(사랑의
           장기기증운동본부 등 등록기관)에서 본인이 직접 해야 하며, 이어봄은 등록을 대행하지 않습니다.
           🔴 시신 기증(해부용 시신 기증)은 별도 제도입니다 — 이 항목과 섞지 마세요.
-        </div>
-        <div className="form-group">
-          <label className="form-label">장기·조직 기증 등록 여부</label>
-          <select value={donationStatus} onChange={(e) => setDonationStatus(e.target.value)} className="form-select">
+        </p>
+        <div className="v2-field">
+          <label htmlFor="en-donation-status">장기·조직 기증 등록 여부</label>
+          <select id="en-donation-status" value={donationStatus} onChange={(e) => setDonationStatus(e.target.value)} className="v2-select">
             <option value="등록함">등록함</option>
             <option value="등록하지 않음">등록하지 않음</option>
             <option value="모름">모름</option>
           </select>
         </div>
         {donationStatus === '등록함' && (
-          <div className="form-group">
-            <label className="form-label">등록일 (선택)</label>
-            <input type="date" value={donationDate} onChange={(e) => setDonationDate(e.target.value)} className="form-input" />
+          <div className="v2-field">
+            <label htmlFor="en-donation-date">등록일 (선택)</label>
+            <input id="en-donation-date" type="date" value={donationDate} onChange={(e) => setDonationDate(e.target.value)} className="v2-input" />
           </div>
         )}
       </>
@@ -668,68 +677,56 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
   };
 
   return (
-    <div className="container" style={{ position: 'relative' }}>
+    <div className="v2-page" style={{ position: 'relative' }}>
       {!currentUser && (
         <div style={{
           position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
           backgroundColor: 'rgba(247, 244, 239, 0.75)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)',
           zIndex: 100, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-          padding: '1.5rem', textAlign: 'center', borderRadius: 'var(--border-radius)'
+          padding: '24px', textAlign: 'center',
         }}>
           <div style={{
-            backgroundColor: '#FFFFFF', padding: '2.2rem 1.75rem', borderRadius: 'var(--r-lg)',
-            boxShadow: 'var(--el-3)', maxWidth: '520px', border: '2px solid var(--primary-color)'
+            backgroundColor: 'var(--v2-bg)', padding: '40px 28px', borderRadius: '4px',
+            boxShadow: 'var(--v2-modal-shadow)', maxWidth: '520px', border: '2px solid var(--v2-text-main)'
           }}>
-            <div style={{
-              width: '64px', height: '64px', backgroundColor: 'var(--secondary-color)', borderRadius: '50%',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.1rem', fontSize: '2rem'
-            }}>
-              🔒
-            </div>
-            <h2 style={{ color: 'var(--primary-color)', fontSize: '1.6rem', marginBottom: 'var(--sp-3)', fontWeight: 700 }}>
+            <p style={{ fontSize: '2rem', margin: '0 0 16px' }}>🔒</p>
+            <h2 style={{ color: 'var(--v2-text-main)', fontSize: 'var(--v2-fs-page-title)', marginBottom: '12px', fontWeight: 700 }}>
               로그인이 필요한 회원 전용 서비스입니다
             </h2>
-            <p style={{ color: 'var(--text-muted)', fontSize: '1rem', lineHeight: 1.6, marginBottom: '1.5rem' }}>
+            <p style={{ color: 'var(--v2-text-muted)', fontSize: 'var(--v2-fs-body)', lineHeight: 1.6, marginBottom: '24px' }}>
               디지털 엔딩노트는 개인 사전 의향서 및 유족에게 남기는 메시지를 다루는 최고 보안 영역입니다. 로그인 후 안전하게 작성하고 보관하세요.
             </p>
-            <button onClick={onOpenLogin} className="btn btn-point" style={{ width: '100%', height: '52px', fontSize: '1.05rem', fontWeight: 700 }}>
+            <button onClick={onOpenLogin} className="v2-btn-primary" style={{ width: '100%', height: '52px' }}>
               <LogIn size={20} /> 로그인 / 회원가입 하러가기
             </button>
           </div>
         </div>
       )}
 
-      <div style={{ marginBottom: '1.5rem', filter: !currentUser ? 'blur(3px)' : 'none' }}>
-        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', backgroundColor: 'var(--surface-subtle)', color: 'var(--primary-color)', padding: '0.3rem var(--sp-4)', borderRadius: 'var(--r-lg)', fontSize: 'var(--fs-body)', fontWeight: 700, marginBottom: '0.6rem' }}>
-          <NoteKeyIcon size={18} color="var(--primary-color)" /> 남겨야 할 것을 빠짐없이
-        </div>
-        <h1 style={{ color: 'var(--primary-color)', fontSize: '2rem', display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0 }}>
-          <NoteKeyIcon color="var(--primary-color)" size={32} /> 디지털 엔딩노트
-        </h1>
-        <p className="page-subtitle" style={{ color: 'var(--text-muted)', marginTop: '0.4rem' }}>
-          연명의료 의향 메모, 장례 희망 방식, 유언장 초안까지 표준화된 항목을 차근차근 채워두세요.
-        </p>
+      <div className="v2-page-head" style={{ filter: !currentUser ? 'blur(3px)' : 'none' }}>
+        <h1 className="v2-page-title">디지털 엔딩노트</h1>
+        <p className="v2-page-subtitle">연명의료 의향 메모, 장례 희망 방식, 유언장 초안까지 표준화된 항목을 차근차근 채워두세요.</p>
       </div>
 
       <div style={{ filter: !currentUser ? 'blur(3px)' : 'none' }}>
         {/* §5 동의 안내 — 작성 시작 시점(가입 시점 아님)에 받는다. 이미 동의했으면 요약만 보여준다. */}
-        <div id="ending-note-consent" ref={consentRef} style={{ ...cardStyle, padding: '1.25rem 1.5rem', marginBottom: '1.5rem' }}>
+        <div id="ending-note-consent" ref={consentRef} className="v2-content" style={{ marginBottom: '32px' }}>
           {policyAgreedAt ? (
-            <p style={{ fontSize: 'var(--fs-body)', color: 'var(--text-muted)', margin: 0, display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-              <CheckCircle2 size={16} color="var(--point-color)" /> 열람 정책에 동의하셨습니다({new Date(policyAgreedAt).toLocaleDateString('ko-KR')}).
+            <p style={{ fontSize: 'var(--v2-fs-support)', color: 'var(--v2-text-muted)', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <CheckCircle2 size={16} color="var(--v2-point)" /> 열람 정책에 동의하셨습니다({new Date(policyAgreedAt).toLocaleDateString('ko-KR')}).
             </p>
           ) : (
             <>
-              <h3 style={{ ...cardTitleStyle, marginBottom: 'var(--sp-3)' }}>
-                <AlertTriangle color="var(--point-color)" size={20} /> 작성을 시작하기 전에 확인해 주세요
+              <h3 style={{ fontSize: 'var(--v2-fs-item-title)', fontWeight: 700, color: 'var(--v2-text-main)', display: 'flex', alignItems: 'center', gap: '8px', margin: '0 0 12px' }}>
+                <AlertTriangle color="var(--v2-point)" size={20} /> 작성을 시작하기 전에 확인해 주세요
               </h3>
-              <p style={{ fontSize: 'var(--fs-body)', color: 'var(--text-main)', whiteSpace: 'pre-line', lineHeight: 1.7, marginBottom: '1rem' }}>
+              <p style={{ fontSize: 'var(--v2-fs-support)', color: 'var(--v2-text-main)', whiteSpace: 'pre-line', lineHeight: 1.7, marginBottom: '16px' }}>
                 {/* 2026-09-11 사람 지시 — 줄글 축약. 🟡 서버 policyNotice(06-03 §5 정본)가
                     아직 이 축약본으로 안 바뀌었으면 로드 전 짧은 순간만 보이는 폴백이다 —
                     서버 문구 자체를 바꾸는 건 이번 프론트엔드 작업 범위 밖(백엔드/06-03 소관). */}
                 {policyNotice || '작성 내용은 암호화 보관되며, 운영자는 열람하지 않습니다.'}
               </p>
-              <button type="button" onClick={handleAgreePolicy} className="btn btn-point" disabled={!noteLoaded}>
+              <button type="button" onClick={handleAgreePolicy} className="v2-btn-primary" disabled={!noteLoaded}>
                 동의하고 시작하기
               </button>
             </>
@@ -738,15 +735,15 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
 
         {/* §10 Phase 2 #6 — 가족이 0명이면 섹션마다 반복해서 안내하지 않고 여기 한 번만 둔다. */}
         {policyAgreedAt && noteLoaded && family.length === 0 && (
-          <div style={{ ...cardStyle, padding: '1rem 1.25rem', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.6rem', fontSize: 'var(--fs-body)', color: 'var(--text-main)' }}>
-            <UserPlus size={18} color="var(--point-color)" style={{ flexShrink: 0 }} />
+          <div className="v2-content" style={{ marginBottom: '32px', display: 'flex', alignItems: 'center', gap: '10px', fontSize: 'var(--v2-fs-support)', color: 'var(--v2-text-main)' }}>
+            <UserPlus size={18} color="var(--v2-point)" style={{ flexShrink: 0 }} />
             <span>
               아직 수락된 가족이 없어 섹션을 생전에 공개할 대상을 지정할 수 없습니다.{' '}
               {onOpenFamilyDesignation && (
                 <button
                   type="button"
                   onClick={onOpenFamilyDesignation}
-                  style={{ background: 'none', border: 'none', padding: 0, color: 'var(--primary-color)', fontWeight: 700, textDecoration: 'underline', cursor: 'pointer', fontSize: 'inherit' }}
+                  style={{ background: 'none', border: 'none', padding: 0, color: 'var(--v2-point)', fontWeight: 700, textDecoration: 'underline', cursor: 'pointer', fontSize: 'inherit' }}
                 >
                   가족 지정하기 →
                 </button>
@@ -755,44 +752,37 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
           </div>
         )}
 
-        <div className="ending-note-layout">
-          {/* A3 — 데스크톱 좌측 섹션 목차 고정. 모바일은 CSS로 숨긴다(index.css). */}
-          <aside className="ending-note-toc">
-            {/* 2026-09-08 — 목차 라벨은 실제 제목(우측 아코디언 헤더, 1.05rem·700·primary)과
-                경쟁하지 않도록 캡션 취급으로 낮추고(§6.3 #2, 한 덩어리에 볼드 하나), 대신
-                CareGuidePage `.care-guide-category`와 같은 처리(대문자+자간)로 "이건 라벨"임을
-                또렷하게 한다 — 목차 링크 쪽을 올리는 만큼 라벨이 items보다 작아 보이던 걸 상쇄. */}
-            <div style={{ fontWeight: 'var(--fw-medium)', color: 'var(--text-muted)', marginBottom: 'var(--sp-3)', fontSize: 'var(--fs-caption)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>목차</div>
-            <nav style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+        <div className="v2-note-shell">
+          {/* A3 — 데스크톱 좌측 섹션 목차 고정. 모바일은 CSS로 숨긴다(design-v2.css). */}
+          <aside className="v2-note-toc">
+            <div className="v2-note-toc-label">목차</div>
+            <nav style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
               {SECTIONS.map((s) => (
-                <button key={s.code} type="button" onClick={() => openSectionFromToc(s.code)} className="ending-note-toc-link">
-                  {sectionState[s.code] ? <CheckCircle2 size={14} color="var(--point-color)" /> : <Circle size={14} color="var(--text-muted)" />}
+                <button key={s.code} type="button" onClick={() => openSectionFromToc(s.code)} className="v2-note-toc-link">
+                  {sectionState[s.code] ? <CheckCircle2 size={14} color="var(--v2-point)" /> : <Circle size={14} color="var(--v2-text-faint)" />}
                   <span>{s.title}</span>
                 </button>
               ))}
-              <button type="button" onClick={scrollToWillDraft} className="ending-note-toc-link">
-                {sectionState.WILL_DRAFT ? <CheckCircle2 size={14} color="var(--point-color)" /> : <Circle size={14} color="var(--text-muted)" />}
+              <button type="button" onClick={scrollToWillDraft} className="v2-note-toc-link">
+                {sectionState.WILL_DRAFT ? <CheckCircle2 size={14} color="var(--v2-point)" /> : <Circle size={14} color="var(--v2-text-faint)" />}
                 <span>유언장 초안</span>
               </button>
             </nav>
-            {/* 사용자 지시(2026-08-28)로 목차 박스 최하단에 배치 — 데스크톱 전용(목차와 같은 노출
-                범위). 구분선은 별도 wrapper에 둔다 — border-top+padding을 .btn 자체에 얹으면
-                고정 높이(--min-touch-target, border-box)가 눌려 내부 콘텐츠가 위아래 비대칭으로
-                밀린다. className="btn"이 곧 --min-touch-target(56px, 00-09 §2.3). */}
-            <div style={{ marginTop: '0.9rem', paddingTop: '0.9rem', borderTop: '1px solid var(--border-color)' }}>
+            {/* 사용자 지시(2026-08-28)로 목차 박스 최하단에 배치 — 데스크톱 전용(목차와 같은 노출 범위). */}
+            <div style={{ marginTop: '14px', paddingTop: '14px', borderTop: '1px solid var(--v2-divider)' }}>
               <button
                 type="button"
                 ref={summaryTriggerRef}
                 onClick={() => setSummaryOpen(true)}
-                className="btn"
-                style={{ width: '100%', backgroundColor: 'var(--secondary-color)', color: 'var(--primary-color)', fontSize: 'var(--fs-body)' }}
+                className="v2-btn-outline"
+                style={{ width: '100%' }}
               >
                 <ListChecks size={18} /> 한눈에 보기
               </button>
             </div>
           </aside>
 
-          <div className="ending-note-content">
+          <div className="v2-note-main">
             {/* 00-35 §5.2 — 표시 순서는 SECTIONS 배열 순서(§5.3, 기존 DOM 순서 ①②④⑤⑥⑦⑧⑩와 동일).
                 00-38 §8.1-2 — 모바일은 8개 아코디언 동시 스택 대신 목차 리스트(제목+완료 배지만).
                 탭하면 그 섹션 하나만 아래 리더 모달로 연다(같은 expandedSection state 재사용). */}
@@ -801,20 +791,16 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
               // 데스크톱 목차 안에만 있어 모바일에 통로가 없던 문제), 재확인 후 "모바일에는
               // 아예 없는 게 낫다"로 최종 결정. 버튼을 되돌리고 모바일 접근 없음을 의도된
               // 상태로 확정한다 — 되돌린 이력만 남긴다.
-              <div className="ending-note-mobile-toclist">
+              <div>
                 {SECTIONS.map((s) => (
-                  <button
-                    key={s.code}
-                    type="button"
-                    className="ending-note-mobile-tocrow"
-                    onClick={() => handleToggleSection(s.code)}
-                  >
-                    <span className="ttl">{s.title}</span>
-                    <span className={`ending-note-status-pill${sectionState[s.code] ? ' done' : ' todo'}`}>
-                      {sectionState[s.code] ? '완료' : '미작성'}
-                    </span>
-                    <ChevronRight size={18} color="var(--text-muted)" />
-                  </button>
+                  <div key={s.code} className="v2-list-row">
+                    <button type="button" className="v2-list-main" onClick={() => handleToggleSection(s.code)}>
+                      {sectionState[s.code] ? <CheckCircle2 size={16} color="var(--v2-point)" /> : <Circle size={16} color="var(--v2-text-faint)" />}
+                      <span className="v2-list-title">{s.title}</span>
+                    </button>
+                    <span className="v2-list-meta">{sectionState[s.code] ? '완료' : '미작성'}</span>
+                    <ChevronRight size={16} className="v2-row-chevron" />
+                  </div>
                 ))}
               </div>
             ) : (
@@ -843,20 +829,20 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
         </div>
       </div>
 
-      {/* 00-38 §8.1-2 — 모바일 포커스 리더 모달. 그 섹션 하나만, 저장 버튼 하단 고정.
-          expandedSection은 위 목차 리스트와 공유하는 같은 state(데스크톱에서는 아코디언 펼침에 쓰인다). */}
+      {/* 00-38 §8.1-2 — 모바일 포커스 리더. 그 섹션 하나만, 저장 버튼 하단 고정. expandedSection은
+          위 목차 리스트와 공유하는 같은 state(데스크톱에서는 아코디언 펼침에 쓰인다). 전용 오버레이
+          대신 기존 `.v2-modal-overlay`+`.v2-modal.is-scroll`을 재사용한다 — title 고정+body 스크롤
+          구조가 이미 이 모양이고, 모바일에서는 CSS가 자동으로 거의 전체화면 바텀시트로 바꾼다. */}
       {isMobile && expandedSection && (
-        <div className="ending-note-reader-overlay" onClick={() => setExpandedSection(null)}>
-          <div className="ending-note-reader-sheet" onClick={(e) => e.stopPropagation()}>
-            <div className="ending-note-reader-head">
-              <button type="button" onClick={() => setExpandedSection(null)} aria-label="목록으로">
+        <div className="v2-modal-overlay" role="dialog" aria-modal="true" {...backdropCloseProps(() => setExpandedSection(null))}>
+          <div className="v2-modal is-scroll" onClick={(e) => e.stopPropagation()}>
+            <h3 className="v2-modal-title" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <button type="button" onClick={() => setExpandedSection(null)} aria-label="목록으로" style={{ background: 'none', border: 'none', padding: 0, display: 'flex', color: 'var(--v2-text-main)', cursor: 'pointer' }}>
                 <ChevronLeft size={22} />
               </button>
-              <span className="ending-note-reader-title">
-                {SECTIONS.find((s) => s.code === expandedSection)?.title}
-              </span>
-            </div>
-            <div className="ending-note-reader-body">
+              {SECTIONS.find((s) => s.code === expandedSection)?.title}
+            </h3>
+            <div className="v2-modal-body">
               {sectionBodies[expandedSection]}
               <SectionTimingControl
                 section={expandedSection}
@@ -865,13 +851,14 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
                 onChange={(designationId, timing, grantId) => handleGrantChange(expandedSection, designationId, timing, grantId)}
               />
             </div>
-            <div className="ending-note-reader-foot">
+            <div className="v2-modal-actions">
               <button
                 type="button"
                 onClick={() => saveSection(expandedSection, sectionPayloads[expandedSection]())}
-                className="btn btn-point"
+                className="v2-btn-primary"
                 disabled={savingState[expandedSection] === 'saving'}
-                style={{ flex: 1, fontSize: 'var(--fs-body)' }}
+                aria-busy={savingState[expandedSection] === 'saving'}
+                style={{ flex: 1 }}
               >
                 {saveButtonLabel(savingState[expandedSection])}
               </button>
@@ -885,56 +872,44 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
                   setExpandedSection(null);
                 }}
                 disabled={savingState[expandedSection] === 'saving'}
-                className="btn"
-                style={{ flex: 1, fontSize: 'var(--fs-body)', backgroundColor: 'var(--surface-subtle)', color: 'var(--text-muted)' }}
+                className="v2-btn-outline"
+                style={{ flex: 1 }}
               >
                 취소
               </button>
             </div>
             {savingState[expandedSection] === 'saved' && (
-              <p style={{ textAlign: 'center', fontSize: 'var(--fs-caption)', color: 'var(--point-color)', margin: '0.5rem 0 0' }}>저장되었습니다.</p>
+              <p style={{ textAlign: 'center', fontSize: 'var(--v2-fs-label)', color: 'var(--v2-point)', margin: '8px 0 0' }}>저장되었습니다.</p>
             )}
             {savingState[expandedSection] === 'error' && (
-              <p style={{ textAlign: 'center', fontSize: 'var(--fs-caption)', color: 'var(--state-danger-fg)', margin: '0.5rem 0 0' }}>저장에 실패했습니다. 다시 시도해 주세요.</p>
+              <p style={{ textAlign: 'center', fontSize: 'var(--v2-fs-label)', color: 'var(--state-danger-fg)', margin: '8px 0 0' }}>저장에 실패했습니다. 다시 시도해 주세요.</p>
             )}
           </div>
         </div>
       )}
 
       {/* ⑨ 유언장 초안 — A2: 아코디언에 넣지 않는다. §6.4-7 모델이 섰으니 이제 저장을 배선한다. */}
-      <div id="ending-note-section-WILL_DRAFT" style={{ ...cardStyle, padding: '1.5rem', marginTop: '1.5rem', filter: !currentUser ? 'blur(3px)' : 'none' }}>
-        <h3 style={cardTitleStyle}>
-          <ScrollText color="var(--point-color)" /> 유언장 초안
-          {sectionState.WILL_DRAFT && <CheckCircle2 size={18} color="var(--point-color)" />}
+      <div id="ending-note-section-WILL_DRAFT" className="v2-content" style={{ marginTop: '32px', paddingTop: '32px', borderTop: '1px solid var(--v2-divider-strong)', filter: !currentUser ? 'blur(3px)' : 'none' }}>
+        <h3 style={{ fontSize: 'var(--v2-fs-item-title)', fontWeight: 700, color: 'var(--v2-text-main)', display: 'flex', alignItems: 'center', gap: '8px', margin: '0 0 12px' }}>
+          <ScrollText color="var(--v2-point)" /> 유언장 초안
+          {sectionState.WILL_DRAFT && <CheckCircle2 size={18} color="var(--v2-point)" />}
         </h3>
 
-        <div style={{ fontSize: 'var(--fs-body)', color: 'var(--state-warn-fg)', backgroundColor: 'var(--state-warn-bg)', border: '1px solid var(--state-warn-bg)', borderRadius: 'var(--r-sm)', padding: 'var(--sp-3) 0.9rem', margin: 'var(--sp-3) 0', display: 'flex', alignItems: 'flex-start', gap: '0.5rem', fontWeight: 700 }}>
-          <AlertTriangle size={18} style={{ flexShrink: 0, marginTop: '0.1rem' }} />
+        <p className="v2-notice-warn" style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', fontWeight: 700 }}>
+          <AlertTriangle size={18} style={{ flexShrink: 0, marginTop: '2px' }} />
           <span>{NOT_A_WILL_NOTICE}</span>
-        </div>
-
-        <p style={{ fontSize: 'var(--fs-body)', color: 'var(--text-muted)', marginBottom: '1rem' }}>
-          직접 입력한 내용을 자필증서 유언장을 손으로 옮겨 쓸 때 참고하는 초안으로 씁니다.
         </p>
 
-        {/* §6.4-2·§7.1 — 본인 전용, 사후에도 유족에게 전달되지 않는다. 대신 보관함으로 안내한다. */}
-        <div style={{ fontSize: 'var(--fs-body)', color: 'var(--state-warn-fg)', backgroundColor: 'var(--state-warn-bg)', border: '1px solid var(--state-warn-bg)', borderRadius: 'var(--r-sm)', padding: 'var(--sp-3) 0.9rem', marginBottom: '1rem', display: 'flex', alignItems: 'flex-start', gap: '0.5rem' }}>
-          <AlertTriangle size={18} style={{ flexShrink: 0, marginTop: '0.1rem' }} />
-          <span>
-            이 초안은 본인만 볼 수 있으며 유족에게 전달되지 않습니다.
-            마음을 전하고 싶으시면 유족 메시지 보관함을 이용해 주세요.
-          </span>
-        </div>
-
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(320px, 100%), 1fr))', gap: '1.5rem', alignItems: 'start' }}>
-          <div className="form-group" style={{ marginBottom: 0 }}>
-            <label className="form-label">초안 (직접 입력)</label>
+        <div className="v2-note-draft-grid">
+          <div className="v2-field">
+            <label htmlFor="en-draft-text">초안 (직접 입력)</label>
             <textarea
+              id="en-draft-text"
               rows={10}
               value={draftText}
               onChange={(e) => setDraftText(e.target.value)}
-              className="form-input"
-              style={{ height: 'auto', padding: '1rem', fontSize: largeText ? '1.15rem' : '1rem', lineHeight: 1.7 }}
+              className="v2-input"
+              style={{ height: 'auto', padding: '12px 14px', fontSize: largeText ? '18px' : '16px', lineHeight: 1.7 }}
               placeholder="유언장 초안 내용을 직접 입력해 주세요."
             />
           </div>
@@ -943,61 +918,58 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
             {/* 🔄 09-07 사용자 지시 — ① 문구를 짧게(모바일 줄바꿈으로 가독성 저하) ② 정규식
                 기반 자동 검증(hasAddressHint·hasDateHint) 삭제 — 초안 문맥에 따라 오판 가능성이
                 커서, 확인됨/빠짐을 판정하지 않고 네 항목을 똑같은 안내로만 둔다. */}
-            <h4 style={{ fontSize: 'var(--fs-body)', color: 'var(--primary-color)', marginBottom: '0.5rem' }}>
+            <h4 style={{ fontSize: 'var(--v2-fs-support)', color: 'var(--v2-text-main)', fontWeight: 700, marginBottom: '8px' }}>
               자필증서 유언장의 4대 요건
             </h4>
-            <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-              <li style={{ fontSize: 'var(--fs-body)', display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'var(--text-muted)' }}>
-                <Circle size={16} /> 주소 — 번지까지
+            <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              <li style={{ fontSize: 'var(--v2-fs-support)', display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--v2-text-muted)' }}>
+                <Circle size={16} /> 주소: 번지까지
               </li>
-              <li style={{ fontSize: 'var(--fs-body)', display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'var(--text-muted)' }}>
-                <Circle size={16} /> 연월일 — 예: 2026년 8월 25일
+              <li style={{ fontSize: 'var(--v2-fs-support)', display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--v2-text-muted)' }}>
+                <Circle size={16} /> 연월일: 예: 2026년 8월 25일
               </li>
-              <li style={{ fontSize: 'var(--fs-body)', display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'var(--text-muted)' }}>
-                <Circle size={16} /> 성명 — 본인 서명
+              <li style={{ fontSize: 'var(--v2-fs-support)', display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--v2-text-muted)' }}>
+                <Circle size={16} /> 성명: 본인 서명
               </li>
-              <li style={{ fontSize: 'var(--fs-body)', display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'var(--text-muted)' }}>
-                <Circle size={16} /> 날인 — 도장 또는 지장
+              <li style={{ fontSize: 'var(--v2-fs-support)', display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--v2-text-muted)' }}>
+                <Circle size={16} /> 날인: 도장 또는 지장
               </li>
             </ul>
-            <p style={{ fontSize: 'var(--fs-body)', color: 'var(--text-muted)', marginTop: '0.5rem' }}>
+            <p style={{ fontSize: 'var(--v2-fs-support)', color: 'var(--v2-text-muted)', marginTop: '8px' }}>
               ※ 이어봄은 위 항목을 자동으로 확인하지 않습니다. 직접 확인해 주세요.
             </p>
-            <div style={{ fontSize: 'var(--fs-body)', color: 'var(--primary-color)', backgroundColor: 'var(--surface-subtle)', borderRadius: 'var(--r-sm)', padding: '0.9rem', marginTop: '0.9rem' }}>
+            <div style={{ fontSize: 'var(--v2-fs-support)', color: 'var(--v2-text-main)', backgroundColor: 'var(--v2-selected-bg)', borderRadius: '4px', padding: '14px', marginTop: '14px' }}>
               이 초안을 보고 직접 손으로 옮겨 쓰십시오. 컴퓨터로 작성한 문서는 자필증서 유언장으로 인정되지 않습니다.
             </div>
           </div>
         </div>
 
-        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginTop: '1.2rem', alignItems: 'center' }}>
+        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '20px', alignItems: 'center' }}>
           <button
             type="button"
             onClick={() => saveSection('WILL_DRAFT', { draftText })}
-            className="btn btn-point"
+            className="v2-btn-primary"
             disabled={savingState.WILL_DRAFT === 'saving' || !policyAgreedAt}
+            aria-busy={savingState.WILL_DRAFT === 'saving'}
             style={{ minWidth: '140px' }}
           >
             {saveButtonLabel(savingState.WILL_DRAFT)}
           </button>
-          <button type="button" onClick={() => setLargeText((v) => !v)} className="btn" style={{ backgroundColor: 'var(--secondary-color)', color: 'var(--primary-color)' }}>
+          <button type="button" onClick={() => setLargeText((v) => !v)} className="v2-btn-outline">
             {largeText ? '보통 글씨로' : '큰 글씨로 보기'}
           </button>
-          <button type="button" onClick={handlePrintDraft} className="btn" style={{ backgroundColor: 'var(--secondary-color)', color: 'var(--primary-color)' }}>
+          <button type="button" onClick={handlePrintDraft} className="v2-btn-outline">
             <Printer size={18} /> 인쇄하기
           </button>
-          <button type="button" onClick={handleCopyDraft} className="btn" style={{ backgroundColor: 'var(--secondary-color)', color: 'var(--primary-color)' }}>
+          <button type="button" onClick={handleCopyDraft} className="v2-btn-outline">
             <Copy size={18} /> 텍스트 복사
           </button>
-          <button type="button" onClick={handleDownloadDraft} className="btn" style={{ backgroundColor: 'var(--secondary-color)', color: 'var(--primary-color)' }}>
+          <button type="button" onClick={handleDownloadDraft} className="v2-btn-outline">
             <Download size={18} /> .txt 내려받기
           </button>
         </div>
-        {savingState.WILL_DRAFT === 'error' && (
-          <p style={{ fontSize: 'var(--fs-body)', color: 'var(--state-danger-fg)', marginTop: '0.5rem' }}>저장에 실패했습니다. 다시 시도해 주세요.</p>
-        )}
-        {copyFeedback && (
-          <p style={{ fontSize: 'var(--fs-body)', color: 'var(--point-color)', marginTop: '0.5rem' }}>{copyFeedback}</p>
-        )}
+        {savingState.WILL_DRAFT === 'error' && <p className="v2-error-text" style={{ marginTop: '8px' }}>저장에 실패했습니다. 다시 시도해 주세요.</p>}
+        {copyFeedback && <p style={{ fontSize: 'var(--v2-fs-support)', color: 'var(--v2-point)', marginTop: '8px' }}>{copyFeedback}</p>}
       </div>
 
       {summaryOpen && (

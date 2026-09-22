@@ -15,24 +15,24 @@ export const SectionTimingControl: React.FC<{
   if (!allowed || family.length === 0) return null;
 
   return (
-    <div style={{ marginTop: '1.25rem', paddingTop: '1rem', borderTop: '1px solid var(--border-color)' }}>
-      <div style={{ fontSize: 'var(--fs-body)', fontWeight: 700, color: 'var(--primary-color)', marginBottom: '0.6rem' }}>
+    <div style={{ marginTop: '20px', paddingTop: '16px', borderTop: '1px solid var(--v2-divider)' }}>
+      <div style={{ fontSize: 'var(--v2-fs-support)', fontWeight: 700, color: 'var(--v2-text-main)', marginBottom: '10px' }}>
         가족 공개 시점
       </div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
         {family.map((f) => {
           const activeGrant = grants.find((g) => g.section === section && g.designationId === f.id && !g.revokedAt);
           return (
-            <div key={f.id} style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', fontSize: 'var(--fs-body)', flexWrap: 'wrap' }}>
-              <span style={{ minWidth: '120px', color: 'var(--text-main)' }}>
+            <div key={f.id} style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: 'var(--v2-fs-support)', flexWrap: 'wrap' }}>
+              <span style={{ minWidth: '120px', color: 'var(--v2-text-main)' }}>
                 {f.name} ({RELATIONSHIP_LABEL[f.relationship] || f.relationship}
                 {f.relationship === 'OTHER' && f.relationshipEtc ? ` · ${f.relationshipEtc}` : ''})
               </span>
               <select
                 value={activeGrant?.timing || ''}
                 onChange={(e) => onChange(f.id, e.target.value || null, activeGrant?.id)}
-                className="form-select"
-                style={{ height: '38px', width: '220px', flexShrink: 0 }}
+                className="v2-select"
+                style={{ width: '220px', flexShrink: 0 }}
               >
                 <option value="">비공개</option>
                 {allowed.map((t) => (

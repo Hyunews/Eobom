@@ -38,14 +38,12 @@
 ✅②`obituary`·mypage M-1.5~M-3(5f72fff)·파기배치④(tombstone)·§9.2철회API=코드완료(09-21·tsc통과).
 ✅`User.purgedAt`로컬마이그레이션적용(09-21·백업`local-20260921_153414.dump`확인·운영미적용).✅Opus2차판정3건반영·dry-run통과(로컬·대상0명).🔴`--confirm`금지(사람승인별도)·실행중dev서버재시작필요.
 ✅Opus판정3건+철회스펙등재끝(`06-05`§5.6-8-4·`00-36`§4.6-2-1·§4.7-1-1).🔴미착수=§4.5동의3층(→⑲).
-✅`04-01`§0.2-0(09-22)완료—DigitalEstatePage STEP1 카드3장 문구를 표 그대로 교체+3번카드
-provider의"1-B"화면노출제거(→"각 카드사")+기한라벨카드별로(신청기한/결과확인/처리기간).KISO호버3건은
-별건(기완료,cda5b65).
-✅pickup·digital-estate사이드바"준비중"배지제거(modeNav.ts,09-22,사람지시).
-✅facility검색창기준pickup검색창통일(09-22,사람지시)—`components/LocationSearchBox.tsx`신설,양쪽재사용.
-🔴편차:pickup이v2-filter-row→facility옛form-*클래스로역행(00-39§9.1흐름과반대방향)·Opus보고필요.
-🟡뒤로:pickup거리순(좌표없음)·전문가region(별건).
-🟡height:36px3곳=보류.
+✅`04-01`§0.2-0완료(09-22)—DigitalEstatePage카드문구+"1-B"노출제거.✅nav"준비중"배지제거.
+✅`LocationSearchBox.tsx`신설(facility·pickup검색창통일).🔴편차:pickup이v2→옛form-*역행,Opus보고필요.
+✅**ending-note v2 이관 완료(09-22)**—그룹②나머지 2/5.`.v2-accordion-*`신설(§6.7미등재)·
+index.css옛.ending-note-*250줄삭제·tsc/build통과.🔴남은건`farewell-messages`뿐(그룹②마지막).
+🔴Opus:00-39§9.1(473~475행)"ending-note미착수"→"완료"갱신필요.🔴사람실기동전체대기.
+🟡뒤로:pickup거리순(좌표없음)·전문가region(별건).height:36px3곳=보류.
 **3.[Gemini]**🔴게이트45건대기(09-11~21·wt204~)·🟡옛스펙3건→⑭.🟡devDB삭제분7건—D-8(🔴CONFIRM).✅reports경로정리완료(09-16).
 
 ## 지금 상태

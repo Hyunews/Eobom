@@ -55,7 +55,11 @@ export const Footer: React.FC = () => {
         </div>
 
         {/* 열 2: 보안 & 약관 */}
-        <div>
+        <div
+          style={{
+            paddingLeft: '3rem'
+          }}
+        >
           <h3
             style={{
               color: 'var(--primary-color)',

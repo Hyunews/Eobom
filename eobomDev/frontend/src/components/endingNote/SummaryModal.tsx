@@ -1,5 +1,5 @@
 import React from 'react';
-import { ListChecks, CheckCircle2, X } from 'lucide-react';
+import { ListChecks, CheckCircle2 } from 'lucide-react';
 import type { SummaryRow } from './types';
 import { backdropCloseProps } from '../../utils/backdropClose';
 
@@ -9,6 +9,8 @@ import { backdropCloseProps } from '../../utils/backdropClose';
 // 🔴 자유 서술 필드는 전문을 뿌리지 않는다(엔딩노트는 암호화 저장하는 민감 콘텐츠 — 모달에 펼치면
 // 어깨너머로 다 보인다). ⑨(WILL_DRAFT)는 본인 전용 원칙이 이 모달에도 그대로 적용돼 내용을
 // 절대 표시하지 않고 작성 여부만 보여준다.
+// 🔄 2026-09-22 00-39 그룹② — 전용 오버레이 대신 기존 `.v2-modal-overlay`+`.v2-modal.is-scroll`을
+// 재사용(제목 고정 + 본문 스크롤, 모바일은 CSS가 자동으로 바텀시트/거의 전체화면으로 바꾼다).
 export const summarizeFreeText = (text: string): string => {
   const trimmed = text.trim();
   if (!trimmed) return '';
@@ -28,77 +30,55 @@ export const SummaryModal: React.FC<{
 }> = ({ rows, onClose, onSelectRow }) => {
   const anyCompleted = rows.some((r) => r.completed);
   return (
-    <div
-      className="ending-note-summary-overlay"
-      {...backdropCloseProps(onClose)}
-    >
-      <div className="ending-note-summary-panel" role="dialog" aria-modal="true" aria-label="한눈에 보기">
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
-          <h2 style={{ color: 'var(--primary-color)', fontSize: '1.3rem', margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <ListChecks color="var(--point-color)" /> 한눈에 보기
-          </h2>
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="닫기"
-            style={{
-              background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)',
-              width: 'var(--min-touch-target)', height: 'var(--min-touch-target)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-            }}
-          >
-            <X size={24} />
-          </button>
-        </div>
+    <div className="v2-modal-overlay" role="dialog" aria-modal="true" aria-label="한눈에 보기" {...backdropCloseProps(onClose)}>
+      <div className="v2-modal is-scroll" onClick={(e) => e.stopPropagation()}>
+        <h3 className="v2-modal-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <ListChecks size={20} color="var(--v2-point)" /> 한눈에 보기
+        </h3>
 
-        {!anyCompleted && (
-          <div style={{ fontSize: 'var(--fs-body)', color: 'var(--text-muted)', backgroundColor: 'var(--secondary-color)', borderRadius: 'var(--r-sm)', padding: '0.9rem 1rem', marginBottom: '1rem', lineHeight: 1.6 }}>
-            아직 작성하신 항목이 없습니다. 아래 목록에서 항목을 눌러 하나씩 채워보세요.
-          </div>
-        )}
+        <div className="v2-modal-body">
+          {!anyCompleted && <p className="v2-empty">아직 작성하신 항목이 없습니다. 아래 목록에서 항목을 눌러 하나씩 채워보세요.</p>}
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
-          {rows.map((row) => (
-            <button
-              key={row.code}
-              type="button"
-              onClick={() => onSelectRow(row.code)}
-              style={{
-                display: 'flex', flexDirection: 'column', gap: '0.35rem', width: '100%', textAlign: 'left',
-                minHeight: 'var(--min-touch-target)', padding: 'var(--sp-4) 1rem', borderRadius: 'var(--r-sm)',
-                border: '1px solid var(--border-color)', backgroundColor: row.completed ? 'var(--card-bg)' : 'var(--state-warn-bg)',
-                cursor: 'pointer',
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
-                <span style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--primary-color)' }}>{row.title}</span>
-                {row.completed ? (
-                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', fontSize: 'var(--fs-body)', fontWeight: 700, color: 'var(--state-ok-fg)', backgroundColor: 'var(--state-ok-bg)', borderRadius: 'var(--r-full)', padding: '0.15rem 0.6rem' }}>
-                    <CheckCircle2 size={13} /> 작성함
-                  </span>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            {rows.map((row) => (
+              <button
+                key={row.code}
+                type="button"
+                onClick={() => onSelectRow(row.code)}
+                style={{
+                  display: 'flex', flexDirection: 'column', gap: '6px', width: '100%', textAlign: 'left',
+                  padding: '14px 16px', borderRadius: '4px',
+                  border: `1px solid ${row.completed ? 'var(--v2-divider-strong)' : 'var(--state-warn-bg)'}`,
+                  backgroundColor: row.completed ? 'var(--v2-bg)' : 'var(--state-warn-bg)',
+                  cursor: 'pointer',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                  <span style={{ fontSize: 'var(--v2-fs-item-title)', fontWeight: 700, color: 'var(--v2-text-main)' }}>{row.title}</span>
+                  {row.completed ? (
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: 'var(--v2-fs-label)', fontWeight: 700, color: 'var(--v2-point)' }}>
+                      <CheckCircle2 size={13} /> 작성함
+                    </span>
+                  ) : (
+                    <span style={{ fontSize: 'var(--v2-fs-label)', fontWeight: 700, color: 'var(--state-warn-fg)' }}>미작성</span>
+                  )}
+                  {row.timingBadge && <span className="v2-list-inline-meta">{row.timingBadge}</span>}
+                </div>
+                {row.isWillDraft ? (
+                  <span style={{ fontSize: 'var(--v2-fs-support)', color: 'var(--v2-text-muted)' }}>본인 전용 — 내용은 여기 표시되지 않습니다.</span>
                 ) : (
-                  <span style={{ fontSize: 'var(--fs-body)', fontWeight: 700, color: 'var(--state-warn-fg)', backgroundColor: 'var(--state-warn-bg)', border: '1px solid var(--state-warn-bg)', borderRadius: 'var(--r-full)', padding: '0.15rem 0.6rem' }}>
-                    미작성
-                  </span>
+                  row.completed && row.valueText && (
+                    <span style={{ fontSize: 'var(--v2-fs-support)', color: 'var(--v2-text-main)' }}>{row.valueText}</span>
+                  )
                 )}
-                {row.timingBadge && (
-                  <span style={{ fontSize: 'var(--fs-body)', color: 'var(--text-muted)', backgroundColor: 'var(--surface-subtle)', borderRadius: 'var(--r-full)', padding: '0.15rem 0.6rem' }}>
-                    {row.timingBadge}
-                  </span>
-                )}
-              </div>
-              {row.isWillDraft ? (
-                <span style={{ fontSize: '18px', lineHeight: 1.7, color: 'var(--text-muted)' }}>
-                  본인 전용 — 내용은 여기 표시되지 않습니다.
-                </span>
-              ) : (
-                row.completed && row.valueText && (
-                  <span style={{ fontSize: '18px', lineHeight: 1.7, color: 'var(--text-main)' }}>{row.valueText}</span>
-                )
-              )}
-            </button>
-          ))}
+              </button>
+            ))}
+          </div>
         </div>
+
+        <button type="button" className="v2-modal-close" onClick={onClose}>
+          닫기
+        </button>
       </div>
     </div>
   );

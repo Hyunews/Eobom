@@ -899,3 +899,42 @@
   3. 사람 실기동 검증 대기 — 사이드바 배지 제거·검색창 두 화면·04-01 카드 3장 실제 렌더 확인 안 됨.
 
 <!-- Gemini 판정 1줄: 대기 -->
+
+## 2026-09-22 | [Sonnet] EndingNotePage v2 이관 — 00-39 §9.1 그룹② 나머지 착수(2/5 완료)
+
+- **근거 스펙**: docs/00_핵심플랫폼/00-39_디자인_기준_재정립_명세서.md §9.1(그룹② 폼·입력, ending-note는 09-22 시점 "미착수") · §6.8·§6.8-1(그룹② 대표 obituary에서 확정된 필드·오류·체크·저장상태 규칙, "mypage는 같은 그룹이므로 obituary 규칙을 적용만 한다"는 §9.2 표의 원리를 그대로 물려받음) · 00-38 §8.1-2(모바일 목차 리스트+전체화면 리더, 구조는 유지).
+- **건드린 파일**: eobomDev/frontend/src/pages/EndingNotePage.tsx(전면 재작성) · eobomDev/frontend/src/components/endingNote/AccordionSection.tsx · SectionTimingControl.tsx · SummaryModal.tsx · eobomDev/frontend/src/styles/design-v2.css(신규 클래스 추가) · eobomDev/frontend/src/index.css(옛 `.ending-note-*` 약 250줄 삭제, ID 기반 scroll-margin-top 규칙 1개만 유지). `components/endingNote/styles.ts`(cardStyle/cardTitleStyle)는 MemorialLandingPage·FamilyInvitePage가 아직 써서 그대로 뒀다 — EndingNotePage 쪽 사용만 걷어냈다.
+- **결과**:
+  1. **레이아웃 틀 신설(design-v2.css)** — `.v2-note-shell`/`.v2-note-toc`/`.v2-note-toc-link`/`.v2-note-main`은 `.v2-guide-shell`(care-guide)과 같은 폭 계산식(236+764+48=1048px)을 쓰되 DOM 순서만 목차를 앞에 둬 좌측에 오게 했다(기존 구조 유지). `.v2-accordion-item`/`.v2-accordion-header`/`.v2-accordion-body`는 이 화면에서 처음 나온 새 패턴("여러 섹션을 각자 접고 펴고 저장") — §6.7에 아직 미등재(Opus 몫). `.v2-note-draft-grid`는 유언장 초안의 입력칸\|체크리스트 2단.
+  2. **모바일 리더는 새 CSS를 안 만들고 기존 `.v2-modal-overlay`+`.v2-modal.is-scroll`을 재사용**했다 — title 고정+body flex:1 overflow-y:auto+actions가 자연히 하단 고정되는 구조가 이미 그 모양이었다. 뒤로가기 화살표만 `.v2-modal-title` 안에 인라인으로 얹었다. 전용 오버레이(`.ending-note-reader-overlay` 등)와 배경 클릭이 `onClick`만 쓰던 것도 사이트 공통 `backdropCloseProps`로 교체(2026-09-21 전 모달 공통 규칙 적용 — 이 화면만 빠져 있었다).
+  3. **모바일 목차 리스트**를 전용 `.ending-note-mobile-toclist`/`-tocrow`/`.ending-note-status-pill`(done/todo) 대신 §6.7 기존 목록 클래스(`.v2-list-row`/`.v2-list-main`/`.v2-list-title`/`.v2-list-meta`/`.v2-row-chevron`)로 교체, 완료 표시는 배지 대신 데스크톱 목차와 같은 체크/빈원 아이콘(CheckCircle2/Circle)으로 통일.
+  4. **8개 섹션 본문**(`sectionBodies`) 전부 `.form-group`/`.form-select`/`.form-input`/`.form-label` → `.v2-field`/`.v2-select`/`.v2-input`(§6.8)로, 보험 체크박스는 `.v2-check`로, 경고 박스는 `.v2-notice-warn`/정보 문구는 `.v2-notice`로 교체. 각 입력에 `id`+`htmlFor` 연결(접근성, obituary FormField 패턴과 동일).
+  5. **SummaryModal·SectionTimingControl**도 전용 오버레이(`.ending-note-summary-overlay/-panel`) 대신 `.v2-modal-overlay`+`.v2-modal.is-scroll`, select는 `.v2-select`로.
+  6. **AccordionSection의 저장/취소 버튼**을 `.btn.btn-point`/`.btn`(인라인 배경색)에서 `.v2-btn-primary`/`.v2-btn-outline`으로, 저장 상태 문구는 그대로(규칙 19, saveButtonLabel 로직 안 건드림).
+  7. **index.css 정리** — `.ending-note-*` 클래스 전부(레이아웃·토크·아코디언·모바일 목차·리더·요약, 약 250줄) 삭제. ID 선택자(`#ending-note-consent`, `[id^="ending-note-section-"]`)로 건 `scroll-margin-top` 규칙 1개만 남겼다 — 클래스가 아니라 EndingNotePage.tsx가 찍는 DOM id를 그대로 겨누므로 마크업 변경과 무관하게 계속 필요하다.
+  8. 상태 관리(정책 동의·섹션별 저장·가족 공개 시점·유언장 초안 인쇄/복사/다운로드 등 모든 훅·핸들러)는 **전혀 건드리지 않았다** — 표현 계층만 옮긴다는 원칙(§8 #5와 같은 결) 그대로.
+  9. 검증: `npx tsc --noEmit -p .`·`npm run build`(frontend) 통과. 빌드 중 design-v2.css에 실수로 남긴 중복 `}` 1개(브레이스 불균형, CSS 파싱 경고로 발견)를 바로 잡았다.
+- **편차**:
+  - 🔴 **인쇄용(`handlePrintDraft`) 별도 HTML 문서 안의 `padding: var(--fs-caption) 0.9rem`** — `window.open`으로 여는 새 문서라 우리 앱 CSS 변수가 그 문서에 없어 애초부터 유효하지 않은 값이었다(이번 작업과 무관한 기존 버그, 인쇄 스타일은 의도적으로 하드코딩 색을 쓰는 영역이라 손대지 않았다).
+  - 🔴 **새 아코디언 패턴(`.v2-accordion-*`)이 §6.7에 미등재** — obituary·care-guide 어디에도 "섹션마다 개별 저장"하는 화면이 없어 새로 만들 수밖에 없었다. Opus가 §6.7 표에 등재할지, farewell-messages(그룹② 남은 화면)에서도 재사용할지 확인 필요.
+- **다음 에이전트가 알아야 할 것**:
+  1. 00-39 §9.1 현황(473~475행)의 "`ending-note`·`farewell-messages` 미착수"를 "`ending-note` 완료"로 갱신 필요(Opus, docs/ 쓰기 금지라 Sonnet은 못 함).
+  2. `farewell-messages`가 그룹② 마지막 미착수 화면 — 이 화면과 구조가 비슷하면(섹션별 저장이 아니라 목록형일 수도 있음, 미확인) `.v2-accordion-*`를 그대로 쓸 수 있는지 먼저 확인할 것.
+  3. 사람 실기동 검증 대기 — 데스크톱 아코디언 펼침/접힘, 모바일 목차→리더 진입·저장·취소, "한눈에 보기" 모달, 유언장 초안 인쇄/복사/다운로드 전부 실제 클릭 확인 안 됨.
+  4. `git diff`가 EndingNotePage.tsx를 파일 전체 교체처럼 보여준다(라인엔딩·인코딩 확인 결과 정상 LF/UTF-8, 실제로는 변경분이 991/1008줄에 흩어져 있어 diff 알고리즘이 통짜 하나로 뭉친 것 — 실제 내용 문제 아님). 리뷰 시 참고.
+
+<!-- Gemini 판정 1줄: 대기 -->
+
+## 2026-09-23 | [Sonnet] EndingNotePage 후속 — 유언장 초안 박스 삭제 + 4대 요건 구분 기호 (사용자 직접 지시)
+
+- **근거 스펙**: 스펙 없음 — 사용자 직접 지시(화면 문구 다듬기).
+- **건드린 파일**: eobomDev/frontend/src/pages/EndingNotePage.tsx.
+- **결과**:
+  1. 유언장 초안 구간의 두 번째 경고 박스("이 초안은 본인만 볼 수 있으며 유족에게 전달되지 않습니다…") 삭제. 실제 동작(본인 전용, 사후에도 유족 비공개)은 서버·저장 로직 쪽 규칙(§6.4-2·§7.1)이라 화면 문구를 지워도 기능은 그대로다 — 안내 문장만 없앤 것.
+  2. "자필증서 유언장의 4대 요건" 목록 4개 항목의 구분 기호를 대시(—)에서 콜론(:)으로: "주소: 번지까지" · "연월일: 예: 2026년 8월 25일" · "성명: 본인 서명" · "날인: 도장 또는 지장".
+  3. "직접 입력한 내용을 자필증서 유언장을 손으로 옮겨 쓸 때 참고하는 초안으로 씁니다." 문구 삭제 — 사용자 지적대로 바로 위 `NOT_A_WILL_NOTICE`("이 화면에서 만든 글은 유언장이 아닙니다…")와 뜻이 겹쳐 중복이었다.
+  4. 검증: `npx tsc --noEmit -p .`·`npm run build`(frontend) 통과.
+- **편차**: 없음.
+- **다음 에이전트가 알아야 할 것**: 없음. 사람 실기동 검증은 앞 항목(EndingNotePage v2 이관)과 함께 대기 중.
+
+<!-- Gemini 판정 1줄: 대기 -->

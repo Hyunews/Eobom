@@ -1974,3 +1974,103 @@ a.v2-btn-solid {
     margin-top: 0;
   }
 }
+
+/* ── 그룹②(ending-note) — 섹션별로 따로 저장되는 아코디언 폼 (00-39 §9.1, 2026-09-22) ──
+   obituary(§6.8·§6.8-1)의 필드 규칙은 그대로 쓰고, "여러 섹션을 각자 접고 펴고 저장한다"는
+   새 틀만 여기서 만든다. 데스크톱은 좌측 목차(.v2-guide-shell과 같은 계산식, 토글만 다름) +
+   우측 아코디언, 모바일은 목차 리스트(.v2-list-row 재사용) + 섹션 하나만 여는 전체화면
+   리더(기존 .v2-modal.is-scroll 재사용 — title 고정 + body 스크롤 + actions 고정이 이미
+   그 모양이라 새 클래스가 필요 없었다). */
+.v2-note-shell {
+  display: flex;
+  align-items: flex-start;
+  gap: 48px;
+  max-width: calc(var(--v2-toc-width) + var(--v2-reading-width) + 48px);
+  margin: 0 auto;
+}
+
+.v2-note-toc {
+  width: var(--v2-toc-width);
+  flex-shrink: 0;
+  position: sticky;
+  top: calc(var(--header-h) + 24px);
+}
+
+.v2-note-toc-label {
+  font-size: var(--v2-fs-label);
+  color: var(--v2-text-faint);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 8px;
+}
+
+.v2-note-toc-link {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 10px 12px;
+  border: none;
+  background: none;
+  border-radius: 4px;
+  font-size: var(--v2-fs-support);
+  color: var(--v2-text-muted);
+  cursor: pointer;
+  text-align: left;
+}
+
+.v2-note-toc-link:hover {
+  background: var(--v2-selected-bg);
+}
+
+.v2-note-main {
+  width: var(--v2-reading-width);
+  max-width: 100%;
+  min-width: 0;
+}
+
+.v2-accordion-item {
+  border-bottom: 1px solid var(--v2-divider);
+}
+
+.v2-accordion-header {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 18px 0;
+  border: none;
+  background: none;
+  font: inherit;
+  font-size: var(--v2-fs-item-title);
+  font-weight: 700;
+  color: var(--v2-text-main);
+  cursor: pointer;
+  text-align: left;
+}
+
+.v2-accordion-body {
+  padding: 0 0 28px;
+}
+
+/* 유언장 초안 — 입력칸 | 4대 요건 체크리스트 2단(§6.8-1 카톡 미리보기와 같은 원리, 폭만 다르다) */
+.v2-note-draft-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr));
+  gap: 32px;
+  align-items: start;
+}
+
+@media (max-width: 767px) {
+  .v2-note-shell {
+    display: block;
+  }
+
+  .v2-note-toc {
+    display: none;
+  }
+
+  .v2-note-main {
+    width: 100%;
+  }
+}
