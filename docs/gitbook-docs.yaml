@@ -1,0 +1,30 @@
+$schema: https://api.gitbook.com/gitbook-docs.yaml
+site:
+  title: HynDev Docs
+  structure:
+    - type: section
+      key: section-1
+      title: HynDev Docs
+      path: hyndev-docs
+      default: true
+      children:
+        - type: space
+          key: space-1
+          title: Untitled
+          path: untitled
+          default: true
+          content:
+            directory: null
+    - type: section
+      key: section-2
+      title: EobomDev
+      path: eobomdev
+      children:
+        - type: space
+          key: space-2
+          title: EobomDev
+          path: eobomdev
+          default: true
+          draft: true
+          content:
+            directory: ./hyndev-docs/untitled
