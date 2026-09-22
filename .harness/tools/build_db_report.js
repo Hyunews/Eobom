@@ -186,64 +186,148 @@ const fullHtml = `<!DOCTYPE html>
   <title>이어봄 - DB 요구사항 및 테이블 사전 (Prisma Schema)</title>
   <style>
     :root {
-      --primary: #1A2B4C;
+      --gov-navy: #1e3a8a;
+      --gov-dark: #0f172a;
+      --gov-slate: #334155;
+      --primary: #1e3a8a;
       --secondary: #5B7065;
       --accent: #D4A359;
-      --bg: #FBF9F5;
+      --bg: #e2e8f0;
       --surface: #FFFFFF;
-      --text: #1E293B;
+      --text: #0f172a;
       --text-muted: #64748B;
-      --border: #E2E8F0;
+      --border: #CBD5E1;
       --code-bg: #0F172A;
       --code-text: #F8FAFC;
+      --paper-width: 960px;
     }
     html {
       scroll-behavior: smooth;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-family: "Pretendard", -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Malgun Gothic", "맑은 고딕", sans-serif;
       background-color: var(--bg);
       color: var(--text);
-      line-height: 1.65;
-      padding: 2rem 1rem;
+      line-height: 1.75;
+      padding: 40px 20px 80px;
+      -webkit-font-smoothing: antialiased;
     }
-    .container {
-      max-width: 1140px;
+
+    /* 상단 플로팅 툴바 */
+    .utility-bar {
+      max-width: var(--paper-width);
+      margin: 0 auto 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(255, 255, 255, 0.92);
+      backdrop-filter: blur(8px);
+      padding: 10px 18px;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+      border: 1px solid #cbd5e1;
+    }
+    .utility-bar .back-btn {
+      color: var(--gov-slate);
+      text-decoration: none;
+      font-size: 13.5px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .utility-bar .back-btn:hover {
+      color: var(--gov-navy);
+    }
+    .utility-actions {
+      display: flex;
+      gap: 8px;
+    }
+    .btn-action {
+      background: #f1f5f9;
+      border: 1px solid #cbd5e1;
+      color: var(--gov-slate);
+      padding: 5px 12px;
+      border-radius: 5px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .btn-action:hover {
+      background: var(--gov-navy);
+      color: #ffffff;
+      border-color: var(--gov-navy);
+    }
+
+    /* 공문서 페이퍼 본체 */
+    .document-page {
+      max-width: var(--paper-width);
       margin: 0 auto;
-      background-color: var(--surface);
-      padding: 3rem;
-      border-radius: 24px;
-      box-shadow: 0 20px 40px rgba(26, 43, 76, 0.08);
-      border: 1px solid var(--border);
+      background: #ffffff;
+      padding: 60px 65px 80px;
+      border-radius: 4px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.03);
+      position: relative;
+      border: 1px solid #d1d5db;
     }
-    .header {
-      border-bottom: 3px solid var(--accent);
-      padding-bottom: 1.5rem;
-      margin-bottom: 2rem;
+
+    /* 공문서 최상단 메타 (오로지 날짜와 문서번호만 표기 - 결재X, 기안부서X, 문서등급X) */
+    .doc-meta-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 14px;
+      margin-bottom: 12px;
+      border-bottom: 1px solid #cbd5e1;
+      font-size: 13.5px;
     }
-    .badge {
-      display: inline-block;
-      background-color: var(--primary);
-      color: #FFF;
-      font-size: 0.85rem;
+    .meta-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .meta-label {
+      color: #64748b;
+      font-weight: 600;
+    }
+    .meta-val {
+      color: #1e293b;
       font-weight: 700;
-      padding: 0.3rem 0.8rem;
-      border-radius: 20px;
-      margin-bottom: 0.8rem;
     }
-    h1 {
-      font-size: 2.2rem;
-      color: var(--primary);
-      margin-bottom: 0.5rem;
+
+    /* 문서 타이틀 구역 */
+    .doc-header-area {
+      border-top: 2px solid var(--gov-dark);
+      border-bottom: 2px solid var(--gov-dark);
+      padding: 24px 10px;
+      margin: 15px 0 35px;
+      text-align: center;
+    }
+    .doc-main-title {
+      font-size: 24px;
       font-weight: 800;
+      color: #0f172a;
+      line-height: 1.35;
+      letter-spacing: -0.02em;
+      word-break: keep-all;
     }
+    .doc-sub-title {
+      font-size: 14.5px;
+      color: #475569;
+      margin-top: 10px;
+      font-weight: 500;
+      letter-spacing: -0.01em;
+      line-height: 1.5;
+    }
+
     .section-title {
-      font-size: 1.5rem;
-      color: var(--primary);
+      font-size: 1.4rem;
+      color: var(--gov-navy);
       margin: 2.5rem 0 1.2rem 0;
-      padding-left: 0.8rem;
-      border-left: 5px solid var(--secondary);
+      padding-bottom: 8px;
+      border-bottom: 1.5px solid var(--gov-slate);
       font-weight: 700;
     }
     
@@ -437,40 +521,79 @@ const fullHtml = `<!DOCTYPE html>
     .tag.uk { background-color: #DCFCE7; color: #166534; }
     .tag.nn { background-color: #F1F5F9; color: #475569; }
     .tag.null { background-color: #FEF3C7; color: #92400E; }
-    .divider {
-      border: none;
-      border-top: 1px solid var(--border);
-      margin: 2.5rem 0;
-    }
-    .nav-bar {
-      margin-bottom: 2rem;
+    .doc-footer {
+      margin-top: 50px;
+      padding-top: 20px;
+      border-top: 1px solid #cbd5e1;
       display: flex;
-      gap: 1rem;
+      justify-content: space-between;
       align-items: center;
+      font-size: 12.5px;
+      color: #64748b;
     }
-    .nav-link {
-      color: var(--primary);
-      text-decoration: none;
-      font-weight: 600;
-      font-size: 0.95rem;
+    .doc-footer-logo {
+      font-weight: 800;
+      color: var(--gov-navy);
+      font-size: 14px;
+      letter-spacing: -0.01em;
     }
-    .nav-link:hover {
-      color: var(--accent);
+
+    @media print {
+      body {
+        background-color: #ffffff !important;
+        padding: 0 !important;
+      }
+      .utility-bar { display: none !important; }
+      .document-page {
+        max-width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        box-shadow: none !important;
+        border: none !important;
+        border-radius: 0 !important;
+      }
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <div class="nav-bar">
-      <a href="../index.html" class="nav-link">← 보고서 메인 포털로 돌아가기</a>
+
+  <!-- 상단 보조 네비게이션 툴바 -->
+  <div class="utility-bar">
+    <a href="../index.html" class="back-btn">
+      <span>←</span> 보고서 포털 메인으로 돌아가기
+    </a>
+    <div class="utility-actions">
+      <button type="button" class="btn-action" onclick="window.print()">🖨️ 공문서 인쇄 / PDF 저장</button>
+      <button type="button" class="btn-action" onclick="document.body.style.fontSize='16px'">가+</button>
+      <button type="button" class="btn-action" onclick="document.body.style.fontSize='14.5px'">가-</button>
     </div>
-    <div class="header">
-      <span class="badge">SSOT 정본 최신화</span>
-      <h1>🗄️ 이어봄 DB 요구사항 및 테이블 사전 (14개 스키마)</h1>
-      <p class="subtitle">eobom_db (PostgreSQL + Prisma ORM) 전체 14개 핵심 테이블의 데이터 컬럼 사전 및 관계 명세</p>
-    </div>
-    ${bodyContent}
   </div>
+
+  <!-- 메인 공문서 페이퍼 본체 -->
+  <article class="document-page">
+
+    <!-- 1. 문서 헤더 정보 (결재X, 기안부서X, 문서등급X - 오로지 날짜와 문서번호만 표기) -->
+    <div class="doc-meta-bar">
+      <div class="meta-item"><span class="meta-label">문서번호:</span> <span class="meta-val">이어봄-00-05</span></div>
+      <div class="meta-item"><span class="meta-label">등록일자:</span> <span class="meta-val">2026. 09. 22.</span></div>
+    </div>
+
+    <!-- 2. 문서 제목 영역 -->
+    <header class="doc-header-area">
+      <h1 class="doc-main-title">이어봄 DB 요구사항 및 테이블 사전 (14개 스키마)</h1>
+      <p class="doc-sub-title">eobom_db (PostgreSQL + Prisma ORM) 전체 14개 핵심 테이블의 데이터 컬럼 사전 및 관계 명세</p>
+    </header>
+
+    ${bodyContent}
+
+    <!-- 3. 문서 하단 종결부 -->
+    <footer class="doc-footer">
+      <div class="doc-footer-logo">🌿 이어봄(Eobom) 토탈 라이프케어 플랫폼</div>
+      <div>SSOT 정본 최신화 완료 (v1.0)</div>
+    </footer>
+
+  </article>
+
 </body>
 </html>`;
 

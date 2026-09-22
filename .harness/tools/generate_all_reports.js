@@ -338,185 +338,304 @@ function genericMdToHtml(md, options = {}) {
   return html;
 }
 
-function buildFullHtmlPage(title, subtitle, bodyHtml) {
+function buildFullHtmlPage(title, subtitle, bodyHtml, docId = '00-00', docDate = '2026. 09. 22.') {
   return `<!DOCTYPE html>
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>${escapeHtml(title)} | 이어봄(Eobom) 시각화 보고서</title>
-  <link rel="stylesheet" href="../style.css">
+  <title>${escapeHtml(title)} | 이어봄(Eobom) 행정 보고서</title>
   <style>
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-      line-height: 1.6;
-      color: #333333;
-      background-color: #f8fafc;
+    /* ==========================================================================
+       공문서 및 행정 보고서 전용 프리미엄 스타일시트 (Executive Briefing Format)
+       ========================================================================== */
+    :root {
+      --gov-navy: #1e3a8a;
+      --gov-dark: #0f172a;
+      --gov-slate: #334155;
+      --gov-blue-light: #eff6ff;
+      --gov-blue-border: #bfdbfe;
+      --gov-gray-bg: #f8fafc;
+      --gov-line: #cbd5e1;
+      --gov-border: #94a3b8;
+      --gov-red: #b91c1c;
+      --gov-red-bg: #fef2f2;
+      --gov-orange: #c2410c;
+      --gov-orange-bg: #fff7ed;
+      --gov-green: #15803d;
+      --gov-green-bg: #f0fdf4;
+      --paper-width: 880px;
+    }
+
+    * {
+      box-sizing: border-box;
       margin: 0;
       padding: 0;
     }
-    .container {
-      max-width: 1000px;
-      margin: 2rem auto;
-      background: #ffffff;
-      padding: 2.5rem 3rem;
-      border-radius: 12px;
-      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+
+    body {
+      font-family: "Pretendard", -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Malgun Gothic", "맑은 고딕", sans-serif;
+      font-size: 15px;
+      line-height: 1.75;
+      color: var(--gov-dark);
+      background-color: #e2e8f0;
+      padding: 40px 20px 80px;
+      -webkit-font-smoothing: antialiased;
     }
-    .nav-bar {
-      margin-bottom: 2rem;
-      padding-bottom: 1rem;
-      border-bottom: 1px solid #e2e8f0;
-    }
-    .nav-link {
-      display: inline-flex;
+
+    /* 상단 플로팅 툴바 */
+    .utility-bar {
+      max-width: var(--paper-width);
+      margin: 0 auto 16px;
+      display: flex;
+      justify-content: space-between;
       align-items: center;
-      color: #64748b;
+      background: rgba(255, 255, 255, 0.92);
+      backdrop-filter: blur(8px);
+      padding: 10px 18px;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+      border: 1px solid #cbd5e1;
+    }
+    .utility-bar .back-btn {
+      color: var(--gov-slate);
       text-decoration: none;
-      font-size: 0.9rem;
-      font-weight: 500;
-      transition: color 0.2s;
-    }
-    .nav-link:hover {
-      color: #1A2B4C;
-    }
-    .header {
-      margin-bottom: 2.5rem;
-      border-bottom: 2px solid #1A2B4C;
-      padding-bottom: 1.5rem;
-    }
-    .header h1 {
-      color: #1A2B4C;
-      font-size: 2.1rem;
-      margin: 0 0 0.5rem 0;
-      font-weight: 700;
-      letter-spacing: -0.02em;
-    }
-    .header .subtitle {
-      color: #64748b;
-      font-size: 1.05rem;
-      margin: 0;
-    }
-    .badge {
-      display: inline-block;
-      background-color: #e0e7ff;
-      color: #3730a3;
-      padding: 0.25rem 0.75rem;
-      border-radius: 9999px;
-      font-size: 0.8rem;
+      font-size: 13.5px;
       font-weight: 600;
-      margin-bottom: 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 6px;
     }
-    h2 {
+    .utility-bar .back-btn:hover {
+      color: var(--gov-navy);
+    }
+    .utility-actions {
+      display: flex;
+      gap: 8px;
+    }
+    .btn-action {
+      background: #f1f5f9;
+      border: 1px solid #cbd5e1;
+      color: var(--gov-slate);
+      padding: 5px 12px;
+      border-radius: 5px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .btn-action:hover {
+      background: var(--gov-navy);
+      color: #ffffff;
+      border-color: var(--gov-navy);
+    }
+
+    /* 공문서 페이퍼 본체 */
+    .document-page {
+      max-width: var(--paper-width);
+      margin: 0 auto;
+      background: #ffffff;
+      padding: 60px 65px 80px;
+      border-radius: 4px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.03);
+      position: relative;
+      border: 1px solid #d1d5db;
+    }
+
+    /* 공문서 최상단 관리 메타 (날짜 및 문서번호만 단정하게 표기 - 결재X, 기안부서X, 문서등급X) */
+    .doc-meta-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 14px;
+      margin-bottom: 12px;
+      border-bottom: 1px solid #cbd5e1;
+      font-size: 13.5px;
+    }
+    .meta-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .meta-label {
+      color: #64748b;
+      font-weight: 600;
+    }
+    .meta-val {
       color: #1e293b;
-      font-size: 1.45rem;
-      margin-top: 2rem;
-      margin-bottom: 1rem;
-      border-left: 4px solid #D4A359;
-      padding-left: 0.75rem;
+      font-weight: 700;
     }
-    h3 {
+
+    /* 문서 타이틀 구역 */
+    .doc-header-area {
+      border-top: 2px solid var(--gov-dark);
+      border-bottom: 2px solid var(--gov-dark);
+      padding: 24px 10px;
+      margin: 15px 0 35px;
+      text-align: center;
+    }
+    .doc-main-title {
+      font-size: 24px;
+      font-weight: 800;
+      color: #0f172a;
+      line-height: 1.35;
+      letter-spacing: -0.02em;
+      word-break: keep-all;
+    }
+    .doc-sub-title {
+      font-size: 14.5px;
+      color: #475569;
+      margin-top: 10px;
+      font-weight: 500;
+      letter-spacing: -0.01em;
+      line-height: 1.5;
+    }
+
+    /* 본문 계층 스타일 */
+    .doc-content h1 {
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--gov-navy);
+      margin-top: 38px;
+      margin-bottom: 16px;
+      border-bottom: 1.5px solid var(--gov-slate);
+      padding-bottom: 8px;
+    }
+    .doc-content h2 {
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--gov-navy);
+      margin-top: 36px;
+      margin-bottom: 16px;
+      border-bottom: 1.5px solid var(--gov-slate);
+      padding-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .doc-content h3 {
+      font-size: 16px;
+      font-weight: 700;
+      color: #1e293b;
+      margin-top: 24px;
+      margin-bottom: 12px;
+    }
+    .doc-content h4 {
+      font-size: 15px;
+      font-weight: 700;
       color: #334155;
-      font-size: 1.2rem;
-      margin-top: 1.5rem;
-      margin-bottom: 0.75rem;
+      margin-top: 18px;
+      margin-bottom: 8px;
     }
-    h4 {
-      color: #475569;
-      font-size: 1.05rem;
-      margin-top: 1.25rem;
-      margin-bottom: 0.5rem;
+    .doc-content p {
+      margin-bottom: 12px;
+      color: #334155;
+      line-height: 1.7;
     }
-    p {
-      margin-bottom: 1rem;
-      color: #475569;
-    }
-    ul, ol {
-      margin-bottom: 1.25rem;
-      padding-left: 1.5rem;
-      color: #475569;
-    }
-    li {
-      margin-bottom: 0.35rem;
-    }
-    blockquote {
-      background-color: #f1f5f9;
-      border-left: 4px solid #64748b;
-      margin: 1.25rem 0;
-      padding: 1rem 1.25rem;
-      border-radius: 0 8px 8px 0;
-    }
-    blockquote p {
-      margin: 0;
+    .doc-content ul, .doc-content ol {
+      margin-bottom: 16px;
+      padding-left: 24px;
       color: #334155;
     }
+    .doc-content li {
+      margin-bottom: 6px;
+      line-height: 1.65;
+    }
+    .doc-content blockquote {
+      background: #f8fafc;
+      border: 1px solid #cbd5e1;
+      border-left: 5px solid var(--gov-navy);
+      padding: 16px 18px;
+      margin: 18px 0 24px;
+      border-radius: 0 6px 6px 0;
+      color: #334155;
+    }
+    .doc-content blockquote p {
+      margin: 0 0 6px 0;
+      color: #334155;
+    }
+    .doc-content blockquote p:last-child {
+      margin-bottom: 0;
+    }
+    .doc-content hr.divider {
+      border: 0;
+      height: 1px;
+      background: #cbd5e1;
+      margin: 32px 0;
+    }
+
+    /* 정돈된 공문서 표 (Gov Table) */
     .table-container {
+      margin: 18px 0 24px 0;
       overflow-x: auto;
-      margin: 1.5rem 0;
     }
     table {
       width: 100%;
       border-collapse: collapse;
-      font-size: 0.9rem;
+      font-size: 13.5px;
+      border-top: 2px solid var(--gov-navy);
+      border-bottom: 2px solid var(--gov-navy);
       background: #ffffff;
-      border: 1px solid #e2e8f0;
-      border-radius: 8px;
-      overflow: hidden;
     }
     th, td {
-      padding: 0.75rem 1rem;
-      text-align: left;
-      border-bottom: 1px solid #e2e8f0;
+      border: 1px solid #cbd5e1;
+      padding: 8px 12px;
+      vertical-align: middle;
+      line-height: 1.5;
     }
     th {
-      background-color: #f8fafc;
-      color: #1e293b;
-      font-weight: 600;
-      border-bottom: 2px solid #cbd5e1;
+      background: #f1f5f9;
+      color: #0f172a;
+      font-weight: 700;
+      text-align: center;
     }
-    tr:last-child td {
-      border-bottom: none;
+    td {
+      color: #334155;
+    }
+    tr:nth-child(even) td {
+      background-color: #fcfdfe;
     }
     tr:hover td {
       background-color: #f8fafc;
     }
+
+    /* 코드 블록 */
     code {
       background-color: #f1f5f9;
       color: #0f172a;
-      padding: 0.2rem 0.4rem;
+      padding: 2px 6px;
       border-radius: 4px;
       font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-      font-size: 0.85em;
+      font-size: 0.88em;
+      border: 1px solid #e2e8f0;
     }
     pre {
       background-color: #0f172a;
       color: #f8fafc;
-      padding: 1.25rem;
-      border-radius: 8px;
+      padding: 16px 18px;
+      border-radius: 6px;
       overflow-x: auto;
-      margin: 1.25rem 0;
+      margin: 16px 0 20px;
     }
     pre code {
       background-color: transparent;
       color: inherit;
       padding: 0;
     }
-    .divider {
-      border: 0;
-      height: 1px;
-      background: #e2e8f0;
-      margin: 2.5rem 0;
-    }
+    /* 태그 & 배지 */
     .tag {
       display: inline-block;
-      padding: 0.15rem 0.45rem;
+      padding: 2px 6px;
       border-radius: 4px;
-      font-size: 0.75rem;
-      font-weight: 600;
+      font-size: 11px;
+      font-weight: 700;
+      line-height: 1.2;
     }
     .tag.pk { background: #fee2e2; color: #991b1b; }
     .tag.fk { background: #e0e7ff; color: #3730a3; }
     .tag.uk { background: #fef3c7; color: #92400e; }
+    .tag.nn { background: #f1f5f9; color: #475569; }
+    .tag.null { background: #fef3c7; color: #92400e; }
     .tag.green { background: #dcfce7; color: #166534; }
     .tag.red { background: #fee2e2; color: #991b1b; }
     .tag.orange { background: #ffedd5; color: #9a3412; }
@@ -530,6 +649,34 @@ function buildFullHtmlPage(title, subtitle, bodyHtml) {
     .tag.lock { background: #f1f5f9; color: #334155; }
     .tag.key { background: #fef3c7; color: #b45309; }
 
+    a.md-link {
+      color: var(--gov-navy);
+      text-decoration: underline;
+      font-weight: 600;
+    }
+    a.md-link:hover {
+      color: #1d4ed8;
+    }
+
+    /* 문서 하단 종결부 (Footer) */
+    .doc-footer {
+      margin-top: 50px;
+      padding-top: 20px;
+      border-top: 1px solid #cbd5e1;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12.5px;
+      color: #64748b;
+    }
+    .doc-footer-logo {
+      font-weight: 800;
+      color: var(--gov-navy);
+      font-size: 14px;
+      letter-spacing: -0.01em;
+    }
+
+    /* 인쇄 최적화 (Print Media) */
     @media print {
       @page {
         size: A4 portrait;
@@ -540,59 +687,60 @@ function buildFullHtmlPage(title, subtitle, bodyHtml) {
         color: #000000 !important;
         font-size: 9.5pt !important;
         line-height: 1.4 !important;
+        padding: 0 !important;
       }
-      .container {
+      .utility-bar { display: none !important; }
+      .document-page {
         max-width: 100% !important;
         margin: 0 !important;
         padding: 0 !important;
         box-shadow: none !important;
+        border: none !important;
         border-radius: 0 !important;
       }
-      .nav-bar { display: none !important; }
-      .header {
-        margin-bottom: 1.2rem !important;
-        padding-bottom: 0.8rem !important;
-        border-bottom: 2px solid #1a2b4c !important;
-        page-break-after: avoid !important;
-        break-after: avoid !important;
+      .doc-meta-bar {
+        border-bottom: 1px solid #000000 !important;
+        padding-bottom: 8px !important;
+        margin-bottom: 8px !important;
       }
-      .header h1 {
+      .doc-header-area {
+        border-top: 2px solid #000000 !important;
+        border-bottom: 2px solid #000000 !important;
+        padding: 14px 0 !important;
+        margin: 10px 0 20px !important;
+      }
+      .doc-main-title {
         font-size: 16pt !important;
-        color: #1a2b4c !important;
-        margin-bottom: 0.3rem !important;
+        color: #000000 !important;
       }
-      .badge { display: none !important; }
-      h2 {
+      .doc-sub-title {
+        font-size: 10pt !important;
+        color: #333333 !important;
+      }
+      .doc-content h1, .doc-content h2 {
         font-size: 12pt !important;
         margin-top: 1.2rem !important;
         margin-bottom: 0.6rem !important;
         page-break-after: avoid !important;
         break-after: avoid !important;
-        border-left: 3px solid #d4a359 !important;
-        padding-left: 0.5rem !important;
-        color: #1a2b4c !important;
+        border-bottom: 1.5px solid #000000 !important;
+        color: #000000 !important;
       }
-      h3 {
+      .doc-content h3 {
         font-size: 10.5pt !important;
         margin-top: 1rem !important;
         margin-bottom: 0.4rem !important;
         page-break-after: avoid !important;
         break-after: avoid !important;
+        color: #000000 !important;
       }
-      h4 {
-        font-size: 9.5pt !important;
-        margin-top: 0.8rem !important;
-        margin-bottom: 0.3rem !important;
-        page-break-after: avoid !important;
-        break-after: avoid !important;
-      }
-      p {
+      .doc-content p {
         margin-bottom: 0.5rem !important;
-        color: #222222 !important;
+        color: #111111 !important;
       }
       blockquote {
         background-color: #f8fafc !important;
-        border-left: 3px solid #64748b !important;
+        border-left: 3px solid #334155 !important;
         padding: 0.5rem 0.8rem !important;
         margin: 0.6rem 0 !important;
         font-size: 9pt !important;
@@ -618,8 +766,8 @@ function buildFullHtmlPage(title, subtitle, bodyHtml) {
         break-inside: avoid !important;
       }
       th {
-        background-color: #1a2b4c !important;
-        color: #ffffff !important;
+        background-color: #f1f5f9 !important;
+        color: #000000 !important;
         padding: 0.45rem 0.65rem !important;
         font-size: 8.5pt !important;
         -webkit-print-color-adjust: exact !important;
@@ -627,40 +775,58 @@ function buildFullHtmlPage(title, subtitle, bodyHtml) {
       }
       td {
         padding: 0.45rem 0.65rem !important;
-        border-bottom: 1px solid #e2e8f0 !important;
+        border-bottom: 1px solid #cbd5e1 !important;
       }
-      .tag {
-        font-size: 7pt !important;
-        padding: 0.1rem 0.35rem !important;
-        border-radius: 4px !important;
-        -webkit-print-color-adjust: exact !important;
-        print-color-adjust: exact !important;
+      .doc-footer {
+        margin-top: 20px !important;
+        padding-top: 10px !important;
+        border-top: 1px solid #cbd5e1 !important;
       }
-      .divider {
-        margin: 1rem 0 !important;
-        border-top: 1px solid #e2e8f0 !important;
-      }
-      .page-break {
-        page-break-before: always !important;
-        break-before: page !important;
-      }
-      ul, ol { margin-bottom: 0.5rem !important; }
-      li { page-break-inside: avoid !important; break-inside: avoid !important; }
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <div class="nav-bar">
-      <a href="../index.html" class="nav-link">← 보고서 메인 포털로 돌아가기</a>
+
+  <!-- 상단 보조 네비게이션 툴바 -->
+  <div class="utility-bar">
+    <a href="../index.html" class="back-btn">
+      <span>←</span> 보고서 포털 메인으로 돌아가기
+    </a>
+    <div class="utility-actions">
+      <button type="button" class="btn-action" onclick="window.print()">🖨️ 공문서 인쇄 / PDF 저장</button>
+      <button type="button" class="btn-action" onclick="document.body.style.fontSize='16px'">가+</button>
+      <button type="button" class="btn-action" onclick="document.body.style.fontSize='14.5px'">가-</button>
     </div>
-    <div class="header">
-      <span class="badge">SSOT 정본 동기화 완료</span>
-      <h1>${escapeHtml(title)}</h1>
-      ${subtitle ? `<p class="subtitle">${escapeHtml(subtitle)}</p>` : ''}
-    </div>
-    ${bodyHtml}
   </div>
+
+  <!-- 메인 공문서 페이퍼 본체 -->
+  <article class="document-page">
+
+    <!-- 1. 문서 헤더 정보 (결재X, 기안부서X, 문서등급X - 오로지 날짜와 문서번호만 표기) -->
+    <div class="doc-meta-bar">
+      <div class="meta-item"><span class="meta-label">문서번호:</span> <span class="meta-val">이어봄-${escapeHtml(docId)}</span></div>
+      <div class="meta-item"><span class="meta-label">등록일자:</span> <span class="meta-val">${escapeHtml(docDate)}</span></div>
+    </div>
+
+    <!-- 2. 문서 제목 영역 -->
+    <header class="doc-header-area">
+      <h1 class="doc-main-title">${escapeHtml(title)}</h1>
+      ${subtitle ? `<p class="doc-sub-title">${escapeHtml(subtitle)}</p>` : ''}
+    </header>
+
+    <!-- 3. 본문 내용 -->
+    <div class="doc-content">
+      ${bodyHtml}
+    </div>
+
+    <!-- 4. 문서 하단 종결부 -->
+    <footer class="doc-footer">
+      <div class="doc-footer-logo">🌿 이어봄(Eobom) 토탈 라이프케어 플랫폼</div>
+      <div>SSOT 정본 최신화 완료 (v1.0)</div>
+    </footer>
+
+  </article>
+
 </body>
 </html>`;
 }
@@ -737,13 +903,39 @@ function discoverAllDocSpecs() {
         summary = summary.slice(0, 87) + '…';
       }
 
+      // Extract docId (e.g. 00-27, 04-04, TS-001)
+      const idMatch = f.name.match(/^([A-Za-z0-9]+-[A-Za-z0-9]+|\d{2}-\d{2})/);
+      const docId = idMatch ? idMatch[1] : path.basename(f.name, '.md');
+
+      // Extract docDate (from markdown front/top or mtime)
+      const head = mdContent.slice(0, 1500);
+      const dateMatch = head.match(/작성\s*\(([0-9]{4}-[0-9]{2}-[0-9]{2})\)/) || head.match(/([0-9]{4}-[0-9]{2}-[0-9]{2})/);
+      let docDate = '2026. 09. 22.';
+      if (dateMatch) {
+        const parts = dateMatch[1].split('-');
+        docDate = `${parts[0]}. ${parts[1]}. ${parts[2]}.`;
+      } else {
+        try {
+          const stat = fs.statSync(path.join(DOCS_DIR, relMd));
+          const d = new Date(stat.mtime);
+          const yyyy = d.getFullYear();
+          const mm = String(d.getMonth() + 1).padStart(2, '0');
+          const dd = String(d.getDate()).padStart(2, '0');
+          docDate = `${yyyy}. ${mm}. ${dd}.`;
+        } catch (e) {
+          docDate = '2026. 09. 22.';
+        }
+      }
+
       discovered.push({
         domainKey: entry.name,
         relMd,
         relHtml,
         isDbDoc,
         title,
-        summary: summary || '세부 기능 및 구현 명세서'
+        summary: summary || '세부 기능 및 구현 명세서',
+        docId,
+        docDate
       });
     }
   }
@@ -928,6 +1120,12 @@ function main() {
       return;
     }
 
+    if (spec.relMd.includes('04-04')) {
+      console.log(`[Custom Report] ${spec.relHtml} preserved (공문서 양식 수기 보고서 보존)`);
+      generatedCount++;
+      return;
+    }
+
     if (!fs.existsSync(mdPath)) {
       console.warn(`[Skip] Markdown file not found: ${mdPath}`);
       return;
@@ -935,7 +1133,7 @@ function main() {
 
     const mdContent = fs.readFileSync(mdPath, 'utf-8');
     const bodyHtml = genericMdToHtml(mdContent);
-    const fullHtml = buildFullHtmlPage(spec.title, '', bodyHtml);
+    const fullHtml = buildFullHtmlPage(spec.title, spec.summary, bodyHtml, spec.docId, spec.docDate);
 
     // Ensure target directory exists
     const targetDir = path.dirname(htmlPath);
