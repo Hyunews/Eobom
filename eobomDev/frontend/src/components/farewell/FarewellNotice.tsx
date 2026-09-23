@@ -11,24 +11,10 @@ import { Info } from 'lucide-react';
 // 판단 대기(walkthrough 편차 필드 참고).
 // Desktop·Mobile 두 뷰가 위치만 다르게(상단 고정 / 컴포저 바로 위) 이 컴포넌트를 그대로 쓴다.
 export const FarewellNotice: React.FC<{ style?: React.CSSProperties }> = ({ style }) => (
-  <div
-    style={{
-      display: 'flex',
-      alignItems: 'flex-start',
-      gap: '0.5rem',
-      fontSize: 'var(--fs-body)',
-      color: 'var(--text-muted)',
-      backgroundColor: 'var(--card-bg)',
-      border: '1px solid var(--border-color)',
-      borderRadius: 'var(--r-sm)',
-      padding: 'var(--sp-4) 1rem',
-      lineHeight: 1.6,
-      ...style,
-    }}
-  >
-    <Info size={18} color="var(--point-color)" style={{ flexShrink: 0, marginTop: '0.15rem' }} />
+  <p className="v2-notice" style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', margin: 0, ...style }}>
+    <Info size={18} color="var(--v2-point)" style={{ flexShrink: 0, marginTop: '2px' }} />
     <span>
-      여기에 남기신 글과 음성은 <strong style={{ color: 'var(--primary-color)' }}>사망 확인 후 지정하신 분에게 전달</strong>됩니다.
+      여기에 남기신 글과 음성은 <strong style={{ color: 'var(--v2-text-main)' }}>사망 확인 후 지정하신 분에게 전달</strong>됩니다.
     </span>
-  </div>
+  </p>
 );

@@ -448,10 +448,10 @@ export const VoiceToTextInput: React.FC<VoiceToTextInputProps> = ({
   // 🆕 09-04 — minWidth 없이는 "파일 선택"/"듣기"처럼 글자 수가 적은 버튼이 좁아져 한 줄에서
   // 들쭉날쭉해 보였다. 가장 긴 기본 라벨(음성 삭제·음성 녹음)에 맞춰 바닥값을 주고, 로딩 중
   // 텍스트(예: "글로 바꾸는 중…")처럼 그보다 긴 경우만 예외적으로 더 늘어나게 둔다.
-  const actionBtnStyle = (bg: string, color: string, isDisabled: boolean): React.CSSProperties => ({
-    display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '0.35rem',
-    height: '42px', minWidth: '112px', padding: '0 1rem', fontSize: '1rem', fontWeight: 600,
-    borderRadius: 'var(--r-sm)', border: 'none', whiteSpace: 'nowrap',
+  const actionBtnStyle = (bg: string, color: string, isDisabled: boolean, bordered?: boolean): React.CSSProperties => ({
+    display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
+    height: '42px', minWidth: '112px', padding: '0 16px', fontSize: 'var(--v2-fs-support)', fontWeight: 600,
+    borderRadius: '4px', border: bordered ? '1px solid var(--v2-btn-border)' : 'none', whiteSpace: 'nowrap',
     backgroundColor: bg, color, opacity: isDisabled ? 0.5 : 1, cursor: isDisabled ? 'not-allowed' : 'pointer',
   });
 
@@ -461,24 +461,24 @@ export const VoiceToTextInput: React.FC<VoiceToTextInputProps> = ({
         <div
           style={{
             position: 'absolute', inset: 0, zIndex: 10, backgroundColor: 'rgba(255,255,255,0.98)',
-            border: '1px solid var(--border-color)', borderRadius: 'var(--r-sm)', padding: '1.1rem',
-            display: 'flex', flexDirection: 'column', gap: 'var(--sp-3)', boxShadow: 'var(--box-shadow)',
+            border: '1px solid var(--v2-btn-border)', borderRadius: '4px', padding: '18px',
+            display: 'flex', flexDirection: 'column', gap: '12px', boxShadow: 'var(--v2-modal-shadow)',
           }}
         >
-          <p style={{ fontSize: '1rem', color: 'var(--primary-color)', fontWeight: 700 }}>
+          <p style={{ fontSize: 'var(--v2-fs-item-title)', color: 'var(--v2-text-main)', fontWeight: 700, margin: 0 }}>
             🎙️ 목소리를 녹음합니다
           </p>
-          <p style={{ fontSize: 'var(--fs-body)', color: 'var(--text-muted)', lineHeight: 1.6 }}>
+          <p style={{ fontSize: 'var(--v2-fs-support)', color: 'var(--v2-text-muted)', lineHeight: 1.6, margin: 0 }}>
             말씀하신 목소리는 글로 바뀌어 편지 내용으로 들어갑니다. 브라우저가 바로 글로 바꾸지
             못하면 네이버 CLOVA Speech로 자동 전송되어 변환됩니다.
             {voiceStorageEnabled && ' "목소리도 함께 남기기"가 켜져 있으면 목소리 원본도 암호화되어 함께 보관되며, 유족이 편지를 열람할 때 함께 들을 수 있습니다.'}
             녹음을 마치면 저장 여부를 다시 확인합니다. 이 안내는 처음 한 번만 표시됩니다.
           </p>
-          <div style={{ display: 'flex', gap: '0.5rem' }}>
-            <button type="button" onClick={() => setShowFirstTimeNotice(false)} className="btn" style={{ backgroundColor: 'var(--secondary-color)', color: 'var(--primary-color)' }}>
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <button type="button" onClick={() => setShowFirstTimeNotice(false)} className="v2-btn-outline">
               취소
             </button>
-            <button type="button" onClick={acknowledgeFirstTimeNotice} className="btn btn-point" style={{ flex: 1 }}>
+            <button type="button" onClick={acknowledgeFirstTimeNotice} className="v2-btn-primary" style={{ flex: 1 }}>
               확인하고 시작하기
             </button>
           </div>
@@ -490,70 +490,56 @@ export const VoiceToTextInput: React.FC<VoiceToTextInputProps> = ({
         <div
           style={{
             position: 'absolute', inset: 0, zIndex: 10, backgroundColor: 'rgba(255,255,255,0.98)',
-            border: '1px solid var(--border-color)', borderRadius: 'var(--r-sm)', padding: '1.1rem',
-            display: 'flex', flexDirection: 'column', gap: 'var(--sp-3)', boxShadow: 'var(--box-shadow)',
+            border: '1px solid var(--v2-btn-border)', borderRadius: '4px', padding: '18px',
+            display: 'flex', flexDirection: 'column', gap: '12px', boxShadow: 'var(--v2-modal-shadow)',
             overflowY: 'auto',
           }}
         >
-          <p style={{ fontSize: '1rem', color: 'var(--primary-color)', fontWeight: 700 }}>
+          <p style={{ fontSize: 'var(--v2-fs-item-title)', color: 'var(--v2-text-main)', fontWeight: 700, margin: 0 }}>
             텍스트로 변환해서 저장할까요?
           </p>
 
           {recordingLiveText && (
-            <p style={{ fontSize: 'var(--fs-body)', color: 'var(--text-muted)', lineHeight: 1.6, maxHeight: '5rem', overflowY: 'auto' }}>
+            <p style={{ fontSize: 'var(--v2-fs-support)', color: 'var(--v2-text-muted)', lineHeight: 1.6, maxHeight: '80px', overflowY: 'auto', margin: 0 }}>
               {recordingLiveText}
             </p>
           )}
 
           {!previewUrl ? (
-            <button
-              type="button"
-              onClick={openPreview}
-              disabled={modalStage === 'saving'}
-              className="btn"
-              style={{ backgroundColor: 'var(--secondary-color)', color: 'var(--primary-color)', alignSelf: 'flex-start' }}
-            >
+            <button type="button" onClick={openPreview} disabled={modalStage === 'saving'} className="v2-btn-outline" style={{ alignSelf: 'flex-start' }}>
               <Play size={16} /> 먼저 들어보기
             </button>
           ) : (
             <audio controls src={previewUrl} style={{ width: '100%' }} />
           )}
 
-          {modalError && (
-            <div style={{ fontSize: 'var(--fs-body)', color: 'var(--state-warn-fg)', backgroundColor: 'var(--state-warn-bg)', border: '1px solid var(--state-warn-bg)', borderRadius: 'var(--r-sm)', padding: 'var(--sp-3) 0.9rem' }}>
-              {modalError}
-            </div>
-          )}
+          {modalError && <p className="v2-notice-warn">{modalError}</p>}
 
-          <p style={{ fontSize: 'var(--fs-body)', color: 'var(--state-danger-fg)' }}>취소하면 녹음이 사라집니다.</p>
+          <p style={{ fontSize: 'var(--v2-fs-support)', color: 'var(--v2-urgent)', margin: 0 }}>취소하면 녹음이 사라집니다.</p>
 
-          <div style={{ display: 'flex', gap: '0.5rem' }}>
-            <button type="button" onClick={discardPending} disabled={modalStage === 'saving'} style={actionBtnStyle('var(--secondary-color)', 'var(--primary-color)', modalStage === 'saving')}>
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <button type="button" onClick={discardPending} disabled={modalStage === 'saving'} style={actionBtnStyle('transparent', 'var(--v2-text-main)', modalStage === 'saving', true)}>
               취소
             </button>
-            <button type="button" onClick={confirmSavePending} disabled={modalStage === 'saving'} style={{ ...actionBtnStyle('var(--point-color)', '#FFFFFF', modalStage === 'saving'), flex: 1 }}>
+            <button type="button" onClick={confirmSavePending} disabled={modalStage === 'saving'} style={{ ...actionBtnStyle('var(--v2-point)', '#FFFFFF', modalStage === 'saving'), flex: 1 }}>
               {modalStage === 'saving' ? <><Loader2 size={16} /> 저장 중…</> : '저장'}
             </button>
           </div>
         </div>
       )}
 
-      {mode === 'record' && micError && (
-        <div style={{ fontSize: 'var(--fs-body)', color: 'var(--state-warn-fg)', backgroundColor: 'var(--state-warn-bg)', border: '1px solid var(--state-warn-bg)', borderRadius: 'var(--r-sm)', padding: 'var(--sp-3) 0.9rem', marginBottom: '1rem' }}>
-          {micError}
-        </div>
-      )}
+      {mode === 'record' && micError && <p className="v2-notice-warn" style={{ marginBottom: '16px' }}>{micError}</p>}
 
       {mode === 'record' && (
       <>
       {!recordingSupported && !sttSupported && (
-        <div style={{ fontSize: 'var(--fs-body)', color: 'var(--text-muted)', backgroundColor: 'var(--surface-subtle)', borderRadius: 'var(--r-sm)', padding: 'var(--sp-3) 0.9rem', marginBottom: '1rem' }}>
+        <p className="v2-notice" style={{ marginBottom: '16px' }}>
           이 브라우저에서는 음성 입력을 지원하지 않습니다. 아래 입력창에 직접 입력해 주세요.
-        </div>
+        </p>
       )}
 
       {recordingSupported && (
-        <p style={{ fontSize: 'var(--fs-body)', color: 'var(--text-muted)', marginBottom: '0.6rem' }}>
+        <p className="v2-notice">
           말씀하신 내용은 글로 바뀌어 편지에 들어갑니다.
           {voiceStorageEnabled
             ? ' "목소리도 함께 남기기"가 켜져 있으면 목소리 원본도 암호화되어 함께 보관됩니다.'
@@ -562,41 +548,42 @@ export const VoiceToTextInput: React.FC<VoiceToTextInputProps> = ({
       )}
 
       {recordingSupported && voiceStorageEnabled && (
-        <label style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', cursor: 'pointer', fontSize: 'var(--fs-body)', color: '#4B5563', marginBottom: '0.9rem' }}>
+        <label className="v2-check" htmlFor="voice-save-toggle">
           <span
+            id="voice-save-toggle"
             onClick={(e) => { e.preventDefault(); if (!disabled && !isRecording) setSaveVoiceEnabled((v) => !v); }}
             role="checkbox"
             aria-checked={saveVoiceEnabled}
             style={{
-              width: '17px', height: '17px', flexShrink: 0, borderRadius: 'var(--r-sm)',
-              border: saveVoiceEnabled ? 'none' : '1.5px solid var(--border-color)',
-              backgroundColor: saveVoiceEnabled ? 'var(--point-color)' : '#FFFFFF',
+              width: '20px', height: '20px', flexShrink: 0, borderRadius: '4px', marginTop: '2px',
+              border: saveVoiceEnabled ? 'none' : '1.5px solid var(--v2-input-border)',
+              backgroundColor: saveVoiceEnabled ? 'var(--v2-point)' : '#FFFFFF',
               display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
             }}
           >
-            {saveVoiceEnabled && <Check size={11} color="#FFFFFF" strokeWidth={3} />}
+            {saveVoiceEnabled && <Check size={12} color="#FFFFFF" strokeWidth={3} />}
           </span>
-          목소리도 함께 남기기
+          <span>목소리도 함께 남기기</span>
         </label>
       )}
 
-      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--sp-3)', marginBottom: '0.5rem', flexWrap: 'wrap' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px', flexWrap: 'wrap' }}>
         {recordingSupported && (
           isRecording ? (
-            <button type="button" onClick={stopRecording} disabled={disabled} style={actionBtnStyle('var(--state-danger-fg)', '#FFFFFF', !!disabled)}>
+            <button type="button" onClick={stopRecording} disabled={disabled} style={actionBtnStyle('var(--v2-urgent)', '#FFFFFF', !!disabled)}>
               <MicOff size={16} /> 녹음 멈춤
             </button>
           ) : (
-            <button type="button" onClick={startRecording} disabled={disabled || uploadStage !== 'idle'} style={actionBtnStyle('var(--point-color)', '#FFFFFF', !!disabled || uploadStage !== 'idle')}>
+            <button type="button" onClick={startRecording} disabled={disabled || uploadStage !== 'idle'} style={actionBtnStyle('var(--v2-point)', '#FFFFFF', !!disabled || uploadStage !== 'idle')}>
               <Mic size={16} /> 음성 녹음
             </button>
           )
         )}
-        {isRecording && <span style={{ fontSize: 'var(--fs-body)', color: 'var(--point-color)' }}>● 듣고 있습니다…</span>}
+        {isRecording && <span style={{ fontSize: 'var(--v2-fs-support)', color: 'var(--v2-point)' }}>● 듣고 있습니다…</span>}
       </div>
 
       {isRecording && recordingLiveText && (
-        <p style={{ fontSize: 'var(--fs-body)', color: 'var(--text-muted)', fontStyle: 'italic', marginBottom: '0.5rem' }}>
+        <p style={{ fontSize: 'var(--v2-fs-support)', color: 'var(--v2-text-muted)', fontStyle: 'italic', marginBottom: '8px' }}>
           인식 중: {recordingLiveText}
         </p>
       )}
@@ -606,39 +593,38 @@ export const VoiceToTextInput: React.FC<VoiceToTextInputProps> = ({
       {/* Ⓐ 파일 업로드 — mode="upload"에서만 그린다. 서버 플래그(CLOVA_STT_ENABLED)가 꺼져
           있으면 안내만 남기고 버튼은 숨긴다(§8-9 후속 — 탭 자체는 항상 있으므로 안내가 필요하다). */}
       {mode === 'upload' && !sttUploadEnabled && (
-        <div style={{ fontSize: 'var(--fs-body)', color: 'var(--text-muted)', backgroundColor: 'var(--surface-subtle)', borderRadius: 'var(--r-sm)', padding: 'var(--sp-3) 0.9rem' }}>
-          지금은 음성 파일 업로드를 사용할 수 없습니다. "직접 쓰기" 탭을 이용해 주세요.
-        </div>
+        <p className="v2-notice">지금은 음성 파일 업로드를 사용할 수 없습니다. "직접 쓰기" 탭을 이용해 주세요.</p>
       )}
       {mode === 'upload' && sttUploadEnabled && (
         <div>
-          <h4 style={{ fontSize: '1.05rem', color: 'var(--primary-color)', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-            <Upload size={16} color="var(--point-color)" /> 녹음해 둔 음성 파일 올리기
+          <h4 style={{ fontSize: 'var(--v2-fs-item-title)', color: 'var(--v2-text-main)', fontWeight: 700, marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <Upload size={16} color="var(--v2-point)" /> 녹음해 둔 음성 파일 올리기
           </h4>
 
-          <p style={{ fontSize: 'var(--fs-body)', color: 'var(--text-muted)', marginBottom: '0.25rem' }}>
+          <p style={{ fontSize: 'var(--v2-fs-support)', color: 'var(--v2-text-muted)', marginBottom: '4px' }}>
             m4a · mp3 · wav · webm 파일을 올릴 수 있습니다(최대 {MAX_UPLOAD_SIZE_BYTES / 1024 / 1024}MB).
           </p>
-          <p style={{ fontSize: 'var(--fs-body)', color: 'var(--text-muted)', marginBottom: '0.9rem' }}>
+          <p style={{ fontSize: 'var(--v2-fs-support)', color: 'var(--v2-text-muted)', marginBottom: '14px' }}>
             본인의 음성만 올려주세요. 다른 분의 음성인지 이어봄이 확인할 방법은 없습니다.
           </p>
 
-          <label style={{ display: 'flex', alignItems: 'flex-start', gap: '0.55rem', cursor: 'pointer', fontSize: 'var(--fs-body)', color: '#4B5563', marginBottom: '0.4rem' }}>
+          <label className="v2-check" htmlFor="voice-upload-consent" style={{ alignItems: 'flex-start' }}>
             <span
+              id="voice-upload-consent"
               onClick={(e) => { e.preventDefault(); setUploadConsent((v) => !v); }}
               role="checkbox"
               aria-checked={uploadConsent}
               style={{
-                width: '19px', height: '19px', flexShrink: 0, marginTop: '0.1rem', borderRadius: 'var(--r-sm)',
-                border: uploadConsent ? 'none' : '1.5px solid var(--border-color)',
-                backgroundColor: uploadConsent ? 'var(--point-color)' : '#FFFFFF',
+                width: '20px', height: '20px', flexShrink: 0, marginTop: '2px', borderRadius: '4px',
+                border: uploadConsent ? 'none' : '1.5px solid var(--v2-input-border)',
+                backgroundColor: uploadConsent ? 'var(--v2-point)' : '#FFFFFF',
                 display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
               }}
             >
               {uploadConsent && <Check size={13} color="#FFFFFF" strokeWidth={3} />}
             </span>
             <span>
-              <strong style={{ color: 'var(--primary-color)' }}>(필수)</strong> 음성 파일이 네이버 클라우드
+              <span className="v2-req">필수</span> 음성 파일이 네이버 클라우드
               CLOVA Speech로 전송되며, 네이버의 음성인식 성능 향상에 활용될 수 있습니다. 변환된 텍스트는
               네이버에 7일간 보관된 뒤 삭제됩니다.
               {voiceStorageEnabled
@@ -646,7 +632,7 @@ export const VoiceToTextInput: React.FC<VoiceToTextInputProps> = ({
                 : ' 이어봄은 음성 파일을 보관하지 않습니다.'}
             </span>
           </label>
-          <p style={{ fontSize: 'var(--fs-body)', color: 'var(--text-muted)', marginBottom: '0.9rem', marginLeft: '1.75rem' }}>
+          <p className="v2-check-sub" style={{ marginBottom: '14px', paddingLeft: '32px' }}>
             동의하지 않으셔도 직접 입력으로 편지를 남기실 수 있습니다.
           </p>
 
@@ -659,12 +645,12 @@ export const VoiceToTextInput: React.FC<VoiceToTextInputProps> = ({
             style={{ display: 'none' }}
           />
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
               disabled={disabled || !uploadConsent || uploadStage !== 'idle'}
-              style={actionBtnStyle('var(--secondary-color)', 'var(--primary-color)', disabled || !uploadConsent || uploadStage !== 'idle')}
+              style={actionBtnStyle('transparent', 'var(--v2-text-main)', disabled || !uploadConsent || uploadStage !== 'idle', true)}
             >
               파일 선택
             </button>
@@ -672,7 +658,7 @@ export const VoiceToTextInput: React.FC<VoiceToTextInputProps> = ({
               type="button"
               onClick={handleAudioUpload}
               disabled={disabled || !uploadConsent || !selectedFile || uploadStage !== 'idle'}
-              style={actionBtnStyle('var(--point-color)', '#FFFFFF', disabled || !uploadConsent || !selectedFile || uploadStage !== 'idle')}
+              style={actionBtnStyle('var(--v2-point)', '#FFFFFF', disabled || !uploadConsent || !selectedFile || uploadStage !== 'idle')}
             >
               {uploadStage === 'uploading' ? (
                 <><Loader2 size={16} /> 업로드 중…</>
@@ -685,14 +671,10 @@ export const VoiceToTextInput: React.FC<VoiceToTextInputProps> = ({
           </div>
 
           {selectedFile && (
-            <p style={{ marginTop: '0.5rem', fontSize: 'var(--fs-body)', color: 'var(--text-muted)' }}>{selectedFile.name}</p>
+            <p style={{ marginTop: '8px', fontSize: 'var(--v2-fs-support)', color: 'var(--v2-text-muted)' }}>{selectedFile.name}</p>
           )}
 
-          {uploadError && (
-            <div style={{ marginTop: 'var(--sp-3)', fontSize: 'var(--fs-body)', color: 'var(--state-warn-fg)', backgroundColor: 'var(--state-warn-bg)', border: '1px solid var(--state-warn-bg)', borderRadius: 'var(--r-sm)', padding: 'var(--sp-3) 0.9rem' }}>
-              {uploadError}
-            </div>
-          )}
+          {uploadError && <p className="v2-notice-warn" style={{ marginTop: '12px' }}>{uploadError}</p>}
         </div>
       )}
     </div>

@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { Mail, LogIn } from 'lucide-react';
+import { LogIn } from 'lucide-react';
 import { apiFetch } from '../lib/api';
 import { getToken } from '../lib/storage';
 import { BACKEND_URL } from '../config';
@@ -100,12 +100,11 @@ export const FarewellMessagePage: React.FC<FarewellMessagePageProps> = ({ curren
 
   if (!currentUser) {
     return (
-      <div className="container">
-        <div style={{ backgroundColor: 'var(--card-bg)', padding: '2.5rem 1.75rem', borderRadius: 'var(--border-radius)', boxShadow: 'var(--box-shadow)', textAlign: 'center', maxWidth: '480px', margin: '2rem auto' }}>
-          <Mail color="var(--point-color)" size={40} style={{ marginBottom: 'var(--sp-3)' }} />
-          <h2 style={{ color: 'var(--primary-color)', marginBottom: '0.5rem' }}>유족 메시지 보관함</h2>
-          <p style={{ color: 'var(--text-muted)', marginBottom: '1.5rem' }}>가족에게 남기는 편지는 로그인 후 작성하실 수 있습니다.</p>
-          <button onClick={onOpenLogin} className="btn btn-point" style={{ width: '100%' }}>
+      <div className="v2-page">
+        <div className="v2-content">
+          <h1 className="v2-page-title">유족 메시지 보관함</h1>
+          <p className="v2-empty">가족에게 남기는 편지는 로그인 후 작성하실 수 있습니다.</p>
+          <button onClick={onOpenLogin} className="v2-btn-primary">
             <LogIn size={18} /> 로그인 / 회원가입
           </button>
         </div>

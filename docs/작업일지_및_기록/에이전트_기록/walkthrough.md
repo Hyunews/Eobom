@@ -938,3 +938,31 @@
 - **다음 에이전트가 알아야 할 것**: 없음. 사람 실기동 검증은 앞 항목(EndingNotePage v2 이관)과 함께 대기 중.
 
 <!-- Gemini 판정 1줄: 대기 -->
+
+## 2026-09-23 | [Sonnet] farewell-messages v2 이관 — 00-39 §9.1 그룹② 마지막 화면 완료(5/5) + 편지 카드 그리드
+
+- **근거 스펙**: docs/00_핵심플랫폼/00-39_디자인_기준_재정립_명세서.md §9.1(그룹② 폼·입력, farewell-messages는 09-22 시점 "미착수" — 이번으로 그룹② 5개 전부 완료) · §6.8·§6.8-1(필드·체크·저장상태 규칙, obituary·ending-note와 같은 원리로 물려받음) · 00-38 §6.1·§8.1-1(Desktop/Mobile 뷰 분리 구조, 그대로 유지) · 06-05(유족 메시지 보관함 도메인 기획서, 기능 근거).
+- **건드린 파일**: eobomDev/frontend/src/pages/FarewellMessagePage.tsx(로그인 게이트만) · components/farewell/{FarewellDesktopView,FarewellMobileView,FarewellNotice,FarewellMessageCard,VoiceToTextInput}.tsx · styles/design-v2.css(신규 클래스) · index.css(옛 `.farewell-*` 약 515줄 삭제).
+- **결과**:
+  1. **마스터·디테일 틀 신설(design-v2.css)** — `.v2-mail-shell`/`.v2-mail-sidebar`/`.v2-mail-recipient`/`.v2-mail-avatar`/`.v2-mail-detail`/`.v2-mail-add`/`.v2-mail-empty`/`.v2-mail-back`. "받는 분 목록(좌)+고른 사람 편지(우)"는 새 패턴이라 §6.7에 없다(Opus 등재 검토 필요). 데스크톱·모바일이 같은 클래스를 공유한다(모바일은 목록 단계에서 `.v2-mail-mobile-list`로 히트 영역만 56px 확장).
+  2. **편지 목록을 경계선 리스트가 아니라 카드/메모 모양으로**(2026-09-23 사람 지시, 대화 중 추가) — `.v2-letter-list`를 `auto-fit minmax(280px,1fr)` 그리드로, `.v2-letter-row`를 테두리 있는 카드(그림자 없음, §6-1-1과 같은 원칙)로 바꿨다. `.v2-mail-detail` 칸 폭(≈764px)에서 자연히 한 줄 최대 2장, 767px 이하는 1열 — "한 줄에 2개 최대"를 하드코딩 없이 컨테이너 쿼리 없는 auto-fit로 만족시켰다. 배지(`v2-letter-badge`)·제목·미리보기(2줄 클램프, 모바일에서도 유지로 변경)는 그대로 두고, 액션(다운로드·삭제)만 `margin-top:auto`로 카드 높이가 달라도 하단 정렬.
+  3. **편지 작성/수정 모달** — obituary의 `.v2-modal.is-form`(560px)보다 넓은 `.v2-modal.is-composer`(760px, A/B/C 탭 + 200px 사이드 레일 때문) 모디파이어 신설. 기존 전용 오버레이(`.farewell-message-overlay/-panel`) 대신 `.v2-modal-overlay`+`.v2-modal.is-scroll`(제목 고정+본문 스크롤) 재사용, 배경 클릭 닫기도 `onClick`에서 사이트 공통 `backdropCloseProps`로 교체.
+  4. **A/B/C 방법 탭**(`.v2-method-tabs`)·**사이드 레일**(`.v2-composer-rail`, 모바일은 접이식)·**첨부 음성 관리 박스**(`.v2-audio-attached`)는 새 클래스로, 색·톤만 v2 토큰으로 옮기고 구조(모바일에서 레일이 위로 접혀 올라가는 것 포함)는 그대로.
+  5. **제목·본문 입력**은 `.v2-input`(§6.8)로, 저장/취소 버튼은 `.v2-btn-primary`/`.v2-btn-outline`(48px, 규칙19)로. "위험 구역"(다운로드·삭제 텍스트 버튼)은 인라인 스타일 유지하되 색만 `var(--v2-urgent)`.
+  6. **`VoiceToTextInput.tsx`(700줄, 녹음·업로드·STT)는 로직 0줄 변경 — 토큰만 재도색**했다. 커스텀 체크박스(role="checkbox" span, 실제 `<input>` 아님) 2곳은 `.v2-check`/`.v2-req` 클래스를 씌우되 DOM·aria 구조는 그대로 뒀다(녹음 상태 전환과 얽힌 민감한 컴포넌트라 구조 변경 없이 최소 위험으로 접근). 안내 박스는 `.v2-notice`/`.v2-notice-warn`으로.
+  7. **index.css 정리** — `.farewell-*` 클래스 전부(레이아웃·메시지 목록·모달·탭·레일·마스터-디테일, 약 515줄) 삭제. ID 선택자 없어 남길 것도 없었다.
+  8. 검증: 매 파일 저장 후 `npx tsc --noEmit -p .`·`npm run build`(frontend) 통과(총 5회 이상 재확인). 상태 관리(recipients/messages 로드, 저장·삭제·반출, STT/녹음/업로드 전체 플로우)는 전혀 건드리지 않았다.
+- **편차**:
+  - 🔴 **`.v2-mail-*`(마스터·디테일)가 §6.7에 미등재** — ending-note의 `.v2-accordion-*`와 같은 종류의 편차(그룹② 안에서도 화면마다 구조가 달라 새 클래스가 계속 나온다). Opus가 등재 여부·그룹② 공통 규칙 확장 여부 판단 필요.
+  - 🟡 편지 카드 그리드는 대화 중 사람이 즉석에서 지시한 것이라 별도 시안 없이 구현 — 실기동에서 카드 폭·2열 줄바꿈이 기대와 다르면 `design-v2.css`의 `.v2-letter-list`(auto-fit 280px) 값만 조정하면 된다.
+  - 🟡 사람 지시는 방법 "탭"의 A/B/C 접두사만 지우라 했는데, 사이드 레일(작성 안내)의 같은 라벨("A. 음성 파일 업로드" 등)도 같이 지웠다 — 탭에서만 떼면 레일과 짝이 안 맞아 보여서다.
+- **다음 에이전트가 알아야 할 것**:
+  1. 00-39 §9.1(465·466·473~475행)의 그룹② 현황을 "5/5 완료"로 갱신 필요(Opus, docs/ 쓰기 금지라 Sonnet은 못 함) — obituary·mypage·digital-estate·ending-note·farewell-messages 전부 v2 이관 끝.
+  2. 그룹②가 끝났으니 다음은 §9.4 권고 순서상 ③(읽기·법정문서: privacy·terms) 또는 ④(랜딩: /o/:slug 등) 차례 — 사람 판단 필요.
+  3. 사람 실기동 검증 완전히 대기 — 마스터·디테일 전환, 카드 그리드 2열, 편지 작성/녹음/업로드/재생/반출/삭제 전체 플로우 실제 클릭 확인 안 됨(특히 VoiceToTextInput은 마이크 권한이 필요해 자동 검증이 어렵다).
+  4. **후속(사람 지시)** — 엔딩노트 크로스 링크 문구 "장례 희망·연명의료 등 남겨두실 것이 있습니다."(단정문)를 "장례 희망·연명의료 등 남겨두실 것이 있다면"(조건문)으로 수정(FarewellDesktopView.tsx·FarewellMobileView.tsx). 단정문은 이미 작성한 사람이 "내가 안 썼다는 건가?"로 오해할 수 있다는 지적 — 안 써본 사람·이미 써본 사람 모두에게 맞는 조건문으로. `tsc`·`build` 재확인 통과.
+  5. **후속(사람 지시, 모바일 전용)** — ① FarewellMobileView.tsx의 크로스 링크 문단 위 여백을 32px→56px로(받는 분 목록과 더 떨어지게) ② FarewellMobileView.tsx에서 `FarewellNotice`("여기에 남기신 글과…전달됩니다") 박스 삭제 — 데스크톱(FarewellDesktopView.tsx)에는 그대로 둠 ③ design-v2.css `@media(max-width:767px)`에 `.v2-letter-preview{-webkit-line-clamp:1}` 추가 — 모바일 편지 카드 미리보기를 2줄→1줄로. `tsc`·`build` 재확인 통과.
+  6. **후속(사람 지시, 모바일 전용)** — 편지 카드(`.v2-letter-row`) 내부 텍스트·줄간격 균형 조정. 데스크톱 크기(제목 19px·본문 15px·줄간격 1.65)가 모바일 카드 폭(≈310~370px)엔 과하다는 지적 — 이미 있던 모바일 폰트 토큰(`--v2-fs-item-title-mobile`17px·`--v2-fs-support-mobile`14px·`--v2-fs-label-mobile`12px)으로 제목·본문·날짜를 한 단계씩 내리고, 카드 안쪽 여백(20→16px)·줄간격(1.65→1.5)·행 사이 여백도 같이 좁혔다. 🔴 액션 버튼(다운로드·삭제, 44px)은 00-38 §11 DoD #5 터치 하한이라 그대로 뒀다 — 안 맞아 보이던 건 버튼 크기가 아니라 그 주변 텍스트·여백이었다고 판단. `tsc`·`build` 재확인 통과.
+  7. **후속(사람 지시)** — ① 편지 목록·모달 export 파일명에서 제목이 빈 편지의 표시를 "(제목 없음)" → `"{수신자 이름}에게…"`로(모바일·데스크톱 공용, `FarewellMessageCard.tsx`). ② 편지 작성/수정 모달의 방법 탭 A/B/C 접두사 제거(탭 3개·사이드 레일 라벨 2곳 전부, "음성 파일 업로드"/"음성 녹음"/"직접 쓰기"만 남김) ③ 모바일에서 탭 3개가 여전히 한 줄에 안 들어가 `.v2-method-tabs button` font-size를 `--v2-fs-support`(15px)→`--v2-fs-label-mobile`(12px), gap도 축소(design-v2.css 모바일 미디어쿼리) ④ **모바일 전용**으로 제목 입력칸을 모달 상단이 아니라 본문 입력칸(textarea) 바로 위로 이동 — `FarewellMessageCard`에 `isMobile?: boolean` prop 신설(`FarewellMobileView.tsx`만 `isMobile` 전달, `FarewellDesktopView.tsx`는 기존 위치 그대로). `tsc`·`build` 재확인 통과.
+
+<!-- Gemini 판정 1줄: 대기 -->

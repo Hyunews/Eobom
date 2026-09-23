@@ -81,9 +81,12 @@ interface FarewellMessageCardProps {
   onSaved: () => void; // 저장/수정/삭제 성공 시 부모가 목록을 다시 불러온다
   onExportAll: () => void; // 🆕 전체 반출(zip) — 부모(FarewellMessagePage)가 소유한 전역 액션. 카드마다 같은 줄에 노출한다.
   exportingAll: boolean;
+  // 🆕 2026-09-23 사람 지시(모바일 전용 컴포저 조정) — 부모(FarewellMobileView)가 true로 넘긴다.
+  // 데스크톱(FarewellDesktopView)은 안 넘겨 기존 배치를 그대로 유지한다.
+  isMobile?: boolean;
 }
 
-export const FarewellMessageCard: React.FC<FarewellMessageCardProps> = ({ recipient, messages, token, onSaved, onExportAll, exportingAll }) => {
+export const FarewellMessageCard: React.FC<FarewellMessageCardProps> = ({ recipient, messages, token, onSaved, onExportAll, exportingAll, isMobile }) => {
   const [composerOpen, setComposerOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   // 🔄 07-04 §8-9 후속(09-08, 사용자 지시로 기본 탭 A로 재확정) — 제목 아래 A/B/C 탭.
@@ -385,23 +388,17 @@ export const FarewellMessageCard: React.FC<FarewellMessageCardProps> = ({ recipi
   return (
     <div>
       {/* 🔄 09-08 4차 — reports/farewell_messages_redesign.html 시안 B(2단 우편함 정제형)
-          포팅. "OOO 님께 남기는 글" + 통수 안내 + 액션 2개(원안 그대로: 새 편지 쓰기는
-          진한 남색 solid, 전체 다운로드는 아이콘 전용 사각 버튼). 관계는 사이드바에 이미
-          나오므로 여기선 뺐고, 대신 통수 옆에 상태를 붙여 정보 손실은 없앴다. */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap', marginBottom: '1.5rem', paddingBottom: '1rem', borderBottom: '1px solid var(--border-color)' }}>
+          포팅. "OOO 님께 남기는 글" + 통수 안내 + 액션 2개. 관계는 사이드바에 이미 나오므로
+          여기선 뺐고, 대신 통수 옆에 상태를 붙여 정보 손실은 없앴다. */}
+      <div className="v2-mail-header">
         <div>
-          {/* 🔄 2026-09-09 — 22.4px는 --fs-title(22~28px) 범위라 화면 제목급으로 보고
-              명조체를 유지하되, 하드코딩 문자열 대신 .section-title 프리미티브로 옮겼다
-              (00-09 §6.3 규칙1·§6.5, 폰트 정리 요청). */}
-          <h2 className="section-title" style={{ fontSize: '1.4rem', color: 'var(--primary-color)', margin: '0 0 0.25rem 0' }}>
-            {recipient.name}님께 남기는 글
-          </h2>
-          <span style={{ fontSize: 'var(--fs-body)', color: 'var(--text-muted)' }}>
+          <h2 className="v2-mail-header-title">{recipient.name}님께 남기는 글</h2>
+          <span className="v2-mail-header-sub">
             총 {messages.length}통의 편지가 보관되어 있습니다 · {STATUS_LABEL[recipient.status] || recipient.status}
           </span>
         </div>
-        <div style={{ display: 'flex', gap: '0.6rem', flexShrink: 0 }}>
-          <button type="button" onClick={openNewComposer} className="btn" style={{ backgroundColor: 'var(--primary-color)', color: '#FFFFFF', height: '38px', fontSize: 'var(--fs-body)' }}>
+        <div style={{ display: 'flex', gap: '10px', flexShrink: 0 }}>
+          <button type="button" onClick={openNewComposer} className="v2-btn-primary">
             <Plus size={15} /> 새 편지 쓰기
           </button>
           <button
@@ -410,53 +407,49 @@ export const FarewellMessageCard: React.FC<FarewellMessageCardProps> = ({ recipi
             disabled={exportingAll}
             aria-label="전체 다운로드"
             title="전체 다운로드"
-            className="farewell-message-icon-btn"
-            style={{ width: '38px', height: '38px', border: '1px solid var(--border-color)' }}
+            className="v2-btn-outline v2-icon-btn"
           >
             {exportingAll ? <Loader2 size={16} /> : <Download size={16} />}
           </button>
         </div>
       </div>
 
-      {/* 저장된 편지 목록 — 시안 B의 "회색 박스 덩어리를 걷어낸" 경계선 리스트: 배지+날짜 →
-          제목(클릭 가능) → 미리보기 → 우측 정렬 액션. */}
-      {messages.length === 0 && (
-        <p style={{ fontSize: 'var(--fs-body)', color: 'var(--text-muted)' }}>아직 남긴 편지가 없습니다.</p>
-      )}
+      {/* 저장된 편지 목록 — 배지+날짜 → 제목(클릭 가능) → 미리보기 → 우측 정렬 액션. */}
+      {messages.length === 0 && <p className="v2-empty">아직 남긴 편지가 없습니다.</p>}
       {messages.length > 0 && (
-        <div className="farewell-message-list" style={{ marginBottom: '1rem' }}>
+        <div className="v2-letter-list" style={{ marginBottom: '16px' }}>
           {messages.map((m) => (
-            <div key={m.id} className="farewell-message-row">
-              <div className="farewell-message-row-top">
+            <div key={m.id} className="v2-letter-row">
+              <div className="v2-letter-row-top">
                 {m.hasAudio ? (
-                  <span className="farewell-message-badge farewell-message-badge--audio">
+                  <span className="v2-letter-badge v2-letter-badge--audio">
                     <Mic size={12} /> 음성 첨부
                   </span>
                 ) : (
-                  <span className="farewell-message-badge farewell-message-badge--text">
+                  <span className="v2-letter-badge v2-letter-badge--text">
                     <FileText size={12} /> 텍스트
                   </span>
                 )}
-                <span style={{ fontSize: 'var(--fs-body)', color: 'var(--text-hint)' }}>{formatLetterDate(m.updatedAt)}</span>
+                <span className="v2-list-inline-meta">{formatLetterDate(m.updatedAt)}</span>
               </div>
               <button
                 type="button"
                 onClick={() => openEditComposer(m.id)}
                 disabled={loadingDetail}
-                className="farewell-message-item"
+                className="v2-letter-title"
                 style={{ width: '100%', cursor: loadingDetail ? 'wait' : 'pointer' }}
               >
-                {m.title || '(제목 없음)'}
+                {m.title || `${recipient.name}에게…`}
               </button>
-              <p className="farewell-message-preview">{m.preview}</p>
-              <div className="farewell-message-row-actions">
+              <p className="v2-letter-preview">{m.preview}</p>
+              <div className="v2-letter-actions">
                 <button
                   type="button"
                   onClick={() => handleExportMessage(m.id, m.title || `${recipient.name}에게`)}
                   disabled={exportingId === m.id}
                   aria-label="다운로드"
                   title="다운로드"
-                  className="farewell-message-icon-btn"
+                  className="v2-btn-outline v2-icon-btn"
                 >
                   {exportingId === m.id ? <Loader2 size={15} /> : <Download size={15} />}
                 </button>
@@ -466,7 +459,8 @@ export const FarewellMessageCard: React.FC<FarewellMessageCardProps> = ({ recipi
                   disabled={deletingMessageId === m.id}
                   aria-label="편지 삭제"
                   title="편지 삭제"
-                  className="farewell-message-icon-btn farewell-message-icon-btn--danger"
+                  className="v2-btn-outline v2-icon-btn"
+                  style={{ color: 'var(--v2-urgent)' }}
                 >
                   {deletingMessageId === m.id ? <Loader2 size={15} /> : <Trash2 size={15} />}
                 </button>
@@ -477,20 +471,21 @@ export const FarewellMessageCard: React.FC<FarewellMessageCardProps> = ({ recipi
       )}
 
       {/* 🎨 09-05 — 카드 안에 접혀 들어가던 편집기를 모달로 뺐다. 뒤에 편지 목록이 남아 있는
-          채로 이 하나에만 집중하게 한다(SummaryModal.tsx와 같은 오버레이 언어 재사용). */}
+          채로 이 하나에만 집중하게 한다. */}
       {composerOpen && (
         <div
-          className="farewell-message-overlay"
+          className="v2-modal-overlay"
+          role="dialog"
+          aria-modal="true"
+          aria-label={editingId ? '편지 수정' : '새 편지 쓰기'}
           {...backdropCloseProps(() => { if (!saving) resetComposer(); })}
         >
-          <div className="farewell-message-panel" role="dialog" aria-modal="true" aria-label={editingId ? '편지 수정' : '새 편지 쓰기'}>
-            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 'var(--sp-3)', marginBottom: '1.2rem' }}>
+          <div className="v2-modal is-scroll is-composer" onClick={(e) => e.stopPropagation()}>
+            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '12px', marginBottom: '20px', flexShrink: 0 }}>
               <div>
-                {/* 🔄 2026-09-09 — 16px 작은 라벨이라 화면 제목이 아니다. 명조체 제거
-                    (00-09 §6.3 규칙1, 폰트 정리 요청). */}
-                <p style={{ fontSize: 'var(--fs-body)', color: 'var(--accent-gold)', margin: '0 0 0.15rem 0' }}>{recipient.name}님께</p>
-                <h2 style={{ color: 'var(--primary-color)', fontSize: '1.55rem', fontWeight: 700, margin: 0, display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
-                  <Heart size={20} color="var(--point-color)" /> {editingId ? '편지 수정' : '새 편지 쓰기'}
+                <p className="v2-composer-eyebrow">{recipient.name}님께</p>
+                <h2 className="v2-modal-title" style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <Heart size={20} color="var(--v2-point)" /> {editingId ? '편지 수정' : '새 편지 쓰기'}
                 </h2>
               </div>
               <button
@@ -499,201 +494,184 @@ export const FarewellMessageCard: React.FC<FarewellMessageCardProps> = ({ recipi
                 disabled={saving}
                 aria-label="닫기"
                 style={{
-                  background: 'none', border: 'none', cursor: saving ? 'default' : 'pointer', color: 'var(--text-muted)',
+                  background: 'none', border: 'none', cursor: saving ? 'default' : 'pointer', color: 'var(--v2-text-muted)',
                   width: '38px', height: '38px',
                   display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-                  marginTop: '-0.3rem', marginRight: '-0.35rem',
+                  marginTop: '-4px', marginRight: '-6px',
                 }}
               >
                 <X size={19} />
               </button>
             </div>
 
-            <input
-              type="text"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              className="form-input"
-              placeholder="제목 (선택)"
-              style={{ fontSize: '1.15rem', marginBottom: '1rem' }}
-            />
+            <div className="v2-modal-body">
+              {/* 🔄 2026-09-23 사람 지시 — 모바일은 제목 칸을 내용 박스(textarea) 바로 위로
+                  내린다(아래 v2-composer-main 참고). 데스크톱은 기존대로 맨 위. */}
+              {!isMobile && (
+                <input
+                  type="text"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  className="v2-input"
+                  placeholder="제목 (선택)"
+                  style={{ fontSize: 'var(--v2-fs-item-title)', marginBottom: '16px' }}
+                />
+              )}
 
-            {/* 🆕 09-08 — 이미 첨부된 음성은 탭(작성 방법)과 무관하게 항상 관리할 수 있다. */}
-            {mediaInfo?.hasAudio && (
-              <div className="farewell-audio-attached">
-                <span className="farewell-audio-attached-label"><Volume2 size={16} color="var(--point-color)" /> 첨부된 음성이 있습니다</span>
-                <button
-                  type="button"
-                  onClick={handleListen}
-                  disabled={audioLoading}
-                  className="btn"
-                  style={{ backgroundColor: 'var(--card-bg)', border: '1px solid var(--border-color)', color: 'var(--primary-color)', height: '38px', fontSize: 'var(--fs-body)', padding: '0 0.9rem' }}
-                >
-                  {audioLoading ? <><Loader2 size={14} /> 불러오는 중…</> : <><Volume2 size={14} /> 듣기</>}
-                </button>
-                <button
-                  type="button"
-                  onClick={handleDeleteAudio}
-                  disabled={deletingAudio}
-                  className="btn"
-                  style={{ backgroundColor: 'var(--state-danger-bg)', color: 'var(--state-danger-fg)', height: '38px', fontSize: 'var(--fs-body)', padding: '0 0.9rem' }}
-                >
-                  {deletingAudio ? <><Loader2 size={14} /> 삭제 중…</> : <><Trash2 size={14} /> 음성 삭제</>}
-                </button>
-                {audioSrc && <audio controls autoPlay src={audioSrc} style={{ width: '100%', marginTop: '0.3rem' }} />}
-              </div>
-            )}
-
-            {/* 🆕 07-04 §8-9 후속(09-08) — 단계별 화면 대신, 제목 아래 A/B/C 탭으로 작성 방법을 고른다. */}
-            <div className="farewell-method-tabs">
-              <button type="button" onClick={() => setActiveMethod('upload')} disabled={saving} className={activeMethod === 'upload' ? 'active' : undefined}>
-                <Upload size={14} /> A. 음성 파일 업로드
-              </button>
-              <button type="button" onClick={() => setActiveMethod('record')} disabled={saving} className={activeMethod === 'record' ? 'active' : undefined}>
-                <Mic size={14} /> B. 음성 녹음
-              </button>
-              <button type="button" onClick={() => setActiveMethod('write')} disabled={saving} className={activeMethod === 'write' ? 'active' : undefined}>
-                <Pencil size={14} /> C. 직접 쓰기
-              </button>
-            </div>
-
-            <div className="farewell-composer-body">
-              {/* 탭별 설명(특히 STT 안내)을 본문에 끼워 넣지 않고 옆 사이드노트가 맡는다. */}
-              <aside className="farewell-composer-rail">
-                {/* 00-38 §8.1-1 ⓑ — 모바일 전용 접기 버튼. 데스크톱은 index.css가 폭 기준으로
-                    숨기고 아래 콘텐츠를 항상 펼쳐서 보여준다(railOpen 상태와 무관). */}
-                <button
-                  type="button"
-                  className="farewell-composer-rail-toggle"
-                  onClick={() => setRailOpen((o) => !o)}
-                  aria-expanded={railOpen}
-                >
-                  <span>작성 안내</span>
-                  <ChevronDown size={16} style={{ transform: railOpen ? 'rotate(180deg)' : undefined, transition: 'transform 0.2s ease' }} />
-                </button>
-                <div className={`farewell-composer-rail-content${railOpen ? ' is-open' : ''}`}>
-                  {activeMethod === 'upload' && (
-                    <>
-                      <p className="farewell-rail-label">A. 음성 파일 업로드</p>
-                      <p className="farewell-rail-desc">
-                        <Mic size={14} />
-                        <span><strong>자동으로 글로 바뀝니다.</strong> 음성 파일이 네이버 클라우드 CLOVA Speech로 전송되어 변환되며, 변환된 텍스트는 네이버에 7일간 보관된 뒤 삭제됩니다.</span>
-                      </p>
-                    </>
-                  )}
-                  {activeMethod === 'record' && (
-                    <>
-                      <p className="farewell-rail-label">B. 음성 녹음</p>
-                      <p className="farewell-rail-desc">
-                        <Mic size={14} />
-                        <span><strong>말씀하신 목소리는 글로 바뀌어 편지 내용으로 들어갑니다.</strong> 브라우저가 바로 바꾸지 못하면 네이버 CLOVA Speech로 자동 전송되어 변환됩니다. 녹음을 마치면 저장 여부를 다시 확인합니다.</span>
-                      </p>
-                    </>
-                  )}
-                  {activeMethod === 'write' && (
-                    <>
-                      <p className="farewell-rail-label">무엇을 남길까 고민된다면</p>
-                      <ul className="farewell-rail-hints">
-                        <li>요즘 근황</li>
-                        <li>고마웠던 순간</li>
-                        <li>못다한 말</li>
-                      </ul>
-                    </>
-                  )}
+              {/* 🆕 09-08 — 이미 첨부된 음성은 탭(작성 방법)과 무관하게 항상 관리할 수 있다. */}
+              {mediaInfo?.hasAudio && (
+                <div className="v2-audio-attached">
+                  <span className="v2-audio-attached-label"><Volume2 size={16} color="var(--v2-point)" /> 첨부된 음성이 있습니다</span>
+                  <button type="button" onClick={handleListen} disabled={audioLoading} className="v2-btn-outline">
+                    {audioLoading ? <><Loader2 size={14} /> 불러오는 중…</> : <><Volume2 size={14} /> 듣기</>}
+                  </button>
+                  <button type="button" onClick={handleDeleteAudio} disabled={deletingAudio} className="v2-btn-outline" style={{ color: 'var(--v2-urgent)' }}>
+                    {deletingAudio ? <><Loader2 size={14} /> 삭제 중…</> : <><Trash2 size={14} /> 음성 삭제</>}
+                  </button>
+                  {audioSrc && <audio controls autoPlay src={audioSrc} style={{ width: '100%', marginTop: '4px' }} />}
                 </div>
-              </aside>
+              )}
 
-              <div className="farewell-composer-main">
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.9rem' }}>
-                  {activeMethod !== 'write' && (
-                    <VoiceToTextInput
-                      key={activeMethod}
-                      mode={activeMethod}
-                      token={token}
-                      disabled={saving}
-                      onSaveConfirmed={handleVoiceSaveConfirmed}
-                    />
-                  )}
+              {/* 🆕 07-04 §8-9 후속(09-08) — 단계별 화면 대신, 제목 아래 탭으로 작성 방법을 고른다.
+                  🔄 2026-09-23 사람 지시 — A/B/C 접두사 제거(모바일 한 줄에 안 들어갔다). */}
+              <div className="v2-method-tabs">
+                <button type="button" onClick={() => setActiveMethod('upload')} disabled={saving} className={activeMethod === 'upload' ? 'is-active' : undefined}>
+                  <Upload size={14} /> 음성 파일 업로드
+                </button>
+                <button type="button" onClick={() => setActiveMethod('record')} disabled={saving} className={activeMethod === 'record' ? 'is-active' : undefined}>
+                  <Mic size={14} /> 음성 녹음
+                </button>
+                <button type="button" onClick={() => setActiveMethod('write')} disabled={saving} className={activeMethod === 'write' ? 'is-active' : undefined}>
+                  <Pencil size={14} /> 직접 쓰기
+                </button>
+              </div>
 
-                  <div>
-                    {activeMethod !== 'write' && <p className="farewell-result-label">자동으로 바뀐 글 — 확인하고 고쳐 쓰세요</p>}
-                    <textarea
-                      rows={activeMethod === 'write' ? 7 : 5}
-                      value={body}
-                      onChange={(e) => setBody(e.target.value)}
-                      className="form-input farewell-composer-textarea"
-                      style={{ height: 'auto', padding: '1rem' }}
-                      placeholder={`${recipient.name}님께 남기고 싶은 말을 자유롭게 적어보세요.`}
-                    />
+              <div className="v2-composer-body">
+                {/* 탭별 설명(특히 STT 안내)을 본문에 끼워 넣지 않고 옆 사이드노트가 맡는다. */}
+                <aside className="v2-composer-rail">
+                  {/* 00-38 §8.1-1 ⓑ — 모바일 전용 접기 버튼. 데스크톱은 design-v2.css가 폭
+                      기준으로 숨기고 아래 콘텐츠를 항상 펼쳐서 보여준다(railOpen과 무관). */}
+                  <button type="button" className="v2-composer-rail-toggle" onClick={() => setRailOpen((o) => !o)} aria-expanded={railOpen}>
+                    <span>작성 안내</span>
+                    <ChevronDown size={16} style={{ transform: railOpen ? 'rotate(180deg)' : undefined, transition: 'transform 0.2s ease' }} />
+                  </button>
+                  <div className={`v2-composer-rail-content${railOpen ? ' is-open' : ''}`}>
+                    {activeMethod === 'upload' && (
+                      <>
+                        <p className="v2-rail-label">음성 파일 업로드</p>
+                        <p className="v2-rail-desc">
+                          <Mic size={14} />
+                          <span><strong>자동으로 글로 바뀝니다.</strong> 음성 파일이 네이버 클라우드 CLOVA Speech로 전송되어 변환되며, 변환된 텍스트는 네이버에 7일간 보관된 뒤 삭제됩니다.</span>
+                        </p>
+                      </>
+                    )}
+                    {activeMethod === 'record' && (
+                      <>
+                        <p className="v2-rail-label">음성 녹음</p>
+                        <p className="v2-rail-desc">
+                          <Mic size={14} />
+                          <span><strong>말씀하신 목소리는 글로 바뀌어 편지 내용으로 들어갑니다.</strong> 브라우저가 바로 바꾸지 못하면 네이버 CLOVA Speech로 자동 전송되어 변환됩니다. 녹음을 마치면 저장 여부를 다시 확인합니다.</span>
+                        </p>
+                      </>
+                    )}
+                    {activeMethod === 'write' && (
+                      <>
+                        <p className="v2-rail-label">무엇을 남길까 고민된다면</p>
+                        <ul className="v2-rail-hints">
+                          <li>요즘 근황</li>
+                          <li>고마웠던 순간</li>
+                          <li>못다한 말</li>
+                        </ul>
+                      </>
+                    )}
                   </div>
+                </aside>
 
-                  {error && (
-                    <div style={{ fontSize: '1rem', lineHeight: 1.6, color: 'var(--state-warn-fg)', backgroundColor: 'var(--state-warn-bg)', border: '1px solid var(--state-warn-bg)', borderRadius: 'var(--r-sm)', padding: 'var(--sp-3) 0.9rem' }}>
-                      {error}
+                <div className="v2-composer-main">
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                    {activeMethod !== 'write' && (
+                      <VoiceToTextInput
+                        key={activeMethod}
+                        mode={activeMethod}
+                        token={token}
+                        disabled={saving}
+                        onSaveConfirmed={handleVoiceSaveConfirmed}
+                      />
+                    )}
+
+                    <div>
+                      {isMobile && (
+                        <input
+                          type="text"
+                          value={title}
+                          onChange={(e) => setTitle(e.target.value)}
+                          className="v2-input"
+                          placeholder="제목 (선택)"
+                          style={{ fontSize: 'var(--v2-fs-item-title)', marginBottom: '10px' }}
+                        />
+                      )}
+                      {activeMethod !== 'write' && <p className="v2-result-label">자동으로 바뀐 글 — 확인하고 고쳐 쓰세요</p>}
+                      <textarea
+                        rows={activeMethod === 'write' ? 7 : 5}
+                        value={body}
+                        onChange={(e) => setBody(e.target.value)}
+                        className="v2-input"
+                        style={{ height: 'auto', padding: '12px 14px', fontSize: 'var(--v2-fs-item-title)', lineHeight: 1.65 }}
+                        placeholder={`${recipient.name}님께 남기고 싶은 말을 자유롭게 적어보세요.`}
+                      />
                     </div>
-                  )}
 
-                  {/* 06-04 §6.4-5 정정(08-27) — 확인→저장 2단계 대신 명시적 저장 버튼 하나로. 저장을
-                  누르는 행위 자체가 확인이다. */}
-                  <div style={{ display: 'flex', gap: '0.6rem' }}>
-                    <button
-                      type="button"
-                      onClick={resetComposer}
-                      disabled={saving}
-                      style={{
-                        display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '0.35rem',
-                        flex: 1, height: '46px', padding: '0 1rem', fontSize: '1.15rem', fontWeight: 700,
-                        borderRadius: 'var(--r-sm)', border: 'none', cursor: saving ? 'default' : 'pointer',
-                        backgroundColor: 'var(--secondary-color)', color: 'var(--primary-color)',
-                      }}
-                    >
-                      <X size={16} /> 취소
-                    </button>
-                    <button
-                      type="button"
-                      onClick={handleSave}
-                      disabled={saving || !body.trim()}
-                      style={{
-                        display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '0.35rem',
-                        flex: 1, height: '46px', padding: '0 1rem', fontSize: '1.15rem', fontWeight: 700,
-                        borderRadius: 'var(--r-sm)', border: 'none', cursor: saving || !body.trim() ? 'default' : 'pointer',
-                        backgroundColor: 'var(--point-color)', color: '#FFFFFF', opacity: !saving && body.trim() ? 1 : 0.5,
-                      }}
-                    >
-                      {saving ? <><Loader2 size={16} /> 저장 중…</> : '저장'}
-                    </button>
-                  </div>
+                    {error && <p className="v2-notice-warn">{error}</p>}
 
-                  {/* 🎨 위험 구역 — 취소·저장과 같은 줄에 있으면 오탭 위험이 크다. 구분선 + 작은
-                  텍스트버튼으로 무게를 낮추고 우측 정렬로 눈에 덜 띄게 뺐다. */}
-                  {editingId && (
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid var(--border-color)', paddingTop: 'var(--sp-3)' }}>
-                      <button
-                        type="button"
-                        onClick={() => handleExportMessage(editingId, title.trim() || `${recipient.name}에게`)}
-                        disabled={exportingId === editingId}
-                        style={{
-                          display: 'inline-flex', alignItems: 'center', gap: '0.3rem', background: 'none', border: 'none',
-                          padding: '0.3rem 0.2rem', fontSize: 'var(--fs-body)', fontWeight: 600, color: 'var(--primary-color)',
-                          cursor: exportingId === editingId ? 'default' : 'pointer', opacity: exportingId === editingId ? 0.6 : 1,
-                        }}
-                      >
-                        {exportingId === editingId ? <><Loader2 size={14} /> 반출 중…</> : <><Download size={14} /> 다운로드</>}
+                    {/* 06-04 §6.4-5 정정(08-27) — 확인→저장 2단계 대신 명시적 저장 버튼 하나로. 저장을
+                    누르는 행위 자체가 확인이다. */}
+                    <div style={{ display: 'flex', gap: '10px' }}>
+                      <button type="button" onClick={resetComposer} disabled={saving} className="v2-btn-outline" style={{ flex: 1, height: '48px' }}>
+                        <X size={16} /> 취소
                       </button>
                       <button
                         type="button"
-                        onClick={() => handleDeleteMessage()}
-                        disabled={saving || deletingMessageId === editingId}
-                        style={{
-                          display: 'inline-flex', alignItems: 'center', gap: '0.3rem', background: 'none', border: 'none',
-                          padding: '0.3rem 0.2rem', fontSize: 'var(--fs-body)', fontWeight: 600, color: 'var(--state-danger-fg)',
-                          cursor: saving || deletingMessageId === editingId ? 'default' : 'pointer', opacity: saving || deletingMessageId === editingId ? 0.6 : 1,
-                        }}
+                        onClick={handleSave}
+                        disabled={saving || !body.trim()}
+                        className="v2-btn-primary"
+                        aria-busy={saving}
+                        style={{ flex: 1, height: '48px', opacity: !saving && body.trim() ? 1 : 0.5 }}
                       >
-                        {deletingMessageId === editingId ? <><Loader2 size={14} /> 삭제 중…</> : <><Trash2 size={14} /> 삭제</>}
+                        {saving ? <><Loader2 size={16} /> 저장 중…</> : '저장'}
                       </button>
                     </div>
-                  )}
+
+                    {/* 🎨 위험 구역 — 취소·저장과 같은 줄에 있으면 오탭 위험이 크다. 구분선 + 작은
+                    텍스트버튼으로 무게를 낮추고 우측 정렬로 눈에 덜 띄게 뺐다. */}
+                    {editingId && (
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid var(--v2-divider)', paddingTop: '12px' }}>
+                        <button
+                          type="button"
+                          onClick={() => handleExportMessage(editingId, title.trim() || `${recipient.name}에게`)}
+                          disabled={exportingId === editingId}
+                          style={{
+                            display: 'inline-flex', alignItems: 'center', gap: '5px', background: 'none', border: 'none',
+                            padding: '5px 3px', fontSize: 'var(--v2-fs-support)', fontWeight: 600, color: 'var(--v2-text-main)',
+                            cursor: exportingId === editingId ? 'default' : 'pointer', opacity: exportingId === editingId ? 0.6 : 1,
+                          }}
+                        >
+                          {exportingId === editingId ? <><Loader2 size={14} /> 반출 중…</> : <><Download size={14} /> 다운로드</>}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteMessage()}
+                          disabled={saving || deletingMessageId === editingId}
+                          style={{
+                            display: 'inline-flex', alignItems: 'center', gap: '5px', background: 'none', border: 'none',
+                            padding: '5px 3px', fontSize: 'var(--v2-fs-support)', fontWeight: 600, color: 'var(--v2-urgent)',
+                            cursor: saving || deletingMessageId === editingId ? 'default' : 'pointer', opacity: saving || deletingMessageId === editingId ? 0.6 : 1,
+                          }}
+                        >
+                          {deletingMessageId === editingId ? <><Loader2 size={14} /> 삭제 중…</> : <><Trash2 size={14} /> 삭제</>}
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
