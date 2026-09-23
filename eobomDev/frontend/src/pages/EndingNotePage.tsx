@@ -944,14 +944,13 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
           </div>
         </div>
 
-        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '20px', alignItems: 'center' }}>
+        <div className="v2-will-draft-actions">
           <button
             type="button"
             onClick={() => saveSection('WILL_DRAFT', { draftText })}
             className="v2-btn-primary"
             disabled={savingState.WILL_DRAFT === 'saving' || !policyAgreedAt}
             aria-busy={savingState.WILL_DRAFT === 'saving'}
-            style={{ minWidth: '140px' }}
           >
             {saveButtonLabel(savingState.WILL_DRAFT)}
           </button>

@@ -986,3 +986,17 @@
 
 <!-- Gemini 판정 1줄: 판정 대기 -->
 
+
+## 2026-09-23 | EndingNotePage 유언장 초안 액션 5개 — 모바일 배열 정리
+
+- **근거 스펙**: `docs/00_핵심플랫폼/00-39_디자인_기준_재정립_명세서.md` §6.7(§6.6 버튼 클래스 `.v2-btn-primary`/`.v2-btn-outline`은 데스크톱·모바일 동일 44px — 높이는 스펙대로 유지). 배열(레이아웃) 자체는 §6에 규정이 없어 개발자의 오늘 직접 지시("저장~.txt 내려받기 버튼 5개 크기 및 배열 조정")에 따른 즉흥 구현.
+- **건드린 파일**: eobomDev/frontend/src/pages/EndingNotePage.tsx, eobomDev/frontend/src/styles/design-v2.css
+- **결과**: `EndingNotePage.tsx`의 "유언장 초안" 섹션(⑨) 하단 버튼 행(저장·큰 글씨로 보기·인쇄하기·텍스트 복사·.txt 내려받기, 기존 인라인 `display:flex;flexWrap:wrap`)에 `v2-will-draft-actions` 클래스를 부여하고 저장 버튼의 인라인 `minWidth:'140px'`를 제거, CSS로 이관. `design-v2.css`에 `.v2-will-draft-actions` 규칙 신설:
+  - 데스크톱(기본): 기존과 동일한 `flex` + `flex-wrap` 한 줄(저장 `min-width:140px` 유지) — 데스크톱 회귀 0.
+  - `@media (max-width:767px)`: `display:grid; grid-template-columns:1fr 1fr` — 저장(`.v2-btn-primary`)은 `grid-column:1/-1`로 맨 위 전체 폭 1줄, 나머지 보조 액션 4개(`.v2-btn-outline`)는 2×2 격자로 고정(기존엔 flex-wrap이라 화면 폭에 따라 줄마다 개수가 들쭉날쭉했음). 보조 버튼은 `height:auto;min-height:44px`(터치 하한 유지)·`font-size:var(--v2-fs-support-mobile)`(15→14px, 좁은 칸 텍스트 잘림 방지)로 축소.
+  - `npx tsc --noEmit`(frontend) 에러 0 · `npm run build`(frontend) 통과.
+- **편차**: 없음 — 새 클래스 신설이라 스펙과 충돌하지 않는다. `00-39` §6에 이 조합 화면(버튼 5개 혼합 행)에 대한 명시적 등재는 없어 `docs/`에 새로 올리지 않았다(사소한 레이아웃 조정으로 판단, Opus 재량으로 §6.7에 등재 여부 검토 가능).
+- **다음 에이전트가 알아야 할 것**: 🔴 실기동(360px) 미검증 — 사람 확인 대기. ".txt 내려받기" 등 아이콘+짧은 라틴+한글 혼합 라벨이 좁은 칸(약 150px)에서 줄바꿈되는지는 실기기에서 봐야 한다(계산상으로는 한 줄에 들어가지만 폰트 렌더링 차이 가능).
+
+<!-- Gemini 판정 1줄: 판정 대기 -->
+

@@ -47,7 +47,8 @@
 🔴사람실기동완전대기(facility이후전부—memorial·ending-note·farewell-messages 클릭검증0건).
 🟡뒤로:pickup거리순(좌표없음)·전문가region(별건).height:36px3곳=보류.
 ✅09-23모바일감사(개발자지시,00-38무관 즉흥)—MemorialLanding버튼44→56·SocialLink52→56·
-FacilityReviewModal/KakaoMapModal터치타깃44px+KakaoMap480px스택.tsc/build통과.🔴실기동대기.
+FacilityReviewModal/KakaoMapModal터치타깃44px+KakaoMap480px스택+EndingNote유언장초안버튼5개
+모바일2×2격자(`.v2-will-draft-actions`).tsc/build매회통과.🔴실기동대기.
 남은:Phase1~3(Farewell~DigitalEstate)+부록 미착수—다음세션.
 **3.[Gemini]**🔴게이트45건대기(09-11~21·wt204~)·🟡옛스펙3건→⑭.🟡devDB삭제분7건—D-8(🔴CONFIRM).✅reports경로정리완료(09-16).
 
