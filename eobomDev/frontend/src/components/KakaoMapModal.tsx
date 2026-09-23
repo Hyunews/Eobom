@@ -192,15 +192,16 @@ export const KakaoMapModal: React.FC<KakaoMapModalProps> = ({ facility, userLoca
       >
         <button
           onClick={onClose}
+          aria-label="닫기"
           style={{
             position: 'absolute',
-            top: '1.2rem',
-            right: '1.2rem',
+            top: '0.9rem',
+            right: '0.9rem',
             border: 'none',
             background: 'var(--bg-card)',
             borderRadius: '50%',
-            width: '36px',
-            height: '36px',
+            width: '44px',
+            height: '44px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -292,7 +293,7 @@ export const KakaoMapModal: React.FC<KakaoMapModalProps> = ({ facility, userLoca
         </div>
 
         {/* 편의 정보 */}
-        <div style={{ marginTop: '1.2rem', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--sp-4)' }}>
+        <div className="kakao-map-info-grid" style={{ marginTop: '1.2rem', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--sp-4)' }}>
           <div style={{ backgroundColor: 'var(--card-bg)', padding: '0.9rem', borderRadius: 'var(--r-md)', fontSize: 'var(--fs-body)' }}>
             <p style={{ fontWeight: 700, color: 'var(--primary-color)', marginBottom: '0.4rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
               <ShieldCheck size={16} color="var(--point-color)" /> 주차 및 보증 정보
@@ -310,8 +311,10 @@ export const KakaoMapModal: React.FC<KakaoMapModalProps> = ({ facility, userLoca
           </div>
         </div>
 
-        {/* 카카오맵 내비게이션 & 로드뷰 외출 버튼 */}
-        <div style={{ marginTop: '1.2rem', display: 'flex', gap: 'var(--sp-4)' }}>
+        {/* 카카오맵 내비게이션 & 로드뷰 외출 버튼 — 480px 이하는 index.css가 세로로 쌓는다
+            (2026-09-23, 모바일 감사 — flex:1 2열에서 "카카오맵 길찾기" 텍스트가 132px 폭에
+            안 들어가 56px 고정 높이 버튼 밖으로 줄바꿈되던 문제). */}
+        <div className="kakao-map-action-row" style={{ marginTop: '1.2rem', display: 'flex', gap: 'var(--sp-4)' }}>
           <a
             href={kakaoMapNavUrl}
             target="_blank"

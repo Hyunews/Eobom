@@ -318,7 +318,7 @@ export const MemorialLandingPage: React.FC = () => {
               {guestError && (
                 <p style={{ fontSize: 'var(--fs-body)', color: 'var(--state-warn-fg)', marginBottom: '0.6rem' }}>{guestError}</p>
               )}
-              <button type="submit" disabled={guestSubmitting} className="btn btn-primary" style={{ width: '100%', height: '44px', fontSize: 'var(--fs-body)', opacity: guestSubmitting ? 0.6 : 1 }}>
+              <button type="submit" disabled={guestSubmitting} className="btn btn-primary" style={{ width: '100%', opacity: guestSubmitting ? 0.6 : 1 }}>
                 방명록 남기기
               </button>
             </form>

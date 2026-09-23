@@ -107,7 +107,20 @@ export const FacilityReviewModal: React.FC<FacilityReviewModalProps> = ({
       >
         <button
           onClick={onClose}
-          style={{ position: 'absolute', top: '1.2rem', right: '1.2rem', border: 'none', background: 'none', cursor: 'pointer' }}
+          aria-label="닫기"
+          style={{
+            position: 'absolute',
+            top: '0.6rem',
+            right: '0.6rem',
+            width: '44px',
+            height: '44px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            border: 'none',
+            background: 'none',
+            cursor: 'pointer',
+          }}
         >
           <X size={22} />
         </button>
@@ -140,13 +153,23 @@ export const FacilityReviewModal: React.FC<FacilityReviewModalProps> = ({
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 'var(--sp-4)' }}>
           <div>
             <label className="form-label">별점</label>
-            <div style={{ display: 'flex', gap: '0.3rem' }}>
+            <div style={{ display: 'flex' }}>
               {[1, 2, 3, 4, 5].map((n) => (
                 <button
                   key={n}
                   type="button"
                   onClick={() => setRating(n)}
-                  style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+                  aria-label={`${n}점`}
+                  style={{
+                    width: '44px',
+                    height: '44px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    background: 'none',
+                    border: 'none',
+                    cursor: 'pointer',
+                  }}
                 >
                   <Star size={24} fill={n <= rating ? 'var(--point-color)' : 'none'} color="var(--point-color)" />
                 </button>

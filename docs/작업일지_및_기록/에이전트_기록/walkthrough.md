@@ -966,3 +966,23 @@
   7. **후속(사람 지시)** — ① 편지 목록·모달 export 파일명에서 제목이 빈 편지의 표시를 "(제목 없음)" → `"{수신자 이름}에게…"`로(모바일·데스크톱 공용, `FarewellMessageCard.tsx`). ② 편지 작성/수정 모달의 방법 탭 A/B/C 접두사 제거(탭 3개·사이드 레일 라벨 2곳 전부, "음성 파일 업로드"/"음성 녹음"/"직접 쓰기"만 남김) ③ 모바일에서 탭 3개가 여전히 한 줄에 안 들어가 `.v2-method-tabs button` font-size를 `--v2-fs-support`(15px)→`--v2-fs-label-mobile`(12px), gap도 축소(design-v2.css 모바일 미디어쿼리) ④ **모바일 전용**으로 제목 입력칸을 모달 상단이 아니라 본문 입력칸(textarea) 바로 위로 이동 — `FarewellMessageCard`에 `isMobile?: boolean` prop 신설(`FarewellMobileView.tsx`만 `isMobile` 전달, `FarewellDesktopView.tsx`는 기존 위치 그대로). `tsc`·`build` 재확인 통과.
 
 <!-- Gemini 판정 1줄: 대기 -->
+
+## 2026-09-23 | 모바일 디자인 정비 — Phase 4 랜딩 페이지·모달 3종 터치 타깃/레이아웃 감사
+
+- **근거 스펙**: docs/00_핵심플랫폼/00-38_적응형_모바일_UX_개편_명세서.md §11(DoD #5 터치 타깃 ≥56px 주요/≥44px 보조), §10 Phase4·§8.2(모달 바텀시트 목록). 사용자가 스펙 문서를 지칭하지 않고 직접 지시("모바일 전체 — 중복 문구 제거·폰트/버튼/여백 조정·모달 점검") — AskUserQuestion으로 범위를 "Phase4 미착수 페이지 우선"으로 확인 후 착수.
+- **건드린 파일**: eobomDev/frontend/src/pages/MemorialLandingPage.tsx, eobomDev/frontend/src/components/SocialLinkModal.tsx, eobomDev/frontend/src/components/facility/FacilityReviewModal.tsx, eobomDev/frontend/src/components/KakaoMapModal.tsx, eobomDev/frontend/src/index.css
+- **결과**:
+  1. `MemorialLandingPage.tsx` "방명록 남기기" 제출 버튼의 인라인 `height: '44px'` + `fontSize` 오버라이드 제거 → `.btn` 기본값 `height: var(--min-touch-target)`(56px) 상속으로 복귀. grep(`height: '44px'.*className="btn"`) 결과 사이트 전역에서 이 버튼 하나만 56px를 44px로 덮어쓰고 있었다(DoD#5 위반).
+  2. `SocialLinkModal.tsx` 주요 액션 버튼 2개("기존 계정에 통합하기", "독립된 새 계정으로 가입하기") `height: '52px'` → `height: 'var(--min-touch-target)'`.
+  3. `FacilityReviewModal.tsx` — 공유 모달 클래스 없이 인라인 스타일뿐이던 모달. 닫기(X) 버튼 히트영역을 `top/right: 0.6rem` + `width/height: 44px`로 확장(기존 `padding:0`이라 아이콘 22px만큼만 클릭 가능했음), 별점 버튼 5개도 각 `44×44px`로 확장(기존 24px 아이콘 + `padding:0`). 둘 다 `aria-label` 추가.
+  4. `KakaoMapModal.tsx` — 닫기 버튼 `36×36`→`44×44px`(위치 `top/right: 0.9rem`로 보정). "편의 정보" 2열 그리드(`gridTemplateColumns: '1fr 1fr'`)와 "카카오맵 길찾기/로드뷰 바로가기" 버튼 2개 가로 배치가 360px 화면에서 컬럼당 약 132px로 압축돼, 버튼 텍스트가 `.btn`의 고정 `height:56px` 밖으로 줄바꿈되어 넘칠 위험이 있어 `kakao-map-info-grid`/`kakao-map-action-row` 클래스를 부여하고 `index.css`에 `@media (max-width: 480px)` 블록을 신설(그리드 1열, 버튼 행 세로 스택).
+  - `npx tsc --noEmit`(eobomDev/frontend) 에러 0. `npm run build`(eobomDev/frontend) 통과 — `dist/assets/index-*.js` 생성 확인.
+- **편차**: 00-38 §8.2(모달→바텀시트 공통 규칙)는 LoginModal·InquiryModal·AddressSearchModal·MyPageFamilyDesignation 4종만 지목한다. `FacilityReviewModal`·`SocialLinkModal`·`KakaoMapModal`은 그 목록 밖이라 바텀시트로 합류시키지 않고(index.css에 이미 있는 `ConsultRequestModal` 제외 선례와 같은 원칙), 터치 타깃·좁은 폭 레이아웃 붕괴만 최소 수정했다. 이 판단은 오늘 사용자의 "모달 꼼꼼히 살피기" 직접 지시에 근거하며, §8.2 목록을 넓히는 `docs/` 변경은 하지 않았다(Opus 소관 — 필요하면 다음 Opus 세션이 목록 확장 여부를 판단).
+- **다음 에이전트가 알아야 할 것**:
+  1. 이번 세션은 사용자 확인으로 "Phase4 미착수 페이지 우선" 범위만 다뤘다. `HomePage.tsx`·`ObituaryLandingPage.tsx`·`ObituaryView.tsx`·`MemorialLandingPage.tsx` 본문에서 중복 문구·토큰 이탈을 훑었으나(HomePage 히어로 문장은 이미 09-10에 모바일 중복 제거가 돼 있었음), 위 4건 외에는 실질적 결함을 못 찾아 그 외 코드 변경 없음.
+  2. `FacilityReviewModal`·`SocialLinkModal`·`KakaoMapModal` 외 나머지 모달 8종(`AccountRecoveryModal`·`WithdrawalModal`·`SummaryModal`은 `.v2-modal` 시스템, `LoginModal`·`InquiryModal`·`AddressSearchModal`은 index.css 바텀시트 공통 규칙, `ConsultRequestModal`·`TaxSimulatorModal`은 각자 전용 mobile 처리)은 이미 모바일 대응이 돼 있어 이번 감사에서 추가 변경 없음.
+  3. 🔴 실기동(360px 실측) 미검증 — 사람 확인 대기. 특히 KakaoMapModal의 480px 스택 전환은 실기기에서 카카오맵 SDK 로드와 함께 눈으로 봐야 한다.
+  4. "페이지 전체" 중 Phase 1~3(FarewellMessagePage·CareGuidePage·EndingNotePage·ObituaryPage·MyPage·MyObituaryListPage·FacilityPage·CounselingPage·DigitalEstatePage)와 부록(PrivacyPage·TermsPage·DomainOverviewPage·FamilyInvitePage)은 이번 세션에서 다루지 않았다 — 필요하면 별도 세션.
+
+<!-- Gemini 판정 1줄: 판정 대기 -->
+

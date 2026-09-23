@@ -849,3 +849,12 @@ state를 그대로 추모관 사후 연결 동의로도 흘려보내면 사용�
   실행하면 `No such file or directory`(cwd 추적용 임시 파일 관련)로 실패하는 경우가 여러 번
   있었다. → **회피**: 같은 증상이 나면 PowerShell 도구로 같은 명령을 재시도 — 이번 세션에서
   전부 우회됐다(node 스크립트 실행·바이트 크기 확인 등).
+
+## 2026-09-23 [Claude:Sonnet] 모바일 디자인 정비 세션 — 시행착오
+
+- 사용자 지시가 "페이지 전체" 모바일 디자인 수정으로 매우 넓었음. `00-38_적응형_모바일_UX_개편_명세서.md`(92KB)가 이미 이 정확한 주제를 다루고 있어서, 자유롭게 새로 판단하지 않고 그 문서를 정본으로 따르기로 하고 AskUserQuestion으로 범위(Phase4 미착수 우선 / 완료분 재검토 / 스펙 무관 새 범위)를 사람에게 확인했다 — "Phase4 미착수 페이지 우선" 선택받음.
+- **문서 내부 불일치 발견**: `00-38` §10 "Phase 4" 서술(라인 ~1028)은 HomePage·ObituaryLandingPage·MemorialLandingPage를 "✅ 완료(09-17, 토큰·거터만)"로 적어 두었는데, 같은 문서 안의 페이지별 루프 진행표(라인 ~595~597)는 같은 세 페이지를 "⏸ 미착수 — Phase 4"로 적어 두고 있어 서로 모순됐다. 실제 코드(grep으로 `var(--fs-` / `var(--sp-` / raw rem fontSize 개수 확인)를 보니 §10 쪽(이미 부분 적용됨)이 현재 상태에 더 가까웠다 — 진행표가 갱신 누락된 낡은 스냅샷으로 보인다. `docs/`는 Sonnet 소유가 아니라 고치지 않았고, 이 불일치는 walkthrough 항목의 "다음 에이전트가 알아야 할 것"에는 안 옮기고 여기 남긴다(다음 Opus 세션이 §10 진행표 라인 595-597을 §10 서술과 맞춰 정리할 필요).
+- 모달 전수 조사: `grep -rl "Modal" components pages` → 11개 모달 컴포넌트 확인 후 각각 클래스명(`.v2-modal-*` / `.login-modal-*` 등 공유 클래스 vs 완전 인라인)을 대조해서 "공유 바텀시트 규칙 밖에 있는 모달"만 추려냄(FacilityReviewModal·SocialLinkModal·KakaoMapModal 3개). ConsultRequestModal·TaxSimulatorModal은 처음엔 의심했으나 index.css에 전용 `@media` 블록이 이미 있어(전자는 의도적으로 바텀시트 제외한다는 주석까지 있음) 제외.
+- **환경 이슈**: Bash 도구로 한글이 포함된 절대경로(`cd "/d/Eobom/docs/00_핵심플랫폼"` 등)를 실행하면 `export TEMP=... && ... pwd -P >| .../claude-XXXX-cwd: No such file or directory`로 매번 실패했다(Git Bash의 cwd 캡처 스텝이 비-ASCII 경로에서 깨지는 것으로 보임). 우회: 한글 경로가 걸린 작업은 PowerShell 또는 Glob/Grep/Read 툴(둘 다 정상 동작)로 전환. Bash는 `eobomDev/frontend`처럼 영문 경로 안에서의 `cd` 이후 작업(tsc/build 실행)에만 사용.
+- `tsc --noEmit`·`npm run build` 둘 다 첫 시도에 통과 — 되돌린 시행착오 없음(수정 자체가 인라인 스타일 값 교체·클래스명 부여 수준으로 단순했음).
+

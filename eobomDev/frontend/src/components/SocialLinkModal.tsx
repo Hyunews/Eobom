@@ -117,7 +117,7 @@ export const SocialLinkModal: React.FC<SocialLinkModalProps> = ({
             className="btn btn-primary"
             style={{
               width: '100%',
-              height: '52px',
+              height: 'var(--min-touch-target)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -136,7 +136,7 @@ export const SocialLinkModal: React.FC<SocialLinkModalProps> = ({
             onClick={() => handleChoice('CREATE_NEW')}
             style={{
               width: '100%',
-              height: '52px',
+              height: 'var(--min-touch-target)',
               backgroundColor: '#FFFFFF',
               color: '#374151',
               border: '1.5px solid var(--secondary-dark)',
