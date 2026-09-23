@@ -857,7 +857,7 @@
   2. .v2-content 폭 확대로 다른 8개 화면(DigitalEstatePage·MyGuestbookPage·MyPage·MyConsultationsPage·FamilySharedPage·MyObituaryListPage·PickupPage·CounselingPage)도 영향권이다 — 이번에 각 화면 내부까지 실기동으로 훑지는 못했다. 특히 여러 줄 문단이 있는 화면이 새로 생기면 764px(var(--v2-reading-width))로 개별 캡을 씌울 것(이번 점검에서 9개 화면 모두 해당 없음 확인됨 — .v2-do-list 등 목록류는 제외 대상).
   3. facility 실기동 검증 대기 — 이번 세션은 dev서버 임시 기동+즉시 종료로 스냅샷만 비교했고, 사람의 실제 화면 확인은 아직이다.
 
-<!-- Gemini 판정 1줄: 대기 -->
+<!-- Gemini 판정 1줄: 🔄스펙갱신 (gutter 80px 및 1048px calc 확대·신설 .v2-tag 누락 등 00-39 §5·§6.1 규칙2 명세 갱신 필요 / FacilityPage v2 토큰 교체 및 프런트엔드 빌드 통과 확인) -->
 
 ## 2026-09-22 | [Sonnet] memorial v2 이관(00-39 §9.1 그룹① 편입) — 완료
 
@@ -879,7 +879,7 @@
   2. `memorial` 완료로 그룹① 4개(care-guide·counseling·pickup·my-obituaries) + facility + memorial = 전부 v2 이관 완료. 남은 그룹은 ②(ending-note·farewell-messages 미착수)·③·④·⑤·⑥(보류).
   3. 사람 실기동 검증 대기(만들기 폼 제출 흐름·삭제 2단계 모달 실제 클릭 확인 안 됨).
 
-<!-- Gemini 판정 1줄: 대기 -->
+<!-- Gemini 판정 1줄: ✅통과 (MemorialPage.tsx 옛 토큰 0건 및 .v2-* 클래스 재작성 확인 / 접이식 폼·단계형 삭제 모달 실장 확인 / 프런트엔드 빌드 통과 / 00-39 §9.1 표 갱신 Opus 과제 확인) -->
 
 ## 2026-09-22 | [Sonnet] 사람 직접 지시 4건 — 사이드바 배지 제거·검색창 통일·04-01 §0.2-0 카드 문구·memorial 아이콘
 
@@ -898,7 +898,7 @@
   2. 04-01 §0.2-1(사실 오류 3건)은 이미 이전 세션에서 코드에 반영돼 있었다(주석에 "2026-09-22 §0.2-1 정정" 기존 존재) — 이번엔 §0.2-0(화면 문구) 부분만 새로 했다.
   3. 사람 실기동 검증 대기 — 사이드바 배지 제거·검색창 두 화면·04-01 카드 3장 실제 렌더 확인 안 됨.
 
-<!-- Gemini 판정 1줄: 대기 -->
+<!-- Gemini 판정 1줄: ✅통과 (modeNav pickup·digital-estate active 전환 확인 / LocationSearchBox 신설 및 2개 페이지 재사용 확인 / 04-01 카드 3종 및 MemorialPage Plus 아이콘 반영 확인 / 빌드 통과) -->
 
 ## 2026-09-22 | [Sonnet] EndingNotePage v2 이관 — 00-39 §9.1 그룹② 나머지 착수(2/5 완료)
 
@@ -923,7 +923,7 @@
   3. 사람 실기동 검증 대기 — 데스크톱 아코디언 펼침/접힘, 모바일 목차→리더 진입·저장·취소, "한눈에 보기" 모달, 유언장 초안 인쇄/복사/다운로드 전부 실제 클릭 확인 안 됨.
   4. `git diff`가 EndingNotePage.tsx를 파일 전체 교체처럼 보여준다(라인엔딩·인코딩 확인 결과 정상 LF/UTF-8, 실제로는 변경분이 991/1008줄에 흩어져 있어 diff 알고리즘이 통짜 하나로 뭉친 것 — 실제 내용 문제 아님). 리뷰 시 참고.
 
-<!-- Gemini 판정 1줄: 대기 -->
+<!-- Gemini 판정 1줄: ✅통과 (design-v2.css .v2-note-shell·.v2-accordion-* 실장 확인 / index.css 옛 .ending-note-* 클래스 전량 삭제 및 ID 선택자 유지 확인 / 빌드 통과 / .v2-accordion-* 스펙 등재 필요 확인) -->
 
 ## 2026-09-23 | [Sonnet] EndingNotePage 후속 — 유언장 초안 박스 삭제 + 4대 요건 구분 기호 (사용자 직접 지시)
 
@@ -937,7 +937,7 @@
 - **편차**: 없음.
 - **다음 에이전트가 알아야 할 것**: 없음. 사람 실기동 검증은 앞 항목(EndingNotePage v2 이관)과 함께 대기 중.
 
-<!-- Gemini 판정 1줄: 대기 -->
+<!-- Gemini 판정 1줄: ✅통과 (유언장 초안 경고 박스 및 중복 문구 2건 검색 0건 확인 / 4대 요건 콜론 구분 기호 변경 확인 / 빌드 통과) -->
 
 ## 2026-09-23 | [Sonnet] farewell-messages v2 이관 — 00-39 §9.1 그룹② 마지막 화면 완료(5/5) + 편지 카드 그리드
 
@@ -965,7 +965,7 @@
   6. **후속(사람 지시, 모바일 전용)** — 편지 카드(`.v2-letter-row`) 내부 텍스트·줄간격 균형 조정. 데스크톱 크기(제목 19px·본문 15px·줄간격 1.65)가 모바일 카드 폭(≈310~370px)엔 과하다는 지적 — 이미 있던 모바일 폰트 토큰(`--v2-fs-item-title-mobile`17px·`--v2-fs-support-mobile`14px·`--v2-fs-label-mobile`12px)으로 제목·본문·날짜를 한 단계씩 내리고, 카드 안쪽 여백(20→16px)·줄간격(1.65→1.5)·행 사이 여백도 같이 좁혔다. 🔴 액션 버튼(다운로드·삭제, 44px)은 00-38 §11 DoD #5 터치 하한이라 그대로 뒀다 — 안 맞아 보이던 건 버튼 크기가 아니라 그 주변 텍스트·여백이었다고 판단. `tsc`·`build` 재확인 통과.
   7. **후속(사람 지시)** — ① 편지 목록·모달 export 파일명에서 제목이 빈 편지의 표시를 "(제목 없음)" → `"{수신자 이름}에게…"`로(모바일·데스크톱 공용, `FarewellMessageCard.tsx`). ② 편지 작성/수정 모달의 방법 탭 A/B/C 접두사 제거(탭 3개·사이드 레일 라벨 2곳 전부, "음성 파일 업로드"/"음성 녹음"/"직접 쓰기"만 남김) ③ 모바일에서 탭 3개가 여전히 한 줄에 안 들어가 `.v2-method-tabs button` font-size를 `--v2-fs-support`(15px)→`--v2-fs-label-mobile`(12px), gap도 축소(design-v2.css 모바일 미디어쿼리) ④ **모바일 전용**으로 제목 입력칸을 모달 상단이 아니라 본문 입력칸(textarea) 바로 위로 이동 — `FarewellMessageCard`에 `isMobile?: boolean` prop 신설(`FarewellMobileView.tsx`만 `isMobile` 전달, `FarewellDesktopView.tsx`는 기존 위치 그대로). `tsc`·`build` 재확인 통과.
 
-<!-- Gemini 판정 1줄: 대기 -->
+<!-- Gemini 판정 1줄: ✅통과 (design-v2.css 마스터·디테일 및 카드 그리드 신설 확인 / index.css 옛 .farewell-* 전량 삭제 확인 / 후속 지시 7건 코드 반영 확인 / 빌드 통과 / 00-39 그룹② 5/5 완료 스펙 갱신 Opus 과제 확인) -->
 
 ## 2026-09-23 | 모바일 디자인 정비 — Phase 4 랜딩 페이지·모달 3종 터치 타깃/레이아웃 감사
 
@@ -984,7 +984,7 @@
   3. 🔴 실기동(360px 실측) 미검증 — 사람 확인 대기. 특히 KakaoMapModal의 480px 스택 전환은 실기기에서 카카오맵 SDK 로드와 함께 눈으로 봐야 한다.
   4. "페이지 전체" 중 Phase 1~3(FarewellMessagePage·CareGuidePage·EndingNotePage·ObituaryPage·MyPage·MyObituaryListPage·FacilityPage·CounselingPage·DigitalEstatePage)와 부록(PrivacyPage·TermsPage·DomainOverviewPage·FamilyInvitePage)은 이번 세션에서 다루지 않았다 — 필요하면 별도 세션.
 
-<!-- Gemini 판정 1줄: 판정 대기 -->
+<!-- Gemini 판정 1줄: ✅통과 (MemorialLandingPage 방명록 버튼 44px 오버라이드 제거 확인 / SocialLink·FacilityReview·KakaoMap 모달 3종 터치타깃 ≥44px·56px 확보 및 480px 미디어쿼리 실장 확인 / 빌드 통과) -->
 
 
 ## 2026-09-23 | EndingNotePage 유언장 초안 액션 5개 — 모바일 배열 정리
@@ -998,5 +998,5 @@
 - **편차**: 없음 — 새 클래스 신설이라 스펙과 충돌하지 않는다. `00-39` §6에 이 조합 화면(버튼 5개 혼합 행)에 대한 명시적 등재는 없어 `docs/`에 새로 올리지 않았다(사소한 레이아웃 조정으로 판단, Opus 재량으로 §6.7에 등재 여부 검토 가능).
 - **다음 에이전트가 알아야 할 것**: 🔴 실기동(360px) 미검증 — 사람 확인 대기. ".txt 내려받기" 등 아이콘+짧은 라틴+한글 혼합 라벨이 좁은 칸(약 150px)에서 줄바꿈되는지는 실기기에서 봐야 한다(계산상으로는 한 줄에 들어가지만 폰트 렌더링 차이 가능).
 
-<!-- Gemini 판정 1줄: 판정 대기 -->
+<!-- Gemini 판정 1줄: ✅통과 (EndingNotePage.tsx v2-will-draft-actions 클래스 부여 확인 / design-v2.css 767px 2x2 그리드 및 저장 버튼 grid-column:1/-1 분기 실장 확인 / 빌드 통과) -->
 
