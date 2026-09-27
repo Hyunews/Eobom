@@ -43,13 +43,13 @@ export const PrivacyPage: React.FC = () => {
             ['6', '고충처리 및 분쟁 대응', '문의 접수·처리, 처리 결과 통보, 분쟁 시 사실관계 확인'],
           ]}
         />
-        <p style={{ color: 'var(--text-muted)', fontSize: 'var(--fs-body)' }}>
+        <p className="v2-legal-note">
           회사는 이용자의 개인정보를 광고·마케팅 목적으로 이용하지 않으며, 별도의 마케팅 수신 동의를 받지 않습니다.
         </p>
       </LegalArticle>
 
       <LegalArticle title="제3조 (처리하는 개인정보의 항목)">
-        <h3 style={{ fontSize: '1rem', color: 'var(--primary-color)', margin: '0.5rem 0' }}>3-1. 이용자(일반 회원)</h3>
+        <h3 className="v2-legal-subhead">3-1. 이용자(일반 회원)</h3>
         <LegalTable
           headers={['구분', '항목']}
           rows={[
@@ -59,7 +59,7 @@ export const PrivacyPage: React.FC = () => {
           ]}
         />
 
-        <h3 style={{ fontSize: '1rem', color: 'var(--primary-color)', margin: '0.5rem 0' }}>3-2. 문의·견적·상담 신청 시(추가 수집)</h3>
+        <h3 className="v2-legal-subhead">3-2. 문의·견적·상담 신청 시(추가 수집)</h3>
         <LegalTable
           headers={['구분', '항목']}
           rows={[
@@ -68,7 +68,7 @@ export const PrivacyPage: React.FC = () => {
           ]}
         />
 
-        <h3 style={{ fontSize: '1rem', color: 'var(--primary-color)', margin: '0.5rem 0' }}>3-3. 디지털 추모관 이용 시</h3>
+        <h3 className="v2-legal-subhead">3-3. 디지털 추모관 이용 시</h3>
         <LegalTable
           headers={['대상', '항목']}
           rows={[
@@ -77,13 +77,13 @@ export const PrivacyPage: React.FC = () => {
             ['헌화 참여자(비회원 포함)', '중복 참여 방지를 위한 식별값(해시) — 제11조 참조'],
           ]}
         />
-        <p style={{ color: 'var(--text-muted)', fontSize: 'var(--fs-body)' }}>
+        <p className="v2-legal-note">
           고인(사망한 사람)에 관한 정보는 「개인정보 보호법」상 살아 있는 개인에 관한 정보가 아니므로 법률상 개인정보에 해당하지 않습니다.
           그러나 회사는 고인의 정보가 유족의 정보와 밀접하게 결합되어 있고 그 성격이 매우 민감하다는 점을 고려하여, 이 처리방침의 모든 보호
           조치를 고인의 정보에도 동일하게 적용합니다.
         </p>
 
-        <h3 style={{ fontSize: '1rem', color: 'var(--primary-color)', margin: '0.5rem 0' }}>3-4. 사업자 회원 · 전문가 회원</h3>
+        <h3 className="v2-legal-subhead">3-4. 사업자 회원 · 전문가 회원</h3>
         <LegalTable
           headers={['대상', '필수', '선택']}
           rows={[
@@ -92,7 +92,7 @@ export const PrivacyPage: React.FC = () => {
           ]}
         />
 
-        <h3 style={{ fontSize: '1rem', color: 'var(--primary-color)', margin: '0.5rem 0' }}>3-5. 회사가 수집하지 않는 정보</h3>
+        <h3 className="v2-legal-subhead">3-5. 회사가 수집하지 않는 정보</h3>
         <p>아래는 회사가 수집하지 않으며, 앞으로도 수집하지 않을 것을 명시합니다.</p>
         <LegalTable
           headers={['항목', '비고']}
@@ -106,7 +106,7 @@ export const PrivacyPage: React.FC = () => {
         {/* 3-6(위치정보) — 방통위 위치기반서비스사업 신고 완료 전까지 렌더링하지 않는다(00-21 §0.2). */}
         {LOCATION_LEGAL_PUBLISHED && (
           <>
-            <h3 style={{ fontSize: '1rem', color: 'var(--primary-color)', margin: '0.5rem 0' }}>3-6. 위치정보</h3>
+            <h3 className="v2-legal-subhead">3-6. 위치정보</h3>
             <p>
               회사는 장사시설 안내 서비스를 위하여 이용자의 위치정보를 이용합니다. 상세한 사항은 「위치정보의 보호 및 이용 등에 관한 법률」에
               따라 이용약관 제19조~제21조에 명시되어 있으며, 아래는 그 요약입니다.
@@ -156,7 +156,7 @@ export const PrivacyPage: React.FC = () => {
             ['유품 정리·수거 업체', '수거 견적 상담', '이름, 연락처, 요청 내용', '목적 달성 후 파기(해당 서비스 개시 시 적용)'],
           ]}
         />
-        <p style={{ color: 'var(--text-muted)', fontSize: 'var(--fs-body)' }}>
+        <p className="v2-legal-note">
           제휴 사업자가 아닌 시설에 문의하시는 경우, 회사는 이용자의 개인정보를 누구에게도 전달하지 않습니다. 이 경우 회사가 직접 안내해
           드립니다.
         </p>
@@ -172,7 +172,7 @@ export const PrivacyPage: React.FC = () => {
             ['카카오(주)', '좌표 → 지역명 변환'],
           ]}
         />
-        <p style={{ color: 'var(--text-muted)', fontSize: 'var(--fs-body)' }}>
+        <p className="v2-legal-note">
           결제·문자·알림 발송 등은 현재 도입하지 않았으므로 수탁자가 없습니다. 도입 시 이 표를 갱신하고 사전에 공지합니다.
         </p>
       </LegalArticle>
@@ -189,7 +189,7 @@ export const PrivacyPage: React.FC = () => {
             ['Google LLC', '미국', '이메일 주소, 프로필 정보', '구글 계정으로 로그인하는 시점에 API 호출', '소셜 로그인 인증', '연동 해제 시까지'],
           ]}
         />
-        <p style={{ color: 'var(--text-muted)', fontSize: 'var(--fs-body)' }}>카카오·네이버 로그인은 국내 사업자이므로 국외 이전에 해당하지 않습니다.</p>
+        <p className="v2-legal-note">카카오·네이버 로그인은 국내 사업자이므로 국외 이전에 해당하지 않습니다.</p>
       </LegalArticle>
 
       <LegalArticle title="제8조 (개인정보의 파기 절차 및 방법)">
@@ -205,7 +205,7 @@ export const PrivacyPage: React.FC = () => {
       </LegalArticle>
 
       <LegalArticle title="제9조 (정보주체와 법정대리인의 권리·의무 및 행사방법)">
-        <h3 style={{ fontSize: '1rem', color: 'var(--primary-color)', margin: '0.5rem 0' }}>9-1. 이용자의 권리</h3>
+        <h3 className="v2-legal-subhead">9-1. 이용자의 권리</h3>
         <p>이용자는 회사에 대해 언제든지 다음 각 호의 권리를 행사할 수 있습니다.</p>
         <LegalList>
           <li>개인정보 열람 요구</li>
@@ -217,9 +217,9 @@ export const PrivacyPage: React.FC = () => {
           권리 행사는 서면·전자우편 등을 통하여 하실 수 있으며, 회사는 지체 없이 조치합니다. 정보주체의 대리인을 통하여 하실 수도 있으며, 이
           경우 위임장을 제출하셔야 합니다.
         </p>
-        <p style={{ color: 'var(--text-muted)', fontSize: 'var(--fs-body)' }}>회사는 권리 행사를 이유로 이용자에게 어떠한 불이익도 주지 않습니다.</p>
+        <p className="v2-legal-note">회사는 권리 행사를 이유로 이용자에게 어떠한 불이익도 주지 않습니다.</p>
 
-        <h3 style={{ fontSize: '1rem', color: 'var(--primary-color)', margin: '0.5rem 0' }}>9-2. 만 14세 미만 아동</h3>
+        <h3 className="v2-legal-subhead">9-2. 만 14세 미만 아동</h3>
         <p>이어봄은 만 14세 미만 아동을 대상으로 하는 서비스가 아니며, 만 14세 미만 아동의 회원 가입을 받지 않습니다.</p>
       </LegalArticle>
 
@@ -236,18 +236,18 @@ export const PrivacyPage: React.FC = () => {
       </LegalArticle>
 
       <LegalArticle title="제11조 (개인정보 자동 수집 장치의 설치·운영 및 그 거부에 관한 사항)">
-        <h3 style={{ fontSize: '1rem', color: 'var(--primary-color)', margin: '0.5rem 0' }}>11-1. 회사는 쿠키(cookie)를 사용하지 않습니다.</h3>
+        <h3 className="v2-legal-subhead">11-1. 회사는 쿠키(cookie)를 사용하지 않습니다.</h3>
         <p>
           회사는 이용자의 활동을 추적하기 위한 쿠키를 설치·운영하지 않습니다. 로그인 상태 유지를 위해 이용자의 브라우저 저장소(local
           storage)에 인증 토큰과 표시용 이름을 저장하며, 이는 이용자의 기기 안에만 저장되고 회사 서버로 별도 수집되지 않습니다. 브라우저의
           인터넷 사용기록 삭제 기능으로 언제든 직접 지우실 수 있습니다.
         </p>
-        <h3 style={{ fontSize: '1rem', color: 'var(--primary-color)', margin: '0.5rem 0' }}>11-2. 회사는 제3자 분석·광고 도구를 사용하지 않습니다.</h3>
+        <h3 className="v2-legal-subhead">11-2. 회사는 제3자 분석·광고 도구를 사용하지 않습니다.</h3>
         <p>
           구글 애널리틱스 등 외부 분석 도구, 광고 식별자, 행태정보 수집 도구를 일체 설치하고 있지 않습니다. 따라서 회사는 이용자의 관심사·행태를
           분석하거나 맞춤형 광고에 활용하지 않습니다.
         </p>
-        <h3 style={{ fontSize: '1rem', color: 'var(--primary-color)', margin: '0.5rem 0' }}>11-3. 추모관 중복 참여 방지를 위한 식별값</h3>
+        <h3 className="v2-legal-subhead">11-3. 추모관 중복 참여 방지를 위한 식별값</h3>
         <p>
           비회원이 헌화에 참여하는 경우, 중복 참여를 억제하기 위해 접속 IP와 브라우저 식별값을 결합한 뒤 즉시 복원 불가능한 형태(해시)로
           변환하여 저장합니다. IP 주소 원문은 저장하지 않습니다.

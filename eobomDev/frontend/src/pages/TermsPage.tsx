@@ -1,5 +1,5 @@
 import React from 'react';
-import { LegalDocLayout, LegalArticle, LegalChapter, LegalList, LegalTable } from '../components/legal/LegalDocLayout';
+import { LegalDocLayout, LegalArticle, LegalChapter, LegalList, LegalSubList, LegalTable } from '../components/legal/LegalDocLayout';
 import { LOCATION_LEGAL_PUBLISHED } from '../config';
 
 // docs/00_핵심플랫폼/00-21_서비스_이용약관_초안.md 본문(제10~18조·22~24조·부칙)을 그대로 옮긴 화면.
@@ -50,7 +50,7 @@ export const TermsPage: React.FC = () => {
         <LegalArticle title="제4조 (약관 외 준칙)">
           <p>
             이 약관에 규정되지 않은 사항은 관련 법령 및 회사가 정한 개별 운영정책에 따릅니다. 개인정보의 처리에 관한 사항은 별도의{' '}
-            <a href="/privacy" style={{ color: 'var(--point-color)', fontWeight: 600 }}>
+            <a href="/privacy" className="v2-legal-inline-link">
               개인정보처리방침
             </a>
             에 따릅니다.
@@ -66,11 +66,11 @@ export const TermsPage: React.FC = () => {
             <li>만 14세 미만 아동의 가입은 받지 않습니다.</li>
             <li>
               회사는 다음의 경우 승낙을 거부하거나 사후에 이용계약을 해지할 수 있습니다.
-              <ul style={{ marginTop: '0.4rem' }}>
+              <LegalSubList>
                 <li>타인의 명의를 이용한 경우</li>
                 <li>허위 정보를 기재한 경우</li>
                 <li>허위의 고인 정보로 추모관 또는 부고를 개설한 경우(제15조)</li>
-              </ul>
+              </LegalSubList>
             </li>
           </LegalList>
         </LegalArticle>
@@ -122,11 +122,11 @@ export const TermsPage: React.FC = () => {
             <li>회사는 이용자와 파트너 회원·전문가 회원 사이의 연결을 제공할 뿐이며, 그 사이에 체결되는 계약의 당사자가 아닙니다.</li>
             <li>
               회사는 다음에 대하여 보증하거나 책임을 인수하지 않습니다.
-              <ul style={{ marginTop: '0.4rem' }}>
+              <LegalSubList>
                 <li>파트너 회원·전문가 회원이 제공하는 서비스의 품질·가격·이행</li>
                 <li>견적 금액의 적정성 및 금액에 관한 분쟁의 중재</li>
                 <li>작업 과정에서 발생한 물품의 훼손·분실 등의 사고</li>
-              </ul>
+              </LegalSubList>
             </li>
             <li>다만 회사는 파트너 회원·전문가 회원의 등록 시 사업자등록증·자격증 등을 심사하며, 중대한 문제가 확인된 경우 노출을 중단하거나 자격을 정지할 수 있습니다.</li>
           </LegalList>
@@ -165,10 +165,10 @@ export const TermsPage: React.FC = () => {
             </li>
             <li>
               다만 다음의 경우에는 예외적으로 내용을 확인할 수 있습니다.
-              <ul style={{ marginTop: '0.4rem' }}>
+              <LegalSubList>
                 <li>법원의 영장 등 법령에 따른 적법한 요구가 있는 경우 — 이 경우 회사는 이를 거부할 수 없습니다.</li>
                 <li>이용자 본인이 명시적으로 요청하고 본인 확인 절차를 거친 경우.</li>
-              </ul>
+              </LegalSubList>
             </li>
             <li>예외적 열람이 이루어진 경우, 회사는 열람 사유를 기록하고 이용자 또는 이용자가 지정한 유족에게 그 사실을 통지합니다.</li>
           </LegalList>
@@ -216,12 +216,12 @@ export const TermsPage: React.FC = () => {
             <li>추모관 개설자는 자신의 추모관에 등록된 방명록을 삭제할 수 있습니다.</li>
             <li>
               회사는 다음의 게시물을 사전 통지 없이 비공개 처리할 수 있습니다.
-              <ul style={{ marginTop: '0.4rem' }}>
+              <LegalSubList>
                 <li>타인을 비방하거나 명예를 훼손하는 내용</li>
                 <li>고인과 유족의 인격을 침해하는 내용</li>
                 <li>광고·홍보 목적의 내용</li>
                 <li>법령에 위반되는 내용</li>
-              </ul>
+              </LegalSubList>
             </li>
             <li>비공개 처리된 게시물은 분쟁 대응을 위해 일정 기간 보관된 후 파기됩니다.</li>
           </LegalList>
@@ -291,10 +291,10 @@ export const TermsPage: React.FC = () => {
             <li>파트너·전문가 회원의 가입은 회사의 심사와 승인을 거쳐 효력이 발생합니다. 등록만으로 승인되지 않습니다.</li>
             <li>
               회사는 다음의 경우 자격을 정지하거나 노출을 중단할 수 있습니다.
-              <ul style={{ marginTop: '0.4rem' }}>
+              <LegalSubList>
                 <li>제출 서류가 허위이거나 자격이 실효된 경우</li>
                 <li>이용자에 대한 중대한 불이행·불법행위가 확인된 경우</li>
-              </ul>
+              </LegalSubList>
             </li>
             <li>수수료·정산 및 이의제기 절차는 별도의 파트너 운영정책에 따릅니다.</li>
           </LegalList>

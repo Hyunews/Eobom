@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { AlertTriangle } from 'lucide-react';
+import '../../styles/design-v2.css';
 
 interface LegalDocLayoutProps {
   title: string;
@@ -8,105 +9,147 @@ interface LegalDocLayoutProps {
   children: React.ReactNode;
 }
 
+interface TocEntry {
+  id: string;
+  label: string;
+}
+
+// id 속성·스크롤 대상으로 쓸 조 제목 슬러그. 문서 안에서 제목이 겹치지 않으므로 이걸로 충분하다.
+const slugify = (title: string) =>
+  title
+    .trim()
+    .replace(/\s+/g, '-')
+    .replace(/[^\w\-가-힣]/g, '');
+
+// 좌측 목차용 항목을 children에서 뽑는다 — LegalChapter는 한 겹 더 들어가고, LegalArticle이
+// 실제 항목이다(§9.2 ③). LOCATION_LEGAL_PUBLISHED로 조문 자체가 안 보이면 여기서도 자동으로 빠진다.
+function collectTocEntries(children: React.ReactNode): TocEntry[] {
+  const entries: TocEntry[] = [];
+  React.Children.forEach(children, (child) => {
+    if (!React.isValidElement(child)) return;
+    if (child.type === LegalArticle) {
+      const title = (child.props as { title: string }).title;
+      entries.push({ id: slugify(title), label: title });
+    } else if (child.type === LegalChapter) {
+      entries.push(...collectTocEntries((child.props as { children: React.ReactNode }).children));
+    }
+  });
+  return entries;
+}
+
 // 법적 문서(약관·처리방침) 공용 레이아웃 — docs 00-19 / 00-21의 본문을 그대로 담는 화면.
 // 두 문서 다 아직 v0.9 초안이라(docs 00-18 §8.1 게시 게이트 미통과) 상단에 준비중 배너를
 // 고정한다. 실제 시행(v1.0) 전환 시 이 배너만 제거하면 된다.
+// 00-39 §9.1 그룹③ — §6.7의 좌측 목차 골격(.v2-guide-shell/-toc/-main)은 그대로 쓰되, 조(條)
+// 단위 구획은 .v2-section을 쓰지 않는다(§6.5 모바일 탭 전환 규칙과 묶여 있어 그대로 쓰면
+// 탭이 없는 이 화면에서 본문이 통째로 사라진다 — 아래 v2-legal-* 는 그래서 새로 만든 것).
 export const LegalDocLayout: React.FC<LegalDocLayoutProps> = ({ title, effectiveDateLabel, children }) => {
+  const mainRef = useRef<HTMLDivElement | null>(null);
+  const tocEntries = collectTocEntries(children);
+  const tocKey = tocEntries.map((e) => e.id).join('|');
+  const [activeId, setActiveId] = useState<string>(tocEntries[0]?.id ?? '');
+
+  useEffect(() => {
+    const container = mainRef.current;
+    if (!container || !tocKey) return;
+    const sections = tocKey
+      .split('|')
+      .map((id) => container.querySelector<HTMLElement>(`#${CSS.escape(id)}`))
+      .filter((el): el is HTMLElement => Boolean(el));
+    if (sections.length === 0) return;
+
+    const observer = new IntersectionObserver(
+      (observerEntries) => {
+        const visible = observerEntries.filter((e) => e.isIntersecting);
+        if (visible.length === 0) return;
+        const topMost = visible.reduce((a, b) => (a.boundingClientRect.top < b.boundingClientRect.top ? a : b));
+        if (topMost.target.id) setActiveId(topMost.target.id);
+      },
+      { rootMargin: '-96px 0px -70% 0px', threshold: 0 }
+    );
+    sections.forEach((el) => observer.observe(el));
+    return () => observer.disconnect();
+  }, [tocKey]);
+
+  const scrollToEntry = (id: string) => {
+    mainRef.current?.querySelector(`#${CSS.escape(id)}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    setActiveId(id);
+  };
+
   return (
-    <div className="container" style={{ maxWidth: '860px', paddingBottom: '4rem' }}>
-      <div
-        style={{
-          backgroundColor: 'var(--state-critical-bg)',
-          border: '2px solid var(--state-critical-bg)',
-          borderRadius: 'var(--r-md)',
-          padding: '1rem 1.2rem',
-          marginBottom: '1.75rem',
-          display: 'flex',
-          alignItems: 'flex-start',
-          gap: 'var(--sp-3)'
-        }}
-      >
-        <AlertTriangle color="var(--state-critical-fg)" size={22} style={{ flexShrink: 0, marginTop: '0.1rem' }} />
+    <div className="v2-page">
+      <div className="v2-page-head">
+        <h1 className="v2-page-title">{title}</h1>
+        <p className="v2-page-subtitle">{effectiveDateLabel}</p>
+      </div>
+
+      <div className="v2-legal-draft-banner">
+        <AlertTriangle size={22} className="v2-legal-draft-icon" />
         <div>
-          <strong style={{ color: 'var(--state-critical-fg)', fontSize: 'var(--fs-body)' }}>시행 준비 중 — 공식 게시본이 아닙니다</strong>
-          <p style={{ color: 'var(--state-critical-fg)', fontSize: 'var(--fs-body)', margin: '0.25rem 0 0 0', lineHeight: 1.6 }}>
-            아래 내용은 공식 시행 전 초안이며, 일부 항목은 확정되는 대로 채워집니다.
-          </p>
+          <strong className="v2-legal-draft-title">시행 준비 중 — 공식 게시본이 아닙니다</strong>
+          <p className="v2-legal-draft-desc">아래 내용은 공식 시행 전 초안이며, 일부 항목은 확정되는 대로 채워집니다.</p>
         </div>
       </div>
 
-      <h1 style={{ color: 'var(--primary-color)', fontSize: '1.9rem', margin: '0 0 0.3rem 0' }}>{title}</h1>
-      <p style={{ color: 'var(--text-muted)', fontSize: 'var(--fs-body)', marginBottom: '2rem' }}>{effectiveDateLabel}</p>
+      <div className="v2-guide-shell">
+        <div className="v2-guide-main" ref={mainRef}>
+          {children}
 
-      {/* 00-38 §4.3·§8.5 — 법정 고지 본문은 "몰입 리더·긴 글"에 해당해 --lh-reader(1.9)를 쓴다.
-          기존 1.8(=--lh-body 기본값)과 거의 같아 시각 차이는 미미하지만, 토큰 밖 리터럴을 없앤다. */}
-      <div style={{ color: 'var(--primary-color)', lineHeight: 'var(--lh-reader)' }}>{children}</div>
+          <div className="v2-legal-back">
+            <Link to="/" className="v2-legal-back-link">
+              ← 이어봄 홈으로
+            </Link>
+          </div>
+        </div>
 
-      <div style={{ marginTop: '3rem', paddingTop: '1.5rem', borderTop: '1px solid var(--border-color)' }}>
-        <Link to="/" style={{ color: 'var(--point-color)', fontWeight: 600, textDecoration: 'none' }}>
-          ← 이어봄 홈으로
-        </Link>
+        {tocEntries.length > 0 && (
+          <nav className="v2-guide-toc" aria-label="조문 목차">
+            {tocEntries.map((entry) => (
+              <button
+                key={entry.id}
+                type="button"
+                className={`v2-toc-item${activeId === entry.id ? ' is-current' : ''}`}
+                onClick={() => scrollToEntry(entry.id)}
+              >
+                <span>{entry.label}</span>
+              </button>
+            ))}
+          </nav>
+        )}
       </div>
     </div>
   );
 };
 
-// 조(條) 단위 섹션 — 제목(h2) + 본문.
+// 조(條) 단위 섹션 — 제목(h2) + 본문. id는 좌측 목차의 스크롤 대상이다.
 export const LegalArticle: React.FC<{ title: string; children: React.ReactNode }> = ({ title, children }) => (
-  <section style={{ marginBottom: '2.25rem' }}>
-    <h2 style={{ color: 'var(--primary-color)', fontSize: '1.2rem', marginBottom: 'var(--sp-3)', paddingBottom: '0.5rem', borderBottom: '1px solid var(--border-color)' }}>
-      {title}
-    </h2>
-    <div style={{ fontSize: 'var(--fs-body)', color: '#374151' }}>{children}</div>
+  <section id={slugify(title)} className="v2-legal-article">
+    <div className="v2-legal-article-head">
+      <h2 className="v2-legal-article-title">{title}</h2>
+    </div>
+    <div className="v2-legal-article-body v2-prose">{children}</div>
   </section>
 );
 
 // 장(章) 단위 구분 — 여러 조를 묶는 표제.
 export const LegalChapter: React.FC<{ title: string; children: React.ReactNode }> = ({ title, children }) => (
-  <div style={{ marginBottom: '1rem' }}>
-    <h3
-      style={{
-        color: '#FFFFFF',
-        backgroundColor: 'var(--primary-color)',
-        display: 'inline-block',
-        fontSize: 'var(--fs-body)',
-        fontWeight: 700,
-        padding: '0.3rem 0.9rem',
-        borderRadius: 'var(--r-md)',
-        marginBottom: '1.25rem'
-      }}
-    >
-      {title}
-    </h3>
+  <div className="v2-legal-chapter">
+    <h3 className="v2-legal-chapter-title">{title}</h3>
     {children}
   </div>
 );
 
 // 항 번호가 매겨진 목록 — 법령 표기(1. 2. 3.)와 시각적으로 맞춘 순서 목록.
-export const LegalList: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-  <ol style={{ paddingLeft: '1.4rem', margin: '0 0 var(--sp-3) 0', lineHeight: 'var(--lh-reader)' }}>{children}</ol>
-);
+export const LegalList: React.FC<{ children: React.ReactNode }> = ({ children }) => <ol className="v2-legal-list">{children}</ol>;
 
 // 표 — 처리 목적/보유기간 등 표 형태 조항용.
 export const LegalTable: React.FC<{ headers: string[]; rows: (string | React.ReactNode)[][] }> = ({ headers, rows }) => (
-  <div style={{ overflowX: 'auto', margin: 'var(--sp-3) 0 1.25rem 0' }}>
-    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 'var(--fs-body)' }}>
+  <div className="v2-legal-table-wrap">
+    <table className="v2-legal-table">
       <thead>
         <tr>
           {headers.map((h) => (
-            <th
-              key={h}
-              style={{
-                textAlign: 'left',
-                padding: '0.6rem var(--sp-3)',
-                backgroundColor: 'var(--surface-subtle)',
-                color: 'var(--primary-color)',
-                borderBottom: `2px solid var(--border-color)`,
-                whiteSpace: 'nowrap'
-              }}
-            >
-              {h}
-            </th>
+            <th key={h}>{h}</th>
           ))}
         </tr>
       </thead>
@@ -114,13 +157,16 @@ export const LegalTable: React.FC<{ headers: string[]; rows: (string | React.Rea
         {rows.map((row, i) => (
           <tr key={i}>
             {row.map((cell, j) => (
-              <td key={j} style={{ padding: '0.6rem var(--sp-3)', borderBottom: '1px solid var(--border-color)', verticalAlign: 'top' }}>
-                {cell}
-              </td>
+              <td key={j}>{cell}</td>
             ))}
           </tr>
         ))}
       </tbody>
     </table>
   </div>
+);
+
+// 항 안에 오는 호(號) 하위 목록 — 예: 5조 5호처럼 항 텍스트 아래 한 단 더 들여쓴 목록.
+export const LegalSubList: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+  <ul className="v2-legal-sublist">{children}</ul>
 );

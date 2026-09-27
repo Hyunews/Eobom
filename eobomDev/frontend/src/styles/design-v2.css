@@ -2588,3 +2588,181 @@ a.v2-btn-solid {
     display: block;
   }
 }
+
+/* ── 그룹③(읽기·법정문서) — privacy 대표, terms 동일 패턴 (00-39 §9.1·§9.2, 2026-09-28) ──
+   좌측 목차 골격(.v2-guide-shell/-toc/-main)은 §6.7에 이미 있는 것을 그대로 쓴다. 조(條) 구획은
+   .v2-section을 쓰지 않는다 — .v2-section은 그룹①의 모바일 탭 전환 규칙(§6.5, display:none +
+   .is-active-section)과 묶여 있어 그대로 쓰면 탭이 없는 이 화면에서 본문이 통째로 사라진다. */
+.v2-legal-article {
+  margin-bottom: 40px;
+}
+
+.v2-legal-article-head {
+  padding-bottom: 10px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid var(--v2-divider-strong);
+}
+
+.v2-legal-article-title {
+  font-family: var(--v2-font-serif);
+  font-size: var(--v2-fs-section-title);
+  font-weight: 700;
+  line-height: var(--v2-lh-title);
+  margin: 0;
+}
+
+.v2-legal-article-body {
+  font-size: var(--v2-fs-body);
+  color: var(--v2-text-main);
+  line-height: var(--lh-reader);
+}
+
+.v2-legal-article-body p {
+  margin: 0 0 16px;
+}
+
+.v2-legal-article-body p:last-child {
+  margin-bottom: 0;
+}
+
+/* 장(章) 표제 — 조문보다 한 단 위 구분이라 점 배지가 아니라 채운 알약으로 (본문 포인트색 재사용) */
+.v2-legal-chapter {
+  margin-bottom: 8px;
+}
+
+.v2-legal-chapter-title {
+  display: inline-block;
+  font-family: var(--v2-font-sans);
+  font-size: var(--v2-fs-support);
+  font-weight: 700;
+  color: #FFFFFF;
+  background: var(--v2-point);
+  padding: 6px 16px;
+  border-radius: 4px;
+  margin: 0 0 24px;
+}
+
+/* 조문 안의 하위 제목(예: "3-1. 이용자") — 항목 제목과 같은 굵기, 표제만큼 크지 않게 */
+.v2-legal-subhead {
+  font-size: var(--v2-fs-body);
+  font-weight: 700;
+  color: var(--v2-text-main);
+  margin: 24px 0 8px;
+}
+
+/* 조문 부연(예: "회사는 ... 하지 않습니다") — 본문보다 옅고 작게, 목록의 보조·기한과 같은 톤 */
+.v2-legal-note {
+  font-size: var(--v2-fs-support);
+  color: var(--v2-text-muted);
+  line-height: 1.6;
+  margin: 0 0 16px;
+}
+
+.v2-legal-list {
+  padding-left: 22px;
+  margin: 0 0 20px;
+  line-height: var(--lh-reader);
+}
+
+.v2-legal-list li {
+  margin-bottom: 8px;
+}
+
+.v2-legal-list li:last-child {
+  margin-bottom: 0;
+}
+
+/* 항 아래 호(號) — 한 단 더 들여쓴 하위 목록 */
+.v2-legal-sublist {
+  margin: 8px 0 8px 4px;
+  padding-left: 20px;
+  line-height: var(--lh-reader);
+}
+
+.v2-legal-table-wrap {
+  overflow-x: auto;
+  margin: 16px 0 20px;
+}
+
+.v2-legal-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--v2-fs-support);
+}
+
+.v2-legal-table th {
+  text-align: left;
+  padding: 10px 14px;
+  background: var(--v2-selected-bg);
+  color: var(--v2-text-main);
+  border-bottom: 2px solid var(--v2-divider-strong);
+  white-space: nowrap;
+}
+
+.v2-legal-table td {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--v2-divider);
+  vertical-align: top;
+}
+
+/* 본문 안 프로즈 링크(예: 이용약관→개인정보처리방침) — 버튼(규칙7, 테두리)과는 다른 자리라 밑줄을 쓴다 */
+.v2-legal-inline-link {
+  color: var(--v2-point);
+  font-weight: 600;
+  text-decoration: underline;
+}
+
+/* 시행 준비 중 배너 — 아직 공식 게시본이 아님을 알리는 고정 안내(그림자 없이 옅은 배경+테두리) */
+.v2-legal-draft-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  background: rgba(192, 57, 43, 0.08);
+  border: 1px solid rgba(192, 57, 43, 0.25);
+  border-radius: 4px;
+  padding: 16px 20px;
+  margin: 0 auto 32px;
+  max-width: calc(var(--v2-toc-width) + var(--v2-reading-width) + 48px);
+}
+
+.v2-legal-draft-icon {
+  flex-shrink: 0;
+  color: var(--v2-urgent);
+  margin-top: 2px;
+}
+
+.v2-legal-draft-title {
+  display: block;
+  font-size: var(--v2-fs-body);
+  font-weight: 700;
+  color: var(--v2-urgent);
+}
+
+.v2-legal-draft-desc {
+  font-size: var(--v2-fs-support);
+  color: var(--v2-text-muted);
+  line-height: 1.6;
+  margin: 4px 0 0;
+}
+
+.v2-legal-back {
+  margin-top: 48px;
+  padding-top: 24px;
+  border-top: 1px solid var(--v2-divider);
+}
+
+.v2-legal-back-link {
+  color: var(--v2-point);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+@media (max-width: 767px) {
+  .v2-legal-article-title {
+    font-size: var(--v2-fs-section-title-mobile);
+  }
+
+  .v2-legal-draft-banner {
+    max-width: 100%;
+  }
+}

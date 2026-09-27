@@ -870,7 +870,7 @@
   4. 옛 토큰(`--primary-color`·`--point-color`·`--card-bg`·`--secondary-color`·`--text-muted`·`--fs-*`·`--sp-*` 등) 전량 제거, `page-title`/`page-subtitle` 클래스도 `.v2-page-title`/`.v2-page-subtitle`로 교체. 장식 배지("온라인 추모 공간")와 제목 아이콘은 뺐다 — my-obituaries·counseling 등 이미 이관된 그룹① 화면 어디에도 그런 배지가 없어 규칙 5(긴급도 배지 금지)와 같은 결로 판단.
   5. 기능은 그대로: 만들기(POST /api/memorials)·삭제(DELETE, 소프트)·주소복사(copyObituaryLink)·공개범위 3종. 백엔드 변경 없음.
   6. 검증: `npx tsc --noEmit -p .`·`npm run build`(frontend) 통과. dev 서버는 기동 확인만(응답 200 미확인 — HTTPS 자체서명 인증서로 curl 실패, 즉시 kill) 하고 렌더 스크린샷 대조는 안 했다 — 사람 실기동 확인 정책(dev 서버는 사람이 직접 확인) 때문에 여기서 멈춤.
-  7. **사람 피드백 반영(같은 날)** — ⓐ "새 추모관 만들기" 버튼을 좌측 정렬에서 우측 정렬로(감싸는 `flex`+`justify-content: flex-end`). ⓑ 부제 "조문객이 온라인으로 헌화·방명록을 남길 수 있는 공간입니다. 부고장과 별개로 여기서 직접 만들고 지웁니다."가 *"AI가 만든 md파일 내용 같다"*는 지적 — 두 번째 문장(부고장과의 내부 분리 로직 설명, 사용자에게 불필요)을 통째로 빼고 "조문객이 헌화·방명록을 남길 수 있는 추모 공간입니다."로 축약([[feedback_no_ai_tone_ui_copy]] 09-22 추가 지적과 같은 신호 — 화면 문구에 내부 설계 이유를 옮기지 않는다).
+  7. **사람 피드백 반영(같은 날)** — ⓐ "새 추모관 만들기" 버튼을 좌측 정렬에서 우측 정렬로(감싸는 `flex`+`justify-content: flex-end`). ⓑ 부제 "조문객이 온라인으로 헌화·방명록을 남길 수 있는 공간입니다. 부고장과 별개로 여기서 직접 만들고 지웁니다."가 *"AI가 만든 md파일 내용 같다"*는 지적 — 두 번째 문장(부고장과의 내부 분리 로직 설명, 사용자에게 불필요)을 통째로 빼고 "조문객이 헌화·방명록을 남길 수 있는 추모 공간입니다."로 축약(`00-39` §6.2 "AI 어투 금지" 09-22 지적과 같은 신호 — 화면 문구에 내부 설계 이유를 옮기지 않는다).
 - **편차**:
   - 🔴 **만들기 폼을 모달이 아니라 인라인으로 유지**했다. 규칙 21("수정은 새 화면이 아니라 모달")은 문언상 *수정*에 대한 것이고 *만들기*는 명시가 없어, 기존 UX(목록 위 인라인 확장 카드)를 유지하는 쪽으로 판단했다 — 사람이 다른 판단을 하면 `.v2-modal.is-form`(560px)로 옮기면 된다.
   - 삭제 확인 문구가 §6.4 규칙 10(안내 모달은 세 줄: 제목·기한·근거)을 문자 그대로 따르지 않는다 — §6.4는 법정기한 안내 모달용이라 확인/취소 모달에는 기계적으로 안 맞았고, 대신 규칙 11(해설·조언 없이 사실만)의 정신만 가져와 결과(링크 무효화)와 남는 것(방명록·헌화)만 진술했다.
@@ -1000,3 +1000,29 @@
 
 <!-- Gemini 판정 1줄: ✅통과 (EndingNotePage.tsx v2-will-draft-actions 클래스 부여 확인 / design-v2.css 767px 2x2 그리드 및 저장 버튼 grid-column:1/-1 분기 실장 확인 / 빌드 통과) -->
 
+
+
+## 2026-09-28 | privacy·terms(그룹③ 읽기·법정문서) v2 이관
+
+- **근거 스펙**: `docs/00_핵심플랫폼/00-39_디자인_기준_재정립_명세서.md` §3(색)·§4(글자)·§5(레이아웃)·§6(규칙, 특히 §6.7 클래스 등재)·§9.1(그룹③ 대표=privacy)·§9.2(③ 시안 사유=조 번호·목차 등 법정문서 구조)·§9.3(각 화면에서 하는 일)
+- **건드린 파일**: `eobomDev/frontend/src/components/legal/LegalDocLayout.tsx`, `eobomDev/frontend/src/pages/PrivacyPage.tsx`, `eobomDev/frontend/src/pages/TermsPage.tsx`, `eobomDev/frontend/src/styles/design-v2.css`
+- **결과**:
+  - `LegalDocLayout.tsx`를 옛 토큰(`--primary-color`·`--text-muted`·`--point-color`·`--fs-body`·`--state-critical-bg/fg`·`--border-color`·`--r-md`·`--sp-3`)과 인라인 스타일 전부 제거하고 `.v2-page`/`.v2-page-head`/`.v2-guide-shell`/`.v2-guide-toc`/`.v2-toc-item`/`.v2-guide-main`/`.v2-prose`(기존 §6.7 등재분 재사용) + 새 `v2-legal-*` 클래스로 재작성.
+  - 좌측 목차를 **새 기능으로 추가**했다(기존엔 없었음) — `LegalArticle`(조)마다 제목을 슬러그화한 `id`를 달고, `LegalDocLayout`이 children을 순회해 조 목록을 뽑아 `.v2-guide-toc`에 렌더링. `IntersectionObserver`로 스크롤에 따라 `.is-current` 하이라이트(`CareGuidePage.tsx`의 스크롤스파이와 같은 패턴). 클릭하면 `scrollIntoView`.
+  - `LegalArticle`은 `.v2-section`을 재사용하지 **않고** 새 클래스(`v2-legal-article` 등)를 만들었다 — `.v2-section`은 §6.5 모바일 탭 전환 규칙(`display:none`+`.is-active-section`)과 묶여 있어 그대로 쓰면 그룹③(탭 없음)에서 본문이 모바일에서 통째로 사라진다.
+  - **새로 만든 클래스**(Opus §6.7 등재 검토 대상): `v2-legal-article`·`v2-legal-article-head`·`v2-legal-article-title`·`v2-legal-article-body`·`v2-legal-chapter`·`v2-legal-chapter-title`·`v2-legal-subhead`·`v2-legal-note`·`v2-legal-list`·`v2-legal-sublist`·`v2-legal-table-wrap`·`v2-legal-table`(th/td 포함)·`v2-legal-inline-link`·`v2-legal-draft-banner`·`v2-legal-draft-icon`·`v2-legal-draft-title`·`v2-legal-draft-desc`·`v2-legal-back`·`v2-legal-back-link`.
+  - **인라인 스타일 수(전/후)**: `LegalDocLayout.tsx` 20→0, `PrivacyPage.tsx` 17→0, `TermsPage.tsx` 6→0 (총 43→0).
+  - 본문 줄간격은 `--lh-reader`(옛 토큰, §9.2 ③ 지시대로 유지) 그대로 사용, 글자 크기는 §4 확정값(`--v2-fs-body` 17px 등)으로 교체.
+  - 문구는 한 글자도 바꾸지 않았다 — `LegalTable`/`LegalList`의 셀·항목 텍스트는 손대지 않고 감싸는 `div`/`table`/`th`/`td`/`ol`/`ul`의 클래스만 교체. 개인정보처리방침 제6·7조 표 내용(위탁·국외이전) 원문 그대로.
+  - `npx tsc --noEmit`(frontend) 에러 0 · `npm run build`(frontend) 통과(`vite build` 성공, 청크 크기 경고는 기존부터 있던 것으로 이번 변경과 무관).
+- **편차**:
+  1. 좌측 목차(스크롤스파이 포함)는 스펙 §9.2 ③이 언급한 "목차 등 법정문서 구조"를 구현한 것이지만, 원래 화면엔 없던 **신규 기능**이라는 점은 명시해 둔다. 시안 없이 §9.3대로 바로 구현했다(③은 "짧게"로 분류돼 있어 시안 불필요 판단).
+  2. 모바일(767px 이하)은 목차를 그냥 숨긴다(`care-guide`처럼 가로 탭으로 대체하지 않음) — 조문 훑기가 목적인 화면이라 탭 전환까지는 과했다고 판단. 대체 네비게이션 없이 세로 스크롤만 남는다.
+  3. "시행 준비 중" 배너는 옛 `--state-critical-bg/fg`(레드) 톤을 유지하되 새 `--v2-urgent`(#C0392B) 기반 rgba 배경으로 재구성했다 — §3에 이 배너 자체에 대한 확정값은 없어 기존 배너의 "경고" 인상을 v2 팔레트로 옮긴 것뿐(문구는 무변경).
+- **다음 에이전트가 알아야 할 것**:
+  - 🔴 실기동 검증 대기(사람) — dev 서버는 켜지 않았다.
+  - 🟡 **360px에서 사람이 볼 것**: (a) `/privacy`·`/terms` 둘 다 좌측 목차가 사라지고 본문만 남는지, (b) 긴 조문(특히 `terms` 제20조 표·제11조 중첩 표)이 좁은 폭에서 줄바꿈이 깨지지 않는지, (c) "시행 준비 중" 배너가 모바일 여백(24px)에서 텍스트가 눌리지 않는지.
+  - 데스크톱에서도 사람이 볼 것: `terms`는 조문이 24개라 좌측 목차가 뷰포트보다 길어질 수 있다(내부 스크롤 없이 그냥 넘침) — `ending-note`(`.v2-note-toc`)·`mail`(`.v2-mail-sidebar`)도 같은 방식이라 이번에 새로 만들지 않았지만, 실측에서 불편하면 별건으로 다룰 것.
+  - Opus 몫: 위 "새로 만든 클래스" 목록의 §6.7 등재 여부 판단, 그리고 `.v2-guide-shell`류 골격이 `care-guide`(①)·`ending-note`(②)·이번 `legal`(③) 셋에서 반복되는데도 §6.7에 정식 등재가 안 돼 있던 기존 문제(발견만, 이번 세션에서 손대지 않음)도 함께 검토 대상.
+
+<!-- Gemini 판정 1줄: … -->
