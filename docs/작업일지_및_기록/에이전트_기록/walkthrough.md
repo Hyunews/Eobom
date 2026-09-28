@@ -1420,114 +1420,114 @@
 <!-- Gemini 판정 1줄: … -->
 
 
-## 2026-09-28 | ???뱀뀡1(?덉뼱濡? G4-c 諛섏쁺 + 紐⑤컮???명꽣 濡쒓퀬쨌臾멸뎄 ?꾩뿭 ?쒓굅
+## 2026-09-28 | 홈 섹션1(이어봄) G4-c 반영 + 모바일 푸터 로고·문구 전역 제거
 
-- **洹쇨굅 ?ㅽ럺**: docs/00_?듭떖?뚮옯??00-40_???쒕뵫_?ъ꽕怨?怨꾪쉷??md 짠3.3-4 "理쒖쥌 = G4-c"(?뮤룸え諛붿씪 怨듯넻). 紐⑤컮???명꽣 嫄댁? ?ㅽ럺 ?놁쓬 ???щ엺 吏???몄뀡 以?異붽?).
-- **嫄대뱶由??뚯씪**: eobomDev/frontend/src/components/home/HomeDesktop.tsx, eobomDev/frontend/src/components/home/HomeMobile.tsx, eobomDev/frontend/src/components/Footer.tsx, eobomDev/frontend/src/components/FooterMobile.tsx, eobomDev/frontend/src/index.css
-- **寃곌낵**:
-  - ?뮤룸え諛붿씪 ?뱀뀡1 臾멸뎄瑜?`"?λ?媛 ?앹씠 ?꾨땲?덉뒿?덈떎"` + ???ㅻ챸 臾몃떒 ??`"?댁뼱遊?`(??80px/紐⑤컮??52px 紐낆“) ??1px ??`#D8D2C8`/?곗깋50%) ??`"?λ?媛 ?꾨?媛 ?꾨땲?덉뒿?덈떎."`(?ㅻⅨ履??뺣젹) ???щ엺 ?묒꽦 ?ㅻ챸(??2以?紐⑤컮??3以??쇰줈 ?꾨㈃ 援먯껜(HomeDesktop.tsx L216-253, HomeMobile.tsx L260-271). ???묒? 諛곗?(C2)쨌`.home-m-hero-badge` ??젣.
-  - ??湲 ?⑹뼱由??쒖옉 ?꾩튂: `marginTop: 'calc((100vh - var(--header-h)) * 0.28)'`(?덈? ?꾩튂 誘몄궗?? 짠3.3-4 吏?쒕?濡?. ?쇱そ ?щ갚? ?뱀뀡2(??? 媛숈? 怨좎젙 80px.
-  - `.hero-photo-scrim`(index.css): `0~34% 0.96 ?좎? ??47% 0.62 ??62%遺??0`(?ㅻⅨ履??꾩쟾 ?щ챸, 100% 吏???낆? ?⑥깋 ?댄듃 ?쒓굅). `.hero-photo-bg` background-position `62% 48%` ??`72% 50%`.
-  - ?ㅻⅨ履???3媛??뚯빟(`.home-section-dots`, 二쇳솴 ?? ?쒓굅 ???ㅻⅨ履??꾨옒 `n / 3` ?띿뒪???덉뼱濡쒖뿉???곗깋 90%, ?섎㉧吏 ?뱀뀡 `#5C6773`).
-  - `.home-m-hero-scrim`: ?믪씠 70%??0%, `0 ??0.55(40%) ??0.8(100%)`濡?援먯껜. `.home-m-hero-text` bottom `96px`??150px`.
-  - (?몄뀡 以?異붽? 吏?? `FooterMobile.tsx`?먯꽌 ?댁뼱遊??щ낵 濡쒓퀬 釉붾줉怨?移댄뵾?쇱씠?몄쓽 "?댁뼱遊?(Eobom)" 臾멸뎄瑜??꾩뿭?쇰줈 ?쒓굅 ???댁젣 紐⑤뱺 ?섏씠吏??紐⑤컮???명꽣???곸슜(`hideLogo` prop ?먯껜瑜?Footer.tsx쨌FooterMobile.tsx쨌HomeMobile.tsx?먯꽌 ?쒓굅, 議곌굔遺 ?꾨떂).
-  - `cd eobomDev/frontend && npx tsc --noEmit` ?듦낵(exit 0) 쨌 `npm run build` ?듦낵(vite build, 1546 modules).
-- **?몄감**:
-  - ?ㅽ럺 臾멸뎄 "蹂몃Ц 1048px ?곸옄???쇱そ ?????대떦?섎뒗 怨듭슜 而⑦뀒?대꼫媛 肄붾뱶踰좎씠?ㅼ뿉 ?놁뼱(?뱀뀡2 duo???숈씪?섍쾶 怨좎젙 80px ?щ갚?쇰줈 援ы쁽???덉쓬, HomeDesktop.tsx L296-297 二쇱꽍) 1048px 罹??놁씠 怨좎젙 `padding: 0 80px`濡?援ы쁽 ???뱀뀡2? ?쒓컖?곸쑝濡?媛숈? ?쇱そ ?좎쓣 留욎텛??寃껋쑝濡?移섑솚.
-  - "?ㅻⅨ履??꾨옒 `1/3`" 臾멸뎄媛 짠3.3-4 "?④퍡 怨좎튌 寃? ?덉뿉???뱀뀡1(?덉뼱濡? 留λ씫?쇰줈 ?깆옣?섏?留? ??`.home-section-dots`媛 ?먮옒 3媛??뱀뀡 ?꾩껜(0~2)??嫄몄퀜 ?뚮뜑?섎뜕 寃껋쓣 洹몃?濡??泥댄뻽?쇰?濡????몃뵒耳?댄꽣??3媛??뱀뀡 ?꾩껜???곸슜(紐⑤컮??M-4 "紐⑤뱺 移? 諛⑹떇怨??숈씪?섍쾶 留욎땄).
-  - 紐⑤컮???명꽣 濡쒓퀬쨌臾멸뎄 ?쒓굅??짠3.3-4???녿뒗 ?щ엺???몄뀡 以?援щ몢 吏??"?꾩뿭?쇰줈 ?곸슜")瑜?洹몃?濡?諛섏쁺??寃???臾몄꽌(00-40 ?? 誘몃컲?? Opus 履?臾몄꽌???꾩슂 ??蹂꾧굔.
-- **?ㅼ쓬 ?먯씠?꾪듃媛 ?뚯븘????寃?*:
-  - dev ?쒕쾭 誘멸린???뺤콉) ???ㅺ린湲??ㅽ솕硫?寃利앹? ?щ엺 紐レ쑝濡??湲? 짠3.3-4 ?섎떒 "援ы쁽 ???щ엺??蹂?寃?(洹몃씪?곗씠???멸린쨌?ъ쭊 ?щ∼ ?꾩튂 ?? 紐⑸줉 洹몃?濡??좏슚.
-  - 而ㅻ컠? ?섏? ?딆쓬(CLAUDE.md ?뚯쑀沅?洹쒖튃) ??硫붿떆吏 珥덉븞留??꾨옒???④릿??
+- **근거 스펙**: docs/00_핵심플랫폼/00-40_홈_랜딩_재설계_계획서.md §3.3-4 "최종 = G4-c"(데스크톱·모바일 공통). 모바일 푸터 건은 스펙 없음 → 사람 지시(같은 세션 중 추가).
+- **건드린 파일**: eobomDev/frontend/src/components/home/HomeDesktop.tsx, eobomDev/frontend/src/components/home/HomeMobile.tsx, eobomDev/frontend/src/components/Footer.tsx, eobomDev/frontend/src/components/FooterMobile.tsx, eobomDev/frontend/src/index.css
+- **결과**:
+  - 데스크톱·모바일 섹션1 문구를 `"장례가 끝이 아니었습니다"` + 아래 설명 문단 → `"이어봄"`(데스크톱 80px/모바일 52px 명조) → 1px 선(`#D8D2C8`/흰색50%) → `"장례가 전부가 아니었습니다."`(오른쪽 정렬) → 사람 작성 설명(데스크톱 2줄·모바일 3줄)으로 전면 교체(HomeDesktop.tsx L216-253, HomeMobile.tsx L260-271). 작은 배지(C2)·`.home-m-hero-badge` 삭제.
+  - 데스크톱 이어봄 시작 위치: `marginTop: 'calc((100vh - var(--header-h)) * 0.28)'`(높이 위치 미사용, §3.3-4 지시대로). 왼쪽 여백은 섹션2(구독)와 같은 고정 80px.
+  - `.hero-photo-scrim`(index.css): `0~34% 0.96 유지 → 47% 0.62 → 62%부터 0`(오른쪽 완전 투명, 100% 지점의 옅은 남색 틴트 제거). `.hero-photo-bg` background-position `62% 48%` → `72% 50%`.
+  - 오른쪽 점 3개 알약(`.home-section-dots`, 주황 점) 제거 → 오른쪽 아래 `n / 3` 텍스트로 이어봄에서는 흰색, 나머지 섹션 `#5C6773`.
+  - `.home-m-hero-scrim`: 높이 70%→80%, `0 → 0.55(40%) → 0.8(100%)`로 교체. `.home-m-hero-text` bottom `96px`→`150px`.
+  - (세션 중 추가 지시): `FooterMobile.tsx`에서 이어봄 심볼 로고 블록과 카피라이트의 "이어봄(Eobom)" 문구를 전역으로 제거 → 이제 모든 페이지의 모바일 푸터에 적용(`hideLogo` prop 자체를 Footer.tsx·FooterMobile.tsx·HomeMobile.tsx에서 제거, 조건부 아님).
+  - `cd eobomDev/frontend && npx tsc --noEmit` 통과(exit 0) · `npm run build` 통과(vite build, 1546 modules).
+- **편차**:
+  - 스펙 문구 "본문 1048px 상자의 왼쪽 선 = 화면에 해당하는 공용 컨테이너"가 코드베이스에 없어(섹션2 duo와 동일하게 고정 80px 여백으로 구현돼 있음, HomeDesktop.tsx L296-297 주석) 1048px 상자 없이 고정 `padding: 0 80px`로 구현 → 섹션2와 시각적으로 같은 왼쪽 선을 맞추는 것으로 치환.
+  - "오른쪽 아래 `1/3`" 문구가 §3.3-4 "함께 고칠 것" 절에서는 섹션1(이어봄) 맥락으로 등장하지만, `.home-section-dots`가 원래 3개 섹션 전체(0~2)에 걸쳐 렌더되던 것을 그대로 유지했으므로 인디케이터도 3개 섹션 전체에 적용(모바일 M-4 "모든 칸 방식과 동일하게 맞춤").
+  - 모바일 푸터 로고·문구 제거는 §3.3-4에는 없는 사람의 세션 중 구두 지시("전역으로 적용")를 그대로 반영 → 문서(00-40 등) 미반영, Opus 판단 문서화 필요 시 별건.
+- **다음 에이전트가 알아야 할 것**:
+  - dev 서버 미기동(방침) → 실기동 검증은 사람 몫으로 남김. §3.3-4 하단 "구현 뒤 사람이 볼 것"(그라데이션 세기·사진 크롭 위치 등) 목록 그대로 유효.
+  - 커밋은 하지 않음(CLAUDE.md 소유권 규칙) → 메시지 초안만 아래에 남긴다.
 
-<!-- Gemini ?먯젙 ?湲?-->
+<!-- Gemini 판정 1줄: … -->
 
-## 2026-09-28 | ???뱀뀡1(?곗뒪?ы넲) ?덉뼱濡??쇱そ ?щ갚 ??怨좎젙 80px ???붾㈃ ??鍮꾨? 怨듭떇?쇰줈 ?뺤젙
+## 2026-09-28 | 홈 섹션1(데스크톱) 이어봄 왼쪽 여백 — 고정 80px → 화면 폭 비례 공식으로 확정
 
-- **洹쇨굅 ?ㅽ럺**: docs/00_?듭떖?뚮옯??00-40_???쒕뵫_?ъ꽕怨?怨꾪쉷??md 짠3.3-4([Opus] ?ъ??????쇱そ ?щ갚 怨꾩궛?씲룻솕硫???퀎 湲곕?媛?紐낆떆).
-- **嫄대뱶由??뚯씪**: eobomDev/frontend/src/components/home/HomeDesktop.tsx
-- **寃곌낵**:
-  - `.hero-body`??醫뚯슦 padding??`'0 80px'` ??`'0 max(80px, calc((100% - 1048px) / 2))'`濡?援먯껜(HomeDesktop.tsx L228). 225-231??二쇱꽍??"80px = 1048 ?곸옄 ?쇱そ ???대씪???由??ㅻ챸 ????ㅼ젣 怨꾩궛?씲룰렐嫄곕줈 ?뺤젙.
-  - ?뺤씤: `grep -n "hero-body" eobomDev/frontend/src/index.css` ??留ㅼ튂 0嫄??ㅻⅨ CSS 洹쒖튃 ?놁쓬, ?몃씪???ㅽ??쇱씠 ?좎씪???뚯뒪). `grep -rn "hero-body" eobomDev/frontend/src` ??HomeDesktop.tsx L228 ?⑥씪 留ㅼ튂.
-  - `node -e`濡?怨듭떇??吏곸젒 怨꾩궛??Opus媛 ?붽뎄??湲곕??쒖? ?꾩닔 ?議??꾨? ?쇱튂):
+- **근거 스펙**: docs/00_핵심플랫폼/00-40_홈_랜딩_재설계_계획서.md §3.3-4([Opus] 재지시 — 왼쪽 여백 계산식·화면별 기대값 명시).
+- **건드린 파일**: eobomDev/frontend/src/components/home/HomeDesktop.tsx
+- **결과**:
+  - `.hero-body`의 좌우 padding을 `'0 80px'` → `'0 max(80px, calc((100% - 1048px) / 2))'`로 교체(HomeDesktop.tsx L228). 225-231행 주석을 "80px = 1048 상자 왼쪽 선과 같다는 근거 설명"에서 실제 계산식·근거로 정정.
+  - 확인: `grep -n "hero-body" eobomDev/frontend/src/index.css` → 매치 0건(다른 CSS 규칙 없음, 인라인 스타일이 유일한 소스). `grep -rn "hero-body" eobomDev/frontend/src` → HomeDesktop.tsx L228 단일 매치.
+  - `node -e`로 공식을 직접 계산(Opus가 요구한 기대값과 수치 전부 일치 확인):
 
-    | ?뱀뀡 ??| 怨꾩궛媛?| 湲곕?媛?|
+    | 섹션 폭 | 계산값 | 기대값 |
     | :---: | :---: | :---: |
     | 1208px | 80 | 80 |
     | 1280px | 116 | 116 |
     | 1440px | 196 | 196 |
     | 1920px | 436 | 436 |
 
-  - ?몃줈 ?꾩튂(28%)쨌湲???ш린쨌媛꾧꺽쨌臾멸뎄쨌?ㅻⅨ履??뺣젹(62px ?덉そ)쨌?뱀뀡2 ?щ갚쨌?ㅻ뜑쨌`誘몃━ 以鍮?쨌 ?λ? 以鍮???쨌`1 / 3`쨌紐⑤컮??HomeMobile)? ?먮?吏 ?딆쓬(吏?쒕컺? 踰붿쐞 ??.
-  - `cd eobomDev/frontend && npx tsc --noEmit`(exit 0) 쨌 `npm run build`(vite build, 1546 modules) ?듦낵.
-- **?몄감**: ?놁쓬 ??吏?쒕컺? 援먯껜쨌二쇱꽍 ?뺤젙 洹몃?濡?諛섏쁺.
-- **?ㅼ쓬 ?먯씠?꾪듃媛 ?뚯븘????寃?*:
-  - ?댁쟾 ??ぉ(媛숈? ??"?뱀뀡1 G4-c 諛섏쁺")?먯꽌 80px 怨좎젙媛믪쓣 "1048 ?곸옄 ?쇱そ ?좉낵 媛숈? ?먮━"?쇨퀬 ?곸? 二쇱꽍????몄뿀?????대쾲???뺤젙.
-  - dev ?쒕쾭 誘멸린???뺤콉) ???ㅽ솕硫??뱁엳 1920px ???ㅼ뼇???? ?뺤씤? ?щ엺 紐レ쑝濡??湲?
-  - 而ㅻ컠 ??????硫붿떆吏 珥덉븞留?
+  - 세로 위치(28%)·글자 크기·간격·문구·오른쪽 정렬(62px 안쪽)·섹션2 여백·헤더·`미리 남기는`·`엔딩노트 작성`·`1 / 3`·모바일(HomeMobile)은 건드리지 않음(지시받은 범위 밖).
+  - `cd eobomDev/frontend && npx tsc --noEmit`(exit 0) · `npm run build`(vite build, 1546 modules) 통과.
+- **편차**: 없음 — 지시받은 교체·주석 정정 그대로 반영.
+- **다음 에이전트가 알아야 할 것**:
+  - 이전 항목(같은 날 "섹션1 G4-c 반영")에서 80px 고정값을 "1048 상자 왼쪽 선과 같은 원리"라고 잘못 주석에 적혀 있었던 것을 이번에 정정.
+  - dev 서버 미기동(방침) → 실화면 특히 1920px 등 다양한 폭 확인은 사람 몫으로 남김.
+  - 커밋은 하지 않음 — 메시지 초안만.
 
-<!-- Gemini ?먯젙 ?湲?-->
+<!-- Gemini 판정 1줄: … -->
 
-## 2026-09-28 | ???뱀뀡1(?곗뒪?ы넲) ?덉뼱濡??쇱そ ?щ갚 ??珥덇킅???붾㈃ ?곹븳 400px 異붽?
+## 2026-09-28 | 홈 섹션1(데스크톱) 이어봄 왼쪽 여백 — 초광폭 화면 상한 400px 추가
 
-- **洹쇨굅 ?ㅽ럺**: ?ㅽ럺 ?놁쓬 ???щ엺 援щ몢 吏??"436?몃뜲[1920px 湲곗?] 400?쇰줈 ?섏젙", 吏곸쟾 ??ぉ??`max(80px, (?뱀뀡??1048px)/2)` 怨듭떇??1920px?먯꽌 436???대뒗 寃껋쓣 400?쇰줈 ??떠 ?щ씪??寃?.
-- **嫄대뱶由??뚯씪**: eobomDev/frontend/src/components/home/HomeDesktop.tsx
-- **寃곌낵**:
-  - `.hero-body` 醫뚯슦 padding??`'0 max(80px, calc((100% - 1048px) / 2))'` ??`'0 min(400px, max(80px, calc((100% - 1048px) / 2)))'`濡?援먯껜(HomeDesktop.tsx L228) ???붾㈃???꾨Т由??볦뼱?몃룄 醫뚯슦 ?щ갚??400px???섏? ?딅뒗??
-  - 223-230??二쇱꽍???곹븳 洹쇨굅쨌媛??뺤젙 ?댁쑀(1920px 湲곗? 436??00) 異붽?.
-  - `node -e`濡??ш퀎???꾨? ?쇱튂): 1208??0 쨌 1280??16 쨌 1440??96 쨌 1848??00(?곹븳 ?꾨떖 吏?? 쨌 1920??00.
-  - `tsc --noEmit`쨌`npm run build` ?듦낵.
-- **?몄감**: `docs/00_?듭떖?뚮옯??00-40_???쒕뵫_?ъ꽕怨?怨꾪쉷??md` 짠3.3-4 151?됱쓽 湲곕?媛??쒓? ?ъ쟾??"1920 ??436"?쇰줈 ?⑥븘 ?덉쓬 ???대쾲 ?곹븳 異붽?濡?肄붾뱶? ?닿툔?쒕떎. **docs/??Sonnet ?뚯쑀媛 ?꾨땲??吏곸젒 怨좎튂吏 ?딆쓬** ??`[Opus]`媛 ?쒕? "1848????400(?곹븳)"?쇰줈 媛깆떊 ?꾩슂.
-- **?ㅼ쓬 ?먯씠?꾪듃媛 ?뚯븘????寃?*:
-  - `[Opus]`: 00-40 짠3.3-4 151??湲곕?媛???媛깆떊 ?붿껌(???몄감 李멸퀬).
-  - dev ?쒕쾭 誘멸린???뺤콉) ???ㅽ솕硫??뺤씤? ?щ엺 紐レ쑝濡??湲?
-  - 而ㅻ컠 ??????硫붿떆吏 珥덉븞留?
+- **근거 스펙**: 스펙 문서 없음 — 사람 구두 지시("436인데[1920px 기준] 400으로 정정", 직전 항목의 `max(80px, (섹션폭-1048px)/2)` 공식이 1920px에서 436으로 벌어지는 것을 400으로 눌러 달라는 것).
+- **건드린 파일**: eobomDev/frontend/src/components/home/HomeDesktop.tsx
+- **결과**:
+  - `.hero-body` 좌우 padding을 `'0 max(80px, calc((100% - 1048px) / 2))'` → `'0 min(400px, max(80px, calc((100% - 1048px) / 2)))'`로 교체(HomeDesktop.tsx L228) → 화면이 아무리 넓어져도 좌우 여백이 400px을 넘지 않는다.
+  - 223-230행 주석에 상한 근거·값 확정 이유(1920px 기준 436→400) 추가.
+  - `node -e`로 재계산(기대값 일치): 1208→80 · 1280→116 · 1440→196 · 1848→400(상한 도달 지점) · 1920→400.
+  - `tsc --noEmit`·`npm run build` 통과.
+- **편차**: `docs/00_핵심플랫폼/00-40_홈_랜딩_재설계_계획서.md` §3.3-4 151행의 기대값 표가 여전히 "1920 → 436"으로 남아 있음 → 이번 상한 추가로 코드와 어긋난다. **docs/는 Sonnet 소유가 아니라 직접 고치지 않음** → `[Opus]`가 표를 "1848부터 400(상한)"으로 갱신 필요.
+- **다음 에이전트가 알아야 할 것**:
+  - `[Opus]`: 00-40 §3.3-4 151행 기대값 표 갱신 요청(위 편차 참고).
+  - dev 서버 미기동(방침) → 실화면 확인은 사람 몫으로 남김.
+  - 커밋은 하지 않음 — 메시지 초안만.
 
-<!-- Gemini ?먯젙 ?湲?-->
+<!-- Gemini 판정 1줄: … -->
 
-## 2026-09-28 | ?좎뼵???ъ쭊 ?몄떇(OCR) P1 援ы쁽 ??F1(?ъ쭊?믫뀓?ㅽ듃), ???⑸쪟
+## 2026-09-28 | 유언장 사진 인식(OCR) P1 구현 — F1(사진→텍스트), 유언장 초안에 합류
 
-- **洹쇨굅 ?ㅽ럺**: docs/06_?붾뵫?명듃_?좎뼵/06-06_?좎뼵???ъ쭊?몄떇_?붽굔?뺤씤_湲고쉷??md 짠4.1쨌짠5쨌짠6쨌짠9 P1.
-- **嫄대뱶由??뚯씪**:
-  - ?좉퇋: eobomDev/backend/src/services/ocrProvider.ts, eobomDev/backend/src/services/clovaOcrProvider.ts, eobomDev/backend/src/services/imageConvert.ts, eobomDev/backend/src/config/uploadPhotos.ts, eobomDev/backend/src/controllers/ocrController.ts, eobomDev/backend/src/routes/ocrRoutes.ts, eobomDev/frontend/src/components/endingNote/WillPhotoUploadModal.tsx
-  - ?섏젙: eobomDev/backend/src/server.ts(?쇱슦???깅줉), eobomDev/backend/.env.example(CLOVA_OCR_* 3媛?異붽?), eobomDev/backend/package.json쨌package-lock.json(?섏〈??, eobomDev/frontend/src/pages/EndingNotePage.tsx(??移대뱶??踰꾪듉쨌紐⑤떖쨌怨좎젙 ?덈궡 諛곗꽑)
-  - ?섏〈??異붽?: `sharp@^0.35.5`(由ъ궗?댁쫰) 쨌 `heic-convert@^2.1.0`(HEIC?묳PEG) 쨌 `pdf-lib@^1.17.1`(PDF 履쎌닔 ?뺤씤) 쨌 devDependency `@types/heic-convert@^2.1.1`.
-- **寃곌낵**:
-  - `OcrProvider` 寃쎄퀎(짠5 `interface OcrProvider { recognize(image, mimeType): Promise<{text, lines}> }`, `sttProvider.ts`? 媛숈? ?⑦꽩) + `ClovaOcrProvider`(CLOVA OCR General, `X-OCR-SECRET` ?ㅻ뜑 + `{invokeUrl}/general` multipart, `message` JSON + `file`).
-  - ?뚯씠?꾨씪??`ocrController.ts` `recognizeWillPhotos`, `POST /api/ocr/recognize`, multipart field `photos`, 理쒕? 5媛?: ?뚮옒洹?`CLOVA_OCR_ENABLED`) ??濡쒓렇?????섎（ 10???곹븳 ???뚯씪蹂꾨줈 [heic/heif硫?`heic-convert`濡?jpg 蹂?? ??[pdf硫?`pdf-lib`濡?履쎌닔 ?뺤씤, 5履?珥덇낵 ??400] ??[洹????대?吏??`sharp`濡?湲?蹂 1,960px ?ы솗??異뺤냼, ?대? 湲곗? ?댄븯硫??ъ씤肄붾뵫 ?앸왂] ??`provider.recognize` ???띿뒪?몃뒗 ?뚯씪 ?ъ씠 鍮?以꾨줈 ?댁뼱 遺숈씠怨??묐떟. 踰꾪띁???⑥닔 醫낅즺? ?④퍡 GC ????붿뒪??誘멸린濡? 짠5).
-  - `GET /api/ocr/status` 怨듦컻 ??`{enabled}`留??대젮 ?꾨줎?멸? ?낅줈??踰꾪듉 ?몄텧 ?щ?瑜??먮떒(provider ?놁쑝硫?踰꾪듉 ?먯껜瑜??④?, 짠5 留덉?留?以?.
-  - ?꾨줎??`WillPhotoUploadModal.tsx`(VoiceToTextInput.tsx?????뚯씪 ?낅줈??UI 寃??ъ궗?????숈쓽 泥댄겕 ???낅줈??留됲옒쨌"蹂몄씤?????좎뼵?λ쭔" 臾멸뎄) ??`EndingNotePage.tsx` ??移대뱶 ?몄쭛 ?곸뿭 ?꾩뿉 `?ъ쭊?쇰줈 遺덈윭?ㅺ린` 踰꾪듉(ocrEnabled???뚮쭔 ?뚮뜑) ??寃곌낵 誘몃━蹂닿린 ??湲곗〈 湲 ?덉쑝硫?`諛붽씀湲?/`?ㅼ뿉 遺숈씠湲? ?좏깮, ?놁쑝硫?`珥덉븞???ｊ린` ???⑸쪟 ??"?몄떇??湲? ?由????덉뒿?덈떎. ?ъ쭊怨??議고빐 怨좎튇 ????ν븯?몄슂" 怨좎젙 ?쒖떆(`showOcrDisclaimer`, ??踰??⑤㈃ 怨꾩냽 蹂댁엫). ?ㅽ뙣 ??硫붿떆吏??"?꾨옒 ?낅젰李쎌뿉 吏곸젒 ?낅젰??二쇱꽭?? ?덈궡(짠6.4-9-7怨?媛숈? ?먯튃 ???泥??낅젰? ??긽 ?댁븘 ?덉쓬).
-  - `.env.example`??`CLOVA_OCR_INVOKE_URL`쨌`CLOVA_OCR_SECRET`쨌`CLOVA_OCR_ENABLED=false` ?먮━?쒖떆?먮쭔 異붽?. ?ㅼ젣 `.env` 媛믪? ?대? ?щ엺??09-28???ｌ뼱???뺤씤留??? 媛믪? ?쎌???濡쒓렇濡?李띿????딆쓬 ??`grep -l`濡???議댁옱留??뺤씤).
-  - **湲???꾩튂(box) ?꾨뱶 ?뺤씤**(09-28 吏????P2 ?ㅺ퀎??: CLOVA OCR General ?묐떟? 臾몄꽌?붾맂 怨꾩빟??`images[].fields[].boundingPoly.vertices`(?ш컖????瑗?쭞??`{x,y}`)濡??대젮?⑤떎. `OcrLine.box: {x,y}[]`濡???낆뿉 ?대? 諛섏쁺??`provider.recognize`媛 梨꾩썙 ?ｊ퀬 `/api/ocr/recognize` ?묐떟??`lines`???ㅼ뼱 蹂대궦?????뵶 **?ㅼ젣 ?몄텧濡?寃利앺븳 媛믪? ?꾨땲??*(P0 臾몄꽌쨌NCP 肄섏넄 怨꾩빟 湲곗?). ?щ엺怨??ㅽ샇異?寃利??????꾨뱶紐끒룻삎?쒓? 留욌뒗吏 理쒖슦???議??꾩슂.
-  - `cd eobomDev/backend && npx tsc --noEmit`(exit 0) 쨌 `cd eobomDev/frontend && npx tsc --noEmit`(exit 0) 쨌 `npm run build`(frontend, vite build 1547 modules) ?듦낵.
-- **?몄감**:
-  - **?섎（ 10???곹븳??DB媛 ?꾨땲???몃찓紐⑤━ Map?쇰줈 援ы쁽**(`ocrController.ts` `dailyCallCounts`) ???ъ슜?먮퀎 移댁슫?멸? ?쒕쾭 ?ъ떆?뫢룸떎以??몄뒪?댁뒪?먯꽌 由ъ뀑?쒕떎. DB ?뚯씠釉??좎꽕? 留덉씠洹몃젅?댁뀡(CONFIRM ??? `db-safety.md`)???꾩슂??P1 踰붿쐞瑜?踰쀬뼱?쒕떎怨??먮떒 ???⑥슜 諛⑹? 1李?媛?쒕줈留?異⑸텇?섎떎怨?蹂닿퀬 ?곗꽑 ?대젃寃??? **?ㅼ궗?⑹옄 怨듦컻 ???ш????꾩슂**(짠8 踰뺤쟻 ?곸젏 紐⑸줉怨?蹂꾧컻濡? ?쒖닔 援ы쁽 遺梨?.
-  - **?낅줈??吏꾪뻾瑜좎쓣 ?ㅼ륫?섏? ?딅뒗??* ??`apiFetch`(fetch 湲곕컲)瑜?洹몃?濡???EndingNotePage??湲곗〈 愿濡瑜??곕옄??VoiceToTextInput.tsx??XHR濡??ㅼ젣 ?낅줈??%瑜??吏留? ???섏씠吏??apiFetch留??곕뒗 愿濡?????덉쇅瑜?留뚮뱾吏 ?딆븯??. "?щ━??以????몄떇 以?? 洹쇱궗 ?꾪솚.
-  - **PDF??由ъ궗?댁쫰?섏? ?딅뒗??* ??짠4.1 "?ш린 以꾩씠湲????ъ쭊(?섏뒪???대?吏) 湲곗? 臾멸뎄濡??쎌뿀?? PDF??履쎌닔 ?곹븳(5履?留??뺤씤?섍퀬 ?먮낯 洹몃?濡?CLOVA???섍릿??NCP媛 ?대??곸쑝濡??섏씠吏瑜??뚮뜑留?.
-  - F2쨌F3(?붽굔 ?뺤씤쨌洹쇨굅 ?쒖떆)??吏?쒕?濡??섏? ?딆쓬 ??P2.
-- **?ㅼ쓬 ?먯씠?꾪듃媛 ?뚯븘????寃?*:
-  - `.env`??`CLOVA_OCR_INVOKE_URL`쨌`CLOVA_OCR_SECRET` 媛믪씠 ?대? ?덇퀬 `CLOVA_OCR_ENABLED`媛 ?꾩옱 臾댁뾿?쇰줈 ?ㅼ젙???덈뒗吏???щ엺留??덈떎 ??濡쒖뺄 ?ㅽ샇異??뚯뒪???꾩뿉 `true`?몄? ?뺤씤 ?꾩슂(媛믪? ???몄뀡?먯꽌 蹂댁? ?딆븯??.
-  - `npm run build`(backend)??`prisma generate` ?④퀎媛 **???몄뀡 ?숈븞 怨꾩냽 EPERM?쇰줈 ?ㅽ뙣**?덈떎 ??`node_modules/.prisma/client/query_engine-windows.dll.node`媛 ?좉꺼 ?덉뿀??`tasklist`濡??뺤씤???ㅻⅨ node.exe ?꾨줈?몄뒪, ?꾨쭏 ?щ엺???꾩썙 ??諛깆뿏??dev ?쒕쾭). schema.prisma??嫄대뱶由ъ? ?딆븯怨?`tsc --noEmit`? ?듦낵?덉쑝?????ㅽ뙣???대쾲 蹂寃쎄낵 臾닿? ??諛깆뿏??dev ?쒕쾭瑜?猿먮떎 耳쒕㈃ ?댁냼??媛?μ꽦???믩떎.
-  - `/api/ocr/recognize` ?묐떟??`lines`(box ?ы븿)???꾨줎?멸? ?꾩쭅 ?곗? ?딅뒗????P2?먯꽌 洹몃?濡??곕㈃ ?쒕떎.
-  - `git status`???대쾲 ?묒뾽怨?臾닿????좉퇋 ?뚯씪 3媛?`.harness/tools/generate_*.py`)? 臾몄꽌 HTML 1媛?`docs/?댁뼱遊?臾몄꽌泥닿퀎_異뺤빟_?쒖븞??html`)媛 蹂댁??????닿? 留뚮뱾吏 ?딆븯怨?嫄대뱶由ъ? ?딆븯???ㅻⅨ ?몄뀡/Opus ?묒뾽?쇰줈 異붿젙).
-  - 而ㅻ컠 ??????硫붿떆吏 珥덉븞留?
+- **근거 스펙**: docs/06_엔딩노트_유언/06-06_유언장_사진인식_요건확인_기획서.md §4.1·§5·§6·§9 P1.
+- **건드린 파일**:
+  - 신규: eobomDev/backend/src/services/ocrProvider.ts, eobomDev/backend/src/services/clovaOcrProvider.ts, eobomDev/backend/src/services/imageConvert.ts, eobomDev/backend/src/config/uploadPhotos.ts, eobomDev/backend/src/controllers/ocrController.ts, eobomDev/backend/src/routes/ocrRoutes.ts, eobomDev/frontend/src/components/endingNote/WillPhotoUploadModal.tsx
+  - 수정: eobomDev/backend/src/server.ts(라우터 등록), eobomDev/backend/.env.example(CLOVA_OCR_* 3개 추가), eobomDev/backend/package.json·package-lock.json(의존성), eobomDev/frontend/src/pages/EndingNotePage.tsx(새 카드형 버튼·모달·고정 안내 배선)
+  - 의존성 추가: `sharp@^0.35.5`(리사이즈) · `heic-convert@^2.1.0`(HEIC→JPEG) · `pdf-lib@^1.17.1`(PDF 쪽수 확인) · devDependency `@types/heic-convert@^2.1.1`.
+- **결과**:
+  - `OcrProvider` 경계(§5 `interface OcrProvider { recognize(image, mimeType): Promise<{text, lines}> }`, `sttProvider.ts`와 같은 패턴) + `ClovaOcrProvider`(CLOVA OCR General, `X-OCR-SECRET` 헤더 + `{invokeUrl}/general` multipart, `message` JSON + `file`).
+  - 핸들러는 `ocrController.ts`의 `recognizeWillPhotos`, `POST /api/ocr/recognize`, multipart field `photos`, 최대 5개: 플래그(`CLOVA_OCR_ENABLED`) → 로그인 필요 → 하루 10회 상한 → 파일별로 [heic/heif면 `heic-convert`로 jpg 변환] → [pdf면 `pdf-lib`로 쪽수 확인, 5쪽 초과 시 400] → [그 외 이미지는 `sharp`로 긴 변 1,960px 이하로 축소, 이미 기준 이하면 인코딩 생략] → `provider.recognize` → 텍스트는 파일 사이 빈 줄로 이어 붙여 응답. 버퍼는 함수 종료와 함께 GC 대상(디스크 미기록, §5).
+  - `GET /api/ocr/status` 공개 → `{enabled}`만 알려 프론트가 업로드 버튼 노출 여부를 판단(provider 없으면 버튼 자체를 숨김, §5 마지막 줄).
+  - 프론트 `WillPhotoUploadModal.tsx`(VoiceToTextInput.tsx와 같은 파일 업로드 UI 패턴 사용, 동의 체크 → 업로드 막힘·"본인 확인 유언장만" 문구) → `EndingNotePage.tsx`의 카드 편집 영역 위에 `사진으로 불러오기` 버튼(ocrEnabled일 때만 렌더) → 결과 미리보기 → 기존 글 있으면 `바꾸기`/`뒤에 붙이기` 선택, 없으면 `초안에 담기` → 분류 → "인식된 글은 다시 한 번 읽고 확인해 주세요. 사진과 대조해 고친 뒤 저장하세요" 고정 안내(`showOcrDisclaimer`, 매번 화면에 계속 보임). 실패 시 메시지는 "아래 입력창에 직접 입력해 주세요" 안내(§6.4-9-7과 같은 원칙 — 첫 시도 입력은 언제나 남아 있음).
+  - `.env.example`에 `CLOVA_OCR_INVOKE_URL`·`CLOVA_OCR_SECRET`·`CLOVA_OCR_ENABLED=false` 자리표시자만 추가. 실제 `.env` 값은 이미 사람이 09-28에 넣어둔 걸 확인만(값은 실제 세션에서 보지 않았음 → `grep -l`로만 존재만 확인).
+  - **글 위치(box) 필드 확인**(09-28 지금까지 남은 P2 걸림돌): CLOVA OCR General 응답은 문서화된 계약상 `images[].fields[].boundingPoly.vertices`(사각형 네 꼭짓점 `{x,y}`)로 내려온다. `OcrLine.box: {x,y}[]`로 앞단에 이미 반영은 됨 → `provider.recognize`가 채워 넣고 `/api/ocr/recognize` 응답의 `lines`에 실어 보낼 수는 있지만 **실제 호출로 검증한 값은 아니다**(P0 문서·NCP 콘솔 계약 기준). 사람과 실호출 검증할 때 필드명·형태가 맞는지 최우선 확인 필요.
+  - `cd eobomDev/backend && npx tsc --noEmit`(exit 0) · `cd eobomDev/frontend && npx tsc --noEmit`(exit 0) · `npm run build`(frontend, vite build 1547 modules) 통과.
+- **편차**:
+  - **하루 10회 상한을 DB가 아니라 인메모리 Map으로 구현**(`ocrController.ts` `dailyCallCounts`) → 사용자별 카운트가 서버 재시작·다중 인스턴스에서 리셋된다. DB 테이블 신설·마이그레이션(CONFIRM 대상, `db-safety.md`)이 필요한 P1 범위를 벗어난다고 판단 → 임시 방편 1차 가드로만 충분하다고 보고 우선 이렇게 함. **실사용자 공개 전 재검토 필요**(§8 법적 쟁점 목록과 별개로 구현 부채).
+  - **업로드 진행률을 시뮬레이션하지 않는다** → `apiFetch`(fetch 기반)를 그대로 써 EndingNotePage의 기존 배선을 따랐다. VoiceToTextInput.tsx의 XHR로 실제 업로드 %를 보는 것과 달리, 이 페이지는 apiFetch만 쓰는 관례에 예외를 만들지 않았다. "처리 중" 스피너만 표시, 근사 전환.
+  - **PDF는 리사이즈하지 않는다** → §4.1 "크기 줄이기"는 사진(이미지) 기준 문구로 읽혔다. PDF는 쪽수 상한(5쪽)만 확인하고 원본 그대로 CLOVA에 넘긴다(NCP가 이미지 자체로 페이지를 렌더링).
+  - F2·F3(요건 확인·근거 표시)는 아직 손대지 않음 → P2.
+- **다음 에이전트가 알아야 할 것**:
+  - `.env`에 `CLOVA_OCR_INVOKE_URL`·`CLOVA_OCR_SECRET` 값이 이미 있고 `CLOVA_OCR_ENABLED`가 현재 무엇으로 설정돼 있는지는 사람만 안다 → 로컬 실호출 테스트 전에 `true`인지 확인 필요(값은 이 세션에서 보지 않았음).
+  - `npm run build`(backend)의 `prisma generate` 단계가 **이 세션 안에 계속 EPERM으로 실패**했다 → `node_modules/.prisma/client/query_engine-windows.dll.node`가 잠겨 있었다(`tasklist`로 확인한 다른 node.exe 프로세스, 아마 사람이 띄워 둔 백엔드 dev 서버). schema.prisma는 건드리지 않았고 `tsc --noEmit`은 통과했으므로 이 실패는 이번 변경과 무관 → 백엔드 dev 서버를 껐다 켜면 해소될 가능성이 높다.
+  - `/api/ocr/recognize` 응답의 `lines`(box 포함)이 프론트에서 아직 쓰이지 않음 → P2에서 그대로 쓰면 된다.
+  - `git status`에 이번 작업과 무관해 보이는 신규 파일 3개(`.harness/tools/generate_*.py`)와 문서 HTML 1개(`docs/이어봄_문서체계_축약_제안서.html`)가 보였으나 만들지도 건드리지도 않았음(다른 세션/Opus 작업으로 추정).
+  - 커밋은 하지 않음 — 메시지 초안만.
 
-<!-- Gemini ?먯젙 ?湲?-->
+<!-- Gemini 판정 1줄: … -->
 
-## 2026-09-28 | 06-06 OCR P1 ?몄감 蹂댁젙 4嫄?[Opus] 寃?? 989eb5c ?꾩냽)
+## 2026-09-28 | 06-06 OCR P1 편차 보정 4건([Opus] 검토 → 989eb5c 후속)
 
-- **洹쇨굅 ?ㅽ럺**: docs/06_?붾뵫?명듃_?좎뼵/06-06_?좎뼵???ъ쭊?몄떇_?붽굔?뺤씤_湲고쉷??md 짠4.1쨌짠6([Opus] 989eb5c 寃?좎뿉???섏삩 ?몄감 4嫄???[D][E][F][H]).
-- **嫄대뱶由??뚯씪**: eobomDev/backend/src/server.ts(以꾨컮轅덈쭔), eobomDev/frontend/src/components/endingNote/WillPhotoUploadModal.tsx
-- **寃곌낵**:
-  - **[D] server.ts 以꾨컮轅??먮났**: 989eb5c?먯꽌 LF?묬RLF濡??꾩껜 諛붾뚯뿀??寃껋쓣 `node -e`(WSL ?꾨떂)濡?`\r\n`??\n` 移섑솚. ?뺤씤: `git ls-files --eol`??`i/crlf w/lf`濡??섏샂(而ㅻ컠 ?꾩씠???몃뜳?ㅻ뒗 ?꾩쭅 ?댁쟾 而ㅻ컠??crlf, ?뚰궧?몃━留?lf濡?怨좎퀜吏???而ㅻ컠?섎㈃ i??lf媛 ?쒕떎). `git diff --stat 989eb5c~1 -- server.ts` ??`1 file changed, 2 insertions(+)`留??섏?(?대쾲 ?몄뀡?먯꽌 ?섏뼱??`ocrRoutes` import쨌?깅줉 2以꾨쭔) ?섎룎由쇱씠 留욎쓬???뺤씤. 989eb5c?먯꽌 ?덈줈 留뚮뱾嫄곕굹 怨좎튇 ?ㅻⅨ ?뚯씪 11媛??꾨? `git ls-files --eol` ?議???server.ts 1媛쒕쭔 crlf?怨??섎㉧吏???꾨? ?먮옒 洹몃?濡??좉퇋 ?뚯씪? lf, `EndingNotePage.tsx`???먮옒??crlf??洹몃?濡????먮?吏 ?딆쓬). `.gitattributes`??嫄대뱶由ъ? ?딆쓬.
-  - **[E] 釉뚮씪?곗? ???? 異뺤냼**: `WillPhotoUploadModal.tsx`??`resizeImageIfNeeded()` 異붽? ??jpg쨌png留?`createImageBitmap`+`canvas`濡?湲?蹂 1,960px源뚯? 異뺤냼(?대? 湲곗? ?댄븯硫?洹몃?濡?, pdf쨌tiff???ㅽ뙣 ???먮낯??洹몃?濡?諛섑솚(?ъ슜?먯뿉寃??ㅻ쪟 ???꾩?). `handleFileSelect`媛 ???⑥닔瑜??뚯씪蹂꾨줈 嫄곗튇 ??`setFiles`. ?쒕쾭 履?2李?異뺤냼(`imageConvert.ts` `resizeIfNeeded`)??洹몃?濡??좎?.
-  - **[F] HEIC accept ?쒓굅**: `ACCEPT` ?곸닔?먯꽌 `.heic,.heif,image/heic,image/heif` ?쒓굅 ???댁젣 CLOVA媛 諛쏅뒗 4媛?jpg쨌png쨌tiff쨌pdf)留??⑥쓬. ?덈궡 臾멸뎄 "jpg 쨌 png 쨌 pdf 쨌 tiff 쨌 heic" ??"jpg 쨌 png 쨌 pdf 쨌 tiff"濡?"heic" ??젣. ?쒕쾭 `heic-convert`(2李?諛⑹뼱)??洹몃?濡???`uploadPhotos.ts`쨌`ocrController.ts` 誘몃?寃?
-  - **[H] ?쒖꽌 諛붽씀湲?*: 怨좊Ⅸ ?뚯씪 紐⑸줉??`<ul>`濡?諛붽씀怨???ぉ留덈떎 ???꾨옒 ?대룞 踰꾪듉(`ChevronUp`/`ChevronDown`) 異붽?, `moveFile(index, direction)`?쇰줈 諛곗뿴 swap. 踰꾪듉? `minWidth/minHeight: 44px`(00-38 짠11.1 "蹂댁“ ?≪뀡 ??4px" 湲곗?, `--min-touch-target`(56px) ?꾩껜媛 ?꾨땲??蹂댁“ ?≪뀡媛??ъ슜 ??FooterMobile.tsx ?쎄? 留곹겕? 媛숈? 湲곗?). ?덈궡 臾멸뎄??"?щ┛ ?쒖꽌?濡??몄떇?⑸땲?? ?쒖꽌瑜?諛붽씀?ㅻ㈃ ?붿궡?쒕? ?뚮윭二쇱꽭??"(?ъ떎留? ?됯?쨌?띾낫 ???놁쓬).
-  - `cd eobomDev/backend && npx tsc --noEmit`(exit 0) 쨌 `cd eobomDev/frontend && npx tsc --noEmit`(exit 0) 쨌 `npm run build`(frontend, vite build 1547 modules) ?듦낵.
-- **?몄감**: ?놁쓬 ??吏?쒕컺? 4嫄?[D][E][F][H])留?洹몃?濡?諛섏쁺, 踰붿쐞 諛??섏젙 ?놁쓬.
-- **?ㅼ쓬 ?먯씠?꾪듃媛 ?뚯븘????寃?*:
-  - 諛깆뿏??`npm run build`??`prisma generate` ?④퀎媛 ?대쾲?먮룄 `query_engine-windows.dll.node` EPERM?쇰줈 ?ㅽ뙣(吏곸쟾 ??ぉ怨?媛숈? ?먯씤 ???ㅻⅨ node ?꾨줈?몄뒪媛 ?뚯씪???좉툑, schema.prisma 誘몃?寃?. `tsc --noEmit`?쇰줈 ?泥?寃利?
-  - server.ts???꾩쭅 而ㅻ컠 ?꾩씠??`git ls-files --eol`??`i/`???댁쟾 而ㅻ컠(crlf) 媛믪쓣 蹂댁뿬以????而ㅻ컠?섎㈃ `i/lf`濡?諛붾먮떎.
-  - 而ㅻ컠 ??????硫붿떆吏 珥덉븞留?
+- **근거 스펙**: docs/06_엔딩노트_유언/06-06_유언장_사진인식_요건확인_기획서.md §4.1·§6([Opus] 989eb5c 검토에서 나온 편차 4건 — [D][E][F][H]).
+- **건드린 파일**: eobomDev/backend/src/server.ts(줄바꿈만), eobomDev/frontend/src/components/endingNote/WillPhotoUploadModal.tsx
+- **결과**:
+  - **[D] server.ts 줄바꿈 원복**: 989eb5c에서 LF→CRLF로 전체 바뀌었던 것을 `node -e`(WSL 아님)로 `\r\n`→`\n` 치환. 확인: `git ls-files --eol`이 `i/crlf w/lf`로 나옴(커밋 이전 인덱스는 아직 이전 커밋의 crlf, 워킹트리만 lf로 고쳐놓음 → 커밋하면 i도 lf가 된다). `git diff --stat 989eb5c~1 -- server.ts` → `1 file changed, 2 insertions(+)`만 나옴(이번 세션에서 넣은 `ocrRoutes` import·등록 2줄만) → 되돌림이 맞음을 확인. 989eb5c에서 새로 만들거나 고친 다른 파일 11개 전부 `git ls-files --eol` 상 이번 server.ts 1개만 crlf고 나머지는 전부 원래 그대로(신규 파일은 lf, `EndingNotePage.tsx`는 원래도 crlf라 그대로 둬도 회귀 아님). `.gitattributes`는 건드리지 않음.
+  - **[E] 브라우저 선축소**: `WillPhotoUploadModal.tsx`에 `resizeImageIfNeeded()` 추가 → jpg·png만 `createImageBitmap`+`canvas`로 긴 변 1,960px까지 축소(이미 기준 이하면 그대로), pdf·tiff는 실패 시 원본을 그대로 반환(사용자에게 오류 표시 안 함). `handleFileSelect`가 이 함수를 파일별로 거친 뒤 `setFiles`. 서버 측 2차 축소(`imageConvert.ts` `resizeIfNeeded`)는 그대로 유지.
+  - **[F] HEIC accept 제거**: `ACCEPT` 상수에서 `.heic,.heif,image/heic,image/heif` 제거 → 이제 CLOVA가 받는 4개(jpg·png·tiff·pdf)만 남음. 안내 문구 "jpg · png · pdf · tiff · heic" → "jpg · png · pdf · tiff"로 "heic" 삭제. 서버 `heic-convert`(2차 방어)는 그대로 남김 → `uploadPhotos.ts`·`ocrController.ts` 미변경.
+  - **[H] 순서 바꾸기**: 고른 파일 목록을 `<ul>`로 바꾸고 항목마다 위/아래 이동 버튼(`ChevronUp`/`ChevronDown`) 추가, `moveFile(index, direction)`으로 배열 swap. 버튼은 `minWidth/minHeight: 44px`(00-38 §11.1 "보조 액션 ≥44px" 기준, `--min-touch-target`(56px) 전체가 아니라 보조 액션에 쓰는 기준 — FooterMobile.tsx 약관 링크와 같은 기준). 안내 문구는 "고른 순서로 인식합니다. 순서를 바꾸려면 화살표를 눌러주세요"(사실만, 평가·홍보 표현 없음).
+  - `cd eobomDev/backend && npx tsc --noEmit`(exit 0) · `cd eobomDev/frontend && npx tsc --noEmit`(exit 0) · `npm run build`(frontend, vite build 1547 modules) 통과.
+- **편차**: 없음 — 지시받은 4건([D][E][F][H])만 그대로 반영, 범위 밖 수정 없음.
+- **다음 에이전트가 알아야 할 것**:
+  - 백엔드 `npm run build`의 `prisma generate` 단계가 이번에도 `query_engine-windows.dll.node` EPERM으로 실패(직전 항목과 같은 원인 → 다른 node 프로세스가 파일을 잠금, schema.prisma 미변경). `tsc --noEmit`으로만 검증함.
+  - server.ts는 아직 커밋 이전이라 `git ls-files --eol`이 `i/`에 이전 커밋(crlf) 값을 보여줄 수 있음 → 커밋하면 `i/lf`로 바뀐다.
+  - 커밋은 하지 않음 — 메시지 초안만.
 
-<!-- Gemini ?먯젙 ?湲?-->
+<!-- Gemini 판정 1줄: … -->
