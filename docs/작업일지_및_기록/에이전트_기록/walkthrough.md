@@ -1345,3 +1345,77 @@
 
 <!-- Gemini 판정 1줄: … -->
 
+
+## 2026-09-28 | 홈 모바일 피드백 5건 + 바깥클릭 닫기 2건 반영
+
+- **근거 스펙**: 스펙 문서 없음 — 개발자 직접 지시(모바일 기준 5건 + 팝오버 바깥클릭 닫기 추가 지시 2건, 데스크톱 1건·모바일 1건).
+- **건드린 파일**: eobomDev/frontend/src/components/home/HomeMobile.tsx , eobomDev/frontend/src/components/home/HomeDesktop.tsx , eobomDev/frontend/src/components/Header.tsx , eobomDev/frontend/src/pages/HomePage.tsx , eobomDev/frontend/src/App.tsx , eobomDev/frontend/src/components/Footer.tsx , eobomDev/frontend/src/components/FooterMobile.tsx , eobomDev/frontend/src/index.css
+- **결과**:
+  1. 모바일 ②·③ 칸(생전 준비·임종 및 사후 정리) 제목 아래 회색 "사실 한 줄"(`DUO_FACT`) 삭제, 메뉴 목록과의 간격을 28px→24px로 재조정.
+  2. 헤더가 칸 배경색을 그대로 입던 것을 **항상 투명**으로 바꿈 — 스크롤 중 "다음 칸 배경이 헤더에 먼저 씌워지는" 현상의 원인(활성 칸 판정 시점과 실제 스크롤 진행률 불일치)을 없앴다. `homeMobileOverlay` 타입에서 `bg` 필드 제거(`variant`만 남음, Header.tsx·HomePage.tsx·App.tsx·HomeMobile.tsx 전부 반영), index.css `.site-header--home-overlay-hero`의 별도 배경 규칙을 지우고 `.site-header--home-overlay` 자체에 `background-color:transparent` 통합.
+  3. ④칸(섹션3+푸터) "엔딩노트 작성부터…" 문구를 지정된 지점(쉼표 뒤)에서 줄바꿈 + `textAlign:center` 명시.
+  4. ④칸 제목("당신과 사랑하는 가족의 / 삶의 모든 봄날을 응원합니다")이 좁은 폭에서 3줄로 wrap되던 것을 `fontSize: clamp(1.2rem, 6.2vw, 1.6rem)`로 낮춰 2줄로 들어가게 함(정확한 폭별 결과는 실기기 확인 필요).
+  5. `Footer`/`FooterMobile`에 `hideLogo` prop 신설, `HomeMobile.tsx` ④칸에서만 `<Footer hideLogo />`로 로고 블록 제거(다른 페이지의 FooterMobile은 기본값 그대로 로고 노출 — 사이트 전역 변경 아님).
+  6. (추가 지시) "추모관 링크로 입장" 팝오버가 열린 상태에서 바깥을 클릭하면 닫히도록 HomeMobile.tsx에도 HomeDesktop.tsx와 같은 `mousedown` 리스너 패턴 추가.
+  - `npx tsc --noEmit`(frontend) 에러 0(중간에 `HomePage.tsx`의 `onMobileHeaderStyleChange` 타입이 `bg` 필드를 아직 요구해 1회 에러 → 타입 정의 수정으로 해소) · `npm run build`(frontend) 통과.
+- **편차**:
+  - "삶의 모든 봄날을 응원합니다" 2줄 강제는 clamp 값(1.2rem~1.6rem)으로 근사했다 — 320px대 아주 좁은 기기에서 여전히 wrap될 가능성이 있어 실기기 확인 필요.
+  - `FooterMobile.tsx`를 수정하는 편집 중 실수로 `<a href=...>`의 `<a`가 `<`로 잘못 저장돼 컴파일 전 스스로 발견·수정했다(빌드 로그에는 안 잡히는 JSX 오타였음 — Read로 직접 재확인해 잡음).
+- **다음 에이전트가 알아야 할 것**: 🔴 실기동 검증 대기(사람 몫). 헤더 투명화로 인해 데스크톱은 영향 없음(이 prop 자체가 모바일 홈에서만 App.tsx가 넘김) — 확인만 되면 됨.
+
+<!-- Gemini 판정 1줄: … -->
+
+
+## 2026-09-28 | 모바일 홈 헤더 — 로고 삭제 + 메뉴·사용자 버튼 배경 투명화
+
+- **근거 스펙**: 스펙 문서 없음 — 개발자 직접 지시.
+- **건드린 파일**: eobomDev/frontend/src/components/Header.tsx , eobomDev/frontend/src/index.css
+- **결과**:
+  - `.site-header--home-overlay .header-logo-wrap { display:none; }` — 모바일 홈 헤더에서 이어봄 로고를 아예 뺌.
+  - 같은 스코프에서 `.header-hamburger-btn`·`.header-user-chip`·`.header-actions-wrap .btn-point`(로그인 버튼) 배경을 전부 `transparent`로.
+  - 히어로 칸(`.site-header--home-overlay-hero`)에서는 위 요소들의 글자·테두리를 흰색으로 — Header.tsx가 다시 이 modifier 클래스를 헤더에 얹도록 되돌림(직전 커밋에서 배경 통일 때문에 뺐던 것, 이번엔 버튼 색 구분에 다시 필요해짐). 기존 `.header-hamburger-btn--on-photo`(개별 버튼 클래스) 방식은 지우고 부모 스코프 선택자로 통합.
+  - `npx tsc --noEmit`(frontend) 에러 0 · `npm run build`(frontend) 통과.
+- **편차**: 이 변경은 `homeMobileOverlay`가 있을 때(모바일 홈, `/`·`/prep`·`/bereaved`)만 적용되고 다른 모바일 페이지 헤더(로고·햄버거·로그인 버튼)는 그대로다 — 이번 지시가 "모바일 헤더"라고만 했지만, 지금까지 대화 맥락 전체가 홈 재설계였고 전역 헤더를 바꾸면 다른 페이지들의 내비게이션 가독성에 영향을 주므로 홈으로 스코프를 좁혀 구현했다.
+- **다음 에이전트가 알아야 할 것**: 🔴 실기동 검증 대기(사람 몫). 만약 전역(다른 페이지 포함) 적용을 원했던 것이면 `.site-header--home-overlay` 스코프를 떼고 `.site-header` 자체에 적용하도록 다시 바꿔야 한다.
+
+<!-- Gemini 판정 1줄: … -->
+
+
+## 2026-09-28 | 모바일 헤더 로고 삭제·버튼 투명화를 전역으로 확대
+
+- **근거 스펙**: 스펙 문서 없음 — 개발자 직접 지시("전역으로 변경", 직전 항목은 모바일 홈 한정이었음).
+- **건드린 파일**: eobomDev/frontend/src/index.css
+- **결과**: 직전 항목에서 `.site-header--home-overlay`로 스코프를 좁혔던 로고 숨김(`.header-logo-wrap{display:none}`)·버튼 배경 투명화(`.header-hamburger-btn`·`.header-user-chip`·`.header-actions-wrap .btn-point`) 3규칙을 `.site-header`(전체 페이지 공용, ≤768px)로 옮겼다. 히어로 칸 전용 흰색 글자 규칙(`.site-header--home-overlay-hero`)은 그대로 홈 한정으로 남겨(다른 페이지는 헤더 배경이 흰색 그대로라 기본 진한 색이 맞는다).
+  - `npx tsc --noEmit`(frontend) 에러 0 · `npm run build`(frontend) 통과.
+- **편차**: 없음 — 지시받은 그대로.
+- **다음 에이전트가 알아야 할 것**: 🟡 641~767px 폭에서는 `.header-nav`(홈/생전 준비/임종·사후 정리 평면 메뉴, ≤640px에만 숨겨짐)가 로고 대신 여전히 "홈" 이동 수단으로 남아있다. 하지만 ≤640px(햄버거+드로어만 있는 폭)에서는 이제 로고도 없고 Sidebar.tsx의 `defaultMenuItems`(6개 도메인 메뉴, "홈" 항목 없음)에도 홈 복귀 수단이 없어 — 브라우저 뒤로가기 외에는 홈으로 돌아갈 명시적 버튼이 사라졌다. 사람이 의도한 것인지 확인 필요(드로어에 "홈" 항목을 추가하거나, 로고를 다시 살리는 선택지 있음).
+
+<!-- Gemini 판정 1줄: … -->
+
+
+## 2026-09-28 | 모바일 드로어 — "홈" 추가 + 모드 구분 없이 전체 메뉴 노출
+
+- **근거 스펙**: 스펙 문서 없음 — 개발자 직접 지시("드로어에 홈 추가" + "메뉴에 prep bereaved 관계없이 전부 나올 수 있도록").
+- **건드린 파일**: eobomDev/frontend/src/components/Sidebar.tsx
+- **결과**: 드로어 메뉴 구성 로직을 `navMode ? MODE_MENUS[navMode] : defaultMenuItems` 분기에서 **모듈 스코프 상수 `ALL_DRAWER_ITEMS`**(항상 고정)로 교체 — "홈"(id `home`) + `MODE_MENUS.prep`(3) + `MODE_MENUS.bereaved`(7)를 합쳐 중복 id(`counseling`, 두 모드에 동일하게 들어있음)만 한 번으로 접은 총 10개 항목을 navMode와 무관하게 항상 보여준다. 구 `defaultMenuItems`(6개 요약 목록, `obituary`·`pickup`·`memorial` 누락)는 삭제 — 더 이상 "전부"를 대변하지 못했다. 부수 효과: 이제 모든 항목이 `ModeMenuItem`(loginRequired·status 포함)에서 직접 오므로, 옛 `defaultMenuItems` 경로에서 항상 `loginRequired` 없이(잘못) 취급되던 항목들(로그인 없이 눌려도 게이트가 안 걸리던 문제)도 같이 바로잡힌다. `Sidebar.tsx`가 더 이상 개별 `MenuIcons`(HouseLeafIcon 등)·`Mail`을 직접 import하지 않는다(modeNav.ts의 데이터가 이미 아이콘을 들고 있음).
+  - `npx tsc --noEmit`(frontend) 에러 0 · `npm run build`(frontend) 통과.
+- **편차**: `SidebarProps.navMode`는 이제 컴포넌트 내부에서 안 쓰지만, App.tsx가 여전히 넘기는 값이라 interface·prop 전달은 그대로 남겼다(App.tsx의 `navMode` 상태 자체를 걷어내는 건 이번 지시 범위 밖이라 판단 — 다른 컴포넌트가 그 상태를 더 참조하는지까지 확인이 필요한 별개 정리).
+- **다음 에이전트가 알아야 할 것**: 🔴 실기동 검증 대기(사람 몫). 드로어 순서는 홈→(전문가 매칭 등 prep 3개)→(bereaved 나머지, counseling 중복 제외 6개) — 순서를 바꾸고 싶으면 `ALL_DRAWER_ITEMS` IIFE 안 배열 순서만 바꾸면 됨.
+
+<!-- Gemini 판정 1줄: … -->
+
+
+## 2026-09-28 | 모바일 드로어 — 점선 그룹 구분·항목 축소·배경 재도장
+
+- **근거 스펙**: 스펙 문서 없음 — 개발자 직접 지시("홈 / …전문가 매칭 / …으로 점선 구분" + "항목 크기 소폭 축소" + "배경색이 현재 디자인과 안 어울림").
+- **건드린 파일**: eobomDev/frontend/src/components/Sidebar.tsx , eobomDev/frontend/src/index.css
+- **결과**:
+  - `.mobile-drawer-panel` 배경을 `var(--primary-color)`(짙은 네이비) → `var(--card-bg)`(흰색)로 교체 — 00-39 §3 확정 팔레트(웜 뉴트럴 배경·흰/크림 카드)와 맞춤. 안의 모든 글자·아이콘·테두리 색을 밝은 배경 기준(`var(--text-main)`·`var(--point-color)`·`var(--border-color)` 등)으로 다시 잡았다(기존엔 전부 흰색/반투명 흰색 — 어두운 배경 전제였음).
+  - 항목 사이에 점선 구분선(`border-top:1px dashed var(--border-color)`)을 "홈" 뒤, "전문가 매칭"(`counseling`, 생전 준비 그룹의 마지막) 뒤에 삽입해 홈 / 생전 준비 그룹(3개) / 사후 나머지 그룹(6개) 3단으로 시각적으로 나눔.
+  - 항목 크기 축소: 버튼 padding `16px 16px` → `0.6rem 0.7rem`, 아이콘 22px→19px(아이콘 칸 26px→22px), 글자 `var(--fs-body)`(16px) → `0.95rem`(15.2px), 목록 항목 사이 여백 0.5rem→0.3rem.
+  - `npx tsc --noEmit`(frontend) 에러 0 · `npm run build`(frontend) 통과.
+- **편차**: 없음.
+- **다음 에이전트가 알아야 할 것**: 🔴 실기동 검증 대기(사람 몫). 점선 위치는 항목 `id`("home"·"counseling") 뒤에 고정돼 있어, `ALL_DRAWER_ITEMS`의 그룹 순서(홈→생전 준비→사후) 자체를 바꾸지 않는 한 안전하다.
+
+<!-- Gemini 판정 1줄: … -->
+

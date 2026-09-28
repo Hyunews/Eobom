@@ -224,7 +224,10 @@ body {
   left: 0;
   bottom: 0;
   width: min(78vw, 300px);
-  background-color: var(--primary-color);
+  /* 🔄 2026-09-28 사람 지시 — 짙은 네이비(--primary-color)가 00-39 §3 확정값(웜 뉴트럴 배경·
+     크림/흰 카드) 이후의 나머지 화면과 어울리지 않는다는 지적. 흰 카드 배경으로 바꾸고
+     안의 글자·아이콘·구분선도 전부 밝은 배경 기준 색으로 다시 맞춘다(아래 버튼 스타일 참고). */
+  background-color: var(--card-bg);
   z-index: 1401;
   transform: translateX(-100%);
   transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
@@ -1025,6 +1028,10 @@ body {
    HomeMobile.tsx의 100svh 칸이 헤더 자리까지 그대로 차지하게 한다(칸 쪽 padding-top:50px로
    내용만 비켜난다). 다른 페이지·데스크톱은 기본 .site-header(sticky, 흰 배경) 그대로다 —
    App.tsx가 모바일 홈일 때만 이 클래스를 얹는다. */
+/* 🔄 2026-09-28 사람 지시 — 칸 배경색을 헤더에 직접 입혔더니, 칸 경계를 지날 때 "아직
+   스크롤 중인데 다음 칸 배경이 헤더에 먼저 씌워지는" 것처럼 보였다(활성 칸 판정 시점과
+   실제 스크롤 진행률이 어긋나 보임). 배경을 아예 투명으로 고정해 그 판정 자체를 없앤다 —
+   헤더 뒤로는 실제로 스크롤 중인 칸의 진짜 배경이 그대로 비쳐 보이므로 항상 정확하다. */
 @media (max-width: 768px) {
   .site-header--home-overlay {
     position: fixed;
@@ -1033,19 +1040,34 @@ body {
     right: 0;
     height: 50px;
     border-bottom: none;
-  }
-
-  .site-header--home-overlay-hero {
     background-color: transparent;
   }
 }
 
-/* 히어로 칸 위 투명 헤더에서 햄버거 버튼이 흰 배경 없이도 보이도록 — 로고는 Header.tsx가
-   EobomLogo variant="header"(흰 워드마크)로 이미 바꾼다. */
-.header-hamburger-btn--on-photo {
-  background-color: rgba(28, 24, 20, 0.28);
-  border-color: rgba(255, 255, 255, 0.6);
-  color: #FFFFFF;
+/* 🔄 2026-09-28 사람 지시(처음엔 모바일 홈 한정 → "전역으로 변경") — 모바일 헤더에서
+   로고를 아예 없애고, 햄버거·사용자 버튼도 자기 배경(회색 칩·초록 로그인 버튼)을 벗고
+   투명하게 만든다. `.site-header` 전체(모든 페이지)에 적용 — 홈 오버레이(위 블록)만의
+   특수 규칙이 아니다. 히어로 칸(사진 위, `.site-header--home-overlay-hero`)에서만
+   아이콘·글자를 흰색으로 바꾼다 — 다른 페이지는 헤더 배경(흰색)이 그대로라 기본 진한
+   색 그대로 잘 보인다. */
+@media (max-width: 768px) {
+  .site-header .header-logo-wrap {
+    display: none;
+  }
+
+  .site-header .header-hamburger-btn,
+  .site-header .header-user-chip,
+  .site-header .header-actions-wrap .btn-point {
+    background-color: transparent;
+  }
+
+  .site-header--home-overlay-hero .header-hamburger-btn,
+  .site-header--home-overlay-hero .header-user-chip,
+  .site-header--home-overlay-hero .header-user-name-text,
+  .site-header--home-overlay-hero .header-actions-wrap .btn-point {
+    color: #FFFFFF;
+    border-color: rgba(255, 255, 255, 0.6);
+  }
 }
 
 .header-inner {

@@ -11,19 +11,14 @@ interface HomeMobileProps {
   setActiveTab?: (tab: string) => void;
   onSetMode?: (mode: NavMode) => void;
   landingMode?: NavMode;
-  onMobileHeaderStyleChange?: (style: { variant: 'hero' | 'panel'; bg: string }) => void;
+  onMobileHeaderStyleChange?: (style: { variant: 'hero' | 'panel' }) => void;
 }
 
 // 00-40 §3.3-3 M-2 — 칸 4개: 히어로 · 생전 준비 · 임종 및 사후 정리 · 섹션3+푸터
 const PANEL_COUNT = 4;
-// M-10 — 헤더가 칸을 따라 색을 바꾼다. ④(섹션3+푸터)는 아직 사진 위 정확한 색이 정해지지
-// 않아(§3.3 끝 "섹션3 사진 단독 배치") 페이지 기본 크림색으로 근사한다 — 사람이 실화면에서 조정.
-const PANEL_HEADER_BG = ['transparent', '#FDFCFA', '#F5F2EC', '#FBF9F5'];
-
-const DUO_FACT: Record<NavMode, string> = {
-  prep: '본인이 직접 적어 둡니다 · 로그인 후 이용',
-  bereaved: '가족이 진행합니다 · 행정절차 23건',
-};
+// 각 칸 자체(콘텐츠)의 배경색 — 헤더 배경과는 무관하다(헤더는 항상 투명, 아래
+// notifyHeaderStyle 주석 참고). ④(섹션3+푸터)는 사진 위라 별도 배경을 안 쓴다(CSS 기본값).
+const PANEL_BG = ['transparent', '#FDFCFA', '#F5F2EC'];
 
 const SESSION_KEY = 'eobom_scroll_home_m';
 
@@ -34,8 +29,11 @@ export const HomeMobile: React.FC<HomeMobileProps> = ({ currentUser, onOpenLogin
   const viewportRef = useRef<HTMLDivElement>(null);
   const activePanelRef = useRef(0);
 
+  // 🔄 2026-09-28 사람 지시 — 헤더에 칸 배경색을 그대로 입히면 스크롤 중 다음 칸 색이
+  // 먼저 씌워지는 것처럼 보였다. variant(로고·아이콘 색만 결정)만 넘기고 배경은 Header.tsx가
+  // 항상 투명으로 고정한다.
   const notifyHeaderStyle = (index: number) => {
-    onMobileHeaderStyleChange?.({ variant: index === 0 ? 'hero' : 'panel', bg: PANEL_HEADER_BG[index] });
+    onMobileHeaderStyleChange?.({ variant: index === 0 ? 'hero' : 'panel' });
   };
 
   const goToPanel = (index: number) => {
@@ -137,6 +135,18 @@ export const HomeMobile: React.FC<HomeMobileProps> = ({ currentUser, onOpenLogin
   const [showMemorialInput, setShowMemorialInput] = useState(false);
   const [memorialLinkInput, setMemorialLinkInput] = useState('');
   const [memorialLinkError, setMemorialLinkError] = useState('');
+  // 🆕 2026-09-28 사람 지시 — 팝오버 바깥 클릭 시 닫힘(HomeDesktop.tsx와 같은 패턴).
+  const memorialRowRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!showMemorialInput) return;
+    const handleOutsideClick = (e: MouseEvent) => {
+      if (memorialRowRef.current && !memorialRowRef.current.contains(e.target as Node)) {
+        setShowMemorialInput(false);
+      }
+    };
+    document.addEventListener('mousedown', handleOutsideClick);
+    return () => document.removeEventListener('mousedown', handleOutsideClick);
+  }, [showMemorialInput]);
   const handleMemorialLinkEnter = () => {
     const raw = memorialLinkInput.trim();
     if (!raw) {
@@ -190,8 +200,8 @@ export const HomeMobile: React.FC<HomeMobileProps> = ({ currentUser, onOpenLogin
         <h2 className="section-title" style={{ fontSize: '27px', fontWeight: 600, color: '#1A2B4C', margin: '10px 0 0' }}>
           {MODE_LABELS[mode]}
         </h2>
-        <p style={{ fontSize: '15px', color: '#5C6773', margin: '10px 0 0' }}>{DUO_FACT[mode]}</p>
-        <div style={{ marginTop: '28px' }}>
+        {/* 🔄 2026-09-28 사람 지시 — 제목 아래 회색 "사실 한 줄" 삭제 */}
+        <div style={{ marginTop: '24px' }}>
           {MODE_MENUS[mode].map((item) => (
             <button
               key={item.id}
@@ -213,7 +223,7 @@ export const HomeMobile: React.FC<HomeMobileProps> = ({ currentUser, onOpenLogin
 
         {/* M-6 — 추모관 링크로 입장 · 파트너 로그인은 ③ 칸(임종 및 사후 정리) 맨 아래 한 줄 */}
         {mode === 'bereaved' && (
-          <div style={{ marginTop: 'auto', paddingTop: '1rem', borderTop: '1px solid #EFEBE4', display: 'flex', alignItems: 'center', gap: '1.2rem', position: 'relative' }}>
+          <div ref={memorialRowRef} style={{ marginTop: 'auto', paddingTop: '1rem', borderTop: '1px solid #EFEBE4', display: 'flex', alignItems: 'center', gap: '1.2rem', position: 'relative' }}>
             <button type="button" onClick={() => setShowMemorialInput((v) => !v)} style={{ background: 'none', border: 'none', fontSize: '14px', fontWeight: 600, color: '#5B7065', cursor: 'pointer', fontFamily: 'inherit', padding: 0 }}>
               추모관 링크로 입장
             </button>
@@ -259,7 +269,7 @@ export const HomeMobile: React.FC<HomeMobileProps> = ({ currentUser, onOpenLogin
 
       {/* ② 생전 준비 · ③ 임종 및 사후 정리 — M-5·M-6 */}
       {(['prep', 'bereaved'] as NavMode[]).map((mode, i) => (
-        <section key={mode} className="home-m-panel" style={{ backgroundColor: PANEL_HEADER_BG[i + 1] }}>
+        <section key={mode} className="home-m-panel" style={{ backgroundColor: PANEL_BG[i + 1] }}>
           <div className="home-m-panel-scroll">{renderModeMenu(mode)}</div>
           {renderIndicator(i + 1, false)}
         </section>
@@ -272,16 +282,25 @@ export const HomeMobile: React.FC<HomeMobileProps> = ({ currentUser, onOpenLogin
           <div className="duo-photo-scrim" />
           <div style={{ position: 'relative', zIndex: 1, paddingTop: '50px', minHeight: '100%', display: 'flex', flexDirection: 'column' }}>
             <section style={{ flex: '1 1 auto', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', textAlign: 'center', padding: '2.4rem 1.5rem', gap: '1rem' }}>
-              <h2 className="section-title" style={{ fontSize: '1.7rem', color: '#1A2B4C', fontWeight: 'var(--fw-bold)', margin: 0, lineHeight: 1.35 }}>
+              {/* 🔄 2026-09-28 사람 지시 — 좁은 폭에서 둘째 줄이 다시 줄바꿈돼 3줄로 보였다.
+                  vw 기반 clamp로 줄여 320px대 폭에서도 "삶의 모든 봄날을 응원합니다"가
+                  한 줄에 들어가게 한다(정확한 값은 실기기에서 사람이 다시 볼 것). */}
+              <h2 className="section-title" style={{ fontSize: 'clamp(1.2rem, 6.2vw, 1.6rem)', color: '#1A2B4C', fontWeight: 'var(--fw-bold)', margin: 0, lineHeight: 1.4 }}>
                 당신과 사랑하는 가족의<br />
                 삶의 모든 <span style={{ color: '#5B7065' }}>봄날</span>을 응원합니다
               </h2>
-              <p style={{ fontSize: '0.95rem', color: '#6C7A89', lineHeight: 1.7, margin: 0 }}>
-                엔딩노트 작성부터 전국 장사시설 탐색까지, 이어봄이 곁에서 함께합니다.
+              {/* 🔄 2026-09-28 사람 지시 — 지정된 지점에 줄바꿈 + 가운데 정렬(부모 textAlign은
+                  이미 center지만 명시적으로 한 번 더 건다) */}
+              <p style={{ fontSize: '0.95rem', color: '#6C7A89', lineHeight: 1.7, margin: 0, textAlign: 'center' }}>
+                엔딩노트 작성부터 전국 장사시설 탐색까지,<br />
+                이어봄이 곁에서 함께합니다.
               </p>
             </section>
             <section style={{ position: 'relative' }}>
-              <Footer />
+              {/* 🔄 2026-09-28 사람 지시 — 모바일 홈 마지막 칸 높이가 빠듯해 로고까지 있으면
+                  너무 길어짐. Footer.tsx가 이 폭에서 렌더하는 FooterMobile에만 hideLogo로
+                  로고 블록을 뺀다(다른 페이지의 FooterMobile은 기본값 그대로 노출). */}
+              <Footer hideLogo />
             </section>
           </div>
         </div>

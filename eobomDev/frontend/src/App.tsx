@@ -85,7 +85,7 @@ function AppShell() {
   // 480px 이하에서만 Header의 햄버거 버튼으로 열고 Sidebar의 드로어로 보여준다(2026-08-20 지시).
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false);
   // 00-40 §3.3 M-10 — 모바일 홈의 현재 칸에 맞춰 HomePage(HomeMobile.tsx)가 갱신한다.
-  const [homeMobileHeaderStyle, setHomeMobileHeaderStyle] = useState<{ variant: 'hero' | 'panel'; bg: string }>({ variant: 'hero', bg: 'transparent' });
+  const [homeMobileHeaderStyle, setHomeMobileHeaderStyle] = useState<{ variant: 'hero' | 'panel' }>({ variant: 'hero' });
   // 2026-08-21: localStorage→sessionStorage로 전환(브라우저를 완전히 껐다 켜도 로그인이 남아있던
   // 문제 수정 — sessionStorage는 브라우저 종료 시 비워진다). 예전에 localStorage에 저장된 값은
   // 더 이상 안 읽지만 그대로 남아있으면 혼란을 주므로 최초 마운트 시 한 번 같이 지운다.

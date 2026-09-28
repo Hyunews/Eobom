@@ -13,9 +13,12 @@ interface HeaderProps {
   // 모바일 드로어를 연다. 사이드바 자체가 없는 홈에서는 App.tsx가 undefined를 넘겨 숨긴다.
   onOpenMobileMenu?: () => void;
   // 🆕 00-40 §3.3 M-10 — 모바일 홈(및 /prep·/bereaved)에서만 App.tsx가 넘긴다. 헤더가 그
-  // 칸 위에 겹쳐 칸의 배경처럼 보인다: 히어로 칸은 투명+흰 로고/아이콘, 나머지 칸은 그 칸의
-  // 배경색. 데스크톱·다른 페이지는 항상 undefined(기본 흰 sticky 헤더).
-  homeMobileOverlay?: { variant: 'hero' | 'panel'; bg: string };
+  // 칸 위에 겹쳐 칸의 배경처럼 보인다. 데스크톱·다른 페이지는 항상 undefined(기본 흰 sticky 헤더).
+  // 🔄 2026-09-28 사람 지시 — 칸 배경색을 헤더에 그대로 입히면 스크롤 중 다음 칸 색이
+  // 헤더에 먼저 씌워지는 것처럼 보였다(스크롤 진행률이 아니라 "어느 칸이 활성인지"만으로
+  // 색을 정했기 때문) — 그래서 배경은 항상 투명으로 고정하고, variant는 로고·햄버거
+  // 아이콘 색(히어로=흰색·그 외=진한 색)에만 쓴다.
+  homeMobileOverlay?: { variant: 'hero' | 'panel' };
 }
 
 // 메인 홈 A안 재구성(2026-08) — 로고 옆 "모드 드롭다운" 1개 대신 "홈"·"생전 준비"·
@@ -36,13 +39,14 @@ export const Header: React.FC<HeaderProps> = ({ setActiveTab, onOpenLogin, curre
     setActiveTab('home');
   };
 
-  // 00-40 §3.3 M-10 — 히어로 칸 위(투명)에서는 로고·햄버거를 흰색으로, 나머지 칸에서는
-  // 그 칸의 배경색을 헤더에 그대로 입힌다.
+  // 00-40 §3.3 M-10 — 히어로 칸 위(투명)에서는 로고·햄버거·사용자 버튼을 흰색으로. 배경은
+  // 항상 투명(위 homeMobileOverlay 주석 참고) — 로고 숨김·버튼 투명화는 index.css
+  // `.site-header--home-overlay`가, 히어로 전용 흰색은 `-hero` 변형이 담당한다
+  // (🔄 2026-09-28 사람 지시 — 로고 삭제 + 메뉴·사용자 버튼 배경 삭제).
   const isHeroOverlay = homeMobileOverlay?.variant === 'hero';
   const headerClassName = homeMobileOverlay
     ? `site-header site-header--home-overlay${isHeroOverlay ? ' site-header--home-overlay-hero' : ''}`
     : 'site-header';
-  const headerStyle = homeMobileOverlay && !isHeroOverlay ? { backgroundColor: homeMobileOverlay.bg } : undefined;
 
   // onSetMode는 유지 — Sidebar 등 다른 화면의 모드 표시가 여전히 이 클릭을 기준으로 맞아야 한다.
   // (2026-08-24 — 모드 버튼은 소개 오버레이가 아니라 실제 화면으로 직접 이동한다.)
@@ -65,7 +69,7 @@ export const Header: React.FC<HeaderProps> = ({ setActiveTab, onOpenLogin, curre
   const goToModeFirst = (mode: NavMode) => goToModeItem(mode, MODE_MENUS[mode][0]);
 
   return (
-    <header className={headerClassName} style={headerStyle}>
+    <header className={headerClassName}>
       <div className="header-inner">
         {/* 모바일 햄버거 메뉴 버튼 — 480px 이하에서만 보임(.mobile-menu-trigger, index.css).
             사이드바가 호버로 안 열리는 터치 환경 대체 진입점(2026-08-20 지시, Sidebar.tsx 드로어 연동). */}
@@ -74,7 +78,7 @@ export const Header: React.FC<HeaderProps> = ({ setActiveTab, onOpenLogin, curre
             type="button"
             onClick={onOpenMobileMenu}
             aria-label="메뉴 열기"
-            className={`mobile-menu-trigger header-hamburger-btn${isHeroOverlay ? ' header-hamburger-btn--on-photo' : ''}`}
+            className="mobile-menu-trigger header-hamburger-btn"
           >
             <Menu size={20} />
           </button>
