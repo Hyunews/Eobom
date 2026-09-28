@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react';
-import { Camera, Loader2, Check } from 'lucide-react';
+import { Camera, Loader2, Check, ChevronUp, ChevronDown } from 'lucide-react';
 import { apiFetch, ApiError } from '../../lib/api';
 import { backdropCloseProps } from '../../utils/backdropClose';
 
@@ -12,7 +12,45 @@ type Stage = 'idle' | 'uploading' | 'processing' | 'done';
 
 const MAX_FILES = 5;
 const MAX_FILE_SIZE_MB = 50;
-const ACCEPT = '.jpg,.jpeg,.png,.tif,.tiff,.pdf,.heic,.heif,image/jpeg,image/png,image/tiff,application/pdf,image/heic,image/heif';
+// 🔄 09-28 Opus 편차 보정 [F] — §4.1 "HEIC — 1차 방어"는 accept로 CLOVA가 받는 4개만 보여주는
+// 것까지다. heic/heif는 accept에서 뺀다 — 그래도 오면 서버 heic-convert(2차 방어)가 처리한다.
+const ACCEPT = '.jpg,.jpeg,.png,.tif,.tiff,.pdf,image/jpeg,image/png,image/tiff,application/pdf';
+// §4.1 "크기 줄이기" — 브라우저 우선 축소 기준.
+const MAX_LONG_EDGE = 1960;
+
+// 🔄 09-28 Opus 편차 보정 [E] — jpg·png만 캔버스로 긴 변 1,960px까지 축소한다(이미 기준 이하면
+// 그대로 반환). pdf·tiff나 브라우저가 못 읽는 파일은 원본 그대로 서버로 보낸다(서버 §4.1
+// "서버 재확인"이 한 번 더 줄인다). 무엇이 실패하든 원본을 그대로 반환한다 — 사용자에게
+// 오류를 띄우지 않는다(요청 그대로).
+const resizeImageIfNeeded = async (file: File): Promise<File> => {
+  if (file.type !== 'image/jpeg' && file.type !== 'image/png') return file;
+  try {
+    const bitmap = await createImageBitmap(file);
+    const { width, height } = bitmap;
+    if (Math.max(width, height) <= MAX_LONG_EDGE) {
+      bitmap.close();
+      return file;
+    }
+    const scale = MAX_LONG_EDGE / Math.max(width, height);
+    const targetWidth = Math.round(width * scale);
+    const targetHeight = Math.round(height * scale);
+    const canvas = document.createElement('canvas');
+    canvas.width = targetWidth;
+    canvas.height = targetHeight;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) {
+      bitmap.close();
+      return file;
+    }
+    ctx.drawImage(bitmap, 0, 0, targetWidth, targetHeight);
+    bitmap.close();
+    const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, file.type, 0.92));
+    if (!blob) return file;
+    return new File([blob], file.name, { type: file.type });
+  } catch {
+    return file;
+  }
+};
 
 interface WillPhotoUploadModalProps {
   hasExistingDraft: boolean;
@@ -28,7 +66,7 @@ export const WillPhotoUploadModal: React.FC<WillPhotoUploadModalProps> = ({ hasE
   const [resultText, setResultText] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const selected = Array.from(e.target.files ?? []);
     e.target.value = '';
     if (selected.length === 0) return;
@@ -43,7 +81,20 @@ export const WillPhotoUploadModal: React.FC<WillPhotoUploadModalProps> = ({ hasE
       setError(`파일이 너무 큽니다. 장당 최대 ${MAX_FILE_SIZE_MB}MB까지 올릴 수 있습니다.`);
       return;
     }
-    setFiles(selected);
+    const resized = await Promise.all(selected.map(resizeImageIfNeeded));
+    setFiles(resized);
+  };
+
+  // 🔄 09-28 Opus 편차 보정 [H] — §4.1 "여러 장" 올린 순서 = 쪽 순서. 목록에서 위/아래로
+  // 옮겨 순서를 바꿀 수 있게 한다.
+  const moveFile = (index: number, direction: -1 | 1) => {
+    setFiles((prev) => {
+      const target = index + direction;
+      if (target < 0 || target >= prev.length) return prev;
+      const next = [...prev];
+      [next[index], next[target]] = [next[target], next[index]];
+      return next;
+    });
   };
 
   // §6 단계 2 — 올리는 중 / 인식 중 / 완료. apiFetch(fetch 기반)라 업로드 진행률은 못 재지만,
@@ -80,7 +131,7 @@ export const WillPhotoUploadModal: React.FC<WillPhotoUploadModalProps> = ({ hasE
           {stage !== 'done' && (
             <>
               <p style={{ fontSize: 'var(--v2-fs-support)', color: 'var(--v2-text-muted)', marginBottom: '4px' }}>
-                jpg · png · pdf · tiff · heic 사진을 올릴 수 있습니다(최대 {MAX_FILES}장, 장당 {MAX_FILE_SIZE_MB}MB, PDF는 5쪽까지).
+                jpg · png · pdf · tiff 사진을 올릴 수 있습니다(최대 {MAX_FILES}장, 장당 {MAX_FILE_SIZE_MB}MB, PDF는 5쪽까지).
               </p>
               <p style={{ fontSize: 'var(--v2-fs-support)', color: 'var(--v2-text-muted)', marginBottom: '14px' }}>
                 본인이 쓴 유언장만 올려주세요.
@@ -146,9 +197,51 @@ export const WillPhotoUploadModal: React.FC<WillPhotoUploadModalProps> = ({ hasE
               </div>
 
               {files.length > 0 && (
-                <p style={{ marginTop: '8px', fontSize: 'var(--v2-fs-support)', color: 'var(--v2-text-muted)' }}>
-                  {files.map((f) => f.name).join(', ')}
-                </p>
+                <>
+                  <p style={{ marginTop: '10px', marginBottom: '4px', fontSize: 'var(--v2-fs-support)', color: 'var(--v2-text-muted)' }}>
+                    올린 순서대로 인식됩니다. 순서를 바꾸려면 화살표를 눌러주세요.
+                  </p>
+                  <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                    {files.map((f, i) => (
+                      <li key={`${f.name}-${i}`} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <span
+                          style={{
+                            flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                            fontSize: 'var(--v2-fs-support)', color: 'var(--v2-text-muted)',
+                          }}
+                        >
+                          {i + 1}. {f.name}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => moveFile(i, -1)}
+                          disabled={i === 0 || stage !== 'idle'}
+                          aria-label="위로 이동"
+                          style={{
+                            minWidth: '44px', minHeight: '44px', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            background: 'none', border: '1px solid var(--v2-btn-border)', borderRadius: '4px',
+                            opacity: i === 0 || stage !== 'idle' ? 0.4 : 1, cursor: i === 0 || stage !== 'idle' ? 'not-allowed' : 'pointer',
+                          }}
+                        >
+                          <ChevronUp size={16} />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => moveFile(i, 1)}
+                          disabled={i === files.length - 1 || stage !== 'idle'}
+                          aria-label="아래로 이동"
+                          style={{
+                            minWidth: '44px', minHeight: '44px', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            background: 'none', border: '1px solid var(--v2-btn-border)', borderRadius: '4px',
+                            opacity: i === files.length - 1 || stage !== 'idle' ? 0.4 : 1, cursor: i === files.length - 1 || stage !== 'idle' ? 'not-allowed' : 'pointer',
+                          }}
+                        >
+                          <ChevronDown size={16} />
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </>
               )}
               {error && <p className="v2-notice-warn" style={{ marginTop: '12px' }}>{error}</p>}
             </>
