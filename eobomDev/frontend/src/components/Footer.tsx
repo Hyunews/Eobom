@@ -12,18 +12,12 @@ import { KAKAO_CHANNEL_CHAT_URL } from '../config';
 // (--secondary-color, 크림)이 그대로 비쳐 보여 어느 쪽이든 위화감이 없다.
 // isFullPageSnap(둥근 카드로 띄우는 변형)은 실제로 어디서도 true로 넘겨진 적 없는 죽은 분기였고,
 // 짙은 배경을 전제로 한 그림자·라운딩이라 투명 배경 디자인과 맞지 않아 이번에 정리했다.
-interface FooterProps {
-  // 🆕 2026-09-28 — HomeMobile.tsx 전용. 모바일에서만 의미 있고(FooterMobile로 그대로
-  // 전달), 데스크톱 Footer(아래 그리드)는 로고가 항상 그대로 나온다.
-  hideLogo?: boolean;
-}
-
-export const Footer: React.FC<FooterProps> = ({ hideLogo }) => {
+export const Footer: React.FC = () => {
   // 2026-09-09 — 사용자 지시. 데스크톱 4열 그리드를 모바일에 그대로 쌓으면 본문보다 길어져
   // FooterMobile(아코디언)로 분리(00-38 §6.5). 데스크톱(>768px)은 아래 그대로 유지.
   const isMobile = useIsMobile(768);
   if (isMobile) {
-    return <FooterMobile hideLogo={hideLogo} />;
+    return <FooterMobile />;
   }
 
   return (

@@ -297,10 +297,9 @@ export const HomeMobile: React.FC<HomeMobileProps> = ({ currentUser, onOpenLogin
               </p>
             </section>
             <section style={{ position: 'relative' }}>
-              {/* 🔄 2026-09-28 사람 지시 — 모바일 홈 마지막 칸 높이가 빠듯해 로고까지 있으면
-                  너무 길어짐. Footer.tsx가 이 폭에서 렌더하는 FooterMobile에만 hideLogo로
-                  로고 블록을 뺀다(다른 페이지의 FooterMobile은 기본값 그대로 노출). */}
-              <Footer hideLogo />
+              {/* 🔄 2026-09-28 사용자 지시 — 모바일 푸터는 이제 전역으로 로고·브랜드 문구가
+                  없다(FooterMobile.tsx) — 이 칸도 특별 취급 없이 그대로 렌더. */}
+              <Footer />
             </section>
           </div>
         </div>

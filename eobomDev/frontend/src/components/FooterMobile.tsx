@@ -1,20 +1,14 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { MessageCircle, ChevronDown } from 'lucide-react';
-import { EobomLogo } from './EobomLogo';
 import { KAKAO_CHANNEL_CHAT_URL } from '../config';
-
-interface FooterMobileProps {
-  // 🆕 2026-09-28 사람 지시(00-40 §3.3 홈 모바일) — 홈 마지막 칸(섹션3+푸터)이 100svh
-  // 안에 다 들어가야 하는데 로고까지 있으면 너무 길다. 기본값은 false — 다른 모든 페이지의
-  // FooterMobile은 지금처럼 로고를 그대로 보여준다.
-  hideLogo?: boolean;
-}
 
 // 2026-09-09 — 사용자 지시. 데스크톱 Footer(4열 그리드, Footer.tsx)를 모바일 폭에 그대로
 // 쌓으면 4섹션이 완전히 펼쳐져 본문보다 길어진다. 로고+카카오 CTA만 먼저 보이고 약관·대표번호는
 // 아코디언으로 접어 둔다. 열림/닫힘 상태기계가 생겨 Footer.tsx에서 분리했다(00-38 §6.5).
-export const FooterMobile: React.FC<FooterMobileProps> = ({ hideLogo }) => {
+// 🔄 2026-09-28 사용자 지시 — 모바일 푸터의 이어봄 로고·문구를 전역으로 제거(브랜드 표기 없이
+// 약관·연락처·카피라이트만 남긴다).
+export const FooterMobile: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
@@ -32,12 +26,6 @@ export const FooterMobile: React.FC<FooterMobileProps> = ({ hideLogo }) => {
         width: '100%'
       }}
     >
-      {!hideLogo && (
-        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '0.9rem' }}>
-          <EobomLogo variant="symbol" height={34} />
-        </div>
-      )}
-
       <a
         href={KAKAO_CHANNEL_CHAT_URL}
         target="_blank"
@@ -117,7 +105,7 @@ export const FooterMobile: React.FC<FooterMobileProps> = ({ hideLogo }) => {
           lineHeight: 1.6
         }}
       >
-        Copyright © 2026 이어봄 (Eobom)<br />Total Care Platform. All rights reserved.
+        Copyright © 2026 Total Care Platform. All rights reserved.
       </div>
     </footer>
   );
