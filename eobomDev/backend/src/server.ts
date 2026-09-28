@@ -20,6 +20,7 @@ import familyDesignationRoutes from './routes/familyDesignationRoutes';
 import farewellMessageRoutes from './routes/farewellMessageRoutes';
 import endingNoteRoutes from './routes/endingNoteRoutes';
 import sttRoutes from './routes/sttRoutes';
+import ocrRoutes from './routes/ocrRoutes';
 import { checkEncryptionKeyStrength } from './utils/crypto';
 
 const app = express();
@@ -71,6 +72,7 @@ app.use('/api/family-designations', familyDesignationRoutes);
 app.use('/api/farewell-messages', farewellMessageRoutes);
 app.use('/api/ending-note', endingNoteRoutes);
 app.use('/api/stt', sttRoutes);
+app.use('/api/ocr', ocrRoutes);
 
 // 기본 헬스체크
 app.get('/api/health', (req, res) => {

@@ -12,6 +12,7 @@ import {
   ListChecks,
   ChevronRight,
   ChevronLeft,
+  Camera,
 } from 'lucide-react';
 import { apiFetch, ApiError } from '../lib/api';
 import { getToken } from '../lib/storage';
@@ -29,6 +30,7 @@ import type { SaveState, FamilyItem, GrantItem, SummaryRow } from '../components
 import { AccordionSection, saveButtonLabel } from '../components/endingNote/AccordionSection';
 import { SectionTimingControl } from '../components/endingNote/SectionTimingControl';
 import { SummaryModal, summarizeFreeText } from '../components/endingNote/SummaryModal';
+import { WillPhotoUploadModal } from '../components/endingNote/WillPhotoUploadModal';
 import '../styles/design-v2.css';
 
 // 00-39 §9.1 그룹②(폼·입력) — obituary(§6.8·§6.8-1)의 필드 규칙을 그대로 물려받는다(§9.2 표
@@ -99,6 +101,27 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
   );
   const [largeText, setLargeText] = useState<boolean>(false);
   const [copyFeedback, setCopyFeedback] = useState<string | null>(null);
+
+  // docs 06-06 §5·§9 P1 — "사진으로 불러오기". provider가 없으면(플래그 꺼짐) 버튼 자체를
+  // 숨긴다(§5 마지막 줄 — "업체 없이 업로드 버튼을 노출하지 않는다"). showOcrDisclaimer는
+  // §6 단계 5의 고정 안내 — 한 번이라도 사진으로 합류하면 이 세션 동안은 계속 보여준다.
+  const [ocrEnabled, setOcrEnabled] = useState(false);
+  const [showPhotoUploadModal, setShowPhotoUploadModal] = useState(false);
+  const [showOcrDisclaimer, setShowOcrDisclaimer] = useState(false);
+
+  useEffect(() => {
+    apiFetch<{ enabled: boolean }>('/api/ocr/status')
+      .then((d) => setOcrEnabled(d.enabled))
+      .catch(() => setOcrEnabled(false));
+  }, []);
+
+  // §6 단계 4 — 편집 영역이 비어 있으면 그대로 넣고, 이미 글이 있으면 모달이 물어본 바꾸기/
+  // 뒤에 붙이기 결과를 그대로 따른다.
+  const handlePhotoOcrMerge = (text: string, mode: 'replace' | 'append') => {
+    setDraftText((prev) => (mode === 'append' && prev.trim() ? `${prev}\n\n${text}` : text));
+    setShowPhotoUploadModal(false);
+    setShowOcrDisclaimer(true);
+  };
 
   // §10 Phase 1·2 — 조회. 서버가 policyAgreedAt·sectionState·문구·본문 전부를 내려준다(재로그인
   // 복원). 가족 목록·권한 목록도 같이 받아 섹션별 공개 시점 UI를 채운다.
@@ -902,14 +925,33 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
 
         <div className="v2-note-draft-grid">
           <div className="v2-field">
-            <label htmlFor="en-draft-text">초안 (직접 입력)</label>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', flexWrap: 'wrap' }}>
+              <label htmlFor="en-draft-text">초안 (직접 입력)</label>
+              {ocrEnabled && (
+                <button
+                  type="button"
+                  onClick={() => setShowPhotoUploadModal(true)}
+                  className="v2-btn-outline"
+                  style={{ padding: '6px 12px', fontSize: 'var(--v2-fs-support)' }}
+                >
+                  <Camera size={15} /> 사진으로 불러오기
+                </button>
+              )}
+            </div>
+            {/* docs 06-06 §6 단계 5 — 고정 표시. 사진으로 초안을 채운 뒤에는 편집 영역 바로
+                위에서 계속 보여준다. */}
+            {showOcrDisclaimer && (
+              <p className="v2-notice-warn" style={{ marginTop: '8px' }}>
+                인식된 글은 틀릴 수 있습니다. 사진과 대조해 고친 뒤 저장하세요.
+              </p>
+            )}
             <textarea
               id="en-draft-text"
               rows={10}
               value={draftText}
               onChange={(e) => setDraftText(e.target.value)}
               className="v2-input"
-              style={{ height: 'auto', padding: '12px 14px', fontSize: largeText ? '18px' : '16px', lineHeight: 1.7 }}
+              style={{ height: 'auto', padding: '12px 14px', fontSize: largeText ? '18px' : '16px', lineHeight: 1.7, marginTop: '8px' }}
               placeholder="유언장 초안 내용을 직접 입력해 주세요."
             />
           </div>
@@ -973,6 +1015,14 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
 
       {summaryOpen && (
         <SummaryModal rows={summaryRows} onClose={() => setSummaryOpen(false)} onSelectRow={handleSummaryRowSelect} />
+      )}
+
+      {showPhotoUploadModal && (
+        <WillPhotoUploadModal
+          hasExistingDraft={!!draftText.trim()}
+          onClose={() => setShowPhotoUploadModal(false)}
+          onMerge={handlePhotoOcrMerge}
+        />
       )}
     </div>
   );
