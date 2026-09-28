@@ -1043,3 +1043,16 @@
   - 🟡 **사람이 볼 곳**: (a) `terms` 데스크톱에서 좌측 목차(24개 조)가 끝까지 스크롤되는지·`care-guide`(5개) 목차 모양이 그대로인지, (b) 360px에서 `.v2-notice-warn` 배너(제목+설명 두 줄)가 여백 안에서 잘 읽히는지.
 
 <!-- Gemini 판정 1줄: … -->
+
+
+## 2026-09-28 | 그룹③ legal 목차 잘림 수정 — 실기동 반려 반영 (legal 보정 1회 후속 재수정)
+
+- **근거 스펙**: 없음 — `.harness/AGENTS.md` §1 CONFIRM 대상 아닌 버그 수정. 사용자가 실기동 후 "terms 목차 24조까지 안 나오고 아래가 잘린다(care-guide는 문제 없음)"고 직접 보고.
+- **건드린 파일**: `eobomDev/frontend/src/styles/design-v2.css`
+- **결과**: `.v2-guide-toc`의 `max-height` 계산이 틀렸었다 — 데스크톱(769px↑)은 `.main-wrapper`가 `height: calc(100vh - var(--header-h))`인 자체 스크롤 패널(`index.css` L286-312)인데, 목차의 `top`이 이미 `header-h+24px`라 실제 남는 높이는 `100vh - header-h(패널) - header-h(top오프셋) - 24px`다. 기존엔 `header-h`를 한 번만 빼서(`calc(100vh - var(--header-h) - 48px)`) 실제보다 넉넉하게 계산됐고, 그 결과 `overflow-y:auto`가 트이기 전에 `.main-wrapper`의 바깥 경계에서 먼저 물리적으로 잘렸다(사람 눈엔 "스크롤도 안 되고 그냥 잘림"으로 보임). `care-guide`(항목 5개, 원래 높이가 짧음)는 이 경계에 안 걸려 증상이 안 보였던 것 — 우연히 무사했을 뿐 계산 자체는 처음부터 틀려 있었다.
+  - 수정: `max-height: calc(100vh - (var(--header-h) * 2) - 48px)`로 `header-h`를 두 번 뺌(패널 자체 높이 1번 + top 오프셋 1번).
+  - `npx tsc --noEmit`(frontend) 에러 0 · `npm run build`(frontend) 통과.
+- **편차**: 없음.
+- **다음 에이전트가 알아야 할 것**: 🔴 실기동 재검증 대기 — `terms`에서 목차를 끝까지(24조) 스크롤해 확인 필요. `care-guide`도 여전히 문제 없는지 같이 확인.
+
+<!-- Gemini 판정 1줄: … -->

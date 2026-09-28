@@ -38,7 +38,7 @@
 🔴사람실기동완전대기(facility이후전부+09-23분—클릭검증0건).
 🟡보류:pickup거리순·전문가region·height:36px3곳.
 🔄09-28:00-38Phase1~3감사=폐기(00-39§9.3·§10).✅그룹③privacy·terms v2이관완료(tsc/build통과,wt09-28).
-✅legal보정1회(배너→`.v2-notice-warn`·목차max-height+overflow,tsc/build통과,wt09-28후속)·실기동대기.
+✅legal보정1회+실기동피드백1건반영(배너✅사람확인·목차max-height식오류→수정,tsc/build통과,wt09-28×3).🔴terms목차재확인대기.
 ✅[Opus]그룹④`/o/:slug`시안(09-28,캔버스U9Ys4rJpZP3fsBHHBrhfvR)사람통과·§6.7등재완료→다음=[Sonnet]ObituaryView구현.
 **3.[Gemini]**🔴게이트45건대기(09-11~21·wt204~)·🟡옛스펙3건→⑭.🟡devDB삭제분7건—D-8(🔴CONFIRM).✅reports경로정리완료(09-16).
 
