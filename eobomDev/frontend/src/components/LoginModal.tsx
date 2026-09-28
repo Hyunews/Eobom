@@ -90,7 +90,7 @@ const SocialLoginButtons: React.FC<{
       }}
     >
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path fillRule="evenodd" clipRule="evenodd" d="M12 3C6.477 3 2 6.484 2 10.782C2 13.567 3.791 16.002 6.5 17.388L5.59 20.738C5.474 21.164 5.952 21.492 6.31 21.254L10.378 18.55C10.906 18.625 11.446 18.665 12 18.665C17.523 18.665 22 15.181 22 10.883C22 6.584 17.523 3 12 3Z" fill="#191919"/>
+        <path fillRule="evenodd" clipRule="evenodd" d="M12 3C6.477 3 2 6.484 2 10.782C2 13.567 3.791 16.002 6.5 17.388L5.59 20.738C5.474 21.164 5.952 21.492 6.31 21.254L10.378 18.55C10.906 18.625 11.446 18.665 12 18.665C17.523 18.665 22 15.181 22 10.883C22 6.584 17.523 3 12 3Z" fill="#191919" />
       </svg>
       카카오로 시작하기
     </button>
@@ -144,10 +144,10 @@ const SocialLoginButtons: React.FC<{
       }}
     >
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-        <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
-        <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-        <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" fill="#FBBC05"/>
-        <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" fill="#EA4335"/>
+        <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
+        <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
+        <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" fill="#FBBC05" />
+        <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" fill="#EA4335" />
       </svg>
       구글 계정으로 시작하기
     </button>
@@ -359,125 +359,125 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin
 
         {/* "회원가입" 탭 — 기존 UI(만14세 게이트 + 필수동의 2 + 선택 1) 그대로. */}
         {activeTab === 'signup' && (
-        <>
-        {/* 만 14세 이상 자기신고(00-19 §9-2-1) — 아래 동의 박스와 절대 섞지 않는다(요구2).
+          <>
+            {/* 만 14세 이상 자기신고(00-19 §9-2-1) — 아래 동의 박스와 절대 섞지 않는다(요구2).
             생년월일은 받지 않고, 체크 여부도 어디에도 저장하지 않는다(요구3) — 로그인 버튼을
             잠그는 순수 로컬 게이트일 뿐이다. */}
-        <label
-          onClick={() => setAgeConfirmed((prev) => !prev)}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.55rem',
-            cursor: 'pointer',
-            fontSize: 'var(--fs-body)',
-            color: '#4B5563',
-            padding: 'var(--sp-3) 0.9rem',
-            border: '1px solid var(--secondary-dark)',
-            borderRadius: 'var(--r-sm)',
-            marginBottom: '0.9rem'
-          }}
-        >
-          <span
-            role="checkbox"
-            aria-checked={ageConfirmed}
-            style={{
-              width: '19px',
-              height: '19px',
-              flexShrink: 0,
-              borderRadius: 'var(--r-sm)',
-              border: ageConfirmed ? 'none' : '1.5px solid var(--border-color)',
-              backgroundColor: ageConfirmed ? 'var(--primary-color)' : '#FFFFFF',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center'
-            }}
-          >
-            {ageConfirmed && <Check size={13} color="#FFFFFF" strokeWidth={3} />}
-          </span>
-          <span>
-            본인은 <strong style={{ color: 'var(--primary-color)' }}>만 14세 이상</strong>입니다.
-            이어봄은 만 14세 미만 아동의 가입을 받지 않습니다.
-          </span>
-        </label>
+            <label
+              onClick={() => setAgeConfirmed((prev) => !prev)}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.55rem',
+                cursor: 'pointer',
+                fontSize: 'var(--fs-body)',
+                color: '#4B5563',
+                padding: 'var(--sp-3) 0.9rem',
+                border: '1px solid var(--secondary-dark)',
+                borderRadius: 'var(--r-sm)',
+                marginBottom: '0.9rem'
+              }}
+            >
+              <span
+                role="checkbox"
+                aria-checked={ageConfirmed}
+                style={{
+                  width: '19px',
+                  height: '19px',
+                  flexShrink: 0,
+                  borderRadius: 'var(--r-sm)',
+                  border: ageConfirmed ? 'none' : '1.5px solid var(--border-color)',
+                  backgroundColor: ageConfirmed ? 'var(--primary-color)' : '#FFFFFF',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}
+              >
+                {ageConfirmed && <Check size={13} color="#FFFFFF" strokeWidth={3} />}
+              </span>
+              <span>
+                본인은 <strong style={{ color: 'var(--primary-color)' }}>만 14세 이상</strong>입니다.
+                이어봄은 만 14세 미만 아동의 가입을 받지 않습니다.
+              </span>
+            </label>
 
-        {/* 필수 동의(이용약관·개인정보) 2개 + 선택(마케팅 수신) 1개 — 아래 로그인 버튼은
+            {/* 필수 동의(이용약관·개인정보) 2개 + 선택(마케팅 수신) 1개 — 아래 로그인 버튼은
             필수 2개가 체크되기 전까지 눌리지 않는다. 최초 가입(신규 소셜 로그인)일 때만 실제로
             DB에 동의 시각이 기록되고(authController.ts), 기존 회원 재로그인 시에는 이미 최초
             가입 때 받은 값이라 여기서 다시 체크해도 별도로 덮어써지지 않는다. */}
-        <div style={{ backgroundColor: 'var(--secondary-color)', borderRadius: 'var(--r-md)', padding: 'var(--sp-4) 1rem 0.4rem', marginBottom: '1.2rem' }}>
-          <div
-            onClick={toggleAll}
-            role="checkbox"
-            aria-checked={allAgreed}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.55rem',
-              cursor: 'pointer',
-              paddingBottom: '0.55rem',
-              marginBottom: '0.3rem',
-              borderBottom: '1px solid var(--secondary-dark)',
-              fontWeight: 700,
-              fontSize: 'var(--fs-body)',
-              color: 'var(--primary-color)'
-            }}
-          >
-            <span
-              style={{
-                width: '19px',
-                height: '19px',
-                flexShrink: 0,
-                borderRadius: 'var(--r-sm)',
-                border: allAgreed ? 'none' : '1.5px solid var(--border-color)',
-                backgroundColor: allAgreed ? 'var(--primary-color)' : '#FFFFFF',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center'
-              }}
-            >
-              {allAgreed && <Check size={13} color="#FFFFFF" strokeWidth={3} />}
-            </span>
-            전체 동의합니다
-          </div>
-          <ConsentCheckbox checked={agreedTerms} onChange={setAgreedTerms} label="서비스 이용약관 동의" required href="/terms" />
-          <ConsentCheckbox checked={agreedPrivacy} onChange={setAgreedPrivacy} label="개인정보 수집 및 이용 동의" required href="/privacy" />
-          <ConsentCheckbox checked={agreedMarketing} onChange={setAgreedMarketing} label="마케팅 정보 수신 동의" required={false} />
-        </div>
+            <div style={{ backgroundColor: 'var(--secondary-color)', borderRadius: 'var(--r-md)', padding: 'var(--sp-4) 1rem 0.4rem', marginBottom: '1.2rem' }}>
+              <div
+                onClick={toggleAll}
+                role="checkbox"
+                aria-checked={allAgreed}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.55rem',
+                  cursor: 'pointer',
+                  paddingBottom: '0.55rem',
+                  marginBottom: '0.3rem',
+                  borderBottom: '1px solid var(--secondary-dark)',
+                  fontWeight: 700,
+                  fontSize: 'var(--fs-body)',
+                  color: 'var(--primary-color)'
+                }}
+              >
+                <span
+                  style={{
+                    width: '19px',
+                    height: '19px',
+                    flexShrink: 0,
+                    borderRadius: 'var(--r-sm)',
+                    border: allAgreed ? 'none' : '1.5px solid var(--border-color)',
+                    backgroundColor: allAgreed ? 'var(--primary-color)' : '#FFFFFF',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}
+                >
+                  {allAgreed && <Check size={13} color="#FFFFFF" strokeWidth={3} />}
+                </span>
+                전체 동의합니다
+              </div>
+              <ConsentCheckbox checked={agreedTerms} onChange={setAgreedTerms} label="서비스 이용약관 동의" required href="/terms" />
+              <ConsentCheckbox checked={agreedPrivacy} onChange={setAgreedPrivacy} label="개인정보 수집 및 이용 동의" required href="/privacy" />
+              <ConsentCheckbox checked={agreedMarketing} onChange={setAgreedMarketing} label="마케팅 정보 수신 동의" required={false} />
+            </div>
 
-        {/* 소셜 로그인 3종 — 필수 동의 전까지 비활성화(흐리게 + 클릭 무시) */}
-        <SocialLoginButtons onSelect={handleSocialLogin} disabled={!canProceed} />
-        </>
+            {/* 소셜 로그인 3종 — 필수 동의 전까지 비활성화(흐리게 + 클릭 무시) */}
+            <SocialLoginButtons onSelect={handleSocialLogin} disabled={!canProceed} />
+          </>
         )}
 
         {/* 파트너 진입 링크 + 개발용 데모 로그인 — "로그인"·"회원가입" 두 탭 공통 하단(작업 지시 원문) */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--sp-4)', marginTop: activeTab === 'login' ? 0 : '0.5rem' }}>
-            {/* 파트너(사업자·전문가) 진입 분기 — B2C 소셜 로그인과 무관한 별도 인증 체계로 이동
+          {/* 파트너(사업자·전문가) 진입 분기 — B2C 소셜 로그인과 무관한 별도 인증 체계로 이동
                 (00-06 §7.3 ①). 데모 블록은 오픈 시 제거될 것이므로 그 위에 둔다. */}
-            <div style={{ marginTop: '0.95rem', paddingTop: '0.95rem', borderTop: '1px solid var(--surface-subtle)', textAlign: 'center' }}>
-              <button
-                type="button"
-                onClick={handlePartnerEntry}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  cursor: 'pointer',
-                  fontSize: 'var(--fs-body)',
-                  fontWeight: 600,
-                  color: 'var(--primary-color)',
-                  textDecoration: 'underline',
-                  padding: 0
-                }}
-              >
-                장사시설 · 전문가 회원이신가요? 파트너 로그인 →
-              </button>
-            </div>
+          <div style={{ marginTop: '0.95rem', paddingTop: '0.95rem', borderTop: '1px solid var(--surface-subtle)', textAlign: 'center' }}>
+            <button
+              type="button"
+              onClick={handlePartnerEntry}
+              style={{
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                fontSize: 'var(--fs-body)',
+                fontWeight: 600,
+                color: 'var(--primary-color)',
+                textDecoration: 'underline',
+                padding: 0
+              }}
+            >
+              장사시설 · 전문가 회원이신가요? 파트너 로그인 →
+            </button>
+          </div>
 
-            {/* 하단 개발용 모의 로그인 버튼 — 백엔드 demo-login이 termsAgreed/privacyAgreed를
+          {/* 하단 개발용 모의 로그인 버튼 — 백엔드 demo-login이 termsAgreed/privacyAgreed를
                 요구해서(authController.ts) canProceed(회원가입 탭의 동의+만14세 게이트)에 계속
                 묶어둔다. "로그인" 탭에는 그 게이트 자체가 없어 canProceed가 항상 false이므로,
                 데모 버튼은 이 자리에 노출은 되지만 "회원가입" 탭으로 전환해 동의해야 눌린다. */}
-            <div style={{ marginTop: '0.95rem', paddingTop: '0.95rem', borderTop: '1px solid var(--surface-subtle)', textAlign: 'center' }}>
+          {/* <div style={{ marginTop: '0.95rem', paddingTop: '0.95rem', borderTop: '1px solid var(--surface-subtle)', textAlign: 'center' }}>
               <div style={{ fontSize: 'var(--fs-body)', color: 'var(--text-hint)', marginBottom: '0.6rem' }}>
                 [빠른 데모 테스트용 선택]
               </div>
@@ -504,8 +504,8 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin
                   ⚪ 구글(모의)
                 </button>
               </div>
-            </div>
-          </div>
+            </div> */}
+        </div>
       </div>
     </div>
   );
