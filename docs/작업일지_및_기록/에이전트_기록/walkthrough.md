@@ -1026,3 +1026,20 @@
   - Opus 몫: 위 "새로 만든 클래스" 목록의 §6.7 등재 여부 판단, 그리고 `.v2-guide-shell`류 골격이 `care-guide`(①)·`ending-note`(②)·이번 `legal`(③) 셋에서 반복되는데도 §6.7에 정식 등재가 안 돼 있던 기존 문제(발견만, 이번 세션에서 손대지 않음)도 함께 검토 대상.
 
 <!-- Gemini 판정 1줄: … -->
+
+
+## 2026-09-28 | 그룹③ legal 보정 1회 — Opus 09-28 판정 반영 (09-28 legal 항목 후속)
+
+- **근거 스펙**: `docs/00_핵심플랫폼/00-39_디자인_기준_재정립_명세서.md` §6.7 "공통 골격"·"그룹③(법정문서)에서 나온 것" 두 표 + 그 아래 "모바일 목차" 문단(09-28 등재)
+- **건드린 파일**: `eobomDev/frontend/src/components/legal/LegalDocLayout.tsx`, `eobomDev/frontend/src/styles/design-v2.css`
+- **결과**:
+  - "시행 준비 중" 배너: `v2-legal-draft-banner`/`-icon`/`-title`/`-desc` 4개를 JSX·CSS 양쪽에서 전부 제거하고 기존 `.v2-notice-warn`으로 교체. 아이콘(`AlertTriangle`) 제거, `<strong>제목</strong>` + `<p>설명</p>`만 남김(문구 원문 그대로). 위치를 `.v2-guide-main`(읽기 폭 764px) 안쪽 맨 위로 옮겨 본문과 폭이 같아짐 — 별도 `max-width` CSS 불필요.
+  - `.v2-guide-toc`(공용 클래스, `care-guide`와 공유)에 `max-height: calc(100vh - var(--header-h) - 48px); overflow-y: auto;` 추가. `care-guide`는 목차 5항목이라 뷰포트보다 짧아 스크롤이 생기지 않으므로 모양 영향 없음(코드로 확인, 실측은 아래 "사람이 볼 곳" 참고).
+  - 모바일 목차 숨김은 기존 그대로 유지(Opus 09-28 편차 승인 — 대체 없이 숨김, 조별 접기/더보기 추가하지 않음).
+  - `npx tsc --noEmit`(frontend) 에러 0 · `npm run build`(frontend) 통과.
+- **편차**: 없음 — 전부 Opus 09-28 판정 그대로 반영.
+- **다음 에이전트가 알아야 할 것**:
+  - 🔴 실기동 검증 대기(사람).
+  - 🟡 **사람이 볼 곳**: (a) `terms` 데스크톱에서 좌측 목차(24개 조)가 끝까지 스크롤되는지·`care-guide`(5개) 목차 모양이 그대로인지, (b) 360px에서 `.v2-notice-warn` 배너(제목+설명 두 줄)가 여백 안에서 잘 읽히는지.
+
+<!-- Gemini 판정 1줄: … -->

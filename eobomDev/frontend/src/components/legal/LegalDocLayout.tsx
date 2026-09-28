@@ -1,6 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { AlertTriangle } from 'lucide-react';
 import '../../styles/design-v2.css';
 
 interface LegalDocLayoutProps {
@@ -83,16 +82,13 @@ export const LegalDocLayout: React.FC<LegalDocLayoutProps> = ({ title, effective
         <p className="v2-page-subtitle">{effectiveDateLabel}</p>
       </div>
 
-      <div className="v2-legal-draft-banner">
-        <AlertTriangle size={22} className="v2-legal-draft-icon" />
-        <div>
-          <strong className="v2-legal-draft-title">시행 준비 중 — 공식 게시본이 아닙니다</strong>
-          <p className="v2-legal-draft-desc">아래 내용은 공식 시행 전 초안이며, 일부 항목은 확정되는 대로 채워집니다.</p>
-        </div>
-      </div>
-
       <div className="v2-guide-shell">
         <div className="v2-guide-main" ref={mainRef}>
+          <div className="v2-notice-warn">
+            <strong>시행 준비 중 — 공식 게시본이 아닙니다</strong>
+            <p>아래 내용은 공식 시행 전 초안이며, 일부 항목은 확정되는 대로 채워집니다.</p>
+          </div>
+
           {children}
 
           <div className="v2-legal-back">

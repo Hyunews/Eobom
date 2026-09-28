@@ -96,6 +96,10 @@
   display: flex;
   flex-direction: column;
   gap: 2px;
+  /* 2026-09-28 Opus 판정 — 항목이 많은 화면(legal의 terms=24개)은 목차가 뷰포트보다 길어진다.
+     care-guide(5개)는 스크롤이 생기지 않을 만큼 짧아 모양이 그대로다. */
+  max-height: calc(100vh - var(--header-h) - 48px);
+  overflow-y: auto;
 }
 
 .v2-toc-item {
@@ -2712,39 +2716,6 @@ a.v2-btn-solid {
   text-decoration: underline;
 }
 
-/* 시행 준비 중 배너 — 아직 공식 게시본이 아님을 알리는 고정 안내(그림자 없이 옅은 배경+테두리) */
-.v2-legal-draft-banner {
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-  background: rgba(192, 57, 43, 0.08);
-  border: 1px solid rgba(192, 57, 43, 0.25);
-  border-radius: 4px;
-  padding: 16px 20px;
-  margin: 0 auto 32px;
-  max-width: calc(var(--v2-toc-width) + var(--v2-reading-width) + 48px);
-}
-
-.v2-legal-draft-icon {
-  flex-shrink: 0;
-  color: var(--v2-urgent);
-  margin-top: 2px;
-}
-
-.v2-legal-draft-title {
-  display: block;
-  font-size: var(--v2-fs-body);
-  font-weight: 700;
-  color: var(--v2-urgent);
-}
-
-.v2-legal-draft-desc {
-  font-size: var(--v2-fs-support);
-  color: var(--v2-text-muted);
-  line-height: 1.6;
-  margin: 4px 0 0;
-}
-
 .v2-legal-back {
   margin-top: 48px;
   padding-top: 24px;
@@ -2760,9 +2731,5 @@ a.v2-btn-solid {
 @media (max-width: 767px) {
   .v2-legal-article-title {
     font-size: var(--v2-fs-section-title-mobile);
-  }
-
-  .v2-legal-draft-banner {
-    max-width: 100%;
   }
 }

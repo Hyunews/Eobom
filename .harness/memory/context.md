@@ -33,12 +33,13 @@
 **2.[Sonnet]**🔴wt112~172·wt183실기동/커밋대기(사람,09-03~).⏸체크8·04B=`PreDeathPlatformSetting`뒤.
 ✅facility·memorial·obituary/mypage·파기배치④·`04-01`§0.2-0·`LocationSearchBox`·그룹②5/5·09-23모바일감사
 전부완료(09-17~23,매회tsc/build통과)—세부`walkthrough.md`.
-🔴Opus:00-39§9.1표갱신+v2클래스§6.7등재검토.🔴편차:pickup이 v2→구form역행(Opus판단,→backlog).
+✅09-28Opus:00-39§9.1표갱신·§6.7에 공통골격+legal등재·모바일목차숨김승인·draft배너→`.v2-notice-warn`.🔴편차:pickup이 v2→구form역행(Opus판단,→backlog).
 🔴§4.5동의3층미착수(→⑲).🔴파기배치`--confirm`금지(사람승인)·실행중dev재시작필요.
 🔴사람실기동완전대기(facility이후전부+09-23분—클릭검증0건).
 🟡보류:pickup거리순·전문가region·height:36px3곳.
 🔄09-28:00-38Phase1~3감사=폐기(00-39§9.3·§10).✅그룹③privacy·terms v2이관완료(tsc/build통과,wt09-28).
-🔴실기동대기+Opus:신규v2-legal-*(목차포함)§6.7등재판단.다음=그룹④랜딩(§9.4권고).
+✅legal보정1회(배너→`.v2-notice-warn`·목차max-height+overflow,tsc/build통과,wt09-28후속)·실기동대기.
+✅[Opus]그룹④`/o/:slug`시안(09-28,캔버스U9Ys4rJpZP3fsBHHBrhfvR)사람통과·§6.7등재완료→다음=[Sonnet]ObituaryView구현.
 **3.[Gemini]**🔴게이트45건대기(09-11~21·wt204~)·🟡옛스펙3건→⑭.🟡devDB삭제분7건—D-8(🔴CONFIRM).✅reports경로정리완료(09-16).
 
 ## 지금 상태
