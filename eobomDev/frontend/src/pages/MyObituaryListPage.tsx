@@ -215,7 +215,7 @@ export const MyObituaryListPage: React.FC = () => {
             </div>
 
             <div className="v2-modal-actions">
-              <button type="button" className="v2-btn-outline" onClick={() => navigate(`/o/${modalObituary.slug}`)}>
+              <button type="button" className="v2-btn-outline" onClick={() => window.open(`/o/${modalObituary.slug}`, '_blank', 'noopener,noreferrer')}>
                 <ExternalLink size={14} /> 열기
               </button>
               <button type="button" className="v2-btn-outline" onClick={() => shareObituary(modalObituary)}>
@@ -261,7 +261,7 @@ export const MyObituaryListPage: React.FC = () => {
             </div>
 
             <div className="v2-modal-actions">
-              <button type="button" className="v2-btn-outline" onClick={() => navigate(`/m/${modalMemorial.slug}`)}>
+              <button type="button" className="v2-btn-outline" onClick={() => window.open(`/m/${modalMemorial.slug}`, '_blank', 'noopener,noreferrer')}>
                 <ExternalLink size={14} /> 열기
               </button>
             </div>

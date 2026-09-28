@@ -1056,3 +1056,43 @@
 - **다음 에이전트가 알아야 할 것**: 🔴 실기동 재검증 대기 — `terms`에서 목차를 끝까지(24조) 스크롤해 확인 필요. `care-guide`도 여전히 문제 없는지 같이 확인.
 
 <!-- Gemini 판정 1줄: … -->
+
+
+## 2026-09-28 | 그룹④ 랜딩 대표 /o/:slug 부고장 v2 구현
+
+- **근거 스펙**: `docs/00_핵심플랫폼/00-39_디자인_기준_재정립_명세서.md` §6.7 "그룹④(랜딩) 대표 `/o/:slug`" 표(2026-09-28 시안 확정, 캔버스 `U9Ys4rJpZP3fsBHHBrhfvR`).
+- **건드린 파일**: `eobomDev/frontend/src/components/ObituaryView.tsx`, `eobomDev/frontend/src/pages/ObituaryLandingPage.tsx`, `eobomDev/frontend/src/styles/design-v2.css`
+- **결과**:
+  - 카드·그림자·남색 근조 띠 제거 → 문서형(라벨 + 1px 선 행)으로 재구성. 묶음 3개(장례 일정 / 상주·유족 / 마음 전하실 곳)로 재편.
+  - 새 표시 3종 반영: ① `deceasedDeathDate` 있을 때만 `formatDeathDate()`(신규 로컬 헬퍼, `formatKST`는 안 건드림)로 "YYYY년 M월 D일 별세" ② `funeralHallAddr`을 빈소 이름 아래 `.v2-obit-addr` 한 줄로 ③ 유족 라벨 "유족" — 모바일은 `.v2-obit-mourner-list.v2-mobile-only`(한 명당 한 줄), 데스크톱은 `.v2-desktop-only`(` · ` 조인 한 줄).
+  - 길찾기·전화 걸기를 `.v2-btn-outline`(44px 테두리 버튼)으로 교체. 전화 걸기는 `.v2-obit-row-btn.v2-mobile-only`로 모바일 전용(데스크톱은 번호만, 화면폭 분기는 §6.7 원칙대로 `.v2-desktop-only`/`.v2-mobile-only` — `useIsMobile` 신규 사용 없음).
+  - 계좌는 상자 없이 행 하나(`.v2-obit-row` 재사용, 예금주는 `.v2-obit-addr` 보조색). 추모관 들어가기는 `.v2-btn-outline.v2-obit-memorial-btn`(폭 100%·52px), `memorialSlug` 있을 때만 그대로 유지.
+  - 폭: 모바일 여백 `var(--v2-gutter-mobile)`(24px) · 데스크톱 560px 한 열 가운데(`.v2-obit-content` max-width), 위 96px(`.v2-obit-page`). 스켈레톤(`ObituaryLandingSkeleton`)도 `.v2-obit-header`/`.v2-obit-section`/`.v2-obit-row` 같은 배치로 맞춤. "찾을 수 없음" 화면은 문구 그대로 두고 `.v2-obit-notfound*` 클래스만 적용.
+  - 새 CSS 클래스 22개(`.v2-obit-page`부터 `.v2-obit-notfound-sub`까지, `design-v2.css` §6.7 뒤에 추가) — §9.3-2 등재 표 갱신은 Opus 몫이라 여기 남긴다.
+  - 인라인 스타일 개수: `ObituaryView.tsx` 전(약 13곳, style 객체 다수) → 후 0곳. `ObituaryLandingPage.tsx` 전(pageShellStyle 등 약 9곳) → 후 스켈레톤 shimmer 블록 크기 지정용 `style={{width, height}}` 5곳만 남김(기존 `skeleton-block` 관행과 동일, 레이아웃 자체는 전부 클래스).
+  - noindex meta·fetch·404 처리·`formatKST` 형식·카카오맵 검색 링크(`map.kakao.com/link/search`)는 그대로 둠 — 기능·데이터 변경 없음.
+  - `ObituaryPage.tsx`(관리 화면 `/obituary` 미리보기 모달)는 `ObituaryView`를 그대로 가져다 쓰므로 이번 변경이 자동 반영된다 — 모달 폭은 `maxWidth:460px`(모달 컨테이너 인라인, 안 건드림)로 고정이지만, `.v2-desktop-only`/`.v2-mobile-only`는 **뷰포트 폭** 기준 CSS 미디어쿼리라 컨테이너 폭과 무관하다. 즉 데스크톱 브라우저(뷰포트 폭 768px 이상)에서 미리보기를 열면 카드는 460px로 좁게 보여도 전화 걸기 버튼은 **표시되지 않는다**(데스크톱 분기 적용) — 실제 `/o/:slug`(뷰포트 그대로)와 같은 분기 기준이라 의도한 동작이지만, 좁은 모달 안에서는 "왜 안 보이지"로 오인하기 쉬우니 사람 확인 시 참고.
+  - `npx tsc --noEmit`(frontend) 에러 0 · `npm run build`(frontend) 통과.
+- **편차**: 없음 — §6.7 표 값을 그대로 구현.
+- **다음 에이전트가 알아야 할 것**:
+  - 🔴 실기동 검증 대기(사람 몫, dev 서버 미기동). 360px에서 볼 곳: ① 유족 여러 명일 때 모바일 줄바꿈 ② 빈소 주소 줄 + 길찾기 버튼 간격 ③ 연락처 행 "전화 걸기" 버튼 노출(모바일 뷰포트) ④ 관리 화면 `/obituary` → 조문객 미리보기 모달을 데스크톱 브라우저에서 열었을 때 전화 걸기 버튼이 안 보이는 게 맞는지(위 편차 아닌 참고 항목으로 적어둠).
+  - `.v2-obit-*` 클래스의 §6.7 등재 표 반영은 Opus 몫(문서에 이미 명시됨).
+
+<!-- Gemini 판정 1줄: … -->
+
+
+## 2026-09-28 | 그룹④ /o/:slug 헤더 왼쪽정렬 + 부고장·추모관 "열기" 새 탭 전환 (사람 피드백 반영)
+
+- **근거 스펙**: 없음 — 사람 실기동 피드백 2건 즉시 반영. ① `/o/:slug` 제목 헤더 왼쪽정렬 필요 ② `/my-obituaries-memorials`·`/memorial`에서 링크 열었을 때 새창(새 탭)으로 열리게.
+- **건드린 파일**: `eobomDev/frontend/src/styles/design-v2.css`, `eobomDev/frontend/src/pages/MyObituaryListPage.tsx`, `eobomDev/frontend/src/pages/MemorialPage.tsx`
+- **결과**:
+  - `.v2-obit-header`의 `text-align: center` → `text-align: left`. (앞선 09-28 구현 때 §6.7 표에 정렬값이 명시돼 있지 않아 가운데로 잡았던 것을 사람이 왼쪽으로 정정.)
+  - `MyObituaryListPage.tsx`(부고장 모달 "열기", 추모관 모달 "열기")·`MemorialPage.tsx`(추모관 모달 "열기") 3곳 — 기존 `navigate(`/o/…`)`/`navigate(`/m/…`)`(SPA 내부 이동, 현재 탭이 관리 화면에서 조문객 화면으로 바뀜)를 `window.open(url, '_blank', 'noopener,noreferrer')`로 교체. 버튼에 이미 `ExternalLink` 아이콘이 붙어 있던 자리라 아이콘 의도(새 창)와 실제 동작이 어긋나 있었다.
+  - `MemorialPage.tsx`에서 `navigate` 호출이 이 자리 하나뿐이라 `useNavigate` 훅·import를 함께 제거(미사용 변수로 남기지 않음). `MyObituaryListPage.tsx`는 다른 3곳(부고장 새로 만들기·추모관 관리·수정)에서 `navigate`를 계속 쓰므로 그대로 둠.
+  - `npx tsc --noEmit`(frontend) 에러 0 · `npm run build`(frontend) 통과.
+- **편차**: 없음.
+- **다음 에이전트가 알아야 할 것**:
+  - 🔴 실기동 검증 대기(사람 몫). 확인할 것: ① `/o/:slug` 헤더("삼가 고인의 명복을 빕니다"·"故 {이름}"·별세일)가 왼쪽 정렬로 보이는지 ② `/my-obituaries-memorials`·`/memorial`의 "열기" 버튼이 팝업 차단 없이 새 탭으로 뜨는지(브라우저 팝업 차단 설정에 따라 막힐 수 있음 — 이건 클릭 핸들러 안에서 동기 호출이라 대부분 브라우저는 막지 않지만 확인 필요).
+  - 관리 화면 `/obituary` 미리보기 모달의 `ObituaryView`도 이 CSS를 공유하므로 헤더가 같이 왼쪽 정렬로 바뀐다(의도한 것).
+
+<!-- Gemini 판정 1줄: … -->

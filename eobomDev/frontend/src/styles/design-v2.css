@@ -2738,3 +2738,190 @@ a.v2-btn-solid {
     font-size: var(--v2-fs-section-title-mobile);
   }
 }
+
+/* ── §6.7 그룹④(랜딩) 대표 `/o/:slug` — 시안 확정(2026-09-28). 카드·그림자·남색 근조 띠 없음,
+   문서형(라벨 + 1px 구분선 행). `ObituaryView`가 조문객 화면과 관리 화면 미리보기(`obituary`)를
+   공유하므로 여기 값을 바꾸면 미리보기도 같이 바뀐다(의도한 것). ── */
+.v2-obit-page {
+  min-height: 100vh;
+  background: var(--v2-bg);
+  display: flex;
+  justify-content: center;
+  padding: 96px var(--v2-gutter-mobile) 96px;
+}
+
+.v2-obit-content {
+  width: 100%;
+  max-width: 560px;
+}
+
+.v2-obit-header {
+  text-align: left;
+  margin-bottom: 40px;
+}
+
+.v2-obit-lede {
+  font-size: var(--v2-fs-support);
+  color: var(--v2-text-muted);
+  letter-spacing: 0.02em;
+  margin: 0 0 8px;
+}
+
+.v2-obit-name {
+  font-family: var(--v2-font-serif);
+  font-size: var(--v2-fs-page-title-mobile);
+  font-weight: 700;
+  line-height: var(--v2-lh-title);
+  margin: 0;
+}
+
+.v2-obit-death {
+  font-size: var(--v2-fs-support);
+  color: var(--v2-text-muted);
+  margin: 8px 0 0;
+}
+
+.v2-obit-section {
+  margin-bottom: 40px;
+}
+
+.v2-obit-section:last-child {
+  margin-bottom: 0;
+}
+
+.v2-obit-section-title {
+  font-size: var(--v2-fs-label);
+  font-weight: 700;
+  color: var(--v2-text-faint);
+  margin: 0 0 4px;
+}
+
+.v2-obit-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 18px 0;
+  border-bottom: 1px solid var(--v2-divider);
+}
+
+.v2-obit-row-label {
+  width: 52px;
+  flex-shrink: 0;
+  padding-top: 2px;
+  font-size: var(--v2-fs-label);
+  font-weight: 700;
+  color: var(--v2-text-faint);
+}
+
+.v2-obit-row-value {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--v2-text-main);
+}
+
+.v2-obit-addr {
+  font-size: var(--v2-fs-support);
+  color: var(--v2-text-muted);
+}
+
+.v2-obit-row-btn {
+  align-self: flex-start;
+  margin-top: 2px;
+}
+
+/* 유족 모바일 줄바꿈 목록 — 데스크톱 " · " 한 줄(.v2-desktop-only)과 짝. .v2-mobile-only 하나만으로는
+   display:inline이라 여러 줄이 붙어버려 이 조합으로 display를 다시 지정한다(§6.7 화면폭 분기 원칙 유지). */
+.v2-obit-mourner-list.v2-mobile-only {
+  display: none;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.v2-obit-memorial-btn {
+  display: flex;
+  width: 100%;
+  height: 52px;
+  margin-top: 8px;
+}
+
+.v2-obit-foot {
+  text-align: center;
+  margin-top: 40px;
+}
+
+.v2-obit-foot-updated {
+  font-size: 14px;
+  color: var(--v2-text-faint);
+  margin: 0;
+}
+
+.v2-obit-foot-brand {
+  font-family: var(--v2-font-serif);
+  font-size: 13px;
+  color: var(--v2-text-label);
+  margin: 6px 0 0;
+}
+
+.v2-obit-notfound {
+  text-align: center;
+  padding-top: 48px;
+}
+
+.v2-obit-notfound-title {
+  font-family: var(--v2-font-serif);
+  font-size: var(--v2-fs-modal-title);
+  font-weight: 700;
+  color: var(--v2-text-main);
+  margin: 0 0 8px;
+}
+
+.v2-obit-notfound-sub {
+  font-size: var(--v2-fs-support);
+  color: var(--v2-text-muted);
+  margin: 0;
+}
+
+@media (min-width: 768px) {
+  .v2-obit-name {
+    font-size: var(--v2-fs-page-title);
+  }
+
+  .v2-obit-section {
+    margin-bottom: 48px;
+  }
+
+  .v2-obit-row {
+    padding: 22px 0;
+  }
+
+  .v2-obit-row-label {
+    width: 72px;
+  }
+
+  .v2-obit-row-value {
+    font-size: 17px;
+    line-height: 1.7;
+  }
+}
+
+@media (max-width: 767px) {
+  .v2-obit-lede,
+  .v2-obit-death {
+    font-size: var(--v2-fs-support-mobile);
+  }
+
+  .v2-obit-mourner-list.v2-mobile-only {
+    display: flex;
+  }
+
+  /* .v2-btn-outline이 inline-flex인데 .v2-mobile-only 기본값(display:inline)이 뒤에 선언돼 있어
+     아이콘·글자 정렬이 깨진다 — 이 조합에서만 inline-flex로 되돌린다(전화 걸기, 모바일 전용). */
+  .v2-obit-row-btn.v2-mobile-only {
+    display: inline-flex;
+  }
+}

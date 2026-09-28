@@ -6,6 +6,8 @@ import { formatKST } from '../utils/obituaryCard';
 // 관리 모드 미리보기 모달(ObituaryPage.tsx)이 이 컴포넌트 하나를 공유한다.
 // 🔴 fetch·useParams·noindex meta·loading·notFound는 여기 없다 — 껍데기(랜딩 페이지)의 몫이다.
 // noindex가 이 컴포넌트에 딸려가면 관리 페이지(/obituary)에도 noindex가 붙는다.
+// 🔄 00-39 §6.7(2026-09-28 시안 확정) — 카드·그림자·남색 근조 띠를 없애고 문서형(라벨 + 1px 선
+// 행)으로 다시 짰다. 스타일은 전부 design-v2.css의 .v2-obit-* 클래스(인라인 없음).
 
 export interface Mourner {
   name: string;
@@ -31,22 +33,15 @@ export interface ObituaryData {
   account?: { bankCode: string | null; accountNumber: string | null; holder: string | null };
 }
 
-// 🔄 2026-09-21 줄 높이 통일 — 줄마다 높이가 달랐던 원인: ① 라벨 칸에는 line-height가 없고 값 칸만
-// 1.5여서 두 칸의 줄 높이가 어긋남 ② 길찾기·전화 걸기 링크가 inline-flex + 12px 아이콘이라 그 줄만
-// 줄 상자가 커짐 ③ 링크 간격이 링크마다 marginLeft로 제각각. → 라벨·값 모두 같은 line-height,
-// 값 칸을 flex(가운데 정렬·gap·줄바꿈)로 두어 링크가 줄 높이를 바꾸지 못하게 했다.
-const ROW_LINE_HEIGHT = 1.5;
-const rowLinkStyle: React.CSSProperties = {
-  display: 'inline-flex', alignItems: 'center', gap: '0.25rem',
-  fontSize: 'var(--fs-body)', lineHeight: ROW_LINE_HEIGHT, color: 'var(--point-color)', fontWeight: 700, textDecoration: 'none',
+// §6.7 머리 — "{YYYY년 M월 D일} 별세"는 formatKST(월·일·시각만, 연도 없음)와 다른 표기라 별도로
+// 만든다. 🔴 formatKST 자체는 바꾸지 않는다(다른 화면·카톡 카드가 그 형식을 그대로 쓴다).
+const formatDeathDate = (value: string): string => {
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return '';
+  return new Intl.DateTimeFormat('ko-KR', {
+    year: 'numeric', month: 'long', day: 'numeric', timeZone: 'Asia/Seoul',
+  }).format(d);
 };
-
-const Row: React.FC<{ label: string; children: React.ReactNode }> = ({ label, children }) => (
-  <div style={{ display: 'flex', alignItems: 'flex-start', gap: '1rem', padding: '0.75rem 0', borderBottom: '1px solid #EAE5DC' }}>
-    <span style={{ width: '52px', flexShrink: 0, fontSize: 'var(--fs-body)', fontWeight: 700, lineHeight: ROW_LINE_HEIGHT, color: '#6C7A89' }}>{label}</span>
-    <span style={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', flexWrap: 'wrap', columnGap: '0.6rem', fontSize: 'var(--fs-body)', lineHeight: ROW_LINE_HEIGHT, color: '#1A2B4C' }}>{children}</span>
-  </div>
-);
 
 export const ObituaryView: React.FC<{ data: ObituaryData }> = ({ data }) => {
   const chief = data.mourners.find((m) => m.isChief);
@@ -59,88 +54,118 @@ export const ObituaryView: React.FC<{ data: ObituaryData }> = ({ data }) => {
   const kakaoMapUrl = mapQuery ? `https://map.kakao.com/link/search/${encodeURIComponent(mapQuery)}` : null;
 
   return (
-    <div style={{ width: '100%', maxWidth: '460px' }}>
-      <div style={{ backgroundColor: '#FFFFFF', borderRadius: 'var(--r-lg)', boxShadow: 'var(--el-2)', overflow: 'hidden' }}>
-        {/* 근조 헤더 */}
-        <div style={{ backgroundColor: '#1A2B4C', color: '#FFFFFF', padding: '2rem 1.75rem', textAlign: 'center' }}>
-          <p style={{ fontSize: 'var(--fs-body)', color: '#94A3B8', letterSpacing: '0.1em', marginBottom: '0.6rem' }}>삼가 고인의 명복을 빕니다</p>
-          <h1 className="section-title" style={{ fontSize: '1.6rem', fontWeight: 'var(--fw-bold)', margin: 0 }}>
-            故 {data.deceasedName}
-            {data.deceasedDeathDate && (
-              <span style={{ fontSize: 'var(--fs-body)', fontWeight: 400, color: 'var(--border-color)' }}> ( ~ {formatKST(data.deceasedDeathDate).split(' ').slice(0, 2).join(' ')})</span>
-            )}
-          </h1>
-        </div>
-
-        <div style={{ padding: '1.5rem 1.75rem' }}>
-          {/* 빈소·입관·발인·장지 — 아래 그룹(상주·유족·연락처)과 같은 행 리듬으로 이어지도록 그룹 사이
-              여백(marginBottom)을 두지 않는다. 있으면 이 그룹 마지막 행 아래만 간격이 벌어져 줄 높이가
-              제각각으로 보인다(2026-09-21 사용자 지시). */}
-          <div>
-            {data.funeralHall && (
-              <Row label="빈소">
-                {data.funeralHall}
-                {data.mourningRoom ? ` ${data.mourningRoom}` : ''}
-                {kakaoMapUrl && (
-                  <a href={kakaoMapUrl} target="_blank" rel="noreferrer" style={rowLinkStyle}>
-                    <Navigation size={12} /> 길찾기
-                  </a>
-                )}
-              </Row>
-            )}
-            {data.coffinAt && <Row label="입관">{formatKST(data.coffinAt)}</Row>}
-            <Row label="발인">{formatKST(data.funeralAt)}</Row>
-            {data.burialSite && <Row label="장지">{data.burialSite}</Row>}
-          </div>
-
-          {/* 상주·유족·연락처 */}
-          <div style={{ marginBottom: data.account ? '1.2rem' : 0 }}>
-            {chief && <Row label="상주">{chief.relationship} {chief.name}</Row>}
-            {rest.length > 0 && (
-              <Row label="">{rest.map((m) => `${m.relationship} ${m.name}`).join('  ')}</Row>
-            )}
-            {data.contactPhone && (
-              <Row label="연락처">
-                {data.contactPhone}
-                <a href={`tel:${data.contactPhone}`} style={rowLinkStyle}>
-                  <Phone size={12} /> 전화 걸기
-                </a>
-              </Row>
-            )}
-          </div>
-
-          {/* 마음 전하실 곳 — accountEnabled일 때만(Phase 1~2엔 화면 토글이 없어 항상 비어 있음) */}
-          {data.account && (
-            <div style={{ backgroundColor: 'var(--surface-subtle)', borderRadius: 'var(--r-sm)', padding: '0.9rem 1rem', marginBottom: '0.5rem' }}>
-              <p style={{ fontSize: 'var(--fs-body)', fontWeight: 700, color: '#1A2B4C', marginBottom: '0.3rem' }}>마음 전하실 곳</p>
-              <p style={{ fontSize: 'var(--fs-body)', color: '#1A2B4C', margin: 0 }}>
-                {data.account.bankCode} {data.account.accountNumber} ({data.account.holder})
-              </p>
-            </div>
-          )}
-        </div>
-
-        {/* 추모관 — 링크는 여기서만 노출(00-13 §4.5-1 (나)). 🔄 09-07 — 이제 "있다면"만
-            보여준다. 부고장 개설 시 추모관 체크박스를 켜지 않았으면 연결이 없다. */}
-        {data.memorialSlug && (
-          <a
-            href={`/m/${data.memorialSlug}`}
-            style={{
-              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem',
-              padding: '1rem', backgroundColor: 'var(--secondary-color)', color: 'var(--point-color)',
-              fontWeight: 700, fontSize: 'var(--fs-body)', textDecoration: 'none', borderTop: '1px solid #EAE5DC',
-            }}
-          >
-            <Flower2 size={18} /> 추모관 들어가기
-          </a>
+    <div className="v2-obit-content">
+      <div className="v2-obit-header">
+        <p className="v2-obit-lede">삼가 고인의 명복을 빕니다</p>
+        <h1 className="v2-obit-name">故 {data.deceasedName}</h1>
+        {data.deceasedDeathDate && (
+          <p className="v2-obit-death">{formatDeathDate(data.deceasedDeathDate)} 별세</p>
         )}
       </div>
 
+      {/* 장례 일정 — 빈소·입관·발인·장지 */}
+      <div className="v2-obit-section">
+        <p className="v2-obit-section-title">장례 일정</p>
+        {data.funeralHall && (
+          <div className="v2-obit-row">
+            <span className="v2-obit-row-label">빈소</span>
+            <div className="v2-obit-row-value">
+              <div>
+                {data.funeralHall}
+                {data.mourningRoom ? ` ${data.mourningRoom}` : ''}
+              </div>
+              {data.funeralHallAddr && <div className="v2-obit-addr">{data.funeralHallAddr}</div>}
+              {kakaoMapUrl && (
+                <a href={kakaoMapUrl} target="_blank" rel="noreferrer" className="v2-btn-outline v2-obit-row-btn">
+                  <Navigation size={16} /> 길찾기
+                </a>
+              )}
+            </div>
+          </div>
+        )}
+        {data.coffinAt && (
+          <div className="v2-obit-row">
+            <span className="v2-obit-row-label">입관</span>
+            <div className="v2-obit-row-value">{formatKST(data.coffinAt)}</div>
+          </div>
+        )}
+        <div className="v2-obit-row">
+          <span className="v2-obit-row-label">발인</span>
+          <div className="v2-obit-row-value">{formatKST(data.funeralAt)}</div>
+        </div>
+        {data.burialSite && (
+          <div className="v2-obit-row">
+            <span className="v2-obit-row-label">장지</span>
+            <div className="v2-obit-row-value">{data.burialSite}</div>
+          </div>
+        )}
+      </div>
+
+      {/* 상주·유족 — 상주·유족·연락처 */}
+      <div className="v2-obit-section">
+        <p className="v2-obit-section-title">상주·유족</p>
+        {chief && (
+          <div className="v2-obit-row">
+            <span className="v2-obit-row-label">상주</span>
+            <div className="v2-obit-row-value">{chief.relationship} {chief.name}</div>
+          </div>
+        )}
+        {rest.length > 0 && (
+          <div className="v2-obit-row">
+            <span className="v2-obit-row-label">유족</span>
+            <div className="v2-obit-row-value">
+              <div className="v2-obit-mourner-list v2-mobile-only">
+                {rest.map((m) => (
+                  <div key={`${m.relationship}-${m.name}`}>{m.relationship} {m.name}</div>
+                ))}
+              </div>
+              <span className="v2-desktop-only">
+                {rest.map((m) => `${m.relationship} ${m.name}`).join(' · ')}
+              </span>
+            </div>
+          </div>
+        )}
+        {data.contactPhone && (
+          <div className="v2-obit-row">
+            <span className="v2-obit-row-label">연락처</span>
+            <div className="v2-obit-row-value">
+              <span>{data.contactPhone}</span>
+              {/* 규칙: 전화 걸기는 모바일에서만(데스크톱은 전화를 걸 수 없어 번호만 보인다) */}
+              <a href={`tel:${data.contactPhone}`} className="v2-btn-outline v2-obit-row-btn v2-mobile-only">
+                <Phone size={16} /> 전화 걸기
+              </a>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* 마음 전하실 곳 — accountEnabled일 때만(Phase 1~2엔 화면 토글이 없어 항상 비어 있음) */}
+      {data.account && (
+        <div className="v2-obit-section">
+          <p className="v2-obit-section-title">마음 전하실 곳</p>
+          <div className="v2-obit-row">
+            <span className="v2-obit-row-label">계좌</span>
+            <div className="v2-obit-row-value">
+              <div>{data.account.bankCode} {data.account.accountNumber}</div>
+              <div className="v2-obit-addr">예금주 {data.account.holder}</div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 추모관 — 링크는 여기서만 노출(00-13 §4.5-1 (나)). 🔄 09-07 — "있다면"만 보여준다.
+          부고장 개설 시 추모관 체크박스를 켜지 않았으면 연결이 없다. */}
+      {data.memorialSlug && (
+        <a href={`/m/${data.memorialSlug}`} className="v2-btn-outline v2-obit-memorial-btn">
+          <Flower2 size={18} /> 추모관 들어가기
+        </a>
+      )}
+
       {/* §5.4-2 — 조문객 쪽 방어선. 카드는 공유 시점 스냅샷이라 바뀔 수 있으니 최종 수정 시각을 알린다. */}
-      <p style={{ textAlign: 'center', fontSize: 'var(--fs-body)', color: '#94A3B8', marginTop: '1rem' }}>
-        최종 수정: {formatKST(data.updatedAt)}
-      </p>
-      <p style={{ textAlign: 'center', fontSize: 'var(--fs-body)', color: 'var(--border-color)', marginTop: '0.4rem' }}>이어봄</p>
+      <div className="v2-obit-foot">
+        <p className="v2-obit-foot-updated">최종 수정: {formatKST(data.updatedAt)}</p>
+        <p className="v2-obit-foot-brand">이어봄</p>
+      </div>
     </div>
   );
 };

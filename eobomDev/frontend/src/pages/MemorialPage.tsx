@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { ExternalLink, Copy, ChevronRight, LogIn, Plus } from 'lucide-react';
 import { apiFetch, ApiError } from '../lib/api';
 import { formatKST } from '../utils/obituaryCard';
@@ -51,7 +50,6 @@ const FIELD_ERROR_ORDER: { key: FieldErrorKey; id: string }[] = [
 type ModalStep = 'detail' | 'confirm-delete';
 
 export const MemorialPage: React.FC<MemorialPageProps> = ({ currentUser, onOpenLogin }) => {
-  const navigate = useNavigate();
   const [memorials, setMemorials] = useState<MyMemorial[] | null>(null);
   const [loadError, setLoadError] = useState(false);
   const [feedback, setFeedback] = useState<{ id: string; message: string } | null>(null);
@@ -332,7 +330,7 @@ export const MemorialPage: React.FC<MemorialPageProps> = ({ currentUser, onOpenL
                 </div>
 
                 <div className="v2-modal-actions">
-                  <button type="button" className="v2-btn-outline" onClick={() => navigate(`/m/${modalTarget.slug}`)}>
+                  <button type="button" className="v2-btn-outline" onClick={() => window.open(`/m/${modalTarget.slug}`, '_blank', 'noopener,noreferrer')}>
                     <ExternalLink size={14} /> 열기
                   </button>
                   <button type="button" className="v2-btn-outline" onClick={() => copyAddress(modalTarget)}>
