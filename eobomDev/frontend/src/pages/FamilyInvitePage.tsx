@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { HeartHandshake, CheckCircle2, XCircle, AlertCircle } from 'lucide-react';
 import { apiFetch, apiFetchRaw, ApiError } from '../lib/api';
 import { getToken, PENDING_INVITE_TOKEN_KEY } from '../lib/storage';
+import { backdropCloseProps } from '../utils/backdropClose';
 
 interface FamilyInvitePageProps {
   // App.tsx의 React state를 그대로 받는다 — 예전엔 sessionStorage를 직접 읽었는데, 데모
@@ -18,6 +18,8 @@ interface FamilyInvitePageProps {
 // 🔴 §9.1-3 불변식 — 이 화면에 지정자의 연락처를 절대 넣지 않는다. 성함·관계·scope 3개뿐.
 // 🔴 §9.1-2 — 수락 판정은 서버가 초대 토큰 + JWT로만 한다. sessionStorage는 로그인 후 이
 // 화면으로 되돌아오기 위한 "복귀 경로" 기억용일 뿐, 권한 근거가 아니다(07-03 §5.3-2와 동일 원칙).
+// 🔄 00-39 §6.7(2026-09-28 Opus, 시안 없음 §9.1) — 부고장 틀(.v2-obit-page > .v2-obit-content >
+// .v2-obit-box)을 모든 상태(불러오는 중·만료·없음·오류·수락됨·거절됨·기본)에 공용으로 쓴다.
 
 const RELATIONSHIP_LABEL: Record<string, string> = {
   SPOUSE: '배우자',
@@ -41,27 +43,6 @@ interface InviteData {
 
 type ViewState = 'loading' | 'ready' | 'expired' | 'notfound' | 'accepted' | 'declined' | 'error';
 
-// 00-38 §8.5 — 초대 링크를 카톡·문자로 받아 여는 화면이라 랜딩(ObituaryLanding·MemorialLanding)과
-// 성격이 같아 Phase 4에 편입됐다. 좌우 여백을 토큰화(값은 그대로 16px, --gutter-chrome과 일치).
-const shellStyle: React.CSSProperties = {
-  minHeight: '100vh',
-  backgroundColor: '#FBF9F5',
-  display: 'flex',
-  justifyContent: 'center',
-  alignItems: 'center',
-  padding: '2.5rem var(--gutter-chrome)',
-};
-
-const cardStyle: React.CSSProperties = {
-  width: '100%',
-  maxWidth: '420px',
-  backgroundColor: '#FFFFFF',
-  borderRadius: 'var(--r-lg)',
-  boxShadow: 'var(--el-2)',
-  padding: '2rem 1.75rem',
-  textAlign: 'center',
-};
-
 export const FamilyInvitePage: React.FC<FamilyInvitePageProps> = ({ currentUser, onOpenLogin }) => {
   const { token } = useParams<{ token: string }>();
   const navigate = useNavigate();
@@ -72,6 +53,8 @@ export const FamilyInvitePage: React.FC<FamilyInvitePageProps> = ({ currentUser,
   // 00-27 §9.1-4-3 — 지정 당시 입력받은 이름과 대조하기 위해 수락 시점에 다시 받는다.
   // 저장하지 않고 accept 요청 본문으로만 보낸다 — 지정된 이름은 이 화면에 노출되지 않는다(§9.1-3 ②).
   const [enteredName, setEnteredName] = useState('');
+  // 🔄 00-39 §6.7 — window.confirm 대신 §6.4 모달(MemorialPage.tsx 삭제 확인과 같은 방식).
+  const [showDeclineConfirm, setShowDeclineConfirm] = useState(false);
 
   // authToken은 currentUser와 항상 같은 타이밍에 저장소에 같이 쓰인다(App.tsx
   // handleLoginSuccess) — currentUser prop이 바뀌어 리렌더될 때마다 이 줄도 다시 실행되므로
@@ -129,172 +112,159 @@ export const FamilyInvitePage: React.FC<FamilyInvitePageProps> = ({ currentUser,
     }
   };
 
-  const handleDecline = async () => {
+  const closeDeclineConfirm = () => {
+    if (isSubmitting) return;
+    setShowDeclineConfirm(false);
+  };
+
+  const confirmDecline = async () => {
     if (!token) return;
-    if (!window.confirm('이 지정을 거절하시겠어요?')) return;
     setIsSubmitting(true);
     setErrorMsg(null);
     try {
       await apiFetch(`/api/family-designations/invite/${token}/decline`, undefined, { method: 'POST' });
+      setShowDeclineConfirm(false);
       setView('declined');
     } catch (err) {
       setErrorMsg(err instanceof ApiError ? err.message : '서버와 통신 중 오류가 발생했습니다.');
+      setShowDeclineConfirm(false);
     } finally {
       setIsSubmitting(false);
     }
   };
 
+  let body: React.ReactNode;
+
   if (view === 'loading') {
-    return (
-      <div style={shellStyle}>
-        <p style={{ color: '#6C7A89' }}>불러오는 중...</p>
+    body = (
+      <div className="v2-obit-notfound">
+        <p className="v2-obit-notfound-sub">불러오는 중...</p>
       </div>
     );
-  }
-
-  if (view === 'expired') {
-    return (
-      <div style={shellStyle}>
-        <div style={cardStyle}>
-          <p style={{ fontSize: '1.05rem', color: '#1A2B4C', fontWeight: 700, marginBottom: '0.5rem' }}>초대 링크가 만료되었습니다.</p>
-          <p style={{ fontSize: 'var(--fs-body)', color: '#6C7A89' }}>보내신 분에게 새 링크를 다시 요청해 주세요.</p>
-        </div>
+  } else if (view === 'expired') {
+    body = (
+      <div className="v2-obit-notfound">
+        <p className="v2-obit-notfound-title">초대 링크가 만료되었습니다.</p>
+        <p className="v2-obit-notfound-sub">보내신 분에게 새 링크를 다시 요청해 주세요.</p>
       </div>
     );
-  }
-
-  if (view === 'notfound' || view === 'error') {
-    return (
-      <div style={shellStyle}>
-        <div style={cardStyle}>
-          <AlertCircle size={40} color="#94A3B8" style={{ marginBottom: 'var(--sp-3)' }} />
-          <p style={{ fontSize: '1.05rem', color: '#1A2B4C', fontWeight: 700, marginBottom: '0.5rem' }}>초대 링크를 찾을 수 없습니다.</p>
-          <p style={{ fontSize: 'var(--fs-body)', color: '#6C7A89', marginBottom: '1.4rem' }}>이미 처리되었거나 잘못된 주소일 수 있습니다.</p>
-          <button type="button" onClick={() => navigate('/')} className="btn btn-primary" style={{ width: '100%' }}>
+  } else if (view === 'notfound' || view === 'error') {
+    body = (
+      <div className="v2-obit-notfound">
+        <p className="v2-obit-notfound-title">초대 링크를 찾을 수 없습니다.</p>
+        <p className="v2-obit-notfound-sub">이미 처리되었거나 잘못된 주소일 수 있습니다.</p>
+        <button type="button" onClick={() => navigate('/')} className="v2-btn-primary v2-obit-invite-cta">
+          이어봄 홈으로
+        </button>
+      </div>
+    );
+  } else if (view === 'accepted') {
+    body = (
+      <div className="v2-obit-notfound">
+        <p className="v2-obit-notfound-title">수락되었습니다.</p>
+        {/* 00-27 §9.1-4-2 — 수락 결과를 과장하지 않는다. 열람은 사망 확인 이후다(06-04 §8.1). */}
+        <p className="v2-obit-notfound-sub">{data?.designatorName}님의 가족으로 연결됐습니다.</p>
+        <div className="v2-obit-invite-actions is-center v2-obit-invite-body">
+          <button type="button" onClick={() => navigate('/')} className="v2-btn-primary">
             이어봄 홈으로
           </button>
-        </div>
-      </div>
-    );
-  }
-
-  if (view === 'accepted') {
-    return (
-      <div style={shellStyle}>
-        <div style={cardStyle}>
-          <CheckCircle2 size={40} color="var(--point-color)" style={{ marginBottom: 'var(--sp-3)' }} />
-          <p style={{ fontSize: '1.1rem', color: '#1A2B4C', fontWeight: 700, marginBottom: '0.5rem' }}>수락되었습니다.</p>
-          {/* 00-27 §9.1-4-2 — 수락 결과를 과장하지 않는다. 열람은 사망 확인 이후다(06-04 §8.1). */}
-          <p style={{ fontSize: 'var(--fs-body)', color: '#6C7A89', marginBottom: '1.4rem' }}>{data?.designatorName}님의 가족으로 연결됐습니다.</p>
-          <button type="button" onClick={() => navigate('/')} className="btn btn-primary" style={{ width: '100%', marginBottom: '0.6rem' }}>
-            이어봄 홈으로
-          </button>
-          <button type="button" onClick={() => navigate('/ending-note')} className="btn" style={{ width: '100%', backgroundColor: 'var(--secondary-color)', color: 'var(--primary-color)' }}>
+          <button type="button" onClick={() => navigate('/ending-note')} className="v2-btn-outline">
             내 엔딩노트 만들기
           </button>
         </div>
       </div>
     );
-  }
-
-  if (view === 'declined') {
-    return (
-      <div style={shellStyle}>
-        <div style={cardStyle}>
-          <XCircle size={40} color="#94A3B8" style={{ marginBottom: 'var(--sp-3)' }} />
-          <p style={{ fontSize: '1.1rem', color: '#1A2B4C', fontWeight: 700, marginBottom: '0.5rem' }}>거절되었습니다.</p>
-          <p style={{ fontSize: 'var(--fs-body)', color: '#6C7A89', marginBottom: '1.4rem' }}>아무 권한도 부여되지 않았습니다.</p>
-          {/* §9.1-4-2 — 거절한 사람에게 서비스 권유를 붙이지 않는다. "홈으로" 하나뿐. */}
-          <button type="button" onClick={() => navigate('/')} className="btn" style={{ width: '100%', backgroundColor: 'var(--secondary-color)', color: 'var(--primary-color)' }}>
-            이어봄 홈으로
-          </button>
-        </div>
+  } else if (view === 'declined') {
+    body = (
+      <div className="v2-obit-notfound">
+        <p className="v2-obit-notfound-title">거절되었습니다.</p>
+        <p className="v2-obit-notfound-sub">아무 권한도 부여되지 않았습니다.</p>
+        {/* §9.1-4-2 — 거절한 사람에게 서비스 권유를 붙이지 않는다. "홈으로" 하나뿐. */}
+        <button type="button" onClick={() => navigate('/')} className="v2-btn-outline v2-obit-invite-cta">
+          이어봄 홈으로
+        </button>
       </div>
     );
-  }
+  } else {
+    // view === 'ready'
+    const scope = data ? SCOPE_LABEL[data.scope] : undefined;
+    const relationshipText = data
+      ? `${RELATIONSHIP_LABEL[data.relationship] || data.relationship}${data.relationship === 'OTHER' && data.relationshipEtc ? `(${data.relationshipEtc})` : ''}`
+      : '';
 
-  // view === 'ready'
-  const scope = data ? SCOPE_LABEL[data.scope] : undefined;
-  const relationshipText = data
-    ? `${RELATIONSHIP_LABEL[data.relationship] || data.relationship}${data.relationship === 'OTHER' && data.relationshipEtc ? `(${data.relationshipEtc})` : ''}`
-    : '';
-
-  return (
-    <div style={shellStyle}>
-      <div style={cardStyle}>
-        <HeartHandshake size={40} color="var(--point-color)" style={{ marginBottom: 'var(--sp-3)' }} />
-        {/* 🔄 2026-09-09 — 하드코딩 문자열 → .section-title 프리미티브(폰트 정리 요청). */}
-        <h1 className="section-title" style={{ fontSize: '1.3rem', color: '#1A2B4C', marginBottom: '0.6rem' }}>
-          {data?.designatorName}님이 당신을 가족으로 지정했습니다
-        </h1>
-        <p style={{ fontSize: 'var(--fs-body)', color: '#6C7A89', lineHeight: 1.6, marginBottom: '1.4rem' }}>
-          관계: {relationshipText}
-          <br />
+    body = (
+      <>
+        <h1 className="v2-obit-name">{data?.designatorName}님이 당신을 가족으로 지정했습니다</h1>
+        <p className="v2-obit-invite-desc">관계: {relationshipText}</p>
+        <p className="v2-obit-invite-desc">
           권한: {scope?.label}{scope ? ` (${scope.hint})` : ''}
         </p>
 
-        <div style={{ fontSize: 'var(--fs-body)', color: 'var(--state-warn-fg)', backgroundColor: 'var(--state-warn-bg)', border: '1px solid var(--state-warn-bg)', borderRadius: 'var(--r-sm)', padding: 'var(--sp-3) var(--sp-4)', marginBottom: '1.4rem', lineHeight: 1.6, textAlign: 'left' }}>
-          수락하시면 사망 통지 등 위 권한이 생깁니다. 거절하셔도 어떤 불이익도 없습니다.
+        <div className="v2-obit-invite-body">
+          <p className="v2-notice-warn">수락하시면 사망 통지 등 위 권한이 생깁니다. 거절하셔도 어떤 불이익도 없습니다.</p>
+
+          {errorMsg && <p className="v2-error-text">{errorMsg}</p>}
+
+          {currentUser && authToken ? (
+            <>
+              {/* 00-27 §9.1-4-3 — 오조작 방지 가드레일. 지정된 이름 자체는 이 화면에 노출하지
+                  않는다(§9.1-3 ②) — 입력값이 맞는지는 수락을 눌러야 서버가 알려준다. */}
+              <div className="v2-field v2-obit-invite-field">
+                <label htmlFor="invite-name">성함</label>
+                <input
+                  id="invite-name"
+                  className="v2-input"
+                  value={enteredName}
+                  onChange={(e) => setEnteredName(e.target.value)}
+                  placeholder="본인 성함을 입력해 주세요"
+                />
+              </div>
+              <div className="v2-obit-invite-actions">
+                <button type="button" onClick={() => setShowDeclineConfirm(true)} disabled={isSubmitting} className="v2-btn-outline">
+                  거절
+                </button>
+                <button type="button" onClick={handleAccept} disabled={isSubmitting} aria-busy={isSubmitting} className="v2-btn-primary">
+                  {isSubmitting ? '처리 중...' : '수락'}
+                </button>
+              </div>
+            </>
+          ) : (
+            <>
+              <p className="v2-notice">수락하려면 먼저 로그인해 주세요.</p>
+              <button type="button" onClick={handleOpenLogin} className="v2-btn-primary v2-obit-invite-cta">
+                로그인하고 계속하기
+              </button>
+              <button type="button" onClick={() => setShowDeclineConfirm(true)} disabled={isSubmitting} className="v2-obit-invite-textlink">
+                로그인 없이 거절만 하기
+              </button>
+            </>
+          )}
         </div>
+      </>
+    );
+  }
 
-        {errorMsg && (
-          <div style={{ fontSize: 'var(--fs-body)', color: 'var(--state-danger-fg)', backgroundColor: 'var(--state-danger-bg)', border: '1px solid var(--state-danger-bg)', borderRadius: 'var(--r-sm)', padding: 'var(--sp-3) 0.9rem', marginBottom: '1rem' }}>
-            {errorMsg}
-          </div>
-        )}
-
-        {currentUser && authToken ? (
-          <>
-            {/* 00-27 §9.1-4-3 — 오조작 방지 가드레일. 지정된 이름 자체는 이 화면에 노출하지
-                않는다(§9.1-3 ②) — 입력값이 맞는지는 수락을 눌러야 서버가 알려준다. */}
-            <div className="form-group" style={{ margin: '0 0 1rem 0', textAlign: 'left' }}>
-              <label className="form-label">성함</label>
-              <input
-                value={enteredName}
-                onChange={(e) => setEnteredName(e.target.value)}
-                className="form-input"
-                placeholder="본인 성함을 입력해 주세요"
-              />
-            </div>
-            <div style={{ display: 'flex', gap: '0.6rem' }}>
-              <button
-                type="button"
-                onClick={handleDecline}
-                disabled={isSubmitting}
-                className="btn"
-                style={{ flex: 1, backgroundColor: 'var(--secondary-color)', color: 'var(--primary-color)' }}
-              >
-                거절
-              </button>
-              <button type="button" onClick={handleAccept} disabled={isSubmitting} className="btn btn-primary" style={{ flex: 1 }}>
-                {isSubmitting ? '처리 중...' : '수락'}
-              </button>
-            </div>
-          </>
-        ) : (
-          <>
-            <p style={{ fontSize: 'var(--fs-body)', color: 'var(--text-muted)', marginBottom: 'var(--sp-4)' }}>
-              수락하려면 먼저 로그인해 주세요.
-            </p>
-            <button
-              type="button"
-              onClick={handleOpenLogin}
-              className="btn btn-primary"
-              style={{ width: '100%', height: '52px' }}
-            >
-              로그인하고 계속하기
-            </button>
-            <button
-              type="button"
-              onClick={handleDecline}
-              disabled={isSubmitting}
-              style={{ marginTop: '1rem', background: 'none', border: 'none', fontSize: 'var(--fs-body)', color: 'var(--text-muted)', textDecoration: 'underline', cursor: 'pointer' }}
-            >
-              로그인 없이 거절만 하기
-            </button>
-          </>
-        )}
+  return (
+    <div className="v2-obit-page">
+      <div className="v2-obit-content">
+        <div className="v2-obit-box">{body}</div>
       </div>
+
+      {showDeclineConfirm && (
+        <div className="v2-modal-overlay" role="dialog" aria-modal="true" {...backdropCloseProps(closeDeclineConfirm)}>
+          <div className="v2-modal" onClick={(e) => e.stopPropagation()}>
+            <h3 className="v2-modal-title">이 지정을 거절하시겠어요?</h3>
+            <div className="v2-modal-actions">
+              <button type="button" className="v2-btn-outline" onClick={closeDeclineConfirm} disabled={isSubmitting}>
+                취소
+              </button>
+              <button type="button" className="v2-btn-solid" onClick={confirmDecline} disabled={isSubmitting} aria-busy={isSubmitting}>
+                {isSubmitting ? '처리 중…' : '거절'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

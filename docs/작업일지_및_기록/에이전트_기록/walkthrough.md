@@ -1243,3 +1243,13 @@
   - 🔴 **개발 DB 실측(읽기 전용 count/groupBy만 실행, 쓰기 없음)**: `MemorialGuestbook` 전체 8행, 추모관별 최대 4개(개설자별로 4·2·1·1개씩) — **어느 추모관도 5개를 안 넘어 "더 보기" 버튼이 뜨는 경우가 개발 DB에 없다.** 사람이 위 4가지(0/3/12/30개) 시나리오를 보려면 실제로 방명록을 여러 개 남기며 확인해야 한다(테스트 글은 넣지 않음, 지시대로).
 
 <!-- Gemini 판정 1줄: ✅통과 (visibleGuestCount state 기반 slice 렌더 및 10개 더 보기 버튼 실장 확인 / 새 글 제출 시 카운트 자동 확장 확인 / 빌드 통과) -->
+
+## 2026-09-28 | family-invite를 부고장 규칙으로 옮기기
+
+- **근거 스펙**: docs/00_핵심플랫폼/00-39_디자인_기준_재정립_명세서.md §6.7 (family-invite 표 414~421줄 · 그룹④(랜딩) 대표 /o/:slug 표 365~379줄) · docs/00_핵심플랫폼/00-27_생전_가족지정_및_유족연결_기획서.md §9.1-4-2·§9.1-4-3
+- **건드린 파일**: eobomDev/frontend/src/pages/FamilyInvitePage.tsx , eobomDev/frontend/src/styles/design-v2.css
+- **결과**: FamilyInvitePage의 7개 상태(loading·expired·notfound·error·accepted·declined·ready)를 전부 `.v2-obit-page > .v2-obit-content > .v2-obit-box` 틀로 통일했다(기존 인라인 `shellStyle`/`cardStyle` 및 상태별 인라인 카드 전량 제거, `style={{...}}` 28개 → 0개). 제목은 `.v2-obit-name`(모바일 27px·데스크톱 36px, 왼쪽 정렬) 재사용. 이름 확인 입력은 `.v2-field`/`.v2-input`(라벨 "성함"). 버튼은 수락=`.v2-btn-primary`, 거절·보조=`.v2-btn-outline`, 모바일 세로 폭 100%·데스크톱 가로(신설 `.v2-obit-invite-actions`, `@container (min-width:768px)` 분기). "관계: …<br>권한: …" 한 줄을 별도 `<p className="v2-obit-invite-desc">` 두 개로 분리(00-39 규칙 13, `<br>` 금지). 거절 확인은 `window.confirm('이 지정을 거절하시겠어요?')` → `.v2-modal` 모달(MemorialPage.tsx의 confirm-delete 단계와 같은 뼈대: 취소=`.v2-btn-outline`, 거절=`.v2-btn-solid`)로 교체, 문구는 그대로 유지. design-v2.css에 `.v2-obit-invite-desc`·`.v2-obit-invite-body`·`.v2-obit-invite-field`·`.v2-obit-invite-actions`(+`.is-center`)·`.v2-obit-invite-cta`·`.v2-obit-invite-textlink` 6개 신설 + `.v2-obit-box .v2-obit-notfound`(데스크톱에서만 padding-top:0, 박스 패딩과 겹침 보정) 1개 추가. HeartHandshake·CheckCircle2·XCircle·AlertCircle 아이콘 제거(/o,/m 랜딩이 아이콘 없는 문서형이라 맞춤). `npx tsc --noEmit`(frontend) 에러 0, `npm run build` 통과(dist 정상 생성).
+- **편차**: 없음 — 00-39 §6.7 family-invite 표·00-27 §9.1-4-2·§9.1-4-3 원칙 그대로 구현했다. 참고: `/o`·`/m` 랜딩은 loading·notfound류 화면에서 `.v2-obit-box`를 건너뛰고 `.v2-obit-content`에 바로 `.v2-obit-notfound`를 붙이지만, 이번 지시서(pending-approvals 아님, 작업 지시)가 loading·expired·notfound·error·accepted·declined까지 전부 박스 안에 넣으라고 명시해 그대로 따랐다 — `/o`·`/m`과의 이 차이는 의도적이다.
+- **다음 에이전트가 알아야 할 것**: 🔴 시안 캔버스 없음(00-39 §9.1, "규칙 적용"만 명시) — 사람 실기동 검증 완전 대기. 확인할 것: 7개 상태 전부·거절 확인 모달·모바일/데스크톱 버튼 배치(768px 분기)·지정된 이름 미노출(§9.1-3 ②)·거절 뒤 권유 버튼 없음(00-27 §9.1-4-2). 아이콘을 없앤 게 사람 눈에 밋밋하면 되돌릴 수 있다.
+
+<!-- Gemini 판정 1줄: … -->

@@ -35,7 +35,7 @@
 수정모달(§6.7,백엔드무변경)·✅09-28`/m/:slug`UI조정6건+방명록최근5개·10개씩더보기(§6.7사람결정A,
 devDB실측=8행뿐·"더보기"실사례없음)전부완료(tsc/build통과)—세부`walkthrough.md`.
 🔴편차:pickup이v2→구form역행(→backlog).🔴§4.5동의3층미착수(→⑲).🔴파기배치`--confirm`금지·dev재시작필요.
-🔴사람실기동완전대기.🟡보류:pickup거리순·전문가region·height:36px3곳.다음=`family-invite`(§6.7규칙적용,미착수).
+🔴사람실기동완전대기.🟡보류:pickup거리순·전문가region·height:36px3곳.✅09-28`family-invite`v2이관+거절모달(§6.7,00-27§9.1-4-2·4-3)완료(tsc/build통과)—세부`walkthrough.md`.
 **3.[Gemini]**🔴게이트45건대기(09-11~21·wt204~)·🟡옛스펙3건→⑭.🟡devDB삭제분7건—D-8(🔴CONFIRM).✅reports경로정리완료(09-16).
 
 ## 지금 상태

@@ -887,3 +887,13 @@ state를 그대로 추모관 사후 연결 동의로도 흘려보내면 사용�
 ## 2026-09-28 | `/m/:slug` 방명록 5개+더보기 — 메모
 
 - "사람이 볼 곳"에 0/3/12/30개 시나리오를 적으라는 지시가 있어, 실제로 그 개수를 볼 수 있는지 먼저 개발 DB를 조회(읽기 전용 `count`/`groupBy`, 쓰기 없음 — db-safety.md 기준 확인·단건 생성이 아니라 확인 대상 아님)했다. 결과: `MemorialGuestbook` 전체 8행, 추모관별 최대 4개 — 5개 이상인 추모관이 하나도 없어 "더 보기" 버튼을 실제로 볼 수 있는 데이터가 없다. 지시대로 테스트 글을 넣지 않고, 이 사실을 walkthrough에 그대로 적었다(추측으로 "잘 될 것" 이라고 넘기지 않음).
+
+## 2026-09-28 [Sonnet] family-invite → 부고장 규칙 이관
+
+- grep으로 00-39 §6.7 family-invite 표(414~421줄)·그룹④(랜딩) /o:slug 표(365~379줄)만 읽음. 00-27은 §9.1-4-2·§9.1-4-3만.
+- MemorialLandingPage.tsx를 구조 참고용으로 전문 읽음(이미 §6.7 적용된 화면이라 loading/notfound/box 배치 패턴을 그대로 이식).
+- MemorialPage.tsx의 confirm-delete 모달 단계(modalStep 'confirm-delete')를 거절 확인 모달 뼈대로 그대로 복제 — window.confirm 문구는 그대로 두고 취소/거절 두 버튼(outline/solid)만 새로 씀.
+- 고민: notfound류 화면(loading·expired·notfound·error·accepted·declined)을 /o,/m처럼 박스 없이 둘지, 지시서대로 .v2-obit-box 안에 넣을지 — 지시서 문구("모든 상태를 부고장 틀로 감싼다")가 명시적이라 박스 안에 넣는 쪽으로 확정. 대신 .v2-obit-notfound의 기본 padding-top(48px)이 박스 자체 패딩(48px)과 데스크톱에서 겹쳐 위쪽이 과하게 떠서, `.v2-obit-box .v2-obit-notfound { padding-top:0 }`를 데스크톱 @container에만 추가해 보정.
+- "관계/권한" 표시에 쓰던 <br>을 00-39 규칙13(<br> 금지) 위반이라 판단, 문구는 그대로 두고 태그만 <p> 2개로 분리.
+- 아이콘(HeartHandshake 등)은 /o,/m 랜딩에 아이콘이 전혀 없어 통일성을 위해 제거 — 스펙에 명시된 지시는 아니라 walkthrough "다음 에이전트가 알아야 할 것"에 되돌릴 수 있다고 남김.
+- tsc --noEmit, npm run build 모두 1회에 통과(에러 없었음 — 디버깅 없음).

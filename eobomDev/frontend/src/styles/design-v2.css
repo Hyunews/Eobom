@@ -3245,3 +3245,83 @@ a.v2-btn-solid {
     display: inline-flex;
   }
 }
+
+/* ── §6.7 family-invite 가족 지정 수락 (2026-09-28, 시안 없음 — 규칙 적용). 부고장 틀
+   (.v2-obit-page > .v2-obit-content > .v2-obit-box)을 loading·expired·notfound·error·accepted·
+   declined·기본 7개 상태 전부에 공용으로 쓴다 — 다른 그룹④ 화면(/o,/m)과 달리 메시지 화면도
+   박스 안에 둔다. 새 요소만 .v2-obit-invite-* 접두사. ── */
+.v2-obit-invite-desc {
+  font-size: 16px;
+  color: var(--v2-text-muted);
+  line-height: 1.6;
+  margin: 8px 0 0;
+}
+
+.v2-obit-invite-body {
+  margin-top: 24px;
+}
+
+.v2-obit-invite-field {
+  margin-bottom: 20px;
+}
+
+.v2-obit-invite-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.v2-obit-invite-actions .v2-btn-primary,
+.v2-obit-invite-actions .v2-btn-outline {
+  width: 100%;
+}
+
+.v2-obit-invite-actions.is-center {
+  justify-content: center;
+}
+
+.v2-obit-invite-cta {
+  width: 100%;
+  margin-top: 20px;
+}
+
+.v2-obit-invite-textlink {
+  display: block;
+  margin-top: 16px;
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: var(--v2-fs-support);
+  color: var(--v2-text-muted);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+@container (min-width: 768px) {
+  /* 메시지 화면(loading·expired·notfound·error·accepted·declined)은 박스 패딩(48px)에
+     .v2-obit-notfound 자체 padding-top(48px)까지 겹쳐 위쪽이 과하게 떠 보인다 — 데스크톱에서만 없앤다. */
+  .v2-obit-box .v2-obit-notfound {
+    padding-top: 0;
+  }
+
+  .v2-obit-invite-desc {
+    font-size: 17px;
+  }
+
+  .v2-obit-invite-body {
+    margin-top: 32px;
+  }
+
+  .v2-obit-invite-actions {
+    flex-direction: row;
+  }
+
+  .v2-obit-invite-actions .v2-btn-primary,
+  .v2-obit-invite-actions .v2-btn-outline {
+    width: auto;
+  }
+
+  .v2-obit-invite-cta {
+    width: auto;
+  }
+}
