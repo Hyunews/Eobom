@@ -225,8 +225,8 @@ export const HomeDesktop: React.FC<HomeDesktopProps> = ({ currentUser, onOpenLog
               높이만 섹션 높이(824px 기준) 대비 28% 비율로 잡는다(calc로 실제 섹션 높이 =
               100vh - 헤더). 가로 위치 = "본문 1048px 상자의 왼쪽 선" — 그 상자는 화면 가운데
               놓이므로 왼쪽 선은 화면 폭에 따라 움직인다: max(80px, (섹션 폭 − 1048px) / 2),
-              단 초광폭 화면에서 여백이 한없이 벌어지지 않도록 400px에서 상한(사람 지시,
-              09-28 — 1920px 기준 436→400). 100%는 섹션 폭 기준(스크롤바 폭 때문에 100vw는
+              단 초광폭 화면에서 여백이 한없이 벌어지지 않도록 300px에서 상한(사람 지시,
+              09-28 — 1920px 기준 436→300). 100%는 섹션 폭 기준(스크롤바 폭 때문에 100vw는
               쓰지 않는다). */}
           <div className="hero-body" style={{ width: '100%', position: 'relative', zIndex: 1, height: '100%', padding: '0 min(300px, max(80px, calc((100% - 1048px) / 2)))' }}>
             <div className="hero-content-card" style={{ marginTop: 'calc((100vh - var(--header-h)) * 0.28)', maxWidth: '540px', width: '100%' }}>
