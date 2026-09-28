@@ -106,6 +106,14 @@ export const HomeMobile: React.FC<HomeMobileProps> = ({ currentUser, onOpenLogin
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // 🔄 2026-09-29 — §3.5 후속(사람 실기기 Chrome). body·#root·App 루트의 min-height:100vh는
+  // 주소창이 떠 있을 때의 보이는 높이(100svh)보다 커서, 칸이 아니라 "페이지"가 세로로 스크롤됐다.
+  // 모바일 홈이 떠 있는 동안만 문서 세로 스크롤을 잠근다(index.css .home-m-lock).
+  useEffect(() => {
+    document.documentElement.classList.add('home-m-lock');
+    return () => document.documentElement.classList.remove('home-m-lock');
+  }, []);
+
   // M-8 — 좌우 화살표는 넘김 영역에 포커스가 있을 때만(전역 키 처리 금지). 입력창 안에서는
   // 커서 이동을 가로채지 않는다.
   const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {

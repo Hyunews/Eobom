@@ -1601,6 +1601,21 @@ body {
   }
 }
 
+/* 모바일 홈이 떠 있는 동안 문서 자체는 스크롤하지 않는다(HomeMobile.tsx가 html에 토글).
+   body·#root·App 루트의 min-height:100vh가 svh보다 커서 페이지가 따로 스크롤되던 문제 차단. */
+html.home-m-lock,
+html.home-m-lock body {
+  overflow: hidden;
+  height: 100vh;
+}
+
+@supports (height: 100svh) {
+  html.home-m-lock,
+  html.home-m-lock body {
+    height: 100svh;
+  }
+}
+
 .home-m-panel {
   flex: 0 0 100%;
   width: 100%;
