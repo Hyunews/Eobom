@@ -1253,3 +1253,95 @@
 - **다음 에이전트가 알아야 할 것**: 🔴 시안 캔버스 없음(00-39 §9.1, "규칙 적용"만 명시) — 사람 실기동 검증 완전 대기. 확인할 것: 7개 상태 전부·거절 확인 모달·모바일/데스크톱 버튼 배치(768px 분기)·지정된 이름 미노출(§9.1-3 ②)·거절 뒤 권유 버튼 없음(00-27 §9.1-4-2). 아이콘을 없앤 게 사람 눈에 밋밋하면 되돌릴 수 있다.
 
 <!-- Gemini 판정 1줄: … -->
+## 2026-09-28 | 홈(랜딩) 재설계 1차 구현 — 데스크톱 ⓓ 두 갈래 + 모바일 가로 4칸 넘김
+
+- **근거 스펙**: docs/00_핵심플랫폼/00-40_홈_랜딩_재설계_계획서.md §3.3(C1~C8, W-1~W-7, M-1~M-10) · 색·글자·여백은 docs/00_핵심플랫폼/00-39_디자인_기준_재정립_명세서.md §3~§5
+- **건드린 파일**:
+  - eobomDev/frontend/src/pages/HomePage.tsx (전면 재작성 — 768px 기준 HomeDesktop/HomeMobile로 분기하는 얇은 래퍼로)
+  - eobomDev/frontend/src/components/home/HomeDesktop.tsx (신규)
+  - eobomDev/frontend/src/components/home/HomeMobile.tsx (신규)
+  - eobomDev/frontend/src/lib/modeNav.ts (HOME_DUO_LABELS 상수 추가)
+  - eobomDev/frontend/src/components/Header.tsx (homeMobileOverlay prop·오버레이 렌더 분기 추가)
+  - eobomDev/frontend/src/App.tsx (isHomeRoute에 prep·bereaved 포함, /prep·/bereaved를 HomePage(landingMode)로 라우팅, DomainOverviewPage·domainSlides import 제거, Sidebar 항상 마운트, Header에 onOpenMobileMenu·homeMobileOverlay 전달)
+  - eobomDev/frontend/src/index.css (히어로 스크림 색 #FDFCFA 계열로 재조정, 이번 변경으로 도달 불가능해진 구 모바일 전용 오버라이드 제거 — `.hero-section`/`.hero-photo-bg`/`.hero-photo-scrim`/`.hero-body`/`.hero-content-card`의 ≤768px 블록, `.hero-cta-row`(전체), `.entry-extra-scrim`(전체), `.duo-photo-scrim`의 ≤768/≤480px 블록, `.fullpage-viewport`/`.fullpage-section`/`.epilogue-footer-wrapper`의 ≤640px 블록, `.scroll-hint--in-viewport`/`.home-section-dots`의 ≤640px 숨김 블록 — 신규 `.home-duo-*`·`.home-m-*`·`.site-header--home-overlay*`·`.header-hamburger-btn--on-photo` 클래스 추가)
+
+- **결과**:
+  - 데스크톱(HomeDesktop.tsx): 세로 풀페이지 3칸(휠 스냅) 유지. 섹션1 히어로 — 배지를 "✨ 아이콘·알약 틀·그림자" 없는 15px/700 글자 한 줄로, 버튼 2개(구 `hero-cta-row`)·설명 문단 제거, 제목 "장례가 끝이/아니었습니다" 50px/600 두 줄, 왼쪽 하단 "미리 준비 · 장례 준비 ↓" 텍스트 클릭 시 섹션2로 스크롤. 섹션2 — 좌(#FDFCFA 생전 준비)/우(#F5F2EC 임종 및 사후 정리) 반반, 사이 1px #E7E2DA, 라벨(미리 준비/장례 준비)→제목(생전 준비/임종 및 사후 정리, 40px 명조)→사실 한 줄→48px→메뉴 목록(생전 1열 3개·사후 2열 7개, 줄높이 56px, modeNav.ts MODE_MENUS 그대로), 맨 아래 64px 띠에 "추모관 링크로 입장"(클릭 시 인라인 입력 토글, 구 EntryBoxes.tsx 박스③ parseMemorialLink 로직 재사용)·"파트너 로그인". 섹션3 — 배지("이어봄과 함께하는…") 제거 외 유지, 배경 사진(fullpage_03)은 이제 이 섹션 하나에만 절대배치.
+  - 모바일(HomeMobile.tsx, ≤768px): 가로 스크롤스냅 4칸(히어로·생전 준비·임종 및 사후 정리·섹션3+푸터), `scroll-snap-type:x mandatory`+`scroll-snap-stop:always`, 칸 100vw×100svh(dvh 아님). 각 칸 오른쪽 아래 "n / 4"+다음 버튼(44×44px, 마지막 칸 숨김, 히어로는 흰색·나머지는 #5C6773), 좌우 화살표는 넘김 영역에 포커스 있을 때만(입력창 안에서는 무시). 헤더는 App.tsx가 `homeMobileOverlay` prop으로 넘겨 칸 위에 고정 오버레이(50px)로 뜨고 히어로 칸에서는 투명+흰 로고/햄버거, 나머지 칸은 그 칸 배경색. `/prep`→②칸·`/bereaved`→③칸 딥링크.
+  - App.tsx: `/prep`→`HomePage(landingMode="prep")`, `/bereaved`→`HomePage(landingMode="bereaved")`로 라우팅 변경(DomainOverviewPage 라우트 제거). 데스크톱은 landingMode가 있으면 곧장 섹션 인덱스1로, 모바일은 곧장 해당 칸(2·3번)으로 스크롤 + `onSetMode` 호출.
+  - `npx tsc --noEmit`(frontend) 에러 0, `npm run build`(frontend) 통과(dist 정상 생성). 청크 크기 경고(577kB)는 기존과 같은 수준 — 이번 변경으로 새로 커진 것 아님.
+
+- **편차**:
+  - 🟡 W-4 "왼쪽 칸 안쪽 여백 = 오른쪽 칸 바깥 여백"을 픽셀 단위로 그대로 구현하지 않고, 각 칸 안에서 폭 524px(1048÷2) 콘텐츠 상자를 `margin:0 auto`로 중앙 정렬하는 더 단순한 방식으로 근사했다 — 정확한 여백 값은 00-40 §3.3 끝 "🟡 섹션2 여백값" 항목으로 이미 사람 재검토가 예정돼 있어 그 자리에서 같이 조정 가능하다고 판단.
+  - 🟡 M-10에서 ④칸(섹션3+푸터) 위 헤더 배경색은 스펙에 값이 없어(사진 위라 단색 근사가 어려움) `#FBF9F5`(페이지 기본 크림)로 임시 지정 — 00-40 §3.3 끝 "섹션3 사진 단독 배치" 항목과 같은 자리에서 재검토 필요.
+  - 🟡 "추모관 링크로 입장"의 정확한 인터랙션은 스펙에 명시가 없어 구 EntryBoxes.tsx 박스③ 입력 UI를 작은 팝오버 토글로 재구성했다 — 사람이 다르게 원하면 로컬 state 토글 하나만 바꾸면 되는 자리.
+  - "이 화면만은 기존 구현을 억지로 지키지 않는다"(00-40 §0)에 따라, 구 HomePage.tsx가 쓰던 모바일 전용 CSS(위 "건드린 파일" index.css 항목 참고)를 도달 불가능해진 시점에 함께 지웠다 — 스펙이 명시적으로 요구하진 않았지만 죽은 코드로 남기지 않으려는 판단.
+  - `docs/`는 건드리지 않음(Sonnet 소유 범위 밖) — 00-39 §6.7 등재는 계획서 §3.3 문구대로 "조정이 끝난 뒤"라 이번 1차 구현에서는 하지 않았다.
+
+- **다음 에이전트가 알아야 할 것**:
+  - 🔴 실기동 검증 완전 대기(사람 몫, dev 서버 미기동 — 지시대로). 00-40 §3.3 끝 "🟡 구현 뒤 사람이 볼 것" 그대로: 섹션1 그라데이션 세기·M1 사진 자르는 위치·섹션2 여백값·가로 넘김 손맛(스냅 세기)·③ 칸 높이 넘침 여부(BEREAVED_MENU 7개가 실기기에서 잘리는지)·섹션3 사진 단독 배치(위 편차 항목들 포함).
+  - 🔴 안 쓰게 된 파일 — **삭제는 하지 않음, 목록만 남김**(AGENTS.md §1 CONFIRM): `eobomDev/frontend/src/pages/DomainOverviewPage.tsx`(완전히 고아, 어디서도 라우팅 안 함), `eobomDev/frontend/src/components/home/EntryBoxes.tsx`(컴포넌트 자체는 안 쓰지만 `Badge` export를 `Sidebar.tsx`가 계속 씀 — 통째로 지우려면 `Badge`를 먼저 다른 곳으로 옮겨야 함), `eobomDev/frontend/src/components/home/domainSlides.tsx`(EntryBoxes.tsx만 참조 — EntryBoxes가 안 쓰이는 한 사실상 고아). 사람 확인 후 처리.
+  - 모바일 홈을 벗어나면(`/prep`·`/bereaved`·`/` 이외 라우트) `App.tsx`가 `homeMobileOverlay` prop 자체를 `undefined`로 넘겨 Header가 자동으로 기본 흰 헤더로 돌아간다 — 별도 리셋 로직 없음(의도).
+  - 641~768px 구간에서 기존 `.header-nav`(홈/생전 준비/임종·사후 정리 평면 메뉴)의 ≤640px 숨김 미디어쿼리와 모바일 홈 판정(≤768px)이 어긋나는 문제를, Header.tsx가 `homeMobileOverlay` 존재 시 그 `<nav>` 자체를 렌더하지 않는 방식으로 우회했다(index.css의 640px 규칙 자체는 그대로 둠 — 다른 페이지엔 영향 없음).
+
+<!-- Gemini 판정 1줄: … -->
+
+
+## 2026-09-28 | 홈 데스크톱 1차 구현 사람 피드백 5건 반영
+
+- **근거 스펙**: 스펙 문서 없음 — 개발자가 직전 1차 구현(위 "홈(랜딩) 재설계 1차 구현" 항목)을 보고 준 5가지 직접 지시.
+- **건드린 파일**: eobomDev/frontend/src/components/home/HomeDesktop.tsx
+- **결과**:
+  1. 섹션1 "미리 준비 · 장례 준비" 텍스트+화살표 버튼을 왼쪽 하단에서 화면 정가운데 하단(`left:50%`+`translateX(-50%)`, `bottom:32px`)으로 옮기고, 공용 스크롤 힌트(`.scroll-hint--down`)와 같은 자리에서 겹치던 것을 히어로 섹션(activeSection===0)에서만 그 공용 힌트를 숨기는 방식으로 하나로 합쳤다. 버튼에 `scrollHintBounceDown` 애니메이션(index.css 기존 keyframe)을 그대로 적용해 손맛도 맞춤.
+  2. 히어로 제목("장례가 끝이 아니었습니다") 아래에 C4로 뺐던 설명 문단("미리 남기는 평온한 생전 준비부터 장사시설 매칭, 복잡한 사후 행정, 그리고 영원한 기억의 온라인 추모관까지. 이어봄이 삶의 마지막 여정과 남겨진 가족의 시간을 온전히 연결합니다.")을 원문 그대로 되살렸다.
+  3. 섹션2 두 칸(`.home-duo-col`)의 내부 정렬을 "각자 가운데(`maxWidth:524px`+`justifyContent:center`)"에서 "안쪽(경계선 쪽) 24px·바깥쪽 80px(00-39 §5 데스크톱 좌우 여백)"의 비대칭 여백으로 바꿨다 — 콘텐츠 상자(`maxWidth:600px`)를 `margin-left:auto`(왼쪽 칸, 경계선 쪽으로 붙임)/`margin-right:auto`(오른쪽 칸)로 안쪽에 붙이고 바깥쪽은 화면이 넓어질수록 여백만 커지게 했다. 두 상자 사이 간격은 기존 약 196px → 48px(24+24)로 좁아졌다.
+  4. 맨 아래 64px 띠(추모관 링크로 입장·파트너 로그인)에 `marginBottom: 2.5rem`을 추가해 공용 스크롤 힌트(화면 정가운데 하단 고정)와 겹치지 않게 위로 띄웠다.
+  5. 각 칸의 회색 "사실 한 줄"(`본인이 직접 적어 둡니다 · 로그인 후 이용` / `가족이 진행합니다 · 행정절차 23건`) `<p>`를 완전히 삭제하고, 그 자리를 대신하던 상단 라벨("미리 준비"/"장례 준비")을 13px → 18px로 키웠다(제목과의 `marginTop`도 48px → 36px로 재조정). `DUO_FACT` 상수는 안 쓰게 돼 파일에서 제거.
+  - `npx tsc --noEmit`(frontend) 에러 0 · `npm run build`(frontend) 통과(dist 정상 생성).
+- **편차**: 없음 — 5건 전부 지시받은 그대로 반영. 이번 피드백은 데스크톱(HomeDesktop.tsx)만 대상으로 한 것으로 판단해 모바일(HomeMobile.tsx)은 손대지 않았다("두 박스가 양쪽에" 등 문구가 데스크톱 2열 배치를 가리킴).
+- **다음 에이전트가 알아야 할 것**: 🔴 실기동 검증 대기(사람 몫, dev 서버 미기동). 모바일도 같은 방향(라벨 확대·사실 한 줄 삭제 등)으로 맞출지는 아직 지시 없음 — 사람이 모바일도 원하면 별도 지시 필요.
+
+<!-- Gemini 판정 1줄: … -->
+
+
+## 2026-09-28 | 홈 데스크톱 추가 미세조정 2건 (간격 재조정·팝오버 바깥클릭 닫기)
+
+- **근거 스펙**: 스펙 문서 없음 — 직전 5건 반영 뒤 개발자가 이어서 준 추가 지시 2건.
+- **건드린 파일**: eobomDev/frontend/src/components/home/HomeDesktop.tsx
+- **결과**:
+  1. "장례 준비(임종 및 사후 정리) div가 너무 가운데로 붙었다"는 재지적 → 두 칸의 안쪽(경계선 쪽) padding을 24px → 56px로 늘림(바깥쪽 80px은 그대로). 두 콘텐츠 상자 사이 간격이 48px → 112px로 넓어짐.
+  2. "추모관 링크로 입장" 팝오버가 열린 상태에서 바깥을 클릭하면 닫히도록 `memorialStripRef`(W-6 띠 전체를 감싸는 ref) + `document`의 `mousedown` 리스너(팝오버가 열려 있을 때만 등록)를 추가. ref가 토글 버튼까지 포함해 그 버튼 재클릭은 "안쪽"으로 잡혀 기존 토글 로직과 안 부딪힘.
+  - `npx tsc --noEmit`(frontend) 에러 0 · `npm run build`(frontend) 통과.
+- **편차**: 없음.
+- **다음 에이전트가 알아야 할 것**: 🔴 실기동 검증 대기(사람 몫). 112px 간격도 사람이 실화면에서 더/덜 필요하다고 할 수 있음 — `HomeDesktop.tsx`의 `.home-duo-col` padding 한 줄만 바꾸면 됨.
+
+<!-- Gemini 판정 1줄: … -->
+
+
+## 2026-09-28 | 홈 데스크톱 히어로 설명문단 줄바꿈 재구성 + 위치 상향
+
+- **근거 스펙**: 스펙 문서 없음 — 개발자 직접 지시.
+- **건드린 파일**: eobomDev/frontend/src/components/home/HomeDesktop.tsx
+- **결과**:
+  - 되살린 설명 문단의 줄바꿈을 "미리 남기는 평온한 생전 준비부터 / 장사시설 매칭, 복잡한 사후 행정 / 그리고 영원한 기억의 온라인 추모관까지." 3줄 + 빈 줄 + "이어봄이 삶의 마지막 여정과 남겨진 가족의 시간을 온전히 연결합니다." 로 지정된 지점에 `<br/>`을 명시해 재구성(굵은 글씨 유지).
+  - 히어로 콘텐츠 블록(`hero-content-card`, 배지+제목+설명문단)에 `transform: translateY(-10%)`를 추가해 전체를 자기 높이의 10%만큼 위로 올림.
+  - `npx tsc --noEmit`(frontend) 에러 0 · `npm run build`(frontend) 통과.
+- **편차**: "10%"의 기준을 컨테이너 높이가 아니라 요소 자기 자신의 높이(CSS `translateY(%)`의 기본 동작)로 해석해 구현 — 실화면에서 이동량이 부족/과하면 그 한 줄(`translateY(-10%)`)만 조정하면 됨.
+- **다음 에이전트가 알아야 할 것**: 🔴 실기동 검증 대기(사람 몫).
+
+<!-- Gemini 판정 1줄: … -->
+
+
+## 2026-09-28 | 히어로 제목 한 줄+확대, 설명문단 역계단식 들여쓰기
+
+- **근거 스펙**: 스펙 문서 없음 — 개발자 직접 지시.
+- **건드린 파일**: eobomDev/frontend/src/components/home/HomeDesktop.tsx
+- **결과**:
+  - 제목 "장례가 끝이<br/>아니었습니다"(두 줄, 50px 고정) → "장례가 끝이 아니었습니다"(한 줄, `whiteSpace:nowrap`) + `fontSize: clamp(2.4rem, 4.5vw, 4rem)`(38.4~64px, 기존 고정 50px보다 큼). vw 기반이라 좁은 데스크톱 창(769px대)에서도 잘리지 않고 자동으로 줄어든다.
+  - 설명 문단 앞 3줄을 각각 `<span style={{display:'block'}}>`으로 분리하고 `paddingLeft`를 0 → 1.5em → 3em으로 줄마다 늘려 역계단식(아래로 갈수록 더 들여쓰는 모양)으로 배치. 마지막 문장("이어봄이…")은 별도 `<p>`로 분리해 위와 한 줄(margin-top 1.3rem) 띄움.
+  - `npx tsc --noEmit`(frontend) 에러 0 · `npm run build`(frontend) 통과.
+- **편차**: "역계단식"의 방향(아래로 갈수록 들여쓰기가 느는지 주는지)이 문서상 정의가 없어 **아래로 갈수록 늘어나는 쪽**(0→1.5em→3em)으로 판단해 구현 — 반대 방향을 원하면 이 세 `paddingLeft` 값 순서만 뒤집으면 된다.
+- **다음 에이전트가 알아야 할 것**: 🔴 실기동 검증 대기(사람 몫). 역계단 방향이 의도와 반대면 즉시 되돌릴 수 있는 자리(위 편차 참고).
+
+<!-- Gemini 판정 1줄: … -->
+

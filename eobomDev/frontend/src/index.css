@@ -483,22 +483,10 @@ body {
   animation: scrollHintBounceDown 1.8s ease-in-out infinite;
 }
 
-/* HomePage.tsx의 섹션 이동 위/아래 화살표(.scroll-hint--in-viewport)와 우측 점 인디케이터
-   (.home-section-dots) — 데스크톱 마우스 조작에서는 효과적이지만 모바일 터치에서는 스와이프로
-   이미 충분한데 화면 위에 겹쳐 거슬리고(화살표) 카드를 가린다(점 인디케이터)는 지적(2026-08-25
-   개발자 실기기 확인). */
-@media (max-width: 640px) {
-  .scroll-hint--in-viewport {
-    display: none;
-  }
-
-  /* .home-section-dots(HomePage.tsx)는 style={{ display:'flex' }} 인라인 스타일이 같이 있어
-     !important 없이는 무시된다(.chip-row·.sidebar와 같은 패턴, 2026-08-25 실측으로 재발견 —
-     getComputedStyle이 'none'이 아니라 'flex'를 그대로 반환했다). */
-  .home-section-dots {
-    display: none !important;
-  }
-}
+/* 🔄 2026-09-28 — 00-40 §3.3. HomeDesktop.tsx의 섹션 화살표(.scroll-hint--in-viewport)·점
+   인디케이터(.home-section-dots)는 이제 ≥769px에서만 렌더된다(HomeMobile.tsx가 완전히 별개
+   컴포넌트라 ≤768px에서는 DOM에 아예 없다) — 예전엔 한 컴포넌트가 모든 폭에서 렌더돼 ≤640px
+   전용으로 이 둘을 숨겨야 했지만, 그 미디어쿼리는 이제 도달 불가능해 지웠다. */
 
 .grid {
   display: grid;
@@ -707,11 +695,10 @@ body {
   max-height: 170px;
 }
 
-/* HomePage.tsx 에필로그+Footer 영역 — 래퍼(epilogue-footer-wrapper) + 자식 section 2개
-   (home-epilogue-section·home-footer-section) 구조는 폭과 무관하게 항상 같다.
-   기본(데스크톱, ≥641px): 래퍼가 고정 높이·overflow-y:auto인 스냅 대상 하나로 동작하고,
-   두 자식은 그 안의 평범한 콘텐츠 블록이다(scroll-snap-align 없음). ≤640px 동작은 아래
-   "모바일 풀페이지 스냅 폐지" 블록에서 일괄 처리한다. */
+/* HomeDesktop.tsx 에필로그+Footer 영역 — 래퍼(epilogue-footer-wrapper) + 자식 section 2개
+   (home-epilogue-section·home-footer-section). 🔄 2026-09-28 00-40 §3.3 — 이 컴포넌트는
+   이제 ≥769px에서만 렌더되므로(HomeMobile.tsx가 완전히 별개 컴포넌트), 예전에 여기 있던
+   ≤640px "풀페이지 스냅 폐지" 오버라이드는 도달 불가능해져 지웠다. */
 .epilogue-footer-wrapper {
   height: calc(100vh - var(--header-h));
   display: flex;
@@ -725,55 +712,10 @@ body {
   }
 }
 
-/* ── 모바일(≤640px) 풀페이지 스냅 폐지 — 00-23 §5.4-1 개발자 확정 ──
-   mandatory 스냅 + 모바일 가변 높이 섹션이 서로를 부정해 바운스백이 났다(부분 예외 패치로는
-   해결 안 되고 스냅 자체를 꺼야 했다 — 이전에 mandatory→proximity로 완화만 해봤다가
-   섹션1↔2 스냅감까지 같이 느슨해져 되돌린 이력이 있다). 이 폭에서는 스냅 없이 body가
-   네이티브로 스크롤한다 — .fullpage-viewport/.home-scroll-container는 더 이상 스크롤
-   주체가 아니므로 clip·내부 스크롤을 모두 풀어야 하는데, .fullpage-viewport의 overflow와
-   .home-scroll-container의 height·overflow-y·-webkit-overflow-scrolling은 전부
-   HomePage.tsx 인라인 style이라 !important 없이는 무시된다(위 .home-section-dots 등과
-   같은 패턴). 각 섹션의 scroll-snap-align도 마찬가지로 인라인이라 !important로 무효화한다. */
-@media (max-width: 640px) {
-  .fullpage-viewport {
-    height: auto;
-    overflow: visible !important;
-  }
-
-  .home-scroll-container {
-    height: auto !important;
-    overflow-y: visible !important;
-    -webkit-overflow-scrolling: auto !important;
-    scroll-snap-type: none !important;
-  }
-
-  /* min-height는 일부러 dvh를 안 쓰고 vh 고정값만 쓴다 — dvh(동적 뷰포트)는 스크롤 중
-     주소창이 접히는 바로 그 순간에 값 자체가 실시간으로 커져서, 스크롤하는 동안 섹션
-     높이가 눈앞에서 재조정되는 "덜컹임"을 만든다(실측 확인, 2026-08-25). vh는 접힘 여부와
-     무관하게 고정이라 스크롤 중 흔들리지 않는다 — 대신 주소창이 펼쳐진 상태에서는 섹션이
-     화면보다 살짝 짧게 보일 수 있는데, 이 폭은 이제 스냅이 없는 자유 스크롤이라 문제되지
-     않는다(예전엔 container.clientHeight와 정확히 맞아야 하는 스냅 계산이 dvh를 요구했지만,
-     지금은 getBoundingClientRect로 섹션 경계를 찾아 그 계산 자체가 없어졌다). */
-  .fullpage-section {
-    height: auto;
-    min-height: calc(100vh - var(--header-h));
-    scroll-snap-align: none !important;
-  }
-
-  .epilogue-footer-wrapper {
-    height: auto;
-    overflow-y: visible;
-    scroll-snap-align: none !important;
-  }
-}
-
-/* ── 도메인 소개 페이지(/prep·/bereaved, DomainOverviewPage.tsx) — 풀페이지 스크롤 ──
-   2026-08-25: 박스①②(생전 준비/임종 및 사후 정리) 클릭 시 뜨던 풀스크린 오버레이
-   (BoxDetailOverlay, 폐지)를 일반 페이지로 바꾸되, "도메인 하나 = 화면 하나"로 넘어가는
-   풀페이지 스크롤과 모바일 피처 카드 숨김은 재지시로 유지한다. 구조는 위 .fullpage-viewport/
-   .home-scroll-container/.fullpage-section과 개념적으로 같지만 일부러 별도 클래스를 쓴다 —
-   HomePage는 바로 위 블록에서 640px 이하 스냅을 아예 껐는데(§5.4-1, 네이티브 body 스크롤),
-   이 페이지는 모바일에서도 스냅을 유지해야 해서 그 규칙을 공유하면 꼬인다. */
+/* ── 도메인 소개 페이지(DomainOverviewPage.tsx) — 풀페이지 스크롤 ──
+   🔴 2026-09-28 00-40 §3.3 C6 — /prep·/bereaved가 폐지되며 이 컴포넌트를 라우팅하는 곳이
+   없어졌다(App.tsx는 이제 두 경로 모두 HomePage로 보낸다). 파일·이 클래스들은 삭제 목록에
+   올려 사람 확인 후 정리한다(AGENTS.md §1 CONFIRM) — 아직 지우지 않는다. */
 .domain-overview-viewport {
   position: relative;
   height: calc(100vh - var(--header-h));
@@ -1076,6 +1018,34 @@ body {
   height: var(--header-h);
   /* 2026-08 개발자 확정: 72px → 85px */
   border-bottom: 1px solid var(--border-color);
+}
+
+/* 🆕 2026-09-28 — 00-40 §3.3 M-10. 모바일 홈(및 그 갈래로 돌아가는 /prep·/bereaved)에서는
+   헤더가 칸 위에 겹쳐 그 칸의 배경처럼 보인다 — sticky(문서 흐름 안)가 아니라 fixed로 띄워
+   HomeMobile.tsx의 100svh 칸이 헤더 자리까지 그대로 차지하게 한다(칸 쪽 padding-top:50px로
+   내용만 비켜난다). 다른 페이지·데스크톱은 기본 .site-header(sticky, 흰 배경) 그대로다 —
+   App.tsx가 모바일 홈일 때만 이 클래스를 얹는다. */
+@media (max-width: 768px) {
+  .site-header--home-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 50px;
+    border-bottom: none;
+  }
+
+  .site-header--home-overlay-hero {
+    background-color: transparent;
+  }
+}
+
+/* 히어로 칸 위 투명 헤더에서 햄버거 버튼이 흰 배경 없이도 보이도록 — 로고는 Header.tsx가
+   EobomLogo variant="header"(흰 워드마크)로 이미 바꾼다. */
+.header-hamburger-btn--on-photo {
+  background-color: rgba(28, 24, 20, 0.28);
+  border-color: rgba(255, 255, 255, 0.6);
+  color: #FFFFFF;
 }
 
 .header-inner {
@@ -1521,14 +1491,17 @@ body {
   background-position: 62% 48%;
 }
 
+/* 🔄 2026-09-28 — 00-40 §3.3 W-2. 이 화면(데스크톱)만 색을 #FDFCFA 계열로 다시 맞춘다
+   (00-39 §3 페이지 배경 확정값). 히어로는 이제 모바일 분기가 따로 없다(HomeMobile.tsx가
+   완전히 별개 컴포넌트로 렌더) — 아래 있던 ≤768px 수직 분할 오버라이드는 그래서 지운다. */
 .hero-photo-scrim {
   position: absolute;
   inset: 0;
   background: linear-gradient(100deg,
-      rgba(251, 249, 245, 0.98) 0%,
-      rgba(251, 249, 245, 0.95) 30%,
-      rgba(251, 249, 245, 0.72) 46%,
-      rgba(251, 249, 245, 0.25) 62%,
+      rgba(253, 252, 250, 0.98) 0%,
+      rgba(253, 252, 250, 0.95) 30%,
+      rgba(253, 252, 250, 0.72) 46%,
+      rgba(253, 252, 250, 0.25) 62%,
       rgba(26, 43, 76, 0.06) 100%);
 }
 
@@ -1536,106 +1509,13 @@ body {
   background: transparent;
 }
 
-/* 🔄 2026-09-10 사람 지시 — 좌우 분할이 안 되는 768px 이하에서, 스크림으로 사진을 흐리게
-   덮던 방식(위 2026-08-25 처리)을 걷어내고 "수직 분할"로 바꾼다: 위쪽은 사진 그대로(스크림
-   없음, 가장 선명), 아래쪽은 완전 불투명 흰 카드에 텍스트. 겹침 자체가 없어서 대비 걱정이
-   사라진다 — 목업 검토(패턴 2) 확정, docs 반영 요청 대상. `.hero-section`은 HomePage.tsx가
-   히어로 <section>에 붙인 클래스 — flex-direction만 이걸로 뒤집는다(inline style은
-   display:flex·alignItems만 정의, flexDirection은 비워둬서 여기서 덮어써도 안 깨짐). */
-@media (max-width: 768px) {
-
-  /* 🔴 .fullpage-section 기본값(위)이 이 폭에서 height를 뷰포트 높이에 "고정"한다(641~768px
-     구간은 아직 스냅이 살아있음, ≤640만 height:auto로 풀림 — 705행 근처 참고). 고정 height는
-     내용이 넘치면 overflow:hidden에 잘리므로 height는 auto로 풀어야 한다. 대신 min-height는
-     "헤더 높이를 뺀 한 화면"을 유지한다(사람 지적: 헤더 높이를 안 쓴 것처럼 보인다) — 그래야
-     이 섹션도 나머지 섹션들과 같은 "헤더 아래 한 화면" 리듬을 그대로 따른다. 사진(190px)은
-     위에 고정, 남는 공간은 전부 .hero-body/.hero-content-card가 가져가 흰 배경이 화면
-     하단까지 꽉 채운다(아래 .hero-body 참고 — 처음엔 빈 여백으로 남아서 한 번 더 고쳤다). */
-  .hero-section {
-    flex-direction: column;
-    align-items: stretch;
-    /* 🔴 2026-09-10 사람 리포트 — 여기 padding-bottom:1.5rem 때문에 흰 카드 밑에 섹션 자체의
-       배경색(#FBF9F5, 흰색과 미묘하게 다른 톤)이 두꺼운 띠로 드러났다("히어로·섹션2 사이
-       두꺼운 줄"). 카드(.hero-content-card)가 화면 끝까지 채우게 하려면 섹션 자체에 여백을
-       주면 안 된다 — 0으로 없앤다. */
-    padding: 0 !important;
-    height: auto !important;
-    min-height: calc(100vh - var(--header-h)) !important;
-  }
-
-  .hero-photo-bg {
-    position: relative;
-    inset: auto;
-    width: 100%;
-    height: 190px;
-    flex-shrink: 0;
-    background-position: 72% 40%;
-  }
-
-  /* 🔄 2026-09-10 사람 지시 — 사진 아래쪽 경계가 각져서 "잘린" 느낌이 났다. 위쪽은 사진을
-     그대로 두고, 아래쪽만 살짝 페이드시켜 바로 밑 흰 카드로 부드럽게 이어지게 한다.
-     🔴 기존 규칙(위)의 inset:0은 .hero-section(한 화면 높이)을 기준으로 꽉 채운다 — 사진
-     밴드는 190px뿐이라 inset:0을 그대로 두면 스크림이 카드 영역까지 뒤덮어버린다. top:0 +
-     height를 사진과 똑같이 190px로 명시해 사진 위에만 정확히 겹치게 한다.
-     🔄 2026-09-10 재지적 — "이음매가 거의 안 보일 정도로". 처음 값(크림색 0.95)은 색이
-     카드(.hero-content-card, 순백 #FFFFFF)와 미묘하게 달랐고 완전 불투명도 아니어서 경계가
-     남았다. 카드와 완전히 같은 흰색·완전 불투명(1)으로 끝나게 하고, 페이드 시작점도 앞당겨
-     전환 구간을 길게 늘린다. */
-  .hero-photo-scrim {
-    display: block;
-    inset: auto;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 190px;
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0) 25%, rgba(255, 255, 255, 1) 100%);
-  }
-
-  /* 🔴 2026-09-10 사람 재지적 — min-height로 섹션 전체는 한 화면 높이가 됐지만, 흰 카드는
-     내용 높이만큼만 차지하고 남는 공간은 그냥 빈 크림색 여백으로 남았다("하단까지 안 채워짐").
-     래퍼(.hero-body)를 flex:1로 늘려 남은 높이를 전부 가져가게 하고, 카드는 그 래퍼를 꽉
-     채운 뒤 내용을 세로 중앙에 놓는다 — 그래야 흰 배경이 진짜로 화면 하단까지 이어진다.
-     🔴 예전엔 `.hero-section > div`(포지셔널 셀렉터)를 썼는데, 이게 형제인 .hero-photo-bg·
-     .hero-photo-scrim도 같이 잡아버렸다 — 게다가 class+타입 결합이라 명시도가 `.hero-photo-bg`
-     단독보다 높아서 flex-shrink:0을 조용히 덮어쓸 뻔했다(사진이 같이 늘어나는 버그). 전용
-     클래스로 바꿔 그 위험 자체를 없앤다. */
-  .hero-body {
-    padding: 0 !important;
-    flex: 1 1 auto;
-    display: flex;
-    min-height: 0;
-  }
-
-  /* 목업 패턴2 그대로 — 사진과 흰 영역 경계를 각지고 단순하게(사람 지시: simple is best).
-     장식적 라운딩·겹침 없이 이어 붙인다.
-     🔄 2026-09-10 — 내용을 화면 세로 중앙(justify-content:center)에 두면 흰 영역이 길어질수록
-     내용이 아래로 처져 보였다("내용을 위로 올려달라") — 중앙 대신 사진 쪽에 가깝게 위로
-     당긴다. flex-start + 여백만 살짝 주는 방식이라 화면이 아무리 길어도 내용은 항상 사진
-     바로 아래쪽에 고정된다. */
-  .hero-content-card {
-    background: var(--card-bg);
-    padding: 1.6rem 1.3rem;
-    max-width: 100% !important;
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-start;
-  }
-}
-
-.hero-cta-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.9rem;
-  margin-bottom: 1.1rem;
-}
-
-/* ── 섹션1(진입 4박스)+섹션2(에필로그·푸터) 공용 배경 사진(HomePage.tsx, 2026-08-24) — fullpage_03 ──
-   두 섹션을 감싸는 래퍼(높이 = 섹션 2개분) 하나에만 절대배치해서, 사진 한 장이 위(하늘) → 중간
-   (언덕·오솔길) → 아래(들꽃)로 스크롤을 따라 자연스럽게 이어지게 한다. 그래서 그라데이션 정지점도
-   래퍼 전체(0~100%) 기준으로 짠다 — 대략 0~50%가 섹션1(엔트리 카드), 50~100%가 섹션2다.
-   카드 자체는 흰/크림 불투명 배경(.entry-box-tint-*)이라 스크림 영향을 안 받고, 카드가 없는
-   빈 공간·h2 제목·클로징 텍스트·Footer만 이 스크림으로 대비를 확보한다. */
+/* ── 에필로그+푸터 배경 사진 — fullpage_03 (2026-08-24, 🔄 2026-09-28 00-40 §3.3 W-7) ──
+   원래는 진입 4박스+에필로그·푸터 두 섹션(높이 2배)에 걸친 공용 배경이었다. 00-40 §3.3에서
+   진입 섹션(ⓓ 두 갈래)이 자기 배경(#FDFCFA/#F5F2EC)을 갖게 되면서, 이 사진은 이제
+   에필로그+푸터 한 섹션(데스크톱 HomeDesktop.tsx epilogue-footer-wrapper · 모바일
+   HomeMobile.tsx ④칸)에만 절대배치된다. 🟡 그라데이션 정지점은 옛 "2섹션 분량" 기준으로
+   잡혀 있던 값이라 1섹션 분량에서는 전환이 더 빠르게 느껴질 수 있다 — 00-40 §3.3 끝
+   "섹션3 사진 단독 배치" 항목에서 사람이 실화면으로 다시 본다. */
 .duo-photo-bg {
   position: absolute;
   inset: 0;
@@ -1660,64 +1540,121 @@ body {
       rgba(251, 249, 245, 0.96) 100%);
 }
 
-/* 768px 이하 — 카드가 이미 자체 불투명 배경을 갖고 있어 히어로 때와 같은 "방향성 그라데이션이
-   깨진다" 문제는 없지만(좌우 분할이 아니라 원래도 세로 흐름), 사진 크롭이 더 좁아지는 만큼
-   전반적으로 한 톤 더 진하게 눌러 카드 사이 빈 공간·제목 텍스트의 대비를 넉넉히 확보한다.
-   2026-08-25: Footer.tsx·에필로그 문단이 카드 없이 이 스크림 위에 그대로 얹히는데(자체 배경
-   없음, `var(--text-muted)` 연한 회색 글자) 기존 값으로는 사진이 너무 비쳐 대비가 부족했다
-   (개발자 지적) — 전 구간을 한 단 더 짙게(더 옅은 크림 쪽으로) 올렸다. */
-@media (max-width: 768px) {
-  .duo-photo-scrim {
-    background: linear-gradient(180deg,
-        rgba(251, 249, 245, 0.78) 0%,
-        rgba(251, 249, 245, 0.7) 20%,
-        rgba(251, 249, 245, 0.65) 40%,
-        rgba(251, 249, 245, 0.76) 55%,
-        rgba(251, 249, 245, 0.87) 70%,
-        rgba(251, 249, 245, 0.94) 85%,
-        rgba(251, 249, 245, 0.99) 100%);
+/* ══════════════════════════════════════════════════════════════════════
+   00-40 §3.3 — 홈 재설계. HomeDesktop.tsx(ⓓ 두 갈래, ≥769px)·HomeMobile.tsx
+   (가로 4칸 넘김, ≤768px) 전용 클래스. 색·글자·여백 확정값은 00-39 §3~§5.
+   ══════════════════════════════════════════════════════════════════════ */
+
+/* ── W-4·W-5·W-6 — 데스크톱 섹션2 두 갈래 대비 ── */
+.home-duo-menu-item:hover {
+  color: var(--point-color);
+}
+
+/* ── M-1·M-7 — 모바일 가로 풀페이지 넘김. 100svh 우선(주소창 접힘에 안 흔들림, dvh 금지 —
+   00-40 §3.1과 같은 이유). 칸 자체(.home-m-panel)는 overflow:hidden으로 두고, 실제 세로
+   스크롤은 그 안의 .home-m-panel-scroll(inset:0)만 맡는다 — 그래야 M-4 인디케이터가 그
+   스크롤에 딸려 올라가지 않고 칸 모서리에 고정된다. */
+.home-m-viewport {
+  display: flex;
+  width: 100%;
+  height: 100vh;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+}
+
+@supports (height: 100svh) {
+  .home-m-viewport {
+    height: 100svh;
   }
 }
 
-@media (max-width: 480px) {
-  .duo-photo-scrim {
-    background: rgba(251, 249, 245, 0.9);
-  }
+.home-m-panel {
+  flex: 0 0 100%;
+  width: 100%;
+  height: 100%;
+  position: relative;
+  overflow: hidden;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+  background-color: var(--secondary-color);
 }
 
-/* 🔄 2026-09-10 사람 확정 — 목업 검토 후 P2(사진 없이 앱 기본 크림 배경) 채택 + 위아래 이음매만
-   그라데이션으로 지운다. `.duo-photo-scrim`은 섹션2(엔트리 카드)~섹션3(에필로그·푸터)까지 이어지는
-   공용 레이어라 그 자체를 고치면 "에필로그·푸터는 현재 상태 유지" 지시를 어긴다 — 그래서 섹션2
-   안에만(HomePage.tsx가 그 <section>에 직접 얹는 오버레이) 아래 그라데이션을 깐다.
-     · 맨 위(0px~56px): 흰색 → 크림 — 히어로 흰 카드와 색이 겹쳐 이음매 자체가 안 보인다.
-     · 중간: 카드 영역 전체를 페이지 기본 크림(--secondary-color)으로 평평하게 채운다(P2) —
-       사진이 안 비쳐서 카드 가독성이 가장 좋다.
-     · 맨 아래(마지막 84px): 크림 → 투명 — 이 오버레이가 걷히면서, 원래부터 있던(계속 그려지고
-       있던) `.duo-photo-scrim`이 그 지점에서 갖는 값 그대로 이어받는다. 그 공용 스크림이
-       섹션2→섹션3에 걸쳐 원래 하나의 연속 그라데이션이라, 이 오버레이만 투명해지면 자연히
-       섹션3 시작부와 값이 맞아떨어진다(별도로 맞출 값을 계산할 필요가 없다). */
-.entry-extra-scrim {
-  display: none;
+.home-m-panel-scroll {
+  position: absolute;
+  inset: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
-@media (max-width: 768px) {
-  .entry-extra-scrim {
-    display: block;
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(180deg,
-        #FFFFFF 0%,
-        var(--secondary-color) 56px,
-        var(--secondary-color) calc(100% - 84px),
-        rgba(251, 249, 245, 0) 100%);
-  }
+/* ── M-3 — 히어로 칸 ── */
+.home-m-hero-photo {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: 66% 50%;
 }
 
-@media (max-width: 640px) {
-  .hero-cta-row .btn {
-    flex: 1 1 auto;
-    justify-content: center;
-  }
+.home-m-hero-scrim {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 70%;
+  background: linear-gradient(180deg, rgba(28, 24, 20, 0) 0%, rgba(28, 24, 20, 0.72) 100%);
+}
+
+.home-m-hero-text {
+  position: absolute;
+  left: 24px;
+  right: 24px;
+  bottom: 96px;
+  color: #FFFFFF;
+}
+
+.home-m-hero-badge {
+  font-size: 13px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.88);
+  margin-bottom: 12px;
+}
+
+.home-m-hero-title {
+  font-size: 31px;
+  font-weight: 600;
+  line-height: 1.35;
+  margin: 0;
+}
+
+/* ── M-4 — 모든 칸 오른쪽 아래 "n / 4" + 다음 버튼 ── */
+.home-m-indicator {
+  position: absolute;
+  right: 24px;
+  bottom: 24px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  pointer-events: none;
+}
+
+.home-m-indicator-next {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+/* ── M-5 — 생전 준비·임종 및 사후 정리 칸 메뉴 목록 ── */
+.home-m-menu-item:active {
+  background-color: var(--secondary-color);
 }
 
 /* EndingNotePage — 00-39 §9.1 그룹② v2 이관(2026-09-22)으로 위 아코디언·목차·리더·요약

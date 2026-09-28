@@ -12,6 +12,10 @@ interface HeaderProps {
   // 480px 이하에서만 노출되는 햄버거 버튼(.mobile-menu-trigger, index.css) — Sidebar.tsx의
   // 모바일 드로어를 연다. 사이드바 자체가 없는 홈에서는 App.tsx가 undefined를 넘겨 숨긴다.
   onOpenMobileMenu?: () => void;
+  // 🆕 00-40 §3.3 M-10 — 모바일 홈(및 /prep·/bereaved)에서만 App.tsx가 넘긴다. 헤더가 그
+  // 칸 위에 겹쳐 칸의 배경처럼 보인다: 히어로 칸은 투명+흰 로고/아이콘, 나머지 칸은 그 칸의
+  // 배경색. 데스크톱·다른 페이지는 항상 undefined(기본 흰 sticky 헤더).
+  homeMobileOverlay?: { variant: 'hero' | 'panel'; bg: string };
 }
 
 // 메인 홈 A안 재구성(2026-08) — 로고 옆 "모드 드롭다운" 1개 대신 "홈"·"생전 준비"·
@@ -27,10 +31,18 @@ interface HeaderProps {
 // 구 라벨 "추모관")이 있었다. 사이드바의 "디지털 추모관"(→ `/memorial`, 다른 화면)과 이름이
 // 겹쳐 혼란이 있었던 데다, 그 화면은 이제 **마이페이지에서만** 들어가게 정리해 헤더에서는
 // 아예 뺐다(MyPage.tsx의 "내 부고장" 통계 칸이 그 유일한 통로가 됨).
-export const Header: React.FC<HeaderProps> = ({ setActiveTab, onOpenLogin, currentUser, onLogout, onSetMode, onOpenMobileMenu }) => {
+export const Header: React.FC<HeaderProps> = ({ setActiveTab, onOpenLogin, currentUser, onLogout, onSetMode, onOpenMobileMenu, homeMobileOverlay }) => {
   const goHome = () => {
     setActiveTab('home');
   };
+
+  // 00-40 §3.3 M-10 — 히어로 칸 위(투명)에서는 로고·햄버거를 흰색으로, 나머지 칸에서는
+  // 그 칸의 배경색을 헤더에 그대로 입힌다.
+  const isHeroOverlay = homeMobileOverlay?.variant === 'hero';
+  const headerClassName = homeMobileOverlay
+    ? `site-header site-header--home-overlay${isHeroOverlay ? ' site-header--home-overlay-hero' : ''}`
+    : 'site-header';
+  const headerStyle = homeMobileOverlay && !isHeroOverlay ? { backgroundColor: homeMobileOverlay.bg } : undefined;
 
   // onSetMode는 유지 — Sidebar 등 다른 화면의 모드 표시가 여전히 이 클릭을 기준으로 맞아야 한다.
   // (2026-08-24 — 모드 버튼은 소개 오버레이가 아니라 실제 화면으로 직접 이동한다.)
@@ -53,7 +65,7 @@ export const Header: React.FC<HeaderProps> = ({ setActiveTab, onOpenLogin, curre
   const goToModeFirst = (mode: NavMode) => goToModeItem(mode, MODE_MENUS[mode][0]);
 
   return (
-    <header className="site-header">
+    <header className={headerClassName} style={headerStyle}>
       <div className="header-inner">
         {/* 모바일 햄버거 메뉴 버튼 — 480px 이하에서만 보임(.mobile-menu-trigger, index.css).
             사이드바가 호버로 안 열리는 터치 환경 대체 진입점(2026-08-20 지시, Sidebar.tsx 드로어 연동). */}
@@ -62,7 +74,7 @@ export const Header: React.FC<HeaderProps> = ({ setActiveTab, onOpenLogin, curre
             type="button"
             onClick={onOpenMobileMenu}
             aria-label="메뉴 열기"
-            className="mobile-menu-trigger header-hamburger-btn"
+            className={`mobile-menu-trigger header-hamburger-btn${isHeroOverlay ? ' header-hamburger-btn--on-photo' : ''}`}
           >
             <Menu size={20} />
           </button>
@@ -70,18 +82,23 @@ export const Header: React.FC<HeaderProps> = ({ setActiveTab, onOpenLogin, curre
 
         {/* 브랜드 로고 — 클릭 시 항상 홈(4박스)로(00-26 §4.4 C안). variant="symbol"은 밝은
             배경(A안 흰 헤더)에 맞는 네이비/그린 배색을 쓴다 — 기존 "header" variant는 다크 배경
-            전제(흰 글자)라 흰 헤더에서는 보이지 않는다. */}
+            전제(흰 글자)라 흰 헤더에서는 보이지 않는다. 00-40 §3.3 M-10 — 히어로 칸(투명) 위에서만
+            다시 "header" variant(흰 워드마크)로 돌아간다. */}
         <div
           onClick={goHome}
           className="header-logo-wrap"
           title="이어봄 (Eobom) 디지털 엔딩 & 웰다잉 토탈 케어 플랫폼"
         >
-          <EobomLogo variant="symbol" height={42} />
+          <EobomLogo variant={isHeroOverlay ? 'header' : 'symbol'} height={42} />
         </div>
 
         {/* 헤더 메뉴 — 00-39 §6-3(2026-09-18) 사람 확정으로 로그인 여부와 무관하게 항상
             노출한다(사이드바 폐지로 비로그인 사용자의 유일한 내비게이션 수단이 됨). 로그인이
-            필요한 개별 항목은 클릭 시 goToModeItem이 로그인 모달로 게이트한다. */}
+            필요한 개별 항목은 클릭 시 goToModeItem이 로그인 모달로 게이트한다.
+            00-40 §3.3 M-10 — 모바일 홈에서는 이 평면 메뉴 대신 햄버거+드로어만 쓴다(새 모바일
+            메뉴 구성은 분기3 범위 밖) — index.css의 640px 숨김과 별개로 여기서도 끈다(모바일
+            홈의 768px 경계가 그 640px 숨김 폭보다 넓어 641~768px 구간이 남기 때문). */}
+        {!homeMobileOverlay && (
         <nav className="header-nav">
           <button type="button" className="header-nav-item" onClick={goHome}>홈</button>
           <div className="hdr-mode">
@@ -121,6 +138,7 @@ export const Header: React.FC<HeaderProps> = ({ setActiveTab, onOpenLogin, curre
             </div>
           </div>
         </nav>
+        )}
 
         {/* 로고·메뉴와 우측 그룹 사이 여백 채우기 */}
         <div className="header-spacer" />

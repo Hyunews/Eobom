@@ -13,10 +13,9 @@ import { providerLabel, BACKEND_URL } from './config';
 import { NAV_MODE_STORAGE_KEY, type NavMode } from './lib/modeNav';
 import { getDisplayName, setSession, clearSession, clearLegacyUserLocalStorage, PENDING_RETURN_PATH_KEY } from './lib/storage';
 import { registerSessionExpiredHandler } from './lib/api';
-import { box1Keys, box2Keys, box1Intro, box2Intro } from './components/home/domainSlides';
+import { useIsMobile } from './hooks/useIsMobile';
 
 import { HomePage } from './pages/HomePage';
-import { DomainOverviewPage } from './pages/DomainOverviewPage';
 import { FacilityPage } from './pages/FacilityPage';
 import { CounselingPage } from './pages/CounselingPage';
 import { DigitalEstatePage } from './pages/DigitalEstatePage';
@@ -53,7 +52,11 @@ function AppShell() {
   // Header(로그인 버튼)·Sidebar(소비자 메뉴)·긴급콜을 렌더하지 않는다(00-06 §7.4).
   const isPortalRoute = activeTab === 'partner' || activeTab === 'admin';
   // 00-26 §7.2 — 홈은 4박스가 유일한 진입점이라 사이드바를 숨긴다(Header는 유지).
-  const isHomeRoute = activeTab === 'home';
+  // 🔄 00-40 §3.3 C6(2026-09-28) — /prep·/bereaved가 폐지되며 둘 다 HomePage로 돌아간다
+  // (landingMode로 어느 갈래인지만 넘어감) — 홈과 같은 대접(사이드바 숨김 등)을 받아야 한다.
+  const isHomeRoute = activeTab === 'home' || activeTab === 'prep' || activeTab === 'bereaved';
+  // 00-40 §3.3 M-10 — 모바일 홈에서만 헤더가 칸 위에 겹치는 오버레이로 바뀐다.
+  const isMobileViewport = useIsMobile();
   // docs 07-03 §6.1 — 부고장 랜딩(/o/:slug)은 껍데기(Header·Sidebar·Footer) 자체가 없는
   // 독립 페이지다. isPortalRoute가 partner·admin을 껍데기에서 빼는 패턴을 그대로 확장한다 —
   // 다만 포털은 최소 상단 바라도 남기는 반면, 이쪽은 그것도 없다(조의 화면에 서비스 메뉴가
@@ -81,6 +84,8 @@ function AppShell() {
   // 모바일 햄버거 메뉴(드로어) 열림 상태 — 데스크톱은 기존 호버 사이드바 그대로,
   // 480px 이하에서만 Header의 햄버거 버튼으로 열고 Sidebar의 드로어로 보여준다(2026-08-20 지시).
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false);
+  // 00-40 §3.3 M-10 — 모바일 홈의 현재 칸에 맞춰 HomePage(HomeMobile.tsx)가 갱신한다.
+  const [homeMobileHeaderStyle, setHomeMobileHeaderStyle] = useState<{ variant: 'hero' | 'panel'; bg: string }>({ variant: 'hero', bg: 'transparent' });
   // 2026-08-21: localStorage→sessionStorage로 전환(브라우저를 완전히 껐다 켜도 로그인이 남아있던
   // 문제 수정 — sessionStorage는 브라우저 종료 시 비워진다). 예전에 localStorage에 저장된 값은
   // 더 이상 안 읽지만 그대로 남아있으면 혼란을 주므로 최초 마운트 시 한 번 같이 지운다.
@@ -357,22 +362,25 @@ function AppShell() {
             currentUser={currentUser}
             onLogout={handleLogout}
             onSetMode={handleSetNavMode}
-            onOpenMobileMenu={isHomeRoute ? undefined : () => setIsMobileMenuOpen(true)}
+            // 00-40 §3.3 M-10 — 모바일 홈에서도 햄버거+드로어를 켠다(그 외는 기존 그대로:
+            // 홈이 아닌 페이지는 항상, 데스크톱 홈은 계속 숨김).
+            onOpenMobileMenu={(!isHomeRoute || isMobileViewport) ? () => setIsMobileMenuOpen(true) : undefined}
+            homeMobileOverlay={isHomeRoute && isMobileViewport ? homeMobileHeaderStyle : undefined}
           />
 
-          {/* 좌측 호버 확장 사이드바(데스크톱) + 모바일 드로어 — 홈(4박스가 유일한 진입점)에서는 숨긴다(00-26 §7.2) */}
-          {!isHomeRoute && (
-            <Sidebar
-              activeTab={activeTab}
-              setActiveTab={setActiveTab}
-              navMode={navMode}
-              currentUser={currentUser}
-              onOpenLogin={() => openLoginModal()}
-              mobileOpen={isMobileMenuOpen}
-              onMobileClose={() => setIsMobileMenuOpen(false)}
-              onLogout={handleLogout}
-            />
-          )}
+          {/* Sidebar.tsx는 이제 모바일 드로어 전용(00-39 §6-3) — 항상 마운트해도 무해하고
+              (≥641px는 index.css가 강제로 숨김), 열림 여부는 위 onOpenMobileMenu 게이트가
+              결정한다(00-40 §3.3 M-10 — 모바일 홈도 이제 드로어를 쓴다). */}
+          <Sidebar
+            activeTab={activeTab}
+            setActiveTab={setActiveTab}
+            navMode={navMode}
+            currentUser={currentUser}
+            onOpenLogin={() => openLoginModal()}
+            mobileOpen={isMobileMenuOpen}
+            onMobileClose={() => setIsMobileMenuOpen(false)}
+            onLogout={handleLogout}
+          />
         </>
       )}
 
@@ -390,21 +398,20 @@ function AppShell() {
       >
         <main style={{ flexGrow: 1 }}>
           <Routes>
-            <Route path="/" element={<HomePage {...authProps} onSetMode={handleSetNavMode} />} />
-            {/* 2026-08-25 — 홈 박스①②(생전 준비/임종 및 사후 정리) 클릭·히어로 CTA가 예전엔
-                풀스크린 오버레이(BoxDetailOverlay, 폐지)를 열었는데, 오버레이일 이유가 없다는
-                지시로 일반 페이지가 됐다. box1Keys·box2Keys·box1Intro·box2Intro는
-                EntryBoxes.tsx의 박스 카드(요약 칩·subtitle)와도 공유하는 정본이라
-                domainSlides.tsx에 있다(00-23 §8.6-1). onSetMode는 이 라우트로 직접 진입해도
-                사이드바·모드 드롭다운이 맞는 모드를 보여주도록 페이지 마운트 시점에 호출된다
-                (00-26 §4.4, DomainOverviewPage.tsx 내부 useEffect 참고). */}
+            <Route
+              path="/"
+              element={<HomePage {...authProps} onSetMode={handleSetNavMode} onMobileHeaderStyleChange={setHomeMobileHeaderStyle} />}
+            />
+            {/* 🔄 00-40 §3.3 C6(2026-09-28) — DomainOverviewPage(옛 박스①② "자세히 보기"
+                소개 화면)는 폐지. 두 주소 다 홈으로 돌려보내되, landingMode로 어느 갈래인지
+                HomePage에 알려 웹은 섹션2로, 모바일은 해당 칸으로 곧장 떨어뜨린다(M-9). */}
             <Route
               path="/prep"
-              element={<DomainOverviewPage {...authProps} onSetMode={handleSetNavMode} title="생전 준비" intro={box1Intro} mode="prep" keys={box1Keys} />}
+              element={<HomePage {...authProps} onSetMode={handleSetNavMode} onMobileHeaderStyleChange={setHomeMobileHeaderStyle} landingMode="prep" />}
             />
             <Route
               path="/bereaved"
-              element={<DomainOverviewPage {...authProps} onSetMode={handleSetNavMode} title="임종 및 사후 정리" intro={box2Intro} mode="bereaved" keys={box2Keys} />}
+              element={<HomePage {...authProps} onSetMode={handleSetNavMode} onMobileHeaderStyleChange={setHomeMobileHeaderStyle} landingMode="bereaved" />}
             />
             <Route path="/facility" element={<FacilityPage {...authProps} />} />
             <Route path="/counseling" element={<CounselingPage {...authProps} />} />

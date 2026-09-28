@@ -62,3 +62,10 @@ export const MODE_MENUS: Record<NavMode, ModeMenuItem[]> = {
   prep: PREP_MENU,
   bereaved: BEREAVED_MENU,
 };
+
+// 00-40 §3.3 W-5 — 홈 ⓓ 두 갈래의 작은 라벨("미리 준비"/"장례 준비"). MODE_LABELS는
+// 정식 도메인명("생전 준비"/"임종 및 사후 정리")이라 그 라벨 바로 아래 큰 제목에 쓴다.
+export const HOME_DUO_LABELS: Record<NavMode, string> = {
+  prep: '미리 준비',
+  bereaved: '장례 준비',
+};
