@@ -193,61 +193,40 @@ export const HomeMobile: React.FC<HomeMobileProps> = ({ currentUser, onOpenLogin
     );
   };
 
+  // 🔄 2026-09-29 — 00-40 §3.5 H-2·H-3. 칸 = 세로 flex 100%(헤더 50px 포함). 메뉴 줄이
+  // flex:1 1 0 + min 44 / max 52px로 남는·모자라는 높이를 흡수한다. 넘치는 화면만 바깥
+  // .home-m-panel-scroll(overflow-y:auto 안전망, H-1)이 스크롤한다.
   const renderModeMenu = (mode: NavMode) => (
-    <div style={{ paddingTop: '50px', height: '100%' }}>
-      <div style={{ padding: '48px 24px 72px', minHeight: '100%', display: 'flex', flexDirection: 'column' }}>
-        <div style={{ fontSize: '12px', fontWeight: 700, color: '#A29B90' }}>{HOME_DUO_LABELS[mode]}</div>
-        <h2 className="section-title" style={{ fontSize: '27px', fontWeight: 600, color: '#1A2B4C', margin: '10px 0 0' }}>
-          {MODE_LABELS[mode]}
-        </h2>
-        {/* 🔄 2026-09-28 사람 지시 — 제목 아래 회색 "사실 한 줄" 삭제 */}
-        <div style={{ marginTop: '24px' }}>
-          {MODE_MENUS[mode].map((item) => (
-            <button
-              key={item.id}
-              type="button"
-              onClick={() => goToModeItem(mode, item)}
-              className="home-m-menu-item"
-              style={{
-                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                width: '100%', height: '52px', background: 'none', border: 'none',
-                borderBottom: '1px solid #EFEBE4', fontSize: '16px', fontWeight: 600,
-                color: '#1A2B4C', textAlign: 'left', cursor: 'pointer', fontFamily: 'inherit', padding: 0,
-              }}
-            >
-              <span>{item.label}</span>
-              <ChevronRight size={18} color="#94A3B8" />
-            </button>
-          ))}
-        </div>
-
-        {/* M-6 — 추모관 링크로 입장 · 파트너 로그인은 ③ 칸(임종 및 사후 정리) 맨 아래 한 줄 */}
-        {mode === 'bereaved' && (
-          <div ref={memorialRowRef} style={{ marginTop: 'auto', paddingTop: '1rem', borderTop: '1px solid #EFEBE4', display: 'flex', alignItems: 'center', gap: '1.2rem', position: 'relative' }}>
-            <button type="button" onClick={() => setShowMemorialInput((v) => !v)} style={{ background: 'none', border: 'none', fontSize: '14px', fontWeight: 600, color: '#5B7065', cursor: 'pointer', fontFamily: 'inherit', padding: 0 }}>
-              추모관 링크로 입장
-            </button>
-            <button type="button" onClick={() => setActiveTab?.('partner')} style={{ background: 'none', border: 'none', fontSize: '14px', fontWeight: 600, color: '#8A9199', cursor: 'pointer', fontFamily: 'inherit', padding: 0 }}>
-              파트너 로그인
-            </button>
-
-            {showMemorialInput && (
-              <div style={{ position: 'absolute', bottom: '2.6rem', left: 0, right: 0, display: 'flex', flexDirection: 'column', gap: '0.5rem', backgroundColor: '#FFFFFF', border: '1px solid #E7E2DA', borderRadius: 'var(--r-md)', padding: '1rem', boxShadow: 'var(--el-3)' }}>
-                <input
-                  type="text"
-                  className="form-input"
-                  placeholder="받으신 링크를 그대로 붙여넣어 주세요"
-                  value={memorialLinkInput}
-                  onChange={(e) => { setMemorialLinkInput(e.target.value); if (memorialLinkError) setMemorialLinkError(''); }}
-                  onKeyDown={(e) => { if (e.key === 'Enter') handleMemorialLinkEnter(); }}
-                  autoFocus
-                />
-                <button type="button" onClick={handleMemorialLinkEnter} className="btn btn-primary">입장</button>
-                {memorialLinkError && <p style={{ fontSize: 'var(--fs-caption)', color: 'var(--state-danger-fg)', margin: 0 }}>{memorialLinkError}</p>}
-              </div>
-            )}
-          </div>
-        )}
+    <div
+      style={{
+        height: '100%', boxSizing: 'border-box', display: 'flex', flexDirection: 'column',
+        padding: 'calc(50px + clamp(16px, 4svh, 48px)) 24px 72px',
+      }}
+    >
+      <div style={{ fontSize: '12px', fontWeight: 700, color: '#A29B90' }}>{HOME_DUO_LABELS[mode]}</div>
+      <h2 className="section-title" style={{ fontSize: '27px', fontWeight: 600, color: '#1A2B4C', margin: '6px 0 0' }}>
+        {MODE_LABELS[mode]}
+      </h2>
+      {/* 🔄 2026-09-28 사람 지시 — 제목 아래 회색 "사실 한 줄" 삭제 */}
+      <div style={{ marginTop: 'clamp(12px, 3svh, 24px)', flex: '1 1 auto', display: 'flex', flexDirection: 'column' }}>
+        {MODE_MENUS[mode].map((item) => (
+          <button
+            key={item.id}
+            type="button"
+            onClick={() => goToModeItem(mode, item)}
+            className="home-m-menu-item"
+            style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              width: '100%', flex: '1 1 0', minHeight: '44px', maxHeight: '52px',
+              background: 'none', border: 'none',
+              borderBottom: '1px solid #EFEBE4', fontSize: '16px', fontWeight: 600,
+              color: '#1A2B4C', textAlign: 'left', cursor: 'pointer', fontFamily: 'inherit', padding: 0,
+            }}
+          >
+            <span>{item.label}</span>
+            <ChevronRight size={18} color="#94A3B8" />
+          </button>
+        ))}
       </div>
     </div>
   );
@@ -290,8 +269,9 @@ export const HomeMobile: React.FC<HomeMobileProps> = ({ currentUser, onOpenLogin
         <div className="home-m-panel-scroll">
           <div className="duo-photo-bg" style={{ backgroundImage: "url('/fullpage_03.png')" }} />
           <div className="duo-photo-scrim" />
-          <div style={{ position: 'relative', zIndex: 1, paddingTop: '50px', minHeight: '100%', display: 'flex', flexDirection: 'column' }}>
-            <section style={{ flex: '1 1 auto', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', textAlign: 'center', padding: '2.4rem 1.5rem', gap: '1rem' }}>
+          {/* 🔄 2026-09-29 — 00-40 §3.5 H-6. 세로 flex 100% · 푸터 아래 48px 비움(4 / 4 숫자 자리) */}
+          <div style={{ position: 'relative', zIndex: 1, height: '100%', boxSizing: 'border-box', paddingTop: '50px', paddingBottom: '48px', display: 'flex', flexDirection: 'column' }}>
+            <section style={{ flex: '1 1 auto', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', textAlign: 'center', padding: 'clamp(12px, 3svh, 2.4rem) 1.5rem', gap: '1rem' }}>
               {/* 🔄 2026-09-28 사람 지시 — 좁은 폭에서 둘째 줄이 다시 줄바꿈돼 3줄로 보였다.
                   vw 기반 clamp로 줄여 320px대 폭에서도 "삶의 모든 봄날을 응원합니다"가
                   한 줄에 들어가게 한다(정확한 값은 실기기에서 사람이 다시 볼 것). */}
@@ -306,7 +286,33 @@ export const HomeMobile: React.FC<HomeMobileProps> = ({ currentUser, onOpenLogin
                 이어봄이 곁에서 함께합니다.
               </p>
             </section>
-            <section style={{ position: 'relative' }}>
+            {/* 🔄 2026-09-29 — 00-40 §3.5 H-4. 추모관 링크로 입장 · 파트너 로그인을 ③에서 옮겨 온다(M-6).
+                섹션3 문구 바로 아래·푸터 위, 누르는 높이 44px. */}
+            <div ref={memorialRowRef} style={{ flex: '0 0 auto', margin: '0 24px', minHeight: '44px', borderTop: '1px solid #DDD6CB', display: 'flex', alignItems: 'center', gap: '1.2rem', position: 'relative' }}>
+              <button type="button" onClick={() => setShowMemorialInput((v) => !v)} style={{ background: 'none', border: 'none', fontSize: '14px', fontWeight: 600, color: '#5B7065', cursor: 'pointer', fontFamily: 'inherit', padding: 0, minHeight: '44px' }}>
+                추모관 링크로 입장
+              </button>
+              <button type="button" onClick={() => setActiveTab?.('partner')} style={{ background: 'none', border: 'none', fontSize: '14px', fontWeight: 600, color: '#8A9199', cursor: 'pointer', fontFamily: 'inherit', padding: 0, minHeight: '44px' }}>
+                파트너 로그인
+              </button>
+
+              {showMemorialInput && (
+                <div style={{ position: 'absolute', bottom: '100%', left: 0, right: 0, marginBottom: '0.4rem', display: 'flex', flexDirection: 'column', gap: '0.5rem', backgroundColor: '#FFFFFF', border: '1px solid #E7E2DA', borderRadius: 'var(--r-md)', padding: '1rem', boxShadow: 'var(--el-3)' }}>
+                  <input
+                    type="text"
+                    className="form-input"
+                    placeholder="받으신 링크를 그대로 붙여넣어 주세요"
+                    value={memorialLinkInput}
+                    onChange={(e) => { setMemorialLinkInput(e.target.value); if (memorialLinkError) setMemorialLinkError(''); }}
+                    onKeyDown={(e) => { if (e.key === 'Enter') handleMemorialLinkEnter(); }}
+                    autoFocus
+                  />
+                  <button type="button" onClick={handleMemorialLinkEnter} className="btn btn-primary">입장</button>
+                  {memorialLinkError && <p style={{ fontSize: 'var(--fs-caption)', color: 'var(--state-danger-fg)', margin: 0 }}>{memorialLinkError}</p>}
+                </div>
+              )}
+            </div>
+            <section style={{ position: 'relative', flex: '0 0 auto' }}>
               {/* 🔄 2026-09-28 사용자 지시 — 모바일 푸터는 이제 전역으로 로고·브랜드 문구가
                   없다(FooterMobile.tsx) — 이 칸도 특별 취급 없이 그대로 렌더. */}
               <Footer />
