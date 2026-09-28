@@ -35,7 +35,8 @@
 ✅09-28미리보기모달반려수정(920px+`.v2-obit-page`재사용,`.v2-obit-container`제거)전부완료
 (tsc/build통과)—세부`walkthrough.md`.🔴편차:pickup이v2→구form역행(→backlog).
 🔴§4.5동의3층미착수(→⑲).🔴파기배치`--confirm`금지·dev재시작필요.🔴사람실기동완전대기.
-🟡보류:pickup거리순·전문가region·height:36px3곳.다음=그룹④`/m/:slug`·`family-invite`(미착수).
+🟡보류:pickup거리순·전문가region·height:36px3곳.✅09-28사람실측통과(미리보기).✅Opus:그룹④나머지2개적용규칙§6.7등재.
+다음=[Sonnet]`/m/:slug`→(clear)→`family-invite`.
 **3.[Gemini]**🔴게이트45건대기(09-11~21·wt204~)·🟡옛스펙3건→⑭.🟡devDB삭제분7건—D-8(🔴CONFIRM).✅reports경로정리완료(09-16).
 
 ## 지금 상태
