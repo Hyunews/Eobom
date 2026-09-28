@@ -1064,6 +1064,7 @@ body {
   .site-header--home-overlay-hero .header-hamburger-btn,
   .site-header--home-overlay-hero .header-user-chip,
   .site-header--home-overlay-hero .header-user-name-text,
+  .site-header--home-overlay-hero .header-user-icon,
   .site-header--home-overlay-hero .header-actions-wrap .btn-point {
     color: #FFFFFF;
     border-color: rgba(255, 255, 255, 0.6);
@@ -1165,6 +1166,13 @@ body {
   align-items: center;
   gap: 0.4rem;
   cursor: pointer;
+}
+
+/* 🔄 2026-09-29 — 체크 아이콘 색을 `color="var(--point-color)"` prop(항상 고정)이 아니라
+   currentColor로 바꿔, 모바일 홈 히어로 칸(.site-header--home-overlay-hero)에서 텍스트("OOO님")와
+   함께 흰색으로 바뀌도록 함(사람 지시 — 히어로 칸에서만 아이콘도 흰색이어야 함). */
+.header-user-icon {
+  color: var(--point-color);
 }
 
 .header-account-buttons {

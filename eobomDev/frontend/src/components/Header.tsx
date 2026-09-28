@@ -159,7 +159,7 @@ export const Header: React.FC<HeaderProps> = ({ setActiveTab, onOpenLogin, curre
                 title="마이페이지"
                 className="header-user-chip"
               >
-                <UserCheck size={16} color="var(--point-color)" style={{ flexShrink: 0 }} />
+                <UserCheck size={16} className="header-user-icon" style={{ flexShrink: 0 }} />
                 <span className="header-user-name-text">{currentUser}님</span>
               </span>
               {/* 480px 이하에서 햄버거+로고+메뉴+사용자칩+이 버튼까지 겹치며 헤더가 깨지는 문제(2026-08-20

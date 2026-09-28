@@ -41,6 +41,7 @@ devDB실측=8행뿐·"더보기"실사례없음)전부완료(tsc/build통과)—
 ▶분기1·2✅확정(ⓓ·W1·M1·④가로넘김)→✅[Sonnet]§3.3 1차구현완료(09-28,HomeDesktop/HomeMobile신규분리·tsc·build통과)—세부`walkthrough.md`.
 ✅섹션1=**G4-c**반영완료(09-28,HomeDesktop/HomeMobile+index.css,tsc·build통과).왼쪽여백=`min(300px,max(80px,(섹션폭-1048px)/2))`(사람직접수정,주석도300으로일치확인)→▶사람실화면검증대기(그라데이션세기·사진크롭등§3.3끝🟡).✅00-40§3.3-4표=300상한일치·모바일푸터=M-11(사람실화면✅09-29).✅**분기3=현행드로어확정**(09-29,시안없음,§3.4)→▶분기4(합치기)=§3.3끝🟡사람실화면확인후`00-39`§6.7등재.🔴안쓰는파일(DomainOverviewPage·EntryBoxes·domainSlides)목록만,삭제는사람확인후.
 ✅wt글자깨짐복구(09-28,[Opus]점검=깨진글자0).🔴한글문서는Edit/Write로만—셸리다이렉션금지.
+✅로그인후사용자아이콘 섹션1흰색버그수정(09-29,Header.tsx `UserCheck` color prop고정값→className, index.css `.header-user-icon` 히어로스코프추가,tsc·build통과)→▶사람실기동검증대기.
 **3.[Gemini]**🔴게이트45건대기(09-11~21·wt204~)·🟡옛스펙3건→⑭.🟡devDB삭제분7건—D-8(🔴CONFIRM).✅reports경로정리완료(09-16).
 
 ## 지금 상태

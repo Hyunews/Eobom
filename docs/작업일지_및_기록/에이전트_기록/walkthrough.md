@@ -1244,6 +1244,20 @@
 
 <!-- Gemini 판정 1줄: ✅통과 (visibleGuestCount state 기반 slice 렌더 및 10개 더 보기 버튼 실장 확인 / 새 글 제출 시 카운트 자동 확장 확인 / 빌드 통과) -->
 
+## 2026-09-29 | 모바일 홈 헤더 — 로그인 상태 사용자 아이콘이 섹션1(히어로)에서 흰색으로 안 바뀌던 버그 수정
+
+- **근거 스펙**: 스펙 문서 없음 — 사람 직접 지시("로그인 후의 사용자 아이콘이 섹션 1에선 흰색으로 나왔으면 함").
+- **건드린 파일**: eobomDev/frontend/src/components/Header.tsx, eobomDev/frontend/src/index.css
+- **결과**:
+  - 로그인 상태 헤더의 `UserCheck` 아이콘이 `color="var(--point-color)"` prop으로 고정돼 있어, 옆의 "OOO님" 텍스트는 `.site-header--home-overlay-hero` 스코프에서 흰색으로 바뀌는데 아이콘만 항상 고정된 초록색(`--point-color`)으로 남아 있었다(2026-08-24부터 있던 코드, 이번 히어로 화이트 작업과 무관하게 원래 고정값이었음).
+  - `color` prop을 지우고 `className="header-user-icon"`으로 교체 — lucide 아이콘은 `color` prop이 없으면 `stroke="currentColor"`가 기본값이라 CSS `color`를 그대로 따라간다.
+  - `index.css`에 `.header-user-icon { color: var(--point-color); }`(기본값, 기존 모습과 동일)을 추가하고, 히어로 스코프 화이트 목록(`.site-header--home-overlay-hero .header-hamburger-btn, .header-user-chip, .header-user-name-text, .header-actions-wrap .btn-point`)에 `.header-user-icon`을 추가 — 이제 섹션1에서는 텍스트와 아이콘이 함께 흰색.
+  - `cd eobomDev/frontend && npx tsc --noEmit`(exit 0) · `npm run build`(vite build, 1547 modules) 통과.
+- **편차**: 없음.
+- **다음 에이전트가 알아야 할 것**: 🔴 실기동 검증 대기(사람 몫, dev 서버 미기동). `UserCheck` 사용처가 Header.tsx 한 곳뿐임을 grep으로 확인해 다른 화면에 영향 없음.
+
+<!-- Gemini 판정 1줄: … -->
+
 ## 2026-09-28 | family-invite를 부고장 규칙으로 옮기기
 
 - **근거 스펙**: docs/00_핵심플랫폼/00-39_디자인_기준_재정립_명세서.md §6.7 (family-invite 표 414~421줄 · 그룹④(랜딩) 대표 /o/:slug 표 365~379줄) · docs/00_핵심플랫폼/00-27_생전_가족지정_및_유족연결_기획서.md §9.1-4-2·§9.1-4-3
