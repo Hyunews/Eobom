@@ -259,9 +259,19 @@ export const HomeMobile: React.FC<HomeMobileProps> = ({ currentUser, onOpenLogin
         <div className="home-m-panel-scroll">
           <div className="home-m-hero-photo" style={{ backgroundImage: "url('/hero_will.png')" }} />
           <div className="home-m-hero-scrim" />
+          {/* 🔄 2026-09-28 — 00-40 §3.3-4 G4-c(사람 확정). M-3의 글 부분을 대체한다 —
+              사진·그라데이션은 그대로. */}
           <div className="home-m-hero-text">
-            <div className="home-m-hero-badge">디지털 엔딩 & 웰다잉 토탈 케어</div>
-            <h1 className="section-title home-m-hero-title">장례가 끝이<br />아니었습니다</h1>
+            <h1 className="section-title home-m-hero-title">이어봄</h1>
+            <div style={{ marginTop: '16px', borderTop: '1px solid rgba(255,255,255,0.5)', width: '100%' }} />
+            <p className="section-title" style={{ margin: '12px 0 0', fontSize: '21px', fontWeight: 600, color: '#FFFFFF', textAlign: 'right' }}>
+              장례가 전부가 아니었습니다.
+            </p>
+            <p style={{ margin: '24px 0 0', fontSize: '15px', color: 'rgba(255,255,255,0.88)', lineHeight: 1.7 }}>
+              생전 준비 · 임종 및 사후 정리까지<br />
+              디지털 엔딩 & 웰다잉 토탈 케어,<br />
+              이어봄이 함께합니다.
+            </p>
           </div>
         </div>
         {renderIndicator(0, true)}

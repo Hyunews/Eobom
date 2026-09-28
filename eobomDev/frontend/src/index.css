@@ -1510,21 +1510,22 @@ body {
   position: absolute;
   inset: 0;
   background-size: cover;
-  background-position: 62% 48%;
+  /* 🔄 2026-09-28 — 00-40 §3.3-4 G4-c "함께 고칠 것". 펜·손이 글과 겹치지 않게. */
+  background-position: 72% 50%;
 }
 
-/* 🔄 2026-09-28 — 00-40 §3.3 W-2. 이 화면(데스크톱)만 색을 #FDFCFA 계열로 다시 맞춘다
-   (00-39 §3 페이지 배경 확정값). 히어로는 이제 모바일 분기가 따로 없다(HomeMobile.tsx가
-   완전히 별개 컴포넌트로 렌더) — 아래 있던 ≤768px 수직 분할 오버라이드는 그래서 지운다. */
+/* 🔄 2026-09-28 — 00-40 §3.3-4 G4-c "함께 고칠 것". 왼쪽 34%까지 진하게 유지 → 47%에서
+   62% 불투명도로 꺾어 내려가고 → 62%부터는 완전히 투명(사진 오른쪽은 흐리지 않는다,
+   기존처럼 전체가 뿌옇게 남지 않도록 100% 지점의 옅은 남색 틴트도 걷어냈다). */
 .hero-photo-scrim {
   position: absolute;
   inset: 0;
   background: linear-gradient(100deg,
-      rgba(253, 252, 250, 0.98) 0%,
-      rgba(253, 252, 250, 0.95) 30%,
-      rgba(253, 252, 250, 0.72) 46%,
-      rgba(253, 252, 250, 0.25) 62%,
-      rgba(26, 43, 76, 0.06) 100%);
+      rgba(253, 252, 250, 0.96) 0%,
+      rgba(253, 252, 250, 0.96) 34%,
+      rgba(253, 252, 250, 0.62) 47%,
+      rgba(253, 252, 250, 0) 62%,
+      rgba(253, 252, 250, 0) 100%);
 }
 
 .hero-content-card {
@@ -1618,34 +1619,33 @@ body {
   background-position: 66% 50%;
 }
 
+/* 🔄 2026-09-28 — 00-40 §3.3-4 G4-c. 글 덩어리가 위로 올라간 만큼(150px, 아래) 더 위부터
+   어둡게: 아래쪽 80% 높이 · 투명 → 40% 지점 0.55 → 끝 0.8. */
 .home-m-hero-scrim {
   position: absolute;
   left: 0;
   right: 0;
   bottom: 0;
-  height: 70%;
-  background: linear-gradient(180deg, rgba(28, 24, 20, 0) 0%, rgba(28, 24, 20, 0.72) 100%);
+  height: 80%;
+  background: linear-gradient(180deg, rgba(28, 24, 20, 0) 0%, rgba(28, 24, 20, 0.55) 40%, rgba(28, 24, 20, 0.8) 100%);
 }
 
+/* 🔄 2026-09-28 — 00-40 §3.3-4 G4-c. 덩어리 끝(하단)이 화면 아래에서 150px 위(옛 96px보다
+   위로 — 글이 늘어난 만큼). 배지(C2)는 없앤다 — 둘째 줄 설명이 그 역할을 한다. */
 .home-m-hero-text {
   position: absolute;
   left: 24px;
   right: 24px;
-  bottom: 96px;
+  bottom: 150px;
   color: #FFFFFF;
 }
 
-.home-m-hero-badge {
-  font-size: 13px;
-  font-weight: 700;
-  color: rgba(255, 255, 255, 0.88);
-  margin-bottom: 12px;
-}
-
 .home-m-hero-title {
-  font-size: 31px;
+  font-family: var(--font-serif);
+  font-size: 52px;
   font-weight: 600;
-  line-height: 1.35;
+  line-height: 1.1;
+  letter-spacing: -1px;
   margin: 0;
 }
 

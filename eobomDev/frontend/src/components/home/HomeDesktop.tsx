@@ -179,31 +179,18 @@ export const HomeDesktop: React.FC<HomeDesktopProps> = ({ currentUser, onOpenLog
 
   return (
     <div className="fullpage-viewport" style={{ position: 'relative', width: '100%', overflow: 'hidden', backgroundColor: '#FDFCFA' }}>
+      {/* 🔄 2026-09-28 — 00-40 §3.3-4 G4-c "함께 고칠 것". 오른쪽 점 3개 알약(주황 점) 제거 →
+          오른쪽 아래 `n / 3`(모바일 M-4와 같은 방식) — 히어로(사진 배경)에서는 흰색, 나머지
+          칸(밝은 배경)에서는 #5C6773. */}
       <div
-        className="home-section-dots"
+        className="home-section-indicator"
         style={{
-          position: 'fixed', right: '2rem', top: '50%', transform: 'translateY(-50%)', zIndex: 800,
-          display: 'flex', flexDirection: 'column', gap: '1rem', backgroundColor: 'rgba(26, 43, 76, 0.75)',
-          backdropFilter: 'blur(8px)', padding: 'var(--sp-4) 0.6rem', borderRadius: 'var(--r-lg)', boxShadow: 'var(--el-2)',
+          position: 'fixed', right: '2rem', bottom: '2rem', zIndex: 800,
+          fontSize: '13px', fontWeight: 600, letterSpacing: '0.02em',
+          color: activeSection === 0 ? 'rgba(255, 255, 255, 0.9)' : '#5C6773',
         }}
       >
-        {[0, 1, 2].map((idx) => (
-          <button
-            key={idx}
-            onClick={() => scrollToSection(idx)}
-            style={{
-              width: activeSection === idx ? '14px' : '10px',
-              height: activeSection === idx ? '14px' : '10px',
-              borderRadius: '50%',
-              backgroundColor: activeSection === idx ? '#D4A359' : 'rgba(255, 255, 255, 0.4)',
-              border: activeSection === idx ? '2px solid #FFFFFF' : 'none',
-              cursor: 'pointer',
-              transition: 'width var(--dur-2) var(--ease-in-out), height var(--dur-2) var(--ease-in-out), background-color var(--dur-2) var(--ease-in-out), border var(--dur-2) var(--ease-in-out)',
-              padding: 0,
-            }}
-            title={`섹션 ${idx + 1}`}
-          />
-        ))}
+        {activeSection + 1} / {SECTION_COUNT}
       </div>
 
       {activeSection > 0 && (
@@ -233,34 +220,30 @@ export const HomeDesktop: React.FC<HomeDesktopProps> = ({ currentUser, onOpenLog
         >
           <div className="hero-photo-bg" style={{ backgroundImage: "url('/hero_will.png')" }} />
           <div className="hero-photo-scrim" />
-          <div className="hero-body" style={{ width: '100%', maxWidth: '1440px', margin: '0 auto', padding: '0 6vw', position: 'relative', zIndex: 1, height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-            {/* 🔄 2026-09-28 사람 지시 — 문구 전체를 지금보다 위로(자기 높이의 10%만큼 translateY) */}
-            <div className="hero-content-card" style={{ maxWidth: '640px', width: '100%', transform: 'translateY(-30%)' }}>
-              {/* C2 — ✨ 아이콘·알약 틀·그림자 제거, 작은 글자 한 줄로 */}
-              <div style={{ fontSize: '15px', fontWeight: 700, color: '#5B7065', marginBottom: '1.1rem' }}>
-                디지털 엔딩 & 웰다잉 토탈 케어 이어봄 (Eobom)
-              </div>
-              {/* 🔄 2026-09-28 사람 지시 — 두 줄→한 줄로, 글자 키움. clamp라 좁은 창(769px대)에서도
-                  잘리지 않고 줄어든다(00-39 §5-0 "본문은 줄어든다" 원칙과 같은 결). */}
-              <h1 className="section-title" style={{ fontSize: 'clamp(2.4rem, 4.5vw, 4rem)', fontWeight: 600, color: '#1A2B4C', lineHeight: 1.4, letterSpacing: '-0.5px', margin: 0, whiteSpace: 'nowrap' }}>
-                장례가 끝이 아니었습니다
+          {/* 🔄 2026-09-28 — 00-40 §3.3-4 G4-c(사람 확정, Opus 재지시로 정정). W-2·W-3·C2·C4의
+              글 부분을 대체한다. 절대 위치 금지(§3.3-4) — 세로 흐름으로 쌓고, 덩어리 시작
+              높이만 섹션 높이(824px 기준) 대비 28% 비율로 잡는다(calc로 실제 섹션 높이 =
+              100vh - 헤더). 가로 위치 = "본문 1048px 상자의 왼쪽 선" — 그 상자는 화면 가운데
+              놓이므로 왼쪽 선은 화면 폭에 따라 움직인다: max(80px, (섹션 폭 − 1048px) / 2),
+              단 초광폭 화면에서 여백이 한없이 벌어지지 않도록 400px에서 상한(사람 지시,
+              09-28 — 1920px 기준 436→400). 100%는 섹션 폭 기준(스크롤바 폭 때문에 100vw는
+              쓰지 않는다). */}
+          <div className="hero-body" style={{ width: '100%', position: 'relative', zIndex: 1, height: '100%', padding: '0 min(300px, max(80px, calc((100% - 1048px) / 2)))' }}>
+            <div className="hero-content-card" style={{ marginTop: 'calc((100vh - var(--header-h)) * 0.28)', maxWidth: '540px', width: '100%' }}>
+              {/* ① 이어봄 */}
+              <h1 className="section-title" style={{ fontSize: '80px', fontWeight: 600, color: '#1A2B4C', lineHeight: 1.1, letterSpacing: '-2px', margin: 0 }}>
+                이어봄
               </h1>
-              {/* 🔄 2026-09-28 사람 지시 — C4로 뺐던 설명 문단을 되살리고(§3.3 C4 "되돌리기 쉬움"
-                  전제), 앞 3줄은 줄마다 들여쓰기를 늘려 역계단식으로, 마지막 문장은 한 줄 띄워
-                  별도 문단으로 분리 */}
-              <p style={{ fontSize: '1.12rem', color: '#6C7A89', lineHeight: 1.75, margin: '1.3rem 0 0', maxWidth: '560px' }}>
-                <span style={{ display: 'block' }}>
-                  미리 남기는 <strong style={{ color: '#1A2B4C', fontWeight: 700 }}>평온한 생전 준비</strong>부터
-                </span>
-                <span style={{ display: 'block', paddingLeft: '1.5em' }}>
-                  <strong style={{ color: '#1A2B4C', fontWeight: 700 }}>장사시설 매칭</strong>, <strong style={{ color: '#1A2B4C', fontWeight: 700 }}>복잡한 사후 행정</strong>
-                </span>
-                <span style={{ display: 'block', paddingLeft: '3em' }}>
-                  그리고 <strong style={{ color: '#1A2B4C', fontWeight: 700 }}>영원한 기억의 온라인 추모관</strong>까지.
-                </span>
+              {/* ② 가는 선 */}
+              <div style={{ marginTop: '28px', borderTop: '1px solid #D8D2C8', width: '100%' }} />
+              {/* ③ 장례가 전부가 아니었습니다 — 오른쪽 정렬(오른쪽 끝 = 선 끝에서 62px 안쪽) */}
+              <p className="section-title" style={{ margin: '18px 62px 0 0', fontSize: '28px', fontWeight: 600, color: '#1A2B4C', textAlign: 'right' }}>
+                장례가 전부가 아니었습니다.
               </p>
-              <p style={{ fontSize: '1.12rem', color: '#6C7A89', lineHeight: 1.75, margin: '1.3rem 0 0', maxWidth: '560px' }}>
-                이어봄이 삶의 마지막 여정과 남겨진 가족의 시간을 온전히 연결합니다.
+              {/* ④ 설명 두 줄 */}
+              <p style={{ margin: '44px 0 0', fontSize: '20px', fontWeight: 500, color: '#5C6773', lineHeight: 1.6 }}>
+                생전 준비 · 임종 및 사후 정리까지<br />
+                디지털 엔딩 & 웰다잉 토탈 케어, 이어봄이 함께합니다.
               </p>
             </div>
             {/* 🔄 2026-09-28 사람 지시 — 이 텍스트 버튼과 아래 공용 스크롤 힌트(.scroll-hint--down)가
