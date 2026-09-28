@@ -331,7 +331,7 @@ export const HomeDesktop: React.FC<HomeDesktopProps> = ({ currentUser, onOpenLog
 
           {/* W-6 — 맨 아래 띠. 🔄 2026-09-28 사람 지시 — 공용 스크롤 힌트(.scroll-hint--down,
               화면 정가운데 하단 고정)와 겹쳐 보여 marginBottom으로 그만큼 띄운다. */}
-          <div ref={memorialStripRef} style={{ flexShrink: 0, height: '64px', marginBottom: '2.5rem', borderTop: '1px solid #E7E2DA', backgroundColor: '#FDFCFA', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '2.5rem', position: 'relative' }}>
+          <div ref={memorialStripRef} style={{ flexShrink: 0, height: '64px', marginBottom: '3rem', borderTop: '1px solid #E7E2DA', backgroundColor: '#FDFCFA', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '2.5rem', position: 'relative' }}>
             <button type="button" onClick={() => setShowMemorialInput((v) => !v)} style={{ background: 'none', border: 'none', fontSize: '15px', fontWeight: 600, color: '#5B7065', cursor: 'pointer', fontFamily: 'inherit' }}>
               추모관 링크로 입장
             </button>
