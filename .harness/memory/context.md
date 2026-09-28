@@ -39,8 +39,8 @@ devDB실측=8행뿐·"더보기"실사례없음)전부완료(tsc/build통과)—
 🔴사람실기동완전대기.🟡보류:pickup거리순·전문가region·height:36px3곳.✅09-28`family-invite`v2이관+거절모달(§6.7,00-27§9.1-4-2·4-3)완료·사람실검증(09-28).
 ✅**그룹④3/3완료**(`00-39`§9.1갱신).다음=[Opus]그룹⑤홈=🆕`00-40`계획서(분기1섹션2진입→2히어로·주소창·넘김→3모바일메뉴→4합치기).
 ▶분기1·2✅확정(ⓓ·W1·M1·④가로넘김)→✅[Sonnet]§3.3 1차구현완료(09-28,HomeDesktop/HomeMobile신규분리·tsc·build통과)—세부`walkthrough.md`.
-✅섹션1=**G4-c**반영완료(09-28,HomeDesktop/HomeMobile+index.css,tsc·build통과).왼쪽여백=`min(300px,max(80px,(섹션폭-1048px)/2))`(사람직접수정,주석도300으로일치확인)→▶사람실화면검증대기(그라데이션세기·사진크롭등§3.3끝🟡)→끝나면분기3·4.🔴00-40§3.3-4151행기대값표(1920→436)가코드(300상한)와어긋남→[Opus]표갱신필요.🆕같은세션`FooterMobile.tsx`로고·"이어봄"문구전역제거(스펙외사람구두지시,Footer.tsx도동반수정)—문서미반영.🔴안쓰는파일(DomainOverviewPage·EntryBoxes·domainSlides)목록만,삭제는사람확인후.
-✅**walkthrough.md 글자깨짐 복구**(09-28,1423~끝5개항목):PowerShell로 이어붙인 세션이 인코딩없이 Add-Content 계열을 써 CP949로 깨짐→ 이번 세션에서 git diff·커밋메시지·context.md로 원문 재구성(추측 없이 grep으로 정상 한글·잔여 깨진 한자 0건 확인). ✅**재발 방지**: 이후 walkthrough·context 등 한글 문서는 Edit/Write 도구로만 쓰고 셸(PowerShell/Bash) 리다이렉션으로 쓰지 않는다.
+✅섹션1=**G4-c**반영완료(09-28,HomeDesktop/HomeMobile+index.css,tsc·build통과).왼쪽여백=`min(300px,max(80px,(섹션폭-1048px)/2))`(사람직접수정,주석도300으로일치확인)→▶사람실화면검증대기(그라데이션세기·사진크롭등§3.3끝🟡)→끝나면분기3·4.✅00-40§3.3-4표=300상한일치·모바일푸터전역제거=M-11스펙갱신(09-28[Opus]).🔴안쓰는파일(DomainOverviewPage·EntryBoxes·domainSlides)목록만,삭제는사람확인후.
+✅wt글자깨짐복구(09-28,[Opus]점검=깨진글자0).🔴한글문서는Edit/Write로만—셸리다이렉션금지.
 **3.[Gemini]**🔴게이트45건대기(09-11~21·wt204~)·🟡옛스펙3건→⑭.🟡devDB삭제분7건—D-8(🔴CONFIRM).✅reports경로정리완료(09-16).
 
 ## 지금 상태
