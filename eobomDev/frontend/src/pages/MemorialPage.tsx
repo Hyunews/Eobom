@@ -28,6 +28,7 @@ interface MyMemorial {
   slug: string;
   deceasedName: string;
   deceasedDeathDate: string | null;
+  epitaph: string | null;
   visibility: string;
   createdAt: string;
   closedAt: string | null;
@@ -47,7 +48,45 @@ const FIELD_ERROR_ORDER: { key: FieldErrorKey; id: string }[] = [
   { key: 'falseReport', id: 'mem-false-report' },
 ];
 
-type ModalStep = 'detail' | 'confirm-delete';
+type ModalStep = 'detail' | 'confirm-delete' | 'edit';
+
+// 00-39 §6.7 "추모 문구를 넣을 길"(2026-09-28 사람 결정 A) — 만들기 폼과 수정 모달이 같은
+// 칸(추모 문구·공개 범위)을 쓴다. 두 군데서 각자 마크업을 만들면 모양이 갈라지므로 여기 하나로 둔다.
+interface EpitaphVisibilityFieldsProps {
+  idPrefix: string;
+  epitaph: string;
+  onEpitaphChange: (value: string) => void;
+  visibility: string;
+  onVisibilityChange: (value: string) => void;
+}
+
+const EpitaphVisibilityFields: React.FC<EpitaphVisibilityFieldsProps> = ({ idPrefix, epitaph, onEpitaphChange, visibility, onVisibilityChange }) => (
+  <>
+    <div className="v2-field">
+      <label htmlFor={`${idPrefix}-epitaph`}>
+        추모 문구
+        <span className="v2-opt">선택</span>
+      </label>
+      <input
+        id={`${idPrefix}-epitaph`}
+        type="text"
+        className="v2-input"
+        value={epitaph}
+        placeholder="예: 늘 그리운 모습으로 기억합니다"
+        onChange={(e) => onEpitaphChange(e.target.value)}
+      />
+    </div>
+
+    <div className="v2-field">
+      <label htmlFor={`${idPrefix}-visibility`}>공개 범위</label>
+      <select id={`${idPrefix}-visibility`} className="v2-select" value={visibility} onChange={(e) => onVisibilityChange(e.target.value)}>
+        <option value="LINK">링크로만 공개 — 주소를 아는 사람만</option>
+        <option value="PUBLIC">전체 공개</option>
+        <option value="PRIVATE">비공개 — 나만 볼 수 있음</option>
+      </select>
+    </div>
+  </>
+);
 
 export const MemorialPage: React.FC<MemorialPageProps> = ({ currentUser, onOpenLogin }) => {
   const [memorials, setMemorials] = useState<MyMemorial[] | null>(null);
@@ -56,6 +95,11 @@ export const MemorialPage: React.FC<MemorialPageProps> = ({ currentUser, onOpenL
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [modalTarget, setModalTarget] = useState<MyMemorial | null>(null);
   const [modalStep, setModalStep] = useState<ModalStep>('detail');
+
+  const [editEpitaph, setEditEpitaph] = useState('');
+  const [editVisibility, setEditVisibility] = useState('LINK');
+  const [editSubmitting, setEditSubmitting] = useState(false);
+  const [editError, setEditError] = useState<string | null>(null);
 
   const [formOpen, setFormOpen] = useState(false);
   const [deceasedName, setDeceasedName] = useState('');
@@ -136,7 +180,7 @@ export const MemorialPage: React.FC<MemorialPageProps> = ({ currentUser, onOpenL
   };
 
   const closeModal = () => {
-    if (deletingId) return;
+    if (deletingId || editSubmitting) return;
     setModalTarget(null);
     setModalStep('detail');
   };
@@ -144,6 +188,33 @@ export const MemorialPage: React.FC<MemorialPageProps> = ({ currentUser, onOpenL
   const openModal = (m: MyMemorial) => {
     setModalTarget(m);
     setModalStep('detail');
+  };
+
+  const openEdit = (m: MyMemorial) => {
+    setEditEpitaph(m.epitaph || '');
+    setEditVisibility(m.visibility);
+    setEditError(null);
+    setModalStep('edit');
+  };
+
+  const handleEditSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!modalTarget) return;
+    setEditSubmitting(true);
+    setEditError(null);
+    try {
+      const updated = await apiFetch<MyMemorial>(`/api/memorials/${modalTarget.id}`, 'USER', {
+        method: 'PATCH',
+        body: JSON.stringify({ epitaph: editEpitaph.trim() || null, visibility: editVisibility }),
+      });
+      setMemorials((prev) => (prev ? prev.map((item) => (item.id === updated.id ? updated : item)) : prev));
+      setModalTarget(null);
+      setModalStep('detail');
+    } catch (err) {
+      setEditError(err instanceof ApiError ? err.message : '추모관 수정 중 오류가 발생했습니다.');
+    } finally {
+      setEditSubmitting(false);
+    }
   };
 
   // 소프트 삭제(closedAt) — 방명록·헌화·사진은 남기고 공개 열람만 즉시 막는다
@@ -230,29 +301,13 @@ export const MemorialPage: React.FC<MemorialPageProps> = ({ currentUser, onOpenL
                 />
               </div>
 
-              <div className="v2-field">
-                <label htmlFor="mem-epitaph">
-                  추모 문구
-                  <span className="v2-opt">선택</span>
-                </label>
-                <input
-                  id="mem-epitaph"
-                  type="text"
-                  className="v2-input"
-                  value={epitaph}
-                  placeholder="예: 늘 그리운 모습으로 기억합니다"
-                  onChange={(e) => setEpitaph(e.target.value)}
-                />
-              </div>
-
-              <div className="v2-field">
-                <label htmlFor="mem-visibility">공개 범위</label>
-                <select id="mem-visibility" className="v2-select" value={visibility} onChange={(e) => setVisibility(e.target.value)}>
-                  <option value="LINK">링크로만 공개 — 주소를 아는 사람만</option>
-                  <option value="PUBLIC">전체 공개</option>
-                  <option value="PRIVATE">비공개 — 나만 볼 수 있음</option>
-                </select>
-              </div>
+              <EpitaphVisibilityFields
+                idPrefix="mem"
+                epitaph={epitaph}
+                onEpitaphChange={setEpitaph}
+                visibility={visibility}
+                onVisibilityChange={setVisibility}
+              />
 
               <div>
                 <label className="v2-check" htmlFor="mem-false-report">
@@ -310,7 +365,7 @@ export const MemorialPage: React.FC<MemorialPageProps> = ({ currentUser, onOpenL
 
       {modalTarget && (
         <div className="v2-modal-overlay" role="dialog" aria-modal="true" {...backdropCloseProps(closeModal)}>
-          <div className="v2-modal" onClick={(e) => e.stopPropagation()}>
+          <div className={modalStep === 'edit' ? 'v2-modal is-form' : 'v2-modal'} onClick={(e) => e.stopPropagation()}>
             {modalStep === 'detail' ? (
               <>
                 <h3 className="v2-modal-title">故 {modalTarget.deceasedName}</h3>
@@ -336,6 +391,11 @@ export const MemorialPage: React.FC<MemorialPageProps> = ({ currentUser, onOpenL
                   <button type="button" className="v2-btn-outline" onClick={() => copyAddress(modalTarget)}>
                     <Copy size={14} /> 주소 복사
                   </button>
+                  {!modalTarget.closedAt && (
+                    <button type="button" className="v2-btn-outline" onClick={() => openEdit(modalTarget)}>
+                      수정
+                    </button>
+                  )}
                   <button type="button" className="v2-btn-outline" onClick={() => setModalStep('confirm-delete')}>
                     삭제
                   </button>
@@ -346,6 +406,30 @@ export const MemorialPage: React.FC<MemorialPageProps> = ({ currentUser, onOpenL
                 <button type="button" className="v2-modal-close" onClick={closeModal}>
                   닫기
                 </button>
+              </>
+            ) : modalStep === 'edit' ? (
+              <>
+                <h2 className="v2-modal-title">추모관 수정</h2>
+                <form onSubmit={handleEditSubmit} className="v2-form">
+                  <section className="v2-form-section is-plain">
+                    <EpitaphVisibilityFields
+                      idPrefix="mem-edit"
+                      epitaph={editEpitaph}
+                      onEpitaphChange={setEditEpitaph}
+                      visibility={editVisibility}
+                      onVisibilityChange={setEditVisibility}
+                    />
+                  </section>
+                  {editError && <span role="alert" className="v2-error-text">{editError}</span>}
+                  <div className="v2-modal-actions is-form-actions">
+                    <button type="button" className="v2-btn-outline" onClick={() => setModalStep('detail')} disabled={editSubmitting}>
+                      취소
+                    </button>
+                    <button type="submit" className="v2-btn-primary" disabled={editSubmitting} aria-busy={editSubmitting}>
+                      {editSubmitting ? '저장 중…' : '저장'}
+                    </button>
+                  </div>
+                </form>
               </>
             ) : (
               <>

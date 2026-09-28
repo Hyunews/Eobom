@@ -1,6 +1,6 @@
 import React from 'react';
 import { Phone, Flower2, Navigation } from 'lucide-react';
-import { formatKST } from '../utils/obituaryCard';
+import { formatKST, formatDeathDate } from '../utils/obituaryCard';
 
 // 07-03 §6.4 ⓑ — ObituaryLandingPage.tsx의 표현부를 추출한 것. 조문객 화면(/o/{slug})과
 // 관리 모드 미리보기 모달(ObituaryPage.tsx)이 이 컴포넌트 하나를 공유한다.
@@ -34,16 +34,6 @@ export interface ObituaryData {
   updatedAt: string;
   account?: { bankCode: string | null; accountNumber: string | null; holder: string | null };
 }
-
-// §6.7 머리 — "{YYYY년 M월 D일} 별세"는 formatKST(월·일·시각만, 연도 없음)와 다른 표기라 별도로
-// 만든다. 🔴 formatKST 자체는 바꾸지 않는다(다른 화면·카톡 카드가 그 형식을 그대로 쓴다).
-const formatDeathDate = (value: string): string => {
-  const d = new Date(value);
-  if (Number.isNaN(d.getTime())) return '';
-  return new Intl.DateTimeFormat('ko-KR', {
-    year: 'numeric', month: 'long', day: 'numeric', timeZone: 'Asia/Seoul',
-  }).format(d);
-};
 
 export const ObituaryView: React.FC<{ data: ObituaryData }> = ({ data }) => {
   const chief = data.mourners.find((m) => m.isChief);

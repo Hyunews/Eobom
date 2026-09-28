@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { Heart, MessageSquarePlus, Share2 } from 'lucide-react';
+import { Heart, Copy } from 'lucide-react';
 import { BACKEND_URL } from '../config';
 import { apiFetchRaw } from '../lib/api';
-import { formatKST } from '../utils/obituaryCard';
-import { shareViaWebShareApi, copyObituaryLink } from '../utils/kakaoShare';
+import { formatKST, formatDeathDate } from '../utils/obituaryCard';
+import { copyObituaryLink } from '../utils/kakaoShare';
+import { backdropCloseProps } from '../utils/backdropClose';
 
 // 추모관 랜딩 — docs 05-01 §6.1-1. App.tsx isMemorialLandingRoute 패턴(ObituaryLandingPage.tsx와
 // 같은 꼴)으로 Header/Sidebar/Footer 밖에서 뜬다. 부고장(ObituaryLandingPage.tsx:213)이 이미
@@ -17,6 +18,10 @@ import { shareViaWebShareApi, copyObituaryLink } from '../utils/kakaoShare';
 // 운영자 화면의 "복구/비공개 유지" 버튼(reportedAt 있을 때만 노출)도 앞으로는 사실상 안 뜬다.
 // 방명록 개별 글 숨기기(`hideMemorialGuestbookEntry`, AdminPage.tsx "방명록 보기")는 신고
 // 여부와 무관하게 그대로 동작한다.
+// 🔄 00-39 §6.7(2026-09-28 Opus, 시안 없음 §9.1) — `/o/:slug` 규칙을 그대로 적용한다. 틀은
+// `.v2-obit-page > .v2-obit-content > .v2-obit-box`(ObituaryLandingPage.tsx·ObituaryView.tsx와
+// 같은 구조), 머리·묶음 제목·점선 구분도 부고장 클래스를 그대로 쓴다. 새 요소(영정·추모 문구·
+// 방명록 행)만 `.v2-obit-*` 접두사로 새 클래스를 더한다.
 
 interface MemorialData {
   deceasedName: string;
@@ -44,6 +49,13 @@ export const MemorialLandingPage: React.FC = () => {
   const [tributeCount, setTributeCount] = useState(0);
   const [tributeState, setTributeState] = useState<'idle' | 'submitting' | 'error' | 'duplicate' | 'done'>('idle');
 
+  // 🔄 00-39 §6.7 "방명록 길이"(2026-09-28 사람 결정 A) — 서버는 전부 주지만 화면에서 최근
+  // 5개만 먼저 그린다. "10개 더 보기"를 누를 때마다 그 자리에서 10개씩 펼친다.
+  const [visibleGuestCount, setVisibleGuestCount] = useState(5);
+
+  // 🔄 2026-09-28 개발자 지시 — 방명록 작성을 페이지에 펼쳐두지 않고 모달로 연다("헌화하기"와
+  // 같은 줄의 "방명록 남기기" 버튼이 연다).
+  const [isGuestModalOpen, setIsGuestModalOpen] = useState(false);
   const [authorName, setAuthorName] = useState('');
   const [relationToDeceased, setRelationToDeceased] = useState('');
   const [message, setMessage] = useState('');
@@ -150,9 +162,13 @@ export const MemorialLandingPage: React.FC = () => {
         return;
       }
       setGuestbook([json.data, ...guestbook]);
+      // 🔄 00-39 §6.7 — 새 글이 보이는 개수 안에 들어가게(펼친 개수 + 1). 이미 펼친 나머지는
+      // 줄이지 않는다.
+      setVisibleGuestCount((prev) => prev + 1);
       setAuthorName('');
       setRelationToDeceased('');
       setMessage('');
+      setIsGuestModalOpen(false);
     } catch {
       setGuestError('방명록 작성 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
     } finally {
@@ -160,45 +176,28 @@ export const MemorialLandingPage: React.FC = () => {
     }
   };
 
-  // 링크 공유(2026-09-02 사용자 리포트) — 부고장에서 들어온 조문객이 이 주소를 다시 알 방법이
-  // URL 직접 복사뿐이었다. ObituaryPage.tsx와 같은 07-03 §7 폴백 사다리(WebShare→클립보드)를
-  // 그대로 재사용 — Kakao.Share는 페이지 마운트 시 ensureKakaoShareReady()를 부르지 않아 뺀다.
-  const handleShare = async () => {
-    if (!slug || !data) return;
+  const closeGuestModal = () => {
+    if (guestSubmitting) return;
+    setIsGuestModalOpen(false);
+    setGuestError(null);
+  };
+
+  // 🔄 2026-09-28 개발자 지시 — "링크 공유하기" → "링크 복사"로 변경(우상단 배치, 한 줄 차지
+  // 안 함). MemorialPage.tsx의 "주소 복사"(copyAddress)와 같은 결로 WebShare 시도 없이
+  // 클립보드로 바로 복사한다 — 버튼 문구가 "복사"인데 모바일에서 공유 시트가 뜨면 문구와
+  // 동작이 어긋난다.
+  const handleCopyLink = async () => {
+    if (!slug) return;
     const url = `${window.location.origin}/m/${slug}`;
-    const shared = await shareViaWebShareApi({
-      title: `故 ${data.deceasedName}님 추모관`,
-      description: '추모관에서 헌화하고 방명록을 남겨주세요.',
-      imageUrl: data.portraitUrl || '',
-      url,
-      buttonLabel: '추모관 보기',
-    });
-    if (shared) return;
     const copied = await copyObituaryLink(url);
     setShareFeedback(copied ? '링크가 복사되었습니다.' : '복사에 실패했습니다. 주소창의 링크를 직접 복사해 주세요.');
   };
 
-  // 00-38 §4.1 — 좌우 여백을 토큰화(값은 그대로 16px, --gutter-chrome과 정확히 일치).
-  // §8.4 — 토큰·거터만 적용, 본체(MemorialPage)는 범위 밖.
-  const pageShellStyle: React.CSSProperties = {
-    minHeight: '100vh',
-    backgroundColor: '#FBF9F5',
-    display: 'flex',
-    justifyContent: 'center',
-    padding: '2.5rem var(--gutter-chrome)',
-  };
-  const cardStyle: React.CSSProperties = {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 'var(--r-lg)',
-    boxShadow: 'var(--el-2)',
-    overflow: 'hidden',
-  };
-
   if (loading) {
     return (
-      <div style={pageShellStyle}>
-        <div style={{ width: '100%', maxWidth: '460px', textAlign: 'center', paddingTop: '3rem', color: '#94A3B8' }}>
-          불러오는 중...
+      <div className="v2-obit-page">
+        <div className="v2-obit-content v2-obit-notfound">
+          <p className="v2-obit-notfound-sub">불러오는 중...</p>
         </div>
       </div>
     );
@@ -206,144 +205,162 @@ export const MemorialLandingPage: React.FC = () => {
 
   if (notFound || !data) {
     return (
-      <div style={pageShellStyle}>
-        <div style={{ textAlign: 'center', maxWidth: '360px', paddingTop: '3rem' }}>
-          <p style={{ fontSize: '1.05rem', color: '#1A2B4C', fontWeight: 700, marginBottom: '0.5rem' }}>추모관을 찾을 수 없습니다.</p>
-          <p style={{ fontSize: 'var(--fs-body)', color: '#6C7A89' }}>링크가 만료되었거나 잘못된 주소일 수 있습니다.</p>
+      <div className="v2-obit-page">
+        <div className="v2-obit-content v2-obit-notfound">
+          <p className="v2-obit-notfound-title">추모관을 찾을 수 없습니다.</p>
+          <p className="v2-obit-notfound-sub">링크가 만료되었거나 잘못된 주소일 수 있습니다.</p>
         </div>
       </div>
     );
   }
 
+  const tributeLocked = tributeState === 'submitting' || tributeState === 'duplicate' || tributeState === 'done';
+
   return (
-    <div style={pageShellStyle}>
-      <div style={{ width: '100%', maxWidth: '460px' }}>
-        <div style={cardStyle}>
-          {/* 영정·고인명·사망일 */}
-          <div style={{ backgroundColor: '#1A2B4C', color: '#FFFFFF', padding: '2rem 1.75rem', textAlign: 'center' }}>
+    <div className="v2-obit-page">
+      <div className="v2-obit-content">
+        <div className="v2-obit-box">
+          {/* 영정·근조 문구·이름·별세일·추모 문구. 링크 복사는 우상단 코너(한 줄 안 씀) */}
+          <div className="v2-obit-header v2-obit-header-has-copy">
+            <button type="button" onClick={handleCopyLink} className="v2-btn-outline v2-obit-copy-btn">
+              <Copy size={14} /> 링크 복사
+            </button>
             {data.portraitUrl && (
-              <img
-                src={data.portraitUrl}
-                alt={data.deceasedName}
-                style={{ width: '96px', height: '96px', borderRadius: '50%', objectFit: 'cover', margin: '0 auto 1rem', border: '3px solid rgba(255,255,255,0.3)' }}
-              />
+              <img src={data.portraitUrl} alt={data.deceasedName} className="v2-obit-portrait" />
             )}
-            <p style={{ fontSize: 'var(--fs-body)', color: '#94A3B8', letterSpacing: '0.1em', marginBottom: '0.6rem' }}>삼가 고인의 명복을 빕니다</p>
-            {/* 🔄 2026-09-09 — 하드코딩 문자열 → .section-title 프리미티브(폰트 정리 요청). */}
-            <h1 className="section-title" style={{ fontSize: '1.6rem', fontWeight: 'var(--fw-bold)', margin: 0 }}>
-              故 {data.deceasedName}
-              {data.deceasedDeathDate && (
-                <span style={{ fontSize: 'var(--fs-body)', fontWeight: 400, color: 'var(--border-color)' }}> ( ~ {formatKST(data.deceasedDeathDate).split(' ').slice(0, 2).join(' ')})</span>
+            <p className="v2-obit-lede">삼가 고인의 명복을 빕니다</p>
+            <h1 className="v2-obit-name">故 {data.deceasedName}</h1>
+            {data.deceasedDeathDate && (
+              <p className="v2-obit-death">{formatDeathDate(data.deceasedDeathDate)} 별세</p>
+            )}
+            {data.epitaph && <p className="v2-obit-epitaph">{data.epitaph}</p>}
+            {shareFeedback && <p className="v2-obit-share-feedback">{shareFeedback}</p>}
+          </div>
+
+          {/* 🔄 2026-09-28 개발자 지시 — 방명록 목록 → 헌화 → 방명록 작성 순서로 재배치.
+              🔄 00-39 §6.7 "방명록 길이" — 최근 5개만 먼저 보이고, 남은 게 있으면 아래에
+              "N개 더 보기"(§6.7 목록 아래 CTA `.v2-list-footer-btn`). */}
+          <div className="v2-obit-section">
+            <p className="v2-obit-guest-heading">추모 방명록</p>
+            <div className="v2-obit-guest-list">
+              {guestbook.length === 0 ? (
+                <p className="v2-empty">아직 남겨진 글이 없습니다.</p>
+              ) : (
+                guestbook.slice(0, visibleGuestCount).map((g) => (
+                  <div key={g.id} className="v2-obit-guest-row">
+                    <div className="v2-obit-guest-head">
+                      <span className="v2-obit-guest-name">
+                        {g.authorName}
+                        {g.relationToDeceased ? ` · ${g.relationToDeceased}` : ''}
+                      </span>
+                      <span className="v2-obit-guest-date">{formatKST(g.createdAt)}</span>
+                    </div>
+                    <p className="v2-obit-guest-msg">{g.message}</p>
+                  </div>
+                ))
               )}
-            </h1>
-            {data.epitaph && (
-              <p style={{ fontSize: 'var(--fs-body)', color: 'var(--border-color)', marginTop: 'var(--sp-4)', fontStyle: 'italic' }}>{data.epitaph}</p>
+            </div>
+            {guestbook.length > visibleGuestCount && (
+              <button
+                type="button"
+                className="v2-btn-outline v2-list-footer-btn"
+                onClick={() => setVisibleGuestCount((prev) => Math.min(prev + 10, guestbook.length))}
+              >
+                {guestbook.length - visibleGuestCount >= 10 ? '10개 더 보기' : `${guestbook.length - visibleGuestCount}개 더 보기`}
+              </button>
             )}
           </div>
 
-          {/* 링크 공유 — 상시 노출(07-03 §7과 같은 원칙). 부고장을 거치지 않고 이 화면에
-              들어온 사람도 다른 유족·조문객에게 이 추모관 주소를 넘길 수 있어야 한다. */}
-          <div style={{ padding: '0.9rem 1.75rem', borderBottom: '1px solid #EAE5DC', textAlign: 'center' }}>
-            <button
-              type="button"
-              onClick={handleShare}
-              style={{ background: 'none', border: '1px solid var(--border-color)', borderRadius: 'var(--r-lg)', padding: '0.45rem 1rem', fontSize: 'var(--fs-body)', color: 'var(--primary-color)', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}
-            >
-              <Share2 size={14} /> 이 추모관 링크 공유하기
-            </button>
-            {shareFeedback && (
-              <p style={{ fontSize: 'var(--fs-body)', color: 'var(--text-muted)', marginTop: '0.5rem' }}>{shareFeedback}</p>
-            )}
-          </div>
-
-          {/* 헌화 */}
-          <div style={{ textAlign: 'center', padding: '1.5rem', backgroundColor: 'var(--secondary-color)' }}>
-            <p style={{ fontSize: 'var(--fs-body)', color: 'var(--text-muted)', marginBottom: '0.9rem' }}>
-              지금까지 <strong style={{ color: 'var(--primary-color)' }}>{tributeCount}번</strong> 헌화되었습니다.
-            </p>
-            <button
-              onClick={handleTribute}
-              disabled={tributeState === 'submitting' || tributeState === 'duplicate' || tributeState === 'done'}
-              className="btn btn-point"
-              style={{ opacity: tributeState === 'idle' || tributeState === 'error' ? 1 : 0.6 }}
-            >
-              <Heart color="#FFFFFF" size={18} /> 헌화하기
-            </button>
-            {tributeState === 'duplicate' && (
-              <p style={{ fontSize: 'var(--fs-body)', color: 'var(--state-warn-fg)', marginTop: '0.6rem' }}>이미 헌화하셨습니다.</p>
-            )}
-            {tributeState === 'done' && (
-              <p style={{ fontSize: 'var(--fs-body)', color: 'var(--text-muted)', marginTop: '0.6rem' }}>헌화하셨습니다.</p>
-            )}
-            {tributeState === 'error' && (
-              <p style={{ fontSize: 'var(--fs-body)', color: 'var(--state-warn-fg)', marginTop: '0.6rem' }}>헌화 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.</p>
-            )}
-          </div>
-
-          {/* 방명록 */}
-          <div style={{ padding: '1.5rem 1.75rem' }}>
-            <h4 style={{ color: 'var(--primary-color)', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1rem' }}>
-              <MessageSquarePlus color="var(--primary-color)" size={20} /> 추모 방명록
-            </h4>
-            <form onSubmit={handleGuestbookSubmit} style={{ marginBottom: '1.1rem' }}>
-              <div className="form-group">
-                <input
-                  type="text"
-                  placeholder="이름"
-                  value={authorName}
-                  onChange={(e) => setAuthorName(e.target.value)}
-                  className="form-input"
-                  required
-                />
-              </div>
-              <div className="form-group">
-                <input
-                  type="text"
-                  placeholder="고인과의 관계 (선택)"
-                  value={relationToDeceased}
-                  onChange={(e) => setRelationToDeceased(e.target.value)}
-                  className="form-input"
-                />
-              </div>
-              <div className="form-group">
-                <textarea
-                  placeholder="고인에게 전하는 글"
-                  value={message}
-                  onChange={(e) => setMessage(e.target.value)}
-                  className="form-input"
-                  style={{ height: '80px', padding: 'var(--sp-3)' }}
-                  required
-                />
-              </div>
-              {guestError && (
-                <p style={{ fontSize: 'var(--fs-body)', color: 'var(--state-warn-fg)', marginBottom: '0.6rem' }}>{guestError}</p>
-              )}
-              <button type="submit" disabled={guestSubmitting} className="btn btn-primary" style={{ width: '100%', opacity: guestSubmitting ? 0.6 : 1 }}>
+          {/* 🔄 2026-09-28 개발자 지시 — 헌화하기와 같은 줄 왼쪽에 "방명록 남기기"(모달 오픈).
+              오른쪽(문구+헌화 버튼)은 이전처럼 우측 정렬 그룹으로 묶는다. */}
+          <div className="v2-obit-section v2-obit-tribute">
+            <div className="v2-obit-tribute-row">
+              <button type="button" onClick={() => setIsGuestModalOpen(true)} className="v2-btn-outline">
                 방명록 남기기
               </button>
-            </form>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--sp-3)', maxHeight: '300px', overflowY: 'auto' }}>
-              {guestbook.length === 0 && (
-                <p style={{ fontSize: 'var(--fs-body)', color: '#94A3B8', textAlign: 'center', padding: '1rem 0' }}>아직 남겨진 글이 없습니다.</p>
-              )}
-              {guestbook.map((g) => (
-                <div key={g.id} style={{ padding: '0.9rem', backgroundColor: 'var(--secondary-color)', borderRadius: 'var(--r-sm)', borderLeft: '3px solid var(--primary-color)' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 'var(--fs-body)', color: 'var(--text-muted)', marginBottom: '0.2rem' }}>
-                    <span style={{ fontWeight: 600, color: 'var(--primary-color)' }}>
-                      {g.authorName}{g.relationToDeceased ? ` · ${g.relationToDeceased}` : ''}
-                    </span>
-                    <span>{formatKST(g.createdAt)}</span>
-                  </div>
-                  <p style={{ fontSize: 'var(--fs-body)', color: 'var(--text-main)', whiteSpace: 'pre-wrap' }}>{g.message}</p>
-                </div>
-              ))}
+              <div className="v2-obit-tribute-main">
+                <span className="v2-obit-tribute-count">
+                  지금까지 <strong>{tributeCount}번</strong> 헌화되었습니다.
+                </span>
+                <button type="button" onClick={handleTribute} disabled={tributeLocked} className="v2-btn-primary v2-obit-tribute-btn">
+                  <Heart size={14} /> 헌화하기
+                </button>
+              </div>
             </div>
+            {tributeState === 'duplicate' && <p className="v2-obit-tribute-status">이미 헌화하셨습니다.</p>}
+            {tributeState === 'done' && <p className="v2-obit-tribute-status">헌화하셨습니다.</p>}
+            {tributeState === 'error' && <p className="v2-error-text">헌화 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.</p>}
           </div>
         </div>
 
-        <p style={{ textAlign: 'center', fontSize: 'var(--fs-body)', color: 'var(--border-color)', marginTop: '1rem' }}>이어봄</p>
+        <div className="v2-obit-foot">
+          <p className="v2-obit-foot-brand">이어봄</p>
+        </div>
       </div>
+
+      {/* 🔄 2026-09-28 개발자 지시 — 방명록 작성을 페이지에 펼치지 않고 모달로. ObituaryPage.tsx·
+          MemorialPage.tsx와 같은 폼 모달 뼈대(.v2-modal.is-form, §6.7 규칙 21)를 재사용한다. */}
+      {isGuestModalOpen && (
+        <div
+          className="v2-modal-overlay"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="guest-modal-title"
+          {...backdropCloseProps(closeGuestModal)}
+        >
+          <div className="v2-modal is-form" onClick={(e) => e.stopPropagation()}>
+            <h2 id="guest-modal-title" className="v2-modal-title">방명록 남기기</h2>
+            <form onSubmit={handleGuestbookSubmit} className="v2-form">
+              <div className="v2-field">
+                <label htmlFor="guest-name">
+                  이름 <span className="v2-req">필수</span>
+                </label>
+                <input
+                  id="guest-name"
+                  type="text"
+                  className="v2-input"
+                  value={authorName}
+                  onChange={(e) => setAuthorName(e.target.value)}
+                  required
+                />
+              </div>
+              <div className="v2-field">
+                <label htmlFor="guest-relation">
+                  고인과의 관계 <span className="v2-opt">선택</span>
+                </label>
+                <input
+                  id="guest-relation"
+                  type="text"
+                  className="v2-input"
+                  value={relationToDeceased}
+                  onChange={(e) => setRelationToDeceased(e.target.value)}
+                />
+              </div>
+              <div className="v2-field">
+                <label htmlFor="guest-message">
+                  고인에게 전하는 글 <span className="v2-req">필수</span>
+                </label>
+                <textarea
+                  id="guest-message"
+                  className="v2-input v2-obit-guest-message"
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
+                  required
+                />
+              </div>
+              {guestError && <span className="v2-error-text">{guestError}</span>}
+              <div className="v2-modal-actions is-form-actions">
+                <button type="button" className="v2-btn-outline" onClick={closeGuestModal} disabled={guestSubmitting}>
+                  취소
+                </button>
+                <button type="submit" className="v2-btn-primary" disabled={guestSubmitting} aria-busy={guestSubmitting}>
+                  {guestSubmitting ? '남기는 중…' : '방명록 남기기'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

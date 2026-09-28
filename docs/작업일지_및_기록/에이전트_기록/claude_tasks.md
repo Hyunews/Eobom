@@ -875,3 +875,15 @@ state를 그대로 추모관 사후 연결 동의로도 흘려보내면 사용�
 - `.v2-obit-container`가 정말 이 한 곳(ObituaryPage.tsx 미리보기)에서만 쓰이는지 다시 grep — 지난 턴에 이미 확인했던 것과 동일(CSS 정의+사용처 1곳)이라 안전하게 삭제.
 - `ObituaryLandingPage.tsx`(실제 `/o/:slug`)와 새 미리보기 트리를 나란히 대조 — 둘 다 `.v2-obit-page > <ObituaryView>` 한 겹인지 확인. `.is-preview`는 `.v2-obit-page`의 min-height·수직 padding만 override하고 좌우 padding·배경·정렬·container-type은 재선언하지 않는 방식으로 — "페이지 것을 그대로 쓴다"는 지시를 코드로 정확히 반영.
 - `tsc`/`build` 재확인 — 클래스명 변경이라 타입 에러는 애초에 안 날 자리지만, JSX className 오타 여부까지 build로 재확인.
+
+## 2026-09-28 | `/m/:slug` v2 이관 + `/memorial` 수정 모달 — 메모
+
+- 스펙 표에 "각 행의 주소 복사·삭제 옆에 수정"이라 적혀 있었는데, 실제 `MemorialPage.tsx`는 행 자체엔 액션이 없고 클릭하면 뜨는 상세 모달(`.v2-modal`, ModalStep 'detail') 안에 열기·주소복사·삭제가 있었다(코드로 직접 확인). 표 문구를 "행을 새로 액션 버튼 붙은 형태로 바꾸라"는 뜻으로 읽지 않고, 실제로 주소복사·삭제가 있는 그 자리(모달 액션 그룹)에 수정을 끼워 넣는 쪽으로 해석 — my-obituaries류 다른 화면과 같은 행·모달 패턴을 유지하는 게 §9.1 "그룹① 공용 패턴" 취지에 맞다고 판단.
+- 저장/취소 버튼 순서를 스펙 프로즈(`저장 · 취소`)가 아니라 같은 파일의 삭제 확인 스텝 관례(취소 먼저, 주 액션이 오른쪽 끝)를 따랐다 — `.v2-modal-actions`가 `justify-content:flex-end`라 오른쪽 끝이 시각적 주 액션 자리이고, 이미 있는 confirm-delete 스텝(취소→삭제)과 순서를 맞추는 게 화면 안에서 일관적이다.
+- 백엔드를 고치기 전에 `listMyMemorials`가 `select` 없는 `findMany`인지부터 확인 — Prisma가 select 생략 시 전체 스칼라 필드를 돌려준다는 걸 이용해 `epitaph`·`visibility`가 이미 응답에 있음을 코드로 확정했다(추측 대신 컨트롤러 원문 확인). 덕분에 지시서의 "안 돌려주면 select에 추가" 조건문이 거짓으로 판명 — 백엔드 무변경으로 끝남.
+- `formatDeathDate`를 옮길 때 `ObituaryView.tsx`가 원래 갖고 있던 주석("formatKST 자체는 바꾸지 않는다")도 함께 옮기려다, 그 주석은 이 함수가 아니라 옆에 있던 `formatKST`에 대한 주의문이라 새 위치(obituaryCard.ts, formatKST 바로 아래)에서는 맥락이 자연스러워 그대로 유지하고 formatDeathDate 자리엔 "두 화면이 공유한다"는 새 주석만 남겼다.
+- `.v2-input`을 textarea에 그대로 쓰면 `height:44px` 고정이 걸려 방명록 글 칸이 한 줄로 눌린다는 걸 CSS 먼저 읽고 발견 — `.v2-obit-guest-message` 보조 클래스(height:auto·min-height 96px·resize:vertical)를 만들어 `className="v2-input v2-obit-guest-message"`로 겹쳐 썼다(인라인 스타일 대신).
+
+## 2026-09-28 | `/m/:slug` 방명록 5개+더보기 — 메모
+
+- "사람이 볼 곳"에 0/3/12/30개 시나리오를 적으라는 지시가 있어, 실제로 그 개수를 볼 수 있는지 먼저 개발 DB를 조회(읽기 전용 `count`/`groupBy`, 쓰기 없음 — db-safety.md 기준 확인·단건 생성이 아니라 확인 대상 아님)했다. 결과: `MemorialGuestbook` 전체 8행, 추모관별 최대 4개 — 5개 이상인 추모관이 하나도 없어 "더 보기" 버튼을 실제로 볼 수 있는 데이터가 없다. 지시대로 테스트 글을 넣지 않고, 이 사실을 walkthrough에 그대로 적었다(추측으로 "잘 될 것" 이라고 넘기지 않음).

@@ -31,12 +31,11 @@
 🆕**`00-38`**적응형모바일UX.🟡사람확정=본문16px실기기(§12.1).
 
 **2.[Sonnet]**🔴wt112~172·183실기동/커밋대기(사람,09-03~).⏸체크8·04B=`PreDeathPlatformSetting`뒤.
-✅09-23그룹③④+모바일감사·✅09-28목차`.v2-guide-toc`고정/상한+`memorialSlug`복구·
-✅09-28미리보기모달반려수정(920px+`.v2-obit-page`재사용,`.v2-obit-container`제거)전부완료
-(tsc/build통과)—세부`walkthrough.md`.🔴편차:pickup이v2→구form역행(→backlog).
-🔴§4.5동의3층미착수(→⑲).🔴파기배치`--confirm`금지·dev재시작필요.🔴사람실기동완전대기.
-🟡보류:pickup거리순·전문가region·height:36px3곳.✅09-28사람실측통과(미리보기).✅Opus:그룹④나머지2개적용규칙§6.7등재.
-다음=[Sonnet]`/m/:slug`→(clear)→`family-invite`.
+✅09-23그룹③④+모바일감사·✅09-28목차/미리보기모달(920px)·✅09-28`/m/:slug`v2이관+`/memorial`
+수정모달(§6.7,백엔드무변경)·✅09-28`/m/:slug`UI조정6건+방명록최근5개·10개씩더보기(§6.7사람결정A,
+devDB실측=8행뿐·"더보기"실사례없음)전부완료(tsc/build통과)—세부`walkthrough.md`.
+🔴편차:pickup이v2→구form역행(→backlog).🔴§4.5동의3층미착수(→⑲).🔴파기배치`--confirm`금지·dev재시작필요.
+🔴사람실기동완전대기.🟡보류:pickup거리순·전문가region·height:36px3곳.다음=`family-invite`(§6.7규칙적용,미착수).
 **3.[Gemini]**🔴게이트45건대기(09-11~21·wt204~)·🟡옛스펙3건→⑭.🟡devDB삭제분7건—D-8(🔴CONFIRM).✅reports경로정리완료(09-16).
 
 ## 지금 상태

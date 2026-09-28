@@ -23,6 +23,17 @@ export const formatKST = (value: string | Date): string => {
   }).format(d);
 };
 
+// 00-39 §6.7 — "{YYYY년 M월 D일} 별세"는 formatKST(월·일·시각만, 연도 없음)와 다른 표기라
+// 별도로 둔다. ObituaryView(/o/:slug)와 MemorialLandingPage(/m/:slug)가 이 하나를 공유한다 —
+// 갈라지면 두 화면의 별세일 표기가 다시 어긋난다.
+export const formatDeathDate = (value: string): string => {
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return '';
+  return new Intl.DateTimeFormat('ko-KR', {
+    year: 'numeric', month: 'long', day: 'numeric', timeZone: 'Asia/Seoul',
+  }).format(d);
+};
+
 // §3.2 예시: `[부고] 故 ${deceasedName} 님`. §5.4-2 확정: cardFieldsUpdatedAt이 있으면(=카드
 // 반영 필드가 개설 이후 한 번이라도 바뀌었으면) "[부고·변경]"으로 영구 표기한다(재공유마다 매번).
 export const formatObituaryCardTitle = (input: ObituaryCardInput): string => {

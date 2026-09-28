@@ -2987,6 +2987,150 @@ a.v2-btn-solid {
   margin: 0;
 }
 
+/* ── §6.7 그룹④ `/m/:slug` 추모관 — `/o/:slug` 규칙 적용(2026-09-28 Opus, 시안 없음 §9.1).
+   틀·머리·묶음 제목·점선 구분은 위 `.v2-obit-*`를 그대로 쓴다. 여기서는 이 화면에만 있는
+   요소(영정·추모 문구·방명록)만 더한다. ── */
+.v2-obit-portrait {
+  display: block;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin: 0 0 16px;
+}
+
+.v2-obit-epitaph {
+  font-family: var(--v2-font-serif);
+  font-size: 16px;
+  font-style: normal;
+  color: var(--v2-text-main);
+  margin: 8px 0 0;
+}
+
+/* 🔄 2026-09-28 개발자 지시 — "링크 공유하기" 전용 줄을 없애고 헤더 우상단 코너 버튼으로
+   옮긴다. `.v2-obit-header`(부고장과 공용)는 그대로 두고, 이 변형 클래스만 얹어 positioning
+   context를 만든다 — 부고장 쪽은 이 클래스가 안 붙어 영향이 없다. */
+.v2-obit-header-has-copy {
+  position: relative;
+}
+
+.v2-obit-copy-btn {
+  position: absolute;
+  top: 0;
+  right: 0;
+  height: 36px;
+  padding: 0 12px;
+  font-size: 13px;
+}
+
+.v2-obit-share-feedback {
+  font-size: var(--v2-fs-support);
+  color: var(--v2-text-muted);
+  text-align: right;
+  margin: 8px 0 0;
+}
+
+/* 🔄 2026-09-28 개발자 지시 — 헌화 문구는 이제 버튼과 한 줄(부모 `.v2-obit-tribute-row`가
+   flex), 그래서 여기서는 자기 자신의 여백을 갖지 않는다. */
+.v2-obit-tribute-count {
+  font-size: 16px;
+  color: var(--v2-text-main);
+}
+
+/* 🔄 2026-09-28 개발자 지시 — 상태 문구(아래 -status·`.v2-error-text`)는 `text-align`을
+   물려받아 오른쪽에 붙는다(헌화 쪽 상태라 우측 그룹과 맞춘다). */
+.v2-obit-tribute {
+  text-align: right;
+}
+
+/* 🔄 2026-09-28(후속) — 왼쪽 "방명록 남기기"(모달 오픈) · 오른쪽 헌화 문구+버튼, 한 줄 양끝 배치 */
+.v2-obit-tribute-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.v2-obit-tribute-main {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* 헌화 버튼만 축소(다른 화면의 `.v2-btn-primary`는 그대로) */
+.v2-obit-tribute-btn {
+  height: 36px;
+  padding: 0 14px;
+  font-size: 14px;
+  gap: 4px;
+}
+
+.v2-obit-tribute-status {
+  font-size: var(--v2-fs-support);
+  color: var(--v2-text-muted);
+  margin: 12px 0 0;
+}
+
+/* 방명록 목록 위 제목 — `.v2-obit-section-title`(부고장과 공용, 13px)보다 키운다 */
+.v2-obit-guest-heading {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--v2-text-main);
+  margin: 0 0 16px;
+}
+
+.v2-obit-guest-message {
+  height: auto;
+  min-height: 96px;
+  padding-top: 10px;
+  padding-bottom: 10px;
+  font-family: inherit;
+  resize: vertical;
+}
+
+.v2-obit-guest-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.v2-obit-guest-row {
+  padding: 16px 0;
+  border-bottom: 1px solid var(--v2-divider);
+}
+
+.v2-obit-guest-row:last-child {
+  border-bottom: none;
+}
+
+.v2-obit-guest-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0 0 6px;
+}
+
+.v2-obit-guest-name {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--v2-text-main);
+}
+
+.v2-obit-guest-date {
+  font-size: 14px;
+  color: var(--v2-text-faint);
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.v2-obit-guest-msg {
+  font-size: 16px;
+  color: var(--v2-text-main);
+  white-space: pre-wrap;
+  margin: 0;
+}
+
 @container (min-width: 768px) {
   /* 데스크톱 폭 — 680px 박스(시안 "데스크톱 C"). 560px는 이제 모바일 쪽 값으로만 남는다. */
   .v2-obit-content {
@@ -3015,6 +3159,10 @@ a.v2-btn-solid {
 
   .v2-obit-death {
     font-size: 16px;
+  }
+
+  .v2-obit-epitaph {
+    font-size: 17px;
   }
 
   /* 묶음 사이 — 점선 하나로 나누고 위아래 32px씩(합쳐서 묶음 간 64px). 행마다 있던 1px 선은

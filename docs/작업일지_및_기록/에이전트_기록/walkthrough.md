@@ -1177,3 +1177,69 @@
   - 위 "부고장 관리 화면 미리보기 모달 848px 확장…" 항목(이 항목 바로 위)은 이번 수정으로 대체됐다 — 그 항목의 848px·`.v2-obit-container` 관련 서술은 더 이상 코드와 일치하지 않는다(반려된 시도의 기록으로만 남긴다).
 
 <!-- Gemini 판정 1줄: … -->
+
+## 2026-09-28 | 그룹④ `/m/:slug` 추모관 v2 이관 + `/memorial` 추모관 수정 모달
+
+- **근거 스펙**: docs/00_핵심플랫폼/00-39_디자인_기준_재정립_명세서.md §6.7 "그룹④ 나머지 2개 — `/o/:slug` 규칙 적용"의 `/m/:slug` 표 + 그 아래 "추모 문구를 넣을 길 — `/memorial` 목록에 수정" 표 + "그룹④(랜딩) 대표 `/o/:slug`" 표(공통 틀) + §6.8 규칙 21(폼 모달)
+- **건드린 파일**: eobomDev/frontend/src/pages/MemorialLandingPage.tsx, eobomDev/frontend/src/pages/MemorialPage.tsx, eobomDev/frontend/src/styles/design-v2.css, eobomDev/frontend/src/components/ObituaryView.tsx, eobomDev/frontend/src/utils/obituaryCard.ts
+- **결과**:
+  - **작업 1 — `/m/:slug`**: `MemorialLandingPage.tsx`를 인라인 스타일 전면 폐기 → `.v2-obit-page > .v2-obit-content > .v2-obit-box`(`ObituaryLandingPage.tsx`·`ObituaryView.tsx`와 동일 트리)로 재구성. 머리: 영정(`.v2-obit-portrait`, 원형 80px·흰 테두리 제거) → 근조 문구(`.v2-obit-lede`) → `故 이름`(`.v2-obit-name`) → 별세일(`.v2-obit-death`, "YYYY년 M월 D일 별세" — 부고장과 같은 `formatDeathDate` 공유) → 추모 문구(`.v2-obit-epitaph`, 이탤릭 제거, 16px 모바일/17px 데스크톱) → 링크 공유(`.v2-btn-outline`). 헌화: 색 띠 제거, `.v2-obit-section` 하나로(문구 그대로 + `.v2-btn-primary` 하트 아이콘, 상태문구는 완료·중복 보조색/오류 `.v2-error-text`). 방명록: 입력을 §6.8(`.v2-field`·`.v2-input`·`.v2-form-submit`)로, 목록을 1px 선 행(`.v2-obit-guest-row/-head/-name/-date/-msg`)으로 바꾸고 `max-height:300px` 내부 스크롤 제거, 빈 목록은 `.v2-empty`. 불러오는 중·찾을 수 없음은 `ObituaryLandingPage.tsx`와 같은 `.v2-obit-notfound*` 래퍼 재사용(문구 그대로). `formatDeathDate`를 `ObituaryView.tsx` 로컬 함수에서 `utils/obituaryCard.ts`로 빼서 두 화면이 공유하게 함(`ObituaryView.tsx`는 이 함수를 import만 하도록 변경, 계산 로직 자체는 무변경).
+  - **작업 2 — `/memorial` 수정 모달**: `MemorialPage.tsx`의 상세 모달(`.v2-modal`, 행 클릭 시 열리는 열기·주소복사·삭제 액션 묶음)에 `수정`(`.v2-btn-outline`) 버튼을 주소 복사와 삭제 사이에 추가(`!modalTarget.closedAt`일 때만 — 목록 자체가 이미 닫힌 추모관을 걸러내므로 사실상 항상 참이지만 지시대로 방어). 누르면 같은 모달이 `ModalStep 'edit'`로 전환되며 클래스가 `.v2-modal.is-form`으로 바뀌고 제목 "추모관 수정" + 추모 문구·공개 범위 두 칸만 나온다. 두 칸은 만들기 폼과 완전히 같은 마크업을 쓰도록 `EpitaphVisibilityFields` 컴포넌트로 뽑아 양쪽(`idPrefix="mem"`/`"mem-edit"`)이 공유. 저장은 `apiFetch('/api/memorials/:id','USER',{method:'PATCH', body:{epitaph, visibility}})`(기존 `updateMemorial` 그대로) — 성공 시 목록 갱신 후 모달 전체를 닫고(`v2-notice` 지역 피드백 없음, 스펙대로 "모달 닫고 목록 갱신"), 실패 시 모달 안 `.v2-error-text`(닫히지 않고 재시도 가능). 버튼은 `저장`(`.v2-btn-primary`)·`취소`(`.v2-btn-outline`), `.v2-modal-actions.is-form-actions`(§6.7 표에 이미 등재돼 있었으나 미사용 상태였던 클래스의 첫 실사용).
+  - **백엔드**: 건드리지 않음 — `listMyMemorials`(`GET /api/me/memorials`)가 `prisma.memorial.findMany`를 `select` 없이 호출해 원래 `epitaph`·`visibility` 둘 다 이미 돌려주고 있었다(확인: memorialController.ts:153-156). `PATCH /api/memorials/:id`(`updateMemorial`)도 이미 `{epitaph, visibility}`만 받는 화이트리스트 로직이 있어(memorialController.ts:171-201) 그대로 호출. 프론트 `MyMemorial` 인터페이스에 `epitaph: string | null` 필드만 추가.
+  - **새 클래스**(design-v2.css, 총 14개, 전부 `/m/:slug` 전용): `.v2-obit-portrait` `.v2-obit-epitaph` `.v2-obit-share` `.v2-obit-share-feedback` `.v2-obit-tribute-count` `.v2-obit-tribute-status` `.v2-obit-guest-form` `.v2-obit-guest-message` `.v2-obit-guest-list` `.v2-obit-guest-row` `.v2-obit-guest-head` `.v2-obit-guest-name` `.v2-obit-guest-date` `.v2-obit-guest-msg`(+ 기존 `.v2-obit-*`/`@container(min-width:768px)` 블록에 `.v2-obit-epitaph{font-size:17px}` 한 줄 추가). `MemorialPage.tsx`(작업 2)는 새 클래스 0개 — 전부 기존 §6.7/§6.8 클래스 재사용.
+  - **인라인 스타일 전/후**: `MemorialLandingPage.tsx` 34개 → **0개**(`grep -c 'style={{' `로 확인). `MemorialPage.tsx` 8개 → **8개**(변화 없음 — 이번 작업으로 추가한 코드에는 인라인 스타일 0개, 기존 8개는 이번 지시 범위 밖이라 손대지 않음).
+  - `npx tsc --noEmit`(frontend·backend 둘 다) 에러 0 · `npm run build`(frontend) 통과.
+- **편차**: 없음.
+- **다음 에이전트가 알아야 할 것**:
+  - 🔴 실기동 검증 대기(사람 몫, dev 서버 미기동). 사람이 볼 곳: ① 부고장 체크로 만든 추모관 → `/memorial`에서 "수정" → 추모 문구 입력·저장 → `/m/:slug`에 그 문구가 뜨는지 ② 360px/1280px 창에서 `/m/:slug` 추모관 모습(모바일=박스 없음, 데스크톱=680px 박스)과 `/o/:slug` 부고장 모습이 그대로인지(공용 `.v2-obit-*` 값은 안 건드렸으니 회귀 없어야 함) ③ `/memorial` 목록에서 "수정" 버튼이 주소 복사와 삭제 사이에 나오는지, 저장 후 모달이 닫히고 목록(내부 상태)이 갱신되는지.
+  - `MemorialPage.tsx`의 기존 인라인 스타일 8개(만들기 폼 버튼 flex 배치 등)는 이번 범위 밖이라 그대로 남아 있다 — 이 화면을 다시 손볼 일이 있으면 함께 정리할 후보.
+
+<!-- Gemini 판정 1줄: … -->
+
+## 2026-09-28 | `/m/:slug` 배치·헌화·방명록 미세 조정 (개발자 직접 지시, 스펙 문서 없음)
+
+- **근거 스펙**: 없음 — 개발자가 화면을 보고 직접 준 5가지 UI 지시(스펙 문서 갱신은 별도로 하지 않음, 편차 아님).
+- **건드린 파일**: eobomDev/frontend/src/pages/MemorialLandingPage.tsx, eobomDev/frontend/src/styles/design-v2.css
+- **결과**:
+  1. 화면 순서를 머리 → **방명록 목록** → **헌화** → **방명록 작성** → 꼬리로 재배치(기존은 머리→헌화→방명록[작성+목록]).
+  2. 헌화: 문구+버튼을 `.v2-obit-tribute-row`(flex, `justify-content:flex-end`)로 한 줄에, 이미 헌화·오류 상태 문구는 그 아래 줄(`.v2-obit-tribute-status`/`.v2-error-text`, `.v2-obit-tribute`의 `text-align:right`를 물려받아 같이 우측 정렬). 헌화 버튼만 `.v2-obit-tribute-btn`(높이 44→36px·패딩 축소·아이콘 18→14px)로 축소 — 다른 화면이 쓰는 `.v2-btn-primary` 원본 값은 안 건드림.
+  3. "추모 방명록" 제목을 부고장과 공용인 `.v2-obit-section-title`(13px) 대신 새 `.v2-obit-guest-heading`(20px)로 — 공용 값 변경 없이 확대.
+  4. 방명록 입력 라벨(이름/고인과의 관계/고인에게 전하는 글)과 `.v2-req`/`.v2-opt` 배지 사이에 공백 추가(JSX 텍스트 노드에 스페이스 삽입) — 공용 `.v2-req`/`.v2-opt` CSS는 안 건드려 다른 화면(ObituaryPage.tsx·MemorialPage.tsx 만들기 폼)에는 영향 없음.
+  5. "이 추모관 링크 공유하기"(WebShare→클립보드 폴백) → **"링크 복사"**(클립보드 직접 복사만, `MemorialPage.tsx`의 "주소 복사"와 같은 결)로 교체하고 헤더 우상단 코너로 이동(`position:absolute`, 새 변형 클래스 `.v2-obit-header-has-copy`를 부고장과 공용인 `.v2-obit-header`에 추가로만 얹어 `/o/:slug` 쪽엔 영향 없음). 더는 자기 줄을 안 씀. `shareViaWebShareApi` import·`handleShare` 함수 제거, `handleCopyLink`로 교체.
+  - `npx tsc --noEmit`(frontend) 에러 0 · `npm run build`(frontend) 통과.
+- **편차**: 없음(스펙 문서 자체가 없는 개발자 직접 지시 — `00-39`에 반영할지는 Opus 판단 대상으로 남김).
+- **다음 에이전트가 알아야 할 것**:
+  - 🔴 실기동 검증 대기(사람 몫, dev 서버 미기동). 사람이 볼 곳: `/m/:slug`에서 ① 방명록 목록→헌화→작성 순서 ② 헌화 문구+버튼이 한 줄·우측 정렬이고 버튼이 작아졌는지, 헌화 후 "헌화하셨습니다"가 그 아래 줄에 뜨는지 ③ "추모 방명록" 글씨가 커졌는지 ④ 방명록 칸 라벨과 필수/선택 배지 사이 띄어쓰기 ⑤ 헤더 우상단에 "링크 복사" 버튼이 한 줄을 따로 안 쓰고 떠 있는지, 눌렀을 때 공유 시트 없이 바로 복사되는지(모바일 포함).
+  - `00-39` 문서에는 이번 5가지 조정이 아직 반영 안 됨 — 필요하면 `[Claude:Opus]`가 §6.7 `/m/:slug` 표를 갱신.
+
+<!-- Gemini 판정 1줄: … -->
+
+## 2026-09-28 | `/m/:slug` 방명록 작성을 모달로 분리 + "방명록 남기기" 버튼을 헌화 줄 왼쪽에 (개발자 직접 지시)
+
+- **근거 스펙**: 없음 — 개발자 직접 지시.
+- **건드린 파일**: eobomDev/frontend/src/pages/MemorialLandingPage.tsx, eobomDev/frontend/src/styles/design-v2.css
+- **결과**: 헌화 문구+버튼이 있던 `.v2-obit-tribute-row`를 `justify-content:space-between`으로 바꿔 왼쪽에 "방명록 남기기"(`.v2-btn-outline`) 버튼을 추가, 오른쪽 헌화 문구+버튼은 새 `.v2-obit-tribute-main`으로 묶어 그대로 우측 정렬 유지. 페이지 맨 아래 펼쳐져 있던 방명록 작성 폼(이름·관계·글)을 통째로 걷어내 `.v2-modal.is-form`(§6.7 규칙 21, `ObituaryPage.tsx`·`MemorialPage.tsx`와 같은 뼈대) 모달로 옮겼다 — "방명록 남기기" 버튼 클릭 시 열리고, 제출 성공(`handleGuestbookSubmit`)·취소(`closeGuestModal`, 배경 클릭 포함 `backdropCloseProps`) 시 닫힌다. 제출 중에는 닫기를 막는다(`guestSubmitting` 가드). 이제 화면 구성은 머리(링크 복사 코너 포함) → 방명록 목록 → 헌화(+방명록 남기기 버튼) → 꼬리, 총 3섹션. 이제 안 쓰는 `.v2-obit-guest-form` CSS 삭제.
+  - `npx tsc --noEmit`(frontend) 에러 0 · `npm run build`(frontend) 통과.
+- **편차**: 없음(스펙 문서 없음 — Opus 판단 필요하면 §6.7 갱신).
+- **다음 에이전트가 알아야 할 것**:
+  - 🔴 실기동 검증 대기(사람 몫, dev 서버 미기동). 사람이 볼 곳: `/m/:slug`에서 "방명록 남기기"가 헌화하기와 같은 줄 왼쪽에 있는지·클릭 시 모달이 열리는지·모달에서 작성·제출하면 목록에 바로 반영되고 모달이 닫히는지·취소·배경 클릭으로도 닫히는지.
+  - `00-39`에는 이번 조정도 반영 안 됨 — 앞선 5건과 함께 한 번에 문서화할 후보.
+
+<!-- Gemini 판정 1줄: … -->
+
+## 2026-09-28 | `/m/:slug` 추모 방명록 — 최근 5개 + "10개 더 보기" (00-39 §6.7 "방명록 길이", 사람 결정 A)
+
+- **근거 스펙**: docs/00_핵심플랫폼/00-39_디자인_기준_재정립_명세서.md §6.7 `/m/:slug` 표 "🆕 방명록 길이" 행.
+- **건드린 파일**: eobomDev/frontend/src/pages/MemorialLandingPage.tsx (design-v2.css는 안 건드림 — `.v2-list-footer-btn`이 이미 있어 그대로 씀)
+- **결과**:
+  - `visibleGuestCount` state(초기값 5) 추가. 목록은 `guestbook.slice(0, visibleGuestCount)`만 그린다(서버는 여전히 전체를 한 번에 받는다 — API 무변경).
+  - 목록 아래에 남은 개수가 있을 때만 `.v2-btn-outline v2-list-footer-btn` 버튼 노출. 라벨은 남은 개수가 10 이상이면 "10개 더 보기", 미만이면 "N개 더 보기". 누르면 `Math.min(visibleGuestCount+10, guestbook.length)`로 그 자리에서 펼침. 다 펼치면(`guestbook.length > visibleGuestCount`가 거짓) 버튼이 사라짐. 전체 5개 이하면 처음부터 조건이 거짓이라 버튼 없음.
+  - 방명록 새로 남기면(`handleGuestbookSubmit` 성공 시) 목록 맨 위에 추가하는 기존 동작은 그대로 두고, `setVisibleGuestCount((prev) => prev + 1)`을 추가해 새 글이 항상 보이는 범위 안에 들어가고 이미 펼친 개수는 줄지 않게 함.
+  - 글 내용 말줄임(`text-overflow`/`-webkit-line-clamp` 등) 없음, 목록 안 스크롤 상자 없음 — 둘 다 손대지 않음(원래도 없었음).
+  - `npx tsc --noEmit`(frontend) 에러 0 · `npm run build`(frontend) 통과.
+- **편차**: 없음.
+- **다음 에이전트가 알아야 할 것**:
+  - 🔴 실기동 검증 대기(사람 몫, dev 서버 미기동). 사람이 볼 곳: 글 0개/3개/12개/30개일 때 버튼 문구·동작, 새 글을 남긴 뒤 목록, 360px·1280px.
+  - 🔴 **개발 DB 실측(읽기 전용 count/groupBy만 실행, 쓰기 없음)**: `MemorialGuestbook` 전체 8행, 추모관별 최대 4개(개설자별로 4·2·1·1개씩) — **어느 추모관도 5개를 안 넘어 "더 보기" 버튼이 뜨는 경우가 개발 DB에 없다.** 사람이 위 4가지(0/3/12/30개) 시나리오를 보려면 실제로 방명록을 여러 개 남기며 확인해야 한다(테스트 글은 넣지 않음, 지시대로).
+
+<!-- Gemini 판정 1줄: … -->
