@@ -858,3 +858,20 @@ state를 그대로 추모관 사후 연결 동의로도 흘려보내면 사용�
 - **환경 이슈**: Bash 도구로 한글이 포함된 절대경로(`cd "/d/Eobom/docs/00_핵심플랫폼"` 등)를 실행하면 `export TEMP=... && ... pwd -P >| .../claude-XXXX-cwd: No such file or directory`로 매번 실패했다(Git Bash의 cwd 캡처 스텝이 비-ASCII 경로에서 깨지는 것으로 보임). 우회: 한글 경로가 걸린 작업은 PowerShell 또는 Glob/Grep/Read 툴(둘 다 정상 동작)로 전환. Bash는 `eobomDev/frontend`처럼 영문 경로 안에서의 `cd` 이후 작업(tsc/build 실행)에만 사용.
 - `tsc --noEmit`·`npm run build` 둘 다 첫 시도에 통과 — 되돌린 시행착오 없음(수정 자체가 인라인 스타일 값 교체·클래스명 부여 수준으로 단순했음).
 
+
+## 2026-09-28 | 부고장 미리보기 모달 + 좌측 목차 sticky — 작업 메모
+
+- `.v2-obit-container`가 오직 ObituaryPage.tsx 미리보기 한 곳에서만 쓰이는지 grep으로 먼저 확인(`v2-obit-container` 3개 매치 — CSS 정의 1 + 주석 1 + 이 tsx 1곳). 다른 화면이 같이 쓰는 클래스였다면 padding:40px 추가가 그쪽에도 번졌을 것 — 아니라서 안전하게 수정.
+- 모달 내부 폭 계산: 848(모달 max-width) − 40×2(.v2-obit-container 좌우 padding) = 768 = 부고장 `@container` 분기값. 숫자를 검산해서 커밋 — 지시서가 "다른 숫자를 바꾸다 이 관계가 깨지지 않게" 경고했던 지점.
+- `.v2-guide-toc` top 계산 검증을 위해 index.css `.main-wrapper`(desktop 769px↑에서 `height:calc(100vh - header-h); overflow-y:auto`)를 확인 — 이게 sticky의 실제 스크롤 조상이라 top에서 header-h를 또 빼면 이중 차감이었음이 확인됨(파일 안에 이미 남아있던 "재수정" 주석이 `max-height`만 고치고 `top`은 못 고친 상태였음).
+- sticky 체인 확인 절차: LegalDocLayout.tsx(구조 확인) → index.css `.main-wrapper` → App.tsx `<main style={{flexGrow:1}}>` → design-v2.css `.v2-page`/`.v2-guide-shell` 순서로 전부 grep+Read해서 overflow/transform/contain 없음을 하나씩 확인. 중간에 끼는 wrapper div 없음(TermsPage.tsx가 LegalDocLayout을 바로 return).
+- `.v2-note-toc`(ending-note)가 같은 `calc(var(--header-h) + 24px)` 패턴을 쓰고 있어 같은 이중 오프셋 버그가 있을 수 있으나, 지시서가 `.v2-guide-toc`만 지목해서 건드리지 않음 — walkthrough에 다음 에이전트용으로 남김.
+
+- 같은 턴 안에서 사람이 "미리보기 모달 내부를 실제 slug와 같은 디자인으로"라고 추가 지시 — `buildPreviewData()`를 다시 훑어 `memorialSlug: null`(2026-09-09 옛 지시) 하드코딩을 발견. `ObituaryView.tsx:169`의 `{data.memorialSlug && (...)}` 조건 때문에 이 한 필드만으로 추모관 버튼 유무가 갈린다. 09-28 §6.7 표가 이미 "본문은 실제 페이지와 같은 모습(추모관 버튼 포함)"이라고 정해둔 상태라 옛 09-09 지시와 충돌 — 최신 스펙(09-28) 쪽으로 되돌리는 게 맞다고 판단, `obituaryRef?.memorialSlug ?? null`로 교체.
+
+## 2026-09-28 | 미리보기 모달 반려 후속 — 848px→920px 재수정 메모
+
+- 반려 사유를 그대로 믿고 재계산하지 않았다 — 스펙(§6.7)이 이미 920px로 확정해뒀고, 지시서도 "모달 폭을 다시 딱 맞는 값으로 계산하기" 금지라고 못박아서 숫자 검증 없이 그대로 적용.
+- `.v2-obit-container`가 정말 이 한 곳(ObituaryPage.tsx 미리보기)에서만 쓰이는지 다시 grep — 지난 턴에 이미 확인했던 것과 동일(CSS 정의+사용처 1곳)이라 안전하게 삭제.
+- `ObituaryLandingPage.tsx`(실제 `/o/:slug`)와 새 미리보기 트리를 나란히 대조 — 둘 다 `.v2-obit-page > <ObituaryView>` 한 겹인지 확인. `.is-preview`는 `.v2-obit-page`의 min-height·수직 padding만 override하고 좌우 padding·배경·정렬·container-type은 재선언하지 않는 방식으로 — "페이지 것을 그대로 쓴다"는 지시를 코드로 정확히 반영.
+- `tsc`/`build` 재확인 — 클래스명 변경이라 타입 에러는 애초에 안 날 자리지만, JSX className 오타 여부까지 build로 재확인.

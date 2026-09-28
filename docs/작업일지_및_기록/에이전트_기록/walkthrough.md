@@ -1145,3 +1145,35 @@
   - `00-39` §6.7 "남은 편차 1건" 문구는 이번 구현으로 해소됐으니, 문서에서 지우거나 "해소됨"으로 갱신하는 건 Opus 몫.
 
 <!-- Gemini 판정 1줄: … -->
+
+## 2026-09-28 | 부고장 미리보기 모달 848px 확장 + 좌측 목차(.v2-guide-toc) 고정·높이 상한
+
+- **근거 스펙**: docs/00_핵심플랫폼/00-39_디자인_기준_재정립_명세서.md §6.7 "관리 화면 미리보기 모달" 표 + "좌측 목차 + 본문" 행(09-28 사람 지시)
+- **건드린 파일**: eobomDev/frontend/src/pages/ObituaryPage.tsx, eobomDev/frontend/src/styles/design-v2.css
+- **결과**:
+  - ① `ObituaryPage.tsx` 미리보기 모달(옛 997~1042행)을 인라인 스타일에서 `.v2-obit-preview-overlay`/`-modal`/`-head`/`-notice`/`-close`(design-v2.css 신설)로 교체. 모달 `max-width:848px`·`width:100%`, `.v2-obit-container`에 `padding:40px`를 줘 안쪽 폭이 정확히 768px(=848−40×2, 부고장 `@container` 분기값)이 되게 함. 안내 문구는 상자 없이 14px 보조색 텍스트로, `<br>` 제거(원문 "조문객에게 보이는 화면입니다. 수정하면 이 화면은 바로 바뀌지만, 이미 보낸 카카오톡 카드는 바뀌지 않습니다."는 그대로 유지). 닫기 버튼을 머리 줄 오른쪽 flex 아이템(44px, `aria-label="닫기"`)으로 옮겨 `position:absolute` 제거 → 내용과 겹치지 않음. 모달 배경 `var(--v2-bg)`(#FDFCFA)·모서리 8px·그림자 `var(--v2-modal-shadow)`(0 24px 70px rgba(34,48,63,.26))로 교체, 옛 `#FBF9F5`·`--r-lg`·`--surface-subtle`·`--border-color`·Eye 아이콘 상자 제거. 모달 안 세로 스크롤(`max-height:90dvh`)은 유지. `ObituaryView`는 손대지 않음.
+  - ② design-v2.css `.v2-guide-toc`(legal·care-guide 공용) — `top: calc(var(--header-h) + 24px)` → `top: 24px`(데스크톱 769px↑에서 `.main-wrapper`가 이미 헤더 아래 `height:calc(100vh - header-h)` 스크롤 패널이라 top에서 header-h를 또 빼면 이중 오프셋이었음). `max-height: calc(100vh - (var(--header-h)*2) - 48px)` → `max-height: min(560px, calc(100vh - var(--header-h) - 48px))`로 교체, 낡은 주석 정리. 스크롤 조상 체인 확인: `.main-wrapper`(index.css:307, overflow-y:auto인 유일한 스크롤 조상) → `main`(App.tsx:391, 인라인 `flexGrow:1`만) → `LegalDocLayout`의 `.v2-page`(design-v2.css:49, overflow/transform/contain 없음) → `.v2-guide-shell`(design-v2.css:83, 없음) — sticky를 깨는 조상이 없음을 grep+코드로 확인. `care-guide`는 항목 5개라 560px 상한에 안 걸려 모양 그대로.
+
+  - ③ **사람 지시(같은 턴 추가)** "미리보기 모달 내부를 실제 slug와 같은 디자인으로" — `buildPreviewData()`의 `memorialSlug: null`(2026-09-09 옛 지시, 추모관 들어가기 바를 미리보기에서 뺌) 고정을 제거하고 `obituaryRef?.memorialSlug ?? null`로 실제 값을 넘기게 고침. §6.7(09-28) "본문: 부고장 페이지와 같은 모습 — 추모관 버튼·최종 수정은 박스 밖"과 옛 09-09 지시가 충돌해, 더 최신이자 이번 지시와 일치하는 09-28 쪽으로 되돌림. `ObituaryData`의 다른 필드(9개)는 `/o/:slug`가 쓰는 것과 대조해 전부 일치 확인 — 이 필드만 어긋나 있었다.
+  - `npx tsc --noEmit`(frontend) 에러 0 · `npm run build`(frontend) 통과.
+- **편차**: ①·②는 없음. ③은 2026-09-09에 의도적으로 넣은 `memorialSlug: null` 하드코딩을 되돌린 것 — 옛 지시를 어긴 게 아니라 09-28 §6.7이 이미 그 옛 지시를 대체(모달 본문=실제 페이지와 같은 모습)했는데 코드에는 반영이 안 돼 있던 상태였다.
+- **다음 에이전트가 알아야 할 것**:
+  - 🔴 실기동 검증 대기(사람 몫, dev 서버 미기동). 사람이 볼 곳: ① 1280px 창 `/obituary` 관리 화면 미리보기에서 박스형이 나오는지·창을 줄이면(안쪽 768px 미만) 모바일형으로 바뀌는지·닫기 버튼이 안내 문구와 겹치지 않는지 ② `/terms`에서 스크롤할 때 목차가 헤더 바로 아래(24px)에 고정되는지·목차 높이가 560px 안쪽인지·목차 안에서 끝까지 스크롤되는지(24개 조 전부 닿는지)·`care-guide` 목차 모양이 그대로인지 ③ **추모관이 이미 연결된 부고장**을 관리 화면에서 열어 미리보기 모달에 "추모관 들어가기" 버튼이 실제 `/o/:slug`와 똑같이 뜨는지(연결 안 된 경우는 버튼 자체가 없는 게 정상 — `ObituaryView.tsx:169` 조건).
+  - `.v2-note-toc`(ending-note 변형, §6.7 "목차의 변형" 항목)는 이번 지시 범위 밖이라 손대지 않음 — 여전히 옛 `top: calc(var(--header-h) + 24px)`를 쓴다. 같은 이중 오프셋 문제가 있을 수 있으나 이번 지시서에 없어 건드리지 않았다.
+
+<!-- Gemini 판정 1줄: … -->
+
+## 2026-09-28 | 부고장 미리보기 모달 재수정 — 848px→920px + `.v2-obit-page` 재사용 (사람 반려 후속)
+
+- **근거 스펙**: docs/00_핵심플랫폼/00-39_디자인_기준_재정립_명세서.md §6.7 "관리 화면 미리보기 모달" 표 "모달 폭"·"본문" 행(🔄 09-28 정정)
+- **건드린 파일**: eobomDev/frontend/src/pages/ObituaryPage.tsx, eobomDev/frontend/src/styles/design-v2.css
+- **결과**:
+  - **반려 원인**(Opus가 코드로 확인, 바로 위 항목의 848px 구현에 대한 반려): ① `.v2-obit-preview-modal`(max-width 848, `overflow-y:auto`) 안의 `.v2-obit-container`(padding 40)는 모달 세로 스크롤바(약 15px)만큼 안쪽 폭이 줄어 약 751px가 되어 `@container(min-width:768px)`가 안 걸리고 모바일형이 나옴(좌우 선 없음) ② `.v2-obit-container`에는 가운데 정렬이 없어 박스가 왼쪽에 붙음.
+  - **조치**: `.v2-obit-preview-modal`의 `max-width`를 848px→**920px**로 변경(스크롤바+패딩을 빼고도 768을 넉넉히 넘도록 — 숫자를 다시 "딱 맞는 값"으로 계산하지 않음, 스펙이 이미 920으로 확정). `.v2-obit-container`(design-v2.css·ObituaryPage.tsx 양쪽) 완전 제거 — 다른 사용처 없음을 grep으로 확인. 본문 래퍼를 실제 `/o/:slug`가 쓰는 `.v2-obit-page`로 교체하고, 미리보기 전용 변형 `.v2-obit-page.is-preview`(design-v2.css:2760)를 신설 — `min-height:auto`, 위아래 `padding 48px`만 override, 좌우 padding·배경·가운데 정렬·`container-type`은 `.v2-obit-page` 것을 그대로 물려받음(재선언 없음). 결과 트리가 `ObituaryLandingPage.tsx`와 동일(`.v2-obit-page > ObituaryView(.v2-obit-content > .v2-obit-box …)`)함을 두 파일을 나란히 읽어 확인. 머리 줄(안내+닫기 44px)은 지난 구현 그대로 유지 — `ObituaryView`·`.v2-obit-*` 값·안내 문구·인라인 스타일은 손대지 않음.
+  - `npx tsc --noEmit`(frontend) 에러 0 · `npm run build`(frontend) 통과.
+- **편차**: 없음.
+- **다음 에이전트가 알아야 할 것**:
+  - 🔴 실기동 검증 대기(사람 몫, dev 서버 미기동). 사람이 볼 곳: **1280px 이상 창**에서 `/obituary` 관리 화면 미리보기 = `/o/:slug` 데스크톱과 같은 모습인지(좌우 4px 선·가운데 680px 박스가 나오는지 — 지난 848px 시도에서 반려됐던 정확히 그 증상), 창을 줄이면(안쪽 768px 미만) 모바일형으로 자연히 바뀌는지.
+  - 위 "부고장 관리 화면 미리보기 모달 848px 확장…" 항목(이 항목 바로 위)은 이번 수정으로 대체됐다 — 그 항목의 848px·`.v2-obit-container` 관련 서술은 더 이상 코드와 일치하지 않는다(반려된 시도의 기록으로만 남긴다).
+
+<!-- Gemini 판정 1줄: … -->
