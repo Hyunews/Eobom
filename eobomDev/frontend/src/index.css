@@ -316,7 +316,10 @@ body {
   }
 
   /* 🔄 2026-09-09 — /facility 실기동 확인 후 사용자 지시: 걸리는 지점(최소폭)을 조금 더
-     크게. 1024→1200px. */
+     크게. 1024→1200px.
+     🔴 00-39 §5-0(2026-09-28) — 운영자 화면 전용 예외. facility·obituary 관리 화면은 `.v2-page`로
+     옮겨서 이제 `.container`를 쓰는 곳이 admin·biz·partner 셋뿐이다(§5-0 표: 소비자 화면은
+     줄어들고, 운영자만 최소폭+가로 스크롤 유지). */
   .main-wrapper .container {
     min-width: 1200px;
   }

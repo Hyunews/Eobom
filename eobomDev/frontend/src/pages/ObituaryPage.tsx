@@ -110,7 +110,9 @@ const FormSection: React.FC<{ title: string; plain?: boolean; children: React.Re
 // 같은 자리에 회색 블록을 먼저 잡아 레이아웃이 안 튀게 한다. 처음 쓰는 사람(로컬 포인터 없음)은
 // 이 로딩이 사실상 순간이라 체감 대상이 아니다 — 느린 경로(기존 부고장 재조회)를 기준으로 짰다.
 const ObituaryManageSkeleton: React.FC = () => (
-  <div className="container" style={{ paddingBottom: '3rem' }}>
+  // 🔄 00-39 §5-0(2026-09-28) — 옛 `.container`(min-width:1200px)는 로딩 중에도 좌우 스크롤을
+  // 만든다. 실제 화면(아래 v2-page)과 같은 틀로 맞춘다.
+  <div className="v2-page">
     <div style={{ marginBottom: '1.5rem' }}>
       <div className="skeleton-block" style={{ width: '150px', height: '26px', borderRadius: 'var(--r-lg)', marginBottom: '0.6rem' }} />
       <div className="skeleton-block" style={{ width: '260px', height: '32px', marginBottom: '0.5rem' }} />
@@ -566,7 +568,8 @@ export const ObituaryPage: React.FC<ObituaryPageProps> = ({ currentUser, onOpenL
 
   if (!currentUser) {
     return (
-      <div className="container">
+      // 🔄 00-39 §5-0(2026-09-28) — 로그인 안내 화면도 같은 틀(.v2-page)로.
+      <div className="v2-page">
         <div style={{ backgroundColor: 'var(--card-bg)', padding: '2.5rem 1.75rem', borderRadius: 'var(--border-radius)', boxShadow: 'var(--box-shadow)', textAlign: 'center', maxWidth: '480px', margin: '2rem auto' }}>
           <MessageSquare color="var(--point-color)" size={40} style={{ marginBottom: 'var(--sp-3)' }} />
           <h2 style={{ color: 'var(--primary-color)', marginBottom: '0.5rem' }}>모바일 부고장 작성</h2>
@@ -1020,7 +1023,9 @@ export const ObituaryPage: React.FC<ObituaryPageProps> = ({ currentUser, onOpenL
                 {/* §6.4 ⓐ 배경 — 랜딩 껍데기의 #FBF9F5 + 좌우 여백을 모달 안에서 재현한다.
                 카드만 떠 있으면 실제 화면과 인상이 다르다. */}
                 <div style={{ backgroundColor: '#FBF9F5', padding: '2.5rem 1rem', display: 'flex', justifyContent: 'center' }}>
-                  <div style={{ width: '100%', maxWidth: '460px' }}>
+                  {/* 🔄 00-39 §6.7 "남은 편차 1건"(2026-09-28) — 이 460px 칸이 ObituaryView의
+                      컨테이너 축(`.v2-obit-container`)이라, 창 폭과 상관없이 항상 모바일형이 나온다. */}
+                  <div className="v2-obit-container" style={{ width: '100%', maxWidth: '460px' }}>
                     {/* §6.4 ⓓ — §5.4-2의 책임 경계를 미리보기를 보는 순간에도 말한다. */}
                     <div style={{ display: 'flex', gap: '0.6rem', backgroundColor: 'var(--surface-subtle)', border: '1px solid var(--border-color)', borderRadius: 'var(--r-sm)', padding: 'var(--sp-4) 0.9rem', marginBottom: '1.25rem' }}>
                       <Eye size={16} color="var(--text-muted)" style={{ flexShrink: 0, marginTop: '0.15rem' }} />

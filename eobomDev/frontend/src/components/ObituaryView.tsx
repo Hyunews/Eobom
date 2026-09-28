@@ -124,12 +124,12 @@ export const ObituaryView: React.FC<{ data: ObituaryData }> = ({ data }) => {
             <div className="v2-obit-row">
               <span className="v2-obit-row-label">유족</span>
               <div className="v2-obit-row-value">
-                <div className="v2-obit-mourner-list v2-mobile-only">
+                <div className="v2-obit-mourner-list v2-obit-mobile-only">
                   {rest.map((m) => (
                     <div key={`${m.relationship}-${m.name}`}>{m.relationship} {m.name}</div>
                   ))}
                 </div>
-                <span className="v2-desktop-only">
+                <span className="v2-obit-desktop-only">
                   {rest.map((m) => `${m.relationship} ${m.name}`).join(' · ')}
                 </span>
               </div>
@@ -141,7 +141,7 @@ export const ObituaryView: React.FC<{ data: ObituaryData }> = ({ data }) => {
               <div className="v2-obit-row-value">
                 <span>{data.contactPhone}</span>
                 {/* 규칙: 전화 걸기는 모바일에서만(데스크톱은 전화를 걸 수 없어 번호만 보인다) */}
-                <a href={`tel:${data.contactPhone}`} className="v2-btn-outline v2-obit-row-btn v2-mobile-only">
+                <a href={`tel:${data.contactPhone}`} className="v2-btn-outline v2-obit-row-btn v2-obit-mobile-only">
                   <Phone size={16} /> 전화 걸기
                 </a>
               </div>

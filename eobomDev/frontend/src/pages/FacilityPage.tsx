@@ -275,9 +275,10 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
   };
 
   return (
-    // 2026-09-22 사람 지시 — 여백을 다른 v2 화면과 같은 표준(96/80/96, 모바일 32/24/72)으로 맞춘다.
-    // .container 클래스의 옛 120px 전방위 여백은 인라인으로 완전히 덮어쓴다(design-v2.css .v2-page와 같은 값).
-    <div className="container" style={{ padding: isMobile ? '32px 24px 72px' : '96px 80px 96px' }}>
+    // 🔄 00-39 §5-0(2026-09-28) — 옛 `.container`(min-width:1200px, index.css)는 소비자 화면에
+    // 창을 붙잡아 좌우 스크롤을 만들었다. `.v2-page`로 옮기면 같은 여백(96/80/96, 모바일 32/24/72)을
+    // CSS 미디어쿼리가 대신 주므로 인라인 padding·isMobile 분기가 필요 없다.
+    <div className="v2-page">
       {/* 🔄 09-07 사용자 지시 — 다른 도메인 페이지(CounselingPage 등)처럼 타이틀을 감싸던
           히어로 박스(진한 배경·패딩·둥근 모서리 카드)를 없애고 배지+제목+설명만 남긴다. */}
       {/* 2026-09-22 — 다른 v2 화면과 같은 .v2-page-head 클래스로 교체(폭 제한 calc(...)+아래 여백

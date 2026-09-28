@@ -1119,3 +1119,29 @@
   - `00-39` §6.7 표 갱신(데스크톱 값 확정 반영)은 Opus 몫 — 이 항목이 "후속"이므로 표를 다시 열어 데스크톱 열을 새로 채워야 한다.
 
 <!-- Gemini 판정 1줄: … -->
+
+
+## 2026-09-28 | 00-39 §5-0 단일 기준 적용 + 부고장 미리보기 컨테이너 쿼리 전환 (§6.7 "남은 편차 1건" 해소)
+
+- **근거 스펙**: `docs/00_핵심플랫폼/00-39_디자인_기준_재정립_명세서.md` §5-0("창이 좁아지면 본문이 줄어든다", 2026-09-28 사람 확정) · §6.7 그룹④ 표 바로 아래 "🟡 남은 편차 1건"(관리 화면 미리보기 모달이 창 폭으로 분기하는 문제 → `@container`로 교체 지시).
+- **건드린 파일**: `eobomDev/frontend/src/pages/FacilityPage.tsx`, `eobomDev/frontend/src/pages/ObituaryPage.tsx`, `eobomDev/frontend/src/index.css`, `eobomDev/frontend/src/components/ObituaryView.tsx`, `eobomDev/frontend/src/styles/design-v2.css`
+
+**작업 1 — facility·obituary 관리 화면을 줄어드는 방식으로**
+  - `FacilityPage.tsx` — 바깥 틀 `<div className="container" style={{ padding: isMobile ? '32px 24px 72px' : '96px 80px 96px' }}>` → `<div className="v2-page">`. 인라인 padding·isMobile 분기는 삭제(`.v2-page`의 CSS 미디어쿼리가 같은 값을 대신 준다). 구조·배치·카드·필터는 손대지 않음(§6.1 규칙 1-1 유지) — 이 줄 하나만 바뀜.
+  - `ObituaryPage.tsx` — `.container`를 쓰던 자리 2곳을 전부 `.v2-page`로 교체: ① `ObituaryManageSkeleton`(로딩 스켈레톤, 인라인 `paddingBottom:'3rem'` 삭제) ② 비로그인 안내 화면(`!currentUser` 분기). 실제 관리 폼 본문(950행대)은 이미 `.v2-page`를 쓰고 있어 그대로 뒀다.
+  - ① **`.container` 사용처 전/후**: 전 — `FacilityPage.tsx`(1) · `ObituaryPage.tsx`(2, 스켈레톤+비로그인) · `AdminPage.tsx`(1) · `BizDashboard.tsx`(1) · `PartnerPortalPage.tsx`(1), 총 6곳. 후 — `grep -rln 'className="container"' eobomDev/frontend/src`로 재확인, **`AdminPage.tsx`·`BizDashboard.tsx`·`PartnerPortalPage.tsx` 3곳만 남음**(운영자 화면, 손대지 않음).
+  - ② **1200px 규칙을 어떻게 남겼는지**: `index.css`의 `.main-wrapper .container { min-width: 1200px }`(769px↑) 규칙은 **그대로 유지**(위에서 확인했듯 이제 이 셀렉터에 걸리는 화면이 운영자 3개뿐이라 코드 변경 불필요). 그 위 주석에 "🔴 00-39 §5-0(2026-09-28) — 운영자 화면 전용 예외. facility·obituary 관리 화면은 `.v2-page`로 옮겨서 이제 `.container`를 쓰는 곳이 admin·biz·partner 셋뿐이다" 한 단락 추가. `.main-wrapper`의 `overflow-x:auto`·`height: calc(100vh - var(--header-h))` 등 09-09 스크롤 패널 처리는 손대지 않음(운영자 화면·sticky 목차가 계속 씀).
+
+**작업 2 — ObituaryView를 창 폭이 아니라 담는 상자의 폭으로 분기**
+  - `design-v2.css` — `.v2-obit-page`에 `container-type: inline-size;` 추가, 미리보기 모달처럼 `.v2-obit-page`를 안 쓰는 자리를 위한 신규 `.v2-obit-container { container-type: inline-size; }` 추가. 기존 `@media (min-width: 768px) { … }` 블록 전체를 `@container (min-width: 768px) { … }`로, `@media (max-width: 767px) { … }` 블록 전체를 `@container (max-width: 767px) { … }`로 교체(값은 하나도 안 바꿈, at-rule만 교체).
+  - 공용 `.v2-desktop-only`/`.v2-mobile-only`(다른 화면도 쓰는 전역 `@media` 기준 클래스)는 그대로 두고, `ObituaryView` 전용 짝 `.v2-obit-desktop-only`/`.v2-obit-mobile-only`를 새로 만들어(같은 뜻, `@container` 기준) `.v2-obit-mourner-list.v2-mobile-only`→`.v2-obit-mourner-list.v2-obit-mobile-only`, `.v2-obit-row-btn.v2-mobile-only`→`.v2-obit-row-btn.v2-obit-mobile-only`로 함께 교체.
+  - `ObituaryView.tsx` — 유족 목록(모바일 줄바꿈)·유족 한 줄(데스크톱 " · ")·전화 걸기 버튼(모바일 전용) 3곳에서 `v2-mobile-only`/`v2-desktop-only` → `v2-obit-mobile-only`/`v2-obit-desktop-only`로 교체. 길찾기 버튼 쌍(`.v2-obit-hall-cta`/`-desktop`)은 원래도 공용 클래스를 안 썼던 자리라 클래스명 변경 없이 상위 at-rule 교체만으로 해결됨.
+  - `ObituaryPage.tsx` — 미리보기 모달의 460px 래퍼(`<div style={{ width: '100%', maxWidth: '460px' }}>`, 조문객 안내문+`ObituaryView`를 감싸던 자리)에 `className="v2-obit-container"` 추가.
+  - `npx tsc --noEmit`(frontend) 에러 0 · `npm run build`(frontend) 통과.
+- **편차**: 없음 — 시안·문서 지시값 그대로 구현.
+- **다음 에이전트가 알아야 할 것**:
+  - 🔴 실기동 검증 대기(사람 몫, dev 서버 미기동). ③ 사람이 볼 곳: (a) `/facility`를 1000px 안팎 창으로 줄였을 때 필터 줄이 좌우 스크롤 없이 접히는지(§5-0 문서가 "옮긴 뒤 사람이 한 번 본다"고 명시한 항목) (b) `/obituary` 관리 화면에서 미리보기 모달을 **데스크톱 창**에서 열었을 때 이제 460px 컨테이너 기준으로 항상 모바일형(박스 없음·전화 걸기 있음)이 나오는지 — 지난 두 턴에서 "편차 아님, 뷰포트 기준이라 그렇다"고 적어둔 것이 이번에 해소됨 (c) `/o/:slug`를 1280px 창에서 열었을 때 데스크톱 박스형이 이전과 동일하게 나오는지(컨테이너 축 전환 후 회귀 여부).
+  - CSS 컨테이너 쿼리(`@container`)는 최신 에버그린 브라우저(Chrome 105+·Safari 16+·Firefox 110+) 기준 지원 — 구형 브라우저 지원 범위는 확인하지 않았다(이 프로젝트가 그런 타깃을 따로 고려하는지는 문서에 없음).
+  - `00-39` §6.7 "남은 편차 1건" 문구는 이번 구현으로 해소됐으니, 문서에서 지우거나 "해소됨"으로 갱신하는 건 Opus 몫.
+
+<!-- Gemini 판정 1줄: … -->
