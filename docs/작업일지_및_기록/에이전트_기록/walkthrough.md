@@ -1096,3 +1096,26 @@
   - 관리 화면 `/obituary` 미리보기 모달의 `ObituaryView`도 이 CSS를 공유하므로 헤더가 같이 왼쪽 정렬로 바뀐다(의도한 것).
 
 <!-- Gemini 판정 1줄: … -->
+
+
+## 2026-09-28 | 그룹④ /o/:slug 후속 — 데스크톱만 박스형 재구성 (모바일 1차 그대로)
+
+- **근거 스펙**: 시안 캔버스 `https://claude.ai/artifact/U9Ys4rJpZP3fsBHHBrhfvR` "데스크톱 C" 아트보드. 🔴 `00-39` §6.7 그룹④ 표는 아직 1차 기준이며, 데스크톱 값은 이번 지시(핸드오프 프롬프트)가 이긴다 — 표 확정은 Opus 몫으로 남김.
+- **건드린 파일**: `eobomDev/frontend/src/components/ObituaryView.tsx`, `eobomDev/frontend/src/pages/ObituaryLandingPage.tsx`, `eobomDev/frontend/src/styles/design-v2.css`
+- **결과**:
+  - ① **추가/변경한 클래스와 미디어쿼리 위치** (`design-v2.css` §6.7 블록, `@media (min-width: 768px)` 안에 전부 몰아넣음 — 모바일 쪽 기본 규칙은 시각적으로 비워둠):
+    - 신규 `.v2-obit-box` — 모바일 기본은 빈 규칙(투명 래퍼), 데스크톱에서만 `border-left/right: 4px solid var(--v2-btn-border)` · `border-radius: 8px` · `padding: 48px 52px 44px` · `background: none` · `box-shadow: none`.
+    - 신규 `.v2-obit-hall-cta`(모바일 전용 길찾기, 값 칸 안) / `.v2-obit-hall-cta-desktop`(데스크톱 전용 길찾기, 행 오른쪽 끝) — 기본은 각각 보임/숨김이고 데스크톱 media에서 뒤바뀐다(`display:none`↔`inline-flex; margin-left:auto; background:#FFFFFF`). 문구는 "길찾기"로 동일, 위치만 다르므로 둘 다 렌더링하고 CSS로만 하나씩 끈다(§6.7 화면폭 분기 원칙과 같은 결).
+    - 기존 `.v2-obit-header`(desktop: `margin-bottom:0`) · `.v2-obit-name`(desktop: `font-size:36px`·`font-weight:600`·`letter-spacing:-0.6px`, 기존 `var(--v2-fs-page-title)` 40px/700 값을 대체) · `.v2-obit-death`(desktop: `font-size:16px`) · `.v2-obit-section`(desktop: 기존 `margin-bottom:48px` 삭제 → `margin-top:32px`·`padding-top:32px`·`border-top:1px dashed var(--v2-btn-border)`·`margin-bottom:0`) · `.v2-obit-section-title`(desktop: `color:var(--v2-text-muted)`로 교체, `margin-bottom:14px`로 확대) · `.v2-obit-row`(desktop: 기존 `padding:22px 0`+`border-bottom` 삭제 → `padding:0`·`margin-bottom:14px`·`border-bottom:none`, `:last-child{margin-bottom:0}` 추가) · `.v2-obit-row-label`(desktop: `font-size:15px`·`color:var(--v2-text-muted)` 추가, 기존 `width:72px`는 유지) · `.v2-obit-content`(desktop: `max-width:680px`로 교체, 560px는 모바일 값으로만 남음) · `.v2-obit-memorial-btn`(desktop: `margin-top:24px`, 기존 8px 대체) · `.v2-obit-foot`(desktop: `margin-top:28px`, 기존 40px 대체).
+  - `ObituaryView.tsx` — 머리·세 묶음을 `<div className="v2-obit-box">`로 감쌌다(추모관 버튼·꼬리는 박스 밖, 원래 위치 그대로). 빈소 행에 데스크톱 전용 길찾기 앵커를 행의 3번째 flex 자식으로 추가(`v2-obit-hall-cta-desktop`), 기존 값-칸 안 길찾기 앵커에는 `v2-obit-hall-cta` 클래스를 얹어 데스크톱에서만 숨김.
+  - `ObituaryLandingPage.tsx`의 `ObituaryLandingSkeleton` — 머리·행 자리를 `.v2-obit-box`로 감싸 데스크톱에서 같은 박스 안에 회색 블록이 뜨게 맞췄고(모바일은 투명 래퍼라 겉모습 그대로), 추모관 버튼 자리는 박스 밖에 남김. 겸사겸사 지난 턴에서 헤더를 왼쪽정렬로 바꿨는데 스켈레톤 블록엔 `margin:'0 auto'`(가운데)가 남아있던 불일치를 `margin:'0 0 8px'`/`margin` 없음(왼쪽)으로 같이 고쳤다.
+  - 발인 값은 원래도 굵게 처리한 적이 없어(요청 4번 "발인은 굵게 하지 않는다") 추가 변경 없음 — 이미 충족.
+  - ② `/obituary` 관리 화면 미리보기 모달 — 모달 컨테이너 자체는 `maxWidth:460px`(안 건드림)라 여전히 좁게 보이지만, `.v2-obit-box`의 박스형 여부는 **뷰포트 폭** 기준 미디어쿼리라 데스크톱 브라우저(뷰포트 768px 이상)에서 열면 460px의 좁은 폭 안에서도 박스(테두리·점선·데스크톱 길찾기 위치)가 그대로 나온다 — 지난 턴에 기록한 "데스크톱에서 전화 걸기 버튼이 안 보이는" 편차와 같은 종류(뷰포트 기준 vs 컨테이너 폭 불일치), 새로운 문제는 아니다.
+  - `npx tsc --noEmit`(frontend) 에러 0 · `npm run build`(frontend) 통과.
+- **편차**: 없음 — 이번 핸드오프 프롬프트가 `00-39` §6.7 표보다 우선한다고 명시했고, 값 그대로 구현했다. (표 자체 갱신은 Opus 몫으로 다음 할 일에 남김.)
+- **다음 에이전트가 알아야 할 것**:
+  - 🔴 실기동 검증 대기(사람 몫, dev 서버 미기동). ③ 사람이 볼 곳: **1280px 데스크톱**에서 680px 박스(좌우 4px 테두리·모서리 8px·점선 구분·길찾기가 빈소 행 오른쪽 끝·흰 배경)가 시안대로 나오는지, **360px 모바일**이 지난 1차 구현과 똑같이 보이는지(박스 없음·행마다 1px 선·전화 걸기 있음) 코드 리뷰 기준으로는 데스크톱 전용 규칙이 전부 `@media (min-width:768px)` 안에만 있어 모바일로 새지 않음을 확인했다.
+  - `/obituary` 미리보기 모달을 데스크톱 브라우저에서 열었을 때 박스가 나오는 게 맞는지도 위 ②와 함께 확인 필요.
+  - `00-39` §6.7 표 갱신(데스크톱 값 확정 반영)은 Opus 몫 — 이 항목이 "후속"이므로 표를 다시 열어 데스크톱 열을 새로 채워야 한다.
+
+<!-- Gemini 판정 1줄: … -->

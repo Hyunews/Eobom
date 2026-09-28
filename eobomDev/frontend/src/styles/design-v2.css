@@ -2755,6 +2755,12 @@ a.v2-btn-solid {
   max-width: 560px;
 }
 
+/* 🆕 2026-09-28(후속) — 데스크톱만 박스형(시안 캔버스 "데스크톱 C"). 모바일은 박스 없이 1차
+   구현 그대로(투명 래퍼) — 아래 데스크톱 media 블록 밖에서는 어떤 시각 규칙도 주지 않는다. */
+.v2-obit-box {
+  /* 모바일: 의도적으로 비워둔다 — 그냥 투명 래퍼 */
+}
+
 .v2-obit-header {
   text-align: left;
   margin-bottom: 40px;
@@ -2834,6 +2840,12 @@ a.v2-btn-solid {
   margin-top: 2px;
 }
 
+/* 길찾기 — 모바일은 주소 아래(값 칸 안), 데스크톱은 빈소 행 오른쪽 끝. 문구는 같고 자리만
+   바뀌므로 두 벌을 같이 렌더링하고 media로 하나씩 끈다(§6.7 화면폭 분기 원칙과 같은 결). */
+.v2-obit-hall-cta-desktop {
+  display: none;
+}
+
 /* 유족 모바일 줄바꿈 목록 — 데스크톱 " · " 한 줄(.v2-desktop-only)과 짝. .v2-mobile-only 하나만으로는
    display:inline이라 여러 줄이 붙어버려 이 조합으로 display를 다시 지정한다(§6.7 화면폭 분기 원칙 유지). */
 .v2-obit-mourner-list.v2-mobile-only {
@@ -2887,25 +2899,88 @@ a.v2-btn-solid {
 }
 
 @media (min-width: 768px) {
-  .v2-obit-name {
-    font-size: var(--v2-fs-page-title);
+  /* 데스크톱 폭 — 680px 박스(시안 "데스크톱 C"). 560px는 이제 모바일 쪽 값으로만 남는다. */
+  .v2-obit-content {
+    max-width: 680px;
   }
 
+  .v2-obit-box {
+    border-left: 4px solid var(--v2-btn-border);
+    border-right: 4px solid var(--v2-btn-border);
+    border-radius: 8px;
+    background: none;
+    box-shadow: none;
+    padding: 48px 52px 44px;
+  }
+
+  .v2-obit-header {
+    /* 머리 아래 32px는 다음 묶음의 margin-top(32px)이 만든다 — 여기서 또 주면 32+40이 된다 */
+    margin-bottom: 0;
+  }
+
+  .v2-obit-name {
+    font-size: 36px;
+    font-weight: 600;
+    letter-spacing: -0.6px;
+  }
+
+  .v2-obit-death {
+    font-size: 16px;
+  }
+
+  /* 묶음 사이 — 점선 하나로 나누고 위아래 32px씩(합쳐서 묶음 간 64px). 행마다 있던 1px 선은
+     아래에서 없앤다. */
   .v2-obit-section {
-    margin-bottom: 48px;
+    margin-top: 32px;
+    margin-bottom: 0;
+    padding-top: 32px;
+    border-top: 1px dashed var(--v2-btn-border);
+  }
+
+  .v2-obit-section-title {
+    color: var(--v2-text-muted);
+    margin-bottom: 14px;
   }
 
   .v2-obit-row {
-    padding: 22px 0;
+    padding: 0;
+    margin-bottom: 14px;
+    border-bottom: none;
+  }
+
+  .v2-obit-row:last-child {
+    margin-bottom: 0;
   }
 
   .v2-obit-row-label {
     width: 72px;
+    font-size: 15px;
+    color: var(--v2-text-muted);
   }
 
   .v2-obit-row-value {
     font-size: 17px;
     line-height: 1.7;
+  }
+
+  /* 길찾기 — 빈소 행 오른쪽 끝. 박스 배경(투명, 페이지 바탕)과 달리 버튼만 흰색(시안 지시) */
+  .v2-obit-hall-cta {
+    display: none;
+  }
+
+  .v2-obit-hall-cta-desktop {
+    display: inline-flex;
+    align-self: flex-start;
+    margin-left: auto;
+    background: #FFFFFF;
+  }
+
+  .v2-obit-memorial-btn {
+    margin-top: 24px;
+  }
+
+  .v2-obit-foot {
+    margin-top: 28px;
   }
 }
 

@@ -31,12 +31,13 @@
 🆕**`00-38`**적응형모바일UX.🟡사람확정=본문16px실기기(§12.1).
 
 **2.[Sonnet]**🔴wt112~172·wt183실기동/커밋대기(사람,09-03~).⏸체크8·04B=`PreDeathPlatformSetting`뒤.
-✅facility~09-23모바일감사·그룹③legal(privacy·terms)·그룹④`/o/:slug`(ObituaryView,§6.7값그대로·편차없음)
-전부완료(매회tsc/build통과)—세부`walkthrough.md`.🔴편차:pickup이v2→구form역행(Opus판단,→backlog).
+✅facility~09-23모바일감사·그룹③legal·그룹④`/o/:slug`(ObituaryView+헤더좌측정렬+열기새탭전환+
+데스크톱680px박스형`.v2-obit-box`,캔버스"데스크톱C")전부완료(매회tsc/build통과)—세부`walkthrough.md`.
+🔴편차:pickup이v2→구form역행(Opus판단,→backlog).
 🔴§4.5동의3층미착수(→⑲).🔴파기배치`--confirm`금지(사람승인)·실행중dev재시작필요.
-🔴사람실기동완전대기(facility이후전부—클릭검증0건,terms목차재확인·그룹④포함).
+🔴사람실기동완전대기(facility이후전부—클릭검증0건,그룹④1280px박스·360px모바일확인포함).
 🟡보류:pickup거리순·전문가region·height:36px3곳.
-🆕그룹④피드백2건반영(헤더왼쪽정렬·my-obituaries/memorial"열기"새탭전환,tsc/build통과)→다음=사람실기동or[Opus]§6.7등재.
+🔴00-39§6.7표=아직1차값(데스크톱은Sonnet구현이이김)→다음=[Opus]§6.7표데스크톱값확정반영.
 **3.[Gemini]**🔴게이트45건대기(09-11~21·wt204~)·🟡옛스펙3건→⑭.🟡devDB삭제분7건—D-8(🔴CONFIRM).✅reports경로정리완료(09-16).
 
 ## 지금 상태

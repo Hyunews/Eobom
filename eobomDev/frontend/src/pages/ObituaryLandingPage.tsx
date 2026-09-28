@@ -12,41 +12,46 @@ import { ObituaryView, type ObituaryData } from '../components/ObituaryView';
 // 07-03 §5 체감 개선(2026-08-21) — 백엔드(Render 오리건)↔DB(Supabase 서울) 왕복 지연(§5 실측
 // ~1.5초)은 이번 범위에서 못 없앤다(인프라 문제, render.yaml 밖). 대신 흰 화면에 "불러오는 중"
 // 텍스트만 뜨던 것을, 실제 렌더와 같은 자리에 회색 블록을 먼저 잡아 레이아웃이 안 튀게 한다.
+// 🔄 2026-09-28(후속) — 데스크톱 박스형(.v2-obit-box)에 맞춰 머리·행 자리를 그 안에 넣는다.
+// 모바일은 .v2-obit-box가 투명 래퍼라 겉모습은 1차 그대로. 추모관 버튼 자리는 박스 밖(실제
+// 컴포넌트와 같은 위치)에 남긴다.
 const ObituaryLandingSkeleton: React.FC = () => (
   <div className="v2-obit-content">
-    <div className="v2-obit-header">
-      <div className="skeleton-block" style={{ width: '160px', height: '13px', margin: '0 auto 8px' }} />
-      <div className="skeleton-block" style={{ width: '190px', height: '28px', margin: '0 auto' }} />
-    </div>
+    <div className="v2-obit-box">
+      <div className="v2-obit-header">
+        <div className="skeleton-block" style={{ width: '160px', height: '13px', margin: '0 0 8px' }} />
+        <div className="skeleton-block" style={{ width: '190px', height: '28px' }} />
+      </div>
 
-    {/* 빈소·발인 자리 */}
-    <div className="v2-obit-section">
-      {[0, 1].map((i) => (
-        <div key={i} className="v2-obit-row">
+      {/* 빈소·발인 자리 */}
+      <div className="v2-obit-section">
+        {[0, 1].map((i) => (
+          <div key={i} className="v2-obit-row">
+            <span className="v2-obit-row-label">
+              <span className="skeleton-block" style={{ width: '32px', height: '13px' }} />
+            </span>
+            <div className="v2-obit-row-value">
+              <span className="skeleton-block" style={{ width: '70%', height: '16px' }} />
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* 상주 자리 */}
+      <div className="v2-obit-section">
+        <div className="v2-obit-row">
           <span className="v2-obit-row-label">
             <span className="skeleton-block" style={{ width: '32px', height: '13px' }} />
           </span>
           <div className="v2-obit-row-value">
-            <span className="skeleton-block" style={{ width: '70%', height: '16px' }} />
+            <span className="skeleton-block" style={{ width: '45%', height: '16px' }} />
           </div>
-        </div>
-      ))}
-    </div>
-
-    {/* 상주 자리 */}
-    <div className="v2-obit-section">
-      <div className="v2-obit-row">
-        <span className="v2-obit-row-label">
-          <span className="skeleton-block" style={{ width: '32px', height: '13px' }} />
-        </span>
-        <div className="v2-obit-row-value">
-          <span className="skeleton-block" style={{ width: '45%', height: '16px' }} />
         </div>
       </div>
     </div>
 
     {/* 추모관 들어가기 버튼 자리 */}
-    <div className="skeleton-block" style={{ width: '100%', height: '52px' }} />
+    <div className="skeleton-block" style={{ width: '100%', height: '52px', marginTop: '8px' }} />
   </div>
 );
 
