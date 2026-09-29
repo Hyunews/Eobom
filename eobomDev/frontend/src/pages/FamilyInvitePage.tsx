@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { apiFetch, apiFetchRaw, ApiError } from '../lib/api';
 import { getToken, PENDING_INVITE_TOKEN_KEY } from '../lib/storage';
 import { backdropCloseProps } from '../utils/backdropClose';
+import { PageLink } from '../components/common/PageLink';
 
 interface FamilyInvitePageProps {
   // App.tsx의 React state를 그대로 받는다 — 예전엔 sessionStorage를 직접 읽었는데, 데모
@@ -45,7 +46,6 @@ type ViewState = 'loading' | 'ready' | 'expired' | 'notfound' | 'accepted' | 'de
 
 export const FamilyInvitePage: React.FC<FamilyInvitePageProps> = ({ currentUser, onOpenLogin }) => {
   const { token } = useParams<{ token: string }>();
-  const navigate = useNavigate();
   const [view, setView] = useState<ViewState>('loading');
   const [data, setData] = useState<InviteData | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -153,9 +153,9 @@ export const FamilyInvitePage: React.FC<FamilyInvitePageProps> = ({ currentUser,
       <div className="v2-obit-notfound">
         <p className="v2-obit-notfound-title">초대 링크를 찾을 수 없습니다.</p>
         <p className="v2-obit-notfound-sub">이미 처리되었거나 잘못된 주소일 수 있습니다.</p>
-        <button type="button" onClick={() => navigate('/')} className="v2-btn-primary v2-obit-invite-cta">
+        <PageLink to="/" className="v2-btn-primary v2-obit-invite-cta">
           이어봄 홈으로
-        </button>
+        </PageLink>
       </div>
     );
   } else if (view === 'accepted') {
@@ -165,12 +165,18 @@ export const FamilyInvitePage: React.FC<FamilyInvitePageProps> = ({ currentUser,
         {/* 00-27 §9.1-4-2 — 수락 결과를 과장하지 않는다. 열람은 사망 확인 이후다(06-04 §8.1). */}
         <p className="v2-obit-notfound-sub">{data?.designatorName}님의 가족으로 연결됐습니다.</p>
         <div className="v2-obit-invite-actions is-center v2-obit-invite-body">
-          <button type="button" onClick={() => navigate('/')} className="v2-btn-primary">
+          <PageLink to="/" className="v2-btn-primary">
             이어봄 홈으로
-          </button>
-          <button type="button" onClick={() => navigate('/ending-note')} className="v2-btn-outline">
+          </PageLink>
+          <PageLink
+            to="/ending-note"
+            className="v2-btn-outline"
+            loginRequired
+            currentUser={currentUser}
+            onOpenLogin={onOpenLogin}
+          >
             내 엔딩노트 만들기
-          </button>
+          </PageLink>
         </div>
       </div>
     );
@@ -180,9 +186,9 @@ export const FamilyInvitePage: React.FC<FamilyInvitePageProps> = ({ currentUser,
         <p className="v2-obit-notfound-title">거절되었습니다.</p>
         <p className="v2-obit-notfound-sub">아무 권한도 부여되지 않았습니다.</p>
         {/* §9.1-4-2 — 거절한 사람에게 서비스 권유를 붙이지 않는다. "홈으로" 하나뿐. */}
-        <button type="button" onClick={() => navigate('/')} className="v2-btn-outline v2-obit-invite-cta">
+        <PageLink to="/" className="v2-btn-outline v2-obit-invite-cta">
           이어봄 홈으로
-        </button>
+        </PageLink>
       </div>
     );
   } else {

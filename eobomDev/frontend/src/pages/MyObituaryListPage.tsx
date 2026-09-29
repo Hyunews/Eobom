@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { ExternalLink, ChevronRight } from 'lucide-react';
 import { apiFetch } from '../lib/api';
 import { OBITUARY_CARD_IMAGE_URL } from '../config';
@@ -7,6 +6,7 @@ import { formatKST, formatObituaryCardTitle, formatObituaryCardDescription } fro
 import { ensureKakaoShareReady, shareViaKakao, shareViaWebShareApi, copyObituaryLink, reportObituaryShare } from '../utils/kakaoShare';
 import '../styles/design-v2.css';
 import { backdropCloseProps } from '../utils/backdropClose';
+import { PageLink } from '../components/common/PageLink';
 
 // 00-06 §8(SCR-018, "내 부고장·추모관") — Header "추모관" 메뉴가 홈 박스③(링크 입력창)으로만
 // 보내서, 부고장을 만든 당사자가 정작 본인이 만든 부고장·추모관에 다시 들어갈 방법이 없다는
@@ -45,7 +45,6 @@ interface MyMemorial {
 type ModalTarget = { type: 'obituary'; id: string } | { type: 'memorial'; id: string } | null;
 
 export const MyObituaryListPage: React.FC = () => {
-  const navigate = useNavigate();
   const [obituaries, setObituaries] = useState<MyObituary[] | null>(null);
   const [loadError, setLoadError] = useState(false);
   // 모달별로 다른 부고장을 다루므로, 문구도 어느 항목 것인지(id) 함께 들고 그 모달 안에만 렌더한다.
@@ -158,9 +157,9 @@ export const MyObituaryListPage: React.FC = () => {
               </div>
             ))}
 
-            <button type="button" className="v2-btn-outline v2-list-footer-btn" onClick={() => navigate('/obituary?new=1')}>
+            <PageLink to="/obituary?new=1" className="v2-btn-outline v2-list-footer-btn">
               새 부고장 만들기
-            </button>
+            </PageLink>
           </div>
 
           {/* ② 내가 만든 추모관 목록 — 읽기 전용. 만들기·닫기·주소복사는 /memorial 몫(09-07 사용자
@@ -188,9 +187,9 @@ export const MyObituaryListPage: React.FC = () => {
               </div>
             ))}
 
-            <button type="button" className="v2-btn-outline v2-list-footer-btn" onClick={() => navigate('/memorial')}>
+            <PageLink to="/memorial" className="v2-btn-outline v2-list-footer-btn">
               추모관 만들기·관리
-            </button>
+            </PageLink>
           </div>
         </div>
       </div>
@@ -215,16 +214,16 @@ export const MyObituaryListPage: React.FC = () => {
             </div>
 
             <div className="v2-modal-actions">
-              <button type="button" className="v2-btn-outline" onClick={() => window.open(`/o/${modalObituary.slug}`, '_blank', 'noopener,noreferrer')}>
+              <PageLink newTab to={`/o/${modalObituary.slug}`} className="v2-btn-outline">
                 <ExternalLink size={14} /> 열기
-              </button>
+              </PageLink>
               <button type="button" className="v2-btn-outline" onClick={() => shareObituary(modalObituary)}>
                 공유
               </button>
               {!modalObituary.isClosed && (
-                <button type="button" className="v2-btn-outline" onClick={() => navigate(`/obituary?slug=${modalObituary.slug}`)}>
+                <PageLink to={`/obituary?slug=${modalObituary.slug}`} className="v2-btn-outline">
                   수정
-                </button>
+                </PageLink>
               )}
               <button
                 type="button"
@@ -261,9 +260,9 @@ export const MyObituaryListPage: React.FC = () => {
             </div>
 
             <div className="v2-modal-actions">
-              <button type="button" className="v2-btn-outline" onClick={() => window.open(`/m/${modalMemorial.slug}`, '_blank', 'noopener,noreferrer')}>
+              <PageLink newTab to={`/m/${modalMemorial.slug}`} className="v2-btn-outline">
                 <ExternalLink size={14} /> 열기
-              </button>
+              </PageLink>
             </div>
 
             <button type="button" className="v2-modal-close" onClick={() => setModalTarget(null)}>

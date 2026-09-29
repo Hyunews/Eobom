@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { Home, X, LogOut } from 'lucide-react';
 import { Badge } from './common/Badge';
+import { PageLink, tabPath } from './common/PageLink';
 import { MODE_MENUS, type NavMode, type ModeMenuItem, type NavStatus } from '../lib/modeNav';
 
 // 🔄 2026-09-28 사람 지시 — 드로어는 이제 navMode(prep/bereaved)와 무관하게 항상 전체
@@ -122,10 +123,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, curre
 
           return (
             <React.Fragment key={item.id}>
-            <button
-              onClick={() => handleDrawerItemClick(item)}
-              disabled={isComingSoon}
-              style={{
+            {(() => {
+              const itemStyle: React.CSSProperties = {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
@@ -139,16 +138,34 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, curre
                 cursor: isComingSoon ? 'not-allowed' : 'pointer',
                 width: '100%',
                 textAlign: 'left',
-              }}
-            >
-              <span style={{ display: 'flex', alignItems: 'center', gap: 'var(--sp-3)', minWidth: 0 }}>
-                <span style={{ flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', width: '22px' }}>
-                  <IconComp size={19} color={isComingSoon ? 'var(--text-hint)' : isActive ? '#FFFFFF' : 'var(--point-color)'} />
-                </span>
-                <span style={{ fontSize: '0.95rem', fontWeight: isActive ? 'var(--fw-bold)' : 600 }}>{item.label}</span>
-              </span>
-              {item.status !== 'active' && <Badge status={item.status === 'preview' ? 'preview' : 'comingSoon'} />}
-            </button>
+              };
+              const itemContent = (
+                <>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: 'var(--sp-3)', minWidth: 0 }}>
+                    <span style={{ flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', width: '22px' }}>
+                      <IconComp size={19} color={isComingSoon ? 'var(--text-hint)' : isActive ? '#FFFFFF' : 'var(--point-color)'} />
+                    </span>
+                    <span style={{ fontSize: '0.95rem', fontWeight: isActive ? 'var(--fw-bold)' : 600 }}>{item.label}</span>
+                  </span>
+                  {item.status !== 'active' && <Badge status={item.status === 'preview' ? 'preview' : 'comingSoon'} />}
+                </>
+              );
+              // 🔄 09-29 — 이동 항목은 링크(PageLink, 00-34 §2.2). 준비 중 항목은 예전처럼 비활성 버튼.
+              return isComingSoon ? (
+                <button disabled style={itemStyle}>{itemContent}</button>
+              ) : (
+                <PageLink
+                  to={tabPath(item.id)}
+                  loginRequired={item.loginRequired}
+                  currentUser={currentUser}
+                  onOpenLogin={() => { onOpenLogin?.(); onMobileClose?.(); }}
+                  onNavigate={() => handleDrawerItemClick(item)}
+                  style={itemStyle}
+                >
+                  {itemContent}
+                </PageLink>
+              );
+            })()}
             {showDividerAfter && <div style={{ borderTop: '1px dashed var(--border-color)', margin: '0.3rem 0.2rem' }} />}
             </React.Fragment>
           );

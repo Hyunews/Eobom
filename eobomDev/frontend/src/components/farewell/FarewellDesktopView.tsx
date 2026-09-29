@@ -3,6 +3,7 @@ import { UserPlus } from 'lucide-react';
 import { FarewellMessageCard, RELATIONSHIP_LABEL } from './FarewellMessageCard';
 import { FarewellNotice } from './FarewellNotice';
 import type { FarewellViewProps } from './types';
+import { PageLink } from '../common/PageLink';
 
 // 00-38 §6.2 #4 · §8.1-1 ⓓ — 기존 FarewellMessagePage.tsx의 JSX를 그대로 옮겼다. 데스크톱
 // 회귀 0이 DoD(§11 #8)라 옮기면서 레이아웃을 고치지 않는다.
@@ -98,13 +99,13 @@ export const FarewellDesktopView: React.FC<FarewellViewProps> = ({
         {setActiveTab && (
           <p className="v2-notice" style={{ marginTop: '32px', textAlign: 'center' }}>
             장례 희망·연명의료 등 남겨두실 것이 있다면? {' '}
-            <button
-              type="button"
-              onClick={() => setActiveTab('ending-note')}
+            <PageLink
+              to="/ending-note"
+              onNavigate={() => setActiveTab('ending-note')}
               style={{ background: 'none', border: 'none', padding: 0, color: 'var(--v2-point)', fontWeight: 700, textDecoration: 'underline', cursor: 'pointer', fontSize: 'inherit' }}
             >
               디지털 엔딩노트 →
-            </button>
+            </PageLink>
           </p>
         )}
       </div>

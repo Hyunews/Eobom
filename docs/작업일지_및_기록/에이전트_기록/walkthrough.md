@@ -16,6 +16,16 @@
 > [`_아카이브_2608`](walkthrough_아카이브_2608.md)(08-31분). 남은 것 = 판정 대기 + 판정 표기 없음. 기준 → `record.md` §2-1.
 
 ---
+## 2026-09-29 | [Sonnet] 페이지 이동 메뉴·버튼을 링크로 + 주소 직접 입력 안전장치
+
+- **근거 스펙**: docs/00_핵심플랫폼/00-34_프론트엔드_공통_레이어_명세서.md §2.2 (09-29 결정 ①②). 본문 "페이지로 이동하는 메뉴…" 문구는 grep으로 못 찾음 — 사람이 붙여준 지시문 기준으로 구현.
+- **건드린 파일**: eobomDev/frontend/src/components/common/PageLink.tsx(신설) · hooks/useLoginPromptOnEntry.ts(신설) · styles/design-v2.css(끝에 `:where(a.page-link*)` 리셋) · components/Header.tsx · components/Sidebar.tsx · components/home/HomeDesktop.tsx · components/home/HomeMobile.tsx · components/farewell/FarewellDesktopView.tsx · components/farewell/FarewellMobileView.tsx · pages/MyPage.tsx · pages/MyObituaryListPage.tsx · pages/MemorialPage.tsx · pages/CareGuidePage.tsx · pages/MyConsultationsPage.tsx · pages/FamilyInvitePage.tsx · pages/FacilityPage.tsx · pages/PickupPage.tsx · pages/DigitalEstatePage.tsx
+- **결과**: 이동 = `<a href>`(PageLink), 동작 = 버튼. 보통 클릭은 `onNavigate`(기존 setActiveTab·onSetMode·드로어 닫기 그대로), Ctrl·⌘·Shift·휠은 브라우저 기본. `loginRequired && !currentUser`면 `<a>` 대신 `<button>`(onOpenLogin만). 새 탭 유지 3곳(MyObituaryListPage 2·MemorialPage 1)은 `target="_blank" rel="noopener noreferrer"` 링크. FacilityPage·PickupPage·DigitalEstatePage는 마운트 1회 비로그인이면 `onOpenLogin()`(화면은 그대로). `cd eobomDev/frontend; npx tsc --noEmit -p .` 통과(출력 0줄). 실기동은 사람.
+- **편차**: ① Farewell 두 뷰의 "디지털 엔딩노트 →"는 loginRequired를 걸지 않음 — 이 화면은 토큰이 있어야 그려지는 로그인 전용이라 currentUser 배관을 새로 깔 실익이 없음. ② `window.open(...)` 3곳은 `<a target=_blank>`로 바뀜(동작 동일). ③ 링크 모양은 `<button>` UA 기본(패딩·테두리·폰트)을 `:where(a.page-link--button)`로 재현 — 브라우저별 미세 차이는 실기동 확인 필요. ④ index.css는 CRLF라 안 건드리고 LF인 design-v2.css 끝에 리셋을 둠.
+- **다음 에이전트가 알아야 할 것**: 지시 목록 밖 이동 버튼은 바꾸지 않았다(발견분은 사람에게 보고). 안전장치는 App.tsx가 `sessionPending` 동안 화면을 안 그리는 구조에 기댐 — 그 구조를 바꾸면 훅(useLoginPromptOnEntry)도 재검토. CareGuidePage·MyConsultationsPage의 "상담 신청/전문가 상담"은 이제 비로그인이면 로그인 창(이전엔 곧장 이동).
+
+<!-- Gemini 판정 1줄: ✅통과 / ❌반려(사유) / 🔄스펙갱신(고친 문서) -->
+
 ## 2026-09-29 | [Sonnet] 페이지 제목 "매칭" → "검색" 통일(사람 결정)
 
 - **근거 스펙**: `docs/00_핵심플랫폼/00-26_모드별_네비게이션_개편_검토서.md` §5.1 (09-29 🔄 "제목도 검색으로 통일")
@@ -1810,7 +1820,8 @@
   - 소셜 로그인은 전체 리다이렉트 후 같은 탭으로 돌아와 `handleLoginSuccess`가 불리므로 그때 LOGIN이 방송됨(다른 탭도 로그인됨).
   - 세션 만료(401) 처리도 `clearSession`을 거치므로 한 탭 만료가 열린 모든 탭의 로그아웃으로 전파됨(다른 탭에는 로그인 모달 안내 없이 조용히 로그아웃).
   - 커밋은 하지 않음 — 메시지 초안만.
-  - 🔄 **사람 실기동 후 보완(같은 날)**: 탭 간 공유·전파·새 창 적용은 확인됨. 다만 "미리 로그인한 창이 있는 상태에서 다른 탭에 URL 입력 시 깜빡임이 불편"하다는 지적 → `storage.ts`에 localStorage 힌트 `eobom_user_login_hint`('1'만, 토큰·이름 없음)를 추가: 로그인 저장 시 켜고 `wipeSession('USER')` 시 끔. **힌트가 있을 때만** 새 탭이 REQUEST·대기(빈 화면)하고, 없으면 대기 없이 바로 그림(로그인한 적 없는 방문자의 300ms 빈 화면 제거). 브라우저 재시작 뒤 힌트만 남은 경우 한 번 기다려 답이 없으면 힌트를 지움. 로그인한 탭이 있을 때의 빈 화면은 응답이 오는 즉시 풀리도록 그대로(최대 300ms 상한). `tsc --noEmit` exit 0. **깜빡임이 이 보완으로 사라졌는지는 사람 재확인 필요.**
+  - 🔄 **2차 보완(사람 결정 B + 3항, 같은 날)** — 위 1차 보완의 '1' 힌트를 **시각(숫자) 표시**로 교체: `eobom_user_login_hint`에 `Date.now()`만 저장(토큰·이름 없음), 로그인한 탭이 15초마다 갱신(`startHeartbeat`), 로그아웃(`wipeSession`)·`pagehide` 때 삭제, 다른 로그인 탭은 `storage` 이벤트로 삭제를 보고 즉시 다시 씀, 신선 판정 90초(백그라운드 탭 타이머 지연 대비). 새 탭은 모듈 로드 시 동기로 읽어 표시가 없거나 90초 넘으면 대기 0으로 바로 비로그인 렌더, 최근이면 최대 300ms 대기하며 `App.tsx`가 배경+"이어봄" 글자만 그림(로그인 창·버튼 먼저 안 띄움). 답이 없으면 비로그인. `tsc --noEmit` exit 0. **로그인한 탭이 있는 상태에서 새 탭을 열 때의 짧은 대기 화면은 구조상 남음 — 사람 재확인 필요.** 00-34 §2.2와 충돌 없음(sessionStorage 유지, localStorage엔 시각만 — 단 00-34 §4의 키 표에 `eobom_user_login_hint` 추가 필요 → [Opus]).
+  - 🔄 **사람 실기동 후 보완(같은 날, 1차)**: 탭 간 공유·전파·새 창 적용은 확인됨. 다만 "미리 로그인한 창이 있는 상태에서 다른 탭에 URL 입력 시 깜빡임이 불편"하다는 지적 → `storage.ts`에 localStorage 힌트 `eobom_user_login_hint`('1'만, 토큰·이름 없음)를 추가: 로그인 저장 시 켜고 `wipeSession('USER')` 시 끔. **힌트가 있을 때만** 새 탭이 REQUEST·대기(빈 화면)하고, 없으면 대기 없이 바로 그림(로그인한 적 없는 방문자의 300ms 빈 화면 제거). 브라우저 재시작 뒤 힌트만 남은 경우 한 번 기다려 답이 없으면 힌트를 지움. 로그인한 탭이 있을 때의 빈 화면은 응답이 오는 즉시 풀리도록 그대로(최대 300ms 상한). `tsc --noEmit` exit 0. **깜빡임이 이 보완으로 사라졌는지는 사람 재확인 필요.**
 
 <!-- Gemini 판정 대기 -->
 

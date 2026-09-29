@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useLoginPromptOnEntry } from '../hooks/useLoginPromptOnEntry';
 import { MapPin, Map, Image as ImageIcon, Send, Search, LayoutGrid, List, SlidersHorizontal, ChevronRight, X } from 'lucide-react';
 import { BACKEND_URL, GEOLOCATION_FALLBACK, LOCATION_FEATURE_ENABLED } from '../config';
 import { KakaoMapModal } from '../components/KakaoMapModal';
@@ -24,6 +25,7 @@ interface FacilityPageProps {
 // - 견적비교·답사예약 삭제 → 업체 문의로 대체
 // - 이미지 박스 추가: 파트너가 BizDashboard에서 올린 Facility.images 노출
 export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenLogin }) => {
+  useLoginPromptOnEntry(currentUser, onOpenLogin); // 00-34 §2.2 결정 ② — 주소 직접 입력 안전장치
   // 00-38 §8.3 FacilityPage 지침 — 필터 박스 압축·리스트형 버튼 텍스트 제거·페이지당 건수에 쓴다.
   const isMobile = useIsMobile();
   // 카드 640px 중 이미지 없는 시설의 "등록된 이미지 없음" 플레이스홀더가 150px을 차지한다

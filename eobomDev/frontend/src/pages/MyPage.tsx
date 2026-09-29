@@ -5,6 +5,7 @@ import { apiFetchRaw, apiFetch } from '../lib/api';
 import { getToken } from '../lib/storage';
 import { KAKAO_CHANNEL_CHAT_URL } from '../config';
 import { WithdrawalModal } from '../components/mypage/WithdrawalModal';
+import { PageLink, tabPath } from '../components/common/PageLink';
 import '../styles/design-v2.css';
 
 interface MyPageProps {
@@ -47,9 +48,11 @@ interface NavRowProps {
   onClick?: () => void;
   // 외부 링크(새 창) — <a>로 그리고 › 대신 외부 링크 아이콘을 단다
   href?: string;
+  // 🔄 09-29 — 페이지 이동 행은 링크(PageLink, 00-34 §2.2). 보통 클릭은 onClick 그대로.
+  to?: string;
 }
 
-const NavRow: React.FC<NavRowProps> = ({ icon, label, onClick, href }) => {
+const NavRow: React.FC<NavRowProps> = ({ icon, label, onClick, href, to }) => {
   const inner = (
     <>
       <span className="v2-nav-row-icon">{icon}</span>
@@ -62,6 +65,13 @@ const NavRow: React.FC<NavRowProps> = ({ icon, label, onClick, href }) => {
       <a className="v2-nav-row" href={href} target="_blank" rel="noreferrer">
         {inner}
       </a>
+    );
+  }
+  if (to) {
+    return (
+      <PageLink to={to} className="v2-nav-row" onNavigate={onClick}>
+        {inner}
+      </PageLink>
     );
   }
   return (
@@ -138,6 +148,7 @@ export const MyPage: React.FC<MyPageProps> = ({ currentUser, onOpenLogin, onOpen
   ];
 
   const go = (tab: string) => () => setActiveTab?.(tab);
+  const nav = (tab: string) => ({ to: tabPath(tab), onClick: go(tab) });
 
   return (
     <div className="v2-page">
@@ -177,7 +188,7 @@ export const MyPage: React.FC<MyPageProps> = ({ currentUser, onOpenLogin, onOpen
               </>
             );
             return stat.to ? (
-              <button type="button" key={stat.label} className="v2-stat" onClick={go(stat.to)}>{body}</button>
+              <PageLink key={stat.label} className="v2-stat" to={tabPath(stat.to)} onNavigate={go(stat.to)}>{body}</PageLink>
             ) : (
               <div key={stat.label} className="v2-stat">{body}</div>
             );
@@ -191,29 +202,29 @@ export const MyPage: React.FC<MyPageProps> = ({ currentUser, onOpenLogin, onOpen
         </HubSection>
 
         <HubSection title="내가 남긴 것">
-          <NavRow icon={<BookOpen size={20} />} label="디지털 엔딩노트" onClick={go('ending-note')} />
+          <NavRow icon={<BookOpen size={20} />} label="디지털 엔딩노트" {...nav('ending-note')} />
           {/* 00-36 §3.1 최우선 구멍 — 06-05 D-1~D-11(편지·음성·반출까지)이 다 구현됐는데
               마이페이지엔 입구가 없었다. 사이드바와 같은 라우트로 연결. */}
-          <NavRow icon={<Mail size={20} />} label="유족 메시지 보관함" onClick={go('farewell-messages')} />
+          <NavRow icon={<Mail size={20} />} label="유족 메시지 보관함" {...nav('farewell-messages')} />
           {/* 🔄 2026-09-21 사람 지시 — "디지털 자산 정리" → "디지털 정산"(modeNav.ts 라벨과 일치), 그리고 이 행을
               "내 부고장 · 추모관" 위로 올렸다(둘의 순서를 맞바꿈). */}
-          <NavRow icon={<PhoneHeartIcon size={20} color="currentColor" />} label="디지털 정산" onClick={go('digital-estate')} />
-          <NavRow icon={<Flower2 size={20} />} label="내 부고장 · 추모관" onClick={go('my-obituaries-memorials')} />
+          <NavRow icon={<PhoneHeartIcon size={20} color="currentColor" />} label="디지털 정산" {...nav('digital-estate')} />
+          <NavRow icon={<Flower2 size={20} />} label="내 부고장 · 추모관" {...nav('my-obituaries-memorials')} />
           {/* 00-36 §4.7(SCR-021) — 추모관에 내가 회원으로 남긴 글. 1차는 읽기 전용 */}
-          <NavRow icon={<PenLine size={20} />} label="내가 남긴 방명록" onClick={go('my-guestbook')} />
+          <NavRow icon={<PenLine size={20} />} label="내가 남긴 방명록" {...nav('my-guestbook')} />
         </HubSection>
 
         {/* 00-36 §4.6(SCR-020) — 행은 하나다. 공유된 엔딩노트와 수락한 가족 지정은 같은
             FamilyDesignation 한 줄에서 나오므로 두 행으로 나누면 같은 것을 두 번 보여준다.
             🔴 건수 배지·"n건 공유됨" 같은 기대를 만드는 표기를 달지 않는다. */}
         <HubSection title="나에게 공유된 것">
-          <NavRow icon={<Inbox size={20} />} label="나를 가족으로 지정한 분" onClick={go('family-shared')} />
+          <NavRow icon={<Inbox size={20} />} label="나를 가족으로 지정한 분" {...nav('family-shared')} />
         </HubSection>
 
         <HubSection title="내 활동과 계정">
           {/* 🔄 2026-09-21 M-2(00-36 §5 #6·#7) — "상담 신청 내역"이 신청 화면(counseling)을 열던 오연결을
               고쳤다. 이제 SCR-019 "내 상담 내역"(업체 상담 + 전문가 상담 한 목록)으로 간다. */}
-          <NavRow icon={<Send size={20} />} label="내 상담 내역" onClick={go('my-consultations')} />
+          <NavRow icon={<Send size={20} />} label="내 상담 내역" {...nav('my-consultations')} />
           {/* 5-1 — 푸터와 같은 URL·같은 말풍선 아이콘, 새 창. 문의는 카톡 안에서 끝나므로 숫자·배지를 달지 않는다 */}
           <NavRow icon={<MessageCircle size={20} />} label="카카오톡으로 문의하기" href={KAKAO_CHANNEL_CHAT_URL} />
         </HubSection>

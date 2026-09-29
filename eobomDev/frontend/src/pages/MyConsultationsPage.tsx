@@ -3,6 +3,7 @@ import { ChevronRight } from 'lucide-react';
 import { apiFetch } from '../lib/api';
 import { backdropCloseProps } from '../utils/backdropClose';
 import '../styles/design-v2.css';
+import { PageLink } from '../components/common/PageLink';
 
 // 00-36 §4.4(SCR-019) — "내 상담 내역". `Lead`(업체 상담)와 `ConsultRequest`(전문가 상담)는 사용자에게
 // 같은 것이라(2026-09-10 사람 정정 — 통계도 합산) 두 목록을 **한 목록**으로 합쳐 최신순으로 보여준다.
@@ -156,7 +157,16 @@ export const MyConsultationsPage: React.FC<MyConsultationsPageProps> = ({ curren
         {!loadError && items !== null && items.length === 0 && (
           <>
             <p className="v2-empty">아직 신청하신 상담이 없습니다.</p>
-            <button type="button" className="v2-btn-primary" onClick={() => setActiveTab?.('counseling')}>상담 신청</button>
+            <PageLink
+              to="/counseling"
+              className="v2-btn-primary"
+              loginRequired
+              currentUser={currentUser}
+              onOpenLogin={onOpenLogin}
+              onNavigate={() => setActiveTab?.('counseling')}
+            >
+              상담 신청
+            </PageLink>
           </>
         )}
 

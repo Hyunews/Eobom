@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { ChevronRight } from 'lucide-react';
 import { Footer } from '../Footer';
 import { MODE_MENUS, MODE_LABELS, HOME_DUO_LABELS, type NavMode, type ModeMenuItem } from '../../lib/modeNav';
+import { PageLink, tabPath } from '../common/PageLink';
 import { parseMemorialLink } from '../../utils/memorialLink';
 import { SCROLL_HOME_MOBILE_KEY } from '../../lib/storage';
 
@@ -137,12 +138,9 @@ export const HomeMobile: React.FC<HomeMobileProps> = ({ currentUser, onOpenLogin
     }
   };
 
-  // ⓓ 메뉴 줄 클릭 — Header.tsx goToModeItem과 같은 로그인 게이트
+  // ⓓ 메뉴 줄 클릭 — Header.tsx goToModeItem과 같은 로그인 게이트.
+  // 🔄 09-29 — 링크(PageLink)로 바뀌어 게이트는 PageLink가 맡는다(비로그인+loginRequired=버튼).
   const goToModeItem = (mode: NavMode, item: ModeMenuItem) => {
-    if (item.loginRequired && !currentUser) {
-      onOpenLogin?.();
-      return;
-    }
     onSetMode?.(mode);
     setActiveTab?.(item.id);
   };
@@ -227,10 +225,13 @@ export const HomeMobile: React.FC<HomeMobileProps> = ({ currentUser, onOpenLogin
       {/* 🔄 2026-09-28 사람 지시 — 제목 아래 회색 "사실 한 줄" 삭제 */}
       <div style={{ marginTop: 'clamp(12px, 3svh, 24px)', flex: '1 1 auto', display: 'flex', flexDirection: 'column' }}>
         {MODE_MENUS[mode].map((item) => (
-          <button
+          <PageLink
             key={item.id}
-            type="button"
-            onClick={() => goToModeItem(mode, item)}
+            to={tabPath(item.id)}
+            loginRequired={item.loginRequired}
+            currentUser={currentUser}
+            onOpenLogin={onOpenLogin}
+            onNavigate={() => goToModeItem(mode, item)}
             className="home-m-menu-item"
             style={{
               display: 'flex', alignItems: 'center', justifyContent: 'space-between',
@@ -242,7 +243,7 @@ export const HomeMobile: React.FC<HomeMobileProps> = ({ currentUser, onOpenLogin
           >
             <span>{item.label}</span>
             <ChevronRight size={18} color="#94A3B8" />
-          </button>
+          </PageLink>
         ))}
       </div>
     </div>
@@ -309,9 +310,9 @@ export const HomeMobile: React.FC<HomeMobileProps> = ({ currentUser, onOpenLogin
               <button type="button" onClick={() => setShowMemorialInput((v) => !v)} style={{ background: 'none', border: 'none', fontSize: '14px', fontWeight: 600, color: '#1A2B4C', cursor: 'pointer', fontFamily: 'inherit', padding: 0, minHeight: '44px' }}>
                 추모관 링크로 입장
               </button>
-              <button type="button" onClick={() => setActiveTab?.('partner')} style={{ background: 'none', border: 'none', fontSize: '14px', fontWeight: 600, color: '#1A2B4C', cursor: 'pointer', fontFamily: 'inherit', padding: 0, minHeight: '44px' }}>
+              <PageLink to="/partner" onNavigate={() => setActiveTab?.('partner')} style={{ background: 'none', border: 'none', fontSize: '14px', fontWeight: 600, color: '#1A2B4C', cursor: 'pointer', fontFamily: 'inherit', padding: 0, minHeight: '44px' }}>
                 파트너 로그인
-              </button>
+              </PageLink>
 
               {showMemorialInput && (
                 <div style={{ position: 'absolute', bottom: '100%', left: 0, right: 0, marginBottom: '0.4rem', display: 'flex', flexDirection: 'column', gap: '0.5rem', backgroundColor: '#FFFFFF', border: '1px solid #E7E2DA', borderRadius: 'var(--r-md)', padding: '1rem', boxShadow: 'var(--el-3)' }}>

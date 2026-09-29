@@ -338,8 +338,15 @@ function AppShell() {
     setActiveTab,
   };
 
-  // 새 탭이 다른 탭에 로그인 정보를 묻고 답을 기다리는 최대 300ms — 빈 화면으로 둔다(storage.ts).
-  if (sessionPending) return <div style={{ minHeight: '100vh' }} />;
+  // 새 탭이 다른 탭에 로그인 정보를 묻고 답을 기다리는 최대 300ms(storage.ts) — 로그인 창·"로그인" 버튼을
+  // 먼저 띄우지 않고 배경+로고만 둔다. "로그인된 탭 있음" 표시가 최근일 때만 여기 온다.
+  if (sessionPending) {
+    return (
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <span style={{ color: 'var(--primary-color)', fontSize: '1.5rem', fontWeight: 700, letterSpacing: '0.05em' }}>이어봄</span>
+      </div>
+    );
+  }
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>

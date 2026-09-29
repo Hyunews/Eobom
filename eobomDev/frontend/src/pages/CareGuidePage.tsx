@@ -4,6 +4,7 @@ import careGuideTasksData from '../mockData/careGuideTasks.json';
 import { getLegalLink } from '../lib/legalLink';
 import '../styles/design-v2.css';
 import { backdropCloseProps } from '../utils/backdropClose';
+import { PageLink } from '../components/common/PageLink';
 
 interface CareGuideTask {
   id: number;
@@ -55,7 +56,7 @@ const TIME_SECTIONS: TimeSection[] = [
 // docs/00_핵심플랫폼/00-39 §6-3~§6-14 — 값과 클래스는 styles/design-v2.css(:root --v2-*)가
 // 정본. 이 페이지가 그룹①(목록·체크리스트)의 대표이고, 여기서 뽑힌 클래스를
 // facility·counseling·pickup·my-obituaries가 그대로 이어 쓴다(§9.1).
-export const CareGuidePage: React.FC<CareGuidePageProps> = ({ setActiveTab }) => {
+export const CareGuidePage: React.FC<CareGuidePageProps> = ({ setActiveTab, currentUser, onOpenLogin }) => {
   const [tasks, setTasks] = useState<CareGuideTask[]>(careGuideTasksData as CareGuideTask[]);
   const [modalTaskId, setModalTaskId] = useState<number | null>(null);
   const [activeSectionKey, setActiveSectionKey] = useState<string>(TIME_SECTIONS[0].key);
@@ -129,9 +130,17 @@ export const CareGuidePage: React.FC<CareGuidePageProps> = ({ setActiveTab }) =>
               >
                 내용 보기
               </button>
-              <button type="button" className="v2-btn-solid" onClick={() => setActiveTab?.('counseling')}>
+              {/* 🔄 09-29 — 이동은 링크(00-34 §2.2). counseling은 loginRequired(modeNav.ts) */}
+              <PageLink
+                to="/counseling"
+                className="v2-btn-solid"
+                loginRequired
+                currentUser={currentUser}
+                onOpenLogin={onOpenLogin}
+                onNavigate={() => setActiveTab?.('counseling')}
+              >
                 전문가 상담
-              </button>
+              </PageLink>
             </div>
           </div>
 

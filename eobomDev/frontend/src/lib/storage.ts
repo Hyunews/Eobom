@@ -68,7 +68,7 @@ function storeSession<A extends Audience>(audience: A, payload: SessionPayload[A
   store.setItem(keys.DISPLAY_NAME, payload.displayName);
   if ('token' in payload && payload.token) {
     store.setItem(keys.TOKEN, payload.token);
-    if (audience === 'USER') setLoginHint(true);
+    if (audience === 'USER') startHeartbeat();
   }
   if ('refreshToken' in payload) {
     store.setItem((keys as typeof KEYS.ADMIN).REFRESH_TOKEN, payload.refreshToken);
@@ -81,27 +81,48 @@ function storeSession<A extends Audience>(audience: A, payload: SessionPayload[A
 function wipeSession(audience: Audience): void {
   const store = STORE[audience];
   Object.values(KEYS[audience]).forEach((key) => store.removeItem(key));
-  if (audience === 'USER') setLoginHint(false);
-}
-
-// 탭 간 공유용 "어딘가 로그인돼 있다" 힌트 — 토큰·이름 없이 '1'만 localStorage에 둔다. 새 탭이 이 힌트가
-// 있을 때만 다른 탭의 응답을 기다려, 로그인한 적 없는 방문자는 대기(빈 화면)가 없다.
-// 브라우저를 껐다 켜면 힌트만 남을 수 있는데, 그땐 한 번 기다려 답이 없으면 지운다.
-const LOGIN_HINT_KEY = 'eobom_user_login_hint';
-function setLoginHint(on: boolean): void {
-  try {
-    if (on) localStorage.setItem(LOGIN_HINT_KEY, '1');
-    else localStorage.removeItem(LOGIN_HINT_KEY);
-  } catch {
-    /* 저장 불가 환경 — 힌트 없이 동작(대기 없음) */
+  if (audience === 'USER') {
+    stopHeartbeat();
+    setLoginHint(false);
   }
 }
-function hasLoginHint(): boolean {
+
+// 탭 간 공유용 "어딘가 로그인돼 있다" 표시 — 🔴 시각(숫자)만 localStorage에 둔다. 토큰·이름 등 개인정보는
+// 절대 넣지 않는다(08-21 원칙 유지, 토큰은 sessionStorage에만). 로그인한 탭이 주기적으로 갱신하고, 로그아웃·
+// 탭 닫힘(pagehide) 때 지운다. 새 탭은 첫 화면 전에 이걸 동기로 읽어, 없거나 오래됐으면 기다리지 않는다.
+// 백그라운드 탭은 타이머가 1분에 한 번으로 늦춰질 수 있어 신선 판정을 넉넉히(90초) 잡는다 — 비정상 종료로
+// 표시가 남아도 그 시간 안에 새 탭이 한 번(최대 300ms) 기다리고 끝난다.
+const LOGIN_HINT_KEY = 'eobom_user_login_hint';
+const LOGIN_HINT_FRESH_MS = 90_000;
+const LOGIN_HINT_BEAT_MS = 15_000;
+function setLoginHint(on: boolean): void {
   try {
-    return localStorage.getItem(LOGIN_HINT_KEY) === '1';
+    if (on) localStorage.setItem(LOGIN_HINT_KEY, String(Date.now()));
+    else localStorage.removeItem(LOGIN_HINT_KEY);
+  } catch {
+    /* 저장 불가 환경 — 표시 없이 동작(대기 없음) */
+  }
+}
+function hasFreshLoginHint(): boolean {
+  try {
+    const at = Number(localStorage.getItem(LOGIN_HINT_KEY));
+    return at > 0 && Date.now() - at < LOGIN_HINT_FRESH_MS;
   } catch {
     return false;
   }
+}
+
+let heartbeat: ReturnType<typeof setInterval> | null = null;
+function startHeartbeat(): void {
+  setLoginHint(true);
+  if (heartbeat || typeof window === 'undefined') return;
+  heartbeat = setInterval(() => {
+    if (getToken('USER')) setLoginHint(true);
+  }, LOGIN_HINT_BEAT_MS);
+}
+function stopHeartbeat(): void {
+  if (heartbeat) clearInterval(heartbeat);
+  heartbeat = null;
 }
 
 export function setSession<A extends Audience>(audience: A, payload: SessionPayload[A]): void {
@@ -198,18 +219,29 @@ if (channel) {
     notifySession();
   };
 
-  // 새 탭 시작 시 토큰이 없으면 이미 로그인한 탭에 물어본다. 답이 없으면(다른 탭 없음) 그대로 로그아웃 상태.
+  // 새 탭 시작 시 토큰이 없고 "로그인된 탭 있음" 표시가 최근이면 그 탭에 물어본다(최대 300ms 대기).
+  // 표시가 없거나 오래됐으면 기다리지 않고 바로 비로그인으로 그린다. 답이 없어도 비로그인.
   if (getToken('USER')) {
-    setLoginHint(true);
-  } else if (hasLoginHint()) {
+    startHeartbeat();
+  } else if (hasFreshLoginHint()) {
     userSessionPending = true;
     postAuth({ type: 'REQUEST' });
     pendingTimer = setTimeout(() => {
-      if (!getToken('USER')) setLoginHint(false); // 답한 탭이 없다 — 남은 힌트를 정리
       finishPending();
       notifySession();
     }, SESSION_REQUEST_WAIT_MS);
   }
+
+  // 탭이 닫히면 표시를 지운다. 다른 로그인 탭이 남아 있으면 지워지는 걸 storage 이벤트로 보고 바로 다시 쓴다.
+  window.addEventListener('pagehide', () => {
+    if (getToken('USER')) setLoginHint(false);
+  });
+  window.addEventListener('pageshow', () => {
+    if (getToken('USER')) setLoginHint(true); // 뒤로가기 캐시 복원 대비
+  });
+  window.addEventListener('storage', (e) => {
+    if (e.key === LOGIN_HINT_KEY && e.newValue === null && getToken('USER')) setLoginHint(true);
+  });
 }
 
 // §4.4 — 2026-08-21 localStorage→sessionStorage 전환 때 남긴 한시적 청소 코드.

@@ -4,6 +4,7 @@ import { BACKEND_URL, GEOLOCATION_FALLBACK, LOCATION_FEATURE_ENABLED } from '../
 import { LocationSearchBox } from '../components/LocationSearchBox';
 import '../styles/design-v2.css';
 import { backdropCloseProps } from '../utils/backdropClose';
+import { useLoginPromptOnEntry } from '../hooks/useLoginPromptOnEntry';
 
 // 08-19 9차(개발자 직접 지시) — DigitalEstatePage 서브탭 3개(digital/physical/memorial) 중
 // "현물 유품 정리(physical)"를 별도 도메인(tab: 'pickup')으로 분리. 내용은 그대로 옮겼다
@@ -18,7 +19,8 @@ interface PickupPageProps {
   onOpenLogin?: () => void;
 }
 
-export const PickupPage: React.FC<PickupPageProps> = () => {
+export const PickupPage: React.FC<PickupPageProps> = ({ currentUser, onOpenLogin }) => {
+  useLoginPromptOnEntry(currentUser, onOpenLogin); // 00-34 §2.2 결정 ② — 주소 직접 입력 안전장치
   const vendors = digitalEstateData.vendors;
 
   // 지역필터 — 기존 "서울/경기" 같은 임의 권역 대신 장사시설(FacilityPage)과 동일하게

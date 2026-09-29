@@ -2,6 +2,7 @@ import React from 'react';
 import { UserPlus, ChevronLeft } from 'lucide-react';
 import { FarewellMessageCard, RELATIONSHIP_LABEL } from './FarewellMessageCard';
 import type { FarewellViewProps } from './types';
+import { PageLink } from '../common/PageLink';
 
 // 00-38 §8.1-1 ⓑ·ⓒ — 마스터·디테일 2화면 + 리더. 1단계(받는 분 목록) → 2단계(그 사람의
 // 편지, [날짜+한 줄 제목]만) → 리더/컴포저는 FarewellMessageCard를 그대로 재사용한다(ⓔ —
@@ -88,13 +89,13 @@ export const FarewellMobileView: React.FC<FarewellViewProps> = ({
         {setActiveTab && (
           <p className="v2-notice" style={{ marginTop: '56px', textAlign: 'center' }}>
             장례 희망·연명의료 등 남겨두실 것이 있다면{' '}
-            <button
-              type="button"
-              onClick={() => setActiveTab('ending-note')}
+            <PageLink
+              to="/ending-note"
+              onNavigate={() => setActiveTab('ending-note')}
               style={{ background: 'none', border: 'none', padding: 0, color: 'var(--v2-point)', fontWeight: 700, textDecoration: 'underline', cursor: 'pointer', fontSize: 'inherit' }}
             >
               디지털 엔딩노트 →
-            </button>
+            </PageLink>
           </p>
         )}
       </div>

@@ -2,6 +2,7 @@ import React from 'react';
 import { UserCheck, LogIn, LogOut, Menu, ChevronDown } from 'lucide-react';
 import { EobomLogo } from './EobomLogo';
 import { MODE_MENUS, type NavMode, type ModeMenuItem } from '../lib/modeNav';
+import { PageLink, tabPath } from './common/PageLink';
 
 interface HeaderProps {
   setActiveTab: (tab: string) => void;
@@ -55,18 +56,23 @@ export const Header: React.FC<HeaderProps> = ({ setActiveTab, onOpenLogin, curre
   // loginRequired 게이트를 그대로 따른다 — 헤더 메뉴 자체는 로그인 여부와 무관하게 항상
   // 노출한다(비로그인 사용자가 사이드바 없이도 페이지를 옮겨 다닐 수 있어야 하므로,
   // 2026-09-18 사람 확정 — 항목 클릭 시 loginRequired면 로그인 모달로 게이트).
+  // 🔄 09-29 — 이동 메뉴는 링크(PageLink, 00-34 §2.2). loginRequired인 항목은 비로그인이면 PageLink가
+  // 링크가 아니라 버튼으로 그려 로그인 창만 연다(우클릭 "새 탭에서 열기"가 아예 없게).
+  // 여기 남은 건 보통 클릭 때만 도는 기존 부가 동작(모드 지정 + 스크롤 저장·이동).
   const goToModeItem = (mode: NavMode, item: ModeMenuItem) => {
-    if (item.loginRequired && !currentUser) {
-      onOpenLogin();
-      return;
-    }
     onSetMode?.(mode);
     setActiveTab(item.id);
   };
 
   // 모드 버튼 자체를 클릭하면 그 드롭다운의 첫 항목 화면으로 간다(MODE_MENUS가 정본이라
   // 메뉴 순서가 바뀌어도 따라간다). 첫 항목의 loginRequired 게이트도 같이 적용된다.
-  const goToModeFirst = (mode: NavMode) => goToModeItem(mode, MODE_MENUS[mode][0]);
+  const modeLinkProps = (mode: NavMode, item: ModeMenuItem) => ({
+    to: tabPath(item.id),
+    loginRequired: item.loginRequired,
+    currentUser,
+    onOpenLogin,
+    onNavigate: () => goToModeItem(mode, item),
+  });
 
   return (
     <header className={headerClassName}>
@@ -88,13 +94,15 @@ export const Header: React.FC<HeaderProps> = ({ setActiveTab, onOpenLogin, curre
             배경(A안 흰 헤더)에 맞는 네이비/그린 배색을 쓴다 — 기존 "header" variant는 다크 배경
             전제(흰 글자)라 흰 헤더에서는 보이지 않는다. 00-40 §3.3 M-10 — 히어로 칸(투명) 위에서만
             다시 "header" variant(흰 워드마크)로 돌아간다. */}
-        <div
-          onClick={goHome}
+        <PageLink
+          to="/"
+          look="plain"
+          onNavigate={goHome}
           className="header-logo-wrap"
           title="이어봄 (Eobom) 디지털 엔딩 & 웰다잉 토탈 케어 플랫폼"
         >
           <EobomLogo variant={isHeroOverlay ? 'header' : 'symbol'} height={42} />
-        </div>
+        </PageLink>
 
         {/* 헤더 메뉴 — 00-39 §6-3(2026-09-18) 사람 확정으로 로그인 여부와 무관하게 항상
             노출한다(사이드바 폐지로 비로그인 사용자의 유일한 내비게이션 수단이 됨). 로그인이
@@ -104,40 +112,30 @@ export const Header: React.FC<HeaderProps> = ({ setActiveTab, onOpenLogin, curre
             홈의 768px 경계가 그 640px 숨김 폭보다 넓어 641~768px 구간이 남기 때문). */}
         {!homeMobileOverlay && (
         <nav className="header-nav">
-          <button type="button" className="header-nav-item" onClick={goHome}>홈</button>
+          <PageLink to="/" className="header-nav-item" onNavigate={goHome}>홈</PageLink>
           <div className="hdr-mode">
-            <button type="button" className="header-nav-item hdr-mode-trigger" onClick={() => goToModeFirst('prep')}>
+            <PageLink className="header-nav-item hdr-mode-trigger" {...modeLinkProps('prep', MODE_MENUS.prep[0])}>
               생전 준비 <ChevronDown size={14} />
-            </button>
+            </PageLink>
             <div className="hdr-mode-panel">
               {MODE_MENUS.prep.map((item) => (
-                <button
-                  key={item.id}
-                  type="button"
-                  className="hdr-mode-item"
-                  onClick={() => goToModeItem('prep', item)}
-                >
+                <PageLink key={item.id} className="hdr-mode-item" {...modeLinkProps('prep', item)}>
                   <span>{item.label}</span>
                   {item.status === 'preview' && <span className="v2-badge-neutral">준비 중</span>}
-                </button>
+                </PageLink>
               ))}
             </div>
           </div>
           <div className="hdr-mode">
-            <button type="button" className="header-nav-item hdr-mode-trigger" onClick={() => goToModeFirst('bereaved')}>
+            <PageLink className="header-nav-item hdr-mode-trigger" {...modeLinkProps('bereaved', MODE_MENUS.bereaved[0])}>
               임종·사후 정리 <ChevronDown size={14} />
-            </button>
+            </PageLink>
             <div className="hdr-mode-panel">
               {MODE_MENUS.bereaved.map((item) => (
-                <button
-                  key={item.id}
-                  type="button"
-                  className="hdr-mode-item"
-                  onClick={() => goToModeItem('bereaved', item)}
-                >
+                <PageLink key={item.id} className="hdr-mode-item" {...modeLinkProps('bereaved', item)}>
                   <span>{item.label}</span>
                   {item.status === 'preview' && <span className="v2-badge-neutral">준비 중</span>}
-                </button>
+                </PageLink>
               ))}
             </div>
           </div>
@@ -154,14 +152,16 @@ export const Header: React.FC<HeaderProps> = ({ setActiveTab, onOpenLogin, curre
         <div className="header-actions-wrap">
           {currentUser ? (
             <div className="header-user-group">
-              <span
-                onClick={() => setActiveTab('mypage')}
+              <PageLink
+                to="/mypage"
+                look="plain"
+                onNavigate={() => setActiveTab('mypage')}
                 title="마이페이지"
                 className="header-user-chip"
               >
                 <UserCheck size={16} className="header-user-icon" style={{ flexShrink: 0 }} />
                 <span className="header-user-name-text">{currentUser}님</span>
-              </span>
+              </PageLink>
               {/* 480px 이하에서 햄버거+로고+메뉴+사용자칩+이 버튼까지 겹치며 헤더가 깨지는 문제(2026-08-20
                   발견) — 모바일 드로어가 있는 경로(onOpenMobileMenu 존재)에서는 이 버튼을 헤더에서 숨기고
                   Sidebar.tsx 드로어 하단으로 옮긴다. 드로어가 없는 홈에서는 대체 진입점이 없으므로 그대로 둔다.

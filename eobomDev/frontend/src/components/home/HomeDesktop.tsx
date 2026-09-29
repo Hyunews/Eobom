@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { Footer } from '../Footer';
 import { MODE_MENUS, MODE_LABELS, HOME_DUO_LABELS, type NavMode, type ModeMenuItem } from '../../lib/modeNav';
+import { PageLink, tabPath } from '../common/PageLink';
 import { parseMemorialLink } from '../../utils/memorialLink';
 import { SCROLL_HOME_KEY } from '../../lib/storage';
 
@@ -175,12 +176,9 @@ export const HomeDesktop: React.FC<HomeDesktopProps> = ({ currentUser, onOpenLog
     }
   };
 
-  // ⓓ 메뉴 줄 클릭 — Header.tsx goToModeItem과 같은 로그인 게이트(C7)
+  // ⓓ 메뉴 줄 클릭 — Header.tsx goToModeItem과 같은 로그인 게이트(C7).
+  // 🔄 09-29 — 링크(PageLink)로 바뀌어 게이트는 PageLink가 맡는다(비로그인+loginRequired=버튼).
   const goToModeItem = (mode: NavMode, item: ModeMenuItem) => {
-    if (item.loginRequired && !currentUser) {
-      onOpenLogin?.();
-      return;
-    }
     onSetMode?.(mode);
     setActiveTab?.(item.id);
   };
@@ -314,10 +312,13 @@ export const HomeDesktop: React.FC<HomeDesktopProps> = ({ currentUser, onOpenLog
                       }}
                     >
                       {items.map((item) => (
-                        <button
+                        <PageLink
                           key={item.id}
-                          type="button"
-                          onClick={() => goToModeItem(mode, item)}
+                          to={tabPath(item.id)}
+                          loginRequired={item.loginRequired}
+                          currentUser={currentUser}
+                          onOpenLogin={onOpenLogin}
+                          onNavigate={() => goToModeItem(mode, item)}
                           className="home-duo-menu-item"
                           style={{
                             display: 'flex', alignItems: 'center', justifyContent: 'space-between',
@@ -328,7 +329,7 @@ export const HomeDesktop: React.FC<HomeDesktopProps> = ({ currentUser, onOpenLog
                         >
                           <span>{item.label}</span>
                           {item.status === 'preview' && <span className="v2-badge-neutral">준비 중</span>}
-                        </button>
+                        </PageLink>
                       ))}
                     </div>
                   </div>
@@ -343,9 +344,9 @@ export const HomeDesktop: React.FC<HomeDesktopProps> = ({ currentUser, onOpenLog
             <button type="button" onClick={() => setShowMemorialInput((v) => !v)} style={{ background: 'none', border: 'none', fontSize: '15px', fontWeight: 600, color: '#5B7065', cursor: 'pointer', fontFamily: 'inherit' }}>
               추모관 링크로 입장
             </button>
-            <button type="button" onClick={() => setActiveTab?.('partner')} style={{ background: 'none', border: 'none', fontSize: '15px', fontWeight: 600, color: '#8A9199', cursor: 'pointer', fontFamily: 'inherit' }}>
+            <PageLink to="/partner" onNavigate={() => setActiveTab?.('partner')} style={{ background: 'none', border: 'none', fontSize: '15px', fontWeight: 600, color: '#8A9199', cursor: 'pointer', fontFamily: 'inherit' }}>
               파트너 로그인
-            </button>
+            </PageLink>
 
             {showMemorialInput && (
               <div style={{ position: 'absolute', bottom: '72px', display: 'flex', flexDirection: 'column', gap: '0.5rem', backgroundColor: '#FFFFFF', border: '1px solid #E7E2DA', borderRadius: 'var(--r-md)', padding: '1rem', boxShadow: 'var(--el-3)', width: '320px' }}>

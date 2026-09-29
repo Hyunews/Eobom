@@ -4,6 +4,7 @@ import { apiFetch, ApiError } from '../lib/api';
 import { formatKST } from '../utils/obituaryCard';
 import { copyObituaryLink } from '../utils/kakaoShare';
 import { backdropCloseProps } from '../utils/backdropClose';
+import { PageLink } from '../components/common/PageLink';
 import '../styles/design-v2.css';
 
 // 🔄 09-07 사용자 지시 — "추모관은 부고장 생성에 딸리지 않고, 추모관 페이지에서 따로
@@ -383,9 +384,9 @@ export const MemorialPage: React.FC<MemorialPageProps> = ({ currentUser, onOpenL
                 </div>
 
                 <div className="v2-modal-actions">
-                  <button type="button" className="v2-btn-outline" onClick={() => window.open(`/m/${modalTarget.slug}`, '_blank', 'noopener,noreferrer')}>
+                  <PageLink newTab to={`/m/${modalTarget.slug}`} className="v2-btn-outline">
                     <ExternalLink size={14} /> 열기
-                  </button>
+                  </PageLink>
                   <button type="button" className="v2-btn-outline" onClick={() => copyAddress(modalTarget)}>
                     <Copy size={14} /> 주소 복사
                   </button>
