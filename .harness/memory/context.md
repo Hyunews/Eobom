@@ -38,7 +38,7 @@ devDB실측=8행뿐·"더보기"실사례없음)전부완료(tsc/build통과)—
 🔴편차:pickup이v2→구form역행(→backlog).🔴§4.5동의3층미착수(→⑲).🔴파기배치`--confirm`금지·dev재시작필요.
 🔴사람실기동완전대기.🟡보류:pickup거리순·전문가region·height:36px3곳.✅09-28`family-invite`v2이관+거절모달(§6.7,00-27§9.1-4-2·4-3)완료·사람실검증(09-28).
 ✅**그룹④·⑤완료**(09-29,`00-39`§9.1)—⑤홈=`00-40`분기1~4전부✅·데스크톱G4-c·모바일H-1~9사람확인·`00-39`§6.7`home`등재.
-🔴안쓰는파일(DomainOverviewPage·EntryBoxes·domainSlides)목록만,삭제는사람확인후.
+✅안쓰는파일3개삭제(09-29,Badge→common/Badge.tsx,tsc·build통과,커밋대기).▶[Sonnet]index.css전용블록삭제(walkthrough 09-29 표,사용처0).🟡뒤로가기칸복원수정(reloadChecked)=원인추정·사람검증대기.
 ✅wt글자깨짐복구(09-28,[Opus]점검=깨진글자0).🔴한글문서는Edit/Write로만—셸리다이렉션금지.
 ✅로그인후사용자아이콘 섹션1흰색버그수정(09-29,Header.tsx `UserCheck` color prop고정값→className, index.css `.header-user-icon` 히어로스코프추가,tsc·build통과)→▶사람실기동검증대기.
 **3.[Gemini]**🔴게이트45건대기(09-11~21·wt204~)·🟡옛스펙3건→⑭.🟡devDB삭제분7건—D-8(🔴CONFIRM).✅reports경로정리완료(09-16).
