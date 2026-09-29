@@ -184,7 +184,7 @@ model Partner {
   passwordHash     String // bcrypt 해시 (평문 저장 금지)
   refreshTokenHash String? // 발급된 refresh token의 sha256 해시 (회전·재사용 탐지용, §6.1)
 
-  partnerType String @default("FUNERAL_FACILITY") // FUNERAL_FACILITY(01 장사시설) | ESTATE_CLEANUP(03 유품 수거)
+  partnerType String @default("FUNERAL_FACILITY") // FUNERAL_FACILITY(01 장사시설) | ESTATE_CLEANUP(03 유품 정리)
   // 기본값을 01로 두어 기존 데이터·기존 흐름이 그대로 유효하다 — 마이그레이션 무해 (03-02 §3.1)
 
   bizRegNo      String  @unique // 사업자등록번호 (하이픈 제거 10자리)

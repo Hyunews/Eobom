@@ -3,7 +3,7 @@ import { X, Check, ExternalLink, ChevronRight } from 'lucide-react';
 import { backdropCloseProps } from '../utils/backdropClose';
 
 // 08-19 9차(개발자 직접 지시) — 기존 3서브탭(digital/physical/memorial) 중 "디지털 자산·계정
-// 정산"만 남기고, 나머지 둘은 PickupPage(유품 수거)·MemorialPage(디지털 추모관)로 분리했다.
+// 정산"만 남기고, 나머지 둘은 PickupPage(유품 정리)·MemorialPage(디지털 추모관)로 분리했다.
 //
 // 00-39 그룹② 재구현(2026-09-21) — 표현 계층만 v2 클래스로 옮겼다. 인라인 스타일 0.
 // 🔄 2026-09-21 사람 지시 — 예시 데이터 카탈로그("고인 디지털 계정 정산 신청": 증빙 업로드 + 계정별 신청 목록)를

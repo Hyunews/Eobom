@@ -17,7 +17,7 @@
     { "name": "가람 유품 정리 클린", "province": "부산", "district": "해운대구", "region": "부산 해운대구", "rating": 4.9, "tags": ["특수 소독 청소", "가전/가구 수거"] },
     { "name": "솔빛 유품 소각 및 기부센터", "province": "경기", "district": "수원시", "region": "경기 수원시", "rating": 4.7, "tags": ["소각 처리증 발급", "사회복지 기부 연계"] },
     { "name": "백두 특수 청소 & 유품 정산", "province": "강원", "district": "춘천시", "region": "강원 춘천시", "rating": 4.9, "tags": ["24시 긴급 출동", "악취 제거 탈취"] },
-    { "name": "호남 안심 유품 수거 케어", "province": "전남광주", "district": "서구", "region": "전남광주 서구", "rating": 4.8, "tags": ["유족 맞춤 견적", "귀중품 현장 인도"] },
+    { "name": "호남 안심 유품 정리 케어", "province": "전남광주", "district": "서구", "region": "전남광주 서구", "rating": 4.8, "tags": ["유족 맞춤 견적", "귀중품 현장 인도"] },
     { "name": "한라 디지털 & 현물 유품 정리", "province": "제주", "district": "제주시", "region": "제주 제주시", "rating": 5.0, "tags": ["도서 지역 출장", "원스톱 청소"] },
     { "name": "세종 유가족 안심 정찰제", "province": "세종", "district": "세종시", "region": "세종 세종시", "rating": 4.9, "tags": ["비대면 소독", "유품 포장 이사"] },
     { "name": "영남 청솔 특수 소독 & 정리", "province": "대구", "district": "중구", "region": "대구 중구", "rating": 4.8, "tags": ["특수 약품 소독", "유가족 동행"] },

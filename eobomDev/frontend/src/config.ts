@@ -41,7 +41,7 @@ export const GEOLOCATION_FALLBACK = { lat: 37.5641, lng: 126.9979 };
 // (2) TermsPage 제6장·PrivacyPage 제3-6조 게시를 함께 묶고 있었다. 사람 결정(2026-09-10)으로
 // 둘을 분리한다 — 기능은 지금 켜되, 조문은 신고 완료 전까지 계속 미게시로 둔다.
 
-// GPS 자동감지 기능 스위치 — FacilityPage(01 장사시설)·PickupPage(03 유품수거)에서만 쓰인다.
+// GPS 자동감지 기능 스위치 — FacilityPage(01 장사시설)·PickupPage(03 유품정리)에서만 쓰인다.
 // 신고 여부와 무관하게 기능 자체는 켠다(2026-09-10 사람 결정 ①). 신고 완료/철회 시 Vercel
 // env(VITE_LOCATION_FEATURE)로 배포 재빌드 없이 전환할 수 있도록 env override를 우선한다.
 export const LOCATION_FEATURE_ENABLED = import.meta.env.VITE_LOCATION_FEATURE !== 'false';
