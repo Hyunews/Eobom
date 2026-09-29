@@ -3328,6 +3328,10 @@ a.v2-btn-solid {
 /* -- .v2-tabs: page tabs (06-04 s6.1-1 T-8, 2026-09-29) --
    bottom 1px divider + 2px point line on selected tab only. No fill / pill. */
 .v2-tabs {
+  width: calc(var(--v2-toc-width) + var(--v2-reading-width) + 48px);
+  max-width: 100%;
+  margin-left: auto;
+  margin-right: auto;
   display: flex;
   gap: 24px;
   border-bottom: 1px solid var(--v2-divider-strong);

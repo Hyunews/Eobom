@@ -796,12 +796,8 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
         </div>
 
         {/* §5 동의 안내 — 작성 시작 시점(가입 시점 아님)에 받는다. 이미 동의했으면 요약만 보여준다. */}
-        <div id="ending-note-consent" ref={consentRef} className="v2-content" style={{ marginBottom: '32px' }}>
-          {policyAgreedAt ? (
-            <p style={{ fontSize: 'var(--v2-fs-support)', color: 'var(--v2-text-muted)', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <CheckCircle2 size={16} color="var(--v2-point)" /> 열람 정책에 동의하셨습니다({new Date(policyAgreedAt).toLocaleDateString('ko-KR')}).
-            </p>
-          ) : (
+        <div id="ending-note-consent" ref={consentRef} className="v2-content" style={{ marginBottom: policyAgreedAt ? 0 : '32px' }}>
+          {policyAgreedAt ? null : (
             <>
               <h3 style={{ fontSize: 'var(--v2-fs-item-title)', fontWeight: 700, color: 'var(--v2-text-main)', display: 'flex', alignItems: 'center', gap: '8px', margin: '0 0 12px' }}>
                 <AlertTriangle color="var(--v2-point)" size={20} /> 작성을 시작하기 전에 확인해 주세요
@@ -989,7 +985,7 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
         <div className="v2-note-draft-grid">
           <div className="v2-field">
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', flexWrap: 'wrap' }}>
-              <label htmlFor="en-draft-text">초안 (직접 입력)</label>
+              <label htmlFor="en-draft-text" style={{ fontSize: 'var(--v2-fs-item-title)', fontWeight: 700, color: 'var(--v2-text-main)' }}>초안 (직접 입력)</label>
               {ocrEnabled && (
                 <button
                   type="button"
@@ -1059,12 +1055,17 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
           >
             {saveButtonLabel(savingState.WILL_DRAFT)}
           </button>
-          <button type="button" onClick={() => setLargeText((v) => !v)} className="v2-btn-outline">
-            {largeText ? '보통 글씨로' : '큰 글씨로 보기'}
-          </button>
-          <button type="button" onClick={handlePrintDraft} className="v2-btn-outline">
-            <Printer size={18} /> 인쇄하기
-          </button>
+          {/* 사람 지시(09-29) — 모바일에서는 큰 글씨·인쇄 버튼을 두지 않는다. */}
+          {!isMobile && (
+            <>
+              <button type="button" onClick={() => setLargeText((v) => !v)} className="v2-btn-outline">
+                {largeText ? '보통 글씨로' : '큰 글씨로 보기'}
+              </button>
+              <button type="button" onClick={handlePrintDraft} className="v2-btn-outline">
+                <Printer size={18} /> 인쇄하기
+              </button>
+            </>
+          )}
           <button type="button" onClick={handleCopyDraft} className="v2-btn-outline">
             <Copy size={18} /> 텍스트 복사
           </button>
