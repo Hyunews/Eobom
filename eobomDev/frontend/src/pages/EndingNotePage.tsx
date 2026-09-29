@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import {
-  ScrollText,
   LogIn,
   Printer,
   Copy,
@@ -67,6 +67,17 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
   const consentRef = useRef<HTMLDivElement>(null);
   const isMobile = useIsMobile();
+
+  // 06-04 §6.1-1 T-5·T-6 — 탭은 주소(?tab=will)와 연동. tab 없음·모르는 값 = 엔딩노트.
+  // 전환은 push라 뒤로가기로 이전 탭에 돌아온다.
+  const [searchParams, setSearchParams] = useSearchParams();
+  const activeNoteTab: 'note' | 'will' = searchParams.get('tab') === 'will' ? 'will' : 'note';
+  const setNoteTab = (tab: 'note' | 'will') => {
+    if (tab === activeNoteTab) return;
+    setSearchParams(tab === 'will' ? { tab: 'will' } : {});
+  };
+  // T-4 — 탭 전환 직후 렌더가 끝난 뒤에 스크롤해야 해서(패널이 hidden→표시) 대상 섹션을 ref에 둔다.
+  const pendingScrollRef = useRef<string | null>(null);
 
   // "한눈에 보기" 요약 모달. summaryTriggerRef는 닫을 때 포커스를 되돌리는 용도(접근성).
   const [summaryOpen, setSummaryOpen] = useState(false);
@@ -290,8 +301,32 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
     });
   };
 
-  const scrollToWillDraft = () => {
-    document.getElementById('ending-note-section-WILL_DRAFT')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  const goToWillTab = () => {
+    setNoteTab('will');
+    requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: 'smooth' }));
+  };
+
+  // T-4 — ⑨ 저장 뒤 "유언장 소재 안내" 링크: 엔딩노트 탭으로 전환하고 ⑧을 연다
+  // (데스크톱 = 펼치고 스크롤 / 모바일 = ⑧ 리더 모달).
+  const goToWillLocation = () => {
+    setNoteTab('note');
+    setExpandedSection('WILL_LOCATION');
+    pendingScrollRef.current = 'WILL_LOCATION';
+  };
+  useEffect(() => {
+    const code = pendingScrollRef.current;
+    if (!code || activeNoteTab !== 'note' || isMobile) return;
+    pendingScrollRef.current = null;
+    document.getElementById(`ending-note-section-${code}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, [activeNoteTab, expandedSection, isMobile]);
+
+  // T-8 — 좌우 화살표로 탭 이동(roving tabindex).
+  const handleTabKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+    e.preventDefault();
+    const next = activeNoteTab === 'note' ? 'will' : 'note';
+    setNoteTab(next);
+    document.getElementById(`ending-note-tab-${next}`)?.focus();
   };
 
   // "한눈에 보기" 모달 — ESC로 닫기, 열려 있는 동안 body 스크롤 잠금, 닫히면 트리거 버튼으로
@@ -405,7 +440,7 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
   const handleSummaryRowSelect = (code: string) => {
     setSummaryOpen(false);
     if (code === 'WILL_DRAFT') {
-      scrollToWillDraft();
+      goToWillTab();
     } else {
       openSectionFromToc(code);
     }
@@ -732,6 +767,34 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
       </div>
 
       <div style={{ filter: !currentUser ? 'blur(3px)' : 'none' }}>
+        {/* 06-04 §6.1-1 T-1 — 본문 맨 위 탭 2개. 동의 안내는 두 탭 공통이라 탭 아래에 둔다. */}
+        <div className="v2-tabs" role="tablist" aria-label="엔딩노트 구분" onKeyDown={handleTabKeyDown}>
+          <button
+            type="button"
+            role="tab"
+            id="ending-note-tab-note"
+            aria-selected={activeNoteTab === 'note'}
+            aria-controls="ending-note-panel-note"
+            tabIndex={activeNoteTab === 'note' ? 0 : -1}
+            className="v2-tab"
+            onClick={() => setNoteTab('note')}
+          >
+            엔딩노트
+          </button>
+          <button
+            type="button"
+            role="tab"
+            id="ending-note-tab-will"
+            aria-selected={activeNoteTab === 'will'}
+            aria-controls="ending-note-panel-will"
+            tabIndex={activeNoteTab === 'will' ? 0 : -1}
+            className="v2-tab"
+            onClick={() => setNoteTab('will')}
+          >
+            유언장 초안
+          </button>
+        </div>
+
         {/* §5 동의 안내 — 작성 시작 시점(가입 시점 아님)에 받는다. 이미 동의했으면 요약만 보여준다. */}
         <div id="ending-note-consent" ref={consentRef} className="v2-content" style={{ marginBottom: '32px' }}>
           {policyAgreedAt ? (
@@ -756,6 +819,7 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
           )}
         </div>
 
+        <div role="tabpanel" id="ending-note-panel-note" aria-labelledby="ending-note-tab-note" hidden={activeNoteTab !== 'note'}>
         {/* §10 Phase 2 #6 — 가족이 0명이면 섹션마다 반복해서 안내하지 않고 여기 한 번만 둔다. */}
         {policyAgreedAt && noteLoaded && family.length === 0 && (
           <div className="v2-content" style={{ marginBottom: '32px', display: 'flex', alignItems: 'center', gap: '10px', fontSize: 'var(--v2-fs-support)', color: 'var(--v2-text-main)' }}>
@@ -786,7 +850,7 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
                   <span>{s.title}</span>
                 </button>
               ))}
-              <button type="button" onClick={scrollToWillDraft} className="v2-note-toc-link">
+              <button type="button" onClick={goToWillTab} className="v2-note-toc-link">
                 {sectionState.WILL_DRAFT ? <CheckCircle2 size={14} color="var(--v2-point)" /> : <Circle size={14} color="var(--v2-text-faint)" />}
                 <span>유언장 초안</span>
               </button>
@@ -850,13 +914,14 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
             )}
           </div>
         </div>
+        </div>
       </div>
 
       {/* 00-38 §8.1-2 — 모바일 포커스 리더. 그 섹션 하나만, 저장 버튼 하단 고정. expandedSection은
           위 목차 리스트와 공유하는 같은 state(데스크톱에서는 아코디언 펼침에 쓰인다). 전용 오버레이
           대신 기존 `.v2-modal-overlay`+`.v2-modal.is-scroll`을 재사용한다 — title 고정+body 스크롤
           구조가 이미 이 모양이고, 모바일에서는 CSS가 자동으로 거의 전체화면 바텀시트로 바꾼다. */}
-      {isMobile && expandedSection && (
+      {isMobile && activeNoteTab === 'note' && expandedSection && (
         <div className="v2-modal-overlay" role="dialog" aria-modal="true" {...backdropCloseProps(() => setExpandedSection(null))}>
           <div className="v2-modal is-scroll" onClick={(e) => e.stopPropagation()}>
             <h3 className="v2-modal-title" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -912,11 +977,9 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
       )}
 
       {/* ⑨ 유언장 초안 — A2: 아코디언에 넣지 않는다. §6.4-7 모델이 섰으니 이제 저장을 배선한다. */}
-      <div id="ending-note-section-WILL_DRAFT" className="v2-content" style={{ marginTop: '32px', paddingTop: '32px', borderTop: '1px solid var(--v2-divider-strong)', filter: !currentUser ? 'blur(3px)' : 'none' }}>
-        <h3 style={{ fontSize: 'var(--v2-fs-item-title)', fontWeight: 700, color: 'var(--v2-text-main)', display: 'flex', alignItems: 'center', gap: '8px', margin: '0 0 12px' }}>
-          <ScrollText color="var(--v2-point)" /> 유언장 초안
-          {sectionState.WILL_DRAFT && <CheckCircle2 size={18} color="var(--v2-point)" />}
-        </h3>
+      {/* 06-04 §6.1-1 T-3·T-7 — 카드 틀 없이 탭 본문으로. hidden이라 언마운트되지 않아 저장 안 한
+          초안·OCR 합류 상태가 탭 왕복 후에도 남는다. */}
+      <div role="tabpanel" id="ending-note-panel-will" aria-labelledby="ending-note-tab-will" hidden={activeNoteTab !== 'will'} className="v2-content" style={{ filter: !currentUser ? 'blur(3px)' : 'none' }}>
 
         <p className="v2-notice-warn" style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', fontWeight: 700 }}>
           <AlertTriangle size={18} style={{ flexShrink: 0, marginTop: '2px' }} />
@@ -1011,6 +1074,18 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
         </div>
         {savingState.WILL_DRAFT === 'error' && <p className="v2-error-text" style={{ marginTop: '8px' }}>저장에 실패했습니다. 다시 시도해 주세요.</p>}
         {copyFeedback && <p style={{ fontSize: 'var(--v2-fs-support)', color: 'var(--v2-point)', marginTop: '8px' }}>{copyFeedback}</p>}
+        {savingState.WILL_DRAFT === 'saved' && (
+          <p style={{ fontSize: 'var(--v2-fs-support)', color: 'var(--v2-text-main)', marginTop: '12px' }}>
+            저장되었습니다.{' '}
+            <button
+              type="button"
+              onClick={goToWillLocation}
+              style={{ background: 'none', border: 'none', padding: 0, color: 'var(--v2-point)', fontWeight: 700, textDecoration: 'underline', cursor: 'pointer', fontSize: 'inherit' }}
+            >
+              유언장 소재 안내 →
+            </button>
+          </p>
+        )}
       </div>
 
       {summaryOpen && (
