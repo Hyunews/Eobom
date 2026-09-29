@@ -4,6 +4,7 @@ import { ChevronRight } from 'lucide-react';
 import { Footer } from '../Footer';
 import { MODE_MENUS, MODE_LABELS, HOME_DUO_LABELS, type NavMode, type ModeMenuItem } from '../../lib/modeNav';
 import { parseMemorialLink } from '../../utils/memorialLink';
+import { SCROLL_HOME_MOBILE_KEY } from '../../lib/storage';
 
 interface HomeMobileProps {
   currentUser?: string | null;
@@ -20,7 +21,7 @@ const PANEL_COUNT = 4;
 // notifyHeaderStyle 주석 참고). ④(섹션3+푸터)는 사진 위라 별도 배경을 안 쓴다(CSS 기본값).
 const PANEL_BG = ['transparent', '#FDFCFA', '#F5F2EC'];
 
-const SESSION_KEY = 'eobom_scroll_home_m';
+const SESSION_KEY = SCROLL_HOME_MOBILE_KEY;
 
 export const HomeMobile: React.FC<HomeMobileProps> = ({ currentUser, onOpenLogin, setActiveTab, onSetMode, landingMode, onMobileHeaderStyleChange }) => {
   // 00-40 §3.3 M-4 — 각 칸이 자기 인덱스를 그대로 찍어 보여줄 뿐(정적) 어느 칸이 활성인지에
@@ -296,7 +297,7 @@ export const HomeMobile: React.FC<HomeMobileProps> = ({ currentUser, onOpenLogin
             </section>
             {/* 🔄 2026-09-29 — 00-40 §3.5 H-4. 추모관 링크로 입장 · 파트너 로그인을 ③에서 옮겨 온다(M-6).
                 섹션3 문구 바로 아래·푸터 위, 누르는 높이 44px. */}
-            <div ref={memorialRowRef} style={{ flex: '0 0 auto', margin: '0 24px', minHeight: '44px', borderTop: '1px solid #DDD6CB', display: 'flex', alignItems: 'center', gap: '1.2rem', position: 'relative' }}>
+            <div ref={memorialRowRef} style={{ flex: '0 0 auto', margin: '0 24px', minHeight: '44px', borderTop: '1px solid #DDD6CB', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1.2rem', position: 'relative' }}>
               <button type="button" onClick={() => setShowMemorialInput((v) => !v)} style={{ background: 'none', border: 'none', fontSize: '14px', fontWeight: 600, color: '#5B7065', cursor: 'pointer', fontFamily: 'inherit', padding: 0, minHeight: '44px' }}>
                 추모관 링크로 입장
               </button>

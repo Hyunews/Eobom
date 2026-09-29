@@ -11,7 +11,7 @@ import { MyPageFamilyDesignation } from './components/mypage/MyPageFamilyDesigna
 import { EobomLogo } from './components/EobomLogo';
 import { providerLabel, BACKEND_URL } from './config';
 import { NAV_MODE_STORAGE_KEY, type NavMode } from './lib/modeNav';
-import { getDisplayName, setSession, clearSession, clearLegacyUserLocalStorage, PENDING_RETURN_PATH_KEY } from './lib/storage';
+import { getDisplayName, setSession, clearSession, clearLegacyUserLocalStorage, PENDING_RETURN_PATH_KEY, SCROLL_HOME_KEY, SCROLL_HOME_MOBILE_KEY } from './lib/storage';
 import { registerSessionExpiredHandler } from './lib/api';
 import { useIsMobile } from './hooks/useIsMobile';
 
@@ -143,7 +143,12 @@ function AppShell() {
     // 경로 변화가 없어 HomePage를 리마운트시키지 않는다 — 그래서 HomePage가 직접 듣는
     // 커스텀 이벤트로 맨 위 스크롤을 별도로 알린다(다른 페이지에서 홈으로 갈 때는
     // 무해한 조기 이벤트일 뿐, 실제 복귀는 HomePage 마운트 시 로직이 처리한다).
+    // 🔄 2026-09-29 — 명시적 홈 진입(메뉴·드로어·로고)은 저장된 칸/섹션을 지워 ①부터 연다.
+    // 위 이벤트는 HomePage가 마운트 전이면 유실되고, 마운트 시 복원 로직이 이전 칸을 띄웠다.
+    // 브라우저 뒤로가기는 이 함수를 거치지 않으므로 복원이 그대로 동작한다.
     if (tab === 'home') {
+      sessionStorage.removeItem(SCROLL_HOME_KEY);
+      sessionStorage.removeItem(SCROLL_HOME_MOBILE_KEY);
       window.dispatchEvent(new Event('eobom:home-scroll-top'));
     }
 

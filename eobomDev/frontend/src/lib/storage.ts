@@ -39,6 +39,8 @@ export const PENDING_INVITE_TOKEN_KEY = 'eobom_pending_invite_token';
 // loginSuccess 처리 시 그 경로로 돌려보낸다(PENDING_INVITE_TOKEN_KEY와 같은 패턴).
 export const PENDING_RETURN_PATH_KEY = 'eobom_pending_return_path';
 export const SCROLL_HOME_KEY = 'eobom_scroll_home';
+// 모바일 홈(HomeMobile.tsx)의 마지막 칸 — App.setActiveTab('home')이 명시적 홈 진입 때 지운다.
+export const SCROLL_HOME_MOBILE_KEY = 'eobom_scroll_home_m';
 export const scrollTabKey = (tab: string): string => `eobom_scroll_${tab}`;
 
 export function getToken(audience: Audience): string | null {

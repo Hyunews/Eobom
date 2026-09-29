@@ -1256,6 +1256,11 @@
   - `cd eobomDev/frontend && npx tsc --noEmit`(exit 0) · `npm run build` 통과. dev 서버는 지시대로 띄우지 않음.
 - **후속 수정(같은 날, 사람 실기기 Chrome 재보고)**: 칸 안이 아니라 **페이지(문서) 자체**가 세로 스크롤됐다 — 사람 관찰 *"화면 바닥에 footer 마냥 배경 없는 부분이 생기고 스크롤로 내리면 보임"*. 원인: `body`·`#root`·App 루트 div의 `min-height:100vh`(주소창이 떠 있으면 100vh > 보이는 높이 100svh)가 칸 높이(`100svh`)보다 주소창 높이만큼 커서 그 차이 구간이 배경 없는 띠로 스크롤됐다. 수정: `HomeMobile.tsx` 마운트 동안 `<html>`에 `home-m-lock` 클래스를 붙이고(언마운트 시 제거), `index.css`에 `html.home-m-lock, html.home-m-lock body { overflow:hidden; height:100vh → @supports 100svh }` 추가. 다른 페이지는 클래스가 없어 영향 없음. tsc(exit 0)·build 통과, 실기기 재확인은 사람 몫.
 - **추가 지시(같은 날, 사람)**: 비로그인 상태 ②~④ 칸에서 헤더 "로그인" 아이콘·글자를 곤색으로(섹션1은 흰색 유지). `index.css` 모바일 블록에 `.site-header--home-overlay .header-actions-wrap .btn-point { color/border-color: #1A2B4C }` 추가 — 히어로 규칙(`-hero`)이 뒤에 와 같은 우선순위로 이겨 섹션1은 그대로. 홈 오버레이 헤더에만 적용(다른 페이지 무영향). build 통과, 실화면은 사람 몫.
+- **후속 2건(같은 날, 사람 실기기)**:
+  - **A. ④ 추모관 줄 가운데 정렬**: 줄 컨테이너에 `justifyContent:'center'`. 입력 상자는 줄(`margin 0 24px`)을 기준으로 `left:0;right:0`이라 줄 폭 = 화면 − 48px 안에 들어가 가운데에 오고 360px에서도 화면 밖으로 안 나감(구조로 확인, 실측 아님).
+  - **B. 메뉴 "홈" 진입 시 ① 칸(버그)**: `App.tsx` `setActiveTab('home')`이 이동 전에 `SCROLL_HOME_KEY`·`SCROLL_HOME_MOBILE_KEY`(sessionStorage)를 지운다. 모바일 키는 `lib/storage.ts`에 `SCROLL_HOME_MOBILE_KEY`로 신설해 `HomeMobile.tsx`가 import(기존 상수는 이 값을 가리킴). 기존 `eobom:home-scroll-top` 이벤트 전송은 유지. 뒤로가기는 `setActiveTab`을 거치지 않아 복원 그대로, `/prep`·`/bereaved` 딥링크는 `landingMode` 분기라 무영향. 드로어 "메인"(`Sidebar.tsx:74`)·헤더 로고 모두 `setActiveTab('home')` 경유 확인.
+  - 데스크톱 `HomeDesktop.tsx`는 **같은 원인**(마운트 시 `eobom_scroll_home` 복원, 이벤트는 마운트 전 유실)이라 같은 지점에서 함께 고쳐짐 — 별도 코드 수정 없음.
+  - tsc(exit 0)·build 통과. 검증 포인트(사람 실기기): ②에서 엔딩노트 → 메뉴 → 홈 = ① / 같은 경로 뒤로가기 = ② / ④ 두 버튼 가운데 + 입력 상자 위치.
 - **편차**: 스펙 명시 외 판단 2건 — ① H-4의 "위 1px 선" 색을 ④ 배경(사진+스크림) 위에서 보이도록 `#EFEBE4` → `#DDD6CB`로 진하게 했다. ② 팝오버 위치를 `bottom: 2.6rem` → `bottom: 100%` + 0.4rem 띄움(줄 높이가 44px로 바뀌어서). 그 외 없음.
 - **다음 에이전트가 알아야 할 것**: 🔴 실화면 검증은 사람 몫 — "②~④에서 세로 스크롤이 생기는가"만 본다(375×548·390×664 등). 통과하면 [Opus]가 `00-39` §6.7 등재. ④ 푸터 접힌 높이는 실측하지 않았으므로(구조만 맞춤) 548px에서 ④가 넘치면 H-6 여백 clamp부터 본다. 커밋은 하지 않음 — 메시지 초안만.
 
