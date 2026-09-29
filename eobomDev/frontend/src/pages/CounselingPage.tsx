@@ -79,7 +79,7 @@ export const CounselingPage: React.FC<CounselingPageProps> = ({ currentUser, onO
     <div className="v2-page">
       <div className="v2-page-head">
         <h1 className="v2-page-title">
-          <span className="v2-desktop-only">상속 · 법률 · 세무 비대면 전문가 상담</span>
+          <span className="v2-desktop-only">상속 · 법률 · 세무 전문가 상담</span>
           <span className="v2-mobile-only">전문가 상담</span>
         </h1>
         <p className="v2-page-subtitle">변호사, 세무사, 행정사, 장례지도사 분야별 상담 신청 및 상속세 자동 시뮬레이터</p>

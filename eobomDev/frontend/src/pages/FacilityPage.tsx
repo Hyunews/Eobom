@@ -331,7 +331,7 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
         {/* 00-39 §8 #5 — 배경색·서체·글자색·크기만 v2로. 경고색이 아니라 정보 배지라 state-warn 대신
             중립 선택배경 + 포인트색(사람 확정 09-22)을 쓴다. */}
         <h1 className="v2-page-title" style={{ color: 'var(--v2-text-main)', display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0 }}>
-          장례·묘지 맞춤 비교 매칭
+          장사시설 매칭
         </h1>
         {/* page-subtitle 클래스는 그대로 — 모바일 숨김(display:none ≤768px)이 이 클래스의 역할이라
             v2-page-subtitle로 바꾸면 그 배치 동작이 사라진다(00-39 §8 #5, 배치는 유지). */}

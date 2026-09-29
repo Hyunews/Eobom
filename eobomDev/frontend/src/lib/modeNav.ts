@@ -46,7 +46,7 @@ const PREP_MENU: ModeMenuItem[] = [
 // care-guide만 예외(00-26 §7.3·07-02 원칙 — 07 열람은 어느 경로로 들어오든 로그인 없이 가능).
 const BEREAVED_MENU: ModeMenuItem[] = [
   { id: 'care-guide', label: '상중 행정 가이드', icon: ChecklistShieldIcon, status: 'active' },
-  { id: 'facility', label: '장사 시설', icon: HouseLeafIcon, status: 'active', loginRequired: true },
+  { id: 'facility', label: '장사시설', icon: HouseLeafIcon, status: 'active', loginRequired: true },
   { id: 'counseling', label: '전문가 상담', icon: HandScalesIcon, status: 'active', loginRequired: true },
   { id: 'obituary', label: '모바일 부고장', icon: MessageSquare, status: 'active', loginRequired: true },
   // 🔄 09-22 사용자 지시 — pickup·digital-estate 모두 정적 콘텐츠로 완결돼 있어(로그인·API 없이
