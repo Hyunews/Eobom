@@ -68,6 +68,7 @@ function storeSession<A extends Audience>(audience: A, payload: SessionPayload[A
   store.setItem(keys.DISPLAY_NAME, payload.displayName);
   if ('token' in payload && payload.token) {
     store.setItem(keys.TOKEN, payload.token);
+    if (audience === 'USER') setLoginHint(true);
   }
   if ('refreshToken' in payload) {
     store.setItem((keys as typeof KEYS.ADMIN).REFRESH_TOKEN, payload.refreshToken);
@@ -80,6 +81,27 @@ function storeSession<A extends Audience>(audience: A, payload: SessionPayload[A
 function wipeSession(audience: Audience): void {
   const store = STORE[audience];
   Object.values(KEYS[audience]).forEach((key) => store.removeItem(key));
+  if (audience === 'USER') setLoginHint(false);
+}
+
+// 탭 간 공유용 "어딘가 로그인돼 있다" 힌트 — 토큰·이름 없이 '1'만 localStorage에 둔다. 새 탭이 이 힌트가
+// 있을 때만 다른 탭의 응답을 기다려, 로그인한 적 없는 방문자는 대기(빈 화면)가 없다.
+// 브라우저를 껐다 켜면 힌트만 남을 수 있는데, 그땐 한 번 기다려 답이 없으면 지운다.
+const LOGIN_HINT_KEY = 'eobom_user_login_hint';
+function setLoginHint(on: boolean): void {
+  try {
+    if (on) localStorage.setItem(LOGIN_HINT_KEY, '1');
+    else localStorage.removeItem(LOGIN_HINT_KEY);
+  } catch {
+    /* 저장 불가 환경 — 힌트 없이 동작(대기 없음) */
+  }
+}
+function hasLoginHint(): boolean {
+  try {
+    return localStorage.getItem(LOGIN_HINT_KEY) === '1';
+  } catch {
+    return false;
+  }
 }
 
 export function setSession<A extends Audience>(audience: A, payload: SessionPayload[A]): void {
@@ -177,10 +199,13 @@ if (channel) {
   };
 
   // 새 탭 시작 시 토큰이 없으면 이미 로그인한 탭에 물어본다. 답이 없으면(다른 탭 없음) 그대로 로그아웃 상태.
-  if (!getToken('USER')) {
+  if (getToken('USER')) {
+    setLoginHint(true);
+  } else if (hasLoginHint()) {
     userSessionPending = true;
     postAuth({ type: 'REQUEST' });
     pendingTimer = setTimeout(() => {
+      if (!getToken('USER')) setLoginHint(false); // 답한 탭이 없다 — 남은 힌트를 정리
       finishPending();
       notifySession();
     }, SESSION_REQUEST_WAIT_MS);
