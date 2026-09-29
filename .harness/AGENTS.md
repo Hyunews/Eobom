@@ -38,6 +38,7 @@
 | `context.md`의 할 일을 집었는데 **배경·근거·미검증 항목**이 필요할 때 | `.harness/memory/backlog.md` |
 | 메모리를 남기거나 과거 결정 이유가 궁금할 때 | `.harness/memory/MEMORY.md` → 해당 메모리 |
 | 문서↔코드 링크를 걸 때 | `.harness/memory/g-brain-map.md` |
+| 🔴 **`docs/` 전수 정리 판정·실행** · **판정 끝난 도메인의 문서를 고칠 때**(끝나면 이 줄 삭제) | `.harness/docs-audit/README.md` §6 |
 
 > 위 표에 없으면 읽지 않는다. "혹시 몰라서 다 읽기"가 컨텍스트를 태우는 주범이다.
 
