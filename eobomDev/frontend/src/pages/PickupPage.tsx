@@ -74,8 +74,9 @@ export const PickupPage: React.FC<PickupPageProps> = () => {
   };
 
   // GPS 허용 시 지역 필터를 자동으로 채우고 즉시 적용한다(2026-09-10 사람 결정 — 좌표 정렬은
-  // 만들지 않는다, province/district 텍스트 필터만). 거부·실패 시 기본 위치(GEOLOCATION_FALLBACK)를
-  // 표시만 하고 필터는 채우지 않는다 — 다른 사람 위치로 검색 결과가 좁아지면 안 되기 때문.
+  // 만들지 않는다, province/district 텍스트 필터만). 🔄 2026-09-29 — 01-01 §6 R-6: 거부·실패로
+  // 기본 위치(GEOLOCATION_FALLBACK, 서울 중구)가 쓰일 때도 같은 방식으로 적용한다. 업체(예시)
+  // 데이터에 없는 지역이면 아래 provinceOptions/regionsData 검사로 넓혀지거나 필터 없음이 된다.
   useEffect(() => {
     if (!LOCATION_FEATURE_ENABLED) return;
 
@@ -104,7 +105,7 @@ export const PickupPage: React.FC<PickupPageProps> = () => {
     };
 
     if (!(navigator.geolocation && window.isSecureContext)) {
-      showLocationName(GEOLOCATION_FALLBACK.lat, GEOLOCATION_FALLBACK.lng, true, false);
+      showLocationName(GEOLOCATION_FALLBACK.lat, GEOLOCATION_FALLBACK.lng, true, true);
       return;
     }
 
@@ -113,7 +114,7 @@ export const PickupPage: React.FC<PickupPageProps> = () => {
     const requestPosition = () => {
       navigator.geolocation.getCurrentPosition(
         (pos) => showLocationName(pos.coords.latitude, pos.coords.longitude, false, true),
-        () => showLocationName(GEOLOCATION_FALLBACK.lat, GEOLOCATION_FALLBACK.lng, true, false),
+        () => showLocationName(GEOLOCATION_FALLBACK.lat, GEOLOCATION_FALLBACK.lng, true, true),
         { timeout: 8000, maximumAge: 300000, enableHighAccuracy: false }
       );
     };
@@ -124,7 +125,7 @@ export const PickupPage: React.FC<PickupPageProps> = () => {
         .query({ name: 'geolocation' })
         .then((status) => {
           if (status.state === 'denied') {
-            showLocationName(GEOLOCATION_FALLBACK.lat, GEOLOCATION_FALLBACK.lng, true, false);
+            showLocationName(GEOLOCATION_FALLBACK.lat, GEOLOCATION_FALLBACK.lng, true, true);
           } else {
             requestPosition();
           }

@@ -1244,6 +1244,24 @@
 
 <!-- Gemini 판정 1줄: ✅통과 (visibleGuestCount state 기반 slice 렌더 및 10개 더 보기 버튼 실장 확인 / 새 글 제출 시 카운트 자동 확장 확인 / 빌드 통과) -->
 
+## 2026-09-29 | 장사시설·유품수거 첫 화면 = 잡힌 지역만 (01-01 §6 R-1~R-6)
+
+- **근거 스펙**: `docs/01_장사시설_매칭/01-01_장례_묘지_매칭_기능_명세서.md` §6 R-1~R-6 (사람 지시 09-29).
+- **건드린 파일**: eobomDev/frontend/src/pages/FacilityPage.tsx, eobomDev/frontend/src/pages/PickupPage.tsx, eobomDev/frontend/src/config.ts (백엔드 무변경)
+- **결과**:
+  - **R-1·R-2 (FacilityPage)**: 첫 위치 감지(실제·기본 모두) 뒤 `/api/geo/reverse`의 `province`·`district`를 `initialGeoRegion` state에 담고, 새 이펙트가 `regionsData` 준비 후 `appliedProvince/appliedDistrict`와 선택 칸(`locationProvince/District`)에 1회 적용. 역지오코딩과 `regionsData` 로딩 순서가 엇갈려도 둘 다 준비된 뒤 처리된다(`regionsData` 비어 있으면 대기 후 재실행). 정렬은 기존 그대로 `lat/lng`. 기본 위치 안내 배지는 기존 `isLocationFallback` 그대로.
+  - **R-4 넓혀 가기**: `regionsData[province]`가 없으면 필터 없음 · district가 그 목록에 없으면 시/도만. **시/도 표시명 변환은 새 코드 없음** — `/api/geo/reverse`가 이미 `PROVINCE_ALIASES`로 표시명(`광주광역시`→`전남광주` 등)을 내려주고(`geoController.ts:63`) 드롭다운·`/api/geo/regions`도 같은 표를 쓰므로 그대로 일치.
+  - **R-5**: `firstReverseRef`(첫 감지 위치의 역지오코딩만 대상)·`autoApplyDoneRef`(1회)·`userTouchedRef`(시/도·시/군/구를 바꾸거나 `검색`을 누르면 true → 이후 자동 적용 안 덮어씀). `선택 안함`+`검색`은 기존 `handleSearch` 분기(`locationProvince` 빈 값)로 필터 해제 = 전국.
+  - **함께 고친 것(경쟁 조건)**: 시설 목록 조회 이펙트에 `cancelled` 플래그 추가 — 첫 화면은 "필터 없음" 조회가 먼저 나가고 곧 지역 필터 조회가 뒤따라서, 먼저 나간 전국 응답이 늦게 도착해 나중 결과를 덮어쓸 수 있었다. 지역 자동 적용 직전 한 번 전국 조회가 나가는 것 자체는 남는다(요청 1회 낭비, 화면은 최종 응답만 반영).
+  - **R-3**: `config.ts` `GEOLOCATION_FALLBACK` = `{ lat: 37.5641, lng: 126.9979 }`(서울 중구청 인근, 좌표는 내 판단 — 실기기에서 `서울 중구`로 역지오코딩되는지 확인 필요). 주석 2곳(config.ts·FacilityPage.tsx:144) "광산구" → "서울 중구". 약관·처리방침의 회사 주소(광산구)는 미변경.
+  - **R-6 (PickupPage)**: 기본 위치 호출 3곳(`showLocationName(...FALLBACK..., true, false)` → `true, true`). 업체(예시)에 없는 지역이면 기존 `provinceOptions`/`regionsData` 검사로 넓혀짐. 주석 갱신.
+  - `LOCATION_FEATURE_ENABLED`·고지 문구·`HIDE_LOCATION_NOTICE_FOR_DEV`는 그대로.
+  - `cd eobomDev/frontend && npx tsc --noEmit`(exit 0) · `npm run build` 통과. dev 서버·실호출 검증 안 함.
+- **편차**: 없음. 판단 1건 — 중구청 좌표(37.5641, 126.9979)는 스펙에 값이 없어 내가 정했다.
+- **다음 에이전트가 알아야 할 것**: 🔴 사람 실기기 검증 — ① 첫 진입 시 목록이 잡힌 구(거부·실패면 서울 중구)만 나오는지 ② 선택 칸에 그 지역이 채워져 보이는지 ③ `선택 안함`+검색 = 전국 ④ `/pickup`도 같은지. 🟡 서울 중구 시설이 DB에 없으면 R-4에 따라 시/도만 적용되거나 필터 없음이 된다. 🟡 시/군/구 표기가 `수원시 장안구`처럼 두 단어인 지역은 `/api/geo/regions`(주소 두 번째 토큰 `수원시`)와 카카오 `region_2depth_name`이 달라 시/도만 적용된다(R-4 범위 안, 별도 수정 안 함). 커밋은 하지 않음 — 메시지 초안만.
+
+<!-- Gemini 판정 1줄: … -->
+
 ## 2026-09-29 | index.css 미사용 블록 삭제 — 삭제된 홈 파일 3개 전용 규칙 (사람 승인)
 
 - **근거 스펙**: 사람 승인 09-29 — 바로 아래 "안 쓰는 파일 3개 삭제" 항목의 index.css 표 기준. 스펙 문서 없음.

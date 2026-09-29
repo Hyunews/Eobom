@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { MapPin, Map, Image as ImageIcon, Send, Search, LayoutGrid, List, SlidersHorizontal, ChevronRight, X } from 'lucide-react';
 import { BACKEND_URL, GEOLOCATION_FALLBACK, LOCATION_FEATURE_ENABLED } from '../config';
 import { KakaoMapModal } from '../components/KakaoMapModal';
@@ -103,9 +103,13 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
     params.set('page', String(page));
     params.set('pageSize', String(PAGE_SIZE));
 
+    // 🔄 2026-09-29 — 01-01 §6: 첫 화면은 "필터 없음" 조회가 먼저 나가고 곧바로 잡힌 지역 필터로
+    // 다시 조회된다. 먼저 나간 응답(전국 목록)이 늦게 도착해 나중 응답을 덮어쓰지 않게 막는다.
+    let cancelled = false;
     fetch(`${BACKEND_URL}/api/facilities?${params.toString()}`)
       .then((res) => res.json())
       .then((data) => {
+        if (cancelled) return;
         if (data.status === 'success') {
           setFacilities(data.data);
           setTotalCount(data.count);
@@ -115,6 +119,9 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
       .catch(() => {
         // 조회 실패 시 빈 목록으로 유지 (필터 UI는 정상 노출)
       });
+    return () => {
+      cancelled = true;
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [category, selectedTag, searchText, appliedProvince, appliedDistrict, userLocation, page, PAGE_SIZE]);
 
@@ -141,7 +148,7 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
 
   // 사용자의 현위치 자동 감지 (Geolocation API) — "선택 안함" 시 되돌아갈 기본 위치로도 보관
   const [detectedLocation, setDetectedLocation] = useState<{ lat: number; lng: number } | null>(null);
-  // 위치 API가 실패해 기본값(광주 광산구)으로 대체됐는지 — 이 경우 실제 위치가 아니므로 UI에 반드시 알린다
+  // 위치 API가 실패해 기본값(서울 중구)으로 대체됐는지 — 이 경우 실제 위치가 아니므로 UI에 반드시 알린다
   const [isLocationFallback, setIsLocationFallback] = useState(false);
   useEffect(() => {
     const applyDetected = (loc: { lat: number; lng: number }, isFallback: boolean) => {
@@ -188,13 +195,29 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
     }
   }, []);
 
+  // 🆕 2026-09-29 — 01-01 §6 R-1·R-2·R-5: 첫 위치 감지(실제·기본 둘 다) 결과의 시/도·시/군/구를 한 번만
+  // 검색 조건으로 자동 적용한다. 역지오코딩 응답(아래)과 regionsData 로딩은 순서가 엇갈릴 수 있어,
+  // 응답은 state에 담아 두고 둘 다 준비된 뒤 아래 적용 이펙트가 1회 처리한다.
+  const [initialGeoRegion, setInitialGeoRegion] = useState<{ province: string; district: string } | null>(null);
+  const firstReverseRef = useRef(true); // 첫 userLocation(=감지 위치)의 역지오코딩만 대상
+  const autoApplyDoneRef = useRef(false); // 자동 적용은 첫 화면 1회
+  const userTouchedRef = useRef(false); // 사람이 지역·검색을 건드렸으면 자동 적용이 덮어쓰지 않는다
+
   // 현위치가 바뀔 때마다(최초 감지 + 시/군/구 선택으로 변경) 대략적인 지역명으로 역지오코딩해서 표시
   useEffect(() => {
     if (!userLocation) return;
+    const isFirst = firstReverseRef.current;
+    firstReverseRef.current = false;
     fetch(`${BACKEND_URL}/api/geo/reverse?lat=${userLocation.lat}&lng=${userLocation.lng}`)
       .then((res) => res.json())
       .then((data) => {
-        if (data.status === 'success') setLocationName(data.data.region);
+        if (data.status === 'success') {
+          setLocationName(data.data.region);
+          // province는 서버가 PROVINCE_ALIASES로 이미 드롭다운 표시명('전남광주' 등)으로 바꿔 내려준다.
+          if (isFirst) setInitialGeoRegion({ province: data.data.province, district: data.data.district });
+        } else if (isFirst) {
+          autoApplyDoneRef.current = true; // 지역을 못 잡으면 필터 없음(지금 동작)
+        }
       })
       .catch(() => {
         setLocationName('위치 확인 실패');
@@ -213,17 +236,37 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
       });
   }, []);
 
+  // R-1·R-4·R-5 — 역지오코딩 결과와 regionsData가 둘 다 준비되면 1회 적용한다.
+  // 시/군/구가 선택지에 없으면 시/도만, 시/도도 없으면 필터 없음(넓혀 가기). 사람이 이미 손댔으면 건너뜀.
+  useEffect(() => {
+    if (autoApplyDoneRef.current || !initialGeoRegion) return;
+    if (Object.keys(regionsData).length === 0) return; // 아직 로딩 중 — 준비되면 다시 실행된다
+    autoApplyDoneRef.current = true;
+    if (userTouchedRef.current) return;
+    const { province, district } = initialGeoRegion;
+    const districts = regionsData[province];
+    if (!districts) return; // 시/도가 선택지에 없음 → 필터 없음
+    const matchedDistrict = districts.includes(district) ? district : '';
+    setLocationProvince(province);
+    setLocationDistrict(matchedDistrict);
+    setAppliedProvince(province);
+    setAppliedDistrict(matchedDistrict);
+    setPage(1);
+  }, [initialGeoRegion, regionsData]);
+
   const provinceOptions = Object.keys(regionsData).sort((a, b) => a.localeCompare(b, 'ko'));
   const districtOptions = locationProvince ? regionsData[locationProvince] || [] : [];
 
   // 시/도·시/군/구·구분 선택은 이제 즉시 검색을 트리거하지 않는다 — 아래 "검색" 버튼을 눌러야
   // 실제 검색(userLocation/category 갱신)이 일어난다. 여기서는 선택값(draft)만 갱신한다.
   const handleProvinceChange = (value: string) => {
+    userTouchedRef.current = true;
     setLocationProvince(value);
     setLocationDistrict('');
   };
 
   const handleDistrictChange = (value: string) => {
+    userTouchedRef.current = true;
     setLocationDistrict(value);
   };
 
@@ -231,6 +274,7 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
   // 시/군/구가 "선택 안함"이어도(district === '') 검색은 그대로 실행되어야 한다 — 이 경우
   // 시/도만 있으면 시/도 단위로, 시/도도 없으면 자동 감지된(또는 기본) 위치로 검색한다.
   const handleSearch = async () => {
+    userTouchedRef.current = true; // R-5 — 사람이 검색한 뒤에는 자동 적용이 덮어쓰지 않는다
     setIsApplying(true);
     setLocationError(null);
     try {
