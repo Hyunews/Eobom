@@ -4,6 +4,7 @@ import { ChevronDown, ChevronUp } from 'lucide-react';
 import { Footer } from '../Footer';
 import { MODE_MENUS, MODE_LABELS, HOME_DUO_LABELS, type NavMode, type ModeMenuItem } from '../../lib/modeNav';
 import { parseMemorialLink } from '../../utils/memorialLink';
+import { SCROLL_HOME_KEY } from '../../lib/storage';
 
 interface HomeDesktopProps {
   currentUser?: string | null;
@@ -50,11 +51,11 @@ export const HomeDesktop: React.FC<HomeDesktopProps> = ({ currentUser, onOpenLog
       reloadChecked = true;
       const navEntry = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming | undefined;
       if (navEntry?.type === 'reload') {
-        sessionStorage.removeItem('eobom_scroll_home');
+        sessionStorage.removeItem(SCROLL_HOME_KEY);
       }
     }
 
-    const saved = sessionStorage.getItem('eobom_scroll_home');
+    const saved = sessionStorage.getItem(SCROLL_HOME_KEY);
     const savedIndex = saved !== null ? Number(saved) : NaN;
     const initialIndex = landingMode
       ? 1
@@ -84,7 +85,7 @@ export const HomeDesktop: React.FC<HomeDesktopProps> = ({ currentUser, onOpenLog
         const index = Math.round(container.scrollTop / sectionHeight);
         const clamped = Math.min(SECTION_COUNT - 1, Math.max(0, index));
         setActiveSection(clamped);
-        sessionStorage.setItem('eobom_scroll_home', String(clamped));
+        sessionStorage.setItem(SCROLL_HOME_KEY, String(clamped));
       }
     };
 
@@ -92,7 +93,7 @@ export const HomeDesktop: React.FC<HomeDesktopProps> = ({ currentUser, onOpenLog
     const handleGoTop = () => {
       container.scrollTop = 0;
       setActiveSection(0);
-      sessionStorage.removeItem('eobom_scroll_home');
+      sessionStorage.removeItem(SCROLL_HOME_KEY);
     };
 
     container.addEventListener('scroll', handleScroll, { passive: true });
