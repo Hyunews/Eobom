@@ -13,11 +13,24 @@ export interface OcrBoxPoint {
 export interface OcrLine {
   text: string;
   box: OcrBoxPoint[];
+  // P2 §3.1 전문 자서 — 업체가 손글씨/인쇄체 구분을 주면 채운다. CLOVA General은 주지 않아 비어 있다
+  // (그러면 요건 확인은 `판단 못 함` 고정).
+  handwritten?: boolean;
+}
+
+// 이미지 한 장(=쪽 하나)의 인식 결과. width/height는 box 좌표의 기준 = OCR에 실제로 보낸 이미지 크기.
+// PDF 쪽은 크기를 알 수 없어 비어 있다(§6-1 — PDF는 사진 표시·테두리 없음).
+export interface OcrPage {
+  text: string;
+  lines: OcrLine[];
+  width?: number;
+  height?: number;
 }
 
 export interface OcrResult {
   text: string;
   lines: OcrLine[];
+  pages: OcrPage[];
 }
 
 export interface OcrProvider {

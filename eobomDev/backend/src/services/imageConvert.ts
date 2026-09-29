@@ -11,6 +11,14 @@ export const convertHeicToJpeg = async (input: Buffer): Promise<Buffer> => {
   return Buffer.from(output);
 };
 
+// P2(§6-1) — 박스 좌표의 기준 이미지가 브라우저가 그리는 방향과 같아야 한다. EXIF 방향 태그만 있고
+// 픽셀은 안 돌아간 사진은 OCR·인주 분석·화면이 서로 다른 방향을 볼 수 있어, 태그가 있으면 픽셀을 돌려 둔다.
+export const normalizeOrientation = async (input: Buffer): Promise<Buffer> => {
+  const { orientation } = await sharp(input).metadata();
+  if (!orientation || orientation === 1) return input;
+  return sharp(input).rotate().toBuffer();
+};
+
 // §4.1 "크기 줄이기" — 긴 변이 1,960px를 넘으면 줄인다. 브라우저가 먼저 줄이므로(우선 경로)
 // 여기서는 넘어온 값만 재확인한다 — 이미 기준 이하면 다시 인코딩하지 않는다(화질 손실 방지).
 const MAX_LONG_EDGE = 1960;

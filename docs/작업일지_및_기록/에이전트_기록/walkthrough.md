@@ -16,6 +16,32 @@
 > [`_아카이브_2608`](walkthrough_아카이브_2608.md)(08-31분). 남은 것 = 판정 대기 + 판정 표기 없음. 기준 → `record.md` §2-1.
 
 ---
+## 2026-09-29 | [Sonnet] `06-06` P2 — 유언장 사진 요건 확인(F2·F3) + 결과 화면(§6-1)
+
+- **근거 스펙**: `docs/06_엔딩노트_유언/06-06_유언장_사진인식_요건확인_기획서.md` §3.1·§5·§6-1·§9 P2 · 시안 = Design 캔버스 C9GhecwVVWYroedZvptCuL(Main·W2·W3·M1~M3, 값은 캔버스 파일에서 읽음)
+- **건드린 파일**: 백엔드 `services/willRequirements.ts`(신규 — `checkWillRequirements`) · `services/sealDetect.ts`(신규 — `detectSeal`) · `services/willRequirements.test.ts`(신규) · `services/ocrProvider.ts`(`OcrPage`·`handwritten?`·`pages`) · `services/clovaOcrProvider.ts`(쪽별 결과) · `services/imageConvert.ts`(`normalizeOrientation`) · `controllers/ocrController.ts` · `package.json`(`npm test`) · `tsconfig.json`(테스트 파일 빌드 제외).
+  프론트 `components/endingNote/WillPhotoResult.tsx`(신규) · `WillPhotoUploadModal.tsx`(결과 단계를 위임) · `styles/design-v2.css`(`.v2-ocr-*` 끝에 추가, `.v2-tabs` 재사용).
+- **결과**: `POST /api/ocr/recognize` 응답이 `{ text, pages:[{text,width,height,fileIndex}], requirements:[{key,state,evidence,page?,box?}×5] }`로 바뀜(`lines` 원본은 더 이상 안 내려감).
+  요건 5항목 = 연월일·주소·성명(계정 이름 대조)·날인(붉은 인주만, 성명 근처)·전문 자서(CLOVA가 구분 안 주면 `unknown` 고정). 사진·결과는 저장 안 함(버퍼는 요청 안에서만 산다).
+  화면 = 웹 1048px 2단(사진 452px | 탭 2개) · 모바일 전체 화면 탭 3개(사진·요건·인식된 글, 위아래 고정+가운데 스크롤), 사진은 브라우저 파일 object URL + box를 width/height 비율(%)로 테두리. 모바일 규칙 1~4·PDF 안내 1줄·처음 열 때 선택 없음 반영.
+  🔴 회귀 검사 `npm test`(backend) **37/37 통과** — 날짜 형식 4종·연월만·길일·2개·범위 밖 / 주소 도로명·지번·번지 없음·시도 없음·2개 / 성명 일치·쪼개짐·한 글자 다름·없음·이름 없음 / 날인 없음·근처·먼 곳·성명 없음·흑백·PDF / 전문 자서 / 조합(날짜×주소×인주) / 금지 어휘 / `detectSeal` 합성 이미지(붉은 원·갈라진 도장·검은 도장·붉은 줄·흑백·빈 종이). 실사진은 저장소에 넣지 않았다.
+  `tsc --noEmit`(백엔드·프론트)·`npm run build`(프론트) 통과. 🔴 **실기동 검증 대기**(dev 서버 안 띄움).
+- **편차**:
+  1. 🔴 `checkWillRequirements(ocr, seals, userName)` — 지시문은 `(ocrResult, image, userName)`이나 §5 파이프라인 도식이 `seals`를 받는다. 이미지를 받으면 순수 함수가 아니게 돼 JSON 픽스처 회귀가 안 되므로 **§5대로** `SealAnalysis`(=`detectSeal` 결과를 모은 것)를 받게 했다.
+  2. 스펙이 정하지 않은 규칙을 정함(판정은 제안): 주소가 **서로 다르게 둘 이상**이면 `판단 못 함`(본문의 재산 주소와 구분 불가, 박스는 마지막 것) · `길일`이 있으면 연·월만 있어도 `찾지 못함` · 같은 날짜 반복은 1개로 셈 · 날인 "성명 근처" = 두 중심 거리 ≤ 긴 변의 30% · 성명을 못 찾으면 근처 여부를 못 봐 `판단 못 함` · 색 있는 픽셀 0.5% 미만이면 흑백.
+  3. PDF·다쪽 결과는 인주 분석을 하지 않고 날인을 `판단 못 함`(사유 표시)으로 둠. TIFF는 브라우저가 못 그려 사진 칸이 비는데, 그때도 문구는 스펙 그대로 "PDF는 사진 표시 없이…"가 나옴(TIFF용 문구는 스펙에 없음 → Opus 판단 필요).
+  4. `normalizeOrientation` 추가(EXIF 방향 태그만 있는 사진은 픽셀을 돌려 둠) — 박스 좌표·화면 사진 방향을 맞추려는 것. 스펙에 없음.
+  5. `package.json`에 `test` 스크립트, `tsconfig.json`에 `exclude: src/**/*.test.ts` 추가(테스트가 dist에 안 섞이게).
+  6. 웹 사진 칸에 `max-height: calc(100dvh - 300px)`+스크롤 추가(세로로 긴 사진이 모달을 밀어내지 않게) — 캔버스엔 없음. `.v2-tabs`는 페이지 본문 폭으로 고정돼 있어 결과 모달 안에서만 폭 자동으로 덮어씀.
+- **다음 에이전트가 알아야 할 것**:
+  · 🔴 `detectSeal` 임계값(붉은 판정 `r≥130 && r>1.5g && r>1.4b`, 최소 80px, 팽창 반경 3, 종횡비 3.5)은 **합성 이미지로만** 검증했다. 실사진(`assets/assets_test01.jpg`)으로 인주 유무·오검출을 사람이 봐야 한다.
+  · `box` 필드는 `lines[].boundingPoly` 기준 — 실호출로 좌표가 사진과 맞는지는 아직 미확인(P1 주석과 같은 상태). 안 맞으면 `boxOf`(willRequirements.ts) 쪽 문제부터 본다.
+  · CLOVA General 응답에 `handwritten`이 오는지 확인 못 함 → 지금은 항상 `unknown`.
+  · `.v2-ocr-*` 클래스의 `00-39` §6.7 등재는 Opus 몫. 사람 검증: 웹 사진 | 탭 · 요건 행 클릭 → 테두리 · 모바일 요건 행 › → 사진 탭 전환+테두리 스크롤 · 사진 탭 직접 클릭 시 설명 줄·테두리 없음 · PDF만 올렸을 때.
+
+<!-- Gemini 판정 1줄: ✅통과 / ❌반려(사유) / 🔄스펙갱신(고친 문서) -->
+
+---
 ## 2026-09-29 | [Sonnet] `06-04` §6.1-1 엔딩노트/유언장 초안 탭 2개 분리(T-1~T-8)
 
 - **근거 스펙**: `docs/06_엔딩노트_유언/06-04_엔딩노트_보관함_실구현_기획서.md` §6.1-1 끝 09-29 블록(T-1~T-8)

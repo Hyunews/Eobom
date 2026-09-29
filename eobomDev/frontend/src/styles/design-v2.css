@@ -3366,3 +3366,465 @@ a.v2-btn-solid {
     flex: 1;
   }
 }
+/* ── 유언장 사진 인식 결과 화면 (06-06 §6-1, 2026-09-29) ──
+   값 정본 = Design 캔버스 https://claude.ai/artifact/C9GhecwVVWYroedZvptCuL (웹 Main·W2·W3 / 모바일 M1~M3).
+   §6.7 클래스 등재는 Opus 몫. 탭은 .v2-tabs 재사용. */
+.v2-modal.is-ocr-result {
+  width: 1048px;
+  max-width: 100%;
+  max-height: calc(100dvh - 48px);
+  padding: 28px 32px 24px;
+  overflow-y: auto;
+}
+
+.v2-ocr-result {
+  --ocr-found-dot: #5B7065;
+  --ocr-found-text: #3F5A4C;
+  --ocr-miss-dot: #B8591F;
+  --ocr-miss-text: #8A4518;
+  --ocr-unknown-text: #4A5561;
+  --ocr-selected-bg: #F2EEE6;
+  --ocr-hl: #C4581A;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.v2-ocr-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.v2-ocr-title {
+  margin: 0;
+  font-family: var(--v2-font-serif);
+  font-size: 22px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.v2-ocr-close {
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: none;
+  color: var(--v2-text-muted);
+  cursor: pointer;
+}
+
+.v2-ocr-main {
+  display: flex;
+  gap: 40px;
+  align-items: flex-start;
+}
+
+.v2-ocr-photo-col {
+  width: 452px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.v2-ocr-side {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 탭 줄 — .v2-tabs는 페이지 본문 폭으로 고정돼 있어 이 안에서는 칸 폭에 맞춘다 */
+.v2-ocr-tabs-wrap .v2-tabs {
+  width: auto;
+  max-width: none;
+  margin: 0;
+}
+
+/* 사진 칸 — 회색 배경 + 16px 여백, 세로로 길면 칸 안에서 스크롤 */
+.v2-ocr-frame {
+  background: #D9D3C7;
+  padding: 16px;
+  box-sizing: border-box;
+  max-height: calc(100dvh - 300px);
+  overflow: auto;
+}
+
+.v2-ocr-img-wrap {
+  position: relative;
+  line-height: 0;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.18);
+}
+
+.v2-ocr-img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.v2-ocr-hl {
+  position: absolute;
+  box-sizing: border-box;
+  outline: 3px solid var(--ocr-hl);
+  outline-offset: 2px;
+  background: rgba(244, 170, 90, 0.22);
+  border-radius: 3px;
+  pointer-events: none;
+}
+
+.v2-ocr-pager {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
+
+.v2-ocr-pager-btn {
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--v2-btn-border);
+  border-radius: 4px;
+  background: none;
+  color: var(--v2-text-main);
+  cursor: pointer;
+}
+
+.v2-ocr-pager-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.v2-ocr-pager-label {
+  min-width: 56px;
+  text-align: center;
+  font-size: var(--v2-fs-support);
+  font-variant-numeric: tabular-nums;
+}
+
+.v2-ocr-note {
+  margin: 0;
+  text-align: center;
+  font-size: 14px;
+  color: var(--v2-text-muted);
+}
+
+.v2-ocr-hint {
+  margin: 14px 0 6px;
+  font-size: 14px;
+  color: var(--v2-text-muted);
+}
+
+.v2-ocr-req-note {
+  margin: 14px 0 0;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--v2-text-muted);
+}
+
+/* 요건 행 — 항목 이름 17px/700 + 결과(점+글자) / 아래 근거. ✓·✗ 아이콘·합계 없음 */
+.v2-ocr-row {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 16px;
+  min-height: 64px;
+  box-sizing: border-box;
+  border: none;
+  border-bottom: 1px solid var(--v2-divider);
+  background: transparent;
+  text-align: left;
+  font-family: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+.v2-ocr-row.is-static {
+  cursor: default;
+}
+
+.v2-ocr-row.is-selected {
+  background: var(--ocr-selected-bg);
+}
+
+.v2-ocr-row-top {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+}
+
+.v2-ocr-row-label {
+  flex: 1;
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--v2-text-main);
+}
+
+.v2-ocr-row-ev {
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--v2-text-muted);
+}
+
+.v2-ocr-state {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.v2-ocr-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.v2-ocr-state.is-found { color: var(--ocr-found-text); }
+.v2-ocr-state.is-found .v2-ocr-dot { background: var(--ocr-found-dot); }
+.v2-ocr-state.is-missing { color: var(--ocr-miss-text); }
+.v2-ocr-state.is-missing .v2-ocr-dot { background: var(--ocr-miss-dot); }
+.v2-ocr-state.is-unknown { color: var(--ocr-unknown-text); }
+.v2-ocr-state.is-unknown .v2-ocr-dot {
+  width: 8px;
+  height: 8px;
+  border: 1.5px solid var(--v2-text-muted);
+}
+
+.v2-ocr-chev {
+  width: 18px;
+  height: 18px;
+  display: inline-flex;
+  color: var(--v2-text-faint);
+}
+
+.v2-ocr-textbox {
+  margin-top: 14px;
+  height: 500px;
+  overflow-y: auto;
+  box-sizing: border-box;
+  border: 1px solid var(--v2-btn-border);
+  border-radius: 4px;
+  padding: 16px 20px;
+  background: #FFFFFF;
+}
+
+.v2-ocr-textpage {
+  margin-bottom: 16px;
+}
+
+.v2-ocr-textpage-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--v2-text-muted);
+  margin-bottom: 4px;
+}
+
+.v2-ocr-textpage-body {
+  white-space: pre-line;
+  font-size: 16px;
+  line-height: 1.8;
+  color: var(--v2-text-main);
+}
+
+.v2-ocr-foot {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding-top: 20px;
+  border-top: 1px solid var(--v2-divider-strong);
+}
+
+.v2-ocr-foot-note {
+  flex: 1;
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--v2-text-muted);
+}
+
+.v2-ocr-actions {
+  display: flex;
+  gap: 10px;
+}
+
+/* 모바일 — 전체 화면. 위 고정(제목·탭) / 가운데만 스크롤 / 아래 고정(안내 1줄 + 버튼 가로 한 줄) */
+@media (max-width: 767px) {
+  .v2-modal.is-ocr-result {
+    width: 100%;
+    height: 100dvh;
+    max-height: none;
+    padding: 0;
+    border-radius: 0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .v2-ocr-result.is-mobile {
+    flex: 1;
+    min-height: 0;
+    gap: 0;
+  }
+
+  .v2-ocr-result.is-mobile .v2-ocr-head {
+    height: 56px;
+    flex-shrink: 0;
+    padding: 0 6px 0 16px;
+    border-bottom: 1px solid var(--v2-divider-strong);
+  }
+
+  .v2-ocr-result.is-mobile .v2-ocr-title {
+    font-size: 18px;
+  }
+
+  .v2-ocr-result.is-mobile .v2-ocr-tabs-wrap {
+    flex-shrink: 0;
+    padding: 0 16px;
+  }
+
+  .v2-ocr-scroll {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+  }
+
+  /* 사진 탭 — 가로 꽉 참, 비율 유지, 세로로 넘치면 스크롤. 쪽 넘기기·설명 줄은 사진 위 줄(사진과 안 겹침) */
+  .v2-ocr-result.is-mobile .v2-ocr-frame {
+    background: #FFFDF6;
+    padding: 0;
+    max-height: none;
+    overflow: visible;
+  }
+
+  .v2-ocr-result.is-mobile .v2-ocr-img-wrap {
+    box-shadow: none;
+  }
+
+  .v2-ocr-result.is-mobile .v2-ocr-note {
+    padding: 16px;
+  }
+
+  .v2-ocr-photo-top {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 4px 8px 16px;
+  }
+
+  .v2-ocr-photo-caption {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .v2-ocr-caption-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 15px;
+    font-weight: 700;
+  }
+
+  .v2-ocr-caption-head .v2-ocr-state {
+    font-size: 14px;
+  }
+
+  .v2-ocr-caption-ev {
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--v2-text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .v2-ocr-photo-top .v2-ocr-pager {
+    gap: 0;
+    flex-shrink: 0;
+  }
+
+  .v2-ocr-photo-top .v2-ocr-pager-btn {
+    border: none;
+  }
+
+  .v2-ocr-photo-top .v2-ocr-pager-label {
+    min-width: 36px;
+  }
+
+  /* 요건 탭 — 스크롤 없이 한 화면. 넘치면 근거를 1줄 말줄임 */
+  .v2-ocr-req-panel {
+    padding: 4px 16px 12px;
+  }
+
+  .v2-ocr-req-panel .v2-ocr-row {
+    gap: 4px;
+    padding: 12px 8px 12px 12px;
+  }
+
+  .v2-ocr-req-panel .v2-ocr-row-top {
+    gap: 10px;
+  }
+
+  .v2-ocr-req-panel .v2-ocr-row-ev {
+    font-size: 14px;
+    line-height: 1.5;
+    padding-right: 28px;
+    max-width: 100%;
+    box-sizing: border-box;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .v2-ocr-req-panel .v2-ocr-req-note {
+    margin: 10px 0 0;
+    line-height: 1.5;
+  }
+
+  /* 인식된 글 탭 — 쪽별 제목 + 글. 스크롤 허용 */
+  .v2-ocr-text-panel .v2-ocr-textbox {
+    height: auto;
+    overflow: visible;
+    margin: 12px 16px;
+    padding: 14px 16px;
+  }
+
+  .v2-ocr-result.is-mobile .v2-ocr-foot {
+    flex-shrink: 0;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+    padding: 12px 16px calc(16px + env(safe-area-inset-bottom));
+    border-top: 1px solid var(--v2-divider-strong);
+    background: var(--v2-bg);
+  }
+
+  .v2-ocr-result.is-mobile .v2-ocr-foot-note {
+    line-height: 1.5;
+  }
+
+  .v2-ocr-result.is-mobile .v2-ocr-actions {
+    gap: 8px;
+  }
+
+  .v2-ocr-result.is-mobile .v2-ocr-actions .v2-btn-primary,
+  .v2-ocr-result.is-mobile .v2-ocr-actions .v2-btn-outline {
+    flex: 1;
+    height: 48px;
+    padding: 0 8px;
+    font-size: var(--v2-fs-support);
+  }
+}

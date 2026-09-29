@@ -1,5 +1,5 @@
 import { randomUUID } from 'crypto';
-import type { OcrProvider, OcrResult, OcrLine, OcrBoxPoint } from './ocrProvider';
+import type { OcrProvider, OcrResult, OcrLine, OcrBoxPoint, OcrPage } from './ocrProvider';
 
 // docs 06-06 §4·§5 — NCP CLOVA OCR(General, 글자 추출) 연동. clovaSpeechProvider.ts와 같은
 // 인증 방식(Invoke URL + Secret 헤더 하나) — 다만 헤더 이름이 다르다(X-OCR-SECRET).
@@ -84,33 +84,41 @@ export class ClovaOcrProvider implements OcrProvider {
 
     const lines: OcrLine[] = [];
     const textParts: string[] = [];
+    const pages: OcrPage[] = [];
     let currentLineParts: string[] = [];
 
     for (const img of images) {
       if (img.inferResult && img.inferResult !== 'SUCCESS') {
         throw new Error(`CLOVA OCR 처리 실패: ${img.inferResult} ${img.message ?? ''}`.trim());
       }
+      // P2 — 응답의 images[] 하나가 곧 한 쪽이다(PDF는 쪽마다 하나씩 온다). 쪽별로 따로 모은다.
+      const pageLines: OcrLine[] = [];
+      const pageTextParts: string[] = [];
       for (const field of img.fields ?? []) {
         const text = field.inferText ?? '';
         if (!text) continue;
         const box: OcrBoxPoint[] = (field.boundingPoly?.vertices ?? []).map((v) => ({ x: v.x ?? 0, y: v.y ?? 0 }));
         lines.push({ text, box });
+        pageLines.push({ text, box });
         currentLineParts.push(text);
         if (field.lineBreak) {
           textParts.push(currentLineParts.join(' '));
+          pageTextParts.push(currentLineParts.join(' '));
           currentLineParts = [];
         }
       }
       if (currentLineParts.length > 0) {
         textParts.push(currentLineParts.join(' '));
+        pageTextParts.push(currentLineParts.join(' '));
         currentLineParts = [];
       }
+      pages.push({ text: pageTextParts.join('\n').trim(), lines: pageLines });
     }
 
     const text = textParts.join('\n').trim();
     if (!text) {
       throw new Error('사진에서 인식된 글자가 없습니다.');
     }
-    return { text, lines };
+    return { text, lines, pages };
   }
 }

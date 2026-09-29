@@ -3,7 +3,13 @@ import { verifyBearerToken } from './authController';
 import { uploadPhotosMemory, MAX_PHOTO_SIZE_BYTES, MAX_PHOTO_COUNT } from '../config/uploadPhotos';
 import { ClovaOcrProvider } from '../services/clovaOcrProvider';
 import type { OcrProvider } from '../services/ocrProvider';
-import { convertHeicToJpeg, resizeIfNeeded, getPdfPageCount } from '../services/imageConvert';
+import sharp from 'sharp';
+import prisma from '../config/prisma';
+import { convertHeicToJpeg, resizeIfNeeded, normalizeOrientation, getPdfPageCount } from '../services/imageConvert';
+import { detectSeal } from '../services/sealDetect';
+import { checkWillRequirements } from '../services/willRequirements';
+import type { OcrPage } from '../services/ocrProvider';
+import type { SealDetection } from '../services/willRequirements';
 
 // docs 06-06 §5·§9 P1 — 유언장 사진 인식. sttController.ts와 같은 구조(플래그 → 인증 →
 // multer 수동 호출 → 파이프라인 → 버퍼 폐기).
@@ -42,8 +48,8 @@ export const getOcrStatus = (_req: Request, res: Response) => {
 };
 
 // 사진/PDF 업로드 → 텍스트 인식 (`POST /api/ocr/recognize`, multipart, field: photos, 최대 5개) —
-// 로그인 필요. §9 P1 — F2·F3(요건 확인·근거 표시)는 하지 않는다. lines(box 포함)는 응답에
-// 실어 보내되 프론트는 아직 쓰지 않는다(P2 설계용 확인).
+// 로그인 필요. §9 P2 — F2·F3(요건 확인·근거 표시): 응답의 requirements(항목 5개)와 pages(쪽별 글·
+// 크기)를 화면이 쓴다. lines(box 원본)는 더 이상 내려보내지 않는다 — 좌표는 requirements[].box에만 담긴다.
 export const recognizeWillPhotos = (req: Request, res: Response) => {
   if (!isOcrEnabled()) {
     return res.status(404).json({ status: 'error', message: '사진 인식 기능이 비활성화되어 있습니다.' });
@@ -74,9 +80,14 @@ export const recognizeWillPhotos = (req: Request, res: Response) => {
     // 적이 없고, 응답 후 req.files의 buffer 참조가 사라져 GC 대상이 된다 — 별도 삭제 불필요.
     try {
       const texts: string[] = [];
-      const lines: { text: string; box: { x: number; y: number }[] }[] = [];
+      const pages: OcrPage[] = [];
+      const seals: SealDetection[] = [];
+      let imageAnalysisComplete = true; // PDF가 하나라도 끼면 인주 분석을 못 한 쪽이 생긴다
+      let allGrayscale = true;
 
-      for (const file of files) {
+      const pageFile: number[] = []; // 쪽 → 올린 파일 순서(화면이 어느 사진을 그릴지)
+
+      for (const [fileIndex, file] of files.entries()) {
         let buffer = file.buffer;
         let mimeType = file.mimetype.toLowerCase();
 
@@ -85,23 +96,61 @@ export const recognizeWillPhotos = (req: Request, res: Response) => {
           mimeType = 'image/jpeg';
         }
 
-        if (mimeType === 'application/pdf') {
+        const isPdf = mimeType === 'application/pdf';
+        if (isPdf) {
           const pageCount = await getPdfPageCount(buffer);
           if (pageCount > MAX_PDF_PAGES) {
             return res.status(400).json({ status: 'error', message: `PDF는 최대 ${MAX_PDF_PAGES}쪽까지 올릴 수 있습니다(올리신 파일: ${pageCount}쪽).` });
           }
         } else {
           // §4.1 "크기 줄이기" — 서버 재확인. 브라우저가 이미 줄였으면 그대로 통과한다.
+          // P2 — 박스 좌표가 화면에 그려지는 사진과 같은 방향을 보도록 EXIF 방향을 먼저 반영한다.
+          buffer = await normalizeOrientation(buffer);
           buffer = await resizeIfNeeded(buffer);
         }
 
         const result = await provider.recognize(buffer, mimeType);
         texts.push(result.text);
-        lines.push(...result.lines);
+
+        if (isPdf || result.pages.length !== 1) {
+          // 쪽 크기를 모르므로 박스 없이 글만 돌려준다(§6-1 PDF). 인주 분석도 하지 않는다.
+          imageAnalysisComplete = false;
+          allGrayscale = false;
+          pages.push(...result.pages);
+          result.pages.forEach(() => pageFile.push(fileIndex));
+        } else {
+          // 🔴 F2 날인(§3.1) — 이미지 분석. 외부로 보내지 않고 이 버퍼만 본다.
+          const seal = await detectSeal(buffer);
+          const pageIndex = pages.length;
+          pages.push({ ...result.pages[0], width: seal.width, height: seal.height });
+          pageFile.push(fileIndex);
+          seals.push(...seal.seals.map((box) => ({ page: pageIndex, box })));
+          if (!seal.grayscale) allGrayscale = false;
+        }
       }
 
       const text = texts.join('\n\n').trim();
-      return res.json({ status: 'success', data: { text, lines } });
+
+      // 🔴 F2 성명 — 계정에 등록된 이름과 비교한다. 데모 토큰처럼 DB에 없으면 토큰의 name을 쓴다.
+      const user = await prisma.user.findUnique({ where: { id: decoded.id }, select: { name: true } }).catch(() => null);
+      const userName = user?.name ?? (typeof decoded.name === 'string' ? decoded.name : null);
+
+      const requirements = checkWillRequirements(
+        { pages },
+        { analyzed: imageAnalysisComplete, grayscale: allGrayscale && seals.length === 0, seals },
+        userName,
+      );
+
+      // §5·§7 #3 — 사진도 결과도 저장하지 않는다. 화면이 쪽 사진을 그리려면 크기(width/height)만 필요하고,
+      // 이미지는 브라우저에 이미 있는 것을 쓴다. 글은 쪽별로 나눠 보낸다("인식된 글" 탭).
+      return res.json({
+        status: 'success',
+        data: {
+          text,
+          pages: pages.map((p, i) => ({ text: p.text, width: p.width, height: p.height, fileIndex: pageFile[i] })),
+          requirements,
+        },
+      });
     } catch (error) {
       console.error('OCR 인식 실패:', error);
       return res.status(502).json({

@@ -2,6 +2,8 @@ import React, { useRef, useState } from 'react';
 import { Camera, Loader2, Check, ChevronUp, ChevronDown } from 'lucide-react';
 import { apiFetch, ApiError } from '../../lib/api';
 import { backdropCloseProps } from '../../utils/backdropClose';
+import { WillPhotoResult } from './WillPhotoResult';
+import type { WillOcrResponse } from './WillPhotoResult';
 
 // docs 06-06 §6 — ⑨ 유언장 초안 카드의 "사진으로 불러오기" 입구(P1, F1). VoiceToTextInput.tsx의
 // Ⓐ 파일 업로드(동의 체크→선택→업로드/인식 중→결과)와 같은 결로 만들되, 사진은 여러 장을
@@ -63,7 +65,7 @@ export const WillPhotoUploadModal: React.FC<WillPhotoUploadModalProps> = ({ hasE
   const [files, setFiles] = useState<File[]>([]);
   const [stage, setStage] = useState<Stage>('idle');
   const [error, setError] = useState<string | null>(null);
-  const [resultText, setResultText] = useState<string | null>(null);
+  const [result, setResult] = useState<WillOcrResponse | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -110,8 +112,8 @@ export const WillPhotoUploadModal: React.FC<WillPhotoUploadModalProps> = ({ hasE
 
     try {
       setStage('processing');
-      const data = await apiFetch<{ text: string }>('/api/ocr/recognize', 'USER', { method: 'POST', body: formData });
-      setResultText(data.text);
+      const data = await apiFetch<WillOcrResponse>('/api/ocr/recognize', 'USER', { method: 'POST', body: formData });
+      setResult(data);
       setStage('done');
     } catch (e) {
       const message = e instanceof ApiError ? e.message : '사진 인식에 실패했습니다. 아래 입력창에 직접 입력해 주세요.';
@@ -119,6 +121,18 @@ export const WillPhotoUploadModal: React.FC<WillPhotoUploadModalProps> = ({ hasE
       setStage('idle');
     }
   };
+
+  // §6-1 단계 3 — 결과 단계는 모달이 1048px로 넓어지고(웹) 전체 화면이 된다(모바일). 결과 화면 전체를
+  // WillPhotoResult가 맡고, 이 파일은 올리기 단계(1·2)만 그린다.
+  if (stage === 'done' && result) {
+    return (
+      <div className="v2-modal-overlay" role="dialog" aria-modal="true" aria-label="사진으로 불러오기" {...backdropCloseProps(onClose)}>
+        <div className="v2-modal is-ocr-result" onClick={(e) => e.stopPropagation()}>
+          <WillPhotoResult files={files} result={result} hasExistingDraft={hasExistingDraft} onClose={onClose} onMerge={onMerge} />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="v2-modal-overlay" role="dialog" aria-modal="true" aria-label="사진으로 불러오기" {...backdropCloseProps(onClose)}>
@@ -251,39 +265,9 @@ export const WillPhotoUploadModal: React.FC<WillPhotoUploadModalProps> = ({ hasE
             </>
           )}
 
-          {stage === 'done' && resultText && (
-            <>
-              <p style={{ fontSize: 'var(--v2-fs-support)', color: 'var(--v2-text-muted)', marginBottom: '8px' }}>
-                인식된 내용입니다. 사진과 대조해 확인해 주세요.
-              </p>
-              <div
-                style={{
-                  whiteSpace: 'pre-wrap', maxHeight: '260px', overflowY: 'auto',
-                  border: '1px solid var(--v2-divider-strong)', borderRadius: '4px', padding: '12px',
-                  fontSize: 'var(--v2-fs-support)', color: 'var(--v2-text-main)', backgroundColor: 'var(--v2-bg)',
-                }}
-              >
-                {resultText}
-              </div>
-            </>
-          )}
         </div>
 
-        {stage === 'done' && resultText ? (
-          <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', flexWrap: 'wrap' }}>
-            <button type="button" className="v2-btn-outline" onClick={onClose}>취소</button>
-            {hasExistingDraft ? (
-              <>
-                <button type="button" className="v2-btn-outline" onClick={() => onMerge(resultText, 'append')}>뒤에 붙이기</button>
-                <button type="button" className="v2-btn-primary" onClick={() => onMerge(resultText, 'replace')}>바꾸기</button>
-              </>
-            ) : (
-              <button type="button" className="v2-btn-primary" onClick={() => onMerge(resultText, 'replace')}>초안에 넣기</button>
-            )}
-          </div>
-        ) : (
-          <button type="button" className="v2-modal-close" onClick={onClose}>닫기</button>
-        )}
+        <button type="button" className="v2-modal-close" onClick={onClose}>닫기</button>
       </div>
     </div>
   );
