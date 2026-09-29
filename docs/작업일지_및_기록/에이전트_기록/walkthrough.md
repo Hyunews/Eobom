@@ -1740,3 +1740,30 @@
   - 커밋은 하지 않음 — 메시지 초안만.
 
 <!-- Gemini 판정 1줄: ✅통과 (Opus 리뷰 지적 4건 [D]LF원복 [E]브라우저 선축소 [F]HEIC 프론트 제거 [H]파일 순서변경 UI 정확히 보정 완료, tsc 및 빌드 검증 통과) -->
+
+## 2026-09-29 | 02 전문가 상담 — 상황 선택 모달 · 복수 category · 상담 신청 로그인 필수 · 연락처 가리기 · 종료 신청 되돌리기 금지 (1d873df · 35fccb6)
+
+- **근거 스펙**: docs/02_전문가_매칭/02-05_전문가_직역_확장_및_상황기반_진입_기획서.md §2.2 · docs/02_전문가_매칭/02-03_전문가_공개노출_및_상담신청_명세서.md §5.2 · §5.3 · §8 (전부 2026-09-29 사람 확정)
+- **건드린 파일**:
+  - 1d873df(5개): eobomDev/backend/src/controllers/expertController.ts, eobomDev/backend/src/controllers/expertPublicController.ts, eobomDev/frontend/src/pages/CounselingPage.tsx, eobomDev/frontend/src/styles/design-v2.css, eobomDev/frontend/src/utils/counselingSituations.ts(신규)
+  - 35fccb6(1개): eobomDev/backend/src/controllers/expertController.ts
+- **결과**:
+  - **상황 선택 모달**(`CounselingPage.tsx`): 첫 진입 1회 자동(`localStorage` 키 `eobom_counseling_situation_seen`, 접근 실패 시 try/catch로 무시) · [어떤 도움이 필요하세요?]로 재오픈 · 상속세 배너 `상속세, 대략 얼마나 나올까요?`를 [상속세 계산하기] 버튼으로 교체 · 고른 뒤 상황 줄+[다시 고르기](1번만 붉은 12px `사망을 안 날부터 3개월 안에 상속포기·한정승인 신청`) · 해당 직역 탭 전부 켜짐 · 탭 직접 클릭 시 상황 줄 제거+단일 선택 복귀. 6개 상황은 `utils/counselingSituations.ts` 배열 상수 한 곳. 모바일 바텀시트+[닫기]는 기존 `.v2-modal` 공용 규칙, 데스크톱 ×+[닫기]는 `.v2-modal-x`·`.v2-modal-close.is-always`(design-v2.css) 신설.
+  - **복수 category**(02-05 §2.2 ④): `expertPublicController.ts` `buildWhere`가 `category`를 쉼표로 쪼개 `isValidCategory`(`expertController.ts`에서 `EXPERT_CATEGORIES`·`isValidCategory`에 `export` 추가)로 값마다 검사, 모르는 값은 버림. 유효값 1개면 단일 조건, 여러 개면 `{ in: [...] }`, 0개면 빈 결과(기존 동작).
+  - **상담 신청 로그인 필수**(02-03 §5.2): `submitConsultRequest`에서 `verifyBearerToken` 결과가 없으면 401 `상담 신청은 로그인 후 이용하실 수 있습니다.` (견적 `createQuote`는 그대로 비회원 허용).
+  - **부제목 법무사 누락**: `변호사, 세무사, 행정사, 장례지도사 분야별` → `변호사, 법무사, 세무사, 행정사, 장례지도사 분야별`(CounselingPage.tsx).
+  - **연락처 가리기**(02-03 §8, 35fccb6): `expertController.ts`에 `serializeConsultRequestForExpert` 추가 → `getMyConsultRequests` 응답과 `updateConsultRequestStatus` 응답에 적용. 조건 = 상태 `COMPLETED`·`CANCELLED`·`INVALID` 또는 `createdAt` 90일 경과. `utils/phone.ts`의 `maskPhone` 재사용, 저장 원문에 하이픈이 섞일 수 있어 `normalizePhone` 후 가림. 운영자 API·`/api/me/consult-requests`·DB 원본·`maskedAt` 컬럼 미변경(DB 쓰기 없음).
+  - **끝난 신청 되돌리기 금지**(02-03 §5.3): `updateConsultRequestStatus`가 현재 상태가 `COMPLETED`·`CANCELLED`·`INVALID`면 409 `이미 종료된 상담 신청은 상태를 바꿀 수 없습니다.`
+  - 검증: `cd eobomDev/backend && npx tsc --noEmit`(exit 0) · `cd eobomDev/frontend && npx tsc --noEmit`(exit 0). vite build는 돌리지 않음. **사람 실기동 확인 완료(09-29)** — 완료 처리 후 상태 변경 버튼이 사라지고, 전화번호 가운데가 `010-****-1234` 꼴로 가려져 나옴.
+- **편차**:
+  - **`ConsultRequest.maskedAt`을 채우는 코드가 없음**(02-03 §8 옛 문구 "상담 완료 후 일정 기간이 지나면 `applicantPhone`을 마스킹(`maskedAt`)"과 불일치) — 조사: `eobomDev/backend/src` 전체에서 `maskedAt` 쓰기 0건(`moderationController.ts:226` select뿐, `meActivityController.ts:13` 주석뿐), 마스킹 배치·스케줄러 없음. 코드는 고치지 않고 보고 → **[Opus]가 02-03 §8을 "응답 시점에 가린다(DB 원본·`maskedAt` 미사용)"로 갱신해 해소**(3b6a5b6). 즉 지금 구현과 스펙은 일치. 다만 동의 문구 "목적 달성 후 파기"를 지키는 DB 파기 배치는 여전히 없음(공개 전 과제, `backlog.md` ㉒).
+  - **`maskPhone`이 못 가리는 길이**(9자리 비서울 번호 등)는 원본이 나가지 않게 `****`로 대체 — 스펙에 없는 방어 처리.
+  - **줄바꿈 오염 후 원복**: 1d873df에서 `expertController.ts`가 LF→CRLF로 전체 바뀌어 커밋됨(`git show --stat`에 734줄 변경으로 잡힘, 실제 변경은 몇 줄). 이번 세션에서 `node -e`(WSL 아님)로 `\r\n`→`\n` 치환해 워킹트리를 LF로 되돌림 → `git diff --stat 990820c -- expertController.ts`가 `24 insertions(+), 5 deletions(-)`로 줄어듦, `tsc --noEmit` exit 0. 인덱스는 아직 `i/crlf`(커밋해야 `i/lf`). `.gitattributes`는 건드리지 않음.
+- **다음 에이전트가 알아야 할 것**:
+  - 🔴 **`expertController.ts` 줄바꿈 원복분이 미커밋**(워킹트리 LF, 인덱스 CRLF) — 사람이 커밋하면 전체 줄 diff가 한 번 더 뜨지만 내용 변경은 아님. 이후 Edit 도구가 이 파일을 다시 CRLF로 바꾸지 않는지 커밋 전 `git ls-files --eol`로 확인할 것.
+  - 90일 경과 조건은 개발 DB에 90일 지난 신청이 없어 실기동으로 확인하지 못함 — 코드 로직(`Date.now() - createdAt >= 90일`)만 검토. 409도 화면에 버튼이 없어 실기동으로는 못 눌러 봄(서버 조건문만 확인).
+  - 프런트가 종료된 신청에서 상태 변경 버튼을 숨기는 코드는 이 세션에서 열어 보지 않음(사람 실기동 관찰로만 확인).
+  - 토큰 만료 상태에서 상담 신청 시 프런트의 401 처리는 확인하지 못함(신청 버튼 단계의 `currentUser` 검사에 의존).
+  - 커밋은 하지 않음 — 메시지 초안만.
+
+<!-- Gemini 판정 1줄: ✅통과 / ❌반려(사유) / 🔄스펙갱신(고친 문서) -->
