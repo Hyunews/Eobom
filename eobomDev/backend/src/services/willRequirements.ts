@@ -128,6 +128,8 @@ const toNum = (raw: string): number => {
 const DATE_PATTERNS: RegExp[] = [
   new RegExp(`([${NUM_CHARS}]{2,4})\\s*[년年]\\s*([${NUM_CHARS}]{1,3})\\s*[월月]\\s*([${NUM_CHARS}]{1,3})\\s*[일日]`, 'g'),
   /(\d{4})\s*[.\-/]\s*(\d{1,2})\s*[.\-/]\s*(\d{1,2})(?!\d)\s*\.?/g,
+  // "단기 4347(서기 2014)년 8월 11일" — 연도 뒤 `년` 앞에 괄호 병기가 끼는 표기. 서기 연도를 쓴다(단기 숫자는 범위 밖).
+  /[(（]\s*서기\s*(\d{4})\s*[)）]\s*[년年]\s*(\d{1,2})\s*[월月]\s*(\d{1,2})\s*[일日]/g,
 ];
 
 const findDates = (flat: FlatPage, page: number): Hit[] => {
@@ -197,8 +199,11 @@ const SIGUNGU = '(?:[가-힣]{1,6}[시군구]\\s*){1,2}';
 const ROAD_NO = '[가-힣0-9]{1,10}(?:로|길)(?:\\d+번길)?\\s*(?:지하\\s*)?\\d+(?:-\\d+)?';
 const LOT_NO = '[가-힣0-9]{1,8}[동리읍면가]\\s*(?:산\\s*)?\\d+(?:-\\d+)?';
 
-const ADDRESS_FULL = new RegExp(`${SIDO}\\s*${SIGUNGU}(?:${ROAD_NO}|${LOT_NO})`, 'g');
-const ADDRESS_PARTIAL = new RegExp(`${SIDO}\\s*${SIGUNGU}[가-힣0-9]{0,12}`, 'g');
+// 군 지역은 시·군·구 뒤에 읍·면이 한 단계 더 온다("괴산군 괴산읍 동부리 551").
+const EUP_MYEON = '(?:[가-힣]{1,6}[읍면]\\s*)?';
+
+const ADDRESS_FULL = new RegExp(`${SIDO}\\s*${SIGUNGU}${EUP_MYEON}(?:${ROAD_NO}|${LOT_NO})`, 'g');
+const ADDRESS_PARTIAL = new RegExp(`${SIDO}\\s*${SIGUNGU}${EUP_MYEON}[가-힣0-9]{0,12}`, 'g');
 
 const checkAddress = (pages: FlatPage[]): RequirementItem => {
   const full: Hit[] = [];

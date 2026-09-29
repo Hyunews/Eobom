@@ -44,6 +44,14 @@ for (const [label, text, y] of [
   });
 }
 
+test('연월일 — 단기 + (서기 …)년 병기: 서기 연도로 찾음', () => {
+  const d = pick(run([page(['단기', '4347(서기', '2014)년', '8월', '11일'])]), 'date');
+  assert.equal(d.state, 'found');
+  assert.match(d.evidence, /2014\)년 8월 11일/);
+  assert.ok(d.box);
+  assert.equal(pick(run([page(['단기4347(서기2014)년8월11일'])]), 'date').state, 'found');
+});
+
 test('연월일 — 연·월만 있음: 판단 못 함', () => {
   const d = pick(run([page(['2026년 9월'])]), 'date');
   assert.equal(d.state, 'unknown');
@@ -89,6 +97,16 @@ test('주소 — 지번(동 + 번지): 찾음', () => {
 
 test('주소 — 도로명 번길·지하: 찾음', () => {
   assert.equal(pick(run([page(['부산광역시 해운대구 해운대해변로264번길 12'])]), 'address').state, 'found');
+});
+
+test('주소 — 군 + 읍·면 + 리 + 번지: 찾음', () => {
+  const a = pick(run([page(['(주소)', '충북', '괴산군', '괴산읍', '동부리', '551'])]), 'address');
+  assert.equal(a.state, 'found');
+  assert.match(a.evidence, /충북 괴산군 괴산읍 동부리 551/);
+});
+
+test('주소 — 군 + 읍까지만: 판단 못 함(번지 없음)', () => {
+  assert.equal(pick(run([page(['충북', '괴산군', '괴산읍'])]), 'address').state, 'unknown');
 });
 
 test('주소 — 동네 이름까지만: 판단 못 함(번지 없음)', () => {

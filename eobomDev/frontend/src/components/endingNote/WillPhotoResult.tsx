@@ -49,6 +49,8 @@ const STATE_LABEL: Record<RequirementState, string> = { found: '찾음', missing
 
 type Tab = 'photo' | 'req' | 'text';
 
+const HL_PAD = 8; // 사진 테두리 사방 여백(px)
+
 interface WillPhotoResultProps {
   files: File[];
   result: WillOcrResponse;
@@ -159,10 +161,11 @@ export const WillPhotoResult: React.FC<WillPhotoResultProps> = ({ files, result,
             className="v2-ocr-hl"
             aria-hidden="true"
             style={{
-              left: `${(hl.box.x / pageInfo.width) * 100}%`,
-              top: `${(hl.box.y / pageInfo.height) * 100}%`,
-              width: `${(hl.box.width / pageInfo.width) * 100}%`,
-              height: `${(hl.box.height / pageInfo.height) * 100}%`,
+              // 09-29 사람 지시 — 테두리도 글자에 붙지 않게 사방 여백(HL_PAD)을 둔다.
+              left: `calc(${(hl.box.x / pageInfo.width) * 100}% - ${HL_PAD}px)`,
+              top: `calc(${(hl.box.y / pageInfo.height) * 100}% - ${HL_PAD}px)`,
+              width: `calc(${(hl.box.width / pageInfo.width) * 100}% + ${HL_PAD * 2}px)`,
+              height: `calc(${(hl.box.height / pageInfo.height) * 100}% + ${HL_PAD * 2}px)`,
             }}
           />
         )}

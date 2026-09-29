@@ -3699,16 +3699,12 @@ a.v2-btn-solid {
     overflow-y: auto;
   }
 
-  /* 사진 탭 — 가로 꽉 참, 비율 유지, 세로로 넘치면 스크롤. 쪽 넘기기·설명 줄은 사진 위 줄(사진과 안 겹침) */
+  /* 사진 탭 — 가로 기준·비율 유지, 세로로 넘치면 스크롤. 09-29 사람 지시로 화면에 꽉 채우지 않고 웹과 같은
+     회색 틀 + 여백을 둔다(답답함). 쪽 넘기기·설명 줄은 사진 위 줄(사진과 안 겹침) */
   .v2-ocr-result.is-mobile .v2-ocr-frame {
-    background: #FFFDF6;
-    padding: 0;
+    padding: 16px;
     max-height: none;
     overflow: visible;
-  }
-
-  .v2-ocr-result.is-mobile .v2-ocr-img-wrap {
-    box-shadow: none;
   }
 
   .v2-ocr-result.is-mobile .v2-ocr-note {
