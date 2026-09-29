@@ -63,7 +63,7 @@ function AppShell() {
   // 붙으면 광고로 읽힌다, §6.1). 카톡 링크를 받은 조문객이 비로그인으로 여는 화면이라
   // 로그인 게이트도 없다.
   const isObituaryLandingRoute = /^o\//.test(activeTab);
-  // 게스트가 전달받은 추모관 링크(EntryBoxes.tsx 박스③)로 들어오는 화면 — 위 부고장 랜딩과
+  // 게스트가 전달받은 추모관 링크(EntryBoxes.tsx(삭제됨) 박스③)로 들어오는 화면 — 위 부고장 랜딩과
   // 같은 이유(비로그인 방문객, 서비스 메뉴가 붙으면 안 됨)로 껍데기 없이 그대로 노출한다.
   const isMemorialLandingRoute = /^m\//.test(activeTab);
   // 00-27 §9.1-2 — 가족 지정 초대 링크. 받는 사람은 아직 회원이 아닐 수 있어 사이드바·모드가
@@ -162,10 +162,10 @@ function AppShell() {
 
   // 탭 변경 시 스크롤 처리 (뒤로가기 시 복원, 메뉴 클릭 시 최상단)
   // 🔴 Header.tsx의 "추모관"(?entry=box3)처럼 홈 안의 특정 박스로 바로 진입시키는 경우엔
-  // 이 무조건 top-scroll을 건너뛴다 — HomePage.tsx/EntryBoxes.tsx가 이 이펙트보다 먼저(자식이
+  // 이 무조건 top-scroll을 건너뛴다 — HomePage.tsx/EntryBoxes.tsx(삭제됨)가 이 이펙트보다 먼저(자식이
   // 부모보다 먼저 실행되는 React 이펙트 순서) 박스③ 위치로 스크롤해 두는데, 여기서 다시 0으로
   // 되돌리면 640px 이하(body가 스크롤 주체, index.css §5.4-1)에서 그 결과가 그대로 덮인다.
-  // 🔴 EntryBoxes.tsx가 박스③ 스크롤을 적용한 직후 setSearchParams({}, {replace:true})로
+  // 🔴 EntryBoxes.tsx(삭제됨)가 박스③ 스크롤을 적용한 직후 setSearchParams({}, {replace:true})로
   // entry= 를 지운다 — 그 값을 deps에 넣으면 지워지는 순간 true→false로 바뀌어 이펙트가 한 번
   // 더 실행되며 이 아래 top-scroll이 다시 걸려 방금 맞춘 위치를 도로 덮어쓴다(실측 확인,
   // 2026-08-31). deps는 activeTab만 유지해 "실제로 홈에 막 도착한 그 렌더"의 값만 캡처한다.
@@ -471,7 +471,7 @@ function AppShell() {
         </main>
 
         {/* 하단 푸터 (홈 메인 탭·prep·bereaved는 각자의 풀페이지 스냅 스크롤 내부 마지막
-            섹션으로 Footer를 직접 통합한다 — 2026-08-25: DomainOverviewPage를 바깥(body)
+            섹션으로 Footer를 직접 통합한다 — 2026-08-25: DomainOverviewPage(삭제됨)를 바깥(body)
             스크롤과 안쪽 스냅 스크롤이 따로 노는 구조로 뒀더니 "Footer가 다른 페이지 위에
             뜬 것처럼 보인다"는 지적을 받았다. 포털 경로는 최소 상단 바로 대체) */}
         {!isPortalRoute && activeTab !== 'home' && activeTab !== 'prep' && activeTab !== 'bereaved' && <Footer />}

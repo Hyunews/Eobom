@@ -1244,6 +1244,31 @@
 
 <!-- Gemini 판정 1줄: ✅통과 (visibleGuestCount state 기반 slice 렌더 및 10개 더 보기 버튼 실장 확인 / 새 글 제출 시 카운트 자동 확장 확인 / 빌드 통과) -->
 
+## 2026-09-29 | 안 쓰는 파일 3개 삭제 — DomainOverviewPage · EntryBoxes · domainSlides (00-40 §3.3 C6 이후 미사용)
+
+- **근거 스펙**: 사람 승인 09-29(`context.md` 🔴 "안쓰는파일 목록만, 삭제는 사람확인후" → 승인) · `00-40` §3.3 C6.
+- **건드린 파일**: 삭제 3 — eobomDev/frontend/src/pages/DomainOverviewPage.tsx, components/home/EntryBoxes.tsx, components/home/domainSlides.tsx(일반 삭제, `git rm` 아님). 신규 1 — components/common/Badge.tsx. 수정 — components/Sidebar.tsx(import 1줄), App.tsx·lib/modeNav.ts·utils/memorialLink.ts(주석만).
+- **결과**:
+  - **Badge 이전**: `EntryBoxes.tsx`의 `Badge`(상태 배지 `preview`/`comingSoon`)를 `components/common/Badge.tsx`로 그대로 옮김(코드 동일, 모양·동작 불변). `Sidebar.tsx:3` import 경로만 `./common/Badge`로. `Badge`의 살아 있는 사용처는 Sidebar 하나뿐(전역 검색).
+  - **살아 있는 export 재확인**: 세 파일의 export = `EntryBoxes`·`Badge`·`domainSlides`·`DomainSlide`·`SlideStatus`·`box1Keys`·`box2Keys`·`box1Intro`·`box2Intro`·`DomainOverviewPageProps`/`DomainOverviewPage`. 전역 검색 결과 `Badge`(→이전) 외에는 이 세 파일끼리만 참조 — 옮길 것 없음, 그대로 삭제.
+  - **주석 정정(뜻이 틀려지는 곳만 "(삭제됨)")**: App.tsx 4곳 · modeNav.ts 3곳 · memorialLink.ts 1곳. `HomeDesktop.tsx`·`HomeMobile.tsx`의 "구 EntryBoxes.tsx"는 이미 옛것임이 드러나 그대로 둠. `App.tsx:410`(C6 폐지 안내 주석)도 이미 폐지라고 적혀 있어 그대로.
+  - `cd eobomDev/frontend && npx tsc --noEmit`(exit 0) · `npm run build` 통과.
+  - **index.css — 지우지 않음. 전용 블록 후보와 사용처(전역 검색, .tsx/.ts/.html/design-v2.css 대상 — 삭제 후 기준)**:
+
+    | 줄(index.css) | 클래스·변수 | 다른 곳 사용 |
+    | --- | --- | --- |
+    | 718~870 | `.domain-overview-viewport/-scroll/-slide/-intro/-intro-title/-intro-text/-feature-card/-dots/-footer-slide` | 없음 |
+    | 977~1012 | `.entry-boxes-grid` · `.chip-row` · `.entry-box-primary` · `.entry-box-secondary` | 없음 |
+    | 1295~1395 | `.entry-box-tint-green/-gold/-slate` · `.entry-box-card` · `.entry-box-reveal` · `.entry-box-reveal__inner` · `.entry-boxes-focus-group` | 없음 |
+    | 1393~1520 | `.entry-carousel` · `-arrow` · `-viewport` · `-track` · `-page` · `-dots` · `-dot` | 없음 |
+    | 37~41 | `--box-tint-green-end/-gold-end/-slate-end` | `index.css` 1302·1307·1312(위 `.entry-box-tint-*`)에서만 |
+
+    🟡 판정 방식: 클래스명을 `.tsx`·`.ts`·`.html`·`design-v2.css`에서 단어 경계로 검색. 위 표의 클래스는 전부 0건. 검색에 잡힌 `active`·`md`·`tsx` 등은 주석·다른 용도의 오탐(표에서 제외). 동적으로 클래스명을 조립하는 코드는 검색에 안 잡히므로(전역 grep `entry-`·`domain-overview` 문자열 조립은 없음을 확인) 삭제 전 사람이 한 번 더 보면 안전. 삭제는 사람 확인 후 별건.
+- **편차**: 없음. (작업 중 실수 1건 — 주석 치환 스크립트가 `memorialLink.ts`의 `E`를 `n`으로 바꿔 놓았다가 즉시 발견해 원래 문구로 복구·`git diff`로 8개 주석 줄만 바뀐 것 확인.)
+- **다음 에이전트가 알아야 할 것**: 🔴 커밋은 하지 않음 — 삭제 3 + 신규 `common/Badge.tsx` + 수정 4(주석 3·Sidebar)를 한 커밋으로. `context.md`의 "안쓰는파일 목록만" 문구는 [Opus]가 정리. index.css 위 블록 삭제 여부는 사람 결정 대기.
+
+<!-- Gemini 판정 1줄: … -->
+
 ## 2026-09-29 | 홈 뒤로가기 시 칸 복원 유실 — 새로고침 판정을 페이지 로드당 1회로
 
 - **근거 스펙**: 스펙 문서 없음 — 사람 실기기 지시(*"섹션2 → 디지털 엔딩노트 → 뒤로가기 = 섹션2여야 함, 메뉴로 메인 클릭 = 섹션1은 지금대로"*). `00-40` §3.5 H-9의 *"뒤로가기 복원은 유지"* 를 실제로 지키게 하는 수정.

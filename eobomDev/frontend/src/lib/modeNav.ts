@@ -10,7 +10,7 @@ export type NavMode = 'prep' | 'bereaved';
 
 export const NAV_MODE_STORAGE_KEY = 'k_ending_nav_mode';
 
-// Header.tsx 모드 드롭다운·EntryBoxes.tsx 박스② 제목과 라벨을 통일한다(08-19 14차).
+// Header.tsx 모드 드롭다운·EntryBoxes.tsx(삭제됨) 박스② 제목과 라벨을 통일한다(08-19 14차).
 export const MODE_LABELS: Record<NavMode, string> = {
   prep: '생전 준비',
   bereaved: '임종 및 사후 정리',
@@ -27,7 +27,7 @@ export interface ModeMenuItem {
 }
 
 // § 3.1 생전 준비 모드 — 2개. 06을 맨 위에 둔다(이 모드에 들어온 이유 자체가 엔딩노트).
-// 08-19 9차 — counseling에 loginRequired 누락돼 있던 것 정정(domainSlides.tsx의
+// 08-19 9차 — counseling에 loginRequired 누락돼 있던 것 정정(domainSlides.tsx(삭제됨)의
 // 박스① CTA 게이트와 불일치하던 문제 — 오버레이 CTA와 사이드바 클릭이 다르게 동작했음).
 // 08-19 14차(개발자 직접 지시) — 디지털 정산(계정·자산 정산)은 사후 처리 도메인이라 생전
 // 준비에 불필요 — 제거. 유가족 모드(BEREAVED_MENU)에는 그대로 남는다.
@@ -42,7 +42,7 @@ const PREP_MENU: ModeMenuItem[] = [
 
 // §3.2 유가족 모드 — 7개. 08-19 9차(개발자 직접 지시) — 순서 확정 및 pickup·memorial을
 // comingSoon → preview로 정정(PickupPage·MemorialPage 분리). facility·counseling·digital-estate에
-// loginRequired 누락돼 있던 것도 domainSlides.tsx 박스② CTA 게이트와 맞춰 정정.
+// loginRequired 누락돼 있던 것도 domainSlides.tsx(삭제됨) 박스② CTA 게이트와 맞춰 정정.
 // care-guide만 예외(00-26 §7.3·07-02 원칙 — 07 열람은 어느 경로로 들어오든 로그인 없이 가능).
 const BEREAVED_MENU: ModeMenuItem[] = [
   { id: 'care-guide', label: '상중 행정 가이드', icon: ChecklistShieldIcon, status: 'active' },

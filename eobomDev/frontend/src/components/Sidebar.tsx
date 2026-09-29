@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { Home, X, LogOut } from 'lucide-react';
-import { Badge } from './home/EntryBoxes';
+import { Badge } from './common/Badge';
 import { MODE_MENUS, type NavMode, type ModeMenuItem, type NavStatus } from '../lib/modeNav';
 
 // 🔄 2026-09-28 사람 지시 — 드로어는 이제 navMode(prep/bereaved)와 무관하게 항상 전체

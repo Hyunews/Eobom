@@ -1,4 +1,4 @@
-// 추모관 링크 파싱 — EntryBoxes.tsx(홈 박스③)와 MyObituaryListPage.tsx가 같은 규칙을 쓴다.
+// 추모관 링크 파싱 — EntryBoxes.tsx(삭제됨, 구 홈 박스③)와 MyObituaryListPage.tsx가 같은 규칙을 쓴다.
 // 받은 값이 전체 URL이든 "/m/slug"든 slug만이든 전부 받아 "/m/slug" 경로로 정규화한다.
 
 export interface ParsedMemorialLink {
