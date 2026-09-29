@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { Prisma } from '@prisma/client';
 import prisma from '../config/prisma';
 import { verifyBearerToken } from './authController';
+import { isValidCategory } from './expertController';
 import { createConsultRequest, ConsentRequiredError, ExpertNotAvailableError } from '../services/consultService';
 import { resolveApplicantContact, ProfileContactMissingError } from '../utils/applicantContact';
 import { normalizePhone } from '../utils/phone';
@@ -29,9 +30,12 @@ const buildWhere = (query: Request['query']): Prisma.ExpertWhereInput => {
     isPublished: true,
   };
 
+  // 02-05 §2.2 ④ — 쉼표 복수값(LAWYER,JUDICIAL_SCRIVENER). 값마다 검사해 모르는 값은 버린다.
+  // 한 값·'전체'·빈 값은 기존과 같다. 유효한 값이 하나도 없으면 빈 결과(기존 동작 유지).
   const category = query.category as string | undefined;
   if (category && category !== '전체') {
-    where.category = category;
+    const values = category.split(',').map((v) => v.trim()).filter(isValidCategory);
+    where.category = values.length === 1 ? values[0] : { in: values };
   }
 
   const q = query.q as string | undefined;
@@ -100,8 +104,8 @@ const safeConsultRequest = (r: { requestNo: string; status: string; createdAt: D
   createdAt: r.createdAt,
 });
 
-// 상담 신청 (`POST /api/experts/:id/consult-requests`) — 로그인 불필요(§5.2, 비회원 허용).
-// 로그인 상태면 userId를 함께 남긴다(leadController.createQuote와 동일 패턴).
+// 상담 신청 (`POST /api/experts/:id/consult-requests`) — 로그인 필수(02-03 §5.2, 2026-09-29): 토큰 없으면 401.
+// (견적 createQuote는 비회원 허용 그대로 — 이 함수만 다르다.)
 // 00-28 §6.4 Phase 2 — useProfileContact·saveToProfile 플래그. createQuote와 완전히 같은 규칙
 // (⚠️ 두 폼의 동작을 다르게 두지 말 것 — §6.4-1).
 export const submitConsultRequest = async (req: Request, res: Response) => {
@@ -117,7 +121,10 @@ export const submitConsultRequest = async (req: Request, res: Response) => {
   };
 
   const decoded = verifyBearerToken(req);
-  const usesProfile = !!useProfileContact && !!decoded;
+  if (!decoded) {
+    return res.status(401).json({ status: 'error', message: '상담 신청은 로그인 후 이용하실 수 있습니다.' });
+  }
+  const usesProfile = !!useProfileContact;
 
   if (!usesProfile && (!applicantName?.trim() || !applicantPhone?.trim())) {
     return res.status(400).json({ status: 'error', message: '이름과 연락처는 필수입니다.' });

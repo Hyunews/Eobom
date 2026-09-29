@@ -18,9 +18,9 @@ const REFRESH_TOKEN_TTL = '30d';
 const MIN_PASSWORD_LENGTH = 8;
 
 // docs/02-05 §3.3의 5대 전문가 직역 (법무사 추가, 2026-08-14)
-const EXPERT_CATEGORIES = ['LAWYER', 'JUDICIAL_SCRIVENER', 'TAX_ACCOUNTANT', 'ADMINISTRATIVE_SCRIVENER', 'FUNERAL_DIRECTOR'] as const;
+export const EXPERT_CATEGORIES = ['LAWYER', 'JUDICIAL_SCRIVENER', 'TAX_ACCOUNTANT', 'ADMINISTRATIVE_SCRIVENER', 'FUNERAL_DIRECTOR'] as const;
 type ExpertCategory = (typeof EXPERT_CATEGORIES)[number];
-const isValidCategory = (v: unknown): v is ExpertCategory => EXPERT_CATEGORIES.includes(v as ExpertCategory);
+export const isValidCategory =(v: unknown): v is ExpertCategory => EXPERT_CATEGORIES.includes(v as ExpertCategory);
 
 interface ExpertAccessPayload extends jwt.JwtPayload {
   id: string;

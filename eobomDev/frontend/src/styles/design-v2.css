@@ -310,6 +310,136 @@
   display: none;
 }
 
+/* ── 전문가 상담 상황 선택 모달(02-05 §2.2) — 데스크톱은 오른쪽 위 × + 하단 [닫기], 모바일은 바텀시트 + [닫기]
+   (바텀시트 전환·모바일 [닫기]는 위 .v2-modal 공용 규칙 그대로) ── */
+.v2-modal.is-situation {
+  position: relative;
+  max-height: calc(100vh - 48px);
+  overflow-y: auto;
+}
+
+.v2-modal-x {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 44px;
+  height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  color: var(--v2-text-main);
+  cursor: pointer;
+}
+
+.v2-modal-close.is-always {
+  display: block;
+  width: 100%;
+  height: 48px;
+  margin-top: 24px;
+  border: 1px solid var(--v2-btn-border);
+  background: none;
+  border-radius: 4px;
+  font-size: var(--v2-fs-support);
+  color: var(--v2-text-main);
+  cursor: pointer;
+}
+
+.v2-situation-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.v2-situation-list li + li {
+  border-top: 1px solid var(--v2-divider);
+}
+
+.v2-situation-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 100%;
+  min-height: 44px;
+  padding: 16px 0;
+  background: none;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+}
+
+.v2-situation-label {
+  font-size: var(--v2-fs-body);
+  font-weight: 700;
+  color: var(--v2-text-main);
+}
+
+.v2-situation-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: var(--v2-fs-support);
+  color: var(--v2-text-muted);
+}
+
+.v2-situation-deadline {
+  color: var(--v2-urgent);
+  font-weight: 600;
+}
+
+.v2-situation-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 24px;
+}
+
+.v2-situation-bar {
+  margin-bottom: 16px;
+}
+
+.v2-situation-deadline-note {
+  margin: 0 0 8px;
+  font-size: 12px;
+  color: var(--v2-urgent);
+}
+
+.v2-situation-bar-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.v2-situation-bar-label {
+  font-size: var(--v2-fs-body);
+  font-weight: 700;
+  color: var(--v2-text-main);
+}
+
+.v2-situation-reset {
+  flex-shrink: 0;
+  min-height: 44px;
+  padding: 0 4px;
+  background: none;
+  border: none;
+  color: var(--v2-point);
+  font-size: var(--v2-fs-support);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+@media (max-width: 767px) {
+  .v2-modal-x {
+    display: none;
+  }
+
+  .v2-modal.is-situation {
+    max-height: 90vh;
+  }
+}
+
 /* ── §6.6 버튼 — 밑줄이 아니라 테두리 ── */
 .v2-btn-outline,
 .v2-btn-solid,

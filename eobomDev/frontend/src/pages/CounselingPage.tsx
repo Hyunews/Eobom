@@ -1,10 +1,28 @@
 import React, { useState, useEffect } from 'react';
-import { Calculator, ChevronRight } from 'lucide-react';
+import { ChevronRight, X } from 'lucide-react';
 import { BACKEND_URL } from '../config';
 import { ConsultRequestModal } from '../components/expert/ConsultRequestModal';
 import { TaxSimulatorModal } from '../components/counseling/TaxSimulatorModal';
 import '../styles/design-v2.css';
 import { backdropCloseProps } from '../utils/backdropClose';
+import { COUNSELING_SITUATIONS, CounselingSituation } from '../utils/counselingSituations';
+
+// 상황 모달 "처음 1회 자동" 표시용 — 계정이 아니라 브라우저 기준(02-05 §2.2 ①)
+const SITUATION_SEEN_KEY = 'eobom_counseling_situation_seen';
+const hasSeenSituationModal = (): boolean => {
+  try {
+    return localStorage.getItem(SITUATION_SEEN_KEY) === '1';
+  } catch {
+    return false;
+  }
+};
+const markSituationModalSeen = () => {
+  try {
+    localStorage.setItem(SITUATION_SEEN_KEY, '1');
+  } catch {
+    // 저장 불가 환경 — 매번 열려도 화면은 정상 동작
+  }
+};
 
 // 00-39 §9.1 — 그룹①(목록·체크리스트) 대표 care-guide에서 뽑은 클래스를 시안 없이 그대로 적용.
 // 전문가 카드(테두리·배경 있는 박스)는 규칙1(카드·그림자 금지)에 따라 행 목록으로 바꾸고,
@@ -38,7 +56,10 @@ interface PublicExpert {
 
 export const CounselingPage: React.FC<CounselingPageProps> = ({ currentUser, onOpenLogin }) => {
   // 분야 선택 필터 — 2026-08-11 Domain02 Stage 1: 서버 GET /api/experts 실연동으로 전환
-  const [selectedCategory, setSelectedCategory] = useState<string>('전체');
+  // 켜진 탭 목록 — 평소엔 값 하나('전체' 포함), 상황을 고르면 그 상황의 직역 전부(02-05 §2.2 ③)
+  const [selectedCategories, setSelectedCategories] = useState<string[]>(['전체']);
+  const [situation, setSituation] = useState<CounselingSituation | null>(null);
+  const [isSituationOpen, setIsSituationOpen] = useState<boolean>(() => !hasSeenSituationModal());
   const [experts, setExperts] = useState<PublicExpert[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -58,11 +79,30 @@ export const CounselingPage: React.FC<CounselingPageProps> = ({ currentUser, onO
     setConsultTarget(expert);
   };
 
+  // 자동으로 뜬 모달도 "봤음"으로 남긴다 — 닫는 방식과 상관없이 다음 방문엔 자동으로 안 뜬다
+  useEffect(() => {
+    if (isSituationOpen) markSituationModalSeen();
+  }, [isSituationOpen]);
+
+  const handlePickSituation = (s: CounselingSituation) => {
+    setSituation(s);
+    setSelectedCategories(s.categories);
+    setIsSituationOpen(false);
+  };
+
+  // 탭을 직접 누르면 상황 줄이 사라지고 단일 선택으로 복귀(02-05 §2.2 ③)
+  const handlePickTab = (value: string) => {
+    setSituation(null);
+    setSelectedCategories([value]);
+  };
+
+  const categoryParam = selectedCategories.join(',');
+
   // 필터 변경 시 서버에 조건 그대로 위임해서 재조회 (FacilityPage와 동일 패턴)
   useEffect(() => {
     setIsLoading(true);
     const params = new URLSearchParams();
-    if (selectedCategory !== '전체') params.set('category', selectedCategory);
+    if (categoryParam !== '전체') params.set('category', categoryParam);
 
     fetch(`${BACKEND_URL}/api/experts?${params.toString()}`)
       .then((res) => res.json())
@@ -73,7 +113,7 @@ export const CounselingPage: React.FC<CounselingPageProps> = ({ currentUser, onO
         // 조회 실패 시 빈 목록으로 유지 — 필터 UI는 정상 노출
       })
       .finally(() => setIsLoading(false));
-  }, [selectedCategory]);
+  }, [categoryParam]);
 
   return (
     <div className="v2-page">
@@ -82,19 +122,32 @@ export const CounselingPage: React.FC<CounselingPageProps> = ({ currentUser, onO
           <span className="v2-desktop-only">상속 · 법률 · 세무 전문가 상담</span>
           <span className="v2-mobile-only">전문가 상담</span>
         </h1>
-        <p className="v2-page-subtitle">변호사, 세무사, 행정사, 장례지도사 분야별 상담 신청 및 상속세 자동 시뮬레이터</p>
+        <p className="v2-page-subtitle">변호사, 법무사, 세무사, 행정사, 장례지도사 분야별 상담 신청 및 상속세 자동 시뮬레이터</p>
       </div>
 
       <div className="v2-content">
-        {/* 상속세 시뮬레이터 진입 배너 — 클릭 시 모달로 열림 */}
-        <button type="button" className="v2-banner" onClick={() => setIsSimulatorOpen(true)}>
-          <span className="v2-banner-title">
-            <Calculator size={16} /> 상속세, 대략 얼마나 나올까요?
-          </span>
-          <span className="v2-banner-cta">
-            계산하기 <ChevronRight size={16} />
-          </span>
-        </button>
+        {/* 상황 모달 다시 열기 + 상속세 계산기 진입(02-05 §2.2 ①) */}
+        <div className="v2-situation-actions">
+          <button type="button" className="v2-btn-primary" onClick={() => setIsSituationOpen(true)}>
+            어떤 도움이 필요하세요?
+          </button>
+          <button type="button" className="v2-btn-outline" onClick={() => setIsSimulatorOpen(true)}>
+            상속세 계산하기
+          </button>
+        </div>
+
+        {/* 고른 상황 한 줄 + 다시 고르기(§2.2 ③) */}
+        {situation && (
+          <div className="v2-situation-bar">
+            {situation.deadlineNote && <p className="v2-situation-deadline-note">{situation.deadlineNote}</p>}
+            <div className="v2-situation-bar-row">
+              <span className="v2-situation-bar-label">{situation.label}</span>
+              <button type="button" className="v2-situation-reset" onClick={() => setIsSituationOpen(true)}>
+                다시 고르기
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* 분야 선택 필터 — 모든 화면에서 가로 스크롤(§9.1이 잇는 그룹①의 칩 패턴) */}
         <div className="v2-chip-row">
@@ -102,8 +155,8 @@ export const CounselingPage: React.FC<CounselingPageProps> = ({ currentUser, onO
             <button
               key={cat.value}
               type="button"
-              className={`v2-chip${selectedCategory === cat.value ? ' is-active' : ''}`}
-              onClick={() => setSelectedCategory(cat.value)}
+              className={`v2-chip${selectedCategories.includes(cat.value) ? ' is-active' : ''}`}
+              onClick={() => handlePickTab(cat.value)}
             >
               {cat.label}
             </button>
@@ -115,7 +168,9 @@ export const CounselingPage: React.FC<CounselingPageProps> = ({ currentUser, onO
           <p className="v2-empty">불러오는 중...</p>
         ) : experts.length === 0 ? (
           <p className="v2-empty">
-            {selectedCategory === '전체' ? '아직 입점한 전문가가 없습니다.' : `${CATEGORY_LABEL[selectedCategory]} 분야에 입점한 전문가가 아직 없습니다.`}
+            {selectedCategories[0] === '전체'
+              ? '아직 입점한 전문가가 없습니다.'
+              : `${selectedCategories.map((c) => CATEGORY_LABEL[c]).join('·')} 분야에 입점한 전문가가 아직 없습니다.`}
             {' '}준비되는 대로 순차적으로 노출됩니다.
           </p>
         ) : (
@@ -146,6 +201,36 @@ export const CounselingPage: React.FC<CounselingPageProps> = ({ currentUser, onO
           ))
         )}
       </div>
+
+      {/* 상황 선택 모달 — 데스크톱 ×+[닫기], 모바일 바텀시트+[닫기](00-39 규칙12; 시트 전환은 .v2-modal 공용 규칙) */}
+      {isSituationOpen && (
+        <div className="v2-modal-overlay" role="dialog" aria-modal="true" {...backdropCloseProps(() => setIsSituationOpen(false))}>
+          <div className="v2-modal is-situation" onClick={(e) => e.stopPropagation()}>
+            <button type="button" className="v2-modal-x" aria-label="닫기" onClick={() => setIsSituationOpen(false)}>
+              <X size={20} />
+            </button>
+            <h3 className="v2-modal-title">어떤 도움이 필요하세요?</h3>
+
+            <ul className="v2-situation-list">
+              {COUNSELING_SITUATIONS.map((s) => (
+                <li key={s.id}>
+                  <button type="button" className="v2-situation-row" onClick={() => handlePickSituation(s)}>
+                    <span className="v2-situation-label">{s.label}</span>
+                    <span className="v2-situation-meta">
+                      {s.categories.map((c) => CATEGORY_LABEL[c]).join(' · ')}
+                      {s.deadline && <span className="v2-situation-deadline">{s.deadline}</span>}
+                    </span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+
+            <button type="button" className="v2-modal-close is-always" onClick={() => setIsSituationOpen(false)}>
+              닫기
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* 전문가 상세 모달 */}
       {detailTarget && (
