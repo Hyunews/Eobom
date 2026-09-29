@@ -205,7 +205,38 @@ const EUP_MYEON = '(?:[가-힣]{1,6}[읍면]\\s*)?';
 const ADDRESS_FULL = new RegExp(`${SIDO}\\s*${SIGUNGU}${EUP_MYEON}(?:${ROAD_NO}|${LOT_NO})`, 'g');
 const ADDRESS_PARTIAL = new RegExp(`${SIDO}\\s*${SIGUNGU}${EUP_MYEON}[가-힣0-9]{0,12}`, 'g');
 
+// "(주소) …" · "주소: …" 라벨이 있으면 그 뒤 글귀(다음 "(내용)" 같은 라벨 앞까지)를 주소 후보로 본다.
+// 손글씨는 시·군·구가 잘못 읽히는 일이 잦다(실측: "괴산군" → "과산운"). 라벨이 주소 자리를 알려 주므로,
+// 시·도 글귀와 번호가 붙은 행정 단위(읍·면·동·리·로·길 + 숫자)가 함께 있으면 글자가 조금 틀려도 찾음으로 본다 —
+// 읽힌 글귀를 근거로 그대로 보여 주므로 틀린 글자는 사람이 본다(판정은 제안).
+const ADDRESS_LABEL = /[(（]\s*주소\s*[)）]|주\s*소\s*[:：]/g;
+const NEXT_LABEL = /[(（][가-힣]{1,6}[)）]/;
+const ADMIN_UNIT_NO = /[가-힣0-9]{1,8}(?:로|길|동|리|가|읍|면)\s*(?:산\s*)?\d+/;
+
+const findLabeledAddress = (pages: FlatPage[]): Hit | undefined => {
+  let last: Hit | undefined;
+  pages.forEach((p, page) => {
+    ADDRESS_LABEL.lastIndex = 0;
+    let m: RegExpExecArray | null;
+    while ((m = ADDRESS_LABEL.exec(p.text))) {
+      const from = m.index + m[0].length;
+      const rest = p.text.slice(from, from + 80);
+      const next = NEXT_LABEL.exec(rest);
+      const seg = (next ? rest.slice(0, next.index) : rest).trim();
+      if (!new RegExp(SIDO).test(seg) || !ADMIN_UNIT_NO.test(seg)) continue;
+      const start = p.text.indexOf(seg, from);
+      last = { page, text: squash(seg), key: seg.replace(/\s/g, ''), box: boxOf(p, start, start + seg.length) };
+    }
+  });
+  return last;
+};
+
 const checkAddress = (pages: FlatPage[]): RequirementItem => {
+  const labeled = findLabeledAddress(pages);
+  if (labeled) {
+    return { key: 'address', state: 'found', evidence: `"${labeled.text}" · ${pageLabel(labeled.page)} · "(주소)" 다음 글귀`, page: labeled.page, box: labeled.box };
+  }
+
   const full: Hit[] = [];
   pages.forEach((p, page) => {
     ADDRESS_FULL.lastIndex = 0;

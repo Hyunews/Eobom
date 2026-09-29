@@ -105,6 +105,28 @@ test('주소 — 군 + 읍·면 + 리 + 번지: 찾음', () => {
   assert.match(a.evidence, /충북 괴산군 괴산읍 동부리 551/);
 });
 
+// 실호출 실측(09-29, assets_test01.jpg) — 손글씨라 "괴산군"이 "과산운", "551"이 "55/"로 읽힌 실제 토큰.
+const REAL_TOKENS = ['유언장', '(괴롭게)', '(주소)', '충북', '과산운', '과산읍', '동부리55/', '(내용)', '내가', '죽거든', '장례수를', '단기4347(서기', '2014)년', '8월11일', '임', '각수', '(', ')', 'NEWSis('];
+
+test('주소 — "(주소)" 라벨 뒤 글귀: 시·군·구가 잘못 읽혀도 찾음(근거에 읽힌 글귀 그대로)', () => {
+  const a = pick(run([page(REAL_TOKENS)]), 'address');
+  assert.equal(a.state, 'found');
+  assert.match(a.evidence, /충북 과산운 과산읍 동부리55\//);
+  assert.ok(a.box);
+});
+
+test('주소 — 라벨이 있어도 시·도나 번호가 없으면 라벨 규칙으로는 찾지 않는다', () => {
+  assert.notEqual(pick(run([page(['(주소)', '괴산읍', '(내용)', '내가'])]), 'address').state, 'found');
+  assert.notEqual(pick(run([page(['(주소)', '충북', '괴산군', '(내용)'])]), 'address').state, 'found');
+});
+
+test('실측 토큰 — 성명 "임 각수"(띄어 읽힘)는 계정 이름 임각수와 같음, 날짜도 찾음', () => {
+  const r = run([page(REAL_TOKENS)], '임각수');
+  assert.equal(pick(r, 'name').state, 'found');
+  assert.equal(pick(r, 'date').state, 'found');
+  assert.equal(pick(run([page(REAL_TOKENS)], '홍길동'), 'name').state, 'missing');
+});
+
 test('주소 — 군 + 읍까지만: 판단 못 함(번지 없음)', () => {
   assert.equal(pick(run([page(['충북', '괴산군', '괴산읍'])]), 'address').state, 'unknown');
 });
