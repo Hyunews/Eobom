@@ -37,7 +37,6 @@ interface MyMemorial {
 const VISIBILITY_LABEL: Record<string, string> = {
   PRIVATE: '비공개',
   LINK: '링크로만 공개',
-  PUBLIC: '전체 공개',
 };
 
 type FieldErrorKey = 'deceased' | 'falseReport';
@@ -81,7 +80,6 @@ const EpitaphVisibilityFields: React.FC<EpitaphVisibilityFieldsProps> = ({ idPre
       <label htmlFor={`${idPrefix}-visibility`}>공개 범위</label>
       <select id={`${idPrefix}-visibility`} className="v2-select" value={visibility} onChange={(e) => onVisibilityChange(e.target.value)}>
         <option value="LINK">링크로만 공개 — 주소를 아는 사람만</option>
-        <option value="PUBLIC">전체 공개</option>
         <option value="PRIVATE">비공개 — 나만 볼 수 있음</option>
       </select>
     </div>

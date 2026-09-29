@@ -1766,4 +1766,29 @@
   - 토큰 만료 상태에서 상담 신청 시 프런트의 401 처리는 확인하지 못함(신청 버튼 단계의 `currentUser` 검사에 의존).
   - 커밋은 하지 않음 — 메시지 초안만.
 
+<!-- Gemini 판정 대기 -->
+
+## 2026-09-29 | 05 추모관 — 사람 결정 3건 구현 (PUBLIC 폐지 · 신고 서버 주소 제거 · 방명록 로그인 필수)
+
+- **근거 스펙**: docs/05_디지털_추모관/05-01_온라인_추모관_명세서.md 머리말 "2026-09-29 개발자 결정 3건"
+- **건드린 파일**: eobomDev/backend/src/controllers/memorialController.ts, eobomDev/backend/src/controllers/moderationController.ts, eobomDev/backend/src/routes/memorialRoutes.ts, eobomDev/frontend/src/App.tsx, eobomDev/frontend/src/pages/MemorialLandingPage.tsx, eobomDev/frontend/src/pages/MemorialPage.tsx, eobomDev/frontend/src/pages/AdminPage.tsx
+- **결과**:
+  - ① `VALID_VISIBILITY` `['PRIVATE','LINK','PUBLIC']` → `['PRIVATE','LINK']`(만들기·수정 400). `reviewMemorialReport`는 `['LINK','PUBLIC']` → LINK만. `MemorialPage.tsx`의 `PUBLIC: '전체 공개'` 라벨·`<option value="PUBLIC">전체 공개</option>` 제거. `AdminPage.tsx`의 `'LINK' | 'PUBLIC'` 타입 → `'LINK'`, "복구(전체 공개)" 버튼 제거.
+  - ② `router.post('/:slug/report', reportMemorial)` 라우트·import 삭제, `moderationController.ts`의 `reportMemorial` 함수 삭제. `MemorialLandingPage.tsx` 상단 주석을 "서버 주소도 09-29 제거"로 갱신. 운영자 목록·`review`·방명록 hide는 유지.
+  - ③ `createGuestbookEntry`: 토큰 없음/무효 → 401, 사용자 행 없음 → 401, `authorName`은 요청 본문을 받지 않고 `prisma.user.name` 스냅샷, `userId`는 항상 채움. 랜딩은 `currentUser`·`onOpenLogin`을 props로 받아(App.tsx 라우트에서 전달, `FamilyInvitePage`와 같은 꼴) 비로그인이면 모달에 "방명록은 로그인 후 남길 수 있습니다." + 로그인 버튼, 로그인 상태면 이름 칸 없이 "작성자: {이름}" 표시.
+  - 기존 데이터: 개발 DB `memorial.groupBy(visibility)` → `LINK 15건`, **PUBLIC 0건**. `updateMany` 안 함 → 백업·DB 쓰기 없음. 스키마 변경·마이그레이션 없음.
+  - 검증: `backend`·`frontend` 각각 `npx tsc --noEmit` exit 0.
+- **편차**:
+  - 지시는 "authorName은 로그인 사용자 기준 스냅샷"이었고, 이름 입력 칸 제거·요청 본문 authorName 무시까지 확장함(클라이언트가 임의 이름을 보내 사칭할 길을 막기 위해).
+  - 프런트 `tsc`는 `tsconfig.app.json` 없이 `-p .`로 돌림 — 프로젝트 참조 구성이면 파일을 안 잡았을 수 있음(exit 0이 전체 검사인지 미확인).
+- **다음 에이전트가 알아야 할 것**:
+  - ✅ **curl 4건 통과**(실행 중인 서버 `https://localhost:5000`, **https·자체 서명 인증서라 `-k` 필요** — http로 치면 "연결 닫힘"으로 꺼진 것처럼 보임): ① demo-login(KAKAO) 토큰으로 `POST /api/memorials` visibility=PUBLIC → 400 "visibility는 PRIVATE, LINK 중 하나여야 합니다." ② `POST /api/memorials/:slug/report` → 404 ③ 비로그인 방명록 → 401, 로그인 방명록(본문 authorName='사칭') → 201·저장된 authorName='카카오 테스트회원' ④ 비로그인 헌화 → 201.
+  - 🟡 검증 부산물: 개발 DB 기존 LINK 추모관 1곳에 방명록 1건("검증용 글", 카카오 테스트회원)·헌화 1건이 남음. 지우려면 운영자 방명록 숨김 또는 사람 판단(삭제는 DB 쓰기라 하지 않음).
+  - 과거 비회원 방명록 글(`userId=null`)은 그대로 목록에 보이며, 마이페이지 "내가 남긴 방명록"에는 안 잡힘(기존과 동일).
+  - `AdminPage.tsx`의 복구 버튼 블록에 자식이 하나 남은 `<>…</>`가 그대로 있음(동작 무관, 정리 여지).
+  - 05-01 본문(§4.3 신고 흐름 등)에 신고 서버 주소·PUBLIC 언급이 남아 있는지는 확인하지 않음 — `docs/`는 [Opus] 몫.
+  - 커밋은 하지 않음 — 메시지 초안만.
+
+<!-- Gemini 판정 대기 -->
+
 <!-- Gemini 판정 1줄: ✅통과 / ❌반려(사유) / 🔄스펙갱신(고친 문서) -->

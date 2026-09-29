@@ -261,7 +261,7 @@ export const AdminPage: React.FC = () => {
     }
   };
 
-  const decideMemorial = async (id: string, decision: 'RESTORE' | 'CONFIRM', visibility?: 'LINK' | 'PUBLIC') => {
+  const decideMemorial = async (id: string, decision: 'RESTORE' | 'CONFIRM', visibility?: 'LINK') => {
     const res = await authFetch(`${BACKEND_URL}/api/admin/memorials/${id}/review`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
@@ -1093,9 +1093,6 @@ export const AdminPage: React.FC = () => {
                       <>
                         <button onClick={() => decideMemorial(m.id, 'RESTORE', 'LINK')} className="btn" style={{ ...SMALL_BTN, backgroundColor: 'var(--state-ok-bg)', color: 'var(--state-ok-fg)' }}>
                           복구(링크 공개)
-                        </button>
-                        <button onClick={() => decideMemorial(m.id, 'RESTORE', 'PUBLIC')} className="btn" style={{ ...SMALL_BTN, backgroundColor: 'var(--state-ok-bg)', color: 'var(--state-ok-fg)' }}>
-                          복구(전체 공개)
                         </button>
                       </>
                     ) : (

@@ -12,7 +12,9 @@ import { calculateMemorialExpiresAt } from '../utils/memorialLifecycle';
 // 온라인 추모관(docs 05-01 §2, §4). 공개범위 기본값은 LINK(§4.2) — 사망 사실+유족 구성이
 // 공개 색인되면 부고 사칭 보이스피싱의 표적 정보가 된다.
 
-const VALID_VISIBILITY = ['PRIVATE', 'LINK', 'PUBLIC'] as const;
+// 🔄 09-29 사람 결정 — PUBLIC(전체 공개) 폐지. 링크로만 공개(LINK)·나만 보기(PRIVATE) 2가지.
+// 스키마 기본값(LINK)은 그대로라 마이그레이션 없음.
+const VALID_VISIBILITY = ['PRIVATE', 'LINK'] as const;
 const isValidVisibility = (v: unknown): v is (typeof VALID_VISIBILITY)[number] =>
   typeof v === 'string' && (VALID_VISIBILITY as readonly string[]).includes(v);
 
@@ -300,20 +302,29 @@ export const listGuestbook = async (req: Request, res: Response) => {
   }
 };
 
-// 방명록 작성 (`POST /api/memorials/:slug/guestbook`) — 비회원 허용, 작성자명은 스냅샷(§4.5, §5.5)
+// 방명록 작성 (`POST /api/memorials/:slug/guestbook`) — 🔄 09-29 사람 결정: 로그인 필수(보기·헌화는 비로그인 그대로).
+// 작성자명은 로그인 사용자 이름의 스냅샷(§4.5, §5.5) — 요청 본문의 authorName은 받지 않는다.
+// userId nullable 스키마는 과거 비회원 글 보존용이라 그대로 둔다.
 export const createGuestbookEntry = async (req: Request, res: Response) => {
   const decoded = verifyBearerToken(req);
-  const { authorName, relationToDeceased, message } = req.body as {
-    authorName?: string;
+  if (!decoded) {
+    return res.status(401).json({ status: 'error', message: '방명록 작성은 로그인 후 이용하실 수 있습니다.' });
+  }
+  const { relationToDeceased, message } = req.body as {
     relationToDeceased?: string;
     message?: string;
   };
 
-  if (!authorName?.trim() || !message?.trim()) {
-    return res.status(400).json({ status: 'error', message: '작성자 이름과 메시지는 필수입니다.' });
+  if (!message?.trim()) {
+    return res.status(400).json({ status: 'error', message: '메시지는 필수입니다.' });
   }
 
   try {
+    const user = await prisma.user.findUnique({ where: { id: decoded.id }, select: { name: true } });
+    if (!user) {
+      return res.status(401).json({ status: 'error', message: '방명록 작성은 로그인 후 이용하실 수 있습니다.' });
+    }
+
     const memorial = await findViewableMemorialBySlug(req.params.slug);
     if (!memorial) {
       return res.status(404).json({ status: 'error', message: '추모관을 찾을 수 없습니다.' });
@@ -325,8 +336,8 @@ export const createGuestbookEntry = async (req: Request, res: Response) => {
     const entry = await prisma.memorialGuestbook.create({
       data: {
         memorialId: memorial.id,
-        userId: decoded?.id || null,
-        authorName: authorName.trim(),
+        userId: decoded.id,
+        authorName: user.name,
         relationToDeceased: relationToDeceased?.trim() || null,
         message: message.trim(),
       },

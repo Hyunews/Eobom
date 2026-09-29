@@ -331,7 +331,10 @@ function AppShell() {
         // 껍데기 완전히 없음(§6.1) — Header·Sidebar·main-wrapper·Footer 전부 건너뛴다.
         <Routes>
           <Route path="/o/:slug" element={<ObituaryLandingPage />} />
-          <Route path="/m/:slug" element={<MemorialLandingPage />} />
+          <Route
+            path="/m/:slug"
+            element={<MemorialLandingPage currentUser={currentUser} onOpenLogin={() => openLoginModal()} />}
+          />
           <Route
             path="/invite/:token"
             element={<FamilyInvitePage currentUser={currentUser} onOpenLogin={() => openLoginModal()} />}

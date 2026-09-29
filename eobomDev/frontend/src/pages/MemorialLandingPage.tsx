@@ -12,12 +12,12 @@ import { backdropCloseProps } from '../utils/backdropClose';
 // `/m/${slug}` 링크를 뿌리고 있어 로그인 불필요 — slug를 아는 누구나 들어올 수 있다.
 // 🔴 사진 앨범은 이번 범위에서 뺀다(공개 조회 API 없음 + 로컬디스크라 재배포 시 소실,
 // systems.md §5).
-// 🔄 09-07 사용자 지시 — 조문객이 직접 누르는 "신고하기" 버튼(+확인 단계)을 없앴다. 백엔드
-// `POST /api/memorials/:slug/report`·운영자 콘솔의 심사(`reviewMemorialReport`)는 코드는
-// 그대로 두지만, 이 버튼이 유일한 호출부였다 — 이제 새 `reportedAt`이 채워질 방법이 없으므로
-// 운영자 화면의 "복구/비공개 유지" 버튼(reportedAt 있을 때만 노출)도 앞으로는 사실상 안 뜬다.
-// 방명록 개별 글 숨기기(`hideMemorialGuestbookEntry`, AdminPage.tsx "방명록 보기")는 신고
-// 여부와 무관하게 그대로 동작한다.
+// 🔄 09-07 사용자 지시 — 조문객이 직접 누르는 "신고하기" 버튼(+확인 단계)을 없앴다. 서버 주소
+// (`POST /api/memorials/:slug/report`)도 09-29 제거했다. 운영자 콘솔의 심사(`reviewMemorialReport`,
+// 신고 무관 운영자 조치)와 방명록 개별 글 숨기기(`hideMemorialGuestbookEntry`, AdminPage.tsx
+// "방명록 보기")는 그대로 동작한다.
+// 🔄 09-29 사람 결정 — 방명록 쓰기는 로그인 필수(보기·헌화는 비로그인 그대로). 작성자 이름은
+// 서버가 로그인 사용자 이름으로 스냅샷하므로 이름 칸은 없다.
 // 🔄 00-39 §6.7(2026-09-28 Opus, 시안 없음 §9.1) — `/o/:slug` 규칙을 그대로 적용한다. 틀은
 // `.v2-obit-page > .v2-obit-content > .v2-obit-box`(ObituaryLandingPage.tsx·ObituaryView.tsx와
 // 같은 구조), 머리·묶음 제목·점선 구분도 부고장 클래스를 그대로 쓴다. 새 요소(영정·추모 문구·
@@ -39,7 +39,12 @@ interface GuestbookEntry {
   createdAt: string;
 }
 
-export const MemorialLandingPage: React.FC = () => {
+interface MemorialLandingPageProps {
+  currentUser: string | null;
+  onOpenLogin: () => void;
+}
+
+export const MemorialLandingPage: React.FC<MemorialLandingPageProps> = ({ currentUser, onOpenLogin }) => {
   const { slug } = useParams<{ slug: string }>();
   const [data, setData] = useState<MemorialData | null>(null);
   const [guestbook, setGuestbook] = useState<GuestbookEntry[]>([]);
@@ -56,7 +61,6 @@ export const MemorialLandingPage: React.FC = () => {
   // 🔄 2026-09-28 개발자 지시 — 방명록 작성을 페이지에 펼쳐두지 않고 모달로 연다("헌화하기"와
   // 같은 줄의 "방명록 남기기" 버튼이 연다).
   const [isGuestModalOpen, setIsGuestModalOpen] = useState(false);
-  const [authorName, setAuthorName] = useState('');
   const [relationToDeceased, setRelationToDeceased] = useState('');
   const [message, setMessage] = useState('');
   const [guestSubmitting, setGuestSubmitting] = useState(false);
@@ -144,17 +148,14 @@ export const MemorialLandingPage: React.FC = () => {
 
   const handleGuestbookSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!slug || !authorName.trim() || !message.trim()) return;
+    if (!slug || !currentUser || !message.trim()) return;
     setGuestSubmitting(true);
     setGuestError(null);
     try {
-      // 🔄 2026-09-21 — 로그인 토큰을 함께 보낸다(apiFetchRaw 'USER'). 백엔드(createGuestbookEntry)는 토큰이 오면
-      // userId를 저장하는데, 예전엔 plain fetch라 토큰이 안 실려 **로그인한 채 쓴 글도 비회원 글(userId=null)** 로
-      // 저장됐다 → 마이페이지 "내가 남긴 방명록"(SCR-021, userId 일치)에 안 떴다. 토큰이 없으면 예전처럼 비회원 글.
-      // 유효하지 않은 토큰이어도 이 라우트는 401을 내지 않고 비회원으로 취급한다(verifyBearerToken → null).
+      // 로그인 토큰을 함께 보낸다(apiFetchRaw 'USER'). 09-29부터 서버는 토큰이 없거나 유효하지 않으면 401.
       const res = await apiFetchRaw(`/api/memorials/${slug}/guestbook`, 'USER', {
         method: 'POST',
-        body: JSON.stringify({ authorName, relationToDeceased, message }),
+        body: JSON.stringify({ relationToDeceased, message }),
       });
       const json = await res.json();
       if (json.status !== 'success') {
@@ -165,7 +166,6 @@ export const MemorialLandingPage: React.FC = () => {
       // 🔄 00-39 §6.7 — 새 글이 보이는 개수 안에 들어가게(펼친 개수 + 1). 이미 펼친 나머지는
       // 줄이지 않는다.
       setVisibleGuestCount((prev) => prev + 1);
-      setAuthorName('');
       setRelationToDeceased('');
       setMessage('');
       setIsGuestModalOpen(false);
@@ -310,20 +310,28 @@ export const MemorialLandingPage: React.FC = () => {
         >
           <div className="v2-modal is-form" onClick={(e) => e.stopPropagation()}>
             <h2 id="guest-modal-title" className="v2-modal-title">방명록 남기기</h2>
+            {!currentUser ? (
+              <>
+                <p className="v2-notice">방명록은 로그인 후 남길 수 있습니다.</p>
+                <div className="v2-modal-actions is-form-actions">
+                  <button type="button" className="v2-btn-outline" onClick={closeGuestModal}>
+                    닫기
+                  </button>
+                  <button
+                    type="button"
+                    className="v2-btn-primary"
+                    onClick={() => {
+                      setIsGuestModalOpen(false);
+                      onOpenLogin();
+                    }}
+                  >
+                    로그인
+                  </button>
+                </div>
+              </>
+            ) : (
             <form onSubmit={handleGuestbookSubmit} className="v2-form">
-              <div className="v2-field">
-                <label htmlFor="guest-name">
-                  이름 <span className="v2-req">필수</span>
-                </label>
-                <input
-                  id="guest-name"
-                  type="text"
-                  className="v2-input"
-                  value={authorName}
-                  onChange={(e) => setAuthorName(e.target.value)}
-                  required
-                />
-              </div>
+              <p className="v2-notice">작성자: {currentUser}</p>
               <div className="v2-field">
                 <label htmlFor="guest-relation">
                   고인과의 관계 <span className="v2-opt">선택</span>
@@ -358,6 +366,7 @@ export const MemorialLandingPage: React.FC = () => {
                 </button>
               </div>
             </form>
+            )}
           </div>
         </div>
       )}
