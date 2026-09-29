@@ -152,7 +152,7 @@ export const PickupPage: React.FC<PickupPageProps> = () => {
   return (
     <div className="v2-page">
       <div className="v2-page-head">
-        <h1 className="v2-page-title">유품 정리 업체 매칭</h1>
+        <h1 className="v2-page-title">유품 정리 업체 검색</h1>
         <p className="v2-page-subtitle">지역 기반 유품 정리·수거 전문 업체와 연결해 드립니다.</p>
       </div>
 

@@ -15,7 +15,7 @@ const ROOT = path.resolve(__dirname, '..', '..');
 const DOCS = path.join(ROOT, 'docs');
 const OUT = path.join(ROOT, '.harness', 'docs-audit');
 const EXCLUDE = ['작업일지_및_기록'];
-const VERDICTS = ['유지', '갱신', '통합', '경위', '폐기', '색인'];
+const VERDICTS = ['유지', '갱신', '통합', '경위', '폐기', '색인', '묶음']; // 묶음 = build가 자동으로만 채움(본문 없는 절)
 
 function walk(dir) {
   let out = [];
@@ -45,6 +45,11 @@ function headings(file) {
     if (m) out.push({ line: i + 1, level: m[1].length, title: m[2].replace(/\|/g, '\\|').trim() });
   });
   if (!out.length) out.push({ line: 1, level: 0, title: '(제목 없음 — 파일 전체)' });
+  // 묶음 = 제목 바로 아래가 다음 제목까지 빈 줄·구분선뿐인 절(하위 절을 묶기만 함) — 판정할 본문이 없다
+  out.forEach((h, j) => {
+    const end = j + 1 < out.length ? out[j + 1].line - 1 : lines.length;
+    h.container = h.level > 0 && lines.slice(h.line, end).every((l) => /^\s*(-{3,})?\s*$/.test(l));
+  });
   return out;
 }
 
@@ -59,7 +64,8 @@ function parseLedger(p) {
     const cells = ln.split(/(?<!\\)\|/).slice(1, -1).map((c) => c.trim());
     // | 파일 | 줄 | 절 | 판정 | 근거 | 메모 |
     const file = cells[0].replace(/`/g, '');
-    const title = cells[2].replace(/^(#+\s*|·\s*)/, '').replace(/^\s*(&nbsp;)*/, '').trim();
+    // 들여쓰기(&nbsp;)를 먼저 벗기고 #을 벗긴다 — 순서가 반대면 ##·### 절의 판정이 build 때 사라진다(09-29 실제 발생)
+    const title = cells[2].replace(/^\s*(&nbsp;)*/, '').replace(/^(#+\s*|·\s*)/, '').trim();
     kept.set(key(file, title), { verdict: cells[3] || '', basis: cells[4] || '', memo: cells[5] || '' });
   }
   return kept;
@@ -90,6 +96,10 @@ function build() {
       body.push('|---|---:|---|---|---|---|');
       for (const h of heads) {
         const k = kept.get(key(rel, h.title.replace(/\\\|/g, '\\|'))) || kept.get(key(rel, h.title)) || { verdict: '', basis: '', memo: '' };
+        // 본문 없는 절은 자동으로 `묶음`(사람 결정 09-29). 손으로 다른 판정을 적어 두었으면 그대로 둔다
+        if (h.container && (!k.verdict || k.verdict === '유지' && k.basis.startsWith('제목만'))) {
+          k.verdict = '묶음'; k.basis = '자동 — 본문 없음(하위 절만 묶음)';
+        }
         const indent = h.level > 1 ? '&nbsp;'.repeat((h.level - 1) * 2) : '';
         body.push(`| \`${rel}\` | ${h.line} | ${indent}${'#'.repeat(h.level)} ${h.title} | ${k.verdict} | ${k.basis} | ${k.memo} |`);
         rows++; if (k.verdict) filled++;
