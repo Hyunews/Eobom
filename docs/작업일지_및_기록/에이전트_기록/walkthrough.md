@@ -1791,4 +1791,26 @@
 
 <!-- Gemini 판정 대기 -->
 
+## 2026-09-29 | 00-34 — 일반 사용자 로그인을 열린 탭끼리 공유 (BroadcastChannel)
+
+- **근거 스펙**: docs/00_핵심플랫폼/00-34 §2.2 "2026-09-29 개발자 결정"
+- **건드린 파일**: eobomDev/frontend/src/lib/storage.ts, eobomDev/frontend/src/App.tsx (백엔드·DB 변경 없음)
+- **결과**:
+  - `storage.ts`: 채널 `'eobom_auth'`(상수 `AUTH_CHANNEL_NAME`, 파일 밖 노출 없음). `setSession`/`clearSession`을 `storeSession`/`wipeSession`(저장만)+방송으로 갈라, USER일 때만 `LOGIN {displayName, token}`/`LOGOUT` 방송. 수신 측은 저장만 하는 내부 함수를 써서 재방송(핑퐁) 없음. 저장소는 sessionStorage 그대로.
+  - 새 탭 시작 시 USER 토큰이 없으면 `REQUEST` 방송 → 토큰 가진 탭이 `SHARE {token, displayName}` 응답 → 받은 탭이 저장. 새 export 3개: `isUserSessionPending()`, `subscribeUserSession(listener)`(해제 함수 반환).
+  - `App.tsx`: `useEffect`로 구독/해제, 수신 시 `setCurrentUser(getDisplayName('USER'))`. 대기 중(최대 300ms, `SESSION_REQUEST_WAIT_MS`)은 `sessionPending`이 true라 빈 `<div>`만 그려 로그아웃 화면·로그인 창이 번쩍이지 않음.
+  - `BroadcastChannel` 미지원/생성 실패 → `channel=null`, 대기·방송 전부 건너뜀(오류 없음).
+  - 검증: `frontend` `npx tsc --noEmit` exit 0 (`src/lib/_probe.ts`에 일부러 타입 오류를 넣어 `src`를 실제로 검사하는 것 확인 후 파일 삭제).
+  - 흐름(코드상): 탭A 로그인 → `handleLoginSuccess`→`setSession('USER')`→LOGIN 방송 → 열려 있던 탭B도 저장·`currentUser` 갱신. 탭A 로그인 상태에서 탭B 새로 열기 → 토큰 없음 → REQUEST → 탭A가 SHARE → 탭B 저장·화면 그림(로그인 상태). 탭B 로그아웃 → `clearSession('USER')`→LOGOUT → 탭A도 삭제·`currentUser=null`. 모든 탭 닫고 재시작 → sessionStorage 비어 있고 응답 없음 → 300ms 뒤 로그아웃 상태.
+- **편차**:
+  - 지시는 받은 탭이 `setSession('USER')`로 저장이라 했으나, 그대로면 받은 탭이 다시 LOGIN을 방송해 탭끼리 왕복하므로 수신 경로는 방송 없는 내부 저장 함수를 씀.
+  - 지시의 "다른 로그인 필수 화면의 첫 렌더 확인"은 화면별로 열어 보지 않고, App 전체를 300ms 빈 화면으로 두는 방식으로 일괄 처리함. 부작용: **로그인 안 한 사람이 새 탭을 열 때도(응답할 탭이 없어도) 매번 300ms 빈 화면**.
+- **다음 에이전트가 알아야 할 것**:
+  - 🔴 실기동 미확인(사람 몫): 실제 두 탭에서 로그인 공유·로그아웃 전파·300ms 빈 화면 체감·`window.open`으로 연 새 탭(opener의 sessionStorage 복사와 겹치는 경우) 동작.
+  - 소셜 로그인은 전체 리다이렉트 후 같은 탭으로 돌아와 `handleLoginSuccess`가 불리므로 그때 LOGIN이 방송됨(다른 탭도 로그인됨).
+  - 세션 만료(401) 처리도 `clearSession`을 거치므로 한 탭 만료가 열린 모든 탭의 로그아웃으로 전파됨(다른 탭에는 로그인 모달 안내 없이 조용히 로그아웃).
+  - 커밋은 하지 않음 — 메시지 초안만.
+
+<!-- Gemini 판정 대기 -->
+
 <!-- Gemini 판정 1줄: ✅통과 / ❌반려(사유) / 🔄스펙갱신(고친 문서) -->

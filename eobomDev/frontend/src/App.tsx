@@ -11,7 +11,7 @@ import { MyPageFamilyDesignation } from './components/mypage/MyPageFamilyDesigna
 import { EobomLogo } from './components/EobomLogo';
 import { providerLabel, BACKEND_URL } from './config';
 import { NAV_MODE_STORAGE_KEY, type NavMode } from './lib/modeNav';
-import { getDisplayName, setSession, clearSession, clearLegacyUserLocalStorage, PENDING_RETURN_PATH_KEY, SCROLL_HOME_KEY, SCROLL_HOME_MOBILE_KEY } from './lib/storage';
+import { getDisplayName, setSession, clearSession, clearLegacyUserLocalStorage, isUserSessionPending, subscribeUserSession, PENDING_RETURN_PATH_KEY, SCROLL_HOME_KEY, SCROLL_HOME_MOBILE_KEY } from './lib/storage';
 import { registerSessionExpiredHandler } from './lib/api';
 import { useIsMobile } from './hooks/useIsMobile';
 
@@ -93,6 +93,19 @@ function AppShell() {
     clearLegacyUserLocalStorage();
     return getDisplayName('USER');
   });
+
+  // 00-34 §2.2 (09-29) — 다른 탭의 로그인·로그아웃, 새 탭이 받아온 세션에 반응한다. 답을 기다리는
+  // 짧은 동안(sessionPending)은 아래에서 화면을 그리지 않아 로그아웃 화면이 번쩍이지 않는다.
+  const [sessionPending, setSessionPending] = useState(isUserSessionPending);
+  useEffect(() => {
+    const sync = () => {
+      setCurrentUser(getDisplayName('USER'));
+      setSessionPending(isUserSessionPending());
+    };
+    const unsubscribe = subscribeUserSession(sync);
+    sync(); // 구독 전에 도착한 응답을 놓치지 않게 한 번 맞춘다
+    return unsubscribe;
+  }, []);
 
   // §3-2 — 로그인 속도. Render 무료 인스턴스는 15분 미사용 시 슬립하므로, 로그인 버튼을 누른
   // 시점에 깨우면 이미 늦다. 첫 페이지 로드 때 미리 한 번 깨워둔다 — 완전 무음(실패해도 무시,
@@ -324,6 +337,9 @@ function AppShell() {
     onOpenLogin: () => openLoginModal(),
     setActiveTab,
   };
+
+  // 새 탭이 다른 탭에 로그인 정보를 묻고 답을 기다리는 최대 300ms — 빈 화면으로 둔다(storage.ts).
+  if (sessionPending) return <div style={{ minHeight: '100vh' }} />;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>

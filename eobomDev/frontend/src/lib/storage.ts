@@ -61,7 +61,8 @@ type SessionPayload = {
   PARTNER: { displayName: string; token: string; refreshToken: string; type: string };
 };
 
-export function setSession<A extends Audience>(audience: A, payload: SessionPayload[A]): void {
+// 저장만 한다(탭 간 방송 없음) — 방송을 받은 탭이 다시 방송하는 핑퐁을 막으려고 갈라둔다.
+function storeSession<A extends Audience>(audience: A, payload: SessionPayload[A]): void {
   const store = STORE[audience];
   const keys = KEYS[audience];
   store.setItem(keys.DISPLAY_NAME, payload.displayName);
@@ -76,9 +77,114 @@ export function setSession<A extends Audience>(audience: A, payload: SessionPayl
   }
 }
 
-export function clearSession(audience: Audience): void {
+function wipeSession(audience: Audience): void {
   const store = STORE[audience];
   Object.values(KEYS[audience]).forEach((key) => store.removeItem(key));
+}
+
+export function setSession<A extends Audience>(audience: A, payload: SessionPayload[A]): void {
+  storeSession(audience, payload);
+  if (audience === 'USER') {
+    const p = payload as SessionPayload['USER'];
+    postAuth({ type: 'LOGIN', displayName: p.displayName, token: p.token });
+  }
+}
+
+export function clearSession(audience: Audience): void {
+  wipeSession(audience);
+  if (audience === 'USER') postAuth({ type: 'LOGOUT' });
+}
+
+// ─────────────────────────────────────────────────────────────────
+// 00-34 §2.2 (2026-09-29 개발자 결정) — 일반 사용자(USER) 로그인을 열린 탭끼리 공유한다.
+// 저장소는 sessionStorage 그대로(브라우저를 끄면 로그아웃, 08-21) — 새 탭은 비어 있으므로
+// BroadcastChannel로 토큰을 가진 탭에 물어 받아온다. ADMIN·PARTNER는 이미 localStorage라 대상 아님.
+// BroadcastChannel이 없는 브라우저는 channel이 null이라 모든 함수가 조용히 아무 일도 안 한다.
+// ─────────────────────────────────────────────────────────────────
+const AUTH_CHANNEL_NAME = 'eobom_auth';
+const SESSION_REQUEST_WAIT_MS = 300;
+
+type AuthMessage =
+  | { type: 'REQUEST' }
+  | { type: 'SHARE' | 'LOGIN'; displayName: string; token?: string }
+  | { type: 'LOGOUT' };
+
+let channel: BroadcastChannel | null = null;
+try {
+  if (typeof BroadcastChannel !== 'undefined') channel = new BroadcastChannel(AUTH_CHANNEL_NAME);
+} catch {
+  channel = null;
+}
+
+const sessionListeners = new Set<() => void>();
+const notifySession = () => sessionListeners.forEach((fn) => fn());
+
+function postAuth(msg: AuthMessage): void {
+  try {
+    channel?.postMessage(msg);
+  } catch {
+    /* 방송 실패는 조용히 — 이 탭의 로그인 자체엔 영향 없음 */
+  }
+}
+
+// 새 탭이 답을 기다리는 동안 true — App이 이 동안 화면을 그리지 않아 "로그아웃 상태"가 번쩍이지 않게 한다.
+let userSessionPending = false;
+let pendingTimer: ReturnType<typeof setTimeout> | null = null;
+function finishPending(): void {
+  if (!userSessionPending) return;
+  userSessionPending = false;
+  if (pendingTimer) clearTimeout(pendingTimer);
+  pendingTimer = null;
+}
+
+export function isUserSessionPending(): boolean {
+  return userSessionPending;
+}
+
+// 다른 탭에서 온 로그인/로그아웃/공유 응답으로 이 탭의 USER 세션이 바뀌었을 때(또는 대기가 끝났을 때) 호출된다.
+export function subscribeUserSession(listener: () => void): () => void {
+  sessionListeners.add(listener);
+  return () => {
+    sessionListeners.delete(listener);
+  };
+}
+
+if (channel) {
+  channel.onmessage = (e: MessageEvent<AuthMessage>) => {
+    const msg = e.data;
+    if (!msg || typeof msg !== 'object') return;
+    switch (msg.type) {
+      case 'REQUEST': {
+        const token = getToken('USER');
+        const displayName = getDisplayName('USER');
+        if (token && displayName) postAuth({ type: 'SHARE', displayName, token });
+        return;
+      }
+      case 'SHARE':
+        if (!getToken('USER') && msg.token) storeSession('USER', { displayName: msg.displayName, token: msg.token });
+        break;
+      case 'LOGIN':
+        storeSession('USER', { displayName: msg.displayName, token: msg.token });
+        break;
+      case 'LOGOUT':
+        wipeSession('USER');
+        break;
+      default:
+        return;
+    }
+    finishPending();
+    notifySession();
+  };
+
+  // 새 탭 시작 시 토큰이 없으면 이미 로그인한 탭에 물어본다. 답이 없으면(다른 탭 없음) 그대로 로그아웃 상태.
+  if (!getToken('USER')) {
+    userSessionPending = true;
+    postAuth({ type: 'REQUEST' });
+    pendingTimer = setTimeout(() => {
+      finishPending();
+      notifySession();
+    }, SESSION_REQUEST_WAIT_MS);
+  }
 }
 
 // §4.4 — 2026-08-21 localStorage→sessionStorage 전환 때 남긴 한시적 청소 코드.
