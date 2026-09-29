@@ -39,7 +39,7 @@ devDB실측=8행뿐·"더보기"실사례없음)전부완료(tsc/build통과)—
 🔴사람실기동완전대기.🟡보류:pickup거리순·전문가region·height:36px3곳.✅09-28`family-invite`v2이관+거절모달(§6.7,00-27§9.1-4-2·4-3)완료·사람실검증(09-28).
 ✅**그룹④3/3완료**(`00-39`§9.1갱신).다음=[Opus]그룹⑤홈=🆕`00-40`계획서(분기1섹션2진입→2히어로·주소창·넘김→3모바일메뉴→4합치기).
 ▶분기1·2✅확정(ⓓ·W1·M1·④가로넘김)→✅[Sonnet]§3.3 1차구현완료(09-28,HomeDesktop/HomeMobile신규분리·tsc·build통과)—세부`walkthrough.md`.
-✅섹션1=**G4-c**반영완료(09-28,HomeDesktop/HomeMobile+index.css,tsc·build통과).왼쪽여백=`min(300px,max(80px,(섹션폭-1048px)/2))`(사람직접수정,주석도300으로일치확인)→▶사람실화면검증대기(그라데이션세기·사진크롭등§3.3끝🟡).✅00-40§3.3-4표=300상한일치·모바일푸터=M-11(사람실화면✅09-29).✅**분기3=현행드로어확정**(09-29,시안없음,§3.4)→분기4:🟡6건중5good·1건=§3.5(모바일칸②~④스크롤없앰,H-1~7)→✅H-1~9구현·사람실기기확인·✅`00-39`§6.7`home`모바일등재(09-29).🟡walkthrough에H-8·9항목없음→[Sonnet]기록요청.🔴안쓰는파일(DomainOverviewPage·EntryBoxes·domainSlides)목록만,삭제는사람확인후.
+✅섹션1=**G4-c**반영완료(09-28,HomeDesktop/HomeMobile+index.css,tsc·build통과).왼쪽여백=`min(300px,max(80px,(섹션폭-1048px)/2))`(사람직접수정,주석도300으로일치확인)→▶사람실화면검증대기(그라데이션세기·사진크롭등§3.3끝🟡).✅00-40§3.3-4표=300상한일치·모바일푸터=M-11(사람실화면✅09-29).✅**분기3=현행드로어확정**(09-29,시안없음,§3.4)→분기4:🟡6건중5good·1건=§3.5(모바일칸②~④스크롤없앰,H-1~7)→✅H-1~9구현·사람실기기확인·✅`00-39`§6.7`home`모바일등재(09-29).▶[Sonnet]마무리3건(walkthrough중복정리·HomeDesktop키import·build).🔴안쓰는파일(DomainOverviewPage·EntryBoxes·domainSlides)목록만,삭제는사람확인후.
 ✅wt글자깨짐복구(09-28,[Opus]점검=깨진글자0).🔴한글문서는Edit/Write로만—셸리다이렉션금지.
 ✅로그인후사용자아이콘 섹션1흰색버그수정(09-29,Header.tsx `UserCheck` color prop고정값→className, index.css `.header-user-icon` 히어로스코프추가,tsc·build통과)→▶사람실기동검증대기.
 **3.[Gemini]**🔴게이트45건대기(09-11~21·wt204~)·🟡옛스펙3건→⑭.🟡devDB삭제분7건—D-8(🔴CONFIRM).✅reports경로정리완료(09-16).
