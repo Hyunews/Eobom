@@ -4003,11 +4003,35 @@ a.v2-btn-solid {
   border: 2px solid var(--v2-text-main);
 }
 
+.v2-login-gate-logo {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
 .v2-login-gate-title {
   margin: 0 0 24px;
   color: var(--v2-text-main);
   font-size: var(--v2-fs-page-title);
   font-weight: 700;
+  line-height: 1.4;
+}
+
+/* 모바일 — 글씨·로고를 줄이고 줄바꿈은 PC와 같게 유지 */
+@media (max-width: 768px) {
+  .v2-login-gate-card {
+    padding: 32px 20px;
+  }
+
+  .v2-login-gate-logo {
+    zoom: 0.8;
+    margin-bottom: 16px;
+  }
+
+  .v2-login-gate-title {
+    font-size: 1.25rem;
+    margin-bottom: 20px;
+  }
 }
 
 .v2-login-gate-btn {
