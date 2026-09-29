@@ -298,10 +298,10 @@ export const HomeMobile: React.FC<HomeMobileProps> = ({ currentUser, onOpenLogin
             {/* 🔄 2026-09-29 — 00-40 §3.5 H-4. 추모관 링크로 입장 · 파트너 로그인을 ③에서 옮겨 온다(M-6).
                 섹션3 문구 바로 아래·푸터 위, 누르는 높이 44px. */}
             <div ref={memorialRowRef} style={{ flex: '0 0 auto', margin: '0 24px', minHeight: '44px', borderTop: '1px solid #DDD6CB', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1.2rem', position: 'relative' }}>
-              <button type="button" onClick={() => setShowMemorialInput((v) => !v)} style={{ background: 'none', border: 'none', fontSize: '14px', fontWeight: 600, color: '#5B7065', cursor: 'pointer', fontFamily: 'inherit', padding: 0, minHeight: '44px' }}>
+              <button type="button" onClick={() => setShowMemorialInput((v) => !v)} style={{ background: 'none', border: 'none', fontSize: '14px', fontWeight: 600, color: '#1A2B4C', cursor: 'pointer', fontFamily: 'inherit', padding: 0, minHeight: '44px' }}>
                 추모관 링크로 입장
               </button>
-              <button type="button" onClick={() => setActiveTab?.('partner')} style={{ background: 'none', border: 'none', fontSize: '14px', fontWeight: 600, color: '#8A9199', cursor: 'pointer', fontFamily: 'inherit', padding: 0, minHeight: '44px' }}>
+              <button type="button" onClick={() => setActiveTab?.('partner')} style={{ background: 'none', border: 'none', fontSize: '14px', fontWeight: 600, color: '#1A2B4C', cursor: 'pointer', fontFamily: 'inherit', padding: 0, minHeight: '44px' }}>
                 파트너 로그인
               </button>
 
