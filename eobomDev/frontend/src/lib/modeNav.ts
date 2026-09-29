@@ -37,7 +37,7 @@ const PREP_MENU: ModeMenuItem[] = [
   // 🔄 09-07 사용자 지시 — 둘 다 실제로 저장·조회가 되는 기능이라 사이드바 "미리보기" 배지를 뗀다.
   { id: 'ending-note', label: '디지털 엔딩노트', icon: NoteKeyIcon, status: 'active', loginRequired: true },
   { id: 'farewell-messages', label: '유족 메시지 보관함', icon: Mail, status: 'active', loginRequired: true },
-  { id: 'counseling', label: '전문가 매칭', icon: HandScalesIcon, status: 'active', loginRequired: true },
+  { id: 'counseling', label: '전문가 상담', icon: HandScalesIcon, status: 'active', loginRequired: true },
 ];
 
 // §3.2 유가족 모드 — 7개. 08-19 9차(개발자 직접 지시) — 순서 확정 및 pickup·memorial을
@@ -46,12 +46,12 @@ const PREP_MENU: ModeMenuItem[] = [
 // care-guide만 예외(00-26 §7.3·07-02 원칙 — 07 열람은 어느 경로로 들어오든 로그인 없이 가능).
 const BEREAVED_MENU: ModeMenuItem[] = [
   { id: 'care-guide', label: '상중 행정 가이드', icon: ChecklistShieldIcon, status: 'active' },
-  { id: 'facility', label: '장사시설 매칭', icon: HouseLeafIcon, status: 'active', loginRequired: true },
-  { id: 'counseling', label: '전문가 매칭', icon: HandScalesIcon, status: 'active', loginRequired: true },
+  { id: 'facility', label: '장사 시설', icon: HouseLeafIcon, status: 'active', loginRequired: true },
+  { id: 'counseling', label: '전문가 상담', icon: HandScalesIcon, status: 'active', loginRequired: true },
   { id: 'obituary', label: '모바일 부고장', icon: MessageSquare, status: 'active', loginRequired: true },
   // 🔄 09-22 사용자 지시 — pickup·digital-estate 모두 정적 콘텐츠로 완결돼 있어(로그인·API 없이
   // 동작) 사이드바 "준비 중" 배지를 뗀다(wt131·wt135와 같은 조치).
-  { id: 'pickup', label: '유품 수거', icon: Package, status: 'active', loginRequired: true },
+  { id: 'pickup', label: '유품 수거 업체', icon: Package, status: 'active', loginRequired: true },
   { id: 'digital-estate', label: '디지털 정산', icon: PhoneHeartIcon, status: 'active', loginRequired: true },
   // 🔄 09-07 사용자 지시 — 부고장·추모관 완전 분리(wt135) 이후 실제로 만들고 조회되는
   // 기능이라 사이드바 "미리보기" 배지를 뗀다(wt131의 ending-note·farewell-messages와 동일 조치).
