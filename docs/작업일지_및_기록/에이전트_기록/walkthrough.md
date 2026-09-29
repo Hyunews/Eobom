@@ -1244,6 +1244,37 @@
 
 <!-- Gemini 판정 1줄: ✅통과 (visibleGuestCount state 기반 slice 렌더 및 10개 더 보기 버튼 실장 확인 / 새 글 제출 시 카운트 자동 확장 확인 / 빌드 통과) -->
 
+## 2026-09-29 | 홈 뒤로가기 시 칸 복원 유실 — 새로고침 판정을 페이지 로드당 1회로
+
+- **근거 스펙**: 스펙 문서 없음 — 사람 실기기 지시(*"섹션2 → 디지털 엔딩노트 → 뒤로가기 = 섹션2여야 함, 메뉴로 메인 클릭 = 섹션1은 지금대로"*). `00-40` §3.5 H-9의 *"뒤로가기 복원은 유지"* 를 실제로 지키게 하는 수정.
+- **건드린 파일**: eobomDev/frontend/src/components/home/HomeMobile.tsx, eobomDev/frontend/src/components/home/HomeDesktop.tsx
+- **결과**:
+  - **원인(코드 추적, 실기기 재현 못 함)**: 마운트 때 `performance.getEntriesByType('navigation')[0].type === 'reload'`이면 저장된 칸을 지우는데, 이 항목은 *"페이지를 처음 불러온 방식"* 이라 새로고침(dev 서버 리로드 포함)으로 들어왔다면 SPA 안에서 몇 번을 오가도 계속 `'reload'`다 → 뒤로가기로 홈이 다시 마운트될 때마다 저장값이 지워져 ①로 떨어졌다. 저장값을 지우는 다른 경로는 없음을 grep으로 확인(H-9 삭제는 `setActiveTab('home')`에서만).
+  - **수정**: 모듈 변수 `reloadChecked`(모듈 수명 = 페이지 로드 수명)로 그 판정을 **페이지 로드당 첫 마운트에서만** 한다. 메뉴·드로어·로고의 홈 진입(H-9 키 삭제)은 그대로라 ①로 열린다.
+  - `HomeDesktop.tsx`도 같은 코드라 같이 고침(같은 원인).
+  - `cd eobomDev/frontend && npx tsc --noEmit`(exit 0) · `npm run build` 통과.
+- **편차**: 없음(원인이 아니라 추정일 수 있음 — 아래).
+- **다음 에이전트가 알아야 할 것**: 🟡 위 원인은 코드상 유일한 삭제 경로라 유력하다고 판단했을 뿐 실기기 재현은 못 했다. 사람 검증: 새로고침한 뒤 ②→엔딩노트→브라우저 뒤로가기 = ②, 메뉴→메인 = ①. 그래도 ①이면 다른 원인이므로 재현 절차(새로고침 여부·진입 경로)를 받아 다시 본다. 커밋은 하지 않음 — 메시지 초안만.
+
+<!-- Gemini 판정 1줄: … -->
+
+## 2026-09-29 | 모바일 홈 §3.5 후속 — ④ 추모관 줄 가운데 정렬(H-8) · 메뉴 "홈" 진입 시 ① 칸(H-9)
+
+- **근거 스펙**: `00-40` §3.5 H-4 보완(H-8)·신규 버그(H-9) — 사람 실기기 확인 09-29 후 [Opus] 핸드오프. 🔴 H-8·H-9 번호는 이 지시에서 붙은 것이고 `00-40` §3.5 표(현재 H-1~H-7)에는 아직 없다 → [Opus]가 등재할 것.
+- **건드린 파일**: eobomDev/frontend/src/components/home/HomeMobile.tsx, eobomDev/frontend/src/App.tsx, eobomDev/frontend/src/lib/storage.ts
+- **결과**:
+  - **H-8 (HomeMobile.tsx:299 부근)**: ④ 추모관 링크로 입장 · 파트너 로그인 줄 컨테이너에 `justifyContent:'center'` — 위 섹션3 문구(가운데 정렬)와 맞춤. 링크 입력 상자는 줄(`margin 0 24px`) 기준 `left:0;right:0`이라 줄과 같이 가운데에 오고, 폭 = 화면 − 48px이라 360px에서도 화면 밖으로 안 나감(구조로 확인, 실측 아님).
+  - **H-8 부가(사람 추가 지시)**: 두 버튼 글자색 `#5B7065`/`#8A9199` → `#1A2B4C`(곤색).
+  - **H-9 (App.tsx:151 부근)**: `setActiveTab('home')`이 이동 전에 `SCROLL_HOME_KEY`·`SCROLL_HOME_MOBILE_KEY`(sessionStorage)를 지운다. 원인 = `eobom:home-scroll-top` 이벤트가 다른 페이지에서 홈으로 갈 때 HomePage 마운트 전이라 유실되고, 마운트 시 저장값 복원이 이전 칸(②)을 띄움. 기존 이벤트 전송은 유지(홈 안에서 누를 때용). 드로어 "메인"(`Sidebar.tsx:74`)·헤더 로고 모두 `setActiveTab('home')` 경유 확인.
+  - **키 공용화**: `lib/storage.ts`에 `SCROLL_HOME_MOBILE_KEY = 'eobom_scroll_home_m'` 신설, `HomeMobile.tsx`의 `SESSION_KEY`가 이를 가리킴(값 불변).
+  - **유지 확인**: 브라우저 뒤로가기는 `setActiveTab`을 거치지 않아 칸 복원 그대로 · `/prep`·`/bereaved` 딥링크(M-9)는 `landingMode` 분기라 무영향.
+  - **HomeDesktop 점검**: `HomeDesktop.tsx`도 **같은 구조·같은 증상**이었다(마운트 시 `eobom_scroll_home` 복원 :50, 이벤트 리스너 :92는 마운트 후에만 듣는다). 같은 원인이라 H-9 수정(`SCROLL_HOME_KEY` 삭제)으로 **함께 해소** — `HomeDesktop.tsx` 코드는 수정하지 않음(그 파일은 하드코딩 `'eobom_scroll_home'`을 그대로 쓰며 값이 `SCROLL_HOME_KEY`와 같음).
+  - `cd eobomDev/frontend && npx tsc --noEmit`(exit 0) · `npm run build` 통과(색 변경 직후는 tsc만 재확인).
+- **편차**: 스펙 명시 외 판단 — 입력 상자 위치를 코드 변경 없이 "줄 기준 left/right:0"으로 충족한다고 판단(H-4에서 이미 그렇게 배치). 그 외 없음.
+- **다음 에이전트가 알아야 할 것**: 🔴 실기기 검증은 사람 몫 — ②에서 엔딩노트 진입 → 메뉴 → 홈 = ① / 같은 경로에서 뒤로가기 = ② / ④ 두 버튼 가운데 + 입력 상자 위치 · 글자색. 🟡 `HomeDesktop.tsx`는 키를 `'eobom_scroll_home'` 문자열로 하드코딩(`SCROLL_HOME_KEY`와 별개 사본) — 값이 바뀌면 어긋나니 정리는 별건. 커밋·push는 하지 않음 — 메시지 초안만.
+
+<!-- Gemini 판정 1줄: … -->
+
 ## 2026-09-29 | 모바일 홈 칸 ②~④ 세로 스크롤 없앰 (00-40 §3.5 H-1~H-7)
 
 - **근거 스펙**: `docs/00_핵심플랫폼/00-40_홈_랜딩_재설계_계획서.md` §3.5 H-1~H-7 (M-6 개정 포함).

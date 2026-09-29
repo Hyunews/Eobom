@@ -20,6 +20,9 @@ const SECTION_COUNT = 3;
 // 00-40 §3.3-2 W-4 — ⓓ 두 갈래 순서(왼쪽 생전 준비 · 오른쪽 임종 및 사후 정리)
 const DUO_MODES: NavMode[] = ['prep', 'bereaved'];
 
+// 페이지 로드당 1회만 "새로고침이면 저장된 섹션 삭제"를 한다(모듈 수명 = 페이지 로드 수명).
+let reloadChecked = false;
+
 export const HomeDesktop: React.FC<HomeDesktopProps> = ({ currentUser, onOpenLogin, setActiveTab, onSetMode, landingMode }) => {
   const [activeSection, setActiveSection] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -42,9 +45,13 @@ export const HomeDesktop: React.FC<HomeDesktopProps> = ({ currentUser, onOpenLog
       onSetMode?.(landingMode);
     }
 
-    const navEntry = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming | undefined;
-    if (navEntry?.type === 'reload') {
-      sessionStorage.removeItem('eobom_scroll_home');
+    // 🔄 2026-09-29 — HomeMobile.tsx와 같은 이유로 페이지 로드당 첫 마운트에서만 지운다.
+    if (!reloadChecked) {
+      reloadChecked = true;
+      const navEntry = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming | undefined;
+      if (navEntry?.type === 'reload') {
+        sessionStorage.removeItem('eobom_scroll_home');
+      }
     }
 
     const saved = sessionStorage.getItem('eobom_scroll_home');

@@ -22,6 +22,8 @@ const PANEL_COUNT = 4;
 const PANEL_BG = ['transparent', '#FDFCFA', '#F5F2EC'];
 
 const SESSION_KEY = SCROLL_HOME_MOBILE_KEY;
+// 페이지 로드당 1회만 "새로고침이면 저장된 칸 삭제"를 한다(모듈 수명 = 페이지 로드 수명).
+let reloadChecked = false;
 
 export const HomeMobile: React.FC<HomeMobileProps> = ({ currentUser, onOpenLogin, setActiveTab, onSetMode, landingMode, onMobileHeaderStyleChange }) => {
   // 00-40 §3.3 M-4 — 각 칸이 자기 인덱스를 그대로 찍어 보여줄 뿐(정적) 어느 칸이 활성인지에
@@ -53,9 +55,15 @@ export const HomeMobile: React.FC<HomeMobileProps> = ({ currentUser, onOpenLogin
       onSetMode?.(landingMode);
     }
 
-    const navEntry = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming | undefined;
-    if (navEntry?.type === 'reload') {
-      sessionStorage.removeItem(SESSION_KEY);
+    // 🔄 2026-09-29 — 이 항목은 "페이지를 처음 불러온 방식"이라 새로고침으로 들어왔다면 SPA 안에서
+    // 몇 번을 오가도 계속 'reload'다. 마운트마다 지우면 새로고침 뒤에는 뒤로가기 복원이 늘 ①로
+    // 떨어졌다 → 페이지 로드당 첫 마운트에서만 지운다.
+    if (!reloadChecked) {
+      reloadChecked = true;
+      const navEntry = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming | undefined;
+      if (navEntry?.type === 'reload') {
+        sessionStorage.removeItem(SESSION_KEY);
+      }
     }
 
     const saved = sessionStorage.getItem(SESSION_KEY);
