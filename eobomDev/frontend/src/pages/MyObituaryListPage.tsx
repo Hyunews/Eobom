@@ -7,6 +7,7 @@ import { ensureKakaoShareReady, shareViaKakao, shareViaWebShareApi, copyObituary
 import '../styles/design-v2.css';
 import { backdropCloseProps } from '../utils/backdropClose';
 import { PageLink } from '../components/common/PageLink';
+import { LoginGate } from '../components/LoginGate';
 
 // 00-06 §8(SCR-018, "내 부고장·추모관") — Header "추모관" 메뉴가 홈 박스③(링크 입력창)으로만
 // 보내서, 부고장을 만든 당사자가 정작 본인이 만든 부고장·추모관에 다시 들어갈 방법이 없다는
@@ -44,7 +45,12 @@ interface MyMemorial {
 
 type ModalTarget = { type: 'obituary'; id: string } | { type: 'memorial'; id: string } | null;
 
-export const MyObituaryListPage: React.FC = () => {
+interface MyObituaryListPageProps {
+  currentUser?: string | null;
+  onOpenLogin?: () => void;
+}
+
+export const MyObituaryListPage: React.FC<MyObituaryListPageProps> = ({ currentUser, onOpenLogin }) => {
   const [obituaries, setObituaries] = useState<MyObituary[] | null>(null);
   const [loadError, setLoadError] = useState(false);
   // 모달별로 다른 부고장을 다루므로, 문구도 어느 항목 것인지(id) 함께 들고 그 모달 안에만 렌더한다.
@@ -59,13 +65,14 @@ export const MyObituaryListPage: React.FC = () => {
   const [memorialLoadError, setMemorialLoadError] = useState(false);
 
   useEffect(() => {
+    if (!currentUser) return; // 가림판 상태에서는 API를 치지 않는다(00-34 §2.4)
     apiFetch<MyObituary[]>('/api/me/obituaries', 'USER')
       .then(setObituaries)
       .catch(() => setLoadError(true));
     apiFetch<MyMemorial[]>('/api/me/memorials', 'USER')
       .then(setMemorials)
       .catch(() => setMemorialLoadError(true));
-  }, []);
+  }, [currentUser]);
 
   // Kakao.Share.sendDefault는 클릭 핸들러 안에서 동기 호출돼야 팝업 차단을 피한다(§7) —
   // 그래서 로드는 마운트 시점에 미리 끝내둔다(ObituaryPage.tsx와 같은 패턴).
@@ -118,6 +125,11 @@ export const MyObituaryListPage: React.FC = () => {
       setDeletingId(null);
     }
   };
+
+  // 00-34 §2.4 — 비로그인 가림판(모든 훅 선언 뒤)
+  if (!currentUser) {
+    return <LoginGate title="내 부고장·추모관" subtitle="내가 만든 부고장과 추모관을 한곳에서 확인할 수 있습니다." onOpenLogin={onOpenLogin} />;
+  }
 
   const modalObituary = modalTarget?.type === 'obituary' ? obituaries?.find((o) => o.id === modalTarget.id) ?? null : null;
   const modalMemorial = modalTarget?.type === 'memorial' ? memorials?.find((m) => m.id === modalTarget.id) ?? null : null;

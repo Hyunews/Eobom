@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { ExternalLink, Copy, ChevronRight, LogIn, Plus } from 'lucide-react';
+import { ExternalLink, Copy, ChevronRight, Plus } from 'lucide-react';
+import { LoginGate } from '../components/LoginGate';
 import { apiFetch, ApiError } from '../lib/api';
 import { formatKST } from '../utils/obituaryCard';
 import { copyObituaryLink } from '../utils/kakaoShare';
@@ -234,17 +235,8 @@ export const MemorialPage: React.FC<MemorialPageProps> = ({ currentUser, onOpenL
   };
 
   if (!currentUser) {
-    return (
-      <div className="v2-page">
-        <div className="v2-content">
-          <h1 className="v2-page-title">디지털 추모관</h1>
-          <p className="v2-empty">추모관을 만들고 관리하려면 로그인해 주세요.</p>
-          <button type="button" className="v2-btn-primary" onClick={onOpenLogin}>
-            <LogIn size={16} /> 로그인 / 회원가입
-          </button>
-        </div>
-      </div>
-    );
+    // 00-34 §2.4 — 비로그인 가림판
+    return <LoginGate title="디지털 추모관" subtitle="조문객이 헌화·방명록을 남길 수 있는 추모 공간입니다." onOpenLogin={onOpenLogin} />;
   }
 
   const activeMemorials = (memorials ?? []).filter((m) => !m.closedAt);

@@ -3,6 +3,7 @@ import { ChevronRight, X } from 'lucide-react';
 import { BACKEND_URL } from '../config';
 import { ConsultRequestModal } from '../components/expert/ConsultRequestModal';
 import { TaxSimulatorModal } from '../components/counseling/TaxSimulatorModal';
+import { LoginGate } from '../components/LoginGate';
 import '../styles/design-v2.css';
 import { backdropCloseProps } from '../utils/backdropClose';
 import { COUNSELING_SITUATIONS, CounselingSituation } from '../utils/counselingSituations';
@@ -71,18 +72,14 @@ export const CounselingPage: React.FC<CounselingPageProps> = ({ currentUser, onO
   const [isSimulatorOpen, setIsSimulatorOpen] = useState(false);
 
   const handleOpenConsultModal = (expert: PublicExpert) => {
-    if (!currentUser) {
-      alert('⚠️ 전문가 1:1 상담 신청은 로그인 후 이용하실 수 있습니다.');
-      onOpenLogin?.();
-      return;
-    }
     setConsultTarget(expert);
   };
 
   // 자동으로 뜬 모달도 "봤음"으로 남긴다 — 닫는 방식과 상관없이 다음 방문엔 자동으로 안 뜬다
+  // (가림판 뒤에서는 실제로 못 본 것이므로 로그인 상태일 때만)
   useEffect(() => {
-    if (isSituationOpen) markSituationModalSeen();
-  }, [isSituationOpen]);
+    if (currentUser && isSituationOpen) markSituationModalSeen();
+  }, [isSituationOpen, currentUser]);
 
   const handlePickSituation = (s: CounselingSituation) => {
     setSituation(s);
@@ -100,6 +97,7 @@ export const CounselingPage: React.FC<CounselingPageProps> = ({ currentUser, onO
 
   // 필터 변경 시 서버에 조건 그대로 위임해서 재조회 (FacilityPage와 동일 패턴)
   useEffect(() => {
+    if (!currentUser) return; // 가림판 상태에서는 API를 치지 않는다(00-34 §2.4)
     setIsLoading(true);
     const params = new URLSearchParams();
     if (categoryParam !== '전체') params.set('category', categoryParam);
@@ -113,7 +111,18 @@ export const CounselingPage: React.FC<CounselingPageProps> = ({ currentUser, onO
         // 조회 실패 시 빈 목록으로 유지 — 필터 UI는 정상 노출
       })
       .finally(() => setIsLoading(false));
-  }, [categoryParam]);
+  }, [categoryParam, currentUser]);
+
+  // 00-34 §2.4 — 비로그인 가림판(모든 훅 선언 뒤)
+  if (!currentUser) {
+    return (
+      <LoginGate
+        title="전문가 상담"
+        subtitle="변호사, 법무사, 세무사, 행정사, 장례지도사 분야별 상담 신청 및 상속세 자동 시뮬레이터"
+        onOpenLogin={onOpenLogin}
+      />
+    );
+  }
 
   return (
     <div className="v2-page">

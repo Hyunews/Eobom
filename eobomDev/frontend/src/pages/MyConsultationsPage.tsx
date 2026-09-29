@@ -3,6 +3,7 @@ import { ChevronRight } from 'lucide-react';
 import { apiFetch } from '../lib/api';
 import { backdropCloseProps } from '../utils/backdropClose';
 import '../styles/design-v2.css';
+import { LoginGate } from '../components/LoginGate';
 import { PageLink } from '../components/common/PageLink';
 
 // 00-36 §4.4(SCR-019) — "내 상담 내역". `Lead`(업체 상담)와 `ConsultRequest`(전문가 상담)는 사용자에게
@@ -136,15 +137,8 @@ export const MyConsultationsPage: React.FC<MyConsultationsPageProps> = ({ curren
   }, [currentUser]);
 
   if (!currentUser) {
-    return (
-      <div className="v2-page">
-        <div className="v2-content">
-          <h1 className="v2-page-title">내 상담 내역</h1>
-          <p className="v2-empty">로그인 후 확인하실 수 있습니다.</p>
-          <button type="button" className="v2-btn-primary" onClick={onOpenLogin}>로그인 / 회원가입</button>
-        </div>
-      </div>
-    );
+    // 00-34 §2.4 — 비로그인 가림판(이 화면엔 부제목이 없다)
+    return <LoginGate title="내 상담 내역" onOpenLogin={onOpenLogin} />;
   }
 
   return (
@@ -160,9 +154,6 @@ export const MyConsultationsPage: React.FC<MyConsultationsPageProps> = ({ curren
             <PageLink
               to="/counseling"
               className="v2-btn-primary"
-              loginRequired
-              currentUser={currentUser}
-              onOpenLogin={onOpenLogin}
               onNavigate={() => setActiveTab?.('counseling')}
             >
               상담 신청

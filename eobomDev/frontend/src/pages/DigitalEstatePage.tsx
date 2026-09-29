@@ -1,7 +1,7 @@
 import React, { useEffect, useId, useRef, useState } from 'react';
 import { X, Check, ExternalLink, ChevronRight } from 'lucide-react';
 import { backdropCloseProps } from '../utils/backdropClose';
-import { useLoginPromptOnEntry } from '../hooks/useLoginPromptOnEntry';
+import { LoginGate } from '../components/LoginGate';
 
 // 08-19 9차(개발자 직접 지시) — 기존 3서브탭(digital/physical/memorial) 중 "디지털 자산·계정
 // 정산"만 남기고, 나머지 둘은 PickupPage(유품 정리)·MemorialPage(디지털 추모관)로 분리했다.
@@ -356,7 +356,16 @@ const AccountDiscoveryGuide: React.FC = () => {
 };
 
 export const DigitalEstatePage: React.FC<DigitalEstatePageProps> = ({ currentUser, onOpenLogin }) => {
-  useLoginPromptOnEntry(currentUser, onOpenLogin); // 00-34 §2.2 결정 ② — 주소 직접 입력 안전장치
+  // 00-34 §2.4 — 비로그인 가림판
+  if (!currentUser) {
+    return (
+      <LoginGate
+        title="디지털 정산"
+        subtitle="고인이 이용하던 금융·구독 계정을 공공 서비스로 찾아보세요."
+        onOpenLogin={onOpenLogin}
+      />
+    );
+  }
   return (
   <div className="v2-page">
     <div className="v2-page-head">

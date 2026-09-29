@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useLoginPromptOnEntry } from '../hooks/useLoginPromptOnEntry';
+import { LoginGate } from '../components/LoginGate';
 import { MapPin, Map, Image as ImageIcon, Send, Search, LayoutGrid, List, SlidersHorizontal, ChevronRight, X } from 'lucide-react';
 import { BACKEND_URL, GEOLOCATION_FALLBACK, LOCATION_FEATURE_ENABLED } from '../config';
 import { KakaoMapModal } from '../components/KakaoMapModal';
@@ -25,7 +25,6 @@ interface FacilityPageProps {
 // - 견적비교·답사예약 삭제 → 업체 문의로 대체
 // - 이미지 박스 추가: 파트너가 BizDashboard에서 올린 Facility.images 노출
 export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenLogin }) => {
-  useLoginPromptOnEntry(currentUser, onOpenLogin); // 00-34 §2.2 결정 ② — 주소 직접 입력 안전장치
   // 00-38 §8.3 FacilityPage 지침 — 필터 박스 압축·리스트형 버튼 텍스트 제거·페이지당 건수에 쓴다.
   const isMobile = useIsMobile();
   // 카드 640px 중 이미지 없는 시설의 "등록된 이미지 없음" 플레이스홀더가 150px을 차지한다
@@ -92,6 +91,7 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
 
   // 필터/페이지 변경 시 서버에 조건 그대로 위임해서 재조회
   useEffect(() => {
+    if (!currentUser) return; // 가림판 상태에서는 API를 치지 않는다(00-34 §2.4)
     const params = new URLSearchParams();
     if (category !== '전체') params.set('category', category);
     if (selectedTag) params.set('tag', selectedTag);
@@ -125,7 +125,7 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [category, selectedTag, searchText, appliedProvince, appliedDistrict, userLocation, page, PAGE_SIZE]);
+  }, [currentUser, category, selectedTag, searchText, appliedProvince, appliedDistrict, userLocation, page, PAGE_SIZE]);
 
   // PAGE_SIZE가 바뀌면(뷰포트 768px 경계를 넘나들거나 카드형↔리스트형 전환) 이전 페이지 번호가
   // 새 페이지 크기 기준으로 범위 밖일 수 있어 1페이지로 되돌린다.
@@ -153,6 +153,7 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
   // 위치 API가 실패해 기본값(서울 중구)으로 대체됐는지 — 이 경우 실제 위치가 아니므로 UI에 반드시 알린다
   const [isLocationFallback, setIsLocationFallback] = useState(false);
   useEffect(() => {
+    if (!currentUser) return; // 가림판 상태에서는 위치 권한 팝업도 띄우지 않는다(00-34 §2.4)
     const applyDetected = (loc: { lat: number; lng: number }, isFallback: boolean) => {
       setUserLocation(loc);
       setDetectedLocation(loc);
@@ -195,7 +196,7 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
     } else {
       requestPosition();
     }
-  }, []);
+  }, [currentUser]);
 
   // 🆕 2026-09-29 — 01-01 §6 R-1·R-2·R-5: 첫 위치 감지(실제·기본 둘 다) 결과의 시/도·시/군/구를 한 번만
   // 검색 조건으로 자동 적용한다. 역지오코딩 응답(아래)과 regionsData 로딩은 순서가 엇갈릴 수 있어,
@@ -228,6 +229,7 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
 
   // 시/도 -> 시/군/구 선택 옵션 목록 (실제 보유 시설 데이터 기반)
   useEffect(() => {
+    if (!currentUser) return;
     fetch(`${BACKEND_URL}/api/geo/regions`)
       .then((res) => res.json())
       .then((data) => {
@@ -236,7 +238,7 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
       .catch(() => {
         // 실패해도 필터/목록 조회에는 영향 없음
       });
-  }, []);
+  }, [currentUser]);
 
   // R-1·R-4·R-5 — 역지오코딩 결과와 regionsData가 둘 다 준비되면 1회 적용한다.
   // 시/군/구가 선택지에 없으면 시/도만, 시/도도 없으면 필터 없음(넓혀 가기). 사람이 이미 손댔으면 건너뜀.
@@ -319,6 +321,17 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
   const handleSearchTextKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') handleSearch();
   };
+
+  // 00-34 §2.4 — 비로그인 가림판(모든 훅 선언 뒤)
+  if (!currentUser) {
+    return (
+      <LoginGate
+        title="장사시설 검색"
+        subtitle="현재 위치 기반 거리순 정렬과 카카오맵 LBS 핀 마커 연동을 만나보세요."
+        onOpenLogin={onOpenLogin}
+      />
+    );
+  }
 
   return (
     // 🔄 00-39 §5-0(2026-09-28) — 옛 `.container`(min-width:1200px, index.css)는 소비자 화면에

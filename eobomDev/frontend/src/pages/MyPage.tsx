@@ -6,6 +6,7 @@ import { getToken } from '../lib/storage';
 import { KAKAO_CHANNEL_CHAT_URL } from '../config';
 import { WithdrawalModal } from '../components/mypage/WithdrawalModal';
 import { PageLink, tabPath } from '../components/common/PageLink';
+import { LoginGate } from '../components/LoginGate';
 import '../styles/design-v2.css';
 
 interface MyPageProps {
@@ -123,17 +124,9 @@ export const MyPage: React.FC<MyPageProps> = ({ currentUser, onOpenLogin, onOpen
       });
   }, [currentUser]);
 
-  // 비회원: 로그인 유도
+  // 00-34 §2.4 — 비로그인 가림판(이 화면엔 부제목이 없다)
   if (!currentUser) {
-    return (
-      <div className="v2-page">
-        <div className="v2-content">
-          <h1 className="v2-page-title">마이페이지</h1>
-          <p className="v2-empty">마이페이지는 로그인 후 이용하실 수 있습니다.</p>
-          <button type="button" className="v2-btn-primary" onClick={onOpenLogin}>로그인 / 회원가입</button>
-        </div>
-      </div>
-    );
+    return <LoginGate title="마이페이지" onOpenLogin={onOpenLogin} />;
   }
 
   const displayName = profile?.name || currentUser.split(' (')[0];

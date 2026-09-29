@@ -4,6 +4,7 @@ import { ChevronRight } from 'lucide-react';
 import { apiFetch, ApiError } from '../lib/api';
 import { backdropCloseProps } from '../utils/backdropClose';
 import '../styles/design-v2.css';
+import { LoginGate } from '../components/LoginGate';
 
 // 00-36 §4.7(SCR-021) — "내가 남긴 방명록". 마이페이지 `내가 남긴 것` 구간의 행이 여는 화면.
 // 데이터: `GET /api/me/guestbook-entries`(M-2, meActivityController.ts) — 회원으로 쓴 글만(비회원 글은 userId가
@@ -75,15 +76,8 @@ export const MyGuestbookPage: React.FC<MyGuestbookPageProps> = ({ currentUser, o
   };
 
   if (!currentUser) {
-    return (
-      <div className="v2-page">
-        <div className="v2-content">
-          <h1 className="v2-page-title">내가 남긴 방명록</h1>
-          <p className="v2-empty">로그인 후 확인하실 수 있습니다.</p>
-          <button type="button" className="v2-btn-primary" onClick={onOpenLogin}>로그인 / 회원가입</button>
-        </div>
-      </div>
-    );
+    // 00-34 §2.4 — 비로그인 가림판(이 화면엔 부제목이 없다)
+    return <LoginGate title="내가 남긴 방명록" onOpenLogin={onOpenLogin} />;
   }
 
   return (

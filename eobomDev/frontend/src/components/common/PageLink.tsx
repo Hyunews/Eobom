@@ -3,8 +3,8 @@ import { useNavigate } from 'react-router-dom';
 
 // 00-34 §2.2 (09-29 결정) — 페이지로 이동하는 메뉴·버튼은 링크, 동작은 버튼.
 // 보통 클릭은 예전 그대로(onNavigate), Ctrl·⌘·Shift·휠 클릭은 브라우저 기본(새 탭).
-// 🔴 로그인이 필요한 곳으로 가는 링크를 비로그인 상태에서 `<a>`로 만들면 우클릭 "새 탭에서 열기"를
-// 코드로 막을 수 없다 → 그 경우엔 링크 자체를 만들지 않고 `<button>`으로 그려 로그인 창만 연다.
+// 🔄 09-29 정정(00-34 §2.4) — 로그인 여부와 무관하게 항상 `<a>`. 보통 클릭만 비로그인+loginRequired면
+// 로그인 창을 열고, 새 탭(Ctrl·휠·우클릭)은 막지 않는다(도착한 화면이 스스로 로그인을 요구한다).
 
 // App.setActiveTab이 만드는 경로 규칙과 같아야 한다(tab==='home' ? '/' : `/${tab}`).
 export const tabPath = (tab: string) => (tab === 'home' ? '/' : `/${tab}`);
@@ -52,18 +52,18 @@ export const PageLink: React.FC<PageLinkProps> = ({
     );
   }
 
-  if (loginRequired && !currentUser) {
-    return (
-      <button type="button" className={className} style={style} onClick={() => onOpenLogin?.()} {...rest}>
-        {children}
-      </button>
-    );
-  }
-
   const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
     if (e.defaultPrevented) return;
-    if (e.button !== 0 || e.ctrlKey || e.metaKey || e.shiftKey) return; // 브라우저 기본(새 탭)
+    // ① 보조키·휠 등 — 로그인 여부와 무관하게 브라우저 기본(새 탭). 새 탭에서의 로그인 요구는
+    // 도착한 화면이 한다(00-34 §2.4 결정 ②). 휠 클릭은 auxclick으로 와서 이 onClick을 타지 않는다.
+    if (e.button !== 0 || e.ctrlKey || e.metaKey || e.shiftKey) return;
     e.preventDefault();
+    // ② 보통 클릭 + 로그인 필요 + 비로그인 → 이동하지 않고 지금 창에 로그인 창
+    if (loginRequired && !currentUser) {
+      onOpenLogin?.();
+      return;
+    }
+    // ③ 보통 클릭
     if (onNavigate) onNavigate();
     else navigate(to);
   };

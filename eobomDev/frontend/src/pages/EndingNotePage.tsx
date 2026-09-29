@@ -1,7 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import {
-  LogIn,
   Printer,
   Copy,
   Download,
@@ -17,6 +16,7 @@ import {
 import { apiFetch, ApiError } from '../lib/api';
 import { getToken } from '../lib/storage';
 import { useIsMobile } from '../hooks/useIsMobile';
+import { LoginGate } from '../components/LoginGate';
 import { backdropCloseProps } from '../utils/backdropClose';
 import {
   DIGITAL_ACCOUNT_CATEGORIES,
@@ -734,39 +734,25 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
     setGrants((prev) => [...prev.filter((g) => g.section !== section), ...savedGrants.filter((g) => g.section === section)]);
   };
 
+  // 00-34 §2.4 — 비로그인 가림판(모든 훅 선언 뒤). 위 데이터 로딩 이펙트는 !currentUser면 API를 치지 않는다(:140).
+  if (!currentUser) {
+    return (
+      <LoginGate
+        title="디지털 엔딩노트"
+        subtitle="연명의료 의향 메모, 장례 희망 방식, 유언장 초안까지 표준화된 항목을 차근차근 채워두세요."
+        onOpenLogin={onOpenLogin}
+      />
+    );
+  }
+
   return (
     <div className="v2-page" style={{ position: 'relative' }}>
-      {!currentUser && (
-        <div style={{
-          position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
-          backgroundColor: 'rgba(247, 244, 239, 0.75)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)',
-          zIndex: 100, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-          padding: '24px', textAlign: 'center',
-        }}>
-          <div style={{
-            backgroundColor: 'var(--v2-bg)', padding: '40px 28px', borderRadius: '4px',
-            boxShadow: 'var(--v2-modal-shadow)', maxWidth: '520px', border: '2px solid var(--v2-text-main)'
-          }}>
-            <p style={{ fontSize: '2rem', margin: '0 0 16px' }}>🔒</p>
-            <h2 style={{ color: 'var(--v2-text-main)', fontSize: 'var(--v2-fs-page-title)', marginBottom: '12px', fontWeight: 700 }}>
-              로그인이 필요한 회원 전용 서비스입니다
-            </h2>
-            <p style={{ color: 'var(--v2-text-muted)', fontSize: 'var(--v2-fs-body)', lineHeight: 1.6, marginBottom: '24px' }}>
-              디지털 엔딩노트는 개인 사전 의향서 및 유족에게 남기는 메시지를 다루는 최고 보안 영역입니다. 로그인 후 안전하게 작성하고 보관하세요.
-            </p>
-            <button onClick={onOpenLogin} className="v2-btn-primary" style={{ width: '100%', height: '52px' }}>
-              <LogIn size={20} /> 로그인 / 회원가입 하러가기
-            </button>
-          </div>
-        </div>
-      )}
-
-      <div className="v2-page-head" style={{ filter: !currentUser ? 'blur(3px)' : 'none' }}>
+      <div className="v2-page-head">
         <h1 className="v2-page-title">디지털 엔딩노트</h1>
         <p className="v2-page-subtitle">연명의료 의향 메모, 장례 희망 방식, 유언장 초안까지 표준화된 항목을 차근차근 채워두세요.</p>
       </div>
 
-      <div style={{ filter: !currentUser ? 'blur(3px)' : 'none' }}>
+      <div>
         {/* 06-04 §6.1-1 T-1 — 본문 맨 위 탭 2개. 동의 안내는 두 탭 공통이라 탭 아래에 둔다. */}
         <div className="v2-tabs" role="tablist" aria-label="엔딩노트 구분" onKeyDown={handleTabKeyDown}>
           <button
@@ -975,7 +961,7 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
       {/* ⑨ 유언장 초안 — A2: 아코디언에 넣지 않는다. §6.4-7 모델이 섰으니 이제 저장을 배선한다. */}
       {/* 06-04 §6.1-1 T-3·T-7 — 카드 틀 없이 탭 본문으로. hidden이라 언마운트되지 않아 저장 안 한
           초안·OCR 합류 상태가 탭 왕복 후에도 남는다. */}
-      <div role="tabpanel" id="ending-note-panel-will" aria-labelledby="ending-note-tab-will" hidden={activeNoteTab !== 'will'} className="v2-content" style={{ filter: !currentUser ? 'blur(3px)' : 'none' }}>
+      <div role="tabpanel" id="ending-note-panel-will" aria-labelledby="ending-note-tab-will" hidden={activeNoteTab !== 'will'} className="v2-content">
 
         <p className="v2-notice-warn" style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', fontWeight: 700 }}>
           <AlertTriangle size={18} style={{ flexShrink: 0, marginTop: '2px' }} />

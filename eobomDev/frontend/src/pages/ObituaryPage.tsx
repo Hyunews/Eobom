@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { MessageSquare, MessageCircle, Copy, Plus, X, ChevronDown, ChevronUp, ChevronRight, AlertTriangle, LogIn, PowerOff, Flower2, Loader2, Pencil, Eye } from 'lucide-react';
+import { MessageCircle, Copy, Plus, X, ChevronDown, ChevronUp, ChevronRight, AlertTriangle, PowerOff, Flower2, Loader2, Pencil, Eye } from 'lucide-react';
+import { LoginGate } from '../components/LoginGate';
 import { OBITUARY_CARD_IMAGE_URL } from '../config';
 import { EobomLogo } from '../components/EobomLogo';
 import { ObituaryView, type ObituaryData } from '../components/ObituaryView';
@@ -567,18 +568,13 @@ export const ObituaryPage: React.FC<ObituaryPageProps> = ({ currentUser, onOpenL
   };
 
   if (!currentUser) {
+    // 00-34 §2.4 — 비로그인 가림판
     return (
-      // 🔄 00-39 §5-0(2026-09-28) — 로그인 안내 화면도 같은 틀(.v2-page)로.
-      <div className="v2-page">
-        <div style={{ backgroundColor: 'var(--card-bg)', padding: '2.5rem 1.75rem', borderRadius: 'var(--border-radius)', boxShadow: 'var(--box-shadow)', textAlign: 'center', maxWidth: '480px', margin: '2rem auto' }}>
-          <MessageSquare color="var(--point-color)" size={40} style={{ marginBottom: 'var(--sp-3)' }} />
-          <h2 style={{ color: 'var(--primary-color)', marginBottom: '0.5rem' }}>모바일 부고장 작성</h2>
-          <p style={{ color: 'var(--text-muted)', marginBottom: '1.5rem' }}>부고장 작성 및 관리는 로그인 후 이용하실 수 있습니다.</p>
-          <button onClick={onOpenLogin} className="btn btn-point" style={{ width: '100%' }}>
-            <LogIn size={18} /> 로그인 / 회원가입
-          </button>
-        </div>
-      </div>
+      <LoginGate
+        title="모바일 부고장 작성"
+        subtitle="고인 성함, 상주, 빈소, 발인 일시만 입력하면 3분 안에 부고장을 만들 수 있습니다."
+        onOpenLogin={onOpenLogin}
+      />
     );
   }
 

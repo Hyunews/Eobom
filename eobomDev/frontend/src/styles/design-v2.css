@@ -3967,6 +3967,67 @@ a.v2-btn-solid {
   color: inherit;
 }
 
+/* ── LoginGate(components/LoginGate.tsx) — 00-34 §2.4 로그인 필요 화면 가림판 ──
+   기준 수치 = 구 EndingNotePage 블러 덮개. 뒤 배경은 한 화면(헤더 제외) 높이 이상. */
+.v2-login-gate {
+  position: relative;
+  min-height: calc(100svh - var(--header-h, 72px));
+}
+
+.v2-login-gate-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(247, 244, 239, 0.75);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  text-align: center;
+}
+
+.v2-login-gate-card {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 520px; /* 모바일: 덮개 좌우 padding 24px 덕에 화면폭-48px */
+  background-color: var(--v2-bg);
+  padding: 40px 28px;
+  border-radius: 4px;
+  box-shadow: var(--v2-modal-shadow);
+  border: 2px solid var(--v2-text-main);
+}
+
+.v2-login-gate-title {
+  margin: 0 0 24px;
+  color: var(--v2-text-main);
+  font-size: var(--v2-fs-page-title);
+  font-weight: 700;
+}
+
+.v2-login-gate-btn {
+  width: 100%;
+  height: 52px;
+}
+
+.v2-login-gate-blur {
+  filter: blur(3px);
+  pointer-events: none;
+  user-select: none;
+}
+
+.v2-login-gate-line {
+  height: 16px;
+  margin-bottom: 18px;
+  border-radius: 4px;
+  background-color: var(--v2-divider-strong);
+}
+
 :where(a.page-link--button) {
   display: inline-block;
   box-sizing: border-box;

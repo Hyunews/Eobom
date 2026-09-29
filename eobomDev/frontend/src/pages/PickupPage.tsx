@@ -4,7 +4,7 @@ import { BACKEND_URL, GEOLOCATION_FALLBACK, LOCATION_FEATURE_ENABLED } from '../
 import { LocationSearchBox } from '../components/LocationSearchBox';
 import '../styles/design-v2.css';
 import { backdropCloseProps } from '../utils/backdropClose';
-import { useLoginPromptOnEntry } from '../hooks/useLoginPromptOnEntry';
+import { LoginGate } from '../components/LoginGate';
 
 // 08-19 9차(개발자 직접 지시) — DigitalEstatePage 서브탭 3개(digital/physical/memorial) 중
 // "현물 유품 정리(physical)"를 별도 도메인(tab: 'pickup')으로 분리. 내용은 그대로 옮겼다
@@ -20,7 +20,6 @@ interface PickupPageProps {
 }
 
 export const PickupPage: React.FC<PickupPageProps> = ({ currentUser, onOpenLogin }) => {
-  useLoginPromptOnEntry(currentUser, onOpenLogin); // 00-34 §2.2 결정 ② — 주소 직접 입력 안전장치
   const vendors = digitalEstateData.vendors;
 
   // 지역필터 — 기존 "서울/경기" 같은 임의 권역 대신 장사시설(FacilityPage)과 동일하게
@@ -80,6 +79,7 @@ export const PickupPage: React.FC<PickupPageProps> = ({ currentUser, onOpenLogin
   // 기본 위치(GEOLOCATION_FALLBACK, 서울 중구)가 쓰일 때도 같은 방식으로 적용한다. 업체(예시)
   // 데이터에 없는 지역이면 아래 provinceOptions/regionsData 검사로 넓혀지거나 필터 없음이 된다.
   useEffect(() => {
+    if (!currentUser) return; // 가림판 상태에서는 API·위치 권한 팝업 없음(00-34 §2.4)
     if (!LOCATION_FEATURE_ENABLED) return;
 
     const showLocationName = (lat: number, lng: number, isFallback: boolean, applyAsFilter: boolean) => {
@@ -137,7 +137,7 @@ export const PickupPage: React.FC<PickupPageProps> = ({ currentUser, onOpenLogin
       requestPosition();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [currentUser]);
 
   const filteredVendors = useMemo(() => {
     const q = searchText.trim();
@@ -150,6 +150,17 @@ export const PickupPage: React.FC<PickupPageProps> = ({ currentUser, onOpenLogin
   }, [vendors, province, district, searchText]);
 
   const selectedVendor = selectedVendorIdx !== null ? filteredVendors[selectedVendorIdx] : null;
+
+  // 00-34 §2.4 — 비로그인 가림판(모든 훅 선언 뒤)
+  if (!currentUser) {
+    return (
+      <LoginGate
+        title="유품 정리 업체 검색"
+        subtitle="지역 기반 유품 정리·수거 전문 업체와 연결해 드립니다."
+        onOpenLogin={onOpenLogin}
+      />
+    );
+  }
 
   return (
     <div className="v2-page">

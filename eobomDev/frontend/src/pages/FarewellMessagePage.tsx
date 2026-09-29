@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { LogIn } from 'lucide-react';
+import { LoginGate } from '../components/LoginGate';
 import { apiFetch } from '../lib/api';
 import { getToken } from '../lib/storage';
 import { BACKEND_URL } from '../config';
@@ -100,15 +100,11 @@ export const FarewellMessagePage: React.FC<FarewellMessagePageProps> = ({ curren
 
   if (!currentUser) {
     return (
-      <div className="v2-page">
-        <div className="v2-content">
-          <h1 className="v2-page-title">유족 메시지 보관함</h1>
-          <p className="v2-empty">가족에게 남기는 편지는 로그인 후 작성하실 수 있습니다.</p>
-          <button onClick={onOpenLogin} className="v2-btn-primary">
-            <LogIn size={18} /> 로그인 / 회원가입
-          </button>
-        </div>
-      </div>
+      <LoginGate
+        title="유족 메시지 보관함"
+        subtitle="가족 한 분 한 분께 따로 남기는 편지입니다. 완료해야 할 항목은 없습니다 — 생각날 때마다 남기세요."
+        onOpenLogin={onOpenLogin}
+      />
     );
   }
 

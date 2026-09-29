@@ -3,6 +3,7 @@ import { ChevronRight } from 'lucide-react';
 import { apiFetch } from '../lib/api';
 import { SECTIONS, RELATIONSHIP_LABEL } from '../components/endingNote/constants';
 import '../styles/design-v2.css';
+import { LoginGate } from '../components/LoginGate';
 import { backdropCloseProps } from '../utils/backdropClose';
 
 // 00-36 §4.6-1(SCR-020) — "나에게 공유된 것". 나를 가족으로 지정한 분별로, 지금 열람할 수 있는
@@ -105,15 +106,8 @@ export const FamilySharedPage: React.FC<FamilySharedPageProps> = ({ currentUser,
   }, [currentUser]);
 
   if (!currentUser) {
-    return (
-      <div className="v2-page">
-        <div className="v2-content">
-          <h1 className="v2-page-title">나에게 공유된 것</h1>
-          <p className="v2-empty">로그인 후 확인하실 수 있습니다.</p>
-          <button type="button" className="v2-btn-primary" onClick={onOpenLogin}>로그인 / 회원가입</button>
-        </div>
-      </div>
-    );
+    // 00-34 §2.4 — 비로그인 가림판(이 화면엔 부제목이 없다)
+    return <LoginGate title="나에게 공유된 것" onOpenLogin={onOpenLogin} />;
   }
 
   const fields = open ? entryFields(open.entry.section, open.entry.value) : [];
