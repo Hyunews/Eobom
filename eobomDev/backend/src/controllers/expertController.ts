@@ -5,7 +5,7 @@ import jwt from 'jsonwebtoken';
 import { Prisma } from '@prisma/client';
 import prisma from '../config/prisma';
 import { encryptField, decryptField } from '../utils/crypto';
-import { normalizePhone, isValidPhoneLength, MIN_PHONE_DIGITS, MAX_PHONE_DIGITS } from '../utils/phone';
+import { normalizePhone, isValidPhoneLength, maskPhone, MIN_PHONE_DIGITS, MAX_PHONE_DIGITS } from '../utils/phone';
 
 // 전문가(변호사·세무사·행정사·장례지도사) 인증 — Partner(장사시설)와 완전 분리된 계정 체계.
 // docs/02_전문가_매칭/02-02_전문가_계정_체계_구현_메모.md 근거. 인증 방식(비밀번호 해시,
@@ -302,6 +302,21 @@ export const updateMe = async (req: Request, res: Response) => {
   }
 };
 
+const CONSULT_CLOSED_STATUSES = ['COMPLETED', 'CANCELLED', 'INVALID'];
+const CONSULT_MASK_AFTER_MS = 90 * 24 * 60 * 60 * 1000;
+
+// 02-03 §8 — 전문가 API 응답 시점에 연락처를 가린다(DB 원본·maskedAt은 건드리지 않음).
+// 조건: 끝난 상태(COMPLETED·CANCELLED·INVALID) 또는 신청 후 90일 경과(상태 무관).
+// ConsultRequest.applicantPhone은 원문(하이픈 포함 가능)으로 저장되므로 숫자만 뽑아서 가린다.
+const serializeConsultRequestForExpert = <T extends { status: string; createdAt: Date; applicantPhone: string | null }>(r: T): T => {
+  const shouldMask = CONSULT_CLOSED_STATUSES.includes(r.status) || Date.now() - r.createdAt.getTime() >= CONSULT_MASK_AFTER_MS;
+  if (!shouldMask || !r.applicantPhone) return r;
+  const digits = normalizePhone(r.applicantPhone);
+  const masked = maskPhone(digits);
+  // maskPhone이 못 가리는 길이(그룹 규칙 밖)는 원본 대신 고정 표기로 대체
+  return { ...r, applicantPhone: masked === digits ? '****' : masked };
+};
+
 // 내게 온 상담 신청 목록 (`GET /api/expert/consult-requests`) — status 쿼리로 필터(docs 02-03 §5.3)
 export const getMyConsultRequests = async (req: Request, res: Response) => {
   const decoded = verifyExpertBearerToken(req);
@@ -316,7 +331,7 @@ export const getMyConsultRequests = async (req: Request, res: Response) => {
       where: { expertId: decoded.id, ...(status ? { status } : {}) },
       orderBy: { createdAt: 'desc' },
     });
-    return res.json({ status: 'success', data: requests });
+    return res.json({ status: 'success', data: requests.map(serializeConsultRequestForExpert) });
   } catch (error) {
     console.error('상담 신청 목록 조회 실패:', error);
     return res.status(500).json({ status: 'error', message: '상담 신청 목록을 불러오지 못했습니다.' });
@@ -346,6 +361,10 @@ export const updateConsultRequestStatus = async (req: Request, res: Response) =>
     if (existing.expertId !== decoded.id) {
       return res.status(403).json({ status: 'error', message: '본인에게 온 상담 신청만 처리할 수 있습니다.' });
     }
+    // 02-03 §5.3 — 끝난 신청은 되돌리지 않는다(되돌리면 §8 연락처 가리기가 풀린다)
+    if (CONSULT_CLOSED_STATUSES.includes(existing.status)) {
+      return res.status(409).json({ status: 'error', message: '이미 종료된 상담 신청은 상태를 바꿀 수 없습니다.' });
+    }
 
     const now = new Date();
     const history = Array.isArray(existing.statusHistory) ? existing.statusHistory : [];
@@ -359,7 +378,7 @@ export const updateConsultRequestStatus = async (req: Request, res: Response) =>
         ] as unknown as Prisma.InputJsonValue,
       },
     });
-    return res.json({ status: 'success', data: updated });
+    return res.json({ status: 'success', data: serializeConsultRequestForExpert(updated) });
   } catch (error) {
     console.error('상담 신청 상태 변경 실패:', error);
     return res.status(500).json({ status: 'error', message: '상태 변경 중 오류가 발생했습니다.' });
