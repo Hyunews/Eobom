@@ -1244,6 +1244,21 @@
 
 <!-- Gemini 판정 1줄: ✅통과 (visibleGuestCount state 기반 slice 렌더 및 10개 더 보기 버튼 실장 확인 / 새 글 제출 시 카운트 자동 확장 확인 / 빌드 통과) -->
 
+## 2026-09-29 | 06-06 OCR 502 버그 — Invoke URL 끝 `/general` 중복
+
+- **근거 스펙**: `docs/06_.../06-06_유언장_사진인식_요건확인_기획서.md` §4·§5(General OCR) — 스펙 변경 없음, 사람 실호출 중 502 리포트에 따른 버그 수정.
+- **건드린 파일**: eobomDev/backend/src/services/clovaOcrProvider.ts, eobomDev/backend/.env.example
+- **결과**:
+  - **원인**: `clovaOcrProvider.ts`가 `${invokeUrl}/general`로 호출하는데 NCP 콘솔의 General OCR Invoke URL은 이미 `/general`로 끝난다(로컬 `.env`도 그렇게 끝남) → `…/general/general` 404 → `ocrController`가 502.
+  - **수정**: `invokeUrl.trim()`에서 끝 슬래시를 모두 떼고, `/general`로 끝나면 그대로 · 아니면 `/general`을 붙인다. 콘솔 값 그대로 붙여 넣은 형태와 `/general` 앞까지만 넣은 형태 둘 다 동작.
+  - **`.env.example`**: `CLOVA_OCR_INVOKE_URL` 위에 주석 1줄 — *"콘솔 Invoke URL 그대로 붙여 넣기(끝의 /general 포함 가능 — 없으면 코드가 붙인다)"*.
+  - **실패 로그 확인(유지)**: 비정상 응답이면 `CLOVA OCR 요청 실패(${res.status}): ${본문 300자}`를 던지고 `ocrController.ts:106`의 `console.error('OCR 인식 실패:', error)`가 그 메시지(상태코드 포함)를 찍는다 — 이미 있어 변경 없음. `CLOVA_SPEECH_INVOKE_URL`(`/recognizer/upload`)은 이번 범위 밖이라 손대지 않음.
+  - `cd eobomDev/backend && npx tsc --noEmit`(exit 0). 🔴 **`npm run build`는 통과 못 함** — `prisma generate` 단계가 `query_engine-windows.dll.node` EPERM으로 실패(이전 항목과 같은 원인, 다른 node 프로세스가 잠금·schema.prisma 미변경). 타입 검증은 `tsc --noEmit`으로 대신함.
+- **편차**: 없음.
+- **다음 에이전트가 알아야 할 것**: 🔴 실호출 재검증은 사람 몫 — 백엔드 재시작 후 유언장 사진 인식 1건(무료 100건/월 소진 유의). 그래도 502면 서버 콘솔의 `CLOVA OCR 요청 실패(<상태코드>): …`로 원인 확인(401=Secret, 404=URL, 400=요청 형식). 커밋은 하지 않음 — 메시지 초안만.
+
+<!-- Gemini 판정 1줄: … -->
+
 ## 2026-09-29 | 장사시설·유품수거 첫 화면 = 잡힌 지역만 (01-01 §6 R-1~R-6)
 
 - **근거 스펙**: `docs/01_장사시설_매칭/01-01_장례_묘지_매칭_기능_명세서.md` §6 R-1~R-6 (사람 지시 09-29).

@@ -60,7 +60,12 @@ export class ClovaOcrProvider implements OcrProvider {
     // Uint8Array 사본으로 감싼다.
     form.append('file', new Blob([Uint8Array.from(image)], { type: mimeType }), `will-draft.${format}`);
 
-    const res = await fetch(`${invokeUrl}/general`, {
+    // NCP 콘솔의 General OCR Invoke URL은 이미 `/general`로 끝난다 — 그대로 붙여 넣어도, 그 앞까지만
+    // 넣어도 동작하게 끝 슬래시를 떼고 `/general`이 없을 때만 붙인다(…/general/general 404 → 502 방지).
+    const trimmedUrl = invokeUrl.trim().replace(/\/+$/, '');
+    const endpoint = trimmedUrl.endsWith('/general') ? trimmedUrl : `${trimmedUrl}/general`;
+
+    const res = await fetch(endpoint, {
       method: 'POST',
       headers: { 'X-OCR-SECRET': secret },
       body: form,
