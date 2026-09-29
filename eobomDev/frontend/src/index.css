@@ -1061,6 +1061,14 @@ body {
     background-color: transparent;
   }
 
+  /* 🆕 2026-09-29 사람 지시 — 모바일 홈 ②~④ 칸(히어로가 아닐 때)의 비로그인 "로그인" 버튼
+     아이콘·글자를 본문 곤색(#1A2B4C)으로. 배경이 투명이라 기본 흰 글자가 밝은 칸에서 안 보였다.
+     아래 히어로 규칙이 뒤에 와서 같은 우선순위로 이기므로 섹션1은 흰색 그대로. */
+  .site-header--home-overlay .header-actions-wrap .btn-point {
+    color: #1A2B4C;
+    border-color: #1A2B4C;
+  }
+
   .site-header--home-overlay-hero .header-hamburger-btn,
   .site-header--home-overlay-hero .header-user-chip,
   .site-header--home-overlay-hero .header-user-name-text,
