@@ -133,6 +133,10 @@ export const WillPhotoUploadModal: React.FC<WillPhotoUploadModalProps> = ({ hasE
               <p style={{ fontSize: 'var(--v2-fs-support)', color: 'var(--v2-text-muted)', marginBottom: '4px' }}>
                 jpg · png · pdf · tiff 사진을 올릴 수 있습니다(최대 {MAX_FILES}장, 장당 {MAX_FILE_SIZE_MB}MB, PDF는 5쪽까지).
               </p>
+              {/* 06-06 §6 단계1·§9-1 T-2 — 콘솔 도메인 언어가 단일 선택이라 코드로 못 푸는 한계를 미리 알린다 */}
+              <p style={{ fontSize: 'var(--v2-fs-support)', color: 'var(--v2-text-muted)', marginBottom: '4px' }}>
+                한글·숫자·기호만 인식합니다. 한자나 외국어는 직접 입력해 주세요.
+              </p>
               <p style={{ fontSize: 'var(--v2-fs-support)', color: 'var(--v2-text-muted)', marginBottom: '14px' }}>
                 본인이 쓴 유언장만 올려주세요.
               </p>
