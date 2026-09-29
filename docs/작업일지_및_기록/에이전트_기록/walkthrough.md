@@ -1244,6 +1244,20 @@
 
 <!-- Gemini 판정 1줄: ✅통과 (visibleGuestCount state 기반 slice 렌더 및 10개 더 보기 버튼 실장 확인 / 새 글 제출 시 카운트 자동 확장 확인 / 빌드 통과) -->
 
+## 2026-09-29 | index.css 미사용 블록 삭제 — 삭제된 홈 파일 3개 전용 규칙 (사람 승인)
+
+- **근거 스펙**: 사람 승인 09-29 — 바로 아래 "안 쓰는 파일 3개 삭제" 항목의 index.css 표 기준. 스펙 문서 없음.
+- **건드린 파일**: eobomDev/frontend/src/index.css (418줄 삭제, 추가 0)
+- **결과**:
+  - **삭제한 블록(클래스명·주석 머리로 경계 확인, 모두 앞뒤가 빈 줄로 분리된 연속 구간)**: ① `.domain-overview-*` 전부 — `DomainOverviewPage.tsx` 머리 주석부터 `.domain-overview-footer-slide`까지(내부 `@supports`·`@media (max-width:900px),(max-height:820px)` 포함) ② `메인 홈 4박스 진입 블록` — `.entry-boxes-grid`·`.chip-row`(767px 이하)·`.entry-box-primary`(768px 이상) ③ `메인 4박스 동적 포커스` — `.entry-box-tint-*`·`.entry-box-card`·`.entry-box-reveal(__inner)`·`(hover:hover)` 안의 포커스 규칙·`.entry-boxes-focus-group` ④ `메인 4박스 캐러셀` — `.entry-carousel*` 전부와 480px·767px 미디어쿼리 ⑤ `:root`의 `--box-tint-green/gold/slate-end` 3개와 그 머리 주석.
+  - **남긴 것**: 블록 사이에 낀 다른 규칙은 없었다 — 표의 "1393~1395 겹침"은 캐러셀 머리 주석일 뿐이었고, 삭제 구간 바로 앞뒤(`Responsive Breakpoints` 머리 · `Header(Header.tsx)` 머리 · `메인 히어로 배경 사진`)는 그대로. 빈 `@media`·`@supports`는 남지 않음(구간 통째 삭제).
+  - **0건 확인**: `src/`의 `.ts`·`.tsx`·`.css`·`.html`과 `index.html`에서 `domain-overview`·`entry-box(es)`·`entry-carousel`·`chip-row`·`box-tint`를 다시 검색 → 코드·규칙 0건. 주석 1건만 남음(`index.css:1095`, *"(.chip-row·.home-section-dots와 같은 패턴)"* — 다른 규칙의 설명 주석이라 뜻은 유지, 손대지 않음). `v2-chip-row`(CounselingPage)는 별개 클래스.
+  - `cd eobomDev/frontend && npx tsc --noEmit`(exit 0) · `npm run build` 통과.
+- **편차**: 없음.
+- **다음 에이전트가 알아야 할 것**: 🟡 삭제한 규칙은 화면에서 쓰이지 않던 것이라 시각 변화는 없어야 한다 — 사람이 홈·엔딩노트 등 아무 화면이나 한 번 훑어 확인하면 안전. 커밋·push는 하지 않음 — 메시지 초안만.
+
+<!-- Gemini 판정 1줄: … -->
+
 ## 2026-09-29 | 안 쓰는 파일 3개 삭제 — DomainOverviewPage · EntryBoxes · domainSlides (00-40 §3.3 C6 이후 미사용)
 
 - **근거 스펙**: 사람 승인 09-29(`context.md` 🔴 "안쓰는파일 목록만, 삭제는 사람확인후" → 승인) · `00-40` §3.3 C6.
