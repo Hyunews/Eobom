@@ -12,7 +12,9 @@ import {
   ChevronRight,
   ChevronLeft,
   Camera,
+  Mic,
 } from 'lucide-react';
+import { PageLink } from '../components/common/PageLink';
 import { apiFetch, ApiError } from '../lib/api';
 import { getToken } from '../lib/storage';
 import { useIsMobile } from '../hooks/useIsMobile';
@@ -96,6 +98,9 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
   const [savedSectionValues, setSavedSectionValues] = useState<Record<string, any>>({});
 
   const [lifeSupport, setLifeSupport] = useState<string>('연명의료 중단 희망');
+  // 06-04 §6.1 ① (2026-09-30) — 사전연명의료의향서 등록 여부·등록일. ⑩ ORGAN_DONATION과 같은 모양. 옛 본문엔 없으니 '모름'.
+  const [lifeSupportRegStatus, setLifeSupportRegStatus] = useState<string>('모름');
+  const [lifeSupportRegDate, setLifeSupportRegDate] = useState<string>('');
   const [funeralType, setFuneralType] = useState<string>('가족장 (수목장)');
   const [assetNote, setAssetNote] = useState<string>('');
   const [digitalPrefs, setDigitalPrefs] = useState<Record<string, string>>({});
@@ -159,6 +164,10 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
         });
 
         if (bySection.LIFE_SUPPORT?.lifeSupport) setLifeSupport(bySection.LIFE_SUPPORT.lifeSupport);
+        if (bySection.LIFE_SUPPORT) {
+          setLifeSupportRegStatus(bySection.LIFE_SUPPORT.lifeSupportRegStatus || '모름');
+          setLifeSupportRegDate(bySection.LIFE_SUPPORT.lifeSupportRegDate || '');
+        }
         if (bySection.FUNERAL?.funeralType) setFuneralType(bySection.FUNERAL.funeralType);
         if (bySection.ASSET) setAssetNote(bySection.ASSET.assetNote || '');
         if (bySection.DIGITAL_ACCOUNTS) {
@@ -389,9 +398,12 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
       let valueText = '';
       if (completed) {
         switch (s.code) {
-          case 'LIFE_SUPPORT':
-            valueText = saved.lifeSupport || '';
+          case 'LIFE_SUPPORT': {
+            const regStatus = saved.lifeSupportRegStatus || '모름';
+            const regText = `의향서 ${regStatus}${regStatus === '등록함' && saved.lifeSupportRegDate ? ` (${saved.lifeSupportRegDate})` : ''}`;
+            valueText = saved.lifeSupport ? `${saved.lifeSupport} · ${regText}` : '';
             break;
+          }
           case 'FUNERAL':
             valueText = saved.funeralType || '';
             break;
@@ -524,6 +536,20 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
             <option value="자녀 판단에 위임">가족/자녀의 판단에 위임</option>
           </select>
         </div>
+        <div className="v2-field">
+          <label htmlFor="en-life-support-reg">사전연명의료의향서 등록 여부</label>
+          <select id="en-life-support-reg" value={lifeSupportRegStatus} onChange={(e) => setLifeSupportRegStatus(e.target.value)} className="v2-select">
+            <option value="등록함">등록함</option>
+            <option value="등록하지 않음">등록하지 않음</option>
+            <option value="모름">모름</option>
+          </select>
+        </div>
+        {lifeSupportRegStatus === '등록함' && (
+          <div className="v2-field">
+            <label htmlFor="en-life-support-reg-date">등록일 (선택)</label>
+            <input id="en-life-support-reg-date" type="date" value={lifeSupportRegDate} onChange={(e) => setLifeSupportRegDate(e.target.value)} className="v2-input" />
+          </div>
+        )}
       </>
     ),
     FUNERAL: (
@@ -704,7 +730,7 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
   // 🔴 00-35 §5.3 — useMemo로 감싸지 않는다. 값이 바뀌어도 최신 상태를 읽어야 하므로 매 렌더
   // 재생성이 맞다. 각 키의 값·형태는 이동 전 onSave가 넘기던 것과 완전히 같다.
   const sectionPayloads: Record<string, () => unknown> = {
-    LIFE_SUPPORT: () => ({ lifeSupport }),
+    LIFE_SUPPORT: () => ({ lifeSupport, lifeSupportRegStatus, lifeSupportRegDate }),
     FUNERAL: () => ({ funeralType }),
     ASSET: () => ({ assetNote }),
     DIGITAL_ACCOUNTS: () => ({ digitalPrefs, subscriptionNote }),
@@ -722,6 +748,8 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
     switch (section) {
       case 'LIFE_SUPPORT':
         setLifeSupport(saved.lifeSupport ?? '연명의료 중단 희망');
+        setLifeSupportRegStatus(saved.lifeSupportRegStatus ?? '모름');
+        setLifeSupportRegDate(saved.lifeSupportRegDate ?? '');
         break;
       case 'FUNERAL':
         setFuneralType(saved.funeralType ?? '가족장 (수목장)');
@@ -998,6 +1026,18 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
       {/* 06-04 §6.1-1 T-3·T-7 — 카드 틀 없이 탭 본문으로. hidden이라 언마운트되지 않아 저장 안 한
           초안·OCR 합류 상태가 탭 왕복 후에도 남는다. */}
       <div role="tabpanel" id="ending-note-panel-will" aria-labelledby="ending-note-tab-will" hidden={activeNoteTab !== 'will'} className="v2-content">
+
+        {/* 06-05 §7.2 (2026-09-30 개발자 확정) — 음성으로 남기려는 사람이 찾는 자리. 설명 문구는 두지 않는다. */}
+        <div style={{ marginBottom: '16px' }}>
+          <PageLink
+            to="/farewell-messages"
+            className="v2-btn-outline"
+            onNavigate={() => setActiveTab?.('farewell-messages')}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', textDecoration: 'none' }}
+          >
+            <Mic size={16} /> 음성 메시지를 남기시려면 유족 메시지 보관함으로
+          </PageLink>
+        </div>
 
         <p className="v2-notice-warn" style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', fontWeight: 700 }}>
           <AlertTriangle size={18} style={{ flexShrink: 0, marginTop: '2px' }} />

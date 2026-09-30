@@ -7,8 +7,8 @@ import { Info } from 'lucide-react';
 // 지시였지 문구 삭제 지시가 아니었다 — 06-05 §4.3 원문으로 복원했었다.
 // 🔄 2026-09-11 사람 직접 지시(전 페이지 모바일 검증 루프 — 줄글 축약) — "재산 분배·상속에
 // 관한 내용은 남기지 마세요…" 절반을 다시 걷어내고 전달 고지 한 문장만 남긴다. Desktop·
-// Mobile 모두 적용(사람이 두 환경 다 명시). 🟡 편차: 06-05 §4.3 원문과 다시 갈라짐 — Opus
-// 판단 대기(walkthrough 편차 필드 참고).
+// Mobile 모두 적용(사람이 두 환경 다 명시). 06-05 §4.3 원문과 갈라진 것은 복원하지 않는 것으로
+// 종결(2026-09-30 개발자 확정, 06-05 §4.3) — 문구는 그대로다.
 // Desktop·Mobile 두 뷰가 위치만 다르게(상단 고정 / 컴포저 바로 위) 이 컴포넌트를 그대로 쓴다.
 export const FarewellNotice: React.FC<{ style?: React.CSSProperties }> = ({ style }) => (
   <p className="v2-notice" style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', margin: 0, ...style }}>

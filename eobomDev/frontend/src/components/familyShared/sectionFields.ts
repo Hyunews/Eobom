@@ -14,7 +14,16 @@ export const entryFields = (section: string, value: unknown): EntryField[] => {
 
   switch (section) {
     case 'LIFE_SUPPORT':
-      return keep([{ label: '연명의료 의향', text: str(v.lifeSupport) }]);
+    {
+      // 06-04 §6.1 ① (2026-09-30) — 등록 여부·등록일. 옛 본문에 필드가 없으면 '모름'(⑩과 같은 방식).
+      const lifeSupport = str(v.lifeSupport);
+      const regStatus = str(v.lifeSupportRegStatus) || '모름';
+      const regDate = str(v.lifeSupportRegDate);
+      return keep([
+        { label: '연명의료 의향', text: lifeSupport },
+        { label: '사전연명의료의향서 등록', text: lifeSupport ? (regStatus === '등록함' && regDate ? `${regStatus} (${regDate})` : regStatus) : '' },
+      ]);
+    }
     case 'FUNERAL':
       return keep([{ label: '장례 희망', text: str(v.funeralType) }]);
     case 'ASSET':
