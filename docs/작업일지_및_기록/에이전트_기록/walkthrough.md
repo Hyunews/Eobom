@@ -16,6 +16,26 @@
 > [`_아카이브_2608`](walkthrough_아카이브_2608.md)(08-31분). 남은 것 = 판정 대기 + 판정 표기 없음. 기준 → `record.md` §2-1.
 
 ---
+## 2026-09-30 | [Sonnet] 04·06 결정 구현 — 엔딩노트 ⑤ 구독 메모 + 04 백엔드 삭제(2-a 코드만) + DigitalEstatePage 주석 정리
+
+- **근거 스펙**: `.harness/docs-audit/README.md` §4 "04 판정 결과" #6·#9 결정 · docs `06-04` §6.1 ⑤ · `04-01` 머리 결정 블록(09-30). 핸드오프 블록.
+- **건드린 파일**: `eobomDev/frontend/src/pages/EndingNotePage.tsx` · `eobomDev/frontend/src/pages/AdminPage.tsx` · `eobomDev/frontend/src/pages/DigitalEstatePage.tsx` · `eobomDev/backend/src/server.ts` · `eobomDev/backend/src/routes/meRoutes.ts` · `eobomDev/backend/src/routes/adminRoutes.ts` · `eobomDev/backend/src/routes/familyDesignationRoutes.ts`(주석 1곳) · `eobomDev/backend/src/controllers/adminController.ts` · `eobomDev/backend/src/services/accountPurgeService.ts` · `eobomDev/backend/prisma/destroy-farewell-media.ts`(출력 문자열 1곳). **삭제**: `backend/src/controllers/cleanupController.ts` · `backend/src/controllers/digitalPlatformController.ts` · `backend/src/routes/digitalPlatformRoutes.ts`.
+- **결과**:
+  1. 엔딩노트 ⑤ — 안내 문구를 `자주 쓰시는 디지털 서비스를 사후에 어떻게 처리하고 싶으신지 남겨두세요. 가족이 이 내용을 보고 각 서비스에 직접 요청합니다.`로 교체(옛: `…미리 정해두세요. 실제 처리는 디지털 정산(04) 화면에서 유족이 진행합니다.`). 분류 선택 4개 아래에 `구독 메모` 여러 줄 입력칸(`en-digital-subscription-note`, placeholder는 지시 그대로) + `카드번호·비밀번호는 적지 마세요.` 한 줄. 새 필드 `subscriptionNote`를 같은 섹션 value `{ digitalPrefs, subscriptionNote }`에 추가 — 저장은 기존 PUT 경로(백엔드는 value를 통째로 JSON 암호화 저장하므로 스키마·컨트롤러 변경 없음). 상태 4곳 반영: `useState` · 초기 로드(`bySection.DIGITAL_ACCOUNTS.subscriptionNote`) · `sectionPayloads.DIGITAL_ACCOUNTS` · `resetSection`. 사후 공개(`POSTMORTEM`) 미변경(`endingNoteController.ts:21·196`, `constants.tsx:43` 손대지 않음).
+  2. 2-a — 제거: `/api/me/cleanup-items`(GET·POST·PATCH) · `/api/digital-platforms`(공개) · `/api/admin/digital-platforms`(GET·POST·PATCH) 라우트, 컨트롤러 2개·라우트 파일 1개 삭제, `adminController.getUserDetailForAdmin`의 `digitalCleanupItems` include, `accountPurgeService`의 `cleanupItems`(AccountPlan 필드·count·deleteMany 각 1곳), `AdminPage.tsx`의 `DIGITAL_PLATFORMS` 탭(타입·라벨·탭 배열·상단 버튼·목록/폼 본문·상태·핸들러 3개·로드 분기)과 회원상세의 `디지털 정리 항목` 블록. 전역 검색 `cleanupItems|cleanup-items|digitalCleanupItems|digitalPlatform|DigitalPlatform|DigitalCleanupItem` — `backend/src`·`frontend/src`·`prisma/*.ts` 0건(남은 곳은 `schema.prisma`와 옛 마이그레이션 SQL뿐 = 2-b 대상).
+  3. `DigitalEstatePage.tsx` 18~24줄 `⚠️ 스펙 편차 … Opus 확인 필요` 두 블록을 `🔄` 기록 한 블록으로 합치고 확인 요청 문구 삭제.
+  `tsc --noEmit`(backend·frontend) 통과 · `npm run build`(frontend) 통과. backend `npm run build`는 `prisma generate` 단계에서 `EPERM rename query_engine-windows.dll`로 멈춤(다른 프로세스가 dll을 잡고 있음, 코드 오류 아님 — tsc로 대체 확인).
+- **편차**: 없음. 다만 지시 밖 1곳 — `prisma/destroy-farewell-media.ts:126`이 `p.cleanupItems`를 출력해 타입이 깨져서 그 출력 조각(` 정리항목 ${p.cleanupItems}`)만 뺐다. 화면에서 유족용 "가족 화면(FamilySharedPage)"은 손대지 않음 — 아래 참조.
+- **다음 에이전트가 알아야 할 것**:
+  - 🔴 **2-b 미실행**(DB 모델 삭제 마이그레이션). `schema.prisma`에 `DigitalPlatform`(426줄)·`DigitalCleanupItem`(449줄)과 관계 3곳(`User.digitalCleanupItems` 30줄 · `DigitalPlatform.cleanupItems` 442줄 · `Deceased.cleanupItems` 578줄)이 그대로 있다. 코드는 더 이상 참조하지 않으므로 지금 상태로 안전. 사전 조회: **로컬 dev DB(`localhost:5433/eobom_db`)** 두 표 모두 **0행**. 운영(Supabase)은 조회하지 않음.
+  - 🔴 **백업 실패** — `backup-db.ps1`이 `postgres:17-alpine` 이미지를 못 찾고 `docker run`에서 종료(파일 미생성; 최신 백업은 09-10 `prod-20260910-082936.dump`). 그리고 이 스크립트는 `.env`의 `BACKUP_DATABASE_URL`(=Supabase 운영)만 대상으로 삼는다 — 로컬 dev DB 백업 경로는 별도다. 사람 확인 후 진행할 것.
+  - 🟡 가족 화면(`FamilySharedPage.tsx` `entryFields`)은 `IMMEDIATE` 두 섹션(FUNERAL·CONTACTS)만 그린다. `DIGITAL_ACCOUNTS`는 `POSTMORTEM` 전용이라 백엔드가 family-view에서 걸러 새 필드가 **아직 어디서도 표시되지 않는다**(06 개봉 미구현, context.md 기재와 같은 상태). 개봉이 구현될 때 `digitalPrefs`·`subscriptionNote` 둘 다 그려야 한다.
+  - 🔴 실기동 미확인(dev 서버 미기동 방침) — 엔딩노트 ⑤ 저장→새로고침 시 구독 메모 유지·취소 시 되돌아감·목록 요약 확인 필요. 요약 문자열(`EndingNotePage.tsx` DIGITAL_ACCOUNTS 요약 case)에는 구독 메모를 넣지 않았다.
+  - 운영자 화면에서 디지털 카탈로그 탭·회원 상세 `디지털 정리 항목`이 사라졌다.
+
+<!-- Gemini 판정 1줄: ✅통과 / ❌반려(사유) / 🔄스펙갱신(고친 문서) -->
+
+---
 ## 2026-09-30 | [Sonnet] 담당 업체 없는 시설의 상담 버튼 알림창(임시) + `.stat-row` CSS 삭제
 
 - **근거 스펙**: 스펙 없음 — 개발자 지시(09-30, docs 01 판정 후속). 방향은 추후 버튼 숨김, 지금은 알림창만.

@@ -187,16 +187,6 @@ export const getUserDetailForAdmin = async (req: Request, res: Response) => {
         name: true,
         email: true,
         createdAt: true,
-        digitalCleanupItems: {
-          select: {
-            id: true,
-            status: true,
-            customName: true,
-            createdAt: true,
-            platform: { select: { id: true, name: true, category: true } },
-          },
-          orderBy: { createdAt: 'desc' },
-        },
         memorials: {
           select: { id: true, slug: true, deceasedName: true, visibility: true, closedAt: true, createdAt: true },
           orderBy: { createdAt: 'desc' },

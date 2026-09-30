@@ -98,6 +98,7 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
   const [funeralType, setFuneralType] = useState<string>('가족장 (수목장)');
   const [assetNote, setAssetNote] = useState<string>('');
   const [digitalPrefs, setDigitalPrefs] = useState<Record<string, string>>({});
+  const [subscriptionNote, setSubscriptionNote] = useState<string>('');
   const [insurance, setInsurance] = useState<Record<string, { checked: boolean; company: string }>>({});
   const [contactsNote, setContactsNote] = useState<string>('');
   const [petCaretaker, setPetCaretaker] = useState<string>('');
@@ -159,7 +160,10 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
         if (bySection.LIFE_SUPPORT?.lifeSupport) setLifeSupport(bySection.LIFE_SUPPORT.lifeSupport);
         if (bySection.FUNERAL?.funeralType) setFuneralType(bySection.FUNERAL.funeralType);
         if (bySection.ASSET) setAssetNote(bySection.ASSET.assetNote || '');
-        if (bySection.DIGITAL_ACCOUNTS) setDigitalPrefs(bySection.DIGITAL_ACCOUNTS.digitalPrefs || {});
+        if (bySection.DIGITAL_ACCOUNTS) {
+          setDigitalPrefs(bySection.DIGITAL_ACCOUNTS.digitalPrefs || {});
+          setSubscriptionNote(bySection.DIGITAL_ACCOUNTS.subscriptionNote || '');
+        }
         if (bySection.INSURANCE) setInsurance(bySection.INSURANCE.insurance || {});
         if (bySection.CONTACTS) {
           setContactsNote(bySection.CONTACTS.contactsNote || '');
@@ -553,8 +557,8 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
     DIGITAL_ACCOUNTS: (
       <>
         <p className="v2-notice">
-          자주 쓰시는 디지털 서비스를 사후에 어떻게 처리하고 싶으신지 미리 정해두세요. 실제 처리는
-          디지털 정산(04) 화면에서 유족이 진행합니다.
+          자주 쓰시는 디지털 서비스를 사후에 어떻게 처리하고 싶으신지 남겨두세요. 가족이 이 내용을 보고
+          각 서비스에 직접 요청합니다.
         </p>
         {DIGITAL_ACCOUNT_CATEGORIES.map((category) => (
           <div key={category} className="v2-field">
@@ -573,6 +577,19 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
             </select>
           </div>
         ))}
+        <div className="v2-field">
+          <label htmlFor="en-digital-subscription-note">구독 메모</label>
+          <textarea
+            id="en-digital-subscription-note"
+            rows={3}
+            value={subscriptionNote}
+            onChange={(e) => setSubscriptionNote(e.target.value)}
+            className="v2-input"
+            style={{ height: 'auto', padding: '12px 14px' }}
+            placeholder="예: 넷플릭스(아이폰 앱스토어 결제), 유튜브 프리미엄(국민카드), 네이버 멤버십(통신요금)"
+          />
+          <p className="v2-notice">카드번호·비밀번호는 적지 마세요.</p>
+        </div>
       </>
     ),
     INSURANCE: (
@@ -690,7 +707,7 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
     LIFE_SUPPORT: () => ({ lifeSupport }),
     FUNERAL: () => ({ funeralType }),
     ASSET: () => ({ assetNote }),
-    DIGITAL_ACCOUNTS: () => ({ digitalPrefs }),
+    DIGITAL_ACCOUNTS: () => ({ digitalPrefs, subscriptionNote }),
     INSURANCE: () => ({ insurance }),
     CONTACTS: () => ({ contactsNote, petCaretaker }),
     WILL_LOCATION: () => ({ willLocation }),
@@ -714,6 +731,7 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
         break;
       case 'DIGITAL_ACCOUNTS':
         setDigitalPrefs(saved.digitalPrefs ?? {});
+        setSubscriptionNote(saved.subscriptionNote ?? '');
         break;
       case 'INSURANCE':
         setInsurance(saved.insurance ?? {});

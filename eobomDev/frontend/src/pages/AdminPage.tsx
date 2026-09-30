@@ -7,9 +7,9 @@ import { AddressSearchModal } from '../components/AddressSearchModal';
 // docs/01-05 §6.2, docs/02-02. 계정은 seed-admin.ts로만 생성되므로 여기엔 가입 폼이 없다.
 // 공개 메뉴·Footer 어디에도 링크하지 않는다 — 직접 URL(#admin)로만 접근.
 
-// 00-37 §6 A-2 — MEMORIALS·DIGITAL_PLATFORMS·CONSULT_REQUESTS·MEMBERS 4개 추가(이미 만든
+// 00-37 §6 A-2 — MEMORIALS·CONSULT_REQUESTS·MEMBERS 3개 추가(이미 만든
 // API에 화면만 붙인다, 서버 변경 최소).
-type QueueTab = 'PARTNERS' | 'EXPERTS' | 'CLAIMS' | 'FACILITIES' | 'FAREWELL_PURGE' | 'MEMORIALS' | 'DIGITAL_PLATFORMS' | 'CONSULT_REQUESTS' | 'MEMBERS';
+type QueueTab = 'PARTNERS' | 'EXPERTS' | 'CLAIMS' | 'FACILITIES' | 'FAREWELL_PURGE' | 'MEMORIALS' | 'CONSULT_REQUESTS' | 'MEMBERS';
 
 const TAB_LABELS: Record<QueueTab, string> = {
   PARTNERS: '사업자 가입',
@@ -18,7 +18,6 @@ const TAB_LABELS: Record<QueueTab, string> = {
   FACILITIES: '전체 시설',
   FAREWELL_PURGE: '유족메시지 파기',
   MEMORIALS: '추모관',
-  DIGITAL_PLATFORMS: '디지털 카탈로그',
   CONSULT_REQUESTS: '상담 신청',
   MEMBERS: '회원',
 };
@@ -90,14 +89,6 @@ export const AdminPage: React.FC = () => {
   const [openGuestbookId, setOpenGuestbookId] = useState<string | null>(null);
   const [guestbookEntries, setGuestbookEntries] = useState<any[]>([]);
   const [guestbookLoading, setGuestbookLoading] = useState(false);
-
-  // 00-37 §6 A-2 #6 — 디지털 플랫폼 안내 카탈로그 CRUD
-  const [digitalPlatforms, setDigitalPlatforms] = useState<any[]>([]);
-  const [showPlatformForm, setShowPlatformForm] = useState(false);
-  const [platformForm, setPlatformForm] = useState({
-    name: '', category: 'EMAIL', actionType: 'DELETE', officialUrl: '', guideSummary: '', estimatedDays: '', needsAgentHelp: false,
-  });
-  const [platformSubmitting, setPlatformSubmitting] = useState(false);
 
   // 00-37 §6 A-2 #7 — 상담 신청 전체 조회(읽기 전용)
   const [consultRequests, setConsultRequests] = useState<any[]>([]);
@@ -311,67 +302,6 @@ export const AdminPage: React.FC = () => {
     loadGuestbook(memorialId);
   };
 
-  // 00-37 §6 A-2 #6 — 디지털 플랫폼 안내 카탈로그
-  const loadDigitalPlatforms = async () => {
-    if (!token) return;
-    setLoadError('');
-    try {
-      const res = await authFetch(`${BACKEND_URL}/api/admin/digital-platforms`);
-      if (!res) return;
-      const data = await res.json();
-      if (data.status === 'success') setDigitalPlatforms(data.data);
-      else setLoadError(data.message || '조회 실패');
-    } catch {
-      setLoadError('서버와 통신 중 오류가 발생했습니다.');
-    }
-  };
-
-  const submitNewPlatform = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!platformForm.name.trim() || !platformForm.guideSummary.trim()) {
-      alert('표시명과 절차 요약은 필수입니다.');
-      return;
-    }
-    setPlatformSubmitting(true);
-    try {
-      const res = await authFetch(`${BACKEND_URL}/api/admin/digital-platforms`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...platformForm,
-          officialUrl: platformForm.officialUrl.trim() || undefined,
-          estimatedDays: platformForm.estimatedDays ? Number(platformForm.estimatedDays) : undefined,
-        }),
-      });
-      if (!res) return;
-      const data = await res.json();
-      if (!res.ok) {
-        alert(data.message || '등록에 실패했습니다.');
-        return;
-      }
-      setPlatformForm({ name: '', category: 'EMAIL', actionType: 'DELETE', officialUrl: '', guideSummary: '', estimatedDays: '', needsAgentHelp: false });
-      setShowPlatformForm(false);
-      loadDigitalPlatforms();
-    } finally {
-      setPlatformSubmitting(false);
-    }
-  };
-
-  // 공개 토글 — 공개로 켜려면 서버가 lastVerifiedAt을 요구한다(§3.1). 켜는 시점에 오늘 날짜로 확인일을 같이 채운다.
-  const togglePlatformPublish = async (p: any) => {
-    const nextPublished = !p.isPublished;
-    if (nextPublished && !p.lastVerifiedAt && !window.confirm('최종 확인일이 없습니다. 오늘 날짜로 확인 처리하고 공개하시겠습니까?')) return;
-    const res = await authFetch(`${BACKEND_URL}/api/admin/digital-platforms/${p.id}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ isPublished: nextPublished, ...(nextPublished && !p.lastVerifiedAt ? { lastVerifiedAt: new Date().toISOString() } : {}) }),
-    });
-    if (!res) return;
-    const data = await res.json();
-    if (!res.ok) alert(data.message || '변경 실패');
-    loadDigitalPlatforms();
-  };
-
   // 00-37 §6 A-2 #7 — 상담 신청 조회(읽기 전용, 문서에 승인/거절 액션 없음)
   const loadConsultRequests = async () => {
     if (!token) return;
@@ -434,8 +364,6 @@ export const AdminPage: React.FC = () => {
       loadFarewellPurge();
     } else if (tab === 'MEMORIALS') {
       loadMemorials();
-    } else if (tab === 'DIGITAL_PLATFORMS') {
-      loadDigitalPlatforms();
     } else if (tab === 'CONSULT_REQUESTS') {
       loadConsultRequests();
     } else if (tab === 'MEMBERS') {
@@ -668,7 +596,7 @@ export const AdminPage: React.FC = () => {
       </div>
 
       <div style={{ display: 'flex', gap: '0.6rem', marginBottom: '1rem', flexWrap: 'wrap' }}>
-        {(['PARTNERS', 'EXPERTS', 'CLAIMS', 'FACILITIES', 'FAREWELL_PURGE', 'MEMORIALS', 'DIGITAL_PLATFORMS', 'CONSULT_REQUESTS', 'MEMBERS'] as QueueTab[]).map((t) => (
+        {(['PARTNERS', 'EXPERTS', 'CLAIMS', 'FACILITIES', 'FAREWELL_PURGE', 'MEMORIALS', 'CONSULT_REQUESTS', 'MEMBERS'] as QueueTab[]).map((t) => (
           <button
             key={t}
             onClick={() => setTab(t)}
@@ -705,11 +633,7 @@ export const AdminPage: React.FC = () => {
               새로고침
             </button>
           </div>
-        ) : tab === 'MEMORIALS' ? null : tab === 'DIGITAL_PLATFORMS' ? (
-          <button onClick={() => setShowPlatformForm((v) => !v)} className="btn btn-primary" style={{ ...TAB_BTN, marginLeft: 'auto' }}>
-            {showPlatformForm ? '등록 취소' : '신규 등록'}
-          </button>
-        ) : tab === 'CONSULT_REQUESTS' ? (
+        ) : tab === 'MEMORIALS' ? null : tab === 'CONSULT_REQUESTS' ? (
           <select value={consultStatusFilter} onChange={(e) => setConsultStatusFilter(e.target.value)} className="form-select" style={{ ...SMALL_INPUT, width: '140px', marginLeft: 'auto' }}>
             <option value="">전체</option>
             <option value="REQUESTED">신청됨</option>
@@ -1144,90 +1068,6 @@ export const AdminPage: React.FC = () => {
             ))
           ))}
 
-        {tab === 'DIGITAL_PLATFORMS' && (
-          <>
-            {showPlatformForm && (
-              <form onSubmit={submitNewPlatform} className="card" style={{ padding: '1.2rem', display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
-                <div style={{ display: 'flex', gap: '0.6rem', flexWrap: 'wrap' }}>
-                  <input
-                    value={platformForm.name}
-                    onChange={(e) => setPlatformForm((f) => ({ ...f, name: e.target.value }))}
-                    placeholder="표시명 (예: 네이버)"
-                    className="form-select"
-                    style={{ ...SMALL_INPUT, flex: 1, minWidth: '160px' }}
-                  />
-                  <select value={platformForm.category} onChange={(e) => setPlatformForm((f) => ({ ...f, category: e.target.value }))} className="form-select" style={{ ...SMALL_INPUT, width: '140px' }}>
-                    <option value="EMAIL">EMAIL</option>
-                    <option value="SNS">SNS</option>
-                    <option value="CLOUD">CLOUD</option>
-                    <option value="SUBSCRIPTION">SUBSCRIPTION</option>
-                    <option value="ETC">ETC</option>
-                  </select>
-                  <select value={platformForm.actionType} onChange={(e) => setPlatformForm((f) => ({ ...f, actionType: e.target.value }))} className="form-select" style={{ ...SMALL_INPUT, width: '160px' }}>
-                    <option value="DELETE">DELETE(삭제)</option>
-                    <option value="MEMORIALIZE">MEMORIALIZE(추모 전환)</option>
-                    <option value="CANCEL">CANCEL(해지)</option>
-                  </select>
-                </div>
-                <input
-                  value={platformForm.officialUrl}
-                  onChange={(e) => setPlatformForm((f) => ({ ...f, officialUrl: e.target.value }))}
-                  placeholder="공식 유족 절차 안내 페이지 URL"
-                  className="form-select"
-                  style={SMALL_INPUT}
-                />
-                <textarea
-                  value={platformForm.guideSummary}
-                  onChange={(e) => setPlatformForm((f) => ({ ...f, guideSummary: e.target.value }))}
-                  placeholder="절차 요약 (유족이 읽는 본문)"
-                  style={{ width: '100%', padding: '0.6rem 0.8rem', borderRadius: 'var(--r-sm)', border: '1px solid var(--border-color)', fontSize: '0.85rem', height: '70px' }}
-                />
-                <div style={{ display: 'flex', gap: '0.8rem', alignItems: 'center', flexWrap: 'wrap' }}>
-                  <input
-                    type="number"
-                    value={platformForm.estimatedDays}
-                    onChange={(e) => setPlatformForm((f) => ({ ...f, estimatedDays: e.target.value }))}
-                    placeholder="예상 소요일"
-                    className="form-select"
-                    style={{ ...SMALL_INPUT, width: '120px' }}
-                  />
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.85rem', cursor: 'pointer' }}>
-                    <input type="checkbox" checked={platformForm.needsAgentHelp} onChange={(e) => setPlatformForm((f) => ({ ...f, needsAgentHelp: e.target.checked }))} />
-                    행정사 상담 유도 필요
-                  </label>
-                </div>
-                <div>
-                  <button type="submit" disabled={platformSubmitting} className="btn btn-primary" style={SMALL_BTN}>
-                    {platformSubmitting ? '등록 중...' : '등록 (비공개 상태로 생성됨)'}
-                  </button>
-                </div>
-              </form>
-            )}
-
-            {digitalPlatforms.length === 0 ? (
-              <EmptyState />
-            ) : (
-              digitalPlatforms.map((p) => (
-                <div key={p.id} className="card" style={{ padding: '1.1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.8rem' }}>
-                  <div>
-                    <strong style={{ color: 'var(--primary-color)', fontSize: '1.02rem' }}>{p.name}</strong>
-                    <span style={{ fontSize: '0.8rem', backgroundColor: 'var(--secondary-color)', padding: '0.15rem 0.5rem', borderRadius: 'var(--r-sm)', marginLeft: '0.5rem' }}>{p.category}</span>
-                    <span style={{ fontSize: '0.8rem', backgroundColor: 'var(--secondary-color)', padding: '0.15rem 0.5rem', borderRadius: 'var(--r-sm)', marginLeft: '0.3rem' }}>{p.actionType}</span>
-                    <div style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginTop: '0.3rem' }}>{p.guideSummary}</div>
-                    <div style={{ color: 'var(--text-muted)', fontSize: '0.78rem', marginTop: '0.2rem' }}>
-                      최종 확인일: {p.lastVerifiedAt ? new Date(p.lastVerifiedAt).toLocaleDateString() : '없음'}
-                    </div>
-                  </div>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.85rem', cursor: 'pointer' }}>
-                    <input type="checkbox" checked={!!p.isPublished} onChange={() => togglePlatformPublish(p)} />
-                    공개
-                  </label>
-                </div>
-              ))
-            )}
-          </>
-        )}
-
         {tab === 'CONSULT_REQUESTS' &&
           (consultRequests.length === 0 ? (
             <EmptyState />
@@ -1374,18 +1214,6 @@ export const AdminPage: React.FC = () => {
                     openMemberDetail.memorials.map((m: any) => (
                       <div key={m.id} style={{ fontSize: '0.85rem', padding: '0.3rem 0' }}>
                         故 {m.deceasedName} · {m.visibility}{m.closedAt ? ' · 폐쇄됨' : ''}
-                      </div>
-                    ))
-                  )}
-                </div>
-                <div>
-                  <strong style={{ fontSize: '0.9rem', color: 'var(--primary-color)' }}>디지털 정리 항목 ({openMemberDetail.digitalCleanupItems.length}건)</strong>
-                  {openMemberDetail.digitalCleanupItems.length === 0 ? (
-                    <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>없음</div>
-                  ) : (
-                    openMemberDetail.digitalCleanupItems.map((it: any) => (
-                      <div key={it.id} style={{ fontSize: '0.85rem', padding: '0.3rem 0' }}>
-                        {it.platform?.name || it.customName} · {it.status}
                       </div>
                     ))
                   )}

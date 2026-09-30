@@ -33,7 +33,6 @@ export type AccountPlan = {
   lettersWithMedia: number; // 그중 R2 원본이 남아 있는 것
   guestbookEntries: number;
   facilityReviews: number;
-  cleanupItems: number;
   designations: number; // 내가 지정한 가족 — 삭제
   acceptedDesignations: number; // 내가 수락한 쪽 — 철회 처리
   detached: { leads: number; consultRequests: number; tributes: number }; // userId를 null로 끊는 것(건은 남김)
@@ -76,13 +75,12 @@ export async function isStillAccountExpired(id: string): Promise<boolean> {
 // 무엇이 몇 건인지 센다(dry-run 출력 겸 실행 전 범위 확인). 조회뿐이다.
 export async function planAccount(user: ExpiredAccount): Promise<AccountPlan> {
   const userId = user.id;
-  const [letters, lettersWithMedia, guestbookEntries, facilityReviews, cleanupItems, designations, acceptedDesignations, memorials, memorialPhotos, obituaries, leads, consultRequests, tributes] =
+  const [letters, lettersWithMedia, guestbookEntries, facilityReviews, designations, acceptedDesignations, memorials, memorialPhotos, obituaries, leads, consultRequests, tributes] =
     await prisma.$transaction([
       prisma.farewellMessage.count({ where: { note: { userId } } }),
       prisma.farewellMessage.count({ where: { note: { userId }, mediaKey: { not: null } } }),
       prisma.memorialGuestbook.count({ where: { userId } }),
       prisma.facilityReview.count({ where: { userId } }),
-      prisma.digitalCleanupItem.count({ where: { userId } }),
       prisma.familyDesignation.count({ where: { userId } }),
       prisma.familyDesignation.count({ where: { acceptedUserId: userId, status: 'ACCEPTED' } }),
       prisma.memorial.count({ where: { createdByUserId: userId } }),
@@ -98,7 +96,6 @@ export async function planAccount(user: ExpiredAccount): Promise<AccountPlan> {
     lettersWithMedia,
     guestbookEntries,
     facilityReviews,
-    cleanupItems,
     designations,
     acceptedDesignations,
     detached: { leads, consultRequests, tributes },
@@ -132,7 +129,6 @@ export async function purgeAccount(user: ExpiredAccount): Promise<{ purged: bool
     }),
     prisma.memorialGuestbook.deleteMany({ where: { userId: user.id } }),
     prisma.facilityReview.deleteMany({ where: { userId: user.id } }),
-    prisma.digitalCleanupItem.deleteMany({ where: { userId: user.id } }),
     // 🔴 SetNull 관계는 행을 지우지 않으면 발동하지 않는다 — 배치가 직접 끊는다(06-05 §5.6-8-4). 안 끊으면 Lead.applicantPhone 같은
     // 평문 스냅샷이 회원 id에 계속 묶인다. 건 자체는 남긴다(정산 증거 / 조문 기록).
     prisma.lead.updateMany({ where: { userId: user.id }, data: { userId: null } }),

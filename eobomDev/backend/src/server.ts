@@ -12,7 +12,6 @@ import partnerRoutes from './routes/partnerRoutes';
 import expertRoutes from './routes/expertRoutes';
 import expertPublicRoutes from './routes/expertPublicRoutes';
 import adminRoutes from './routes/adminRoutes';
-import digitalPlatformRoutes from './routes/digitalPlatformRoutes';
 import meRoutes from './routes/meRoutes';
 import memorialRoutes from './routes/memorialRoutes';
 import obituaryRoutes from './routes/obituaryRoutes';
@@ -64,7 +63,6 @@ app.use('/api/partner', partnerRoutes);
 app.use('/api/expert', expertRoutes);
 app.use('/api/experts', expertPublicRoutes); // 소비자 공개 API — 단수형(/api/expert, 본인 계정)과 분리
 app.use('/api/admin', adminRoutes);
-app.use('/api/digital-platforms', digitalPlatformRoutes);
 app.use('/api/me', meRoutes);
 app.use('/api/memorials', memorialRoutes);
 app.use('/api/obituaries', obituaryRoutes);

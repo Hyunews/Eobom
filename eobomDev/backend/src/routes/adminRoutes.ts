@@ -15,7 +15,6 @@ import {
   hideMemorialGuestbookEntry,
 } from '../controllers/moderationController';
 import { listClaimsForAdmin, updateClaimStatus } from '../controllers/claimController';
-import { listDigitalPlatformsForAdmin, createDigitalPlatform, updateDigitalPlatform } from '../controllers/digitalPlatformController';
 import {
   listFarewellPurgeExpired,
   listFarewellPendingArchive,
@@ -51,11 +50,6 @@ router.get('/consult-requests', listConsultRequestsForAdmin);
 // 시설 클레임(연동) 심사
 router.get('/claims', listClaimsForAdmin);
 router.patch('/claims/:id/status', updateClaimStatus);
-
-// 디지털 플랫폼 안내 카탈로그 관리 (docs 04-01 §5.3)
-router.get('/digital-platforms', listDigitalPlatformsForAdmin);
-router.post('/digital-platforms', createDigitalPlatform);
-router.patch('/digital-platforms/:id', updateDigitalPlatform);
 
 // 추모관 신고 확인 (docs 05-01 §4.3)
 router.get('/memorials', listMemorialsForAdmin);
