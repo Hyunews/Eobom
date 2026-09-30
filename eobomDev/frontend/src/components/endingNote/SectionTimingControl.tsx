@@ -27,6 +27,9 @@ export const SectionTimingControl: React.FC<{
               <span style={{ minWidth: '120px', color: 'var(--v2-text-main)' }}>
                 {f.name} ({RELATIONSHIP_LABEL[f.relationship] || f.relationship}
                 {f.relationship === 'OTHER' && f.relationshipEtc ? ` · ${f.relationshipEtc}` : ''})
+                {f.status !== 'ACCEPTED' && (
+                  <span style={{ marginLeft: '6px', color: 'var(--v2-text-muted)', fontWeight: 400 }}>수락 전</span>
+                )}
               </span>
               <select
                 value={activeGrant?.timing || ''}

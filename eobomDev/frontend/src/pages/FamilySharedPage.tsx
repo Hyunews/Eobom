@@ -1,24 +1,30 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { ChevronRight } from 'lucide-react';
-import { apiFetch } from '../lib/api';
+import { apiFetch, ApiError } from '../lib/api';
 import { SECTIONS, RELATIONSHIP_LABEL } from '../components/endingNote/constants';
 import '../styles/design-v2.css';
 import { LoginGate } from '../components/LoginGate';
 import { backdropCloseProps } from '../utils/backdropClose';
+import { entryFields } from '../components/familyShared/sectionFields';
+import { ReleaseRequestModal } from '../components/familyShared/ReleaseRequestModal';
+import { PendingFamilyPanel } from '../components/familyShared/PendingFamilyPanel';
 
 // 00-36 §4.6-1(SCR-020) — "나에게 공유된 것". 나를 가족으로 지정한 분별로, 지금 열람할 수 있는
-// 엔딩노트 섹션을 보여준다. 데이터는 `GET /api/ending-note/family-view`(이미 구현됨) — 서버 변경 0건(M-1.5).
+// 엔딩노트 섹션을 보여준다. 데이터는 `GET /api/ending-note/family-view`.
 // 시안: Design 캔버스 "그룹② mypage 시안" v4(S1~S4). 규칙 정본은 00-39 §6 훑는 목록 + 폼 모달 뼈대(.v2-modal).
 //
 // 🔴 보이지 않아야 하는 것(§4.6-1) — 응답에 애초에 없으므로 그릴 수도 없다. 응답 필드를 늘려도 여기
 // 표시를 늘리지 말 것: 지정자 연락처·이메일(00-27 §3 불변식 2) · 같은 노트의 다른 수락자 ·
-// POSTMORTEM 섹션의 존재 자체(06-04 §7.4 "잠긴 섹션은 제목도 보이지 않는다" — API가 이미 그렇게 내려준다).
-// 🔴 과장 금지 — "○○님의 엔딩노트를 볼 수 있습니다" 류 문구를 쓰지 않는다. 실제로 열리는 것은
-// IMMEDIATE로 부여된 섹션뿐이다(현재 FUNERAL·CONTACTS). 🔴 빈 상태에 권유 문구를 붙이지 않는다.
+// 열리지 않은 사후 섹션의 존재 자체(06-04 §7.4 "잠긴 섹션은 제목도 보이지 않는다" — API가 이미 그렇게 내려준다).
+// 🔴 과장 금지 — "○○님의 엔딩노트를 볼 수 있습니다" 류 문구를 쓰지 않는다. 열린 것만 그린다. 🔴 빈 상태에 권유 문구를 붙이지 않는다.
 //
 // 🔄 2026-09-21 M-2(00-36 §4.6-1-1) — family-view 응답에 scope·acceptedAt이 더해져 표시한다. 🔴 문구는 초대
 // 수락 화면과 같은 말이다: relationship은 **지정자가 적은 값**이라 "자녀"는 내가 그분의 자녀라는 뜻 —
 // "지정 관계 · 자녀"는 방향이 빠져 반대로 읽히므로 "나를 자녀로 지정 · 주 연락자"로 쓴다.
+//
+// 🔄 2026-09-30 00-41 3-B — 사후 개봉. ① 요청 폼(§8.1) ② 요청 상태(§8.2: 접수·반려·취소) ③ 개봉(RELEASED) 뒤 자기 권한
+// 섹션 + 자기 앞 편지 ④ [가족에게 알리기](§6 — 이어봄은 보내지 않는다, 링크는 /family-shared 주소만, 토큰 없음)
+// ⑤ 아직 수락하지 않은 가족 재초대(§7.3). 🔴 이어봄이 발송한다는 뜻의 문구 금지(00-41 §6). 개봉 여부 판정은 서버뿐이다.
 
 interface FamilyViewEntry {
   section: string;
@@ -27,16 +33,44 @@ interface FamilyViewEntry {
   updatedAt: string;
 }
 
+interface FamilyViewLetter {
+  id: string;
+  title: string | null;
+  body: string;
+  hasAudio: boolean;
+  audioDurationSec: number | null;
+  createdAt: string;
+}
+
 interface FamilyViewItem {
   designationId: string;
   ownerName: string;
   relationship: string;
   relationshipEtc: string | null;
-  // 서버 확장 전 응답과도 호환되도록 선택값으로 둔다(00-36 §4.6-1-1)
+  // 서버 확장 전 응답과도 호환되도록 선택값으로 둔다(00-36 §4.6-1-1, 00-41)
   scope?: string;
   acceptedAt?: string | null;
+  released?: boolean;
+  releasedAt?: string | null;
   entries: FamilyViewEntry[];
+  letters?: FamilyViewLetter[];
 }
+
+// `GET /api/ending-note/release-requests/mine` — 분마다 가장 최근 1건
+interface MyReleaseRequest {
+  designationId: string;
+  id: string;
+  status: 'REQUESTED' | 'VERIFIED' | 'REJECTED' | 'CANCELLED';
+  requestedAt: string;
+  dueAt: string;
+  rejectReasonText: string | null;
+  isMine: boolean;
+  canCancel: boolean;
+}
+
+type OpenModal =
+  | { kind: 'entry'; item: FamilyViewItem; entry: FamilyViewEntry }
+  | { kind: 'letter'; item: FamilyViewItem; letter: FamilyViewLetter };
 
 interface FamilySharedPageProps {
   currentUser?: string | null;
@@ -53,6 +87,13 @@ const formatDate = (iso: string): string => {
 
 // "2026-09-14 수락함" — 초대 화면과 같은 날짜 표기(하이픈)
 const formatDashDate = (iso: string): string => formatDate(iso).replace(/\./g, '-');
+
+// "9월 30일 14시 5분" — 접수·확인 마감 시각
+const formatDateTime = (iso: string): string => {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return '';
+  return `${d.getMonth() + 1}월 ${d.getDate()}일 ${d.getHours()}시 ${d.getMinutes()}분`;
+};
 
 const SCOPE_LABEL: Record<string, string> = { PRIMARY: '주 연락자', VIEWER: '열람자' };
 
@@ -78,39 +119,77 @@ const designationPhrase = (item: FamilyViewItem): string => {
   return scope ? `${base} · ${scope}` : base;
 };
 
-// 섹션별 저장 모양(EndingNotePage.tsx sectionPayloads와 같다). IMMEDIATE가 허용되는 두 섹션만 다룬다 —
-// 그 밖의 값이 오면(백엔드가 막고 있지만) 그리지 않는다. 모르는 필드를 추측해 보여주지 않는다.
-const entryFields = (section: string, value: unknown): { label: string; text: string }[] => {
-  const v = (value && typeof value === 'object' ? value : {}) as Record<string, unknown>;
-  const str = (x: unknown) => (typeof x === 'string' ? x.trim() : '');
-  if (section === 'FUNERAL') return [{ label: '장례 희망', text: str(v.funeralType) }].filter((f) => f.text);
-  if (section === 'CONTACTS') {
-    return [
-      { label: '연락처 메모', text: str(v.contactsNote) },
-      { label: '반려동물', text: str(v.petCaretaker) },
-    ].filter((f) => f.text);
-  }
-  return [];
-};
-
 export const FamilySharedPage: React.FC<FamilySharedPageProps> = ({ currentUser, onOpenLogin }) => {
   const [items, setItems] = useState<FamilyViewItem[] | null>(null);
+  const [requests, setRequests] = useState<MyReleaseRequest[]>([]);
   const [loadError, setLoadError] = useState(false);
-  const [open, setOpen] = useState<{ item: FamilyViewItem; entry: FamilyViewEntry } | null>(null);
+  const [open, setOpen] = useState<OpenModal | null>(null);
+  const [requestTarget, setRequestTarget] = useState<FamilyViewItem | null>(null);
+  const [notice, setNotice] = useState<{ designationId: string; text: string } | null>(null);
+  const [busyId, setBusyId] = useState<string | null>(null);
+
+  const load = useCallback(async () => {
+    try {
+      // 요청 상태는 부가 정보다 — 실패해도 열람 목록은 그린다.
+      const [view, mine] = await Promise.all([
+        apiFetch<FamilyViewItem[]>('/api/ending-note/family-view', 'USER'),
+        apiFetch<MyReleaseRequest[]>('/api/ending-note/release-requests/mine', 'USER').catch(() => [] as MyReleaseRequest[]),
+      ]);
+      setItems(view);
+      setRequests(mine);
+      setLoadError(false);
+    } catch {
+      setLoadError(true);
+    }
+  }, []);
 
   useEffect(() => {
     if (!currentUser) return;
-    apiFetch<FamilyViewItem[]>('/api/ending-note/family-view', 'USER')
-      .then(setItems)
-      .catch(() => setLoadError(true));
-  }, [currentUser]);
+    load();
+  }, [currentUser, load]);
+
+  const cancelRequest = async (item: FamilyViewItem, req: MyReleaseRequest) => {
+    if (!window.confirm('개봉 요청을 취소하시겠습니까?')) return;
+    setBusyId(item.designationId);
+    try {
+      await apiFetch(`/api/ending-note/release-requests/${req.id}/cancel`, 'USER', { method: 'POST' });
+      await load();
+    } catch (e) {
+      setNotice({ designationId: item.designationId, text: e instanceof ApiError ? e.message : '서버와 통신 중 오류가 발생했습니다.' });
+    } finally {
+      setBusyId(null);
+    }
+  };
+
+  // §6 — 다른 지정 가족에게 "열렸음"을 알리는 것은 요청한 유족의 몫이다. 🔴 링크에 토큰을 넣지 않는다 — /family-shared 주소만
+  // (권한은 로그인 계정으로 판정). 데스크톱 Chrome·Edge에도 navigator.share가 있어 카톡 없이 공유창만 뜨는 문제가 있었으므로
+  // (MyPageFamilyDesignation.tsx §9.1-4-1) 터치 기기에서만 쓰고, 그 밖에는 링크 복사로 간다.
+  const shareToFamily = async (item: FamilyViewItem) => {
+    const url = `${window.location.origin}/family-shared`;
+    const text = `${item.ownerName} 님의 기록을 이어봄에서 보실 수 있습니다.`;
+    const isTouch = typeof window.matchMedia === 'function' && window.matchMedia('(pointer: coarse)').matches;
+    if (isTouch && navigator.share) {
+      try {
+        await navigator.share({ title: '이어봄', text, url });
+        return;
+      } catch (e) {
+        if ((e as Error)?.name === 'AbortError') return;
+      }
+    }
+    try {
+      await navigator.clipboard.writeText(`${text}\n${url}`);
+      setNotice({ designationId: item.designationId, text: '안내 문구와 링크를 복사했습니다. 가족에게 붙여넣어 보내 주세요.' });
+    } catch {
+      setNotice({ designationId: item.designationId, text: `복사하지 못했습니다. 이 주소를 직접 전해 주세요: ${url}` });
+    }
+  };
 
   if (!currentUser) {
     // 00-34 §2.4 — 비로그인 가림판(이 화면엔 부제목이 없다)
     return <LoginGate title="나에게 공유된 것" onOpenLogin={onOpenLogin} />;
   }
 
-  const fields = open ? entryFields(open.entry.section, open.entry.value) : [];
+  const fields = open?.kind === 'entry' ? entryFields(open.entry.section, open.entry.value) : [];
 
   return (
     <div className="v2-page">
@@ -121,46 +200,135 @@ export const FamilySharedPage: React.FC<FamilySharedPageProps> = ({ currentUser,
         {!loadError && items === null && <p className="v2-empty">불러오는 중…</p>}
         {!loadError && items !== null && items.length === 0 && <p className="v2-empty">아직 공유받은 것이 없습니다.</p>}
 
-        {items?.map((item) => (
-          <section key={item.designationId} className="v2-hub-section">
-            <div className="v2-section-head">
-              <h2 className="v2-section-title">{item.ownerName} 님</h2>
-              <span className="v2-section-head-meta">{designationPhrase(item)}</span>
-            </div>
-            {item.entries.length === 0 ? (
-              <p className="v2-empty" style={{ margin: 0, borderBottom: '1px solid var(--v2-divider)' }}>지금 볼 수 있는 항목이 없습니다.</p>
-            ) : (
-              item.entries.map((entry) => (
-                <button type="button" key={entry.section} className="v2-nav-row" onClick={() => setOpen({ item, entry })}>
-                  <span className="v2-nav-row-label">{sectionTitle(entry.section)}</span>
-                  <span className="v2-nav-row-meta">{formatDate(entry.updatedAt)}</span>
-                  <span className="v2-nav-row-arrow"><ChevronRight size={18} /></span>
-                </button>
-              ))
-            )}
-            {item.acceptedAt && <p className="v2-hub-foot">{formatDashDate(item.acceptedAt)} 수락함</p>}
-          </section>
-        ))}
+        {items?.map((item) => {
+          const req = requests.find((r) => r.designationId === item.designationId);
+          const released = !!item.released;
+          const letters = item.letters ?? [];
+          const itemNotice = notice?.designationId === item.designationId ? notice.text : '';
+
+          return (
+            <section key={item.designationId} className="v2-hub-section">
+              <div className="v2-section-head">
+                <h2 className="v2-section-title">{item.ownerName} 님</h2>
+                <span className="v2-section-head-meta">{designationPhrase(item)}</span>
+              </div>
+
+              {item.entries.length === 0 && letters.length === 0 ? (
+                <p className="v2-empty" style={{ margin: 0, borderBottom: '1px solid var(--v2-divider)' }}>
+                  {released ? '고인이 정해 둔 항목이 없습니다.' : '지금 볼 수 있는 항목이 없습니다.'}
+                </p>
+              ) : (
+                <>
+                  {item.entries.map((entry) => (
+                    <button type="button" key={entry.section} className="v2-nav-row" onClick={() => setOpen({ kind: 'entry', item, entry })}>
+                      <span className="v2-nav-row-label">{sectionTitle(entry.section)}</span>
+                      <span className="v2-nav-row-meta">{formatDate(entry.updatedAt)}</span>
+                      <span className="v2-nav-row-arrow"><ChevronRight size={18} /></span>
+                    </button>
+                  ))}
+                  {letters.map((letter) => (
+                    <button type="button" key={letter.id} className="v2-nav-row" onClick={() => setOpen({ kind: 'letter', item, letter })}>
+                      <span className="v2-nav-row-label">편지{letter.title ? ` · ${letter.title}` : ''}</span>
+                      <span className="v2-nav-row-meta">{formatDate(letter.createdAt)}</span>
+                      <span className="v2-nav-row-arrow"><ChevronRight size={18} /></span>
+                    </button>
+                  ))}
+                </>
+              )}
+
+              {/* 00-41 §8.2 — 요청 상태. 열리기 전(released=false)에만 요청 UI를 그린다. */}
+              {!released && req?.status === 'REQUESTED' && (
+                <div style={{ marginTop: '16px' }}>
+                  <p className="v2-notice" style={{ marginBottom: '8px' }}>
+                    {req.isMine ? '요청했습니다.' : '가족 중 한 분이 요청했습니다.'} {formatDateTime(req.requestedAt)} 접수 ·{' '}
+                    {formatDateTime(req.dueAt)}까지 확인합니다.
+                  </p>
+                  {req.canCancel && (
+                    <button type="button" className="v2-btn-outline" onClick={() => cancelRequest(item, req)} disabled={busyId === item.designationId}>
+                      요청 취소
+                    </button>
+                  )}
+                </div>
+              )}
+              {!released && req?.status === 'REJECTED' && (
+                <div style={{ marginTop: '16px' }}>
+                  <p className="v2-notice" style={{ marginBottom: '8px' }}>
+                    열지 못했습니다. {req.rejectReasonText}
+                  </p>
+                  <button type="button" className="v2-btn-outline" onClick={() => setRequestTarget(item)}>
+                    다시 요청
+                  </button>
+                </div>
+              )}
+              {!released && (!req || req.status === 'CANCELLED') && (
+                <div style={{ marginTop: '16px' }}>
+                  <button type="button" className="v2-btn-outline" onClick={() => setRequestTarget(item)}>
+                    돌아가셨음을 알리고 기록 열기
+                  </button>
+                </div>
+              )}
+
+              {/* 개봉 뒤 — §6 가족에게 알리기 · §7.3 미수락 가족 */}
+              {released && (
+                <div style={{ marginTop: '16px' }}>
+                  <button type="button" className="v2-btn-outline" onClick={() => shareToFamily(item)}>
+                    가족에게 알리기
+                  </button>
+                  {req?.status === 'VERIFIED' && <PendingFamilyPanel verificationId={req.id} />}
+                </div>
+              )}
+
+              {itemNotice && <p className="v2-notice" style={{ marginTop: '12px' }}>{itemNotice}</p>}
+              {item.acceptedAt && <p className="v2-hub-foot">{formatDashDate(item.acceptedAt)} 수락함</p>}
+            </section>
+          );
+        })}
       </div>
+
+      {requestTarget && (
+        <ReleaseRequestModal
+          designationId={requestTarget.designationId}
+          ownerName={requestTarget.ownerName}
+          onClose={() => setRequestTarget(null)}
+          onDone={() => {
+            setRequestTarget(null);
+            load();
+          }}
+        />
+      )}
 
       {open && (
         <div className="v2-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="family-shared-title" {...backdropCloseProps(() => setOpen(null))}>
           <div className="v2-modal" onClick={(e) => e.stopPropagation()}>
-            <h3 id="family-shared-title" className="v2-modal-title">{sectionTitle(open.entry.section)}</h3>
-            {fields.length === 0 ? (
-              <p className="v2-empty" style={{ padding: 0 }}>작성된 내용이 없습니다.</p>
-            ) : (
-              fields.map((f) => (
-                <div key={f.label} className="v2-modal-row">
-                  <span className="v2-modal-label">{f.label}</span>
-                  <span className="v2-modal-value" style={{ whiteSpace: 'pre-wrap' }}>{f.text}</span>
+            {open.kind === 'entry' ? (
+              <>
+                <h3 id="family-shared-title" className="v2-modal-title">{sectionTitle(open.entry.section)}</h3>
+                {fields.length === 0 ? (
+                  <p className="v2-empty" style={{ padding: 0 }}>작성된 내용이 없습니다.</p>
+                ) : (
+                  fields.map((f) => (
+                    <div key={f.label} className="v2-modal-row">
+                      <span className="v2-modal-label">{f.label}</span>
+                      <span className="v2-modal-value" style={{ whiteSpace: 'pre-wrap' }}>{f.text}</span>
+                    </div>
+                  ))
+                )}
+                <div className="v2-modal-row">
+                  <span className="v2-modal-label">최종 수정</span>
+                  <span className="v2-modal-value">{formatDate(open.entry.updatedAt)}</span>
                 </div>
-              ))
+              </>
+            ) : (
+              <>
+                <h3 id="family-shared-title" className="v2-modal-title">{open.letter.title || '편지'}</h3>
+                <p className="v2-modal-value" style={{ whiteSpace: 'pre-wrap', margin: '0 0 16px' }}>{open.letter.body}</p>
+                {open.letter.hasAudio && <p className="v2-notice">음성 파일이 함께 남겨져 있습니다. 이 화면에서는 들을 수 없습니다.</p>}
+                <div className="v2-modal-row">
+                  <span className="v2-modal-label">작성일</span>
+                  <span className="v2-modal-value">{formatDate(open.letter.createdAt)}</span>
+                </div>
+              </>
             )}
-            <div className="v2-modal-row">
-              <span className="v2-modal-label">최종 수정</span>
-              <span className="v2-modal-value">{formatDate(open.entry.updatedAt)}</span>
-            </div>
             <div className="v2-modal-actions">
               <button type="button" className="v2-btn-outline" onClick={() => setOpen(null)}>닫기</button>
             </div>

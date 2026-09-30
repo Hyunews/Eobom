@@ -83,8 +83,8 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
   const [summaryOpen, setSummaryOpen] = useState(false);
   const summaryTriggerRef = useRef<HTMLButtonElement>(null);
 
-  // §10 Phase 2 — 공개 시점 지정 대상(ACCEPTED만 — 대기중인 초대에는 권한을 줄 수 없다, 서버도
-  // 같은 규칙으로 한 번 더 막는다)과 현재 권한 목록.
+  // §10 Phase 2 — 공개 시점 지정 대상(초대를 보낸 가족: ACCEPTED·PENDING·EXPIRED, 서버도 같은 규칙으로
+  // 한 번 더 막는다)과 현재 권한 목록. 🔄 00-41 §7.3 — 수락 전 가족도 사망 뒤 수락하면 자기 권한만큼 보므로 미리 줄 수 있다.
   const [family, setFamily] = useState<FamilyItem[]>([]);
   const [grants, setGrants] = useState<GrantItem[]>([]);
   // 서버에 실제로 저장된 grants 스냅샷 — "한눈에 보기"는 이걸로 그린다. grants는 저장 버튼을
@@ -177,10 +177,11 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
         if (bySection.WILL_DRAFT) setDraftText(bySection.WILL_DRAFT.draftText || '');
         setSavedSectionValues(bySection);
 
-        // §10 Phase 2 #6 — 권한을 줄 수 있는 대상은 ACCEPTED뿐(서버도 upsertEndingNoteGrant에서
-        // 같은 규칙으로 다시 막는다). PENDING/DECLINED/EXPIRED를 섞으면 눌러도 되는 것처럼 보인다.
+        // §10 Phase 2 #6 · 00-41 §7.3 — 권한을 줄 수 있는 대상은 ACCEPTED·PENDING·EXPIRED(서버도
+        // upsertEndingNoteGrant에서 같은 규칙으로 다시 막는다). DECLINED(거절)·DRAFT(초대 전)는 뺀다.
+        // 수락 전 가족의 권한은 수락 전엔 아무도 못 읽는다(가족 조회는 acceptedUserId 기준).
         if (Array.isArray(familyList)) {
-          setFamily(familyList.filter((f) => f.status === 'ACCEPTED'));
+          setFamily(familyList.filter((f) => ['ACCEPTED', 'PENDING', 'EXPIRED'].includes(f.status)));
         }
         if (Array.isArray(grantList)) {
           setGrants(grantList);
@@ -825,7 +826,7 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
           <div className="v2-content" style={{ marginBottom: '32px', display: 'flex', alignItems: 'center', gap: '10px', fontSize: 'var(--v2-fs-support)', color: 'var(--v2-text-main)' }}>
             <UserPlus size={18} color="var(--v2-point)" style={{ flexShrink: 0 }} />
             <span>
-              아직 수락된 가족이 없어 섹션을 생전에 공개할 대상을 지정할 수 없습니다.{' '}
+              초대를 보낸 가족이 없어 섹션을 공개할 대상을 지정할 수 없습니다.{' '}
               {onOpenFamilyDesignation && (
                 <button
                   type="button"

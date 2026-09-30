@@ -8,8 +8,8 @@ import { AddressSearchModal } from '../components/AddressSearchModal';
 // 공개 메뉴·Footer 어디에도 링크하지 않는다 — 직접 URL(#admin)로만 접근.
 
 // 00-37 §6 A-2 — MEMORIALS·CONSULT_REQUESTS·MEMBERS 3개 추가(이미 만든
-// API에 화면만 붙인다, 서버 변경 최소).
-type QueueTab = 'PARTNERS' | 'EXPERTS' | 'CLAIMS' | 'FACILITIES' | 'FAREWELL_PURGE' | 'MEMORIALS' | 'CONSULT_REQUESTS' | 'MEMBERS';
+// API에 화면만 붙인다, 서버 변경 최소). 00-41 §5.3 — DEATH_VERIFICATIONS(사망 확인) 추가.
+type QueueTab = 'PARTNERS' | 'EXPERTS' | 'CLAIMS' | 'FACILITIES' | 'FAREWELL_PURGE' | 'MEMORIALS' | 'CONSULT_REQUESTS' | 'MEMBERS' | 'DEATH_VERIFICATIONS';
 
 const TAB_LABELS: Record<QueueTab, string> = {
   PARTNERS: '사업자 가입',
@@ -20,6 +20,31 @@ const TAB_LABELS: Record<QueueTab, string> = {
   MEMORIALS: '추모관',
   CONSULT_REQUESTS: '상담 신청',
   MEMBERS: '회원',
+  DEATH_VERIFICATIONS: '사망 확인',
+};
+
+// 00-41 §5.2·§5.3 — 확인 방법·반려 사유는 코드로만 고른다(자유 서술 없음). 반려 사유 코드는 서버 REJECT_REASON_CODES와 같다.
+const DV_METHOD_LABELS: Record<string, string> = { FUNERAL_HALL: '장례식장 전화 확인', OTHER: '기타(최고 관리자만)' };
+const DV_REJECT_LABELS: Record<string, string> = {
+  HALL_NOT_FOUND: '장례식장에서 확인되지 않음',
+  NAME_MISMATCH: '고인 성함 불일치',
+  UNREACHABLE: '연락 닿지 않음',
+  OTHER: '기타',
+};
+const DV_RELATION_LABELS: Record<string, string> = { SPOUSE: '배우자', CHILD: '자녀', PARENT: '부모', SIBLING: '형제자매', OTHER: '기타' };
+
+// "9월 30일 14시 5분"
+const formatDvTime = (iso: string): string => {
+  const d = new Date(iso);
+  return Number.isNaN(d.getTime()) ? '' : `${d.getMonth() + 1}월 ${d.getDate()}일 ${d.getHours()}시 ${d.getMinutes()}분`;
+};
+// 마감까지 남은 실제 시간(휴무 포함 시각 차이) — 운영시간 계산은 서버가 dueAt에 이미 반영했다.
+const formatRemaining = (iso: string, nowMs: number): string => {
+  const diff = new Date(iso).getTime() - nowMs;
+  const abs = Math.abs(diff);
+  const h = Math.floor(abs / 3600000);
+  const m = Math.floor((abs % 3600000) / 60000);
+  return `${diff < 0 ? '초과 ' : ''}${h}시간 ${m}분`;
 };
 
 // 06-05 §5.6-8-3 D-11 — 선택 대상 하나(파기 목록의 ①음성/②편지 행)
@@ -93,6 +118,17 @@ export const AdminPage: React.FC = () => {
   // 00-37 §6 A-2 #7 — 상담 신청 전체 조회(읽기 전용)
   const [consultRequests, setConsultRequests] = useState<any[]>([]);
   const [consultStatusFilter, setConsultStatusFilter] = useState('');
+
+  // 00-41 §5.3 — 사망 확인 대기 목록(REQUESTED만, dueAt 오래된 순). 상세를 열면 서버가 VIEW를 남긴다.
+  // 🔴 서버 응답에 엔딩노트 본문·섹션 제목·편지가 없다 — 여기서도 그릴 것이 없다.
+  const [dvItems, setDvItems] = useState<any[]>([]);
+  const [dvNow, setDvNow] = useState<number>(Date.now());
+  const [dvOpenId, setDvOpenId] = useState<string | null>(null);
+  const [dvDetail, setDvDetail] = useState<any | null>(null);
+  const [dvMethod, setDvMethod] = useState('FUNERAL_HALL');
+  const [dvRejectCode, setDvRejectCode] = useState('HALL_NOT_FOUND');
+  const [dvBusy, setDvBusy] = useState(false);
+  const [dvError, setDvError] = useState('');
 
   // 00-37 §6 A-2 #8 — 회원 목록 + 상세(열람 시 서버가 AdminAuditLog를 남긴다, §3.2)
   const [members, setMembers] = useState<any[]>([]);
@@ -317,6 +353,73 @@ export const AdminPage: React.FC = () => {
     }
   };
 
+  // 00-41 §5.3 — 사망 확인 목록. 탭 이름 옆 대기 건수는 이 응답의 pendingCount다.
+  const loadDeathVerifications = async () => {
+    if (!token) return;
+    try {
+      const res = await authFetch(`${BACKEND_URL}/api/admin/death-verifications`);
+      if (!res) return;
+      const data = await res.json();
+      if (data.status === 'success') {
+        setDvItems(data.data.items);
+        setDvNow(new Date(data.data.serverNow).getTime());
+      } else if (tab === 'DEATH_VERIFICATIONS') {
+        setLoadError(data.message || '조회 실패');
+      }
+    } catch {
+      if (tab === 'DEATH_VERIFICATIONS') setLoadError('서버와 통신 중 오류가 발생했습니다.');
+    }
+  };
+
+  // 상세 — 요청자 전화번호(되걸기용)를 여는 자리라 서버가 VIEW 감사로그를 남긴다.
+  const openDvDetail = async (id: string) => {
+    if (dvOpenId === id) {
+      setDvOpenId(null);
+      setDvDetail(null);
+      return;
+    }
+    setDvOpenId(id);
+    setDvDetail(null);
+    setDvError('');
+    setDvMethod('FUNERAL_HALL');
+    setDvRejectCode('HALL_NOT_FOUND');
+    const res = await authFetch(`${BACKEND_URL}/api/admin/death-verifications/${id}`);
+    if (!res) return;
+    const data = await res.json();
+    if (data.status === 'success') setDvDetail(data.data);
+    else setDvError(data.message || '조회 실패');
+  };
+
+  const submitDvAction = async (id: string, action: 'verify' | 'reject') => {
+    const confirmText =
+      action === 'verify'
+        ? '확인 완료 처리하면 엔딩노트가 바로 열리고 지정 가족이 볼 수 있게 됩니다. 계속하시겠습니까?'
+        : '이 요청을 반려합니다. 계속하시겠습니까?';
+    if (!window.confirm(confirmText)) return;
+    setDvBusy(true);
+    setDvError('');
+    try {
+      const res = await authFetch(`${BACKEND_URL}/api/admin/death-verifications/${id}/${action}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(action === 'verify' ? { method: dvMethod } : { reasonCode: dvRejectCode }),
+      });
+      if (!res) return;
+      const data = await res.json();
+      if (!res.ok) {
+        setDvError(data.message || '처리에 실패했습니다.');
+        return;
+      }
+      setDvOpenId(null);
+      setDvDetail(null);
+      loadDeathVerifications();
+    } catch {
+      setDvError('서버와 통신 중 오류가 발생했습니다.');
+    } finally {
+      setDvBusy(false);
+    }
+  };
+
   // 00-37 §6 A-2 #8 — 회원 목록(페이지네이션, FACILITIES 탭과 같은 응답 형태 재사용)
   const loadMembers = async (page = 1) => {
     if (!token) return;
@@ -368,11 +471,19 @@ export const AdminPage: React.FC = () => {
       loadConsultRequests();
     } else if (tab === 'MEMBERS') {
       loadMembers(1);
+    } else if (tab === 'DEATH_VERIFICATIONS') {
+      loadDeathVerifications();
     } else {
       loadQueue();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token, tab, statusFilter]);
+
+  // 00-41 §5.3 — 탭 이름 옆 대기 건수는 다른 탭에 있어도 보여야 한다. 로그인 직후 한 번 채운다.
+  useEffect(() => {
+    loadDeathVerifications();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [token]);
 
   // 상담 상태 필터는 그 탭에 있을 때만 다시 불러온다(탭 전환 useEffect와 별개)
   useEffect(() => {
@@ -596,7 +707,7 @@ export const AdminPage: React.FC = () => {
       </div>
 
       <div style={{ display: 'flex', gap: '0.6rem', marginBottom: '1rem', flexWrap: 'wrap' }}>
-        {(['PARTNERS', 'EXPERTS', 'CLAIMS', 'FACILITIES', 'FAREWELL_PURGE', 'MEMORIALS', 'CONSULT_REQUESTS', 'MEMBERS'] as QueueTab[]).map((t) => (
+        {(['PARTNERS', 'EXPERTS', 'CLAIMS', 'FACILITIES', 'FAREWELL_PURGE', 'MEMORIALS', 'CONSULT_REQUESTS', 'MEMBERS', 'DEATH_VERIFICATIONS'] as QueueTab[]).map((t) => (
           <button
             key={t}
             onClick={() => setTab(t)}
@@ -609,6 +720,7 @@ export const AdminPage: React.FC = () => {
             }}
           >
             {TAB_LABELS[t]}
+            {t === 'DEATH_VERIFICATIONS' && dvItems.length > 0 ? ` (${dvItems.length})` : ''}
           </button>
         ))}
 
@@ -633,7 +745,11 @@ export const AdminPage: React.FC = () => {
               새로고침
             </button>
           </div>
-        ) : tab === 'MEMORIALS' ? null : tab === 'CONSULT_REQUESTS' ? (
+        ) : tab === 'MEMORIALS' ? null : tab === 'DEATH_VERIFICATIONS' ? (
+          <button onClick={loadDeathVerifications} className="btn" style={{ ...TAB_BTN, marginLeft: 'auto', backgroundColor: 'var(--surface-subtle)' }}>
+            새로고침
+          </button>
+        ) : tab === 'CONSULT_REQUESTS' ? (
           <select value={consultStatusFilter} onChange={(e) => setConsultStatusFilter(e.target.value)} className="form-select" style={{ ...SMALL_INPUT, width: '140px', marginLeft: 'auto' }}>
             <option value="">전체</option>
             <option value="REQUESTED">신청됨</option>
@@ -1066,6 +1182,87 @@ export const AdminPage: React.FC = () => {
                 )}
               </div>
             ))
+          ))}
+
+        {tab === 'DEATH_VERIFICATIONS' &&
+          (dvItems.length === 0 ? (
+            <EmptyState />
+          ) : (
+            dvItems.map((r) => {
+              const isOpen = dvOpenId === r.id;
+              const badge = r.overDue
+                ? { text: '대외 약속 초과', bg: 'var(--state-danger-bg)', fg: 'var(--state-danger-fg)' }
+                : r.overTarget
+                  ? { text: '내부 목표 초과', bg: 'var(--state-warn-bg)', fg: 'var(--state-warn-fg)' }
+                  : null;
+              return (
+                <div key={r.id} className="card" style={{ padding: '1.1rem', display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.6rem' }}>
+                    <div>
+                      <strong style={{ color: 'var(--primary-color)', fontSize: '1.02rem' }}>故 {r.deceasedName}</strong>
+                      <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginLeft: '0.6rem' }}>
+                        회원 {r.memberName} · 사망일 {new Date(r.deathDate).toLocaleDateString()}
+                      </span>
+                      {badge && (
+                        <span style={{ fontSize: '0.78rem', fontWeight: 700, backgroundColor: badge.bg, color: badge.fg, padding: '0.15rem 0.5rem', borderRadius: 'var(--r-sm)', marginLeft: '0.5rem' }}>
+                          {badge.text}
+                        </span>
+                      )}
+                    </div>
+                    <button onClick={() => openDvDetail(r.id)} className="btn" style={{ ...SMALL_BTN, backgroundColor: 'var(--surface-subtle)' }}>
+                      {isOpen ? '접기' : '상세·처리'}
+                    </button>
+                  </div>
+                  <div style={{ fontSize: '0.85rem' }}>
+                    접수 {formatDvTime(r.requestedAt)} · 대외 마감 {formatDvTime(r.dueAt)} (남은 시간 {formatRemaining(r.dueAt, Date.now())}) · 내부 목표 {formatDvTime(r.targetAt)}
+                  </div>
+                  <div style={{ fontSize: '0.85rem' }}>
+                    장례식장: {r.funeralHallName ? `${r.funeralHallName} · ${formatPhoneForDisplay(r.funeralHallPhone)}` : '없음(요청자가 선택)'}
+                  </div>
+                  <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                    요청자 {r.requesterName}(
+                    {r.requesterRelationship === 'OTHER' && r.requesterRelationshipEtc ? r.requesterRelationshipEtc : DV_RELATION_LABELS[r.requesterRelationship] ?? r.requesterRelationship})
+                  </div>
+
+                  {isOpen && (
+                    <div style={{ marginTop: '0.6rem', paddingTop: '0.8rem', borderTop: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', gap: '0.7rem' }}>
+                      {!dvDetail ? (
+                        <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>불러오는 중…</div>
+                      ) : (
+                        <>
+                          <div style={{ fontSize: '0.85rem' }}>
+                            요청자 전화번호(되걸기용): <strong>{dvDetail.requesterPhone ? formatPhoneForDisplay(dvDetail.requesterPhone) : '표시할 수 없음'}</strong>
+                          </div>
+                          <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                            <select value={dvMethod} onChange={(e) => setDvMethod(e.target.value)} className="form-select" style={{ ...SMALL_INPUT, width: '220px' }}>
+                              {Object.entries(DV_METHOD_LABELS)
+                                .filter(([code]) => code !== 'FUNERAL_HALL' || !!dvDetail.funeralHallName)
+                                .map(([code, label]) => (
+                                  <option key={code} value={code}>{label}</option>
+                                ))}
+                            </select>
+                            <button onClick={() => submitDvAction(r.id, 'verify')} disabled={dvBusy} className="btn btn-primary" style={SMALL_BTN}>
+                              확인 완료
+                            </button>
+                          </div>
+                          <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                            <select value={dvRejectCode} onChange={(e) => setDvRejectCode(e.target.value)} className="form-select" style={{ ...SMALL_INPUT, width: '220px' }}>
+                              {Object.entries(DV_REJECT_LABELS).map(([code, label]) => (
+                                <option key={code} value={code}>{label}</option>
+                              ))}
+                            </select>
+                            <button onClick={() => submitDvAction(r.id, 'reject')} disabled={dvBusy} className="btn" style={{ ...SMALL_BTN, backgroundColor: 'var(--state-danger-bg)', color: 'var(--state-danger-fg)' }}>
+                              반려
+                            </button>
+                          </div>
+                        </>
+                      )}
+                      {dvError && <div style={{ color: 'var(--state-danger-fg)', fontSize: '0.85rem' }}>{dvError}</div>}
+                    </div>
+                  )}
+                </div>
+              );
+            })
           ))}
 
         {tab === 'CONSULT_REQUESTS' &&

@@ -16,6 +16,30 @@
 > [`_아카이브_2608`](walkthrough_아카이브_2608.md)(08-31분). 남은 것 = 판정 대기 + 판정 표기 없음. 기준 → `record.md` §2-1.
 
 ---
+## 2026-09-30 | [Sonnet] 사후 개봉 §7.3 스펙갱신 반영(수락 전 가족 권한) + 3-B 화면(유족 요청·상태·재초대 / 본인 배너 / 운영자 「사망 확인」 탭)
+
+- **근거 스펙**: `docs/00_핵심플랫폼/00-41_사후개봉_최소안_명세서.md` §6·§7.3(스펙갱신 09-30)·§8·§11(3-B). 핸드오프 블록. 앞 항목(3-A)이 남긴 "스펙 공백(§7.3)"의 해소.
+- **건드린 파일**: **수정** `backend/src/controllers/endingNoteController.ts`(권한 부여 조건 1곳·주석) · `backend/src/controllers/deathVerificationController.ts`(`mine` 응답에 `designationId`) · `frontend/src/pages/EndingNotePage.tsx` · `frontend/src/components/endingNote/SectionTimingControl.tsx` · `frontend/src/pages/FamilySharedPage.tsx`(전면 확장) · `frontend/src/pages/AdminPage.tsx` · `frontend/src/App.tsx`. **신규** `frontend/src/components/familyShared/sectionFields.ts` · `ReleaseRequestModal.tsx` · `PendingFamilyPanel.tsx` · `frontend/src/components/endingNote/ReleaseRequestBanner.tsx`.
+- **결과**:
+  1. **§7.3 권한 지정** — `PUT /api/ending-note/grants`(`upsertEndingNoteGrant`)가 `ACCEPTED`만 허용하던 조건 `designation.status !== 'ACCEPTED'`를 `!['ACCEPTED','PENDING','EXPIRED'].includes(designation.status)`로 바꿨다. `DECLINED`·`DRAFT`는 계속 400. 메시지 `아직 수락하지 않은 가족에게는 공개 시점을 지정할 수 없습니다.` → `초대를 보낸 가족에게만 공개 시점을 지정할 수 있습니다.`(제거한 옛 문구). 조회(`getFamilyVisibleEndingNotes`)는 그대로 `acceptedUserId`+`ACCEPTED` 기준이라 **수락 전엔 어떤 경로로도 읽히지 않는다** — 코드로 확인: 조회 쿼리 `where: { acceptedUserId: decoded.id, status: 'ACCEPTED' }` 변경 없음.
+  2. **권한 설정 화면** — `EndingNotePage.tsx` 가족 목록 필터 `f.status === 'ACCEPTED'` → `['ACCEPTED','PENDING','EXPIRED'].includes(f.status)`. `SectionTimingControl.tsx`는 수락 전 가족 이름 옆에 `수락 전`을 붙인다. 0명 안내문 `아직 수락된 가족이 없어 섹션을 생전에 공개할 대상을 지정할 수 없습니다.` → `초대를 보낸 가족이 없어 섹션을 공개할 대상을 지정할 수 없습니다.`
+  3. **유족 화면(`/family-shared`)** — 각 분마다: 요청 전엔 `돌아가셨음을 알리고 기록 열기` 버튼 → 요청 폼 모달(고인 성함·돌아가신 날·장례식장 이름·전화·`장례식장 없음`, **파일 칸 없음**, 안내문은 스펙 §8.1 문장 그대로). 상태 표시: `REQUESTED`(접수 시각·`○월 ○일 ○시 ○분까지 확인합니다`·요청자 본인이면 `요청 취소`) · `REJECTED`(서버의 정해진 문장 + `다시 요청`) · `CANCELLED`(요청 버튼 복귀). 개봉(`released`) 뒤: 권한 섹션 전부(`sectionFields.ts` — LIFE_SUPPORT·FUNERAL·ASSET·DIGITAL_ACCOUNTS(구독 메모 포함)·INSURANCE·CONTACTS·WILL_LOCATION·ORGAN_DONATION) + 자기 앞 편지(모달에 본문) + `가족에게 알리기` + 미수락 가족 패널.
+  4. **가족에게 알리기** — 문구 `○○ 님의 기록을 이어봄에서 보실 수 있습니다.` + `${origin}/family-shared`(토큰 없음). 터치 기기에서만 `navigator.share`, 그 밖에는 링크 복사(데스크톱 공유창 문제 — `MyPageFamilyDesignation.tsx` §9.1-4-1과 같은 이유).
+  5. **미수락 가족 재초대(`PendingFamilyPanel`)** — 이름·관계·`링크 유효/만료`만, `초대 링크 다시 만들기` → `POST …/pending-family/:desigId/reinvite` → `${origin}/invite/${token}` 표시·복사. 전화·이메일 없음.
+  6. **본인 배너(`ReleaseRequestBanner`)** — `App.tsx`에서 `<main>` 바로 위(포털 경로 제외)에 마운트. `REQUESTED`: `○○ 님이 엔딩노트 개봉을 요청했습니다. 본인이시면 취소해 주세요.` + `취소`(눌러야만 `cancel-by-subject`, 로그인만으로 자동 취소 없음). `VERIFIED`: `개봉되었습니다. 본인이시면 대표번호로 연락해 주세요.`(취소 버튼 없음).
+  7. **운영자 「사망 확인」 탭(`AdminPage.tsx`)** — 탭 이름 옆 대기 건수(로그인 직후 1회 + 새로고침) · 카드: 고인 실명·회원 이름·사망일·접수·대외 마감(남은 시간)·내부 목표·장례식장·요청자 · `대외 약속 초과`(빨강)/`내부 목표 초과`(노랑) · `상세·처리`를 열면 요청자 전화(되걸기용, 서버가 `VIEW` 기록)·확인 방법 선택(`FUNERAL_HALL`은 장례식장 정보 있을 때만, `OTHER`는 서버가 SUPERADMIN 검사)·`확인 완료`·반려 사유 선택·`반려`(각각 `window.confirm`). 본문·섹션 제목·편지를 그리는 코드 없음(서버 응답에도 없음).
+  `tsc --noEmit`(frontend·backend) 통과 · `npm run build`(frontend) 통과. 스펙 §11 `문자·알림톡으로 알려` grep: `frontend/src` 0건(주석 표현도 바꿔 0건으로 맞춤).
+- **편차**: ① 반려 사유 문장은 스펙 §8.2가 "정해진 문장"이라고만 해 **내가 정했다**(서버 `deathVerificationController.REJECT_REASON_TEXT` — `입력하신 장례식장에서 확인되지 않았습니다.` · `고인 성함이 확인한 내용과 맞지 않았습니다.` · `장례식장과 연락이 닿지 않았습니다.` · `확인하지 못했습니다. 대표번호로 문의해 주세요.`). ② 버튼 문구는 스펙이 `ux-copy`를 한 번 거치라고 했으나 **거치지 않고** 스펙 문구(`돌아가셨음을 알리고 기록 열기`)를 그대로 썼다. ③ `mine` 응답에 `designationId`를 더했다(family-view 항목과 짝짓기 위해, 회원 id는 내보내지 않음). ④ 운영자 「남은 시간」은 휴무 포함 실제 시각 차이(`dueAt − 지금`)다 — 운영시간 계산은 서버가 `dueAt`에 이미 반영했다.
+- **다음 에이전트가 알아야 할 것**:
+  - 🔴 **실기동 미확인 — dev 서버를 쓰지 않는 방침.** 확인 순서: ① backend dev 서버 재시작 + `npx prisma generate`(엔진 dll 잠김 — 3-A 참조) ② 가족 계정으로 요청 → 운영자 탭에 뜨고 마감·노랑/빨강 ③ 확인 완료 → 가족 화면에 자기 권한 섹션 + 자기 앞 편지 ④ 요청 전엔 사후 섹션 **제목도 없음** ⑤ 본인 계정 배너·취소 ⑥ 생전 미수락 가족에게 권한 지정 → 사망 뒤 수락 → 그 권한만큼 보임.
+  - 🟡 **수락 전 가족에게 준 `IMMEDIATE` 권한은 수락하는 순간부터 생전 공개가 된다**(조회가 `ACCEPTED`만 보므로 수락 전엔 안 보이지만, 수락하면 사망과 무관하게 바로 열린다). §7.3의 의도(사후 수락)와는 결이 다른 부수효과 — 화면에서 미수락 가족에게 `IMMEDIATE`를 고르지 못하게 할지는 Opus 판단.
+  - 🟡 개봉 뒤 편지 **음성은 못 듣는다**(`hasAudio`만 내려가고 수신자용 재생 API 없음 — 모달에 그 사실을 적었다).
+  - 🟡 요청 폼의 날짜 입력은 브라우저 기본 date 입력이다(시안 없음). 모바일 폭·큰 글씨 배율 확인 필요.
+  - `FamilySharedPage.tsx`에서 `entryFields`를 `components/familyShared/sectionFields.ts`로 옮겼다(FUNERAL·CONTACTS 외 6개 섹션 추가).
+
+<!-- Gemini 판정 1줄: ✅통과 / ❌반려(사유) / 🔄스펙갱신(고친 문서) -->
+
+---
 ## 2026-09-30 | [Sonnet] 사후 개봉 3-A(백엔드) — `DeathVerification` · 운영시간 12h/1h · 유족·본인·운영자 API · family-view 확장 · 재초대 · RELEASED 저장 잠금
 
 - **근거 스펙**: `docs/00_핵심플랫폼/00-41_사후개봉_최소안_명세서.md` §4·§5.1·§7·§9·§11(3-A). 핸드오프 블록.
@@ -31,7 +55,7 @@
   `tsc --noEmit`(backend) 통과. 🔴 **실행 시험은 하지 못했다**(아래).
 - **편차**: ① 스펙 §7.2는 "본인 저장 API"만 적었는데 **권한 부여·철회와 편지 4개 쓰기 경로도 잠갔다**(같은 노트의 본인 쓰기라 고인 휴대폰으로 고쳐지는 구멍이 같다). 되돌리려면 헬퍼 호출 줄만 빼면 된다. ② `requestedByDesigId` 인덱스 1개 추가(스펙 §4.2엔 없음). ③ `requestedBy` FK를 CASCADE로 잡았다 — 스펙은 "FK"만 적었다. 이유: 계정 파기 배치(`accountPurgeService`)가 `familyDesignation.deleteMany`를 돌리는데 RESTRICT면 개봉 이력이 있는 회원의 파기가 FK 오류로 죽는다. 부작용: 지정이 지워지면 그 요청 행도 같이 사라진다(개봉 증빙은 `AdminAuditLog APPROVE`에 남음). 보유기간은 스펙이 후속(§10)으로 미뤘다.
 - **다음 에이전트가 알아야 할 것**:
-  - 🔴 **`DeathVerification` 마이그레이션 적용은 이 기록 시점에 미실행**(CONFIRM 대기). 백업: `local-20260930-101213.dump`(249KB)·`prod-20260930-101207.dump`(602KB) 생성 확인. 운영 적용은 별도.
+  - ✅ **`DeathVerification` 마이그레이션은 로컬 dev에 개발자가 적용·확인**(09-30 후속, 아래 항목 참조). 운영 적용은 미실행. 백업(적용 전): `local-20260930-101213.dump`(249KB)·`prod-20260930-101207.dump`(602KB) 생성 확인. 운영 적용은 별도.
   - 🔴 **실행 시험 미수행** — dev 서버 미기동 방침 + `prisma generate`가 엔진 dll 교체(`EPERM rename query_engine-windows.dll`)에서 실패(실행 중인 backend dev 서버가 잡고 있음). 타입 파일은 새로 생성돼 tsc는 통과. 개발자가 dev 서버를 껐다 켠 뒤 `npx prisma generate`를 한 번 더 돌려야 런타임이 새 모델을 안다. 화면(3-B) 전에 확인할 것: 요청 생성 → 운영자 목록 → verify → family-view가 사후 섹션·편지를 내리는지 / 확인 전엔 사후 섹션 제목조차 없는지 / 개봉 뒤 본인 저장 409.
   - 🟡 **`HOLIDAYS`는 2026년분만**(`HOLIDAYS_COVERED_THROUGH = 2026`). 연말에 다음 해를 채워야 하고, 내가 넣은 날짜(설날 2/16~18·삼일절 대체 3/2·어린이날·부처님오신날 대체 5/25·지방선거 6/3·광복절 대체 8/17·추석 9/24~25·개천절 대체 10/5·한글날·성탄절)는 **공식 공고와 대조한 값이 아니다.** 확인 필요.
   - 🟡 **스펙 공백(§7.3)** — 생전에 수락하지 않은 가족(`PENDING`·`EXPIRED`)은 `upsertEndingNoteGrant`가 `ACCEPTED`에게만 권한을 주도록 막혀 있어 **`EndingNoteGrant`가 없다.** 그래서 사망 뒤 수락해도 사후 섹션은 0개, 자기 앞 편지(`recipientId`)만 보인다. "자기 권한만큼 열린다"의 권한이 비어 있는 상태 — Opus 판단 필요(생전 미수락자 권한을 어떻게 줄지).

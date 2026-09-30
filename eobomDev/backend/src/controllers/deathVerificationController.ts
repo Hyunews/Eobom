@@ -195,8 +195,10 @@ export const listMyReleaseRequests = async (req: Request, res: Response) => {
     const latestBySubject = new Map<string, (typeof rows)[number]>();
     for (const r of rows) if (!latestBySubject.has(r.subjectUserId)) latestBySubject.set(r.subjectUserId, r);
 
-    const data = [...latestBySubject.values()].map((r) => ({
-      subjectUserId: r.subjectUserId,
+    // 화면(FamilySharedPage)은 family-view 항목(designationId)과 짝짓는다 — 회원 id는 내보내지 않는다.
+    const myDesignationBySubject = new Map(mine.map((d) => [d.userId, d.id]));
+    const data = [...latestBySubject.values()].map(({ subjectUserId, ...r }) => ({
+      designationId: myDesignationBySubject.get(subjectUserId)!,
       ...serializeForFamily(r, myDesignationIds.has(r.requestedByDesigId)),
     }));
     return res.json({ status: 'success', data });

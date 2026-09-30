@@ -31,6 +31,7 @@ import { PickupPage } from './pages/PickupPage';
 import { MemorialPage } from './pages/MemorialPage';
 import { MyPage } from './pages/MyPage';
 import { FamilySharedPage } from './pages/FamilySharedPage';
+import { ReleaseRequestBanner } from './components/endingNote/ReleaseRequestBanner';
 import { MyConsultationsPage } from './pages/MyConsultationsPage';
 import { MyGuestbookPage } from './pages/MyGuestbookPage';
 import { AccountRecoveryModal } from './components/AccountRecoveryModal';
@@ -427,6 +428,8 @@ function AppShell() {
               : undefined
         }
       >
+        {/* 00-41 §8.3 — 본인 앞으로 온 사후 개봉 요청 배너(진행 중·열림일 때만 그려진다) */}
+        {!isPortalRoute && <ReleaseRequestBanner currentUser={currentUser} />}
         <main style={{ flexGrow: 1 }}>
           <Routes>
             <Route
