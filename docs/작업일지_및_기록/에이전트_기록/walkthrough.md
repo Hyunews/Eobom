@@ -2069,3 +2069,31 @@
 <!-- Gemini 판정 대기 -->
 
 <!-- Gemini 판정 1줄: ✅통과 / ❌반려(사유) / 🔄스펙갱신(고친 문서) -->
+
+
+## 2026-09-30 | 09-30 docs 결정 반영 — 탈퇴 시 추모관·부고장 처리 · 약관 · 신고 잔재 점검 · R2 dev 기본값 · 아카이브 Worker
+
+- **근거 스펙**: docs/00_핵심플랫폼/00-20 §6.3-2 표 · 00-36 §4.3·§6 #2 · 00-21 제14조·제15조 · 00-11 §5.4-6-3·§5.4-5-2-1-1 보정② (`.harness/docs-audit/README.md` §4 "00-B 판정 결과")
+- **건드린 파일**: eobomDev/backend/src/controllers/accountDeletionController.ts, eobomDev/backend/src/services/accountPurgeService.ts, eobomDev/backend/prisma/destroy-farewell-media.ts, eobomDev/frontend/src/components/mypage/WithdrawalModal.tsx, eobomDev/frontend/src/pages/TermsPage.tsx, eobomDev/backend/.env.example, eobomDev/workers/r2-archive-relay/src/index.ts
+- **결과**:
+  - ① 탈퇴 요청(`requestAccountDeletion`): User 시각 갱신과 **한 `$transaction`** 으로 본인 `Memorial`(closedAt null인 것) `closedAt=now`·`purgeAt=+30일`, 본인 `Obituary`(closedAt null인 것) `closedAt=now`. 🔴 `now`는 `User.deletionRequestedAt`과 같은 값 — 이 일치가 "탈퇴로 닫힌 것"의 표지다.
+  - ① 계속 이용(`cancelAccountDeletion`): `closedAt == deletionRequestedAt`인 추모관·부고장만 `closedAt=null`. 추모관 `purgeAt`은 `frozenAt` 없으면 null, 있으면 `frozenAt+3년`으로 복원. 원래 본인이 닫아둔 것(다른 시각)은 안 건드림. 스키마·마이그레이션 변경 없음.
+  - ① 파기 배치(`purgeAccount`): 트랜잭션에 `prisma.obituary.deleteMany({ where: { createdByUserId } })` 추가(ObituaryMourner Cascade), 7~9줄 주석·`keeps` 분기 갱신(`keeps.obituaries` → `AccountPlan.obituaries`로 이동). dry-run 출력에도 "부고장 N" 줄. 회원 행 익명화 유지.
+  - ① `getDeletionPreview`: 응답에 `willClose: { memorials, obituaries }` 신설(closedAt null인 것만 셈), `willRemain`에서 `obituaries`·`memorials` 삭제(남는 것 = `consultations`만). `WithdrawalModal`에 "바로 닫히는 것" 칸(0건이면 안 그림) + grace 단계에 "닫힌 추모관과 부고장도 다시 열립니다" 문장.
+  - ② `TermsPage.tsx` 제14조 3항 `"신고가 접수된 추모관은 즉시 비공개로 전환되며, 회사의 확인을 거쳐 처리됩니다."` 삭제. 제15조는 docs 00-21 제15조 1~5항과 같게 교체(5항에 `"개설한 부고는 탈퇴 즉시 열람할 수 없게 되며, 계정과 함께 파기됩니다."`).
+  - ④ `.env.example` `R2_BUCKET_*` 3개 → `eobom-farewell-voice-dev` · `eobom-memorial-media-dev` · `eobom-biz-docs-dev`.
+  - ⑤ `workers/r2-archive-relay/src/index.ts` `event.action !== 'PutObject'` → `!COPY_ACTIONS.has(event.action)`(`PutObject`·`CopyObject`·`CompleteMultipartUpload`).
+  - ③ 신고 잔재 — 코드 변경 없음, 사용처만 보고(아래 "다음 에이전트").
+  - 검증: `backend`·`frontend`에서 `npx tsc --noEmit` 출력 없음(에러 0), `workers/r2-archive-relay`에서 `npx tsc --noEmit` 출력 없음. 🔴 DB 쓰기 명령·테스트는 돌리지 않음.
+- **편차**:
+  - 제15조 1~4항이 `"일정 기간(추후 공지)"` 등 옛 자리표시였고 5항이 없어, 지시의 "5항에 부고 문장 추가"를 5항 신설만으로 못 해 제15조 1~5항을 docs와 맞춤. docs 6항(`Deceased` 확정 후 보완 표시)은 내부 메모라 넣지 않음.
+  - 복구 표지를 새 컬럼이 아니라 `closedAt == deletionRequestedAt` 일치로 잡음(구분 방법이 있어 "멈추고 물을 것" 조건 해당 없음). 같은 밀리초에 본인이 직접 닫은 경우만 오판하는 이론상 구멍.
+  - 복구 때 동결 추모관의 `purgeAt`을 `frozenAt+3년`으로 되돌림 — 지시의 "`purgeAt` 해제"보다 한 걸음 더. 동결·파기 배치가 아직 없어(`purgeAt`을 읽는 코드 0건) 지금은 영향 없음.
+- **다음 에이전트가 알아야 할 것**:
+  - 🔴 실기동 검증 대기(사람 몫): 탈퇴 신청 → 추모관 공개 링크 404·부고장 링크 닫힘 → "계속 이용" → 둘 다 복구, 그리고 **탈퇴 전에 직접 닫아둔 추모관은 복구 뒤에도 닫혀 있는지**. 이 경로는 자동 테스트 없음.
+  - 🔴 추모관 **실제 파기**(`purgeAt` 경과 시 삭제)는 어디에도 구현돼 있지 않다 — `purgeAt`을 읽는 코드가 0건. 탈퇴한 추모관은 비공개 상태로 계속 남는다. 파기 배치 신설은 사람 확인 필요(`[Opus]` 스펙 → `[Sonnet]`).
+  - ③ 신고 잔재 사용처: `Memorial.reportedAt`(schema.prisma:448) — backend `moderationController.ts` 260·267행(`reportedOnly` 필터·select), frontend `AdminPage.tsx` 1118행(`신고 접수` 표시)·주석 111·1126~1130. `reported=true` 쿼리는 프런트가 안 부르고(`AdminPage.tsx` 281행은 `reported=false`) 서버 `listMemorialsForAdmin`만 받음. `reviewedAt`은 `reviewMemorialReport`(moderationController.ts 304~326, 라우트 `PATCH /api/admin/memorials/:id/review`)가 아직 씀. 컬럼 삭제는 사람 확인 후.
+  - 마이그레이션 없음 → 백업 불필요했음.
+  - 커밋은 하지 않음 — 메시지 초안만.
+
+<!-- Gemini 판정 1줄: ✅통과 / ❌반려(사유) / 🔄스펙갱신(고친 문서) -->

@@ -17,13 +17,16 @@ interface R2EventNotification {
   object: { key: string; size: number; eTag: string };
 }
 
+const COPY_ACTIONS = new Set(['PutObject', 'CopyObject', 'CompleteMultipartUpload']);
+
 export default {
   async queue(batch: MessageBatch<R2EventNotification>, env: Env): Promise<void> {
     for (const message of batch.messages) {
       const event = message.body;
-      // PutObject(신규 업로드)만 복제한다 — 소프트 삭제 정책상 런타임 경로는 DeleteObject를
-      // 부르지 않으므로(00-11 §5.4-5-3) 이 워커가 삭제 이벤트를 받을 일은 정상 동작 중에는 없다.
-      if (event.action !== 'PutObject') {
+      // object-create 이벤트의 action 셋(PutObject·CopyObject·CompleteMultipartUpload)만 복제한다(00-11 §5.4-5-2-1-1 보정②).
+      // 🔴 PutObject만 통과시키면 멀티파트 업로드로 바뀌는 순간 사본이 조용히 안 생긴다. 소프트 삭제 정책상 런타임 경로는
+      // DeleteObject를 부르지 않으므로(§5.4-5-3) 삭제 이벤트는 정상 동작 중에는 오지 않는다.
+      if (!COPY_ACTIONS.has(event.action)) {
         message.ack();
         continue;
       }

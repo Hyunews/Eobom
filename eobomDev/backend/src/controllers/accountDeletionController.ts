@@ -12,6 +12,7 @@ import { verifyBearerToken } from './authController';
 
 const GRACE_DAYS = 30;
 const DAY_MS = 24 * 60 * 60 * 1000;
+const FROZEN_PURGE_YEARS = 3; // 00-20 §5.2-1 — 동결 후 파기까지. 복구 시 동결 추모관의 purgeAt 복원용
 
 // 탈퇴 미리보기 (`GET /api/me/deletion-preview`) — ① "무엇이 지워지는가"를 **건수만** 보여준다.
 // 🔴 본문 금지(00-36 §4.2와 같은 규칙) — 편지·엔딩노트·방명록의 내용·수신자 실명은 절대 내리지 않는다.
@@ -47,9 +48,10 @@ export const getDeletionPreview = async (req: Request, res: Response) => {
       prisma.memorialGuestbook.count({ where: { userId, deletedByOwnerAt: null, hiddenAt: null, deletedByAuthorAt: null } }),
       prisma.facilityReview.count({ where: { userId } }),
       prisma.familyDesignation.count({ where: { userId } }),
+      // 🔵 09-30 — 탈퇴 즉시 닫히는 것(열려 있는 것만 센다. 이미 닫아둔 것은 이번 탈퇴로 달라지는 게 없다)
+      prisma.obituary.count({ where: { createdByUserId: userId, closedAt: null } }),
+      prisma.memorial.count({ where: { createdByUserId: userId, closedAt: null } }),
       // 남는 것
-      prisma.obituary.count({ where: { createdByUserId: userId } }),
-      prisma.memorial.count({ where: { createdByUserId: userId } }),
       prisma.lead.count({ where: { userId, type: { not: 'CALL' } } }),
       prisma.consultRequest.count({ where: { userId } }),
     ]);
@@ -72,9 +74,12 @@ export const getDeletionPreview = async (req: Request, res: Response) => {
           facilityReviews,
           familyDesignations,
         },
+        // 🔵 09-30 — 추모관·부고장은 탈퇴를 따라간다(00-20 §6.3-2). 남는 것이 아니라 **별도 칸**이다.
+        willClose: {
+          memorials, // 즉시 비공개, 30일 뒤 파기. 30일 안에 "계속 이용"이면 되살아난다
+          obituaries, // 즉시 닫힘, 계정 파기 때 삭제. "계속 이용"이면 되살아난다
+        },
         willRemain: {
-          obituaries, // 부고장 — 추모관과 1:1(봉투/목적지, 07-03 §4.1 E안)이라 함께 남긴다(00-36 §6 #2)
-          memorials, // 추모관 — 함께 지워지지 않는다(닫기는 따로)
           consultations: leads + consultRequests, // 이미 접수된 상담·문의
         },
       },
@@ -111,12 +116,20 @@ export const requestAccountDeletion = async (req: Request, res: Response) => {
 
     const now = new Date();
     const scheduled = new Date(now.getTime() + GRACE_DAYS * DAY_MS);
-    // where는 id 하나 — 이 행 하나만 갱신한다(db-safety.md §3: 소유자 단위 updateMany 금지)
-    const updated = await prisma.user.update({
-      where: { id: user.id },
-      data: { deletionRequestedAt: now, deletionScheduledAt: scheduled },
-      select: { deletionRequestedAt: true, deletionScheduledAt: true },
-    });
+    // 🔵 09-30 — 추모관·부고장도 탈퇴를 따라간다(00-20 §6.3-2). 같은 트랜잭션에서 함께 닫는다.
+    // 🔴 closedAt에 **User.deletionRequestedAt과 같은 `now`** 를 넣는다 — 이 일치가 "탈퇴로 닫힌 것"의 표지다.
+    // 복구 때 이 값이 같은 것만 되살린다(원래 본인이 닫아둔 것은 closedAt이 다른 시각이라 안 건드린다).
+    // 이미 닫힌(closedAt != null) 행은 여기서 걸리지 않는다 — 기존 closedAt·purgeAt을 덮어쓰지 않는다.
+    // User는 id 하나만 갱신한다(db-safety.md §3). 추모관·부고장은 `createdByUserId` + `closedAt: null` — 본인 것 중 열려 있는 것뿐이다.
+    const [updated] = await prisma.$transaction([
+      prisma.user.update({
+        where: { id: user.id },
+        data: { deletionRequestedAt: now, deletionScheduledAt: scheduled },
+        select: { deletionRequestedAt: true, deletionScheduledAt: true },
+      }),
+      prisma.memorial.updateMany({ where: { createdByUserId: user.id, closedAt: null }, data: { closedAt: now, purgeAt: scheduled } }),
+      prisma.obituary.updateMany({ where: { createdByUserId: user.id, closedAt: null }, data: { closedAt: now } }),
+    ]);
     return res.status(201).json({ status: 'success', data: updated });
   } catch (error) {
     console.error('탈퇴 요청 실패:', error);
@@ -141,10 +154,32 @@ export const cancelAccountDeletion = async (req: Request, res: Response) => {
       return res.json({ status: 'success', data: { deletionRequestedAt: null, deletionScheduledAt: null } });
     }
 
-    await prisma.user.update({
-      where: { id: user.id },
-      data: { deletionRequestedAt: null, deletionScheduledAt: null },
+    // 🔴 탈퇴로 닫힌 것만 되살린다 — closedAt이 deletionRequestedAt과 **정확히 같은** 행. 원래 본인이 닫아둔 추모관·부고장은
+    // closedAt이 다른 시각이라 걸리지 않는다. purgeAt은 그 추모관이 동결(frozenAt)돼 있었다면 동결 +3년으로 되돌린다(00-20 §5.2-1).
+    const requestedAt = user.deletionRequestedAt;
+    const closedByWithdrawal = await prisma.memorial.findMany({
+      where: { createdByUserId: user.id, closedAt: requestedAt },
+      select: { id: true, frozenAt: true },
     });
+    await prisma.$transaction([
+      prisma.user.update({
+        where: { id: user.id },
+        data: { deletionRequestedAt: null, deletionScheduledAt: null },
+      }),
+      // 동결 안 된 것은 한 번에, 동결된 것은 id별로 purgeAt을 복원한다
+      prisma.memorial.updateMany({
+        where: { id: { in: closedByWithdrawal.filter((m) => !m.frozenAt).map((m) => m.id) } },
+        data: { closedAt: null, purgeAt: null },
+      }),
+      ...closedByWithdrawal
+        .filter((m) => m.frozenAt)
+        .map((m) => {
+          const purgeAt = new Date(m.frozenAt as Date);
+          purgeAt.setFullYear(purgeAt.getFullYear() + FROZEN_PURGE_YEARS);
+          return prisma.memorial.update({ where: { id: m.id }, data: { closedAt: null, purgeAt } });
+        }),
+      prisma.obituary.updateMany({ where: { createdByUserId: user.id, closedAt: requestedAt }, data: { closedAt: null } }),
+    ]);
     return res.json({ status: 'success', data: { deletionRequestedAt: null, deletionScheduledAt: null } });
   } catch (error) {
     console.error('탈퇴 취소 실패:', error);

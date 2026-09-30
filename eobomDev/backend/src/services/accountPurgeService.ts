@@ -4,21 +4,23 @@ import { purgeLetterRow } from './farewellPurgeService';
 // docs 06-05 §5.6-8 ④ — 회원 탈퇴 유예(30일) 만료 계정 파기. 00-36 §4.3·M-3·§6 #2.
 // prisma/destroy-farewell-media.ts(스크립트)만 이 파일을 부른다. 🔴 런타임 코드(컨트롤러·라우트·스케줄러)는 부르지 않는다(§5.4-2-1).
 //
-// 🔴 User 행은 **지우지 않고 익명화(tombstone)** 한다. Memorial.createdByUserId가 00-20 동결·연장·폐쇄·신고 처리의
-// 주체라 FK를 끊을 수 없다(SetNull 금지). 추모관·부고장은 탈퇴 후에도 남고(00-36 §6 #2), 추모관은 자기 수명(purgeAt)이
-// 다하면 FK가 자연히 풀린다. 그래서 예전의 "추모관 보유 회원은 보류" 분기는 없다 — 모든 만료 회원이 파기 가능하다.
+// 🔴 User 행은 **지우지 않고 익명화(tombstone)** 한다. Memorial.createdByUserId가 00-20 동결·연장·폐쇄 처리의
+// 주체라 FK를 끊을 수 없다(SetNull 금지). 🔵 09-30 재결정(00-20 §6.3-2·00-36 §4.3): 탈퇴 요청 즉시 추모관은 비공개
+// (closedAt·purgeAt=+30일)·부고장은 닫히고(requestAccountDeletion), 이 배치는 **부고장을 삭제**한다. 추모관은 자기
+// 수명(purgeAt)이 다하면 파기되고 FK도 그때 풀린다 — 이 배치는 추모관을 지우지 않는다. 그래서 예전의 "추모관 보유 회원은
+// 보류" 분기는 없다 — 모든 만료 회원이 파기 가능하다.
 //
 // 한 회원의 순서(고정):
 //   1. 그 회원 엔딩노트의 편지 전부에 ①②를 먼저 — R2 원본 삭제 + 아카이브 원장(ArchivePurgeQueue) 기록 → 행 파기.
 //      🔴 먼저 하지 않고 엔딩노트를 지우면 FarewellMessage가 Cascade로 사라져 mediaKey를 잃고 R2 원본이 고아로 남는다.
 //   2. 한 트랜잭션에서 아래를 처리한다. 🔴 User를 지우지 않으므로 **Cascade가 더는 대신 지워주지 않는다** — 전부 명시한다.
 //      지움 : 방명록(본인 글, 하드) · 시설 리뷰 · 디지털 정리 항목 · 엔딩노트(→Entry·Grant·잔여 편지 Cascade)
-//             · 지정한 가족(→Grant Cascade) · SocialAccount(로그인 경로 차단)
+//             · 지정한 가족(→Grant Cascade) · SocialAccount(로그인 경로 차단) · 부고장(→Mourner Cascade, 09-30)
 //      철회 : 내가 수락한 쪽의 가족 지정(acceptedUserId) — 00-27 §9.2 철회와 같은 처리(DECLINED + Grant 전량 revoke).
 //             acceptedUserId는 FK가 아니라 남겨두면 지정자 화면에 유령 가족이 남는다.
 //      끊음 : Lead·ConsultRequest·MemorialTribute의 userId → null. 건 자체는 남긴다(정산 증거 / 조문 기록)
 //             🔴 SetNull은 행을 지워야 발동하는데 우리는 안 지우므로 직접 null로 만든다(§5.6-8-4)
-//      남김 : 추모관·추모 사진·부고장(00-36 §6 #2)
+//      남김 : 추모관·추모 사진 — 추모관은 탈퇴 때 이미 닫혔고(purgeAt +30일) 자기 파기 시점에 지워진다
 //      비움 : User 행 — 아래 ANONYMIZED. 남는 것은 id·createdAt·purgedAt(+동의 시각·탈퇴 시각 이력)뿐.
 
 export type ExpiredAccount = {
@@ -34,10 +36,11 @@ export type AccountPlan = {
   guestbookEntries: number;
   facilityReviews: number;
   designations: number; // 내가 지정한 가족 — 삭제
+  obituaries: number; // 내가 개설한 부고장 — 삭제(09-30). 탈퇴 요청 때 이미 닫혀 있다
   acceptedDesignations: number; // 내가 수락한 쪽 — 철회 처리
   detached: { leads: number; consultRequests: number; tributes: number }; // userId를 null로 끊는 것(건은 남김)
   // 🔵 아래는 지우지 않는다 — 보고용
-  keeps: { memorials: number; memorialPhotos: number; obituaries: number };
+  keeps: { memorials: number; memorialPhotos: number };
 };
 
 // 익명화로 채우는 값. name은 NOT NULL 컬럼이라 null이 아니라 고정 문구다. email은 unique라 null이어야 재가입과 안 부딪힌다.
@@ -97,9 +100,10 @@ export async function planAccount(user: ExpiredAccount): Promise<AccountPlan> {
     guestbookEntries,
     facilityReviews,
     designations,
+    obituaries,
     acceptedDesignations,
     detached: { leads, consultRequests, tributes },
-    keeps: { memorials, memorialPhotos, obituaries },
+    keeps: { memorials, memorialPhotos },
   };
 }
 
@@ -137,6 +141,9 @@ export async function purgeAccount(user: ExpiredAccount): Promise<{ purged: bool
     prisma.familyDesignation.deleteMany({ where: { userId: user.id } }), // EndingNoteGrant Cascade
     prisma.endingNote.deleteMany({ where: { userId: user.id } }), // EndingNoteEntry·잔여 FarewellMessage Cascade
     prisma.careGuideProgress.deleteMany({ where: { userId: user.id } }), // 07-04 §3.4-1 — 보유기간 "회원 탈퇴 시까지". User 행이 남아 Cascade가 안 탄다
+    // 🔵 09-30 — 부고장은 계정과 함께 삭제(ObituaryMourner Cascade). 발인이 지난 부고장이고 탈퇴자 본인의 계좌·연락처가 들어 있다.
+    // Memorial.obituary 역참조는 Obituary.memorialId 쪽 FK라 부고장을 지워도 추모관은 그대로다.
+    prisma.obituary.deleteMany({ where: { createdByUserId: user.id } }),
     prisma.socialAccount.deleteMany({ where: { userId: user.id } }), // 🔴 로그인 경로 차단
     prisma.user.update({ where: { id: user.id }, data: { ...ANONYMIZED, purgedAt: now } }),
   ]);

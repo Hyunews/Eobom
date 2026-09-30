@@ -14,7 +14,7 @@
 //   ② deletedAt + 30일 — mediaKey가 있으면 ①을 먼저 하고, 그다음 행을 파기한다.
 //   ③ 고아 객체 스윕은 이번에 만들지 않는다(⏸ §5.6-8 ③).
 //   ④ User.deletionScheduledAt 경과(회원 탈퇴 유예 만료) — 그 회원의 ①②를 먼저, 그다음 계정 파기.
-//      User 행은 지우지 않고 익명화한다 — 추모관·부고장은 남는다(00-36 §6 #2, accountPurgeService.ts).
+//      User 행은 지우지 않고 익명화한다 — 부고장은 삭제, 추모관은 탈퇴 때 닫혀 자기 purgeAt에 파기(00-20 §6.3-2, accountPurgeService.ts).
 //
 // 🔴 아카이브는 이 스크립트가 지우지 않는다(§5.6-8-1 D-9) — 백엔드는 아카이브 버킷에 대한
 // S3 자격증명을 원천적으로 갖지 않는다(새 토큰도 발급하지 않는다). 파기는 2단계다:
@@ -123,10 +123,10 @@ async function main(): Promise<void> {
     // 🔴 이메일·이름 등 개인정보는 찍지 않는다 — id 앞 8자리만(security.md §1)
     console.log(
       `   - ${p.user.id.slice(0, 8)}… 만료 ${p.user.deletionScheduledAt?.toISOString()}` +
-        ` · 지움: 편지 ${p.letters}(첨부 ${p.lettersWithMedia}) 방명록 ${p.guestbookEntries} 리뷰 ${p.facilityReviews} 지정가족 ${p.designations}` +
+        ` · 지움: 편지 ${p.letters}(첨부 ${p.lettersWithMedia}) 방명록 ${p.guestbookEntries} 리뷰 ${p.facilityReviews} 지정가족 ${p.designations} 부고장 ${p.obituaries}` +
         ` · 철회: 수락한 지정 ${p.acceptedDesignations}` +
         ` · 연결 끊음(건은 남김): 상담 ${p.detached.leads + p.detached.consultRequests} 헌화 ${p.detached.tributes}` +
-        ` · 남김: 추모관 ${p.keeps.memorials} 추모사진 ${p.keeps.memorialPhotos} 부고장 ${p.keeps.obituaries}`,
+        ` · 남김: 추모관 ${p.keeps.memorials} 추모사진 ${p.keeps.memorialPhotos}`,
     );
   }
   if (confirmed) {

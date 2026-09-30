@@ -6,7 +6,7 @@ import '../../styles/design-v2.css';
 // 회원 탈퇴 — 00-36 §4.3(4단계 확인 흐름)·M-3 #12, 06-05 §5.4-2. 화면 규칙: 00-39 규칙 18(체크는 `.v2-check`)·
 // 규칙 19(저장 상태는 버튼이 말한다)·규칙 21(모달, 모바일은 바텀시트).
 //
-//   ① 무엇이 지워지는가(건수만, 본문 금지) + 🔴 **남는 것** 고지(추모관·이미 접수된 상담/문의)
+//   ① 무엇이 지워지는가(건수만, 본문 금지) + 바로 닫히는 것(추모관·부고장, 09-30) + 🔴 **남는 것** 고지(이미 접수된 상담/문의)
 //   ② 반출부터 하시겠습니까 — 지금 내려받을 수 있는 것은 유족 메시지 보관함 zip뿐(`GET /api/farewell-messages/export`)
 //   ③ 30일 유예 고지
 //   ④ 동의 체크 → 신청. 🔴 신청은 시각 두 개를 찍을 뿐 **아무것도 지우지 않는다**(서버 accountDeletionController).
@@ -27,7 +27,8 @@ interface Preview {
     facilityReviews: number;
     familyDesignations: number;
   };
-  willRemain: { obituaries: number; memorials: number; consultations: number };
+  willClose: { memorials: number; obituaries: number };
+  willRemain: { consultations: number };
 }
 
 type Step = 'delete' | 'export' | 'grace' | 'confirm' | 'done';
@@ -131,15 +132,26 @@ export const WithdrawalModal: React.FC<WithdrawalModalProps> = ({ onClose, onDon
                 ))}
               </ul>
             )}
-            {/* 🔴 남는 것을 반드시 고지 — 부고장·추모관은 1:1(봉투/목적지, 07-03 §4.1 E안)이고 추모관은 00-20 보존정책 +
-                타인의 방명록이 있어 함께 지워지지 않는다. 이미 접수된 상담·문의는 계약·정산 증거라 건은 남는다(00-36 §6 #2·M-3) */}
+            {/* 🔵 09-30 — 추모관·부고장은 탈퇴를 따라간다(00-20 §6.3-2·00-36 §4.3 ①). 확인 전에 보여주는 것이 전제라 별도 칸.
+                열려 있는 것이 있을 때만 그린다. 30일 안에 "계속 이용"이면 되살아난다(grace 단계 문구) */}
+            {(preview.willClose.memorials > 0 || preview.willClose.obituaries > 0) && (
+              <>
+                <p className="v2-modal-value" style={{ margin: '0 0 8px', fontWeight: 700 }}>바로 닫히는 것</p>
+                <ul className="v2-withdraw-list">
+                  {preview.willClose.memorials > 0 && (
+                    <li><span>개설하신 추모관</span><span>{preview.willClose.memorials}개 · 바로 비공개되고 {preview.graceDays}일 뒤 삭제됩니다</span></li>
+                  )}
+                  {preview.willClose.obituaries > 0 && (
+                    <li><span>부고장</span><span>{preview.willClose.obituaries}개 · 바로 닫힙니다</span></li>
+                  )}
+                </ul>
+              </>
+            )}
+            {/* 🔴 남는 것을 반드시 고지 — 이미 접수된 상담·문의는 계약·정산 증거라 건은 남는다(00-36 §6 #2·M-3) */}
             <p className="v2-modal-value" style={{ margin: '0 0 8px', fontWeight: 700 }}>남는 것</p>
             <ul className="v2-withdraw-list">
-              <li><span>부고장</span><span>{preview.willRemain.obituaries}건 · 함께 지워지지 않습니다</span></li>
-              <li><span>추모관</span><span>{preview.willRemain.memorials}개 · 함께 지워지지 않습니다</span></li>
               <li><span>이미 접수된 상담·문의</span><span>{preview.willRemain.consultations}건 · 연결만 끊기고 남습니다</span></li>
             </ul>
-            <p className="v2-check-sub" style={{ margin: '0 0 8px' }}>부고장·추모관은 남습니다. 추모관 닫기는 마이페이지의 추모관 화면에서 따로 하실 수 있습니다.</p>
             <div className="v2-modal-actions">
               <button type="button" className="v2-btn-outline" onClick={onClose}>취소</button>
               <button type="button" className="v2-btn-primary" onClick={() => setStep('export')}>다음</button>
@@ -166,7 +178,7 @@ export const WithdrawalModal: React.FC<WithdrawalModalProps> = ({ onClose, onDon
             <h3 id="withdrawal-title" className="v2-modal-title">30일 동안 보관됩니다</h3>
             <p className="v2-modal-value" style={{ margin: '0 0 12px' }}>
               탈퇴를 신청하면 바로 지워지지 않고 {preview.graceDays}일 동안 보관된 뒤 삭제됩니다.
-              {preview.graceDays}일 안에 다시 로그인해 <strong>“계속 이용”</strong>을 선택하면 탈퇴 신청이 취소됩니다.
+              {preview.graceDays}일 안에 다시 로그인해 <strong>“계속 이용”</strong>을 선택하면 탈퇴 신청이 취소되고, 닫힌 추모관과 부고장도 다시 열립니다.
             </p>
             <div className="v2-modal-actions">
               <button type="button" className="v2-btn-outline" onClick={() => setStep('export')}>이전</button>
