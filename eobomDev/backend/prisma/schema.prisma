@@ -28,6 +28,7 @@ model User {
   leads               Lead[] // docs/01_.../01-05 — 이 유저가 남긴 문의/견적요청 리드
   consultRequests     ConsultRequest[] // docs/02_.../02-03 — 이 유저가 남긴 전문가 상담 신청
   memorials           Memorial[] // docs 05-01 §3.5 — 개설한 추모관
+  careGuideProgress   CareGuideProgress[] // docs 07-04 §3.4-2 — 상중 행정 가이드 체크 상태(🔴 운영자 열람 불가)
   memorialTributes    MemorialTribute[] // 남긴 헌화
   memorialGuestbooks  MemorialGuestbook[] // 남긴 방명록
   memorialPhotos      MemorialPhoto[] // 업로드한 추모 사진
@@ -815,4 +816,19 @@ model AdminAuditLog {
 
   @@index([targetType, targetId])
   @@index([adminId])
+}
+
+// 상중 행정 가이드 체크 상태 — docs 07-04 §3.4-2·§3.4-1(09-09 확정). 회원만 서버 보존, 비회원은 React state.
+// 🔴 userId 기준(Deceased 아님). 행이 없으면 미체크 — 체크 해제 = 행 삭제(false 행을 만들지 않는다).
+// 🔴 taskId = careGuideTasks.json 정수 id. 추가는 뒤에만, 기존 id 재사용 금지.
+// 🔴 운영자 열람 불가 — 어떤 항목을 체크했는지는 운영자 화면·로그·에러 리포트에 남기지 않는다(개수 집계만).
+// 보유기간: 회원 탈퇴 시까지(00-19 제4조) — 파기 시 accountPurgeService가 지운다(User 행이 남아 Cascade가 안 탄다).
+model CareGuideProgress {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  taskId    Int
+  checkedAt DateTime @default(now())
+
+  @@unique([userId, taskId])
 }

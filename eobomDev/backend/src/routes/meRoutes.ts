@@ -4,6 +4,7 @@ import { listMyObituaries } from '../controllers/obituaryController';
 import { getMyProfile, updateMyProfile } from '../controllers/profileController';
 import { getMySummary } from '../controllers/summaryController';
 import { listMyLeads, listMyConsultRequests, listMyGuestbookEntries, deleteMyGuestbookEntry } from '../controllers/meActivityController';
+import { listMyCareGuideProgress, checkCareGuideTask, uncheckCareGuideTask } from '../controllers/careGuideController';
 import { getDeletionPreview, requestAccountDeletion, cancelAccountDeletion } from '../controllers/accountDeletionController';
 
 // B2C 로그인 유저 전용 "내 활동" 네임스페이스 (docs 04-01 §5.2 · 05-01 §4.2). /api/auth/me(계정 정보)와는
@@ -26,6 +27,11 @@ router.get('/consult-requests', listMyConsultRequests);
 router.get('/guestbook-entries', listMyGuestbookEntries);
 // 🔴 내 글 삭제는 개설자용 `DELETE /api/memorials/:id/guestbook/:gid`와 **다른 엔드포인트**다(00-36 §4.7-1 — 권한 판정이 섞인다).
 router.delete('/guestbook-entries/:id', deleteMyGuestbookEntry);
+
+// 07-04 §3.4 — 상중 행정 가이드 체크 상태(회원만). 🔴 운영자 열람 불가 — admin 라우트에 노출하지 않는다.
+router.get('/care-guide', listMyCareGuideProgress);
+router.put('/care-guide/:taskId', checkCareGuideTask);
+router.delete('/care-guide/:taskId', uncheckCareGuideTask);
 
 // 00-36 M-3 — 회원 탈퇴(30일 유예, 소프트 삭제). 런타임에서 아무것도 지우지 않는다(시각 두 개만).
 router.get('/deletion-preview', getDeletionPreview);

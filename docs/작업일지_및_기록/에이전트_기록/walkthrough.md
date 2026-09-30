@@ -16,6 +16,32 @@
 > [`_아카이브_2608`](walkthrough_아카이브_2608.md)(08-31분). 남은 것 = 판정 대기 + 판정 표기 없음. 기준 → `record.md` §2-1.
 
 ---
+## 2026-09-30 | [Sonnet] 상중 행정 가이드 09-30 결정 2건 — ① 모바일 3개월 알림 줄 · ② F단계 체크 상태 보존(`CareGuideProgress`)
+
+- **근거 스펙**: `docs/07_상중_행정_케어/07-04_상중_행정_가이드_재설계_검토서.md` §4.3(09-30 개발자 결정 블록) · §3.4 · §3.4-1(09-09 확정표) · §3.4-2 · §8 #6 · `db-safety.md`. 핸드오프 블록.
+- **건드린 파일**:
+  - 백엔드: `prisma/schema.prisma`(`CareGuideProgress` + `User.careGuideProgress`) · `prisma/migrations/20260930035049_add_care_guide_progress/` · `src/controllers/careGuideController.ts`(신규) · `src/routes/meRoutes.ts` · `src/services/accountPurgeService.ts`
+  - 프런트: `src/pages/CareGuidePage.tsx` · `src/styles/design-v2.css`
+  - 자동 생성: `docs/00_핵심플랫폼/00-05_DB_요구사항_및_테이블_사전.md`(`generate-db-doc.js`)
+- **결과**:
+  - ① `.v2-mobile-tabs` 바로 아래 `.v2-mobile-alert` 버튼 한 줄 — 문구 "상속포기·한정승인 기한은 3개월입니다 ›", 누르면 `scrollToSection('month3')`, 활성 탭이 month3이면 렌더 안 함, 데스크톱은 CSS로 숨김. 상자·배경·아이콘·붉은색 없음(`--v2-text-muted`, 13px), 높이 `--min-touch-target`. 모바일 `v2-callout` 숨김은 그대로.
+  - ② 모델(`userId`·`taskId Int`·`checkedAt`, `@@unique[userId,taskId]`, User Cascade) + API `GET /api/me/care-guide`(→`{taskIds}`) · `PUT`/`DELETE /api/me/care-guide/:taskId`(멱등, 해제 = `deleteMany`). 회원은 진입 시 서버 값으로 체크 표시·누를 때마다 저장(낙관적 갱신, 실패 시 되돌림), 비회원은 useState뿐 + "로그인하면 체크한 항목이 저장됩니다." 한 줄. 로그·`console.error`에 taskId·목록을 찍지 않음(고정 문구만), admin 라우트에 노출 없음.
+  - 🔴 DB: 마이그레이션 전 `docker exec eobom-postgres pg_dump` → `backend/backups/local-20260930-120418.sql`(904,269바이트, 끝 "dump complete" 확인) + 사람 확인("실행") 후 `migrate dev`. 마이그레이션 SQL은 CREATE TABLE·UNIQUE INDEX·FK뿐(기존 행 무변경). 운영 DB는 이번 범위 아님(운영 배포 시 `migrate deploy` 별도).
+  - `tsc --noEmit` 프런트·백엔드 에러 0. `prisma validate` 통과.
+- **편차**:
+  1. **`accountPurgeService`에 `careGuideProgress.deleteMany` 추가**(스펙에 문장 없음) — 파기 후에도 `User` 행이 유령 계정으로 남아 `onDelete: Cascade`가 안 타므로, §3.4-1 보유기간 "회원 탈퇴 시까지"를 지키려면 필요. [Opus] 확인 요청.
+  2. **비회원 안내 문구를 "로그인하면 체크한 항목이 저장됩니다."로 씀**(스펙 예시는 "로그인하면 저장됩니다") — 허용 범위 안이지만 문구는 [Opus]가 확정해 주길.
+  3. **저장 실패 시 화면만 되돌리고 안내 문구는 안 띄움** — 스펙에 실패 UX 없음.
+  4. **360px 한 줄 여부는 실측 못 함**(dev 서버 미기동·`feedback_dev_server_policy`). 계산상 13px 기준 약 270px < 312px(360−좌우 24×2)라 들어갈 것으로 보나, 글자 폭은 폰트 의존이라 **사람 확인 필요**. 넘치면 스펙대로 글자 축소 없이 편차로 올린다(문구는 [Opus]가 줄인다).
+- **다음 에이전트가 알아야 할 것**:
+  - 🔴 **`prisma generate`의 마지막 단계(엔진 DLL rename)가 EPERM으로 실패** — 실행 중인 백엔드 dev 서버가 `query_engine-windows.dll.node`를 잡고 있음. **서버를 끄고 `cd eobomDev/backend && npx prisma generate` 재실행 후 기동**해야 새 모델이 런타임에 잡힌다(타입은 이미 생성돼 tsc는 통과).
+  - 🔴 **실기동 검증 대기(사람)**: ① 모바일 폭 — 알림 줄이 탭 아래 한 줄로 보이고 누르면 3개월 구간으로 전환, 3개월 탭에서 사라짐, 360px 한 줄 ② 회원 — 체크 후 새로고침·다른 기기에서 유지, 해제 후 사라짐, 비회원은 새로고침 시 초기화 ③ 로그아웃 시 전부 미체크로 돌아옴.
+  - `docs/00_핵심플랫폼/00-19` 제4조 행·07-04 문구 갱신은 [Opus] 몫 — 이번에 docs는 건드리지 않았다(00-05는 자동 생성물).
+  - 운영자 화면에 "개수(집계)"는 아직 없다 — §3.4-1의 "장애 대응 시 개수만"은 필요해질 때 별도 구현.
+  - 커밋은 사람이 한다 — 메시지 초안은 응답에 있음.
+
+<!-- Gemini 판정 1줄: ✅통과 / ❌반려(사유) / 🔄스펙갱신(고친 문서) -->
+
 ## 2026-09-30 | [Sonnet] 사후 개봉·엔딩노트 09-30 결정 묶음 — A(00-41 질의 판정 3건) · B(공개 섹션 한 줄) · C(지정 시 기본 사후 공개 권한) · 후속 1·2(지정 폼 안내문 교체, DRAFT 가족 포함) · D(로컬 테스트 데이터 되돌리기, 실행 완료)
 
 - **근거 스펙**: `docs/00_핵심플랫폼/00-41_사후개봉_최소안_명세서.md` §7.1·§7.3·§8.1·§9 · `docs/06_엔딩노트_유언/06-04_엔딩노트_보관함_실구현_기획서.md` §8.3-1·§8.3-2 · `db-safety.md`(D). 핸드오프 블록.

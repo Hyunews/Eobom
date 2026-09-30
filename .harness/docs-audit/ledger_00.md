@@ -138,43 +138,44 @@
 | `00_핵심플랫폼/00-04_기능_및_API_명세서.md` | 123 | &nbsp;&nbsp;&nbsp;&nbsp;### 7.1 🔴 04·05 프론트 착수 보류 중 |  |  |  |
 | `00_핵심플랫폼/00-04_기능_및_API_명세서.md` | 139 | &nbsp;&nbsp;## 🔗 8. 관련 문서 |  |  |  |
 
-## `00_핵심플랫폼/00-05_DB_요구사항_및_테이블_사전.md` (66KB · 절 33) <!-- sha:9e360de96f -->
+## `00_핵심플랫폼/00-05_DB_요구사항_및_테이블_사전.md` (68KB · 절 34) <!-- sha:34888a0f69 -->
 
 | 파일 | 줄 | 절 | 판정 | 근거 | 메모 |
 |---|---:|---|---|---|---|
 | `00_핵심플랫폼/00-05_DB_요구사항_및_테이블_사전.md` | 1 | # 🗄️ 00-05. DB 요구사항 및 테이블 사전 (Prisma Schema) |  |  |  |
 | `00_핵심플랫폼/00-05_DB_요구사항_및_테이블_사전.md` | 14 | &nbsp;&nbsp;## 📋 자동 생성: 테이블·컬럼 사전 |  |  |  |
 | `00_핵심플랫폼/00-05_DB_요구사항_및_테이블_사전.md` | 18 | &nbsp;&nbsp;&nbsp;&nbsp;### `User` |  |  |  |
-| `00_핵심플랫폼/00-05_DB_요구사항_및_테이블_사전.md` | 64 | &nbsp;&nbsp;&nbsp;&nbsp;### `FamilyDesignation` |  |  |  |
-| `00_핵심플랫폼/00-05_DB_요구사항_및_테이블_사전.md` | 107 | &nbsp;&nbsp;&nbsp;&nbsp;### `SocialAccount` |  |  |  |
-| `00_핵심플랫폼/00-05_DB_요구사항_및_테이블_사전.md` | 131 | &nbsp;&nbsp;&nbsp;&nbsp;### `Facility` |  |  |  |
-| `00_핵심플랫폼/00-05_DB_요구사항_및_테이블_사전.md` | 174 | &nbsp;&nbsp;&nbsp;&nbsp;### `FacilityReview` |  |  |  |
-| `00_핵심플랫폼/00-05_DB_요구사항_및_테이블_사전.md` | 198 | &nbsp;&nbsp;&nbsp;&nbsp;### `Partner` |  |  |  |
-| `00_핵심플랫폼/00-05_DB_요구사항_및_테이블_사전.md` | 237 | &nbsp;&nbsp;&nbsp;&nbsp;### `FacilityClaim` |  |  |  |
-| `00_핵심플랫폼/00-05_DB_요구사항_및_테이블_사전.md` | 264 | &nbsp;&nbsp;&nbsp;&nbsp;### `LeadNumberCounter` |  |  |  |
-| `00_핵심플랫폼/00-05_DB_요구사항_및_테이블_사전.md` | 274 | &nbsp;&nbsp;&nbsp;&nbsp;### `Lead` |  |  |  |
-| `00_핵심플랫폼/00-05_DB_요구사항_및_테이블_사전.md` | 318 | &nbsp;&nbsp;&nbsp;&nbsp;### `CommissionPolicy` |  |  |  |
-| `00_핵심플랫폼/00-05_DB_요구사항_및_테이블_사전.md` | 347 | &nbsp;&nbsp;&nbsp;&nbsp;### `Settlement` |  |  |  |
-| `00_핵심플랫폼/00-05_DB_요구사항_및_테이블_사전.md` | 374 | &nbsp;&nbsp;&nbsp;&nbsp;### `Expert` |  |  |  |
-| `00_핵심플랫폼/00-05_DB_요구사항_및_테이블_사전.md` | 414 | &nbsp;&nbsp;&nbsp;&nbsp;### `ConsultRequest` |  |  |  |
-| `00_핵심플랫폼/00-05_DB_요구사항_및_테이블_사전.md` | 450 | &nbsp;&nbsp;&nbsp;&nbsp;### `ConsultNumberCounter` |  |  |  |
-| `00_핵심플랫폼/00-05_DB_요구사항_및_테이블_사전.md` | 460 | &nbsp;&nbsp;&nbsp;&nbsp;### `Memorial` |  |  |  |
-| `00_핵심플랫폼/00-05_DB_요구사항_및_테이블_사전.md` | 502 | &nbsp;&nbsp;&nbsp;&nbsp;### `MemorialTribute` |  |  |  |
-| `00_핵심플랫폼/00-05_DB_요구사항_및_테이블_사전.md` | 525 | &nbsp;&nbsp;&nbsp;&nbsp;### `MemorialGuestbook` |  |  |  |
-| `00_핵심플랫폼/00-05_DB_요구사항_및_테이블_사전.md` | 553 | &nbsp;&nbsp;&nbsp;&nbsp;### `MemorialPhoto` |  |  |  |
-| `00_핵심플랫폼/00-05_DB_요구사항_및_테이블_사전.md` | 578 | &nbsp;&nbsp;&nbsp;&nbsp;### `Deceased` |  |  |  |
-| `00_핵심플랫폼/00-05_DB_요구사항_및_테이블_사전.md` | 600 | &nbsp;&nbsp;&nbsp;&nbsp;### `Obituary` |  |  |  |
-| `00_핵심플랫폼/00-05_DB_요구사항_및_테이블_사전.md` | 646 | &nbsp;&nbsp;&nbsp;&nbsp;### `ObituaryMourner` |  |  |  |
-| `00_핵심플랫폼/00-05_DB_요구사항_및_테이블_사전.md` | 669 | &nbsp;&nbsp;&nbsp;&nbsp;### `EndingNote` |  |  |  |
-| `00_핵심플랫폼/00-05_DB_요구사항_및_테이블_사전.md` | 699 | &nbsp;&nbsp;&nbsp;&nbsp;### `FarewellMessage` |  |  |  |
-| `00_핵심플랫폼/00-05_DB_요구사항_및_테이블_사전.md` | 730 | &nbsp;&nbsp;&nbsp;&nbsp;### `EndingNoteEntry` |  |  |  |
-| `00_핵심플랫폼/00-05_DB_요구사항_및_테이블_사전.md` | 758 | &nbsp;&nbsp;&nbsp;&nbsp;### `EndingNoteGrant` |  |  |  |
-| `00_핵심플랫폼/00-05_DB_요구사항_및_테이블_사전.md` | 786 | &nbsp;&nbsp;&nbsp;&nbsp;### `DeathVerification` |  |  |  |
-| `00_핵심플랫폼/00-05_DB_요구사항_및_테이블_사전.md` | 824 | &nbsp;&nbsp;&nbsp;&nbsp;### `ArchivePurgeQueue` |  |  |  |
-| `00_핵심플랫폼/00-05_DB_요구사항_및_테이블_사전.md` | 837 | &nbsp;&nbsp;&nbsp;&nbsp;### `FarewellPurgeAuditLog` |  |  |  |
-| `00_핵심플랫폼/00-05_DB_요구사항_및_테이블_사전.md` | 852 | &nbsp;&nbsp;&nbsp;&nbsp;### `Admin` |  |  |  |
-| `00_핵심플랫폼/00-05_DB_요구사항_및_테이블_사전.md` | 868 | &nbsp;&nbsp;&nbsp;&nbsp;### `AdminAuditLog` |  |  |  |
-| `00_핵심플랫폼/00-05_DB_요구사항_및_테이블_사전.md` | 892 | &nbsp;&nbsp;## 📝 보충 설명 (수동 관리 — 자동 생성 스크립트가 건드리지 않음) |  |  |  |
+| `00_핵심플랫폼/00-05_DB_요구사항_및_테이블_사전.md` | 65 | &nbsp;&nbsp;&nbsp;&nbsp;### `FamilyDesignation` |  |  |  |
+| `00_핵심플랫폼/00-05_DB_요구사항_및_테이블_사전.md` | 108 | &nbsp;&nbsp;&nbsp;&nbsp;### `SocialAccount` |  |  |  |
+| `00_핵심플랫폼/00-05_DB_요구사항_및_테이블_사전.md` | 132 | &nbsp;&nbsp;&nbsp;&nbsp;### `Facility` |  |  |  |
+| `00_핵심플랫폼/00-05_DB_요구사항_및_테이블_사전.md` | 175 | &nbsp;&nbsp;&nbsp;&nbsp;### `FacilityReview` |  |  |  |
+| `00_핵심플랫폼/00-05_DB_요구사항_및_테이블_사전.md` | 199 | &nbsp;&nbsp;&nbsp;&nbsp;### `Partner` |  |  |  |
+| `00_핵심플랫폼/00-05_DB_요구사항_및_테이블_사전.md` | 238 | &nbsp;&nbsp;&nbsp;&nbsp;### `FacilityClaim` |  |  |  |
+| `00_핵심플랫폼/00-05_DB_요구사항_및_테이블_사전.md` | 265 | &nbsp;&nbsp;&nbsp;&nbsp;### `LeadNumberCounter` |  |  |  |
+| `00_핵심플랫폼/00-05_DB_요구사항_및_테이블_사전.md` | 275 | &nbsp;&nbsp;&nbsp;&nbsp;### `Lead` |  |  |  |
+| `00_핵심플랫폼/00-05_DB_요구사항_및_테이블_사전.md` | 319 | &nbsp;&nbsp;&nbsp;&nbsp;### `CommissionPolicy` |  |  |  |
+| `00_핵심플랫폼/00-05_DB_요구사항_및_테이블_사전.md` | 348 | &nbsp;&nbsp;&nbsp;&nbsp;### `Settlement` |  |  |  |
+| `00_핵심플랫폼/00-05_DB_요구사항_및_테이블_사전.md` | 375 | &nbsp;&nbsp;&nbsp;&nbsp;### `Expert` |  |  |  |
+| `00_핵심플랫폼/00-05_DB_요구사항_및_테이블_사전.md` | 415 | &nbsp;&nbsp;&nbsp;&nbsp;### `ConsultRequest` |  |  |  |
+| `00_핵심플랫폼/00-05_DB_요구사항_및_테이블_사전.md` | 451 | &nbsp;&nbsp;&nbsp;&nbsp;### `ConsultNumberCounter` |  |  |  |
+| `00_핵심플랫폼/00-05_DB_요구사항_및_테이블_사전.md` | 461 | &nbsp;&nbsp;&nbsp;&nbsp;### `Memorial` |  |  |  |
+| `00_핵심플랫폼/00-05_DB_요구사항_및_테이블_사전.md` | 503 | &nbsp;&nbsp;&nbsp;&nbsp;### `MemorialTribute` |  |  |  |
+| `00_핵심플랫폼/00-05_DB_요구사항_및_테이블_사전.md` | 526 | &nbsp;&nbsp;&nbsp;&nbsp;### `MemorialGuestbook` |  |  |  |
+| `00_핵심플랫폼/00-05_DB_요구사항_및_테이블_사전.md` | 554 | &nbsp;&nbsp;&nbsp;&nbsp;### `MemorialPhoto` |  |  |  |
+| `00_핵심플랫폼/00-05_DB_요구사항_및_테이블_사전.md` | 579 | &nbsp;&nbsp;&nbsp;&nbsp;### `Deceased` |  |  |  |
+| `00_핵심플랫폼/00-05_DB_요구사항_및_테이블_사전.md` | 601 | &nbsp;&nbsp;&nbsp;&nbsp;### `Obituary` |  |  |  |
+| `00_핵심플랫폼/00-05_DB_요구사항_및_테이블_사전.md` | 647 | &nbsp;&nbsp;&nbsp;&nbsp;### `ObituaryMourner` |  |  |  |
+| `00_핵심플랫폼/00-05_DB_요구사항_및_테이블_사전.md` | 670 | &nbsp;&nbsp;&nbsp;&nbsp;### `EndingNote` |  |  |  |
+| `00_핵심플랫폼/00-05_DB_요구사항_및_테이블_사전.md` | 700 | &nbsp;&nbsp;&nbsp;&nbsp;### `FarewellMessage` |  |  |  |
+| `00_핵심플랫폼/00-05_DB_요구사항_및_테이블_사전.md` | 731 | &nbsp;&nbsp;&nbsp;&nbsp;### `EndingNoteEntry` |  |  |  |
+| `00_핵심플랫폼/00-05_DB_요구사항_및_테이블_사전.md` | 759 | &nbsp;&nbsp;&nbsp;&nbsp;### `EndingNoteGrant` |  |  |  |
+| `00_핵심플랫폼/00-05_DB_요구사항_및_테이블_사전.md` | 787 | &nbsp;&nbsp;&nbsp;&nbsp;### `DeathVerification` |  |  |  |
+| `00_핵심플랫폼/00-05_DB_요구사항_및_테이블_사전.md` | 825 | &nbsp;&nbsp;&nbsp;&nbsp;### `ArchivePurgeQueue` |  |  |  |
+| `00_핵심플랫폼/00-05_DB_요구사항_및_테이블_사전.md` | 838 | &nbsp;&nbsp;&nbsp;&nbsp;### `FarewellPurgeAuditLog` |  |  |  |
+| `00_핵심플랫폼/00-05_DB_요구사항_및_테이블_사전.md` | 853 | &nbsp;&nbsp;&nbsp;&nbsp;### `Admin` |  |  |  |
+| `00_핵심플랫폼/00-05_DB_요구사항_및_테이블_사전.md` | 869 | &nbsp;&nbsp;&nbsp;&nbsp;### `AdminAuditLog` |  |  |  |
+| `00_핵심플랫폼/00-05_DB_요구사항_및_테이블_사전.md` | 889 | &nbsp;&nbsp;&nbsp;&nbsp;### `CareGuideProgress` |  |  |  |
+| `00_핵심플랫폼/00-05_DB_요구사항_및_테이블_사전.md` | 914 | &nbsp;&nbsp;## 📝 보충 설명 (수동 관리 — 자동 생성 스크립트가 건드리지 않음) |  |  |  |
 
 ## `00_핵심플랫폼/00-06_화면_설계서_및_와이어프레임.md` (24KB · 절 21) <!-- sha:efcd150ffc -->
 
@@ -1360,7 +1361,7 @@
 | `00_핵심플랫폼/00-40_홈_랜딩_재설계_계획서.md` | 200 | &nbsp;&nbsp;&nbsp;&nbsp;### 3.1 기술 메모 (분기 2에서 쓴다) |  |  |  |
 | `00_핵심플랫폼/00-40_홈_랜딩_재설계_계획서.md` | 208 | &nbsp;&nbsp;## 4. 관련 문서 |  |  |  |
 
-## `00_핵심플랫폼/00-41_사후개봉_최소안_명세서.md` (24KB · 절 26) <!-- sha:ab8d94aa74 -->
+## `00_핵심플랫폼/00-41_사후개봉_최소안_명세서.md` (24KB · 절 26) <!-- sha:70ec67ab2d -->
 
 | 파일 | 줄 | 절 | 판정 | 근거 | 메모 |
 |---|---:|---|---|---|---|
@@ -1380,13 +1381,13 @@
 | `00_핵심플랫폼/00-41_사후개봉_최소안_명세서.md` | 181 | &nbsp;&nbsp;&nbsp;&nbsp;### 7.1 무엇이 열리나 |  |  |  |
 | `00_핵심플랫폼/00-41_사후개봉_최소안_명세서.md` | 192 | &nbsp;&nbsp;&nbsp;&nbsp;### 7.2 개봉 뒤 |  |  |  |
 | `00_핵심플랫폼/00-41_사후개봉_최소안_명세서.md` | 199 | &nbsp;&nbsp;&nbsp;&nbsp;### 7.3 🆕 사망 뒤에 수락하는 가족 (09-30 지시) |  |  |  |
-| `00_핵심플랫폼/00-41_사후개봉_최소안_명세서.md` | 225 | &nbsp;&nbsp;## 🖥️ 8. 화면 | 묶음 | 자동 — 본문 없음(하위 절만 묶음) |  |
-| `00_핵심플랫폼/00-41_사후개봉_최소안_명세서.md` | 227 | &nbsp;&nbsp;&nbsp;&nbsp;### 8.1 유족 — 개봉 요청 (`/family-shared` 안) |  |  |  |
-| `00_핵심플랫폼/00-41_사후개봉_최소안_명세서.md` | 236 | &nbsp;&nbsp;&nbsp;&nbsp;### 8.2 유족 — 요청 상태 |  |  |  |
-| `00_핵심플랫폼/00-41_사후개봉_최소안_명세서.md` | 255 | &nbsp;&nbsp;&nbsp;&nbsp;### 8.3 본인 — 배너 |  |  |  |
-| `00_핵심플랫폼/00-41_사후개봉_최소안_명세서.md` | 263 | &nbsp;&nbsp;&nbsp;&nbsp;### 8.4 운영자 — §5.3 | 묶음 | 자동 — 본문 없음(하위 절만 묶음) |  |
-| `00_핵심플랫폼/00-41_사후개봉_최소안_명세서.md` | 267 | &nbsp;&nbsp;## 🔌 9. API (경로는 기존 라우터 관례에 맞춰 조정 가능) |  |  |  |
-| `00_핵심플랫폼/00-41_사후개봉_최소안_명세서.md` | 288 | &nbsp;&nbsp;## 🚫 10. 이번에 하지 않는 것 |  |  |  |
-| `00_핵심플랫폼/00-41_사후개봉_최소안_명세서.md` | 304 | &nbsp;&nbsp;## 🛠️ 11. 구현 단계 · 완료 판정 |  |  |  |
-| `00_핵심플랫폼/00-41_사후개봉_최소안_명세서.md` | 331 | &nbsp;&nbsp;## ✋ 12. 개발자님이 정하실 일 |  |  |  |
-| `00_핵심플랫폼/00-41_사후개봉_최소안_명세서.md` | 343 | &nbsp;&nbsp;## 🔗 13. 관련 문서 |  |  |  |
+| `00_핵심플랫폼/00-41_사후개봉_최소안_명세서.md` | 227 | &nbsp;&nbsp;## 🖥️ 8. 화면 | 묶음 | 자동 — 본문 없음(하위 절만 묶음) |  |
+| `00_핵심플랫폼/00-41_사후개봉_최소안_명세서.md` | 229 | &nbsp;&nbsp;&nbsp;&nbsp;### 8.1 유족 — 개봉 요청 (`/family-shared` 안) |  |  |  |
+| `00_핵심플랫폼/00-41_사후개봉_최소안_명세서.md` | 238 | &nbsp;&nbsp;&nbsp;&nbsp;### 8.2 유족 — 요청 상태 |  |  |  |
+| `00_핵심플랫폼/00-41_사후개봉_최소안_명세서.md` | 257 | &nbsp;&nbsp;&nbsp;&nbsp;### 8.3 본인 — 배너 |  |  |  |
+| `00_핵심플랫폼/00-41_사후개봉_최소안_명세서.md` | 265 | &nbsp;&nbsp;&nbsp;&nbsp;### 8.4 운영자 — §5.3 | 묶음 | 자동 — 본문 없음(하위 절만 묶음) |  |
+| `00_핵심플랫폼/00-41_사후개봉_최소안_명세서.md` | 269 | &nbsp;&nbsp;## 🔌 9. API (경로는 기존 라우터 관례에 맞춰 조정 가능) |  |  |  |
+| `00_핵심플랫폼/00-41_사후개봉_최소안_명세서.md` | 290 | &nbsp;&nbsp;## 🚫 10. 이번에 하지 않는 것 |  |  |  |
+| `00_핵심플랫폼/00-41_사후개봉_최소안_명세서.md` | 306 | &nbsp;&nbsp;## 🛠️ 11. 구현 단계 · 완료 판정 |  |  |  |
+| `00_핵심플랫폼/00-41_사후개봉_최소안_명세서.md` | 333 | &nbsp;&nbsp;## ✋ 12. 개발자님이 정하실 일 |  |  |  |
+| `00_핵심플랫폼/00-41_사후개봉_최소안_명세서.md` | 345 | &nbsp;&nbsp;## 🔗 13. 관련 문서 |  |  |  |

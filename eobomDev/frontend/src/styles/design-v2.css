@@ -994,13 +994,32 @@
   color: #FFFFFF;
 }
 
+/* 모바일 전용 3개월 알림 줄(07-04 §4.3, 2026-09-30 개발자 결정) — 탭 바로 아래 한 줄.
+   🔴 상자·배경·아이콘·붉은 글자 없음(00-39 규칙 5). 보조 텍스트 토큰 한 줄, 높이는 터치 기준. */
+.v2-mobile-alert {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-height: var(--min-touch-target);
+  margin-bottom: 4px;
+  padding: 0;
+  border: none;
+  background: none;
+  font-size: var(--v2-fs-label);
+  color: var(--v2-text-muted);
+  text-align: left;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
 .v2-row-chevron {
   flex-shrink: 0;
   color: var(--v2-text-faint);
 }
 
 @media (min-width: 768px) {
-  .v2-mobile-tabs {
+  .v2-mobile-tabs,
+  .v2-mobile-alert {
     display: none;
   }
 

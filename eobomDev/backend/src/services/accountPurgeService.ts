@@ -136,6 +136,7 @@ export async function purgeAccount(user: ExpiredAccount): Promise<{ purged: bool
     prisma.memorialTribute.updateMany({ where: { userId: user.id }, data: { userId: null } }),
     prisma.familyDesignation.deleteMany({ where: { userId: user.id } }), // EndingNoteGrant Cascade
     prisma.endingNote.deleteMany({ where: { userId: user.id } }), // EndingNoteEntry·잔여 FarewellMessage Cascade
+    prisma.careGuideProgress.deleteMany({ where: { userId: user.id } }), // 07-04 §3.4-1 — 보유기간 "회원 탈퇴 시까지". User 행이 남아 Cascade가 안 탄다
     prisma.socialAccount.deleteMany({ where: { userId: user.id } }), // 🔴 로그인 경로 차단
     prisma.user.update({ where: { id: user.id }, data: { ...ANONYMIZED, purgedAt: now } }),
   ]);

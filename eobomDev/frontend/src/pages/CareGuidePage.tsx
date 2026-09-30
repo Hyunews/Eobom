@@ -5,6 +5,7 @@ import { getLegalLink } from '../lib/legalLink';
 import '../styles/design-v2.css';
 import { backdropCloseProps } from '../utils/backdropClose';
 import { PageLink } from '../components/common/PageLink';
+import { apiFetch } from '../lib/api';
 
 interface CareGuideTask {
   id: number;
@@ -63,8 +64,40 @@ export const CareGuidePage: React.FC<CareGuidePageProps> = ({ setActiveTab, curr
   const inheritanceRef = useRef<HTMLDivElement | null>(null);
   const sectionRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
+  const isMember = Boolean(currentUser);
+
+  const setChecked = (id: number, checked: boolean) => {
+    setTasks((prev) => prev.map((t) => (t.id === id ? { ...t, checked } : t)));
+  };
+
+  // 07-04 §3.4 — 회원은 진입 시 서버 값으로 체크 표시, 비회원·로그아웃은 전부 미체크(state뿐).
+  // 🔴 §3.4-1 — 어떤 항목을 체크했는지는 로그·에러 리포트에 남기지 않는다: 실패해도 id·목록을 찍지 않는다.
+  useEffect(() => {
+    let cancelled = false;
+    if (!isMember) {
+      setTasks((prev) => prev.map((t) => ({ ...t, checked: false })));
+      return;
+    }
+    apiFetch<{ taskIds: number[] }>('/api/me/care-guide', 'USER')
+      .then((data) => {
+        if (cancelled) return;
+        const checkedIds = new Set(data.taskIds);
+        setTasks((prev) => prev.map((t) => ({ ...t, checked: checkedIds.has(t.id) })));
+      })
+      .catch(() => {
+        /* 조회 실패 시 미체크로 둔다 — 화면은 그대로 쓸 수 있다 */
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [isMember]);
+
+  // 회원: 누를 때마다 저장(체크 = PUT, 해제 = DELETE·행 삭제). 실패하면 화면을 되돌려 저장된 것처럼 보이지 않게 한다.
   const toggleTask = (id: number) => {
-    setTasks((prev) => prev.map((t) => (t.id === id ? { ...t, checked: !t.checked } : t)));
+    const next = !tasks.find((t) => t.id === id)?.checked;
+    setChecked(id, next);
+    if (!isMember) return;
+    apiFetch(`/api/me/care-guide/${id}`, 'USER', { method: next ? 'PUT' : 'DELETE' }).catch(() => setChecked(id, !next));
   };
 
   const sectionsWithItems = useMemo(
@@ -159,6 +192,14 @@ export const CareGuidePage: React.FC<CareGuidePageProps> = ({ setActiveTab, curr
             ))}
           </div>
 
+          {/* 07-04 §4.3(2026-09-30 개발자 결정) — 모바일은 배너를 숨기므로 3개월 기한을 한 줄로 알린다.
+              3개월 탭에서는 항목이 그대로 보이므로 숨긴다. 데스크톱은 CSS가 숨김(기존 배너가 그 역할). */}
+          {activeSectionKey !== 'month3' && (
+            <button type="button" className="v2-mobile-alert" onClick={() => scrollToSection('month3')}>
+              상속포기·한정승인 기한은 3개월입니다 ›
+            </button>
+          )}
+
           {sectionsWithItems.map((section) => {
             const categoryOrder: string[] = [];
             const byCategory = new Map<string, CareGuideTask[]>();
@@ -223,6 +264,7 @@ export const CareGuidePage: React.FC<CareGuidePageProps> = ({ setActiveTab, curr
             이 체크리스트는 일반적인 안내이며 개별 사정에 따라 다를 수 있습니다. 정확한 기한 판단은
             전문가 상담을 이용하세요.
           </p>
+          {!isMember && <p className="v2-footnote">로그인하면 체크한 항목이 저장됩니다.</p>}
         </div>
 
         <nav className="v2-guide-toc" aria-label="기한별 목차">

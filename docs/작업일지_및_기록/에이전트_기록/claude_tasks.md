@@ -908,3 +908,12 @@ state를 그대로 추모관 사후 연결 동의로도 흘려보내면 사용�
 - `.hero-cta-row`·`.entry-extra-scrim`·구 `.hero-section` 모바일 오버라이드 등을 지우면서, 지우기 전에 매번 grep으로 다른 파일(DomainOverviewPage.tsx 등)이 같은 클래스를 쓰는지 먼저 확인 — EntryBoxes.tsx의 `Badge` export만 Sidebar.tsx가 여전히 참조하고 있어서 그 파일 자체는 못 지우고 목록에만 올림.
 - 매 파일 변경 뒤가 아니라 전체 재작성 끝에 `npx tsc --noEmit`·`npm run build`를 돌렸는데, 한 번에 통과(에러 0) — 중간에 되돌린 시행착오는 없었다.
 
+## 2026-09-30 [Sonnet] 상중 행정 가이드 — 3개월 알림 줄 + 체크 상태 보존 메모
+
+- 07-04는 §3.4·§3.4-1·§3.4-2·§4.3·§8 #6만 offset/limit로 읽음(전문 통독 안 함).
+- 파기 서비스(`accountPurgeService`)가 User 행을 지우지 않고 익명화만 하는 걸 뒤늦게 확인 → `onDelete: Cascade`는 파기 때 안 탄다. 보유기간 "탈퇴 시까지"를 지키려고 파기 트랜잭션에 `careGuideProgress.deleteMany`를 넣음(편차 1).
+- 백엔드에 요청 로거·프런트에 에러 리포터가 없음을 grep으로 확인 → §3.4-1 "로그·에러 리포트에 남기지 않음"은 컨트롤러 `console.error`를 고정 문구로 쓰는 것으로 충족.
+- taskId 검증은 careGuideTasks.json이 프런트에만 있어 "1~1000 정수"까지만 서버가 본다(존재 여부 대조 안 함).
+- Bash 도구의 heredoc/`cat >>`가 이 환경에서 실패해서 스키마 추가는 Edit로 했다. PowerShell의 `docker exec … psql -c 'select … "CareGuideProgress"'`는 따옴표가 벗겨져 테이블 없음 오류처럼 보였지만 원인은 인용이었고, 마이그레이션 SQL 자체는 정상 적용 출력을 확인.
+- `prisma generate`가 dev 서버의 엔진 DLL 잠금으로 EPERM — `migrate dev`는 적용됐고 tsc는 통과. 서버 재기동 전 재생성 필요(walkthrough에 남김).
+
