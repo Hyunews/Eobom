@@ -16,6 +16,48 @@
 > [`_아카이브_2608`](walkthrough_아카이브_2608.md)(08-31분). 남은 것 = 판정 대기 + 판정 표기 없음. 기준 → `record.md` §2-1.
 
 ---
+## 2026-09-30 | [Sonnet] 담당 업체 없는 시설의 상담 버튼 알림창(임시) + `.stat-row` CSS 삭제
+
+- **근거 스펙**: 스펙 없음 — 개발자 지시(09-30, docs 01 판정 후속). 방향은 추후 버튼 숨김, 지금은 알림창만.
+- **건드린 파일**: `eobomDev/frontend/src/pages/FacilityPage.tsx` · `eobomDev/frontend/src/index.css`.
+- **결과**:
+  1. `FacilityPage.tsx` — `openInquiry(item)` 신설. `item.partnerId`가 없으면 `alert('이 시설은 아직 문의를 받지 않습니다.')`만 띄우고 모달을 안 연다. 상담 버튼 2곳(리스트형·카드형)의 `onClick={() => setInquiryFacility(item)}` → `onClick={() => openInquiry(item)}`. 목록 API가 이미 `partnerId`를 내려주므로 백엔드 변경 없음. 서버 `POST /api/facilities/:id/quotes`는 그대로(직접 호출하면 여전히 접수됨).
+  2. `index.css` — `.stat-row`·`.stat-row__value`·`.stat-row__label`과 ≤480px 미디어쿼리 삭제(사용처 0건 확인 후), 719줄 근처 주석의 `.stat-row` 언급 삭제.
+  `tsc --noEmit`(frontend)·`npm run build`(frontend) 통과.
+- **편차**: 알림 문구는 개발자 확정 문구가 없어 내가 정함(`이 시설은 아직 문의를 받지 않습니다.`) — 바꾸려면 `openInquiry` 한 줄.
+- **다음 에이전트가 알아야 할 것**: 🔴 실기동 미확인 — 담당 업체 없는 시설(대부분)에서 상담 버튼 → 알림창, 업체 있는 시설 → 모달. `alert`는 임시이며 추후 버튼 숨김으로 교체 예정. 서버 쪽 차단은 없음.
+
+<!-- Gemini 판정 1줄: ✅통과 / ❌반려(사유) / 🔄스펙갱신(고친 문서) -->
+
+---
+## 2026-09-30 | [Sonnet] 휴대폰 인증 설정값 `requirePhoneVerification` 삭제 (개발자 결정 09-30)
+
+- **근거 스펙**: `docs/01_장사시설_매칭/01-05_…명세서.md` §10-2 결정 블록(2026-09-30 "휴대폰 인증은 이번 범위에서 뺀다").
+- **건드린 파일**: `eobomDev/backend/src/config/policy.ts` 1줄.
+- **결과**: 삭제한 줄 원문 — `    requirePhoneVerification: true, // §10-2 — SMS 인증 연동은 별도 구현 전까지 미시행(정책값만 존재)`. 삭제 전 전역 검색 — 코드 참조는 policy.ts:10 한 곳뿐(나머지는 docs·`.harness` 문서 언급). 삭제 후 `npx tsc --noEmit`(backend) 통과.
+- **편차**: 없음.
+- **다음 에이전트가 알아야 할 것**: 문서 쪽 언급(`01-05` §12.3 예시 등)은 Opus가 정리.
+
+<!-- Gemini 판정 1줄: ✅통과 / ❌반려(사유) / 🔄스펙갱신(고친 문서) -->
+
+---
+## 2026-09-30 | [Sonnet] `06-06` P2 후속 수정 2건 사후 기록 (커밋 1ec5868·f4c7e64, 09-29 실기동 중 수정분)
+
+- **근거 스펙**: `docs/06_엔딩노트_유언/06-06_유언장_사진인식_요건확인_기획서.md` §3.1·§5 — 사람 실호출(`assets/assets_test01.jpg`) 결과에 맞춘 규칙 보강. 당시 미기록이라 소급 기록.
+- **건드린 파일**: 1ec5868 — `services/willRequirements.ts`·`willRequirements.test.ts`·프론트 `components/endingNote/WillPhotoResult.tsx`·`styles/design-v2.css`. f4c7e64 — `services/willRequirements.ts`·`willRequirements.test.ts`.
+- **결과**:
+  1. 날짜: `단기 4347(서기 2014)년 8월 11일`처럼 연도 뒤에 괄호 병기가 낀 표기를 찾음(서기 연도 사용).
+  2. 주소: 군 지역의 읍·면 단계(`괴산군 괴산읍 동부리 551`)를 `EUP_MYEON`으로 허용(`ADDRESS_FULL`·`ADDRESS_PARTIAL`).
+  3. 주소: `(주소)`·`주소:` 라벨 뒤 글귀(다음 `(내용)` 같은 라벨 앞까지)에 시·도 + 번호 붙은 행정 단위(읍·면·동·리·로·길 + 숫자)가 있으면 글자가 조금 틀려도 찾음(`findLabeledAddress`, 근거에 읽힌 글귀 그대로 표시). 실측 토큰 `과산운`(←괴산군)·`동부리55/`(←551)를 회귀 테스트로 추가(`REAL_TOKENS`).
+  4. 프론트: 모바일 사진·테두리 여백 조정(`WillPhotoResult.tsx`·`design-v2.css`).
+  🔴 "1→/ 오독"(`551`→`55/`)은 **글자를 고쳐 읽는 처리가 없다** — 라벨 앵커 규칙이 `리 + 숫자` 패턴(`동부리55/`의 `55`)으로 통과시킬 뿐이라 주소는 찾음 처리되고, 화면 근거에는 `55/` 그대로 나온다.
+  `npm test`(backend) 09-30 재실행 — 43/43 통과.
+- **편차**: 스펙에 없는 규칙 추가(위 1~3) — 판정은 제안, Opus 확인 필요. 특히 3번은 시·도 + 행정 단위 번호만 있으면 통과라 **오검출로 `찾음`이 나올 여지**가 있다.
+- **다음 에이전트가 알아야 할 것**: 남은 실기동 시험 3건 — ① 같은 이름 유언장 2장(이름 찾기) ② 도장 구분(`detectSeal` 약함) ③ OCR 오독(숫자 `1`↔`/` 등). `detectSeal` 임계값은 여전히 실사진 검증 대기.
+
+<!-- Gemini 판정 1줄: ✅통과 / ❌반려(사유) / 🔄스펙갱신(고친 문서) -->
+
+---
 ## 2026-09-29 | [Sonnet] 페이지 이동 메뉴·버튼을 링크로 + 주소 직접 입력 안전장치
 
 - **근거 스펙**: docs/00_핵심플랫폼/00-34_프론트엔드_공통_레이어_명세서.md §2.2 (09-29 결정 ①②). 본문 "페이지로 이동하는 메뉴…" 문구는 grep으로 못 찾음 — 사람이 붙여준 지시문 기준으로 구현.
