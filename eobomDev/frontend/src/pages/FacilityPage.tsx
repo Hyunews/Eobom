@@ -41,6 +41,16 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
   const [selectedMapFacility, setSelectedMapFacility] = useState<any | null>(null);
   const [inquiryFacility, setInquiryFacility] = useState<any | null>(null);
 
+  // 문의는 시설의 담당 업체(partnerId)에게만 전달된다. 담당 업체가 없는 시설은 받을 곳이 없어
+  // 알림창만 띄우고 모달을 열지 않는다(2026-09-30 개발자 결정, 임시 — 추후 버튼 숨김으로 바꿈).
+  const openInquiry = (item: any) => {
+    if (!item.partnerId) {
+      alert('이 시설은 아직 문의를 받지 않습니다.');
+      return;
+    }
+    setInquiryFacility(item);
+  };
+
   // 카드형/리스트형 보기 전환 — 2026-09-10 사람 지시로 추가. 서버 재조회는 필요 없고 같은
   // facilities 배열을 다르게 렌더링만 하면 돼서 페이지/필터와 무관한 순수 UI 상태로 둔다.
   const [viewMode, setViewMode] = useState<'card' | 'list'>('card');
@@ -727,7 +737,7 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
                 {/* btn-primary 배경은 인라인으로 안 건드린다 — .btn-primary:hover(index.css)가 그대로
                     살아 있어야 해서다(00-39 §8 #5, 호버 효과 불변). 크기만 v2로. */}
                 <button
-                  onClick={() => setInquiryFacility(item)}
+                  onClick={() => openInquiry(item)}
                   title="상담"
                   className="btn btn-primary"
                   style={{ display: 'flex', alignItems: 'center', gap: isMobile ? 0 : '0.25rem', padding: isMobile ? '0.6rem 1rem' : '0.5rem 1rem', fontSize: 'var(--v2-fs-support)', whiteSpace: 'nowrap', fontWeight: 700 }}
@@ -893,7 +903,7 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
                     통계의 "상담 내역"(전문가+업체 합산)과 용어를 맞춘다.
                     배경은 인라인으로 안 건드린다 — .btn-primary:hover가 그대로 살아 있어야 해서(00-39 §8 #5). */}
                   <button
-                    onClick={() => setInquiryFacility(item)}
+                    onClick={() => openInquiry(item)}
                     className="btn btn-primary"
                     style={{
                       flex: '1 1 0',

@@ -716,9 +716,7 @@ body {
 /* ── 00-29 §6.1 반응형 프리미티브 — 982곳 인라인 style이 미디어쿼리를 못 쓰는 게 모바일
    가독성 문제의 원인이다. 페이지가 공통으로 반복하는 4개 패턴만 클래스로 뽑는다.
    🔴 브레이크포인트는 기존 480/640/768만 쓴다 — 새 값을 만들면 어디서 접히는지 아무도
-   예측 못 하게 된다(00-29 §6.1). ⚠️ 문서 §6.1 표는 .stat-row에 360px 2단 접기도 요구하지만,
-   같은 개발자 지시가 "네 번째 값 금지"를 재차 못박아 480 하나로 접었다(walkthrough 편차 참고,
-   §6.2 375px 가로 스크롤 없음 기준은 통과). ── */
+   예측 못 하게 된다(00-29 §6.1). ── */
 .page-title {
   font-size: clamp(1.4rem, 5vw, 2rem);
 }
@@ -782,28 +780,6 @@ body {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr));
   gap: 1.5rem;
-}
-
-.stat-row {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-}
-
-.stat-row__value {
-  font-size: 1.8rem;
-}
-
-.stat-row__label {
-  font-size: var(--fs-caption);
-}
-
-@media (max-width: 480px) {
-  .stat-row__value {
-    font-size: 1.3rem;
-  }
-
-  /* 00-38 §4.5-1 — .stat-row__label 축소 규칙 폐기(2026-09-08). 11.2px는 6070 페르소나에게
-     읽히지 않는다. 칸이 좁으면 글자를 줄이지 않고 칸을 바꾼다(§8.2 — 4자리 이상은 2×2/세로 스택). */
 }
 
 .stack-sm {
