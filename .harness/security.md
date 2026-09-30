@@ -29,7 +29,7 @@
 | 시크릿 | 위치 | 비고 |
 |---|---|---|
 | 카카오/네이버/구글 OAuth 클라이언트 시크릿 | `eobomDev/backend/.env` | 3사 소셜 로그인 |
-| JWT 서명키 | `eobomDev/backend/.env` | |
+| JWT 서명키 | `eobomDev/backend/.env` · Render | 🔴 **09-30 발견: 운영 값이 `.env.example`에 커밋된 공개 예시 문자열과 같았다** → ✅ 운영 키 교체(사람, 09-30 · 일반·관리자 로그인 확인) + 코드 기본값 폴백 제거·미설정 시 기동 실패(Sonnet). 로컬·운영 **서로 다른 긴 무작위 값**. 교체해도 데이터 손실 없음(로그인만 풀림) — 암호화 키와 달리 언제든 바꿀 수 있다 |
 | `DATABASE_URL`·`DIRECT_URL` | `eobomDev/backend/.env` · Render 대시보드 | 로컬=Docker / 배포=Supabase(`systems.md` §4) |
 | `SETTLEMENT_ENCRYPTION_KEY` | `eobomDev/backend/.env` · Render | 정산·조의금 계좌 암호화 |
 | `ENDING_NOTE_ENCRYPTION_KEY` | `eobomDev/backend/.env` · Render | 06 엔딩노트·유족 메시지·R2 음성 선암호화(`00-11` §5.4-4) |
