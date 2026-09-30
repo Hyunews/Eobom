@@ -16,6 +16,19 @@
 > [`_아카이브_2608`](walkthrough_아카이브_2608.md)(08-31분). 남은 것 = 판정 대기 + 판정 표기 없음. 기준 → `record.md` §2-1.
 
 ---
+## 2026-09-30 | [Sonnet] TS 결정 2건 — ① 운영 phoneHash 조회(TS-001, 🔴 미실행·권한 거부) · ② `backup-db.ps1 -Target local|prod` 필수화(TS-002)
+
+- **근거 스펙**: `.harness/docs-audit/README.md` §4 "TS 판정 결과(09-30)" · `TS-001`·`TS-002`. 핸드오프 블록.
+- **건드린 파일**: `.harness/tools/backup-db.ps1` · 루트 `CLAUDE.md`("DB에 쓰기 전 백업" 줄) · `.harness/db-safety.md` §2 표·주석 · `.harness/systems.md` §4 백업 줄. `docs/`·`eobomDev/` 변경 없음.
+- **결과**:
+  - **B(완료)**: `-Target`이 없거나 `local`/`prod`가 아니면(대소문자 구분) 사용법을 찍고 `exit 1` — 기본값 없음. `-Target prod`는 기존 동작 그대로이되 **`BACKUP_DATABASE_URL`이 없어도 `DIRECT_URL`로 폴백하지 않고 실패**하며, 주소가 로컬이면 거부(예전엔 조용히 `local-` 파일을 만들었다). `-Target local`은 TS-002 §4 수동 3줄을 흡수: 컨테이너 안 `pg_dump -Fc`(유저·DB명은 컨테이너 `$POSTGRES_USER`/`$POSTGRES_DB`) → `docker cp` → 컨테이너 안 사본 삭제 → 호스트에 파일 있음·1KB 이상 확인. PowerShell은 MSYS 경로 변환을 안 하므로 `MSYS_NO_PATHCONV`는 불필요(단, Git Bash에서 스크립트를 부르지 말고 `powershell -File`로). 둘 다 끝에 대상(LOCAL/PROD)·경로·크기를 박스로 출력.
+  - 시험: 인자 없음 → 사용법 + exit 1 ✅ · `-Target foo`·`-Target PROD` → 거부 ✅ · `-Target local` → `backups/local-20260930-145523.dump`(256,706B) 생성·exit 0 ✅. **`-Target prod`는 시험하지 않음**(지시대로 사람 확인 뒤에만).
+  - **A(미실행)**: 운영 DB `SELECT count(*), min/max("createdAt") FROM "FamilyDesignation"`을 돌리려 했으나 **자동 모드 분류기가 "Production Reads"로 거부**했다. 우회하지 않고 멈춤 — 사람이 허용하거나 직접 돌려야 한다. git 쪽 사실만 확보: HASH_INDEX_KEY 코드 커밋 `3e022c6`(2026-09-01 10:47, `crypto.ts`가 `requireEnv('HASH_INDEX_KEY')`) · Render 키 등록 반영 `a8239d2`(09-03, `render.yaml`에 "누락돼 POST /api/family-designations 500의 원인"). **실제 배포 시각은 git으로 안 나온다**(push 시각은 reflog에 없음, Render 대시보드 필요).
+- **편차**: 없음(지시가 "권고"로 남긴 `-PgVersion`은 그대로 두었다). 참고: 지시 4항의 "크게 출력"은 색 박스 형태로 해석했다.
+- **다음 에이전트가 알아야 할 것**: 🔴 **A 미완** — ① 운영 조회는 사람 승인 후 재시도(또는 사람이 직접 실행) ② 배포일은 Render 배포 이력에서 확인 ③ 행이 배포일 이전이면 재해시 방법은 사람·Opus 결정(`rotate-keys.ts --confirm` 금지). `docs/`의 `TS-002` §5 코드가드 칸·§6·머리표 상태 갱신은 [Opus] 몫. 커밋은 사람이 한다 — 메시지 초안만.
+
+<!-- Gemini 판정 1줄: ✅통과 / ❌반려(사유) / 🔄스펙갱신(고친 문서) -->
+
 ## 2026-09-30 | [Sonnet] 06 판정 결정 3건 — ① 유언장 초안 탭 → 보관함 버튼 · ② 연명의료 등록 여부·등록일 · ③ 동의 문구에서 "2인 승인" 삭제
 
 - **근거 스펙**: ① `06-05` §7.2(✅ 09-30) · §4.3(09-30 블록) ② `06-04` §6.1 ①(✅ 09-30) ③ `06-03` §5(✅ 09-30, §8 #2 (가)안). 핸드오프 블록.
