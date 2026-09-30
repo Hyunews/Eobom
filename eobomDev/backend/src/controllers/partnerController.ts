@@ -3,6 +3,7 @@ import crypto from 'crypto';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import prisma from '../config/prisma';
+import { JWT_SECRET } from '../config/jwt';
 import { encryptField, decryptField } from '../utils/crypto';
 import { normalizePhone, isValidPhoneLength, MIN_PHONE_DIGITS, MAX_PHONE_DIGITS } from '../utils/phone';
 
@@ -10,7 +11,6 @@ import { normalizePhone, isValidPhoneLength, MIN_PHONE_DIGITS, MAX_PHONE_DIGITS 
 // aud: 'partner' 클레임으로 B2C 토큰과 교차 사용을 막는다. B2C authController.ts와 시크릿은
 // 공유하되(별도 키를 새로 관리하는 비용을 피함) payload 목적으로 구분한다.
 
-const JWT_SECRET = process.env.JWT_SECRET || 'eobom_jwt_secret_key_2026_well_dying';
 const ACCESS_TOKEN_TTL = '2h';
 const REFRESH_TOKEN_TTL = '30d';
 const BIZ_REG_NO_LENGTH = 10;

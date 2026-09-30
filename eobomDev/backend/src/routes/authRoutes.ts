@@ -9,10 +9,10 @@ import {
   unlinkProvider,
   captureFrontendOrigin,
   resolveFrontendUrl,
-  JWT_SECRET,
   FRONTEND_URL,
   isB2cAud,
 } from '../controllers/authController';
+import { JWT_SECRET } from '../config/jwt';
 
 const router = Router();
 

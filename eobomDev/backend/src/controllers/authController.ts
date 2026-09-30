@@ -2,8 +2,8 @@ import { Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
 import { SocialProfile } from '../config/passport';
 import prisma from '../config/prisma';
+import { JWT_SECRET } from '../config/jwt';
 
-export const JWT_SECRET = process.env.JWT_SECRET || 'eobom_jwt_secret_key_2026_well_dying';
 export const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
 
 // 가입 시점 필수 동의(이용약관·개인정보) — 2026-08-24 추가. 마케팅 수신은 선택이라 별도 플래그.

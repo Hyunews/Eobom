@@ -4,6 +4,7 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { Prisma } from '@prisma/client';
 import prisma from '../config/prisma';
+import { JWT_SECRET } from '../config/jwt';
 import { encryptField, decryptField } from '../utils/crypto';
 import { normalizePhone, isValidPhoneLength, maskPhone, MIN_PHONE_DIGITS, MAX_PHONE_DIGITS } from '../utils/phone';
 
@@ -12,7 +13,6 @@ import { normalizePhone, isValidPhoneLength, maskPhone, MIN_PHONE_DIGITS, MAX_PH
 // JWT 발급, refresh 회전)은 partnerController.ts와 동일 패턴을 재사용하되, aud 클레임으로
 // 사업자(Partner)·전문가(Expert)·B2C(User) 3종 토큰이 서로 섞이지 않게 분리한다.
 
-const JWT_SECRET = process.env.JWT_SECRET || 'eobom_jwt_secret_key_2026_well_dying';
 const ACCESS_TOKEN_TTL = '2h';
 const REFRESH_TOKEN_TTL = '30d';
 const MIN_PASSWORD_LENGTH = 8;
