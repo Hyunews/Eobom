@@ -28,7 +28,9 @@
   브랜치는 **main 직접**.
 - **한국어로만** 답한다.
 - `reports/`는 읽기 전용 — 고칠 게 보이면 `context.md`에 `[Gemini]` 요청으로 남긴다.
-- 🔴 **DB에 쓰기 전 백업** — `backup-db.ps1` 실행 후 **파일이 생겼는지 확인**까지가 통과.
+- 🔴 **DB에 쓰기 전 백업** — **운영 = `backup-db.ps1`**, **로컬 = `docker exec eobom-postgres pg_dump …`**
+  (`db-safety.md` 표). 🔴 `backup-db.ps1`은 **운영을 뜬다** — 로컬 작업 전에 돌리고 "백업했다"고 여기지 말 것(09-30 안내 사고).
+  파일명 `local-`/`prod-`로 대상을 확인하고 **파일이 생겼는지까지**가 통과.
   🔴 **스키마 변경만이 아니다**: `deleteMany`·`updateMany`·`migrate`·`db push`·**정리 스크립트**·시드.
   **로컬도 예외 아님**(08-05·08-27 2회 유실). 절차 → `.harness/db-safety.md`.
 - "완료" 선언 전 `.harness/done.md` 체크리스트를 통과할 것.
