@@ -228,7 +228,7 @@ export const getObituaryBySlug = async (req: Request, res: Response) => {
       where: { slug: req.params.slug },
       include: {
         deceased: { select: { name: true, deathDate: true } },
-        memorial: { select: { slug: true, portraitUrl: true } },
+        memorial: { select: { slug: true, portraitUrl: true, hiddenAt: true } },
         mourners: { orderBy: { sortOrder: 'asc' } },
       },
     });
@@ -257,7 +257,8 @@ export const getObituaryBySlug = async (req: Request, res: Response) => {
       burialSite: obituary.burialSite,
       mourners: obituary.mourners.map((m) => ({ name: m.name, relationship: m.relationship, isChief: m.isChief })),
       // 🔄 09-07 — memorial이 이제 선택이라 없을 수 있다(체크박스 안 켜고 만든 부고장).
-      memorialSlug: obituary.memorial?.slug ?? null,
+      // 🔵 09-30 — 운영자가 내린 추모관이면 [추모관 들어가기] 버튼이 안 뜨게 slug를 내리지 않는다(00-20 §6.2).
+      memorialSlug: obituary.memorial && !obituary.memorial.hiddenAt ? obituary.memorial.slug : null,
       cardFieldsUpdatedAt: obituary.cardFieldsUpdatedAt,
       updatedAt: obituary.updatedAt, // §5.4-2 — 랜딩 상단 "최종 수정 시각" 표시용
       // §9 #9 — 익명 조회에서는 이 경로에 절대 도달하지 않으므로(닫혔으면 위에서 이미 404)

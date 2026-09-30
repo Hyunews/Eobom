@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import prisma from '../config/prisma';
+import { verifyAdminBearerToken } from './adminController';
 import { normalizePhone, isValidPhoneLength, MIN_PHONE_DIGITS, MAX_PHONE_DIGITS } from '../utils/phone';
 
 // 운영자의 사업자(Partner)·전문가(Expert) 가입 심사. 자동승인 없음(§3.2 원칙) — 이 엔드포인트를
@@ -263,6 +264,7 @@ export const listMemorialsForAdmin = async (_req: Request, res: Response) => {
         deceasedDeathDate: true,
         visibility: true,
         closedAt: true,
+        hiddenAt: true,
         createdAt: true,
         createdByUser: { select: { id: true, name: true, email: true } },
       },
@@ -274,6 +276,46 @@ export const listMemorialsForAdmin = async (_req: Request, res: Response) => {
     return res.status(500).json({ status: 'error', message: '목록 조회 중 오류가 발생했습니다.' });
   }
 };
+
+// 추모관 내리기·되돌리기 (`PATCH /api/admin/memorials/:id/hide|unhide`) — 00-20 §6.2·00-21 제14조 3항(09-30).
+// 신고 기능은 없애고 운영자 조치만 남긴다: 전화·카톡으로 알려온 문제(살아 있는 사람의 추모관 등)를 운영자가 판단해 처리한다.
+// 🔴 Memorial.hiddenAt — 개설자가 풀 수 없다(visibility와 별개 칸). 공개 열람은 닫힌 추모관과 똑같이 "찾을 수 없음".
+// 🔴 사유 메모 필수 — 상태 변경과 AdminAuditLog를 한 트랜잭션에 묶는다(기록 없이 내려가는 경로가 없게).
+//    사유에 고인·유족의 개인정보를 적지 말 것(감사 로그가 두 번째 유출 경로가 되지 않게, 00-37 §3.2).
+const MAX_REASON_LENGTH = 500;
+const setMemorialHidden = (hide: boolean) => async (req: Request, res: Response) => {
+  const reason = typeof req.body?.reason === 'string' ? req.body.reason.trim() : '';
+  if (!reason) {
+    return res.status(400).json({ status: 'error', message: '사유 메모를 입력해 주세요.' });
+  }
+  if (reason.length > MAX_REASON_LENGTH) {
+    return res.status(400).json({ status: 'error', message: `사유 메모는 ${MAX_REASON_LENGTH}자 이내로 입력해 주세요.` });
+  }
+
+  try {
+    const decoded = verifyAdminBearerToken(req)!; // requireAdminAuth가 이미 검증(00-37 A-1 #1)
+    const memorial = await prisma.memorial.findUnique({ where: { id: req.params.id }, select: { id: true, hiddenAt: true } });
+    if (!memorial) {
+      return res.status(404).json({ status: 'error', message: '추모관을 찾을 수 없습니다.' });
+    }
+    if (hide === !!memorial.hiddenAt) {
+      return res.status(409).json({ status: 'error', message: hide ? '이미 내려져 있는 추모관입니다.' : '내려져 있지 않은 추모관입니다.' });
+    }
+
+    const [updated] = await prisma.$transaction([
+      prisma.memorial.update({ where: { id: memorial.id }, data: { hiddenAt: hide ? new Date() : null }, select: { id: true, hiddenAt: true } }),
+      prisma.adminAuditLog.create({
+        data: { adminId: decoded.id, adminName: decoded.name, action: hide ? 'HIDE' : 'UNHIDE', targetType: 'Memorial', targetId: memorial.id, reason },
+      }),
+    ]);
+    return res.json({ status: 'success', data: updated });
+  } catch (error) {
+    console.error('추모관 내리기/되돌리기 실패:', error);
+    return res.status(500).json({ status: 'error', message: '처리 중 오류가 발생했습니다.' });
+  }
+};
+export const hideMemorial = setMemorialHidden(true);
+export const unhideMemorial = setMemorialHidden(false);
 
 // 방명록 목록 (`GET /api/admin/memorials/:id/guestbook`, 00-37 §6 A-2 #5) — 🔵 문서(00-37)엔
 // 없던 신규 엔드포인트다. 방명록 숨김(`hideMemorialGuestbookEntry`)이 실제로 쓰이려면 어떤

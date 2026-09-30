@@ -34,6 +34,7 @@ interface MyMemorial {
   visibility: string;
   createdAt: string;
   closedAt: string | null;
+  hiddenAt: string | null; // 운영자가 내림(00-20 §6.2) — 개설자가 풀 수 없다
 }
 
 const VISIBILITY_LABEL: Record<string, string> = {
@@ -343,7 +344,7 @@ export const MemorialPage: React.FC<MemorialPageProps> = ({ currentUser, onOpenL
             <button type="button" className="v2-list-main" onClick={() => openModal(m)}>
               <span className="v2-list-title">
                 故 {m.deceasedName}
-                <span className="v2-list-inline-meta"> · {VISIBILITY_LABEL[m.visibility] || m.visibility}</span>
+                <span className="v2-list-inline-meta"> · {m.hiddenAt ? '운영자가 비공개 처리함' : VISIBILITY_LABEL[m.visibility] || m.visibility}</span>
               </span>
             </button>
             <span className="v2-list-meta">
@@ -363,7 +364,11 @@ export const MemorialPage: React.FC<MemorialPageProps> = ({ currentUser, onOpenL
 
                 <div className="v2-modal-row">
                   <span className="v2-modal-label">공개 범위</span>
-                  <span className="v2-modal-value">{VISIBILITY_LABEL[modalTarget.visibility] || modalTarget.visibility}</span>
+                  <span className="v2-modal-value">
+                    {modalTarget.hiddenAt
+                      ? '운영자가 비공개 처리함 · 공개 범위를 바꿔도 열리지 않습니다'
+                      : VISIBILITY_LABEL[modalTarget.visibility] || modalTarget.visibility}
+                  </span>
                 </div>
 
                 <div className="v2-modal-row">

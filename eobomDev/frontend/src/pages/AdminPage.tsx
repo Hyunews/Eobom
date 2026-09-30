@@ -287,6 +287,31 @@ export const AdminPage: React.FC = () => {
     }
   };
 
+  // 추모관 내리기/되돌리기(00-20 §6.2) — 사유 메모 필수(비어 있으면 서버도 400). 사유에 고인·유족 개인정보는 적지 않는다.
+  const setMemorialHidden = async (m: any, hide: boolean) => {
+    const label = hide ? '내리기' : '되돌리기';
+    const input = window.prompt(
+      `故 ${m.deceasedName}님의 추모관을 ${label}합니다.\n사유를 입력해 주세요(필수 · 감사 기록에 남습니다 · 개인정보는 적지 마세요).`,
+    );
+    if (input === null) return;
+    const reason = input.trim();
+    if (!reason) {
+      alert('사유를 입력해야 처리할 수 있습니다.');
+      return;
+    }
+    const res = await authFetch(`${BACKEND_URL}/api/admin/memorials/${m.id}/${hide ? 'hide' : 'unhide'}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ reason }),
+    });
+    if (!res) return;
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      alert(data.message || '처리 실패');
+    }
+    loadMemorials();
+  };
+
   // 🔵 00-37 문서엔 없던 신규 엔드포인트(GET .../guestbook) — 방명록 숨김을 실제로 쓰려면
   // 어떤 글을 숨길지 봐야 하는데 그 목록을 볼 방법이 없어서 백엔드에 최소로 추가했다(편차).
   const loadGuestbook = async (memorialId: string) => {
@@ -1102,13 +1127,25 @@ export const AdminPage: React.FC = () => {
                     <div style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginTop: '0.2rem' }}>
                       개설자 {m.createdByUser?.name}({m.createdByUser?.email})
                       {m.closedAt && ' · 폐쇄됨'}
+                      {m.hiddenAt && ` · 운영자가 내림 (${new Date(m.hiddenAt).toLocaleDateString()})`}
                     </div>
                   </div>
                   <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
                     <button onClick={() => toggleGuestbook(m.id)} className="btn" style={{ ...SMALL_BTN, backgroundColor: 'var(--surface-subtle)', color: 'var(--primary-color)' }}>
                       방명록 {openGuestbookId === m.id ? '닫기' : '보기'}
                     </button>
-                    {/* 🔄 09-30 신고 폐지 — 복구·추모관 숨기기(review) 버튼 삭제. 게시물 단위 조치는 방명록 숨기기만 남는다. */}
+                    {/* 🔄 09-30 — 신고는 폐지, 운영자 조치는 남긴다(00-20 §6.2): 추모관 내리기/되돌리기. 사유 필수 → 서버가 AdminAuditLog에 기록 */}
+                    <button
+                      onClick={() => setMemorialHidden(m, !m.hiddenAt)}
+                      className="btn"
+                      style={{
+                        ...SMALL_BTN,
+                        backgroundColor: m.hiddenAt ? 'var(--state-ok-bg)' : 'var(--state-danger-bg)',
+                        color: m.hiddenAt ? 'var(--state-ok-fg)' : 'var(--state-danger-fg)',
+                      }}
+                    >
+                      {m.hiddenAt ? '되돌리기' : '내리기'}
+                    </button>
                   </div>
                 </div>
 

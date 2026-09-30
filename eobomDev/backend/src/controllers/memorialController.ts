@@ -24,12 +24,14 @@ const isValidVisibility = (v: unknown): v is (typeof VALID_VISIBILITY)[number] =
 // slug는 id(UUID)와 별개의 추측 불가 토큰이어야 한다(§4.2, §9.1-2 — "순번·UUID 노출 모두 부적절").
 // id를 그대로 slug로 쓰지 않는 이유: id가 다른 경로(로그·내부 API 응답 등)로 노출되면 그게 곧
 // 추모관 접근 URL이 되어버린다 — 공개 식별자와 내부 PK를 분리해두면 그 경로가 원천 차단된다.
+const CLOSE_GRACE_DAYS = 30; // 00-20 §6.3-1 — 닫은 뒤 파기까지(탈퇴 유예 GRACE_DAYS와 같은 값이지만 따로 둔다)
 const generateSlug = () => crypto.randomBytes(16).toString('hex');
 
 // PRIVATE·닫힌 추모관은 존재를 숨긴다(§6.1) — slug로 여는 모든 공개 상호작용(조회/헌화/방명록)이
 // 공유하는 판정. 여기서 걸러지면 컨트롤러들은 전부 동일하게 404를 반환한다.
+// 🔵 09-30 — 운영자가 내린 추모관(hiddenAt)도 닫힌 것과 똑같이 "없음"으로 응답한다(00-20 §6.2).
 const findViewableMemorialBySlug = (slug: string) =>
-  prisma.memorial.findUnique({ where: { slug } }).then((m) => (!m || m.closedAt || m.visibility === 'PRIVATE' ? null : m));
+  prisma.memorial.findUnique({ where: { slug } }).then((m) => (!m || m.closedAt || m.hiddenAt || m.visibility === 'PRIVATE' ? null : m));
 
 // 비회원 헌화/방명록 중복 억제용 해시(§4.4) — IP는 원문 저장하지 않고 여기서 즉시 해시로만 쓴다.
 // visitorToken은 프론트가 localStorage 등으로 관리해 보내는 익명 식별자(선택) — 없어도 동작은 한다.
@@ -227,9 +229,15 @@ export const closeMemorial = async (req: Request, res: Response) => {
       return res.status(404).json({ status: 'error', message: '추모관을 찾을 수 없습니다.' });
     }
 
+    // 🔵 09-30 — 직접 닫아도 30일 뒤 파기(00-20 §6.3-1·§8.1-1): closedAt과 함께 purgeAt = +30일.
+    // 이미 닫혀 있으면 기존 값을 덮어쓰지 않는다(멱등). 파기는 destroy-farewell-media.ts ⑤단계가 한다.
+    const now = new Date();
     const updated = existing.closedAt
       ? existing
-      : await prisma.memorial.update({ where: { id: existing.id }, data: { closedAt: new Date() } });
+      : await prisma.memorial.update({
+          where: { id: existing.id },
+          data: { closedAt: now, purgeAt: new Date(now.getTime() + CLOSE_GRACE_DAYS * 24 * 60 * 60 * 1000) },
+        });
 
     return res.json({ status: 'success', data: { closedAt: updated.closedAt } });
   } catch (error) {

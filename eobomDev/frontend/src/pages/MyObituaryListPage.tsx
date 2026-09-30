@@ -40,6 +40,7 @@ interface MyMemorial {
   slug: string;
   deceasedName: string;
   closedAt: string | null;
+  hiddenAt: string | null; // 운영자가 내림(00-20 §6.2)
   createdAt: string;
 }
 
@@ -191,7 +192,7 @@ export const MyObituaryListPage: React.FC<MyObituaryListPageProps> = ({ currentU
                 <button type="button" className="v2-list-main" onClick={() => setModalTarget({ type: 'memorial', id: m.id })}>
                   <span className="v2-list-title">
                     故 {m.deceasedName}
-                    <span className={m.closedAt ? 'v2-status-closed' : 'v2-status-active'}> · {m.closedAt ? '종료됨' : '운영중'}</span>
+                    <span className={m.closedAt || m.hiddenAt ? 'v2-status-closed' : 'v2-status-active'}> · {m.hiddenAt ? '운영자가 비공개 처리함' : m.closedAt ? '종료됨' : '운영중'}</span>
                   </span>
                 </button>
                 <span className="v2-list-meta">{formatKST(m.createdAt)}</span>
@@ -263,7 +264,7 @@ export const MyObituaryListPage: React.FC<MyObituaryListPageProps> = ({ currentU
 
             <div className="v2-modal-row">
               <span className="v2-modal-label">상태</span>
-              <span className="v2-modal-value">{modalMemorial.closedAt ? '종료됨' : '운영중'}</span>
+              <span className="v2-modal-value">{modalMemorial.hiddenAt ? '운영자가 비공개 처리함' : modalMemorial.closedAt ? '종료됨' : '운영중'}</span>
             </div>
 
             <div className="v2-modal-row">

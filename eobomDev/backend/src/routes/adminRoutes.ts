@@ -12,6 +12,8 @@ import {
   listMemorialsForAdmin,
   listMemorialGuestbookForAdmin,
   hideMemorialGuestbookEntry,
+  hideMemorial,
+  unhideMemorial,
 } from '../controllers/moderationController';
 import { listClaimsForAdmin, updateClaimStatus } from '../controllers/claimController';
 import {
@@ -64,6 +66,8 @@ router.patch('/death-verifications/:id/reject', rejectDeathVerification);
 
 // 추모관 목록·방명록 숨김 (docs 05-01 §4.3). 09-30 신고 폐지로 PATCH .../review 삭제.
 router.get('/memorials', listMemorialsForAdmin);
+router.patch('/memorials/:id/hide', hideMemorial); // 09-30 운영자 내리기(00-20 §6.2) — 사유 필수·감사로그
+router.patch('/memorials/:id/unhide', unhideMemorial);
 router.get('/memorials/:id/guestbook', listMemorialGuestbookForAdmin); // 00-37 A-2 신규(편차 — walkthrough 참고)
 router.patch('/memorials/:id/guestbook/:gid/hide', hideMemorialGuestbookEntry);
 

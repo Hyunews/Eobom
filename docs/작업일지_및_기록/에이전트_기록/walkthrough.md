@@ -2116,3 +2116,25 @@
   - 커밋은 하지 않음 — 메시지 초안만.
 
 <!-- Gemini 판정 1줄: ✅통과 / ❌반려(사유) / 🔄스펙갱신(고친 문서) -->
+
+## 2026-09-30 | 09-30 후속 ② — 직접 닫기 30일 파기 · 운영자 추모관 내리기/되돌리기(`Memorial.hiddenAt`) · 약관 제14조 3항
+
+- **근거 스펙**: docs/00_핵심플랫폼/00-20 §6.2 머리 블록 · §8.1-1 "purgeAt 파기" 행 · 00-21 제14조 3항
+- **건드린 파일**: eobomDev/backend/prisma/schema.prisma, eobomDev/backend/prisma/migrations/20260930074556_add_memorial_hidden_at/migration.sql(신규), eobomDev/backend/src/controllers/memorialController.ts, eobomDev/backend/src/controllers/moderationController.ts, eobomDev/backend/src/controllers/obituaryController.ts, eobomDev/backend/src/routes/adminRoutes.ts, eobomDev/backend/src/services/memorialPurgeService.ts, eobomDev/frontend/src/pages/AdminPage.tsx, eobomDev/frontend/src/pages/MemorialPage.tsx, eobomDev/frontend/src/pages/MyObituaryListPage.tsx, eobomDev/frontend/src/pages/TermsPage.tsx, docs/00_핵심플랫폼/00-05_DB_요구사항_및_테이블_사전.md(generate-db-doc.js 자동 생성)
+- **결과**:
+  - ① `closeMemorial`: `closedAt=now`와 함께 `purgeAt=now+30일`(이미 닫힌 건 덮어쓰지 않음). ⑤단계 조건 = `hiddenAt IS NULL AND (purgeAt ≤ now OR (purgeAt IS NULL AND closedAt ≤ now−30일))` — 옛 행은 조건으로만 잡고 DB 값은 안 채움(일괄 update 없음). dry-run 출력의 purgeAt은 옛 행이면 `closedAt+30일` 계산값. 삭제 직전 재확인도 같은 조건.
+  - ② `Memorial.hiddenAt DateTime?` 추가(마이그레이션 `ALTER TABLE "Memorial" ADD COLUMN "hiddenAt" TIMESTAMP(3);` 한 줄). `findViewableMemorialBySlug`가 `hiddenAt`도 `closedAt`처럼 null 처리(조회·헌화·방명록 전부 404). `getObituaryBySlug`의 `memorialSlug`는 추모관이 `hiddenAt`이면 null → [추모관 들어가기] 안 뜸. 관리자 `PATCH /api/admin/memorials/:id/hide|unhide`(사유 필수·500자 이내, `AdminAuditLog` `HIDE`/`UNHIDE`를 상태 변경과 같은 `$transaction`에 기록, 이미 같은 상태면 409). `listMemorialsForAdmin` select에 `hiddenAt`. AdminPage 추모관 카드에 "운영자가 내림" 표시와 [내리기]/[되돌리기](사유는 `window.prompt`). 개설자 화면(MemorialPage 목록·상세, MyObituaryListPage 목록·상세)에 "운영자가 비공개 처리함". `updateMemorial`은 `hiddenAt`을 건드리지 않으므로 공개범위를 바꿔도 안 풀림.
+  - ③ `TermsPage.tsx` 제14조에 3항 추가: `"회사는 추모관이 살아 있는 사람을 대상으로 하거나, 개설 권한이 없는 자가 개설하였거나, 법령을 위반하거나 타인의 권리를 침해하는 것으로 확인되면 해당 추모관을 비공개로 전환할 수 있으며, 그 사실을 개설자에게 알립니다."`(docs 원문 그대로)
+  - 검증: `backend`·`frontend` `npx tsc --noEmit` 출력 없음, `cd eobomDev/backend && npm test` 217 pass/0 fail(마이그레이션 뒤에도 동일), 로컬 dry-run `[⑤추모관 파기] 대상 0개`. 🔴 백업 `powershell -File .harness/tools/backup-db.ps1 -Target local` → `eobomDev/backend/backups/local-20260930-164435.dump`(251.4KB) 확인 후, 사람 확인("실행")을 받고 `npx prisma migrate dev --name add_memorial_hidden_at`(로컬만). `npm run test:db:migrate`로 테스트 DB도 적용. `--confirm` 실행·운영 반영 없음.
+- **편차**:
+  - ⑤ 대상에서 `hiddenAt`이 있는 추모관은 `closedAt`·`purgeAt`이 있어도 제외 — 지시 조건엔 없었으나 00-20 §6.2 "자동 파기하지 않음(되돌릴 수 있고 증거로 남김)"을 따름. 결과: 운영자가 내린 뒤 개설자가 닫거나 탈퇴해도 그 추모관은 파기되지 않고 남는다.
+  - 사유 입력을 별도 모달이 아니라 `window.prompt`로 함(관리자 화면이 이미 `window.confirm`을 쓰는 방식과 맞춤).
+  - 지시의 "개설자에게 알림"(제14조 3항 후반)은 이번 범위에 없어 구현하지 않음 — 내려진 걸 개설자가 목록 표시로만 알 수 있다.
+- **다음 에이전트가 알아야 할 것**:
+  - 🔴 `prisma generate`가 dev 서버가 잡은 `query_engine-windows.dll.node` 때문에 EPERM으로 끝까지 못 돌았다(타입은 갱신됨). 사람이 dev 서버를 껐다 켜기 전에 `npx prisma generate`를 한 번 더 돌려야 실행 중 서버가 새 컬럼을 안다.
+  - 🔴 운영 DB 반영은 사람 몫(`db-safety.md` §2-1): 운영 백업 `-Target prod` → 마이그레이션 `20260930074556_add_memorial_hidden_at` 적용 후에 이 코드를 배포해야 한다(순서가 반대면 운영 조회가 P2022로 깨짐).
+  - 실기동 검증 대기(사람 몫): 내리기 → 공개 링크 404·부고장 랜딩에서 추모관 버튼 사라짐·개설자 목록 표시·공개범위 바꿔도 그대로 → 되돌리기 → 복구. 직접 닫은 추모관이 `purgeAt`+30일로 기록되는지.
+  - 개설자 알림(제14조 3항 후반)·`AdminAuditLog` 조회 화면은 없음.
+  - 커밋은 하지 않음 — 메시지 초안만.
+
+<!-- Gemini 판정 1줄: ✅통과 / ❌반려(사유) / 🔄스펙갱신(고친 문서) -->
