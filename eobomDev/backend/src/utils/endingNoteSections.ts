@@ -2,11 +2,11 @@ import prisma from '../config/prisma';
 
 // §7.1 + §13 #5 — 섹션별로 허용되는 timing. 목록에 없는 값(WILL_DRAFT)은 절대 허용하지 않는다
 // (§7.4 모델 레벨 차단). EMERGENCY는 어느 섹션에도 없다 — Phase 3(응급 열람 확정) 전까지는
-// 화면에서도 걷어낸다(§13 #1). §7.1 표는 ①②⑦ 모두 즉시 공유가 "🟡 선택"이라 하지만, §13 #5가
-// 1차 범위를 "②⑦만"으로 더 좁게 확정했으므로 그 확정을 따른다 — ①은 POSTMORTEM만 허용.
+// 화면에서도 걷어낸다(§13 #1). §7.1 표는 ①②⑦ 모두 즉시 공유가 "🟡 선택"이다. §13 #5는 1차에 ①을
+// 사후만으로 좁혔으나 2026-09-30 개발자 결정으로 ①도 IMMEDIATE를 허용한다(기본 공개는 그대로 POSTMORTEM, §8.3-2).
 // endingNoteController(권한 지정 검증)와 아래 기본 권한 생성이 같은 표를 쓴다 — 두 곳에 복사해 두지 않는다.
 export const SECTION_ALLOWED_TIMINGS: Record<string, string[]> = {
-  LIFE_SUPPORT: ['POSTMORTEM'],
+  LIFE_SUPPORT: ['IMMEDIATE', 'POSTMORTEM'],
   FUNERAL: ['IMMEDIATE', 'POSTMORTEM'],
   ASSET: ['POSTMORTEM'],
   DIGITAL_ACCOUNTS: ['POSTMORTEM'],

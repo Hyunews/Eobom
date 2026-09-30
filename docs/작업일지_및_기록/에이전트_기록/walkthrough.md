@@ -16,6 +16,16 @@
 > [`_아카이브_2608`](walkthrough_아카이브_2608.md)(08-31분). 남은 것 = 판정 대기 + 판정 표기 없음. 기준 → `record.md` §2-1.
 
 ---
+## 2026-09-30 | [Sonnet] 06-04 §13 #5 — 연명의료(LIFE_SUPPORT) 섹션 "지금부터 공개" 허용
+
+- **근거 스펙**: `docs/06_엔딩노트_유언/06-04_엔딩노트_보관함_실구현_기획서.md` §13 #5(🔄 09-30 개발자 결정) · §8.3-2. 핸드오프 블록.
+- **건드린 파일**: `eobomDev/backend/src/utils/endingNoteSections.ts` · `eobomDev/frontend/src/components/endingNote/constants.tsx`
+- **결과**: 두 곳의 `SECTION_ALLOWED_TIMINGS.LIFE_SUPPORT`를 `['IMMEDIATE', 'POSTMORTEM']`으로 바꿔 값을 일치시켰다. `endingNoteSections.ts` 상단 주석("①은 POSTMORTEM만 허용")을 새 결정에 맞게 정리. 기본 사후 공개 로직은 `includes('POSTMORTEM')` 필터라 손대지 않았고, LIFE_SUPPORT는 여전히 기본 POSTMORTEM으로만 생성된다. 스키마·DB 변경 없음. 프런트·백엔드 `tsc --noEmit` 에러 0.
+- **편차**: 없음. (코드 추적으로 확인한 것: 수락 전·초대 전 가족 안내 "초대를 수락하면 바로 볼 수 있습니다."는 `SectionTimingControl`이 섹션과 무관하게 `status !== 'ACCEPTED' && timing === 'IMMEDIATE'`로 띄우므로 LIFE_SUPPORT에도 그대로 뜬다. 가족 조회(`family-view`)도 섹션 분기 없이 timing만 봐서 별도 수정 불필요. 화면에서 직접 본 것은 아님.)
+- **다음 에이전트가 알아야 할 것**: 🔴 **실기동 검증 대기(사람)** — 연명의료 아코디언의 가족 공개 시점 드롭다운에 "지금부터 공개(생전)"이 생기는지, 수락 전 가족에게 고르면 안내가 뜨는지, 저장 후 가족 화면에 이 섹션이 개봉 전에도 보이는지. 백엔드는 서버 재시작 필요. 커밋은 사람이 한다.
+
+<!-- Gemini 판정 1줄: ✅통과 / ❌반려(사유) / 🔄스펙갱신(고친 문서) -->
+
 ## 2026-09-30 | [Sonnet] 상중 행정 가이드 09-30 결정 2건 — ① 모바일 3개월 알림 줄 · ② F단계 체크 상태 보존(`CareGuideProgress`)
 
 - **근거 스펙**: `docs/07_상중_행정_케어/07-04_상중_행정_가이드_재설계_검토서.md` §4.3(09-30 개발자 결정 블록) · §3.4 · §3.4-1(09-09 확정표) · §3.4-2 · §8 #6 · `db-safety.md`. 핸드오프 블록.

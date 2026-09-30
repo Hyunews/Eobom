@@ -37,7 +37,7 @@ export const SECTIONS: SectionMeta[] = [
 // 동일 목록(§7.1·§13 #5) — EMERGENCY는 Phase 3 전까지 어디에도 없고, WILL_DRAFT는 아예 없다
 // (목록에 없는 섹션은 SectionTimingControl이 렌더링하지 않는다).
 export const SECTION_ALLOWED_TIMINGS: Record<string, string[]> = {
-  LIFE_SUPPORT: ['POSTMORTEM'],
+  LIFE_SUPPORT: ['IMMEDIATE', 'POSTMORTEM'],
   FUNERAL: ['IMMEDIATE', 'POSTMORTEM'],
   ASSET: ['POSTMORTEM'],
   DIGITAL_ACCOUNTS: ['POSTMORTEM'],

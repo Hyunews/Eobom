@@ -917,3 +917,8 @@ state를 그대로 추모관 사후 연결 동의로도 흘려보내면 사용�
 - Bash 도구의 heredoc/`cat >>`가 이 환경에서 실패해서 스키마 추가는 Edit로 했다. PowerShell의 `docker exec … psql -c 'select … "CareGuideProgress"'`는 따옴표가 벗겨져 테이블 없음 오류처럼 보였지만 원인은 인용이었고, 마이그레이션 SQL 자체는 정상 적용 출력을 확인.
 - `prisma generate`가 dev 서버의 엔진 DLL 잠금으로 EPERM — `migrate dev`는 적용됐고 tsc는 통과. 서버 재기동 전 재생성 필요(walkthrough에 남김).
 
+## 2026-09-30 [Sonnet] 06-04 §13 #5 — LIFE_SUPPORT 즉시 공개 허용 메모
+
+- 값 두 줄만 바꾸면 되는 작업이라, 바꾸기 전에 IMMEDIATE를 섹션별로 하드코딩한 곳이 없는지 grep으로 확인(`family-view`·`SectionTimingControl`·기본 권한 생성 모두 섹션 무관 — 수정 불필요).
+- 시행착오 없음. 양쪽 `tsc --noEmit` 1회 통과.
+
