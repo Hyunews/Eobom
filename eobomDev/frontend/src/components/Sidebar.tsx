@@ -87,7 +87,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, curre
       className={`mobile-drawer-overlay${mobileOpen ? ' is-open' : ''}`}
       aria-hidden={!mobileOpen}
     />
-    <div ref={drawerRef} className={`mobile-drawer-panel${mobileOpen ? ' is-open' : ''}`} role="dialog" aria-modal="true" aria-hidden={!mobileOpen}>
+    <div ref={drawerRef} className={`mobile-drawer-panel${mobileOpen ? ' is-open' : ''}`} role="dialog" aria-modal="true" {...(mobileOpen ? {} : { inert: '' })}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
         <span style={{ color: 'var(--text-main)', fontWeight: 'var(--fw-bold)', fontSize: '1.05rem' }}>메뉴</span>
         <button
