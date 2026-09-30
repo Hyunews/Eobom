@@ -29,12 +29,14 @@
 
 | 대상 | 명령 |
 |---|---|
-| **로컬**(기본 개발 환경 — Docker `eobom-postgres`, **5433**) | `docker exec eobom-postgres pg_dump -U <.env 유저> eobom_db -Fc -f /tmp/local.dump` → `docker cp`로 꺼낸다 |
-| **운영**(Supabase) | `powershell -File .harness/tools/backup-db.ps1` |
+| **로컬**(기본 개발 환경 — Docker `eobom-postgres`, **5433**) | `powershell -File .harness/tools/backup-db.ps1 -Target local` → `backups/local-*.dump` |
+| **운영**(Supabase) | `powershell -File .harness/tools/backup-db.ps1 -Target prod` → `backups/prod-*.dump` |
 
-> 🔴 **`backup-db.ps1`은 `BACKUP_DATABASE_URL`을 먼저 읽어 *운영*을 뜬다.** 그런데 **유실 2건은
-> 둘 다 로컬**이었다(§7) — **로컬 작업 중 이걸 돌리고 "백업했다"고 여기는 것이 가장 위험한
-> 오해다.** 파일명의 `local-`/`prod-` 접두사로 확인할 것.
+> 🔴 **`-Target`은 필수이고 기본값이 없다**(09-30, TS-002) — 없거나 `local`/`prod`가 아니면 사용법을 찍고
+> 실패한다. 예전엔 스크립트가 `.env`로 대상을 스스로 골라 로컬 작업 중 운영을 떴다. **유실 2건은
+> 둘 다 로컬**이었다(§7) — 지금 쓸 DB와 **같은 `-Target`을 골랐는지**가 사람의 몫이다.
+> `-Target prod`는 `BACKUP_DATABASE_URL`만 읽고(없으면 `DIRECT_URL`로 폴백하지 않고 실패) 로컬 주소면 거부한다.
+> 끝에 대상·경로·크기를 크게 찍는다 — 파일명의 `local-`/`prod-` 접두사와 함께 확인할 것.
 > ⚠️ 포트 **5432**는 다른 프로젝트다. 이어봄은 **5433**.
 
 2. 🔴 **파일이 생겼는지 확인한다.** 실패 시 0바이트를 **지우고** `exit 1` 한다 — *"돌렸다"* 가
