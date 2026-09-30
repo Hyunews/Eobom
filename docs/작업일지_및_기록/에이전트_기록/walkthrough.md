@@ -16,6 +16,16 @@
 > [`_아카이브_2608`](walkthrough_아카이브_2608.md)(08-31분). 남은 것 = 판정 대기 + 판정 표기 없음. 기준 → `record.md` §2-1.
 
 ---
+## 2026-09-30 | [Sonnet] 운영 자동 마이그레이션 끄기 — `npm start`에서 `prisma migrate deploy` 제거
+
+- **근거 스펙**: `.harness/db-safety.md` §2-1(09-30 사람 결정). 핸드오프 블록.
+- **건드린 파일**: `eobomDev/backend/package.json`(`start`만)
+- **결과**: `"start": "prisma migrate deploy && node dist/server.js"` → `"node dist/server.js"`. `build`의 `prisma generate`는 그대로. `render.yaml`은 `startCommand: npm start`라 이것으로 충분. 저장소 grep(`migrate deploy`, node_modules·dist·docs·backups 제외): 실행 경로에 남은 곳 없음 — 나머지는 문서·주석뿐(`db-safety.md`·`systems.md` 설명, `render.yaml:27` DIRECT_URL 주석, `schema.prisma:4` 주석, `eobomDev/README.md:66` 로컬 초기 설정 안내). DB 명령·커밋·push 안 함.
+- **편차**: 없음. (보고: `schema.prisma:4` 주석이 "`npm start`의 `prisma migrate deploy`가 죽어 서버가 안 뜬다"고 적혀 있어 이제 사실과 다르다. `render.yaml:27` 주석도 같은 전제. 지시대로 고치지 않음.)
+- **다음 에이전트가 알아야 할 것**: 운영 스키마 변경은 이제 push로 반영되지 않는다 — `db-safety.md` §2-1 순서로 **사람이 직접** 한다(추가형: 백업→파일 확인→운영 `migrate deploy`→push / 삭제형: push→백업→확인→마이그레이션). 새 마이그레이션이 든 커밋을 push하면 새 코드가 아직 없는 컬럼·테이블을 참조해 오류가 날 수 있으니 순서를 지킬 것. 로컬 `eobomDev/README.md`의 `migrate deploy` 안내는 로컬 초기 설정용이라 그대로.
+
+<!-- Gemini 판정 1줄: ✅통과 / ❌반려(사유) / 🔄스펙갱신(고친 문서) -->
+
 ## 2026-09-30 | [Sonnet] 엔딩노트 UI 정리(사람 지시 3건) + 로컬 네이버 계정 사후 처리 되돌리기(D 재실행) + LIFE_SUPPORT 생전 공개 실기동 확인
 
 - **근거 스펙**: 스펙 없음 — 사람 실기기 리포트·지시. (D는 지난 항목 8번과 같은 조치, `db-safety.md`)
