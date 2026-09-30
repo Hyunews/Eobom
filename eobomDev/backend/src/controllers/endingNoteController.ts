@@ -245,9 +245,10 @@ export const upsertEndingNoteGrant = async (req: Request, res: Response) => {
       return res.status(409).json({ status: 'error', message: RELEASED_LOCK_MESSAGE }); // 00-41 §7.2
     }
 
-    // 🔴 대상이 본인이 지정한 가족인지 확인. 🔄 00-41 §7.3(09-30) — 수락 전(PENDING·EXPIRED) 가족에게도 미리 줄 수 있다:
+    // 🔴 대상이 본인이 지정한 가족인지 확인. 🔄 00-41 §7.3(09-30) — 수락 전 가족(DRAFT·PENDING·EXPIRED)에게도 미리 줄 수 있다:
     // 사망 뒤에 수락하는 가족이 자기 권한만큼 볼 수 있어야 하기 때문. 미리 줘도 가족 조회 API가 acceptedUserId로만
-    // 찾으므로 수락 전엔 아무도 못 읽는다. DECLINED(거절은 그 가족의 의사)와 DRAFT(초대 전)는 계속 거부한다.
+    // 찾으므로 수락 전엔 아무도 못 읽는다. 🔄 06-04 §8.3-2(09-30) — 지정 때 기본 권한이 DRAFT에도 생기므로 화면에서 바꿀 수 있어야 한다.
+    // DECLINED(거절은 그 가족의 의사)는 계속 거부한다. WILL_DRAFT 거부는 위 섹션 검증이 그대로 한다.
     const designation = await prisma.familyDesignation.findUnique({
       where: { id: designationId },
       select: { id: true, userId: true, status: true },
@@ -255,8 +256,8 @@ export const upsertEndingNoteGrant = async (req: Request, res: Response) => {
     if (!designation || designation.userId !== decoded.id) {
       return res.status(404).json({ status: 'error', message: '가족 지정을 찾을 수 없습니다.' });
     }
-    if (!['ACCEPTED', 'PENDING', 'EXPIRED'].includes(designation.status)) {
-      return res.status(400).json({ status: 'error', message: '초대를 보낸 가족에게만 공개 시점을 지정할 수 있습니다.' });
+    if (designation.status === 'DECLINED') {
+      return res.status(400).json({ status: 'error', message: '초대를 거절한 가족에게는 공개 시점을 지정할 수 없습니다.' });
     }
 
     const grant = await prisma.endingNoteGrant.upsert({

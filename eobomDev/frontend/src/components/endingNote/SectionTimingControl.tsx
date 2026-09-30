@@ -28,7 +28,9 @@ export const SectionTimingControl: React.FC<{
                 {f.name} ({RELATIONSHIP_LABEL[f.relationship] || f.relationship}
                 {f.relationship === 'OTHER' && f.relationshipEtc ? ` · ${f.relationshipEtc}` : ''})
                 {f.status !== 'ACCEPTED' && (
-                  <span style={{ marginLeft: '6px', color: 'var(--v2-text-muted)', fontWeight: 400 }}>수락 전</span>
+                  <span style={{ marginLeft: '6px', color: 'var(--v2-text-muted)', fontWeight: 400 }}>
+                    {f.status === 'DRAFT' ? '초대 전' : '수락 전'}
+                  </span>
                 )}
               </span>
               <select
@@ -44,7 +46,7 @@ export const SectionTimingControl: React.FC<{
                   </option>
                 ))}
               </select>
-              {/* 00-41 §7.3 — 수락 전 가족에게 즉시 공개를 고르면 수락하는 순간부터 보인다. 막지 않고 사실만 적는다. */}
+              {/* 00-41 §7.3 — 수락 전(초대 전 포함) 가족에게 즉시 공개를 고르면 수락하는 순간부터 보인다. 막지 않고 사실만 적는다. */}
               {f.status !== 'ACCEPTED' && activeGrant?.timing === 'IMMEDIATE' && (
                 <span style={{ color: 'var(--v2-text-muted)' }}>초대를 수락하면 바로 볼 수 있습니다.</span>
               )}
