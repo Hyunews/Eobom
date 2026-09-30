@@ -2097,3 +2097,22 @@
   - 커밋은 하지 않음 — 메시지 초안만.
 
 <!-- Gemini 판정 1줄: ✅통과 / ❌반려(사유) / 🔄스펙갱신(고친 문서) -->
+
+## 2026-09-30 | 09-30 후속 — 추모관 purgeAt 파기 단계 추가 · 신고 잔재 삭제
+
+- **근거 스펙**: docs/00_핵심플랫폼/00-20 §8.1-1 "`purgeAt` 파기 — 09-30 확정(Opus)" 행 · §6.2(신고 폐지) · 앞 항목 wt "09-30 docs 결정 반영"의 다음 에이전트 메모 2·3번
+- **건드린 파일**: eobomDev/backend/src/services/memorialPurgeService.ts(신규), eobomDev/backend/prisma/destroy-farewell-media.ts, eobomDev/backend/src/services/accountPurgeService.ts(주석), eobomDev/backend/src/controllers/moderationController.ts, eobomDev/backend/src/routes/adminRoutes.ts, eobomDev/backend/prisma/schema.prisma(주석만), eobomDev/frontend/src/pages/AdminPage.tsx, eobomDev/frontend/src/pages/MemorialLandingPage.tsx(주석), docs/00_핵심플랫폼/00-05_DB_요구사항_및_테이블_사전.md(generate-db-doc.js 자동 생성)
+- **결과**:
+  - 파기 스크립트 ⑤단계: `findMemorialExpired`(`purgeAt` not null·≤ now) → dry-run에 `[⑤추모관 파기] 대상 N개` + id 앞 8자리·방명록/헌화/사진/끊는 부고장 건수 → `--confirm`일 때만 `purgeMemorial`. 삭제 직전 `purgeAt` 재확인, 트랜잭션에서 `obituary.updateMany({ where:{memorialId}, data:{memorialId:null} })` 후 `memorial.delete`(방명록·헌화·사진 Cascade), DB 성공 뒤 `MEMORIAL_PHOTO_DIR`의 사진 파일을 `path.basename`으로만 unlink. 부고장 행은 지우지 않는다.
+  - 삭제: `reviewMemorialReport`·`REVIEW_DECISIONS`(moderationController.ts), 라우트 `PATCH /api/admin/memorials/:id/review`·import(adminRoutes.ts), `listMemorialsForAdmin`의 `reported` 필터·`reportedAt`/`reviewedAt` select, AdminPage.tsx의 `decideMemorial`·"복구(링크 공개)"·"추모관 숨기기" 버튼·`신고 접수` 표시·`?reported=false` 쿼리. `hideMemorialGuestbookEntry`(방명록 숨기기)는 유지. `Memorial.reportedAt`·`reviewedAt` 컬럼은 그대로, schema 주석에 `"09-30 신고 폐지 — 다음 스키마 변경 때 삭제"`.
+  - 검증: `backend`·`frontend`에서 `npx tsc --noEmit` 출력 없음, `npx prisma validate` 통과, `cd eobomDev/backend && npm test` 217 pass/0 fail, `node --require ts-node/register/transpile-only prisma/destroy-farewell-media.ts`(dry-run, 로컬 DB `localhost:5433`) → `[⑤추모관 파기] 대상 0개`. 🔴 `--confirm` 실행 안 함.
+- **편차**:
+  - 지시는 "Obituary.memorialId 등 명시 처리"였고, 부고장을 삭제하지 않고 `memorialId`만 null로 끊음(직접 닫은 개설자의 부고장은 계정이 남아 있으므로). 탈퇴자의 부고장은 ④단계가 지운다.
+  - `findMemorialExpired`는 `closedAt`을 보지 않고 `purgeAt`만 봄 — 미래 동결 경로가 `closedAt` 없이 `purgeAt`을 채우기 때문. 00-20 §5.2-1의 "통지 실패 기록이 있으면 건너뜀"은 그 경로가 없어 구현하지 않음(서비스 주석에 남김).
+  - 🔴 운영자가 추모관 단위로 공개범위를 바꾸던 유일한 수단(`review`의 복구/숨기기)이 지시대로 함께 사라짐 — 이제 운영자는 방명록 글 숨기기만 가능.
+- **다음 에이전트가 알아야 할 것**:
+  - 🔴 이 컬럼이 **직접 닫은 추모관**도 지금은 `purgeAt`이 안 채워짐(`closeMemorial`은 `closedAt`만 기록) — 00-20 §6.3-1은 직접 닫기도 `purgeAt=+30일`이라 함. 그대로면 직접 닫은 추모관은 ⑤에 안 걸려 영영 남는다. `closeMemorial`에 `purgeAt` 추가 여부는 스펙 확인 필요(이번 지시 범위 밖이라 안 건드림).
+  - 🔴 로컬 디스크 사진 파일 삭제는 실제 파일이 있는 환경에서만 의미 있음(운영 재배포 시 이미 소실). 실기동·`--confirm` 실행은 사람 몫(백업 `-Target local|prod` 선행, db-safety.md).
+  - 커밋은 하지 않음 — 메시지 초안만.
+
+<!-- Gemini 판정 1줄: ✅통과 / ❌반려(사유) / 🔄스펙갱신(고친 문서) -->

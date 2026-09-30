@@ -108,8 +108,7 @@ export const AdminPage: React.FC = () => {
   const [purgeSubmitting, setPurgeSubmitting] = useState(false);
 
   // 00-37 §6 A-2 #5 — 추모관 목록 + 방명록 숨김
-  // 🔄 09-07 — 조문객 self-report 버튼이 없어져 새 reportedAt이 더 안 채워진다("미확인 신고만
-  // 보기" 체크박스 자체를 없앰) — 항상 전체 목록을 본다.
+  // 🔄 09-30 신고 폐지 — 항상 전체 목록을 본다(신고 필터·review 버튼 없음).
   const [memorials, setMemorials] = useState<any[]>([]);
   const [openGuestbookId, setOpenGuestbookId] = useState<string | null>(null);
   const [guestbookEntries, setGuestbookEntries] = useState<any[]>([]);
@@ -278,7 +277,7 @@ export const AdminPage: React.FC = () => {
     setLoadError('');
     setOpenGuestbookId(null);
     try {
-      const res = await authFetch(`${BACKEND_URL}/api/admin/memorials?reported=false`);
+      const res = await authFetch(`${BACKEND_URL}/api/admin/memorials`);
       if (!res) return;
       const data = await res.json();
       if (data.status === 'success') setMemorials(data.data);
@@ -286,18 +285,6 @@ export const AdminPage: React.FC = () => {
     } catch {
       setLoadError('서버와 통신 중 오류가 발생했습니다.');
     }
-  };
-
-  const decideMemorial = async (id: string, decision: 'RESTORE' | 'CONFIRM', visibility?: 'LINK') => {
-    const res = await authFetch(`${BACKEND_URL}/api/admin/memorials/${id}/review`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ decision, visibility }),
-    });
-    if (!res) return;
-    const data = await res.json();
-    if (!res.ok) alert(data.message || '처리 실패');
-    loadMemorials();
   };
 
   // 🔵 00-37 문서엔 없던 신규 엔드포인트(GET .../guestbook) — 방명록 숨김을 실제로 쓰려면
@@ -329,8 +316,7 @@ export const AdminPage: React.FC = () => {
   };
 
   // 🔴 이건 "방명록 보기/닫기"(화면을 여닫는 것)와 다른 기능이다 — 방명록 글 하나를 실제로
-  // 비공개 처리하는 모더레이션 액션. 지금은 웹에 신고 버튼이 없으므로(wt151), 유선·카톡 문의
-  // 등으로 신고가 들어왔을 때 운영자가 이 버튼으로 대신 처리하라고 있는 것이다(사용자 설명, 09-07).
+  // 비공개 처리하는 운영자 조치(게시물 단위 조치, 00-20 §6.2).
   const hideGuestbookEntry = async (memorialId: string, gid: string) => {
     if (!window.confirm('이 방명록을 강제로 비공개 처리합니다. 계속하시겠습니까?')) return;
     const res = await authFetch(`${BACKEND_URL}/api/admin/memorials/${memorialId}/guestbook/${gid}/hide`, { method: 'PATCH' });
@@ -1115,7 +1101,6 @@ export const AdminPage: React.FC = () => {
                     </span>
                     <div style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginTop: '0.2rem' }}>
                       개설자 {m.createdByUser?.name}({m.createdByUser?.email})
-                      {m.reportedAt && ` · 신고 접수 ${new Date(m.reportedAt).toLocaleDateString()}`}
                       {m.closedAt && ' · 폐쇄됨'}
                     </div>
                   </div>
@@ -1123,29 +1108,7 @@ export const AdminPage: React.FC = () => {
                     <button onClick={() => toggleGuestbook(m.id)} className="btn" style={{ ...SMALL_BTN, backgroundColor: 'var(--surface-subtle)', color: 'var(--primary-color)' }}>
                       방명록 {openGuestbookId === m.id ? '닫기' : '보기'}
                     </button>
-                    {/* 🔄 09-07 사용자 지시 — 이전엔 m.reportedAt이 있을 때만(=웹 신고가 접수된
-                        경우만) 이 버튼들이 떴는데, 웹 신고 버튼이 사라져(wt151) 그 조건이 사실상
-                        영원히 참이 안 될 뻔했다. 신고 여부와 무관하게 지금 공개범위(visibility)
-                        기준으로 항상 노출한다 — 유선·카톡으로 들어온 요청도 운영자가 바로 처리
-                        가능해야 한다. 백엔드(`reviewMemorialReport`)는 애초에 reportedAt을
-                        검사하지 않아 그대로 재사용된다. */}
-                    {m.visibility === 'PRIVATE' ? (
-                      <>
-                        <button onClick={() => decideMemorial(m.id, 'RESTORE', 'LINK')} className="btn" style={{ ...SMALL_BTN, backgroundColor: 'var(--state-ok-bg)', color: 'var(--state-ok-fg)' }}>
-                          복구(링크 공개)
-                        </button>
-                      </>
-                    ) : (
-                      <button
-                        onClick={() => {
-                          if (window.confirm(`故 ${m.deceasedName}님의 추모관을 비공개로 전환합니다. 계속하시겠습니까?`)) decideMemorial(m.id, 'CONFIRM');
-                        }}
-                        className="btn"
-                        style={{ ...SMALL_BTN, backgroundColor: 'var(--state-danger-bg)', color: 'var(--state-danger-fg)' }}
-                      >
-                        추모관 숨기기
-                      </button>
-                    )}
+                    {/* 🔄 09-30 신고 폐지 — 복구·추모관 숨기기(review) 버튼 삭제. 게시물 단위 조치는 방명록 숨기기만 남는다. */}
                   </div>
                 </div>
 
@@ -1170,7 +1133,7 @@ export const AdminPage: React.FC = () => {
                               onClick={() => hideGuestbookEntry(m.id, g.id)}
                               className="btn"
                               style={{ ...SMALL_BTN, backgroundColor: 'var(--state-danger-bg)', color: 'var(--state-danger-fg)', whiteSpace: 'nowrap' }}
-                              title="유선·카톡 등으로 신고가 접수된 글을 비공개 처리합니다(웹 신고 버튼은 없음)"
+                              title="이 방명록 글을 비공개 처리합니다"
                             >
                               숨기기
                             </button>

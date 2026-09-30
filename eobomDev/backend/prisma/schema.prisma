@@ -445,8 +445,8 @@ model Memorial {
 
   visibility          String    @default("LINK") // PRIVATE | LINK | PUBLIC (§4.2)
   falseReportAgreedAt DateTime // 허위 개설 시 법적 책임 고지 동의 시각(§4.3-4)
-  reportedAt          DateTime? // 신고 접수 시각 — 값이 있으면 자동 PRIVATE 전환(§4.3-3, §9.1-5)
-  reviewedAt          DateTime? // 운영자 확인 시각
+  reportedAt          DateTime? // 신고 접수 시각 — 🔴 09-30 신고 폐지 — 다음 스키마 변경 때 삭제(코드는 안 읽고 안 씀)
+  reviewedAt          DateTime? // 운영자 확인 시각 — 🔴 09-30 신고 폐지 — 다음 스키마 변경 때 삭제(코드는 안 읽고 안 씀)
   closedAt            DateTime? // 개설자가 닫음 (소프트 삭제)
 
   createdAt DateTime @default(now()) // 개설 일시

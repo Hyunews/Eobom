@@ -13,9 +13,8 @@ import { backdropCloseProps } from '../utils/backdropClose';
 // 🔴 사진 앨범은 이번 범위에서 뺀다(공개 조회 API 없음 + 로컬디스크라 재배포 시 소실,
 // systems.md §5).
 // 🔄 09-07 사용자 지시 — 조문객이 직접 누르는 "신고하기" 버튼(+확인 단계)을 없앴다. 서버 주소
-// (`POST /api/memorials/:slug/report`)도 09-29 제거했다. 운영자 콘솔의 심사(`reviewMemorialReport`,
-// 신고 무관 운영자 조치)와 방명록 개별 글 숨기기(`hideMemorialGuestbookEntry`, AdminPage.tsx
-// "방명록 보기")는 그대로 동작한다.
+// (`POST /api/memorials/:slug/report`)도 09-29 제거했다. 운영자 콘솔의 심사(`reviewMemorialReport`)도 09-30 삭제했다 —
+// 방명록 개별 글 숨기기(`hideMemorialGuestbookEntry`, AdminPage.tsx "방명록 보기")만 남아 동작한다.
 // 🔄 09-29 사람 결정 — 방명록 쓰기는 로그인 필수(보기·헌화는 비로그인 그대로). 작성자 이름은
 // 서버가 로그인 사용자 이름으로 스냅샷하므로 이름 칸은 없다.
 // 🔄 00-39 §6.7(2026-09-28 Opus, 시안 없음 §9.1) — `/o/:slug` 규칙을 그대로 적용한다. 틀은

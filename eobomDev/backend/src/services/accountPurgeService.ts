@@ -7,7 +7,7 @@ import { purgeLetterRow } from './farewellPurgeService';
 // 🔴 User 행은 **지우지 않고 익명화(tombstone)** 한다. Memorial.createdByUserId가 00-20 동결·연장·폐쇄 처리의
 // 주체라 FK를 끊을 수 없다(SetNull 금지). 🔵 09-30 재결정(00-20 §6.3-2·00-36 §4.3): 탈퇴 요청 즉시 추모관은 비공개
 // (closedAt·purgeAt=+30일)·부고장은 닫히고(requestAccountDeletion), 이 배치는 **부고장을 삭제**한다. 추모관은 자기
-// 수명(purgeAt)이 다하면 파기되고 FK도 그때 풀린다 — 이 배치는 추모관을 지우지 않는다. 그래서 예전의 "추모관 보유 회원은
+// 수명(purgeAt)이 다하면 같은 스크립트의 ⑤단계(memorialPurgeService)가 파기하고 FK도 그때 풀린다 — 이 서비스는 추모관을 지우지 않는다. 그래서 예전의 "추모관 보유 회원은
 // 보류" 분기는 없다 — 모든 만료 회원이 파기 가능하다.
 //
 // 한 회원의 순서(고정):

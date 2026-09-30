@@ -244,28 +244,24 @@ export const listConsultRequestsForAdmin = async (req: Request, res: Response) =
 };
 
 // ─────────────────────────────────────────────────────────────────
-// 추모관(Memorial) 신고 처리. docs 05-01 §2.3, §4.1, §4.3, §7 4단계.
+// 추모관(Memorial) 운영자 조회·방명록 숨김. docs 05-01 §4.1, §4.3.
 // 🔄 09-29 — 신고 접수 서버 주소(`POST /api/memorials/:slug/report`)·`reportMemorial` 삭제.
-// reportedAt·reviewedAt 컬럼은 과거 기록 보존으로 남기고, 운영자 조치(목록·review·방명록 hide)만 유지한다.
+// 🔄 09-30 — 신고 기능 폐지(00-20 §6.2): `reviewMemorialReport`(PATCH .../review)·`reported` 필터 삭제.
+// Memorial.reportedAt·reviewedAt 컬럼은 다음 스키마 변경 때 삭제한다(지금은 남김). 방명록 hide만 유지한다.
 // ─────────────────────────────────────────────────────────────────
 
-// 추모관 목록 (`GET /api/admin/memorials?reported=true`) — reported=true면 미확인 신고 큐만(§6.3)
-export const listMemorialsForAdmin = async (req: Request, res: Response) => {
-  const reportedOnly = req.query.reported === 'true';
+// 추모관 목록 (`GET /api/admin/memorials`)
+export const listMemorialsForAdmin = async (_req: Request, res: Response) => {
   try {
-    // 00-37 §3.1 — select 명시. 화면이 아직 없어(2026-09-07 실측) 자유롭게 좁혔다 — 신고
-    // 심사에 필요한 필드만. 생년월일(deceasedBirthDate)은 공개 응답에서도 빼는 필드라(§4.2)
+    // 00-37 §3.1 — select 명시. 생년월일(deceasedBirthDate)은 공개 응답에서도 빼는 필드라(§4.2)
     // 운영자 화면에도 넣지 않는다.
     const memorials = await prisma.memorial.findMany({
-      where: reportedOnly ? { reportedAt: { not: null }, reviewedAt: null } : {},
       select: {
         id: true,
         slug: true,
         deceasedName: true,
         deceasedDeathDate: true,
         visibility: true,
-        reportedAt: true,
-        reviewedAt: true,
         closedAt: true,
         createdAt: true,
         createdByUser: { select: { id: true, name: true, email: true } },
@@ -294,39 +290,6 @@ export const listMemorialGuestbookForAdmin = async (req: Request, res: Response)
   } catch (error) {
     console.error('방명록 목록(운영자) 조회 실패:', error);
     return res.status(500).json({ status: 'error', message: '방명록 조회 중 오류가 발생했습니다.' });
-  }
-};
-
-// 신고 확인 (`PATCH /api/admin/memorials/:id/review`) — 복구 또는 유지 판단(§6.3).
-// 신고 이전의 공개범위를 별도로 기억해두는 컬럼이 없으므로(§5.3), 복구 시 운영자가 공개범위를
-// 직접 지정한다(09-29부터 LINK뿐, 미지정 시에도 LINK) — 시스템이 임의로 이전 값을 추정하지 않는다.
-const REVIEW_DECISIONS = ['RESTORE', 'CONFIRM'] as const;
-export const reviewMemorialReport = async (req: Request, res: Response) => {
-  const { decision, visibility } = req.body as { decision?: string; visibility?: string };
-  if (!decision || !(REVIEW_DECISIONS as readonly string[]).includes(decision)) {
-    return res.status(400).json({ status: 'error', message: `decision은 ${REVIEW_DECISIONS.join(', ')} 중 하나여야 합니다.` });
-  }
-  if (visibility !== undefined && visibility !== 'LINK') {
-    return res.status(400).json({ status: 'error', message: 'visibility는 RESTORE 시 LINK만 지정할 수 있습니다.' });
-  }
-
-  try {
-    const memorial = await prisma.memorial.findUnique({ where: { id: req.params.id } });
-    if (!memorial) {
-      return res.status(404).json({ status: 'error', message: '추모관을 찾을 수 없습니다.' });
-    }
-
-    const updated = await prisma.memorial.update({
-      where: { id: memorial.id },
-      data: {
-        reviewedAt: new Date(),
-        visibility: decision === 'RESTORE' ? visibility || 'LINK' : 'PRIVATE',
-      },
-    });
-    return res.json({ status: 'success', data: { id: updated.id, visibility: updated.visibility, reviewedAt: updated.reviewedAt } });
-  } catch (error) {
-    console.error('추모관 신고 확인 처리 실패:', error);
-    return res.status(500).json({ status: 'error', message: '신고 확인 처리 중 오류가 발생했습니다.' });
   }
 };
 

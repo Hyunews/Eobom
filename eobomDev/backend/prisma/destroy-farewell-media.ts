@@ -13,6 +13,7 @@
 //   ① mediaDeletedAt + 30일 — R2 원본 삭제 → mediaKey·mediaMime 정리. 행은 남긴다.
 //   ② deletedAt + 30일 — mediaKey가 있으면 ①을 먼저 하고, 그다음 행을 파기한다.
 //   ③ 고아 객체 스윕은 이번에 만들지 않는다(⏸ §5.6-8 ③).
+//   ⑤ Memorial.purgeAt 경과 — 추모관을 방명록·헌화·사진(로컬 파일 포함)과 함께 삭제(00-20 §8.1-1, memorialPurgeService).
 //   ④ User.deletionScheduledAt 경과(회원 탈퇴 유예 만료) — 그 회원의 ①②를 먼저, 그다음 계정 파기.
 //      User 행은 지우지 않고 익명화한다 — 부고장은 삭제, 추모관은 탈퇴 때 닫혀 자기 purgeAt에 파기(00-20 §6.3-2, accountPurgeService.ts).
 //
@@ -37,6 +38,7 @@ import {
   countPendingArchivePurge,
 } from '../src/services/farewellPurgeService';
 import { findAccountExpired, planAccount, purgeAccount } from '../src/services/accountPurgeService';
+import { findMemorialExpired, planMemorial, purgeMemorial } from '../src/services/memorialPurgeService';
 
 const confirmed = process.argv.includes('--confirm');
 
@@ -114,7 +116,7 @@ async function main(): Promise<void> {
   // ③ 고아 객체 스윕 — ⏸ 이번에 만들지 않는다(§5.6-8 ③).
 
   // ④ 회원 탈퇴 유예 만료 — 그 회원의 편지 ①②를 먼저 돌린 뒤 계정을 익명화한다(§5.6-8 ④, accountPurgeService).
-  // 🔴 User 행은 지우지 않는다(tombstone) — 추모관·부고장은 남고(00-36 §6 #2) Memorial.createdByUserId가 00-20 처리 주체라서다.
+  // 🔴 User 행은 지우지 않는다(tombstone) — Memorial.createdByUserId가 00-20 처리 주체라서다. 부고장은 여기서 삭제, 추모관은 아래 ⑤에서.
   const accountsExpired = await findAccountExpired();
   const plans = [];
   for (const u of accountsExpired) plans.push(await planAccount(u));
@@ -146,6 +148,39 @@ async function main(): Promise<void> {
       }
     }
     console.log(`[④회원 탈퇴 만료] 완료: ${done}명 익명화`);
+  }
+
+  // ⑤ purgeAt 경과 추모관 — 방명록·헌화·사진(로컬 디스크 파일 포함)과 함께 삭제(00-20 §8.1-1, memorialPurgeService).
+  // 🔴 dry-run이면 대상 id(앞 8자리)와 건수만 찍는다. 부고장은 지우지 않고 memorialId만 끊는다.
+  // 순서상 ④ 뒤 — 탈퇴로 닫힌 추모관은 계정 익명화와 무관하게 자기 purgeAt에 지워진다.
+  const memorialsExpired = await findMemorialExpired();
+  const memorialPlans = [];
+  for (const m of memorialsExpired) memorialPlans.push(await planMemorial(m));
+  console.log(`[⑤추모관 파기] 대상 ${memorialPlans.length}개`);
+  for (const p of memorialPlans) {
+    console.log(
+      `   - ${p.memorial.id.slice(0, 8)}… purgeAt ${p.memorial.purgeAt?.toISOString()}` +
+        ` · 지움: 방명록 ${p.guestbook} 헌화 ${p.tributes} 사진 ${p.photos}` +
+        ` · 연결 끊음(부고장은 남김): ${p.obituaryLinks}`,
+    );
+  }
+  if (confirmed) {
+    let done = 0;
+    let fileCount = 0;
+    for (const p of memorialPlans) {
+      try {
+        const r = await purgeMemorial(p.memorial);
+        if (r.purged) {
+          done++;
+          fileCount += r.files;
+        } else {
+          console.log(`   - ${p.memorial.id.slice(0, 8)}… 건너뜀: ${r.reason}`);
+        }
+      } catch (e) {
+        console.error(`   - ${p.memorial.id.slice(0, 8)}… 🔴 실패 — 이 추모관은 파기되지 않았다(재실행 가능):`, e);
+      }
+    }
+    console.log(`[⑤추모관 파기] 완료: ${done}개 삭제 · 사진 파일 ${fileCount}개 삭제`);
   }
 
   // 🟡 "완료"라고만 찍으면 절반만 지운 상태를 다 지운 것으로 오인한다(§5.6-8-1-1 #48).
