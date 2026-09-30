@@ -44,6 +44,10 @@ export const SectionTimingControl: React.FC<{
                   </option>
                 ))}
               </select>
+              {/* 00-41 §7.3 — 수락 전 가족에게 즉시 공개를 고르면 수락하는 순간부터 보인다. 막지 않고 사실만 적는다. */}
+              {f.status !== 'ACCEPTED' && activeGrant?.timing === 'IMMEDIATE' && (
+                <span style={{ color: 'var(--v2-text-muted)' }}>초대를 수락하면 바로 볼 수 있습니다.</span>
+              )}
             </div>
           );
         })}

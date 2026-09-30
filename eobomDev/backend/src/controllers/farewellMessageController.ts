@@ -3,6 +3,7 @@ import prisma from '../config/prisma';
 import { verifyBearerToken } from './authController';
 import { encryptNoteField, decryptNoteField } from '../utils/crypto';
 import { RELEASED_LOCK_MESSAGE, isEndingNoteReleased } from '../utils/endingNoteLock';
+import { grantDefaultForAllDesignations } from '../utils/endingNoteSections';
 import { isR2Enabled } from '../config/r2';
 import { downloadVoiceObject } from '../services/r2Storage';
 import {
@@ -28,13 +29,18 @@ const PREVIEW_LENGTH = 80;
 // 본인의 EndingNote를 가져오거나 없으면 만든다 — 1:1이라 첫 편지 작성 시점에 자동 생성된다.
 // status는 항상 스키마 기본값(DRAFT)으로 시작 — 여기서 건드리지 않는다(개봉 상태의 소유자는
 // 06-04 Phase 3의 몫).
+// 🔄 06-04 §8.3-2 — 여기서 노트가 처음 만들어지는 경우에도 endingNoteController.getOrCreateNote와 똑같이 그 한 번만 기본
+// 권한(지정 전원 × 사후 공개)을 준다. 이미 있던 노트에는 아무것도 하지 않는다.
 const getOrCreateEndingNoteId = async (userId: string): Promise<string> => {
+  const existing = await prisma.endingNote.findUnique({ where: { userId }, select: { id: true } });
+  if (existing) return existing.id;
   const note = await prisma.endingNote.upsert({
     where: { userId },
     create: { userId },
     update: {},
     select: { id: true },
   });
+  await grantDefaultForAllDesignations(userId, note.id);
   return note.id;
 };
 
@@ -273,6 +279,17 @@ export const updateFarewellMessage = async (req: Request, res: Response) => {
   }
 };
 
+// 음성 바이트를 복호화해 응답으로 내보낸다. 본인 재생(아래)과 수신자 재생(endingNoteController.getFamilyLetterAudio,
+// 00-41 §7.1)이 같은 방식을 쓴다 — 권한 판정은 호출 측 몫이다.
+export const sendFarewellAudio = async (res: Response, mediaKey: string, mediaMime: string | null) => {
+  const buffer = await downloadVoiceObject(mediaKey);
+  res.set('Content-Type', mediaMime || 'application/octet-stream');
+  res.set('Content-Disposition', 'inline');
+  // 🔴 §5.6-3 — 유언 성격의 음성이 디스크 캐시에 남지 않게 한다.
+  res.set('Cache-Control', 'no-store');
+  return res.send(buffer);
+};
+
 // 음성 듣기 (`GET /api/farewell-messages/:id/audio`) — 06-05 §5.6-3 D-6. 소유권은 메시지
 // 기준(verifyBearerToken). 🔴 mediaKey를 파라미터로 받지 않는다 — 키만 알면 남의 음성이 열린다.
 // 🔴 presigned URL 금지(§5.6-1) — R2엔 선암호화된 바이트만 있어 브라우저가 직접 재생 못 한다.
@@ -308,12 +325,7 @@ export const getFarewellMessageAudio = async (req: Request, res: Response) => {
       return res.status(404).json({ status: 'error', message: '음성을 찾을 수 없습니다.' });
     }
 
-    const buffer = await downloadVoiceObject(row.mediaKey);
-    res.set('Content-Type', row.mediaMime || 'application/octet-stream');
-    res.set('Content-Disposition', 'inline');
-    // 🔴 §5.6-3 — 유언 성격의 음성이 디스크 캐시에 남지 않게 한다.
-    res.set('Cache-Control', 'no-store');
-    return res.send(buffer);
+    return await sendFarewellAudio(res, row.mediaKey, row.mediaMime);
   } catch (error) {
     console.error('유족 메시지 음성 조회 실패:', error);
     return res.status(500).json({ status: 'error', message: '음성을 불러오는 중 오류가 발생했습니다.' });

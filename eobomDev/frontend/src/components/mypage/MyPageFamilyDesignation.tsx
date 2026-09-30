@@ -526,6 +526,11 @@ export const MyPageFamilyDesignation: React.FC<MyPageFamilyDesignationProps> = (
                   </p>
                 </div>
 
+                {/* 06-04 §8.3-2 — 지정하면 서버가 8개 섹션의 "사후에만 공개" 권한을 기본으로 만든다. 사실 한 줄만 적는다. */}
+                <p style={{ fontSize: 'var(--fs-body)', color: 'var(--text-muted)', margin: 0 }}>
+                  지정하면 모든 섹션이 사후에 공개됩니다. 섹션마다 바꿀 수 있습니다.
+                </p>
+
                 <div
                   style={{
                     fontSize: 'var(--fs-body)',

@@ -7,6 +7,7 @@ import {
   upsertEndingNoteGrant,
   revokeEndingNoteGrant,
   getFamilyVisibleEndingNotes,
+  getFamilyLetterAudio,
 } from '../controllers/endingNoteController';
 import {
   createReleaseRequest,
@@ -33,6 +34,7 @@ router.put('/grants', upsertEndingNoteGrant);
 router.patch('/grants/:id/revoke', revokeEndingNoteGrant);
 
 router.get('/family-view', getFamilyVisibleEndingNotes);
+router.get('/family-view/letters/:id/audio', getFamilyLetterAudio); // 00-41 §7.1 — 수신자용 편지 음성
 
 // 00-41 §9 사후 개봉 요청. 🔴 고정 경로(mine·about-me)를 `/:id/...`보다 먼저 둔다 — 안 그러면 "mine"이 id로 먹힌다.
 router.post('/release-requests', createReleaseRequest);

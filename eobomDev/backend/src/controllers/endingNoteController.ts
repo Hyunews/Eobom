@@ -3,6 +3,9 @@ import prisma from '../config/prisma';
 import { verifyBearerToken } from './authController';
 import { encryptNoteField, decryptNoteField } from '../utils/crypto';
 import { RELEASED_LOCK_MESSAGE, isEndingNoteReleased } from '../utils/endingNoteLock';
+import { SECTION_ALLOWED_TIMINGS, grantDefaultForAllDesignations } from '../utils/endingNoteSections';
+import { isR2Enabled } from '../config/r2';
+import { sendFarewellAudio } from './farewellMessageController';
 
 // docs 06-04 §4.2·§10 Phase 1 — 엔딩노트 본체(EndingNote 메타데이터 + EndingNoteEntry 본문).
 // 전부 본인 것만(farewellMessageController와 같은 패턴 — verifyBearerToken). 🔴 유족이 읽는
@@ -41,19 +44,22 @@ export const POLICY_NOTICE_TEXT =
   '조건에 따라 진행됩니다.';
 
 // 본인의 EndingNote를 가져오거나 없으면 만든다 — farewellMessageController와 같은 패턴.
+// 🔄 06-04 §8.3-2 — 🔴 "없어서 만든 그 한 번"에만 그 시점의 지정 전원(DECLINED 제외)에게 기본 "사후에만 공개" 권한을 준다.
+// 이미 있던 노트는 그대로 반환한다(소급 없음). 멱등이라 동시에 두 요청이 만들어도 행이 늘지 않는다.
+const NOTE_SELECT = {
+  id: true,
+  status: true,
+  policyAgreedAt: true,
+  sectionState: true,
+  lastConfirmedAt: true,
+} as const;
+
 const getOrCreateNote = async (userId: string) => {
-  return prisma.endingNote.upsert({
-    where: { userId },
-    create: { userId },
-    update: {},
-    select: {
-      id: true,
-      status: true,
-      policyAgreedAt: true,
-      sectionState: true,
-      lastConfirmedAt: true,
-    },
-  });
+  const existing = await prisma.endingNote.findUnique({ where: { userId }, select: NOTE_SELECT });
+  if (existing) return existing;
+  const created = await prisma.endingNote.upsert({ where: { userId }, create: { userId }, update: {}, select: NOTE_SELECT });
+  await grantDefaultForAllDesignations(userId, created.id);
+  return created;
 };
 
 // 조회 (`GET /api/ending-note`) — 메타데이터 + 본문 전부. 본인 것이므로 복호화해 내려준다
@@ -189,20 +195,8 @@ export const saveEndingNoteSection = async (req: Request, res: Response) => {
 // §10 Phase 2 — EndingNoteGrant(섹션별 공개 시점) + 가족 조회 API
 // ─────────────────────────────────────────────────────────────────
 
-// §7.1 + §13 #5 — 섹션별로 허용되는 timing. 목록에 없는 값(WILL_DRAFT)은 절대 허용하지 않는다
-// (§7.4 모델 레벨 차단). EMERGENCY는 어느 섹션에도 없다 — Phase 3(응급 열람 확정) 전까지는
-// 화면에서도 걷어낸다(§13 #1). §7.1 표는 ①②⑦ 모두 즉시 공유가 "🟡 선택"이라 하지만, §13 #5가
-// 1차 범위를 "②⑦만"으로 더 좁게 확정했으므로 그 확정을 따른다 — ①은 POSTMORTEM만 허용.
-const SECTION_ALLOWED_TIMINGS: Record<string, string[]> = {
-  LIFE_SUPPORT: ['POSTMORTEM'],
-  FUNERAL: ['IMMEDIATE', 'POSTMORTEM'],
-  ASSET: ['POSTMORTEM'],
-  DIGITAL_ACCOUNTS: ['POSTMORTEM'],
-  INSURANCE: ['POSTMORTEM'],
-  CONTACTS: ['IMMEDIATE', 'POSTMORTEM'],
-  WILL_LOCATION: ['POSTMORTEM'],
-  ORGAN_DONATION: ['POSTMORTEM'],
-};
+// §7.1 + §13 #5 — 섹션별 허용 timing 표(SECTION_ALLOWED_TIMINGS)는 utils/endingNoteSections.ts에 있다 —
+// 기본 권한 생성(06-04 §8.3-2)과 같은 표를 쓰려고 옮겼다. 목록에 없는 섹션(WILL_DRAFT)은 여기서 전부 막힌다(§7.4).
 
 // 내 권한 목록 (`GET /api/ending-note/grants`) — 본인 것만. 철회된 것도 함께 내려 UI가 상태를 그린다.
 export const listEndingNoteGrants = async (req: Request, res: Response) => {
@@ -424,7 +418,7 @@ export const getFamilyVisibleEndingNotes = async (req: Request, res: Response) =
           id: l.id,
           title: l.title,
           body: decryptNoteField(l.bodyEnc),
-          hasAudio: !!l.mediaKey && l.mediaDeletedAt === null, // 재생 경로는 3-B 이후(수신자용 오디오 API 없음)
+          hasAudio: !!l.mediaKey && l.mediaDeletedAt === null, // 재생은 GET /family-view/letters/:id/audio(getFamilyLetterAudio)
           audioDurationSec: l.mediaDurationSec,
           createdAt: l.createdAt,
         })),
@@ -434,5 +428,48 @@ export const getFamilyVisibleEndingNotes = async (req: Request, res: Response) =
   } catch (error) {
     console.error('가족 열람용 엔딩노트 조회 실패:', error);
     return res.status(500).json({ status: 'error', message: '조회 중 오류가 발생했습니다.' });
+  }
+};
+
+// 수신자용 편지 음성 (`GET /api/ending-note/family-view/letters/:id/audio`) — 00-41 §7.1·§9. 본인용
+// `GET /api/farewell-messages/:id/audio`와 같은 재생 방식(sendFarewellAudio: R2에서 받아 복호화해 그대로 응답)이다.
+// 🔴 요청자 = 그 편지의 recipientId 지정의 acceptedUserId(+ACCEPTED) 본인이고, 노트가 RELEASED이며, 편지·음성이 삭제되지
+// 않았을 때만. 어느 하나라도 아니면 이유를 가리지 않고 같은 404 — 편지·음성의 존재 여부를 알려주지 않는다.
+export const getFamilyLetterAudio = async (req: Request, res: Response) => {
+  const decoded = verifyBearerToken(req);
+  if (!decoded) {
+    return res.status(401).json({ status: 'error', message: '로그인이 필요합니다.' });
+  }
+  const notFound = () => res.status(404).json({ status: 'error', message: '음성을 찾을 수 없습니다.' });
+
+  if (!isR2Enabled()) return notFound();
+
+  try {
+    const row = await prisma.farewellMessage.findUnique({
+      where: { id: req.params.id },
+      select: {
+        mediaKey: true,
+        mediaMime: true,
+        mediaDeletedAt: true,
+        deletedAt: true,
+        recipient: { select: { acceptedUserId: true, status: true } },
+        note: { select: { status: true } },
+      },
+    });
+    if (
+      !row ||
+      row.recipient.status !== 'ACCEPTED' ||
+      row.recipient.acceptedUserId !== decoded.id ||
+      row.note.status !== 'RELEASED' ||
+      !row.mediaKey ||
+      row.mediaDeletedAt !== null ||
+      row.deletedAt !== null
+    ) {
+      return notFound();
+    }
+    return await sendFarewellAudio(res, row.mediaKey, row.mediaMime);
+  } catch (error) {
+    console.error('수신자용 편지 음성 조회 실패:', error);
+    return res.status(500).json({ status: 'error', message: '음성을 불러오는 중 오류가 발생했습니다.' });
   }
 };

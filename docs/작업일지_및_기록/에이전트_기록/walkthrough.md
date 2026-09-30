@@ -16,6 +16,27 @@
 > [`_아카이브_2608`](walkthrough_아카이브_2608.md)(08-31분). 남은 것 = 판정 대기 + 판정 표기 없음. 기준 → `record.md` §2-1.
 
 ---
+## 2026-09-30 | [Sonnet] 사후 개봉·엔딩노트 09-30 결정 묶음 — A(00-41 질의 판정 3건) · B(공개 섹션 한 줄) · C(지정 시 기본 사후 공개 권한) · D(로컬 테스트 데이터 되돌리기, 승인 대기)
+
+- **근거 스펙**: `docs/00_핵심플랫폼/00-41_사후개봉_최소안_명세서.md` §7.1·§7.3·§8.1·§9 · `docs/06_엔딩노트_유언/06-04_엔딩노트_보관함_실구현_기획서.md` §8.3-1·§8.3-2 · `db-safety.md`(D). 핸드오프 블록.
+- **건드린 파일**: **신규** `backend/src/utils/endingNoteSections.ts`. **수정** `backend/src/controllers/endingNoteController.ts` · `farewellMessageController.ts` · `familyDesignationController.ts` · `backend/src/routes/endingNoteRoutes.ts` · `frontend/src/pages/FamilySharedPage.tsx` · `frontend/src/pages/EndingNotePage.tsx` · `frontend/src/components/endingNote/SectionTimingControl.tsx` · `frontend/src/components/mypage/MyPageFamilyDesignation.tsx`. 스키마·마이그레이션 변경 없음.
+- **결과**:
+  1. **A-1** `SectionTimingControl.tsx` — 가족이 `ACCEPTED`가 아니고 그 가족의 유효 권한이 `IMMEDIATE`일 때만 select 옆에 `초대를 수락하면 바로 볼 수 있습니다.` (`POSTMORTEM`엔 없음, 권한 지정 자체는 막지 않음).
+  2. **A-2** `FamilySharedPage.tsx` 버튼 `돌아가셨음을 알리고 기록 열기` → `돌아가셨음을 알리고 열람 요청`(옛 문구는 walkthrough·주석 외 코드 0건).
+  3. **A-3** `GET /api/ending-note/family-view/letters/:id/audio`(`getFamilyLetterAudio`) — 조건: 편지 `recipient.status === 'ACCEPTED'` && `recipient.acceptedUserId === 요청자` && `note.status === 'RELEASED'` && 음성 있음 && `mediaDeletedAt`·`deletedAt` 모두 null, 하나라도 아니면 사유를 가리지 않고 같은 404(R2 미사용 환경도 404). 재생 로직은 본인용과 같은 `sendFarewellAudio`(`farewellMessageController.ts`, R2에서 받아 복호화해 그대로 응답·`Cache-Control: no-store`)로 빼서 공유 — 본인용 동작은 그대로. 화면: 편지 모달에 `음성 듣기` 버튼 → 인증 fetch → blob → `<audio controls>`, 모달을 닫으면 objectURL 해제. 제거한 옛 문구 `음성 파일이 함께 남겨져 있습니다. 이 화면에서는 들을 수 없습니다.`; `endingNoteController` 주석 `재생 경로는 3-B 이후(수신자용 오디오 API 없음)` 정리.
+  4. **B** `EndingNotePage.tsx` — 제목·부제 아래 `가족에게 공개한 섹션 — 이름(관계) N개 · …`. N = 그 지정의 `savedGrants`(저장된 권한) 중 `revokedAt` null인 서로 다른 섹션 수(즉시·사후 합산), `WILL_DRAFT` 제외. 대상 = 화면의 `family`(ACCEPTED·PENDING·EXPIRED, DECLINED·DRAFT 제외), 없으면 줄 없음. 부제와 같은 `v2-page-subtitle` 스타일(색·아이콘·경고·권유 없음, 0개도 같은 색), 추가 API 없음.
+  5. **C** `utils/endingNoteSections.ts` — `SECTION_ALLOWED_TIMINGS`를 컨트롤러에서 옮겨 두 곳이 같은 표를 쓴다. `grantDefaultPostmortem(noteId, designationIds)`: 그 표에서 `POSTMORTEM`이 가능한 8개 섹션 × 지정마다 `timing=POSTMORTEM` 권한 생성, `(지정, 섹션)`에 행이 한 번이라도 있었으면(철회 포함) 건너뜀, `createMany skipDuplicates`(멱등). 호출 지점 2곳: ① `createFamilyDesignation` — 지정 생성 직후 노트가 있고 `RELEASED`가 아닐 때(실패해도 지정은 유지·로그만) ② 노트가 **처음 생길 때**(`endingNoteController.getOrCreateNote`·`farewellMessageController.getOrCreateEndingNoteId` 둘 다 `findUnique`로 있으면 그대로 반환, 없어서 upsert한 그 한 번만 `grantDefaultForAllDesignations` — `DECLINED` 제외 지정 전원). 소급·일괄 스크립트 없음. 지정 폼(`MyPageFamilyDesignation.tsx`)에 `지정하면 모든 섹션이 사후에 공개됩니다. 섹션마다 바꿀 수 있습니다.` 한 줄.
+  `tsc --noEmit`(backend·frontend) 통과 · `npm test`(backend) 51건 통과. 🔴 실행 시험은 못 했다(아래).
+- **편차**: ① **C의 지정 생성 시점 상태는 `DRAFT`**인데 `upsertEndingNoteGrant`는 `DRAFT`를 거부한다(A의 `PENDING·EXPIRED` 허용 때 `DRAFT`는 제외). 지시대로 `DECLINED`만 제외해 기본 권한은 `DRAFT` 지정에도 생기지만, B의 줄과 권한 설정 화면은 `DRAFT`를 대상에서 뺀다(지시) — 초대 전 가족은 권한이 있는데 화면에서 볼 수도 바꿀 수도 없다. ② 개봉된 노트에는 새 지정의 기본 권한을 만들지 않는다(지시 밖 방어 — 새 지정에게 곧바로 열리므로).
+- **다음 에이전트가 알아야 할 것**:
+  - 🔴 **실기동 미확인**(dev 서버 미기동 방침, backend는 `prisma generate` 재실행 필요). 확인: ① 새 지정 추가 → 권한 화면에 8개 섹션 `사후에만 공개`·B의 줄 `N개` ② 노트가 없는 회원이 지정 후 처음 노트를 열면 그 시점 지정 전원에게 생김 ③ 이미 있던 노트·지정에는 안 생김 ④ 개봉된 노트의 수신자 편지에서 `음성 듣기`, 남의 편지·미개봉이면 404.
+  - 🟡 **기존 안내문과 어긋남** — 지정 폼의 노란 안내 `가족에게 알리기 전까지는 어떤 권한도 부여되지 않으며…`는 이제 사실과 어긋난다(권한 행은 지정 때 생기지만 수락 전엔 읽히지 않는다). 지시 범위 밖이라 고치지 않았다 — Opus가 문구 판단.
+  - 🟡 기본 권한이 `DRAFT` 지정에도 생기고 그 지정이 나중에 초대·수락되면 별도 조작 없이 사후 공개 권한이 살아 있다(의도된 동작으로 봄).
+  - **D(로컬 테스트 데이터 되돌리기)는 실행 전 승인 대기** — 아래 D 항목 참조.
+
+<!-- Gemini 판정 1줄: ✅통과 / ❌반려(사유) / 🔄스펙갱신(고친 문서) -->
+
+---
 ## 2026-09-30 | [Sonnet] 사후 개봉 §7.3 스펙갱신 반영(수락 전 가족 권한) + 3-B 화면(유족 요청·상태·재초대 / 본인 배너 / 운영자 「사망 확인」 탭)
 
 - **근거 스펙**: `docs/00_핵심플랫폼/00-41_사후개봉_최소안_명세서.md` §6·§7.3(스펙갱신 09-30)·§8·§11(3-B). 핸드오프 블록. 앞 항목(3-A)이 남긴 "스펙 공백(§7.3)"의 해소.

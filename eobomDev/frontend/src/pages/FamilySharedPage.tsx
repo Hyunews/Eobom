@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { ChevronRight } from 'lucide-react';
-import { apiFetch, ApiError } from '../lib/api';
+import { apiFetch, apiFetchRaw, ApiError } from '../lib/api';
 import { SECTIONS, RELATIONSHIP_LABEL } from '../components/endingNote/constants';
 import '../styles/design-v2.css';
 import { LoginGate } from '../components/LoginGate';
@@ -117,6 +117,46 @@ const designationPhrase = (item: FamilyViewItem): string => {
   const base = `나를 ${withRo(relationLabel(item))} 지정`;
   const scope = item.scope ? SCOPE_LABEL[item.scope] : undefined;
   return scope ? `${base} · ${scope}` : base;
+};
+
+// 00-41 §7.1 — 수신자용 편지 음성. 본인용(FarewellMessageCard.handleListen)과 같은 방식: presigned URL 없이 인증 fetch →
+// blob → objectURL. 모달이 닫히면(언마운트) objectURL을 해제한다.
+const LetterAudio: React.FC<{ letterId: string }> = ({ letterId }) => {
+  const [src, setSrc] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  useEffect(() => () => { if (src) URL.revokeObjectURL(src); }, [src]);
+
+  const listen = async () => {
+    setLoading(true);
+    setError('');
+    try {
+      const res = await apiFetchRaw(`/api/ending-note/family-view/letters/${letterId}/audio`, 'USER');
+      if (!res.ok) {
+        setError('음성을 불러오지 못했습니다.');
+        return;
+      }
+      setSrc(URL.createObjectURL(await res.blob()));
+    } catch {
+      setError('음성을 불러오는 중 오류가 발생했습니다.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div style={{ marginBottom: '16px' }}>
+      {src ? (
+        <audio controls autoPlay src={src} style={{ width: '100%' }} />
+      ) : (
+        <button type="button" className="v2-btn-outline" onClick={listen} disabled={loading}>
+          {loading ? '불러오는 중…' : '음성 듣기'}
+        </button>
+      )}
+      {error && <p className="v2-error-text">{error}</p>}
+    </div>
+  );
 };
 
 export const FamilySharedPage: React.FC<FamilySharedPageProps> = ({ currentUser, onOpenLogin }) => {
@@ -263,7 +303,7 @@ export const FamilySharedPage: React.FC<FamilySharedPageProps> = ({ currentUser,
               {!released && (!req || req.status === 'CANCELLED') && (
                 <div style={{ marginTop: '16px' }}>
                   <button type="button" className="v2-btn-outline" onClick={() => setRequestTarget(item)}>
-                    돌아가셨음을 알리고 기록 열기
+                    돌아가셨음을 알리고 열람 요청
                   </button>
                 </div>
               )}
@@ -322,7 +362,7 @@ export const FamilySharedPage: React.FC<FamilySharedPageProps> = ({ currentUser,
               <>
                 <h3 id="family-shared-title" className="v2-modal-title">{open.letter.title || '편지'}</h3>
                 <p className="v2-modal-value" style={{ whiteSpace: 'pre-wrap', margin: '0 0 16px' }}>{open.letter.body}</p>
-                {open.letter.hasAudio && <p className="v2-notice">음성 파일이 함께 남겨져 있습니다. 이 화면에서는 들을 수 없습니다.</p>}
+                {open.letter.hasAudio && <LetterAudio letterId={open.letter.id} />}
                 <div className="v2-modal-row">
                   <span className="v2-modal-label">작성일</span>
                   <span className="v2-modal-value">{formatDate(open.letter.createdAt)}</span>

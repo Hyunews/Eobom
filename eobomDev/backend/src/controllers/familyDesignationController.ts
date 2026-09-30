@@ -4,6 +4,7 @@ import prisma from '../config/prisma';
 import { verifyBearerToken } from './authController';
 import { normalizePhone, isValidPhoneLength, maskPhone } from '../utils/phone';
 import { encryptField, decryptField, hashField } from '../utils/crypto';
+import { grantDefaultPostmortem } from '../utils/endingNoteSections';
 
 // 00-27 §10 Phase 1 — 생전 가족지정 "기록"(§2 확정 — 기록과 통지 분리) + Phase 2(§9.1) —
 // 본인 트리거 초대 링크(발급·조회·수락·거절). "내가 지정됐는지" 조회 API는 여전히 없다(불변식 3)
@@ -154,6 +155,15 @@ export const createFamilyDesignation = async (req: Request, res: Response) => {
         // status는 받지 않는다 — 스키마 기본값 DRAFT 그대로(불변식 1)
       },
     });
+    // 06-04 §8.3-2 — 지정 때 한 번 기본 "사후에만 공개" 권한(8개 섹션)을 만든다. 엔딩노트가 아직 없으면 여기선 하지 않는다
+    // (노트가 처음 생길 때 그 시점 지정 전원에게 한 번 준다). 🔴 이미 개봉된 노트에는 주지 않는다 — 새 지정에게 바로 열리기 때문.
+    // 기본 권한 실패가 지정 자체를 무르지는 않는다(본인이 권한 화면에서 직접 지정할 수 있다).
+    try {
+      const note = await prisma.endingNote.findUnique({ where: { userId: decoded.id }, select: { id: true, status: true } });
+      if (note && note.status !== 'RELEASED') await grantDefaultPostmortem(note.id, [created.id]);
+    } catch (grantError) {
+      console.error('기본 사후 공개 권한 생성 실패:', grantError);
+    }
     return res.status(201).json({ status: 'success', data: serialize(created) });
   } catch (error: any) {
     if (error?.code === 'P2002') {

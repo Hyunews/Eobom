@@ -25,6 +25,7 @@ import {
   SECTIONS,
   TIMING_LABEL,
   NOT_A_WILL_NOTICE,
+  RELATIONSHIP_LABEL,
 } from '../components/endingNote/constants';
 import type { SaveState, FamilyItem, GrantItem, SummaryRow } from '../components/endingNote/types';
 import { AccordionSection, saveButtonLabel } from '../components/endingNote/AccordionSection';
@@ -764,11 +765,29 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
     );
   }
 
+  // 06-04 §8.3-1 — 제목 아래 한 줄 "가족에게 공개한 섹션 — 이름(관계) N개 · …". 지정마다 저장된(savedGrants) 유효 권한(revokedAt null)의
+  // 서로 다른 섹션 수(즉시·사후 합산, 중복은 1개, WILL_DRAFT 제외). 대상은 family(ACCEPTED·PENDING·EXPIRED)뿐이고 없으면 줄이 없다.
+  // 🔴 색·아이콘·경고·권유 없음 — 0개도 같은 색(00-39 규칙 5). 추가 API 없이 이미 불러온 화면 상태로 계산한다.
+  const sharedSummaryLine =
+    noteLoaded && family.length > 0
+      ? '가족에게 공개한 섹션 — ' +
+        family
+          .map((f) => {
+            const count = new Set(
+              savedGrants.filter((g) => g.designationId === f.id && !g.revokedAt && g.section !== 'WILL_DRAFT').map((g) => g.section)
+            ).size;
+            const rel = f.relationship === 'OTHER' && f.relationshipEtc ? f.relationshipEtc : RELATIONSHIP_LABEL[f.relationship] || f.relationship;
+            return `${f.name}(${rel}) ${count}개`;
+          })
+          .join(' · ')
+      : '';
+
   return (
     <div className="v2-page" style={{ position: 'relative' }}>
       <div className="v2-page-head">
         <h1 className="v2-page-title">디지털 엔딩노트</h1>
         <p className="v2-page-subtitle">연명의료 의향 메모, 장례 희망 방식, 유언장 초안까지 표준화된 항목을 차근차근 채워두세요.</p>
+        {sharedSummaryLine && <p className="v2-page-subtitle">{sharedSummaryLine}</p>}
       </div>
 
       <div>
