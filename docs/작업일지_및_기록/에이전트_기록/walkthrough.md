@@ -28,7 +28,7 @@
 - **편차**: 없음. 다만 지시 밖 1곳 — `prisma/destroy-farewell-media.ts:126`이 `p.cleanupItems`를 출력해 타입이 깨져서 그 출력 조각(` 정리항목 ${p.cleanupItems}`)만 뺐다. 화면에서 유족용 "가족 화면(FamilySharedPage)"은 손대지 않음 — 아래 참조.
 - **다음 에이전트가 알아야 할 것**:
   - 🔴 **2-b 미실행**(DB 모델 삭제 마이그레이션). `schema.prisma`에 `DigitalPlatform`(426줄)·`DigitalCleanupItem`(449줄)과 관계 3곳(`User.digitalCleanupItems` 30줄 · `DigitalPlatform.cleanupItems` 442줄 · `Deceased.cleanupItems` 578줄)이 그대로 있다. 코드는 더 이상 참조하지 않으므로 지금 상태로 안전. 사전 조회: **로컬 dev DB(`localhost:5433/eobom_db`)** 두 표 모두 **0행**. 운영(Supabase)은 조회하지 않음.
-  - 🔴 **백업 실패** — `backup-db.ps1`이 `postgres:17-alpine` 이미지를 못 찾고 `docker run`에서 종료(파일 미생성; 최신 백업은 09-10 `prod-20260910-082936.dump`). 그리고 이 스크립트는 `.env`의 `BACKUP_DATABASE_URL`(=Supabase 운영)만 대상으로 삼는다 — 로컬 dev DB 백업 경로는 별도다. 사람 확인 후 진행할 것.
+  - 🔴 **백업 실패** — `backup-db.ps1`이 `postgres:17-alpine` 이미지가 PC에 없어 `docker run` 중 pull 단계에서 종료(Docker 자체는 정상 — `eobom-postgres` 컨테이너 기동 중; 이미지는 이후 pull 완료; 파일 미생성; 최신 백업은 09-10 `prod-20260910-082936.dump`). 그리고 이 스크립트는 `.env`의 `BACKUP_DATABASE_URL`(=Supabase 운영)만 대상으로 삼는다 — 로컬 dev DB 백업 경로는 별도다. 사람 확인 후 진행할 것.
   - 🟡 가족 화면(`FamilySharedPage.tsx` `entryFields`)은 `IMMEDIATE` 두 섹션(FUNERAL·CONTACTS)만 그린다. `DIGITAL_ACCOUNTS`는 `POSTMORTEM` 전용이라 백엔드가 family-view에서 걸러 새 필드가 **아직 어디서도 표시되지 않는다**(06 개봉 미구현, context.md 기재와 같은 상태). 개봉이 구현될 때 `digitalPrefs`·`subscriptionNote` 둘 다 그려야 한다.
   - 🔴 실기동 미확인(dev 서버 미기동 방침) — 엔딩노트 ⑤ 저장→새로고침 시 구독 메모 유지·취소 시 되돌아감·목록 요약 확인 필요. 요약 문자열(`EndingNotePage.tsx` DIGITAL_ACCOUNTS 요약 case)에는 구독 메모를 넣지 않았다.
   - 운영자 화면에서 디지털 카탈로그 탭·회원 상세 `디지털 정리 항목`이 사라졌다.
