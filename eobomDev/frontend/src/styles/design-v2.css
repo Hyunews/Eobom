@@ -2062,6 +2062,102 @@ a.v2-btn-solid {
   overflow-y: auto;
 }
 
+/* 엔딩노트 섹션 하단 "가족 공개 시점" — PC는 이름/드롭다운/안내 3열 그리드로 열을 맞추고
+   (행마다 이름 길이가 달라도 드롭다운이 같은 x에 선다), 모바일은 이름 위·드롭다운 아래 세로 배치. */
+.en-timing {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--v2-divider);
+}
+
+.en-timing-title {
+  font-size: var(--v2-fs-support);
+  font-weight: 700;
+  color: var(--v2-text-main);
+  margin-bottom: 10px;
+}
+
+.en-timing-list {
+  display: grid;
+  grid-template-columns: max-content 220px 1fr;
+  column-gap: 12px;
+  row-gap: 8px;
+  align-items: center;
+  font-size: var(--v2-fs-support);
+}
+
+.en-timing-row {
+  display: contents;
+}
+
+.en-timing-name {
+  color: var(--v2-text-main);
+}
+
+.en-timing-hint {
+  color: var(--v2-text-muted);
+}
+
+@media (max-width: 767px) {
+  .en-timing {
+    margin-top: 12px;
+    padding-top: 12px;
+  }
+
+  .en-timing-title {
+    margin-bottom: 6px;
+  }
+
+  /* 가족 한 명 = 한 줄: 이름은 왼쪽, 드롭다운은 오른쪽 고정폭(열이 세로로 나란히 선다).
+     "수락 후 바로 볼 수 있다" 안내는 그 아래 줄. PC용 align-items:center를 여기서 되돌린다. */
+  .en-timing {
+    text-align: left;
+  }
+
+  .en-timing-list {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .en-timing-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 2px 12px;
+  }
+
+  .en-timing-name {
+    flex: 1 1 0;
+    min-width: 0;
+    line-height: 1.4;
+  }
+
+  .en-timing-row .v2-select {
+    flex: 0 0 148px;
+    width: 148px;
+    height: 44px;
+  }
+
+  .en-timing-hint {
+    flex-basis: 100%;
+    font-size: var(--v2-fs-label);
+  }
+
+  .en-timing-hint:empty {
+    display: none;
+  }
+
+  /* 모바일 리더 시트 — 필드 소제목(예: 거래 중인 은행·증권사)을 키운다. 시트 전용 클래스라 다른 모달은 그대로. */
+  .en-reader-body .v2-field label {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--v2-text-main);
+  }
+}
+
 /* 모바일 요약 행 — 제목 + 간단설명. 설명은 잘리지 않게 줄바꿈하고, 흐린 색이 아니라 본문 보조색을 쓴다(15px 글자라 대비 확보) */
 .v2-mobile-block .v2-nav-row-sub {
   white-space: normal;

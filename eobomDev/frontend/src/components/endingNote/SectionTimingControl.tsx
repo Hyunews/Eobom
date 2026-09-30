@@ -15,16 +15,16 @@ export const SectionTimingControl: React.FC<{
   if (!allowed || family.length === 0) return null;
 
   return (
-    <div style={{ marginTop: '20px', paddingTop: '16px', borderTop: '1px solid var(--v2-divider)' }}>
-      <div style={{ fontSize: 'var(--v2-fs-support)', fontWeight: 700, color: 'var(--v2-text-main)', marginBottom: '10px' }}>
-        가족 공개 시점
-      </div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+    <div className="en-timing">
+      <div className="en-timing-title">가족 공개 시점</div>
+      {/* PC: 이름 / 드롭다운 / 안내 3열 그리드(행마다 이름 폭이 달라도 드롭다운 열이 맞는다).
+          모바일: 이름 위·드롭다운 아래 세로 배치(design-v2.css .en-timing-*). */}
+      <div className="en-timing-list">
         {family.map((f) => {
           const activeGrant = grants.find((g) => g.section === section && g.designationId === f.id && !g.revokedAt);
           return (
-            <div key={f.id} style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: 'var(--v2-fs-support)', flexWrap: 'wrap' }}>
-              <span style={{ minWidth: '120px', color: 'var(--v2-text-main)' }}>
+            <div key={f.id} className="en-timing-row">
+              <span className="en-timing-name">
                 {f.name} ({RELATIONSHIP_LABEL[f.relationship] || f.relationship}
                 {f.relationship === 'OTHER' && f.relationshipEtc ? ` · ${f.relationshipEtc}` : ''})
                 {f.status !== 'ACCEPTED' && (
@@ -37,7 +37,6 @@ export const SectionTimingControl: React.FC<{
                 value={activeGrant?.timing || ''}
                 onChange={(e) => onChange(f.id, e.target.value || null, activeGrant?.id)}
                 className="v2-select"
-                style={{ width: '220px', flexShrink: 0 }}
               >
                 <option value="">비공개</option>
                 {allowed.map((t) => (
@@ -47,9 +46,10 @@ export const SectionTimingControl: React.FC<{
                 ))}
               </select>
               {/* 00-41 §7.3 — 수락 전(초대 전 포함) 가족에게 즉시 공개를 고르면 수락하는 순간부터 보인다. 막지 않고 사실만 적는다. */}
-              {f.status !== 'ACCEPTED' && activeGrant?.timing === 'IMMEDIATE' && (
-                <span style={{ color: 'var(--v2-text-muted)' }}>초대를 수락하면 바로 볼 수 있습니다.</span>
-              )}
+              {/* 그리드 3열을 유지하려고 안내가 없어도 빈 칸을 그린다. */}
+              <span className="en-timing-hint">
+                {f.status !== 'ACCEPTED' && activeGrant?.timing === 'IMMEDIATE' && '초대를 수락하면 바로 볼 수 있습니다.'}
+              </span>
             </div>
           );
         })}

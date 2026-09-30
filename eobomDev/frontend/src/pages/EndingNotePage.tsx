@@ -513,8 +513,8 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
     LIFE_SUPPORT: (
       <>
         <p className="v2-notice-warn">
-          ⚠️ 이 메모는 법적 효력이 없습니다. 법적 효력이 있는 「사전연명의료의향서」는 보건복지부
-          지정 등록기관에서 본인이 직접 작성·등록해야 합니다(비용 없음).
+          이 메모는 법적 효력이 없습니다. 「사전연명의료의향서」는 보건복지부 지정 등록기관에서
+          본인이 직접 작성·등록해야 합니다.
         </p>
         <div className="v2-field">
           <label htmlFor="en-life-support">연명의료 중단 의향</label>
@@ -539,8 +539,7 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
     ASSET: (
       <>
         <p className="v2-notice-warn">
-          🔴 어느 은행·증권사에 거래가 있는지까지만 적어주세요. 계좌번호·잔액·비밀번호는 절대
-          적지 마세요 — 유족은 이 정보 없이도 공적 창구(안심상속 원스톱서비스 등)로 조회할 수 있습니다.
+          은행·증권사 이름까지만 적습니다. 계좌번호·잔액·비밀번호는 적지 마세요.
         </p>
         <div className="v2-field">
           <label htmlFor="en-asset-note">거래 중인 은행·증권사</label>
@@ -551,7 +550,7 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
             onChange={(e) => setAssetNote(e.target.value)}
             className="v2-input"
             style={{ height: 'auto', padding: '12px 14px' }}
-            placeholder="예: 국민은행에 주거래 계좌가 있고, 통장은 안방 서랍 두 번째 칸에 있습니다. 비밀번호는 적지 마세요 — 유족이 서류로 조회할 수 있습니다."
+            placeholder="예: 국민은행 주거래 계좌, 통장은 안방 서랍 두 번째 칸"
           />
         </div>
       </>
@@ -681,9 +680,8 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
     ORGAN_DONATION: (
       <>
         <p className="v2-notice-warn">
-          ⚠️ 이어봄은 등록 여부와 등록일만 보관합니다. 실제 등록은 국립장기조직혈액관리원(사랑의
-          장기기증운동본부 등 등록기관)에서 본인이 직접 해야 하며, 이어봄은 등록을 대행하지 않습니다.
-          🔴 시신 기증(해부용 시신 기증)은 별도 제도입니다 — 이 항목과 섞지 마세요.
+          등록 여부와 등록일만 보관합니다. 실제 등록은 국립장기조직혈액관리원 등 등록기관에서
+          본인이 직접 해야 하며, 이어봄은 대행하지 않습니다. 시신 기증은 별도 제도입니다.
         </p>
         <div className="v2-field">
           <label htmlFor="en-donation-status">장기·조직 기증 등록 여부</label>
@@ -950,7 +948,7 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
               </button>
               {SECTIONS.find((s) => s.code === expandedSection)?.title}
             </h3>
-            <div className="v2-modal-body">
+            <div className="v2-modal-body en-reader-body">
               {sectionBodies[expandedSection]}
               <SectionTimingControl
                 section={expandedSection}
