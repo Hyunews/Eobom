@@ -27,7 +27,6 @@ model User {
   facilityReviews     FacilityReview[] // 이 유저가 작성한 시설 리뷰 목록
   leads               Lead[] // docs/01_.../01-05 — 이 유저가 남긴 문의/견적요청 리드
   consultRequests     ConsultRequest[] // docs/02_.../02-03 — 이 유저가 남긴 전문가 상담 신청
-  digitalCleanupItems DigitalCleanupItem[] // docs 04-01 §4.3 — 디지털 정리 진행 항목
   memorials           Memorial[] // docs 05-01 §3.5 — 개설한 추모관
   memorialTributes    MemorialTribute[] // 남긴 헌화
   memorialGuestbooks  MemorialGuestbook[] // 남긴 방명록
@@ -35,6 +34,7 @@ model User {
   obituaries          Obituary[] // docs 07-03 §4.2 — 개설한 부고장
   familyDesignations  FamilyDesignation[] // docs 00-27 §4 — 생전 지정한 가족(제3자)
   endingNote          EndingNote? // docs 06-05 §6.1 — 1인 1건. 개봉 상태의 유일한 소유자(§3.2·§3.3)
+  deathVerifications  DeathVerification[] // docs 00-41 §4 — 이 회원(엔딩노트 주인)에 대한 사후 개봉 요청 이력
 
   // 00-28 회원 프로필 — 전부 선택(§3.1). 신청 스냅샷과 별개다(§2)
   contactPhone      String?   // 숫자만 정규화 저장(utils/phone.ts) — Partner·Expert와 동일 규칙
@@ -99,6 +99,7 @@ model FamilyDesignation {
   farewellMessages FarewellMessage[]            // docs 06-05 §6.2 — 이 수신자 앞으로 남긴 편지들
   endingNoteEntries EndingNoteEntry[]            // docs 06-04 §4.2 — 이 수신자를 지정한 엔딩노트 섹션. Phase 1은 항상 null(전원)이라 실질 데이터는 Phase 2부터
   endingNoteGrants  EndingNoteGrant[]             // docs 06-04 §4.2·§10 Phase 2 — 이 가족에게 부여된 섹션별 열람 시점
+  deathVerifications DeathVerification[]          // docs 00-41 §4 — 이 가족이 낸 사후 개봉 요청
 
   @@unique([userId, phoneHash])                 // 같은 사람을 두 번 지정하지 못하게
   @@index([userId, status])
@@ -421,52 +422,6 @@ model ConsultNumberCounter {
 // 행정사 상담(ConsultRequest)으로 연결하며, 이 도메인엔 별도 과금 구조를 만들지 않는다(§3.4).
 // ─────────────────────────────────────────────────────────────────
 
-// 디지털 플랫폼 안내 카탈로그(§3.1) — 운영자가 관리하는 마스터 데이터, 유저 데이터 아님.
-// 금융·가상자산 플랫폼은 이 테이블에 절대 넣지 않는다(§3.2 C분류, §1.1 배제 근거).
-model DigitalPlatform {
-  id             String    @id @default(uuid()) // 고유 식별자(UUID)
-  name           String // 표시명 (예: '네이버')
-  category       String // EMAIL | SNS | CLOUD | SUBSCRIPTION | ETC
-  actionType     String // DELETE(삭제) | MEMORIALIZE(추모 전환) | CANCEL(해지)
-  officialUrl    String? // 공식 유족 절차 안내 페이지
-  requiredDocs   String[]  @default([]) // 필요 서류 체크리스트 — 파일 자체는 받지 않는다(§3.3)
-  guideSummary   String // 절차 요약 — 유족이 읽는 본문
-  estimatedDays  Int? // 예상 소요일 (참고값)
-  needsAgentHelp Boolean   @default(false) // true면 행정사 상담(Domain 02) 유도(§3.4)
-  isPublished    Boolean   @default(false) // 확인 완료 전에는 노출 안 함
-  lastVerifiedAt DateTime? // 최종 확인일 — 화면에 함께 노출(§3.1). 오래되면 운영자 화면에서 경고
-  sortOrder      Int       @default(0) // 노출 순서
-  createdAt      DateTime  @default(now()) // 등록 일시
-  updatedAt      DateTime  @updatedAt // 최종 수정 일시
-
-  cleanupItems DigitalCleanupItem[] // 이 플랫폼을 대상으로 한 유족들의 진행 항목
-
-  @@index([category, isPublished])
-}
-
-// 유족 개인의 디지털 정리 진행 추적(§3). 증빙 파일 컬럼은 없다 — 없는 필드는 실수로도
-// 채워질 수 없다(§3.3, §9.1-1, docs 02-03 §3.2와 동일 논리).
-model DigitalCleanupItem {
-  id         String           @id @default(uuid()) // 고유 식별자(UUID)
-  userId     String // FK → User (03-01 §2 원칙, §5.5) — "보는 사람"
-  user       User             @relation(fields: [userId], references: [id])
-  deceasedId String? // FK → Deceased.id — "누구의 계정에 대한 정리인가". null이면 "내 것"(생전 본인)(04-01 §4.2-1) 🔴 User.id 아님
-  deceased   Deceased?        @relation(fields: [deceasedId], references: [id])
-  origin     String           @default("MANUAL") // MANUAL(직접 추가) | DISCOVERED(STEP 1 발견) | INHERITED(생전 목록 승계)(04-01 §4.2)
-  platformId String? // FK → DigitalPlatform (직접 입력 항목이면 null)
-  platform   DigitalPlatform? @relation(fields: [platformId], references: [id])
-  customName String? // 카탈로그에 없는 서비스를 유족이 직접 추가한 경우
-
-  status        String  @default("TODO") // TODO | PREPARING | SUBMITTED | DONE | BLOCKED
-  statusHistory Json    @default("[]") // [{status, at, note}]
-  memo          String? // 유족 개인 메모 (접수번호 등을 본인이 적어두는 칸)
-
-  createdAt DateTime @default(now()) // 항목 추가 일시
-  updatedAt DateTime @updatedAt // 최종 수정 일시
-
-  @@index([userId, deceasedId, status])
-}
-
 // 온라인 추모관(§4) — 고인 1명당 1개, 유족이 개설(§4.1). 공개범위 기본값은 PUBLIC이 아니라
 // LINK다(§4.2) — 사망 사실+유족 구성이 공개 색인되면 부고 사칭 보이스피싱의 표적 정보가 된다.
 model Memorial {
@@ -575,7 +530,6 @@ model Deceased {
 
   obituaries   Obituary[]
   memorials    Memorial[]
-  cleanupItems DigitalCleanupItem[] // docs 04-01 §4.2-1 — 이 고인 명의의 디지털 정리 진행 항목
 }
 
 // 부고장 — Domain 07 소유. 단명(장례 전후), 배포되는 유일한 링크(00-13 §4.5)
@@ -757,6 +711,44 @@ model EndingNoteGrant {
   @@unique([noteId, designationId, section]) // 가족·섹션 조합당 권한 1건 — timing은 덮어써서 바꾼다
   @@index([noteId])
   @@index([designationId])
+}
+
+// 사후 개봉 요청·사망 확인 — docs 00-41 §4. 요청(유족)과 확인(운영자)을 한 행에 담는다.
+// 🔴 서류 파일·이미지·주민등록번호 컬럼을 만들지 않는다(00-16 §4.3). 🔴 엔딩노트 본문과 조인하지 않는다(06-03 §3.1).
+// 개봉의 최종 상태는 EndingNote.status = RELEASED 하나다(06-05 §3.3) — 이 모델은 거기까지 가는 과정만 담는다.
+// 🔴 한 회원에 진행 중(REQUESTED)이거나 이미 VERIFIED인 요청은 하나뿐 — 컨트롤러가 Serializable 트랜잭션으로 강제한다.
+model DeathVerification {
+  id                 String            @id @default(uuid()) // 고유 식별자(UUID)
+  subjectUserId      String // 사망했다고 신고된 회원(엔딩노트 주인)
+  subject            User              @relation(fields: [subjectUserId], references: [id])
+  requestedByDesigId String // 요청한 지정 유족 — ACCEPTED + acceptedUserId=요청자여야 한다(컨트롤러)
+  requestedBy        FamilyDesignation @relation(fields: [requestedByDesigId], references: [id], onDelete: Cascade)
+
+  status String @default("REQUESTED") // REQUESTED | VERIFIED | REJECTED | CANCELLED
+
+  // 요청자가 입력(§8.1). 장례식장 정보는 업체 정보라 개인정보가 아니다
+  deceasedName     String // 고인 실명 — User.name은 닉네임일 수 있어 따로 받는다
+  deathDate        DateTime // 돌아가신 날
+  funeralHallName  String? // null이면 "장례식장 없음"
+  funeralHallPhone String? // 숫자만(utils/phone.ts)
+
+  requestedAt DateTime @default(now()) // 접수 시각
+  dueAt       DateTime // 대외 약속 — 운영시간(평일 9~17시)만 세서 12시간(§5.1). 화면 표시·정렬용
+  targetAt    DateTime // 내부 목표 — 운영시간만 세서 1시간(§5.1). 운영자 화면에만
+
+  // 운영자 처리(§5)
+  level             String? // VERIFIED일 때 OPERATOR_REVIEWED (00-12 §3 값 그대로)
+  method            String? // FUNERAL_HALL | OTHER(SUPERADMIN만)
+  reviewedByAdminId String? // FK 아님(AdminAuditLog와 같은 원칙 — 계정이 지워져도 증빙은 남는다)
+  reviewedAt        DateTime?
+  rejectReason      String? // HALL_NOT_FOUND | NAME_MISMATCH | UNREACHABLE | OTHER — 코드만, 자유 서술 없음
+
+  cancelledAt DateTime?
+  cancelledBy String? // SUBJECT | REQUESTER
+
+  @@index([status, dueAt])
+  @@index([subjectUserId])
+  @@index([requestedByDesigId])
 }
 
 // 아카이브 파기 2단계의 원장(06-05 §6.4·§5.6-8-1-1). 운영 1단계는 Render에서 돌고 Render

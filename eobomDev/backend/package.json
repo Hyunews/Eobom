@@ -7,7 +7,7 @@
     "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
     "build": "prisma generate && tsc",
     "start": "prisma migrate deploy && node dist/server.js",
-    "test": "node --require ts-node/register/transpile-only --test src/services/willRequirements.test.ts",
+    "test": "node --require ts-node/register/transpile-only --test src/services/willRequirements.test.ts src/utils/operatingHours.test.ts",
     "studio": "prisma studio",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",

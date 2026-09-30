@@ -274,6 +274,25 @@ const MAX_ACCEPT_NAME_ATTEMPTS = 5;
 // 공백을 전부 제거하고 비교한다(§9.1-4-3) — "홍 길동"과 "홍길동" 같은 표기 흔들림을 흡수한다.
 const normalizeNameForCompare = (s: string): string => s.replace(/\s+/g, '');
 
+// 초대 토큰을 새로 발급해 덮어쓴다. 본인의 초대 발급(아래)과 사후 재초대(deathVerificationController,
+// 00-41 §7.3)가 같은 로직을 쓴다 — 권한 판정은 호출 측 몫이다.
+export const issueInviteToken = (designationId: string) => {
+  // obituaryController.generateObituarySlug와 동일 방식(randomBytes(16)) — 추측 불가 토큰.
+  const token = crypto.randomBytes(16).toString('hex');
+  const tokenExpiresAt = new Date(Date.now() + INVITE_TOKEN_EXPIRY_DAYS * 24 * 60 * 60 * 1000);
+
+  return prisma.familyDesignation.update({
+    where: { id: designationId },
+    data: {
+      inviteToken: token,
+      tokenExpiresAt,
+      notifiedAt: new Date(),
+      status: 'PENDING', // 불변식 1 — 서버가 정한다. 링크를 만들었다고 권한이 생기진 않는다(여전히 0)
+      acceptAttempts: 0, // §9.1-4-3 — 새 토큰은 새 기회다. 이전 오답 횟수를 이어가지 않는다.
+    },
+  });
+};
+
 // 초대 링크 발급 (`POST /api/family-designations/:id/invite`) — 개설자만(§9.1).
 // 재발급은 같은 컬럼을 새 값으로 덮어쓰는 것만으로 이전 토큰을 무효화한다(§9.1-1 ③ 회수 수단) —
 // 별도 폐기 테이블이 필요 없다. DRAFT·PENDING(재발송)·DECLINED·EXPIRED 전부 재발급 가능하고,
@@ -293,20 +312,7 @@ export const inviteFamilyDesignation = async (req: Request, res: Response) => {
       return res.status(400).json({ status: 'error', message: '이미 수락된 지정입니다.' });
     }
 
-    // obituaryController.generateObituarySlug와 동일 방식(randomBytes(16)) — 추측 불가 토큰.
-    const token = crypto.randomBytes(16).toString('hex');
-    const tokenExpiresAt = new Date(Date.now() + INVITE_TOKEN_EXPIRY_DAYS * 24 * 60 * 60 * 1000);
-
-    const updated = await prisma.familyDesignation.update({
-      where: { id: existing.id },
-      data: {
-        inviteToken: token,
-        tokenExpiresAt,
-        notifiedAt: new Date(),
-        status: 'PENDING', // 불변식 1 — 서버가 정한다. 링크를 만들었다고 권한이 생기진 않는다(여전히 0)
-        acceptAttempts: 0, // §9.1-4-3 — 새 토큰은 새 기회다. 이전 오답 횟수를 이어가지 않는다.
-      },
-    });
+    const updated = await issueInviteToken(existing.id);
 
     return res.json({
       status: 'success',

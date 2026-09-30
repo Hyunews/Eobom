@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import prisma from '../config/prisma';
 import { verifyBearerToken } from './authController';
 import { encryptNoteField, decryptNoteField } from '../utils/crypto';
+import { RELEASED_LOCK_MESSAGE, isEndingNoteReleased } from '../utils/endingNoteLock';
 
 // docs 06-04 §4.2·§10 Phase 1 — 엔딩노트 본체(EndingNote 메타데이터 + EndingNoteEntry 본문).
 // 전부 본인 것만(farewellMessageController와 같은 패턴 — verifyBearerToken). 🔴 유족이 읽는
@@ -142,6 +143,9 @@ export const saveEndingNoteSection = async (req: Request, res: Response) => {
 
   try {
     const note = await getOrCreateNote(decoded.id);
+    if (note.status === 'RELEASED') {
+      return res.status(409).json({ status: 'error', message: RELEASED_LOCK_MESSAGE }); // 00-41 §7.2
+    }
     // §5 — 작성 시작 시점 동의를 먼저 받는다. 클라이언트가 동의 화면을 건너뛰어도 서버가 막는다.
     if (!note.policyAgreedAt) {
       return res.status(403).json({ status: 'error', message: '먼저 열람 정책에 동의해 주세요.' });
@@ -243,6 +247,9 @@ export const upsertEndingNoteGrant = async (req: Request, res: Response) => {
 
   try {
     const note = await getOrCreateNote(decoded.id);
+    if (note.status === 'RELEASED') {
+      return res.status(409).json({ status: 'error', message: RELEASED_LOCK_MESSAGE }); // 00-41 §7.2
+    }
 
     // 🔴 대상이 본인이 지정한 가족이고, 이미 수락(ACCEPTED)됐는지 확인 — 대기중인 초대에 미리
     // 권한을 줘봐야 acceptedUserId가 없어 아무도 못 읽는다(가족 조회 API가 acceptedUserId로만 찾는다).
@@ -279,6 +286,9 @@ export const revokeEndingNoteGrant = async (req: Request, res: Response) => {
   }
 
   try {
+    if (await isEndingNoteReleased(decoded.id)) {
+      return res.status(409).json({ status: 'error', message: RELEASED_LOCK_MESSAGE }); // 00-41 §7.2
+    }
     const existing = await prisma.endingNoteGrant.findUnique({
       where: { id: req.params.id },
       select: { id: true, revokedAt: true, note: { select: { userId: true } } },
@@ -296,8 +306,9 @@ export const revokeEndingNoteGrant = async (req: Request, res: Response) => {
   }
 };
 
-// 가족 조회 (`GET /api/ending-note/family-view`) — §10 Phase 2 #7. IMMEDIATE로 부여된 섹션만
-// 내려준다. 🔴 §7.4 UI 원칙("잠긴 섹션은 제목도 보이지 않는다")을 API에서부터 지킨다 — 응답
+// 가족 조회 (`GET /api/ending-note/family-view`) — §10 Phase 2 #7. 개봉 전엔 IMMEDIATE로 부여된 섹션만,
+// 🔄 개봉(EndingNote.RELEASED, 00-41 §7) 뒤엔 자기 권한의 POSTMORTEM 섹션 + 자기 앞 편지까지 내려준다.
+// 🔴 §7.4 UI 원칙("잠긴 섹션은 제목도 보이지 않는다")을 API에서부터 지킨다 — 응답
 // entries 배열에 아예 없는 섹션은 프론트가 그릴 것이 없다(잠금 표시조차 하지 않는다).
 //
 // 🔴 편차 메모 — familyDesignationController.ts 머리말 불변식 3은 "내가 누군가에게 지정됐는지
@@ -332,42 +343,72 @@ export const getFamilyVisibleEndingNotes = async (req: Request, res: Response) =
         relationshipEtc: true,
         scope: true,
         acceptedAt: true,
-        user: { select: { name: true, endingNote: { select: { id: true } } } },
+        user: { select: { name: true, endingNote: { select: { id: true, status: true, releasedAt: true } } } },
+        // 🔄 00-41 §7 — 개봉 뒤(RELEASED)엔 POSTMORTEM 권한도 열린다. 어느 쪽인지는 아래에서 노트 상태로 가른다.
         endingNoteGrants: {
-          where: { timing: 'IMMEDIATE', revokedAt: null },
-          select: { noteId: true, section: true },
+          where: { timing: { in: ['IMMEDIATE', 'POSTMORTEM'] }, revokedAt: null },
+          select: { noteId: true, section: true, timing: true },
         },
       },
     });
 
     // 지정마다 (노트 id, 열람 가능 섹션) 확정. 노트가 없는 지정은 예전처럼 응답에서 뺀다.
+    // 🔴 개봉 전(RELEASED 아님)엔 IMMEDIATE 권한만 — 사후 섹션은 **제목조차** 응답에 없다(00-41 §11).
+    // 🔴 개봉 판정은 서버의 EndingNote.status뿐이다. 클라이언트가 보낸 값은 받지 않는다(06-04 §7.4).
     const plans = designations.flatMap((d) => {
       const noteId = d.user.endingNote?.id;
       if (!noteId) return [];
-      // 🔴 §7.4 — WILL_DRAFT는 grant 자체가 생성 불가능하지만, 혹시 모를 오염을 대비해 한 번 더 거른다.
-      const sections = d.endingNoteGrants
-        .filter((g) => g.noteId === noteId)
-        .map((g) => g.section)
-        .filter((s) => s !== 'WILL_DRAFT');
-      return [{ d, noteId, sections }];
+      const released = d.user.endingNote?.status === 'RELEASED';
+      // 🔴 §7.4 — WILL_DRAFT는 grant 자체가 생성 불가능하지만, 혹시 모를 오염을 대비해 한 번 더 거른다(개봉 뒤에도 아무에게도 안 열림).
+      const sections = [
+        ...new Set(
+          d.endingNoteGrants
+            .filter((g) => g.noteId === noteId && (g.timing === 'IMMEDIATE' || (released && g.timing === 'POSTMORTEM')))
+            .map((g) => g.section)
+            .filter((s) => s !== 'WILL_DRAFT')
+        ),
+      ];
+      return [{ d, noteId, sections, released }];
     });
 
     const wanted = plans.filter((p) => p.sections.length > 0);
-    const rows =
+    const releasedDesignationIds = plans.filter((p) => p.released).map((p) => p.d.id);
+    // 두 조회는 서로 의존하지 않는다 — 왕복을 늘리지 않게 한꺼번에 보낸다(왕복 수 = 2회 유지).
+    const [rows, letterRows] = await Promise.all([
       wanted.length > 0
-        ? await prisma.endingNoteEntry.findMany({
+        ? prisma.endingNoteEntry.findMany({
             where: { OR: wanted.map((p) => ({ noteId: p.noteId, section: { in: p.sections } })) },
             select: { noteId: true, section: true, title: true, bodyEnc: true, updatedAt: true },
           })
-        : [];
+        : Promise.resolve([]),
+      // 유족 편지 — 개봉된 노트에서 **자기 앞으로 온 것만**(recipientId), 소프트 삭제분 제외. 섹션과 같은 순간에 열린다(06-05 §3.3).
+      releasedDesignationIds.length > 0
+        ? prisma.farewellMessage.findMany({
+            where: { recipientId: { in: releasedDesignationIds }, deletedAt: null },
+            orderBy: { createdAt: 'asc' },
+            select: {
+              id: true,
+              recipientId: true,
+              title: true,
+              bodyEnc: true,
+              mediaKey: true,
+              mediaDeletedAt: true,
+              mediaDurationSec: true,
+              createdAt: true,
+            },
+          })
+        : Promise.resolve([]),
+    ]);
 
-    const results = plans.map(({ d, noteId, sections }) => ({
+    const results = plans.map(({ d, noteId, sections, released }) => ({
       designationId: d.id,
       ownerName: d.user.name,
       relationship: d.relationship,
       relationshipEtc: d.relationshipEtc,
       scope: d.scope, // PRIMARY | VIEWER
       acceptedAt: d.acceptedAt,
+      released, // 00-41 — 화면이 "열림" 상태를 그릴 때 쓴다(판정은 서버가 이미 끝냈다)
+      releasedAt: released ? d.user.endingNote?.releasedAt ?? null : null,
       entries: rows
         .filter((r) => r.noteId === noteId && sections.includes(r.section))
         .map((r) => ({
@@ -375,6 +416,16 @@ export const getFamilyVisibleEndingNotes = async (req: Request, res: Response) =
           title: r.title,
           value: JSON.parse(decryptNoteField(r.bodyEnc)),
           updatedAt: r.updatedAt,
+        })),
+      letters: letterRows
+        .filter((l) => l.recipientId === d.id)
+        .map((l) => ({
+          id: l.id,
+          title: l.title,
+          body: decryptNoteField(l.bodyEnc),
+          hasAudio: !!l.mediaKey && l.mediaDeletedAt === null, // 재생 경로는 3-B 이후(수신자용 오디오 API 없음)
+          audioDurationSec: l.mediaDurationSec,
+          createdAt: l.createdAt,
         })),
     }));
 

@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import prisma from '../config/prisma';
 import { verifyBearerToken } from './authController';
 import { encryptNoteField, decryptNoteField } from '../utils/crypto';
+import { RELEASED_LOCK_MESSAGE, isEndingNoteReleased } from '../utils/endingNoteLock';
 import { isR2Enabled } from '../config/r2';
 import { downloadVoiceObject } from '../services/r2Storage';
 import {
@@ -164,6 +165,9 @@ export const createFarewellMessage = async (req: Request, res: Response) => {
   }
 
   try {
+    if (await isEndingNoteReleased(decoded.id)) {
+      return res.status(409).json({ status: 'error', message: RELEASED_LOCK_MESSAGE }); // 00-41 §7.2
+    }
     // 🔴 수신자가 반드시 본인의 FamilyDesignation인지 확인 — 없는 id와 남의 id를 같은 메시지로 응답한다.
     const recipient = await prisma.familyDesignation.findUnique({
       where: { id: body.recipientId },
@@ -215,6 +219,9 @@ export const updateFarewellMessage = async (req: Request, res: Response) => {
   };
 
   try {
+    if (await isEndingNoteReleased(decoded.id)) {
+      return res.status(409).json({ status: 'error', message: RELEASED_LOCK_MESSAGE }); // 00-41 §7.2
+    }
     const existing = await prisma.farewellMessage.findUnique({
       where: { id: req.params.id },
       select: { id: true, deletedAt: true, note: { select: { userId: true } } },
@@ -379,6 +386,9 @@ export const deleteFarewellMessage = async (req: Request, res: Response) => {
     return res.status(401).json({ status: 'error', message: '로그인이 필요합니다.' });
   }
   try {
+    if (await isEndingNoteReleased(decoded.id)) {
+      return res.status(409).json({ status: 'error', message: RELEASED_LOCK_MESSAGE }); // 00-41 §7.2
+    }
     const row = await prisma.farewellMessage.findUnique({
       where: { id: req.params.id },
       select: { deletedAt: true, note: { select: { userId: true } } },
@@ -410,6 +420,9 @@ export const deleteFarewellMessageAudio = async (req: Request, res: Response) =>
   }
 
   try {
+    if (await isEndingNoteReleased(decoded.id)) {
+      return res.status(409).json({ status: 'error', message: RELEASED_LOCK_MESSAGE }); // 00-41 §7.2
+    }
     const row = await prisma.farewellMessage.findUnique({
       where: { id: req.params.id },
       select: {

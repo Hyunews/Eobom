@@ -16,6 +16,32 @@
 > [`_아카이브_2608`](walkthrough_아카이브_2608.md)(08-31분). 남은 것 = 판정 대기 + 판정 표기 없음. 기준 → `record.md` §2-1.
 
 ---
+## 2026-09-30 | [Sonnet] 사후 개봉 3-A(백엔드) — `DeathVerification` · 운영시간 12h/1h · 유족·본인·운영자 API · family-view 확장 · 재초대 · RELEASED 저장 잠금
+
+- **근거 스펙**: `docs/00_핵심플랫폼/00-41_사후개봉_최소안_명세서.md` §4·§5.1·§7·§9·§11(3-A). 핸드오프 블록.
+- **건드린 파일**: **신규** `backend/src/utils/operatingHours.ts` · `operatingHours.test.ts` · `backend/src/utils/endingNoteLock.ts` · `backend/src/controllers/deathVerificationController.ts` · `deathVerificationAdminController.ts` · `backend/prisma/migrations/20260930011158_add_death_verification/migration.sql`. **수정** `backend/prisma/schema.prisma`(모델 1 + `User`·`FamilyDesignation` 관계 필드 각 1) · `backend/src/routes/endingNoteRoutes.ts` · `backend/src/routes/adminRoutes.ts` · `backend/src/controllers/endingNoteController.ts` · `backend/src/controllers/farewellMessageController.ts` · `backend/src/controllers/familyDesignationController.ts` · `backend/package.json`(test 스크립트에 파일 1개 추가). 문서 자동 생성: `docs/00_핵심플랫폼/00-05_DB_요구사항_및_테이블_사전.md`(`generate-db-doc.js`).
+- **결과**:
+  1. **모델** `DeathVerification`(§4.2 필드 그대로 + `requestedByDesigId` 인덱스 1개 추가). FK: `subject`→User(RESTRICT) · `requestedBy`→FamilyDesignation(**CASCADE**). 마이그레이션은 파일만 생성했고 적용 상태는 아래 "다음 에이전트" 참조.
+  2. **운영시간**(`operatingHours.ts`) — 평일 9~17시 KST · 공휴일 상수 `HOLIDAYS`(2026년분) · `dueAt`=12h · `targetAt`=1h를 운영시간만 세어 계산. 값은 `OPERATING_HOURS`·`DUE_OPERATING_MINUTES`·`TARGET_OPERATING_MINUTES` 상수 세 곳. `node --require ts-node/register/transpile-only --test src/utils/operatingHours.test.ts` 8건 통과(금 16시→다음 화 12시 · 월 10시→화 14시 · 토 밤 접수 · 17시 이월 · 대체공휴일 10/5 건너뛰기 · 추석 연휴).
+  3. **유족·본인 API**(`/api/ending-note/release-requests`): `POST /` · `GET /mine` · `GET /about-me` · `POST /:id/cancel` · `POST /:id/cancel-by-subject` · `GET /:id/pending-family` · `POST /:id/pending-family/:desigId/reinvite`. 요청 생성은 Serializable 트랜잭션에서 "한 회원에 REQUESTED·VERIFIED 하나뿐"을 강제(충돌 시 409). 응답에 `targetAt`·장례식장 전화 없음.
+  4. **운영자 API**(`/api/admin/death-verifications`): `GET /`(REQUESTED만·`dueAt` 순·`pendingCount`·`overTarget`·`overDue`) · `GET /:id`(요청자 전화 복호화 · `VIEW`) · `PATCH /:id/verify {method}`(`OTHER`는 DB에서 읽은 `Admin.role === 'SUPERADMIN'`만) · `PATCH /:id/reject {reasonCode}`. verify = `VERIFIED` + `EndingNote.RELEASED`·`releasedAt` + `AdminAuditLog APPROVE`를 **한 `$transaction`**, reject = 상태 변경 + `REJECT`. 두 컨트롤러 모두 `EndingNote`·`EndingNoteEntry`·`FarewellMessage`를 select/include 하지 않는다 — 검증 명령: `grep -n "endingNoteEntry\|farewellMessage\|bodyEnc\|sectionState\|title" backend/src/controllers/deathVerificationAdminController.ts` → 주석 외 0건이어야 함.
+  5. **family-view 확장**(`endingNoteController.getFamilyVisibleEndingNotes`) — 응답에 `released`·`releasedAt`·`letters[]` 추가. 개봉 전은 기존과 같이 `IMMEDIATE`만, 개봉(`EndingNote.status === 'RELEASED'`) 뒤엔 `POSTMORTEM` 권한 섹션 + `recipientId`가 자기 지정인 편지(`deletedAt: null`)를 본문 복호화해 내림. `WILL_DRAFT`는 양쪽 다 필터. 조회는 `Promise.all` 두 개(왕복 수 2회 유지).
+  6. **사후 재초대** — `familyDesignationController.issueInviteToken(designationId)`를 새로 빼서 `inviteFamilyDesignation`과 재초대가 같이 쓴다(원래 동작 그대로). 대상은 그 회원의 `PENDING`·`EXPIRED` 지정만(`DECLINED`·`ACCEPTED`·`DRAFT` 제외), 호출자는 그 회원의 `ACCEPTED` 유족 + 요청 `VERIFIED` 이후. 응답에 이름·관계·`linkExpired`만(전화·이메일·토큰 없음).
+  7. **RELEASED 뒤 본인 쓰기 거부(409)** — `saveEndingNoteSection` · `upsertEndingNoteGrant` · `revokeEndingNoteGrant`(endingNoteController) · `createFarewellMessage` · `updateFarewellMessage` · `deleteFarewellMessage` · `deleteFarewellMessageAudio`(farewellMessageController). 헬퍼 `utils/endingNoteLock.ts`. 읽기·반출은 그대로.
+  `tsc --noEmit`(backend) 통과. 🔴 **실행 시험은 하지 못했다**(아래).
+- **편차**: ① 스펙 §7.2는 "본인 저장 API"만 적었는데 **권한 부여·철회와 편지 4개 쓰기 경로도 잠갔다**(같은 노트의 본인 쓰기라 고인 휴대폰으로 고쳐지는 구멍이 같다). 되돌리려면 헬퍼 호출 줄만 빼면 된다. ② `requestedByDesigId` 인덱스 1개 추가(스펙 §4.2엔 없음). ③ `requestedBy` FK를 CASCADE로 잡았다 — 스펙은 "FK"만 적었다. 이유: 계정 파기 배치(`accountPurgeService`)가 `familyDesignation.deleteMany`를 돌리는데 RESTRICT면 개봉 이력이 있는 회원의 파기가 FK 오류로 죽는다. 부작용: 지정이 지워지면 그 요청 행도 같이 사라진다(개봉 증빙은 `AdminAuditLog APPROVE`에 남음). 보유기간은 스펙이 후속(§10)으로 미뤘다.
+- **다음 에이전트가 알아야 할 것**:
+  - 🔴 **`DeathVerification` 마이그레이션 적용은 이 기록 시점에 미실행**(CONFIRM 대기). 백업: `local-20260930-101213.dump`(249KB)·`prod-20260930-101207.dump`(602KB) 생성 확인. 운영 적용은 별도.
+  - 🔴 **실행 시험 미수행** — dev 서버 미기동 방침 + `prisma generate`가 엔진 dll 교체(`EPERM rename query_engine-windows.dll`)에서 실패(실행 중인 backend dev 서버가 잡고 있음). 타입 파일은 새로 생성돼 tsc는 통과. 개발자가 dev 서버를 껐다 켠 뒤 `npx prisma generate`를 한 번 더 돌려야 런타임이 새 모델을 안다. 화면(3-B) 전에 확인할 것: 요청 생성 → 운영자 목록 → verify → family-view가 사후 섹션·편지를 내리는지 / 확인 전엔 사후 섹션 제목조차 없는지 / 개봉 뒤 본인 저장 409.
+  - 🟡 **`HOLIDAYS`는 2026년분만**(`HOLIDAYS_COVERED_THROUGH = 2026`). 연말에 다음 해를 채워야 하고, 내가 넣은 날짜(설날 2/16~18·삼일절 대체 3/2·어린이날·부처님오신날 대체 5/25·지방선거 6/3·광복절 대체 8/17·추석 9/24~25·개천절 대체 10/5·한글날·성탄절)는 **공식 공고와 대조한 값이 아니다.** 확인 필요.
+  - 🟡 **스펙 공백(§7.3)** — 생전에 수락하지 않은 가족(`PENDING`·`EXPIRED`)은 `upsertEndingNoteGrant`가 `ACCEPTED`에게만 권한을 주도록 막혀 있어 **`EndingNoteGrant`가 없다.** 그래서 사망 뒤 수락해도 사후 섹션은 0개, 자기 앞 편지(`recipientId`)만 보인다. "자기 권한만큼 열린다"의 권한이 비어 있는 상태 — Opus 판단 필요(생전 미수락자 권한을 어떻게 줄지).
+  - 🟡 편지 **음성은 재생 경로가 없다** — family-view는 `hasAudio`·`audioDurationSec`만 내린다. 수신자용 오디오 스트림 API는 없다(`getFarewellMessageAudio`는 본인 전용).
+  - 🟡 운영자 응답에 `funeralHallPhone`이 목록에도 들어 있다(업체 전화라 개인정보가 아니라고 스펙 §4.2에 적혀 있음). 요청자 전화는 상세에만, 열람은 `VIEW`로 기록.
+  - 화면(3-B)은 하지 않았다. `FamilySharedPage.entryFields`는 여전히 FUNERAL·CONTACTS만 그리므로 개봉 뒤 다른 섹션은 화면에 안 나온다.
+
+<!-- Gemini 판정 1줄: ✅통과 / ❌반려(사유) / 🔄스펙갱신(고친 문서) -->
+
+---
 ## 2026-09-30 | [Sonnet] 04·06 결정 구현 — 엔딩노트 ⑤ 구독 메모 + 04 백엔드 삭제(2-a 코드만) + DigitalEstatePage 주석 정리
 
 - **근거 스펙**: `.harness/docs-audit/README.md` §4 "04 판정 결과" #6·#9 결정 · docs `06-04` §6.1 ⑤ · `04-01` 머리 결정 블록(09-30). 핸드오프 블록.
@@ -27,7 +53,7 @@
   `tsc --noEmit`(backend·frontend) 통과 · `npm run build`(frontend) 통과. backend `npm run build`는 `prisma generate` 단계에서 `EPERM rename query_engine-windows.dll`로 멈춤(다른 프로세스가 dll을 잡고 있음, 코드 오류 아님 — tsc로 대체 확인).
 - **편차**: 없음. 다만 지시 밖 1곳 — `prisma/destroy-farewell-media.ts:126`이 `p.cleanupItems`를 출력해 타입이 깨져서 그 출력 조각(` 정리항목 ${p.cleanupItems}`)만 뺐다. 화면에서 유족용 "가족 화면(FamilySharedPage)"은 손대지 않음 — 아래 참조.
 - **다음 에이전트가 알아야 할 것**:
-  - 🔴 **2-b 미실행**(DB 모델 삭제 마이그레이션). `schema.prisma`에 `DigitalPlatform`(426줄)·`DigitalCleanupItem`(449줄)과 관계 3곳(`User.digitalCleanupItems` 30줄 · `DigitalPlatform.cleanupItems` 442줄 · `Deceased.cleanupItems` 578줄)이 그대로 있다. 코드는 더 이상 참조하지 않으므로 지금 상태로 안전. 사전 조회: **로컬 dev DB(`localhost:5433/eobom_db`)** 두 표 모두 **0행**. 운영(Supabase)은 조회하지 않음.
+  - ✅ **2-b 로컬 dev 적용 완료**(09-30 후속, 개발자 승인). `schema.prisma`에서 `DigitalPlatform`·`DigitalCleanupItem` 모델 2개와 다른 모델 쪽 관계 필드 2곳(`User.digitalCleanupItems` · `Deceased.cleanupItems`)을 지웠다(`DigitalPlatform.cleanupItems`는 모델과 함께 사라짐 — 합계 48줄 삭제). 마이그레이션 `20260930010537_drop_digital_cleanup_models`(FK 3개 DROP + 테이블 2개 DROP)를 `prisma migrate deploy`로 로컬 dev에만 적용, `migrate status` = "Database schema is up to date". 사전 조회: 로컬 dev·**운영(개발자 직접 조회) 두 표 모두 0행**. 백업: `backups/local-20260930-093637.dump`(254KB)·`prod-20260930-093632.dump`(547KB) 생성 확인. 🔴 **운영 DB 적용은 미실행** — 개발자가 SQL 확인 후 별도 "진행".
   - 🔴 **백업 실패** — `backup-db.ps1`이 `postgres:17-alpine` 이미지가 PC에 없어 `docker run` 중 pull 단계에서 종료(Docker 자체는 정상 — `eobom-postgres` 컨테이너 기동 중; 이미지는 이후 pull 완료; 파일 미생성; 최신 백업은 09-10 `prod-20260910-082936.dump`). 그리고 이 스크립트는 `.env`의 `BACKUP_DATABASE_URL`(=Supabase 운영)만 대상으로 삼는다 — 로컬 dev DB 백업 경로는 별도다. 사람 확인 후 진행할 것.
   - 🟡 가족 화면(`FamilySharedPage.tsx` `entryFields`)은 `IMMEDIATE` 두 섹션(FUNERAL·CONTACTS)만 그린다. `DIGITAL_ACCOUNTS`는 `POSTMORTEM` 전용이라 백엔드가 family-view에서 걸러 새 필드가 **아직 어디서도 표시되지 않는다**(06 개봉 미구현, context.md 기재와 같은 상태). 개봉이 구현될 때 `digitalPrefs`·`subscriptionNote` 둘 다 그려야 한다.
   - 🔴 실기동 미확인(dev 서버 미기동 방침) — 엔딩노트 ⑤ 저장→새로고침 시 구독 메모 유지·취소 시 되돌아감·목록 요약 확인 필요. 요약 문자열(`EndingNotePage.tsx` DIGITAL_ACCOUNTS 요약 case)에는 구독 메모를 넣지 않았다.

@@ -16,6 +16,12 @@ import {
 } from '../controllers/moderationController';
 import { listClaimsForAdmin, updateClaimStatus } from '../controllers/claimController';
 import {
+  listDeathVerifications,
+  getDeathVerification,
+  verifyDeathVerification,
+  rejectDeathVerification,
+} from '../controllers/deathVerificationAdminController';
+import {
   listFarewellPurgeExpired,
   listFarewellPendingArchive,
   executeFarewellPurge,
@@ -50,6 +56,12 @@ router.get('/consult-requests', listConsultRequestsForAdmin);
 // 시설 클레임(연동) 심사
 router.get('/claims', listClaimsForAdmin);
 router.patch('/claims/:id/status', updateClaimStatus);
+
+// 사후 개봉 사망 확인 (docs 00-41 §5.3·§9) — 응답에 엔딩노트 본문·섹션 제목·편지가 없다
+router.get('/death-verifications', listDeathVerifications);
+router.get('/death-verifications/:id', getDeathVerification);
+router.patch('/death-verifications/:id/verify', verifyDeathVerification);
+router.patch('/death-verifications/:id/reject', rejectDeathVerification);
 
 // 추모관 신고 확인 (docs 05-01 §4.3)
 router.get('/memorials', listMemorialsForAdmin);
