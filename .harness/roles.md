@@ -32,6 +32,8 @@ Gemini에겐 **기계적 문서화와 판정만** 준다. 자기가 안 한 일�
 | `.harness/` (규칙·메모리·툴) | **Claude**(Opus·Sonnet 공용) | Gemini | 하네스 유지보수. 예외 → §1-2 `context.md` |
 | `assets/` (원천 데이터·로고) | **사람** | 둘 다 | 에이전트가 임의 추가 금지 |
 
+> 🔵 **검증 스크립트·회귀 테스트는 `eobomDev/backend/tests/`에 남긴다**(09-30, `00-15` §6 ①) — 소스와 같은 영역이라 쓰기는 `[Claude:Sonnet]`. 규칙 → `record.md` §2. (`.harness/`는 Claude 공용이라 이 규칙 줄은 Opus·Sonnet 누가 고쳐도 된다.)
+
 > 🔴 **지키는 장치가 없다.** 훅도 퍼미션도 Opus/Sonnet을 구분하지 못한다(훅은 모델을 모른다).
 > **표가 곧 방어선**이라 이 규칙만은 자동 로드되는 **루트 `CLAUDE.md`** 에도 중복해 둔다.
 > 2026-08-25까지 이 표가 둘을 `Claude` 하나로 뭉쳐 둬서 Opus가 `eobomDev/`에 코드를 썼다(전량 revert).

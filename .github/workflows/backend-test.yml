@@ -1,0 +1,57 @@
+# 백엔드 회귀 테스트 — push 때마다 `npm test`(권한 경계 등)를 자동 실행한다. (00-15 §6 ③)
+#
+# 🔴 이 워크플로는 **검사만** 한다. 배포(Render·Vercel)와 섞지 않는다 — 실패해도 배포를 막지 않고
+#    GitHub의 실패 알림(메일·Actions 탭)만 남는다. "검사 실패가 배포를 막을지"는 사람이 정할 일이다.
+# 🔴 운영·Render·Supabase의 비밀값을 여기에 넣지 않는다. DB는 아래 서비스 컨테이너(러너 안의 임시 Postgres,
+#    끝나면 사라짐)이고, 연결 문자열·시크릿은 전부 가짜/임시값이다(secrets 사용 없음).
+name: backend-test
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    services:
+      postgres:
+        image: postgres:15 # 로컬 Docker(eobom-postgres)와 같은 메이저 버전
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: eobom_test # 🔴 이름이 _test로 끝나야 tests/helpers/dbGuard.ts를 통과한다
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/eobom_test?schema=public
+
+    defaults:
+      run:
+        working-directory: eobomDev/backend
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: eobomDev/backend/package-lock.json
+
+      - run: npm ci
+      - run: npx prisma generate
+      - name: 테스트 DB에 스키마 적용 (임시 컨테이너)
+        run: npm run test:db:migrate
+      - name: 테스트 실행
+        run: npm test

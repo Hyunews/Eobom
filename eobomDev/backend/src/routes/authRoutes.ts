@@ -11,6 +11,7 @@ import {
   resolveFrontendUrl,
   JWT_SECRET,
   FRONTEND_URL,
+  isB2cAud,
 } from '../controllers/authController';
 
 const router = Router();
@@ -97,6 +98,8 @@ router.get('/:provider/link', (req, res, next) => {
   let userId: string;
   try {
     const decoded = jwt.verify(token, JWT_SECRET) as jwt.JwtPayload & { id: string };
+    // 다른 주체(partner·expert·admin)의 토큰으로 유저 계정 연동을 시작하지 못하게 한다.
+    if (!isB2cAud(decoded.aud) || !decoded.id) throw new Error('not a B2C token');
     userId = decoded.id;
   } catch {
     return res.status(401).json({ status: 'error', message: '유효하지 않거나 만료된 토큰입니다.' });

@@ -124,16 +124,19 @@ export const resolveMode = (state: unknown): 'login' | 'signup' => {
   return 'signup';
 };
 
+// B2C 유저 토큰의 aud인지. 'user'이거나, aud가 없는 토큰(이 필드 도입 전에 발급된 것)은 레거시로 간주해
+// 허용 — 그때는 다른 주체의 토큰이 존재하지 않았으므로 위조될 수 없다. 🔴 나머지(partner·expert·admin 등)는 전부 거부한다.
+// (2026-09-30 회귀 테스트가 발견: 예전엔 'partner'만 막아 expert·admin 토큰이 B2C 라우트를 통과했다.)
+export const isB2cAud = (aud: unknown): boolean => aud === undefined || aud === 'user';
+
 // 헬퍼: Authorization 헤더의 Bearer 토큰 검증 (실패 시 null)
-// aud(대상) 클레임으로 B2C ↔ 사업자(Partner) 토큰 교차 사용을 막는다(docs 01-05 §6.4).
-// aud가 없는 토큰(이 필드 도입 전에 발급된 것)은 레거시로 간주해 그대로 허용 — 아직 파트너 토큰이
-// 존재하지 않던 시절 발급분이라 'partner'로 위조될 수 없었기 때문에 안전하다.
+// aud(대상) 클레임으로 B2C ↔ 사업자·전문가·운영자 토큰 교차 사용을 막는다(docs 01-05 §6.4).
 export const verifyBearerToken = (req: Request): (jwt.JwtPayload & { id: string }) | null => {
   const authHeader = req.headers.authorization;
   if (!authHeader || !authHeader.startsWith('Bearer ')) return null;
   try {
     const decoded = jwt.verify(authHeader.split(' ')[1], JWT_SECRET) as jwt.JwtPayload & { id: string; aud?: string };
-    if (decoded.aud === 'partner') return null; // 사업자 토큰이 B2C 라우트로 들어옴 — 거부
+    if (!isB2cAud(decoded.aud)) return null; // 다른 주체의 토큰이 B2C 라우트로 들어옴 — 거부
     return decoded;
   } catch {
     return null;

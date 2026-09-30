@@ -1,28 +1,10 @@
 import 'dotenv/config';
-import express from 'express';
-import cors from 'cors';
 import fs from 'fs';
 import path from 'path';
 import https from 'https';
-import passport from './config/passport';
-import authRoutes from './routes/authRoutes';
-import facilityRoutes from './routes/facilityRoutes';
-import geoRoutes from './routes/geoRoutes';
-import partnerRoutes from './routes/partnerRoutes';
-import expertRoutes from './routes/expertRoutes';
-import expertPublicRoutes from './routes/expertPublicRoutes';
-import adminRoutes from './routes/adminRoutes';
-import meRoutes from './routes/meRoutes';
-import memorialRoutes from './routes/memorialRoutes';
-import obituaryRoutes from './routes/obituaryRoutes';
-import familyDesignationRoutes from './routes/familyDesignationRoutes';
-import farewellMessageRoutes from './routes/farewellMessageRoutes';
-import endingNoteRoutes from './routes/endingNoteRoutes';
-import sttRoutes from './routes/sttRoutes';
-import ocrRoutes from './routes/ocrRoutes';
 import { checkEncryptionKeyStrength } from './utils/crypto';
+import app from './app';
 
-const app = express();
 const PORT = process.env.PORT || 5000;
 
 // 00-33 §7.2 — 약한 암호화 키 부팅 점검. 운영은 기동을 막고(사고를 배포 전에 잡음),
@@ -44,42 +26,6 @@ const certDir = path.resolve(__dirname, '../../.certs');
 const certPath = path.join(certDir, 'localhost+2.pem');
 const keyPath = path.join(certDir, 'localhost+2-key.pem');
 const hasLocalCert = fs.existsSync(certPath) && fs.existsSync(keyPath);
-
-// 미들웨어 설정
-app.use(cors({ origin: true, credentials: true }));
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-app.use(passport.initialize());
-
-// 업로드된 시설 이미지 정적 서빙 — 로컬 디스크 저장(config/upload.ts). ⚠️ 배포 환경에서는
-// 재배포 시 사라지는 임시 저장소다 — 실서비스 전 외부 스토리지로 교체 필요.
-app.use('/uploads', express.static(path.resolve(__dirname, '../uploads')));
-
-// 라우터 연결
-app.use('/api/auth', authRoutes);
-app.use('/api/facilities', facilityRoutes);
-app.use('/api/geo', geoRoutes);
-app.use('/api/partner', partnerRoutes);
-app.use('/api/expert', expertRoutes);
-app.use('/api/experts', expertPublicRoutes); // 소비자 공개 API — 단수형(/api/expert, 본인 계정)과 분리
-app.use('/api/admin', adminRoutes);
-app.use('/api/me', meRoutes);
-app.use('/api/memorials', memorialRoutes);
-app.use('/api/obituaries', obituaryRoutes);
-app.use('/api/family-designations', familyDesignationRoutes);
-app.use('/api/farewell-messages', farewellMessageRoutes);
-app.use('/api/ending-note', endingNoteRoutes);
-app.use('/api/stt', sttRoutes);
-app.use('/api/ocr', ocrRoutes);
-
-// 기본 헬스체크
-app.get('/api/health', (req, res) => {
-  res.json({
-    status: 'online',
-    service: 'Eobom Backend API Server',
-    time: new Date().toISOString(),
-  });
-});
 
 const scheme = hasLocalCert ? 'https' : 'http';
 

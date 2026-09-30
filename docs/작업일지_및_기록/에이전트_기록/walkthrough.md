@@ -16,6 +16,23 @@
 > [`_아카이브_2608`](walkthrough_아카이브_2608.md)(08-31분). 남은 것 = 판정 대기 + 판정 표기 없음. 기준 → `record.md` §2-1.
 
 ---
+## 2026-09-30 | [Sonnet] 회귀 테스트 ①②③ 도입 — 검증 스크립트 보존 · 러너 + 권한 경계 테스트 · CI
+
+- **근거 스펙**: `docs/00_핵심플랫폼/00-15` §6 "2026-09-30 개발자 결정" 블록 · §5.1 1번 · §5.3. 핸드오프 블록.
+- **건드린 파일**: 신규 `backend/tests/`(`README.md` · `helpers/{dbGuard,testEnv,tokens}.ts` · `db-guard.test.ts` · `auth-boundary.test.ts` · `migrate-test-db.ts`) · 신규 `backend/src/app.ts` · `backend/src/server.ts`(app 조립 부분을 app.ts로 이동) · `backend/src/controllers/authController.ts`(`isB2cAud` 신설·`verifyBearerToken`) · `backend/src/routes/authRoutes.ts`(`/:provider/link`) · `backend/package.json`(`test` 확장·`test:db:migrate`) · `backend/.env.example`(`TEST_DATABASE_URL`) · 신규 `.github/workflows/backend-test.yml` · `.harness/record.md`·`roles.md`(규칙 한 줄씩). 로컬 `.env`(gitignore)에 `TEST_DATABASE_URL` 한 줄 추가.
+- **결과**:
+  - **러너 선택**: Node 내장 `node:test` + 기존 `ts-node/register/transpile-only` — 이 프로젝트가 이미 단위 테스트 2개를 그렇게 돌리고 있어 의존성 0개 추가, TS+Express+Prisma에 그대로 맞는다(supertest 대신 Node 22 내장 `fetch`로 `app.listen(0)`에 요청).
+  - **app.ts 분리**: server.ts가 앱 조립과 listen을 한 파일에 갖고 있어 테스트가 서버를 띄우지 않고 앱을 불러올 수 없었다. 미들웨어·라우터 마운트·헬스체크를 `app.ts`로 옮기고 server.ts는 dotenv·부팅 점검·listen만 남겼다. 마운트 순서·경로 동일. `tsc --noEmit` 에러 0.
+  - **전용 테스트 DB**: 사람 승인 후 로컬 Docker `eobom-postgres`에 새 DB `eobom_test`를 `CREATE DATABASE`(기존 `eobom_db` 무접촉, 백업 불필요 사유는 새 DB뿐) → `npm run test:db:migrate`로 마이그레이션 35개 적용. 가드 2중: ① `dbGuard.ts` — `TEST_DATABASE_URL` 없음(DATABASE_URL 폴백 없음)·호스트가 localhost/127.0.0.1 아님·DB 이름이 `_test`로 안 끝남 → 시작 전 즉시 실패(단위 6개로 가드 자체를 시험) ② `before()`에서 `SELECT current_database()`가 `_test`인지 재확인. `.env`는 통째로 불러오지 않고 `TEST_DATABASE_URL` 한 줄만 읽는다. `TEST_DATABASE_URL` 없이 돌리면 `TestDbGuardError`로 거부됨을 확인.
+  - **권한 경계 테스트**: `server.ts` 마운트 13개 보호 네임스페이스(admin·partner·expert·me·auth·memorials·obituaries·family-designations·farewell-messages·ending-note·facilities·stt·ocr)에서 대표 19개 경로. (a) 토큰 없음/엉터리/다른 비밀키/만료 → 401 (b) 다른 3종 aud 토큰 → 401 (c) 쿼리 토큰 경로 `/api/auth/:provider/link` (d) **대조군**: 주인 토큰은 401이 아님(GET 14개) + aud 없는 옛 유저 토큰 허용. 가짜 id·가짜 토큰만 사용.
+  - **🔴 테스트가 실제 결함을 잡았다**: 첫 실행에서 **22건 실패** — `verifyBearerToken`이 `aud === 'partner'`만 막아 **expert·admin 토큰이 B2C 유저 경로(`/api/me/*`·`/api/ending-note`·`/api/farewell-messages` 등 11개 네임스페이스)를 통과**했다. 스펙(00-15 §5.1 "admin 토큰 → user 전용 = 401")과 다른 구현. `isB2cAud`(aud가 `'user'`이거나 없음만 허용)로 고쳤고, 같은 허점이 있던 `/api/auth/:provider/link?token=`도 함께 막았다. 수정 후 전부 통과.
+  - `npm test` 총 **217개 통과 · 0 실패**(기존 단위 58 + 신규 159: 가드 6 + 권한 경계 153). 소요 약 수 초. `tsc --noEmit` 에러 0. STT·OCR은 플래그가 꺼져 있으면 컨트롤러가 인증보다 먼저 404를 내므로 테스트 env에서만 플래그를 켰다(자격증명이 없어 외부 호출 불가, 정상 토큰 POST는 보내지 않음).
+  - **CI**: `.github/workflows/backend-test.yml` — push·PR마다 임시 `postgres:15` 서비스 컨테이너(`POSTGRES_DB=eobom_test`)에서 `npm ci` → `prisma generate` → `test:db:migrate` → `npm test`. `secrets` 미사용·운영/Render/Supabase 값 없음·배포 단계 없음(실패해도 알림만). **아직 GitHub에서 돌려보지 못했다**(커밋·push 전) — `npm ci --dry-run`과 로컬 동일 절차만 확인.
+- **편차**: ① 스펙에 없던 **버그 수정**(`verifyBearerToken`·link 경로)을 했다 — 테스트가 스펙 §5.1 기대치("admin 토큰 → user 전용 = 401")대로 빨갛게 나왔고 §5.3이 빨간 테스트 방치를 금하며, 수정이 한 줄 규칙이라 그대로 반영. 부작용 우려(운영에서 expert/admin 토큰으로 유저 화면을 쓰던 사람)는 없다고 판단하나 실기동에서 관리자·전문가 로그인 화면 확인 필요. ② 지시의 "server.ts:59-73 훑기"를 위해 `server.ts`를 쪼개 `app.ts`를 만들었다(구조 변경). ③ 공개 경로(/api/geo·/api/experts·조회류)는 목록에서 제외 — 주석에 명시. ④ 부수 발견(고치지 않음): 컨트롤러 4곳이 `JWT_SECRET`을 `process.env.JWT_SECRET || 'eobom_jwt_secret_key_2026_well_dying'` 폴백으로 갖고 있고 `.env.example`에도 같은 값이 있다 — 운영에서 env가 빠지면 공개된 기본 키로 토큰 서명이 성립한다. [Opus] 판단 필요.
+- **다음 에이전트가 알아야 할 것**: 🔴 ① **CI 동작은 push 뒤 Actions 탭에서 확인** — 첫 실행이 빨가면 `npm ci`(sharp·ffmpeg-static 설치)·서비스 컨테이너 포트를 먼저 본다. ② **실기동(사람)**: 운영자 로그인·전문가 로그인·일반 유저 로그인 각각 자기 화면이 정상인지(토큰 aud 검사 강화 영향). ③ 새 보호 경로·라우터를 만들면 `tests/auth-boundary.test.ts`의 `PROTECTED` 표에 한 줄 추가. ④ 마이그레이션이 늘면 로컬에서 `npm run test:db:migrate` 재실행. ⑤ [Opus] `00-15` §1 실측 갱신·§6 결정 반영 · 위 편차 ④(JWT 기본 키 폴백). 커밋은 사람이 한다 — 메시지 초안만.
+
+<!-- Gemini 판정 1줄: ✅통과 / ❌반려(사유) / 🔄스펙갱신(고친 문서) -->
+
 ## 2026-09-30 | [Sonnet] TS 결정 2건 — ① 운영 phoneHash 조회(TS-001, 🔴 미실행·권한 거부) · ② `backup-db.ps1 -Target local|prod` 필수화(TS-002)
 
 - **근거 스펙**: `.harness/docs-audit/README.md` §4 "TS 판정 결과(09-30)" · `TS-001`·`TS-002`. 핸드오프 블록.
