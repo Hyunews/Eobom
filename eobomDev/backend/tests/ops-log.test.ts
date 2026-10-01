@@ -170,16 +170,23 @@ describe('요청 번호·접속기록', () => {
     assert.ok(row.durationMs >= 0);
   });
 
-  it('🔴 createdAt은 한국 시간(KST) 벽시계 값이다 — 현재 UTC보다 9시간 앞선 값(3개 표 모두)', async () => {
+  it('🔴 createdAt은 UTC로 저장되고, 보기 전용 칸 createdAtKst는 정확히 9시간 뒤다(3개 표 모두)', async () => {
     const { rid } = await call('/api/no-such-route');
     const access = await waitFor(() => accessByRid(rid!));
-    await prisma.errorLog.create({ data: { requestId: rid!, errorName: 'KST', message: 'm' } });
+    await prisma.errorLog.create({ data: { requestId: rid!, errorName: 'UTC', message: 'm' } });
     await prisma.adminAuditLog.create({ data: { adminId: 'k', adminName: 'k', action: 'LIST', targetType: 'User', targetId: '', requestId: rid! } });
-    const error = (await prisma.errorLog.findFirst({ where: { requestId: rid!, errorName: 'KST' } }))!;
+    const error = (await prisma.errorLog.findFirst({ where: { requestId: rid!, errorName: 'UTC' } }))!;
     const audit = (await prisma.adminAuditLog.findFirst({ where: { requestId: rid!, adminId: 'k' } }))!;
-    const expected = Date.now() + 9 * 60 * 60 * 1000;
     for (const [name, row] of [['AccessLog', access], ['ErrorLog', error], ['AdminAuditLog', audit]] as const) {
-      assert.ok(Math.abs(row.createdAt.getTime() - expected) < 60 * 1000, `${name}.createdAt이 KST가 아니다: ${row.createdAt.toISOString()}`);
+      assert.ok(Math.abs(row.createdAt.getTime() - Date.now()) < 60 * 1000, `${name}.createdAt이 UTC(현재 시각)가 아니다: ${row.createdAt.toISOString()}`);
+      // createdAtKst는 Prisma 모델에 없으므로(@ignore) raw로만 읽는다 — 이 시험 말고는 아무 코드도 읽지 않는다
+      const raw = await prisma.$queryRawUnsafe<{ createdAt: Date; createdAtKst: Date }[]>(
+        `SELECT "createdAt", "createdAtKst" FROM "${name}" WHERE "requestId" = $1 AND "id" = $2`,
+        rid!,
+        row.id,
+      );
+      assert.equal(raw.length, 1, `${name}에서 행을 못 찾음`);
+      assert.equal(raw[0].createdAtKst.getTime() - raw[0].createdAt.getTime(), 9 * 60 * 60 * 1000, `${name}: createdAtKst가 +9시간이 아니다`);
     }
   });
 
