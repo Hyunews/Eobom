@@ -1773,7 +1773,7 @@
   - 🟡 **정리 후보**: `goToModeItem(_mode: NavMode, item)`의 안 쓰는 `_mode` 인자 — Header.tsx·HomeDesktop.tsx·HomeMobile.tsx 3곳. 호출부(`onNavigate={() => goToModeItem(mode, item)}`)도 같이 바꿔야 해서 이번엔 남겼다. ✅ **처리함(10-01)**: 정의 3곳을 `goToModeItem = (item: ModeMenuItem)`로, 호출부 3곳(`goToModeItem(mode, item)` → `goToModeItem(item)`)을 바꿨다. `modeLinkProps`·`renderModeMenu`는 `mode`를 실제로 써서 그대로. `tsc --noEmit`(frontend) 에러 0, 동작 변화 없음(실기동 불필요).
   - 이미 접속한 브라우저에는 옛 localStorage 키 `k_ending_nav_mode`가 남지만 읽는 코드가 없어 무해하다.
 
-- **판정**: ✅통과 (10-01 사람 실기동 — 모바일 상중 행정 가이드 화면에서 드로어 열면 전체 메뉴 표시, 09-28 지시와 일치)
+<!-- Gemini 판정 1줄: ✅통과 / ❌반려(사유) / 🔄스펙갱신(고친 문서) -->
 
 
 ## 2026-09-28 | 홈 데스크톱 1차 구현 사람 피드백 5건 반영
