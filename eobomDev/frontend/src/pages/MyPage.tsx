@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { BookOpen, ChevronRight, Settings, UserCircle, Users, Mail, Flower2, MessageCircle, Send, Inbox, ExternalLink, PenLine, type LucideIcon } from 'lucide-react';
+import { BookOpen, ChevronRight, Settings, UserCircle, Users, Mail, Flower2, MessageCircle, Send, Inbox, ExternalLink, PenLine, ShieldCheck, type LucideIcon } from 'lucide-react';
 import { PhoneHeartIcon } from '../components/MenuIcons';
 import { apiFetchRaw, apiFetch } from '../lib/api';
 import { getToken } from '../lib/storage';
 import { KAKAO_CHANNEL_CHAT_URL } from '../config';
 import { WithdrawalModal } from '../components/mypage/WithdrawalModal';
+import { ConsentModal } from '../components/mypage/ConsentModal';
 import { PageLink, tabPath } from '../components/common/PageLink';
 import { LoginGate } from '../components/LoginGate';
 import '../styles/design-v2.css';
@@ -36,8 +37,8 @@ interface MySummary {
 // 규칙 정본은 00-39 §6 "훑는 목록" — 카드·그림자 없이 1px 구분선 행, 명조 구간 제목, 읽기 폭 764px.
 // 구조는 00-36 §4.1(4구역): 나 / 내가 남긴 것 / 나에게 공유된 것 / 내 활동과 계정.
 // 🔄 M-2(2026-09-21)로 `내 상담 내역`(SCR-019)·`내가 남긴 방명록`(SCR-021) 행이 생겼고, M-3로 최하단의
-// `회원 탈퇴`가 4단계 확인 흐름(WithdrawalModal)이 됐다. 아직 그리지 않는 자리 — 개인정보·동의·내 데이터
-// 반출 — 는 눌러도 아무 일도 없는 행을 만들지 않으려고 비워 뒀다.
+// `회원 탈퇴`가 4단계 확인 흐름(WithdrawalModal)이 됐다. 🔄 `개인정보·동의`(§4.5)는 ConsentModal로 채웠다.
+// 아직 그리지 않는 자리 — 내 데이터 반출 — 는 눌러도 아무 일도 없는 행을 만들지 않으려고 비워 뒀다.
 //
 // 🔴 "부고장" 통계 칸과 아래 "내 부고장 · 추모관" 행은 같은 목적지(`/my-obituaries-memorials`)로 가는
 // 두 입구다 — 그 화면의 유일한 통로를 이중화하는 안전장치(00-36 §3.1 마지막 문단). 통계 칸을 지우거나
@@ -95,6 +96,7 @@ export const MyPage: React.FC<MyPageProps> = ({ currentUser, onOpenLogin, onOpen
   const [profile, setProfile] = useState<MyProfile | null>(null);
   const [summary, setSummary] = useState<MySummary | null>(null);
   const [withdrawalOpen, setWithdrawalOpen] = useState(false);
+  const [consentOpen, setConsentOpen] = useState(false);
 
   useEffect(() => {
     if (!currentUser || !getToken('USER')) return;
@@ -220,6 +222,8 @@ export const MyPage: React.FC<MyPageProps> = ({ currentUser, onOpenLogin, onOpen
           <NavRow icon={<Send size={20} />} label="내 상담 내역" {...nav('my-consultations')} />
           {/* 5-1 — 푸터와 같은 URL·같은 말풍선 아이콘, 새 창. 문의는 카톡 안에서 끝나므로 숫자·배지를 달지 않는다 */}
           <NavRow icon={<MessageCircle size={20} />} label="카카오톡으로 문의하기" href={KAKAO_CHANNEL_CHAT_URL} />
+          {/* 00-36 §4.5 — 개인정보·동의(약관·개인정보 동의 날짜, 마케팅 수신 토글). "내 정보" 모달에서 옮겨 왔다 */}
+          <NavRow icon={<ShieldCheck size={20} />} label="개인정보·동의" onClick={() => setConsentOpen(true)} />
         </HubSection>
 
         {/* 🔄 2026-09-21 사람 지시 — 로그아웃·회원 탈퇴는 "내 활동과 계정" 구간의 행이 아니라 그 밖의 **최하단
@@ -230,6 +234,13 @@ export const MyPage: React.FC<MyPageProps> = ({ currentUser, onOpenLogin, onOpen
           <button type="button" className="v2-account-foot-btn is-danger" onClick={() => setWithdrawalOpen(true)}>회원 탈퇴</button>
         </div>
       </div>
+
+      {consentOpen && (
+        <ConsentModal
+          onClose={() => setConsentOpen(false)}
+          onGoWithdrawal={() => { setConsentOpen(false); setWithdrawalOpen(true); }}
+        />
+      )}
 
       {/* 🔄 M-3(2026-09-21) — 회원 탈퇴 4단계 확인 흐름(00-36 §4.3). 신청은 시각 두 개만 찍고 아무것도 지우지
           않는다(30일 유예 · 소프트 삭제). 신청이 끝나 "확인"을 누르면 로그아웃한다. */}

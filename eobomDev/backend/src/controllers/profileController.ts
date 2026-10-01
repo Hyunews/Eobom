@@ -26,6 +26,9 @@ const PROFILE_SELECT = {
   addressDetail: true,
   contactTimePref: true,
   marketingAgreedAt: true,
+  // 00-36 §4.5 — 개인정보·동의 모달이 동의한 날짜를 보여준다(토글은 없음). 날짜만 내리고 값 변경 경로는 없다.
+  termsAgreedAt: true,
+  privacyAgreedAt: true,
   profileUpdatedAt: true,
 } as const;
 
@@ -40,6 +43,8 @@ type ProfileRow = {
   addressDetail: string | null;
   contactTimePref: string | null;
   marketingAgreedAt: Date | null;
+  termsAgreedAt: Date | null;
+  privacyAgreedAt: Date | null;
   profileUpdatedAt: Date | null;
 };
 
@@ -55,6 +60,8 @@ const serializeProfile = (user: ProfileRow) => ({
   addressDetail: user.addressDetail ? maskAddressDetail(user.addressDetail) : null,
   contactTimePref: user.contactTimePref,
   marketingAgreedAt: user.marketingAgreedAt,
+  termsAgreedAt: user.termsAgreedAt,
+  privacyAgreedAt: user.privacyAgreedAt,
   profileUpdatedAt: user.profileUpdatedAt,
 });
 

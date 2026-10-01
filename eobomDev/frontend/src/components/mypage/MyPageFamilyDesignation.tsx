@@ -37,13 +37,18 @@ interface FamilyDesignationItem {
   status: string;
   tokenExpiresAt: string | null;
   declinedAt: string | null;
+  acceptedAt: string | null;
 }
 
 // §9.1 — status는 서버만 바꾼다. 여기선 표시만 한다. PENDING은 만료 여부를 tokenExpiresAt으로
 // 직접 판정한다(서버가 EXPIRED로 상태를 미리 바꿔두지 않는다 — 조회 시점 판정, 07-03 §6.2-4와 같은 사상).
 const statusLabel = (item: FamilyDesignationItem): string => {
   if (item.status === 'ACCEPTED') return '✅ 수락 완료';
-  if (item.status === 'DECLINED') return '거절됨 · 다시 알리기 가능';
+  if (item.status === 'DECLINED') {
+    // 00-36 §4.6-2-1 — 수락했다가 거둔 건(acceptedAt 있음)은 "거절됨"으로 읽히지 않게 한다. 🔴 회원 탈퇴로 거둔 건도 같은
+    // 조합이라 "탈퇴하셨습니다"로 구분하지 않는다(탈퇴 사실은 탈퇴자의 개인정보) — 상대의 행위를 단정하지 않는 말.
+    return item.acceptedAt ? '지금은 보지 않으십니다 · 다시 알리기 가능' : '거절됨 · 다시 알리기 가능';
+  }
   if (item.status === 'PENDING') {
     const expired = item.tokenExpiresAt && new Date(item.tokenExpiresAt).getTime() < Date.now();
     return expired ? '링크 만료 · 다시 알리기 필요' : '알림 발송됨 · 수락 대기 중';

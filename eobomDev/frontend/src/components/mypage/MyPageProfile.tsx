@@ -26,7 +26,6 @@ interface ProfileData {
   addressRoad: string | null;
   addressDetail: string | null; // 마스킹된 값
   contactTimePref: string | null;
-  marketingAgreedAt: string | null;
 }
 
 interface MyPageProfileProps {
@@ -50,7 +49,6 @@ export const MyPageProfile: React.FC<MyPageProfileProps> = ({ isOpen, onClose })
   const [addressDetail, setAddressDetail] = useState(''); // 새 상세주소 입력칸
   const [clearDetail, setClearDetail] = useState(false);
   const [contactTimePref, setContactTimePref] = useState('');
-  const [marketingAgreed, setMarketingAgreed] = useState(false);
 
   const fetchProfile = async () => {
     if (!getToken('USER')) return;
@@ -67,7 +65,6 @@ export const MyPageProfile: React.FC<MyPageProfileProps> = ({ isOpen, onClose })
       setAddressDetail('');
       setClearDetail(false);
       setContactTimePref(p.contactTimePref || '');
-      setMarketingAgreed(!!p.marketingAgreedAt);
     } catch {
       // 조회 실패는 조용히 무시 — 폼이 빈 채로 남아 다시 열면 재시도된다
     } finally {
@@ -101,7 +98,7 @@ export const MyPageProfile: React.FC<MyPageProfileProps> = ({ isOpen, onClose })
           addressRoad,
           addressDetail: addressDetail.trim() ? addressDetail.trim() : clearDetail ? '' : undefined,
           contactTimePref,
-          marketingAgreed,
+          // 마케팅 수신 동의는 "개인정보·동의" 모달로 옮겼다(00-36 §4.5) — 여기서 보내지 않는다
         }),
       });
       setMessage({ type: 'success', text: '저장되었습니다.' });
@@ -290,11 +287,6 @@ export const MyPageProfile: React.FC<MyPageProfileProps> = ({ isOpen, onClose })
                 ))}
               </select>
             </div>
-
-            <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: 'var(--fs-body)', color: 'var(--text-main)', cursor: 'pointer' }}>
-              <input type="checkbox" checked={marketingAgreed} onChange={(e) => setMarketingAgreed(e.target.checked)} />
-              마케팅 정보 수신에 동의합니다 (선택)
-            </label>
 
             <button type="submit" disabled={isSaving} className="btn btn-primary" style={{ width: '100%', marginTop: '0.4rem' }}>
               {isSaving ? '저장 중...' : '저장'}

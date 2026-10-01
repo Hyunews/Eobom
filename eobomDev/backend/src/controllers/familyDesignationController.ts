@@ -46,6 +46,7 @@ type FamilyDesignationRow = {
   status: string;
   tokenExpiresAt: Date | null;
   declinedAt: Date | null;
+  acceptedAt: Date | null;
   lastConfirmedAt: Date;
   createdAt: Date;
   updatedAt: Date;
@@ -73,6 +74,8 @@ const serialize = (d: FamilyDesignationRow) => ({
   status: d.status,
   tokenExpiresAt: d.tokenExpiresAt,
   declinedAt: d.declinedAt,
+  // 00-36 §4.6-2-1 — acceptedAt != null && status == DECLINED 조합으로 "수락 후 거두심"을 구분한다(새 필드 없음)
+  acceptedAt: d.acceptedAt,
   lastConfirmedAt: d.lastConfirmedAt,
   createdAt: d.createdAt,
   updatedAt: d.updatedAt,

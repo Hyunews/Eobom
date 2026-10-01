@@ -167,6 +167,11 @@ export const FamilySharedPage: React.FC<FamilySharedPageProps> = ({ currentUser,
   const [requestTarget, setRequestTarget] = useState<FamilyViewItem | null>(null);
   const [notice, setNotice] = useState<{ designationId: string; text: string } | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
+  // 00-36 §4.6-2-1 — "더 이상 보지 않기"(수락 철회). 1단계 확인 모달, 사유 입력 없음.
+  const [withdrawTarget, setWithdrawTarget] = useState<FamilyViewItem | null>(null);
+  const [withdrawing, setWithdrawing] = useState(false);
+  const [withdrawError, setWithdrawError] = useState<string | null>(null);
+  const [withdrawToast, setWithdrawToast] = useState(false);
 
   const load = useCallback(async () => {
     try {
@@ -198,6 +203,30 @@ export const FamilySharedPage: React.FC<FamilySharedPageProps> = ({ currentUser,
       setNotice({ designationId: item.designationId, text: e instanceof ApiError ? e.message : '서버와 통신 중 오류가 발생했습니다.' });
     } finally {
       setBusyId(null);
+    }
+  };
+
+  useEffect(() => {
+    if (!withdrawToast) return;
+    const t = window.setTimeout(() => setWithdrawToast(false), 4000);
+    return () => window.clearTimeout(t);
+  }, [withdrawToast]);
+
+  // 00-27 §9.2 · 00-36 §4.6-2 — POST /api/family-designations/accepted/:id/withdraw(본인만). 끝나면 그 카드가 목록에서 사라진다.
+  // 🔴 지정자에게 알림은 가지 않는다 — 토스트도 그렇게 읽히지 않게 한 줄만.
+  const confirmWithdraw = async () => {
+    if (!withdrawTarget || withdrawing) return;
+    setWithdrawing(true);
+    setWithdrawError(null);
+    try {
+      await apiFetch(`/api/family-designations/accepted/${withdrawTarget.designationId}/withdraw`, 'USER', { method: 'POST' });
+      setWithdrawTarget(null);
+      setWithdrawToast(true);
+      await load();
+    } catch (e) {
+      setWithdrawError(e instanceof ApiError ? e.message : '서버와 통신 중 오류가 발생했습니다.');
+    } finally {
+      setWithdrawing(false);
     }
   };
 
@@ -236,6 +265,7 @@ export const FamilySharedPage: React.FC<FamilySharedPageProps> = ({ currentUser,
       <div className="v2-content">
         <h1 className="v2-page-title">나에게 공유된 것</h1>
 
+        {withdrawToast && <p role="status" className="v2-notice">철회되었습니다.</p>}
         {loadError && <p className="v2-error-text">불러오지 못했습니다. 잠시 후 다시 시도해 주세요.</p>}
         {!loadError && items === null && <p className="v2-empty">불러오는 중…</p>}
         {!loadError && items !== null && items.length === 0 && <p className="v2-empty">아직 공유받은 것이 없습니다.</p>}
@@ -320,10 +350,37 @@ export const FamilySharedPage: React.FC<FamilySharedPageProps> = ({ currentUser,
 
               {itemNotice && <p className="v2-notice" style={{ marginTop: '12px' }}>{itemNotice}</p>}
               {item.acceptedAt && <p className="v2-hub-foot">{formatDashDate(item.acceptedAt)} 수락함</p>}
+              {/* 00-36 §4.6-2-1 — 카드 맨 아래 한 줄. 🔴 "철회·거부" 단어를 쓰지 않는다(실제로 끊기는 것은 내 열람 권한).
+                  되돌릴 수 없는 행동이라 빨간 글자, 버튼 상자는 만들지 않는다(00-39 규칙 5). */}
+              <div className="v2-account-foot" style={{ marginTop: 0 }}>
+                <button type="button" className="v2-account-foot-btn is-danger" onClick={() => { setWithdrawError(null); setWithdrawTarget(item); }}>
+                  더 이상 보지 않기
+                </button>
+              </div>
             </section>
           );
         })}
       </div>
+
+      {withdrawTarget && (
+        <div className="v2-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="family-withdraw-title" {...backdropCloseProps(withdrawing ? () => {} : () => setWithdrawTarget(null))}>
+          <div className="v2-modal" onClick={(e) => e.stopPropagation()}>
+            <h3 id="family-withdraw-title" className="v2-modal-title">더 이상 보지 않기</h3>
+            {/* 사유를 묻는 입력칸을 두지 않는다(§4.6-2 3) */}
+            <p className="v2-modal-value" style={{ margin: '0 0 12px' }}>
+              {withdrawTarget.ownerName}님이 공유하신 내용을 더 이상 보지 않습니다. 다시 보시려면 {withdrawTarget.ownerName}님께 다시 요청하셔야 합니다.
+            </p>
+            {withdrawError && <p role="alert" className="v2-error-text" style={{ margin: '0 0 8px' }}>{withdrawError}</p>}
+            <div className="v2-modal-actions">
+              <button type="button" className="v2-btn-outline" onClick={() => setWithdrawTarget(null)} disabled={withdrawing}>취소</button>
+              {/* 규칙 19 — 누르는 순간 버튼을 잠그고 글자를 바꾼다 */}
+              <button type="button" className="v2-btn-solid" onClick={confirmWithdraw} disabled={withdrawing} aria-busy={withdrawing}>
+                {withdrawing ? '처리 중…' : '더 이상 보지 않기'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {requestTarget && (
         <ReleaseRequestModal
