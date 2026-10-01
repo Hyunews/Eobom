@@ -500,10 +500,11 @@ export const demoLogin = async (req: Request, res: Response) => {
     privacyAgreed?: boolean;
   }; // 'KAKAO' | 'NAVER' | 'GOOGLE' | 'ADMIN'
 
-  // ADMIN 데모 로그인은 개발용 뒷문이다 — 실서비스에서 살아있으면 누구나 role=ADMIN 토큰을
-  // 발급받을 수 있다(docs 01-05 §6.4, §11 "구현 시 반드시 지킬 것" 3항). 배포 시 수동으로
-  // 지우는 대신, 프로덕션 환경에서는 구조적으로 막아 사람이 잊어도 안전하도록 한다.
-  if (provider === 'ADMIN' && process.env.NODE_ENV === 'production') {
+  // 데모 로그인은 개발용 뒷문이다 — 실서비스에서 살아있으면 소셜 인증 없이 공용 데모 계정(demo_*@eobom.co.kr)
+  // 토큰을 누구나 발급받는다(ADMIN은 docs 01-05 §6.4, §11 "구현 시 반드시 지킬 것" 3항). 배포 시 수동으로
+  // 지우는 대신, 프로덕션 환경에서는 **모든 provider를** 구조적으로 막아 사람이 잊어도 안전하도록 한다.
+  // 🔴 본문 검사보다 먼저 — provider를 뭐로 보내든 production이면 여기서 끝난다.
+  if (process.env.NODE_ENV === 'production') {
     return res.status(403).json({ status: 'error', message: '허용되지 않는 요청입니다.' });
   }
 
