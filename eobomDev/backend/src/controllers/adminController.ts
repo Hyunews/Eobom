@@ -9,7 +9,14 @@ import { JWT_SECRET } from '../config/jwt';
 // **공개 가입 API가 없다** — 계정은 `prisma/seed-admin.ts`로만 만든다(README 참고).
 
 const ACCESS_TOKEN_TTL = '2h';
-const REFRESH_TOKEN_TTL = '30d';
+// 00-37 §7 #5 — 운영자 세션이 한 달 살아 있을 이유가 없다(10-01 확정, 30d → 1d). access 2h는 그대로.
+const REFRESH_TOKEN_TTL = '1d';
+
+// 00-37 §7 #7 로그인 잠금 — 같은 계정 연속 5회 실패 → 15분 잠금.
+const MAX_FAILED_LOGINS = 5;
+const LOCK_MS = 15 * 60 * 1000;
+// 🔴 잠금 응답은 이 한 가지뿐 — 계정 존재 여부·남은 횟수를 알려주지 않는다.
+const LOCKED_MESSAGE = '잠시 후 다시 시도해 주세요.';
 
 interface AdminAccessPayload extends jwt.JwtPayload {
   id: string;
@@ -68,13 +75,36 @@ export const login = async (req: Request, res: Response) => {
 
   try {
     const admin = await prisma.admin.findUnique({ where: { email } });
+
+    // 🔴 잠긴 동안은 비밀번호가 맞아도 거부한다 — 비밀번호 비교보다 먼저 본다(잠금 중에는 시도 자체를 세지 않는다).
+    const now = new Date();
+    const lockExpired = !!admin?.lockedUntil && admin.lockedUntil <= now;
+    if (admin?.lockedUntil && !lockExpired) {
+      return res.status(429).json({ status: 'error', message: LOCKED_MESSAGE });
+    }
+
     if (!admin || !(await bcrypt.compare(password, admin.passwordHash))) {
+      if (admin) {
+        // 원자적 증가 — 동시 요청으로 횟수를 건너뛰며 시도하지 못하게 한다. 잠금이 풀린 뒤 첫 실패는 1부터 다시 센다.
+        const updated = await prisma.admin.update({
+          where: { id: admin.id },
+          data: lockExpired ? { failedLoginCount: 1, lockedUntil: null } : { failedLoginCount: { increment: 1 } },
+          select: { failedLoginCount: true },
+        });
+        if (updated.failedLoginCount >= MAX_FAILED_LOGINS) {
+          await prisma.admin.update({ where: { id: admin.id }, data: { lockedUntil: new Date(Date.now() + LOCK_MS) } });
+        }
+      }
       return res.status(401).json({ status: 'error', message: '이메일 또는 비밀번호가 올바르지 않습니다.' });
     }
 
     const accessToken = generateAccessToken(admin);
     const refreshToken = generateRefreshToken(admin.id);
-    await prisma.admin.update({ where: { id: admin.id }, data: { refreshTokenHash: sha256(refreshToken) } });
+    // 성공하면 실패 횟수를 0으로(만료된 잠금 표시도 함께 지운다)
+    await prisma.admin.update({
+      where: { id: admin.id },
+      data: { refreshTokenHash: sha256(refreshToken), failedLoginCount: 0, lockedUntil: null },
+    });
 
     return res.json({ status: 'success', accessToken, refreshToken, admin: { id: admin.id, name: admin.name, email: admin.email } });
   } catch (error) {

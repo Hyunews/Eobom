@@ -793,6 +793,10 @@ model Admin {
   // 전부 SUPERADMIN이 된다(계정이 몇 개 없는 지금이 등급을 넣기 가장 싼 시점, §3.3).
   role             String  @default("SUPERADMIN")
 
+  // 00-37 §7 #7 로그인 잠금 — 같은 계정 연속 5회 실패 → 15분 잠금, 성공하면 0으로. 잠긴 동안은 비밀번호가 맞아도 거부.
+  failedLoginCount Int       @default(0) // 연속 로그인 실패 횟수(성공 시 0). 잠금이 풀린 뒤 첫 실패는 1부터 다시 센다
+  lockedUntil      DateTime? // 이 시각까지 로그인 거부(null = 잠기지 않음)
+
   createdAt DateTime @default(now()) // 계정 생성 일시 (seed-admin.ts로만 생성됨)
   updatedAt DateTime @updatedAt // 최종 수정 일시
 }

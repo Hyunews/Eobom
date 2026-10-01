@@ -2258,3 +2258,17 @@
   - 커밋은 하지 않음 — 메시지 초안만.
 
 <!-- Gemini 판정 1줄: ✅통과 / ❌반려(사유) / 🔄스펙갱신(고친 문서) -->
+## 2026-10-01 | 운영자 refresh 1d + 로그인 잠금 (00-37 §7 #5·#7)
+
+- **근거 스펙**: docs/00_핵심플랫폼/00-37_운영자_콘솔_확장_및_접근분리_기획서.md §7 #5·#7 · A-1 4-1
+- **건드린 파일**: eobomDev/backend/src/controllers/adminController.ts , eobomDev/backend/prisma/schema.prisma , eobomDev/backend/prisma/migrations/20261001112000_add_admin_login_lock/migration.sql(신규) , eobomDev/backend/tests/admin-login-lock.test.ts(신규) , eobomDev/backend/package.json , docs/00_핵심플랫폼/00-05_DB_요구사항_및_테이블_사전.md(`generate-db-doc.js` 자동 생성분)
+- **결과**: ① `REFRESH_TOKEN_TTL` `'30d'` → `'1d'`(access `'2h'` 그대로). ② `Admin`에 `failedLoginCount Int @default(0)`·`lockedUntil DateTime?` 추가 — 마이그레이션 SQL은 손으로 작성한 추가형 `ALTER TABLE "Admin" ADD COLUMN "failedLoginCount" INTEGER NOT NULL DEFAULT 0, ADD COLUMN "lockedUntil" TIMESTAMP(3)`(`db push` 미사용). ③ `login`: `lockedUntil`이 미래면 비밀번호 비교 전에 429 + `잠시 후 다시 시도해 주세요.`(토큰 없음, 잠금 중 시도는 세지 않음) / 비밀번호 불일치 시 계정이 있으면 원자적 `increment`, 5 이상이면 `lockedUntil = now+15분`, 응답은 기존 401 `이메일 또는 비밀번호가 올바르지 않습니다.` 그대로(5회차까지 남은 횟수 미노출) / 잠금이 풀린 뒤 첫 실패는 1부터 다시 셈 / 성공 시 `failedLoginCount: 0, lockedUntil: null`을 refreshTokenHash 갱신과 한 번에. 없는 계정은 기존 401, DB 무변경. 신규 `tests/admin-login-lock.test.ts` 7건(5회 실패→6번째 429·잠금 중 정답 거부·15분 경과 후 성공+초기화·잠금 해제 뒤 1부터 재카운트·성공 시 4→0·없는 계정 401·refresh exp−iat=86400) + `package.json` test 스크립트 등록. 검증: backend `npx tsc --noEmit` 0 · `npm test` 239 통과 · `npm run test:db:migrate`(전용 `eobom_test`에만) 적용 · `node .harness/tools/generate-db-doc.js` 실행(설명 없음 34개). 🔴 백업: `backup-db.ps1 -Target local` → `eobomDev/backend/backups/local-20261001-111542.dump` 251.5 KB 확인 후 착수. **로컬 개발 DB(`eobom_db`)에는 아직 마이그레이션을 적용하지 않았다**(사람 확인 대기).
+- **편차**: (1) 잠금 응답 상태코드는 스펙에 없어 429로 정했다(문구는 스펙 그대로 한 가지, 끝에 마침표). (2) 5번째 실패 응답은 잠금 문구가 아니라 기존 401이다(남은 횟수를 알리지 않기 위해 — 잠금 문구는 6번째 시도부터). (3) 스펙 서술상 불가피한 한계: 잠금 중인 계정만 429 문구를 받고 없는 계정은 401이라 "5회 이상 틀린 계정"의 존재는 추론 가능하다 — 스펙 문구 그대로 구현했고 판단은 Opus 몫.
+- **다음 에이전트가 알아야 할 것**:
+  - 🔴 로컬 개발 DB 적용 대기: 사람 확인 후 `cd eobomDev/backend && npx prisma migrate deploy`(추가형, 기존 행 무변경). 적용 전에는 로컬에서 운영자 로그인이 컬럼 없음으로 실패한다.
+  - 🔴 운영 반영은 사람 몫: **추가형이므로 `powershell -File .harness/tools/migrate-prod.ps1` → push 순서**(순서가 바뀌면 새 코드가 없는 컬럼을 찾아 운영자 로그인이 500).
+  - 🟡 `npx prisma generate`가 `query_engine-windows.dll.node` EPERM(실행 중인 dev 서버가 잡고 있는 것으로 추정)으로 끝까지 못 돌았다 — 타입은 반영돼 tsc·테스트는 통과. dev 서버를 껐다 켤 때 한 번 더 `npx prisma generate`.
+  - 🟡 잠금은 IP가 아니라 계정 단위다(스펙대로). 잠금 해제용 운영 도구는 없다 — 15분 대기가 유일한 해제.
+  - 커밋은 하지 않음 — 메시지 초안만.
+
+<!-- Gemini 판정 1줄: ✅통과 / ❌반려(사유) / 🔄스펙갱신(고친 문서) -->
