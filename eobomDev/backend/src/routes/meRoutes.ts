@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { listMyMemorials } from '../controllers/memorialController';
 import { listMyObituaries } from '../controllers/obituaryController';
-import { getMyProfile, updateMyProfile } from '../controllers/profileController';
+import { getMyProfile, updateMyProfile, recordMyConsent } from '../controllers/profileController';
 import { getMySummary } from '../controllers/summaryController';
 import { listMyLeads, listMyConsultRequests, listMyGuestbookEntries, deleteMyGuestbookEntry } from '../controllers/meActivityController';
 import { listMyCareGuideProgress, checkCareGuideTask, uncheckCareGuideTask } from '../controllers/careGuideController';
@@ -18,6 +18,8 @@ router.get('/obituaries', listMyObituaries);
 
 router.get('/profile', getMyProfile);
 router.patch('/profile', updateMyProfile);
+// 00-36 §4.5-1 — 동의 기록 없는 기존 회원의 재동의. 비어 있는 칸만 지금 시각으로 찍는다.
+router.post('/consent', recordMyConsent);
 
 router.get('/summary', getMySummary);
 

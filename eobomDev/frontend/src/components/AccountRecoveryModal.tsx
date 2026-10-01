@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { apiFetch, apiFetchRaw, ApiError } from '../lib/api';
 import { getToken } from '../lib/storage';
+import { ACCOUNT_RECOVERED_EVENT } from './ConsentRequiredModal';
 import '../styles/design-v2.css';
 
 // 회원 탈퇴 유예 중 로그인 — 00-36 M-3, 06-05 §5.4-2. 로그인은 되지만 **복구 안내를 먼저** 띄운다.
@@ -53,6 +54,8 @@ export const AccountRecoveryModal: React.FC<AccountRecoveryModalProps> = ({ curr
     try {
       await apiFetch('/api/me/deletion-request', 'USER', { method: 'DELETE' });
       setScheduledAt(null);
+      // 00-36 §4.5-1 — 유예가 풀렸으니 동의 기록 없는 계정이면 재동의 창이 이어서 뜨게 한다
+      window.dispatchEvent(new Event(ACCOUNT_RECOVERED_EVENT));
     } catch (e) {
       setError(e instanceof ApiError ? e.message : '처리 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
     } finally {

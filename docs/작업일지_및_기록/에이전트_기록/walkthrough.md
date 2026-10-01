@@ -2232,3 +2232,17 @@
   - 커밋은 하지 않음 — 메시지 초안만.
 
 <!-- Gemini 판정 1줄: ✅통과 / ❌반려(사유) / 🔄스펙갱신(고친 문서) -->
+## 2026-10-01 | 동의 기록 없는 기존 회원 재동의 창 (00-36 §4.5-1)
+
+- **근거 스펙**: docs/00_핵심플랫폼/00-36_마이페이지_정보구조_점검_및_개편_기획서.md §4.5-1(표 그대로) · §4.3-1(유예 계정 가드가 먼저)
+- **건드린 파일**: eobomDev/backend/src/controllers/authController.ts , eobomDev/backend/src/controllers/profileController.ts , eobomDev/backend/src/routes/meRoutes.ts , eobomDev/backend/tests/consent.test.ts(신규) , eobomDev/backend/tests/auth-boundary.test.ts , eobomDev/backend/package.json , eobomDev/frontend/src/components/ConsentFields.tsx(신규) , eobomDev/frontend/src/components/ConsentRequiredModal.tsx(신규) , eobomDev/frontend/src/components/LoginModal.tsx , eobomDev/frontend/src/components/AccountRecoveryModal.tsx , eobomDev/frontend/src/App.tsx
+- **결과**: ① `GET /api/auth/me` 응답 `user`에 `consentRequired: !termsAgreedAt || !privacyAgreedAt` 추가(여부만, 시각은 안 내림). ② 신규 `POST /api/me/consent`(profileController `recordMyConsent`) — 본인만(aud user, 그 외 401), 바디 `terms`·`privacy`가 `=== true`가 아니면 400(DB 무변경), 비어 있는 칸만 `new Date()`로 찍음(기존 값 덮어쓰기 없음, 과거 날짜 채우기 없음), `marketing === true`이고 `marketingAgreedAt`이 null일 때만 찍음. 스키마·마이그레이션 변경 없음. ③ 화면: LoginModal의 `ConsentCheckbox` + 만14세 확인 박스 + "전체 동의합니다" 박스를 `ConsentFields.tsx`로 분리(LoginModal은 `<ConsentFields …/>` 호출로 교체, 상태는 부모 보유), 신규 `ConsentRequiredModal.tsx`가 App.tsx에서 `AccountRecoveryModal` 바로 아래에 마운트 — `consentRequired && !deletionScheduledAt`일 때 전체 화면 `role="alertdialog"`, 배경 클릭·Esc·× 없음, 버튼 `동의하고 계속하기`(만14세+필수2 체크 시 활성)·`동의하지 않고 로그아웃`(onLogout만 호출, API 호출 없음). 문구: `이어봄 이용약관과 개인정보 수집·이용에 대한 동의 기록이 없습니다. 계속 이용하시려면 동의해 주세요.` 유예 중 계정은 복구 안내가 먼저이고, 복구 성공 시 `window` 이벤트 `eobom:account-recovered`(AccountRecoveryModal이 발행)로 재확인한다. 검증: backend `npm test` 225 통과(신규 `tests/consent.test.ts` 8건: 동의필요 여부 3·400 거절 DB무변경·지금 시각 기록·한 칸만 기록·마케팅 규칙·401, `auth-boundary`에 `/api/me/consent` 행 추가) · frontend·backend `npx tsc --noEmit` 0 · frontend `npm run build` 통과(chunk 500kB 경고만). 🔴 DB 쓰기 스크립트로 기존 회원 값을 채우지 않았다(테스트는 전용 `eobom_test`에 가짜 회원만 만들고 자기 id만 삭제).
+- **편차**: (1) 스펙에 없는 `eobom:account-recovered` 이벤트를 추가 — 유예 복구 직후 같은 세션에서 재동의 창이 이어서 뜨게 하려는 것(없으면 새로고침 전까지 미동의로 이용). (2) 창 제목 `이용 동의가 필요합니다`는 스펙 예시 문구에 없는 제목이라 임의로 붙였다(본문은 예시 그대로). (3) `ConsentFields` 분리로 LoginModal 안의 `toggleAll`·`allAgreed`가 컴포넌트 안으로 이동 — 가입 탭 동작은 동일(만14세는 여전히 전체 동의에서 제외).
+- **다음 에이전트가 알아야 할 것**:
+  - 🔴 실기동 검증 대기(사람 몫): 로컬 회원 6명 전원 동의일 null — ① 로그인 → 창 표시·바깥 클릭/Esc로 안 닫힘 ② 동의 → 창 사라짐·마이페이지 `개인정보·동의`에 오늘 날짜 표시(DB도 지금 시각) ③ 한 칸만 비운 계정 → 그 칸만 찍힘 ④ `동의하지 않고 로그아웃` → 로그아웃·DB 변화 없음·다음 로그인에 다시 뜸 ⑤ 유예 중 계정 → 복구 안내 먼저, `계속 이용` 뒤 동의 창. 🔴 실기동에서 동의하면 로컬 DB 값이 바뀌므로 필요하면 먼저 `backup-db.ps1 -Target local`.
+  - 🟡 서버 쪽 차단은 스펙대로 이번에 없음(동의 전 계정이 다른 API를 직접 부르는 건 안 막음).
+  - 🟡 운영 대상 건수는 사람이 조회(context.md ④).
+  - 작업트리의 `docs/…/00-36_…기획서.md`·`.harness/docs-audit/ledger_00.md` 수정은 이 작업이 만든 게 아니다(Opus 쪽 변경).
+  - 커밋은 하지 않음 — 메시지 초안만.
+
+<!-- Gemini 판정 1줄: ✅통과 / ❌반려(사유) / 🔄스펙갱신(고친 문서) -->

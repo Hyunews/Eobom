@@ -34,6 +34,7 @@ import { ReleaseRequestBanner } from './components/endingNote/ReleaseRequestBann
 import { MyConsultationsPage } from './pages/MyConsultationsPage';
 import { MyGuestbookPage } from './pages/MyGuestbookPage';
 import { AccountRecoveryModal } from './components/AccountRecoveryModal';
+import { ConsentRequiredModal } from './components/ConsentRequiredModal';
 import { PartnerPortalPage } from './pages/PartnerPortalPage';
 import { AdminPage } from './pages/AdminPage';
 import { TermsPage } from './pages/TermsPage';
@@ -530,6 +531,8 @@ function AppShell() {
       <MyPageFamilyDesignation isOpen={isFamilyDesignationOpen} onClose={() => setIsFamilyDesignationOpen(false)} />
       {/* 00-36 M-3 — 탈퇴 유예 중 로그인 시 복구 안내를 먼저 띄운다(자동 복구 아님). 어느 화면에서든 뜬다. */}
       <AccountRecoveryModal currentUser={currentUser} onLogout={() => handleLogout()} />
+      {/* 00-36 §4.5-1 — 동의 기록 없는 기존 회원은 동의를 마칠 때까지 전체 화면 동의 창(닫기 불가). 유예 중이면 위 복구 안내가 먼저. */}
+      <ConsentRequiredModal currentUser={currentUser} onLogout={() => handleLogout()} />
     </div>
   );
 }

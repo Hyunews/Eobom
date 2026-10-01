@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { X, ShieldCheck, Check, AlertCircle } from 'lucide-react';
+import { X, ShieldCheck, AlertCircle } from 'lucide-react';
+import { ConsentFields } from './ConsentFields';
 import { BACKEND_URL } from '../config';
 import { PENDING_RETURN_PATH_KEY } from '../lib/storage';
 import { backdropCloseProps } from '../utils/backdropClose';
@@ -14,50 +15,6 @@ interface LoginModalProps {
   initialTab?: 'login' | 'signup';
   initialNotice?: string | null;
 }
-
-// 필수/선택 동의 한 줄 — LoginModal 전용이라 여기서만 쓴다(재사용 시점이 오면 그때 분리).
-const ConsentCheckbox: React.FC<{
-  checked: boolean;
-  onChange: (next: boolean) => void;
-  label: string;
-  required: boolean;
-  href?: string;
-}> = ({ checked, onChange, label, required, href }) => (
-  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.5rem', padding: '0.3rem 0' }}>
-    <label style={{ display: 'flex', alignItems: 'center', gap: '0.55rem', cursor: 'pointer', fontSize: 'var(--fs-body)', color: '#4B5563' }}>
-      <span
-        onClick={() => onChange(!checked)}
-        role="checkbox"
-        aria-checked={checked}
-        style={{
-          width: '19px',
-          height: '19px',
-          flexShrink: 0,
-          borderRadius: 'var(--r-sm)',
-          border: checked ? 'none' : '1.5px solid var(--border-color)',
-          backgroundColor: checked ? 'var(--point-color)' : '#FFFFFF',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          cursor: 'pointer'
-        }}
-      >
-        {checked && <Check size={13} color="#FFFFFF" strokeWidth={3} />}
-      </span>
-      <span>
-        <span style={{ color: required ? 'var(--primary-color)' : 'var(--text-muted)', fontWeight: 600 }}>
-          {required ? '[필수] ' : '[선택] '}
-        </span>
-        {label}
-      </span>
-    </label>
-    {href && (
-      <a href={href} target="_blank" rel="noopener noreferrer" style={{ fontSize: 'var(--fs-body)', color: 'var(--text-hint)', textDecoration: 'underline', flexShrink: 0 }}>
-        보기
-      </a>
-    )}
-  </div>
-);
 
 // 소셜 로그인 3종 버튼 — 2026-08-25 탭 분리로 "로그인" 탭(항상 활성)과 "회원가입" 탭(동의 게이트로
 // disabled)이 같은 버튼 마크업을 필요로 해서 분리했다. onSelect만 탭마다 다르다
@@ -180,14 +137,6 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin
   const [agreedTerms, setAgreedTerms] = useState(false);
   const [agreedPrivacy, setAgreedPrivacy] = useState(false);
   const [agreedMarketing, setAgreedMarketing] = useState(false);
-  const allAgreed = agreedTerms && agreedPrivacy && agreedMarketing;
-  const toggleAll = () => {
-    const next = !allAgreed;
-    setAgreedTerms(next);
-    setAgreedPrivacy(next);
-    setAgreedMarketing(next);
-  };
-
   // 00-19 §9-2-1 구현 요구 — 만 14세 이상 자기신고 게이트(생년월일은 받지 않는다, 최소수집
   // 원칙). 요구2에 따라 위 이용약관/개인정보 동의와 절대 묶지 않는다 — 완전히 별도 state이고
   // "전체 동의"(toggleAll/allAgreed)에도 포함시키지 않는다. 요구3에 따라 이 값은 어디로도
@@ -360,90 +309,16 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin
         {/* "회원가입" 탭 — 기존 UI(만14세 게이트 + 필수동의 2 + 선택 1) 그대로. */}
         {activeTab === 'signup' && (
           <>
-            {/* 만 14세 이상 자기신고(00-19 §9-2-1) — 아래 동의 박스와 절대 섞지 않는다(요구2).
-            생년월일은 받지 않고, 체크 여부도 어디에도 저장하지 않는다(요구3) — 로그인 버튼을
-            잠그는 순수 로컬 게이트일 뿐이다. */}
-            <label
-              onClick={() => setAgeConfirmed((prev) => !prev)}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.55rem',
-                cursor: 'pointer',
-                fontSize: 'var(--fs-body)',
-                color: '#4B5563',
-                padding: 'var(--sp-3) 0.9rem',
-                border: '1px solid var(--secondary-dark)',
-                borderRadius: 'var(--r-sm)',
-                marginBottom: '0.9rem'
-              }}
-            >
-              <span
-                role="checkbox"
-                aria-checked={ageConfirmed}
-                style={{
-                  width: '19px',
-                  height: '19px',
-                  flexShrink: 0,
-                  borderRadius: 'var(--r-sm)',
-                  border: ageConfirmed ? 'none' : '1.5px solid var(--border-color)',
-                  backgroundColor: ageConfirmed ? 'var(--primary-color)' : '#FFFFFF',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center'
-                }}
-              >
-                {ageConfirmed && <Check size={13} color="#FFFFFF" strokeWidth={3} />}
-              </span>
-              <span>
-                본인은 <strong style={{ color: 'var(--primary-color)' }}>만 14세 이상</strong>입니다.
-                이어봄은 만 14세 미만 아동의 가입을 받지 않습니다.
-              </span>
-            </label>
-
-            {/* 필수 동의(이용약관·개인정보) 2개 + 선택(마케팅 수신) 1개 — 아래 로그인 버튼은
-            필수 2개가 체크되기 전까지 눌리지 않는다. 최초 가입(신규 소셜 로그인)일 때만 실제로
-            DB에 동의 시각이 기록되고(authController.ts), 기존 회원 재로그인 시에는 이미 최초
-            가입 때 받은 값이라 여기서 다시 체크해도 별도로 덮어써지지 않는다. */}
-            <div style={{ backgroundColor: 'var(--secondary-color)', borderRadius: 'var(--r-md)', padding: 'var(--sp-4) 1rem 0.4rem', marginBottom: '1.2rem' }}>
-              <div
-                onClick={toggleAll}
-                role="checkbox"
-                aria-checked={allAgreed}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.55rem',
-                  cursor: 'pointer',
-                  paddingBottom: '0.55rem',
-                  marginBottom: '0.3rem',
-                  borderBottom: '1px solid var(--secondary-dark)',
-                  fontWeight: 700,
-                  fontSize: 'var(--fs-body)',
-                  color: 'var(--primary-color)'
-                }}
-              >
-                <span
-                  style={{
-                    width: '19px',
-                    height: '19px',
-                    flexShrink: 0,
-                    borderRadius: 'var(--r-sm)',
-                    border: allAgreed ? 'none' : '1.5px solid var(--border-color)',
-                    backgroundColor: allAgreed ? 'var(--primary-color)' : '#FFFFFF',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center'
-                  }}
-                >
-                  {allAgreed && <Check size={13} color="#FFFFFF" strokeWidth={3} />}
-                </span>
-                전체 동의합니다
-              </div>
-              <ConsentCheckbox checked={agreedTerms} onChange={setAgreedTerms} label="서비스 이용약관 동의" required href="/terms" />
-              <ConsentCheckbox checked={agreedPrivacy} onChange={setAgreedPrivacy} label="개인정보 수집 및 이용 동의" required href="/privacy" />
-              <ConsentCheckbox checked={agreedMarketing} onChange={setAgreedMarketing} label="마케팅 정보 수신 동의" required={false} />
-            </div>
+            <ConsentFields
+              ageConfirmed={ageConfirmed}
+              onAgeConfirmedChange={setAgeConfirmed}
+              agreedTerms={agreedTerms}
+              onTermsChange={setAgreedTerms}
+              agreedPrivacy={agreedPrivacy}
+              onPrivacyChange={setAgreedPrivacy}
+              agreedMarketing={agreedMarketing}
+              onMarketingChange={setAgreedMarketing}
+            />
 
             {/* 소셜 로그인 3종 — 필수 동의 전까지 비활성화(흐리게 + 클릭 무시) */}
             <SocialLoginButtons onSelect={handleSocialLogin} disabled={!canProceed} />

@@ -85,6 +85,57 @@ export const getMyProfile = async (req: Request, res: Response) => {
   }
 };
 
+// 동의 기록 (`POST /api/me/consent`) — 00-36 §4.5-1. 동의 기록이 없는 기존 회원이 재동의 창에서 "동의하고 계속하기"를 누를 때만 부른다.
+// 🔴 시각은 **지금**만 찍는다 — 가입일 등 과거 날짜로 채우면 받지 않은 동의를 받은 것처럼 된다.
+// 🔴 이미 값이 있는 칸은 덮어쓰지 않는다(하나만 비어 있으면 그 칸만). 마케팅은 체크했고 비어 있을 때만 찍는다(체크 안 하면 그대로).
+export const recordMyConsent = async (req: Request, res: Response) => {
+  const decoded = verifyBearerToken(req);
+  if (!decoded) {
+    return res.status(401).json({ status: 'error', message: '로그인이 필요합니다.' });
+  }
+
+  const body = (req.body ?? {}) as { terms?: unknown; privacy?: unknown; marketing?: unknown };
+  if (body.terms !== true || body.privacy !== true) {
+    return res.status(400).json({ status: 'error', message: '이용약관과 개인정보 수집·이용에 모두 동의해야 합니다.' });
+  }
+
+  try {
+    const user = await prisma.user.findFirst({
+      where: { id: decoded.id, purgedAt: null },
+      select: { termsAgreedAt: true, privacyAgreedAt: true, marketingAgreedAt: true },
+    });
+    if (!user) {
+      return res.status(404).json({ status: 'error', message: '회원을 찾을 수 없습니다.' });
+    }
+
+    const now = new Date();
+    const data: { termsAgreedAt?: Date; privacyAgreedAt?: Date; marketingAgreedAt?: Date } = {};
+    if (!user.termsAgreedAt) data.termsAgreedAt = now;
+    if (!user.privacyAgreedAt) data.privacyAgreedAt = now;
+    if (body.marketing === true && !user.marketingAgreedAt) data.marketingAgreedAt = now;
+
+    const updated = Object.keys(data).length
+      ? await prisma.user.update({
+          where: { id: decoded.id },
+          data,
+          select: { termsAgreedAt: true, privacyAgreedAt: true, marketingAgreedAt: true },
+        })
+      : user;
+    return res.json({
+      status: 'success',
+      data: {
+        consentRequired: !updated.termsAgreedAt || !updated.privacyAgreedAt,
+        termsAgreedAt: updated.termsAgreedAt,
+        privacyAgreedAt: updated.privacyAgreedAt,
+        marketingAgreedAt: updated.marketingAgreedAt,
+      },
+    });
+  } catch (error) {
+    console.error('동의 기록 실패:', error);
+    return res.status(500).json({ status: 'error', message: '동의 기록 중 오류가 발생했습니다.' });
+  }
+};
+
 // 내 프로필 부분 수정 (`PATCH /api/me/profile`) — 빈 문자열은 null로 정규화(지움)
 export const updateMyProfile = async (req: Request, res: Response) => {
   const decoded = verifyBearerToken(req);

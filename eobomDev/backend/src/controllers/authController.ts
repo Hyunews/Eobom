@@ -595,6 +595,9 @@ export const getCurrentUser = async (req: Request, res: Response) => {
       // 이 조회가 두 필드를 비우지는 않는다(되살리기는 사용자가 "계속 이용"을 눌러 DELETE로만).
       deletionRequestedAt: user.deletionRequestedAt,
       deletionScheduledAt: user.deletionScheduledAt,
+      // 00-36 §4.5-1 — 이용약관·개인정보 동의 기록이 하나라도 비어 있으면 true. 프런트가 재동의 창을 띄우는 근거.
+      // 시각 자체는 내리지 않는다(여부만) — 날짜는 마이페이지 "개인정보·동의"가 따로 읽는다.
+      consentRequired: !user.termsAgreedAt || !user.privacyAgreedAt,
     },
   });
 };

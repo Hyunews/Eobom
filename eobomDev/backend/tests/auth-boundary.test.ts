@@ -34,6 +34,7 @@ const PROTECTED: Protected[] = [
   { ns: '/api/me', owner: 'user', method: 'GET', path: '/api/me/summary' },
   { ns: '/api/me', owner: 'user', method: 'GET', path: '/api/me/profile' },
   { ns: '/api/auth', owner: 'user', method: 'GET', path: '/api/auth/me' },
+  { ns: '/api/me', owner: 'user', method: 'POST', path: '/api/me/consent' },
   { ns: '/api/memorials', owner: 'user', method: 'POST', path: '/api/memorials' },
   { ns: '/api/obituaries', owner: 'user', method: 'POST', path: '/api/obituaries' },
   { ns: '/api/family-designations', owner: 'user', method: 'GET', path: '/api/family-designations' },
