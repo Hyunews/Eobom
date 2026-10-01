@@ -39,7 +39,8 @@ const PROTECTED: Protected[] = [
   { ns: '/api/family-designations', owner: 'user', method: 'GET', path: '/api/family-designations' },
   { ns: '/api/farewell-messages', owner: 'user', method: 'GET', path: '/api/farewell-messages' },
   { ns: '/api/ending-note', owner: 'user', method: 'GET', path: '/api/ending-note' },
-  { ns: '/api/facilities', owner: 'user', method: 'POST', path: '/api/facilities/none/reviews' },
+  // (10-01 시설 후기 작성 API 보류 — POST /api/facilities/:id/reviews 라우트 제거로 /api/facilities에는
+  //  보호 경로가 없다. 후기 재개 시 이 줄과 아래 네임스페이스 목록의 '/api/facilities'를 복원할 것.)
   { ns: '/api/stt', owner: 'user', method: 'POST', path: '/api/stt/transcribe' },
   { ns: '/api/ocr', owner: 'user', method: 'POST', path: '/api/ocr/recognize' },
 ];
@@ -86,7 +87,7 @@ describe('보호 경로 목록', () => {
     const covered = new Set(PROTECTED.map((p) => p.ns));
     for (const ns of [
       '/api/admin', '/api/partner', '/api/expert', '/api/me', '/api/auth', '/api/memorials', '/api/obituaries',
-      '/api/family-designations', '/api/farewell-messages', '/api/ending-note', '/api/facilities', '/api/stt', '/api/ocr',
+      '/api/family-designations', '/api/farewell-messages', '/api/ending-note', '/api/stt', '/api/ocr',
     ]) {
       assert.ok(covered.has(ns), `${ns} 대표 경로가 목록에 없습니다`);
     }

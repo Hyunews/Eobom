@@ -171,6 +171,7 @@ export const getFacilityById = async (req: Request, res: Response) => {
 };
 
 // 리뷰 작성 (`POST /api/facilities/:id/reviews`) — 로그인 유저 1인 1리뷰
+// 10-01 보류 — 재개 시 facilityRoutes.ts에 라우트 복원(`router.post('/:id/reviews', createReview)`).
 export const createReview = async (req: Request, res: Response) => {
   const decoded = verifyBearerToken(req);
   if (!decoded) {

@@ -2182,3 +2182,16 @@
   - 커밋은 하지 않음 — 메시지 초안만.
 
 <!-- Gemini 판정 1줄: ✅통과 / ❌반려(사유) / 🔄스펙갱신(고친 문서) -->
+## 2026-10-01 | 시설 후기 작성 API 닫기 (후기 기능 보류)
+
+- **근거 스펙**: 스펙 없음 — 2026-10-01 개발자 결정(후기 기능 보류, .harness/docs-audit/README.md §4 00-D 후속). 앞선 프론트 정리(`FacilityReviewModal.tsx` 삭제·탈퇴 안내 `시설 후기` 줄 삭제)의 백엔드 짝.
+- **건드린 파일**: eobomDev/backend/src/routes/facilityRoutes.ts , eobomDev/backend/src/controllers/facilityController.ts , eobomDev/backend/tests/auth-boundary.test.ts
+- **결과**: 시설 후기 작성 엔드포인트를 닫았다. 제거한 원문: facilityRoutes.ts `router.post('/:id/reviews', createReview);`(9행) · 같은 파일 import 목록의 `createReview`(미사용 import 방지). `createReview` 함수는 facilityController.ts에 그대로 두고 위에 주석 한 줄 추가 — `// 10-01 보류 — 재개 시 facilityRoutes.ts에 라우트 복원(`router.post('/:id/reviews', createReview)`).` 이제 `POST /api/facilities/:id/reviews`는 404다. 🔴 안 건드린 것(지시대로): `FacilityReview` 모델·마이그레이션·DB, 조회 쪽 `reviews` include와 평점 집계 `withEffectiveRating`(facilityController.ts:87), 탈퇴 미리보기·계정 파기의 `facilityReviews` 집계. 검증: `npx tsc --noEmit`(backend) 에러 0 · `npm test`(backend) 210개 중 pass 210·fail 0(auth-boundary 포함, 테스트 DB 가드 통과).
+- **편차**: 지시서 범위(라우트 1줄 + 주석)를 넘어 `tests/auth-boundary.test.ts`를 고쳤다 — 이 테스트가 `POST /api/facilities/none/reviews`를 "로그인 유저 전용(user) 보호 경로"의 `/api/facilities` 대표로 쓰고 있어, 라우트를 지우면 404가 돼 토큰 없음 401 기대 4종×경로·교차 토큰 3종이 실패한다. 그 대표 행(`{ ns: '/api/facilities', owner: 'user', method: 'POST', path: '/api/facilities/none/reviews' }`)을 주석으로 대체하고 "보호 네임스페이스를 빠짐없이 덮는다" 목록에서 `'/api/facilities'`를 뺐다. 대체 대표 경로를 찾아봤으나 `/api/facilities`의 나머지 라우트(조회 2개·`/:id/quotes`·`/:id/call-events`)는 비로그인 허용이라 보호 대표가 될 수 없었다.
+- **다음 에이전트가 알아야 할 것**:
+  - 후기를 재개하려면 ①facilityRoutes.ts에 import·라우트 복원 ②auth-boundary.test.ts의 대표 행·네임스페이스 `'/api/facilities'` 복원 — 두 곳의 주석이 그 자리를 가리킨다.
+  - 🟡 후기 기능 잔재가 아직 남음(사람 판단): 스키마 `FacilityReview` 모델·조회 include·`withEffectiveRating`·탈퇴 미리보기 응답의 `facilityReviews`(accountDeletionController.ts:36·74, accountPurgeService.ts:37·81·101)·파기 스크립트 destroy-farewell-media.ts:128. 계정 파기가 리뷰 행을 지우는 DB 쓰기 경로라 별도 지시·백업 절차가 필요하다.
+  - 프론트에는 이 API를 부르는 코드가 이미 없다(FacilityReviewModal.tsx 삭제됨) — 실기동 영향 없음, 실기동 불필요.
+  - 커밋은 하지 않음 — 메시지 초안만.
+
+<!-- Gemini 판정 1줄: ✅통과 / ❌반려(사유) / 🔄스펙갱신(고친 문서) -->
