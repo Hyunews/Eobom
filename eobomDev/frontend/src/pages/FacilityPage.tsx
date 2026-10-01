@@ -54,6 +54,9 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
   // 카드형/리스트형 보기 전환 — 2026-09-10 사람 지시로 추가. 서버 재조회는 필요 없고 같은
   // facilities 배열을 다르게 렌더링만 하면 돼서 페이지/필터와 무관한 순수 UI 상태로 둔다.
   const [viewMode, setViewMode] = useState<'card' | 'list'>('card');
+  // 썸네일 로드 실패한 URL — 재배포로 디스크 파일이 사라진 경우(systems.md 「이미지 저장」). 한 번 실패하면
+  // 이미지 없는 시설과 같은 플레이스홀더로 바꾼다(상태에 남아 다시 <img>를 그리지 않으므로 onError 루프 없음).
+  const [brokenThumbs, setBrokenThumbs] = useState<Set<string>>(new Set());
 
   // 모바일 필터 바텀시트 — 목업(Artifact) 승인 후 구현. 데스크톱은 기존 한 줄 필터 박스 그대로 두고,
   // 모바일에서만 검색창+요약 칩으로 접었다가 이 상태로 펼친다. 00-38 §8.2가 이미 정한 바텀시트
@@ -754,7 +757,8 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
         <div className="grid">
           {facilities.map((item) => {
             const distKm = typeof item.distanceKm === 'number' ? item.distanceKm.toFixed(1) : null;
-            const thumbnail = Array.isArray(item.images) && item.images.length > 0 ? `${BACKEND_URL}${item.images[0]}` : null;
+            const thumbnailSrc = Array.isArray(item.images) && item.images.length > 0 ? `${BACKEND_URL}${item.images[0]}` : null;
+            const thumbnail = thumbnailSrc && !brokenThumbs.has(thumbnailSrc) ? thumbnailSrc : null;
 
             return (
               <div key={item.id} className="card" style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
@@ -779,7 +783,12 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
                     }}
                   >
                     {thumbnail ? (
-                      <img src={thumbnail} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      <img
+                        src={thumbnail}
+                        alt={item.name}
+                        onError={() => setBrokenThumbs((prev) => new Set(prev).add(thumbnail))}
+                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                      />
                     ) : (
                       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.3rem', color: 'var(--v2-text-muted)' }}>
                         <ImageIcon size={28} />
