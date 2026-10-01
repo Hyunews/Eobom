@@ -2195,3 +2195,40 @@
   - 커밋은 하지 않음 — 메시지 초안만.
 
 <!-- Gemini 판정 1줄: ✅통과 / ❌반려(사유) / 🔄스펙갱신(고친 문서) -->
+## 2026-10-01 | 수락 철회 화면('더 이상 보지 않기') + 개인정보·동의 모달 (00-E 발견 1 ①②)
+
+- **근거 스펙**: docs/00_핵심플랫폼/00-36_마이페이지_정보구조_점검_및_개편_기획서.md §4.6-2-1(수락 철회 화면 진입점)·§4.5(개인정보·동의 3층) · docs/00_핵심플랫폼/00-27_생전_가족지정_및_유족연결_기획서.md §9.2(철회 API·트랜잭션 정본) · .harness/docs-audit/README.md §4 "00-E 판정 결과" 1번 ①②
+- **건드린 파일**: eobomDev/frontend/src/pages/FamilySharedPage.tsx , eobomDev/frontend/src/components/mypage/ConsentModal.tsx(신규) , eobomDev/frontend/src/pages/MyPage.tsx , eobomDev/frontend/src/components/mypage/MyPageProfile.tsx , eobomDev/backend/src/controllers/profileController.ts
+- **결과**: ① FamilySharedPage 지정자별 카드 맨 아래에 빨간 작은 글자 `더 이상 보지 않기`(`.v2-account-foot-btn.is-danger`, 버튼 상자 없음) → 1단계 확인 모달(제목 `더 이상 보지 않기`, 본문 `{ownerName}님이 공유하신 내용을 더 이상 보지 않습니다. 다시 보시려면 {ownerName}님께 다시 요청하셔야 합니다.`, 사유 입력칸 없음, 제출 중 버튼 잠금·`처리 중…`) → `POST /api/family-designations/accepted/${designationId}/withdraw` 호출 → `load()`로 카드가 목록에서 사라지고 페이지 상단에 `철회되었습니다.` 한 줄(4초). ② 신규 `ConsentModal.tsx` — 마이페이지 `내 활동과 계정`의 새 행 `개인정보·동의`(MyPage.tsx, `ShieldCheck` 아이콘)가 연다. 표시: `서비스 이용약관 동의`·`개인정보 수집·이용 동의` 날짜만(토글 없음) + `동의를 거두시려면 회원 탈퇴가 필요합니다.` + `회원 탈퇴` 버튼(동의 모달을 닫고 기존 WithdrawalModal을 연다) + 마케팅 수신 체크 1개(`.v2-check`, 저장 시 `PATCH /api/me/profile {marketingAgreed}`만 전송). MyPageProfile.tsx에서 마케팅 체크박스(`마케팅 정보 수신에 동의합니다 (선택)`)·`marketingAgreed` 상태·PATCH 바디의 `marketingAgreed`·`ProfileData.marketingAgreedAt`을 제거(복제 금지, §4.5). profileController.ts `PROFILE_SELECT`·`ProfileRow`·`serializeProfile`에 `termsAgreedAt`·`privacyAgreedAt` 추가. 검증: frontend `npx tsc --noEmit` 0 · `npm run build` 통과(chunk 500kB 경고만) · backend `npx tsc --noEmit` 0. DB·스키마 변경 없음.
+- **편차**: (1) 스펙은 동의 날짜를 "표시"하라고만 했으나 `GET /api/me/profile` 응답에 `termsAgreedAt`·`privacyAgreedAt`이 없어 **서버 응답에 두 필드를 추가**했다(날짜만, 값 변경 경로 없음). 스펙 문구 안에 서버 변경 언급이 없어 Opus 확인 필요. (2) 00-36 §4.6-2-1은 버튼에서 `철회` 단어를 금지하면서 같은 절 끝 토스트는 `"철회되었습니다"`로 적었다 — 스펙 문구 그대로 `철회되었습니다.`를 썼다(스펙 내부 불일치, 토스트 문구를 바꿀지 Opus 판정). (3) §4.5의 건별 층(`thirdPartyConsentAt`)은 모달이 아니라 §4.4 상담 상세에 동의 시각만 표시하라는 항목이라 이번 범위에서 제외 — 상담 상세 화면에는 아직 없다. (4) 스펙에 `개인정보·동의` 행의 아이콘 지정이 없어 `ShieldCheck`를 임의 선택.
+- **다음 에이전트가 알아야 할 것**:
+  - 🔴 실기동 검증 대기(사람 몫): 수락한 가족 계정으로 `/family-shared` → `더 이상 보지 않기` → 카드 사라짐·`철회되었습니다.` → 지정자 쪽 `가족 지정` 화면에서 상태가 DECLINED(수락 후 거둠)로 바뀌고 그 지정의 `EndingNoteGrant`가 `revokedAt` 처리됐는지 · 마이페이지 `개인정보·동의` 모달에서 날짜 두 줄·마케팅 저장(체크→저장→다시 열어 유지)·`회원 탈퇴` 버튼이 탈퇴 모달로 이어지는지 · `내 정보` 모달에 마케팅 체크가 없는지.
+  - 🟡 지정자 쪽 `가족 지정` 화면의 `지금은 보지 않으십니다` 표시(00-36 §4.6-2-1 마지막 문단)는 후순위로 적혀 있어 구현하지 않았다. 수락 후 철회된 건이 지금은 지정자 화면에서 어떻게 보이는지 미확인.
+  - 🟡 `ConsentModal`의 날짜가 null이면 `-`로 표시(약관 동의 기록 없는 옛 계정 — 08-24 이전 가입자 가능성). 문구는 새로 만들지 않았다.
+  - 커밋은 하지 않음 — 메시지 초안만.
+
+<!-- Gemini 판정 1줄: ✅통과 / ❌반려(사유) / 🔄스펙갱신(고친 문서) -->
+## 2026-10-01 | FacilityPage 시설 썸네일 로드 실패 시 플레이스홀더로 대체
+
+- **근거 스펙**: 스펙 없음 — 2026-10-01 개발자 지시(운영에서 스카이장례식장 썸네일 깨짐: DB에는 `/uploads/facility-images/...` 경로가 있으나 Render 디스크에 파일 없음, systems.md 「이미지 저장」).
+- **건드린 파일**: eobomDev/frontend/src/pages/FacilityPage.tsx
+- **결과**: `brokenThumbs: Set<string>` 상태 추가, `const thumbnail = Array.isArray(item.images) && item.images.length > 0 ? `${BACKEND_URL}${item.images[0]}` : null;`을 `thumbnailSrc`(원본)와 `thumbnail`(`!brokenThumbs.has(thumbnailSrc)`일 때만 값)로 분리, `<img>`에 `onError={() => setBrokenThumbs((prev) => new Set(prev).add(thumbnail))}` 추가. 실패한 URL은 기존 `등록된 이미지 없음` 플레이스홀더로 전환(상태에 남아 `<img>`를 다시 그리지 않으므로 onError 루프 없음). 검증: frontend `npx tsc --noEmit` 0.
+- **편차**: 없음(지시: 기존 플레이스홀더 재사용·문구 추가 금지·DB 미접촉 모두 준수). 확인한 부수 효과: ≤480px에서는 이미지 없는 시설과 같이 플레이스홀더 칸이 통째로 숨겨진다(기존 `hideImagePlaceholder` 규칙).
+- **다음 에이전트가 알아야 할 것**:
+  - 같은 패턴 후보 1곳 미수정: `eobomDev/frontend/src/pages/BizDashboard.tsx:591` `src={`${BACKEND_URL}${img}`}`(파트너 업로드 이미지 미리보기).
+  - 파일 자체는 복구되지 않는다 — R2 이전(systems.md §5) 전까지 증상만 가린다.
+  - 커밋은 하지 않음 — 메시지 초안만.
+
+<!-- Gemini 판정 1줄: ✅통과 / ❌반려(사유) / 🔄스펙갱신(고친 문서) -->
+## 2026-10-01 | 가족 지정 화면 — 수락 후 거둔 건 표시 구분 (00-36 §4.6-2-1 후순위분)
+
+- **근거 스펙**: docs/00_핵심플랫폼/00-36_마이페이지_정보구조_점검_및_개편_기획서.md §4.6-2-1 마지막 문단(지정자 화면 `acceptedAt != null && status == DECLINED` 조합 구분, 문구 `지금은 보지 않으십니다`) · 00-27 §9.2 · 앞선 실기동에서 철회 후 지정자 화면이 `거절됨 · 다시 알리기 가능`으로 나온 것을 사람이 확인(10-01).
+- **건드린 파일**: eobomDev/backend/src/controllers/familyDesignationController.ts , eobomDev/frontend/src/components/mypage/MyPageFamilyDesignation.tsx
+- **결과**: `GET /api/family-designations` 응답(`serialize`)에 `acceptedAt` 추가(`FamilyDesignationRow` 타입에도). 프론트 `statusLabel`의 `if (item.status === 'DECLINED') return '거절됨 · 다시 알리기 가능';`를 `item.acceptedAt ? '지금은 보지 않으십니다 · 다시 알리기 가능' : '거절됨 · 다시 알리기 가능'`으로 교체(`FamilyDesignationItem`에 `acceptedAt: string | null` 추가). 검증: frontend·backend `npx tsc --noEmit` 둘 다 0. DB·스키마 변경 없음(컬럼은 이미 있음).
+- **편차**: 문구 뒤 `· 다시 알리기 가능`은 기존 DECLINED 문구의 꼬리를 그대로 이어 붙인 것으로 스펙에 없는 조합이다. 철회와 회원 탈퇴로 인한 철회가 같은 조합이라 `탈퇴하셨습니다`로 구분하지 않았다(스펙 지시대로).
+- **다음 에이전트가 알아야 할 것**:
+  - 🟡 극단 경계: 수락→철회→재초대→상대가 이번에는 *거절* 하면 `acceptedAt`이 남아 있어 `지금은 보지 않으십니다`로 표시된다(`acceptedAt`은 철회 때 지우지 않는 설계, 00-27 §9.2). 재초대 시 `acceptedAt` 초기화 여부는 Opus 판단.
+  - 실기동 검증 대기(사람 몫): 수락 후 철회한 건이 `지금은 보지 않으십니다 · 다시 알리기 가능`으로 나오고, 처음부터 거절한 건은 그대로 `거절됨 · …`으로 나오는지.
+  - 커밋은 하지 않음 — 메시지 초안만.
+
+<!-- Gemini 판정 1줄: ✅통과 / ❌반려(사유) / 🔄스펙갱신(고친 문서) -->
