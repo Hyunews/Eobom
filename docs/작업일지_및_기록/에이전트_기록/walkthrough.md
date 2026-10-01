@@ -1747,6 +1747,33 @@
   - 641~768px 구간에서 기존 `.header-nav`(홈/생전 준비/임종·사후 정리 평면 메뉴)의 ≤640px 숨김 미디어쿼리와 모바일 홈 판정(≤768px)이 어긋나는 문제를, Header.tsx가 `homeMobileOverlay` 존재 시 그 `<nav>` 자체를 렌더하지 않는 방식으로 우회했다(index.css의 640px 규칙 자체는 그대로 둠 — 다른 페이지엔 영향 없음).
 
 <!-- Gemini 판정 1줄: ✅통과 (00-40 §3.3 데스크톱 세로 3칸 휠 스냅 및 모바일 가로 4칸 스크롤스냅 1차 뼈대 실장 완료, 라우팅 및 헤더 분기 연동 정상, 빌드 통과) -->
+## 2026-10-01 | 홈 navMode 상태 제거 (커밋 caadc2c)
+
+- **근거 스펙**: docs/00_핵심플랫폼/00-40_홈_랜딩_재설계_계획서.md §3.4 마지막 줄(🔵 `navMode` 걷어낼지는 분기 4에서 정한다) — 2026-10-01 개발자 결정 "걷어냄"(.harness/docs-audit/README.md §4 00-D 결정 기록)
+- **건드린 파일**:
+  - eobomDev/frontend/src/App.tsx
+  - eobomDev/frontend/src/components/Header.tsx
+  - eobomDev/frontend/src/components/Sidebar.tsx
+  - eobomDev/frontend/src/components/home/HomeDesktop.tsx
+  - eobomDev/frontend/src/components/home/HomeMobile.tsx
+  - eobomDev/frontend/src/lib/modeNav.ts
+  - eobomDev/frontend/src/pages/HomePage.tsx
+
+- **결과**: 메뉴 선택에 더 쓰이지 않던 `navMode` 상태와 그 전달 사슬을 전부 제거했다(7파일, +12/−47). 제거한 원문:
+  - App.tsx: `const [navMode, setNavMode] = useState<NavMode | null>(...)`(localStorage 읽기 포함) · `const handleSetNavMode = (mode: NavMode) => {...}`(localStorage 쓰기 포함) · `import { NAV_MODE_STORAGE_KEY, type NavMode } from './lib/modeNav'` · `<Header onSetMode={handleSetNavMode}>` · `<Sidebar navMode={navMode}>` · `<HomePage>` 3곳(`/`·`/prep`·`/bereaved`)의 `onSetMode={handleSetNavMode}`
+  - Header.tsx: `onSetMode?: (mode: NavMode) => void`(props 타입·구조분해) · `goToModeItem` 안 `onSetMode?.(mode);`
+  - Sidebar.tsx: `navMode?: NavMode | null`(props 타입) · `NavMode` import
+  - HomePage.tsx: `onSetMode?: (mode: NavMode) => void`
+  - HomeDesktop.tsx·HomeMobile.tsx: `onSetMode` props 타입·구조분해 · 마운트 effect 안 `if (landingMode) { onSetMode?.(landingMode); }` · `goToModeItem` 안 `onSetMode?.(mode);`
+  - modeNav.ts: `export const NAV_MODE_STORAGE_KEY = 'k_ending_nav_mode';`
+  - 동작은 그대로다: 드로어는 `ALL_DRAWER_ITEMS` 정본으로 항상 전체 10개(09-28 지시), `/prep`·`/bereaved` 딥링크의 `landingMode`(어느 칸으로 갈지)는 유지.
+  - 검증: `npx tsc --noEmit`(frontend) 에러 0 — `npm run build`는 돌리지 않음. 🔵 **10-01 사람 실기동 통과**: 모바일 상중 행정 가이드 화면에서 드로어를 열면 전체 메뉴가 표시됨(= 09-28 지시와 일치).
+- **편차**: 스펙과 다르게 구현한 것은 없음. 문서 쪽이 코드와 어긋난 곳(모두 4단계에서 갱신 예정 — docs-audit README §4): 00-40 §3.4 마지막 줄(🔵 navMode 걷어낼지)·00-26 §4.3(*"모드 기억 — `localStorage`, 구현됨(`NAV_MODE_STORAGE_KEY`)"*)·00-26 §6(#2 모드 기억 ✅ 구현됨). 기억하던 값을 읽는 곳이 없었으므로 기능 손실은 없다.
+- **다음 에이전트가 알아야 할 것**:
+  - 🟡 **정리 후보(보고만, 처리 안 함)**: `goToModeItem(_mode: NavMode, item)`의 안 쓰는 `_mode` 인자 — Header.tsx·HomeDesktop.tsx·HomeMobile.tsx 3곳. 호출부(`onNavigate={() => goToModeItem(mode, item)}`)도 같이 바꿔야 해서 이번엔 남겼다. 걷어낼지는 사람 결정.
+  - 이미 접속한 브라우저에는 옛 localStorage 키 `k_ending_nav_mode`가 남지만 읽는 코드가 없어 무해하다.
+
+- **판정**: ✅통과 (10-01 사람 실기동 — 모바일 상중 행정 가이드 화면에서 드로어 열면 전체 메뉴 표시, 09-28 지시와 일치)
 
 
 ## 2026-09-28 | 홈 데스크톱 1차 구현 사람 피드백 5건 반영
