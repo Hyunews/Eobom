@@ -10,7 +10,6 @@ import { MyPageProfile } from './components/mypage/MyPageProfile';
 import { MyPageFamilyDesignation } from './components/mypage/MyPageFamilyDesignation';
 import { EobomLogo } from './components/EobomLogo';
 import { providerLabel, BACKEND_URL } from './config';
-import { NAV_MODE_STORAGE_KEY, type NavMode } from './lib/modeNav';
 import { getDisplayName, setSession, clearSession, clearLegacyUserLocalStorage, isUserSessionPending, subscribeUserSession, PENDING_RETURN_PATH_KEY, SCROLL_HOME_KEY, SCROLL_HOME_MOBILE_KEY } from './lib/storage';
 import { registerSessionExpiredHandler } from './lib/api';
 import { useIsMobile } from './hooks/useIsMobile';
@@ -114,18 +113,6 @@ function AppShell() {
   useEffect(() => {
     fetch(`${BACKEND_URL}/api/health`).catch(() => {});
   }, []);
-
-  // 00-26 §4.3 — 진입 모드(생전준비/유가족). localStorage로 날짜를 넘겨 기억한다(유족 행정 절차는
-  // 여러 날에 걸침). ⚠️ 홈으로 돌아오면 4박스는 항상 보여야 하므로, 이 값으로 자동 이동시키지 않는다
-  // — 사이드바 메뉴 선택에만 쓴다(§7.2).
-  const [navMode, setNavMode] = useState<NavMode | null>(() => {
-    const saved = localStorage.getItem(NAV_MODE_STORAGE_KEY);
-    return saved === 'prep' || saved === 'bereaved' ? saved : null;
-  });
-  const handleSetNavMode = (mode: NavMode) => {
-    setNavMode(mode);
-    localStorage.setItem(NAV_MODE_STORAGE_KEY, mode);
-  };
 
   // 가입 시점 이메일 중복 감지 -> [계정 통합] vs [독립 신규 가입] 선택 모달 상태
   const [socialLinkPrompt, setSocialLinkPrompt] = useState<{
@@ -393,7 +380,6 @@ function AppShell() {
             onOpenLogin={() => openLoginModal()}
             currentUser={currentUser}
             onLogout={handleLogout}
-            onSetMode={handleSetNavMode}
             // 00-40 §3.3 M-10 — 모바일 홈에서도 햄버거+드로어를 켠다(그 외는 기존 그대로:
             // 홈이 아닌 페이지는 항상, 데스크톱 홈은 계속 숨김).
             onOpenMobileMenu={(!isHomeRoute || isMobileViewport) ? () => setIsMobileMenuOpen(true) : undefined}
@@ -406,7 +392,6 @@ function AppShell() {
           <Sidebar
             activeTab={activeTab}
             setActiveTab={setActiveTab}
-            navMode={navMode}
             currentUser={currentUser}
             onOpenLogin={() => openLoginModal()}
             mobileOpen={isMobileMenuOpen}
@@ -434,18 +419,18 @@ function AppShell() {
           <Routes>
             <Route
               path="/"
-              element={<HomePage {...authProps} onSetMode={handleSetNavMode} onMobileHeaderStyleChange={setHomeMobileHeaderStyle} />}
+              element={<HomePage {...authProps} onMobileHeaderStyleChange={setHomeMobileHeaderStyle} />}
             />
             {/* 🔄 00-40 §3.3 C6(2026-09-28) — DomainOverviewPage(옛 박스①② "자세히 보기"
                 소개 화면)는 폐지. 두 주소 다 홈으로 돌려보내되, landingMode로 어느 갈래인지
                 HomePage에 알려 웹은 섹션2로, 모바일은 해당 칸으로 곧장 떨어뜨린다(M-9). */}
             <Route
               path="/prep"
-              element={<HomePage {...authProps} onSetMode={handleSetNavMode} onMobileHeaderStyleChange={setHomeMobileHeaderStyle} landingMode="prep" />}
+              element={<HomePage {...authProps} onMobileHeaderStyleChange={setHomeMobileHeaderStyle} landingMode="prep" />}
             />
             <Route
               path="/bereaved"
-              element={<HomePage {...authProps} onSetMode={handleSetNavMode} onMobileHeaderStyleChange={setHomeMobileHeaderStyle} landingMode="bereaved" />}
+              element={<HomePage {...authProps} onMobileHeaderStyleChange={setHomeMobileHeaderStyle} landingMode="bereaved" />}
             />
             <Route path="/facility" element={<FacilityPage {...authProps} />} />
             <Route path="/counseling" element={<CounselingPage {...authProps} />} />

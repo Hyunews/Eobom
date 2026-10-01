@@ -9,7 +9,6 @@ interface HeaderProps {
   onOpenLogin: () => void;
   currentUser: string | null;
   onLogout: () => void;
-  onSetMode?: (mode: NavMode) => void;
   // 480px 이하에서만 노출되는 햄버거 버튼(.mobile-menu-trigger, index.css) — Sidebar.tsx의
   // 모바일 드로어를 연다. 사이드바 자체가 없는 홈에서는 App.tsx가 undefined를 넘겨 숨긴다.
   onOpenMobileMenu?: () => void;
@@ -35,7 +34,7 @@ interface HeaderProps {
 // 구 라벨 "추모관")이 있었다. 사이드바의 "디지털 추모관"(→ `/memorial`, 다른 화면)과 이름이
 // 겹쳐 혼란이 있었던 데다, 그 화면은 이제 **마이페이지에서만** 들어가게 정리해 헤더에서는
 // 아예 뺐다(MyPage.tsx의 "내 부고장" 통계 칸이 그 유일한 통로가 됨).
-export const Header: React.FC<HeaderProps> = ({ setActiveTab, onOpenLogin, currentUser, onLogout, onSetMode, onOpenMobileMenu, homeMobileOverlay }) => {
+export const Header: React.FC<HeaderProps> = ({ setActiveTab, onOpenLogin, currentUser, onLogout, onOpenMobileMenu, homeMobileOverlay }) => {
   const goHome = () => {
     setActiveTab('home');
   };
@@ -49,7 +48,6 @@ export const Header: React.FC<HeaderProps> = ({ setActiveTab, onOpenLogin, curre
     ? `site-header site-header--home-overlay${isHeroOverlay ? ' site-header--home-overlay-hero' : ''}`
     : 'site-header';
 
-  // onSetMode는 유지 — Sidebar 등 다른 화면의 모드 표시가 여전히 이 클릭을 기준으로 맞아야 한다.
   // (2026-08-24 — 모드 버튼은 소개 오버레이가 아니라 실제 화면으로 직접 이동한다.)
   // 00-39 §6-3(2026-09-18) — 좌측 72px 사이드바 폐지, 모드 버튼 호버 드롭다운으로 대체.
   // 메뉴 구성은 modeNav.ts(MODE_MENUS)가 정본. 개별 항목은 Sidebar.tsx가 쓰던 것과 같은
@@ -58,9 +56,8 @@ export const Header: React.FC<HeaderProps> = ({ setActiveTab, onOpenLogin, curre
   // 2026-09-18 사람 확정 — 항목 클릭 시 loginRequired면 로그인 모달로 게이트).
   // 🔄 09-29 — 이동 메뉴는 링크(PageLink, 00-34 §2.2). loginRequired인 항목은 비로그인이면 PageLink가
   // 링크가 아니라 버튼으로 그려 로그인 창만 연다(우클릭 "새 탭에서 열기"가 아예 없게).
-  // 여기 남은 건 보통 클릭 때만 도는 기존 부가 동작(모드 지정 + 스크롤 저장·이동).
-  const goToModeItem = (mode: NavMode, item: ModeMenuItem) => {
-    onSetMode?.(mode);
+  // 여기 남은 건 보통 클릭 때만 도는 기존 부가 동작(스크롤 저장·이동).
+  const goToModeItem = (_mode: NavMode, item: ModeMenuItem) => {
     setActiveTab(item.id);
   };
 

@@ -11,7 +11,6 @@ interface HomeDesktopProps {
   currentUser?: string | null;
   onOpenLogin?: () => void;
   setActiveTab?: (tab: string) => void;
-  onSetMode?: (mode: NavMode) => void;
   landingMode?: NavMode;
 }
 
@@ -25,7 +24,7 @@ const DUO_MODES: NavMode[] = ['prep', 'bereaved'];
 // 페이지 로드당 1회만 "새로고침이면 저장된 섹션 삭제"를 한다(모듈 수명 = 페이지 로드 수명).
 let reloadChecked = false;
 
-export const HomeDesktop: React.FC<HomeDesktopProps> = ({ currentUser, onOpenLogin, setActiveTab, onSetMode, landingMode }) => {
+export const HomeDesktop: React.FC<HomeDesktopProps> = ({ currentUser, onOpenLogin, setActiveTab, landingMode }) => {
   const [activeSection, setActiveSection] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
   const activeSectionRef = useRef(0);
@@ -42,10 +41,6 @@ export const HomeDesktop: React.FC<HomeDesktopProps> = ({ currentUser, onOpenLog
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
-
-    if (landingMode) {
-      onSetMode?.(landingMode);
-    }
 
     // 🔄 2026-09-29 — HomeMobile.tsx와 같은 이유로 페이지 로드당 첫 마운트에서만 지운다.
     if (!reloadChecked) {
@@ -178,8 +173,7 @@ export const HomeDesktop: React.FC<HomeDesktopProps> = ({ currentUser, onOpenLog
 
   // ⓓ 메뉴 줄 클릭 — Header.tsx goToModeItem과 같은 로그인 게이트(C7).
   // 🔄 09-29 — 링크(PageLink)로 바뀌어 게이트는 PageLink가 맡는다(비로그인+loginRequired=버튼).
-  const goToModeItem = (mode: NavMode, item: ModeMenuItem) => {
-    onSetMode?.(mode);
+  const goToModeItem = (_mode: NavMode, item: ModeMenuItem) => {
     setActiveTab?.(item.id);
   };
 

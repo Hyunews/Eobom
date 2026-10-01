@@ -8,8 +8,6 @@ import { HouseLeafIcon, HandScalesIcon, PhoneHeartIcon, NoteKeyIcon, ChecklistSh
 
 export type NavMode = 'prep' | 'bereaved';
 
-export const NAV_MODE_STORAGE_KEY = 'k_ending_nav_mode';
-
 // Header.tsx 모드 드롭다운·EntryBoxes.tsx(삭제됨) 박스② 제목과 라벨을 통일한다(08-19 14차).
 export const MODE_LABELS: Record<NavMode, string> = {
   prep: '생전 준비',

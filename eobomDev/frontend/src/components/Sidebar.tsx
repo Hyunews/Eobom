@@ -2,7 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { Home, X, LogOut } from 'lucide-react';
 import { Badge } from './common/Badge';
 import { PageLink, tabPath } from './common/PageLink';
-import { MODE_MENUS, type NavMode, type ModeMenuItem, type NavStatus } from '../lib/modeNav';
+import { MODE_MENUS, type ModeMenuItem, type NavStatus } from '../lib/modeNav';
 
 // 🔄 2026-09-28 사람 지시 — 드로어는 이제 navMode(prep/bereaved)와 무관하게 항상 전체
 // 메뉴를 보여준다("홈 추가 + prep·bereaved 관계없이 전부 나오게"). PREP_MENU·BEREAVED_MENU를
@@ -23,7 +23,6 @@ const ALL_DRAWER_ITEMS: ModeMenuItem[] = (() => {
 interface SidebarProps {
   activeTab: string;
   setActiveTab: (tab: string) => void;
-  navMode?: NavMode | null;
   currentUser?: string | null;
   onOpenLogin?: () => void;
   // 모바일 드로어(≤480px) 열림 상태 — App.tsx가 Header의 햄버거 버튼과 함께 관리한다.
@@ -37,8 +36,7 @@ interface SidebarProps {
 }
 
 // 모바일 드로어 전용(00-39 §6-3 — 데스크톱 사이드바는 폐지, Header.tsx 드롭다운이 대신함).
-// navMode는 더 이상 항목 선택에 쓰지 않지만(위 ALL_DRAWER_ITEMS가 정본), App.tsx가 여전히
-// 넘겨주는 값이라 prop 자체는 유지한다(다른 화면의 모드 표시와 같은 시그니처를 맞추는 용도).
+// 항목은 모드와 무관하게 위 ALL_DRAWER_ITEMS가 정본이다(navMode 상태는 00-40 §3.4에 따라 걷어냄).
 export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, currentUser, onOpenLogin, mobileOpen, onMobileClose, onLogout }) => {
   // 모바일 드로어용 — 아이콘 컴포넌트별 accentColor/fillColor 같은 추가 prop 없이 size/color만
   // 으로 통일해서 그린다(모든 MenuIcons가 해당 prop을 옵셔널로 받으므로 안전).

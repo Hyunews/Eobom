@@ -8,7 +8,6 @@ export interface HomePageProps {
   currentUser?: string | null;
   onOpenLogin?: () => void;
   setActiveTab?: (tab: string) => void;
-  onSetMode?: (mode: NavMode) => void;
   // 00-40 §3.3 C6 — /prep·/bereaved가 폐지되면서 그 라우트로 들어온 방문객이 홈의 어느
   // 갈래로 곧장 떨어져야 하는지 App.tsx가 넘겨준다(웹은 섹션2, 모바일은 해당 칸).
   landingMode?: NavMode;

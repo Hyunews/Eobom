@@ -11,7 +11,6 @@ interface HomeMobileProps {
   currentUser?: string | null;
   onOpenLogin?: () => void;
   setActiveTab?: (tab: string) => void;
-  onSetMode?: (mode: NavMode) => void;
   landingMode?: NavMode;
   onMobileHeaderStyleChange?: (style: { variant: 'hero' | 'panel' }) => void;
 }
@@ -26,7 +25,7 @@ const SESSION_KEY = SCROLL_HOME_MOBILE_KEY;
 // 페이지 로드당 1회만 "새로고침이면 저장된 칸 삭제"를 한다(모듈 수명 = 페이지 로드 수명).
 let reloadChecked = false;
 
-export const HomeMobile: React.FC<HomeMobileProps> = ({ currentUser, onOpenLogin, setActiveTab, onSetMode, landingMode, onMobileHeaderStyleChange }) => {
+export const HomeMobile: React.FC<HomeMobileProps> = ({ currentUser, onOpenLogin, setActiveTab, landingMode,onMobileHeaderStyleChange }) => {
   // 00-40 §3.3 M-4 — 각 칸이 자기 인덱스를 그대로 찍어 보여줄 뿐(정적) 어느 칸이 활성인지에
   // 따라 다시 그릴 게 없어(데스크톱 점 인디케이터와 달리 반응형 표시가 없다), 현재 칸은
   // ref로만 들고 있는다 — state로 뒀다면 매 칸 전환마다 불필요한 리렌더만 생겼을 것이다.
@@ -51,10 +50,6 @@ export const HomeMobile: React.FC<HomeMobileProps> = ({ currentUser, onOpenLogin
   useEffect(() => {
     const viewport = viewportRef.current;
     if (!viewport) return;
-
-    if (landingMode) {
-      onSetMode?.(landingMode);
-    }
 
     // 🔄 2026-09-29 — 이 항목은 "페이지를 처음 불러온 방식"이라 새로고침으로 들어왔다면 SPA 안에서
     // 몇 번을 오가도 계속 'reload'다. 마운트마다 지우면 새로고침 뒤에는 뒤로가기 복원이 늘 ①로
@@ -140,8 +135,7 @@ export const HomeMobile: React.FC<HomeMobileProps> = ({ currentUser, onOpenLogin
 
   // ⓓ 메뉴 줄 클릭 — Header.tsx goToModeItem과 같은 로그인 게이트.
   // 🔄 09-29 — 링크(PageLink)로 바뀌어 게이트는 PageLink가 맡는다(비로그인+loginRequired=버튼).
-  const goToModeItem = (mode: NavMode, item: ModeMenuItem) => {
-    onSetMode?.(mode);
+  const goToModeItem = (_mode: NavMode, item: ModeMenuItem) => {
     setActiveTab?.(item.id);
   };
 
