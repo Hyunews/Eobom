@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { X, MapPin, Navigation, ExternalLink, ShieldCheck, Clock } from 'lucide-react';
+import { X, MapPin, Navigation, ExternalLink } from 'lucide-react';
 import { GEOLOCATION_FALLBACK, KAKAO_MAP_LOAD_TIMEOUT_MS, KAKAO_MAP_LOAD_POLL_INTERVAL_MS } from '../config';
 import { backdropCloseProps } from '../utils/backdropClose';
 
@@ -217,11 +217,7 @@ export const KakaoMapModal: React.FC<KakaoMapModalProps> = ({ facility, userLoca
             <span style={{ fontSize: 'var(--fs-body)', backgroundColor: '#FEE500', color: '#191919', padding: '0.2rem 0.6rem', borderRadius: 'var(--r-md)', fontWeight: 'var(--fw-bold)' }}>
               Kakao Maps Live Integration
             </span>
-            {isMapLoaded ? (
-              <span style={{ fontSize: 'var(--fs-body)', backgroundColor: 'var(--state-ok-bg)', color: 'var(--state-ok-fg)', padding: '0.2rem 0.5rem', borderRadius: 'var(--r-sm)', fontWeight: 700 }}>
-                ● 실제 카카오 지도 렌더링 완료
-              </span>
-            ) : loadFailed ? (
+            {isMapLoaded ? null : loadFailed ? (
               <span style={{ fontSize: 'var(--fs-body)', backgroundColor: 'var(--state-danger-bg)', color: 'var(--state-danger-fg)', padding: '0.2rem 0.5rem', borderRadius: 'var(--r-sm)', fontWeight: 700 }}>
                 ● 지도를 불러오지 못했습니다
               </span>
@@ -292,27 +288,10 @@ export const KakaoMapModal: React.FC<KakaoMapModalProps> = ({ facility, userLoca
           )}
         </div>
 
-        {/* 편의 정보 */}
-        <div className="kakao-map-info-grid" style={{ marginTop: '1.2rem', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--sp-4)' }}>
-          <div style={{ backgroundColor: 'var(--card-bg)', padding: '0.9rem', borderRadius: 'var(--r-md)', fontSize: 'var(--fs-body)' }}>
-            <p style={{ fontWeight: 700, color: 'var(--primary-color)', marginBottom: '0.4rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-              <ShieldCheck size={16} color="var(--point-color)" /> 주차 및 보증 정보
-            </p>
-            <p style={{ margin: '0 0 0.2rem 0', color: 'var(--text-muted)' }}>• 무료 주차 (대형 버스/유족 우선)</p>
-          </div>
-
-          <div style={{ backgroundColor: 'var(--card-bg)', padding: '0.9rem', borderRadius: 'var(--r-md)', fontSize: 'var(--fs-body)' }}>
-            <p style={{ fontWeight: 700, color: 'var(--primary-color)', marginBottom: '0.4rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-              <Clock size={16} color="var(--point-color)" /> 빠른 방문 안내
-            </p>
-            <p style={{ margin: '0 0 0.2rem 0', color: 'var(--text-muted)' }}>• 대중교통 도보 5분 거리</p>
-            <p style={{ margin: 0, color: 'var(--text-muted)' }}>• 긴급 운구 차 15분 도착 지역</p>
-          </div>
-        </div>
-
-        {/* 카카오맵 내비게이션 & 로드뷰 외출 버튼 — 480px 이하는 index.css가 세로로 쌓는다
-            (2026-09-23, 모바일 감사 — flex:1 2열에서 "카카오맵 길찾기" 텍스트가 132px 폭에
-            안 들어가 56px 고정 높이 버튼 밖으로 줄바꿈되던 문제). */}
+        {/* 카카오맵 내비게이션 & 로드뷰 외출 버튼 — 480px 이하는 index.css가 `.kakao-map-btn-extra`
+            (앞뒤 수식어·외부링크 아이콘)를 숨겨 "길찾기 | 로드뷰" 한 줄로 둔다(2026-10-01 사람 지시 —
+            세로로 쌓이면 스크롤을 내려야 했다. 2026-09-23에는 긴 텍스트가 132px 폭에 안 들어가
+            줄바꿈돼 세로로 쌓았었다). */}
         <div className="kakao-map-action-row" style={{ marginTop: '1.2rem', display: 'flex', gap: 'var(--sp-4)' }}>
           <a
             href={kakaoMapNavUrl}
@@ -333,7 +312,7 @@ export const KakaoMapModal: React.FC<KakaoMapModalProps> = ({ facility, userLoca
               padding: 'var(--sp-4)'
             }}
           >
-            <Navigation size={18} /> 카카오맵 길찾기 <ExternalLink size={14} />
+            <Navigation size={18} /> <span className="kakao-map-btn-extra">카카오맵 </span>길찾기 <ExternalLink size={14} className="kakao-map-btn-extra" />
           </a>
 
           <a
@@ -355,7 +334,7 @@ export const KakaoMapModal: React.FC<KakaoMapModalProps> = ({ facility, userLoca
               padding: 'var(--sp-4)'
             }}
           >
-            <MapPin size={18} /> 로드뷰 바로가기 <ExternalLink size={14} />
+            <MapPin size={18} /> 로드뷰<span className="kakao-map-btn-extra"> 바로가기</span> <ExternalLink size={14} className="kakao-map-btn-extra" />
           </a>
         </div>
       </div>

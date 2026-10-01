@@ -1774,16 +1774,16 @@
   - 이미 접속한 브라우저에는 옛 localStorage 키 `k_ending_nav_mode`가 남지만 읽는 코드가 없어 무해하다.
 
 <!-- Gemini 판정 1줄: ✅통과 / ❌반려(사유) / 🔄스펙갱신(고친 문서) -->
-## 2026-10-01 | 금지어 제거 — KakaoMapModal 하드코딩 약속 문구 1줄 (00-D 발견 3번)
+## 2026-10-01 | 금지어 제거 — KakaoMapModal 하드코딩 약속 문구 (00-D 발견 3번)
 
 - **근거 스펙**: docs/00_핵심플랫폼/00-31_랜딩페이지_카피_원고.md §9(금지어 표 — 출처 docs/07_상중_행정_케어/07-02 §5.3) · .harness/docs-audit/README.md §4 00-D 발견 3번
-- **건드린 파일**: eobomDev/frontend/src/components/KakaoMapModal.tsx
-- **결과**: 시설 데이터가 아닌 하드코딩 약속 문구 `<p style={{ margin: 0, color: 'var(--text-muted)' }}>• 24시간 장례지도사 상주</p>` 한 줄(302행)을 삭제했다 — "주차 및 보증 정보" 카드는 `• 무료 주차 (대형 버스/유족 우선)` 한 줄만 남는다. `eobomDev/frontend/src` 전역에서 표현 단위 grep(`24시간|24h|365일|즉시 출동|즉시 파견|디스패치|핫라인|15분 내|1-Touch|답사 예약|유언 편지|유언 메시지|사전 연명의료 의향서|유품 정리 대행|계정 해지 대행|만족도|고객 N명|후기`)을 돌린 결과 나머지는 아래 "다음 에이전트" 분류대로 **변경 없음**. `npx tsc --noEmit`(frontend) 에러 0.
+- **건드린 파일**: eobomDev/frontend/src/components/KakaoMapModal.tsx , eobomDev/frontend/src/index.css
+- **결과**: 시설 데이터가 아닌 하드코딩 약속 문구를 지도 모달에서 전부 걷어냈다(🔵 2026-10-01 사람 지시로 처음 1줄에서 확대). KakaoMapModal.tsx에서 삭제한 원문: `• 24시간 장례지도사 상주`(확정 제거) · `• 무료 주차 (대형 버스/유족 우선)` · `• 대중교통 도보 5분 거리` · `• 긴급 운구 차 15분 도착 지역` — 이 줄들이 전부였던 "편의 정보" 블록(`<div className="kakao-map-info-grid">` 카드 2개: 제목 `주차 및 보증 정보`·`빠른 방문 안내`)을 통째로 제거했다(제목만 남는 빈 카드 방지). 같은 지시로 모달 상단 상태 배지 `● 실제 카카오 지도 렌더링 완료`(지도 로드 성공 시 뜨던 초록 배지)도 삭제 — 렌더링 중(`● 카카오 지도 렌더링 중...`)·실패(`● 지도를 불러오지 못했습니다`) 배지는 그대로. 🔵 같은 날 사람 지시로 모바일(≤480px) 버튼 배치도 변경: 길찾기·로드뷰가 세로로 쌓여 스크롤을 내려야 하던 것을 한 줄 2열로 — 라벨 `카카오맵 길찾기 ↗`→`길찾기`, `로드뷰 바로가기 ↗`→`로드뷰`(앞뒤 수식어 `카카오맵 `·` 바로가기`와 외부링크 아이콘 2개에 `className="kakao-map-btn-extra"`를 달아 ≤480px에서만 `display:none`, 데스크톱은 원래 문구 그대로). index.css `.kakao-map-action-row`의 `flex-direction: column`을 지우고 `gap: var(--sp-2)` · `.kakao-map-action-row .btn { min-width: 0; white-space: nowrap }` · `.kakao-map-btn-extra { display: none }` 추가. 부수 정리: 쓸 곳이 없어진 `ShieldCheck`·`Clock` import 제거, index.css의 `.kakao-map-info-grid`(≤480px 1열 규칙) 제거(`.kakao-map-action-row` 규칙은 유지). `eobomDev/frontend/src` 전역에서 표현 단위 grep(`24시간|24h|365일|즉시 출동|즉시 파견|디스패치|핫라인|15분 내|1-Touch|답사 예약|유언 편지|유언 메시지|사전 연명의료 의향서|유품 정리 대행|계정 해지 대행|만족도|고객 N명|후기`)을 돌린 결과 나머지는 아래 "다음 에이전트" 분류대로 **변경 없음**. `npx tsc --noEmit`(frontend) 에러 0.
 - **편차**: 없음 — 지시서의 "확정 제거 1건 + 나머지는 약속 문구일 때만 교체, 애매하면 보고만"을 그대로 따랐다(교체 대상이 없어 교체 0건).
 - **다음 에이전트가 알아야 할 것**:
-  - 🔴 **사람이 화면에서 확인할 곳(문구만 바뀜)**: 장사시설 검색(`/facility`)에서 지도 모달(`KakaoMapModal`)을 열어 "주차 및 보증 정보" 카드가 한 줄만 남고 오른쪽 "빠른 방문 안내" 카드와 높이가 어색하지 않은지 — 사용처 `pages/FacilityPage.tsx:981`·`components/ObituaryView.tsx:42`(부고장 보기 화면의 지도 모달도 같은 컴포넌트).
+  - 🔴 **사람이 화면에서 확인할 곳(UI 변경)**: 장사시설 검색(`/facility`)에서 지도 모달(`KakaoMapModal`)을 열어 ①지도 아래 편의 정보 카드가 없어지고 바로 길찾기·로드뷰 버튼이 오는 배치 ②지도 로드 뒤 상단에 `Kakao Maps Live Integration` 노란 배지만 남는 모양 ③모바일(≤480px)에서 버튼이 `길찾기 | 로드뷰` 한 줄로 나오는지(360px 폭 기준 한 버튼 내용 폭 약 104px — 글자·아이콘이 안 잘리는지) — 사용처 `pages/FacilityPage.tsx:981`·`components/ObituaryView.tsx:42`(부고장 보기 화면의 지도 모달도 같은 컴포넌트).
+  - 🟡 **남은 후보(안 고침, 사람 판단)**: 상단 `Kakao Maps Live Integration` 노란 배지(KakaoMapModal.tsx:217-219) — 개발자용 표기라 같은 결의 정리 후보.
   - 🟡 **애매해서 안 고친 것(파일:줄 + 문구, 사람 판단)**:
-    - `components/KakaoMapModal.tsx:301` `• 무료 주차 (대형 버스/유족 우선)` · `:309` `• 대중교통 도보 5분 거리` · `:310` `• 긴급 운구 차 15분 도착 지역` — 같은 카드의 시설 데이터가 아닌 하드코딩 약속 문구. 금지어 표의 `15분 내`·`즉시 출동`류와 같은 종류(표기만 다름 — grep 패턴엔 안 걸림)라 특히 `:310`은 삭제 후보.
     - `components/facility/FacilityReviewModal.tsx:129` `[{facility.name}] 이용 후기` · `:181` `후기 내용` · `components/mypage/WithdrawalModal.tsx:97` `시설 후기` — 사용자가 직접 쓰는 후기 *기능*의 라벨이지 지어낸 후기·만족도 문구가 아님(§9 금지 사유는 "실데이터 없음").
     - `components/familyShared/sectionFields.ts:24` `사전연명의료의향서 등록` · `pages/EndingNotePage.tsx:528`·`:540` `「사전연명의료의향서」`·`사전연명의료의향서 등록 여부` — 등록기관에 등록한 *진짜 서류*를 가리키는 쓰임(§9 표는 "앱 입력분 지칭 시"만 금지, 앱 입력분은 이미 "연명의료 의향 메모"). 띄어쓰기 없는 표기라 표의 문자열과도 다름.
   - 건드리지 않은 것(규칙상 제외): `mockData/careGuideTasks.json:5-7` 법정 기한 `24시간 경과 전 화장·매장 금지`(실제 규칙) · 주석 `Footer.tsx:106`·`FacilityPage.tsx:25·881`·`EndingNotePage.tsx:101`. backend/src는 같은 표현 grep에서 화면 문구 0건(`operatingHours.ts:1` "접수는 24시간 받지만" 주석뿐).

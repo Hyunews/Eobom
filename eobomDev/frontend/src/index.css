@@ -1496,11 +1496,16 @@ html.home-m-lock body {
    공통 규칙(§8.2 목록)에 안 들어 있다 — 그 목록에 없는 모달이라 여기서는 레이아웃 붕괴만
    막는다(중앙 정렬 유지, ConsultRequestModal과 같은 처리). */
 @media (max-width: 480px) {
-  .kakao-map-info-grid {
-    grid-template-columns: 1fr;
+  .kakao-map-action-row {
+    gap: var(--sp-2);
   }
 
-  .kakao-map-action-row {
-    flex-direction: column;
+  .kakao-map-action-row .btn {
+    min-width: 0;
+    white-space: nowrap;
+  }
+
+  .kakao-map-btn-extra {
+    display: none;
   }
 }
