@@ -797,15 +797,15 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
   const sharedSummaryLine =
     noteLoaded && family.length > 0
       ? '가족에게 공개한 섹션 — ' +
-        family
-          .map((f) => {
-            const count = new Set(
-              savedGrants.filter((g) => g.designationId === f.id && !g.revokedAt && g.section !== 'WILL_DRAFT').map((g) => g.section)
-            ).size;
-            const rel = f.relationship === 'OTHER' && f.relationshipEtc ? f.relationshipEtc : RELATIONSHIP_LABEL[f.relationship] || f.relationship;
-            return `${f.name}(${rel}) ${count}개`;
-          })
-          .join(' · ')
+      family
+        .map((f) => {
+          const count = new Set(
+            savedGrants.filter((g) => g.designationId === f.id && !g.revokedAt && g.section !== 'WILL_DRAFT').map((g) => g.section)
+          ).size;
+          const rel = f.relationship === 'OTHER' && f.relationshipEtc ? f.relationshipEtc : RELATIONSHIP_LABEL[f.relationship] || f.relationship;
+          return `${f.name}(${rel}) ${count}개`;
+        })
+        .join(' · ')
       : '';
 
   return (
@@ -866,100 +866,100 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
         </div>
 
         <div role="tabpanel" id="ending-note-panel-note" aria-labelledby="ending-note-tab-note" hidden={activeNoteTab !== 'note'}>
-        {/* §10 Phase 2 #6 — 가족이 0명이면 섹션마다 반복해서 안내하지 않고 여기 한 번만 둔다. */}
-        {policyAgreedAt && noteLoaded && family.length === 0 && (
-          <div className="v2-content" style={{ marginBottom: '32px', display: 'flex', alignItems: 'center', gap: '10px', fontSize: 'var(--v2-fs-support)', color: 'var(--v2-text-main)' }}>
-            <UserPlus size={18} color="var(--v2-point)" style={{ flexShrink: 0 }} />
-            <span>
-              지정한 가족이 없어 섹션을 공개할 대상을 지정할 수 없습니다.{' '}
-              {onOpenFamilyDesignation && (
+          {/* §10 Phase 2 #6 — 가족이 0명이면 섹션마다 반복해서 안내하지 않고 여기 한 번만 둔다. */}
+          {policyAgreedAt && noteLoaded && family.length === 0 && (
+            <div className="v2-content" style={{ marginBottom: '32px', display: 'flex', alignItems: 'center', gap: '10px', fontSize: 'var(--v2-fs-support)', color: 'var(--v2-text-main)' }}>
+              <UserPlus size={18} color="var(--v2-point)" style={{ flexShrink: 0 }} />
+              <span>
+                지정한 가족이 없어 섹션을 공개할 대상을 지정할 수 없습니다.{' '}
+                {onOpenFamilyDesignation && (
+                  <button
+                    type="button"
+                    onClick={onOpenFamilyDesignation}
+                    style={{ background: 'none', border: 'none', padding: 0, color: 'var(--v2-point)', fontWeight: 700, textDecoration: 'underline', cursor: 'pointer', fontSize: 'inherit' }}
+                  >
+                    가족 지정하기 →
+                  </button>
+                )}
+              </span>
+            </div>
+          )}
+
+          <div className="v2-note-shell">
+            {/* A3 — 데스크톱 좌측 섹션 목차 고정. 모바일은 CSS로 숨긴다(design-v2.css). */}
+            <aside className="v2-note-toc">
+              <div className="v2-note-toc-label">목차</div>
+              <nav style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                {SECTIONS.map((s) => (
+                  <button key={s.code} type="button" onClick={() => openSectionFromToc(s.code)} className="v2-note-toc-link">
+                    {sectionState[s.code] ? <CheckCircle2 size={14} color="var(--v2-point)" /> : <Circle size={14} color="var(--v2-text-faint)" />}
+                    <span>{s.title}</span>
+                  </button>
+                ))}
+                <button type="button" onClick={goToWillTab} className="v2-note-toc-link">
+                  {sectionState.WILL_DRAFT ? <CheckCircle2 size={14} color="var(--v2-point)" /> : <Circle size={14} color="var(--v2-text-faint)" />}
+                  <span>유언장 초안</span>
+                </button>
+              </nav>
+              {/* 사용자 지시(2026-08-28)로 목차 박스 최하단에 배치 — 데스크톱 전용(목차와 같은 노출 범위). */}
+              <div style={{ marginTop: '14px', paddingTop: '14px', borderTop: '1px solid var(--v2-divider)' }}>
                 <button
                   type="button"
-                  onClick={onOpenFamilyDesignation}
-                  style={{ background: 'none', border: 'none', padding: 0, color: 'var(--v2-point)', fontWeight: 700, textDecoration: 'underline', cursor: 'pointer', fontSize: 'inherit' }}
+                  ref={summaryTriggerRef}
+                  onClick={() => setSummaryOpen(true)}
+                  className="v2-btn-outline"
+                  style={{ width: '100%' }}
                 >
-                  가족 지정하기 →
+                  <ListChecks size={18} /> 한눈에 보기
                 </button>
-              )}
-            </span>
-          </div>
-        )}
+              </div>
+            </aside>
 
-        <div className="v2-note-shell">
-          {/* A3 — 데스크톱 좌측 섹션 목차 고정. 모바일은 CSS로 숨긴다(design-v2.css). */}
-          <aside className="v2-note-toc">
-            <div className="v2-note-toc-label">목차</div>
-            <nav style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-              {SECTIONS.map((s) => (
-                <button key={s.code} type="button" onClick={() => openSectionFromToc(s.code)} className="v2-note-toc-link">
-                  {sectionState[s.code] ? <CheckCircle2 size={14} color="var(--v2-point)" /> : <Circle size={14} color="var(--v2-text-faint)" />}
-                  <span>{s.title}</span>
-                </button>
-              ))}
-              <button type="button" onClick={goToWillTab} className="v2-note-toc-link">
-                {sectionState.WILL_DRAFT ? <CheckCircle2 size={14} color="var(--v2-point)" /> : <Circle size={14} color="var(--v2-text-faint)" />}
-                <span>유언장 초안</span>
-              </button>
-            </nav>
-            {/* 사용자 지시(2026-08-28)로 목차 박스 최하단에 배치 — 데스크톱 전용(목차와 같은 노출 범위). */}
-            <div style={{ marginTop: '14px', paddingTop: '14px', borderTop: '1px solid var(--v2-divider)' }}>
-              <button
-                type="button"
-                ref={summaryTriggerRef}
-                onClick={() => setSummaryOpen(true)}
-                className="v2-btn-outline"
-                style={{ width: '100%' }}
-              >
-                <ListChecks size={18} /> 한눈에 보기
-              </button>
-            </div>
-          </aside>
-
-          <div className="v2-note-main">
-            {/* 00-35 §5.2 — 표시 순서는 SECTIONS 배열 순서(§5.3, 기존 DOM 순서 ①②④⑤⑥⑦⑧⑩와 동일).
+            <div className="v2-note-main">
+              {/* 00-35 §5.2 — 표시 순서는 SECTIONS 배열 순서(§5.3, 기존 DOM 순서 ①②④⑤⑥⑦⑧⑩와 동일).
                 00-38 §8.1-2 — 모바일은 8개 아코디언 동시 스택 대신 목차 리스트(제목+완료 배지만).
                 탭하면 그 섹션 하나만 아래 리더 모달로 연다(같은 expandedSection state 재사용). */}
-            {isMobile ? (
-              // 🔄 2026-09-11 사람 지시 — 모바일 진입 버튼을 한 번 추가했으나("한눈에 보기"가
-              // 데스크톱 목차 안에만 있어 모바일에 통로가 없던 문제), 재확인 후 "모바일에는
-              // 아예 없는 게 낫다"로 최종 결정. 버튼을 되돌리고 모바일 접근 없음을 의도된
-              // 상태로 확정한다 — 되돌린 이력만 남긴다.
-              <div>
-                {SECTIONS.map((s) => (
-                  <div key={s.code} className="v2-list-row">
-                    <button type="button" className="v2-list-main" onClick={() => handleToggleSection(s.code)}>
-                      {sectionState[s.code] ? <CheckCircle2 size={16} color="var(--v2-point)" /> : <Circle size={16} color="var(--v2-text-faint)" />}
-                      <span className="v2-list-title">{s.title}</span>
-                    </button>
-                    <span className="v2-list-meta">{sectionState[s.code] ? '완료' : '미작성'}</span>
-                    <ChevronRight size={16} className="v2-row-chevron" />
-                  </div>
-                ))}
-              </div>
-            ) : (
-              SECTIONS.map((s) => (
-                <AccordionSection
-                  key={s.code}
-                  meta={s}
-                  expanded={expandedSection === s.code}
-                  completed={!!sectionState[s.code]}
-                  saveState={savingState[s.code]}
-                  onToggle={() => handleToggleSection(s.code)}
-                  onSave={() => saveSection(s.code, sectionPayloads[s.code]())}
-                  onReset={() => resetSection(s.code)}
-                >
-                  {sectionBodies[s.code]}
-                  <SectionTimingControl
-                    section={s.code}
-                    family={family}
-                    grants={grants}
-                    onChange={(designationId, timing, grantId) => handleGrantChange(s.code, designationId, timing, grantId)}
-                  />
-                </AccordionSection>
-              ))
-            )}
+              {isMobile ? (
+                // 🔄 2026-09-11 사람 지시 — 모바일 진입 버튼을 한 번 추가했으나("한눈에 보기"가
+                // 데스크톱 목차 안에만 있어 모바일에 통로가 없던 문제), 재확인 후 "모바일에는
+                // 아예 없는 게 낫다"로 최종 결정. 버튼을 되돌리고 모바일 접근 없음을 의도된
+                // 상태로 확정한다 — 되돌린 이력만 남긴다.
+                <div>
+                  {SECTIONS.map((s) => (
+                    <div key={s.code} className="v2-list-row">
+                      <button type="button" className="v2-list-main" onClick={() => handleToggleSection(s.code)}>
+                        {sectionState[s.code] ? <CheckCircle2 size={16} color="var(--v2-point)" /> : <Circle size={16} color="var(--v2-text-faint)" />}
+                        <span className="v2-list-title">{s.title}</span>
+                      </button>
+                      <span className="v2-list-meta">{sectionState[s.code] ? '완료' : '미작성'}</span>
+                      <ChevronRight size={16} className="v2-row-chevron" />
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                SECTIONS.map((s) => (
+                  <AccordionSection
+                    key={s.code}
+                    meta={s}
+                    expanded={expandedSection === s.code}
+                    completed={!!sectionState[s.code]}
+                    saveState={savingState[s.code]}
+                    onToggle={() => handleToggleSection(s.code)}
+                    onSave={() => saveSection(s.code, sectionPayloads[s.code]())}
+                    onReset={() => resetSection(s.code)}
+                  >
+                    {sectionBodies[s.code]}
+                    <SectionTimingControl
+                      section={s.code}
+                      family={family}
+                      grants={grants}
+                      onChange={(designationId, timing, grantId) => handleGrantChange(s.code, designationId, timing, grantId)}
+                    />
+                  </AccordionSection>
+                ))
+              )}
+            </div>
           </div>
-        </div>
         </div>
       </div>
 
@@ -1035,7 +1035,7 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
             onNavigate={() => setActiveTab?.('farewell-messages')}
             style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', textDecoration: 'none' }}
           >
-            <Mic size={16} /> 음성 메시지를 남기시려면 유족 메시지 보관함으로
+            <Mic size={16} /> 음성 메시지 남기기
           </PageLink>
         </div>
 

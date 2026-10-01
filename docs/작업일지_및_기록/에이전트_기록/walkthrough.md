@@ -61,7 +61,7 @@
 - **근거 스펙**: ① `06-05` §7.2(✅ 09-30) · §4.3(09-30 블록) ② `06-04` §6.1 ①(✅ 09-30) ③ `06-03` §5(✅ 09-30, §8 #2 (가)안). 핸드오프 블록.
 - **건드린 파일**: `frontend/src/pages/EndingNotePage.tsx` · `frontend/src/components/familyShared/sectionFields.ts` · `frontend/src/components/farewell/FarewellNotice.tsx`(주석만) · `backend/src/controllers/endingNoteController.ts`(`POLICY_NOTICE_TEXT`). 스키마·DB 변경 없음.
 - **결과**:
-  1. **①** `/ending-note?tab=will` 본문 맨 위(주황 안내·편집 영역보다 위)에 `PageLink`(`v2-btn-outline`) 하나 — 마이크 아이콘 + `음성 메시지를 남기시려면 유족 메시지 보관함으로` → `/farewell-messages`. 설명 문구 없음. `FarewellNotice.tsx` 주석의 "Opus 판단 대기" → "복원하지 않는 것으로 종결(2026-09-30)", 화면 문구는 그대로.
+  1. **①** `/ending-note?tab=will` 본문 맨 위(주황 안내·편집 영역보다 위)에 `PageLink`(`v2-btn-outline`) 하나 — 마이크 아이콘 + `음성 메시지 남기기` → `/farewell-messages`. 설명 문구 없음. `FarewellNotice.tsx` 주석의 "Opus 판단 대기" → "복원하지 않는 것으로 종결(2026-09-30)", 화면 문구는 그대로.
   2. **②** `LIFE_SUPPORT` 본문 JSON에 `lifeSupportRegStatus`(`등록함`/`등록하지 않음`/`모름`, 기본 `모름`)·`lifeSupportRegDate`(`등록함`일 때만 입력) 추가 — 연명의료 선택칸 아래, ⑩과 같은 모양. 옛 본문에 필드가 없으면 `모름`. 저장 페이로드·조회 복원·취소(reset)·한눈에 보기(`의향서 {상태} (날짜)`)까지 배선. `/family-shared`는 `entryFields`에 `사전연명의료의향서 등록` 행 추가(⑩과 같은 방식, 옛 본문은 `모름`). 서버는 섹션 본문을 필드 검증 없이 통째로 저장하므로 백엔드 변경 없음. 기존 주황 안내 문구 그대로, 새 문구·등록기관 링크·등록번호 없음.
   3. **③** `POLICY_NOTICE_TEXT`에서 `담당자 2인의 승인을 거치며, `만 삭제 → `예외 열람은 사유가 기록되고, 열람 사실을 회원님(사후에는 지정 유족)께 알려드립니다. …`. 나머지 문장·프론트 폴백 문구(`EndingNotePage.tsx` 폴백)는 그대로. 복호화 스크립트·예외 열람 기능 만들지 않음.
   - `tsc --noEmit` 프런트·백엔드 에러 0. dev 서버·DB 명령 없음.
