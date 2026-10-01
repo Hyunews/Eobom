@@ -68,6 +68,7 @@ model User {
   createdAt           DateTime             @default(now()) // 가입 일시
   createdAtKst DateTime? // 보기 전용 · DB 트리거가 createdAt+9시간(한국 시간)으로 채움 · 🔴 코드에서 읽기·쓰기 금지(트리거가 쓰기를 덮어씀)
   updatedAt           DateTime             @updatedAt // 최종 수정 일시
+  updatedAtKst DateTime? // 보기 전용 · DB 트리거가 updatedAt+9시간(한국 시간)으로 채움 · 🔴 코드에서 읽기·쓰기 금지(트리거가 쓰기를 덮어씀)
 }
 
 // 생전 가족지정 — 00-27. 지정자가 아직 살아 있으므로 Deceased가 아니라 User에 붙는다(§1.2)
@@ -98,6 +99,7 @@ model FamilyDesignation {
   createdAt       DateTime  @default(now())
   createdAtKst DateTime? // 보기 전용 · DB 트리거가 createdAt+9시간(한국 시간)으로 채움 · 🔴 코드에서 읽기·쓰기 금지(트리거가 쓰기를 덮어씀)
   updatedAt       DateTime  @updatedAt
+  updatedAtKst DateTime? // 보기 전용 · DB 트리거가 updatedAt+9시간(한국 시간)으로 채움 · 🔴 코드에서 읽기·쓰기 금지(트리거가 쓰기를 덮어씀)
 
   farewellMessages FarewellMessage[]            // docs 06-05 §6.2 — 이 수신자 앞으로 남긴 편지들
   endingNoteEntries EndingNoteEntry[]            // docs 06-04 §4.2 — 이 수신자를 지정한 엔딩노트 섹션. Phase 1은 항상 null(전원)이라 실질 데이터는 Phase 2부터
@@ -155,6 +157,7 @@ model Facility {
   createdAt    DateTime @default(now()) // 레코드 생성 일시
   createdAtKst DateTime? // 보기 전용 · DB 트리거가 createdAt+9시간(한국 시간)으로 채움 · 🔴 코드에서 읽기·쓰기 금지(트리거가 쓰기를 덮어씀)
   updatedAt    DateTime @updatedAt // 최종 수정 일시
+  updatedAtKst DateTime? // 보기 전용 · DB 트리거가 updatedAt+9시간(한국 시간)으로 채움 · 🔴 코드에서 읽기·쓰기 금지(트리거가 쓰기를 덮어씀)
 
   reviews FacilityReview[] // 이 시설에 달린 리뷰 목록
   claims  FacilityClaim[] // 이 시설에 대한 소유권 클레임 이력
@@ -217,6 +220,7 @@ model Partner {
   createdAt DateTime @default(now()) // 가입 신청 일시
   createdAtKst DateTime? // 보기 전용 · DB 트리거가 createdAt+9시간(한국 시간)으로 채움 · 🔴 코드에서 읽기·쓰기 금지(트리거가 쓰기를 덮어씀)
   updatedAt DateTime @updatedAt // 최종 수정 일시
+  updatedAtKst DateTime? // 보기 전용 · DB 트리거가 updatedAt+9시간(한국 시간)으로 채움 · 🔴 코드에서 읽기·쓰기 금지(트리거가 쓰기를 덮어씀)
 
   @@index([status])
 }
@@ -287,6 +291,7 @@ model Lead {
   createdAt DateTime @default(now()) // 리드 발생 일시
   createdAtKst DateTime? // 보기 전용 · DB 트리거가 createdAt+9시간(한국 시간)으로 채움 · 🔴 코드에서 읽기·쓰기 금지(트리거가 쓰기를 덮어씀)
   updatedAt DateTime @updatedAt // 최종 수정 일시
+  updatedAtKst DateTime? // 보기 전용 · DB 트리거가 updatedAt+9시간(한국 시간)으로 채움 · 🔴 코드에서 읽기·쓰기 금지(트리거가 쓰기를 덮어씀)
 
   @@index([partnerId, status])
   @@index([facilityId, createdAt])
@@ -374,6 +379,7 @@ model Expert {
   createdAt DateTime @default(now()) // 가입 신청 일시
   createdAtKst DateTime? // 보기 전용 · DB 트리거가 createdAt+9시간(한국 시간)으로 채움 · 🔴 코드에서 읽기·쓰기 금지(트리거가 쓰기를 덮어씀)
   updatedAt DateTime @updatedAt // 최종 수정 일시
+  updatedAtKst DateTime? // 보기 전용 · DB 트리거가 updatedAt+9시간(한국 시간)으로 채움 · 🔴 코드에서 읽기·쓰기 금지(트리거가 쓰기를 덮어씀)
 
   @@unique([category, licenseNo]) // 같은 자격증 번호 중복 가입 방지
   @@index([status])
@@ -416,6 +422,7 @@ model ConsultRequest {
   createdAt DateTime @default(now()) // 신청 접수 일시
   createdAtKst DateTime? // 보기 전용 · DB 트리거가 createdAt+9시간(한국 시간)으로 채움 · 🔴 코드에서 읽기·쓰기 금지(트리거가 쓰기를 덮어씀)
   updatedAt DateTime @updatedAt // 최종 수정 일시
+  updatedAtKst DateTime? // 보기 전용 · DB 트리거가 updatedAt+9시간(한국 시간)으로 채움 · 🔴 코드에서 읽기·쓰기 금지(트리거가 쓰기를 덮어씀)
 
   @@index([expertId, status])
   @@index([createdAt])
@@ -465,6 +472,7 @@ model Memorial {
   createdAt DateTime @default(now()) // 개설 일시
   createdAtKst DateTime? // 보기 전용 · DB 트리거가 createdAt+9시간(한국 시간)으로 채움 · 🔴 코드에서 읽기·쓰기 금지(트리거가 쓰기를 덮어씀)
   updatedAt DateTime @updatedAt // 최종 수정 일시
+  updatedAtKst DateTime? // 보기 전용 · DB 트리거가 updatedAt+9시간(한국 시간)으로 채움 · 🔴 코드에서 읽기·쓰기 금지(트리거가 쓰기를 덮어씀)
 
   // 보존기간·폐쇄 정책(00-20 §8.1, §8.1-2 확정, 00-22 E-9). 상수는 config/policy.ts가 정본.
   expiresAt DateTime? // 활성 만료 시점 — 개설 시 createdAt + MEMORIAL_ACTIVE_DAYS, 연장 시 갱신
@@ -605,6 +613,7 @@ model Obituary {
   createdAt       DateTime @default(now())
   createdAtKst DateTime? // 보기 전용 · DB 트리거가 createdAt+9시간(한국 시간)으로 채움 · 🔴 코드에서 읽기·쓰기 금지(트리거가 쓰기를 덮어씀)
   updatedAt       DateTime @updatedAt
+  updatedAtKst DateTime? // 보기 전용 · DB 트리거가 updatedAt+9시간(한국 시간)으로 채움 · 🔴 코드에서 읽기·쓰기 금지(트리거가 쓰기를 덮어씀)
 
   mourners        ObituaryMourner[]
 
@@ -647,6 +656,7 @@ model EndingNote {
   createdAt DateTime @default(now())
   createdAtKst DateTime? // 보기 전용 · DB 트리거가 createdAt+9시간(한국 시간)으로 채움 · 🔴 코드에서 읽기·쓰기 금지(트리거가 쓰기를 덮어씀)
   updatedAt DateTime @updatedAt
+  updatedAtKst DateTime? // 보기 전용 · DB 트리거가 updatedAt+9시간(한국 시간)으로 채움 · 🔴 코드에서 읽기·쓰기 금지(트리거가 쓰기를 덮어씀)
 
   farewellMessages FarewellMessage[]
   entries          EndingNoteEntry[] // 06-04 §4.2 — 본문·암호문. 운영자 쿼리에 절대 포함하지 않는다(06-03 §3.1 A안)
@@ -681,6 +691,7 @@ model FarewellMessage {
   createdAt DateTime @default(now())
   createdAtKst DateTime? // 보기 전용 · DB 트리거가 createdAt+9시간(한국 시간)으로 채움 · 🔴 코드에서 읽기·쓰기 금지(트리거가 쓰기를 덮어씀)
   updatedAt DateTime @updatedAt
+  updatedAtKst DateTime? // 보기 전용 · DB 트리거가 updatedAt+9시간(한국 시간)으로 채움 · 🔴 코드에서 읽기·쓰기 금지(트리거가 쓰기를 덮어씀)
 
   @@index([noteId])
   @@index([recipientId])
@@ -705,6 +716,7 @@ model EndingNoteEntry {
   recipient FamilyDesignation? @relation(fields: [recipientId], references: [id], onDelete: SetNull)
 
   updatedAt DateTime @updatedAt // 본인 최종 수정 일시
+  updatedAtKst DateTime? // 보기 전용 · DB 트리거가 updatedAt+9시간(한국 시간)으로 채움 · 🔴 코드에서 읽기·쓰기 금지(트리거가 쓰기를 덮어씀)
   createdAt DateTime @default(now()) // 최초 저장 일시
   createdAtKst DateTime? // 보기 전용 · DB 트리거가 createdAt+9시간(한국 시간)으로 채움 · 🔴 코드에서 읽기·쓰기 금지(트리거가 쓰기를 덮어씀)
 
@@ -731,6 +743,7 @@ model EndingNoteGrant {
   createdAt DateTime @default(now()) // 최초 부여 일시
   createdAtKst DateTime? // 보기 전용 · DB 트리거가 createdAt+9시간(한국 시간)으로 채움 · 🔴 코드에서 읽기·쓰기 금지(트리거가 쓰기를 덮어씀)
   updatedAt DateTime @updatedAt // 최종 변경(재부여·철회) 일시
+  updatedAtKst DateTime? // 보기 전용 · DB 트리거가 updatedAt+9시간(한국 시간)으로 채움 · 🔴 코드에서 읽기·쓰기 금지(트리거가 쓰기를 덮어씀)
 
   @@unique([noteId, designationId, section]) // 가족·섹션 조합당 권한 1건 — timing은 덮어써서 바꾼다
   @@index([noteId])
@@ -822,6 +835,7 @@ model Admin {
   createdAt DateTime @default(now()) // 계정 생성 일시 (seed-admin.ts로만 생성됨)
   createdAtKst DateTime? // 보기 전용 · DB 트리거가 createdAt+9시간(한국 시간)으로 채움 · 🔴 코드에서 읽기·쓰기 금지(트리거가 쓰기를 덮어씀)
   updatedAt DateTime @updatedAt // 최종 수정 일시
+  updatedAtKst DateTime? // 보기 전용 · DB 트리거가 updatedAt+9시간(한국 시간)으로 채움 · 🔴 코드에서 읽기·쓰기 금지(트리거가 쓰기를 덮어씀)
 }
 
 // 운영자 조회·처리 감사 로그(00-37 §3.2 "조회도 기록한다"). 회원 상세(`GET /admin/users/:id`)처럼

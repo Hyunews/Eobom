@@ -30,11 +30,12 @@ const app = express();
 // 🔴 숫자 1이다(true 금지) — true면 클라이언트가 X-Forwarded-For를 위조해 IP를 바꿀 수 있다.
 app.set('trust proxy', 1);
 
-// 🔴 어떤 API 응답에도 createdAtKst를 싣지 않는다 — 이 칸은 사람이 DB를 열 때 한국 시간을 보는 보기 전용이다(10-01).
+// 🔴 어떤 API 응답에도 createdAtKst·updatedAtKst를 싣지 않는다 — 이 칸들은 사람이 DB를 열 때 한국 시간을 보는 보기 전용이다(10-01).
 // Prisma가 행을 읽으면 이 칸도 같이 오므로, 행을 통째로 res.json으로 돌려주는 곳(시설·추모관·전문가 상담 등)에서 새는 것을
 // 여기서 한 번에 막는다. Express의 'json replacer'는 모든 res.json에 적용되고 중첩 객체·배열까지 덮는다(컨트롤러를 안 건드린다).
 // 한계: res.json을 거치지 않는 응답(res.send(문자열)·파일 전송)은 대상이 아니다 — 지금 그런 곳에서 모델 행을 내보내지 않는다.
-app.set('json replacer', (key: string, value: unknown) => (key === 'createdAtKst' ? undefined : value));
+const HIDDEN_RESPONSE_KEYS = new Set(['createdAtKst', 'updatedAtKst']);
+app.set('json replacer', (key: string, value: unknown) => (HIDDEN_RESPONSE_KEYS.has(key) ? undefined : value));
 
 // 요청 번호·접속기록(00-42 §5) — 가장 먼저 걸어 cors·body-parser 에러도 번호를 갖게 한다.
 app.use(requestId);

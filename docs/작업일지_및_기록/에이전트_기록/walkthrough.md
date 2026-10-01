@@ -2379,5 +2379,18 @@
     - 🔵 시험이 실제로 잡는지 확인: `app.ts`의 replacer 줄을 잠깐 끄고 돌리면 `시설 목록 응답에 createdAtKst가 있다`로 **실패**, 복구하면 통과(끈 줄은 복구 확인 — `TEMP-OFF` 0건).
     - 검증: `tsc --noEmit` 에러 0 · `npm test` **273 통과**(272+1). DB·마이그레이션 변경 없음. 운영 미반영(지시 그대로).
     - ⚠️ 알아둘 것: 이 설정은 앱 전체의 `res.json`에 걸린다 — **응답 키 이름이 `createdAtKst`면 무엇이든 빠진다**(나중에 일부러 이 이름의 필드를 응답에 담을 일은 없어야 한다). 후속 6의 "미확인 컨트롤러"도 같은 장치로 덮인다.
+  - **후속 8(10-01 개발자 요청) — 🟡 시험 중·결정 대기: `updatedAt`이 있는 모든 표에 `updatedAtKst`(후속 5~7과 같은 방식).** 근거 커밋 3e2f435·9d29b07·85df32e.
+    - 마이그레이션 `20261001190000_updated_at_kst_column`(신규): **`updatedAt`이 있는 14개 표**(Admin·ConsultRequest·EndingNote·EndingNoteEntry·EndingNoteGrant·Expert·Facility·FamilyDesignation·FarewellMessage·Lead·Memorial·Obituary·Partner·User — 로컬 `information_schema` 조회 = 스키마의 `updatedAt` 14줄)에 `"updatedAtKst" TIMESTAMP(3)` 추가 → 함수 `set_updated_at_kst()`(`NEW."updatedAtKst" := NEW."updatedAt" + interval '9 hours'`) → 표마다 `BEFORE INSERT OR UPDATE` 트리거 `"<표>_updated_at_kst"` 14개 → 기존 행 전체 `UPDATE ... SET "updatedAtKst" = "updatedAt" + interval '9 hours'` 14문(🔴 일괄 쓰기). 기존 `createdAtKst` 트리거와 별개 함수·별개 트리거라 서로 간섭하지 않는다.
+    - 🟡 **범위 밖(이름이 `updatedAt`이 아님)**: `Obituary.cardFieldsUpdatedAt`·`User.profileUpdatedAt` — 같은 칸을 붙이지 않았다. 필요하면 별도 지시.
+    - eobomDev/backend/prisma/schema.prisma — 14개 모델에 `updatedAtKst DateTime?`(`@ignore` 없음 + "보기 전용 · 트리거가 채움 · 코드에서 읽기·쓰기 금지" 주석).
+    - eobomDev/backend/src/app.ts — `json replacer`를 `HIDDEN_RESPONSE_KEYS = {createdAtKst, updatedAtKst}` 집합으로 확장(컨트롤러 무수정).
+    - 테스트: 신규 `tests/updated-at-kst.test.ts`(5건, `npm test`에 추가) — ① `updatedAt` 있는 표 전부에 칸(timestamp(3))·트리거(새 표에서 빠뜨리면 표 이름을 대며 실패) ② INSERT 때 +9h ③ **Prisma `update`가 `updatedAt`을 새로 찍으면 `updatedAtKst`도 그 값+9h로 따라간다**(갱신 확인 포함 — 트리거가 Prisma가 넣은 새 `updatedAt` 뒤에 도는지) ④ SQL로 `updatedAt`을 바꿔도 따라감 ⑤ 코드가 다른 값을 넣어도 트리거 값이 남음(create·update). 수정 `tests/created-at-kst.test.ts` — 시설 응답 시험에 `updatedAtKst` 단언 추가(전제: 읽은 행에 칸이 있고 응답에 `updatedAt`이 있음), "코드 사용 0건" 검사를 두 칸으로 확장(허용은 `src/app.ts` 하나).
+    - 🔵 시험이 잡는지 확인: replacer 집합에서 `updatedAtKst`만 잠깐 빼고 돌리면 `시설 목록 응답에 updatedAtKst가 있다`로 **실패**, 복구하면 통과(`TEMP-OFF` 0건).
+    - `.harness/systems.md` §4 — 새 표 규칙을 `createdAtKst`·`updatedAtKst` 둘 다로 확장하고, **이미 틀려 있던 `@ignore` 안내를 바로잡음**(Studio에서 보이게 `@ignore` 없음, 응답에선 `app.ts` replacer가 뺌).
+    - DB: `backup-db.ps1 -Target local` → `local-20261001-143256.dump`(287.5KB, 파일 확인) → 사람 확인 → 로컬 `migrate deploy` → 확인: 칸 14·`_updated_at_kst` 트리거 14(기존 `_created_at_kst` 26 그대로), 표별 NULL·9시간 오류 0건(Facility 2,024행·User 6·Admin 1, `createdAtKst`도 그대로 정상), **`updatedAt` 값은 백필 전후 그대로**(User `01:50:29` 유지). 테스트 DB도 `test:db:migrate` 적용.
+    - drift: `migrate dev --create-only`(백업 선행) 본문이 `-- This is an empty migration.` 한 줄 → **diff 비어 있음**, 시험용 폴더 삭제, `migrate status` = "up to date"(42개).
+    - 검증: `tsc --noEmit` 에러 0 · `npm test` **278 통과**(273+5). `prisma generate`는 이번에도 dev 서버가 DLL을 잡아 EPERM(JS·타입은 갱신됨).
+    - 🔴 **운영 미반영**(지시). 이 커밋이 들어가면 운영 대기 마이그레이션은 **5개**(`add_ops_logs` → `ops_log_kst_default` → `ops_log_utc_default_and_kst_views` → `created_at_kst_column` → `updated_at_kst_column`). 마지막 둘이 운영 전 표 일괄 UPDATE(26표 + 14표)라 `migrate-prod.ps1` 백업이 선행돼야 한다. 반영 순서: 커밋 → `migrate-prod.ps1` → push.
+    - ⚠️ 알아둘 것: ① 같은 표에 `UPDATE`가 나면 트리거 2개(created·updated)가 돈다(행당 덧셈 2번 — 무시 가능). ② 응답 키 이름이 `createdAtKst`·`updatedAtKst`면 무엇이든 빠진다.
 
 <!-- Gemini 판정 1줄: ✅통과 / ❌반려(사유) / 🔄스펙갱신(고친 문서) -->

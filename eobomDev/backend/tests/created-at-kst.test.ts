@@ -86,6 +86,7 @@ describe('API 응답에는 createdAtKst가 없다', () => {
     const raw = await prisma.facility.findUniqueOrThrow({ where: { id: facility.id }, include: { reviews: true } });
     assert.ok(raw.createdAtKst, 'Prisma가 읽은 시설 행에 createdAtKst가 없다 — 시험 전제가 깨졌다');
     assert.ok(raw.reviews[0].createdAtKst, 'Prisma가 읽은 리뷰 행에 createdAtKst가 없다 — 시험 전제가 깨졌다');
+    assert.ok(raw.updatedAtKst, 'Prisma가 읽은 시설 행에 updatedAtKst가 없다 — 시험 전제가 깨졌다');
 
     const server = app.listen(0);
     await new Promise<void>((r) => server.once('listening', () => r()));
@@ -96,13 +97,16 @@ describe('API 응답에는 createdAtKst가 없다', () => {
       assert.equal(list.status, 200);
       assert.ok(listText.includes(`응답시험시설${tag}`), '목록 응답에 시험 시설이 없다');
       assert.ok(listText.includes('"createdAt"'), '목록 응답에 createdAt이 없다 — 행이 통째로 나가는 경로가 아니다');
+      assert.ok(listText.includes('"updatedAt"'), '목록 응답에 updatedAt이 없다 — 행이 통째로 나가는 경로가 아니다');
       assert.ok(!listText.includes('createdAtKst'), '시설 목록 응답에 createdAtKst가 있다');
+      assert.ok(!listText.includes('updatedAtKst'), '시설 목록 응답에 updatedAtKst가 있다');
 
       const detail = await fetch(`${base}/api/facilities/${facility.id}`);
       const detailText = await detail.text();
       assert.equal(detail.status, 200);
       assert.ok(detailText.includes('응답 시험'), '상세 응답에 중첩 리뷰가 없다');
       assert.ok(!detailText.includes('createdAtKst'), '시설 상세(중첩 리뷰 포함) 응답에 createdAtKst가 있다');
+      assert.ok(!detailText.includes('updatedAtKst'), '시설 상세 응답에 updatedAtKst가 있다');
     } finally {
       await new Promise<void>((r) => server.close(() => r()));
       await prisma.facilityReview.deleteMany({ where: { facilityId: facility.id } });
@@ -125,20 +129,20 @@ describe('앱은 createdAtKst를 읽지도 쓰지도 않는다', () => {
     assert.equal(afterUpdate.createdAtKst!.getTime() - afterUpdate.createdAt.getTime(), NINE_HOURS, 'update에서 넣은 값이 덮어써지지 않았다');
   });
 
-  it('src/ 와 frontend/src/ 에 createdAtKst를 쓰는 코드가 0건이다', () => {
+  it('src/ 와 frontend/src/ 에 createdAtKst·updatedAtKst를 쓰는 코드가 0건이다', () => {
     const roots = [path.resolve(__dirname, '../src'), path.resolve(__dirname, '../../frontend/src')];
     const hits: string[] = [];
     const walk = (dir: string) => {
       for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
         const full = path.join(dir, entry.name);
         if (entry.isDirectory()) walk(full);
-        else if (/\.(ts|tsx|js|jsx)$/.test(entry.name) && fs.readFileSync(full, 'utf8').includes('createdAtKst')) hits.push(full);
+        else if (/\.(ts|tsx|js|jsx)$/.test(entry.name) && /createdAtKst|updatedAtKst/.test(fs.readFileSync(full, 'utf8'))) hits.push(full);
       }
     };
     for (const r of roots) if (fs.existsSync(r)) walk(r);
     // 허용은 src/app.ts 하나뿐 — 응답에서 이 칸을 "빼는" 'json replacer' 한 줄(읽거나 쓰는 코드가 아니다)
     const allowed = [path.resolve(__dirname, '../src/app.ts')];
     const unexpected = hits.filter((h) => !allowed.includes(h));
-    assert.deepEqual(unexpected, [], `createdAtKst를 쓰는 파일: ${unexpected.join(', ')}`);
+    assert.deepEqual(unexpected, [], `createdAtKst·updatedAtKst를 쓰는 파일: ${unexpected.join(', ')}`);
   });
 });
