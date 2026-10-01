@@ -213,16 +213,16 @@ export const KakaoMapModal: React.FC<KakaoMapModalProps> = ({ facility, userLoca
         </button>
 
         <div style={{ marginBottom: '1rem' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <span style={{ fontSize: 'var(--fs-body)', backgroundColor: '#FEE500', color: '#191919', padding: '0.2rem 0.6rem', borderRadius: 'var(--r-md)', fontWeight: 'var(--fw-bold)' }}>
+          <div className="kakao-map-badge-row" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <span className="kakao-map-badge" style={{ fontSize: 'var(--fs-body)', backgroundColor: '#FEE500', color: '#191919', padding: '0.2rem 0.6rem', borderRadius: 'var(--r-md)', fontWeight: 'var(--fw-bold)' }}>
               Kakao Maps Live Integration
             </span>
             {isMapLoaded ? null : loadFailed ? (
-              <span style={{ fontSize: 'var(--fs-body)', backgroundColor: 'var(--state-danger-bg)', color: 'var(--state-danger-fg)', padding: '0.2rem 0.5rem', borderRadius: 'var(--r-sm)', fontWeight: 700 }}>
+              <span className="kakao-map-badge" style={{ fontSize: 'var(--fs-body)', backgroundColor: 'var(--state-danger-bg)', color: 'var(--state-danger-fg)', padding: '0.2rem 0.5rem', borderRadius: 'var(--r-sm)', fontWeight: 700 }}>
                 ● 지도를 불러오지 못했습니다
               </span>
             ) : (
-              <span style={{ fontSize: 'var(--fs-body)', backgroundColor: 'var(--state-warn-bg)', color: 'var(--state-warn-fg)', padding: '0.2rem 0.5rem', borderRadius: 'var(--r-sm)', fontWeight: 700 }}>
+              <span className="kakao-map-badge" style={{ fontSize: 'var(--fs-body)', backgroundColor: 'var(--state-warn-bg)', color: 'var(--state-warn-fg)', padding: '0.2rem 0.5rem', borderRadius: 'var(--r-sm)', fontWeight: 700 }}>
                 ● 카카오 지도 렌더링 중...
               </span>
             )}

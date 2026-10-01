@@ -24,7 +24,6 @@ interface Preview {
     voices: number;
     endingNoteSections: number;
     guestbookEntries: number;
-    facilityReviews: number;
     familyDesignations: number;
   };
   willClose: { memorials: number; obituaries: number };
@@ -94,7 +93,6 @@ export const WithdrawalModal: React.FC<WithdrawalModalProps> = ({ onClose, onDon
         { label: '그중 음성 첨부', n: w.voices, text: `${w.voices}건` },
         { label: '엔딩노트 섹션', n: w.endingNoteSections, text: `${w.endingNoteSections}개` },
         { label: '내가 남긴 방명록', n: w.guestbookEntries, text: `${w.guestbookEntries}건` },
-        { label: '시설 후기', n: w.facilityReviews, text: `${w.facilityReviews}건` },
         { label: '가족 지정', n: w.familyDesignations, text: `${w.familyDesignations}건` },
       ].filter((l) => l.n > 0)
     : [];
