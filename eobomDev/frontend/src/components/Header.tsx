@@ -57,7 +57,7 @@ export const Header: React.FC<HeaderProps> = ({ setActiveTab, onOpenLogin, curre
   // 🔄 09-29 — 이동 메뉴는 링크(PageLink, 00-34 §2.2). loginRequired인 항목은 비로그인이면 PageLink가
   // 링크가 아니라 버튼으로 그려 로그인 창만 연다(우클릭 "새 탭에서 열기"가 아예 없게).
   // 여기 남은 건 보통 클릭 때만 도는 기존 부가 동작(스크롤 저장·이동).
-  const goToModeItem = (_mode: NavMode, item: ModeMenuItem) => {
+  const goToModeItem = (item: ModeMenuItem) => {
     setActiveTab(item.id);
   };
 
@@ -68,7 +68,7 @@ export const Header: React.FC<HeaderProps> = ({ setActiveTab, onOpenLogin, curre
     loginRequired: item.loginRequired,
     currentUser,
     onOpenLogin,
-    onNavigate: () => goToModeItem(mode, item),
+    onNavigate: () => goToModeItem(item),
   });
 
   return (

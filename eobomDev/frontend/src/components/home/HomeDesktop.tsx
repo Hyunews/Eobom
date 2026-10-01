@@ -173,7 +173,7 @@ export const HomeDesktop: React.FC<HomeDesktopProps> = ({ currentUser, onOpenLog
 
   // ⓓ 메뉴 줄 클릭 — Header.tsx goToModeItem과 같은 로그인 게이트(C7).
   // 🔄 09-29 — 링크(PageLink)로 바뀌어 게이트는 PageLink가 맡는다(비로그인+loginRequired=버튼).
-  const goToModeItem = (_mode: NavMode, item: ModeMenuItem) => {
+  const goToModeItem = (item: ModeMenuItem) => {
     setActiveTab?.(item.id);
   };
 
@@ -312,7 +312,7 @@ export const HomeDesktop: React.FC<HomeDesktopProps> = ({ currentUser, onOpenLog
                           loginRequired={item.loginRequired}
                           currentUser={currentUser}
                           onOpenLogin={onOpenLogin}
-                          onNavigate={() => goToModeItem(mode, item)}
+                          onNavigate={() => goToModeItem(item)}
                           className="home-duo-menu-item"
                           style={{
                             display: 'flex', alignItems: 'center', justifyContent: 'space-between',
