@@ -2419,3 +2419,15 @@
   - 커밋은 하지 않음 — 메시지 초안만.
 
 <!-- Gemini 판정 1줄: ✅통과 / ❌반려(사유) / 🔄스펙갱신(고친 문서) -->
+
+## 2026-10-01 | 홈 마지막 섹션 — 파트너 로그인 링크 세로 위치를 추모관 링크 버튼과 맞춤
+
+- **근거 스펙**: 스펙 없음 → 즉흥 구현(개발자 요청: 운영 폰 실측에서 "추모관 링크로 입장"과 "파트너 로그인" 높이가 다름 — 전에는 맞았음)
+- **건드린 파일**: eobomDev/frontend/src/components/home/HomeMobile.tsx(L307 `PageLink` style), eobomDev/frontend/src/components/home/HomeDesktop.tsx(L341 `PageLink` style)
+- **결과**: 두 `PageLink` style에 `display: 'inline-flex', alignItems: 'center'` 추가. 원인(코드 읽기 기준): 파트너 로그인은 09-29 00-34 §2.4로 `<button>`→`PageLink`(`<a>`)가 됐고, 같은 `minHeight: 44px` 안에서 `<button>`은 글자가 가운데에 놓이는데 `<a>`는 위에 붙어 높이가 어긋남(Desktop은 minHeight가 없어 차이가 작지만 같은 방식으로 맞춤). `tsc --noEmit` 에러 0.
+- **편차**: 없음(스펙 없음). 🔴 **화면 실측은 하지 않았다** — dev 서버를 띄우지 않았고 원인은 코드 읽기로 판단. 안 맞으면 원인이 다른 것.
+- **다음 에이전트가 알아야 할 것**:
+  - 🟡 실기동(사람, 운영 폰): 마지막 섹션에서 두 글자의 높이가 같은지. 같은 회귀가 `PageLink`로 바뀐 다른 `<button>` 자리에도 있을 수 있다(`minHeight`·`padding` 있는 곳) — 이번엔 이 두 곳만 고침.
+  - 커밋은 하지 않음 — 메시지 초안만.
+
+<!-- Gemini 판정 1줄: ✅통과 / ❌반려(사유) / 🔄스펙갱신(고친 문서) -->

@@ -304,7 +304,9 @@ export const HomeMobile: React.FC<HomeMobileProps> = ({ currentUser, onOpenLogin
               <button type="button" onClick={() => setShowMemorialInput((v) => !v)} style={{ background: 'none', border: 'none', fontSize: '14px', fontWeight: 600, color: '#1A2B4C', cursor: 'pointer', fontFamily: 'inherit', padding: 0, minHeight: '44px' }}>
                 추모관 링크로 입장
               </button>
-              <PageLink to="/partner" onNavigate={() => setActiveTab?.('partner')} style={{ background: 'none', border: 'none', fontSize: '14px', fontWeight: 600, color: '#1A2B4C', cursor: 'pointer', fontFamily: 'inherit', padding: 0, minHeight: '44px' }}>
+              {/* 🔄 10-01 — 파트너 로그인이 <a>(PageLink, 09-29 00-34 §2.4)라 minHeight 44px 안에서 글자가 위로 붙어 옆 <button>(가운데)과 높이가 어긋났다.
+                  inline-flex + alignItems:center로 버튼과 같이 가운데에 놓는다. */}
+              <PageLink to="/partner" onNavigate={() => setActiveTab?.('partner')} style={{ display: 'inline-flex', alignItems: 'center', background: 'none', border: 'none', fontSize: '14px', fontWeight: 600, color: '#1A2B4C', cursor: 'pointer', fontFamily: 'inherit', padding: 0, minHeight: '44px' }}>
                 파트너 로그인
               </PageLink>
 

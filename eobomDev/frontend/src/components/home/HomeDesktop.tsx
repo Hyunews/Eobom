@@ -338,7 +338,7 @@ export const HomeDesktop: React.FC<HomeDesktopProps> = ({ currentUser, onOpenLog
             <button type="button" onClick={() => setShowMemorialInput((v) => !v)} style={{ background: 'none', border: 'none', fontSize: '15px', fontWeight: 600, color: '#5B7065', cursor: 'pointer', fontFamily: 'inherit' }}>
               추모관 링크로 입장
             </button>
-            <PageLink to="/partner" onNavigate={() => setActiveTab?.('partner')} style={{ background: 'none', border: 'none', fontSize: '15px', fontWeight: 600, color: '#8A9199', cursor: 'pointer', fontFamily: 'inherit' }}>
+            <PageLink to="/partner" onNavigate={() => setActiveTab?.('partner')} style={{ display: 'inline-flex', alignItems: 'center', background: 'none', border: 'none', fontSize: '15px', fontWeight: 600, color: '#8A9199', cursor: 'pointer', fontFamily: 'inherit' }}>
               파트너 로그인
             </PageLink>
 
