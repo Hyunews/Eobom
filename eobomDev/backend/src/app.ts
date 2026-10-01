@@ -19,6 +19,8 @@ import sttRoutes from './routes/sttRoutes';
 import ocrRoutes from './routes/ocrRoutes';
 import { requestId, accessLog } from './middleware/requestLog';
 import { errorHandler } from './middleware/errorHandler';
+import { installRateLimits } from './middleware/rateLimit';
+import { buildCorsOptions } from './config/cors';
 import { kstIso } from './utils/kst';
 
 // Express 앱 조립만 한다 — listen·dotenv·부팅 점검은 server.ts 몫이다.
@@ -42,15 +44,21 @@ app.use(requestId);
 app.use(accessLog);
 
 // 미들웨어 설정
-// exposedHeaders: 다른 출처의 프론트가 응답의 X-Request-Id를 읽어 "오류 번호"로 보여줄 수 있게 한다.
-app.use(cors({ origin: true, credentials: true, exposedHeaders: ['X-Request-Id'] }));
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-app.use(passport.initialize());
+// CORS는 허용 목록(config/cors.ts · CORS_ORIGINS 환경변수) — 00-42 §10. X-Request-Id 노출도 거기서 건다.
+// 🔴 요청 횟수 제한보다 앞이다 — 429 응답에도 CORS 헤더가 붙어야 다른 출처 프론트가 "잠시 후 다시 시도"를 읽을 수 있다.
+app.use(cors(buildCorsOptions()));
 
 // 업로드된 시설 이미지 정적 서빙 — 로컬 디스크 저장(config/upload.ts). ⚠️ 배포 환경에서는
 // 재배포 시 사라지는 임시 저장소다 — 실서비스 전 외부 스토리지로 교체 필요.
+// 요청 횟수 제한보다 앞에 둔다 — 이미지 여러 장을 한 화면에서 불러오는 것이 분당 300을 쓰지 않게(제한 대상은 API).
 app.use('/uploads', express.static(path.resolve(__dirname, '../uploads')));
+
+// 요청 횟수 제한(같은 IP 기준 · 00-42 §10) — 본문 파싱보다 앞에서 걸러 넘친 요청이 파싱 비용을 쓰지 않게 한다.
+installRateLimits(app);
+
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(passport.initialize());
 
 // 라우터 연결
 app.use('/api/auth', authRoutes);

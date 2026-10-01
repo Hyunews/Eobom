@@ -34,5 +34,8 @@ process.env.HASH_INDEX_KEY = 'test-only-hash-index-key-00000000000000000';
 process.env.CLOVA_STT_ENABLED = 'true';
 process.env.CLOVA_OCR_ENABLED = 'true';
 process.env.R2_ENABLED = 'false';
+// 요청 횟수 제한(middleware/rateLimit.ts)은 기본으로 끈다 — 다른 시험들이 같은 IP(127.0.0.1)로 수십 번 요청해서 한도에 걸린다.
+// 제한 자체는 tests/cors-ratelimit.test.ts가 이 값을 지우고 실제 앱으로 시험한다. NODE_ENV=test일 때만 인정되는 스위치다.
+process.env.RATE_LIMIT_DISABLED = 'true';
 
 export const TEST_JWT_SECRET = process.env.JWT_SECRET;

@@ -155,6 +155,9 @@ DB 접근은 **Prisma 한 경로**뿐이다. RLS는 Data API를 막는 장치라
 | 백엔드 | ✅ **배포됨** (2026-08-20) | `https://eobom-backend.onrender.com` — `/api/health` 200 실측 |
 | 저장소 | private | `github.com/Hyunews/Eobom` |
 
+- 🔴 **CORS는 허용 목록**(10-01, `00-42` §10) — 기본 `https://eobom.vercel.app` + 로컬 5173(`config/cors.ts`). **Vercel 미리보기 주소·새 도메인에서 API를 부르면 막힌다** → Render 환경변수 `CORS_ORIGINS`에 쉼표로 추가(값을 쓰면 기본 목록을 *대체*하니 운영 주소도 같이 적을 것). 비밀값 아님·`render.yaml`엔 안 넣음(기존 서비스는 대시보드 값이 기준).
+- 🔴 **요청 횟수 제한**(같은 IP·메모리·단일 인스턴스): 공개 쓰기 10 · 로그인/갱신 20 · 전체 300 / 분, `/api/health` 제외. 넘으면 429 *"잠시 후 다시 시도해 주세요."* — 경로 목록은 `middleware/rateLimit.ts`(새 공개 POST를 만들면 거기 올릴 것). 로컬 시험 중 429가 나면 1분 기다리거나 서버 재시작.
+
 ### 백엔드 배포 — Render 웹서비스 + Supabase DB (2026-08-20 실행)
 
 ⚠️ 인프라 전략 정본은 **`docs/00_핵심플랫폼/00-11_백엔드_DB_배포_및_인프라_전략_결정서.md`**.

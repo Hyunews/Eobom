@@ -2394,3 +2394,28 @@
     - ⚠️ 알아둘 것: ① 같은 표에 `UPDATE`가 나면 트리거 2개(created·updated)가 돈다(행당 덧셈 2번 — 무시 가능). ② 응답 키 이름이 `createdAtKst`·`updatedAtKst`면 무엇이든 빠진다.
 
 <!-- Gemini 판정 1줄: ✅통과 / ❌반려(사유) / 🔄스펙갱신(고친 문서) -->
+
+## 2026-10-01 | 00-42 §10 — CORS 허용 목록 + 요청 횟수 제한 (공개 전)
+
+- **근거 스펙**: docs/00_핵심플랫폼/00-42_운영_기록_로그_설계서.md §10(별건: CORS `origin:true`·요청 횟수 제한 없음) · 10-01 개발자 결정(지시문)
+- **건드린 파일**(전수): eobomDev/backend/src/config/cors.ts(신규), eobomDev/backend/src/middleware/rateLimit.ts(신규), eobomDev/backend/src/app.ts(`cors(buildCorsOptions())`·`installRateLimits(app)`·`/uploads`를 제한보다 앞으로), eobomDev/backend/tests/cors-ratelimit.test.ts(신규 18건), eobomDev/backend/tests/helpers/testEnv.ts(`RATE_LIMIT_DISABLED`), eobomDev/backend/package.json·package-lock.json(`express-rate-limit ^8.7.0` 추가, `npm test`에 신규 파일), eobomDev/backend/.env.example(`CORS_ORIGINS` 안내), .harness/systems.md §5(CORS·제한 두 줄)
+- **결과**:
+  - ① CORS: 허용 목록 = `https://eobom.vercel.app` + `localhost`·`127.0.0.1`의 5173(http·https). 환경변수 `CORS_ORIGINS`(쉼표)가 있으면 기본 목록을 **대체**. 허용 안 된 출처엔 `Access-Control-Allow-*`를 주지 않는다(에러를 던지지 않음 — 서버는 응답하고 읽기는 브라우저가 막음). `exposedHeaders: ['X-Request-Id']`·`credentials: true` 유지. Origin 헤더 없는 요청(서버 간·주소창)은 통과.
+  - ② 제한(같은 IP · `trust proxy 1`로 실제 IP · 메모리 저장 · 1분 창): **공개 쓰기 10** · **로그인·갱신 20** · **그 밖 전체 300**. `/api/health` 제외, CORS 사전요청(OPTIONS)은 세지 않음. 초과 시 `429` + `{status:'error', message:'잠시 후 다시 시도해 주세요.', requestId}` + `Retry-After`. 순서: requestId → accessLog → **cors** → `/uploads`(제한 밖) → **제한** → body 파싱 — 그래서 429도 접속기록에 실패로 남고(시험으로 확인) 429에도 CORS 헤더가 붙는다.
+  - **대상 경로(실제 `routes/*.ts`의 POST를 보고 정함)**: 🔹공개 쓰기 10 = `POST /api/memorials/:slug/tributes`(헌화) · `/:slug/guestbook`(로그인 필수지만 공개 주소) · `/api/experts/:id/consult-requests` · `/api/facilities/:id/quotes` · `/:id/call-events` · `/api/obituaries/:slug/share` · `/api/family-designations/invite/:token/accept`·`/decline` · `/api/partner/signup` · `/api/expert/signup`. 🔹로그인·갱신 20 = `/api/admin|partner|expert/login`·`/refresh` 6개 + `/api/auth/confirm-link`·`/api/auth/demo-login`. 🔹그 밖의 POST·PATCH·DELETE는 전부 토큰(회원·사업자·전문가·운영자) 필요 경로라 전체 300에 포함.
+  - 검증: `tsc --noEmit` 에러 0 · `npm test` **296 통과**(278 + 18). 시험 내용: 허용·비허용·Origin 없음·사전요청·LAN(5173만)·운영 설정(LAN 차단)·`CORS_ORIGINS` 파싱 / 공개 쓰기 11번째 429·IP별 분리·주소 합산 / 로그인 21번째 429 / 전체 301번째 429 + health는 그 뒤에도 200 / 429에 CORS 헤더 / 접속기록 status 429. 🔵 잡는지 확인: CORS를 `origin:true`로, 제한 설치를 꺼서 돌리면 **11건 실패**, 복구하면 통과(`TEMP-OFF` 0건).
+- **편차**:
+  1. 🔴 **비운영(개발·테스트)에서는 사설망 IP(192.168.x·10.x·172.16~31.x)의 5173 포트도 허용** — 지시는 "localhost 개발 포트"뿐이었는데 폰으로 LAN IP에 접속해 시험하는 흐름(`authController.captureFrontendOrigin`이 이미 지원)이 깨져서 추가. 운영(`NODE_ENV=production`)은 목록만 본다(시험으로 고정).
+  2. 공개 쓰기 한도는 **주소별이 아니라 IP당 합산**(지시 "분당 10"을 그대로 읽음) — 헌화로 다 쓰면 시설 문의도 막힌다.
+  3. `/uploads` 정적 서빙을 제한보다 앞으로 옮김(이미지 여러 장 로딩이 분당 300을 쓰지 않게) — 순서만 바뀌고 동작은 같음.
+  4. 시험 전용 스위치 `RATE_LIMIT_DISABLED=true`(`NODE_ENV=test`일 때만 인정, `testEnv.ts`가 기본으로 켬) — 다른 시험들이 같은 IP로 수십 번 요청해 한도에 걸리는 것을 막고, 제한 시험만 이 값을 지우고 실제 앱을 쓴다.
+- **다음 에이전트가 알아야 할 것**:
+  - 🔴 **스키마 변경 없음 → 운영 반영은 push만.** `npm ci`가 `package-lock.json`의 새 의존성(`express-rate-limit`)을 설치하니 **lock 파일도 같이 커밋**해야 한다.
+  - 🟡 **Render 환경변수는 선택**: `CORS_ORIGINS`를 안 넣어도 기본값(운영 프론트 + localhost)으로 동작. **운영에서 localhost까지 막으려면** 대시보드에 `CORS_ORIGINS=https://eobom.vercel.app`. 기존 서비스는 Blueprint 값이 자동 반영되지 않아 `render.yaml`엔 안 넣었다(비밀값 아님).
+  - ⚠️ **Vercel 미리보기 주소(`eobom-xxxx.vercel.app`)와 새 도메인은 막힌다** — 그쪽에서 API를 부르려면 `CORS_ORIGINS`에 추가. 🟡 실기동(사람): 배포 프론트에서 로그인·방명록·문의가 막히지 않는지, 로컬에서 LAN 폰 접속이 되는지.
+  - ⚠️ 한도 값은 **느낌으로 정한 지시값**이라 실사용 패턴과 안 맞을 수 있다 — 전화 버튼(`call-events`)을 한 분에 10번 넘게 누르는 정상 사용은 드물다고 보고 같은 묶음에 넣었다. 로컬 시험 중 429가 나면 1분 기다리거나 서버 재시작(메모리 저장).
+  - 새 공개 POST를 만들면 `middleware/rateLimit.ts`의 `PUBLIC_WRITE_ROUTES`에 올려야 한다(안 올리면 전체 300만 적용) — 자동 감시는 없다.
+  - `00-42` §10 별건 둘이 해소됨 → `[Opus]` 문서 반영 대상(`docs/` 미수정).
+  - 커밋은 하지 않음 — 메시지 초안만.
+
+<!-- Gemini 판정 1줄: ✅통과 / ❌반려(사유) / 🔄스펙갱신(고친 문서) -->
