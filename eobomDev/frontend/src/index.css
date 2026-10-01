@@ -758,6 +758,15 @@ body {
   display: none;
 }
 
+/* 운영자 탭 줄(AdminPage TabTrack) — 스크롤바만 숨기는 단독 트랙. 화살표 버튼이 이동 수단이다. */
+.scroll-track-hidden {
+  scrollbar-width: none;
+}
+
+.scroll-track-hidden::-webkit-scrollbar {
+  display: none;
+}
+
 @media (max-width: 359px) {
   .chip-track {
     margin-left: calc(-1 * (var(--gutter-page-sm) + 1.5rem));

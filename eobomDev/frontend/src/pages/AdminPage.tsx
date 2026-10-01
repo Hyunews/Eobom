@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { ShieldCheck, Lock, Mail, CheckCircle2, XCircle, Pencil, Save, X, Search } from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
+import { ShieldCheck, Lock, Mail, CheckCircle2, XCircle, Pencil, Save, X, Search, ChevronLeft, ChevronRight } from 'lucide-react';
 import { BACKEND_URL, formatPhoneForDisplay } from '../config';
 import { AddressSearchModal } from '../components/AddressSearchModal';
 
@@ -61,6 +61,51 @@ const EXPERT_CATEGORY_LABELS: Record<string, string> = {
 // 시니어 접근성용 56px/52px 터치 타겟이라 이 조밀한 운영자 목록 안에서는 과하게 커 보였다.
 const SMALL_BTN: React.CSSProperties = { height: '34px', padding: '0 0.9rem', fontSize: '0.85rem', borderRadius: 'var(--r-sm)' };
 const TAB_BTN: React.CSSProperties = { height: '38px', padding: '0 1rem', fontSize: '0.85rem', borderRadius: 'var(--r-sm)' };
+
+// 탭 줄 — 폭이 모자라면 여러 줄로 쌓이지 않고 한 줄로 늘어서며, 넘치는 쪽에만 ◀ ▶ 버튼이 나온다.
+const ARROW_BTN: React.CSSProperties = { width: '34px', height: '38px', flex: '0 0 auto', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: 0, border: '1px solid var(--border-color)', borderRadius: 'var(--r-sm)', backgroundColor: 'var(--card-bg)', color: 'var(--primary-color)', cursor: 'pointer' };
+
+const TabTrack: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const ref = useRef<HTMLDivElement>(null);
+  const [canLeft, setCanLeft] = useState(false);
+  const [canRight, setCanRight] = useState(false);
+
+  const update = () => {
+    const el = ref.current;
+    if (!el) return;
+    setCanLeft(el.scrollLeft > 1);
+    setCanRight(el.scrollLeft + el.clientWidth < el.scrollWidth - 1);
+  };
+
+  useEffect(() => {
+    update();
+    const el = ref.current;
+    if (!el) return;
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
+  const move = (dir: 1 | -1) => ref.current?.scrollBy({ left: dir * Math.max(160, (ref.current?.clientWidth ?? 0) * 0.7), behavior: 'smooth' });
+
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flex: '1 1 320px', minWidth: 0 }}>
+      {canLeft && (
+        <button type="button" aria-label="이전 탭" onClick={() => move(-1)} style={ARROW_BTN}>
+          <ChevronLeft size={18} />
+        </button>
+      )}
+      <div ref={ref} onScroll={update} className="scroll-track-hidden" style={{ display: 'flex', gap: '0.6rem', overflowX: 'auto', minWidth: 0, flex: '1 1 auto' }}>
+        {children}
+      </div>
+      {canRight && (
+        <button type="button" aria-label="다음 탭" onClick={() => move(1)} style={ARROW_BTN}>
+          <ChevronRight size={18} />
+        </button>
+      )}
+    </div>
+  );
+};
 const SMALL_INPUT: React.CSSProperties = { height: '38px', fontSize: '0.85rem' };
 
 export const AdminPage: React.FC = () => {
@@ -718,22 +763,26 @@ export const AdminPage: React.FC = () => {
       </div>
 
       <div style={{ display: 'flex', gap: '0.6rem', marginBottom: '1rem', flexWrap: 'wrap' }}>
-        {(['PARTNERS', 'EXPERTS', 'CLAIMS', 'FACILITIES', 'FAREWELL_PURGE', 'MEMORIALS', 'CONSULT_REQUESTS', 'MEMBERS', 'DEATH_VERIFICATIONS'] as QueueTab[]).map((t) => (
-          <button
-            key={t}
-            onClick={() => setTab(t)}
-            className="btn"
-            style={{
-              ...TAB_BTN,
-              backgroundColor: tab === t ? 'var(--primary-color)' : 'var(--card-bg)',
-              color: tab === t ? '#FFFFFF' : 'var(--primary-color)',
-              border: '1px solid var(--border-color)',
-            }}
-          >
-            {TAB_LABELS[t]}
-            {t === 'DEATH_VERIFICATIONS' && dvItems.length > 0 ? ` (${dvItems.length})` : ''}
-          </button>
-        ))}
+        <TabTrack>
+          {(['PARTNERS', 'EXPERTS', 'CLAIMS', 'FACILITIES', 'FAREWELL_PURGE', 'MEMORIALS', 'CONSULT_REQUESTS', 'MEMBERS', 'DEATH_VERIFICATIONS'] as QueueTab[]).map((t) => (
+            <button
+              key={t}
+              onClick={() => setTab(t)}
+              className="btn"
+              style={{
+                ...TAB_BTN,
+                flex: '0 0 auto',
+                whiteSpace: 'nowrap',
+                backgroundColor: tab === t ? 'var(--primary-color)' : 'var(--card-bg)',
+                color: tab === t ? '#FFFFFF' : 'var(--primary-color)',
+                border: '1px solid var(--border-color)',
+              }}
+            >
+              {TAB_LABELS[t]}
+              {t === 'DEATH_VERIFICATIONS' && dvItems.length > 0 ? ` (${dvItems.length})` : ''}
+            </button>
+          ))}
+        </TabTrack>
 
         {tab === 'FACILITIES' ? (
           <form
