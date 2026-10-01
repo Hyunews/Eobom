@@ -2246,3 +2246,15 @@
   - 커밋은 하지 않음 — 메시지 초안만.
 
 <!-- Gemini 판정 1줄: ✅통과 / ❌반려(사유) / 🔄스펙갱신(고친 문서) -->
+## 2026-10-01 | 운영 데모 로그인 전면 차단 (production이면 모든 provider 403)
+
+- **근거 스펙**: 스펙 없음 — 2026-10-01 개발자 지시(보안: `POST /api/auth/demo-login`이 운영에서 KAKAO/NAVER/GOOGLE 데모를 허용, 소셜 인증 없이 공용 데모 계정 토큰 발급). 기존 ADMIN 가드 근거는 docs 01-05 §6.4·§11 3항.
+- **건드린 파일**: eobomDev/backend/src/controllers/authController.ts , eobomDev/backend/tests/demo-login.test.ts(신규) , eobomDev/backend/package.json
+- **결과**: `demoLogin`의 `if (provider === 'ADMIN' && process.env.NODE_ENV === 'production')`을 `if (process.env.NODE_ENV === 'production')`으로 넓힘(같은 403·같은 문구 `허용되지 않는 요청입니다.`, 동의 검사·provider 분기보다 먼저). 신규 `tests/demo-login.test.ts` 7건 — production에서 KAKAO·NAVER·GOOGLE·ADMIN·provider 없음 전부 403(동의 true를 실어도), 개발 환경에서 ADMIN 200+토큰 / KAKAO 동의 없음 400. `package.json`의 `test` 스크립트에 추가. 검증: backend `npx tsc --noEmit` 0 · `npm test` 232 통과. DB 변경 없음 — 운영 DB의 데모 계정 3개(demo_*@eobom.co.kr)는 건드리지 않았다.
+- **편차**: 없음. 개발 대조 테스트는 DB에 쓰지 않는 경로(ADMIN·동의 없는 소셜 400)만 썼다 — 소셜 데모 성공 경로(User upsert)는 자동 테스트로 덮지 않았고 코드도 안 바꿨다.
+- **다음 에이전트가 알아야 할 것**:
+  - 🔴 운영에 `NODE_ENV=production`이 실제로 설정돼 있어야 이 가드가 작동한다(Render 환경변수) — 배포 뒤 사람이 확인: 운영 `POST /api/auth/demo-login`이 403인지.
+  - 🟡 운영 DB의 데모 계정 3개 정리는 공개 직전 사람 결정(context.md ⑤).
+  - 커밋은 하지 않음 — 메시지 초안만.
+
+<!-- Gemini 판정 1줄: ✅통과 / ❌반려(사유) / 🔄스펙갱신(고친 문서) -->
