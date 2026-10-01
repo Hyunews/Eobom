@@ -503,7 +503,9 @@ export const AdminPage: React.FC = () => {
   };
 
   // 🔴 이 조회는 서버가 AdminAuditLog에 VIEW 기록을 남긴다(§3.2) — 클릭할 때마다 기록된다.
+  // 들어가서 알려주면 이미 기록된 뒤라 의미가 없다 — 열기 전에 확인을 받는다(취소하면 요청 자체를 안 보낸다 = 기록 없음).
   const openMember = async (id: string) => {
+    if (!window.confirm('이 상세 조회는 기록됩니다. 계속하시겠습니까?')) return;
     setMemberDetailLoading(true);
     try {
       const res = await authFetch(`${BACKEND_URL}/api/admin/users/${id}`);
@@ -1443,9 +1445,6 @@ export const AdminPage: React.FC = () => {
                   <button onClick={() => setOpenMemberDetail(null)} className="btn" style={{ ...SMALL_BTN, backgroundColor: 'var(--surface-subtle)' }}>
                     <X size={14} />
                   </button>
-                </div>
-                <div style={{ fontSize: '0.85rem', color: 'var(--state-warn-fg)', backgroundColor: 'var(--state-warn-bg)', padding: '0.5rem 0.7rem', borderRadius: 'var(--r-sm)' }}>
-                  🔴 이 상세 조회는 감사 로그에 기록됩니다(00-37 §3.2).
                 </div>
                 <div style={{ fontSize: '0.9rem' }}>
                   <div>이메일: {openMemberDetail.email || '없음'}</div>
