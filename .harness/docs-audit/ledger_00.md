@@ -138,7 +138,7 @@
 | `00_핵심플랫폼/00-04_기능_및_API_명세서.md` | 123 | &nbsp;&nbsp;&nbsp;&nbsp;### 7.1 🔴 04·05 프론트 착수 보류 중 | 경위 | 04·05 착수 보류 사유 — 05 구현(09-02)·00-13 E안 확정으로 해소 |  |
 | `00_핵심플랫폼/00-04_기능_및_API_명세서.md` | 139 | &nbsp;&nbsp;## 🔗 8. 관련 문서 | 유지 | 관련 문서 목록 | R300 |
 
-## `00_핵심플랫폼/00-05_DB_요구사항_및_테이블_사전.md` (81KB · 절 36) <!-- sha:1cebc22ca4 -->
+## `00_핵심플랫폼/00-05_DB_요구사항_및_테이블_사전.md` (80KB · 절 36) <!-- sha:3f6113fad4 -->
 
 | 파일 | 줄 | 절 | 판정 | 근거 | 메모 |
 |---|---:|---|---|---|---|
@@ -174,8 +174,8 @@
 | `00_핵심플랫폼/00-05_DB_요구사항_및_테이블_사전.md` | 874 | &nbsp;&nbsp;&nbsp;&nbsp;### `FarewellPurgeAuditLog` | 유지 | 자동 생성 — 동기화 | R300·R700 |
 | `00_핵심플랫폼/00-05_DB_요구사항_및_테이블_사전.md` | 889 | &nbsp;&nbsp;&nbsp;&nbsp;### `Admin` | 유지 | 자동 생성 — 동기화 | R300 |
 | `00_핵심플랫폼/00-05_DB_요구사항_및_테이블_사전.md` | 909 | &nbsp;&nbsp;&nbsp;&nbsp;### `AdminAuditLog` | 유지 | 자동 생성 — 동기화 | R300 |
-| `00_핵심플랫폼/00-05_DB_요구사항_및_테이블_사전.md` | 934 | &nbsp;&nbsp;&nbsp;&nbsp;### `AccessLog` | 유지 | 자동 생성 절 — generate-db-doc.js --check 동기화됨(10-01) · schema.prisma AccessLog와 일치(칸 10개 + createdAtKst) | 설명 없음 2칸(method·status)·createdAt 설명이 스키마 주석 둘이 겹쳐 길다 — [Sonnet] 주석 정리 후보(문서는 생성물이라 직접 안 고침) |
-| `00_핵심플랫폼/00-05_DB_요구사항_및_테이블_사전.md` | 958 | &nbsp;&nbsp;&nbsp;&nbsp;### `ErrorLog` | 유지 | 자동 생성 절 — --check 동기화됨 · schema.prisma ErrorLog와 일치(칸 8개 + createdAtKst) | 설명 없음 1칸(status) — [Sonnet] 주석 보강 후보 |
+| `00_핵심플랫폼/00-05_DB_요구사항_및_테이블_사전.md` | 934 | &nbsp;&nbsp;&nbsp;&nbsp;### `AccessLog` | 유지 | 자동 생성 절 — generate-db-doc.js --check 동기화됨(10-01) · schema.prisma AccessLog와 일치(칸 10개 + createdAtKst) | 설명 없음 칸 보강 완료(10-01 [Sonnet] — method·status 설명 추가, createdAt 설명 한 줄로 정리, 설명 없음 37→34) |
+| `00_핵심플랫폼/00-05_DB_요구사항_및_테이블_사전.md` | 958 | &nbsp;&nbsp;&nbsp;&nbsp;### `ErrorLog` | 유지 | 자동 생성 절 — --check 동기화됨 · schema.prisma ErrorLog와 일치(칸 8개 + createdAtKst) | 설명 없음 칸 보강 완료(10-01 [Sonnet] — status 설명 추가, path·status에 요청 밖이면 null 명시) |
 | `00_핵심플랫폼/00-05_DB_요구사항_및_테이블_사전.md` | 979 | &nbsp;&nbsp;&nbsp;&nbsp;### `CareGuideProgress` | 유지 | 자동 생성 — 동기화 | R300 |
 | `00_핵심플랫폼/00-05_DB_요구사항_및_테이블_사전.md` | 1004 | &nbsp;&nbsp;## 📝 보충 설명 (수동 관리 — 자동 생성 스크립트가 건드리지 않음) | 유지 | 보충 설명 구간 — 08-10 이후 비어 있음(자리표시 한 줄) | 4단계: 계속 비면 절 삭제 후보(JSON 형태·상태 전이는 도메인 문서에 있음) |
 

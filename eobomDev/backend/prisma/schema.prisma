@@ -874,18 +874,16 @@ model AdminAuditLog {
 // 주체는 FK가 아니다 — 계정이 지워져도 기록은 남는다(AdminAuditLog와 같은 원칙).
 model AccessLog {
   id          String   @id @default(uuid()) // 고유 식별자(UUID)
-  // 🔴 UTC로 저장한다(설계서 §5.2 ⑦) — 다른 표와 같다. 사람이 DB를 열 때 보는 한국 시간은 모든 표에 붙은 createdAtKst 칸(보기 전용, 트리거가 채움).
-  // (10-01 b12d499가 이 3개 표만 KST 벽시계로 저장하게 했다가 한 표에 UTC/KST가 섞일 위험이 확인돼 되돌렸다.)
-  createdAt   DateTime @default(now()) // 접속 시각(UTC 저장)
+  createdAt   DateTime @default(now()) // 접속 시각(UTC 저장 — 설계서 §5.2 ⑦). 한국 시간은 createdAtKst 칸(아래 줄)
   createdAtKst DateTime? // 보기 전용 · DB 트리거가 createdAt+9시간(한국 시간)으로 채움 · 🔴 코드에서 읽기·쓰기 금지(트리거가 쓰기를 덮어씀)
   requestId   String // 응답 헤더 X-Request-Id와 같은 값
   subjectType String // anonymous | user | partner | expert | admin
   subjectId   String? // 내부 id. 익명이면 null. 이름·이메일·연락처는 넣지 않는다
   ip          String? // trust proxy 적용 후 실제 주소
-  method      String
+  method      String // HTTP 메서드(GET·POST·PATCH·PUT·DELETE 등)
   path        String // 쿼리 문자열 제거. 경로 안 id(/memorials/:id)는 남긴다
-  status      Int
-  durationMs  Int // 응답 시간
+  status      Int // 응답 상태 코드(200·404·500 등)
+  durationMs  Int // 응답 시간(밀리초)
 
   @@index([createdAt])
   @@index([requestId])
@@ -900,8 +898,8 @@ model ErrorLog {
   createdAt DateTime @default(now()) // 발생 시각(UTC 저장). 한국 시간은 createdAtKst 칸(아래 줄)
   createdAtKst DateTime? // 보기 전용 · DB 트리거가 createdAt+9시간(한국 시간)으로 채움 · 🔴 코드에서 읽기·쓰기 금지(트리거가 쓰기를 덮어씀)
   requestId String? // 요청 밖(unhandledRejection)이면 null
-  path      String? // 쿼리 제거
-  status    Int?
+  path      String? // 쿼리 제거. 요청 밖(unhandledRejection)이면 null
+  status    Int? // 응답 상태 코드(5xx). 요청 밖(unhandledRejection)이면 null
   errorName String // 에러 종류(Error·PrismaClientKnownRequestError·Http5xx·UnhandledRejection …)
   message   String // 마스킹·200자 제한
   stackHead String? // 앞 5줄
