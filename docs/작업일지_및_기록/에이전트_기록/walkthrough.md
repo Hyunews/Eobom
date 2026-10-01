@@ -16,6 +16,16 @@
 > [`_아카이브_2608`](walkthrough_아카이브_2608.md)(08-31분). 남은 것 = 판정 대기 + 판정 표기 없음. 기준 → `record.md` §2-1.
 
 ---
+## 2026-10-01 | [Sonnet] 00-42 §5.2 ③ — 오류 번호(5xx) + ErrorBoundary + 부고·추모관·가족초대 "접속 실패↔없음" 구분
+
+- **근거 스펙**: docs/00_핵심플랫폼/00-42_운영_기록_로그_설계서.md §5.2 ③ (10-01 결정)
+- **건드린 파일**: eobomDev/frontend/src/lib/api.ts, src/styles/design-v2.css(`.v2-error-text`·`.v2-notice-warn`에 `white-space: pre-line`), src/components/ErrorBoundary.tsx(신규), src/components/ConnectionFailed.tsx(신규), src/main.tsx, src/pages/ObituaryLandingPage.tsx, src/pages/MemorialLandingPage.tsx, src/pages/FamilyInvitePage.tsx
+- **결과**: ① `ApiError`에 `status`·`requestId`·`baseMessage` 추가. `apiFetch`가 5xx일 때만 `X-Request-Id`(없으면 오류 JSON의 `requestId`)를 담고, `message` 끝에 `\n오류 번호: <16자리>`를 붙인다 → `err.message`를 보여 주는 곳 전부(alert 포함 약 30곳)가 고치지 않고 번호를 같이 보여 준다. 4xx에는 안 붙는다. 비JSON 본문(게이트웨이 5xx)도 `ApiError`로 통일. ② `main.tsx`에서 `<App />`을 `ErrorBoundary`로 감쌌다(문구 "일시적인 오류가 발생했습니다." + 새로고침 + 홈으로, 서버 전송 없음·`console.error`만). ③ 부고·추모관 랜딩은 404만 기존 "…찾을 수 없습니다.", 네트워크 실패·5xx·429는 "지금 연결이 원활하지 않습니다." + "잠시 후 다시 시도해 주세요." + `다시 시도` 버튼(`ConnectionFailed`). 가족 초대(`FamilyInvitePage`)도 같은 구멍이 있어 같이 고침(5xx·429·네트워크 실패 → 접속 실패, 그 외 4xx → 기존 notfound, 410 → 만료). 교체한 문자열: 부고·추모관 `.catch(() => setNotFound(true))` → `.catch(() => setConnectionFailed(true))`, 초대 `view === 'notfound' || view === 'error'` → 분리. `npx tsc --noEmit`(frontend) 에러 0 · `npm run build` 통과.
+- **편차**: ① **번호 줄이 회색이 아니다** — 스펙은 "회색 한 줄"이나 화면마다 고치지 않는 공통 처리(문자열 접미)로는 번호 줄만 따로 색을 못 준다(문구와 같은 색, 줄만 바뀜). 회색을 원하면 오류 문구를 보여 주는 약 30곳을 `<ErrorMessage>`로 바꿔야 한다 → 개발자 결정 사항. ② 429(요청 횟수 제한)도 랜딩 3곳에서 "없음"이 아니라 "접속 실패"로 가른다(스펙은 네트워크 실패·5xx만 언급, 429를 "없음"으로 보여 주면 같은 오해라 함께 처리).
+- **다음 에이전트가 알아야 할 것**: 🔵 **실기동 검증 대기(사람)** — 백엔드를 끈 채 `/o/<slug>`·`/m/<slug>`·`/invite/<token>`을 열어 "연결이 원활하지 않습니다" + 다시 시도(백엔드 켠 뒤 눌러 복구)·없는 slug는 기존 "찾을 수 없습니다"·5xx 오류 번호가 `오류 번호: …`로 뜨는지 확인. ErrorBoundary는 일부러 렌더 오류를 내 봐야 보인다(미검증). 방명록·헌화 등 랜딩 안의 부수 호출(`fetch` 직접 사용)은 이번 범위 밖이라 그대로. 프론트 에러 수집은 00-42 L-3 후순위.
+
+<!-- Gemini 판정 1줄: ✅통과 / ❌반려(사유) / 🔄스펙갱신(고친 문서) -->
+
 ## 2026-09-30 | [Sonnet] 회귀 테스트 ①②③ 도입 — 검증 스크립트 보존 · 러너 + 권한 경계 테스트 · CI
 
 - **근거 스펙**: `docs/00_핵심플랫폼/00-15` §6 "2026-09-30 개발자 결정" 블록 · §5.1 1번 · §5.3. 핸드오프 블록.

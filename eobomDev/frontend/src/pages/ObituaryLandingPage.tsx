@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { BACKEND_URL } from '../config';
 import { ObituaryView, type ObituaryData } from '../components/ObituaryView';
+import { ConnectionFailed } from '../components/ConnectionFailed';
 
 // 부고장 랜딩 — docs 07-03 §6.3. App.tsx 레이아웃(Header/Sidebar/Footer) 밖의 독립 페이지다
 // (isPortalRoute 패턴 확장, §6.1). 카톡으로 링크를 받은 조문객이 보는 화면이라 로그인 불필요.
@@ -59,7 +60,10 @@ export const ObituaryLandingPage: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
   const [data, setData] = useState<ObituaryData | null>(null);
   const [notFound, setNotFound] = useState(false);
+  // 00-42 §5.2 ③ — 네트워크 실패·5xx는 "없음"이 아니라 "접속 실패"로 가른다(404만 notFound).
+  const [connectionFailed, setConnectionFailed] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [retryKey, setRetryKey] = useState(0);
 
   // §6.3 — noindex, nofollow(§8 #2). X-Robots-Tag HTTP 헤더는 Phase 2(OG 서버 렌더, §9)에서
   // 서버가 붙인다 — 지금은 SPA라 클라이언트 <meta>가 최선이다.
@@ -75,12 +79,15 @@ export const ObituaryLandingPage: React.FC = () => {
 
   useEffect(() => {
     if (!slug) return;
+    setLoading(true);
+    setConnectionFailed(false);
     fetch(`${BACKEND_URL}/api/obituaries/${slug}`)
       .then(async (res) => {
         if (res.status === 404) {
           setNotFound(true);
           return null;
         }
+        if (res.status >= 500 || res.status === 429) throw new Error(`HTTP ${res.status}`);
         return res.json();
       })
       .then((json) => {
@@ -88,14 +95,24 @@ export const ObituaryLandingPage: React.FC = () => {
         if (json.status === 'success') setData(json.data);
         else setNotFound(true);
       })
-      .catch(() => setNotFound(true))
+      .catch(() => setConnectionFailed(true))
       .finally(() => setLoading(false));
-  }, [slug]);
+  }, [slug, retryKey]);
 
   if (loading) {
     return (
       <div className="v2-obit-page">
         <ObituaryLandingSkeleton />
+      </div>
+    );
+  }
+
+  if (connectionFailed) {
+    return (
+      <div className="v2-obit-page">
+        <div className="v2-obit-content">
+          <ConnectionFailed onRetry={() => setRetryKey((k) => k + 1)} />
+        </div>
       </div>
     );
   }

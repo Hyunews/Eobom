@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { apiFetch, apiFetchRaw, ApiError } from '../lib/api';
+import { ConnectionFailed } from '../components/ConnectionFailed';
 import { getToken, PENDING_INVITE_TOKEN_KEY } from '../lib/storage';
 import { backdropCloseProps } from '../utils/backdropClose';
 import { PageLink } from '../components/common/PageLink';
@@ -55,6 +56,7 @@ export const FamilyInvitePage: React.FC<FamilyInvitePageProps> = ({ currentUser,
   const [enteredName, setEnteredName] = useState('');
   // 🔄 00-39 §6.7 — window.confirm 대신 §6.4 모달(MemorialPage.tsx 삭제 확인과 같은 방식).
   const [showDeclineConfirm, setShowDeclineConfirm] = useState(false);
+  const [retryKey, setRetryKey] = useState(0);
 
   // authToken은 currentUser와 항상 같은 타이밍에 저장소에 같이 쓰인다(App.tsx
   // handleLoginSuccess) — currentUser prop이 바뀌어 리렌더될 때마다 이 줄도 다시 실행되므로
@@ -63,8 +65,14 @@ export const FamilyInvitePage: React.FC<FamilyInvitePageProps> = ({ currentUser,
 
   useEffect(() => {
     if (!token) return;
+    setView('loading');
     apiFetchRaw(`/api/family-designations/invite/${token}`)
       .then(async (res) => {
+        // 00-42 §5.2 ③ — 5xx·429는 "링크 없음"이 아니라 "접속 실패"('error')로 가른다.
+        if (res.status >= 500 || res.status === 429) {
+          setView('error');
+          return;
+        }
         const json = await res.json();
         if (res.status === 410) {
           setView('expired');
@@ -78,7 +86,7 @@ export const FamilyInvitePage: React.FC<FamilyInvitePageProps> = ({ currentUser,
         setView('ready');
       })
       .catch(() => setView('error'));
-  }, [token]);
+  }, [token, retryKey]);
 
   // 2026-08-24 — 이 화면이 자체 소셜 버튼 3개로 직접 /api/auth/:provider를 호출하던 방식은
   // 필수 동의(이용약관·개인정보) 쿼리가 없어 새 라우트가드에 전부 튕긴다(authRoutes.ts).
@@ -148,7 +156,9 @@ export const FamilyInvitePage: React.FC<FamilyInvitePageProps> = ({ currentUser,
         <p className="v2-obit-notfound-sub">보내신 분에게 새 링크를 다시 요청해 주세요.</p>
       </div>
     );
-  } else if (view === 'notfound' || view === 'error') {
+  } else if (view === 'error') {
+    body = <ConnectionFailed onRetry={() => setRetryKey((k) => k + 1)} />;
+  } else if (view === 'notfound') {
     body = (
       <div className="v2-obit-notfound">
         <p className="v2-obit-notfound-title">초대 링크를 찾을 수 없습니다.</p>

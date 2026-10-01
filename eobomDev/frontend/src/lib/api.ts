@@ -16,13 +16,32 @@ export function registerSessionExpiredHandler(audience: Audience, handler: (mess
   sessionExpiredHandlers[audience] = handler;
 }
 
-export class ApiError extends Error {}
+// 00-42 §5.2 ③ — 5xx일 때만 서버가 기록한 요청 번호(X-Request-Id)를 담는다. 4xx에는 붙이지 않는다.
+// 🔴 message 끝에 "\n오류 번호: …" 한 줄을 붙여 둔다 — 오류 문구를 보여 주는 곳(30여 곳, alert 포함)을 화면마다
+//    고치지 않고도 번호가 따라 나오게 하려는 공통 처리다. 번호 없이 문구만 쓰려면 baseMessage를 읽는다.
+export class ApiError extends Error {
+  readonly status: number;
+  readonly requestId: string | null;
+  readonly baseMessage: string;
+  constructor(message: string, status = 0, requestId: string | null = null) {
+    super(requestId ? `${message}\n오류 번호: ${requestId}` : message);
+    this.status = status;
+    this.requestId = requestId;
+    this.baseMessage = message;
+  }
+}
 
 interface Envelope<T> {
   status: 'success' | 'error';
   data: T;
   message?: string;
+  requestId?: string | null;
 }
+
+const SERVER_ERROR_MESSAGE = '요청 처리 중 오류가 발생했습니다.';
+
+const requestIdOf = (res: Response, body?: { requestId?: string | null } | null): string | null =>
+  res.headers.get('X-Request-Id') || (typeof body?.requestId === 'string' ? body.requestId : null);
 
 // §5.2 — USER/ADMIN/PARTNER 3종 + 비인증(audience 생략, 토큰만 안 붙는다). 인증/비인증으로
 // 함수를 쪼개지 않는다 — 어느 걸 쓸지 매번 판단하게 되면 결국 다시 직접 fetch를 쓰게 된다.
@@ -47,9 +66,17 @@ async function rawFetch(path: string, audience: Audience | undefined, options: R
 // message를 담은 오류로 던진다 — 호출부에서 반복하던 판정(55곳)이 사라진다.
 export async function apiFetch<T = any>(path: string, audience?: Audience, options: RequestInit = {}): Promise<T> {
   const res = await rawFetch(path, audience, options);
-  const data: Envelope<T> = await res.json();
+  const isServerError = res.status >= 500;
+  let data: Envelope<T>;
+  try {
+    data = await res.json();
+  } catch {
+    // 게이트웨이(502·504 등)가 JSON이 아닌 본문을 돌려준 경우 — 5xx면 번호가 있을 때만 붙여 ApiError로 통일한다.
+    if (isServerError) throw new ApiError(SERVER_ERROR_MESSAGE, res.status, requestIdOf(res));
+    throw new ApiError(SERVER_ERROR_MESSAGE, res.status);
+  }
   if (data.status !== 'success') {
-    throw new ApiError(data.message || '요청 처리 중 오류가 발생했습니다.');
+    throw new ApiError(data.message || SERVER_ERROR_MESSAGE, res.status, isServerError ? requestIdOf(res, data) : null);
   }
   return data.data;
 }

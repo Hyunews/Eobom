@@ -632,6 +632,8 @@
 .v2-error-text {
   font-size: var(--v2-fs-support);
   color: var(--v2-urgent);
+  /* 00-42 §5.2 ③ — 5xx 오류 문구 끝의 "\n오류 번호: …" 줄바꿈을 살린다(lib/api.ts ApiError) */
+  white-space: pre-line;
 }
 
 .v2-status-active {
@@ -794,6 +796,7 @@
   padding: 12px 16px;
   margin: 0 0 24px;
   line-height: 1.6;
+  white-space: pre-line; /* 5xx 오류 번호 줄(lib/api.ts ApiError) */
 }
 
 .v2-filter-row {

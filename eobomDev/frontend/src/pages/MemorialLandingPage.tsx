@@ -6,6 +6,7 @@ import { apiFetchRaw } from '../lib/api';
 import { formatKST, formatDeathDate } from '../utils/obituaryCard';
 import { copyObituaryLink } from '../utils/kakaoShare';
 import { backdropCloseProps } from '../utils/backdropClose';
+import { ConnectionFailed } from '../components/ConnectionFailed';
 
 // 추모관 랜딩 — docs 05-01 §6.1-1. App.tsx isMemorialLandingRoute 패턴(ObituaryLandingPage.tsx와
 // 같은 꼴)으로 Header/Sidebar/Footer 밖에서 뜬다. 부고장(ObituaryLandingPage.tsx:213)이 이미
@@ -48,6 +49,9 @@ export const MemorialLandingPage: React.FC<MemorialLandingPageProps> = ({ curren
   const [data, setData] = useState<MemorialData | null>(null);
   const [guestbook, setGuestbook] = useState<GuestbookEntry[]>([]);
   const [notFound, setNotFound] = useState(false);
+  // 00-42 §5.2 ③ — 네트워크 실패·5xx는 "없음"이 아니라 "접속 실패"로 가른다(404만 notFound).
+  const [connectionFailed, setConnectionFailed] = useState(false);
+  const [retryKey, setRetryKey] = useState(0);
   const [loading, setLoading] = useState(true);
 
   const [tributeCount, setTributeCount] = useState(0);
@@ -69,12 +73,15 @@ export const MemorialLandingPage: React.FC<MemorialLandingPageProps> = ({ curren
 
   useEffect(() => {
     if (!slug) return;
+    setLoading(true);
+    setConnectionFailed(false);
     fetch(`${BACKEND_URL}/api/memorials/${slug}`)
       .then(async (res) => {
         if (res.status === 404) {
           setNotFound(true);
           return null;
         }
+        if (res.status >= 500 || res.status === 429) throw new Error(`HTTP ${res.status}`);
         return res.json();
       })
       .then((json) => {
@@ -86,19 +93,19 @@ export const MemorialLandingPage: React.FC<MemorialLandingPageProps> = ({ curren
           setNotFound(true);
         }
       })
-      .catch(() => setNotFound(true))
+      .catch(() => setConnectionFailed(true))
       .finally(() => setLoading(false));
-  }, [slug]);
+  }, [slug, retryKey]);
 
   useEffect(() => {
-    if (!slug || notFound) return;
+    if (!slug || notFound || connectionFailed) return;
     fetch(`${BACKEND_URL}/api/memorials/${slug}/guestbook`)
       .then((res) => res.json())
       .then((json) => {
         if (json.status === 'success') setGuestbook(json.data);
       })
       .catch(() => {});
-  }, [slug, notFound]);
+  }, [slug, notFound, connectionFailed]);
 
   // 🔄 2026-09-21 사용자 지시 — 헌화는 로그인 정보를 보내지 않는다(비회원도 하는 상호작용이라 계정과 무관하게 둔다).
   // 대신 **1인 1회 제한을 이 브라우저의 localStorage에 저장**한다(추모관마다 키 하나). 서버는 비회원 헌화를
@@ -197,6 +204,16 @@ export const MemorialLandingPage: React.FC<MemorialLandingPageProps> = ({ curren
       <div className="v2-obit-page">
         <div className="v2-obit-content v2-obit-notfound">
           <p className="v2-obit-notfound-sub">불러오는 중...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (connectionFailed) {
+    return (
+      <div className="v2-obit-page">
+        <div className="v2-obit-content">
+          <ConnectionFailed onRetry={() => setRetryKey((k) => k + 1)} />
         </div>
       </div>
     );
