@@ -71,16 +71,17 @@ describe('createdAtKst 칸·트리거', () => {
 });
 
 describe('앱은 createdAtKst를 읽지도 쓰지도 않는다', () => {
-  it('🔴 Prisma 쿼리 결과에 칸이 안 나온다(@ignore) — API가 행을 그대로 돌려줘도 createdAtKst가 새지 않는다', async () => {
-    // 타입 정의(index.d.ts)에는 이름이 보이지만 엔진이 @ignore 칸을 빼고 돌려준다 — 새는지는 실제 결과로 확인한다.
-    const user = await prisma.user.create({ data: { name: 'KST칸노출테스트' } });
+  it('🔴 코드가 createdAtKst에 다른 값을 넣어도 트리거 값(createdAt + 9시간)이 남는다 — create·update 모두', async () => {
+    // 이 칸은 Prisma 모델에 보이지만(Studio에서 보려고 @ignore를 뺐다) 코드에서 쓰면 안 된다 — 써도 트리거가 덮어쓰는지 확인한다.
+    const WRONG = new Date('2000-01-01T00:00:00.000Z');
+    const user = await prisma.user.create({ data: { name: 'KST칸덮어쓰기테스트', createdAtKst: WRONG } });
     createdIds.push(user.id);
-    const found = await prisma.user.findUnique({ where: { id: user.id } });
-    assert.ok(found);
-    assert.ok(!('createdAtKst' in found!), 'findUnique 결과에 createdAtKst가 있다 — schema.prisma에서 @ignore가 빠졌다');
-    assert.ok(!('createdAtKst' in user), 'create 결과에 createdAtKst가 있다');
-    const many = await prisma.user.findMany({ where: { id: user.id } });
-    assert.ok(!('createdAtKst' in many[0]), 'findMany 결과에 createdAtKst가 있다');
+    const afterCreate = await prisma.user.findUniqueOrThrow({ where: { id: user.id } });
+    assert.equal(afterCreate.createdAtKst!.getTime() - afterCreate.createdAt.getTime(), NINE_HOURS, 'create에서 넣은 값이 덮어써지지 않았다');
+
+    await prisma.user.update({ where: { id: user.id }, data: { createdAtKst: WRONG } });
+    const afterUpdate = await prisma.user.findUniqueOrThrow({ where: { id: user.id } });
+    assert.equal(afterUpdate.createdAtKst!.getTime() - afterUpdate.createdAt.getTime(), NINE_HOURS, 'update에서 넣은 값이 덮어써지지 않았다');
   });
 
   it('src/ 와 frontend/src/ 에 createdAtKst를 쓰는 코드가 0건이다', () => {

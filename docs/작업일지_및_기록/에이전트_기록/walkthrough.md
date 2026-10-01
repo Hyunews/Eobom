@@ -2357,5 +2357,21 @@
     - 🔴 **운영 미반영**(지시): `migrate-prod.ps1`·push 안 함. 운영에는 4개(`add_ops_logs` → `ops_log_kst_default` → `ops_log_utc_default_and_kst_views` → `created_at_kst_column`)가 대기. 마지막이 **운영 전 표 26개 일괄 UPDATE**(Facility 등)라 `migrate-prod.ps1`의 백업이 선행돼야 한다. 최종 상태는 UTC 저장 + 보기 칸이다.
     - ⚠️ 알아둘 것: ① 모든 UPDATE마다 트리거가 돈다(행당 덧셈 한 번 — 무시 가능). ② 뷰가 없어져 앞서 안내한 `_kst` 뷰 조회는 더 안 된다 → 시험은 `"createdAt"`·`"createdAtKst"` 칸으로. ③ `createdAt`을 쓰는 새 표가 생기면 칸+트리거 필수(위 규칙).
     - 🟡 결정 대기(개발자): 시험 후 확정 → 운영 반영 / 불필요하면 칸·트리거·함수 삭제 마이그레이션.
+  - **후속 6(10-01 개발자 요청) — 🟡 시험 중·결정 대기: `createdAtKst`의 `@ignore` 제거(Prisma Studio에서 보이게).** 후속 5의 `@ignore` 설계와 "쿼리 결과에 안 나온다" 검증을 **대체**한다.
+    - eobomDev/backend/prisma/schema.prisma — 26개 모델 `createdAtKst DateTime? @ignore` → `DateTime?`(주석 "보기 전용 · DB 트리거가 채움 · 🔴 코드에서 읽기·쓰기 금지(트리거가 쓰기를 덮어씀)"). DB·마이그레이션 변경 없음(스키마 파일만).
+    - eobomDev/backend/tests/created-at-kst.test.ts — "쿼리 결과에 칸이 안 나온다" 테스트를 **"코드가 `createdAtKst`에 다른 값(2000-01-01)을 넣어도 트리거 값(`createdAt`+9시간)이 남는다(create·update 모두)"** 로 교체. "코드 사용 0건" 검사(`src/`·`frontend/src/`)는 유지.
+    - drift: `prisma migrate dev --create-only`(백업 `local-20261001-141344.dump` 선행, 메인 DB엔 쓰지 않음)가 만든 마이그레이션 본문이 `-- This is an empty migration.` 한 줄 → **diff 비어 있음**. 시험용 폴더는 적용 전에 삭제, `migrate status` = "Database schema is up to date!"(41개).
+    - 검증: `tsc --noEmit` 에러 0 · `npm test` **272 통과**. `prisma generate`는 이번에도 dev 서버가 DLL을 잡아 EPERM(JS·타입은 갱신됨 — 위 새 테스트가 `createdAtKst`를 넣을 수 있는 것으로 확인).
+    - 🔴 **응답 노출 점검(목록만 — 고칠지는 사람 결정).** `@ignore`를 빼면서 Prisma가 `createdAtKst`를 **기본으로 같이 읽는다**(`select` 없는 호출 128건). 그중 **그 행을 통째로(또는 `...` 펼쳐서) `res.json`으로 내보내는 곳**은 코드로 확인한 것만:
+      1. `facilityController.ts` — `getFacilities`(위치 있음·없음 2경로), `getFacilityById`, `createReview`(작성 후 시설 재조회). **공개 API**이고 `...rest` 펼침이라 시설 + 중첩 `reviews[]`(리뷰 행에도 칸이 있음)까지 나간다.
+      2. `claimController.ts` — 시설 연동 신청 2곳(`data: claim`), 거절 처리(`data: updated`). (승인 경로 L145-146은 응답 형태 미확인)
+      3. `expertController.ts` — `serializeConsultRequestForExpert`가 행을 그대로 펼쳐 돌려줌 → `getMyConsultRequests`·`updateConsultStatus` 응답.
+      4. `memorialController.ts` — 추모관 개설(`data: memorial`)·내 추모관 목록·수정, 방명록 작성(`data: entry`), 사진 등록(`data: photo`).
+      - **안전(화이트리스트 변환 거침)**: `serializeExpert`·`serializePartner`·가족 지정 `serialize`·`safeLead`·`safeConsultRequest`·`serializePartnerLead`, 로그인 응답의 `user`(수동 조립).
+      - **미확인(정적 점검 한계)**: `obituaryController`·`endingNoteController`·`meActivityController`·`moderationController`·`adminController` 등 — `select` 없는 호출은 있으나 응답 직결 여부를 코드로 확정하지 못함(`res.json({ data })`가 변수를 거쳐 나가는 경우). 필요하면 실제 호출로 응답 키를 검사하는 시험을 별도로 만든다.
+      - 값은 `createdAt`+9시간 한국 시각(ISO 문자열 `…Z` 표기)이라 개인정보는 아니지만, **`Z`가 붙어 UTC로 오해될 수 있고 화면에서 `createdAt` 대신 쓰면 9시간이 어긋난다**. 프론트(`frontend/src/`)가 쓰는 코드는 0건.
+      - 대응 후보(사람 결정): ① 그대로 둔다(노이즈 허용) ② 응답 직전에 빼는 공용 함수/미들웨어(`res.json`을 감싸 `createdAtKst` 키 제거) ③ Prisma `omit`(5.13+ 미리보기 기능) 전역 설정 ④ 위 호출마다 `select`. ②가 가장 작고 안전하다.
+    - 🔴 운영 미반영(지시 그대로). 운영 대기는 후속 5와 같은 4개 마이그레이션.
+    - 🟡 사람 확인 요청: Prisma Studio를 **껐다 켜서**(`npm run studio` — 스키마를 시작할 때 읽는다) 아무 표에서 `createdAtKst`가 보이는지.
 
 <!-- Gemini 판정 1줄: ✅통과 / ❌반려(사유) / 🔄스펙갱신(고친 문서) -->
