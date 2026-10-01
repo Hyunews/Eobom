@@ -1,5 +1,6 @@
 import { Prisma } from '@prisma/client';
 import { POLICY } from '../config/policy';
+import { kstIso, kstYymmdd } from '../utils/kst';
 
 // 전문가 상담 신청(ConsultRequest) 생성 공통 로직.
 // docs/02_전문가_매칭/02-03_전문가_공개노출_및_상담신청_명세서.md §4·§5.2를 그대로 구현한다.
@@ -27,10 +28,8 @@ export class ExpertNotAvailableError extends Error {
 const pad = (n: number, len: number) => String(n).padStart(len, '0');
 
 // 'YYMMDD' — leadService.ts와 동일한 날짜 표기(프로젝트 표준)
-const dateKeyOf = (d: Date): string => {
-  const yy = d.getFullYear() % 100;
-  return `${pad(yy, 2)}${pad(d.getMonth() + 1, 2)}${pad(d.getDate(), 2)}`;
-};
+// 🔴 한국 날짜 기준(utils/kst.ts) — 서버가 UTC라 getDate()로 만들면 한국 0~9시에 하루 전 번호가 나온다.
+const dateKeyOf = (d: Date): string => kstYymmdd(d);
 
 // 일자별 원자적 증가값으로 requestNo 발번. ConsultNumberCounter는 LeadNumberCounter와 별도 테이블 —
 // Postgres 행 잠금 기반 upsert increment로 동시 요청에서도 안전, requestNo @unique와 이중 방어.
@@ -102,7 +101,7 @@ export const createConsultRequest = async (tx: TxClient, input: CreateConsultReq
       thirdPartyConsentAt: now,
       consentSnapshot: buildConsultConsentNotice(expert.name) as unknown as Prisma.InputJsonValue,
       statusHistory: [
-        { status: 'REQUESTED', at: now.toISOString(), by: input.userId ? 'user' : 'anonymous' },
+        { status: 'REQUESTED', at: kstIso(now), by: input.userId ? 'user' : 'anonymous' },
       ] as unknown as Prisma.InputJsonValue,
     },
   });

@@ -5,6 +5,7 @@ import { SECTIONS, RELATIONSHIP_LABEL } from '../components/endingNote/constants
 import '../styles/design-v2.css';
 import { LoginGate } from '../components/LoginGate';
 import { backdropCloseProps } from '../utils/backdropClose';
+import { formatKstDate, formatKstMonthDayTime } from '../utils/kstDate';
 import { entryFields } from '../components/familyShared/sectionFields';
 import { ReleaseRequestModal } from '../components/familyShared/ReleaseRequestModal';
 import { PendingFamilyPanel } from '../components/familyShared/PendingFamilyPanel';
@@ -77,23 +78,13 @@ interface FamilySharedPageProps {
   onOpenLogin?: () => void;
 }
 
-const formatDate = (iso: string): string => {
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return '';
-  const mm = String(d.getMonth() + 1).padStart(2, '0');
-  const dd = String(d.getDate()).padStart(2, '0');
-  return `${d.getFullYear()}.${mm}.${dd}`;
-};
+const formatDate = (iso: string): string => formatKstDate(iso, '.');
 
 // "2026-09-14 수락함" — 초대 화면과 같은 날짜 표기(하이픈)
 const formatDashDate = (iso: string): string => formatDate(iso).replace(/\./g, '-');
 
 // "9월 30일 14시 5분" — 접수·확인 마감 시각
-const formatDateTime = (iso: string): string => {
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return '';
-  return `${d.getMonth() + 1}월 ${d.getDate()}일 ${d.getHours()}시 ${d.getMinutes()}분`;
-};
+const formatDateTime = (iso: string): string => formatKstMonthDayTime(iso);
 
 const SCOPE_LABEL: Record<string, string> = { PRIMARY: '주 연락자', VIEWER: '열람자' };
 

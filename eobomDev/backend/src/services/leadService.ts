@@ -1,5 +1,6 @@
 import { Prisma } from '@prisma/client';
 import { POLICY } from '../config/policy';
+import { kstIso, kstYymmdd } from '../utils/kst';
 
 // 리드(Lead) 생성 공통 로직. docs/01_장사시설_매칭/01-05_...명세서.md §4를 그대로 구현한다.
 // 반드시 트랜잭션(tx) 안에서 호출한다 — leadNo 발번(§4.2)과 리드 생성이 원자적이어야 한다.
@@ -29,10 +30,8 @@ export class FacilityNotFoundError extends Error {
 const pad = (n: number, len: number) => String(n).padStart(len, '0');
 
 // 'YYMMDD' — 프로젝트 표준 2자리 연도 표기(다른 문서 날짜 형식과 통일)
-const dateKeyOf = (d: Date): string => {
-  const yy = d.getFullYear() % 100;
-  return `${pad(yy, 2)}${pad(d.getMonth() + 1, 2)}${pad(d.getDate(), 2)}`;
-};
+// 🔴 한국 날짜 기준(utils/kst.ts) — 서버가 UTC라 getDate()로 만들면 한국 0~9시에 하루 전 번호가 나온다.
+const dateKeyOf = (d: Date): string => kstYymmdd(d);
 
 // 일자별 원자적 증가값으로 leadNo 발번 (§4.2). Prisma upsert의 increment는 Postgres 행 잠금으로
 // 컴파일되어 동시 요청에서도 안전하다 — Lead.leadNo @unique 제약과 이중 방어.
@@ -106,7 +105,7 @@ export const createLead = async (tx: TxClient, input: CreateLeadInput) => {
         ? (buildConsentNotice(facility.name, Boolean(facility.partnerId)) as unknown as Prisma.InputJsonValue)
         : Prisma.JsonNull,
       statusHistory: [
-        { status: 'REQUESTED', at: now.toISOString(), by: input.userId ? 'user' : 'anonymous' },
+        { status: 'REQUESTED', at: kstIso(now), by: input.userId ? 'user' : 'anonymous' },
       ] as unknown as Prisma.InputJsonValue,
     },
   });

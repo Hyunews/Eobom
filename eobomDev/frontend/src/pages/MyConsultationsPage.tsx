@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { ChevronRight } from 'lucide-react';
 import { apiFetch } from '../lib/api';
 import { backdropCloseProps } from '../utils/backdropClose';
+import { formatKstDate } from '../utils/kstDate';
 import '../styles/design-v2.css';
 import { LoginGate } from '../components/LoginGate';
 import { PageLink } from '../components/common/PageLink';
@@ -72,13 +73,7 @@ const CATEGORY_LABEL: Record<string, string> = {
   FUNERAL_DIRECTOR: '장례 지도사',
 };
 
-const formatDate = (iso: string): string => {
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return '';
-  const mm = String(d.getMonth() + 1).padStart(2, '0');
-  const dd = String(d.getDate()).padStart(2, '0');
-  return `${d.getFullYear()}.${mm}.${dd}`;
-};
+const formatDate = (iso: string): string => formatKstDate(iso, '.');
 
 interface MyConsultationsPageProps {
   currentUser?: string | null;

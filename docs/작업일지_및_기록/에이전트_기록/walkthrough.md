@@ -2332,5 +2332,11 @@
   - **후속 2(10-01 개발자 결정) — 🔴 편차: 시각을 KST로 저장.** 설계서 §5.2 ⑦은 "UTC 저장, 화면만 한국 시간"인데, 개발자 요청으로 `AccessLog`·`ErrorLog`·`AdminAuditLog`의 `createdAt`만 한국 시간 벽시계 값으로 저장한다. 구현: 마이그레이션 `20261001160000_ops_log_kst_default`(칸 기본값을 `timezone('Asia/Seoul'::text, now())`로 — 기존 행·앱 코드 변경 없음), `opsLogPurgeService.ts` 기준 시각 +9시간, `schema.prisma` 주석. 백업 `local-20261001-134058.dump` → 사람 확인 → 로컬 적용 → `migrate diff` No difference. `npm test` 263 통과(KST 확인 테스트 1건 추가).
     - ⚠️ 칸 타입이 시간대 없는 timestamp라 DB 도구엔 `13:30Z`처럼 **Z가 붙어 보이지만 실제는 한국 시각**이다. 이 3개 표만 KST이고 나머지 표는 UTC — **두 표를 `createdAt`으로 직접 비교·조인하지 말 것.** 점검 SQL에 `AT TIME ZONE 'Asia/Seoul'`을 또 붙이면 9시간 두 번 밀린다.
     - 🔴 운영 반영 때 마이그레이션이 **2개**(`add_ops_logs` + `ops_log_kst_default`)다 — `migrate-prod.ps1`이 둘 다 적용한다. 🟡 `[Opus]`: `00-42` §5.2 ⑦·§8을 "KST 저장"으로 고칠지 판단 필요(`docs/`는 건드리지 않음).
+  - **후속 3(10-01 개발자 요청) — 시간 표기를 한국 시간으로 통일(표기만, 저장은 그대로).**
+    - 신규: eobomDev/frontend/src/utils/kstDate.ts(`Intl` `timeZone: 'Asia/Seoul'`), eobomDev/backend/src/utils/kst.ts(+9h 고정), eobomDev/backend/src/utils/kst.test.ts(4건, `npm test`에 추가).
+    - 프론트(직접 `getMonth()`·`toLocale…String()` 제거): AdminPage.tsx(9곳), FamilySharedPage.tsx(2), FarewellMessageCard.tsx(2), AccountRecoveryModal.tsx, ReleaseRequestModal.tsx, MyConsultationsPage.tsx, MyGuestbookPage.tsx, ConsentModal.tsx, WithdrawalModal.tsx, FarewellMessagePage.tsx(내보내기 파일명 날짜), EndingNotePage.tsx(`timeZone: 'Asia/Seoul'`만 추가). 🔵 `obituaryCard.ts`는 이미 KST라 그대로.
+    - 백엔드: consultService.ts·leadService.ts(접수번호 `YYMMDD`), farewellMessageExport.ts(파일명 날짜·`반출 일시`·`작성일`), ocrController.ts(`todayKey`), app.ts(`/api/health` time), consultService·leadService·leadController(2)·expertController의 `statusHistory.at`(→ `+09:00` 표기, 같은 순간이라 `new Date()`로 읽으면 동일).
+    - 검증: 양쪽 `tsc --noEmit` 에러 0 · `npm test` 267 통과(262+KST 확인 1+kst 4). 🔴 실기동 대기: 어드민·내 상담·유족 메시지 화면의 날짜가 한국 날짜로 나오는지.
+    - **편차/주의**: ① 접수번호 날짜가 한국 날짜로 바뀐다 — **한국 0~9시 접수분은 이전엔 하루 전 번호였다**(`ConsultNumberCounter`·`LeadNumberCounter` 일자 키도 같이 바뀌어 오늘 새 일련번호로 시작). ② OCR 하루 한도 초기화가 UTC 자정(한국 09시) → 한국 자정. ③ 🔴 **다른 표의 `createdAt` 저장값은 UTC 그대로 둠**(전 표 KST 저장은 기존 행 `+9h` 일괄 수정과 `new Date()` 비교 로직 전수 수정이 필요해 위험 — 별도 결정). 로그 3개 표만 KST 저장. ④ 계산용 시각(`setDate`·`setFullYear` 파기 기한, `operatingHours`의 이미 KST 보정된 계산)은 글자 표기가 아니라 손대지 않음.
 
 <!-- Gemini 판정 1줄: ✅통과 / ❌반려(사유) / 🔄스펙갱신(고친 문서) -->

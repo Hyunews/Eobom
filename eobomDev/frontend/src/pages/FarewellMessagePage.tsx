@@ -3,6 +3,7 @@ import { LoginGate } from '../components/LoginGate';
 import { apiFetch } from '../lib/api';
 import { getToken } from '../lib/storage';
 import { BACKEND_URL } from '../config';
+import { kstTodayCompact } from '../utils/kstDate';
 import { RecipientItem, MessageItem } from '../components/farewell/FarewellMessageCard';
 import { FarewellDesktopView } from '../components/farewell/FarewellDesktopView';
 import { FarewellMobileView } from '../components/farewell/FarewellMobileView';
@@ -61,7 +62,7 @@ export const FarewellMessagePage: React.FC<FarewellMessagePageProps> = ({ curren
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `eobom_유족메시지_${new Date().toISOString().slice(0, 10).replace(/-/g, '')}.zip`;
+      a.download = `eobom_유족메시지_${kstTodayCompact()}.zip`;
       document.body.appendChild(a);
       a.click();
       a.remove();

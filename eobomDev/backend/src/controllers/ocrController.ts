@@ -5,6 +5,7 @@ import { ClovaOcrProvider } from '../services/clovaOcrProvider';
 import type { OcrProvider } from '../services/ocrProvider';
 import sharp from 'sharp';
 import prisma from '../config/prisma';
+import { kstYmd } from '../utils/kst';
 import { convertHeicToJpeg, resizeIfNeeded, normalizeOrientation, getPdfPageCount } from '../services/imageConvert';
 import { detectSeal } from '../services/sealDetect';
 import { checkWillRequirements } from '../services/willRequirements';
@@ -28,7 +29,7 @@ const DAILY_LIMIT = 10; // §7 #8 — 사용자당 하루 10회.
 // 남용 방지용 1차 가드로 충분하다고 보고 우선 이렇게 둔다. 실사용 노출 전 재검토 필요(walkthrough 기록).
 const dailyCallCounts = new Map<string, { date: string; count: number }>();
 
-const todayKey = () => new Date().toISOString().slice(0, 10);
+const todayKey = () => kstYmd(); // 하루 한도가 한국 자정에 초기화된다(이전엔 UTC 자정 = 한국 오전 9시)
 
 const checkAndIncrementDailyLimit = (userId: string): boolean => {
   const today = todayKey();

@@ -6,6 +6,7 @@ import { verifyPartnerBearerToken } from './partnerController';
 import { createLead, ConsentRequiredError, FacilityNotFoundError } from '../services/leadService';
 import { resolveApplicantContact, ProfileContactMissingError } from '../utils/applicantContact';
 import { normalizePhone } from '../utils/phone';
+import { kstIso } from '../utils/kst';
 
 const safeLead = (lead: { leadNo: string; type: string; status: string; createdAt: Date }) => ({
   leadNo: lead.leadNo,
@@ -185,7 +186,7 @@ const markNotifiedIfNeeded = async (lead: LeadWithFacility): Promise<LeadWithFac
     where: { id: lead.id },
     data: {
       status: 'NOTIFIED',
-      statusHistory: [...history, { status: 'NOTIFIED', at: new Date().toISOString(), by: 'partner' }] as unknown as Prisma.InputJsonValue,
+      statusHistory: [...history, { status: 'NOTIFIED', at: kstIso(), by: 'partner' }] as unknown as Prisma.InputJsonValue,
     },
     include: { facility: { select: FACILITY_SELECT } },
   });
@@ -304,7 +305,7 @@ export const updateMyLeadStatus = async (req: Request, res: Response) => {
         status,
         statusHistory: [
           ...history,
-          { status, at: new Date().toISOString(), by: 'partner', ...(note?.trim() ? { note: note.trim() } : {}) },
+          { status, at: kstIso(), by: 'partner', ...(note?.trim() ? { note: note.trim() } : {}) },
         ] as unknown as Prisma.InputJsonValue,
       },
       include: { facility: { select: FACILITY_SELECT } },

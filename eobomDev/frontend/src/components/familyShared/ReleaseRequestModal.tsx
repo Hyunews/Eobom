@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { apiFetch, ApiError } from '../../lib/api';
 import { backdropCloseProps } from '../../utils/backdropClose';
+import { kstToday } from '../../utils/kstDate';
 
 // 00-41 §8.1 — 유족의 개봉 요청 폼. 🔴 파일 첨부 칸을 만들지 않는다(00-16 §4.3). 🔴 이어봄이 발송한다는 뜻의 문구를
 // 쓰지 않는다 — 이어봄은 보내지 않는다(§6). 안내 문구는 §8.1 문장 그대로(운영시간 9~17시·12시간은 서버 상수 값의 표기다).
@@ -12,12 +13,7 @@ interface Props {
   onDone: () => void;
 }
 
-const todayIso = (): string => {
-  const d = new Date();
-  const mm = String(d.getMonth() + 1).padStart(2, '0');
-  const dd = String(d.getDate()).padStart(2, '0');
-  return `${d.getFullYear()}-${mm}-${dd}`;
-};
+const todayIso = (): string => kstToday('-');
 
 export const ReleaseRequestModal: React.FC<Props> = ({ designationId, ownerName, onClose, onDone }) => {
   const [deceasedName, setDeceasedName] = useState('');

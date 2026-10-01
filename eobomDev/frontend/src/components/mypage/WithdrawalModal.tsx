@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { apiFetch, ApiError } from '../../lib/api';
 import { backdropCloseProps } from '../../utils/backdropClose';
+import { formatKstDate } from '../../utils/kstDate';
 import '../../styles/design-v2.css';
 
 // 회원 탈퇴 — 00-36 §4.3(4단계 확인 흐름)·M-3 #12, 06-05 §5.4-2. 화면 규칙: 00-39 규칙 18(체크는 `.v2-check`)·
@@ -32,13 +33,7 @@ interface Preview {
 
 type Step = 'delete' | 'export' | 'grace' | 'confirm' | 'done';
 
-const formatDashDate = (iso: string): string => {
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return '';
-  const mm = String(d.getMonth() + 1).padStart(2, '0');
-  const dd = String(d.getDate()).padStart(2, '0');
-  return `${d.getFullYear()}-${mm}-${dd}`;
-};
+const formatDashDate = (iso: string): string => formatKstDate(iso, '-');
 
 interface WithdrawalModalProps {
   onClose: () => void;

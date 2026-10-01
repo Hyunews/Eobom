@@ -5,6 +5,7 @@ import { decryptNoteField } from '../utils/crypto';
 import { isR2Enabled } from '../config/r2';
 import { downloadVoiceObject } from './r2Storage';
 import { convertToMp3 } from './audioConvert';
+import { kstIso, kstYmd, kstYmdCompact } from '../utils/kst';
 
 // docs 06-05 §5.4-3·§5.4-3-1·§8 D-5 — 반출 꾸러미. 전체(#23)·단건(#23-1) 반출과 탈퇴(§5.4-2,
 // 본인)·사망(§5.4-4, 유족)이 전부 같은 zip 빌더 하나를 탄다(§5.4-1) — 소유자 확인만 호출부가
@@ -39,11 +40,7 @@ const contentDispositionFor = (filename: string): string =>
 
 // label이 있으면 단건 반출(§5.4-3-1 파일명 규칙), 없으면 전체 반출.
 export const buildExportZipFilename = (label?: string): string => {
-  const now = new Date();
-  const y = now.getFullYear();
-  const m = String(now.getMonth() + 1).padStart(2, '0');
-  const d = String(now.getDate()).padStart(2, '0');
-  const datePart = `${y}${m}${d}`;
+  const datePart = kstYmdCompact(); // 한국 날짜(서버는 UTC)
   if (label) {
     return `eobom_유족메시지_${sanitizeForFilename(label)}_${datePart}.zip`;
   }
@@ -71,7 +68,7 @@ const buildFarewellMessageZip = async (rows: ExportRow[], destination: Writable)
 
   const guideLines = [
     '이 압축 파일은 이어봄(Eobom)에서 반출한 유족 메시지 백업입니다.',
-    `반출 일시: ${new Date().toISOString()}`,
+    `반출 일시: ${kstIso()}`,
     '',
     '편지 본문은 .txt(평문), 음성은 .mp3로 담겨 있으며 이어봄 없이도 일반 프로그램으로',
     '바로 열립니다. 이 zip에는 암호를 걸지 않았습니다 — 이 파일을 전달받은 경로 자체',
@@ -79,7 +76,7 @@ const buildFarewellMessageZip = async (rows: ExportRow[], destination: Writable)
     '',
     ...rows.map((r, i) => {
       const idx = String(i + 1).padStart(2, '0');
-      return `- 편지_${idx}_${recipientLabelOf(r)}: 작성일 ${r.createdAt.toISOString().slice(0, 10)}`;
+      return `- 편지_${idx}_${recipientLabelOf(r)}: 작성일 ${kstYmd(r.createdAt)}`;
     }),
   ];
   archive.append(guideLines.join('\n'), { name: '안내.txt' });

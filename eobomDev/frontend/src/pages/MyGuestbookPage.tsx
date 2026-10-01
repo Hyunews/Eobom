@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { ChevronRight } from 'lucide-react';
 import { apiFetch, ApiError } from '../lib/api';
 import { backdropCloseProps } from '../utils/backdropClose';
+import { formatKstDate } from '../utils/kstDate';
 import '../styles/design-v2.css';
 import { LoginGate } from '../components/LoginGate';
 
@@ -29,13 +30,7 @@ interface GuestbookEntry {
   memorial: { slug: string; deceasedName: string; isClosed: boolean };
 }
 
-const formatDate = (iso: string): string => {
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return '';
-  const mm = String(d.getMonth() + 1).padStart(2, '0');
-  const dd = String(d.getDate()).padStart(2, '0');
-  return `${d.getFullYear()}.${mm}.${dd}`;
-};
+const formatDate = (iso: string): string => formatKstDate(iso, '.');
 
 interface MyGuestbookPageProps {
   currentUser?: string | null;

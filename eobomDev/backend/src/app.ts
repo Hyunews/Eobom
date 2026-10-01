@@ -19,6 +19,7 @@ import sttRoutes from './routes/sttRoutes';
 import ocrRoutes from './routes/ocrRoutes';
 import { requestId, accessLog } from './middleware/requestLog';
 import { errorHandler } from './middleware/errorHandler';
+import { kstIso } from './utils/kst';
 
 // Express 앱 조립만 한다 — listen·dotenv·부팅 점검은 server.ts 몫이다.
 // 회귀 테스트(backend/tests/)가 서버를 띄우지 않고 이 앱을 그대로 불러 쓰려고 분리했다(00-15 §6 ②).
@@ -66,7 +67,7 @@ app.get('/api/health', (req, res) => {
   res.json({
     status: 'online',
     service: 'Eobom Backend API Server',
-    time: new Date().toISOString(),
+    time: kstIso(),
   });
 });
 

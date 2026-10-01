@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { apiFetch, ApiError } from '../../lib/api';
 import { backdropCloseProps } from '../../utils/backdropClose';
+import { formatKstDate } from '../../utils/kstDate';
 import '../../styles/design-v2.css';
 
 // 개인정보·동의 — 00-36 §4.5(성격별 3층), 위치 = 마이페이지 "내 활동과 계정" 행 → 모달(00-39 §6.8-1 규칙 21).
@@ -19,11 +20,7 @@ interface ConsentData {
 
 const formatDashDate = (iso: string | null): string => {
   if (!iso) return '-';
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return '-';
-  const mm = String(d.getMonth() + 1).padStart(2, '0');
-  const dd = String(d.getDate()).padStart(2, '0');
-  return `${d.getFullYear()}-${mm}-${dd}`;
+  return formatKstDate(iso, '-') || '-';
 };
 
 interface ConsentModalProps {

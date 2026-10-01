@@ -3,6 +3,7 @@ import { Heart, Plus, Loader2, Pencil, X, Volume2, Trash2, Download, Upload, Mic
 import { BACKEND_URL } from '../../config';
 import { VoiceToTextInput, SavedMedia } from './VoiceToTextInput';
 import { backdropCloseProps } from '../../utils/backdropClose';
+import { kstTodayCompact, formatKstDateSpaced } from '../../utils/kstDate';
 
 // 06-05 §5.4-3-1 D-5 항목23-2 — 건별 반출 파일명. 백엔드 farewellMessageExport.ts의
 // sanitizeForFilename·buildExportZipFilename과 규칙을 맞춘다(40자 절단·금지문자 제거).
@@ -10,22 +11,12 @@ const sanitizeForFilename = (raw: string): string =>
   raw.replace(/[\\/:*?"<>|]/g, '').trim().slice(0, 40) || '무제';
 
 const buildExportFilename = (label: string): string => {
-  const now = new Date();
-  const y = now.getFullYear();
-  const m = String(now.getMonth() + 1).padStart(2, '0');
-  const d = String(now.getDate()).padStart(2, '0');
-  return `eobom_유족메시지_${sanitizeForFilename(label)}_${y}${m}${d}.zip`;
+  return `eobom_유족메시지_${sanitizeForFilename(label)}_${kstTodayCompact()}.zip`;
 };
 
 // 🆕 09-08 4차 — reports/farewell_messages_redesign.html 시안 B 포팅. 시간까지 보이던 것을
 // 날짜만으로 줄였다("2026. 09. 04." 형식으로 시안과 맞춤).
-const formatLetterDate = (iso: string): string => {
-  const d = new Date(iso);
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
-  return `${y}. ${m}. ${day}.`;
-};
+const formatLetterDate = (iso: string): string => formatKstDateSpaced(iso);
 
 // 06-05 §7·§8 Phase B — 수신자 카드 1개. 편지 목록(미리보기) + 작성/수정 편집기를 담당한다.
 // §10 항목5 — 수신자 1명에게 여러 통 허용. 카드 안에 편지 목록이 여러 건 쌓일 수 있다.

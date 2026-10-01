@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { ShieldCheck, Lock, Mail, CheckCircle2, XCircle, Pencil, Save, X, Search, ChevronLeft, ChevronRight } from 'lucide-react';
 import { BACKEND_URL, formatPhoneForDisplay } from '../config';
 import { AddressSearchModal } from '../components/AddressSearchModal';
+import { formatKstDate, formatKstDateTime, formatKstMonthDayTime } from '../utils/kstDate';
 
 // 운영자 전용 — 사업자(Partner)·전문가(Expert) 가입 심사 + 시설 클레임(연동) 심사.
 // docs/01-05 §6.2, docs/02-02. 계정은 seed-admin.ts로만 생성되므로 여기엔 가입 폼이 없다.
@@ -34,10 +35,7 @@ const DV_REJECT_LABELS: Record<string, string> = {
 const DV_RELATION_LABELS: Record<string, string> = { SPOUSE: '배우자', CHILD: '자녀', PARENT: '부모', SIBLING: '형제자매', OTHER: '기타' };
 
 // "9월 30일 14시 5분"
-const formatDvTime = (iso: string): string => {
-  const d = new Date(iso);
-  return Number.isNaN(d.getTime()) ? '' : `${d.getMonth() + 1}월 ${d.getDate()}일 ${d.getHours()}시 ${d.getMinutes()}분`;
-};
+const formatDvTime = (iso: string): string => formatKstMonthDayTime(iso);
 // 마감까지 남은 실제 시간(휴무 포함 시각 차이) — 운영시간 계산은 서버가 dueAt에 이미 반영했다.
 const formatRemaining = (iso: string, nowMs: number): string => {
   const diff = new Date(iso).getTime() - nowMs;
@@ -1097,7 +1095,7 @@ export const AdminPage: React.FC = () => {
                         <input type="checkbox" checked={selectedPurge.has(key)} onChange={() => togglePurgeSelection(key)} />
                         <span style={{ fontSize: '0.9rem' }}>{item.title || '(제목 없음)'}</span>
                         <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginLeft: 'auto' }}>
-                          음성 삭제 {item.expiredAt ? new Date(item.expiredAt).toLocaleDateString() : ''}
+                          음성 삭제 {item.expiredAt ? formatKstDate(item.expiredAt) : ''}
                         </span>
                       </label>
                     );
@@ -1122,7 +1120,7 @@ export const AdminPage: React.FC = () => {
                         <span style={{ fontSize: '0.9rem' }}>{item.title || '(제목 없음)'}</span>
                         {item.hasMedia && <span style={{ fontSize: '0.75rem', backgroundColor: 'var(--secondary-color)', padding: '0.1rem 0.4rem', borderRadius: 'var(--r-sm)' }}>첨부 포함</span>}
                         <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginLeft: 'auto' }}>
-                          편지 삭제 {item.expiredAt ? new Date(item.expiredAt).toLocaleDateString() : ''}
+                          편지 삭제 {item.expiredAt ? formatKstDate(item.expiredAt) : ''}
                         </span>
                       </label>
                     );
@@ -1144,7 +1142,7 @@ export const AdminPage: React.FC = () => {
                       <span style={{ fontSize: '0.85rem', fontFamily: 'monospace' }}>{p.mediaKey}</span>
                       <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{p.bucket}</span>
                       <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginLeft: 'auto' }}>
-                        1단계 {new Date(p.queuedAt).toLocaleDateString()}
+                        1단계 {formatKstDate(p.queuedAt)}
                       </span>
                       <button onClick={() => completeArchiveItem(p.id)} className="btn" style={{ ...SMALL_BTN, backgroundColor: 'var(--state-ok-bg)', color: 'var(--state-ok-fg)' }}>
                         완료 표시
@@ -1178,7 +1176,7 @@ export const AdminPage: React.FC = () => {
                     <div style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginTop: '0.2rem' }}>
                       개설자 {m.createdByUser?.name}({m.createdByUser?.email})
                       {m.closedAt && ' · 폐쇄됨'}
-                      {m.hiddenAt && ` · 운영자가 내림 (${new Date(m.hiddenAt).toLocaleDateString()})`}
+                      {m.hiddenAt && ` · 운영자가 내림 (${formatKstDate(m.hiddenAt)})`}
                     </div>
                   </div>
                   <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
@@ -1252,7 +1250,7 @@ export const AdminPage: React.FC = () => {
                     <div>
                       <strong style={{ color: 'var(--primary-color)', fontSize: '1.02rem' }}>故 {r.deceasedName}</strong>
                       <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginLeft: '0.6rem' }}>
-                        회원 {r.memberName} · 사망일 {new Date(r.deathDate).toLocaleDateString()}
+                        회원 {r.memberName} · 사망일 {formatKstDate(r.deathDate)}
                       </span>
                       {badge && (
                         <span style={{ fontSize: '0.78rem', fontWeight: 700, backgroundColor: badge.bg, color: badge.fg, padding: '0.15rem 0.5rem', borderRadius: 'var(--r-sm)', marginLeft: '0.5rem' }}>
@@ -1330,7 +1328,7 @@ export const AdminPage: React.FC = () => {
                   <span style={{ fontSize: '0.78rem', backgroundColor: 'var(--secondary-color)', padding: '0.1rem 0.4rem', borderRadius: 'var(--r-sm)', marginLeft: '0.5rem' }}>{c.status}</span>
                 </div>
                 <div style={{ fontSize: '0.85rem', color: 'var(--text-main)' }}>{c.content}</div>
-                <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>신청 {new Date(c.createdAt).toLocaleString()}</div>
+                <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>신청 {formatKstDateTime(c.createdAt)}</div>
               </div>
             ))
           ))}
@@ -1354,7 +1352,7 @@ export const AdminPage: React.FC = () => {
                     <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginLeft: '0.6rem' }}>{u.email || '(이메일 없음)'}</span>
                     <span style={{ fontSize: '0.78rem', backgroundColor: 'var(--secondary-color)', padding: '0.1rem 0.4rem', borderRadius: 'var(--r-sm)', marginLeft: '0.5rem' }}>{u.role}</span>
                   </div>
-                  <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>가입 {new Date(u.createdAt).toLocaleDateString()}</span>
+                  <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>가입 {formatKstDate(u.createdAt)}</span>
                 </button>
               ))}
               <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.8rem', marginTop: '0.4rem' }}>
@@ -1448,7 +1446,7 @@ export const AdminPage: React.FC = () => {
                 </div>
                 <div style={{ fontSize: '0.9rem' }}>
                   <div>이메일: {openMemberDetail.email || '없음'}</div>
-                  <div>가입일: {new Date(openMemberDetail.createdAt).toLocaleString()}</div>
+                  <div>가입일: {formatKstDateTime(openMemberDetail.createdAt)}</div>
                   <div>방명록 작성 수: {openMemberDetail.guestbookCount}</div>
                 </div>
                 <div>

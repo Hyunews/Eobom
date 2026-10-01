@@ -6,6 +6,7 @@ import { Prisma } from '@prisma/client';
 import prisma from '../config/prisma';
 import { JWT_SECRET } from '../config/jwt';
 import { encryptField, decryptField } from '../utils/crypto';
+import { kstIso } from '../utils/kst';
 import { normalizePhone, isValidPhoneLength, maskPhone, MIN_PHONE_DIGITS, MAX_PHONE_DIGITS } from '../utils/phone';
 
 // 전문가(변호사·세무사·행정사·장례지도사) 인증 — Partner(장사시설)와 완전 분리된 계정 체계.
@@ -374,7 +375,7 @@ export const updateConsultRequestStatus = async (req: Request, res: Response) =>
         status: nextStatus,
         statusHistory: [
           ...history,
-          { status: nextStatus, at: now.toISOString(), by: 'expert', note: note ?? null },
+          { status: nextStatus, at: kstIso(now), by: 'expert', note: note ?? null },
         ] as unknown as Prisma.InputJsonValue,
       },
     });

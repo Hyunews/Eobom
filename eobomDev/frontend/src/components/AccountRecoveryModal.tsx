@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { apiFetch, apiFetchRaw, ApiError } from '../lib/api';
 import { getToken } from '../lib/storage';
+import { formatKstDate } from '../utils/kstDate';
 import { ACCOUNT_RECOVERED_EVENT } from './ConsentRequiredModal';
 import '../styles/design-v2.css';
 
@@ -17,13 +18,7 @@ interface AccountRecoveryModalProps {
   onLogout: () => void;
 }
 
-const formatDashDate = (iso: string): string => {
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return '';
-  const mm = String(d.getMonth() + 1).padStart(2, '0');
-  const dd = String(d.getDate()).padStart(2, '0');
-  return `${d.getFullYear()}-${mm}-${dd}`;
-};
+const formatDashDate = (iso: string): string => formatKstDate(iso, '-');
 
 export const AccountRecoveryModal: React.FC<AccountRecoveryModalProps> = ({ currentUser, onLogout }) => {
   const [scheduledAt, setScheduledAt] = useState<string | null>(null);

@@ -491,7 +491,7 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
     if (!printWindow) return;
     const safeText = draftText.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
     const safeNotice = NOT_A_WILL_NOTICE.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-    const todayStr = new Date().toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' });
+    const todayStr = new Date().toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric', timeZone: 'Asia/Seoul' });
     // 개발자 직접 지시(2026-08-31) — 자필증서 4대 요건 중 성명·날인은 화면이 대신 채울 수 없다
     // (위 체크리스트 §1137~1142와 동일 근거). 인쇄물 최하단에 옮겨 쓴 뒤 손으로 채울 성명·날인
     // 칸을 둔다 — 도장·지장 어느 쪽이든 찍을 수 있게 빈 네모칸(seal box)도 같이 준다.
