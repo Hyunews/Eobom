@@ -17,9 +17,14 @@ services:
     runtime: node
     plan: free
     rootDir: eobomDev/backend
-    buildCommand: npm install && npm run build
+    # 🔴 NODE_ENV=production이면 `npm ci`/`npm install`이 devDependencies를 건너뛰는데 빌드(`tsc`·prisma)가
+    # 그걸 필요로 한다 — 그래서 `--include=dev`. 대시보드 실제 설정과 맞춘 값(10-01, systems.md 「백엔드 배포」).
+    buildCommand: npm ci --include=dev && npm run build
     startCommand: npm start
     envVars:
+      # 🔴 값 고정. 데모 로그인 전면 차단(authController demoLogin)이 이 값에 의존한다 — 빠지면 가드가 꺼진다.
+      - key: NODE_ENV
+        value: production
       # 2026-08-20 — DB는 Render Postgres가 아니라 Supabase(서울 리전)를 쓴다.
       # 무료 Render Postgres는 백업이 없고 수명 제한이 있어 프로덕션 부적합(00-11 §4.1).
       # 아래 두 값은 Supabase 대시보드 > Connect 에서 복사해 Render 대시보드에 직접 넣는다.

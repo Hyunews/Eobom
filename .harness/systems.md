@@ -159,6 +159,9 @@ DB 접근은 **Prisma 한 경로**뿐이다. RLS는 Data API를 막는 장치라
 **DB는 Render Postgres가 아니라 Supabase**(§4) — `render.yaml`의 `databases:` 블록은 제거했다.
 
 - 설정: 레포 루트 `render.yaml`(Blueprint), `eobomDev/backend`가 `rootDir`
+- 🔴 **`NODE_ENV=production` + 빌드는 `npm ci --include=dev && npm run build`**(10-01). `NODE_ENV=production`이면
+  npm이 devDependencies(`typescript`·`prisma`·`@types/*`)를 빼고 설치해 빌드가 깨진다(`TS5108` — 다른 버전 `tsc`가 잡힘).
+  `NODE_ENV`는 빼면 안 된다 — 운영 데모 로그인 차단(`authController.ts` demoLogin)이 이 값으로 동작한다(10-01 운영 403 확인).
 - 🔴 **리전 = `oregon`(미국). 백엔드와 DB가 태평양을 사이에 두고 있다**(08-21 실측):
   `/api/health` ~165ms vs **DB 타는 API ~1,500ms**. ⚠️ 리전은 `render.yaml`의 `region:`으로만 정해지고
   **생성 후 변경 불가** — 없으면 조용히 `oregon`이 된다.
