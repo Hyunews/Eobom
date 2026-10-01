@@ -817,7 +817,7 @@ model AdminAuditLog {
   targetType String // 대상 종류 — 예: User, Memorial, Partner, Expert, FacilityClaim
   targetId   String // 대상 레코드 id
   reason     String? // 사유(선택)
-  createdAt  DateTime @default(now()) // 기록 시각
+  createdAt  DateTime @default(dbgenerated("timezone('Asia/Seoul'::text, now())")) // 기록 시각 — 🔴 한국 시간(KST) 벽시계 값(10-01 개발자 결정, 아래 AccessLog 주석 참고)
   // 00-42 §5.1 ② (10-01) — 운영자 접속기록 자동화. 아래 3칸은 옛 행에선 비어 있다(ip·requestId null, result SUCCESS).
   ip         String? // 프록시 뒤 실제 주소(trust proxy). 로그인 실패처럼 계정을 못 찾은 경우도 남는다
   result     String   @default("SUCCESS") // SUCCESS | FAIL — 응답 상태 코드가 4xx·5xx면 FAIL
@@ -836,7 +836,10 @@ model AdminAuditLog {
 // 주체는 FK가 아니다 — 계정이 지워져도 기록은 남는다(AdminAuditLog와 같은 원칙).
 model AccessLog {
   id          String   @id @default(uuid()) // 고유 식별자(UUID)
-  createdAt   DateTime @default(now()) // UTC 저장(§5.2 ⑦)
+  // 🔴 한국 시간(KST) 벽시계 값으로 저장한다(10-01 개발자 결정 — 설계서 §5.2 ⑦의 "UTC 저장"에서 의도적으로 벗어남).
+  // 칸 타입이 시간대 없는 timestamp라 DB 도구에는 "Z"가 붙어 보이지만 실제 값은 한국 시각이다(13:30 → 13:30Z 로 표시).
+  // 이 3개 표(AccessLog·ErrorLog·AdminAuditLog)에만 해당 — 다른 표는 UTC. 보관기간 계산은 opsLogPurgeService가 +9시간을 반영한다.
+  createdAt   DateTime @default(dbgenerated("timezone('Asia/Seoul'::text, now())")) // KST
   requestId   String // 응답 헤더 X-Request-Id와 같은 값
   subjectType String // anonymous | user | partner | expert | admin
   subjectId   String? // 내부 id. 익명이면 null. 이름·이메일·연락처는 넣지 않는다
@@ -856,7 +859,7 @@ model AccessLog {
 // 🔴 추가만 한다. 지우는 건 90일 지난 행을 파기 배치가 할 때뿐.
 model ErrorLog {
   id        String   @id @default(uuid()) // 고유 식별자(UUID)
-  createdAt DateTime @default(now()) // 발생 시각(UTC 저장)
+  createdAt DateTime @default(dbgenerated("timezone('Asia/Seoul'::text, now())")) // 발생 시각 — 한국 시간(KST) 벽시계 값(AccessLog 주석 참고)
   requestId String? // 요청 밖(unhandledRejection)이면 null
   path      String? // 쿼리 제거
   status    Int?

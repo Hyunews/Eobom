@@ -2328,5 +2328,9 @@
   - 🟡 프론트의 *"오류 번호: ○○○"* 표시(§5.2 ③)는 이번 범위가 아님 — 서버는 이미 응답 헤더·오류 JSON 본문의 `requestId`를 준다. CORS `exposedHeaders`도 열어 둠.
   - `[Opus]` 후속(§8): `00-19` 제4조(접속기록 1년·운영자 2년·에러 90일)·`00-37` §3.2(IP·결과·미들웨어 자동화·열람 실패 시 응답 거부)·`00-22` E-8 체크 반영.
   - 커밋은 하지 않음 — 메시지 초안만.
+  - **후속 1(10-01 개발자 요청)**: 회원 상세 열기 전 `window.confirm("이 상세 조회는 기록됩니다. 계속하시겠습니까?")` — eobomDev/frontend/src/pages/AdminPage.tsx(`openMember`; 모달 안 경고 박스 삭제). 취소하면 요청을 안 보내 기록도 없다. `tsc --noEmit` 통과, 실기동 대기. 사망 확인 상세는 이번에 안 바꿈.
+  - **후속 2(10-01 개발자 결정) — 🔴 편차: 시각을 KST로 저장.** 설계서 §5.2 ⑦은 "UTC 저장, 화면만 한국 시간"인데, 개발자 요청으로 `AccessLog`·`ErrorLog`·`AdminAuditLog`의 `createdAt`만 한국 시간 벽시계 값으로 저장한다. 구현: 마이그레이션 `20261001160000_ops_log_kst_default`(칸 기본값을 `timezone('Asia/Seoul'::text, now())`로 — 기존 행·앱 코드 변경 없음), `opsLogPurgeService.ts` 기준 시각 +9시간, `schema.prisma` 주석. 백업 `local-20261001-134058.dump` → 사람 확인 → 로컬 적용 → `migrate diff` No difference. `npm test` 263 통과(KST 확인 테스트 1건 추가).
+    - ⚠️ 칸 타입이 시간대 없는 timestamp라 DB 도구엔 `13:30Z`처럼 **Z가 붙어 보이지만 실제는 한국 시각**이다. 이 3개 표만 KST이고 나머지 표는 UTC — **두 표를 `createdAt`으로 직접 비교·조인하지 말 것.** 점검 SQL에 `AT TIME ZONE 'Asia/Seoul'`을 또 붙이면 9시간 두 번 밀린다.
+    - 🔴 운영 반영 때 마이그레이션이 **2개**(`add_ops_logs` + `ops_log_kst_default`)다 — `migrate-prod.ps1`이 둘 다 적용한다. 🟡 `[Opus]`: `00-42` §5.2 ⑦·§8을 "KST 저장"으로 고칠지 판단 필요(`docs/`는 건드리지 않음).
 
 <!-- Gemini 판정 1줄: ✅통과 / ❌반려(사유) / 🔄스펙갱신(고친 문서) -->

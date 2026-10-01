@@ -170,6 +170,19 @@ describe('요청 번호·접속기록', () => {
     assert.ok(row.durationMs >= 0);
   });
 
+  it('🔴 createdAt은 한국 시간(KST) 벽시계 값이다 — 현재 UTC보다 9시간 앞선 값(3개 표 모두)', async () => {
+    const { rid } = await call('/api/no-such-route');
+    const access = await waitFor(() => accessByRid(rid!));
+    await prisma.errorLog.create({ data: { requestId: rid!, errorName: 'KST', message: 'm' } });
+    await prisma.adminAuditLog.create({ data: { adminId: 'k', adminName: 'k', action: 'LIST', targetType: 'User', targetId: '', requestId: rid! } });
+    const error = (await prisma.errorLog.findFirst({ where: { requestId: rid!, errorName: 'KST' } }))!;
+    const audit = (await prisma.adminAuditLog.findFirst({ where: { requestId: rid!, adminId: 'k' } }))!;
+    const expected = Date.now() + 9 * 60 * 60 * 1000;
+    for (const [name, row] of [['AccessLog', access], ['ErrorLog', error], ['AdminAuditLog', audit]] as const) {
+      assert.ok(Math.abs(row.createdAt.getTime() - expected) < 60 * 1000, `${name}.createdAt이 KST가 아니다: ${row.createdAt.toISOString()}`);
+    }
+  });
+
   it('위조·만료 토큰은 익명으로 남는다(남의 id를 찍지 못한다)', async () => {
     const bad = tokenFor('user', { secret: 'wrong-secret' });
     const { rid } = await call('/api/no-such-route', { headers: bearer(bad) });

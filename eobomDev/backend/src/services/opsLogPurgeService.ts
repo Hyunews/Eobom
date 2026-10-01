@@ -12,7 +12,9 @@ export const OPS_LOG_RETENTION_DAYS = { accessLog: 365, adminAuditLog: 730, erro
 export type OpsLogCounts = { accessLog: number; adminAuditLog: number; errorLog: number };
 
 const DAY_MS = 24 * 60 * 60 * 1000;
-const cutoffOf = (days: number, now: Date) => new Date(now.getTime() - days * DAY_MS);
+// 🔴 이 3개 표의 createdAt은 한국 시간(KST) 벽시계 값이다(schema.prisma AccessLog 주석) — 기준 시각도 +9시간으로 맞춘다.
+const KST_OFFSET_MS = 9 * 60 * 60 * 1000;
+const cutoffOf = (days: number, now: Date) => new Date(now.getTime() + KST_OFFSET_MS - days * DAY_MS);
 
 // 보관기간이 지난 행 수 — dry-run 출력용(조회뿐).
 export async function countOpsLogExpired(now = new Date()): Promise<OpsLogCounts> {
