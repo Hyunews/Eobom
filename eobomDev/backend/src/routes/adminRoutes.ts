@@ -29,6 +29,8 @@ import {
   completeArchivePurge,
 } from '../controllers/farewellPurgeController';
 
+import { adminAudit } from '../middleware/adminAudit';
+
 const router = Router();
 
 // 인증 (공개 가입 없음 — prisma/seed-admin.ts로만 계정 생성)
@@ -39,6 +41,8 @@ router.post('/refresh', refresh);
 // 직접 불렀는데(새 엔드포인트에서 한 줄 빠지면 그대로 공개되는 구조적 위험, §2.3), router.use()로
 // 한 번에 걸어 그 위험을 없앤다. /login·/refresh는 토큰이 아직 없는 시점이라 이 줄보다 위에 둔다.
 router.use(requireAdminAuth);
+// 00-42 §7 — 운영자 감사 자동화. 이 아래 모든 요청이 한 곳에서 AdminAuditLog에 남는다(핸들러에 한 줄씩 넣지 않는다).
+router.use(adminAudit);
 
 router.get('/me', getMe);
 

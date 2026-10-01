@@ -144,6 +144,7 @@ DB 접근은 **Prisma 한 경로**뿐이다. RLS는 Data API를 막는 장치라
   🔴 pooler 유저명은 **`postgres.[ref]`** — `postgres`면 *"password authentication failed"* 가 떠
   **원인이 비밀번호처럼 보인다**. 🔴 클라이언트 **`postgres:17-alpine`**(15·16은 version mismatch).
   ⚠️ 비밀번호의 `#@/?%:` 는 퍼센트 인코딩(`#`는 뒤가 잘림). ⚠️ 같은 시크릿을 `.env`에 두 벌 두지 말 것.
+- 🔴 **로그 표 크기 확인(월 1회 점검 때 · 00-42 §6)**: `SELECT relname, pg_size_pretty(pg_total_relation_size(oid)) AS size, n_live_tup FROM pg_class c JOIN pg_stat_user_tables s ON s.relid=c.oid WHERE relname IN ('AccessLog','ErrorLog','AdminAuditLog');` — Supabase 무료는 DB 500MB, 넘으면 **읽기 전용**이 돼 가입·저장이 멈춘다. **세 표 합계 300MB 넘으면** 유료 전환·보관 단축·외부 이전 중 고른다(10-01 운영 DB 0.03GB).
 
 ## 5. 배포
 

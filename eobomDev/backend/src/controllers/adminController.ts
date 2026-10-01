@@ -4,6 +4,7 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import prisma from '../config/prisma';
 import { JWT_SECRET } from '../config/jwt';
+import { writeAdminLoginAudit, setAuditTarget } from '../services/opsLogService';
 
 // 운영자(내부 직원) 인증. Partner/Expert와 같은 패턴(비밀번호 해시, JWT 회전)이지만
 // **공개 가입 API가 없다** — 계정은 `prisma/seed-admin.ts`로만 만든다(README 참고).
@@ -80,6 +81,7 @@ export const login = async (req: Request, res: Response) => {
     const now = new Date();
     const lockExpired = !!admin?.lockedUntil && admin.lockedUntil <= now;
     if (admin?.lockedUntil && !lockExpired) {
+      await writeAdminLoginAudit(req, { adminId: admin.id, adminName: admin.name, action: 'LOCKED', result: 'FAIL', reason: '잠금 중 시도 거부' });
       return res.status(429).json({ status: 'error', message: LOCKED_MESSAGE });
     }
 
@@ -93,8 +95,11 @@ export const login = async (req: Request, res: Response) => {
         });
         if (updated.failedLoginCount >= MAX_FAILED_LOGINS) {
           await prisma.admin.update({ where: { id: admin.id }, data: { lockedUntil: new Date(Date.now() + LOCK_MS) } });
+          await writeAdminLoginAudit(req, { adminId: admin.id, adminName: admin.name, action: 'LOCKED', result: 'FAIL', reason: '잠금 시작' });
         }
       }
+      // 🔴 없는 계정도 남긴다(대입 공격 탐지) — 단 시도한 이메일은 담지 않는다(00-42 §4.9). 계정을 못 찾으면 id·이름이 빈 값이다.
+      await writeAdminLoginAudit(req, { adminId: admin?.id ?? '', adminName: admin?.name ?? '', action: 'LOGIN_FAIL', result: 'FAIL' });
       return res.status(401).json({ status: 'error', message: '이메일 또는 비밀번호가 올바르지 않습니다.' });
     }
 
@@ -105,6 +110,7 @@ export const login = async (req: Request, res: Response) => {
       where: { id: admin.id },
       data: { refreshTokenHash: sha256(refreshToken), failedLoginCount: 0, lockedUntil: null },
     });
+    await writeAdminLoginAudit(req, { adminId: admin.id, adminName: admin.name, action: 'LOGIN', result: 'SUCCESS' });
 
     return res.json({ status: 'success', accessToken, refreshToken, admin: { id: admin.id, name: admin.name, email: admin.email } });
   } catch (error) {
@@ -228,16 +234,9 @@ export const getUserDetailForAdmin = async (req: Request, res: Response) => {
       return res.status(404).json({ status: 'error', message: '회원을 찾을 수 없습니다.' });
     }
 
-    // 00-37 §3.2·§6 A-2 #8 — "조회도 기록한다". 개인정보를 여는 조회라 성공했을 때만 남긴다.
-    // 기록 실패가 조회 자체를 막으면 안 되므로 별도 try/catch로 삼킨다.
-    try {
-      const decoded = verifyAdminBearerToken(req)!; // requireAdminAuth가 이미 검증(00-37 A-1 #1)
-      await prisma.adminAuditLog.create({
-        data: { adminId: decoded.id, adminName: decoded.name, action: 'VIEW', targetType: 'User', targetId: user.id },
-      });
-    } catch (auditError) {
-      console.error('회원 상세 열람 감사로그 기록 실패:', auditError);
-    }
+    // 00-37 §3.2·§6 A-2 #8 — "조회도 기록한다". 기록은 adminAudit 미들웨어가 남긴다(00-42 §7) —
+    // 🔴 예전엔 여기서 실패를 삼켰지만 지금은 기록을 못 쓰면 응답이 나가지 않는다(00-42 §5.2 ⑤). 대상 회원 id만 채운다.
+    setAuditTarget(res, { targetType: 'User', targetId: user.id });
 
     const { _count, ...rest } = user;
     return res.json({ status: 'success', data: { ...rest, guestbookCount: _count.memorialGuestbooks } });

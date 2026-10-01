@@ -17,14 +17,25 @@ import farewellMessageRoutes from './routes/farewellMessageRoutes';
 import endingNoteRoutes from './routes/endingNoteRoutes';
 import sttRoutes from './routes/sttRoutes';
 import ocrRoutes from './routes/ocrRoutes';
+import { requestId, accessLog } from './middleware/requestLog';
+import { errorHandler } from './middleware/errorHandler';
 
 // Express 앱 조립만 한다 — listen·dotenv·부팅 점검은 server.ts 몫이다.
 // 회귀 테스트(backend/tests/)가 서버를 띄우지 않고 이 앱을 그대로 불러 쓰려고 분리했다(00-15 §6 ②).
 // 🔴 여기에 dotenv를 넣지 않는다 — 테스트가 개발 DB의 .env를 끌어오면 안 된다.
 const app = express();
 
+// 00-42 §5.2 ④ — Render 앞단 프록시 1단을 믿는다. 안 하면 req.ip가 전부 Render 내부 주소가 된다.
+// 🔴 숫자 1이다(true 금지) — true면 클라이언트가 X-Forwarded-For를 위조해 IP를 바꿀 수 있다.
+app.set('trust proxy', 1);
+
+// 요청 번호·접속기록(00-42 §5) — 가장 먼저 걸어 cors·body-parser 에러도 번호를 갖게 한다.
+app.use(requestId);
+app.use(accessLog);
+
 // 미들웨어 설정
-app.use(cors({ origin: true, credentials: true }));
+// exposedHeaders: 다른 출처의 프론트가 응답의 X-Request-Id를 읽어 "오류 번호"로 보여줄 수 있게 한다.
+app.use(cors({ origin: true, credentials: true, exposedHeaders: ['X-Request-Id'] }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(passport.initialize());
@@ -58,5 +69,8 @@ app.get('/api/health', (req, res) => {
     time: new Date().toISOString(),
   });
 });
+
+// 전역 에러 처리기(00-42 §5.1 ③) — 반드시 모든 라우터 뒤. 컨트롤러가 못 잡고 흘린 예외를 에러 기록에 남기고 JSON으로 답한다.
+app.use(errorHandler);
 
 export default app;

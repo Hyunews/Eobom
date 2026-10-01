@@ -14,6 +14,7 @@
 //   ② deletedAt + 30일 — mediaKey가 있으면 ①을 먼저 하고, 그다음 행을 파기한다.
 //   ③ 고아 객체 스윕은 이번에 만들지 않는다(⏸ §5.6-8 ③).
 //   ⑤ Memorial.purgeAt 경과 — 추모관을 방명록·헌화·사진(로컬 파일 포함)과 함께 삭제(00-20 §8.1-1, memorialPurgeService).
+//   ⑥ 운영 기록 보관기간 경과 — 접속기록 1년·운영자 감사 2년·에러 기록 90일(00-42 §5.2 ⑧, opsLogPurgeService).
 //   ④ User.deletionScheduledAt 경과(회원 탈퇴 유예 만료) — 그 회원의 ①②를 먼저, 그다음 계정 파기.
 //      User 행은 지우지 않고 익명화한다 — 부고장은 삭제, 추모관은 탈퇴 때 닫혀 자기 purgeAt에 파기(00-20 §6.3-2, accountPurgeService.ts).
 //
@@ -39,6 +40,7 @@ import {
 } from '../src/services/farewellPurgeService';
 import { findAccountExpired, planAccount, purgeAccount } from '../src/services/accountPurgeService';
 import { findMemorialExpired, planMemorial, purgeMemorial } from '../src/services/memorialPurgeService';
+import { countOpsLogExpired, purgeOpsLogExpired, OPS_LOG_RETENTION_DAYS } from '../src/services/opsLogPurgeService';
 
 const confirmed = process.argv.includes('--confirm');
 
@@ -181,6 +183,18 @@ async function main(): Promise<void> {
       }
     }
     console.log(`[⑤추모관 파기] 완료: ${done}개 삭제 · 사진 파일 ${fileCount}개 삭제`);
+  }
+
+  // ⑥ 운영 기록 보관기간 경과(00-42 §5.2 ⑧) — 접속기록 1년 · 운영자 감사 2년 · 에러 기록 90일. createdAt 기준 단일 조건.
+  // 🔴 개인정보가 아니라 기록 자체의 만료다. 건수만 찍는다(내용은 찍지 않는다).
+  const logCounts = await countOpsLogExpired();
+  console.log(
+    `[⑥운영 기록 만료] 대상 접속기록 ${logCounts.accessLog}건(${OPS_LOG_RETENTION_DAYS.accessLog}일) · ` +
+      `운영자 감사 ${logCounts.adminAuditLog}건(${OPS_LOG_RETENTION_DAYS.adminAuditLog}일) · 에러 기록 ${logCounts.errorLog}건(${OPS_LOG_RETENTION_DAYS.errorLog}일)`,
+  );
+  if (confirmed) {
+    const r = await purgeOpsLogExpired();
+    console.log(`[⑥운영 기록 만료] 완료: 접속기록 ${r.accessLog}건 · 운영자 감사 ${r.adminAuditLog}건 · 에러 기록 ${r.errorLog}건 삭제`);
   }
 
   // 🟡 "완료"라고만 찍으면 절반만 지운 상태를 다 지운 것으로 오인한다(§5.6-8-1-1 #48).

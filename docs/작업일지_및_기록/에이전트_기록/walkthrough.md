@@ -2297,3 +2297,36 @@
   - 커밋은 하지 않음 — 메시지 초안만.
 
 <!-- Gemini 판정 1줄: ✅통과 / ❌반려(사유) / 🔄스펙갱신(고친 문서) -->
+
+## 2026-10-01 | 00-42 L-1 — 접속기록·운영자 감사 자동화·에러 기록 (공개 전 필수)
+
+- **근거 스펙**: docs/00_핵심플랫폼/00-42_운영_기록_로그_설계서.md §5(설계)·§7 L-1·§9(10-01 확정 6건)
+- **건드린 파일**(전수):
+  - 스키마: eobomDev/backend/prisma/schema.prisma(`AccessLog`·`ErrorLog` 신설, `AdminAuditLog`에 `ip`·`result`·`requestId` 칸 + `createdAt` 인덱스), eobomDev/backend/prisma/migrations/20261001150000_add_ops_logs/migration.sql(신규)
+  - 신규: eobomDev/backend/src/middleware/requestLog.ts(요청 번호·접속기록), eobomDev/backend/src/middleware/adminAudit.ts(운영자 감사 미들웨어), eobomDev/backend/src/middleware/errorHandler.ts(전역 에러 처리기), eobomDev/backend/src/services/opsLogService.ts, eobomDev/backend/src/services/opsLogPurgeService.ts, eobomDev/backend/src/utils/logMask.ts, eobomDev/backend/tests/ops-log.test.ts
+  - 수정: eobomDev/backend/src/app.ts(trust proxy 1·requestId·accessLog·cors exposedHeaders·errorHandler), eobomDev/backend/src/server.ts(unhandledRejection), eobomDev/backend/src/routes/adminRoutes.ts(`router.use(adminAudit)`), eobomDev/backend/src/controllers/adminController.ts(로그인 LOGIN·LOGIN_FAIL·LOCKED, 회원 상세 VIEW 직접 기록 제거 → `setAuditTarget`), eobomDev/backend/src/controllers/deathVerificationAdminController.ts(상세 VIEW 직접 기록 제거 → `setAuditTarget`), eobomDev/backend/prisma/destroy-farewell-media.ts(⑥ 운영 기록 만료 단계), eobomDev/backend/package.json(`npm test`에 ops-log.test.ts 추가)
+  - 하네스·자동생성: .harness/systems.md(로그 표 크기 SQL 한 줄·300MB 기준), docs/00_핵심플랫폼/00-05_DB_요구사항_및_테이블_사전.md(`generate-db-doc.js` 재생성 — 설명 없음 37개)
+- **결과**:
+  - ① 모든 응답에 `X-Request-Id`(16자 hex, 클라이언트 값 무시) · `app.set('trust proxy', 1)` · CORS `exposedHeaders`.
+  - ② `AccessLog`: 로그인한 요청 전부 + 쓰기(POST·PATCH·PUT·DELETE) + 4xx·5xx. 경로에서 `?` 이후 제거. 응답이 끝난 뒤 기록하고 실패해도 요청엔 영향 없음. 주체는 토큰을 **검증해** 종류·id만(위조 토큰은 익명).
+  - ③ `adminAudit`를 `requireAdminAuth` 바로 뒤 한 곳에 걸어 운영자 전 경로 기록(GET→LIST/VIEW, POST→CREATE, PATCH·PUT→UPDATE, DELETE→DELETE + IP·결과·요청 번호). 로그인은 LOGIN·LOGIN_FAIL·LOCKED(잠금 시작·잠금 중 시도 거부 2종을 `reason`으로 구분). 🔴 성공한 GET(`/me` 제외)은 `res.send`를 붙잡아 감사 행이 DB에 들어간 **뒤에만** 응답 — 실패하면 503(데이터 없음).
+  - ④ 전역 `errorHandler`(5xx만 `ErrorLog`, 응답은 일반 문구+요청 번호) · 핸들러가 직접 돌려준 5xx도 `Http5xx`로 같은 요청 번호에 기록 · `unhandledRejection` 기록. 메시지는 마스킹·200자, Prisma 에러는 마지막 줄만, 스택은 `at` 줄 5개.
+  - ⑤ 기록 표에 쓰는 코드는 create뿐이고 update·upsert 없음. 지우는 코드는 `opsLogPurgeService.ts`의 `deleteMany` 3줄(보관기간 `createdAt` 단일 조건)뿐 — `grep -E "(accessLog|errorLog|adminAuditLog)\.(update|delete|upsert)" src/`가 정확히 그 3줄만 낸다. 보관기간 파기 = `opsLogPurgeService`(접속 365일·감사 730일·에러 90일, `createdAt` 단일 조건) → `destroy-farewell-media.ts` ⑥ 단계(dry-run은 건수만).
+  - 검증: `npx tsc --noEmit` 에러 0 · `npm test` **262개 통과·실패 0**(기존 239 + `tests/ops-log.test.ts` 23). 시험한 것: 쿼리 제거, 요청 본문·시도 이메일 미기록, 익명 성공 조회 미기록, 위조 토큰=익명, 로그인 LOGIN_FAIL·LOCKED, 목록 LIST·상세 VIEW(중복 없이 1줄), 404=FAIL, 감사 실패 시 열람 503·`/me`·로그인·쓰기는 통과, 접속기록 실패해도 200, 에러 마스킹, 4xx는 에러 기록 안 함, Http5xx, 보관기간 경계(366/364·731/729·91/89일).
+  - DB: `backup-db.ps1 -Target local` → `local-20261001-132007.dump`(251.8KB, 파일 확인) → 사람 확인(10-01) → 로컬 개발 DB(`eobom_db`) `migrate deploy` 적용 → `migrate diff --from-schema-datasource` **No difference**. 테스트 DB(`eobom_test`)도 `npm run test:db:migrate`로 적용.
+- **편차**:
+  1. 운영자 감사 미들웨어가 요청마다 한 줄을 남기므로, 업무 의미가 있는 기존 감사 행(`HIDE`·`APPROVE`·`REJECT` 등 사유 포함)과 **한 요청에 두 줄**이 된다(요청 단위 `UPDATE` + 업무 단위 행). 합치지 않고 나란히 둠 — 기존 행에 사유가 있어서. 단 회원 상세·사망 확인 상세의 `VIEW`는 중복이라 핸들러 쪽 직접 기록을 **지우고** 미들웨어로 일원화(열람 실패 시 응답 거부 규칙을 적용하려고).
+  2. 🔴 `unhandledRejection` 핸들러를 달면 Node 기본 동작(프로세스 종료)이 사라진다 — 기록하고 **서비스는 계속 돌게** 했다. 종료를 원하면 `server.ts`에서 `process.exit(1)` 한 줄.
+  3. `MulterError`를 전역 처리기에서 400으로 매핑(이전엔 처리기가 없어 500 HTML) — 스펙에 없는 소폭 동작 변경.
+  4. `GET /api/admin/me`는 fail-open(본인 이름·이메일뿐이고 페이지 로드마다 불려 감사 저장소 장애가 운영자 로그인 자체를 막으면 안 되어서).
+  5. 스펙 ⑤의 *"보관기간 지난 행은 어드민 파기 탭 대상에도 추가"* 중 **파기 탭(화면)은 하지 않음** — 탭은 유족 메시지 건별 선택 UI라 로그 일괄 만료와 성격이 다르다. 파기 배치(`npm run purge`/`purge:confirm`)에만 추가. 필요하면 별도 스펙.
+  6. 스펙 ⑤ *"그 파기도 ④에 남긴다"*(§5.2 ⑥)는 L-2(파기 기록 일원화) 몫이라 이번엔 스크립트 출력 건수만.
+- **다음 에이전트가 알아야 할 것**:
+  - 🔴 **운영 반영은 사람**: 커밋 → `powershell -File .harness/tools/migrate-prod.ps1`(**추가형이라 migrate 먼저**) → push. 이 순서가 어긋나면 새 코드가 없는 표를 찾다 접속 때마다 에러 기록 실패 로그가 쌓이고(요청은 성공), 운영자 열람은 **503으로 막힌다**(감사 행을 못 써서).
+  - 🔴 **실행 중인 로컬 백엔드 dev 서버**가 Prisma 엔진 DLL을 잡고 있어 `prisma generate`의 DLL 교체 단계가 EPERM이었다. 타입·클라이언트 JS는 새로 생성됐고(엔진 바이너리는 스키마와 무관) `tsc`·테스트는 통과했지만, **dev 서버를 한 번 껐다 켜고 `npx prisma generate`를 다시 돌리는 게 깔끔**하다.
+  - 🟡 실기동(사람): 로컬에서 운영자 로그인 → 회원 목록·상세를 열고 `SELECT action,result,ip,"requestId" FROM "AdminAuditLog" ORDER BY "createdAt" DESC LIMIT 10;` 로 LOGIN·LIST·VIEW와 IP가 찍히는지. 로컬은 `::1` 또는 `127.0.0.1`이 정상. 운영 Render에서 `req.ip`가 실제 주소인지(`trust proxy 1`)는 **운영 배포 후에만 확인 가능**.
+  - 🟡 프론트의 *"오류 번호: ○○○"* 표시(§5.2 ③)는 이번 범위가 아님 — 서버는 이미 응답 헤더·오류 JSON 본문의 `requestId`를 준다. CORS `exposedHeaders`도 열어 둠.
+  - `[Opus]` 후속(§8): `00-19` 제4조(접속기록 1년·운영자 2년·에러 90일)·`00-37` §3.2(IP·결과·미들웨어 자동화·열람 실패 시 응답 거부)·`00-22` E-8 체크 반영.
+  - 커밋은 하지 않음 — 메시지 초안만.
+
+<!-- Gemini 판정 1줄: ✅통과 / ❌반려(사유) / 🔄스펙갱신(고친 문서) -->

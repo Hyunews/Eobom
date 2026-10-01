@@ -818,9 +818,54 @@ model AdminAuditLog {
   targetId   String // 대상 레코드 id
   reason     String? // 사유(선택)
   createdAt  DateTime @default(now()) // 기록 시각
+  // 00-42 §5.1 ② (10-01) — 운영자 접속기록 자동화. 아래 3칸은 옛 행에선 비어 있다(ip·requestId null, result SUCCESS).
+  ip         String? // 프록시 뒤 실제 주소(trust proxy). 로그인 실패처럼 계정을 못 찾은 경우도 남는다
+  result     String   @default("SUCCESS") // SUCCESS | FAIL — 응답 상태 코드가 4xx·5xx면 FAIL
+  requestId  String? // 접속기록(AccessLog)·에러 기록(ErrorLog)과 잇는 요청 번호
+  // action 추가: LOGIN | LOGIN_FAIL | LOCKED(로그인) · LIST | VIEW | CREATE | UPDATE | DELETE(운영자 라우터 미들웨어가 요청마다 한 줄)
+  // 🔴 보관 2년(00-42 §9 #2) — 지난 행은 파기 배치(opsLogPurgeService)가 지운다.
 
   @@index([targetType, targetId])
   @@index([adminId])
+  @@index([createdAt])
+}
+
+// 00-42 §5.1 ① 접속기록(10-01). 로그인한 요청 전부 + 쓰기(POST·PATCH·PUT·DELETE) + 실패(4xx·5xx)만 남긴다(§9 #1 축소안).
+// 🔴 허용 목록 방식 — 아래 칸 외에는 아무것도 담지 않는다(§5.2 ①). 요청·응답 본문, 헤더(토큰·쿠키), 쿼리 문자열(좌표 등)은 넣지 않는다.
+// 🔴 추가만 한다(수정·삭제 API 없음 — §5.2 ⑥). 지우는 건 보관기간(1년)이 지난 행을 파기 배치가 할 때뿐이다.
+// 주체는 FK가 아니다 — 계정이 지워져도 기록은 남는다(AdminAuditLog와 같은 원칙).
+model AccessLog {
+  id          String   @id @default(uuid()) // 고유 식별자(UUID)
+  createdAt   DateTime @default(now()) // UTC 저장(§5.2 ⑦)
+  requestId   String // 응답 헤더 X-Request-Id와 같은 값
+  subjectType String // anonymous | user | partner | expert | admin
+  subjectId   String? // 내부 id. 익명이면 null. 이름·이메일·연락처는 넣지 않는다
+  ip          String? // trust proxy 적용 후 실제 주소
+  method      String
+  path        String // 쿼리 문자열 제거. 경로 안 id(/memorials/:id)는 남긴다
+  status      Int
+  durationMs  Int // 응답 시간
+
+  @@index([createdAt])
+  @@index([requestId])
+  @@index([subjectType, subjectId])
+}
+
+// 00-42 §5.1 ③ 에러 기록(10-01) — 전역 에러 처리기 · 핸들러가 직접 돌려준 5xx · unhandledRejection. 보관 90일.
+// 🔴 message는 마스킹된 한 줄(이메일·전화·토큰·숫자열 제거), stackHead는 "    at …" 줄 앞부분뿐 — 에러가 담은 값(요청 본문 등)이 샐 수 있어서다.
+// 🔴 추가만 한다. 지우는 건 90일 지난 행을 파기 배치가 할 때뿐.
+model ErrorLog {
+  id        String   @id @default(uuid()) // 고유 식별자(UUID)
+  createdAt DateTime @default(now()) // 발생 시각(UTC 저장)
+  requestId String? // 요청 밖(unhandledRejection)이면 null
+  path      String? // 쿼리 제거
+  status    Int?
+  errorName String // 에러 종류(Error·PrismaClientKnownRequestError·Http5xx·UnhandledRejection …)
+  message   String // 마스킹·200자 제한
+  stackHead String? // 앞 5줄
+
+  @@index([createdAt])
+  @@index([requestId])
 }
 
 // 상중 행정 가이드 체크 상태 — docs 07-04 §3.4-2·§3.4-1(09-09 확정). 회원만 서버 보존, 비회원은 React state.

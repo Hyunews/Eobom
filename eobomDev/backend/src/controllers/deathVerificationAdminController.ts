@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import prisma from '../config/prisma';
 import { verifyAdminBearerToken } from './adminController';
 import { decryptField } from '../utils/crypto';
+import { setAuditTarget } from '../services/opsLogService';
 import { REJECT_REASON_CODES } from './deathVerificationController';
 
 // docs 00-41 §5.3·§9 — 운영자 「사망 확인」. 라우터 레벨 requireAdminAuth를 이미 통과한 뒤에 온다.
@@ -96,15 +97,8 @@ export const getDeathVerification = async (req: Request, res: Response) => {
     });
     if (!r) throw new HttpError(404, '요청을 찾을 수 없습니다.');
 
-    // 기록 실패가 조회를 막지는 않는다(adminController.getUserDetailForAdmin과 같은 선례).
-    try {
-      const decoded = verifyAdminBearerToken(req)!; // requireAdminAuth가 이미 검증
-      await prisma.adminAuditLog.create({
-        data: { adminId: decoded.id, adminName: decoded.name, action: 'VIEW', targetType: TARGET_TYPE, targetId: r.id },
-      });
-    } catch (auditError) {
-      console.error('사망 확인 상세 열람 감사로그 기록 실패:', auditError);
-    }
+    // 열람 기록은 adminAudit 미들웨어가 남긴다(00-42 §7) — 못 남기면 응답이 나가지 않는다(§5.2 ⑤). 대상 id만 채운다.
+    setAuditTarget(res, { targetType: TARGET_TYPE, targetId: r.id });
 
     let requesterPhone: string | null = null;
     try {

@@ -922,3 +922,13 @@ state를 그대로 추모관 사후 연결 동의로도 흘려보내면 사용�
 - 값 두 줄만 바꾸면 되는 작업이라, 바꾸기 전에 IMMEDIATE를 섹션별로 하드코딩한 곳이 없는지 grep으로 확인(`family-view`·`SectionTimingControl`·기본 권한 생성 모두 섹션 무관 — 수정 불필요).
 - 시행착오 없음. 양쪽 `tsc --noEmit` 1회 통과.
 
+## 2026-10-01 [Sonnet] 00-42 L-1 — 운영 기록(접속·감사·에러)
+
+- 🔴 **"기록 없는 열람 금지"를 미들웨어 한 곳에서 거는 방법**: 핸들러는 `return res.json(...)`을 await하지 않으니, 응답을 막으려면 `res.send`를 인스턴스에서 덮어써야 한다. `res.json`이 안에서 `this.send`를 다시 부르므로 `intercepted` 플래그로 한 번만 붙잡고, 감사 행 `create`가 끝난 뒤 원본 send를 부른다. 실패하면 상태를 503으로 바꾸고 JSON 문자열을 직접 보낸다. 4xx·5xx 응답은 내보낼 개인정보가 없으니 붙잡지 않는다.
+- finalhandler(404)는 `res.send`를 안 거친다 → `res.on('finish')`로 보강하되 `written` 플래그로 이중 기록을 막음.
+- `setAuditTarget`을 처음엔 `middleware/adminAudit.ts`에 뒀다가 `adminController` ↔ `adminAudit` 순환 import가 생겨 `opsLogService.ts`로 옮김.
+- 에러 메시지 마스킹: Prisma 에러는 앞부분에 호출 코드와 인자 값(where 절의 이메일 등)이 길게 붙는다 → 마지막 비어 있지 않은 줄만 쓴다. 스택 첫 줄에도 메시지가 그대로 들어 있어 `at` 줄만 취함.
+- 테스트에서 DB 실패 주입: 모델 메서드 덮어쓰기는 Prisma 프록시 때문에 믿기 어려워 `prisma.$use`(5.22)로 `Model` / `Model.action` 키를 던지게 함. v6로 올리면 `$use`가 사라지니 그때 `$extends`로 바꿔야 한다.
+- `prisma generate`가 EPERM — 로컬 dev 서버가 엔진 DLL을 잡고 있었다. 사용자 프로세스라 끄지 않음. 타입·클라이언트 JS는 새로 생성돼 `tsc`·테스트는 통과.
+- 처음 쓴 walkthrough에 "update·delete 코드 `src/` 0건"이라고 적었다가 `opsLogPurgeService`의 `deleteMany`에 걸려 거짓임을 grep으로 확인하고 고쳤다. 검증 주장은 쓰기 전에 그 명령을 돌려볼 것.
+

@@ -4,6 +4,7 @@ import path from 'path';
 import https from 'https';
 import { checkEncryptionKeyStrength } from './utils/crypto';
 import app from './app';
+import { writeErrorLog } from './services/opsLogService';
 
 const PORT = process.env.PORT || 5000;
 
@@ -33,6 +34,13 @@ const scheme = hasLocalCert ? 'https' : 'http';
 // (2026-08-20 Render 첫 배포 때 실제로 그랬다). Render는 RENDER_EXTERNAL_URL을 주입한다.
 // 로컬은 인증서 유무에 따라 https/http가 갈리므로 scheme을 그대로 쓴다.
 const publicUrl = process.env.RENDER_EXTERNAL_URL || `${scheme}://localhost:${PORT}`;
+
+// 00-42 §5.1 ③ — 어디서도 catch하지 못한 Promise 거부를 에러 기록에 남긴다.
+// 🔴 핸들러를 달면 Node 기본 동작(프로세스 종료)이 바뀐다 — 기록하고 서비스는 계속 돌린다(요청 하나의 실수로 전체가 내려가지 않게).
+process.on('unhandledRejection', (reason) => {
+  console.error('처리되지 않은 Promise 거부:', reason);
+  void writeErrorLog({ requestId: null, path: null, status: null, errorName: 'UnhandledRejection', error: reason });
+});
 
 const startServer = () => {
   console.log(`===================================================`);
