@@ -2373,5 +2373,11 @@
       - 대응 후보(사람 결정): ① 그대로 둔다(노이즈 허용) ② 응답 직전에 빼는 공용 함수/미들웨어(`res.json`을 감싸 `createdAtKst` 키 제거) ③ Prisma `omit`(5.13+ 미리보기 기능) 전역 설정 ④ 위 호출마다 `select`. ②가 가장 작고 안전하다.
     - 🔴 운영 미반영(지시 그대로). 운영 대기는 후속 5와 같은 4개 마이그레이션.
     - 🟡 사람 확인 요청: Prisma Studio를 **껐다 켜서**(`npm run studio` — 스키마를 시작할 때 읽는다) 아무 표에서 `createdAtKst`가 보이는지.
+  - **후속 7(10-01 개발자 결정) — 응답 노출 대응 ②: 전 응답에서 `createdAtKst` 제거.** 위 후속 6의 노출 목록을 컨트롤러별로 고치지 않고 한 곳에서 막는다(컨트롤러별 응답 시험은 생략 — 개발자 결정).
+    - eobomDev/backend/src/app.ts — `app.set('json replacer', (key, value) => key === 'createdAtKst' ? undefined : value)` 한 줄(+주석). Express의 `json replacer`는 **모든 `res.json`에 적용되고 중첩 객체·배열(시설 → `reviews[]` 등)까지** 덮는다. 컨트롤러·`res.json` 호출부 무수정. 한계: `res.json`을 거치지 않는 응답(`res.send(문자열)`·파일 전송)은 대상 아님 — 현재 그런 곳에서 모델 행을 내보내는 곳은 없다.
+    - eobomDev/backend/tests/created-at-kst.test.ts — 테스트 1개 추가: **시설(+리뷰)을 만들어 `GET /api/facilities?q=`·`GET /api/facilities/:id` 응답 본문에 `createdAtKst` 문자열이 없는지**(공개 API가 행을 `...`로 통째로 내보내는 대표 경로 + 중첩 리뷰). 전제(Prisma가 읽은 행에는 칸이 실제로 있고 응답에는 `createdAt`이 있음)도 같이 단언해 공허한 통과를 막는다. "코드 사용 0건" 검사의 허용 목록은 `src/app.ts` 하나(읽거나 쓰는 코드가 아니라 **빼는** 코드).
+    - 🔵 시험이 실제로 잡는지 확인: `app.ts`의 replacer 줄을 잠깐 끄고 돌리면 `시설 목록 응답에 createdAtKst가 있다`로 **실패**, 복구하면 통과(끈 줄은 복구 확인 — `TEMP-OFF` 0건).
+    - 검증: `tsc --noEmit` 에러 0 · `npm test` **273 통과**(272+1). DB·마이그레이션 변경 없음. 운영 미반영(지시 그대로).
+    - ⚠️ 알아둘 것: 이 설정은 앱 전체의 `res.json`에 걸린다 — **응답 키 이름이 `createdAtKst`면 무엇이든 빠진다**(나중에 일부러 이 이름의 필드를 응답에 담을 일은 없어야 한다). 후속 6의 "미확인 컨트롤러"도 같은 장치로 덮인다.
 
 <!-- Gemini 판정 1줄: ✅통과 / ❌반려(사유) / 🔄스펙갱신(고친 문서) -->

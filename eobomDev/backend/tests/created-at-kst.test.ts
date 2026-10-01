@@ -8,6 +8,8 @@ import { after, before, describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
+import type { AddressInfo } from 'node:net';
+import app from '../src/app';
 import prisma from '../src/config/prisma';
 
 const NINE_HOURS = 9 * 60 * 60 * 1000;
@@ -70,6 +72,45 @@ describe('createdAtKst 칸·트리거', () => {
   });
 });
 
+describe('API 응답에는 createdAtKst가 없다', () => {
+  it('🔴 행을 통째로 돌려주는 응답(시설 목록·상세, 중첩 리뷰 포함)에 createdAtKst 키가 없다', async () => {
+    const tag = `kst-${Date.now()}`;
+    const user = await prisma.user.create({ data: { name: 'KST응답테스트' } });
+    createdIds.push(user.id);
+    const facility = await prisma.facility.create({
+      data: { id: `f_${tag}`, name: `응답시험시설${tag}`, type: '장례식장', location: '테스트로 1', lat: 37.5, lng: 127.0, price: '1만원', religion: '전체', guests: '1명' },
+    });
+    await prisma.facilityReview.create({ data: { facilityId: facility.id, userId: user.id, rating: 5, content: '응답 시험' } });
+
+    // 이 시험이 의미 있으려면 DB에서 읽은 행에는 칸이 실제로 있어야 한다(없으면 "없다"는 단언이 공허하다)
+    const raw = await prisma.facility.findUniqueOrThrow({ where: { id: facility.id }, include: { reviews: true } });
+    assert.ok(raw.createdAtKst, 'Prisma가 읽은 시설 행에 createdAtKst가 없다 — 시험 전제가 깨졌다');
+    assert.ok(raw.reviews[0].createdAtKst, 'Prisma가 읽은 리뷰 행에 createdAtKst가 없다 — 시험 전제가 깨졌다');
+
+    const server = app.listen(0);
+    await new Promise<void>((r) => server.once('listening', () => r()));
+    const base = `http://127.0.0.1:${(server.address() as AddressInfo).port}`;
+    try {
+      const list = await fetch(`${base}/api/facilities?q=${encodeURIComponent(`응답시험시설${tag}`)}`);
+      const listText = await list.text();
+      assert.equal(list.status, 200);
+      assert.ok(listText.includes(`응답시험시설${tag}`), '목록 응답에 시험 시설이 없다');
+      assert.ok(listText.includes('"createdAt"'), '목록 응답에 createdAt이 없다 — 행이 통째로 나가는 경로가 아니다');
+      assert.ok(!listText.includes('createdAtKst'), '시설 목록 응답에 createdAtKst가 있다');
+
+      const detail = await fetch(`${base}/api/facilities/${facility.id}`);
+      const detailText = await detail.text();
+      assert.equal(detail.status, 200);
+      assert.ok(detailText.includes('응답 시험'), '상세 응답에 중첩 리뷰가 없다');
+      assert.ok(!detailText.includes('createdAtKst'), '시설 상세(중첩 리뷰 포함) 응답에 createdAtKst가 있다');
+    } finally {
+      await new Promise<void>((r) => server.close(() => r()));
+      await prisma.facilityReview.deleteMany({ where: { facilityId: facility.id } });
+      await prisma.facility.delete({ where: { id: facility.id } });
+    }
+  });
+});
+
 describe('앱은 createdAtKst를 읽지도 쓰지도 않는다', () => {
   it('🔴 코드가 createdAtKst에 다른 값을 넣어도 트리거 값(createdAt + 9시간)이 남는다 — create·update 모두', async () => {
     // 이 칸은 Prisma 모델에 보이지만(Studio에서 보려고 @ignore를 뺐다) 코드에서 쓰면 안 된다 — 써도 트리거가 덮어쓰는지 확인한다.
@@ -95,6 +136,9 @@ describe('앱은 createdAtKst를 읽지도 쓰지도 않는다', () => {
       }
     };
     for (const r of roots) if (fs.existsSync(r)) walk(r);
-    assert.deepEqual(hits, [], `createdAtKst를 쓰는 파일: ${hits.join(', ')}`);
+    // 허용은 src/app.ts 하나뿐 — 응답에서 이 칸을 "빼는" 'json replacer' 한 줄(읽거나 쓰는 코드가 아니다)
+    const allowed = [path.resolve(__dirname, '../src/app.ts')];
+    const unexpected = hits.filter((h) => !allowed.includes(h));
+    assert.deepEqual(unexpected, [], `createdAtKst를 쓰는 파일: ${unexpected.join(', ')}`);
   });
 });
