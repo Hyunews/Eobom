@@ -299,7 +299,6 @@ export const KakaoMapModal: React.FC<KakaoMapModalProps> = ({ facility, userLoca
               <ShieldCheck size={16} color="var(--point-color)" /> 주차 및 보증 정보
             </p>
             <p style={{ margin: '0 0 0.2rem 0', color: 'var(--text-muted)' }}>• 무료 주차 (대형 버스/유족 우선)</p>
-            <p style={{ margin: 0, color: 'var(--text-muted)' }}>• 24시간 장례지도사 상주</p>
           </div>
 
           <div style={{ backgroundColor: 'var(--card-bg)', padding: '0.9rem', borderRadius: 'var(--r-md)', fontSize: 'var(--fs-body)' }}>
