@@ -16,7 +16,7 @@
 
 
 **▶사후개봉`00-41`**—✅전부완료(09-30·3-A/B·묶음A~C·실기동·운영반영)·🟡운영R2꺼짐(보류:아카이브Worker·00-19선행).🟡공휴일2026만·매년12월갱신.
-**docs전수정리**=`.harness/docs-audit/README.md`—✅01~08·✅00-B~F·✅**00-G**(2단계끝)→✅3단계초안(10-01·plan.md1054줄·미확인307건=unresolved.md)→▶사람승인·✅00-F결정(10-01·README§4)→[Sonnet]죽은1200px규칙삭제·🟡공개전실기기점검(서체·16px)묶음·🔴[Sonnet]코드3건=README§4·✅navMode제거실기동(10-01)→[Sonnet]walkthrough(caadc2c)·**TS결정**(§4):✅backup-db`-Target`필수(prod시험은사람).✅`00-15`회귀테스트①②③·§1갱신(10-01·CI통과).🔴빠뜨림방지=README§6-2-1.
+**docs전수정리**=`.harness/docs-audit/README.md`—✅01~08·✅00-B~F·✅**00-G**(2단계끝)→✅3단계초안(10-01·plan.md1054줄·미확인307건=unresolved.md)→✅사람승인(10-01·문턱분리README§6-2-1)→▶[Sonnet]코드대조48(읽기전용)+공개전코드묶음(권한·파기·OCR·STT동의기록·대비·정렬)·✅00-F결정(10-01·README§4)·🟡공개전실기기점검(서체·16px)묶음·🔴[Sonnet]코드3건=README§4·✅navMode제거실기동(10-01)→[Sonnet]walkthrough(caadc2c)·**TS결정**(§4):✅backup-db`-Target`필수(prod시험은사람).✅`00-15`회귀테스트①②③·§1갱신(10-01·CI통과).🔴빠뜨림방지=README§6-2-1.
 🟡02구현(1d873df·35fccb6)walkthrough기록없음→[Sonnet]·🔴공개전파기=backlog㉒.
 `06-06`유언장사진:실기동(09-30)→🔴추가시험필요:①같은이름유언장2장 이름찾기 ②도장구분약함 ③OCR오독(1→/)—일부Sonnet수정됨,기록확인필요.
 🟡메뉴"검색"글자어색—사람판단중.
