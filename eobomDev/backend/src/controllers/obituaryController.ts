@@ -80,7 +80,7 @@ export const createObituary = async (req: Request, res: Response) => {
     facilityId?: string;
     // 마음 전하실 곳(§6.2-2) — Phase 3 → Phase 1 #6으로 이동(07-03 갱신). 기본 OFF + 유족 명시적 토글.
     accountEnabled?: boolean;
-    accountBankCode?: string; // 자유 입력 은행명(코드 마스터가 없어 Partner.settlementBank와 동일 방식)
+    accountBankName?: string; // 자유 입력 은행명(코드 마스터가 없어 Partner.settlementBank와 동일 방식)
     accountNumber?: string; // 평문으로 받아 encryptField로 암호화해서만 저장한다 — 평문 저장 금지
     accountHolder?: string;
     falseReportAgreed?: boolean;
@@ -114,7 +114,7 @@ export const createObituary = async (req: Request, res: Response) => {
     return res.status(400).json({ status: 'error', message: '발인 일시는 필수입니다.' });
   }
   // 마음 전하실 곳을 켰다면 은행·계좌번호·예금주가 없는 반쪽 상태로 저장되면 안 된다.
-  if (body.accountEnabled && (!body.accountBankCode?.trim() || !body.accountNumber?.trim() || !body.accountHolder?.trim())) {
+  if (body.accountEnabled && (!body.accountBankName?.trim() || !body.accountNumber?.trim() || !body.accountHolder?.trim())) {
     return res.status(400).json({ status: 'error', message: '마음 전하실 곳을 켰다면 은행 · 계좌번호 · 예금주를 모두 입력해야 합니다.' });
   }
 
@@ -173,7 +173,7 @@ export const createObituary = async (req: Request, res: Response) => {
               burialSite: body.burialSite?.trim() || null,
               contactPhone: body.contactPhone?.trim() || null,
               accountEnabled: !!body.accountEnabled,
-              accountBankCode: body.accountEnabled ? body.accountBankCode!.trim() : null,
+              accountBankName: body.accountEnabled ? body.accountBankName!.trim() : null,
               accountNumberEnc: body.accountEnabled ? encryptField(body.accountNumber!.trim()) : null,
               accountHolder: body.accountEnabled ? body.accountHolder!.trim() : null,
               falseReportAgreedAt: now,
@@ -285,7 +285,7 @@ export const getObituaryBySlug = async (req: Request, res: Response) => {
     // 조의금 계좌 — accountEnabled일 때만 복호화해 포함. 꺼져 있으면 필드 자체를 넣지 않는다(§5.3).
     if (obituary.accountEnabled) {
       data.account = {
-        bankCode: obituary.accountBankCode,
+        bankName: obituary.accountBankName,
         accountNumber: obituary.accountNumberEnc ? decryptField(obituary.accountNumberEnc) : null,
         holder: obituary.accountHolder,
       };
@@ -321,14 +321,14 @@ export const updateObituary = async (req: Request, res: Response) => {
     burialSite?: string | null;
     contactPhone?: string | null;
     accountEnabled?: boolean;
-    accountBankCode?: string | null;
+    accountBankName?: string | null;
     accountNumber?: string | null; // 평문 입력 → encryptField로 암호화해서만 저장
     accountHolder?: string | null;
     createMemorial?: boolean;
     falseReportAgreed?: boolean;
   };
 
-  if (body.accountEnabled && (!body.accountBankCode?.trim() || !body.accountNumber?.trim() || !body.accountHolder?.trim())) {
+  if (body.accountEnabled && (!body.accountBankName?.trim() || !body.accountNumber?.trim() || !body.accountHolder?.trim())) {
     return res.status(400).json({ status: 'error', message: '마음 전하실 곳을 켰다면 은행 · 계좌번호 · 예금주를 모두 입력해야 합니다.' });
   }
 
@@ -402,7 +402,7 @@ export const updateObituary = async (req: Request, res: Response) => {
           ...(body.contactPhone !== undefined ? { contactPhone: body.contactPhone?.trim() || null } : {}),
           // 계좌는 트리거 필드가 아니다(§5.4-2 표 — 안 띄움) — cardFieldsUpdatedAt에 영향 없음.
           ...(body.accountEnabled !== undefined ? { accountEnabled: body.accountEnabled } : {}),
-          ...(body.accountBankCode !== undefined ? { accountBankCode: body.accountEnabled ? body.accountBankCode?.trim() || null : null } : {}),
+          ...(body.accountBankName !== undefined ? { accountBankName: body.accountEnabled ? body.accountBankName?.trim() || null : null } : {}),
           ...(body.accountNumber !== undefined ? { accountNumberEnc: body.accountEnabled && body.accountNumber ? encryptField(body.accountNumber.trim()) : null } : {}),
           ...(body.accountHolder !== undefined ? { accountHolder: body.accountEnabled ? body.accountHolder?.trim() || null : null } : {}),
           ...(cardFieldsChanged ? { cardFieldsUpdatedAt: now } : {}),

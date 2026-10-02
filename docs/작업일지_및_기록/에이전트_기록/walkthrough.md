@@ -16,6 +16,17 @@
 > [`_아카이브_2608`](walkthrough_아카이브_2608.md)(08-31분). 남은 것 = 판정 대기 + 판정 표기 없음. 기준 → `record.md` §2-1.
 
 ---
+## 2026-10-02 | [Sonnet] Obituary.accountBankCode → accountBankName 이름 변경 + API 키 bankCode → bankName
+
+- **근거 스펙**: 10-02 개발자 결정(핸드오프 블록). 07-03 395행 스키마 블록은 Opus 몫(아직 옛 이름)
+- **건드린 파일**: eobomDev/backend/prisma/schema.prisma, prisma/migrations/20261002060000_rename_obituary_account_bank_name/migration.sql(신규), src/controllers/obituaryController.ts, frontend/src/components/ObituaryView.tsx, src/pages/ObituaryPage.tsx. 00-05는 generate-db-doc.js 재생성
+- **결과**: 백업(`local-20261002-145116.dump`) 후 `RENAME COLUMN`으로 로컬 DB 적용 — 기존 값 3건(국민은행·우리·우리) 그대로 확인. backend `tsc` 0·`npm test` 310/310 통과·frontend build 통과·`--check` 동기화됨. `bankCode|BankCode` grep: src·schema 0건(옛 migration 파일만 남음).
+- **편차**: ① `migrate dev --create-only`가 비대화형 환경에서 "컬럼 삭제(값 3건)" 경고로 파일을 못 만들어, migration.sql을 직접 작성(RENAME 한 줄)하고 `migrate deploy`로 적용. 폴더명 타임스탬프는 손으로 붙임(20261002060000). ② API 응답 키 `bankCode`→`bankName`도 같이 변경(개발자 추가 지시).
+- **다음 에이전트가 알아야 할 것**: 🔵 **실기동 검증 대기(사람)** — 부고장 만들기·수정에서 은행명 저장, 미리보기·공개 화면(`/o/<slug>`) 표시(미리보기·공개가 같은 ObituaryView를 쓰고 키가 양쪽 일치함은 코드로만 확인). 🔴 운영 반영: push(배포) 직후 `migrate-prod.ps1` 한 줄(변경형·RENAME, 삭제형 아님), 그 전 `backup-db.ps1 -Target prod`(사람). 배포~migrate 사이 부고장 저장·조회 실패 가능(공개 전이라 허용). [Opus] 07-03 395행 칸 이름 갱신.
+
+<!-- Gemini 판정 1줄: ✅통과 / ❌반려(사유) / 🔄스펙갱신(고친 문서) -->
+
+---
 ## 2026-10-02 | [Sonnet] 00-05 DB 사전 동기화 — schema.prisma 주석만 보강(dueAt 6시간 정정 + 설명 없는 칸 34→0)
 
 - **근거 스펙**: docs/00_핵심플랫폼/00-41 §5.1(dueAt 6시간·내부 기준, 10-02 변경) · 칸별 근거는 주석에 적은 문서(06-04·07-03·00-37·00-41 §8)

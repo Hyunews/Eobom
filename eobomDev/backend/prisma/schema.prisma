@@ -590,7 +590,7 @@ model Obituary {
 
   // 조의금 계좌 — ✅ 2026-08-20 개발자 확정: 기능 도입. 기본 OFF + 유족 토글(§8 #3)
   accountEnabled  Boolean  @default(false)
-  accountBankCode String? // 은행명 — 개설자 자유 입력(코드표 없음), 화면에 그대로 표시. accountEnabled가 켜졌을 때만 저장
+  accountBankName String? // 은행명 — 개설자 자유 입력(코드표 없음), 화면에 그대로 표시. accountEnabled가 켜졌을 때만 저장
   accountNumberEnc String?            // AES-256-GCM. utils/crypto.ts encryptField 재사용
   accountHolder   String? // 조의금 계좌 예금주명(07-03 §8 #3, accountEnabled가 켜졌을 때만 사용)
 

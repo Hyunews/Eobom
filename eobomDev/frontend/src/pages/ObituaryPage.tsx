@@ -171,7 +171,7 @@ export const ObituaryPage: React.FC<ObituaryPageProps> = ({ currentUser, onOpenL
 
   // 마음 전하실 곳(§6.2-2) — 명시적 토글, 기본 OFF. Phase 3 → Phase 1 #6으로 이동(07-03 갱신).
   const [accountEnabled, setAccountEnabled] = useState(false);
-  const [accountBankCode, setAccountBankCode] = useState('');
+  const [accountBankName, setAccountBankName] = useState('');
   const [accountNumber, setAccountNumber] = useState('');
   const [accountHolder, setAccountHolder] = useState('');
 
@@ -233,7 +233,7 @@ export const ObituaryPage: React.FC<ObituaryPageProps> = ({ currentUser, onOpenL
     setFuneralAt('');
     setContactPhone('');
     setAccountEnabled(false);
-    setAccountBankCode('');
+    setAccountBankName('');
     setAccountNumber('');
     setAccountHolder('');
     setDeathDate('');
@@ -312,7 +312,7 @@ export const ObituaryPage: React.FC<ObituaryPageProps> = ({ currentUser, onOpenL
 
           if (o.account) {
             setAccountEnabled(true);
-            setAccountBankCode(o.account.bankCode || '');
+            setAccountBankName(o.account.bankName || '');
             setAccountNumber(o.account.accountNumber || '');
             setAccountHolder(o.account.holder || '');
           }
@@ -403,7 +403,7 @@ export const ObituaryPage: React.FC<ObituaryPageProps> = ({ currentUser, onOpenL
     if (!funeralHall.trim()) errs.hall = '빈소 위치를 입력해 주세요.';
     if (!funeralAt) errs.funeral = '발인 일시를 선택해 주세요.';
     if (accountEnabled) {
-      if (!accountBankCode.trim()) errs.bank = '은행을 입력해 주세요.';
+      if (!accountBankName.trim()) errs.bank = '은행을 입력해 주세요.';
       if (!accountHolder.trim()) errs.holder = '예금주를 입력해 주세요.';
       if (!accountNumber.trim()) errs.accountNo = '계좌번호를 입력해 주세요.';
     }
@@ -439,7 +439,7 @@ export const ObituaryPage: React.FC<ObituaryPageProps> = ({ currentUser, onOpenL
       burialSite: burialSite.trim() || undefined,
       contactPhone: contactPhone.trim() || undefined,
       accountEnabled,
-      accountBankCode: accountEnabled ? accountBankCode.trim() : undefined,
+      accountBankName: accountEnabled ? accountBankName.trim() : undefined,
       accountNumber: accountEnabled ? accountNumber.trim() : undefined,
       accountHolder: accountEnabled ? accountHolder.trim() : undefined,
       falseReportAgreed,
@@ -703,8 +703,8 @@ export const ObituaryPage: React.FC<ObituaryPageProps> = ({ currentUser, onOpenL
             <div className="v2-form-row">
               <FormField
                 id="ob-bank" label="은행" placeholder="예: 국민은행"
-                value={accountBankCode} error={fieldErrors.bank}
-                onChange={(v) => { setAccountBankCode(v); clearFieldError('bank'); }}
+                value={accountBankName} error={fieldErrors.bank}
+                onChange={(v) => { setAccountBankName(v); clearFieldError('bank'); }}
               />
               <FormField
                 id="ob-holder" label="예금주" placeholder="예금주"
@@ -833,7 +833,7 @@ export const ObituaryPage: React.FC<ObituaryPageProps> = ({ currentUser, onOpenL
     memorialSlug: obituaryRef?.memorialSlug ?? null,
     cardFieldsUpdatedAt,
     updatedAt: updatedAt ?? new Date().toISOString(),
-    account: accountEnabled ? { bankCode: accountBankCode || null, accountNumber: accountNumber || null, holder: accountHolder || null } : undefined,
+    account: accountEnabled ? { bankName: accountBankName || null, accountNumber: accountNumber || null, holder: accountHolder || null } : undefined,
   });
 
   const managePanel = (

@@ -32,7 +32,7 @@ export interface ObituaryData {
   memorialSlug: string | null;
   cardFieldsUpdatedAt: string | null;
   updatedAt: string;
-  account?: { bankCode: string | null; accountNumber: string | null; holder: string | null };
+  account?: { bankName: string | null; accountNumber: string | null; holder: string | null };
 }
 
 export const ObituaryView: React.FC<{ data: ObituaryData }> = ({ data }) => {
@@ -146,7 +146,7 @@ export const ObituaryView: React.FC<{ data: ObituaryData }> = ({ data }) => {
             <div className="v2-obit-row">
               <span className="v2-obit-row-label">계좌</span>
               <div className="v2-obit-row-value">
-                <div>{data.account.bankCode} {data.account.accountNumber}</div>
+                <div>{data.account.bankName} {data.account.accountNumber}</div>
                 <div className="v2-obit-addr">예금주 {data.account.holder}</div>
               </div>
             </div>
