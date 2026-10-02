@@ -2482,3 +2482,35 @@
   - 커밋은 하지 않음 — 메시지 초안만.
 
 <!-- Gemini 판정 1줄: ✅통과 / ❌반려(사유) / 🔄스펙갱신(고친 문서) -->
+## 2026-10-02 | 공휴일 코드 목록 삭제 + 유족 화면 완료 예정 시각 삭제 (00-41 §5.1·§8.2) · R2 정비 2건 확인
+
+- **근거 스펙**: docs 00-41 §5.1·§8.2(10-02 개발자 변경②). 3·4번(R2 정비)은 00-11 §5.4-6-3 · §5.4-5-2-1-1 보정②.
+- **건드린 파일**: eobomDev/backend/src/utils/operatingHours.ts, eobomDev/backend/src/utils/operatingHours.test.ts, eobomDev/frontend/src/pages/FamilySharedPage.tsx. 3·4번은 파일을 건드리지 않음(아래).
+- **결과**:
+  - 삭제: `HOLIDAYS`(`ReadonlySet`, 2026년 13일분)·`HOLIDAYS_COVERED_THROUGH`·`ymd()` 헬퍼, `isOperatingDay`의 `!HOLIDAYS.has(...)` 조건. 에러 문구 `HOLIDAYS 목록을 확인하세요` → `OPERATING_HOURS.workdays를 확인하세요`. 주석을 "공휴일은 코드에 두지 않는다(00-41 §5.1)"로 교체. `git grep HOLIDAYS`(eobomDev) 0건.
+  - 테스트 갱신: 공휴일 건너뛰기·추석 연휴 2건을 "공휴일을 건너뛰지 않는다"로 뒤집음 — 금 10-02 16시 → 월 10-05 14시, 수 9-23 16시 → 목 9-24 14시. 주말 건너뛰기 1건 추가(일 11-08 12시 → 월 11-09 15시).
+  - 유족 화면: FamilySharedPage.tsx `{formatDateTime(req.dueAt)}까지 확인합니다.` 삭제 → `…요청했습니다. {접수 시각} 접수`로 끝남. `MyReleaseRequest` 인터페이스의 `dueAt: string` 필드 삭제. `ReleaseRequestModal.tsx` §8.1 안내 문구는 그대로 유지. 운영자 대시보드 지연 색(`overTarget`·`overDue`)은 안 건드림.
+  - 검증: `cd eobomDev/backend && npm test` 310건 통과 · `npx tsc --noEmit` backend·frontend 에러 0.
+  - **3번(`.env.example` R2_BUCKET_* `-dev`)·4번(Worker `CompleteMultipartUpload` 복제)은 이미 반영돼 있어 할 일이 없었다** — 커밋 `759cc94`(2026-09-30)에 들어 있음: `.env.example` L90~92가 `eobom-farewell-voice-dev` · `eobom-memorial-media-dev` · `eobom-biz-docs-dev`, `workers/r2-archive-relay/src/index.ts`가 `COPY_ACTIONS = new Set(['PutObject', 'CopyObject', 'CompleteMultipartUpload'])`. docs 00-11 L44~46·L468이 "미반영"이라 적은 것은 낡은 서술. Worker 배포는 하지 않음.
+- **편차**: 스펙 §8.2 표(REQUESTED 행)는 "접수 시각 · 안내 문구(§8.1) · [요청 취소]"인데 REQUESTED 상태 줄에는 §8.1 안내 문구가 없다(요청 모달에만 있음). 요청대로 시각 부분만 삭제했고 안내 문구를 이 줄에 추가하지는 않았다.
+- **다음 에이전트가 알아야 할 것**:
+  - 🟡 서버 응답은 유족용 API에도 `dueAt`을 계속 싣는다(`deathVerificationController.ts` L61·L76 직렬화·select). 화면에는 안 나오지만 응답에서 빼려면 별도 변경.
+  - 🟡 운영자 화면 문구 `대외 마감 {dueAt}`(AdminPage.tsx L1266)과 컨트롤러 주석 "대외 약속(dueAt)"(deathVerificationAdminController.ts L44)은 00-41 변경(6시간 = 내부 처리 기준)과 표현이 어긋남 — 이번엔 안 고침.
+  - 🟡 공휴일에 걸린 건은 대시보드에서 노랑·빨강으로 보일 수 있다(스펙상 정상).
+  - 🟡 실기동(사람): 유족 화면 REQUESTED 줄에 시각 문구가 안 나오는지.
+  - 사람이 이후 Render에 `R2_ENABLED=true` 등 VOICE 변수 6개 설정.
+  - 커밋은 하지 않음 — 메시지 초안만.
+
+<!-- Gemini 판정 1줄: ✅통과 / ❌반려(사유) / 🔄스펙갱신(고친 문서) -->
+## 2026-10-02 | 유족용 사망 확인 응답에서 dueAt 제거 (개발자 결정, 00-41 §8.2 후속)
+
+- **근거 스펙**: docs 00-41 §5.1·§8.2(유족 화면에 처리 기준 시각을 보여 주지 않는다) · 개발자 10-02 "유족 응답에 dueAt이 필요하지 않다면 뺀다". 직전 항목 "공휴일 코드 목록 삭제…"의 후속.
+- **건드린 파일**: eobomDev/backend/src/controllers/deathVerificationController.ts (1개)
+- **결과**: `serializeForFamily`의 입력 타입 `dueAt: Date`·출력 `dueAt: r.dueAt`, `familyRequestSelect`의 `dueAt: true` 삭제 + 주석에 "dueAt은 내보내지 않는다" 명시. 유족용 3곳(요청 생성 응답 201 · 내 요청 조회 · 나에 대한 요청 조회 — `serializeForFamily`를 쓰는 L166·L202)이 모두 영향. 확인: frontend 유족 화면에 `dueAt` 사용처 0건(FamilySharedPage 인터페이스에서 이미 삭제), `backend/tests`에 `dueAt` 참조 0건. 운영자 쪽(`deathVerificationAdminController.ts`, `AdminPage.tsx` L1266)은 그대로 `dueAt`을 내려받아 표시. `npx tsc --noEmit` backend 에러 0 · `npm test` 통과(수는 아래 보고).
+- **편차**: 없음. 단, 유족 응답에 `dueAt`이 없음을 직접 검사하는 테스트는 추가하지 않았다(요청 생성에 지정 유족·엔딩노트 상태 등 선행 데이터가 필요).
+- **다음 에이전트가 알아야 할 것**:
+  - 🟡 DB의 `dueAt` 칸과 계산(`computeDeadlines`)은 그대로 — 운영자 대시보드 정렬·지연 색이 쓴다.
+  - 🟡 실기동(사람): 유족 계정으로 요청 생성·조회 응답(네트워크 탭)에 `dueAt`이 없는지.
+  - 커밋은 하지 않음 — 메시지 초안만.
+
+<!-- Gemini 판정 1줄: ✅통과 / ❌반려(사유) / 🔄스펙갱신(고친 문서) -->

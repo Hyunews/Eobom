@@ -63,7 +63,6 @@ interface MyReleaseRequest {
   id: string;
   status: 'REQUESTED' | 'VERIFIED' | 'REJECTED' | 'CANCELLED';
   requestedAt: string;
-  dueAt: string;
   rejectReasonText: string | null;
   isMine: boolean;
   canCancel: boolean;
@@ -301,8 +300,7 @@ export const FamilySharedPage: React.FC<FamilySharedPageProps> = ({ currentUser,
               {!released && req?.status === 'REQUESTED' && (
                 <div style={{ marginTop: '16px' }}>
                   <p className="v2-notice" style={{ marginBottom: '8px' }}>
-                    {req.isMine ? '요청했습니다.' : '가족 중 한 분이 요청했습니다.'} {formatDateTime(req.requestedAt)} 접수 ·{' '}
-                    {formatDateTime(req.dueAt)}까지 확인합니다.
+                    {req.isMine ? '요청했습니다.' : '가족 중 한 분이 요청했습니다.'} {formatDateTime(req.requestedAt)} 접수
                   </p>
                   {req.canCancel && (
                     <button type="button" className="v2-btn-outline" onClick={() => cancelRequest(item, req)} disabled={busyId === item.designationId}>

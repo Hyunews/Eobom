@@ -35,7 +35,7 @@ const send = (res: Response, error: unknown, fallback: string) => {
   return res.status(500).json({ status: 'error', message: '처리 중 오류가 발생했습니다.' });
 };
 
-// 유족 화면용 요청 모양. 🔴 targetAt(내부 목표)·장례식장 전화·운영자 id는 내보내지 않는다.
+// 유족 화면용 요청 모양. 🔴 dueAt(처리 기준 시각, 10-02 내부 기준으로 변경)·targetAt(내부 목표)·장례식장 전화·운영자 id는 내보내지 않는다.
 const serializeForFamily = (
   r: {
     id: string;
@@ -44,7 +44,6 @@ const serializeForFamily = (
     deathDate: Date;
     funeralHallName: string | null;
     requestedAt: Date;
-    dueAt: Date;
     reviewedAt: Date | null;
     rejectReason: string | null;
     subject: { name: string };
@@ -58,7 +57,6 @@ const serializeForFamily = (
   deathDate: r.deathDate,
   funeralHallName: r.funeralHallName,
   requestedAt: r.requestedAt,
-  dueAt: r.dueAt,
   reviewedAt: r.reviewedAt,
   rejectReason: r.rejectReason,
   rejectReasonText: r.rejectReason ? REJECT_REASON_TEXT[r.rejectReason] ?? REJECT_REASON_TEXT.OTHER : null,
@@ -73,7 +71,6 @@ const familyRequestSelect = {
   deathDate: true,
   funeralHallName: true,
   requestedAt: true,
-  dueAt: true,
   reviewedAt: true,
   rejectReason: true,
   requestedByDesigId: true,

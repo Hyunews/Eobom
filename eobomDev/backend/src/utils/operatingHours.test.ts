@@ -2,8 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { addOperatingMinutes, computeDeadlines } from './operatingHours';
 
-// 입력·기대값은 전부 KST(+09:00)로 적는다. 2026-11은 공휴일이 없는 달이라 요일 계산만 검증하고,
-// 2026-10-05(개천절 대체공휴일)로 공휴일 건너뛰기를 따로 검증한다.
+// 입력·기대값은 전부 KST(+09:00)로 적는다. 공휴일은 코드에 없다(00-41 §5.1, 10-02) — 평일 9~17시만 센다.
 const kst = (s: string) => new Date(`${s}+09:00`);
 const iso = (d: Date) => new Date(d.getTime() + 9 * 3600 * 1000).toISOString().slice(0, 16);
 
@@ -34,11 +33,16 @@ test('17시를 넘기는 경우 남은 시간이 다음 운영일로 이월', ()
   assert.equal(iso(addOperatingMinutes(kst('2026-11-09T16:30:00'), 60)), '2026-11-10T09:30');
 });
 
-test('공휴일(2026-10-05 대체공휴일)은 건너뛴다 — 금 16시 접수가 화요일 14시', () => {
-  assert.equal(iso(computeDeadlines(kst('2026-10-02T16:00:00')).dueAt), '2026-10-06T14:00');
+test('공휴일은 건너뛰지 않는다 — 개천절 대체공휴일(2026-10-05 월)도 평일로 센다', () => {
+  // 금 10-02 16:00 접수 → 금 1h + 월 5h → 10-05 14:00 (공휴일 처리는 운영자 판단)
+  assert.equal(iso(computeDeadlines(kst('2026-10-02T16:00:00')).dueAt), '2026-10-05T14:00');
 });
 
-test('추석 연휴(9/24·9/25) 다음 평일 처리', () => {
-  // 수 9/23 16:00 접수 → 수 1h + (목·금 휴무, 토·일) + 월 5h → 9/28 14:00
-  assert.equal(iso(computeDeadlines(kst('2026-09-23T16:00:00')).dueAt), '2026-09-28T14:00');
+test('추석 연휴(9/24·9/25 평일)도 평일로 센다', () => {
+  // 수 9/23 16:00 접수 → 수 1h + 목 5h → 9/24 14:00
+  assert.equal(iso(computeDeadlines(kst('2026-09-23T16:00:00')).dueAt), '2026-09-24T14:00');
+});
+
+test('주말은 건너뛴다 — 일요일 접수는 월요일 9시부터', () => {
+  assert.equal(iso(computeDeadlines(kst('2026-11-08T12:00:00')).dueAt), '2026-11-09T15:00');
 });
