@@ -615,7 +615,7 @@ if [ -f "$GEN" ] && command -v node >/dev/null 2>&1; then
   if node "$GEN" --check >/dev/null 2>&1; then
     ok "00-05가 schema.prisma와 동기화됨"
   else
-    fail "00-05가 낡음 — \`node .harness/tools/generate-db-doc.js\` 실행 필요(스키마를 고치고 안 돌린 것)"
+    fail "00-05가 낡음 — \`node .harness/tools/generate-db-doc.js\` 실행 필요. 원인 둘 중 하나: ①스키마를 고치고 안 돌림 ②자동 구간을 손으로 고침(10-02 실제 — 이때 재실행하면 손 수정이 지워지니 먼저 schema.prisma 주석부터 고칠 것, roles.md §1)"
   fi
   CHECKS=$((CHECKS + 1))
 else

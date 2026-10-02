@@ -40,7 +40,7 @@
 
 보고서 `reports/00_핵심플랫폼/00-05_이어봄_DB_요구사항_및_테이블_사전.html`
 
-**[DB 스키마]** 20개 테이블·물리 컬럼 214개 전수 사전(`schema.prisma` 주석에서 자동 생성, `.harness/tools/generate-db-doc.js`)
+**[DB 스키마]** 전체 모델·칸 전수 사전 — 수치는 00-05 본문 참조(10-02 숫자 삭제)(`schema.prisma` 주석에서 자동 생성, `.harness/tools/generate-db-doc.js`)
 
 ## 00-06
 

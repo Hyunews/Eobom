@@ -73,7 +73,7 @@ model User {
 
 // 생전 가족지정 — 00-27. 지정자가 아직 살아 있으므로 Deceased가 아니라 User에 붙는다(§1.2)
 model FamilyDesignation {
-  id              String    @id @default(uuid())
+  id              String    @id @default(uuid()) // 기본키(UUID)
   userId          String                        // 지정한 본인(생전)
   user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -96,9 +96,9 @@ model FamilyDesignation {
   acceptAttempts  Int       @default(0)         // §9.1-4-3 성함 대조 오답 횟수. 5회 초과 시 토큰 잠금(재발급 필요). 입력 이름 자체는 저장하지 않는다
 
   lastConfirmedAt DateTime  @default(now())     // 정확도·보유기간 재확인 기준(§7)
-  createdAt       DateTime  @default(now())
+  createdAt       DateTime  @default(now()) // 생성 시각(UTC)
   createdAtKst DateTime? // 보기 전용 · DB 트리거가 createdAt+9시간(한국 시간)으로 채움 · 🔴 코드에서 읽기·쓰기 금지(트리거가 쓰기를 덮어씀)
-  updatedAt       DateTime  @updatedAt
+  updatedAt       DateTime  @updatedAt // 마지막 수정 시각(UTC)
   updatedAtKst DateTime? // 보기 전용 · DB 트리거가 updatedAt+9시간(한국 시간)으로 채움 · 🔴 코드에서 읽기·쓰기 금지(트리거가 쓰기를 덮어씀)
 
   farewellMessages FarewellMessage[]            // docs 06-05 §6.2 — 이 수신자 앞으로 남긴 편지들
@@ -546,13 +546,13 @@ model MemorialPhoto {
 // ⚠️ DeathVerification·BereavedRelation·PreDeathDirective는 이번 범위 밖 —
 //    00-12가 확정될 때 이 모델에 붙는다(관계 필드만 미리 열어두지 않는다).
 model Deceased {
-  id           String    @id @default(uuid())
+  id           String    @id @default(uuid()) // 기본키(UUID)
   userId       String?   @unique // 이어봄 회원이었으면 연결. 비회원 고인이면 null(케이스 B)
-  name         String
+  name         String // 고인 성명 — 부고장·추모관 개설자가 입력
   birthDate    DateTime?           // ⚠️ 공개 응답에서 제외(05-01 §4.1과 동일 사상)
-  deathDate    DateTime?
+  deathDate    DateTime? // 사망 일자 — 부고장·추모관 개설자가 입력
   registeredBy String              // 등록한 User — 자칭 유족일 수 있음(00-12 §2.3)
-  createdAt    DateTime  @default(now())
+  createdAt    DateTime  @default(now()) // 생성 시각(UTC)
   createdAtKst DateTime? // 보기 전용 · DB 트리거가 createdAt+9시간(한국 시간)으로 채움 · 🔴 코드에서 읽기·쓰기 금지(트리거가 쓰기를 덮어씀)
 
   obituaries   Obituary[]
@@ -561,9 +561,9 @@ model Deceased {
 
 // 부고장 — Domain 07 소유. 단명(장례 전후), 배포되는 유일한 링크(00-13 §4.5)
 model Obituary {
-  id              String   @id @default(uuid())
+  id              String   @id @default(uuid()) // 기본키(UUID)
   slug            String   @unique   // 배포용 추측 불가 토큰(§4.4)
-  deceasedId      String
+  deceasedId      String // 연결된 고인(Deceased)
   deceased        Deceased @relation(fields: [deceasedId], references: [id])
   // 🔄 09-07 사용자 지시 — 부고장 생성이 추모관 생성을 강제하지 않는다(기존 E안 §4.5·권고#3
   // "개설 시 함께 생성"을 뒤집음). 추모관은 `/memorial` 화면에서 별도로 생성·삭제되고,
@@ -590,9 +590,9 @@ model Obituary {
 
   // 조의금 계좌 — ✅ 2026-08-20 개발자 확정: 기능 도입. 기본 OFF + 유족 토글(§8 #3)
   accountEnabled  Boolean  @default(false)
-  accountBankCode String?
+  accountBankCode String? // 은행명 — 개설자 자유 입력(코드표 없음), 화면에 그대로 표시. accountEnabled가 켜졌을 때만 저장
   accountNumberEnc String?            // AES-256-GCM. utils/crypto.ts encryptField 재사용
-  accountHolder   String?
+  accountHolder   String? // 조의금 계좌 예금주명(07-03 §8 #3, accountEnabled가 켜졌을 때만 사용)
 
   // 카톡 카드에 영정 사용 — ✅ 2026-08-20 확정(§3.3-1). Phase 1~2에는 화면에 노출하지 않는다.
   // ⚠️ 이미지 스토리지 전환(00-11) 전까지 true로 켤 수 없다 — 켜면 재배포 시 카드가 깨진다.
@@ -603,16 +603,16 @@ model Obituary {
   resharedNoticeAckAt DateTime         // 재전파 고지 확인 시각(00-13 §8-6)
 
   shareCount      Int      @default(0) // 집계값만. 수신자 식별 정보는 저장하지 않음
-  viewCount       Int      @default(0)
+  viewCount       Int      @default(0) // 부고장 조회 수 — 집계값만, 열람자 정보 저장 안 함(07-03)
 
   // 카드 반영 필드(고인 성함·빈소·호실·발인)가 마지막으로 바뀐 시각(§5.4-2).
   // ⚠️ updatedAt으로 대체할 수 없다 — 연락처만 고쳐도 updatedAt은 바뀌므로
   //    "다시 공유하세요" 안내가 잘못 뜬다. 카드 반영 필드에서만 갱신한다.
   cardFieldsUpdatedAt DateTime?
   closedAt        DateTime?           // 수동 종료 시각(§9 #9). null이어도 발인+3일 지나면 조회 시점에 자동 종료로 취급(§6.2-4) — 별도 컬럼 없음
-  createdAt       DateTime @default(now())
+  createdAt       DateTime @default(now()) // 생성 시각(UTC)
   createdAtKst DateTime? // 보기 전용 · DB 트리거가 createdAt+9시간(한국 시간)으로 채움 · 🔴 코드에서 읽기·쓰기 금지(트리거가 쓰기를 덮어씀)
-  updatedAt       DateTime @updatedAt
+  updatedAt       DateTime @updatedAt // 마지막 수정 시각(UTC)
   updatedAtKst DateTime? // 보기 전용 · DB 트리거가 updatedAt+9시간(한국 시간)으로 채움 · 🔴 코드에서 읽기·쓰기 금지(트리거가 쓰기를 덮어씀)
 
   mourners        ObituaryMourner[]
@@ -622,13 +622,13 @@ model Obituary {
 
 // 상주·유족 — 부고는 관계별로 여러 명을 나란히 적는 것이 관행이다(§4.3)
 model ObituaryMourner {
-  id           String   @id @default(uuid())
-  obituaryId   String
+  id           String   @id @default(uuid()) // 기본키(UUID)
+  obituaryId   String // 소속 부고(Obituary)
   obituary     Obituary @relation(fields: [obituaryId], references: [id], onDelete: Cascade)
   relationship String            // 배우자 | 장남 | 차녀 | 사위 | 며느리 ...
-  name         String
+  name         String // 상주·유족 성명(07-03 §4.3)
   isChief      Boolean  @default(false)  // 상주 표시
-  sortOrder    Int      @default(0)
+  sortOrder    Int      @default(0) // 부고장 표시 순서 — 오름차순(작은 값이 먼저, 상주가 0)
 
   @@index([obituaryId, sortOrder])
 }
@@ -647,15 +647,15 @@ model EndingNote {
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   status         String    @default("DRAFT") // DRAFT|SEALED|RELEASED|FROZEN — §3.3, 클라이언트가 정하지 않는다
-  sealedAt       DateTime?
-  releasedAt     DateTime?
+  sealedAt       DateTime? // 봉인 시각(06-04)
+  releasedAt     DateTime? // 개봉 시각 — 사망 확인 승인과 같은 트랜잭션에서 기록(00-41 §8)
   policyAgreedAt DateTime? // 06-03 §5 열람 정책 동의 시각 — 가입 시점이 아니라 작성 시작 시점에 스탬프
-  lastConfirmedAt DateTime?
+  lastConfirmedAt DateTime? // 연 1회 재확인 시각(06-04)
   sectionState   Json?     // 06-04 §4.2·§6.2 — 섹션별 "작성 완료 여부"만(예: {"ASSET":true}). 내용은 절대 넣지 않는다. 서버가 갱신(클라이언트 값 불신)
 
-  createdAt DateTime @default(now())
+  createdAt DateTime @default(now()) // 생성 시각(UTC)
   createdAtKst DateTime? // 보기 전용 · DB 트리거가 createdAt+9시간(한국 시간)으로 채움 · 🔴 코드에서 읽기·쓰기 금지(트리거가 쓰기를 덮어씀)
-  updatedAt DateTime @updatedAt
+  updatedAt DateTime @updatedAt // 마지막 수정 시각(UTC)
   updatedAtKst DateTime? // 보기 전용 · DB 트리거가 updatedAt+9시간(한국 시간)으로 채움 · 🔴 코드에서 읽기·쓰기 금지(트리거가 쓰기를 덮어씀)
 
   farewellMessages FarewellMessage[]
@@ -688,9 +688,9 @@ model FarewellMessage {
   deletedAt DateTime? // 🆕 Phase D-7(§5.6-7). 편지 전체를 소프트 삭제한 시각. 🔴 행을 지우지
   // 않는다 — mediaKey가 사라지면 R2 원본을 영영 못 찾는다. 목록·상세·오디오는 null인 것만 돌려준다.
 
-  createdAt DateTime @default(now())
+  createdAt DateTime @default(now()) // 생성 시각(UTC)
   createdAtKst DateTime? // 보기 전용 · DB 트리거가 createdAt+9시간(한국 시간)으로 채움 · 🔴 코드에서 읽기·쓰기 금지(트리거가 쓰기를 덮어씀)
-  updatedAt DateTime @updatedAt
+  updatedAt DateTime @updatedAt // 마지막 수정 시각(UTC)
   updatedAtKst DateTime? // 보기 전용 · DB 트리거가 updatedAt+9시간(한국 시간)으로 채움 · 🔴 코드에서 읽기·쓰기 금지(트리거가 쓰기를 덮어씀)
 
   @@index([noteId])
@@ -770,17 +770,17 @@ model DeathVerification {
   funeralHallPhone String? // 숫자만(utils/phone.ts)
 
   requestedAt DateTime @default(now()) // 접수 시각
-  dueAt       DateTime // 대외 약속 — 운영시간(평일 9~17시)만 세서 12시간(§5.1). 화면 표시·정렬용
+  dueAt       DateTime // 처리 기준 — 운영시간(평일 9~17시)만 세서 6시간(00-41 §5.1, 10-02 변경). 운영자 화면 정렬·지연 색 전용(유족 화면 표시 안 함 — 10-02)
   targetAt    DateTime // 내부 목표 — 운영시간만 세서 1시간(§5.1). 운영자 화면에만
 
   // 운영자 처리(§5)
   level             String? // VERIFIED일 때 OPERATOR_REVIEWED (00-12 §3 값 그대로)
   method            String? // FUNERAL_HALL | OTHER(SUPERADMIN만)
   reviewedByAdminId String? // FK 아님(AdminAuditLog와 같은 원칙 — 계정이 지워져도 증빙은 남는다)
-  reviewedAt        DateTime?
+  reviewedAt        DateTime? // 운영자 확인·반려 처리 시각(reviewedByAdminId와 짝)
   rejectReason      String? // HALL_NOT_FOUND | NAME_MISMATCH | UNREACHABLE | OTHER — 코드만, 자유 서술 없음
 
-  cancelledAt DateTime?
+  cancelledAt DateTime? // 요청 취소 시각(cancelledBy와 짝)
   cancelledBy String? // SUBJECT | REQUESTER
 
   @@index([status, dueAt])
@@ -793,7 +793,7 @@ model DeathVerification {
 // — 오브젝트 키뿐이다. 🔴 행을 지우지 않는다(파기 이력 = 의무 이행 증빙). FarewellMessage와
 // FK로 묶지 않는다 — 편지 행이 파기(②)돼도 원장은 남아야 한다.
 model ArchivePurgeQueue {
-  id       String   @id @default(uuid())
+  id       String   @id @default(uuid()) // 기본키(UUID)
   mediaKey String // 아카이브 버킷에서 지워야 할 키. FarewellMessage.mediaKey의 사본
   bucket   String // 원본 버킷명 — 나중에 미디어·서류로 확장될 때 구분자
   queuedAt DateTime @default(now()) // 1단계(원본 삭제)를 돈 시각
@@ -803,13 +803,13 @@ model ArchivePurgeQueue {
 // 어드민 파기 화면(06-05 §5.6-8-3-3)의 감사 로그 — "누가·언제·몇 건·어떤 키". 파기는 법적
 // 의무라 이행 증빙이 필요하다. Admin과 FK로 묶지 않는다 — 계정이 나중에 지워져도 증빙은 남아야 한다.
 model FarewellPurgeAuditLog {
-  id         String   @id @default(uuid())
+  id         String   @id @default(uuid()) // 기본키(UUID)
   adminId    String // 실행한 운영자 id(FK 아님)
   adminName  String // 실행 시점 운영자 이름 스냅샷
   targetIds  String // 파기한 FarewellMessage.id 목록(콤마 구분)
   mediaKeys  String // 같이 지운 R2 원본 키 목록(콤마 구분, 없으면 빈 문자열)
   count      Int // 몇 건
-  executedAt DateTime @default(now())
+  executedAt DateTime @default(now()) // 파기 실행 시각(00-37)
 }
 
 // ─────────────────────────────────────────────────────────────────
@@ -914,11 +914,11 @@ model ErrorLog {
 // 🔴 운영자 열람 불가 — 어떤 항목을 체크했는지는 운영자 화면·로그·에러 리포트에 남기지 않는다(개수 집계만).
 // 보유기간: 회원 탈퇴 시까지(00-19 제4조) — 파기 시 accountPurgeService가 지운다(User 행이 남아 Cascade가 안 탄다).
 model CareGuideProgress {
-  id        String   @id @default(uuid())
-  userId    String
+  id        String   @id @default(uuid()) // 기본키(UUID)
+  userId    String // 진행 기록의 회원(User)
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  taskId    Int
-  checkedAt DateTime @default(now())
+  taskId    Int // 케어 가이드 항목 번호 — frontend/src/mockData/careGuideTasks.json의 정수 id
+  checkedAt DateTime @default(now()) // 항목 완료 체크 시각
 
   @@unique([userId, taskId])
 }

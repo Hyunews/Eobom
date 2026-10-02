@@ -16,6 +16,17 @@
 > [`_아카이브_2608`](walkthrough_아카이브_2608.md)(08-31분). 남은 것 = 판정 대기 + 판정 표기 없음. 기준 → `record.md` §2-1.
 
 ---
+## 2026-10-02 | [Sonnet] 00-05 DB 사전 동기화 — schema.prisma 주석만 보강(dueAt 6시간 정정 + 설명 없는 칸 34→0)
+
+- **근거 스펙**: docs/00_핵심플랫폼/00-41 §5.1(dueAt 6시간·내부 기준, 10-02 변경) · 칸별 근거는 주석에 적은 문서(06-04·07-03·00-37·00-41 §8)
+- **건드린 파일**: eobomDev/backend/prisma/schema.prisma(주석만 — 칸·타입·관계 변경 없음), docs/00_핵심플랫폼/00-05_DB_요구사항_및_테이블_사전.md(`generate-db-doc.js` 재생성)
+- **결과**: `DeathVerification.dueAt` 주석을 6시간·운영자 화면 전용 문구로 정정. 설명 없던 칸 34개에 주석 추가(id·createdAt·updatedAt·FK·시각 칸 등). `npx prisma validate` 통과 · `generate-db-doc.js` "설명 없음 0개"(34→0) · `--check` 통과 · 00-05 839행 dueAt 줄이 6시간 문구로 생성됨. 마이그레이션·DB 쓰기 없음(백업 불필요).
+- **편차**: ① 지시는 "2칸 확인 후 사실만"이던 ③ 중 `accountBankCode`는 코드표가 아니라 **자유 입력 은행명**으로 확인(obituaryController.ts 83행 주석 "코드 마스터가 없어 자유 입력", 화면 placeholder "예: 국민은행") → 칸 이름과 달리 코드가 아니라고 주석에 명시. ② `taskId`는 `frontend/src/mockData/careGuideTasks.json`의 정수 id(careGuideController.ts 8행). ③ 지시 목록에 없던 `FarewellMessage.createdAt/updatedAt`·`FamilyDesignation`·`ArchivePurgeQueue.id` 등 같은 규칙(①)의 칸도 함께 보강해야 0개가 됨. ④ `Deceased.name/deathDate` 입력 주체는 부고장(obituaryController 138행)·추모관(memorialController 111행) 개설자 입력으로 확인. ⑤ `sortOrder`는 `orderBy: asc`(obituaryController 232행) 확인, 상주=0.
+- **다음 에이전트가 알아야 할 것**: 🟡 `accountBankCode` 칸 이름이 "코드"인데 실제론 은행명 문자열 — 이름 변경은 마이그레이션이라 이번엔 안 함(필요하면 Opus가 판단). 커밋은 사람이 한다(메시지 초안은 보고에). 같은 작업트리의 `.harness/roles.md`·`harness-doctor.sh`·`docs/00_DOCS_INDEX.md` 변경은 이 작업이 아님.
+
+<!-- Gemini 판정 1줄: ✅통과 / ❌반려(사유) / 🔄스펙갱신(고친 문서) -->
+
+---
 ## 2026-10-01 | [Sonnet] 00-42 §5.2 ③ — 오류 번호(5xx) + ErrorBoundary + 부고·추모관·가족초대 "접속 실패↔없음" 구분
 
 - **근거 스펙**: docs/00_핵심플랫폼/00-42_운영_기록_로그_설계서.md §5.2 ③ (10-01 결정)
