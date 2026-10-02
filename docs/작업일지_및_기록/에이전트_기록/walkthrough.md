@@ -2453,3 +2453,15 @@
   - 커밋은 하지 않음 — 메시지 초안만.
 
 <!-- Gemini 판정 1줄: ✅통과 / ❌반려(사유) / 🔄스펙갱신(고친 문서) -->
+## 2026-10-02 | 녹음 경로에도 STT 필수 동의 체크 (10-02 개발자 결정)
+
+- **근거 스펙**: docs 06-04 §6.4-11-6 (CLOVA 약관 부분동의 불가 → 이용자 동의 필요), 핸드오프 프롬프트 2)
+- **건드린 파일**: eobomDev/frontend/src/components/farewell/VoiceToTextInput.tsx (1개)
+- **결과**: `recordConsent` state 추가. mode="record"에서 `recordingSupported`일 때 업로드(`voice-upload-consent`)와 같은 문구의 필수 체크 `voice-record-consent` 표시("음성 파일이 네이버 클라우드 CLOVA Speech로 전송되며, 네이버의 음성인식 성능 향상에 활용될 수 있습니다. 변환된 텍스트는 네이버에 7일간 보관된 뒤 삭제됩니다." + 목소리 보관 여부 문장). 미체크 시 "음성 녹음" 버튼 disabled, `startRecording`·`confirmSavePending`도 `!recordConsent`면 return(저장 불가). 저장 성공 시 `setRecordConsent(false)`(업로드 경로의 `setUploadConsent(false)`와 동일). 직접 입력 입력창은 건드리지 않아 항상 열려 있음. frontend `tsc --noEmit` 에러 0.
+- **편차**: 🔴 "동의 기록 저장 방식은 업로드와 같게" — 업로드 경로는 서버에 동의를 기록하지 않고 **클라이언트 체크 게이트만**(`uploadConsent`, 백엔드 stt 파일에 consent 없음, grep 0건). 같은 방식으로 클라이언트 게이트만 구현. 서버 기록은 안 함.
+- **다음 에이전트가 알아야 할 것**:
+  - 🟡 서버 측 동의 기록(공개 전 코드 묶음 "STT 동의기록")은 업로드·녹음 공통으로 아직 없음 — 그 묶음에서 양쪽 함께 처리.
+  - 🟡 실기동(사람): 체크 전 녹음 버튼 비활성 · 체크 후 녹음→저장 · 저장 후 체크 해제 확인. 첫 1회 안내 오버레이(L472~475)는 그대로 둠(동의 체크와 문구 일부 중복). dev 서버는 띄우지 않음.
+  - 커밋은 하지 않음 — 메시지 초안만.
+
+<!-- Gemini 판정 1줄: ✅통과 / ❌반려(사유) / 🔄스펙갱신(고친 문서) -->

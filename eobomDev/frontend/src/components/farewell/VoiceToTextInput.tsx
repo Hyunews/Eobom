@@ -70,6 +70,7 @@ export const VoiceToTextInput: React.FC<VoiceToTextInputProps> = ({
   const [saveVoiceEnabled, setSaveVoiceEnabled] = useState(true); // §5.5-3 — 기본값 켬
 
   const [uploadConsent, setUploadConsent] = useState(false);
+  const [recordConsent, setRecordConsent] = useState(false); // 10-02 — 녹음도 CLOVA 폴백으로 갈 수 있어 업로드와 같은 필수 동의(06-04 §6.4-11-6)
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploadStage, setUploadStage] = useState<'idle' | 'uploading' | 'processing'>('idle');
   const [uploadError, setUploadError] = useState<string | null>(null);
@@ -203,7 +204,7 @@ export const VoiceToTextInput: React.FC<VoiceToTextInputProps> = ({
   // 하고, 메시지 기록은 결과를 받은 부모(onSaveConfirmed)가 한다.
   const confirmSavePending = async () => {
     const blob = pendingBlobRef.current;
-    if (!blob) return;
+    if (!blob || !recordConsent) return;
     const mimeType = pendingMimeRef.current;
     const durationSec = pendingDurationRef.current;
     const wantsSave = saveVoiceEnabled && voiceStorageEnabled;
@@ -250,6 +251,7 @@ export const VoiceToTextInput: React.FC<VoiceToTextInputProps> = ({
       revokePreview();
       setShowSaveModal(false);
       setModalStage('idle');
+      setRecordConsent(false);
     } catch (err) {
       setModalError(err instanceof Error ? err.message : '저장 중 오류가 발생했습니다.');
       setModalStage('idle');
@@ -349,6 +351,7 @@ export const VoiceToTextInput: React.FC<VoiceToTextInputProps> = ({
   };
 
   const startRecording = () => {
+    if (!recordConsent) return;
     if (typeof window !== 'undefined' && !window.localStorage.getItem(RECORD_NOTICE_SEEN_KEY)) {
       setShowFirstTimeNotice(true);
       return;
@@ -567,6 +570,38 @@ export const VoiceToTextInput: React.FC<VoiceToTextInputProps> = ({
         </label>
       )}
 
+      {recordingSupported && (
+        <>
+          <label className="v2-check" htmlFor="voice-record-consent" style={{ alignItems: 'flex-start' }}>
+            <span
+              id="voice-record-consent"
+              onClick={(e) => { e.preventDefault(); if (!disabled && !isRecording) setRecordConsent((v) => !v); }}
+              role="checkbox"
+              aria-checked={recordConsent}
+              style={{
+                width: '20px', height: '20px', flexShrink: 0, marginTop: '2px', borderRadius: '4px',
+                border: recordConsent ? 'none' : '1.5px solid var(--v2-input-border)',
+                backgroundColor: recordConsent ? 'var(--v2-point)' : '#FFFFFF',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
+              }}
+            >
+              {recordConsent && <Check size={13} color="#FFFFFF" strokeWidth={3} />}
+            </span>
+            <span>
+              <span className="v2-req">필수</span> 음성 파일이 네이버 클라우드
+              CLOVA Speech로 전송되며, 네이버의 음성인식 성능 향상에 활용될 수 있습니다. 변환된 텍스트는
+              네이버에 7일간 보관된 뒤 삭제됩니다.
+              {voiceStorageEnabled
+                ? ' "목소리도 함께 남기기"가 켜져 있으면 목소리 원본도 이어봄에 암호화되어 함께 보관됩니다.'
+                : ' 이어봄은 음성 파일을 보관하지 않습니다.'}
+            </span>
+          </label>
+          <p className="v2-check-sub" style={{ marginBottom: '14px', paddingLeft: '32px' }}>
+            동의하지 않으셔도 직접 입력으로 편지를 남기실 수 있습니다.
+          </p>
+        </>
+      )}
+
       <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px', flexWrap: 'wrap' }}>
         {recordingSupported && (
           isRecording ? (
@@ -574,7 +609,7 @@ export const VoiceToTextInput: React.FC<VoiceToTextInputProps> = ({
               <MicOff size={16} /> 녹음 멈춤
             </button>
           ) : (
-            <button type="button" onClick={startRecording} disabled={disabled || uploadStage !== 'idle'} style={actionBtnStyle('var(--v2-point)', '#FFFFFF', !!disabled || uploadStage !== 'idle')}>
+            <button type="button" onClick={startRecording} disabled={disabled || !recordConsent || uploadStage !== 'idle'} style={actionBtnStyle('var(--v2-point)', '#FFFFFF', !!disabled || !recordConsent || uploadStage !== 'idle')}>
               <Mic size={16} /> 음성 녹음
             </button>
           )
