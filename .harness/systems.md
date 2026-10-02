@@ -132,7 +132,7 @@ DB 접근은 **Prisma 한 경로**뿐이다. RLS는 Data API를 막는 장치라
 | ORM | Prisma |
 | 접속 문자열 | `eobomDev/backend/.env`의 `DATABASE_URL` |
 
-- 주요 모델: `User`·`Facility`·`FacilityBooking`·`Partner`·`Lead` 등(전체는 `schema.prisma`)
+- 모델 33개(10-02) — 전체는 `schema.prisma` · 사전은 `docs/00-05`(자동 생성). `FacilityBooking`은 08-11 삭제됨
 - `Facility` 실데이터 1,552건 적재됨 (서버 페이지네이션 브라우저 검증 완료)
 - 🔴 **데이터 유실 2회**(08-05 마이그레이션 · 08-27 정리 스크립트). **DB에 쓰기 전 백업이 규칙이며
   스키마 변경만이 아니다** — 트리거·금지패턴·순서는 **`db-safety.md`가 정본**
