@@ -202,6 +202,15 @@ export const PickupPage: React.FC<PickupPageProps> = ({ currentUser, onOpenLogin
           onSearch={handleSearch}
         />
 
+        {/* 🔴 03-02 §6.2 · 00-14 §4-2 — 유품은 상속재산이다. 막지는 않되 견적 신청 전에 항상 보여준다.
+            표현은 상중 행정 체크리스트(careGuideTasks.json 상속포기·한정승인 항목)의 "단순승인으로 간주"에 맞춘다.
+            사실만 쓴다(평가·홍보 투 금지). */}
+        <p className="v2-notice-warn">
+          유품은 상속재산입니다. 상속인 사이의 분할 협의가 끝나기 전에 처분하면 상속인 간 분쟁이 생길 수 있습니다.
+          상속재산을 처분하면 단순승인으로 간주될 수 있으며(민법 제1026조 제1호), 이 경우 고인의 채무를 그대로 이어받게 됩니다.
+          상속포기·한정승인을 고려 중이시라면 유품 처분 전에 확인이 필요합니다.
+        </p>
+
         {filteredVendors.length === 0 && <p className="v2-empty">조건에 맞는 업체가 없습니다.</p>}
 
         {/* 2026-09-18 사람 확정 — 목업 시안 A(확대 카드형, 2열). 얇은 목록 행 대신 카드로

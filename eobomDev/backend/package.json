@@ -7,7 +7,7 @@
     "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
     "build": "prisma generate && tsc",
     "start": "node dist/server.js",
-    "test": "node --require ts-node/register/transpile-only --test src/services/willRequirements.test.ts src/utils/operatingHours.test.ts src/utils/kst.test.ts tests/db-guard.test.ts tests/auth-boundary.test.ts tests/consent.test.ts tests/demo-login.test.ts tests/admin-login-lock.test.ts tests/ops-log.test.ts tests/created-at-kst.test.ts tests/updated-at-kst.test.ts tests/cors-ratelimit.test.ts",
+    "test": "node --require ts-node/register/transpile-only --test src/services/willRequirements.test.ts src/utils/operatingHours.test.ts src/utils/kst.test.ts tests/db-guard.test.ts tests/auth-boundary.test.ts tests/consent.test.ts tests/demo-login.test.ts tests/admin-login-lock.test.ts tests/ops-log.test.ts tests/created-at-kst.test.ts tests/updated-at-kst.test.ts tests/cors-ratelimit.test.ts tests/deletion-grace-guard.test.ts",
     "test:db:migrate": "node --require ts-node/register/transpile-only tests/migrate-test-db.ts",
     "purge": "node --require ts-node/register/transpile-only prisma/destroy-farewell-media.ts",
     "purge:confirm": "node --require ts-node/register/transpile-only prisma/destroy-farewell-media.ts --confirm",

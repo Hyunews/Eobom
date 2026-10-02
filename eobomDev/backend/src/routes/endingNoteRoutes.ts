@@ -18,6 +18,7 @@ import {
   listPendingFamily,
   reinvitePendingFamily,
 } from '../controllers/deathVerificationController';
+import { blockDuringDeletionGrace } from '../middleware/blockDuringDeletionGrace';
 
 // docs 06-04 §10 Phase 1·2 — 전부 본인 것만(컨트롤러 내부 verifyBearerToken 패턴). family-view는
 // 개봉 전엔 IMMEDIATE(생전 공유)로 명시 지정된 것만, 개봉(EndingNote.RELEASED, 00-41) 뒤엔 자기 권한의
@@ -27,7 +28,7 @@ const router = Router();
 
 router.get('/', getEndingNote);
 router.post('/policy-agree', agreeEndingNotePolicy);
-router.put('/sections/:section', saveEndingNoteSection);
+router.put('/sections/:section', blockDuringDeletionGrace, saveEndingNoteSection); // 엔딩노트 작성 — 탈퇴 유예 중 403(00-36 §4.3-1)
 
 router.get('/grants', listEndingNoteGrants);
 router.put('/grants', upsertEndingNoteGrant);

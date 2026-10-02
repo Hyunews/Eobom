@@ -10,6 +10,7 @@ import {
   exportFarewellMessages,
   exportFarewellMessage,
 } from '../controllers/farewellMessageController';
+import { blockDuringDeletionGrace } from '../middleware/blockDuringDeletionGrace';
 
 // docs 06-05 §8 Phase B — 전부 본인 것만(컨트롤러 내부 verifyBearerToken 패턴). 🔴 유족이 읽는
 // 라우트는 없다 — 개봉은 06-04 Phase 3이고 엔딩노트와 동시에 열린다(§3.3).
@@ -23,7 +24,7 @@ const router = Router();
 router.get('/', listFarewellMessages);
 router.get('/export', exportFarewellMessages);
 router.get('/:id', getFarewellMessage);
-router.post('/', createFarewellMessage);
+router.post('/', blockDuringDeletionGrace, createFarewellMessage); // 탈퇴 유예 중 403(00-36 §4.3-1)
 router.patch('/:id', updateFarewellMessage);
 router.delete('/:id', deleteFarewellMessage);
 router.get('/:id/audio', getFarewellMessageAudio);

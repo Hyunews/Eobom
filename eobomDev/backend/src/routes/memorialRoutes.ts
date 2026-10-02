@@ -11,6 +11,7 @@ import {
   addMemorialPhoto,
   deleteMemorialPhoto,
 } from '../controllers/memorialController';
+import { blockDuringDeletionGrace } from '../middleware/blockDuringDeletionGrace';
 
 // 공개 조회(GET)와 로그인 필요 작성(POST/PATCH/DELETE)이 섞여 있다 — 인증 여부는 각 컨트롤러
 // 함수 내부에서 verifyBearerToken으로 판단한다(facilityRoutes.ts와 동일 패턴).
@@ -21,10 +22,10 @@ const router = Router();
 router.get('/:slug', getMemorialBySlug);
 router.get('/:slug/guestbook', listGuestbook);
 router.post('/:slug/tributes', createTribute); // 헌화 — 비회원 허용(§4.4)
-router.post('/:slug/guestbook', createGuestbookEntry); // 방명록 작성 — 로그인 필수(09-29, 컨트롤러가 401)
+router.post('/:slug/guestbook', blockDuringDeletionGrace, createGuestbookEntry); // 방명록 작성 — 로그인 필수(09-29, 컨트롤러가 401) · 탈퇴 유예 중 403(00-36 §4.3-1)
 
 // 로그인 필요 (§6.2)
-router.post('/', createMemorial);
+router.post('/', blockDuringDeletionGrace, createMemorial); // 탈퇴 유예 중 403(00-36 §4.3-1)
 router.patch('/:id', updateMemorial); // 개설자만
 router.delete('/:id', closeMemorial); // 개설자만, 소프트 삭제(closedAt)
 router.delete('/:id/guestbook/:gid', deleteGuestbookEntry); // 개설자만

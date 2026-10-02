@@ -10,6 +10,7 @@ import {
   declineFamilyInvite,
   withdrawAcceptedDesignation,
 } from '../controllers/familyDesignationController';
+import { blockDuringDeletionGrace } from '../middleware/blockDuringDeletionGrace';
 
 // 00-27 §8.1 Phase 1(기록) + §9.1 Phase 2(초대 링크). 전부 본인 것만(초대 발급 포함), 인증은
 // 컨트롤러 내부 verifyBearerToken 패턴. 🔴 "내가 지정됐는지" 조회
@@ -18,7 +19,7 @@ import {
 const router = Router();
 
 router.get('/', listFamilyDesignations);
-router.post('/', createFamilyDesignation);
+router.post('/', blockDuringDeletionGrace, createFamilyDesignation); // 탈퇴 유예 중 403(00-36 §4.3-1)
 router.patch('/:id', updateFamilyDesignation);
 router.delete('/:id', deleteFamilyDesignation);
 

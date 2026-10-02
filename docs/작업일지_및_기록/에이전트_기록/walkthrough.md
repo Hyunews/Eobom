@@ -2465,3 +2465,20 @@
   - 커밋은 하지 않음 — 메시지 초안만.
 
 <!-- Gemini 판정 1줄: ✅통과 / ❌반려(사유) / 🔄스펙갱신(고친 문서) -->
+## 2026-10-02 | 탈퇴 유예 중 새 자료 생성 서버 차단 + 유품 수거 화면 상속 협의 안내
+
+- **근거 스펙**: docs 00-36 §4.3-1(유예 중 생성 403) · 03-02 §6.2 · 00-14 §4-2(유품 = 상속재산, 민법 제1026조 제1호). 핸드오프 프롬프트 2건.
+- **건드린 파일**: eobomDev/backend/src/middleware/blockDuringDeletionGrace.ts(신규), eobomDev/backend/src/routes/obituaryRoutes.ts, memorialRoutes.ts, endingNoteRoutes.ts, farewellMessageRoutes.ts, expertPublicRoutes.ts, familyDesignationRoutes.ts, eobomDev/backend/tests/deletion-grace-guard.test.ts(신규), eobomDev/backend/package.json(test 스크립트에 새 테스트 추가), eobomDev/frontend/src/pages/PickupPage.tsx
+- **결과**:
+  1) 공통 미들웨어 `blockDuringDeletionGrace` — 유효한 B2C 토큰의 `User`가 `purgedAt: null` 이고 `deletionRequestedAt != null`이면 403 `탈퇴 신청 상태에서는 새로 만들거나 신청할 수 없습니다. 탈퇴를 취소하시면 다시 이용하실 수 있습니다.` 토큰 없음·무효·파기 완료(purgedAt)는 그대로 넘겨 컨트롤러의 기존 401을 유지. 붙인 7곳: `POST /api/obituaries` · `POST /api/memorials` · `POST /api/memorials/:slug/guestbook` · `PUT /api/ending-note/sections/:section` · `POST /api/farewell-messages` · `POST /api/experts/:id/consult-requests` · `POST /api/family-designations`. 조회·탈퇴 취소·반출·로그아웃에는 안 붙임. 테스트 `tests/deletion-grace-guard.test.ts` 11건(유예 중 7경로 403 · 조회 비차단 · `/api/auth/me` 유예 필드 유지 · 정상 회원 비차단 · 취소 후 해제 · purgedAt 비차단 · 무토큰 401). 실행: `cd eobomDev/backend && npm test`(309건 통과), `npx tsc --noEmit` backend·frontend 에러 0.
+  2) PickupPage.tsx — 업체 카드 목록 위(`LocationSearchBox` 다음)에 `<p className="v2-notice-warn">` 추가. 문구 원문: `유품은 상속재산입니다. 상속인 사이의 분할 협의가 끝나기 전에 처분하면 상속인 간 분쟁이 생길 수 있습니다. 상속재산을 처분하면 단순승인으로 간주될 수 있으며(민법 제1026조 제1호), 이 경우 고인의 채무를 그대로 이어받게 됩니다. 상속포기·한정승인을 고려 중이시라면 유품 처분 전에 확인이 필요합니다.` 체크리스트(`mockData/careGuideTasks.json:55`)의 "단순승인으로 간주"에 표현을 맞춤. 막지는 않고 항상 표시.
+- **편차**: 
+  - 스펙 목록의 "엔딩노트 작성"을 `PUT /api/ending-note/sections/:section`(섹션 저장)으로 해석하고, 같은 06 영역인 유족 메시지(편지) 생성 `POST /api/farewell-messages`도 포함(파기 시 새 편지가 사라지는 건 같은 사정). 스펙에 편지가 명시돼 있지 않음 — 빼려면 farewellMessageRoutes.ts 한 줄.
+  - 처리 안 한 것: 견적 요청 `POST /api/facilities/:id/quotes`(비회원 허용), 헌화 `POST /api/memorials/:slug/tributes`(비회원), 엔딩노트 열람 권한 `PUT /api/ending-note/grants`, 추모관 사진 추가 `POST /api/memorials/:id/photos`(탈퇴 시 추모관이 closedAt으로 닫혀 있음). 스펙의 6종 목록에 없어 넣지 않음.
+  - PickupPage는 현재 예시 업체 화면이고 실제 신청 폼이 없어, 신청 모달이 아니라 목록 위에 둠(03-02 §6.2 "요청 화면에 게이트 1개"와 같은 취지). 법률 문구의 최종 확인은 사람 몫.
+- **다음 에이전트가 알아야 할 것**:
+  - 🟡 실기동(사람): 유예 중 계정으로 위 7곳 시도 시 화면이 403 메시지를 어떻게 보이는지 — 프런트는 이 403 문구를 별도 처리하지 않음(각 화면의 일반 오류 처리 그대로). 필요하면 화면 쪽 안내 보강은 별도 건.
+  - 🟡 PickupPage 문구는 03-02 §6.2가 "유언·상속 기능과 함께 조건부 게이트로 설계"로 넘긴 것의 임시 1줄 — 조건부 게이트가 서면 교체.
+  - 커밋은 하지 않음 — 메시지 초안만.
+
+<!-- Gemini 판정 1줄: ✅통과 / ❌반려(사유) / 🔄스펙갱신(고친 문서) -->
