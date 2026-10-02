@@ -2441,3 +2441,15 @@
   - 커밋은 하지 않음 — 메시지 초안만.
 
 <!-- Gemini 판정 1줄: ✅통과 / ❌반려(사유) / 🔄스펙갱신(고친 문서) -->
+## 2026-10-02 | 사망 확인 대외 처리시간 12시간 → 운영시간 기준 6시간
+
+- **근거 스펙**: docs 00-41 §5.1·§8.1 (10-02 개발자 변경, 핸드오프 프롬프트)
+- **건드린 파일**: eobomDev/backend/src/utils/operatingHours.ts, eobomDev/backend/src/utils/operatingHours.test.ts, eobomDev/frontend/src/components/familyShared/ReleaseRequestModal.tsx
+- **결과**: `DUE_OPERATING_MINUTES = 12 * 60` → `6 * 60`(내부 목표 `TARGET_OPERATING_MINUTES = 60` 유지). 안내 문구 `운영시간 기준 12시간 안에` → `운영시간 기준 6시간 안에`, 파일 상단 주석 `·12시간은 서버` → `·6시간은 서버`. 대시보드 빨강(`overDue`)은 `dueAt` 비교라 상수 변경으로 자동 반영(별도 수정 없음). 테스트 기대값 갱신: 금 16시(11-06) → 월 14시(11-09) · 월 10시 → 월 16시 · 토 20시 접수 due 월 15시 · 공휴일 금 16시(10-02, 10-05 휴무) → 화 10-06 14시 · 추석 수 9/23 16시 → 월 9/28 14시. `node --test`(tsx)로 operatingHours.test.ts 8건 통과. `12시간|12h` 재검색 잔존 3건은 JWT 만료(authController.ts)로 무관.
+- **편차**: 없음. backend `tsc --noEmit` 에러 0. `npm test` 전체·frontend tsc·vite build는 돌리지 않았다(operatingHours.test.ts 단독만).
+- **다음 에이전트가 알아야 할 것**:
+  - 🟡 이미 접수된 REQUESTED 건의 `dueAt`은 DB에 저장된 값이라 12h 기준 그대로 — 소급 재계산은 하지 않음(필요하면 사람 결정).
+  - 🟡 00-41 문서 본문의 "12h" 표기 정정은 Opus 몫(커밋 6a718e5에서 처리된 것으로 보임, 확인 필요).
+  - 커밋은 하지 않음 — 메시지 초안만.
+
+<!-- Gemini 판정 1줄: ✅통과 / ❌반려(사유) / 🔄스펙갱신(고친 문서) -->

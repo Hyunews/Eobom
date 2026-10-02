@@ -1,5 +1,5 @@
 // docs 00-41 §5.1 — 사후 개봉 확인의 "운영시간만 세는" 시계. 접수는 24시간 받지만 사람이 확인하는
-// 시간은 평일 9~17시(KST)뿐이라, 12시간(대외 약속)·1시간(내부 목표)을 이 시간만 세어 더한다.
+// 시간은 평일 9~17시(KST)뿐이라, 6시간(대외 약속)·1시간(내부 목표)을 이 시간만 세어 더한다.
 // 🔵 나중에 바꿀 수 있게 값은 아래 상수 한 곳에 둔다(개발자 09-30 지시).
 
 const KST_OFFSET_MS = 9 * 60 * 60 * 1000;
@@ -14,7 +14,7 @@ export const OPERATING_HOURS = {
 } as const;
 
 // 대외 약속·내부 목표 — 운영시간 기준 분(00-41 §5.1).
-export const DUE_OPERATING_MINUTES = 12 * 60;
+export const DUE_OPERATING_MINUTES = 6 * 60;
 export const TARGET_OPERATING_MINUTES = 60;
 
 // 공휴일(대체공휴일 포함, 평일에 걸린 날만). 'YYYY-MM-DD' KST. 근로자의 날(5/1)은 법정 공휴일이 아니라 운영일이다.
@@ -67,7 +67,7 @@ const nextOperatingInstant = (from: Date): Date => {
 };
 
 // `from`부터 운영시간만 `minutes`분 센 시각. 접수가 운영시간 밖이면 다음 운영일 9시부터 센다.
-// 예) 금 16:00 + 12h → 금 1h(16~17) + 월 8h + 화 3h = 화 12:00.
+// 예) 금 16:00 + 6h → 금 1h(16~17) + 월 5h = 월 14:00.
 export const addOperatingMinutes = (from: Date, minutes: number): Date => {
   let cursor = nextOperatingInstant(from);
   let remaining = minutes;
