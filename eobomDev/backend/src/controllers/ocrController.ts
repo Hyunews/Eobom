@@ -8,6 +8,7 @@ import prisma from '../config/prisma';
 import { kstYmd } from '../utils/kst';
 import { convertHeicToJpeg, resizeIfNeeded, normalizeOrientation, getPdfPageCount } from '../services/imageConvert';
 import { detectSeal } from '../services/sealDetect';
+import { heavyQueue, abortOnDisconnect, QueueRejectedError, BUSY_MESSAGE } from '../services/heavyQueue';
 import { checkWillRequirements } from '../services/willRequirements';
 import type { OcrPage } from '../services/ocrProvider';
 import type { SealDetection } from '../services/willRequirements';
@@ -30,6 +31,12 @@ const DAILY_LIMIT = 10; // §7 #8 — 사용자당 하루 10회.
 const dailyCallCounts = new Map<string, { date: string; count: number }>();
 
 const todayKey = () => kstYmd(); // 하루 한도가 한국 자정에 초기화된다(이전엔 UTC 자정 = 한국 오전 9시)
+
+// 대기열에 들어가기 전 읽기 전용 확인 — 이미 한도를 다 쓴 사용자가 대기만 차지하지 않게 한다.
+const isDailyLimitReached = (userId: string): boolean => {
+  const entry = dailyCallCounts.get(userId);
+  return !!entry && entry.date === todayKey() && entry.count >= DAILY_LIMIT;
+};
 
 const checkAndIncrementDailyLimit = (userId: string): boolean => {
   const today = todayKey();
@@ -73,8 +80,23 @@ export const recognizeWillPhotos = (req: Request, res: Response) => {
       return res.status(400).json({ status: 'error', message: '사진을 선택해 주세요.' });
     }
 
+    const limitReached = () =>
+      res.status(429).json({ status: 'error', message: `하루 이용 횟수(${DAILY_LIMIT}회)를 다 쓰셨습니다. 내일 다시 시도해 주세요.` });
+    if (isDailyLimitReached(decoded.id)) return limitReached();
+
+    // §6.4-11-10 — 음성 변환과 합산한 동시 처리 제한. 대기 한도를 넘기면 503.
+    // 🔴 횟수는 슬롯을 얻은 뒤에 센다 — 503으로 돌려보낸 요청은 하루 횟수에서 빼지 않는다.
+    let release: () => void;
+    try {
+      release = await heavyQueue.acquire(abortOnDisconnect(res));
+    } catch (queueError) {
+      if (queueError instanceof QueueRejectedError && queueError.reason === 'aborted') return; // 연결 끊김 — 처리도 횟수 차감도 없다
+      return res.status(503).json({ status: 'error', message: BUSY_MESSAGE });
+    }
+    // 대기하는 사이 같은 사용자의 다른 요청이 한도를 채웠을 수 있어 여기서 다시 센다.
     if (!checkAndIncrementDailyLimit(decoded.id)) {
-      return res.status(429).json({ status: 'error', message: `하루 이용 횟수(${DAILY_LIMIT}회)를 다 쓰셨습니다. 내일 다시 시도해 주세요.` });
+      release();
+      return limitReached();
     }
 
     // §5 — 성공·실패 무관하게 버퍼는 이 함수 안에서만 산다. memoryStorage라 애초에 디스크에 쓴
@@ -158,6 +180,8 @@ export const recognizeWillPhotos = (req: Request, res: Response) => {
         status: 'error',
         message: '사진 인식에 실패했습니다. 다른 사진으로 다시 시도하거나 아래 입력창에 직접 입력해 주세요.',
       });
+    } finally {
+      release();
     }
   });
 };

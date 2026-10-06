@@ -5,8 +5,9 @@ import { convertToMp3 } from './audioConvert';
 // 인증은 Client ID/Secret이 아니라 Invoke URL(도메인 식별자 포함) + Secret Key 헤더 하나다
 // (§6.4-11-5-1 — 단문 CSR API와 방식이 다르다).
 
-// 브라우저가 m4a를 audio/mp4 등으로 보고하는 경우가 흔하다 — 이 집합에 걸리면 CLOVA의 실제
-// m4a 지원 여부와 무관하게 항상 mp3로 변환해서 올린다(§6.4-11-7).
+// 브라우저가 m4a를 audio/mp4 등으로 보고하는 경우가 흔하다 — 이 집합에 걸리면 m4a 계열로 본다.
+// 🔵 §6.4-11-9(2026-10-06) — CLOVA가 m4a 원본을 그대로 받는 것을 실측 확인(목차가 파일 끝·앞 모두).
+// m4a는 변환하지 않는다 — 스트림 변환은 목차가 끝에 있는 m4a에서 빈 mp3를 낸다.
 const M4A_LIKE_MIME_TYPES = new Set(['audio/mp4', 'audio/x-m4a', 'audio/m4a', 'audio/aac']);
 
 interface ClovaSegment {
@@ -33,11 +34,15 @@ export class ClovaSpeechProvider implements SttProvider {
     let contentType = 'audio/mpeg';
 
     const lowerMime = mimeType.toLowerCase();
-    if (M4A_LIKE_MIME_TYPES.has(lowerMime) || lowerMime.includes('webm')) {
+    if (lowerMime.includes('webm')) {
       // §6.4-10-3·§6.4-11-7 — stdin→stdout 스트림 변환만. 디스크에 쓰지 않는다.
-      // 🔴 06-05 §5.5-4 — MediaRecorder의 audio/webm;codecs=opus도 CLOVA가 못 읽는 컨테이너라
-      // m4a와 같은 변환 경로를 태운다. mimetype에 ;codecs=... 파라미터가 붙어도 includes로 잡는다.
+      // 🔴 06-05 §5.5-4 — MediaRecorder의 audio/webm;codecs=opus는 CLOVA가 못 읽는 컨테이너라 mp3로
+      // 변환한다(webm은 목차가 앞에 와서 스트림 변환이 정상 — 10-02 실측). ;codecs=... 파라미터는 includes로 잡는다.
       uploadBuffer = await convertToMp3(audio);
+    } else if (M4A_LIKE_MIME_TYPES.has(lowerMime)) {
+      // §6.4-11-9 — m4a는 변환 없이 원본 전송.
+      filename = 'audio.m4a';
+      contentType = 'audio/mp4';
     } else if (lowerMime.includes('wav')) {
       filename = 'audio.wav';
       contentType = 'audio/wav';

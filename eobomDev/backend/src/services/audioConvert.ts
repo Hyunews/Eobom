@@ -1,8 +1,8 @@
 import { spawn } from 'child_process';
 import ffmpegPath from 'ffmpeg-static';
 
-// docs 06-04 §6.4-10-3·§6.4-11-7 — m4a는 CLOVA의 실제 지원 여부와 무관하게 항상 mp3로 변환해
-// 올린다. 반드시 stdin→stdout 스트림으로만 처리한다 — 임시 파일을 만들면 §6.4-9-4의
+// docs 06-04 §6.4-10-3·§6.4-11-7 — CLOVA가 못 읽는 컨테이너(webm)를 mp3로 변환한다
+// (m4a는 §6.4-11-9로 변환 없이 보낸다). 반드시 stdin→stdout 스트림으로만 처리한다 — 임시 파일을 만들면 §6.4-9-4의
 // "디스크에 쓰지 않는다"가 디코더 단계에서 조용히 깨진다.
 export const convertToMp3 = (input: Buffer): Promise<Buffer> => {
   return new Promise((resolve, reject) => {
@@ -30,7 +30,13 @@ export const convertToMp3 = (input: Buffer): Promise<Buffer> => {
     proc.on('error', reject);
     proc.on('close', (code) => {
       if (code === 0) {
-        resolve(Buffer.concat(chunks));
+        const out = Buffer.concat(chunks);
+        // §6.4-11-9 — 종료코드 0이어도 출력이 비면 실패다(목차가 끝에 있는 입력 등). 조용한 실패를 막는다.
+        if (out.length === 0) {
+          reject(new Error('ffmpeg 변환 결과가 비어 있습니다.'));
+          return;
+        }
+        resolve(out);
       } else {
         reject(new Error(`ffmpeg 변환 실패(exit ${code}): ${Buffer.concat(errChunks).toString('utf8').slice(0, 300)}`));
       }

@@ -5,6 +5,7 @@ import { ClovaSpeechProvider } from '../services/clovaSpeechProvider';
 import type { SttProvider } from '../services/sttProvider';
 import { isR2Enabled } from '../config/r2';
 import { uploadVoiceObject } from '../services/r2Storage';
+import { heavyQueue, abortOnDisconnect, QueueRejectedError, BUSY_MESSAGE } from '../services/heavyQueue';
 
 // docs 06-04 §6.4-9·§6.4-11 — STT Ⓐ 파일 업로드. Ⓑ(직접 녹음, Web Speech API)는 프론트에서
 // 브라우저가 직접 처리하고 이 컨트롤러를 거치지 않는다 — 이 파일은 Ⓐ 전용이다.
@@ -51,6 +52,18 @@ export const transcribeAudio = (req: Request, res: Response) => {
       return res.status(400).json({ status: 'error', message: '음성 파일을 선택해 주세요.' });
     }
 
+    // §6.4-11-10 — 사진 글자 인식과 합산한 동시 처리 제한. 대기 한도를 넘기면 503(변환 안 함).
+    let release: () => void;
+    try {
+      release = await heavyQueue.acquire(abortOnDisconnect(res));
+    } catch (queueError) {
+      if (queueError instanceof QueueRejectedError && queueError.reason === 'aborted') return; // 연결 끊김 — 응답할 상대가 없다
+      return res.status(503).json({
+        status: 'error',
+        message: `${BUSY_MESSAGE} 직접 녹음이나 아래 입력창에 직접 입력해 이어서 작성해 주세요.`,
+      });
+    }
+
     // §6.4-9-4 — 성공·실패 무관하게 버퍼는 여기서만 산다. memoryStorage라 애초에 디스크에 쓴
     // 적이 없고, 이 함수가 끝나면 req.file.buffer 참조가 사라져 GC 대상이 된다 — 별도 삭제 불필요.
     try {
@@ -77,6 +90,8 @@ export const transcribeAudio = (req: Request, res: Response) => {
         status: 'error',
         message: '음성 변환에 실패했습니다. 직접 녹음이나 아래 입력창에 직접 입력해 이어서 작성해 주세요.',
       });
+    } finally {
+      release();
     }
   });
 };
