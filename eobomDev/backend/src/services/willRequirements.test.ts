@@ -115,6 +115,29 @@ test('주소 — "(주소)" 라벨 뒤 글귀: 시·군·구가 잘못 읽혀도
   assert.ok(a.box);
 });
 
+// 운영 시험(10-06) — "주소 :" 한 줄 뒤 본문이 근거에 붙어 나오던 결함.
+test('주소 — 근거는 번지·동·호에서 끝나고 다음 줄 본문을 붙이지 않는다', () => {
+  const body = ['본인 정현수는 다음과 같이 유언한다.', '1. 본인의 재산 중 다음 부동산은 처인 000에게'];
+  const want = '서울 강남구 삼성동 000 아파트 101동 101호';
+  for (const lines of [
+    ['주소 : 서울 강남구 삼성동 000 아파트 101동 101호', ...body],
+    ['주소 :', '서울 강남구', '삼성동 000', '아파트', '101동', '101호', ...body],
+    [`주소 : ${want} ${body.join(' ')}`], // 한 줄로 읽힌 경우
+  ]) {
+    const a = pick(run([page(lines)]), 'address');
+    assert.equal(a.state, 'found');
+    assert.ok(a.evidence.startsWith(`"${want}"`), a.evidence);
+    assert.ok(!a.evidence.includes('본인'), a.evidence);
+    assert.ok(a.box);
+  }
+});
+
+test('주소 — 건물 이름·동·호 없이 번지에서 끝나는 줄도 다음 줄을 붙이지 않는다', () => {
+  const a = pick(run([page(['(주소) 경기도 수원시 영통구 영통동 1000-2', '(내용) 나는'])]), 'address');
+  assert.equal(a.state, 'found');
+  assert.ok(a.evidence.startsWith('"경기도 수원시 영통구 영통동 1000-2"'), a.evidence);
+});
+
 test('주소 — 라벨이 있어도 시·도나 번호가 없으면 라벨 규칙으로는 찾지 않는다', () => {
   assert.notEqual(pick(run([page(['(주소)', '괴산읍', '(내용)', '내가'])]), 'address').state, 'found');
   assert.notEqual(pick(run([page(['(주소)', '충북', '괴산군', '(내용)'])]), 'address').state, 'found');

@@ -16,6 +16,17 @@
 > [`_아카이브_2608`](walkthrough_아카이브_2608.md)(08-31분). 남은 것 = 판정 대기 + 판정 표기 없음. 기준 → `record.md` §2-1.
 
 ---
+## 2026-10-06 | [Sonnet] 06-06 유언장 사진 인식 — 3·4차 결정 묶음(형식·용량·PDF 1개·고치기 화면·결과 다시 보기·주소 근거)
+
+- **근거 스펙**: docs/06_엔딩노트_유언/06-06_유언장_사진인식_요건확인_기획서.md §4.1(형식·HEIC 1차 방어·여러 장·용량) · §6 단계 4(고치기 화면)·5-1(결과 다시 보기) · §3.1 "주소" 행 · 06-04 §6.4-11-10 표 아래 🔴 줄
+- **건드린 파일**: backend/src/config/uploadPhotos.ts(tiff 제외 · 사진 5MB·PDF 20MB 상수 · `checkUploadSet`·`limitSizeMessage` 신설), src/controllers/ocrController.ts(형식 오류 문구 · LIMIT_FILE_SIZE 문구를 형식별로 · `checkUploadSet`을 `heavyQueue.acquire` 앞에서 호출), src/services/willRequirements.ts(주소 근거 `trimAddressSeg`), src/services/willRequirements.test.ts(주소 근거 2건), tests/ocr-upload.test.ts(신규 6건 · package.json `npm test`에 등록), frontend/src/components/endingNote/WillPhotoUploadModal.tsx(ACCEPT·안내문·화면 검사 · `RecentOcr` 입출구), WillPhotoResult.tsx(고치기 화면), src/pages/EndingNotePage.tsx(`recentOcr` 메모리 상태 + "최근 인식 결과 보기" 버튼), src/styles/design-v2.css(`.v2-ocr-edit-box`)
+- **결과**: backend `tsc` 0 · `npm test` 327/327(+8: 주소 2·업로드 입구 6) · frontend `npm run build` 통과. 서버: multer 20MB 유지 → 받은 뒤 사진(jpg·png·heic) 5MB·PDF 20MB·PDF 1개(2개·사진 섞임 → "PDF는 1개만 …") 재확인, 모두 대기열 앞 400. 화면: jpg·png는 `resizeImageIfNeeded` 뒤 크기로 5MB 검사, PDF는 원본 20MB, PDF 2개·섞임은 서버에 보내기 전에 막음, tiff·그 밖 형식은 "jpg·png·pdf 파일만 …". 고치기: 초안에 넣기·바꾸기·뒤에 붙이기 모두 같은 모달 오른쪽(웹) 또는 본문(모바일)이 입력칸으로 전환 → 뒤로(고친 글 유지) · 적용(누른 버튼의 모드로 `onMerge`) . 다시 보기: `EndingNotePage`의 `useState`에만 `{files, result}` 보관 — 저장소·서버 없음, CLOVA 재호출 없음, 새로 인식하면 교체, 사진 object URL은 결과 화면 언마운트 때 기존 effect가 revoke. 주소: 번지(부번 포함) 뒤 건물 이름·동·호까지만 근거로 자르고 다음 줄 본문은 붙이지 않음 — 운영 시험 문장 그대로(줄 나뉨 3형태) 시험
+- **편차**: ① PDF 20MB 초과는 multer 한도(20MB)에서 걸리므로 `checkUploadSet`의 PDF 크기 분기는 사실상 방어용 — 문구는 fileFilter가 기억한 마지막 파일 형식으로 고른다(멀티파트에서 초과 파일이 어느 것인지 multer가 주지 않음). 사진 5MB 초과 장과 20MB 초과 PDF가 같은 요청이면 문구가 마지막 파일 기준이나, PDF는 단독이라 실제로 섞일 수 없다. ② 모바일은 "왼쪽 사진 유지"가 해당 없음(사진은 별도 탭) — 고치기 화면이 탭 줄을 대신해 본문 전체를 쓴다. ③ `clovaOcrProvider.ts`의 tiff MIME 매핑은 남김(입구에서 막혀 도달 불가, 지워도 무방). ④ heic는 서버가 계속 받는다(accept에서만 뺌, §4.1 1차 방어) — 5MB는 heic 원본 크기 기준(서버는 변환 전 크기로 검사)
+- **다음 에이전트가 알아야 할 것**: 🔵 **실기동 검증 대기** — 화면(고치기 전환·뒤로 시 글 유지·"최근 인식 결과 보기" 노출/교체·고화소 사진 통과·PDF 2개/섞임 문구)은 사람이 확인(dev 서버 띄우지 않음). 고화소 폰 사진이 줄인 뒤에도 5MB 넘는 경우(png 등)는 막힘 — 화소 수 제한은 개발자 결정으로 넣지 않음. 대기열 숫자·CLOVA 제한 시간·음성·5장 상한·요건 판정 규칙(주소 근거 범위 외) 무변경. 🔴 커밋 안 함 — 메시지 초안은 응답에 있음
+
+<!-- Gemini 판정 1줄: ✅통과 / ❌반려(사유) / 🔄스펙갱신(고친 문서) -->
+
+---
 ## 2026-10-06 | [Sonnet] 사진 파일 한도 50→20MB · 대기 60→30초 + 메모리 재측정 (10-06 개발자 2차 결정)
 
 - **근거 스펙**: docs/06_엔딩노트_유언/06-06_유언장_사진인식_요건확인_기획서.md §4 "용량" 줄 · 06-04 §6.4-11-10 (대기 한도 줄·숫자 줄·표 아래 🔴 줄)

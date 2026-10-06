@@ -33,7 +33,7 @@ import type { SaveState, FamilyItem, GrantItem, SummaryRow } from '../components
 import { AccordionSection, saveButtonLabel } from '../components/endingNote/AccordionSection';
 import { SectionTimingControl } from '../components/endingNote/SectionTimingControl';
 import { SummaryModal, summarizeFreeText } from '../components/endingNote/SummaryModal';
-import { WillPhotoUploadModal } from '../components/endingNote/WillPhotoUploadModal';
+import { WillPhotoUploadModal, type RecentOcr } from '../components/endingNote/WillPhotoUploadModal';
 import '../styles/design-v2.css';
 
 // 00-39 §9.1 그룹②(폼·입력) — obituary(§6.8·§6.8-1)의 필드 규칙을 그대로 물려받는다(§9.2 표
@@ -125,6 +125,10 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
   // §6 단계 5의 고정 안내 — 한 번이라도 사진으로 합류하면 이 세션 동안은 계속 보여준다.
   const [ocrEnabled, setOcrEnabled] = useState(false);
   const [showPhotoUploadModal, setShowPhotoUploadModal] = useState(false);
+  // §6 단계 5-1 — 마지막 인식 결과(사진 File + 결과). 🔴 이 컴포넌트 메모리에만 둔다 — localStorage·
+  // sessionStorage·IndexedDB·서버 저장 금지. 새로 인식하면 교체되고, 페이지를 떠나면 사라진다.
+  const [recentOcr, setRecentOcr] = useState<RecentOcr | null>(null);
+  const [reopenRecent, setReopenRecent] = useState(false);
   const [showOcrDisclaimer, setShowOcrDisclaimer] = useState(false);
 
   useEffect(() => {
@@ -1049,14 +1053,26 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', flexWrap: 'wrap' }}>
               <label htmlFor="en-draft-text" style={{ fontSize: 'var(--v2-fs-item-title)', fontWeight: 700, color: 'var(--v2-text-main)' }}>초안 (직접 입력)</label>
               {ocrEnabled && (
-                <button
-                  type="button"
-                  onClick={() => setShowPhotoUploadModal(true)}
-                  className="v2-btn-outline"
-                  style={{ padding: '6px 12px', fontSize: 'var(--v2-fs-support)' }}
-                >
-                  <Camera size={15} /> 사진으로 불러오기
-                </button>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                  <button
+                    type="button"
+                    onClick={() => { setReopenRecent(false); setShowPhotoUploadModal(true); }}
+                    className="v2-btn-outline"
+                    style={{ padding: '6px 12px', fontSize: 'var(--v2-fs-support)' }}
+                  >
+                    <Camera size={15} /> 사진으로 불러오기
+                  </button>
+                  {recentOcr && (
+                    <button
+                      type="button"
+                      onClick={() => { setReopenRecent(true); setShowPhotoUploadModal(true); }}
+                      className="v2-btn-outline"
+                      style={{ padding: '6px 12px', fontSize: 'var(--v2-fs-support)' }}
+                    >
+                      최근 인식 결과 보기
+                    </button>
+                  )}
+                </div>
               )}
             </div>
             {/* docs 06-06 §6 단계 5 — 고정 표시. 사진으로 초안을 채운 뒤에는 편집 영역 바로
@@ -1158,6 +1174,8 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
       {showPhotoUploadModal && (
         <WillPhotoUploadModal
           hasExistingDraft={!!draftText.trim()}
+          recent={reopenRecent ? recentOcr : null}
+          onRecognized={setRecentOcr}
           onClose={() => setShowPhotoUploadModal(false)}
           onMerge={handlePhotoOcrMerge}
         />

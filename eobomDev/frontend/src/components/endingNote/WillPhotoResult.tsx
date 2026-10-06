@@ -68,6 +68,8 @@ export const WillPhotoResult: React.FC<WillPhotoResultProps> = ({ files, result,
   const [page, setPage] = useState(0);
   const [fromReq, setFromReq] = useState(false); // 모바일 규칙 3 — 요건 행을 눌러 넘어왔을 때만 설명 줄·테두리
   const hlRef = useRef<HTMLDivElement>(null);
+  const [editMode, setEditMode] = useState<'replace' | 'append' | null>(null); // 고치기 화면 — 누른 버튼의 모드
+  const [editText, setEditText] = useState(result.text); // 뒤로 갔다 와도 고친 글 유지
 
   // 브라우저에 있는 파일 → 보여줄 수 있는 것만 object URL. tiff는 브라우저가 못 그리고 pdf는 쪽 이미지가 없다(§6-1).
   const [urls, setUrls] = useState<(string | null)[]>([]);
@@ -219,19 +221,35 @@ export const WillPhotoResult: React.FC<WillPhotoResultProps> = ({ files, result,
     </div>
   );
 
-  const actions = (
+  // §6 단계 4 — 세 버튼 모두 바로 반영하지 않고 고치기 화면으로 넘어간다. 적용을 눌러야 onMerge.
+  const actions = editMode ? (
+    <div className="v2-ocr-actions">
+      <button type="button" className="v2-btn-outline" onClick={() => setEditMode(null)}>뒤로</button>
+      <button type="button" className="v2-btn-primary" onClick={() => onMerge(editText, editMode)}>적용</button>
+    </div>
+  ) : (
     <div className="v2-ocr-actions">
       <button type="button" className="v2-btn-outline" onClick={onClose}>취소</button>
       {hasExistingDraft ? (
         <>
-          <button type="button" className="v2-btn-outline" onClick={() => onMerge(result.text, 'append')}>뒤에 붙이기</button>
-          <button type="button" className="v2-btn-primary" onClick={() => onMerge(result.text, 'replace')}>바꾸기</button>
+          <button type="button" className="v2-btn-outline" onClick={() => setEditMode('append')}>뒤에 붙이기</button>
+          <button type="button" className="v2-btn-primary" onClick={() => setEditMode('replace')}>바꾸기</button>
         </>
       ) : (
-        <button type="button" className="v2-btn-primary" onClick={() => onMerge(result.text, 'replace')}>초안에 넣기</button>
+        <button type="button" className="v2-btn-primary" onClick={() => setEditMode('replace')}>초안에 넣기</button>
       )}
     </div>
   );
+
+  const editBox = (
+    <textarea
+      className="v2-ocr-edit-box"
+      aria-label="인식된 글 고치기"
+      value={editText}
+      onChange={(e) => setEditText(e.target.value)}
+    />
+  );
+  const editHint = `사진과 대조해 틀린 글자를 고친 뒤 적용해 주세요. ${editMode === 'append' ? '고친 글은 기존 초안 뒤에 붙습니다.' : hasExistingDraft ? '고친 글이 기존 초안을 대신합니다.' : '고친 글이 초안에 들어갑니다.'}`;
 
   const head = (
     <div className="v2-ocr-head">
@@ -271,9 +289,15 @@ export const WillPhotoResult: React.FC<WillPhotoResultProps> = ({ files, result,
     return (
       <div className="v2-ocr-result is-mobile">
         {head}
-        {tablist}
+        {!editMode && tablist}
         <div className="v2-ocr-scroll">
-          {activeTab === 'photo' && (
+          {editMode && (
+            <div className="v2-ocr-edit-panel">
+              <p className="v2-ocr-hint" style={{ margin: '12px 16px 0' }}>{editHint}</p>
+              {editBox}
+            </div>
+          )}
+          {!editMode && activeTab === 'photo' && (
             <div role="tabpanel" id="ocr-panel-photo" aria-labelledby="ocr-tab-photo">
               {((fromReq && sel) || (pages.length > 1 && hasAnyPhoto)) && (
                 <div className="v2-ocr-photo-top">
@@ -293,13 +317,13 @@ export const WillPhotoResult: React.FC<WillPhotoResultProps> = ({ files, result,
               {photoFrame}
             </div>
           )}
-          {activeTab === 'req' && (
+          {!editMode && activeTab === 'req' && (
             <div role="tabpanel" id="ocr-panel-req" aria-labelledby="ocr-tab-req" className="v2-ocr-req-panel">
               {requirementRows}
               <p className="v2-ocr-req-note">자동 확인은 참고용입니다. 요건 체크는 유언장 초안 화면에서 직접 해 주세요.</p>
             </div>
           )}
-          {activeTab === 'text' && (
+          {!editMode && activeTab === 'text' && (
             <div role="tabpanel" id="ocr-panel-text" aria-labelledby="ocr-tab-text" className="v2-ocr-text-panel">
               {textPanel}
             </div>
@@ -324,15 +348,22 @@ export const WillPhotoResult: React.FC<WillPhotoResultProps> = ({ files, result,
           {sel && !sel.box && hasAnyPhoto && <p className="v2-ocr-note">이 항목은 사진에서 표시할 위치가 없습니다.</p>}
         </div>
         <div className="v2-ocr-side">
-          {tablist}
-          {activeTab === 'req' && (
+          {editMode ? (
+            <div className="v2-ocr-edit-panel">
+              <p className="v2-ocr-hint">{editHint}</p>
+              {editBox}
+            </div>
+          ) : (
+            tablist
+          )}
+          {!editMode && activeTab === 'req' && (
             <div role="tabpanel" id="ocr-panel-req" aria-labelledby="ocr-tab-req">
               <p className="v2-ocr-hint">항목을 누르면 사진에서 찾은 위치가 표시됩니다.</p>
               {requirementRows}
               <p className="v2-ocr-req-note">자동 확인은 참고용입니다. 요건 체크는 유언장 초안 화면에서 직접 해 주세요.</p>
             </div>
           )}
-          {activeTab === 'text' && (
+          {!editMode && activeTab === 'text' && (
             <div role="tabpanel" id="ocr-panel-text" aria-labelledby="ocr-tab-text">
               {textPanel}
             </div>

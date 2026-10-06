@@ -13,10 +13,16 @@ import type { WillOcrResponse } from './WillPhotoResult';
 type Stage = 'idle' | 'uploading' | 'processing' | 'done';
 
 const MAX_FILES = 5;
-const MAX_FILE_SIZE_MB = 20;
-// 🔄 09-28 Opus 편차 보정 [F] — §4.1 "HEIC — 1차 방어"는 accept로 CLOVA가 받는 4개만 보여주는
+// §4.1 용량(10-06 3차 결정) — 사진 1장 5MB · PDF 1개 20MB. 사진은 줄이기 "뒤" 크기로 잰다.
+const MAX_PHOTO_SIZE_MB = 5;
+const MAX_PDF_SIZE_MB = 20;
+const MB = 1024 * 1024;
+// 🔄 09-28 Opus 편차 보정 [F] — §4.1 "HEIC — 1차 방어"는 accept로 jpg·png·pdf만 보여주는
 // 것까지다. heic/heif는 accept에서 뺀다 — 그래도 오면 서버 heic-convert(2차 방어)가 처리한다.
-const ACCEPT = '.jpg,.jpeg,.png,.tif,.tiff,.pdf,image/jpeg,image/png,image/tiff,application/pdf';
+// tiff는 10-06 3차 결정으로 받지 않는다.
+const ACCEPT = '.jpg,.jpeg,.png,.pdf,image/jpeg,image/png,application/pdf';
+const ALLOWED_EXT = ['.jpg', '.jpeg', '.png', '.pdf', '.heic', '.heif'];
+const isPdf = (f: File) => f.type === 'application/pdf' || f.name.toLowerCase().endsWith('.pdf');
 // §4.1 "크기 줄이기" — 브라우저 우선 축소 기준.
 const MAX_LONG_EDGE = 1960;
 
@@ -54,18 +60,27 @@ const resizeImageIfNeeded = async (file: File): Promise<File> => {
   }
 };
 
+// §6 단계 5-1 — 부모(EndingNotePage)가 메모리에만 들고 있는 마지막 인식 결과. 있으면 올리기 단계를 건너뛰고
+// 같은 결과 화면을 다시 연다(CLOVA 재호출 없음).
+export interface RecentOcr {
+  files: File[];
+  result: WillOcrResponse;
+}
+
 interface WillPhotoUploadModalProps {
   hasExistingDraft: boolean;
+  recent?: RecentOcr | null;
+  onRecognized: (recent: RecentOcr) => void;
   onClose: () => void;
   onMerge: (text: string, mode: 'replace' | 'append') => void;
 }
 
-export const WillPhotoUploadModal: React.FC<WillPhotoUploadModalProps> = ({ hasExistingDraft, onClose, onMerge }) => {
+export const WillPhotoUploadModal: React.FC<WillPhotoUploadModalProps> = ({ hasExistingDraft, recent, onRecognized, onClose, onMerge }) => {
   const [consent, setConsent] = useState(false);
-  const [files, setFiles] = useState<File[]>([]);
-  const [stage, setStage] = useState<Stage>('idle');
+  const [files, setFiles] = useState<File[]>(recent?.files ?? []);
+  const [stage, setStage] = useState<Stage>(recent ? 'done' : 'idle');
   const [error, setError] = useState<string | null>(null);
-  const [result, setResult] = useState<WillOcrResponse | null>(null);
+  const [result, setResult] = useState<WillOcrResponse | null>(recent?.result ?? null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -78,12 +93,26 @@ export const WillPhotoUploadModal: React.FC<WillPhotoUploadModalProps> = ({ hasE
       setError(`사진은 최대 ${MAX_FILES}장까지 올릴 수 있습니다.`);
       return;
     }
-    const tooLarge = selected.find((f) => f.size > MAX_FILE_SIZE_MB * 1024 * 1024);
-    if (tooLarge) {
-      setError(`사진 1장은 ${MAX_FILE_SIZE_MB}MB까지 올릴 수 있습니다.`);
+    if (selected.some((f) => !ALLOWED_EXT.some((ext) => f.name.toLowerCase().endsWith(ext)))) {
+      setError('jpg·png·pdf 파일만 올릴 수 있습니다.');
       return;
     }
+    // §4.1 PDF 1개 — 2개 이상이거나 사진과 섞이면 서버로 보내기 전에 막는다.
+    const pdfCount = selected.filter(isPdf).length;
+    if (pdfCount > 1 || (pdfCount === 1 && selected.length > 1)) {
+      setError('PDF는 1개만 올릴 수 있고, 사진과 함께 올릴 수 없습니다.');
+      return;
+    }
+    // PDF는 원본 크기, 사진은 줄인 뒤 크기(고화소 폰 사진이 줄이기 전 크기로 막히지 않게).
     const resized = await Promise.all(selected.map(resizeImageIfNeeded));
+    if (resized.some((f) => isPdf(f) && f.size > MAX_PDF_SIZE_MB * MB)) {
+      setError(`PDF 파일은 ${MAX_PDF_SIZE_MB}MB까지 올릴 수 있습니다.`);
+      return;
+    }
+    if (resized.some((f) => !isPdf(f) && f.size > MAX_PHOTO_SIZE_MB * MB)) {
+      setError(`사진 1장은 ${MAX_PHOTO_SIZE_MB}MB까지 올릴 수 있습니다.`);
+      return;
+    }
     setFiles(resized);
   };
 
@@ -114,6 +143,7 @@ export const WillPhotoUploadModal: React.FC<WillPhotoUploadModalProps> = ({ hasE
       setStage('processing');
       const data = await apiFetch<WillOcrResponse>('/api/ocr/recognize', 'USER', { method: 'POST', body: formData });
       setResult(data);
+      onRecognized({ files, result: data });
       setStage('done');
     } catch (e) {
       const message = e instanceof ApiError ? e.message : '사진 인식에 실패했습니다. 아래 입력창에 직접 입력해 주세요.';
@@ -145,7 +175,7 @@ export const WillPhotoUploadModal: React.FC<WillPhotoUploadModalProps> = ({ hasE
           {stage !== 'done' && (
             <>
               <p style={{ fontSize: 'var(--v2-fs-support)', color: 'var(--v2-text-muted)', marginBottom: '4px' }}>
-                jpg · png · pdf · tiff 사진을 올릴 수 있습니다(최대 {MAX_FILES}장, 장당 {MAX_FILE_SIZE_MB}MB, PDF는 5쪽까지).
+                jpg · png 사진은 최대 {MAX_FILES}장, 1장당 {MAX_PHOTO_SIZE_MB}MB까지 올릴 수 있습니다. PDF는 1개({MAX_PDF_SIZE_MB}MB까지, 5쪽까지)만 올릴 수 있고 사진과 함께 올릴 수 없습니다.
               </p>
               {/* 06-06 §6 단계1·§9-1 T-2 — 콘솔 도메인 언어가 단일 선택이라 코드로 못 푸는 한계를 미리 알린다 */}
               <p style={{ fontSize: 'var(--v2-fs-support)', color: 'var(--v2-text-muted)', marginBottom: '4px' }}>

@@ -3867,6 +3867,23 @@ a.v2-btn-solid {
   background: #FFFFFF;
 }
 
+/* 06-06 §6 단계 4 — 고치기 화면(사진 칸은 그대로, 오른쪽만 입력칸으로 전환) */
+.v2-ocr-edit-box {
+  display: block;
+  width: 100%;
+  margin-top: 14px;
+  height: 500px;
+  resize: none;
+  box-sizing: border-box;
+  border: 1px solid var(--v2-btn-border);
+  border-radius: 4px;
+  padding: 16px 20px;
+  font: inherit;
+  font-size: 16px;
+  line-height: 1.8;
+  background: #FFFFFF;
+}
+
 .v2-ocr-textpage {
   margin-bottom: 16px;
 }
@@ -4043,6 +4060,13 @@ a.v2-btn-solid {
     height: auto;
     overflow: visible;
     margin: 12px 16px;
+    padding: 14px 16px;
+  }
+
+  .v2-ocr-edit-panel .v2-ocr-edit-box {
+    height: 60vh;
+    margin: 12px 16px;
+    width: calc(100% - 32px);
     padding: 14px 16px;
   }
 

@@ -213,6 +213,20 @@ const ADDRESS_LABEL = /[(（]\s*주소\s*[)）]|주\s*소\s*[:：]/g;
 const NEXT_LABEL = /[(（][가-힣]{1,6}[)）]/;
 const ADMIN_UNIT_NO = /[가-힣0-9]{1,8}(?:로|길|동|리|가|읍|면)\s*(?:산\s*)?\d+/;
 
+// 번지 뒤에 붙는 건물 이름·동·호("000 아파트 101동 101호")까지만 주소로 본다. 줄 구분이 공백으로 펴져
+// 있어 다음 줄 본문("본인 정현수는 …")이 붙어 나오던 것을 끊는다(10-06 운영 시험).
+const ADDRESS_TAIL =
+  /^[^\s0-9가-힣]{0,2}(?:\s*[가-힣A-Za-z]{0,10}(?:아파트|빌라|타워|맨션|오피스텔|주택|APT|apt))?(?:\s*\d+\s*동)?(?:\s*\d+\s*호)?/;
+
+const trimAddressSeg = (seg: string): string => {
+  const unit = ADMIN_UNIT_NO.exec(seg);
+  if (!unit) return seg;
+  const sub = /^-\d+/.exec(seg.slice(unit.index + unit[0].length)); // 부번 "1000-2"
+  const end = unit.index + unit[0].length + (sub ? sub[0].length : 0);
+  const tail = ADDRESS_TAIL.exec(seg.slice(end));
+  return seg.slice(0, end + (tail ? tail[0].length : 0)).trim();
+};
+
 const findLabeledAddress = (pages: FlatPage[]): Hit | undefined => {
   let last: Hit | undefined;
   pages.forEach((p, page) => {
@@ -222,8 +236,9 @@ const findLabeledAddress = (pages: FlatPage[]): Hit | undefined => {
       const from = m.index + m[0].length;
       const rest = p.text.slice(from, from + 80);
       const next = NEXT_LABEL.exec(rest);
-      const seg = (next ? rest.slice(0, next.index) : rest).trim();
-      if (!new RegExp(SIDO).test(seg) || !ADMIN_UNIT_NO.test(seg)) continue;
+      const raw = (next ? rest.slice(0, next.index) : rest).trim();
+      if (!new RegExp(SIDO).test(raw) || !ADMIN_UNIT_NO.test(raw)) continue;
+      const seg = trimAddressSeg(raw);
       const start = p.text.indexOf(seg, from);
       last = { page, text: squash(seg), key: seg.replace(/\s/g, ''), box: boxOf(p, start, start + seg.length) };
     }

@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { verifyBearerToken } from './authController';
-import { uploadPhotosMemory, MAX_PHOTO_SIZE_BYTES, MAX_PHOTO_COUNT } from '../config/uploadPhotos';
+import { uploadPhotosMemory, MAX_PHOTO_COUNT, MAX_PDF_SIZE_BYTES, INVALID_TYPE_MESSAGE, limitSizeMessage, checkUploadSet } from '../config/uploadPhotos';
 import { ClovaOcrProvider } from '../services/clovaOcrProvider';
 import type { OcrProvider } from '../services/ocrProvider';
 import sharp from 'sharp';
@@ -71,16 +71,20 @@ export const recognizeWillPhotos = (req: Request, res: Response) => {
     if (err) {
       const message =
         err.message === 'INVALID_FILE_TYPE'
-          ? 'jpg·png·pdf·tiff·heic 파일만 올릴 수 있습니다.'
+          ? INVALID_TYPE_MESSAGE
           : (err as { code?: string }).code === 'LIMIT_FILE_SIZE'
-            ? `사진 1장은 ${Math.round(MAX_PHOTO_SIZE_BYTES / 1024 / 1024)}MB까지 올릴 수 있습니다.`
-            : `업로드 중 오류가 발생했습니다. (파일당 최대 ${Math.round(MAX_PHOTO_SIZE_BYTES / 1024 / 1024)}MB · 최대 ${MAX_PHOTO_COUNT}장)`;
+            ? limitSizeMessage(req)
+            : `업로드 중 오류가 발생했습니다. (사진 최대 ${MAX_PHOTO_COUNT}장 · PDF 1개 ${Math.round(MAX_PDF_SIZE_BYTES / 1024 / 1024)}MB까지)`;
       return res.status(400).json({ status: 'error', message });
     }
     const files = req.files as Express.Multer.File[] | undefined;
     if (!files || files.length === 0) {
       return res.status(400).json({ status: 'error', message: '사진을 선택해 주세요.' });
     }
+
+    // 🔴 형식별 용량·PDF 1개 재확인 — 대기열(heavyQueue.acquire) 앞에서 끝낸다(10-06 3·4차 결정).
+    const setError = checkUploadSet(files);
+    if (setError) return res.status(400).json({ status: 'error', message: setError });
 
     const limitReached = () =>
       res.status(429).json({ status: 'error', message: `하루 이용 횟수(${DAILY_LIMIT}회)를 다 쓰셨습니다. 내일 다시 시도해 주세요.` });
