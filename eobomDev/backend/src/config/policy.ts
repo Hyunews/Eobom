@@ -37,5 +37,6 @@ export const POLICY = {
     socialUnlinkedYears: 1, // 00-19 제4조 "소셜 계정 연동 해제 시 … 1년 경과 시 파기"
     deletedGuestbookMonths: 3, // 00-19 제4조 "방명록 등 삭제된 게시물 … 3개월 후 완전 삭제"
     contactMaskAfterEndDays: 90, // 00-19 제4조·제8조 "끝난 날부터 90일이 지나면 … 원본도 마스킹"
+    heavyJobLogYears: 1, // 06-04 §6.4-11-10-1 "1년 지난 기록은 지웁니다" — 사진 인식·음성 변환 처리 결과 기록(개인정보 없음, 처리방침 대상 아님)
   },
 } as const;

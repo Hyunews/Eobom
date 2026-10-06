@@ -82,7 +82,7 @@ export const transcribeAudio = (req: Request, res: Response) => {
       }
 
       return { text, ...(media ? { media } : {}) };
-    });
+    }, { audioSec: durationSec }); // §6.4-11-10-1 건별 기록에 음성 길이(초)를 넘긴다 — 못 읽었으면 null
 
     if (outcome.ok) return res.json({ status: 'success', data: outcome.value });
     if (outcome.reason === 'aborted') return; // 연결 끊김 — 응답할 상대가 없다

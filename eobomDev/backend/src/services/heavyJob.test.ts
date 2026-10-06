@@ -2,8 +2,13 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { EventEmitter } from 'node:events';
 import { HeavyQueue, HEAVY_QUEUE_CONFIG, QueueRejectedError } from './heavyQueue';
-import { runHeavyJob, heavyFailureResponse } from './heavyJob';
+import { runHeavyJob, heavyFailureResponse, heavyJobRuntime } from './heavyJob';
+import { summarizeHeavyJobs } from './heavyJobLogService';
+import type { HeavyJobRecord } from './heavyJobLogService';
 import { getAudioDurationSec } from './audioDuration';
+
+// 🔴 이 파일은 DB 없이 돈다 — 건별 기록의 기본 기록기(DB에 씀)를 꺼 둔다. 기록을 볼 시험은 아래에서 가짜 기록기를 끼운다.
+heavyJobRuntime.record = null;
 
 // docs 06-04 §6.4-11-10 — 단계별 마감·이유 구분·abort·즉시 거절·음성 길이. 외부 호출 없이 돈다.
 
@@ -231,4 +236,96 @@ test('길이 — 못 읽는 파일(webm·깨진 파일·너무 짧음)은 null: 
   assert.equal(getAudioDurationSec(Buffer.from([0x1a, 0x45, 0xdf, 0xa3, ...new Array(64).fill(0)])), null);
   assert.equal(getAudioDurationSec(Buffer.alloc(100)), null);
   assert.equal(getAudioDurationSec(Buffer.alloc(4)), null);
+});
+
+// ── 건별 처리 결과 기록(06-04 §6.4-11-10-1) — DB 없이 가짜 기록기로 본다 ──
+const withRecorder = async (body: (recs: HeavyJobRecord[]) => Promise<void>) => {
+  const recs: HeavyJobRecord[] = [];
+  const saved = heavyJobRuntime.record;
+  heavyJobRuntime.record = (r) => { recs.push(r); };
+  try { await body(recs); } finally { heavyJobRuntime.record = saved; }
+};
+
+test('기록 — 성공: 종류·결과·대기·처리 시간·음성 길이만 남긴다(다른 값은 없다)', () => withRecorder(async (recs) => {
+  const q = newQueue();
+  await runHeavyJob(fakeRes(), 'audio', async () => { await sleep(20); return 'ok'; }, { queue: q, deadlineMs: 1_000, audioSec: 83.4 });
+  assert.equal(recs.length, 1);
+  const r = recs[0];
+  assert.deepEqual(Object.keys(r).sort(), ['audioSec', 'kind', 'result', 'waitMs', 'workMs']);
+  assert.equal(r.kind, 'audio');
+  assert.equal(r.result, 'success');
+  assert.equal(r.audioSec, 83.4);
+  assert.ok(r.workMs !== null && r.workMs >= 15, `처리 시간이 잡혀야 한다: ${r.workMs}`);
+  assert.ok(r.waitMs >= 0 && r.waitMs < 100);
+  // 사진은 음성 길이를 남기지 않는다
+  await runHeavyJob(fakeRes(), 'photo', async () => 1, { queue: q, deadlineMs: 1_000, audioSec: 99 });
+  assert.equal(recs[1].audioSec, null);
+}));
+
+test('기록 — 대기열 거절(busy)·시간 초과(slow)·오류(error)·화면 이탈(aborted)이 각각 남고, 거절은 처리 시간이 없다', () => withRecorder(async (recs) => {
+  const q = newQueue();
+  const hold = await q.acquire(); // busy — 슬롯이 차 있고 마감이 대기 중에 옴
+  await runHeavyJob(fakeRes(), 'photo', async () => 'x', { queue: q, deadlineMs: 30 });
+  hold();
+  assert.equal(recs[0].result, 'busy');
+  assert.equal(recs[0].workMs, null);
+
+  await runHeavyJob(fakeRes(), 'photo', (signal) => new Promise<string>((_, rej) => signal.addEventListener('abort', () => rej(new Error('a')))), { queue: q, deadlineMs: 30 });
+  assert.equal(recs[1].result, 'slow');
+  assert.ok(recs[1].workMs !== null);
+
+  await runHeavyJob(fakeRes(), 'photo', async () => { throw new Error('boom'); }, { queue: q, deadlineMs: 1_000 });
+  assert.equal(recs[2].result, 'error');
+
+  const res = fakeRes(); // aborted — 연결이 끊김
+  const p = runHeavyJob(res, 'photo', (signal) => new Promise<string>((_, rej) => signal.addEventListener('abort', () => rej(new Error('a')))), { queue: q, deadlineMs: 5_000 });
+  await sleep(10);
+  res.emit('close');
+  await p;
+  assert.equal(recs[3].result, 'aborted');
+  assert.equal(recs.length, 4);
+}));
+
+test('기록 — 사용자 입력 오류(skipRecordOnError)는 남기지 않는다', () => withRecorder(async (recs) => {
+  class InputError extends Error {}
+  const r = await runHeavyJob(fakeRes(), 'photo', async () => { throw new InputError('x'); }, {
+    queue: newQueue(), deadlineMs: 1_000, skipRecordOnError: (e) => e instanceof InputError,
+  });
+  assert.equal(r.ok, false);
+  assert.equal(recs.length, 0);
+}));
+
+test('기록 실패는 본 처리를 막지 않는다 — 기록기가 던져도 결과는 그대로', async () => {
+  const saved = heavyJobRuntime.record;
+  heavyJobRuntime.record = () => { throw new Error('기록기 고장'); };
+  const origErr = console.error;
+  console.error = () => {};
+  try {
+    const r = await runHeavyJob(fakeRes(), 'photo', async () => 7, { queue: newQueue(), deadlineMs: 1_000 });
+    assert.deepEqual(r, { ok: true, value: 7 });
+    const r2 = await runHeavyJob(fakeRes(), 'photo', async () => { throw new Error('x'); }, { queue: newQueue(), deadlineMs: 1_000 });
+    assert.equal(r2.ok, false);
+  } finally {
+    console.error = origErr;
+    heavyJobRuntime.record = saved;
+  }
+});
+
+test('집계 — 종류·결과별 건수와 평균 처리 시간(처리 시간이 없는 거절은 평균에서 뺀다)', () => {
+  const rows = [
+    { kind: 'audio', result: 'success', waitMs: 0, workMs: 20_000, audioSec: 100 },
+    { kind: 'audio', result: 'success', waitMs: 2_000, workMs: 40_000, audioSec: 200 },
+    { kind: 'audio', result: 'busy', waitMs: 30_000, workMs: null, audioSec: 60 },
+    { kind: 'photo', result: 'success', waitMs: 0, workMs: 5_000, audioSec: null },
+  ];
+  const s = summarizeHeavyJobs(rows);
+  const find = (k: string, r: string) => s.find((x) => x.kind === k && x.result === r)!;
+  assert.equal(find('audio', 'success').count, 2);
+  assert.equal(find('audio', 'success').avgWorkMs, 30_000);
+  assert.equal(find('audio', 'success').avgWaitMs, 1_000);
+  assert.equal(find('audio', 'success').maxWorkMs, 40_000);
+  assert.equal(find('audio', 'success').avgAudioSec, 150);
+  assert.equal(find('audio', 'busy').avgWorkMs, null);
+  assert.equal(find('photo', 'success').avgAudioSec, null);
+  assert.deepEqual(s.map((x) => `${x.kind}:${x.result}`), ['audio:success', 'audio:busy', 'photo:success']);
 });

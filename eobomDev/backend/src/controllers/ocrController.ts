@@ -182,6 +182,9 @@ export const recognizeWillPhotos = (req: Request, res: Response) => {
         pages: pages.map((p, i) => ({ text: p.text, width: p.width, height: p.height, fileIndex: pageFile[i] })),
         requirements,
       };
+    }, {
+      // §6.4-11-10-1 건별 기록 — 사용자 입력 문제(쪽수 초과)·하루 한도는 "처리 결과"가 아니라 기록하지 않는다(오류 건수에 섞이지 않게).
+      skipRecordOnError: (e) => e instanceof UserInputError || e instanceof DailyLimitError,
     });
 
     if (outcome.ok) return res.json({ status: 'success', data: outcome.value });

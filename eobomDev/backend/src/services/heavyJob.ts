@@ -1,6 +1,8 @@
 import type { Response } from 'express';
 import { heavyQueue, HEAVY_QUEUE_CONFIG, QueueRejectedError, BUSY_MESSAGE } from './heavyQueue';
 import type { HeavyKind, HeavyQueue } from './heavyQueue';
+import { recordHeavyJob } from './heavyJobLogService';
+import type { HeavyJobRecord, HeavyJobResultCode } from './heavyJobLogService';
 
 // docs 06-04 §6.4-11-10 "대기 상한·즉시 알림·시간 제한" — 사진 글자 인식·음성 변환이 함께 쓰는 한 건 처리 틀.
 // 업로드를 다 받은 때부터 마감(사진 55초·음성 115초, 대기 + CLOVA 처리 합계)을 재고, 어디서 멈췄는지에 따라
@@ -22,18 +24,46 @@ type CloseEmitter = Pick<Response, 'once' | 'off' | 'writableFinished'>;
 const STOPPED = Symbol('stopped');
 
 // 서버 마감 시간(ms). 기본은 설정 한 곳(HEAVY_QUEUE_CONFIG)이고, 통합 시험이 짧게 바꿔 쓴다 — 운영 코드는 건드리지 않는다.
-export const heavyJobRuntime = { deadlineMs: { ...HEAVY_QUEUE_CONFIG.deadlineMs } };
+// record: 건별 처리 결과 기록(06-04 §6.4-11-10-1). 기본은 DB 기록기이고, DB 없이 도는 단위 시험이 끄거나 가짜로 바꿔 쓴다(null = 기록 안 함).
+export const heavyJobRuntime: { deadlineMs: { photo: number; audio: number }; record: ((r: HeavyJobRecord) => void) | null } = {
+  deadlineMs: { ...HEAVY_QUEUE_CONFIG.deadlineMs },
+  record: recordHeavyJob,
+};
 
 export const runHeavyJob = async <T>(
   res: CloseEmitter,
   kind: HeavyKind,
   work: (signal: AbortSignal) => Promise<T>,
-  opts: { deadlineMs?: number; queue?: HeavyQueue } = {},
+  opts: {
+    deadlineMs?: number;
+    queue?: HeavyQueue;
+    audioSec?: number | null; // 음성 길이(초) — 기록용. 음성만, 못 읽었으면 null
+    // work가 던진 오류가 "처리 결과"가 아니라 사용자 입력 문제(형식·쪽수·하루 한도)면 true — 이 건은 기록하지 않는다(오류 건수에 섞이지 않게).
+    skipRecordOnError?: (error: unknown) => boolean;
+  } = {},
 ): Promise<HeavyJobResult<T>> => {
   const queue = opts.queue ?? heavyQueue;
   const ac = new AbortController();
   let timedOut = false;
   let disconnected = false;
+
+  // 건별 기록(§6.4-11-10-1) — 종류·결과·대기 ms·처리 ms·음성 길이뿐. 🔴 기록이 실패해도(던져도) 본 처리·응답에는 영향이 없다.
+  const startedAt = Date.now();
+  let acquiredAt: number | null = null;
+  const log = (result: HeavyJobResultCode) => {
+    try {
+      const now = Date.now();
+      heavyJobRuntime.record?.({
+        kind,
+        result,
+        waitMs: (acquiredAt ?? now) - startedAt,
+        workMs: acquiredAt === null ? null : now - acquiredAt,
+        audioSec: kind === 'audio' ? opts.audioSec ?? null : null,
+      });
+    } catch (e) {
+      console.error('처리 결과 기록 실패(무시):', e instanceof Error ? e.message : e);
+    }
+  };
 
   const timer = setTimeout(() => { timedOut = true; ac.abort(); }, opts.deadlineMs ?? heavyJobRuntime.deadlineMs[kind]);
   // 🔴 req 'close'는 본문을 다 읽은 뒤에도 발생하므로 res 'close' + writableFinished로 판정한다.
@@ -45,10 +75,12 @@ export const runHeavyJob = async <T>(
     try {
       release = await queue.acquire(ac.signal, kind);
     } catch (queueError) {
-      if (disconnected) return { ok: false, reason: 'aborted' };
-      if (queueError instanceof QueueRejectedError && queueError.reason === 'aborted' && !timedOut) return { ok: false, reason: 'aborted' };
+      if (disconnected) { log('aborted'); return { ok: false, reason: 'aborted' }; }
+      if (queueError instanceof QueueRejectedError && queueError.reason === 'aborted' && !timedOut) { log('aborted'); return { ok: false, reason: 'aborted' }; }
+      log('busy'); // 대기열 거절(503)도 기록한다
       return { ok: false, reason: 'busy' }; // 대기 10건 · 예상 대기 초과(즉시) · 대기 30초 · 마감이 대기 중에 옴 → ①
     }
+    acquiredAt = Date.now();
 
     const job = (async () => work(ac.signal))();
     job.catch(() => {}); // 마감 뒤 늦게 실패해도 미처리 거절로 남기지 않는다
@@ -61,11 +93,13 @@ export const runHeavyJob = async <T>(
     try {
       const value = await Promise.race([job, stopped]);
       release(true);
+      log('success');
       return { ok: true, value };
     } catch (error) {
       release(false); // 창구 반납 — 늦게 끝나는 작업이 있어도 기다리지 않는다
-      if (disconnected) return { ok: false, reason: 'aborted' };
-      if (timedOut) return { ok: false, reason: 'slow' };
+      if (disconnected) { log('aborted'); return { ok: false, reason: 'aborted' }; }
+      if (timedOut) { log('slow'); return { ok: false, reason: 'slow' }; }
+      if (!(opts.skipRecordOnError?.(error))) log('error');
       return { ok: false, reason: 'error', error };
     }
   } finally {

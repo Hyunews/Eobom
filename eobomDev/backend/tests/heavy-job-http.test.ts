@@ -17,6 +17,7 @@ import { tokenFor } from './helpers/tokens';
 const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
 
 describe('사진·음성 처리 시간 제한 — HTTP', () => {
+  const startedAt = new Date(); // 건별 기록 확인 범위(이 시각 이후 기록만 본다)
   let server: Server;
   let base = '';
   let clova: Server;
@@ -120,5 +121,30 @@ describe('사진·음성 처리 시간 제한 — HTTP', () => {
     assert.equal(res.status, 400);
     assert.equal(((await res.json()) as { message: string }).message, '10분 이하 녹음만 올릴 수 있습니다.');
     assert.equal(heavyQueue.activeCount, 0);
+    // 입구 검사(400)는 대기열에 들어가지 않으므로 처리 결과 기록도 남기지 않는다
+    assert.equal(await prisma.heavyJobLog.count({ where: { kind: 'audio', createdAt: { gte: startedAt } } }), 0);
+  });
+
+  it('건별 기록(06-04 §6.4-11-10-1) — 위 시험의 시간 초과·오류·화면 이탈이 DB에 종류·결과·시간만 남는다', async () => {
+    // 기록은 응답 뒤에 쓰이는 fire-and-forget이라 잠깐 기다린다
+    for (let i = 0; i < 40; i++) {
+      if ((await prisma.heavyJobLog.count({ where: { createdAt: { gte: startedAt } } })) >= 23) break;
+      await sleep(50);
+    }
+    const rows = await prisma.heavyJobLog.findMany({ where: { createdAt: { gte: startedAt } } });
+    const n = (result: string) => rows.filter((r) => r.kind === 'photo' && r.result === result).length;
+    assert.equal(n('slow'), 11, '②시간 초과 11건');
+    assert.equal(n('error'), 11, '③오류 11건');
+    assert.ok(n('aborted') >= 1, '화면 이탈');
+    for (const r of rows) {
+      assert.equal(r.audioSec, null, '사진은 음성 길이가 없다');
+      assert.ok(r.waitMs >= 0);
+    }
+    for (const r of rows.filter((x) => x.result === 'slow')) {
+      assert.ok(r.workMs !== null && r.workMs >= 200, `처리 시간이 마감(250ms)에 가까워야 한다: ${r.workMs}`);
+    }
+    // 기록 칸은 이것뿐이다 — 파일·인식 텍스트·이름·사용자 ID 칸이 없다
+    assert.deepEqual(Object.keys(rows[0]).sort(), ['audioSec', 'createdAt', 'createdAtKst', 'id', 'kind', 'result', 'waitMs', 'workMs']);
+    await prisma.heavyJobLog.deleteMany({ where: { id: { in: rows.map((r) => r.id) } } });
   });
 });

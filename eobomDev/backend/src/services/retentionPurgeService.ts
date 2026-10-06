@@ -142,6 +142,7 @@ export type PurgeStep =
   | 'SOCIAL_UNLINKED'
   | 'GUESTBOOK_DELETED'
   | 'CONTACT_MASK_LEAD'
-  | 'CONTACT_MASK_CONSULT';
+  | 'CONTACT_MASK_CONSULT'
+  | 'HEAVY_JOB_LOG';
 
 export const recordPurgeRun = (step: PurgeStep, affected: number) => prisma.purgeRunLog.create({ data: { step, affected } });

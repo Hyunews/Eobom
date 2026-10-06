@@ -24,7 +24,8 @@
 //   ⑨ MemorialGuestbook 삭제 표시(deletedByOwnerAt·deletedByAuthorAt) + 3개월 경과 → 행 삭제. 🔴 운영자가 내린 hiddenAt 글은 제외(00-19 제4조·00-20 §6.2).
 //   ⑩ DB 원본 마스킹(00-19 제4조·제8조, 00-20 §8.1-5) — Lead(RESPONDED·CONVERTED·LOST)·ConsultRequest(COMPLETED·CANCELLED·INVALID)가 끝난 지 90일 지난 건의
 //      이름·연락처를 가린 값으로, Lead.payload는 {}로·ConsultRequest.content는 "(보관 기간이 지나 삭제됨)"으로 덮어쓰고 maskedAt 기록. 접수번호·일시·대상·금액은 유지. "끝난 시각" = statusHistory의 현재 상태 마지막 기록(없으면 updatedAt).
-//   ⑤·⑦~⑩은 --confirm으로 실행한 단계마다 건수를 PurgeRunLog에 남긴다(보관기간 숫자는 config/policy.ts retention).
+//   ⑪ HeavyJobLog(사진 인식·음성 변환 처리 결과 건별 기록, 06-04 §6.4-11-10-1) createdAt + 1년 경과 → 삭제. 개인정보 없는 집계용 기록. 조회는 `npm run report:heavy`.
+//   ⑤·⑦~⑪은 --confirm으로 실행한 단계마다 건수를 PurgeRunLog에 남긴다(보관기간 숫자는 config/policy.ts retention).
 //
 // 🔴 아카이브는 이 스크립트가 지우지 않는다(§5.6-8-1 D-9) — 백엔드는 아카이브 버킷에 대한
 // S3 자격증명을 원천적으로 갖지 않는다(새 토큰도 발급하지 않는다). 파기는 2단계다:
@@ -53,6 +54,7 @@ import { countOpsLogExpired, purgeOpsLogExpired, OPS_LOG_RETENTION_DAYS } from '
 import { findFreezeTargets, freezeMemorial, findNoticeDue } from '../src/services/memorialLifecycleService';
 import { sendMemorialNotice } from '../src/services/memorialNoticeService';
 import { isEmailEnabled, isAlimtalkEnabled } from '../src/services/noticeProvider';
+import { countHeavyJobLogExpired, purgeHeavyJobLogExpired } from '../src/services/heavyJobLogService';
 import {
   countSocialUnlinkedExpired,
   purgeSocialUnlinkedExpired,
@@ -298,6 +300,15 @@ async function main(): Promise<void> {
     console.log(`[⑩DB 원본 마스킹] 완료: 업체 문의 ${leadDone}건 · 상담 신청 ${consultDone}건 마스킹`);
     await recordPurgeRun('CONTACT_MASK_LEAD', leadDone);
     await recordPurgeRun('CONTACT_MASK_CONSULT', consultDone);
+  }
+
+  // ⑪ 사진 인식·음성 변환 처리 결과 기록 — 1년 지난 기록 삭제(06-04 §6.4-11-10-1). createdAt 하나뿐인 조건 — 개인정보 없는 집계용 기록이다. 건수만 찍는다.
+  const heavyLogCount = await countHeavyJobLogExpired();
+  console.log(`[⑪처리 결과 기록] 대상 ${heavyLogCount}건 (${POLICY.retention.heavyJobLogYears}년 경과)`);
+  if (confirmed) {
+    const n = await purgeHeavyJobLogExpired();
+    console.log(`[⑪처리 결과 기록] 완료: ${n}건 삭제`);
+    await recordPurgeRun('HEAVY_JOB_LOG', n);
   }
 
   // 🟡 "완료"라고만 찍으면 절반만 지운 상태를 다 지운 것으로 오인한다(§5.6-8-1-1 #48).
