@@ -3867,21 +3867,37 @@ a.v2-btn-solid {
   background: #FFFFFF;
 }
 
-/* 06-06 §6 단계 4 — 고치기 화면(사진 칸은 그대로, 오른쪽만 입력칸으로 전환) */
-.v2-ocr-edit-box {
+/* "인식된 글" 탭 — 쪽별 입력칸. 바깥 박스 안에서 글처럼 보이고(테두리 없음), 글 길이만큼 늘어난다 */
+.v2-ocr-autotext {
+  position: relative;
+}
+
+.v2-ocr-textpage-body.v2-ocr-mirror {
+  visibility: hidden;
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+  word-break: normal;
+}
+
+.v2-ocr-textpage-body.v2-ocr-textpage-edit {
+  position: absolute;
+  inset: 0;
   display: block;
   width: 100%;
-  margin-top: 14px;
-  height: 500px;
-  resize: none;
+  height: 100%;
   box-sizing: border-box;
-  border: 1px solid var(--v2-btn-border);
-  border-radius: 4px;
-  padding: 16px 20px;
+  resize: none;
+  overflow: hidden;
+  border: 0;
+  outline: 0;
+  padding: 0;
+  margin: 0;
+  background: transparent;
+  color: inherit;
   font: inherit;
   font-size: 16px;
   line-height: 1.8;
-  background: #FFFFFF;
+  white-space: pre-wrap;
 }
 
 .v2-ocr-textpage {
@@ -3921,6 +3937,25 @@ a.v2-btn-solid {
 .v2-ocr-actions {
   display: flex;
   gap: 10px;
+}
+
+/* 바꾸기·뒤에 붙이기 확인 창 — 작은 창, 버튼은 오른쪽 */
+.v2-modal.is-ocr-confirm {
+  width: 360px;
+  padding: 24px 24px 20px;
+}
+
+.v2-ocr-confirm-text {
+  margin: 0 0 20px;
+  font-size: var(--v2-fs-support);
+  line-height: 1.6;
+  color: var(--v2-text-main);
+}
+
+.v2-ocr-confirm-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
 }
 
 /* 모바일 — 전체 화면. 위 고정(제목·탭) / 가운데만 스크롤 / 아래 고정(안내 1줄 + 버튼 가로 한 줄) */
@@ -4060,13 +4095,6 @@ a.v2-btn-solid {
     height: auto;
     overflow: visible;
     margin: 12px 16px;
-    padding: 14px 16px;
-  }
-
-  .v2-ocr-edit-panel .v2-ocr-edit-box {
-    height: 60vh;
-    margin: 12px 16px;
-    width: calc(100% - 32px);
     padding: 14px 16px;
   }
 

@@ -51,6 +51,23 @@ type Tab = 'photo' | 'req' | 'text';
 
 const HL_PAD = 8; // 사진 테두리 사방 여백(px)
 
+// "인식된 글" 탭의 쪽별 입력칸 — 바깥 박스(.v2-ocr-textbox)가 스크롤을 맡고, 입력칸은 글 길이만큼 늘어나
+// 테두리·안쪽 스크롤 없이 글처럼 보이게 한다. 맞춤법 밑줄은 끈다(인식 글에 빨간 줄이 가득해 보임).
+// 높이를 재지 않는다 — 같은 글을 담은 보이지 않는 복제 칸(.v2-ocr-mirror)이 높이를 정하고, 입력칸은 그 위에
+// 겹쳐 놓는다. 글꼴 로딩·폭 변화·스크롤바 생김에도 줄 수가 항상 맞아 마지막 줄이 잘리지 않는다.
+const AutoTextarea: React.FC<{ value: string; ariaLabel: string; onChange: (v: string) => void }> = ({ value, ariaLabel, onChange }) => (
+  <div className="v2-ocr-autotext">
+    <div className="v2-ocr-textpage-body v2-ocr-mirror" aria-hidden="true">{`${value}\n`}</div>
+    <textarea
+      className="v2-ocr-textpage-body v2-ocr-textpage-edit"
+      aria-label={ariaLabel}
+      value={value}
+      spellCheck={false}
+      onChange={(e) => onChange(e.target.value)}
+    />
+  </div>
+);
+
 interface WillPhotoResultProps {
   files: File[];
   result: WillOcrResponse;
@@ -216,12 +233,10 @@ export const WillPhotoResult: React.FC<WillPhotoResultProps> = ({ files, result,
       {pages.map((p, i) => (
         <div key={i} className="v2-ocr-textpage">
           <div className="v2-ocr-textpage-title">{i + 1}쪽</div>
-          <textarea
-            className="v2-ocr-edit-box"
-            style={{ height: '220px', marginTop: 0 }}
-            aria-label={`${i + 1}쪽 인식된 글 고치기`}
+          <AutoTextarea
+            ariaLabel={`${i + 1}쪽 인식된 글 고치기`}
             value={pageTexts[i] ?? ''}
-            onChange={(e) => setPageTexts((prev) => prev.map((t, k) => (k === i ? e.target.value : t)))}
+            onChange={(v) => setPageTexts((prev) => prev.map((t, k) => (k === i ? v : t)))}
           />
         </div>
       ))}
@@ -246,16 +261,22 @@ export const WillPhotoResult: React.FC<WillPhotoResultProps> = ({ files, result,
 
   const confirmDialog = confirmMode && (
     <div className="v2-modal-overlay" role="alertdialog" aria-modal="true" aria-label="안내" onClick={(e) => e.stopPropagation()}>
-      <div className="v2-modal" onClick={(e) => e.stopPropagation()}>
-        <p className="v2-modal-body" style={{ margin: '0 0 16px' }}>이 창은 다시 볼 수 없습니다.</p>
-        <div className="v2-ocr-actions">
+      <div className="v2-modal is-ocr-confirm" onClick={(e) => e.stopPropagation()}>
+        <p className="v2-ocr-confirm-text">
+          {confirmMode === 'append'
+            ? '인식된 글을 지금 초안 뒤에 붙입니다.'
+            : '지금 초안이 인식된 글로 바뀝니다.'}
+          <br />
+          적용하면 이 화면이 닫힙니다.
+        </p>
+        <div className="v2-ocr-confirm-actions">
           <button type="button" className="v2-btn-outline" onClick={() => setConfirmMode(null)}>취소</button>
           <button
             type="button"
             className="v2-btn-primary"
             onClick={() => onMerge(mergedText, confirmMode)}
           >
-            확인
+            적용
           </button>
         </div>
       </div>
