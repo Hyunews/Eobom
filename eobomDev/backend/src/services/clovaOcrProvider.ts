@@ -1,5 +1,6 @@
 import { randomUUID } from 'crypto';
 import type { OcrProvider, OcrResult, OcrLine, OcrBoxPoint, OcrPage } from './ocrProvider';
+import { NoRecognizedTextError } from './heavyJob';
 
 // docs 06-06 §4·§5 — NCP CLOVA OCR(General, 글자 추출) 연동. clovaSpeechProvider.ts와 같은
 // 인증 방식(Invoke URL + Secret 헤더 하나) — 다만 헤더 이름이 다르다(X-OCR-SECRET).
@@ -35,7 +36,7 @@ interface ClovaOcrResponse {
 }
 
 export class ClovaOcrProvider implements OcrProvider {
-  async recognize(image: Buffer, mimeType: string): Promise<OcrResult> {
+  async recognize(image: Buffer, mimeType: string, signal?: AbortSignal): Promise<OcrResult> {
     const invokeUrl = process.env.CLOVA_OCR_INVOKE_URL;
     const secret = process.env.CLOVA_OCR_SECRET;
     if (!invokeUrl || !secret) {
@@ -69,6 +70,7 @@ export class ClovaOcrProvider implements OcrProvider {
       method: 'POST',
       headers: { 'X-OCR-SECRET': secret },
       body: form,
+      signal,
     });
 
     if (!res.ok) {
@@ -117,7 +119,7 @@ export class ClovaOcrProvider implements OcrProvider {
 
     const text = textParts.join('\n').trim();
     if (!text) {
-      throw new Error('사진에서 인식된 글자가 없습니다.');
+      throw new NoRecognizedTextError('사진에서 인식된 글자가 없습니다.');
     }
     return { text, lines, pages };
   }

@@ -4,10 +4,15 @@ import ffmpegPath from 'ffmpeg-static';
 // docs 06-04 §6.4-10-3·§6.4-11-7 — CLOVA가 못 읽는 컨테이너(webm)를 mp3로 변환한다
 // (m4a는 §6.4-11-9로 변환 없이 보낸다). 반드시 stdin→stdout 스트림으로만 처리한다 — 임시 파일을 만들면 §6.4-9-4의
 // "디스크에 쓰지 않는다"가 디코더 단계에서 조용히 깨진다.
-export const convertToMp3 = (input: Buffer): Promise<Buffer> => {
+// signal — 서버 마감·연결 끊김 때 ffmpeg를 바로 끝낸다(06-04 §6.4-11-10 시간 제한).
+export const convertToMp3 = (input: Buffer, signal?: AbortSignal): Promise<Buffer> => {
   return new Promise((resolve, reject) => {
     if (!ffmpegPath) {
       reject(new Error('ffmpeg 바이너리를 찾을 수 없습니다.'));
+      return;
+    }
+    if (signal?.aborted) {
+      reject(new Error('변환이 중단되었습니다.'));
       return;
     }
 
@@ -24,6 +29,8 @@ export const convertToMp3 = (input: Buffer): Promise<Buffer> => {
 
     const chunks: Buffer[] = [];
     const errChunks: Buffer[] = [];
+
+    signal?.addEventListener('abort', () => proc.kill('SIGKILL'), { once: true });
 
     proc.stdout.on('data', (chunk: Buffer) => chunks.push(chunk));
     proc.stderr.on('data', (chunk: Buffer) => errChunks.push(chunk));

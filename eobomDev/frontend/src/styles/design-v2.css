@@ -3939,6 +3939,41 @@ a.v2-btn-solid {
   gap: 10px;
 }
 
+/* "작업 중" 화면(사진 글자 인식·음성 변환, 06-04 §6.4-11-10) */
+.v2-working {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 28px 8px;
+  text-align: center;
+}
+
+.v2-working-main {
+  margin: 8px 0 0;
+  font-size: var(--v2-fs-item-title);
+  font-weight: 700;
+  color: var(--v2-text-main);
+}
+
+.v2-working-sub {
+  margin: 0;
+  font-size: var(--v2-fs-support);
+  color: var(--v2-text-muted);
+}
+
+@keyframes v2-spin {
+  to { transform: rotate(360deg); }
+}
+
+.v2-spin {
+  animation: v2-spin 1s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .v2-spin { animation-duration: 3s; }
+}
+
 /* 바꾸기·뒤에 붙이기 확인 창 — 작은 창, 버튼은 오른쪽 */
 .v2-modal.is-ocr-confirm {
   width: 360px;

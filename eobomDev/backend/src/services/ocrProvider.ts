@@ -34,5 +34,6 @@ export interface OcrResult {
 }
 
 export interface OcrProvider {
-  recognize(image: Buffer, mimeType: string): Promise<OcrResult>;
+  // signal — 서버 마감·연결 끊김 때 외부 호출을 멈추기 위해 넘긴다(06-04 §6.4-11-10 시간 제한).
+  recognize(image: Buffer, mimeType: string, signal?: AbortSignal): Promise<OcrResult>;
 }

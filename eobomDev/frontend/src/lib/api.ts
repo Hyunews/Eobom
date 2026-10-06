@@ -23,11 +23,14 @@ export class ApiError extends Error {
   readonly status: number;
   readonly requestId: string | null;
   readonly baseMessage: string;
-  constructor(message: string, status = 0, requestId: string | null = null) {
+  // 서버가 이유를 구분해 주는 응답의 code(사진·음성 처리: BUSY·SLOW·UPSTREAM). 없으면 null.
+  readonly code: string | null;
+  constructor(message: string, status = 0, requestId: string | null = null, code: string | null = null) {
     super(requestId ? `${message}\n오류 번호: ${requestId}` : message);
     this.status = status;
     this.requestId = requestId;
     this.baseMessage = message;
+    this.code = code;
   }
 }
 
@@ -79,6 +82,78 @@ export async function apiFetch<T = any>(path: string, audience?: Audience, optio
     throw new ApiError(data.message || SERVER_ERROR_MESSAGE, res.status, isServerError ? requestIdOf(res, data) : null);
   }
   return data.data;
+}
+
+// 06-04 §6.4-11-10 — 사진·음성 업로드. fetch는 "업로드가 끝난 때"를 알 수 없어 XMLHttpRequest로 보낸다:
+// 화면 마감(사진 65초·음성 125초)은 업로드가 끝난 뒤부터 센다. 마감을 넘기면 요청을 끊고 timeoutMessage로 던진다.
+// signal로 닫기(처음부터 다시)를 받는다 — 끊으면 code 'ABORTED'로 던지니 호출부가 조용히 넘긴다.
+export function apiUploadForm<T = any>(
+  path: string,
+  audience: Audience,
+  formData: FormData,
+  opts: {
+    deadlineMs: number;
+    timeoutMessage: string;
+    networkMessage: string;
+    onUploaded?: () => void;
+    signal?: AbortSignal;
+  },
+): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', `${BACKEND_URL}${path}`);
+    const token = getToken(audience);
+    if (token) xhr.setRequestHeader('Authorization', `Bearer ${token}`);
+
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    let settled = false;
+    const finish = (fn: () => void) => {
+      if (settled) return;
+      settled = true;
+      if (timer) clearTimeout(timer);
+      opts.signal?.removeEventListener('abort', onAbort);
+      fn();
+    };
+    const onAbort = () => {
+      xhr.abort();
+      finish(() => reject(new ApiError('요청을 취소했습니다.', 0, null, 'ABORTED')));
+    };
+    if (opts.signal?.aborted) {
+      reject(new ApiError('요청을 취소했습니다.', 0, null, 'ABORTED'));
+      return;
+    }
+    opts.signal?.addEventListener('abort', onAbort, { once: true });
+
+    xhr.upload.onload = () => {
+      opts.onUploaded?.();
+      timer = setTimeout(() => {
+        xhr.abort();
+        finish(() => reject(new ApiError(opts.timeoutMessage, 0, null, 'SLOW')));
+      }, opts.deadlineMs);
+    };
+    xhr.onerror = () => finish(() => reject(new ApiError(opts.networkMessage, 0, null, 'UPSTREAM')));
+    xhr.onload = () => finish(() => {
+      if (xhr.status === 401) sessionExpiredHandlers[audience]?.(SESSION_EXPIRED_MESSAGE);
+      const isServerError = xhr.status >= 500;
+      let data: (Envelope<T> & { code?: string }) | null = null;
+      try {
+        data = JSON.parse(xhr.responseText);
+      } catch {
+        data = null;
+      }
+      if (!data) {
+        reject(new ApiError(SERVER_ERROR_MESSAGE, xhr.status, isServerError ? xhr.getResponseHeader('X-Request-Id') : null));
+        return;
+      }
+      if (data.status !== 'success') {
+        const requestId = isServerError ? (xhr.getResponseHeader('X-Request-Id') || (typeof data.requestId === 'string' ? data.requestId : null)) : null;
+        reject(new ApiError(data.message || SERVER_ERROR_MESSAGE, xhr.status, requestId, typeof data.code === 'string' ? data.code : null));
+        return;
+      }
+      resolve(data.data);
+    });
+    xhr.send(formData);
+  });
 }
 
 // §5.3 예외 — 파일 다운로드 등 봉투가 아닌 응답은 원본 Response를 그대로 받는다.

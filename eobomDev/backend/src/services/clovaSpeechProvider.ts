@@ -1,5 +1,6 @@
 import type { SttProvider } from './sttProvider';
 import { convertToMp3 } from './audioConvert';
+import { NoRecognizedTextError } from './heavyJob';
 
 // docs 06-04 §6.4-11 — NCP CLOVA Speech(장문 인식, Long Sentence Recognition) 연동.
 // 인증은 Client ID/Secret이 아니라 Invoke URL(도메인 식별자 포함) + Secret Key 헤더 하나다
@@ -22,7 +23,7 @@ interface ClovaResponse {
 }
 
 export class ClovaSpeechProvider implements SttProvider {
-  async transcribe(audio: Buffer, mimeType: string): Promise<string> {
+  async transcribe(audio: Buffer, mimeType: string, signal?: AbortSignal): Promise<string> {
     const invokeUrl = process.env.CLOVA_SPEECH_INVOKE_URL;
     const secret = process.env.CLOVA_SPEECH_SECRET;
     if (!invokeUrl || !secret) {
@@ -38,7 +39,7 @@ export class ClovaSpeechProvider implements SttProvider {
       // §6.4-10-3·§6.4-11-7 — stdin→stdout 스트림 변환만. 디스크에 쓰지 않는다.
       // 🔴 06-05 §5.5-4 — MediaRecorder의 audio/webm;codecs=opus는 CLOVA가 못 읽는 컨테이너라 mp3로
       // 변환한다(webm은 목차가 앞에 와서 스트림 변환이 정상 — 10-02 실측). ;codecs=... 파라미터는 includes로 잡는다.
-      uploadBuffer = await convertToMp3(audio);
+      uploadBuffer = await convertToMp3(audio, signal);
     } else if (M4A_LIKE_MIME_TYPES.has(lowerMime)) {
       // §6.4-11-9 — m4a는 변환 없이 원본 전송.
       filename = 'audio.m4a';
@@ -77,6 +78,7 @@ export class ClovaSpeechProvider implements SttProvider {
         Accept: 'application/json;UTF-8',
       },
       body: form,
+      signal,
     });
 
     if (!res.ok) {
@@ -100,6 +102,6 @@ export class ClovaSpeechProvider implements SttProvider {
       if (joined) return joined;
     }
     // 요청 자체는 COMPLETED이지만(정상 응답) 텍스트가 비어 있는 경우 — 무음·잡음만 있었을 때다.
-    throw new Error('음성에서 인식된 내용이 없습니다.');
+    throw new NoRecognizedTextError('음성에서 인식된 내용이 없습니다.');
   }
 }

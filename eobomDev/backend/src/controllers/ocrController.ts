@@ -8,7 +8,7 @@ import prisma from '../config/prisma';
 import { kstYmd } from '../utils/kst';
 import { convertHeicToJpeg, resizeIfNeeded, normalizeOrientation, getPdfPageCount } from '../services/imageConvert';
 import { detectSeal } from '../services/sealDetect';
-import { heavyQueue, abortOnDisconnect, QueueRejectedError, BUSY_MESSAGE } from '../services/heavyQueue';
+import { runHeavyJob, heavyFailureResponse, NoRecognizedTextError } from '../services/heavyJob';
 import { checkWillRequirements } from '../services/willRequirements';
 import type { OcrPage } from '../services/ocrProvider';
 import type { SealDetection } from '../services/willRequirements';
@@ -50,6 +50,16 @@ const checkAndIncrementDailyLimit = (userId: string): boolean => {
   return true;
 };
 
+// 10-06 — 서버 마감(55초)·연결 오류로 멈춘 요청은 하루 횟수를 되돌린다(실제로 처리한 것만 센다).
+const refundDailyCall = (userId: string) => {
+  const entry = dailyCallCounts.get(userId);
+  if (entry && entry.date === todayKey() && entry.count > 0) entry.count -= 1;
+};
+
+// 작업 안에서 낸 "이용자 입력 문제"(400) · "하루 횟수 소진"(429) — 연결 오류(③)와 구분한다.
+class UserInputError extends Error {}
+class DailyLimitError extends Error {}
+
 // 업로드 UI 노출 여부 조회 (`GET /api/ocr/status`) — 공개.
 export const getOcrStatus = (_req: Request, res: Response) => {
   res.json({ status: 'success', data: { enabled: isOcrEnabled() } });
@@ -90,24 +100,18 @@ export const recognizeWillPhotos = (req: Request, res: Response) => {
       res.status(429).json({ status: 'error', message: `하루 이용 횟수(${DAILY_LIMIT}회)를 다 쓰셨습니다. 내일 다시 시도해 주세요.` });
     if (isDailyLimitReached(decoded.id)) return limitReached();
 
-    // §6.4-11-10 — 음성 변환과 합산한 동시 처리 제한. 대기 한도를 넘기면 503.
+    // §6.4-11-10 — 음성 변환과 합산한 동시 처리 제한 + 시간 제한(업로드를 다 받은 때부터 55초, 대기 + 처리 합계).
+    // 대기 한도·예상 대기를 넘기면 즉시 503(①), 처리 중 마감이면 504(②), CLOVA 오류·연결 실패면 502(③).
     // 🔴 횟수는 슬롯을 얻은 뒤에 센다 — 503으로 돌려보낸 요청은 하루 횟수에서 빼지 않는다.
-    let release: () => void;
-    try {
-      release = await heavyQueue.acquire(abortOnDisconnect(res));
-    } catch (queueError) {
-      if (queueError instanceof QueueRejectedError && queueError.reason === 'aborted') return; // 연결 끊김 — 처리도 횟수 차감도 없다
-      return res.status(503).json({ status: 'error', message: BUSY_MESSAGE });
-    }
-    // 대기하는 사이 같은 사용자의 다른 요청이 한도를 채웠을 수 있어 여기서 다시 센다.
-    if (!checkAndIncrementDailyLimit(decoded.id)) {
-      release();
-      return limitReached();
-    }
+    //    멈춘 요청(② ③ · 연결 끊김)은 이미 센 횟수를 되돌린다.
+    let counted = false;
+    const outcome = await runHeavyJob(res, 'photo', async (signal) => {
+      // 대기하는 사이 같은 사용자의 다른 요청이 한도를 채웠을 수 있어 여기서 다시 센다.
+      if (!checkAndIncrementDailyLimit(decoded.id)) throw new DailyLimitError();
+      counted = true;
 
-    // §5 — 성공·실패 무관하게 버퍼는 이 함수 안에서만 산다. memoryStorage라 애초에 디스크에 쓴
-    // 적이 없고, 응답 후 req.files의 buffer 참조가 사라져 GC 대상이 된다 — 별도 삭제 불필요.
-    try {
+      // §5 — 성공·실패 무관하게 버퍼는 이 함수 안에서만 산다. memoryStorage라 애초에 디스크에 쓴
+      // 적이 없고, 응답 후 req.files의 buffer 참조가 사라져 GC 대상이 된다 — 별도 삭제 불필요.
       const texts: string[] = [];
       const pages: OcrPage[] = [];
       const seals: SealDetection[] = [];
@@ -129,7 +133,7 @@ export const recognizeWillPhotos = (req: Request, res: Response) => {
         if (isPdf) {
           const pageCount = await getPdfPageCount(buffer);
           if (pageCount > MAX_PDF_PAGES) {
-            return res.status(400).json({ status: 'error', message: `PDF는 최대 ${MAX_PDF_PAGES}쪽까지 올릴 수 있습니다(올리신 파일: ${pageCount}쪽).` });
+            throw new UserInputError(`PDF는 최대 ${MAX_PDF_PAGES}쪽까지 올릴 수 있습니다(올리신 파일: ${pageCount}쪽).`);
           }
         } else {
           // §4.1 "크기 줄이기" — 서버 재확인. 브라우저가 이미 줄였으면 그대로 통과한다.
@@ -138,7 +142,8 @@ export const recognizeWillPhotos = (req: Request, res: Response) => {
           buffer = await resizeIfNeeded(buffer);
         }
 
-        const result = await provider.recognize(buffer, mimeType);
+        signal.throwIfAborted(); // 마감·연결 끊김 뒤에는 다음 파일을 시작하지 않는다
+        const result = await provider.recognize(buffer, mimeType, signal);
         texts.push(result.text);
 
         if (isPdf || result.pages.length !== 1) {
@@ -172,22 +177,45 @@ export const recognizeWillPhotos = (req: Request, res: Response) => {
 
       // §5·§7 #3 — 사진도 결과도 저장하지 않는다. 화면이 쪽 사진을 그리려면 크기(width/height)만 필요하고,
       // 이미지는 브라우저에 이미 있는 것을 쓴다. 글은 쪽별로 나눠 보낸다("인식된 글" 탭).
-      return res.json({
-        status: 'success',
-        data: {
-          text,
-          pages: pages.map((p, i) => ({ text: p.text, width: p.width, height: p.height, fileIndex: pageFile[i] })),
-          requirements,
-        },
-      });
-    } catch (error) {
-      console.error('OCR 인식 실패:', error);
+      return {
+        text,
+        pages: pages.map((p, i) => ({ text: p.text, width: p.width, height: p.height, fileIndex: pageFile[i] })),
+        requirements,
+      };
+    });
+
+    if (outcome.ok) return res.json({ status: 'success', data: outcome.value });
+
+    if (outcome.reason === 'aborted') {
+      if (counted) refundDailyCall(decoded.id);
+      return; // 연결 끊김 — 응답할 상대가 없다
+    }
+    if (outcome.reason === 'busy') {
+      const f = heavyFailureResponse('photo', 'busy');
+      return res.status(f.status).json(f.body);
+    }
+    if (outcome.reason === 'slow') {
+      if (counted) refundDailyCall(decoded.id);
+      const f = heavyFailureResponse('photo', 'slow');
+      return res.status(f.status).json(f.body);
+    }
+
+    const error = outcome.error;
+    if (error instanceof DailyLimitError) return limitReached();
+    if (error instanceof UserInputError) {
+      if (counted) refundDailyCall(decoded.id);
+      return res.status(400).json({ status: 'error', message: error.message });
+    }
+    console.error('OCR 인식 실패:', error);
+    if (error instanceof NoRecognizedTextError) {
+      // CLOVA는 정상 응답했지만 글자가 없다 — 처리한 건이라 횟수는 그대로 둔다.
       return res.status(502).json({
         status: 'error',
         message: '사진 인식에 실패했습니다. 다른 사진으로 다시 시도하거나 아래 입력창에 직접 입력해 주세요.',
       });
-    } finally {
-      release();
     }
+    if (counted) refundDailyCall(decoded.id);
+    const f = heavyFailureResponse('photo', 'upstream');
+    return res.status(f.status).json(f.body);
   });
 };

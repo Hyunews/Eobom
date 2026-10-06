@@ -1,6 +1,8 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Camera, Loader2, Check, ChevronUp, ChevronDown } from 'lucide-react';
-import { apiFetch, ApiError } from '../../lib/api';
+import { apiUploadForm, ApiError } from '../../lib/api';
+import { HEAVY_CLIENT_LIMITS, HEAVY_TIMEOUT_MESSAGE, HEAVY_NETWORK_MESSAGE } from '../../lib/heavyLimits';
+import { WorkingView, HeavyNoticeDialog } from '../common/HeavyWork';
 import { backdropCloseProps } from '../../utils/backdropClose';
 import { WillPhotoResult } from './WillPhotoResult';
 import type { WillOcrResponse } from './WillPhotoResult';
@@ -81,6 +83,7 @@ export const WillPhotoUploadModal: React.FC<WillPhotoUploadModalProps> = ({ hasE
   const [stage, setStage] = useState<Stage>(recent ? 'done' : 'idle');
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<WillOcrResponse | null>(recent?.result ?? null);
+  const [notice, setNotice] = useState<string | null>(null); // 대기·처리·연결 알림 창
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -131,23 +134,40 @@ export const WillPhotoUploadModal: React.FC<WillPhotoUploadModalProps> = ({ hasE
   // §6 단계 2 — 올리는 중 / 인식 중 / 완료. apiFetch(fetch 기반)라 업로드 진행률은 못 재지만,
   // 요청을 보내는 즉시 '인식 중'으로 넘겨 두 단계는 구분해 보여준다(VoiceToTextInput.tsx와
   // 같은 근사 — 서버가 사실상 업로드 수신과 동시에 인식을 시작한다).
+  // 🔄 10-06 (06-04 §6.4-11-10) — 업로드가 끝나면 올리기 모달 안에서 "작업 중" 화면으로 바뀐다. 화면 마감은
+  // 업로드가 끝난 뒤 65초(서버 55초 + 여유 10). 창을 닫으면 요청을 끊는다("처음부터 다시").
+  const abortRef = useRef<AbortController | null>(null);
+  useEffect(() => () => abortRef.current?.abort(), []);
+
   const handleUpload = async () => {
     if (files.length === 0 || !consent) return;
     setError(null);
+    setNotice(null);
     setStage('uploading');
 
     const formData = new FormData();
     files.forEach((f) => formData.append('photos', f));
 
+    const ac = new AbortController();
+    abortRef.current = ac;
     try {
-      setStage('processing');
-      const data = await apiFetch<WillOcrResponse>('/api/ocr/recognize', 'USER', { method: 'POST', body: formData });
+      const data = await apiUploadForm<WillOcrResponse>('/api/ocr/recognize', 'USER', formData, {
+        deadlineMs: HEAVY_CLIENT_LIMITS.photo.deadlineMs,
+        timeoutMessage: HEAVY_TIMEOUT_MESSAGE.photo,
+        networkMessage: HEAVY_NETWORK_MESSAGE.photo,
+        onUploaded: () => setStage('processing'),
+        signal: ac.signal,
+      });
       setResult(data);
       onRecognized({ files, result: data });
       setStage('done');
     } catch (e) {
-      const message = e instanceof ApiError ? e.message : '사진 인식에 실패했습니다. 아래 입력창에 직접 입력해 주세요.';
-      setError(message);
+      if (e instanceof ApiError && e.code === 'ABORTED') return; // 닫아서 끊음 — 화면이 이미 없다
+      // 서버가 이유별로 보낸 문구(대기·처리·연결)는 알림 창으로, 그 밖의 오류(형식·용량 등)는 기존 줄로.
+      const known = e instanceof ApiError && (e.code === 'BUSY' || e.code === 'SLOW' || e.code === 'UPSTREAM');
+      const message = e instanceof ApiError ? e.baseMessage : '사진 인식에 실패했습니다. 아래 입력창에 직접 입력해 주세요.';
+      if (known) setNotice(message);
+      else setError(message);
       setStage('idle');
     }
   };
@@ -165,6 +185,8 @@ export const WillPhotoUploadModal: React.FC<WillPhotoUploadModalProps> = ({ hasE
   }
 
   return (
+    <>
+    {notice && <HeavyNoticeDialog message={notice} onClose={() => setNotice(null)} />}
     <div className="v2-modal-overlay" role="dialog" aria-modal="true" aria-label="사진으로 불러오기" {...backdropCloseProps(onClose)}>
       <div className="v2-modal is-scroll" onClick={(e) => e.stopPropagation()}>
         <h3 className="v2-modal-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -172,7 +194,8 @@ export const WillPhotoUploadModal: React.FC<WillPhotoUploadModalProps> = ({ hasE
         </h3>
 
         <div className="v2-modal-body">
-          {stage !== 'done' && (
+          {stage === 'processing' && <WorkingView maxMinutes={HEAVY_CLIENT_LIMITS.photo.maxMinutes} />}
+          {stage !== 'done' && stage !== 'processing' && (
             <>
               <p style={{ fontSize: 'var(--v2-fs-support)', color: 'var(--v2-text-muted)', marginBottom: '4px' }}>
                 jpg · png 사진은 최대 {MAX_FILES}장, 1장당 {MAX_PHOTO_SIZE_MB}MB까지 올릴 수 있습니다. PDF는 1개({MAX_PDF_SIZE_MB}MB까지, 5쪽까지)만 올릴 수 있고 사진과 함께 올릴 수 없습니다.
@@ -236,8 +259,6 @@ export const WillPhotoUploadModal: React.FC<WillPhotoUploadModalProps> = ({ hasE
                 >
                   {stage === 'uploading' ? (
                     <><Loader2 size={16} /> 올리는 중…</>
-                  ) : stage === 'processing' ? (
-                    <><Loader2 size={16} /> 인식 중…</>
                   ) : (
                     '올리기'
                   )}
@@ -300,5 +321,6 @@ export const WillPhotoUploadModal: React.FC<WillPhotoUploadModalProps> = ({ hasE
         <button type="button" className="v2-modal-close" onClick={onClose}>닫기</button>
       </div>
     </div>
+    </>
   );
 };

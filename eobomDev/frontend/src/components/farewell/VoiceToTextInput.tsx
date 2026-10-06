@@ -1,6 +1,11 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Mic, MicOff, Upload, Loader2, Check, Play } from 'lucide-react';
 import { BACKEND_URL } from '../../config';
+import { apiUploadForm, ApiError } from '../../lib/api';
+import {
+  HEAVY_CLIENT_LIMITS, HEAVY_TIMEOUT_MESSAGE, HEAVY_NETWORK_MESSAGE, AUDIO_TOO_LONG_MESSAGE, readAudioDurationSec,
+} from '../../lib/heavyLimits';
+import { WorkingView, HeavyNoticeDialog } from '../common/HeavyWork';
 
 // 06-05 §4.2 정정(08-26) — 말로 남기기(음성 입력 전체)가 엔딩노트 ⑨에서 유족 메시지 보관함으로
 // 이관됐다. EndingNotePage.tsx에 인라인으로 있던 Ⓐ(파일 업로드)·Ⓑ(직접 녹음) UI를 그대로
@@ -36,6 +41,7 @@ interface VoiceToTextInputProps {
 
 const ALLOWED_AUDIO_EXTENSIONS = ['.m4a', '.mp3', '.wav', '.webm'];
 const MAX_UPLOAD_SIZE_BYTES = 20 * 1024 * 1024;
+const FALLBACK_MSG = '직접 녹음이나 위 입력창에 직접 입력해 이어서 작성해 주세요.';
 const RECORD_NOTICE_SEEN_KEY = 'eobom_voice_record_notice_seen'; // §5.5-3 — "1회" 안내를 다시 보여주지 않기 위한 로컬 기록
 const RECORDER_MIME_CANDIDATES = ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4'];
 
@@ -74,6 +80,7 @@ export const VoiceToTextInput: React.FC<VoiceToTextInputProps> = ({
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploadStage, setUploadStage] = useState<'idle' | 'uploading' | 'processing'>('idle');
   const [uploadError, setUploadError] = useState<string | null>(null);
+  const [workNotice, setWorkNotice] = useState<string | null>(null); // 대기·처리·연결 알림 창
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // 🆕 D-6-1 — 녹음 중지 후 확인 모달(§5.6-6 ③).
@@ -375,7 +382,7 @@ export const VoiceToTextInput: React.FC<VoiceToTextInputProps> = ({
     }
   };
 
-  const handleAudioFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleAudioFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     e.target.value = '';
     if (!file) return;
@@ -393,12 +400,31 @@ export const VoiceToTextInput: React.FC<VoiceToTextInputProps> = ({
       setSelectedFile(null);
       return;
     }
+    // 06-04 §6.4-11-10 음성 길이 상한(잠정 10분) — 2분 안에 끝나지 않을 녹음은 고를 때 막는다.
+    // 브라우저가 <audio> 메타데이터로 재생 길이만 읽는다(파일을 풀지 않음). 못 읽으면 그대로 통과 —
+    // 서버가 한 번 더 확인하고, 그래도 못 읽으면 서버 시간 제한이 막는다.
+    const duration = await readAudioDurationSec(file);
+    if (duration !== null && duration > HEAVY_CLIENT_LIMITS.audioMaxSeconds) {
+      setUploadError(AUDIO_TOO_LONG_MESSAGE);
+      setSelectedFile(null);
+      return;
+    }
     setSelectedFile(file);
   };
 
   // Ⓐ 파일 업로드 — §5.6-6 — 별도 확인 모달 없이 "업로드" 버튼 자체가 확인이다. STT + R2 +
   // 메시지 기록(onSaveConfirmed)까지 한 번에 끝낸다.
-  const handleAudioUpload = () => {
+  // 🔄 10-06(06-04 §6.4-11-10) — 업로드가 끝나면 "작업 중" 모달. 화면 마감은 업로드가 끝난 뒤 125초(서버 115초 + 여유 10,
+  // 이전 xhr.timeout 90초는 업로드 포함이라 방식 변경). 모달을 닫으면 요청을 끊는다("처음부터 다시").
+  const uploadAbortRef = useRef<AbortController | null>(null);
+  useEffect(() => () => uploadAbortRef.current?.abort(), []);
+
+  const closeWorking = () => {
+    uploadAbortRef.current?.abort(); // 'ABORTED'로 끝나 아래 catch가 조용히 넘긴다
+    setUploadStage('idle');
+  };
+
+  const handleAudioUpload = async () => {
     if (!selectedFile || !uploadConsent || !token) return;
     const file = selectedFile;
 
@@ -410,40 +436,32 @@ export const VoiceToTextInput: React.FC<VoiceToTextInputProps> = ({
     // 06-05 §8 D-2 #14 — Ⓐ 경로도 같은 "목소리도 함께 남기기" 선택을 따른다.
     formData.append('saveAudio', saveVoiceEnabled && voiceStorageEnabled ? 'true' : 'false');
 
-    const xhr = new XMLHttpRequest();
-    xhr.open('POST', `${BACKEND_URL}/api/stt/transcribe`);
-    xhr.setRequestHeader('Authorization', `Bearer ${token}`);
-    xhr.timeout = 90000;
-
-    const fail = (message: string) => {
-      setUploadError(message);
+    const ac = new AbortController();
+    uploadAbortRef.current = ac;
+    try {
+      const data = await apiUploadForm<UploadResult>('/api/stt/transcribe', 'USER', formData, {
+        deadlineMs: HEAVY_CLIENT_LIMITS.audio.deadlineMs,
+        timeoutMessage: HEAVY_TIMEOUT_MESSAGE.audio,
+        networkMessage: HEAVY_NETWORK_MESSAGE.audio,
+        onUploaded: () => setUploadStage('processing'),
+        signal: ac.signal,
+      });
+      if (typeof data?.text !== 'string') throw new ApiError(`음성 변환에 실패했습니다. ${FALLBACK_MSG}`);
+      const text = data.text.trim();
+      const media: SavedMedia | null = data.media ? { ...data.media } : null;
+      const localUrl = URL.createObjectURL(file); // §5.6-2 — 방금 올린 원본으로 즉시 재생
+      setSelectedFile(null);
+      setUploadConsent(false);
       setUploadStage('idle');
-    };
-    const fallbackMsg = '직접 녹음이나 위 입력창에 직접 입력해 이어서 작성해 주세요.';
-
-    xhr.upload.onload = () => setUploadStage('processing');
-    xhr.ontimeout = () => fail(`변환이 너무 오래 걸려 중단했습니다. ${fallbackMsg}`);
-    xhr.onerror = () => fail(`서버와 통신 중 오류가 발생했습니다. ${fallbackMsg}`);
-    xhr.onload = () => {
-      let data: any = null;
-      try {
-        data = JSON.parse(xhr.responseText);
-      } catch {
-        // 아래 폴백 메시지로 처리
-      }
-      if (xhr.status >= 200 && xhr.status < 300 && data?.status === 'success' && typeof data.data?.text === 'string') {
-        const text = data.data.text.trim();
-        const media: SavedMedia | null = data.data.media ? { ...data.data.media } : null;
-        const localUrl = URL.createObjectURL(file); // §5.6-2 — 방금 올린 원본으로 즉시 재생
-        setSelectedFile(null);
-        setUploadConsent(false);
-        setUploadStage('idle');
-        void onSaveConfirmed(text, media, localUrl);
-      } else {
-        fail(data?.message || `음성 변환에 실패했습니다. ${fallbackMsg}`);
-      }
-    };
-    xhr.send(formData);
+      void onSaveConfirmed(text, media, localUrl);
+    } catch (e) {
+      if (e instanceof ApiError && e.code === 'ABORTED') return; // 창을 닫아 끊음
+      setUploadStage('idle');
+      const message = e instanceof ApiError ? e.baseMessage : `음성 변환에 실패했습니다. ${FALLBACK_MSG}`;
+      // 대기·처리·연결 이유는 알림 창, 그 밖(형식·용량·길이·무음 등)은 기존 줄.
+      if (e instanceof ApiError && (e.code === 'BUSY' || e.code === 'SLOW' || e.code === 'UPSTREAM')) setWorkNotice(message);
+      else setUploadError(message);
+    }
   };
 
   // 🆕 09-04 — 파일선택/업로드/듣기/삭제 4개 버튼을 한 줄에서 같은 크기로 보여달라는 요청.
@@ -637,7 +655,7 @@ export const VoiceToTextInput: React.FC<VoiceToTextInputProps> = ({
           </h4>
 
           <p style={{ fontSize: 'var(--v2-fs-support)', color: 'var(--v2-text-muted)', marginBottom: '4px' }}>
-            m4a · mp3 · wav · webm 파일을 올릴 수 있습니다(최대 {MAX_UPLOAD_SIZE_BYTES / 1024 / 1024}MB).
+            m4a · mp3 · wav · webm 파일을 올릴 수 있습니다(최대 {MAX_UPLOAD_SIZE_BYTES / 1024 / 1024}MB · {Math.round(HEAVY_CLIENT_LIMITS.audioMaxSeconds / 60)}분 이하).
           </p>
           <p style={{ fontSize: 'var(--v2-fs-support)', color: 'var(--v2-text-muted)', marginBottom: '14px' }}>
             본인의 음성만 올려주세요. 다른 분의 음성인지 이어봄이 확인할 방법은 없습니다.
@@ -712,6 +730,19 @@ export const VoiceToTextInput: React.FC<VoiceToTextInputProps> = ({
           {uploadError && <p className="v2-notice-warn" style={{ marginTop: '12px' }}>{uploadError}</p>}
         </div>
       )}
+
+      {/* 06-04 §6.4-11-10 — 업로드가 끝난 뒤 "작업 중" 모달(음성은 새 모달). 닫으면 요청을 끊고 처음부터 다시. */}
+      {uploadStage === 'processing' && (
+        <div className="v2-modal-overlay" role="dialog" aria-modal="true" aria-label="음성 변환 중">
+          <div className="v2-modal is-ocr-confirm" style={{ width: '420px' }}>
+            <WorkingView maxMinutes={HEAVY_CLIENT_LIMITS.audio.maxMinutes} />
+            <div className="v2-ocr-confirm-actions">
+              <button type="button" className="v2-btn-outline" onClick={closeWorking}>닫기</button>
+            </div>
+          </div>
+        </div>
+      )}
+      {workNotice && <HeavyNoticeDialog message={workNotice} onClose={() => setWorkNotice(null)} />}
     </div>
   );
 };

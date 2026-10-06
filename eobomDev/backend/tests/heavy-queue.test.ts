@@ -13,8 +13,16 @@ import { tokenFor } from './helpers/tokens';
 const tick = () => new Promise<void>((r) => setImmediate(r));
 
 describe('HeavyQueue 단위', () => {
-  it('설정값은 2 · 10 · 30초', () => {
-    assert.deepEqual({ ...HEAVY_QUEUE_CONFIG }, { maxConcurrent: 2, maxWaiting: 10, maxWaitMs: 30_000 });
+  it('설정값은 2 · 10 · 30초 + 즉시 알림 30초 · 마감 사진 55초/음성 115초 · 음성 10분', () => {
+    assert.deepEqual(JSON.parse(JSON.stringify(HEAVY_QUEUE_CONFIG)), {
+      maxConcurrent: 2,
+      maxWaiting: 10,
+      maxWaitMs: 30_000,
+      instantWaitMs: 30_000,
+      defaultJobMs: { photo: 10_000, audio: 30_000 },
+      deadlineMs: { photo: 55_000, audio: 115_000 },
+      audioMaxSeconds: 600,
+    });
   });
 
   it('동시 2건까지 즉시 처리, 3번째는 대기하다 슬롯이 나면 도착 순서대로 진행', async () => {
