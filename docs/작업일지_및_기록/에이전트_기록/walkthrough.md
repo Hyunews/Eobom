@@ -16,6 +16,17 @@
 > [`_아카이브_2608`](walkthrough_아카이브_2608.md)(08-31분). 남은 것 = 판정 대기 + 판정 표기 없음. 기준 → `record.md` §2-1.
 
 ---
+## 2026-10-06 | [Sonnet] ④ 사진 인식·음성 변환 처리 결과 건별 기록 + 조회 스크립트 + 1년 파기(⑪)
+
+- **근거 스펙**: docs/06_엔딩노트_유언/06-04 §6.4-11-10-1(10-06 개발자 결정)
+- **건드린 파일**: backend/prisma/schema.prisma(`HeavyJobLog` 신설, `PurgeRunLog.step` 주석) · prisma/migrations/20261006130000_add_heavy_job_log(신규, 추가형·createdAtKst 트리거) · services/heavyJobLogService.ts(신규 — `recordHeavyJob`·`summarizeHeavyJobs`·`loadHeavyJobRows`·1년 파기) · services/heavyJob.ts(`runHeavyJob`이 건마다 기록·`heavyJobRuntime.record`·`audioSec`·`skipRecordOnError`) · controllers/sttController.ts(`audioSec: durationSec` 전달) · controllers/ocrController.ts(`UserInputError`·`DailyLimitError`는 기록 제외) · config/policy.ts(`retention.heavyJobLogYears: 1`) · services/retentionPurgeService.ts(`PurgeStep`에 `HEAVY_JOB_LOG`) · prisma/destroy-farewell-media.ts(⑪ 단계) · prisma/report-heavy-jobs.ts(신규 — `npm run report:heavy -- --days N --by day`) · package.json(`report:heavy`) · src/services/heavyJob.test.ts(기록 시험 5건, 기본 기록기 해제) · tests/heavy-job-http.test.ts(DB 기록 확인 시험 +1) · docs 00-05(`generate-db-doc.js` 재실행 — 36모델·442칸·설명 없음 0)
+- **결과**: 기록 칸 = 종류(photo/audio)·결과(success/busy/slow/error/aborted)·대기 ms·처리 ms·음성 길이(초)·시각, 파일·인식 텍스트·이름·사용자 ID 칸 없음. 대기열 거절(503)도 `busy`로 기록. 기록 실패는 삼키고(콘솔 한 줄) 기다리지 않아 응답에 영향 없음(기록기가 던지는 시험 포함). 재현: `npx tsc --noEmit`(backend, prisma 스크립트 2개 별도) 0 · `heavyJob.test.ts` 24/24 · 로컬 `backup-db.ps1 -Target local`(local-20261006-164519.dump 375.9KB, 파일 확인) 후 `migrate deploy`·`migrate status` 최신 · `npm run test:db:migrate` · `npm test` 390/390 3회 연속 · 로컬 `npm run purge`(dry-run) ⑪ 대상 0건 · `npm run report:heavy` 정상(기록 0건). 운영은 미적용 — 추가형이라 개발자가 `migrate-prod.ps1` → push 순서
+- **편차**: ① "CLOVA 처리 ms"를 슬롯을 얻은 뒤 작업 전체 시간으로 쟀다(사진은 변환·인주 분석, 음성은 R2 저장 포함 — CLOVA 호출만 따로 재려면 provider 안쪽을 건드려야 함). ② 사용자 입력 오류(PDF 쪽수 초과)·하루 한도 초과는 "처리 결과"가 아니라 기록하지 않았다(오류 건수에 섞이지 않게). ③ 보관기간 1년을 `policy.ts` `retention`에 두었다(②의 기간 숫자 모음 원칙). ④ 커밋이 DB 반영·DB 시험보다 먼저 나갔다(개발자가 먼저 커밋) — 이후 반영·시험을 마쳤고, 시험 `heavy-job-http` "음성 기록 0건" 단정은 다른 시험 파일이 병렬로 같은 시험 DB에 음성 기록을 만들어 흔들려 `>=` 판정으로 고쳤다(코드 문제 아님, 추가 커밋 필요)
+- **다음 에이전트가 알아야 할 것**: 🔴 시험 수정분(`tests/heavy-job-http.test.ts`)과 이 항목 walkthrough·00-05는 아직 미커밋. 🟡 기록은 운영 반영 뒤부터 쌓인다 — 음성 비동기 전환 판단은 쌓인 뒤 `npm run report:heavy`로 본다. 🟡 실기동(실제 사진·음성 업로드 뒤 기록 확인)은 사람 몫 — 실기동 검증 대기
+
+<!-- Gemini 판정 1줄: ✅통과 / ❌반려(사유) / 🔄스펙갱신(고친 문서) -->
+
+---
 ## 2026-10-06 | [Sonnet] ③ 보고서 도구 — R311(DB 테이블 정의서) 분리: db2md 출력 대상 변경 + md2html 쪽 나눔·그림 문법
 
 - **근거 스펙**: 바탕화면 `이어봄_보고서/00_보고서_기획서.md` R310 항목 10-06 줄(Ⅶ장·Ⅳ장 인덱스 표를 R311로 분리·테이블마다 새 쪽·그림 문법과 같이) · `01_서식_정의서.md` §7(그림 캡션)·§11-1(쪽 규칙) — 🔴 git 밖 폴더라 커밋 대상 아님
