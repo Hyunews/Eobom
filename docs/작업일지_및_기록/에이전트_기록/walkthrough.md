@@ -16,6 +16,28 @@
 > [`_아카이브_2608`](walkthrough_아카이브_2608.md)(08-31분). 남은 것 = 판정 대기 + 판정 표기 없음. 기준 → `record.md` §2-1.
 
 ---
+## 2026-10-06 | [Sonnet] 99 목록 #17(User.refreshToken 칸 삭제) + #8(업체 문의 로그인 필수·서버 검사)
+
+- **근거 스펙**: docs/01_장사시설_매칭/01-05 §10-2 "2026-10-06 개발자 결정" 블록 · 99 목록 #17
+- **건드린 파일**: backend/prisma/schema.prisma(`User.refreshToken` 삭제) · prisma/migrations/20261006090000_drop_user_refresh_token(신규, 삭제형) · services/accountPurgeService.ts(익명화 값에서 `refreshToken: null` 제거) · routes/facilityRoutes.ts(`/:id/quotes`에 `blockDuringDeletionGrace`) · controllers/leadController.ts(`createQuote` 토큰 없으면 401, 비회원 분기 정리) · controllers/expertPublicController.ts(주석) · config/policy.ts(`lead.requireLogin` 삭제) · tests/deletion-grace-guard.test.ts(유예 403 목록에 업체 문의 + 비회원 401·리드 미적재 시험)
+- **결과**: #17 — `User.refreshToken` 사용처는 파기 때 null로 비우는 한 곳뿐(나머지 `refreshToken`은 어드민·전문가·사업자 `refreshTokenHash`·OAuth 인자·응답 필드로 다른 것)이라 칸 삭제. 로컬: `backup-db.ps1 -Target local`(local-20261006-152246.dump 362.6KB) 후 `migrate deploy` 적용·`migrate status` 최신, 시험 DB도 `test:db:migrate` 적용. backend `tsc` 0 · `npm test` 352/352(+2). 운영은 미적용 — 개발자가 `migrate-prod.ps1`로 직접(삭제형: 코드 배포 먼저 → 마이그레이션 나중)
+- **편차**: 없음. 프런트는 이미 시설 목록 진입 때 로그인을 요구하고 있어 고치지 않았다(`/quotes`를 부르는 프런트 코드 없음)
+- **다음 에이전트가 알아야 할 것**: 🔴 커밋 안 함. 운영 DB 적용 대기(개발자). 01-05 §10 표의 `10-2` 줄은 문서상 이미 완료 처리됨
+
+<!-- Gemini 판정 1줄: ✅통과 / ❌반려(사유) / 🔄스펙갱신(고친 문서) -->
+
+---
+## 2026-10-06 | [Sonnet] 작업 중 모달 · 대기 상한(사진 1분/음성 2분) · 즉시 알림 · CLOVA 시간 제한 · 음성 길이 상한
+
+- **근거 스펙**: docs/06_엔딩노트_유언/06-04_엔딩노트_보관함_실구현_기획서.md §6.4-11-10 표의 "화면"·"대기 상한"·"음성 길이 상한"·"즉시 알림"·"시간 제한" 줄 · 06-06 §6 단계 2
+- **건드린 파일**: backend/src/services/heavyJob.ts(신규 — `runHeavyJob`·이유별 응답 문구·`NoRecognizedTextError`), heavyQueue.ts(즉시 알림 계산·처리 시간 기록·설정 한 곳에 마감·길이 상한 추가), audioDuration.ts(신규 — m4a `mvhd`·wav 헤더·mp3 프레임으로 길이 읽기), clovaOcrProvider.ts·clovaSpeechProvider.ts·ocrProvider.ts·sttProvider.ts(signal 전달 · 빈 결과를 `NoRecognizedTextError`로), audioConvert.ts(signal로 ffmpeg 종료), controllers/ocrController.ts·sttController.ts(`runHeavyJob` 사용), tests/heavy-queue.test.ts(설정값), tests/heavy-job-http.test.ts(신규), src/services/heavyJob.test.ts(신규), package.json(`npm test` 등록) · frontend/src/lib/api.ts(`apiUploadForm` — XHR, 업로드 끝난 뒤부터 마감 · `ApiError.code`), lib/heavyLimits.ts(신규 — 65·125초·10분·문구·`<audio>` 길이 읽기), components/common/HeavyWork.tsx(신규 — `WorkingView`·`HeavyNoticeDialog`), components/endingNote/WillPhotoUploadModal.tsx, components/farewell/VoiceToTextInput.tsx, styles/design-v2.css(`.v2-working`·`.v2-spin`)
+- **결과**: backend `tsc` 0 · `npm test` 350/350(+23: 단위 19 · HTTP 4) · frontend `tsc`·`npm run build` 통과. 서버: 업로드를 다 받은 때부터 사진 55초·음성 115초(대기+처리 합계) — 대기 중 초과·대기 10건 가득·예상 대기(앞 대기 건수 × 최근 처리 시간 평균, 기록 없으면 사진 10초·음성 30초) 30초 초과 → ① 503 `BUSY` · CLOVA 처리 중 초과 → ② 504 `SLOW`(fetch·ffmpeg abort) · CLOVA 오류·연결 실패 → ③ 502 `UPSTREAM`. 음성 ②는 "다시 시도" 없는 문구. 연결이 끊기면 대기에서 빼거나 처리 중 CLOVA 호출·ffmpeg도 끊고 창구 반납. 사진 하루 횟수는 ②·③·연결 끊김·입력 오류(PDF 쪽수)에서 되돌림(CLOVA가 정상 응답했지만 글자가 없는 경우는 처리한 건이라 유지). 음성 길이 10분 초과 → 화면은 고를 때 `<audio>` 메타데이터로, 서버는 대기열 앞에서 400 "10분 이하 녹음만 올릴 수 있습니다."(못 읽으면 통과). 화면: 사진은 올리기 모달 안에서, 음성은 새 모달로 "처리하고 있습니다. 최대 1분(음성 2분)까지 걸릴 수 있습니다." + "이 화면을 닫으면 처음부터 다시 해야 합니다."(닫으면 요청 중단). 화면 마감 사진 65초·음성 125초는 업로드 끝난 뒤부터(이전 음성 `xhr.timeout` 90초 폐기). 사진·음성 모두 같은 XHR 도우미를 쓴다. 대기·처리·연결 이유는 알림 창, 그 밖의 오류(형식·용량·길이·무음)는 기존 줄. 숫자는 backend `HEAVY_QUEUE_CONFIG`(설정 한 곳) · frontend `HEAVY_CLIENT_LIMITS`
+- **편차**: ① 사진 apiFetch를 `apiUploadForm`(XHR)으로 바꿨다 — fetch는 업로드가 끝난 때를 알 수 없어 "업로드가 끝난 뒤부터 65초"를 구현할 수 없었다(스펙의 "사진 apiFetch도 적용"을 이렇게 해석). 401 처리·오류 번호 붙이기는 `apiFetch`와 같게 맞춤. ② 사진 하루 횟수를 ③(CLOVA 오류)에서도 되돌린다 — 스펙은 "멈춘 요청"만 적었으나 "실제로 처리한 것만 센다"에 맞춰 넓힘(이전에는 502도 셌음). ③ 즉시 알림의 "앞 대기 건수"는 처리 중인 2건을 빼고 대기열에 선 건수만 센다(스펙 문구 그대로). ④ 음성 길이 서버 재확인은 m4a·wav·mp3만 읽는다 — webm(MediaRecorder)은 길이를 기록하지 않아 null(통과), ffprobe는 쓰지 않음(스펙이 허용한 "가벼운 방법"). ⑤ 사진 마감 시 서버가 PDF 쪽수·이미지 가공(sharp)까지 포함해 55초를 센다 — 가공은 abort가 안 되지만 마감 시각에 응답·창구 반납은 먼저 한다(늦게 끝난 가공은 결과가 버려짐). ⑥ 알림 창·작업 중 화면 문구는 스펙 그대로, 알림 창은 `확인` 한 버튼
+- **다음 에이전트가 알아야 할 것**: 🔵 **실기동 검증 대기** — 작업 중 모달(사진·음성)·알림 창 3종·닫으면 요청 중단·음성 10분 초과 고르기·서버 마감은 사람이 확인(dev 서버 띄우지 않음). 🔴 **6번(실제 CLOVA로 1·5·10분 녹음 측정)은 개발자 허락이 없어 하지 않았다** — 무료 한도 월 15분을 거의 쓰는 일이라 허락 후 진행, 측정 뒤 [Opus]가 10분 상한 확정(길이 상한·서버 마감 115초는 이 측정으로 다시 볼 것). `heavyJobRuntime.deadlineMs`는 시험이 마감을 짧게 바꾸려는 자리일 뿐 운영 코드는 설정값만 쓴다. 대기열은 서버 1대 전제 그대로. 🔴 커밋 안 함 — 메시지 초안은 응답에 있음
+
+<!-- Gemini 판정 1줄: ✅통과 / ❌반려(사유) / 🔄스펙갱신(고친 문서) -->
+
+---
 ## 2026-10-06 | [Sonnet] 06-06 유언장 사진 인식 — 3·4차 결정 묶음(형식·용량·PDF 1개·고치기 화면·결과 다시 보기·주소 근거)
 
 - **근거 스펙**: docs/06_엔딩노트_유언/06-06_유언장_사진인식_요건확인_기획서.md §4.1(형식·HEIC 1차 방어·여러 장·용량) · §6 단계 4(고치기 화면)·5-1(결과 다시 보기) · §3.1 "주소" 행 · 06-04 §6.4-11-10 표 아래 🔴 줄

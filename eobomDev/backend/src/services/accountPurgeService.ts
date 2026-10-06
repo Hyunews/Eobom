@@ -48,7 +48,6 @@ const ANONYMIZED = {
   email: null,
   name: '탈퇴한 회원',
   profileImage: null,
-  refreshToken: null,
   contactPhone: null,
   phoneVerifiedAt: null,
   addressZonecode: null,
