@@ -6,7 +6,7 @@
 export const HEAVY_QUEUE_CONFIG = {
   maxConcurrent: 2,
   maxWaiting: 10,
-  maxWaitMs: 60_000,
+  maxWaitMs: 30_000,
 } as const;
 
 export const BUSY_MESSAGE = '지금 요청이 많습니다. 잠시 후 다시 시도해 주세요.';

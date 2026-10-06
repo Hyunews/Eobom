@@ -72,7 +72,9 @@ export const recognizeWillPhotos = (req: Request, res: Response) => {
       const message =
         err.message === 'INVALID_FILE_TYPE'
           ? 'jpg·png·pdf·tiff·heic 파일만 올릴 수 있습니다.'
-          : `업로드 중 오류가 발생했습니다. (파일당 최대 ${Math.round(MAX_PHOTO_SIZE_BYTES / 1024 / 1024)}MB · 최대 ${MAX_PHOTO_COUNT}장)`;
+          : (err as { code?: string }).code === 'LIMIT_FILE_SIZE'
+            ? `사진 1장은 ${Math.round(MAX_PHOTO_SIZE_BYTES / 1024 / 1024)}MB까지 올릴 수 있습니다.`
+            : `업로드 중 오류가 발생했습니다. (파일당 최대 ${Math.round(MAX_PHOTO_SIZE_BYTES / 1024 / 1024)}MB · 최대 ${MAX_PHOTO_COUNT}장)`;
       return res.status(400).json({ status: 'error', message });
     }
     const files = req.files as Express.Multer.File[] | undefined;

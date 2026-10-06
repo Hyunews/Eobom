@@ -13,7 +13,7 @@ import type { WillOcrResponse } from './WillPhotoResult';
 type Stage = 'idle' | 'uploading' | 'processing' | 'done';
 
 const MAX_FILES = 5;
-const MAX_FILE_SIZE_MB = 50;
+const MAX_FILE_SIZE_MB = 20;
 // 🔄 09-28 Opus 편차 보정 [F] — §4.1 "HEIC — 1차 방어"는 accept로 CLOVA가 받는 4개만 보여주는
 // 것까지다. heic/heif는 accept에서 뺀다 — 그래도 오면 서버 heic-convert(2차 방어)가 처리한다.
 const ACCEPT = '.jpg,.jpeg,.png,.tif,.tiff,.pdf,image/jpeg,image/png,image/tiff,application/pdf';
@@ -80,7 +80,7 @@ export const WillPhotoUploadModal: React.FC<WillPhotoUploadModalProps> = ({ hasE
     }
     const tooLarge = selected.find((f) => f.size > MAX_FILE_SIZE_MB * 1024 * 1024);
     if (tooLarge) {
-      setError(`파일이 너무 큽니다. 장당 최대 ${MAX_FILE_SIZE_MB}MB까지 올릴 수 있습니다.`);
+      setError(`사진 1장은 ${MAX_FILE_SIZE_MB}MB까지 올릴 수 있습니다.`);
       return;
     }
     const resized = await Promise.all(selected.map(resizeImageIfNeeded));

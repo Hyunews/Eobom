@@ -16,8 +16,8 @@ const ALLOWED_MIME_TYPES = new Set([
 ]);
 const ALLOWED_EXTENSIONS = new Set(['.jpg', '.jpeg', '.png', '.tif', '.tiff', '.pdf', '.heic', '.heif']);
 
-// §4.1 — 장당 50MB 이하.
-export const MAX_PHOTO_SIZE_BYTES = 50 * 1024 * 1024;
+// §4 용량 — 장당 20MB 이하(사진·PDF 공통, 10-06 2차 결정).
+export const MAX_PHOTO_SIZE_BYTES = 20 * 1024 * 1024;
 // §4.1·§7 #7 — 사진 5장(또는 PDF 1개, 컨트롤러에서 페이지 수 별도 확인).
 export const MAX_PHOTO_COUNT = 5;
 
