@@ -22,7 +22,6 @@ model User {
   name                String // 유저 이름 / 닉네임
   profileImage        String? // 대표 프로필 이미지 URL
   role                String               @default("USER") // 'USER', 'EXPERT', 'ADMIN'
-  refreshToken        String? // JWT Refresh Token
   accounts            SocialAccount[] // 연동된 소셜 계정 목록
   facilityReviews     FacilityReview[] // 이 유저가 작성한 시설 리뷰 목록
   leads               Lead[] // docs/01_.../01-05 — 이 유저가 남긴 문의/견적요청 리드

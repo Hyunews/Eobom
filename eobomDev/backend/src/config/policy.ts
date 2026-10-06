@@ -6,7 +6,6 @@
 export const POLICY = {
   lead: {
     numberPrefix: 'EB', // 견적요청 번호 접두어 (§4.2) — EB-YYMMDD-NNNN
-    requireLogin: false, // §10-2 — 대표 확정 시 여기만 수정
     acceptForNonPartner: true, // §10-4
   },
   consult: {

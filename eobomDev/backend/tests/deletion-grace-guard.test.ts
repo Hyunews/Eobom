@@ -42,6 +42,7 @@ const CREATE_ROUTES: { name: string; method: string; path: string }[] = [
   { name: '유족 메시지(편지)', method: 'POST', path: '/api/farewell-messages' },
   { name: '상담 신청', method: 'POST', path: '/api/experts/00000000-0000-4000-8000-000000000000/consult-requests' },
   { name: '가족 지정', method: 'POST', path: '/api/family-designations' },
+  { name: '업체 문의', method: 'POST', path: '/api/facilities/no-such-facility/quotes' }, // 01-05 §10-2(10-06)
 ];
 
 const READ_ROUTES = ['/api/auth/me', '/api/ending-note', '/api/farewell-messages', '/api/family-designations'];
@@ -107,5 +108,18 @@ describe('가드가 닿지 않아야 하는 경우', () => {
 
   it('토큰 없음은 401 그대로다(403으로 바뀌지 않는다)', async () => {
     assert.equal(await call('POST', '/api/obituaries'), 401);
+  });
+
+  it('업체 문의는 비회원이면 401 — 직접 호출로 비회원 리드가 쌓이지 않는다(01-05 §10-2, 10-06)', async () => {
+    const path = '/api/facilities/no-such-facility/quotes';
+    assert.equal(await call('POST', path), 401);
+    const before = await prisma.lead.count();
+    const res = await fetch(base + path, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ applicantName: '비회원', applicantPhone: '01012345678', thirdPartyConsent: true }),
+    });
+    assert.equal(res.status, 401);
+    assert.equal(await prisma.lead.count(), before);
   });
 });

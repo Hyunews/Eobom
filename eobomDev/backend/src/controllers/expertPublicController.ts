@@ -105,9 +105,8 @@ const safeConsultRequest = (r: { requestNo: string; status: string; createdAt: D
 });
 
 // 상담 신청 (`POST /api/experts/:id/consult-requests`) — 로그인 필수(02-03 §5.2, 2026-09-29): 토큰 없으면 401.
-// (견적 createQuote는 비회원 허용 그대로 — 이 함수만 다르다.)
 // 00-28 §6.4 Phase 2 — useProfileContact·saveToProfile 플래그. createQuote와 완전히 같은 규칙
-// (⚠️ 두 폼의 동작을 다르게 두지 말 것 — §6.4-1).
+// (⚠️ 두 폼의 동작을 다르게 두지 말 것 — §6.4-1). 업체 문의 createQuote도 10-06부터 로그인 필수.
 export const submitConsultRequest = async (req: Request, res: Response) => {
   const { applicantName, applicantPhone, channel, preferredAt, content, thirdPartyConsent, useProfileContact, saveToProfile } = req.body as {
     applicantName?: string;
