@@ -494,10 +494,14 @@ model MemorialNotice {
   id         String   @id @default(uuid()) // 고유 식별자(UUID)
   memorialId String // 통지 대상 추모관
   memorial   Memorial @relation(fields: [memorialId], references: [id], onDelete: Cascade)
-  kind       String // EXPIRY(만료 통지, §8.1-2) | RECONFIRM(파기 30일 전 재확인, §8.1-1)
-  channel    String? // EMAIL | ALIMTALK — 실제로 보낸(또는 마지막으로 시도한) 수단. 시도할 수단이 없었으면 null
-  result     String // SENT | FAILED
+  kind       String // EXPIRY(만료 통지, §8.1-2) | RECONFIRM(파기 30일 전 재확인, §8.1-1) | EXTEND(연장 기록, §8.1-4 — 통지가 아니라 "누가 어느 경로로 연장했나"의 한 줄)
+  channel    String? // 통지: EMAIL | ALIMTALK(실제로 보낸 또는 마지막으로 시도한 수단, 시도할 수단이 없었으면 null) · EXTEND: LINK(통지 링크) | LOGIN(내 추모관 화면)
+  result     String // 통지: SENT | FAILED · EXTEND: DONE
   failReason String? // FAILED일 때 코드(예: NO_CONTACT, EMAIL_DISABLED, ALIMTALK_NOT_CONFIGURED) — 개인정보 없음
+  // §8.1-4 ① 연장 링크 — 통지마다 무작위 토큰을 만들고 DB엔 해시(sha256)만 둔다. 원문은 통지 본문에만 있다.
+  // 유효 = 그 추모관의 purgeAt(없으면 expiresAt + 30일)까지 · 1회용(usedAt이 차면 끝). 통지 행이 아닌 EXTEND 행은 둘 다 null.
+  tokenHash  String?   @unique
+  usedAt     DateTime?
   createdAt  DateTime @default(now()) // 발송 시도 시각(UTC 저장). 한국 시간은 createdAtKst 칸(아래 줄)
   createdAtKst DateTime? // 보기 전용 · DB 트리거가 createdAt+9시간(한국 시간)으로 채움 · 🔴 코드에서 읽기·쓰기 금지(트리거가 쓰기를 덮어씀)
 

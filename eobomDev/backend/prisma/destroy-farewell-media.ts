@@ -22,8 +22,8 @@
 //      🔴 ⑤는 동결 추모관에 한해 "재확인 통지 SENT + 30일 경과"를 요구한다 — 통지 실패 기록이 있거나 안 보냈으면 건너뛰고 동결을 유지한다(§5.2-1).
 //   ⑧ SocialAccount.unlinkedAt + 1년 경과 → 행 삭제(00-19 제4조).
 //   ⑨ MemorialGuestbook 삭제 표시(deletedByOwnerAt·deletedByAuthorAt) + 3개월 경과 → 행 삭제. 🔴 운영자가 내린 hiddenAt 글은 제외(00-19 제4조·00-20 §6.2).
-//   ⑩ DB 원본 마스킹(00-19 제4조·제8조) — Lead(RESPONDED·CONVERTED·LOST)·ConsultRequest(COMPLETED·CANCELLED·INVALID)가 끝난 지 90일 지난 건의
-//      이름·연락처를 가린 값으로 덮어쓰고 maskedAt 기록. 접수번호·일시·대상·금액은 유지. "끝난 시각" = statusHistory의 현재 상태 마지막 기록(없으면 updatedAt).
+//   ⑩ DB 원본 마스킹(00-19 제4조·제8조, 00-20 §8.1-5) — Lead(RESPONDED·CONVERTED·LOST)·ConsultRequest(COMPLETED·CANCELLED·INVALID)가 끝난 지 90일 지난 건의
+//      이름·연락처를 가린 값으로, Lead.payload는 {}로·ConsultRequest.content는 "(보관 기간이 지나 삭제됨)"으로 덮어쓰고 maskedAt 기록. 접수번호·일시·대상·금액은 유지. "끝난 시각" = statusHistory의 현재 상태 마지막 기록(없으면 updatedAt).
 //   ⑤·⑦~⑩은 --confirm으로 실행한 단계마다 건수를 PurgeRunLog에 남긴다(보관기간 숫자는 config/policy.ts retention).
 //
 // 🔴 아카이브는 이 스크립트가 지우지 않는다(§5.6-8-1 D-9) — 백엔드는 아카이브 버킷에 대한
@@ -285,8 +285,8 @@ async function main(): Promise<void> {
     await recordPurgeRun('GUESTBOOK_DELETED', n);
   }
 
-  // ⑩ DB 원본 마스킹 — 끝난 지 90일 지난 문의·상담의 이름·연락처(00-19 제4조·제8조). 접수번호·일시·대상·금액은 그대로.
-  // 🔴 이름·연락처는 찍지 않는다 — 건수만(security.md §1).
+  // ⑩ DB 원본 마스킹 — 끝난 지 90일 지난 문의·상담의 이름·연락처 + 문의 내용(payload → {})·상담 내용(content → 삭제 문구)(00-19 제4조·제8조, 00-20 §8.1-5).
+  // 접수번호·일시·대상·금액은 그대로. 🔴 이름·연락처·내용은 찍지 않는다 — 건수만(security.md §1).
   const leadTargets = await findLeadMaskTargets();
   const consultTargets = await findConsultMaskTargets();
   console.log(

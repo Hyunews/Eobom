@@ -30,6 +30,7 @@ export const AUTH_ROUTES = [
 export const PUBLIC_WRITE_ROUTES = [
   '/api/memorials/:slug/tributes', // 헌화 — 비회원 허용
   '/api/memorials/:slug/guestbook', // 방명록 — 로그인 필수지만 공개 주소
+  '/api/memorials/extend/:token', // 추모관 연장 링크(00-20 §8.1-4) — 토큰만으로 도달, 추측 대상
   '/api/experts/:id/consult-requests', // 전문가 상담 신청
   '/api/facilities/:id/quotes', // 시설 문의
   '/api/facilities/:id/call-events', // 전화 클릭 기록

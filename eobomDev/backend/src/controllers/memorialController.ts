@@ -8,6 +8,7 @@ import { uploadMemorialPhoto as uploadMiddleware, MEMORIAL_PHOTO_DIR, toPublicMe
 import { POLICY } from '../config/policy';
 import { validateFalseReportAgreed } from '../utils/consentGates';
 import { calculateMemorialExpiresAt } from '../utils/memorialLifecycle';
+import { previewExtendByToken, extendByToken, extendByOwner } from '../services/memorialExtendService';
 
 // 온라인 추모관(docs 05-01 §2, §4). 공개범위 기본값은 LINK(§4.2) — 사망 사실+유족 구성이
 // 공개 색인되면 부고 사칭 보이스피싱의 표적 정보가 된다.
@@ -461,5 +462,50 @@ export const deleteMemorialPhoto = async (req: Request, res: Response) => {
   } catch (error) {
     console.error('추모 사진 삭제 실패:', error);
     return res.status(500).json({ status: 'error', message: '사진 삭제 중 오류가 발생했습니다.' });
+  }
+};
+
+// ─ 연장(활성 복귀, docs 00-20 §8.1-4) ─ 효과·규칙은 services/memorialExtendService.ts.
+const EXTEND_FAIL_STATUS = { INVALID: 404, EXPIRED: 410, CANNOT_EXTEND: 409, NOT_FOUND: 404 } as const;
+
+// 통지 링크 확인 화면용 조회 (`GET /api/memorials/extend/:token`) — 공개, 로그인 불필요.
+// 🔴 조회뿐이다: 링크를 여는 것만으로 연장하지 않는다(메일 보안 검사기가 링크를 미리 열어도 저절로 연장되면 안 된다).
+export const previewMemorialExtend = async (req: Request, res: Response) => {
+  try {
+    const r = await previewExtendByToken(req.params.token);
+    if (!r.ok) return res.status(EXTEND_FAIL_STATUS[r.code]).json({ status: 'error', message: r.message });
+    const { deceasedName, frozen, expiresAt, purgeAt } = r; // 이름·날짜만 — 개설자 정보는 내리지 않는다
+    return res.json({ status: 'success', data: { deceasedName, frozen, expiresAt, purgeAt } });
+  } catch (error) {
+    console.error('추모관 연장 확인 조회 실패:', error);
+    return res.status(500).json({ status: 'error', message: '조회 중 오류가 발생했습니다.' });
+  }
+};
+
+// 통지 링크로 연장 (`POST /api/memorials/extend/:token`) — 공개, 로그인 불필요. 토큰은 1회용.
+export const extendMemorialByLink = async (req: Request, res: Response) => {
+  try {
+    const r = await extendByToken(req.params.token);
+    if (!r.ok) return res.status(EXTEND_FAIL_STATUS[r.code]).json({ status: 'error', message: r.message });
+    return res.json({ status: 'success', data: { expiresAt: r.expiresAt } });
+  } catch (error) {
+    console.error('추모관 연장(링크) 실패:', error);
+    return res.status(500).json({ status: 'error', message: '연장 처리 중 오류가 발생했습니다.' });
+  }
+};
+
+// 내 추모관 화면에서 연장 (`POST /api/memorials/:id/extend`) — 개설자 본인만.
+export const extendMyMemorial = async (req: Request, res: Response) => {
+  const decoded = verifyBearerToken(req);
+  if (!decoded) {
+    return res.status(401).json({ status: 'error', message: '로그인이 필요합니다.' });
+  }
+  try {
+    const r = await extendByOwner(req.params.id, decoded.id);
+    if (!r.ok) return res.status(EXTEND_FAIL_STATUS[r.code]).json({ status: 'error', message: r.message });
+    return res.json({ status: 'success', data: { expiresAt: r.expiresAt } });
+  } catch (error) {
+    console.error('추모관 연장(로그인) 실패:', error);
+    return res.status(500).json({ status: 'error', message: '연장 처리 중 오류가 발생했습니다.' });
   }
 };

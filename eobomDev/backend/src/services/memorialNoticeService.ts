@@ -8,6 +8,7 @@ import {
   getAlimtalkProvider,
   getEmailProvider,
 } from './noticeProvider';
+import { generateExtendToken } from './memorialExtendService';
 
 // docs 00-20 §8.1-3 — 추모관 통지(만료 통지·파기 전 재확인)를 보내고 결과를 MemorialNotice에 남긴다.
 // 수단 순서: 개설자 이메일이 있으면 이메일 → (이메일이 없거나 실패하면) 연락처가 있으면 알림톡 → 둘 다 안 되면 FAILED.
@@ -26,27 +27,29 @@ export type NoticeOwner = { email: string | null; contactPhone: string | null };
 
 export type DeliveryResult = { result: 'SENT' | 'FAILED'; channel: NoticeChannel | null; failReason: string | null };
 
-// 화면 문구 — 사실만 적는다(평가·홍보 투 금지). 열람 주소는 개설자 전용 목록 화면이다.
+// 화면 문구 — 사실만 적는다(평가·홍보 투 금지). 링크 두 개: 연장 확인 화면(토큰, 로그인 불필요) · 개설자 전용 목록 화면(§8.1-4).
 export function buildMemorialNoticeMessage(
   kind: MemorialNoticeKind,
   m: Pick<NoticeTarget, 'deceasedName' | 'expiresAt' | 'purgeAt'>,
   frontendUrl: string,
+  extendToken?: string,
 ): { subject: string; body: string } {
-  const link = `${frontendUrl.replace(/\/$/, '')}/my-obituaries-memorials`;
+  const base = frontendUrl.replace(/\/$/, '');
+  const listLink = `${base}/my-obituaries-memorials`;
+  const extendLine = extendToken ? `\n계속 보존하기: ${base}/memorial-extend/${extendToken}` : '';
   if (kind === 'EXPIRY') {
     const date = m.expiresAt ? kstYmd(m.expiresAt) : '-';
     return {
       subject: `[이어봄] '${m.deceasedName}' 추모관 보존기간 안내`,
       body:
         `'${m.deceasedName}' 추모관의 활성 기간이 ${date}에 끝납니다. ` +
-        `이후에는 새 방명록·헌화·사진 등록이 중단되고 기존 내용 열람만 가능합니다.\n추모관 확인: ${link}`,
+        `이후에는 새 방명록·헌화·사진 등록이 중단되고 기존 내용 열람만 가능합니다.${extendLine}\n추모관 확인: ${listLink}`,
     };
   }
   const date = m.purgeAt ? kstYmd(m.purgeAt) : '-';
   return {
     subject: `[이어봄] '${m.deceasedName}' 추모관 삭제 예정 안내`,
-    body:
-      `'${m.deceasedName}' 추모관이 ${date}에 방명록·헌화·사진과 함께 삭제됩니다.\n추모관 확인: ${link}`,
+    body: `'${m.deceasedName}' 추모관이 ${date}에 방명록·헌화·사진과 함께 삭제됩니다.${extendLine}\n추모관 확인: ${listLink}`,
   };
 }
 
@@ -109,13 +112,15 @@ export async function sendMemorialNotice(
   });
   if (!memorial) return { result: 'FAILED', channel: null, failReason: 'MEMORIAL_NOT_FOUND' };
 
-  const message = buildMemorialNoticeMessage(kind, memorial, process.env.FRONTEND_URL || '');
+  // 연장 링크 토큰(§8.1-4) — 원문은 이 본문에만, DB엔 해시만. 시도마다 새로 만든다(실패한 시도의 토큰은 아무에게도 안 갔다).
+  const { token, tokenHash } = generateExtendToken();
+  const message = buildMemorialNoticeMessage(kind, memorial, process.env.FRONTEND_URL || '', token);
   const delivery = await deliverNotice(memorial.createdByUser, message, {
     email: getEmailProvider(),
     alimtalk: getAlimtalkProvider(),
   });
   await prisma.memorialNotice.create({
-    data: { memorialId, kind, channel: delivery.channel, result: delivery.result, failReason: delivery.failReason, createdAt: now },
+    data: { memorialId, kind, channel: delivery.channel, result: delivery.result, failReason: delivery.failReason, tokenHash, createdAt: now },
   });
   return delivery;
 }

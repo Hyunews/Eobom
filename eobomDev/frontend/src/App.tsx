@@ -26,6 +26,7 @@ import { MyObituaryListPage } from './pages/MyObituaryListPage';
 import { ObituaryLandingPage } from './pages/ObituaryLandingPage';
 import { MemorialLandingPage } from './pages/MemorialLandingPage';
 import { FamilyInvitePage } from './pages/FamilyInvitePage';
+import { MemorialExtendPage } from './pages/MemorialExtendPage';
 import { PickupPage } from './pages/PickupPage';
 import { MemorialPage } from './pages/MemorialPage';
 import { MyPage } from './pages/MyPage';
@@ -70,6 +71,8 @@ function AppShell() {
   // 00-27 §9.1-2 — 가족 지정 초대 링크. 받는 사람은 아직 회원이 아닐 수 있어 사이드바·모드가
   // 무의미하다(위 두 랜딩과 같은 처리).
   const isFamilyInviteRoute = /^invite\//.test(activeTab);
+  // 00-20 §8.1-4 — 추모관 연장 통지 링크. 받는 사람은 로그인 상태가 아닐 수 있어 껍데기 없는 독립 페이지다(위 초대 링크와 같은 처리).
+  const isMemorialExtendRoute = /^memorial-extend\//.test(activeTab);
 
   const [isLoginOpen, setIsLoginOpen] = useState<boolean>(false);
   // 2026-08-25 — LoginModal 내부 로그인/회원가입 탭 분리. 기본은 항상 "로그인" 탭으로 열리고,
@@ -339,7 +342,7 @@ function AppShell() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-      {isObituaryLandingRoute || isMemorialLandingRoute || isFamilyInviteRoute ? (
+      {isObituaryLandingRoute || isMemorialLandingRoute || isFamilyInviteRoute || isMemorialExtendRoute ? (
         // 껍데기 완전히 없음(§6.1) — Header·Sidebar·main-wrapper·Footer 전부 건너뛴다.
         <Routes>
           <Route path="/o/:slug" element={<ObituaryLandingPage />} />
@@ -351,6 +354,7 @@ function AppShell() {
             path="/invite/:token"
             element={<FamilyInvitePage currentUser={currentUser} onOpenLogin={() => openLoginModal()} />}
           />
+          <Route path="/memorial-extend/:token" element={<MemorialExtendPage />} />
         </Routes>
       ) : (
         <>

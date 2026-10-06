@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { ExternalLink, ChevronRight } from 'lucide-react';
 import { apiFetch } from '../lib/api';
 import { OBITUARY_CARD_IMAGE_URL } from '../config';
+import { formatKstDate } from '../utils/kstDate';
 import { formatKST, formatObituaryCardTitle, formatObituaryCardDescription } from '../utils/obituaryCard';
 import { ensureKakaoShareReady, shareViaKakao, shareViaWebShareApi, copyObituaryLink, reportObituaryShare } from '../utils/kakaoShare';
 import '../styles/design-v2.css';
@@ -42,6 +43,10 @@ interface MyMemorial {
   closedAt: string | null;
   hiddenAt: string | null; // 운영자가 내림(00-20 §6.2)
   createdAt: string;
+  // 00-20 §8.1-4 — 보존 상태. frozenAt이 있으면 열람만 가능(동결), purgeAt은 삭제 예정일, 없으면 expiresAt까지가 활성 기간.
+  expiresAt: string | null;
+  frozenAt: string | null;
+  purgeAt: string | null;
 }
 
 type ModalTarget = { type: 'obituary'; id: string } | { type: 'memorial'; id: string } | null;
@@ -54,6 +59,7 @@ interface MyObituaryListPageProps {
 export const MyObituaryListPage: React.FC<MyObituaryListPageProps> = ({ currentUser, onOpenLogin }) => {
   const [obituaries, setObituaries] = useState<MyObituary[] | null>(null);
   const [loadError, setLoadError] = useState(false);
+  const [extendingId, setExtendingId] = useState<string | null>(null);
   // 모달별로 다른 부고장을 다루므로, 문구도 어느 항목 것인지(id) 함께 들고 그 모달 안에만 렌더한다.
   const [feedback, setFeedback] = useState<{ id: string; message: string } | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -127,6 +133,20 @@ export const MyObituaryListPage: React.FC<MyObituaryListPageProps> = ({ currentU
     }
   };
 
+  // 추모관 연장(00-20 §8.1-4 ② 로그인 경로) — 통지 링크와 같은 효과(다시 395일 활성). 닫힌·운영자가 내린 추모관은 버튼을 보이지 않는다.
+  const extendMemorial = async (m: MyMemorial) => {
+    setExtendingId(m.id);
+    try {
+      const r = await apiFetch<{ expiresAt: string }>(`/api/memorials/${m.id}/extend`, 'USER', { method: 'POST' });
+      setMemorials((prev) => (prev ? prev.map((x) => (x.id === m.id ? { ...x, expiresAt: r.expiresAt, frozenAt: null, purgeAt: null } : x)) : prev));
+      setFeedback({ id: m.id, message: `${formatKstDate(r.expiresAt)}까지 보존됩니다.` });
+    } catch (err) {
+      setFeedback({ id: m.id, message: err instanceof Error ? err.message : '연장에 실패했습니다. 잠시 후 다시 시도해주세요.' });
+    } finally {
+      setExtendingId(null);
+    }
+  };
+
   // 00-34 §2.4 — 비로그인 가림판(모든 훅 선언 뒤)
   if (!currentUser) {
     return <LoginGate title="내 부고장·추모관" subtitle="내가 만든 부고장과 추모관을 한곳에서 확인할 수 있습니다." onOpenLogin={onOpenLogin} />;
@@ -192,7 +212,7 @@ export const MyObituaryListPage: React.FC<MyObituaryListPageProps> = ({ currentU
                 <button type="button" className="v2-list-main" onClick={() => setModalTarget({ type: 'memorial', id: m.id })}>
                   <span className="v2-list-title">
                     故 {m.deceasedName}
-                    <span className={m.closedAt || m.hiddenAt ? 'v2-status-closed' : 'v2-status-active'}> · {m.hiddenAt ? '운영자가 비공개 처리함' : m.closedAt ? '종료됨' : '운영중'}</span>
+                    <span className={m.closedAt || m.hiddenAt ? 'v2-status-closed' : 'v2-status-active'}> · {m.hiddenAt ? '운영자가 비공개 처리함' : m.closedAt ? '종료됨' : m.frozenAt ? '열람만 가능' : '운영중'}</span>
                   </span>
                 </button>
                 <span className="v2-list-meta">{formatKST(m.createdAt)}</span>
@@ -264,7 +284,9 @@ export const MyObituaryListPage: React.FC<MyObituaryListPageProps> = ({ currentU
 
             <div className="v2-modal-row">
               <span className="v2-modal-label">상태</span>
-              <span className="v2-modal-value">{modalMemorial.hiddenAt ? '운영자가 비공개 처리함' : modalMemorial.closedAt ? '종료됨' : '운영중'}</span>
+              <span className="v2-modal-value">
+                {modalMemorial.hiddenAt ? '운영자가 비공개 처리함' : modalMemorial.closedAt ? '종료됨' : modalMemorial.frozenAt ? '열람만 가능(동결)' : '운영중'}
+              </span>
             </div>
 
             <div className="v2-modal-row">
@@ -272,11 +294,32 @@ export const MyObituaryListPage: React.FC<MyObituaryListPageProps> = ({ currentU
               <span className="v2-modal-value">개설일 {formatKST(modalMemorial.createdAt)}</span>
             </div>
 
+            {/* 00-20 §8.1-4 ② — 보존 기한. 닫힌·내려진 추모관은 연장 대상이 아니라 보이지 않는다. */}
+            {!modalMemorial.closedAt && !modalMemorial.hiddenAt && (modalMemorial.frozenAt ? modalMemorial.purgeAt : modalMemorial.expiresAt) && (
+              <div className="v2-modal-row">
+                <span className="v2-modal-label">{modalMemorial.frozenAt ? '삭제 예정일' : '보존 기간 종료일'}</span>
+                <span className="v2-modal-value">{formatKstDate((modalMemorial.frozenAt ? modalMemorial.purgeAt : modalMemorial.expiresAt) as string)}</span>
+              </div>
+            )}
+
             <div className="v2-modal-actions">
               <PageLink newTab to={`/m/${modalMemorial.slug}`} className="v2-btn-outline">
                 <ExternalLink size={14} /> 열기
               </PageLink>
+              {!modalMemorial.closedAt && !modalMemorial.hiddenAt && (
+                <button
+                  type="button"
+                  className="v2-btn-outline"
+                  onClick={() => extendMemorial(modalMemorial)}
+                  disabled={extendingId === modalMemorial.id}
+                  aria-busy={extendingId === modalMemorial.id}
+                >
+                  {extendingId === modalMemorial.id ? '처리 중...' : '계속 보존하기'}
+                </button>
+              )}
             </div>
+
+            {feedback?.id === modalMemorial.id && <p className="v2-notice">{feedback.message}</p>}
 
             <button type="button" className="v2-modal-close" onClick={() => setModalTarget(null)}>
               닫기

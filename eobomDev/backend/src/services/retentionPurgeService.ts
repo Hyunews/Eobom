@@ -49,7 +49,7 @@ export async function purgeGuestbookDeletedExpired(now = new Date()): Promise<nu
 
 // ─ DB 원본 마스킹(00-19 제4조·제8조 "끝난 날부터 90일이 지나면 … 원본도 마스킹") ─
 // 대상: 업체 문의 Lead(RESPONDED·CONVERTED·LOST) · 상담 신청 ConsultRequest(COMPLETED·CANCELLED·INVALID) 중 maskedAt이 비어 있는 것.
-// 이름·연락처만 가린 값으로 덮어쓰고 maskedAt을 찍는다. 접수번호·일시·대상·금액·payload·content(거래 근거)는 건드리지 않는다.
+// 이름·연락처를 가린 값으로, 문의 내용(payload)·상담 내용(content)을 비운 값으로 덮어쓰고 maskedAt을 찍는다. 접수번호·일시·대상·금액(거래 근거)은 건드리지 않는다.
 export const LEAD_ENDED_STATUSES = ['RESPONDED', 'CONVERTED', 'LOST'] as const;
 export const CONSULT_ENDED_STATUSES = ['COMPLETED', 'CANCELLED', 'INVALID'] as const;
 
@@ -108,17 +108,21 @@ export async function findConsultMaskTargets(now = new Date()): Promise<MaskTarg
     .filter((r) => r.endedAt.getTime() <= maskCutoff(now).getTime());
 }
 
-const maskedValues = (t: MaskTarget, now: Date) => ({
+// 🔴 이름·연락처에 더해 자유 입력도 지운다(00-20 §8.1-5, 10-06 Opus 판정) — 문의 내용·상담 희망 내용은 고인 이름·빚·가족 사정이 들어가기 쉽고
+// 00-19 제4조가 마스킹 뒤에도 남긴다고 약속한 것은 거래 근거(접수번호·일시·대상·금액)뿐이다.
+//   Lead.payload → {} · ConsultRequest.content → "(보관 기간이 지나 삭제됨)". 사업자·전문가 화면에는 그대로 그 문구로 보인다.
+export const MASKED_CONTENT_TEXT = '(보관 기간이 지나 삭제됨)';
+
+const maskedContact = (t: MaskTarget) => ({
   applicantName: t.applicantName ? maskApplicantName(t.applicantName) : t.applicantName,
   applicantPhone: t.applicantPhone ? maskApplicantPhone(t.applicantPhone) : t.applicantPhone,
-  maskedAt: now,
 });
 
 // 한 건씩, maskedAt이 비어 있는 행에만 쓴다(where에 maskedAt: null) — 같은 건을 두 번 덮어쓰지 않는다. 처리한 건수를 돌려준다.
 export async function maskLeads(targets: MaskTarget[], now = new Date()): Promise<number> {
   let done = 0;
   for (const t of targets) {
-    done += (await prisma.lead.updateMany({ where: { id: t.id, maskedAt: null }, data: maskedValues(t, now) })).count;
+    done += (await prisma.lead.updateMany({ where: { id: t.id, maskedAt: null }, data: { ...maskedContact(t), payload: {}, maskedAt: now } })).count;
   }
   return done;
 }
@@ -126,7 +130,7 @@ export async function maskLeads(targets: MaskTarget[], now = new Date()): Promis
 export async function maskConsultRequests(targets: MaskTarget[], now = new Date()): Promise<number> {
   let done = 0;
   for (const t of targets) {
-    done += (await prisma.consultRequest.updateMany({ where: { id: t.id, maskedAt: null }, data: maskedValues(t, now) })).count;
+    done += (await prisma.consultRequest.updateMany({ where: { id: t.id, maskedAt: null }, data: { ...maskedContact(t), content: MASKED_CONTENT_TEXT, maskedAt: now } })).count;
   }
   return done;
 }

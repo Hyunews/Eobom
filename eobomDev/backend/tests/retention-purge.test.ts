@@ -8,6 +8,7 @@ import { getReconfirmGate, calculateMemorialPurgeAt, calculateMemorialReconfirmD
 import { buildMemorialNoticeMessage, deliverNotice } from '../src/services/memorialNoticeService';
 import { NoticeSendError } from '../src/services/noticeProvider';
 import { getEndedAt, maskApplicantName, maskApplicantPhone } from '../src/services/retentionPurgeService';
+import { generateExtendToken, hashExtendToken, getTokenDeadline, getExtendBlock } from '../src/services/memorialExtendService';
 
 const DAY = 24 * 60 * 60 * 1000;
 const at = (iso: string) => new Date(iso);
@@ -132,6 +133,40 @@ describe('통지 문구', () => {
     assert.match(expiry.body, /https:\/\/example\.test\/my-obituaries-memorials/);
     const reconfirm = buildMemorialNoticeMessage('RECONFIRM', m, 'https://example.test');
     assert.match(reconfirm.body, /2029-10-06/);
+  });
+});
+
+describe('연장 링크(00-20 §8.1-4) 규칙', () => {
+  it('토큰은 원문과 해시가 다르고, 해시는 같은 원문에서 항상 같다 · 시도마다 새 토큰', () => {
+    const a = generateExtendToken();
+    const b = generateExtendToken();
+    assert.notEqual(a.token, a.tokenHash);
+    assert.equal(hashExtendToken(a.token), a.tokenHash);
+    assert.notEqual(a.token, b.token);
+    assert.ok(a.token.length >= 40);
+  });
+
+  it('유효기간 끝 = purgeAt, 없으면 expiresAt + 30일, 둘 다 없으면 null', () => {
+    const purgeAt = at('2029-10-06T00:00:00.000Z');
+    const expiresAt = at('2027-11-01T00:00:00.000Z');
+    assert.equal(getTokenDeadline({ purgeAt, expiresAt })?.getTime(), purgeAt.getTime());
+    assert.equal(getTokenDeadline({ purgeAt: null, expiresAt })?.getTime(), expiresAt.getTime() + 30 * DAY);
+    assert.equal(getTokenDeadline({ purgeAt: null, expiresAt: null }), null);
+  });
+
+  it('닫힌(탈퇴 유예 포함)·운영자가 내린 추모관은 연장할 수 없다', () => {
+    assert.equal(getExtendBlock({ closedAt: null, hiddenAt: null }), null);
+    assert.equal(getExtendBlock({ closedAt: new Date(), hiddenAt: null })?.code, 'CANNOT_EXTEND');
+    assert.equal(getExtendBlock({ closedAt: null, hiddenAt: new Date() })?.code, 'CANNOT_EXTEND');
+  });
+
+  it('통지 본문에 연장 링크(토큰)와 내 추모관 링크가 둘 다 들어간다 — 토큰이 없으면 연장 줄만 빠진다', () => {
+    const m = { deceasedName: '홍길동', expiresAt: at('2027-11-01T00:00:00.000Z'), purgeAt: at('2029-10-06T00:00:00.000Z') };
+    const withToken = buildMemorialNoticeMessage('RECONFIRM', m, 'https://example.test', 'TOKEN123');
+    assert.match(withToken.body, /계속 보존하기: https:\/\/example\.test\/memorial-extend\/TOKEN123/);
+    assert.match(withToken.body, /my-obituaries-memorials/);
+    const without = buildMemorialNoticeMessage('RECONFIRM', m, 'https://example.test');
+    assert.ok(!without.body.includes('계속 보존하기'));
   });
 });
 

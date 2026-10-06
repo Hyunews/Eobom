@@ -9,6 +9,8 @@ CREATE TABLE "MemorialNotice" (
     "channel" TEXT,
     "result" TEXT NOT NULL,
     "failReason" TEXT,
+    "tokenHash" TEXT,
+    "usedAt" TIMESTAMP(3),
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "createdAtKst" TIMESTAMP(3),
 
@@ -25,6 +27,9 @@ CREATE TABLE "PurgeRunLog" (
 
     CONSTRAINT "PurgeRunLog_pkey" PRIMARY KEY ("id")
 );
+
+-- CreateIndex
+CREATE UNIQUE INDEX "MemorialNotice_tokenHash_key" ON "MemorialNotice"("tokenHash");
 
 -- CreateIndex
 CREATE INDEX "MemorialNotice_memorialId_kind_createdAt_idx" ON "MemorialNotice"("memorialId", "kind", "createdAt");
