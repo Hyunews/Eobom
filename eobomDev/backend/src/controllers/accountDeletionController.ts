@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import prisma from '../config/prisma';
 import { verifyBearerToken } from './authController';
+import { calculateMemorialPurgeAt } from '../utils/memorialLifecycle';
 
 // 회원 탈퇴 — 00-36 §4.3·M-3(#10·#11), 06-05 §5.4-2·§5.4-2-1·§5.6-8 ④.
 //
@@ -12,7 +13,6 @@ import { verifyBearerToken } from './authController';
 
 const GRACE_DAYS = 30;
 const DAY_MS = 24 * 60 * 60 * 1000;
-const FROZEN_PURGE_YEARS = 3; // 00-20 §5.2-1 — 동결 후 파기까지. 복구 시 동결 추모관의 purgeAt 복원용
 
 // 탈퇴 미리보기 (`GET /api/me/deletion-preview`) — ① "무엇이 지워지는가"를 **건수만** 보여준다.
 // 🔴 본문 금지(00-36 §4.2와 같은 규칙) — 편지·엔딩노트·방명록의 내용·수신자 실명은 절대 내리지 않는다.
@@ -174,8 +174,7 @@ export const cancelAccountDeletion = async (req: Request, res: Response) => {
       ...closedByWithdrawal
         .filter((m) => m.frozenAt)
         .map((m) => {
-          const purgeAt = new Date(m.frozenAt as Date);
-          purgeAt.setFullYear(purgeAt.getFullYear() + FROZEN_PURGE_YEARS);
+          const purgeAt = calculateMemorialPurgeAt(m.frozenAt as Date); // 동결 +3년(00-20 §5.2-1)
           return prisma.memorial.update({ where: { id: m.id }, data: { closedAt: null, purgeAt } });
         }),
       prisma.obituary.updateMany({ where: { createdByUserId: user.id, closedAt: requestedAt }, data: { closedAt: null } }),

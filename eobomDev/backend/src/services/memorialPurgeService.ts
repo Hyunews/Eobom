@@ -2,13 +2,14 @@ import fs from 'fs';
 import path from 'path';
 import prisma from '../config/prisma';
 import { MEMORIAL_PHOTO_DIR } from '../config/upload';
+import { getReconfirmGate } from '../utils/memorialLifecycle';
 
 // docs 00-20 §8.1-1 "purgeAt 파기"(09-30 확정) — purgeAt이 지난 추모관을 방명록·헌화·사진과 함께 삭제한다.
 // prisma/destroy-farewell-media.ts(사람이 --confirm으로 돌리는 수동 파기 스크립트)만 이 파일을 부른다.
 // 🔴 런타임 코드(컨트롤러·라우트·스케줄러)는 부르지 않는다 — 새 스케줄러 금지. accountPurgeService와 같은 방식.
 //
-// purgeAt을 채우는 경로: 탈퇴 요청(+30일, accountDeletionController) · 개설자가 직접 닫음(+30일, closeMemorial, 09-30) · (미구현) 동결 +3년.
-// 🔴 통지 실패 기록이 있으면 건너뛴다(§5.2-1)는 동결 경로 몫이라 여기엔 없다 — 그 경로가 생길 때 findMemorialExpired에 조건을 더할 것.
+// purgeAt을 채우는 경로: 탈퇴 요청(+30일, accountDeletionController) · 개설자가 직접 닫음(+30일, closeMemorial, 09-30) · 동결 +3년(memorialLifecycleService, 10-06).
+// 🔴 동결 경로는 파기 전 재확인 통지가 SENT여야 한다(§5.2-1) — 아래 판정(judge)이 그 관문이다.
 //
 // 한 추모관의 순서(고정):
 //   1. 사진 파일 경로를 먼저 뽑아 둔다(행이 지워지면 url을 잃는다).
@@ -40,20 +41,57 @@ const expiredWhere = (now: Date) => ({
   ],
 });
 
-// 옛 행(purgeAt null)은 기준 시각이 closedAt + 30일이라 dry-run 출력용으로 그 값을 purgeAt 자리에 계산해 돌려준다(DB엔 안 쓴다).
-export async function findMemorialExpired(): Promise<ExpiredMemorial[]> {
-  const rows = await prisma.memorial.findMany({
-    where: expiredWhere(new Date()),
-    select: { id: true, purgeAt: true, closedAt: true },
-  });
-  return rows
-    .map((r) => ({ id: r.id, purgeAt: r.purgeAt ?? new Date((r.closedAt as Date).getTime() + CLOSE_GRACE_DAYS * 24 * 60 * 60 * 1000) }))
-    .sort((a, b) => a.purgeAt.getTime() - b.purgeAt.getTime());
+// 🔴 통지 관문(10-06, 00-20 §5.2-1) — 개설자가 닫지 않은 추모관(= 동결 +3년으로 도래한 것)은 파기 전 재확인 통지가 SENT여야 한다.
+// 통지 실패 기록이 있거나 재확인을 안 보냈거나 보낸 지 30일이 안 됐으면 건너뛴다(동결 유지). 닫은 추모관(closedAt 있음)은 본인이 정한 파기라 관문이 없다.
+const candidateSelect = {
+  id: true,
+  purgeAt: true,
+  closedAt: true,
+  notices: { where: { kind: 'RECONFIRM' }, select: { kind: true, result: true, createdAt: true } },
+} as const;
+
+type Candidate = {
+  id: string;
+  purgeAt: Date | null;
+  closedAt: Date | null;
+  notices: { kind: string; result: string; createdAt: Date }[];
+};
+
+const judge = (r: Candidate, now: Date): { target: ExpiredMemorial | null; skippedReason: string | null } => {
+  // 옛 행(purgeAt null)은 기준 시각이 closedAt + 30일이라 dry-run 출력용으로 그 값을 purgeAt 자리에 계산해 돌려준다(DB엔 안 쓴다).
+  const purgeAt = r.purgeAt ?? new Date((r.closedAt as Date).getTime() + CLOSE_GRACE_DAYS * 24 * 60 * 60 * 1000);
+  if (r.closedAt === null) {
+    const gate = getReconfirmGate(purgeAt, r.notices, now);
+    if (!gate.passed) return { target: null, skippedReason: gate.reason };
+  }
+  return { target: { id: r.id, purgeAt }, skippedReason: null };
+};
+
+// 파기 대상과, 도래했지만 관문에 막혀 건너뛴 건(사유 포함)을 함께 돌려준다 — dry-run이 둘 다 보여 준다.
+export async function findMemorialExpiredWithSkips(
+  now = new Date(),
+): Promise<{ targets: ExpiredMemorial[]; skipped: { id: string; purgeAt: Date; reason: string }[] }> {
+  const rows = await prisma.memorial.findMany({ where: expiredWhere(now), select: candidateSelect });
+  const targets: ExpiredMemorial[] = [];
+  const skipped: { id: string; purgeAt: Date; reason: string }[] = [];
+  for (const r of rows) {
+    const { target, skippedReason } = judge(r, now);
+    if (target) targets.push(target);
+    else skipped.push({ id: r.id, purgeAt: (r.purgeAt ?? r.closedAt) as Date, reason: skippedReason as string });
+  }
+  targets.sort((a, b) => a.purgeAt.getTime() - b.purgeAt.getTime());
+  return { targets, skipped };
 }
 
-// 목록을 만든 뒤 실행하기까지 사이에 "계속 이용"으로 purgeAt이 비워졌거나 운영자가 내렸을 수 있다 — 지우기 직전에 같은 조건으로 다시 본다.
+export async function findMemorialExpired(): Promise<ExpiredMemorial[]> {
+  return (await findMemorialExpiredWithSkips()).targets;
+}
+
+// 목록을 만든 뒤 실행하기까지 사이에 "계속 이용"으로 purgeAt이 비워졌거나 운영자가 내렸을 수 있다 — 지우기 직전에 같은 조건(관문 포함)으로 다시 본다.
 export async function isStillMemorialExpired(id: string): Promise<boolean> {
-  return (await prisma.memorial.count({ where: { id, ...expiredWhere(new Date()) } })) === 1;
+  const now = new Date();
+  const row = await prisma.memorial.findFirst({ where: { id, ...expiredWhere(now) }, select: candidateSelect });
+  return row !== null && judge(row, now).target !== null;
 }
 
 // 조회뿐이다(dry-run 출력 겸 범위 확인).

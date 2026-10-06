@@ -16,6 +16,17 @@
 > [`_아카이브_2608`](walkthrough_아카이브_2608.md)(08-31분). 남은 것 = 판정 대기 + 판정 표기 없음. 기준 → `record.md` §2-1.
 
 ---
+## 2026-10-06 | [Sonnet] 파기 스크립트 5단(추모관 동결·통지 / 동결 후 파기 관문 / 소셜 해제 / 삭제 방명록 / DB 원본 마스킹) + 통지 provider 2개
+
+- **근거 스펙**: docs/00_핵심플랫폼/00-20 §5.2-1·§8.1-1·§8.1-2·§8.1-3 · 00-19 제4조·제8조(10-06 메모)
+- **건드린 파일**: backend/prisma/schema.prisma(`MemorialNotice`·`PurgeRunLog` 신설, `Memorial.notices` 역참조) · prisma/migrations/20261006120000_add_memorial_notice_and_purge_run_log(신규, 추가형 — 표 2개+인덱스+FK+createdAtKst 트리거) · prisma/destroy-farewell-media.ts(⑦~⑩ 추가, ⑤에 통지 관문·건너뜀 출력·실행 이력) · config/policy.ts(`retention` 5개 값) · utils/memorialLifecycle.ts(`calculateMemorialPurgeAt`·`calculateMemorialReconfirmDate`·`getReconfirmGate`) · services/noticeProvider.ts(신규) · services/memorialNoticeService.ts(신규) · services/memorialLifecycleService.ts(신규) · services/retentionPurgeService.ts(신규) · services/memorialPurgeService.ts(`findMemorialExpiredWithSkips`, 관문을 `judge`로) · controllers/accountDeletionController.ts(`FROZEN_PURGE_YEARS` 삭제 → `calculateMemorialPurgeAt`) · tests/retention-purge.test.ts(신규 19건) · package.json(test 목록에 추가) · .env.example(`EMAIL_ENABLED`·`ALIMTALK_ENABLED=false`)
+- **결과**: 스크립트 단계 번호는 기존 ①~⑥이 있어 겹치지 않게 ⑦~⑩로 붙였다 — 지시서 ①=⑦(동결·통지) · ②=기존 ⑤(관문 추가) · ③=⑧ · ④=⑨ · ⑤=⑩. 통지는 이메일(있으면)→알림톡(연락처 있으면)→둘 다 안 되면 `FAILED`로 `MemorialNotice`에 남김(수단·결과·실패 코드만, 연락처·본문 없음). 플래그 꺼짐이거나 켜도 업체 미연결이면 `SENT`로 기록하지 않음. ⑤는 동결 추모관(closedAt 없음)에 한해 "RECONFIRM 마지막 시도가 SENT + 그 뒤 30일 경과"를 요구, 닫은·탈퇴로 닫힌 추모관은 관문 없음. ⑩ "끝난 시각" = `statusHistory`에서 현재 상태로 들어간 마지막 기록의 `at`, 없으면 `updatedAt`(마스킹이 앞당겨지지 않는 쪽). 재현: `npx tsc --noEmit`(backend) 0 · `node --require ts-node/register/transpile-only --test tests/retention-purge.test.ts` 19/19 · `npm test` 371/371(마이그레이션 전 시험 DB 기준). 🔴 **DB 마이그레이션 미적용** — 새 표 2개가 아직 DB에 없어 ⑦~⑩ dry-run·DB 질의(동결 대상·마스킹 갱신)는 실행해 보지 못했다. 사람 확인 후 `backup-db.ps1 -Target local` → `migrate deploy` → `test:db:migrate` 순서로 진행 예정
+- **편차**: ① 지시서에 없는 `PurgeRunLog`·`MemorialNotice` 두 표를 만들었다(실행 이력·통지 실패 기록을 둘 곳이 없었음). ② 동결 대상에서 `closedAt`·`hiddenAt` 있는 추모관을 뺐다 — 안 빼면 닫힌 추모관의 purgeAt(+30일)이 +3년으로 덮인다. ③ 지시서의 통지 "시점"만 있고 발송 단계가 없어, 만료 통지·재확인 통지 발송을 ⑦에 같이 넣었다(안 넣으면 `통지 실패 기록` 자체가 안 생기고 동결 추모관이 영영 안 지워진다). ④ 재확인 후 "30일 경과"를 파기 조건에 넣었다(늦게 보낸 통지 직후 파기 방지). ⑤ `accountDeletionController`의 3년 상수를 `calculateMemorialPurgeAt`으로 합쳤다(값 동일)
+- **다음 에이전트가 알아야 할 것**: 🔴 커밋 안 함. 🔴 **재확인 통지에 "응답하면 활성 복귀"(00-20 §8.1-1)를 받는 API·화면이 아직 없다** — 문구는 삭제 예정일과 `/my-obituaries-memorials` 링크만 적었다(없는 버튼을 약속하지 않으려고). 발송 업체 미정이라 운영에서 플래그를 켜도 통지는 실패로 남고 동결 추모관은 파기되지 않는다. 첫 동결 대상은 개설 후 395일(2027-11 이후)이라 지금 운영 DB에는 해당 건이 없다. `Lead.payload`·`ConsultRequest.content`에 개인정보가 들어 있을 수 있으나 지시서 범위(이름·연락처)만 마스킹했다
+
+<!-- Gemini 판정 1줄: ✅통과 / ❌반려(사유) / 🔄스펙갱신(고친 문서) -->
+
+---
 ## 2026-10-06 | [Sonnet] 99 목록 #17(User.refreshToken 칸 삭제) + #8(업체 문의 로그인 필수·서버 검사)
 
 - **근거 스펙**: docs/01_장사시설_매칭/01-05 §10-2 "2026-10-06 개발자 결정" 블록 · 99 목록 #17

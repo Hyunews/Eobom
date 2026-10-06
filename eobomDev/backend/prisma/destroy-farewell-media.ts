@@ -17,6 +17,14 @@
 //   ⑥ 운영 기록 보관기간 경과 — 접속기록 1년·운영자 감사 2년·에러 기록 90일(00-42 §5.2 ⑧, opsLogPurgeService).
 //   ④ User.deletionScheduledAt 경과(회원 탈퇴 유예 만료) — 그 회원의 ①②를 먼저, 그다음 계정 파기.
 //      User 행은 지우지 않고 익명화한다 — 부고장은 삭제, 추모관은 탈퇴 때 닫혀 자기 purgeAt에 파기(00-20 §6.3-2, accountPurgeService.ts).
+//   ⑦ 추모관 동결·통지(10-06, 00-20 §8.1-3) — expiresAt 도래 + frozenAt 없음 → frozenAt=지금·purgeAt=+3년.
+//      그리고 만료 통지(첫 기일+7일)·파기 30일 전 재확인 통지를 보내고 MemorialNotice에 남긴다(provider는 EMAIL_ENABLED·ALIMTALK_ENABLED, 기본 꺼짐 → 꺼져 있으면 "통지 실패" 기록).
+//      🔴 ⑤는 동결 추모관에 한해 "재확인 통지 SENT + 30일 경과"를 요구한다 — 통지 실패 기록이 있거나 안 보냈으면 건너뛰고 동결을 유지한다(§5.2-1).
+//   ⑧ SocialAccount.unlinkedAt + 1년 경과 → 행 삭제(00-19 제4조).
+//   ⑨ MemorialGuestbook 삭제 표시(deletedByOwnerAt·deletedByAuthorAt) + 3개월 경과 → 행 삭제. 🔴 운영자가 내린 hiddenAt 글은 제외(00-19 제4조·00-20 §6.2).
+//   ⑩ DB 원본 마스킹(00-19 제4조·제8조) — Lead(RESPONDED·CONVERTED·LOST)·ConsultRequest(COMPLETED·CANCELLED·INVALID)가 끝난 지 90일 지난 건의
+//      이름·연락처를 가린 값으로 덮어쓰고 maskedAt 기록. 접수번호·일시·대상·금액은 유지. "끝난 시각" = statusHistory의 현재 상태 마지막 기록(없으면 updatedAt).
+//   ⑤·⑦~⑩은 --confirm으로 실행한 단계마다 건수를 PurgeRunLog에 남긴다(보관기간 숫자는 config/policy.ts retention).
 //
 // 🔴 아카이브는 이 스크립트가 지우지 않는다(§5.6-8-1 D-9) — 백엔드는 아카이브 버킷에 대한
 // S3 자격증명을 원천적으로 갖지 않는다(새 토큰도 발급하지 않는다). 파기는 2단계다:
@@ -28,6 +36,7 @@
 
 import readline from 'readline';
 import prisma from '../src/config/prisma';
+import { POLICY } from '../src/config/policy';
 import { getVoiceBucket, isR2Enabled } from '../src/config/r2';
 import {
   cutoff,
@@ -39,8 +48,22 @@ import {
   countPendingArchivePurge,
 } from '../src/services/farewellPurgeService';
 import { findAccountExpired, planAccount, purgeAccount } from '../src/services/accountPurgeService';
-import { findMemorialExpired, planMemorial, purgeMemorial } from '../src/services/memorialPurgeService';
+import { findMemorialExpiredWithSkips, planMemorial, purgeMemorial } from '../src/services/memorialPurgeService';
 import { countOpsLogExpired, purgeOpsLogExpired, OPS_LOG_RETENTION_DAYS } from '../src/services/opsLogPurgeService';
+import { findFreezeTargets, freezeMemorial, findNoticeDue } from '../src/services/memorialLifecycleService';
+import { sendMemorialNotice } from '../src/services/memorialNoticeService';
+import { isEmailEnabled, isAlimtalkEnabled } from '../src/services/noticeProvider';
+import {
+  countSocialUnlinkedExpired,
+  purgeSocialUnlinkedExpired,
+  countGuestbookDeletedExpired,
+  purgeGuestbookDeletedExpired,
+  findLeadMaskTargets,
+  findConsultMaskTargets,
+  maskLeads,
+  maskConsultRequests,
+  recordPurgeRun,
+} from '../src/services/retentionPurgeService';
 
 const confirmed = process.argv.includes('--confirm');
 
@@ -155,10 +178,14 @@ async function main(): Promise<void> {
   // ⑤ purgeAt 경과 추모관 — 방명록·헌화·사진(로컬 디스크 파일 포함)과 함께 삭제(00-20 §8.1-1, memorialPurgeService).
   // 🔴 dry-run이면 대상 id(앞 8자리)와 건수만 찍는다. 부고장은 지우지 않고 memorialId만 끊는다.
   // 순서상 ④ 뒤 — 탈퇴로 닫힌 추모관은 계정 익명화와 무관하게 자기 purgeAt에 지워진다.
-  const memorialsExpired = await findMemorialExpired();
+  // 🔴 동결 추모관은 파기 전 재확인 통지가 SENT여야 한다(⑦이 보낸다). 막힌 건은 사유와 함께 건너뛴다 — 동결 유지.
+  const { targets: memorialsExpired, skipped: memorialsSkipped } = await findMemorialExpiredWithSkips();
   const memorialPlans = [];
   for (const m of memorialsExpired) memorialPlans.push(await planMemorial(m));
-  console.log(`[⑤추모관 파기] 대상 ${memorialPlans.length}개`);
+  console.log(`[⑤추모관 파기] 대상 ${memorialPlans.length}개 · 통지 관문에 막혀 건너뜀 ${memorialsSkipped.length}개`);
+  for (const s of memorialsSkipped) {
+    console.log(`   - ${s.id.slice(0, 8)}… purgeAt ${s.purgeAt.toISOString()} 건너뜀(동결 유지): ${s.reason}`);
+  }
   for (const p of memorialPlans) {
     console.log(
       `   - ${p.memorial.id.slice(0, 8)}… purgeAt ${p.memorial.purgeAt?.toISOString()}` +
@@ -183,6 +210,7 @@ async function main(): Promise<void> {
       }
     }
     console.log(`[⑤추모관 파기] 완료: ${done}개 삭제 · 사진 파일 ${fileCount}개 삭제`);
+    await recordPurgeRun('MEMORIAL_PURGE', done);
   }
 
   // ⑥ 운영 기록 보관기간 경과(00-42 §5.2 ⑧) — 접속기록 1년 · 운영자 감사 2년 · 에러 기록 90일. createdAt 기준 단일 조건.
@@ -195,6 +223,81 @@ async function main(): Promise<void> {
   if (confirmed) {
     const r = await purgeOpsLogExpired();
     console.log(`[⑥운영 기록 만료] 완료: 접속기록 ${r.accessLog}건 · 운영자 감사 ${r.adminAuditLog}건 · 에러 기록 ${r.errorLog}건 삭제`);
+  }
+
+  // ⑦ 추모관 동결·통지(00-20 §5.2·§8.1-3). 닫힌(closedAt)·운영자가 내린(hiddenAt) 추모관은 대상이 아니다.
+  // 🔴 순서: ⑤ 파기 뒤에 둔다 — 방금 동결한 추모관은 purgeAt이 +3년이라 같은 실행에서 ⑤와 엮이지 않는다.
+  const freezeTargets = await findFreezeTargets();
+  console.log(`[⑦추모관 동결] 대상 ${freezeTargets.length}개 (expiresAt 도래 · 동결 안 됨 · 닫히지 않음)`);
+  for (const t of freezeTargets) console.log(`   - ${t.id.slice(0, 8)}… expiresAt ${t.expiresAt.toISOString()}`);
+  const noticesDue = await findNoticeDue();
+  console.log(
+    `[⑦추모관 통지] 대상 ${noticesDue.length}건 (만료 통지 ${noticesDue.filter((n) => n.kind === 'EXPIRY').length} · 재확인 ${noticesDue.filter((n) => n.kind === 'RECONFIRM').length})` +
+      ` · 발송 기능: 이메일 ${isEmailEnabled() ? '켜짐' : '꺼짐'} · 알림톡 ${isAlimtalkEnabled() ? '켜짐' : '꺼짐'}`,
+  );
+  if (!isEmailEnabled() && !isAlimtalkEnabled() && noticesDue.length > 0) {
+    console.log('   🟡 발송 기능이 모두 꺼져 있다 — --confirm이면 보내지 않고 "통지 실패"로 기록한다(재확인 실패 건은 파기하지 않고 동결을 유지).');
+  }
+  if (confirmed) {
+    let frozen = 0;
+    for (const t of freezeTargets) {
+      try {
+        if (await freezeMemorial(t.id)) frozen++;
+      } catch (e) {
+        console.error(`   - ${t.id.slice(0, 8)}… 🔴 동결 실패(재실행 가능):`, e);
+      }
+    }
+    console.log(`[⑦추모관 동결] 완료: ${frozen}개 동결(purgeAt = 지금 + ${POLICY.retention.memorialPurgeAfterFreezeYears}년)`);
+    await recordPurgeRun('MEMORIAL_FREEZE', frozen);
+
+    let sent = 0;
+    let failed = 0;
+    for (const n of noticesDue) {
+      try {
+        const r = await sendMemorialNotice(n.id, n.kind);
+        if (r.result === 'SENT') sent++;
+        else failed++;
+        // 🔴 연락처·본문은 찍지 않는다 — id 앞 8자리·수단·실패 코드만(security.md §1)
+        console.log(`   - ${n.id.slice(0, 8)}… ${n.kind} ${r.result}${r.channel ? ` (${r.channel})` : ''}${r.failReason ? ` · ${r.failReason}` : ''}`);
+      } catch (e) {
+        failed++;
+        console.error(`   - ${n.id.slice(0, 8)}… 🔴 통지 처리 실패:`, e);
+      }
+    }
+    console.log(`[⑦추모관 통지] 완료: 발송 ${sent}건 · 통지 실패 ${failed}건`);
+  }
+
+  // ⑧ 소셜 연동 해제 기록 — unlinkedAt + 1년(00-19 제4조). 연동 중인 행(unlinkedAt 없음)은 조건에 걸리지 않는다.
+  const socialCount = await countSocialUnlinkedExpired();
+  console.log(`[⑧소셜 연동 해제 기록] 대상 ${socialCount}건 (해제 후 ${POLICY.retention.socialUnlinkedYears}년 경과)`);
+  if (confirmed) {
+    const n = await purgeSocialUnlinkedExpired();
+    console.log(`[⑧소셜 연동 해제 기록] 완료: ${n}건 삭제`);
+    await recordPurgeRun('SOCIAL_UNLINKED', n);
+  }
+
+  // ⑨ 삭제된 방명록 — 상주·작성자가 삭제한 뒤 3개월(00-19 제4조). 🔴 운영자가 내린 hiddenAt 글은 제외.
+  const guestbookCount = await countGuestbookDeletedExpired();
+  console.log(`[⑨삭제된 방명록] 대상 ${guestbookCount}건 (삭제 후 ${POLICY.retention.deletedGuestbookMonths}개월 경과 · 운영자가 내린 글 제외)`);
+  if (confirmed) {
+    const n = await purgeGuestbookDeletedExpired();
+    console.log(`[⑨삭제된 방명록] 완료: ${n}건 삭제`);
+    await recordPurgeRun('GUESTBOOK_DELETED', n);
+  }
+
+  // ⑩ DB 원본 마스킹 — 끝난 지 90일 지난 문의·상담의 이름·연락처(00-19 제4조·제8조). 접수번호·일시·대상·금액은 그대로.
+  // 🔴 이름·연락처는 찍지 않는다 — 건수만(security.md §1).
+  const leadTargets = await findLeadMaskTargets();
+  const consultTargets = await findConsultMaskTargets();
+  console.log(
+    `[⑩DB 원본 마스킹] 대상 업체 문의 ${leadTargets.length}건 · 상담 신청 ${consultTargets.length}건 (끝난 지 ${POLICY.retention.contactMaskAfterEndDays}일 경과 · maskedAt 없음)`,
+  );
+  if (confirmed) {
+    const leadDone = await maskLeads(leadTargets);
+    const consultDone = await maskConsultRequests(consultTargets);
+    console.log(`[⑩DB 원본 마스킹] 완료: 업체 문의 ${leadDone}건 · 상담 신청 ${consultDone}건 마스킹`);
+    await recordPurgeRun('CONTACT_MASK_LEAD', leadDone);
+    await recordPurgeRun('CONTACT_MASK_CONSULT', consultDone);
   }
 
   // 🟡 "완료"라고만 찍으면 절반만 지운 상태를 다 지운 것으로 오인한다(§5.6-8-1-1 #48).

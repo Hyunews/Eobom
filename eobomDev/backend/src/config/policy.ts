@@ -29,4 +29,13 @@ export const POLICY = {
     activeDays: 395, // MEMORIAL_ACTIVE_DAYS — 활성 기간(13개월). 연장 시에도 이 값으로 재설정(1년 아님)
     noticeAfterAnniversaryDays: 7, // MEMORIAL_NOTICE_AFTER_ANNIVERSARY_DAYS — 만료 통지 = 첫 기일 + 7일
   },
+  // 파기·마스킹 보관기간 — 수동 파기 스크립트(prisma/destroy-farewell-media.ts)가 읽는다.
+  // 🔴 각 값은 개인정보처리방침(docs 00-19)·추모관 정책(00-20)의 문구와 같은 값이다 — 여기를 바꾸면 해당 조항도 같이 고쳐야 한다.
+  retention: {
+    memorialPurgeAfterFreezeYears: 3, // 00-20 §5.2-1·§8.1-3 · 00-19 제4조 "추모관 … 동결 후 3년이 지나면 파기"
+    memorialReconfirmDaysBeforePurge: 30, // 00-20 §5.2-1 · 00-19 제4조 "파기 30일 전에 개설자에게 다시 확인"
+    socialUnlinkedYears: 1, // 00-19 제4조 "소셜 계정 연동 해제 시 … 1년 경과 시 파기"
+    deletedGuestbookMonths: 3, // 00-19 제4조 "방명록 등 삭제된 게시물 … 3개월 후 완전 삭제"
+    contactMaskAfterEndDays: 90, // 00-19 제4조·제8조 "끝난 날부터 90일이 지나면 … 원본도 마스킹"
+  },
 } as const;

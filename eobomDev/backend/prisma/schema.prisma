@@ -481,9 +481,39 @@ model Memorial {
   tributes  MemorialTribute[] // 헌화 목록
   guestbook MemorialGuestbook[] // 방명록 목록
   photos    MemorialPhoto[] // 사진 앨범
+  notices   MemorialNotice[] // 만료 통지·파기 전 재확인 통지 발송 기록(00-20 §8.1-3)
 
   @@index([createdByUserId])
   @@index([visibility])
+}
+
+// 추모관 통지 기록(00-20 §5.2-1·§8.1-3, 10-06) — 통지마다 한 줄. 발송 수단·결과·시각이 "통지 실패" 판정의 근거다.
+// 🔴 파기 단계는 이 표를 읽는다 — 동결 추모관은 "재확인(RECONFIRM)이 마지막 시도에서 SENT"일 때만 파기한다(통지가 닿지 않으면 파기하지 않는다).
+// 🔴 이메일 주소·전화번호·본문은 넣지 않는다 — 수단(channel)과 실패 코드(failReason)만. 추모관이 파기되면 함께 지워진다(Cascade).
+model MemorialNotice {
+  id         String   @id @default(uuid()) // 고유 식별자(UUID)
+  memorialId String // 통지 대상 추모관
+  memorial   Memorial @relation(fields: [memorialId], references: [id], onDelete: Cascade)
+  kind       String // EXPIRY(만료 통지, §8.1-2) | RECONFIRM(파기 30일 전 재확인, §8.1-1)
+  channel    String? // EMAIL | ALIMTALK — 실제로 보낸(또는 마지막으로 시도한) 수단. 시도할 수단이 없었으면 null
+  result     String // SENT | FAILED
+  failReason String? // FAILED일 때 코드(예: NO_CONTACT, EMAIL_DISABLED, ALIMTALK_NOT_CONFIGURED) — 개인정보 없음
+  createdAt  DateTime @default(now()) // 발송 시도 시각(UTC 저장). 한국 시간은 createdAtKst 칸(아래 줄)
+  createdAtKst DateTime? // 보기 전용 · DB 트리거가 createdAt+9시간(한국 시간)으로 채움 · 🔴 코드에서 읽기·쓰기 금지(트리거가 쓰기를 덮어씀)
+
+  @@index([memorialId, kind, createdAt])
+}
+
+// 파기·마스킹 배치 실행 이력(00-19 제8조 "실행 이력을 기록합니다", 10-06). --confirm으로 실제 실행한 단계마다 한 줄.
+// 🔴 건수만 남긴다 — 어떤 사람·어떤 건이었는지는 넣지 않는다(개인정보 아님). dry-run은 남기지 않는다.
+model PurgeRunLog {
+  id        String   @id @default(uuid()) // 고유 식별자(UUID)
+  step      String // MEMORIAL_FREEZE | MEMORIAL_PURGE | SOCIAL_UNLINKED | GUESTBOOK_DELETED | CONTACT_MASK_LEAD | CONTACT_MASK_CONSULT
+  affected  Int // 처리한 건수
+  createdAt DateTime @default(now()) // 실행 시각(UTC 저장). 한국 시간은 createdAtKst 칸(아래 줄)
+  createdAtKst DateTime? // 보기 전용 · DB 트리거가 createdAt+9시간(한국 시간)으로 채움 · 🔴 코드에서 읽기·쓰기 금지(트리거가 쓰기를 덮어씀)
+
+  @@index([createdAt])
 }
 
 // 헌화(§4.4) — 비회원 허용, 로그인 사용자는 1인 1회 보장. IP는 원문 저장 금지, 해시만(§9.1-6).
