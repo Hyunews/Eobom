@@ -500,8 +500,8 @@ model MemorialNotice {
   failReason String? // FAILED일 때 코드(예: NO_CONTACT, EMAIL_DISABLED, ALIMTALK_NOT_CONFIGURED) — 개인정보 없음
   // §8.1-4 ① 연장 링크 — 통지마다 무작위 토큰을 만들고 DB엔 해시(sha256)만 둔다. 원문은 통지 본문에만 있다.
   // 유효 = 그 추모관의 purgeAt(없으면 expiresAt + 30일)까지 · 1회용(usedAt이 차면 끝). 통지 행이 아닌 EXTEND 행은 둘 다 null.
-  tokenHash  String?   @unique
-  usedAt     DateTime?
+  tokenHash  String?   @unique // 연장 링크 토큰의 sha256 해시(원문은 저장하지 않음) — 통지 행에만 값이 있다
+  usedAt     DateTime? // 연장 링크를 사용한 시각 — 값이 있으면 그 토큰은 끝(1회용)
   createdAt  DateTime @default(now()) // 발송 시도 시각(UTC 저장). 한국 시간은 createdAtKst 칸(아래 줄)
   createdAtKst DateTime? // 보기 전용 · DB 트리거가 createdAt+9시간(한국 시간)으로 채움 · 🔴 코드에서 읽기·쓰기 금지(트리거가 쓰기를 덮어씀)
 
