@@ -110,6 +110,13 @@ export async function isStillMediaExpired(id: string): Promise<boolean> {
   return row.mediaDeletedAt <= cutoff();
 }
 
+// 밀려난 음성(FarewellMediaRetired) 재검증 — 아직 안 지웠고 deletedAt + 30일이 지났는가(D-12 #71).
+export async function isStillRetiredExpired(id: string): Promise<boolean> {
+  const row = await prisma.farewellMediaRetired.findUnique({ where: { id }, select: { purgedAt: true, deletedAt: true } });
+  if (!row || row.purgedAt) return false;
+  return row.deletedAt <= cutoff();
+}
+
 export async function isStillLetterExpired(id: string): Promise<boolean> {
   const row = await prisma.farewellMessage.findUnique({ where: { id }, select: { deletedAt: true } });
   if (!row || !row.deletedAt) return false;

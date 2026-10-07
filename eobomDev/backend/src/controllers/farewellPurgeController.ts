@@ -5,8 +5,11 @@ import { verifyAdminBearerToken } from './adminController';
 import {
   findMediaExpired,
   findLetterExpired,
+  findRetiredExpired,
   isStillMediaExpired,
   isStillLetterExpired,
+  isStillRetiredExpired,
+  purgeRetiredRow,
   purgeMediaRow,
   purgeLetterRow,
   listPendingArchivePurge,
@@ -17,16 +20,24 @@ import {
 // 그건 Cloudflare 대시보드 전용이다(§5.6-8-3-1). 로직은 farewellPurgeService.ts를
 // 스크립트(destroy-farewell-media.ts)와 공유한다 — 한쪽만 고쳐지는 날이 오지 않게 한다.
 
-type PurgeItem = { id: string; type: 'MEDIA' | 'LETTER' };
+// RETIRED = 삭제 유예 중 새 음성이 밀어낸 이전 음성(FarewellMediaRetired, D-12 #71). id는 그 표의 id다.
+type PurgeItem = { id: string; type: 'MEDIA' | 'LETTER' | 'RETIRED' };
 
-// 만료 대상 목록 (`GET /api/admin/farewell-purge/expired`) — ①②를 구분해서 표시(#54).
+// 감사 로그 targetIds 항목 접두(#73) — 06-05 §6.5. 접두 없는 항목은 접두 도입 전의 옛 행이다.
+const AUDIT_PREFIX = { MEDIA: 'V', LETTER: 'L', RETIRED: 'R' } as const;
+type AuditKind = 'V' | 'L' | 'R';
+const isAuditKind = (v: unknown): v is AuditKind => v === 'V' || v === 'L' || v === 'R';
+
+// 만료 대상 목록 (`GET /api/admin/farewell-purge/expired`) — ①②와 밀려난 음성을 구분해서 표시(#54·#71).
 export const listFarewellPurgeExpired = async (req: Request, res: Response) => {
   try {
-    const [media, letter] = await Promise.all([findMediaExpired(), findLetterExpired()]);
+    const [media, letter, retired] = await Promise.all([findMediaExpired(), findLetterExpired(), findRetiredExpired()]);
     return res.json({
       status: 'success',
       data: {
         media: media.map((r) => ({ id: r.id, title: r.title, mediaDeletedAt: r.mediaDeletedAt })),
+        // 🔴 개인정보 없음 — 밀려난 음성(FarewellMediaRetired) id·삭제 시각뿐(편지 id·R2 키는 내려주지 않는다)
+        retired: retired.map((r) => ({ id: r.id, deletedAt: r.deletedAt })),
         letter: letter.map((r) => ({ id: r.id, title: r.title, deletedAt: r.deletedAt, hasMedia: !!r.mediaKey })),
       },
     });
@@ -64,7 +75,7 @@ export const executeFarewellPurge = async (req: Request, res: Response) => {
   if (!Array.isArray(items) || items.length === 0) {
     return res.status(400).json({ status: 'error', message: '파기할 항목을 선택해주세요.' });
   }
-  if (items.some((it) => !it.id || (it.type !== 'MEDIA' && it.type !== 'LETTER'))) {
+  if (items.some((it) => !it.id || (it.type !== 'MEDIA' && it.type !== 'LETTER' && it.type !== 'RETIRED'))) {
     return res.status(400).json({ status: 'error', message: '요청 형식이 올바르지 않습니다.' });
   }
   // 🔴 실행 직전 대상 건수를 사람이 직접 입력해 확인시킨다(#57) — 오클릭 차단.
@@ -83,7 +94,8 @@ export const executeFarewellPurge = async (req: Request, res: Response) => {
 
     // 서버 재검증 — 화면이 보낸 id를 그대로 믿지 않는다(§5.6-8-3-1).
     const stillValid = await Promise.all(
-      items.map((it) => (it.type === 'MEDIA' ? isStillMediaExpired(it.id) : isStillLetterExpired(it.id))),
+      items.map((it) =>
+        it.type === 'MEDIA' ? isStillMediaExpired(it.id) : it.type === 'RETIRED' ? isStillRetiredExpired(it.id) : isStillLetterExpired(it.id)),
     );
     const invalid = items.filter((_, i) => !stillValid[i]);
     if (invalid.length > 0) {
@@ -96,6 +108,14 @@ export const executeFarewellPurge = async (req: Request, res: Response) => {
 
     const purgedKeys: string[] = [];
     for (const it of items) {
+      if (it.type === 'RETIRED') {
+        // 원장 → R2 원본 삭제 → purgedAt(행은 지우지 않는다). 편지 행과 무관하다.
+        const retiredRow = await prisma.farewellMediaRetired.findUnique({ where: { id: it.id }, select: { id: true, mediaKey: true } });
+        if (!retiredRow) continue;
+        const key = await purgeRetiredRow(retiredRow);
+        if (key) purgedKeys.push(key);
+        continue;
+      }
       const row = await prisma.farewellMessage.findUnique({ where: { id: it.id }, select: { id: true, mediaKey: true } });
       if (!row) continue;
       const key = it.type === 'MEDIA' ? await purgeMediaRow(row) : await purgeLetterRow(row);
@@ -107,7 +127,8 @@ export const executeFarewellPurge = async (req: Request, res: Response) => {
       data: {
         adminId: decoded.id,
         adminName: decoded.name,
-        targetIds: items.map((it) => it.id).join(','),
+        // 종류 접두(#73) — V:음성만 · L:편지 통째 · R:밀려난 음성(FarewellMediaRetired.id라 편지 id와 섞이지 않게).
+        targetIds: items.map((it) => `${AUDIT_PREFIX[it.type]}:${it.id}`).join(','),
         mediaKeys: purgedKeys.join(','),
         count: items.length,
       },
@@ -117,6 +138,48 @@ export const executeFarewellPurge = async (req: Request, res: Response) => {
   } catch (error) {
     console.error('유족 메시지 파기 실행 실패:', error);
     return res.status(500).json({ status: 'error', message: '파기 처리 중 오류가 발생했습니다.' });
+  }
+};
+
+// 파기 기록 보기 (`GET /api/admin/farewell-purge/logs?type=V|L|R&page=&pageSize=`) — #74.
+// 🔴 읽기 전용 · 편지 제목/본문·R2 키를 붙이지 않는다(대상 id와 건수뿐). 최근 순.
+// type 필터 = 해당 접두 항목이 targetIds에 하나라도 있는 행. 접두 없는 옛 행은 type 없이(전체)만 보인다.
+export const listFarewellPurgeLogs = async (req: Request, res: Response) => {
+  try {
+    const rawType = typeof req.query.type === 'string' ? req.query.type : '';
+    if (rawType && !isAuditKind(rawType)) {
+      return res.status(400).json({ status: 'error', message: 'type은 V, L, R 중 하나여야 합니다.' });
+    }
+    const page = Math.max(1, parseInt(String(req.query.page ?? '1'), 10) || 1);
+    const pageSize = Math.min(100, Math.max(1, parseInt(String(req.query.pageSize ?? '20'), 10) || 20));
+    // 항목은 `X:<uuid>`를 콤마로 이은 것 — uuid에는 콤마·콜론이 없어 맨 앞(startsWith)·중간(`,X:`)만 보면 된다.
+    const where = rawType
+      ? { OR: [{ targetIds: { startsWith: `${rawType}:` } }, { targetIds: { contains: `,${rawType}:` } }] }
+      : {};
+    const [total, rows] = await Promise.all([
+      prisma.farewellPurgeAuditLog.count({ where }),
+      prisma.farewellPurgeAuditLog.findMany({
+        where,
+        orderBy: { executedAt: 'desc' },
+        skip: (page - 1) * pageSize,
+        take: pageSize,
+        select: { id: true, adminName: true, targetIds: true, count: true, executedAt: true },
+      }),
+    ]);
+    const logs = rows.map((r) => {
+      const targets = r.targetIds ? r.targetIds.split(',') : [];
+      const counts = { V: 0, L: 0, R: 0, unknown: 0 };
+      for (const t of targets) {
+        const kind = t.charAt(1) === ':' ? t.charAt(0) : '';
+        if (isAuditKind(kind)) counts[kind] += 1;
+        else counts.unknown += 1;
+      }
+      return { id: r.id, executedAt: r.executedAt, adminName: r.adminName, count: r.count, counts, targets };
+    });
+    return res.json({ status: 'success', data: { logs, total, page, pageSize } });
+  } catch (error) {
+    console.error('파기 기록 조회 실패:', error);
+    return res.status(500).json({ status: 'error', message: '기록 조회 중 오류가 발생했습니다.' });
   }
 };
 

@@ -26,6 +26,7 @@ import {
   listFarewellPurgeExpired,
   listFarewellPendingArchive,
   executeFarewellPurge,
+  listFarewellPurgeLogs,
   completeArchivePurge,
 } from '../controllers/farewellPurgeController';
 
@@ -83,6 +84,7 @@ router.get('/users/:id', getUserDetailForAdmin);
 router.get('/farewell-purge/expired', listFarewellPurgeExpired);
 router.get('/farewell-purge/pending-archive', listFarewellPendingArchive);
 router.post('/farewell-purge/execute', executeFarewellPurge);
+router.get('/farewell-purge/logs', listFarewellPurgeLogs);
 router.patch('/farewell-purge/pending-archive/:id/complete', completeArchivePurge);
 
 export default router;

@@ -23,6 +23,7 @@ const PROTECTED: Protected[] = [
   { ns: '/api/admin', owner: 'admin', method: 'GET', path: '/api/admin/users' },
   { ns: '/api/admin', owner: 'admin', method: 'GET', path: '/api/admin/farewell-purge/expired' },
   { ns: '/api/admin', owner: 'admin', method: 'POST', path: '/api/admin/farewell-purge/execute' },
+  { ns: '/api/admin', owner: 'admin', method: 'GET', path: '/api/admin/farewell-purge/logs' },
   // /api/partner — 핸들러마다 verifyPartnerBearerToken
   { ns: '/api/partner', owner: 'partner', method: 'GET', path: '/api/partner/me' },
   { ns: '/api/partner', owner: 'partner', method: 'GET', path: '/api/partner/leads' },

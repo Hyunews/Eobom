@@ -46,7 +46,22 @@ const formatRemaining = (iso: string, nowMs: number): string => {
 };
 
 // 06-05 §5.6-8-3 D-11 — 선택 대상 하나(파기 목록의 ①음성/②편지 행)
-type PurgeItem = { id: string; type: 'MEDIA' | 'LETTER'; title: string | null; expiredAt: string; hasMedia?: boolean };
+type PurgeItem = { id: string; type: 'MEDIA' | 'LETTER' | 'RETIRED'; title: string | null; expiredAt: string; hasMedia?: boolean };
+type PurgeLogRow = {
+  id: string;
+  executedAt: string;
+  adminName: string;
+  count: number;
+  counts: { V: number; L: number; R: number; unknown: number };
+  targets: string[];
+};
+const PURGE_LOG_PAGE_SIZE = 20;
+const PURGE_LOG_FILTERS: { value: '' | 'V' | 'R' | 'L'; label: string }[] = [
+  { value: '', label: '전체' },
+  { value: 'V', label: '삭제된 음성' },
+  { value: 'R', label: '밀려난 음성' },
+  { value: 'L', label: '편지 통째' },
+];
 
 const EXPERT_CATEGORY_LABELS: Record<string, string> = {
   LAWYER: '변호사',
@@ -142,6 +157,7 @@ export const AdminPage: React.FC = () => {
   // 아카이브 2단계 미이행 목록. 🔴 일괄 버튼 없음 — 건별 선택만(§5.6-8-3-2).
   const [farewellMedia, setFarewellMedia] = useState<PurgeItem[]>([]);
   const [farewellLetter, setFarewellLetter] = useState<PurgeItem[]>([]);
+  const [farewellRetired, setFarewellRetired] = useState<PurgeItem[]>([]); // D-12 #71 — 새 음성이 밀어낸 이전 음성
   const [pendingArchive, setPendingArchive] = useState<any[]>([]);
   const [selectedPurge, setSelectedPurge] = useState<Set<string>>(new Set()); // key = `${type}:${id}`
   const [showPurgeConfirm, setShowPurgeConfirm] = useState(false);
@@ -149,6 +165,11 @@ export const AdminPage: React.FC = () => {
   const [purgePassword, setPurgePassword] = useState('');
   const [purgeError, setPurgeError] = useState('');
   const [purgeSubmitting, setPurgeSubmitting] = useState(false);
+  // #74 파기 기록 — 읽기 전용. 종류 필터(V음성·R밀려난 음성·L편지 통째, ''=전체) + 페이지.
+  const [purgeLogs, setPurgeLogs] = useState<PurgeLogRow[]>([]);
+  const [purgeLogType, setPurgeLogType] = useState<'' | 'V' | 'R' | 'L'>('');
+  const [purgeLogPage, setPurgeLogPage] = useState(1);
+  const [purgeLogTotal, setPurgeLogTotal] = useState(0);
 
   // 00-37 §6 A-2 #5 — 추모관 목록 + 방명록 숨김
   // 🔄 09-30 신고 폐지 — 항상 전체 목록을 본다(신고 필터·review 버튼 없음).
@@ -302,6 +323,9 @@ export const AdminPage: React.FC = () => {
         setFarewellMedia(
           expiredData.data.media.map((r: any) => ({ id: r.id, type: 'MEDIA', title: r.title, expiredAt: r.mediaDeletedAt })),
         );
+        setFarewellRetired(
+          (expiredData.data.retired ?? []).map((r: any) => ({ id: r.id, type: 'RETIRED', title: null, expiredAt: r.deletedAt })),
+        );
         setFarewellLetter(
           expiredData.data.letter.map((r: any) => ({ id: r.id, type: 'LETTER', title: r.title, expiredAt: r.deletedAt, hasMedia: r.hasMedia })),
         );
@@ -309,6 +333,26 @@ export const AdminPage: React.FC = () => {
         setLoadError(expiredData.message || '조회 실패');
       }
       if (pendingData.status === 'success') setPendingArchive(pendingData.data);
+    } catch {
+      setLoadError('서버와 통신 중 오류가 발생했습니다.');
+    }
+  };
+
+  // 06-05 §8 #74 — 파기 기록(읽기 전용). 종류 필터·페이지는 인자로 받아 상태 갱신 직후에도 맞게 부른다.
+  const loadPurgeLogs = async (type = purgeLogType, page = purgeLogPage) => {
+    if (!token) return;
+    try {
+      const qs = new URLSearchParams({ page: String(page), pageSize: String(PURGE_LOG_PAGE_SIZE) });
+      if (type) qs.set('type', type);
+      const res = await authFetch(`${BACKEND_URL}/api/admin/farewell-purge/logs?${qs.toString()}`);
+      if (!res) return;
+      const data = await res.json();
+      if (data.status === 'success') {
+        setPurgeLogs(data.data.logs);
+        setPurgeLogTotal(data.data.total);
+      } else {
+        setLoadError(data.message || '기록 조회 실패');
+      }
     } catch {
       setLoadError('서버와 통신 중 오류가 발생했습니다.');
     }
@@ -541,6 +585,12 @@ export const AdminPage: React.FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
 
+  // 파기 기록은 탭에 들어올 때·종류 필터·페이지가 바뀔 때 불러온다(만료 목록과 별개).
+  useEffect(() => {
+    if (tab === 'FAREWELL_PURGE') loadPurgeLogs();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [token, tab, purgeLogType, purgeLogPage]);
+
   // 상담 상태 필터는 그 탭에 있을 때만 다시 불러온다(탭 전환 useEffect와 별개)
   useEffect(() => {
     if (tab === 'CONSULT_REQUESTS') loadConsultRequests();
@@ -569,7 +619,7 @@ export const AdminPage: React.FC = () => {
     setPurgeError('');
     const items: PurgeItem[] = Array.from(selectedPurge).map((key) => {
       const [type, id] = key.split(':');
-      return { id, type: type as 'MEDIA' | 'LETTER' } as PurgeItem;
+      return { id, type: type as 'MEDIA' | 'LETTER' | 'RETIRED' } as PurgeItem;
     });
     if (Number(purgeCountInput) !== items.length) {
       setPurgeError(`입력한 건수가 선택된 건수(${items.length}건)와 다릅니다.`);
@@ -598,6 +648,8 @@ export const AdminPage: React.FC = () => {
       }
       setShowPurgeConfirm(false);
       loadFarewellPurge();
+      setPurgeLogPage(1);
+      loadPurgeLogs(purgeLogType, 1);
     } catch {
       setPurgeError('서버와 통신 중 오류가 발생했습니다.');
     } finally {
@@ -1106,6 +1158,30 @@ export const AdminPage: React.FC = () => {
 
             <div>
               <h3 style={{ fontSize: '1rem', color: 'var(--primary-color)', marginBottom: '0.5rem' }}>
+                ①-2 밀려난 음성 만료 (삭제 유예 중 새 음성이 들어와 옮겨진 이전 음성, 30일 경과) — {farewellRetired.length}건
+              </h3>
+              {farewellRetired.length === 0 ? (
+                <EmptyState />
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '1.2rem' }}>
+                  {farewellRetired.map((item) => {
+                    const key = `RETIRED:${item.id}`;
+                    return (
+                      <label key={key} className="card" style={{ padding: '0.8rem 1rem', display: 'flex', alignItems: 'center', gap: '0.7rem', cursor: 'pointer' }}>
+                        <input type="checkbox" checked={selectedPurge.has(key)} onChange={() => togglePurgeSelection(key)} />
+                        <span style={{ fontSize: '0.9rem' }}>이전 음성 (새 음성으로 교체됨)</span>
+                        <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginLeft: 'auto' }}>
+                          삭제 {item.expiredAt ? formatKstDate(item.expiredAt) : ''}
+                        </span>
+                      </label>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            <div>
+              <h3 style={{ fontSize: '1rem', color: 'var(--primary-color)', marginBottom: '0.5rem' }}>
                 ② 편지 전체 만료 (유예 30일 경과, 행 파기 대상) — {farewellLetter.length}건
               </h3>
               {farewellLetter.length === 0 ? (
@@ -1149,6 +1225,69 @@ export const AdminPage: React.FC = () => {
                       </button>
                     </div>
                   ))}
+                </div>
+              )}
+            </div>
+
+            {/* #74 파기 기록 — 읽기 전용. 🔴 편지 제목·본문·R2 키는 붙이지 않는다(대상 id와 건수뿐). */}
+            <div style={{ marginTop: '1.2rem' }}>
+              <h3 style={{ fontSize: '1rem', color: 'var(--primary-color)', marginBottom: '0.5rem' }}>파기 기록 — {purgeLogTotal}건</h3>
+              <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap', marginBottom: '0.6rem' }}>
+                {PURGE_LOG_FILTERS.map((f) => (
+                  <button
+                    key={f.value || 'ALL'}
+                    onClick={() => {
+                      setPurgeLogType(f.value);
+                      setPurgeLogPage(1);
+                    }}
+                    className="btn"
+                    style={{
+                      ...SMALL_BTN,
+                      backgroundColor: purgeLogType === f.value ? 'var(--primary-color)' : 'var(--surface-subtle)',
+                      color: purgeLogType === f.value ? '#fff' : 'var(--primary-color)',
+                    }}
+                  >
+                    {f.label}
+                  </button>
+                ))}
+              </div>
+              {purgeLogs.length === 0 ? (
+                <EmptyState />
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                  {purgeLogs.map((log) => {
+                    const summary = [
+                      log.counts.V > 0 && `삭제된 음성 ${log.counts.V}`,
+                      log.counts.R > 0 && `밀려난 음성 ${log.counts.R}`,
+                      log.counts.L > 0 && `편지 통째 ${log.counts.L}`,
+                      log.counts.unknown > 0 && `구분 없음 ${log.counts.unknown}`,
+                    ].filter(Boolean).join(' · ');
+                    return (
+                      <div key={log.id} className="card" style={{ padding: '0.8rem 1rem', display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+                        <div style={{ display: 'flex', gap: '0.7rem', flexWrap: 'wrap', alignItems: 'center', fontSize: '0.85rem' }}>
+                          <span>{formatKstDateTime(log.executedAt)}</span>
+                          <strong>{log.adminName}</strong>
+                          <span style={{ color: 'var(--text-muted)' }}>{summary}</span>
+                        </div>
+                        <div style={{ fontSize: '0.78rem', fontFamily: 'monospace', color: 'var(--text-muted)', wordBreak: 'break-all' }}>
+                          {log.targets.join(', ')}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+              {purgeLogTotal > PURGE_LOG_PAGE_SIZE && (
+                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.8rem', marginTop: '0.8rem' }}>
+                  <button disabled={purgeLogPage <= 1} onClick={() => setPurgeLogPage(purgeLogPage - 1)} className="btn" style={{ ...SMALL_BTN, backgroundColor: 'var(--surface-subtle)', opacity: purgeLogPage <= 1 ? 0.5 : 1 }}>
+                    이전
+                  </button>
+                  <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                    {purgeLogPage} / {Math.ceil(purgeLogTotal / PURGE_LOG_PAGE_SIZE)} 페이지
+                  </span>
+                  <button disabled={purgeLogPage >= Math.ceil(purgeLogTotal / PURGE_LOG_PAGE_SIZE)} onClick={() => setPurgeLogPage(purgeLogPage + 1)} className="btn" style={{ ...SMALL_BTN, backgroundColor: 'var(--surface-subtle)', opacity: purgeLogPage >= Math.ceil(purgeLogTotal / PURGE_LOG_PAGE_SIZE) ? 0.5 : 1 }}>
+                    다음
+                  </button>
                 </div>
               )}
             </div>

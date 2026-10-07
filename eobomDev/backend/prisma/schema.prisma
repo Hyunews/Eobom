@@ -872,7 +872,7 @@ model FarewellPurgeAuditLog {
   id         String   @id @default(uuid()) // 기본키(UUID)
   adminId    String // 실행한 운영자 id(FK 아님)
   adminName  String // 실행 시점 운영자 이름 스냅샷
-  targetIds  String // 파기한 FarewellMessage.id 목록(콤마 구분)
+  targetIds  String // 파기 대상 목록(콤마 구분) — 항목마다 종류 접두 V:음성 L:편지 R:밀려난 음성(FarewellMediaRetired.id). 접두 없음 = 옛 행
   mediaKeys  String // 같이 지운 R2 원본 키 목록(콤마 구분, 없으면 빈 문자열)
   count      Int // 몇 건
   executedAt DateTime @default(now()) // 파기 실행 시각(00-37)
