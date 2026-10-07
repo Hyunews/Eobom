@@ -7,7 +7,8 @@
 
 ## 설계 원칙
 
-1. **부팅은 가볍게, 나머지는 조건부로** — 매 세션 읽는 건 3개(합계 ≤11KB)뿐. 나머지는 해당 작업일 때만 읽는다.
+1. **부팅은 가볍게, 나머지는 조건부로** — 매 세션 읽는 건 3개뿐이고, **SessionStart 훅(`tools/session-boot.sh`)이 자동 주입**한다(08-28).
+   예산은 **훅이 내보내는 바이트 + 루트 `CLAUDE.md` ≤ 16KB**(`AGENTS.md` §9). 나머지는 해당 작업일 때만 읽는다.
 2. **한 영역은 한 에이전트만 쓴다** — 소유권을 나눠 중복 검증을 없앤다. 검증 게이트는 `walkthrough.md` 단 한 곳.
    Opus/Sonnet은 같은 CLI라 권한으로 못 나누므로, 이 둘만은 태그(`roles.md` §0)로 구분한다.
 3. **규칙은 글이 아니라 장치로 강제한다** — 사람이 기억해서 지키는 규칙은 지켜지지 않는다. `tools/harness-doctor.sh`가 검사한다.
@@ -22,7 +23,7 @@
 <저장소 루트>/
 ├── .harness/                 # 🤖 에이전트 계층 (Claude 소유)
 │   │
-│   │  ── 부팅 필수 (매 세션, 합계 ≤11KB) ──
+│   │  ── 부팅 필수 (매 세션 훅이 주입, ≤16KB) ──
 │   ├── AGENTS.md             # 🌟 행동 규칙 SSOT + 조건부 로드 표
 │   ├── memory/context.md     # 지금 상태 + "다음 할 일" 한 줄
 │   ├── memory/pending-approvals.md  # 사람 승인 대기 (여기 있는 건 착수 금지)
@@ -32,32 +33,47 @@
 │   ├── security.md           # 개인정보·시크릿·발행 게이트
 │   ├── done.md               # "완료"의 정의 (유일 정본)
 │   ├── record.md             # 기록 형식 (walkthrough 5필드·일지 태그)
-│   ├── systems.md            # 외부 연동 명부 (OAuth·지도·DB·배포)
+│   ├── systems.md            # 외부 연동 명부 (OAuth·지도·DB·저장소·배포)
+│   ├── db-safety.md          # 🔴 DB 쓰기 전 백업 절차 (로컬·운영)
 │   │
 │   ├── CLAUDE.md / GEMINI.md # 에이전트별 역할 (얇게 유지)
-│   ├── memory/               # 구조화 메모리 (MEMORY.md + 타입별 노트)
+│   ├── memory/               # context·pending-approvals·backlog + 타입별 노트(feedback/project/reference)
 │   ├── skills/               # 재사용 절차 (2회차부터 기록)
-│   ├── tools/                # harness-doctor.sh, gbrain-doctor.sh 등
+│   ├── docs-audit/           # docs 전수 정리 작업 기록 (단계·결정)
+│   ├── tools/                # 아래 표
 │   └── _meta/                # 하네스 자체 설계 이력
 │
 ├── docs/                     # 📄 기획 SSOT (Claude:Opus 소유) + 작업일지_및_기록/
 ├── reports/                  # 📊 사람 열람용 HTML·PDF (Gemini 소유) — 🔴 git 커밋 제외·로컬 전용
 ├── assets/                   # 📁 원천 CSV·로고 (사람 소유)
-└── eobomDev/                 # 💻 소스코드 frontend/·backend/ (Claude 소유)
+└── eobomDev/                 # 💻 소스코드 frontend/·backend/·workers/ (Claude:Sonnet 소유)
 ```
+
+### 주요 도구 (`tools/`)
+
+| 도구 | 하는 일 | 언제 |
+| :--- | :--- | :--- |
+| `session-boot.sh` | 부팅 3개를 세션에 주입 | SessionStart 훅 (자동) |
+| `read-guard.js` · `token-guard.js` · `korean-guard.js` | 큰 파일 통독 차단 · 토큰 낭비 차단 · 한글 문서 손상 방지 | 도구 호출 전 훅 (자동) |
+| `harness-doctor.sh` | 예산·경로·링크·신선도 점검 | 세션 끝 (`done.md` §3) |
+| `backup-db.ps1 -Target local\|prod` | DB 백업 — **`-Target` 필수** | DB 쓰기 전 (`db-safety.md`) |
+| `migrate-prod.ps1` | 운영 스키마 반영 한 줄 | 운영 반영 (사람) |
+| `docs-ledger.js` · `generate-db-doc.js` | docs 대장 · DB 사전(`00-05`) 생성 | 문서 정리 |
 
 ---
 
 ## ⚙️ 워크플로우
 
-```
-[Claude:Opus]   docs/ 기획 확정
-   ↓  (Sonnet은 재검토하지 않고 그대로 신뢰하고 구현)
-[Claude:Sonnet] eobomDev/ 구현 + walkthrough.md 요약
-   ↓
+```text
+[Claude:Opus]   docs/ 기획 확정 → 핸드오프 블록 출력 후 멈춤 (코드는 짜지 않는다)
+   ↓  사람이 /model sonnet 으로 전환
+[Claude:Sonnet] eobomDev/ 구현 + 시험 + walkthrough.md 기록 → 커밋 메시지 초안만 내고 멈춤
+   ↓  사람이 실기동 확인 · 커밋
 ★ [Gemini] walkthrough.md만 읽고 통과/반려 — 통과하면 재확인 없이 종료
    (스펙갱신 판정이면 docs/ 수정은 Opus가. Gemini는 docs/ 쓰기 권한 없음)
 ```
+
+진행 상황은 [`memory/context.md`](./memory/context.md)(다음 할 일)와 미결 업무판(context.md 맨 위 링크)에서 본다.
 
 자세한 소유권·게이트·에스컬레이션 규칙은 [`roles.md`](./roles.md).
 
