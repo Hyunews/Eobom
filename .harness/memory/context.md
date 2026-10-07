@@ -10,8 +10,8 @@
 **업무판(정본)** https://claude.ai/artifact/HZUBGqnKnx6jFzuqK9HJPx — db `tasks`. 상태는 ArtifactData `update`(끝나면 "완료"). 답변에선 id 말고 **화면 제목**으로 부른다.
 
 **주 흐름 = A안(10-07)**: Sonnet은 업무판 개발 순서, Opus는 docs 정리 4단계로 복귀.
-- ✅[Sonnet] 유언장 사진 보관 P4 구현(10-07·미커밋·tsc·npm test 437·build 통과) → ▶ 실화면 확인 [Opus]: 로컬 `.env` R2_WILL_* 4개·로컬 DB·운영 DB 마이그레이션·Render 변수 모두 ✅(10-07) · 남은 것 = 커밋·배포 후 실화면(R2 실업로드 포함)
-- ▶[Claude:Opus] R600·R610 v1.2 재발행(대기열·m4a·음성 측정값)
+- ✅[Sonnet] 유언장 사진 보관 P4 구현(10-07·커밋 `cf24f7f` 푸시됨) → ✅ 로컬 실화면(Opus 10-07, 백업 `local-20261007-170745`): 문구 3곳·보관 체크·인식→목록·보기·다시 인식·삭제 API 통과 · ❌ **삭제 확인창이 보관 창 뒤에 깔림**(같은 z-index, `WillPhotoVault.tsx` 133↔144행) → ▶[Sonnet] 수정 → 운영 실화면(R2 실업로드)
+- ✅[Opus] R600·R610 v1.2 재발행(10-07, 바탕화면 `…_v1.2_20261007` · 원고·출처대조 갱신) — 남은 [확인 필요] = CLOVA Speech 무료 범위 20분↔15분
 - 🟡[Claude:Opus] docs 4단계 남은 것 = 월 1회 점검 관리계획 · plan.md 불일치 17줄
 - ✅ 하네스 분리(10-07) — 경위는 `_meta/`, 종결 backlog는 `backlog_아카이브_2610.md`, 보류 본문은 `backlog_보류.md`
 
