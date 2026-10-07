@@ -16,6 +16,22 @@
 > [`_아카이브_2608`](walkthrough_아카이브_2608.md)(08-31분). 남은 것 = 판정 대기 + 판정 표기 없음. 기준 → `record.md` §2-1.
 
 ---
+## 2026-10-07 | [Sonnet] 사진 인식 실기동 후속 b13·b14·b15 + CLOVA 음성 5분 측정
+
+- **근거 스펙**: docs/06_엔딩노트_유언/06-06 §4.1 · §6 단계 5-1 (10-07 지시)
+- **건드린 파일**: backend/src/services/clovaOcrProvider.ts · backend/src/controllers/ocrController.ts · backend/src/services/willRequirements.test.ts(시험 1건) · frontend/src/components/endingNote/WillPhotoUploadModal.tsx · frontend/src/components/endingNote/WillPhotoResult.tsx
+- **결과**:
+  - **b13 원인**: `big_img_test.jpg`는 글자가 없는 방 사진(7008×4672)이다. 브라우저와 같은 방식(긴 변 1960·JPEG 92 → 1960×1307, 397KB)으로 줄여 로컬에서 CLOVA OCR에 1회 보내니 1.1초 만에 `inferResult=FAILURE · ENGN-001 NO_TEXT`로 거절 — 용량·크기·내부 처리 문제가 아니다. 코드가 이를 일반 오류로 던져 502 "인식 서비스에 연결하지 못했습니다"로 나갔다. 고침: NO_TEXT → `NoRecognizedTextError`, 응답 502에 `code:'NO_TEXT'` + 문구 "사진에서 글자를 찾지 못했습니다. 글이 보이는 사진으로 다시 올리거나 아래 입력창에 직접 입력해 주세요."(처리한 건이라 하루 횟수는 그대로 둠 — 기존 동작). 화면은 502 또는 `NO_TEXT`면 알림 창(HeavyNoticeDialog)으로 이유를 띄운다(전에는 모달 아래쪽 한 줄이라 진행창만 사라진 것처럼 보임). 시험 1건 추가(NO_TEXT → NoRecognizedTextError)
+  - **b14**: `RecentOcr.pageTexts`(고친 쪽별 글) 추가. `WillPhotoResult`가 닫힐 때 한 번 부모로 넘기고(글자 칠 때마다 `EndingNotePage`가 다시 그려지지 않게), 다시 열면 `initialPageTexts`로 받는다. 브라우저 메모리만, 서버 저장 없음
+  - **b15**: `ACCEPT`에 `.heic,.heif,image/heic,image/heif` 추가 + 주석 갱신. 서버 변환 경로 그대로
+  - **음성 5분 측정(CLOVA 1회)**: `voice_test.m4a`(35.8초)를 이어 붙여 5분 m4a(2.8MB, 오디오 복사·moov 파일 끝)를 만들어 `ClovaSpeechProvider.transcribe`를 일회성 스크립트로 1회 호출(서버 기동 없음·재시도 없음·R2 저장 없음). **응답 4.6초**(5분 음성 → 2,061자). 프로세스 메모리 시작 95.4MB → **최고 120.6MB(+25MB)**, 이 중 힙 35.9MB·버퍼 43.3MB. 선형이라 해도 10분 ≈ 9~10초 → **×2도 115초 안에 충분히 든다**(여유 약 12배). 코드 변경 없음
+  - `npm test` 395건 통과 · backend/frontend `tsc --noEmit` 0 · frontend `npm run build` 통과
+- **편차**: b13 알림은 지시의 "502를 받으면 이유 알림"을 서버 코드 `NO_TEXT` 추가 + 화면에서 502 전부로 구현. 측정은 허용된 "일회성 스크립트" 방식을 택해 로컬 백엔드를 기동하지 않았다(그래서 업로드 수신(multer)·대기열 시간은 포함되지 않음)
+- **다음 에이전트가 알아야 할 것**: 🔴 미커밋. 🟡 측정 음성은 같은 문장 반복이라 CLOVA가 빠르게 끝냈을 수 있다 — 실제 10분 녹음은 시간이 더 걸릴 수 있어 운영 실측 때 재확인. 메모리는 provider 단독값이라 서버(multer 사본 + 동시 2건)에서는 더 커진다 — Render 플랜(512MB?) 확인과 함께 볼 것. 🟡 `big_img_test.jpg`는 "글자 없는 사진" 시험용으로 적합(운영에서 NO_TEXT 알림이 뜨는지 사람이 실기동으로 확인). 측정 파일·스크립트는 스크래치패드에만 있고 저장소에 없음
+
+<!-- Gemini 판정 1줄: ✅통과 / ❌반려(사유) / 🔄스펙갱신(고친 문서) -->
+
+---
 ## 2026-10-07 | [Sonnet] ⑤ 날인(붉은 인장) 못 찾음 보정 — 빨강 판정 교체·최소 크기 면적 비례
 
 - **근거 스펙**: docs/06_엔딩노트_유언/06-06 §9-1 T-3 · §9-1-1 (10-06)

@@ -91,6 +91,8 @@ export class ClovaOcrProvider implements OcrProvider {
 
     for (const img of images) {
       if (img.inferResult && img.inferResult !== 'SUCCESS') {
+        // 글자가 하나도 없는 사진은 CLOVA가 FAILURE + ENGN-001 NO_TEXT로 거절한다(10-07 b13 실측) — 연결 오류가 아니다.
+        if (/NO_TEXT/.test(img.message ?? '')) throw new NoRecognizedTextError('사진에서 인식된 글자가 없습니다.');
         throw new Error(`CLOVA OCR 처리 실패: ${img.inferResult} ${img.message ?? ''}`.trim());
       }
       // P2 — 응답의 images[] 하나가 곧 한 쪽이다(PDF는 쪽마다 하나씩 온다). 쪽별로 따로 모은다.

@@ -19,10 +19,10 @@ const MAX_FILES = 5;
 const MAX_PHOTO_SIZE_MB = 5;
 const MAX_PDF_SIZE_MB = 20;
 const MB = 1024 * 1024;
-// 🔄 09-28 Opus 편차 보정 [F] — §4.1 "HEIC — 1차 방어"는 accept로 jpg·png·pdf만 보여주는
-// 것까지다. heic/heif는 accept에서 뺀다 — 그래도 오면 서버 heic-convert(2차 방어)가 처리한다.
+// §4.1 형식 — jpg·png·pdf에 더해 10-07 heic·heif도 파일 선택 창에 보인다(폰 사진 그대로 올리도록).
+// 브라우저는 heic를 못 줄이므로 원본이 서버로 가고, 서버 heic-convert(2차 방어)가 jpg로 바꾼다.
 // tiff는 10-06 3차 결정으로 받지 않는다.
-const ACCEPT = '.jpg,.jpeg,.png,.pdf,image/jpeg,image/png,application/pdf';
+const ACCEPT = '.jpg,.jpeg,.png,.heic,.heif,.pdf,image/jpeg,image/png,image/heic,image/heif,application/pdf';
 const ALLOWED_EXT = ['.jpg', '.jpeg', '.png', '.pdf', '.heic', '.heif'];
 const isPdf = (f: File) => f.type === 'application/pdf' || f.name.toLowerCase().endsWith('.pdf');
 // §4.1 "크기 줄이기" — 브라우저 우선 축소 기준.
@@ -67,6 +67,7 @@ const resizeImageIfNeeded = async (file: File): Promise<File> => {
 export interface RecentOcr {
   files: File[];
   result: WillOcrResponse;
+  pageTexts?: string[]; // 10-07 — "인식된 글" 탭에서 고친 쪽별 글. 없으면 서버가 준 글 그대로.
 }
 
 interface WillPhotoUploadModalProps {
@@ -164,7 +165,10 @@ export const WillPhotoUploadModal: React.FC<WillPhotoUploadModalProps> = ({ hasE
     } catch (e) {
       if (e instanceof ApiError && e.code === 'ABORTED') return; // 닫아서 끊음 — 화면이 이미 없다
       // 서버가 이유별로 보낸 문구(대기·처리·연결)는 알림 창으로, 그 밖의 오류(형식·용량 등)는 기존 줄로.
-      const known = e instanceof ApiError && (e.code === 'BUSY' || e.code === 'SLOW' || e.code === 'UPSTREAM');
+      // 502(인식 실패·연결 오류)는 코드가 없어도 알림 창으로 — 줄 문구만으로는 진행창이 사라진 이유가 안 보인다.
+      const known =
+        e instanceof ApiError &&
+        (e.code === 'BUSY' || e.code === 'SLOW' || e.code === 'UPSTREAM' || e.code === 'NO_TEXT' || e.status === 502);
       const message = e instanceof ApiError ? e.baseMessage : '사진 인식에 실패했습니다. 아래 입력창에 직접 입력해 주세요.';
       if (known) setNotice(message);
       else setError(message);
@@ -178,7 +182,15 @@ export const WillPhotoUploadModal: React.FC<WillPhotoUploadModalProps> = ({ hasE
     return (
       <div className="v2-modal-overlay" role="dialog" aria-modal="true" aria-label="사진으로 불러오기" {...backdropCloseProps(onClose)}>
         <div className="v2-modal is-ocr-result" onClick={(e) => e.stopPropagation()}>
-          <WillPhotoResult files={files} result={result} hasExistingDraft={hasExistingDraft} onClose={onClose} onMerge={onMerge} />
+          <WillPhotoResult
+            files={files}
+            result={result}
+            hasExistingDraft={hasExistingDraft}
+            onClose={onClose}
+            onMerge={onMerge}
+            initialPageTexts={recent?.pageTexts}
+            onPageTextsChange={(pageTexts) => onRecognized({ files, result, pageTexts })}
+          />
         </div>
       </div>
     );

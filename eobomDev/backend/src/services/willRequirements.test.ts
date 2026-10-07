@@ -383,3 +383,26 @@ test('detectSeal — 실사진 wills002.jpg는 0개', async (t) => {
   if (!buf) return t.skip('사진 없음');
   assert.equal((await detectSeal(buf)).seals.length, 0);
 });
+
+// ── ClovaOcrProvider — 글자 없는 사진(10-07 b13) ──
+test('ClovaOcrProvider — CLOVA가 NO_TEXT로 거절하면 연결 오류가 아니라 "글자 없음"으로 던진다', async () => {
+  const { ClovaOcrProvider } = await import('./clovaOcrProvider');
+  const { NoRecognizedTextError } = await import('./heavyJob');
+  const saved = { fetch: globalThis.fetch, url: process.env.CLOVA_OCR_INVOKE_URL, secret: process.env.CLOVA_OCR_SECRET };
+  process.env.CLOVA_OCR_INVOKE_URL = 'https://example.invalid/general';
+  process.env.CLOVA_OCR_SECRET = 'x';
+  globalThis.fetch = (async () =>
+    new Response(
+      JSON.stringify({ images: [{ inferResult: 'FAILURE', message: '400 Bad Request: "{"errorCode":"ENGN-001","errorMsg":"NO_TEXT"}"' }] }),
+      { status: 200 },
+    )) as typeof fetch;
+  try {
+    await assert.rejects(() => new ClovaOcrProvider().recognize(Buffer.from('x'), 'image/jpeg'), NoRecognizedTextError);
+  } finally {
+    globalThis.fetch = saved.fetch;
+    if (saved.url === undefined) delete process.env.CLOVA_OCR_INVOKE_URL;
+    else process.env.CLOVA_OCR_INVOKE_URL = saved.url;
+    if (saved.secret === undefined) delete process.env.CLOVA_OCR_SECRET;
+    else process.env.CLOVA_OCR_SECRET = saved.secret;
+  }
+});

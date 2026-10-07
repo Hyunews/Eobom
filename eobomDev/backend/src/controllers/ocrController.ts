@@ -214,7 +214,8 @@ export const recognizeWillPhotos = (req: Request, res: Response) => {
       // CLOVA는 정상 응답했지만 글자가 없다 — 처리한 건이라 횟수는 그대로 둔다.
       return res.status(502).json({
         status: 'error',
-        message: '사진 인식에 실패했습니다. 다른 사진으로 다시 시도하거나 아래 입력창에 직접 입력해 주세요.',
+        code: 'NO_TEXT',
+        message: '사진에서 글자를 찾지 못했습니다. 글이 보이는 사진으로 다시 올리거나 아래 입력창에 직접 입력해 주세요.',
       });
     }
     if (counted) refundDailyCall(decoded.id);

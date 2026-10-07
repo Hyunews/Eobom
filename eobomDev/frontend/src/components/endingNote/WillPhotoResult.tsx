@@ -74,9 +74,12 @@ interface WillPhotoResultProps {
   hasExistingDraft: boolean;
   onClose: () => void;
   onMerge: (text: string, mode: 'replace' | 'append') => void;
+  // 10-07 b14 — "최근 인식 결과 보기"로 다시 열 때 고친 글로 연다. 화면을 닫을 때 쪽별 글을 한 번 넘기고(글자 칠 때마다 부모가 다시 그려지지 않게), 다시 열면 initialPageTexts로 받는다.
+  initialPageTexts?: string[];
+  onPageTextsChange?: (texts: string[]) => void;
 }
 
-export const WillPhotoResult: React.FC<WillPhotoResultProps> = ({ files, result, hasExistingDraft, onClose, onMerge }) => {
+export const WillPhotoResult: React.FC<WillPhotoResultProps> = ({ files, result, hasExistingDraft, onClose, onMerge, initialPageTexts, onPageTextsChange }) => {
   const isMobile = useIsMobile();
   const { pages, requirements } = result;
 
@@ -86,7 +89,14 @@ export const WillPhotoResult: React.FC<WillPhotoResultProps> = ({ files, result,
   const [fromReq, setFromReq] = useState(false); // 모바일 규칙 3 — 요건 행을 눌러 넘어왔을 때만 설명 줄·테두리
   const hlRef = useRef<HTMLDivElement>(null);
   const [confirmMode, setConfirmMode] = useState<'replace' | 'append' | null>(null); // 바꾸기·뒤에 붙이기 — 안내창 확인 대기
-  const [pageTexts, setPageTexts] = useState(() => pages.map((p) => p.text)); // "인식된 글" 탭에서 쪽별로 고친 글
+  const [pageTexts, setPageTexts] = useState(() =>
+    initialPageTexts && initialPageTexts.length === pages.length ? initialPageTexts : pages.map((p) => p.text),
+  ); // "인식된 글" 탭에서 쪽별로 고친 글
+  const pageTextsRef = useRef(pageTexts);
+  pageTextsRef.current = pageTexts;
+  const onPageTextsChangeRef = useRef(onPageTextsChange);
+  onPageTextsChangeRef.current = onPageTextsChange;
+  useEffect(() => () => onPageTextsChangeRef.current?.(pageTextsRef.current), []);
   const mergedText = pageTexts.join('\n\n').trim(); // 초안에 들어가는 글 = 고친 글(서버 text와 같은 이음 방식)
 
   // 브라우저에 있는 파일 → 보여줄 수 있는 것만 object URL. tiff는 브라우저가 못 그리고 pdf는 쪽 이미지가 없다(§6-1).
