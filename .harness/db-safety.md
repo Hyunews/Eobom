@@ -66,6 +66,22 @@
 - 운영 `migrate deploy`는 **직결 URL(`DIRECT_URL`)**이 필요하다(`render.yaml` 주석 · `systems.md` §4).
 - 🟡 사람의 기억에 맡기는 단계가 하나 늘었다 — 또 빠지면 §7.1대로 **백업 없으면 안 도는 래퍼**로 간다.
 
+### 2-2. 🔴 `.env`는 항상 로컬이다 — 운영은 정해진 통로로만 (2026-10-07 개발자 결정)
+
+**경위**: 10-06 운영 처리 기록을 보려고 `.env`의 `DATABASE_URL`을 운영 주소로 바꿨다가 다음 날 되돌렸다.
+운영 조회 통로가 없어서 생긴 일이다. 되돌리기를 한 번 잊으면 개발 서버·시드·`purge --confirm`·`migrate`가
+전부 운영을 향한다. **주석을 번갈아 풀어 대상을 바꾸지 않는다.**
+
+| 상황 | 통로 | 운영 주소 출처 |
+|---|---|---|
+| 운영 스키마 반영 | `migrate-prod.ps1` (§2-1) | `BACKUP_DATABASE_URL` |
+| 운영 백업 | `backup-db.ps1 -Target prod` (§2) | `BACKUP_DATABASE_URL` |
+| 운영 기록 조회 | `npm run report:heavy -- --target prod` (🆕 10-07, 출력 첫 줄에 대상 DB 표시) | `BACKUP_DATABASE_URL` |
+| 시험 | `npm test` | `TEST_DATABASE_URL` (`_test`로 끝나는 로컬 DB만) |
+
+- 새 스크립트가 운영을 읽거나 써야 하면 **같은 방식(`--target prod` + 대상 표시)으로 이 표에 한 줄을 더한다.**
+- 표에 없는 운영 작업은 터미널 한 창에서만 `$env:DATABASE_URL`을 임시 지정한다. `.env`는 고치지 않는다.
+
 ## 3. 🔴 `where` 절이 소유자 단위면 **남의 것도 지운다**
 
 **08-27 사고의 정확한 원인이다.**
