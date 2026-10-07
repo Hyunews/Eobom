@@ -24,6 +24,16 @@
             "statusMessage": "통독 가드 확인 중..."
           }
         ]
+      },
+      {
+        "matcher": "Bash|PowerShell",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.harness/tools/command-guard.js\"",
+            "timeout": 10
+          }
+        ]
       }
     ],
     "Stop": [

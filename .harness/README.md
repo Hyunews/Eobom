@@ -54,7 +54,8 @@
 | 도구 | 하는 일 | 언제 |
 | :--- | :--- | :--- |
 | `session-boot.sh` | 부팅 3개를 세션에 주입 | SessionStart 훅 (자동) |
-| `read-guard.js` · `token-guard.js` · `korean-guard.js` | 큰 파일 통독 차단 · 토큰 낭비 차단 · 한글 문서 손상 방지 | 도구 호출 전 훅 (자동) |
+| `read-guard.js` · `token-guard.js` · `korean-guard.js` | 큰 파일 통독 차단 · 토큰 낭비 차단 · 영어 답변 차단 | 훅 (자동) |
+| `command-guard.js` | 🔴 파기 확정·DB 초기화·Bash에서 실행될 백틱 차단 | Bash·PowerShell 실행 전 훅 (자동) |
 | `harness-doctor.sh` | 예산·경로·링크·신선도 점검 | 세션 끝 (`done.md` §3) |
 | `backup-db.ps1 -Target local\|prod` | DB 백업 — **`-Target` 필수** | DB 쓰기 전 (`db-safety.md`) |
 | `migrate-prod.ps1` | 운영 스키마 반영 한 줄 | 운영 반영 (사람) |
