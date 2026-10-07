@@ -129,18 +129,6 @@ export const WillPhotoVault: React.FC<WillPhotoVaultProps> = ({ onClose, onRecog
 
   return (
     <>
-      {notice && <HeavyNoticeDialog message={notice} onClose={() => setNotice(null)} />}
-      {confirmDeleteId && (
-        <div className="v2-modal-overlay" role="alertdialog" aria-modal="true" aria-label="삭제 확인" onClick={(e) => e.stopPropagation()}>
-          <div className="v2-modal is-ocr-confirm" onClick={(e) => e.stopPropagation()}>
-            <p className="v2-ocr-confirm-text">이 사진 묶음을 삭제하시겠어요? 30일 뒤 완전히 삭제됩니다.</p>
-            <div className="v2-ocr-confirm-actions">
-              <button type="button" className="v2-btn-outline" onClick={() => setConfirmDeleteId(null)} disabled={busy}>취소</button>
-              <button type="button" className="v2-btn-primary" onClick={() => deleteSet(confirmDeleteId)} disabled={busy}>삭제</button>
-            </div>
-          </div>
-        </div>
-      )}
       <div className="v2-modal-overlay" role="dialog" aria-modal="true" aria-label="보관한 사진" {...backdropCloseProps(onClose)}>
         <div className="v2-modal is-scroll" onClick={(e) => e.stopPropagation()}>
           <h3 className="v2-modal-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -213,6 +201,19 @@ export const WillPhotoVault: React.FC<WillPhotoVaultProps> = ({ onClose, onRecog
           <button type="button" className="v2-modal-close" onClick={onClose}>닫기</button>
         </div>
       </div>
+      {/* 같은 z-index(2000)의 overlay는 나중에 렌더된 쪽이 위에 온다 — 본창 뒤에 둬야 보인다 */}
+      {notice && <HeavyNoticeDialog message={notice} onClose={() => setNotice(null)} />}
+      {confirmDeleteId && (
+        <div className="v2-modal-overlay" role="alertdialog" aria-modal="true" aria-label="삭제 확인" onClick={(e) => e.stopPropagation()}>
+          <div className="v2-modal is-ocr-confirm" onClick={(e) => e.stopPropagation()}>
+            <p className="v2-ocr-confirm-text">이 사진 묶음을 삭제하시겠어요? 30일 뒤 완전히 삭제됩니다.</p>
+            <div className="v2-ocr-confirm-actions">
+              <button type="button" className="v2-btn-outline" onClick={() => setConfirmDeleteId(null)} disabled={busy}>취소</button>
+              <button type="button" className="v2-btn-primary" onClick={() => deleteSet(confirmDeleteId)} disabled={busy}>삭제</button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 };
