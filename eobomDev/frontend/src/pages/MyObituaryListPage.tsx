@@ -47,6 +47,7 @@ interface MyMemorial {
   expiresAt: string | null;
   frozenAt: string | null;
   purgeAt: string | null;
+  canExtend: boolean; // 서버 판정(§8.1-4 ②-가) — 통지 시점 계산을 화면에 복제하지 않는다
 }
 
 type ModalTarget = { type: 'obituary'; id: string } | { type: 'memorial'; id: string } | null;
@@ -133,12 +134,12 @@ export const MyObituaryListPage: React.FC<MyObituaryListPageProps> = ({ currentU
     }
   };
 
-  // 추모관 연장(00-20 §8.1-4 ② 로그인 경로) — 통지 링크와 같은 효과(다시 395일 활성). 닫힌·운영자가 내린 추모관은 버튼을 보이지 않는다.
+  // 추모관 연장(00-20 §8.1-4 ② 로그인 경로) — 통지 링크와 같은 효과(다시 395일 활성). 버튼은 서버가 내려준 canExtend일 때만 보인다.
   const extendMemorial = async (m: MyMemorial) => {
     setExtendingId(m.id);
     try {
       const r = await apiFetch<{ expiresAt: string }>(`/api/memorials/${m.id}/extend`, 'USER', { method: 'POST' });
-      setMemorials((prev) => (prev ? prev.map((x) => (x.id === m.id ? { ...x, expiresAt: r.expiresAt, frozenAt: null, purgeAt: null } : x)) : prev));
+      setMemorials((prev) => (prev ? prev.map((x) => (x.id === m.id ? { ...x, expiresAt: r.expiresAt, frozenAt: null, purgeAt: null, canExtend: false } : x)) : prev));
       setFeedback({ id: m.id, message: `${formatKstDate(r.expiresAt)}까지 보존됩니다.` });
     } catch (err) {
       setFeedback({ id: m.id, message: err instanceof Error ? err.message : '연장에 실패했습니다. 잠시 후 다시 시도해주세요.' });
@@ -306,7 +307,7 @@ export const MyObituaryListPage: React.FC<MyObituaryListPageProps> = ({ currentU
               <PageLink newTab to={`/m/${modalMemorial.slug}`} className="v2-btn-outline">
                 <ExternalLink size={14} /> 열기
               </PageLink>
-              {!modalMemorial.closedAt && !modalMemorial.hiddenAt && (
+              {modalMemorial.canExtend && (
                 <button
                   type="button"
                   className="v2-btn-outline"

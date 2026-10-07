@@ -210,6 +210,37 @@ describe('연장(00-20 §8.1-4)', () => {
     const rec = await prisma.memorialNotice.findFirst({ where: { memorialId: m.id, kind: 'EXTEND' } });
     assert.equal(rec?.channel, 'LOGIN');
   });
+
+  // ⑥ 버튼 표시 시점(§8.1-4 ②-가) — 목록 canExtend와 연장 API가 같은 판정을 쓴다
+  it('로그인: 통지 시점 전은 canExtend=false·연장 409 · 시점 후·동결은 true·연장 OK · 닫힘/내림은 false·409', async () => {
+    const o = await makeOwner('ext-window');
+    const active = { expiresAt: ahead(395) }; // 개설 직후 — 통지일(createdAt+368일)이 아직 멀다
+    const before = await makeMemorial(o.user.id, 'w-before', active);
+    const afterNotice = await makeMemorial(o.user.id, 'w-after', { createdAt: ago(390), expiresAt: ahead(5) });
+    const frozen = await makeMemorial(o.user.id, 'w-frozen', { frozenAt: ago(10), purgeAt: ahead(1000), expiresAt: ago(10) });
+    const closed = await makeMemorial(o.user.id, 'w-closed', { createdAt: ago(390), expiresAt: ahead(5), closedAt: ago(1), purgeAt: ahead(29) });
+    const hidden = await makeMemorial(o.user.id, 'w-hidden', { createdAt: ago(390), expiresAt: ahead(5), hiddenAt: ago(1) });
+
+    const res = await fetch(`${base}/api/me/memorials`, { headers: { Authorization: `Bearer ${o.token}` } });
+    assert.equal(res.status, 200);
+    const list = (await res.json()).data as { id: string; canExtend: boolean }[];
+    const can = (id: string) => list.find((x) => x.id === id)?.canExtend;
+    assert.equal(can(before.id), false);
+    assert.equal(can(afterNotice.id), true);
+    assert.equal(can(frozen.id), true);
+    assert.equal(can(closed.id), false);
+    assert.equal(can(hidden.id), false);
+
+    const r = await post(`/api/memorials/${before.id}/extend`, o.token);
+    assert.equal(r.status, 409);
+    assert.equal((await r.json()).message, '아직 연장할 수 있는 기간이 아닙니다.');
+    const untouched = await prisma.memorial.findUniqueOrThrow({ where: { id: before.id } });
+    assert.equal(untouched.expiresAt!.getTime(), before.expiresAt!.getTime(), '거부된 연장은 아무것도 바꾸지 않는다');
+    assert.equal((await post(`/api/memorials/${closed.id}/extend`, o.token)).status, 409);
+    assert.equal((await post(`/api/memorials/${hidden.id}/extend`, o.token)).status, 409);
+    assert.equal((await post(`/api/memorials/${afterNotice.id}/extend`, o.token)).status, 200);
+    assert.equal((await post(`/api/memorials/${frozen.id}/extend`, o.token)).status, 200);
+  });
 });
 
 describe('⑩ 원본 마스킹 — 이름·연락처·내용', () => {

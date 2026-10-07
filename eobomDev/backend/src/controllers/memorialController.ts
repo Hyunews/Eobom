@@ -8,7 +8,7 @@ import { uploadMemorialPhoto as uploadMiddleware, MEMORIAL_PHOTO_DIR, toPublicMe
 import { POLICY } from '../config/policy';
 import { validateFalseReportAgreed } from '../utils/consentGates';
 import { calculateMemorialExpiresAt } from '../utils/memorialLifecycle';
-import { previewExtendByToken, extendByToken, extendByOwner } from '../services/memorialExtendService';
+import { previewExtendByToken, extendByToken, extendByOwner, canExtendNow } from '../services/memorialExtendService';
 
 // 온라인 추모관(docs 05-01 §2, §4). 공개범위 기본값은 LINK(§4.2) — 사망 사실+유족 구성이
 // 공개 색인되면 부고 사칭 보이스피싱의 표적 정보가 된다.
@@ -159,7 +159,9 @@ export const listMyMemorials = async (req: Request, res: Response) => {
       where: { createdByUserId: decoded.id },
       orderBy: { createdAt: 'desc' },
     });
-    return res.json({ status: 'success', data: memorials });
+    // 연장 버튼 표시 판정은 서버가 한다(00-20 §8.1-4 ②-가) — 화면은 canExtend만 본다.
+    const now = new Date();
+    return res.json({ status: 'success', data: memorials.map((m) => ({ ...m, canExtend: canExtendNow(m, now) })) });
   } catch (error) {
     console.error('내 추모관 목록 조회 실패:', error);
     return res.status(500).json({ status: 'error', message: '목록 조회 중 오류가 발생했습니다.' });

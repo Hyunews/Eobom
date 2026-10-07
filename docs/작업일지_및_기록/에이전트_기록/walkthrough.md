@@ -16,6 +16,21 @@
 > [`_아카이브_2608`](walkthrough_아카이브_2608.md)(08-31분). 남은 것 = 판정 대기 + 판정 표기 없음. 기준 → `record.md` §2-1.
 
 ---
+## 2026-10-07 | [Sonnet] ⑥ 연장 버튼 표시 시점 — 서버 판정 `canExtend`
+
+- **근거 스펙**: docs/00_핵심플랫폼/00-20 §8.1-4 ②-가 (10-06 개발자 결정 A) · §8.1-2(통지 시점 계산)
+- **건드린 파일**: backend/src/services/memorialExtendService.ts(`canExtendNow`·`NOT_YET`) · backend/src/controllers/memorialController.ts(`listMyMemorials`) · backend/tests/memorial-lifecycle-db.test.ts(+1건) · frontend/src/pages/MyObituaryListPage.tsx
+- **결과**:
+  - `canExtendNow` 하나가 판정 — `closedAt`·`hiddenAt` 없음 AND (`frozenAt` 있음 OR 지금 ≥ `calculateMemorialNoticeDate`). 목록과 연장 API가 같은 함수를 씀
+  - `GET /api/me/memorials`: 추모관마다 `canExtend` 추가 · `POST /api/memorials/:id/extend`: 닫힘·내림 거부 다음에 `canExtendNow` 아니면 409 "아직 연장할 수 있는 기간이 아닙니다." (통지 링크 경로는 그대로)
+  - 화면: 버튼은 `canExtend`일 때만 · 연장 성공 시 그 행 `canExtend=false` · 보존 기간 종료일·삭제 예정일 줄은 그대로
+  - 시험 1건 추가: 통지 시점 전(false·409·값 불변) · 시점 후(true·200) · 동결(true·200) · 닫힘/내림(false·409). backend tsc 0 · frontend tsc 0 · `retention-purge`+`memorial-lifecycle-db` 33건 통과 (전체 `npm test`·frontend build는 안 돌림)
+- **편차**: `expiresAt`이 비어 있는 비정상 행은 통지 시점을 못 구해 동결일 때만 허용(스펙에 없는 경우)
+- **다음 에이전트가 알아야 할 것**: 🔴 미커밋. 화면 실확인은 [Opus]가 dev 서버로(개발자 요청) — 나는 서버를 띄우지 않았다
+
+<!-- Gemini 판정 1줄: ✅통과 / ❌반려(사유) / 🔄스펙갱신(고친 문서) -->
+
+---
 ## 2026-10-07 | [Sonnet] D-12 #71~74 — 어드민 파기 화면: 밀려난 음성 + 종류 접두 + 파기 기록 보기 · 녹음 자동 중지 595초
 
 - **근거 스펙**: docs/06_엔딩노트_유언/06-05 §8 D-12 #71~74 · §6.5(targetIds) · §5.6-9-2 Ⓑ① · §5.6-8-3(D-11)

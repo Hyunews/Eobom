@@ -1,7 +1,7 @@
 import crypto from 'crypto';
 import { Prisma } from '@prisma/client';
 import prisma from '../config/prisma';
-import { calculateMemorialExpiresAt } from '../utils/memorialLifecycle';
+import { calculateMemorialExpiresAt, calculateMemorialNoticeDate } from '../utils/memorialLifecycle';
 
 // docs 00-20 §8.1-4 — 추모관 연장(활성 복귀). 효과: expiresAt = 지금 + 395일 · frozenAt = null · purgeAt = null.
 // 동결 전(만료 통지)·동결 후(파기 재확인) 같은 동작이다. 경로는 둘: ① 통지 링크(토큰, 로그인 불필요) ② 내 추모관 화면(로그인, 개설자 본인).
@@ -19,6 +19,7 @@ const FAIL = {
   EXPIRED: { ok: false, code: 'EXPIRED', message: '링크 사용 기간이 지났습니다.' },
   CLOSED: { ok: false, code: 'CANNOT_EXTEND', message: '이 추모관은 연장할 수 없습니다. 개설자가 닫았거나 탈퇴 처리된 추모관입니다.' },
   HIDDEN: { ok: false, code: 'CANNOT_EXTEND', message: '이 추모관은 연장할 수 없습니다. 운영자가 비공개 처리한 추모관입니다.' },
+  NOT_YET: { ok: false, code: 'CANNOT_EXTEND', message: '아직 연장할 수 있는 기간이 아닙니다.' },
 } as const satisfies Record<string, ExtendFailure>;
 
 // 토큰 — 원문은 통지 본문에만 두고 DB엔 sha256 해시만 저장한다.
@@ -38,6 +39,22 @@ export const getExtendBlock = (m: MemorialState): ExtendFailure | null => {
   if (m.closedAt) return FAIL.CLOSED;
   if (m.hiddenAt) return FAIL.HIDDEN;
   return null;
+};
+
+type MemorialExtendWindowState = MemorialState & {
+  frozenAt: Date | null;
+  expiresAt: Date | null;
+  deceasedDeathDate: Date | null;
+  createdAt: Date;
+};
+
+// 로그인 경로의 연장 가능 시점(§8.1-4 ②-가) — 닫힘·내림이 아니고, 동결됐거나 만료 통지 시점(§8.1-2 계산값)이 지났을 때.
+// 목록(canExtend)과 연장 API가 이 함수 하나를 쓴다. expiresAt이 없으면(정상 데이터가 아님) 통지 시점을 못 구하므로 동결일 때만 허용한다.
+export const canExtendNow = (m: MemorialExtendWindowState, now = new Date()): boolean => {
+  if (getExtendBlock(m)) return false;
+  if (m.frozenAt) return true;
+  if (!m.expiresAt) return false;
+  return now.getTime() >= calculateMemorialNoticeDate(m, m.expiresAt).getTime();
 };
 
 // 토큰 유효기간 끝 = purgeAt(없으면 expiresAt + 30일). 둘 다 없으면(정상 데이터가 아님) 지금 기준으로 이미 지난 것으로 본다.
@@ -124,9 +141,10 @@ export async function extendByToken(token: string, now = new Date()): Promise<Ex
 
 // POST — 내 추모관 화면에서 연장(개설자 본인). 소유 확인은 호출한 쪽이 인증으로 넘긴 userId로 한다.
 export async function extendByOwner(memorialId: string, userId: string, now = new Date()): Promise<ExtendDone | ExtendFailure | { ok: false; code: 'NOT_FOUND'; message: string }> {
-  const m = await prisma.memorial.findFirst({ where: { id: memorialId, createdByUserId: userId }, select: { closedAt: true, hiddenAt: true } });
+  const m = await prisma.memorial.findFirst({ where: { id: memorialId, createdByUserId: userId }, select: { closedAt: true, hiddenAt: true, frozenAt: true, expiresAt: true, deceasedDeathDate: true, createdAt: true } });
   if (!m) return { ok: false, code: 'NOT_FOUND', message: '추모관을 찾을 수 없습니다.' };
   const block = getExtendBlock(m);
   if (block) return block;
+  if (!canExtendNow(m, now)) return FAIL.NOT_YET;
   return prisma.$transaction((tx) => applyExtend(tx, memorialId, 'LOGIN', now));
 }
