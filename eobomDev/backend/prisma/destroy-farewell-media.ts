@@ -44,6 +44,8 @@ import {
   isDevEnvironment,
   purgeMediaRow,
   purgeLetterRow,
+  purgeRetiredRow,
+  findRetiredExpired,
   findMediaExpired,
   findLetterExpired,
   countPendingArchivePurge,
@@ -127,6 +129,17 @@ async function main(): Promise<void> {
       if (key) purgedKeys.push(key);
     }
     console.log(`[①음성 만료] 완료: ${mediaExpired.length}건 R2 원본 삭제 + mediaKey 정리`);
+  }
+
+  // ①-2 밀려난 음성 — 삭제 유예 중 새 음성이 들어와 FarewellMediaRetired로 옮겨진 것(§5.6-9-4). deletedAt + 30일.
+  const retiredExpired = await findRetiredExpired();
+  console.log(`[①-2 밀려난 음성 만료] 대상 ${retiredExpired.length}건 (기준: ${cutoff().toISOString()})`);
+  if (confirmed) {
+    for (const row of retiredExpired) {
+      const key = await purgeRetiredRow(row);
+      if (key) purgedKeys.push(key);
+    }
+    console.log(`[①-2 밀려난 음성 만료] 완료: ${retiredExpired.length}건 R2 원본 삭제 + purgedAt 기록`);
   }
 
   // ② deletedAt + 30일 — 편지 자체가 만료된 것. mediaKey가 남아 있으면 ①을 먼저 수행.

@@ -16,6 +16,25 @@
 > [`_아카이브_2608`](walkthrough_아카이브_2608.md)(08-31분). 남은 것 = 판정 대기 + 판정 표기 없음. 기준 → `record.md` §2-1.
 
 ---
+## 2026-10-07 | [Sonnet] b17 음성 편지 — 변환과 저장 분리 (D-12 #61~70)
+
+- **근거 스펙**: docs/06_엔딩노트_유언/06-05 §5.6-9 · §6.6 · §8 D-12 #61~70 (10-07 개발자 결정)
+- **건드린 파일**: backend/prisma/schema.prisma(`FarewellMediaRetired` 추가) · backend/prisma/migrations/20261007090000_add_farewell_media_retired/ · backend/src/controllers/farewellMessageController.ts(update) · backend/src/services/farewellPurgeService.ts · backend/prisma/destroy-farewell-media.ts · backend/tests/farewell-voice-split.test.ts(신규 6건) · backend/package.json(test 목록) · frontend/src/components/farewell/VoiceToTextInput.tsx(재작성) · frontend/src/components/farewell/FarewellMessageCard.tsx · docs/00_핵심플랫폼/00-05(generate-db-doc 자동 재생성)
+- **결과**:
+  - **서버**: PATCH에서 `mediaKey` 있고 `mediaDeletedAt` 없는 편지에 다른 `mediaKey` → 409(예전엔 덮어씀). 같은 키 재전송(②재시도)은 통과·무변경. 유예 중(`mediaDeletedAt` 있음) 편지에 새 키 → `prisma.$transaction([Retired 생성, 편지 갱신(mediaDeletedAt=null)])`, Retired.deletedAt = 원래 `mediaDeletedAt`. 파기 배치 ①-2 `findRetiredExpired`/`purgeRetiredRow`(원장 → R2 삭제 → purgedAt, 행 유지), dry-run에 건수 출력
+  - **화면**: 업로드·녹음 변환은 `saveAudio=false` 고정, 글은 입력창에만, 원본은 부모의 "저장 전 음성"(듣기·삭제). 편지 `저장`에서만 ① store-audio → ② 편지 저장, ①의 mediaKey는 ②가 성공할 때까지 `storedMediaRef`에 보관(재시도 때 재업로드 없음). 성공하면 편집기 닫힘. Web Speech 코드 삭제, 녹음 중 경과 시간 + 10분 자동 중지·안내. Ⓑ 확인 창 "녹음을 마쳤습니다." 먼저 들어보기·취소·글로 바꾸기 + "취소하면 녹음이 사라집니다."(글로 바꾸기는 Ⓐ와 같은 "작업 중"·마감·알림). 저장 전 음성/미저장 변환 글이 있으면 `beforeunload` 경고. 음성이 붙어 있으면 업로드·녹음 막고 "음성을 삭제한 뒤 다시 녹음해 주세요." 동의 체크·"목소리도 함께 남기기"는 부모로 올려 변환 뒤에도 유지, 편집기를 닫을 때 초기화. 안내·동의 문구에서 "브라우저가 바로 바꾸지 못하면" 삭제
+  - backend `npm test` **401건 통과**(신규 6건) · backend/frontend `tsc --noEmit` 0 · frontend `npm run build` 통과 · `eobom_test`(전용 테스트 DB)에 마이그레이션 적용됨
+- **편차**:
+  1. "목소리도 함께 남기기" 토글을 녹음 탭 전용에서 **업로드·녹음 두 탭 모두**로 옮겼다(상태가 부모로 올라가 탭 사이에 이어지는데, 업로드 탭에서 안 보이면 꺼진 걸 모르고 저장하게 된다)
+  2. 저장 전 음성의 `삭제`에 확인창(window.confirm) 추가 — 스펙 표엔 확인 언급 없음
+  3. 어드민 파기 화면(`farewellPurgeController`)은 Retired를 아직 안 본다 — 스펙 #68은 배치 ①·dry-run까지만. 화면에서 Retired 만료분을 못 지운다(스크립트로만)
+  4. "Retired 생성 실패 시 편지 갱신 안 함"은 `$transaction` 배열 구성으로 보장하며 별도 시험은 없다(실패를 정직하게 만들 방법이 없음)
+  5. 프론트 시험(변환 중 닫기·떠나기 경고·②실패 후 재저장 store-audio 1회)은 프론트 시험 틀이 없어 자동 시험 없음 → 실기기 확인 대기(개발자 몫)
+- **다음 에이전트가 알아야 할 것**: 🔴 미커밋. 🔴 **로컬 개발 DB(`eobom_db`)에는 마이그레이션을 적용하지 않았다** — `backup-db.ps1 -Target local` + 사람 확인 후 `prisma migrate deploy`(또는 dev)가 필요. 운영은 `migrate-prod.ps1` → push 안내만(추가형 1건이라 코드보다 먼저). 🟡 저장 전 음성이 있는 채로 편집기 `취소`·`X`·바깥 클릭으로 닫으면 확인 없이 사라진다(스펙은 beforeunload만) — 필요하면 Opus가 스펙에 추가. 🟡 `store-audio` 서버는 STT 플래그와 무관하게 R2만 본다(변경 없음). 실기동 검증 대기: 업로드→글 변환→저장 전 음성 듣기/삭제→저장, 녹음→확인 창→글로 바꾸기, 10분 자동 중지, 음성 붙은 편지에서 막힘, 새로고침 경고
+
+<!-- Gemini 판정 1줄: ✅통과 / ❌반려(사유) / 🔄스펙갱신(고친 문서) -->
+
+---
 ## 2026-10-07 | [Sonnet] 사진 올리기 — 담은 파일 빼기 버튼 + 다시 선택 시 기존 파일 유지
 
 - **근거 스펙**: 스펙 없음 — 개발자 구두 지시(10-07). 06-06 §6 단계 1·§4.1 여러 장

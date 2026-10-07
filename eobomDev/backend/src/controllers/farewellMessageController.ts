@@ -230,11 +230,28 @@ export const updateFarewellMessage = async (req: Request, res: Response) => {
     }
     const existing = await prisma.farewellMessage.findUnique({
       where: { id: req.params.id },
-      select: { id: true, deletedAt: true, note: { select: { userId: true } } },
+      select: {
+        id: true, deletedAt: true, mediaKey: true, mediaMime: true, mediaDeletedAt: true,
+        note: { select: { userId: true } },
+      },
     });
     if (!existing || existing.note.userId !== decoded.id || existing.deletedAt !== null) {
       return res.status(404).json({ status: 'error', message: '편지를 찾을 수 없습니다.' });
     }
+
+    // 06-05 §5.6-9-3 — 편지 한 통에 음성은 하나. 붙어 있는데(mediaKey 있음 · mediaDeletedAt 없음) 새 mediaKey가
+    // 오면 거절한다(예전에는 덮어써서 이전 키가 영구 고아가 됐다). 같은 키가 다시 오는 건(②를 재시도한 경우)
+    // 이미 붙은 것이라 막지 않는다.
+    const incomingKey = body.mediaKey || null;
+    const hasLiveAudio = !!existing.mediaKey && !existing.mediaDeletedAt;
+    const isSameKey = !!incomingKey && incomingKey === existing.mediaKey;
+    if (incomingKey && hasLiveAudio && !isSameKey) {
+      return res.status(409).json({ status: 'error', message: '이 편지에는 이미 음성이 붙어 있습니다. 음성을 삭제한 뒤 다시 올려 주세요.' });
+    }
+    // §5.6-9-4 — 삭제 유예 중인 음성이 있는데 새 음성이 오면 이전 키를 FarewellMediaRetired로 옮긴다(같은 트랜잭션).
+    const previousKey = existing.mediaKey;
+    const previousDeletedAt = existing.mediaDeletedAt;
+    const mustRetirePrevious = !!incomingKey && !isSameKey && !!previousKey && !!previousDeletedAt;
 
     let bodyEnc: string | undefined;
     if (body.body !== undefined) {
@@ -250,16 +267,28 @@ export const updateFarewellMessage = async (req: Request, res: Response) => {
 
     // 06-05 §8 D-2 — mediaKey가 실려 오지 않으면 기존 첨부를 그대로 둔다(텍스트만 고치는
     // 수정에서 첨부가 조용히 지워지면 안 된다).
-    const updated = await prisma.farewellMessage.update({
+    const updateArgs = {
       where: { id: existing.id },
       data: {
         ...(body.title !== undefined ? { title: body.title?.trim() || null } : {}),
         ...(bodyEnc ? { bodyEnc } : {}),
-        ...(body.mediaKey ? { mediaKey: body.mediaKey, mediaMime: body.mediaMime || null } : {}),
+        // 같은 키의 재시도는 이미 붙어 있으므로 첨부 필드를 다시 쓰지 않는다. 새 음성이면 mediaDeletedAt을 되돌린다.
+        ...(incomingKey && !isSameKey ? { mediaKey: incomingKey, mediaMime: body.mediaMime || null, mediaDeletedAt: null } : {}),
         ...(body.mediaDurationSec !== undefined ? { mediaDurationSec: body.mediaDurationSec } : {}),
       },
       select: { id: true, recipientId: true, title: true, bodyEnc: true, createdAt: true, updatedAt: true },
-    });
+    };
+    // §5.6-9-4 🔴 이전 키를 옮기는 행 생성이 실패하면 편지도 갱신하지 않는다(배열 트랜잭션 = 전부 아니면 전무).
+    // 이전 키를 잃는 순간 R2 원본·아카이브가 영구 고아가 된다.
+    const updated = mustRetirePrevious
+      ? (await prisma.$transaction([
+          prisma.farewellMediaRetired.create({
+            data: { messageId: existing.id, mediaKey: previousKey!, mediaMime: existing.mediaMime, deletedAt: previousDeletedAt! },
+            select: { id: true },
+          }),
+          prisma.farewellMessage.update(updateArgs),
+        ]))[1]
+      : await prisma.farewellMessage.update(updateArgs);
 
     const text = decryptNoteField(updated.bodyEnc);
     return res.json({

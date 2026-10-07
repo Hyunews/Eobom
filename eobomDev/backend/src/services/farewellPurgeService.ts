@@ -65,6 +65,32 @@ export async function findMediaExpired() {
   });
 }
 
+// ① 대상(밀려난 음성) — 삭제 유예 중에 새 음성이 들어와 FarewellMediaRetired로 옮겨진 것(§5.6-9-4).
+export async function findRetiredExpired() {
+  return prisma.farewellMediaRetired.findMany({
+    where: { purgedAt: null, deletedAt: { lte: cutoff() } },
+    select: { id: true, mediaKey: true, deletedAt: true },
+    orderBy: { deletedAt: 'asc' },
+  });
+}
+
+// purgeMediaRow와 같은 순서: 원장 → R2 원본 삭제 → purgedAt 기록(§5.6-8-1-1 #46). 행은 지우지 않는다.
+// 반환값: 운영 환경에서 원장에 올라간 키(2단계 안내용). dev 환경이면 null.
+export async function purgeRetiredRow(row: { id: string; mediaKey: string }): Promise<string | null> {
+  const bucket = getVoiceBucket();
+  const dev = isDevEnvironment();
+
+  if (!dev) {
+    await prisma.archivePurgeQueue.create({ data: { mediaKey: row.mediaKey, bucket } });
+  }
+  if (isR2Enabled()) {
+    await getVoiceClient().send(new DeleteObjectCommand({ Bucket: bucket, Key: row.mediaKey }));
+  }
+  await prisma.farewellMediaRetired.update({ where: { id: row.id }, data: { purgedAt: new Date() }, select: { id: true } });
+
+  return dev ? null : row.mediaKey;
+}
+
 // ② 대상 — 편지 자체가 만료된 것(첨부 유무 무관, purgeLetterRow가 내부에서 ①도 처리).
 export async function findLetterExpired() {
   return prisma.farewellMessage.findMany({

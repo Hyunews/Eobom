@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Heart, Plus, Loader2, Pencil, X, Volume2, Trash2, Download, Upload, Mic, FileText, ChevronDown } from 'lucide-react';
 import { BACKEND_URL } from '../../config';
-import { VoiceToTextInput, SavedMedia } from './VoiceToTextInput';
+import { VoiceToTextInput, SavedMedia, PendingVoice } from './VoiceToTextInput';
 import { backdropCloseProps } from '../../utils/backdropClose';
 import { kstTodayCompact, formatKstDateSpaced } from '../../utils/kstDate';
 
@@ -21,7 +21,9 @@ const formatLetterDate = (iso: string): string => formatKstDateSpaced(iso);
 // 06-05 §7·§8 Phase B — 수신자 카드 1개. 편지 목록(미리보기) + 작성/수정 편집기를 담당한다.
 // §10 항목5 — 수신자 1명에게 여러 통 허용. 카드 안에 편지 목록이 여러 건 쌓일 수 있다.
 // 🔄 §5.6·§5.6-5 D-6+D-6-1(2026-09-04) — 음성 듣기·삭제 + 저장 흐름을 doSave(bodyOverride,
-// mediaOverride) 하나로 통일. 수동 저장 버튼과 음성/파일 업로드 확인이 모두 이 함수를 부른다.
+// mediaOverride) 하나로 통일.
+// 🔄 §5.6-9 D-12(2026-10-07) — 변환과 저장을 나눴다. 업로드·녹음은 글 변환까지만(원본은 아래 pendingVoice,
+// 브라우저 메모리). R2 업로드(store-audio)와 편지 저장은 `저장` 버튼(handleSave)에서만 일어난다.
 
 export interface RecipientItem {
   id: string;
@@ -97,15 +99,22 @@ export const FarewellMessageCard: React.FC<FarewellMessageCardProps> = ({ recipi
   const [audioLoading, setAudioLoading] = useState(false);
   const [deletingAudio, setDeletingAudio] = useState(false);
   const [exportingId, setExportingId] = useState<string | null>(null);
-  const localAudioUrlRef = useRef<string | null>(null); // §5.6-2 — 방금 이 세션에서 저장한 로컬 blob(서버 왕복 없이 재생)
   const fetchedAudioUrlRef = useRef<string | null>(null); // §5.6-2 — 다시 열어서 서버로 받아온 blob
 
-  const revokeLocalAudio = () => {
-    if (localAudioUrlRef.current) {
-      URL.revokeObjectURL(localAudioUrlRef.current);
-      localAudioUrlRef.current = null;
-    }
-  };
+  // 🆕 D-12 — 변환은 끝났지만 아직 저장 전인 원본 음성(브라우저 메모리). R2·DB에는 없다.
+  const [pendingVoice, setPendingVoice] = useState<(PendingVoice & { url: string }) | null>(null);
+  const [pendingListening, setPendingListening] = useState(false);
+  const [convertedUnsaved, setConvertedUnsaved] = useState(false); // 변환된 글이 입력창에 들어간 뒤 아직 저장 전
+  // ① store-audio가 성공하고 ② 편지 저장이 아직 안 끝났을 때의 mediaKey — ②가 성공할 때까지 보관해
+  // 다시 `저장`을 눌러도 다시 올리지 않는다(§5.6-9-2).
+  const storedMediaRef = useRef<SavedMedia | null>(null);
+  // 동의 체크·"목소리도 함께 남기기"는 변환이 끝나도 풀지 않고, 편집기를 닫을 때만 초기화한다(D-12 #65).
+  const [uploadConsent, setUploadConsent] = useState(false);
+  const [recordConsent, setRecordConsent] = useState(false);
+  const [saveVoiceEnabled, setSaveVoiceEnabled] = useState(true); // §5.5-3 — 기본값 켬
+  const [sttUploadEnabled, setSttUploadEnabled] = useState(false);
+  const [voiceStorageEnabled, setVoiceStorageEnabled] = useState(false); // R2_ENABLED — /status로만 판단
+
   const revokeFetchedAudio = () => {
     if (fetchedAudioUrlRef.current) {
       URL.revokeObjectURL(fetchedAudioUrlRef.current);
@@ -113,13 +122,53 @@ export const FarewellMessageCard: React.FC<FarewellMessageCardProps> = ({ recipi
     }
   };
 
+  // §6.4-9-5 — 서버에 물어서만 업로드·저장 UI를 켠다(프론트에 플래그를 직접 심지 않는다).
+  useEffect(() => {
+    fetch(`${BACKEND_URL}/api/stt/status`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.status === 'success') {
+          setSttUploadEnabled(!!data.data?.enabled);
+          setVoiceStorageEnabled(!!data.data?.voiceStorageEnabled);
+        }
+      })
+      .catch(() => { });
+  }, []);
+
+  // 저장 전 음성(또는 변환된 미저장 글)이 있는 채로 페이지를 떠나면 브라우저 경고(D-12 #65).
+  const hasUnsavedVoice = !!pendingVoice || convertedUnsaved;
+  useEffect(() => {
+    if (!hasUnsavedVoice) return;
+    const warn = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = '';
+    };
+    window.addEventListener('beforeunload', warn);
+    return () => window.removeEventListener('beforeunload', warn);
+  }, [hasUnsavedVoice]);
+
+  // 저장 전 음성의 미리듣기 URL은 pendingVoice가 바뀔 때마다 정리한다.
+  const pendingUrlRef = useRef<string | null>(null);
+  useEffect(() => {
+    pendingUrlRef.current = pendingVoice?.url ?? null;
+  }, [pendingVoice]);
+
   useEffect(() => {
     return () => {
-      revokeLocalAudio();
       revokeFetchedAudio();
+      if (pendingUrlRef.current) URL.revokeObjectURL(pendingUrlRef.current);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const discardPendingVoice = () => {
+    setPendingVoice((prev) => {
+      if (prev) URL.revokeObjectURL(prev.url);
+      return null;
+    });
+    setPendingListening(false);
+    storedMediaRef.current = null; // 이미 올라간 ① 키가 있어도 이 음성과는 끊는다(남은 객체는 고아 1건, §5.6-9-2)
+  };
 
   const resetComposer = () => {
     setComposerOpen(false);
@@ -131,8 +180,12 @@ export const FarewellMessageCard: React.FC<FarewellMessageCardProps> = ({ recipi
     setAudioSrc(null);
     setActiveMethod('upload');
     setRailOpen(false);
-    revokeLocalAudio();
     revokeFetchedAudio();
+    discardPendingVoice();
+    setConvertedUnsaved(false);
+    setUploadConsent(false);
+    setRecordConsent(false);
+    setSaveVoiceEnabled(true);
   };
 
   const openNewComposer = () => {
@@ -143,8 +196,12 @@ export const FarewellMessageCard: React.FC<FarewellMessageCardProps> = ({ recipi
     setMediaInfo(null);
     setAudioSrc(null);
     setActiveMethod('upload');
-    revokeLocalAudio();
     revokeFetchedAudio();
+    discardPendingVoice();
+    setConvertedUnsaved(false);
+    setUploadConsent(false);
+    setRecordConsent(false);
+    setSaveVoiceEnabled(true);
     setComposerOpen(true);
   };
 
@@ -170,8 +227,12 @@ export const FarewellMessageCard: React.FC<FarewellMessageCardProps> = ({ recipi
         const hasAudio = !!data.data.hasAudio;
         const mime: string | null = data.data.mediaMime ?? null;
         setActiveMethod(!hasAudio ? 'write' : mime && mime.includes('webm') ? 'record' : 'upload');
-        revokeLocalAudio();
         revokeFetchedAudio();
+        discardPendingVoice();
+        setConvertedUnsaved(false);
+        setUploadConsent(false);
+        setRecordConsent(false);
+        setSaveVoiceEnabled(true);
         setMediaInfo({
           hasAudio,
           mediaMime: mime,
@@ -258,48 +319,73 @@ export const FarewellMessageCard: React.FC<FarewellMessageCardProps> = ({ recipi
     }
   };
 
+  // ① 원본 음성을 R2에 올린다(`POST /api/stt/store-audio`) — 편지 `저장` 버튼에서만 부른다(§5.6-9-1).
+  const storeAudio = async (voice: PendingVoice): Promise<SavedMedia> => {
+    const formData = new FormData();
+    const ext = voice.mime.includes('webm') ? 'webm' : voice.mime.includes('mp4') || voice.mime.includes('m4a') ? 'm4a' : voice.mime.includes('wav') ? 'wav' : voice.mime.includes('mpeg') ? 'mp3' : 'webm';
+    formData.append('audio', voice.blob, voice.blob instanceof File ? voice.blob.name : `recording.${ext}`);
+    const res = await fetch(`${BACKEND_URL}/api/stt/store-audio`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}` },
+      body: formData,
+    });
+    const data = await res.json();
+    if (data.status !== 'success' || !data.data?.media?.mediaKey) {
+      throw new Error(data.message || '음성 저장에 실패했습니다.');
+    }
+    return {
+      mediaKey: data.data.media.mediaKey,
+      mediaMime: data.data.media.mediaMime,
+      ...(voice.durationSec !== null ? { mediaDurationSec: voice.durationSec } : {}),
+    };
+  };
+
+  // 편지 `저장` — ① 저장 전 음성이 있고 "목소리도 함께 남기기"가 켜져 있으면 store-audio → ② 글 + mediaKey로 편지 저장.
+  // 🔴 ①의 mediaKey는 ②가 성공할 때까지 storedMediaRef에 둔다 — ②가 실패해 다시 `저장`을 눌러도 ①을 건너뛴다.
   const handleSave = async () => {
-    const saved = await doSave(body, null); // 텍스트만 다듬는 저장 — 첨부는 건드리지 않는다
+    if (!token) return;
+    let media: SavedMedia | null = null;
+    if (pendingVoice && saveVoiceEnabled && voiceStorageEnabled) {
+      media = storedMediaRef.current;
+      if (!media) {
+        setSaving(true);
+        setError(null);
+        try {
+          media = await storeAudio(pendingVoice);
+          storedMediaRef.current = media;
+        } catch (e) {
+          setError(e instanceof Error ? e.message : '음성 저장 중 오류가 발생했습니다.');
+          setSaving(false);
+          return;
+        }
+        setSaving(false);
+      }
+    }
+    const saved = await doSave(body, media); // 음성이 없으면 텍스트만 다듬는 저장 — 첨부는 건드리지 않는다
     if (saved) {
-      resetComposer();
+      resetComposer(); // 편집기 닫힘 · 저장 전 음성·미리 받은 mediaKey·동의 체크 초기화
       onSaved();
     }
   };
 
-  // 🆕 D-6-1 — VoiceToTextInput의 onSaveConfirmed. Ⓐ 업로드·Ⓑ 녹음 확인모달 저장 모두
-  // 여기로 들어온다. STT 결과(text)를 본문에 합치고, media가 있으면 즉시 메시지로 저장한다.
-  // 저장 뒤에는 편집기를 닫지 않고 그대로 열어 둔다 — 이후 다듬기는 기존 저장 버튼으로 한다.
-  const handleVoiceSaveConfirmed = async (text: string, voiceMedia: SavedMedia | null, localUrl: string | null) => {
-    const combinedBody = body ? `${body.trimEnd()} ${text}`.trim() : text;
-    setBody(combinedBody);
-
-    const saved = await doSave(combinedBody, voiceMedia);
-    if (!saved) {
-      if (localUrl) URL.revokeObjectURL(localUrl);
-      return;
-    }
-
-    setEditingId(saved.id);
-    onSaved();
-
-    if (voiceMedia) {
-      revokeLocalAudio();
-      localAudioUrlRef.current = localUrl;
-      setAudioSrc(null);
-      setMediaInfo({ hasAudio: true, mediaMime: voiceMedia.mediaMime, mediaDurationSec: voiceMedia.mediaDurationSec ?? null });
-    } else if (localUrl) {
-      URL.revokeObjectURL(localUrl);
-    }
+  // 🆕 D-12 — VoiceToTextInput의 onConverted. 변환된 글은 입력창에만 넣고 편지는 저장하지 않는다.
+  // 원본 음성은 메모리의 "저장 전 음성"으로 둔다(듣기·삭제). 이 시점에 R2·DB에는 아무것도 쓰지 않았다.
+  const handleVoiceConverted = (text: string, voice: PendingVoice) => {
+    setBody((prev) => (prev ? `${prev.trimEnd()} ${text}`.trim() : text));
+    setConvertedUnsaved(true);
+    setError(null);
+    discardPendingVoice();
+    setPendingVoice({ ...voice, url: URL.createObjectURL(voice.blob) });
   };
 
-  // 🆕 D-6 §5.6-2 — 방금 이 세션에서 저장했으면 로컬 blob으로, 다시 열어서 보는 거라면
-  // GET .../audio로 받아온다. presigned URL 없이 인증 fetch → blob → objectURL.
+  const handleDeletePendingVoice = () => {
+    if (!window.confirm('저장 전 음성을 삭제하시겠어요? 저장하기 전이라 되돌릴 수 없습니다. 입력창의 글은 그대로 남습니다.')) return;
+    discardPendingVoice();
+  };
+
+  // 🆕 D-6 §5.6-2 — 저장된 음성은 GET .../audio로 받아온다. presigned URL 없이 인증 fetch → blob → objectURL.
   const handleListen = async () => {
     if (audioSrc) return;
-    if (localAudioUrlRef.current) {
-      setAudioSrc(localAudioUrlRef.current);
-      return;
-    }
     if (!token || !editingId) return;
     setAudioLoading(true);
     setError(null);
@@ -335,7 +421,6 @@ export const FarewellMessageCard: React.FC<FarewellMessageCardProps> = ({ recipi
       });
       const data = await res.json();
       if (data.status === 'success') {
-        revokeLocalAudio();
         revokeFetchedAudio();
         setAudioSrc(null);
         setMediaInfo((prev) => (prev ? { ...prev, hasAudio: false } : prev));
@@ -523,6 +608,23 @@ export const FarewellMessageCard: React.FC<FarewellMessageCardProps> = ({ recipi
                 </div>
               )}
 
+              {/* 🆕 D-12 — 변환은 끝났지만 저장 전인 음성. 메모리에만 있다(R2·DB 없음) — 편지 저장 때 올라간다. */}
+              {pendingVoice && (
+                <div className="v2-audio-attached">
+                  <span className="v2-audio-attached-label"><Volume2 size={16} color="var(--v2-point)" /> 저장 전 음성이 있습니다</span>
+                  <button type="button" onClick={() => setPendingListening(true)} disabled={saving || pendingListening} className="v2-btn-outline">
+                    <Volume2 size={14} /> 듣기
+                  </button>
+                  <button type="button" onClick={handleDeletePendingVoice} disabled={saving} className="v2-btn-outline" style={{ color: 'var(--v2-urgent)' }}>
+                    <Trash2 size={14} /> 삭제
+                  </button>
+                  {pendingListening && <audio controls autoPlay src={pendingVoice.url} style={{ width: '100%', marginTop: '4px' }} />}
+                  <p className="v2-check-sub" style={{ width: '100%', margin: 0 }}>
+                    아래 &apos;저장&apos;을 누르면 글과 함께 저장됩니다. 저장하지 않고 닫거나 떠나면 사라집니다.
+                  </p>
+                </div>
+              )}
+
               {/* 🆕 07-04 §8-9 후속(09-08) — 단계별 화면 대신, 제목 아래 탭으로 작성 방법을 고른다.
                   🔄 2026-09-23 사람 지시 — A/B/C 접두사 제거(모바일 한 줄에 안 들어갔다). */}
               <div className="v2-method-tabs">
@@ -561,7 +663,7 @@ export const FarewellMessageCard: React.FC<FarewellMessageCardProps> = ({ recipi
                         <p className="v2-rail-label">음성 녹음</p>
                         <p className="v2-rail-desc">
                           <Mic size={14} />
-                          <span><strong>말씀하신 목소리는 글로 바뀌어 편지 내용으로 들어갑니다.</strong> 브라우저가 바로 바꾸지 못하면 네이버 CLOVA Speech로 자동 전송되어 변환됩니다. 녹음을 마치면 저장 여부를 다시 확인합니다.</span>
+                          <span><strong>말씀하신 목소리는 녹음한 뒤 글로 바뀌어 편지 내용으로 들어갑니다.</strong> 녹음을 마친 뒤 글로 바꾸면 음성이 네이버 클라우드 CLOVA Speech로 전송되어 변환됩니다. 먼저 들어보고 글로 바꿀지 정할 수 있습니다.</span>
                         </p>
                       </>
                     )}
@@ -586,7 +688,16 @@ export const FarewellMessageCard: React.FC<FarewellMessageCardProps> = ({ recipi
                         mode={activeMethod}
                         token={token}
                         disabled={saving}
-                        onSaveConfirmed={handleVoiceSaveConfirmed}
+                        onConverted={handleVoiceConverted}
+                        blocked={!!mediaInfo?.hasAudio || !!pendingVoice}
+                        sttUploadEnabled={sttUploadEnabled}
+                        voiceStorageEnabled={voiceStorageEnabled}
+                        uploadConsent={uploadConsent}
+                        onUploadConsentChange={setUploadConsent}
+                        recordConsent={recordConsent}
+                        onRecordConsentChange={setRecordConsent}
+                        saveVoiceEnabled={saveVoiceEnabled}
+                        onSaveVoiceEnabledChange={setSaveVoiceEnabled}
                       />
                     )}
 
