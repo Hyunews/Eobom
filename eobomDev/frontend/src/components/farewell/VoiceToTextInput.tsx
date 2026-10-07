@@ -36,6 +36,7 @@ interface VoiceToTextInputProps {
   mode: 'upload' | 'record';
   // §5.6-9-3 — 저장된 음성 또는 저장 전 음성이 이미 있으면 업로드·녹음을 막고 안내한다.
   blocked: boolean;
+  hasPendingVoice: boolean; // 막힌 이유가 "저장 전 음성"이면 안내 문구가 다르다(저장 전 음성 → 저장하면 됨)
   sttUploadEnabled: boolean;
   voiceStorageEnabled: boolean; // R2_ENABLED
   uploadConsent: boolean;
@@ -49,7 +50,9 @@ interface VoiceToTextInputProps {
 const ALLOWED_AUDIO_EXTENSIONS = ['.m4a', '.mp3', '.wav', '.webm'];
 const MAX_UPLOAD_SIZE_BYTES = 20 * 1024 * 1024;
 const FALLBACK_MSG = '직접 녹음이나 위 입력창에 직접 입력해 이어서 작성해 주세요.';
-const BLOCKED_MSG = '음성을 삭제한 뒤 다시 녹음해 주세요.';
+const BLOCKED_MSG = '음성을 삭제한 뒤 다시 녹음해 주세요.'; // 저장된 음성이 붙어 있을 때(§5.6-9-3)
+// 🔄 10-07 개발자 지시 — 변환이 끝나 저장만 하면 되는 때에 "다시 녹음"이 나오면 오류처럼 읽혀 문구를 나눈다.
+const BLOCKED_PENDING_MSG = '변환이 끝났습니다. 아래 \'저장\'을 누르면 글과 음성이 저장됩니다. 다른 음성으로 바꾸려면 위의 \'삭제\'를 누르세요.';
 const MAX_RECORD_MINUTES = Math.round(HEAVY_CLIENT_LIMITS.audioMaxSeconds / 60);
 const RECORD_NOTICE_SEEN_KEY = 'eobom_voice_record_notice_seen'; // §5.5-3 — "1회" 안내를 다시 보여주지 않기 위한 로컬 기록
 const RECORDER_MIME_CANDIDATES = ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4'];
@@ -75,7 +78,7 @@ interface TranscribeResult {
 }
 
 export const VoiceToTextInput: React.FC<VoiceToTextInputProps> = ({
-  token, onConverted, disabled, mode, blocked, sttUploadEnabled, voiceStorageEnabled,
+  token, onConverted, disabled, mode, blocked, hasPendingVoice, sttUploadEnabled, voiceStorageEnabled,
   uploadConsent, onUploadConsentChange, recordConsent, onRecordConsentChange, saveVoiceEnabled, onSaveVoiceEnabledChange,
 }) => {
   const [isRecording, setIsRecording] = useState(false);
@@ -512,7 +515,7 @@ export const VoiceToTextInput: React.FC<VoiceToTextInputProps> = ({
         </>
       )}
 
-      {blocked && <p className="v2-notice-warn" style={{ marginBottom: '8px' }}>{BLOCKED_MSG}</p>}
+      {blocked && <p className="v2-notice-warn" style={{ marginBottom: '8px' }}>{hasPendingVoice ? BLOCKED_PENDING_MSG : BLOCKED_MSG}</p>}
 
       <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px', flexWrap: 'wrap' }}>
         {recordingSupported && (
@@ -588,7 +591,7 @@ export const VoiceToTextInput: React.FC<VoiceToTextInputProps> = ({
             동의하지 않으셔도 직접 입력으로 편지를 남기실 수 있습니다.
           </p>
 
-          {blocked && <p className="v2-notice-warn" style={{ marginBottom: '8px' }}>{BLOCKED_MSG}</p>}
+          {blocked && <p className="v2-notice-warn" style={{ marginBottom: '8px' }}>{hasPendingVoice ? BLOCKED_PENDING_MSG : BLOCKED_MSG}</p>}
 
           <input
             ref={fileInputRef}

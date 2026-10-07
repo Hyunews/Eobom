@@ -690,6 +690,7 @@ export const FarewellMessageCard: React.FC<FarewellMessageCardProps> = ({ recipi
                         disabled={saving}
                         onConverted={handleVoiceConverted}
                         blocked={!!mediaInfo?.hasAudio || !!pendingVoice}
+                        hasPendingVoice={!!pendingVoice}
                         sttUploadEnabled={sttUploadEnabled}
                         voiceStorageEnabled={voiceStorageEnabled}
                         uploadConsent={uploadConsent}
