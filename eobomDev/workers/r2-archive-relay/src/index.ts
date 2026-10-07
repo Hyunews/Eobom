@@ -36,9 +36,13 @@ export default {
           message.ack(); // 원본이 이미 없다 — 재시도해도 결과가 달라지지 않는다
           continue;
         }
-        await env.ARCHIVE_BUCKET.put(event.object.key, object.body, {
+        const copied = await env.ARCHIVE_BUCKET.put(event.object.key, object.body, {
           httpMetadata: object.httpMetadata,
         });
+        // 완료 판정 기준이 "같은 키·같은 크기"(00-11 §5.4-5-2-1-1)라 크기가 다르면 성공으로 치지 않고 재시도한다.
+        if (copied.size !== object.size) {
+          throw new Error(`크기 불일치: 원본 ${object.size} / 사본 ${copied.size}`);
+        }
         message.ack();
       } catch (err) {
         console.error('아카이브 복제 실패:', event.object.key, err);

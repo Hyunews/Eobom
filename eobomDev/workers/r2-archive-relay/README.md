@@ -16,9 +16,13 @@ Cloudflare Worker. 두 버킷 모두 R2 바인딩으로 접근하며 S3 액세�
 3. 큐 생성: `npx wrangler queues create eobom-r2-archive-queue --message-retention-period-secs 86400`
 4. 워커 배포: `npm run deploy`
 5. 원본 버킷(`eobom-farewell-voice`)에 Event Notification 규칙 연결 — 대시보드
-   (R2 → 버킷 선택 → Settings → Event Notifications → PutObject → 위 큐 지정) 또는
+   (R2 → 버킷 선택 → Settings → Event Notifications → 이벤트 유형은 **PutObject·CopyObject·
+   CompleteMultipartUpload 셋 모두** 체크(🔴 PutObject만 고르면 큰 파일의 분할 업로드가 큐에 안 와
+   사본이 빠진다) → 위 큐 지정) 또는
    `npx wrangler r2 bucket notification create eobom-farewell-voice --event-type object-create --queue eobom-r2-archive-queue`
-6. 확인: 음성 하나를 실제로 올려 아카이브 버킷에도 같은 키로 나타나는지 대시보드에서 확인
+   (`object-create`는 위 셋을 모두 포함한다)
+6. 확인: 음성 하나를 실제로 올려 아카이브 버킷에도 같은 키로 나타나는지 대시보드에서 확인.
+   🔴 **크기도 같아야 통과**(00-11 §5.4-5-2-1-1). 큰 파일(멀티파트)도 한 번 올려 같은 방식으로 확인한다.
 
 ## 하지 않는 것
 
