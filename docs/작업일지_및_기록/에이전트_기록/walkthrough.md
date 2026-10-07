@@ -16,6 +16,30 @@
 > [`_아카이브_2608`](walkthrough_아카이브_2608.md)(08-31분). 남은 것 = 판정 대기 + 판정 표기 없음. 기준 → `record.md` §2-1.
 
 ---
+## 2026-10-07 | [Sonnet] D-12 #71~74 — 어드민 파기 화면: 밀려난 음성 + 종류 접두 + 파기 기록 보기 · 녹음 자동 중지 595초
+
+- **근거 스펙**: docs/06_엔딩노트_유언/06-05 §8 D-12 #71~74 · §6.5(targetIds) · §5.6-9-2 Ⓑ① · §5.6-8-3(D-11)
+- **건드린 파일**: backend/src/controllers/farewellPurgeController.ts · backend/src/routes/adminRoutes.ts · backend/prisma/schema.prisma(`targetIds` 주석만, 마이그레이션 없음) · backend/src/services/farewellPurgeService.ts(`isStillRetiredExpired`) · backend/tests/farewell-purge-retired.test.ts(신규 8건) · backend/tests/auth-boundary.test.ts(logs 경로 추가) · backend/package.json(test 목록) · frontend/src/pages/AdminPage.tsx · frontend/src/lib/heavyLimits.ts(`RECORD_AUTO_STOP_SECONDS = audioMaxSeconds - 5`) · frontend/src/components/farewell/VoiceToTextInput.tsx
+- **결과**:
+  - **#73**: 감사 로그 `targetIds` 항목마다 종류 접두 — 음성만 `V:` · 편지 통째 `L:` · 밀려난 음성 `R:`(`retired:` 접두 대체). 밀려난 음성 행 문구 "이전 음성 (새 음성으로 교체됨)" + "삭제 ○○". 목록 응답 주석 정정
+  - **#74**: `GET /api/admin/farewell-purge/logs?type=V|L|R&page=&pageSize=` (어드민 인증·읽기 전용, 최근 순, 기본 20건). type은 해당 접두가 하나라도 있는 행. 응답은 실행 시각·운영자 이름·건수·종류별 건수·대상 id(접두 포함)뿐 — 편지 제목/본문·R2 키 없음. 접두 없는 옛 행은 `구분 없음`으로 세고 type 필터에는 안 나옴(전체에서만). 화면: 파기 화면 맨 아래 "파기 기록" 절 — 필터 [전체][삭제된 음성][밀려난 음성][편지 통째] + 이전/다음. 실행 직후 1쪽으로 다시 불러옴
+  - 시험 추가 4건(#74): 전체에서 종류별 건수·옛 행 구분 없음 · V·R 섞인 행이 V·R 필터엔 나오고 L엔 안 나옴 · 옛 행은 어느 필터에도 안 나옴 · 잘못된 type 400·응답에 `mediaKeys` 없음. 기존 시험은 `R:` 접두로 갱신
+  - backend `npm test` 418건 통과 · tsc 0 · frontend build 통과
+  - (이전 #71·#72 결과)
+  - **#72**: 녹음 자동 중지를 595초로(서버 `audioMaxSeconds` 600은 그대로). 화면 문구 "(최대 10분)"·"최대 10분까지 녹음할 수 있습니다." 유지. 상수는 heavyLimits.ts에 이름 붙임
+  - **#71**: `GET /api/admin/farewell-purge/expired` 응답에 `retired`(id·deletedAt만, 키 미노출) 추가 → 화면에 "①-2 밀려난 음성 만료" 구역(건별 선택). 실행은 기존 `/execute`에 `type: 'RETIRED'` 추가 — 서버 재검증(`isStillRetiredExpired`: purgedAt 없음 + deletedAt+30일 경과, 하나라도 실패하면 409로 전체 거부) · 건수 입력 · 비밀번호 재인증 · 감사 로그는 기존과 동일. 처리는 `purgeRetiredRow` 재사용(원장 → R2 삭제 → purgedAt, 행은 지우지 않음)
+  - 시험 4건: 목록에 만료 행만(키 미노출) · 만료 전 행 409·미기록 · 건수 불일치 400 · 실행 후 purgedAt + 원장 1행 + 감사 로그, 재전송은 409로 원장 중복 없음
+  - backend `npm test` 406건 통과 · backend/frontend tsc 0 · frontend build 통과
+- **편차**:
+  1. 접두 도입 이전에 쌓인 운영 행은 접두가 없어 "구분 없음"으로만 보인다(재분류하지 않음). 미커밋이던 `retired:` 접두 행은 운영에 없으므로 따로 처리하지 않았고, 있어도 "구분 없음"으로 센다
+  2. 화면 목록의 이전 음성 행에는 제목이 없다(표에 편지 정보를 두지 않음 — 개인정보 없음 원칙)
+  3. 파기 기록은 별도 탭이 아니라 파기 화면 안의 절로 두었다(스펙의 "탭/절" 중 절)
+  4. 화면 실측 안 함(어드민 화면은 사람 몫)
+- **다음 에이전트가 알아야 할 것**: 🔴 미커밋. 파기 배치 스크립트 ①-2(앞서 구현)와 같은 `purgeRetiredRow`를 쓴다. 운영 DB에 `FarewellMediaRetired` 표가 먼저 있어야 한다(앞선 마이그레이션) — 이번 건은 추가 마이그레이션 없음
+
+<!-- Gemini 판정 1줄: ✅통과 / ❌반려(사유) / 🔄스펙갱신(고친 문서) -->
+
+---
 ## 2026-10-07 | [Sonnet] b17 음성 편지 — 변환과 저장 분리 (D-12 #61~70)
 
 - **근거 스펙**: docs/06_엔딩노트_유언/06-05 §5.6-9 · §6.6 · §8 D-12 #61~70 (10-07 개발자 결정)
