@@ -16,6 +16,34 @@
 > [`_아카이브_2608`](walkthrough_아카이브_2608.md)(08-31분). 남은 것 = 판정 대기 + 판정 표기 없음. 기준 → `record.md` §2-1.
 
 ---
+## 2026-10-07 | [Sonnet] 유언장 사진 보관 P4 (06-06 §5-2 전체)
+
+- **근거 스펙**: docs/06_엔딩노트_유언/06-06_유언장_사진인식_요건확인_기획서.md §5-2-1~5-2-6 · §9 P4 (10-07 개발자 결정)
+- **건드린 파일**:
+  - 스키마·마이그레이션: eobomDev/backend/prisma/schema.prisma(`WillPhotoSet`·`WillPhoto` 추가 + `User.willPhotoSets`) · prisma/migrations/20261007150000_add_will_photo/migration.sql(`WillPhotoSet_created_at_kst` 트리거 포함) · docs/00_핵심플랫폼/00-05_DB_요구사항_및_테이블_사전.md(`generate-db-doc.js` 자동 생성분)
+  - 백엔드 신규: src/services/willPhotoStorage.ts · src/services/willPhotoService.ts · src/controllers/willPhotoController.ts · src/routes/willPhotoRoutes.ts · prisma/destroy-will-photos.ts · tests/will-photo.test.ts
+  - 백엔드 수정: src/config/r2.ts(`isWillBucketConfigured`·`isWillPhotoEnabled`·`getWillClient`·`getWillBucket`) · src/app.ts(`/api/will-photos`) · src/controllers/ocrController.ts(status `photoStorageEnabled` · `keepPhoto` · 응답 `photo`) · src/controllers/farewellPurgeController.ts(`WILL`·`I:` 접두·`willPhoto` 목록·`type=I`) · src/services/accountPurgeService.ts(0단계 사진 파기·`AccountPlan.willPhotoSets`) · prisma/destroy-farewell-media.ts(①-3 유언장 사진 만료·탈퇴 dry-run 출력) · .env.example · package.json(`purge:will`·test 목록) · tests/farewell-purge-retired.test.ts(counts에 `I: 0`)
+  - 프론트 신규: src/components/endingNote/WillPhotoVault.tsx
+  - 프론트 수정: src/components/endingNote/WillPhotoUploadModal.tsx · WillPhotoResult.tsx(`WillOcrResponse.photo`) · src/pages/EndingNotePage.tsx · src/pages/AdminPage.tsx
+- **결과**: 스위치 `R2_WILL_ENABLED`(기본 false·버킷 변수 4개 필요) · 인식 성공 + `keepPhoto=true`일 때만 같은 요청에서 `encryptNoteBuffer`로 암호화 저장(묶음·회원당 10·파일 이름 미저장) · 보관 목록/보기(인증 fetch→복호화→blob)/삭제(소프트)/다시 인식 · 어드민 파기 ④ + 감사 `I:` + 파기 기록 `유언장 사진` 필터 · 탈퇴 파기에서 편지보다 앞 · 일괄 파기 스크립트(dry-run 기본). 문구 3곳은 §5-2-4 표 그대로(스위치 꺼짐이면 옛 문구).
+  재현: `cd eobomDev/backend && npx tsc --noEmit`(에러 0) · `npm test`(437건 통과, 신규 will-photo 15건) · `cd eobomDev/frontend && npm run build`(통과). 로컬 DB: `backup-db.ps1 -Target local` → `local-20261007-162035.dump`(439KB 확인) → `prisma migrate deploy`로 적용. 테스트 DB는 `npm run test:db:migrate`.
+- **편차**:
+  1. **다시 인식** — 서버에 새 엔드포인트를 두지 않고, 화면이 보관한 사진을 인증 fetch로 받아 기존 `POST /api/ocr/recognize`에 다시 올린다(`keepPhoto` 없이 → 새로 보관 안 함). 하루 10회·대기열·상한 검사가 그대로 걸린다. 대신 사진이 한 번 더 업로드된다.
+  2. **보관 실패의 처리** — 스펙은 "인식 성공 시에만 저장"까지만 정했다. 10묶음 초과·R2 오류는 인식 결과를 막지 않고 응답 `photo: { stored:false, message }`로 알린다(이미 CLOVA를 쓴 결과라 버리지 않음). R2 오류 때 먼저 올린 쪽은 지운다.
+  3. 서버는 `keepPhoto==='true'`일 때만 저장한다(보내지 않으면 안 함) — 화면의 "기본 켬"은 화면이 `keepPhoto`를 보내는 것으로 구현.
+  4. `destroy-farewell-media.ts`에도 ①-3(유언장 사진 만료)을 넣었다(스펙은 어드민 화면·`destroy-will-photos.ts`만 명시). 어드민과 같은 서비스 함수를 쓴다.
+  5. 저장 mime은 `image/jpeg`·`image/png`·`application/pdf`(heic는 서버가 jpg로 바꾼 것).
+- **다음 에이전트가 알아야 할 것**:
+  - 🔴 **실기동 검증 대기(화면 확인은 [Opus])** — 로컬 `.env`에 `R2_WILL_ACCESS_KEY_ID`·`R2_WILL_SECRET_ACCESS_KEY`·`R2_WILL_BUCKET=eobom-will-photo-dev`·`R2_WILL_ENABLED=true` 필요(없으면 화면은 옛 문구 그대로). 시험은 R2·CLOVA를 가짜로 바꿔 돌렸고 **실제 R2 업로드는 아직 안 돌려봤다**.
+  - 🔴 **운영**: `migrate-prod.ps1`(개발자) → Render에 `R2_WILL_*` 변수(운영 버킷·토큰) 추가 후에만 켜진다. 추가형 스키마라 순서 무관.
+  - `--confirm`(`destroy-will-photos.ts --all`·`destroy-farewell-media.ts`)은 실행하지 않았다(사람 전용).
+  - `prisma generate`가 `query_engine-windows.dll.node` EPERM(다른 프로세스가 잡고 있음)으로 엔진 교체에 실패했다. 타입(`index.d.ts`)은 새로 생성돼 `tsc`·테스트는 통과. 개발 서버를 껐다 켜기 전에 `npx prisma generate` 한 번 더.
+  - 처리방침(`00-19`) 문구·사장님 금지 시 절차는 스펙 §5-2-6·§5-2-7 그대로 — 코드 쪽 준비만 끝났다.
+  - 🔴 미커밋
+
+<!-- Gemini 판정 1줄: ✅통과 / ❌반려(사유) / 🔄스펙갱신(고친 문서) -->
+
+---
 ## 2026-10-07 | [Sonnet] eobomDev/README.md 현행화 — 문서만(빌드 영향 없음)
 
 - **건드린 파일**: eobomDev/README.md — 숫자 실측 반영(모델 37·마이그레이션 48·화면 24·공통 UI 51) · 구조도에 services/·middleware/·workers/r2-archive-relay 추가 · 스크립트 표에 test·purge(`--confirm` 사람 전용 주석)·report:heavy·import:facility-mohw · "pg_dump 먼저" 2곳 → `backup-db.ps1 -Target local` + db-safety.md 링크 · 최종 갱신 10-07

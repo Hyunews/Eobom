@@ -1,8 +1,6 @@
 # systems.md — 외부 시스템 명부
 
 > **언제 읽나**: 외부 연동(OAuth·지도·공공데이터·DB·배포)을 건드리기 직전
->
-> 여기저기 흩어져 있던 "이건 왜 안 되지" 항목을 한 곳에 모은 명부. 연동 상태가 바뀌면 **여기를 먼저 고친다.**
 
 ---
 
@@ -16,7 +14,6 @@
 
 - 스펙 정본: `docs/00_핵심플랫폼/00-08_소셜로그인_및_계정통합_명세서.md`
 - 시크릿: `eobomDev/backend/.env` (→ `security.md` §3)
-- ⚠️ **프로덕션 콜백 URL 미등록** — 백엔드가 아직 배포되지 않아 실서비스 로그인 불가
 - ⚠️ **로컬 콜백은 https 필수** — 인증서 존재 시 백엔드가 HTTPS만 서빙(`server.ts`). http로 두면 `ERR_EMPTY_RESPONSE`(08-10 실장애, 해결). 3사 콘솔에 `https://localhost:5000/api/auth/<provider>/callback` 등록 완료.
 
 ## 2. 지도 / 위치
@@ -39,9 +36,7 @@
 | [앱 설정] > [플랫폼] > Web > **사이트 도메인** | SDK 실행·지도·카드 **전송** | 지도·공유 자체가 안 됨 |
 | **제품 링크 관리 > 웹 도메인** | 카드에 **붙는 링크** | 🔴 **카드는 멀쩡히 도착하는데 탭해도 아무 반응 없음** |
 
-- 🔴 **증상이 코드 버그처럼 보인다** — 08-21에 이것 때문에 3일을 코드에서 헤맸다. 진단 전 과정은
-  `claude_tasks.md` (20). **아래 4개는 전부 정상으로 나오므로 무죄 증거가 되지 못한다:**
-  `isInitialized() === true` · `sendDefault` 에러 없음 · 카드 도착 · **배포본에서 지도 정상 표시**.
+- 🔴 **증상이 코드 버그처럼 보인다** — SDK 초기화 `true`·전송 에러 없음·카드 도착·배포본 지도 정상은 **전부 무죄 증거가 아니다.** 경위 → `_meta/systems_경위.md`.
 - ⚠️ **`Kakao.init()`의 `true`는 도메인 등록의 증거가 아니다** — 앱 키를 세팅할 뿐 도메인을 검증하지
   않는다. 검증은 카카오 서버가 공유를 처리할 때 일어난다.
 - ⚠️ **이미 보낸 카드는 소급 복구되지 않는다** — 전송 시점에 링크가 굳는다. 등록 후 **새로 보내** 확인할 것.
@@ -54,15 +49,9 @@
   `OBITUARY_CARD_IMAGE_URL`은 **고정 공개 URL**(Vercel)이어야 한다(`07-03` §3.3-3).
 - 🔴 **임시 터널(`trycloudflare.com` 등)은 쓰지 않는다 — 2026-08-20 계획에서 제외.**
   재시작할 때마다 주소가 바뀌어 **카카오 도메인 등록도 `.env`도 조용히 죽는다.**
-  실제로 08-19~20 사이 `VITE_BACKEND_URL`이 터널을 가리키고 있었고, 프론트 `.env`에서 제거했다.
   로컬은 `config.ts` 폴백(`현재호스트:5000`)을 쓰고, **외부 검증은 실배포로만** 한다.
-  (`00-07` §도 Cloudflare Tunnel을 *"개발 서버가 진짜 인터넷에 노출되는 위험"* 으로 이미 지적)
-- 🔴 **시/도단위 검색시 45건캡**(15건×3페이지). **09-09 실측 — 이 캡이 데이터를 실제로 잘라놨다**:
-  경기 48(실제 183) · 캡 아래였던 **세종 6건만 정확**, **커버리지 601/1,080**.
-  ✅ **장례식장 정본을 공공 API로 옮겼다**(§3). **카카오는 보강**(좌표·`kakaoPlaceId`·표시용 통용명).
-  🔵 **주소→좌표 지오코딩은 건당 조회라 캡이 없다.**
-- 🔴 08-19: 좀비 vite가 5174~5177 점유→dev서버 밀림→미등록포트라 SDK거부. `netstat`+`taskkill`로
-  정리, 재발시 5173 비었는지 먼저 확인.
+  (경위 → `_meta/systems_경위.md`)
+- 🔴 **카카오 장소검색은 시/도 단위 45건 캡**(15건×3쪽) — 장례식장 정본은 공공 API(§3), 카카오는 보강. 주소→좌표 지오코딩은 캡 없음. 실측 → `_meta/systems_경위.md`.
 
 ### 위치(Geolocation) 자동감지 — mkcert 로컬 HTTPS로 검증 가능 ✅
 
@@ -95,7 +84,6 @@
   🔵 **09-09 갱신 — `phone`·`location`·`tags`(공설/사설·운영종류)·`amenities`(식당/매점/주차장/
   유족대기실/장애인편의시설)는 공공 실데이터로 바뀐다**(장례식장 한정). `guests`는 `mtaCnt`/`ehrCnt`가
   빈소수·안치구수인데 🔴 **어느 쪽이 빈소수인지 명세 대조 전까지 채우지 않는다.**
-- ⚠️ CSV 원본 오류(전남광주 45건) 2026-08-05 수정 완료. 재수집 시 재발 확인.
 - 🔴 **수신 함정(09-09 겪음)**: `str += chunk`로 이어붙이면 **chunk 경계에서 한글이 깨진다**
   (`전북특별자치도`→`전��…`). `Buffer.concat().toString('utf8')`. **원본 문제가 아니다.**
 - ⚠️ **페이지당 500건 상한**(`numOfRows=1000`도 500) · `type=json`은 **에러 응답** → XML 고정.
@@ -106,23 +94,15 @@
 
 ### 🔴 Supabase 설정 — Data API·RLS는 **끈다** (2026-08-20 결정)
 
-Security 3항목(**Data API · 자동 테이블 노출 · 자동 RLS**)을 **전부 OFF**로 두었다. 생성 화면의 경고
-*"Client libraries need Data API…"* 는 **무시해도 된다** — `supabase-js` 의존성·호출 0건(08-20 실측)이고
-DB 접근은 **Prisma 한 경로**뿐이다. RLS는 Data API를 막는 장치라 그게 꺼지면 보호 대상 자체가 없다.
+Security 3항목(Data API·자동 테이블 노출·자동 RLS) **전부 OFF**. DB 접근은 Prisma 한 경로뿐이고, 켜면 공개 응답 화이트리스트가 통째로 우회된다. 이유·구조 비교 → `_meta/systems_경위.md`.
 
-- **구조가 다르다**: 이어봄은 `브라우저 → Express → Prisma → Postgres`이고, Data API는
-  `브라우저 → PostgREST → Postgres`다. 인증도 Passport+JWT 자체 구현이라 Supabase Auth를 안 쓴다.
-- ⚠️ **Data API를 켜면 공개 응답 화이트리스트가 통째로 우회된다** — `05-01` §4.1·`07-03` §5.3이
-  일부러 뺀 `deceasedBirthDate`·암호화 계좌 필드까지 REST로 조회 가능해진다.
 - 🔴 **언젠가 Data API를 켜야 한다면 RLS를 먼저 켜라.** 순서가 반대면 테이블이 그대로 열린다.
 - ⚠️ 대시보드 로그의 `pg_pgrst_no_exposed_schemas does not exist`는 **정상**(08-27). Data API를 껐으니
   PostgREST 노출 스키마가 0개라 나는 로그다. 🔴 **이걸 없애려고 Data API를 켜지 말 것.**
 
 ### 🔴 리전 = Seoul (변경 불가)
 
-`00-17` §3.3 — *"해외 리전이 위법이라서"가 아니라 **논점 자체를 만들지 않으려고**"*.
-서울이면 개인정보처리방침의 국외이전 공개 항목이 아예 필요 없어진다.
-**Supabase는 프로젝트 생성 후 리전을 바꿀 수 없다.**
+`00-17` §3.3 — 국외이전 논점을 만들지 않으려고 서울. 🔴 **Supabase는 생성 후 리전 변경 불가.**
 
 
 | 항목 | 값 |
@@ -132,10 +112,8 @@ DB 접근은 **Prisma 한 경로**뿐이다. RLS는 Data API를 막는 장치라
 | ORM | Prisma |
 | 접속 문자열 | `eobomDev/backend/.env`의 `DATABASE_URL` |
 
-- 모델 33개(10-02) — 전체는 `schema.prisma` · 사전은 `docs/00-05`(자동 생성). `FacilityBooking`은 08-11 삭제됨
-- `Facility` 실데이터 1,552건 적재됨 (서버 페이지네이션 브라우저 검증 완료)
-- 🔴 **데이터 유실 2회**(08-05 마이그레이션 · 08-27 정리 스크립트). **DB에 쓰기 전 백업이 규칙이며
-  스키마 변경만이 아니다** — 트리거·금지패턴·순서는 **`db-safety.md`가 정본**
+- 모델 37개(10-07) — 전체는 `schema.prisma` · 사전은 `00-05`(자동 생성). `FacilityBooking`은 08-11 삭제됨
+- 🔴 **DB 쓰기 전 백업 — `db-safety.md`가 정본**(유실 2회).
 - 🔵 **백업**: `powershell -File .harness/tools/backup-db.ps1 -Target local|prod`(08-27 신설 — pg_dump가 이 PC에 없어 Docker로 돈다.
   🔴 `-Target` 필수·기본값 없음, 09-30). `eobomDev/backend/backups/`에 `prod-`/`local-` 접두사로 저장(gitignore).
   `-Target prod`엔 `.env`의 **`BACKUP_DATABASE_URL`** 필요 — `DIRECT_URL`은 로컬 Docker DB이고 폴백하지 않는다.
@@ -144,7 +122,7 @@ DB 접근은 **Prisma 한 경로**뿐이다. RLS는 Data API를 막는 장치라
   🔴 pooler 유저명은 **`postgres.[ref]`** — `postgres`면 *"password authentication failed"* 가 떠
   **원인이 비밀번호처럼 보인다**. 🔴 클라이언트 **`postgres:17-alpine`**(15·16은 version mismatch).
   ⚠️ 비밀번호의 `#@/?%:` 는 퍼센트 인코딩(`#`는 뒤가 잘림). ⚠️ 같은 시크릿을 `.env`에 두 벌 두지 말 것.
-- 🔴 **새 표에 `createdAt`이 있으면 `createdAtKst`, `updatedAt`이 있으면 `updatedAtKst` 칸 + 트리거를 같이 만든다**(10-01): DB를 열었을 때 한국 시간을 보는 보기 전용 칸이다(저장은 UTC). 마이그레이션에 `ADD COLUMN "createdAtKst" TIMESTAMP(3)` + `CREATE TRIGGER "<표>_created_at_kst" BEFORE INSERT OR UPDATE ON "<표>" FOR EACH ROW EXECUTE FUNCTION set_created_at_kst();` (`updatedAt`은 `"updatedAtKst"` · `"<표>_updated_at_kst"` · `set_updated_at_kst()`), `schema.prisma`엔 `createdAtKst DateTime?`·`updatedAtKst DateTime?`(Studio에서 보이게 `@ignore` 없음). **앱 코드에서 읽기·쓰기 금지** — 응답에선 `app.ts`의 `json replacer`가 두 키를 뺀다. 빠뜨리면 `tests/created-at-kst.test.ts`·`tests/updated-at-kst.test.ts`가 표 이름을 대며 실패한다.
+- 🔴 **새 표에 `createdAt`·`updatedAt`이 있으면 한국 시간 보기 칸 + 트리거를 같이 만든다**(10-01) — 절차 `skills/kst-보기칸-추가.md`. 빠뜨리면 시험이 표 이름을 대며 실패한다.
 - 🔴 **로그 표 크기 확인(월 1회 점검 때 · 00-42 §6)**: `SELECT relname, pg_size_pretty(pg_total_relation_size(oid)) AS size, n_live_tup FROM pg_class c JOIN pg_stat_user_tables s ON s.relid=c.oid WHERE relname IN ('AccessLog','ErrorLog','AdminAuditLog');` — Supabase 무료는 DB 500MB, 넘으면 **읽기 전용**이 돼 가입·저장이 멈춘다. **세 표 합계 300MB 넘으면** 유료 전환·보관 단축·외부 이전 중 고른다(10-01 운영 DB 0.03GB).
 
 ## 5. 배포
@@ -153,7 +131,7 @@ DB 접근은 **Prisma 한 경로**뿐이다. RLS는 Data API를 막는 장치라
 |---|---|---|
 | 프론트엔드 | ✅ 배포됨 | `https://eobom.vercel.app/` |
 | 백엔드 | ✅ **배포됨** (2026-08-20) | `https://eobom-backend.onrender.com` — `/api/health` 200 실측 |
-| 저장소 | private | `github.com/Hyunews/Eobom` |
+| 저장소 | 🔴 **PUBLIC**(10-07 확인) | `github.com/Hyunews/Eobom` — `security.md` §5 |
 
 - 🔴 **CORS는 허용 목록**(10-01, `00-42` §10) — 기본 `https://eobom.vercel.app` + 로컬 5173(`config/cors.ts`). **Vercel 미리보기 주소·새 도메인에서 API를 부르면 막힌다** → Render 환경변수 `CORS_ORIGINS`에 쉼표로 추가(값을 쓰면 기본 목록을 *대체*하니 운영 주소도 같이 적을 것). 비밀값 아님·`render.yaml`엔 안 넣음(기존 서비스는 대시보드 값이 기준).
 - 🔴 **요청 횟수 제한**(같은 IP·메모리·단일 인스턴스): 공개 쓰기 10 · 로그인/갱신 20 · 전체 300 / 분, `/api/health` 제외. 넘으면 429 *"잠시 후 다시 시도해 주세요."* — 경로 목록은 `middleware/rateLimit.ts`(새 공개 POST를 만들면 거기 올릴 것). 로컬 시험 중 429가 나면 1분 기다리거나 서버 재시작.
@@ -167,12 +145,7 @@ DB 접근은 **Prisma 한 경로**뿐이다. RLS는 Data API를 막는 장치라
 - 🔴 **`NODE_ENV=production` + 빌드는 `npm ci --include=dev && npm run build`**(10-01). `NODE_ENV=production`이면
   npm이 devDependencies(`typescript`·`prisma`·`@types/*`)를 빼고 설치해 빌드가 깨진다(`TS5108` — 다른 버전 `tsc`가 잡힘).
   `NODE_ENV`는 빼면 안 된다 — 운영 데모 로그인 차단(`authController.ts` demoLogin)이 이 값으로 동작한다(10-01 운영 403 확인).
-- 🔴 **리전 = `oregon`(미국). 백엔드와 DB가 태평양을 사이에 두고 있다**(08-21 실측):
-  `/api/health` ~165ms vs **DB 타는 API ~1,500ms**. ⚠️ 리전은 `render.yaml`의 `region:`으로만 정해지고
-  **생성 후 변경 불가** — 없으면 조용히 `oregon`이 된다.
-  🔴 **성능보다 국외이전이 크다** — `00-17` §3.3이 Supabase를 서울로 잡은 것이 **백엔드가 미국이라
-  무효**다(STT 음성도 미국을 먼저 거친다). → `pending-approvals.md` 인프라(오픈 블로커).
-  🔵 08-21 판단: 싱가포르로 안 옮기고 국내 전환 시 한 번에.
+- 🔴 **리전 = `oregon`(미국), DB는 서울** — DB 타는 API ~1.5초 + **국외이전 문제**(오픈 블로커 → `pending-approvals.md` 인프라). `render.yaml` `region:`은 생성 후 변경 불가(없으면 조용히 oregon). 실측·판단 → `_meta/systems_경위.md`.
 - 🔴 **push해도 운영 DB는 안 바뀐다**(09-30부터) — `start`에서 `prisma migrate deploy`를 뺐다.
   운영 스키마 변경 절차는 **`db-safety.md` §2-1**.
 - ⚠️ 무료 웹서비스는 **15분 슬립** — 첫 요청이 수십 초 걸린다(부고 링크 첫 방문자가 그대로 겪는다)

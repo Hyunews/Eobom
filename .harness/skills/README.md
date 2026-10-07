@@ -9,6 +9,7 @@
 | 폴더 | 언제 쓰나 |
 | :--- | :--- |
 | [`enterprise-document-design/`](./enterprise-document-design/SKILL.md) | 보고서·대외 문서 서식(공문서형 보고서 · 웹 HTML 시각화 · 논문형 · 인포그래픽 · AI 작업 지시문) |
+| [`kst-보기칸-추가.md`](./kst-보기칸-추가.md) | `createdAt`·`updatedAt`이 있는 새 표를 만들 때 — 한국 시간 보기 칸 + 트리거(빠뜨리면 시험 실패) |
 
 ## 언제 여기 추가하나
 
