@@ -12,6 +12,9 @@ import type { HeavyJobRecord, HeavyJobResultCode } from './heavyJobLogService';
 // CLOVA가 정상 응답했지만 글자·내용이 비어 있는 경우 — 연결 실패(③)가 아니다.
 export class NoRecognizedTextError extends Error {}
 
+// CLOVA가 일별·월별 사용 한도에 도달했다고 거절한 경우(10-07 실측: result FAILED + "일별 한도에 도달하여…") — 연결 실패(③)가 아니다.
+export class QuotaExceededError extends Error {}
+
 export type HeavyJobResult<T> =
   | { ok: true; value: T }
   | { ok: false; reason: 'busy' }

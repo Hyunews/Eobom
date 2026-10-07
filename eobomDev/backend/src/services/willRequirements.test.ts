@@ -384,6 +384,35 @@ test('detectSeal — 실사진 wills002.jpg는 0개', async (t) => {
   assert.equal((await detectSeal(buf)).seals.length, 0);
 });
 
+// ── ClovaSpeechProvider — 사용 한도 도달(10-07 b17 후속) ──
+test('ClovaSpeechProvider — CLOVA가 사용 한도 도달로 거절하면 연결 오류가 아니라 QuotaExceededError로 던진다', async () => {
+  const { ClovaSpeechProvider } = await import('./clovaSpeechProvider');
+  const { QuotaExceededError } = await import('./heavyJob');
+  const saved = { fetch: globalThis.fetch, url: process.env.CLOVA_SPEECH_INVOKE_URL, secret: process.env.CLOVA_SPEECH_SECRET };
+  process.env.CLOVA_SPEECH_INVOKE_URL = 'https://example.invalid/speech';
+  process.env.CLOVA_SPEECH_SECRET = 'x';
+  globalThis.fetch = (async () =>
+    new Response(
+      JSON.stringify({ result: 'FAILED', message: '일별 한도에 도달하여 당일 사용이 제한되었습니다. 한도설정을 변경하여 이용할 수 있습니다.' }),
+      { status: 200 },
+    )) as typeof fetch;
+  try {
+    await assert.rejects(() => new ClovaSpeechProvider().transcribe(Buffer.from('x'), 'audio/mpeg'), QuotaExceededError);
+    // 한도와 무관한 FAILED는 지금처럼 일반 오류다(구분이 과하게 넓지 않다)
+    globalThis.fetch = (async () => new Response(JSON.stringify({ result: 'FAILED', message: 'internal error' }), { status: 200 })) as typeof fetch;
+    await assert.rejects(
+      () => new ClovaSpeechProvider().transcribe(Buffer.from('x'), 'audio/mpeg'),
+      (e: unknown) => e instanceof Error && !(e instanceof QuotaExceededError),
+    );
+  } finally {
+    globalThis.fetch = saved.fetch;
+    if (saved.url === undefined) delete process.env.CLOVA_SPEECH_INVOKE_URL;
+    else process.env.CLOVA_SPEECH_INVOKE_URL = saved.url;
+    if (saved.secret === undefined) delete process.env.CLOVA_SPEECH_SECRET;
+    else process.env.CLOVA_SPEECH_SECRET = saved.secret;
+  }
+});
+
 // ── ClovaOcrProvider — 글자 없는 사진(10-07 b13) ──
 test('ClovaOcrProvider — CLOVA가 NO_TEXT로 거절하면 연결 오류가 아니라 "글자 없음"으로 던진다', async () => {
   const { ClovaOcrProvider } = await import('./clovaOcrProvider');

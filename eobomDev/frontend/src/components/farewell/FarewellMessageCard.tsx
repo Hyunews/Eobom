@@ -188,6 +188,13 @@ export const FarewellMessageCard: React.FC<FarewellMessageCardProps> = ({ recipi
     setSaveVoiceEnabled(true);
   };
 
+  // 취소·X·바깥 클릭으로 닫을 때 — 저장 전 음성이 있으면 한 번 묻는다(§5.6-9-2, D-12 #65). 없으면 묻지 않는다.
+  // 확인창 방식은 음성 삭제 확인(window.confirm)과 같다. 확인 = 닫기(저장 전 음성은 revokeObjectURL로 정리됨).
+  const requestCloseComposer = () => {
+    if (pendingVoice && !window.confirm('저장하지 않은 음성과 글이 있습니다. 닫으면 사라집니다.\n\n확인 = 닫기 / 취소 = 계속 작성')) return;
+    resetComposer();
+  };
+
   const openNewComposer = () => {
     setEditingId(null);
     setTitle('');
@@ -554,7 +561,7 @@ export const FarewellMessageCard: React.FC<FarewellMessageCardProps> = ({ recipi
           role="dialog"
           aria-modal="true"
           aria-label={editingId ? '편지 수정' : '새 편지 쓰기'}
-          {...backdropCloseProps(() => { if (!saving) resetComposer(); })}
+          {...backdropCloseProps(() => { if (!saving) requestCloseComposer(); })}
         >
           <div className="v2-modal is-scroll is-composer" onClick={(e) => e.stopPropagation()}>
             <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '12px', marginBottom: '20px', flexShrink: 0 }}>
@@ -566,7 +573,7 @@ export const FarewellMessageCard: React.FC<FarewellMessageCardProps> = ({ recipi
               </div>
               <button
                 type="button"
-                onClick={resetComposer}
+                onClick={requestCloseComposer}
                 disabled={saving}
                 aria-label="닫기"
                 style={{
@@ -729,7 +736,7 @@ export const FarewellMessageCard: React.FC<FarewellMessageCardProps> = ({ recipi
                     {/* 06-04 §6.4-5 정정(08-27) — 확인→저장 2단계 대신 명시적 저장 버튼 하나로. 저장을
                     누르는 행위 자체가 확인이다. */}
                     <div style={{ display: 'flex', gap: '10px' }}>
-                      <button type="button" onClick={resetComposer} disabled={saving} className="v2-btn-outline" style={{ flex: 1, height: '48px' }}>
+                      <button type="button" onClick={requestCloseComposer} disabled={saving} className="v2-btn-outline" style={{ flex: 1, height: '48px' }}>
                         <X size={16} /> 취소
                       </button>
                       <button

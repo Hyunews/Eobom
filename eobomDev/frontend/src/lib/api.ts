@@ -23,7 +23,7 @@ export class ApiError extends Error {
   readonly status: number;
   readonly requestId: string | null;
   readonly baseMessage: string;
-  // 서버가 이유를 구분해 주는 응답의 code(사진·음성 처리: BUSY·SLOW·UPSTREAM). 없으면 null.
+  // 서버가 이유를 구분해 주는 응답의 code(사진·음성 처리: BUSY·SLOW·UPSTREAM·QUOTA). 없으면 null.
   readonly code: string | null;
   constructor(message: string, status = 0, requestId: string | null = null, code: string | null = null) {
     super(requestId ? `${message}\n오류 번호: ${requestId}` : message);

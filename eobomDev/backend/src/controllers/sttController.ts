@@ -6,7 +6,9 @@ import type { SttProvider } from '../services/sttProvider';
 import { isR2Enabled } from '../config/r2';
 import { uploadVoiceObject } from '../services/r2Storage';
 import { HEAVY_QUEUE_CONFIG } from '../services/heavyQueue';
-import { runHeavyJob, heavyFailureResponse, NoRecognizedTextError } from '../services/heavyJob';
+import { runHeavyJob, heavyFailureResponse, NoRecognizedTextError, QuotaExceededError } from '../services/heavyJob';
+
+export const STT_QUOTA_MESSAGE = '지금은 음성 변환을 쓸 수 없습니다. 잠시 후 다시 시도하거나 입력창에 직접 입력해 주세요.';
 import { getAudioDurationSec } from '../services/audioDuration';
 
 // docs 06-04 §6.4-9·§6.4-11 — STT Ⓐ 파일 업로드. Ⓑ(직접 녹음, Web Speech API)는 프론트에서
@@ -98,6 +100,10 @@ export const transcribeAudio = (req: Request, res: Response) => {
         status: 'error',
         message: '음성 변환에 실패했습니다. 직접 녹음이나 아래 입력창에 직접 입력해 이어서 작성해 주세요.',
       });
+    }
+    if (outcome.error instanceof QuotaExceededError) {
+      // CLOVA 사용 한도 도달 — 연결 오류(UPSTREAM)와 구분해 화면이 "지금은 쓸 수 없음"을 안내하게 한다(06-04 §6.4-11-6-2).
+      return res.status(503).json({ status: 'error', code: 'QUOTA', message: STT_QUOTA_MESSAGE });
     }
     const f = heavyFailureResponse('audio', 'upstream');
     return res.status(f.status).json(f.body);

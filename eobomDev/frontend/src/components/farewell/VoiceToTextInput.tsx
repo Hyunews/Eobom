@@ -50,7 +50,7 @@ interface VoiceToTextInputProps {
 const ALLOWED_AUDIO_EXTENSIONS = ['.m4a', '.mp3', '.wav', '.webm'];
 const MAX_UPLOAD_SIZE_BYTES = 20 * 1024 * 1024;
 const FALLBACK_MSG = '직접 녹음이나 위 입력창에 직접 입력해 이어서 작성해 주세요.';
-const BLOCKED_MSG = '음성을 삭제한 뒤 다시 녹음해 주세요.'; // 저장된 음성이 붙어 있을 때(§5.6-9-3)
+const BLOCKED_MSG = '이미 저장된 음성이 있습니다. 위의 \'음성 삭제\'를 누르면 다시 올리거나 녹음할 수 있습니다.'; // 저장된 음성이 붙어 있을 때(§5.6-9-3)
 // 🔄 10-07 개발자 지시 — 변환이 끝나 저장만 하면 되는 때에 "다시 녹음"이 나오면 오류처럼 읽혀 문구를 나눈다.
 const BLOCKED_PENDING_MSG = '변환이 끝났습니다. 아래 \'저장\'을 누르면 글과 음성이 저장됩니다. 다른 음성으로 바꾸려면 위의 \'삭제\'를 누르세요.';
 const MAX_RECORD_MINUTES = Math.round(HEAVY_CLIENT_LIMITS.audioMaxSeconds / 60);
@@ -319,7 +319,7 @@ export const VoiceToTextInput: React.FC<VoiceToTextInputProps> = ({
       setUploadStage('idle');
       const message = e instanceof ApiError ? e.baseMessage : `음성 변환에 실패했습니다. ${FALLBACK_MSG}`;
       // 대기·처리·연결 이유는 알림 창, 그 밖(형식·용량·길이·무음 등)은 기존 줄.
-      if (e instanceof ApiError && (e.code === 'BUSY' || e.code === 'SLOW' || e.code === 'UPSTREAM')) setWorkNotice(message);
+      if (e instanceof ApiError && (e.code === 'BUSY' || e.code === 'SLOW' || e.code === 'UPSTREAM' || e.code === 'QUOTA')) setWorkNotice(message);
       else setUploadError(message);
     }
   };

@@ -1,6 +1,6 @@
 import type { SttProvider } from './sttProvider';
 import { convertToMp3 } from './audioConvert';
-import { NoRecognizedTextError } from './heavyJob';
+import { NoRecognizedTextError, QuotaExceededError } from './heavyJob';
 
 // docs 06-04 §6.4-11 — NCP CLOVA Speech(장문 인식, Long Sentence Recognition) 연동.
 // 인증은 Client ID/Secret이 아니라 Invoke URL(도메인 식별자 포함) + Secret Key 헤더 하나다
@@ -88,6 +88,8 @@ export class ClovaSpeechProvider implements SttProvider {
 
     const data = (await res.json()) as ClovaResponse;
     if (data.result && data.result !== 'COMPLETED') {
+      // 사용 한도 도달은 연결 오류와 구분한다(06-04 §6.4-11-6-2) — 화면이 "지금은 쓸 수 없음"을 따로 안내한다.
+      if (/한도|quota/i.test(data.message ?? '')) throw new QuotaExceededError(data.message);
       throw new Error(`CLOVA Speech 처리 실패: ${data.result} ${data.message ?? ''}`.trim());
     }
     if (typeof data.text === 'string' && data.text.trim()) {
