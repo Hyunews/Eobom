@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Mic, MicOff, Upload, Loader2, Check, Play } from 'lucide-react';
 import { apiUploadForm, ApiError } from '../../lib/api';
 import {
-  HEAVY_CLIENT_LIMITS, HEAVY_TIMEOUT_MESSAGE, HEAVY_NETWORK_MESSAGE, AUDIO_TOO_LONG_MESSAGE, readAudioDurationSec,
+  HEAVY_CLIENT_LIMITS, RECORD_AUTO_STOP_SECONDS, HEAVY_TIMEOUT_MESSAGE, HEAVY_NETWORK_MESSAGE, AUDIO_TOO_LONG_MESSAGE, readAudioDurationSec,
 } from '../../lib/heavyLimits';
 import { WorkingView, HeavyNoticeDialog } from '../common/HeavyWork';
 
@@ -180,7 +180,7 @@ export const VoiceToTextInput: React.FC<VoiceToTextInputProps> = ({
     timerRef.current = window.setInterval(() => {
       const sec = Math.floor((Date.now() - recordStartRef.current) / 1000);
       setElapsedSec(sec);
-      if (sec >= HEAVY_CLIENT_LIMITS.audioMaxSeconds) {
+      if (sec >= RECORD_AUTO_STOP_SECONDS) {
         setRecordNotice(`최대 ${MAX_RECORD_MINUTES}분까지 녹음할 수 있습니다.`);
         stopRecording();
       }

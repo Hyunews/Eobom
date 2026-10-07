@@ -8,6 +8,10 @@ export const HEAVY_CLIENT_LIMITS = {
   audioMaxSeconds: 600,
 } as const;
 
+// 녹음 자동 중지 기준(D-12 #72) — 서버 상한(audioMaxSeconds)에 딱 맞추면 녹음 길이가 600초를 넘어 거절될 수 있어 5초 앞에서 끊는다.
+// 화면 문구는 "최대 10분" 그대로.
+export const RECORD_AUTO_STOP_SECONDS = HEAVY_CLIENT_LIMITS.audioMaxSeconds - 5;
+
 // 스펙 문구 그대로(§6.4-11-10 대기 상한 줄).
 export const HEAVY_TIMEOUT_MESSAGE = {
   photo: '사진 인식이 오래 걸려 중단했습니다. 잠시 후 다시 시도해 주세요.',
