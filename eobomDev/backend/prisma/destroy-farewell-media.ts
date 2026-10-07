@@ -51,6 +51,7 @@ import {
   countPendingArchivePurge,
 } from '../src/services/farewellPurgeService';
 import { findAccountExpired, planAccount, purgeAccount } from '../src/services/accountPurgeService';
+import { findWillPhotoExpired, purgeWillPhotoSet } from '../src/services/willPhotoService';
 import { findMemorialExpiredWithSkips, planMemorial, purgeMemorial } from '../src/services/memorialPurgeService';
 import { countOpsLogExpired, purgeOpsLogExpired, OPS_LOG_RETENTION_DAYS } from '../src/services/opsLogPurgeService';
 import { findFreezeTargets, freezeMemorial, findNoticeDue } from '../src/services/memorialLifecycleService';
@@ -142,6 +143,14 @@ async function main(): Promise<void> {
     console.log(`[①-2 밀려난 음성 만료] 완료: ${retiredExpired.length}건 R2 원본 삭제 + purgedAt 기록`);
   }
 
+  // ①-3 유언장 사진 — 본인이 지운 묶음(WillPhotoSet.deletedAt + 30일). R2 원본 삭제 → purgedAt. 복제가 없어 원장에 올리지 않는다(06-06 §5-2-5).
+  const willExpired = await findWillPhotoExpired();
+  console.log(`[①-3 유언장 사진 만료] 대상 ${willExpired.length}묶음 (기준: ${cutoff().toISOString()})`);
+  if (confirmed) {
+    for (const row of willExpired) await purgeWillPhotoSet(row.id);
+    console.log(`[①-3 유언장 사진 만료] 완료: ${willExpired.length}묶음 R2 원본 삭제 + purgedAt 기록`);
+  }
+
   // ② deletedAt + 30일 — 편지 자체가 만료된 것. mediaKey가 남아 있으면 ①을 먼저 수행.
   const letterExpired = await findLetterExpired();
   console.log(`[②편지 만료] 대상 ${letterExpired.length}건 (그 중 첨부 있음 ${letterExpired.filter((r) => r.mediaKey).length}건)`);
@@ -165,7 +174,7 @@ async function main(): Promise<void> {
     // 🔴 이메일·이름 등 개인정보는 찍지 않는다 — id 앞 8자리만(security.md §1)
     console.log(
       `   - ${p.user.id.slice(0, 8)}… 만료 ${p.user.deletionScheduledAt?.toISOString()}` +
-        ` · 지움: 편지 ${p.letters}(첨부 ${p.lettersWithMedia}) 방명록 ${p.guestbookEntries} 리뷰 ${p.facilityReviews} 지정가족 ${p.designations} 부고장 ${p.obituaries}` +
+        ` · 지움: 유언장 사진 ${p.willPhotoSets}묶음 편지 ${p.letters}(첨부 ${p.lettersWithMedia}) 방명록 ${p.guestbookEntries} 리뷰 ${p.facilityReviews} 지정가족 ${p.designations} 부고장 ${p.obituaries}` +
         ` · 철회: 수락한 지정 ${p.acceptedDesignations}` +
         ` · 연결 끊음(건은 남김): 상담 ${p.detached.leads + p.detached.consultRequests} 헌화 ${p.detached.tributes}` +
         ` · 남김: 추모관 ${p.keeps.memorials} 추모사진 ${p.keeps.memorialPhotos}`,

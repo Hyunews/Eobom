@@ -17,6 +17,7 @@ import farewellMessageRoutes from './routes/farewellMessageRoutes';
 import endingNoteRoutes from './routes/endingNoteRoutes';
 import sttRoutes from './routes/sttRoutes';
 import ocrRoutes from './routes/ocrRoutes';
+import willPhotoRoutes from './routes/willPhotoRoutes';
 import { requestId, accessLog } from './middleware/requestLog';
 import { errorHandler } from './middleware/errorHandler';
 import { installRateLimits } from './middleware/rateLimit';
@@ -76,6 +77,7 @@ app.use('/api/farewell-messages', farewellMessageRoutes);
 app.use('/api/ending-note', endingNoteRoutes);
 app.use('/api/stt', sttRoutes);
 app.use('/api/ocr', ocrRoutes);
+app.use('/api/will-photos', willPhotoRoutes); // docs 06-06 §5-2 — 보관한 유언장 사진(스위치 R2_WILL_ENABLED)
 
 // 기본 헬스체크
 app.get('/api/health', (req, res) => {

@@ -12,6 +12,8 @@ import { runHeavyJob, heavyFailureResponse, NoRecognizedTextError } from '../ser
 import { checkWillRequirements } from '../services/willRequirements';
 import type { OcrPage } from '../services/ocrProvider';
 import type { SealDetection } from '../services/willRequirements';
+import { isWillPhotoEnabled } from '../config/r2';
+import { storeWillPhotoSet, LIMIT_MESSAGE, type WillPhotoItem } from '../services/willPhotoService';
 
 // docs 06-06 §5·§9 P1 — 유언장 사진 인식. sttController.ts와 같은 구조(플래그 → 인증 →
 // multer 수동 호출 → 파이프라인 → 버퍼 폐기).
@@ -62,7 +64,8 @@ class DailyLimitError extends Error {}
 
 // 업로드 UI 노출 여부 조회 (`GET /api/ocr/status`) — 공개.
 export const getOcrStatus = (_req: Request, res: Response) => {
-  res.json({ status: 'success', data: { enabled: isOcrEnabled() } });
+  // 06-06 §5-2-1 — photoStorageEnabled: 화면 문구·보관 체크·보관 목록은 이 값만 보고 바뀐다(꺼짐이면 옛 화면 그대로).
+  res.json({ status: 'success', data: { enabled: isOcrEnabled(), photoStorageEnabled: isWillPhotoEnabled() } });
 };
 
 // 사진/PDF 업로드 → 텍스트 인식 (`POST /api/ocr/recognize`, multipart, field: photos, 최대 5개) —
@@ -119,6 +122,8 @@ export const recognizeWillPhotos = (req: Request, res: Response) => {
       let allGrayscale = true;
 
       const pageFile: number[] = []; // 쪽 → 올린 파일 순서(화면이 어느 사진을 그릴지)
+      // §5-2-2 — 보관하는 것은 CLOVA로 보낸 그 이미지(줄인 jpg·png / heic→jpg / PDF 그대로). 파일 이름은 들고 있지 않는다.
+      const keepItems: WillPhotoItem[] = [];
 
       for (const [fileIndex, file] of files.entries()) {
         let buffer = file.buffer;
@@ -145,6 +150,7 @@ export const recognizeWillPhotos = (req: Request, res: Response) => {
         signal.throwIfAborted(); // 마감·연결 끊김 뒤에는 다음 파일을 시작하지 않는다
         const result = await provider.recognize(buffer, mimeType, signal);
         texts.push(result.text);
+        keepItems.push({ buffer, mime: mimeType === 'image/jpg' ? 'image/jpeg' : mimeType });
 
         if (isPdf || result.pages.length !== 1) {
           // 쪽 크기를 모르므로 박스 없이 글만 돌려준다(§6-1 PDF). 인주 분석도 하지 않는다.
@@ -175,12 +181,28 @@ export const recognizeWillPhotos = (req: Request, res: Response) => {
         userName,
       );
 
-      // §5·§7 #3 — 사진도 결과도 저장하지 않는다. 화면이 쪽 사진을 그리려면 크기(width/height)만 필요하고,
-      // 이미지는 브라우저에 이미 있는 것을 쓴다. 글은 쪽별로 나눠 보낸다("인식된 글" 탭).
+      // §5-2-2 — 인식이 성공한 요청 안에서, 응답 전에 암호화 저장한다. 스위치 꺼짐·체크 해제면 §5의 원칙 그대로(저장 0).
+      // 상한 초과·R2 실패는 인식 결과를 막지 않는다 — 이미 처리·과금된 결과라 그대로 돌려주고 보관만 안 했다고 알린다.
+      // 🔴 요건 확인 결과·인식 글은 저장하지 않는다(§7 #3) — 저장하는 것은 사진뿐이다.
+      let photo: { stored: boolean; message?: string } | undefined;
+      if (isWillPhotoEnabled() && req.body?.keepPhoto === 'true') {
+        signal.throwIfAborted();
+        try {
+          const saved = await storeWillPhotoSet(decoded.id, keepItems);
+          photo = saved.stored ? { stored: true } : { stored: false, message: LIMIT_MESSAGE };
+        } catch (storeError) {
+          console.error('유언장 사진 보관 실패:', storeError);
+          photo = { stored: false, message: '사진을 보관하지 못했습니다. 인식 결과는 그대로 쓸 수 있습니다.' };
+        }
+      }
+
+      // 화면이 쪽 사진을 그리려면 크기(width/height)만 필요하고, 이미지는 브라우저에 이미 있는 것을 쓴다.
+      // 글은 쪽별로 나눠 보낸다("인식된 글" 탭).
       return {
         text,
         pages: pages.map((p, i) => ({ text: p.text, width: p.width, height: p.height, fileIndex: pageFile[i] })),
         requirements,
+        ...(photo ? { photo } : {}),
       };
     }, {
       // §6.4-11-10-1 건별 기록 — 사용자 입력 문제(쪽수 초과)·하루 한도는 "처리 결과"가 아니라 기록하지 않는다(오류 건수에 섞이지 않게).

@@ -72,14 +72,17 @@ export interface RecentOcr {
 
 interface WillPhotoUploadModalProps {
   hasExistingDraft: boolean;
+  // 06-06 §5-2-1 — 서버 스위치(GET /api/ocr/status의 photoStorageEnabled). 꺼짐이면 "보관하지 않습니다" 문구·체크 없음 그대로.
+  photoStorageEnabled?: boolean;
   recent?: RecentOcr | null;
   onRecognized: (recent: RecentOcr) => void;
   onClose: () => void;
   onMerge: (text: string, mode: 'replace' | 'append') => void;
 }
 
-export const WillPhotoUploadModal: React.FC<WillPhotoUploadModalProps> = ({ hasExistingDraft, recent, onRecognized, onClose, onMerge }) => {
+export const WillPhotoUploadModal: React.FC<WillPhotoUploadModalProps> = ({ hasExistingDraft, photoStorageEnabled = false, recent, onRecognized, onClose, onMerge }) => {
   const [consent, setConsent] = useState(false);
+  const [keepPhoto, setKeepPhoto] = useState(true); // §5-2-4 `사진도 보관하기` — 기본 켬
   const [files, setFiles] = useState<File[]>(recent?.files ?? []);
   const [stage, setStage] = useState<Stage>(recent ? 'done' : 'idle');
   const [error, setError] = useState<string | null>(null);
@@ -159,6 +162,7 @@ export const WillPhotoUploadModal: React.FC<WillPhotoUploadModalProps> = ({ hasE
 
     const formData = new FormData();
     files.forEach((f) => formData.append('photos', f));
+    if (photoStorageEnabled && keepPhoto) formData.append('keepPhoto', 'true');
 
     const ac = new AbortController();
     abortRef.current = ac;
@@ -173,6 +177,8 @@ export const WillPhotoUploadModal: React.FC<WillPhotoUploadModalProps> = ({ hasE
       setResult(data);
       onRecognized({ files, result: data });
       setStage('done');
+      // §5-2-2 — 인식은 됐지만 보관은 못 한 경우(10묶음 초과·저장 실패) 결과 화면 위에 이유를 알린다.
+      if (data.photo && !data.photo.stored && data.photo.message) setNotice(data.photo.message);
     } catch (e) {
       if (e instanceof ApiError && e.code === 'ABORTED') return; // 닫아서 끊음 — 화면이 이미 없다
       // 서버가 이유별로 보낸 문구(대기·처리·연결)는 알림 창으로, 그 밖의 오류(형식·용량 등)는 기존 줄로.
@@ -191,19 +197,22 @@ export const WillPhotoUploadModal: React.FC<WillPhotoUploadModalProps> = ({ hasE
   // WillPhotoResult가 맡고, 이 파일은 올리기 단계(1·2)만 그린다.
   if (stage === 'done' && result) {
     return (
-      <div className="v2-modal-overlay" role="dialog" aria-modal="true" aria-label="사진으로 불러오기" {...backdropCloseProps(onClose)}>
-        <div className="v2-modal is-ocr-result" onClick={(e) => e.stopPropagation()}>
-          <WillPhotoResult
-            files={files}
-            result={result}
-            hasExistingDraft={hasExistingDraft}
-            onClose={onClose}
-            onMerge={onMerge}
-            initialPageTexts={recent?.pageTexts}
-            onPageTextsChange={(pageTexts) => onRecognized({ files, result, pageTexts })}
-          />
+      <>
+        {notice && <HeavyNoticeDialog message={notice} onClose={() => setNotice(null)} />}
+        <div className="v2-modal-overlay" role="dialog" aria-modal="true" aria-label="사진으로 불러오기" {...backdropCloseProps(onClose)}>
+          <div className="v2-modal is-ocr-result" onClick={(e) => e.stopPropagation()}>
+            <WillPhotoResult
+              files={files}
+              result={result}
+              hasExistingDraft={hasExistingDraft}
+              onClose={onClose}
+              onMerge={onMerge}
+              initialPageTexts={recent?.pageTexts}
+              onPageTextsChange={(pageTexts) => onRecognized({ files, result, pageTexts })}
+            />
+          </div>
         </div>
-      </div>
+      </>
     );
   }
 
@@ -250,9 +259,38 @@ export const WillPhotoUploadModal: React.FC<WillPhotoUploadModalProps> = ({ hasE
                 </span>
                 <span>
                   <span className="v2-req">필수</span> 사진이 네이버 클라우드 CLOVA OCR로 전송되어 글자를 인식합니다.
-                  이어봄은 사진을 보관하지 않으며, 인식된 텍스트만 암호화되어 저장됩니다.
+                  {/* §5-2-4 — 스위치 꺼짐이면 옛 문구 그대로 */}
+                  {!photoStorageEnabled && ' 이어봄은 사진을 보관하지 않으며, 인식된 텍스트만 암호화되어 저장됩니다.'}
                 </span>
               </label>
+
+              {/* §5-2-4 보관 체크(새) — 스위치 켬일 때만. 동의가 아니라 선택이라 "필수" 표시가 없다. */}
+              {photoStorageEnabled && (
+                <label
+                  className="v2-check"
+                  htmlFor="will-photo-upload-keep"
+                  style={{ alignItems: 'flex-start', cursor: 'pointer', marginBottom: '10px' }}
+                  onClick={(e) => { e.preventDefault(); setKeepPhoto((v) => !v); }}
+                >
+                  <span
+                    id="will-photo-upload-keep"
+                    role="checkbox"
+                    aria-checked={keepPhoto}
+                    style={{
+                      width: '20px', height: '20px', flexShrink: 0, marginTop: '2px', borderRadius: '4px',
+                      border: keepPhoto ? 'none' : '1.5px solid var(--v2-input-border)',
+                      backgroundColor: keepPhoto ? 'var(--v2-point)' : '#FFFFFF',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
+                    }}
+                  >
+                    {keepPhoto && <Check size={13} color="#FFFFFF" strokeWidth={3} />}
+                  </span>
+                  <span>
+                    <strong>사진도 보관하기</strong>{' '}
+                    사진을 암호화하여 보관합니다. 본인만 볼 수 있고, 삭제하면 30일 뒤 완전히 삭제됩니다. 사진은 사본이며 효력은 손으로 쓴 원본에만 있습니다.
+                  </span>
+                </label>
+              )}
 
               <input
                 ref={fileInputRef}

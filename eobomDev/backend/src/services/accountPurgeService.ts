@@ -1,5 +1,6 @@
 import prisma from '../config/prisma';
 import { purgeLetterRow } from './farewellPurgeService';
+import { purgeUserWillPhotos } from './willPhotoService';
 
 // docs 06-05 §5.6-8 ④ — 회원 탈퇴 유예(30일) 만료 계정 파기. 00-36 §4.3·M-3·§6 #2.
 // prisma/destroy-farewell-media.ts(스크립트)만 이 파일을 부른다. 🔴 런타임 코드(컨트롤러·라우트·스케줄러)는 부르지 않는다(§5.4-2-1).
@@ -11,6 +12,8 @@ import { purgeLetterRow } from './farewellPurgeService';
 // 보류" 분기는 없다 — 모든 만료 회원이 파기 가능하다.
 //
 // 한 회원의 순서(고정):
+//   0. 🆕 그 회원의 유언장 사진 묶음(WillPhotoSet) 전부 — R2 원본 삭제 → purgedAt(06-06 §5-2-5 ④). 편지보다도 앞이다.
+//      복제(archive)가 없어 원장(ArchivePurgeQueue)에 올리지 않는다. 행은 남긴다(키·시각뿐, 개인정보 없음). FK가 Restrict라 User·엔딩노트를 지우기 전에 끝나 있어야 한다.
 //   1. 그 회원 엔딩노트의 편지 전부에 ①②를 먼저 — R2 원본 삭제 + 아카이브 원장(ArchivePurgeQueue) 기록 → 행 파기.
 //      🔴 먼저 하지 않고 엔딩노트를 지우면 FarewellMessage가 Cascade로 사라져 mediaKey를 잃고 R2 원본이 고아로 남는다.
 //   2. 한 트랜잭션에서 아래를 처리한다. 🔴 User를 지우지 않으므로 **Cascade가 더는 대신 지워주지 않는다** — 전부 명시한다.
@@ -33,6 +36,7 @@ export type AccountPlan = {
   user: ExpiredAccount;
   letters: number; // 편지 전체(삭제됨 표시분 포함) — ①② 처리 대상
   lettersWithMedia: number; // 그중 R2 원본이 남아 있는 것
+  willPhotoSets: number; // R2에 사진이 남아 있는 유언장 사진 묶음(본인 삭제분 포함) — 0단계 처리 대상
   guestbookEntries: number;
   facilityReviews: number;
   designations: number; // 내가 지정한 가족 — 삭제
@@ -77,7 +81,7 @@ export async function isStillAccountExpired(id: string): Promise<boolean> {
 // 무엇이 몇 건인지 센다(dry-run 출력 겸 실행 전 범위 확인). 조회뿐이다.
 export async function planAccount(user: ExpiredAccount): Promise<AccountPlan> {
   const userId = user.id;
-  const [letters, lettersWithMedia, guestbookEntries, facilityReviews, designations, acceptedDesignations, memorials, memorialPhotos, obituaries, leads, consultRequests, tributes] =
+  const [letters, lettersWithMedia, guestbookEntries, facilityReviews, designations, acceptedDesignations, memorials, memorialPhotos, obituaries, leads, consultRequests, tributes, willPhotoSets] =
     await prisma.$transaction([
       prisma.farewellMessage.count({ where: { note: { userId } } }),
       prisma.farewellMessage.count({ where: { note: { userId }, mediaKey: { not: null } } }),
@@ -91,11 +95,13 @@ export async function planAccount(user: ExpiredAccount): Promise<AccountPlan> {
       prisma.lead.count({ where: { userId } }),
       prisma.consultRequest.count({ where: { userId } }),
       prisma.memorialTribute.count({ where: { userId } }),
+      prisma.willPhotoSet.count({ where: { userId, purgedAt: null } }),
     ]);
   return {
     user,
     letters,
     lettersWithMedia,
+    willPhotoSets,
     guestbookEntries,
     facilityReviews,
     designations,
@@ -110,6 +116,9 @@ export async function planAccount(user: ExpiredAccount): Promise<AccountPlan> {
 // 🔴 복구된 계정·이미 파기된 계정에는 아무것도 하지 않는다(호출 측이 걸렀어도 여기서 다시 막는다).
 export async function purgeAccount(user: ExpiredAccount): Promise<{ purged: boolean; keys: string[]; reason?: string }> {
   if (!(await isStillAccountExpired(user.id))) return { purged: false, keys: [], reason: '유예 만료가 아님(복구됐거나 이미 파기됨)' };
+
+  // 0. 유언장 사진 — R2 원본 삭제 실패는 throw로 이 계정을 멈춘다(purgedAt이 안 찍혀 다음 실행에서 이어진다). 편지보다 먼저(§5-2-5 ④).
+  await purgeUserWillPhotos(user.id);
 
   // 1. 편지 ①② — 하나라도 실패하면 throw로 이 계정을 멈춘다(purgedAt이 안 찍히므로 다음 실행에서 이어진다).
   const keys: string[] = [];

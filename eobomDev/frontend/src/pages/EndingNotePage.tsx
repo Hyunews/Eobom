@@ -34,6 +34,7 @@ import { AccordionSection, saveButtonLabel } from '../components/endingNote/Acco
 import { SectionTimingControl } from '../components/endingNote/SectionTimingControl';
 import { SummaryModal, summarizeFreeText } from '../components/endingNote/SummaryModal';
 import { WillPhotoUploadModal, type RecentOcr } from '../components/endingNote/WillPhotoUploadModal';
+import { WillPhotoVault } from '../components/endingNote/WillPhotoVault';
 import '../styles/design-v2.css';
 
 // 00-39 §9.1 그룹②(폼·입력) — obituary(§6.8·§6.8-1)의 필드 규칙을 그대로 물려받는다(§9.2 표
@@ -124,6 +125,9 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
   // 숨긴다(§5 마지막 줄 — "업체 없이 업로드 버튼을 노출하지 않는다"). showOcrDisclaimer는
   // §6 단계 5의 고정 안내 — 한 번이라도 사진으로 합류하면 이 세션 동안은 계속 보여준다.
   const [ocrEnabled, setOcrEnabled] = useState(false);
+  // 06-06 §5-2-1 — 사진 보관 스위치. 화면 문구·보관 체크·`보관한 사진`은 이 값만 보고 바뀐다(꺼짐이면 지금 화면 그대로).
+  const [photoStorageEnabled, setPhotoStorageEnabled] = useState(false);
+  const [showVault, setShowVault] = useState(false);
   const [showPhotoUploadModal, setShowPhotoUploadModal] = useState(false);
   // §6 단계 5-1 — 마지막 인식 결과(사진 File + 결과). 🔴 이 컴포넌트 메모리에만 둔다 — localStorage·
   // sessionStorage·IndexedDB·서버 저장 금지. 새로 인식하면 교체되고, 페이지를 떠나면 사라진다.
@@ -132,9 +136,15 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
   const [showOcrDisclaimer, setShowOcrDisclaimer] = useState(false);
 
   useEffect(() => {
-    apiFetch<{ enabled: boolean }>('/api/ocr/status')
-      .then((d) => setOcrEnabled(d.enabled))
-      .catch(() => setOcrEnabled(false));
+    apiFetch<{ enabled: boolean; photoStorageEnabled?: boolean }>('/api/ocr/status')
+      .then((d) => {
+        setOcrEnabled(d.enabled);
+        setPhotoStorageEnabled(!!d.enabled && !!d.photoStorageEnabled);
+      })
+      .catch(() => {
+        setOcrEnabled(false);
+        setPhotoStorageEnabled(false);
+      });
   }, []);
 
   // §6 단계 4 — 편집 영역이 비어 있으면 그대로 넣고, 이미 글이 있으면 모달이 물어본 바꾸기/
@@ -703,7 +713,12 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
             className="v2-input"
             placeholder="예: 안방 화장대 서랍 안쪽 서류 봉투"
           />
-          <span className="v2-field-hint">🔴 이어봄은 유언장 원본·사본을 보관하지 않습니다. 보관 장소만 남겨두세요.</span>
+          {/* 06-06 §5-2-4 — 사진 보관 스위치가 켜져 있으면 문구가 바뀐다(꺼짐이면 옛 문구 그대로). */}
+          <span className="v2-field-hint">
+            {photoStorageEnabled
+              ? '🔴 손으로 쓴 원본을 어디에 두셨는지 남겨두세요. 올린 사진은 사본입니다.'
+              : '🔴 이어봄은 유언장 원본·사본을 보관하지 않습니다. 보관 장소만 남겨두세요.'}
+          </span>
         </div>
       </>
     ),
@@ -1072,6 +1087,16 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
                       최근 인식 결과 보기
                     </button>
                   )}
+                  {photoStorageEnabled && (
+                    <button
+                      type="button"
+                      onClick={() => setShowVault(true)}
+                      className="v2-btn-outline"
+                      style={{ padding: '6px 12px', fontSize: 'var(--v2-fs-support)' }}
+                    >
+                      보관한 사진
+                    </button>
+                  )}
                 </div>
               )}
             </div>
@@ -1174,10 +1199,24 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
       {showPhotoUploadModal && (
         <WillPhotoUploadModal
           hasExistingDraft={!!draftText.trim()}
+          photoStorageEnabled={photoStorageEnabled}
           recent={reopenRecent ? recentOcr : null}
           onRecognized={setRecentOcr}
           onClose={() => setShowPhotoUploadModal(false)}
           onMerge={handlePhotoOcrMerge}
+        />
+      )}
+
+      {showVault && (
+        <WillPhotoVault
+          onClose={() => setShowVault(false)}
+          onRecognized={(recent) => {
+            // 다시 인식이 끝났다 — 결과는 지금처럼 결과 화면(최근 인식 결과)에서 본다.
+            setRecentOcr(recent);
+            setReopenRecent(true);
+            setShowVault(false);
+            setShowPhotoUploadModal(true);
+          }}
         />
       )}
     </div>

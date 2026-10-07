@@ -36,6 +36,8 @@ export interface WillOcrResponse {
   text: string;
   pages: WillOcrPageInfo[];
   requirements: WillRequirement[];
+  // 06-06 §5-2-2 — 보관을 요청한 경우에만 온다. stored=false면 message가 이유(10묶음 초과·저장 실패).
+  photo?: { stored: boolean; message?: string };
 }
 
 const LABEL: Record<RequirementKey, string> = {

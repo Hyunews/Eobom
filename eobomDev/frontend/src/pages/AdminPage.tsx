@@ -46,21 +46,23 @@ const formatRemaining = (iso: string, nowMs: number): string => {
 };
 
 // 06-05 §5.6-8-3 D-11 — 선택 대상 하나(파기 목록의 ①음성/②편지 행)
-type PurgeItem = { id: string; type: 'MEDIA' | 'LETTER' | 'RETIRED'; title: string | null; expiredAt: string; hasMedia?: boolean };
+// WILL = 유언장 사진 묶음(06-06 §5-2-5 ④ — 본인 삭제 + 30일). 복제가 없어 아카이브 2단계가 없다.
+type PurgeItem = { id: string; type: 'MEDIA' | 'LETTER' | 'RETIRED' | 'WILL'; title: string | null; expiredAt: string; hasMedia?: boolean; pageCount?: number };
 type PurgeLogRow = {
   id: string;
   executedAt: string;
   adminName: string;
   count: number;
-  counts: { V: number; L: number; R: number; unknown: number };
+  counts: { V: number; L: number; R: number; I: number; unknown: number };
   targets: string[];
 };
 const PURGE_LOG_PAGE_SIZE = 20;
-const PURGE_LOG_FILTERS: { value: '' | 'V' | 'R' | 'L'; label: string }[] = [
+const PURGE_LOG_FILTERS: { value: '' | 'V' | 'R' | 'L' | 'I'; label: string }[] = [
   { value: '', label: '전체' },
   { value: 'V', label: '삭제된 음성' },
   { value: 'R', label: '밀려난 음성' },
   { value: 'L', label: '편지 통째' },
+  { value: 'I', label: '유언장 사진' },
 ];
 
 const EXPERT_CATEGORY_LABELS: Record<string, string> = {
@@ -158,6 +160,7 @@ export const AdminPage: React.FC = () => {
   const [farewellMedia, setFarewellMedia] = useState<PurgeItem[]>([]);
   const [farewellLetter, setFarewellLetter] = useState<PurgeItem[]>([]);
   const [farewellRetired, setFarewellRetired] = useState<PurgeItem[]>([]); // D-12 #71 — 새 음성이 밀어낸 이전 음성
+  const [willPhotoExpired, setWillPhotoExpired] = useState<PurgeItem[]>([]); // 06-06 §5-2-5 ④ — 본인이 지운 유언장 사진 묶음(30일 경과)
   const [pendingArchive, setPendingArchive] = useState<any[]>([]);
   const [selectedPurge, setSelectedPurge] = useState<Set<string>>(new Set()); // key = `${type}:${id}`
   const [showPurgeConfirm, setShowPurgeConfirm] = useState(false);
@@ -167,7 +170,7 @@ export const AdminPage: React.FC = () => {
   const [purgeSubmitting, setPurgeSubmitting] = useState(false);
   // #74 파기 기록 — 읽기 전용. 종류 필터(V음성·R밀려난 음성·L편지 통째, ''=전체) + 페이지.
   const [purgeLogs, setPurgeLogs] = useState<PurgeLogRow[]>([]);
-  const [purgeLogType, setPurgeLogType] = useState<'' | 'V' | 'R' | 'L'>('');
+  const [purgeLogType, setPurgeLogType] = useState<'' | 'V' | 'R' | 'L' | 'I'>('');
   const [purgeLogPage, setPurgeLogPage] = useState(1);
   const [purgeLogTotal, setPurgeLogTotal] = useState(0);
 
@@ -325,6 +328,9 @@ export const AdminPage: React.FC = () => {
         );
         setFarewellRetired(
           (expiredData.data.retired ?? []).map((r: any) => ({ id: r.id, type: 'RETIRED', title: null, expiredAt: r.deletedAt })),
+        );
+        setWillPhotoExpired(
+          (expiredData.data.willPhoto ?? []).map((r: any) => ({ id: r.id, type: 'WILL', title: null, expiredAt: r.deletedAt, pageCount: r.pageCount })),
         );
         setFarewellLetter(
           expiredData.data.letter.map((r: any) => ({ id: r.id, type: 'LETTER', title: r.title, expiredAt: r.deletedAt, hasMedia: r.hasMedia })),
@@ -619,7 +625,7 @@ export const AdminPage: React.FC = () => {
     setPurgeError('');
     const items: PurgeItem[] = Array.from(selectedPurge).map((key) => {
       const [type, id] = key.split(':');
-      return { id, type: type as 'MEDIA' | 'LETTER' | 'RETIRED' } as PurgeItem;
+      return { id, type: type as 'MEDIA' | 'LETTER' | 'RETIRED' | 'WILL' } as PurgeItem;
     });
     if (Number(purgeCountInput) !== items.length) {
       setPurgeError(`입력한 건수가 선택된 건수(${items.length}건)와 다릅니다.`);
@@ -1207,6 +1213,30 @@ export const AdminPage: React.FC = () => {
 
             <div>
               <h3 style={{ fontSize: '1rem', color: 'var(--primary-color)', marginBottom: '0.5rem' }}>
+                ④ 유언장 사진 만료 (본인이 삭제한 뒤 30일 경과 — R2 원본 삭제, 복제본 없음) — {willPhotoExpired.length}건
+              </h3>
+              {willPhotoExpired.length === 0 ? (
+                <EmptyState />
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '1.2rem' }}>
+                  {willPhotoExpired.map((item) => {
+                    const key = `WILL:${item.id}`;
+                    return (
+                      <label key={key} className="card" style={{ padding: '0.8rem 1rem', display: 'flex', alignItems: 'center', gap: '0.7rem', cursor: 'pointer' }}>
+                        <input type="checkbox" checked={selectedPurge.has(key)} onChange={() => togglePurgeSelection(key)} />
+                        <span style={{ fontSize: '0.9rem' }}>유언장 사진 묶음 ({item.pageCount ?? 0}쪽)</span>
+                        <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginLeft: 'auto' }}>
+                          삭제 {item.expiredAt ? formatKstDate(item.expiredAt) : ''}
+                        </span>
+                      </label>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            <div>
+              <h3 style={{ fontSize: '1rem', color: 'var(--primary-color)', marginBottom: '0.5rem' }}>
                 아카이브 2단계 미이행 (Cloudflare 대시보드에서 직접 지운 뒤 완료 표시) — {pendingArchive.length}건
               </h3>
               {pendingArchive.length === 0 ? (
@@ -1260,6 +1290,7 @@ export const AdminPage: React.FC = () => {
                       log.counts.V > 0 && `삭제된 음성 ${log.counts.V}`,
                       log.counts.R > 0 && `밀려난 음성 ${log.counts.R}`,
                       log.counts.L > 0 && `편지 통째 ${log.counts.L}`,
+                      log.counts.I > 0 && `유언장 사진 ${log.counts.I}`,
                       log.counts.unknown > 0 && `구분 없음 ${log.counts.unknown}`,
                     ].filter(Boolean).join(' · ');
                     return (

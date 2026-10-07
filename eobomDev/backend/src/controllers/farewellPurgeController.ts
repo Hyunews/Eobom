@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
 import prisma from '../config/prisma';
 import { verifyAdminBearerToken } from './adminController';
+import { findWillPhotoExpired, isStillWillPhotoExpired, purgeWillPhotoSet } from '../services/willPhotoService';
 import {
   findMediaExpired,
   findLetterExpired,
@@ -21,17 +22,24 @@ import {
 // 스크립트(destroy-farewell-media.ts)와 공유한다 — 한쪽만 고쳐지는 날이 오지 않게 한다.
 
 // RETIRED = 삭제 유예 중 새 음성이 밀어낸 이전 음성(FarewellMediaRetired, D-12 #71). id는 그 표의 id다.
-type PurgeItem = { id: string; type: 'MEDIA' | 'LETTER' | 'RETIRED' };
+// WILL = 유언장 사진 묶음(WillPhotoSet) — 06-06 §5-2-5 ④ 유언장 사진 만료. 복제(archive)가 없어 원장에 올리지 않는다.
+type PurgeItem = { id: string; type: 'MEDIA' | 'LETTER' | 'RETIRED' | 'WILL' };
 
 // 감사 로그 targetIds 항목 접두(#73) — 06-05 §6.5. 접두 없는 항목은 접두 도입 전의 옛 행이다.
-const AUDIT_PREFIX = { MEDIA: 'V', LETTER: 'L', RETIRED: 'R' } as const;
-type AuditKind = 'V' | 'L' | 'R';
-const isAuditKind = (v: unknown): v is AuditKind => v === 'V' || v === 'L' || v === 'R';
+// I = 유언장 사진 묶음(WillPhotoSet.id, 06-06 §5-2-5).
+const AUDIT_PREFIX = { MEDIA: 'V', LETTER: 'L', RETIRED: 'R', WILL: 'I' } as const;
+type AuditKind = 'V' | 'L' | 'R' | 'I';
+const isAuditKind = (v: unknown): v is AuditKind => v === 'V' || v === 'L' || v === 'R' || v === 'I';
 
 // 만료 대상 목록 (`GET /api/admin/farewell-purge/expired`) — ①②와 밀려난 음성을 구분해서 표시(#54·#71).
 export const listFarewellPurgeExpired = async (req: Request, res: Response) => {
   try {
-    const [media, letter, retired] = await Promise.all([findMediaExpired(), findLetterExpired(), findRetiredExpired()]);
+    const [media, letter, retired, willPhoto] = await Promise.all([
+      findMediaExpired(),
+      findLetterExpired(),
+      findRetiredExpired(),
+      findWillPhotoExpired(),
+    ]);
     return res.json({
       status: 'success',
       data: {
@@ -39,6 +47,8 @@ export const listFarewellPurgeExpired = async (req: Request, res: Response) => {
         // 🔴 개인정보 없음 — 밀려난 음성(FarewellMediaRetired) id·삭제 시각뿐(편지 id·R2 키는 내려주지 않는다)
         retired: retired.map((r) => ({ id: r.id, deletedAt: r.deletedAt })),
         letter: letter.map((r) => ({ id: r.id, title: r.title, deletedAt: r.deletedAt, hasMedia: !!r.mediaKey })),
+        // 🔴 개인정보 없음 — 묶음 id·삭제 시각·쪽수뿐(올린 회원·R2 키는 내려주지 않는다)
+        willPhoto: willPhoto.map((r) => ({ id: r.id, deletedAt: r.deletedAt, pageCount: r.pageCount })),
       },
     });
   } catch (error) {
@@ -75,7 +85,7 @@ export const executeFarewellPurge = async (req: Request, res: Response) => {
   if (!Array.isArray(items) || items.length === 0) {
     return res.status(400).json({ status: 'error', message: '파기할 항목을 선택해주세요.' });
   }
-  if (items.some((it) => !it.id || (it.type !== 'MEDIA' && it.type !== 'LETTER' && it.type !== 'RETIRED'))) {
+  if (items.some((it) => !it.id || (it.type !== 'MEDIA' && it.type !== 'LETTER' && it.type !== 'RETIRED' && it.type !== 'WILL'))) {
     return res.status(400).json({ status: 'error', message: '요청 형식이 올바르지 않습니다.' });
   }
   // 🔴 실행 직전 대상 건수를 사람이 직접 입력해 확인시킨다(#57) — 오클릭 차단.
@@ -95,7 +105,13 @@ export const executeFarewellPurge = async (req: Request, res: Response) => {
     // 서버 재검증 — 화면이 보낸 id를 그대로 믿지 않는다(§5.6-8-3-1).
     const stillValid = await Promise.all(
       items.map((it) =>
-        it.type === 'MEDIA' ? isStillMediaExpired(it.id) : it.type === 'RETIRED' ? isStillRetiredExpired(it.id) : isStillLetterExpired(it.id)),
+        it.type === 'MEDIA'
+          ? isStillMediaExpired(it.id)
+          : it.type === 'RETIRED'
+            ? isStillRetiredExpired(it.id)
+            : it.type === 'WILL'
+              ? isStillWillPhotoExpired(it.id)
+              : isStillLetterExpired(it.id)),
     );
     const invalid = items.filter((_, i) => !stillValid[i]);
     if (invalid.length > 0) {
@@ -108,6 +124,11 @@ export const executeFarewellPurge = async (req: Request, res: Response) => {
 
     const purgedKeys: string[] = [];
     for (const it of items) {
+      if (it.type === 'WILL') {
+        // R2 원본 삭제 → purgedAt. 복제가 없어 원장에 올리지 않고 2단계 안내도 없다(§5-2-5 ②).
+        await purgeWillPhotoSet(it.id);
+        continue;
+      }
       if (it.type === 'RETIRED') {
         // 원장 → R2 원본 삭제 → purgedAt(행은 지우지 않는다). 편지 행과 무관하다.
         const retiredRow = await prisma.farewellMediaRetired.findUnique({ where: { id: it.id }, select: { id: true, mediaKey: true } });
@@ -127,7 +148,7 @@ export const executeFarewellPurge = async (req: Request, res: Response) => {
       data: {
         adminId: decoded.id,
         adminName: decoded.name,
-        // 종류 접두(#73) — V:음성만 · L:편지 통째 · R:밀려난 음성(FarewellMediaRetired.id라 편지 id와 섞이지 않게).
+        // 종류 접두(#73) — V:음성만 · L:편지 통째 · R:밀려난 음성(FarewellMediaRetired.id라 편지 id와 섞이지 않게) · I:유언장 사진 묶음.
         targetIds: items.map((it) => `${AUDIT_PREFIX[it.type]}:${it.id}`).join(','),
         mediaKeys: purgedKeys.join(','),
         count: items.length,
@@ -141,14 +162,14 @@ export const executeFarewellPurge = async (req: Request, res: Response) => {
   }
 };
 
-// 파기 기록 보기 (`GET /api/admin/farewell-purge/logs?type=V|L|R&page=&pageSize=`) — #74.
+// 파기 기록 보기 (`GET /api/admin/farewell-purge/logs?type=V|L|R|I&page=&pageSize=`) — #74.
 // 🔴 읽기 전용 · 편지 제목/본문·R2 키를 붙이지 않는다(대상 id와 건수뿐). 최근 순.
 // type 필터 = 해당 접두 항목이 targetIds에 하나라도 있는 행. 접두 없는 옛 행은 type 없이(전체)만 보인다.
 export const listFarewellPurgeLogs = async (req: Request, res: Response) => {
   try {
     const rawType = typeof req.query.type === 'string' ? req.query.type : '';
     if (rawType && !isAuditKind(rawType)) {
-      return res.status(400).json({ status: 'error', message: 'type은 V, L, R 중 하나여야 합니다.' });
+      return res.status(400).json({ status: 'error', message: 'type은 V, L, R, I 중 하나여야 합니다.' });
     }
     const page = Math.max(1, parseInt(String(req.query.page ?? '1'), 10) || 1);
     const pageSize = Math.min(100, Math.max(1, parseInt(String(req.query.pageSize ?? '20'), 10) || 20));
@@ -168,7 +189,7 @@ export const listFarewellPurgeLogs = async (req: Request, res: Response) => {
     ]);
     const logs = rows.map((r) => {
       const targets = r.targetIds ? r.targetIds.split(',') : [];
-      const counts = { V: 0, L: 0, R: 0, unknown: 0 };
+      const counts = { V: 0, L: 0, R: 0, I: 0, unknown: 0 };
       for (const t of targets) {
         const kind = t.charAt(1) === ':' ? t.charAt(0) : '';
         if (isAuditKind(kind)) counts[kind] += 1;

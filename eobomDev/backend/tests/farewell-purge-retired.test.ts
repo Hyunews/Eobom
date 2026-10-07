@@ -131,9 +131,9 @@ describe('어드민 파기 기록 — 종류별 보기(#74)', () => {
 
   it('전체: 세 행이 모두 보이고 종류별 건수가 계산된다 · 옛 행은 구분 없음', async () => {
     const all = await logs();
-    assert.deepEqual(all.find((l) => l.id === ids.mixed)?.counts, { V: 2, L: 0, R: 1, unknown: 0 });
+    assert.deepEqual(all.find((l) => l.id === ids.mixed)?.counts, { V: 2, L: 0, R: 1, I: 0, unknown: 0 });
     assert.ok(all.some((l) => l.id === ids.letter));
-    assert.deepEqual(all.find((l) => l.id === ids.legacy)?.counts, { V: 0, L: 0, R: 0, unknown: 2 });
+    assert.deepEqual(all.find((l) => l.id === ids.legacy)?.counts, { V: 0, L: 0, R: 0, I: 0, unknown: 2 });
   });
 
   it('실행 1회에 V·R이 섞이면 V·R 필터에 모두 나오고 L 필터엔 안 나온다', async () => {

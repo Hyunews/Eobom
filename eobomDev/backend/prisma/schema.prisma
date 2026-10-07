@@ -35,6 +35,7 @@ model User {
   familyDesignations  FamilyDesignation[] // docs 00-27 §4 — 생전 지정한 가족(제3자)
   endingNote          EndingNote? // docs 06-05 §6.1 — 1인 1건. 개봉 상태의 유일한 소유자(§3.2·§3.3)
   deathVerifications  DeathVerification[] // docs 00-41 §4 — 이 회원(엔딩노트 주인)에 대한 사후 개봉 요청 이력
+  willPhotoSets       WillPhotoSet[] // docs 06-06 §5-2 — 보관한 유언장 사진 묶음(🔴 Cascade 금지)
 
   // 00-28 회원 프로필 — 전부 선택(§3.1). 신청 스냅샷과 별개다(§2)
   contactPhone      String?   // 숫자만 정규화 저장(utils/phone.ts) — Partner·Expert와 동일 규칙
@@ -864,6 +865,37 @@ model FarewellMediaRetired {
   purgedAt  DateTime? // 파기 배치 ①이 R2 원본을 지운 시각. NULL = 남은 것
 
   @@index([purgedAt, deletedAt])
+}
+
+// 유언장 사진 보관 묶음(06-06 §5-2-3) — 한 번 올린 것(사진 최대 5장 또는 PDF 1개)이 한 묶음. R2에는 앱단 선암호화한 사진이 있다.
+// 🔴 userId는 Cascade 금지 — 탈퇴 파기(accountPurgeService)가 키를 먼저 치워야 R2에 고아가 안 남는다. 파일 이름은 저장하지 않는다.
+// 🔵 행은 파기 뒤에도 남긴다(키·시각뿐, 개인정보 없음). 요건 확인 결과·인식 글은 이 표에 없다.
+model WillPhotoSet {
+  id           String      @id @default(uuid()) // 고유 식별자(UUID)
+  userId       String // 올린 회원
+  user         User        @relation(fields: [userId], references: [id], onDelete: Restrict)
+  pageCount    Int // 묶음 안 쪽(사진 장수 또는 PDF 1)
+  createdAt    DateTime    @default(now()) // 보관 시각(UTC 저장). 한국 시간은 createdAtKst 칸(아래 줄)
+  createdAtKst DateTime? // 보기 전용 · DB 트리거가 createdAt+9시간(한국 시간)으로 채움 · 🔴 코드에서 읽기·쓰기 금지(트리거가 쓰기를 덮어씀)
+  deletedAt    DateTime? // 본인 삭제(소프트). 이 시각 + 30일이 파기 시계
+  purgedAt     DateTime? // 파기가 R2 원본을 지운 시각. NULL = R2에 남은 것
+  photos       WillPhoto[] // 묶음 안의 사진(쪽)
+
+  @@index([userId, deletedAt])
+  @@index([purgedAt, deletedAt])
+}
+
+model WillPhoto {
+  id        String       @id @default(uuid()) // 고유 식별자(UUID)
+  setId     String // 속한 묶음(WillPhotoSet)
+  set       WillPhotoSet @relation(fields: [setId], references: [id], onDelete: Restrict)
+  pageIndex Int // 묶음 안 순서(0부터)
+  mediaKey  String // R2 객체 키 — 파기가 이 값으로 지운다
+  mediaMime String // image/jpeg · image/png · application/pdf
+  sizeBytes Int // 암호화 전 크기
+  purgedAt  DateTime? // R2 원본을 지운 시각
+
+  @@unique([setId, pageIndex])
 }
 
 // 어드민 파기 화면(06-05 §5.6-8-3-3)의 감사 로그 — "누가·언제·몇 건·어떤 키". 파기는 법적
