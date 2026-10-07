@@ -16,6 +16,15 @@
 > [`_아카이브_2608`](walkthrough_아카이브_2608.md)(08-31분). 남은 것 = 판정 대기 + 판정 표기 없음. 기준 → `record.md` §2-1.
 
 ---
+## 2026-10-07 | [Sonnet] eobomDev/README.md 현행화 — 문서만(빌드 영향 없음)
+
+- **건드린 파일**: eobomDev/README.md — 숫자 실측 반영(모델 37·마이그레이션 48·화면 24·공통 UI 51) · 구조도에 services/·middleware/·workers/r2-archive-relay 추가 · 스크립트 표에 test·purge(`--confirm` 사람 전용 주석)·report:heavy·import:facility-mohw · "pg_dump 먼저" 2곳 → `backup-db.ps1 -Target local` + db-safety.md 링크 · 최종 갱신 10-07
+- **편차**: `workers/`는 backend 안이 아니라 `eobomDev/workers/`라 구조도 최상위에 두었다. 공통 UI 51은 `components/` 하위 폴더 포함 `.ts`·`.tsx` 전체(최상위 `.tsx`만 세면 18)
+- **다음 에이전트가 알아야 할 것**: 🔴 미커밋
+
+<!-- Gemini 판정 1줄: ✅통과 / ❌반려(사유) / 🔄스펙갱신(고친 문서) -->
+
+---
 ## 2026-10-07 | [Sonnet] 부고 경로 추모관 expiresAt 누락 수정 + 기존 행 채우기
 
 - **근거 스펙**: docs/00_핵심플랫폼/00-20 §8.1 표 "expiresAt 계산" 줄 (10-07)
