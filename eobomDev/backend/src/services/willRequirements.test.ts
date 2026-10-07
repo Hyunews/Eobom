@@ -1,5 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import path from 'node:path';
 import sharp from 'sharp';
 import { checkWillRequirements } from './willRequirements';
 import type { RequirementItem, RequirementKey, SealAnalysis } from './willRequirements';
@@ -339,4 +341,45 @@ test('detectSeal — 가늘고 긴 붉은 줄(밑줄)은 도장이 아니다', a
 test('detectSeal — 아무것도 없는 종이는 인주 없음', async () => {
   const r = await detectSeal(await canvas(''));
   assert.equal(r.seals.length, 0);
+});
+
+// ── detectSeal — 10-06 빨강 판정 교체(06-06 §9-1 T-3) ──
+test('detectSeal — 인장 없음 오탐 시험(붉은 줄·붉은 펜 글씨·주황/나무색 면·분홍 배경)은 하나도 못 찾는다', async () => {
+  const cases: Record<string, string> = {
+    '붉은 가는 줄': '<rect x="100" y="400" width="300" height="3" fill="#d03020"/>',
+    '붉은 펜 글씨 모양':
+      '<path d="M100 300 q20 -30 40 0 t40 0 t40 0 t40 0 M100 340 q20 -30 40 0 t40 0 t40 0" fill="none" stroke="#c82820" stroke-width="3"/>',
+    '주황 넓은 면': '<rect x="50" y="100" width="500" height="200" fill="#e07820"/>',
+    '나무색 넓은 면': '<rect x="0" y="400" width="600" height="400" fill="#a0683c"/>',
+  };
+  for (const [name, draw] of Object.entries(cases)) {
+    const r = await detectSeal(await canvas(draw));
+    assert.equal(r.seals.length, 0, `${name}: ${JSON.stringify(r.seals)}`);
+  }
+  const pink = await sharp({ create: { width: 600, height: 800, channels: 3, background: '#f4b4bc' } }).png().toBuffer();
+  assert.equal((await detectSeal(pink)).seals.length, 0, '분홍 배경');
+});
+
+test('detectSeal — 어두운 주홍·가장자리에 걸친 인주도 찾는다', async () => {
+  const r = await detectSeal(await canvas('<circle cx="580" cy="780" r="45" fill="#b4423c"/>'));
+  assert.equal(r.seals.length, 1);
+});
+
+// 실사진(저장소에 없음, uploads/test-wills) — 없으면 건너뛴다
+const realPhoto = (name: string) => {
+  const p = path.join(__dirname, '../../uploads/test-wills', name);
+  return fs.existsSync(p) ? fs.readFileSync(p) : null;
+};
+test('detectSeal — 실사진 wills001.jpeg는 인장 1개(오른쪽 아래)', async (t) => {
+  const buf = realPhoto('wills001.jpeg');
+  if (!buf) return t.skip('사진 없음');
+  const r = await detectSeal(buf);
+  assert.equal(r.seals.length, 1, JSON.stringify(r.seals));
+  const b = r.seals[0];
+  assert.ok(b.x + b.width / 2 > r.width / 2 && b.y + b.height / 2 > r.height / 2, `오른쪽 아래 아님: ${JSON.stringify(b)}`);
+});
+test('detectSeal — 실사진 wills002.jpg는 0개', async (t) => {
+  const buf = realPhoto('wills002.jpg');
+  if (!buf) return t.skip('사진 없음');
+  assert.equal((await detectSeal(buf)).seals.length, 0);
 });

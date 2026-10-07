@@ -6,9 +6,12 @@ import type { RequirementBox } from './willRequirements';
 // (그래서 결과가 "찾지 못함"이어도 문구는 "검은 도장은 확인 못 함"을 함께 말한다).
 
 const ANALYSIS_EDGE = 480; // 분석용 축소 — 긴 변 기준
-const MIN_RED_PIXELS = 80; // 축소본 기준. 이보다 작은 붉은 점(펜 점·잡티)은 버린다
+const MIN_RED_AREA_RATIO = 0.0002; // 분석 이미지 면적의 0.02% — 이보다 작은 붉은 점(펜 점·잡티)은 버린다
+const RED_MIN_SATURATION = 0.25; // (최대−최소)/최대
+const RED_MIN_VALUE = 70; // 최대값(어두운 갈색·검정 제외)
+const RED_MAX_GB_SPREAD = 0.6; // |G−B| < (최대−최소)×이 값 — 주황·나무색(G가 B보다 훨씬 큼) 제외
 const MAX_ASPECT = 3.5; // 가늘고 긴 붉은 줄(밑줄·교정선)은 도장이 아니다
-const MIN_FILL = 0.12;
+const MIN_FILL = 0.08; // 지시 0.12 → 0.08: 옅은 인주는 붉은 점이 성기게 잡혀 wills001 인장이 0.097
 const MAX_SIDE_RATIO = 0.45; // 화면 절반 가까이 되는 붉은 덩어리는 도장이 아니라 배경·인쇄물
 const MAX_SEALS = 5;
 const GRAYSCALE_CHROMA = 25;
@@ -21,7 +24,12 @@ export interface SealDetectResult {
   seals: RequirementBox[];
 }
 
-const isRed = (r: number, g: number, b: number) => r >= 130 && r > g * 1.5 && r > b * 1.4;
+const isRed = (r: number, g: number, b: number) => {
+  const max = Math.max(r, g, b);
+  if (r !== max || max < RED_MIN_VALUE) return false;
+  const range = max - Math.min(g, b);
+  return range / max >= RED_MIN_SATURATION && Math.abs(g - b) < range * RED_MAX_GB_SPREAD;
+};
 
 // 3×3 팽창 — 글자 획이 갈라진 도장을 한 덩어리로 묶는다.
 const dilate = (mask: Uint8Array, w: number, h: number): Uint8Array => {
@@ -75,6 +83,7 @@ export const detectSeal = async (image: Buffer): Promise<SealDetectResult> => {
   // 팽창한 마스크로 덩어리를 묶고, 각 덩어리의 실제 붉은 픽셀 수·외곽 상자를 잰다.
   const grown = dilate(dilate(dilate(red, w, h), w, h), w, h); // 반경 3 — 획 사이 6px 틈까지 묶는다
   const seen = new Uint8Array(w * h);
+  const minRedPixels = w * h * MIN_RED_AREA_RATIO;
   const found: { box: RequirementBox; count: number }[] = [];
   const stack: number[] = [];
 
@@ -111,7 +120,7 @@ export const detectSeal = async (image: Buffer): Promise<SealDetectResult> => {
         }
       }
     }
-    if (count < MIN_RED_PIXELS) continue;
+    if (count < minRedPixels) continue;
     const bw = maxX - minX + 1;
     const bh = maxY - minY + 1;
     if (Math.max(bw, bh) / Math.min(bw, bh) > MAX_ASPECT) continue;
