@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Heart, Plus, Loader2, Pencil, X, Volume2, Trash2, Download, Upload, Mic, FileText, ChevronDown } from 'lucide-react';
+import { Heart, Plus, Loader2, Pencil, X, Volume2, Trash2, Download, Upload, Mic, FileText, ChevronDown, Check } from 'lucide-react';
 import { BACKEND_URL } from '../../config';
 import { VoiceToTextInput, SavedMedia, PendingVoice } from './VoiceToTextInput';
 import { backdropCloseProps } from '../../utils/backdropClose';
@@ -618,7 +618,7 @@ export const FarewellMessageCard: React.FC<FarewellMessageCardProps> = ({ recipi
               {/* 🆕 D-12 — 변환은 끝났지만 저장 전인 음성. 메모리에만 있다(R2·DB 없음) — 편지 저장 때 올라간다. */}
               {pendingVoice && (
                 <div className="v2-audio-attached">
-                  <span className="v2-audio-attached-label"><Volume2 size={16} color="var(--v2-point)" /> 저장 전 음성이 있습니다</span>
+                  <span className="v2-audio-attached-label"><Volume2 size={16} color="var(--v2-point)" /> 저장 전 음성</span>
                   <button type="button" onClick={() => setPendingListening(true)} disabled={saving || pendingListening} className="v2-btn-outline">
                     <Volume2 size={14} /> 듣기
                   </button>
@@ -626,8 +626,32 @@ export const FarewellMessageCard: React.FC<FarewellMessageCardProps> = ({ recipi
                     <Trash2 size={14} /> 삭제
                   </button>
                   {pendingListening && <audio controls autoPlay src={pendingVoice.url} style={{ width: '100%', marginTop: '4px' }} />}
+                  {/* "목소리도 함께 남기기" — 저장 때 결정하는 값이라 저장 전 음성 박스에 둔다(탭과 무관하게 보인다). */}
+                  {voiceStorageEnabled ? (
+                    <label
+                      className="v2-check"
+                      htmlFor="voice-save-toggle"
+                      style={{ width: '100%', margin: 0, cursor: 'pointer' }}
+                      onClick={(e) => { e.preventDefault(); if (!saving) setSaveVoiceEnabled((v) => !v); }}
+                    >
+                      <span
+                        id="voice-save-toggle"
+                        role="checkbox"
+                        aria-checked={saveVoiceEnabled}
+                        style={{
+                          width: '20px', height: '20px', flexShrink: 0, borderRadius: '4px', marginTop: '2px',
+                          border: saveVoiceEnabled ? 'none' : '1.5px solid var(--v2-input-border)',
+                          backgroundColor: saveVoiceEnabled ? 'var(--v2-point)' : '#FFFFFF',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
+                        }}
+                      >
+                        {saveVoiceEnabled && <Check size={12} color="#FFFFFF" strokeWidth={3} />}
+                      </span>
+                      <span>목소리도 함께 남기기</span>
+                    </label>
+                  ) : null}
                   <p className="v2-check-sub" style={{ width: '100%', margin: 0 }}>
-                    아래 &apos;저장&apos;을 누르면 글과 함께 저장됩니다. 저장하지 않고 닫거나 떠나면 사라집니다.
+                    저장하면 글과 함께 저장되고, 저장 없이 닫거나 떠나면 사라집니다.
                   </p>
                 </div>
               )}
@@ -661,7 +685,7 @@ export const FarewellMessageCard: React.FC<FarewellMessageCardProps> = ({ recipi
                         <p className="v2-rail-label">음성 파일 업로드</p>
                         <p className="v2-rail-desc">
                           <Mic size={14} />
-                          <span><strong>자동으로 글로 바뀝니다.</strong> 음성 파일이 네이버 클라우드 CLOVA Speech로 전송되어 변환되며, 변환된 텍스트는 네이버에 7일간 보관된 뒤 삭제됩니다.</span>
+                          <span><strong>자동으로 글로 바뀝니다.</strong> 변환된 글은 입력창에 들어가며 고쳐 쓸 수 있습니다.</span>
                         </p>
                       </>
                     )}
@@ -670,7 +694,7 @@ export const FarewellMessageCard: React.FC<FarewellMessageCardProps> = ({ recipi
                         <p className="v2-rail-label">음성 녹음</p>
                         <p className="v2-rail-desc">
                           <Mic size={14} />
-                          <span><strong>말씀하신 목소리는 녹음한 뒤 글로 바뀌어 편지 내용으로 들어갑니다.</strong> 녹음을 마친 뒤 글로 바꾸면 음성이 네이버 클라우드 CLOVA Speech로 전송되어 변환됩니다. 먼저 들어보고 글로 바꿀지 정할 수 있습니다.</span>
+                          <span><strong>녹음한 뒤 글로 바꿉니다.</strong> 먼저 들어보고 글로 바꿀지 정할 수 있으며, 변환된 글은 입력창에 들어갑니다.</span>
                         </p>
                       </>
                     )}
@@ -704,8 +728,6 @@ export const FarewellMessageCard: React.FC<FarewellMessageCardProps> = ({ recipi
                         onUploadConsentChange={setUploadConsent}
                         recordConsent={recordConsent}
                         onRecordConsentChange={setRecordConsent}
-                        saveVoiceEnabled={saveVoiceEnabled}
-                        onSaveVoiceEnabledChange={setSaveVoiceEnabled}
                       />
                     )}
 

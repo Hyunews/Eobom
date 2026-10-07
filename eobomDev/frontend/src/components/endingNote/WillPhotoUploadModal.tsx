@@ -220,21 +220,23 @@ export const WillPhotoUploadModal: React.FC<WillPhotoUploadModalProps> = ({ hasE
           {stage === 'processing' && <WorkingView maxMinutes={HEAVY_CLIENT_LIMITS.photo.maxMinutes} />}
           {stage !== 'done' && stage !== 'processing' && (
             <>
-              <p style={{ fontSize: 'var(--v2-fs-support)', color: 'var(--v2-text-muted)', marginBottom: '4px' }}>
-                jpg · png 사진은 최대 {MAX_FILES}장, 1장당 {MAX_PHOTO_SIZE_MB}MB까지 올릴 수 있습니다. PDF는 1개({MAX_PDF_SIZE_MB}MB까지, 5쪽까지)만 올릴 수 있고 사진과 함께 올릴 수 없습니다.
+              <p style={{ fontSize: 'var(--v2-fs-support)', color: 'var(--v2-text-muted)', marginBottom: '4px', lineHeight: 1.5 }}>
+                jpg · png 최대 {MAX_FILES}장(1장당 {MAX_PHOTO_SIZE_MB}MB) 또는 PDF 1개({MAX_PDF_SIZE_MB}MB · 5쪽까지). 사진과 PDF는 함께 올릴 수 없습니다.
               </p>
               {/* 06-06 §6 단계1·§9-1 T-2 — 콘솔 도메인 언어가 단일 선택이라 코드로 못 푸는 한계를 미리 알린다 */}
-              <p style={{ fontSize: 'var(--v2-fs-support)', color: 'var(--v2-text-muted)', marginBottom: '4px' }}>
-                한글·숫자·기호만 인식합니다. 한자나 외국어는 직접 입력해 주세요.
-              </p>
-              <p style={{ fontSize: 'var(--v2-fs-support)', color: 'var(--v2-text-muted)', marginBottom: '14px' }}>
-                본인이 쓴 유언장만 올려주세요.
+              <p style={{ fontSize: 'var(--v2-fs-support)', color: 'var(--v2-text-muted)', marginBottom: '12px', lineHeight: 1.5 }}>
+                본인이 쓴 유언장만 올려 주세요. 한글·숫자·기호만 인식하며, 한자나 외국어는 직접 입력해 주세요.
               </p>
 
-              <label className="v2-check" htmlFor="will-photo-upload-consent" style={{ alignItems: 'flex-start' }}>
+              {/* 체크 칸뿐 아니라 문구를 눌러도 토글된다(label이 클릭을 받는다). */}
+              <label
+                className="v2-check"
+                htmlFor="will-photo-upload-consent"
+                style={{ alignItems: 'flex-start', cursor: 'pointer', marginBottom: '10px' }}
+                onClick={(e) => { e.preventDefault(); setConsent((v) => !v); }}
+              >
                 <span
                   id="will-photo-upload-consent"
-                  onClick={(e) => { e.preventDefault(); setConsent((v) => !v); }}
                   role="checkbox"
                   aria-checked={consent}
                   style={{
@@ -251,9 +253,6 @@ export const WillPhotoUploadModal: React.FC<WillPhotoUploadModalProps> = ({ hasE
                   이어봄은 사진을 보관하지 않으며, 인식된 텍스트만 암호화되어 저장됩니다.
                 </span>
               </label>
-              <p className="v2-check-sub" style={{ marginBottom: '14px', paddingLeft: '32px' }}>
-                동의하지 않으셔도 직접 입력으로 초안을 남기실 수 있습니다.
-              </p>
 
               <input
                 ref={fileInputRef}
@@ -291,7 +290,7 @@ export const WillPhotoUploadModal: React.FC<WillPhotoUploadModalProps> = ({ hasE
               {files.length > 0 && (
                 <>
                   <p style={{ marginTop: '10px', marginBottom: '4px', fontSize: 'var(--v2-fs-support)', color: 'var(--v2-text-muted)' }}>
-                    올린 순서대로 인식됩니다. 순서를 바꾸려면 화살표를, 빼려면 X를 눌러주세요. 파일을 다시 선택하면 뒤에 더해집니다.
+                    목록 순서대로 인식됩니다. 화살표로 순서를 바꾸고 X로 뺄 수 있으며, 다시 선택한 파일은 뒤에 더해집니다.
                   </p>
                   <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: '4px' }}>
                     {files.map((f, i) => (

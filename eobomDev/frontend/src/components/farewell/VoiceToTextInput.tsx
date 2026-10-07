@@ -43,8 +43,6 @@ interface VoiceToTextInputProps {
   onUploadConsentChange: (v: boolean) => void;
   recordConsent: boolean;
   onRecordConsentChange: (v: boolean) => void;
-  saveVoiceEnabled: boolean; // §5.5-3 "목소리도 함께 남기기"
-  onSaveVoiceEnabledChange: (v: boolean) => void;
 }
 
 const ALLOWED_AUDIO_EXTENSIONS = ['.m4a', '.mp3', '.wav', '.webm'];
@@ -52,7 +50,7 @@ const MAX_UPLOAD_SIZE_BYTES = 20 * 1024 * 1024;
 const FALLBACK_MSG = '직접 녹음이나 위 입력창에 직접 입력해 이어서 작성해 주세요.';
 const BLOCKED_MSG = '이미 저장된 음성이 있습니다. 위의 \'음성 삭제\'를 누르면 다시 올리거나 녹음할 수 있습니다.'; // 저장된 음성이 붙어 있을 때(§5.6-9-3)
 // 🔄 10-07 개발자 지시 — 변환이 끝나 저장만 하면 되는 때에 "다시 녹음"이 나오면 오류처럼 읽혀 문구를 나눈다.
-const BLOCKED_PENDING_MSG = '변환이 끝났습니다. 아래 \'저장\'을 누르면 글과 음성이 저장됩니다. 다른 음성으로 바꾸려면 위의 \'삭제\'를 누르세요.';
+const BLOCKED_PENDING_MSG = '변환이 끝났습니다. 다른 음성으로 바꾸려면 위의 \'삭제\'를 누르세요.'; // 저장 안내는 위 "저장 전 음성" 박스에 있다
 const MAX_RECORD_MINUTES = Math.round(HEAVY_CLIENT_LIMITS.audioMaxSeconds / 60);
 const RECORD_NOTICE_SEEN_KEY = 'eobom_voice_record_notice_seen'; // §5.5-3 — "1회" 안내를 다시 보여주지 않기 위한 로컬 기록
 const RECORDER_MIME_CANDIDATES = ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4'];
@@ -79,7 +77,7 @@ interface TranscribeResult {
 
 export const VoiceToTextInput: React.FC<VoiceToTextInputProps> = ({
   token, onConverted, disabled, mode, blocked, hasPendingVoice, sttUploadEnabled, voiceStorageEnabled,
-  uploadConsent, onUploadConsentChange, recordConsent, onRecordConsentChange, saveVoiceEnabled, onSaveVoiceEnabledChange,
+  uploadConsent, onUploadConsentChange, recordConsent, onRecordConsentChange,
 }) => {
   const [isRecording, setIsRecording] = useState(false);
   const [elapsedSec, setElapsedSec] = useState(0);
@@ -361,25 +359,8 @@ export const VoiceToTextInput: React.FC<VoiceToTextInputProps> = ({
     backgroundColor: bg, color, opacity: isDisabled ? 0.5 : 1, cursor: isDisabled ? 'not-allowed' : 'pointer',
   });
 
-  const saveVoiceToggle = voiceStorageEnabled && (
-    <label className="v2-check" htmlFor="voice-save-toggle">
-      <span
-        id="voice-save-toggle"
-        onClick={(e) => { e.preventDefault(); if (!disabled && !isRecording) onSaveVoiceEnabledChange(!saveVoiceEnabled); }}
-        role="checkbox"
-        aria-checked={saveVoiceEnabled}
-        style={{
-          width: '20px', height: '20px', flexShrink: 0, borderRadius: '4px', marginTop: '2px',
-          border: saveVoiceEnabled ? 'none' : '1.5px solid var(--v2-input-border)',
-          backgroundColor: saveVoiceEnabled ? 'var(--v2-point)' : '#FFFFFF',
-          display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
-        }}
-      >
-        {saveVoiceEnabled && <Check size={12} color="#FFFFFF" strokeWidth={3} />}
-      </span>
-      <span>목소리도 함께 남기기</span>
-    </label>
-  );
+  // 막힌 때는 폼 전체를 접고 한 줄만 보여준다(스크롤 줄이기) — 변환이 끝났으면 저장 안내는 위 "저장 전 음성" 박스가 맡는다.
+  const blockedNote = <p className="v2-notice" style={{ margin: 0 }}>{hasPendingVoice ? BLOCKED_PENDING_MSG : BLOCKED_MSG}</p>;
 
   return (
     <div style={{ position: 'relative' }}>
@@ -464,7 +445,8 @@ export const VoiceToTextInput: React.FC<VoiceToTextInputProps> = ({
       {mode === 'record' && micError && <p className="v2-notice-warn" style={{ marginBottom: '16px' }}>{micError}</p>}
       {mode === 'record' && recordNotice && !showConfirm && <p className="v2-notice-warn" style={{ marginBottom: '16px' }}>{recordNotice}</p>}
 
-      {mode === 'record' && (
+      {mode === 'record' && blocked && blockedNote}
+      {mode === 'record' && !blocked && (
       <>
       {!recordingSupported && (
         <p className="v2-notice" style={{ marginBottom: '16px' }}>
@@ -473,22 +455,16 @@ export const VoiceToTextInput: React.FC<VoiceToTextInputProps> = ({
       )}
 
       {recordingSupported && (
-        <p className="v2-notice">
-          말씀하신 내용은 녹음되고, 마친 뒤 글로 바꾸면 편지에 들어갑니다.
-          {voiceStorageEnabled
-            ? ' "목소리도 함께 남기기"가 켜져 있으면 편지를 저장할 때 목소리 원본도 암호화되어 함께 보관됩니다.'
-            : ' 이어봄은 변환된 글만 저장하며 음성 파일은 보관하지 않습니다.'}
-        </p>
-      )}
-
-      {recordingSupported && saveVoiceToggle}
-
-      {recordingSupported && (
         <>
-          <label className="v2-check" htmlFor="voice-record-consent" style={{ alignItems: 'flex-start' }}>
+          {/* 체크 칸뿐 아니라 문구를 눌러도 토글된다(label이 클릭을 받는다). */}
+          <label
+            className="v2-check"
+            htmlFor="voice-record-consent"
+            style={{ alignItems: 'flex-start', cursor: 'pointer', marginBottom: '10px' }}
+            onClick={(e) => { e.preventDefault(); if (!disabled && !isRecording) onRecordConsentChange(!recordConsent); }}
+          >
             <span
               id="voice-record-consent"
-              onClick={(e) => { e.preventDefault(); if (!disabled && !isRecording) onRecordConsentChange(!recordConsent); }}
               role="checkbox"
               aria-checked={recordConsent}
               style={{
@@ -501,21 +477,16 @@ export const VoiceToTextInput: React.FC<VoiceToTextInputProps> = ({
               {recordConsent && <Check size={13} color="#FFFFFF" strokeWidth={3} />}
             </span>
             <span>
-              <span className="v2-req">필수</span> 녹음을 마친 뒤 &apos;글로 바꾸기&apos;를 누르면 음성 파일이 네이버 클라우드
-              CLOVA Speech로 전송되며, 네이버의 음성인식 성능 향상에 활용될 수 있습니다. 변환된 텍스트는
-              네이버에 7일간 보관된 뒤 삭제됩니다.
+              <span className="v2-req">필수</span> &apos;글로 바꾸기&apos;를 누르면 녹음이 네이버 클라우드
+              CLOVA Speech로 전송되며 음성인식 성능 향상에 활용될 수 있습니다. 변환된 텍스트는 네이버에
+              7일간 보관 후 삭제됩니다.
               {voiceStorageEnabled
-                ? ' "목소리도 함께 남기기"가 켜져 있으면 목소리 원본도 편지를 저장할 때 이어봄에 암호화되어 함께 보관됩니다.'
+                ? ' 편지를 저장하면 녹음 원본도 암호화되어 함께 보관됩니다.'
                 : ' 이어봄은 음성 파일을 보관하지 않습니다.'}
             </span>
           </label>
-          <p className="v2-check-sub" style={{ marginBottom: '14px', paddingLeft: '32px' }}>
-            동의하지 않으셔도 직접 입력으로 편지를 남기실 수 있습니다.
-          </p>
         </>
       )}
-
-      {blocked && <p className="v2-notice-warn" style={{ marginBottom: '8px' }}>{hasPendingVoice ? BLOCKED_PENDING_MSG : BLOCKED_MSG}</p>}
 
       <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px', flexWrap: 'wrap' }}>
         {recordingSupported && (
@@ -548,25 +519,27 @@ export const VoiceToTextInput: React.FC<VoiceToTextInputProps> = ({
       {mode === 'upload' && !sttUploadEnabled && (
         <p className="v2-notice">지금은 음성 파일 업로드를 사용할 수 없습니다. "직접 쓰기" 탭을 이용해 주세요.</p>
       )}
-      {mode === 'upload' && sttUploadEnabled && (
+      {mode === 'upload' && sttUploadEnabled && blocked && blockedNote}
+      {mode === 'upload' && sttUploadEnabled && !blocked && (
         <div>
-          <h4 style={{ fontSize: 'var(--v2-fs-item-title)', color: 'var(--v2-text-main)', fontWeight: 700, marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <h4 style={{ fontSize: 'var(--v2-fs-item-title)', color: 'var(--v2-text-main)', fontWeight: 700, marginBottom: '6px', display: 'flex', alignItems: 'center', gap: '6px' }}>
             <Upload size={16} color="var(--v2-point)" /> 녹음해 둔 음성 파일 올리기
           </h4>
 
-          <p style={{ fontSize: 'var(--v2-fs-support)', color: 'var(--v2-text-muted)', marginBottom: '4px' }}>
-            m4a · mp3 · wav · webm 파일을 올릴 수 있습니다(최대 {MAX_UPLOAD_SIZE_BYTES / 1024 / 1024}MB · {MAX_RECORD_MINUTES}분 이하).
-          </p>
-          <p style={{ fontSize: 'var(--v2-fs-support)', color: 'var(--v2-text-muted)', marginBottom: '14px' }}>
-            본인의 음성만 올려주세요. 다른 분의 음성인지 이어봄이 확인할 방법은 없습니다.
+          {/* 한 줄 안내 — 글자를 줄이고 줄바꿈을 막는다(좁은 폭에서는 줄이 넘치지 않게 말줄임). */}
+          <p style={{ fontSize: '12px', color: 'var(--v2-text-muted)', marginBottom: '12px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            m4a · mp3 · wav · webm, 최대 {MAX_UPLOAD_SIZE_BYTES / 1024 / 1024}MB · {MAX_RECORD_MINUTES}분 이하. 본인의 음성만 올려 주세요.
           </p>
 
-          {saveVoiceToggle}
-
-          <label className="v2-check" htmlFor="voice-upload-consent" style={{ alignItems: 'flex-start' }}>
+          {/* 체크 칸뿐 아니라 문구를 눌러도 토글된다(label이 클릭을 받는다). */}
+          <label
+            className="v2-check"
+            htmlFor="voice-upload-consent"
+            style={{ alignItems: 'flex-start', cursor: 'pointer', marginBottom: '10px' }}
+            onClick={(e) => { e.preventDefault(); onUploadConsentChange(!uploadConsent); }}
+          >
             <span
               id="voice-upload-consent"
-              onClick={(e) => { e.preventDefault(); onUploadConsentChange(!uploadConsent); }}
               role="checkbox"
               aria-checked={uploadConsent}
               style={{
@@ -580,18 +553,13 @@ export const VoiceToTextInput: React.FC<VoiceToTextInputProps> = ({
             </span>
             <span>
               <span className="v2-req">필수</span> 음성 파일이 네이버 클라우드
-              CLOVA Speech로 전송되며, 네이버의 음성인식 성능 향상에 활용될 수 있습니다. 변환된 텍스트는
-              네이버에 7일간 보관된 뒤 삭제됩니다.
+              CLOVA Speech로 전송되며 음성인식 성능 향상에 활용될 수 있습니다. 변환된 텍스트는 네이버에
+              7일간 보관 후 삭제됩니다.
               {voiceStorageEnabled
-                ? ' "목소리도 함께 남기기"가 켜져 있으면 이 파일도 편지를 저장할 때 이어봄에 암호화되어 함께 보관됩니다.'
+                ? ' 편지를 저장하면 이 파일도 암호화되어 함께 보관됩니다.'
                 : ' 이어봄은 음성 파일을 보관하지 않습니다.'}
             </span>
           </label>
-          <p className="v2-check-sub" style={{ marginBottom: '14px', paddingLeft: '32px' }}>
-            동의하지 않으셔도 직접 입력으로 편지를 남기실 수 있습니다.
-          </p>
-
-          {blocked && <p className="v2-notice-warn" style={{ marginBottom: '8px' }}>{hasPendingVoice ? BLOCKED_PENDING_MSG : BLOCKED_MSG}</p>}
 
           <input
             ref={fileInputRef}
