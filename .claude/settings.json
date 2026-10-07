@@ -25,6 +25,17 @@
           }
         ]
       }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.harness/tools/korean-guard.js\"",
+            "timeout": 10
+          }
+        ]
+      }
     ]
   }
 }
