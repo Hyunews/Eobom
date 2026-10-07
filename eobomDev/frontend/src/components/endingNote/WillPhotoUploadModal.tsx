@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Camera, Loader2, Check, ChevronUp, ChevronDown } from 'lucide-react';
+import { Camera, Loader2, Check, ChevronUp, ChevronDown, X } from 'lucide-react';
 import { apiUploadForm, ApiError } from '../../lib/api';
 import { HEAVY_CLIENT_LIMITS, HEAVY_TIMEOUT_MESSAGE, HEAVY_NETWORK_MESSAGE } from '../../lib/heavyLimits';
 import { WorkingView, HeavyNoticeDialog } from '../common/HeavyWork';
@@ -88,10 +88,16 @@ export const WillPhotoUploadModal: React.FC<WillPhotoUploadModalProps> = ({ hasE
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selected = Array.from(e.target.files ?? []);
+    const picked = Array.from(e.target.files ?? []);
     e.target.value = '';
-    if (selected.length === 0) return;
+    if (picked.length === 0) return;
     setError(null);
+
+    // 10-07 — 이미 고른 파일은 그대로 두고 새로 고른 것을 뒤에 더한다(같은 파일을 다시 고르면 건너뜀).
+    const same = (a: File, b: File) => a.name === b.name && a.size === b.size && a.lastModified === b.lastModified;
+    const added = picked.filter((p) => !files.some((f) => same(f, p)));
+    if (added.length === 0) return;
+    const selected = [...files, ...added];
 
     if (selected.length > MAX_FILES) {
       setError(`사진은 최대 ${MAX_FILES}장까지 올릴 수 있습니다.`);
@@ -108,7 +114,7 @@ export const WillPhotoUploadModal: React.FC<WillPhotoUploadModalProps> = ({ hasE
       return;
     }
     // PDF는 원본 크기, 사진은 줄인 뒤 크기(고화소 폰 사진이 줄이기 전 크기로 막히지 않게).
-    const resized = await Promise.all(selected.map(resizeImageIfNeeded));
+    const resized = [...files, ...(await Promise.all(added.map(resizeImageIfNeeded)))]; // 이미 담긴 파일은 줄여 둔 것
     if (resized.some((f) => isPdf(f) && f.size > MAX_PDF_SIZE_MB * MB)) {
       setError(`PDF 파일은 ${MAX_PDF_SIZE_MB}MB까지 올릴 수 있습니다.`);
       return;
@@ -118,6 +124,11 @@ export const WillPhotoUploadModal: React.FC<WillPhotoUploadModalProps> = ({ hasE
       return;
     }
     setFiles(resized);
+  };
+
+  const removeFile = (index: number) => {
+    setError(null);
+    setFiles((prev) => prev.filter((_, i) => i !== index));
   };
 
   // 🔄 09-28 Opus 편차 보정 [H] — §4.1 "여러 장" 올린 순서 = 쪽 순서. 목록에서 위/아래로
@@ -280,7 +291,7 @@ export const WillPhotoUploadModal: React.FC<WillPhotoUploadModalProps> = ({ hasE
               {files.length > 0 && (
                 <>
                   <p style={{ marginTop: '10px', marginBottom: '4px', fontSize: 'var(--v2-fs-support)', color: 'var(--v2-text-muted)' }}>
-                    올린 순서대로 인식됩니다. 순서를 바꾸려면 화살표를 눌러주세요.
+                    올린 순서대로 인식됩니다. 순서를 바꾸려면 화살표를, 빼려면 X를 눌러주세요. 파일을 다시 선택하면 뒤에 더해집니다.
                   </p>
                   <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: '4px' }}>
                     {files.map((f, i) => (
@@ -318,6 +329,19 @@ export const WillPhotoUploadModal: React.FC<WillPhotoUploadModalProps> = ({ hasE
                           }}
                         >
                           <ChevronDown size={16} />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => removeFile(i)}
+                          disabled={stage !== 'idle'}
+                          aria-label={`${f.name} 빼기`}
+                          style={{
+                            minWidth: '44px', minHeight: '44px', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            background: 'none', border: '1px solid var(--v2-btn-border)', borderRadius: '4px',
+                            opacity: stage !== 'idle' ? 0.4 : 1, cursor: stage !== 'idle' ? 'not-allowed' : 'pointer',
+                          }}
+                        >
+                          <X size={16} />
                         </button>
                       </li>
                     ))}
