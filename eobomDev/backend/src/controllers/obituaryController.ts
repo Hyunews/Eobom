@@ -4,6 +4,7 @@ import prisma from '../config/prisma';
 import { verifyBearerToken, FRONTEND_URL, captureFrontendOrigin } from './authController';
 import { validateFalseReportAgreed, validateResharedNoticeAck } from '../utils/consentGates';
 import { encryptField, decryptField } from '../utils/crypto';
+import { calculateMemorialExpiresAt } from '../utils/memorialLifecycle';
 
 // 모바일 부고장(Domain 07) Phase 1 — docs/07_상중_행정_케어/07-03_모바일_부고장_카카오톡_전송_구현_기획서.md
 // E안(00-13 §4.5): 부고장(Obituary)=봉투, 추모관(Memorial)=목적지, 배포되는 링크는 부고장 1개뿐이다.
@@ -154,6 +155,8 @@ export const createObituary = async (req: Request, res: Response) => {
                   deceasedDeathDate: deceased.deathDate,
                   visibility: 'LINK',
                   falseReportAgreedAt: now,
+                  createdAt: now,
+                  expiresAt: calculateMemorialExpiresAt(now), // 00-20 §5.2-2 — 개설일 + 395일(memorialController와 같은 함수)
                 },
               })
             : null;
@@ -386,6 +389,8 @@ export const updateObituary = async (req: Request, res: Response) => {
               deceasedDeathDate: afterDeathDate,
               visibility: 'LINK',
               falseReportAgreedAt: now,
+              createdAt: now,
+              expiresAt: calculateMemorialExpiresAt(now), // 00-20 §5.2-2 — 개설일 + 395일
             },
           })
         : null;

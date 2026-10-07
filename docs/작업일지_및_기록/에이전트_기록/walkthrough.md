@@ -16,6 +16,21 @@
 > [`_아카이브_2608`](walkthrough_아카이브_2608.md)(08-31분). 남은 것 = 판정 대기 + 판정 표기 없음. 기준 → `record.md` §2-1.
 
 ---
+## 2026-10-07 | [Sonnet] 부고 경로 추모관 expiresAt 누락 수정 + 기존 행 채우기
+
+- **근거 스펙**: docs/00_핵심플랫폼/00-20 §8.1 표 "expiresAt 계산" 줄 (10-07)
+- **건드린 파일**: backend/src/controllers/obituaryController.ts(작성 시 함께 개설·사후 연결 `memorial.create` 2곳) · backend/prisma/migrations/20261007120000_backfill_memorial_expires_at/migration.sql(신규, 데이터만) · backend/tests/obituary-memorial-expiry.test.ts(신규 3건) · backend/package.json(test 목록)
+- **결과**:
+  - 두 `create`에 `createdAt: now` + `expiresAt: calculateMemorialExpiresAt(now)` 추가(`memorialController`와 같은 함수·같은 방식)
+  - 채우기 SQL: `expiresAt IS NULL AND frozenAt IS NULL` → `createdAt + 395일`. 스키마 변경 없음 · 두 번 돌려도 같은 결과
+  - 로컬: 백업 `local-20261007-155646.dump`(417.5KB) 확인 후 `migrate deploy` 적용 → 빈 행(동결 제외) 0건 / 전체 18건. 시험 DB에도 적용
+  - 시험: 부고 작성+추모관 체크 · 사후 연결 · 채우기 SQL(빈 행만 채움·동결 행 그대로·이미 채운 행 그대로·남은 빈 행 0건) — 모두 통과. backend `npm test` 422건 통과 · tsc 0
+- **편차**: 채우기 SQL은 `closedAt`·`hiddenAt` 있는 행도 채운다(스펙 조건이 `expiresAt`·`frozenAt`뿐이라 그대로 따름 — 값만 채우고 동작은 바꾸지 않는다)
+- **다음 에이전트가 알아야 할 것**: 🔴 미커밋. **운영 미적용 — `migrate-prod.ps1`은 개발자가 돌린다**(데이터 변경뿐이라 추가형 순서 무관). 화면 확인은 [Opus]
+
+<!-- Gemini 판정 1줄: ✅통과 / ❌반려(사유) / 🔄스펙갱신(고친 문서) -->
+
+---
 ## 2026-10-07 | [Sonnet] ⑥ 연장 버튼 표시 시점 — 서버 판정 `canExtend`
 
 - **근거 스펙**: docs/00_핵심플랫폼/00-20 §8.1-4 ②-가 (10-06 개발자 결정 A) · §8.1-2(통지 시점 계산)
