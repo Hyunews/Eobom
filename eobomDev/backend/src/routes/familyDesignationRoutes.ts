@@ -18,9 +18,12 @@ import { blockDuringDeletionGrace } from '../middleware/blockDuringDeletionGrace
 
 const router = Router();
 
+// 내 가족 지정 목록
 router.get('/', listFamilyDesignations);
 router.post('/', blockDuringDeletionGrace, createFamilyDesignation); // 탈퇴 유예 중 403(00-36 §4.3-1)
+// 가족 지정 수정 — 본인 건만
 router.patch('/:id', updateFamilyDesignation);
+// 가족 지정 삭제 — 하드 삭제
 router.delete('/:id', deleteFamilyDesignation);
 
 router.post('/:id/invite', inviteFamilyDesignation); // 개설자만(§9.1)

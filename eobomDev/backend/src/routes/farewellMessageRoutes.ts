@@ -21,14 +21,22 @@ import { blockDuringDeletionGrace } from '../middleware/blockDuringDeletionGrace
 
 const router = Router();
 
+// 내 유족 메시지 목록 — 미리보기까지
 router.get('/', listFarewellMessages);
+// 내 유족 메시지 전체 반출
 router.get('/export', exportFarewellMessages);
+// 유족 메시지 단건 전문 조회 — 본인만
 router.get('/:id', getFarewellMessage);
 router.post('/', blockDuringDeletionGrace, createFarewellMessage); // 탈퇴 유예 중 403(00-36 §4.3-1)
+// 유족 메시지 수정 — 본인 건만
 router.patch('/:id', updateFarewellMessage);
+// 유족 메시지 삭제(소프트)
 router.delete('/:id', deleteFarewellMessage);
+// 유족 메시지 음성 듣기
 router.get('/:id/audio', getFarewellMessageAudio);
+// 유족 메시지 음성 삭제(소프트)
 router.delete('/:id/audio', deleteFarewellMessageAudio);
+// 유족 메시지 단건 반출
 router.get('/:id/export', exportFarewellMessage);
 
 export default router;

@@ -23,11 +23,13 @@ const router = Router();
 
 // 연장 통지 링크(docs 00-20 §8.1-4) — 로그인 불필요, 토큰이 곧 권한. 🔴 GET은 확인 화면용 조회뿐, 연장은 POST.
 // 아래 `/:slug` 계열보다 앞에 둔다(`extend`가 slug로 읽히지 않게).
-router.get('/extend/:token', previewMemorialExtend);
+router.get('/extend/:token', previewMemorialExtend); // 연장 확인 화면용 조회 — 로그인 불필요
+// 통지 링크로 추모관 연장 — 1회용 토큰
 router.post('/extend/:token', extendMemorialByLink);
 
 // 공개 (docs 05-01 §4.1) — 비회원도 접근 가능
 router.get('/:slug', getMemorialBySlug);
+// 추모관 방명록 목록(삭제·비공개 제외)
 router.get('/:slug/guestbook', listGuestbook);
 router.post('/:slug/tributes', createTribute); // 헌화 — 비회원 허용(§4.4)
 router.post('/:slug/guestbook', blockDuringDeletionGrace, createGuestbookEntry); // 방명록 작성 — 로그인 필수(09-29, 컨트롤러가 401) · 탈퇴 유예 중 403(00-36 §4.3-1)

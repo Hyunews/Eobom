@@ -2907,3 +2907,13 @@
   - 커밋은 하지 않음 — 메시지 초안만.
 
 <!-- Gemini 판정 1줄: ✅통과 / ❌반려(사유) / 🔄스펙갱신(고친 문서) -->
+
+## 2026-10-08 | 라우트 설명 주석 보강 — API 목록 설명 없음 92개 채우기
+
+- **근거 스펙**: docs/00_핵심플랫폼/00-04_기능_및_API_명세서.md §1~§6 손 표 · §6-1 (generate-api-doc.js 설명 칸 규칙)
+- **건드린 파일**: eobomDev/backend/src/routes/ 13개 — adminRoutes.ts, authRoutes.ts, endingNoteRoutes.ts, expertPublicRoutes.ts, expertRoutes.ts, facilityRoutes.ts, familyDesignationRoutes.ts, farewellMessageRoutes.ts, geoRoutes.ts, meRoutes.ts, memorialRoutes.ts, partnerRoutes.ts, willPhotoRoutes.ts + 생성물 docs/00_핵심플랫폼/00-04 마커 구간(스크립트 출력만)
+- **결과**: `node .harness/tools/generate-api-doc.js` 설명 없음 92 → 0(총 147). 라우트 줄 바로 위 `// 설명` 한 줄 추가, 바로 위가 주석이거나 여러 줄 호출(auth 3건)이면 줄 끝 주석. 손 표에서 옮긴 것 9행(소셜 시작 3·콜백 3·시설 목록·상세·regions) / 컨트롤러 헤더 주석·코드를 읽고 쓴 것 83행 / 비워 둔 것 0. `--check` 동기화됨, `npx tsc --noEmit`(backend) exit 0, git diff --stat 과 --ignore-cr-at-eol --stat 숫자 동일(202+/101-).
+- **편차**: 없음 (주석만, 라우트 동작·경로·미들웨어 불변). 단 00-04 §4 "리드 조회 ⬜ 미구현"은 코드와 다름(아래).
+- **다음 에이전트가 알아야 할 것**: 00-04 §4 "리드 조회·정산 ⬜ 미구현" 문구는 코드에 `/api/partner/leads*`가 구현돼 있어 낡음 — Opus 판단. 생성기 `git diff --stat`에는 클라우드 세션의 ledger_00.md 등 내 것이 아닌 변경이 섞여 있음.
+
+<!-- Gemini 판정 1줄: ✅통과 / ❌반려(사유) / 🔄스펙갱신(고친 문서) -->

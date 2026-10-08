@@ -54,7 +54,7 @@ for (const provider of LINKABLE_PROVIDERS) {
     const state = jwt.sign({ purpose: 'login', origin: captureFrontendOrigin(req), consent, mode }, JWT_SECRET, { expiresIn: '10m' });
     const options = { ...providerAuthOptions[provider], state };
     return passport.authenticate(provider, options as object)(req, res, next);
-  });
+  }); // 소셜 로그인 시작 — 약관 동의 확인 후 OAuth 인증 화면으로 이동
 
   router.get(
     `/${provider}/callback`,
@@ -69,7 +69,7 @@ for (const provider of LINKABLE_PROVIDERS) {
       );
     },
     handleSocialLoginCallback
-  );
+  ); // 소셜 인증 콜백 — 로그인·계정 연동·통합 처리
 }
 
 // 4. 가입 모달에서 [계정 통합] 또는 [독립 신규 가입] 선택 확정 처리
@@ -109,7 +109,7 @@ router.get('/:provider/link', (req, res, next) => {
   const options = { ...providerAuthOptions[provider], state: linkState };
 
   return passport.authenticate(provider, options as object)(req, res, next);
-});
+}); // 로그인한 회원이 다른 소셜 계정 연동 시작 — 토큰은 쿼리로 받음
 
 // 8. 마이페이지: 소셜 계정 연동 해제 (최소 1개는 유지)
 router.delete('/unlink-provider', unlinkProvider);
