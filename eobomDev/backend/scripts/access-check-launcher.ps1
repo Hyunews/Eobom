@@ -2,7 +2,7 @@
 # 로컬/운영 선택 -> 비밀번호 입력(항상) -> npm run report:access-check -> 결과지 열기
 # 🔴 비밀번호는 이 창의 메모리에만 있다. 파일·.env·기록에 남기지 않고, 끝나면 환경변수를 지운다.
 $ErrorActionPreference = 'Stop'
-$backend = 'D:\Eobom\eobomDev\backend'
+$backend = Split-Path -Parent $PSScriptRoot   # scripts/ 의 위 = backend/ (경로를 박아 두지 않는다)
 $auditor = 'eobom_auditor'
 
 function Plain([System.Security.SecureString]$s) {
@@ -19,7 +19,18 @@ $pick = Read-Host '번호를 고르세요 (1/2)'
 if ($pick -eq '1') {
   $where = '로컬'
   $user = $auditor
-  $hostdb = 'localhost:5433/eobom_db'
+  # 호스트·DB 이름만 .env 의 DATABASE_URL 에서 읽는다(비밀번호는 읽지도 쓰지도 않는다) — 로컬 주소가 아니면 중단
+  $line = Get-Content (Join-Path $backend '.env') | Where-Object { $_ -match '^DATABASE_URL=' } | Select-Object -First 1
+  $u = if ($line) { ($line -replace '^DATABASE_URL=', '').Trim().Trim('"').Trim("'") } else { '' }
+  if ($u -notmatch '^postgres(?:ql)?://[^:/@]+:[^@]*@([^/]+)/([^?]*)') {
+    Write-Host '.env 의 DATABASE_URL 에서 로컬 주소를 읽지 못했습니다. 중단합니다.' -ForegroundColor Red
+    exit 1
+  }
+  $hostdb = "$($Matches[1])/$($Matches[2])"
+  if ($hostdb -notmatch '^(localhost|127\.0\.0\.1|host\.docker\.internal)[:/]') {
+    Write-Host 'DATABASE_URL 이 로컬 주소가 아닙니다. 로컬 점검을 중단합니다.' -ForegroundColor Red
+    exit 1
+  }
 }
 elseif ($pick -eq '2') {
   $where = '운영'

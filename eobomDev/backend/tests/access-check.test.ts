@@ -112,8 +112,14 @@ test('결과지 — 메모·서명란이 있고 외부 자원이 없으며 이�
     '2026-11-03 09:00 (한국 시간)',
   );
   assert.match(html, /자동 판정은 참고용/);
-  assert.match(html, /표 10/);
-  assert.match(html, /표 11/);
+  assert.doesNotMatch(html, /표 1[01]/); // 제목에 표 번호를 달지 않는다
+  assert.match(html, /<h2>3\. 점검 체크리스트<\/h2>/);
+  assert.match(html, /<h2>4\. 특이사항 메모<\/h2>/);
+  assert.equal((html.match(/<li>□ /g) ?? []).length, 5); // 체크리스트 5줄 그대로
+  assert.match(html, /<th>점검 항목<\/th><th>특이사항 · 확인 내용<\/th><th>조치 · 확인 대상<\/th>/);
+  const memoBody = html.split('<table class="memo">')[1].split('</table>')[0];
+  assert.equal((memoBody.match(/<tr><td><\/td><td><\/td><td><\/td><\/tr>/g) ?? []).length, 3); // 빈 줄 3개
+  assert.match(html, /점검 항목 칸에는 ①~⑧ 번호를 적음\. 이상이 없으면 '특이사항 없음'으로 적음/);
   assert.match(html, /서명/);
   assert.ok(html.includes('&lt;b&gt;홍길동&lt;/b&gt;'));
   assert.doesNotMatch(html, /<script|<link|https?:\/\//);

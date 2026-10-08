@@ -349,7 +349,8 @@ export function renderHtml(range: { ym: string; start: string; lastDay: string }
   .note { margin: 2px 0 6px; color: #333; }
   ul.check { list-style: none; padding: 0; margin: 4px 0; }
   ul.check li { margin: 2px 0; }
-  .memo { border: 1px solid #555; height: 90px; }
+  table.memo td { height: 26px; }
+  table.memo th:first-child { width: 90px; }
   table.sign td { height: 30px; }
   section, tr { break-inside: avoid; }
 </style>
@@ -370,13 +371,21 @@ ${summaryRows}
 <h2>2. 확인 대상 · 상세</h2>
 ${detail || '<p>표시할 목록이 없습니다.</p>'}
 
-<h2>3. 점검 체크리스트 (표 10)</h2>
+<h2>3. 점검 체크리스트</h2>
 <ul class="check">
 ${checklist}
 </ul>
 
-<h2>4. 특이사항 메모 (표 11)</h2>
-<div class="memo"></div>
+<h2>4. 특이사항 메모</h2>
+<table class="memo">
+<thead><tr><th>점검 항목</th><th>특이사항 · 확인 내용</th><th>조치 · 확인 대상</th></tr></thead>
+<tbody>
+<tr><td></td><td></td><td></td></tr>
+<tr><td></td><td></td><td></td></tr>
+<tr><td></td><td></td><td></td></tr>
+</tbody>
+</table>
+<p class="note">점검 항목 칸에는 ①~⑧ 번호를 적음. 이상이 없으면 '특이사항 없음'으로 적음</p>
 
 <h2>5. 확인</h2>
 <table class="sign">

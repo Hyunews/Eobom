@@ -16,6 +16,16 @@
 > [`_아카이브_2608`](walkthrough_아카이브_2608.md)(08-31분). 남은 것 = 판정 대기 + 판정 표기 없음. 기준 → `record.md` §2-1.
 
 ---
+## 2026-10-08 | [Sonnet] 접속기록 점검 결과지 소폭 수정 — 표 번호 삭제 · 특이사항 메모 3칸 표
+
+- **근거 스펙**: docs/00_핵심플랫폼/00-43_접속기록_월간점검_담당자_안내서.md §10.5 (10-08 정정분, 사람이 준 지시문)
+- **건드린 파일**: eobomDev/backend/prisma/report-access-check.ts(결과지 HTML 템플릿·CSS만) · eobomDev/backend/tests/access-check.test.ts
+- **결과**: 제목 `3. 점검 체크리스트 (표 10)` → `3. 점검 체크리스트`, `4. 특이사항 메모 (표 11)` → `4. 특이사항 메모`. 빈 상자(`<div class="memo">`) → 3칸 표(`점검 항목 / 특이사항 · 확인 내용 / 조치 · 확인 대상`) + 빈 줄 3개 + 아래 `점검 항목 칸에는 ①~⑧ 번호를 적음. 이상이 없으면 '특이사항 없음'으로 적음`. 체크리스트 5줄은 그대로. 검증: `node --require ts-node/register/transpile-only --test tests/access-check.test.ts` 13/13 통과(표 번호 없음·제목·체크리스트 5줄·3칸 머리글·빈 줄 3개·안내 문구를 확인하도록 시험 갱신) · `npx tsc --noEmit --esModuleInterop --skipLibCheck --strict --noUnusedLocals --target es2020 --module commonjs prisma/report-access-check.ts tests/access-check.test.ts` exit 0. 전체 `npm test`는 돌리지 않음(결과지 템플릿만 바뀜).
+- **편차**: 없음. 빈 줄 높이(26px)·열 너비는 지시에 없어 인쇄용으로 임의로 정함 — 실제 인쇄 쪽수는 확인 전.
+- **다음 에이전트가 알아야 할 것**: 결과지가 2쪽 안에 들어가는지는 개발자가 한 번 출력해 확인 필요(메모 표가 이전 빈 상자보다 약간 큼). 같은 날 앞 항목의 "표 10·11 문구를 R740과 맞출지" 건은 이 정정으로 해소.
+
+<!-- Gemini 판정 1줄: ✅통과 / ❌반려(사유) / 🔄스펙갱신(고친 문서) -->
+
 ## 2026-10-08 | [Sonnet] 접속기록 월간 점검 스크립트(반자동) — `npm run report:access-check`
 
 - **근거 스펙**: docs/00_핵심플랫폼/00-43_접속기록_월간점검_담당자_안내서.md §10 (기준값 정본 = 00-22 부록 1-2)
@@ -25,7 +35,7 @@
   **확인 2건(로컬, 백업 `local-20261008-092542` 후)**: ① ⑧ 표 크기 — 점검 전용 권한(USAGE+기록 3표 SELECT)으로 `pg_stat_user_tables`·`pg_total_relation_size(relid)` 조회 **된다**(3표 모두: AccessLog 1597440B/3727행, AdminAuditLog 204800B/175행, ErrorLog 106496B/41행), `"User"`는 `permission denied`. ② 풀러 사용자명 형식 — **로컬에서는 확인 불가**(Supabase 풀러가 없음). 문서(`systems.md` §4: `postgres.[ref]`)대로 `eobom_auditor.[ref]`일 가능성을 SQL 파일 주석에 남겼고, 운영 첫 연결 때 확인.
   시험 방식: 역할 생성은 사람 몫이라 영구 생성하지 않고, 임시 스크립트(삭제함)가 롤백되는 트랜잭션 안에서 `CREATE ROLE … SET LOCAL ROLE eobom_auditor`로 전환한 채 `runChecks` 8개 + HTML 생성을 실행 → 2026-10분 ①0 ②0 ③1 ④1 ⑤26일 ⑥정상 ⑦0 ⑧1.8MB, 끝난 뒤 `pg_roles`에 eobom_auditor 0개.
 - **편차**: ① 스펙 `BEGIN READ ONLY` → Prisma 대화형 트랜잭션이 이미 BEGIN을 하므로 첫 문장 `SET TRANSACTION READ ONLY` + `transaction_read_only='on'` 확인으로 구현(같은 효과). ② `pg` 패키지가 없어 새 의존성을 더하지 않고 `PrismaClient({datasources:{db:{url}}})`로 접속(다른 주소로 폴백하지 않음). ③ 10.6 첫 항목 "eobom_auditor 계정으로 실행 → 결과지 생성" — 처음엔 계정이 없어 롤백 시험으로 대신했으나, **같은 날 개발자가 로컬에 계정을 만들고(백업 후) `npm run report:access-check`를 실행해 접속 계정 `eobom_auditor` 확인 문구와 결과지 생성을 확인함**(로컬 값은 위 시험과 동일). 이때 `--month=2026-10`(진행 중인 달)로 돌려 ⑤가 아직 안 온 날 26일을 나열 → **끝나지 않은 달은 거부**(`isMonthFinished`)하고 ⑤ 날짜는 한 줄에 6개씩 묶도록(`chunkDates`) 보완. 시험 12건. ④ 표 10 체크리스트·표 11 메모는 R740 원문을 못 열어(바탕화면에서 못 찾음) 00-43 §4 단계와 §6 칸 구성으로 만들었다 — R740과 문구 맞춤 필요. ⑤ ⑧ "300MB"는 pg_size_pretty와 같은 1MB=1024×1024B로 계산(00-43 §5 ⑧ 문구의 "kB=1/1000MB"와 미세한 차이, 경계 근처에서만 다름).
-- **다음 에이전트가 알아야 할 것**: (1) 사람이 할 일 — 로컬/운영 각각 `backup-db.ps1 -Target local|prod` 후 `prisma/sql/create-auditor-role.sql`의 `<비밀번호>`를 바꿔 실행 → `.env`(로컬)에 `OPS_AUDIT_DATABASE_URL` 설정 → `npm run report:access-check -- --month=2026-10` 첫 실행. (2) `ops-reports/`는 첫 실행 때 생기며 `.gitignore`로 제외되지만 커밋 전 `git status` 확인할 것. (3) ⑥은 대상 달이 아니라 실행일 기준(수기 §5 ⑥과 동일). (4) 로컬 DB의 10월 ⑤가 26일로 나오는 건 개발 DB에 이용이 없던 날이라 정상 범위 — 운영 첫 실행(11월 첫 주)에 수기 결과와 한 번 대조 권장(00-43 §10.6). (5) 위 "편차" ④⑤는 Opus 판단 필요. (6) **실행기**: `.harness/tools/access-check-launcher.bat`+`.ps1`(개발자 바탕화면에도 `eobom-access-check.*` 사본) — 더블클릭 → 로컬/운영 선택 → 비밀번호 항상 입력 → 실행 → 결과지 자동 열기. 비밀번호는 창 안 환경변수로만 쓰고 끝나면 지움. 운영은 호스트·DB 이름만 `.env`의 `BACKUP_DATABASE_URL`에서 읽음. 문법 검사만 했고 실제 더블클릭 실행은 개발자 확인 전.
+- **다음 에이전트가 알아야 할 것**: (1) 사람이 할 일 — 로컬/운영 각각 `backup-db.ps1 -Target local|prod` 후 `prisma/sql/create-auditor-role.sql`의 `<비밀번호>`를 바꿔 실행 → `.env`(로컬)에 `OPS_AUDIT_DATABASE_URL` 설정 → `npm run report:access-check -- --month=2026-10` 첫 실행. (2) `ops-reports/`는 첫 실행 때 생기며 `.gitignore`로 제외되지만 커밋 전 `git status` 확인할 것. (3) ⑥은 대상 달이 아니라 실행일 기준(수기 §5 ⑥과 동일). (4) 로컬 DB의 10월 ⑤가 26일로 나오는 건 개발 DB에 이용이 없던 날이라 정상 범위 — 운영 첫 실행(11월 첫 주)에 수기 결과와 한 번 대조 권장(00-43 §10.6). (5) 위 "편차" ④⑤는 Opus 판단 필요. (6) **실행기**: `eobomDev/backend/scripts/access-check-launcher.bat`+`.ps1`(저장소에 둠 · 개발자 바탕화면에는 이를 부르는 바로가기 `eobom-access-check.lnk`만. 경로·주소 하드코딩 없음 — backend 경로는 `$PSScriptRoot`, 로컬 호스트·DB 이름은 `.env`의 `DATABASE_URL`에서 읽고 로컬이 아니면 중단; 먼저 `.harness/tools/`에 두었던 사본은 삭제) — 더블클릭 → 로컬/운영 선택 → 비밀번호 항상 입력 → 실행 → 결과지 자동 열기. 비밀번호는 창 안 환경변수로만 쓰고 끝나면 지움. 운영은 호스트·DB 이름만 `.env`의 `BACKUP_DATABASE_URL`에서 읽음. 문법 검사만 했고 실제 더블클릭 실행은 개발자 확인 전.
 
 <!-- Gemini 판정 1줄: ✅통과 / ❌반려(사유) / 🔄스펙갱신(고친 문서) -->
 
