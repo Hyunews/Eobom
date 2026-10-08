@@ -32,6 +32,9 @@ eobomDev/backend/prisma/backups/
 *.dump
 /backups/
 
+# 접속기록 월간 점검 결과지(IP·운영자 이름 포함) — 절대 커밋 금지 (docs 00-43 §10.2)
+ops-reports/
+
 # 파트너가 업로드한 시설 이미지 (로컬 디스크 저장, 사용자 생성 콘텐츠 — 커밋 대상 아님)
 eobomDev/backend/uploads/
 

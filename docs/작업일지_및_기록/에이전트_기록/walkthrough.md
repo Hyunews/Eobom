@@ -16,6 +16,19 @@
 > [`_아카이브_2608`](walkthrough_아카이브_2608.md)(08-31분). 남은 것 = 판정 대기 + 판정 표기 없음. 기준 → `record.md` §2-1.
 
 ---
+## 2026-10-08 | [Sonnet] 접속기록 월간 점검 스크립트(반자동) — `npm run report:access-check`
+
+- **근거 스펙**: docs/00_핵심플랫폼/00-43_접속기록_월간점검_담당자_안내서.md §10 (기준값 정본 = 00-22 부록 1-2)
+- **건드린 파일**: eobomDev/backend/prisma/report-access-check.ts(신규) · eobomDev/backend/prisma/sql/create-auditor-role.sql(신규·실행 안 함) · eobomDev/backend/tests/access-check.test.ts(신규) · eobomDev/backend/package.json(`report:access-check` 추가 · `test`에 access-check.test.ts 추가) · eobomDev/backend/.env.example(`OPS_AUDIT_DATABASE_URL=` 추가) · .gitignore(`ops-reports/` 추가)
+- **결과**: `OPS_AUDIT_DATABASE_URL`만 읽어(없으면 "OPS_AUDIT_DATABASE_URL 값이 없습니다 — 중단합니다." 후 exit 1) `SET TRANSACTION READ ONLY` + `has_table_privilege(current_user,'"User"','SELECT')` 참이면 "점검 전용 계정이 아닙니다"로 거부 → ①~⑧ 조회 → `ops-reports/접속기록점검_YYYY-MM.html` 생성(`--month=YYYY-MM`·`--out=`). 결과지는 외부 글꼴·스크립트 없음, ⑦은 시각·errorName만 조회(message 열을 SELECT하지 않음). 기준값은 파일 맨 위 `LIMITS`(50 · 365/730/90 · 300MB).
+  검증: `node --require ts-node/register/transpile-only --test tests/access-check.test.ts` 10/10 통과 · `npm test` 447건 중 445 통과·0 실패·2 skip · `npx tsc --noEmit --strict --esModuleInterop --skipLibCheck --target es2020 --module commonjs prisma/report-access-check.ts tests/access-check.test.ts` exit 0(프로젝트 tsconfig는 `src/**`만 포함해 prisma/·tests/를 안 본다) · 로컬에서 OPS_AUDIT_DATABASE_URL 미설정 → 거부, 로컬 관리자 주소(DATABASE_URL 값) → "점검 전용 계정이 아닙니다" 거부(둘 다 결과 파일 안 생김) · `git status`에 ops-reports/ 안 잡힘(디렉터리 생성 전이라 `.gitignore` 규칙만 반영, 실제 파일은 아래 "알아야 할 것" 참고).
+  **확인 2건(로컬, 백업 `local-20261008-092542` 후)**: ① ⑧ 표 크기 — 점검 전용 권한(USAGE+기록 3표 SELECT)으로 `pg_stat_user_tables`·`pg_total_relation_size(relid)` 조회 **된다**(3표 모두: AccessLog 1597440B/3727행, AdminAuditLog 204800B/175행, ErrorLog 106496B/41행), `"User"`는 `permission denied`. ② 풀러 사용자명 형식 — **로컬에서는 확인 불가**(Supabase 풀러가 없음). 문서(`systems.md` §4: `postgres.[ref]`)대로 `eobom_auditor.[ref]`일 가능성을 SQL 파일 주석에 남겼고, 운영 첫 연결 때 확인.
+  시험 방식: 역할 생성은 사람 몫이라 영구 생성하지 않고, 임시 스크립트(삭제함)가 롤백되는 트랜잭션 안에서 `CREATE ROLE … SET LOCAL ROLE eobom_auditor`로 전환한 채 `runChecks` 8개 + HTML 생성을 실행 → 2026-10분 ①0 ②0 ③1 ④1 ⑤26일 ⑥정상 ⑦0 ⑧1.8MB, 끝난 뒤 `pg_roles`에 eobom_auditor 0개.
+- **편차**: ① 스펙 `BEGIN READ ONLY` → Prisma 대화형 트랜잭션이 이미 BEGIN을 하므로 첫 문장 `SET TRANSACTION READ ONLY` + `transaction_read_only='on'` 확인으로 구현(같은 효과). ② `pg` 패키지가 없어 새 의존성을 더하지 않고 `PrismaClient({datasources:{db:{url}}})`로 접속(다른 주소로 폴백하지 않음). ③ 10.6 첫 항목 "eobom_auditor 계정으로 실행 → 결과지 생성"은 **계정이 아직 없어 못 함**(사람이 백업 후 SQL 실행해야) — 위 롤백 시험으로 같은 권한의 쿼리·결과지만 확인. ④ 표 10 체크리스트·표 11 메모는 R740 원문을 못 열어(바탕화면에서 못 찾음) 00-43 §4 단계와 §6 칸 구성으로 만들었다 — R740과 문구 맞춤 필요. ⑤ ⑧ "300MB"는 pg_size_pretty와 같은 1MB=1024×1024B로 계산(00-43 §5 ⑧ 문구의 "kB=1/1000MB"와 미세한 차이, 경계 근처에서만 다름).
+- **다음 에이전트가 알아야 할 것**: (1) 사람이 할 일 — 로컬/운영 각각 `backup-db.ps1 -Target local|prod` 후 `prisma/sql/create-auditor-role.sql`의 `<비밀번호>`를 바꿔 실행 → `.env`(로컬)에 `OPS_AUDIT_DATABASE_URL` 설정 → `npm run report:access-check -- --month=2026-10` 첫 실행. (2) `ops-reports/`는 첫 실행 때 생기며 `.gitignore`로 제외되지만 커밋 전 `git status` 확인할 것. (3) ⑥은 대상 달이 아니라 실행일 기준(수기 §5 ⑥과 동일). (4) 로컬 DB의 10월 ⑤가 26일로 나오는 건 개발 DB에 이용이 없던 날이라 정상 범위 — 운영 첫 실행(11월 첫 주)에 수기 결과와 한 번 대조 권장(00-43 §10.6). (5) 위 "편차" ④⑤는 Opus 판단 필요.
+
+<!-- Gemini 판정 1줄: ✅통과 / ❌반려(사유) / 🔄스펙갱신(고친 문서) -->
+
 ## 2026-10-07 | [Sonnet] 유언장 사진 보관 — 삭제 확인창이 본창 뒤에 깔리는 버그 수정
 
 - **근거 스펙**: docs/06_엔딩노트_유언/06-06_유언장_사진인식_요건확인_기획서.md §5-2-4(확인창 문구 — 문구는 그대로)
