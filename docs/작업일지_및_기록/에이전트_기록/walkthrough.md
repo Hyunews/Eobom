@@ -2845,3 +2845,17 @@
   - 커밋은 하지 않음 — 메시지 초안만.
 
 <!-- Gemini 판정 1줄: ✅통과 / ❌반려(사유) / 🔄스펙갱신(고친 문서) -->
+## 2026-10-08 | 전문가 사무실 주소 공개 + 운영자·사업자 화면 세션 만료 처리 등록
+
+- **근거 스펙**: docs 00-04 §5 · 02-03 §4.3 · 10-01 개발자 결정(사무실 주소는 공개) / 00-34 §6 (10-08 4단계 블록)
+- **건드린 파일**: eobomDev/backend/src/controllers/expertPublicController.ts, eobomDev/frontend/src/lib/api.ts, eobomDev/frontend/src/pages/AdminPage.tsx, eobomDev/frontend/src/pages/PartnerPortalPage.tsx
+- **결과**: ① `PUBLIC_EXPERT_SELECT`에 `officeAddress` 추가(공개 목록·상세 응답에 실림). ② `AdminPage`·`PartnerPortalPage`가 마운트 때 기존 `handleLogout`을 `registerSessionExpiredHandler('ADMIN'/'PARTNER')`로 등록, 화면이 사라질 때 해제. `registerSessionExpiredHandler`가 `undefined`를 받아 등록을 지우도록 시그니처 확장. DB 변경 없음. 백엔드·프론트 `tsc --noEmit` 에러 0, `npm test` 437건 중 435 통과·0 실패·2 건너뜀.
+- **편차**: `registerSessionExpiredHandler`에 해제용 `undefined` 허용을 추가했다(스펙 §6은 "화면이 사라질 때 해제"만 요구하고 해제 방법은 정하지 않음). `officeAddress`가 응답에 나오는지 직접 검사하는 테스트는 추가하지 않았다(공개 컨트롤러 시험 파일이 없음).
+- **다음 에이전트가 알아야 할 것**:
+  - 🟡 **전문가 화면의 계정군 = `PARTNER`**: 전문가는 `BizDashboard`(사업자와 같은 `eobom_biz_token`)를 쓰므로 `PARTNER` 등록 하나로 둘 다 덮인다. 별도 계정군 없음.
+  - 🟡 **지금은 효과가 아직 없다**: `AdminPage`·`PartnerPortalPage`·`BizDashboard`는 아직 `apiFetch`가 아니라 직접 `fetch`를 쓰고 각자 401을 처리한다(AdminPage `authFetch`, BizDashboard `onLogout`). 등록은 00-34 §8 마이그레이션(이 화면들을 `apiFetch`로 옮기는 단계)에서 비로소 작동한다. 현재 동작은 그대로다. 00-34 §6 블록의 "운영자·사업자 화면은 오류 문구만 뜬다"는 서술은 이 점에서 재확인이 필요하다(Opus).
+  - 🟡 화면에 `officeAddress`를 보여 주는 UI는 이번 범위가 아니다.
+  - 🟡 실기동(사람): 공개 전문가 API 응답에 `officeAddress`가 있는지 · 운영자/사업자 로그인 화면이 기존대로 뜨고 로그아웃되는지.
+  - 커밋은 하지 않음 — 메시지 초안만.
+
+<!-- Gemini 판정 1줄: ✅통과 / ❌반려(사유) / 🔄스펙갱신(고친 문서) -->
