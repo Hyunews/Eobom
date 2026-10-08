@@ -109,6 +109,7 @@ export const listMyConsultRequests = async (req: Request, res: Response) => {
       select: {
         requestNo: true,
         channel: true,
+        contextType: true,
         categorySnapshot: true,
         status: true,
         content: true,
@@ -121,6 +122,7 @@ export const listMyConsultRequests = async (req: Request, res: Response) => {
     const data = rows.map((r) => ({
       no: r.requestNo,
       channel: r.channel, // ALIMTALK | PHONE | VIDEO | VISIT
+      contextType: r.contextType, // PRE_DEATH | POST_DEATH (02-04 §5)
       expertName: r.expert.name,
       category: r.categorySnapshot, // 신청 시점의 직역 스냅샷
       summary: clip(r.content),

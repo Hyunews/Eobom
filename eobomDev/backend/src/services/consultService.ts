@@ -60,6 +60,10 @@ const buildConsultConsentNotice = (expertName: string): ConsentNotice => ({
   retention: '목적 달성 후 파기 — 일정 기간 경과 후 마스킹 처리(§8)',
 });
 
+// 생전/사후 구분(02-04 §5). 컨트롤러가 이 목록으로 400을 낸다.
+export const CONSULT_CONTEXT_TYPES = ['PRE_DEATH', 'POST_DEATH'] as const;
+export type ConsultContextType = (typeof CONSULT_CONTEXT_TYPES)[number];
+
 interface CreateConsultRequestInput {
   expertId: string;
   userId?: string | null;
@@ -68,6 +72,7 @@ interface CreateConsultRequestInput {
   channel: string;
   preferredAt?: Date | null;
   content: string;
+  contextType?: ConsultContextType; // 02-04 §5 — 없으면 POST_DEATH
   thirdPartyConsent: boolean;
 }
 
@@ -98,6 +103,7 @@ export const createConsultRequest = async (tx: TxClient, input: CreateConsultReq
       channel: input.channel,
       preferredAt: input.preferredAt ?? null,
       content: input.content,
+      contextType: input.contextType ?? 'POST_DEATH',
       thirdPartyConsentAt: now,
       consentSnapshot: buildConsultConsentNotice(expert.name) as unknown as Prisma.InputJsonValue,
       statusHistory: [

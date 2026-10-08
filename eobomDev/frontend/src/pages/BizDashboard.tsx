@@ -4,7 +4,7 @@ import { BACKEND_URL, formatPhoneForDisplay } from '../config';
 
 // 로그인 후 화면 — 장사시설은 "내 시설" + 검색/클레임 신청, 전문가는 내 프로필/승인 상태만 보여준다.
 // 전문가는 Facility 같은 사전 마스터 데이터가 없어 "클레임"이라는 별도 연동 절차가 없다 —
-// 가입 승인 자체가 곧 프로필 공개다(docs 02-02 §4).
+// 승인(status)과 공개(isPublished)는 따로다 — 승인돼도 공개 토글이 켜져야 목록에 나온다(docs 02-03 §4.3).
 
 type AccountType = 'FACILITY' | 'EXPERT';
 
@@ -392,7 +392,7 @@ export const BizDashboard: React.FC<BizDashboardProps> = ({ type, name, onLogout
                     </span>
                   </div>
                   <p style={{ margin: '0.15rem 0', fontSize: '0.85rem' }}>
-                    {r.applicantName} · {formatPhoneForDisplay(r.applicantPhone)} · {r.channel}
+                    {r.applicantName} · {formatPhoneForDisplay(r.applicantPhone)} · {r.channel} · {r.contextType === 'PRE_DEATH' ? '생전 상담' : '사후 상담'}
                   </p>
                   <p style={{ margin: '0.15rem 0', fontSize: '0.85rem', color: 'var(--text-muted)' }}>{r.content}</p>
                   {r.status === 'REQUESTED' && (

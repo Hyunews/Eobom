@@ -48,10 +48,16 @@ export async function purgeGuestbookDeletedExpired(now = new Date()): Promise<nu
 }
 
 // ─ DB 원본 마스킹(00-19 제4조·제8조 "끝난 날부터 90일이 지나면 … 원본도 마스킹") ─
-// 대상: 업체 문의 Lead(RESPONDED·CONVERTED·LOST) · 상담 신청 ConsultRequest(COMPLETED·CANCELLED·INVALID) 중 maskedAt이 비어 있는 것.
+// 대상: 업체 문의 Lead(RESPONDED·CONVERTED·LOST·INVALID) · 상담 신청 ConsultRequest(COMPLETED·CANCELLED·INVALID)가 끝난 지 90일,
+// 그리고 끝나지 않은 건(Lead REQUESTED·NOTIFIED · ConsultRequest REQUESTED·ACCEPTED)은 접수일부터 90일 — 중 maskedAt이 비어 있는 것.
 // 이름·연락처를 가린 값으로, 문의 내용(payload)·상담 내용(content)을 비운 값으로 덮어쓰고 maskedAt을 찍는다. 접수번호·일시·대상·금액(거래 근거)은 건드리지 않는다.
-export const LEAD_ENDED_STATUSES = ['RESPONDED', 'CONVERTED', 'LOST'] as const;
+// 🔄 2026-10-08 개발자 결정(02-03 §8 ② · 01-05 §7.3) — 끝나지 않은 건(Lead REQUESTED·NOTIFIED / ConsultRequest REQUESTED·ACCEPTED)도
+// 접수일(createdAt)부터 90일이 지나면 같은 방법으로 마스킹한다. 상태는 바꾸지 않는다(수수료 근거인 상태 이력 유지).
+// Lead INVALID는 운영자가 허수·중복으로 확정한 최종 상태(되돌리는 전이 없음, 01-05 §4.3)이고 회원 화면도 종료로 본다(meActivityController) → 끝난 상태에 넣었다(누락이었음).
+export const LEAD_ENDED_STATUSES = ['RESPONDED', 'CONVERTED', 'LOST', 'INVALID'] as const;
+export const LEAD_UNFINISHED_STATUSES = ['REQUESTED', 'NOTIFIED'] as const;
 export const CONSULT_ENDED_STATUSES = ['COMPLETED', 'CANCELLED', 'INVALID'] as const;
+export const CONSULT_UNFINISHED_STATUSES = ['REQUESTED', 'ACCEPTED'] as const;
 
 // 이름 마스킹 — 홍길동 → 홍*동, 이순 → 이*, 한 글자는 *. (leadController의 표시용 maskName과 같은 규칙이되 한 글자도 가린다.)
 export const maskApplicantName = (name: string): string => {
@@ -88,23 +94,29 @@ export type MaskTarget = { id: string; applicantName: string | null; applicantPh
 
 const maskCutoff = (now: Date) => new Date(now.getTime() - POLICY.retention.contactMaskAfterEndDays * DAY_MS);
 
+// MaskTarget.endedAt = 90일을 세는 기준 시각 — 끝난 건은 "끝난 시각", 끝나지 않은 건은 접수일(createdAt).
+const maskBaseAt = (
+  row: { status: string; statusHistory: Prisma.JsonValue; updatedAt: Date; createdAt: Date },
+  unfinished: readonly string[],
+): Date => (unfinished.includes(row.status) ? row.createdAt : getEndedAt(row));
+
 export async function findLeadMaskTargets(now = new Date()): Promise<MaskTarget[]> {
   const rows = await prisma.lead.findMany({
-    where: { status: { in: [...LEAD_ENDED_STATUSES] }, maskedAt: null },
-    select: { id: true, status: true, statusHistory: true, updatedAt: true, applicantName: true, applicantPhone: true },
+    where: { status: { in: [...LEAD_ENDED_STATUSES, ...LEAD_UNFINISHED_STATUSES] }, maskedAt: null },
+    select: { id: true, status: true, statusHistory: true, updatedAt: true, createdAt: true, applicantName: true, applicantPhone: true },
   });
   return rows
-    .map((r) => ({ id: r.id, applicantName: r.applicantName, applicantPhone: r.applicantPhone, endedAt: getEndedAt(r) }))
+    .map((r) => ({ id: r.id, applicantName: r.applicantName, applicantPhone: r.applicantPhone, endedAt: maskBaseAt(r, LEAD_UNFINISHED_STATUSES) }))
     .filter((r) => r.endedAt.getTime() <= maskCutoff(now).getTime());
 }
 
 export async function findConsultMaskTargets(now = new Date()): Promise<MaskTarget[]> {
   const rows = await prisma.consultRequest.findMany({
-    where: { status: { in: [...CONSULT_ENDED_STATUSES] }, maskedAt: null },
-    select: { id: true, status: true, statusHistory: true, updatedAt: true, applicantName: true, applicantPhone: true },
+    where: { status: { in: [...CONSULT_ENDED_STATUSES, ...CONSULT_UNFINISHED_STATUSES] }, maskedAt: null },
+    select: { id: true, status: true, statusHistory: true, updatedAt: true, createdAt: true, applicantName: true, applicantPhone: true },
   });
   return rows
-    .map((r) => ({ id: r.id, applicantName: r.applicantName, applicantPhone: r.applicantPhone, endedAt: getEndedAt(r) }))
+    .map((r) => ({ id: r.id, applicantName: r.applicantName, applicantPhone: r.applicantPhone, endedAt: maskBaseAt(r, CONSULT_UNFINISHED_STATUSES) }))
     .filter((r) => r.endedAt.getTime() <= maskCutoff(now).getTime());
 }
 

@@ -256,6 +256,9 @@ describe('⑩ 원본 마스킹 — 이름·연락처·내용', () => {
     const fresh = await mkLead('fresh', { status: 'LOST', statusHistory: [{ status: 'LOST', at: ago(10).toISOString(), by: 'admin' }] });
     const open = await mkLead('open', { status: 'REQUESTED', statusHistory: [{ status: 'REQUESTED', at: ago(200).toISOString(), by: 'user' }] });
     const done = await mkLead('done', { status: 'LOST', maskedAt: ago(5), statusHistory: [{ status: 'LOST', at: ago(200).toISOString(), by: 'admin' }] });
+    // 10-08 — 끝나지 않은 건은 접수일(createdAt) 기준 90일, 상태는 그대로. Lead INVALID는 끝난 상태.
+    const openOld = await mkLead('openold', { status: 'NOTIFIED', createdAt: ago(95), statusHistory: [{ status: 'NOTIFIED', at: ago(94).toISOString(), by: 'system' }] });
+    const invalidOld = await mkLead('invold', { status: 'INVALID', statusHistory: [{ status: 'INVALID', at: ago(100).toISOString(), by: 'admin' }] });
 
     const expert = await prisma.expert.create({
       data: { email: `life-expert-${Date.now()}@example.test`, passwordHash: 'x', category: 'LAWYER', name: '시험전문가', licenseNo: `L-${Date.now()}`, contactPhone: '01000000000' },
@@ -270,12 +273,18 @@ describe('⑩ 원본 마스킹 — 이름·연락처·내용', () => {
     };
     const cOld = await mkConsult('old', { status: 'COMPLETED', statusHistory: [{ status: 'COMPLETED', at: ago(91).toISOString(), by: 'expert' }] });
     const cFresh = await mkConsult('fresh', { status: 'CANCELLED', statusHistory: [{ status: 'CANCELLED', at: ago(3).toISOString(), by: 'user' }] });
+    const cOpenOld = await mkConsult('openold', { status: 'ACCEPTED', createdAt: ago(95), statusHistory: [{ status: 'ACCEPTED', at: ago(10).toISOString(), by: 'expert' }] });
+    const cOpenNew = await mkConsult('opennew', { status: 'REQUESTED', statusHistory: [{ status: 'REQUESTED', at: ago(1).toISOString(), by: 'user' }] });
 
     const leadTargets = (await findLeadMaskTargets()).map((t) => t.id);
     assert.ok(leadTargets.includes(old.id));
+    assert.ok(leadTargets.includes(openOld.id), '끝나지 않아도 접수 90일 지난 문의는 대상');
+    assert.ok(leadTargets.includes(invalidOld.id), 'INVALID는 끝난 상태');
     for (const l of [fresh, open, done]) assert.ok(!leadTargets.includes(l.id));
     const consultTargets = (await findConsultMaskTargets()).map((t) => t.id);
     assert.ok(consultTargets.includes(cOld.id) && !consultTargets.includes(cFresh.id));
+    assert.ok(consultTargets.includes(cOpenOld.id), '끝나지 않아도 접수 90일 지난 상담은 대상');
+    assert.ok(!consultTargets.includes(cOpenNew.id));
 
     await maskLeads((await findLeadMaskTargets()).filter((t) => leadIds.includes(t.id)));
     await maskConsultRequests((await findConsultMaskTargets()).filter((t) => consultIds.includes(t.id)));
@@ -298,6 +307,13 @@ describe('⑩ 원본 마스킹 — 이름·연락처·내용', () => {
     assert.equal(consult.requestNo, cOld.requestNo);
     const cFreshAfter = await prisma.consultRequest.findUniqueOrThrow({ where: { id: cFresh.id } });
     assert.equal(cFreshAfter.content, '상속 빚 문의');
+    // 끝나지 않은 건: 마스킹만 하고 상태는 안 바꾼다
+    const cOpenOldAfter = await prisma.consultRequest.findUniqueOrThrow({ where: { id: cOpenOld.id } });
+    assert.equal(cOpenOldAfter.content, MASKED_CONTENT_TEXT);
+    assert.equal(cOpenOldAfter.status, 'ACCEPTED');
+    const openOldAfter = await prisma.lead.findUniqueOrThrow({ where: { id: openOld.id } });
+    assert.equal(openOldAfter.applicantName, '홍*동');
+    assert.equal(openOldAfter.status, 'NOTIFIED');
 
     // 한 번 처리한 건은 다시 대상이 되지 않는다(멱등)
     assert.ok(!(await findLeadMaskTargets()).some((t) => t.id === old.id));

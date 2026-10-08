@@ -22,7 +22,8 @@
 //      🔴 ⑤는 동결 추모관에 한해 "재확인 통지 SENT + 30일 경과"를 요구한다 — 통지 실패 기록이 있거나 안 보냈으면 건너뛰고 동결을 유지한다(§5.2-1).
 //   ⑧ SocialAccount.unlinkedAt + 1년 경과 → 행 삭제(00-19 제4조).
 //   ⑨ MemorialGuestbook 삭제 표시(deletedByOwnerAt·deletedByAuthorAt) + 3개월 경과 → 행 삭제. 🔴 운영자가 내린 hiddenAt 글은 제외(00-19 제4조·00-20 §6.2).
-//   ⑩ DB 원본 마스킹(00-19 제4조·제8조, 00-20 §8.1-5) — Lead(RESPONDED·CONVERTED·LOST)·ConsultRequest(COMPLETED·CANCELLED·INVALID)가 끝난 지 90일 지난 건의
+//   ⑩ DB 원본 마스킹(00-19 제4조·제8조, 00-20 §8.1-5) — Lead(RESPONDED·CONVERTED·LOST·INVALID)·ConsultRequest(COMPLETED·CANCELLED·INVALID)가 끝난 지 90일,
+//      끝나지 않은 건(Lead REQUESTED·NOTIFIED·ConsultRequest REQUESTED·ACCEPTED)은 접수일부터 90일 지난 건의(2026-10-08 추가, 상태는 안 바꿈)
 //      이름·연락처를 가린 값으로, Lead.payload는 {}로·ConsultRequest.content는 "(보관 기간이 지나 삭제됨)"으로 덮어쓰고 maskedAt 기록. 접수번호·일시·대상·금액은 유지. "끝난 시각" = statusHistory의 현재 상태 마지막 기록(없으면 updatedAt).
 //   ⑪ HeavyJobLog(사진 인식·음성 변환 처리 결과 건별 기록, 06-04 §6.4-11-10-1) createdAt + 1년 경과 → 삭제. 개인정보 없는 집계용 기록. 조회는 `npm run report:heavy`.
 //   ⑤·⑦~⑪은 --confirm으로 실행한 단계마다 건수를 PurgeRunLog에 남긴다(보관기간 숫자는 config/policy.ts retention).
@@ -314,7 +315,7 @@ async function main(): Promise<void> {
   const leadTargets = await findLeadMaskTargets();
   const consultTargets = await findConsultMaskTargets();
   console.log(
-    `[⑩DB 원본 마스킹] 대상 업체 문의 ${leadTargets.length}건 · 상담 신청 ${consultTargets.length}건 (끝난 지 ${POLICY.retention.contactMaskAfterEndDays}일 경과 · maskedAt 없음)`,
+    `[⑩DB 원본 마스킹] 대상 업체 문의 ${leadTargets.length}건 · 상담 신청 ${consultTargets.length}건 (끝난 지 — 끝나지 않은 건은 접수 후 — ${POLICY.retention.contactMaskAfterEndDays}일 경과 · maskedAt 없음)`,
   );
   if (confirmed) {
     const leadDone = await maskLeads(leadTargets);

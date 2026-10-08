@@ -27,7 +27,7 @@ const markSituationModalSeen = () => {
 
 // 00-39 §9.1 — 그룹①(목록·체크리스트) 대표 care-guide에서 뽑은 클래스를 시안 없이 그대로 적용.
 // 전문가 카드(테두리·배경 있는 박스)는 규칙1(카드·그림자 금지)에 따라 행 목록으로 바꾸고,
-// licenseOrg·specialties·bio는 §6-8·9(체크/안내 분리)와 같은 원리로 행 클릭 → 모달로 옮겼다.
+// licenseOrg·specialties·officeAddress·bio는 §6-8·9(체크/안내 분리)와 같은 원리로 행 클릭 → 모달로 옮겼다.
 
 interface CounselingPageProps {
   currentUser?: string | null;
@@ -52,6 +52,7 @@ interface PublicExpert {
   licenseOrg: string | null;
   bio: string | null;
   specialties: string[];
+  officeAddress: string | null; // 02-03 §4.3 — 공개 필드(의뢰인이 방문하려면 알아야 하는 정보)
   createdAt: string;
 }
 
@@ -66,7 +67,7 @@ export const CounselingPage: React.FC<CounselingPageProps> = ({ currentUser, onO
 
   // 상담 신청 모달 상태
   const [consultTarget, setConsultTarget] = useState<PublicExpert | null>(null);
-  // 전문가 상세 보기 모달 상태(행 클릭) — licenseOrg·specialties·bio는 여기서만 본다
+  // 전문가 상세 보기 모달 상태(행 클릭) — licenseOrg·specialties·officeAddress·bio는 여기서만 본다
   const [detailTarget, setDetailTarget] = useState<PublicExpert | null>(null);
   // 상속세 시뮬레이터 모달 상태 — 원래 본문에 있었으나 포션이 커서 버튼으로 여는 모달로 분리(2026-08-11)
   const [isSimulatorOpen, setIsSimulatorOpen] = useState(false);
@@ -266,6 +267,13 @@ export const CounselingPage: React.FC<CounselingPageProps> = ({ currentUser, onO
               </div>
             )}
 
+            {detailTarget.officeAddress && (
+              <div className="v2-modal-row">
+                <span className="v2-modal-label">사무실</span>
+                <span className="v2-modal-value">{detailTarget.officeAddress}</span>
+              </div>
+            )}
+
             {detailTarget.bio && (
               <div className="v2-modal-row">
                 <span className="v2-modal-label">소개</span>
@@ -298,8 +306,7 @@ export const CounselingPage: React.FC<CounselingPageProps> = ({ currentUser, onO
         <ConsultRequestModal
           expertId={consultTarget.id}
           expertName={consultTarget.name}
-          onClose={() => setConsultTarget(null)}
-        />
+          onClose={() => setConsultTarget(null)}        />
       )}
 
       {/* 상속세 간이 시뮬레이터 모달 */}

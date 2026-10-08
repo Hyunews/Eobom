@@ -412,6 +412,7 @@ model ConsultRequest {
   channel     String // ALIMTALK | PHONE | VIDEO | VISIT — 희망 상담 방식
   preferredAt DateTime? // 희망 상담 일시 (선택)
   content     String // 상담 희망 내용
+  contextType String @default("POST_DEATH") // PRE_DEATH(생전) | POST_DEATH(사후) — 02-04 §5. 원본 마스킹(§8 ②)은 이 칸을 건드리지 않는다
 
   thirdPartyConsentAt DateTime? // 개인정보 제3자 제공 동의 시각 — 없으면 접수 거부(§5.2)
   consentSnapshot     Json? // 동의 시점의 고지 문구 버전 — 분쟁 대비

@@ -22,9 +22,11 @@ interface ConsultRequestModalProps {
   expertId: string;
   expertName: string;
   onClose: () => void;
+  // 02-04 §5 — 생전/사후 구분. 고르는 칸은 없고 호출하는 쪽이 넘긴다(기본 POST_DEATH).
+  contextType?: 'PRE_DEATH' | 'POST_DEATH';
 }
 
-export const ConsultRequestModal: React.FC<ConsultRequestModalProps> = ({ expertId, expertName, onClose }) => {
+export const ConsultRequestModal: React.FC<ConsultRequestModalProps> = ({ expertId, expertName, onClose, contextType = 'POST_DEATH' }) => {
   const [applicantName, setApplicantName] = useState('');
   const [applicantPhone, setApplicantPhone] = useState('');
   const [channel, setChannel] = useState(CHANNEL_OPTIONS[0].value);
@@ -56,6 +58,7 @@ export const ConsultRequestModal: React.FC<ConsultRequestModalProps> = ({ expert
           channel,
           preferredAt: preferredAt || undefined,
           content,
+          contextType,
           thirdPartyConsent,
         }),
       });

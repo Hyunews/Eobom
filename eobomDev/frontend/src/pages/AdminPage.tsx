@@ -1580,7 +1580,7 @@ export const AdminPage: React.FC = () => {
                 <div>
                   <strong style={{ color: 'var(--primary-color)', fontSize: '1rem' }}>{c.applicantName || '(비회원)'}</strong>
                   <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginLeft: '0.6rem' }}>
-                    {formatPhoneForDisplay(c.applicantPhone)} · {c.channel} · 전문가 {c.expert?.name}({c.expert?.category})
+                    {formatPhoneForDisplay(c.applicantPhone)} · {c.channel} · {c.contextType === 'PRE_DEATH' ? '생전 상담' : '사후 상담'} · 전문가 {c.expert?.name}({c.expert?.category})
                   </span>
                   <span style={{ fontSize: '0.78rem', backgroundColor: 'var(--secondary-color)', padding: '0.1rem 0.4rem', borderRadius: 'var(--r-sm)', marginLeft: '0.5rem' }}>{c.status}</span>
                 </div>

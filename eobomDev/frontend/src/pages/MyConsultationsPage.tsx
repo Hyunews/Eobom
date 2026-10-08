@@ -36,6 +36,7 @@ interface LeadRow {
 interface ConsultRow {
   no: string;
   channel: string;
+  contextType?: 'PRE_DEATH' | 'POST_DEATH'; // 02-04 §5 — 생전일 때만 화면에 표시
   expertName: string;
   category: string;
   summary: string;
@@ -117,7 +118,7 @@ export const MyConsultationsPage: React.FC<MyConsultationsPageProps> = ({ curren
               key: `C-${r.no}`,
               no: r.no,
               title: `${r.expertName} ${CATEGORY_LABEL[r.category] ?? r.category}`,
-              how: CHANNEL_LABEL[r.channel] ?? r.channel,
+              how: `${r.contextType === 'PRE_DEATH' ? '생전 상담 · ' : ''}${CHANNEL_LABEL[r.channel] ?? r.channel}`,
               summary: r.summary,
               statusGroup: r.statusGroup,
               consentAt: r.thirdPartyConsentAt,

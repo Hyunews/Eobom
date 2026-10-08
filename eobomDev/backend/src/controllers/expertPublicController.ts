@@ -3,7 +3,7 @@ import { Prisma } from '@prisma/client';
 import prisma from '../config/prisma';
 import { verifyBearerToken } from './authController';
 import { isValidCategory } from './expertController';
-import { createConsultRequest, ConsentRequiredError, ExpertNotAvailableError } from '../services/consultService';
+import { createConsultRequest, ConsentRequiredError, ExpertNotAvailableError, CONSULT_CONTEXT_TYPES, ConsultContextType } from '../services/consultService';
 import { resolveApplicantContact, ProfileContactMissingError } from '../utils/applicantContact';
 import { normalizePhone } from '../utils/phone';
 
@@ -109,12 +109,13 @@ const safeConsultRequest = (r: { requestNo: string; status: string; createdAt: D
 // 00-28 §6.4 Phase 2 — useProfileContact·saveToProfile 플래그. createQuote와 완전히 같은 규칙
 // (⚠️ 두 폼의 동작을 다르게 두지 말 것 — §6.4-1). 업체 문의 createQuote도 10-06부터 로그인 필수.
 export const submitConsultRequest = async (req: Request, res: Response) => {
-  const { applicantName, applicantPhone, channel, preferredAt, content, thirdPartyConsent, useProfileContact, saveToProfile } = req.body as {
+  const { applicantName, applicantPhone, channel, preferredAt, content, contextType, thirdPartyConsent, useProfileContact, saveToProfile } = req.body as {
     applicantName?: string;
     applicantPhone?: string;
     channel?: string;
     preferredAt?: string;
     content?: string;
+    contextType?: unknown;
     thirdPartyConsent?: boolean;
     useProfileContact?: boolean;
     saveToProfile?: boolean;
@@ -131,6 +132,10 @@ export const submitConsultRequest = async (req: Request, res: Response) => {
   }
   if (!channel?.trim() || !content?.trim()) {
     return res.status(400).json({ status: 'error', message: '희망 상담 방식과 상담 내용은 필수입니다.' });
+  }
+  // 02-04 §5 — 선택값. 없으면 POST_DEATH, 두 값 밖이면 400.
+  if (contextType !== undefined && contextType !== null && !CONSULT_CONTEXT_TYPES.includes(contextType as ConsultContextType)) {
+    return res.status(400).json({ status: 'error', message: '상담 구분 값이 올바르지 않습니다.' });
   }
   if (!thirdPartyConsent) {
     return res.status(400).json({ status: 'error', message: '개인정보 제3자 제공에 동의해야 상담을 신청할 수 있습니다.' });
@@ -153,6 +158,7 @@ export const submitConsultRequest = async (req: Request, res: Response) => {
         channel: channel.trim(),
         preferredAt: preferredAt ? new Date(preferredAt) : null,
         content: content.trim(),
+        contextType: (contextType as ConsultContextType | undefined | null) ?? undefined,
         thirdPartyConsent: true,
       });
 

@@ -227,6 +227,7 @@ export const listConsultRequestsForAdmin = async (req: Request, res: Response) =
         applicantPhone: true,
         maskedAt: true,
         channel: true,
+        contextType: true,
         preferredAt: true,
         content: true,
         thirdPartyConsentAt: true,

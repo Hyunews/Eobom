@@ -2939,3 +2939,26 @@
   - 07-02 §5.4-1 박스 도해와 달리 데스크톱 Footer는 `이메일` 줄이 번호와 설명 문구 사이에 있음.
 
 <!-- Gemini 판정 1줄: ✅통과 / ❌반려(사유) / 🔄스펙갱신(고친 문서) -->
+
+## 2026-10-08 | 업무판 대기 3건 — 상담 생전/사후 구분 칸 · 전문가 상세 모달 사무실 주소 · 끝나지 않은 상담·문의 90일 마스킹
+
+- **근거 스펙**: docs/02_전문가_매칭/02-04 §5 · 02-03 §4.1·§8 ② · docs/01_장사시설_매칭/01-05 §7.3 (10-08 개발자 결정)
+- **건드린 파일**: eobomDev/backend/prisma/schema.prisma, eobomDev/backend/prisma/migrations/20261008075821_add_consult_context_type/migration.sql(신규), eobomDev/backend/src/services/consultService.ts, eobomDev/backend/src/controllers/expertPublicController.ts, eobomDev/backend/src/controllers/moderationController.ts, eobomDev/backend/src/controllers/meActivityController.ts, eobomDev/backend/src/services/retentionPurgeService.ts, eobomDev/backend/prisma/destroy-farewell-media.ts(주석·로그 문구만), eobomDev/backend/tests/memorial-lifecycle-db.test.ts, eobomDev/frontend/src/components/expert/ConsultRequestModal.tsx, eobomDev/frontend/src/pages/BizDashboard.tsx, eobomDev/frontend/src/pages/AdminPage.tsx, eobomDev/frontend/src/pages/MyConsultationsPage.tsx, eobomDev/frontend/src/pages/CounselingPage.tsx
+- **결과**:
+  - ① `ConsultRequest.contextType String @default("POST_DEATH")` 추가(마이그레이션 SQL = `ALTER TABLE "ConsultRequest" ADD COLUMN "contextType" TEXT NOT NULL DEFAULT 'POST_DEATH'` 한 줄). `POST /api/experts/:id/consult-requests`가 `contextType` 선택값을 받고 `PRE_DEATH`·`POST_DEATH` 밖이면 400("상담 구분 값이 올바르지 않습니다."), 없으면 `POST_DEATH`. `ConsultRequestModal` prop `contextType`(기본 `POST_DEATH`, 고르는 칸 없음, 본문에 실어 보냄; `CounselingPage`는 안 넘김). 표시: BizDashboard 신청 목록·AdminPage 전체 상담 조회에 "생전 상담"/"사후 상담", 내 상담 내역은 `PRE_DEATH`일 때만 "생전 상담 · "(응답 `contextType` 포함: `meActivityController`·`moderationController` select). 전문가 응답 직렬화(`serializeConsultRequestForExpert`)는 행 전체를 펼치는 방식이라 코드 변경 없이 포함. 마스킹(`maskConsultRequests`)은 이 칸을 안 건드림.
+  - ② `CounselingPage` 상세 모달에 `사무실` 행(`officeAddress`, 있을 때만) 추가 + `PublicExpert.officeAddress` 타입. `BizDashboard.tsx` 머리 주석 `"가입 승인 자체가 곧 프로필 공개다(docs 02-02 §4)."` → `"승인(status)과 공개(isPublished)는 따로다 — …(docs 02-03 §4.3)."`
+  - ③ `retentionPurgeService`: `LEAD_UNFINISHED_STATUSES=['REQUESTED','NOTIFIED']`, `CONSULT_UNFINISHED_STATUSES=['REQUESTED','ACCEPTED']` 추가, `findLeadMaskTargets`·`findConsultMaskTargets`가 끝나지 않은 건은 `createdAt` 기준 90일(끝난 건은 기존대로 `getEndedAt`). 상태 불변, 마스킹 방법 동일. `LEAD_ENDED_STATUSES`에 `INVALID` 추가(`['RESPONDED','CONVERTED','LOST','INVALID']`) — 스키마 주석·01-05 §4.3(운영자만 확정하는 최종 상태, 되돌리는 전이 없음)·`meActivityController`(INVALID→CLOSED)를 근거로 누락으로 판단.
+  - 검증: `npx tsc --noEmit`(backend) exit 0, `npm run build`(frontend) 통과, `node --require ts-node/register/transpile-only --test tests/retention-purge.test.ts tests/memorial-lifecycle-db.test.ts tests/auth-boundary.test.ts` 201 pass / 0 fail(⑩ 시험에 끝나지 않은 오래된 문의·상담·Lead INVALID 케이스 추가). 마스킹 대상 건수(읽기 전용 조회, 로컬 DB 5433): 업체 문의 0건·상담 신청 0건. 확정 실행(파기 배치의 확정 옵션)은 하지 않음.
+- **DB 작업**: 로컬 DB 마이그레이션 전 `backup-db.ps1 -Target local` → `eobomDev/backend/backups/local-20261008-165806.dump`(531,876바이트, 파일 존재 확인) → 개발자 확인 후 `npx prisma migrate dev --name add_consult_context_type`(로컬만). 시험용 `_test` DB에도 `npm run test:db:migrate`로 같은 마이그레이션 반영(폐기용 DB, 백업 없음). 운영 DB는 건드리지 않음.
+- **편차**:
+  - `prisma migrate dev` 끝의 `prisma generate`가 `query_engine-windows.dll.node` rename EPERM(실행 중인 백엔드 dev 서버가 DLL 점유)으로 실패 — 타입 정의(`index.d.ts`)는 갱신돼 tsc 통과, 엔진 바이너리는 동일. 실행 중 dev 서버는 재시작 전까지 `contextType`을 모르는 클라이언트를 쓴다.
+  - 업무판 b29 메모의 "백업 local+prod"는 로컬만 했다(운영 반영은 `migrate-prod.ps1` 때 그 스크립트가 운영 백업을 먼저 뜸).
+  - 내 상담 내역의 생전 표시는 "생전 상담 · 전화" 식으로 방식 앞에 붙임(스펙은 "글자 표시"만 명시).
+  - `POST` 400 검증(두 값 밖)은 자동 시험을 만들지 않았다 — 수동 확인 필요.
+- **다음 에이전트가 알아야 할 것**:
+  - 🔴 운영 반영: 추가형 마이그레이션 → `migrate-prod.ps1` 먼저, 그다음 push(db-safety.md §2-1). 운영에서 마스킹을 확정 실행하면 접수 90일 지난 끝나지 않은 건과 Lead INVALID가 새로 대상에 들어온다 — 실행 전 dry-run 건수 확인.
+  - 00-19 보관 기간 표·`02-03` §8 ②·`01-05` §7.3의 "🔴 미구현" 표기는 Opus가 "✅ 구현"으로 갱신할 것.
+  - 개발 서버 재시작 후 상담 신청 한 건으로 `contextType` 저장 확인 필요(개발자 몫).
+
+<!-- Gemini 판정 1줄: ✅통과 / ❌반려(사유) / 🔄스펙갱신(고친 문서) -->
+
