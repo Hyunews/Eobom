@@ -25,7 +25,7 @@
 
 - 🔴 **커밋은 사람이 한다**(08-27). 에이전트는 `git commit`을 돌리지 않고 **메시지 초안만 내고 멈춘다**
   (`AGENTS.md` §1 CONFIRM·`roles.md` §4가 원래 그랬는데 핸드오프 문구가 덮고 있었다).
-  브랜치는 **main 직접**.
+  브랜치는 **main 직접**. 예외(10-08): **클라우드 세션은 자기 작업 브랜치(`docs/domain-XX`)에만** 커밋·푸시한다 — main 병합은 사람(squash).
 - **한국어로만** 답한다.
 - `reports/`는 읽기 전용 — 고칠 게 보이면 `context.md`에 `[Gemini]` 요청으로 남긴다.
 - 🔴 **DB에 쓰기 전 백업** — `powershell -File .harness/tools/backup-db.ps1 -Target local|prod`
