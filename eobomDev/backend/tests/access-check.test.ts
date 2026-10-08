@@ -2,7 +2,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  LIMITS, judgeCount, judgeNewIp, judgeGaps, judgeRetention, judgeMasking, judgeSize, monthRange, previousMonthKst, renderHtml,
+  LIMITS, judgeCount, judgeNewIp, judgeGaps, judgeRetention, judgeMasking, judgeSize, monthRange, previousMonthKst, renderHtml, isMonthFinished, chunkDates,
 } from '../prisma/report-access-check';
 
 test('①②③ 0건은 이상 없음, 1건 이상은 확인 필요(판정은 담당자)', () => {
@@ -70,6 +70,25 @@ test('지난달은 한국 시간 기준 — UTC 로는 아직 전달이어도 �
   // 2026-11-01 00:30 KST = 2026-10-31 15:30 UTC → 한국은 11월이니 지난달 = 10월
   assert.equal(previousMonthKst(new Date('2026-10-31T15:30:00Z')), '2026-10');
   assert.equal(previousMonthKst(new Date('2027-01-05T00:00:00Z')), '2026-12');
+});
+
+test('끝나지 않은 달은 점검 불가 — 이번 달·미래 거부, 달이 바뀐 직후(한국)부터 허용', () => {
+  const oct8 = new Date('2026-10-08T01:00:00Z');
+  assert.equal(isMonthFinished('2026-10', oct8), false);
+  assert.equal(isMonthFinished('2026-11', oct8), false);
+  assert.equal(isMonthFinished('2026-09', oct8), true);
+  // 2026-10-31 15:00 UTC = 11-01 00:00 KST → 10월 끝남
+  assert.equal(isMonthFinished('2026-10', new Date('2026-10-31T14:59:59Z')), false);
+  assert.equal(isMonthFinished('2026-10', new Date('2026-10-31T15:00:00Z')), true);
+  assert.equal(isMonthFinished('2026-13', oct8), false);
+});
+
+test('⑤ 날짜 목록은 한 줄에 여러 개로 묶는다', () => {
+  const days = Array.from({ length: 13 }, (_, i) => `2026-10-${String(i + 1).padStart(2, '0')}`);
+  const rows = chunkDates(days);
+  assert.equal(rows.length, 3);
+  assert.equal(rows[0][0], '2026-10-01 · 2026-10-02 · 2026-10-03 · 2026-10-04 · 2026-10-05 · 2026-10-06');
+  assert.deepEqual(chunkDates([]), []);
 });
 
 test('결과지 — 메모·서명란이 있고 외부 자원이 없으며 이스케이프된다', () => {

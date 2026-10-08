@@ -131,6 +131,21 @@ export function monthRange(ym: string): { ym: string; start: string; end: string
   };
 }
 
+/** 아직 끝나지 않은 달(이번 달·미래)이면 false — 끝나기 전에 점검하면 남은 날이 전부 "기록 끊김"으로 나온다 */
+export function isMonthFinished(ym: string, now: Date = new Date()): boolean {
+  const r = monthRange(ym);
+  if (!r) return false;
+  const kstNow = new Date(now.getTime() + 9 * 60 * 60 * 1000).toISOString().slice(0, 19).replace('T', ' ');
+  return r.end <= kstNow;
+}
+
+/** 날짜 목록을 한 줄에 perRow개씩 묶는다(결과지가 길어지지 않게) */
+export function chunkDates(days: string[], perRow = 6): string[][] {
+  const rows: string[][] = [];
+  for (let i = 0; i < days.length; i += perRow) rows.push([days.slice(i, i + perRow).join(' · ')]);
+  return rows;
+}
+
 /** 한국 시간 기준 "지난달" */
 export function previousMonthKst(now: Date = new Date()): string {
   const k = new Date(now.getTime() + 9 * 60 * 60 * 1000);
@@ -212,7 +227,7 @@ export async function runChecks(tx: Tx, range: { start: string; end: string; las
   items.push({
     no: '⑤', title: '기록이 끊긴 날 (접속기록 0건)', ...judgeGaps(r5.length),
     columns: ['날짜'],
-    rows: r5.map((r) => [fmtDay(r.day)]),
+    rows: chunkDates(r5.map((r) => fmtDay(r.day))),
   });
 
   // ⑥ 오래된 기록이 제때 지워지는지 — 대상 달과 무관하게 지금 기준(수기 §5 ⑥ 과 같다)
@@ -390,6 +405,9 @@ async function main(): Promise<void> {
   const ym = argEq('month') ?? previousMonthKst();
   const range = monthRange(ym);
   if (!range) return fail('--month 는 YYYY-MM 형식 (예: --month=2026-10)');
+  if (!isMonthFinished(range.ym)) {
+    return fail(`${range.ym} 은(는) 아직 끝나지 않은 달입니다 — 끝난 달만 점검할 수 있습니다(지난달 ${previousMonthKst()}).`);
+  }
 
   // 🔴 비밀번호·계정은 찍지 않는다 — 호스트와 DB 이름만.
   const m = url.match(/@([^/?]+)\/([^?]*)/);
