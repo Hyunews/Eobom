@@ -146,6 +146,17 @@ export function chunkDates(days: string[], perRow = 6): string[][] {
   return rows;
 }
 
+/** 같은 이름의 파일이 있으면 덮어쓰지 않고 "이름(1).html", "이름(2).html" … 로 비어 있는 첫 번호를 쓴다 */
+export function uniquePath(p: string, exists: (x: string) => boolean = fs.existsSync): string {
+  if (!exists(p)) return p;
+  const ext = path.extname(p);
+  const base = p.slice(0, p.length - ext.length);
+  for (let i = 1; ; i++) {
+    const cand = `${base}(${i})${ext}`;
+    if (!exists(cand)) return cand;
+  }
+}
+
 /** 한국 시간 기준 "지난달" */
 export function previousMonthKst(now: Date = new Date()): string {
   const k = new Date(now.getTime() + 9 * 60 * 60 * 1000);
@@ -278,8 +289,6 @@ export async function runChecks(tx: Tx, range: { start: string; end: string; las
 
 const esc = (s: string): string =>
   s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-
-const VERDICT_TEXT: Record<Verdict, string> = { ok: '이상 없음', check: '확인 필요', issue: '이상 있음' };
 
 export function renderHtml(range: { ym: string; start: string; lastDay: string }, items: ItemResult[], generatedAt: string): string {
   const period = `${range.start.slice(0, 10)} ~ ${range.lastDay}`;
@@ -435,12 +444,14 @@ async function main(): Promise<void> {
       { timeout: 120_000, maxWait: 15_000 },
     );
 
-    const outPath = path.resolve(argEq('out') ?? path.join(__dirname, '..', 'ops-reports', `접속기록점검_${range.ym}.html`));
+    // 🔴 이미 있는 결과지(서명한 것 포함)를 덮어쓰지 않는다 — 있으면 (1), (2) … 를 붙여 새로 만든다
+    const outPath = uniquePath(path.resolve(argEq('out') ?? path.join(__dirname, '..', 'ops-reports', `접속기록점검_${range.ym}.html`)));
     fs.mkdirSync(path.dirname(outPath), { recursive: true });
     const generatedAt = `${new Date(Date.now() + 9 * 3600 * 1000).toISOString().slice(0, 16).replace('T', ' ')} (한국 시간)`;
     fs.writeFileSync(outPath, renderHtml(range, items, generatedAt), 'utf8');
 
-    for (const it of items) console.log(`${it.no} ${it.title.padEnd(34)} ${VERDICT_TEXT[it.verdict]} — ${it.summary}`);
+    // summary 가 이미 "이상 없음"·"확인 필요 N건"·"이상 있음 …"으로 시작하므로 판정 글자를 또 붙이지 않는다
+    for (const it of items) console.log(`${it.no} ${it.title.padEnd(34)} ${it.summary}`);
     console.log(`\n결과지: ${outPath}\n🔴 IP·운영자 이름이 들어 있다 — git에 올리지 않는다(ops-reports/ 는 제외됨).`);
   } catch (e) {
     if (e instanceof RefuseError) return fail(e.message);

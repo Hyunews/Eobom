@@ -2,7 +2,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  LIMITS, judgeCount, judgeNewIp, judgeGaps, judgeRetention, judgeMasking, judgeSize, monthRange, previousMonthKst, renderHtml, isMonthFinished, chunkDates,
+  LIMITS, judgeCount, judgeNewIp, judgeGaps, judgeRetention, judgeMasking, judgeSize, monthRange, previousMonthKst, renderHtml, isMonthFinished, chunkDates, uniquePath,
 } from '../prisma/report-access-check';
 
 test('①②③ 0건은 이상 없음, 1건 이상은 확인 필요(판정은 담당자)', () => {
@@ -89,6 +89,20 @@ test('⑤ 날짜 목록은 한 줄에 여러 개로 묶는다', () => {
   assert.equal(rows.length, 3);
   assert.equal(rows[0][0], '2026-10-01 · 2026-10-02 · 2026-10-03 · 2026-10-04 · 2026-10-05 · 2026-10-06');
   assert.deepEqual(chunkDates([]), []);
+});
+
+test('결과 파일 이름이 겹치면 덮어쓰지 않고 (1)부터 번호를 붙인다', () => {
+  const taken = new Set<string>();
+  const exists = (x: string) => taken.has(x);
+  assert.equal(uniquePath('/o/점검_2026-09.html', exists), '/o/점검_2026-09.html');
+  taken.add('/o/점검_2026-09.html');
+  assert.equal(uniquePath('/o/점검_2026-09.html', exists), '/o/점검_2026-09(1).html');
+  taken.add('/o/점검_2026-09(1).html');
+  taken.add('/o/점검_2026-09(2).html');
+  assert.equal(uniquePath('/o/점검_2026-09.html', exists), '/o/점검_2026-09(3).html');
+  // 확장자가 없어도 동작
+  taken.add('/o/out');
+  assert.equal(uniquePath('/o/out', exists), '/o/out(1)');
 });
 
 test('결과지 — 메모·서명란이 있고 외부 자원이 없으며 이스케이프된다', () => {
