@@ -16,6 +16,17 @@
 > [`_아카이브_2608`](walkthrough_아카이브_2608.md)(08-31분). 남은 것 = 판정 대기 + 판정 표기 없음. 기준 → `record.md` §2-1.
 
 ---
+## 2026-10-08 | [Sonnet] 비제휴 시설 업체 문의 — 서버에서도 거절
+
+- **근거 스펙**: docs/01_장사시설_매칭/01-05 §7.2 · §10-4 · §12.3 (10-08 개발자 결정)
+- **건드린 파일**: eobomDev/backend/src/config/policy.ts · eobomDev/backend/src/controllers/leadController.ts
+- **결과**: `POLICY.lead.acceptForNonPartner` true→false, 주석 "견적요청 번호"→"업체 문의 번호". `createQuote`가 동의 검증 뒤·트랜잭션 앞에서 시설을 조회해, `partnerId`가 없고 정책이 false이면 리드를 만들지 않고 403 `이 시설은 아직 문의를 받지 않습니다.`로 거절(탈퇴 유예 403과 같은 거절 관례). 시설이 없으면 기존 `FacilityNotFoundError` 404 유지. DB 변경 없음. 검증: `npx tsc --noEmit` exit 0.
+- **추가(개발자 지시, 사용처 0건)**: `createCallEvent`(`POST /api/facilities/:id/call-events`) 삭제 — 컨트롤러 함수 · `facilityRoutes.ts` 라우트/import · `rateLimit.ts` PUBLIC_WRITE_ROUTES 항목 제거, `cors-ratelimit.test.ts`의 IP별 한도 시험은 `/quotes` 주소로 교체. `tsc --noEmit` exit 0 · `cors-ratelimit.test.ts` 18/18 통과. 🟡 **남긴 것**: 이미 쌓인 `type='CALL'` 리드 행과 이를 거르는 조회 필터(`summary`·`meActivity`·`accountDeletion`), `LeadType`의 `'CALL'`, schema 주석은 그대로(지우려면 DB 쓰기·백업 필요) · docs 01-05 §4.1·00-36 §4.4-1의 CALL 서술은 Opus가 정리할 몫.
+- **편차**: 없음. 상태 코드 403은 지시의 "기존 거절 응답 관례"에 맞춰 정함.
+- **다음 에이전트가 알아야 할 것**: 🟡 **실기동 검증 대기**(사람) — 비제휴 시설에 문의 POST 시 403, 제휴 시설은 201, 없는 시설 id는 404. 프런트가 비제휴 시설에서 문의 버튼을 숨기는지는 별건(이 작업은 서버만).
+
+<!-- Gemini 판정 1줄: ✅통과 / ❌반려(사유) / 🔄스펙갱신(고친 문서) -->
+
 ## 2026-10-08 | [Sonnet] 접속기록 점검 결과지 소폭 수정 — 표 번호 삭제 · 특이사항 메모 3칸 표
 
 - **근거 스펙**: docs/00_핵심플랫폼/00-43_접속기록_월간점검_담당자_안내서.md §10.5 (10-08 정정분, 사람이 준 지시문)
