@@ -12,8 +12,9 @@ const SESSION_EXPIRED_MESSAGE = '세션이 만료되어 로그아웃되었습니
 // 상태 라이브러리 대신 채택된 방식, §6 표).
 const sessionExpiredHandlers: Partial<Record<Audience, (message: string) => void>> = {};
 
-export function registerSessionExpiredHandler(audience: Audience, handler: (message: string) => void): void {
-  sessionExpiredHandlers[audience] = handler;
+export function registerSessionExpiredHandler(audience: Audience, handler: ((message: string) => void) | undefined): void {
+  if (handler) sessionExpiredHandlers[audience] = handler;
+  else delete sessionExpiredHandlers[audience];
 }
 
 // 00-42 §5.2 ③ — 5xx일 때만 서버가 기록한 요청 번호(X-Request-Id)를 담는다. 4xx에는 붙이지 않는다.

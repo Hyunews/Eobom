@@ -20,6 +20,7 @@ const PUBLIC_EXPERT_SELECT = {
   licenseOrg: true,
   bio: true,
   specialties: true,
+  officeAddress: true, // 사무실 주소는 공개(00-04 §5 · 02-03 §4.3 · 10-01 개발자 결정)
   createdAt: true,
 } satisfies Prisma.ExpertSelect;
 

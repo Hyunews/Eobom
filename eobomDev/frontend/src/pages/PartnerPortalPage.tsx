@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Building2, Scale, Lock, Mail, Search } from 'lucide-react';
 import { BACKEND_URL } from '../config';
+import { registerSessionExpiredHandler } from '../lib/api';
 import { BizDashboard } from './BizDashboard';
 import { AddressSearchModal } from '../components/AddressSearchModal';
 
@@ -148,6 +149,12 @@ export const PartnerPortalPage: React.FC = () => {
     setLoggedIn(null);
     setResultMessage(notice ? { type: 'error', text: notice } : null);
   };
+
+  // 00-34 §6 — apiFetch가 PARTNER 토큰(사업자·전문가 공용)으로 401을 받으면 이 화면의 로그아웃을 호출한다.
+  useEffect(() => {
+    registerSessionExpiredHandler('PARTNER', handleLogout);
+    return () => registerSessionExpiredHandler('PARTNER', undefined);
+  }, []);
 
   if (loggedIn) {
     return (

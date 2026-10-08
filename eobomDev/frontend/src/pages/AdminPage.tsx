@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { ShieldCheck, Lock, Mail, CheckCircle2, XCircle, Pencil, Save, X, Search, ChevronLeft, ChevronRight } from 'lucide-react';
 import { BACKEND_URL, formatPhoneForDisplay } from '../config';
+import { registerSessionExpiredHandler } from '../lib/api';
 import { AddressSearchModal } from '../components/AddressSearchModal';
 import { formatKstDate, formatKstDateTime, formatKstMonthDayTime } from '../utils/kstDate';
 
@@ -244,6 +245,13 @@ export const AdminPage: React.FC = () => {
     setAdminName(null);
     setSessionNotice(notice || '');
   };
+
+  // 00-34 §6 — apiFetch가 ADMIN 토큰으로 401을 받으면 이 화면의 로그아웃을 호출한다(마운트 때 등록, 사라질 때 해제).
+  // handleLogout은 setState·localStorage만 만지므로 마운트 시점 클로저로 충분하다.
+  useEffect(() => {
+    registerSessionExpiredHandler('ADMIN', handleLogout);
+    return () => registerSessionExpiredHandler('ADMIN', undefined);
+  }, []);
 
   // 인증 헤더 fetch 공통 래퍼 — 액세스 토큰(2h) 만료로 401이 오면 로그인 화면으로 되돌리고
   // 세션 만료 안내를 띄운다. 이게 없으면 토큰이 죽어도 화면은 "로그인된 것처럼" 보이면서
