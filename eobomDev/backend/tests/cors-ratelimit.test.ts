@@ -177,9 +177,9 @@ describe('요청 횟수 제한', () => {
   it('한도는 IP별이다 — 한 IP가 막혀도 다른 IP는 영향 없다', async () => {
     const a = nextIp();
     const b = nextIp();
-    for (let i = 0; i < RATE_LIMITS.publicWrite + 1; i++) await call('/api/facilities/none/call-events', { ip: a, method: 'POST' });
-    assert.equal((await call('/api/facilities/none/call-events', { ip: a, method: 'POST' })).res.status, 429);
-    assert.notEqual((await call('/api/facilities/none/call-events', { ip: b, method: 'POST' })).res.status, 429);
+    for (let i = 0; i < RATE_LIMITS.publicWrite + 1; i++) await call('/api/facilities/none/quotes', { ip: a, method: 'POST' });
+    assert.equal((await call('/api/facilities/none/quotes', { ip: a, method: 'POST' })).res.status, 429);
+    assert.notEqual((await call('/api/facilities/none/quotes', { ip: b, method: 'POST' })).res.status, 429);
   });
 
   it('공개 쓰기 한도는 주소와 무관하게 IP당 합산이다(헌화로 다 쓰면 시설 문의도 막힌다)', async () => {

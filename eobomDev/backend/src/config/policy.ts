@@ -5,8 +5,8 @@
 
 export const POLICY = {
   lead: {
-    numberPrefix: 'EB', // 견적요청 번호 접두어 (§4.2) — EB-YYMMDD-NNNN
-    acceptForNonPartner: true, // §10-4
+    numberPrefix: 'EB', // 업체 문의 번호 접두어 (§4.2) — EB-YYMMDD-NNNN
+    acceptForNonPartner: false, // §10-4 · §7.2 — 비제휴 시설은 업체 문의를 받지 않는다(10-08 결정). createQuote가 거절
   },
   consult: {
     numberPrefix: 'EC', // 상담 신청 번호 접두어 (docs 02-03 §4.1) — EC-YYMMDD-NNNN. Lead의 EB-와 구분되는 별도 카운터.

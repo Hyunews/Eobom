@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { Prisma } from '@prisma/client';
 import prisma from '../config/prisma';
+import { POLICY } from '../config/policy';
 import { verifyBearerToken } from './authController';
 import { verifyPartnerBearerToken } from './partnerController';
 import { createLead, ConsentRequiredError, FacilityNotFoundError } from '../services/leadService';
@@ -42,6 +43,15 @@ export const createQuote = async (req: Request, res: Response) => {
   }
 
   try {
+    // 01-05 §7.2·§10-4 — 비제휴 시설(partnerId 없음)은 정책이 막으면 리드를 만들지 않는다.
+    // 시설이 없으면 여기서 판단하지 않고 아래 createLead의 FacilityNotFoundError(404)에 맡긴다.
+    if (!POLICY.lead.acceptForNonPartner) {
+      const target = await prisma.facility.findUnique({ where: { id: req.params.id }, select: { partnerId: true } });
+      if (target && !target.partnerId) {
+        return res.status(403).json({ status: 'error', message: '이 시설은 아직 문의를 받지 않습니다.' });
+      }
+    }
+
     const lead = await prisma.$transaction(async (tx) => {
       const contact = await resolveApplicantContact(tx, {
         useProfileContact: usesProfile,
@@ -86,33 +96,6 @@ export const createQuote = async (req: Request, res: Response) => {
     }
     console.error('견적요청 생성 실패:', error);
     return res.status(500).json({ status: 'error', message: '견적요청 처리 중 오류가 발생했습니다.' });
-  }
-};
-
-// 전화 문의 클릭 이벤트 (`POST /api/facilities/:id/call-events`) — 익명, 개인정보 없음(§4.1).
-// 청구 근거로 쓰지 않는다(§9 — 통화 연결·성사 여부를 우리가 증명할 수 없음). 지표 집계 전용.
-// 🔄 2026-09-21 00-36 §4.4-1 — `userId`를 **넣지 않는다**(항상 null). 이 이벤트는 문서(01-05 §4.1 "❌ 익명
-// 이벤트 · 기본 비청구")대로 익명이어야 하는데 로그인 상태면 userId를 붙여 저장하고 있었다. 청구에도 안 쓰는
-// 이벤트에 개인 식별자를 남길 이유가 없다(00-19 최소수집). 그 결과 "내 상담 내역"에도 잡히지 않는다.
-// 이미 쌓인 행은 지우지 않는다(updateMany는 백업+CONFIRM 대상) — 조회 쪽 필터(`type: { not: 'CALL' }`)가 가린다.
-export const createCallEvent = async (req: Request, res: Response) => {
-  try {
-    const lead = await prisma.$transaction((tx) =>
-      createLead(tx, {
-        type: 'CALL',
-        facilityId: req.params.id,
-        userId: null,
-        payload: {},
-        thirdPartyConsent: false, // CALL은 동의 대상이 아님 — leadService가 무시한다
-      })
-    );
-    return res.status(201).json({ status: 'success', data: safeLead(lead) });
-  } catch (error) {
-    if (error instanceof FacilityNotFoundError) {
-      return res.status(404).json({ status: 'error', message: error.message });
-    }
-    console.error('전화 클릭 이벤트 기록 실패:', error);
-    return res.status(500).json({ status: 'error', message: '이벤트 기록 중 오류가 발생했습니다.' });
   }
 };
 

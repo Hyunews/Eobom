@@ -33,7 +33,6 @@ export const PUBLIC_WRITE_ROUTES = [
   '/api/memorials/extend/:token', // 추모관 연장 링크(00-20 §8.1-4) — 토큰만으로 도달, 추측 대상
   '/api/experts/:id/consult-requests', // 전문가 상담 신청
   '/api/facilities/:id/quotes', // 시설 문의
-  '/api/facilities/:id/call-events', // 전화 클릭 기록
   '/api/obituaries/:slug/share', // 부고장 공유 집계 +1 — 인증 불필요
   '/api/family-designations/invite/:token/accept', // 초대 토큰 — 추측 대상
   '/api/family-designations/invite/:token/decline',
