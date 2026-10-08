@@ -2893,3 +2893,17 @@
   - 커밋은 하지 않음 — 메시지 초안만.
 
 <!-- Gemini 판정 1줄: ✅통과 / ❌반려(사유) / 🔄스펙갱신(고친 문서) -->
+
+## 2026-10-08 | API 목록 자동 생성 스크립트(generate-api-doc.js)
+
+- **근거 스펙**: docs/00_핵심플랫폼/00-04_기능_및_API_명세서.md §6-1(마커 구간·관리 방식 인용블록) · 업무판 "API 목록 자동 생성 스크립트(generate-api-doc.js)"
+- **건드린 파일**: .harness/tools/generate-api-doc.js(신규), docs/00_핵심플랫폼/00-04_기능_및_API_명세서.md(`AUTO-GENERATED` 마커 사이만 — 마커 밖 변경 0), .harness/done.md(generate-db-doc 줄 아래 1줄), 이 파일
+- **결과**: `node .harness/tools/generate-api-doc.js` → "총 147개 · 설명 없음 92개", 파싱 실패 0건. `--check` 통과(종료코드 0). 마커 안 행 하나를 일부러 틀린 뒤 `--check` → 종료코드 1 + 차이 요약 출력 확인, 원복 후 재통과. 손 대조: `^\s*router\.(get|post|put|patch|delete)\(` 16파일 합 142 + authRoutes 소셜 로그인 `for…of` 2구문이 3개 provider로 펼쳐져 +4 + app.ts 직접 선언 `GET /api/health` +1 = 147 = 표 행 수. 파일별 행 수(admin 29·ending-note 15·memorial 13 등) 모두 일치. `git diff --stat`과 `git diff --ignore-cr-at-eol --stat` 둘 다 "1 file changed, 235 insertions(+)". 빌드·tsc 대상 아님(eobomDev 무변경).
+- **편차**: ① 설명 = 같은 줄 끝 `//`를 먼저, 없으면 바로 위 단독 한 줄 `//`(여러 줄 블록의 끝 줄은 문장 조각이라 제외). 지시는 "바로 위"만이었으나 이 코드는 줄 끝 주석이 라우트별 설명이라 그쪽이 정확하다. ② 인증 칸에 `router.use(미들웨어)`(adminRoutes의 `requireAdminAuth, adminAudit`)를 그 뒤 선언 라우트에 상속시켰다. ③ app.ts에 직접 선언된 `GET /api/health` 1건을 "app.ts" 소제목으로 포함. ④ 소셜 로그인 템플릿 경로(`/${provider}`)는 선언된 배열로 펼쳐 6행으로 냈다.
+- **다음 에이전트가 알아야 할 것**:
+  - 🟡 설명 없음 92개 — 라우트 주석 보강은 이번 범위 밖(Sonnet 후속 또는 Opus 판단).
+  - 🟡 인증 칸은 "라우트에 걸린 미들웨어 이름"이다. `없음`은 미들웨어가 없다는 뜻이지 공개라는 뜻이 아니다(컨트롤러 안에서 토큰을 검사하는 라우트가 많다 — 예: me·willPhoto).
+  - 🟡 00-04 §1~§6 손 표와 어긋나 보이는 곳은 보고 메시지에 목록으로 남김(정리는 Opus).
+  - 커밋은 하지 않음 — 메시지 초안만.
+
+<!-- Gemini 판정 1줄: ✅통과 / ❌반려(사유) / 🔄스펙갱신(고친 문서) -->
