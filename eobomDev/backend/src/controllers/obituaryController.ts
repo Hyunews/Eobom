@@ -31,7 +31,7 @@ const triggerFieldsChanged = (before: TriggerSnapshot, after: TriggerSnapshot): 
 // §9 #9 Phase 3 — 발인일(KST 달력 기준) + 3일 자정에 자동 종료(2026-08-20 개발자 확정, §6.2-4).
 // 스케줄러를 새로 들이지 않고 조회 시점에 계산한다(closedAt처럼 DB에 쌓아두지 않음).
 const AUTO_CLOSE_DAYS = 3;
-const isAutoExpired = (funeralAt: Date): boolean => {
+export const isAutoExpired = (funeralAt: Date): boolean => {
   // funeralAt(UTC 저장값)을 KST 벽시계로 옮겨 "발인일" 달력 날짜를 구한 뒤, 그 날짜의
   // KST 자정에서 +3일 되는 순간(역시 KST 자정)을 다시 UTC로 환산해 지금과 비교한다.
   const kst = new Date(funeralAt.getTime() + 9 * 60 * 60 * 1000);

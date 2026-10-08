@@ -14,6 +14,8 @@ import {
   hideMemorialGuestbookEntry,
   hideMemorial,
   unhideMemorial,
+  listObituariesForAdmin,
+  closeObituary,
 } from '../controllers/moderationController';
 import { listClaimsForAdmin, updateClaimStatus } from '../controllers/claimController';
 import {
@@ -89,6 +91,10 @@ router.patch('/memorials/:id/unhide', unhideMemorial);
 router.get('/memorials/:id/guestbook', listMemorialGuestbookForAdmin); // 00-37 A-2 신규(편차 — walkthrough 참고)
 // 방명록 글 강제 비공개(소프트 삭제)
 router.patch('/memorials/:id/guestbook/:gid/hide', hideMemorialGuestbookEntry);
+
+// 부고장 목록·종료 (docs 07-03 §8-1, 2026-10-08) — 사유 필수·감사로그·되돌리기 없음
+router.get('/obituaries', listObituariesForAdmin);
+router.patch('/obituaries/:id/close', closeObituary);
 
 // 회원 목록·상세 — 도메인 데이터 조인 (docs 04-01 §5.4 · 05-01 §4.4 · 00-37 §6 A-2 #8)
 router.get('/users', listUsersForAdmin);

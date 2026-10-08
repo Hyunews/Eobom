@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import prisma from '../config/prisma';
 import { verifyAdminBearerToken } from './adminController';
+import { isAutoExpired } from './obituaryController';
 import { normalizePhone, isValidPhoneLength, MIN_PHONE_DIGITS, MAX_PHONE_DIGITS } from '../utils/phone';
 
 // 운영자의 사업자(Partner)·전문가(Expert) 가입 심사. 자동승인 없음(§3.2 원칙) — 이 엔드포인트를
@@ -316,6 +317,82 @@ const setMemorialHidden = (hide: boolean) => async (req: Request, res: Response)
 };
 export const hideMemorial = setMemorialHidden(true);
 export const unhideMemorial = setMemorialHidden(false);
+
+// ─────────────────────────────────────────────────────────────────
+// 부고장(Obituary) 운영자 목록·종료. docs 07-03 §8-1 (2026-10-08 개발자 결정).
+// 추모관 내리기(setMemorialHidden)와 같은 모양 — 사유 필수 + 상태 변경·감사 로그 한 트랜잭션.
+// 기존 closedAt을 쓴다(스키마 변경 없음). 되돌리기 없음 — 개설자 종료와 같다(07-03 §9 #9).
+// ─────────────────────────────────────────────────────────────────
+
+// 부고장 목록 (`GET /api/admin/obituaries`) — 🔴 계좌·연락처는 select에 넣지 않는다(조치 판단에 필요 없음).
+export const listObituariesForAdmin = async (_req: Request, res: Response) => {
+  try {
+    const obituaries = await prisma.obituary.findMany({
+      select: {
+        id: true,
+        slug: true,
+        funeralAt: true,
+        closedAt: true,
+        createdAt: true,
+        deceased: { select: { name: true } },
+        createdByUser: { select: { id: true, name: true, email: true } },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+    const data = obituaries.map((o) => ({
+      id: o.id,
+      slug: o.slug,
+      deceasedName: o.deceased.name,
+      funeralAt: o.funeralAt,
+      closedAt: o.closedAt,
+      // 수동 종료가 우선 — 둘 다 해당하면 CLOSED
+      status: o.closedAt ? 'CLOSED' : isAutoExpired(o.funeralAt) ? 'AUTO_CLOSED' : 'ACTIVE',
+      createdAt: o.createdAt,
+      createdByUser: o.createdByUser,
+    }));
+    return res.json({ status: 'success', data });
+  } catch (error) {
+    console.error('부고장 목록(운영자) 조회 실패:', error);
+    return res.status(500).json({ status: 'error', message: '목록 조회 중 오류가 발생했습니다.' });
+  }
+};
+
+// 부고장 종료 (`PATCH /api/admin/obituaries/:id/close`) — 사유 필수(500자). 사유에 고인·유족 개인정보를 적지 말 것(00-37 §3.2).
+export const closeObituary = async (req: Request, res: Response) => {
+  const reason = typeof req.body?.reason === 'string' ? req.body.reason.trim() : '';
+  if (!reason) {
+    return res.status(400).json({ status: 'error', message: '사유 메모를 입력해 주세요.' });
+  }
+  if (reason.length > MAX_REASON_LENGTH) {
+    return res.status(400).json({ status: 'error', message: `사유 메모는 ${MAX_REASON_LENGTH}자 이내로 입력해 주세요.` });
+  }
+
+  try {
+    const decoded = verifyAdminBearerToken(req)!; // requireAdminAuth가 이미 검증(00-37 A-1 #1)
+    const obituary = await prisma.obituary.findUnique({
+      where: { id: req.params.id },
+      select: { id: true, closedAt: true, funeralAt: true },
+    });
+    if (!obituary) {
+      return res.status(404).json({ status: 'error', message: '부고장을 찾을 수 없습니다.' });
+    }
+    // 수동 종료·발인 + 3일 자동 종료 둘 다 이미 닫힌 것
+    if (obituary.closedAt || isAutoExpired(obituary.funeralAt)) {
+      return res.status(409).json({ status: 'error', message: '이미 종료된 부고장입니다.' });
+    }
+
+    const [updated] = await prisma.$transaction([
+      prisma.obituary.update({ where: { id: obituary.id }, data: { closedAt: new Date() }, select: { id: true, closedAt: true } }),
+      prisma.adminAuditLog.create({
+        data: { adminId: decoded.id, adminName: decoded.name, action: 'CLOSE', targetType: 'Obituary', targetId: obituary.id, reason },
+      }),
+    ]);
+    return res.json({ status: 'success', data: updated });
+  } catch (error) {
+    console.error('부고장 종료 실패:', error);
+    return res.status(500).json({ status: 'error', message: '처리 중 오류가 발생했습니다.' });
+  }
+};
 
 // 방명록 목록 (`GET /api/admin/memorials/:id/guestbook`, 00-37 §6 A-2 #5) — 🔵 문서(00-37)엔
 // 없던 신규 엔드포인트다. 방명록 숨김(`hideMemorialGuestbookEntry`)이 실제로 쓰이려면 어떤

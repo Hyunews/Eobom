@@ -19,7 +19,7 @@ const TAB_LABELS: Record<QueueTab, string> = {
   CLAIMS: '시설 연동',
   FACILITIES: '전체 시설',
   FAREWELL_PURGE: '유족메시지 파기',
-  MEMORIALS: '추모관',
+  MEMORIALS: '추모관·부고장',
   CONSULT_REQUESTS: '상담 신청',
   MEMBERS: '회원',
   DEATH_VERIFICATIONS: '사망 확인',
@@ -178,6 +178,7 @@ export const AdminPage: React.FC = () => {
   // 00-37 §6 A-2 #5 — 추모관 목록 + 방명록 숨김
   // 🔄 09-30 신고 폐지 — 항상 전체 목록을 본다(신고 필터·review 버튼 없음).
   const [memorials, setMemorials] = useState<any[]>([]);
+  const [obituaries, setObituaries] = useState<any[]>([]);
   const [openGuestbookId, setOpenGuestbookId] = useState<string | null>(null);
   const [guestbookEntries, setGuestbookEntries] = useState<any[]>([]);
   const [guestbookLoading, setGuestbookLoading] = useState(false);
@@ -413,6 +414,44 @@ export const AdminPage: React.FC = () => {
     loadMemorials();
   };
 
+  // 부고장 목록(07-03 §8-1) — 추모관 탭 아래에 같이 보인다. 응답에 계좌·연락처 없음.
+  const loadObituaries = async () => {
+    if (!token) return;
+    try {
+      const res = await authFetch(`${BACKEND_URL}/api/admin/obituaries`);
+      if (!res) return;
+      const data = await res.json();
+      if (data.status === 'success') setObituaries(data.data);
+      else setLoadError(data.message || '조회 실패');
+    } catch {
+      setLoadError('서버와 통신 중 오류가 발생했습니다.');
+    }
+  };
+
+  // 부고장 종료(07-03 §8-1) — 사유 필수, 되돌리기 없음. 사유에 고인·유족 개인정보는 적지 않는다.
+  const closeObituary = async (o: any) => {
+    const input = window.prompt(
+      `故 ${o.deceasedName}님의 부고장을 종료합니다. 종료하면 되돌릴 수 없습니다.\n사유를 입력해 주세요(필수 · 감사 기록에 남습니다 · 개인정보는 적지 마세요).`,
+    );
+    if (input === null) return;
+    const reason = input.trim();
+    if (!reason) {
+      alert('사유를 입력해야 처리할 수 있습니다.');
+      return;
+    }
+    const res = await authFetch(`${BACKEND_URL}/api/admin/obituaries/${o.id}/close`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ reason }),
+    });
+    if (!res) return;
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      alert(data.message || '처리 실패');
+    }
+    loadObituaries();
+  };
+
   // 🔵 00-37 문서엔 없던 신규 엔드포인트(GET .../guestbook) — 방명록 숨김을 실제로 쓰려면
   // 어떤 글을 숨길지 봐야 하는데 그 목록을 볼 방법이 없어서 백엔드에 최소로 추가했다(편차).
   const loadGuestbook = async (memorialId: string) => {
@@ -581,6 +620,7 @@ export const AdminPage: React.FC = () => {
       loadFarewellPurge();
     } else if (tab === 'MEMORIALS') {
       loadMemorials();
+      loadObituaries();
     } else if (tab === 'CONSULT_REQUESTS') {
       loadConsultRequests();
     } else if (tab === 'MEMBERS') {
@@ -1333,6 +1373,7 @@ export const AdminPage: React.FC = () => {
           </>
         )}
 
+        {tab === 'MEMORIALS' && <h3 style={{ margin: 0, color: 'var(--primary-color)', fontSize: '1rem' }}>추모관</h3>}
         {tab === 'MEMORIALS' &&
           (memorials.length === 0 ? (
             <EmptyState />
@@ -1406,6 +1447,44 @@ export const AdminPage: React.FC = () => {
                       ))
                     )}
                   </div>
+                )}
+              </div>
+            ))
+          ))}
+
+        {/* 07-03 §8-1 — 부고장 목록 + 종료. 계좌·연락처는 서버가 내려주지 않는다. 종료는 되돌릴 수 없다. */}
+        {tab === 'MEMORIALS' && <h3 style={{ margin: '1rem 0 0', color: 'var(--primary-color)', fontSize: '1rem' }}>부고장</h3>}
+        {tab === 'MEMORIALS' &&
+          (obituaries.length === 0 ? (
+            <EmptyState />
+          ) : (
+            obituaries.map((o) => (
+              <div key={o.id} className="card" style={{ padding: '1.2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '0.8rem' }}>
+                <div>
+                  <strong style={{ color: 'var(--primary-color)', fontSize: '1.05rem' }}>故 {o.deceasedName}</strong>
+                  <span
+                    style={{
+                      fontSize: '0.8rem', fontWeight: 700, padding: '0.15rem 0.5rem', borderRadius: 'var(--r-sm)', marginLeft: '0.6rem',
+                      backgroundColor: o.status === 'ACTIVE' ? 'var(--state-ok-bg)' : 'var(--state-danger-bg)',
+                      color: o.status === 'ACTIVE' ? 'var(--state-ok-fg)' : 'var(--state-danger-fg)',
+                    }}
+                  >
+                    {o.status === 'ACTIVE' ? '활성' : o.status === 'CLOSED' ? '종료' : '자동 종료'}
+                  </span>
+                  <div style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginTop: '0.2rem' }}>
+                    개설자 {o.createdByUser?.name}({o.createdByUser?.email}) · 발인 {formatKstDate(o.funeralAt)} · 개설 {formatKstDate(o.createdAt)}
+                    {o.closedAt && ` · 종료 (${formatKstDate(o.closedAt)})`}
+                  </div>
+                  <div style={{ color: 'var(--text-muted)', fontSize: '0.8rem', marginTop: '0.1rem' }}>{o.slug}</div>
+                </div>
+                {o.status === 'ACTIVE' && (
+                  <button
+                    onClick={() => closeObituary(o)}
+                    className="btn"
+                    style={{ ...SMALL_BTN, backgroundColor: 'var(--state-danger-bg)', color: 'var(--state-danger-fg)' }}
+                  >
+                    종료
+                  </button>
                 )}
               </div>
             ))

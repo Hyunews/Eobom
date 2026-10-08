@@ -4,7 +4,7 @@ import { Phone, ShieldCheck, FileText, Lock, MessageCircle } from 'lucide-react'
 import { EobomLogo } from './EobomLogo';
 import { FooterMobile } from './FooterMobile';
 import { useIsMobile } from '../hooks/useIsMobile';
-import { KAKAO_CHANNEL_CHAT_URL } from '../config';
+import { KAKAO_CHANNEL_CHAT_URL, CONTACT_EMAIL } from '../config';
 
 // 2026-08-24 — Header.tsx(A안: 흰 배경 + 평면 메뉴)와 같은 톤으로 재개편. 기존 짙은 네이비 블록
 // 대신 배경을 투명하게 둔다 — HomePage.tsx 섹션2(에필로그)에서는 그 위에 fullpage_03 배경 사진이
@@ -138,6 +138,9 @@ export const Footer: React.FC = () => {
             070-8856-2725
           </div>
           <p style={{ fontSize: 'var(--fs-body)', lineHeight: 1.7, color: 'var(--text-muted)', margin: 0 }}>
+            이메일 {CONTACT_EMAIL}
+          </p>
+          <p style={{ fontSize: 'var(--fs-body)', lineHeight: 1.7, color: 'var(--text-muted)', margin: 0 }}>
             사업장·전문가 문의, 개인정보 열람·삭제 요청
           </p>
         </div>
@@ -180,7 +183,7 @@ export const Footer: React.FC = () => {
             카카오톡으로 문의하기
           </a>
           <p style={{ fontSize: 'var(--fs-body)', lineHeight: 1.7, color: 'var(--text-muted)', margin: 0, marginLeft: '0.4rem' }}>
-            평일 09:00 ~ 17:00
+            평일 09:00 ~ 17:00 (공휴일 제외)
           </p>
         </div>
       </div>

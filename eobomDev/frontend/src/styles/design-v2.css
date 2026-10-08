@@ -218,6 +218,12 @@
   text-wrap: pretty;
 }
 
+/* 07-02 §2-1ⓒ — 원문 한 줄(id 11·13·17). 제목 아래, 배지 옆이 아니라 제목 칸 안 */
+.v2-item-deadline-note {
+  font-size: var(--v2-fs-support);
+  color: var(--v2-text-faint);
+}
+
 .v2-item-row.is-checked .v2-item-title {
   color: var(--v2-text-faint);
   text-decoration: line-through;

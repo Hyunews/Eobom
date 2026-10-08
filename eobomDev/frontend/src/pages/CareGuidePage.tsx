@@ -43,13 +43,15 @@ interface CareGuidePageProps {
 // 모바일 상단 가로 탭의 항목이 된다(둘이 같은 기준을 쓴다).
 interface TimeSection {
   key: string;
-  label: string;
+  label: string; // 모바일 탭·웹 좌측 목차
+  title?: string; // 구간 제목 — 없으면 label (07-02 §2-1ⓒ 2026-10-08: 3개월만 기산점을 제목에 적는다)
   ids: number[];
 }
 const TIME_SECTIONS: TimeSection[] = [
   { key: 'funeral', label: '장례 기간 (즉시)', ids: [2, 5, 1, 3, 4, 23] },
-  { key: 'month1', label: '1개월 이내', ids: [6, 8] },
-  { key: 'month3', label: '3개월', ids: [7, 9, 10, 11, 12] },
+  // id 7(안심상속)은 사망신고 때 함께 신청하므로 사망신고(6) 바로 뒤 — 07-02 §2-1ⓒ 2026-10-08
+  { key: 'month1', label: '1개월 이내', ids: [6, 7, 8] },
+  { key: 'month3', label: '3개월', title: '3개월 — 상속개시·채무초과를 안 날부터', ids: [9, 10, 11, 12] },
   { key: 'month6', label: '6개월', ids: [13, 14, 15, 16, 17] },
   { key: 'later', label: '이후/수시로', ids: [20, 21, 22, 18, 19] },
 ];
@@ -222,7 +224,7 @@ export const CareGuidePage: React.FC<CareGuidePageProps> = ({ setActiveTab, curr
                 }}
               >
                 <div className="v2-section-head">
-                  <h2 className="v2-section-title">{section.label}</h2>
+                  <h2 className="v2-section-title">{section.title ?? section.label}</h2>
                   <span className="v2-section-count">({section.items.length})</span>
                 </div>
 
@@ -246,6 +248,8 @@ export const CareGuidePage: React.FC<CareGuidePageProps> = ({ setActiveTab, curr
                           <button type="button" className="v2-item-main" onClick={() => setModalTaskId(t.id)}>
                             {t.severity === 'CRITICAL' && <span className="v2-item-urgent-flag">되돌릴 수 없음</span>}
                             <span className="v2-item-title">{t.title}</span>
+                            {/* 07-02 §2-1ⓒ — 배지만 보면 뜻이 달라지는 3건(id 11·13·17)만 원문 한 줄 */}
+                            {t.deadlineOriginalRequired && <span className="v2-item-deadline-note">{t.deadlineLabel}</span>}
                           </button>
                           <span className="v2-item-deadline" title={t.deadlineLabel}>
                             {getBadgeText(t)}

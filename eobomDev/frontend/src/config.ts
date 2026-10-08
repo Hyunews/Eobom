@@ -77,6 +77,10 @@ export const OBITUARY_CARD_IMAGE_URL = 'https://eobom.vercel.app/obituary-card-v
 // D구역)가 같은 주소를 쓴다. 문의는 카톡 안에서 끝나므로 우리 DB에는 남지 않는다(00-36 §6 #5).
 export const KAKAO_CHANNEL_CHAT_URL = 'https://pf.kakao.com/_LVxdxaX/chat';
 
+// 푸터 대표번호 박스의 이메일(07-02 §5.4-1, 2026-10-08) — 🔴 임시값. 오픈 전 서비스용 이메일로 교체하고
+// 교체할 때 00-19 제12조 이메일도 같은 값으로 맞춘다. 바꿀 곳은 이 한 줄뿐(Footer·FooterMobile이 같이 쓴다).
+export const CONTACT_EMAIL = 'test@example.com';
+
 // 가족 지정 초대 카드 이미지(00-27 §9.1-4) — 부고장과 달리 이건 서비스 초대 카드라 브랜드
 // 로고 재사용 금지(§3.3-2, obituary 전용 판단)가 적용되지 않는다. 이미 커밋된 로고 파일을
 // 그대로 쓴다 — 새 이미지 자산을 만들지 않는다.

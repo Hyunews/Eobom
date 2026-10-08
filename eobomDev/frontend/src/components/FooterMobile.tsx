@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { MessageCircle, ChevronDown } from 'lucide-react';
-import { KAKAO_CHANNEL_CHAT_URL } from '../config';
+import { KAKAO_CHANNEL_CHAT_URL, CONTACT_EMAIL } from '../config';
 
 // 2026-09-09 — 사용자 지시. 데스크톱 Footer(4열 그리드, Footer.tsx)를 모바일 폭에 그대로
 // 쌓으면 4섹션이 완전히 펼쳐져 본문보다 길어진다. 로고+카카오 CTA만 먼저 보이고 약관·대표번호는
@@ -50,7 +50,7 @@ export const FooterMobile: React.FC = () => {
         <MessageCircle size={18} /> 카카오톡으로 문의하기
       </a>
       <p style={{ fontSize: 'var(--fs-body)', color: 'var(--text-muted)', margin: '0 0 0.7rem' }}>
-        평일 09:00 ~ 17:00
+        평일 09:00 ~ 17:00 (공휴일 제외)
       </p>
 
       <button
@@ -91,6 +91,7 @@ export const FooterMobile: React.FC = () => {
             </Link>
           </div>
           사업장·전문가 문의, 개인정보 열람·삭제:<br />070-8856-2725
+          <br />이메일 {CONTACT_EMAIL}
         </div>
       </div>
 

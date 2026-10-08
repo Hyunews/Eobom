@@ -2917,3 +2917,25 @@
 - **다음 에이전트가 알아야 할 것**: 00-04 §4 "리드 조회·정산 ⬜ 미구현" 문구는 코드에 `/api/partner/leads*`가 구현돼 있어 낡음 — Opus 판단. 생성기 `git diff --stat`에는 클라우드 세션의 ledger_00.md 등 내 것이 아닌 변경이 섞여 있음.
 
 <!-- Gemini 판정 1줄: ✅통과 / ❌반려(사유) / 🔄스펙갱신(고친 문서) -->
+## 2026-10-08 | 07 구현 3건 — 운영자 부고장 종료 · 가이드 3개월 구간 재구성 · Footer 이메일·공휴일
+
+- **근거 스펙**: docs/07_상중_행정_케어/07-03 §8-1 · 07-02 §2-1ⓒ 결정 블록 · 07-02 §5.4-1·§5.4-2-2
+- **건드린 파일**: eobomDev/backend/src/controllers/moderationController.ts, eobomDev/backend/src/controllers/obituaryController.ts, eobomDev/backend/src/routes/adminRoutes.ts, eobomDev/frontend/src/pages/AdminPage.tsx, eobomDev/frontend/src/pages/CareGuidePage.tsx, eobomDev/frontend/src/styles/design-v2.css, eobomDev/frontend/src/components/Footer.tsx, eobomDev/frontend/src/components/FooterMobile.tsx, eobomDev/frontend/src/config.ts
+- **결과**:
+  - ① `GET /api/admin/obituaries`(select: id·slug·funeralAt·closedAt·createdAt·deceased.name·createdByUser — 계좌·연락처 select에 없음) + `PATCH /api/admin/obituaries/:id/close`(사유 필수 500자 → 400, 없는 id 404, `closedAt` 있거나 `isAutoExpired` 면 409, `closedAt` 저장 + `AdminAuditLog` action `'CLOSE'`·targetType `'Obituary'` 를 `$transaction` 한 번). 스키마 변경 없음. 운영자 화면 "추모관·부고장" 탭 아래 부고장 목록 + 활성만 종료 버튼(사유 prompt).
+  - ② `TIME_SECTIONS` month1 ids `[6, 8]` → `[6, 7, 8]`, month3 ids `[7, 9, 10, 11, 12]` → `[9, 10, 11, 12]`. `TimeSection`에 `title?` 추가, month3만 `title: '3개월 — 상속개시·채무초과를 안 날부터'`, 구간 제목 `<h2>`는 `section.title ?? section.label`, 탭·좌측 목차는 `label` 그대로 `'3개월'`. 목록 행에 `deadlineOriginalRequired` 인 항목(JSON상 id 11·13·17뿐)만 `<span className="v2-item-deadline-note">{t.deadlineLabel}</span>`.
+  - ③ 응대 시간 `평일 09:00 ~ 17:00` → `평일 09:00 ~ 17:00 (공휴일 제외)`(Footer.tsx·FooterMobile.tsx), `config.ts`에 `CONTACT_EMAIL = 'test@example.com'` 추가, 대표번호 아래 `이메일 {CONTACT_EMAIL}` 한 줄(두 파일).
+  - 검증: `npx tsc --noEmit`(backend) exit 0, `npm run build`(frontend: tsc && vite build) 통과. 라이브 동작은 확인하지 않음(dev 서버 미기동).
+- **편차**:
+  - 백엔드 `npm run build`(prisma generate && tsc)는 `prisma generate` 가 `query_engine-windows.dll.node` rename EPERM(파일 잠김)으로 실패 — 코드 원인 아님. 대신 `tsc --noEmit` 로 대체 확인.
+  - 07-03 §8-1 은 "추모관 목록 옆에" 라고만 해서 같은 탭(추모관) 안 아래 구역으로 두고 탭 라벨을 `추모관` → `추모관·부고장` 으로 바꿈.
+  - 목록 `status` 값은 `ACTIVE`/`CLOSED`/`AUTO_CLOSED` 로 정함(스펙은 "활성/종료/자동 종료"만 명시). 수동 종료와 자동 종료가 겹치면 `CLOSED`.
+  - `obituaryController.isAutoExpired` 를 `export` 로 바꿔 재사용(로직 불변) — 판정 로직 복제를 피함.
+  - id 11·13·17 하드코딩 대신 JSON에 이미 있던 `deadlineOriginalRequired` 플래그 사용(3건에만 있음을 확인).
+  - 모바일은 대표번호가 접이식 패널 안에 있어 이메일도 그 안(번호 아래)에 둠.
+- **다음 에이전트가 알아야 할 것**:
+  - 🔴 `CONTACT_EMAIL` 은 임시값 — 오픈 전 교체, 교체 시 `00-19` 제12조 이메일도 같이(07-02 §5.4-1).
+  - 운영자 종료·목록은 로컬/운영 DB 읽기·쓰기 경로라 실기동 확인은 사람 몫(종료는 되돌릴 수 없음 — 테스트는 로컬 DB·테스트 부고장으로).
+  - 07-02 §5.4-1 박스 도해와 달리 데스크톱 Footer는 `이메일` 줄이 번호와 설명 문구 사이에 있음.
+
+<!-- Gemini 판정 1줄: ✅통과 / ❌반려(사유) / 🔄스펙갱신(고친 문서) -->
