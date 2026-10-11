@@ -443,8 +443,8 @@ model ConsultNumberCounter {
 // 행정사 상담(ConsultRequest)으로 연결하며, 이 도메인엔 별도 과금 구조를 만들지 않는다(§3.4).
 // ─────────────────────────────────────────────────────────────────
 
-// 온라인 추모관(§4) — 고인 1명당 1개, 유족이 개설(§4.1). 공개범위 기본값은 PUBLIC이 아니라
-// LINK다(§4.2) — 사망 사실+유족 구성이 공개 색인되면 부고 사칭 보이스피싱의 표적 정보가 된다.
+// 온라인 추모관(§4) — 고인 1명당 1개, 유족이 개설(§4.1). 공개범위는 LINK(기본)·PRIVATE 둘뿐이다
+// (09-29 PUBLIC 폐지, §4.2) — 사망 사실+유족 구성이 공개 색인되면 부고 사칭 보이스피싱의 표적 정보가 된다.
 model Memorial {
   id              String @id @default(uuid()) // 고유 식별자(UUID)
   slug            String @unique // 공개 URL용 추측 불가 토큰(§4.2, §9.1-2) — 순번 금지
@@ -463,7 +463,7 @@ model Memorial {
   portraitUrl       String? // 영정 사진
   epitaph           String? // 추모 문구
 
-  visibility          String    @default("LINK") // PRIVATE | LINK | PUBLIC (§4.2)
+  visibility          String    @default("LINK") // PRIVATE | LINK (§4.2) — 🔄 09-29 PUBLIC(전체 공개) 폐지
   falseReportAgreedAt DateTime // 허위 개설 시 법적 책임 고지 동의 시각(§4.3-4)
   reportedAt          DateTime? // 신고 접수 시각 — 🔴 09-30 신고 폐지 — 다음 스키마 변경 때 삭제(코드는 안 읽고 안 씀)
   reviewedAt          DateTime? // 운영자 확인 시각 — 🔴 09-30 신고 폐지 — 다음 스키마 변경 때 삭제(코드는 안 읽고 안 씀)
@@ -554,7 +554,7 @@ model MemorialTribute {
   @@unique([memorialId, userId]) // 로그인 사용자 1인 1회 보장 (userId=null인 비회원 행은 유니크 제약 미적용)
 }
 
-// 방명록(§4.5) — 비회원 작성 허용, 작성자명은 스냅샷(01-05 §4.4 원칙 승계, §5.5).
+// 방명록(§4.5) — 작성은 로그인 필수(09-29, 기존 비회원 글은 보존용으로 userId null 허용), 작성자명은 스냅샷(01-05 §4.4 원칙 승계, §5.5).
 model MemorialGuestbook {
   id                 String    @id @default(uuid()) // 고유 식별자(UUID)
   memorialId         String // 방명록 대상 추모관

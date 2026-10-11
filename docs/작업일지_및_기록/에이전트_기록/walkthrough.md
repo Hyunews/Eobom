@@ -2962,3 +2962,19 @@
 
 <!-- Gemini 판정 1줄: ✅통과 / ❌반려(사유) / 🔄스펙갱신(고친 문서) -->
 
+
+## 2026-10-08 | 추모관 코드 잔재 정리 + 대장 도구 고침 (③ 컬럼 삭제는 미룸)
+
+- **근거 스펙**: 05 클라우드 보고(10-08) · docs 05-01·05-02 · .harness/tools/docs-ledger.js
+- **건드린 파일**: eobomDev/backend/prisma/schema.prisma(주석만), eobomDev/backend/src/controllers/memorialController.ts(주석만), .harness/tools/docs-ledger.js
+- **결과**:
+  - ① `schema.prisma` 주석 3곳: `visibility ... // PRIVATE | LINK | PUBLIC (§4.2)` → `// PRIVATE | LINK (§4.2) — 🔄 09-29 PUBLIC(전체 공개) 폐지`, Memorial 머리 주석 `공개범위 기본값은 PUBLIC이 아니라 LINK다` → `공개범위는 LINK(기본)·PRIVATE 둘뿐이다`, 방명록 머리 주석 `비회원 작성 허용` → `작성은 로그인 필수(09-29, 기존 비회원 글은 보존용으로 userId null 허용)`. `memorialController.ts` 헌화·방명록·사진 머리 주석 `비회원 상호작용을 허용하는 구간` → 헌화만 비회원 허용·방명록 작성은 로그인 필수(09-29)로 정정. 코드·스키마 동작 불변(주석만) — 마이그레이션 없음, `npx tsc --noEmit`(backend) exit 0.
+  - ② 읽기 전용 조회(로컬 DB 5433): Memorial.visibility = LINK 18건, PUBLIC 0건 — 변경할 것 없음. 운영 DB는 조회하지 않음.
+  - ④ `docs-ledger.js`: `headings()`가 `<!-- AUTO-GENERATED:BEGIN … -->`~`<!-- AUTO-GENERATED:END -->` 사이 제목을 절로 세지 않음(00-04: 구간 안 17개 제외, 밖 12개만 집계 — 별도 스크립트로 확인), 크기 표기 `sizeOf()`는 CRLF→LF 변환 후 바이트(`fs.statSync().size` 대체). `node .harness/tools/docs-ledger.js check` 동작 확인. 대장 재생성(`build`) 결과(ledger_00 헤더 `35KB · 절 12`)는 확인만 하고 대장 파일 3개는 `git checkout`으로 되돌림 — 줄 번호 갱신 등 도구 수정과 무관한 diff가 섞여서.
+- **편차**:
+  - ③ `Memorial.reportedAt`·`reviewedAt` 삭제는 이번에 하지 않음(개발자 결정: 다음 스키마 변경으로 미룸). 당시 사유: b29 마이그레이션이 이미 커밋(185f68e)·적용돼 같은 파일에 못 넣고, 추가형(운영 마이그레이션 먼저)과 삭제형(push 먼저)을 한 번에 운영 반영하면 짧은 오류 구간이 생김. 로컬 값은 18행 모두 NULL, 코드 사용처 없음. 스키마의 두 칸 주석(`다음 스키마 변경 때 삭제`)은 그대로 둠.
+  - b29·b30·b31은 요청 순서 이전에 이미 끝나 있어 b28 ①②④만 진행.
+- **다음 에이전트가 알아야 할 것**: 대장 파일(ledger_00·02·07)은 도구 수정 뒤 재생성하지 않았다 — 다음 `build`(b25 재판정) 때 00-04가 절 12·LF 기준 크기로 바뀐다. 다음 스키마 변경 때 `reportedAt`·`reviewedAt` 삭제를 같이 할 것(삭제형 → 운영은 push 먼저, 마이그레이션 나중).
+
+<!-- Gemini 판정 1줄: ✅통과 / ❌반려(사유) / 🔄스펙갱신(고친 문서) -->
+
