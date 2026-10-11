@@ -42,11 +42,18 @@ function domainOf(rel) {
 // 줄바꿈 차이(CRLF/LF)는 내용 변경으로 치지 않는다
 const shaOf = (file) => crypto.createHash('sha1').update(fs.readFileSync(file, 'utf8').replace(/\r\n/g, '\n')).digest('hex').slice(0, 10);
 
+// 크기 표기는 LF 기준 — CRLF 작업본(윈도우)과 LF 작업본(리눅스·클라우드)이 같은 숫자를 내게 한다(10-08)
+const sizeOf = (file) => Buffer.byteLength(fs.readFileSync(file, 'utf8').replace(/\r\n/g, '\n'));
+
 function headings(file) {
   const lines = fs.readFileSync(file, 'utf8').split(/\r?\n/);
   const out = [];
   let fence = false;
+  let generated = false; // <!-- AUTO-GENERATED:BEGIN … --> ~ <!-- AUTO-GENERATED:END --> 안은 스크립트 출력이라 절로 세지 않는다(10-08)
   lines.forEach((ln, i) => {
+    if (/<!--\s*AUTO-GENERATED:BEGIN/.test(ln)) { generated = true; return; }
+    if (/<!--\s*AUTO-GENERATED:END/.test(ln)) { generated = false; return; }
+    if (generated) return;
     if (/^\s*```/.test(ln)) { fence = !fence; return; }
     if (fence) return;
     const m = /^(#{1,6})\s+(.*)$/.exec(ln);
@@ -88,7 +95,7 @@ function build(ackDomain, quiet) {
   const byDomain = {};
   for (const f of walk(DOCS).sort()) {
     const rel = path.relative(DOCS, f).replace(/\\/g, '/');
-    (byDomain[domainOf(rel)] = byDomain[domainOf(rel)] || []).push({ rel, heads: headings(f), size: fs.statSync(f).size, sha: shaOf(f) });
+    (byDomain[domainOf(rel)] = byDomain[domainOf(rel)] || []).push({ rel, heads: headings(f), size: sizeOf(f), sha: shaOf(f) });
   }
   const summary = [];
   for (const [dom, files] of Object.entries(byDomain).sort()) {
