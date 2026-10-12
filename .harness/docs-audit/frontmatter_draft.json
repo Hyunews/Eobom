@@ -1,0 +1,2365 @@
+{
+  "00-01": {
+    "file": "00_핵심플랫폼/00-01_신규_6대_기획_아이디어_및_로드맵.md",
+    "fm": {
+      "id": "00-01",
+      "type": "기획서",
+      "status": "경위기록",
+      "replaces": [],
+      "topics": [],
+      "reports": [
+        "R930"
+      ]
+    },
+    "meta": {
+      "title": "01. 신규 6대 기획 아이디어 및 로드맵",
+      "memoOnlyPending": false,
+      "typeNote": "끝말 \"로드맵\" — 규칙 밖, 제안",
+      "typeSure": false,
+      "statusWhy": "대장 첫 줄 판정 \"경위\" + 근거에 문서 전체 표시",
+      "replacesSrc": [],
+      "topicsBasis": "경위 기록 · 절 제목 없음 — 20개 목록에 맞는 주제 없음",
+      "ledgerTopics": "",
+      "flags": [
+        "type 확인",
+        "status 경위기록",
+        "topics 빈 문서"
+      ]
+    }
+  },
+  "00-02": {
+    "file": "00_핵심플랫폼/00-02_이어봄_서비스_개요_및_기획서.md",
+    "fm": {
+      "id": "00-02",
+      "type": "기획서",
+      "status": "확정",
+      "replaces": [],
+      "topics": [
+        "사망·고인",
+        "파트너",
+        "전문가"
+      ],
+      "reports": [
+        "R100",
+        "R200"
+      ]
+    },
+    "meta": {
+      "title": "02. 이어봄 서비스 개요 및 종합 기획서",
+      "memoOnlyPending": false,
+      "typeNote": "끝말 \"기획서\"",
+      "typeSure": true,
+      "statusWhy": "그 외(기본값)",
+      "replacesSrc": [],
+      "topicsBasis": "§3 정보 구조도(2모드 × 7도메인)",
+      "ledgerTopics": "",
+      "flags": []
+    }
+  },
+  "00-03": {
+    "file": "00_핵심플랫폼/00-03_시스템_아키텍처_및_흐름도.md",
+    "fm": {
+      "id": "00-03",
+      "type": "명세서",
+      "status": "확정",
+      "replaces": [],
+      "topics": [
+        "인프라·배포",
+        "암호화·보안",
+        "외부연동"
+      ],
+      "reports": [
+        "R300",
+        "R700"
+      ]
+    },
+    "meta": {
+      "title": "시스템 아키텍처 및 흐름도 명세서",
+      "memoOnlyPending": false,
+      "typeNote": "끝말 \"흐름도\" — 규칙 밖, 제안",
+      "typeSure": false,
+      "statusWhy": "그 외(기본값)",
+      "replacesSrc": [],
+      "topicsBasis": "§1 시스템 토폴로지 · §2 보안 & 암호화 메커니즘",
+      "ledgerTopics": "",
+      "flags": [
+        "type 확인"
+      ]
+    }
+  },
+  "00-04": {
+    "file": "00_핵심플랫폼/00-04_기능_및_API_명세서.md",
+    "fm": {
+      "id": "00-04",
+      "type": "명세서",
+      "status": "확정",
+      "replaces": [],
+      "topics": [
+        "API",
+        "회원·인증",
+        "운영자"
+      ],
+      "reports": [
+        "R300",
+        "R500"
+      ]
+    },
+    "meta": {
+      "title": "기능 및 REST API 명세서 (전체 지도)",
+      "memoOnlyPending": false,
+      "typeNote": "끝말 \"명세서\"",
+      "typeSure": true,
+      "statusWhy": "그 외(기본값)",
+      "replacesSrc": [],
+      "topicsBasis": "§0 인증 체계 4종 토큰 · §6 운영자 · §6-1 엔드포인트 전체 목록",
+      "ledgerTopics": "",
+      "flags": []
+    }
+  },
+  "00-05": {
+    "file": "00_핵심플랫폼/00-05_DB_요구사항_및_테이블_사전.md",
+    "fm": {
+      "id": "00-05",
+      "type": "명세서",
+      "status": "확정",
+      "replaces": [],
+      "topics": [
+        "DB"
+      ],
+      "reports": [
+        "R300"
+      ]
+    },
+    "meta": {
+      "title": "DB 요구사항 및 테이블 사전 (Prisma Schema)",
+      "memoOnlyPending": false,
+      "typeNote": "끝말 \"사전\" — 규칙 밖, 제안",
+      "typeSure": false,
+      "statusWhy": "그 외(기본값)",
+      "replacesSrc": [],
+      "topicsBasis": "자동 생성: 테이블·컬럼 사전",
+      "ledgerTopics": "",
+      "flags": [
+        "type 확인"
+      ]
+    }
+  },
+  "00-06": {
+    "file": "00_핵심플랫폼/00-06_화면_설계서_및_와이어프레임.md",
+    "fm": {
+      "id": "00-06",
+      "type": "명세서",
+      "status": "확정",
+      "replaces": [],
+      "topics": [
+        "디자인",
+        "회원·인증"
+      ],
+      "reports": [
+        "R200"
+      ]
+    },
+    "meta": {
+      "title": "화면 설계서 및 화면 인벤토리",
+      "memoOnlyPending": false,
+      "typeNote": "끝말 \"와이어프레임\" — 규칙 밖, 제안",
+      "typeSure": false,
+      "statusWhy": "그 외(기본값)",
+      "replacesSrc": [],
+      "topicsBasis": "§1~§4 화면 대장 · §7 회원 유형 진입 동선",
+      "ledgerTopics": "",
+      "flags": [
+        "type 확인"
+      ]
+    }
+  },
+  "00-07": {
+    "file": "00_핵심플랫폼/00-07_구현_난관_및_기술_솔루션.md",
+    "fm": {
+      "id": "00-07",
+      "type": "메모",
+      "status": "확정",
+      "replaces": [],
+      "topics": [
+        "외부연동",
+        "공공데이터",
+        "회원·인증"
+      ],
+      "reports": [
+        "R300",
+        "R400",
+        "R930"
+      ]
+    },
+    "meta": {
+      "title": "08. 구현 난관 및 기술 솔루션 (Technical Solutions)",
+      "memoOnlyPending": false,
+      "typeNote": "끝말 \"솔루션\" — 규칙 밖, 제안",
+      "typeSure": false,
+      "statusWhy": "그 외(기본값)",
+      "replacesSrc": [],
+      "topicsBasis": "머리: 소셜 계정 중복 · 공공 시설 데이터 확보 · 포트 충돌",
+      "ledgerTopics": "",
+      "flags": [
+        "type 확인"
+      ]
+    }
+  },
+  "00-08": {
+    "file": "00_핵심플랫폼/00-08_소셜로그인_및_계정통합_명세서.md",
+    "fm": {
+      "id": "00-08",
+      "type": "명세서",
+      "status": "확정",
+      "replaces": [],
+      "topics": [
+        "회원·인증",
+        "외부연동"
+      ],
+      "reports": [
+        "R300",
+        "R700"
+      ]
+    },
+    "meta": {
+      "title": "09. 소셜 로그인 및 계정 통합 명세서",
+      "memoOnlyPending": false,
+      "typeNote": "끝말 \"명세서\"",
+      "typeSure": true,
+      "statusWhy": "그 외(기본값)",
+      "replacesSrc": [],
+      "topicsBasis": "핵심 계정 통합 처리 로직 · 세션 보관 위치",
+      "ledgerTopics": "",
+      "flags": []
+    }
+  },
+  "00-09": {
+    "file": "00_핵심플랫폼/00-09_디자인_시스템_및_스타일_가이드.md",
+    "fm": {
+      "id": "00-09",
+      "type": "명세서",
+      "status": "폐기",
+      "replaces": [],
+      "topics": [
+        "디자인"
+      ],
+      "reports": []
+    },
+    "meta": {
+      "title": "11. 디자인 시스템 및 스타일 가이드 (Design System & Style Guide)",
+      "memoOnlyPending": false,
+      "typeNote": "끝말 \"가이드\" — 규칙 밖, 제안",
+      "typeSure": false,
+      "statusWhy": "머리에 통합 표지 표시",
+      "replacesSrc": [],
+      "topicsBasis": "§5 정본 경계 · §6 토큰 스케일 정본",
+      "ledgerTopics": "",
+      "flags": [
+        "type 확인",
+        "status 폐기"
+      ]
+    }
+  },
+  "00-10": {
+    "file": "00_핵심플랫폼/00-10_URL_라우팅_HistoryRouter_전환_구현_메모.md",
+    "fm": {
+      "id": "00-10",
+      "type": "메모",
+      "status": "경위기록",
+      "replaces": [],
+      "topics": [
+        "인프라·배포"
+      ],
+      "reports": [
+        "R300",
+        "R930"
+      ]
+    },
+    "meta": {
+      "title": "18. URL 라우팅 — 해시 방식 → HistoryRouter(BrowserRouter) 전환 구현 메모",
+      "memoOnlyPending": false,
+      "typeNote": "끝말 \"메모\"",
+      "typeSure": true,
+      "statusWhy": "대장 첫 줄 판정 \"경위\" + 근거에 문서 전체 표시",
+      "replacesSrc": [],
+      "topicsBasis": "§7 배포 시 확인할 것 (라우팅 방식 전환 — 맞는 주제가 약함)",
+      "ledgerTopics": "",
+      "flags": [
+        "status 경위기록"
+      ]
+    }
+  },
+  "00-11": {
+    "file": "00_핵심플랫폼/00-11_백엔드_DB_배포_및_인프라_전략_결정서.md",
+    "fm": {
+      "id": "00-11",
+      "type": "결정서",
+      "status": "결정대기",
+      "replaces": [],
+      "topics": [
+        "인프라·배포",
+        "DB",
+        "개인정보"
+      ],
+      "reports": [
+        "R400",
+        "R410",
+        "R600",
+        "R700"
+      ]
+    },
+    "meta": {
+      "title": "백엔드 · DB 배포 및 인프라 전략 결정서",
+      "memoOnlyPending": false,
+      "typeNote": "끝말 \"결정서\"",
+      "typeSure": true,
+      "statusWhy": "pending-approvals.md 대기 중 항목",
+      "replacesSrc": [],
+      "topicsBasis": "§4 선택지 비교 · §5 권고 · §8 사장님 확정 필요(국외 처리)",
+      "ledgerTopics": "",
+      "flags": [
+        "status 결정대기"
+      ]
+    }
+  },
+  "00-12": {
+    "file": "00_핵심플랫폼/00-12_사망_이벤트_고인계정_유족연동_공통기반_기획서.md",
+    "fm": {
+      "id": "00-12",
+      "type": "기획서",
+      "status": "확정",
+      "replaces": [],
+      "topics": [
+        "사망·고인",
+        "가족연결",
+        "회원·인증"
+      ],
+      "reports": [
+        "R200",
+        "R300",
+        "R400",
+        "R410",
+        "R700",
+        "R900"
+      ]
+    },
+    "meta": {
+      "title": "사망 이벤트 · 고인 계정 · 유족 연동 — 공통 기반 기획서",
+      "memoOnlyPending": false,
+      "typeNote": "끝말 \"기획서\"",
+      "typeSure": true,
+      "statusWhy": "그 외(기본값)",
+      "replacesSrc": [],
+      "topicsBasis": "§2 핵심 개념 4개 · §4 검증 강도 사다리 · §5 고인 계정 처리 정책 · §6 계정 모드",
+      "ledgerTopics": "",
+      "flags": []
+    }
+  },
+  "00-13": {
+    "file": "00_핵심플랫폼/00-13_추모관_공유링크_모델_결정서.md",
+    "fm": {
+      "id": "00-13",
+      "type": "결정서",
+      "status": "확정",
+      "replaces": [],
+      "topics": [
+        "사망·고인",
+        "개인정보"
+      ],
+      "reports": [
+        "R200",
+        "R300",
+        "R700",
+        "R900"
+      ]
+    },
+    "meta": {
+      "title": "추모관 공유 링크 모델 — 결정서",
+      "memoOnlyPending": false,
+      "typeNote": "끝말 \"결정서\"",
+      "typeSure": true,
+      "statusWhy": "그 외(기본값)",
+      "replacesSrc": [],
+      "topicsBasis": "§3 링크가 감당해야 하는 두 시기 · §7 권고 E안",
+      "ledgerTopics": "",
+      "flags": []
+    }
+  },
+  "00-14": {
+    "file": "00_핵심플랫폼/00-14_사장님_논의_안건_정리.md",
+    "fm": {
+      "id": "00-14",
+      "type": "메모",
+      "status": "결정대기",
+      "replaces": [],
+      "topics": [
+        "법률쟁점",
+        "수익·정산"
+      ],
+      "reports": [
+        "R200",
+        "R400",
+        "R410",
+        "R500",
+        "R600",
+        "R700",
+        "R900"
+      ]
+    },
+    "meta": {
+      "title": "사장님 논의 안건 정리",
+      "memoOnlyPending": false,
+      "typeNote": "끝말 \"정리\" — 규칙 밖, 제안",
+      "typeSure": false,
+      "statusWhy": "pending-approvals.md 대기 중 항목",
+      "replacesSrc": [],
+      "topicsBasis": "§4 경영 판단 · §5 외부 전문가 확인이 필요한 것",
+      "ledgerTopics": "",
+      "flags": [
+        "type 확인",
+        "status 결정대기"
+      ]
+    }
+  },
+  "00-15": {
+    "file": "00_핵심플랫폼/00-15_회귀_테스트_도입_검토서.md",
+    "fm": {
+      "id": "00-15",
+      "type": "검토서",
+      "status": "확정",
+      "replaces": [],
+      "topics": [],
+      "reports": [
+        "R400"
+      ]
+    },
+    "meta": {
+      "title": "회귀 테스트 체계 도입 — 검토서",
+      "memoOnlyPending": false,
+      "typeNote": "끝말 \"검토서\"",
+      "typeSure": true,
+      "statusWhy": "그 외(기본값)",
+      "replacesSrc": [],
+      "topicsBasis": "§3~§5 회귀 테스트 도입 득실 — 20개 목록에 맞는 주제 없음",
+      "ledgerTopics": "",
+      "flags": [
+        "topics 빈 문서"
+      ]
+    }
+  },
+  "00-16": {
+    "file": "00_핵심플랫폼/00-16_L3_사망확인_서류_검토서.md",
+    "fm": {
+      "id": "00-16",
+      "type": "검토서",
+      "status": "확정",
+      "replaces": [],
+      "topics": [
+        "사망·고인",
+        "개인정보",
+        "법률쟁점"
+      ],
+      "reports": [
+        "R300",
+        "R400",
+        "R410",
+        "R700",
+        "R900"
+      ]
+    },
+    "meta": {
+      "title": "L3 사망확인 서류 — 검토서",
+      "memoOnlyPending": false,
+      "typeNote": "끝말 \"검토서\"",
+      "typeSure": true,
+      "statusWhy": "그 외(대장 메모 \"결정대기\" 1줄은 절 단위라 문서 status에 안 올림)",
+      "replacesSrc": [],
+      "topicsBasis": "§3 미저장 권고의 법적 근거 · §4 L3를 어떻게 구현하나",
+      "ledgerTopics": "",
+      "flags": []
+    }
+  },
+  "00-17": {
+    "file": "00_핵심플랫폼/00-17_개인정보_인증_및_국외이전_대응안.md",
+    "fm": {
+      "id": "00-17",
+      "type": "검토서",
+      "status": "확정",
+      "replaces": [],
+      "topics": [
+        "개인정보",
+        "법률쟁점",
+        "암호화·보안"
+      ],
+      "reports": [
+        "R600",
+        "R700"
+      ]
+    },
+    "meta": {
+      "title": "개인정보 인증(ISMS-P) 대상 여부 · 국외이전 — 대응안",
+      "memoOnlyPending": false,
+      "typeNote": "끝말 \"대응안\" — 규칙 밖, 제안",
+      "typeSure": false,
+      "statusWhy": "그 외(기본값)",
+      "replacesSrc": [],
+      "topicsBasis": "§2 ISMS/ISMS-P 의무대상 · §3 국외이전 · §4 의무대상이 아니어도 해야 하는 것",
+      "ledgerTopics": "",
+      "flags": [
+        "type 확인"
+      ]
+    }
+  },
+  "00-18": {
+    "file": "00_핵심플랫폼/00-18_개인정보처리방침_및_이용약관_기획서.md",
+    "fm": {
+      "id": "00-18",
+      "type": "기획서",
+      "status": "확정",
+      "replaces": [],
+      "topics": [
+        "약관·처리방침",
+        "개인정보",
+        "파기·보존"
+      ],
+      "reports": [
+        "R300",
+        "R410",
+        "R600",
+        "R700"
+      ]
+    },
+    "meta": {
+      "title": "개인정보처리방침 · 이용약관 — 초안 설계서",
+      "memoOnlyPending": false,
+      "typeNote": "끝말 \"기획서\"",
+      "typeSure": true,
+      "statusWhy": "그 외(대장 메모 \"결정대기\" 1줄은 절 단위라 문서 status에 안 올림)",
+      "replacesSrc": [],
+      "topicsBasis": "§3 수집 인벤토리 · §6 보유·파기 기간 · §7 이용약관",
+      "ledgerTopics": "",
+      "flags": []
+    }
+  },
+  "00-19": {
+    "file": "00_핵심플랫폼/00-19_개인정보처리방침_초안.md",
+    "fm": {
+      "id": "00-19",
+      "type": "초안본문",
+      "status": "확정",
+      "replaces": [],
+      "topics": [
+        "약관·처리방침",
+        "개인정보",
+        "파기·보존"
+      ],
+      "reports": [
+        "R100",
+        "R600",
+        "R700"
+      ]
+    },
+    "meta": {
+      "title": "개인정보처리방침 — **v0.9 초안**",
+      "memoOnlyPending": false,
+      "typeNote": "끝말 \"초안\"",
+      "typeSure": true,
+      "statusWhy": "그 외(대장 메모 \"결정대기\" 2줄은 절 단위라 문서 status에 안 올림)",
+      "replacesSrc": [],
+      "topicsBasis": "제3조 처리 항목 · 제4조 보유 기간 · 제8조 파기 절차",
+      "ledgerTopics": "",
+      "flags": []
+    }
+  },
+  "00-20": {
+    "file": "00_핵심플랫폼/00-20_추모관_보존기간_및_폐쇄정책_검토서.md",
+    "fm": {
+      "id": "00-20",
+      "type": "검토서",
+      "status": "확정",
+      "replaces": [],
+      "topics": [
+        "파기·보존",
+        "사망·고인"
+      ],
+      "reports": [
+        "R200",
+        "R300",
+        "R410",
+        "R500",
+        "R600",
+        "R700",
+        "R900"
+      ]
+    },
+    "meta": {
+      "title": "추모관 보존기간 · 폐쇄 정책 — 검토서",
+      "memoOnlyPending": false,
+      "typeNote": "끝말 \"검토서\"",
+      "typeSure": true,
+      "statusWhy": "그 외(대장 메모 \"결정대기\" 3줄은 절 단위라 문서 status에 안 올림)",
+      "replacesSrc": [],
+      "topicsBasis": "§5 만료 시 동결 · §6 폐쇄 기준 · §7 종합 권고",
+      "ledgerTopics": "",
+      "flags": []
+    }
+  },
+  "00-21": {
+    "file": "00_핵심플랫폼/00-21_서비스_이용약관_초안.md",
+    "fm": {
+      "id": "00-21",
+      "type": "초안본문",
+      "status": "확정",
+      "replaces": [],
+      "topics": [
+        "약관·처리방침",
+        "위치정보"
+      ],
+      "reports": [
+        "R100",
+        "R410",
+        "R500",
+        "R700"
+      ]
+    },
+    "meta": {
+      "title": "서비스 이용약관 — **v0.9 초안**",
+      "memoOnlyPending": false,
+      "typeNote": "끝말 \"초안\"",
+      "typeSure": true,
+      "statusWhy": "그 외(대장 메모 \"결정대기\" 4줄은 절 단위라 문서 status에 안 올림)",
+      "replacesSrc": [],
+      "topicsBasis": "제2장 이용계약 · 제6장 위치기반서비스",
+      "ledgerTopics": "",
+      "flags": []
+    }
+  },
+  "00-22": {
+    "file": "00_핵심플랫폼/00-22_법적_요구사항_체크리스트.md",
+    "fm": {
+      "id": "00-22",
+      "type": "추적",
+      "status": "확정",
+      "replaces": [],
+      "topics": [
+        "법률쟁점",
+        "개인정보",
+        "위치정보"
+      ],
+      "reports": [
+        "R400",
+        "R410",
+        "R600",
+        "R700"
+      ]
+    },
+    "meta": {
+      "title": "법적 요구사항 — 체크리스트",
+      "memoOnlyPending": false,
+      "typeNote": "끝말 \"체크리스트\" — 규칙 밖, 제안",
+      "typeSure": false,
+      "statusWhy": "그 외(대장 메모 \"결정대기\" 2줄은 절 단위라 문서 status에 안 올림)",
+      "replacesSrc": [],
+      "topicsBasis": "§B 조문·기관 확인 · §C 외부 전문가 · 부록 1 접속기록 점검 계획",
+      "ledgerTopics": "",
+      "flags": [
+        "type 확인"
+      ]
+    }
+  },
+  "00-23": {
+    "file": "00_핵심플랫폼/00-23_메인화면_진입구조_개편_검토서.md",
+    "fm": {
+      "id": "00-23",
+      "type": "검토서",
+      "status": "확정",
+      "replaces": [],
+      "topics": [
+        "디자인"
+      ],
+      "reports": []
+    },
+    "meta": {
+      "title": "메인화면 진입구조 개편 — 검토서",
+      "memoOnlyPending": false,
+      "typeNote": "끝말 \"검토서\"",
+      "typeSure": true,
+      "statusWhy": "그 외(기본값)",
+      "replacesSrc": [],
+      "topicsBasis": "§4 고쳐야 할 설계 · §8 목업 구현 스펙",
+      "ledgerTopics": "",
+      "flags": []
+    }
+  },
+  "00-24": {
+    "file": "00_핵심플랫폼/00-24_프론트엔드_UIUX_개선_제안서.md",
+    "fm": {
+      "id": "00-24",
+      "type": "기획서",
+      "status": "확정",
+      "replaces": [],
+      "topics": [
+        "디자인"
+      ],
+      "reports": []
+    },
+    "meta": {
+      "title": "프론트엔드 UI/UX 개선 제안서",
+      "memoOnlyPending": false,
+      "typeNote": "끝말 \"제안서\" — 규칙 밖, 제안",
+      "typeSure": false,
+      "statusWhy": "그 외(대장 메모 \"결정대기\" 3줄은 절 단위라 문서 status에 안 올림)",
+      "replacesSrc": [],
+      "topicsBasis": "§1 브랜드 감성 · §5 타이포그래피·시니어 접근성",
+      "ledgerTopics": "",
+      "flags": [
+        "type 확인"
+      ]
+    }
+  },
+  "00-25": {
+    "file": "00_핵심플랫폼/00-25_인터페이스_템플릿_기술분석_및_메인적용방안.md",
+    "fm": {
+      "id": "00-25",
+      "type": "메모",
+      "status": "폐기",
+      "replaces": [],
+      "topics": [
+        "디자인"
+      ],
+      "reports": []
+    },
+    "meta": {
+      "title": "인터페이스(interface) 템플릿 기술 분석 및 메인 적용 방안",
+      "memoOnlyPending": false,
+      "typeNote": "끝말 \"메인적용방안\" — 규칙 밖, 제안",
+      "typeSure": false,
+      "statusWhy": "대장 첫 줄 판정 \"폐기\"",
+      "replacesSrc": [],
+      "topicsBasis": "§2 인터랙티브 컴포넌트 · §4 컴포넌트별 적용 명세",
+      "ledgerTopics": "",
+      "flags": [
+        "type 확인",
+        "status 폐기"
+      ]
+    }
+  },
+  "00-26": {
+    "file": "00_핵심플랫폼/00-26_모드별_네비게이션_개편_검토서.md",
+    "fm": {
+      "id": "00-26",
+      "type": "검토서",
+      "status": "확정",
+      "replaces": [],
+      "topics": [
+        "디자인",
+        "회원·인증"
+      ],
+      "reports": []
+    },
+    "meta": {
+      "title": "모드별 네비게이션 개편 — 검토서",
+      "memoOnlyPending": false,
+      "typeNote": "끝말 \"검토서\"",
+      "typeSure": true,
+      "statusWhy": "그 외(대장 메모 \"결정대기\" 1줄은 절 단위라 문서 status에 안 올림)",
+      "replacesSrc": [],
+      "topicsBasis": "§3 맞춤 메뉴 구성 · §7 구현 스펙(박스별 로그인)",
+      "ledgerTopics": "",
+      "flags": []
+    }
+  },
+  "00-27": {
+    "file": "00_핵심플랫폼/00-27_생전_가족지정_및_유족연결_기획서.md",
+    "fm": {
+      "id": "00-27",
+      "type": "기획서",
+      "status": "확정",
+      "replaces": [],
+      "topics": [
+        "가족연결",
+        "개인정보"
+      ],
+      "reports": []
+    },
+    "meta": {
+      "title": "생전 가족지정 및 유족연결 기획서",
+      "memoOnlyPending": false,
+      "typeNote": "끝말 \"기획서\"",
+      "typeSure": true,
+      "statusWhy": "그 외(대장 메모 \"결정대기\" 3줄은 절 단위라 문서 status에 안 올림)",
+      "replacesSrc": [],
+      "topicsBasis": "§5 수집 항목 필수 4·선택 2·금지 5 · §6 권한 범위 · §9 계정 연결",
+      "ledgerTopics": "",
+      "flags": []
+    }
+  },
+  "00-28": {
+    "file": "00_핵심플랫폼/00-28_회원_프로필_정보수집_기획서.md",
+    "fm": {
+      "id": "00-28",
+      "type": "기획서",
+      "status": "확정",
+      "replaces": [],
+      "topics": [
+        "개인정보",
+        "위치정보",
+        "회원·인증"
+      ],
+      "reports": []
+    },
+    "meta": {
+      "title": "회원 프로필 정보수집 기획서",
+      "memoOnlyPending": false,
+      "typeNote": "끝말 \"기획서\"",
+      "typeSure": true,
+      "statusWhy": "그 외(대장 메모 \"결정대기\" 4줄은 절 단위라 문서 status에 안 올림)",
+      "replacesSrc": [],
+      "topicsBasis": "§3 수집 항목 · §4 위치정보법 신고 없이 지역 안내",
+      "ledgerTopics": "",
+      "flags": []
+    }
+  },
+  "00-29": {
+    "file": "00_핵심플랫폼/00-29_모바일_대응_전략_검토서.md",
+    "fm": {
+      "id": "00-29",
+      "type": "검토서",
+      "status": "확정",
+      "replaces": [],
+      "topics": [
+        "모바일",
+        "디자인"
+      ],
+      "reports": []
+    },
+    "meta": {
+      "title": "모바일 대응 전략 — 검토서",
+      "memoOnlyPending": false,
+      "typeNote": "끝말 \"검토서\"",
+      "typeSure": true,
+      "statusWhy": "그 외(대장 메모 \"결정대기\" 2줄은 절 단위라 문서 status에 안 올림)",
+      "replacesSrc": [],
+      "topicsBasis": "§3 모바일 대응 범위 · §11 rem 기준선 · §14 PWA",
+      "ledgerTopics": "",
+      "flags": []
+    }
+  },
+  "00-30": {
+    "file": "00_핵심플랫폼/00-30_생애주기_연결모델_검토서.md",
+    "fm": {
+      "id": "00-30",
+      "type": "검토서",
+      "status": "확정",
+      "replaces": [],
+      "topics": [
+        "가족연결",
+        "사망·고인"
+      ],
+      "reports": []
+    },
+    "meta": {
+      "title": "3단계 생애주기 연결 모델 — 전 도메인 검토서",
+      "memoOnlyPending": false,
+      "typeNote": "끝말 \"검토서\"",
+      "typeSure": true,
+      "statusWhy": "그 외(대장 메모 \"결정대기\" 2줄은 절 단위라 문서 status에 안 올림)",
+      "replacesSrc": [],
+      "topicsBasis": "§4 이 모델이 만드는 것 — 연결 · §8 도메인별 영향",
+      "ledgerTopics": "",
+      "flags": []
+    }
+  },
+  "00-31": {
+    "file": "00_핵심플랫폼/00-31_랜딩페이지_카피_원고.md",
+    "fm": {
+      "id": "00-31",
+      "type": "초안본문",
+      "status": "확정",
+      "replaces": [],
+      "topics": [
+        "디자인",
+        "법률쟁점"
+      ],
+      "reports": []
+    },
+    "meta": {
+      "title": "이어봄 랜딩페이지 카피 원고",
+      "memoOnlyPending": false,
+      "typeNote": "끝말 \"원고\" — 규칙 밖, 제안",
+      "typeSure": false,
+      "statusWhy": "그 외(대장 메모 \"결정대기\" 3줄은 절 단위라 문서 status에 안 올림)",
+      "replacesSrc": [],
+      "topicsBasis": "§9 금지어 · ⑤ Trust 정직 고지 · 법정 기한 표",
+      "ledgerTopics": "",
+      "flags": [
+        "type 확인"
+      ]
+    }
+  },
+  "00-32": {
+    "file": "00_핵심플랫폼/00-32_이미지_생성_프롬프트_가이드.md",
+    "fm": {
+      "id": "00-32",
+      "type": "명세서",
+      "status": "확정",
+      "replaces": [],
+      "topics": [
+        "디자인"
+      ],
+      "reports": [
+        "R900"
+      ]
+    },
+    "meta": {
+      "title": "이어봄 이미지 생성 프롬프트 가이드",
+      "memoOnlyPending": false,
+      "typeNote": "끝말 \"가이드\" — 규칙 밖, 제안",
+      "typeSure": false,
+      "statusWhy": "그 외(대장 메모 \"결정대기\" 2줄은 절 단위라 문서 status에 안 올림)",
+      "replacesSrc": [],
+      "topicsBasis": "공통 톤 · §1~§21 이미지 프롬프트",
+      "ledgerTopics": "",
+      "flags": [
+        "type 확인"
+      ]
+    }
+  },
+  "00-33": {
+    "file": "00_핵심플랫폼/00-33_암호화_키_관리_및_교체_전략_명세서.md",
+    "fm": {
+      "id": "00-33",
+      "type": "명세서",
+      "status": "확정",
+      "replaces": [],
+      "topics": [
+        "암호화·보안",
+        "DB"
+      ],
+      "reports": [
+        "R300",
+        "R400",
+        "R600",
+        "R700"
+      ]
+    },
+    "meta": {
+      "title": "암호화 키 관리 및 교체(로테이션) 전략 — 명세서",
+      "memoOnlyPending": false,
+      "typeNote": "끝말 \"명세서\"",
+      "typeSure": true,
+      "statusWhy": "그 외(대장 메모 \"결정대기\" 1줄은 절 단위라 문서 status에 안 올림)",
+      "replacesSrc": [],
+      "topicsBasis": "§4 hashField 재구성 · §5 암호문 버전 프리픽스 · §6 로테이션 도구",
+      "ledgerTopics": "",
+      "flags": []
+    }
+  },
+  "00-34": {
+    "file": "00_핵심플랫폼/00-34_프론트엔드_공통_레이어_명세서.md",
+    "fm": {
+      "id": "00-34",
+      "type": "명세서",
+      "status": "확정",
+      "replaces": [],
+      "topics": [
+        "API",
+        "회원·인증"
+      ],
+      "reports": [
+        "R200",
+        "R300",
+        "R700"
+      ]
+    },
+    "meta": {
+      "title": "프론트엔드 공통 레이어 명세서",
+      "memoOnlyPending": false,
+      "typeNote": "끝말 \"명세서\"",
+      "typeSure": true,
+      "statusWhy": "그 외(기본값)",
+      "replacesSrc": [],
+      "topicsBasis": "§5 apiFetch · §6 세션 만료를 화면에 알리는 방법",
+      "ledgerTopics": "",
+      "flags": []
+    }
+  },
+  "00-35": {
+    "file": "00_핵심플랫폼/00-35_엔딩노트_페이지_구조_정리_명세서.md",
+    "fm": {
+      "id": "00-35",
+      "type": "명세서",
+      "status": "확정",
+      "replaces": [],
+      "topics": [],
+      "reports": []
+    },
+    "meta": {
+      "title": "엔딩노트 페이지 구조 정리 명세서",
+      "memoOnlyPending": false,
+      "typeNote": "끝말 \"명세서\"",
+      "typeSure": true,
+      "statusWhy": "그 외(대장 메모 \"결정대기\" 1줄은 절 단위라 문서 status에 안 올림)",
+      "replacesSrc": [],
+      "topicsBasis": "§4~§6 파일 분해·프론트엔드 전역 규칙 — 20개 목록에 맞는 주제 없음",
+      "ledgerTopics": "프론트규칙",
+      "flags": [
+        "topics 빈 문서"
+      ]
+    }
+  },
+  "00-36": {
+    "file": "00_핵심플랫폼/00-36_마이페이지_정보구조_점검_및_개편_기획서.md",
+    "fm": {
+      "id": "00-36",
+      "type": "기획서",
+      "status": "확정",
+      "replaces": [],
+      "topics": [
+        "회원·인증",
+        "디자인"
+      ],
+      "reports": []
+    },
+    "meta": {
+      "title": "마이페이지 정보구조 점검 및 개편 기획서",
+      "memoOnlyPending": false,
+      "typeNote": "끝말 \"기획서\"",
+      "typeSure": true,
+      "statusWhy": "그 외(대장 메모 \"결정대기\" 6줄은 절 단위라 문서 status에 안 올림)",
+      "replacesSrc": [],
+      "topicsBasis": "§3 갭 분석 · §4 개편 설계 — 마이페이지 내 자산 허브",
+      "ledgerTopics": "",
+      "flags": []
+    }
+  },
+  "00-37": {
+    "file": "00_핵심플랫폼/00-37_운영자_콘솔_확장_및_접근분리_기획서.md",
+    "fm": {
+      "id": "00-37",
+      "type": "기획서",
+      "status": "확정",
+      "replaces": [],
+      "topics": [
+        "운영자",
+        "암호화·보안"
+      ],
+      "reports": []
+    },
+    "meta": {
+      "title": "운영자 콘솔 확장 및 접근 분리 기획서",
+      "memoOnlyPending": false,
+      "typeNote": "끝말 \"기획서\"",
+      "typeSure": true,
+      "statusWhy": "그 외(대장 메모 \"결정대기\" 5줄은 절 단위라 문서 status에 안 올림)",
+      "replacesSrc": [],
+      "topicsBasis": "§3 그어야 할 3개의 선 · §4 운영자 콘솔 기능 지도 · §5 접근 분리 검토",
+      "ledgerTopics": "",
+      "flags": []
+    }
+  },
+  "00-38": {
+    "file": "00_핵심플랫폼/00-38_적응형_모바일_UX_개편_명세서.md",
+    "fm": {
+      "id": "00-38",
+      "type": "명세서",
+      "status": "확정",
+      "replaces": [],
+      "topics": [
+        "모바일",
+        "디자인"
+      ],
+      "reports": []
+    },
+    "meta": {
+      "title": "적응형 모바일 UX 개편 — 명세서",
+      "memoOnlyPending": false,
+      "typeNote": "끝말 \"명세서\"",
+      "typeSure": true,
+      "statusWhy": "그 외(대장 메모 \"결정대기\" 1줄은 절 단위라 문서 status에 안 올림)",
+      "replacesSrc": [],
+      "topicsBasis": "§3 5대 원칙 · §5 useIsMobile 훅 · §6 적응형 뷰 분리 패턴",
+      "ledgerTopics": "",
+      "flags": []
+    }
+  },
+  "00-39": {
+    "file": "00_핵심플랫폼/00-39_디자인_기준_재정립_명세서.md",
+    "fm": {
+      "id": "00-39",
+      "type": "명세서",
+      "status": "확정",
+      "replaces": [
+        "00-09"
+      ],
+      "topics": [
+        "디자인"
+      ],
+      "reports": []
+    },
+    "meta": {
+      "title": "디자인 기준 재정립 — 명세서",
+      "memoOnlyPending": false,
+      "typeNote": "끝말 \"명세서\"",
+      "typeSure": true,
+      "statusWhy": "그 외(대장 메모 \"결정대기\" 2줄은 절 단위라 문서 status에 안 올림)",
+      "replacesSrc": [
+        "00-09←통합 표지(00-09)"
+      ],
+      "topicsBasis": "§3 색 · §4 글자 · §5 레이아웃 · §6 규칙",
+      "ledgerTopics": "",
+      "flags": []
+    }
+  },
+  "00-40": {
+    "file": "00_핵심플랫폼/00-40_홈_랜딩_재설계_계획서.md",
+    "fm": {
+      "id": "00-40",
+      "type": "기획서",
+      "status": "확정",
+      "replaces": [],
+      "topics": [
+        "디자인"
+      ],
+      "reports": []
+    },
+    "meta": {
+      "title": "홈(랜딩) 재설계 계획서 — 그룹⑤ `home`",
+      "memoOnlyPending": false,
+      "typeNote": "끝말 \"계획서\" — 규칙 밖, 제안",
+      "typeSure": false,
+      "statusWhy": "그 외(기본값)",
+      "replacesSrc": [],
+      "topicsBasis": "§2 원칙 · §3 분기 — 홈 재설계",
+      "ledgerTopics": "",
+      "flags": [
+        "type 확인"
+      ]
+    }
+  },
+  "00-41": {
+    "file": "00_핵심플랫폼/00-41_사후개봉_최소안_명세서.md",
+    "fm": {
+      "id": "00-41",
+      "type": "명세서",
+      "status": "확정",
+      "replaces": [],
+      "topics": [
+        "사망·고인",
+        "운영자"
+      ],
+      "reports": []
+    },
+    "meta": {
+      "title": "사후 개봉 최소안 — `06-04` Phase 3 착수 스펙",
+      "memoOnlyPending": false,
+      "typeNote": "끝말 \"명세서\"",
+      "typeSure": true,
+      "statusWhy": "그 외(대장 메모 \"결정대기\" 2줄은 절 단위라 문서 status에 안 올림)",
+      "replacesSrc": [],
+      "topicsBasis": "§4 DeathVerification 모델 · §5 사람이 처리 — 운영자 대시보드",
+      "ledgerTopics": "",
+      "flags": []
+    }
+  },
+  "00-42": {
+    "file": "00_핵심플랫폼/00-42_운영_기록_로그_설계서.md",
+    "fm": {
+      "id": "00-42",
+      "type": "명세서",
+      "status": "확정",
+      "replaces": [],
+      "topics": [
+        "개인정보",
+        "법률쟁점",
+        "파기·보존"
+      ],
+      "reports": []
+    },
+    "meta": {
+      "title": "운영 기록(로그) 설계서 — 무엇을 남기고, 무엇을 남기지 않는가",
+      "memoOnlyPending": false,
+      "typeNote": "끝말 \"설계서\" — 규칙 밖, 제안",
+      "typeSure": false,
+      "statusWhy": "그 외(대장 메모 \"결정대기\" 3줄은 절 단위라 문서 status에 안 올림)",
+      "replacesSrc": [],
+      "topicsBasis": "§3 법이 요구하는 기록 · §6 어디에 저장하나",
+      "ledgerTopics": "",
+      "flags": [
+        "type 확인"
+      ]
+    }
+  },
+  "00-43": {
+    "file": "00_핵심플랫폼/00-43_접속기록_월간점검_담당자_안내서.md",
+    "fm": {
+      "id": "00-43",
+      "type": "메모",
+      "status": "확정",
+      "replaces": [],
+      "topics": [
+        "개인정보",
+        "운영자"
+      ],
+      "reports": [
+        "R700",
+        "R740"
+      ]
+    },
+    "meta": {
+      "title": "접속기록 월간 점검 — 담당자 안내서",
+      "memoOnlyPending": false,
+      "typeNote": "끝말 \"안내서\" — 규칙 밖, 제안",
+      "typeSure": false,
+      "statusWhy": "그 외(기본값)",
+      "replacesSrc": [],
+      "topicsBasis": "§4 매달 하는 순서 · §5 항목별 쿼리 · 점검 기록표",
+      "ledgerTopics": "",
+      "flags": [
+        "type 확인"
+      ]
+    }
+  },
+  "01-01": {
+    "file": "01_장사시설_매칭/01-01_장례_묘지_매칭_기능_명세서.md",
+    "fm": {
+      "id": "01-01",
+      "type": "명세서",
+      "status": "결정대기",
+      "replaces": [],
+      "topics": [
+        "공공데이터",
+        "위치정보",
+        "파트너"
+      ],
+      "reports": [
+        "R100",
+        "R200",
+        "R300",
+        "R500",
+        "R700"
+      ]
+    },
+    "meta": {
+      "title": "장례 · 묘지 매칭 기능 및 데이터 연동 상세 명세서",
+      "memoOnlyPending": false,
+      "typeNote": "끝말 \"명세서\"",
+      "typeSure": true,
+      "statusWhy": "pending-approvals.md 대기 중 항목",
+      "replacesSrc": [],
+      "topicsBasis": "§3 전국 장례식장 데이터 구축 · §6 첫 화면 = 잡힌 지역만",
+      "ledgerTopics": "facility-search / review / location / partner / facility-detail",
+      "flags": [
+        "status 결정대기"
+      ]
+    }
+  },
+  "01-02": {
+    "file": "01_장사시설_매칭/01-02_공공데이터_및_API_상업적_이용_법률_검토서.md",
+    "fm": {
+      "id": "01-02",
+      "type": "검토서",
+      "status": "확정",
+      "replaces": [],
+      "topics": [
+        "공공데이터",
+        "위치정보",
+        "법률쟁점",
+        "외부연동"
+      ],
+      "reports": [
+        "R300",
+        "R400",
+        "R410",
+        "R500"
+      ]
+    },
+    "meta": {
+      "title": "공공데이터 및 지도 API 상업적 이용 & 위치정보법 2단계 법률 검토서",
+      "memoOnlyPending": false,
+      "typeNote": "끝말 \"검토서\"",
+      "typeSure": true,
+      "statusWhy": "그 외(대장 메모 \"결정대기\" 1줄은 절 단위라 문서 status에 안 올림)",
+      "replacesSrc": [],
+      "topicsBasis": "§1 2단계 규제 구분 · §2 법률 검토(공공데이터법·위치정보법) · 카카오 API",
+      "ledgerTopics": "legal, location / legal",
+      "flags": []
+    }
+  },
+  "01-03": {
+    "file": "01_장사시설_매칭/01-03_장례_견적비교_데이터한계_극복_3대_기획안.md",
+    "fm": {
+      "id": "01-03",
+      "type": "메모",
+      "status": "경위기록",
+      "replaces": [],
+      "topics": [
+        "수익·정산",
+        "파트너"
+      ],
+      "reports": [
+        "R100",
+        "R300",
+        "R400",
+        "R500"
+      ]
+    },
+    "meta": {
+      "title": "장례 견적 비교 데이터 한계 극복 3대 기획 대안 검토서 (PM 의사결정용)",
+      "memoOnlyPending": false,
+      "typeNote": "끝말 \"기획안\" — 규칙 밖, 제안",
+      "typeSure": false,
+      "statusWhy": "대장 첫 줄 판정 \"경위\" + 근거에 문서 전체 표시",
+      "replacesSrc": [],
+      "topicsBasis": "§2 3대 기획 대안 · §3 종합 비교 (폐기 문서)",
+      "ledgerTopics": "",
+      "flags": [
+        "type 확인",
+        "status 경위기록"
+      ]
+    }
+  },
+  "01-04": {
+    "file": "01_장사시설_매칭/01-04_장례_답사예약_vs_직통전화_UX_및_수익모델_검토서.md",
+    "fm": {
+      "id": "01-04",
+      "type": "검토서",
+      "status": "경위기록",
+      "replaces": [],
+      "topics": [
+        "수익·정산",
+        "파트너"
+      ],
+      "reports": [
+        "R200",
+        "R300",
+        "R500"
+      ]
+    },
+    "meta": {
+      "title": "장례 답사 예약 폼 vs 직통 전화 연결 UX & 수익 모델 검토서 (PM 의사결정용)",
+      "memoOnlyPending": false,
+      "typeNote": "끝말 \"검토서\"",
+      "typeSure": true,
+      "statusWhy": "대장 첫 줄 판정 \"경위\" + 근거에 문서 전체 표시",
+      "replacesSrc": [],
+      "topicsBasis": "§3 PM 기획 대안 · §4 최종 추천 (폐기 문서)",
+      "ledgerTopics": "",
+      "flags": [
+        "status 경위기록"
+      ]
+    }
+  },
+  "01-05": {
+    "file": "01_장사시설_매칭/01-05_장사시설_사업자회원_및_리드_수수료_정산_명세서.md",
+    "fm": {
+      "id": "01-05",
+      "type": "명세서",
+      "status": "결정대기",
+      "replaces": [],
+      "topics": [
+        "파트너",
+        "수익·정산",
+        "개인정보"
+      ],
+      "reports": [
+        "R200",
+        "R300",
+        "R400",
+        "R500",
+        "R700"
+      ]
+    },
+    "meta": {
+      "title": "장사시설 사업자 회원 & 리드 수수료 정산 명세서",
+      "memoOnlyPending": false,
+      "typeNote": "끝말 \"명세서\"",
+      "typeSure": true,
+      "statusWhy": "pending-approvals.md 대기 중 항목",
+      "replacesSrc": [],
+      "topicsBasis": "§3 사업자 회원 체계 · §7 개인정보 · §8 정산",
+      "ledgerTopics": "partner, lead, settlement / privacy / config",
+      "flags": [
+        "status 결정대기"
+      ]
+    }
+  },
+  "01-06": {
+    "file": "01_장사시설_매칭/01-06_시설_태그_분류_체계_명세서.md",
+    "fm": {
+      "id": "01-06",
+      "type": "명세서",
+      "status": "확정",
+      "replaces": [],
+      "topics": [],
+      "reports": [
+        "R200",
+        "R300",
+        "R700"
+      ]
+    },
+    "meta": {
+      "title": "시설 태그(#해시태그) 분류 체계 명세서",
+      "memoOnlyPending": false,
+      "typeNote": "끝말 \"명세서\"",
+      "typeSure": true,
+      "statusWhy": "그 외(기본값)",
+      "replacesSrc": [],
+      "topicsBasis": "§2 화이트리스트 방식 · §4 새 카테고리 추가 — 20개 목록에 맞는 주제 없음",
+      "ledgerTopics": "tags",
+      "flags": [
+        "topics 빈 문서"
+      ]
+    }
+  },
+  "02-01": {
+    "file": "02_전문가_매칭/02-01_전문가상담_도메인_상업화_및_구체화_명세서.md",
+    "fm": {
+      "id": "02-01",
+      "type": "명세서",
+      "status": "확정",
+      "replaces": [],
+      "topics": [
+        "전문가",
+        "법률쟁점",
+        "수익·정산"
+      ],
+      "reports": [
+        "R100",
+        "R200",
+        "R300",
+        "R400",
+        "R410",
+        "R500"
+      ]
+    },
+    "meta": {
+      "title": "전문가 상담 도메인 상업화 및 직역별 컴플라이언스 명세서 (Counseling Master)",
+      "memoOnlyPending": false,
+      "typeNote": "끝말 \"명세서\"",
+      "typeSure": true,
+      "statusWhy": "그 외(대장 메모 \"결정대기\" 4줄은 절 단위라 문서 status에 안 올림)",
+      "replacesSrc": [],
+      "topicsBasis": "§2 직역별 법적 규제 · §3 4단계 상업화 모델 · §4 변호사법 컴플라이언스",
+      "ledgerTopics": "법률쟁점",
+      "flags": []
+    }
+  },
+  "02-02": {
+    "file": "02_전문가_매칭/02-02_전문가_계정_체계_구현_메모.md",
+    "fm": {
+      "id": "02-02",
+      "type": "메모",
+      "status": "결정대기",
+      "replaces": [],
+      "topics": [
+        "전문가",
+        "회원·인증",
+        "법률쟁점"
+      ],
+      "reports": [
+        "R200",
+        "R300",
+        "R400",
+        "R410"
+      ]
+    },
+    "meta": {
+      "title": "전문가 계정 체계 구현 메모 (사장님 보고용 참고자료)",
+      "memoOnlyPending": false,
+      "typeNote": "끝말 \"메모\"",
+      "typeSure": true,
+      "statusWhy": "pending-approvals.md 대기 중 항목",
+      "replacesSrc": [],
+      "topicsBasis": "§1 Partner와 별도 모델 · §2 법적 리스크 메모",
+      "ledgerTopics": "",
+      "flags": [
+        "status 결정대기"
+      ]
+    }
+  },
+  "02-03": {
+    "file": "02_전문가_매칭/02-03_전문가_공개노출_및_상담신청_명세서.md",
+    "fm": {
+      "id": "02-03",
+      "type": "명세서",
+      "status": "확정",
+      "replaces": [],
+      "topics": [
+        "전문가",
+        "법률쟁점",
+        "개인정보"
+      ],
+      "reports": [
+        "R200",
+        "R300",
+        "R400",
+        "R410",
+        "R500",
+        "R600",
+        "R700"
+      ]
+    },
+    "meta": {
+      "title": "전문가 매칭 — 공개 노출 및 상담 신청 명세서",
+      "memoOnlyPending": false,
+      "typeNote": "끝말 \"명세서\"",
+      "typeSure": true,
+      "statusWhy": "그 외(대장 메모 \"결정대기\" 4줄은 절 단위라 문서 status에 안 올림)",
+      "replacesSrc": [],
+      "topicsBasis": "§3 변호사법 가드레일 · §8 개인정보",
+      "ledgerTopics": "법률쟁점 / DB / API",
+      "flags": []
+    }
+  },
+  "02-04": {
+    "file": "02_전문가_매칭/02-04_전문가_매칭_생전_WellDying_축_기획서.md",
+    "fm": {
+      "id": "02-04",
+      "type": "기획서",
+      "status": "확정",
+      "replaces": [],
+      "topics": [
+        "전문가",
+        "법률쟁점",
+        "수익·정산"
+      ],
+      "reports": [
+        "R200",
+        "R300",
+        "R410",
+        "R500"
+      ]
+    },
+    "meta": {
+      "title": "전문가 매칭 — 생전(WellDying) 축 기획서",
+      "memoOnlyPending": false,
+      "typeNote": "끝말 \"기획서\"",
+      "typeSure": true,
+      "statusWhy": "그 외(대장 메모 \"결정대기\" 3줄은 절 단위라 문서 status에 안 올림)",
+      "replacesSrc": [],
+      "topicsBasis": "§6 수익 구조 · §7 변호사법 가드레일",
+      "ledgerTopics": "법률쟁점 / 가족연결",
+      "flags": []
+    }
+  },
+  "02-05": {
+    "file": "02_전문가_매칭/02-05_전문가_직역_확장_및_상황기반_진입_기획서.md",
+    "fm": {
+      "id": "02-05",
+      "type": "기획서",
+      "status": "확정",
+      "replaces": [],
+      "topics": [
+        "전문가",
+        "법률쟁점",
+        "수익·정산"
+      ],
+      "reports": [
+        "R200",
+        "R500"
+      ]
+    },
+    "meta": {
+      "title": "전문가 직역 확장 및 상황 기반 진입 — 기획서",
+      "memoOnlyPending": false,
+      "typeNote": "끝말 \"기획서\"",
+      "typeSure": true,
+      "statusWhy": "그 외(대장 메모 \"결정대기\" 2줄은 절 단위라 문서 status에 안 올림)",
+      "replacesSrc": [],
+      "topicsBasis": "§2 상황 기반 진입 · §3 법무사 추가 · §4 수익 구조",
+      "ledgerTopics": "법률쟁점",
+      "flags": []
+    }
+  },
+  "03-01": {
+    "file": "03_현물_유품_수거/03-01_현물_유품_수거_계정형태_보류_메모.md",
+    "fm": {
+      "id": "03-01",
+      "type": "메모",
+      "status": "경위기록",
+      "replaces": [],
+      "topics": [
+        "파트너",
+        "회원·인증"
+      ],
+      "reports": [
+        "R300"
+      ]
+    },
+    "meta": {
+      "title": "현물 유품 수거 — 계정 형태 보류 메모 (+ 회원 연동 설계 원칙)",
+      "memoOnlyPending": false,
+      "typeNote": "끝말 \"메모\"",
+      "typeSure": true,
+      "statusWhy": "대장 첫 줄 판정 \"경위\" + 근거에 문서 전체 표시",
+      "replacesSrc": [],
+      "topicsBasis": "§2 설계 원칙(회원 연동) · §3 계정 형태 보류",
+      "ledgerTopics": "",
+      "flags": [
+        "status 경위기록"
+      ]
+    }
+  },
+  "03-02": {
+    "file": "03_현물_유품_수거/03-02_현물_유품_수거_도메인_기획서.md",
+    "fm": {
+      "id": "03-02",
+      "type": "기획서",
+      "status": "확정",
+      "replaces": [],
+      "topics": [
+        "파트너",
+        "수익·정산",
+        "법률쟁점"
+      ],
+      "reports": [
+        "R200",
+        "R300",
+        "R400",
+        "R410",
+        "R500",
+        "R600"
+      ]
+    },
+    "meta": {
+      "title": "현물 유품 수거 — 도메인 상위 기획서",
+      "memoOnlyPending": false,
+      "typeNote": "끝말 \"기획서\"",
+      "typeSure": true,
+      "statusWhy": "그 외(기본값)",
+      "replacesSrc": [],
+      "topicsBasis": "§3 Partner 확장 · §4 리드·정산 · §6 이 도메인 고유의 위험",
+      "ledgerTopics": "",
+      "flags": []
+    }
+  },
+  "03-03": {
+    "file": "03_현물_유품_수거/03-03_유품수거_업체_데이터_확보_방안_결정서.md",
+    "fm": {
+      "id": "03-03",
+      "type": "결정서",
+      "status": "결정대기",
+      "replaces": [],
+      "topics": [
+        "공공데이터",
+        "외부연동",
+        "파트너"
+      ],
+      "reports": [
+        "R200",
+        "R300",
+        "R500"
+      ]
+    },
+    "meta": {
+      "title": "유품수거 업체 데이터 확보 방안 결정서",
+      "memoOnlyPending": false,
+      "typeNote": "끝말 \"결정서\"",
+      "typeSure": true,
+      "statusWhy": "pending-approvals.md 대기 중 항목",
+      "replacesSrc": [],
+      "topicsBasis": "§1 공공데이터가 있습니다 · §3 2소스 하이브리드(카카오)",
+      "ledgerTopics": "",
+      "flags": [
+        "status 결정대기"
+      ]
+    }
+  },
+  "04-01": {
+    "file": "04_디지털_자산_정산/04-01_디지털_계정_정리_명세서.md",
+    "fm": {
+      "id": "04-01",
+      "type": "명세서",
+      "status": "확정",
+      "replaces": [
+        "03-02"
+      ],
+      "topics": [
+        "사망·고인",
+        "개인정보"
+      ],
+      "reports": [
+        "R200",
+        "R300",
+        "R400",
+        "R500",
+        "R700"
+      ]
+    },
+    "meta": {
+      "title": "디지털 정산 — 계정 정리 명세서",
+      "memoOnlyPending": false,
+      "typeNote": "끝말 \"명세서\"",
+      "typeSure": true,
+      "statusWhy": "그 외(기본값)",
+      "replacesSrc": [
+        "03-02←색인 부록 A(옛 번호)"
+      ],
+      "topicsBasis": "§3 디지털 계정 정리 설계 · §6 개인정보",
+      "ledgerTopics": "privacy. 탈퇴 시 삭제(accountPurgeService.ts:135)도 이 절에 한 줄 추가 후보",
+      "flags": []
+    }
+  },
+  "04-02": {
+    "file": "04_디지털_자산_정산/04-02_생전위임_문서화_및_대행_가능범위_검토서.md",
+    "fm": {
+      "id": "04-02",
+      "type": "검토서",
+      "status": "확정",
+      "replaces": [],
+      "topics": [
+        "법률쟁점",
+        "사망·고인"
+      ],
+      "reports": [
+        "R200",
+        "R300",
+        "R400",
+        "R410"
+      ]
+    },
+    "meta": {
+      "title": "생전 위임 문서화 · 대행 가능 범위 — 검토서",
+      "memoOnlyPending": false,
+      "typeNote": "끝말 \"검토서\"",
+      "typeSure": true,
+      "statusWhy": "그 외(대장 메모 \"결정대기\" 4줄은 절 단위라 문서 status에 안 올림)",
+      "replacesSrc": [],
+      "topicsBasis": "§2 그릇 3층 · §7 외부 전문가 의뢰 질문지",
+      "ledgerTopics": "legal, delegation",
+      "flags": []
+    }
+  },
+  "04-03": {
+    "file": "04_디지털_자산_정산/04-03_고인_계정_접근범위_및_계정_발견_조사서.md",
+    "fm": {
+      "id": "04-03",
+      "type": "조사서",
+      "status": "확정",
+      "replaces": [],
+      "topics": [
+        "사망·고인",
+        "법률쟁점",
+        "개인정보"
+      ],
+      "reports": [
+        "R200",
+        "R300",
+        "R410",
+        "R500",
+        "R700"
+      ]
+    },
+    "meta": {
+      "title": "고인 계정 접근 범위 · 계정 발견 — 조사서",
+      "memoOnlyPending": false,
+      "typeNote": "끝말 \"조사서\"",
+      "typeSure": true,
+      "statusWhy": "그 외(대장 메모 \"결정대기\" 1줄은 절 단위라 문서 status에 안 올림)",
+      "replacesSrc": [],
+      "topicsBasis": "§1 알아낼 수 없습니다 · §2 계정 발견(Discovery)",
+      "ledgerTopics": "legal, discovery / why-cleanup. 도메인 존재 이유 — 보고서에도 인용 가치",
+      "flags": []
+    }
+  },
+  "04-04": {
+    "file": "04_디지털_자산_정산/04-04_구독_정리_해외사례_조사_및_도입_계획서.md",
+    "fm": {
+      "id": "04-04",
+      "type": "기획서",
+      "status": "확정",
+      "replaces": [],
+      "topics": [
+        "사망·고인",
+        "법률쟁점"
+      ],
+      "reports": [
+        "R200",
+        "R300",
+        "R400",
+        "R500"
+      ]
+    },
+    "meta": {
+      "title": "구독 정리 — 해외 사례 조사 및 도입 계획서",
+      "memoOnlyPending": false,
+      "typeNote": "끝말 \"계획서\" — 규칙 밖, 제안",
+      "typeSure": false,
+      "statusWhy": "그 외(대장 메모 \"결정대기\" 2줄은 절 단위라 문서 status에 안 올림)",
+      "replacesSrc": [],
+      "topicsBasis": "§2 해외 사례 · §3 국내에서 막히는 벽 넷",
+      "ledgerTopics": "",
+      "flags": [
+        "type 확인"
+      ]
+    }
+  },
+  "04-05": {
+    "file": "04_디지털_자산_정산/04-05_구독_정리_해외_법적근거_및_서비스_목업.md",
+    "fm": {
+      "id": "04-05",
+      "type": "메모",
+      "status": "확정",
+      "replaces": [],
+      "topics": [
+        "사망·고인",
+        "법률쟁점"
+      ],
+      "reports": [
+        "R200",
+        "R410",
+        "R700"
+      ]
+    },
+    "meta": {
+      "title": "구독 정리 — 해외 법적 근거 조사 및 서비스 목업",
+      "memoOnlyPending": false,
+      "typeNote": "끝말 \"목업\" — 규칙 밖, 제안",
+      "typeSure": false,
+      "statusWhy": "그 외(대장 메모 \"결정대기\" 4줄은 절 단위라 문서 status에 안 올림)",
+      "replacesSrc": [],
+      "topicsBasis": "§3 사후 효력의 해외 법적 근거 · §4 목업",
+      "ledgerTopics": "subscription, legal-overseas",
+      "flags": [
+        "type 확인"
+      ]
+    }
+  },
+  "05-01": {
+    "file": "05_디지털_추모관/05-01_온라인_추모관_명세서.md",
+    "fm": {
+      "id": "05-01",
+      "type": "명세서",
+      "status": "확정",
+      "replaces": [
+        "03-02"
+      ],
+      "topics": [
+        "사망·고인",
+        "개인정보",
+        "API"
+      ],
+      "reports": [
+        "R100",
+        "R200",
+        "R300",
+        "R400",
+        "R600",
+        "R700"
+      ]
+    },
+    "meta": {
+      "title": "온라인 추모관 명세서",
+      "memoOnlyPending": false,
+      "typeNote": "끝말 \"명세서\"",
+      "typeSure": true,
+      "statusWhy": "그 외(대장 메모 \"결정대기\" 3줄은 절 단위라 문서 status에 안 올림)",
+      "replacesSrc": [
+        "03-02←색인 부록 A(옛 번호)"
+      ],
+      "topicsBasis": "§3 데이터 모델 · §4 API 명세 · §5 개인정보",
+      "ledgerTopics": "",
+      "flags": []
+    }
+  },
+  "05-02": {
+    "file": "05_디지털_추모관/05-02_디지털_추모관_도메인_기획서.md",
+    "fm": {
+      "id": "05-02",
+      "type": "기획서",
+      "status": "확정",
+      "replaces": [
+        "03-03"
+      ],
+      "topics": [
+        "사망·고인",
+        "가족연결",
+        "수익·정산"
+      ],
+      "reports": [
+        "R200",
+        "R300",
+        "R400",
+        "R410",
+        "R500",
+        "R700"
+      ]
+    },
+    "meta": {
+      "title": "디지털 추모관 — 도메인 기획서",
+      "memoOnlyPending": false,
+      "typeNote": "끝말 \"기획서\"",
+      "typeSure": true,
+      "statusWhy": "그 외(대장 메모 \"결정대기\" 10줄은 절 단위라 문서 status에 안 올림)",
+      "replacesSrc": [
+        "03-03←색인 부록 A(옛 번호)"
+      ],
+      "topicsBasis": "§4 역할·권한 구조 · §5 추모관 생애주기 · §9 비용·수익 구조",
+      "ledgerTopics": "",
+      "flags": []
+    }
+  },
+  "06-01": {
+    "file": "06_엔딩노트_유언/06-01_관리자_열람범위_설계_메모.md",
+    "fm": {
+      "id": "06-01",
+      "type": "메모",
+      "status": "폐기",
+      "replaces": [
+        "05-01"
+      ],
+      "topics": [
+        "운영자",
+        "개인정보"
+      ],
+      "reports": [
+        "R300",
+        "R700"
+      ]
+    },
+    "meta": {
+      "title": "관리자 대시보드 — 열람 범위 설계 메모 (기획 상의 필요)",
+      "memoOnlyPending": false,
+      "typeNote": "끝말 \"메모\"",
+      "typeSure": true,
+      "statusWhy": "머리에 통합 표지 표시",
+      "replacesSrc": [
+        "05-01←색인 부록 A(옛 번호)"
+      ],
+      "topicsBasis": "머리 표지 — 관리자 열람 범위(06-03으로 통합)",
+      "ledgerTopics": "",
+      "flags": [
+        "status 폐기"
+      ]
+    }
+  },
+  "06-02": {
+    "file": "06_엔딩노트_유언/06-02_엔딩노트_법적효력_확보_방안_결정서.md",
+    "fm": {
+      "id": "06-02",
+      "type": "결정서",
+      "status": "확정",
+      "replaces": [],
+      "topics": [
+        "법률쟁점",
+        "사망·고인"
+      ],
+      "reports": [
+        "R200",
+        "R410",
+        "R600",
+        "R700"
+      ]
+    },
+    "meta": {
+      "title": "엔딩노트 법적 효력 확보 방안 — 결정서",
+      "memoOnlyPending": false,
+      "typeNote": "끝말 \"결정서\"",
+      "typeSure": true,
+      "statusWhy": "그 외(대장 메모 \"결정대기\" 2줄은 절 단위라 문서 status에 안 올림)",
+      "replacesSrc": [],
+      "topicsBasis": "§3 연명의료 의향 · §4 유언 — 민법 5방식",
+      "ledgerTopics": "principle",
+      "flags": []
+    }
+  },
+  "06-03": {
+    "file": "06_엔딩노트_유언/06-03_엔딩노트_열람통제_및_예외열람_정책.md",
+    "fm": {
+      "id": "06-03",
+      "type": "메모",
+      "status": "확정",
+      "replaces": [
+        "06-01"
+      ],
+      "topics": [
+        "운영자",
+        "개인정보",
+        "암호화·보안"
+      ],
+      "reports": [
+        "R200",
+        "R300",
+        "R400",
+        "R410",
+        "R600",
+        "R700"
+      ]
+    },
+    "meta": {
+      "title": "엔딩노트 열람 통제 · 예외 열람 정책",
+      "memoOnlyPending": false,
+      "typeNote": "끝말 \"정책\" — 규칙 밖, 제안",
+      "typeSure": false,
+      "statusWhy": "그 외(대장 메모 \"결정대기\" 3줄은 절 단위라 문서 status에 안 올림)",
+      "replacesSrc": [
+        "06-01←통합 표지(06-01)"
+      ],
+      "topicsBasis": "§2 4층 구조 · §3 A안 + 예외 열람 통제 · §6 기술적 강화",
+      "ledgerTopics": "",
+      "flags": [
+        "type 확인"
+      ]
+    }
+  },
+  "06-04": {
+    "file": "06_엔딩노트_유언/06-04_엔딩노트_보관함_실구현_기획서.md",
+    "fm": {
+      "id": "06-04",
+      "type": "기획서",
+      "status": "확정",
+      "replaces": [],
+      "topics": [
+        "사망·고인",
+        "개인정보",
+        "암호화·보안"
+      ],
+      "reports": [
+        "R200",
+        "R300",
+        "R400",
+        "R410",
+        "R500",
+        "R600",
+        "R610",
+        "R700"
+      ]
+    },
+    "meta": {
+      "title": "디지털 엔딩노트 & 유족 메시지 보관함 — 실구현 기획서",
+      "memoOnlyPending": false,
+      "typeNote": "끝말 \"기획서\"",
+      "typeSure": true,
+      "statusWhy": "그 외(대장 메모 \"결정대기\" 7줄은 절 단위라 문서 status에 안 올림)",
+      "replacesSrc": [],
+      "topicsBasis": "§6 수집 항목 · §7 열람 시점 · §8 개봉 절차",
+      "ledgerTopics": "data-model / vendor-criteria / stt, vendor / consent",
+      "flags": []
+    }
+  },
+  "06-05": {
+    "file": "06_엔딩노트_유언/06-05_유족메시지_보관함_도메인분리_기획서.md",
+    "fm": {
+      "id": "06-05",
+      "type": "기획서",
+      "status": "확정",
+      "replaces": [],
+      "topics": [
+        "사망·고인",
+        "가족연결",
+        "외부연동"
+      ],
+      "reports": [
+        "R100",
+        "R200",
+        "R300",
+        "R400",
+        "R500",
+        "R600",
+        "R700"
+      ]
+    },
+    "meta": {
+      "title": "유족 메시지 보관함 — 도메인 분리 기획서",
+      "memoOnlyPending": false,
+      "typeNote": "끝말 \"기획서\"",
+      "typeSure": true,
+      "statusWhy": "그 외(대장 메모 \"결정대기\" 1줄은 절 단위라 문서 status에 안 올림)",
+      "replacesSrc": [],
+      "topicsBasis": "§3 분리 경계 · §5 음성(STT) · §4 유언처럼 쓰이는 위험",
+      "ledgerTopics": "export, retention / security-boundary",
+      "flags": []
+    }
+  },
+  "06-06": {
+    "file": "06_엔딩노트_유언/06-06_유언장_사진인식_요건확인_기획서.md",
+    "fm": {
+      "id": "06-06",
+      "type": "기획서",
+      "status": "결정대기",
+      "replaces": [],
+      "topics": [
+        "외부연동",
+        "법률쟁점",
+        "개인정보"
+      ],
+      "reports": [
+        "R200",
+        "R300",
+        "R410",
+        "R500",
+        "R600",
+        "R700",
+        "R730"
+      ]
+    },
+    "meta": {
+      "title": "유언장 사진 인식(OCR) · 요건 확인 기획서",
+      "memoOnlyPending": false,
+      "typeNote": "끝말 \"기획서\"",
+      "typeSure": true,
+      "statusWhy": "pending-approvals.md 대기 중 항목",
+      "replacesSrc": [],
+      "topicsBasis": "§4 OCR 업체 CLOVA · §8 법적 쟁점 · 사진 보관",
+      "ledgerTopics": "",
+      "flags": [
+        "status 결정대기"
+      ]
+    }
+  },
+  "07-01": {
+    "file": "07_상중_행정_케어/07-01_상중_행정_케어_도메인_기획서.md",
+    "fm": {
+      "id": "07-01",
+      "type": "기획서",
+      "status": "확정",
+      "replaces": [],
+      "topics": [
+        "사망·고인",
+        "전문가"
+      ],
+      "reports": [
+        "R200",
+        "R300",
+        "R400",
+        "R410",
+        "R500",
+        "R600",
+        "R700"
+      ]
+    },
+    "meta": {
+      "title": "상중 · 행정 케어 — 도메인 기획서",
+      "memoOnlyPending": false,
+      "typeNote": "끝말 \"기획서\"",
+      "typeSure": true,
+      "statusWhy": "그 외(대장 메모 \"결정대기\" 4줄은 절 단위라 문서 status에 안 올림)",
+      "replacesSrc": [],
+      "topicsBasis": "§6 수익 구조 — 02의 최상위 유입구 · §7 검증 — 정보 품질",
+      "ledgerTopics": "care-guide, checklist / legal-deadline, risk",
+      "flags": []
+    }
+  },
+  "07-02": {
+    "file": "07_상중_행정_케어/07-02_사망후_법정기한_체크리스트_명세서.md",
+    "fm": {
+      "id": "07-02",
+      "type": "명세서",
+      "status": "확정",
+      "replaces": [],
+      "topics": [
+        "사망·고인",
+        "법률쟁점",
+        "전문가"
+      ],
+      "reports": [
+        "R100",
+        "R200",
+        "R300",
+        "R410",
+        "R500",
+        "R700"
+      ]
+    },
+    "meta": {
+      "title": "사망 후 법정 기한 체크리스트 — 명세서",
+      "memoOnlyPending": false,
+      "typeNote": "끝말 \"명세서\"",
+      "typeSure": true,
+      "statusWhy": "그 외(대장 메모 \"결정대기\" 4줄은 절 단위라 문서 status에 안 올림)",
+      "replacesSrc": [],
+      "topicsBasis": "§2 항목 전수(23건) · §5 24시간 긴급 콜 → 상담 채널",
+      "ledgerTopics": "legal-deadline, care-guide / inheritance-renunciation",
+      "flags": []
+    }
+  },
+  "07-03": {
+    "file": "07_상중_행정_케어/07-03_모바일_부고장_카카오톡_전송_구현_기획서.md",
+    "fm": {
+      "id": "07-03",
+      "type": "기획서",
+      "status": "확정",
+      "replaces": [],
+      "topics": [
+        "사망·고인",
+        "외부연동",
+        "개인정보"
+      ],
+      "reports": [
+        "R200",
+        "R300",
+        "R400",
+        "R410",
+        "R600",
+        "R700"
+      ]
+    },
+    "meta": {
+      "title": "모바일 부고장 — 카카오톡 전송 구현 기획서",
+      "memoOnlyPending": false,
+      "typeNote": "끝말 \"기획서\"",
+      "typeSure": true,
+      "statusWhy": "그 외(기본값)",
+      "replacesSrc": [],
+      "topicsBasis": "§2 카카오톡 전송 · §3 미리보기 카드 · §8 보안·개인정보·법률",
+      "ledgerTopics": "obituary, kakao-share / kakao-share",
+      "flags": []
+    }
+  },
+  "07-04": {
+    "file": "07_상중_행정_케어/07-04_상중_행정_가이드_재설계_검토서.md",
+    "fm": {
+      "id": "07-04",
+      "type": "검토서",
+      "status": "확정",
+      "replaces": [],
+      "topics": [
+        "사망·고인",
+        "디자인"
+      ],
+      "reports": [
+        "R200",
+        "R300",
+        "R600",
+        "R700"
+      ]
+    },
+    "meta": {
+      "title": "상중 행정 가이드 재설계 — 검토서",
+      "memoOnlyPending": false,
+      "typeNote": "끝말 \"검토서\"",
+      "typeSure": true,
+      "statusWhy": "그 외(대장 메모 \"결정대기\" 10줄은 절 단위라 문서 status에 안 올림)",
+      "replacesSrc": [],
+      "topicsBasis": "§4 정렬 설계 · §5 강조 체계 · §8-8 아코디언 재설계",
+      "ledgerTopics": "care-guide, deadline",
+      "flags": []
+    }
+  },
+  "08-01": {
+    "file": "08_비즈니스_분석/08-01_경쟁_서비스_분석_보고서.md",
+    "fm": {
+      "id": "08-01",
+      "type": "조사서",
+      "status": "확정",
+      "replaces": [
+        "06-01"
+      ],
+      "topics": [],
+      "reports": [
+        "R100",
+        "R400"
+      ]
+    },
+    "meta": {
+      "title": "경쟁 서비스 분석 및 이어봄만의 융합 차별화 전략 보고서",
+      "memoOnlyPending": false,
+      "typeNote": "끝말 \"보고서\" — 규칙 밖, 제안",
+      "typeSure": false,
+      "statusWhy": "그 외(기본값)",
+      "replacesSrc": [
+        "06-01←색인 부록 A(옛 번호)"
+      ],
+      "topicsBasis": "5대 융합 차별화 핵심 전략 — 20개 목록에 맞는 주제 없음",
+      "ledgerTopics": "",
+      "flags": [
+        "type 확인",
+        "topics 빈 문서"
+      ]
+    }
+  },
+  "TS-001": {
+    "file": "트러블슈팅/TS-001_해시_키_파생_결합.md",
+    "fm": {
+      "id": "TS-001",
+      "type": "메모",
+      "status": "확정",
+      "replaces": [],
+      "topics": [
+        "암호화·보안",
+        "DB"
+      ],
+      "reports": [
+        "R300",
+        "R400",
+        "R600",
+        "R700"
+      ]
+    },
+    "meta": {
+      "title": "중복방지 해시가 조용히 무효화되는 구조 — 키 파생 결합",
+      "memoOnlyPending": false,
+      "typeNote": "끝말 \"결합\" — 규칙 밖, 제안",
+      "typeSure": false,
+      "statusWhy": "그 외(기본값)",
+      "replacesSrc": [],
+      "topicsBasis": "§2 원인 — 키 파생 결합 · §4 조치",
+      "ledgerTopics": "",
+      "flags": [
+        "type 확인"
+      ]
+    }
+  },
+  "TS-002": {
+    "file": "트러블슈팅/TS-002_백업_대상_오인.md",
+    "fm": {
+      "id": "TS-002",
+      "type": "메모",
+      "status": "확정",
+      "replaces": [],
+      "topics": [
+        "DB",
+        "인프라·배포"
+      ],
+      "reports": [
+        "R300",
+        "R400",
+        "R600"
+      ]
+    },
+    "meta": {
+      "title": "백업은 성공했는데 **다른 DB를 떴다** — `backup-db.ps1`의 기본 대상",
+      "memoOnlyPending": false,
+      "typeNote": "끝말 \"오인\" — 규칙 밖, 제안",
+      "typeSure": false,
+      "statusWhy": "그 외(기본값)",
+      "replacesSrc": [],
+      "topicsBasis": "§2 원인 — 백업 기본 대상 · §5 재발 방지",
+      "ledgerTopics": "",
+      "flags": [
+        "type 확인"
+      ]
+    }
+  },
+  "TS-003": {
+    "file": "트러블슈팅/TS-003_환경차이_오인_피드백_렌더위치.md",
+    "fm": {
+      "id": "TS-003",
+      "type": "메모",
+      "status": "확정",
+      "replaces": [],
+      "topics": [
+        "인프라·배포"
+      ],
+      "reports": [
+        "R200",
+        "R300",
+        "R600"
+      ]
+    },
+    "meta": {
+      "title": "\"dev에선 뜨는데 배포에선 안 뜬다\" — 환경 차이가 아니라 렌더 위치였다",
+      "memoOnlyPending": false,
+      "typeNote": "끝말 \"렌더위치\" — 규칙 밖, 제안",
+      "typeSure": false,
+      "statusWhy": "그 외(기본값)",
+      "replacesSrc": [],
+      "topicsBasis": "제목: dev에선 뜨는데 배포에선 안 뜬다 — 렌더 위치",
+      "ledgerTopics": "",
+      "flags": [
+        "type 확인"
+      ]
+    }
+  }
+}

@@ -39,8 +39,10 @@ function domainOf(rel) {
   return m ? m[1] : 'TS';
 }
 
-// 줄바꿈 차이(CRLF/LF)는 내용 변경으로 치지 않는다
-const shaOf = (file) => crypto.createHash('sha1').update(fs.readFileSync(file, 'utf8').replace(/\r\n/g, '\n')).digest('hex').slice(0, 10);
+// 줄바꿈 차이(CRLF/LF)는 내용 변경으로 치지 않는다.
+// 맨 위 YAML frontmatter(모든 줄이 `키: 값`인 --- 블록)는 지문에서 뺀다 — 5단계에서 75개에 삽입해도 "판정 뒤 바뀐 문서"가 되지 않게(docs-catalog.js와 같은 정의)
+const FM_RE = /^(﻿?)---\n(?:[A-Za-z_]+:[^\n]*\n)+---[ \t]*(?:\n|$)/;
+const shaOf = (file) => crypto.createHash('sha1').update(fs.readFileSync(file, 'utf8').replace(/\r\n/g, '\n').replace(FM_RE, '$1')).digest('hex').slice(0, 10);
 
 // 크기 표기는 LF 기준 — CRLF 작업본(윈도우)과 LF 작업본(리눅스·클라우드)이 같은 숫자를 내게 한다(10-08)
 const sizeOf = (file) => Buffer.byteLength(fs.readFileSync(file, 'utf8').replace(/\r\n/g, '\n'));
