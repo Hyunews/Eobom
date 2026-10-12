@@ -1,4 +1,5 @@
 import React, { useEffect, useId, useRef, useState } from 'react';
+import { useIsMobile } from '../hooks/useIsMobile';
 import { X, Check, ExternalLink, ChevronRight } from 'lucide-react';
 import { backdropCloseProps } from '../utils/backdropClose';
 import { LoginGate } from '../components/LoginGate';
@@ -95,10 +96,9 @@ const KISO_28 = {
 // aria-describedby가 스크린리더에 원문을 읽어준다. Escape로 닫을 수 있다(WCAG 1.4.13 Dismissible).
 // 열림 = 눌러 열어둠(open) 또는 (마우스 호버 · 키보드 포커스) 중 Escape로 닫지 않은 것. CSS는 .is-open만 본다.
 // useId — 같은 목록이 웹 칸과 모달에 두 번 그려져 id가 겹치면 안 된다.
-const isWideScreen = () => window.matchMedia('(min-width: 768px)').matches;
-
 const Kiso28Src: React.FC<{ clause: keyof typeof KISO_28 }> = ({ clause }) => {
   const tipId = useId();
+  const isMobile = useIsMobile(); // 00-38 §5.2 — matchMedia 직접 호출 대신 공용 훅(768px 포함 경계를 CSS와 맞춘다)
   const ref = useRef<HTMLSpanElement>(null);
   const [pinned, setPinned] = useState(false);
   const [hovered, setHovered] = useState(false);
@@ -147,7 +147,7 @@ const Kiso28Src: React.FC<{ clause: keyof typeof KISO_28 }> = ({ clause }) => {
         ref={ref}
         className={visible ? 'v2-tip is-open' : 'v2-tip'}
         // 호버는 마우스 + 넓은 화면만 — 터치의 가짜 mouseenter나 좁은 창에서 카드가 펼쳐져 줄이 밀리지 않게 한다
-        onPointerEnter={(e) => e.pointerType === 'mouse' && isWideScreen() && setHovered(true)}
+        onPointerEnter={(e) => e.pointerType === 'mouse' && !isMobile && setHovered(true)}
         onPointerLeave={() => setHovered(false)}
         // 포커스는 키보드로 온 것만 — 눌러서 생긴 포커스까지 세면 두 번째 누름으로 접히지 않는다
         onFocus={(e) => e.target.matches(':focus-visible') && setFocused(true)}

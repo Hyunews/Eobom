@@ -336,6 +336,7 @@ export const BizDashboard: React.FC<BizDashboardProps> = ({ type, name, onLogout
   };
 
   return (
+    <div className="operator-min-width">
     <div className="container" style={{ maxWidth: '720px', padding: '2.2rem 1rem' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.1rem' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
@@ -738,6 +739,7 @@ export const BizDashboard: React.FC<BizDashboardProps> = ({ type, name, onLogout
           </div>
         </>
       )}
+    </div>
     </div>
   );
 };

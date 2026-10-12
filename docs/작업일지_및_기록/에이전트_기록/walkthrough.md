@@ -16,6 +16,16 @@
 > [`_아카이브_2608`](walkthrough_아카이브_2608.md)(08-31분). 남은 것 = 판정 대기 + 판정 표기 없음. 기준 → `record.md` §2-1.
 
 ---
+## 2026-10-12 | [Sonnet] 00 3회차 후속 코드 — 유족메시지 직접 fetch → apiFetch · 운영자 화면 최소폭 1200px · DigitalEstate 훅
+
+- **근거 스펙**: docs/00_공통/00-34 §8 2단계 잔여 · 00-39 §5-0(10-12 개발자 결정) · 00-38 §5.2 (`.harness/docs-audit/README.md` §4 "00 4단계 3회차 결과")
+- **건드린 파일**: eobomDev/frontend/src/components/farewell/FarewellMessageCard.tsx · eobomDev/frontend/src/pages/FarewellMessagePage.tsx · eobomDev/frontend/src/pages/AdminPage.tsx · eobomDev/frontend/src/pages/BizDashboard.tsx · eobomDev/frontend/src/index.css · eobomDev/frontend/src/pages/DigitalEstatePage.tsx
+- **결과**: ① 직접 `fetch` 9곳 전부 제거. 봉투 응답(상세·삭제·저장·음성 삭제·`/api/stt/status`·`store-audio` 업로드)은 `apiFetch`, 파일·blob 응답(전체/건별 반출 zip·음성 재생)은 `apiFetchRaw`(§5.3 원본 Response) — 둘 다 `rawFetch`를 거치므로 USER 401이면 세션 만료 콜백이 불린다. 오류 문구는 `errText`(ApiError면 서버 문구, 아니면 화면 기본 문구). ② `.operator-min-width{min-width:1200px}` 신설 — AdminPage 로그인 후 대시보드 루트와 BizDashboard 바깥 래퍼에 적용(/admin·/partner는 포털 경로라 `.main-wrapper` 밖 → 페이지 가로 스크롤, 소비자 화면 무변경). ③ DigitalEstatePage `matchMedia` → `useIsMobile`. 검증: `tsc --noEmit` 통과 · `npm run build` 통과. **실기동 확인됨(10-12, 개발자)**: 유족메시지 작성·저장·수정·음성 올리기·듣기·반출·삭제 정상 / 토큰 값을 바꾼 뒤 동작 시 "로그인 필요" 확인창 → 확인하면 로그인 모달 / 1200px 미만에서 `/admin`·`/partner` 가로 스크롤.
+- **편차**: ① 로그인·가입 화면(운영자 로그인 420px · 파트너 가입 560px)에는 1200px을 걸지 않음 — 좁은 폼이라 스크롤이 어색. 🟢 개발자가 10-12 "로그인·가입폼에는 걸지 않는다"로 확정(편차 아님). PartnerPortalPage는 로그인 후 BizDashboard를 그리므로 BizDashboard로 갈음. ② `store-audio`의 오류가 `Error`→`ApiError`로 바뀌어 5xx면 문구에 "오류 번호" 줄이 붙음(00-42 §5.2 ③ 공통 처리). ③ `useIsMobile`은 768px 정확히를 모바일로 봄(기존 `min-width:768`은 데스크톱) — 00-38 §5의 CSS 경계에 맞춘 것.
+- **다음 에이전트가 알아야 할 것**: 🟡 남은 실기동 확인 1건 — DigitalEstate 출처 표기 호버(데스크톱 호버 열림·768px 이하 비호버). 나머지는 위 결과대로 확인 끝. `FarewellMessageCard`의 `token` prop은 가드용으로만 남음(헤더 조립은 apiFetch).
+
+<!-- Gemini 판정 대기 -->
+
 ## 2026-10-12 | [Sonnet] 부고장 공개 페이지 "링크 복사" 버튼 — 추모관과 같은 방식
 
 - **근거 스펙**: docs/07_상중_행정_케어/07-03 §6.3-1 (10-12 확정)

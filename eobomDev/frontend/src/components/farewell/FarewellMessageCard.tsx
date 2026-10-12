@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Heart, Plus, Loader2, Pencil, X, Volume2, Trash2, Download, Upload, Mic, FileText, ChevronDown, Check } from 'lucide-react';
-import { BACKEND_URL } from '../../config';
+import { apiFetch, apiFetchRaw, ApiError } from '../../lib/api';
 import { VoiceToTextInput, SavedMedia, PendingVoice } from './VoiceToTextInput';
 import { backdropCloseProps } from '../../utils/backdropClose';
 import { kstTodayCompact, formatKstDateSpaced } from '../../utils/kstDate';
@@ -13,6 +13,10 @@ const sanitizeForFilename = (raw: string): string =>
 const buildExportFilename = (label: string): string => {
   return `eobom_유족메시지_${sanitizeForFilename(label)}_${kstTodayCompact()}.zip`;
 };
+
+// 00-34 §8 — apiFetch가 던지는 ApiError는 서버 문구(5xx면 오류 번호 포함)를 그대로 보여 주고,
+// 그 밖(네트워크 단절 등)은 화면별 기본 문구로 대신한다.
+const errText = (e: unknown, fallback: string): string => (e instanceof ApiError ? e.message : fallback);
 
 // 🆕 09-08 4차 — reports/farewell_messages_redesign.html 시안 B 포팅. 시간까지 보이던 것을
 // 날짜만으로 줄였다("2026. 09. 04." 형식으로 시안과 맞춤).
@@ -124,13 +128,10 @@ export const FarewellMessageCard: React.FC<FarewellMessageCardProps> = ({ recipi
 
   // §6.4-9-5 — 서버에 물어서만 업로드·저장 UI를 켠다(프론트에 플래그를 직접 심지 않는다).
   useEffect(() => {
-    fetch(`${BACKEND_URL}/api/stt/status`)
-      .then((res) => res.json())
+    apiFetch<{ enabled?: boolean; voiceStorageEnabled?: boolean }>('/api/stt/status')
       .then((data) => {
-        if (data.status === 'success') {
-          setSttUploadEnabled(!!data.data?.enabled);
-          setVoiceStorageEnabled(!!data.data?.voiceStorageEnabled);
-        }
+        setSttUploadEnabled(!!data?.enabled);
+        setVoiceStorageEnabled(!!data?.voiceStorageEnabled);
       })
       .catch(() => { });
   }, []);
@@ -217,43 +218,35 @@ export const FarewellMessageCard: React.FC<FarewellMessageCardProps> = ({ recipi
     setLoadingDetail(true);
     setError(null);
     try {
-      const res = await fetch(`${BACKEND_URL}/api/farewell-messages/${id}`, {
-        headers: { Authorization: `Bearer ${token}` },
+      const detail = await apiFetch<any>(`/api/farewell-messages/${id}`, 'USER');
+      setEditingId(id);
+      setTitle(detail.title || '');
+      setBody(detail.body || '');
+      setAudioSrc(null);
+      // 🆕 09-08 6차 — 편지를 열 때 A/B/C 탭이 "저장된 기준"(첨부 음성 유무·형식)을
+      // 따라가게 한다. 텍스트만 있으면 C(직접 쓰기)로 바로 편집. 음성이 있으면 형식으로
+      // Ⓐ업로드/Ⓑ녹음을 추정한다 — 녹음(MediaRecorder)은 거의 항상 webm/opus로 저장되고
+      // (VoiceToTextInput.tsx RECORDER_MIME_CANDIDATES), 업로드는 m4a·mp3·wav가 대부분이라
+      // mediaMime이 이 둘을 가르는 유일하게 저장된 단서다.
+      const hasAudio = !!detail.hasAudio;
+      const mime: string | null = detail.mediaMime ?? null;
+      setActiveMethod(!hasAudio ? 'write' : mime && mime.includes('webm') ? 'record' : 'upload');
+      revokeFetchedAudio();
+      discardPendingVoice();
+      setConvertedUnsaved(false);
+      setUploadConsent(false);
+      setRecordConsent(false);
+      setSaveVoiceEnabled(true);
+      setMediaInfo({
+        hasAudio,
+        mediaMime: mime,
+        mediaDurationSec: detail.mediaDurationSec ?? null,
       });
-      const data = await res.json();
-      if (data.status === 'success') {
-        setEditingId(id);
-        setTitle(data.data.title || '');
-        setBody(data.data.body || '');
-        setAudioSrc(null);
-        // 🆕 09-08 6차 — 편지를 열 때 A/B/C 탭이 "저장된 기준"(첨부 음성 유무·형식)을
-        // 따라가게 한다. 텍스트만 있으면 C(직접 쓰기)로 바로 편집. 음성이 있으면 형식으로
-        // Ⓐ업로드/Ⓑ녹음을 추정한다 — 녹음(MediaRecorder)은 거의 항상 webm/opus로 저장되고
-        // (VoiceToTextInput.tsx RECORDER_MIME_CANDIDATES), 업로드는 m4a·mp3·wav가 대부분이라
-        // mediaMime이 이 둘을 가르는 유일하게 저장된 단서다.
-        const hasAudio = !!data.data.hasAudio;
-        const mime: string | null = data.data.mediaMime ?? null;
-        setActiveMethod(!hasAudio ? 'write' : mime && mime.includes('webm') ? 'record' : 'upload');
-        revokeFetchedAudio();
-        discardPendingVoice();
-        setConvertedUnsaved(false);
-        setUploadConsent(false);
-        setRecordConsent(false);
-        setSaveVoiceEnabled(true);
-        setMediaInfo({
-          hasAudio,
-          mediaMime: mime,
-          mediaDurationSec: data.data.mediaDurationSec ?? null,
-        });
-        setComposerOpen(true);
-      } else {
-        // 🐛 실패해도 열어야 아래 에러 박스가 보인다 — composerOpen이 false면 에러 UI 자체가
-        // 렌더되지 않아 "눌러도 반응 없음"으로 보였다.
-        setError(data.message || '편지를 불러오지 못했습니다.');
-        setComposerOpen(true);
-      }
-    } catch {
-      setError('편지를 불러오는 중 오류가 발생했습니다.');
+      setComposerOpen(true);
+    } catch (e) {
+      // 🐛 실패해도 열어야 아래 에러 박스가 보인다 — composerOpen이 false면 에러 UI 자체가
+      // 렌더되지 않아 "눌러도 반응 없음"으로 보였다.
+      setError(errText(e, '편지를 불러오는 중 오류가 발생했습니다.'));
       setComposerOpen(true);
     } finally {
       setLoadingDetail(false);
@@ -272,20 +265,11 @@ export const FarewellMessageCard: React.FC<FarewellMessageCardProps> = ({ recipi
     setDeletingMessageId(targetId);
     setError(null);
     try {
-      const res = await fetch(`${BACKEND_URL}/api/farewell-messages/${targetId}`, {
-        method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const data = await res.json();
-      if (data.status === 'success') {
-        if (editingId === targetId) resetComposer();
-        onSaved();
-      } else {
-        const msg = data.message || '삭제에 실패했습니다.';
-        if (composerOpen) setError(msg); else window.alert(msg);
-      }
-    } catch {
-      const msg = '삭제 중 오류가 발생했습니다.';
+      await apiFetch(`/api/farewell-messages/${targetId}`, 'USER', { method: 'DELETE' });
+      if (editingId === targetId) resetComposer();
+      onSaved();
+    } catch (e) {
+      const msg = errText(e, '삭제 중 오류가 발생했습니다.');
       if (composerOpen) setError(msg); else window.alert(msg);
     } finally {
       setDeletingMessageId(null);
@@ -307,19 +291,12 @@ export const FarewellMessageCard: React.FC<FarewellMessageCardProps> = ({ recipi
       const payload = isEdit
         ? { title: title.trim() || null, body: bodyText, ...mediaFields }
         : { recipientId: recipient.id, title: title.trim() || null, body: bodyText, ...mediaFields };
-      const res = await fetch(`${BACKEND_URL}/api/farewell-messages${isEdit ? `/${editingId}` : ''}`, {
+      return await apiFetch<any>(`/api/farewell-messages${isEdit ? `/${editingId}` : ''}`, 'USER', {
         method: isEdit ? 'PATCH' : 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify(payload),
       });
-      const data = await res.json();
-      if (data.status === 'success') {
-        return data.data;
-      }
-      setError(data.message || '저장에 실패했습니다.');
-      return null;
-    } catch {
-      setError('저장 중 오류가 발생했습니다.');
+    } catch (e) {
+      setError(errText(e, '저장 중 오류가 발생했습니다.'));
       return null;
     } finally {
       setSaving(false);
@@ -331,18 +308,13 @@ export const FarewellMessageCard: React.FC<FarewellMessageCardProps> = ({ recipi
     const formData = new FormData();
     const ext = voice.mime.includes('webm') ? 'webm' : voice.mime.includes('mp4') || voice.mime.includes('m4a') ? 'm4a' : voice.mime.includes('wav') ? 'wav' : voice.mime.includes('mpeg') ? 'mp3' : 'webm';
     formData.append('audio', voice.blob, voice.blob instanceof File ? voice.blob.name : `recording.${ext}`);
-    const res = await fetch(`${BACKEND_URL}/api/stt/store-audio`, {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${token}` },
-      body: formData,
-    });
-    const data = await res.json();
-    if (data.status !== 'success' || !data.data?.media?.mediaKey) {
-      throw new Error(data.message || '음성 저장에 실패했습니다.');
+    const data = await apiFetch<any>('/api/stt/store-audio', 'USER', { method: 'POST', body: formData });
+    if (!data?.media?.mediaKey) {
+      throw new Error('음성 저장에 실패했습니다.');
     }
     return {
-      mediaKey: data.data.media.mediaKey,
-      mediaMime: data.data.media.mediaMime,
+      mediaKey: data.media.mediaKey,
+      mediaMime: data.media.mediaMime,
       ...(voice.durationSec !== null ? { mediaDurationSec: voice.durationSec } : {}),
     };
   };
@@ -397,9 +369,7 @@ export const FarewellMessageCard: React.FC<FarewellMessageCardProps> = ({ recipi
     setAudioLoading(true);
     setError(null);
     try {
-      const res = await fetch(`${BACKEND_URL}/api/farewell-messages/${editingId}/audio`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await apiFetchRaw(`/api/farewell-messages/${editingId}/audio`, 'USER');
       if (!res.ok) {
         setError('음성을 불러오지 못했습니다.');
         return;
@@ -422,21 +392,13 @@ export const FarewellMessageCard: React.FC<FarewellMessageCardProps> = ({ recipi
     setDeletingAudio(true);
     setError(null);
     try {
-      const res = await fetch(`${BACKEND_URL}/api/farewell-messages/${editingId}/audio`, {
-        method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const data = await res.json();
-      if (data.status === 'success') {
-        revokeFetchedAudio();
-        setAudioSrc(null);
-        setMediaInfo((prev) => (prev ? { ...prev, hasAudio: false } : prev));
-        onSaved();
-      } else {
-        setError(data.message || '삭제에 실패했습니다.');
-      }
-    } catch {
-      setError('삭제 중 오류가 발생했습니다.');
+      await apiFetch(`/api/farewell-messages/${editingId}/audio`, 'USER', { method: 'DELETE' });
+      revokeFetchedAudio();
+      setAudioSrc(null);
+      setMediaInfo((prev) => (prev ? { ...prev, hasAudio: false } : prev));
+      onSaved();
+    } catch (e) {
+      setError(errText(e, '삭제 중 오류가 발생했습니다.'));
     } finally {
       setDeletingAudio(false);
     }
@@ -448,9 +410,7 @@ export const FarewellMessageCard: React.FC<FarewellMessageCardProps> = ({ recipi
     if (!token) return;
     setExportingId(id);
     try {
-      const res = await fetch(`${BACKEND_URL}/api/farewell-messages/${id}/export`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await apiFetchRaw(`/api/farewell-messages/${id}/export`, 'USER');
       if (!res.ok) return;
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);

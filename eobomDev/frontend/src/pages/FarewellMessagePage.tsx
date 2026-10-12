@@ -1,8 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { LoginGate } from '../components/LoginGate';
-import { apiFetch } from '../lib/api';
+import { apiFetch, apiFetchRaw } from '../lib/api';
 import { getToken } from '../lib/storage';
-import { BACKEND_URL } from '../config';
 import { kstTodayCompact } from '../utils/kstDate';
 import { RecipientItem, MessageItem } from '../components/farewell/FarewellMessageCard';
 import { FarewellDesktopView } from '../components/farewell/FarewellDesktopView';
@@ -54,9 +53,7 @@ export const FarewellMessagePage: React.FC<FarewellMessagePageProps> = ({ curren
     if (!token) return;
     setExporting(true);
     try {
-      const res = await fetch(`${BACKEND_URL}/api/farewell-messages/export`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await apiFetchRaw('/api/farewell-messages/export', 'USER');
       if (!res.ok) return;
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);

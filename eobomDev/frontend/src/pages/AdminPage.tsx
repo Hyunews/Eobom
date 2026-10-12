@@ -857,7 +857,7 @@ export const AdminPage: React.FC = () => {
   }
 
   return (
-    <div className="container" style={{ padding: '1.75rem 1rem' }}>
+    <div className="container operator-min-width" style={{ padding: '1.75rem 1rem' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.1rem' }}>
         <h1 style={{ color: 'var(--primary-color)', fontSize: '1.6rem', fontWeight: 'var(--fw-bold)' }}>운영자 승인 대시보드</h1>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
