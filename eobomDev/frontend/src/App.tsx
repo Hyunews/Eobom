@@ -129,7 +129,7 @@ function AppShell() {
   // 마이페이지 소셜 계정 연동 설정 모달 상태
   const [isMyPageOpen, setIsMyPageOpen] = useState<boolean>(false);
   const [myPageMessage, setMyPageMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
-  // 00-28·00-27 §6.3·§8.2 — 마이페이지 > 내 정보 / 가족 지정 모달 상태(MyPageAuthSettings와 같은 패턴)
+  // 00-28 §6.3·00-27 §8.2 — 마이페이지 > 내 정보 / 가족 지정 모달 상태(MyPageAuthSettings와 같은 패턴)
   const [isProfileOpen, setIsProfileOpen] = useState<boolean>(false);
   const [isFamilyDesignationOpen, setIsFamilyDesignationOpen] = useState<boolean>(false);
 

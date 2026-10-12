@@ -245,7 +245,7 @@ export const PickupPage: React.FC<PickupPageProps> = ({ currentUser, onOpenLogin
             <div className="v2-modal-row">
               <span className="v2-modal-label">지역</span>
               <span className="v2-modal-value">
-                📍 {selectedVendor.region} · ★ {selectedVendor.rating}
+                📍 {selectedVendor.region}
               </span>
             </div>
 

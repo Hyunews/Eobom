@@ -3046,3 +3046,22 @@
 
 <!-- Gemini 판정 1줄: ✅통과 / ❌반려(사유) / 🔄스펙갱신(고친 문서) -->
 
+
+
+## 2026-10-12 | 00 2회차 후속 — 방침·약관·유품 화면 사실 오류 정정 + 주석 정리
+
+- **근거 스펙**: docs/00_핵심플랫폼/00-19 제6·7조 편집자 주 · 00-21 제5조·제7조·제16조 편집자 주 · 03-02 §7.2 ③ · .harness/docs-audit/README.md §4 "00 4단계 2회차" (개발자 결정 10-12: 시행일 미정이어도 /privacy·/terms는 공개로 보고 사실 오류를 지금 고침, 새 법적 문구는 만들지 않음)
+- **건드린 파일**: eobomDev/frontend/src/pages/PrivacyPage.tsx, eobomDev/frontend/src/pages/TermsPage.tsx, eobomDev/frontend/src/pages/PickupPage.tsx, eobomDev/frontend/src/mockData/digitalEstate.json, eobomDev/frontend/src/lib/modeNav.ts, eobomDev/frontend/src/App.tsx
+- **결과**:
+  - PrivacyPage 제6조 표: `['클라우드 인프라 사업자', '서비스 서버 운영 및 데이터 보관 (사업자 확정 후 공지)']` → Render(서비스 서버(API) 운영)·Supabase(데이터베이스 보관(서울 리전))·Cloudflare, Inc.(R2)(파일 보관 — 유족 메시지 음성·유언장 사진(암호화 상태)) 3행. 제7조 표: Render(미국)·Cloudflare, Inc.(R2) 2행 추가(00-19 표 문구, 연락처 열은 화면 표에 열이 없어 생략). 3-3 표 `'방명록 작성자(비회원 포함)'` → `'방명록 작성자(회원)'`.
+  - TermsPage: 제5조 `개설한 경우(제15조)` → `(제14조)`(제6조 2항의 제15조는 보존·폐쇄가 맞아 그대로), 제7조 `'플랫폼별 절차 안내 및 진행 상태 관리'` → `'플랫폼별 절차 안내'`.
+  - PickupPage 모달 `📍 {region} · ★ {rating}` → `📍 {region}`, digitalEstate.json 10건의 `"rating": n.n,` 전부 삭제(`rating` 사용처는 이 모달 한 곳뿐이었음).
+  - 주석: modeNav.ts `§ 3.1 생전 준비 모드 — 2개` → `3개`, `00-27 §7.4(2026-08-26 사장님 확정)` → `2026-08-26 사장님 확정`, App.tsx `00-28·00-27 §6.3·§8.2` → `00-28 §6.3·00-27 §8.2`.
+  - 재현: `npx tsc --noEmit -p .`(frontend) 출력 없음 · `npm run build`(frontend) 통과. 실기동은 하지 않음(사람 몫).
+- **편차**:
+  - Cloudflare 이전 국가: 00-19 표는 `[국가 단위 확인 필요]`(관측 = 아시아 태평양)인데 공개 화면에 대괄호 자리표시를 둘 수 없어 `미국(사업자 소재국 기준)`으로 적었다 — 새 법적 문구에 가까우니 Opus 확인 요망.
+  - 제6조 첫 행(`클라우드 인프라 사업자 … 사업자 확정 후 공지`)은 요청에 명시가 없었으나 Render·Supabase·R2가 그 자리를 채우므로 삭제.
+  - App.tsx 주석: 00-27에 §6.3이 없어 `§6.3`을 00-28 쪽에만 붙였다(00-28 §6.3은 MyPageProfile.tsx도 같은 인용). 00-27 §7.4 인용은 출처 절이 없어 날짜·결정자 문구만 남김.
+- **다음 에이전트가 알아야 할 것**: 카카오 행의 "고객 문의 채널"(00-19 제6조 편집자 주)은 법률 판단(`00-22` A-5·C-6) 대기라 이번에 넣지 않았다. 03-02 §7.2 ③ 외에 다른 곳에 창작 별점이 남았는지는 전수 확인하지 않았다(`rating`·`★` 검색은 frontend/src 기준 0건).
+
+<!-- Gemini 판정 1줄: ✅통과 / ❌반려(사유) / 🔄스펙갱신(고친 문서) -->
