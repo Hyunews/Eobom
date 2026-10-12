@@ -4,7 +4,7 @@ import { verifyBearerToken } from './authController';
 import { encryptNoteField, decryptNoteField } from '../utils/crypto';
 import { RELEASED_LOCK_MESSAGE, isEndingNoteReleased } from '../utils/endingNoteLock';
 import { grantDefaultForAllDesignations } from '../utils/endingNoteSections';
-import { isR2Enabled } from '../config/r2';
+import { isVoiceStorageEnabled } from '../config/r2';
 import { downloadVoiceObject } from '../services/r2Storage';
 import {
   streamFarewellMessageExportZip,
@@ -329,7 +329,7 @@ export const getFarewellMessageAudio = async (req: Request, res: Response) => {
     return res.status(401).json({ status: 'error', message: '로그인이 필요합니다.' });
   }
 
-  if (!isR2Enabled()) {
+  if (!isVoiceStorageEnabled()) {
     return res.status(404).json({ status: 'error', message: '음성을 찾을 수 없습니다.' });
   }
 

@@ -2,7 +2,7 @@ import archiver from 'archiver';
 import type { Writable } from 'stream';
 import prisma from '../config/prisma';
 import { decryptNoteField } from '../utils/crypto';
-import { isR2Enabled } from '../config/r2';
+import { isVoiceStorageEnabled } from '../config/r2';
 import { downloadVoiceObject } from './r2Storage';
 import { convertToMp3 } from './audioConvert';
 import { kstIso, kstYmd, kstYmdCompact } from '../utils/kst';
@@ -88,7 +88,7 @@ const buildFarewellMessageZip = async (rows: ExportRow[], destination: Writable)
 
     archive.append(decryptNoteField(row.bodyEnc), { name: `${baseName}.txt` });
 
-    if (row.mediaKey && !row.mediaDeletedAt && isR2Enabled()) {
+    if (row.mediaKey && !row.mediaDeletedAt && isVoiceStorageEnabled()) {
       // eslint-disable-next-line no-await-in-loop
       const original = await downloadVoiceObject(row.mediaKey);
       // eslint-disable-next-line no-await-in-loop

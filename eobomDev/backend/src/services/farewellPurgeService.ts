@@ -1,6 +1,6 @@
 import { DeleteObjectCommand } from '@aws-sdk/client-s3';
 import prisma from '../config/prisma';
-import { isR2Enabled, getVoiceClient, getVoiceBucket } from '../config/r2';
+import { isVoiceStorageEnabled, getVoiceClient, getVoiceBucket } from '../config/r2';
 
 // docs 06-05 §5.6-8·§5.6-8-1·§5.6-8-2·§5.6-8-3-3 — 유족 메시지 파기 로직의 단일 출처.
 // prisma/destroy-farewell-media.ts(스크립트)와 farewellPurgeController.ts(어드민 화면)가
@@ -36,7 +36,7 @@ export async function purgeMediaRow(row: MediaRow): Promise<string | null> {
     await prisma.archivePurgeQueue.create({ data: { mediaKey: key, bucket } });
   }
 
-  if (isR2Enabled()) {
+  if (isVoiceStorageEnabled()) {
     await getVoiceClient().send(new DeleteObjectCommand({ Bucket: bucket, Key: key }));
   }
 
@@ -83,7 +83,7 @@ export async function purgeRetiredRow(row: { id: string; mediaKey: string }): Pr
   if (!dev) {
     await prisma.archivePurgeQueue.create({ data: { mediaKey: row.mediaKey, bucket } });
   }
-  if (isR2Enabled()) {
+  if (isVoiceStorageEnabled()) {
     await getVoiceClient().send(new DeleteObjectCommand({ Bucket: bucket, Key: row.mediaKey }));
   }
   await prisma.farewellMediaRetired.update({ where: { id: row.id }, data: { purgedAt: new Date() }, select: { id: true } });

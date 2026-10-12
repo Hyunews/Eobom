@@ -35,7 +35,8 @@ model User {
   familyDesignations  FamilyDesignation[] // docs 00-27 §4 — 생전 지정한 가족(제3자)
   endingNote          EndingNote? // docs 06-05 §6.1 — 1인 1건. 개봉 상태의 유일한 소유자(§3.2·§3.3)
   deathVerifications  DeathVerification[] // docs 00-41 §4 — 이 회원(엔딩노트 주인)에 대한 사후 개봉 요청 이력
-  willPhotoSets       WillPhotoSet[] // docs 06-06 §5-2 — 보관한 유언장 사진 묶음(🔴 Cascade 금지)
+  ocrDailyUsages      OcrDailyUsage[] // docs 06-06 §4.0-1 — 사진 인식 하루 호출 횟수
+  willPhotoSets       WillPhotoSet[]// docs 06-06 §5-2 — 보관한 유언장 사진 묶음(🔴 Cascade 금지)
 
   // 00-28 회원 프로필 — 전부 선택(§3.1). 신청 스냅샷과 별개다(§2)
   contactPhone      String?   // 숫자만 정규화 저장(utils/phone.ts) — Partner·Expert와 동일 규칙
@@ -53,6 +54,10 @@ model User {
   // 계정 추가연동은 새로 동의를 받지 않음 — 최초 가입 때 이미 받았으므로).
   termsAgreedAt   DateTime? // 서비스 이용약관 동의 시각(필수) — 신규 가입이면 항상 채워짐
   privacyAgreedAt DateTime? // 개인정보 수집·이용 동의 시각(필수) — 신규 가입이면 항상 채워짐
+
+  // 음성 변환(STT) 외부 전송 동의 증적 — docs 06-04 §6.4-11-6-1. 업로드 요청을 처리할 때마다 서버가 '지금'으로 갱신한다
+  // (체크만 하고 올리지 않으면 기록 없음). 화면이 체크 없이는 업로드 버튼을 막으므로 요청 도착 = 동의.
+  sttDataAgreedAt DateTime?
 
   // 회원 탈퇴 — docs 00-36 §4.3·M-3, 06-05 §5.4-2·§5.4-2-1(소프트 삭제 = **시각 필드 방식**). 상태 문자열을
   // 새로 만들지 않는다. 둘 다 null이면 정상 회원. 🔴 런타임에서 행·파일을 지우지 않는다 — 실삭제는
@@ -689,8 +694,19 @@ model ObituaryMourner {
 // ─────────────────────────────────────────────────────────────────
 // 엔딩노트 + 유족 메시지 보관함(Domain 06) — docs/06_엔딩노트_유언/06-04(본체)·06-05(보관함 분리)
 // 06-04 §10 Phase 1(2026-08-27)에서 EndingNoteEntry가 추가됐다 — ①②④⑤⑥⑦⑧⑨⑩ 9개 섹션 본문이
-// 이제 실제로 저장된다. EndingNoteGrant·EndingNoteLog는 여전히 Phase 2·3 몫이라 만들지 않는다(§10).
+// 실제로 저장된다. 열람 시점 부여는 EndingNoteGrant(Phase 2)가 맡는다.
 // ─────────────────────────────────────────────────────────────────
+
+// 사진 글자 인식(OCR) 하루 호출 횟수 — docs 06-06 §4.0-1. 이용자·한국 날짜별 1행. 인메모리 카운터를 대체한다
+// (서버 재시작·다중 인스턴스에서도 한도가 유지된다). createdAt/updatedAt이 없어 Kst 칸·트리거 대상이 아니다.
+model OcrDailyUsage {
+  userId  String
+  user    User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  dateKey String // 한국 날짜 'YYYY-MM-DD' (utils/kst kstYmd)
+  count   Int    @default(0)
+
+  @@id([userId, dateKey])
+}
 
 // 엔딩노트 1건 — User 1:1. 개봉 상태(status)의 유일한 소유자다(06-05 §3.2·§3.3) — FarewellMessage는
 // 자기 상태 필드를 갖지 않고, 이 모델의 status가 RELEASED가 되는 순간 양쪽이 함께 열린다.

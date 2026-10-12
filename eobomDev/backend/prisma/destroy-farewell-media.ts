@@ -39,7 +39,7 @@
 import readline from 'readline';
 import prisma from '../src/config/prisma';
 import { POLICY } from '../src/config/policy';
-import { getVoiceBucket, isR2Enabled } from '../src/config/r2';
+import { getVoiceBucket, isVoiceStorageEnabled } from '../src/config/r2';
 import {
   cutoff,
   isDevEnvironment,
@@ -116,8 +116,8 @@ async function main(): Promise<void> {
   if (!confirmed) {
     console.log('🔴 --confirm 없이 실행됨 — 아무것도 지우지 않습니다. db-safety.md 게이트(승인·백업·파일확인) 통과 후 --confirm으로 재실행할 것.');
   }
-  if (!isR2Enabled()) {
-    console.log('🟡 R2_ENABLED=false — R2 원본 삭제는 건너뛰고 DB 정리만 수행합니다.');
+  if (!isVoiceStorageEnabled()) {
+    console.log('🟡 R2_VOICE_ENABLED=false — R2 원본 삭제는 건너뛰고 DB 정리만 수행합니다.');
   }
 
   const purgedKeys: string[] = [];

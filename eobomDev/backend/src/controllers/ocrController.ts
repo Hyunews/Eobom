@@ -27,35 +27,39 @@ const provider: OcrProvider = new ClovaOcrProvider();
 const MAX_PDF_PAGES = 5; // §4.1 — PDF는 콘솔 한도 10쪽이지만 이어봄은 5쪽까지.
 const DAILY_LIMIT = 10; // §7 #8 — 사용자당 하루 10회.
 
-// 🔴 P1 한정 임시 구현 — 인메모리 카운터다. 서버 재시작·다중 인스턴스에서는 리셋된다.
-// DB에 테이블을 새로 만들려면 마이그레이션(CONFIRM 대상)이 필요해 P1 범위를 벗어난다 —
-// 남용 방지용 1차 가드로 충분하다고 보고 우선 이렇게 둔다. 실사용 노출 전 재검토 필요(walkthrough 기록).
-const dailyCallCounts = new Map<string, { date: string; count: number }>();
-
+// 06-06 §4.0-1 — 하루 횟수는 DB(OcrDailyUsage)에 센다. 서버 재시작·다중 인스턴스에서도 유지된다.
 const todayKey = () => kstYmd(); // 하루 한도가 한국 자정에 초기화된다(이전엔 UTC 자정 = 한국 오전 9시)
 
 // 대기열에 들어가기 전 읽기 전용 확인 — 이미 한도를 다 쓴 사용자가 대기만 차지하지 않게 한다.
-const isDailyLimitReached = (userId: string): boolean => {
-  const entry = dailyCallCounts.get(userId);
-  return !!entry && entry.date === todayKey() && entry.count >= DAILY_LIMIT;
+const isDailyLimitReached = async (userId: string): Promise<boolean> => {
+  const row = await prisma.ocrDailyUsage.findUnique({
+    where: { userId_dateKey: { userId, dateKey: todayKey() } },
+    select: { count: true },
+  });
+  return !!row && row.count >= DAILY_LIMIT;
 };
 
-const checkAndIncrementDailyLimit = (userId: string): boolean => {
-  const today = todayKey();
-  const entry = dailyCallCounts.get(userId);
-  if (!entry || entry.date !== today) {
-    dailyCallCounts.set(userId, { date: today, count: 1 });
-    return true;
-  }
-  if (entry.count >= DAILY_LIMIT) return false;
-  entry.count += 1;
-  return true;
+// 한 문장으로 확인과 증가를 끝낸다(동시 요청이 한도를 넘기지 못한다) — 한도에 닿았으면 행이 반환되지 않는다.
+const checkAndIncrementDailyLimit = async (userId: string): Promise<boolean> => {
+  const rows = await prisma.$queryRaw<{ count: number }[]>`
+    INSERT INTO "OcrDailyUsage" ("userId", "dateKey", "count") VALUES (${userId}, ${todayKey()}, 1)
+    ON CONFLICT ("userId", "dateKey") DO UPDATE SET "count" = "OcrDailyUsage"."count" + 1
+    WHERE "OcrDailyUsage"."count" < ${DAILY_LIMIT}
+    RETURNING "count"`;
+  return rows.length > 0;
 };
 
 // 10-06 — 서버 마감(55초)·연결 오류로 멈춘 요청은 하루 횟수를 되돌린다(실제로 처리한 것만 센다).
-const refundDailyCall = (userId: string) => {
-  const entry = dailyCallCounts.get(userId);
-  if (entry && entry.date === todayKey() && entry.count > 0) entry.count -= 1;
+// 되돌리기 실패가 응답을 막지 않도록 여기서 삼킨다(호출부는 기다리지 않는다).
+const refundDailyCall = async (userId: string): Promise<void> => {
+  try {
+    await prisma.ocrDailyUsage.updateMany({
+      where: { userId, dateKey: todayKey(), count: { gt: 0 } },
+      data: { count: { decrement: 1 } },
+    });
+  } catch (e) {
+    console.error('OCR 하루 횟수 되돌리기 실패:', e);
+  }
 };
 
 // 작업 안에서 낸 "이용자 입력 문제"(400) · "하루 횟수 소진"(429) — 연결 오류(③)와 구분한다.
@@ -101,7 +105,7 @@ export const recognizeWillPhotos = (req: Request, res: Response) => {
 
     const limitReached = () =>
       res.status(429).json({ status: 'error', message: `하루 이용 횟수(${DAILY_LIMIT}회)를 다 쓰셨습니다. 내일 다시 시도해 주세요.` });
-    if (isDailyLimitReached(decoded.id)) return limitReached();
+    if (await isDailyLimitReached(decoded.id)) return limitReached();
 
     // §6.4-11-10 — 음성 변환과 합산한 동시 처리 제한 + 시간 제한(업로드를 다 받은 때부터 55초, 대기 + 처리 합계).
     // 대기 한도·예상 대기를 넘기면 즉시 503(①), 처리 중 마감이면 504(②), CLOVA 오류·연결 실패면 502(③).
@@ -110,7 +114,7 @@ export const recognizeWillPhotos = (req: Request, res: Response) => {
     let counted = false;
     const outcome = await runHeavyJob(res, 'photo', async (signal) => {
       // 대기하는 사이 같은 사용자의 다른 요청이 한도를 채웠을 수 있어 여기서 다시 센다.
-      if (!checkAndIncrementDailyLimit(decoded.id)) throw new DailyLimitError();
+      if (!(await checkAndIncrementDailyLimit(decoded.id))) throw new DailyLimitError();
       counted = true;
 
       // §5 — 성공·실패 무관하게 버퍼는 이 함수 안에서만 산다. memoryStorage라 애초에 디스크에 쓴

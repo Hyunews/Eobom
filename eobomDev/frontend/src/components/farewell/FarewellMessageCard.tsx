@@ -113,7 +113,7 @@ export const FarewellMessageCard: React.FC<FarewellMessageCardProps> = ({ recipi
   const [recordConsent, setRecordConsent] = useState(false);
   const [saveVoiceEnabled, setSaveVoiceEnabled] = useState(true); // §5.5-3 — 기본값 켬
   const [sttUploadEnabled, setSttUploadEnabled] = useState(false);
-  const [voiceStorageEnabled, setVoiceStorageEnabled] = useState(false); // R2_ENABLED — /status로만 판단
+  const [voiceStorageEnabled, setVoiceStorageEnabled] = useState(false); // R2_VOICE_ENABLED — /status로만 판단
 
   const revokeFetchedAudio = () => {
     if (fetchedAudioUrlRef.current) {

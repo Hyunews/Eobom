@@ -6,7 +6,7 @@ import { S3Client } from '@aws-sdk/client-s3';
 // 그래도 미리 3개로 나눠 두는 이유는 나중에 급하게 만들다 공용 클라이언트로 합치는 실수를
 // 막기 위해서다. 셋 다 지연 생성이라 안 쓰는 버킷의 자격증명이 비어 있어도 부팅이 막히지 않는다.
 
-export const isR2Enabled = (): boolean => process.env.R2_ENABLED === 'true';
+export const isVoiceStorageEnabled = (): boolean => process.env.R2_VOICE_ENABLED === 'true';
 
 type R2Purpose = 'VOICE' | 'MEDIA' | 'DOCS';
 
@@ -39,7 +39,7 @@ const getClient = (purpose: R2Purpose): S3Client => {
 };
 
 // docs 06-06 §5-2-1 · 00-11 §5.4-6 — 유언장 사진 전용 버킷. 변수 이름이 음성과 달라(R2_WILL_*) 별도로 만든다.
-// 🔴 R2_ENABLED는 폐기됐고 여기서 보지 않는다(도메인별 스위치).
+// 🔴 옛 R2_ENABLED는 폐기됐고 여기서 보지 않는다(도메인별 스위치: 음성 R2_VOICE_ENABLED · 유언장 사진 R2_WILL_ENABLED).
 const WILL_ENV = ['R2_ENDPOINT', 'R2_WILL_ACCESS_KEY_ID', 'R2_WILL_SECRET_ACCESS_KEY', 'R2_WILL_BUCKET'] as const;
 
 // 버킷 변수가 다 있는가 — 스위치와 무관하다. 사장님 금지로 스위치를 꺼도 이미 보관된 사진은 이 값만 있으면 지울 수 있어야 한다.

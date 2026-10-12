@@ -38,7 +38,7 @@ interface VoiceToTextInputProps {
   blocked: boolean;
   hasPendingVoice: boolean; // 막힌 이유가 "저장 전 음성"이면 안내 문구가 다르다(저장 전 음성 → 저장하면 됨)
   sttUploadEnabled: boolean;
-  voiceStorageEnabled: boolean; // R2_ENABLED
+  voiceStorageEnabled: boolean; // R2_VOICE_ENABLED
   uploadConsent: boolean;
   onUploadConsentChange: (v: boolean) => void;
   recordConsent: boolean;
@@ -528,7 +528,11 @@ export const VoiceToTextInput: React.FC<VoiceToTextInputProps> = ({
 
           {/* 한 줄 안내 — 글자를 줄이고 줄바꿈을 막는다(좁은 폭에서는 줄이 넘치지 않게 말줄임). */}
           <p style={{ fontSize: '12px', color: 'var(--v2-text-muted)', marginBottom: '12px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-            m4a · mp3 · wav · webm, 최대 {MAX_UPLOAD_SIZE_BYTES / 1024 / 1024}MB · {MAX_RECORD_MINUTES}분 이하. 본인의 음성만 올려 주세요.
+            m4a · mp3 · wav · webm, 최대 {MAX_UPLOAD_SIZE_BYTES / 1024 / 1024}MB · {MAX_RECORD_MINUTES}분 이하.
+          </p>
+          {/* 06-04 §6.4-2-3 (10-12 결정) — 문구가 길어 줄바꿈을 허용한다. 검증은 약속하지 않는다. */}
+          <p style={{ fontSize: '12px', color: 'var(--v2-text-muted)', marginTop: '-8px', marginBottom: '12px', lineHeight: 1.5 }}>
+            본인의 음성만 올려 주세요. 다른 사람의 녹음(돌아가신 분의 녹음 포함)은 올리지 마세요. 이 녹음으로 만든 편지는 사후에 지정한 가족에게 전달됩니다.
           </p>
 
           {/* 체크 칸뿐 아니라 문구를 눌러도 토글된다(label이 클릭을 받는다). */}

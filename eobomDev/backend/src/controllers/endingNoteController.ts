@@ -4,7 +4,7 @@ import { verifyBearerToken } from './authController';
 import { encryptNoteField, decryptNoteField } from '../utils/crypto';
 import { RELEASED_LOCK_MESSAGE, isEndingNoteReleased } from '../utils/endingNoteLock';
 import { SECTION_ALLOWED_TIMINGS, grantDefaultForAllDesignations } from '../utils/endingNoteSections';
-import { isR2Enabled } from '../config/r2';
+import { isVoiceStorageEnabled } from '../config/r2';
 import { sendFarewellAudio } from './farewellMessageController';
 
 // docs 06-04 §4.2·§10 Phase 1 — 엔딩노트 본체(EndingNote 메타데이터 + EndingNoteEntry 본문).
@@ -443,7 +443,7 @@ export const getFamilyLetterAudio = async (req: Request, res: Response) => {
   }
   const notFound = () => res.status(404).json({ status: 'error', message: '음성을 찾을 수 없습니다.' });
 
-  if (!isR2Enabled()) return notFound();
+  if (!isVoiceStorageEnabled()) return notFound();
 
   try {
     const row = await prisma.farewellMessage.findUnique({

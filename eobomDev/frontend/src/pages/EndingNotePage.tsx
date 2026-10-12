@@ -1192,6 +1192,11 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
         )}
       </div>
 
+      {/* 06-03 §4.2 (10-12 결정) — 공적 창구 상시 안내 한 줄. 🔴 번호·명칭·운영 시간은 게시 전 외부 확인 대상(확인일 미기재). */}
+      <p style={{ marginTop: '24px', textAlign: 'center', fontSize: '13px', color: 'var(--v2-text-muted)' }}>
+        마음이 힘드실 때 자살예방 상담전화 109(24시간)
+      </p>
+
       {summaryOpen && (
         <SummaryModal rows={summaryRows} onClose={() => setSummaryOpen(false)} onSelectRow={handleSummaryRowSelect} />
       )}

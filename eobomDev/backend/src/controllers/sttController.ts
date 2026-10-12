@@ -3,7 +3,8 @@ import { verifyBearerToken } from './authController';
 import { uploadAudioMemory, MAX_AUDIO_SIZE_BYTES } from '../config/uploadAudio';
 import { ClovaSpeechProvider } from '../services/clovaSpeechProvider';
 import type { SttProvider } from '../services/sttProvider';
-import { isR2Enabled } from '../config/r2';
+import prisma from '../config/prisma';
+import { isVoiceStorageEnabled } from '../config/r2';
 import { uploadVoiceObject } from '../services/r2Storage';
 import { HEAVY_QUEUE_CONFIG } from '../services/heavyQueue';
 import { runHeavyJob, heavyFailureResponse, NoRecognizedTextError, QuotaExceededError } from '../services/heavyJob';
@@ -23,12 +24,12 @@ const isSttEnabled = () => process.env.CLOVA_STT_ENABLED === 'true';
 const provider: SttProvider = new ClovaSpeechProvider();
 
 // 업로드 UI 노출 여부 조회 (`GET /api/stt/status`) — 공개. 플래그 값 자체는 비밀이 아니다.
-// voiceStorageEnabled를 같이 내려 프론트가 "목소리도 함께 남기기" 옵션 자체를 R2_ENABLED와
+// voiceStorageEnabled를 같이 내려 프론트가 "목소리도 함께 남기기" 옵션 자체를 R2_VOICE_ENABLED와
 // 별개로 숨길지 판단하게 한다(STT와 저장은 서로 다른 플래그다) — 06-05 §8 D-1.
 export const getSttStatus = (_req: Request, res: Response) => {
   res.json({
     status: 'success',
-    data: { enabled: isSttEnabled(), voiceStorageEnabled: isR2Enabled() },
+    data: { enabled: isSttEnabled(), voiceStorageEnabled: isVoiceStorageEnabled() },
   });
 };
 
@@ -56,6 +57,14 @@ export const transcribeAudio = (req: Request, res: Response) => {
       return res.status(400).json({ status: 'error', message: '음성 파일을 선택해 주세요.' });
     }
 
+    // 06-04 §6.4-11-6-1 — 동의 증적. 화면이 체크 없이는 업로드를 막으므로 업로드 요청이 도착했다는 것이 동의다.
+    // 기록 실패가 변환을 막지는 않는다(로그만 남김).
+    try {
+      await prisma.user.update({ where: { id: decoded.id }, data: { sttDataAgreedAt: new Date() } });
+    } catch (e) {
+      console.error('STT 동의 증적 기록 실패:', e);
+    }
+
     // §6.4-11-10 음성 길이 상한 — 서버 재확인(대기열 앞). 길이를 못 읽는 파일은 통과(서버 시간 제한이 막는다).
     const durationSec = getAudioDurationSec(file.buffer);
     if (durationSec !== null && durationSec > HEAVY_QUEUE_CONFIG.audioMaxSeconds) {
@@ -73,7 +82,7 @@ export const transcribeAudio = (req: Request, res: Response) => {
       // (Ⓑ에서 "목소리도 함께 남기기"를 끈 상태로 폴백한 경우)에만 건너뛴다.
       let media: { mediaKey: string; mediaMime: string } | undefined;
       const saveAudio = req.body?.saveAudio !== 'false';
-      if (isR2Enabled() && saveAudio) {
+      if (isVoiceStorageEnabled() && saveAudio) {
         try {
           const { mediaKey } = await uploadVoiceObject(file.buffer);
           media = { mediaKey, mediaMime: file.mimetype };
@@ -112,10 +121,10 @@ export const transcribeAudio = (req: Request, res: Response) => {
 
 // 06-05 §8 D-3 — 직접 녹음(Ⓑ)에서 Web Speech 인식이 이미 성공한 경우, 변환 없이 원본 blob만
 // R2에 저장한다 (`POST /api/stt/store-audio`, multipart, field: audio) — 로그인 필요.
-// CLOVA_STT_ENABLED와 무관하게 R2_ENABLED만 본다 — 변환을 하지 않으므로 STT 플래그와는
+// CLOVA_STT_ENABLED와 무관하게 R2_VOICE_ENABLED만 본다 — 변환을 하지 않으므로 STT 플래그와는
 // 별개의 기능이다.
 export const storeVoiceAudio = (req: Request, res: Response) => {
-  if (!isR2Enabled()) {
+  if (!isVoiceStorageEnabled()) {
     return res.status(404).json({ status: 'error', message: '음성 저장 기능이 비활성화되어 있습니다.' });
   }
   const decoded = verifyBearerToken(req);
