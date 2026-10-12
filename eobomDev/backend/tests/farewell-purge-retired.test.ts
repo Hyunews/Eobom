@@ -34,7 +34,7 @@ before(async () => {
   const rows = await prisma.$queryRaw<{ db: string }[]>`SELECT current_database() AS db`;
   assert.ok(rows[0].db.endsWith('_test'), `연결된 DB가 _test가 아닙니다: ${rows[0].db} — 테스트를 중단합니다.`);
   // R2 꺼짐(testEnv) — 버킷 이름만 있으면 원장 쓰기까지 탄다. -dev로 끝나지 않아 원장 행이 생긴다.
-  process.env.R2_BUCKET_FAREWELL_VOICE = 'test-voice-bucket';
+  process.env.R2_VOICE_BUCKET = 'test-voice-bucket';
 
   const admin = await prisma.admin.create({
     data: { email: `purge-${tag}@example.test`, passwordHash: await bcrypt.hash(PASSWORD, 4), name: '파기시험운영자' },

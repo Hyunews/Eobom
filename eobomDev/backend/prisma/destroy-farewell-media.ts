@@ -33,7 +33,7 @@
 //   1단계(여기) — ArchivePurgeQueue에 원장 행 생성 → R2 원본 삭제 → mediaKey 정리.
 //   2단계(사람) — 본인 Cloudflare 로그인(대시보드 또는 wrangler)으로 원장의 키를
 //                 아카이브 버킷에서 직접 지운 뒤, 어드민 화면(D-11)에서 완료 표시한다.
-// 🔴 dev 버킷(R2_BUCKET_FAREWELL_VOICE가 -dev로 끝남)에는 애초에 아카이브가 없다(§5.6-8-2) —
+// 🔴 dev 버킷(R2_VOICE_BUCKET이 -dev로 끝남)에는 애초에 아카이브가 없다(§5.6-8-2) —
 // 이 경우 원장에 쓰지 않고 2단계 안내도 출력하지 않는다. 환경 판별은 farewellPurgeService가 한다.
 
 import readline from 'readline';

@@ -16,6 +16,16 @@
 > [`_아카이브_2608`](walkthrough_아카이브_2608.md)(08-31분). 남은 것 = 판정 대기 + 판정 표기 없음. 기준 → `record.md` §2-1.
 
 ---
+## 2026-10-12 | [Sonnet] R2 변수 이름 정리 — 코드를 새 이름(R2_<도메인>_<항목>)으로
+
+- **근거 스펙**: docs/00_핵심플랫폼/00-11 §5.4-6-2 (10-07 개발자 이름 정리)
+- **건드린 파일**: eobomDev/backend/src/config/r2.ts · eobomDev/backend/.env.example · eobomDev/backend/prisma/destroy-farewell-media.ts(주석) · eobomDev/backend/tests/farewell-purge-retired.test.ts
+- **결과**: `R2_ACCESS_KEY_ID_${purpose}`→`R2_${purpose}_ACCESS_KEY_ID` · `R2_SECRET_ACCESS_KEY_${purpose}`→`R2_${purpose}_SECRET_ACCESS_KEY` · `R2_BUCKET_FAREWELL_VOICE`→`R2_VOICE_BUCKET` · `R2_BUCKET_MEMORIAL_MEDIA`→`R2_MEDIA_BUCKET` · `R2_BUCKET_BIZ_DOCS`→`R2_DOCS_BUCKET` · `R2_ACCOUNT_ID` 삭제(`.env.example`). 옛 이름 폴백 없음. `eobomDev` 전체 Grep으로 옛 이름 0건. 이 4개 파일만 얹은 HEAD에서 `npx tsc --noEmit` exit 0 · `npm test` 450건 중 445 통과(실패 3건 = `heavy-job-http.test.ts`, 변경 전 HEAD에서도 동일).
+- **편차**: 없음. DB 변경 없음.
+- **다음 에이전트가 알아야 할 것**: 로컬 `.env`·Render는 이미 새 이름(Render 9개 확인, `R2_VOICE_BUCKET=eobom-farewell-voice` — 개발자 확인)이라 환경변수 교체 절차 없음. 그동안 코드가 옛 이름을 찾아 운영 음성 저장이 막혔지만, 운영 음성 버킷 마지막 파일이 10-03이고 "음성 원본 R2 저장 실패" 로그가 0건이라 **잃은 원본은 없음**(개발자 확인). 🟡 **배포 뒤 사람이 운영 녹음 1건으로 R2 버킷에 오늘 날짜 파일이 생기는지 확인**.
+
+<!-- Gemini 판정 1줄: ✅통과 / ❌반려(사유) / 🔄스펙갱신(고친 문서) -->
+
 ## 2026-10-08 | [Sonnet] 비제휴 시설 업체 문의 — 서버에서도 거절
 
 - **근거 스펙**: docs/01_장사시설_매칭/01-05 §7.2 · §10-4 · §12.3 (10-08 개발자 결정)

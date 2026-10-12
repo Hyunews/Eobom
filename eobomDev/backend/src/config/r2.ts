@@ -25,8 +25,9 @@ const buildClient = (purpose: R2Purpose): S3Client =>
     region: 'auto',
     endpoint: requireEnv('R2_ENDPOINT'),
     credentials: {
-      accessKeyId: requireEnv(`R2_ACCESS_KEY_ID_${purpose}`),
-      secretAccessKey: requireEnv(`R2_SECRET_ACCESS_KEY_${purpose}`),
+      // 이름 = R2_<도메인>_<항목>(00-11 §5.4-6-2, 10-07 정리). 도메인 이름이 purpose와 같다(VOICE·MEDIA·DOCS).
+      accessKeyId: requireEnv(`R2_${purpose}_ACCESS_KEY_ID`),
+      secretAccessKey: requireEnv(`R2_${purpose}_SECRET_ACCESS_KEY`),
     },
   });
 
@@ -68,6 +69,6 @@ export const getVoiceClient = (): S3Client => getClient('VOICE');
 export const getMediaClient = (): S3Client => getClient('MEDIA');
 export const getDocsClient = (): S3Client => getClient('DOCS');
 
-export const getVoiceBucket = (): string => requireEnv('R2_BUCKET_FAREWELL_VOICE');
-export const getMediaBucket = (): string => requireEnv('R2_BUCKET_MEMORIAL_MEDIA');
-export const getDocsBucket = (): string => requireEnv('R2_BUCKET_BIZ_DOCS');
+export const getVoiceBucket = (): string => requireEnv('R2_VOICE_BUCKET');
+export const getMediaBucket = (): string => requireEnv('R2_MEDIA_BUCKET');
+export const getDocsBucket = (): string => requireEnv('R2_DOCS_BUCKET');
