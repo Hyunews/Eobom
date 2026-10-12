@@ -147,7 +147,12 @@ const LINK_RE = /\[[^\]]*\]\(([^)\s]+)(?:\s+"[^"]*")?\)/g;
 function collectRefs(docs) {
   const byId = new Map(docs.filter((d) => d.id).map((d) => [d.id, d]));
   const byRel = new Map(docs.map((d) => [d.rel, d]));
-  const nums = new Map(docs.map((d) => [d, new Set(d.heads.filter((h) => h.level >= 2).map((h) => secNum(h.title)).filter(Boolean))]));
+  // 부록의 "### 처음 §3." 제목도 §3 대상으로 인정(4단계에서 본문 절을 부록으로 옮긴 것 — 세션 1-b)
+  const headNums = (h) => {
+    const m = /^처음\s*§\s*(\d+(?:[.\-]\d+)*)/.exec(h.title.replace(/^[^\p{L}\p{N}§]*/u, ''));
+    return [secNum(h.title), m && m[1].replace(/\./g, '-')].filter(Boolean);
+  };
+  const nums = new Map(docs.map((d) => [d, new Set(d.heads.filter((h) => h.level >= 2).flatMap(headNums))]));
   const R = { link: [], id: [], sec: [], external: 0, edges: new Map() }; // 각 항목 {doc,line,zone,status,note,text}
   const verdictSec = (target, n) => {
     const have = nums.get(target);
@@ -163,7 +168,8 @@ function collectRefs(docs) {
       const zone = flag === 'zone';
       const ln = doc.lines[i];
       const text = clip(ln.trim(), 70);
-      const push = (kind, status, note) => R[kind].push({ doc, line: i + 1, zone, status, note, text });
+      // 색인 2파일의 § 는 집계만(5단계에서 카드로 다시 생성됨 — 10-13 개발자 결정 B안)
+      const push = (kind, status, note) => R[kind].push({ doc, line: i + 1, zone: zone || (kind === 'sec' && doc.isIndex), status, note, text });
 
       // ① md 링크 — 인라인 코드는 지우고 본다
       const noCode = ln.replace(/`[^`]*`/g, (s) => ' '.repeat(s.length));
@@ -222,19 +228,19 @@ function collectRefs(docs) {
         else {
           // 법령 조문(§28조의8 · "개인정보보호법 §19 ①" · §18~§21)과 날짜(§10-02)는 문서 절이 아니다
           const near = ln.slice(Math.max(0, tk.start - 40), tk.start), after = ln.slice(tk.end, tk.end + 6);
-          if (EXTERNAL_BEFORE.test(near.slice(-30)) || /^\s*(조|[①-⑩])/.test(after) || /(보호법|정보법|사업법|시행령|조문|제\d+조)[^§]*$/.test(near) || /(법|KISO)[\s(（]*$/.test(near)) { R.external++; cur = null; continue; }
-          if (!doc.id) { R.external++; cur = null; continue; } // 색인 파일 안 ID 없는 § 는 대상 불명
-          target = doc; label = doc.id;
+          if (EXTERNAL_BEFORE.test(near.slice(-30)) || /^\s*(조|[①-⑩])/.test(after) || /(보호법|정보법|사업법|시행령|조문|제\d+조)[^§]*$/.test(near) || /(법|KISO)[\s(（]*$/.test(near)) { R.external++; continue; }
+          // 세션 1-b: ID 없는 § 는 같은 줄에서 그 § 앞쪽에 나온 마지막 문서 ID의 절로 본다(없을 때만 같은 문서)
+          if (cur) { target = byId.get(cur.id); label = cur.id; }
+          else if (!doc.id) { R.external++; continue; } // 색인 파일 안 ID 없는 § 는 대상 불명
+          else { target = doc; label = doc.id; }
         }
-        if (!target) { cur = null; continue; } // 없는 문서는 ② 에서 이미 잡음
+        if (!target) continue; // 없는 문서는 ② 에서 이미 잡음
         for (const n of tk.nums) {
           if (/-0\d/.test(n) || Number(n.split('-')[0]) >= 100) { R.external++; continue; } // §08-14 · §10-02 = 날짜 (절 번호는 0으로 시작하는 둘째 칸을 안 쓴다)
           const [st, note] = verdictSec(target, n);
           push('sec', st, st === 'ok' ? '' : `${label} ${note}`);
         }
-        cur = attached ? { id: cur.id, end: tk.end, afterSec: true } : null;
-        // 연쇄(§3·§4)는 SEC_RE가 한 번에 먹으므로 cur을 이어 둘 필요가 거의 없다
-        if (cur) cur.end = tk.end;
+        if (attached) cur.end = tk.end;
       }
     }
   }
@@ -252,7 +258,7 @@ function writeRefs(R, docs, writeFile) {
   out.push('');
   out.push('## 요약');
   out.push('');
-  out.push('| 구분 | 본문 전체 | 정상 | 약함 | 끊김 | 부록 안(집계만) |');
+  out.push('| 구분 | 본문 전체 | 정상 | 약함 | 끊김 | 부록·색인 § 안(집계만) |');
   out.push('|---|---:|---:|---:|---:|---:|');
   let tb = 0, tw = 0;
   for (const [k, name] of kinds) {
@@ -340,19 +346,7 @@ function replacesMap(docs) {
   // 색인 부록 A 대조표(구 문서 → 신 문서) + 통합 표지(표지가 가리키는 새 정본이 표지 번호를 이어받음)
   const map = new Map(); // 신 ID → [{old, src}]
   const add = (nw, old, src) => { if (!map.has(nw)) map.set(nw, []); if (!map.get(nw).some((x) => x.old === old)) map.get(nw).push({ old, src }); };
-  const idx = docs.find((d) => d.rel === '00_DOCS_INDEX.md');
-  if (idx) {
-    let inA = false;
-    for (const ln of idx.lines) {
-      if (/^##\s+.*부록 A/.test(ln)) { inA = true; continue; }
-      if (inA && /^##\s/.test(ln)) break;
-      if (!inA || !ln.startsWith('|')) continue;
-      const c = cellsOf(ln);
-      const old = /`(\d{2}-\d{2})`/.exec(c[0] || '');
-      if (!old) continue;
-      for (const m of (c[2] || '').matchAll(/`(\d{2}-\d{2})`/g)) if (m[1] !== old[1]) add(m[1], old[1], '색인 부록 A(옛 번호)');
-    }
-  }
+  // 세션 1-b(10-12 Opus 검토): 색인 부록 A·B(옛 번호)는 지금 쓰는 다른 문서 ID와 겹쳐서 replaces에 넣지 않는다 — 통합 표지 출처만
   for (const d of docs) {
     if (!d.id) continue;
     const head = d.lines.slice(d.start, d.start + 14).join('\n');
@@ -419,6 +413,8 @@ function cmdDraft(args) {
   const repl = replacesMap(docs);
   const propPath = path.join(AUDIT, 'topics_proposal.json');
   const proposal = fs.existsSync(propPath) ? JSON.parse(rd(propPath)) : {};
+  const ovPath = path.join(AUDIT, 'draft_overrides.json'); // 사람이 정한 칸 덮어쓰기: { "06-03": { "type": "결정서", "why": "..." } }
+  const overrides = fs.existsSync(ovPath) ? JSON.parse(rd(ovPath)) : {};
   const target = docs.filter((d) => d.id); // 색인 3개는 id가 없어 자동 제외 → 75개
   const out = {};
   const bad = [];
@@ -426,6 +422,8 @@ function cmdDraft(args) {
     const rows = ledgers.get(d.rel);
     const head = d.lines.slice(d.start, d.start + 14).join('\n');
     const ty = proposeType(d);
+    const ov = overrides[d.id] || {};
+    if (ov.type) { ty.type = ov.type; ty.sure = true; ty.note = `수동값(draft_overrides.json) — ${ov.why || ''}`; }
     const st = proposeStatus(d, rows, pend, head);
     const p = proposal[d.id] || { topics: [], basis: '' };
     for (const t of p.topics) if (!TOPICS.includes(t)) bad.push(`${d.id} topics "${t}" — 20개 목록에 없음`);

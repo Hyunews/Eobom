@@ -1672,9 +1672,7 @@
       "id": "04-01",
       "type": "명세서",
       "status": "확정",
-      "replaces": [
-        "03-02"
-      ],
+      "replaces": [],
       "topics": [
         "사망·고인",
         "개인정보"
@@ -1693,9 +1691,7 @@
       "typeNote": "끝말 \"명세서\"",
       "typeSure": true,
       "statusWhy": "그 외(기본값)",
-      "replacesSrc": [
-        "03-02←색인 부록 A(옛 번호)"
-      ],
+      "replacesSrc": [],
       "topicsBasis": "§3 디지털 계정 정리 설계 · §6 개인정보",
       "ledgerTopics": "privacy. 탈퇴 시 삭제(accountPurgeService.ts:135)도 이 절에 한 줄 추가 후보",
       "flags": []
@@ -1832,9 +1828,7 @@
       "id": "05-01",
       "type": "명세서",
       "status": "확정",
-      "replaces": [
-        "03-02"
-      ],
+      "replaces": [],
       "topics": [
         "사망·고인",
         "개인정보",
@@ -1855,9 +1849,7 @@
       "typeNote": "끝말 \"명세서\"",
       "typeSure": true,
       "statusWhy": "그 외(대장 메모 \"결정대기\" 3줄은 절 단위라 문서 status에 안 올림)",
-      "replacesSrc": [
-        "03-02←색인 부록 A(옛 번호)"
-      ],
+      "replacesSrc": [],
       "topicsBasis": "§3 데이터 모델 · §4 API 명세 · §5 개인정보",
       "ledgerTopics": "",
       "flags": []
@@ -1869,9 +1861,7 @@
       "id": "05-02",
       "type": "기획서",
       "status": "확정",
-      "replaces": [
-        "03-03"
-      ],
+      "replaces": [],
       "topics": [
         "사망·고인",
         "가족연결",
@@ -1892,9 +1882,7 @@
       "typeNote": "끝말 \"기획서\"",
       "typeSure": true,
       "statusWhy": "그 외(대장 메모 \"결정대기\" 10줄은 절 단위라 문서 status에 안 올림)",
-      "replacesSrc": [
-        "03-03←색인 부록 A(옛 번호)"
-      ],
+      "replacesSrc": [],
       "topicsBasis": "§4 역할·권한 구조 · §5 추모관 생애주기 · §9 비용·수익 구조",
       "ledgerTopics": "",
       "flags": []
@@ -1906,9 +1894,7 @@
       "id": "06-01",
       "type": "메모",
       "status": "폐기",
-      "replaces": [
-        "05-01"
-      ],
+      "replaces": [],
       "topics": [
         "운영자",
         "개인정보"
@@ -1924,9 +1910,7 @@
       "typeNote": "끝말 \"메모\"",
       "typeSure": true,
       "statusWhy": "머리에 통합 표지 표시",
-      "replacesSrc": [
-        "05-01←색인 부록 A(옛 번호)"
-      ],
+      "replacesSrc": [],
       "topicsBasis": "머리 표지 — 관리자 열람 범위(06-03으로 통합)",
       "ledgerTopics": "",
       "flags": [
@@ -1968,7 +1952,7 @@
     "file": "06_엔딩노트_유언/06-03_엔딩노트_열람통제_및_예외열람_정책.md",
     "fm": {
       "id": "06-03",
-      "type": "메모",
+      "type": "결정서",
       "status": "확정",
       "replaces": [
         "06-01"
@@ -1990,17 +1974,15 @@
     "meta": {
       "title": "엔딩노트 열람 통제 · 예외 열람 정책",
       "memoOnlyPending": false,
-      "typeNote": "끝말 \"정책\" — 규칙 밖, 제안",
-      "typeSure": false,
+      "typeNote": "수동값(draft_overrides.json) — A안 확정 문서 (10-12 Opus 검토)",
+      "typeSure": true,
       "statusWhy": "그 외(대장 메모 \"결정대기\" 3줄은 절 단위라 문서 status에 안 올림)",
       "replacesSrc": [
         "06-01←통합 표지(06-01)"
       ],
       "topicsBasis": "§2 4층 구조 · §3 A안 + 예외 열람 통제 · §6 기술적 강화",
       "ledgerTopics": "",
-      "flags": [
-        "type 확인"
-      ]
+      "flags": []
     }
   },
   "06-04": {
@@ -2243,9 +2225,7 @@
       "id": "08-01",
       "type": "조사서",
       "status": "확정",
-      "replaces": [
-        "06-01"
-      ],
+      "replaces": [],
       "topics": [],
       "reports": [
         "R100",
@@ -2258,9 +2238,7 @@
       "typeNote": "끝말 \"보고서\" — 규칙 밖, 제안",
       "typeSure": false,
       "statusWhy": "그 외(기본값)",
-      "replacesSrc": [
-        "06-01←색인 부록 A(옛 번호)"
-      ],
+      "replacesSrc": [],
       "topicsBasis": "5대 융합 차별화 핵심 전략 — 20개 목록에 맞는 주제 없음",
       "ledgerTopics": "",
       "flags": [
