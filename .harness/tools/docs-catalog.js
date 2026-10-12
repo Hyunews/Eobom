@@ -541,7 +541,7 @@ function cmdApply(args) {
 const marker = (name) => ({ b: `<!-- AUTO-GENERATED:BEGIN docs-catalog:${name} (docs-catalog.js — 직접 수정 금지, 문서 frontmatter를 고치고 index를 재실행) -->`, e: '<!-- AUTO-GENERATED:END -->', re: new RegExp(`<!--\\s*AUTO-GENERATED:BEGIN docs-catalog:${name}\\b[^>]*-->`) });
 
 function gitDate(r) {
-  try { return execFileSync('git', ['log', '-1', '--format=%cs', '--', path.join('docs', r)], { cwd: ROOT, encoding: 'utf8' }).trim() || '-'; } catch (e) { return '-'; }
+  try { return execFileSync('git', ['log', '-1', '--format=%cd', '--date=short', '--', path.join('docs', r)], { cwd: ROOT, encoding: 'utf8' }).trim() || '-'; } catch (e) { return '-'; }
 }
 
 function reportPath(id, dom) {
