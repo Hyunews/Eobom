@@ -155,6 +155,7 @@ export const createObituary = async (req: Request, res: Response) => {
                   deceasedDeathDate: deceased.deathDate,
                   visibility: 'LINK',
                   falseReportAgreedAt: now,
+                  resharedNoticeAckAt: now, // 부고장에서 받은 확인 시각을 그대로 적는다(00-13 §8 #6)
                   createdAt: now,
                   expiresAt: calculateMemorialExpiresAt(now), // 00-20 §5.2-2 — 개설일 + 395일(memorialController와 같은 함수)
                 },
@@ -301,12 +302,34 @@ export const getObituaryBySlug = async (req: Request, res: Response) => {
   }
 };
 
+// 카톡 카드(OG) 전용 조회 (`GET /api/obituaries/:slug/og`) — 07-03 §3.4 Phase 2, 카드 내용은 00-13 §8 #8.
+// 🔴 고인 이름만 내려준다 — 빈소·연락처·계좌는 카드에 넣지 않기로 확정(09-30)돼 이 응답에도 싣지 않는다.
+// 🔴 조회수(viewCount)를 올리지 않는다: 프론트 서버 함수가 페이지를 열 때마다 이 경로를 먼저 부르므로, 여기서 세면 조문객 1명이 2번 집계된다.
+// 없는·종료된(수동 종료 또는 발인+3일) 부고장은 404 — 함수가 이름 없는 기본 카드로 대신한다. 개설자 예외 없음(토큰을 받지 않는다).
+export const getObituaryOgBySlug = async (req: Request, res: Response) => {
+  try {
+    const obituary = await prisma.obituary.findUnique({
+      where: { slug: req.params.slug },
+      select: { closedAt: true, funeralAt: true, deceased: { select: { name: true } } },
+    });
+    if (!obituary || isObituaryClosed(obituary)) {
+      return res.status(404).json({ status: 'error', message: '부고장을 찾을 수 없습니다.' });
+    }
+    return res.json({ status: 'success', data: { deceasedName: obituary.deceased.name } });
+  } catch (error) {
+    console.error('부고장 카드 조회 실패:', error);
+    return res.status(500).json({ status: 'error', message: '부고장 조회 중 오류가 발생했습니다.' });
+  }
+};
+
 // 수정 (`PATCH /api/obituaries/:id`) — 개설자만. 카드 반영 필드(§5.4-2)가 바뀌면
 // cardFieldsUpdatedAt을 갱신해 프론트가 "다시 공유해 주세요" 안내를 띄울 수 있게 한다.
 // 🆕 09-07 — `00-13` §4.5-4-2 ㉮(사후 연결) 채택. 개설 시 추모관 체크박스를 꺼뒀던 부고장도
 // 수정 폼의 같은 체크박스로 나중에 추모관을 만들어 연결할 수 있다. 🔴 이미 연결돼 있으면
 // 아무것도 하지 않는다(멱등) — 두 번째 추모관을 또 만들지 않는다. 🔴 §4.5-4-3의 "역방향은
 // 만들지 않는다" 권고대로, 추모관 쪽에서 부고장을 만드는 기능은 두지 않는다.
+class LinkConflictError extends Error {}
+
 export const updateObituary = async (req: Request, res: Response) => {
   const decoded = verifyBearerToken(req);
   if (!decoded) {
@@ -328,8 +351,16 @@ export const updateObituary = async (req: Request, res: Response) => {
     accountNumber?: string | null; // 평문 입력 → encryptField로 암호화해서만 저장
     accountHolder?: string | null;
     createMemorial?: boolean;
+    memorialId?: string; // 🆕 10-12 — 따로 만든 추모관 잇기(00-13 §4.5-4-2). createMemorial과 함께 오면 400
     falseReportAgreed?: boolean;
   };
+
+  if (body.memorialId !== undefined && (typeof body.memorialId !== 'string' || !body.memorialId.trim())) {
+    return res.status(400).json({ status: 'error', message: '잇을 추모관을 다시 선택해 주세요.' });
+  }
+  if (body.memorialId && body.createMemorial) {
+    return res.status(400).json({ status: 'error', message: '추모관 만들기와 내 추모관 잇기는 함께 고를 수 없습니다.' });
+  }
 
   if (body.accountEnabled && (!body.accountBankName?.trim() || !body.accountNumber?.trim() || !body.accountHolder?.trim())) {
     return res.status(400).json({ status: 'error', message: '마음 전하실 곳을 켰다면 은행 · 계좌번호 · 예금주를 모두 입력해야 합니다.' });
@@ -350,6 +381,30 @@ export const updateObituary = async (req: Request, res: Response) => {
     const willCreateMemorial = !!body.createMemorial && !existing.memorialId;
     if (willCreateMemorial && !body.falseReportAgreed) {
       return res.status(400).json({ status: 'error', message: '허위로 추모관을 개설할 경우 법적 책임을 질 수 있다는 점에 동의해야 합니다.' });
+    }
+
+    // 🆕 10-12 — 따로 만든 추모관 잇기(00-13 §4.5-4-2). 거절 조건은 스펙 표 순서대로.
+    // 허위 개설 동의·재전파 고지는 추모관을 만들 때 이미 받았으므로 다시 묻지 않는다.
+    let linkTarget: { id: string; deceasedId: string } | null = null;
+    if (body.memorialId) {
+      if (existing.memorialId) {
+        return res.status(409).json({ status: 'error', message: '이 부고장에는 이미 추모관이 이어져 있습니다.' });
+      }
+      const target = await prisma.memorial.findUnique({
+        where: { id: body.memorialId },
+        select: { id: true, deceasedId: true, createdByUserId: true, hiddenAt: true, closedAt: true, obituary: { select: { id: true } } },
+      });
+      // 없음·남의 것·닫힌 것은 모두 404 — 존재를 숨긴다(00-04 §5). 닫힘(closedAt)은 스펙 표에 없으나 공개 열람이 "찾을 수 없음"이라 같은 취급.
+      if (!target || target.createdByUserId !== decoded.id || target.closedAt) {
+        return res.status(404).json({ status: 'error', message: '추모관을 찾을 수 없습니다.' });
+      }
+      if (target.obituary) {
+        return res.status(409).json({ status: 'error', message: '이 추모관은 이미 다른 부고장에 이어져 있습니다.' });
+      }
+      if (target.hiddenAt) {
+        return res.status(409).json({ status: 'error', message: '내려진 추모관은 부고장에 이을 수 없습니다.' });
+      }
+      linkTarget = { id: target.id, deceasedId: target.deceasedId };
     }
 
     const before: TriggerSnapshot = {
@@ -389,11 +444,40 @@ export const updateObituary = async (req: Request, res: Response) => {
               deceasedDeathDate: afterDeathDate,
               visibility: 'LINK',
               falseReportAgreedAt: now,
+              resharedNoticeAckAt: existing.resharedNoticeAckAt, // 부고장 확인 시각 복사(00-13 §8 #6)
               createdAt: now,
               expiresAt: calculateMemorialExpiresAt(now), // 00-20 §5.2-2 — 개설일 + 395일
             },
           })
         : null;
+
+      // 🆕 10-12 — 잇기: 고인 기록 합치기. 부고장 쪽 Deceased를 남기고 추모관을 그쪽으로 옮긴다(한 트랜잭션).
+      let linkedMemorial: { id: string; slug: string } | null = null;
+      if (linkTarget) {
+        const keepId = existing.deceased.id;
+        if (linkTarget.deceasedId !== keepId) {
+          const oldDeceased = await tx.deceased.findUnique({ where: { id: linkTarget.deceasedId }, select: { id: true, userId: true } });
+          const kept = await tx.deceased.findUnique({ where: { id: keepId }, select: { userId: true } });
+          if (oldDeceased?.userId && kept?.userId && oldDeceased.userId !== kept.userId) {
+            throw new LinkConflictError('두 기록의 고인 회원 연결이 서로 달라 이을 수 없습니다.');
+          }
+          if (oldDeceased?.userId && !kept?.userId) {
+            // userId는 @unique — 옛 행에서 먼저 비운 뒤 남길 행에 옮긴다.
+            await tx.deceased.update({ where: { id: oldDeceased.id }, data: { userId: null } });
+            await tx.deceased.update({ where: { id: keepId }, data: { userId: oldDeceased.userId } });
+          }
+          await tx.memorial.update({ where: { id: linkTarget.id }, data: { deceasedId: keepId } });
+          // 옛 행은 이어진 부고장·추모관이 더 없을 때만 지운다(고아 행 정리).
+          const [obits, mems] = await Promise.all([
+            tx.obituary.count({ where: { deceasedId: linkTarget.deceasedId } }),
+            tx.memorial.count({ where: { deceasedId: linkTarget.deceasedId } }),
+          ]);
+          if (obits === 0 && mems === 0) {
+            await tx.deceased.delete({ where: { id: linkTarget.deceasedId } });
+          }
+        }
+        linkedMemorial = await tx.memorial.findUnique({ where: { id: linkTarget.id }, select: { id: true, slug: true } });
+      }
 
       const updated = await tx.obituary.update({
         where: { id: existing.id },
@@ -412,10 +496,11 @@ export const updateObituary = async (req: Request, res: Response) => {
           ...(body.accountHolder !== undefined ? { accountHolder: body.accountEnabled ? body.accountHolder?.trim() || null : null } : {}),
           ...(cardFieldsChanged ? { cardFieldsUpdatedAt: now } : {}),
           ...(newMemorial ? { memorialId: newMemorial.id } : {}),
+          ...(linkedMemorial ? { memorialId: linkedMemorial.id } : {}),
         },
       });
 
-      return { updatedObituary: updated, memorial: newMemorial };
+      return { updatedObituary: updated, memorial: newMemorial ?? linkedMemorial };
     });
 
     return res.json({
@@ -428,7 +513,14 @@ export const updateObituary = async (req: Request, res: Response) => {
         ...(memorial ? { memorialSlug: memorial.slug, memorialUrl: `${captureFrontendOrigin(req) || FRONTEND_URL}/m/${memorial.slug}` } : {}),
       },
     });
-  } catch (error) {
+  } catch (error: any) {
+    if (error instanceof LinkConflictError) {
+      return res.status(409).json({ status: 'error', message: error.message });
+    }
+    // 동시에 같은 추모관을 이은 경우 Obituary.memorialId @unique가 막는다.
+    if (error?.code === 'P2002' && body.memorialId) {
+      return res.status(409).json({ status: 'error', message: '이 추모관은 이미 다른 부고장에 이어져 있습니다.' });
+    }
     console.error('부고장 수정 실패:', error);
     return res.status(500).json({ status: 'error', message: '부고장 수정 중 오류가 발생했습니다.' });
   }

@@ -42,12 +42,13 @@ const VISIBILITY_LABEL: Record<string, string> = {
   LINK: '링크로만 공개',
 };
 
-type FieldErrorKey = 'deceased' | 'falseReport';
+type FieldErrorKey = 'deceased' | 'falseReport' | 'reshared';
 
 // 화면 위→아래 순서 — 제출 실패 시 첫 오류 칸으로 포커스를 옮기는 데 쓴다(00-39 규칙 17 ④)
 const FIELD_ERROR_ORDER: { key: FieldErrorKey; id: string }[] = [
   { key: 'deceased', id: 'mem-deceased' },
   { key: 'falseReport', id: 'mem-false-report' },
+  { key: 'reshared', id: 'mem-reshared' },
 ];
 
 type ModalStep = 'detail' | 'confirm-delete' | 'edit';
@@ -108,6 +109,7 @@ export const MemorialPage: React.FC<MemorialPageProps> = ({ currentUser, onOpenL
   const [epitaph, setEpitaph] = useState('');
   const [visibility, setVisibility] = useState('LINK');
   const [falseReportAgreed, setFalseReportAgreed] = useState(false);
+  const [resharedNoticeAck, setResharedNoticeAck] = useState(false); // 00-13 §8 #6 — 추모관 단독 개설에도 재전파 고지
   const [submitting, setSubmitting] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<Partial<Record<FieldErrorKey, string>>>({});
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -133,6 +135,7 @@ export const MemorialPage: React.FC<MemorialPageProps> = ({ currentUser, onOpenL
     setEpitaph('');
     setVisibility('LINK');
     setFalseReportAgreed(false);
+    setResharedNoticeAck(false);
     setFieldErrors({});
     setErrorMsg(null);
   };
@@ -143,6 +146,7 @@ export const MemorialPage: React.FC<MemorialPageProps> = ({ currentUser, onOpenL
     const errs: Partial<Record<FieldErrorKey, string>> = {};
     if (!deceasedName.trim()) errs.deceased = '고인 성함을 입력해 주세요.';
     if (!falseReportAgreed) errs.falseReport = '확인이 필요한 항목입니다.';
+    if (!resharedNoticeAck) errs.reshared = '확인이 필요한 항목입니다.';
     const errCount = Object.keys(errs).length;
     if (errCount > 0) {
       setFieldErrors(errs);
@@ -163,6 +167,7 @@ export const MemorialPage: React.FC<MemorialPageProps> = ({ currentUser, onOpenL
           epitaph: epitaph.trim() || undefined,
           visibility,
           falseReportAgreed,
+          resharedNoticeAck,
         }),
       });
       resetForm();
@@ -313,6 +318,19 @@ export const MemorialPage: React.FC<MemorialPageProps> = ({ currentUser, onOpenL
                   <span><span className="v2-req">필수</span> 허위로 추모관을 개설할 경우 법적 책임을 질 수 있다는 점에 동의합니다.</span>
                 </label>
                 {fieldErrors.falseReport && <p className="v2-error-text v2-check-error" style={{ margin: 0 }}>{fieldErrors.falseReport}</p>}
+              </div>
+              <div>
+                <label className="v2-check" htmlFor="mem-reshared">
+                  <input
+                    id="mem-reshared"
+                    type="checkbox"
+                    checked={resharedNoticeAck}
+                    aria-invalid={fieldErrors.reshared ? true : undefined}
+                    onChange={(e) => { setResharedNoticeAck(e.target.checked); clearFieldError('reshared'); }}
+                  />
+                  <span><span className="v2-req">필수</span> 이 추모관 링크를 전달받은 분이 다시 다른 곳에 공유할 수 있다는 점을 확인했습니다.</span>
+                </label>
+                {fieldErrors.reshared && <p className="v2-error-text v2-check-error" style={{ margin: 0 }}>{fieldErrors.reshared}</p>}
               </div>
             </section>
 

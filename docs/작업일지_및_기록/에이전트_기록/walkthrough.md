@@ -26,6 +26,38 @@
 
 <!-- Gemini 판정 1줄: ✅통과 / ❌반려(사유) / 🔄스펙갱신(고친 문서) -->
 
+## 2026-10-12 | [Sonnet] 00 1회차 코드 5건 — 추모관 잇기 · 추모관 재전파 고지 · 비활성 계정 · noindex · 카톡 미리보기 서버 렌더
+
+- **근거 스펙**: docs/00_핵심플랫폼/00-13 §4.5-4-2(①) · §8 #6(②④의 §7.2-2) · 00-12 §5.3 "1차 스펙"(③) · docs/07_상중_행정_케어/07-03 §3.4·Phase 2 #6 + 00-13 §8 #8(⑥) · (R2 변수명은 바로 위 별도 항목)
+- **건드린 파일**:
+  - backend: prisma/schema.prisma(`Memorial.resharedNoticeAckAt` · `User.memorializedAt`) · prisma/migrations/20261012140000_add_memorial_reshared_ack_and_user_memorialized/migration.sql(신규, 추가형 2칸) · src/controllers/obituaryController.ts(`updateObituary` memorialId 잇기 · 추모관 생성 2곳에 `resharedNoticeAckAt` · `getObituaryOgBySlug` 신규) · src/controllers/memorialController.ts(`createMemorial` 재전파 검사 · `listMyMemorials`가 `obituaryId` 실음) · src/utils/consentGates.ts(주석) · src/controllers/deathVerificationAdminController.ts(verify 때 `memorializedAt`) · src/controllers/authController.ts(콜백·계정통합·연동 차단 4곳) · src/middleware/blockMemorializedUser.ts(신규) · src/app.ts(`/api`에 미들웨어) · src/routes/obituaryRoutes.ts(`GET /:slug/og`) · tests/memorial-link-and-inactive.test.ts(신규) · package.json(test 목록에 추가)
+  - frontend: src/pages/ObituaryPage.tsx(내 추모관 잇기) · src/pages/MemorialPage.tsx(재전파 고지 체크) · src/pages/MemorialLandingPage.tsx(noindex) · src/App.tsx(`account_unavailable` 문구) · api/og.js(신규, Vercel 함수) · vercel.json(`/o/:slug`·`/m/:slug` rewrite)
+- **결과**:
+  1. `PATCH /api/obituaries/:id`가 `memorialId`를 받는다 — `createMemorial`과 함께면 400 · 부고장에 추모관 있음 409 · 남의/없는/닫힌 추모관 404 · 다른 부고장에 이어짐 409 · `hiddenAt` 409 · `Deceased` 합치기(부고장 쪽 남김, 추모관 쪽 `userId`만 있으면 옮김, 양쪽 다르면 409, 옛 행은 부고장·추모관이 없을 때만 삭제) 한 트랜잭션. 화면: 공유 패널의 "추모관 만들기" 아래 "내 추모관 잇기" 선택 목록.
+  2. `Memorial.resharedNoticeAckAt DateTime?` · `POST /api/memorials`가 `validateResharedNoticeAck`로 없으면 400 · `/memorial` 생성 폼에 부고장과 같은 재전파 고지 체크("이 추모관 링크를 전달받은 분이 다시 다른 곳에 공유할 수 있다는 점을 확인했습니다.") · 부고장 체크박스·수정 화면 경로는 부고장 `resharedNoticeAckAt`을 복사 · 소급 없음.
+  3. `User.memorializedAt DateTime?` · verify 트랜잭션에서 `Deceased.userId`가 그 회원이면 기록 + `AdminAuditLog`(action `SUSPEND`, reason `MEMORIALIZED:<요청id>`) · 소셜 콜백(기존 연동·같은 이메일)은 `?loginError=account_unavailable`로 돌려보냄(토큰 없음) · 계정 통합(MERGE)·계정 추가 연동도 거절 · `/api` 전체에 회원 토큰이면 `memorializedAt` 있을 때 403 "사용할 수 없는 계정입니다. 고객센터로 문의해 주세요."
+  4. `MemorialLandingPage`에 `<meta name="robots" content="noindex, nofollow">` (ObituaryLandingPage와 같은 방식).
+  5. (R2 변수 이름은 별도 항목으로 먼저 커밋 — 바로 위 항목)
+  6. `vercel.json`이 `/o/:slug`·`/m/:slug`를 `api/og.js`로 보내 index.html에 `og:*` + `robots noindex` + `X-Robots-Tag` 주입. 카드 = 부고 `[부고] 故 {이름} 님` / 추모관 `故 {이름} 님을 추모합니다` + "삼가 고인의 명복을 빕니다." + 고정 `obituary-card-v2.png`. 없는·종료·실패 = 제목 "이어봄" 기본 카드. 부고장 이름은 새 `GET /api/obituaries/:slug/og`(이름만, 조회수 안 올림)에서, 추모관은 기존 `GET /api/memorials/:slug`에서 가져옴.
+  - 검증: 로컬 DB 백업 `local-20261012-110917.dump`(531.6KB) 후 `npx prisma migrate deploy`(로컬 5433)·테스트 DB `npm run test:db:migrate` · backend `npx tsc --noEmit` exit 0 · frontend `npx tsc --noEmit -p .` exit 0 · `npm test` 460건 중 455 통과 · 새 시험 `tests/memorial-link-and-inactive.test.ts` 10건 통과 · `api/og.js`는 가짜 백엔드/배포로 따로 시험(이름 이스케이프 `홍<길>동"&`, 없는 slug, `../etc` slug, 빈소·계좌 문구 없음) 통과.
+  - 🟡 **실패 3건은 변경 전부터 있었음**: `tests/heavy-job-http.test.ts`(②처리 마감 502≠504 · 연결 끊김 · 건별 기록) — `git stash -u`로 변경을 걷어낸 HEAD에서도 같은 3건 실패 확인(`# pass 2 # fail 3`). 이 작업 범위 밖이라 손대지 않음.
+- **편차**:
+  - ① 스펙은 "부고장 수정 폼의 '추모관 만들기' 체크박스 옆"이라 적었으나 실제 화면은 체크박스가 아니라 **공유 패널의 버튼**(09-07 사용자 지시, `handleCreateMemorial`)이라 그 버튼 아래에 "내 추모관 잇기"를 둠. "둘 중 하나만"은 서버가 400으로 강제(화면은 두 버튼이 따로).
+  - ① 스펙 거절 표에 없는 **닫힌(`closedAt`) 추모관은 404**로 처리(공개 열람이 "찾을 수 없음"인 것과 같은 취급). 잇기 목록에서도 제외.
+  - ③ `AdminAuditLog.action`에 새 값을 만들지 않고 기존 `SUSPEND`를 씀 — 스펙은 "함께 남긴다"만 정함. 값을 `MEMORIALIZE`로 바꾸려면 한 줄(`deathVerificationAdminController.ts`).
+  - ③ 스펙 "회원 토큰 인증 미들웨어"는 회원 라우터마다 `verifyBearerToken`을 직접 부르는 구조라 단일 미들웨어가 없어, **`/api` 전역 미들웨어**로 구현(토큰 없음·타 주체 토큰은 통과). 인증 요청마다 PK 조회 1회가 추가됨.
+  - ③ 스펙의 막는 곳 둘 외에 **계정 통합(MERGE)·계정 추가 연동 콜백**도 막음 — 그대로 두면 새 토큰이 발급되는 뒷문.
+  - ⑥ `/m/:slug` 카드는 스펙에 문구가 없어 부고 카드와 같은 틀(이름 + 명복)로 정함. 문구 `故 {이름} 님을 추모합니다`는 제가 정한 것.
+- **다음 에이전트가 알아야 할 것**:
+  - 🔴 **운영 반영은 사람이**: 스키마 2칸 = 추가형 → `powershell -File .harness/tools/migrate-prod.ps1`(백업 → 확인 → deploy) 후 push. 새 코드가 먼저 나가면 `resharedNoticeAckAt`·`memorializedAt` 칸이 없어 추모관 개설·로그인이 실패하므로 **마이그레이션이 먼저**.
+  - 🟡 **미리보기(⑥) 실기기 확인 필요**: Vercel 함수는 로컬에서 못 띄워 핸들러만 시험함. 배포 뒤 ① `/o/<slug>` 소스에 `og:title` ② 카카오 공유 디버거로 이미지·제목 ③ **`noindex`와 카카오 스크랩 충돌 여부**(07-03 §3.4·Phase 2 #7) ④ 캐시 초기화 절차(#8)는 문서화 안 됨. Vercel 프로젝트에 `VITE_BACKEND_URL`이 설정돼 있어야 함(함수가 같은 변수를 읽음 — 없으면 전부 기본 카드). 백엔드 전역 요청 제한은 IP당이라 Vercel 함수 호출이 한 IP로 모이는 점도 부하 시 볼 것.
+  - 🟡 `/memorial` 폼의 새 체크는 필수라 **이미 있는 외부 호출(없음 확인)** 영향 없음. `Memorial.resharedNoticeAckAt`은 기존 행 null(소급 없음, 스펙대로).
+  - 🟡 비활성 계정은 지금 `Deceased.userId`를 채우는 코드가 없어(스키마상 칸만 있음) **실제로 켜지는 일은 아직 없음** — 00-12 후속에서 연결이 생겨야 작동.
+  - 🟡 프론트 문구: 로그인 차단 안내 `account_unavailable`은 기존 방식대로 `alert`. 잇기 목록 접속 실패 문구 등은 임시 문구.
+  - 이 작업 중 `docs/…/00-11…결정서.md`·`.harness/docs-audit/ledger_00.md`가 다른 곳에서 수정돼 있었음(내 작업 아님, 손대지 않음).
+
+<!-- Gemini 판정 1줄: ✅통과 / ❌반려(사유) / 🔄스펙갱신(고친 문서) -->
+
 ## 2026-10-08 | [Sonnet] 비제휴 시설 업체 문의 — 서버에서도 거절
 
 - **근거 스펙**: docs/01_장사시설_매칭/01-05 §7.2 · §10-4 · §12.3 (10-08 개발자 결정)

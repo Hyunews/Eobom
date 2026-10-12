@@ -287,6 +287,8 @@ function AppShell() {
           // 없이 호출되면 여기로 리다이렉트한다(authRoutes.ts). LoginModal.tsx를 거치지 않고
           // 직접 URL을 호출한 경우(예: 구 버전 캐시, 외부 링크)에만 실제로 뜬다.
           consent_required: '이용약관 및 개인정보 수집·이용 동의가 필요합니다. 로그인 창에서 다시 시도해주세요.',
+          // 2026-10-12 — 비활성 계정(User.memorializedAt, 00-12 §5.3). handleSocialLoginCallback이 토큰 없이 돌려보낸다.
+          account_unavailable: '사용할 수 없는 계정입니다. 고객센터로 문의해 주세요.',
         };
         alert(messages[loginError] || '로그인에 실패했습니다. 다시 시도해주세요.');
       }

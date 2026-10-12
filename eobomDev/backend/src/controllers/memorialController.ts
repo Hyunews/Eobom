@@ -6,7 +6,7 @@ import prisma from '../config/prisma';
 import { verifyBearerToken } from './authController';
 import { uploadMemorialPhoto as uploadMiddleware, MEMORIAL_PHOTO_DIR, toPublicMemorialPhotoPath } from '../config/upload';
 import { POLICY } from '../config/policy';
-import { validateFalseReportAgreed } from '../utils/consentGates';
+import { validateFalseReportAgreed, validateResharedNoticeAck } from '../utils/consentGates';
 import { calculateMemorialExpiresAt } from '../utils/memorialLifecycle';
 import { previewExtendByToken, extendByToken, extendByOwner, canExtendNow } from '../services/memorialExtendService';
 
@@ -75,6 +75,7 @@ export const createMemorial = async (req: Request, res: Response) => {
     epitaph,
     visibility,
     falseReportAgreed,
+    resharedNoticeAck,
   } = req.body as {
     deceasedName?: string;
     deceasedBirthDate?: string;
@@ -83,6 +84,7 @@ export const createMemorial = async (req: Request, res: Response) => {
     epitaph?: string;
     visibility?: string;
     falseReportAgreed?: boolean;
+    resharedNoticeAck?: boolean;
   };
 
   if (!deceasedName?.trim()) {
@@ -91,6 +93,11 @@ export const createMemorial = async (req: Request, res: Response) => {
   const falseReportError = validateFalseReportAgreed(falseReportAgreed);
   if (falseReportError) {
     return res.status(400).json({ status: 'error', message: falseReportError });
+  }
+  // 재전파 고지 확인(00-13 §8 #6, 10-12) — 부고장 개설과 같은 공용 검사. 추모관 단독 개설이 게이트 우회로가 되지 않게 한다.
+  const resharedError = validateResharedNoticeAck(resharedNoticeAck);
+  if (resharedError) {
+    return res.status(400).json({ status: 'error', message: resharedError });
   }
   if (visibility !== undefined && !isValidVisibility(visibility)) {
     return res.status(400).json({ status: 'error', message: `visibility는 ${VALID_VISIBILITY.join(', ')} 중 하나여야 합니다.` });
@@ -129,6 +136,7 @@ export const createMemorial = async (req: Request, res: Response) => {
               epitaph: epitaph?.trim() || null,
               visibility: visibility || 'LINK',
               falseReportAgreedAt: new Date(),
+              resharedNoticeAckAt: openedAt,
               createdAt: openedAt,
               expiresAt: calculateMemorialExpiresAt(openedAt), // 00-20 §5.2-2 — 개설일 + 395일
             },
@@ -158,10 +166,11 @@ export const listMyMemorials = async (req: Request, res: Response) => {
     const memorials = await prisma.memorial.findMany({
       where: { createdByUserId: decoded.id },
       orderBy: { createdAt: 'desc' },
+      include: { obituary: { select: { id: true } } }, // 부고장 수정 폼 "내 추모관 잇기" 목록용(00-13 §4.5-4-2)
     });
     // 연장 버튼 표시 판정은 서버가 한다(00-20 §8.1-4 ②-가) — 화면은 canExtend만 본다.
     const now = new Date();
-    return res.json({ status: 'success', data: memorials.map((m) => ({ ...m, canExtend: canExtendNow(m, now) })) });
+    return res.json({ status: 'success', data: memorials.map(({ obituary, ...m }) => ({ ...m, obituaryId: obituary?.id ?? null, canExtend: canExtendNow(m, now) })) });
   } catch (error) {
     console.error('내 추모관 목록 조회 실패:', error);
     return res.status(500).json({ status: 'error', message: '목록 조회 중 오류가 발생했습니다.' });

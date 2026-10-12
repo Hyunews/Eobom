@@ -20,6 +20,7 @@ import ocrRoutes from './routes/ocrRoutes';
 import willPhotoRoutes from './routes/willPhotoRoutes';
 import { requestId, accessLog } from './middleware/requestLog';
 import { errorHandler } from './middleware/errorHandler';
+import { blockMemorializedUser } from './middleware/blockMemorializedUser';
 import { installRateLimits } from './middleware/rateLimit';
 import { buildCorsOptions } from './config/cors';
 import { kstIso } from './utils/kst';
@@ -60,6 +61,9 @@ installRateLimits(app);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(passport.initialize());
+
+// 비활성 계정(User.memorializedAt) 회원 토큰 403 — 00-12 §5.3 1차 스펙. 토큰 없는 요청·타 주체 토큰은 그냥 통과.
+app.use('/api', blockMemorializedUser);
 
 // 라우터 연결
 app.use('/api/auth', authRoutes);

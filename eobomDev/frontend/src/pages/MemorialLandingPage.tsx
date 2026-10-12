@@ -71,6 +71,18 @@ export const MemorialLandingPage: React.FC<MemorialLandingPageProps> = ({ curren
 
   const [shareFeedback, setShareFeedback] = useState<string | null>(null);
 
+  // 00-13 §7.2-2 — 추모관 공개 페이지 noindex, nofollow. ObituaryLandingPage와 같은 방식(SPA라 클라이언트 <meta>).
+  // X-Robots-Tag 헤더는 서버 렌더(07-03 §3.4 Phase 2, 이 작업의 6번)에서 붙인다.
+  useEffect(() => {
+    const meta = document.createElement('meta');
+    meta.name = 'robots';
+    meta.content = 'noindex, nofollow';
+    document.head.appendChild(meta);
+    return () => {
+      document.head.removeChild(meta);
+    };
+  }, []);
+
   useEffect(() => {
     if (!slug) return;
     setLoading(true);

@@ -1,5 +1,7 @@
 {
   "rewrites": [
+    { "source": "/o/:slug", "destination": "/api/og?kind=o&slug=:slug" },
+    { "source": "/m/:slug", "destination": "/api/og?kind=m&slug=:slug" },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
 }

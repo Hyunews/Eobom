@@ -10,7 +10,7 @@ export const validateFalseReportAgreed = (falseReportAgreed: unknown): string | 
   return null;
 };
 
-// 재전파 고지 확인(00-13 §8-6) — 07 부고장 개설에만 있는 두 번째 게이트(추모관 단독 개설엔 없음).
+// 재전파 고지 확인(00-13 §8-6) — 부고장 개설과 추모관 단독 개설(/memorial, 10-12)이 같이 쓴다.
 export const validateResharedNoticeAck = (resharedNoticeAck: unknown): string | null => {
   if (resharedNoticeAck !== true) {
     return '전달받은 분이 다시 공유할 수 있다는 고지를 확인해야 합니다.';

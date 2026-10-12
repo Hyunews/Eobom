@@ -497,25 +497,93 @@ export const ObituaryPage: React.FC<ObituaryPageProps> = ({ currentUser, onOpenL
         method: 'PATCH',
         body: JSON.stringify({ createMemorial: true, falseReportAgreed: true }),
       });
-      if (data.memorialUrl) {
-        setMemorialUrl(data.memorialUrl);
-        setObituaryRef((prev) => (prev ? { ...prev, memorialSlug: data.memorialSlug } : prev));
-        const raw = localStorage.getItem(STORAGE_KEY);
-        if (raw) {
-          try {
-            const stored: StoredObituaryRef = JSON.parse(raw);
-            localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...stored, memorialSlug: data.memorialSlug }));
-          } catch {
-            // 파싱 안 되면 힌트로도 못 쓰던 상태 — 여기서 새로 만들지 않는다.
-          }
-        }
-      }
+      applyLinkedMemorial(data);
     } catch (e) {
       setErrorMsg(e instanceof ApiError ? e.message : '추모관 연결 중 오류가 발생했습니다.');
     } finally {
       setLinkingMemorial(false);
     }
   };
+
+  // 만들기·잇기 둘 다 응답에 memorialUrl·memorialSlug가 실려 온다 — 화면 상태와 로컬 힌트에 같이 반영.
+  const applyLinkedMemorial = (data: { memorialUrl?: string; memorialSlug?: string }) => {
+    if (!data.memorialUrl) return;
+    setMemorialUrl(data.memorialUrl);
+    setObituaryRef((prev) => (prev ? { ...prev, memorialSlug: data.memorialSlug ?? null } : prev));
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      try {
+        const stored: StoredObituaryRef = JSON.parse(raw);
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...stored, memorialSlug: data.memorialSlug }));
+      } catch {
+        // 파싱 안 되면 힌트로도 못 쓰던 상태 — 여기서 새로 만들지 않는다.
+      }
+    }
+  };
+
+  // 🆕 10-12 — 따로 만든 추모관 잇기(`00-13` §4.5-4-2 ㉮ 스펙). "추모관 만들기"와 둘 중 하나만 고른다.
+  // 목록 = 내 추모관 중 다른 부고장에 이어지지 않은 것(서버가 같은 조건으로 다시 검사한다).
+  const [linkPickerOpen, setLinkPickerOpen] = useState(false);
+  const [linkCandidates, setLinkCandidates] = useState<{ id: string; deceasedName: string; createdAt: string }[] | null>(null);
+  const [linkChoice, setLinkChoice] = useState('');
+  const openLinkPicker = async () => {
+    setLinkPickerOpen(true);
+    setErrorMsg(null);
+    try {
+      const list = await apiFetch<any[]>('/api/me/memorials', 'USER');
+      const free = list.filter((m) => !m.obituaryId && !m.closedAt && !m.hiddenAt);
+      setLinkCandidates(free);
+      setLinkChoice(free[0]?.id ?? '');
+    } catch (e) {
+      setLinkCandidates([]);
+      setErrorMsg(e instanceof ApiError ? e.message : '추모관 목록을 불러오지 못했습니다.');
+    }
+  };
+  const handleLinkMemorial = async () => {
+    if (!obituaryId || !linkChoice || linkingMemorial) return;
+    setLinkingMemorial(true);
+    setErrorMsg(null);
+    try {
+      const data = await apiFetch<any>(`/api/obituaries/${obituaryId}`, 'USER', {
+        method: 'PATCH',
+        body: JSON.stringify({ memorialId: linkChoice }),
+      });
+      applyLinkedMemorial(data);
+      setLinkPickerOpen(false);
+    } catch (e) {
+      setErrorMsg(e instanceof ApiError ? e.message : '추모관 연결 중 오류가 발생했습니다.');
+    } finally {
+      setLinkingMemorial(false);
+    }
+  };
+  const linkMemorialControls = (
+    <>
+      {!linkPickerOpen ? (
+        <button type="button" onClick={openLinkPicker} disabled={linkingMemorial} className="btn" style={{ width: '100%', marginTop: '0.6rem', backgroundColor: 'var(--secondary-color)', color: 'var(--primary-color)', fontSize: 'var(--fs-caption)', padding: '0 1.2rem' }}>
+          <Flower2 size={15} /> 내 추모관 잇기
+        </button>
+      ) : linkCandidates === null ? (
+        <p style={{ fontSize: 'var(--fs-caption)', color: 'var(--text-muted)', margin: '0.6rem 0 0' }}>불러오는 중...</p>
+      ) : linkCandidates.length === 0 ? (
+        <p style={{ fontSize: 'var(--fs-caption)', color: 'var(--text-muted)', margin: '0.6rem 0 0' }}>이을 수 있는 추모관이 없습니다. 다른 부고장에 이어졌거나 닫힌 추모관은 목록에 나오지 않습니다.</p>
+      ) : (
+        <div style={{ marginTop: '0.6rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+          <label htmlFor="ob-link-memorial" style={{ fontSize: 'var(--fs-caption)' }}>이을 추모관</label>
+          <select id="ob-link-memorial" value={linkChoice} onChange={(e) => setLinkChoice(e.target.value)} disabled={linkingMemorial}>
+            {linkCandidates.map((m) => (
+              <option key={m.id} value={m.id}>{m.deceasedName} · {formatKST(m.createdAt)} 개설</option>
+            ))}
+          </select>
+          <div style={{ display: 'flex', gap: '0.5rem' }}>
+            <button type="button" onClick={() => setLinkPickerOpen(false)} disabled={linkingMemorial} className="btn" style={{ flex: 1, backgroundColor: 'var(--secondary-color)', color: 'var(--primary-color)', fontSize: 'var(--fs-caption)', padding: '0 1.2rem' }}>취소</button>
+            <button type="button" onClick={handleLinkMemorial} disabled={linkingMemorial || !linkChoice} className="btn" style={{ flex: 1, fontSize: 'var(--fs-caption)', padding: '0 1.2rem' }}>
+              {linkingMemorial ? <><Loader2 size={15} /> 잇는 중...</> : '잇기'}
+            </button>
+          </div>
+        </div>
+      )}
+    </>
+  );
 
   const cardInput = { deceasedName, funeralHall, mourningRoom, funeralAt, cardFieldsUpdatedAt };
   const cardTitle = formatObituaryCardTitle(cardInput);
@@ -866,9 +934,12 @@ export const ObituaryPage: React.FC<ObituaryPageProps> = ({ currentUser, onOpenL
               연결된 추모관은 계속 열람할 수 있습니다 →
             </a>
           ) : (
-            <button type="button" onClick={handleCreateMemorial} disabled={linkingMemorial} className="btn" style={{ width: '100%', backgroundColor: 'var(--secondary-color)', color: 'var(--primary-color)', fontSize: 'var(--fs-caption)', padding: '0 1.2rem' }}>
+            <>
+              <button type="button" onClick={handleCreateMemorial} disabled={linkingMemorial} className="btn" style={{ width: '100%', backgroundColor: 'var(--secondary-color)', color: 'var(--primary-color)', fontSize: 'var(--fs-caption)', padding: '0 1.2rem' }}>
               {linkingMemorial ? <><Loader2 size={15} /> 만드는 중...</> : <><Flower2 size={15} /> 추모관 만들기</>}
             </button>
+              {linkMemorialControls}
+            </>
           )}
         </>
       ) : (
@@ -915,9 +986,12 @@ export const ObituaryPage: React.FC<ObituaryPageProps> = ({ currentUser, onOpenL
               연결된 추모관 미리 보기 →
             </a>
           ) : (
-            <button type="button" onClick={handleCreateMemorial} disabled={linkingMemorial} className="btn" style={{ width: '100%', backgroundColor: 'var(--secondary-color)', color: 'var(--primary-color)', fontSize: 'var(--fs-caption)', padding: '0 1.2rem' }}>
+            <>
+              <button type="button" onClick={handleCreateMemorial} disabled={linkingMemorial} className="btn" style={{ width: '100%', backgroundColor: 'var(--secondary-color)', color: 'var(--primary-color)', fontSize: 'var(--fs-caption)', padding: '0 1.2rem' }}>
               {linkingMemorial ? <><Loader2 size={15} /> 만드는 중...</> : <><Flower2 size={15} /> 추모관 만들기</>}
             </button>
+              {linkMemorialControls}
+            </>
           )}
 
           {updatedAt && (

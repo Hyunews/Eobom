@@ -185,6 +185,18 @@ export const verifyDeathVerification = async (req: Request, res: Response) => {
       await tx.adminAuditLog.create({
         data: { adminId: decoded.id, adminName: decoded.name, action: 'APPROVE', targetType: TARGET_TYPE, targetId: req.params.id, reason: method },
       });
+
+      // 비활성 계정(00-12 §5.3 1차 스펙, 10-12) — 고인 기록(Deceased)에 회원 연결이 있으면 같은 트랜잭션에서 로그인 차단 표시.
+      // 연결이 없으면(비회원 고인 등) 아무것도 하지 않는다. 이미 표시된 계정은 시각을 덮어쓰지 않는다. 데이터는 지우지 않는다.
+      const linked = await tx.deceased.findUnique({ where: { userId: dv.subjectUserId }, select: { id: true } });
+      if (linked) {
+        const marked = await tx.user.updateMany({ where: { id: dv.subjectUserId, memorializedAt: null }, data: { memorializedAt: now } });
+        if (marked.count === 1) {
+          await tx.adminAuditLog.create({
+            data: { adminId: decoded.id, adminName: decoded.name, action: 'SUSPEND', targetType: 'User', targetId: dv.subjectUserId, reason: `MEMORIALIZED:${req.params.id}` },
+          });
+        }
+      }
     });
 
     return res.json({ status: 'success', data: null });
