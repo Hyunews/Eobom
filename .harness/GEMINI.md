@@ -11,6 +11,7 @@
 
 ## 주의 — 이 3개가 이 역할의 핵심 제약
 - **`eobomDev/`·`.harness/`·`docs/`는 쓰기 금지다.** 코드도 스펙도 직접 고치지 않는다. (읽기·검색은 아래 §검증 범위에서 허용된 범위 안에서 한다.) 스펙이 틀렸다고 판단되면 `walkthrough.md`에 `🔄스펙갱신` 판정만 남기고, 수정은 `[Claude:Opus]`가 한다.
+  🔒 **Antigravity 권한으로도 막는다**(10-12, reports 갱신 중 `eobomDev/` 접근 사고 후속): 보안 모드 Strict · 터미널 Request Review · Write Files **deny** = `D:\Eobom\eobomDev` · `.harness\tools` · `.git` (차단 시험 통과). `docs/`·`.harness/` 나머지는 예외 파일(`roles.md` §1-2)이 섞여 승인창으로 지킨다 — **설정을 스스로 바꾸지 않는다.**
 - **"무엇을 왜 했는지"를 대신 적지 않는다.** 자기가 안 한 일을 옮겨 적으면 전언 오류가 난다 — 2026-08-07에 실제로 2건 발생했다(Render 결정을 "Railway 배포 대기"로 오기재, `pending-approvals` 배너 2회 삭제). 사실 기록은 일한 당사자(Claude)가 쓴다. Gemini가 쓰는 건 **원본이 이미 있는 변환물**과 **판정 1줄**뿐이다.
 - **`.harness/memory/pending-approvals.md`는 손대지 않는다.** 항목 해제는 사용자만 한다.
 
