@@ -156,6 +156,11 @@ function parseApp() {
   const text = fs.readFileSync(APP_PATH, 'utf-8').replace(/\r\n/g, '\n');
   const imports = {}; // 변수명 -> routes 파일 이름(확장자 없음)
   for (const m of text.matchAll(/^import\s+(\w+)\s+from\s+['"]\.\/routes\/(\w+)['"]/gm)) imports[m[1]] = m[2];
+  // middleware/에서 가져온 이름 — `app.use('/api', blockMemorializedUser)` 같은 경로 한정 전역 미들웨어. 엔드포인트 마운트가 아니다.
+  const middlewareNames = new Set();
+  for (const m of text.matchAll(/^import\s+\{([^}]*)\}\s+from\s+['"]\.\/middleware\//gm)) {
+    for (const n of m[1].split(',')) { const name = n.trim().split(/\s+as\s+/).pop(); if (name) middlewareNames.add(name); }
+  }
 
   const events = []; // 소스 순서: { type: 'mount'|'route', ... }
   for (const c of scanCalls(text, 'app', ['use', ...METHODS])) {
@@ -165,6 +170,7 @@ function parseApp() {
       if (first === null) continue; // app.use(cors()) 같은 전역 미들웨어 — 경로 마운트가 아니다
       const target = c.args[c.args.length - 1];
       if (imports[target]) events.push({ type: 'mount', pos: c.start, prefix: first, file: imports[target] });
+      else if (middlewareNames.has(target)) { /* 경로 한정 전역 미들웨어 — 목록 대상 아님 */ }
       else if (/^\w+$/.test(target || '')) failures.push({ file: 'app.ts', text: c.raw });
       // app.use('/uploads', express.static(...)) 같은 정적 서빙은 엔드포인트 목록 대상이 아니다
       continue;
