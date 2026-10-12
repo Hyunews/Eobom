@@ -189,7 +189,7 @@
 - 🆕 **새 발견**: ① `00-33` — R2 파일(편지 음성·유언장 사진)은 `encryptNoteBuffer`(`ENDING_NOTE_ENCRYPTION_KEY`)로 잠기는데 `rotate-keys.ts`는 DB 칸만 다룸 → 긴급 키 교체 때 파일이 빠짐(§9 ⑤ 결정대기) ② `00-34` — 유족 메시지 화면(`FarewellMessageCard` 8곳·`FarewellMessagePage` 1곳)이 아직 직접 `fetch` → 세션 만료 401 처리 없음 ③ `00-39` §5-0 — 운영자 3화면 최소폭 1200px(09-28 사람 확정)이 코드에 없음(옛 `.container` 규칙 삭제 때 같이 빠짐) ④ `00-42` §10 CORS·요청 횟수 제한은 이미 구현(`cors.ts`·`rateLimit.ts`)인데 문서는 "없음"으로 적혀 있었음(고침) ⑤ `00-36` §4.5·§4.5-1(동의 모달·재동의 창)·§4.6-2-1(철회 화면)·M-3 파기 배치 = 이미 구현인데 "미구현"으로 적혀 있었음(고침) ⑥ `00-41` §10 공휴일 목록 "2026년 상수"는 10-02 결정(코드에 두지 않음)과 어긋나 있었음(고침) · 승인 때 `memorializedAt` 기록 반영 ⑦ `DigitalEstatePage`만 `matchMedia('(min-width: 768px)')` 직접 — 훅(≤768)과 768px에서 1px 어긋남(`00-38` §5.2 표기만) ⑧ 상세 색인 `00-35` 절 머리 줄이 깨져 있던 것 복원.
 - **개발자 안건 2건(권고)**: ① `00-33` §9 ⑤ R2 파일 재암호화를 교체 도구에 넣을지 — 권고: 지금은 넣지 않고 긴급 교체 절차에 한 줄 ② `00-39` §5-0 운영자 화면 최소폭 — 권고: 문서대로 코드 고침([Sonnet]).
   → ✅ **10-12 개발자 결정: 2건 모두 권고대로** — ① `00-33` §5.3에 "R2 파일도 따로 다시 잠근다" 한 줄 · §9 ⑤ 확정(plan 줄 삭제 → 3회차 남은 11줄) ② `00-39` §5-0 결정 표기 → [Sonnet] 착수 가능.
-- **[Sonnet]**: `FarewellMessageCard`·`FarewellMessagePage` → `apiFetch`(음성 등 봉투 아닌 응답은 원본 `Response` 경로) / 운영자 3화면 최소폭 1200px + 좌우 스크롤(②번 결정 후) / (선택) `DigitalEstatePage` → `useIsMobile`.
+- ✅ **10-12 `b8a6ef6`(실기동 ✅ 전부 — 유족 메시지·최소폭·디지털 정산 모바일)** **[Sonnet]**: `FarewellMessageCard`·`FarewellMessagePage` → `apiFetch`(음성 등 봉투 아닌 응답은 원본 `Response` 경로) / 운영자 3화면 최소폭 1200px + 좌우 스크롤(②번 결정 후) / (선택) `DigitalEstatePage` → `useIsMobile`.
 
 **00-A 판정 결과(09-30)**: 유지 109 · 갱신 31 · 경위 50 · 통합 2 · 묶음 15 (13파일 207절, 보고서 기호 메모 첫 적용). 00-05는 `generate-db-doc.js --check` 동기화로 판정. 3단계로 넘길 🔴 발견:
 
