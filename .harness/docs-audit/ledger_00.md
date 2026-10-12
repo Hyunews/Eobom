@@ -131,7 +131,7 @@
 | `00_핵심플랫폼/00-03_시스템_아키텍처_및_흐름도.md` | 35 | &nbsp;&nbsp;## 🔒 2. 보안 & 암호화 메커니즘 | 통합 | → 00-33 §2.1(암호화 대상·키 정본). 10-12 본문은 실제 대상으로 요약만 고침(encryptField·encryptNoteField, AES-256-GCM) | ✅ 통합 실행(10-12 개발자 결정) — 본문 삭제, 정본 링크 표(00-33 §2.1·00-04 §0·00-08)만. R300·R700 |
 | `00_핵심플랫폼/00-03_시스템_아키텍처_및_흐름도.md` | 47 | &nbsp;&nbsp;## 📎 부록: 경위 — 처음 그린 토폴로지 | 경위 | 부록: 경위(10-12) — 처음 그린 토폴로지 |  |
 
-## `00_핵심플랫폼/00-04_기능_및_API_명세서.md` (37KB · 절 16) <!-- sha:c6b3f92bf3 -->
+## `00_핵심플랫폼/00-04_기능_및_API_명세서.md` (37KB · 절 16) <!-- sha:67eedee154 -->
 
 | 파일 | 줄 | 절 | 판정 | 근거 | 메모 |
 |---|---:|---|---|---|---|
@@ -144,25 +144,25 @@
 | `00_핵심플랫폼/00-04_기능_및_API_명세서.md` | 78 | &nbsp;&nbsp;## ⚖️ 5. 전문가 (`/api/expert`, `/api/experts`) — **정본 `02-03` §5** | 유지 | server.ts:63·64 단수/복수 분리 | 대조✅: select 화이트리스트. · 🔴 대조✅(10-01) 불일치: 단수/복수 분리·select 화이트리스트·미공개 404 일치. 단 문서는 officeAddress를 공개 대상이라 하나 expertPublicController PUBLIC_EXPERT_SELECT에 officeAddress 없음 R300 · ✅ 10-12 로컬 확인: 이미 구현(185f68e — expertPublicController PUBLIC_EXPERT_SELECT officeAddress:true) · 문서·코드 일치, 코드대기 해제 |
 | `00_핵심플랫폼/00-04_기능_및_API_명세서.md` | 91 | &nbsp;&nbsp;## 🛡️ 6. 운영자 (`/api/admin`) — 정본 `01-05` §6.2 · `02-03` §5.4 | 유지 | 01-05·02-03 정본 지시 | 대조✅: 09-04 유족메시지 파기·09 이후 운영자 API 추가분(00-37) 목록에 없을 가능성. · 🔴 대조✅(10-01) 불일치: §6 표에 없는 운영자 API 존재: death-verifications(조회·확인·반려)·memorials(내리기·복원·방명록 숨김)·users(목록·상세)·farewell-purge(4개). 표는 옛 5행만 R300 · 4단계 반영 10-08: 표에 4묶음 추가(사망확인·추모관·회원·유족메시지 파기) · 재판정 10-12: §6 운영자 표에 사망 확인·추모관·회원·유족 메시지 파기 4묶음 추가(4단계 10-08, 10-01 불일치 해소) — 판정 그대로 |
 | `00_핵심플랫폼/00-04_기능_및_API_명세서.md` | 112 | &nbsp;&nbsp;## 📋 6-1. 자동 생성: 엔드포인트 전체 목록 (라우트 코드에서 생성) | 유지 | 자동 생성 구간(generate-api-doc.js) --check 동기화(10-12 클라우드 확인) · 제목 '생성 대기' 고침 | 설명 없음 1개 = PATCH /api/admin/obituaries/:id/close 라우트 주석(Sonnet). ✅ §1~§3 손 표 축소(10-12 개발자 결정) — 결정 대기 문구 삭제. R300 |
-| `00_핵심플랫폼/00-04_기능_및_API_명세서.md` | 362 | &nbsp;&nbsp;## 🚧 7. 백엔드 진행 상황 — 도메인별 (2026-10-12 기준) | 유지 | 도메인별 현황을 코드 기준으로 다시 씀(10-12): 03 목업 · 04 백엔드 삭제 · 05·06·07 구현, 네임스페이스는 §6-1 | 옛 표·§7.1 보류 사유는 부록 D. R300 |
-| `00_핵심플랫폼/00-04_기능_및_API_명세서.md` | 378 | &nbsp;&nbsp;## 🔗 8. 관련 문서 | 유지 | 관련 문서 목록 | R300 |
-| `00_핵심플랫폼/00-04_기능_및_API_명세서.md` | 390 | &nbsp;&nbsp;## 📎 부록: 경위 | 묶음 | 자동 — 본문 없음(하위 절만 묶음) |  |
-| `00_핵심플랫폼/00-04_기능_및_API_명세서.md` | 392 | &nbsp;&nbsp;&nbsp;&nbsp;### A. 2026-08-11 전면 갱신 | 경위 | 부록: 경위(10-12) — 08-11 전면 갱신 |  |
-| `00_핵심플랫폼/00-04_기능_및_API_명세서.md` | 396 | &nbsp;&nbsp;&nbsp;&nbsp;### B. §6 운영자 표 (10-08) | 경위 | 부록: 경위(10-12) — §6 운영자 표 10-08 |  |
-| `00_핵심플랫폼/00-04_기능_및_API_명세서.md` | 400 | &nbsp;&nbsp;&nbsp;&nbsp;### C. §1·§3 누락 경로 (10-12) | 경위 | 부록: 경위(10-12) — 누락 경로 |  |
-| `00_핵심플랫폼/00-04_기능_및_API_명세서.md` | 404 | &nbsp;&nbsp;&nbsp;&nbsp;### D. §7 백엔드 진행 상황 — 옛 표 (2026-08-13 실측) | 경위 | 부록: 경위(10-12) — §7 옛 표·§7.1 |  |
+| `00_핵심플랫폼/00-04_기능_및_API_명세서.md` | 363 | &nbsp;&nbsp;## 🚧 7. 백엔드 진행 상황 — 도메인별 (2026-10-12 기준) | 유지 | 도메인별 현황을 코드 기준으로 다시 씀(10-12): 03 목업 · 04 백엔드 삭제 · 05·06·07 구현, 네임스페이스는 §6-1 | 옛 표·§7.1 보류 사유는 부록 D. R300 |
+| `00_핵심플랫폼/00-04_기능_및_API_명세서.md` | 379 | &nbsp;&nbsp;## 🔗 8. 관련 문서 | 유지 | 관련 문서 목록 | R300 |
+| `00_핵심플랫폼/00-04_기능_및_API_명세서.md` | 391 | &nbsp;&nbsp;## 📎 부록: 경위 | 묶음 | 자동 — 본문 없음(하위 절만 묶음) |  |
+| `00_핵심플랫폼/00-04_기능_및_API_명세서.md` | 393 | &nbsp;&nbsp;&nbsp;&nbsp;### A. 2026-08-11 전면 갱신 | 경위 | 부록: 경위(10-12) — 08-11 전면 갱신 |  |
+| `00_핵심플랫폼/00-04_기능_및_API_명세서.md` | 397 | &nbsp;&nbsp;&nbsp;&nbsp;### B. §6 운영자 표 (10-08) | 경위 | 부록: 경위(10-12) — §6 운영자 표 10-08 |  |
+| `00_핵심플랫폼/00-04_기능_및_API_명세서.md` | 401 | &nbsp;&nbsp;&nbsp;&nbsp;### C. §1·§3 누락 경로 (10-12) | 경위 | 부록: 경위(10-12) — 누락 경로 |  |
+| `00_핵심플랫폼/00-04_기능_및_API_명세서.md` | 405 | &nbsp;&nbsp;&nbsp;&nbsp;### D. §7 백엔드 진행 상황 — 옛 표 (2026-08-13 실측) | 경위 | 부록: 경위(10-12) — §7 옛 표·§7.1 |  |
 
-## `00_핵심플랫폼/00-05_DB_요구사항_및_테이블_사전.md` (96KB · 절 7) <!-- sha:7ceeb70f90 -->
+## `00_핵심플랫폼/00-05_DB_요구사항_및_테이블_사전.md` (96KB · 절 7) <!-- sha:0b75979348 -->
 
 | 파일 | 줄 | 절 | 판정 | 근거 | 메모 |
 |---|---:|---|---|---|---|
 | `00_핵심플랫폼/00-05_DB_요구사항_및_테이블_사전.md` | 1 | # 🗄️ 00-05. DB 요구사항 및 테이블 사전 (Prisma Schema) | 유지 | generate-db-doc.js --check '동기화됨'(09-30) | R300 |
 | `00_핵심플랫폼/00-05_DB_요구사항_및_테이블_사전.md` | 14 | &nbsp;&nbsp;## 📋 자동 생성: 테이블·컬럼 사전 | 유지 | 자동 생성 구간 — 10-12 재생성(모델 40 · 물리 컬럼 468 · 설명 없음 3, 3fb80c7 sttDataAgreedAt·OcrDailyUsage 포함) · --check 동기화 | 4단계 반영 10-12(로컬 재생성) · 이후 바탕화면 '운영DB적용'(migrate-prod.bat)이 매번 재생성 R300 |
-| `00_핵심플랫폼/00-05_DB_요구사항_및_테이블_사전.md` | 1158 | &nbsp;&nbsp;## 📝 보충 설명 (수동 관리 — 자동 생성 스크립트가 건드리지 않음) | 유지 | 보충 설명 구간 — 08-10 이후 비어 있음(자리표시 한 줄) | 4단계: 계속 비면 절 삭제 후보(JSON 형태·상태 전이는 도메인 문서에 있음) · 재판정 10-12: 10-02에 보충 설명 49줄 채움(상태 전이 3종 + Json 칸) — '계속 비면 절 삭제 후보' 메모는 해소(채워짐). 판정 유지 |
-| `00_핵심플랫폼/00-05_DB_요구사항_및_테이블_사전.md` | 1164 | &nbsp;&nbsp;&nbsp;&nbsp;### 1. 사망 확인 — `DeathVerification.status` (정본 `00-41` §7) | 유지 | DeathVerification.status 전이표 — REQUESTED→VERIFIED/REJECTED/CANCELLED 값이 deathVerificationController.ts·deathVerificationAdminController.ts에 있음. 정본 00-41 §7 | dueAt 6시간 내부 기준(10-02) 반영 · 같은 트랜잭션 EndingNote.RELEASED는 미대조 · 재판정 10-12: 새 절 |
-| `00_핵심플랫폼/00-05_DB_요구사항_및_테이블_사전.md` | 1175 | &nbsp;&nbsp;&nbsp;&nbsp;### 2. 엔딩노트 — `EndingNote.status` (정본 `06-04` §4.2·§8.1 · `00-41` §7) | 유지 | EndingNote.status 값 표 — RELEASED는 사망 확인 때만, 'SEALED로 바꾸는 서버 코드 없음'(10-02 grep) 주장은 10-12에도 deathVerificationAdminController.ts 1곳만 보임(FROZEN 검사) | SEALED 전이 코드 부재는 이번엔 부분 대조(백엔드 src 전체 'SEALED' 대입 패턴 0건) · 재판정 10-12: 새 절 |
-| `00_핵심플랫폼/00-05_DB_요구사항_및_테이블_사전.md` | 1186 | &nbsp;&nbsp;&nbsp;&nbsp;### 3. 탈퇴 유예 — `User` 시각 칸 3개 (정본 `06-05` §5.4-2·§5.4-2-1 · `00-36` §4.3·§4.3-1) | 유지 | 탈퇴 유예 시각 칸 3개(deletionRequestedAt·deletionScheduledAt·purgedAt) — 유예 중 새 자료 생성 403은 blockDuringDeletionGrace.ts로 구현 | 정본 06-05 §5.4-2 · 00-36 §4.3-1 · 재판정 10-12: 새 절 |
-| `00_핵심플랫폼/00-05_DB_요구사항_및_테이블_사전.md` | 1199 | &nbsp;&nbsp;&nbsp;&nbsp;### 4. Json 칸 6개 | 유지 | Json 칸 6개 형태 예시 — Lead.payload·consentSnapshot·statusHistory, ConsultRequest.consentSnapshot·statusHistory, EndingNote.sectionState | statusHistory.at이 한국 시각 문자열(kstIso)이라는 주의는 코드 대조 미실시(미대조) · 재판정 10-12: 새 절 |
+| `00_핵심플랫폼/00-05_DB_요구사항_및_테이블_사전.md` | 1160 | &nbsp;&nbsp;## 📝 보충 설명 (수동 관리 — 자동 생성 스크립트가 건드리지 않음) | 유지 | 보충 설명 구간 — 08-10 이후 비어 있음(자리표시 한 줄) | 4단계: 계속 비면 절 삭제 후보(JSON 형태·상태 전이는 도메인 문서에 있음) · 재판정 10-12: 10-02에 보충 설명 49줄 채움(상태 전이 3종 + Json 칸) — '계속 비면 절 삭제 후보' 메모는 해소(채워짐). 판정 유지 |
+| `00_핵심플랫폼/00-05_DB_요구사항_및_테이블_사전.md` | 1166 | &nbsp;&nbsp;&nbsp;&nbsp;### 1. 사망 확인 — `DeathVerification.status` (정본 `00-41` §7) | 유지 | DeathVerification.status 전이표 — REQUESTED→VERIFIED/REJECTED/CANCELLED 값이 deathVerificationController.ts·deathVerificationAdminController.ts에 있음. 정본 00-41 §7 | dueAt 6시간 내부 기준(10-02) 반영 · 같은 트랜잭션 EndingNote.RELEASED는 미대조 · 재판정 10-12: 새 절 |
+| `00_핵심플랫폼/00-05_DB_요구사항_및_테이블_사전.md` | 1177 | &nbsp;&nbsp;&nbsp;&nbsp;### 2. 엔딩노트 — `EndingNote.status` (정본 `06-04` §4.2·§8.1 · `00-41` §7) | 유지 | EndingNote.status 값 표 — RELEASED는 사망 확인 때만, 'SEALED로 바꾸는 서버 코드 없음'(10-02 grep) 주장은 10-12에도 deathVerificationAdminController.ts 1곳만 보임(FROZEN 검사) | SEALED 전이 코드 부재는 이번엔 부분 대조(백엔드 src 전체 'SEALED' 대입 패턴 0건) · 재판정 10-12: 새 절 |
+| `00_핵심플랫폼/00-05_DB_요구사항_및_테이블_사전.md` | 1188 | &nbsp;&nbsp;&nbsp;&nbsp;### 3. 탈퇴 유예 — `User` 시각 칸 3개 (정본 `06-05` §5.4-2·§5.4-2-1 · `00-36` §4.3·§4.3-1) | 유지 | 탈퇴 유예 시각 칸 3개(deletionRequestedAt·deletionScheduledAt·purgedAt) — 유예 중 새 자료 생성 403은 blockDuringDeletionGrace.ts로 구현 | 정본 06-05 §5.4-2 · 00-36 §4.3-1 · 재판정 10-12: 새 절 |
+| `00_핵심플랫폼/00-05_DB_요구사항_및_테이블_사전.md` | 1201 | &nbsp;&nbsp;&nbsp;&nbsp;### 4. Json 칸 6개 | 유지 | Json 칸 6개 형태 예시 — Lead.payload·consentSnapshot·statusHistory, ConsultRequest.consentSnapshot·statusHistory, EndingNote.sectionState | statusHistory.at이 한국 시각 문자열(kstIso)이라는 주의는 코드 대조 미실시(미대조) · 재판정 10-12: 새 절 |
 
 ## `00_핵심플랫폼/00-06_화면_설계서_및_와이어프레임.md` (24KB · 절 22) <!-- sha:533ef73e94 -->
 
