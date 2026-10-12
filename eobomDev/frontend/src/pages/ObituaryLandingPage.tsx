@@ -130,7 +130,7 @@ export const ObituaryLandingPage: React.FC = () => {
 
   return (
     <div className="v2-obit-page">
-      <ObituaryView data={data} />
+      <ObituaryView data={data} slug={slug} />
     </div>
   );
 };

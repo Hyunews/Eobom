@@ -16,6 +16,32 @@
 > [`_아카이브_2608`](walkthrough_아카이브_2608.md)(08-31분). 남은 것 = 판정 대기 + 판정 표기 없음. 기준 → `record.md` §2-1.
 
 ---
+## 2026-10-12 | [Sonnet] 부고장 공개 페이지 "링크 복사" 버튼 — 추모관과 같은 방식
+
+- **근거 스펙**: docs/07_상중_행정_케어/07-03 §6.3-1 (10-12 확정)
+- **건드린 파일**: eobomDev/frontend/src/components/ObituaryView.tsx · eobomDev/frontend/src/pages/ObituaryLandingPage.tsx · eobomDev/frontend/src/pages/ObituaryPage.tsx
+- **결과**: `ObituaryView`가 선택 props `slug`를 받아, 있으면 헤더를 `v2-obit-header v2-obit-header-has-copy`로 하고 우상단에 `<button className="v2-btn-outline v2-obit-copy-btn"><Copy size={14} /> 링크 복사</button>`을 그림. 클릭 시 `copyObituaryLink(`${window.location.origin}/o/${slug}`)`(공유 시트·카카오 SDK 없음, `location.href` 안 씀) → 헤더 안 `<p className="v2-obit-share-feedback">`에 성공 "링크가 복사되었습니다." / 실패 "복사에 실패했습니다. 주소창의 링크를 직접 복사해 주세요."(alert 없음). `ObituaryLandingPage`가 `slug={slug}`, `ObituaryPage` 조문객 화면 미리보기 모달이 `slug={obituaryRef?.obituarySlug}`를 넘김. CSS 클래스 3종은 추모관 쪽이 이미 쓰던 `design-v2.css` 것을 그대로 사용(CSS 변경 없음). 추모관 쪽 코드 변경 없음. 검증: `npx tsc --noEmit -p .` exit 0 · `npx vite build` 통과.
+- **편차**: 없음. (`slug`를 선택 props로 둠 — 없으면 버튼을 숨김. `ObituaryView`를 쓰는 두 곳(`ObituaryLandingPage`, 조문객 화면 미리보기 모달)이 모두 slug를 넘기므로 실제로 숨는 경우는 없음. 미리보기 모달은 관리 모드(`obituaryRef` 있음)에서만 열림.)
+- **다음 에이전트가 알아야 할 것**: 🟡 실기기 확인 대기(사람) — 부고장 링크(`/o/<slug>`) 접속 → 우상단 "링크 복사" → 붙여넣기 주소가 `{origin}/o/{slug}`인지, 실패 문구는 클립보드 거부 환경에서 확인. 작성 폼의 "카드 미리보기"(`previewSection`)는 카톡 카드 모형이라 `ObituaryView`와 무관 — 이 작업 범위 밖.
+
+<!-- Gemini 판정 1줄: ✅통과 / ❌반려(사유) / 🔄스펙갱신(고친 문서) -->
+
+## 2026-10-12 | [Sonnet] 개발자 결정 2건 — 감사 로그 action MEMORIALIZE · Memorial.reportedAt/reviewedAt 삭제
+
+- **근거 스펙**: docs/00_핵심플랫폼/00-12 §5.3 "1차 스펙" 표(①) · docs/05_디지털_추모관/05-01 §2 표(②)
+- **건드린 파일**: eobomDev/backend/src/controllers/deathVerificationAdminController.ts · eobomDev/backend/prisma/schema.prisma · eobomDev/backend/prisma/migrations/20261012150000_drop_memorial_reported_reviewed_at/migration.sql(신규) · eobomDev/backend/src/controllers/moderationController.ts(주석만)
+- **결과**:
+  1. 사망 확인 승인 때 남기는 감사 로그 `action: 'SUSPEND'` → `'MEMORIALIZE'`(`targetType: 'User'`, `reason: MEMORIALIZED:<요청id>` 그대로). `AdminAuditLog.action` 주석 목록에 `MEMORIALIZE` 추가(String 칸이라 DB 변경 없음). `SUSPEND` 기대값을 가진 시험·화면 코드는 없음(Grep) — `memorial-link-and-inactive.test.ts`는 action을 단정하지 않음.
+  2. `Memorial.reportedAt`·`reviewedAt` 두 칸을 schema에서 지우고 삭제형 마이그레이션 `ALTER TABLE "Memorial" DROP COLUMN "reportedAt", DROP COLUMN "reviewedAt"` 1개. 다른 표의 `reviewedAt`(DeathVerification·FacilityClaim)은 그대로. 코드 사용 0건 확인: `eobomDev` Grep(스키마·주석 외 0건) + 칸이 빠진 새 Prisma 클라이언트로 `npx tsc --noEmit` exit 0.
+  - 검증: 로컬 백업 `local-20261012-130153.dump`(531.9KB) 후 로컬 `Memorial` 18행의 두 칸 값 조회 = 둘 다 0건(지워도 잃는 값 없음) · `npx prisma validate` 통과 · 전용 테스트 DB에 `npm run test:db:migrate`로 SQL 적용 성공 · `npm test` 460건 중 455 통과(실패 3건 = `heavy-job-http.test.ts`, 기존과 동일).
+- **편차**: 없음.
+- **다음 에이전트가 알아야 할 것**:
+  - ✅ **로컬 개발 DB 적용 완료**(개발자 승인 후): `npx prisma migrate deploy` 성공 · `migrate status` "up to date" · `Memorial` 18행 유지, `reportedAt`·`reviewedAt` 컬럼 0개 확인. 적용 전 백업 = 위 파일.
+  - 🔴 **운영은 삭제형 순서**: 커밋 → push(배포; 새 코드가 두 칸을 안 읽음) → **그다음** `migrate-prod.ps1`. migrate가 먼저 나가면 옛 코드가 지워진 칸을 읽다 실패.
+  - 00-04·00-05 명세서는 운영 DB 적용이 재생성함(개발자 안내).
+
+<!-- Gemini 판정 1줄: ✅통과 / ❌반려(사유) / 🔄스펙갱신(고친 문서) -->
+
 ## 2026-10-12 | [Sonnet] R2 변수 이름 정리 — 코드를 새 이름(R2_<도메인>_<항목>)으로
 
 - **근거 스펙**: docs/00_핵심플랫폼/00-11 §5.4-6-2 (10-07 개발자 이름 정리)

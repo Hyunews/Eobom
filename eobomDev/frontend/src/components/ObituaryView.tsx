@@ -1,6 +1,7 @@
-import React from 'react';
-import { Phone, Flower2, Navigation } from 'lucide-react';
+import React, { useState } from 'react';
+import { Phone, Flower2, Navigation, Copy } from 'lucide-react';
 import { formatKST, formatDeathDate } from '../utils/obituaryCard';
+import { copyObituaryLink } from '../utils/kakaoShare';
 
 // 07-03 §6.4 ⓑ — ObituaryLandingPage.tsx의 표현부를 추출한 것. 조문객 화면(/o/{slug})과
 // 관리 모드 미리보기 모달(ObituaryPage.tsx)이 이 컴포넌트 하나를 공유한다.
@@ -35,9 +36,18 @@ export interface ObituaryData {
   account?: { bankName: string | null; accountNumber: string | null; holder: string | null };
 }
 
-export const ObituaryView: React.FC<{ data: ObituaryData }> = ({ data }) => {
+export const ObituaryView: React.FC<{ data: ObituaryData; slug?: string }> = ({ data, slug }) => {
   const chief = data.mourners.find((m) => m.isChief);
   const rest = data.mourners.filter((m) => !m.isChief);
+
+  // 07-03 §6.3-1(10-12) — 링크 복사. 추모관 공개 페이지(MemorialLandingPage handleCopyLink)와 같은 동작:
+  // 공유 시트·카카오 SDK 없이 클립보드로 바로 복사하고, 주소는 location.href가 아니라 origin + /o/slug로 고정한다.
+  const [shareFeedback, setShareFeedback] = useState<string | null>(null);
+  const handleCopyLink = async () => {
+    if (!slug) return;
+    const copied = await copyObituaryLink(`${window.location.origin}/o/${slug}`);
+    setShareFeedback(copied ? '링크가 복사되었습니다.' : '복사에 실패했습니다. 주소창의 링크를 직접 복사해 주세요.');
+  };
 
   // 길찾기(§6.3) — KakaoMapModal.tsx의 map.kakao.com/link/to 패턴은 좌표가 필요하다. Phase 1엔
   // Facility 검색 연동(§6.2, Phase 3 예정)이 없어 좌표가 없으므로, 자유입력 빈소명/주소로
@@ -48,12 +58,18 @@ export const ObituaryView: React.FC<{ data: ObituaryData }> = ({ data }) => {
   return (
     <div className="v2-obit-content">
       <div className="v2-obit-box">
-        <div className="v2-obit-header">
+        <div className={slug ? 'v2-obit-header v2-obit-header-has-copy' : 'v2-obit-header'}>
+          {slug && (
+            <button type="button" onClick={handleCopyLink} className="v2-btn-outline v2-obit-copy-btn">
+              <Copy size={14} /> 링크 복사
+            </button>
+          )}
           <p className="v2-obit-lede">삼가 고인의 명복을 빕니다</p>
           <h1 className="v2-obit-name">故 {data.deceasedName}</h1>
           {data.deceasedDeathDate && (
             <p className="v2-obit-death">{formatDeathDate(data.deceasedDeathDate)} 별세</p>
           )}
+          {shareFeedback && <p className="v2-obit-share-feedback">{shareFeedback}</p>}
         </div>
 
         {/* 장례 일정 — 빈소·입관·발인·장지 */}

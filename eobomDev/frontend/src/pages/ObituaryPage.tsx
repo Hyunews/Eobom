@@ -1091,7 +1091,7 @@ export const ObituaryPage: React.FC<ObituaryPageProps> = ({ currentUser, onOpenL
                   </button>
                 </div>
                 <div className="v2-obit-page is-preview">
-                  <ObituaryView data={buildPreviewData()} />
+                  <ObituaryView data={buildPreviewData()} slug={obituaryRef?.obituarySlug} />
                 </div>
               </div>
             </div>
