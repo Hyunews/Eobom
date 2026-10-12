@@ -9,10 +9,10 @@
 
 **업무판(정본)** https://claude.ai/artifact/HZUBGqnKnx6jFzuqK9HJPx — db `tasks`. 상태는 ArtifactData `update`(끝나면 "완료"). 답변에선 id 말고 **화면 제목**으로 부른다.
 
-**주 흐름 = A안(10-07)**: Sonnet은 업무판 개발 순서, Opus는 docs 정리 4단계로 복귀.
-- ✅[Claude:Opus] 4단계 **01·03·04·05·07 끝**(10-08, plan **862줄**) — 04 화면 이름 "디지털 정산" · 05·07 = 클라우드 분업(브랜치 → 로컬 검수 → squash, 커밋 예외 = 루트 CLAUDE.md) · 05 결정 3건 반영 · 07 Sonnet 3건(운영자 부고장 종료 `07-03` §8-1 · Footer 이메일·공휴일 · 가이드 3개월 구간·원문 한 줄 `07-02` §2-1ⓒ)
-- ✅ 02 끝(10-08, 클라우드 `7792a87` squash + 결정 2건: 직역표 = `02-01` §2 하나(생전/사후 두 칸) · plan 02 남은 0) · ✅ 같은 날 Sonnet 구현 `185f68e`(운영 DB 적용): `contextType` · 전문가 사무실 주소 · 끝나지 않은 상담·문의 접수 90일 원본 마스킹(Lead `INVALID` 누락도 고침) — 문서 "구현" 표시 반영 · b28 ③(칸 2개 삭제) = 10-12 결정 지금 삭제(Sonnet)
-- ✅ 10-12: 06 끝(남은 24줄 → 업무판) → 00 1회차(`81284ef`, 남은 3) → 2회차 00-14~29(남은 11) → 3회차 00-30~43+색인 2개(로컬 Opus · 264/275줄 · 남은 11 · 결정 2건 권고대로 · [Sonnet] 2 = README §4) = **전 도메인 4단계 끝** · Sonnet 후속 `b8a6ef6` 끝(실기동 ✅ 전부) → ▶ 5단계(자동 색인)·6단계(00↔도메인 중복)
+**주 흐름 = A안(10-07)**: Sonnet은 업무판 개발 순서, Opus는 docs 정리.
+- ✅ docs 정리 **4단계 전 도메인 끝**(10-12, Sonnet 후속 `b8a6ef6` 실기동 ✅) — 경위는 아카이브 맨 위
+- ▶ **5단계** = `docs-audit/README.md` §1-5 · ✅ 결정 5건(10-12, topics만 B = Sonnet이 문서 읽고 제안) → 다음 **세션 1 `[Sonnet]` `docs-catalog.js`**(실행은 `refs`·`draft`만) → Opus 검토 → 🔴 75개 삽입은 사람 확인 후
+- 6단계(00↔도메인 중복)는 5단계 끝난 뒤 별도 세션
 - 끝난 항목은 `context_아카이브_2610.md` 맨 위
 
 ## 작업시트 ↔ 업무판
@@ -22,7 +22,7 @@
 
 ## 규칙 요약(상세는 각 파일)
 
-- 🔴 WSL git 금지 · 파기 `--confirm`·DB 초기화는 사람만(훅이 막음) · 문서 내용은 Edit/Write로만(예외: `docs-move-appendix.js`)
+- 🔴 WSL git 금지 · 파기 `--confirm`·DB 초기화는 사람만(훅이 막음) · 문서 내용은 Edit/Write로만(예외: `docs-move-appendix.js` · `docs-catalog.js apply`)
 - [사용자] 위치정보법 신고 = 유일한 게시 블로커(재촉 안 함) · [Gemini] 게이트 41건 대기(10-12 4건 완료) · Gemini `eobomDev/` 쓰기 = Antigravity deny로 차단(10-12, `GEMINI.md` §주의)
 
 ## 지금 막고 있는 것
