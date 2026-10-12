@@ -775,6 +775,25 @@ else
 fi
 echo
 
+# ── 13. docs frontmatter · 색인 · 끊긴 참조 (docs-catalog) ───────
+# 왜 있나: 2026-10-13 5단계에서 문서 frontmatter가 색인(00_DOCS_INDEX*.md의 AUTO-GENERATED 구간)의 원본이 됐다.
+#   frontmatter를 고치고 `index`를 안 돌리면 색인이 조용히 낡는다 — 체크리스트는 자각한 사람만 지키므로 기계가 잰다.
+echo "13. docs frontmatter · 색인 최신 · 끊긴 참조 (docs-catalog check)"
+CAT="$HARNESS/tools/docs-catalog.js"
+if [ -f "$CAT" ] && command -v node >/dev/null 2>&1; then
+  CAT_OUT=$(node "$CAT" check 2>&1) && CAT_RC=0 || CAT_RC=$?
+  if [ "$CAT_RC" -eq 0 ]; then
+    ok "docs-catalog check 통과 (frontmatter · 색인 최신 · 끊김 0)"
+  else
+    fail "docs-catalog check 실패 — frontmatter를 고쳤으면 \`node .harness/tools/docs-catalog.js index\` 재실행, 끊긴 참조는 \`refs\`로 목록 확인"
+    printf '%s\n' "$CAT_OUT" | grep -E '❌|⚠|없음' | head -5 | sed 's|^|       · |'
+  fi
+  CHECKS=$((CHECKS + 1))
+else
+  note "node 또는 docs-catalog.js 없음 — 스킵"
+fi
+echo
+
 # ── 결과 ─────────────────────────────────────────────────────────
 echo "─────────────────────────────────────"
 if [ "$CHECKS" -eq 0 ]; then

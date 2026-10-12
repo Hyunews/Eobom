@@ -249,6 +249,10 @@ function collectRefs(docs) {
   return R;
 }
 
+// 고치지 않기로 한 끊김(인용문 속 표기) — 파일 경로 일부 + 줄 텍스트 일부가 맞으면 실패로 안 친다
+const KNOWN_QUOTES = [{ file: '00-22_', has: '§2류', why: 'walkthrough 인용문 속 "§2류"(10-13 Opus 결정: 인용이라 고치지 않음)' }];
+const knownOf = (x) => KNOWN_QUOTES.find((q) => x.doc.rel.includes(q.file) && x.text.includes(q.has));
+
 function writeRefs(R, docs, writeFile) {
   const kinds = [['link', 'md 링크'], ['id', '문서 ID'], ['sec', '§ 절 번호']];
   const cnt = (k, f) => R[k].filter(f).length;
@@ -265,7 +269,7 @@ function writeRefs(R, docs, writeFile) {
   let tb = 0, tw = 0;
   for (const [k, name] of kinds) {
     const body = R[k].filter((x) => !x.zone);
-    const b = body.filter((x) => x.status === 'broken').length, w = body.filter((x) => x.status === 'weak').length;
+    const b = body.filter((x) => x.status === 'broken' && !knownOf(x)).length, w = body.filter((x) => x.status === 'weak').length;
     tb += b; tw += w;
     out.push(`| ${name} | ${body.length} | ${body.length - b - w} | ${w} | ${b} | ${R[k].length - body.length} |`);
   }
@@ -275,7 +279,7 @@ function writeRefs(R, docs, writeFile) {
     out.push('');
     out.push(`## ${title} — ${hint}`);
     const rows = [];
-    for (const [k, name] of kinds) for (const x of R[k]) if (!x.zone && x.status === status) rows.push({ ...x, name });
+    for (const [k, name] of kinds) for (const x of R[k]) if (!x.zone && x.status === status && !knownOf(x)) rows.push({ ...x, name });
     if (!rows.length) { out.push(''); out.push('없음'); continue; }
     const by = new Map();
     for (const x of rows) { const key = x.doc.rel; (by.get(key) || by.set(key, []).get(key)).push(x); }
@@ -286,18 +290,20 @@ function writeRefs(R, docs, writeFile) {
       for (const x of list.sort((a, b) => a.line - b.line)) out.push(`- L${x.line} [${x.name}] ${x.note} — ${esc(x.text)}`);
     }
   }
+  const known = [...R.link, ...R.id, ...R.sec].filter((x) => !x.zone && x.status === 'broken' && knownOf(x));
+  if (known.length) { out.push(''); out.push('## 알려진 예외 — 실패로 안 침'); out.push(''); for (const x of known) out.push(`- \`${x.doc.rel}\` L${x.line} — ${knownOf(x).why}`); }
   out.push('');
   if (writeFile) fs.writeFileSync(path.join(AUDIT, 'refs.md'), out.join('\n'), 'utf8');
-  return { broken: tb, weak: tw };
+  return { broken: tb, weak: tw, known };
 }
 
 function cmdRefs(args) {
   const docs = loadDocs();
   const R = collectRefs(docs);
   const check = args.includes('--check');
-  const { broken, weak } = writeRefs(R, docs, !check);
+  const { broken, weak, known } = writeRefs(R, docs, !check);
   const kinds = ['link', 'id', 'sec'].map((k) => `${k} ${R[k].filter((x) => !x.zone).length}`).join(' · ');
-  console.log(`refs: 본문 참조 ${kinds} · 끊김 ${broken} · 약함 ${weak}${check ? '' : ' → .harness/docs-audit/refs.md'}`);
+  console.log(`refs: 본문 참조 ${kinds} · 끊김 ${broken} · 약함 ${weak}${known.length ? ` · 알려진 예외 ${known.length}건(${known.map((x) => x.doc.rel.split('/').pop().slice(0, 5) + ' L' + x.line).join(', ')} 인용 — 고치지 않음)` : ''}${check ? '' : ' → .harness/docs-audit/refs.md'}`);
   if (check && broken) { console.log('❌ 끊긴 참조 있음 — `refs`로 목록을 만들어 문서에서 고칠 것'); process.exitCode = 1; }
   return { R, docs, broken, weak };
 }
@@ -698,8 +704,66 @@ function cmdCheck() {
   if (bad) { console.log(`❌ 처리할 것 ${bad}건`); process.exitCode = 1; } else console.log('✅ 통과');
 }
 
+// ══════════════════════════════════════════════════════════════
+// seed — 색인 2파일에 마커를 처음 심는다(한 번만). 기존 도메인 표·상세 절은 생성 구간으로 대체, 손 칸은 보존.
+// ══════════════════════════════════════════════════════════════
+function cmdSeed(args) {
+  const dry = args.includes('--dry');
+  const mk = (name) => { const m = marker(name); return `${m.b}\n(생성 전 — \`index\` 실행)\n${m.e}`; };
+  const keep = [];
+
+  // 1) 00_DOCS_INDEX.md
+  let t = rd(INDEX_MAIN);
+  const crlf1 = t.includes('\r\n');
+  t = t.replace(/\r\n/g, '\n');
+  if (/AUTO-GENERATED:BEGIN/.test(t)) { console.log('이미 마커가 있음 — seed 건너뜀(index만 실행)'); return; }
+  let lines = t.split('\n');
+  const dropped = [];
+  // 도메인 표: "### … NN." 제목 아래 첫 표(헤더 `| 문서 ID |`)를 마커로 교체
+  for (const dom of DOMAINS) {
+    const h = lines.findIndex((l) => new RegExp(`^###\\s+\\S+\\s+${dom}\\.`).test(l));
+    if (h < 0) { console.log(`⚠ 도메인 ${dom} 제목 못 찾음`); continue; }
+    const s = lines.findIndex((l, i) => i > h && /^\|\s*문서 ID\s*\|/.test(l));
+    if (s < 0) { console.log(`⚠ 도메인 ${dom} 표 못 찾음`); continue; }
+    let e = s;
+    while (e + 1 < lines.length && /^\|/.test(lines[e + 1])) e++;
+    dropped.push(`표 ${dom}: ${e - s - 1}행(L${s + 1}-${e + 1})`);
+    lines.splice(s, e - s + 1, ...mk(`index-D${dom}`).split('\n'));
+  }
+  // 결정대기 목록(맨 위 — 머리 안내 다음 첫 `---` 앞) · 그래프(도메인 인덱스 제목 앞)
+  const sep = lines.findIndex((l) => /^---\s*$/.test(l));
+  lines.splice(sep, 0, ...mk('index-pending').split('\n'), '');
+  const top = lines.findIndex((l) => /^##\s+\S+\s+도메인별 기획 마크다운 문서 인덱스/.test(l));
+  lines.splice(top, 0, '## 🔗 도메인 관계 그래프', '', ...mk('index-graph').split('\n'), '', '---', '');
+  keep.push(`${path.basename(INDEX_MAIN)} 남는 손 칸(마커 밖 ## / ### 제목):`);
+  lines.forEach((l, i) => { if (/^#{1,3}\s/.test(l)) keep.push(`  L${i + 1} ${l.slice(0, 60)}`); });
+  keep.push(`  + 머리 안내 · 도메인별 머리 인용문(> …) · TS 표(트러블슈팅) · 부록 A·B 표`);
+  const outMain = lines.join('\n');
+
+  // 2) 00_DOCS_INDEX_상세.md — 머리 안내(첫 `---`까지) 보존, 그 뒤 문서별 절 전부를 도메인 카드 구간으로 교체
+  let d = rd(INDEX_DETAIL);
+  const crlf2 = d.includes('\r\n');
+  d = d.replace(/\r\n/g, '\n');
+  const dl = d.split('\n');
+  const cut = dl.findIndex((l) => /^---\s*$/.test(l));
+  const oldSecs = dl.filter((l) => /^## /.test(l)).length;
+  const head = dl.slice(0, cut + 1);
+  const body = [];
+  for (const dom of [...DOMAINS, 'TS']) body.push('', dom === 'TS' ? '## 트러블슈팅' : `## 도메인 ${dom}`, '', ...mk(`cards-D${dom}`).split('\n'));
+  const outDetail = [...head, ...body, ''].join('\n');
+  keep.push(`${path.basename(INDEX_DETAIL)} 남는 손 칸: 머리 안내 L1-${cut + 1} (읽는 법·read-guard 경고) · 버려지는 문서별 절 ${oldSecs}개(git 이력에 남음 — 결정 ⑤)`);
+
+  console.log(dropped.length + '개 표 교체 → ' + dropped.join(' · '));
+  keep.forEach((x) => console.log(x));
+  if (dry) { console.log('(--dry — 쓰지 않음)'); return; }
+  fs.writeFileSync(INDEX_MAIN, crlf1 ? outMain.replace(/\n/g, '\r\n') : outMain, 'utf8');
+  fs.writeFileSync(INDEX_DETAIL, crlf2 ? outDetail.replace(/\n/g, '\r\n') : outDetail, 'utf8');
+  console.log('seed: 마커 21개 삽입 완료 — 이어서 index → graph → index --check → check');
+}
+
 const [cmd, ...rest] = process.argv.slice(2);
-if (cmd === 'refs') cmdRefs(rest);
+if (cmd === 'seed') cmdSeed(rest);
+else if (cmd === 'refs') cmdRefs(rest);
 else if (cmd === 'draft') cmdDraft(rest);
 else if (cmd === 'apply') cmdApply(rest);
 else if (cmd === 'index') cmdIndex(rest);
