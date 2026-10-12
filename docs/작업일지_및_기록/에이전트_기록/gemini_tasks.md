@@ -316,5 +316,25 @@
   - `node .harness/tools/generate_all_reports.js` 실행 완료.
   - 79종 기획·명세서 마크다운 전건 HTML 재생성 및 `reports/index.html` 종합 포털 메인 최신화 완료.
 
+---
+
+### 28. 2026-10-12 reports/ 전수 최신화 동기화 완료 (4단계 전 도메인 마감 최종 반영)
+- [x] **00 도메인 3회차(00-30~43 및 색인 2개) 완결 반영**:
+  - `docs(00)` 4단계 3회차 완결 커밋(`8d0e1b5`)에 따라 전 도메인 4단계 본문 정본화 최종본 반영 완료.
+- [x] **HTML 보고서 전수 재생성 및 포털 동기화**:
+  - `node .harness/tools/generate_all_reports.js` 실행 완료.
+  - 79종 기획·명세서 마크다운 전건 HTML 재생성 및 `reports/index.html` 종합 포털 메인 100% 최신화 완료.
+
+---
+
+### 29. 2026-10-12 Walkthrough 신규 구현 4건 게이트 판정 완료 (전건 ✅통과)
+- [x] **Walkthrough 2026-10-12자 신규 구현 4건 교차 검증 및 판정 기록**:
+  1. `부고장 공개 페이지 "링크 복사" 버튼`: `07-03 §6.3-1` 대조 ➔ **✅통과** (`ObituaryView.tsx` 우상단 `Copy` 버튼, `copyObituaryLink` 클립보드 API 연동, 조문객 모달 slug 전달 및 `design-v2.css` 재사용 확인).
+  2. `개발자 결정 2건 (MEMORIALIZE 감사로그 & Memorial 컬럼 2개 삭제)`: `00-12 §5.3`, `05-01 §2` 대조 ➔ **✅통과** (사망확인 시 User 대상 MEMORIALIZE 감사로그 및 `Memorial.reportedAt`/`reviewedAt` DROP 마이그레이션 격리 적용 확인).
+  3. `R2 변수 이름 정리`: `00-11 §5.4-6-2` 대조 ➔ **✅통과** (`R2_<도메인>_<항목>` 명명규칙 반영, 구 변수명 폴백 완전 제거 및 클라이언트 분리 확인).
+  4. `00 1회차 코드 5건`: `00-13 §4.5-4-2`, `§8 #6`, `00-12 §5.3`, `07-03 §3.4` 대조 ➔ **✅통과** (추모관 잇기 트랜잭션, 재전파 고지 검증, `User.memorializedAt` 403 전역 미들웨어, MemorialLandingPage `noindex`, Vercel OG 카드 서버리스 렌더 스펙 일치 확인).
+
+
+
 
 
