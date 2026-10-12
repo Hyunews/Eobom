@@ -237,7 +237,9 @@ function collectRefs(docs) {
         if (!target) continue; // 없는 문서는 ② 에서 이미 잡음
         for (const n of tk.nums) {
           if (/-0\d/.test(n) || Number(n.split('-')[0]) >= 100) { R.external++; continue; } // §08-14 · §10-02 = 날짜 (절 번호는 0으로 시작하는 둘째 칸을 안 쓴다)
-          const [st, note] = verdictSec(target, n);
+          let [st, note] = verdictSec(target, n);
+          // 세션 1-c: 붙지 않은 § 가 앞쪽 ID 문서에 없고 참조하는 문서 자신에 있으면 자기 문서 절(정상)
+          if (st !== 'ok' && !attached && doc.id && target !== doc && verdictSec(doc, n)[0] === 'ok') st = 'ok';
           push('sec', st, st === 'ok' ? '' : `${label} ${note}`);
         }
         if (attached) cur.end = tk.end;

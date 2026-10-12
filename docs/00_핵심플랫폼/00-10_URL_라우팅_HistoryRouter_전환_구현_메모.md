@@ -1,3 +1,11 @@
+---
+id: 00-10
+type: 메모
+status: 경위기록
+replaces: []
+topics: [인프라·배포]
+reports: [R300, R930]
+---
 # 🧭 18. URL 라우팅 — 해시 방식 → HistoryRouter(BrowserRouter) 전환 구현 메모
 
 > ## 🗂️ 경위 기록 — 2026-08-10 전환 작업의 구현 메모입니다 (2026-10-12 정리)
