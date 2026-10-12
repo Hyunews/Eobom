@@ -475,8 +475,6 @@ model Memorial {
   visibility          String    @default("LINK") // PRIVATE | LINK (§4.2) — 🔄 09-29 PUBLIC(전체 공개) 폐지
   falseReportAgreedAt DateTime // 허위 개설 시 법적 책임 고지 동의 시각(§4.3-4)
   resharedNoticeAckAt DateTime? // 재전파 고지 확인 시각(00-13 §8 #6, 10-12). 소급 없음 — 이전 행은 null. 부고장 체크박스로 만든 추모관은 부고장의 확인 시각을 복사
-  reportedAt         DateTime? // 신고 접수 시각 — 🔴 09-30 신고 폐지 — 다음 스키마 변경 때 삭제(코드는 안 읽고 안 씀)
-  reviewedAt          DateTime? // 운영자 확인 시각 — 🔴 09-30 신고 폐지 — 다음 스키마 변경 때 삭제(코드는 안 읽고 안 씀)
   closedAt            DateTime? // 개설자가 닫음 (소프트 삭제)
   hiddenAt            DateTime? // 운영자가 내림 — 00-20 §6.2·00-21 제14조 3항. 운영자 전용(개설자가 풀 수 없음, visibility와 별개 칸). 공개 열람은 closedAt과 같이 "찾을 수 없음". 자동 파기 안 함(되돌릴 수 있고 증거로 남김). 사유는 AdminAuditLog
 
@@ -970,7 +968,7 @@ model AdminAuditLog {
   id         String   @id @default(uuid()) // 고유 식별자(UUID)
   adminId    String // 실행한 운영자 id(FK 아님)
   adminName  String // 실행 시점 운영자 이름 스냅샷
-  action     String // VIEW | APPROVE | REJECT | SUSPEND | PURGE | HIDE | UNHIDE(09-30 추모관 내리기·되돌리기)
+  action     String // VIEW | APPROVE | REJECT | SUSPEND | PURGE | HIDE | UNHIDE(09-30 추모관 내리기·되돌리기) | MEMORIALIZE(10-12 사망 확인 승인으로 회원 계정 비활성, 00-12 §5.3)
   targetType String // 대상 종류 — 예: User, Memorial, Partner, Expert, FacilityClaim
   targetId   String // 대상 레코드 id
   reason     String? // 사유(선택)

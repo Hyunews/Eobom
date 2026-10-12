@@ -193,7 +193,7 @@ export const verifyDeathVerification = async (req: Request, res: Response) => {
         const marked = await tx.user.updateMany({ where: { id: dv.subjectUserId, memorializedAt: null }, data: { memorializedAt: now } });
         if (marked.count === 1) {
           await tx.adminAuditLog.create({
-            data: { adminId: decoded.id, adminName: decoded.name, action: 'SUSPEND', targetType: 'User', targetId: dv.subjectUserId, reason: `MEMORIALIZED:${req.params.id}` },
+            data: { adminId: decoded.id, adminName: decoded.name, action: 'MEMORIALIZE', targetType: 'User', targetId: dv.subjectUserId, reason: `MEMORIALIZED:${req.params.id}` },
           });
         }
       }

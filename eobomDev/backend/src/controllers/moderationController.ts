@@ -250,7 +250,7 @@ export const listConsultRequestsForAdmin = async (req: Request, res: Response) =
 // 추모관(Memorial) 운영자 조회·방명록 숨김. docs 05-01 §4.1, §4.3.
 // 🔄 09-29 — 신고 접수 서버 주소(`POST /api/memorials/:slug/report`)·`reportMemorial` 삭제.
 // 🔄 09-30 — 신고 기능 폐지(00-20 §6.2): `reviewMemorialReport`(PATCH .../review)·`reported` 필터 삭제.
-// Memorial.reportedAt·reviewedAt 컬럼은 다음 스키마 변경 때 삭제한다(지금은 남김). 방명록 hide만 유지한다.
+// 🔄 10-12 — Memorial.reportedAt·reviewedAt 컬럼 삭제(마이그레이션 20261012150000). 방명록 hide만 유지한다.
 // ─────────────────────────────────────────────────────────────────
 
 // 추모관 목록 (`GET /api/admin/memorials`)
