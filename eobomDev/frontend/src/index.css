@@ -259,10 +259,66 @@ body {
   flex-grow: 1;
 }
 
-/* 00-39 §5-0(2026-10-12) — 운영자 화면(승인 대시보드·사업자 대시보드)은 PC 전용이라 최소폭 1200px을 두고,
-   그보다 좁으면 페이지가 좌우로 스크롤된다. /admin·/partner는 .main-wrapper 밖(포털 경로)이라 소비자 화면은 영향이 없다. */
+/* 00-39 §5-0·§5-0-1(2026-10-13) — 운영자 화면(/admin 승인 대시보드)만 PC 전용이라 최소폭 1200px을 두고,
+   그보다 좁으면 페이지가 좌우로 스크롤된다. 포털 상단 바(App.tsx)도 /admin일 때 같은 클래스를 써 본문과 함께 움직인다.
+   /admin은 .main-wrapper 밖(포털 경로)이라 소비자 화면은 영향이 없다. /partner는 이 클래스를 쓰지 않는다(§5-0-2). */
 .operator-min-width {
   min-width: 1200px;
+}
+
+/* 전문가 "받은 상담 신청" 수락·거절 등 버튼 — 글자 폭만 차지해 좁아 보여 최소 폭을 둔다(약 2배, 10-13 개발자 요청) */
+.biz-actions-compact > .btn {
+  min-width: 104px;
+}
+
+/* 00-39 §5-0-2(2026-10-13) — 사업자 화면(/partner) 모바일 배치. 구조·색·서체는 그대로, 767px 이하 배치만.
+   인라인 padding을 덮어야 해서 !important를 쓴다. */
+@media (max-width: 767px) {
+  .biz-page {
+    padding-left: 24px !important;
+    padding-right: 24px !important;
+    overflow-wrap: anywhere;
+  }
+  .biz-page input,
+  .biz-page select {
+    min-width: 0;
+    max-width: 100%;
+  }
+  /* 제목 줄: 이름이 길면 이름만 줄바꿈, 로그아웃은 오른쪽에 남는다 */
+  .biz-head {
+    gap: 0.6rem;
+  }
+  .biz-head-name {
+    flex: 1;
+    min-width: 0;
+  }
+  .biz-head > .btn {
+    flex-shrink: 0;
+  }
+  /* 업체 문의 상태 필터: 제목 아래 한 줄, 전체 폭 */
+  .biz-filter-select {
+    width: 100% !important;
+  }
+  /* 검색 결과 행: 세로로 쌓는다 */
+  .biz-result-row {
+    flex-direction: column;
+    align-items: stretch !important;
+    gap: 0.5rem;
+  }
+  /* 모바일에서는 "장사시설 사업자" → "사업자"(10-13 개발자 요청) */
+  .biz-hide-mobile {
+    display: none;
+  }
+  /* 사업자 화면 버튼은 .btn 기본 높이(56px)의 약 60%인 34px로 줄인다(10-13 개발자 요청 — §5-0-2의 44px 대체) */
+  .biz-page .btn {
+    height: 34px;
+  }
+  /* 2개일 때 반씩 */
+  .biz-actions > .btn:not(:only-child),
+  .biz-actions-compact > .btn:not(:only-child) {
+    flex: 1;
+    justify-content: center;
+  }
 }
 
 /* 00-38 §4.1 — 헤더(chrome)와 본문(page) 여백 분리. ≤480px 구간은 아래로 흡수 */

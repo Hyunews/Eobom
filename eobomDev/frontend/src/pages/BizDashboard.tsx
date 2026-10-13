@@ -331,10 +331,9 @@ export const BizDashboard: React.FC<BizDashboardProps> = ({ type, name, onLogout
   };
 
   return (
-    <div className="operator-min-width">
-    <div className="container" style={{ maxWidth: '720px', padding: '2.2rem 1rem' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.1rem' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+    <div className="container biz-page" style={{ maxWidth: '720px', padding: '2.2rem 1rem' }}>
+      <div className="biz-head" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.1rem' }}>
+        <div className="biz-head-name" style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
           <ShieldCheck size={24} color="var(--point-color)" />
           <h2 style={{ color: 'var(--primary-color)', margin: 0 }}>{name}</h2>
         </div>
@@ -392,7 +391,7 @@ export const BizDashboard: React.FC<BizDashboardProps> = ({ type, name, onLogout
                   </p>
                   <p style={{ margin: '0.15rem 0', fontSize: '0.85rem', color: 'var(--text-muted)' }}>{r.content}</p>
                   {r.status === 'REQUESTED' && (
-                    <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }}>
+                    <div className="biz-actions-compact" style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }}>
                       <button
                         disabled={updatingConsultId === r.id}
                         onClick={() => updateConsultStatus(r.id, 'ACCEPTED')}
@@ -412,7 +411,7 @@ export const BizDashboard: React.FC<BizDashboardProps> = ({ type, name, onLogout
                     </div>
                   )}
                   {r.status === 'ACCEPTED' && (
-                    <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }}>
+                    <div className="biz-actions-compact" style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }}>
                       <button
                         disabled={updatingConsultId === r.id}
                         onClick={() => updateConsultStatus(r.id, 'COMPLETED')}
@@ -439,7 +438,7 @@ export const BizDashboard: React.FC<BizDashboardProps> = ({ type, name, onLogout
               <select
                 value={leadStatusFilter}
                 onChange={(e) => changeLeadStatusFilter(e.target.value)}
-                className="form-select"
+                className="form-select biz-filter-select"
                 style={{ width: 'auto', height: '38px', fontSize: '0.85rem' }}
               >
                 <option value="">전체 상태</option>
@@ -470,7 +469,7 @@ export const BizDashboard: React.FC<BizDashboardProps> = ({ type, name, onLogout
                     <p style={{ margin: '0.15rem 0', fontSize: '0.85rem', color: 'var(--text-muted)' }}>{lead.payload.message}</p>
                   )}
                   {(lead.status === 'REQUESTED' || lead.status === 'NOTIFIED') && (
-                    <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }}>
+                    <div className="biz-actions" style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }}>
                       <button
                         disabled={updatingLeadNo === lead.leadNo}
                         onClick={() => updateLeadStatus(lead.leadNo, 'RESPONDED')}
@@ -482,7 +481,7 @@ export const BizDashboard: React.FC<BizDashboardProps> = ({ type, name, onLogout
                     </div>
                   )}
                   {lead.status === 'RESPONDED' && (
-                    <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }}>
+                    <div className="biz-actions" style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }}>
                       <button
                         disabled={updatingLeadNo === lead.leadNo}
                         onClick={() => updateLeadStatus(lead.leadNo, 'CONVERTED')}
@@ -534,7 +533,7 @@ export const BizDashboard: React.FC<BizDashboardProps> = ({ type, name, onLogout
               </button>
             </form>
             {searchResults.map((f) => (
-              <div key={f.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.6rem 0', borderTop: '1px solid var(--border-color)' }}>
+              <div key={f.id} className="biz-result-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.6rem 0', borderTop: '1px solid var(--border-color)' }}>
                 <div>
                   <strong>{f.name}</strong>
                   <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginLeft: '0.5rem' }}>{f.location}</span>
@@ -682,7 +681,7 @@ export const BizDashboard: React.FC<BizDashboardProps> = ({ type, name, onLogout
 
                   {/* 사진 선택 후 "저장"을 눌러야 실제로 업로드된다 */}
                   {pendingImages[f.id] ? (
-                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                    <div className="biz-actions" style={{ display: 'flex', gap: '0.5rem' }}>
                       <button
                         disabled={uploadingId === f.id}
                         onClick={() => savePendingImage(f.id)}
@@ -734,7 +733,6 @@ export const BizDashboard: React.FC<BizDashboardProps> = ({ type, name, onLogout
           </div>
         </>
       )}
-    </div>
     </div>
   );
 };

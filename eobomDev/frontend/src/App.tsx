@@ -401,6 +401,8 @@ function AppShell() {
       {isPortalRoute ? (
         /* 포털(파트너·운영자) 최소 상단 바 — 로고 + 홈 복귀 링크만. B2C 크롬 대체(00-06 §7.4) */
         <div
+          // 00-39 §5-0-1 — /admin은 상단 바도 본문과 같은 1200px 최소폭(좌우로 함께 움직임). 바 값은 창 폭과 무관한 고정값이라 데스크톱 값 그대로.
+          className={activeTab === 'admin' ? 'operator-min-width' : undefined}
           style={{
             padding: '1rem 1.5rem',
             backgroundColor: 'var(--primary-color)',

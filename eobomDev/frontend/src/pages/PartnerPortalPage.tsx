@@ -163,7 +163,7 @@ export const PartnerPortalPage: React.FC = () => {
   }
 
   return (
-    <div className="container" style={{ maxWidth: '560px', padding: '2.2rem 1rem' }}>
+    <div className="container biz-page" style={{ maxWidth: '560px', padding: '2.2rem 1rem' }}>
       <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
         <h1 style={{ fontSize: '1.8rem', color: 'var(--primary-color)', fontWeight: 'var(--fw-bold)', marginBottom: '0.5rem' }}>
           사업자·전문가 파트너 포털
@@ -190,7 +190,7 @@ export const PartnerPortalPage: React.FC = () => {
             gap: '0.4rem',
           }}
         >
-          <Building2 size={16} /> 장사시설 사업자
+          <Building2 size={16} /> <span className="biz-hide-mobile">장사시설 </span>사업자
         </button>
         <button
           type="button"

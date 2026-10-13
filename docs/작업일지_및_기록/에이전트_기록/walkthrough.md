@@ -16,6 +16,17 @@
 > [`_아카이브_2608`](walkthrough_아카이브_2608.md)(08-31분). 남은 것 = 판정 대기 + 판정 표기 없음. 기준 → `record.md` §2-1.
 
 ---
+## 2026-10-13 | [Sonnet] 사업자 화면 모바일 배치 + 운영자 화면 상단 바 1200px 틀
+
+- **근거 스펙**: docs/00_핵심플랫폼/00-39_디자인_기준_재정립_명세서.md §5-0 표 · §5-0-1 · §5-0-2 (10-13 개발자 결정)
+- **건드린 파일**: eobomDev/frontend/src/index.css · eobomDev/frontend/src/App.tsx · eobomDev/frontend/src/pages/BizDashboard.tsx · eobomDev/frontend/src/pages/PartnerPortalPage.tsx
+- **결과**: ① `/admin`: `App.tsx` 포털 상단 바 `<div>`에 `activeTab === 'admin'`일 때 `className="operator-min-width"` 추가 → 상단 바도 min-width 1200px, 본문과 함께 스크롤. 바의 값(padding `1rem 1.5rem`·로고 `height={30}`·`--fs-body`)은 원래 창 폭과 무관한 고정값이라 따로 고정할 것 없음. 로그인 전후 같은 바(로그인 화면 본문은 최소폭 없음 유지). ② `/partner`: `BizDashboard`의 `<div className="operator-min-width">` 래퍼 제거. `BizDashboard`·`PartnerPortalPage` 바깥 상자에 `biz-page` 클래스 추가, `index.css`에 `@media (max-width: 767px)` 블록 신설(`.biz-page` 좌우 24px `!important`·`.biz-head`/`.biz-head-name`·`.biz-filter-select` 전체 폭·`.biz-result-row` 세로·`.biz-actions` 버튼 높이 44px+2개면 `flex:1`). 클래스 부착: 처리 버튼 줄 5곳(수락·거절 / 상담 완료 처리 / 응답 완료 / 성사·무산 / 저장·취소)·시설 검색 결과 행·상태 필터 select·제목 줄. ③ `index.css`의 `.operator-min-width` 주석을 "/admin 전용"으로 수정(옛 문구 "승인 대시보드·사업자 대시보드"·"/admin·/partner는" 제거). 검증: `tsc --noEmit` 통과 · `npm run build` 통과. **실기동(360px 좌우 스크롤 0 확인)은 하지 않음 — 사람 몫.**
+- **편차**: ① 처리 버튼이 1개짜리(수락 대기 아님: "상담 완료 처리"·"응답 완료로 표시")는 스펙 표에 "2개면 반씩"만 있어 **높이 44px만** 적용하고 폭은 그대로 둠(`:not(:only-child)`). ② `/admin` 로그인 화면의 상단 바도 1200px 최소폭이라 휴대폰에서 로그인 화면이 좌우로 스크롤된다(§5-0-1 범위 밖 문구가 "바 모양이 로그인 전후 같게"만 정해 바 폭은 본문과 무관하게 항상 1200으로 해석). ③ 시설 검색 결과의 "연동 신청"·페이지 이전/다음·"주소 검색" 버튼은 스펙 표의 "처리 버튼" 목록에 없어 44px 적용 안 함.
+- **다음 에이전트가 알아야 할 것**: 편차 ②는 Opus 판단 필요 — 로그인 화면에서도 바를 1200px로 둘지, 로그인 전에는 바만 줄어들게 할지. 실기동 체크: 360px에서 `/partner` 로그인·가입(장사시설·전문가)·대시보드 양쪽, `/admin` 로그인 전후 좌우 스크롤 시 바와 본문이 같이 움직이는지. 백엔드·docs 본문 변경 없음.
+
+<!-- Gemini 판정 대기 -->
+
+---
 ## 2026-10-13 | [Sonnet] 리프레시 토큰 재발급 연결 + 운영자·사업자 화면 apiFetch 이관
 
 - **근거 스펙**: docs/00_핵심플랫폼/00-34_프론트엔드_공통_레이어_명세서.md §2.3-1~5(10-13 확정) · §8 3단계 "이관할 때 확인할 것" ①② · §6
