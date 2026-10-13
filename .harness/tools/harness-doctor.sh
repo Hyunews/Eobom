@@ -243,7 +243,7 @@ echo "2. 조건부 로드 파일"
 #   재는 사람이 없었다**(GEMINI.md는 9,198B로 이미 얇지 않다). `.harness/CLAUDE.md`는
 #   디렉토리 근접으로 자동 로드돼 매 세션 컨텍스트를 쓰는데도 예산이 없었다 —
 #   §2(context.md가 자기 상한의 3.7배까지 불어 있던 건)와 정확히 같은 구멍이다.
-for f in roles.md security.md done.md systems.md record.md db-safety.md CLAUDE.md GEMINI.md memory/backlog.md; do
+for f in roles.md security.md done.md systems.md infra.md record.md db-safety.md CLAUDE.md GEMINI.md memory/backlog.md; do
   # (CHECKS 증가는 budget_check 안에서 한다 — 2026-08-31)
   # 2026-08-26 예산 정정 — roles.md 8→10KB · systems.md 6→12KB. AGENTS.md §9 순서대로
   # **내용부터 봤고, 옮길 곳이 없어서** 올렸다. 근거는 "6KB = 단일 주제"라는 위 전제가
@@ -254,6 +254,9 @@ for f in roles.md security.md done.md systems.md record.md db-safety.md CLAUDE.m
   #   · roles.md = 태그표·소유권표 2개·파이프라인·편차 프로토콜·핸드오프 5주제. 2026-08-25에
   #     Opus/Sonnet 소유권 분리(사고 재발 방지)가 들어가며 더 늘었고, 그건 뺄 수 없는 내용이다.
   # ⚠️ 그래도 상한이다. 다음에 닿으면 올리기 전에 무엇을 어디로 옮겼는지 여기 먼저 적을 것.
+  # 🔴 2026-10-13 systems.md 분리 — 자동 재설정(18KB)을 받고도 85%로 돌아와 §9 "두 번째는 분리"대로
+  #   §4 DB·§5 배포를 `infra.md`로 옮겼다(위 "명부는 한 파일" 판단을 뒤집음 — 조건부 로드 표 한 줄에
+  #   두 파일을 나란히 두면 동기화 대상은 2개뿐이다). 둘 다 최초값 12KB.
   # 🔵 2026-08-28 CLAUDE.md 6KB(사장님 승인) — *"기획·개발 둘의 내용이 모두 들어가야 한다"*.
   #   이 파일만 **역할 2개**(`[Claude:Opus]` 기획 + `[Claude:Sonnet]` 구현)를 담는다.
   #   같은 날 "Opus용/Sonnet용으로 쪼개는 안"이 기각됐으므로(→ `_meta/CLAUDE_md_분리_검토.md`)
@@ -271,6 +274,7 @@ for f in roles.md security.md done.md systems.md record.md db-safety.md CLAUDE.m
   case "$f" in
     roles.md)         budget=10240 ;;
     systems.md)       budget=12288 ;;
+    infra.md)         budget=12288 ;;
     GEMINI.md)        budget=10240 ;;
     memory/backlog.md) budget=7168 ;;
     *)                budget=6144 ;;

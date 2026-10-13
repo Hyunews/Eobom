@@ -33,7 +33,8 @@
 │   ├── security.md           # 개인정보·시크릿·발행 게이트
 │   ├── done.md               # "완료"의 정의 (유일 정본)
 │   ├── record.md             # 기록 형식 (walkthrough 5필드·일지 태그)
-│   ├── systems.md            # 외부 연동 명부 (OAuth·지도·DB·저장소·배포)
+│   ├── systems.md            # 외부 연동 명부 (OAuth·지도·공공데이터)
+│   ├── infra.md              # 인프라 명부 (DB·배포·이미지 저장 — 10-13 systems.md에서 분리)
 │   ├── db-safety.md          # 🔴 DB 쓰기 전 백업 절차 (로컬·운영)
 │   │
 │   ├── CLAUDE.md / GEMINI.md # 에이전트별 역할 (얇게 유지)

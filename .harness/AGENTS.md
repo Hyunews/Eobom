@@ -33,7 +33,7 @@
 | 🔴 **DB에 쓰는 명령을 돌리기 직전** — `deleteMany`·`updateMany`·`migrate`·`db push`·정리 스크립트·시드 | `.harness/db-safety.md` |
 | 작업을 "끝났다"고 선언하기 직전 | `.harness/done.md` |
 | `walkthrough.md`·일지에 기록을 남길 때 | `.harness/record.md` |
-| 외부 연동(OAuth·지도·공공데이터·DB·배포) 건드릴 때 | `.harness/systems.md` |
+| 외부 연동(OAuth·지도·공공데이터) / DB·배포·업로드 저장 | `.harness/systems.md` / `.harness/infra.md` |
 | 반복 작업(2회차 이상)일 때 | `.harness/skills/README.md` |
 | `context.md`의 할 일을 집었는데 **배경·근거·미검증 항목**이 필요할 때 | `.harness/memory/backlog.md` |
 | 메모리를 남기거나 과거 결정 이유가 궁금할 때 | `.harness/memory/MEMORY.md` → 해당 메모리 |

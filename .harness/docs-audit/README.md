@@ -448,6 +448,7 @@ topics(20): `회원·인증` · `가족연결` · `사망·고인` · `개인정
 ### 6-1. 판정 세션 (2단계) — 도메인 하나 = 창 하나
 
 1. **시작**: 사람은 새 창에서 *"docs 정리 2단계 — 02 판정"* 한 줄만 말하면 된다. 에이전트는 이 README §2·§3·§6만 읽고 대장 `ledger_<도메인>.md`를 연다.
+   대장 파일(`docs-ledger.js build`가 만듦 · doctor §11이 이름으로 찾는다): `ledger_00.md` · `ledger_01.md` · `ledger_02.md` · `ledger_03.md` · `ledger_04.md` · `ledger_05.md` · `ledger_06.md` · `ledger_07.md` · `ledger_08.md` · `ledger_TS.md`
 2. **읽기**: 파일 하나를 끝까지 읽고 → 그 파일의 판정을 **JSON 하나로 모아 `fill`로 한 번에** 적는다. 대장 표를 한 줄씩 Edit하지 않는다(느리고 표가 깨지기 쉽다).
    ```
    node .harness/tools/docs-ledger.js fill 02 <scratchpad>/02.json

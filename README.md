@@ -28,7 +28,7 @@
 | **지금 뭘 해야 하나** | [`.harness/memory/context.md`](.harness/memory/context.md) |
 | **코드를 돌려보고 싶다** | [`eobomDev/README.md`](eobomDev/README.md) — ⚠️ **`https://` 필수 · DB 포트 5433** |
 | **기획을 읽고 싶다** | [`docs/00_DOCS_INDEX.md`](docs/00_DOCS_INDEX.md) |
-| **외부 연동이 왜 안 되나** | [`.harness/systems.md`](.harness/systems.md) — OAuth·지도·DB·저장소·배포 명부 |
+| **외부 연동이 왜 안 되나** | [`.harness/systems.md`](.harness/systems.md) — OAuth·지도·공공데이터 명부 · DB·배포·저장소는 [`.harness/infra.md`](.harness/infra.md) |
 | **DB를 건드려야 한다** | [`.harness/db-safety.md`](.harness/db-safety.md) — 🔴 쓰기 전 백업 |
 | **AI 에이전트로 작업한다** | [`.harness/AGENTS.md`](.harness/AGENTS.md) ← **행동 규칙 정본** |
 
