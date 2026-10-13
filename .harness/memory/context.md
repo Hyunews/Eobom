@@ -10,10 +10,9 @@
 **업무판(정본)** https://claude.ai/artifact/HZUBGqnKnx6jFzuqK9HJPx — db `tasks`. 상태는 ArtifactData `update`(끝나면 "완료"). 답변에선 id 말고 **화면 제목**으로 부른다.
 
 **주 흐름 = A안(10-07)**: Sonnet은 업무판 개발 순서, Opus는 docs 정리.
-- ✅ [Claude:Opus] **docs 정리 6단계 끝(10-13)** — 결과 `docs-audit/README.md` §1-6 · B-4 커밋 대기
-- ▶ [Claude:Opus] **부팅 85% 정리(다음 세션 첫머리, 10-13 개발자)** — `pending-approvals.md` 긴 항목(유언장 사진·인프라) 한 줄화 → 75% 안팎. 🔴 줄이기 전 문구를 보여 주고 확인
 - [Gemini] 🟡 walkthrough 10월분 판정 대기 62건 — 판정은 **walkthrough 칸에** 적을 것(10-13 9월분 120건 "판정 생략" 이관, 647→229KB, `record.md` §2-1). 판정 나면 아카이브 가능
-- [Claude:Sonnet] 잔여: 상세 카드 변경일 `%cs` → `%cd --date=short`- 끝난 항목(10-13 5단계·리프레시 토큰·사업자 모바일·6-A 포함)은 `context_아카이브_2610.md` 맨 위
+- [Claude:Sonnet] 잔여: 상세 카드 변경일 `%cs` → `%cd --date=short`
+- 끝난 항목(10-13 5단계·리프레시 토큰·사업자 모바일·6-A 포함)은 `context_아카이브_2610.md` 맨 위
 
 ## 작업시트 ↔ 업무판
 
