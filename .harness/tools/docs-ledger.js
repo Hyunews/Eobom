@@ -162,6 +162,46 @@ function build(ackDomain, quiet) {
   console.log(`합계 | ${t.files} | ${t.rows} | ${t.filled}`);
 }
 
+// 바뀐 절을 인용한 다른 문서의 줄 — `07-03:489(§4.5-4-2)` 꼴로 짧게(10-13 B-2 결정 3안: 절을 고치면 인용처도 본다)
+// 바뀐 절 = 커밋 전 변경(git diff HEAD)이 걸친 절의 번호. 그 절(또는 그 하위 절)을 § 번호로 인용한 줄만 낸다
+// — 문서 전체 인용을 다 내면 수백 곳이라 아무도 안 본다(출력도 컨텍스트, AGENTS.md §10).
+// 절 번호 = 제목 맨 앞(이모지·ⓐ 같은 기호 뒤)의 숫자만 — "3번째 섹션"의 3을 번호로 읽지 않게
+const secNo = (h) => (h.level > 1 && (/^[^0-9A-Za-z가-힣]*(\d+(?:[.\-]\d+)*)(?![가-힣])/.exec(h.title)) || [])[1];
+function changedSections(rel) {
+  let diff = '';
+  try { diff = require('child_process').execFileSync('git', ['diff', '-U0', 'HEAD', '--', path.join('docs', rel)], { cwd: ROOT, encoding: 'utf8' }); } catch { return null; }
+  const hs = headings(path.join(DOCS, rel));
+  const out = new Set();
+  for (const m of diff.matchAll(/^@@ -\d+(?:,\d+)? \+(\d+)(?:,(\d+))? @@/gm)) {
+    const from = +m[1], to = from + Math.max((m[2] === undefined ? 1 : +m[2]) - 1, 0);
+    for (let L = from; L <= to; L++) {
+      // 그 줄을 품은 제목부터 거슬러 올라가 번호 있는 첫 제목(ⓓ처럼 번호 없는 절은 부모 번호)
+      const idx = hs.reduce((a, h, j) => (h.line <= L ? j : a), -1);
+      for (let j = idx; j >= 0; j--) { const n = secNo(hs[j]); if (n) { out.add(n); break; } }
+    }
+  }
+  return [...out];
+}
+function citesOf(rel) {
+  const m = /^(\d{2}-\d{2}|TS-\d{3})/.exec(path.basename(rel));
+  if (!m) return '';
+  const changed = changedSections(rel);
+  if (!changed || !changed.length) return '(커밋 전 변경 없음 — 바뀐 절을 직접 확인)';
+  const hit = (s) => changed.some((c) => s === c || s.startsWith(c + '.') || s.startsWith(c + '-'));
+  const re = new RegExp('`?' + m[1] + '`?\\s*§\\s*(\\d[\\d.\\-]*\\d|\\d)', 'g');
+  const self = path.join(DOCS, rel);
+  const out = [];
+  for (const f of walk(DOCS)) {
+    if (f === self) continue;
+    const id = (/^(\d{2}-\d{2}|TS-\d{3})/.exec(path.basename(f)) || [path.basename(f, '.md')])[0];
+    fs.readFileSync(f, 'utf8').split(/\r?\n/).forEach((ln, i) => {
+      const secs = [...new Set([...ln.matchAll(re)].map((x) => x[1]).filter(hit))];
+      if (secs.length) out.push(`${id}:${i + 1}(§${secs.join('·§')})`);
+    });
+  }
+  return `바뀐 절 §${changed.join('·§')} → ${out.length ? out.join(' ') : '인용 0곳'}`;
+}
+
 function check(only) {
   build(null, true); // 문서가 바뀌었을 수 있으니 대장을 먼저 최신으로
   const files = fs.readdirSync(OUT).filter((f) => /^ledger_.+\.md$/.test(f)).sort();
@@ -192,7 +232,11 @@ function check(only) {
     console.log(`${dom}: ${rows.length - empty.length}/${rows.length} (${pct}%)${extra ? ' · ' + extra : ''}`);
     if (only) empty.forEach((e) => console.log('  빈 칸 ', e));
     invalid.forEach((e) => console.log('  ⚠ ', e));
-    stale.forEach((e) => console.log(`  🔴 판정 뒤 바뀜: ${e} — git diff로 바뀐 절만 다시 보고 판정 고친 뒤 \`ack ${dom}\``));
+    stale.forEach((e) => {
+      console.log(`  🔴 판정 뒤 바뀜: ${e} — git diff로 바뀐 절만 다시 보고 판정 고친 뒤 \`ack ${dom}\``);
+      const cites = citesOf(e);
+      if (cites) console.log(`     ↳ 인용처 확인: ${cites}`);
+    });
     orphans.forEach((l) => { const c = cellsOf(l); console.log(`  🔴 사라진 절: ${c[0]}:${c[1]} ${c[2]} (${c[3]}) — 대장 맨 아래 표에서 새 절로 옮겨 적을 것`); });
     // 아직 손대지 않은 도메인의 빈 칸은 전체 점검에서 실패로 치지 않는다(판정 중인 도메인만 100% 요구)
     const started = handFiles.size > 0;
