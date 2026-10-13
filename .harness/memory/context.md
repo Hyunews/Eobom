@@ -10,9 +10,9 @@
 **업무판(정본)** https://claude.ai/artifact/HZUBGqnKnx6jFzuqK9HJPx — db `tasks`. 상태는 ArtifactData `update`(끝나면 "완료"). 답변에선 id 말고 **화면 제목**으로 부른다.
 
 **주 흐름 = A안(10-07)**: Sonnet은 업무판 개발 순서, Opus는 docs 정리.
-- ▶ [Claude:Opus] **6-B** — 계획·회차 결과 = `docs-audit/README.md` §1-6 · ✅ B-2 추모관·부고(10-13, 커밋 대기) → **다음 B-3 가족·탈퇴·파기·유언** · Sonnet과 동시 진행 안 함(크레딧)
+- ▶ [Claude:Opus] **6-B** — 계획·회차 결과 = `docs-audit/README.md` §1-6 · ✅ B-2·B-3(10-13, B-3 커밋 대기) → **다음 B-4 나머지 + 00 안끼리** · Sonnet과 동시 진행 안 함(크레딧)
 - [Gemini] 🟡 walkthrough 10월분 판정 대기 62건 — 판정은 **walkthrough 칸에** 적을 것(10-13 9월분 120건 "판정 생략" 이관, 647→229KB, `record.md` §2-1). 판정 나면 아카이브 가능
-- [Claude:Sonnet] 잔여: 상세 카드 변경일 `%cs` → `%cd --date=short`
+- [Claude:Sonnet] 잔여: 상세 카드 변경일 `%cs` → `%cd --date=short` · `schema.prisma` `User.purgedAt` 주석의 "추모관·부고장은 탈퇴 후에도 남는다" → 09-30 결정대로(`06-05` §5.6-8-4 표) + `generate-db-doc.js`
 - 끝난 항목(10-13 5단계·리프레시 토큰·사업자 모바일·6-A 포함)은 `context_아카이브_2610.md` 맨 위
 
 ## 작업시트 ↔ 업무판

@@ -54,7 +54,7 @@
 | `06_엔딩노트_유언/06-03_엔딩노트_열람통제_및_예외열람_정책.md` | 240 | &nbsp;&nbsp;## 🔗 9. 관련 문서 | 색인 | 관련 문서 표 — 00-41·06-04·06-05·00-27 추가 | 4단계 반영 10-12 |
 | `06_엔딩노트_유언/06-03_엔딩노트_열람통제_및_예외열람_정책.md` | 261 | &nbsp;&nbsp;## 📎 부록: 경위 | 경위 | 부록 머리 — 옮긴 기록 안내 | 4단계 반영 10-12 |
 
-## `06_엔딩노트_유언/06-04_엔딩노트_보관함_실구현_기획서.md` (102KB · 절 82) <!-- sha:b280733068 -->
+## `06_엔딩노트_유언/06-04_엔딩노트_보관함_실구현_기획서.md` (101KB · 절 82) <!-- sha:ec5deccbf9 -->
 
 | 파일 | 줄 | 절 | 판정 | 근거 | 메모 |
 |---|---:|---|---|---|---|
@@ -141,7 +141,7 @@
 | `06_엔딩노트_유언/06-04_엔딩노트_보관함_실구현_기획서.md` | 1063 | &nbsp;&nbsp;## 🔗 14. 관련 문서 | 색인 | 관련 문서 표 — 06-06·00-41 추가 | 4단계 반영 10-12 |
 | `06_엔딩노트_유언/06-04_엔딩노트_보관함_실구현_기획서.md` | 1085 | &nbsp;&nbsp;## 📎 부록: 경위 | 경위 | 부록 머리 — 옮긴 기록 안내 | 4단계 반영 10-12 |
 
-## `06_엔딩노트_유언/06-05_유족메시지_보관함_도메인분리_기획서.md` (72KB · 절 66) <!-- sha:b71fd56631 -->
+## `06_엔딩노트_유언/06-05_유족메시지_보관함_도메인분리_기획서.md` (72KB · 절 66) <!-- sha:1741e509eb -->
 
 | 파일 | 줄 | 절 | 판정 | 근거 | 메모 |
 |---|---:|---|---|---|---|
@@ -163,54 +163,54 @@
 | `06_엔딩노트_유언/06-05_유족메시지_보관함_도메인분리_기획서.md` | 191 | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;#### 5.4-1 두 사건은 성격이 정반대입니다 | 유지 | 사망↔탈퇴 성격 대조 | R200·R700 |
 | `06_엔딩노트_유언/06-05_유족메시지_보관함_도메인분리_기획서.md` | 199 | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;#### 5.4-2 ✅ 탈퇴 — **30일 유예 후 파기**, 그 사실을 알린다 | 유지 | 탈퇴 30일 유예 · 안내 접점 화면 2곳(10-01 결정) | 4단계 반영 10-12 R200·R700 |
 | `06_엔딩노트_유언/06-05_유족메시지_보관함_도메인분리_기획서.md` | 222 | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;#### 5.4-2-1 ✅ 30일 유예의 **구현 형태 = 소프트 삭제** (2026-09-03 확정) | 유지 | 소프트 삭제 구현 형태·런타임 DeleteObject 금지·객체 키 UUID | 09-03 정정 2건(Bucket lock 미채택) 서술은 경위로 R200·R400 |
-| `06_엔딩노트_유언/06-05_유족메시지_보관함_도메인분리_기획서.md` | 257 | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;#### 5.4-3 반출 꾸러미 | 유지 | 반출 꾸러미(zip 무암호·mp3/txt 변환·안내.txt) — farewellMessageExport.ts | R200 |
-| `06_엔딩노트_유언/06-05_유족메시지_보관함_도메인분리_기획서.md` | 274 | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;#### 5.4-3-1 🆕 편지 **단건 반출** (2026-09-07 개발자 지시) | 유지 | 편지 단건 반출 — /:id/export(farewellMessageRoutes.ts:31)·FarewellMessageCard.tsx:368 fetch | 대조✅: 파일명 새니타이즈 40자·RFC 5987 · 대조✅(10-01): 파일명 40자 절단·RFC 5987 filename* 구현(farewellMessageExport.ts:35-39) R200 |
-| `06_엔딩노트_유언/06-05_유족메시지_보관함_도메인분리_기획서.md` | 314 | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;#### 5.4-4 사망 시 반출 | 유지 | 사망 시 반출 — RELEASED 후 유족 화면 전체·건별 | 대조✅: FamilySharedPage에 전체·건별 내려받기가 있는지(family-view/letters/:id/audio만 확인) · 대조✅(10-01): FamilySharedPage는 편지 음성 재생만(:126-142) — 전체·건별 내려받기 없음 R200 |
-| `06_엔딩노트_유언/06-05_유족메시지_보관함_도메인분리_기획서.md` | 321 | &nbsp;&nbsp;&nbsp;&nbsp;### 🆕 5.5 직접 녹음(Ⓑ) — 저장 옵션 (2026-09-03 개발자 지시) | 유지 | Ⓑ 지금 — 녹음 본체·글 변환 항상 CLOVA · 옛 설계 부록 | 4단계 반영 10-12 |
-| `06_엔딩노트_유언/06-05_유족메시지_보관함_도메인분리_기획서.md` | 326 | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;#### 5.5-3 ✅ 저장 옵션 기본값 — **켬** (2026-09-03 개발자 확정) | 유지 | 저장 옵션 기본 켬 + 첫 녹음 1회 전면 안내 | 대조✅: '목소리도 함께 남기기' 문구·1회 안내 구현(VoiceToTextInput에 관련 grep 걸림 — 확인함) · 대조✅(10-01): "목소리도 함께 남기기"(:566)·첫 녹음 1회 안내(:39·352-360·475) 구현 R200 |
-| `06_엔딩노트_유언/06-05_유족메시지_보관함_도메인분리_기획서.md` | 336 | &nbsp;&nbsp;## 🔊 5.6 🆕 저장된 음성의 **듣기·삭제** (2026-09-04 신설) | 유지 | 듣기·삭제 신설 배경(09-04) | 머리 '왜 지금' 문단은 경위 R100·R200 |
-| `06_엔딩노트_유언/06-05_유족메시지_보관함_도메인분리_기획서.md` | 342 | &nbsp;&nbsp;&nbsp;&nbsp;### 5.6-1 🔴 듣기는 **반드시 서버를 경유**합니다 — presigned URL로는 안 됩니다 | 유지 | 듣기는 서버 경유·presigned 금지 — /:id/audio | 'downloadVoiceObject 부르는 곳 없음'은 낡음(이제 부름) R200·R400·R600 |
-| `06_엔딩노트_유언/06-05_유족메시지_보관함_도메인분리_기획서.md` | 352 | &nbsp;&nbsp;&nbsp;&nbsp;### 5.6-2 ✅ 재생 경로는 둘로 갈립니다 | 유지 | 재생 경로 2가지(로컬 blob / 서버) | R200·R600 |
-| `06_엔딩노트_유언/06-05_유족메시지_보관함_도메인분리_기획서.md` | 362 | &nbsp;&nbsp;&nbsp;&nbsp;### 5.6-3 ✅ 엔드포인트 `GET /api/farewell-messages/:id/audio` | 유지 | GET /:id/audio 규칙(메시지 기준 소유권·404·no-store·fetch→blob) | 대조✅: Cache-Control no-store · 대조✅(10-01): Cache-Control no-store(farewellMessageController.ts:289·farewellMessageExport.ts:148) R200·R300 |
-| `06_엔딩노트_유언/06-05_유족메시지_보관함_도메인분리_기획서.md` | 373 | &nbsp;&nbsp;&nbsp;&nbsp;### 5.6-4 ✅ 삭제 = 소프트 삭제. 🔴 **`mediaKey`를 지우지 않습니다** | 유지 | 소프트 삭제 · mediaKey 보존 · 업로드 시점 대체 안내(고아 1건 가능) | 4단계 반영 10-12 R200·R700 |
-| `06_엔딩노트_유언/06-05_유족메시지_보관함_도메인분리_기획서.md` | 395 | &nbsp;&nbsp;&nbsp;&nbsp;### 5.6-7 🔴 편지 삭제도 **소프트 삭제**입니다 (2026-09-04 신설) | 유지 | 편지 삭제 소프트 삭제 — deletedAt(schema.prisma:658) · FarewellMessageCard.tsx:212 | '제 스펙 누락' 경위 문단은 부록 R200 |
-| `06_엔딩노트_유언/06-05_유족메시지_보관함_도메인분리_기획서.md` | 419 | &nbsp;&nbsp;&nbsp;&nbsp;### 5.6-8 ✅ 파기 배치 — **한 배치가 네 가지 만료를 봅니다** (2026-09-04 신설 · 🔄 2026-09-21 ④ 추가) | 유지 | 파기 배치 4종 — destroy-farewell-media.ts·farewellPurgeService.ts·accountPurgeService.ts · ③ 미구현·비차단 | 4단계 반영 10-12 R200·R700 |
-| `06_엔딩노트_유언/06-05_유족메시지_보관함_도메인분리_기획서.md` | 438 | &nbsp;&nbsp;&nbsp;&nbsp;### 5.6-8-1 🔴 아카이브는 **2단계**로 지웁니다 (2026-09-04 신설 — 편차 판정) | 유지 | 아카이브 2단계 삭제·백엔드에 아카이브 키 없음 | 09-04 'Admin 자격' 정정 문단은 경위 R200 |
-| `06_엔딩노트_유언/06-05_유족메시지_보관함_도메인분리_기획서.md` | 468 | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;#### 5.6-8-1-1 🔴 그 사이 키를 잃어버리면 안 됩니다 — **원장은 DB 테이블입니다** | 유지 | 원장 = ArchivePurgeQueue DB 테이블 | '파일 append' 재판단 경위는 부록 R200·R300 |
-| `06_엔딩노트_유언/06-05_유족메시지_보관함_도메인분리_기획서.md` | 497 | &nbsp;&nbsp;&nbsp;&nbsp;### 5.6-8-2 🔴 **어느 환경에서 돌리나** (2026-09-04 신설 — 누락 보완) | 유지 | 실행 환경 판별(-dev 버킷)·운영은 Render(어드민) | 누락 보완 머리 문단은 경위 R200·R600 |
-| `06_엔딩노트_유언/06-05_유족메시지_보관함_도메인분리_기획서.md` | 524 | &nbsp;&nbsp;&nbsp;&nbsp;### 5.6-8-3 ✅ **누가 실행하나 — 어드민 화면** (2026-09-04 확정, 사람 판단) | 유지 | 어드민 파기 화면(SCR-010 탭) — AdminPage.tsx:1025-1049·farewellPurgeController.ts | R200·R700 |
-| `06_엔딩노트_유언/06-05_유족메시지_보관함_도메인분리_기획서.md` | 531 | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;#### 5.6-8-3-1 🔴 경계 — **앱은 규칙을 집행만 하고, 덮어쓰지 못합니다** | 유지 | 강제 삭제 경로 금지·서버 만료 재검증 | topics: security-boundary R200·R400·R600 |
-| `06_엔딩노트_유언/06-05_유족메시지_보관함_도메인분리_기획서.md` | 549 | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;#### 5.6-8-3-2 🔴 화면이 하는 일 / 하지 않는 일 | 유지 | 화면이 하는 일/하지 않는 일 | R200 |
-| `06_엔딩노트_유언/06-05_유족메시지_보관함_도메인분리_기획서.md` | 562 | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;#### 5.6-8-3-3 🔴 실행 가드 | 유지 | 실행 가드(건수 입력·감사 로그·재인증·스크립트 공용 함수) | '00-06 등재 필요 → context Opus'는 §8 #60에서 완료 — 그 줄만 낡음 R200·R300 |
-| `06_엔딩노트_유언/06-05_유족메시지_보관함_도메인분리_기획서.md` | 575 | &nbsp;&nbsp;&nbsp;&nbsp;### 5.6-8-4 🆕 ④의 계정 파기는 **행 삭제가 아니라 익명화**입니다 (2026-09-21 Opus 판정) | 유지 | ④ 계정 파기 = 익명화(tombstone) · User.purgedAt(schema·authController 등 가드) | 09-21 Opus 판정 R200·R700 |
-| `06_엔딩노트_유언/06-05_유족메시지_보관함_도메인분리_기획서.md` | 581 | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;#### 🔴 FK를 `SetNull`로 바꾸지 않습니다 | 유지 | FK를 SetNull로 바꾸지 않음 | R200 |
-| `06_엔딩노트_유언/06-05_유족메시지_보관함_도메인분리_기획서.md` | 590 | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;#### ✅ 대신 `User` 행을 익명화해 남깁니다 (tombstone) | 유지 | 익명화 필드표·purgedAt 가드 전수 | 대조✅: 비울 필드 목록이 accountPurgeService.ts와 1:1인지. 겹침(확인함) → 00-36 M-3 · 대조✅(10-01): accountPurgeService ANONYMIZED가 문서 표와 1:1(비움 12필드·이름 탈퇴한 회원·SocialAccount 전량 삭제·purgedAt 가드). 코드 쪽 낡은 곳: schema.prisma User 주석(남는 것 id·createdAt·purgedAt뿐·추모관 부고장 남음)은 현행과 다름 R200·R300 |
-| `06_엔딩노트_유언/06-05_유족메시지_보관함_도메인분리_기획서.md` | 609 | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;##### 🔴 `purgedAt`이 유예 판정보다 **우선합니다** | 유지 | purgedAt 우선 순서 | R200 |
-| `06_엔딩노트_유언/06-05_유족메시지_보관함_도메인분리_기획서.md` | 620 | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;##### 🔴 `SetNull` 관계는 **배치가 직접 끊습니다** | 유지 | SetNull 관계는 배치가 직접 null | 대조✅: accountPurgeService가 Lead·ConsultRequest·MemorialTribute null 처리하는지 · 대조✅(10-01): Lead·ConsultRequest·MemorialTribute userId→null 구현(accountPurgeService.ts:21·41·92) R200 |
-| `06_엔딩노트_유언/06-05_유족메시지_보관함_도메인분리_기획서.md` | 630 | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;##### ✅ 내가 **수락한** 가족 지정 — 파기 때 §9.2 철회와 같은 처리 (2026-09-21 추인) | 유지 | 수락한 가족 지정 — DECLINED+Grant 전량 revoke(00-27 §9.2) | R200·R700 |
-| `06_엔딩노트_유언/06-05_유족메시지_보관함_도메인분리_기획서.md` | 646 | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;##### ⏸ ⑤ tombstone 수거 — 아직 만들지 않습니다 | 유지 | tombstone 수거 보류 — backlog.md 등재 확인 | 4단계 반영 10-12 R200·R700 |
-| `06_엔딩노트_유언/06-05_유족메시지_보관함_도메인분리_기획서.md` | 654 | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;#### 🔴 ④가 실제로 지우는 것 / 남기는 것 | 유지 | ④ 지우는 것/남기는 것 — 이 표가 정본(00-36 M-3이 가리킴) | 4단계 반영 10-12 R200 |
-| `06_엔딩노트_유언/06-05_유족메시지_보관함_도메인분리_기획서.md` | 669 | &nbsp;&nbsp;&nbsp;&nbsp;### 🆕 5.6-9 ✅ 변환과 저장을 나눕니다 (2026-10-07 개발자 결정) | 유지 | 변환과 저장 분리 — sttController store-audio·FarewellMediaRetired · 시험 farewell-voice-split.test.ts | 4단계 반영 10-12: 월 20분 정정 · 595초 = lib/heavyLimits.ts RECORD_AUTO_STOP_SECONDS · 409·동의 유지 구현 표시 · 2통 문제 backlog R200·R600 |
-| `06_엔딩노트_유언/06-05_유족메시지_보관함_도메인분리_기획서.md` | 675 | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;#### 5.6-9-1 원칙 | 유지 | 원칙 4개 — 월 20분 정정 | 4단계 반영 10-12 |
-| `06_엔딩노트_유언/06-05_유족메시지_보관함_도메인분리_기획서.md` | 686 | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;#### 5.6-9-2 화면 흐름 | 유지 | 화면 흐름 — 동의 유지 구현(FarewellMessageCard.tsx) | 4단계 반영 10-12 |
-| `06_엔딩노트_유언/06-05_유족메시지_보관함_도메인분리_기획서.md` | 725 | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;#### 5.6-9-3 🔴 편지 한 통에 음성은 하나 — 붙어 있으면 새 음성을 막습니다 | 유지 | 409 구현(farewellMessageController.ts) | 4단계 반영 10-12 |
-| `06_엔딩노트_유언/06-05_유족메시지_보관함_도메인분리_기획서.md` | 737 | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;#### 5.6-9-4 🔴 음성을 지운 편지에 새 음성 — 이전 키를 **파기 대기로 옮깁니다** (10-07 개발자 결정 "나") | 유지 | 삭제 유예 중 새 음성 → 이전 키 FarewellMediaRetired로 이동(한 트랜잭션) — schema.prisma FarewellMediaRetired, 마이그레이션 20261007090000, 시험 farewell-purge-retired.test.ts, farewellPurgeService.ts | 10-07 개발자 결정 '나' · 운영 migrate-prod 적용(개발자 10-07) 재판정 10-12 |
-| `06_엔딩노트_유언/06-05_유족메시지_보관함_도메인분리_기획서.md` | 751 | &nbsp;&nbsp;## 🗄️ 6. 데이터 모델 | 묶음 | 자동 — 본문 없음(하위 절만 묶음) |  |
-| `06_엔딩노트_유언/06-05_유족메시지_보관함_도메인분리_기획서.md` | 753 | &nbsp;&nbsp;&nbsp;&nbsp;### 6.1 관계 | 유지 | 관계 도식 — 9개 섹션·Log 미구현·DeathVerification·파기 보조 표 | 4단계 반영 10-12 R200·R700 |
-| `06_엔딩노트_유언/06-05_유족메시지_보관함_도메인분리_기획서.md` | 767 | &nbsp;&nbsp;&nbsp;&nbsp;### 6.2 🆕 `FarewellMessage` | 유지 | FarewellMessage 필드 — encryptNoteField·mediaMime/DurationSec 구현 | 4단계 반영 10-12 R200·R300 |
-| `06_엔딩노트_유언/06-05_유족메시지_보관함_도메인분리_기획서.md` | 790 | &nbsp;&nbsp;&nbsp;&nbsp;### 6.4 🆕 `ArchivePurgeQueue` (2026-09-04 신설 — §5.6-8-1-1) | 유지 | ArchivePurgeQueue 필드 | 대조✅: schema 필드와 1:1(grep로 모델 존재만 확인) · 대조✅(10-01): ArchivePurgeQueue 5필드(id·mediaKey·bucket·queuedAt·purgedAt) 스키마와 1:1 R200·R300 |
-| `06_엔딩노트_유언/06-05_유족메시지_보관함_도메인분리_기획서.md` | 805 | &nbsp;&nbsp;&nbsp;&nbsp;### 6.5 🆕 `FarewellPurgeAuditLog` (2026-09-04 소급 기재 — §5.6-8-3 #57) | 유지 | FarewellPurgeAuditLog 필드 — 소급 기재 | 대조✅: schema 필드 1:1 · 대조✅(10-01): FarewellPurgeAuditLog 7필드(id·adminId·adminName·targetIds·mediaKeys·count·executedAt) 스키마와 1:1 R200·R300 · 재판정 10-12: 10-07 targetIds 종류 접두 V:/L:/R:/I:(I = 06-06 WillPhotoSet) 서술 추가 — farewellPurgeController.ts AUDIT_PREFIX 일치 · 접두 없는 옛 행 처리 코드 주석 일치 |
-| `06_엔딩노트_유언/06-05_유족메시지_보관함_도메인분리_기획서.md` | 826 | &nbsp;&nbsp;&nbsp;&nbsp;### 6.6 🆕 `FarewellMediaRetired` (2026-10-07 신설 — §5.6-9-4) | 유지 | FarewellMediaRetired 모델 — schema.prisma에 존재, 필드(id·messageId·mediaKey·mediaMime·deletedAt·retiredAt·purgedAt) 문서와 대조는 이름 수준만 확인 | FK 안 묶음·개인정보 없음 원칙 · 필드 1:1 대조는 미대조 재판정 10-12: 새 절 |
-| `06_엔딩노트_유언/06-05_유족메시지_보관함_도메인분리_기획서.md` | 843 | &nbsp;&nbsp;## 🖥️ 7. 화면·진입 구조 | 묶음 | 자동 — 본문 없음(하위 절만 묶음) |  |
-| `06_엔딩노트_유언/06-05_유족메시지_보관함_도메인분리_기획서.md` | 845 | &nbsp;&nbsp;&nbsp;&nbsp;### 7.1 두 화면의 역할 | 유지 | 두 화면 구성 — 탭 2개 / 편지함 마스터·디테일(.v2-mail-*) | 4단계 반영 10-12 R200 |
-| `06_엔딩노트_유언/06-05_유족메시지_보관함_도메인분리_기획서.md` | 854 | &nbsp;&nbsp;&nbsp;&nbsp;### 7.2 🔴 크로스 링크는 양방향으로 답니다 | 유지 | 양방향 링크 구현 — FarewellDesktopView.tsx · EndingNotePage.tsx 음성 메시지 남기기 | 4단계 반영 10-12 R200 |
-| `06_엔딩노트_유언/06-05_유족메시지_보관함_도메인분리_기획서.md` | 870 | &nbsp;&nbsp;&nbsp;&nbsp;### 7.3 🔴 가족 지정 0명일 때가 이 화면의 기본 상태입니다 | 유지 | 가족 0명 기본 상태 → 가족 지정 유도 + '수신자가 없으면 전달되지 않습니다'(FarewellDesktopView.tsx:80) | 06-04 §8.2 폐기 후 이 경고의 정본이 여기로 옮겨옴 R200 |
-| `06_엔딩노트_유언/06-05_유족메시지_보관함_도메인분리_기획서.md` | 878 | &nbsp;&nbsp;&nbsp;&nbsp;### 7.4 ✅ 메인 진입 — **슬라이드 2개로 분리 확정**(2026-08-26 사장님) | 유지 | 메뉴 2개(lib/modeNav.ts) · domainSlides.tsx 삭제 · 홈 정본 00-40 | 4단계 반영 10-12 R200 |
-| `06_엔딩노트_유언/06-05_유족메시지_보관함_도메인분리_기획서.md` | 891 | &nbsp;&nbsp;## 🛠️ 8. 구현 상태 — 요약 (2026-10-12) | 유지 | 구현 상태 요약 · 남은 것 5줄 | 4단계 반영 10-12 R200 |
-| `06_엔딩노트_유언/06-05_유족메시지_보관함_도메인분리_기획서.md` | 906 | &nbsp;&nbsp;## 🔗 9. 다른 확정 사항에 미치는 영향 | 유지 | 영향 표 — 00-19 제3자 제공 반영 · 남은 00-19·00-20(00 도메인) | 4단계 반영 10-12 — 00 도메인 할 일은 README §4 06 블록 R200·R500 |
-| `06_엔딩노트_유언/06-05_유족메시지_보관함_도메인분리_기획서.md` | 921 | &nbsp;&nbsp;## 🔴 10. 확정이 필요한 것 | 유지 | 확정 5건 모두 닫힘 — MAX_BODY_LENGTH 20000·유일 제약 없음·메뉴 이름 | 4단계 반영 10-12 R200 |
-| `06_엔딩노트_유언/06-05_유족메시지_보관함_도메인분리_기획서.md` | 935 | &nbsp;&nbsp;## 🔗 11. 관련 문서 | 색인 | 관련 문서 표 — 06-06·00-41·00-36·00-39 추가 | 4단계 반영 10-12 |
-| `06_엔딩노트_유언/06-05_유족메시지_보관함_도메인분리_기획서.md` | 954 | &nbsp;&nbsp;## 📎 부록: 경위 | 경위 | 부록 머리 — 옮긴 기록 안내 | 4단계 반영 10-12 |
+| `06_엔딩노트_유언/06-05_유족메시지_보관함_도메인분리_기획서.md` | 251 | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;#### 5.4-3 반출 꾸러미 | 유지 | 반출 꾸러미(zip 무암호·mp3/txt 변환·안내.txt) — farewellMessageExport.ts | R200 |
+| `06_엔딩노트_유언/06-05_유족메시지_보관함_도메인분리_기획서.md` | 268 | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;#### 5.4-3-1 🆕 편지 **단건 반출** (2026-09-07 개발자 지시) | 유지 | 편지 단건 반출 — /:id/export(farewellMessageRoutes.ts:31)·FarewellMessageCard.tsx:368 fetch | 대조✅: 파일명 새니타이즈 40자·RFC 5987 · 대조✅(10-01): 파일명 40자 절단·RFC 5987 filename* 구현(farewellMessageExport.ts:35-39) R200 |
+| `06_엔딩노트_유언/06-05_유족메시지_보관함_도메인분리_기획서.md` | 308 | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;#### 5.4-4 사망 시 반출 | 유지 | 사망 시 반출 — RELEASED 후 유족 화면 전체·건별 | 대조✅: FamilySharedPage에 전체·건별 내려받기가 있는지(family-view/letters/:id/audio만 확인) · 대조✅(10-01): FamilySharedPage는 편지 음성 재생만(:126-142) — 전체·건별 내려받기 없음 R200 |
+| `06_엔딩노트_유언/06-05_유족메시지_보관함_도메인분리_기획서.md` | 315 | &nbsp;&nbsp;&nbsp;&nbsp;### 🆕 5.5 직접 녹음(Ⓑ) — 저장 옵션 (2026-09-03 개발자 지시) | 유지 | Ⓑ 지금 — 녹음 본체·글 변환 항상 CLOVA · 옛 설계 부록 | 4단계 반영 10-12 |
+| `06_엔딩노트_유언/06-05_유족메시지_보관함_도메인분리_기획서.md` | 320 | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;#### 5.5-3 ✅ 저장 옵션 기본값 — **켬** (2026-09-03 개발자 확정) | 유지 | 저장 옵션 기본 켬 + 첫 녹음 1회 전면 안내 | 대조✅: '목소리도 함께 남기기' 문구·1회 안내 구현(VoiceToTextInput에 관련 grep 걸림 — 확인함) · 대조✅(10-01): "목소리도 함께 남기기"(:566)·첫 녹음 1회 안내(:39·352-360·475) 구현 R200 |
+| `06_엔딩노트_유언/06-05_유족메시지_보관함_도메인분리_기획서.md` | 330 | &nbsp;&nbsp;## 🔊 5.6 🆕 저장된 음성의 **듣기·삭제** (2026-09-04 신설) | 유지 | 듣기·삭제 신설 배경(09-04) | 머리 '왜 지금' 문단은 경위 R100·R200 |
+| `06_엔딩노트_유언/06-05_유족메시지_보관함_도메인분리_기획서.md` | 336 | &nbsp;&nbsp;&nbsp;&nbsp;### 5.6-1 🔴 듣기는 **반드시 서버를 경유**합니다 — presigned URL로는 안 됩니다 | 유지 | 듣기는 서버 경유·presigned 금지 — /:id/audio | 'downloadVoiceObject 부르는 곳 없음'은 낡음(이제 부름) R200·R400·R600 |
+| `06_엔딩노트_유언/06-05_유족메시지_보관함_도메인분리_기획서.md` | 346 | &nbsp;&nbsp;&nbsp;&nbsp;### 5.6-2 ✅ 재생 경로는 둘로 갈립니다 | 유지 | 재생 경로 2가지(로컬 blob / 서버) | R200·R600 |
+| `06_엔딩노트_유언/06-05_유족메시지_보관함_도메인분리_기획서.md` | 356 | &nbsp;&nbsp;&nbsp;&nbsp;### 5.6-3 ✅ 엔드포인트 `GET /api/farewell-messages/:id/audio` | 유지 | GET /:id/audio 규칙(메시지 기준 소유권·404·no-store·fetch→blob) | 대조✅: Cache-Control no-store · 대조✅(10-01): Cache-Control no-store(farewellMessageController.ts:289·farewellMessageExport.ts:148) R200·R300 |
+| `06_엔딩노트_유언/06-05_유족메시지_보관함_도메인분리_기획서.md` | 367 | &nbsp;&nbsp;&nbsp;&nbsp;### 5.6-4 ✅ 삭제 = 소프트 삭제. 🔴 **`mediaKey`를 지우지 않습니다** | 유지 | 소프트 삭제 · mediaKey 보존 · 업로드 시점 대체 안내(고아 1건 가능) | 4단계 반영 10-12 R200·R700 |
+| `06_엔딩노트_유언/06-05_유족메시지_보관함_도메인분리_기획서.md` | 389 | &nbsp;&nbsp;&nbsp;&nbsp;### 5.6-7 🔴 편지 삭제도 **소프트 삭제**입니다 (2026-09-04 신설) | 유지 | 편지 삭제 소프트 삭제 — deletedAt(schema.prisma:658) · FarewellMessageCard.tsx:212 | '제 스펙 누락' 경위 문단은 부록 R200 |
+| `06_엔딩노트_유언/06-05_유족메시지_보관함_도메인분리_기획서.md` | 413 | &nbsp;&nbsp;&nbsp;&nbsp;### 5.6-8 ✅ 파기 배치 — **한 배치가 네 가지 만료를 봅니다** (2026-09-04 신설 · 🔄 2026-09-21 ④ 추가) | 유지 | 파기 배치 4종 — destroy-farewell-media.ts·farewellPurgeService.ts·accountPurgeService.ts · ③ 미구현·비차단 | 4단계 반영 10-12 R200·R700 |
+| `06_엔딩노트_유언/06-05_유족메시지_보관함_도메인분리_기획서.md` | 432 | &nbsp;&nbsp;&nbsp;&nbsp;### 5.6-8-1 🔴 아카이브는 **2단계**로 지웁니다 (2026-09-04 신설 — 편차 판정) | 유지 | 아카이브 2단계 삭제·백엔드에 아카이브 키 없음 | 09-04 'Admin 자격' 정정 문단은 경위 R200 |
+| `06_엔딩노트_유언/06-05_유족메시지_보관함_도메인분리_기획서.md` | 461 | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;#### 5.6-8-1-1 🔴 그 사이 키를 잃어버리면 안 됩니다 — **원장은 DB 테이블입니다** | 유지 | 원장 = ArchivePurgeQueue DB 테이블 | '파일 append' 재판단 경위는 부록 R200·R300 |
+| `06_엔딩노트_유언/06-05_유족메시지_보관함_도메인분리_기획서.md` | 490 | &nbsp;&nbsp;&nbsp;&nbsp;### 5.6-8-2 🔴 **어느 환경에서 돌리나** (2026-09-04 신설 — 누락 보완) | 유지 | 실행 환경 판별(-dev 버킷)·운영은 Render(어드민) | 누락 보완 머리 문단은 경위 R200·R600 |
+| `06_엔딩노트_유언/06-05_유족메시지_보관함_도메인분리_기획서.md` | 517 | &nbsp;&nbsp;&nbsp;&nbsp;### 5.6-8-3 ✅ **누가 실행하나 — 어드민 화면** (2026-09-04 확정, 사람 판단) | 유지 | 어드민 파기 화면(SCR-010 탭) — AdminPage.tsx:1025-1049·farewellPurgeController.ts | R200·R700 |
+| `06_엔딩노트_유언/06-05_유족메시지_보관함_도메인분리_기획서.md` | 524 | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;#### 5.6-8-3-1 🔴 경계 — **앱은 규칙을 집행만 하고, 덮어쓰지 못합니다** | 유지 | 강제 삭제 경로 금지·서버 만료 재검증 | topics: security-boundary R200·R400·R600 |
+| `06_엔딩노트_유언/06-05_유족메시지_보관함_도메인분리_기획서.md` | 542 | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;#### 5.6-8-3-2 🔴 화면이 하는 일 / 하지 않는 일 | 유지 | 화면이 하는 일/하지 않는 일 | R200 |
+| `06_엔딩노트_유언/06-05_유족메시지_보관함_도메인분리_기획서.md` | 555 | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;#### 5.6-8-3-3 🔴 실행 가드 | 유지 | 실행 가드(건수 입력·감사 로그·재인증·스크립트 공용 함수) | '00-06 등재 필요 → context Opus'는 §8 #60에서 완료 — 그 줄만 낡음 R200·R300 |
+| `06_엔딩노트_유언/06-05_유족메시지_보관함_도메인분리_기획서.md` | 568 | &nbsp;&nbsp;&nbsp;&nbsp;### 5.6-8-4 🆕 ④의 계정 파기는 **행 삭제가 아니라 익명화**입니다 (2026-09-21 Opus 판정) | 유지 | ④ 계정 파기 = 익명화(tombstone) · User.purgedAt(schema·authController 등 가드) | 09-21 Opus 판정 R200·R700 |
+| `06_엔딩노트_유언/06-05_유족메시지_보관함_도메인분리_기획서.md` | 574 | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;#### 🔴 FK를 `SetNull`로 바꾸지 않습니다 | 유지 | FK를 SetNull로 바꾸지 않음 | R200 |
+| `06_엔딩노트_유언/06-05_유족메시지_보관함_도메인분리_기획서.md` | 583 | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;#### ✅ 대신 `User` 행을 익명화해 남깁니다 (tombstone) | 유지 | 익명화 필드표·purgedAt 가드 전수 | 대조✅: 비울 필드 목록이 accountPurgeService.ts와 1:1인지. 겹침(확인함) → 00-36 M-3 · 대조✅(10-01): accountPurgeService ANONYMIZED가 문서 표와 1:1(비움 12필드·이름 탈퇴한 회원·SocialAccount 전량 삭제·purgedAt 가드). 코드 쪽 낡은 곳: schema.prisma User 주석(남는 것 id·createdAt·purgedAt뿐·추모관 부고장 남음)은 현행과 다름 R200·R300 |
+| `06_엔딩노트_유언/06-05_유족메시지_보관함_도메인분리_기획서.md` | 602 | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;##### 🔴 `purgedAt`이 유예 판정보다 **우선합니다** | 유지 | purgedAt 우선 순서 | R200 |
+| `06_엔딩노트_유언/06-05_유족메시지_보관함_도메인분리_기획서.md` | 613 | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;##### 🔴 `SetNull` 관계는 **배치가 직접 끊습니다** | 유지 | SetNull 관계는 배치가 직접 null | 대조✅: accountPurgeService가 Lead·ConsultRequest·MemorialTribute null 처리하는지 · 대조✅(10-01): Lead·ConsultRequest·MemorialTribute userId→null 구현(accountPurgeService.ts:21·41·92) R200 |
+| `06_엔딩노트_유언/06-05_유족메시지_보관함_도메인분리_기획서.md` | 623 | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;##### ✅ 내가 **수락한** 가족 지정 — 파기 때 §9.2 철회와 같은 처리 (2026-09-21 추인) | 유지 | 수락한 가족 지정 — DECLINED+Grant 전량 revoke(00-27 §9.2) | R200·R700 |
+| `06_엔딩노트_유언/06-05_유족메시지_보관함_도메인분리_기획서.md` | 639 | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;##### ⏸ ⑤ tombstone 수거 — 아직 만들지 않습니다 | 유지 | tombstone 수거 보류 — backlog.md 등재 확인 | 4단계 반영 10-12 R200·R700 |
+| `06_엔딩노트_유언/06-05_유족메시지_보관함_도메인분리_기획서.md` | 647 | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;#### 🔴 ④가 실제로 지우는 것 / 남기는 것 | 유지 | ④ 지우는 것/남기는 것 — 이 표가 정본(00-36 M-3이 가리킴) | 4단계 반영 10-12 R200 |
+| `06_엔딩노트_유언/06-05_유족메시지_보관함_도메인분리_기획서.md` | 664 | &nbsp;&nbsp;&nbsp;&nbsp;### 🆕 5.6-9 ✅ 변환과 저장을 나눕니다 (2026-10-07 개발자 결정) | 유지 | 변환과 저장 분리 — sttController store-audio·FarewellMediaRetired · 시험 farewell-voice-split.test.ts | 4단계 반영 10-12: 월 20분 정정 · 595초 = lib/heavyLimits.ts RECORD_AUTO_STOP_SECONDS · 409·동의 유지 구현 표시 · 2통 문제 backlog R200·R600 |
+| `06_엔딩노트_유언/06-05_유족메시지_보관함_도메인분리_기획서.md` | 670 | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;#### 5.6-9-1 원칙 | 유지 | 원칙 4개 — 월 20분 정정 | 4단계 반영 10-12 |
+| `06_엔딩노트_유언/06-05_유족메시지_보관함_도메인분리_기획서.md` | 681 | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;#### 5.6-9-2 화면 흐름 | 유지 | 화면 흐름 — 동의 유지 구현(FarewellMessageCard.tsx) | 4단계 반영 10-12 |
+| `06_엔딩노트_유언/06-05_유족메시지_보관함_도메인분리_기획서.md` | 720 | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;#### 5.6-9-3 🔴 편지 한 통에 음성은 하나 — 붙어 있으면 새 음성을 막습니다 | 유지 | 409 구현(farewellMessageController.ts) | 4단계 반영 10-12 |
+| `06_엔딩노트_유언/06-05_유족메시지_보관함_도메인분리_기획서.md` | 732 | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;#### 5.6-9-4 🔴 음성을 지운 편지에 새 음성 — 이전 키를 **파기 대기로 옮깁니다** (10-07 개발자 결정 "나") | 유지 | 삭제 유예 중 새 음성 → 이전 키 FarewellMediaRetired로 이동(한 트랜잭션) — schema.prisma FarewellMediaRetired, 마이그레이션 20261007090000, 시험 farewell-purge-retired.test.ts, farewellPurgeService.ts | 10-07 개발자 결정 '나' · 운영 migrate-prod 적용(개발자 10-07) 재판정 10-12 |
+| `06_엔딩노트_유언/06-05_유족메시지_보관함_도메인분리_기획서.md` | 746 | &nbsp;&nbsp;## 🗄️ 6. 데이터 모델 | 묶음 | 자동 — 본문 없음(하위 절만 묶음) |  |
+| `06_엔딩노트_유언/06-05_유족메시지_보관함_도메인분리_기획서.md` | 748 | &nbsp;&nbsp;&nbsp;&nbsp;### 6.1 관계 | 유지 | 관계 도식 — 9개 섹션·Log 미구현·DeathVerification·파기 보조 표 | 4단계 반영 10-12 R200·R700 |
+| `06_엔딩노트_유언/06-05_유족메시지_보관함_도메인분리_기획서.md` | 762 | &nbsp;&nbsp;&nbsp;&nbsp;### 6.2 🆕 `FarewellMessage` | 유지 | FarewellMessage 필드 — encryptNoteField·mediaMime/DurationSec 구현 | 4단계 반영 10-12 R200·R300 |
+| `06_엔딩노트_유언/06-05_유족메시지_보관함_도메인분리_기획서.md` | 785 | &nbsp;&nbsp;&nbsp;&nbsp;### 6.4 🆕 `ArchivePurgeQueue` (2026-09-04 신설 — §5.6-8-1-1) | 유지 | ArchivePurgeQueue 필드 | 대조✅: schema 필드와 1:1(grep로 모델 존재만 확인) · 대조✅(10-01): ArchivePurgeQueue 5필드(id·mediaKey·bucket·queuedAt·purgedAt) 스키마와 1:1 R200·R300 |
+| `06_엔딩노트_유언/06-05_유족메시지_보관함_도메인분리_기획서.md` | 800 | &nbsp;&nbsp;&nbsp;&nbsp;### 6.5 🆕 `FarewellPurgeAuditLog` (2026-09-04 소급 기재 — §5.6-8-3 #57) | 유지 | FarewellPurgeAuditLog 필드 — 소급 기재 | 대조✅: schema 필드 1:1 · 대조✅(10-01): FarewellPurgeAuditLog 7필드(id·adminId·adminName·targetIds·mediaKeys·count·executedAt) 스키마와 1:1 R200·R300 · 재판정 10-12: 10-07 targetIds 종류 접두 V:/L:/R:/I:(I = 06-06 WillPhotoSet) 서술 추가 — farewellPurgeController.ts AUDIT_PREFIX 일치 · 접두 없는 옛 행 처리 코드 주석 일치 |
+| `06_엔딩노트_유언/06-05_유족메시지_보관함_도메인분리_기획서.md` | 821 | &nbsp;&nbsp;&nbsp;&nbsp;### 6.6 🆕 `FarewellMediaRetired` (2026-10-07 신설 — §5.6-9-4) | 유지 | FarewellMediaRetired 모델 — schema.prisma에 존재, 필드(id·messageId·mediaKey·mediaMime·deletedAt·retiredAt·purgedAt) 문서와 대조는 이름 수준만 확인 | FK 안 묶음·개인정보 없음 원칙 · 필드 1:1 대조는 미대조 재판정 10-12: 새 절 |
+| `06_엔딩노트_유언/06-05_유족메시지_보관함_도메인분리_기획서.md` | 838 | &nbsp;&nbsp;## 🖥️ 7. 화면·진입 구조 | 묶음 | 자동 — 본문 없음(하위 절만 묶음) |  |
+| `06_엔딩노트_유언/06-05_유족메시지_보관함_도메인분리_기획서.md` | 840 | &nbsp;&nbsp;&nbsp;&nbsp;### 7.1 두 화면의 역할 | 유지 | 두 화면 구성 — 탭 2개 / 편지함 마스터·디테일(.v2-mail-*) | 4단계 반영 10-12 R200 |
+| `06_엔딩노트_유언/06-05_유족메시지_보관함_도메인분리_기획서.md` | 849 | &nbsp;&nbsp;&nbsp;&nbsp;### 7.2 🔴 크로스 링크는 양방향으로 답니다 | 유지 | 양방향 링크 구현 — FarewellDesktopView.tsx · EndingNotePage.tsx 음성 메시지 남기기 | 4단계 반영 10-12 R200 |
+| `06_엔딩노트_유언/06-05_유족메시지_보관함_도메인분리_기획서.md` | 865 | &nbsp;&nbsp;&nbsp;&nbsp;### 7.3 🔴 가족 지정 0명일 때가 이 화면의 기본 상태입니다 | 유지 | 가족 0명 기본 상태 → 가족 지정 유도 + '수신자가 없으면 전달되지 않습니다'(FarewellDesktopView.tsx:80) | 06-04 §8.2 폐기 후 이 경고의 정본이 여기로 옮겨옴 R200 |
+| `06_엔딩노트_유언/06-05_유족메시지_보관함_도메인분리_기획서.md` | 873 | &nbsp;&nbsp;&nbsp;&nbsp;### 7.4 ✅ 메인 진입 — **슬라이드 2개로 분리 확정**(2026-08-26 사장님) | 유지 | 메뉴 2개(lib/modeNav.ts) · domainSlides.tsx 삭제 · 홈 정본 00-40 | 4단계 반영 10-12 R200 |
+| `06_엔딩노트_유언/06-05_유족메시지_보관함_도메인분리_기획서.md` | 886 | &nbsp;&nbsp;## 🛠️ 8. 구현 상태 — 요약 (2026-10-12) | 유지 | 구현 상태 요약 · 남은 것 5줄 | 4단계 반영 10-12 R200 |
+| `06_엔딩노트_유언/06-05_유족메시지_보관함_도메인분리_기획서.md` | 901 | &nbsp;&nbsp;## 🔗 9. 다른 확정 사항에 미치는 영향 | 유지 | 영향 표 — 00-19 제3자 제공 반영 · 남은 00-19·00-20(00 도메인) | 4단계 반영 10-12 — 00 도메인 할 일은 README §4 06 블록 R200·R500 |
+| `06_엔딩노트_유언/06-05_유족메시지_보관함_도메인분리_기획서.md` | 916 | &nbsp;&nbsp;## 🔴 10. 확정이 필요한 것 | 유지 | 확정 5건 모두 닫힘 — MAX_BODY_LENGTH 20000·유일 제약 없음·메뉴 이름 | 4단계 반영 10-12 R200 |
+| `06_엔딩노트_유언/06-05_유족메시지_보관함_도메인분리_기획서.md` | 930 | &nbsp;&nbsp;## 🔗 11. 관련 문서 | 색인 | 관련 문서 표 — 06-06·00-41·00-36·00-39 추가 | 4단계 반영 10-12 |
+| `06_엔딩노트_유언/06-05_유족메시지_보관함_도메인분리_기획서.md` | 949 | &nbsp;&nbsp;## 📎 부록: 경위 | 경위 | 부록 머리 — 옮긴 기록 안내 | 4단계 반영 10-12 |
 
 ## `06_엔딩노트_유언/06-06_유언장_사진인식_요건확인_기획서.md` (47KB · 절 30) <!-- sha:b38bdaa252 -->
 
