@@ -703,10 +703,10 @@ model ObituaryMourner {
 // 사진 글자 인식(OCR) 하루 호출 횟수 — docs 06-06 §4.0-1. 이용자·한국 날짜별 1행. 인메모리 카운터를 대체한다
 // (서버 재시작·다중 인스턴스에서도 한도가 유지된다). createdAt/updatedAt이 없어 Kst 칸·트리거 대상이 아니다.
 model OcrDailyUsage {
-  userId  String
+  userId  String // 글자 인식을 쓴 회원
   user    User   @relation(fields: [userId], references: [id], onDelete: Cascade)
   dateKey String // 한국 날짜 'YYYY-MM-DD' (utils/kst kstYmd)
-  count   Int    @default(0)
+  count   Int    @default(0) // 그날 호출한 횟수 — 하루 한도와 비교한다
 
   @@id([userId, dateKey])
 }
@@ -879,7 +879,7 @@ model FarewellMediaRetired {
   id        String    @id @default(uuid()) // 기본키(UUID)
   messageId String // 밀려난 편지 id(FK 아님)
   mediaKey  String // R2 원본 키 — 파기 배치가 이 값으로 지운다
-  mediaMime String?
+  mediaMime String? // 음성 파일 형식(MIME). 원래 편지의 값을 그대로 옮긴다
   deletedAt DateTime // 원래 mediaDeletedAt — 파기 시계의 기준
   retiredAt DateTime  @default(now()) // 이 표로 옮긴 시각
   purgedAt  DateTime? // 파기 배치 ①이 R2 원본을 지운 시각. NULL = 남은 것
@@ -905,6 +905,7 @@ model WillPhotoSet {
   @@index([purgedAt, deletedAt])
 }
 
+// 유언장 사진 묶음(WillPhotoSet) 안의 한 쪽 — 사진 1장 또는 PDF 1개. R2 객체 키와 형식·크기만 담고 파일 이름·내용은 저장하지 않는다.
 model WillPhoto {
   id        String       @id @default(uuid()) // 고유 식별자(UUID)
   setId     String // 속한 묶음(WillPhotoSet)
