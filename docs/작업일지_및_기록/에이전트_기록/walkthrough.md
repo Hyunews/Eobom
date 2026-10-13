@@ -16,6 +16,17 @@
 > [`_아카이브_2608`](walkthrough_아카이브_2608.md)(08-31분). 남은 것 = 판정 대기 + 판정 표기 없음. 기준 → `record.md` §2-1.
 
 ---
+## 2026-10-13 | [Sonnet] 리프레시 토큰 재발급 연결 + 운영자·사업자 화면 apiFetch 이관
+
+- **근거 스펙**: docs/00_핵심플랫폼/00-34_프론트엔드_공통_레이어_명세서.md §2.3-1~5(10-13 확정) · §8 3단계 "이관할 때 확인할 것" ①② · §6
+- **건드린 파일**: eobomDev/frontend/src/lib/api.ts · eobomDev/frontend/src/lib/storage.ts · eobomDev/frontend/src/pages/AdminPage.tsx · eobomDev/frontend/src/pages/BizDashboard.tsx · eobomDev/frontend/src/App.tsx
+- **결과**: ① `AdminPage`·`BizDashboard`의 직접 `fetch` 0곳(로그인·공개 시설 검색 포함 `apiFetchRaw`로), 각 화면 `authFetch`의 자체 401 분기(로그아웃 호출) 삭제 — 토큰 부착·401 처리는 `lib/api.ts`만. ② `api.ts`에 재발급 1곳(프론트 `/refresh` 호출 0곳→1곳): ADMIN·PARTNER가 401이면 `/api/admin|partner|expert/refresh`(전문가는 `eobom_biz_type`) 호출, 계정군별 동시 1건(나머지 401은 같은 결과를 기다림), 원래 요청 1회 재시도(또 401이면 만료 처리), 재발급 요청은 일반 `fetch`, 재발급 401이면 저장소 리프레시 토큰을 다시 읽어 달라졌으면 1회 더, 401·403은 만료 처리(403은 서버 문구), 5xx·네트워크 오류는 로그아웃 없이 `ApiError`. 업로드 XHR(`apiUploadForm`)도 같은 규칙. ③ `App.tsx`: 회원 토큰 `exp`(`storage.getUserTokenExpiryMs`)로 만료 10분 전 상단 띠 "10분 뒤 로그아웃됩니다. 작성 중인 내용을 저장해 주세요." — 닫기 가능, 입력 내용 저장 없음. 검증: `tsc --noEmit` 통과 · `npm run build` 통과. **실기동 검증 대기**(§2.3-5 실화면: 운영자·사업자 각각 액세스 토큰만 만료시킨 상태에서 조작 → 로그아웃 없이 계속 / 리프레시도 무효화 → 기존 문구로 로그아웃 / 회원 `exp`를 짧게 한 로컬 검증으로 띠 1회).
+- **편차**: ① 두 화면의 `authFetch`는 남기되 얇은 래퍼(`apiFetchRaw` 호출, 401이면 `null`)로 둠 — 호출부 60여 곳의 `if (!res) return` 흐름을 건드리지 않으려는 것. 401이 돌아왔다면 레이어가 이미 만료 처리를 끝낸 상태라 로그아웃은 한 번만 돈다. 호출부를 `apiFetch`(봉투 해석)로 바꾸는 건 하지 않음(이번 범위 밖). ② 요청이 쓴 액세스 토큰이 지금 저장된 것과 다르면(다른 요청·탭이 이미 회전) 재발급 없이 바로 재시도 — 스펙 §2.3-2 2번의 "한 번에 하나만"을 지키려는 보강. ③ 재발급이 5xx·네트워크 오류면 `rawFetch`가 `ApiError`를 던져 화면 래퍼의 `catch`(서버 통신 오류 문구)로 간다.
+- **다음 에이전트가 알아야 할 것**: 🟡 실기동 검증 대기(위 3건). 회원 띠는 `currentUser`가 바뀔 때 타이머를 다시 건다(다른 탭 로그인 공유 포함). `PartnerPortalPage` 핸들러는 기존 그대로 재사용(변경 없음). 백엔드·시간 값·docs 본문 변경 없음.
+
+<!-- Gemini 판정 대기 -->
+
+---
 ## 2026-10-12 | [Sonnet] 00 3회차 후속 코드 — 유족메시지 직접 fetch → apiFetch · 운영자 화면 최소폭 1200px · DigitalEstate 훅
 
 - **근거 스펙**: docs/00_공통/00-34 §8 2단계 잔여 · 00-39 §5-0(10-12 개발자 결정) · 00-38 §5.2 (`.harness/docs-audit/README.md` §4 "00 4단계 3회차 결과")

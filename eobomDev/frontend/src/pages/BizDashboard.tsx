@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { ShieldCheck, Search, Link2, Upload, X, Image as ImageIcon, Inbox, CheckCircle2, XCircle, Star } from 'lucide-react';
 import { BACKEND_URL, formatPhoneForDisplay } from '../config';
+import { apiFetchRaw } from '../lib/api';
 
 // 로그인 후 화면 — 장사시설은 "내 시설" + 검색/클레임 신청, 전문가는 내 프로필/승인 상태만 보여준다.
 // 전문가는 Facility 같은 사전 마스터 데이터가 없어 "클레임"이라는 별도 연동 절차가 없다 —
@@ -56,18 +57,12 @@ const LEAD_STATUS_COLOR: Record<string, string> = {
 const LEAD_TYPE_LABELS: Record<string, string> = { QUOTE: '업체 상담', CONSULT: '상담신청', CALL: '전화클릭' };
 
 export const BizDashboard: React.FC<BizDashboardProps> = ({ type, name, onLogout }) => {
-  const token = localStorage.getItem('eobom_biz_token');
-  const authHeaders = { Authorization: `Bearer ${token}` };
-
-  // 인증 헤더 fetch 공통 래퍼 — 액세스 토큰(2h) 만료로 401이 오면 상위(PartnerPortalPage)의
-  // 로그인 화면으로 되돌리고 세션 만료 안내를 띄운다. AdminPage.tsx의 authFetch와 동일 원칙.
-  const authFetch = async (url: string, options: RequestInit = {}) => {
-    const res = await fetch(url, { ...options, headers: { ...(options.headers || {}), ...authHeaders } });
-    if (res.status === 401) {
-      onLogout('세션이 만료되어 로그아웃되었습니다. 다시 로그인해주세요.');
-      return null;
-    }
-    return res;
+  // 00-34 §8 3단계 — 토큰 부착·401 재발급·만료 처리는 apiFetch 레이어(lib/api.ts)가 한다(PartnerPortalPage가 등록한
+  // 핸들러로 로그인 화면 복귀). 여기서 401을 따로 다루면 로그아웃이 두 번 돈다. 401이 돌아왔다면 이미 만료 처리가
+  // 끝난 것이라, 호출부의 `if (!res) return` 흐름만 맞춰 null을 준다. AdminPage.tsx의 authFetch와 동일.
+  const authFetch = async (path: string, options: RequestInit = {}) => {
+    const res = await apiFetchRaw(path, 'PARTNER', options);
+    return res.status === 401 ? null : res;
   };
 
   // 장사시설 전용 상태
@@ -99,8 +94,8 @@ export const BizDashboard: React.FC<BizDashboardProps> = ({ type, name, onLogout
 
   const loadFacilityData = async () => {
     const [facRes, claimRes] = await Promise.all([
-      authFetch(`${BACKEND_URL}/api/partner/facilities`),
-      authFetch(`${BACKEND_URL}/api/partner/claims`),
+      authFetch(`/api/partner/facilities`),
+      authFetch(`/api/partner/claims`),
     ]);
     if (!facRes || !claimRes) return;
     const facData = await facRes.json();
@@ -110,7 +105,7 @@ export const BizDashboard: React.FC<BizDashboardProps> = ({ type, name, onLogout
   };
 
   const loadExpertProfile = async () => {
-    const res = await authFetch(`${BACKEND_URL}/api/expert/me`);
+    const res = await authFetch(`/api/expert/me`);
     if (!res) return;
     const data = await res.json();
     if (data.status === 'success') setExpertProfile(data.data);
@@ -118,7 +113,7 @@ export const BizDashboard: React.FC<BizDashboardProps> = ({ type, name, onLogout
 
   // 받은 상담 신청 목록 (docs 02-03 §7.3)
   const loadConsultRequests = async () => {
-    const res = await authFetch(`${BACKEND_URL}/api/expert/consult-requests`);
+    const res = await authFetch(`/api/expert/consult-requests`);
     if (!res) return;
     const data = await res.json();
     if (data.status === 'success') setConsultRequests(data.data);
@@ -130,7 +125,7 @@ export const BizDashboard: React.FC<BizDashboardProps> = ({ type, name, onLogout
     if (status) params.set('status', status);
     params.set('page', String(page));
     params.set('pageSize', '20');
-    const res = await authFetch(`${BACKEND_URL}/api/partner/leads?${params.toString()}`);
+    const res = await authFetch(`/api/partner/leads?${params.toString()}`);
     if (!res) return;
     const data = await res.json();
     if (data.status === 'success') {
@@ -164,7 +159,7 @@ export const BizDashboard: React.FC<BizDashboardProps> = ({ type, name, onLogout
   const updateConsultStatus = async (requestId: string, status: string) => {
     setUpdatingConsultId(requestId);
     try {
-      const res = await authFetch(`${BACKEND_URL}/api/expert/consult-requests/${requestId}/status`, {
+      const res = await authFetch(`/api/expert/consult-requests/${requestId}/status`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status }),
@@ -191,7 +186,7 @@ export const BizDashboard: React.FC<BizDashboardProps> = ({ type, name, onLogout
     }
     setUpdatingLeadNo(leadNo);
     try {
-      const res = await authFetch(`${BACKEND_URL}/api/partner/leads/${leadNo}/status`, {
+      const res = await authFetch(`/api/partner/leads/${leadNo}/status`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status, note }),
@@ -215,7 +210,7 @@ export const BizDashboard: React.FC<BizDashboardProps> = ({ type, name, onLogout
     if (!searchQuery.trim()) return;
     setIsSearching(true);
     try {
-      const res = await fetch(`${BACKEND_URL}/api/facilities?q=${encodeURIComponent(searchQuery)}&pageSize=10`);
+      const res = await apiFetchRaw(`/api/facilities?q=${encodeURIComponent(searchQuery)}&pageSize=10`);
       const data = await res.json();
       if (data.status === 'success') setSearchResults(data.data);
     } finally {
@@ -224,7 +219,7 @@ export const BizDashboard: React.FC<BizDashboardProps> = ({ type, name, onLogout
   };
 
   const submitClaim = async (facilityId: string) => {
-    const res = await authFetch(`${BACKEND_URL}/api/partner/claims`, {
+    const res = await authFetch(`/api/partner/claims`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ facilityId }),
@@ -245,7 +240,7 @@ export const BizDashboard: React.FC<BizDashboardProps> = ({ type, name, onLogout
       const formData = new FormData();
       formData.append('image', file);
       // FormData 사용 시 Content-Type을 직접 지정하지 않는다 — 브라우저가 boundary를 포함해 자동 설정
-      const res = await authFetch(`${BACKEND_URL}/api/partner/facilities/${facilityId}/images`, {
+      const res = await authFetch(`/api/partner/facilities/${facilityId}/images`, {
         method: 'POST',
         body: formData,
       });
@@ -301,7 +296,7 @@ export const BizDashboard: React.FC<BizDashboardProps> = ({ type, name, onLogout
   const setCoverImage = async (facilityId: string, imagePath: string) => {
     setSettingCoverPath(imagePath);
     try {
-      const res = await authFetch(`${BACKEND_URL}/api/partner/facilities/${facilityId}/images/cover`, {
+      const res = await authFetch(`/api/partner/facilities/${facilityId}/images/cover`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ imagePath }),
@@ -321,7 +316,7 @@ export const BizDashboard: React.FC<BizDashboardProps> = ({ type, name, onLogout
   };
 
   const handleImageDelete = async (facilityId: string, imagePath: string) => {
-    const res = await authFetch(`${BACKEND_URL}/api/partner/facilities/${facilityId}/images`, {
+    const res = await authFetch(`/api/partner/facilities/${facilityId}/images`, {
       method: 'DELETE',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ imagePath }),

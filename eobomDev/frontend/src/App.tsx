@@ -10,9 +10,11 @@ import { MyPageProfile } from './components/mypage/MyPageProfile';
 import { MyPageFamilyDesignation } from './components/mypage/MyPageFamilyDesignation';
 import { EobomLogo } from './components/EobomLogo';
 import { providerLabel, BACKEND_URL } from './config';
-import { getDisplayName, setSession, clearSession, clearLegacyUserLocalStorage, isUserSessionPending, subscribeUserSession, PENDING_RETURN_PATH_KEY, SCROLL_HOME_KEY, SCROLL_HOME_MOBILE_KEY } from './lib/storage';
+import { getDisplayName, setSession, clearSession, clearLegacyUserLocalStorage, isUserSessionPending, subscribeUserSession, getUserTokenExpiryMs, PENDING_RETURN_PATH_KEY, SCROLL_HOME_KEY, SCROLL_HOME_MOBILE_KEY } from './lib/storage';
 import { registerSessionExpiredHandler } from './lib/api';
 import { useIsMobile } from './hooks/useIsMobile';
+
+const EXPIRY_NOTICE_LEAD_MS = 10 * 60 * 1000; // 00-34 §2.3-3 — 만료 10분 전
 
 import { HomePage } from './pages/HomePage';
 import { FacilityPage } from './pages/FacilityPage';
@@ -326,6 +328,21 @@ function AppShell() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // 00-34 §2.3-3 — 회원 토큰 만료 10분 전 안내 띠. 회원은 리프레시가 없어(§2.3-1) 안내만 한다.
+  // 🔴 입력 내용은 브라우저에 담지 않는다(엔딩노트 민감 정보). 닫으면 이번 로그인에서는 다시 띄우지 않는다.
+  const [expiryNoticeOpen, setExpiryNoticeOpen] = useState(false);
+  useEffect(() => {
+    setExpiryNoticeOpen(false);
+    if (!currentUser) return;
+    const expMs = getUserTokenExpiryMs();
+    if (!expMs) return;
+    const remain = expMs - Date.now();
+    if (remain <= 0) return; // 이미 만료 — 401 처리(§6)가 맡는다
+    const delay = Math.max(0, remain - EXPIRY_NOTICE_LEAD_MS);
+    const timer = setTimeout(() => setExpiryNoticeOpen(true), delay);
+    return () => clearTimeout(timer);
+  }, [currentUser]);
+
   const authProps = {
     currentUser,
     onOpenLogin: () => openLoginModal(),
@@ -344,6 +361,27 @@ function AppShell() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+      {expiryNoticeOpen && currentUser && (
+        <div
+          role="status"
+          style={{
+            position: 'fixed', top: 0, left: 0, right: 0, zIndex: 2000,
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem',
+            padding: '0.6rem 1rem', backgroundColor: 'var(--state-warn-bg)', color: 'var(--state-warn-fg)',
+            fontSize: 'var(--fs-body)', boxShadow: 'var(--el-1)',
+          }}
+        >
+          <span>10분 뒤 로그아웃됩니다. 작성 중인 내용을 저장해 주세요.</span>
+          <button
+            type="button"
+            onClick={() => setExpiryNoticeOpen(false)}
+            aria-label="안내 닫기"
+            style={{ background: 'none', border: 'none', color: 'inherit', cursor: 'pointer', fontSize: '1.2rem', lineHeight: 1 }}
+          >
+            ×
+          </button>
+        </div>
+      )}
       {isObituaryLandingRoute || isMemorialLandingRoute || isFamilyInviteRoute || isMemorialExtendRoute ? (
         // 껍데기 완전히 없음(§6.1) — Header·Sidebar·main-wrapper·Footer 전부 건너뛴다.
         <Routes>

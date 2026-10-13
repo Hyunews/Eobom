@@ -51,6 +51,31 @@ export function getDisplayName(audience: Audience): string | null {
   return STORE[audience].getItem(KEYS[audience].DISPLAY_NAME);
 }
 
+// 00-34 §2.3-2 — 재발급용. USER는 리프레시 토큰이 없다(§2.3-1).
+export function getRefreshToken(audience: 'ADMIN' | 'PARTNER'): string | null {
+  return STORE[audience].getItem(KEYS[audience].REFRESH_TOKEN);
+}
+
+// 재발급 성공 시 회전된 토큰 두 개만 갈아 끼운다(이름·유형은 그대로).
+export function setRotatedTokens(audience: 'ADMIN' | 'PARTNER', token: string, refreshToken: string): void {
+  const store = STORE[audience];
+  store.setItem(KEYS[audience].TOKEN, token);
+  store.setItem(KEYS[audience].REFRESH_TOKEN, refreshToken);
+}
+
+// 00-34 §2.3-3 — 회원 액세스 토큰의 만료 시각(ms). 읽을 수 없으면 null.
+export function getUserTokenExpiryMs(): number | null {
+  const token = getToken('USER');
+  if (!token) return null;
+  try {
+    const payload = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
+    const exp = JSON.parse(atob(payload)).exp;
+    return typeof exp === 'number' ? exp * 1000 : null;
+  } catch {
+    return null;
+  }
+}
+
 export function getPartnerType(): string | null {
   return localStorage.getItem(KEYS.PARTNER.TYPE);
 }

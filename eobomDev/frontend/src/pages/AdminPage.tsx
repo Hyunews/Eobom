@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { ShieldCheck, Lock, Mail, CheckCircle2, XCircle, Pencil, Save, X, Search, ChevronLeft, ChevronRight } from 'lucide-react';
 import { BACKEND_URL, formatPhoneForDisplay } from '../config';
-import { registerSessionExpiredHandler } from '../lib/api';
+import { registerSessionExpiredHandler, apiFetchRaw } from '../lib/api';
 import { AddressSearchModal } from '../components/AddressSearchModal';
 import { formatKstDate, formatKstDateTime, formatKstMonthDayTime } from '../utils/kstDate';
 
@@ -208,15 +208,13 @@ export const AdminPage: React.FC = () => {
   const [openMemberDetail, setOpenMemberDetail] = useState<any | null>(null);
   const [memberDetailLoading, setMemberDetailLoading] = useState(false);
 
-  const authHeaders = { Authorization: `Bearer ${token}` };
-
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
     setLoginError('');
     setSessionNotice('');
     try {
-      const res = await fetch(`${BACKEND_URL}/api/admin/login`, {
+      const res = await apiFetchRaw('/api/admin/login', undefined, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
@@ -254,16 +252,11 @@ export const AdminPage: React.FC = () => {
     return () => registerSessionExpiredHandler('ADMIN', undefined);
   }, []);
 
-  // 인증 헤더 fetch 공통 래퍼 — 액세스 토큰(2h) 만료로 401이 오면 로그인 화면으로 되돌리고
-  // 세션 만료 안내를 띄운다. 이게 없으면 토큰이 죽어도 화면은 "로그인된 것처럼" 보이면서
-  // 데이터만 조용히 비어버린다(실제로 있었던 버그).
-  const authFetch = async (url: string, options: RequestInit = {}) => {
-    const res = await fetch(url, { ...options, headers: { ...(options.headers || {}), ...authHeaders } });
-    if (res.status === 401) {
-      handleLogout('세션이 만료되어 로그아웃되었습니다. 다시 로그인해주세요.');
-      return null;
-    }
-    return res;
+  // 00-34 §8 3단계 — 토큰 부착·401 재발급·만료 처리는 apiFetch 레이어(lib/api.ts)가 한다. 여기서 401을 따로 다루면
+  // 로그아웃이 두 번 돈다. 401이 돌아왔다면 레이어가 이미 만료 처리를 끝낸 것이라, 호출부의 `if (!res) return` 흐름만 맞춰 null을 준다.
+  const authFetch = async (path: string, options: RequestInit = {}) => {
+    const res = await apiFetchRaw(path, 'ADMIN', options);
+    return res.status === 401 ? null : res;
   };
 
   const loadQueue = async () => {
@@ -271,19 +264,19 @@ export const AdminPage: React.FC = () => {
     setLoadError('');
     try {
       if (tab === 'PARTNERS') {
-        const res = await authFetch(`${BACKEND_URL}/api/admin/partners?status=${statusFilter}`);
+        const res = await authFetch(`/api/admin/partners?status=${statusFilter}`);
         if (!res) return;
         const data = await res.json();
         if (data.status === 'success') setPartners(data.data);
         else setLoadError(data.message || '조회 실패');
       } else if (tab === 'EXPERTS') {
-        const res = await authFetch(`${BACKEND_URL}/api/admin/experts?status=${statusFilter}`);
+        const res = await authFetch(`/api/admin/experts?status=${statusFilter}`);
         if (!res) return;
         const data = await res.json();
         if (data.status === 'success') setExperts(data.data);
         else setLoadError(data.message || '조회 실패');
       } else {
-        const res = await authFetch(`${BACKEND_URL}/api/admin/claims?status=${statusFilter}`);
+        const res = await authFetch(`/api/admin/claims?status=${statusFilter}`);
         if (!res) return;
         const data = await res.json();
         if (data.status === 'success') setClaims(data.data);
@@ -301,7 +294,7 @@ export const AdminPage: React.FC = () => {
     try {
       const params = new URLSearchParams({ page: String(page), pageSize: '20' });
       if (facilitySearch.trim()) params.set('q', facilitySearch.trim());
-      const res = await fetch(`${BACKEND_URL}/api/facilities?${params.toString()}`);
+      const res = await apiFetchRaw(`/api/facilities?${params.toString()}`);
       const data = await res.json();
       if (data.status === 'success') {
         setFacilities(data.data);
@@ -325,8 +318,8 @@ export const AdminPage: React.FC = () => {
     setSelectedPurge(new Set());
     try {
       const [expiredRes, pendingRes] = await Promise.all([
-        authFetch(`${BACKEND_URL}/api/admin/farewell-purge/expired`),
-        authFetch(`${BACKEND_URL}/api/admin/farewell-purge/pending-archive`),
+        authFetch(`/api/admin/farewell-purge/expired`),
+        authFetch(`/api/admin/farewell-purge/pending-archive`),
       ]);
       if (!expiredRes || !pendingRes) return;
       const expiredData = await expiredRes.json();
@@ -359,7 +352,7 @@ export const AdminPage: React.FC = () => {
     try {
       const qs = new URLSearchParams({ page: String(page), pageSize: String(PURGE_LOG_PAGE_SIZE) });
       if (type) qs.set('type', type);
-      const res = await authFetch(`${BACKEND_URL}/api/admin/farewell-purge/logs?${qs.toString()}`);
+      const res = await authFetch(`/api/admin/farewell-purge/logs?${qs.toString()}`);
       if (!res) return;
       const data = await res.json();
       if (data.status === 'success') {
@@ -379,7 +372,7 @@ export const AdminPage: React.FC = () => {
     setLoadError('');
     setOpenGuestbookId(null);
     try {
-      const res = await authFetch(`${BACKEND_URL}/api/admin/memorials`);
+      const res = await authFetch(`/api/admin/memorials`);
       if (!res) return;
       const data = await res.json();
       if (data.status === 'success') setMemorials(data.data);
@@ -401,7 +394,7 @@ export const AdminPage: React.FC = () => {
       alert('사유를 입력해야 처리할 수 있습니다.');
       return;
     }
-    const res = await authFetch(`${BACKEND_URL}/api/admin/memorials/${m.id}/${hide ? 'hide' : 'unhide'}`, {
+    const res = await authFetch(`/api/admin/memorials/${m.id}/${hide ? 'hide' : 'unhide'}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ reason }),
@@ -418,7 +411,7 @@ export const AdminPage: React.FC = () => {
   const loadObituaries = async () => {
     if (!token) return;
     try {
-      const res = await authFetch(`${BACKEND_URL}/api/admin/obituaries`);
+      const res = await authFetch(`/api/admin/obituaries`);
       if (!res) return;
       const data = await res.json();
       if (data.status === 'success') setObituaries(data.data);
@@ -439,7 +432,7 @@ export const AdminPage: React.FC = () => {
       alert('사유를 입력해야 처리할 수 있습니다.');
       return;
     }
-    const res = await authFetch(`${BACKEND_URL}/api/admin/obituaries/${o.id}/close`, {
+    const res = await authFetch(`/api/admin/obituaries/${o.id}/close`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ reason }),
@@ -458,7 +451,7 @@ export const AdminPage: React.FC = () => {
     setOpenGuestbookId(memorialId);
     setGuestbookLoading(true);
     try {
-      const res = await authFetch(`${BACKEND_URL}/api/admin/memorials/${memorialId}/guestbook`);
+      const res = await authFetch(`/api/admin/memorials/${memorialId}/guestbook`);
       if (!res) return;
       const data = await res.json();
       if (data.status === 'success') setGuestbookEntries(data.data);
@@ -484,7 +477,7 @@ export const AdminPage: React.FC = () => {
   // 비공개 처리하는 운영자 조치(게시물 단위 조치, 00-20 §6.2).
   const hideGuestbookEntry = async (memorialId: string, gid: string) => {
     if (!window.confirm('이 방명록을 강제로 비공개 처리합니다. 계속하시겠습니까?')) return;
-    const res = await authFetch(`${BACKEND_URL}/api/admin/memorials/${memorialId}/guestbook/${gid}/hide`, { method: 'PATCH' });
+    const res = await authFetch(`/api/admin/memorials/${memorialId}/guestbook/${gid}/hide`, { method: 'PATCH' });
     if (!res) return;
     loadGuestbook(memorialId);
   };
@@ -494,7 +487,7 @@ export const AdminPage: React.FC = () => {
     if (!token) return;
     setLoadError('');
     try {
-      const res = await authFetch(`${BACKEND_URL}/api/admin/consult-requests${consultStatusFilter ? `?status=${consultStatusFilter}` : ''}`);
+      const res = await authFetch(`/api/admin/consult-requests${consultStatusFilter ? `?status=${consultStatusFilter}` : ''}`);
       if (!res) return;
       const data = await res.json();
       if (data.status === 'success') setConsultRequests(data.data);
@@ -508,7 +501,7 @@ export const AdminPage: React.FC = () => {
   const loadDeathVerifications = async () => {
     if (!token) return;
     try {
-      const res = await authFetch(`${BACKEND_URL}/api/admin/death-verifications`);
+      const res = await authFetch(`/api/admin/death-verifications`);
       if (!res) return;
       const data = await res.json();
       if (data.status === 'success') {
@@ -534,7 +527,7 @@ export const AdminPage: React.FC = () => {
     setDvError('');
     setDvMethod('FUNERAL_HALL');
     setDvRejectCode('HALL_NOT_FOUND');
-    const res = await authFetch(`${BACKEND_URL}/api/admin/death-verifications/${id}`);
+    const res = await authFetch(`/api/admin/death-verifications/${id}`);
     if (!res) return;
     const data = await res.json();
     if (data.status === 'success') setDvDetail(data.data);
@@ -550,7 +543,7 @@ export const AdminPage: React.FC = () => {
     setDvBusy(true);
     setDvError('');
     try {
-      const res = await authFetch(`${BACKEND_URL}/api/admin/death-verifications/${id}/${action}`, {
+      const res = await authFetch(`/api/admin/death-verifications/${id}/${action}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(action === 'verify' ? { method: dvMethod } : { reasonCode: dvRejectCode }),
@@ -579,7 +572,7 @@ export const AdminPage: React.FC = () => {
     try {
       const params = new URLSearchParams({ page: String(page), pageSize: '20' });
       if (memberQuery.trim()) params.set('q', memberQuery.trim());
-      const res = await authFetch(`${BACKEND_URL}/api/admin/users?${params.toString()}`);
+      const res = await authFetch(`/api/admin/users?${params.toString()}`);
       if (!res) return;
       const data = await res.json();
       if (data.status === 'success') {
@@ -603,7 +596,7 @@ export const AdminPage: React.FC = () => {
     if (!window.confirm('이 상세 조회는 기록됩니다. 계속하시겠습니까?')) return;
     setMemberDetailLoading(true);
     try {
-      const res = await authFetch(`${BACKEND_URL}/api/admin/users/${id}`);
+      const res = await authFetch(`/api/admin/users/${id}`);
       if (!res) return;
       const data = await res.json();
       if (data.status === 'success') setOpenMemberDetail(data.data);
@@ -685,7 +678,7 @@ export const AdminPage: React.FC = () => {
     }
     setPurgeSubmitting(true);
     try {
-      const res = await authFetch(`${BACKEND_URL}/api/admin/farewell-purge/execute`, {
+      const res = await authFetch(`/api/admin/farewell-purge/execute`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -714,7 +707,7 @@ export const AdminPage: React.FC = () => {
   // 아카이브 2단계(사람이 Cloudflare에서 직접 지움) 완료 표시 — 화면은 아카이브를 지우지 않는다(#59).
   const completeArchiveItem = async (id: string) => {
     if (!window.confirm('Cloudflare 대시보드에서 이 키를 이미 지웠습니까? 완료로 표시합니다.')) return;
-    const res = await authFetch(`${BACKEND_URL}/api/admin/farewell-purge/pending-archive/${id}/complete`, { method: 'PATCH' });
+    const res = await authFetch(`/api/admin/farewell-purge/pending-archive/${id}/complete`, { method: 'PATCH' });
     if (!res) return;
     loadFarewellPurge();
   };
@@ -730,7 +723,7 @@ export const AdminPage: React.FC = () => {
 
   const decidePartner = async (id: string, status: 'APPROVED' | 'REJECTED') => {
     const rejectReason = status === 'REJECTED' ? window.prompt('반려 사유를 입력해주세요') || '' : undefined;
-    const res = await authFetch(`${BACKEND_URL}/api/admin/partners/${id}/status`, {
+    const res = await authFetch(`/api/admin/partners/${id}/status`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ status, rejectReason }),
@@ -741,7 +734,7 @@ export const AdminPage: React.FC = () => {
 
   const decideExpert = async (id: string, status: 'APPROVED' | 'REJECTED') => {
     const rejectReason = status === 'REJECTED' ? window.prompt('반려 사유를 입력해주세요') || '' : undefined;
-    const res = await authFetch(`${BACKEND_URL}/api/admin/experts/${id}/status`, {
+    const res = await authFetch(`/api/admin/experts/${id}/status`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ status, rejectReason }),
@@ -756,7 +749,7 @@ export const AdminPage: React.FC = () => {
   };
 
   const saveEditPartner = async (id: string) => {
-    const res = await authFetch(`${BACKEND_URL}/api/admin/partners/${id}`, {
+    const res = await authFetch(`/api/admin/partners/${id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(partnerEditForm),
@@ -777,7 +770,7 @@ export const AdminPage: React.FC = () => {
   };
 
   const saveEditExpert = async (id: string) => {
-    const res = await authFetch(`${BACKEND_URL}/api/admin/experts/${id}`, {
+    const res = await authFetch(`/api/admin/experts/${id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(expertEditForm),
@@ -794,7 +787,7 @@ export const AdminPage: React.FC = () => {
 
   // 전문가 공개 노출 토글 (docs 02-03 §5.4) — 승인(status)과 별개 축. 승인된 전문가만 켤 수 있다.
   const toggleExpertPublish = async (id: string, isPublished: boolean) => {
-    const res = await authFetch(`${BACKEND_URL}/api/admin/experts/${id}/publish`, {
+    const res = await authFetch(`/api/admin/experts/${id}/publish`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ isPublished }),
@@ -807,7 +800,7 @@ export const AdminPage: React.FC = () => {
 
   const decideClaim = async (id: string, status: 'APPROVED' | 'REJECTED') => {
     const reviewNote = window.prompt(status === 'APPROVED' ? '승인 메모(선택)' : '반려 사유를 입력해주세요') || '';
-    const res = await authFetch(`${BACKEND_URL}/api/admin/claims/${id}/status`, {
+    const res = await authFetch(`/api/admin/claims/${id}/status`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ status, reviewNote }),
