@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import digitalEstateData from '../mockData/digitalEstate.json';
+import estateVendors from '../mockData/estateVendors.json';
 import { BACKEND_URL, GEOLOCATION_FALLBACK, LOCATION_FEATURE_ENABLED } from '../config';
 import { LocationSearchBox } from '../components/LocationSearchBox';
 import '../styles/design-v2.css';
@@ -20,7 +20,7 @@ interface PickupPageProps {
 }
 
 export const PickupPage: React.FC<PickupPageProps> = ({ currentUser, onOpenLogin }) => {
-  const vendors = digitalEstateData.vendors;
+  const vendors = estateVendors;
 
   // 지역필터 — 기존 "서울/경기" 같은 임의 권역 대신 장사시설(FacilityPage)과 동일하게
   // 실제 시/도 -> 시/군/구 2단계 선택으로 구현(2026-08-20 지시). 보유 업체(예시) 데이터에서

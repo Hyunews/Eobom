@@ -171,7 +171,7 @@ model Facility {
 
   reviews FacilityReview[] // 이 시설에 달린 리뷰 목록
   claims  FacilityClaim[] // 이 시설에 대한 소유권 클레임 이력
-  leads   Lead[] // 이 시설로 들어온 리드(문의/견적요청/답사예약) 목록
+  leads   Lead[] // 이 시설로 들어온 리드(문의/견적요청/전화) 목록
 
   @@index([partnerId])
 }
@@ -262,7 +262,7 @@ model LeadNumberCounter {
   seq     Int    @default(0) // 해당 날짜의 다음 발번 시퀀스 (Postgres 행 잠금 기반 원자적 증가)
 }
 
-// 리드 (문의 · 견적요청 · 답사예약) — 수수료 청구의 증거 (01-05 §4)
+// 리드 (문의 · 견적요청 · 전화) — 수수료 청구의 증거 (01-05 §4)
 model Lead {
   id     String @id @default(uuid()) // 고유 식별자(UUID)
   leadNo String @unique // EB-260810-0001 (표시·대조용, 불변, 01-05 §4.2)
