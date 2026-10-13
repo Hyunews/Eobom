@@ -491,3 +491,8 @@ topics(20): `회원·인증` · `가족연결` · `사망·고인` · `개인정
 | 판정한 뒤 누가 문서를 고쳐서 판정이 거짓이 됨 | 문서 지문(`sha`) 비교 → `check` 실패 |
 | 제목만 있는 절까지 손으로 판정 | `묶음` 자동 |
 | 대장 표를 손으로 고치다 칸이 밀림 | `fill`이 JSON으로 적고, 대장에 없는 줄·잘못된 판정 값은 거부 |
+
+🔵 **"문서 내용은 Edit/Write로만"(`AGENTS.md` §1)의 예외 3종** — 명령에 문서 내용을 넣지 않는다(10-13 `AGENTS.md`에서 옮김):
+- `node .harness/tools/docs-move-appendix.js <spec.json>` — 경위 절을 원문 그대로 부록으로(명령에는 줄 번호만 · 10-12 결정)
+- `node .harness/tools/docs-split-appendix.js <문서번호>…` — 경위 부록을 별도 파일로(10-13 6-A)
+- `node .harness/tools/docs-catalog.js apply <draft.json>` — frontmatter 일괄 삽입(경로만 · 실행은 CONFIRM · 10-12 결정)
