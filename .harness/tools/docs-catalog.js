@@ -153,6 +153,17 @@ function collectRefs(docs) {
     return [secNum(h.title), m && m[1].replace(/\./g, '-')].filter(Boolean);
   };
   const nums = new Map(docs.map((d) => [d, new Set(d.heads.filter((h) => h.level >= 2).flatMap(headNums))]));
+  // 6-A(10-13): `문서_경위/<번호>_경위.md`로 옮겨 간 절도 그 문서의 절로 인정 — 분리 전(같은 파일 부록)과 같은 기준
+  for (const d of docs) {
+    const mv = d.id && path.join(DOCS, '작업일지_및_기록', '문서_경위', `${d.id}_경위.md`);
+    if (!mv || !fs.existsSync(mv)) continue;
+    let fence = false;
+    for (const ln of rd(mv).split(/\r?\n/)) {
+      if (/^\s*```/.test(ln)) { fence = !fence; continue; }
+      const m = !fence && /^(#{2,6})\s+(.*)$/.exec(ln);
+      if (m) headNums({ title: m[2].trim() }).forEach((n) => nums.get(d).add(n));
+    }
+  }
   const R = { link: [], id: [], sec: [], external: 0, edges: new Map() }; // 각 항목 {doc,line,zone,status,note,text}
   const verdictSec = (target, n) => {
     const have = nums.get(target);

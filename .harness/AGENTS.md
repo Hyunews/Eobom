@@ -57,7 +57,7 @@ PLAN → CONFIRM → CODE/WRITE → SAVE → UPDATE
   ⚠️ **조회(SELECT)와 단건 생성은 묻지 않는다** — 다 물으면 아무도 안 읽는 확인창이 된다.
   🔴 **이 조항은 코드 가드를 대신하지 않는다.** 규칙은 이미 두 번 실패했다(→ `db-safety.md` §7).
 - 🔴 **문서 내용을 셸 명령에 넣지 않는다**(10-07 사고 — Bash 안의 백틱 `npm run …`이 명령으로 실행됨).
-  파일 내용 수정은 **Edit/Write**로만. 예외(10-12 개발자 결정): 경위 절을 원문 그대로 부록으로 옮기는 `node .harness/tools/docs-move-appendix.js <spec.json>`(원문을 다시 타이핑하지 않음 — 명령에는 줄 번호만, 문서 내용은 넣지 않는다) · frontmatter 일괄 삽입 `node .harness/tools/docs-catalog.js apply <draft.json>`(10-12 결정 — 명령에는 파일 경로만 · 실행은 CONFIRM). 파기 확정·DB 초기화와 실행될 백틱은 `tools/command-guard.js` 훅이 막는다.
+  파일 내용 수정은 **Edit/Write**로만. 예외(10-12 개발자 결정): 경위 절을 원문 그대로 부록으로 옮기는 `node .harness/tools/docs-move-appendix.js <spec.json>`(원문을 다시 타이핑하지 않음 — 명령에는 줄 번호만, 문서 내용은 넣지 않는다) · 경위 부록 별도 파일 분리 `node .harness/tools/docs-split-appendix.js <문서번호>…`(10-13 6-A — 명령에는 문서 번호만) · frontmatter 일괄 삽입 `node .harness/tools/docs-catalog.js apply <draft.json>`(10-12 결정 — 명령에는 파일 경로만 · 실행은 CONFIRM). 파기 확정·DB 초기화와 실행될 백틱은 `tools/command-guard.js` 훅이 막는다.
 - **UPDATE**: `memory/context.md`의 "다음 할 일" 갱신. 반복 작업이었으면 `skills/`에 절차 남기기.
 - **핸드오프**: 상대 에이전트 차례로 넘어가면 응답 맨 끝에 **복사용 프롬프트 블록**을 출력한다(→ `roles.md` §6). 사용자가 무슨 말을 해야 할지 고민하게 두지 않는다.
 

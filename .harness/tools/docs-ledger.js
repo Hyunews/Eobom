@@ -19,6 +19,7 @@ const ROOT = path.resolve(__dirname, '..', '..');
 const DOCS = path.join(ROOT, 'docs');
 const OUT = path.join(ROOT, '.harness', 'docs-audit');
 const EXCLUDE = ['작업일지_및_기록'];
+const MOVED = path.join(DOCS, '작업일지_및_기록', '문서_경위'); // 6-A 경위 별도 파일(docs-split-appendix.js)
 const VERDICTS = ['유지', '갱신', '통합', '경위', '폐기', '색인', '묶음']; // 묶음 = build가 자동으로만 채움(본문 없는 절)
 const ORPHAN_HEAD = '## ⚠ 사라진 절의 판정';
 
@@ -99,6 +100,10 @@ function build(ackDomain, quiet) {
     const rel = path.relative(DOCS, f).replace(/\\/g, '/');
     (byDomain[domainOf(rel)] = byDomain[domainOf(rel)] || []).push({ rel, heads: headings(f), size: sizeOf(f), sha: shaOf(f) });
   }
+  const movedTitles = new Map(); // 문서 번호 → 경위 파일의 제목들
+  if (fs.existsSync(MOVED)) {
+    for (const f of fs.readdirSync(MOVED).filter((x) => /_경위\.md$/.test(x))) movedTitles.set(f.replace(/_경위\.md$/, ''), new Set(headings(path.join(MOVED, f)).map((h) => h.title)));
+  }
   const summary = [];
   for (const [dom, files] of Object.entries(byDomain).sort()) {
     const p = path.join(OUT, `ledger_${dom}.md`);
@@ -136,7 +141,9 @@ function build(ackDomain, quiet) {
       body.push('');
     }
     // 🔴 제목이 바뀌거나 지워진 절의 판정은 버리지 않고 맨 아래에 모은다 — 조용히 사라지면 판정한 일이 헛수고가 된다
-    const orphans = [...kept.entries()].filter(([k, v]) => !used.has(k) && isHand(v.verdict));
+    // 6-A(10-13): `문서_경위/<번호>_경위.md`로 옮겨 간 `경위` 판정 절은 사라진 게 아니다 — 제목이 그 파일에 있으면 대장에서 내린다(판정이 `경위`가 아니면 그대로 경고)
+    const movedOut = (v) => v.verdict.startsWith('경위') && (movedTitles.get((/^(\d{2}-\d{2}|TS-\d{3})_/.exec(path.basename(v.file)) || [])[1]) || new Set()).has(v.title);
+    const orphans = [...kept.entries()].filter(([k, v]) => !used.has(k) && isHand(v.verdict) && !movedOut(v));
     if (orphans.length) {
       body.push(ORPHAN_HEAD + ' — 문서에서 제목이 바뀌었거나 지워짐. 새 절로 옮겨 적은 뒤 이 줄을 지운다');
       body.push('');
