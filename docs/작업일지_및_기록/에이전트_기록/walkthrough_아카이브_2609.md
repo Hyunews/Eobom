@@ -8,10 +8,1957 @@
 > 🔵 `harness-doctor.sh` #8(판정 분포)은 **현행 + 아카이브를 합쳐** 센다.
 >
 > 🔴 **통째로 열지 말 것**(`AGENTS.md` §10). `grep -n "^## 2026-09-10" ...` 로 줄을 찾아 `sed -n`.
+>
+> 🟡 **2026-10-13 4차 이관(예외)** — 9월분 판정 대기 120건을 `<!-- 판정 생략: … 게이트 미경유 -->` 표기로 바꿔 옮겼다(개발자 결정 B안).
+> **통과가 아니다** — doctor #8은 무표기로 센다. 경위 → `record.md` §2-1.
 
-항목 120건 (2026-09-01 ~ 2026-09-10) · 최신이 위
+항목 240건 (2026-09-01 ~ 2026-09-30) · 최신이 위 (판정 120 · 판정 생략 120)
 
 ---
+
+## 2026-09-30 | [Sonnet] 회귀 테스트 ①②③ 도입 — 검증 스크립트 보존 · 러너 + 권한 경계 테스트 · CI
+
+- **근거 스펙**: `docs/00_핵심플랫폼/00-15` §6 "2026-09-30 개발자 결정" 블록 · §5.1 1번 · §5.3. 핸드오프 블록.
+- **건드린 파일**: 신규 `backend/tests/`(`README.md` · `helpers/{dbGuard,testEnv,tokens}.ts` · `db-guard.test.ts` · `auth-boundary.test.ts` · `migrate-test-db.ts`) · 신규 `backend/src/app.ts` · `backend/src/server.ts`(app 조립 부분을 app.ts로 이동) · `backend/src/controllers/authController.ts`(`isB2cAud` 신설·`verifyBearerToken`) · `backend/src/routes/authRoutes.ts`(`/:provider/link`) · `backend/package.json`(`test` 확장·`test:db:migrate`) · `backend/.env.example`(`TEST_DATABASE_URL`) · 신규 `.github/workflows/backend-test.yml` · `.harness/record.md`·`roles.md`(규칙 한 줄씩). 로컬 `.env`(gitignore)에 `TEST_DATABASE_URL` 한 줄 추가.
+- **결과**:
+  - **러너 선택**: Node 내장 `node:test` + 기존 `ts-node/register/transpile-only` — 이 프로젝트가 이미 단위 테스트 2개를 그렇게 돌리고 있어 의존성 0개 추가, TS+Express+Prisma에 그대로 맞는다(supertest 대신 Node 22 내장 `fetch`로 `app.listen(0)`에 요청).
+  - **app.ts 분리**: server.ts가 앱 조립과 listen을 한 파일에 갖고 있어 테스트가 서버를 띄우지 않고 앱을 불러올 수 없었다. 미들웨어·라우터 마운트·헬스체크를 `app.ts`로 옮기고 server.ts는 dotenv·부팅 점검·listen만 남겼다. 마운트 순서·경로 동일. `tsc --noEmit` 에러 0.
+  - **전용 테스트 DB**: 사람 승인 후 로컬 Docker `eobom-postgres`에 새 DB `eobom_test`를 `CREATE DATABASE`(기존 `eobom_db` 무접촉, 백업 불필요 사유는 새 DB뿐) → `npm run test:db:migrate`로 마이그레이션 35개 적용. 가드 2중: ① `dbGuard.ts` — `TEST_DATABASE_URL` 없음(DATABASE_URL 폴백 없음)·호스트가 localhost/127.0.0.1 아님·DB 이름이 `_test`로 안 끝남 → 시작 전 즉시 실패(단위 6개로 가드 자체를 시험) ② `before()`에서 `SELECT current_database()`가 `_test`인지 재확인. `.env`는 통째로 불러오지 않고 `TEST_DATABASE_URL` 한 줄만 읽는다. `TEST_DATABASE_URL` 없이 돌리면 `TestDbGuardError`로 거부됨을 확인.
+  - **권한 경계 테스트**: `server.ts` 마운트 13개 보호 네임스페이스(admin·partner·expert·me·auth·memorials·obituaries·family-designations·farewell-messages·ending-note·facilities·stt·ocr)에서 대표 19개 경로. (a) 토큰 없음/엉터리/다른 비밀키/만료 → 401 (b) 다른 3종 aud 토큰 → 401 (c) 쿼리 토큰 경로 `/api/auth/:provider/link` (d) **대조군**: 주인 토큰은 401이 아님(GET 14개) + aud 없는 옛 유저 토큰 허용. 가짜 id·가짜 토큰만 사용.
+  - **🔴 테스트가 실제 결함을 잡았다**: 첫 실행에서 **22건 실패** — `verifyBearerToken`이 `aud === 'partner'`만 막아 **expert·admin 토큰이 B2C 유저 경로(`/api/me/*`·`/api/ending-note`·`/api/farewell-messages` 등 11개 네임스페이스)를 통과**했다. 스펙(00-15 §5.1 "admin 토큰 → user 전용 = 401")과 다른 구현. `isB2cAud`(aud가 `'user'`이거나 없음만 허용)로 고쳤고, 같은 허점이 있던 `/api/auth/:provider/link?token=`도 함께 막았다. 수정 후 전부 통과.
+  - `npm test` 총 **217개 통과 · 0 실패**(기존 단위 58 + 신규 159: 가드 6 + 권한 경계 153). 소요 약 수 초. `tsc --noEmit` 에러 0. STT·OCR은 플래그가 꺼져 있으면 컨트롤러가 인증보다 먼저 404를 내므로 테스트 env에서만 플래그를 켰다(자격증명이 없어 외부 호출 불가, 정상 토큰 POST는 보내지 않음).
+  - **CI**: `.github/workflows/backend-test.yml` — push·PR마다 임시 `postgres:15` 서비스 컨테이너(`POSTGRES_DB=eobom_test`)에서 `npm ci` → `prisma generate` → `test:db:migrate` → `npm test`. `secrets` 미사용·운영/Render/Supabase 값 없음·배포 단계 없음(실패해도 알림만). **아직 GitHub에서 돌려보지 못했다**(커밋·push 전) — `npm ci --dry-run`과 로컬 동일 절차만 확인.
+- **편차**: ① 스펙에 없던 **버그 수정**(`verifyBearerToken`·link 경로)을 했다 — 테스트가 스펙 §5.1 기대치("admin 토큰 → user 전용 = 401")대로 빨갛게 나왔고 §5.3이 빨간 테스트 방치를 금하며, 수정이 한 줄 규칙이라 그대로 반영. 부작용 우려(운영에서 expert/admin 토큰으로 유저 화면을 쓰던 사람)는 없다고 판단하나 실기동에서 관리자·전문가 로그인 화면 확인 필요. ② 지시의 "server.ts:59-73 훑기"를 위해 `server.ts`를 쪼개 `app.ts`를 만들었다(구조 변경). ③ 공개 경로(/api/geo·/api/experts·조회류)는 목록에서 제외 — 주석에 명시. ④ 부수 발견(고치지 않음): 컨트롤러 4곳이 `JWT_SECRET`을 `process.env.JWT_SECRET || 'eobom_jwt_secret_key_2026_well_dying'` 폴백으로 갖고 있고 `.env.example`에도 같은 값이 있다 — 운영에서 env가 빠지면 공개된 기본 키로 토큰 서명이 성립한다. [Opus] 판단 필요.
+- **다음 에이전트가 알아야 할 것**: 🔴 ① **CI 동작은 push 뒤 Actions 탭에서 확인** — 첫 실행이 빨가면 `npm ci`(sharp·ffmpeg-static 설치)·서비스 컨테이너 포트를 먼저 본다. ② **실기동(사람)**: 운영자 로그인·전문가 로그인·일반 유저 로그인 각각 자기 화면이 정상인지(토큰 aud 검사 강화 영향). ③ 새 보호 경로·라우터를 만들면 `tests/auth-boundary.test.ts`의 `PROTECTED` 표에 한 줄 추가. ④ 마이그레이션이 늘면 로컬에서 `npm run test:db:migrate` 재실행. ⑤ [Opus] `00-15` §1 실측 갱신·§6 결정 반영 · 위 편차 ④(JWT 기본 키 폴백). 커밋은 사람이 한다 — 메시지 초안만.
+
+<!-- 판정 생략: 2026-10-13 개발자 결정 — 게이트 미경유(9월분 일괄 보관, record.md §2-1) -->
+
+## 2026-09-30 | [Sonnet] TS 결정 2건 — ① 운영 phoneHash 조회(TS-001, 🔴 미실행·권한 거부) · ② `backup-db.ps1 -Target local|prod` 필수화(TS-002)
+
+- **근거 스펙**: `.harness/docs-audit/README.md` §4 "TS 판정 결과(09-30)" · `TS-001`·`TS-002`. 핸드오프 블록.
+- **건드린 파일**: `.harness/tools/backup-db.ps1` · 루트 `CLAUDE.md`("DB에 쓰기 전 백업" 줄) · `.harness/db-safety.md` §2 표·주석 · `.harness/systems.md` §4 백업 줄. `docs/`·`eobomDev/` 변경 없음.
+- **결과**:
+  - **B(완료)**: `-Target`이 없거나 `local`/`prod`가 아니면(대소문자 구분) 사용법을 찍고 `exit 1` — 기본값 없음. `-Target prod`는 기존 동작 그대로이되 **`BACKUP_DATABASE_URL`이 없어도 `DIRECT_URL`로 폴백하지 않고 실패**하며, 주소가 로컬이면 거부(예전엔 조용히 `local-` 파일을 만들었다). `-Target local`은 TS-002 §4 수동 3줄을 흡수: 컨테이너 안 `pg_dump -Fc`(유저·DB명은 컨테이너 `$POSTGRES_USER`/`$POSTGRES_DB`) → `docker cp` → 컨테이너 안 사본 삭제 → 호스트에 파일 있음·1KB 이상 확인. PowerShell은 MSYS 경로 변환을 안 하므로 `MSYS_NO_PATHCONV`는 불필요(단, Git Bash에서 스크립트를 부르지 말고 `powershell -File`로). 둘 다 끝에 대상(LOCAL/PROD)·경로·크기를 박스로 출력.
+  - 시험: 인자 없음 → 사용법 + exit 1 ✅ · `-Target foo`·`-Target PROD` → 거부 ✅ · `-Target local` → `backups/local-20260930-145523.dump`(256,706B) 생성·exit 0 ✅. **`-Target prod`는 시험하지 않음**(지시대로 사람 확인 뒤에만).
+  - **A(미실행)**: 운영 DB `SELECT count(*), min/max("createdAt") FROM "FamilyDesignation"`을 돌리려 했으나 **자동 모드 분류기가 "Production Reads"로 거부**했다. 우회하지 않고 멈춤 — 사람이 허용하거나 직접 돌려야 한다. git 쪽 사실만 확보: HASH_INDEX_KEY 코드 커밋 `3e022c6`(2026-09-01 10:47, `crypto.ts`가 `requireEnv('HASH_INDEX_KEY')`) · Render 키 등록 반영 `a8239d2`(09-03, `render.yaml`에 "누락돼 POST /api/family-designations 500의 원인"). **실제 배포 시각은 git으로 안 나온다**(push 시각은 reflog에 없음, Render 대시보드 필요).
+- **편차**: 없음(지시가 "권고"로 남긴 `-PgVersion`은 그대로 두었다). 참고: 지시 4항의 "크게 출력"은 색 박스 형태로 해석했다.
+- **다음 에이전트가 알아야 할 것**: 🔴 **A 미완** — ① 운영 조회는 사람 승인 후 재시도(또는 사람이 직접 실행) ② 배포일은 Render 배포 이력에서 확인 ③ 행이 배포일 이전이면 재해시 방법은 사람·Opus 결정(`rotate-keys.ts --confirm` 금지). `docs/`의 `TS-002` §5 코드가드 칸·§6·머리표 상태 갱신은 [Opus] 몫. 커밋은 사람이 한다 — 메시지 초안만.
+
+<!-- 판정 생략: 2026-10-13 개발자 결정 — 게이트 미경유(9월분 일괄 보관, record.md §2-1) -->
+
+## 2026-09-30 | [Sonnet] 06 판정 결정 3건 — ① 유언장 초안 탭 → 보관함 버튼 · ② 연명의료 등록 여부·등록일 · ③ 동의 문구에서 "2인 승인" 삭제
+
+- **근거 스펙**: ① `06-05` §7.2(✅ 09-30) · §4.3(09-30 블록) ② `06-04` §6.1 ①(✅ 09-30) ③ `06-03` §5(✅ 09-30, §8 #2 (가)안). 핸드오프 블록.
+- **건드린 파일**: `frontend/src/pages/EndingNotePage.tsx` · `frontend/src/components/familyShared/sectionFields.ts` · `frontend/src/components/farewell/FarewellNotice.tsx`(주석만) · `backend/src/controllers/endingNoteController.ts`(`POLICY_NOTICE_TEXT`). 스키마·DB 변경 없음.
+- **결과**:
+  1. **①** `/ending-note?tab=will` 본문 맨 위(주황 안내·편집 영역보다 위)에 `PageLink`(`v2-btn-outline`) 하나 — 마이크 아이콘 + `음성 메시지 남기기` → `/farewell-messages`. 설명 문구 없음. `FarewellNotice.tsx` 주석의 "Opus 판단 대기" → "복원하지 않는 것으로 종결(2026-09-30)", 화면 문구는 그대로.
+  2. **②** `LIFE_SUPPORT` 본문 JSON에 `lifeSupportRegStatus`(`등록함`/`등록하지 않음`/`모름`, 기본 `모름`)·`lifeSupportRegDate`(`등록함`일 때만 입력) 추가 — 연명의료 선택칸 아래, ⑩과 같은 모양. 옛 본문에 필드가 없으면 `모름`. 저장 페이로드·조회 복원·취소(reset)·한눈에 보기(`의향서 {상태} (날짜)`)까지 배선. `/family-shared`는 `entryFields`에 `사전연명의료의향서 등록` 행 추가(⑩과 같은 방식, 옛 본문은 `모름`). 서버는 섹션 본문을 필드 검증 없이 통째로 저장하므로 백엔드 변경 없음. 기존 주황 안내 문구 그대로, 새 문구·등록기관 링크·등록번호 없음.
+  3. **③** `POLICY_NOTICE_TEXT`에서 `담당자 2인의 승인을 거치며, `만 삭제 → `예외 열람은 사유가 기록되고, 열람 사실을 회원님(사후에는 지정 유족)께 알려드립니다. …`. 나머지 문장·프론트 폴백 문구(`EndingNotePage.tsx` 폴백)는 그대로. 복호화 스크립트·예외 열람 기능 만들지 않음.
+  - `tsc --noEmit` 프런트·백엔드 에러 0. dev 서버·DB 명령 없음.
+- **편차**: ① 스펙이 "저장 안 한 초안이 있으면 지금의 '페이지를 떠날 때 경고'가 그대로 뜬다"고 했으나 **프런트 어디에도 이탈 경고 코드가 없다**(`beforeunload`·`useBlocker` grep 0건). 버튼은 만들었지만 경고는 안 뜬다 — 필요하면 [Opus]가 스펙 문구를 고치거나 [Sonnet]에 별도 지시. ② `App.setActiveTab` 탭 키를 `farewell-messages`로 가정하고 `onNavigate`에 넘겼다(경로 규칙 `/${tab}`와 일치). ③ 한눈에 보기 문구 `의향서 …`는 스펙에 없는 표기라 [Opus] 확인 요청(스펙 §6.1 블록에 요약 표기는 없음).
+- **다음 에이전트가 알아야 할 것**: 🔴 **실기동 검증 대기(사람)** — ① 유언장 초안 탭 맨 위 버튼 → 보관함 이동(모바일 폭 포함) ② 연명의료 칸: 등록 여부 선택 → `등록함`이면 등록일 표시, 저장 후 새로고침 복원, 취소 시 되돌림, 옛 데이터는 `모름` ③ 개봉된 계정의 가족 화면에 등록 여부 행 ④ 동의 모달(처음 엔딩노트 작성 시) 문구에서 "2인 승인" 사라짐 — 이미 동의한 회원은 모달이 안 뜨므로 새 회원/`policyAgreedAt` 없는 계정으로 확인. 백엔드 재시작 필요(문구가 서버 상수). 커밋은 사람이 한다.
+
+<!-- 판정 생략: 2026-10-13 개발자 결정 — 게이트 미경유(9월분 일괄 보관, record.md §2-1) -->
+
+## 2026-09-30 | [Sonnet] 운영 자동 마이그레이션 끄기 — `npm start`에서 `prisma migrate deploy` 제거
+
+- **근거 스펙**: `.harness/db-safety.md` §2-1(09-30 사람 결정). 핸드오프 블록.
+- **건드린 파일**: `eobomDev/backend/package.json`(`start`만)
+- **결과**: `"start": "prisma migrate deploy && node dist/server.js"` → `"node dist/server.js"`. `build`의 `prisma generate`는 그대로. `render.yaml`은 `startCommand: npm start`라 이것으로 충분. 저장소 grep(`migrate deploy`, node_modules·dist·docs·backups 제외): 실행 경로에 남은 곳 없음 — 나머지는 문서·주석뿐(`db-safety.md`·`systems.md` 설명, `render.yaml:27` DIRECT_URL 주석, `schema.prisma:4` 주석, `eobomDev/README.md:66` 로컬 초기 설정 안내). DB 명령·커밋·push 안 함.
+- **편차**: 없음. (보고: `schema.prisma:4` 주석이 "`npm start`의 `prisma migrate deploy`가 죽어 서버가 안 뜬다"고 적혀 있어 이제 사실과 다르다. `render.yaml:27` 주석도 같은 전제. 지시대로 고치지 않음.)
+- **다음 에이전트가 알아야 할 것**: 운영 스키마 변경은 이제 push로 반영되지 않는다 — `db-safety.md` §2-1 순서로 **사람이 직접** 한다(추가형: 백업→파일 확인→운영 `migrate deploy`→push / 삭제형: push→백업→확인→마이그레이션). 새 마이그레이션이 든 커밋을 push하면 새 코드가 아직 없는 컬럼·테이블을 참조해 오류가 날 수 있으니 순서를 지킬 것. 로컬 `eobomDev/README.md`의 `migrate deploy` 안내는 로컬 초기 설정용이라 그대로.
+
+<!-- 판정 생략: 2026-10-13 개발자 결정 — 게이트 미경유(9월분 일괄 보관, record.md §2-1) -->
+
+## 2026-09-30 | [Sonnet] 엔딩노트 UI 정리(사람 지시 3건) + 로컬 네이버 계정 사후 처리 되돌리기(D 재실행) + LIFE_SUPPORT 생전 공개 실기동 확인
+
+- **근거 스펙**: 스펙 없음 — 사람 실기기 리포트·지시. (D는 지난 항목 8번과 같은 조치, `db-safety.md`)
+- **건드린 파일**: `frontend/src/components/endingNote/SectionTimingControl.tsx` · `frontend/src/pages/EndingNotePage.tsx` · `frontend/src/styles/design-v2.css`. DB(로컬)만 변경, 스키마 무변경.
+- **결과**:
+  1. ✅ **실기동 확인(개발자, 09-30)**: 연명의료 섹션 가족 공개 시점 드롭다운의 "지금부터 공개(생전)" 확인(직전 항목 §13 #5).
+  2. **D 재실행(로컬 전용)**: 백업 `backups/local-20260930-134425.sql`(907,742바이트, 끝 `\unrestrict` 확인; 첫 시도는 `bash`가 WSL로 잡혀 230바이트 빈 파일이 나와 지우고 Git Bash로 다시 뜸). 개발자 승인 뒤 단일 트랜잭션(건수 ≠ 1이면 롤백): `EndingNote 7de4c2e3…`(네이버 윤현우) `RELEASED→DRAFT`·`releasedAt NULL` 1건, `DeathVerification 2c59a47f…`(VERIFIED) 1건 삭제. 실행 뒤 SELECT: 노트 3건 전부 `DRAFT`, `DeathVerification` 0건. 운영 DB 무관.
+  3. **PC 가족 공개 시점 정렬**: 행마다 이름 폭이 달라 드롭다운이 제각각이던 것을 `.en-timing-list` 3열 그리드(이름 max-content / 드롭다운 220px / 안내 1fr, 행은 `display: contents`)로 맞춤. 안내가 없어도 빈 칸(`.en-timing-hint`)을 그려 열이 밀리지 않게 함.
+  4. **모바일 리더 시트**: (a) 가족 공개 시점 영역을 ~~세로 배치(이름 위·드롭다운 아래)~~ → **사람 캡처 리포트(이름·드롭다운이 가운데로 오그라듦; 원인 = PC용 `align-items:center`가 모바일 flex에 남음)로 재설계: 가족 1명 = 1줄(이름 왼쪽 / 드롭다운 오른쪽 148px 고정), 수락 전 안내는 아래 줄**, 위 여백·간격을 줄임 (b) 시트 안 필드 소제목(`.v2-field label`)을 13px→16px·굵게·본문색, 시트 전용 클래스 `en-reader-body`라 다른 모달은 무영향 (c) 주황 박스(`v2-notice-warn`) 3곳 문구 축약 — 이모지(⚠️🔴) 제거, 평가·강조 표현("절대")·부연(안심상속 원스톱 조회 안내, 비용 없음, 등록기관 예시 중 사랑의장기기증운동본부) 삭제, 사실(법적 효력 없음·이름까지만·대행 안 함·시신 기증은 별도)만 남김. 자산 입력창 placeholder도 한 줄로 축약. `tsc --noEmit` 프런트 에러 0.
+- **편차**: ① 주황 박스 문구가 `06-04`/`00-35`에 확정 문구로 적혀 있으면 그것과 달라진다 — 지시("미사여구·AI 표현 제거, 분량 축소")를 따랐고 docs는 안 고침. [Opus] 확인 요청. ② "드롭다운 위치 줄이고"를 **가족 공개 시점 영역의 세로 공간 축소**로 해석함(입력 필드의 select 높이는 그대로 48px). 의도와 다르면 알려줄 것. ③ 화면 문구를 "직접 확인 후" 고치라 했으나 법적 사실(사전연명의료의향서 등록기관·장기기증 등록기관)은 기존 문구의 의미를 유지하는 선에서만 줄였고 새 사실은 추가하지 않음.
+- **다음 에이전트가 알아야 할 것**: 🔴 **실기동 검증 대기(사람)** — 모바일 시트에서 공개 시점 영역 높이·소제목 크기·주황 박스 3곳(연명의료·자산·장기기증), PC 아코디언에서 가족이 여러 명·이름 길이가 다를 때 드롭다운 열 정렬과 "초대를 수락하면…" 안내 위치. 윤현우 노트는 다시 `DRAFT`(개봉 흐름 재시험 가능). 커밋은 사람이 한다.
+
+<!-- 판정 생략: 2026-10-13 개발자 결정 — 게이트 미경유(9월분 일괄 보관, record.md §2-1) -->
+
+## 2026-09-30 | [Sonnet] 06-04 §13 #5 — 연명의료(LIFE_SUPPORT) 섹션 "지금부터 공개" 허용
+
+- **근거 스펙**: `docs/06_엔딩노트_유언/06-04_엔딩노트_보관함_실구현_기획서.md` §13 #5(🔄 09-30 개발자 결정) · §8.3-2. 핸드오프 블록.
+- **건드린 파일**: `eobomDev/backend/src/utils/endingNoteSections.ts` · `eobomDev/frontend/src/components/endingNote/constants.tsx`
+- **결과**: 두 곳의 `SECTION_ALLOWED_TIMINGS.LIFE_SUPPORT`를 `['IMMEDIATE', 'POSTMORTEM']`으로 바꿔 값을 일치시켰다. `endingNoteSections.ts` 상단 주석("①은 POSTMORTEM만 허용")을 새 결정에 맞게 정리. 기본 사후 공개 로직은 `includes('POSTMORTEM')` 필터라 손대지 않았고, LIFE_SUPPORT는 여전히 기본 POSTMORTEM으로만 생성된다. 스키마·DB 변경 없음. 프런트·백엔드 `tsc --noEmit` 에러 0.
+- **편차**: 없음. (코드 추적으로 확인한 것: 수락 전·초대 전 가족 안내 "초대를 수락하면 바로 볼 수 있습니다."는 `SectionTimingControl`이 섹션과 무관하게 `status !== 'ACCEPTED' && timing === 'IMMEDIATE'`로 띄우므로 LIFE_SUPPORT에도 그대로 뜬다. 가족 조회(`family-view`)도 섹션 분기 없이 timing만 봐서 별도 수정 불필요. 화면에서 직접 본 것은 아님.)
+- **다음 에이전트가 알아야 할 것**: 🔴 **실기동 검증 대기(사람)** — 연명의료 아코디언의 가족 공개 시점 드롭다운에 "지금부터 공개(생전)"이 생기는지, 수락 전 가족에게 고르면 안내가 뜨는지, 저장 후 가족 화면에 이 섹션이 개봉 전에도 보이는지. 백엔드는 서버 재시작 필요. 커밋은 사람이 한다.
+
+<!-- 판정 생략: 2026-10-13 개발자 결정 — 게이트 미경유(9월분 일괄 보관, record.md §2-1) -->
+
+## 2026-09-30 | [Sonnet] 상중 행정 가이드 09-30 결정 2건 — ① 모바일 3개월 알림 줄 · ② F단계 체크 상태 보존(`CareGuideProgress`)
+
+- **근거 스펙**: `docs/07_상중_행정_케어/07-04_상중_행정_가이드_재설계_검토서.md` §4.3(09-30 개발자 결정 블록) · §3.4 · §3.4-1(09-09 확정표) · §3.4-2 · §8 #6 · `db-safety.md`. 핸드오프 블록.
+- **건드린 파일**:
+  - 백엔드: `prisma/schema.prisma`(`CareGuideProgress` + `User.careGuideProgress`) · `prisma/migrations/20260930035049_add_care_guide_progress/` · `src/controllers/careGuideController.ts`(신규) · `src/routes/meRoutes.ts` · `src/services/accountPurgeService.ts`
+  - 프런트: `src/pages/CareGuidePage.tsx` · `src/styles/design-v2.css`
+  - 자동 생성: `docs/00_핵심플랫폼/00-05_DB_요구사항_및_테이블_사전.md`(`generate-db-doc.js`)
+- **결과**:
+  - ① `.v2-mobile-tabs` 바로 아래 `.v2-mobile-alert` 버튼 한 줄 — 문구 "상속포기·한정승인 기한은 3개월입니다 ›", 누르면 `scrollToSection('month3')`, 활성 탭이 month3이면 렌더 안 함, 데스크톱은 CSS로 숨김. 상자·배경·아이콘·붉은색 없음(`--v2-text-muted`, 13px), 높이 `--min-touch-target`. 모바일 `v2-callout` 숨김은 그대로.
+  - ② 모델(`userId`·`taskId Int`·`checkedAt`, `@@unique[userId,taskId]`, User Cascade) + API `GET /api/me/care-guide`(→`{taskIds}`) · `PUT`/`DELETE /api/me/care-guide/:taskId`(멱등, 해제 = `deleteMany`). 회원은 진입 시 서버 값으로 체크 표시·누를 때마다 저장(낙관적 갱신, 실패 시 되돌림), 비회원은 useState뿐 + "로그인하면 체크한 항목이 저장됩니다." 한 줄. 로그·`console.error`에 taskId·목록을 찍지 않음(고정 문구만), admin 라우트에 노출 없음.
+  - 🔴 DB: 마이그레이션 전 `docker exec eobom-postgres pg_dump` → `backend/backups/local-20260930-120418.sql`(904,269바이트, 끝 "dump complete" 확인) + 사람 확인("실행") 후 `migrate dev`. 마이그레이션 SQL은 CREATE TABLE·UNIQUE INDEX·FK뿐(기존 행 무변경). 운영 DB는 이번 범위 아님(운영 배포 시 `migrate deploy` 별도).
+  - `tsc --noEmit` 프런트·백엔드 에러 0. `prisma validate` 통과.
+- **편차**:
+  1. **`accountPurgeService`에 `careGuideProgress.deleteMany` 추가**(스펙에 문장 없음) — 파기 후에도 `User` 행이 유령 계정으로 남아 `onDelete: Cascade`가 안 타므로, §3.4-1 보유기간 "회원 탈퇴 시까지"를 지키려면 필요. [Opus] 확인 요청.
+  2. **비회원 안내 문구를 "로그인하면 체크한 항목이 저장됩니다."로 씀**(스펙 예시는 "로그인하면 저장됩니다") — 허용 범위 안이지만 문구는 [Opus]가 확정해 주길.
+  3. **저장 실패 시 화면만 되돌리고 안내 문구는 안 띄움** — 스펙에 실패 UX 없음.
+  4. **360px 한 줄 여부는 실측 못 함**(dev 서버 미기동·`feedback_dev_server_policy`). 계산상 13px 기준 약 270px < 312px(360−좌우 24×2)라 들어갈 것으로 보나, 글자 폭은 폰트 의존이라 **사람 확인 필요**. 넘치면 스펙대로 글자 축소 없이 편차로 올린다(문구는 [Opus]가 줄인다).
+- **다음 에이전트가 알아야 할 것**:
+  - 🔴 **`prisma generate`의 마지막 단계(엔진 DLL rename)가 EPERM으로 실패** — 실행 중인 백엔드 dev 서버가 `query_engine-windows.dll.node`를 잡고 있음. **서버를 끄고 `cd eobomDev/backend && npx prisma generate` 재실행 후 기동**해야 새 모델이 런타임에 잡힌다(타입은 이미 생성돼 tsc는 통과).
+  - 🔴 **실기동 검증 대기(사람)**: ① 모바일 폭 — 알림 줄이 탭 아래 한 줄로 보이고 누르면 3개월 구간으로 전환, 3개월 탭에서 사라짐, 360px 한 줄 ② 회원 — 체크 후 새로고침·다른 기기에서 유지, 해제 후 사라짐, 비회원은 새로고침 시 초기화 ③ 로그아웃 시 전부 미체크로 돌아옴.
+  - `docs/00_핵심플랫폼/00-19` 제4조 행·07-04 문구 갱신은 [Opus] 몫 — 이번에 docs는 건드리지 않았다(00-05는 자동 생성물).
+  - 운영자 화면에 "개수(집계)"는 아직 없다 — §3.4-1의 "장애 대응 시 개수만"은 필요해질 때 별도 구현.
+  - 커밋은 사람이 한다 — 메시지 초안은 응답에 있음.
+
+<!-- 판정 생략: 2026-10-13 개발자 결정 — 게이트 미경유(9월분 일괄 보관, record.md §2-1) -->
+
+## 2026-09-30 | [Sonnet] 사후 개봉·엔딩노트 09-30 결정 묶음 — A(00-41 질의 판정 3건) · B(공개 섹션 한 줄) · C(지정 시 기본 사후 공개 권한) · 후속 1·2(지정 폼 안내문 교체, DRAFT 가족 포함) · D(로컬 테스트 데이터 되돌리기, 실행 완료)
+
+- **근거 스펙**: `docs/00_핵심플랫폼/00-41_사후개봉_최소안_명세서.md` §7.1·§7.3·§8.1·§9 · `docs/06_엔딩노트_유언/06-04_엔딩노트_보관함_실구현_기획서.md` §8.3-1·§8.3-2 · `db-safety.md`(D). 핸드오프 블록.
+- **건드린 파일**: **신규** `backend/src/utils/endingNoteSections.ts`. **수정** `backend/src/controllers/endingNoteController.ts` · `farewellMessageController.ts` · `familyDesignationController.ts` · `backend/src/routes/endingNoteRoutes.ts` · `frontend/src/pages/FamilySharedPage.tsx` · `frontend/src/pages/EndingNotePage.tsx` · `frontend/src/components/endingNote/SectionTimingControl.tsx` · `frontend/src/components/mypage/MyPageFamilyDesignation.tsx`. 스키마·마이그레이션 변경 없음.
+- **결과**:
+  1. **A-1** `SectionTimingControl.tsx` — 가족이 `ACCEPTED`가 아니고 그 가족의 유효 권한이 `IMMEDIATE`일 때만 select 옆에 `초대를 수락하면 바로 볼 수 있습니다.` (`POSTMORTEM`엔 없음, 권한 지정 자체는 막지 않음).
+  2. **A-2** `FamilySharedPage.tsx` 버튼 `돌아가셨음을 알리고 기록 열기` → `돌아가셨음을 알리고 열람 요청`(옛 문구는 walkthrough·주석 외 코드 0건).
+  3. **A-3** `GET /api/ending-note/family-view/letters/:id/audio`(`getFamilyLetterAudio`) — 조건: 편지 `recipient.status === 'ACCEPTED'` && `recipient.acceptedUserId === 요청자` && `note.status === 'RELEASED'` && 음성 있음 && `mediaDeletedAt`·`deletedAt` 모두 null, 하나라도 아니면 사유를 가리지 않고 같은 404(R2 미사용 환경도 404). 재생 로직은 본인용과 같은 `sendFarewellAudio`(`farewellMessageController.ts`, R2에서 받아 복호화해 그대로 응답·`Cache-Control: no-store`)로 빼서 공유 — 본인용 동작은 그대로. 화면: 편지 모달에 `음성 듣기` 버튼 → 인증 fetch → blob → `<audio controls>`, 모달을 닫으면 objectURL 해제. 제거한 옛 문구 `음성 파일이 함께 남겨져 있습니다. 이 화면에서는 들을 수 없습니다.`; `endingNoteController` 주석 `재생 경로는 3-B 이후(수신자용 오디오 API 없음)` 정리.
+  4. **B** `EndingNotePage.tsx` — 제목·부제 아래 `가족에게 공개한 섹션 — 이름(관계) N개 · …`. N = 그 지정의 `savedGrants`(저장된 권한) 중 `revokedAt` null인 서로 다른 섹션 수(즉시·사후 합산), `WILL_DRAFT` 제외. 대상 = 화면의 `family`(ACCEPTED·PENDING·EXPIRED, DECLINED·DRAFT 제외), 없으면 줄 없음. 부제와 같은 `v2-page-subtitle` 스타일(색·아이콘·경고·권유 없음, 0개도 같은 색), 추가 API 없음.
+  5. **C** `utils/endingNoteSections.ts` — `SECTION_ALLOWED_TIMINGS`를 컨트롤러에서 옮겨 두 곳이 같은 표를 쓴다. `grantDefaultPostmortem(noteId, designationIds)`: 그 표에서 `POSTMORTEM`이 가능한 8개 섹션 × 지정마다 `timing=POSTMORTEM` 권한 생성, `(지정, 섹션)`에 행이 한 번이라도 있었으면(철회 포함) 건너뜀, `createMany skipDuplicates`(멱등). 호출 지점 2곳: ① `createFamilyDesignation` — 지정 생성 직후 노트가 있고 `RELEASED`가 아닐 때(실패해도 지정은 유지·로그만) ② 노트가 **처음 생길 때**(`endingNoteController.getOrCreateNote`·`farewellMessageController.getOrCreateEndingNoteId` 둘 다 `findUnique`로 있으면 그대로 반환, 없어서 upsert한 그 한 번만 `grantDefaultForAllDesignations` — `DECLINED` 제외 지정 전원). 소급·일괄 스크립트 없음. 지정 폼(`MyPageFamilyDesignation.tsx`)에 `지정하면 모든 섹션이 사후에 공개됩니다. 섹션마다 바꿀 수 있습니다.` 한 줄.
+  6. **후속 1** `MyPageFamilyDesignation.tsx` 지정 폼 안내문 교체 — 제거한 옛 문구 `여기 입력하신 가족의 성함·연락처는 이어봄에 저장됩니다. 가족에게 알리기 전까지는 어떤 권한도 부여되지 않으며, 이어봄이 먼저 연락하지도 않습니다. 알리기를 누르시면 가족이 직접 수락한 뒤에야 열람 권한이 생깁니다. 언제든 삭제하실 수 있습니다.` → `입력하신 성함·연락처는 이어봄에 저장됩니다. 이어봄이 가족에게 먼저 연락하지 않습니다. 가족이 알림 링크로 직접 수락해야 볼 수 있고, 무엇을 언제 볼지는 섹션마다 정하신 대로입니다. 언제든 삭제하실 수 있습니다.`(00-27 불변식 1 09-30 개정).
+  7. **후속 2 (DRAFT 포함)** 서버 `upsertEndingNoteGrant` 상태 검사 `!['ACCEPTED','PENDING','EXPIRED'].includes(status)` → `status === 'DECLINED'`만 거부(메시지 `초대를 거절한 가족에게는 공개 시점을 지정할 수 없습니다.`; 제거한 옛 문구 `초대를 보낸 가족에게만 공개 시점을 지정할 수 있습니다.`). `WILL_DRAFT` 거부는 그 앞의 섹션 검증 그대로. 화면 `EndingNotePage.tsx` 대상 필터 `['ACCEPTED','PENDING','EXPIRED'].includes(f.status)` → `f.status !== 'DECLINED'` — 이 `family` 하나가 B의 줄과 `SectionTimingControl` 둘 다에 쓰이므로 함께 바뀐다. 이름 옆 표시: `DRAFT`=`초대 전`, `PENDING`·`EXPIRED`=`수락 전`(`SectionTimingControl.tsx`). 0명 안내 `초대를 보낸 가족이 없어…` → `지정한 가족이 없어 섹션을 공개할 대상을 지정할 수 없습니다.`
+  8. **D (로컬 테스트 데이터 되돌리기, 로컬 전용)** 백업 `backups/local-20260930-113632.sql`(882KB, 생성 확인; 그 전 `local-20260930-112428.sql`도 있음). 개발자 승인 뒤 단일 트랜잭션(건수 ≠ 1이면 롤백하는 `DO` 블록)으로 실행: `EndingNote`(`7de4c2e3-…`, 네이버 윤현우) `RELEASED → DRAFT`·`releasedAt → NULL` **1건**, 그 회원 `DeathVerification`(`669293b7-…`, VERIFIED) **1건 삭제**. 실행 뒤 SELECT: EndingNote `DRAFT`·releasedAt 비어 있음 / 해당 회원 DeathVerification 0건 / 전체 DeathVerification 0건 / RELEASED 노트 0건 / `AdminAuditLog` `VIEW`·`APPROVE` 2건 그대로. 다른 행은 건드리지 않음. 운영 DB 무관(`backup-db.ps1` 미사용).
+  `tsc --noEmit`(backend·frontend) 통과 · `npm test`(backend) 51건 통과(후속 전 시점). 🔴 화면·API 실행 시험은 못 했다(아래).
+- **편차**: ① 개봉된 노트에는 새 지정의 기본 권한을 만들지 않는다(지시 밖 방어 — 새 지정에게 곧바로 열리므로). ② (해소됨) 앞 시점의 "`DRAFT`는 기본 권한이 있는데 화면에서 못 본다" 불일치는 후속 2로 없앴다.
+- **다음 에이전트가 알아야 할 것**:
+  - 🔴 **실기동 미확인**(dev 서버 미기동 방침, backend는 `prisma generate` 재실행 필요). 확인: ① 새 지정 추가 → 권한 화면에 8개 섹션 `사후에만 공개`·B의 줄 `N개` ② 노트가 없는 회원이 지정 후 처음 노트를 열면 그 시점 지정 전원에게 생김 ③ 이미 있던 노트·지정에는 안 생김 ④ 개봉된 노트의 수신자 편지에서 `음성 듣기`, 남의 편지·미개봉이면 404.
+  - 🟡 기본 권한이 `DRAFT` 지정에도 생기고 그 지정이 나중에 초대·수락되면 별도 조작 없이 사후 공개 권한이 살아 있다(의도된 동작으로 봄).
+  - ✅ **결정(개발자, 09-30)**: `DRAFT` 가족의 `IMMEDIATE`는 **막지 않는다** — 안내 `초대를 수락하면 바로 볼 수 있습니다.`로 충분, 코드 변경 없음. 근거 00-41 §7.3 09-30 판정(수락 전 가족과 같은 판단, `DRAFT` 적용은 같은 절 🔄 줄에 명시).
+  - ✅ **실기동 검증(개발자, 09-30)**: ① 비공개였던 권한이 가족 수락 후 "사후에만 공개"로 자동 변경됨 확인 ② 장례 희망을 생전 공개로 바꾼 뒤 가족 계정에 정상 출력됨 확인. (남은 실기동 항목: 개봉 흐름 재시험·수신자 편지 음성·남의 편지 404·소급 없음.)
+  - D는 끝났으므로 윤현우 계정의 엔딩노트는 다시 `DRAFT`다(개봉 기능을 처음부터 다시 시험할 수 있음). `AdminAuditLog` 2건은 남아 있다.
+
+<!-- 판정 생략: 2026-10-13 개발자 결정 — 게이트 미경유(9월분 일괄 보관, record.md §2-1) -->
+
+---
+## 2026-09-30 | [Sonnet] 사후 개봉 §7.3 스펙갱신 반영(수락 전 가족 권한) + 3-B 화면(유족 요청·상태·재초대 / 본인 배너 / 운영자 「사망 확인」 탭)
+
+- **근거 스펙**: `docs/00_핵심플랫폼/00-41_사후개봉_최소안_명세서.md` §6·§7.3(스펙갱신 09-30)·§8·§11(3-B). 핸드오프 블록. 앞 항목(3-A)이 남긴 "스펙 공백(§7.3)"의 해소.
+- **건드린 파일**: **수정** `backend/src/controllers/endingNoteController.ts`(권한 부여 조건 1곳·주석) · `backend/src/controllers/deathVerificationController.ts`(`mine` 응답에 `designationId`) · `frontend/src/pages/EndingNotePage.tsx` · `frontend/src/components/endingNote/SectionTimingControl.tsx` · `frontend/src/pages/FamilySharedPage.tsx`(전면 확장) · `frontend/src/pages/AdminPage.tsx` · `frontend/src/App.tsx`. **신규** `frontend/src/components/familyShared/sectionFields.ts` · `ReleaseRequestModal.tsx` · `PendingFamilyPanel.tsx` · `frontend/src/components/endingNote/ReleaseRequestBanner.tsx`.
+- **결과**:
+  1. **§7.3 권한 지정** — `PUT /api/ending-note/grants`(`upsertEndingNoteGrant`)가 `ACCEPTED`만 허용하던 조건 `designation.status !== 'ACCEPTED'`를 `!['ACCEPTED','PENDING','EXPIRED'].includes(designation.status)`로 바꿨다. `DECLINED`·`DRAFT`는 계속 400. 메시지 `아직 수락하지 않은 가족에게는 공개 시점을 지정할 수 없습니다.` → `초대를 보낸 가족에게만 공개 시점을 지정할 수 있습니다.`(제거한 옛 문구). 조회(`getFamilyVisibleEndingNotes`)는 그대로 `acceptedUserId`+`ACCEPTED` 기준이라 **수락 전엔 어떤 경로로도 읽히지 않는다** — 코드로 확인: 조회 쿼리 `where: { acceptedUserId: decoded.id, status: 'ACCEPTED' }` 변경 없음.
+  2. **권한 설정 화면** — `EndingNotePage.tsx` 가족 목록 필터 `f.status === 'ACCEPTED'` → `['ACCEPTED','PENDING','EXPIRED'].includes(f.status)`. `SectionTimingControl.tsx`는 수락 전 가족 이름 옆에 `수락 전`을 붙인다. 0명 안내문 `아직 수락된 가족이 없어 섹션을 생전에 공개할 대상을 지정할 수 없습니다.` → `초대를 보낸 가족이 없어 섹션을 공개할 대상을 지정할 수 없습니다.`
+  3. **유족 화면(`/family-shared`)** — 각 분마다: 요청 전엔 `돌아가셨음을 알리고 기록 열기` 버튼 → 요청 폼 모달(고인 성함·돌아가신 날·장례식장 이름·전화·`장례식장 없음`, **파일 칸 없음**, 안내문은 스펙 §8.1 문장 그대로). 상태 표시: `REQUESTED`(접수 시각·`○월 ○일 ○시 ○분까지 확인합니다`·요청자 본인이면 `요청 취소`) · `REJECTED`(서버의 정해진 문장 + `다시 요청`) · `CANCELLED`(요청 버튼 복귀). 개봉(`released`) 뒤: 권한 섹션 전부(`sectionFields.ts` — LIFE_SUPPORT·FUNERAL·ASSET·DIGITAL_ACCOUNTS(구독 메모 포함)·INSURANCE·CONTACTS·WILL_LOCATION·ORGAN_DONATION) + 자기 앞 편지(모달에 본문) + `가족에게 알리기` + 미수락 가족 패널.
+  4. **가족에게 알리기** — 문구 `○○ 님의 기록을 이어봄에서 보실 수 있습니다.` + `${origin}/family-shared`(토큰 없음). 터치 기기에서만 `navigator.share`, 그 밖에는 링크 복사(데스크톱 공유창 문제 — `MyPageFamilyDesignation.tsx` §9.1-4-1과 같은 이유).
+  5. **미수락 가족 재초대(`PendingFamilyPanel`)** — 이름·관계·`링크 유효/만료`만, `초대 링크 다시 만들기` → `POST …/pending-family/:desigId/reinvite` → `${origin}/invite/${token}` 표시·복사. 전화·이메일 없음.
+  6. **본인 배너(`ReleaseRequestBanner`)** — `App.tsx`에서 `<main>` 바로 위(포털 경로 제외)에 마운트. `REQUESTED`: `○○ 님이 엔딩노트 개봉을 요청했습니다. 본인이시면 취소해 주세요.` + `취소`(눌러야만 `cancel-by-subject`, 로그인만으로 자동 취소 없음). `VERIFIED`: `개봉되었습니다. 본인이시면 대표번호로 연락해 주세요.`(취소 버튼 없음).
+  7. **운영자 「사망 확인」 탭(`AdminPage.tsx`)** — 탭 이름 옆 대기 건수(로그인 직후 1회 + 새로고침) · 카드: 고인 실명·회원 이름·사망일·접수·대외 마감(남은 시간)·내부 목표·장례식장·요청자 · `대외 약속 초과`(빨강)/`내부 목표 초과`(노랑) · `상세·처리`를 열면 요청자 전화(되걸기용, 서버가 `VIEW` 기록)·확인 방법 선택(`FUNERAL_HALL`은 장례식장 정보 있을 때만, `OTHER`는 서버가 SUPERADMIN 검사)·`확인 완료`·반려 사유 선택·`반려`(각각 `window.confirm`). 본문·섹션 제목·편지를 그리는 코드 없음(서버 응답에도 없음).
+  `tsc --noEmit`(frontend·backend) 통과 · `npm run build`(frontend) 통과. 스펙 §11 `문자·알림톡으로 알려` grep: `frontend/src` 0건(주석 표현도 바꿔 0건으로 맞춤).
+- **편차**: ① 반려 사유 문장은 스펙 §8.2가 "정해진 문장"이라고만 해 **내가 정했다**(서버 `deathVerificationController.REJECT_REASON_TEXT` — `입력하신 장례식장에서 확인되지 않았습니다.` · `고인 성함이 확인한 내용과 맞지 않았습니다.` · `장례식장과 연락이 닿지 않았습니다.` · `확인하지 못했습니다. 대표번호로 문의해 주세요.`). ② 버튼 문구는 스펙이 `ux-copy`를 한 번 거치라고 했으나 **거치지 않고** 스펙 문구(`돌아가셨음을 알리고 기록 열기`)를 그대로 썼다. ③ `mine` 응답에 `designationId`를 더했다(family-view 항목과 짝짓기 위해, 회원 id는 내보내지 않음). ④ 운영자 「남은 시간」은 휴무 포함 실제 시각 차이(`dueAt − 지금`)다 — 운영시간 계산은 서버가 `dueAt`에 이미 반영했다.
+- **다음 에이전트가 알아야 할 것**:
+  - 🔴 **실기동 미확인 — dev 서버를 쓰지 않는 방침.** 확인 순서: ① backend dev 서버 재시작 + `npx prisma generate`(엔진 dll 잠김 — 3-A 참조) ② 가족 계정으로 요청 → 운영자 탭에 뜨고 마감·노랑/빨강 ③ 확인 완료 → 가족 화면에 자기 권한 섹션 + 자기 앞 편지 ④ 요청 전엔 사후 섹션 **제목도 없음** ⑤ 본인 계정 배너·취소 ⑥ 생전 미수락 가족에게 권한 지정 → 사망 뒤 수락 → 그 권한만큼 보임.
+  - 🟡 **수락 전 가족에게 준 `IMMEDIATE` 권한은 수락하는 순간부터 생전 공개가 된다**(조회가 `ACCEPTED`만 보므로 수락 전엔 안 보이지만, 수락하면 사망과 무관하게 바로 열린다). §7.3의 의도(사후 수락)와는 결이 다른 부수효과 — 화면에서 미수락 가족에게 `IMMEDIATE`를 고르지 못하게 할지는 Opus 판단.
+  - 🟡 개봉 뒤 편지 **음성은 못 듣는다**(`hasAudio`만 내려가고 수신자용 재생 API 없음 — 모달에 그 사실을 적었다).
+  - 🟡 요청 폼의 날짜 입력은 브라우저 기본 date 입력이다(시안 없음). 모바일 폭·큰 글씨 배율 확인 필요.
+  - `FamilySharedPage.tsx`에서 `entryFields`를 `components/familyShared/sectionFields.ts`로 옮겼다(FUNERAL·CONTACTS 외 6개 섹션 추가).
+
+<!-- 판정 생략: 2026-10-13 개발자 결정 — 게이트 미경유(9월분 일괄 보관, record.md §2-1) -->
+
+---
+## 2026-09-30 | [Sonnet] 사후 개봉 3-A(백엔드) — `DeathVerification` · 운영시간 12h/1h · 유족·본인·운영자 API · family-view 확장 · 재초대 · RELEASED 저장 잠금
+
+- **근거 스펙**: `docs/00_핵심플랫폼/00-41_사후개봉_최소안_명세서.md` §4·§5.1·§7·§9·§11(3-A). 핸드오프 블록.
+- **건드린 파일**: **신규** `backend/src/utils/operatingHours.ts` · `operatingHours.test.ts` · `backend/src/utils/endingNoteLock.ts` · `backend/src/controllers/deathVerificationController.ts` · `deathVerificationAdminController.ts` · `backend/prisma/migrations/20260930011158_add_death_verification/migration.sql`. **수정** `backend/prisma/schema.prisma`(모델 1 + `User`·`FamilyDesignation` 관계 필드 각 1) · `backend/src/routes/endingNoteRoutes.ts` · `backend/src/routes/adminRoutes.ts` · `backend/src/controllers/endingNoteController.ts` · `backend/src/controllers/farewellMessageController.ts` · `backend/src/controllers/familyDesignationController.ts` · `backend/package.json`(test 스크립트에 파일 1개 추가). 문서 자동 생성: `docs/00_핵심플랫폼/00-05_DB_요구사항_및_테이블_사전.md`(`generate-db-doc.js`).
+- **결과**:
+  1. **모델** `DeathVerification`(§4.2 필드 그대로 + `requestedByDesigId` 인덱스 1개 추가). FK: `subject`→User(RESTRICT) · `requestedBy`→FamilyDesignation(**CASCADE**). 마이그레이션은 파일만 생성했고 적용 상태는 아래 "다음 에이전트" 참조.
+  2. **운영시간**(`operatingHours.ts`) — 평일 9~17시 KST · 공휴일 상수 `HOLIDAYS`(2026년분) · `dueAt`=12h · `targetAt`=1h를 운영시간만 세어 계산. 값은 `OPERATING_HOURS`·`DUE_OPERATING_MINUTES`·`TARGET_OPERATING_MINUTES` 상수 세 곳. `node --require ts-node/register/transpile-only --test src/utils/operatingHours.test.ts` 8건 통과(금 16시→다음 화 12시 · 월 10시→화 14시 · 토 밤 접수 · 17시 이월 · 대체공휴일 10/5 건너뛰기 · 추석 연휴).
+  3. **유족·본인 API**(`/api/ending-note/release-requests`): `POST /` · `GET /mine` · `GET /about-me` · `POST /:id/cancel` · `POST /:id/cancel-by-subject` · `GET /:id/pending-family` · `POST /:id/pending-family/:desigId/reinvite`. 요청 생성은 Serializable 트랜잭션에서 "한 회원에 REQUESTED·VERIFIED 하나뿐"을 강제(충돌 시 409). 응답에 `targetAt`·장례식장 전화 없음.
+  4. **운영자 API**(`/api/admin/death-verifications`): `GET /`(REQUESTED만·`dueAt` 순·`pendingCount`·`overTarget`·`overDue`) · `GET /:id`(요청자 전화 복호화 · `VIEW`) · `PATCH /:id/verify {method}`(`OTHER`는 DB에서 읽은 `Admin.role === 'SUPERADMIN'`만) · `PATCH /:id/reject {reasonCode}`. verify = `VERIFIED` + `EndingNote.RELEASED`·`releasedAt` + `AdminAuditLog APPROVE`를 **한 `$transaction`**, reject = 상태 변경 + `REJECT`. 두 컨트롤러 모두 `EndingNote`·`EndingNoteEntry`·`FarewellMessage`를 select/include 하지 않는다 — 검증 명령: `grep -n "endingNoteEntry\|farewellMessage\|bodyEnc\|sectionState\|title" backend/src/controllers/deathVerificationAdminController.ts` → 주석 외 0건이어야 함.
+  5. **family-view 확장**(`endingNoteController.getFamilyVisibleEndingNotes`) — 응답에 `released`·`releasedAt`·`letters[]` 추가. 개봉 전은 기존과 같이 `IMMEDIATE`만, 개봉(`EndingNote.status === 'RELEASED'`) 뒤엔 `POSTMORTEM` 권한 섹션 + `recipientId`가 자기 지정인 편지(`deletedAt: null`)를 본문 복호화해 내림. `WILL_DRAFT`는 양쪽 다 필터. 조회는 `Promise.all` 두 개(왕복 수 2회 유지).
+  6. **사후 재초대** — `familyDesignationController.issueInviteToken(designationId)`를 새로 빼서 `inviteFamilyDesignation`과 재초대가 같이 쓴다(원래 동작 그대로). 대상은 그 회원의 `PENDING`·`EXPIRED` 지정만(`DECLINED`·`ACCEPTED`·`DRAFT` 제외), 호출자는 그 회원의 `ACCEPTED` 유족 + 요청 `VERIFIED` 이후. 응답에 이름·관계·`linkExpired`만(전화·이메일·토큰 없음).
+  7. **RELEASED 뒤 본인 쓰기 거부(409)** — `saveEndingNoteSection` · `upsertEndingNoteGrant` · `revokeEndingNoteGrant`(endingNoteController) · `createFarewellMessage` · `updateFarewellMessage` · `deleteFarewellMessage` · `deleteFarewellMessageAudio`(farewellMessageController). 헬퍼 `utils/endingNoteLock.ts`. 읽기·반출은 그대로.
+  `tsc --noEmit`(backend) 통과. 🔴 **실행 시험은 하지 못했다**(아래).
+- **편차**: ① 스펙 §7.2는 "본인 저장 API"만 적었는데 **권한 부여·철회와 편지 4개 쓰기 경로도 잠갔다**(같은 노트의 본인 쓰기라 고인 휴대폰으로 고쳐지는 구멍이 같다). 되돌리려면 헬퍼 호출 줄만 빼면 된다. ② `requestedByDesigId` 인덱스 1개 추가(스펙 §4.2엔 없음). ③ `requestedBy` FK를 CASCADE로 잡았다 — 스펙은 "FK"만 적었다. 이유: 계정 파기 배치(`accountPurgeService`)가 `familyDesignation.deleteMany`를 돌리는데 RESTRICT면 개봉 이력이 있는 회원의 파기가 FK 오류로 죽는다. 부작용: 지정이 지워지면 그 요청 행도 같이 사라진다(개봉 증빙은 `AdminAuditLog APPROVE`에 남음). 보유기간은 스펙이 후속(§10)으로 미뤘다.
+- **다음 에이전트가 알아야 할 것**:
+  - ✅ **`DeathVerification` 마이그레이션은 로컬 dev에 개발자가 적용·확인**(09-30 후속, 아래 항목 참조). 운영 적용은 미실행. 백업(적용 전): `local-20260930-101213.dump`(249KB)·`prod-20260930-101207.dump`(602KB) 생성 확인. 운영 적용은 별도.
+  - 🔴 **실행 시험 미수행** — dev 서버 미기동 방침 + `prisma generate`가 엔진 dll 교체(`EPERM rename query_engine-windows.dll`)에서 실패(실행 중인 backend dev 서버가 잡고 있음). 타입 파일은 새로 생성돼 tsc는 통과. 개발자가 dev 서버를 껐다 켠 뒤 `npx prisma generate`를 한 번 더 돌려야 런타임이 새 모델을 안다. 화면(3-B) 전에 확인할 것: 요청 생성 → 운영자 목록 → verify → family-view가 사후 섹션·편지를 내리는지 / 확인 전엔 사후 섹션 제목조차 없는지 / 개봉 뒤 본인 저장 409.
+  - 🟡 **`HOLIDAYS`는 2026년분만**(`HOLIDAYS_COVERED_THROUGH = 2026`). 연말에 다음 해를 채워야 하고, 내가 넣은 날짜(설날 2/16~18·삼일절 대체 3/2·어린이날·부처님오신날 대체 5/25·지방선거 6/3·광복절 대체 8/17·추석 9/24~25·개천절 대체 10/5·한글날·성탄절)는 **공식 공고와 대조한 값이 아니다.** 확인 필요.
+  - 🟡 **스펙 공백(§7.3)** — 생전에 수락하지 않은 가족(`PENDING`·`EXPIRED`)은 `upsertEndingNoteGrant`가 `ACCEPTED`에게만 권한을 주도록 막혀 있어 **`EndingNoteGrant`가 없다.** 그래서 사망 뒤 수락해도 사후 섹션은 0개, 자기 앞 편지(`recipientId`)만 보인다. "자기 권한만큼 열린다"의 권한이 비어 있는 상태 — Opus 판단 필요(생전 미수락자 권한을 어떻게 줄지).
+  - 🟡 편지 **음성은 재생 경로가 없다** — family-view는 `hasAudio`·`audioDurationSec`만 내린다. 수신자용 오디오 스트림 API는 없다(`getFarewellMessageAudio`는 본인 전용).
+  - 🟡 운영자 응답에 `funeralHallPhone`이 목록에도 들어 있다(업체 전화라 개인정보가 아니라고 스펙 §4.2에 적혀 있음). 요청자 전화는 상세에만, 열람은 `VIEW`로 기록.
+  - 화면(3-B)은 하지 않았다. `FamilySharedPage.entryFields`는 여전히 FUNERAL·CONTACTS만 그리므로 개봉 뒤 다른 섹션은 화면에 안 나온다.
+
+<!-- 판정 생략: 2026-10-13 개발자 결정 — 게이트 미경유(9월분 일괄 보관, record.md §2-1) -->
+
+---
+## 2026-09-30 | [Sonnet] 04·06 결정 구현 — 엔딩노트 ⑤ 구독 메모 + 04 백엔드 삭제(2-a 코드만) + DigitalEstatePage 주석 정리
+
+- **근거 스펙**: `.harness/docs-audit/README.md` §4 "04 판정 결과" #6·#9 결정 · docs `06-04` §6.1 ⑤ · `04-01` 머리 결정 블록(09-30). 핸드오프 블록.
+- **건드린 파일**: `eobomDev/frontend/src/pages/EndingNotePage.tsx` · `eobomDev/frontend/src/pages/AdminPage.tsx` · `eobomDev/frontend/src/pages/DigitalEstatePage.tsx` · `eobomDev/backend/src/server.ts` · `eobomDev/backend/src/routes/meRoutes.ts` · `eobomDev/backend/src/routes/adminRoutes.ts` · `eobomDev/backend/src/routes/familyDesignationRoutes.ts`(주석 1곳) · `eobomDev/backend/src/controllers/adminController.ts` · `eobomDev/backend/src/services/accountPurgeService.ts` · `eobomDev/backend/prisma/destroy-farewell-media.ts`(출력 문자열 1곳). **삭제**: `backend/src/controllers/cleanupController.ts` · `backend/src/controllers/digitalPlatformController.ts` · `backend/src/routes/digitalPlatformRoutes.ts`.
+- **결과**:
+  1. 엔딩노트 ⑤ — 안내 문구를 `자주 쓰시는 디지털 서비스를 사후에 어떻게 처리하고 싶으신지 남겨두세요. 가족이 이 내용을 보고 각 서비스에 직접 요청합니다.`로 교체(옛: `…미리 정해두세요. 실제 처리는 디지털 정산(04) 화면에서 유족이 진행합니다.`). 분류 선택 4개 아래에 `구독 메모` 여러 줄 입력칸(`en-digital-subscription-note`, placeholder는 지시 그대로) + `카드번호·비밀번호는 적지 마세요.` 한 줄. 새 필드 `subscriptionNote`를 같은 섹션 value `{ digitalPrefs, subscriptionNote }`에 추가 — 저장은 기존 PUT 경로(백엔드는 value를 통째로 JSON 암호화 저장하므로 스키마·컨트롤러 변경 없음). 상태 4곳 반영: `useState` · 초기 로드(`bySection.DIGITAL_ACCOUNTS.subscriptionNote`) · `sectionPayloads.DIGITAL_ACCOUNTS` · `resetSection`. 사후 공개(`POSTMORTEM`) 미변경(`endingNoteController.ts:21·196`, `constants.tsx:43` 손대지 않음).
+  2. 2-a — 제거: `/api/me/cleanup-items`(GET·POST·PATCH) · `/api/digital-platforms`(공개) · `/api/admin/digital-platforms`(GET·POST·PATCH) 라우트, 컨트롤러 2개·라우트 파일 1개 삭제, `adminController.getUserDetailForAdmin`의 `digitalCleanupItems` include, `accountPurgeService`의 `cleanupItems`(AccountPlan 필드·count·deleteMany 각 1곳), `AdminPage.tsx`의 `DIGITAL_PLATFORMS` 탭(타입·라벨·탭 배열·상단 버튼·목록/폼 본문·상태·핸들러 3개·로드 분기)과 회원상세의 `디지털 정리 항목` 블록. 전역 검색 `cleanupItems|cleanup-items|digitalCleanupItems|digitalPlatform|DigitalPlatform|DigitalCleanupItem` — `backend/src`·`frontend/src`·`prisma/*.ts` 0건(남은 곳은 `schema.prisma`와 옛 마이그레이션 SQL뿐 = 2-b 대상).
+  3. `DigitalEstatePage.tsx` 18~24줄 `⚠️ 스펙 편차 … Opus 확인 필요` 두 블록을 `🔄` 기록 한 블록으로 합치고 확인 요청 문구 삭제.
+  `tsc --noEmit`(backend·frontend) 통과 · `npm run build`(frontend) 통과. backend `npm run build`는 `prisma generate` 단계에서 `EPERM rename query_engine-windows.dll`로 멈춤(다른 프로세스가 dll을 잡고 있음, 코드 오류 아님 — tsc로 대체 확인).
+- **편차**: 없음. 다만 지시 밖 1곳 — `prisma/destroy-farewell-media.ts:126`이 `p.cleanupItems`를 출력해 타입이 깨져서 그 출력 조각(` 정리항목 ${p.cleanupItems}`)만 뺐다. 화면에서 유족용 "가족 화면(FamilySharedPage)"은 손대지 않음 — 아래 참조.
+- **다음 에이전트가 알아야 할 것**:
+  - ✅ **2-b 로컬 dev 적용 완료**(09-30 후속, 개발자 승인). `schema.prisma`에서 `DigitalPlatform`·`DigitalCleanupItem` 모델 2개와 다른 모델 쪽 관계 필드 2곳(`User.digitalCleanupItems` · `Deceased.cleanupItems`)을 지웠다(`DigitalPlatform.cleanupItems`는 모델과 함께 사라짐 — 합계 48줄 삭제). 마이그레이션 `20260930010537_drop_digital_cleanup_models`(FK 3개 DROP + 테이블 2개 DROP)를 `prisma migrate deploy`로 로컬 dev에만 적용, `migrate status` = "Database schema is up to date". 사전 조회: 로컬 dev·**운영(개발자 직접 조회) 두 표 모두 0행**. 백업: `backups/local-20260930-093637.dump`(254KB)·`prod-20260930-093632.dump`(547KB) 생성 확인. 🔴 **운영 DB 적용은 미실행** — 개발자가 SQL 확인 후 별도 "진행".
+  - 🔴 **백업 실패** — `backup-db.ps1`이 `postgres:17-alpine` 이미지가 PC에 없어 `docker run` 중 pull 단계에서 종료(Docker 자체는 정상 — `eobom-postgres` 컨테이너 기동 중; 이미지는 이후 pull 완료; 파일 미생성; 최신 백업은 09-10 `prod-20260910-082936.dump`). 그리고 이 스크립트는 `.env`의 `BACKUP_DATABASE_URL`(=Supabase 운영)만 대상으로 삼는다 — 로컬 dev DB 백업 경로는 별도다. 사람 확인 후 진행할 것.
+  - 🟡 가족 화면(`FamilySharedPage.tsx` `entryFields`)은 `IMMEDIATE` 두 섹션(FUNERAL·CONTACTS)만 그린다. `DIGITAL_ACCOUNTS`는 `POSTMORTEM` 전용이라 백엔드가 family-view에서 걸러 새 필드가 **아직 어디서도 표시되지 않는다**(06 개봉 미구현, context.md 기재와 같은 상태). 개봉이 구현될 때 `digitalPrefs`·`subscriptionNote` 둘 다 그려야 한다.
+  - 🔴 실기동 미확인(dev 서버 미기동 방침) — 엔딩노트 ⑤ 저장→새로고침 시 구독 메모 유지·취소 시 되돌아감·목록 요약 확인 필요. 요약 문자열(`EndingNotePage.tsx` DIGITAL_ACCOUNTS 요약 case)에는 구독 메모를 넣지 않았다.
+  - 운영자 화면에서 디지털 카탈로그 탭·회원 상세 `디지털 정리 항목`이 사라졌다.
+
+<!-- 판정 생략: 2026-10-13 개발자 결정 — 게이트 미경유(9월분 일괄 보관, record.md §2-1) -->
+
+---
+## 2026-09-30 | [Sonnet] 담당 업체 없는 시설의 상담 버튼 알림창(임시) + `.stat-row` CSS 삭제
+
+- **근거 스펙**: 스펙 없음 — 개발자 지시(09-30, docs 01 판정 후속). 방향은 추후 버튼 숨김, 지금은 알림창만.
+- **건드린 파일**: `eobomDev/frontend/src/pages/FacilityPage.tsx` · `eobomDev/frontend/src/index.css`.
+- **결과**:
+  1. `FacilityPage.tsx` — `openInquiry(item)` 신설. `item.partnerId`가 없으면 `alert('이 시설은 아직 문의를 받지 않습니다.')`만 띄우고 모달을 안 연다. 상담 버튼 2곳(리스트형·카드형)의 `onClick={() => setInquiryFacility(item)}` → `onClick={() => openInquiry(item)}`. 목록 API가 이미 `partnerId`를 내려주므로 백엔드 변경 없음. 서버 `POST /api/facilities/:id/quotes`는 그대로(직접 호출하면 여전히 접수됨).
+  2. `index.css` — `.stat-row`·`.stat-row__value`·`.stat-row__label`과 ≤480px 미디어쿼리 삭제(사용처 0건 확인 후), 719줄 근처 주석의 `.stat-row` 언급 삭제.
+  `tsc --noEmit`(frontend)·`npm run build`(frontend) 통과.
+- **편차**: 알림 문구는 개발자 확정 문구가 없어 내가 정함(`이 시설은 아직 문의를 받지 않습니다.`) — 바꾸려면 `openInquiry` 한 줄.
+- **다음 에이전트가 알아야 할 것**: 🔴 실기동 미확인 — 담당 업체 없는 시설(대부분)에서 상담 버튼 → 알림창, 업체 있는 시설 → 모달. `alert`는 임시이며 추후 버튼 숨김으로 교체 예정. 서버 쪽 차단은 없음.
+
+<!-- 판정 생략: 2026-10-13 개발자 결정 — 게이트 미경유(9월분 일괄 보관, record.md §2-1) -->
+
+---
+## 2026-09-30 | [Sonnet] 휴대폰 인증 설정값 `requirePhoneVerification` 삭제 (개발자 결정 09-30)
+
+- **근거 스펙**: `docs/01_장사시설_매칭/01-05_…명세서.md` §10-2 결정 블록(2026-09-30 "휴대폰 인증은 이번 범위에서 뺀다").
+- **건드린 파일**: `eobomDev/backend/src/config/policy.ts` 1줄.
+- **결과**: 삭제한 줄 원문 — `    requirePhoneVerification: true, // §10-2 — SMS 인증 연동은 별도 구현 전까지 미시행(정책값만 존재)`. 삭제 전 전역 검색 — 코드 참조는 policy.ts:10 한 곳뿐(나머지는 docs·`.harness` 문서 언급). 삭제 후 `npx tsc --noEmit`(backend) 통과.
+- **편차**: 없음.
+- **다음 에이전트가 알아야 할 것**: 문서 쪽 언급(`01-05` §12.3 예시 등)은 Opus가 정리.
+
+<!-- 판정 생략: 2026-10-13 개발자 결정 — 게이트 미경유(9월분 일괄 보관, record.md §2-1) -->
+
+---
+## 2026-09-30 | [Sonnet] `06-06` P2 후속 수정 2건 사후 기록 (커밋 1ec5868·f4c7e64, 09-29 실기동 중 수정분)
+
+- **근거 스펙**: `docs/06_엔딩노트_유언/06-06_유언장_사진인식_요건확인_기획서.md` §3.1·§5 — 사람 실호출(`assets/assets_test01.jpg`) 결과에 맞춘 규칙 보강. 당시 미기록이라 소급 기록.
+- **건드린 파일**: 1ec5868 — `services/willRequirements.ts`·`willRequirements.test.ts`·프론트 `components/endingNote/WillPhotoResult.tsx`·`styles/design-v2.css`. f4c7e64 — `services/willRequirements.ts`·`willRequirements.test.ts`.
+- **결과**:
+  1. 날짜: `단기 4347(서기 2014)년 8월 11일`처럼 연도 뒤에 괄호 병기가 낀 표기를 찾음(서기 연도 사용).
+  2. 주소: 군 지역의 읍·면 단계(`괴산군 괴산읍 동부리 551`)를 `EUP_MYEON`으로 허용(`ADDRESS_FULL`·`ADDRESS_PARTIAL`).
+  3. 주소: `(주소)`·`주소:` 라벨 뒤 글귀(다음 `(내용)` 같은 라벨 앞까지)에 시·도 + 번호 붙은 행정 단위(읍·면·동·리·로·길 + 숫자)가 있으면 글자가 조금 틀려도 찾음(`findLabeledAddress`, 근거에 읽힌 글귀 그대로 표시). 실측 토큰 `과산운`(←괴산군)·`동부리55/`(←551)를 회귀 테스트로 추가(`REAL_TOKENS`).
+  4. 프론트: 모바일 사진·테두리 여백 조정(`WillPhotoResult.tsx`·`design-v2.css`).
+  🔴 "1→/ 오독"(`551`→`55/`)은 **글자를 고쳐 읽는 처리가 없다** — 라벨 앵커 규칙이 `리 + 숫자` 패턴(`동부리55/`의 `55`)으로 통과시킬 뿐이라 주소는 찾음 처리되고, 화면 근거에는 `55/` 그대로 나온다.
+  `npm test`(backend) 09-30 재실행 — 43/43 통과.
+- **편차**: 스펙에 없는 규칙 추가(위 1~3) — 판정은 제안, Opus 확인 필요. 특히 3번은 시·도 + 행정 단위 번호만 있으면 통과라 **오검출로 `찾음`이 나올 여지**가 있다.
+- **다음 에이전트가 알아야 할 것**: 남은 실기동 시험 3건 — ① 같은 이름 유언장 2장(이름 찾기) ② 도장 구분(`detectSeal` 약함) ③ OCR 오독(숫자 `1`↔`/` 등). `detectSeal` 임계값은 여전히 실사진 검증 대기.
+
+<!-- 판정 생략: 2026-10-13 개발자 결정 — 게이트 미경유(9월분 일괄 보관, record.md §2-1) -->
+
+---
+## 2026-09-30 | 09-30 docs 결정 반영 — 탈퇴 시 추모관·부고장 처리 · 약관 · 신고 잔재 점검 · R2 dev 기본값 · 아카이브 Worker
+
+- **근거 스펙**: docs/00_핵심플랫폼/00-20 §6.3-2 표 · 00-36 §4.3·§6 #2 · 00-21 제14조·제15조 · 00-11 §5.4-6-3·§5.4-5-2-1-1 보정② (`.harness/docs-audit/README.md` §4 "00-B 판정 결과")
+- **건드린 파일**: eobomDev/backend/src/controllers/accountDeletionController.ts, eobomDev/backend/src/services/accountPurgeService.ts, eobomDev/backend/prisma/destroy-farewell-media.ts, eobomDev/frontend/src/components/mypage/WithdrawalModal.tsx, eobomDev/frontend/src/pages/TermsPage.tsx, eobomDev/backend/.env.example, eobomDev/workers/r2-archive-relay/src/index.ts
+- **결과**:
+  - ① 탈퇴 요청(`requestAccountDeletion`): User 시각 갱신과 **한 `$transaction`** 으로 본인 `Memorial`(closedAt null인 것) `closedAt=now`·`purgeAt=+30일`, 본인 `Obituary`(closedAt null인 것) `closedAt=now`. 🔴 `now`는 `User.deletionRequestedAt`과 같은 값 — 이 일치가 "탈퇴로 닫힌 것"의 표지다.
+  - ① 계속 이용(`cancelAccountDeletion`): `closedAt == deletionRequestedAt`인 추모관·부고장만 `closedAt=null`. 추모관 `purgeAt`은 `frozenAt` 없으면 null, 있으면 `frozenAt+3년`으로 복원. 원래 본인이 닫아둔 것(다른 시각)은 안 건드림. 스키마·마이그레이션 변경 없음.
+  - ① 파기 배치(`purgeAccount`): 트랜잭션에 `prisma.obituary.deleteMany({ where: { createdByUserId } })` 추가(ObituaryMourner Cascade), 7~9줄 주석·`keeps` 분기 갱신(`keeps.obituaries` → `AccountPlan.obituaries`로 이동). dry-run 출력에도 "부고장 N" 줄. 회원 행 익명화 유지.
+  - ① `getDeletionPreview`: 응답에 `willClose: { memorials, obituaries }` 신설(closedAt null인 것만 셈), `willRemain`에서 `obituaries`·`memorials` 삭제(남는 것 = `consultations`만). `WithdrawalModal`에 "바로 닫히는 것" 칸(0건이면 안 그림) + grace 단계에 "닫힌 추모관과 부고장도 다시 열립니다" 문장.
+  - ② `TermsPage.tsx` 제14조 3항 `"신고가 접수된 추모관은 즉시 비공개로 전환되며, 회사의 확인을 거쳐 처리됩니다."` 삭제. 제15조는 docs 00-21 제15조 1~5항과 같게 교체(5항에 `"개설한 부고는 탈퇴 즉시 열람할 수 없게 되며, 계정과 함께 파기됩니다."`).
+  - ④ `.env.example` `R2_BUCKET_*` 3개 → `eobom-farewell-voice-dev` · `eobom-memorial-media-dev` · `eobom-biz-docs-dev`.
+  - ⑤ `workers/r2-archive-relay/src/index.ts` `event.action !== 'PutObject'` → `!COPY_ACTIONS.has(event.action)`(`PutObject`·`CopyObject`·`CompleteMultipartUpload`).
+  - ③ 신고 잔재 — 코드 변경 없음, 사용처만 보고(아래 "다음 에이전트").
+  - 검증: `backend`·`frontend`에서 `npx tsc --noEmit` 출력 없음(에러 0), `workers/r2-archive-relay`에서 `npx tsc --noEmit` 출력 없음. 🔴 DB 쓰기 명령·테스트는 돌리지 않음.
+- **편차**:
+  - 제15조 1~4항이 `"일정 기간(추후 공지)"` 등 옛 자리표시였고 5항이 없어, 지시의 "5항에 부고 문장 추가"를 5항 신설만으로 못 해 제15조 1~5항을 docs와 맞춤. docs 6항(`Deceased` 확정 후 보완 표시)은 내부 메모라 넣지 않음.
+  - 복구 표지를 새 컬럼이 아니라 `closedAt == deletionRequestedAt` 일치로 잡음(구분 방법이 있어 "멈추고 물을 것" 조건 해당 없음). 같은 밀리초에 본인이 직접 닫은 경우만 오판하는 이론상 구멍.
+  - 복구 때 동결 추모관의 `purgeAt`을 `frozenAt+3년`으로 되돌림 — 지시의 "`purgeAt` 해제"보다 한 걸음 더. 동결·파기 배치가 아직 없어(`purgeAt`을 읽는 코드 0건) 지금은 영향 없음.
+- **다음 에이전트가 알아야 할 것**:
+  - 🔴 실기동 검증 대기(사람 몫): 탈퇴 신청 → 추모관 공개 링크 404·부고장 링크 닫힘 → "계속 이용" → 둘 다 복구, 그리고 **탈퇴 전에 직접 닫아둔 추모관은 복구 뒤에도 닫혀 있는지**. 이 경로는 자동 테스트 없음.
+  - 🔴 추모관 **실제 파기**(`purgeAt` 경과 시 삭제)는 어디에도 구현돼 있지 않다 — `purgeAt`을 읽는 코드가 0건. 탈퇴한 추모관은 비공개 상태로 계속 남는다. 파기 배치 신설은 사람 확인 필요(`[Opus]` 스펙 → `[Sonnet]`).
+  - ③ 신고 잔재 사용처: `Memorial.reportedAt`(schema.prisma:448) — backend `moderationController.ts` 260·267행(`reportedOnly` 필터·select), frontend `AdminPage.tsx` 1118행(`신고 접수` 표시)·주석 111·1126~1130. `reported=true` 쿼리는 프런트가 안 부르고(`AdminPage.tsx` 281행은 `reported=false`) 서버 `listMemorialsForAdmin`만 받음. `reviewedAt`은 `reviewMemorialReport`(moderationController.ts 304~326, 라우트 `PATCH /api/admin/memorials/:id/review`)가 아직 씀. 컬럼 삭제는 사람 확인 후.
+  - 마이그레이션 없음 → 백업 불필요했음.
+  - 커밋은 하지 않음 — 메시지 초안만.
+
+<!-- 판정 생략: 2026-10-13 개발자 결정 — 게이트 미경유(9월분 일괄 보관, record.md §2-1) -->
+
+## 2026-09-30 | 09-30 후속 — 추모관 purgeAt 파기 단계 추가 · 신고 잔재 삭제
+
+- **근거 스펙**: docs/00_핵심플랫폼/00-20 §8.1-1 "`purgeAt` 파기 — 09-30 확정(Opus)" 행 · §6.2(신고 폐지) · 앞 항목 wt "09-30 docs 결정 반영"의 다음 에이전트 메모 2·3번
+- **건드린 파일**: eobomDev/backend/src/services/memorialPurgeService.ts(신규), eobomDev/backend/prisma/destroy-farewell-media.ts, eobomDev/backend/src/services/accountPurgeService.ts(주석), eobomDev/backend/src/controllers/moderationController.ts, eobomDev/backend/src/routes/adminRoutes.ts, eobomDev/backend/prisma/schema.prisma(주석만), eobomDev/frontend/src/pages/AdminPage.tsx, eobomDev/frontend/src/pages/MemorialLandingPage.tsx(주석), docs/00_핵심플랫폼/00-05_DB_요구사항_및_테이블_사전.md(generate-db-doc.js 자동 생성)
+- **결과**:
+  - 파기 스크립트 ⑤단계: `findMemorialExpired`(`purgeAt` not null·≤ now) → dry-run에 `[⑤추모관 파기] 대상 N개` + id 앞 8자리·방명록/헌화/사진/끊는 부고장 건수 → `--confirm`일 때만 `purgeMemorial`. 삭제 직전 `purgeAt` 재확인, 트랜잭션에서 `obituary.updateMany({ where:{memorialId}, data:{memorialId:null} })` 후 `memorial.delete`(방명록·헌화·사진 Cascade), DB 성공 뒤 `MEMORIAL_PHOTO_DIR`의 사진 파일을 `path.basename`으로만 unlink. 부고장 행은 지우지 않는다.
+  - 삭제: `reviewMemorialReport`·`REVIEW_DECISIONS`(moderationController.ts), 라우트 `PATCH /api/admin/memorials/:id/review`·import(adminRoutes.ts), `listMemorialsForAdmin`의 `reported` 필터·`reportedAt`/`reviewedAt` select, AdminPage.tsx의 `decideMemorial`·"복구(링크 공개)"·"추모관 숨기기" 버튼·`신고 접수` 표시·`?reported=false` 쿼리. `hideMemorialGuestbookEntry`(방명록 숨기기)는 유지. `Memorial.reportedAt`·`reviewedAt` 컬럼은 그대로, schema 주석에 `"09-30 신고 폐지 — 다음 스키마 변경 때 삭제"`.
+  - 검증: `backend`·`frontend`에서 `npx tsc --noEmit` 출력 없음, `npx prisma validate` 통과, `cd eobomDev/backend && npm test` 217 pass/0 fail, `node --require ts-node/register/transpile-only prisma/destroy-farewell-media.ts`(dry-run, 로컬 DB `localhost:5433`) → `[⑤추모관 파기] 대상 0개`. 🔴 `--confirm` 실행 안 함.
+- **편차**:
+  - 지시는 "Obituary.memorialId 등 명시 처리"였고, 부고장을 삭제하지 않고 `memorialId`만 null로 끊음(직접 닫은 개설자의 부고장은 계정이 남아 있으므로). 탈퇴자의 부고장은 ④단계가 지운다.
+  - `findMemorialExpired`는 `closedAt`을 보지 않고 `purgeAt`만 봄 — 미래 동결 경로가 `closedAt` 없이 `purgeAt`을 채우기 때문. 00-20 §5.2-1의 "통지 실패 기록이 있으면 건너뜀"은 그 경로가 없어 구현하지 않음(서비스 주석에 남김).
+  - 🔴 운영자가 추모관 단위로 공개범위를 바꾸던 유일한 수단(`review`의 복구/숨기기)이 지시대로 함께 사라짐 — 이제 운영자는 방명록 글 숨기기만 가능.
+- **다음 에이전트가 알아야 할 것**:
+  - 🔴 이 컬럼이 **직접 닫은 추모관**도 지금은 `purgeAt`이 안 채워짐(`closeMemorial`은 `closedAt`만 기록) — 00-20 §6.3-1은 직접 닫기도 `purgeAt=+30일`이라 함. 그대로면 직접 닫은 추모관은 ⑤에 안 걸려 영영 남는다. `closeMemorial`에 `purgeAt` 추가 여부는 스펙 확인 필요(이번 지시 범위 밖이라 안 건드림).
+  - 🔴 로컬 디스크 사진 파일 삭제는 실제 파일이 있는 환경에서만 의미 있음(운영 재배포 시 이미 소실). 실기동·`--confirm` 실행은 사람 몫(백업 `-Target local|prod` 선행, db-safety.md).
+  - 커밋은 하지 않음 — 메시지 초안만.
+
+<!-- 판정 생략: 2026-10-13 개발자 결정 — 게이트 미경유(9월분 일괄 보관, record.md §2-1) -->
+
+## 2026-09-30 | 09-30 후속 ② — 직접 닫기 30일 파기 · 운영자 추모관 내리기/되돌리기(`Memorial.hiddenAt`) · 약관 제14조 3항
+
+- **근거 스펙**: docs/00_핵심플랫폼/00-20 §6.2 머리 블록 · §8.1-1 "purgeAt 파기" 행 · 00-21 제14조 3항
+- **건드린 파일**: eobomDev/backend/prisma/schema.prisma, eobomDev/backend/prisma/migrations/20260930074556_add_memorial_hidden_at/migration.sql(신규), eobomDev/backend/src/controllers/memorialController.ts, eobomDev/backend/src/controllers/moderationController.ts, eobomDev/backend/src/controllers/obituaryController.ts, eobomDev/backend/src/routes/adminRoutes.ts, eobomDev/backend/src/services/memorialPurgeService.ts, eobomDev/frontend/src/pages/AdminPage.tsx, eobomDev/frontend/src/pages/MemorialPage.tsx, eobomDev/frontend/src/pages/MyObituaryListPage.tsx, eobomDev/frontend/src/pages/TermsPage.tsx, docs/00_핵심플랫폼/00-05_DB_요구사항_및_테이블_사전.md(generate-db-doc.js 자동 생성)
+- **결과**:
+  - ① `closeMemorial`: `closedAt=now`와 함께 `purgeAt=now+30일`(이미 닫힌 건 덮어쓰지 않음). ⑤단계 조건 = `hiddenAt IS NULL AND (purgeAt ≤ now OR (purgeAt IS NULL AND closedAt ≤ now−30일))` — 옛 행은 조건으로만 잡고 DB 값은 안 채움(일괄 update 없음). dry-run 출력의 purgeAt은 옛 행이면 `closedAt+30일` 계산값. 삭제 직전 재확인도 같은 조건.
+  - ② `Memorial.hiddenAt DateTime?` 추가(마이그레이션 `ALTER TABLE "Memorial" ADD COLUMN "hiddenAt" TIMESTAMP(3);` 한 줄). `findViewableMemorialBySlug`가 `hiddenAt`도 `closedAt`처럼 null 처리(조회·헌화·방명록 전부 404). `getObituaryBySlug`의 `memorialSlug`는 추모관이 `hiddenAt`이면 null → [추모관 들어가기] 안 뜸. 관리자 `PATCH /api/admin/memorials/:id/hide|unhide`(사유 필수·500자 이내, `AdminAuditLog` `HIDE`/`UNHIDE`를 상태 변경과 같은 `$transaction`에 기록, 이미 같은 상태면 409). `listMemorialsForAdmin` select에 `hiddenAt`. AdminPage 추모관 카드에 "운영자가 내림" 표시와 [내리기]/[되돌리기](사유는 `window.prompt`). 개설자 화면(MemorialPage 목록·상세, MyObituaryListPage 목록·상세)에 "운영자가 비공개 처리함". `updateMemorial`은 `hiddenAt`을 건드리지 않으므로 공개범위를 바꿔도 안 풀림.
+  - ③ `TermsPage.tsx` 제14조에 3항 추가: `"회사는 추모관이 살아 있는 사람을 대상으로 하거나, 개설 권한이 없는 자가 개설하였거나, 법령을 위반하거나 타인의 권리를 침해하는 것으로 확인되면 해당 추모관을 비공개로 전환할 수 있으며, 그 사실을 개설자에게 알립니다."`(docs 원문 그대로)
+  - 검증: `backend`·`frontend` `npx tsc --noEmit` 출력 없음, `cd eobomDev/backend && npm test` 217 pass/0 fail(마이그레이션 뒤에도 동일), 로컬 dry-run `[⑤추모관 파기] 대상 0개`. 🔴 백업 `powershell -File .harness/tools/backup-db.ps1 -Target local` → `eobomDev/backend/backups/local-20260930-164435.dump`(251.4KB) 확인 후, 사람 확인("실행")을 받고 `npx prisma migrate dev --name add_memorial_hidden_at`(로컬만). `npm run test:db:migrate`로 테스트 DB도 적용. `--confirm` 실행·운영 반영 없음.
+- **편차**:
+  - ⑤ 대상에서 `hiddenAt`이 있는 추모관은 `closedAt`·`purgeAt`이 있어도 제외 — 지시 조건엔 없었으나 00-20 §6.2 "자동 파기하지 않음(되돌릴 수 있고 증거로 남김)"을 따름. 결과: 운영자가 내린 뒤 개설자가 닫거나 탈퇴해도 그 추모관은 파기되지 않고 남는다.
+  - 사유 입력을 별도 모달이 아니라 `window.prompt`로 함(관리자 화면이 이미 `window.confirm`을 쓰는 방식과 맞춤).
+  - 지시의 "개설자에게 알림"(제14조 3항 후반)은 이번 범위에 없어 구현하지 않음 — 내려진 걸 개설자가 목록 표시로만 알 수 있다.
+- **다음 에이전트가 알아야 할 것**:
+  - 🔴 `prisma generate`가 dev 서버가 잡은 `query_engine-windows.dll.node` 때문에 EPERM으로 끝까지 못 돌았다(타입은 갱신됨). 사람이 dev 서버를 껐다 켜기 전에 `npx prisma generate`를 한 번 더 돌려야 실행 중 서버가 새 컬럼을 안다.
+  - 🔴 운영 DB 반영은 사람 몫(`db-safety.md` §2-1): 운영 백업 `-Target prod` → 마이그레이션 `20260930074556_add_memorial_hidden_at` 적용 후에 이 코드를 배포해야 한다(순서가 반대면 운영 조회가 P2022로 깨짐).
+  - 실기동 검증 대기(사람 몫): 내리기 → 공개 링크 404·부고장 랜딩에서 추모관 버튼 사라짐·개설자 목록 표시·공개범위 바꿔도 그대로 → 되돌리기 → 복구. 직접 닫은 추모관이 `purgeAt`+30일로 기록되는지.
+  - 개설자 알림(제14조 3항 후반)·`AdminAuditLog` 조회 화면은 없음.
+  - 커밋은 하지 않음 — 메시지 초안만.
+
+<!-- 판정 생략: 2026-10-13 개발자 결정 — 게이트 미경유(9월분 일괄 보관, record.md §2-1) -->
+## 2026-09-29 | [Sonnet] 페이지 이동 메뉴·버튼을 링크로 + 주소 직접 입력 안전장치
+
+- **근거 스펙**: docs/00_핵심플랫폼/00-34_프론트엔드_공통_레이어_명세서.md §2.2 (09-29 결정 ①②). 본문 "페이지로 이동하는 메뉴…" 문구는 grep으로 못 찾음 — 사람이 붙여준 지시문 기준으로 구현.
+- **건드린 파일**: eobomDev/frontend/src/components/common/PageLink.tsx(신설) · hooks/useLoginPromptOnEntry.ts(신설) · styles/design-v2.css(끝에 `:where(a.page-link*)` 리셋) · components/Header.tsx · components/Sidebar.tsx · components/home/HomeDesktop.tsx · components/home/HomeMobile.tsx · components/farewell/FarewellDesktopView.tsx · components/farewell/FarewellMobileView.tsx · pages/MyPage.tsx · pages/MyObituaryListPage.tsx · pages/MemorialPage.tsx · pages/CareGuidePage.tsx · pages/MyConsultationsPage.tsx · pages/FamilyInvitePage.tsx · pages/FacilityPage.tsx · pages/PickupPage.tsx · pages/DigitalEstatePage.tsx
+- **결과**: 이동 = `<a href>`(PageLink), 동작 = 버튼. 보통 클릭은 `onNavigate`(기존 setActiveTab·onSetMode·드로어 닫기 그대로), Ctrl·⌘·Shift·휠은 브라우저 기본. `loginRequired && !currentUser`면 `<a>` 대신 `<button>`(onOpenLogin만). 새 탭 유지 3곳(MyObituaryListPage 2·MemorialPage 1)은 `target="_blank" rel="noopener noreferrer"` 링크. FacilityPage·PickupPage·DigitalEstatePage는 마운트 1회 비로그인이면 `onOpenLogin()`(화면은 그대로). `cd eobomDev/frontend; npx tsc --noEmit -p .` 통과(출력 0줄). 실기동은 사람.
+- **편차**: ① Farewell 두 뷰의 "디지털 엔딩노트 →"는 loginRequired를 걸지 않음 — 이 화면은 토큰이 있어야 그려지는 로그인 전용이라 currentUser 배관을 새로 깔 실익이 없음. ② `window.open(...)` 3곳은 `<a target=_blank>`로 바뀜(동작 동일). ③ 링크 모양은 `<button>` UA 기본(패딩·테두리·폰트)을 `:where(a.page-link--button)`로 재현 — 브라우저별 미세 차이는 실기동 확인 필요. ④ index.css는 CRLF라 안 건드리고 LF인 design-v2.css 끝에 리셋을 둠.
+- **다음 에이전트가 알아야 할 것**: 지시 목록 밖 이동 버튼은 바꾸지 않았다(발견분은 사람에게 보고). 안전장치는 App.tsx가 `sessionPending` 동안 화면을 안 그리는 구조에 기댐 — 그 구조를 바꾸면 훅(useLoginPromptOnEntry)도 재검토. CareGuidePage의 "전문가 상담"은 이제 비로그인이면 로그인 창(이전엔 곧장 이동). MyConsultationsPage "상담 신청"은 로그인 전용 화면이라 loginRequired를 뺐다(사람 지시).
+- **09-29 정정: 항상 링크** (00-34 §2.4 결정 ①②): PageLink의 `loginRequired && 비로그인 → <button>` 분기를 없애고 항상 `<a>`. onClick 순서 = ① 보조키·button!==0 → 브라우저 기본(새 탭) ② 보통 클릭+loginRequired+비로그인 → preventDefault+onOpenLogin() ③ preventDefault+onNavigate(). 휠 클릭은 auxclick이라 onClick·preventDefault를 타지 않음(코드에 auxclick 핸들러 없음). 파일: components/common/PageLink.tsx, pages/MyConsultationsPage.tsx. `npx tsc --noEmit -p .` 통과. 호출부 파일은 그대로.
+- **09-29 가림판 통일** (00-34 §2.4): `components/LoginGate.tsx` 신설(제목 "로그인이 필요한 회원 전용 서비스입니다" + 버튼 "로그인 / 회원가입 하러가기"만, 이모지·설명 줄·닫기 없음, 뒤는 그 화면 제목·부제목 + 회색 줄 5개 blur(3px), 스타일은 design-v2.css `.v2-login-gate*`). 13개 화면(ending-note·farewell-messages·counseling·facility·obituary·pickup·digital-estate·memorial·mypage·my-obituaries-memorials·family-shared·my-consultations·my-guestbook)에서 모든 훅 뒤 `if (!currentUser) return <LoginGate/>`. 제거한 옛 비로그인 화면: EndingNotePage 블러 덮개(🔒+설명 줄)·filter blur 3곳, FarewellMessagePage·MemorialPage·MyPage·FamilySharedPage·MyConsultationsPage·MyGuestbookPage의 "…로그인 후 …하실 수 있습니다" 안내, ObituaryPage의 MessageSquare 카드. API 차단: CounselingPage(`/api/experts`)·FacilityPage(`/api/facilities`·`/api/geo/*`·위치 권한 팝업)·PickupPage(`/api/geo/reverse`·위치 팝업)·MyObituaryListPage(`/api/me/*`) 이펙트에 `!currentUser` 가드 추가(나머지는 기존 가드). CounselingPage의 "봤음" 기록(localStorage)도 로그인 후에만. `hooks/useLoginPromptOnEntry.ts` 삭제(facility·pickup·digital-estate에서 제거). App.tsx `/my-obituaries-memorials`에 `{...authProps}` 전달. 편차: 가림판 제목은 화면의 h1(counseling은 모바일용 "전문가 상담") — mypage·family-shared·my-consultations·my-guestbook은 원래 부제목이 없어 생략. `npx tsc --noEmit -p .` 통과.
+
+<!-- 판정 생략: 2026-10-13 개발자 결정 — 게이트 미경유(9월분 일괄 보관, record.md §2-1) -->
+
+## 2026-09-29 | [Sonnet] 페이지 제목 "매칭" → "검색" 통일(사람 결정)
+
+- **근거 스펙**: `docs/00_핵심플랫폼/00-26_모드별_네비게이션_개편_검토서.md` §5.1 (09-29 🔄 "제목도 검색으로 통일")
+- **건드린 파일**: `eobomDev/frontend/src/pages/FacilityPage.tsx`("장사시설 매칭"→"장사시설 검색") · `eobomDev/frontend/src/pages/PickupPage.tsx`("유품 정리 업체 매칭"→"유품 정리 업체 검색"). 문구만.
+- **결과**: 두 페이지 제목이 메뉴 라벨(`modeNav.ts`의 "장사시설 검색"·"유품 정리 업체 검색")과 같아짐. `tsc --noEmit` 통과. 🔴 **실기동 검증 대기**.
+- **편차**: 없음(주석 속 "매칭"·docs 경로는 건드리지 않음).
+- **다음 에이전트가 알아야 할 것**: 없음.
+
+<!-- 판정 생략: 2026-10-13 개발자 결정 — 게이트 미경유(9월분 일괄 보관, record.md §2-1) -->
+
+---
+## 2026-09-29 | [Sonnet] `06-06` P2 — 유언장 사진 요건 확인(F2·F3) + 결과 화면(§6-1)
+
+- **근거 스펙**: `docs/06_엔딩노트_유언/06-06_유언장_사진인식_요건확인_기획서.md` §3.1·§5·§6-1·§9 P2 · 시안 = Design 캔버스 C9GhecwVVWYroedZvptCuL(Main·W2·W3·M1~M3, 값은 캔버스 파일에서 읽음)
+- **건드린 파일**: 백엔드 `services/willRequirements.ts`(신규 — `checkWillRequirements`) · `services/sealDetect.ts`(신규 — `detectSeal`) · `services/willRequirements.test.ts`(신규) · `services/ocrProvider.ts`(`OcrPage`·`handwritten?`·`pages`) · `services/clovaOcrProvider.ts`(쪽별 결과) · `services/imageConvert.ts`(`normalizeOrientation`) · `controllers/ocrController.ts` · `package.json`(`npm test`) · `tsconfig.json`(테스트 파일 빌드 제외).
+  프론트 `components/endingNote/WillPhotoResult.tsx`(신규) · `WillPhotoUploadModal.tsx`(결과 단계를 위임) · `styles/design-v2.css`(`.v2-ocr-*` 끝에 추가, `.v2-tabs` 재사용).
+- **결과**: `POST /api/ocr/recognize` 응답이 `{ text, pages:[{text,width,height,fileIndex}], requirements:[{key,state,evidence,page?,box?}×5] }`로 바뀜(`lines` 원본은 더 이상 안 내려감).
+  요건 5항목 = 연월일·주소·성명(계정 이름 대조)·날인(붉은 인주만, 성명 근처)·전문 자서(CLOVA가 구분 안 주면 `unknown` 고정). 사진·결과는 저장 안 함(버퍼는 요청 안에서만 산다).
+  화면 = 웹 1048px 2단(사진 452px | 탭 2개) · 모바일 전체 화면 탭 3개(사진·요건·인식된 글, 위아래 고정+가운데 스크롤), 사진은 브라우저 파일 object URL + box를 width/height 비율(%)로 테두리. 모바일 규칙 1~4·PDF 안내 1줄·처음 열 때 선택 없음 반영.
+  🔴 회귀 검사 `npm test`(backend) **37/37 통과** — 날짜 형식 4종·연월만·길일·2개·범위 밖 / 주소 도로명·지번·번지 없음·시도 없음·2개 / 성명 일치·쪼개짐·한 글자 다름·없음·이름 없음 / 날인 없음·근처·먼 곳·성명 없음·흑백·PDF / 전문 자서 / 조합(날짜×주소×인주) / 금지 어휘 / `detectSeal` 합성 이미지(붉은 원·갈라진 도장·검은 도장·붉은 줄·흑백·빈 종이). 실사진은 저장소에 넣지 않았다.
+  `tsc --noEmit`(백엔드·프론트)·`npm run build`(프론트) 통과. 🔴 **실기동 검증 대기**(dev 서버 안 띄움).
+- **편차**:
+  1. 🔴 `checkWillRequirements(ocr, seals, userName)` — 지시문은 `(ocrResult, image, userName)`이나 §5 파이프라인 도식이 `seals`를 받는다. 이미지를 받으면 순수 함수가 아니게 돼 JSON 픽스처 회귀가 안 되므로 **§5대로** `SealAnalysis`(=`detectSeal` 결과를 모은 것)를 받게 했다.
+  2. 스펙이 정하지 않은 규칙을 정함(판정은 제안): 주소가 **서로 다르게 둘 이상**이면 `판단 못 함`(본문의 재산 주소와 구분 불가, 박스는 마지막 것) · `길일`이 있으면 연·월만 있어도 `찾지 못함` · 같은 날짜 반복은 1개로 셈 · 날인 "성명 근처" = 두 중심 거리 ≤ 긴 변의 30% · 성명을 못 찾으면 근처 여부를 못 봐 `판단 못 함` · 색 있는 픽셀 0.5% 미만이면 흑백.
+  3. PDF·다쪽 결과는 인주 분석을 하지 않고 날인을 `판단 못 함`(사유 표시)으로 둠. TIFF는 브라우저가 못 그려 사진 칸이 비는데, 그때도 문구는 스펙 그대로 "PDF는 사진 표시 없이…"가 나옴(TIFF용 문구는 스펙에 없음 → Opus 판단 필요).
+  4. `normalizeOrientation` 추가(EXIF 방향 태그만 있는 사진은 픽셀을 돌려 둠) — 박스 좌표·화면 사진 방향을 맞추려는 것. 스펙에 없음.
+  5. `package.json`에 `test` 스크립트, `tsconfig.json`에 `exclude: src/**/*.test.ts` 추가(테스트가 dist에 안 섞이게).
+  6. 웹 사진 칸에 `max-height: calc(100dvh - 300px)`+스크롤 추가(세로로 긴 사진이 모달을 밀어내지 않게) — 캔버스엔 없음. `.v2-tabs`는 페이지 본문 폭으로 고정돼 있어 결과 모달 안에서만 폭 자동으로 덮어씀.
+- **다음 에이전트가 알아야 할 것**:
+  · 🔴 `detectSeal` 임계값(붉은 판정 `r≥130 && r>1.5g && r>1.4b`, 최소 80px, 팽창 반경 3, 종횡비 3.5)은 **합성 이미지로만** 검증했다. 실사진(`assets/assets_test01.jpg`)으로 인주 유무·오검출을 사람이 봐야 한다.
+  · `box` 필드는 `lines[].boundingPoly` 기준 — 실호출로 좌표가 사진과 맞는지는 아직 미확인(P1 주석과 같은 상태). 안 맞으면 `boxOf`(willRequirements.ts) 쪽 문제부터 본다.
+  · CLOVA General 응답에 `handwritten`이 오는지 확인 못 함 → 지금은 항상 `unknown`.
+  · `.v2-ocr-*` 클래스의 `00-39` §6.7 등재는 Opus 몫. 사람 검증: 웹 사진 | 탭 · 요건 행 클릭 → 테두리 · 모바일 요건 행 › → 사진 탭 전환+테두리 스크롤 · 사진 탭 직접 클릭 시 설명 줄·테두리 없음 · PDF만 올렸을 때.
+
+<!-- 판정 생략: 2026-10-13 개발자 결정 — 게이트 미경유(9월분 일괄 보관, record.md §2-1) -->
+
+---
+## 2026-09-29 | [Sonnet] `06-04` §6.1-1 엔딩노트/유언장 초안 탭 2개 분리(T-1~T-8)
+
+- **근거 스펙**: `docs/06_엔딩노트_유언/06-04_엔딩노트_보관함_실구현_기획서.md` §6.1-1 끝 09-29 블록(T-1~T-8)
+- **건드린 파일**: `eobomDev/frontend/src/pages/EndingNotePage.tsx` · `eobomDev/frontend/src/styles/design-v2.css`(`.v2-tabs`·`.v2-tab` 끝에 추가)
+- **결과**: 페이지 제목 아래에 [엔딩노트][유언장 초안] 탭. `useSearchParams`로 `?tab=will` ↔ 유언장 탭(전환=push, tab 없음·모르는 값=엔딩노트).
+  두 패널 모두 `hidden` 속성으로만 숨긴다(언마운트 안 함) → `draftText`·OCR 합류 상태가 탭 왕복 후에도 유지(T-7). ⑨는 카드 틀(위 구분선·제목 h3)을 벗기고 탭 본문으로.
+  ⑨ 저장 후 "유언장 소재 안내 →" 링크 → 엔딩노트 탭 전환 + ⑧ 열기(데스크톱 펼침+스크롤 / 모바일 ⑧ 리더 모달). role=tablist/tab/tabpanel·aria-selected·aria-controls·좌우 화살표(roving tabindex).
+  `tsc --noEmit` 통과 · `npm run build` 통과. 🔴 브라우저 실측은 하지 않음(사람 검증).
+- **편차**:
+  1. 기존 좌측 목차의 "유언장 초안" 항목과 "한눈에 보기" 모달의 ⑨ 행은 스크롤 대신 **유언장 탭으로 전환**하도록 바꿨다(스크롤 대상이 다른 탭에 있어 그대로면 동작 불가). 스펙에 명시 없음.
+  2. ⑨ 헤더 h3(아이콘+제목+완료 체크)는 제거 — 탭 라벨이 제목 역할. 완료 체크는 목차·한눈에 보기에서 계속 보인다.
+  3. "유언장 소재 안내" 링크는 기존에 없었다(스펙 T-4가 신설 요구) — ⑨ `savingState==='saved'` 동안 저장 완료 문구 옆에 노출.
+  4. 동의 안내 블록은 두 탭 공통이라 탭 **아래**·패널 밖에 둠(⑨ 저장 버튼이 `policyAgreedAt`에 묶여 있어서). 가족 미지정 안내는 엔딩노트 탭 안.
+- **다음 에이전트가 알아야 할 것**: "페이지 이탈 경고는 기존 동작 유지" — 코드에 `beforeunload`류 이탈 경고가 **원래 없었다**(grep 확인), 그래서 추가하지 않았다. 필요하면 별건.
+  🔄 **사람 실측 후 수정 4건(같은 날)**: ① `.v2-tabs`에 `.v2-content`와 같은 폭·가운데 정렬(PC에서 가로로 길게 이어지던 것) ② 동의 완료 후 "열람 정책에 동의하셨습니다" 문구 제거(미동의 때만 안내 표시) ③ "초안 (직접 입력)" 라벨을 `--v2-fs-item-title`·700으로 키움(PC·모바일) ④ 모바일에서 "큰 글씨로 보기"·"인쇄하기" 버튼 숨김(`!isMobile`). tsc·build 통과.
+  EndingNotePage.tsx는 CRLF 파일 — 편집 후 CRLF로 복원(diff 123+/11−, 줄바꿈 오염 없음 확인). `.v2-tabs`의 §6.7 클래스 등재는 Opus 몫. 모바일 리더 모달은 `activeNoteTab==='note'`일 때만 렌더.
+
+<!-- 판정 생략: 2026-10-13 개발자 결정 — 게이트 미경유(9월분 일괄 보관, record.md §2-1) -->
+
+---
+## 2026-09-29 | 06-06 §6 단계1·§9-1 T-2 — OCR 올리기 모달에 인식 범위 안내 1줄
+
+- **근거 스펙**: `docs/06_.../06-06_유언장_사진인식_요건확인_기획서.md` §6 단계1 · §9-1 T-2.
+- **건드린 파일**: eobomDev/frontend/src/components/endingNote/WillPhotoUploadModal.tsx
+- **결과**:
+  - 형식·장수·용량 안내 줄(`jpg · png · pdf · tiff …`)과 `본인이 쓴 유언장만 올려주세요.` 사이에 지시 문구 그대로 1줄 추가 — 「한글·숫자·기호만 인식합니다. 한자나 외국어는 직접 입력해 주세요.」 스타일은 바로 위 안내 줄과 동일(`--v2-fs-support` · `--v2-text-muted`, 아래 여백 4px) — 새 스타일 없음. 안내 묶음 마지막 줄의 아래 여백 14px은 그대로.
+  - 인식 로직·요청 파라미터 무변경(콘솔 도메인 언어가 단일 선택이라 코드로 해결 불가). `1`→`/` 같은 손글씨 오인식 보정 없음(T-1, 사용자가 대조해 수정).
+  - `cd eobomDev/frontend && npx tsc --noEmit`(exit 0) · `npm run build` 통과.
+- **편차**: 없음.
+- **다음 에이전트가 알아야 할 것**: 사람 실화면 확인 — 모달 첫 단계(`stage !== 'done'`)에서만 보이는 안내라 결과 화면에는 안 뜬다. 커밋은 하지 않음 — 메시지 초안만.
+
+<!-- 판정 생략: 2026-10-13 개발자 결정 — 게이트 미경유(9월분 일괄 보관, record.md §2-1) -->
+
+## 2026-09-29 | 06-06 OCR 502 버그 — Invoke URL 끝 `/general` 중복
+
+- **근거 스펙**: `docs/06_.../06-06_유언장_사진인식_요건확인_기획서.md` §4·§5(General OCR) — 스펙 변경 없음, 사람 실호출 중 502 리포트에 따른 버그 수정.
+- **건드린 파일**: eobomDev/backend/src/services/clovaOcrProvider.ts, eobomDev/backend/.env.example
+- **결과**:
+  - **원인**: `clovaOcrProvider.ts`가 `${invokeUrl}/general`로 호출하는데 NCP 콘솔의 General OCR Invoke URL은 이미 `/general`로 끝난다(로컬 `.env`도 그렇게 끝남) → `…/general/general` 404 → `ocrController`가 502.
+  - **수정**: `invokeUrl.trim()`에서 끝 슬래시를 모두 떼고, `/general`로 끝나면 그대로 · 아니면 `/general`을 붙인다. 콘솔 값 그대로 붙여 넣은 형태와 `/general` 앞까지만 넣은 형태 둘 다 동작.
+  - **`.env.example`**: `CLOVA_OCR_INVOKE_URL` 위에 주석 1줄 — *"콘솔 Invoke URL 그대로 붙여 넣기(끝의 /general 포함 가능 — 없으면 코드가 붙인다)"*.
+  - **실패 로그 확인(유지)**: 비정상 응답이면 `CLOVA OCR 요청 실패(${res.status}): ${본문 300자}`를 던지고 `ocrController.ts:106`의 `console.error('OCR 인식 실패:', error)`가 그 메시지(상태코드 포함)를 찍는다 — 이미 있어 변경 없음. `CLOVA_SPEECH_INVOKE_URL`(`/recognizer/upload`)은 이번 범위 밖이라 손대지 않음.
+  - `cd eobomDev/backend && npx tsc --noEmit`(exit 0). 🔴 **`npm run build`는 통과 못 함** — `prisma generate` 단계가 `query_engine-windows.dll.node` EPERM으로 실패(이전 항목과 같은 원인, 다른 node 프로세스가 잠금·schema.prisma 미변경). 타입 검증은 `tsc --noEmit`으로 대신함.
+- **편차**: 없음.
+- **다음 에이전트가 알아야 할 것**: 🔴 실호출 재검증은 사람 몫 — 백엔드 재시작 후 유언장 사진 인식 1건(무료 100건/월 소진 유의). 그래도 502면 서버 콘솔의 `CLOVA OCR 요청 실패(<상태코드>): …`로 원인 확인(401=Secret, 404=URL, 400=요청 형식). 커밋은 하지 않음 — 메시지 초안만.
+
+<!-- 판정 생략: 2026-10-13 개발자 결정 — 게이트 미경유(9월분 일괄 보관, record.md §2-1) -->
+
+## 2026-09-29 | 장사시설·유품수거 첫 화면 = 잡힌 지역만 (01-01 §6 R-1~R-6)
+
+- **근거 스펙**: `docs/01_장사시설_매칭/01-01_장례_묘지_매칭_기능_명세서.md` §6 R-1~R-6 (사람 지시 09-29).
+- **건드린 파일**: eobomDev/frontend/src/pages/FacilityPage.tsx, eobomDev/frontend/src/pages/PickupPage.tsx, eobomDev/frontend/src/config.ts (백엔드 무변경)
+- **결과**:
+  - **R-1·R-2 (FacilityPage)**: 첫 위치 감지(실제·기본 모두) 뒤 `/api/geo/reverse`의 `province`·`district`를 `initialGeoRegion` state에 담고, 새 이펙트가 `regionsData` 준비 후 `appliedProvince/appliedDistrict`와 선택 칸(`locationProvince/District`)에 1회 적용. 역지오코딩과 `regionsData` 로딩 순서가 엇갈려도 둘 다 준비된 뒤 처리된다(`regionsData` 비어 있으면 대기 후 재실행). 정렬은 기존 그대로 `lat/lng`. 기본 위치 안내 배지는 기존 `isLocationFallback` 그대로.
+  - **R-4 넓혀 가기**: `regionsData[province]`가 없으면 필터 없음 · district가 그 목록에 없으면 시/도만. **시/도 표시명 변환은 새 코드 없음** — `/api/geo/reverse`가 이미 `PROVINCE_ALIASES`로 표시명(`광주광역시`→`전남광주` 등)을 내려주고(`geoController.ts:63`) 드롭다운·`/api/geo/regions`도 같은 표를 쓰므로 그대로 일치.
+  - **R-5**: `firstReverseRef`(첫 감지 위치의 역지오코딩만 대상)·`autoApplyDoneRef`(1회)·`userTouchedRef`(시/도·시/군/구를 바꾸거나 `검색`을 누르면 true → 이후 자동 적용 안 덮어씀). `선택 안함`+`검색`은 기존 `handleSearch` 분기(`locationProvince` 빈 값)로 필터 해제 = 전국.
+  - **함께 고친 것(경쟁 조건)**: 시설 목록 조회 이펙트에 `cancelled` 플래그 추가 — 첫 화면은 "필터 없음" 조회가 먼저 나가고 곧 지역 필터 조회가 뒤따라서, 먼저 나간 전국 응답이 늦게 도착해 나중 결과를 덮어쓸 수 있었다. 지역 자동 적용 직전 한 번 전국 조회가 나가는 것 자체는 남는다(요청 1회 낭비, 화면은 최종 응답만 반영).
+  - **R-3**: `config.ts` `GEOLOCATION_FALLBACK` = `{ lat: 37.5641, lng: 126.9979 }`(서울 중구청 인근, 좌표는 내 판단 — 실기기에서 `서울 중구`로 역지오코딩되는지 확인 필요). 주석 2곳(config.ts·FacilityPage.tsx:144) "광산구" → "서울 중구". 약관·처리방침의 회사 주소(광산구)는 미변경.
+  - **R-6 (PickupPage)**: 기본 위치 호출 3곳(`showLocationName(...FALLBACK..., true, false)` → `true, true`). 업체(예시)에 없는 지역이면 기존 `provinceOptions`/`regionsData` 검사로 넓혀짐. 주석 갱신.
+  - `LOCATION_FEATURE_ENABLED`·고지 문구·`HIDE_LOCATION_NOTICE_FOR_DEV`는 그대로.
+  - `cd eobomDev/frontend && npx tsc --noEmit`(exit 0) · `npm run build` 통과. dev 서버·실호출 검증 안 함.
+- **후속(같은 날, 사람 질문 → [Opus] 01-01 §6.2 R-6 보완 2번 채택)**: 광산구로 잡혀도 pickup 목록이 안 좁아졌다 — 원인 = 목업 `digitalEstate.json`의 시/도가 `광주`인데 `/api/geo/reverse`는 표시명 `전남광주`를 내려줘서 `provinceOptions`에 없어 R-4 "필터 없음"이 발동. 조치: 목업 업체 표기를 표시명 체계(`PROVINCE_ALIASES` 값)로 맞춤.
+  - **점검**: 목업 시/도 9종 중 `광주`만 표시명과 달랐다(서울·경기·부산·대구·대전·강원·제주·세종은 표시명과 동일). `호남 안심 유품 수거 케어` 1건의 `province`를 `광주` → `전남광주`, 검색·카드 표시용 `region`도 `광주 서구` → `전남광주 서구`. 시/군/구(`서구` 등)는 카카오 `region_2depth_name`과 같은 표기라 변경 없음.
+  - `PickupPage.tsx` 필터 로직은 그대로(R-4 넓혀 가기 유지, 엄격 적용 안 함). 기대 동작: 광산구 → `전남광주` 적용 + `광산구`는 목록(`서구`뿐)에 없어 시/도만 → **광주 서구 1건**. 기본 위치(서울 중구) → `서울` 적용 + `중구`가 없어 시/도만 → 서울 강남구 업체.
+  - 🟡 시/군/구 불일치(참고, 미수정): `경기 수원시`·`성남시`(카카오는 `수원시 장안구` 식의 두 단어)·`세종 세종시`(카카오 2depth 비어 있을 수 있음)는 시/도만 적용되거나 그대로 넓혀진다 — R-4 범위 안.
+  - `cd eobomDev/frontend && npx tsc --noEmit`(exit 0) · `npm run build` 통과. 실호출·실기기 검증은 사람 몫(광산구 → 광주 서구 1건 / 기본값 → 서울 업체만).
+- **편차**: 없음. 판단 1건 — 중구청 좌표(37.5641, 126.9979)는 스펙에 값이 없어 내가 정했다.
+- **다음 에이전트가 알아야 할 것**: 🔴 사람 실기기 검증 — ① 첫 진입 시 목록이 잡힌 구(거부·실패면 서울 중구)만 나오는지 ② 선택 칸에 그 지역이 채워져 보이는지 ③ `선택 안함`+검색 = 전국 ④ `/pickup`도 같은지. 🟡 서울 중구 시설이 DB에 없으면 R-4에 따라 시/도만 적용되거나 필터 없음이 된다. 🟡 시/군/구 표기가 `수원시 장안구`처럼 두 단어인 지역은 `/api/geo/regions`(주소 두 번째 토큰 `수원시`)와 카카오 `region_2depth_name`이 달라 시/도만 적용된다(R-4 범위 안, 별도 수정 안 함). 커밋은 하지 않음 — 메시지 초안만.
+
+<!-- 판정 생략: 2026-10-13 개발자 결정 — 게이트 미경유(9월분 일괄 보관, record.md §2-1) -->
+
+## 2026-09-29 | index.css 미사용 블록 삭제 — 삭제된 홈 파일 3개 전용 규칙 (사람 승인)
+
+- **근거 스펙**: 사람 승인 09-29 — 바로 아래 "안 쓰는 파일 3개 삭제" 항목의 index.css 표 기준. 스펙 문서 없음.
+- **건드린 파일**: eobomDev/frontend/src/index.css (418줄 삭제, 추가 0)
+- **결과**:
+  - **삭제한 블록(클래스명·주석 머리로 경계 확인, 모두 앞뒤가 빈 줄로 분리된 연속 구간)**: ① `.domain-overview-*` 전부 — `DomainOverviewPage.tsx` 머리 주석부터 `.domain-overview-footer-slide`까지(내부 `@supports`·`@media (max-width:900px),(max-height:820px)` 포함) ② `메인 홈 4박스 진입 블록` — `.entry-boxes-grid`·`.chip-row`(767px 이하)·`.entry-box-primary`(768px 이상) ③ `메인 4박스 동적 포커스` — `.entry-box-tint-*`·`.entry-box-card`·`.entry-box-reveal(__inner)`·`(hover:hover)` 안의 포커스 규칙·`.entry-boxes-focus-group` ④ `메인 4박스 캐러셀` — `.entry-carousel*` 전부와 480px·767px 미디어쿼리 ⑤ `:root`의 `--box-tint-green/gold/slate-end` 3개와 그 머리 주석.
+  - **남긴 것**: 블록 사이에 낀 다른 규칙은 없었다 — 표의 "1393~1395 겹침"은 캐러셀 머리 주석일 뿐이었고, 삭제 구간 바로 앞뒤(`Responsive Breakpoints` 머리 · `Header(Header.tsx)` 머리 · `메인 히어로 배경 사진`)는 그대로. 빈 `@media`·`@supports`는 남지 않음(구간 통째 삭제).
+  - **0건 확인**: `src/`의 `.ts`·`.tsx`·`.css`·`.html`과 `index.html`에서 `domain-overview`·`entry-box(es)`·`entry-carousel`·`chip-row`·`box-tint`를 다시 검색 → 코드·규칙 0건. 주석 1건만 남음(`index.css:1095`, *"(.chip-row·.home-section-dots와 같은 패턴)"* — 다른 규칙의 설명 주석이라 뜻은 유지, 손대지 않음). `v2-chip-row`(CounselingPage)는 별개 클래스.
+  - `cd eobomDev/frontend && npx tsc --noEmit`(exit 0) · `npm run build` 통과.
+- **편차**: 없음.
+- **다음 에이전트가 알아야 할 것**: 🟡 삭제한 규칙은 화면에서 쓰이지 않던 것이라 시각 변화는 없어야 한다 — 사람이 홈·엔딩노트 등 아무 화면이나 한 번 훑어 확인하면 안전. 커밋·push는 하지 않음 — 메시지 초안만.
+
+<!-- 판정 생략: 2026-10-13 개발자 결정 — 게이트 미경유(9월분 일괄 보관, record.md §2-1) -->
+
+## 2026-09-29 | 안 쓰는 파일 3개 삭제 — DomainOverviewPage · EntryBoxes · domainSlides (00-40 §3.3 C6 이후 미사용)
+
+- **근거 스펙**: 사람 승인 09-29(`context.md` 🔴 "안쓰는파일 목록만, 삭제는 사람확인후" → 승인) · `00-40` §3.3 C6.
+- **건드린 파일**: 삭제 3 — eobomDev/frontend/src/pages/DomainOverviewPage.tsx, components/home/EntryBoxes.tsx, components/home/domainSlides.tsx(일반 삭제, `git rm` 아님). 신규 1 — components/common/Badge.tsx. 수정 — components/Sidebar.tsx(import 1줄), App.tsx·lib/modeNav.ts·utils/memorialLink.ts(주석만).
+- **결과**:
+  - **Badge 이전**: `EntryBoxes.tsx`의 `Badge`(상태 배지 `preview`/`comingSoon`)를 `components/common/Badge.tsx`로 그대로 옮김(코드 동일, 모양·동작 불변). `Sidebar.tsx:3` import 경로만 `./common/Badge`로. `Badge`의 살아 있는 사용처는 Sidebar 하나뿐(전역 검색).
+  - **살아 있는 export 재확인**: 세 파일의 export = `EntryBoxes`·`Badge`·`domainSlides`·`DomainSlide`·`SlideStatus`·`box1Keys`·`box2Keys`·`box1Intro`·`box2Intro`·`DomainOverviewPageProps`/`DomainOverviewPage`. 전역 검색 결과 `Badge`(→이전) 외에는 이 세 파일끼리만 참조 — 옮길 것 없음, 그대로 삭제.
+  - **주석 정정(뜻이 틀려지는 곳만 "(삭제됨)")**: App.tsx 4곳 · modeNav.ts 3곳 · memorialLink.ts 1곳. `HomeDesktop.tsx`·`HomeMobile.tsx`의 "구 EntryBoxes.tsx"는 이미 옛것임이 드러나 그대로 둠. `App.tsx:410`(C6 폐지 안내 주석)도 이미 폐지라고 적혀 있어 그대로.
+  - `cd eobomDev/frontend && npx tsc --noEmit`(exit 0) · `npm run build` 통과.
+  - **index.css — 지우지 않음. 전용 블록 후보와 사용처(전역 검색, .tsx/.ts/.html/design-v2.css 대상 — 삭제 후 기준)**:
+
+    | 줄(index.css) | 클래스·변수 | 다른 곳 사용 |
+    | --- | --- | --- |
+    | 718~870 | `.domain-overview-viewport/-scroll/-slide/-intro/-intro-title/-intro-text/-feature-card/-dots/-footer-slide` | 없음 |
+    | 977~1012 | `.entry-boxes-grid` · `.chip-row` · `.entry-box-primary` · `.entry-box-secondary` | 없음 |
+    | 1295~1395 | `.entry-box-tint-green/-gold/-slate` · `.entry-box-card` · `.entry-box-reveal` · `.entry-box-reveal__inner` · `.entry-boxes-focus-group` | 없음 |
+    | 1393~1520 | `.entry-carousel` · `-arrow` · `-viewport` · `-track` · `-page` · `-dots` · `-dot` | 없음 |
+    | 37~41 | `--box-tint-green-end/-gold-end/-slate-end` | `index.css` 1302·1307·1312(위 `.entry-box-tint-*`)에서만 |
+
+    🟡 판정 방식: 클래스명을 `.tsx`·`.ts`·`.html`·`design-v2.css`에서 단어 경계로 검색. 위 표의 클래스는 전부 0건. 검색에 잡힌 `active`·`md`·`tsx` 등은 주석·다른 용도의 오탐(표에서 제외). 동적으로 클래스명을 조립하는 코드는 검색에 안 잡히므로(전역 grep `entry-`·`domain-overview` 문자열 조립은 없음을 확인) 삭제 전 사람이 한 번 더 보면 안전. 삭제는 사람 확인 후 별건.
+- **편차**: 없음. (작업 중 실수 1건 — 주석 치환 스크립트가 `memorialLink.ts`의 `E`를 `n`으로 바꿔 놓았다가 즉시 발견해 원래 문구로 복구·`git diff`로 8개 주석 줄만 바뀐 것 확인.)
+- **다음 에이전트가 알아야 할 것**: 🔴 커밋은 하지 않음 — 삭제 3 + 신규 `common/Badge.tsx` + 수정 4(주석 3·Sidebar)를 한 커밋으로. `context.md`의 "안쓰는파일 목록만" 문구는 [Opus]가 정리. index.css 위 블록 삭제 여부는 사람 결정 대기.
+
+<!-- 판정 생략: 2026-10-13 개발자 결정 — 게이트 미경유(9월분 일괄 보관, record.md §2-1) -->
+
+## 2026-09-29 | 홈 뒤로가기 시 칸 복원 유실 — 새로고침 판정을 페이지 로드당 1회로
+
+- **근거 스펙**: 스펙 문서 없음 — 사람 실기기 지시(*"섹션2 → 디지털 엔딩노트 → 뒤로가기 = 섹션2여야 함, 메뉴로 메인 클릭 = 섹션1은 지금대로"*). `00-40` §3.5 H-9의 *"뒤로가기 복원은 유지"* 를 실제로 지키게 하는 수정.
+- **건드린 파일**: eobomDev/frontend/src/components/home/HomeMobile.tsx, eobomDev/frontend/src/components/home/HomeDesktop.tsx
+- **결과**:
+  - **원인(코드 추적, 실기기 재현 못 함)**: 마운트 때 `performance.getEntriesByType('navigation')[0].type === 'reload'`이면 저장된 칸을 지우는데, 이 항목은 *"페이지를 처음 불러온 방식"* 이라 새로고침(dev 서버 리로드 포함)으로 들어왔다면 SPA 안에서 몇 번을 오가도 계속 `'reload'`다 → 뒤로가기로 홈이 다시 마운트될 때마다 저장값이 지워져 ①로 떨어졌다. 저장값을 지우는 다른 경로는 없음을 grep으로 확인(H-9 삭제는 `setActiveTab('home')`에서만).
+  - **수정**: 모듈 변수 `reloadChecked`(모듈 수명 = 페이지 로드 수명)로 그 판정을 **페이지 로드당 첫 마운트에서만** 한다. 메뉴·드로어·로고의 홈 진입(H-9 키 삭제)은 그대로라 ①로 열린다.
+  - `HomeDesktop.tsx`도 같은 코드라 같이 고침(같은 원인).
+  - `cd eobomDev/frontend && npx tsc --noEmit`(exit 0) · `npm run build` 통과.
+- **편차**: 없음(원인이 아니라 추정일 수 있음 — 아래).
+- **다음 에이전트가 알아야 할 것**: 🟡 위 원인은 코드상 유일한 삭제 경로라 유력하다고 판단했을 뿐 실기기 재현은 못 했다. 사람 검증: 새로고침한 뒤 ②→엔딩노트→브라우저 뒤로가기 = ②, 메뉴→메인 = ①. 그래도 ①이면 다른 원인이므로 재현 절차(새로고침 여부·진입 경로)를 받아 다시 본다. 커밋은 하지 않음 — 메시지 초안만.
+
+<!-- 판정 생략: 2026-10-13 개발자 결정 — 게이트 미경유(9월분 일괄 보관, record.md §2-1) -->
+
+## 2026-09-29 | 모바일 홈 §3.5 후속 — ④ 추모관 줄 가운데 정렬(H-8) · 메뉴 "홈" 진입 시 ① 칸(H-9)
+
+- **근거 스펙**: `00-40` §3.5 H-4 보완(H-8)·신규 버그(H-9) — 사람 실기기 확인 09-29 후 [Opus] 핸드오프.- **건드린 파일**: eobomDev/frontend/src/components/home/HomeMobile.tsx, eobomDev/frontend/src/App.tsx, eobomDev/frontend/src/lib/storage.ts
+- **결과**:
+  - **H-8 (HomeMobile.tsx:299 부근)**: ④ 추모관 링크로 입장 · 파트너 로그인 줄 컨테이너에 `justifyContent:'center'` — 위 섹션3 문구(가운데 정렬)와 맞춤. 링크 입력 상자는 줄(`margin 0 24px`) 기준 `left:0;right:0`이라 줄과 같이 가운데에 오고, 폭 = 화면 − 48px이라 360px에서도 화면 밖으로 안 나감(구조로 확인, 실측 아님).
+  - **H-8 부가(사람 추가 지시)**: 두 버튼 글자색 `#5B7065`/`#8A9199` → `#1A2B4C`(곤색).
+  - **H-9 (App.tsx:151 부근)**: `setActiveTab('home')`이 이동 전에 `SCROLL_HOME_KEY`·`SCROLL_HOME_MOBILE_KEY`(sessionStorage)를 지운다. 원인 = `eobom:home-scroll-top` 이벤트가 다른 페이지에서 홈으로 갈 때 HomePage 마운트 전이라 유실되고, 마운트 시 저장값 복원이 이전 칸(②)을 띄움. 기존 이벤트 전송은 유지(홈 안에서 누를 때용). 드로어 "메인"(`Sidebar.tsx:74`)·헤더 로고 모두 `setActiveTab('home')` 경유 확인.
+  - **키 공용화**: `lib/storage.ts`에 `SCROLL_HOME_MOBILE_KEY = 'eobom_scroll_home_m'` 신설, `HomeMobile.tsx`의 `SESSION_KEY`가 이를 가리킴(값 불변).
+  - **유지 확인**: 브라우저 뒤로가기는 `setActiveTab`을 거치지 않아 칸 복원 그대로 · `/prep`·`/bereaved` 딥링크(M-9)는 `landingMode` 분기라 무영향.
+  - **HomeDesktop 점검**: `HomeDesktop.tsx`도 **같은 구조·같은 증상**이었다(마운트 시 `eobom_scroll_home` 복원 :50, 이벤트 리스너 :92는 마운트 후에만 듣는다). 같은 원인이라 H-9 수정(`SCROLL_HOME_KEY` 삭제)으로 **함께 해소** — `HomeDesktop.tsx` 코드는 수정하지 않음(그 파일은 하드코딩 `'eobom_scroll_home'`을 그대로 쓰며 값이 `SCROLL_HOME_KEY`와 같음).
+  - **정리(마무리 지시)**: `HomeDesktop.tsx`의 `'eobom_scroll_home'` 하드코딩 4곳을 `lib/storage.ts`의 `SCROLL_HOME_KEY` import로 교체(값 동일, 동작 변화 없음).
+  - `cd eobomDev/frontend && npx tsc --noEmit`(exit 0) · `npm run build`(vite, 통과) — 색 변경·키 교체 뒤 최종 상태 기준.
+- **편차**: 스펙 명시 외 판단 — 입력 상자 위치를 코드 변경 없이 "줄 기준 left/right:0"으로 충족한다고 판단(H-4에서 이미 그렇게 배치). 그 외 없음.
+- **다음 에이전트가 알아야 할 것**: 🔴 실기기 검증은 사람 몫 — ②에서 엔딩노트 진입 → 메뉴 → 홈 = ① / 같은 경로에서 뒤로가기 = ② / ④ 두 버튼 가운데 + 입력 상자 위치 · 글자색. 커밋·push는 하지 않음 — 메시지 초안만.
+
+<!-- 판정 생략: 2026-10-13 개발자 결정 — 게이트 미경유(9월분 일괄 보관, record.md §2-1) -->
+
+## 2026-09-29 | 모바일 홈 칸 ②~④ 세로 스크롤 없앰 (00-40 §3.5 H-1~H-7)
+
+- **근거 스펙**: `docs/00_핵심플랫폼/00-40_홈_랜딩_재설계_계획서.md` §3.5 H-1~H-7 (M-6 개정 포함).
+- **건드린 파일**: eobomDev/frontend/src/components/home/HomeMobile.tsx (index.css·FooterMobile.tsx는 미변경)
+- **결과**:
+  - **H-2·H-3 (②·③)**: `renderModeMenu`를 세로 flex 100% 한 겹으로 재구성. 위 여백 `calc(50px + clamp(16px, 4svh, 48px))`(헤더 50 + H-3) · 좌우 24 · 아래 72 유지 · 라벨→제목 10→6 · 제목→목록 `clamp(12px, 3svh, 24px)`. 메뉴 목록 래퍼 `flex: 1 1 auto`, 각 줄 `height: 52px` 삭제 → `flex: 1 1 0` + `min-height: 44px` · `max-height: 52px`. 글자 크기 불변.
+  - **H-4**: ③의 추모관 링크로 입장 · 파트너 로그인 줄(과 입력 상자 팝오버, 상태·핸들러 그대로)을 ④ 섹션3 문구 아래·푸터 위로 이동. 14px 한 줄, 위 1px 선, 줄 높이·버튼 `min-height: 44px`, 좌우 `margin: 0 24px`. 팝오버는 줄 위쪽(`bottom: 100%`)으로 뜸.
+  - **H-6 (④)**: 콘텐츠 래퍼 `minHeight:100%` → `height:100%` + `box-sizing:border-box` + `paddingBottom: 48px`(푸터 아래 비움). 섹션3 문구 `flex: 1 1 auto` 유지, 위아래 여백 `2.4rem` → `clamp(12px, 3svh, 2.4rem)`. 추모관 줄·푸터 `flex: 0 0 auto`.
+  - **H-1·H-7**: `.home-m-panel-scroll`의 `overflow-y: auto`는 그대로(안전망) — 548px 미만 화면과 푸터를 펼친 경우만 그 칸이 스크롤.
+  - `cd eobomDev/frontend && npx tsc --noEmit`(exit 0) · `npm run build` 통과. dev 서버는 지시대로 띄우지 않음.
+- **후속 수정(같은 날, 사람 실기기 Chrome 재보고)**: 칸 안이 아니라 **페이지(문서) 자체**가 세로 스크롤됐다 — 사람 관찰 *"화면 바닥에 footer 마냥 배경 없는 부분이 생기고 스크롤로 내리면 보임"*. 원인: `body`·`#root`·App 루트 div의 `min-height:100vh`(주소창이 떠 있으면 100vh > 보이는 높이 100svh)가 칸 높이(`100svh`)보다 주소창 높이만큼 커서 그 차이 구간이 배경 없는 띠로 스크롤됐다. 수정: `HomeMobile.tsx` 마운트 동안 `<html>`에 `home-m-lock` 클래스를 붙이고(언마운트 시 제거), `index.css`에 `html.home-m-lock, html.home-m-lock body { overflow:hidden; height:100vh → @supports 100svh }` 추가. 다른 페이지는 클래스가 없어 영향 없음. tsc(exit 0)·build 통과, 실기기 재확인은 사람 몫.
+- **추가 지시(같은 날, 사람)**: 비로그인 상태 ②~④ 칸에서 헤더 "로그인" 아이콘·글자를 곤색으로(섹션1은 흰색 유지). `index.css` 모바일 블록에 `.site-header--home-overlay .header-actions-wrap .btn-point { color/border-color: #1A2B4C }` 추가 — 히어로 규칙(`-hero`)이 뒤에 와 같은 우선순위로 이겨 섹션1은 그대로. 홈 오버레이 헤더에만 적용(다른 페이지 무영향). build 통과, 실화면은 사람 몫.
+- **편차**: 스펙 명시 외 판단 2건 — ① H-4의 "위 1px 선" 색을 ④ 배경(사진+스크림) 위에서 보이도록 `#EFEBE4` → `#DDD6CB`로 진하게 했다. ② 팝오버 위치를 `bottom: 2.6rem` → `bottom: 100%` + 0.4rem 띄움(줄 높이가 44px로 바뀌어서). 그 외 없음.
+- **다음 에이전트가 알아야 할 것**: 🔴 실화면 검증은 사람 몫 — "②~④에서 세로 스크롤이 생기는가"만 본다(375×548·390×664 등). 통과하면 [Opus]가 `00-39` §6.7 등재. ④ 푸터 접힌 높이는 실측하지 않았으므로(구조만 맞춤) 548px에서 ④가 넘치면 H-6 여백 clamp부터 본다. 커밋은 하지 않음 — 메시지 초안만.
+
+<!-- 판정 생략: 2026-10-13 개발자 결정 — 게이트 미경유(9월분 일괄 보관, record.md §2-1) -->
+
+## 2026-09-29 | 모바일 홈 헤더 — 로그인 상태 사용자 아이콘이 섹션1(히어로)에서 흰색으로 안 바뀌던 버그 수정
+
+- **근거 스펙**: 스펙 문서 없음 — 사람 직접 지시("로그인 후의 사용자 아이콘이 섹션 1에선 흰색으로 나왔으면 함").
+- **건드린 파일**: eobomDev/frontend/src/components/Header.tsx, eobomDev/frontend/src/index.css
+- **결과**:
+  - 로그인 상태 헤더의 `UserCheck` 아이콘이 `color="var(--point-color)"` prop으로 고정돼 있어, 옆의 "OOO님" 텍스트는 `.site-header--home-overlay-hero` 스코프에서 흰색으로 바뀌는데 아이콘만 항상 고정된 초록색(`--point-color`)으로 남아 있었다(2026-08-24부터 있던 코드, 이번 히어로 화이트 작업과 무관하게 원래 고정값이었음).
+  - `color` prop을 지우고 `className="header-user-icon"`으로 교체 — lucide 아이콘은 `color` prop이 없으면 `stroke="currentColor"`가 기본값이라 CSS `color`를 그대로 따라간다.
+  - `index.css`에 `.header-user-icon { color: var(--point-color); }`(기본값, 기존 모습과 동일)을 추가하고, 히어로 스코프 화이트 목록(`.site-header--home-overlay-hero .header-hamburger-btn, .header-user-chip, .header-user-name-text, .header-actions-wrap .btn-point`)에 `.header-user-icon`을 추가 — 이제 섹션1에서는 텍스트와 아이콘이 함께 흰색.
+  - `cd eobomDev/frontend && npx tsc --noEmit`(exit 0) · `npm run build`(vite build, 1547 modules) 통과.
+- **편차**: 없음.
+- **다음 에이전트가 알아야 할 것**: 🔴 실기동 검증 대기(사람 몫, dev 서버 미기동). `UserCheck` 사용처가 Header.tsx 한 곳뿐임을 grep으로 확인해 다른 화면에 영향 없음.
+
+<!-- 판정 생략: 2026-10-13 개발자 결정 — 게이트 미경유(9월분 일괄 보관, record.md §2-1) -->
+
+## 2026-09-29 | 02 전문가 상담 — 상황 선택 모달 · 복수 category · 상담 신청 로그인 필수 · 연락처 가리기 · 종료 신청 되돌리기 금지 (1d873df · 35fccb6)
+
+- **근거 스펙**: docs/02_전문가_매칭/02-05_전문가_직역_확장_및_상황기반_진입_기획서.md §2.2 · docs/02_전문가_매칭/02-03_전문가_공개노출_및_상담신청_명세서.md §5.2 · §5.3 · §8 (전부 2026-09-29 사람 확정)
+- **건드린 파일**:
+  - 1d873df(5개): eobomDev/backend/src/controllers/expertController.ts, eobomDev/backend/src/controllers/expertPublicController.ts, eobomDev/frontend/src/pages/CounselingPage.tsx, eobomDev/frontend/src/styles/design-v2.css, eobomDev/frontend/src/utils/counselingSituations.ts(신규)
+  - 35fccb6(1개): eobomDev/backend/src/controllers/expertController.ts
+- **결과**:
+  - **상황 선택 모달**(`CounselingPage.tsx`): 첫 진입 1회 자동(`localStorage` 키 `eobom_counseling_situation_seen`, 접근 실패 시 try/catch로 무시) · [어떤 도움이 필요하세요?]로 재오픈 · 상속세 배너 `상속세, 대략 얼마나 나올까요?`를 [상속세 계산하기] 버튼으로 교체 · 고른 뒤 상황 줄+[다시 고르기](1번만 붉은 12px `사망을 안 날부터 3개월 안에 상속포기·한정승인 신청`) · 해당 직역 탭 전부 켜짐 · 탭 직접 클릭 시 상황 줄 제거+단일 선택 복귀. 6개 상황은 `utils/counselingSituations.ts` 배열 상수 한 곳. 모바일 바텀시트+[닫기]는 기존 `.v2-modal` 공용 규칙, 데스크톱 ×+[닫기]는 `.v2-modal-x`·`.v2-modal-close.is-always`(design-v2.css) 신설.
+  - **복수 category**(02-05 §2.2 ④): `expertPublicController.ts` `buildWhere`가 `category`를 쉼표로 쪼개 `isValidCategory`(`expertController.ts`에서 `EXPERT_CATEGORIES`·`isValidCategory`에 `export` 추가)로 값마다 검사, 모르는 값은 버림. 유효값 1개면 단일 조건, 여러 개면 `{ in: [...] }`, 0개면 빈 결과(기존 동작).
+  - **상담 신청 로그인 필수**(02-03 §5.2): `submitConsultRequest`에서 `verifyBearerToken` 결과가 없으면 401 `상담 신청은 로그인 후 이용하실 수 있습니다.` (견적 `createQuote`는 그대로 비회원 허용).
+  - **부제목 법무사 누락**: `변호사, 세무사, 행정사, 장례지도사 분야별` → `변호사, 법무사, 세무사, 행정사, 장례지도사 분야별`(CounselingPage.tsx).
+  - **연락처 가리기**(02-03 §8, 35fccb6): `expertController.ts`에 `serializeConsultRequestForExpert` 추가 → `getMyConsultRequests` 응답과 `updateConsultRequestStatus` 응답에 적용. 조건 = 상태 `COMPLETED`·`CANCELLED`·`INVALID` 또는 `createdAt` 90일 경과. `utils/phone.ts`의 `maskPhone` 재사용, 저장 원문에 하이픈이 섞일 수 있어 `normalizePhone` 후 가림. 운영자 API·`/api/me/consult-requests`·DB 원본·`maskedAt` 컬럼 미변경(DB 쓰기 없음).
+  - **끝난 신청 되돌리기 금지**(02-03 §5.3): `updateConsultRequestStatus`가 현재 상태가 `COMPLETED`·`CANCELLED`·`INVALID`면 409 `이미 종료된 상담 신청은 상태를 바꿀 수 없습니다.`
+  - 검증: `cd eobomDev/backend && npx tsc --noEmit`(exit 0) · `cd eobomDev/frontend && npx tsc --noEmit`(exit 0). vite build는 돌리지 않음. **사람 실기동 확인 완료(09-29)** — 완료 처리 후 상태 변경 버튼이 사라지고, 전화번호 가운데가 `010-****-1234` 꼴로 가려져 나옴.
+- **편차**:
+  - **`ConsultRequest.maskedAt`을 채우는 코드가 없음**(02-03 §8 옛 문구 "상담 완료 후 일정 기간이 지나면 `applicantPhone`을 마스킹(`maskedAt`)"과 불일치) — 조사: `eobomDev/backend/src` 전체에서 `maskedAt` 쓰기 0건(`moderationController.ts:226` select뿐, `meActivityController.ts:13` 주석뿐), 마스킹 배치·스케줄러 없음. 코드는 고치지 않고 보고 → **[Opus]가 02-03 §8을 "응답 시점에 가린다(DB 원본·`maskedAt` 미사용)"로 갱신해 해소**(3b6a5b6). 즉 지금 구현과 스펙은 일치. 다만 동의 문구 "목적 달성 후 파기"를 지키는 DB 파기 배치는 여전히 없음(공개 전 과제, `backlog.md` ㉒).
+  - **`maskPhone`이 못 가리는 길이**(9자리 비서울 번호 등)는 원본이 나가지 않게 `****`로 대체 — 스펙에 없는 방어 처리.
+  - **줄바꿈 오염 후 원복**: 1d873df에서 `expertController.ts`가 LF→CRLF로 전체 바뀌어 커밋됨(`git show --stat`에 734줄 변경으로 잡힘, 실제 변경은 몇 줄). 이번 세션에서 `node -e`(WSL 아님)로 `\r\n`→`\n` 치환해 워킹트리를 LF로 되돌림 → `git diff --stat 990820c -- expertController.ts`가 `24 insertions(+), 5 deletions(-)`로 줄어듦, `tsc --noEmit` exit 0. 인덱스는 아직 `i/crlf`(커밋해야 `i/lf`). `.gitattributes`는 건드리지 않음.
+- **다음 에이전트가 알아야 할 것**:
+  - 🔴 **`expertController.ts` 줄바꿈 원복분이 미커밋**(워킹트리 LF, 인덱스 CRLF) — 사람이 커밋하면 전체 줄 diff가 한 번 더 뜨지만 내용 변경은 아님. 이후 Edit 도구가 이 파일을 다시 CRLF로 바꾸지 않는지 커밋 전 `git ls-files --eol`로 확인할 것.
+  - 90일 경과 조건은 개발 DB에 90일 지난 신청이 없어 실기동으로 확인하지 못함 — 코드 로직(`Date.now() - createdAt >= 90일`)만 검토. 409도 화면에 버튼이 없어 실기동으로는 못 눌러 봄(서버 조건문만 확인).
+  - 프런트가 종료된 신청에서 상태 변경 버튼을 숨기는 코드는 이 세션에서 열어 보지 않음(사람 실기동 관찰로만 확인).
+  - 토큰 만료 상태에서 상담 신청 시 프런트의 401 처리는 확인하지 못함(신청 버튼 단계의 `currentUser` 검사에 의존).
+  - 커밋은 하지 않음 — 메시지 초안만.
+
+<!-- 판정 생략: 2026-10-13 개발자 결정 — 게이트 미경유(9월분 일괄 보관, record.md §2-1) -->
+
+## 2026-09-29 | 05 추모관 — 사람 결정 3건 구현 (PUBLIC 폐지 · 신고 서버 주소 제거 · 방명록 로그인 필수)
+
+- **근거 스펙**: docs/05_디지털_추모관/05-01_온라인_추모관_명세서.md 머리말 "2026-09-29 개발자 결정 3건"
+- **건드린 파일**: eobomDev/backend/src/controllers/memorialController.ts, eobomDev/backend/src/controllers/moderationController.ts, eobomDev/backend/src/routes/memorialRoutes.ts, eobomDev/frontend/src/App.tsx, eobomDev/frontend/src/pages/MemorialLandingPage.tsx, eobomDev/frontend/src/pages/MemorialPage.tsx, eobomDev/frontend/src/pages/AdminPage.tsx
+- **결과**:
+  - ① `VALID_VISIBILITY` `['PRIVATE','LINK','PUBLIC']` → `['PRIVATE','LINK']`(만들기·수정 400). `reviewMemorialReport`는 `['LINK','PUBLIC']` → LINK만. `MemorialPage.tsx`의 `PUBLIC: '전체 공개'` 라벨·`<option value="PUBLIC">전체 공개</option>` 제거. `AdminPage.tsx`의 `'LINK' | 'PUBLIC'` 타입 → `'LINK'`, "복구(전체 공개)" 버튼 제거.
+  - ② `router.post('/:slug/report', reportMemorial)` 라우트·import 삭제, `moderationController.ts`의 `reportMemorial` 함수 삭제. `MemorialLandingPage.tsx` 상단 주석을 "서버 주소도 09-29 제거"로 갱신. 운영자 목록·`review`·방명록 hide는 유지.
+  - ③ `createGuestbookEntry`: 토큰 없음/무효 → 401, 사용자 행 없음 → 401, `authorName`은 요청 본문을 받지 않고 `prisma.user.name` 스냅샷, `userId`는 항상 채움. 랜딩은 `currentUser`·`onOpenLogin`을 props로 받아(App.tsx 라우트에서 전달, `FamilyInvitePage`와 같은 꼴) 비로그인이면 모달에 "방명록은 로그인 후 남길 수 있습니다." + 로그인 버튼, 로그인 상태면 이름 칸 없이 "작성자: {이름}" 표시.
+  - 기존 데이터: 개발 DB `memorial.groupBy(visibility)` → `LINK 15건`, **PUBLIC 0건**. `updateMany` 안 함 → 백업·DB 쓰기 없음. 스키마 변경·마이그레이션 없음.
+  - 검증: `backend`·`frontend` 각각 `npx tsc --noEmit` exit 0.
+- **편차**:
+  - 지시는 "authorName은 로그인 사용자 기준 스냅샷"이었고, 이름 입력 칸 제거·요청 본문 authorName 무시까지 확장함(클라이언트가 임의 이름을 보내 사칭할 길을 막기 위해).
+  - 프런트 `tsc`는 `tsconfig.app.json` 없이 `-p .`로 돌림 — 프로젝트 참조 구성이면 파일을 안 잡았을 수 있음(exit 0이 전체 검사인지 미확인).
+- **다음 에이전트가 알아야 할 것**:
+  - ✅ **curl 4건 통과**(실행 중인 서버 `https://localhost:5000`, **https·자체 서명 인증서라 `-k` 필요** — http로 치면 "연결 닫힘"으로 꺼진 것처럼 보임): ① demo-login(KAKAO) 토큰으로 `POST /api/memorials` visibility=PUBLIC → 400 "visibility는 PRIVATE, LINK 중 하나여야 합니다." ② `POST /api/memorials/:slug/report` → 404 ③ 비로그인 방명록 → 401, 로그인 방명록(본문 authorName='사칭') → 201·저장된 authorName='카카오 테스트회원' ④ 비로그인 헌화 → 201.
+  - 🟡 검증 부산물: 개발 DB 기존 LINK 추모관 1곳에 방명록 1건("검증용 글", 카카오 테스트회원)·헌화 1건이 남음. 지우려면 운영자 방명록 숨김 또는 사람 판단(삭제는 DB 쓰기라 하지 않음).
+  - 과거 비회원 방명록 글(`userId=null`)은 그대로 목록에 보이며, 마이페이지 "내가 남긴 방명록"에는 안 잡힘(기존과 동일).
+  - `AdminPage.tsx`의 복구 버튼 블록에 자식이 하나 남은 `<>…</>`가 그대로 있음(동작 무관, 정리 여지).
+  - 05-01 본문(§4.3 신고 흐름 등)에 신고 서버 주소·PUBLIC 언급이 남아 있는지는 확인하지 않음 — `docs/`는 [Opus] 몫.
+  - 커밋은 하지 않음 — 메시지 초안만.
+
+<!-- 판정 생략: 2026-10-13 개발자 결정 — 게이트 미경유(9월분 일괄 보관, record.md §2-1) -->
+
+## 2026-09-29 | 00-34 — 일반 사용자 로그인을 열린 탭끼리 공유 (BroadcastChannel)
+
+- **근거 스펙**: docs/00_핵심플랫폼/00-34 §2.2 "2026-09-29 개발자 결정"
+- **건드린 파일**: eobomDev/frontend/src/lib/storage.ts, eobomDev/frontend/src/App.tsx (백엔드·DB 변경 없음)
+- **결과**:
+  - `storage.ts`: 채널 `'eobom_auth'`(상수 `AUTH_CHANNEL_NAME`, 파일 밖 노출 없음). `setSession`/`clearSession`을 `storeSession`/`wipeSession`(저장만)+방송으로 갈라, USER일 때만 `LOGIN {displayName, token}`/`LOGOUT` 방송. 수신 측은 저장만 하는 내부 함수를 써서 재방송(핑퐁) 없음. 저장소는 sessionStorage 그대로.
+  - 새 탭 시작 시 USER 토큰이 없으면 `REQUEST` 방송 → 토큰 가진 탭이 `SHARE {token, displayName}` 응답 → 받은 탭이 저장. 새 export 3개: `isUserSessionPending()`, `subscribeUserSession(listener)`(해제 함수 반환).
+  - `App.tsx`: `useEffect`로 구독/해제, 수신 시 `setCurrentUser(getDisplayName('USER'))`. 대기 중(최대 300ms, `SESSION_REQUEST_WAIT_MS`)은 `sessionPending`이 true라 빈 `<div>`만 그려 로그아웃 화면·로그인 창이 번쩍이지 않음.
+  - `BroadcastChannel` 미지원/생성 실패 → `channel=null`, 대기·방송 전부 건너뜀(오류 없음).
+  - 검증: `frontend` `npx tsc --noEmit` exit 0 (`src/lib/_probe.ts`에 일부러 타입 오류를 넣어 `src`를 실제로 검사하는 것 확인 후 파일 삭제).
+  - 흐름(코드상): 탭A 로그인 → `handleLoginSuccess`→`setSession('USER')`→LOGIN 방송 → 열려 있던 탭B도 저장·`currentUser` 갱신. 탭A 로그인 상태에서 탭B 새로 열기 → 토큰 없음 → REQUEST → 탭A가 SHARE → 탭B 저장·화면 그림(로그인 상태). 탭B 로그아웃 → `clearSession('USER')`→LOGOUT → 탭A도 삭제·`currentUser=null`. 모든 탭 닫고 재시작 → sessionStorage 비어 있고 응답 없음 → 300ms 뒤 로그아웃 상태.
+- **편차**:
+  - 지시는 받은 탭이 `setSession('USER')`로 저장이라 했으나, 그대로면 받은 탭이 다시 LOGIN을 방송해 탭끼리 왕복하므로 수신 경로는 방송 없는 내부 저장 함수를 씀.
+  - 지시의 "다른 로그인 필수 화면의 첫 렌더 확인"은 화면별로 열어 보지 않고, App 전체를 300ms 빈 화면으로 두는 방식으로 일괄 처리함. 부작용: **로그인 안 한 사람이 새 탭을 열 때도(응답할 탭이 없어도) 매번 300ms 빈 화면**.
+- **다음 에이전트가 알아야 할 것**:
+  - 🔴 실기동 미확인(사람 몫): 실제 두 탭에서 로그인 공유·로그아웃 전파·300ms 빈 화면 체감·`window.open`으로 연 새 탭(opener의 sessionStorage 복사와 겹치는 경우) 동작.
+  - 소셜 로그인은 전체 리다이렉트 후 같은 탭으로 돌아와 `handleLoginSuccess`가 불리므로 그때 LOGIN이 방송됨(다른 탭도 로그인됨).
+  - 세션 만료(401) 처리도 `clearSession`을 거치므로 한 탭 만료가 열린 모든 탭의 로그아웃으로 전파됨(다른 탭에는 로그인 모달 안내 없이 조용히 로그아웃).
+  - 커밋은 하지 않음 — 메시지 초안만.
+  - 🔄 **2차 보완(사람 결정 B + 3항, 같은 날)** — 위 1차 보완의 '1' 힌트를 **시각(숫자) 표시**로 교체: `eobom_user_login_hint`에 `Date.now()`만 저장(토큰·이름 없음), 로그인한 탭이 15초마다 갱신(`startHeartbeat`), 로그아웃(`wipeSession`)·`pagehide` 때 삭제, 다른 로그인 탭은 `storage` 이벤트로 삭제를 보고 즉시 다시 씀, 신선 판정 90초(백그라운드 탭 타이머 지연 대비). 새 탭은 모듈 로드 시 동기로 읽어 표시가 없거나 90초 넘으면 대기 0으로 바로 비로그인 렌더, 최근이면 최대 300ms 대기하며 `App.tsx`가 배경+"이어봄" 글자만 그림(로그인 창·버튼 먼저 안 띄움). 답이 없으면 비로그인. `tsc --noEmit` exit 0. **로그인한 탭이 있는 상태에서 새 탭을 열 때의 짧은 대기 화면은 구조상 남음 — 사람 재확인 필요.** 00-34 §2.2와 충돌 없음(sessionStorage 유지, localStorage엔 시각만 — 단 00-34 §4의 키 표에 `eobom_user_login_hint` 추가 필요 → [Opus]).
+  - 🔄 **사람 실기동 후 보완(같은 날, 1차)**: 탭 간 공유·전파·새 창 적용은 확인됨. 다만 "미리 로그인한 창이 있는 상태에서 다른 탭에 URL 입력 시 깜빡임이 불편"하다는 지적 → `storage.ts`에 localStorage 힌트 `eobom_user_login_hint`('1'만, 토큰·이름 없음)를 추가: 로그인 저장 시 켜고 `wipeSession('USER')` 시 끔. **힌트가 있을 때만** 새 탭이 REQUEST·대기(빈 화면)하고, 없으면 대기 없이 바로 그림(로그인한 적 없는 방문자의 300ms 빈 화면 제거). 브라우저 재시작 뒤 힌트만 남은 경우 한 번 기다려 답이 없으면 힌트를 지움. 로그인한 탭이 있을 때의 빈 화면은 응답이 오는 즉시 풀리도록 그대로(최대 300ms 상한). `tsc --noEmit` exit 0. **깜빡임이 이 보완으로 사라졌는지는 사람 재확인 필요.**
+
+<!-- 판정 생략: 2026-10-13 개발자 결정 — 게이트 미경유(9월분 일괄 보관, record.md §2-1) -->
+
+
+## 2026-09-28 | privacy·terms(그룹③ 읽기·법정문서) v2 이관
+
+- **근거 스펙**: `docs/00_핵심플랫폼/00-39_디자인_기준_재정립_명세서.md` §3(색)·§4(글자)·§5(레이아웃)·§6(규칙, 특히 §6.7 클래스 등재)·§9.1(그룹③ 대표=privacy)·§9.2(③ 시안 사유=조 번호·목차 등 법정문서 구조)·§9.3(각 화면에서 하는 일)
+- **건드린 파일**: `eobomDev/frontend/src/components/legal/LegalDocLayout.tsx`, `eobomDev/frontend/src/pages/PrivacyPage.tsx`, `eobomDev/frontend/src/pages/TermsPage.tsx`, `eobomDev/frontend/src/styles/design-v2.css`
+- **결과**:
+  - `LegalDocLayout.tsx`를 옛 토큰(`--primary-color`·`--text-muted`·`--point-color`·`--fs-body`·`--state-critical-bg/fg`·`--border-color`·`--r-md`·`--sp-3`)과 인라인 스타일 전부 제거하고 `.v2-page`/`.v2-page-head`/`.v2-guide-shell`/`.v2-guide-toc`/`.v2-toc-item`/`.v2-guide-main`/`.v2-prose`(기존 §6.7 등재분 재사용) + 새 `v2-legal-*` 클래스로 재작성.
+  - 좌측 목차를 **새 기능으로 추가**했다(기존엔 없었음) — `LegalArticle`(조)마다 제목을 슬러그화한 `id`를 달고, `LegalDocLayout`이 children을 순회해 조 목록을 뽑아 `.v2-guide-toc`에 렌더링. `IntersectionObserver`로 스크롤에 따라 `.is-current` 하이라이트(`CareGuidePage.tsx`의 스크롤스파이와 같은 패턴). 클릭하면 `scrollIntoView`.
+  - `LegalArticle`은 `.v2-section`을 재사용하지 **않고** 새 클래스(`v2-legal-article` 등)를 만들었다 — `.v2-section`은 §6.5 모바일 탭 전환 규칙(`display:none`+`.is-active-section`)과 묶여 있어 그대로 쓰면 그룹③(탭 없음)에서 본문이 모바일에서 통째로 사라진다.
+  - **새로 만든 클래스**(Opus §6.7 등재 검토 대상): `v2-legal-article`·`v2-legal-article-head`·`v2-legal-article-title`·`v2-legal-article-body`·`v2-legal-chapter`·`v2-legal-chapter-title`·`v2-legal-subhead`·`v2-legal-note`·`v2-legal-list`·`v2-legal-sublist`·`v2-legal-table-wrap`·`v2-legal-table`(th/td 포함)·`v2-legal-inline-link`·`v2-legal-draft-banner`·`v2-legal-draft-icon`·`v2-legal-draft-title`·`v2-legal-draft-desc`·`v2-legal-back`·`v2-legal-back-link`.
+  - **인라인 스타일 수(전/후)**: `LegalDocLayout.tsx` 20→0, `PrivacyPage.tsx` 17→0, `TermsPage.tsx` 6→0 (총 43→0).
+  - 본문 줄간격은 `--lh-reader`(옛 토큰, §9.2 ③ 지시대로 유지) 그대로 사용, 글자 크기는 §4 확정값(`--v2-fs-body` 17px 등)으로 교체.
+  - 문구는 한 글자도 바꾸지 않았다 — `LegalTable`/`LegalList`의 셀·항목 텍스트는 손대지 않고 감싸는 `div`/`table`/`th`/`td`/`ol`/`ul`의 클래스만 교체. 개인정보처리방침 제6·7조 표 내용(위탁·국외이전) 원문 그대로.
+  - `npx tsc --noEmit`(frontend) 에러 0 · `npm run build`(frontend) 통과(`vite build` 성공, 청크 크기 경고는 기존부터 있던 것으로 이번 변경과 무관).
+- **편차**:
+  1. 좌측 목차(스크롤스파이 포함)는 스펙 §9.2 ③이 언급한 "목차 등 법정문서 구조"를 구현한 것이지만, 원래 화면엔 없던 **신규 기능**이라는 점은 명시해 둔다. 시안 없이 §9.3대로 바로 구현했다(③은 "짧게"로 분류돼 있어 시안 불필요 판단).
+  2. 모바일(767px 이하)은 목차를 그냥 숨긴다(`care-guide`처럼 가로 탭으로 대체하지 않음) — 조문 훑기가 목적인 화면이라 탭 전환까지는 과했다고 판단. 대체 네비게이션 없이 세로 스크롤만 남는다.
+  3. "시행 준비 중" 배너는 옛 `--state-critical-bg/fg`(레드) 톤을 유지하되 새 `--v2-urgent`(#C0392B) 기반 rgba 배경으로 재구성했다 — §3에 이 배너 자체에 대한 확정값은 없어 기존 배너의 "경고" 인상을 v2 팔레트로 옮긴 것뿐(문구는 무변경).
+- **다음 에이전트가 알아야 할 것**:
+  - 🔴 실기동 검증 대기(사람) — dev 서버는 켜지 않았다.
+  - 🟡 **360px에서 사람이 볼 것**: (a) `/privacy`·`/terms` 둘 다 좌측 목차가 사라지고 본문만 남는지, (b) 긴 조문(특히 `terms` 제20조 표·제11조 중첩 표)이 좁은 폭에서 줄바꿈이 깨지지 않는지, (c) "시행 준비 중" 배너가 모바일 여백(24px)에서 텍스트가 눌리지 않는지.
+  - 데스크톱에서도 사람이 볼 것: `terms`는 조문이 24개라 좌측 목차가 뷰포트보다 길어질 수 있다(내부 스크롤 없이 그냥 넘침) — `ending-note`(`.v2-note-toc`)·`mail`(`.v2-mail-sidebar`)도 같은 방식이라 이번에 새로 만들지 않았지만, 실측에서 불편하면 별건으로 다룰 것.
+  - Opus 몫: 위 "새로 만든 클래스" 목록의 §6.7 등재 여부 판단, 그리고 `.v2-guide-shell`류 골격이 `care-guide`(①)·`ending-note`(②)·이번 `legal`(③) 셋에서 반복되는데도 §6.7에 정식 등재가 안 돼 있던 기존 문제(발견만, 이번 세션에서 손대지 않음)도 함께 검토 대상.
+
+<!-- 판정 생략: 2026-10-13 개발자 결정 — 게이트 미경유(9월분 일괄 보관, record.md §2-1) -->
+
+
+## 2026-09-28 | 그룹③ legal 보정 1회 — Opus 09-28 판정 반영 (09-28 legal 항목 후속)
+
+- **근거 스펙**: `docs/00_핵심플랫폼/00-39_디자인_기준_재정립_명세서.md` §6.7 "공통 골격"·"그룹③(법정문서)에서 나온 것" 두 표 + 그 아래 "모바일 목차" 문단(09-28 등재)
+- **건드린 파일**: `eobomDev/frontend/src/components/legal/LegalDocLayout.tsx`, `eobomDev/frontend/src/styles/design-v2.css`
+- **결과**:
+  - "시행 준비 중" 배너: `v2-legal-draft-banner`/`-icon`/`-title`/`-desc` 4개를 JSX·CSS 양쪽에서 전부 제거하고 기존 `.v2-notice-warn`으로 교체. 아이콘(`AlertTriangle`) 제거, `<strong>제목</strong>` + `<p>설명</p>`만 남김(문구 원문 그대로). 위치를 `.v2-guide-main`(읽기 폭 764px) 안쪽 맨 위로 옮겨 본문과 폭이 같아짐 — 별도 `max-width` CSS 불필요.
+  - `.v2-guide-toc`(공용 클래스, `care-guide`와 공유)에 `max-height: calc(100vh - var(--header-h) - 48px); overflow-y: auto;` 추가. `care-guide`는 목차 5항목이라 뷰포트보다 짧아 스크롤이 생기지 않으므로 모양 영향 없음(코드로 확인, 실측은 아래 "사람이 볼 곳" 참고).
+  - 모바일 목차 숨김은 기존 그대로 유지(Opus 09-28 편차 승인 — 대체 없이 숨김, 조별 접기/더보기 추가하지 않음).
+  - `npx tsc --noEmit`(frontend) 에러 0 · `npm run build`(frontend) 통과.
+- **편차**: 없음 — 전부 Opus 09-28 판정 그대로 반영.
+- **다음 에이전트가 알아야 할 것**:
+  - 🔴 실기동 검증 대기(사람).
+  - 🟡 **사람이 볼 곳**: (a) `terms` 데스크톱에서 좌측 목차(24개 조)가 끝까지 스크롤되는지·`care-guide`(5개) 목차 모양이 그대로인지, (b) 360px에서 `.v2-notice-warn` 배너(제목+설명 두 줄)가 여백 안에서 잘 읽히는지.
+
+<!-- 판정 생략: 2026-10-13 개발자 결정 — 게이트 미경유(9월분 일괄 보관, record.md §2-1) -->
+
+
+## 2026-09-28 | 그룹③ legal 목차 잘림 수정 — 실기동 반려 반영 (legal 보정 1회 후속 재수정)
+
+- **근거 스펙**: 없음 — `.harness/AGENTS.md` §1 CONFIRM 대상 아닌 버그 수정. 사용자가 실기동 후 "terms 목차 24조까지 안 나오고 아래가 잘린다(care-guide는 문제 없음)"고 직접 보고.
+- **건드린 파일**: `eobomDev/frontend/src/styles/design-v2.css`
+- **결과**: `.v2-guide-toc`의 `max-height` 계산이 틀렸었다 — 데스크톱(769px↑)은 `.main-wrapper`가 `height: calc(100vh - var(--header-h))`인 자체 스크롤 패널(`index.css` L286-312)인데, 목차의 `top`이 이미 `header-h+24px`라 실제 남는 높이는 `100vh - header-h(패널) - header-h(top오프셋) - 24px`다. 기존엔 `header-h`를 한 번만 빼서(`calc(100vh - var(--header-h) - 48px)`) 실제보다 넉넉하게 계산됐고, 그 결과 `overflow-y:auto`가 트이기 전에 `.main-wrapper`의 바깥 경계에서 먼저 물리적으로 잘렸다(사람 눈엔 "스크롤도 안 되고 그냥 잘림"으로 보임). `care-guide`(항목 5개, 원래 높이가 짧음)는 이 경계에 안 걸려 증상이 안 보였던 것 — 우연히 무사했을 뿐 계산 자체는 처음부터 틀려 있었다.
+  - 수정: `max-height: calc(100vh - (var(--header-h) * 2) - 48px)`로 `header-h`를 두 번 뺌(패널 자체 높이 1번 + top 오프셋 1번).
+  - `npx tsc --noEmit`(frontend) 에러 0 · `npm run build`(frontend) 통과.
+- **편차**: 없음.
+- **다음 에이전트가 알아야 할 것**: 🔴 실기동 재검증 대기 — `terms`에서 목차를 끝까지(24조) 스크롤해 확인 필요. `care-guide`도 여전히 문제 없는지 같이 확인.
+
+<!-- 판정 생략: 2026-10-13 개발자 결정 — 게이트 미경유(9월분 일괄 보관, record.md §2-1) -->
+
+
+## 2026-09-28 | 그룹④ 랜딩 대표 /o/:slug 부고장 v2 구현
+
+- **근거 스펙**: `docs/00_핵심플랫폼/00-39_디자인_기준_재정립_명세서.md` §6.7 "그룹④(랜딩) 대표 `/o/:slug`" 표(2026-09-28 시안 확정, 캔버스 `U9Ys4rJpZP3fsBHHBrhfvR`).
+- **건드린 파일**: `eobomDev/frontend/src/components/ObituaryView.tsx`, `eobomDev/frontend/src/pages/ObituaryLandingPage.tsx`, `eobomDev/frontend/src/styles/design-v2.css`
+- **결과**:
+  - 카드·그림자·남색 근조 띠 제거 → 문서형(라벨 + 1px 선 행)으로 재구성. 묶음 3개(장례 일정 / 상주·유족 / 마음 전하실 곳)로 재편.
+  - 새 표시 3종 반영: ① `deceasedDeathDate` 있을 때만 `formatDeathDate()`(신규 로컬 헬퍼, `formatKST`는 안 건드림)로 "YYYY년 M월 D일 별세" ② `funeralHallAddr`을 빈소 이름 아래 `.v2-obit-addr` 한 줄로 ③ 유족 라벨 "유족" — 모바일은 `.v2-obit-mourner-list.v2-mobile-only`(한 명당 한 줄), 데스크톱은 `.v2-desktop-only`(` · ` 조인 한 줄).
+  - 길찾기·전화 걸기를 `.v2-btn-outline`(44px 테두리 버튼)으로 교체. 전화 걸기는 `.v2-obit-row-btn.v2-mobile-only`로 모바일 전용(데스크톱은 번호만, 화면폭 분기는 §6.7 원칙대로 `.v2-desktop-only`/`.v2-mobile-only` — `useIsMobile` 신규 사용 없음).
+  - 계좌는 상자 없이 행 하나(`.v2-obit-row` 재사용, 예금주는 `.v2-obit-addr` 보조색). 추모관 들어가기는 `.v2-btn-outline.v2-obit-memorial-btn`(폭 100%·52px), `memorialSlug` 있을 때만 그대로 유지.
+  - 폭: 모바일 여백 `var(--v2-gutter-mobile)`(24px) · 데스크톱 560px 한 열 가운데(`.v2-obit-content` max-width), 위 96px(`.v2-obit-page`). 스켈레톤(`ObituaryLandingSkeleton`)도 `.v2-obit-header`/`.v2-obit-section`/`.v2-obit-row` 같은 배치로 맞춤. "찾을 수 없음" 화면은 문구 그대로 두고 `.v2-obit-notfound*` 클래스만 적용.
+  - 새 CSS 클래스 22개(`.v2-obit-page`부터 `.v2-obit-notfound-sub`까지, `design-v2.css` §6.7 뒤에 추가) — §9.3-2 등재 표 갱신은 Opus 몫이라 여기 남긴다.
+  - 인라인 스타일 개수: `ObituaryView.tsx` 전(약 13곳, style 객체 다수) → 후 0곳. `ObituaryLandingPage.tsx` 전(pageShellStyle 등 약 9곳) → 후 스켈레톤 shimmer 블록 크기 지정용 `style={{width, height}}` 5곳만 남김(기존 `skeleton-block` 관행과 동일, 레이아웃 자체는 전부 클래스).
+  - noindex meta·fetch·404 처리·`formatKST` 형식·카카오맵 검색 링크(`map.kakao.com/link/search`)는 그대로 둠 — 기능·데이터 변경 없음.
+  - `ObituaryPage.tsx`(관리 화면 `/obituary` 미리보기 모달)는 `ObituaryView`를 그대로 가져다 쓰므로 이번 변경이 자동 반영된다 — 모달 폭은 `maxWidth:460px`(모달 컨테이너 인라인, 안 건드림)로 고정이지만, `.v2-desktop-only`/`.v2-mobile-only`는 **뷰포트 폭** 기준 CSS 미디어쿼리라 컨테이너 폭과 무관하다. 즉 데스크톱 브라우저(뷰포트 폭 768px 이상)에서 미리보기를 열면 카드는 460px로 좁게 보여도 전화 걸기 버튼은 **표시되지 않는다**(데스크톱 분기 적용) — 실제 `/o/:slug`(뷰포트 그대로)와 같은 분기 기준이라 의도한 동작이지만, 좁은 모달 안에서는 "왜 안 보이지"로 오인하기 쉬우니 사람 확인 시 참고.
+  - `npx tsc --noEmit`(frontend) 에러 0 · `npm run build`(frontend) 통과.
+- **편차**: 없음 — §6.7 표 값을 그대로 구현.
+- **다음 에이전트가 알아야 할 것**:
+  - 🔴 실기동 검증 대기(사람 몫, dev 서버 미기동). 360px에서 볼 곳: ① 유족 여러 명일 때 모바일 줄바꿈 ② 빈소 주소 줄 + 길찾기 버튼 간격 ③ 연락처 행 "전화 걸기" 버튼 노출(모바일 뷰포트) ④ 관리 화면 `/obituary` → 조문객 미리보기 모달을 데스크톱 브라우저에서 열었을 때 전화 걸기 버튼이 안 보이는 게 맞는지(위 편차 아닌 참고 항목으로 적어둠).
+  - `.v2-obit-*` 클래스의 §6.7 등재 표 반영은 Opus 몫(문서에 이미 명시됨).
+
+<!-- 판정 생략: 2026-10-13 개발자 결정 — 게이트 미경유(9월분 일괄 보관, record.md §2-1) -->
+
+
+## 2026-09-28 | 그룹④ /o/:slug 헤더 왼쪽정렬 + 부고장·추모관 "열기" 새 탭 전환 (사람 피드백 반영)
+
+- **근거 스펙**: 없음 — 사람 실기동 피드백 2건 즉시 반영. ① `/o/:slug` 제목 헤더 왼쪽정렬 필요 ② `/my-obituaries-memorials`·`/memorial`에서 링크 열었을 때 새창(새 탭)으로 열리게.
+- **건드린 파일**: `eobomDev/frontend/src/styles/design-v2.css`, `eobomDev/frontend/src/pages/MyObituaryListPage.tsx`, `eobomDev/frontend/src/pages/MemorialPage.tsx`
+- **결과**:
+  - `.v2-obit-header`의 `text-align: center` → `text-align: left`. (앞선 09-28 구현 때 §6.7 표에 정렬값이 명시돼 있지 않아 가운데로 잡았던 것을 사람이 왼쪽으로 정정.)
+  - `MyObituaryListPage.tsx`(부고장 모달 "열기", 추모관 모달 "열기")·`MemorialPage.tsx`(추모관 모달 "열기") 3곳 — 기존 `navigate(`/o/…`)`/`navigate(`/m/…`)`(SPA 내부 이동, 현재 탭이 관리 화면에서 조문객 화면으로 바뀜)를 `window.open(url, '_blank', 'noopener,noreferrer')`로 교체. 버튼에 이미 `ExternalLink` 아이콘이 붙어 있던 자리라 아이콘 의도(새 창)와 실제 동작이 어긋나 있었다.
+  - `MemorialPage.tsx`에서 `navigate` 호출이 이 자리 하나뿐이라 `useNavigate` 훅·import를 함께 제거(미사용 변수로 남기지 않음). `MyObituaryListPage.tsx`는 다른 3곳(부고장 새로 만들기·추모관 관리·수정)에서 `navigate`를 계속 쓰므로 그대로 둠.
+  - `npx tsc --noEmit`(frontend) 에러 0 · `npm run build`(frontend) 통과.
+- **편차**: 없음.
+- **다음 에이전트가 알아야 할 것**:
+  - 🔴 실기동 검증 대기(사람 몫). 확인할 것: ① `/o/:slug` 헤더("삼가 고인의 명복을 빕니다"·"故 {이름}"·별세일)가 왼쪽 정렬로 보이는지 ② `/my-obituaries-memorials`·`/memorial`의 "열기" 버튼이 팝업 차단 없이 새 탭으로 뜨는지(브라우저 팝업 차단 설정에 따라 막힐 수 있음 — 이건 클릭 핸들러 안에서 동기 호출이라 대부분 브라우저는 막지 않지만 확인 필요).
+  - 관리 화면 `/obituary` 미리보기 모달의 `ObituaryView`도 이 CSS를 공유하므로 헤더가 같이 왼쪽 정렬로 바뀐다(의도한 것).
+
+<!-- 판정 생략: 2026-10-13 개발자 결정 — 게이트 미경유(9월분 일괄 보관, record.md §2-1) -->
+
+
+## 2026-09-28 | 그룹④ /o/:slug 후속 — 데스크톱만 박스형 재구성 (모바일 1차 그대로)
+
+- **근거 스펙**: 시안 캔버스 `https://claude.ai/artifact/U9Ys4rJpZP3fsBHHBrhfvR` "데스크톱 C" 아트보드. 🔴 `00-39` §6.7 그룹④ 표는 아직 1차 기준이며, 데스크톱 값은 이번 지시(핸드오프 프롬프트)가 이긴다 — 표 확정은 Opus 몫으로 남김.
+- **건드린 파일**: `eobomDev/frontend/src/components/ObituaryView.tsx`, `eobomDev/frontend/src/pages/ObituaryLandingPage.tsx`, `eobomDev/frontend/src/styles/design-v2.css`
+- **결과**:
+  - ① **추가/변경한 클래스와 미디어쿼리 위치** (`design-v2.css` §6.7 블록, `@media (min-width: 768px)` 안에 전부 몰아넣음 — 모바일 쪽 기본 규칙은 시각적으로 비워둠):
+    - 신규 `.v2-obit-box` — 모바일 기본은 빈 규칙(투명 래퍼), 데스크톱에서만 `border-left/right: 4px solid var(--v2-btn-border)` · `border-radius: 8px` · `padding: 48px 52px 44px` · `background: none` · `box-shadow: none`.
+    - 신규 `.v2-obit-hall-cta`(모바일 전용 길찾기, 값 칸 안) / `.v2-obit-hall-cta-desktop`(데스크톱 전용 길찾기, 행 오른쪽 끝) — 기본은 각각 보임/숨김이고 데스크톱 media에서 뒤바뀐다(`display:none`↔`inline-flex; margin-left:auto; background:#FFFFFF`). 문구는 "길찾기"로 동일, 위치만 다르므로 둘 다 렌더링하고 CSS로만 하나씩 끈다(§6.7 화면폭 분기 원칙과 같은 결).
+    - 기존 `.v2-obit-header`(desktop: `margin-bottom:0`) · `.v2-obit-name`(desktop: `font-size:36px`·`font-weight:600`·`letter-spacing:-0.6px`, 기존 `var(--v2-fs-page-title)` 40px/700 값을 대체) · `.v2-obit-death`(desktop: `font-size:16px`) · `.v2-obit-section`(desktop: 기존 `margin-bottom:48px` 삭제 → `margin-top:32px`·`padding-top:32px`·`border-top:1px dashed var(--v2-btn-border)`·`margin-bottom:0`) · `.v2-obit-section-title`(desktop: `color:var(--v2-text-muted)`로 교체, `margin-bottom:14px`로 확대) · `.v2-obit-row`(desktop: 기존 `padding:22px 0`+`border-bottom` 삭제 → `padding:0`·`margin-bottom:14px`·`border-bottom:none`, `:last-child{margin-bottom:0}` 추가) · `.v2-obit-row-label`(desktop: `font-size:15px`·`color:var(--v2-text-muted)` 추가, 기존 `width:72px`는 유지) · `.v2-obit-content`(desktop: `max-width:680px`로 교체, 560px는 모바일 값으로만 남음) · `.v2-obit-memorial-btn`(desktop: `margin-top:24px`, 기존 8px 대체) · `.v2-obit-foot`(desktop: `margin-top:28px`, 기존 40px 대체).
+  - `ObituaryView.tsx` — 머리·세 묶음을 `<div className="v2-obit-box">`로 감쌌다(추모관 버튼·꼬리는 박스 밖, 원래 위치 그대로). 빈소 행에 데스크톱 전용 길찾기 앵커를 행의 3번째 flex 자식으로 추가(`v2-obit-hall-cta-desktop`), 기존 값-칸 안 길찾기 앵커에는 `v2-obit-hall-cta` 클래스를 얹어 데스크톱에서만 숨김.
+  - `ObituaryLandingPage.tsx`의 `ObituaryLandingSkeleton` — 머리·행 자리를 `.v2-obit-box`로 감싸 데스크톱에서 같은 박스 안에 회색 블록이 뜨게 맞췄고(모바일은 투명 래퍼라 겉모습 그대로), 추모관 버튼 자리는 박스 밖에 남김. 겸사겸사 지난 턴에서 헤더를 왼쪽정렬로 바꿨는데 스켈레톤 블록엔 `margin:'0 auto'`(가운데)가 남아있던 불일치를 `margin:'0 0 8px'`/`margin` 없음(왼쪽)으로 같이 고쳤다.
+  - 발인 값은 원래도 굵게 처리한 적이 없어(요청 4번 "발인은 굵게 하지 않는다") 추가 변경 없음 — 이미 충족.
+  - ② `/obituary` 관리 화면 미리보기 모달 — 모달 컨테이너 자체는 `maxWidth:460px`(안 건드림)라 여전히 좁게 보이지만, `.v2-obit-box`의 박스형 여부는 **뷰포트 폭** 기준 미디어쿼리라 데스크톱 브라우저(뷰포트 768px 이상)에서 열면 460px의 좁은 폭 안에서도 박스(테두리·점선·데스크톱 길찾기 위치)가 그대로 나온다 — 지난 턴에 기록한 "데스크톱에서 전화 걸기 버튼이 안 보이는" 편차와 같은 종류(뷰포트 기준 vs 컨테이너 폭 불일치), 새로운 문제는 아니다.
+  - `npx tsc --noEmit`(frontend) 에러 0 · `npm run build`(frontend) 통과.
+- **편차**: 없음 — 이번 핸드오프 프롬프트가 `00-39` §6.7 표보다 우선한다고 명시했고, 값 그대로 구현했다. (표 자체 갱신은 Opus 몫으로 다음 할 일에 남김.)
+- **다음 에이전트가 알아야 할 것**:
+  - 🔴 실기동 검증 대기(사람 몫, dev 서버 미기동). ③ 사람이 볼 곳: **1280px 데스크톱**에서 680px 박스(좌우 4px 테두리·모서리 8px·점선 구분·길찾기가 빈소 행 오른쪽 끝·흰 배경)가 시안대로 나오는지, **360px 모바일**이 지난 1차 구현과 똑같이 보이는지(박스 없음·행마다 1px 선·전화 걸기 있음) 코드 리뷰 기준으로는 데스크톱 전용 규칙이 전부 `@media (min-width:768px)` 안에만 있어 모바일로 새지 않음을 확인했다.
+  - `/obituary` 미리보기 모달을 데스크톱 브라우저에서 열었을 때 박스가 나오는 게 맞는지도 위 ②와 함께 확인 필요.
+  - `00-39` §6.7 표 갱신(데스크톱 값 확정 반영)은 Opus 몫 — 이 항목이 "후속"이므로 표를 다시 열어 데스크톱 열을 새로 채워야 한다.
+
+<!-- 판정 생략: 2026-10-13 개발자 결정 — 게이트 미경유(9월분 일괄 보관, record.md §2-1) -->
+
+
+## 2026-09-28 | 00-39 §5-0 단일 기준 적용 + 부고장 미리보기 컨테이너 쿼리 전환 (§6.7 "남은 편차 1건" 해소)
+
+- **근거 스펙**: `docs/00_핵심플랫폼/00-39_디자인_기준_재정립_명세서.md` §5-0("창이 좁아지면 본문이 줄어든다", 2026-09-28 사람 확정) · §6.7 그룹④ 표 바로 아래 "🟡 남은 편차 1건"(관리 화면 미리보기 모달이 창 폭으로 분기하는 문제 → `@container`로 교체 지시).
+- **건드린 파일**: `eobomDev/frontend/src/pages/FacilityPage.tsx`, `eobomDev/frontend/src/pages/ObituaryPage.tsx`, `eobomDev/frontend/src/index.css`, `eobomDev/frontend/src/components/ObituaryView.tsx`, `eobomDev/frontend/src/styles/design-v2.css`
+
+**작업 1 — facility·obituary 관리 화면을 줄어드는 방식으로**
+  - `FacilityPage.tsx` — 바깥 틀 `<div className="container" style={{ padding: isMobile ? '32px 24px 72px' : '96px 80px 96px' }}>` → `<div className="v2-page">`. 인라인 padding·isMobile 분기는 삭제(`.v2-page`의 CSS 미디어쿼리가 같은 값을 대신 준다). 구조·배치·카드·필터는 손대지 않음(§6.1 규칙 1-1 유지) — 이 줄 하나만 바뀜.
+  - `ObituaryPage.tsx` — `.container`를 쓰던 자리 2곳을 전부 `.v2-page`로 교체: ① `ObituaryManageSkeleton`(로딩 스켈레톤, 인라인 `paddingBottom:'3rem'` 삭제) ② 비로그인 안내 화면(`!currentUser` 분기). 실제 관리 폼 본문(950행대)은 이미 `.v2-page`를 쓰고 있어 그대로 뒀다.
+  - ① **`.container` 사용처 전/후**: 전 — `FacilityPage.tsx`(1) · `ObituaryPage.tsx`(2, 스켈레톤+비로그인) · `AdminPage.tsx`(1) · `BizDashboard.tsx`(1) · `PartnerPortalPage.tsx`(1), 총 6곳. 후 — `grep -rln 'className="container"' eobomDev/frontend/src`로 재확인, **`AdminPage.tsx`·`BizDashboard.tsx`·`PartnerPortalPage.tsx` 3곳만 남음**(운영자 화면, 손대지 않음).
+  - ② **1200px 규칙을 어떻게 남겼는지**: `index.css`의 `.main-wrapper .container { min-width: 1200px }`(769px↑) 규칙은 **그대로 유지**(위에서 확인했듯 이제 이 셀렉터에 걸리는 화면이 운영자 3개뿐이라 코드 변경 불필요). 그 위 주석에 "🔴 00-39 §5-0(2026-09-28) — 운영자 화면 전용 예외. facility·obituary 관리 화면은 `.v2-page`로 옮겨서 이제 `.container`를 쓰는 곳이 admin·biz·partner 셋뿐이다" 한 단락 추가. `.main-wrapper`의 `overflow-x:auto`·`height: calc(100vh - var(--header-h))` 등 09-09 스크롤 패널 처리는 손대지 않음(운영자 화면·sticky 목차가 계속 씀).
+
+**작업 2 — ObituaryView를 창 폭이 아니라 담는 상자의 폭으로 분기**
+  - `design-v2.css` — `.v2-obit-page`에 `container-type: inline-size;` 추가, 미리보기 모달처럼 `.v2-obit-page`를 안 쓰는 자리를 위한 신규 `.v2-obit-container { container-type: inline-size; }` 추가. 기존 `@media (min-width: 768px) { … }` 블록 전체를 `@container (min-width: 768px) { … }`로, `@media (max-width: 767px) { … }` 블록 전체를 `@container (max-width: 767px) { … }`로 교체(값은 하나도 안 바꿈, at-rule만 교체).
+  - 공용 `.v2-desktop-only`/`.v2-mobile-only`(다른 화면도 쓰는 전역 `@media` 기준 클래스)는 그대로 두고, `ObituaryView` 전용 짝 `.v2-obit-desktop-only`/`.v2-obit-mobile-only`를 새로 만들어(같은 뜻, `@container` 기준) `.v2-obit-mourner-list.v2-mobile-only`→`.v2-obit-mourner-list.v2-obit-mobile-only`, `.v2-obit-row-btn.v2-mobile-only`→`.v2-obit-row-btn.v2-obit-mobile-only`로 함께 교체.
+  - `ObituaryView.tsx` — 유족 목록(모바일 줄바꿈)·유족 한 줄(데스크톱 " · ")·전화 걸기 버튼(모바일 전용) 3곳에서 `v2-mobile-only`/`v2-desktop-only` → `v2-obit-mobile-only`/`v2-obit-desktop-only`로 교체. 길찾기 버튼 쌍(`.v2-obit-hall-cta`/`-desktop`)은 원래도 공용 클래스를 안 썼던 자리라 클래스명 변경 없이 상위 at-rule 교체만으로 해결됨.
+  - `ObituaryPage.tsx` — 미리보기 모달의 460px 래퍼(`<div style={{ width: '100%', maxWidth: '460px' }}>`, 조문객 안내문+`ObituaryView`를 감싸던 자리)에 `className="v2-obit-container"` 추가.
+  - `npx tsc --noEmit`(frontend) 에러 0 · `npm run build`(frontend) 통과.
+- **편차**: 없음 — 시안·문서 지시값 그대로 구현.
+- **다음 에이전트가 알아야 할 것**:
+  - 🔴 실기동 검증 대기(사람 몫, dev 서버 미기동). ③ 사람이 볼 곳: (a) `/facility`를 1000px 안팎 창으로 줄였을 때 필터 줄이 좌우 스크롤 없이 접히는지(§5-0 문서가 "옮긴 뒤 사람이 한 번 본다"고 명시한 항목) (b) `/obituary` 관리 화면에서 미리보기 모달을 **데스크톱 창**에서 열었을 때 이제 460px 컨테이너 기준으로 항상 모바일형(박스 없음·전화 걸기 있음)이 나오는지 — 지난 두 턴에서 "편차 아님, 뷰포트 기준이라 그렇다"고 적어둔 것이 이번에 해소됨 (c) `/o/:slug`를 1280px 창에서 열었을 때 데스크톱 박스형이 이전과 동일하게 나오는지(컨테이너 축 전환 후 회귀 여부).
+  - CSS 컨테이너 쿼리(`@container`)는 최신 에버그린 브라우저(Chrome 105+·Safari 16+·Firefox 110+) 기준 지원 — 구형 브라우저 지원 범위는 확인하지 않았다(이 프로젝트가 그런 타깃을 따로 고려하는지는 문서에 없음).
+  - `00-39` §6.7 "남은 편차 1건" 문구는 이번 구현으로 해소됐으니, 문서에서 지우거나 "해소됨"으로 갱신하는 건 Opus 몫.
+
+<!-- 판정 생략: 2026-10-13 개발자 결정 — 게이트 미경유(9월분 일괄 보관, record.md §2-1) -->
+
+## 2026-09-28 | 부고장 미리보기 모달 848px 확장 + 좌측 목차(.v2-guide-toc) 고정·높이 상한
+
+- **근거 스펙**: docs/00_핵심플랫폼/00-39_디자인_기준_재정립_명세서.md §6.7 "관리 화면 미리보기 모달" 표 + "좌측 목차 + 본문" 행(09-28 사람 지시)
+- **건드린 파일**: eobomDev/frontend/src/pages/ObituaryPage.tsx, eobomDev/frontend/src/styles/design-v2.css
+- **결과**:
+  - ① `ObituaryPage.tsx` 미리보기 모달(옛 997~1042행)을 인라인 스타일에서 `.v2-obit-preview-overlay`/`-modal`/`-head`/`-notice`/`-close`(design-v2.css 신설)로 교체. 모달 `max-width:848px`·`width:100%`, `.v2-obit-container`에 `padding:40px`를 줘 안쪽 폭이 정확히 768px(=848−40×2, 부고장 `@container` 분기값)이 되게 함. 안내 문구는 상자 없이 14px 보조색 텍스트로, `<br>` 제거(원문 "조문객에게 보이는 화면입니다. 수정하면 이 화면은 바로 바뀌지만, 이미 보낸 카카오톡 카드는 바뀌지 않습니다."는 그대로 유지). 닫기 버튼을 머리 줄 오른쪽 flex 아이템(44px, `aria-label="닫기"`)으로 옮겨 `position:absolute` 제거 → 내용과 겹치지 않음. 모달 배경 `var(--v2-bg)`(#FDFCFA)·모서리 8px·그림자 `var(--v2-modal-shadow)`(0 24px 70px rgba(34,48,63,.26))로 교체, 옛 `#FBF9F5`·`--r-lg`·`--surface-subtle`·`--border-color`·Eye 아이콘 상자 제거. 모달 안 세로 스크롤(`max-height:90dvh`)은 유지. `ObituaryView`는 손대지 않음.
+  - ② design-v2.css `.v2-guide-toc`(legal·care-guide 공용) — `top: calc(var(--header-h) + 24px)` → `top: 24px`(데스크톱 769px↑에서 `.main-wrapper`가 이미 헤더 아래 `height:calc(100vh - header-h)` 스크롤 패널이라 top에서 header-h를 또 빼면 이중 오프셋이었음). `max-height: calc(100vh - (var(--header-h)*2) - 48px)` → `max-height: min(560px, calc(100vh - var(--header-h) - 48px))`로 교체, 낡은 주석 정리. 스크롤 조상 체인 확인: `.main-wrapper`(index.css:307, overflow-y:auto인 유일한 스크롤 조상) → `main`(App.tsx:391, 인라인 `flexGrow:1`만) → `LegalDocLayout`의 `.v2-page`(design-v2.css:49, overflow/transform/contain 없음) → `.v2-guide-shell`(design-v2.css:83, 없음) — sticky를 깨는 조상이 없음을 grep+코드로 확인. `care-guide`는 항목 5개라 560px 상한에 안 걸려 모양 그대로.
+
+  - ③ **사람 지시(같은 턴 추가)** "미리보기 모달 내부를 실제 slug와 같은 디자인으로" — `buildPreviewData()`의 `memorialSlug: null`(2026-09-09 옛 지시, 추모관 들어가기 바를 미리보기에서 뺌) 고정을 제거하고 `obituaryRef?.memorialSlug ?? null`로 실제 값을 넘기게 고침. §6.7(09-28) "본문: 부고장 페이지와 같은 모습 — 추모관 버튼·최종 수정은 박스 밖"과 옛 09-09 지시가 충돌해, 더 최신이자 이번 지시와 일치하는 09-28 쪽으로 되돌림. `ObituaryData`의 다른 필드(9개)는 `/o/:slug`가 쓰는 것과 대조해 전부 일치 확인 — 이 필드만 어긋나 있었다.
+  - `npx tsc --noEmit`(frontend) 에러 0 · `npm run build`(frontend) 통과.
+- **편차**: ①·②는 없음. ③은 2026-09-09에 의도적으로 넣은 `memorialSlug: null` 하드코딩을 되돌린 것 — 옛 지시를 어긴 게 아니라 09-28 §6.7이 이미 그 옛 지시를 대체(모달 본문=실제 페이지와 같은 모습)했는데 코드에는 반영이 안 돼 있던 상태였다.
+- **다음 에이전트가 알아야 할 것**:
+  - 🔴 실기동 검증 대기(사람 몫, dev 서버 미기동). 사람이 볼 곳: ① 1280px 창 `/obituary` 관리 화면 미리보기에서 박스형이 나오는지·창을 줄이면(안쪽 768px 미만) 모바일형으로 바뀌는지·닫기 버튼이 안내 문구와 겹치지 않는지 ② `/terms`에서 스크롤할 때 목차가 헤더 바로 아래(24px)에 고정되는지·목차 높이가 560px 안쪽인지·목차 안에서 끝까지 스크롤되는지(24개 조 전부 닿는지)·`care-guide` 목차 모양이 그대로인지 ③ **추모관이 이미 연결된 부고장**을 관리 화면에서 열어 미리보기 모달에 "추모관 들어가기" 버튼이 실제 `/o/:slug`와 똑같이 뜨는지(연결 안 된 경우는 버튼 자체가 없는 게 정상 — `ObituaryView.tsx:169` 조건).
+  - `.v2-note-toc`(ending-note 변형, §6.7 "목차의 변형" 항목)는 이번 지시 범위 밖이라 손대지 않음 — 여전히 옛 `top: calc(var(--header-h) + 24px)`를 쓴다. 같은 이중 오프셋 문제가 있을 수 있으나 이번 지시서에 없어 건드리지 않았다.
+
+<!-- 판정 생략: 2026-10-13 개발자 결정 — 게이트 미경유(9월분 일괄 보관, record.md §2-1) -->
+
+## 2026-09-28 | 부고장 미리보기 모달 재수정 — 848px→920px + `.v2-obit-page` 재사용 (사람 반려 후속)
+
+- **근거 스펙**: docs/00_핵심플랫폼/00-39_디자인_기준_재정립_명세서.md §6.7 "관리 화면 미리보기 모달" 표 "모달 폭"·"본문" 행(🔄 09-28 정정)
+- **건드린 파일**: eobomDev/frontend/src/pages/ObituaryPage.tsx, eobomDev/frontend/src/styles/design-v2.css
+- **결과**:
+  - **반려 원인**(Opus가 코드로 확인, 바로 위 항목의 848px 구현에 대한 반려): ① `.v2-obit-preview-modal`(max-width 848, `overflow-y:auto`) 안의 `.v2-obit-container`(padding 40)는 모달 세로 스크롤바(약 15px)만큼 안쪽 폭이 줄어 약 751px가 되어 `@container(min-width:768px)`가 안 걸리고 모바일형이 나옴(좌우 선 없음) ② `.v2-obit-container`에는 가운데 정렬이 없어 박스가 왼쪽에 붙음.
+  - **조치**: `.v2-obit-preview-modal`의 `max-width`를 848px→**920px**로 변경(스크롤바+패딩을 빼고도 768을 넉넉히 넘도록 — 숫자를 다시 "딱 맞는 값"으로 계산하지 않음, 스펙이 이미 920으로 확정). `.v2-obit-container`(design-v2.css·ObituaryPage.tsx 양쪽) 완전 제거 — 다른 사용처 없음을 grep으로 확인. 본문 래퍼를 실제 `/o/:slug`가 쓰는 `.v2-obit-page`로 교체하고, 미리보기 전용 변형 `.v2-obit-page.is-preview`(design-v2.css:2760)를 신설 — `min-height:auto`, 위아래 `padding 48px`만 override, 좌우 padding·배경·가운데 정렬·`container-type`은 `.v2-obit-page` 것을 그대로 물려받음(재선언 없음). 결과 트리가 `ObituaryLandingPage.tsx`와 동일(`.v2-obit-page > ObituaryView(.v2-obit-content > .v2-obit-box …)`)함을 두 파일을 나란히 읽어 확인. 머리 줄(안내+닫기 44px)은 지난 구현 그대로 유지 — `ObituaryView`·`.v2-obit-*` 값·안내 문구·인라인 스타일은 손대지 않음.
+  - `npx tsc --noEmit`(frontend) 에러 0 · `npm run build`(frontend) 통과.
+- **편차**: 없음.
+- **다음 에이전트가 알아야 할 것**:
+  - 🔴 실기동 검증 대기(사람 몫, dev 서버 미기동). 사람이 볼 곳: **1280px 이상 창**에서 `/obituary` 관리 화면 미리보기 = `/o/:slug` 데스크톱과 같은 모습인지(좌우 4px 선·가운데 680px 박스가 나오는지 — 지난 848px 시도에서 반려됐던 정확히 그 증상), 창을 줄이면(안쪽 768px 미만) 모바일형으로 자연히 바뀌는지.
+  - 위 "부고장 관리 화면 미리보기 모달 848px 확장…" 항목(이 항목 바로 위)은 이번 수정으로 대체됐다 — 그 항목의 848px·`.v2-obit-container` 관련 서술은 더 이상 코드와 일치하지 않는다(반려된 시도의 기록으로만 남긴다).
+
+<!-- 판정 생략: 2026-10-13 개발자 결정 — 게이트 미경유(9월분 일괄 보관, record.md §2-1) -->
+
+## 2026-09-28 | 그룹④ `/m/:slug` 추모관 v2 이관 + `/memorial` 추모관 수정 모달
+
+- **근거 스펙**: docs/00_핵심플랫폼/00-39_디자인_기준_재정립_명세서.md §6.7 "그룹④ 나머지 2개 — `/o/:slug` 규칙 적용"의 `/m/:slug` 표 + 그 아래 "추모 문구를 넣을 길 — `/memorial` 목록에 수정" 표 + "그룹④(랜딩) 대표 `/o/:slug`" 표(공통 틀) + §6.8 규칙 21(폼 모달)
+- **건드린 파일**: eobomDev/frontend/src/pages/MemorialLandingPage.tsx, eobomDev/frontend/src/pages/MemorialPage.tsx, eobomDev/frontend/src/styles/design-v2.css, eobomDev/frontend/src/components/ObituaryView.tsx, eobomDev/frontend/src/utils/obituaryCard.ts
+- **결과**:
+  - **작업 1 — `/m/:slug`**: `MemorialLandingPage.tsx`를 인라인 스타일 전면 폐기 → `.v2-obit-page > .v2-obit-content > .v2-obit-box`(`ObituaryLandingPage.tsx`·`ObituaryView.tsx`와 동일 트리)로 재구성. 머리: 영정(`.v2-obit-portrait`, 원형 80px·흰 테두리 제거) → 근조 문구(`.v2-obit-lede`) → `故 이름`(`.v2-obit-name`) → 별세일(`.v2-obit-death`, "YYYY년 M월 D일 별세" — 부고장과 같은 `formatDeathDate` 공유) → 추모 문구(`.v2-obit-epitaph`, 이탤릭 제거, 16px 모바일/17px 데스크톱) → 링크 공유(`.v2-btn-outline`). 헌화: 색 띠 제거, `.v2-obit-section` 하나로(문구 그대로 + `.v2-btn-primary` 하트 아이콘, 상태문구는 완료·중복 보조색/오류 `.v2-error-text`). 방명록: 입력을 §6.8(`.v2-field`·`.v2-input`·`.v2-form-submit`)로, 목록을 1px 선 행(`.v2-obit-guest-row/-head/-name/-date/-msg`)으로 바꾸고 `max-height:300px` 내부 스크롤 제거, 빈 목록은 `.v2-empty`. 불러오는 중·찾을 수 없음은 `ObituaryLandingPage.tsx`와 같은 `.v2-obit-notfound*` 래퍼 재사용(문구 그대로). `formatDeathDate`를 `ObituaryView.tsx` 로컬 함수에서 `utils/obituaryCard.ts`로 빼서 두 화면이 공유하게 함(`ObituaryView.tsx`는 이 함수를 import만 하도록 변경, 계산 로직 자체는 무변경).
+  - **작업 2 — `/memorial` 수정 모달**: `MemorialPage.tsx`의 상세 모달(`.v2-modal`, 행 클릭 시 열리는 열기·주소복사·삭제 액션 묶음)에 `수정`(`.v2-btn-outline`) 버튼을 주소 복사와 삭제 사이에 추가(`!modalTarget.closedAt`일 때만 — 목록 자체가 이미 닫힌 추모관을 걸러내므로 사실상 항상 참이지만 지시대로 방어). 누르면 같은 모달이 `ModalStep 'edit'`로 전환되며 클래스가 `.v2-modal.is-form`으로 바뀌고 제목 "추모관 수정" + 추모 문구·공개 범위 두 칸만 나온다. 두 칸은 만들기 폼과 완전히 같은 마크업을 쓰도록 `EpitaphVisibilityFields` 컴포넌트로 뽑아 양쪽(`idPrefix="mem"`/`"mem-edit"`)이 공유. 저장은 `apiFetch('/api/memorials/:id','USER',{method:'PATCH', body:{epitaph, visibility}})`(기존 `updateMemorial` 그대로) — 성공 시 목록 갱신 후 모달 전체를 닫고(`v2-notice` 지역 피드백 없음, 스펙대로 "모달 닫고 목록 갱신"), 실패 시 모달 안 `.v2-error-text`(닫히지 않고 재시도 가능). 버튼은 `저장`(`.v2-btn-primary`)·`취소`(`.v2-btn-outline`), `.v2-modal-actions.is-form-actions`(§6.7 표에 이미 등재돼 있었으나 미사용 상태였던 클래스의 첫 실사용).
+  - **백엔드**: 건드리지 않음 — `listMyMemorials`(`GET /api/me/memorials`)가 `prisma.memorial.findMany`를 `select` 없이 호출해 원래 `epitaph`·`visibility` 둘 다 이미 돌려주고 있었다(확인: memorialController.ts:153-156). `PATCH /api/memorials/:id`(`updateMemorial`)도 이미 `{epitaph, visibility}`만 받는 화이트리스트 로직이 있어(memorialController.ts:171-201) 그대로 호출. 프론트 `MyMemorial` 인터페이스에 `epitaph: string | null` 필드만 추가.
+  - **새 클래스**(design-v2.css, 총 14개, 전부 `/m/:slug` 전용): `.v2-obit-portrait` `.v2-obit-epitaph` `.v2-obit-share` `.v2-obit-share-feedback` `.v2-obit-tribute-count` `.v2-obit-tribute-status` `.v2-obit-guest-form` `.v2-obit-guest-message` `.v2-obit-guest-list` `.v2-obit-guest-row` `.v2-obit-guest-head` `.v2-obit-guest-name` `.v2-obit-guest-date` `.v2-obit-guest-msg`(+ 기존 `.v2-obit-*`/`@container(min-width:768px)` 블록에 `.v2-obit-epitaph{font-size:17px}` 한 줄 추가). `MemorialPage.tsx`(작업 2)는 새 클래스 0개 — 전부 기존 §6.7/§6.8 클래스 재사용.
+  - **인라인 스타일 전/후**: `MemorialLandingPage.tsx` 34개 → **0개**(`grep -c 'style={{' `로 확인). `MemorialPage.tsx` 8개 → **8개**(변화 없음 — 이번 작업으로 추가한 코드에는 인라인 스타일 0개, 기존 8개는 이번 지시 범위 밖이라 손대지 않음).
+  - `npx tsc --noEmit`(frontend·backend 둘 다) 에러 0 · `npm run build`(frontend) 통과.
+- **편차**: 없음.
+- **다음 에이전트가 알아야 할 것**:
+  - 🔴 실기동 검증 대기(사람 몫, dev 서버 미기동). 사람이 볼 곳: ① 부고장 체크로 만든 추모관 → `/memorial`에서 "수정" → 추모 문구 입력·저장 → `/m/:slug`에 그 문구가 뜨는지 ② 360px/1280px 창에서 `/m/:slug` 추모관 모습(모바일=박스 없음, 데스크톱=680px 박스)과 `/o/:slug` 부고장 모습이 그대로인지(공용 `.v2-obit-*` 값은 안 건드렸으니 회귀 없어야 함) ③ `/memorial` 목록에서 "수정" 버튼이 주소 복사와 삭제 사이에 나오는지, 저장 후 모달이 닫히고 목록(내부 상태)이 갱신되는지.
+  - `MemorialPage.tsx`의 기존 인라인 스타일 8개(만들기 폼 버튼 flex 배치 등)는 이번 범위 밖이라 그대로 남아 있다 — 이 화면을 다시 손볼 일이 있으면 함께 정리할 후보.
+
+<!-- 판정 생략: 2026-10-13 개발자 결정 — 게이트 미경유(9월분 일괄 보관, record.md §2-1) -->
+
+## 2026-09-28 | `/m/:slug` 배치·헌화·방명록 미세 조정 (개발자 직접 지시, 스펙 문서 없음)
+
+- **근거 스펙**: 없음 — 개발자가 화면을 보고 직접 준 5가지 UI 지시(스펙 문서 갱신은 별도로 하지 않음, 편차 아님).
+- **건드린 파일**: eobomDev/frontend/src/pages/MemorialLandingPage.tsx, eobomDev/frontend/src/styles/design-v2.css
+- **결과**:
+  1. 화면 순서를 머리 → **방명록 목록** → **헌화** → **방명록 작성** → 꼬리로 재배치(기존은 머리→헌화→방명록[작성+목록]).
+  2. 헌화: 문구+버튼을 `.v2-obit-tribute-row`(flex, `justify-content:flex-end`)로 한 줄에, 이미 헌화·오류 상태 문구는 그 아래 줄(`.v2-obit-tribute-status`/`.v2-error-text`, `.v2-obit-tribute`의 `text-align:right`를 물려받아 같이 우측 정렬). 헌화 버튼만 `.v2-obit-tribute-btn`(높이 44→36px·패딩 축소·아이콘 18→14px)로 축소 — 다른 화면이 쓰는 `.v2-btn-primary` 원본 값은 안 건드림.
+  3. "추모 방명록" 제목을 부고장과 공용인 `.v2-obit-section-title`(13px) 대신 새 `.v2-obit-guest-heading`(20px)로 — 공용 값 변경 없이 확대.
+  4. 방명록 입력 라벨(이름/고인과의 관계/고인에게 전하는 글)과 `.v2-req`/`.v2-opt` 배지 사이에 공백 추가(JSX 텍스트 노드에 스페이스 삽입) — 공용 `.v2-req`/`.v2-opt` CSS는 안 건드려 다른 화면(ObituaryPage.tsx·MemorialPage.tsx 만들기 폼)에는 영향 없음.
+  5. "이 추모관 링크 공유하기"(WebShare→클립보드 폴백) → **"링크 복사"**(클립보드 직접 복사만, `MemorialPage.tsx`의 "주소 복사"와 같은 결)로 교체하고 헤더 우상단 코너로 이동(`position:absolute`, 새 변형 클래스 `.v2-obit-header-has-copy`를 부고장과 공용인 `.v2-obit-header`에 추가로만 얹어 `/o/:slug` 쪽엔 영향 없음). 더는 자기 줄을 안 씀. `shareViaWebShareApi` import·`handleShare` 함수 제거, `handleCopyLink`로 교체.
+  - `npx tsc --noEmit`(frontend) 에러 0 · `npm run build`(frontend) 통과.
+- **편차**: 없음(스펙 문서 자체가 없는 개발자 직접 지시 — `00-39`에 반영할지는 Opus 판단 대상으로 남김).
+- **다음 에이전트가 알아야 할 것**:
+  - 🔴 실기동 검증 대기(사람 몫, dev 서버 미기동). 사람이 볼 곳: `/m/:slug`에서 ① 방명록 목록→헌화→작성 순서 ② 헌화 문구+버튼이 한 줄·우측 정렬이고 버튼이 작아졌는지, 헌화 후 "헌화하셨습니다"가 그 아래 줄에 뜨는지 ③ "추모 방명록" 글씨가 커졌는지 ④ 방명록 칸 라벨과 필수/선택 배지 사이 띄어쓰기 ⑤ 헤더 우상단에 "링크 복사" 버튼이 한 줄을 따로 안 쓰고 떠 있는지, 눌렀을 때 공유 시트 없이 바로 복사되는지(모바일 포함).
+  - `00-39` 문서에는 이번 5가지 조정이 아직 반영 안 됨 — 필요하면 `[Claude:Opus]`가 §6.7 `/m/:slug` 표를 갱신.
+
+<!-- 판정 생략: 2026-10-13 개발자 결정 — 게이트 미경유(9월분 일괄 보관, record.md §2-1) -->
+
+## 2026-09-28 | `/m/:slug` 방명록 작성을 모달로 분리 + "방명록 남기기" 버튼을 헌화 줄 왼쪽에 (개발자 직접 지시)
+
+- **근거 스펙**: 없음 — 개발자 직접 지시.
+- **건드린 파일**: eobomDev/frontend/src/pages/MemorialLandingPage.tsx, eobomDev/frontend/src/styles/design-v2.css
+- **결과**: 헌화 문구+버튼이 있던 `.v2-obit-tribute-row`를 `justify-content:space-between`으로 바꿔 왼쪽에 "방명록 남기기"(`.v2-btn-outline`) 버튼을 추가, 오른쪽 헌화 문구+버튼은 새 `.v2-obit-tribute-main`으로 묶어 그대로 우측 정렬 유지. 페이지 맨 아래 펼쳐져 있던 방명록 작성 폼(이름·관계·글)을 통째로 걷어내 `.v2-modal.is-form`(§6.7 규칙 21, `ObituaryPage.tsx`·`MemorialPage.tsx`와 같은 뼈대) 모달로 옮겼다 — "방명록 남기기" 버튼 클릭 시 열리고, 제출 성공(`handleGuestbookSubmit`)·취소(`closeGuestModal`, 배경 클릭 포함 `backdropCloseProps`) 시 닫힌다. 제출 중에는 닫기를 막는다(`guestSubmitting` 가드). 이제 화면 구성은 머리(링크 복사 코너 포함) → 방명록 목록 → 헌화(+방명록 남기기 버튼) → 꼬리, 총 3섹션. 이제 안 쓰는 `.v2-obit-guest-form` CSS 삭제.
+  - `npx tsc --noEmit`(frontend) 에러 0 · `npm run build`(frontend) 통과.
+- **편차**: 없음(스펙 문서 없음 — Opus 판단 필요하면 §6.7 갱신).
+- **다음 에이전트가 알아야 할 것**:
+  - 🔴 실기동 검증 대기(사람 몫, dev 서버 미기동). 사람이 볼 곳: `/m/:slug`에서 "방명록 남기기"가 헌화하기와 같은 줄 왼쪽에 있는지·클릭 시 모달이 열리는지·모달에서 작성·제출하면 목록에 바로 반영되고 모달이 닫히는지·취소·배경 클릭으로도 닫히는지.
+  - `00-39`에는 이번 조정도 반영 안 됨 — 앞선 5건과 함께 한 번에 문서화할 후보.
+
+<!-- 판정 생략: 2026-10-13 개발자 결정 — 게이트 미경유(9월분 일괄 보관, record.md §2-1) -->
+
+## 2026-09-28 | `/m/:slug` 추모 방명록 — 최근 5개 + "10개 더 보기" (00-39 §6.7 "방명록 길이", 사람 결정 A)
+
+- **근거 스펙**: docs/00_핵심플랫폼/00-39_디자인_기준_재정립_명세서.md §6.7 `/m/:slug` 표 "🆕 방명록 길이" 행.
+- **건드린 파일**: eobomDev/frontend/src/pages/MemorialLandingPage.tsx (design-v2.css는 안 건드림 — `.v2-list-footer-btn`이 이미 있어 그대로 씀)
+- **결과**:
+  - `visibleGuestCount` state(초기값 5) 추가. 목록은 `guestbook.slice(0, visibleGuestCount)`만 그린다(서버는 여전히 전체를 한 번에 받는다 — API 무변경).
+  - 목록 아래에 남은 개수가 있을 때만 `.v2-btn-outline v2-list-footer-btn` 버튼 노출. 라벨은 남은 개수가 10 이상이면 "10개 더 보기", 미만이면 "N개 더 보기". 누르면 `Math.min(visibleGuestCount+10, guestbook.length)`로 그 자리에서 펼침. 다 펼치면(`guestbook.length > visibleGuestCount`가 거짓) 버튼이 사라짐. 전체 5개 이하면 처음부터 조건이 거짓이라 버튼 없음.
+  - 방명록 새로 남기면(`handleGuestbookSubmit` 성공 시) 목록 맨 위에 추가하는 기존 동작은 그대로 두고, `setVisibleGuestCount((prev) => prev + 1)`을 추가해 새 글이 항상 보이는 범위 안에 들어가고 이미 펼친 개수는 줄지 않게 함.
+  - 글 내용 말줄임(`text-overflow`/`-webkit-line-clamp` 등) 없음, 목록 안 스크롤 상자 없음 — 둘 다 손대지 않음(원래도 없었음).
+  - `npx tsc --noEmit`(frontend) 에러 0 · `npm run build`(frontend) 통과.
+- **편차**: 없음.
+- **다음 에이전트가 알아야 할 것**:
+  - 🔴 실기동 검증 대기(사람 몫, dev 서버 미기동). 사람이 볼 곳: 글 0개/3개/12개/30개일 때 버튼 문구·동작, 새 글을 남긴 뒤 목록, 360px·1280px.
+  - 🔴 **개발 DB 실측(읽기 전용 count/groupBy만 실행, 쓰기 없음)**: `MemorialGuestbook` 전체 8행, 추모관별 최대 4개(개설자별로 4·2·1·1개씩) — **어느 추모관도 5개를 안 넘어 "더 보기" 버튼이 뜨는 경우가 개발 DB에 없다.** 사람이 위 4가지(0/3/12/30개) 시나리오를 보려면 실제로 방명록을 여러 개 남기며 확인해야 한다(테스트 글은 넣지 않음, 지시대로).
+
+<!-- 판정 생략: 2026-10-13 개발자 결정 — 게이트 미경유(9월분 일괄 보관, record.md §2-1) -->
+
+## 2026-09-28 | family-invite를 부고장 규칙으로 옮기기
+
+- **근거 스펙**: docs/00_핵심플랫폼/00-39_디자인_기준_재정립_명세서.md §6.7 (family-invite 표 414~421줄 · 그룹④(랜딩) 대표 /o/:slug 표 365~379줄) · docs/00_핵심플랫폼/00-27_생전_가족지정_및_유족연결_기획서.md §9.1-4-2·§9.1-4-3
+- **건드린 파일**: eobomDev/frontend/src/pages/FamilyInvitePage.tsx , eobomDev/frontend/src/styles/design-v2.css
+- **결과**: FamilyInvitePage의 7개 상태(loading·expired·notfound·error·accepted·declined·ready)를 전부 `.v2-obit-page > .v2-obit-content > .v2-obit-box` 틀로 통일했다(기존 인라인 `shellStyle`/`cardStyle` 및 상태별 인라인 카드 전량 제거, `style={{...}}` 28개 → 0개). 제목은 `.v2-obit-name`(모바일 27px·데스크톱 36px, 왼쪽 정렬) 재사용. 이름 확인 입력은 `.v2-field`/`.v2-input`(라벨 "성함"). 버튼은 수락=`.v2-btn-primary`, 거절·보조=`.v2-btn-outline`, 모바일 세로 폭 100%·데스크톱 가로(신설 `.v2-obit-invite-actions`, `@container (min-width:768px)` 분기). "관계: …<br>권한: …" 한 줄을 별도 `<p className="v2-obit-invite-desc">` 두 개로 분리(00-39 규칙 13, `<br>` 금지). 거절 확인은 `window.confirm('이 지정을 거절하시겠어요?')` → `.v2-modal` 모달(MemorialPage.tsx의 confirm-delete 단계와 같은 뼈대: 취소=`.v2-btn-outline`, 거절=`.v2-btn-solid`)로 교체, 문구는 그대로 유지. design-v2.css에 `.v2-obit-invite-desc`·`.v2-obit-invite-body`·`.v2-obit-invite-field`·`.v2-obit-invite-actions`(+`.is-center`)·`.v2-obit-invite-cta`·`.v2-obit-invite-textlink` 6개 신설 + `.v2-obit-box .v2-obit-notfound`(데스크톱에서만 padding-top:0, 박스 패딩과 겹침 보정) 1개 추가. HeartHandshake·CheckCircle2·XCircle·AlertCircle 아이콘 제거(/o,/m 랜딩이 아이콘 없는 문서형이라 맞춤). `npx tsc --noEmit`(frontend) 에러 0, `npm run build` 통과(dist 정상 생성).
+- **편차**: 없음 — 00-39 §6.7 family-invite 표·00-27 §9.1-4-2·§9.1-4-3 원칙 그대로 구현했다. 참고: `/o`·`/m` 랜딩은 loading·notfound류 화면에서 `.v2-obit-box`를 건너뛰고 `.v2-obit-content`에 바로 `.v2-obit-notfound`를 붙이지만, 이번 지시서(pending-approvals 아님, 작업 지시)가 loading·expired·notfound·error·accepted·declined까지 전부 박스 안에 넣으라고 명시해 그대로 따랐다 — `/o`·`/m`과의 이 차이는 의도적이다.
+- **다음 에이전트가 알아야 할 것**: 🔴 시안 캔버스 없음(00-39 §9.1, "규칙 적용"만 명시) — 사람 실기동 검증 완전 대기. 확인할 것: 7개 상태 전부·거절 확인 모달·모바일/데스크톱 버튼 배치(768px 분기)·지정된 이름 미노출(§9.1-3 ②)·거절 뒤 권유 버튼 없음(00-27 §9.1-4-2). 아이콘을 없앤 게 사람 눈에 밋밋하면 되돌릴 수 있다.
+
+<!-- 판정 생략: 2026-10-13 개발자 결정 — 게이트 미경유(9월분 일괄 보관, record.md §2-1) -->
+## 2026-09-28 | 홈(랜딩) 재설계 1차 구현 — 데스크톱 ⓓ 두 갈래 + 모바일 가로 4칸 넘김
+
+- **근거 스펙**: docs/00_핵심플랫폼/00-40_홈_랜딩_재설계_계획서.md §3.3(C1~C8, W-1~W-7, M-1~M-10) · 색·글자·여백은 docs/00_핵심플랫폼/00-39_디자인_기준_재정립_명세서.md §3~§5
+- **건드린 파일**:
+  - eobomDev/frontend/src/pages/HomePage.tsx (전면 재작성 — 768px 기준 HomeDesktop/HomeMobile로 분기하는 얇은 래퍼로)
+  - eobomDev/frontend/src/components/home/HomeDesktop.tsx (신규)
+  - eobomDev/frontend/src/components/home/HomeMobile.tsx (신규)
+  - eobomDev/frontend/src/lib/modeNav.ts (HOME_DUO_LABELS 상수 추가)
+  - eobomDev/frontend/src/components/Header.tsx (homeMobileOverlay prop·오버레이 렌더 분기 추가)
+  - eobomDev/frontend/src/App.tsx (isHomeRoute에 prep·bereaved 포함, /prep·/bereaved를 HomePage(landingMode)로 라우팅, DomainOverviewPage·domainSlides import 제거, Sidebar 항상 마운트, Header에 onOpenMobileMenu·homeMobileOverlay 전달)
+  - eobomDev/frontend/src/index.css (히어로 스크림 색 #FDFCFA 계열로 재조정, 이번 변경으로 도달 불가능해진 구 모바일 전용 오버라이드 제거 — `.hero-section`/`.hero-photo-bg`/`.hero-photo-scrim`/`.hero-body`/`.hero-content-card`의 ≤768px 블록, `.hero-cta-row`(전체), `.entry-extra-scrim`(전체), `.duo-photo-scrim`의 ≤768/≤480px 블록, `.fullpage-viewport`/`.fullpage-section`/`.epilogue-footer-wrapper`의 ≤640px 블록, `.scroll-hint--in-viewport`/`.home-section-dots`의 ≤640px 숨김 블록 — 신규 `.home-duo-*`·`.home-m-*`·`.site-header--home-overlay*`·`.header-hamburger-btn--on-photo` 클래스 추가)
+
+- **결과**:
+  - 데스크톱(HomeDesktop.tsx): 세로 풀페이지 3칸(휠 스냅) 유지. 섹션1 히어로 — 배지를 "✨ 아이콘·알약 틀·그림자" 없는 15px/700 글자 한 줄로, 버튼 2개(구 `hero-cta-row`)·설명 문단 제거, 제목 "장례가 끝이/아니었습니다" 50px/600 두 줄, 왼쪽 하단 "미리 준비 · 장례 준비 ↓" 텍스트 클릭 시 섹션2로 스크롤. 섹션2 — 좌(#FDFCFA 생전 준비)/우(#F5F2EC 임종 및 사후 정리) 반반, 사이 1px #E7E2DA, 라벨(미리 준비/장례 준비)→제목(생전 준비/임종 및 사후 정리, 40px 명조)→사실 한 줄→48px→메뉴 목록(생전 1열 3개·사후 2열 7개, 줄높이 56px, modeNav.ts MODE_MENUS 그대로), 맨 아래 64px 띠에 "추모관 링크로 입장"(클릭 시 인라인 입력 토글, 구 EntryBoxes.tsx 박스③ parseMemorialLink 로직 재사용)·"파트너 로그인". 섹션3 — 배지("이어봄과 함께하는…") 제거 외 유지, 배경 사진(fullpage_03)은 이제 이 섹션 하나에만 절대배치.
+  - 모바일(HomeMobile.tsx, ≤768px): 가로 스크롤스냅 4칸(히어로·생전 준비·임종 및 사후 정리·섹션3+푸터), `scroll-snap-type:x mandatory`+`scroll-snap-stop:always`, 칸 100vw×100svh(dvh 아님). 각 칸 오른쪽 아래 "n / 4"+다음 버튼(44×44px, 마지막 칸 숨김, 히어로는 흰색·나머지는 #5C6773), 좌우 화살표는 넘김 영역에 포커스 있을 때만(입력창 안에서는 무시). 헤더는 App.tsx가 `homeMobileOverlay` prop으로 넘겨 칸 위에 고정 오버레이(50px)로 뜨고 히어로 칸에서는 투명+흰 로고/햄버거, 나머지 칸은 그 칸 배경색. `/prep`→②칸·`/bereaved`→③칸 딥링크.
+  - App.tsx: `/prep`→`HomePage(landingMode="prep")`, `/bereaved`→`HomePage(landingMode="bereaved")`로 라우팅 변경(DomainOverviewPage 라우트 제거). 데스크톱은 landingMode가 있으면 곧장 섹션 인덱스1로, 모바일은 곧장 해당 칸(2·3번)으로 스크롤 + `onSetMode` 호출.
+  - `npx tsc --noEmit`(frontend) 에러 0, `npm run build`(frontend) 통과(dist 정상 생성). 청크 크기 경고(577kB)는 기존과 같은 수준 — 이번 변경으로 새로 커진 것 아님.
+
+- **편차**:
+  - 🟡 W-4 "왼쪽 칸 안쪽 여백 = 오른쪽 칸 바깥 여백"을 픽셀 단위로 그대로 구현하지 않고, 각 칸 안에서 폭 524px(1048÷2) 콘텐츠 상자를 `margin:0 auto`로 중앙 정렬하는 더 단순한 방식으로 근사했다 — 정확한 여백 값은 00-40 §3.3 끝 "🟡 섹션2 여백값" 항목으로 이미 사람 재검토가 예정돼 있어 그 자리에서 같이 조정 가능하다고 판단.
+  - 🟡 M-10에서 ④칸(섹션3+푸터) 위 헤더 배경색은 스펙에 값이 없어(사진 위라 단색 근사가 어려움) `#FBF9F5`(페이지 기본 크림)로 임시 지정 — 00-40 §3.3 끝 "섹션3 사진 단독 배치" 항목과 같은 자리에서 재검토 필요.
+  - 🟡 "추모관 링크로 입장"의 정확한 인터랙션은 스펙에 명시가 없어 구 EntryBoxes.tsx 박스③ 입력 UI를 작은 팝오버 토글로 재구성했다 — 사람이 다르게 원하면 로컬 state 토글 하나만 바꾸면 되는 자리.
+  - "이 화면만은 기존 구현을 억지로 지키지 않는다"(00-40 §0)에 따라, 구 HomePage.tsx가 쓰던 모바일 전용 CSS(위 "건드린 파일" index.css 항목 참고)를 도달 불가능해진 시점에 함께 지웠다 — 스펙이 명시적으로 요구하진 않았지만 죽은 코드로 남기지 않으려는 판단.
+  - `docs/`는 건드리지 않음(Sonnet 소유 범위 밖) — 00-39 §6.7 등재는 계획서 §3.3 문구대로 "조정이 끝난 뒤"라 이번 1차 구현에서는 하지 않았다.
+
+- **다음 에이전트가 알아야 할 것**:
+  - 🔴 실기동 검증 완전 대기(사람 몫, dev 서버 미기동 — 지시대로). 00-40 §3.3 끝 "🟡 구현 뒤 사람이 볼 것" 그대로: 섹션1 그라데이션 세기·M1 사진 자르는 위치·섹션2 여백값·가로 넘김 손맛(스냅 세기)·③ 칸 높이 넘침 여부(BEREAVED_MENU 7개가 실기기에서 잘리는지)·섹션3 사진 단독 배치(위 편차 항목들 포함).
+  - 🔴 안 쓰게 된 파일 — **삭제는 하지 않음, 목록만 남김**(AGENTS.md §1 CONFIRM): `eobomDev/frontend/src/pages/DomainOverviewPage.tsx`(완전히 고아, 어디서도 라우팅 안 함), `eobomDev/frontend/src/components/home/EntryBoxes.tsx`(컴포넌트 자체는 안 쓰지만 `Badge` export를 `Sidebar.tsx`가 계속 씀 — 통째로 지우려면 `Badge`를 먼저 다른 곳으로 옮겨야 함), `eobomDev/frontend/src/components/home/domainSlides.tsx`(EntryBoxes.tsx만 참조 — EntryBoxes가 안 쓰이는 한 사실상 고아). 사람 확인 후 처리.
+  - 모바일 홈을 벗어나면(`/prep`·`/bereaved`·`/` 이외 라우트) `App.tsx`가 `homeMobileOverlay` prop 자체를 `undefined`로 넘겨 Header가 자동으로 기본 흰 헤더로 돌아간다 — 별도 리셋 로직 없음(의도).
+  - 641~768px 구간에서 기존 `.header-nav`(홈/생전 준비/임종·사후 정리 평면 메뉴)의 ≤640px 숨김 미디어쿼리와 모바일 홈 판정(≤768px)이 어긋나는 문제를, Header.tsx가 `homeMobileOverlay` 존재 시 그 `<nav>` 자체를 렌더하지 않는 방식으로 우회했다(index.css의 640px 규칙 자체는 그대로 둠 — 다른 페이지엔 영향 없음).
+
+<!-- 판정 생략: 2026-10-13 개발자 결정 — 게이트 미경유(9월분 일괄 보관, record.md §2-1) -->
+## 2026-09-28 | 홈 데스크톱 1차 구현 사람 피드백 5건 반영
+
+- **근거 스펙**: 스펙 문서 없음 — 개발자가 직전 1차 구현(위 "홈(랜딩) 재설계 1차 구현" 항목)을 보고 준 5가지 직접 지시.
+- **건드린 파일**: eobomDev/frontend/src/components/home/HomeDesktop.tsx
+- **결과**:
+  1. 섹션1 "미리 준비 · 장례 준비" 텍스트+화살표 버튼을 왼쪽 하단에서 화면 정가운데 하단(`left:50%`+`translateX(-50%)`, `bottom:32px`)으로 옮기고, 공용 스크롤 힌트(`.scroll-hint--down`)와 같은 자리에서 겹치던 것을 히어로 섹션(activeSection===0)에서만 그 공용 힌트를 숨기는 방식으로 하나로 합쳤다. 버튼에 `scrollHintBounceDown` 애니메이션(index.css 기존 keyframe)을 그대로 적용해 손맛도 맞춤.
+  2. 히어로 제목("장례가 끝이 아니었습니다") 아래에 C4로 뺐던 설명 문단("미리 남기는 평온한 생전 준비부터 장사시설 매칭, 복잡한 사후 행정, 그리고 영원한 기억의 온라인 추모관까지. 이어봄이 삶의 마지막 여정과 남겨진 가족의 시간을 온전히 연결합니다.")을 원문 그대로 되살렸다.
+  3. 섹션2 두 칸(`.home-duo-col`)의 내부 정렬을 "각자 가운데(`maxWidth:524px`+`justifyContent:center`)"에서 "안쪽(경계선 쪽) 24px·바깥쪽 80px(00-39 §5 데스크톱 좌우 여백)"의 비대칭 여백으로 바꿨다 — 콘텐츠 상자(`maxWidth:600px`)를 `margin-left:auto`(왼쪽 칸, 경계선 쪽으로 붙임)/`margin-right:auto`(오른쪽 칸)로 안쪽에 붙이고 바깥쪽은 화면이 넓어질수록 여백만 커지게 했다. 두 상자 사이 간격은 기존 약 196px → 48px(24+24)로 좁아졌다.
+  4. 맨 아래 64px 띠(추모관 링크로 입장·파트너 로그인)에 `marginBottom: 2.5rem`을 추가해 공용 스크롤 힌트(화면 정가운데 하단 고정)와 겹치지 않게 위로 띄웠다.
+  5. 각 칸의 회색 "사실 한 줄"(`본인이 직접 적어 둡니다 · 로그인 후 이용` / `가족이 진행합니다 · 행정절차 23건`) `<p>`를 완전히 삭제하고, 그 자리를 대신하던 상단 라벨("미리 준비"/"장례 준비")을 13px → 18px로 키웠다(제목과의 `marginTop`도 48px → 36px로 재조정). `DUO_FACT` 상수는 안 쓰게 돼 파일에서 제거.
+  - `npx tsc --noEmit`(frontend) 에러 0 · `npm run build`(frontend) 통과(dist 정상 생성).
+- **편차**: 없음 — 5건 전부 지시받은 그대로 반영. 이번 피드백은 데스크톱(HomeDesktop.tsx)만 대상으로 한 것으로 판단해 모바일(HomeMobile.tsx)은 손대지 않았다("두 박스가 양쪽에" 등 문구가 데스크톱 2열 배치를 가리킴).
+- **다음 에이전트가 알아야 할 것**: 🔴 실기동 검증 대기(사람 몫, dev 서버 미기동). 모바일도 같은 방향(라벨 확대·사실 한 줄 삭제 등)으로 맞출지는 아직 지시 없음 — 사람이 모바일도 원하면 별도 지시 필요.
+
+<!-- 판정 생략: 2026-10-13 개발자 결정 — 게이트 미경유(9월분 일괄 보관, record.md §2-1) -->
+
+
+## 2026-09-28 | 홈 데스크톱 추가 미세조정 2건 (간격 재조정·팝오버 바깥클릭 닫기)
+
+- **근거 스펙**: 스펙 문서 없음 — 직전 5건 반영 뒤 개발자가 이어서 준 추가 지시 2건.
+- **건드린 파일**: eobomDev/frontend/src/components/home/HomeDesktop.tsx
+- **결과**:
+  1. "장례 준비(임종 및 사후 정리) div가 너무 가운데로 붙었다"는 재지적 → 두 칸의 안쪽(경계선 쪽) padding을 24px → 56px로 늘림(바깥쪽 80px은 그대로). 두 콘텐츠 상자 사이 간격이 48px → 112px로 넓어짐.
+  2. "추모관 링크로 입장" 팝오버가 열린 상태에서 바깥을 클릭하면 닫히도록 `memorialStripRef`(W-6 띠 전체를 감싸는 ref) + `document`의 `mousedown` 리스너(팝오버가 열려 있을 때만 등록)를 추가. ref가 토글 버튼까지 포함해 그 버튼 재클릭은 "안쪽"으로 잡혀 기존 토글 로직과 안 부딪힘.
+  - `npx tsc --noEmit`(frontend) 에러 0 · `npm run build`(frontend) 통과.
+- **편차**: 없음.
+- **다음 에이전트가 알아야 할 것**: 🔴 실기동 검증 대기(사람 몫). 112px 간격도 사람이 실화면에서 더/덜 필요하다고 할 수 있음 — `HomeDesktop.tsx`의 `.home-duo-col` padding 한 줄만 바꾸면 됨.
+
+<!-- 판정 생략: 2026-10-13 개발자 결정 — 게이트 미경유(9월분 일괄 보관, record.md §2-1) -->
+
+
+## 2026-09-28 | 홈 데스크톱 히어로 설명문단 줄바꿈 재구성 + 위치 상향
+
+- **근거 스펙**: 스펙 문서 없음 — 개발자 직접 지시.
+- **건드린 파일**: eobomDev/frontend/src/components/home/HomeDesktop.tsx
+- **결과**:
+  - 되살린 설명 문단의 줄바꿈을 "미리 남기는 평온한 생전 준비부터 / 장사시설 매칭, 복잡한 사후 행정 / 그리고 영원한 기억의 온라인 추모관까지." 3줄 + 빈 줄 + "이어봄이 삶의 마지막 여정과 남겨진 가족의 시간을 온전히 연결합니다." 로 지정된 지점에 `<br/>`을 명시해 재구성(굵은 글씨 유지).
+  - 히어로 콘텐츠 블록(`hero-content-card`, 배지+제목+설명문단)에 `transform: translateY(-10%)`를 추가해 전체를 자기 높이의 10%만큼 위로 올림.
+  - `npx tsc --noEmit`(frontend) 에러 0 · `npm run build`(frontend) 통과.
+- **편차**: "10%"의 기준을 컨테이너 높이가 아니라 요소 자기 자신의 높이(CSS `translateY(%)`의 기본 동작)로 해석해 구현 — 실화면에서 이동량이 부족/과하면 그 한 줄(`translateY(-10%)`)만 조정하면 됨.
+- **다음 에이전트가 알아야 할 것**: 🔴 실기동 검증 대기(사람 몫).
+
+<!-- 판정 생략: 2026-10-13 개발자 결정 — 게이트 미경유(9월분 일괄 보관, record.md §2-1) -->
+
+
+## 2026-09-28 | 히어로 제목 한 줄+확대, 설명문단 역계단식 들여쓰기
+
+- **근거 스펙**: 스펙 문서 없음 — 개발자 직접 지시.
+- **건드린 파일**: eobomDev/frontend/src/components/home/HomeDesktop.tsx
+- **결과**:
+  - 제목 "장례가 끝이<br/>아니었습니다"(두 줄, 50px 고정) → "장례가 끝이 아니었습니다"(한 줄, `whiteSpace:nowrap`) + `fontSize: clamp(2.4rem, 4.5vw, 4rem)`(38.4~64px, 기존 고정 50px보다 큼). vw 기반이라 좁은 데스크톱 창(769px대)에서도 잘리지 않고 자동으로 줄어든다.
+  - 설명 문단 앞 3줄을 각각 `<span style={{display:'block'}}>`으로 분리하고 `paddingLeft`를 0 → 1.5em → 3em으로 줄마다 늘려 역계단식(아래로 갈수록 더 들여쓰는 모양)으로 배치. 마지막 문장("이어봄이…")은 별도 `<p>`로 분리해 위와 한 줄(margin-top 1.3rem) 띄움.
+  - `npx tsc --noEmit`(frontend) 에러 0 · `npm run build`(frontend) 통과.
+- **편차**: "역계단식"의 방향(아래로 갈수록 들여쓰기가 느는지 주는지)이 문서상 정의가 없어 **아래로 갈수록 늘어나는 쪽**(0→1.5em→3em)으로 판단해 구현 — 반대 방향을 원하면 이 세 `paddingLeft` 값 순서만 뒤집으면 된다.
+- **다음 에이전트가 알아야 할 것**: 🔴 실기동 검증 대기(사람 몫). 역계단 방향이 의도와 반대면 즉시 되돌릴 수 있는 자리(위 편차 참고).
+
+<!-- 판정 생략: 2026-10-13 개발자 결정 — 게이트 미경유(9월분 일괄 보관, record.md §2-1) -->
+
+
+## 2026-09-28 | 홈 모바일 피드백 5건 + 바깥클릭 닫기 2건 반영
+
+- **근거 스펙**: 스펙 문서 없음 — 개발자 직접 지시(모바일 기준 5건 + 팝오버 바깥클릭 닫기 추가 지시 2건, 데스크톱 1건·모바일 1건).
+- **건드린 파일**: eobomDev/frontend/src/components/home/HomeMobile.tsx , eobomDev/frontend/src/components/home/HomeDesktop.tsx , eobomDev/frontend/src/components/Header.tsx , eobomDev/frontend/src/pages/HomePage.tsx , eobomDev/frontend/src/App.tsx , eobomDev/frontend/src/components/Footer.tsx , eobomDev/frontend/src/components/FooterMobile.tsx , eobomDev/frontend/src/index.css
+- **결과**:
+  1. 모바일 ②·③ 칸(생전 준비·임종 및 사후 정리) 제목 아래 회색 "사실 한 줄"(`DUO_FACT`) 삭제, 메뉴 목록과의 간격을 28px→24px로 재조정.
+  2. 헤더가 칸 배경색을 그대로 입던 것을 **항상 투명**으로 바꿈 — 스크롤 중 "다음 칸 배경이 헤더에 먼저 씌워지는" 현상의 원인(활성 칸 판정 시점과 실제 스크롤 진행률 불일치)을 없앴다. `homeMobileOverlay` 타입에서 `bg` 필드 제거(`variant`만 남음, Header.tsx·HomePage.tsx·App.tsx·HomeMobile.tsx 전부 반영), index.css `.site-header--home-overlay-hero`의 별도 배경 규칙을 지우고 `.site-header--home-overlay` 자체에 `background-color:transparent` 통합.
+  3. ④칸(섹션3+푸터) "엔딩노트 작성부터…" 문구를 지정된 지점(쉼표 뒤)에서 줄바꿈 + `textAlign:center` 명시.
+  4. ④칸 제목("당신과 사랑하는 가족의 / 삶의 모든 봄날을 응원합니다")이 좁은 폭에서 3줄로 wrap되던 것을 `fontSize: clamp(1.2rem, 6.2vw, 1.6rem)`로 낮춰 2줄로 들어가게 함(정확한 폭별 결과는 실기기 확인 필요).
+  5. `Footer`/`FooterMobile`에 `hideLogo` prop 신설, `HomeMobile.tsx` ④칸에서만 `<Footer hideLogo />`로 로고 블록 제거(다른 페이지의 FooterMobile은 기본값 그대로 로고 노출 — 사이트 전역 변경 아님).
+  6. (추가 지시) "추모관 링크로 입장" 팝오버가 열린 상태에서 바깥을 클릭하면 닫히도록 HomeMobile.tsx에도 HomeDesktop.tsx와 같은 `mousedown` 리스너 패턴 추가.
+  - `npx tsc --noEmit`(frontend) 에러 0(중간에 `HomePage.tsx`의 `onMobileHeaderStyleChange` 타입이 `bg` 필드를 아직 요구해 1회 에러 → 타입 정의 수정으로 해소) · `npm run build`(frontend) 통과.
+- **편차**:
+  - "삶의 모든 봄날을 응원합니다" 2줄 강제는 clamp 값(1.2rem~1.6rem)으로 근사했다 — 320px대 아주 좁은 기기에서 여전히 wrap될 가능성이 있어 실기기 확인 필요.
+  - `FooterMobile.tsx`를 수정하는 편집 중 실수로 `<a href=...>`의 `<a`가 `<`로 잘못 저장돼 컴파일 전 스스로 발견·수정했다(빌드 로그에는 안 잡히는 JSX 오타였음 — Read로 직접 재확인해 잡음).
+- **다음 에이전트가 알아야 할 것**: 🔴 실기동 검증 대기(사람 몫). 헤더 투명화로 인해 데스크톱은 영향 없음(이 prop 자체가 모바일 홈에서만 App.tsx가 넘김) — 확인만 되면 됨.
+
+<!-- 판정 생략: 2026-10-13 개발자 결정 — 게이트 미경유(9월분 일괄 보관, record.md §2-1) -->
+
+
+## 2026-09-28 | 모바일 홈 헤더 — 로고 삭제 + 메뉴·사용자 버튼 배경 투명화
+
+- **근거 스펙**: 스펙 문서 없음 — 개발자 직접 지시.
+- **건드린 파일**: eobomDev/frontend/src/components/Header.tsx , eobomDev/frontend/src/index.css
+- **결과**:
+  - `.site-header--home-overlay .header-logo-wrap { display:none; }` — 모바일 홈 헤더에서 이어봄 로고를 아예 뺌.
+  - 같은 스코프에서 `.header-hamburger-btn`·`.header-user-chip`·`.header-actions-wrap .btn-point`(로그인 버튼) 배경을 전부 `transparent`로.
+  - 히어로 칸(`.site-header--home-overlay-hero`)에서는 위 요소들의 글자·테두리를 흰색으로 — Header.tsx가 다시 이 modifier 클래스를 헤더에 얹도록 되돌림(직전 커밋에서 배경 통일 때문에 뺐던 것, 이번엔 버튼 색 구분에 다시 필요해짐). 기존 `.header-hamburger-btn--on-photo`(개별 버튼 클래스) 방식은 지우고 부모 스코프 선택자로 통합.
+  - `npx tsc --noEmit`(frontend) 에러 0 · `npm run build`(frontend) 통과.
+- **편차**: 이 변경은 `homeMobileOverlay`가 있을 때(모바일 홈, `/`·`/prep`·`/bereaved`)만 적용되고 다른 모바일 페이지 헤더(로고·햄버거·로그인 버튼)는 그대로다 — 이번 지시가 "모바일 헤더"라고만 했지만, 지금까지 대화 맥락 전체가 홈 재설계였고 전역 헤더를 바꾸면 다른 페이지들의 내비게이션 가독성에 영향을 주므로 홈으로 스코프를 좁혀 구현했다.
+- **다음 에이전트가 알아야 할 것**: 🔴 실기동 검증 대기(사람 몫). 만약 전역(다른 페이지 포함) 적용을 원했던 것이면 `.site-header--home-overlay` 스코프를 떼고 `.site-header` 자체에 적용하도록 다시 바꿔야 한다.
+
+<!-- 판정 생략: 2026-10-13 개발자 결정 — 게이트 미경유(9월분 일괄 보관, record.md §2-1) -->
+
+
+## 2026-09-28 | 모바일 헤더 로고 삭제·버튼 투명화를 전역으로 확대
+
+- **근거 스펙**: 스펙 문서 없음 — 개발자 직접 지시("전역으로 변경", 직전 항목은 모바일 홈 한정이었음).
+- **건드린 파일**: eobomDev/frontend/src/index.css
+- **결과**: 직전 항목에서 `.site-header--home-overlay`로 스코프를 좁혔던 로고 숨김(`.header-logo-wrap{display:none}`)·버튼 배경 투명화(`.header-hamburger-btn`·`.header-user-chip`·`.header-actions-wrap .btn-point`) 3규칙을 `.site-header`(전체 페이지 공용, ≤768px)로 옮겼다. 히어로 칸 전용 흰색 글자 규칙(`.site-header--home-overlay-hero`)은 그대로 홈 한정으로 남겨(다른 페이지는 헤더 배경이 흰색 그대로라 기본 진한 색이 맞는다).
+  - `npx tsc --noEmit`(frontend) 에러 0 · `npm run build`(frontend) 통과.
+- **편차**: 없음 — 지시받은 그대로.
+- **다음 에이전트가 알아야 할 것**: 🟡 641~767px 폭에서는 `.header-nav`(홈/생전 준비/임종·사후 정리 평면 메뉴, ≤640px에만 숨겨짐)가 로고 대신 여전히 "홈" 이동 수단으로 남아있다. 하지만 ≤640px(햄버거+드로어만 있는 폭)에서는 이제 로고도 없고 Sidebar.tsx의 `defaultMenuItems`(6개 도메인 메뉴, "홈" 항목 없음)에도 홈 복귀 수단이 없어 — 브라우저 뒤로가기 외에는 홈으로 돌아갈 명시적 버튼이 사라졌다. 사람이 의도한 것인지 확인 필요(드로어에 "홈" 항목을 추가하거나, 로고를 다시 살리는 선택지 있음).
+
+<!-- 판정 생략: 2026-10-13 개발자 결정 — 게이트 미경유(9월분 일괄 보관, record.md §2-1) -->
+
+
+## 2026-09-28 | 모바일 드로어 — "홈" 추가 + 모드 구분 없이 전체 메뉴 노출
+
+- **근거 스펙**: 스펙 문서 없음 — 개발자 직접 지시("드로어에 홈 추가" + "메뉴에 prep bereaved 관계없이 전부 나올 수 있도록").
+- **건드린 파일**: eobomDev/frontend/src/components/Sidebar.tsx
+- **결과**: 드로어 메뉴 구성 로직을 `navMode ? MODE_MENUS[navMode] : defaultMenuItems` 분기에서 **모듈 스코프 상수 `ALL_DRAWER_ITEMS`**(항상 고정)로 교체 — "홈"(id `home`) + `MODE_MENUS.prep`(3) + `MODE_MENUS.bereaved`(7)를 합쳐 중복 id(`counseling`, 두 모드에 동일하게 들어있음)만 한 번으로 접은 총 10개 항목을 navMode와 무관하게 항상 보여준다. 구 `defaultMenuItems`(6개 요약 목록, `obituary`·`pickup`·`memorial` 누락)는 삭제 — 더 이상 "전부"를 대변하지 못했다. 부수 효과: 이제 모든 항목이 `ModeMenuItem`(loginRequired·status 포함)에서 직접 오므로, 옛 `defaultMenuItems` 경로에서 항상 `loginRequired` 없이(잘못) 취급되던 항목들(로그인 없이 눌려도 게이트가 안 걸리던 문제)도 같이 바로잡힌다. `Sidebar.tsx`가 더 이상 개별 `MenuIcons`(HouseLeafIcon 등)·`Mail`을 직접 import하지 않는다(modeNav.ts의 데이터가 이미 아이콘을 들고 있음).
+  - `npx tsc --noEmit`(frontend) 에러 0 · `npm run build`(frontend) 통과.
+- **편차**: `SidebarProps.navMode`는 이제 컴포넌트 내부에서 안 쓰지만, App.tsx가 여전히 넘기는 값이라 interface·prop 전달은 그대로 남겼다(App.tsx의 `navMode` 상태 자체를 걷어내는 건 이번 지시 범위 밖이라 판단 — 다른 컴포넌트가 그 상태를 더 참조하는지까지 확인이 필요한 별개 정리).
+- **다음 에이전트가 알아야 할 것**: 🔴 실기동 검증 대기(사람 몫). 드로어 순서는 홈→(전문가 매칭 등 prep 3개)→(bereaved 나머지, counseling 중복 제외 6개) — 순서를 바꾸고 싶으면 `ALL_DRAWER_ITEMS` IIFE 안 배열 순서만 바꾸면 됨.
+
+<!-- 판정 생략: 2026-10-13 개발자 결정 — 게이트 미경유(9월분 일괄 보관, record.md §2-1) -->
+
+
+## 2026-09-28 | 모바일 드로어 — 점선 그룹 구분·항목 축소·배경 재도장
+
+- **근거 스펙**: 스펙 문서 없음 — 개발자 직접 지시("홈 / …전문가 매칭 / …으로 점선 구분" + "항목 크기 소폭 축소" + "배경색이 현재 디자인과 안 어울림").
+- **건드린 파일**: eobomDev/frontend/src/components/Sidebar.tsx , eobomDev/frontend/src/index.css
+- **결과**:
+  - `.mobile-drawer-panel` 배경을 `var(--primary-color)`(짙은 네이비) → `var(--card-bg)`(흰색)로 교체 — 00-39 §3 확정 팔레트(웜 뉴트럴 배경·흰/크림 카드)와 맞춤. 안의 모든 글자·아이콘·테두리 색을 밝은 배경 기준(`var(--text-main)`·`var(--point-color)`·`var(--border-color)` 등)으로 다시 잡았다(기존엔 전부 흰색/반투명 흰색 — 어두운 배경 전제였음).
+  - 항목 사이에 점선 구분선(`border-top:1px dashed var(--border-color)`)을 "홈" 뒤, "전문가 매칭"(`counseling`, 생전 준비 그룹의 마지막) 뒤에 삽입해 홈 / 생전 준비 그룹(3개) / 사후 나머지 그룹(6개) 3단으로 시각적으로 나눔.
+  - 항목 크기 축소: 버튼 padding `16px 16px` → `0.6rem 0.7rem`, 아이콘 22px→19px(아이콘 칸 26px→22px), 글자 `var(--fs-body)`(16px) → `0.95rem`(15.2px), 목록 항목 사이 여백 0.5rem→0.3rem.
+  - `npx tsc --noEmit`(frontend) 에러 0 · `npm run build`(frontend) 통과.
+- **편차**: 없음.
+- **다음 에이전트가 알아야 할 것**: 🔴 실기동 검증 대기(사람 몫). 점선 위치는 항목 `id`("home"·"counseling") 뒤에 고정돼 있어, `ALL_DRAWER_ITEMS`의 그룹 순서(홈→생전 준비→사후) 자체를 바꾸지 않는 한 안전하다.
+
+<!-- 판정 생략: 2026-10-13 개발자 결정 — 게이트 미경유(9월분 일괄 보관, record.md §2-1) -->
+
+
+## 2026-09-28 | 홈 섹션1(이어봄) G4-c 반영 + 모바일 푸터 로고·문구 전역 제거
+
+- **근거 스펙**: docs/00_핵심플랫폼/00-40_홈_랜딩_재설계_계획서.md §3.3-4 "최종 = G4-c"(데스크톱·모바일 공통). 모바일 푸터 건은 스펙 없음 → 사람 지시(같은 세션 중 추가).
+- **건드린 파일**: eobomDev/frontend/src/components/home/HomeDesktop.tsx, eobomDev/frontend/src/components/home/HomeMobile.tsx, eobomDev/frontend/src/components/Footer.tsx, eobomDev/frontend/src/components/FooterMobile.tsx, eobomDev/frontend/src/index.css
+- **결과**:
+  - 데스크톱·모바일 섹션1 문구를 `"장례가 끝이 아니었습니다"` + 아래 설명 문단 → `"이어봄"`(데스크톱 80px/모바일 52px 명조) → 1px 선(`#D8D2C8`/흰색50%) → `"장례가 전부가 아니었습니다."`(오른쪽 정렬) → 사람 작성 설명(데스크톱 2줄·모바일 3줄)으로 전면 교체(HomeDesktop.tsx L216-253, HomeMobile.tsx L260-271). 작은 배지(C2)·`.home-m-hero-badge` 삭제.
+  - 데스크톱 이어봄 시작 위치: `marginTop: 'calc((100vh - var(--header-h)) * 0.28)'`(높이 위치 미사용, §3.3-4 지시대로). 왼쪽 여백은 섹션2(구독)와 같은 고정 80px.
+  - `.hero-photo-scrim`(index.css): `0~34% 0.96 유지 → 47% 0.62 → 62%부터 0`(오른쪽 완전 투명, 100% 지점의 옅은 남색 틴트 제거). `.hero-photo-bg` background-position `62% 48%` → `72% 50%`.
+  - 오른쪽 점 3개 알약(`.home-section-dots`, 주황 점) 제거 → 오른쪽 아래 `n / 3` 텍스트로 이어봄에서는 흰색, 나머지 섹션 `#5C6773`.
+  - `.home-m-hero-scrim`: 높이 70%→80%, `0 → 0.55(40%) → 0.8(100%)`로 교체. `.home-m-hero-text` bottom `96px`→`150px`.
+  - (세션 중 추가 지시): `FooterMobile.tsx`에서 이어봄 심볼 로고 블록과 카피라이트의 "이어봄(Eobom)" 문구를 전역으로 제거 → 이제 모든 페이지의 모바일 푸터에 적용(`hideLogo` prop 자체를 Footer.tsx·FooterMobile.tsx·HomeMobile.tsx에서 제거, 조건부 아님).
+  - `cd eobomDev/frontend && npx tsc --noEmit` 통과(exit 0) · `npm run build` 통과(vite build, 1546 modules).
+- **편차**:
+  - 스펙 문구 "본문 1048px 상자의 왼쪽 선 = 화면에 해당하는 공용 컨테이너"가 코드베이스에 없어(섹션2 duo와 동일하게 고정 80px 여백으로 구현돼 있음, HomeDesktop.tsx L296-297 주석) 1048px 상자 없이 고정 `padding: 0 80px`로 구현 → 섹션2와 시각적으로 같은 왼쪽 선을 맞추는 것으로 치환.
+  - "오른쪽 아래 `1/3`" 문구가 §3.3-4 "함께 고칠 것" 절에서는 섹션1(이어봄) 맥락으로 등장하지만, `.home-section-dots`가 원래 3개 섹션 전체(0~2)에 걸쳐 렌더되던 것을 그대로 유지했으므로 인디케이터도 3개 섹션 전체에 적용(모바일 M-4 "모든 칸 방식과 동일하게 맞춤").
+  - 모바일 푸터 로고·문구 제거는 §3.3-4에는 없는 사람의 세션 중 구두 지시("전역으로 적용")를 그대로 반영 → 문서(00-40 등) 미반영, Opus 판단 문서화 필요 시 별건.
+- **다음 에이전트가 알아야 할 것**:
+  - dev 서버 미기동(방침) → 실기동 검증은 사람 몫으로 남김. §3.3-4 하단 "구현 뒤 사람이 볼 것"(그라데이션 세기·사진 크롭 위치 등) 목록 그대로 유효.
+  - 커밋은 하지 않음(CLAUDE.md 소유권 규칙) → 메시지 초안만 아래에 남긴다.
+
+<!-- 판정 생략: 2026-10-13 개발자 결정 — 게이트 미경유(9월분 일괄 보관, record.md §2-1) -->
+
+## 2026-09-28 | 홈 섹션1(데스크톱) 이어봄 왼쪽 여백 — 고정 80px → 화면 폭 비례 공식으로 확정
+
+- **근거 스펙**: docs/00_핵심플랫폼/00-40_홈_랜딩_재설계_계획서.md §3.3-4([Opus] 재지시 — 왼쪽 여백 계산식·화면별 기대값 명시).
+- **건드린 파일**: eobomDev/frontend/src/components/home/HomeDesktop.tsx
+- **결과**:
+  - `.hero-body`의 좌우 padding을 `'0 80px'` → `'0 max(80px, calc((100% - 1048px) / 2))'`로 교체(HomeDesktop.tsx L228). 225-231행 주석을 "80px = 1048 상자 왼쪽 선과 같다는 근거 설명"에서 실제 계산식·근거로 정정.
+  - 확인: `grep -n "hero-body" eobomDev/frontend/src/index.css` → 매치 0건(다른 CSS 규칙 없음, 인라인 스타일이 유일한 소스). `grep -rn "hero-body" eobomDev/frontend/src` → HomeDesktop.tsx L228 단일 매치.
+  - `node -e`로 공식을 직접 계산(Opus가 요구한 기대값과 수치 전부 일치 확인):
+
+    | 섹션 폭 | 계산값 | 기대값 |
+    | :---: | :---: | :---: |
+    | 1208px | 80 | 80 |
+    | 1280px | 116 | 116 |
+    | 1440px | 196 | 196 |
+    | 1920px | 436 | 436 |
+
+  - 세로 위치(28%)·글자 크기·간격·문구·오른쪽 정렬(62px 안쪽)·섹션2 여백·헤더·`미리 남기는`·`엔딩노트 작성`·`1 / 3`·모바일(HomeMobile)은 건드리지 않음(지시받은 범위 밖).
+  - `cd eobomDev/frontend && npx tsc --noEmit`(exit 0) · `npm run build`(vite build, 1546 modules) 통과.
+- **편차**: 없음 — 지시받은 교체·주석 정정 그대로 반영.
+- **다음 에이전트가 알아야 할 것**:
+  - 이전 항목(같은 날 "섹션1 G4-c 반영")에서 80px 고정값을 "1048 상자 왼쪽 선과 같은 원리"라고 잘못 주석에 적혀 있었던 것을 이번에 정정.
+  - dev 서버 미기동(방침) → 실화면 특히 1920px 등 다양한 폭 확인은 사람 몫으로 남김.
+  - 커밋은 하지 않음 — 메시지 초안만.
+
+<!-- 판정 생략: 2026-10-13 개발자 결정 — 게이트 미경유(9월분 일괄 보관, record.md §2-1) -->
+
+## 2026-09-28 | 홈 섹션1(데스크톱) 이어봄 왼쪽 여백 — 초광폭 화면 상한 400px 추가
+
+- **근거 스펙**: 스펙 문서 없음 — 사람 구두 지시("436인데[1920px 기준] 400으로 정정", 직전 항목의 `max(80px, (섹션폭-1048px)/2)` 공식이 1920px에서 436으로 벌어지는 것을 400으로 눌러 달라는 것).
+- **건드린 파일**: eobomDev/frontend/src/components/home/HomeDesktop.tsx
+- **결과**:
+  - `.hero-body` 좌우 padding을 `'0 max(80px, calc((100% - 1048px) / 2))'` → `'0 min(400px, max(80px, calc((100% - 1048px) / 2)))'`로 교체(HomeDesktop.tsx L228) → 화면이 아무리 넓어져도 좌우 여백이 400px을 넘지 않는다.
+  - 223-230행 주석에 상한 근거·값 확정 이유(1920px 기준 436→400) 추가.
+  - `node -e`로 재계산(기대값 일치): 1208→80 · 1280→116 · 1440→196 · 1848→400(상한 도달 지점) · 1920→400.
+  - `tsc --noEmit`·`npm run build` 통과.
+- **편차**: `docs/00_핵심플랫폼/00-40_홈_랜딩_재설계_계획서.md` §3.3-4 151행의 기대값 표가 여전히 "1920 → 436"으로 남아 있음 → 이번 상한 추가로 코드와 어긋난다. **docs/는 Sonnet 소유가 아니라 직접 고치지 않음** → `[Opus]`가 표를 "1848부터 400(상한)"으로 갱신 필요.
+- **다음 에이전트가 알아야 할 것**:
+  - `[Opus]`: 00-40 §3.3-4 151행 기대값 표 갱신 요청(위 편차 참고).
+  - dev 서버 미기동(방침) → 실화면 확인은 사람 몫으로 남김.
+  - 커밋은 하지 않음 — 메시지 초안만.
+
+<!-- 판정 생략: 2026-10-13 개발자 결정 — 게이트 미경유(9월분 일괄 보관, record.md §2-1) -->
+
+## 2026-09-28 | 유언장 사진 인식(OCR) P1 구현 — F1(사진→텍스트), 유언장 초안에 합류
+
+- **근거 스펙**: docs/06_엔딩노트_유언/06-06_유언장_사진인식_요건확인_기획서.md §4.1·§5·§6·§9 P1.
+- **건드린 파일**:
+  - 신규: eobomDev/backend/src/services/ocrProvider.ts, eobomDev/backend/src/services/clovaOcrProvider.ts, eobomDev/backend/src/services/imageConvert.ts, eobomDev/backend/src/config/uploadPhotos.ts, eobomDev/backend/src/controllers/ocrController.ts, eobomDev/backend/src/routes/ocrRoutes.ts, eobomDev/frontend/src/components/endingNote/WillPhotoUploadModal.tsx
+  - 수정: eobomDev/backend/src/server.ts(라우터 등록), eobomDev/backend/.env.example(CLOVA_OCR_* 3개 추가), eobomDev/backend/package.json·package-lock.json(의존성), eobomDev/frontend/src/pages/EndingNotePage.tsx(새 카드형 버튼·모달·고정 안내 배선)
+  - 의존성 추가: `sharp@^0.35.5`(리사이즈) · `heic-convert@^2.1.0`(HEIC→JPEG) · `pdf-lib@^1.17.1`(PDF 쪽수 확인) · devDependency `@types/heic-convert@^2.1.1`.
+- **결과**:
+  - `OcrProvider` 경계(§5 `interface OcrProvider { recognize(image, mimeType): Promise<{text, lines}> }`, `sttProvider.ts`와 같은 패턴) + `ClovaOcrProvider`(CLOVA OCR General, `X-OCR-SECRET` 헤더 + `{invokeUrl}/general` multipart, `message` JSON + `file`).
+  - 핸들러는 `ocrController.ts`의 `recognizeWillPhotos`, `POST /api/ocr/recognize`, multipart field `photos`, 최대 5개: 플래그(`CLOVA_OCR_ENABLED`) → 로그인 필요 → 하루 10회 상한 → 파일별로 [heic/heif면 `heic-convert`로 jpg 변환] → [pdf면 `pdf-lib`로 쪽수 확인, 5쪽 초과 시 400] → [그 외 이미지는 `sharp`로 긴 변 1,960px 이하로 축소, 이미 기준 이하면 인코딩 생략] → `provider.recognize` → 텍스트는 파일 사이 빈 줄로 이어 붙여 응답. 버퍼는 함수 종료와 함께 GC 대상(디스크 미기록, §5).
+  - `GET /api/ocr/status` 공개 → `{enabled}`만 알려 프론트가 업로드 버튼 노출 여부를 판단(provider 없으면 버튼 자체를 숨김, §5 마지막 줄).
+  - 프론트 `WillPhotoUploadModal.tsx`(VoiceToTextInput.tsx와 같은 파일 업로드 UI 패턴 사용, 동의 체크 → 업로드 막힘·"본인 확인 유언장만" 문구) → `EndingNotePage.tsx`의 카드 편집 영역 위에 `사진으로 불러오기` 버튼(ocrEnabled일 때만 렌더) → 결과 미리보기 → 기존 글 있으면 `바꾸기`/`뒤에 붙이기` 선택, 없으면 `초안에 담기` → 분류 → "인식된 글은 다시 한 번 읽고 확인해 주세요. 사진과 대조해 고친 뒤 저장하세요" 고정 안내(`showOcrDisclaimer`, 매번 화면에 계속 보임). 실패 시 메시지는 "아래 입력창에 직접 입력해 주세요" 안내(§6.4-9-7과 같은 원칙 — 첫 시도 입력은 언제나 남아 있음).
+  - `.env.example`에 `CLOVA_OCR_INVOKE_URL`·`CLOVA_OCR_SECRET`·`CLOVA_OCR_ENABLED=false` 자리표시자만 추가. 실제 `.env` 값은 이미 사람이 09-28에 넣어둔 걸 확인만(값은 실제 세션에서 보지 않았음 → `grep -l`로만 존재만 확인).
+  - **글 위치(box) 필드 확인**(09-28 지금까지 남은 P2 걸림돌): CLOVA OCR General 응답은 문서화된 계약상 `images[].fields[].boundingPoly.vertices`(사각형 네 꼭짓점 `{x,y}`)로 내려온다. `OcrLine.box: {x,y}[]`로 앞단에 이미 반영은 됨 → `provider.recognize`가 채워 넣고 `/api/ocr/recognize` 응답의 `lines`에 실어 보낼 수는 있지만 **실제 호출로 검증한 값은 아니다**(P0 문서·NCP 콘솔 계약 기준). 사람과 실호출 검증할 때 필드명·형태가 맞는지 최우선 확인 필요.
+  - `cd eobomDev/backend && npx tsc --noEmit`(exit 0) · `cd eobomDev/frontend && npx tsc --noEmit`(exit 0) · `npm run build`(frontend, vite build 1547 modules) 통과.
+- **편차**:
+  - **하루 10회 상한을 DB가 아니라 인메모리 Map으로 구현**(`ocrController.ts` `dailyCallCounts`) → 사용자별 카운트가 서버 재시작·다중 인스턴스에서 리셋된다. DB 테이블 신설·마이그레이션(CONFIRM 대상, `db-safety.md`)이 필요한 P1 범위를 벗어난다고 판단 → 임시 방편 1차 가드로만 충분하다고 보고 우선 이렇게 함. **실사용자 공개 전 재검토 필요**(§8 법적 쟁점 목록과 별개로 구현 부채).
+  - **업로드 진행률을 시뮬레이션하지 않는다** → `apiFetch`(fetch 기반)를 그대로 써 EndingNotePage의 기존 배선을 따랐다. VoiceToTextInput.tsx의 XHR로 실제 업로드 %를 보는 것과 달리, 이 페이지는 apiFetch만 쓰는 관례에 예외를 만들지 않았다. "처리 중" 스피너만 표시, 근사 전환.
+  - **PDF는 리사이즈하지 않는다** → §4.1 "크기 줄이기"는 사진(이미지) 기준 문구로 읽혔다. PDF는 쪽수 상한(5쪽)만 확인하고 원본 그대로 CLOVA에 넘긴다(NCP가 이미지 자체로 페이지를 렌더링).
+  - F2·F3(요건 확인·근거 표시)는 아직 손대지 않음 → P2.
+- **다음 에이전트가 알아야 할 것**:
+  - `.env`에 `CLOVA_OCR_INVOKE_URL`·`CLOVA_OCR_SECRET` 값이 이미 있고 `CLOVA_OCR_ENABLED`가 현재 무엇으로 설정돼 있는지는 사람만 안다 → 로컬 실호출 테스트 전에 `true`인지 확인 필요(값은 이 세션에서 보지 않았음).
+  - `npm run build`(backend)의 `prisma generate` 단계가 **이 세션 안에 계속 EPERM으로 실패**했다 → `node_modules/.prisma/client/query_engine-windows.dll.node`가 잠겨 있었다(`tasklist`로 확인한 다른 node.exe 프로세스, 아마 사람이 띄워 둔 백엔드 dev 서버). schema.prisma는 건드리지 않았고 `tsc --noEmit`은 통과했으므로 이 실패는 이번 변경과 무관 → 백엔드 dev 서버를 껐다 켜면 해소될 가능성이 높다.
+  - `/api/ocr/recognize` 응답의 `lines`(box 포함)이 프론트에서 아직 쓰이지 않음 → P2에서 그대로 쓰면 된다.
+  - `git status`에 이번 작업과 무관해 보이는 신규 파일 3개(`.harness/tools/generate_*.py`)와 문서 HTML 1개(`docs/이어봄_문서체계_축약_제안서.html`)가 보였으나 만들지도 건드리지도 않았음(다른 세션/Opus 작업으로 추정).
+  - 커밋은 하지 않음 — 메시지 초안만.
+
+<!-- 판정 생략: 2026-10-13 개발자 결정 — 게이트 미경유(9월분 일괄 보관, record.md §2-1) -->
+
+## 2026-09-28 | 06-06 OCR P1 편차 보정 4건([Opus] 검토 → 989eb5c 후속)
+
+- **근거 스펙**: docs/06_엔딩노트_유언/06-06_유언장_사진인식_요건확인_기획서.md §4.1·§6([Opus] 989eb5c 검토에서 나온 편차 4건 — [D][E][F][H]).
+- **건드린 파일**: eobomDev/backend/src/server.ts(줄바꿈만), eobomDev/frontend/src/components/endingNote/WillPhotoUploadModal.tsx
+- **결과**:
+  - **[D] server.ts 줄바꿈 원복**: 989eb5c에서 LF→CRLF로 전체 바뀌었던 것을 `node -e`(WSL 아님)로 `\r\n`→`\n` 치환. 확인: `git ls-files --eol`이 `i/crlf w/lf`로 나옴(커밋 이전 인덱스는 아직 이전 커밋의 crlf, 워킹트리만 lf로 고쳐놓음 → 커밋하면 i도 lf가 된다). `git diff --stat 989eb5c~1 -- server.ts` → `1 file changed, 2 insertions(+)`만 나옴(이번 세션에서 넣은 `ocrRoutes` import·등록 2줄만) → 되돌림이 맞음을 확인. 989eb5c에서 새로 만들거나 고친 다른 파일 11개 전부 `git ls-files --eol` 상 이번 server.ts 1개만 crlf고 나머지는 전부 원래 그대로(신규 파일은 lf, `EndingNotePage.tsx`는 원래도 crlf라 그대로 둬도 회귀 아님). `.gitattributes`는 건드리지 않음.
+  - **[E] 브라우저 선축소**: `WillPhotoUploadModal.tsx`에 `resizeImageIfNeeded()` 추가 → jpg·png만 `createImageBitmap`+`canvas`로 긴 변 1,960px까지 축소(이미 기준 이하면 그대로), pdf·tiff는 실패 시 원본을 그대로 반환(사용자에게 오류 표시 안 함). `handleFileSelect`가 이 함수를 파일별로 거친 뒤 `setFiles`. 서버 측 2차 축소(`imageConvert.ts` `resizeIfNeeded`)는 그대로 유지.
+  - **[F] HEIC accept 제거**: `ACCEPT` 상수에서 `.heic,.heif,image/heic,image/heif` 제거 → 이제 CLOVA가 받는 4개(jpg·png·tiff·pdf)만 남음. 안내 문구 "jpg · png · pdf · tiff · heic" → "jpg · png · pdf · tiff"로 "heic" 삭제. 서버 `heic-convert`(2차 방어)는 그대로 남김 → `uploadPhotos.ts`·`ocrController.ts` 미변경.
+  - **[H] 순서 바꾸기**: 고른 파일 목록을 `<ul>`로 바꾸고 항목마다 위/아래 이동 버튼(`ChevronUp`/`ChevronDown`) 추가, `moveFile(index, direction)`으로 배열 swap. 버튼은 `minWidth/minHeight: 44px`(00-38 §11.1 "보조 액션 ≥44px" 기준, `--min-touch-target`(56px) 전체가 아니라 보조 액션에 쓰는 기준 — FooterMobile.tsx 약관 링크와 같은 기준). 안내 문구는 "고른 순서로 인식합니다. 순서를 바꾸려면 화살표를 눌러주세요"(사실만, 평가·홍보 표현 없음).
+  - `cd eobomDev/backend && npx tsc --noEmit`(exit 0) · `cd eobomDev/frontend && npx tsc --noEmit`(exit 0) · `npm run build`(frontend, vite build 1547 modules) 통과.
+- **편차**: 없음 — 지시받은 4건([D][E][F][H])만 그대로 반영, 범위 밖 수정 없음.
+- **다음 에이전트가 알아야 할 것**:
+  - 백엔드 `npm run build`의 `prisma generate` 단계가 이번에도 `query_engine-windows.dll.node` EPERM으로 실패(직전 항목과 같은 원인 → 다른 node 프로세스가 파일을 잠금, schema.prisma 미변경). `tsc --noEmit`으로만 검증함.
+  - server.ts는 아직 커밋 이전이라 `git ls-files --eol`이 `i/`에 이전 커밋(crlf) 값을 보여줄 수 있음 → 커밋하면 `i/lf`로 바뀐다.
+  - 커밋은 하지 않음 — 메시지 초안만.
+
+<!-- 판정 생략: 2026-10-13 개발자 결정 — 게이트 미경유(9월분 일괄 보관, record.md §2-1) -->
+
+## 2026-09-23 | [Sonnet] EndingNotePage 후속 — 유언장 초안 박스 삭제 + 4대 요건 구분 기호 (사용자 직접 지시)
+
+- **근거 스펙**: 스펙 없음 — 사용자 직접 지시(화면 문구 다듬기).
+- **건드린 파일**: eobomDev/frontend/src/pages/EndingNotePage.tsx.
+- **결과**:
+  1. 유언장 초안 구간의 두 번째 경고 박스("이 초안은 본인만 볼 수 있으며 유족에게 전달되지 않습니다…") 삭제. 실제 동작(본인 전용, 사후에도 유족 비공개)은 서버·저장 로직 쪽 규칙(§6.4-2·§7.1)이라 화면 문구를 지워도 기능은 그대로다 — 안내 문장만 없앤 것.
+  2. "자필증서 유언장의 4대 요건" 목록 4개 항목의 구분 기호를 대시(—)에서 콜론(:)으로: "주소: 번지까지" · "연월일: 예: 2026년 8월 25일" · "성명: 본인 서명" · "날인: 도장 또는 지장".
+  3. "직접 입력한 내용을 자필증서 유언장을 손으로 옮겨 쓸 때 참고하는 초안으로 씁니다." 문구 삭제 — 사용자 지적대로 바로 위 `NOT_A_WILL_NOTICE`("이 화면에서 만든 글은 유언장이 아닙니다…")와 뜻이 겹쳐 중복이었다.
+  4. 검증: `npx tsc --noEmit -p .`·`npm run build`(frontend) 통과.
+- **편차**: 없음.
+- **다음 에이전트가 알아야 할 것**: 없음. 사람 실기동 검증은 앞 항목(EndingNotePage v2 이관)과 함께 대기 중.
+
+<!-- 판정 생략: 2026-10-13 개발자 결정 — 게이트 미경유(9월분 일괄 보관, record.md §2-1) -->
+
+## 2026-09-23 | [Sonnet] farewell-messages v2 이관 — 00-39 §9.1 그룹② 마지막 화면 완료(5/5) + 편지 카드 그리드
+
+- **근거 스펙**: docs/00_핵심플랫폼/00-39_디자인_기준_재정립_명세서.md §9.1(그룹② 폼·입력, farewell-messages는 09-22 시점 "미착수" — 이번으로 그룹② 5개 전부 완료) · §6.8·§6.8-1(필드·체크·저장상태 규칙, obituary·ending-note와 같은 원리로 물려받음) · 00-38 §6.1·§8.1-1(Desktop/Mobile 뷰 분리 구조, 그대로 유지) · 06-05(유족 메시지 보관함 도메인 기획서, 기능 근거).
+- **건드린 파일**: eobomDev/frontend/src/pages/FarewellMessagePage.tsx(로그인 게이트만) · components/farewell/{FarewellDesktopView,FarewellMobileView,FarewellNotice,FarewellMessageCard,VoiceToTextInput}.tsx · styles/design-v2.css(신규 클래스) · index.css(옛 `.farewell-*` 약 515줄 삭제).
+- **결과**:
+  1. **마스터·디테일 틀 신설(design-v2.css)** — `.v2-mail-shell`/`.v2-mail-sidebar`/`.v2-mail-recipient`/`.v2-mail-avatar`/`.v2-mail-detail`/`.v2-mail-add`/`.v2-mail-empty`/`.v2-mail-back`. "받는 분 목록(좌)+고른 사람 편지(우)"는 새 패턴이라 §6.7에 없다(Opus 등재 검토 필요). 데스크톱·모바일이 같은 클래스를 공유한다(모바일은 목록 단계에서 `.v2-mail-mobile-list`로 히트 영역만 56px 확장).
+  2. **편지 목록을 경계선 리스트가 아니라 카드/메모 모양으로**(2026-09-23 사람 지시, 대화 중 추가) — `.v2-letter-list`를 `auto-fit minmax(280px,1fr)` 그리드로, `.v2-letter-row`를 테두리 있는 카드(그림자 없음, §6-1-1과 같은 원칙)로 바꿨다. `.v2-mail-detail` 칸 폭(≈764px)에서 자연히 한 줄 최대 2장, 767px 이하는 1열 — "한 줄에 2개 최대"를 하드코딩 없이 컨테이너 쿼리 없는 auto-fit로 만족시켰다. 배지(`v2-letter-badge`)·제목·미리보기(2줄 클램프, 모바일에서도 유지로 변경)는 그대로 두고, 액션(다운로드·삭제)만 `margin-top:auto`로 카드 높이가 달라도 하단 정렬.
+  3. **편지 작성/수정 모달** — obituary의 `.v2-modal.is-form`(560px)보다 넓은 `.v2-modal.is-composer`(760px, A/B/C 탭 + 200px 사이드 레일 때문) 모디파이어 신설. 기존 전용 오버레이(`.farewell-message-overlay/-panel`) 대신 `.v2-modal-overlay`+`.v2-modal.is-scroll`(제목 고정+본문 스크롤) 재사용, 배경 클릭 닫기도 `onClick`에서 사이트 공통 `backdropCloseProps`로 교체.
+  4. **A/B/C 방법 탭**(`.v2-method-tabs`)·**사이드 레일**(`.v2-composer-rail`, 모바일은 접이식)·**첨부 음성 관리 박스**(`.v2-audio-attached`)는 새 클래스로, 색·톤만 v2 토큰으로 옮기고 구조(모바일에서 레일이 위로 접혀 올라가는 것 포함)는 그대로.
+  5. **제목·본문 입력**은 `.v2-input`(§6.8)로, 저장/취소 버튼은 `.v2-btn-primary`/`.v2-btn-outline`(48px, 규칙19)로. "위험 구역"(다운로드·삭제 텍스트 버튼)은 인라인 스타일 유지하되 색만 `var(--v2-urgent)`.
+  6. **`VoiceToTextInput.tsx`(700줄, 녹음·업로드·STT)는 로직 0줄 변경 — 토큰만 재도색**했다. 커스텀 체크박스(role="checkbox" span, 실제 `<input>` 아님) 2곳은 `.v2-check`/`.v2-req` 클래스를 씌우되 DOM·aria 구조는 그대로 뒀다(녹음 상태 전환과 얽힌 민감한 컴포넌트라 구조 변경 없이 최소 위험으로 접근). 안내 박스는 `.v2-notice`/`.v2-notice-warn`으로.
+  7. **index.css 정리** — `.farewell-*` 클래스 전부(레이아웃·메시지 목록·모달·탭·레일·마스터-디테일, 약 515줄) 삭제. ID 선택자 없어 남길 것도 없었다.
+  8. 검증: 매 파일 저장 후 `npx tsc --noEmit -p .`·`npm run build`(frontend) 통과(총 5회 이상 재확인). 상태 관리(recipients/messages 로드, 저장·삭제·반출, STT/녹음/업로드 전체 플로우)는 전혀 건드리지 않았다.
+- **편차**:
+  - 🔴 **`.v2-mail-*`(마스터·디테일)가 §6.7에 미등재** — ending-note의 `.v2-accordion-*`와 같은 종류의 편차(그룹② 안에서도 화면마다 구조가 달라 새 클래스가 계속 나온다). Opus가 등재 여부·그룹② 공통 규칙 확장 여부 판단 필요.
+  - 🟡 편지 카드 그리드는 대화 중 사람이 즉석에서 지시한 것이라 별도 시안 없이 구현 — 실기동에서 카드 폭·2열 줄바꿈이 기대와 다르면 `design-v2.css`의 `.v2-letter-list`(auto-fit 280px) 값만 조정하면 된다.
+  - 🟡 사람 지시는 방법 "탭"의 A/B/C 접두사만 지우라 했는데, 사이드 레일(작성 안내)의 같은 라벨("A. 음성 파일 업로드" 등)도 같이 지웠다 — 탭에서만 떼면 레일과 짝이 안 맞아 보여서다.
+- **다음 에이전트가 알아야 할 것**:
+  1. 00-39 §9.1(465·466·473~475행)의 그룹② 현황을 "5/5 완료"로 갱신 필요(Opus, docs/ 쓰기 금지라 Sonnet은 못 함) — obituary·mypage·digital-estate·ending-note·farewell-messages 전부 v2 이관 끝.
+  2. 그룹②가 끝났으니 다음은 §9.4 권고 순서상 ③(읽기·법정문서: privacy·terms) 또는 ④(랜딩: /o/:slug 등) 차례 — 사람 판단 필요.
+  3. 사람 실기동 검증 완전히 대기 — 마스터·디테일 전환, 카드 그리드 2열, 편지 작성/녹음/업로드/재생/반출/삭제 전체 플로우 실제 클릭 확인 안 됨(특히 VoiceToTextInput은 마이크 권한이 필요해 자동 검증이 어렵다).
+  4. **후속(사람 지시)** — 엔딩노트 크로스 링크 문구 "장례 희망·연명의료 등 남겨두실 것이 있습니다."(단정문)를 "장례 희망·연명의료 등 남겨두실 것이 있다면"(조건문)으로 수정(FarewellDesktopView.tsx·FarewellMobileView.tsx). 단정문은 이미 작성한 사람이 "내가 안 썼다는 건가?"로 오해할 수 있다는 지적 — 안 써본 사람·이미 써본 사람 모두에게 맞는 조건문으로. `tsc`·`build` 재확인 통과.
+  5. **후속(사람 지시, 모바일 전용)** — ① FarewellMobileView.tsx의 크로스 링크 문단 위 여백을 32px→56px로(받는 분 목록과 더 떨어지게) ② FarewellMobileView.tsx에서 `FarewellNotice`("여기에 남기신 글과…전달됩니다") 박스 삭제 — 데스크톱(FarewellDesktopView.tsx)에는 그대로 둠 ③ design-v2.css `@media(max-width:767px)`에 `.v2-letter-preview{-webkit-line-clamp:1}` 추가 — 모바일 편지 카드 미리보기를 2줄→1줄로. `tsc`·`build` 재확인 통과.
+  6. **후속(사람 지시, 모바일 전용)** — 편지 카드(`.v2-letter-row`) 내부 텍스트·줄간격 균형 조정. 데스크톱 크기(제목 19px·본문 15px·줄간격 1.65)가 모바일 카드 폭(≈310~370px)엔 과하다는 지적 — 이미 있던 모바일 폰트 토큰(`--v2-fs-item-title-mobile`17px·`--v2-fs-support-mobile`14px·`--v2-fs-label-mobile`12px)으로 제목·본문·날짜를 한 단계씩 내리고, 카드 안쪽 여백(20→16px)·줄간격(1.65→1.5)·행 사이 여백도 같이 좁혔다. 🔴 액션 버튼(다운로드·삭제, 44px)은 00-38 §11 DoD #5 터치 하한이라 그대로 뒀다 — 안 맞아 보이던 건 버튼 크기가 아니라 그 주변 텍스트·여백이었다고 판단. `tsc`·`build` 재확인 통과.
+  7. **후속(사람 지시)** — ① 편지 목록·모달 export 파일명에서 제목이 빈 편지의 표시를 "(제목 없음)" → `"{수신자 이름}에게…"`로(모바일·데스크톱 공용, `FarewellMessageCard.tsx`). ② 편지 작성/수정 모달의 방법 탭 A/B/C 접두사 제거(탭 3개·사이드 레일 라벨 2곳 전부, "음성 파일 업로드"/"음성 녹음"/"직접 쓰기"만 남김) ③ 모바일에서 탭 3개가 여전히 한 줄에 안 들어가 `.v2-method-tabs button` font-size를 `--v2-fs-support`(15px)→`--v2-fs-label-mobile`(12px), gap도 축소(design-v2.css 모바일 미디어쿼리) ④ **모바일 전용**으로 제목 입력칸을 모달 상단이 아니라 본문 입력칸(textarea) 바로 위로 이동 — `FarewellMessageCard`에 `isMobile?: boolean` prop 신설(`FarewellMobileView.tsx`만 `isMobile` 전달, `FarewellDesktopView.tsx`는 기존 위치 그대로). `tsc`·`build` 재확인 통과.
+
+<!-- 판정 생략: 2026-10-13 개발자 결정 — 게이트 미경유(9월분 일괄 보관, record.md §2-1) -->
+
+## 2026-09-23 | 모바일 디자인 정비 — Phase 4 랜딩 페이지·모달 3종 터치 타깃/레이아웃 감사
+
+- **근거 스펙**: docs/00_핵심플랫폼/00-38_적응형_모바일_UX_개편_명세서.md §11(DoD #5 터치 타깃 ≥56px 주요/≥44px 보조), §10 Phase4·§8.2(모달 바텀시트 목록). 사용자가 스펙 문서를 지칭하지 않고 직접 지시("모바일 전체 — 중복 문구 제거·폰트/버튼/여백 조정·모달 점검") — AskUserQuestion으로 범위를 "Phase4 미착수 페이지 우선"으로 확인 후 착수.
+- **건드린 파일**: eobomDev/frontend/src/pages/MemorialLandingPage.tsx, eobomDev/frontend/src/components/SocialLinkModal.tsx, eobomDev/frontend/src/components/facility/FacilityReviewModal.tsx, eobomDev/frontend/src/components/KakaoMapModal.tsx, eobomDev/frontend/src/index.css
+- **결과**:
+  1. `MemorialLandingPage.tsx` "방명록 남기기" 제출 버튼의 인라인 `height: '44px'` + `fontSize` 오버라이드 제거 → `.btn` 기본값 `height: var(--min-touch-target)`(56px) 상속으로 복귀. grep(`height: '44px'.*className="btn"`) 결과 사이트 전역에서 이 버튼 하나만 56px를 44px로 덮어쓰고 있었다(DoD#5 위반).
+  2. `SocialLinkModal.tsx` 주요 액션 버튼 2개("기존 계정에 통합하기", "독립된 새 계정으로 가입하기") `height: '52px'` → `height: 'var(--min-touch-target)'`.
+  3. `FacilityReviewModal.tsx` — 공유 모달 클래스 없이 인라인 스타일뿐이던 모달. 닫기(X) 버튼 히트영역을 `top/right: 0.6rem` + `width/height: 44px`로 확장(기존 `padding:0`이라 아이콘 22px만큼만 클릭 가능했음), 별점 버튼 5개도 각 `44×44px`로 확장(기존 24px 아이콘 + `padding:0`). 둘 다 `aria-label` 추가.
+  4. `KakaoMapModal.tsx` — 닫기 버튼 `36×36`→`44×44px`(위치 `top/right: 0.9rem`로 보정). "편의 정보" 2열 그리드(`gridTemplateColumns: '1fr 1fr'`)와 "카카오맵 길찾기/로드뷰 바로가기" 버튼 2개 가로 배치가 360px 화면에서 컬럼당 약 132px로 압축돼, 버튼 텍스트가 `.btn`의 고정 `height:56px` 밖으로 줄바꿈되어 넘칠 위험이 있어 `kakao-map-info-grid`/`kakao-map-action-row` 클래스를 부여하고 `index.css`에 `@media (max-width: 480px)` 블록을 신설(그리드 1열, 버튼 행 세로 스택).
+  - `npx tsc --noEmit`(eobomDev/frontend) 에러 0. `npm run build`(eobomDev/frontend) 통과 — `dist/assets/index-*.js` 생성 확인.
+- **편차**: 00-38 §8.2(모달→바텀시트 공통 규칙)는 LoginModal·InquiryModal·AddressSearchModal·MyPageFamilyDesignation 4종만 지목한다. `FacilityReviewModal`·`SocialLinkModal`·`KakaoMapModal`은 그 목록 밖이라 바텀시트로 합류시키지 않고(index.css에 이미 있는 `ConsultRequestModal` 제외 선례와 같은 원칙), 터치 타깃·좁은 폭 레이아웃 붕괴만 최소 수정했다. 이 판단은 오늘 사용자의 "모달 꼼꼼히 살피기" 직접 지시에 근거하며, §8.2 목록을 넓히는 `docs/` 변경은 하지 않았다(Opus 소관 — 필요하면 다음 Opus 세션이 목록 확장 여부를 판단).
+- **다음 에이전트가 알아야 할 것**:
+  1. 이번 세션은 사용자 확인으로 "Phase4 미착수 페이지 우선" 범위만 다뤘다. `HomePage.tsx`·`ObituaryLandingPage.tsx`·`ObituaryView.tsx`·`MemorialLandingPage.tsx` 본문에서 중복 문구·토큰 이탈을 훑었으나(HomePage 히어로 문장은 이미 09-10에 모바일 중복 제거가 돼 있었음), 위 4건 외에는 실질적 결함을 못 찾아 그 외 코드 변경 없음.
+  2. `FacilityReviewModal`·`SocialLinkModal`·`KakaoMapModal` 외 나머지 모달 8종(`AccountRecoveryModal`·`WithdrawalModal`·`SummaryModal`은 `.v2-modal` 시스템, `LoginModal`·`InquiryModal`·`AddressSearchModal`은 index.css 바텀시트 공통 규칙, `ConsultRequestModal`·`TaxSimulatorModal`은 각자 전용 mobile 처리)은 이미 모바일 대응이 돼 있어 이번 감사에서 추가 변경 없음.
+  3. 🔴 실기동(360px 실측) 미검증 — 사람 확인 대기. 특히 KakaoMapModal의 480px 스택 전환은 실기기에서 카카오맵 SDK 로드와 함께 눈으로 봐야 한다.
+  4. "페이지 전체" 중 Phase 1~3(FarewellMessagePage·CareGuidePage·EndingNotePage·ObituaryPage·MyPage·MyObituaryListPage·FacilityPage·CounselingPage·DigitalEstatePage)와 부록(PrivacyPage·TermsPage·DomainOverviewPage·FamilyInvitePage)은 이번 세션에서 다루지 않았다 — 필요하면 별도 세션.
+
+<!-- 판정 생략: 2026-10-13 개발자 결정 — 게이트 미경유(9월분 일괄 보관, record.md §2-1) -->
+
+
+## 2026-09-23 | EndingNotePage 유언장 초안 액션 5개 — 모바일 배열 정리
+
+- **근거 스펙**: `docs/00_핵심플랫폼/00-39_디자인_기준_재정립_명세서.md` §6.7(§6.6 버튼 클래스 `.v2-btn-primary`/`.v2-btn-outline`은 데스크톱·모바일 동일 44px — 높이는 스펙대로 유지). 배열(레이아웃) 자체는 §6에 규정이 없어 개발자의 오늘 직접 지시("저장~.txt 내려받기 버튼 5개 크기 및 배열 조정")에 따른 즉흥 구현.
+- **건드린 파일**: eobomDev/frontend/src/pages/EndingNotePage.tsx, eobomDev/frontend/src/styles/design-v2.css
+- **결과**: `EndingNotePage.tsx`의 "유언장 초안" 섹션(⑨) 하단 버튼 행(저장·큰 글씨로 보기·인쇄하기·텍스트 복사·.txt 내려받기, 기존 인라인 `display:flex;flexWrap:wrap`)에 `v2-will-draft-actions` 클래스를 부여하고 저장 버튼의 인라인 `minWidth:'140px'`를 제거, CSS로 이관. `design-v2.css`에 `.v2-will-draft-actions` 규칙 신설:
+  - 데스크톱(기본): 기존과 동일한 `flex` + `flex-wrap` 한 줄(저장 `min-width:140px` 유지) — 데스크톱 회귀 0.
+  - `@media (max-width:767px)`: `display:grid; grid-template-columns:1fr 1fr` — 저장(`.v2-btn-primary`)은 `grid-column:1/-1`로 맨 위 전체 폭 1줄, 나머지 보조 액션 4개(`.v2-btn-outline`)는 2×2 격자로 고정(기존엔 flex-wrap이라 화면 폭에 따라 줄마다 개수가 들쭉날쭉했음). 보조 버튼은 `height:auto;min-height:44px`(터치 하한 유지)·`font-size:var(--v2-fs-support-mobile)`(15→14px, 좁은 칸 텍스트 잘림 방지)로 축소.
+  - `npx tsc --noEmit`(frontend) 에러 0 · `npm run build`(frontend) 통과.
+- **편차**: 없음 — 새 클래스 신설이라 스펙과 충돌하지 않는다. `00-39` §6에 이 조합 화면(버튼 5개 혼합 행)에 대한 명시적 등재는 없어 `docs/`에 새로 올리지 않았다(사소한 레이아웃 조정으로 판단, Opus 재량으로 §6.7에 등재 여부 검토 가능).
+- **다음 에이전트가 알아야 할 것**: 🔴 실기동(360px) 미검증 — 사람 확인 대기. ".txt 내려받기" 등 아이콘+짧은 라틴+한글 혼합 라벨이 좁은 칸(약 150px)에서 줄바꿈되는지는 실기기에서 봐야 한다(계산상으로는 한 줄에 들어가지만 폰트 렌더링 차이 가능).
+
+<!-- 판정 생략: 2026-10-13 개발자 결정 — 게이트 미경유(9월분 일괄 보관, record.md §2-1) -->
+
+
+
+## 2026-09-22 | [Sonnet] FacilityPage v2 이관(00-39 §8 #5) + §5 레이아웃 값 개정(전 화면)
+
+- **근거 스펙**: docs/00_핵심플랫폼/00-39_디자인_기준_재정립_명세서.md §8 #5(facility 겉모양만 v2로, 구조·기능·그림자·호버 불변) · §6-1-1(카드 허용, 그림자+호버는 규칙으로 안 정함) · §6.1 규칙2(본문 읽기폭 고정 — 이번에 사람 지시로 실질 대체됨, 아래 편차 참고) · Opus 핸드오프(옛값→새값 대응표 확인 요청) + 사람 직접 지시 다수(세션 중 여러 차례 정정).
+- **건드린 파일**: eobomDev/frontend/src/pages/FacilityPage.tsx, eobomDev/frontend/src/styles/design-v2.css. 캔버스 "장사시설 페이지 시안 — v2 통일"(https://claude.ai/artifact/LVbmAGMkxY38JvfRhMsqsK)은 최종적으로 **기각**(사람 지시 — CareGuidePage 실측을 정본으로 재작업).
+- **결과**:
+  1. **색·서체·글자크기 토큰 교체**(§8 #5) — var(--primary-color)→var(--v2-text-main), var(--point-color)→var(--v2-point), var(--text-muted)→var(--v2-text-muted), var(--card-bg)→var(--v2-bg), var(--secondary-color)→var(--v2-selected-bg), 검색창·페이지버튼 테두리→var(--v2-btn-border), 필터 상자 테두리→var(--v2-divider-strong). var(--accent-gold)·var(--state-warn-*)는 거리·상단 배지에서 걷어내고(경고가 아니라 정보) var(--v2-text-faint)+중립 배경으로, "실제 위치 아님" 경고는 진짜 경고라 state-warn-* 유지. var(--fs-body)→var(--v2-fs-support)(15px) 일괄, 부제만 var(--v2-fs-body)(17px), 카드/리스트 제목(시설명)은 var(--v2-fs-item-title)(19px)/모바일 -mobile(17px), var(--fs-caption)은 문맥별로 15px 또는 13px(var(--v2-fs-label)). 제목 className을 page-title→v2-page-title, 감싸는 div를 v2-page-head로 교체(CareGuidePage와 동일 클래스).
+     🔴 **의도적으로 안 건드린 곳**: .form-select·.form-input·.form-label(전역 공용 클래스, 여기서 인라인으로 색을 얹으면 :focus 테두리가 죽는다) · className="btn btn-primary"인데 배경색이 인라인으로 없는 버튼(검색·적용하고 검색·상담 버튼의 배경 — .btn-primary:hover가 인라인에 가려 사라지는 걸 피함, 크기만 v2로 바꿈). 새 클래스 .v2-tag(카드 안 태그, 선택 상태 표현용) 1개 추가 — 기존 .v2-badge-neutral(칠해진 고정 배지)로는 선택 강조를 표현 못 해 사람이 4번째 예외로 승인.
+  2. **여백·폭 표준화**(§5, 전 화면 영향) — --v2-gutter-web 40→80px, --v2-gutter-mobile 20→24px, .v2-page padding 48/40/96→96/80/96(모바일 24/20/64→32/24/72). .v2-content 폭을 var(--v2-reading-width)(764px 고정)에서 calc(var(--v2-toc-width) + var(--v2-reading-width) + 48px)(1048px, .v2-page-head와 동일)로 — "제목 박스와 본문 박스 폭이 다르다"는 지적에서 시작해 care-guide처럼 맞춤(care-guide는 .v2-guide-shell이 처음부터 같은 계산식이라 원래 맞아 있었음). .v2-card-grid(pickup 등)를 고정 2열→auto-fit minmax(min(320px,100%),1fr)(facility의 .grid와 동일 패턴)로 바꿔 1048px에서 자동 3열.
+     실측(dev서버, getBoundingClientRect): /facility·/pickup 제목 y좌표 181px로 동일, 제목·본문 박스 폭 둘 다 1048px, 카드 그리드 열 수 둘 다 3, pickup 카드 폭 336px.
+  3. **facility 카드 크기 축소** — 카드 이미지 박스 160→120px, 필터 상자 안쪽 여백 1.1rem→0.9rem·칸 간격 1.2rem→0.9rem. §5 개정으로 폭이 764→1048px(2→3열)로 다시 넓어졌지만 값은 유지(카드 폭이 336px 안팎으로 비슷해 문제 없음) — 관련 주석 4곳(FacilityPage.tsx:297·299·416·765)을 1048px·3열 기준으로 정정.
+  4. 검증: 매 단계 npx tsc --noEmit -p .·npm run build(frontend) 통과. dev서버 임시 기동(작업 종료 시마다 kill)으로 CareGuidePage·PickupPage·CounselingPage 실제 렌더와 비교해 색·크기·폭을 맞췄다(design 캔버스 대신 실기동 대조를 쓴 이유는 캔버스가 실제 화면과 상당히 달랐던 것으로 09-22 세션 중 확인됨 — 아래 편차 참고). 🔴 로그인 필요 화면 없음, DB 쓰기 0건.
+- **편차**:
+  - 🔴 **캔버스를 정본으로 안 썼다.** 처음 캔버스로 시안을 만들었는데(그림자 카드+배지+태그 칩+세그먼트 토글 등 새 시각 요소 다수) 사람이 "다른 페이지와 통일성이 없다"고 지적, dev서버로 /pickup·/counseling 실측해보니 실제 화면은 훨씬 밋밋했다(채운 배지 없음, 세그먼트 토글 없음, 필드 라벨 없음). 결국 사람이 캔버스 자체를 기각하고 "먼저 옛값→새값 대응표를 보여달라"로 방식을 바꿨다. feedback_design_tool_over_live_testing(09-18, "무조건 Design 캔버스")과 결이 다른 예외 사례 — Design 캔버스가 실제 구현된 화면과 크게 벌어질 수 있다는 반례로 메모리 갱신 검토 필요.
+  - 🔴 **§6.1 규칙2(본문 읽기폭 고정) 사실상 무력화.** .v2-content를 764→1048px로 바꾼 것은 이 규칙(체크리스트·법정문구 화면도 넓은 화면을 안 채운다)과 정면 충돌한다. 사람이 "전화면 다 푼다"고 명시적으로 확정했으나(09-22), 문서(00-39 §6.1)는 아직 그 문구 그대로다 — Opus가 규칙2를 삭제/수정할지 판단 필요.
+  - 카드 안 태그용 신설 클래스 .v2-tag는 §6.7 클래스 등재 대상이나 아직 문서에 없다.
+  - .form-select/.form-input/.form-button류의 배경색은 이번에 안 바꿨다 — facility의 검색창·"검색" 버튼 등 일부는 여전히 옛 primary-color 계열로 남아 있다(§8 #5 완전 이관은 아님, 위 1번 참고).
+- **다음 에이전트가 알아야 할 것**:
+  1. 00-39 문서 갱신 필요 3건 — ① §5 수치(gutter-web/mobile·.v2-page padding·.v2-content 폭 계산식·.v2-card-grid auto-fit) ② §6.1 규칙2 문구(읽기폭 고정 원칙과 이번 결정의 관계 정리) ③ §6.7 클래스 등재에 .v2-tag 추가.
+  2. .v2-content 폭 확대로 다른 8개 화면(DigitalEstatePage·MyGuestbookPage·MyPage·MyConsultationsPage·FamilySharedPage·MyObituaryListPage·PickupPage·CounselingPage)도 영향권이다 — 이번에 각 화면 내부까지 실기동으로 훑지는 못했다. 특히 여러 줄 문단이 있는 화면이 새로 생기면 764px(var(--v2-reading-width))로 개별 캡을 씌울 것(이번 점검에서 9개 화면 모두 해당 없음 확인됨 — .v2-do-list 등 목록류는 제외 대상).
+  3. facility 실기동 검증 대기 — 이번 세션은 dev서버 임시 기동+즉시 종료로 스냅샷만 비교했고, 사람의 실제 화면 확인은 아직이다.
+
+<!-- 판정 생략: 2026-10-13 개발자 결정 — 게이트 미경유(9월분 일괄 보관, record.md §2-1) -->
+
+## 2026-09-22 | [Sonnet] memorial v2 이관(00-39 §9.1 그룹① 편입) — 완료
+
+- **근거 스펙**: docs/00_핵심플랫폼/00-39_디자인_기준_재정립_명세서.md §9.1(2026-09-22 개발자 지시로 `memorial`이 그룹⑦ 미정 → 그룹① 목록·체크리스트로 편입) · §6.7(목록 클래스) · §6.8·§6.8-1(폼 클래스, 그룹② 대표 `obituary`에서 확정) · §6.4(안내 모달).
+- **건드린 파일**: eobomDev/frontend/src/pages/MemorialPage.tsx (전면 재작성). CSS 신규 클래스 없음 — 기존 §6.7·§6.8 클래스만 재사용.
+- **결과**:
+  1. **목록** — `MyObituaryListPage.tsx`(my-obituaries)의 행·모달 패턴을 그대로 적용: `.v2-page`/`.v2-page-head`/`.v2-content`/`.v2-list-row`/`.v2-list-main`/`.v2-list-title`/`.v2-list-meta`/`.v2-row-chevron`. 공개범위(`VISIBILITY_LABEL`)는 상태(진행중/종료) 표시가 아니라서 `.v2-status-active`가 아닌 `.v2-list-inline-meta`(중립 회색, MyObituaryListPage 밖에서는 처음 쓴 조합이나 §6.7에 이미 있는 기존 클래스)로 달았다.
+  2. **만들기 폼** — 접이식 인라인 폼(기존 UX 유지, 별도 화면·모달로 옮기지 않음)을 §6.8·§6.8-1 클래스로 재작성: `.v2-form`/`.v2-form-section.is-plain`/`.v2-field`/`.v2-input`/`.v2-select`/`.v2-check`. 폭은 옆 미리보기가 없어 `.v2-form-shell`(1048px) 대신 모달 폼과 같은 560px로 직접 캡(규칙 21의 폼 모달 폭과 통일). 필수(성함·허위개설 동의)는 `.v2-req`, 선택(사망일·추모문구)은 `.v2-opt`. 오류는 브라우저 기본 검증 대신 칸별 `.v2-error-text` + 폼 위 요약 한 줄(`확인이 필요한 항목이 N개 있습니다`) + 첫 오류 칸 포커스(규칙 17). 제출 버튼은 상태를 글자로 말한다(`만드는 중…`, 규칙 19).
+  3. **삭제 확인** — `window.confirm` 제거, `WithdrawalModal.tsx`의 단계형 확인 패턴을 빌려 목록 행 클릭 → 상세 모달(`modalStep: 'detail'`, 열기·주소복사·삭제) → 삭제 버튼 → 같은 모달 안에서 `confirm-delete` 단계(사실만 진술, 해설 없음)로 전환 → 커밋 버튼만 `.v2-btn-solid`(urgent 빨강), 나머지는 `.v2-btn-outline`. 삭제 진행 중에는 배경 클릭으로 안 닫히게 `closeModal`에서 `deletingId` 가드.
+  4. 옛 토큰(`--primary-color`·`--point-color`·`--card-bg`·`--secondary-color`·`--text-muted`·`--fs-*`·`--sp-*` 등) 전량 제거, `page-title`/`page-subtitle` 클래스도 `.v2-page-title`/`.v2-page-subtitle`로 교체. 장식 배지("온라인 추모 공간")와 제목 아이콘은 뺐다 — my-obituaries·counseling 등 이미 이관된 그룹① 화면 어디에도 그런 배지가 없어 규칙 5(긴급도 배지 금지)와 같은 결로 판단.
+  5. 기능은 그대로: 만들기(POST /api/memorials)·삭제(DELETE, 소프트)·주소복사(copyObituaryLink)·공개범위 3종. 백엔드 변경 없음.
+  6. 검증: `npx tsc --noEmit -p .`·`npm run build`(frontend) 통과. dev 서버는 기동 확인만(응답 200 미확인 — HTTPS 자체서명 인증서로 curl 실패, 즉시 kill) 하고 렌더 스크린샷 대조는 안 했다 — 사람 실기동 확인 정책(dev 서버는 사람이 직접 확인) 때문에 여기서 멈춤.
+  7. **사람 피드백 반영(같은 날)** — ⓐ "새 추모관 만들기" 버튼을 좌측 정렬에서 우측 정렬로(감싸는 `flex`+`justify-content: flex-end`). ⓑ 부제 "조문객이 온라인으로 헌화·방명록을 남길 수 있는 공간입니다. 부고장과 별개로 여기서 직접 만들고 지웁니다."가 *"AI가 만든 md파일 내용 같다"*는 지적 — 두 번째 문장(부고장과의 내부 분리 로직 설명, 사용자에게 불필요)을 통째로 빼고 "조문객이 헌화·방명록을 남길 수 있는 추모 공간입니다."로 축약(`00-39` §6.2 "AI 어투 금지" 09-22 지적과 같은 신호 — 화면 문구에 내부 설계 이유를 옮기지 않는다).
+- **편차**:
+  - 🔴 **만들기 폼을 모달이 아니라 인라인으로 유지**했다. 규칙 21("수정은 새 화면이 아니라 모달")은 문언상 *수정*에 대한 것이고 *만들기*는 명시가 없어, 기존 UX(목록 위 인라인 확장 카드)를 유지하는 쪽으로 판단했다 — 사람이 다른 판단을 하면 `.v2-modal.is-form`(560px)로 옮기면 된다.
+  - 삭제 확인 문구가 §6.4 규칙 10(안내 모달은 세 줄: 제목·기한·근거)을 문자 그대로 따르지 않는다 — §6.4는 법정기한 안내 모달용이라 확인/취소 모달에는 기계적으로 안 맞았고, 대신 규칙 11(해설·조언 없이 사실만)의 정신만 가져와 결과(링크 무효화)와 남는 것(방명록·헌화)만 진술했다.
+- **다음 에이전트가 알아야 할 것**:
+  1. 00-39 §9.1 표(465·471·473행)가 아직 "🟡 memorial 남음"으로 돼 있다 — Opus가 이 완료를 반영해야 함(Sonnet은 docs/ 쓰기 금지).
+  2. `memorial` 완료로 그룹① 4개(care-guide·counseling·pickup·my-obituaries) + facility + memorial = 전부 v2 이관 완료. 남은 그룹은 ②(ending-note·farewell-messages 미착수)·③·④·⑤·⑥(보류).
+  3. 사람 실기동 검증 대기(만들기 폼 제출 흐름·삭제 2단계 모달 실제 클릭 확인 안 됨).
+
+<!-- 판정 생략: 2026-10-13 개발자 결정 — 게이트 미경유(9월분 일괄 보관, record.md §2-1) -->
+
+## 2026-09-22 | [Sonnet] 사람 직접 지시 4건 — 사이드바 배지 제거·검색창 통일·04-01 §0.2-0 카드 문구·memorial 아이콘
+
+- **근거 스펙**: docs/04_디지털_자산_정산/04-01_디지털_계정_정리_명세서.md §0.2-0(2026-09-22 개발자 승인 — STEP1 카드 화면 문구 확정 표) · 사람 직접 지시 3건(사이드바 배지·검색창 통일·버튼 아이콘, 문서 근거 없음).
+- **건드린 파일**: eobomDev/frontend/src/lib/modeNav.ts, eobomDev/frontend/src/pages/DigitalEstatePage.tsx, eobomDev/frontend/src/pages/FacilityPage.tsx, eobomDev/frontend/src/pages/PickupPage.tsx, eobomDev/frontend/src/pages/MemorialPage.tsx. 신규: eobomDev/frontend/src/components/LocationSearchBox.tsx.
+- **결과**:
+  1. **사이드바 "준비 중" 배지 제거** — `modeNav.ts`의 `pickup`·`digital-estate` `status`를 `'preview'` → `'active'`로. 둘 다 로그인·API 없이 정적 콘텐츠(vendors 목업·계정 찾기 안내)로 완결돼 있어 wt131·wt135(ending-note·memorial)와 같은 조치.
+  2. **facility 검색창 기준으로 pickup 검색창 통일 + 모듈화**(사람 지시) — `LocationSearchBox.tsx` 신설. FacilityPage가 §8 #5로 그대로 두던 옛 `.form-select`/`.form-input`/`.form-label`/`.btn.btn-primary` 박스(배경·테두리·그림자 있는 카드, "위치: X" 헤딩+MapPin 아이콘, 기본값 배지, 시/도·시/군/구 셀렉트, 라벨 붙은 검색어 입력, 검색 버튼)를 그대로 컴포넌트로 뽑아 양쪽 페이지가 재사용한다. facility는 `구분`(카테고리) 셀렉트를 `extraField`로 끼워 넣고, pickup은 생략. PickupPage가 쓰던 `.v2-filter-row`/`.v2-select`/`.v2-input`/`.v2-btn-primary`와 별도의 "📍 현재 위치" 줄(`.v2-location-line`)은 걷어내고 이 박스 하나로 합쳤다.
+  3. **04-01 §0.2-0 구현** — `DigitalEstatePage.tsx`의 `DISCOVERY_STEPS` 카드 3장(기관 줄·웹 설명·모바일 설명·3번 카드 제목)을 §0.2-0 표 그대로 교체. `DiscoveryStep`에 `deadlineLabel` 필드를 추가해 아래 줄 라벨을 카드마다 다르게(신청 기한 / 결과 확인 / 처리 기간, 고정 "기한" 제거). 3번 카드의 옛 `provider`("1-B에서 확인된 카드사에 개별 청구")가 화면에 내부 번호 `1-B`를 그대로 노출하고 있던 것을 발견해 표대로 `"각 카드사"`로 고쳤다(§0.2-0 규칙 ① 위반 수정). `step.id`(`1-A`·`1-B`·`1-B-1`)는 React `key`로만 쓰이고 화면에는 안 나가는 것을 확인.
+  4. **MemorialPage "새 추모관 만들기" 버튼에 `Plus` 아이콘 추가**(사람 지시 — 원래 코드에 있던 아이콘을 v2 재작성 때 뺐던 것 복원, ObituaryPage.tsx "새 부고장 작성하기"와 같은 패턴).
+  5. 검증: `npx tsc --noEmit -p .`·`npm run build`(frontend) 매 단계 통과.
+- **편차**:
+  - 🔴 **`LocationSearchBox`가 00-39 §9.1 흐름과 반대 방향이다.** 그룹①(facility·pickup 포함)은 옛 클래스 → `.v2-*` 클래스로 이관하는 게 지금까지 방향이었는데, 이번 지시는 반대로 pickup을 facility의 옛 `.form-select`/`.form-input`/`.btn` 스타일로 되돌렸다. 사람이 이 화면에 한해 직접 지시한 것이라 그대로 구현했다 — `00-39` §6.7 클래스 표에 이 역행이 반영돼야 하는지는 Opus 판단 필요.
+- **다음 에이전트가 알아야 할 것**:
+  1. `LocationSearchBox`는 현재 facility·pickup 2곳에서만 쓴다. 다른 위치 검색 화면이 생기면 이 컴포넌트를 먼저 확인할 것.
+  2. 04-01 §0.2-1(사실 오류 3건)은 이미 이전 세션에서 코드에 반영돼 있었다(주석에 "2026-09-22 §0.2-1 정정" 기존 존재) — 이번엔 §0.2-0(화면 문구) 부분만 새로 했다.
+  3. 사람 실기동 검증 대기 — 사이드바 배지 제거·검색창 두 화면·04-01 카드 3장 실제 렌더 확인 안 됨.
+
+<!-- 판정 생략: 2026-10-13 개발자 결정 — 게이트 미경유(9월분 일괄 보관, record.md §2-1) -->
+
+## 2026-09-22 | [Sonnet] EndingNotePage v2 이관 — 00-39 §9.1 그룹② 나머지 착수(2/5 완료)
+
+- **근거 스펙**: docs/00_핵심플랫폼/00-39_디자인_기준_재정립_명세서.md §9.1(그룹② 폼·입력, ending-note는 09-22 시점 "미착수") · §6.8·§6.8-1(그룹② 대표 obituary에서 확정된 필드·오류·체크·저장상태 규칙, "mypage는 같은 그룹이므로 obituary 규칙을 적용만 한다"는 §9.2 표의 원리를 그대로 물려받음) · 00-38 §8.1-2(모바일 목차 리스트+전체화면 리더, 구조는 유지).
+- **건드린 파일**: eobomDev/frontend/src/pages/EndingNotePage.tsx(전면 재작성) · eobomDev/frontend/src/components/endingNote/AccordionSection.tsx · SectionTimingControl.tsx · SummaryModal.tsx · eobomDev/frontend/src/styles/design-v2.css(신규 클래스 추가) · eobomDev/frontend/src/index.css(옛 `.ending-note-*` 약 250줄 삭제, ID 기반 scroll-margin-top 규칙 1개만 유지). `components/endingNote/styles.ts`(cardStyle/cardTitleStyle)는 MemorialLandingPage·FamilyInvitePage가 아직 써서 그대로 뒀다 — EndingNotePage 쪽 사용만 걷어냈다.
+- **결과**:
+  1. **레이아웃 틀 신설(design-v2.css)** — `.v2-note-shell`/`.v2-note-toc`/`.v2-note-toc-link`/`.v2-note-main`은 `.v2-guide-shell`(care-guide)과 같은 폭 계산식(236+764+48=1048px)을 쓰되 DOM 순서만 목차를 앞에 둬 좌측에 오게 했다(기존 구조 유지). `.v2-accordion-item`/`.v2-accordion-header`/`.v2-accordion-body`는 이 화면에서 처음 나온 새 패턴("여러 섹션을 각자 접고 펴고 저장") — §6.7에 아직 미등재(Opus 몫). `.v2-note-draft-grid`는 유언장 초안의 입력칸\|체크리스트 2단.
+  2. **모바일 리더는 새 CSS를 안 만들고 기존 `.v2-modal-overlay`+`.v2-modal.is-scroll`을 재사용**했다 — title 고정+body flex:1 overflow-y:auto+actions가 자연히 하단 고정되는 구조가 이미 그 모양이었다. 뒤로가기 화살표만 `.v2-modal-title` 안에 인라인으로 얹었다. 전용 오버레이(`.ending-note-reader-overlay` 등)와 배경 클릭이 `onClick`만 쓰던 것도 사이트 공통 `backdropCloseProps`로 교체(2026-09-21 전 모달 공통 규칙 적용 — 이 화면만 빠져 있었다).
+  3. **모바일 목차 리스트**를 전용 `.ending-note-mobile-toclist`/`-tocrow`/`.ending-note-status-pill`(done/todo) 대신 §6.7 기존 목록 클래스(`.v2-list-row`/`.v2-list-main`/`.v2-list-title`/`.v2-list-meta`/`.v2-row-chevron`)로 교체, 완료 표시는 배지 대신 데스크톱 목차와 같은 체크/빈원 아이콘(CheckCircle2/Circle)으로 통일.
+  4. **8개 섹션 본문**(`sectionBodies`) 전부 `.form-group`/`.form-select`/`.form-input`/`.form-label` → `.v2-field`/`.v2-select`/`.v2-input`(§6.8)로, 보험 체크박스는 `.v2-check`로, 경고 박스는 `.v2-notice-warn`/정보 문구는 `.v2-notice`로 교체. 각 입력에 `id`+`htmlFor` 연결(접근성, obituary FormField 패턴과 동일).
+  5. **SummaryModal·SectionTimingControl**도 전용 오버레이(`.ending-note-summary-overlay/-panel`) 대신 `.v2-modal-overlay`+`.v2-modal.is-scroll`, select는 `.v2-select`로.
+  6. **AccordionSection의 저장/취소 버튼**을 `.btn.btn-point`/`.btn`(인라인 배경색)에서 `.v2-btn-primary`/`.v2-btn-outline`으로, 저장 상태 문구는 그대로(규칙 19, saveButtonLabel 로직 안 건드림).
+  7. **index.css 정리** — `.ending-note-*` 클래스 전부(레이아웃·토크·아코디언·모바일 목차·리더·요약, 약 250줄) 삭제. ID 선택자(`#ending-note-consent`, `[id^="ending-note-section-"]`)로 건 `scroll-margin-top` 규칙 1개만 남겼다 — 클래스가 아니라 EndingNotePage.tsx가 찍는 DOM id를 그대로 겨누므로 마크업 변경과 무관하게 계속 필요하다.
+  8. 상태 관리(정책 동의·섹션별 저장·가족 공개 시점·유언장 초안 인쇄/복사/다운로드 등 모든 훅·핸들러)는 **전혀 건드리지 않았다** — 표현 계층만 옮긴다는 원칙(§8 #5와 같은 결) 그대로.
+  9. 검증: `npx tsc --noEmit -p .`·`npm run build`(frontend) 통과. 빌드 중 design-v2.css에 실수로 남긴 중복 `}` 1개(브레이스 불균형, CSS 파싱 경고로 발견)를 바로 잡았다.
+- **편차**:
+  - 🔴 **인쇄용(`handlePrintDraft`) 별도 HTML 문서 안의 `padding: var(--fs-caption) 0.9rem`** — `window.open`으로 여는 새 문서라 우리 앱 CSS 변수가 그 문서에 없어 애초부터 유효하지 않은 값이었다(이번 작업과 무관한 기존 버그, 인쇄 스타일은 의도적으로 하드코딩 색을 쓰는 영역이라 손대지 않았다).
+  - 🔴 **새 아코디언 패턴(`.v2-accordion-*`)이 §6.7에 미등재** — obituary·care-guide 어디에도 "섹션마다 개별 저장"하는 화면이 없어 새로 만들 수밖에 없었다. Opus가 §6.7 표에 등재할지, farewell-messages(그룹② 남은 화면)에서도 재사용할지 확인 필요.
+- **다음 에이전트가 알아야 할 것**:
+  1. 00-39 §9.1 현황(473~475행)의 "`ending-note`·`farewell-messages` 미착수"를 "`ending-note` 완료"로 갱신 필요(Opus, docs/ 쓰기 금지라 Sonnet은 못 함).
+  2. `farewell-messages`가 그룹② 마지막 미착수 화면 — 이 화면과 구조가 비슷하면(섹션별 저장이 아니라 목록형일 수도 있음, 미확인) `.v2-accordion-*`를 그대로 쓸 수 있는지 먼저 확인할 것.
+  3. 사람 실기동 검증 대기 — 데스크톱 아코디언 펼침/접힘, 모바일 목차→리더 진입·저장·취소, "한눈에 보기" 모달, 유언장 초안 인쇄/복사/다운로드 전부 실제 클릭 확인 안 됨.
+  4. `git diff`가 EndingNotePage.tsx를 파일 전체 교체처럼 보여준다(라인엔딩·인코딩 확인 결과 정상 LF/UTF-8, 실제로는 변경분이 991/1008줄에 흩어져 있어 diff 알고리즘이 통짜 하나로 뭉친 것 — 실제 내용 문제 아님). 리뷰 시 참고.
+
+<!-- 판정 생략: 2026-10-13 개발자 결정 — 게이트 미경유(9월분 일괄 보관, record.md §2-1) -->
+
+## 2026-09-21 | [Sonnet] 헤더 모드 드롭다운 — 클릭 후 고정 제거·버튼 클릭 시 첫 항목으로 이동 (사용자 직접 지시)
+
+- **근거 스펙**: `docs/00_핵심플랫폼/00-39_디자인_기준_재정립_명세서.md` §6-3(헤더 드롭다운) · 사용자 직접 지시("호버했다가 다른 쪽으로 움직이면 잘 닫히나, 클릭하면 고정되는 현상 제거. 메뉴 자체 클릭 시 첫 번째 페이지로")
+- **건드린 파일**: `eobomDev/frontend/src/styles/design-v2.css`, `eobomDev/frontend/src/components/Header.tsx`
+- **결과**:
+  1. `design-v2.css`: `.hdr-mode:focus-within .hdr-mode-panel` → `.hdr-mode:has(:focus-visible) .hdr-mode-panel`. 마우스 클릭으로 생긴 포커스로는 패널이 열려 있지 않고, 키보드 Tab 이동일 때만 유지(접근성 보존).
+  2. `Header.tsx`: `goToEndingNote`·`goToCareGuide` 삭제 → `goToModeFirst(mode) = goToModeItem(mode, MODE_MENUS[mode][0])` 신설, 두 트리거 `onClick`을 `() => goToModeFirst('prep')` / `() => goToModeFirst('bereaved')`로 교체. 이동 대상은 이전과 같은 `ending-note` / `care-guide`(`modeNav.ts` 첫 항목).
+  3. `npx tsc --noEmit -p .`(frontend) 에러 0. 사람이 실기동 확인 후 커밋(`c2e9899`).
+- **편차**: 없음. 부작용 1건 — 트리거 클릭에도 첫 항목의 `loginRequired` 게이트가 적용된다(비로그인이 "생전 준비"를 누르면 로그인 모달. "임종·사후 정리"는 `care-guide`가 게이트 없음이라 그대로 이동).
+- **다음 에이전트가 알아야 할 것**: 메뉴 항목을 클릭한 직후 마우스가 패널 위에 있으면 패널은 마우스가 벗어날 때까지 남는다(즉시 닫으려면 React 상태가 필요해 넣지 않음).
+
+<!-- 판정 생략: 2026-10-13 개발자 결정 — 게이트 미경유(9월분 일괄 보관, record.md §2-1) -->
+
+## 2026-09-21 | [Sonnet] 00-39 그룹② 대표 `obituary` 재구현 — 입력|미리보기 2단(sticky)·필드별 오류·체크 행·폼 모달
+
+- **근거 스펙**: `docs/00_핵심플랫폼/00-39_디자인_기준_재정립_명세서.md` §6.8(폼·입력)·§9.1(그룹② 대표=`obituary`) · 시안 = Design 캔버스 `https://claude.ai/artifact/QnsvwHQ2VcdTQncwJdoS7F`(W1·W2·M1·M2·W3·M3) · 사용자 직접 지시 다수(아래 결과 ⑤)
+- **건드린 파일**: `eobomDev/frontend/src/pages/ObituaryPage.tsx`, `eobomDev/frontend/src/components/ObituaryView.tsx`, `eobomDev/frontend/src/styles/design-v2.css`
+- **결과**:
+  1. `ObituaryPage.tsx` 폼: `formCard`를 파일 상단에 신설한 `FormField`·`FormSection` + `.v2-form*` 클래스로 재작성. 브라우저 기본 검증(`required`) 대신 `<form noValidate>` + `fieldErrors` 상태 + `FIELD_ERROR_ORDER`로 칸별 오류(붉은 테두리 + 칸 아래 문장)·제출 실패 시 첫 오류 칸 포커스. 옛 `requiredMissing` 삭제. 필수는 라벨 옆 붉은 "필수"(`.v2-req`), 선택은 `.v2-opt`. 토글·동의는 `.v2-check` 44px 행. 접힘 "선택 정보"는 `.v2-more`.
+  2. 레이아웃: 페이지 껍데기 `.container` → `.v2-page` / `.v2-page-head`(제목 `.v2-page-title`). 개설 전 화면 `.auto-grid` → `.v2-form-shell.is-2col`(입력 560px | 미리보기 열 `.v2-form-aside`, `position: sticky; top: 24px` — 스크롤 컨테이너가 `.main-wrapper`라 헤더 높이를 더하지 않음). ≤767px는 옆 열이 숨고 폼 안 `.v2-form-preview-inline`(확인 사항 앞)에 나온다.
+  3. 수정 모달: 인라인 스타일 오버레이 → `.v2-modal-overlay` + `.v2-modal.is-form`(X 버튼 제거, [취소][수정 사항 저장], 저장 중 `저장 중…` 비활성). 모바일은 기존 규칙대로 바텀시트.
+  4. 미리보기 카드: `previewCard`를 `.v2-kakao-stage`/`.v2-kakao-card`(+`kakaoCard` 변수)로 클래스화. 관리 모드 라벨 "카카오톡 카드 미리보기"를 stage 안쪽 맨 위로 옮겨 오른쪽 공유 패널과 위쪽 맞춤. 제목 폴백 정정 — `formatObituaryCardTitle`이 이름이 비어도 `[부고] 故  님`을 돌려줘 `cardTitle || '[부고] 故 ○○○ 님'`이 죽은 코드였다 → `deceasedName.trim() ? cardTitle : '[부고] 故 ○○○ 님'`. 개설 전 미리보기 제목 밑 회색 안내 문단은 두지 않음.
+  5. 사용자 직접 지시 반영: 카톡 버튼 `btn btn-point` → 인라인 `#FEE500`/글자 `#191919`; "추모관 만들기" 2곳에 `width: '100%'`; 공유 패널 순서를 `조문객 화면 미리보기` → `링크 복사`로 교체(복사 문구 `copyFeedback`은 링크 복사 줄 아래); 링크 주소 문자열 박스(`{obituaryUrl}` 표시 div) 삭제; `Heart` import 삭제.
+  6. `ObituaryView.tsx`: `Row`의 줄 높이 불일치 수정 — 라벨 칸에 `lineHeight` 없음·링크가 `inline-flex`+12px 아이콘이라 그 줄만 커짐 → `ROW_LINE_HEIGHT = 1.5`·`rowLinkStyle` 신설, 값 칸을 flex(가운데 정렬·`columnGap 0.6rem`·줄바꿈), `padding 0.6rem → 0.75rem`. 첫 그룹(빈소·입관·발인·장지) `marginBottom: '1.2rem'` 삭제. 문구 삭제 1건: `최종 수정: {…} · 정보는 유족이 언제든 바꿀 수 있습니다.` → `최종 수정: {…}`(→ 스펙 범위 안, Opus 확인).
+  7. `design-v2.css`: `.v2-form-shell`·`.v2-form-aside`·`.v2-form`·`.v2-form-section`·`.v2-form-row`·`.v2-req`·`.v2-opt`·`.v2-check`·`.v2-more*`·`.v2-form-submit`·`.v2-kakao-*`·`.v2-modal.is-form`·`.v2-icon-btn` 등 약 390줄 추가(폼 안 조정은 `.v2-form` 하위로 한정해 계산기·필터의 `.v2-input`은 영향 없음).
+  8. `npx tsc --noEmit -p .`(frontend) 에러 0, `npm run build`(frontend) 통과. 🔴 dev 서버 미기동(방침) — 사람이 실기동 확인 후 커밋(`1abc82f`).
+- **편차**:
+  - `00-39` §5(읽기 폭 764px)의 예외 — 입력|미리보기 2단이 1048px(560+48+440). 사용자 지시("입력/미리보기 양쪽 구성이 핵심")이며 Opus가 §5-1로 등재.
+  - §6.8 표와 다른 값 2건을 시안 확인 요청으로 제시하고 사람이 이의 없이 진행: 라벨색 `#5C6773`(표는 `#A29B90`, 대비 약 2.6:1이라 입력 라벨로 읽기 어려움)·입력 테두리 `#B9B3AA`(`.v2-input` 기본은 `#D8D2C8`, 폼 안에서만 덮어씀).
+  - 🔴 조문객 미리보기 모달 고지 두 번째 줄 `수정하면 이 화면은 바로 바뀌지만, 이미 보낸 카카오톡 카드는 바뀌지 않습니다.`를 **사용자 지시로 삭제**했으나 이는 `07-03` §6.4 ⓓ(§5.4-2 책임 경계) 위반이었다 → 다음 항목에서 복구.
+- **다음 에이전트가 알아야 할 것**: `ObituaryManageSkeleton`(로딩 스켈레톤)은 옛 카드 모양 그대로라 새 폼과 조금 다르다(미조정). `ObituaryPage.tsx`가 작업 중 CRLF로 바뀌어 있어 커밋본(LF) 기준으로 LF 정규화했다(`git ls-files --eol` → `i/lf w/lf`). Design 캔버스에는 "카드 미리보기" 제목 밑 회색 설명 삭제분이 반영 안 돼 있다(구현이 정본).
+
+<!-- 판정 생략: 2026-10-13 개발자 결정 — 게이트 미경유(9월분 일괄 보관, record.md §2-1) -->
+
+## 2026-09-21 | [Sonnet] 07-03 §6.4 ⓓ 고지 복구 — 조문객 화면 미리보기 모달 상단 두 번째 줄
+
+- **근거 스펙**: `docs/07_상중_행정_케어/07-03_모바일_부고장_카카오톡_전송_구현_기획서.md` §6.4 ⓓ(2026-09-21 확인 절) + §5.4-2(책임 경계) · Opus 핸드오프("두 번째 줄 복구, `ObituaryView` 문구 삭제는 스펙 범위 안이라 그대로")
+- **건드린 파일**: `eobomDev/frontend/src/pages/ObituaryPage.tsx`
+- **결과**:
+  1. 미리보기 모달 상단 고지 `<p>`: `조문객에게 보이는 화면입니다.` → `조문객에게 보이는 화면입니다.<br />` + `수정하면 이 화면은 바로 바뀌지만, 이미 보낸 카카오톡 카드는 바뀌지 않습니다.`(§6.4 ⓓ 코드블록과 글자 그대로 일치).
+  2. `ObituaryView.tsx`의 `· 정보는 유족이 언제든 바꿀 수 있습니다.` 삭제는 그대로 둠(지시).
+  3. `npx tsc --noEmit -p .`(frontend) 에러 0.
+  4. 이 수정은 별도 커밋이 아니라 Opus의 문서 커밋 `2f76263`에 함께 들어갔다(작업 트리 변경이 그 커밋에 묶임) — `git show HEAD:eobomDev/frontend/src/pages/ObituaryPage.tsx`에서 두 줄 모두 확인.
+- **편차**: 없음.
+- **다음 에이전트가 알아야 할 것**: 같은 날 사용자 지시("이 문장 삭제")가 스펙 §6.4 ⓓ와 충돌했다 — 기획 문서에 명시된 고지는 사용자 구두 지시보다 먼저 스펙 확인이 필요하다. 문서 커밋에 코드가 묶여 들어간 점은 게이트가 파일 목록으로 대조할 때 참고.
+
+<!-- 판정 생략: 2026-10-13 개발자 결정 — 게이트 미경유(9월분 일괄 보관, record.md §2-1) -->
+
+## 2026-09-21 | [Sonnet] 카톡 부고 알리기 버튼 아이콘 교체 + 마이페이지 "디지털 정산" 개명 + mypage 시안 아이콘 (사용자 직접 지시)
+
+- **근거 스펙**: 스펙 없음 — 사용자 직접 지시 3건(① 카톡 부고 알리기 버튼 아이콘을 푸터의 말풍선처럼 ② mypage 시안: 상담=편지비행기·문의(카카오톡)=말풍선 ⑦ "디지털 자산 정리 > 디지털 정산"). 개명은 `modeNav.ts`의 `digital-estate` 라벨("디지털 정산")과 맞추는 것.
+- **건드린 파일**: `eobomDev/frontend/src/pages/ObituaryPage.tsx`, `eobomDev/frontend/src/pages/MyPage.tsx`, `.harness/memory/backlog.md`(⑲ 신설), `.harness/memory/context.md`(포인터 1줄). Design 캔버스(`https://claude.ai/artifact/FmacNUuzKECyG5bQfzxx8q` v3)는 저장소 밖.
+- **결과**:
+  1. `ObituaryPage.tsx`: lucide import `Send` → `MessageCircle`, 버튼 `<Send size={16} /> 카카오톡으로 부고 알리기` → `<MessageCircle size={16} /> …`(`Footer.tsx`·`FooterMobile.tsx`의 "카카오톡으로 문의하기"와 같은 아이콘). `Send`는 이 파일에서 그 한 곳뿐이었다.
+  2. `MyPage.tsx`: 행 라벨 `디지털 자산 정리` → `디지털 정산`(+ 주석 1줄).
+  3. mypage 시안(캔버스): 상담 통계·"상담 신청 내역" 행 = `Send`(편지비행기), 문의 통계·"문의 내역" 행 = `MessageCircle`(말풍선), "디지털 정산" 개명.
+  4. `npx tsc --noEmit -p .`(frontend) 에러 0. 🔴 `MyPage.tsx`가 작업 트리에서 CRLF(커밋본 LF)여서 LF로 정규화 — `git diff --stat` 5줄.
+  5. 사용자 지시 나머지 6건(③ 카톡 문의 집계·연결 ④ 상담 내역 페이지 ⑤ 회원 탈퇴 ⑥ 개인정보 동의 on/off ⑧ 나에게 공유된 엔딩노트 ⑨ 내가 수락한 가족 지정)은 스펙·결정이 필요해 구현하지 않고 `backlog.md` ⑲에 코드 사실과 함께 남겼다.
+- **편차**: 없음. 단 `MyPage.tsx`의 실제 통계·행 아이콘(상담=`MessageCircle`·문의=`Send`)은 시안과 반대인 채로 뒀다 — 시안 확정 뒤 구현할 때 함께 바꾼다(코드 주석의 "InquiryModal·CounselingPage 아이콘 재사용" 근거도 그때 정정).
+- **다음 에이전트가 알아야 할 것**: `docs/`에 "디지털 자산 정리" 표기가 남아 있을 수 있다(Opus 몫, 미확인). ⑲의 결정이 나오기 전에는 mypage 구현에 착수하지 않는다.
+
+<!-- 판정 생략: 2026-10-13 개발자 결정 — 게이트 미경유(9월분 일괄 보관, record.md §2-1) -->
+
+## 2026-09-21 | [Sonnet] 00-36 M-1.5 — 마이페이지 그룹② 허브형 재구성 + "나에게 공유된 것"(SCR-020) 신설
+
+- **근거 스펙**: `docs/00_핵심플랫폼/00-36_마이페이지_정보구조_점검_및_개편_기획서.md` §4.1(구조도)·§4.4~§4.6·§5 M-1.5(5-1~5-4) · `00-39` §6(훑는 목록)·§6.8-1 규칙 21 · Opus 핸드오프(M-1.5 5개 + 캔버스 v4). 시안: Design 캔버스 `https://claude.ai/artifact/FmacNUuzKECyG5bQfzxx8q` v4(마이페이지 웹·모바일 + SCR-020 S1~S4).
+- **건드린 파일**: `eobomDev/frontend/src/pages/MyPage.tsx`(전면 재작성), `eobomDev/frontend/src/pages/FamilySharedPage.tsx`(신설), `eobomDev/frontend/src/App.tsx`, `eobomDev/frontend/src/styles/design-v2.css`, `eobomDev/frontend/src/config.ts`, `eobomDev/frontend/src/components/Footer.tsx`, `eobomDev/frontend/src/components/FooterMobile.tsx`, `.harness/memory/backlog.md`, `.harness/memory/context.md`. 서버 변경 0건.
+- **결과**:
+  1. **5-1** 통계 `문의` 칸 삭제(`stats` 배열에서 `{ label: '문의', value: 0, Icon: Send }` 제거 → 상담·부고장 2칸). 행 `문의 내역`(`comingSoon` 배지·`disabled`) → `카카오톡으로 문의하기`(`<a target="_blank" rel="noreferrer">`, `MessageCircle` 아이콘, 배지·숫자 없음). URL은 푸터와 같은 값을 `config.ts`의 `KAKAO_CHANNEL_CHAT_URL`로 뽑아 `Footer.tsx`·`FooterMobile.tsx`도 그 상수를 쓰게 했다(하드코딩 `"https://pf.kakao.com/_LVxdxaX/chat"` 2곳 → 상수, 동작 동일).
+  2. **5-2** C구역 `나에게 공유된 것` — 행 `나를 가족으로 지정한 분`(`Inbox`) → 신설 라우트 `/family-shared`(`App.tsx`) → `FamilySharedPage`(SCR-020). `GET /api/ending-note/family-view`를 `apiFetch`로 호출해 지정자별 구간(`{ownerName} 님` + `지정 관계 · {관계}`) + 열람 가능 섹션 행 + 섹션 열람 모달(`.v2-modal`)을 그린다. 빈 상태 `아직 공유받은 것이 없습니다.` 한 줄(권유 문구 없음), 지정자는 있고 섹션이 없으면 `지금 볼 수 있는 항목이 없습니다.` 표시 필드는 응답에 있는 것뿐 — 연락처·이메일·다른 수락자·POSTMORTEM 섹션은 응답에 없어 그릴 수 없다. 모달 값은 `FUNERAL.funeralType`·`CONTACTS.contactsNote/petCaretaker` 두 섹션만 해석(IMMEDIATE 허용 섹션, `constants.tsx` `SECTION_ALLOWED_TIMINGS`).
+  3. **5-3** D구역 `내 활동과 계정` 맨 아래 `로그아웃` 행(`LogOut`) — `MyPage`에 `onLogout` prop 추가, `App.tsx`가 `onLogout={() => handleLogout()}` 전달(기존 `alert('로그아웃 되었습니다.')` 경로 그대로).
+  4. **5-4** 아이콘 — 상담(통계 칸·`상담 신청 내역` 행) = `Send`, 카카오톡 문의 = `MessageCircle`.
+  5. **스킨 전환(00-39)**: 옛 `.container` + 남색 그라데이션 히어로 + 그림자 패널(`panelStyle` 등 인라인 41곳)을 `.v2-page`/`.v2-content`(764px)·`.v2-profile`·`.v2-stat-row`·`.v2-hub-section`·`.v2-nav-row` 클래스로 교체(`design-v2.css` 약 200줄 추가). 프로필은 이름이 페이지 제목(`.v2-page-title`), 계정 연동은 웹 글자 버튼·모바일 아이콘 버튼. 비회원 화면도 `.v2-empty` + `.v2-btn-primary`로 정리. 라벨 `디지털 정산` 유지.
+  6. `npx tsc --noEmit -p .`(frontend) 에러 0, `npm run build`(frontend) 통과(1540 modules, built in 6.21s). 🔴 dev 서버 미기동(방침) — 실기동은 사람이 확인.
+- **편차**:
+  - **금색 카메라 배지 삭제** — 프로필 사진 우하단 `title="프로필 사진 변경 (개발중)"` 배지(동작 없음)와 `--accent-gold` MEMBER 배지·엔딩노트 아이콘 색을 시안(v3)에서 제거했고 사용자 이의가 없어 구현도 같게 했다. `00-36` §4.1은 프로필 카드를 "현행 유지"라 적었으나 이는 내용(이름·사진·계정 연동)이라 판단.
+  - 핸드오프 5-1은 "C구역 `문의 내역`"이라 썼으나 `00-36` §4.1 구조도·표는 그 행이 **D구역**(`내 활동과 계정`)이라 구조도를 따랐다.
+  - **SCR-020에 `scope`(주 연락자/열람자)와 수락한 날짜가 없다** — `family-view` 응답에 그 필드가 없고 M-1.5는 서버 0건이라 표시하지 못했다. `00-36` §4.6-1이 요구하는 항목이므로 서버 응답 확장(M-2 범위로 볼지)을 Opus가 정해야 한다. 지정 관계는 응답의 `relationship`을 그대로 썼다(지정자가 나를 어떻게 지정했는지의 뜻인지 문구는 Opus 확인 필요).
+  - 구조도(§4.1)에 있으나 이번 범위 밖이라 **그리지 않은 행**: `내가 남긴 방명록`(M-2)·`개인정보·동의`·`내 데이터 반출`·`회원 탈퇴`(M-3)·`내 상담 내역`(M-2 — 현재 `상담 신청 내역` 행이 `counseling`을 여는 오연결 그대로). 캔버스 v4에는 완성 구조로 그려 놓았다.
+- **다음 에이전트가 알아야 할 것**: `index.css`의 `.stat-row` 계열·`Badge`(`EntryBoxes`)는 마이페이지에서 안 쓰게 됐다(다른 화면 사용 여부 미확인 — 지우지 않음). `SCR-020`의 `scope`·수락일·수락 철회(§4.6-2, `POST /api/family-designations/accepted/:id/withdraw`)는 서버 작업 뒤에 같은 화면에 붙인다. 캔버스는 사람이 편집기에서 `Main.dc.html` 래퍼에 `width:1362px;height:1055px`를 붙여 둔 상태였으나 내용 변경은 없어 v4가 덮어썼다.
+
+<!-- 판정 생략: 2026-10-13 개발자 결정 — 게이트 미경유(9월분 일괄 보관, record.md §2-1) -->
+
+## 2026-09-21 | [Sonnet] 모달 배경(오버레이) 클릭으로 닫기 — 전 모달 공통 (사용자 직접 지시)
+
+- **근거 스펙**: 스펙 없음 — 사용자 직접 지시("공통사항. 모달이 떴을 때, 모달 밖 클릭 시 모달 닫히도록"). `00-39` §6.8-1 규칙 21(폼 모달은 X가 아니라 하단 [취소]로 닫는다)과는 충돌하지 않는다 — 닫는 수단을 **추가**하는 것.
+- **건드린 파일**: `eobomDev/frontend/src/utils/backdropClose.ts`(신설), 그리고 모달 19곳 — `components/`: `AddressSearchModal`·`KakaoMapModal`·`LoginModal`·`SocialLinkModal`·`counseling/TaxSimulatorModal`·`endingNote/SummaryModal`·`expert/ConsultRequestModal`·`facility/FacilityReviewModal`·`facility/InquiryModal`·`farewell/FarewellMessageCard`·`mypage/MyPageAuthSettings`·`mypage/MyPageFamilyDesignation`·`mypage/MyPageProfile` / `pages/`: `CareGuidePage`·`CounselingPage`·`PickupPage`·`MyObituaryListPage`·`FamilySharedPage`·`ObituaryPage`(수정 모달·조문객 미리보기 모달 2곳).
+- **결과**:
+  1. 공용 헬퍼 `backdropCloseProps(onClose)` — 배경 `<div>`에 `{...backdropCloseProps(onClose)}`를 펼친다. **`pointerdown` 대상과 `click` 대상이 모두 배경 자신일 때만** 닫는다.
+  2. **배경 클릭으로 안 닫히던 10곳**(`TaxSimulatorModal`·`ConsultRequestModal`·`FacilityReviewModal`·`InquiryModal`·`KakaoMapModal`·`LoginModal`·`SocialLinkModal`·`MyPageAuthSettings`·`MyPageFamilyDesignation`·`MyPageProfile`)에 신규 적용. 인라인 스타일 오버레이 5곳은 `style` 앞에 spread 한 줄 삽입.
+  3. **이미 닫히던 9곳**(`AddressSearchModal` `onClick={onClose}` · `SummaryModal`/`FarewellMessageCard`의 `e.target === e.currentTarget` 검사 · `CareGuidePage`·`CounselingPage`·`PickupPage`·`MyObituaryListPage`(2곳)·`FamilySharedPage`·`ObituaryPage`(2곳)의 `onClick={() => …}`)는 같은 헬퍼로 교체 — 기존 방식은 **패널 안에서 글자를 드래그하다 배경에서 마우스를 놓으면 click이 배경에 나가 닫혔다**(유족 편지 작성기에서는 쓰던 글이 사라진다). `FarewellMessageCard`는 `!saving` 가드를 그대로 유지: `{...backdropCloseProps(() => { if (!saving) resetComposer(); })}`.
+  4. `npx tsc --noEmit -p .`·`npm run build`(frontend) 통과. 🔴 dev 서버 미기동 — 실기동은 사람이 확인.
+  5. 줄바꿈: 커밋본이 LF인 파일은 LF로, `TaxSimulatorModal.tsx`는 커밋본이 CRLF라 CRLF로 저장 — `git diff --stat` 파일당 2~5줄.
+- **편차**: 없음. 단 손대지 않은 것: `AdminPage`의 확인·상세 모달 2곳(이미 `onClick`으로 닫히며 `!purgeSubmitting` 가드가 있어 운영자 화면이라 뒀다)·`EndingNotePage`의 섹션 리더 오버레이(이미 닫힘)·`FacilityPage` 모바일 필터 시트(별도 배경 요소, 이미 닫힘)·`Sidebar` 드로어. 이 4곳은 드래그 오작동 가능성이 남아 있다.
+- **다음 에이전트가 알아야 할 것**: 새 모달을 만들 때 오버레이에 `onClick`을 직접 달지 말고 `backdropCloseProps`를 쓴다. 🟡 폼 모달(로그인·상담 신청·업체 상담·내 정보 등)은 이제 배경을 잘못 눌러도 입력하던 값이 사라진다 — 지시대로 구현했으나 입력값이 있을 때 닫기 확인을 둘지는 Opus가 정할 일이다.
+
+<!-- 판정 생략: 2026-10-13 개발자 결정 — 게이트 미경유(9월분 일괄 보관, record.md §2-1) -->
+
+## 2026-09-21 | [Sonnet] 00-36 M-2 — 내 상담 내역(SCR-019)·family-view 확장·내 방명록 API
+
+- **근거 스펙**: `docs/00_핵심플랫폼/00-36_마이페이지_정보구조_점검_및_개편_기획서.md` §4.4(내 상담 내역)·§4.6-1-1(family-view 확장·확정 문구)·§5 M-2 #6·#7·#7-1·#7-2·§6 #8 · `00-39` §6(훑는 목록)·`.v2-modal` · Opus 핸드오프(M-2 착수). 스키마 변경·DB 쓰기 0건(전부 SELECT).
+- **건드린 파일**: `eobomDev/backend/src/controllers/meActivityController.ts`(신설), `eobomDev/backend/src/routes/meRoutes.ts`, `eobomDev/backend/src/controllers/endingNoteController.ts`, `eobomDev/frontend/src/pages/MyConsultationsPage.tsx`(신설), `eobomDev/frontend/src/pages/FamilySharedPage.tsx`, `eobomDev/frontend/src/pages/MyPage.tsx`, `eobomDev/frontend/src/App.tsx`, `eobomDev/frontend/src/styles/design-v2.css`, `.harness/memory/context.md`.
+- **결과**:
+  1. **`GET /api/me/leads`**·**`GET /api/me/consult-requests`**(`meActivityController.ts`, `meRoutes.ts`에 등록) — 둘 다 `where: { userId: decoded.id }`(토큰의 값만 사용), `select`로 컬럼 화이트리스트, `orderBy createdAt desc`, `take 100`. 내리는 것: Lead=`leadNo`→`no`·`type`·`facility.name`→`facilityName`·요약·`statusGroup`·`thirdPartyConsentAt`·`createdAt` / ConsultRequest=`requestNo`→`no`·`channel`·`expert.name`→`expertName`·`categorySnapshot`→`category`·요약·`statusGroup`·`thirdPartyConsentAt`·`createdAt`. **내리지 않는 것**(select에 없음): `billable`·`billedAmount`·`commissionPolicyId`·`settlementId`·`disputeReason`·`partnerId`·`applicantName`·`applicantPhone`·`payload` 원문·`statusHistory`. 상태 4단계 접기: Lead `REQUESTED·NOTIFIED→RECEIVED`/`RESPONDED→IN_PROGRESS`/`CONVERTED→DONE`/`LOST·INVALID→CLOSED`, ConsultRequest `REQUESTED→RECEIVED`/`ACCEPTED→IN_PROGRESS`/`COMPLETED→DONE`/`CANCELLED·INVALID→CLOSED`(모르는 값은 `RECEIVED`). payload 요약: `CALL`→`전화 문의 버튼을 누름`, 그 외→`payload.message`만 읽어 60자 절단(모르는 키는 읽지 않음). ConsultRequest 요약은 `content` 60자 절단.
+  2. **`GET /api/me/guestbook-entries`** — `MemorialGuestbook where { userId, deletedByOwnerAt: null, hiddenAt: null }`, 본문·관계·작성일 + `memorial {slug, deceasedName, isClosed}`. 🔴 삭제 엔드포인트는 만들지 않았다(§6 #8 미정).
+  3. **`family-view` 확장·왕복 축소**(`endingNoteController.getFamilyVisibleEndingNotes` 함수 전체 교체): 응답에 `scope`(`PRIMARY|VIEWER`)·`acceptedAt` 추가, 그 외 필드는 늘리지 않음(연락처·`priority` 없음). 질의 `1 + 3n`회 → **2회(n과 무관)** — ① `familyDesignation.findMany`에 `user.endingNote`·`endingNoteGrants(IMMEDIATE·미철회)` 관계 조인 ② `endingNoteEntry.findMany`를 `OR [{noteId, section in [...]}]` 한 번. 노트 없는 지정은 예전처럼 응답에서 제외, `WILL_DRAFT` 재차단 유지, `orderBy acceptedAt asc` 추가.
+  4. **프런트** — 신설 `MyConsultationsPage.tsx`(`/my-consultations`, `App.tsx` 라우트): 두 API를 `Promise.allSettled`로 병렬 호출해 `createdAt` 최신순 한 목록, 행 = 제목(시설명 또는 `비제휴 업체` / 전문가명+직역)·`방식 · 신청일`·상태(접수됨/진행 중/완료/종료)·›, 행 클릭 → `.v2-modal`(접수번호·방식·신청일·상태·내용·제3자 제공 동의 시각), 빈 상태 `아직 신청하신 상담이 없습니다.` + `상담 신청` 버튼. `MyPage.tsx` 행 `상담 신청 내역`(→`counseling`) → **`내 상담 내역`(→`my-consultations`)**. `FamilySharedPage.tsx`: 제목 줄 오른쪽 `지정 관계 · {관계}` → `나를 {관계}로 지정 · {주 연락자|열람자}`(받침 판정 `withRo`), 구간 아래 `{YYYY-MM-DD} 수락함`, `scope`·`acceptedAt`은 선택 필드(옛 응답 호환). `design-v2.css`에 `.v2-nav-row-text`·`.v2-nav-row-sub`·`.v2-hub-foot` 추가.
+  5. 검증: `npx tsc --noEmit -p .`(backend·frontend 각각) 에러 0, `npm run build`(frontend) 통과. **스모크**(임시 스크립트 `_smoke_m2.ts`, 실행 뒤 삭제 — 저장소에 없음): 존재하지 않는 `userId` 토큰으로 컨트롤러 4개 직접 호출 → 전부 `200 {"status":"success","data":[]}`, 인증 없이 `listMyLeads` → `401`(쿼리가 런타임에서 유효함을 확인). 🔴 **개발 DB에 수락된 가족 지정(`status=ACCEPTED`)이 0건이라 `family-view`의 데이터 있는 경로(조인·OR 조회·응답 모양)는 실행해 보지 못했다** — 타입체크로만 검증.
+- **편차**:
+  - 핸드오프 3번은 API만 적어 **내가 남긴 방명록 화면·마이페이지 행은 만들지 않았다**(스펙에 화면(SCR)이 없고, 눌러도 갈 곳 없는 행을 만들지 않는 원칙). API만 소비자 없이 존재한다.
+  - 전화 문의(`type=CALL`)는 "버튼을 누른 기록"이지 접수된 상담이 아닌데 `00-36` §4.4가 목록에 넣도록 해서 넣었고 상태는 항상 `접수됨`이다 — 사실과 어긋난 표시일 수 있어 Opus 확인이 필요하다(요약은 `전화 문의 버튼을 누름`으로 사실대로 적음).
+  - 응답 필드명은 `no`(접수번호)·`statusGroup` 등 스펙에 명시가 없어 내가 정했다(`leadNo`/`requestNo`를 `no`로 통일).
+  - 목록 상한 100건(스펙에 없음) — 페이지네이션은 없다.
+  - SCR-019는 Design 캔버스 시안 없이 `00-39` 훑는 목록 규칙을 그대로 적용했다(캔버스에 없음).
+- **다음 에이전트가 알아야 할 것**: M-3(회원 탈퇴)은 스키마 변경이라 `backup-db.ps1` → 파일 확인 → 사람 CONFIRM → migrate → `generate-db-doc.js` 순서. `family-view`의 `1 + 3n → 2회` 개선은 데이터 있는 실측을 못 했으니 사람이 지정 2건 이상 계정으로 응답 시간과 응답 모양(`scope`·`acceptedAt` 포함, 연락처 없음)을 한 번 확인할 것.
+
+<!-- 판정 생략: 2026-10-13 개발자 결정 — 게이트 미경유(9월분 일괄 보관, record.md §2-1) -->
+
+## 2026-09-21 | [Sonnet] M-2 후속 3건 — CALL 제외·SCR-021 내가 남긴 방명록·SCR-019 잘림 표시 (00-36 §4.4-1·§4.7·§6 #9)
+
+- **근거 스펙**: `docs/00_핵심플랫폼/00-36_마이페이지_정보구조_점검_및_개편_기획서.md` §4.4-1(CALL 제외)·§4.7(SCR-021)·§6 #9(100건 잘림) · `docs/01_장사시설_매칭/01-05_장사시설_사업자회원_및_리드_수수료_정산_명세서.md` §4.1(CALL=익명 이벤트·기본 비청구) · Opus 핸드오프. 스키마 변경·DB 쓰기 0건.
+- **건드린 파일**: `eobomDev/backend/src/controllers/leadController.ts`, `eobomDev/backend/src/controllers/meActivityController.ts`, `eobomDev/backend/src/controllers/summaryController.ts`, `eobomDev/frontend/src/pages/MyConsultationsPage.tsx`, `eobomDev/frontend/src/pages/MyGuestbookPage.tsx`(신설), `eobomDev/frontend/src/pages/MyPage.tsx`, `eobomDev/frontend/src/App.tsx`, `.harness/memory/context.md`.
+- **결과**:
+  1. **CALL 제외**: ① 적재 — `leadController.createCallEvent`에서 `const decoded = verifyBearerToken(req);`를 지우고 `userId: decoded?.id ?? null` → `userId: null`(항상 익명). ② 조회 — `meActivityController.listMyLeads`의 `where`를 `{ userId: decoded.id }` → `{ userId: decoded.id, type: { not: 'CALL' } }`. ③ 기존 행 미수정(`updateMany` 안 씀). 카톡 상담은 Lead에 얹지 않았다. **문서에 없는 추가 1건**: `summaryController.getMySummary`의 `prisma.lead.count`에도 `type: { not: 'CALL' }`를 넣었다 — 안 넣으면 마이페이지 통계 "상담 n"에는 기존 CALL 행이 세이고 목록에는 안 보여 숫자와 목록이 어긋난다. CALL 잔재 정리: `summarizeLeadPayload`에서 CALL 분기·인자 `type` 삭제, `MyConsultationsPage.LEAD_TYPE_LABEL`에서 `CALL: '전화 문의'` 삭제.
+  2. **SCR-021**: `MyGuestbookPage.tsx`(`/my-guestbook`, `App.tsx` 라우트) — `GET /api/me/guestbook-entries`(M-2에서 만든 것, `deletedByOwnerAt`·`hiddenAt` 제외·`userId` 일치)를 호출, 행 = 추모관 고인 성함(`<Link to="/m/:slug">` 행 전체)·내 글 한 줄(말줄임 `.v2-nav-row-sub`)·작성일. 빈 상태 `아직 남기신 글이 없습니다.` 한 줄(권유 없음). 🔴 읽기 전용 — 삭제 버튼·문구 없음. `MyPage.tsx` `내가 남긴 것` 구간에 행 `내가 남긴 방명록`(`PenLine`, `go('my-guestbook')`) 추가.
+  3. **잘림 표시**: 서버가 세 목록 모두 `take: LIST_LIMIT + 1`(101건)로 읽어 내려주고, 프런트가 100건만 그린다. 101건째가 왔으면(또는 상담 두 목록을 합쳐 100건 초과) 목록 끝에 `최근 100건까지만 표시됩니다.`(`.v2-hub-foot`). "정확히 100건인 사람에게 없는 잘림을 알리지 않기 위해" 한 건 더 읽는 방식을 골랐다. 같은 처리를 SCR-021에도 적용(스펙은 SCR-019만 명시).
+  4. 검증: `npx tsc --noEmit -p .`(backend·frontend) 에러 0, `npm run build`(frontend) 통과. 스모크(임시 `_smoke_m2b.ts`, 실행 뒤 삭제 — SELECT만): 개발 DB에서 `type='CALL'` 행 **0건**(`userId` 있는 것도 0), `type != CALL & userId 있음` 5건, 필터 쿼리(`type: { not: 'CALL' }`) 정상 실행. 🔴 dev 서버 미기동 — 화면 실기동은 사람이 확인.
+  5. 캔버스 `https://claude.ai/artifact/FmacNUuzKECyG5bQfzxx8q` v7 — SCR-019(웹·모바일, 잘림 줄 포함)·SCR-021(웹·모바일) 아트보드 4장 추가(기존 아트보드·인덱스 키 보존, 새 항목만 추가).
+- **편차**:
+  - `getMySummary` 필터 추가(위 1)는 스펙에 명시가 없는 확장이다 — 통계와 목록의 일관성 때문이며 Opus 확인 필요.
+  - 잘림 표시를 스펙의 "100건 초과"에 맞추려고 서버 응답이 최대 **101건**이 됐다(스펙의 "100건 상한" 문구와 미세하게 다름). 프런트가 100건으로 자른다.
+  - 화면(SCR-019 보완·SCR-021)은 개발 DB에 방명록 테스트 글이 없어 실제 렌더를 보지 못했다.
+- **다음 에이전트가 알아야 할 것**: M-3(회원 탈퇴)의 스키마 변경은 **두 개** — `User`(`deletionRequestedAt`·`deletionScheduledAt`) + `MemorialGuestbook`(`deletedByAuthorAt`)를 **한 번의 마이그레이션**으로. 순서: `backup-db.ps1` → 파일 생성 확인 → 사람 CONFIRM → migrate → `generate-db-doc.js`. SCR-021 삭제 버튼과 `DELETE /api/me/guestbook-entries/:id`(개설자용과 분리)는 그 마이그레이션 뒤에 켠다.
+
+<!-- 판정 생략: 2026-10-13 개발자 결정 — 게이트 미경유(9월분 일괄 보관, record.md §2-1) -->
+
+## 2026-09-21 | [Sonnet] 마이페이지 후속 — 방명록 작성 시 로그인 토큰 누락 수정·구간 순서 변경·로그아웃/회원 탈퇴 최하단 한 줄 (사용자 직접 지시)
+
+- **근거 스펙**: 스펙 없음 — 사용자 직접 지시 3건(① 내 부고장·추모관과 디지털 정산 위치 변경 ② 방명록을 남겼는데 "내가 남긴 방명록"에 안 뜸 ③ 로그아웃·회원 탈퇴를 작은 글자 최하단 한 줄, "내 활동과 계정"과 별개, 탈퇴는 빨간 글자). 관련: `00-36` §4.7(SCR-021)·§4.3(회원 탈퇴).
+- **건드린 파일**: `eobomDev/frontend/src/pages/MemorialLandingPage.tsx`, `eobomDev/frontend/src/pages/MyPage.tsx`, `eobomDev/frontend/src/styles/design-v2.css`. Design 캔버스 `https://claude.ai/artifact/FmacNUuzKECyG5bQfzxx8q` v8(저장소 밖).
+- **결과**:
+  1. **방명록 미표시 원인 = 프런트가 로그인 토큰을 안 실어 보냄.** `MemorialLandingPage.handleGuestbookSubmit`이 plain `fetch(..., { headers: { 'Content-Type': 'application/json' } })`였다 → 백엔드 `createGuestbookEntry`는 `verifyBearerToken(req)`가 성공해야 `userId`를 저장하는데 토큰이 없어 **로그인한 채 쓴 글도 `userId=null`(비회원 글)** 로 저장 → `GET /api/me/guestbook-entries`(`userId` 일치)에 안 잡힘. 수정: `fetch` → `apiFetchRaw('/api/memorials/${slug}/guestbook', 'USER', { method: 'POST', body })`(토큰이 있으면 `Authorization`이 붙고, 없으면 예전처럼 비회원 글). 백엔드 변경 없음. 진단: 개발 DB `MemorialGuestbook` 6건 전부 `userId` null(SELECT, 임시 스크립트 `_smoke_gb.ts` 실행 뒤 삭제).
+  2. **위치 변경**: `MyPage.tsx` `내가 남긴 것` 구간에서 `내 부고장 · 추모관`과 `디지털 정산`의 순서를 맞바꿈(엔딩노트 → 유족 메시지 보관함 → **디지털 정산 → 내 부고장·추모관** → 내가 남긴 방명록).
+  3. **로그아웃·회원 탈퇴**: `내 활동과 계정` 구간의 `로그아웃` 행 삭제(`LogOut` import 삭제), 구간 밖 최하단에 `.v2-account-foot`(위 1px 선·가운데 정렬 한 줄) + `.v2-account-foot-btn`(13px 글자, 터치 타깃 44px 유지)로 `로그아웃`(보조 글자색)·`회원 탈퇴`(`.is-danger` 빨간 글자). `회원 탈퇴`는 M-3 흐름이 없어 `.v2-modal`로 "회원 탈퇴 기능을 준비하고 있습니다." + 닫기만 띄운다(`backdropCloseProps` 적용).
+  4. 캔버스 v8: 위 순서·최하단 한 줄 반영(마이페이지 웹·모바일).
+  5. `npx tsc --noEmit -p .`(frontend) 에러 0, `npm run build`(frontend) 통과. 🔴 dev 서버 미기동 — 실기동은 사람이 확인.
+- **편차**: `회원 탈퇴` 버튼이 아직 실제 탈퇴 흐름이 아니다(M-3 선행: 스키마 변경·백업·CONFIRM) — "준비 중" 모달로 대신했고, 눌러도 아무 일 없는 버튼을 피하려는 임시 처리다. 사용자 지시 1번("위치 변경")을 두 행의 **순서 맞바꿈**으로 해석했다.
+- **다음 에이전트가 알아야 할 것**: 🔴 **이미 남긴 방명록 글은 회원 글로 복구되지 않는다** — 저장 시점에 작성자를 식별할 값이 남지 않았다(`userId=null`, 작성자명은 자유 입력). 수정 배포 뒤 **새로 남긴 글**부터 "내가 남긴 방명록"에 뜬다. 🟡 같은 원인의 인접 버그: `handleTribute`(헌화)도 plain `fetch`라 토큰이 안 간다 — 로그인 사용자 1인 1회 보장(`@@unique([memorialId, userId])`)이 실제로는 작동하지 않는다. 이번엔 지시 범위 밖이라 손대지 않았다.
+
+<!-- 판정 생략: 2026-10-13 개발자 결정 — 게이트 미경유(9월분 일괄 보관, record.md §2-1) -->
+
+## 2026-09-21 | [Sonnet] M-3 회원 탈퇴(30일 유예·소프트 삭제) + 내 방명록 본인 삭제 + 헌화 1인 1회(localStorage) + 최하단 줄 정렬
+
+- **근거 스펙**: `docs/00_핵심플랫폼/00-36_마이페이지_정보구조_점검_및_개편_기획서.md` §4.3(4단계 확인 흐름)·§4.7-1(내 글 삭제)·§5 M-3 #10~#12·`docs/06_엔딩노트_유언/06-05_유족메시지_보관함_도메인분리_기획서.md` §5.4-2·§5.4-2-1(소프트 삭제=시각 필드)·§5.6-8 ④ · `.harness/db-safety.md` §2 · `00-39` 규칙 18·19·21 · Opus 핸드오프 + 사용자 지시(최하단 줄 오른쪽 정렬·구분선 제거, 헌화 1인 1회는 localStorage).
+- **건드린 파일**: `eobomDev/backend/prisma/schema.prisma`, `eobomDev/backend/prisma/migrations/20260921050000_account_deletion_and_guestbook_author_delete/migration.sql`(신설), `eobomDev/backend/src/controllers/accountDeletionController.ts`(신설), `eobomDev/backend/src/controllers/meActivityController.ts`, `eobomDev/backend/src/controllers/memorialController.ts`, `eobomDev/backend/src/controllers/authController.ts`, `eobomDev/backend/src/routes/meRoutes.ts`, `eobomDev/frontend/src/components/mypage/WithdrawalModal.tsx`(신설), `eobomDev/frontend/src/components/AccountRecoveryModal.tsx`(신설), `eobomDev/frontend/src/pages/MyPage.tsx`, `eobomDev/frontend/src/pages/MyGuestbookPage.tsx`, `eobomDev/frontend/src/pages/MemorialLandingPage.tsx`, `eobomDev/frontend/src/App.tsx`, `eobomDev/frontend/src/styles/design-v2.css`, `docs/00_핵심플랫폼/00-05_DB_요구사항_및_테이블_사전.md`(`generate-db-doc.js` 자동 생성), `.harness/memory/context.md`.
+- **결과**:
+  1. **DB 절차(`db-safety.md` §2)**: 대상 = 로컬 Docker `eobom-postgres`(`localhost:5433`·`eobom_db`, `.env` DATABASE_URL로 확인). 🔴 `backup-db.ps1`은 `BACKUP_DATABASE_URL`(운영 Supabase)을 뜨므로 쓰지 않고 §2 표의 로컬 명령(`docker exec eobom-postgres pg_dump -U Samil eobom_db -Fc` → `docker cp`)으로 백업 → `prisma/backups/local-20260921_132135.dump` 252,076B 생성 확인, `pg_restore --list` 203항목·`User`/`MemorialGuestbook`/`Lead` 등 TABLE DATA 포함 확인. **사람 CONFIRM 받음**(AskUserQuestion "승인 — migrate deploy 실행") → `npx prisma migrate deploy` → `20260921050000_…` 1개 적용("All migrations have been successfully applied"). 검증: `information_schema.columns`에 `User.deletionRequestedAt`·`User.deletionScheduledAt`·`MemorialGuestbook.deletedByAuthorAt` 3개(전부 `timestamp`, nullable), `_prisma_migrations`에 finished, 적용 뒤 행 수 User 6·MemorialGuestbook 7·Lead 8(변경 0)·새 컬럼 채워진 행 0건. `npx prisma generate`, `node .harness/tools/generate-db-doc.js`("모델 31개, 물리 컬럼 358개") 실행. 🔴 `migrate diff`(shadow DB)는 08-05 사고 원인이라 쓰지 않았고 SQL은 손으로 작성(`ALTER TABLE … ADD COLUMN` 3개), 검증은 `prisma validate`(DB 접속 없음).
+  2. **스키마**: `User.deletionRequestedAt DateTime?`·`deletionScheduledAt DateTime?`(요청+30일), `MemorialGuestbook.deletedByAuthorAt DateTime?`. 상태 문자열을 새로 만들지 않았다(06-05 §5.4-2-1).
+  3. **API 4개 + 1**: `GET /api/me/deletion-preview`(건수만 — 지워지는 것: 편지·그중 음성·엔딩노트 섹션·부고장·방명록·시설 후기·가족 지정 / 남는 것: 추모관·이미 접수된 상담·문의(`Lead`는 `type != CALL`), `$transaction` 한 왕복, 본문 없음) · `POST /api/me/deletion-request`(시각 두 개만 찍음, 이미 요청된 계정은 재요청해도 **연장하지 않고** 기존 값 반환, `update`는 `where: { id }` 한 행) · `DELETE /api/me/deletion-request`(두 시각 비움 = 복구) · `DELETE /api/me/guestbook-entries/:id`(`deletedByAuthorAt`만 찍는 소프트 삭제, `findFirst {id, userId, deletedByAuthorAt: null}`로 소유 확인 후 그 id만 갱신, 없는 글·남의 글·이미 지운 글은 같은 404, 개설자용 `DELETE /api/memorials/:id/guestbook/:gid`와 분리) · `GET /api/auth/me` 응답에 `deletionRequestedAt`·`deletionScheduledAt` 추가(조회만 — **비우지 않는다**). 조회 필터: `listMyGuestbookEntries`·공개 `listGuestbook`에 `deletedByAuthorAt: null` 추가. 🔴 런타임에서 행·파일·객체를 지우는 코드 0건.
+  4. **프런트**: `WithdrawalModal`(마이페이지 `회원 탈퇴` → ① 지워지는 것(0건 항목 숨김)+남는 것 고지 ② 반출 안내(현재 내려받을 수 있는 것은 유족 메시지 보관함 zip뿐 → 보관함 이동 버튼) ③ 30일 유예 고지 ④ `.v2-check` 동의 + `.v2-btn-solid`(누르면 `처리 중…`·잠김, 규칙 19) → 완료 화면(`YYYY-MM-DD까지 보관`) → 확인 시 로그아웃). `AccountRecoveryModal`(App.tsx 전역): 로그인 후 `/api/auth/me`에 `deletionScheduledAt`이 있으면 **배경 클릭으로 닫히지 않는** 복구 안내 — `계속 이용`(=`DELETE /api/me/deletion-request`)·`로그아웃`(탈퇴 유지) 둘뿐, 로그인만으로는 자동 복구되지 않는다. `MyGuestbookPage`: 행 오른쪽 `삭제` 버튼(`.v2-nav-row-wrap`+`.v2-row-action`) → 확인 모달 → 성공 시 목록에서 제거. `MyPage`의 "준비 중" 임시 모달 삭제.
+  5. **사용자 지시 2건**: ① `.v2-account-foot` 오른쪽 정렬(`justify-content: flex-end`)·위 구분선(`border-top`) 삭제·`margin-top` 64→48px(캔버스 v9 반영) ② 헌화(`MemorialLandingPage.handleTribute`) — 로그인 정보는 계속 보내지 않고, 1인 1회 제한을 `localStorage`(`eobom_tributed_{slug}`)에 저장: 성공·409 시 표시, 다시 열면 `duplicate` 상태로 버튼 비활성, 성공 직후 `done` 상태(`헌화하셨습니다.`). 저장소가 막힌 환경은 `try/catch`로 조용히 넘어가 제한만 없어진다.
+  6. 검증: `npx tsc --noEmit -p .`(backend·frontend 각각) 에러 0, `npm run build`(frontend) 통과. 스모크(임시 `_smoke_m3.ts`, 실행 뒤 삭제): 실제 사용자로 `deletion-preview` 200(`willDelete` 전부 0, `willRemain.memorials` 4·`consultations` 0), 인증 없음 401, 없는 사용자 404(preview·request·cancel), 없는 방명록 id 삭제 404, `guestbook-entries` 200, `auth/me`에 두 필드(null) 포함. 🔴 **쓰기 경로(`deletion-request` POST/DELETE 성공, 방명록 본인 삭제 성공)는 실행해 보지 않았다** — 기존 사용자 행을 덮어쓰는 것이라 CONFIRM 범위이고 테스트 사용자를 새로 만들어 남기고 싶지 않았다(§4). 타입체크·404 경로까지만 확인했으니 사람이 실기동에서 한 번 눌러 볼 것.
+- **편차**:
+  - 🔴 **파기 배치 ④(`06-05` §5.6-8 ④ — `deletionScheduledAt < now`인 회원의 계정 파기)는 구현하지 않았다.** 스펙상 별도 실행 스크립트(`--confirm` 없으면 dry-run·사람 승인·R2 원본/아카이브 2단계)이고 M-3 #10~#12 범위 밖으로 판단했다. 그래서 지금은 **"30일 뒤 삭제됩니다"라고 안내하지만 그 삭제를 수행하는 코드가 없다** — `06-05` §5.4-2가 경고한 "쓴 대로 동작해야 한다"에 걸리므로 다음 작업으로 반드시 필요하다.
+  - `00-36` §4.3 문구 *"30일 안에는 로그인만 하면 되돌릴 수 있습니다"*는 M-3 본문의 *"'계속 이용'을 눌러야 비운다"*와 충돌해서, 화면 문구는 후자를 따라 *"30일 안에 다시 로그인해 '계속 이용'을 선택하면 탈퇴 신청이 취소됩니다"*로 썼다.
+  - 유예 중인 계정도 서버 API는 그대로 쓸 수 있다(복구 안내는 프런트 모달이 막을 뿐) — 서버 쪽 차단은 스펙에 없어 만들지 않았다.
+  - 이번 화면들(WithdrawalModal·AccountRecoveryModal·삭제 확인)은 Design 캔버스 시안 없이 `00-39` 규칙 18·19·21과 `.v2-modal`을 그대로 적용했다.
+- **다음 에이전트가 알아야 할 것**: ① 파기 배치 ④ 스크립트(`destroy-farewell-media.ts` 패턴 — dry-run 기본·`--confirm`·그 회원의 ①② 먼저) ② `prisma/backups/local-20260921_132135.dump`는 커밋하지 않은 상태의 미추적 파일이다(직전 `local-20260907_115023.dump`는 커밋돼 있다 — 개발 DB 사용자 이메일 등이 들어 있으니 커밋 여부는 사람이 정할 것) ③ 헌화는 이제 로그인 정보를 안 보내므로 `@@unique([memorialId, userId])`는 실질적으로 쓰이지 않는다(사용자 확인: "큰 문제 아님") ④ 방명록을 로그인 상태로 새로 써야 `내가 남긴 방명록`에 뜬다(이미 쌓인 `userId=null` 글은 복구 불가).
+
+<!-- 판정 생략: 2026-10-13 개발자 결정 — 게이트 미경유(9월분 일괄 보관, record.md §2-1) -->
+
+## 2026-09-18 | [Sonnet] 00-39 그룹① 대표 `/care-guide` 재구현 — 사이드바 폐지·헤더 드롭다운·문서형 레이아웃
+
+- **근거 스펙**: `docs/00_핵심플랫폼/00-39_디자인_기준_재정립_명세서.md` §3~§7·§9(그룹① 대표 = care-guide).
+- **건드린 파일**: `eobomDev/frontend/src/pages/CareGuidePage.tsx`(전면 재작성), `eobomDev/frontend/src/styles/design-v2.css`(신규), `eobomDev/frontend/src/lib/legalLink.ts`(신규), `eobomDev/frontend/src/components/Header.tsx`, `eobomDev/frontend/src/components/Sidebar.tsx`, `eobomDev/frontend/src/main.tsx`, `eobomDev/frontend/src/index.css`.
+- **결과**:
+  1. **인라인 스타일 0개** — `CareGuidePage.tsx`의 기존 `style={{}}` 56개를 전부 `design-v2.css`의 `.v2-*` 클래스로 치환(`grep -c "style=" CareGuidePage.tsx` = 0). `index.css`(기존 토큰과 얽힘)에 넣지 않고 새 파일로 분리, `:root`에 `--v2-*` 토큰(§3 색·§4 글자·§5 레이아웃 값)을 독립 선언.
+  2. **레이아웃** — 좌측 기한별 목차 236px(`--v2-toc-width`, 데스크톱 sticky) + 읽기 폭 764px 고정(`--v2-reading-width`), `.container`(120px 패딩·1200px min-width 강제) 미사용으로 우회.
+  3. **목록** — `.v2-item-row`: 체크박스+제목+기한만(설명문 제거, §6-1). 체크박스 클릭만 완료 처리, 제목 클릭은 모달 오픈(§6-8·9, 별도 핸들러). CRITICAL은 제목 위 12px 빨간 글자 "되돌릴 수 없음"(색 배지 대신, 규칙5). 기한은 우측 정렬 회색.
+  4. **모달** — `.v2-modal`: 제목·기한·근거 세 줄만(규칙10), 해설·조언 문장 없음(규칙11 — 기존 `note`/`irreversibleNote` 표시 로직 삭제, 필드 자체는 JSON에 유지). 모바일은 CSS가 같은 마크업을 바텀시트(`align-items:flex-end`, 하단 닫기 버튼)로 전환.
+  5. **법령 링크(§6-14)** — `legalLink.ts`의 `getLegalLink()`가 우선순위 3단을 구현: ①기관 특정 3건(정부24 id7·안심상속 id9·18은 `gov.kr`, e하늘 id4는 실제 URL 미확인이라 라벨만 노출) ②법령 13건은 `https://www.law.go.kr/법령/{법령명}/{제N조}` 생성(`§`→`제N조`, 항 `①②③` 제거) ③근거 없는 6건(id 1·3·17·19·21·22)은 줄 생략.
+  6. **구간 이동(§7)** — 웹 좌측 목차·모바일 상단 가로 탭이 같은 `TIME_SECTIONS` 5구간을 공유(`IntersectionObserver`로 `activeSectionKey` 동기화). 기존 데스크톱 아코디언(구간 접기)·모바일 카테고리 칩 필터는 전부 제거 — §1 확정("A 문서형")에 맞춰 상시 펼침 문서 스크롤 구조로 교체.
+  7. **헤더 드롭다운(규칙3)** — `Header.tsx`의 "생전 준비"/"임종·사후 정리" 버튼에 `.hdr-mode-panel` 호버(+`:focus-within`) 드롭다운 추가, 항목은 `modeNav.ts`(`MODE_MENUS`) 그대로, `status:'preview'`는 "준비 중" 배지. `Sidebar.tsx`의 데스크톱 `<aside className="sidebar">`(72px 호버 확장 바) 전체 삭제 — 모바일 드로어(햄버거)는 그대로 둠. `index.css`의 `.sidebar`/`.sidebar:hover`/`.main-wrapper` margin-left 로직 삭제.
+  8. **🔴 사람 확정 사항(2026-09-18, 세션 중 질문)** — 사이드바 삭제로 비로그인 사용자가 내비게이션 수단을 완전히 잃는 문제를 발견해 확인 요청 → "헤더 드롭다운을 항상 노출(권장)"으로 확정. `Header.tsx`의 `{currentUser && (...)}` 게이트를 제거해 메뉴 자체는 로그인 여부와 무관하게 항상 노출, 개별 항목 클릭 시에만 `loginRequired`면 로그인 모달로 게이트(Sidebar가 쓰던 것과 같은 패턴).
+  9. `npx tsc --noEmit`(frontend) 에러 0, `npm run build`(frontend) 통과(청크 크기 경고만, 기존에도 있던 것).
+- **편차**:
+  - **행 CTA 버튼 삭제** — 기존 목록 행의 "장사시설 찾기 →"·"전문가 상담 →"·"정부24 바로가기" 인라인 버튼(6개 항목)을 전부 뺐다. §6-1이 "한 줄은 제목+기한이 전부"를 웹·모바일 공통으로 못박았고, §6.4 규칙10이 모달을 3줄로 캡핑해 이 CTA들을 모달에도 넣을 자리가 없다. 대신 헤더 드롭다운(`BEREAVED_MENU`)이 facility·counseling·digital-estate를 항상 노출하므로 중복 진입점으로 판단해 제거 — 스펙에 명시된 결정은 아니라 편차로 남긴다.
+  - **`--header-h`(85px/58px) 미변경** — §5 표는 76px/50px을 명시하지만, 이 토큰은 홈 풀페이지 스냅 섹션 등 care-guide 밖 전역 레이아웃에도 쓰여 블래스트 반경이 이 작업 범위를 넘는다고 판단해 손대지 않았다. 다음 그룹(⑤ 홈) 작업 시 재검토 필요.
+  - **e하늘 장사정보시스템(id4) 링크 없음** — 실제 URL을 실측하지 못해 라벨만 표시(href 없음). §6-14 순위1은 "그 사이트로" 링크를 요구하므로 완전한 스펙 이행은 아니다.
+- **다음 에이전트가 알아야 할 것**: 🔴 **실기동 검증 대기** — 브라우저로 열어보지 않았다. 특히 (a) 헤더 드롭다운 호버/포커스 동작, (b) 모바일 바텀시트 모달, (c) IntersectionObserver 기반 목차 활성 상태, (d) 법령 링크 실제 클릭 결과(law.go.kr 조문 단위 정확도)는 사람 확인 필요. e하늘 실제 URL을 확인하면 `legalLink.ts`의 `INSTITUTION_LINKS[4].href`를 채울 것. 00-39 §9.1 표대로면 다음은 같은 그룹①의 나머지 4개(facility·counseling·pickup·my-obituaries, 시안 불필요)에 이번 `.v2-*` 클래스를 그대로 적용하는 것.
+
+<!-- 판정 생략: 2026-10-13 개발자 결정 — 게이트 미경유(9월분 일괄 보관, record.md §2-1) -->
+
+## 2026-09-18 | [Sonnet] care-guide 후속 — 모바일 배너 제거·구간 탭 전환식·구간 제목 굵기 (사용자 직접 지시)
+
+- **근거 스펙**: 전용 스펙 없음 — 위 항목(00-39 그룹① care-guide 재구현) 직후 사용자 직접 지시 2건.
+- **건드린 파일**: `eobomDev/frontend/src/pages/CareGuidePage.tsx`, `eobomDev/frontend/src/styles/design-v2.css`.
+- **결과**:
+  1. **모바일 상속 배너 제거** — "(모바일 환경 한정) 고인에게 빚~ 내용보기·전문가 상담 버튼까지 전부 삭제" 지시. `design-v2.css`의 `@media (max-width:767px)`에 `.v2-callout { display:none; }` 추가(기존엔 제목+버튼만 남기고 설명문만 숨기던 상태였음 — 이번엔 통째로 숨김). 웹은 그대로 노출.
+  2. **모바일 구간 탭 = 스크롤 앵커 → 전환식** — "기한버튼 눌렀을 때 내려가는 게 아니라 각각의 것들이 뜰 수 있도록, 모든 것을 한 페이지에 담지 않는다" 지시. `CareGuidePage.tsx`의 각 `.v2-section`에 `activeSectionKey`와 일치할 때만 `is-active-section` 클래스를 추가하고, `design-v2.css` 모바일 미디어쿼리에 `.v2-section{display:none} .v2-section.is-active-section{display:block}` 추가 — 탭을 누르면 그 구간 하나만 렌더된 것처럼 보이고 나머지는 DOM엔 있지만 안 보인다. 데스크톱은 변경 없음(좌측 목차 스크롤 스파이 그대로).
+  3. **구간 제목 굵기** — "장례 기간 (즉시)" 같은 구간 제목이 허전하다는 지적에 3가지 시안(좌측 포인트 컬러바/굵기만 올리기/옅은 배경 밴드)을 제시했고 "굵기만 올리기"로 확정. `.v2-section-title`의 `font-weight`를 600→700(크기·서체는 그대로).
+  4. `npx tsc --noEmit`(frontend) 에러 0, `npm run build`(frontend) 통과.
+- **편차**: 없음 — 전부 사용자가 명시적으로 지시했거나 제시한 시안 중 직접 고른 것.
+- **다음 에이전트가 알아야 할 것**: 🔴 **실기동 검증 대기**(위 항목과 동일 사유, dev 서버 미기동). 모바일 구간 전환은 CSS `display:none/block` 토글이라 애니메이션 없이 즉시 전환된다 — 실기기에서 딱딱하게 느껴지면 트랜지션 추가를 고려할 것(이번엔 지시 범위 밖이라 손대지 않음). `.v2-section`을 나머지 4개 화면(facility 등)에 이식할 때 이 모바일 표시/숨김 규칙도 함께 따라간다는 점 유의.
+
+<!-- 판정 생략: 2026-10-13 개발자 결정 — 게이트 미경유(9월분 일괄 보관, record.md §2-1) -->
+
+## 2026-09-18 | [Sonnet] care-guide 후속 2 — 모바일 페이지 제목·구간 제목 위계 정리 (사용자 직접 지시)
+
+- **근거 스펙**: 전용 스펙 없음 — 사용자 직접 지시. "모바일 화면에서도 상중행정가이드 제목과 장례기간(분류?제목) 간의 폰트 사이즈 및 굵기 조정 필요", "상중 행정 가이드 제목 굵기 더 높일 필요 있음."
+- **건드린 파일**: `eobomDev/frontend/src/styles/design-v2.css`.
+- **원인**: 직전 항목에서 구간 제목(`.v2-section-title`) `font-weight`를 600→700으로 올렸는데, 모바일에서 페이지 제목(27px/600)과 구간 제목(24px/700)의 크기 차가 3px뿐이라 더 굵은 구간 제목이 오히려 페이지 제목보다 도드라져 보이는 역전이 생겼다.
+- **결과**: `--v2-fs-section-title-mobile: 18px` 신설 후 `@media(max-width:767px)`에 `.v2-section-title { font-size: var(--v2-fs-section-title-mobile) }` 추가(데스크톱은 24px 그대로). `.v2-page-title`의 `font-weight`를 600→700으로 올려(전 breakpoint 공통 규칙) 구간 제목과 굵기를 맞추고, 모바일 기준 27px(제목) vs 18px(구간)로 크기 격차를 벌려 위계를 재확립. `npx tsc --noEmit`(frontend) 에러 0, `npm run build`(frontend) 통과.
+- **편차**: 없음 — 사용자가 명시적으로 지시.
+- **다음 에이전트가 알아야 할 것**: 🔴 실기동 검증 대기(dev 서버 미기동, 위 항목들과 동일). 데스크톱은 이번 변경의 영향을 받지 않는다(구간 제목 24px는 그대로, 페이지 제목만 700으로 전 breakpoint 공통 상향). 실기기에서 봤을 때도 위계가 충분한지 확인 필요.
+
+<!-- 판정 생략: 2026-10-13 개발자 결정 — 게이트 미경유(9월분 일괄 보관, record.md §2-1) -->
+
+## 2026-09-18 | [Sonnet] 00-39 그룹① 나머지 3개 — PickupPage·MyObituaryListPage·CounselingPage에 `.v2-*` 클래스 적용
+
+- **근거 스펙**: `docs/00_핵심플랫폼/00-39_디자인_기준_재정립_명세서.md` §9.1("①은 시안 없이 바로 구현할 수 있다 — facility·counseling·pickup·my-obituaries"). 대표(care-guide)에서 뽑은 `styles/design-v2.css`의 `.v2-*` 클래스를 이어 썼다.
+- **건드린 파일**: `eobomDev/frontend/src/pages/PickupPage.tsx`, `eobomDev/frontend/src/pages/MyObituaryListPage.tsx`, `eobomDev/frontend/src/pages/CounselingPage.tsx`, `eobomDev/frontend/src/styles/design-v2.css`, `eobomDev/frontend/src/components/Header.tsx`(배지 클래스명 정리).
+- **결과**:
+  1. **공용 클래스 신설**(`design-v2.css`) — `.v2-content`(좌측 목차 없는 화면도 764px 읽기 폭 고정), `.v2-list-row`/`.v2-list-main`/`.v2-list-title`/`.v2-list-meta`(체크박스 없는 일반 목록 행), `.v2-badge-neutral`(기존 `.hdr-mode-badge`를 이 이름으로 통합 — Header.tsx도 같이 갱신), `.v2-empty`/`.v2-error-text`(빈 상태·에러 문구), `.v2-notice`/`.v2-notice-warn`(안내·경고 배너), `.v2-filter-row`/`.v2-select`(지역 필터 셀렉트), `.v2-chip-row`/`.v2-chip`(가로 스크롤 칩, 모든 화면에서 노출 — 모바일 전용인 `.v2-mobile-tab`과 구분), `.v2-banner`/`.v2-banner-title`/`.v2-banner-cta`(중립색 진입 배너), `.v2-btn-primary`(urgent 대신 point색 CTA), `.v2-modal-actions`(모달 내 버튼 그룹, flex+gap), `.v2-two-col`(2단 목록, 768px 미만 1단), `.v2-desktop-only`/`.v2-mobile-only`(문구 자체가 바뀌는 자리를 JS 분기 없이 CSS로 전환). `.v2-btn-outline`/`.v2-btn-solid`/`.v2-btn-primary` 공통으로 `display:inline-flex` 추가(아이콘+텍스트 정렬).
+  2. **PickupPage** — 카드형 업체 그리드(`.card`, 그림자)를 `.v2-list-row` 목록으로 교체, 클릭 시 모달(지역·평점·태그·"무료 방문 견적 신청" CTA). 인라인 56→0(정확히는 기존 전체를 v2 클래스로).
+  3. **MyObituaryListPage** — 좌우 2단 카드(부고장/추모관)를 `.v2-two-col` + `.v2-list-row`로 교체. 행 액션(열기·공유·수정·삭제)은 §6-8·9(체크/안내 분리)와 같은 원리로 행 클릭 → 모달 안으로 이동(기존엔 행에 4개 버튼이 늘어서 있었음).
+  4. **CounselingPage** — 전문가 카드 그리드를 `.v2-list-row` 목록으로 교체(제목=이름, 우측=분야), `licenseOrg`·`specialties`·`bio`는 모달로. 분야 필터 칩은 `.v2-chip-row`(모든 화면 노출)로, 시뮬레이터 배너는 `.v2-banner`(중립색 리본형)로. `useIsMobile` 훅 제거 — 모바일 축약 제목("전문가 상담")은 `.v2-desktop-only`/`.v2-mobile-only` CSS 토글로 대체.
+  5. `npx tsc --noEmit`(frontend) 에러 0, `npm run build`(frontend) 통과(3개 파일 각각 개별 확인 + 최종 통합 확인).
+- **편차**:
+  - **행 내 상세정보를 전부 모달로 이동** — §6-1(목록은 제목+기한만)을 그대로 이어 쓴 결과, 각 페이지의 부가 정보(평점·태그·자격·소개·상태·일자)가 전부 클릭 후 모달에서만 보인다. 스펙이 이 3개 화면을 위해 별도로 이렇게 정하진 않았고, care-guide 패턴을 문자 그대로 확장한 판단이다.
+  - **FacilityPage(968줄) 제외** — 카드/리스트 뷰 전환, 썸네일, 카카오맵·상담 버튼 직접 노출, 모바일 필터 바텀시트 등 09-10에 사람이 여러 차례 직접 지시해 다듬은 기능이 많아, care-guide 패턴으로 그대로 바꾸면 실질적 기능 후퇴가 된다고 판단해 사람에게 범위를 확인 요청 → **"이번엔 보류"**로 확정. 손대지 않았다.
+- **다음 에이전트가 알아야 할 것**: 🔴 실기동 검증 대기(dev 서버 미기동). FacilityPage는 다음에 별도로 범위(①색·타이포만 교체 vs ②전면 재구성)를 다시 정하고 진행할 것 — 이번 세션에서 옵션만 제시했고 사람이 보류를 택했다. `.v2-badge-neutral`로 이름을 바꾼 배지 클래스를 쓰는 곳이 늘면(Header.tsx 외) 한 곳(design-v2.css)만 고치면 된다.
+
+<!-- 판정 생략: 2026-10-13 개발자 결정 — 게이트 미경유(9월분 일괄 보관, record.md §2-1) -->
+
+## 2026-09-18 | [Sonnet] 그룹① 실기동 피드백 반영 — Pickup·MyObituaryList·Counseling 8건 + 목업 2건
+
+- **근거 스펙**: 전용 스펙 없음 — 사람이 위 항목들을 실기동 확인 후 화면별 직접 지시.
+- **건드린 파일**: `eobomDev/frontend/src/pages/PickupPage.tsx`, `eobomDev/frontend/src/pages/CounselingPage.tsx`, `eobomDev/frontend/src/pages/MyObituaryListPage.tsx`, `eobomDev/frontend/src/styles/design-v2.css`.
+- **결과**:
+  1. **공통 CSS 버그 수정** — `.v2-list-title`에 `min-width:0`·`overflow:hidden`·`text-overflow:ellipsis`·`white-space:nowrap` 추가. 원인: `flex:1`인데 축소 제약이 없어 좁은 화면(모바일)에서 제목이 줄바꿈되고 있었다(Pickup 업체명 2줄 문제, 1-4a). 공용 클래스라 세 화면 모두에 적용됨.
+  2. **`/pickup`** — ⓐ "예시 데이터로 채워져 있습니다..." 경고 문단(`.v2-notice-warn`) 삭제(1-2, "예시" 배지·CTA "(예시)"·alert는 00-14 §2.2 최소 고지로 유지) ⓑ 위치 고지 문구를 두 문장→한 문장으로 축약(1-4b) ⓒ FacilityPage 수준으로 위치·검색 UX 보강(1-3) — `locationName`/`isLocationFallback` 상태 신설(위치 미확인 시 `GEOLOCATION_FALLBACK` 표시), 지역 선택을 draft/적용 분리(검색 버튼으로 확정, GPS 자동감지는 즉시 적용), 업체명·지역 자유 검색창 추가. 🔴 업체(vendors) 데이터에 좌표가 없어 거리순 정렬은 만들지 않았다(표시·필터만 FacilityPage와 동등, 정렬은 다름 — 편차 참조).
+  3. **`/my-obituarylist`** — 목록과 "새 부고장 만들기"/"추모관 만들기·관리" 버튼 사이 `margin-top:16px`(`.v2-list-footer-btn`) 추가(2-1).
+  4. **`/counseling`** — ⓐ 시뮬레이터 배너(`.v2-banner`) 안쪽 여백 20px→28px(3-1) ⓑ 전문가 행 전체를 `role="button"`으로 클릭 가능하게(기존엔 이름 부분만 버튼이었음, 3-4) ⓒ 데스크톱만 "이름 / 분야" 한 줄 + 우측에 간단소개(`bio`) 추가, 모바일은 기존 그대로(`.v2-desktop-only`/`.v2-mobile-only` 토글, 3-3).
+  5. **디자인 목업 2건 발행**(캔버스, 시안 확정 전) — /pickup 업체 카드 2열 확대안 3종(A 심플 카드 / B 사진 자리 포함 / C 가로 확장형), 상속세 계산기 모달 재구성 2종(A 입력·결과 2단 / B 구간 구분+참고사항 접기). 실제 코드는 아직 안 바꿈 — 사람이 방향을 고르면 그때 구현.
+  6. `npx tsc --noEmit`(frontend) 에러 0, `npm run build`(frontend) 통과.
+- **편차**:
+  - **Pickup 거리순 정렬 없음** — "facility처럼 검색 기능 필요" 지시를 표시(위치명·기본값 배지)·필터(지역 draft/적용)·자유 검색까지는 그대로 따랐지만, FacilityPage의 거리순 정렬(haversine)은 vendors 목업 데이터에 좌표가 없어 구현하지 않았다. 좌표를 추가하지 않는 한 정렬은 못 맞춘다.
+  - **3-2(계산기 모달 재구성)·1-1(Pickup 카드 확대)은 코드 미반영** — 사람이 "목업 필요"라고 명시해 실제 페이지는 그대로 두고 캔버스 시안만 냈다.
+  - **3-4 괄호 메모("모달 내 지역 정보, 가입시 받아놔야 함")는 구현하지 않음** — 전문가 회원가입 흐름·DB 스키마에 지역 필드를 추가해야 하는 별도 작업이라 이번 범위 밖으로 판단, `context.md`에 다음 할 일로 남긴다.
+- **다음 에이전트가 알아야 할 것**: 🔴 실기동 검증 대기. 목업 캔버스(Artifact, 사람 소유)에서 방향을 고르면: Pickup은 A/B/C 중 하나로 `PickupPage.tsx`의 `.v2-list-row` 블록을 카드 그리드로 교체, 계산기는 A/B 중 하나로 `TaxSimulatorModal.tsx`를 재구성(이 컴포넌트는 아직 구 토큰 체계라 v2 클래스로 옮길지도 같이 정할 것). 전문가 프로필에 지역(region) 필드가 없다 — 3-4 요구사항을 실제로 채우려면 회원가입 폼·`PublicExpert` 타입·백엔드 스키마 3곳을 함께 바꿔야 한다.
+
+<!-- 판정 생략: 2026-10-13 개발자 결정 — 게이트 미경유(9월분 일괄 보관, record.md §2-1) -->
+
+## 2026-09-18 | [Sonnet] Pickup 카드형 시안 A 채택 구현 + Counseling 후속 3건
+
+- **근거 스펙**: 전용 스펙 없음 — 사람이 목업 캔버스에서 "시안 A 선택"(Pickup) + 직접 지시 3건(Counseling).
+- **건드린 파일**: `eobomDev/frontend/src/pages/PickupPage.tsx`, `eobomDev/frontend/src/pages/CounselingPage.tsx`, `eobomDev/frontend/src/styles/design-v2.css`.
+- **결과**:
+  1. **Pickup 시안 A 채택** — 사람이 "save한 기준으로"라고 해 캔버스를 다시 읽어(`Artifact` read → `seed-canvas.mjs --extract`) `Main.dc.html`(시안 A)의 저장된 상태를 확인한 결과, 원래 목업에 있던 "예시" 배지·★평점·태그 칩을 카드 면에서 직접 지워두고 CTA 버튼 문구도 "무료 방문 견적 신청"→"견적 신청"으로 줄여 놓았다(사람이 편집기에서 저장). 이 저장된 형태를 그대로 실제 코드에 옮겼다: `.v2-list-row` 목록 → `.v2-card-grid`(2열, 모바일 1열) + `.v2-card`(테두리만, 그림자 없음). 카드 면 = 제목·지역(📍만, 평점 없음)·CTA뿐. 제목 클릭 시 기존 모달(지역·평점·태그·정식 CTA)이 그대로 열린다 — 평점·태그·"예시" 배지는 모달로 이동, 카드의 "견적 신청" 버튼은 모달을 거치지 않고 바로 같은 alert를 띄우는 지름길.
+  2. **Counseling 후속 3건**(직접 지시) — ⓐ `.v2-banner`(계산기 진입 배너) 내부 간격을 28px→44px(패딩)·16px→28px(요소 간 gap)로 대폭 확대 ⓑ 전문가 행의 "이름 / 분야" 표기에서 "/" 구분자 삭제(공백만 유지) ⓒ "상속 변호사" 같은 분야 텍스트(`.v2-list-inline-meta`) 폰트 크기를 이름과 같던 19px→15px(`--v2-fs-support`)로 축소.
+  3. `npx tsc --noEmit`(frontend) 에러 0, `npm run build`(frontend) 통과.
+- **편차**: 없음 — Pickup은 사람이 캔버스에서 직접 편집·저장한 상태를 그대로 코드화했고, Counseling 3건은 문구 그대로 구현.
+- **다음 에이전트가 알아야 할 것**: 🔴 실기동 검증 대기. **my-obituarylist는 사람이 "통과"로 확정 — 추가 변경 없음.** 상속세 계산기 모달(TaxA/TaxB) 재구성은 아직 미결 — 다음에 방향을 고르면 `TaxSimulatorModal.tsx`에 반영. 캔버스를 다시 읽을 땐 `Artifact` action:"read"(파일 미지정) → 결과가 가리키는 로컬 파일을 `seed-canvas.mjs --extract --to <새 빈 폴더>`로 풀어야 사람이 편집기에서 직접 고친 내용까지 반영된다(처음 발행한 내 작업 파일을 그대로 믿으면 사람이 캔버스에서 지운 요소가 남아있는 채로 구현하게 된다 — 이번에 실제로 그랬다).
+
+<!-- 판정 생략: 2026-10-13 개발자 결정 — 게이트 미경유(9월분 일괄 보관, record.md §2-1) -->
+
+## 2026-09-18 | [Sonnet] 상속세 계산기 모달 A형(입력·결과 2단) 재구성 — `00-39` §8 #7
+
+- **근거 스펙**: `docs/00_핵심플랫폼/00-39_디자인_기준_재정립_명세서.md` §8 #7("A형 채택")·§6.8(폼·입력 확정값 — 높이 44/48px·글자 16px·라벨/보조문구 13px·항목 간 16px).
+- **건드린 파일**: `eobomDev/frontend/src/components/counseling/TaxSimulatorModal.tsx`, `eobomDev/frontend/src/styles/design-v2.css`, `eobomDev/frontend/src/index.css`, `docs/00_핵심플랫폼/00-39_디자인_기준_재정립_명세서.md`(§6.7 표 등재 — 사용자가 이번 채팅에서 직접 지시).
+- **결과**:
+  1. `design-v2.css`에 `.v2-field`(라벨+입력+보조문구를 세로로 묶는 flex column, gap 6px) · `.v2-field label`(13px, `--v2-fs-label`) · `.v2-field-hint`(13px, `--v2-text-muted`) 신설. `.v2-select`/`.v2-input`은 기존 필터 행 용도와 상자 스타일(높이·패딩·글자)을 공유하도록 남기되, 값 자체를 §6.8 확정값(패딩 `0 12px`→`0 14px`, 글자 `--v2-fs-support`(15px)→`16px`)으로 갱신하고 767px 이하 `height:48px` 미디어쿼리를 추가했다. `flex-basis`(행 안 배치 비율)는 `.v2-filter-row .v2-select`/`.v2-filter-row .v2-input`으로 스코프를 좁혀, `.v2-field`(세로 flex) 안에서 가로축 flex-basis가 세로 높이를 침범하지 않게 했다.
+  2. `TaxSimulatorModal.tsx` — 옛 `.form-group`/`.form-label`/`.form-input`(index.css:619, 52px) 8곳 전부를 `.v2-field`+`<label>`+`.v2-input`+`.v2-field-hint`로 교체. 폼 전체를 `.v2-two-col`(768px 미만 1단)로 감싸 왼쪽=입력 폼(계산 버튼 포함), 오른쪽=결과(계산 전에는 `.v2-empty` 안내 문구)로 분리 — A형("입력·결과 2단").
+  3. `index.css` `.tax-sim-modal-panel` `max-width` 560px→680px — 2단이 나란히 놓일 폭 확보(스펙에 수치 지정 없음, 이번 구현 판단).
+  4. `docs/00-39` §6.7 표에 `.v2-field`/`.v2-input`/`.v2-field-hint` 행 추가(사용자 지시).
+  5. `npx tsc --noEmit`(frontend) 에러 0, `npm run build`(frontend) 통과.
+- **편차**:
+  - `.tax-sim-modal-panel` 폭을 680px로 늘린 것 — §8 #7은 A형 채택과 입력 칸 축소만 확정했고 모달 폭은 스펙에 없다. 2단이 560px 안에서는 각 칸이 좁아져 폭을 넓혔다.
+  - `.v2-input`/`.v2-select`(필터 행용, `PickupPage.tsx`)의 글자 16px·패딩 14px·모바일 높이 48px 변경 — §6.8이 이 클래스명을 그대로 재사용하라고 지시했고 파일 상단 주석("정본은 design-v2.css")도 이를 뒷받침해 공유 정의를 새 확정값으로 갱신했다. `PickupPage.tsx` 코드는 건드리지 않았지만 시각적으로 검색창 글자가 15px→16px로 커진다(부작용, 실기동에서 확인 필요).
+- **다음 에이전트가 알아야 할 것**: 🔴 실기동 검증 대기(dev 서버 미기동, 모바일 767px 이하 1단 전환·바텀시트 배치 실기기 확인 필요). `00-39` §9.2가 예고한 대로 그룹②(폼) 첫 시안 `obituary`가 `.v2-field`/`.v2-input`/`.v2-field-hint`를 그대로 물려받을 차례다.
+
+<!-- 판정 생략: 2026-10-13 개발자 결정 — 게이트 미경유(9월분 일괄 보관, record.md §2-1) -->
+
+## 2026-09-18 | [Sonnet] 계산기 모달 A형 실기동 버그 수정 — 입력 칸이 커져 결과가 찌그러짐
+
+- **근거 스펙**: 스펙 없음 — 사용자가 위 항목을 실기동 확인 후 직접 신고("조건 입력 부분이 너무 커서 예상 결과가 찌그러져나옴").
+- **건드린 파일**: `eobomDev/frontend/src/styles/design-v2.css`, `eobomDev/frontend/src/components/counseling/TaxSimulatorModal.tsx`.
+- **결과**:
+  1. **원인**: `.v2-two-col`이 `grid-template-columns: 1fr 1fr`였는데, 그리드 아이템의 기본 `min-width`는 `auto`(내용의 min-content)라 입력 칸(끊기지 않는 내용)이 지분 1fr보다 커지면 그리드가 그쪽에 더 내주고 결과 칸을 그만큼 줄인다 — 전형적인 CSS 그리드 `1fr` 함정.
+  2. `design-v2.css:592` `.v2-two-col`의 `grid-template-columns`를 `1fr 1fr` → `minmax(0, 1fr) minmax(0, 1fr)`로 수정 — 두 칸의 최소폭을 0으로 고정해 실제로 반반이 되게 함. `.v2-two-col`을 같이 쓰는 `MyObituaryListPage.tsx`(사람 "통과" 확정 화면)도 영향권이나, 비율은 그대로 1:1이라 시각적 퇴행은 없다.
+  3. `TaxSimulatorModal.tsx`의 `Row` 컴포넌트 — 좁아진 결과 칸에서 긴 라벨(예: "신고세액공제 (3%, 기한 내 신고 가정)")과 값이 한 줄 안에서 서로 밀어내며 찌그러지던 것을, 라벨은 `minWidth:0`으로 줄바꿈 허용·값은 `flexShrink:0`+`whiteSpace:'nowrap'`으로 고정해 라벨만 여러 줄로 접히고 값은 항상 온전한 한 줄로 보이게 함.
+  4. `npx tsc --noEmit`(frontend) 에러 0, `npm run build`(frontend) 통과.
+- **편차**: 없음 — 신고된 증상 재현·원인 규명 후 그 원인만 고쳤다.
+- **다음 에이전트가 알아야 할 것**: 🔴 실기동 재확인 대기 — 이번엔 dev 서버 없이 코드 레벨로만 원인을 고쳤으니, 사람이 실제 화면에서 결과 칸이 더 이상 찌그러지지 않는지 확인 필요.
+
+<!-- 판정 생략: 2026-10-13 개발자 결정 — 게이트 미경유(9월분 일괄 보관, record.md §2-1) -->
+
+## 2026-09-18 | [Sonnet] 계산기 모달 입력 칸 세로 길이 축소 — 결과 칸과 높이 맞춤
+
+- **근거 스펙**: 스펙 없음 — 사용자 실기동 직접 지시("산출결과 말고 입력하는곳의 높이가 전체적으로 줄었으면 해. 그래야 산출결과랑 높이가 맞을듯").
+- **건드린 파일**: `eobomDev/frontend/src/components/counseling/TaxSimulatorModal.tsx`.
+- **결과**:
+  1. "채무 및 장례비용"과 "그중 순수 금융재산가액" 두 필드를 각자 전체 폭 한 줄(`.v2-field` 2개, 세로로 88px씩 총 176px+간격16px)로 두던 것을, "자녀 수 / 65세 이상 상속인 수"와 같은 패턴으로 한 줄에 나란히(`flex:1` 2개) 배치 — 필드 수 6→5, 세로 한 줄(약 88px)+간격(16px) 절감.
+  2. 같은 줄에 들어가며 폭이 절반(약 296px→142px)으로 줄어든 두 보조문구(`.v2-field-hint`)를 줄바꿈 없이 들어가도록 축약: "고인의 채무, 장례비 등 (과세가액에서 차감)" → "과세가액에서 차감", "총 상속재산 중 예금·보험·주식 등 (부동산 제외, 금융재산공제 계산용)" → "부동산 제외". 계산 로직·§6.8 확정값(높이 44/48px·글자 16px·라벨/보조문구 13px·항목 간 16px)은 손대지 않았다 — 줄인 것은 **행 수**뿐이다.
+  3. `npx tsc --noEmit`(frontend) 에러 0, `npm run build`(frontend) 통과.
+- **편차**: 보조문구 문구 축약 — §6.8이 확정한 것은 폰트 크기(13px)뿐이고 문구 자체는 스펙에 없어 이번 요청(높이 축소)에 맞춰 축약했다. 원래 문구가 담던 사실(과세가액 차감·부동산 제외)은 그대로 유지, 길이만 줄임.
+- **다음 에이전트가 알아야 할 것**: 🔴 실기동 재확인 대기. 대략 계산으로는 여전히 입력 칸이 결과 칸보다 다소 길 수 있다(라디오·조건부 배우자 상속액 필드 등 나머지 4개 줄은 그대로) — 사람이 실제 화면에서 보고 "아직 더 줄여야" 하면 다음 후보는 "배우자 유무"(46px, 라디오뿐)를 다른 짧은 필드와 한 줄로 묶는 것.
+
+<!-- 판정 생략: 2026-10-13 개발자 결정 — 게이트 미경유(9월분 일괄 보관, record.md §2-1) -->
+
+## 2026-09-18 | [Sonnet] 계산기 모달 실기동 — 입력 칸이 결과 칸을 침범하는 진짜 원인 발견·수정
+
+- **근거 스펙**: 스펙 없음 — 사용자가 "제발 줄글 줄바꿈좀 안되게해줘" + "실제 화면을 너가 열어서 보고 정렬이나 줄바꿈같은 디테일 놓치지마"라고 직접 지시. dev 서버를 띄우고 `claude-in-chrome`으로 실제 화면을 열어 재현·진단·수정까지 했다(이례적 — 평소엔 dev 서버를 안 띄우는데, 이번엔 사람이 명시적으로 "네가 직접 열어봐라"고 지시).
+- **건드린 파일**: `eobomDev/frontend/src/styles/design-v2.css`.
+- **결과**:
+  1. **진짜 원인**: 앞서 두 차례(wt 없음, 이번 세션 앞 2건) 고친 것과 별개로 남아있던 문제. `<input>`은 내용이 비어 있어도 브라우저가 주는 자체 min-content 폭(number 타입은 스피너 포함 약 220px)이 있고, flex/grid 부모가 칸을 줄여도 이 값이 이겨서 좁은 칸(2단 배치한 "채무 및 장례비용"/"그중 순수 금융재산")에서 입력 상자가 제 칸(약 136px)을 뚫고 옆으로 넘쳤다. 실측(DevTools `getBoundingClientRect`): 입력 실제 폭 225px, 두 번째 칸이 x=885~1110까지 뻗어 결과 칸 영역(x=972.5~)까지 침범 — 화면에서 "찌그러짐/겹침"으로 보인 실체.
+  2. `.v2-input`/`.v2-select`에 `width:100%; min-width:0` 추가, `.v2-field`에 `min-width:0` 추가 — 입력 칸이 부모가 준 폭을 그대로 따르게 고정(더 이상 자기 마음대로 폭을 넓히지 않음).
+  3. 실기동 검증(dev 서버 `localhost:5174`, `claude-in-chrome`로 직접 열어봄): `/counseling` → 계산기 모달 → 기본값·전부 0·총자산 150억 세 가지 입력으로 계산 실행. 세 경우 다 입력 칸과 결과 칸이 겹치지 않고, 긴 라벨(`신고세액공제 (3%, 기한 내 신고 가정)` 등)은 2줄로 자연스럽게 접히되 숫자 값은 항상 한 줄(`Row` 컴포넌트의 `whiteSpace:'nowrap'`, 앞선 항목에서 이미 적용)로 유지됨을 스크린샷으로 확인. 좌우 칸 높이도 육안으로 거의 비슷하게 맞음.
+  4. `npx tsc --noEmit`(frontend) 에러 0, `npm run build`(frontend) 통과.
+  5. 확인 후 이번 세션에서 띄운 dev 서버(포트 5174)는 종료. 사람이 원래 띄워두고 쓰던 5173 인스턴스는 건드리지 않음.
+- **편차**: 없음 — 신고된 증상을 실제 화면에서 재현하고 진단해 원인만 고쳤다.
+- **다음 에이전트가 알아야 할 것**: `.v2-input`/`.v2-select`에 `width:100%`가 생겨서, `.v2-filter-row`(PickupPage) 등 flex 행 안에서 쓰는 다른 자리에서도 동일 클래스를 쓴다 — 그쪽은 `flex-basis`가 메인축(가로)을 결정해 `width:100%`가 실질적 영향은 없지만, 새로 이 클래스를 쓰는 자리가 생기면 이 상호작용을 염두에 둘 것. 실기동 재검증은 이번에 직접 했으니 완료 — 이 항목은 재확인 대기가 아니다.
+
+<!-- 판정 생략: 2026-10-13 개발자 결정 — 게이트 미경유(9월분 일괄 보관, record.md §2-1) -->
+
+## 2026-09-18 | [Sonnet] 계산기 모달 결과 칸 라벨 줄바꿈 — 3차 지적 후 실기동으로 직접 잡음
+
+- **근거 스펙**: 스펙 없음 — 사용자 3차 직접 지시("산출 결과의 내용중 줄바꿈되는 부분 있으니 점검!! 폰트를 줄이던 입력 되는 부분의 폭을 줄이던 해서 처리해" + 후속 "데탑 환경에서 모달 자체를 넓히던가"). dev 서버(`localhost:5174`)를 다시 띄우고 `claude-in-chrome`으로 직접 열어 재현·수정·검증까지 했다.
+- **건드린 파일**: `eobomDev/frontend/src/components/counseling/TaxSimulatorModal.tsx`, `eobomDev/frontend/src/styles/design-v2.css`, `eobomDev/frontend/src/index.css`.
+- **결과**:
+  1. **재현**: 결과 칸(288.5px 폭)에서 `Row`는 라벨+값이 한 줄(`justifyContent:space-between`)을 나눠 쓰는데, 값(예: "- 50,000 만원")이 고정폭을 먼저 차지해 라벨이 실제로 쓸 수 있는 폭은 그보다 훨씬 좁았다. "기초공제/일괄공제(큰 금액)"·"신고세액공제 (3%, 기한 내 신고 가정)" 같은 긴 라벨이 그 좁은 폭에서 2줄로 접혀 지저분해 보였다(줌 스크린샷으로 확인).
+  2. 세 가지를 동시에 적용(사용자가 준 선택지 "폰트 줄이기/입력 폭 줄이기" + 직접 제안한 "모달 자체를 넓히기"를 다 반영): ① `index.css` `.tax-sim-modal-panel` `max-width` 680px→800px(데스크톱만, 모바일은 100%라 무관) ② `design-v2.css`에 `@media (min-width:768px) { .tax-sim-two-col { grid-template-columns: minmax(0,0.85fr) minmax(0,1.15fr); } }` 신설 — 입력:결과 비율을 결과 쪽으로 기울임(모바일 1단 규칙과 충돌 안 하게 `min-width` 미디어쿼리 안에 가둠) ③ `TaxSimulatorModal.tsx` 결과 `Row` 목록의 `fontSize`를 `var(--fs-body)`(16px)→`14px`로, 가장 긴 라벨 3개를 축약: "기초공제/일괄공제(큰 금액)"→"기초·일괄공제(큰 금액)", "배우자공제 (법정상속분 추정)"→"배우자공제(추정)", "적용 최고세율 구간"→"최고세율 구간", "신고세액공제 (3%, 기한 내 신고 가정)"→"신고세액공제(3%)".
+  3. **실기동 검증**: 기본값·큰 금액(총자산 150억) 두 케이스 모두 스크린샷+줌으로 라벨·값 전부 한 줄에 들어가는 것 확인. `상속세, 대략 얼마나 나올까요?` 배너부터 모달 열기 → 계산 → 결과까지 실제 클릭으로 재현.
+  4. `npx tsc --noEmit`(frontend) 에러 0, `npm run build`(frontend) 통과.
+  5. 확인 후 이번 세션 dev 서버(포트 5174) 종료. 사람이 쓰던 5173 인스턴스는 안 건드림.
+- **편차**: 라벨 문구 축약 3건 — §6.8이 정한 것은 폰트 크기뿐이라 스펙 위반은 아니지만, 법적 고지성 문구(예: "법정상속분 추정")를 줄인 것이라 명시. 원래 담던 사실은 "계산 기준 및 참고사항" 하단 블록에 그대로 남아 있어 정보 손실은 없다.
+- **다음 에이전트가 알아야 할 것**: 없음 — 이번엔 재현부터 수정·검증까지 실기동으로 직접 끝냈다. 사용자가 이 항목에서만 세 차례 재지적했던 만큼, 다음에 이 모달을 또 건드릴 땐 반드시 dev 서버로 직접 열어보고 결과 칸 줄바꿈부터 확인할 것.
+
+<!-- 판정 생략: 2026-10-13 개발자 결정 — 게이트 미경유(9월분 일괄 보관, record.md §2-1) -->
+
+## 2026-09-18 | [Sonnet] 계산기 모달 좌/우 박스 높이 불일치 — 실측 대신 구조적으로 고정, 향후 방침 변경
+
+- **근거 스펙**: 스펙 없음 — 사용자 4차 직접 지시("좌/우 박스가 각각 있는데 현재 높이 안맞음"). 같은 지시에서 사용자가 **앞으로의 작업 방식 자체를 바꿈**: "이번이 마지막이고, 앞으로는 실측은 하지 않고, 무조건 Design에 연결해서 그걸로 한다. 무조건이야. 꼭." — 이번 건은 실측(dev 서버+스크린샷) 없이 CSS만으로 구조적으로 고쳤다.
+- **건드린 파일**: `eobomDev/frontend/src/styles/design-v2.css`, `eobomDev/frontend/src/components/counseling/TaxSimulatorModal.tsx`. (개인 메모리 `feedback_design_tool_over_live_testing.md` 신설·`feedback_dev_server_policy.md` 갱신은 이 저장소 밖이라 diff에 안 잡힘 — 참고용으로만 기록.)
+- **결과**:
+  1. **왜 이전 수정들이 근본 해결이 아니었나**: 지금까지 폰트·폭·라벨 축약으로 "대략 맞춰본" 것이라, 입력값이 바뀌어 내용 줄 수가 달라지면 다시 안 맞을 수 있는 미봉책이었다. 이번엔 내용량과 무관하게 항상 맞도록 그리드 정렬 자체를 고쳤다.
+  2. `design-v2.css`의 `@media (min-width:768px) { .tax-sim-two-col { ... } }`에 `align-items: stretch` 추가 — 그리드 행 높이가 더 큰 쪽(보통 입력 칸) 기준으로 정해지고, 짧은 쪽이 그 높이까지 늘어난다(그리드 표준 동작, `.v2-two-col` 기본값 `align-items:start`를 이 모달에서만 덮어씀).
+  3. `.tax-sim-result-box`(`height:100%; box-sizing:border-box;`) 신설, `TaxSimulatorModal.tsx`의 결과 색상 박스(배경색·둥근모서리·좌측 강조선 `div`)에 이 클래스 적용 — 부모(그리드가 늘려준 칸)의 늘어난 높이를 실제로 채운다. 빈 상태(`.v2-empty` 문구)는 배경 박스가 없어 손대지 않음.
+  4. `npx tsc --noEmit`(frontend) 에러 0, `npm run build`(frontend) 통과. **이번엔 dev 서버를 띄우지 않았다** — 사용자가 방금 금지한 실측 없이, CSS 그리드의 `align-items:stretch` 표준 동작으로 결과를 보장한다(내용이 늘거나 줄어도 두 칸 높이가 같다는 것이 측정이 아니라 구조로 보장됨).
+  5. **개인 메모리에 방침 변경 저장**: 앞으로 레이아웃/디자인 작업은 dev 서버 실측이 아니라 `design` 스킬(캔버스)을 정본으로 삼는다.
+  6. 후속 지시("그에 맞게 산출 결과 내의 폰트 크기나 줄간격 등을 알아서 조절해야지") — 박스가 늘어난 만큼 내용이 위쪽에 몰리고 아래가 비는 문제를, 정확한 여백 픽셀을 추측하는 대신 `.tax-sim-result-box`를 `display:flex; flexDirection:'column'; justifyContent:'space-between'`으로 바꿔 해결. 위쪽(제목+세부 내역)과 아래쪽("최종 예상 상속세액")을 두 그룹으로 나눠, 늘어난 높이가 얼마든 그 사이 여백이 자동으로 채운다 — "최종 세액"이 박스 맨 아래 고정되는 효과. 세부 내역 줄 간격도 0.3rem→0.5rem으로 넓혀 14px 축소 폰트에 맞춰 숨통을 줌. `npx tsc --noEmit`·`npm run build`(frontend) 통과, 이번에도 dev 서버 미기동.
+- **편차**: 없음.
+- **다음 에이전트가 알아야 할 것**: 🔴 **중요 — 이 프로젝트에서 UI 레이아웃 작업은 이제 dev 서버 실측이 아니라 `design` 스킬(Claude Design 캔버스)을 먼저 쓰고 그걸 정본으로 구현한다.** `.harness/` 문서(`AGENTS.md` 등)에는 아직 이 규칙이 정식 반영 안 됨 — 개인 메모리에만 있으니 `[Claude:Opus]`가 다음에 정식 문서화할지 검토할 것. 이번 수정은 실기동 확인을 안 했으니(방침상) 사람이 눈으로 한 번 봐 주는 게 안전하다 — 단 "봐달라"는 요청이지 "네가 실측해서 고쳐달라"는 요청이 아니다.
+
+<!-- 판정 생략: 2026-10-13 개발자 결정 — 게이트 미경유(9월분 일괄 보관, record.md §2-1) -->
+
+## 2026-09-17 | 10번 DigitalEstatePage(모바일 검증 루프 마지막) — 실측 후 h1 page-title 클래스 누락 1건 수정
+
+- **근거 스펙**: `docs/00_핵심플랫폼/00-38_적응형_모바일_UX_개편_명세서.md` §8.3(줄756, DigitalEstatePage 행 — "§4.5 치환 효과가 가장 큰 화면") + §8.3 그룹 공통행(줄753 — "그리드 → 1열 카드 스트림").
+- **건드린 파일**: `eobomDev/frontend/src/pages/DigitalEstatePage.tsx`.
+- **결과**: 실측 먼저 — §4.5(0.7~0.98rem 소형 리터럴 치환) 대상 `fontSize` 리터럴은 이 파일에 **0건**(이미 전부 `var(--fs-body)`이거나 `1.02rem`/`1.1rem`/`2rem`으로 DoD 기준선 위, 별도 전역 작업에서 선반영된 것으로 보임). 그리드(:74, `repeat(auto-fit, minmax(min(280px,100%),1fr))`)는 `auto-fit`이라 이미 좁은 화면에서 1열로 자동 접혀 기능상 문제없어 그대로 둠(FacilityPage 8번이 통과한 것과 같은 판단). 대신 `<h1>`(:133)이 다른 4개 페이지(CounselingPage·FacilityPage·CareGuidePage·ObituaryPage·MemorialPage)와 달리 `className="page-title"` 없이 `fontSize:'2rem'`을 고정값으로 박아둔 것을 발견 — 좁은 화면(`clamp(1.4rem, 5vw, 2rem)`의 하한 없이 항상 32px)에서 375px 가로 스크롤·줄바꿈 위험. `className="page-title"` 추가 + 인라인 `fontSize` 제거로 수정(데스크톱 렌더는 동일, `clamp` 상한이 2rem이라 시각 차이 없음). `tsc --noEmit`(frontend) 에러 0. 1280px 브라우저에서 회귀 확인(시각 동일).
+- **편차**: 없음. `.btn`류 인라인 `height:'40px'/'42px'`(`--min-touch-target` 56px 미달)는 CounselingPage 등 여러 페이지에 이미 널리 퍼진 기존 패턴이라 이번 범위에서 손대지 않음 — `backlog.md` §4.5-5 터치타깃 Phase 3 몫.
+- **다음 에이전트가 알아야 할 것**: 실기동 검증 대기(사람) — 특히 360px에서 `page-title` 클래스 추가 후 제목이 실제로 줄어드는지 확인. **00-38 §8 표 ⑦(모바일 검증 루프, 09-11 시작)이 이 항목으로 13개 전부 완료** — `context.md` 2번 갱신 필요([Opus]에게 §8 표 상태 갱신 요청도 함께).
+
+<!-- 판정 생략: 2026-10-13 개발자 결정 — 게이트 미경유(9월분 일괄 보관, record.md §2-1) -->
+
+## 2026-09-17 | 00-38 Phase 4 착수 — HomePage·ObituaryLandingPage·MemorialLandingPage·FamilyInvitePage·PrivacyPage·TermsPage
+
+- **근거 스펙**: `docs/00_핵심플랫폼/00-38_적응형_모바일_UX_개편_명세서.md` §8.4(그룹4 — 홈·랜딩형, 줄805~811) + §8.5(부록 판정, 줄813~829, 2026-09-17 Opus 확정) + §4.1(여백 토큰) + §4.3(--lh-reader) + §5.2(useIsMobile 훅 통일).
+- **건드린 파일**: `eobomDev/frontend/src/components/legal/LegalDocLayout.tsx`, `eobomDev/frontend/src/pages/FamilyInvitePage.tsx`, `eobomDev/frontend/src/pages/MemorialLandingPage.tsx`, `eobomDev/frontend/src/pages/ObituaryLandingPage.tsx`. `HomePage.tsx`는 실측만 하고 변경 0(아래 참고).
+- **결과**:
+  1. `HomePage.tsx` — §4.5(소형 rem) 리터럴 0건. §5.2가 요구한 `EntryBoxes.tsx`의 `useIsMobile(767)` 전환은 이미 완료돼 있었고(주석에 §5.2 명시), `HomePage.tsx` 자체의 `useIsMobile(640)`+ref미러링도 문서(줄395)가 "통과, 스펙갱신 불요"로 이미 판정해 둔 상태. 좌우 거터 관련 raw px 패딩도 없음(레이아웃은 `00-23`이 정본이라 이번 범위 밖). **변경 0.**
+  2. `ObituaryLandingPage.tsx`·`MemorialLandingPage.tsx`·`FamilyInvitePage.tsx` — 셋 다 App.tsx 레이아웃 밖 독립 페이지로 동일한 `pageShellStyle`/`shellStyle` 패턴을 쓰고 있었고, 좌우 여백이 `padding: '2.5rem 1rem'`로 raw 리터럴(16px)이었다. `1rem` → `var(--gutter-chrome)`로 토큰화(값은 16px로 동일 — `--gutter-chrome`과 정확히 일치해 시각 변화 없음). `FamilyInvitePage.tsx`는 §8.5가 Phase 4에 편입시킨 부록 1순위.
+  3. `PrivacyPage.tsx`·`TermsPage.tsx` — 두 페이지 다 공용 컴포넌트 `LegalDocLayout.tsx`(`LegalDocLayout`/`LegalArticle`/`LegalList`/`LegalTable`)를 쓰고 있어, 그 컴포넌트 한 곳만 고치면 두 페이지에 전부 적용된다. 본문 wrapper `lineHeight: 1.8` → `lineHeight: 'var(--lh-reader)'`(1.9), `LegalList`의 `lineHeight: 1.85` → 동일 토큰으로 통일. `.container` 거터는 이미 클래스로 적용돼 있어 손댈 것 없었음. 페이지 파일 자체는 변경 0(전부 공용 컴포넌트에서 처리).
+  4. `tsc --noEmit`(frontend) 에러 0. `npm run build` 통과(청크 경고는 기존 것, 이번 변경과 무관).
+  5. 실기동(360px·1280 회귀)은 사람이 하는 것 — 미검증.
+- **편차**: 없음(스펙이 지시한 "토큰·거터만" 원칙을 그대로 따름 — 세 랜딩형 페이지·`HomePage` 레이아웃 구조는 손대지 않았고, 부록 판정에 따라 `FamilyInvitePage`만 추가로 Phase 4에 포함시켰다).
+- **다음 에이전트가 알아야 할 것**: 🔴 **이번 작업 중 심각한 줄바꿈(CRLF) 오염을 발견해 별도로 처리·기록함 — `backlog.md` 신규 항목(⑱) 참고, 사람 확인 필요.** 실기동은 사람 몫으로 미검증. Phase 4 본체(그룹4)는 이걸로 끝 — 다음은 §8.5 순서상 `DomainOverviewPage`·`PickupPage`("다음" 판정, `00-23` 정본과 맞물림) 또는 Opus 판단에 따른 후속.
+
+<!-- 판정 생략: 2026-10-13 개발자 결정 — 게이트 미경유(9월분 일괄 보관, record.md §2-1) -->
+
+## 2026-09-17 | 00-38 §8.5 부록 마지막 — DomainOverviewPage 실측, 변경 0
+
+- **근거 스펙**: `docs/00_핵심플랫폼/00-38_적응형_모바일_UX_개편_명세서.md` §8.5(줄825, 🔴착수 판정) + §8.5-1(줄837~850, 착수 시 함정 — `HomePage` 규칙과 반대: 모바일 스냅 유지, `.domain-overview-*` 별도 클래스, 휠 핸들러는 `matchMedia('(pointer: coarse)')`로 판정하고 §5.2 L376이 이미 "건드리지 않는다"로 확정) + §4(토큰) + 원칙 3(탈박스화)·원칙 4(크롬 감량).
+- **건드린 파일**: 없음(실측 결과 변경 불필요로 판정).
+- **결과**:
+  1. §8.5-1이 지정한 함정(스냅 유지·클래스 분리·`pointer:coarse` 판정)은 코드 자체(`DomainOverviewPage.tsx:7~15,64~71` 주석)가 이미 명시적으로 "HomePage 규칙과 공유하면 안 된다"고 밝혀두고 있고, 실제로도 그렇게 구현돼 있어 **손대지 않았다**(지시대로).
+  2. §4.5(소형 rem 리터럴): `fontSize` 전수 확인 — `'1.05rem'`·`'1.3rem'`뿐, 전부 DoD 기준선(16px) 위. 0건.
+  3. §4.1(거터): `.domain-overview-slide`의 모바일(≤900px) 좌우 패딩은 **이미 09-11에 고쳐져 있었다**(`index.css:935~940` 주석 — "하드코딩 1.2rem이 사이트 표준 거터(--gutter-page)보다 8.8px 좁았다"는 사람 실기기 리포트로 `var(--gutter-page)`로 토큰화 완료). 데스크톱 기본값(`padding: 1.5rem 2.2rem`, ≤900px 미디어쿼리 밖)은 모바일 거터 토큰 대상이 아니라 그대로 둠.
+  4. 원칙 3(탈박스화): 피처 카드(`:299~352`)가 단일 테두리·단일 그림자 — 박스-in-박스 없음.
+  5. 원칙 4(크롬 감량): 인트로 배너(`.domain-overview-intro`)가 이미 ≤900px에서 숨김 처리(`index.css:962~964`, "배지·제목·CTA를 가린다"는 08-27 지적으로 이미 닫힌 항목) — 첫 화면 콘텐츠까지 크롬 단수가 과하지 않음.
+  6. `box1Intro`/`box2Intro` 공유 상수 확인(사용자 요청) — `domainSlides.tsx`에서 export된 동일 상수를 `EntryBoxes.tsx`(`subtitle` prop, :281·:326)와 `App.tsx`의 `DomainOverviewPage` 라우트 wiring(`intro` prop, :399·:403)이 **똑같이 import해서 쓴다** — 별도 사본이 없어 두 화면이 어긋날 수 없는 구조. 문제 없음.
+  7. `tsc --noEmit`(frontend) 에러 0. `npm run build` 통과.
+- **편차**: 없음.
+- **다음 에이전트가 알아야 할 것**: 이걸로 **00-38 §8.5 착수 3건(FamilyInvitePage·PrivacyPage·TermsPage·DomainOverviewPage — 실제로는 4개 파일)이 전부 끝났다.** `PickupPage`는 §8.5가 🟡"다음"(도메인 03 `CleanupRequest` 백엔드 선행 필요)으로 이미 확정해 손대지 않음 — 지시대로 보류. `AdminPage`·`BizDashboard`·`PartnerPortalPage`는 ⏸보류 확정. **00-38 전체(§8 표 13개 + §8.5 부록 4개)가 이걸로 마무리** — `context.md`·`00-38` 문서의 남은 진행 상태 갱신은 [Opus] 몫.
+
+<!-- 판정 생략: 2026-10-13 개발자 결정 — 게이트 미경유(9월분 일괄 보관, record.md §2-1) -->
+
+## 2026-09-17 | 00-38 §11.1 1차 실측 후속 — UX 3건 + 공통 2건 수정 (Opus 360px 실측 기반)
+
+- **근거 스펙**: `docs/00_핵심플랫폼/00-38_적응형_모바일_UX_개편_명세서.md` §11.1 ⓑ(우선 3건)·ⓒ(공통 반복). Opus가 2026-09-17 `eobom.vercel.app`을 360px iframe에 띄워 `getBoundingClientRect` 실측한 결과.
+- **건드린 파일**: `eobomDev/frontend/src/index.css`(`.chip-track` 클래스 신설), `eobomDev/frontend/src/pages/CareGuidePage.tsx`, `eobomDev/frontend/src/pages/CounselingPage.tsx`, `eobomDev/frontend/src/components/Footer.tsx`, `eobomDev/frontend/src/components/FooterMobile.tsx`.
+- **결과**:
+  1. **①가로 스크롤바(실측 15px)** — `.chip-track`(index.css 신설)에 `scrollbar-width:none` + `::-webkit-scrollbar{display:none}` 추가, `CareGuidePage.tsx`·`CounselingPage.tsx`의 칩 트랙에 `className="chip-track"` 적용. **09-16 대응(paddingBottom 0.3→0.85rem)은 증상 대응이었던 게 맞아 되돌림** — `CounselingPage.tsx` paddingBottom을 `0.85rem`→`0.3rem`으로 원복.
+  2. **②칩 트랙 갇힘(실측 left=52px·width=241px/360px)** — `.chip-track`에 `margin-left/right: calc(-1 * (var(--gutter-page) + 1.5rem))` + 같은 값의 `padding-left/right`로 부모(.container 28px + 카드 1.5rem)의 이중 패딩을 뚫고 엣지투엣지로 흘림. `≤359px`(`--gutter-page-sm`) 구간도 같은 방식으로 맞춰 DoD #1(가로 오버플로 0)이 그 구간에서 깨지지 않게 함.
+  3. **③care-guide 체크박스(실측 20×20px 5개)** — `24×24px`로 확대(`CareGuidePage.tsx` 모바일 체크리스트 행만, 데스크톱 카드형은 범위 밖이라 미변경). 행 자체는 이미 `role="checkbox"`+`minHeight:var(--min-touch-target)`(56px)+`onClick`으로 행 전체가 토글 대상이었다(§9.2 기 구현) — 추가 변경 불필요.
+  4. **④CTA 38px→44px, 필터 칩 35~42px→44px** — `CareGuidePage.tsx`의 "내용 보기"·"전문가 상담" 버튼 `height:'38px'`→`'44px'`. `CareGuidePage.tsx`·`CounselingPage.tsx` 필터 칩 버튼에 `minHeight:'44px'` + `display:inline-flex; alignItems:center` 추가.
+  5. **⑤푸터 약관·개인정보 링크 29px→44px** — `Footer.tsx`(데스크톱)와 **`FooterMobile.tsx`(모바일 전용 별도 컴포넌트 — 실기기가 실제로 렌더하는 건 이쪽이라 이것도 같이 고쳐야 10개 화면이 닫힌다, 처음엔 놓쳤다가 로컬 검증 중 발견)** 둘 다 `minHeight:'44px'` 추가.
+  6. **로컬 검증**(사람이 배포본 360px 재측정을 대신하지 않음 — 그 앞단 sanity check): dev 서버(`localhost:5173`, `getBoundingClientRect`/`getComputedStyle`)에서 `/care-guide`·`/counseling` 500px 폭 확인 —
+     `.chip-track`: `offsetHeight-clientHeight=0`(스크롤바 숨김 확인, 기존 15px) · `rect.left=0, width≈485/500px`(엣지투엣지 확인, 기존 left=52·width=241/360) · `scrollbarWidth:'none'` 확인.
+     체크박스 `24×24px` 확인. CTA·칩 버튼 `height=44px` 확인. `Footer`·`FooterMobile` 링크 `height=44px` 확인(데스크톱 1280px·모바일 500px 둘 다).
+  7. `tsc --noEmit`(frontend) 에러 0. `npm run build` 통과.
+- **편차**: DoD #8(데스크톱 회귀 0) 관련 — `CareGuidePage.tsx`의 CTA 버튼(`height 38→44px`)은 `!isMobile` 조건 없이 데스크톱에서도 함께 렌더돼 데스크톱 높이도 6px 커진다. 스펙 §11(DoD #8 표)이 명시한 예외("접근성 수정처럼 모바일과 무관하게 옳은 변경은 허용하되 walkthrough에 미리 적는다")에 해당해 사전 고지로 여기 남긴다 — 픽셀 동결 위반이 아니라 의도된 예외.
+- **다음 에이전트가 알아야 할 것**: 🔴 **정식 재측정은 사람 몫** — 배포 후 §11.1과 같은 방식(360px iframe + `getBoundingClientRect`)으로 재측정해 수치를 walkthrough에 적어야 DoD ⓑ①②③·ⓒ가 공식적으로 닫힌다(위 6번은 로컬 dev 서버 sanity check일 뿐, 배포본 재측정을 대신하지 않음). `/facility` 주소 링크 24px 등 ⓒ의 나머지 항목(이번 지시 범위 밖)은 아직 안 건드림.
+
+<!-- 판정 생략: 2026-10-13 개발자 결정 — 게이트 미경유(9월분 일괄 보관, record.md §2-1) -->
+
+## 2026-09-17 | 00-38 §11.1 후속 — 배포본 실측 확인 완료(Sonnet, 사용자 요청으로 직접 수행)
+
+- **근거 스펙**: §11.1과 같은 방식(`getBoundingClientRect`/`getComputedStyle`), 단 대상은 **배포본**(`eobom.vercel.app`, commit `8a81806`).
+- **건드린 파일**: 없음(측정만).
+- **방법**: 브라우저 자동화로 `eobom.vercel.app`에 직접 접속, 뷰포트 폭을 최대한 좁혀 측정(이 환경의 창 최소폭 제약으로 **정확히 360px는 못 만들고 500px에서 측정** — 500px도 모바일 브레이크포인트(768px) 안쪽이라 스타일 자체는 360px와 동일. 1280px 데스크톱도 함께 확인).
+- **결과 — ①②③④⑤ 전부 배포본에서 확인**:
+  1. **①스크롤바** `/counseling`·`/care-guide` `.chip-track` `offsetHeight-clientHeight = 0`(기존 15px). `scrollbarWidth:'none'` 확인.
+  2. **②칩 트랙 엣지투엣지** 두 페이지 다 `rect.left = 0, width ≈ 485px`(뷰포트 500px 기준, 기존 left=52·width=241/360). `marginLeft:'-52px'` 확인.
+  3. **③체크박스** `/care-guide` `24×24px` 확인(기존 20×20). 행(`role="checkbox"`) 높이 120px(≥56px 기준 통과, 콘텐츠가 여러 줄이라 최소값 이상).
+  4. **④CTA·칩 44px** `/care-guide` "내용 보기"·"전문가 상담" 44px 확인. `/care-guide` 칩 8개 전부 44px, `/counseling` 칩 44px 확인.
+  5. **⑤Footer 링크 44px** `/counseling`에서 확인(500px 폭에서 자동 확인됨 — 이 폭에서는 데스크톱 `Footer.tsx`가 렌더). `/care-guide`에서 모바일 아코디언(`FooterMobile.tsx`, "약관 · 대표번호 안내 보기") 토글을 실제로 열어 링크 2개 `44px` 확인 — 두 컴포넌트 다 살아있음을 별도로 확인.
+  6. **DoD #1(가로 오버플로 0)** 회귀 없음 — `/counseling`·`/care-guide` 500px에서 `scrollWidth(485) ≤ innerWidth(500)`, 1280px 데스크톱에서도 `scrollWidth(1264) = innerWidth(1264)`.
+- **편차**: 없음. 정확한 360px 측정이 아니라 500px로 대체한 점만 위 "방법"에 명시.
+- **다음 에이전트가 알아야 할 것**: **§11.1 ⓑ①②③·ⓒ 일부(CTA·칩·Footer)가 배포본에서 전부 닫혔다.** 정확한 360px 재측정(및 §11.1이 다룬 나머지 DoD 항목 — #2·#4·#7 등 이번에 손 안 댄 것들)은 여전히 Opus의 다음 1차 실측 갱신이나 사람의 실기기 확인 몫으로 남는다.
+
+<!-- 판정 생략: 2026-10-13 개발자 결정 — 게이트 미경유(9월분 일괄 보관, record.md §2-1) -->
+
+## 2026-09-16 | 9번 CounselingPage 모바일 대응 재구현 (00-38 §8 표 ⑦) — 9c36db2 revert 후
+
+- **근거 스펙**: `docs/00_핵심플랫폼/00-38_적응형_모바일_UX_개편_명세서.md` §8.3(줄755, CounselingPage 행) — "`minmax`·`repeat` 각 1곳 → `.auto-grid`. `TaxSimulatorModal`은 §8.2 바텀시트 공통 규칙 적용". §8.2(줄709)가 바텀시트 공통 규칙 대상으로 명시한 모달은 `LoginModal`·`InquiryModal`·`SummaryModal`·`AddressSearchModal`(+기준 `MyPageFamilyDesignation`)이고 `ConsultRequestModal`은 이 목록에 없다.
+- **건드린 파일**: `eobomDev/frontend/src/pages/CounselingPage.tsx`, `eobomDev/frontend/src/components/counseling/TaxSimulatorModal.tsx`, `eobomDev/frontend/src/components/expert/ConsultRequestModal.tsx`, `eobomDev/frontend/src/index.css`. `_mockups/CounselingPage.html`은 삭제 상태로 둠.
+- **결과**:
+  1. `CounselingPage.tsx:176` 전문가 카드 그리드 — `style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(min(280px, 100%), 1fr))', gap:'1rem' }}` → `className="auto-grid"`.
+  2. `TaxSimulatorModal.tsx` — 인라인 backdrop/panel 스타일을 `.tax-sim-modal-backdrop`/`.tax-sim-modal-panel`로 추출(`index.css`). 데스크톱 기본값은 원래 인라인 값과 동일(rgba(15,23,42,0.75) 배경·blur(8px)·zIndex 2200·maxWidth 560px·maxHeight 90vh). 768px 이하에서 기존 `.myfamily-modal-*`·`.login-modal-*`·`.inquiry-modal-*`·`.address-modal-*` 4종이 쓰던 `@media (max-width: 768px)` 바텀시트 블록(`align-items:flex-end`·`border-radius:16px 16px 0 0`·`max-height:88dvh`·`--gutter-chrome` 패딩)에 5번째로 합류.
+  3. `ConsultRequestModal.tsx` — 인라인 backdrop/panel 스타일을 `.consult-modal-backdrop`/`.consult-modal-panel`로 추출. 원래 `maxHeight`/`overflow`가 전혀 없어 7필드 폼(이름·연락처·상담방식·일시·내용·동의문구·제출버튼)이 짧은 화면에서 하단 제출 버튼까지 스크롤이 안 닿던 실제 버그를 `max-height:88dvh; overflow-y:auto;`로 고침(목업 승인 체크포인트 ②의 수치를 그대로 씀). 바텀시트 미디어쿼리에는 합류시키지 않아 중앙 정렬을 모바일에서도 유지.
+  4. `tsc --noEmit`(frontend·backend 각각) 에러 0. `npm run build`는 안 돌림.
+  5. 실기동(360px·1280 회귀)은 사람이 하는 것 — 미검증.
+- **편차**: `9c36db2`(같은 제목의 이전 커밋)를 `git revert --no-commit`으로 되돌리고 이 항목으로 다시 구현했다. 되돌린 이유·이전 구현이 스펙·목업과 어떻게 어긋났는지는 `backlog.md` ⑰에 상세 기록. 되돌려진 커밋에 있던 시뮬레이터 배너 `flexWrap` 수정·페이지 제목 모바일 축약(`useIsMobile`)·분야 필터 가로 스크롤은 `00-38` §8.3에 없는 항목이라 이번 재구현에 포함하지 않음(필요하면 별도로 다시 지시받아 처리).
+- **다음 에이전트가 알아야 할 것**: 실기동 검증 대기(사람). `backlog.md` ⑰의 Gemini 판정도 별도로 남을 것 — 이 항목과 함께 확인.
+
+<!-- 판정 생략: 2026-10-13 개발자 결정 — 게이트 미경유(9월분 일괄 보관, record.md §2-1) -->
+
+## 2026-09-16 | 9번 CounselingPage 후속 — 사용자 직접 지시 3건(줄글 정리·필터 슬라이드·제목 축약)
+
+- **근거 스펙**: 스펙 없음 — 사용자 채팅 직접 지시. "1. 줄글 나열이 모바일 화면에서 지저분해서 정리필요. 2. 분야의 각 버튼을 슬라이드로 넘길 수 있도록 구현. 3. 제목 등 전문가 상담 으로 요약." (앞서 되돌린 `9c36db2`의 목업 `_mockups/CounselingPage.html` 개선안과 방향은 같지만, 이번엔 사람이 이 세션에 직접 낸 지시라 진위 문제가 없다 — 경위는 `backlog.md` ⑰.)
+- **건드린 파일**: `eobomDev/frontend/src/pages/CounselingPage.tsx`, `eobomDev/frontend/src/components/counseling/TaxSimulatorModal.tsx`, `eobomDev/frontend/src/index.css`.
+- **결과**:
+  1. `CounselingPage.tsx` 시뮬레이터 배너 — 설명 문단 `<p>배우자·자녀 수 등 조건을 입력하면 예상 세액을 단계별로 계산해드립니다</p>` 삭제, 헤드라인 `<p>상속세, 대략 얼마나 나올까요?</p>`만 남김. CTA `간이 시뮬레이터 열기` → `계산하기`. `flexWrap:'wrap'` 안전장치 유지(극단적으로 좁은 화면 대비).
+  2. `CounselingPage.tsx` 페이지 제목 — `useIsMobile()` 훅 도입, `{isMobile ? '전문가 상담' : '상속 · 법률 · 세무 비대면 전문가 상담'}`.
+  3. `CounselingPage.tsx` 분야 선택 필터 — `flexWrap:'wrap'` → `flexWrap:'nowrap', overflowX:'auto', WebkitOverflowScrolling:'touch'`, 각 버튼에 `flexShrink:0, whiteSpace:'nowrap'` 추가(가로 슬라이드). `CareGuidePage`(§8.1-3①)와 동일 패턴.
+  4. `TaxSimulatorModal.tsx` "계산 기준 및 참고사항" — 4개 `<p>` 문단(반영 항목·미반영 항목·법적 근거·면책)을 `<ul>` 3개 `<li>` + 굵은 경고 문단 1줄로 재구성. 수치·법적 근거 문구는 그대로 유지(삭제 없음), 형식만 문단→목록.
+  5. `index.css` — `.counsel-sim-banner-cta`에 `@media (max-width: 768px) { flex-basis: 100%; justify-content: flex-end; }` 추가(헤드라인이 길어져도 CTA가 다음 줄로 안전하게 내려가도록).
+  6. `tsc --noEmit`(frontend) 에러 0. `npm run build`는 안 돌림.
+  7. 실기동(360px·1280 회귀)은 사람이 하는 것 — 미검증.
+- **편차**: 없음(사용자 직접 지시 그대로 구현).
+- **다음 에이전트가 알아야 할 것**: 실기동 검증 대기(사람). `backlog.md` ⑰가 이 항목으로 닫힘 — Gemini 판정 시 ⑰와 함께 확인.
+
+<!-- 판정 생략: 2026-10-13 개발자 결정 — 게이트 미경유(9월분 일괄 보관, record.md §2-1) -->
+
+## 2026-09-16 | 9번 CounselingPage 2차 후속 — 배지 문구·헤드라인 폰트·필터 여백 (사용자 직접 지시)
+
+- **근거 스펙**: 스펙 없음 — 사용자 채팅 직접 지시. "1. 변호사,세무사 1:1케어 > 전문가 상담 으로 변경. 2. 상속세,~나올까요? 부분의 폰트 키우기. 3. 분야 선택 버튼과 좌우스크롤간의 여백 너무 없이 딱붙어있음."
+- **건드린 파일**: `eobomDev/frontend/src/pages/CounselingPage.tsx`.
+- **결과**:
+  1. 상단 배지 — `상속세 시뮬레이터 & 변호사 · 세무사 1:1 케어` → `상속세 시뮬레이터 & 전문가 상담`.
+  2. 시뮬레이터 배너 헤드라인 `상속세, 대략 얼마나 나올까요?` — `fontSize` 미지정(기본 상속) → `var(--fs-lead)`(1.125rem)로 키움.
+  3. 분야 선택 가로 스크롤 필터 — 버튼 사이 `gap` `0.5rem`→`0.6rem`, 스크롤 컨테이너에 `padding: '0.2rem 0.15rem 0.4rem'` 추가(기존엔 `paddingBottom`만 있어 좌우·위가 카드 경계에 딱 붙어 있었음).
+  4. `tsc --noEmit`(frontend) 에러 0.
+  5. 실기동은 사람 몫 — 미검증.
+- **편차**: 없음(사용자 직접 지시 그대로 구현).
+- **다음 에이전트가 알아야 할 것**: 실기동 검증 대기(사람). `backlog.md` ⑰ 계속.
+
+<!-- 판정 생략: 2026-10-13 개발자 결정 — 게이트 미경유(9월분 일괄 보관, record.md §2-1) -->
+
+## 2026-09-16 | 9번 CounselingPage 3차 후속 — 필터 스크롤바-버튼 간 여백 확대 (사용자 직접 지시)
+
+- **근거 스펙**: 스펙 없음 — 사용자 채팅 직접 지시. "가로 스크롤 자체와 버튼 사이의 공간을 말하는거임. 슬라이드 할때 뜨는 스크롤과 버튼 간의 공간!" (2차 후속에서 넣은 `paddingBottom: '0.4rem'`으로는 부족하다는 지적).
+- **건드린 파일**: `eobomDev/frontend/src/pages/CounselingPage.tsx`.
+- **결과**: 분야 선택 가로 스크롤 컨테이너의 `padding` 하단값을 `0.4rem` → `0.85rem`으로 키워 버튼 행과 (스크롤 시 나타나는) 스크롤바 사이 여백을 확대. 전체 세로 리듬 유지를 위해 바깥 `form-group`의 `marginBottom`은 `1.1rem` → `0.7rem`으로 줄여 상쇄(카드 하단 "전문가 카드 목록" 사이 총 간격은 이전과 비슷하게 유지). `tsc --noEmit` 에러 0.
+- **편차**: 없음.
+- **다음 에이전트가 알아야 할 것**: 실기동 검증 대기(사람) — 특히 이 패딩 값이 실제 브라우저(오버레이 스크롤바 vs 항상 표시 스크롤바)에서 충분한지 확인 필요.
+
+<!-- 판정 생략: 2026-10-13 개발자 결정 — 게이트 미경유(9월분 일괄 보관, record.md §2-1) -->
+
+## 2026-09-16 | 9번 CounselingPage 4차 후속 — 시뮬레이터 배너 아이콘 크기 축소 (사용자 직접 지시)
+
+- **근거 스펙**: 스펙 없음 — 사용자 채팅 직접 지시. "계산기 아이콘이 차지하는 영역이 너무 큼(추측컨대 div가 가진 여백이 좌우로 큰듯)."
+- **건드린 파일**: `eobomDev/frontend/src/pages/CounselingPage.tsx`.
+- **결과**: 시뮬레이터 배너의 아이콘 원(circle) `44px`→`38px`, 내부 `Calculator` 아이콘 `size={22}`→`size={20}`(비율 유지, 22/44=50%→20/38≈53%), 원과 헤드라인 사이 `gap`을 `var(--sp-4)`(16px)→`var(--sp-3)`(12px)로 줄임. 브라우저(1280px)에서 확대 스크린샷으로 축소 확인. `tsc --noEmit`(frontend) 에러 0.
+- **편차**: 없음.
+- **다음 에이전트가 알아야 할 것**: 실기동 검증 대기(사람) — 이번엔 브라우저 리사이즈 도구가 500px 밑으로 안정적으로 안 내려가 모바일 폭에서 재확인은 못 함(1280px에서만 육안 확인). 360px 등 좁은 폭에서 비율이 괜찮은지 마지막 확인 필요.
+
+<!-- 판정 생략: 2026-10-13 개발자 결정 — 게이트 미경유(9월분 일괄 보관, record.md §2-1) -->
+
+## 2026-09-11 (204) | [Sonnet] 전 페이지 모바일 검증 루프 ①`FarewellMessagePage` — 설명문 제거·줄글 축약 신규 기준 적용
+
+- **근거 스펙**: 스펙 없음 — 2026-09-11 사람 직접 지시(전 페이지 모바일 검증 루프 재시작 지시에 첨부) "①모든 도메인 페이지 제목 아래 회색 설명문을 모바일에서 모두 없앤다 ②줄글을 최대한 축약/제거한다"를 목업(`_mockups/FarewellMessagePage.html`)으로 확인받고 승인. `06-05_유족메시지_보관함_도메인분리_기획서.md` §4.3과는 (3)에서 반대 방향(편차 참고).
+- **건드린 파일**: `eobomDev/frontend/src/components/farewell/FarewellMobileView.tsx` · `eobomDev/frontend/src/components/farewell/FarewellNotice.tsx`
+- **결과**:
+  1) `FarewellMobileView.tsx`(구 34-36행) 제목 아래 설명문 `"가족 한 분 한 분께 따로 남기는 편지입니다. 완료해야 할 항목은 없습니다 — 생각날 때마다 남기세요."` 완전 삭제(모바일 전용 컴포넌트라 파일에서 통째로 제거, 데스크톱 `FarewellDesktopView.tsx`는 미변경).
+  2) `FarewellMobileView.tsx` 빈 상태 안내문 `"편지를 남기려면 먼저 받으실 분을 가족으로 지정해 주세요. 수신자가 없으면 사후에도 전달되지 않습니다."` → `"받으실 분을 먼저 가족으로 지정해 주세요."`로 축약(사람 승인).
+  3) `FarewellNotice.tsx`(Desktop·Mobile 공용) 고지문 `"여기에 남기신 글과 음성은 사망 확인 후 지정하신 분에게 전달됩니다. 재산 분배·상속에 관한 내용은 남기지 마세요 — 유언의 효력이 없고 유족 간 다툼의 씨앗이 됩니다."` → `"여기에 남기신 글과 음성은 사망 확인 후 지정하신 분에게 전달됩니다."`로 축약(사람이 "데스크탑과 모바일 환경 모두" 명시).
+  `npx tsc --noEmit`·`npm run build`(eobomDev/frontend) 통과.
+- **편차**: `FarewellNotice.tsx`의 "재산 분배·상속에 관한 내용은 남기지 마세요…" 문장은 `06-05` §4.3 원문에 있고 wt174에서 "원문 복원"한 이력이 있다 — 이번에 사람이 축약을 다시 직접 지시해 재차 삭제, §4.3과 구현이 다시 갈라진다. Opus가 §4.3을 이 축약본 기준으로 갱신할지 판단 필요.
+- **다음 에이전트가 알아야 할 것**: 🆕 2026-09-11 사람 지시로 "①제목 아래 회색 설명문 모바일 제거 ②줄글 최대 축약" 2개 규칙이 22페이지 루프 전체의 공통 기준으로 확정됐다(단, 페이지마다 목업으로 개별 승인 필요 — 일괄 적용 금지). `.page-subtitle` 클래스(index.css:1000, ≤768px 자동 `display:none`)를 쓰는 페이지(CareGuidePage·EndingNotePage 등 8개 파일)는 이미 규정을 자동으로 만족하고 있어 손댈 것이 없다 — 인라인 style로 별도 설명문/줄글을 그린 컴포넌트만 페이지별로 개별 확인이 필요하다. 다음 = 2번 `CareGuidePage`부터 이 2규칙 기준으로 ①실측 재확인 후 순서대로 진행.
+
+<!-- 판정 생략: 2026-10-13 개발자 결정 — 게이트 미경유(9월분 일괄 보관, record.md §2-1) -->
+
+## 2026-09-11 (205) | [Sonnet] 전 페이지 모바일 검증 루프 ②`CareGuidePage` — 상속포기 배너 줄글 축약(모바일은 완전 제거)
+
+- **근거 스펙**: 스펙 없음 — 2026-09-11 사람 직접 지시(wt204와 같은 루프, 규칙②줄글축약 적용). 최초 제안(문장만 축약)을 사람이 재수정 지시: "정정한다, 제목인 3개월 안에 결정해야한다는 내용과 중복되니 모바일에서는 ... 내용도 지운다."
+- **건드린 파일**: `eobomDev/frontend/src/pages/CareGuidePage.tsx`
+- **결과**: 상속포기 배너(§3.1) 문단 `"상속포기·한정승인 기한은 상속개시를 안 날로부터 3개월입니다. 지나면 채무를 그대로 물려받습니다."`를 `"상속포기·한정승인 기한은 상속개시를 안 날로부터 3개월입니다."`로 축약하고, `{!isMobile && (...)}`로 감싸 **모바일에서는 이 문단 자체를 렌더하지 않도록** 함(같은 배너의 `<h3>` 제목 "고인에게 빚이 있을 수 있다면, 3개월 안에 결정해야 합니다."와 내용이 겹친다는 사람 판단). 데스크톱은 축약본 문장만 그대로 노출. `npx tsc --noEmit`·`npm run build`(eobomDev/frontend) 통과.
+- **편차**: 없음 — 사람 직접 지시 그대로 구현.
+- **다음 에이전트가 알아야 할 것**: `CareGuidePage.tsx`의 `.page-subtitle`(149행) 설명문은 wt204 확인 시점에 이미 `.page-subtitle` 클래스로 모바일 자동 숨김 상태라 이번엔 안 건드렸다. 다음 = 3번 `EndingNotePage` — 이미 만들어둔 목업(`_mockups/EndingNotePage.html`, 목차 리스트+리더 모달 승인 대기 중)에 이번 2규칙(설명문 제거·줄글 축약)을 추가로 반영해 재확인 후 승인받을 것.
+
+<!-- 판정 생략: 2026-10-13 개발자 결정 — 게이트 미경유(9월분 일괄 보관, record.md §2-1) -->
+
+## 2026-09-11 (206) | [Sonnet] 전 페이지 모바일 검증 루프 ③`EndingNotePage` — 00-38 §8.1-2 적응형 분리(목차 리스트+리더 모달) + 줄글 축약
+
+- **근거 스펙**: `docs/00_핵심플랫폼/00-38_적응형_모바일_UX_개편_명세서.md` §8.1-2(목업 방향 이미 확정) + 2026-09-11 사람 직접 지시(wt204·205와 같은 루프 — 줄글 축약). 사람이 `_mockups/EndingNotePage.html`(목차 리스트+리더 모달)을 "그대로 구현" 승인, 동의 안내문 축약은 별도 승인(가족 미지정 안내문은 원문 유지 선택).
+- **건드린 파일**: `eobomDev/frontend/src/pages/EndingNotePage.tsx` · `eobomDev/frontend/src/index.css`
+- **결과**:
+  1) `EndingNotePage.tsx`에 `useIsMobile()` 도입. 모바일에서는 기존 `AccordionSection` 8개 스택 대신 `.ending-note-mobile-toclist`(제목+완료/미작성 배지 행, 탭하면 기존 `expandedSection` state를 세팅)를 렌더 — 그 state를 데스크톱은 "인라인 아코디언 펼침", 모바일은 "리더 모달 오픈 트리거"로 재해석해 공유한다(같은 `handleToggleSection`/`sectionState`/`savingState` 재사용, §6.2 상태는 부모 1벌 유지).
+  2) 모바일에서 `expandedSection`이 있으면 `.ending-note-reader-overlay`(전체화면 시트) 마운트 — `sectionBodies[code]` + `SectionTimingControl` + 저장/취소 버튼(하단 고정). "한눈에 보기" 요약 모달과 같은 패턴(ESC로 닫기·body 스크롤 잠금)의 별도 `useEffect` 추가(`isMobile && expandedSection` 가드). 데스크톱 렌더 경로(`AccordionSection` map)는 그대로 — 변경 없음.
+  3) 동의 안내 폴백 문구 `"이어봄은 회원님이 작성한 내용을 암호화하여 보관하며, 운영자는 내용을 열람하지 않습니다."` → `"작성 내용은 암호화 보관되며, 운영자는 열람하지 않습니다."`로 축약(데스크톱·모바일 공용). 가족 미지정 안내문(§10 Phase 2 #6)은 사람이 "그대로 유지" 선택해 미변경.
+  4) `index.css`에 `.ending-note-mobile-toclist`·`-tocrow`·`.ending-note-status-pill`(`.done`/`.todo`)·`.ending-note-reader-overlay`·`-sheet`·`-head`·`-title`·`-body`·`-foot` 신설.
+  `npx tsc --noEmit`·`npm run build`(eobomDev/frontend) 통과.
+- **편차**: 동의 안내문의 실제 정본은 서버가 내려주는 `policyNotice`(`06-03` §5)이고 위 축약은 그 값이 아직 없을 때만 잠깐 보이는 프론트 폴백 문자열이다 — 서버 값 자체를 바꾸는 건 백엔드/`06-03` 소관이라 이번 프론트엔드 작업 범위 밖으로 남겨둔다.
+- **다음 에이전트가 알아야 할 것**: 🔵 로그인 필요 화면(`00-29` §15)이라 에이전트가 직접 로그인해 검증할 수 없다 — 사람이 실기기로 ①목차 리스트 탭→리더 모달 오픈/닫기(ESC·바깥 클릭)②저장 성공 시 목차 배지가 "완료"로 바뀌는지③768↔769px 리사이즈 시 입력값이 유지되는지④데스크톱 1280px 아코디언 화면이 그대로인지 확인해야 한다(00-38 §11 DoD). 🟡 서버 `policyNotice` 문구를 이 축약본으로 맞출지는 `06-03` §5 소관 — Opus 판단 필요. 다음 = 4번 `ObituaryPage`(관리 모드는 wt179 완료·나머지만, Phase 3 재판정도 이 단계 ①에서 함께).
+
+<!-- 판정 생략: 2026-10-13 개발자 결정 — 게이트 미경유(9월분 일괄 보관, record.md §2-1) -->
+
+## 2026-09-11 (207) | [Sonnet] 전 페이지 모바일 검증 루프 ④`ObituaryPage`(개설 폼 본체) — §6.5 재판정 결과 ❌분리, 필드쌍 스택 + 줄글 축약
+
+- **근거 스펙**: `docs/00_핵심플랫폼/00-38_적응형_모바일_UX_개편_명세서.md` §6.5 ⓒ·ⓓ·§8.2(재판정 대상, 관리 모드는 wt179에서 CSS만으로 이미 완료). 목업(`_mockups/ObituaryPage.html`)으로 사람 승인 — 단 "유족추가 부분은 현재의 폼을 유지한다"는 조건부.
+- **건드린 파일**: `eobomDev/frontend/src/pages/ObituaryPage.tsx`
+- **결과**:
+  1) **§6.5 재판정 완료**: 개설 폼 본체는 화면 수·상태 기계 변화가 없는 순수 "배치" 변경이라 **❌ 분리하지 않음** — 이미 있는 `isMobile`(94행)로 인라인 style만 바꿨다. 00-38 §6.5 ⓓ의 사전 예측("배치 변경에 가깝다")이 실증됨.
+  2) 상주 성함/관계 필드쌍(구 519-528행)과 계좌 은행명/예금주 필드쌍(구 565-568행) — `display:flex`에 `flexDirection: isMobile ? 'column' : 'row'` 추가, `flex:2`/`flex:1`은 `isMobile`일 때 `undefined`로 꺼서 세로 스택 시 폭이 100%가 되게 함. 데스크톱(`isMobile=false`)은 기존 가로 배치 그대로.
+  3) 유족 추가 행(관계·성함·삭제버튼 3칸)은 **사람 지시로 미변경** — 기존 가로 배치 그대로 유지.
+  4) 추모관 체크박스 설명 `"[선택] 이 부고장과 함께 추모관도 만들기 — 조문객이 온라인으로 헌화·방명록을 남길 수 있는 공간입니다. 나중에 '디지털 추모관' 화면에서 따로 만들 수도 있습니다."` → `"[선택] 추모관도 함께 만들기 — 헌화·방명록 공간(나중에 따로 만들기 가능)"`로 축약. 연락처 안내·계좌 경고·필수 동의 2건(허위신고·재공유)은 사람 지시로 미변경.
+  `npx tsc --noEmit`·`npm run build`(eobomDev/frontend) 통과.
+- **편차**: 없음 — 목업 체크포인트대로 구현하되 사람이 명시적으로 제외한 유족추가 행만 뺐다.
+- **다음 에이전트가 알아야 할 것**: 관리 모드(부고장 있음, `obituaryRef`)의 수정 모달도 같은 `formCard`를 재사용하므로 이번 필드쌍 스택·문구 축약이 관리 모드 수정 화면에도 그대로 적용된다(같은 JSX 변수 공유, 의도된 결과). 🔵 로그인 필요 화면(`00-29` §15)이라 사람이 실기기로 ①360px에서 두 필드쌍이 세로로 스택되는지②768→1280 리사이즈 시 다시 가로로 돌아오는지③유족 추가 행이 기존 그대로인지 확인해야 한다. 다음 = 5번 `MyPage` — Phase 3 재판정(§6.5 ⓒ 기준)을 ①실측 단계에서 함께 판정할 것.
+
+<!-- 판정 생략: 2026-10-13 개발자 결정 — 게이트 미경유(9월분 일괄 보관, record.md §2-1) -->
+
+## 2026-09-11 | MyPage(모바일 검증 루프 5번) - §6.5 재판정 + 라벨/문구 정리
+
+- **근거 스펙**: docs/00_핵심플랫폼/00-38_적응형_모바일_UX_개편_명세서.md §6.5 (c)(d) (Phase 3 착수 시 재판정). 라벨/문구 변경 3건은 사람 지시(즉흥, 스펙 문서 갱신은 [Opus] 몫으로 별도 요청 필요).
+- **건드린 파일**: eobomDev/frontend/src/pages/MyPage.tsx
+- **결과**: §6.5 재판정 결과 [X] 분리 불필요 확정(목업 _mockups/MyPage.html로 사람 승인, 코드 변경 없음이 원안). 이어서 사람 지시로 3건 구현: (1)stats 라벨 '상담 내역'->'상담', '문의 내역'->'문의', '내 부고장'->'부고장' (MyPage.tsx:161-163) (2)로그인 게이트 안내문 "예약 현황, 상담 내역, 엔딩노트 진행 상황을 한눈에 확인하세요." -> "부고장 현황, 상담 내역, 엔딩노트 진행 상황을 한눈에 확인하세요."(MyPage.tsx:123, 폐기된 "예약" 개념 제거) (3)"디지털 자산 정리" 행의 Badge status=preview("미리보기" 배지) 제거(MyPage.tsx:352 부근). tsc --noEmit -p eobomDev/frontend 통과(에러 0건).
+- **편차**: 00-38 §8 표는 MyPage를 아직 "재판정 대기" 상태로 적어 두고 있다 - 이 항목으로 [X]분리 불필요로 확정됐으니 표 갱신 필요([Opus], docs/ 소유라 Sonnet이 직접 고치지 않음). context.md에 요청으로 남김.
+- **다음 에이전트가 알아야 할 것**: 모바일 검증 루프 다음 차례는 6번 MyObituaryListPage(1.실측->2.목업->3.승인->4.구현, 공통 규칙 동일). "가족 지정" 모달(MyPageFamilyDesignation)의 바텀시트 전환은 이 루프와 별개 작업 항목(00-38 §8 표 "모달->바텀시트 공통 규칙")으로 남아 있음 - 착수 안 됨.
+
+<!-- 판정 생략: 2026-10-13 개발자 결정 — 게이트 미경유(9월분 일괄 보관, record.md §2-1) -->
+
+## 2026-09-11 | MyObituaryListPage(모바일 검증 루프 6번) - page-subtitle 추가 + 버튼 정렬 수정
+
+- **근거 스펙**: docs/00_핵심플랫폼/00-38_적응형_모바일_UX_개편_명세서.md §6.5(c), §8 표(MyObituaryListPage는 이미 [X]분리불필요 확정 상태, 재판정 대상 아님). 버튼 정렬 건은 사람 지시로 실측 재점검 후 발견(즉흥, 스펙 문서에 명시 없음).
+- **건드린 파일**: eobomDev/frontend/src/pages/MyObituaryListPage.tsx
+- **결과**: (1) 규칙1 준수 - MyObituaryListPage.tsx:142 <p>에 className="page-subtitle" 추가(다른 8개 파일과 동일 패턴, index.css:1000-1006이 <=768px에서 display:none 처리). (2) "내가 만든 부고장" 카드의 이름/버튼 행(MyObituaryListPage.tsx:178)에서 justifyContent:'space-between' 제거하고 버튼 그룹 div(:193 부근)에 marginLeft:'auto' 추가 - 실브라우저(Chrome, 로컬 정적 서버로 재현 페이지 구동)에서 320/360/393/414/430/470/500/550/600px 8개 폭을 getBoundingClientRect로 정밀 측정해 검증. 수정 전: 320~430px(2버튼 케이스)·320~360px(1버튼 케이스)에서 이름 텍스트가 길어 버튼 그룹이 줄바꿈되면 justify-content:space-between이 "항목 1개인 줄은 좌측 정렬" 처리돼 버튼이 카드 왼쪽에 붙음(우측 여백 91~161px 남음). 수정 후: 320~600px 전 구간에서 wrap 여부와 무관하게 우측 오프셋 16px(카드 패딩과 동일)로 고정 확인. tsc --noEmit -p eobomDev/frontend 통과(에러 0건).
+- **편차**: 없음(승인받은 목업 eobomDev/frontend/_mockups/MyObituaryListPage.html 그대로 구현).
+- **다음 에이전트가 알아야 할 것**: 모바일 검증 루프 다음 차례는 7번 MyPageFamilyDesignation(모달) - 00-38 §8 표·부록의 "모달->바텀시트 공통 규칙"에 해당하며 LoginModal·InquiryModal·SummaryModal·AddressSearchModal까지 5개 모달에 적용되는 공통 규칙 작업이라 이번 페이지 건들보다 범위가 크다 - 착수 전 사람 확인 필요(이미 안내함). 검증에 쓴 재현 HTML은 스크래치패드에만 있고 프로젝트에는 남기지 않음(1회성 진단 도구).
+
+<!-- 판정 생략: 2026-10-13 개발자 결정 — 게이트 미경유(9월분 일괄 보관, record.md §2-1) -->
+
+## 2026-09-11 | MyObituaryListPage 후속수정 - 수정/삭제 버튼을 열기/공유와 병합(같은 크기)
+
+- **근거 스펙**: 스펙 없음 - 즉흥 구현. 사람이 실기기 스크린샷(assets/obi_test.png, 360px)을 직접 확인하고 지시.
+- **건드린 파일**: eobomDev/frontend/src/pages/MyObituaryListPage.tsx
+- **결과**: 직전 항목(marginLeft:'auto' 우측정렬 수정)을 실기기로 확인한 결과, 이름/날짜 블록 + 36px 높이 버튼(--sp-4 패딩)이 360px에서 여전히 한 줄에 안 들어가 버튼이 아래로 떨어지는 현상은 남아 있었음. 사람 지시대로 근본 재구조화: 이름+상태(MyObituaryListPage.tsx:183 부근)와 날짜를 버튼 없는 단독 블록으로 되돌리고(더 이상 flex row로 감싸지 않음), 수정/삭제 버튼을 열기/공유 버튼과 같은 스타일(iconBtnStyle: height 32px, padding '0 0.6rem', fontSize var(--fs-caption))로 축소해 "부고장 [열기][공유]" 행(linkGroupStyle)에 그대로 이어붙임(순서: 부고장 라벨 - 열기 - 공유 - 수정(진행중일 때만) - 삭제). 삭제 버튼은 기존 danger 색상(border: state-danger-bg, color: state-danger-fg)만 유지. 결과적으로 이름/날짜 줄은 버튼과 폭을 다투지 않아 wrap이 필요 없어졌고, 합쳐진 버튼 줄은 폭이 부족하면 flexWrap으로 pill 목록처럼 자연스럽게 다음 줄로 흐름(justify-content 없음, space-between 계열 정렬 버그 재발 안 함). 크롬(로컬 정적 서버로 재현 페이지 구동)에서 320/360/393px 폭으로 scrollWidth/clientWidth 비교해 가로 스크롤 없음 확인. tsc --noEmit -p eobomDev/frontend 통과(에러 0건).
+- **편차**: 직전 walkthrough 항목의 marginLeft:'auto' 수정은 이 항목으로 대체됨(코드상 완전히 제거됨) - 그 항목은 되돌리지 않고 이력만 남김.
+- **다음 에이전트가 알아야 할 것**: MyObituaryListPage.tsx의 obituary 카드에서 "수정"/"삭제" 버튼은 이제 항상 iconBtnStyle 크기(32px)이고 열기/공유와 같은 줄(linkGroupStyle)에 있다 - 다시 별도 행으로 분리하거나 크기를 키우면 이번에 해결한 360px wrap 문제가 재발한다. _mockups/MyObituaryListPage.html도 최종안으로 갱신함. 다음 루프 차례는 7번 MyPageFamilyDesignation(모달, 바텀시트 공통규칙 5종) - 착수 방식 확인 대기 중.
+
+<!-- 판정 생략: 2026-10-13 개발자 결정 — 게이트 미경유(9월분 일괄 보관, record.md §2-1) -->
+
+## 2026-09-11 | MyObituaryListPage 후속수정2 - "부고장"/"추모관" 회색 라벨 제거
+
+- **근거 스펙**: 스펙 없음 - 즉흥 구현. 사람 지시: "회색글씨 부고장 추모관 글자를 없앤다 버튼배열에 방해됨."
+- **건드린 파일**: eobomDev/frontend/src/pages/MyObituaryListPage.tsx
+- **결과**: 부고장 카드의 링크 행(MyObituaryListPage.tsx:195 부근)에서 `<span>부고장</span>`(width:3.4rem 고정폭 라벨) 제거, 추모관 카드의 링크 행(:276 부근)에서 `<span>추모관</span>` 제거. 두 라벨 다 제거 후 버튼(열기/공유/수정/삭제)이 행 맨 앞부터 바로 시작됨. tsc --noEmit -p eobomDev/frontend 통과(에러 0건).
+- **편차**: 없음.
+- **다음 에이전트가 알아야 할 것**: linkGroupStyle을 쓰는 두 행 모두 이제 라벨 없이 버튼만 있음. 모바일 검증 루프 6번(MyObituaryListPage) 관련 후속 조정은 이것으로 일단락. 다음 차례는 7번 MyPageFamilyDesignation(모달) - 착수 방식 확인 대기 중.
+
+<!-- 판정 생략: 2026-10-13 개발자 결정 — 게이트 미경유(9월분 일괄 보관, record.md §2-1) -->
+
+## 2026-09-11 | EndingNotePage - 모바일에 "한눈에 보기"(SummaryModal) 진입 버튼 없던 버그 수정
+
+- **근거 스펙**: 스펙 없음 - 즉흥 구현. 사람이 모바일 검증 루프 7번(모달 바텀시트 작업) 착수 전 실측 질문에 답하는 대신 실기기 버그 리포트: "모바일 환경에서 SummaryModal 접근 통로 없음."
+- **건드린 파일**: eobomDev/frontend/src/pages/EndingNotePage.tsx
+- **결과**: 원인 확인 - "한눈에 보기" 트리거 버튼(EndingNotePage.tsx 원래 줄 783-791)이 `<aside className="ending-note-toc">` 안에만 있었고, 이 aside는 index.css에서 CSS로 모바일 숨김 처리됨(주석 "A3 - 데스크톱 좌측 섹션 목차 고정. 모바일은 CSS로 숨긴다"). 모바일 전용 목차 리스트(`.ending-note-mobile-toclist`, isMobile 분기)에는 이 버튼의 대응물이 전혀 없어 모바일에서 SummaryModal을 열 방법이 없었음. 수정: isMobile 분기를 Fragment로 감싸고, `.ending-note-mobile-toclist` 카드 아래에 데스크톱과 동일한 스타일(className="btn", ListChecks 아이콘, "한눈에 보기" 라벨)의 버튼을 추가해 `setSummaryOpen(true)`를 호출하게 함. 기존 `summaryTriggerRef`(모달 닫을 때 포커스 복귀용, EndingNotePage.tsx:280)를 이 새 버튼에도 똑같이 연결 - 데스크톱/모바일 중 하나만 렌더되므로 ref 충돌 없음. tsc --noEmit -p eobomDev/frontend 통과(에러 0건).
+- **편차**: 없음.
+- **다음 에이전트가 알아야 할 것**: 모바일 검증 루프 7번(모달→바텀시트 공통 규칙, MyPageFamilyDesignation 등 5종)은 착수 전 실측만 마친 상태 - SummaryModal이 이미 자체 ≤640px 전체화면 시트 대응(index.css:1948-1992, 2026-08-27 확정)이 있어 00-38의 새 바텀시트 규칙과 모양이 다르다는 점을 사람에게 확인 요청했으나, 사람이 이번엔 답 대신 실기기에서 발견한 버그 2건(이번 항목 + "ending-note 메모 모달 취소버튼 무반응")을 먼저 보고함. 이 항목으로 버그 1건 해결. 나머지 하나(취소 버튼)와 SummaryModal 바텀시트 여부 확정은 아직 열려 있음.
+
+<!-- 판정 생략: 2026-10-13 개발자 결정 — 게이트 미경유(9월분 일괄 보관, record.md §2-1) -->
+
+## 2026-09-11 | EndingNotePage - 모바일 리더 모달 "취소" 버튼이 안 닫히던 버그 수정
+
+- **근거 스펙**: 스펙 없음 - 즉흥 구현. 사람 실기기 버그 리포트("ending-note의 메모 클릭 후 뜨는 모달에서 취소 버튼 반응 없음") + 확인 질문에 대한 답변("값 되돌리고 모달도 닫기").
+- **건드린 파일**: eobomDev/frontend/src/pages/EndingNotePage.tsx
+- **결과**: 원인 확인 - 모바일 리더 시트(`.ending-note-reader-sheet`, 섹션 탭 시 여는 전체 시트)의 "취소" 버튼은 `resetSection(expandedSection)`만 호출하고 시트를 닫지 않았음. 데스크톱 아코디언(`AccordionSection.tsx:41`)의 동일한 "취소" 버튼도 값만 되돌리고 안 접히는 것과 같은 동작이라 코드상 결함은 아니었으나, 모바일은 전체를 덮는 모달이라 안 닫히면 "반응 없음"으로 느껴짐(사람 확인 완료). 수정: 모바일 리더 시트의 취소 버튼 onClick에 `setExpandedSection(null)`을 추가해 값 되돌리기+시트 닫기를 함께 함(EndingNotePage.tsx 890행 부근). 데스크톱 AccordionSection의 취소 동작은 그대로 유지(안 접힘) - 이번 변경은 모바일 리더 시트에만 적용됨. tsc --noEmit -p eobomDev/frontend 통과(에러 0건).
+- **편차**: 없음.
+- **다음 에이전트가 알아야 할 것**: 이번 세션에서 발견된 실기기 버그 2건(SummaryModal 모바일 진입 통로 없음, 취소 버튼 무반응) 모두 해결됨. 모바일 검증 루프 7번(모달→바텀시트 공통 규칙, MyPageFamilyDesignation·LoginModal·InquiryModal·AddressSearchModal·SummaryModal)은 아직 착수 전 - SummaryModal이 이미 자체 ≤640px 전체화면 시트가 있어 00-38 새 규칙과 모양이 다른 문제가 미확정으로 남아 있음(사람에게 재확인 필요).
+
+<!-- 판정 생략: 2026-10-13 개발자 결정 — 게이트 미경유(9월분 일괄 보관, record.md §2-1) -->
+
+## 2026-09-11 | EndingNotePage - 모바일 "한눈에 보기" 진입 버튼 되돌림(사람 최종 결정)
+
+- **근거 스펙**: 스펙 없음 - 즉흥 구현. 사람 지시: "모바일에서는 한눈에 보기가 없는게 나을거 같아 수정 부탁할게."
+- **건드린 파일**: eobomDev/frontend/src/pages/EndingNotePage.tsx
+- **결과**: 직전 항목(2026-09-11, "모바일에 한눈에 보기 진입 버튼 없던 버그 수정")에서 추가했던 모바일 전용 "한눈에 보기" 버튼(`.ending-note-mobile-toclist` 카드 아래 `<button ref={summaryTriggerRef} onClick={() => setSummaryOpen(true)}>`)을 제거하고 원래 구조(Fragment 없이 `.ending-note-mobile-toclist` 하나만)로 되돌림. 데스크톱 좌측 목차의 "한눈에 보기" 버튼(약 790행)은 그대로 유지 - 이 기능은 데스크톱 전용으로 확정됨. tsc --noEmit -p eobomDev/frontend 통과(에러 0건).
+- **편차**: 없음 - 직전 항목의 "버그 수정"이 사람 재확인 후 "의도된 상태"로 뒤집힌 것. 직전 walkthrough 항목은 되돌리지 않고 이력만 남김.
+- **다음 에이전트가 알아야 할 것**: "한눈에 보기"(SummaryModal)는 모바일에서 접근 불가가 최종 의도된 동작이다 - 다시 "버그"로 보고 진입 버튼을 추가하지 말 것. 이 결정으로 모바일 검증 루프 7번(모달→바텀시트 공통 규칙)에서 열려 있던 "SummaryModal을 00-38 바텀시트 규칙으로 통일할지" 질문은 무의미해짐 - 모바일에서 아예 안 열리므로 바텀시트 전환 대상에서 제외. 7번 대상은 이제 나머지 4개 모달(MyPageFamilyDesignation·LoginModal·InquiryModal·AddressSearchModal)로 좁혀짐.
+
+<!-- 판정 생략: 2026-10-13 개발자 결정 — 게이트 미경유(9월분 일괄 보관, record.md §2-1) -->
+
+## 2026-09-11 | 모달 4종 바텀시트 공통 규칙(모바일 검증 루프 7번) 구현 완료
+
+- **근거 스펙**: docs/00_핵심플랫폼/00-38_적응형_모바일_UX_개편_명세서.md §8.2(MyPageFamilyDesignation 행 - 모달->바텀시트 전환, dvh 사용, --gutter-chrome) · §6.5 ⓒ(CSS만으로 충분, 별도 컴포넌트 분리 불필요). 사람 승인(목업 eobomDev/frontend/_mockups/Modals_BottomSheet.html).
+- **건드린 파일**: eobomDev/frontend/src/index.css, eobomDev/frontend/src/components/mypage/MyPageFamilyDesignation.tsx, eobomDev/frontend/src/components/LoginModal.tsx, eobomDev/frontend/src/components/facility/InquiryModal.tsx, eobomDev/frontend/src/components/AddressSearchModal.tsx
+- **결과**: index.css에 8개 클래스 신설(.myfamily-modal-backdrop/-panel, .login-modal-backdrop/-panel, .inquiry-modal-backdrop/-panel, .address-modal-backdrop/-panel) - 각각의 기본(비-모바일) 규칙은 기존 인라인 스타일 값을 그대로 옮긴 것(배경색·블러·z-index·데스크톱 maxWidth·padding 등 전부 동일, 시각적 회귀 없음). 그 아래 @media (max-width:768px) 블록 하나로 4개 backdrop 클래스에 align-items:flex-end+padding:0, 4개 panel 클래스에 max-width:none/width:100%/margin:0/border-radius:16px 16px 0 0/max-height:88dvh/overflow-y:auto/-webkit-overflow-scrolling:touch/padding-left,right:var(--gutter-chrome)/padding-top:1.4rem/padding-bottom:1.75rem를 동시 적용 - 이게 "공통 규칙"의 실체. 4개 TSX 파일은 각각 backdrop div와 panel div의 인라인 style 객체를 통째로 제거하고 className만 부여(onClick·ref 등 다른 prop은 그대로 유지). 부수 효과: LoginModal의 기존 max-height:90vh(모바일 주소창에 잘리는 문제)는 새 규칙의 max-height:88dvh가 소스 순서상 나중이라 자동으로 덮어씀 - vh->dvh 치환 완료. InquiryModal·AddressSearchModal은 원래 모바일에서 overflow 보호장치가 전혀 없었는데 이번에 같이 해결됨. tsc --noEmit -p eobomDev/frontend 통과(에러 0건). 구현 전 크롬(로컬 정적 서버로 동일 CSS 재현 페이지 구동)에서 320~398px 폭으로 getBoundingClientRect 측정 - 4개 다 bottomGap=0(바닥에 붙음)·border-radius 16px 16px 0 0·max-height 88dvh(~785px/892px 뷰포트)·padding-left 16px(--gutter-chrome)·overflow-y:auto 확인 완료.
+- **편차**: SummaryModal(당초 5종 중 하나)은 별도 지시로 모바일 접근 자체를 없애기로 확정(이전 walkthrough 항목 참고)돼 이번 4종에서 제외 - 00-38이 원래 "모달 5종"이라 적은 것과 다름, 사람 확정 사항.
+- **다음 에이전트가 알아야 할 것**: 모바일 검증 루프 7번(모달->바텀시트 공통 규칙) 완료. 00-38 §8 표·부록 순서상 다음은 부록 8개 페이지 중 첫 항목(§8.2 이후 목록, context.md 확인) - Phase 순서 목록 원문은 00-38 §Phase 순서 절 참고. AddressSearchModal의 다음 우편번호 위젯(420px 고정 height)이 이제 88dvh 안에서 스크롤 컨테이너에 들어가는데, 극단적으로 짧은 뷰포트(예: 가로모드)에서 위젯이 잘리는지는 실기기 확인 전까지 미검증.
+
+<!-- 판정 생략: 2026-10-13 개발자 결정 — 게이트 미경유(9월분 일괄 보관, record.md §2-1) -->
+
+## 2026-09-11 | FacilityPage(모바일 검증 루프 8번) - 실측 결과 이미 통과, 코드 변경 없음
+
+- **근거 스펙**: docs/00_핵심플랫폼/00-38_적응형_모바일_UX_개편_명세서.md §8 표(FacilityPage, 이미 [X]분리불필요 확정, 재판정 대상 아님).
+- **건드린 파일**: 없음(실측 결과 변경 불필요로 판정).
+- **결과**: 규칙1(설명문 모바일 제거) 이미 준수 - FacilityPage.tsx:287 className="page-subtitle". 바로 아래 위치정보 상시고지문(:298)은 의도적으로 page-subtitle 미적용(00-21 §0.2-1 관련, 숨기면 안 되는 법적 고지 - 손대지 않음). 카드 그리드는 .grid(minmax(min(320px,100%),1fr))라 360px에서 자동 1열. 리스트형 카드 버튼(:707-723)은 이미 isMobile 삼항으로 라벨 제거+아이콘만(6번에서 적용한 것과 동일 패턴, 2026-09-10 사람이 선행 적용). 카드형 버튼(:856-890)은 flex:'1 1 0'+minWidth:100px+whiteSpace:nowrap로 폭 확보. 주소는 -webkit-line-clamp:2+minHeight 예약(:788-800)으로 카드 높이 정렬. 이미지 플레이스홀더는 hideImagePlaceholder(useIsMobile(480))로 ≤480px에서 렌더 자체 생략(:742). 모바일 전용 검색바+필터 바텀시트(:311-360, isFilterSheetOpen)가 이미 00-38 §8.2 바텀시트 개념(translateY 토글, 7번에서 구현한 CSS 클래스 방식과는 별개 구현)으로 존재 - 손댈 필요 없음. §6.5 재판정 불필요(재판정 대상 아니었음, ❌ 유지 확인만).
+- **편차**: 없음.
+- **다음 에이전트가 알아야 할 것**: FacilityReviewModal.tsx(facility/FacilityReviewModal.tsx:101)가 maxHeight:'85vh'(dvh 아님)를 쓰는 걸 발견했으나, 00-38이 지정한 "모달 5종/4종"(7번 대상) 목록에 없어 이번 루프 범위 밖으로 남겨둠 - 고치지 않음. 모바일 검증 루프 다음 차례는 9번 CounselingPage(§8 표 순서 ⑦ 나머지: CounselingPage·DigitalEstatePage, 둘 다 분리 없음).
+
+<!-- 판정 생략: 2026-10-13 개발자 결정 — 게이트 미경유(9월분 일괄 보관, record.md §2-1) -->
 
 ## 2026-09-10~11 (203) | [Gemini/사람] /prep·/bereaved 모바일 푸터 정렬 버그 수정 및 거터 여백 정규화
 
@@ -2860,6 +4807,190 @@ wt125가 그것을 "추가 결정"으로 정직하게 신고했기에 이번에 
   Write/Edit 도구로 쓴다. 이번 세션에서 6번 밟았다.
 
 <!-- Gemini 판정: ✅통과 (read-guard.js 통독 차단 훅(40KB 제한)·usage-report.js 계측 도구 신설, 00_DOCS_INDEX 35KB 분할 및 walkthrough 아카이브 분리 검산, doctor 154개 전 항목 통과 확인) -->
+
+---
+
+## 2026-09-01 (100) | [Opus] `00-35` §8 재판단 — 3단계 기각 · 4단계 불채택 · 2.5단계 신설
+
+- **근거 스펙**: `00-35` §8(*"2단계가 끝나 약 790줄이 된 실물을 보고 Opus가 다시 판단해 §10으로
+  추가한다"*)이 예약한 재판단. 판단 기준은 §8.1의 3항목.
+- **건드린 파일**: `docs/00_핵심플랫폼/00-35_…명세서.md`(§10 신설, 기존 §10 관련→§11) ·
+  `docs/00_DOCS_INDEX.md`(00-35 요약 갱신) · `.harness/_meta/기술부채_…260831.md`(C-3 승격
+  머리말 추가 + *"C-3은 여기가 유일한 기록"* 문구 2곳 정정) · `.harness/memory/context.md` ·
+  `.harness/memory/backlog.md`(⑬ 신설). 🔴 **`eobom/`은 읽기만** — 코드 변경 0.
+- **결과**: §8.1 3항목 실측 후 판단.
+  ① **줄 수 859**(예상 786, **+73**) — 예상보다 덜 줄었다.
+  ② 🔴 **`sectionBodies`의 부모 상태가 섹션당 평균 1.25개**(6섹션 1개 · `CONTACTS`·`ORGAN_DONATION`
+     2개). §8.1-2가 미리 정한 *"평균 3개 이하면 3단계 없이 4단계만"* 기준을 크게 밑돈다.
+  ③ `07-04` 겹침 없음(`CareGuidePage.tsx`) — 재확인.
+  → **3단계 기각**(근거 5개, §10.2) · **4단계 불채택**(근거 4개 + 재개 조건, §10.4·10.5).
+  🆕 **2.5단계 신설**(§10.3) — 재판단 중 **2단계가 남긴 반복**을 찾았다. 8개 섹션 본문이 끝에서
+  `<SectionTimingControl>` **6줄을 그대로 반복**하고 `section=` 값만 다르다(376·394·419·449·
+  495·526·549·578줄). 순회 안으로 올리면 **−48줄 → 811줄**로 C-3-3의 목표선(약 800)에 닿는다.
+  8곳 모두 **본문의 마지막 자식**이라 DOM 순서가 보존되고, props 4개가 이미 부모 스코프에 있어
+  **새 배선이 없다.**
+- **편차**:
+  1. 🔴 **`00-35` 1·2단계(`94da5ab`·`c8f73e8`)에 walkthrough 항목이 없다.** `c8f73e8`이 손댄
+     walkthrough 34줄은 **wt(99)**, 즉 이전 건이었다. 결과로 **§7 체크리스트 8개를 실제로
+     돌렸는지가 어디에도 없고**, Gemini 게이트에 올릴 항목도 없다. `00-35` §10.6에 선행
+     조치로 적었다 — **소급 기록 + §7 재확인이 2.5단계보다 먼저다.**
+  2. `_meta/…260831.md` C-3-3의 *"A+B 후 약 800줄"* 예측이 **859줄로 빗나갔다.** 문서를 고치지
+     않고 **승격 머리말에 갱신 사항으로 명시**했다(경위 문서는 당시 판단 그대로 두는 것이 맞다).
+  3. `context.md`가 3KB를 넘어(3,279B) 리프레시 토큰 항목을 `backlog.md` ⑬으로 옮기고
+     완료 항목을 합쳐 **3,065B**로 맞췄다.
+- **다음 에이전트가 알아야 할 것**:
+  🔴 **`00-35`는 이제 2.5단계 하나만 남았다.** 3·4단계를 *"줄 수가 아직 800이라 크다"* 는
+  이유로 다시 열지 않는다 — 재개 조건은 §10.5에 못박았다.
+  🔵 **2.5단계 검증은 §7 전체 + 체크 8번을 8섹션 전부** 돌린다(지금 표본은 1개다).
+  🔴 `SectionTimingControl`은 `SECTION_ALLOWED_TIMINGS[section]`이 없으면 **`null`을 반환**한다 —
+  `SECTIONS`에 섹션을 추가할 때 timing 항목을 빼먹으면 **공개 시점 UI가 조용히 사라진다.**
+
+<!-- 판정 생략: 2026-10-13 개발자 결정 — 게이트 미경유(9월분 일괄 보관, record.md §2-1) -->
+
+---
+
+## 2026-09-01 (99) | [Opus] wt(97)(98) 브라우저 실검증 — 401 세션만료 흐름·엔딩노트 저장
+
+- **근거 스펙**: `00-34` §6(401 세션만료 콜백)·§8 2단계 / `00-35` §7-1(입력→저장→새로고침).
+  wt(97)(98)의 검증이 **`npx tsc --noEmit` 하나뿐**이라 실제 화면 동작이 미확인 상태였다.
+- **건드린 파일**: 없음(읽기·브라우저 조작만). `docs/`는 이 기록과 `00-35` §7 주석뿐.
+- **결과**: 로컬 dev(프론트 `https://localhost:5173` · 백엔드 `https://localhost:5000`,
+  둘 다 mkcert HTTPS)에서 데모 로그인(카카오 모의) 후 전 구간 확인. **총 269 요청 중
+  4xx는 아래 ③에서 일부러 만든 401 하나뿐 · 404는 0건.**
+  ① **마이페이지** — `/api/auth/me`·`/api/me/summary` 200, 통계(문의 3·상담 1·부고장 2) 정상 표시.
+  ② **엔딩노트 저장** — `자산 소재 안내`에 문자열 입력 → 저장 → `PUT /api/ending-note/sections/ASSET`
+     **200** → 새로고침 후 값·체크표시 유지. `00-35` §7-1 **1단계 착수 전 기준선 확보**.
+  ③ **401 세션만료** — `sessionStorage.k_ending_token`을 무효 JWT로 바꾸고 저장 재시도 →
+     PUT **401** → `세션이 만료되어 로그아웃되었습니다. 다시 로그인해주세요.` 안내 →
+     **헤더가 즉시 `로그인`으로 되돌아가고** 화면이 회원전용 게이트로 전환됨.
+     **개발자가 보고한 "헤더 로그인이 안 풀리던" 증상은 `00-34` 2단계로 실제로 닫혔다.**
+  ④ **가족 지정** — 마이페이지 모달 열기 · `GET /api/family-designations` 200(빈 목록).
+     🔴 초대 발송은 외부 메시지라 **일부러 실행하지 않음**.
+- **편차**:
+  1. 데모 계정(`demo_kakao@eobom.co.kr`)의 `ASSET` 섹션에 검증 문자열
+     **`verify-20260901-assets`가 로컬 DB에 남아 있다.** 지우려면 행 삭제가 필요해
+     (`db-safety.md`·메모리 규칙) **손대지 않았다** — 필요하면 화면에서 덮어쓸 것.
+  2. `LoginModal`의 데모 버튼은 "로그인" 탭에서 `canProceed`가 항상 false라 **눌러도 아무
+     일이 안 난다**(코드 주석대로 의도된 동작이나, 화면상 반투명 처리만 있고 안내가 없다).
+     검증은 "회원가입" 탭에서 필수 동의 2개 + 만14세를 체크한 뒤 진행했다.
+  3. 브라우저 자동화가 `alert()`에 멈추므로 `window.alert`을 `console.log`로 가로챈 상태로
+     테스트했다 — 문구는 콘솔에서 확인. 실제 사용자에겐 alert 창으로 뜬다.
+- **다음 에이전트가 알아야 할 것**:
+  🔴 **dev 서버는 HTTP가 아니라 HTTPS다** — `eobom/.certs/`에 mkcert 인증서가 있으면
+  `vite.config.ts`가 자동으로 HTTPS로 뜬다(백엔드 `server.ts`도 같은 규칙). `http://localhost:5173`으로
+  붙으면 빈 응답만 온다. 이걸 몰라 처음에 "서버가 안 떠 있다"고 오판했다.
+  🔵 `00-35` 1단계는 이제 **비교 기준선이 있다** — 위 ①~④를 그대로 다시 돌려 회귀를 잡는다.
+
+<!-- 판정 생략: 2026-10-13 개발자 결정 — 게이트 미경유(9월분 일괄 보관, record.md §2-1) -->
+
+---
+
+## 2026-09-01 (98) | [Sonnet] `00-34` §8 2단계 — 일반 사용자 12파일 `apiFetch` 이관
+
+- **근거 스펙**: `docs/00_핵심플랫폼/00-34_프론트엔드_공통_레이어_명세서.md` §8 2단계·§9.
+- **건드린 파일**: `eobom/frontend/src/components/facility/InquiryModal.tsx`(§4.3 죽은 키
+  제거분 포함, 아래 편차 참조) · `.../expert/ConsultRequestModal.tsx` ·
+  `.../facility/FacilityReviewModal.tsx` · `.../MyPageAuthSettings.tsx` ·
+  `.../MyPageProfile.tsx` · `.../MyPageFamilyDesignation.tsx` ·
+  `eobom/frontend/src/hooks/useProfileContact.ts` ·
+  `eobom/frontend/src/pages/{EndingNotePage,FamilyInvitePage,FarewellMessagePage,
+  MyPage,ObituaryPage}.tsx`. 정확히 12파일(스펙 §9 기준과 일치).
+- **결과**: 위 12파일의 `fetch(`+`BACKEND_URL`+`sessionStorage.getItem('k_ending_token')`
+  직접 호출을 전부 `apiFetch`/`apiFetchRaw`(`lib/api.ts`, 1단계 신설분)로 교체 — 401 처리가
+  이제 이 12파일 전부에서 공통 세션만료 흐름(`App.tsx`의 `registerSessionExpiredHandler`)을
+  탄다. `FamilyInvitePage.tsx`는 초대조회(비인증, 410 특례라 `apiFetchRaw` 사용)·수락(인증)·
+  거절(비인증) 세 종류가 섞여 있어 `audience` 인자를 케이스별로 다르게 넘김. `MyPage.tsx`·
+  `MyPageAuthSettings.tsx`의 `GET /api/auth/me`는 `{status, user}`를 돌려줘 공통 `{status,
+  data}` 봉투와 달라 `apiFetchRaw`로 남김. `npx tsc --noEmit` 통과(0 errors).
+- **편차**:
+  1. `InquiryModal.tsx`의 §4.3 죽은 키(`eobom_last_applicant`) 제거는 원래 1단계 몫이지만
+     같은 파일의 fetch 호출부를 2단계에서 또 고쳐야 해서 한 파일 안에 두 단계 변경이 섞였다.
+     hunk 단위로 커밋을 쪼개지 않고 **이 2단계 커밋에 그대로 포함**시켰다 — 죽은 코드 제거라
+     동작 위험은 없다고 판단.
+  2. `apiFetch`가 실패 시 던지는 `ApiError`의 메시지는 서버 응답의 `message` 필드를
+     그대로 쓰고, 없을 때만 공통 fallback(`요청 처리 중 오류가 발생했습니다.`)을 쓴다.
+     기존 각 파일이 갖고 있던 개별 fallback 문구(`상담 신청에 실패했습니다.` 등)는
+     사라졌다 — 백엔드 에러 응답은 전수 확인 결과 항상 `message`를 채워 보내 실사용
+     빈도는 거의 0으로 판단(스펙 §5.3의 "55곳 중복 상태 체크 제거" 취지와도 부합).
+  3. `MyPageAuthSettings.tsx`의 `DELETE /api/auth/unlink-provider`는 성공 시 서버가
+     `{status, message}`만 주고 `data` 필드가 없다(공통 봉투 밖) — `apiFetch`는 성공
+     메시지를 못 실어주므로 성공 토스트 문구를 고정 텍스트로 바꿨다.
+  4. `EndingNotePage.tsx`·`FarewellMessagePage.tsx`의 `Promise.all` 3-엔드포인트/2-엔드포인트
+     동시조회가 `apiFetch`로 바뀌며 실패 격리가 사라졌다 — 이전엔 각 엔드포인트가 개별
+     `.then()`에서 성공/실패를 따로 판정했지만, 이제 하나라도 실패하면 전체가 reject된다.
+     같은 유저·같은 토큰으로 동시에 부르는 호출들이라 상관된 실패가 현실적 시나리오라 보고
+     수용.
+- **다음 에이전트가 알아야 할 것**:
+  🔴 **3·4단계는 이번 범위 밖** — `AdminPage.tsx`·`BizDashboard.tsx`·`PartnerPortalPage.tsx`의
+  기존 `authFetch`는 그대로다(3단계), 나머지 비인증 `fetch(`(`LoginModal.tsx`·
+  `FacilityPage.tsx`·`CounselingPage.tsx`·`ObituaryLandingPage.tsx`·`SocialLinkModal.tsx`·
+  `FarewellMessageCard.tsx`·`VoiceToTextInput.tsx` 등)도 손대지 않았다(4단계).
+  🆕 `00-35` 착수 시 `EndingNotePage.tsx` `fetch` 7곳이 이번 이관과 겹친다고 walkthrough(96)이
+  미리 적어뒀다 — 이번 커밋 이후 기준으로 다시 확인할 것(이제 `apiFetch` 호출이라 모양이
+  다르다).
+  ✅ 커밋 완료 — 1단계(`fce4740`)·2단계(`54e23a2`) 분리, 사용자 지시로 에이전트가 직접 커밋(표준 절차의 예외).
+
+<!-- 판정 생략: 2026-10-13 개발자 결정 — 게이트 미경유(9월분 일괄 보관, record.md §2-1) -->
+
+## 2026-09-01 (97) | [Sonnet] `00-34` §8 1단계 — `storage.ts`·`api.ts` 신설 + 죽은 키 정리
+
+- **근거 스펙**: `docs/00_핵심플랫폼/00-34_프론트엔드_공통_레이어_명세서.md` §8 1단계·§4·§6.
+- **건드린 파일**: 신규 `eobom/frontend/src/lib/storage.ts` · 신규
+  `eobom/frontend/src/lib/api.ts` · `eobom/frontend/src/App.tsx`.
+- **결과**: `storage.ts`가 저장소 키 11종(§4.2, 죽은 키 `eobom_last_applicant` 1종 제외)의
+  문자열 리터럴을 유일하게 소유 — `USER`는 `sessionStorage`, `ADMIN`/`PARTNER`는
+  `localStorage` 그대로 유지(값은 하나도 안 바꿨음, §4.2 요구사항). `api.ts`가
+  `apiFetch`/`apiFetchRaw` 공통 fetch 파이프라인(URL 조립·Authorization 헤더·
+  `{status,data,message}` 봉투 파싱·401 시 감사별(audience) 콜백 통지)을 신설. `App.tsx`는
+  로그인/로그아웃 시 `storage.ts`의 `setSession`/`clearSession`을 쓰도록 바꾸고, §4.4 레거시
+  localStorage 정리(`clearLegacyUserLocalStorage`)를 마운트 시점으로 옮기고,
+  `registerSessionExpiredHandler('USER', ...)`로 401 콜백을 등록. **이 단계에서 `apiFetch`를
+  쓰는 호출부가 아직 없어 콜백이 실제로 트리거되지 않는다 — 기존 동작 변화 없음**(§8 1단계
+  요구사항). `npx tsc --noEmit` 통과.
+- **편차**: 없음.
+- **다음 에이전트가 알아야 할 것**:
+  🔴 이 커밋 단독으로는 **아무 화면도 안 바뀐다** — 실제 마이그레이션은 2단계
+  (walkthrough(98))에서 12파일에 걸쳐 일어난다. 두 커밋이 순서대로 들어가야 스펙 §8이
+  의도한 "레이어 따로/호출부 따로" 분리가 유지된다.
+  🟡 `apiFetchRaw`는 봉투가 아닌 응답(파일 다운로드·410 같은 상태코드 특례) 전용 탈출구로
+  설계 — 2단계에서 `FamilyInvitePage.tsx`(410 특례)와 `MyPage.tsx`/`MyPageAuthSettings.tsx`
+  (`/api/auth/me`가 `{status,user}`라 봉투 규격 밖)에 실제로 쓰였다.
+
+<!-- 판정 생략: 2026-10-13 개발자 결정 — 게이트 미경유(9월분 일괄 보관, record.md §2-1) -->
+
+## 2026-09-01 (96) | [Opus] `phoneHash` 재해시 실행 + `00-35` 엔딩노트 구조 정리 명세
+
+- **근거 스펙**: `00-33` §4.3·§9 ④ · `.harness/db-safety.md` §2 · 기술부채 점검 C-3
+  (`_meta/기술부채_외부지적_점검_260831.md` §8) — 사용자 승인 2026-09-01.
+- **건드린 파일**:
+  신규 `docs/00_핵심플랫폼/00-35_엔딩노트_페이지_구조_정리_명세서.md` ·
+  신규 `docs/트러블슈팅/00_INDEX.md`·`TS-001`·`TS-002` ·
+  `docs/00_DOCS_INDEX.md` · `docs/00_핵심플랫폼/00-33`(§4.4 스펙갱신) ·
+  `.harness/memory/context.md`·`pending-approvals.md` ·
+  `_meta/기술부채_외부지적_점검_260831.md`.
+  🔵 **`eobom/`은 읽기만** — `rotate-keys.ts` 실행은 사용자가 직접.
+- **결과**:
+  1. 🔴 **`phoneHash` 재해시 완료.** db-safety 게이트 전량 통과 — 백업
+     `eobom/backend/backups/local-20260901-rehash.dump`(182,688B, 컨테이너·호스트 양쪽 확인) →
+     대상 1건 확인 → 사용자 승인 → `--confirm` 실행. **검증**: dry-run 재실행
+     `대상 1건 · 이미 일치 1건 · 처리 필요 0건`. 중복 통과 창이 닫혔다.
+  2. `00-33` §4.4 **스펙갱신** — 해시 `v2:` 프리픽스 철회, **dry-run 값 비교**로 검증한다.
+     프리픽스는 *"형식이 v2"* 만 말하고 *"어느 키로 만들었는지"* 는 못 담아 **2차 교체 후 옛 값도
+     통과**시킨다. Sonnet의 `편차: 없음`은 부정확했으나 **구현이 더 낫다고 보고 스펙을 고쳤다.**
+  3. 🆕 `docs/트러블슈팅/` 신설 — **증상으로 찾는 색인**. TS-001(해시 키 파생 결합, ✅ 닫힘) ·
+     TS-002(백업 대상 오인, ✅ 닫힘). 🔴 Opus만 쓴다.
+  4. 🆕 `00-35` 신설 — `EndingNotePage.tsx`(1,196줄) 4단계 정리안. **1·2단계만 착수 승인**,
+     3·4단계는 2단계 완료 후 재판단(§8). §9에 위험 6종을 근거와 함께 기록.
+- **편차**: 없음. **다만 §9 A는 스펙이 아니라 실측 결과다** — `saveEndingNoteSection`이 `value`의
+  형태를 검증하지 않는 것은 `06-04`가 정한 바가 아니라 **현 구현의 성질**이고, 고칠지 여부는
+  아직 아무 문서도 정하지 않았다(별건).
+- **다음 에이전트가 알아야 할 것**:
+  🔴 `00-35` 착수는 **`00-34` C-1 1·2단계 다음**이다 — 같은 파일 `fetch` 7곳이 겹친다.
+  🔴 **프론트엔드에 테스트가 0개다**(`.test.*` 없음, 러너 미설치). `00-35` §7 수동 체크리스트가
+  유일한 안전망이고, 그중 **1번(입력→저장→새로고침)** 외에는 §9 A를 못 잡는다.
+  🟡 운영 DB에는 재해시를 **아직 안 했다** — 이관 시점에 같은 게이트를 다시 밟아야 한다.
+
+<!-- 판정 생략: 2026-10-13 개발자 결정 — 게이트 미경유(9월분 일괄 보관, record.md §2-1) -->
 
 ---
 

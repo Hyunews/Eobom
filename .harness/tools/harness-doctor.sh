@@ -593,7 +593,7 @@ EOF
   if [ "$N_JUDGED" -eq 0 ]; then
     note "판정 이력 없음 — 스킵"
   else
-    gray "     판정 ${N_JUDGED}건 / 대기 ${N_WAITING}건 / 무표기 ${N_LEGACY}건(08-07 양식 이전) · 반려·스펙갱신 ${N_FLAGS}건 · 개정 이후 ${NEW_JUDGED}건"
+    gray "     판정 ${N_JUDGED}건 / 대기 ${N_WAITING}건 / 무표기 ${N_LEGACY}건(08-07 양식 이전 + 10-13 판정 생략) · 반려·스펙갱신 ${N_FLAGS}건 · 개정 이후 ${NEW_JUDGED}건"
     # 10건은 "우연히 전부 완벽"이 설명 가능한 상한선으로 잡은 값이다.
     if [ "$NEW_JUDGED" -ge 10 ] && [ "$NEW_FLAGS" -eq 0 ]; then
       fail "개정 이후 판정 ${NEW_JUDGED}건이 전부 ✅통과 — 게이트 작동 증거 없음(→ GEMINI.md '검증 범위')"
