@@ -97,7 +97,7 @@
 | `00_핵심플랫폼/00-05_DB_요구사항_및_테이블_사전.md` | 1195 | &nbsp;&nbsp;&nbsp;&nbsp;### 3. 탈퇴 유예 — `User` 시각 칸 3개 (정본 `06-05` §5.4-2·§5.4-2-1 · `00-36` §4.3·§4.3-1) | 유지 | 탈퇴 유예 시각 칸 3개(deletionRequestedAt·deletionScheduledAt·purgedAt) — 유예 중 새 자료 생성 403은 blockDuringDeletionGrace.ts로 구현 | 정본 06-05 §5.4-2 · 00-36 §4.3-1 · 재판정 10-12: 새 절 |
 | `00_핵심플랫폼/00-05_DB_요구사항_및_테이블_사전.md` | 1208 | &nbsp;&nbsp;&nbsp;&nbsp;### 4. Json 칸 6개 | 유지 | Json 칸 6개 형태 예시 — Lead.payload·consentSnapshot·statusHistory, ConsultRequest.consentSnapshot·statusHistory, EndingNote.sectionState | statusHistory.at이 한국 시각 문자열(kstIso)이라는 주의는 코드 대조 미실시(미대조) · 재판정 10-12: 새 절 |
 
-## `00_핵심플랫폼/00-06_화면_설계서_및_와이어프레임.md` (16KB · 절 16) <!-- sha:fea4f318e2 -->
+## `00_핵심플랫폼/00-06_화면_설계서_및_와이어프레임.md` (16KB · 절 16) <!-- sha:c8552ec052 -->
 
 | 파일 | 줄 | 절 | 판정 | 근거 | 메모 |
 |---|---:|---|---|---|---|
@@ -155,7 +155,7 @@
 | `00_핵심플랫폼/00-10_URL_라우팅_HistoryRouter_전환_구현_메모.md` | 9 | # 🧭 18. URL 라우팅 — 해시 방식 → HistoryRouter(BrowserRouter) 전환 구현 메모 | 경위 | 문서째 경위 — 10-12 4단계: 맨 위 경위 표지(지금도 유효한 사실 2가지: OAuth 콜백 해시 신호 · vercel.json rewrite) + 원문은 부록 | 제목 '18.'은 옛 번호(표지에 적음). R930 |
 | `00_핵심플랫폼/00-10_URL_라우팅_HistoryRouter_전환_구현_메모.md` | 25 | &nbsp;&nbsp;## 📎 부록: 경위 — 2026-08-10 구현 메모 원문 | 경위 | 부록: 경위(10-12) — 08-10 구현 메모 원문 머리 |  |
 
-## `00_핵심플랫폼/00-11_백엔드_DB_배포_및_인프라_전략_결정서.md` (59KB · 절 43) <!-- sha:ecb6707d57 -->
+## `00_핵심플랫폼/00-11_백엔드_DB_배포_및_인프라_전략_결정서.md` (59KB · 절 43) <!-- sha:dda4c49cb4 -->
 
 | 파일 | 줄 | 절 | 판정 | 근거 | 메모 |
 |---|---:|---|---|---|---|
