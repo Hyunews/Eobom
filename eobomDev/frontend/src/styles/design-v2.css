@@ -480,6 +480,13 @@
   color: #FFFFFF;
 }
 
+/* 녹음 확인 창(VoiceToTextInput) — 데스크탑 전용. 창이 탭 본문 높이에 묶여 스크롤이 생기던 것을 풀고
+   "먼저 들어보기" 버튼을 키운다. 데스크탑·모바일 공통(모바일은 아래에서 따로 조정 가능). */
+.v2-voice-preview-btn {
+  height: 52px;
+  padding: 0 28px;
+}
+
 .v2-modal-actions {
   display: flex;
   gap: 10px;

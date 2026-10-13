@@ -396,39 +396,43 @@ export const VoiceToTextInput: React.FC<VoiceToTextInputProps> = ({
       {mode === 'record' && showConfirm && (
         <div
           style={{
-            position: 'absolute', inset: 0, zIndex: 10, backgroundColor: 'rgba(255,255,255,0.98)',
+            // 탭 본문 위에 덮지 않고 그 자리를 대신한다(아래 녹음 폼은 showConfirm일 때 안 그림) — 내용만큼만 커진다.
+            backgroundColor: '#FFFFFF',
             border: '1px solid var(--v2-btn-border)', borderRadius: '4px', padding: '18px',
             display: 'flex', flexDirection: 'column', gap: '12px', boxShadow: 'var(--v2-modal-shadow)',
-            overflowY: 'auto',
           }}
         >
           <p style={{ fontSize: 'var(--v2-fs-item-title)', color: 'var(--v2-text-main)', fontWeight: 700, margin: 0 }}>
             녹음을 마쳤습니다.
           </p>
 
-          {recordNotice && <p className="v2-notice-warn">{recordNotice}</p>}
+          {/* 가운데 영역(flex:1) — 창이 min-height로 늘어나면 남는 높이를 여기가 받아 미리듣기가 가운데에 놓인다.
+              위 = 제목, 아래 = 경고문+버튼(바닥 고정)이라 여백이 한쪽으로 몰리지 않는다. */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            {recordNotice && <p className="v2-notice-warn" style={{ margin: 0 }}>{recordNotice}</p>}
 
-          {!previewUrl ? (
-            <button type="button" onClick={openPreview} disabled={busy} className="v2-btn-outline" style={{ alignSelf: 'flex-start' }}>
-              <Play size={16} /> 먼저 들어보기
-            </button>
-          ) : (
-            <audio controls src={previewUrl} style={{ width: '100%' }} />
-          )}
+            {!previewUrl ? (
+              <button type="button" onClick={openPreview} disabled={busy} className="v2-btn-outline v2-voice-preview-btn" style={{ width: '100%' }}>
+                <Play size={16} /> 먼저 들어보기
+              </button>
+            ) : (
+              <audio controls src={previewUrl} style={{ width: '100%' }} />
+            )}
 
-          {uploadError && <p className="v2-notice-warn">{uploadError}</p>}
+            {uploadError && <p className="v2-notice-warn" style={{ margin: 0 }}>{uploadError}</p>}
+          </div>
 
-          <p style={{ fontSize: 'var(--v2-fs-support)', color: 'var(--v2-urgent)', margin: 0 }}>취소하면 녹음이 사라집니다.</p>
+          <p style={{ fontSize: 'var(--v2-fs-support)', color: 'var(--v2-urgent)', margin: 0, textAlign: 'center' }}>취소하면 녹음이 사라집니다.</p>
 
           <div style={{ display: 'flex', gap: '8px' }}>
-            <button type="button" onClick={discardPending} disabled={busy} style={actionBtnStyle('transparent', 'var(--v2-text-main)', busy, true)}>
+            <button type="button" onClick={discardPending} disabled={busy} style={{ ...actionBtnStyle('transparent', 'var(--v2-text-main)', busy, true), height: '52px' }}>
               취소
             </button>
             <button
               type="button"
               onClick={handleConvertRecording}
               disabled={busy || !recordConsent || !sttUploadEnabled}
-              style={{ ...actionBtnStyle('var(--v2-point)', '#FFFFFF', busy || !recordConsent || !sttUploadEnabled), flex: 1 }}
+              style={{ ...actionBtnStyle('var(--v2-point)', '#FFFFFF', busy || !recordConsent || !sttUploadEnabled), height: '52px', flex: 1 }}
             >
               {uploadStage === 'uploading' ? (
                 <><Loader2 size={16} /> 올리는 중…</>
@@ -445,8 +449,12 @@ export const VoiceToTextInput: React.FC<VoiceToTextInputProps> = ({
       {mode === 'record' && micError && <p className="v2-notice-warn" style={{ marginBottom: '16px' }}>{micError}</p>}
       {mode === 'record' && recordNotice && !showConfirm && <p className="v2-notice-warn" style={{ marginBottom: '16px' }}>{recordNotice}</p>}
 
-      {mode === 'record' && blocked && blockedNote}
-      {mode === 'record' && !blocked && (
+      {/* 06-04 §6.4-9-8-3 — 서버 플래그가 꺼져 있으면 녹음 탭도 업로드 탭처럼 안내만 남긴다(막다른 화면 방지). */}
+      {mode === 'record' && !sttUploadEnabled && (
+        <p className="v2-notice">지금은 음성 녹음을 글로 바꾸는 기능을 사용할 수 없습니다. "직접 쓰기" 탭을 이용해 주세요.</p>
+      )}
+      {mode === 'record' && sttUploadEnabled && blocked && blockedNote}
+      {mode === 'record' && sttUploadEnabled && !blocked && !showConfirm && (
       <>
       {!recordingSupported && (
         <p className="v2-notice" style={{ marginBottom: '16px' }}>
