@@ -11,6 +11,7 @@ import {
   exportFarewellMessage,
 } from '../controllers/farewellMessageController';
 import { blockDuringDeletionGrace } from '../middleware/blockDuringDeletionGrace';
+import { requireUserAuth } from '../middleware/requireAuth';
 
 // docs 06-05 §8 Phase B — 전부 본인 것만(컨트롤러 내부 verifyBearerToken 패턴). 🔴 유족이 읽는
 // 라우트는 없다 — 개봉은 06-04 Phase 3이고 엔딩노트와 동시에 열린다(§3.3).
@@ -20,6 +21,8 @@ import { blockDuringDeletionGrace } from '../middleware/blockDuringDeletionGrace
 // 세그먼트가 둘이라 `/:id`와 안 겹친다 — `/:id/audio`와 같은 자리에 둔다.
 
 const router = Router();
+
+router.use(requireUserAuth); // 이 라우터는 전부 로그인 필수 — 새 라우트도 자동으로 보호된다(middleware/requireAuth.ts)
 
 // 내 유족 메시지 목록 — 미리보기까지
 router.get('/', listFarewellMessages);

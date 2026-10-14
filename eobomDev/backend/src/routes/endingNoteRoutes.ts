@@ -19,12 +19,15 @@ import {
   reinvitePendingFamily,
 } from '../controllers/deathVerificationController';
 import { blockDuringDeletionGrace } from '../middleware/blockDuringDeletionGrace';
+import { requireUserAuth } from '../middleware/requireAuth';
 
 // docs 06-04 §10 Phase 1·2 — 전부 본인 것만(컨트롤러 내부 verifyBearerToken 패턴). family-view는
 // 개봉 전엔 IMMEDIATE(생전 공유)로 명시 지정된 것만, 개봉(EndingNote.RELEASED, 00-41) 뒤엔 자기 권한의
 // 사후 섹션 + 자기 앞 편지까지 내려준다(06-05 §3.3, endingNoteController.ts 주석 참고).
 
 const router = Router();
+
+router.use(requireUserAuth); // 이 라우터는 전부 로그인 필수 — 새 라우트도 자동으로 보호된다(middleware/requireAuth.ts)
 
 // 내 엔딩노트 조회 — 본문 복호화해 반환
 router.get('/', getEndingNote);

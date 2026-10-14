@@ -15,9 +15,10 @@ import {
   extendMyMemorial,
 } from '../controllers/memorialController';
 import { blockDuringDeletionGrace } from '../middleware/blockDuringDeletionGrace';
+import { requireUserAuth, requireUserAuthWith } from '../middleware/requireAuth';
 
-// 공개 조회(GET)와 로그인 필요 작성(POST/PATCH/DELETE)이 섞여 있다 — 인증 여부는 각 컨트롤러
-// 함수 내부에서 verifyBearerToken으로 판단한다(facilityRoutes.ts와 동일 패턴).
+// 공개 조회(GET)와 로그인 필요 작성(POST/PATCH/DELETE)이 섞여 있다 — 공개 라우트를 위에 모으고,
+// 아래 `router.use(requireUserAuth)`부터는 로그인 필수. 신원(id)은 컨트롤러가 다시 꺼내 쓴다.
 
 const router = Router();
 
@@ -32,9 +33,10 @@ router.get('/:slug', getMemorialBySlug);
 // 추모관 방명록 목록(삭제·비공개 제외)
 router.get('/:slug/guestbook', listGuestbook);
 router.post('/:slug/tributes', createTribute); // 헌화 — 비회원 허용(§4.4)
-router.post('/:slug/guestbook', blockDuringDeletionGrace, createGuestbookEntry); // 방명록 작성 — 로그인 필수(09-29, 컨트롤러가 401) · 탈퇴 유예 중 403(00-36 §4.3-1)
+router.post('/:slug/guestbook', requireUserAuthWith('방명록 작성은 로그인 후 이용하실 수 있습니다.'), blockDuringDeletionGrace, createGuestbookEntry); // 방명록 작성 — 로그인 필수(09-29) · 탈퇴 유예 중 403(00-36 §4.3-1)
 
-// 로그인 필요 (§6.2)
+// 로그인 필요 (§6.2) — 여기부터 아래는 전부 로그인 필수. 공개 라우트는 이 줄 위에 둔다(middleware/requireAuth.ts)
+router.use(requireUserAuth);
 router.post('/', blockDuringDeletionGrace, createMemorial); // 탈퇴 유예 중 403(00-36 §4.3-1)
 router.post('/:id/extend', extendMyMemorial); // 개설자만 — 연장(활성 복귀, 00-20 §8.1-4). `/extend/:token`(POST)보다 뒤라 겹치지 않는다
 router.patch('/:id', updateMemorial); // 개설자만

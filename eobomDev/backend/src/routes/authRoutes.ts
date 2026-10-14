@@ -13,6 +13,7 @@ import {
   isB2cAud,
 } from '../controllers/authController';
 import { JWT_SECRET } from '../config/jwt';
+import { requireUserTokenAuth } from '../middleware/requireAuth';
 
 const router = Router();
 
@@ -79,7 +80,7 @@ router.post('/confirm-link', confirmLink);
 router.post('/demo-login', demoLogin);
 
 // 6. 현재 로그인 유저 조회 (연동된 소셜 계정 목록 포함)
-router.get('/me', getCurrentUser);
+router.get('/me', requireUserTokenAuth, getCurrentUser);
 
 // 7. 마이페이지: 이미 로그인된 유저가 다른 소셜 계정 추가 연동 시작
 // (JWT를 쿼리로 받아 OAuth state에 서명해 실어보내고, 위 3~4번의 동일한 /:provider/callback을 그대로 재사용해서
@@ -112,6 +113,6 @@ router.get('/:provider/link', (req, res, next) => {
 }); // 로그인한 회원이 다른 소셜 계정 연동 시작 — 토큰은 쿼리로 받음
 
 // 8. 마이페이지: 소셜 계정 연동 해제 (최소 1개는 유지)
-router.delete('/unlink-provider', unlinkProvider);
+router.delete('/unlink-provider', requireUserTokenAuth, unlinkProvider);
 
 export default router;

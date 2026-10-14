@@ -18,6 +18,30 @@
 > 원인 = Gemini 판정이 `gemini_tasks.md`에만 적히고 이 파일 판정 칸은 비어 있었음. 🔴 **판정은 이 파일의 그 항목 칸에 적는다**(`GEMINI.md`).
 
 ---
+## 2026-10-14 | [Sonnet] 업무판 g2 두 건 — ① 유족 메시지 apiFetch 이관(확인 결과 이미 끝남) · ② 로그인 검사를 라우터 단위로 일괄 적용(동작 불변)
+
+- **근거 스펙**: ① 00-34 §1 머리 "남은 빈틈" · §5.3 · §9 2단계 / R300 Ⅹ장 6번 · ② 정본 스펙 없음 — R300 Ⅳ장 3 · Ⅹ장 8번(운영자 묶음 `requireAdminAuth`와 같은 방식, 00-37 A-1 #1)
+- **건드린 파일**: ① 없음(코드 변경 0) · ② eobomDev/backend/src/middleware/requireAuth.ts(신규) · routes/ 11개 — farewellMessage · endingNote · me · partner · expert · familyDesignation · memorial · obituary · facility · expertPublic · auth · 증빙 도구 .harness/tools/probe-route-auth.js(신규) · .harness/_meta/route-auth-map_261014_before.tsv(신규)
+- **결과**:
+  - ① `FarewellMessageCard`·`FarewellMessagePage`의 직접 `fetch`는 **10-12 `b8a6ef6`에서 이미 9곳 전부 `apiFetch`/`apiFetchRaw`로 이관 끝**(위 10-12 항목 참고). 지금 두 파일에 직접 `fetch(` 0곳 — 봉투 응답은 `apiFetch`, 음성 재생·반출 zip은 `apiFetchRaw`(§5.3). 이번엔 코드를 고치지 않았다. 업무판 항목만 낡아 있었다.
+  - ② 라우터 단위 검사 적용: **전부 로그인 필수** 라우터는 `router.use(requireUserAuth)` 1줄(farewell-messages · ending-note · me). **공개 몇 개 + 나머지 로그인**인 라우터는 공개를 위로 모으고 그 아래 `router.use`(partner · expert[공개 = signup·login·refresh] / family-designations[공개 2 = 초대 조회·거절] / memorials[공개 5] / obituaries[공개 3]). 라우터에 한 곳뿐인 경로는 라우트 인자로(facilities `/:id/quotes` · experts `/:id/consult-requests` · memorials 방명록 작성 · auth `/me`·`/unlink-provider`). 🔴 401 문구는 핸들러가 돌려주던 것과 같게 유지(묶음별 5종: `로그인이 필요합니다.` · `인증 토큰이 없거나 유효하지 않습니다.` · 방명록/업체 문의/상담 신청 전용 3종) — `requireUserAuth` · `requireUserAuthWith(문구)` · `requireUserTokenAuth` · `requirePartnerAuth` · `requireExpertAuth`.
+  - **증빙(경로 × 인증 여부 diff 0건)**: `probe-route-auth.js`(테스트 DB `_test`에서 앱 라우트 150개를 무토큰·불량토큰으로 호출) 작업 전·후 표가 **바이트 단위로 동일**(`cmp` 일치). 인증 필요 113 · 공개/기타 37. 전 표 = `.harness/_meta/route-auth-map_261014_before.tsv`(후 표는 같으므로 따로 두지 않음, 재실행으로 다시 증명 가능). 공개 예외(비회원 헌화 · 공개 추모관/부고장 조회 · 초대 토큰 조회/거절 · 연장 링크 · OG · 공유 집계 · 소셜 로그인/콜백 · health · geo · 각 /status · 3종 로그인/가입/refresh)는 전부 그대로 비-401.
+  - 검증: `tsc --noEmit` 오류 0 · `npm test` 460개 중 455 통과 · 2 skip · **3 실패 = `heavy-job-http`(STT·OCR 처리 시간 제한) — 변경을 치운 기준선에서도 똑같이 3 실패(이 작업과 무관, 기존 상태)**.
+  - '공개 전 코드 묶음'(업무판 b05, ref docs-audit README §4)의 **'권한' 항목과의 겹침**: b05에는 '권한'의 구체 내용이 적혀 있지 않고 README §4에는 '권한 경계 테스트'(10-01 `a2a8b05`)만 있다 — 이번 작업과 **코드가 겹치지 않는다**(b05 쪽이 '권한'을 무엇으로 정의하는지는 미확정, 겹쳐 보이면 알려 주면 됨).
+- **편차**:
+  1. **STT·OCR·유언장 사진(`/api/stt`·`/api/ocr`·`/api/will-photos`)은 묶지 않았다** — 핸들러가 기능 스위치(꺼짐 = 404)를 인증보다 먼저 판정한다. 라우터 단위로 묶으면 스위치가 꺼진 환경에서 404가 401로 바뀌어 "동작 불변"이 깨진다. 이 셋은 핸들러 안 검사 그대로. 합치려면 스위치 판정을 미들웨어로 올리는 별도 결정이 필요하다 — 🔵 개발자 판단 대기.
+  2. `router.use`를 건 라우터에서 **정의되지 않은 하위 경로**(예: `GET /api/me/없는경로`)는 비로그인일 때 404 → 401이 된다(운영자 묶음 `/api/admin`이 이미 그렇다). "정의된 경로" 기준의 판정은 불변.
+  3. 핸들러 안의 `verifyBearerToken` + 401 분기는 **그대로 둔다**(신원 id를 거기서 꺼내 쓴다. 지금은 이중 검증). 지우는 건 후속 정리 — 이번엔 동작 불변을 증명하기 쉬운 범위로 한정.
+  4. `/api/auth/:provider/link`는 토큰을 쿼리로 받는 별도 방식(OAuth 시작)이라 묶지 않았다.
+- **다음 에이전트가 알아야 할 것**:
+  - 🔴 **[Opus] 갱신 요청 ①** `00-34` §1 머리의 "🔴 남은 빈틈 하나 …" 문단과 §9 2단계 표의 해당 행이 낡았다 — 유족 메시지 화면은 10-12 `b8a6ef6`에서 이관 끝(직접 `fetch` 0곳). 그 문단을 "끝"으로 고치고 §8·§9 2단계 행도 ✅로(날짜 10-12). 위 표시 "51곳"·"12개 파일"은 09-01 당시 숫자라는 문구는 유지해도 됨.
+  - 🔴 **[Opus] 갱신 요청 ②** `00-04` §6-1 자동 생성 구간이 낡았다(`node .harness/tools/generate-api-doc.js --check` = 79줄 차이) — 인증 칸이 "없음"이던 줄들이 `requireUserAuth` 등 미들웨어 이름으로 바뀐다. 인자 없이 재실행하면 된다(마커 밖은 안 건드림). 겸해서 `00-15` §1·`00-37` A-1에 "라우터 단위 인증 = `middleware/requireAuth.ts`(10-14)" 한 줄, R300 Ⅹ장 8번 "미해결"이면 닫힘 표시.
+  - 새 라우트를 추가할 때: 로그인 필수 라우터면 아무것도 안 해도 보호된다. 섞인 라우터(memorials · obituaries · family-designations)는 **공개 라우트를 `router.use` 위에** 둔다.
+  - 커밋 메시지 초안(② — 사람이 커밋): `refactor(backend): 로그인 검사를 라우터 단위로 일괄 적용 — requireAuth 미들웨어(동작 불변, 경로 150개 인증 판정 diff 0건) · STT/OCR/유언장 사진은 스위치가 앞서 제외` + 트레일러 `Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>`. ①은 코드 변경이 없어 커밋 없음.
+
+<!-- Gemini 판정 대기 -->
+
+---
 ## 2026-10-13 | [Sonnet] User.purgedAt 주석 현행화 (schema.prisma) + 00-05 재생성
 
 - **근거 스펙**: 개발자 지시(10-13) — 09-30 결정. 정본 = `00-20` §6.3-2 · `06-05` §5.6-8-4 표

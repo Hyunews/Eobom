@@ -11,12 +11,19 @@ import {
   withdrawAcceptedDesignation,
 } from '../controllers/familyDesignationController';
 import { blockDuringDeletionGrace } from '../middleware/blockDuringDeletionGrace';
+import { requireUserAuth } from '../middleware/requireAuth';
 
 // 00-27 §8.1 Phase 1(기록) + §9.1 Phase 2(초대 링크). 전부 본인 것만(초대 발급 포함), 인증은
 // 컨트롤러 내부 verifyBearerToken 패턴. 🔴 "내가 지정됐는지" 조회
 // API는 만들지 않는다(§3 불변식 3) — 초대 3종은 전부 추측 불가 토큰으로만 접근한다.
 
 const router = Router();
+
+// 공개 2개를 맨 위에 모은다 — 받는 사람은 아직 회원이 아닐 수 있다. 아래 router.use부터는 전부 로그인 필수.
+router.get('/invite/:token', getFamilyInvite); // 공개
+router.post('/invite/:token/decline', declineFamilyInvite); // 로그인 불필요
+
+router.use(requireUserAuth); // middleware/requireAuth.ts
 
 // 내 가족 지정 목록
 router.get('/', listFamilyDesignations);
@@ -27,9 +34,7 @@ router.patch('/:id', updateFamilyDesignation);
 router.delete('/:id', deleteFamilyDesignation);
 
 router.post('/:id/invite', inviteFamilyDesignation); // 개설자만(§9.1)
-router.get('/invite/:token', getFamilyInvite); // 공개 — 받는 사람은 아직 회원이 아닐 수 있다
 router.post('/invite/:token/accept', acceptFamilyInvite); // 로그인 필요
-router.post('/invite/:token/decline', declineFamilyInvite); // 로그인 불필요
 router.post('/accepted/:id/withdraw', withdrawAcceptedDesignation); // 수락한 본인만(§9.2) — DECLINED로, 그 지정의 열람 권한 전부 철회
 
 export default router;

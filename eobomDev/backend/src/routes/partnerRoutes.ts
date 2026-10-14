@@ -3,6 +3,7 @@ import { signup, login, refresh, getMe, updateMe } from '../controllers/partnerC
 import { submitClaim, listMyClaims, listMyFacilities } from '../controllers/claimController';
 import { addFacilityImage, removeFacilityImage, setCoverImage } from '../controllers/facilityMediaController';
 import { listMyLeads, getMyLeadDetail, updateMyLeadStatus } from '../controllers/leadController';
+import { requirePartnerAuth } from '../middleware/requireAuth';
 
 const router = Router();
 
@@ -12,6 +13,9 @@ router.post('/signup', signup);
 router.post('/login', login);
 // 사업자 토큰 갱신(리프레시 토큰 회전)
 router.post('/refresh', refresh);
+
+router.use(requirePartnerAuth); // 여기부터 아래는 전부 사업자 로그인 필수(공개는 위 3개뿐) — middleware/requireAuth.ts
+
 // 사업자 내 정보 조회
 router.get('/me', getMe);
 // 담당자·연락처·정산계좌 수정

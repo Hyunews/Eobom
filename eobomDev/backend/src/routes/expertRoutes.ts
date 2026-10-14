@@ -8,6 +8,7 @@ import {
   getMyConsultRequests,
   updateConsultRequestStatus,
 } from '../controllers/expertController';
+import { requireExpertAuth } from '../middleware/requireAuth';
 
 const router = Router();
 
@@ -17,6 +18,9 @@ router.post('/signup', signup);
 router.post('/login', login);
 // 전문가 토큰 갱신(리프레시 토큰 회전)
 router.post('/refresh', refresh);
+
+router.use(requireExpertAuth); // 여기부터 아래는 전부 전문가 로그인 필수(공개는 위 3개뿐) — middleware/requireAuth.ts
+
 // 전문가 내 정보 조회
 router.get('/me', getMe);
 // 연락처·소개·정산계좌 수정

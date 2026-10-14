@@ -6,12 +6,15 @@ import { getMySummary } from '../controllers/summaryController';
 import { listMyLeads, listMyConsultRequests, listMyGuestbookEntries, deleteMyGuestbookEntry } from '../controllers/meActivityController';
 import { listMyCareGuideProgress, checkCareGuideTask, uncheckCareGuideTask } from '../controllers/careGuideController';
 import { getDeletionPreview, requestAccountDeletion, cancelAccountDeletion } from '../controllers/accountDeletionController';
+import { requireUserAuth } from '../middleware/requireAuth';
 
 // B2C 로그인 유저 전용 "내 활동" 네임스페이스 (docs 04-01 §5.2 · 05-01 §4.2). /api/auth/me(계정 정보)와는
 // 별개 — 이쪽은 도메인 데이터(추모관 등)를 모은다. 회원 프로필(연락처·주소 등, 00-28 §6.1)·
 // 마이페이지 3칸 카운터 요약도 여기 붙는다.
 
 const router = Router();
+
+router.use(requireUserAuth); // 이 라우터는 전부 로그인 필수 — 새 라우트도 자동으로 보호된다(middleware/requireAuth.ts)
 
 // 내가 개설한 추모관 목록
 router.get('/memorials', listMyMemorials);
