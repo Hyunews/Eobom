@@ -10,6 +10,7 @@ import { MyPageProfile } from './components/mypage/MyPageProfile';
 import { MyPageFamilyDesignation } from './components/mypage/MyPageFamilyDesignation';
 import { EobomLogo } from './components/EobomLogo';
 import { providerLabel, BACKEND_URL } from './config';
+import { getScrollY, scrollPageTo } from './lib/scroll';
 import { getDisplayName, setSession, clearSession, clearLegacyUserLocalStorage, isUserSessionPending, subscribeUserSession, getUserTokenExpiryMs, PENDING_RETURN_PATH_KEY, SCROLL_HOME_KEY, SCROLL_HOME_MOBILE_KEY } from './lib/storage';
 import { registerSessionExpiredHandler } from './lib/api';
 import { useIsMobile } from './hooks/useIsMobile';
@@ -140,7 +141,7 @@ function AppShell() {
   const setActiveTab = (tab: string) => {
     // 1. 현재 떠나는 탭의 위치 기록 (뒤로가기로 되돌아올 때 복원용)
     if (activeTab !== 'home') {
-      sessionStorage.setItem(`eobom_scroll_${activeTab}`, String(window.scrollY));
+      sessionStorage.setItem(`eobom_scroll_${activeTab}`, String(getScrollY()));
     }
 
     // 2. 메뉴 직접 클릭이므로 타겟 탭의 저장된 스크롤 위치 삭제 (최상단 개봉)
@@ -177,21 +178,31 @@ function AppShell() {
   // 더 실행되며 이 아래 top-scroll이 다시 걸려 방금 맞춘 위치를 도로 덮어쓴다(실측 확인,
   // 2026-08-31). deps는 activeTab만 유지해 "실제로 홈에 막 도착한 그 렌더"의 값만 캡처한다.
   const skipHomeTopScroll = activeTab === 'home' && location.search.includes('entry=');
+  // 🔄 2026-10-14 — ① deps를 activeTab에서 location.key로: 같은 탭 안 이동(/memorial → /memorial/:id)과 현재 메뉴 재클릭도 맨 위로.
+  // 단 REPLACE(검색어 지우기 등)와, 같은 경로에서 검색어만 바뀐 이동(엔딩노트 탭 전환)은 건너뛴다 — 예전에도 안 움직였다.
+  // ② 스크롤은 window가 아니라 getScroller(lib/scroll.ts) — 641px 이상에서는 .main-wrapper가 스크롤 패널이라 window.scrollTo가 무효였다.
+  const prevNavRef = React.useRef<{ pathname: string; search: string } | null>(null);
   React.useEffect(() => {
+    const prev = prevNavRef.current;
+    prevNavRef.current = { pathname: location.pathname, search: location.search };
+    if (prev) {
+      if (navigationType === 'REPLACE') return;
+      if (prev.pathname === location.pathname && (navigationType !== 'PUSH' || prev.search !== location.search)) return;
+    }
     if (skipHomeTopScroll) return;
     if (activeTab !== 'home') {
       if (navigationType === 'POP') {
         const saved = sessionStorage.getItem(`eobom_scroll_${activeTab}`);
         const targetY = saved ? Number(saved) : 0;
-        window.scrollTo({ top: targetY, left: 0, behavior: 'instant' });
+        scrollPageTo(targetY);
       } else {
-        window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+        scrollPageTo(0);
       }
     } else {
-      window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+      scrollPageTo(0);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeTab]);
+  }, [location.key]);
 
   // 백엔드 소셜 로그인 리다이렉트 콜백 파싱 (예: /#loginSuccess?token=...&name=...)
   // 경로(pathname)는 항상 '/'로 온다 — 해시는 페이지 라우팅과 무관한 1회성 신호로만 쓴다.

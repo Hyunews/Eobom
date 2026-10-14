@@ -17,6 +17,7 @@ import {
 import { PageLink } from '../components/common/PageLink';
 import { apiFetch, ApiError } from '../lib/api';
 import { getToken } from '../lib/storage';
+import { scrollPageTo } from '../lib/scroll';
 import { useIsMobile } from '../hooks/useIsMobile';
 import { LoginGate } from '../components/LoginGate';
 import { backdropCloseProps } from '../utils/backdropClose';
@@ -332,7 +333,7 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
 
   const goToWillTab = () => {
     setNoteTab('will');
-    requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: 'smooth' }));
+    requestAnimationFrame(() => scrollPageTo(0, 'smooth'));
   };
 
   // T-4 — ⑨ 저장 뒤 "유언장 소재 안내" 링크: 엔딩노트 탭으로 전환하고 ⑧을 연다

@@ -18,6 +18,17 @@
 > 원인 = Gemini 판정이 `gemini_tasks.md`에만 적히고 이 파일 판정 칸은 비어 있었음. 🔴 **판정은 이 파일의 그 항목 칸에 적는다**(`GEMINI.md`).
 
 ---
+## 2026-10-14 | [Sonnet] 버그 수정 — 메뉴로 페이지 진입 시 맨 위에서 시작하지 않음
+
+- **근거 스펙**: 스펙 없음 — 버그 수정(개발자 관찰, docs 변경 없음)
+- **건드린 파일**: eobomDev/frontend/src/lib/scroll.ts(신설) · src/App.tsx(top-scroll 이펙트·`setActiveTab` 위치 저장) · src/pages/EndingNotePage.tsx(`goToWillTab`) · src/pages/FacilityPage.tsx(`goToPage`)
+- **결과**: 원인 확정(코드 읽기) — 641px 이상에서 `.main-wrapper`가 `height:calc(100vh - var(--header-h)); overflow-y:auto` 스크롤 패널(index.css:366)이라 `window.scrollTo`가 아무것도 안 움직였다(후보 3의 반대 방향: 데스크톱이 문제). 추가로 이펙트 deps가 `[activeTab]`이라 같은 탭 안 이동·메뉴 재클릭은 미발동(후보 1·2). `lib/scroll.ts`의 `getScrollY`/`scrollPageTo`가 `.main-wrapper`(overflow-y가 auto일 때)나 window 중 실제 스크롤 주체를 골라 쓰고, 이펙트 deps를 `[location.key]`로 바꿨다. 후보 4는 충돌이 아니라 같은 window 문제(두 곳을 같은 함수로 교체). `tsc -b`·`npm run build` 통과. **실기동 확인은 하지 않았다**(개발 서버 정책 — 사람이 확인).
+- **편차**: 없음. 판단 하나 — 이펙트는 REPLACE와 "같은 경로에서 검색어만 바뀐 이동"(엔딩노트 탭 전환 `setSearchParams`)은 건너뛴다(이전에도 맨 위로 안 갔고, 가면 탭 전환마다 튀어 오른다). 같은 URL을 PUSH하는 메뉴 재클릭은 맨 위로 간다. 홈 `?entry=` 예외(`skipHomeTopScroll`)는 그대로.
+- **다음 에이전트가 알아야 할 것**: 확인 요청(사람) — 데스크톱·모바일 폭에서 메뉴 전 항목 진입 / `/memorial`→상세 / 같은 메뉴 재클릭 / 뒤로가기 복원. 뒤로가기 복원은 `setActiveTab`으로 떠날 때만 위치를 저장하는 기존 구조 그대로라, `Link`로 상세에 갔다 돌아오면 목록 위치는 복원되지 않는다(기존 한계, 이번에 안 건드림).
+
+<!-- Gemini 판정 1줄: ✅통과 / ❌반려(사유) / 🔄스펙갱신(고친 문서) -->
+
+---
 ## 2026-10-14 | [Sonnet] 로그 L-2 — 동의 이력(D) · 사후개봉 열람 기록(E) · 파기 기록 일원화(F)
 
 - **근거 스펙**: docs/00_핵심플랫폼/00-42_운영_기록_로그_설계서.md §5.3 "L-2 구현 기준"(배경 §4.3~4.5, 공통 §5.2)

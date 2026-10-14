@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { LoginGate } from '../components/LoginGate';
+import { scrollPageTo } from '../lib/scroll';
 import { MapPin, Map, Image as ImageIcon, Send, Search, LayoutGrid, List, SlidersHorizontal, ChevronRight, X } from 'lucide-react';
 import { BACKEND_URL, GEOLOCATION_FALLBACK, LOCATION_FEATURE_ENABLED } from '../config';
 import { KakaoMapModal } from '../components/KakaoMapModal';
@@ -158,7 +159,7 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
 
   const goToPage = (p: number) => {
     setPage(p);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    scrollPageTo(0, 'smooth');
   };
 
   // 사용자의 현위치 자동 감지 (Geolocation API) — "선택 안함" 시 되돌아갈 기본 위치로도 보관
