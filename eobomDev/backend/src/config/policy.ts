@@ -38,5 +38,10 @@ export const POLICY = {
     deletedGuestbookMonths: 3, // 00-19 제4조 "방명록 등 삭제된 게시물 … 3개월 후 완전 삭제"
     contactMaskAfterEndDays: 90, // 00-19 제4조·제8조 "끝난 날부터 90일이 지나면 … 원본도 마스킹"
     heavyJobLogYears: 1, // 06-04 §6.4-11-10-1 "1년 지난 기록은 지웁니다" — 사진 인식·음성 변환 처리 결과 기록(개인정보 없음, 처리방침 대상 아님)
+    consentLogYearsAfterPurge: 1, // 00-42 §5.1 ④·§5.3 — 동의 이력은 계정 파기(purgedAt) 후 1년(분쟁 대비)
+    purgeRunLogYears: 2, // 00-42 §5.1 ④·§5.3 — 파기 기록(PurgeRunLog)은 2년
   },
+  // 약관·처리방침 문서 버전 — 동의 이력(ConsentLog.version)에 찍는다. 00-42 §5.3: 코드 한 곳의 상수, 게시(v1.0) 때 이 값만 올린다.
+  // 지금 00-21(이용약관)·00-19(처리방침) 둘 다 v0.9. 마케팅·STT는 별도 문서가 없어 처리방침 버전을 쓴다.
+  consentVersion: 'v0.9',
 } as const;

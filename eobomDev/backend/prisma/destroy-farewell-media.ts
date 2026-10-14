@@ -26,7 +26,9 @@
 //      끝나지 않은 건(Lead REQUESTED·NOTIFIED·ConsultRequest REQUESTED·ACCEPTED)은 접수일부터 90일 지난 건의(2026-10-08 추가, 상태는 안 바꿈)
 //      이름·연락처를 가린 값으로, Lead.payload는 {}로·ConsultRequest.content는 "(보관 기간이 지나 삭제됨)"으로 덮어쓰고 maskedAt 기록. 접수번호·일시·대상·금액은 유지. "끝난 시각" = statusHistory의 현재 상태 마지막 기록(없으면 updatedAt).
 //   ⑪ HeavyJobLog(사진 인식·음성 변환 처리 결과 건별 기록, 06-04 §6.4-11-10-1) createdAt + 1년 경과 → 삭제. 개인정보 없는 집계용 기록. 조회는 `npm run report:heavy`.
-//   ⑤·⑦~⑪은 --confirm으로 실행한 단계마다 건수를 PurgeRunLog에 남긴다(보관기간 숫자는 config/policy.ts retention).
+//   ⑫ ConsentLog(동의 이력) — 계정 파기(User.purgedAt) 후 1년 경과 → 삭제(00-42 §5.3 D).
+//   ⑬ PurgeRunLog(파기 기록) — 2년 경과 → 삭제(00-42 §5.3 F). EndingNoteViewLog(사후개봉 열람)는 단계가 없다 — 엔딩노트 파기 때 Cascade.
+//   ④~⑬은 --confirm으로 실행한 단계마다 건수를 PurgeRunLog에 남긴다(④⑤는 파기한 id 목록도, ⑥ 운영 기록 3종은 opsLogPurgeService가 남긴다. 보관기간 숫자는 config/policy.ts retention).
 //
 // 🔴 아카이브는 이 스크립트가 지우지 않는다(§5.6-8-1 D-9) — 백엔드는 아카이브 버킷에 대한
 // S3 자격증명을 원천적으로 갖지 않는다(새 토큰도 발급하지 않는다). 파기는 2단계다:
@@ -68,6 +70,10 @@ import {
   findConsultMaskTargets,
   maskLeads,
   maskConsultRequests,
+  countConsentLogExpired,
+  purgeConsentLogExpired,
+  countPurgeRunLogExpired,
+  purgeRunLogExpired,
   recordPurgeRun,
 } from '../src/services/retentionPurgeService';
 
@@ -183,11 +189,13 @@ async function main(): Promise<void> {
   }
   if (confirmed) {
     let done = 0;
+    const purgedAccountIds: string[] = [];
     for (const p of plans) {
       try {
         const r = await purgeAccount(p.user);
         if (r.purged) {
           done++;
+          purgedAccountIds.push(p.user.id);
           purgedKeys.push(...r.keys);
         } else {
           console.log(`   - ${p.user.id.slice(0, 8)}… 건너뜀: ${r.reason}`);
@@ -198,6 +206,7 @@ async function main(): Promise<void> {
       }
     }
     console.log(`[④회원 탈퇴 만료] 완료: ${done}명 익명화`);
+    await recordPurgeRun('ACCOUNT_PURGE', done, { targetIds: purgedAccountIds }); // 00-42 §5.3 F — 내부 uuid만
   }
 
   // ⑤ purgeAt 경과 추모관 — 방명록·헌화·사진(로컬 디스크 파일 포함)과 함께 삭제(00-20 §8.1-1, memorialPurgeService).
@@ -221,11 +230,13 @@ async function main(): Promise<void> {
   if (confirmed) {
     let done = 0;
     let fileCount = 0;
+    const purgedMemorialIds: string[] = [];
     for (const p of memorialPlans) {
       try {
         const r = await purgeMemorial(p.memorial);
         if (r.purged) {
           done++;
+          purgedMemorialIds.push(p.memorial.id);
           fileCount += r.files;
         } else {
           console.log(`   - ${p.memorial.id.slice(0, 8)}… 건너뜀: ${r.reason}`);
@@ -235,7 +246,7 @@ async function main(): Promise<void> {
       }
     }
     console.log(`[⑤추모관 파기] 완료: ${done}개 삭제 · 사진 파일 ${fileCount}개 삭제`);
-    await recordPurgeRun('MEMORIAL_PURGE', done);
+    await recordPurgeRun('MEMORIAL_PURGE', done, { targetIds: purgedMemorialIds });
   }
 
   // ⑥ 운영 기록 보관기간 경과(00-42 §5.2 ⑧) — 접속기록 1년 · 운영자 감사 2년 · 에러 기록 90일. createdAt 기준 단일 조건.
@@ -333,6 +344,26 @@ async function main(): Promise<void> {
     console.log(`[⑪처리 결과 기록] 완료: ${n}건 삭제`);
     await recordPurgeRun('HEAVY_JOB_LOG', n);
   }
+
+  // ⑫ 동의 이력 — 계정 파기(purgedAt) 후 1년(00-42 §5.1 ④·§5.3 D). purgedAt이 없는 회원의 이력은 걸리지 않는다. 건수만 찍는다.
+  const consentLogCount = await countConsentLogExpired();
+  console.log(`[⑫동의 이력] 대상 ${consentLogCount}건 (계정 파기 후 ${POLICY.retention.consentLogYearsAfterPurge}년 경과)`);
+  if (confirmed) {
+    const n = await purgeConsentLogExpired();
+    console.log(`[⑫동의 이력] 완료: ${n}건 삭제`);
+    await recordPurgeRun('CONSENT_LOG', n);
+  }
+
+  // ⑬ 파기 기록 — 2년(00-42 §5.1 ④·§5.3 F). 맨 마지막에 둔다: 위 단계들이 방금 남긴 줄이 같은 실행에서 지워질 일은 없다(createdAt 2년 조건). 건수만 찍는다.
+  const purgeRunLogCount = await countPurgeRunLogExpired();
+  console.log(`[⑬파기 기록] 대상 ${purgeRunLogCount}건 (${POLICY.retention.purgeRunLogYears}년 경과)`);
+  if (confirmed) {
+    const n = await purgeRunLogExpired();
+    console.log(`[⑬파기 기록] 완료: ${n}건 삭제`);
+    await recordPurgeRun('PURGE_RUN_LOG', n);
+  }
+
+  // 사후개봉 열람 기록(EndingNoteViewLog)은 단계가 없다 — 엔딩노트가 파기될 때 Cascade로 함께 지워진다(④ accountPurgeService의 endingNote.deleteMany, 00-42 §5.3 E).
 
   // 🟡 "완료"라고만 찍으면 절반만 지운 상태를 다 지운 것으로 오인한다(§5.6-8-1-1 #48).
   if (confirmed && !isDevEnvironment()) {

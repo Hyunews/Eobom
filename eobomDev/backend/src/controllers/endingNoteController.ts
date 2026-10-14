@@ -6,6 +6,12 @@ import { RELEASED_LOCK_MESSAGE, isEndingNoteReleased } from '../utils/endingNote
 import { SECTION_ALLOWED_TIMINGS, grantDefaultForAllDesignations } from '../utils/endingNoteSections';
 import { isVoiceStorageEnabled } from '../config/r2';
 import { sendFarewellAudio } from './farewellMessageController';
+import {
+  writeEndingNoteViewLogs,
+  rejectViewLogFailure,
+  LETTER_SECTION,
+  LETTER_AUDIO_SECTION,
+} from '../services/endingNoteViewLogService';
 
 // docs 06-04 §4.2·§10 Phase 1 — 엔딩노트 본체(EndingNote 메타데이터 + EndingNoteEntry 본문).
 // 전부 본인 것만(farewellMessageController와 같은 패턴 — verifyBearerToken). 🔴 유족이 읽는
@@ -319,7 +325,7 @@ export const revokeEndingNoteGrant = async (req: Request, res: Response) => {
 // 화면 표시 항목 · §2.1 본인의 동의 시각). 🔴 그 외 필드는 늘리지 않는다 — 연락처·이메일은 불변식 2,
 // `priority`는 불변식 4(연락 순서일 뿐 상속순위가 아니다).
 //
-// 🔴 왕복 수 = **2회, 지정 건수 n과 무관**. 예전엔 노트·권한·항목을 지정마다 따로 물어 `1 + 3n`번이었다.
+// 🔴 왕복 수 = **3회(조회 2 + 열람 기록 1), 지정 건수 n과 무관**(10-14 L-2 — 열람 기록 한 번이 늘었다, 00-42 §5.3 E). 예전엔 노트·권한·항목을 지정마다 따로 물어 `1 + 3n`번이었다.
 // Render(오리건)↔DB(서울) 왕복이 회당 ~1.3초라 지정 2건이면 ~9초였다(summaryController와 같은 이유).
 //   ① 지정 + 지정자 이름 + 지정자의 노트 id + 이 지정에 부여된 IMMEDIATE 권한을 **관계 조인 한 번**에
 //   ② 필요한 (노트, 섹션) 쌍의 항목을 **OR 조건 한 번**에
@@ -425,6 +431,21 @@ export const getFamilyVisibleEndingNotes = async (req: Request, res: Response) =
         })),
     }));
 
+    // 00-42 §5.3 E — 응답에 실린 엔딩노트마다 한 줄(열람자·노트 id·실린 섹션 종류). 🔴 기록을 못 쓰면 내용을 내보내지 않는다(503).
+    // 같은 노트가 지정 둘로 두 번 실리면 한 줄로 합친다. 편지는 섹션 종류 LETTER로만 표시한다(내용 아님).
+    const logByNote = new Map<string, Set<string>>();
+    plans.forEach((p, i) => {
+      const set = logByNote.get(p.noteId) ?? new Set<string>();
+      results[i].entries.forEach((e) => set.add(e.section));
+      if (results[i].letters.length > 0) set.add(LETTER_SECTION);
+      logByNote.set(p.noteId, set);
+    });
+    try {
+      await writeEndingNoteViewLogs(req, res, decoded.id, [...logByNote].map(([noteId, s]) => ({ noteId, sections: [...s] })));
+    } catch (logError) {
+      return rejectViewLogFailure(res, logError);
+    }
+
     return res.json({ status: 'success', data: results });
   } catch (error) {
     console.error('가족 열람용 엔딩노트 조회 실패:', error);
@@ -449,6 +470,7 @@ export const getFamilyLetterAudio = async (req: Request, res: Response) => {
     const row = await prisma.farewellMessage.findUnique({
       where: { id: req.params.id },
       select: {
+        noteId: true,
         mediaKey: true,
         mediaMime: true,
         mediaDeletedAt: true,
@@ -467,6 +489,13 @@ export const getFamilyLetterAudio = async (req: Request, res: Response) => {
       row.deletedAt !== null
     ) {
       return notFound();
+    }
+    // 00-42 §5.3 E — 음성을 내보내기 전에 열람 한 줄(섹션 종류 LETTER_AUDIO). 🔴 기록을 못 쓰면 응답하지 않는다(503).
+    // 위 판정을 다 통과한 요청만 기록한다 — 404로 끝난 요청은 열람이 아니다(접속기록에는 남는다).
+    try {
+      await writeEndingNoteViewLogs(req, res, decoded.id, [{ noteId: row.noteId, sections: [LETTER_AUDIO_SECTION] }]);
+    } catch (logError) {
+      return rejectViewLogFailure(res, logError);
     }
     return await sendFarewellAudio(res, row.mediaKey, row.mediaMime);
   } catch (error) {

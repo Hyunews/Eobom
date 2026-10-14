@@ -18,6 +18,31 @@
 > 원인 = Gemini 판정이 `gemini_tasks.md`에만 적히고 이 파일 판정 칸은 비어 있었음. 🔴 **판정은 이 파일의 그 항목 칸에 적는다**(`GEMINI.md`).
 
 ---
+## 2026-10-14 | [Sonnet] 로그 L-2 — 동의 이력(D) · 사후개봉 열람 기록(E) · 파기 기록 일원화(F)
+
+- **근거 스펙**: docs/00_핵심플랫폼/00-42_운영_기록_로그_설계서.md §5.3 "L-2 구현 기준"(배경 §4.3~4.5, 공통 §5.2)
+- **건드린 파일**: eobomDev/backend/prisma/schema.prisma(`ConsentLog`·`EndingNoteViewLog` 신설, `PurgeRunLog`에 `executor`·`targetIds` 칸, User·EndingNote 역참조, 주석 "건수만 남긴다"→"내용은 남기지 않는다 — 내부 id·건수만") · prisma/migrations/20261014120000_add_consent_view_log_and_purge_run_columns/migration.sql(추가형 + `createdAtKst` 트리거 2개) · prisma/destroy-farewell-media.ts(④ ACCOUNT_PURGE·⑤ MEMORIAL_PURGE에 대상 id, ⑫ 동의 이력·⑬ 파기 기록 단계) · src/config/policy.ts(`consentVersion: 'v0.9'`, `retention.consentLogYearsAfterPurge`·`purgeRunLogYears`) · src/services/consentLogService.ts(신설) · src/services/endingNoteViewLogService.ts(신설) · src/services/retentionPurgeService.ts(`recordPurgeRun` 확장 + 동의 이력·파기 기록 보관 파기) · src/services/opsLogPurgeService.ts(3종 파기 기록) · src/controllers/authController.ts(가입 2곳 + 데모 로그인) · profileController.ts(`POST /api/me/consent`·`PATCH /api/me/profile`) · sttController.ts · endingNoteController.ts(`getFamilyVisibleEndingNotes`·`getFamilyLetterAudio`) · tests/l2-logs.test.ts(신설) · package.json(test 목록에 추가) · docs/00_핵심플랫폼/00-05(generate-db-doc 자동 구간만)
+- **결과**: D — 동의 칸이 바뀌는 5곳(가입 OAuth 콜백·`confirm-link` CREATE_NEW·데모 로그인 create·재동의·마이페이지 마케팅·STT 업로드)에서 User 변경과 같은 트랜잭션(중첩 쓰기 또는 `$transaction([…])`)으로 한 줄, 버전은 `POLICY.consentVersion` 한 곳. E — `family-view`는 응답에 실린 엔딩노트마다 한 줄, 편지 음성은 판정 통과 뒤 한 줄, 쓰기 실패는 503(본문 없음, 요청 번호 포함). F — 계정·추모관·운영 기록 3종·동의 이력·파기 기록 파기가 `PurgeRunLog`에 실행자·id 목록과 함께 남음, 기록 실패는 throw 없이 `false` + 콘솔 `🔴🔴🔴 파기 기록 실패`. 검증: `node --require ts-node/register/transpile-only --test tests/l2-logs.test.ts` 18/18 통과(재동의 롤백은 FK 위반을 실제로 일으켜 User 칸이 안 바뀜을 확인) · `npm test` 478건 중 473 통과 · `tsc --noEmit` 통과 · `generate-db-doc --check` 동기화(재생성 후) · `generate-api-doc --check` 동기화(라우트 변경 없음, 150개).
+- **편차**:
+  1. **열람 기록 `sections` 값** — 스펙이 값 목록을 정하지 않아 엔딩노트 섹션 코드 그대로 + 편지가 실리면 `LETTER`, 편지 음성은 `LETTER_AUDIO`로 정했다.
+  2. **개봉 전 열람도 쌓인다** — 스펙 문구 "응답에 실린 엔딩노트마다"를 그대로 따라 `IMMEDIATE`로 연 개봉 전 응답도 한 줄이다. 표 이름은 "사후개봉 열람"인데 `RELEASED` 여부 칸이 없어 구분되지 않는다. 사후만 남길지 칸을 더할지 판정 요청.
+  3. **열람 기록은 단계가 아닌 Cascade로 삭제** — 스펙의 "보관 파기 3종" 중 열람은 배치 단계를 만들지 않았다(`EndingNoteViewLog.noteId` Cascade라 `accountPurgeService`의 `endingNote.deleteMany`가 함께 지움, 스펙 "엔딩노트 파기 시"와 같은 결과).
+  4. **대상 id 목록은 계정·추모관만 채움** — 운영 기록 3종·소셜 해제·방명록·마스킹·`HEAVY_JOB_LOG`·동의 이력·파기 기록 단계는 건수가 수천 건일 수 있어 빈 배열이다.
+  5. **실행자는 항상 `script`** — 파기 스크립트에 운영자 로그인이 없다. 운영자 계정을 넣으려면 스크립트가 운영자를 알아야 한다(별건).
+  6. **마케팅 이력은 값이 실제로 바뀔 때만** — 이미 동의한 채 `marketingAgreed:true`를 다시 보내도 이력은 없다. 다만 기존 코드는 그때 `marketingAgreedAt`을 새 시각으로 덮어쓴다(이력과 칸 시각이 어긋날 수 있음 — 기존 동작 유지, 고칠지 판정 요청).
+  7. **스펙 목록 밖 추가** — 데모 로그인 upsert의 create(동의 칸이 채워지는 곳)에도 가입 이력 한 줄. 반대로 `accountPurgeService`가 `marketingAgreedAt`을 null로 만드는 것은 이력을 남기지 않았다(파기 자체가 `ACCOUNT_PURGE`로 남고, 이력은 파기 후 1년 보관).
+  8. **STT는 업로드마다 한 줄** — `sttDataAgreedAt`이 업로드마다 갱신되므로 매번 `STT_DATA`/`AGREE`. 이력 쓰기 실패는 기존처럼 변환을 막지 않고(User 칸과 이력이 같이 롤백) 콘솔 오류만.
+- **다음 에이전트가 알아야 할 것**:
+  - 🔴 **운영 반영은 사람이 `migrate-prod.ps1`** — 추가형(표·칸 추가, 기존 행 변경 없음)이라 순서는 `migrate-prod.ps1` → push. 로컬은 백업(`eobomDev/backend/backups/local-20261014-135009.dump`, 571KB) 뒤 개발 DB `migrate deploy`·`_test` DB `test:db:migrate` 적용, `migrate diff` "No difference detected".
+  - `npm run build`의 `prisma generate`가 `EPERM … query_engine-windows.dll.node`로 실패(실행 중인 node가 엔진 파일을 잡고 있음, 개발 서버로 추정). 타입은 생성됐고 `tsc --noEmit`은 통과. 서버를 내린 뒤 `npx prisma generate`를 한 번 더 돌려야 `npm run build`가 끝까지 간다.
+  - `npm test`의 실패 3건은 `heavy-job-http.test.ts`(502≠504 등)이고 **이 작업 전(`git stash`로 되돌린 상태)에도 같은 3건이 실패**했다 — 이 작업과 무관.
+  - 실제 OAuth 가입 콜백·`confirm-link`·STT 업로드 HTTP와 편지 음성 503은 외부 의존(소셜·CLOVA·R2)이라 자동 시험이 없다 — 가입은 같은 `signupConsentNested`를 쓰는 `User.create` 중첩 쓰기로, STT·음성은 코드 경로 검토와 `tsc`로만 확인.
+  - `family-view` 왕복이 2→3회(열람 기록 1회)로 늘었다(운영 Render↔DB 약 +1.3초, 주석 갱신).
+  - `00-05` 자동 생성 구간이 바뀌었다 — `[Opus]`가 `docs-ledger check`→`ack`. `00-42` §5.3의 "🟡 미이행" 표기(§5.2-6)와 `00-19`·`00-04` 갱신은 Opus 몫.
+
+<!-- Gemini 판정 1줄: ✅통과 / ❌반려(사유) / 🔄스펙갱신(고친 문서) -->
+
+---
 ## 2026-10-14 | [Sonnet] 공개 전 코드 묶음 — 명도 대비(옛 회색 글자 → `var(--v2-text-muted)`)
 
 - **근거 스펙**: docs/00_핵심플랫폼/00-39_디자인_기준_재정립_명세서.md §3 색 표 아래 "10-14 명도 대비 정리"

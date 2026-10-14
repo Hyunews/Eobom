@@ -37,6 +37,8 @@ model User {
   deathVerifications  DeathVerification[] // docs 00-41 §4 — 이 회원(엔딩노트 주인)에 대한 사후 개봉 요청 이력
   ocrDailyUsages      OcrDailyUsage[] // docs 06-06 §4.0-1 — 사진 인식 하루 호출 횟수
   willPhotoSets       WillPhotoSet[]// docs 06-06 §5-2 — 보관한 유언장 사진 묶음(🔴 Cascade 금지)
+  consentLogs         ConsentLog[] // docs 00-42 §5.3 — 동의 이력(계정 파기 후 1년 보관)
+  endingNoteViewLogs  EndingNoteViewLog[] // docs 00-42 §5.3 — 내가 열람자인 사후개봉 열람 기록
 
   // 00-28 회원 프로필 — 전부 선택(00-28 §3.1). 신청 스냅샷과 별개다(00-28 §2)
   contactPhone      String?   // 숫자만 정규화 저장(utils/phone.ts) — Partner·Expert와 동일 규칙
@@ -520,11 +522,14 @@ model MemorialNotice {
 }
 
 // 파기·마스킹 배치 실행 이력(00-19 제8조 "실행 이력을 기록합니다", 10-06). --confirm으로 실제 실행한 단계마다 한 줄.
-// 🔴 건수만 남긴다 — 어떤 사람·어떤 건이었는지는 넣지 않는다(개인정보 아님). dry-run은 남기지 않는다.
+// 🔴 내용은 남기지 않는다 — 내부 id·건수만(00-42 §4.5·§5.3, 10-14). 이름·연락처·본문은 계속 금지. dry-run은 남기지 않는다.
+// 계정·추모관 파기, 운영 기록·동의 이력·파기 기록의 보관기간 파기도 같은 표에 한 줄씩 남긴다(파기 기록 일원화, 2년 보관).
 model PurgeRunLog {
   id        String   @id @default(uuid()) // 고유 식별자(UUID)
-  step      String // MEMORIAL_FREEZE | MEMORIAL_PURGE | SOCIAL_UNLINKED | GUESTBOOK_DELETED | CONTACT_MASK_LEAD | CONTACT_MASK_CONSULT | HEAVY_JOB_LOG
+  step      String // MEMORIAL_FREEZE | MEMORIAL_PURGE | ACCOUNT_PURGE | SOCIAL_UNLINKED | GUESTBOOK_DELETED | CONTACT_MASK_LEAD | CONTACT_MASK_CONSULT | HEAVY_JOB_LOG | ACCESS_LOG | ADMIN_AUDIT_LOG | ERROR_LOG | CONSENT_LOG | PURGE_RUN_LOG
   affected  Int // 처리한 건수
+  executor  String   @default("script") // 실행자 — 스크립트를 돌린 운영자 계정(id) 또는 script (00-42 §5.3 F). 옛 행은 모두 script
+  targetIds String[] @default([]) // 대상 id 목록(내부 uuid만). 계정·추모관 파기만 채운다. 건수가 큰 기록 표 만료·일괄 단계는 빈 배열
   createdAt DateTime @default(now()) // 실행 시각(UTC 저장). 한국 시간은 createdAtKst 칸(아래 줄)
   createdAtKst DateTime? // 보기 전용 · DB 트리거가 createdAt+9시간(한국 시간)으로 채움 · 🔴 코드에서 읽기·쓰기 금지(트리거가 쓰기를 덮어씀)
 
@@ -734,6 +739,7 @@ model EndingNote {
   farewellMessages FarewellMessage[]
   entries          EndingNoteEntry[] // 06-04 §4.2 — 본문·암호문. 운영자 쿼리에 절대 포함하지 않는다(06-03 §3.1 A안)
   grants           EndingNoteGrant[] // 06-04 §4.2·§10 Phase 2 — 누구에게 어떤 섹션을 언제 여는가
+  viewLogs         EndingNoteViewLog[] // 00-42 §5.3 — 사후개봉 열람 기록. 엔딩노트가 파기되면 함께 삭제(Cascade)
 
   @@index([userId, status])
 }
@@ -1026,6 +1032,43 @@ model ErrorLog {
 
   @@index([createdAt])
   @@index([requestId])
+}
+
+// 00-42 §5.1 ④ D·§5.3 동의 이력(10-14) — User의 동의 칸 4개가 바뀔 때마다 같은 트랜잭션에서 한 줄. 증거는 이 표, User 칸은 화면이 쓰는 빠른 값.
+// 🔴 추가만 한다(수정·삭제 API 없음). 소급 행을 만들지 않는다 — 이전 회원은 User 현재 값 칸이 증빙, 이력은 배포 시점부터.
+// 🔴 보관: 계정 파기(User.purgedAt) 후 1년 — 파기 배치가 지운다(User 행은 익명화만 하므로 그때까지 userId로 이어진다).
+model ConsentLog {
+  id        String   @id @default(uuid()) // 고유 식별자(UUID)
+  userId    String // 동의한 회원
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  kind      String // TERMS | PRIVACY | MARKETING | STT_DATA
+  action    String // AGREE | WITHDRAW
+  version   String // 동의한 문서 버전 — config/policy.ts consentVersion 한 곳(지금 v0.9)
+  source    String // SIGNUP | RECONSENT | MYPAGE | STT_UPLOAD
+  createdAt DateTime @default(now()) // 동의·철회 시각(UTC 저장). 한국 시간은 createdAtKst 칸(아래 줄)
+  createdAtKst DateTime? // 보기 전용 · DB 트리거가 createdAt+9시간(한국 시간)으로 채움 · 🔴 코드에서 읽기·쓰기 금지(트리거가 쓰기를 덮어씀)
+
+  @@index([userId, createdAt])
+  @@index([createdAt])
+}
+
+// 00-42 §5.1 ④ E·§5.3 사후개봉 열람 기록(10-14) — 지정 가족이 엔딩노트 열람 응답을 받을 때마다(엔딩노트별 한 줄). "누가 언제 처음 봤는가".
+// 🔴 내용은 남기지 않는다 — 열람자 id·엔딩노트 id·응답에 실린 섹션 종류·IP·요청 번호·시각뿐. 🔴 기록을 못 쓰면 응답하지 않는다(503).
+// 🔴 추가만 한다. 보관: 엔딩노트가 파기될 때 함께 삭제(noteId Cascade) — 그 전엔 지우지 않는다. 화면 표시는 없다(00-42 §9 #5).
+model EndingNoteViewLog {
+  id        String   @id @default(uuid()) // 고유 식별자(UUID)
+  viewerId  String // 열람자(지정 가족 회원)
+  viewer    User     @relation(fields: [viewerId], references: [id], onDelete: Cascade)
+  noteId    String // 열람 대상 엔딩노트
+  note      EndingNote @relation(fields: [noteId], references: [id], onDelete: Cascade)
+  sections  String[] // 응답에 실린 섹션 종류 목록(예: ["MESSAGE","LETTER"]). 🔴 내용 아님. 편지 음성은 ["LETTER_AUDIO"]
+  ip        String? // trust proxy 적용 후 실제 주소
+  requestId String // 응답 헤더 X-Request-Id와 같은 값 — 접속기록(AccessLog)과 잇는다
+  createdAt DateTime @default(now()) // 열람 시각(UTC 저장). 한국 시간은 createdAtKst 칸(아래 줄)
+  createdAtKst DateTime? // 보기 전용 · DB 트리거가 createdAt+9시간(한국 시간)으로 채움 · 🔴 코드에서 읽기·쓰기 금지(트리거가 쓰기를 덮어씀)
+
+  @@index([noteId, createdAt])
+  @@index([viewerId])
 }
 
 // 상중 행정 가이드 체크 상태 — docs 07-04 §3.4-2·§3.4-1(09-09 확정). 회원만 서버 보존, 비회원은 React state.

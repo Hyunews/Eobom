@@ -4,6 +4,7 @@ import { uploadAudioMemory, MAX_AUDIO_SIZE_BYTES } from '../config/uploadAudio';
 import { ClovaSpeechProvider } from '../services/clovaSpeechProvider';
 import type { SttProvider } from '../services/sttProvider';
 import prisma from '../config/prisma';
+import { consentLogRows } from '../services/consentLogService';
 import { isVoiceStorageEnabled } from '../config/r2';
 import { uploadVoiceObject } from '../services/r2Storage';
 import { HEAVY_QUEUE_CONFIG } from '../services/heavyQueue';
@@ -60,7 +61,11 @@ export const transcribeAudio = (req: Request, res: Response) => {
     // 06-04 §6.4-11-6-1 — 동의 증적. 화면이 체크 없이는 업로드를 막으므로 업로드 요청이 도착했다는 것이 동의다.
     // 기록 실패가 변환을 막지는 않는다(로그만 남김).
     try {
-      await prisma.user.update({ where: { id: decoded.id }, data: { sttDataAgreedAt: new Date() } });
+      // 00-42 §5.3 D — 동의 칸이 바뀌는 같은 트랜잭션에 이력 한 줄(둘 중 하나만 남는 상태를 만들지 않는다). 업로드마다 칸이 갱신되므로 마다 한 줄.
+      await prisma.$transaction([
+        prisma.user.update({ where: { id: decoded.id }, data: { sttDataAgreedAt: new Date() } }),
+        prisma.consentLog.createMany({ data: consentLogRows(decoded.id, [{ kind: 'STT_DATA', action: 'AGREE' }], 'STT_UPLOAD') }),
+      ]);
     } catch (e) {
       console.error('STT 동의 증적 기록 실패:', e);
     }

@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import prisma from '../config/prisma';
 import { verifyBearerToken } from './authController';
 import { normalizePhone, isValidPhoneLength, maskPhone } from '../utils/phone';
+import { consentLogRows, type ConsentEvent } from '../services/consentLogService';
 
 // 00-28 §8 Phase 1 — 회원 프로필(본인 정보) 저장. 연락처·주소·연락 가능 시간대·마케팅 수신
 // 동의는 전부 선택이다(§3.1) — 필수 검증을 넣지 않는다. 연락처는 평문 저장 + 응답 마스킹(§5).
@@ -110,16 +111,28 @@ export const recordMyConsent = async (req: Request, res: Response) => {
 
     const now = new Date();
     const data: { termsAgreedAt?: Date; privacyAgreedAt?: Date; marketingAgreedAt?: Date } = {};
-    if (!user.termsAgreedAt) data.termsAgreedAt = now;
-    if (!user.privacyAgreedAt) data.privacyAgreedAt = now;
-    if (body.marketing === true && !user.marketingAgreedAt) data.marketingAgreedAt = now;
+    const events: ConsentEvent[] = []; // 00-42 §5.3 D — 칸이 바뀐 만큼 이력 한 줄씩, 같은 트랜잭션
+    if (!user.termsAgreedAt) {
+      data.termsAgreedAt = now;
+      events.push({ kind: 'TERMS', action: 'AGREE' });
+    }
+    if (!user.privacyAgreedAt) {
+      data.privacyAgreedAt = now;
+      events.push({ kind: 'PRIVACY', action: 'AGREE' });
+    }
+    if (body.marketing === true && !user.marketingAgreedAt) {
+      data.marketingAgreedAt = now;
+      events.push({ kind: 'MARKETING', action: 'AGREE' });
+    }
 
+    const select = { termsAgreedAt: true, privacyAgreedAt: true, marketingAgreedAt: true } as const;
     const updated = Object.keys(data).length
-      ? await prisma.user.update({
-          where: { id: decoded.id },
-          data,
-          select: { termsAgreedAt: true, privacyAgreedAt: true, marketingAgreedAt: true },
-        })
+      ? (
+          await prisma.$transaction([
+            prisma.user.update({ where: { id: decoded.id }, data, select }),
+            prisma.consentLog.createMany({ data: consentLogRows(decoded.id, events, 'RECONSENT') }),
+          ])
+        )[0]
       : user;
     return res.json({
       status: 'success',
@@ -185,7 +198,17 @@ export const updateMyProfile = async (req: Request, res: Response) => {
   );
 
   try {
-    const updated = await prisma.user.update({
+    // 00-42 §5.3 D — 마케팅 동의가 실제로 바뀌는 때(없음↔있음)만 이력 한 줄. 같은 값을 다시 보낸 요청은 이력을 늘리지 않는다.
+    const events: ConsentEvent[] = [];
+    if (body.marketingAgreed !== undefined) {
+      const cur = await prisma.user.findFirst({ where: { id: decoded.id, purgedAt: null }, select: { marketingAgreedAt: true } });
+      if (cur) {
+        if (body.marketingAgreed && !cur.marketingAgreedAt) events.push({ kind: 'MARKETING', action: 'AGREE' });
+        if (!body.marketingAgreed && cur.marketingAgreedAt) events.push({ kind: 'MARKETING', action: 'WITHDRAW' });
+      }
+    }
+
+    const updateUser = prisma.user.update({
       where: { id: decoded.id, purgedAt: null }, // 🔴 익명화된 계정에 다시 값을 채우지 못하게 — 없으면 P2025
       data: {
         ...(body.name !== undefined ? { name: body.name!.trim() } : {}),
@@ -201,6 +224,9 @@ export const updateMyProfile = async (req: Request, res: Response) => {
       },
       select: PROFILE_SELECT,
     });
+    const updated = events.length
+      ? (await prisma.$transaction([updateUser, prisma.consentLog.createMany({ data: consentLogRows(decoded.id, events, 'MYPAGE') })]))[0]
+      : await updateUser;
     return res.json({ status: 'success', data: serializeProfile(updated) });
   } catch (error: any) {
     if (error?.code === 'P2002') {

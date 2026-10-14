@@ -147,14 +147,60 @@ export async function maskConsultRequests(targets: MaskTarget[], now = new Date(
   return done;
 }
 
-// ─ 실행 이력(00-19 제8조 "실행 이력을 기록합니다") ─ 건수만 남긴다.
+// ─ 동의 이력(00-42 §5.1 ④·§5.3 D) — 계정 파기(User.purgedAt) 후 1년이 지나면 삭제 ─
+// User 행은 익명화만 하고 지우지 않으므로(accountPurgeService) 그때까지 userId로 이어진다. purgedAt이 없는 회원의 이력은 어떤 경우에도 걸리지 않는다.
+const consentLogWhere = (now: Date) => ({ user: { purgedAt: { not: null, lte: minusYears(now, POLICY.retention.consentLogYearsAfterPurge) } } });
+
+export const countConsentLogExpired = (now = new Date()) => prisma.consentLog.count({ where: consentLogWhere(now) });
+
+export async function purgeConsentLogExpired(now = new Date()): Promise<number> {
+  return (await prisma.consentLog.deleteMany({ where: consentLogWhere(now) })).count;
+}
+
+// ─ 파기 기록(PurgeRunLog, 00-42 §5.3 F) — 2년이 지나면 삭제. 조건은 createdAt 하나 ─
+const purgeRunLogWhere = (now: Date) => ({ createdAt: { lt: minusYears(now, POLICY.retention.purgeRunLogYears) } });
+
+export const countPurgeRunLogExpired = (now = new Date()) => prisma.purgeRunLog.count({ where: purgeRunLogWhere(now) });
+
+export async function purgeRunLogExpired(now = new Date()): Promise<number> {
+  return (await prisma.purgeRunLog.deleteMany({ where: purgeRunLogWhere(now) })).count;
+}
+
+// ─ 실행 이력(00-19 제8조 "실행 이력을 기록합니다") ─ 내용은 남기지 않는다 — 내부 id·건수만(00-42 §4.5·§5.3 F).
 export type PurgeStep =
   | 'MEMORIAL_FREEZE'
   | 'MEMORIAL_PURGE'
+  | 'ACCOUNT_PURGE'
   | 'SOCIAL_UNLINKED'
   | 'GUESTBOOK_DELETED'
   | 'CONTACT_MASK_LEAD'
   | 'CONTACT_MASK_CONSULT'
-  | 'HEAVY_JOB_LOG';
+  | 'HEAVY_JOB_LOG'
+  | 'ACCESS_LOG'
+  | 'ADMIN_AUDIT_LOG'
+  | 'ERROR_LOG'
+  | 'CONSENT_LOG'
+  | 'PURGE_RUN_LOG';
 
-export const recordPurgeRun = (step: PurgeStep, affected: number) => prisma.purgeRunLog.create({ data: { step, affected } });
+export const PURGE_EXECUTOR_SCRIPT = 'script';
+
+// 🔴 기록 실패는 파기를 되돌리지 않는다(이미 지운 건 못 되돌린다) — 대신 콘솔에 크게 표시하고 false를 돌려준다(00-42 §5.3 F "실패하면").
+// targetIds = 내부 uuid만(이름·연락처·본문 금지). 건수가 큰 일괄 단계는 빈 배열로 둔다.
+export async function recordPurgeRun(
+  step: PurgeStep,
+  affected: number,
+  opts: { executor?: string; targetIds?: string[] } = {},
+): Promise<boolean> {
+  try {
+    await prisma.purgeRunLog.create({
+      data: { step, affected, executor: opts.executor ?? PURGE_EXECUTOR_SCRIPT, targetIds: opts.targetIds ?? [] },
+    });
+    return true;
+  } catch (e) {
+    console.error('');
+    console.error(`🔴🔴🔴 파기 기록 실패 — [${step}] ${affected}건은 이미 처리됐는데 PurgeRunLog에 한 줄을 못 남겼습니다. 손으로 남기거나 이 출력을 보관하세요.`);
+    console.error(e);
+    console.error('');
+    return false;
+  }
+}

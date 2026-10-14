@@ -1,4 +1,5 @@
 import prisma from '../config/prisma';
+import { recordPurgeRun } from './retentionPurgeService';
 
 // docs 00-42 §5.2 ⑧ — 운영 기록(접속기록·운영자 감사·에러 기록)의 보관기간 파기.
 // prisma/destroy-farewell-media.ts(사람이 --confirm으로 돌리는 파기 배치)만 부른다.
@@ -31,5 +32,9 @@ export async function purgeOpsLogExpired(now = new Date()): Promise<OpsLogCounts
     prisma.adminAuditLog.deleteMany({ where: { createdAt: { lt: cutoffOf(OPS_LOG_RETENTION_DAYS.adminAuditLog, now) } } }),
     prisma.errorLog.deleteMany({ where: { createdAt: { lt: cutoffOf(OPS_LOG_RETENTION_DAYS.errorLog, now) } } }),
   ]);
+  // docs 00-42 §5.3 F — 기록 표를 지운 것도 PurgeRunLog에 한 줄씩 남긴다(건수만 — 일괄 단계라 대상 id 목록은 비운다). 기록 실패는 recordPurgeRun이 크게 표시한다.
+  await recordPurgeRun('ACCESS_LOG', accessLog.count);
+  await recordPurgeRun('ADMIN_AUDIT_LOG', adminAuditLog.count);
+  await recordPurgeRun('ERROR_LOG', errorLog.count);
   return { accessLog: accessLog.count, adminAuditLog: adminAuditLog.count, errorLog: errorLog.count };
 }

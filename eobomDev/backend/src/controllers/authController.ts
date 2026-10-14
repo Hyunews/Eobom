@@ -3,6 +3,7 @@ import jwt from 'jsonwebtoken';
 import { SocialProfile } from '../config/passport';
 import prisma from '../config/prisma';
 import { JWT_SECRET } from '../config/jwt';
+import { signupConsentNested } from '../services/consentLogService';
 
 export const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
 
@@ -360,6 +361,7 @@ export const handleSocialLoginCallback = async (req: Request, res: Response) => 
         termsAgreedAt: now,
         privacyAgreedAt: now,
         marketingAgreedAt: consent.marketing ? now : null,
+        consentLogs: signupConsentNested(!!consent.marketing), // 00-42 §5.3 D — 중첩 쓰기라 User 생성과 한 트랜잭션
         accounts: {
           create: {
             provider: socialUser.provider,
@@ -460,6 +462,7 @@ export const confirmLink = async (req: Request, res: Response) => {
           termsAgreedAt: nowLinked,
           privacyAgreedAt: nowLinked,
           marketingAgreedAt: payload.consent.marketing ? nowLinked : null,
+          consentLogs: signupConsentNested(!!payload.consent.marketing), // 00-42 §5.3 D
           ...(alreadyLinked
             ? {}
             : {
@@ -547,7 +550,7 @@ export const demoLogin = async (req: Request, res: Response) => {
       update: { name },
       // update 절에는 안 넣는다 — 이미 존재하는 데모 유저를 재로그인할 때마다 최초 동의 시각을
       // 지금 시각으로 덮어쓰면 안 된다(최초 가입 시점만 기록되는 게 맞다).
-      create: { email, name, termsAgreedAt: new Date(), privacyAgreedAt: new Date() },
+      create: { email, name, termsAgreedAt: new Date(), privacyAgreedAt: new Date(), consentLogs: signupConsentNested(false) }, // 00-42 §5.3 D — 동의 칸이 채워지는 곳은 데모 가입도 예외 없이
     });
 
     const token = generateToken({ id: dbUser.id, name: dbUser.name, email: dbUser.email ?? undefined, provider: provider || 'DEMO' });
