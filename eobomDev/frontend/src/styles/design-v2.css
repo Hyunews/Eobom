@@ -1382,7 +1382,7 @@
   align-items: center;
   justify-content: space-between;
   font-size: 14px;
-  color: #9CA3AF;
+  color: var(--v2-text-muted);
 }
 
 /* 폼 모달 — 안내 모달(.v2-modal, 규칙 10)과 같은 뼈대에 폼이 들어간다. 모바일은 위 규칙대로

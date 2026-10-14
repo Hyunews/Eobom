@@ -369,7 +369,7 @@ export const HomeDesktop: React.FC<HomeDesktopProps> = ({ currentUser, onOpenLog
               당신과 사랑하는 가족의<br />
               삶의 모든 <span style={{ color: '#5B7065' }}>봄날</span>을 응원합니다
             </h2>
-            <p style={{ fontSize: '1.05rem', color: '#6C7A89', lineHeight: 1.7, maxWidth: '560px', margin: 0 }}>
+            <p style={{ fontSize: '1.05rem', color: 'var(--v2-text-muted)', lineHeight: 1.7, maxWidth: '560px', margin: 0 }}>
               엔딩노트 작성부터 전국 장사시설 탐색까지, 이어봄이 곁에서 함께합니다.
             </p>
           </section>

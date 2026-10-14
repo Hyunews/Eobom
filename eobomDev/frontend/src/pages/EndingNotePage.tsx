@@ -517,7 +517,7 @@ export const EndingNotePage: React.FC<EndingNotePageProps> = ({ currentUser, onO
         @page { margin: 0; }
         body { font-family: 'Malgun Gothic', sans-serif; font-size: ${largeText ? '22px' : '16px'}; line-height: 1.9; padding: 2.5rem; white-space: pre-wrap; }
         .print-header { margin-bottom: 1.5rem; white-space: normal; }
-        .print-date { font-size: 13px; color: #6C7A89; margin-bottom: 0.3rem; }
+        .print-date { font-size: 13px; color: #5C6773; margin-bottom: 0.3rem; }
         .print-title { font-size: 22px; font-weight: 700; color: #1F2937; margin: 0; }
         .notice { font-size: 13px; color: #92400E; border: 1px solid #FEF3C7; background: #FEF3C7; border-radius: 8px; padding: var(--fs-caption) 0.9rem; margin-bottom: 1.5rem; white-space: normal; }
         .signature-box { margin-top: 4rem; padding-top: 1.5rem; border-top: 1px solid #94A3B8; white-space: normal; }

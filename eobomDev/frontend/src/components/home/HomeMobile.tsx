@@ -293,7 +293,7 @@ export const HomeMobile: React.FC<HomeMobileProps> = ({ currentUser, onOpenLogin
               </h2>
               {/* 🔄 2026-09-28 사람 지시 — 지정된 지점에 줄바꿈 + 가운데 정렬(부모 textAlign은
                   이미 center지만 명시적으로 한 번 더 건다) */}
-              <p style={{ fontSize: '0.95rem', color: '#6C7A89', lineHeight: 1.7, margin: 0, textAlign: 'center' }}>
+              <p style={{ fontSize: '0.95rem', color: 'var(--v2-text-muted)', lineHeight: 1.7, margin: 0, textAlign: 'center' }}>
                 엔딩노트 작성부터 전국 장사시설 탐색까지,<br />
                 이어봄이 곁에서 함께합니다.
               </p>

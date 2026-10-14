@@ -16,7 +16,7 @@
   --accent-red: #DC2626;
   /* 긴급 알림 Red */
   --text-main: #1A2B4C;
-  --text-muted: #6C7A89;
+  --text-muted: var(--v2-text-muted);
   --border-color: #DFDCD7;
   --card-bg: #FFFFFF;
 
@@ -106,7 +106,7 @@
   /* §6.2-1 웜 뉴트럴 매핑 — --text-muted·--secondary-dark·--border-color는 이미 위에
      있어 재선언하지 않는다. --text-hint(#94A3B8)는 §2.2에 값만 정의돼 있던 것을 변수로 신설. */
   --surface-subtle: #F3F0EA;
-  --text-hint: #94A3B8;
+  --text-hint: var(--v2-text-muted);
 
   /* §6.2-2 상태색 — 의미마다 한 쌍만 */
   --state-critical-fg: #9A3412;

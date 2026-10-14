@@ -12,7 +12,7 @@ export const Badge: React.FC<{ status: 'preview' | 'comingSoon' }> = ({ status }
         fontWeight: 700,
         padding: '0.2rem 0.55rem',
         borderRadius: 'var(--r-sm)',
-        color: preview ? '#475569' : '#94A3B8',
+        color: preview ? '#475569' : 'var(--v2-text-muted)',
         backgroundColor: preview ? 'var(--secondary-dark)' : 'var(--surface-subtle)',
       }}
     >

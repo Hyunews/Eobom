@@ -95,7 +95,7 @@ export const KakaoMapModal: React.FC<KakaoMapModalProps> = ({ facility, userLoca
         const iwContent = `
           <div style="padding:10px 14px; border-radius:12px; font-family:sans-serif; font-size:12px; line-height:1.4;">
             <strong style="color:#1E293B; font-size:13px;">📍 ${facility.name}</strong><br/>
-            <span style="color:#6C7A89;">${facility.location}</span>
+            <span style="color:var(--v2-text-muted);">${facility.location}</span>
           </div>
         `;
         const infowindow = new window.kakao.maps.InfoWindow({
@@ -281,7 +281,7 @@ export const KakaoMapModal: React.FC<KakaoMapModalProps> = ({ facility, userLoca
                 <div style={{ textAlign: 'center' }}>
                   <MapPin size={32} color="var(--accent-red)" className="animate-pulse" style={{ marginBottom: '0.5rem' }} />
                   <p style={{ fontSize: 'var(--fs-body)', color: '#475569', fontWeight: 700 }}>실제 카카오 지도를 불러오는 중입니다...</p>
-                  <p style={{ fontSize: 'var(--fs-body)', color: '#94A3B8' }}>{facility.name} (좌표: {lat}, {lng})</p>
+                  <p style={{ fontSize: 'var(--fs-body)', color: 'var(--v2-text-muted)' }}>{facility.name} (좌표: {lat}, {lng})</p>
                 </div>
               )}
             </div>

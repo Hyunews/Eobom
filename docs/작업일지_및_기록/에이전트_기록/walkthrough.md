@@ -18,6 +18,18 @@
 > 원인 = Gemini 판정이 `gemini_tasks.md`에만 적히고 이 파일 판정 칸은 비어 있었음. 🔴 **판정은 이 파일의 그 항목 칸에 적는다**(`GEMINI.md`).
 
 ---
+## 2026-10-14 | [Sonnet] 공개 전 코드 묶음 — 명도 대비(옛 회색 글자 → `var(--v2-text-muted)`)
+
+- **근거 스펙**: docs/00_핵심플랫폼/00-39_디자인_기준_재정립_명세서.md §3 색 표 아래 "10-14 명도 대비 정리"
+- **건드린 파일**: eobomDev/frontend/src/index.css(`--text-muted`·`--text-hint` 토큰 값) · styles/design-v2.css(한 곳) · components/common/Badge.tsx · components/KakaoMapModal.tsx(2곳) · components/home/HomeDesktop.tsx · HomeMobile.tsx · pages/EndingNotePage.tsx(인쇄용 CSS)
+- **결과**: 글자색 옛 회색(`#6C7A89`·`#94A3B8`·`#9CA3AF`)을 `#5C6773`(var)로 통일. 토큰 두 개를 var로 바꿔 `--text-muted`/`--text-hint`를 쓰는 곳도 따라감. `tsc -b` 통과 · `npm run build` 통과(실기동은 사람).
+- **편차**: 없음. 글자가 아닌 것은 남김 — `HomeMobile.tsx:239`·`ObituaryPage.tsx:695` 화살표 아이콘, `EndingNotePage.tsx:523` 서명 테두리선, Badge 준비 중(`#475569`).
+- **다음 에이전트가 알아야 할 것**: `--text-muted`가 전역으로 약간 어두워짐(개발자 확인: 큰 차이 없어 그대로 진행). `#8A9199`·`#A29B90`은 범위 밖.
+- **보정(10-14)**: `EndingNotePage.tsx` 인쇄 창(`window.open`+`document.write`)의 `.print-date`는 새 창에 design-v2.css가 없어 변수가 안 풀리므로 `#5C6773` 값으로 되돌려 박음(00-39 §3 보강 반영). 나머지는 그대로. tsc 통과.
+
+<!-- Gemini 판정 1줄: ✅통과 / ❌반려(사유) / 🔄스펙갱신(고친 문서) -->
+
+---
 ## 2026-10-14 | [Sonnet] 업무판 g2 두 건 — ① 유족 메시지 apiFetch 이관(확인 결과 이미 끝남) · ② 로그인 검사를 라우터 단위로 일괄 적용(동작 불변)
 
 - **근거 스펙**: ① 00-34 §1 머리 "남은 빈틈" · §5.3 · §9 2단계 / R300 Ⅹ장 6번 · ② 정본 스펙 없음 — R300 Ⅳ장 3 · Ⅹ장 8번(운영자 묶음 `requireAdminAuth`와 같은 방식, 00-37 A-1 #1)
