@@ -168,7 +168,7 @@ docker exec eobom-postgres sh -c 'dropdb -U "$POSTGRES_USER" eobom_restore; rm -
 | ① | 사람 승인 — §8-2 네 가지를 말하고 |
 | ② | Render 서비스 일시 중지 — 복구 중 새 쓰기를 막는다 |
 | ③ | `backup-db.ps1 -Target prod` — 지금 상태 백업 |
-| ④ | 시험: 운영 dump를 **로컬** `eobom_restore`에 풀어 확인 → 확인 끝나면 **바로 지운다**(운영 개인정보 사본) |
+| ④ | 시험: 운영 dump를 **임시 컨테이너**(§8-7 — `eobom-postgres`는 15라 17로 뜬 운영 dump를 못 읽는다)에 풀어 확인 → 컨테이너째 지운다(운영 개인정보 사본) |
 | ⑤ | `restore-db.ps1`로 운영에 붓기 — 사람이 친다 |
 | ⑥ | 백업 뒤 마이그레이션이 있었으면 `migrate-prod.ps1`(§2-1) |
 | ⑦ | Render 재개 → 로그인·주요 화면 확인 |
@@ -176,8 +176,8 @@ docker exec eobom-postgres sh -c 'dropdb -U "$POSTGRES_USER" eobom_restore; rm -
 
 ### 8-5. 복구 시험 — 🔴 아직 한 번도 안 했다
 
-- 방법 = §8-3 ②·③·⑤만(원래 DB 안 건드림). 최신 `local-` dump 1개.
-- 시기 = **오픈 전 1회** + 백업 방식(도구·요금제)이 바뀔 때.
+- 방법 = §8-7 도구(임시 컨테이너에만 풀기 — 원래 DB 안 건드림). 손으로 할 때는 §8-3 ②·③·⑤.
+- 시기 = §8-7 도구를 돌릴 때마다 + **오픈 전 1회는 반드시**.
 
 | 날짜 | 파일 | 결과 |
 |---|---|---|
@@ -188,3 +188,18 @@ docker exec eobom-postgres sh -c 'dropdb -U "$POSTGRES_USER" eobom_restore; rm -
 - **백업 보관 기간·개수** — 지금 `backups/`에 70개(10-15), 지우는 규칙 없음. `00-20`에 백업 보존 기간 없음 →
   옛 키 보관 기간(`00-33` §6.3)과 **같은 값으로 한 번에** 정한다(인프라 결정 때).
 - **운영 자동 백업** — Supabase 무료 요금제엔 없다. 인프라 전략 결정 대기(`pending-approvals`).
+
+### 8-7. 백업 + 복구 시험 한 번에 — `backup-verify.bat` (🔜 스펙 10-15 → Sonnet)
+
+> 개발자 요청(10-15): 로컬·운영 백업과 복구 시험을 파일 하나로. **원래 DB 두 곳은 읽기만 한다**(백업 = 읽기).
+
+| 항목 | 정함 |
+|---|---|
+| 파일 | `.harness/tools/backup-verify.bat`(더블클릭용 껍데기 — `powershell -ExecutionPolicy Bypass -File backup-verify.ps1` 한 줄) + `backup-verify.ps1`(본체). 🔴 한글 출력은 ps1에서만(bat은 cmd 인코딩으로 깨진다) |
+| ① 백업 | `backup-db.ps1 -Target local` → `-Target prod`를 차례로 부른다(새로 짜지 않는다). 하나가 실패해도 다른 하나는 진행하고 끝에 둘 다 결과 표시 |
+| ② 복구 시험 | 방금 만든 파일 각각을 **임시 컨테이너** `postgres:17-alpine`(`docker run --rm`, 볼륨 없음, 포트 안 엶)에 `pg_restore --no-owner`(운영은 `-n public` 추가). 🔴 `eobom-postgres`·운영에는 **쓰지 않는다** — 시험 DB가 원래 DB 옆에 생기지 않아 잘못 지울 일이 없다 |
+| ③ 판정 | **실패** = `pg_restore` 오류, 또는 `public` 테이블 수가 원본과 다름(`_prisma_migrations` 포함). **표시만** = 테이블별 행 수 원본 대비(운영은 백업~집계 사이 새 기록으로 조금 다를 수 있음) |
+| ④ 정리 | 시험 컨테이너는 성공·실패 상관없이 `finally`로 지운다(운영 개인정보 사본을 남기지 않음) |
+| ⑤ 기록 | `backups/verify-log.txt`에 한 줄씩(시각·파일·테이블 수·결과) — 행 수는 남기지 않는다(파일 이름·숫자만). §8-5 표는 첫 성공 1회만 손으로 적는다 |
+| ⑥ 끝 화면 | 대상별 `[O]/[X]` 크게 + 종료코드(둘 다 성공일 때만 0) |
+| 🔴 하지 않는 것 | 원래 DB에 붓기(그건 `restore-db.ps1` · 사람) · 옛 백업 지우기(보관 규칙 미정 §8-6) |
