@@ -12,12 +12,15 @@ interface CsvSource {
   file: string;
   idPrefix: string;
   facilityTypeLabel: string; // 로그 출력용
+  kindTag: string; // docs 01-06 §2 시설 종류 값 — 어느 파일에서 왔는지로 정해진다
 }
 
 const SOURCES: CsvSource[] = [
-  { file: '보건복지부_봉안시설 현황_20260531.csv', idPrefix: 'bongan', facilityTypeLabel: '봉안시설' },
-  { file: '보건복지부_자연장지 현황_20260531.csv', idPrefix: 'jayeon', facilityTypeLabel: '자연장지' },
+  { file: '보건복지부_봉안시설 현황_20260531.csv', idPrefix: 'bongan', facilityTypeLabel: '봉안시설', kindTag: '봉안당' },
+  { file: '보건복지부_자연장지 현황_20260531.csv', idPrefix: 'jayeon', facilityTypeLabel: '자연장지', kindTag: '자연장' },
 ];
+
+const OWNER_TAGS = new Set(['공설', '사설']);
 
 const AMENITY_COLUMNS = ['식당', '매점', '주차장', '유족대기실', '장애인편의시설'];
 
@@ -67,7 +70,9 @@ async function main() {
       }
 
       const amenities = AMENITY_COLUMNS.filter((col) => row[col]?.trim() === '설치');
-      const tags = row['공-사설 구분']?.trim() ? [row['공-사설 구분'].trim()] : [];
+      // 태그 = 운영 주체(원천 값이 공설·사설일 때만) + 시설 종류(파일로 정해짐). 그 밖의 값은 넣지 않는다.
+      const owner = row['공-사설 구분']?.trim() ?? '';
+      const tags = [...(OWNER_TAGS.has(owner) ? [owner] : []), source.kindTag];
       const id = `${source.idPrefix}_${String(i + 1).padStart(3, '0')}`;
       // 지오코딩은 CSV 원본 주소(카카오가 아는 옛 행정구역 표기)로 하고, 화면 표시용
       // location만 병합 시/도 명칭으로 정규화한다(주소 자체가 바뀐 게 아니라 표기만 바뀜).
@@ -97,6 +102,7 @@ async function main() {
           guests: '전체 규모',
           tags,
           amenities,
+          source: 'mohw_csv', // 기본값 'kakao'로 들어가던 것을 바로잡는다(schema.prisma source 주석: 'mohw_csv')
         },
       });
       if (existing) updated++;

@@ -7,6 +7,12 @@ import { rawKeysForDisplayProvince } from '../utils/address';
 const DEFAULT_PAGE_SIZE = 30;
 const MAX_PAGE_SIZE = 50;
 
+// docs 01-06 §2 — 태그에 담는 값. 프론트 tagCatalog.ts와 같은 목록이다.
+const TAG_FILTER_VALUES: Record<string, string[]> = {
+  owner: ['공설', '사설'],
+  kind: ['병원', '전문', '봉안당', '자연장'],
+};
+
 const haversineKm = (lat1: number, lng1: number, lat2: number, lng2: number) => {
   const R = 6371;
   const dLat = ((lat2 - lat1) * Math.PI) / 180;
@@ -30,12 +36,15 @@ const buildWhere = (query: Request['query']): Prisma.FacilityWhereInput => {
     where.type = category;
   }
 
-  // 태그 필터 — 프론트 TAG_CATALOG(components/facility/tagCatalog.ts)에 등록된 값만
-  // 클릭 가능한 필터로 넘어온다. 여기선 그 화이트리스트를 몰라도 되게 범용으로 처리
-  // (Facility.tags는 String[] — Prisma `has`로 배열 포함 여부만 확인).
-  const tag = query.tag as string | undefined;
-  if (tag && tag.trim()) {
-    where.tags = { has: tag.trim() };
+  // 태그 걸러보기 — docs 01-06 §3. owner=운영 주체, kind=시설 종류. 값은 쉼표로 여러 개(10-15 개발자 추가 결정).
+  // 같은 분류 안에서는 하나라도 가진 시설(합집합), 분류끼리는 모두 만족(AND) — 예: 공설 AND (전문 OR 자연장).
+  // 값이 비어 있는 시설은 그 분류로 거르면 나오지 않는다(hasSome은 빈 배열에 거짓).
+  // 허용 목록 밖의 값은 무시한다 — 모르는 값으로 전체가 비는 것보다 낫다.
+  for (const [param, allowed] of Object.entries(TAG_FILTER_VALUES)) {
+    const raw = query[param];
+    if (typeof raw !== 'string') continue;
+    const values = raw.split(',').map((v) => v.trim()).filter((v) => allowed.includes(v));
+    if (values.length > 0) andConditions.push({ tags: { hasSome: values } });
   }
 
   // 이름 검색 — 원래 파트너가 자기 시설을 찾아 클레임 신청할 때 쓰던 것(docs 01-05 §3.3)을

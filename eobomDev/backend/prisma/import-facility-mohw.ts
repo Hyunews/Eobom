@@ -205,8 +205,10 @@ function buildAmenities(row: MohwRow): string[] {
     .map((k) => AMENITY_MAP[k]);
 }
 
+// docs 01-06 §2 — 태그에는 운영 주체(공설·사설)와 시설 종류(병원·전문) 값만 담는다. 그 밖의 값은 넣지 않는다.
+const TAG_ALLOWED = new Set(['공설', '사설', '병원', '전문']);
 function buildTags(row: MohwRow): string[] {
-  return [row.gubun, row.operType].filter((v) => v.trim().length > 0);
+  return [row.gubun, row.operType].map((v) => v.trim()).filter((v) => TAG_ALLOWED.has(v));
 }
 
 function buildSourceRef(row: MohwRow): string {

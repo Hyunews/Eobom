@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { LoginGate } from '../components/LoginGate';
 import { scrollPageTo } from '../lib/scroll';
 import { MapPin, Map, Image as ImageIcon, Send, Search, LayoutGrid, List, SlidersHorizontal, ChevronRight, X } from 'lucide-react';
@@ -6,7 +7,7 @@ import { BACKEND_URL, GEOLOCATION_FALLBACK, LOCATION_FEATURE_ENABLED } from '../
 import { KakaoMapModal } from '../components/KakaoMapModal';
 import { InquiryModal } from '../components/facility/InquiryModal';
 import { HouseLeafIcon } from '../components/MenuIcons';
-import { TAG_CATALOG, isFilterableTag } from '../components/facility/tagCatalog';
+import { TAG_CATALOG, TAG_GROUP_LABEL, isFilterableTag, tagsForGroup, type SelectedTags, type TagGroup } from '../components/facility/tagCatalog';
 import { LocationSearchBox } from '../components/LocationSearchBox';
 import { useIsMobile } from '../hooks/useIsMobile';
 
@@ -92,7 +93,33 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
   const [categoryDraft, setCategoryDraft] = useState('전체');
   const [searchText, setSearchText] = useState('');
   const [searchTextDraft, setSearchTextDraft] = useState('');
-  const [selectedTag, setSelectedTag] = useState<string | null>(null);
+  // 태그 걸러보기(docs 01-06 §3) — 분류(운영 주체·시설 종류)마다 여러 값을 고를 수 있다(같은 분류는 또는,
+  // 분류끼리는 그리고). 즉시 적용되고, 주소창 쿼리(?owner=공설&kind=전문,자연장)에 남겨 새로고침·공유해도 같은 결과가 나온다.
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [selectedTags, setSelectedTags] = useState<SelectedTags>(() => {
+    const initial: SelectedTags = {};
+    for (const group of ['owner', 'kind'] as TagGroup[]) {
+      const values = (searchParams.get(group) ?? '')
+        .split(',')
+        .filter((v) => isFilterableTag(v) && TAG_CATALOG[v].group === group);
+      if (values.length > 0) initial[group] = values;
+    }
+    return initial;
+  });
+  useEffect(() => {
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev);
+        for (const group of ['owner', 'kind'] as TagGroup[]) {
+          const values = selectedTags[group];
+          if (values && values.length > 0) next.set(group, values.join(','));
+          else next.delete(group);
+        }
+        return next;
+      },
+      { replace: true },
+    );
+  }, [selectedTags, setSearchParams]);
   const [isApplying, setIsApplying] = useState(false);
 
   // 🔴 2026-09-10 사람 지시 — 지역 선택 후 검색하면 그 지역에 걸리는 시설만 나오게 한다. 지금까지
@@ -108,7 +135,8 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
     if (!currentUser) return; // 가림판 상태에서는 API를 치지 않는다(00-34 §2.4)
     const params = new URLSearchParams();
     if (category !== '전체') params.set('category', category);
-    if (selectedTag) params.set('tag', selectedTag);
+    if (selectedTags.owner?.length) params.set('owner', selectedTags.owner.join(','));
+    if (selectedTags.kind?.length) params.set('kind', selectedTags.kind.join(','));
     if (searchText.trim()) params.set('q', searchText.trim());
     if (appliedProvince) params.set('province', appliedProvince);
     if (appliedDistrict) params.set('district', appliedDistrict);
@@ -139,7 +167,7 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentUser, category, selectedTag, searchText, appliedProvince, appliedDistrict, userLocation, page, PAGE_SIZE]);
+  }, [currentUser, category, selectedTags, searchText, appliedProvince, appliedDistrict, userLocation, page, PAGE_SIZE]);
 
   // PAGE_SIZE가 바뀌면(뷰포트 768px 경계를 넘나들거나 카드형↔리스트형 전환) 이전 페이지 번호가
   // 새 페이지 크기 기준으로 범위 밖일 수 있어 1페이지로 되돌린다.
@@ -151,11 +179,52 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
     setCategoryDraft(value);
   };
 
-  // 카드의 태그를 클릭하면 그 태그로 필터, 이미 선택된 태그를 다시 누르면 해제(토글)
+  // 태그(칩·카드 공통)를 누르면 그 분류에 값이 더해지고, 이미 고른 값을 다시 누르면 빠진다(토글)
   const handleTagClick = (tag: string) => {
-    setSelectedTag((prev) => (prev === tag ? null : tag));
+    const group = TAG_CATALOG[tag].group;
+    setSelectedTags((prev) => {
+      const current = prev[group] ?? [];
+      return { ...prev, [group]: current.includes(tag) ? current.filter((t) => t !== tag) : [...current, tag] };
+    });
     setPage(1);
   };
+
+  // 칩 한 줄 — 구분(전체|장례식장|묘지/수목장)에 맞는 값만 보인다. 데스크톱 칩 줄·모바일 필터 판이 같이 쓴다.
+  const renderTagChips = (group: TagGroup, forCategory: string) => (
+    <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '0.5rem' }}>
+      <span style={{ fontSize: 'var(--v2-fs-support)', color: 'var(--v2-text-muted)', minWidth: '4.5rem' }}>{TAG_GROUP_LABEL[group]}</span>
+      {tagsForGroup(group, forCategory).map((tag) => {
+        const active = !!selectedTags[group]?.includes(tag);
+        return (
+          <button
+            key={tag}
+            onClick={() => handleTagClick(tag)}
+            aria-pressed={active}
+            className="btn"
+            style={{
+              backgroundColor: active ? 'var(--v2-point)' : 'var(--v2-bg)',
+              color: active ? '#fff' : 'var(--v2-text-main)',
+              border: active ? 'none' : '1px solid var(--v2-btn-border)',
+              padding: '0.3rem var(--sp-3)',
+              borderRadius: 'var(--r-full)',
+              fontSize: 'var(--v2-fs-support)',
+              fontWeight: 600,
+              minHeight: 'auto',
+              lineHeight: 1.4
+            }}
+          >
+            #{TAG_CATALOG[tag].label}
+          </button>
+        );
+      })}
+    </div>
+  );
+
+  // 모바일 요약 줄 끝에 붙이는 고른 태그 — 예: "공설·봉안당"
+  const selectedTagSummary = (['owner', 'kind'] as TagGroup[])
+    .flatMap((group) => selectedTags[group] ?? [])
+    .map((tag) => TAG_CATALOG[tag].label)
+    .join('·');
 
   const goToPage = (p: number) => {
     setPage(p);
@@ -324,6 +393,12 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
       }
 
       setCategory(categoryDraft);
+      // 구분을 바꿨는데 그 구분에 없는 시설 종류(예: 장례식장으로 바꿨는데 봉안당)가 남아 있으면 뺀다
+      setSelectedTags((prev) => {
+        const fit = tagsForGroup('kind', categoryDraft);
+        const kept = (prev.kind ?? []).filter((t) => fit.includes(t));
+        return kept.length === (prev.kind ?? []).length ? prev : { ...prev, kind: kept };
+      });
       setSearchText(searchTextDraft);
       setPage(1);
     } finally {
@@ -391,9 +466,8 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
           요약 칩만 상시 노출하고 위치·구분은 필터 아이콘을 눌러야 열리는 바텀시트로 옮긴다.
           데스크톱(≥769px)은 기존 한 줄 필터 박스를 그대로 둔다 — 목업 노트대로 이 개편은 모바일
           전용이다. 바텀시트는 00-38 §8.2가 이미 정한 공통 규칙(position:fixed·bottom:0·dvh)을
-          따른다. 태그 칩(#공설·#사설)은 즉시 적용되는 가벼운 한 줄이라 시트로 옮기지 않고
-          그대로 뒀다(목업에서는 시트 안에 넣었지만, 클릭 즉시 적용되는 토글이라 시트를 열고 닫는
-          왕복이 오히려 손해라고 판단해 구현 단계에서 조정). */}
+          따른다. 태그 칩(운영 주체·시설 종류)은 10-15 개발자 결정(01-06 §3)으로 시트 안에만 둔다
+          (좁은 화면에서 검색 화면·카드의 태그를 뺐다). */}
       {isMobile && (
         <>
           <div
@@ -446,7 +520,7 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
               <SlidersHorizontal size={17} />
               {/* 적용된(draft 아님) 조건이 기본값과 다를 때만 점 배지 — 지금 뭔가 필터링 중임을 알림.
                   경고가 아니라 정보라 포인트색으로(00-39 §8 #5, 09-22 확정) */}
-              {(appliedProvince || category !== '전체') && (
+              {(appliedProvince || category !== '전체' || selectedTags.owner?.length || selectedTags.kind?.length) && (
                 <span
                   style={{
                     position: 'absolute',
@@ -473,13 +547,19 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
               border: 'none',
               padding: '0 0.2rem',
               marginBottom: '0.6rem',
+              maxWidth: '100%',
               fontSize: 'var(--v2-fs-support)',
               fontWeight: 700,
               color: 'var(--v2-point)',
               cursor: 'pointer'
             }}
           >
-            <MapPin size={14} /> {locationName} · {category} <ChevronRight size={14} />
+            <MapPin size={14} style={{ flexShrink: 0 }} />
+            <span style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textAlign: 'left' }}>
+              {locationName} · {category}
+              {selectedTagSummary && ` · ${selectedTagSummary}`}
+            </span>
+            <ChevronRight size={14} style={{ flexShrink: 0 }} />
           </button>
         </>
       )}
@@ -526,8 +606,8 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
         />
       )}
 
-      {/* 모바일 필터 바텀시트 — 위치·구분만 담는다(검색어는 압축 검색바가 상시 노출, 태그는
-          즉시 적용이라 별도 행에 그대로 둠). isMobile일 때만 마운트해서 데스크톱 DOM에는
+      {/* 모바일 필터 바텀시트 — 위치·구분·태그를 담는다(검색어는 압축 검색바가 상시 노출).
+          isMobile일 때만 마운트해서 데스크톱 DOM에는
           아예 안 남게 한다 — 열림/닫힘은 transform으로 애니메이션. */}
       {isMobile && (
         <>
@@ -625,11 +705,18 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
             {locationError && <p style={{ color: 'var(--state-danger-fg)', fontSize: 'var(--v2-fs-support)', margin: '0 0 0.6rem' }}>{locationError}</p>}
 
             <label className="form-label" style={{ marginTop: '0.6rem' }}>구분</label>
-            <select value={categoryDraft} onChange={(e) => handleCategoryChange(e.target.value)} className="form-select" style={{ width: '100%', marginBottom: '1.2rem' }}>
+            <select value={categoryDraft} onChange={(e) => handleCategoryChange(e.target.value)} className="form-select" style={{ width: '100%', marginBottom: '0.8rem' }}>
               <option value="전체">전체</option>
               <option value="장례식장">장례식장</option>
               <option value="묘지/수목장">묘지/봉안당/수목장</option>
             </select>
+
+            {/* 태그 걸러보기(01-06 §3) — 모바일은 검색 화면·카드에 태그를 두지 않고 이 판 안에만 둔다.
+                칩은 판에서 고른 구분(초안)에 맞춰 바뀐다. */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '1.2rem' }}>
+              {renderTagChips('owner', categoryDraft)}
+              {renderTagChips('kind', categoryDraft)}
+            </div>
 
             <button
               onClick={async () => {
@@ -647,33 +734,14 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
         </>
       )}
 
-      {/* 태그 필터 칩 — 카드까지 스크롤하지 않고도 TAG_CATALOG 등록 태그를 바로 클릭할 수 있게 필터 박스 바로 아래 노출 (2026-08-12 대표 피드백) */}
-      <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '0.5rem', marginBottom: '1.2rem' }}>
-        <span style={{ fontSize: 'var(--v2-fs-support)', color: 'var(--v2-text-muted)' }}>태그:</span>
-        {Object.keys(TAG_CATALOG).map((tag) => {
-          const active = selectedTag === tag;
-          return (
-            <button
-              key={tag}
-              onClick={() => handleTagClick(tag)}
-              className="btn"
-              style={{
-                backgroundColor: active ? 'var(--v2-point)' : 'var(--v2-bg)',
-                color: active ? '#fff' : 'var(--v2-text-main)',
-                border: active ? 'none' : '1px solid var(--v2-btn-border)',
-                padding: '0.3rem var(--sp-3)',
-                borderRadius: 'var(--r-full)',
-                fontSize: 'var(--v2-fs-support)',
-                fontWeight: 600,
-                minHeight: 'auto',
-                lineHeight: 1.4
-              }}
-            >
-              #{TAG_CATALOG[tag].label}
-            </button>
-          );
-        })}
-      </div>
+      {/* 태그 걸러보기 칩(01-06 §3) — 데스크톱 전용. 분류별 두 줄, 고른 칩은 진하게, 다시 누르면 해제.
+          "고른 태그" 줄은 두지 않는다(10-15). 모바일은 필터 판 안에만 둔다. */}
+      {!isMobile && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '1.2rem' }}>
+          {renderTagChips('owner', category)}
+          {renderTagChips('kind', category)}
+        </div>
+      )}
 
       {/* 시설 목록 — 카드형/리스트형 전환(2026-09-10) */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '0.6rem' }}>
@@ -840,53 +908,40 @@ export const FacilityPage: React.FC<FacilityPageProps> = ({ currentUser, onOpenL
                 {/* 종교/하객/예상 기본 비용 표시 삭제(2026-09-10 사람 지시) — item.religion·item.guests·
                   item.price는 더 이상 카드에서 안 쓰지만 API 응답·DB 필드 자체는 그대로 둔다. */}
 
-                {/* 태그 목록 — TAG_CATALOG에 등록된 값(예: 공설/사설)만 클릭 가능한 필터, 나머지는 그냥 라벨.
+                {/* 태그 목록 — 01-06 §2 값만 보이고 전부 누르면 같은 걸러보기. 모바일 카드에는 두지 않는다(10-15).
                   🔴 2026-09-10 — 주소 블록과 간격이 좁아 붙어 보였다(marginTop 추가) + <button>은
                   브라우저 기본 line-height·font가 <span>과 달라 같은 padding이어도 텍스트 높이가
                   미묘하게 어긋났다(fontFamily:'inherit'+lineHeight+inline-flex로 통일). */}
-                <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap', marginTop: '0.6rem', marginBottom: '1.2rem' }}>
-                  {item.tags.map((tag: string, idx: number) =>
-                    isFilterableTag(tag) ? (
-                      <button
-                        key={idx}
-                        onClick={() => handleTagClick(tag)}
-                        title={`"${TAG_CATALOG[tag].label}" 태그로 필터`}
-                        style={{
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          fontFamily: 'inherit',
-                          fontSize: 'var(--v2-fs-support)',
-                          lineHeight: 'var(--lh-body)',
-                          backgroundColor: selectedTag === tag ? 'var(--v2-point)' : 'var(--v2-divider)',
-                          color: selectedTag === tag ? '#fff' : 'var(--v2-text-muted)',
-                          padding: '0.2rem 0.5rem',
-                          borderRadius: 'var(--r-sm)',
-                          border: 'none',
-                          cursor: 'pointer',
-                        }}
-                      >
-                        #{TAG_CATALOG[tag].label}
-                      </button>
-                    ) : (
-                      <span
-                        key={idx}
-                        style={{
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          fontFamily: 'inherit',
-                          fontSize: 'var(--v2-fs-support)',
-                          lineHeight: 'var(--lh-body)',
-                          backgroundColor: 'var(--v2-divider)',
-                          padding: '0.2rem 0.5rem',
-                          borderRadius: 'var(--r-sm)',
-                          color: 'var(--v2-text-muted)',
-                        }}
-                      >
-                        #{tag}
-                      </span>
-                    )
-                  )}
-                </div>
+                {!isMobile && (
+                  <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap', marginTop: '0.6rem', marginBottom: '1.2rem' }}>
+                    {item.tags.filter(isFilterableTag).map((tag: string) => {
+                      const active = !!selectedTags[TAG_CATALOG[tag].group]?.includes(tag);
+                      return (
+                        <button
+                          key={tag}
+                          onClick={() => handleTagClick(tag)}
+                          aria-pressed={active}
+                          title={`"${TAG_CATALOG[tag].label}" 태그로 걸러보기`}
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            fontFamily: 'inherit',
+                            fontSize: 'var(--v2-fs-support)',
+                            lineHeight: 'var(--lh-body)',
+                            backgroundColor: active ? 'var(--v2-point)' : 'var(--v2-divider)',
+                            color: active ? '#fff' : 'var(--v2-text-muted)',
+                            padding: '0.2rem 0.5rem',
+                            borderRadius: 'var(--r-sm)',
+                            border: 'none',
+                            cursor: 'pointer',
+                          }}
+                        >
+                          #{TAG_CATALOG[tag].label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
 
                 {/* 액션 버튼 그룹 — 전화 직통·견적비교·답사예약 삭제(2026-08-10), 상담으로 대체 */}
                 <div style={{ marginTop: 'auto', display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
