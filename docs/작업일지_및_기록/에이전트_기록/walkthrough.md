@@ -24,7 +24,7 @@
 - **건드린 파일**: eobomDev/frontend/src/pages/MemorialLandingPage.tsx (1개)
 - **결과**: `MemorialLandingSkeleton` 추가, loading 분기가 `<p className="v2-obit-notfound-sub">불러오는 중...</p>` 대신 이것을 렌더. 틀 `.v2-obit-content > .v2-obit-box` 안에 ① 머리(링크 복사 버튼 자리 `.v2-obit-copy-btn` · 근조 문구 160×13 · 이름 190×28 · 별세일 120×13) ② 방명록 묶음(제목 80×16 + 행 3개: 이름·날짜 한 줄 + 글 한 줄) ③ 헌화 줄(왼쪽 버튼 자리 · 오른쪽 숫자 글 + 버튼 자리). 영정 자리 없음. 인라인 스타일은 폭·높이·margin만, 새 CSS 없음(design-v2.css 변경 0). 연장·초대 페이지 변경 0. 검증: `npx tsc --noEmit`(frontend) 통과, `npm run build`(frontend) 통과.
 - **편차**: 없음
-- **다음 에이전트가 알아야 할 것**: 🟡 **실기동 검증 대기** — dev 서버를 띄우지 않았으므로 실제 화면(특히 `.v2-obit-copy-btn`에 skeleton-block을 얹은 코너 위치, 데스크톱·모바일 폭)은 개발자 확인 전. 뼈대에서 실제 화면으로 넘어갈 때 자리가 튀면 폭·높이 숫자만 조정.
+- **다음 에이전트가 알아야 할 것**: ✅ **실기동 검증 완료(10-15)** — 개발자가 네트워크 속도를 늦춰 확인: 뼈대가 실제 페이지와 맞는 위치에 뜸. 추가 작업 없음.
 
 <!-- Gemini 판정 1줄: ✅통과 / ❌반려(사유) / 🔄스펙갱신(고친 문서) -->
 
