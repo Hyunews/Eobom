@@ -11,12 +11,12 @@ export interface LegalLinkInfo {
 }
 
 // 순위1 — id 7(정부24)·4(e하늘)·9·18(안심상속, 정부24 안의 서비스). id 9·18은 정부24
-// 도메인으로 보낸다. e하늘은 정확한 딥링크를 실측하지 못해 href 없이 라벨만 둔다.
+// 도메인으로 보낸다. e하늘은 10-15 개발자가 알려준 장사정보 주소를 건다.
 const INSTITUTION_LINKS: Record<number, LegalLinkInfo> = {
   7: { baseLabel: '정부24', href: 'https://www.gov.kr' },
   9: { baseLabel: '안심상속 원스톱 서비스', href: 'https://www.gov.kr' },
   18: { baseLabel: '안심상속 원스톱 서비스', href: 'https://www.gov.kr' },
-  4: { baseLabel: 'e하늘 장사정보시스템' },
+  4: { baseLabel: 'e하늘 장사정보시스템', href: 'https://15774129.go.kr/funeral/' },
 };
 
 // 순위3 — 기관도 법령도 없어 "근거" 줄 자체를 생략하는 6건(5가지 사유, §6-14 표).
