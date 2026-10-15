@@ -72,6 +72,8 @@
 | 운영 스키마 반영 | `migrate-prod.ps1` (§2-1) | `BACKUP_DATABASE_URL` |
 | 운영 백업 | `backup-db.ps1 -Target prod` (§2) | `BACKUP_DATABASE_URL` |
 | 운영 기록 조회 | `npm run report:heavy -- --target prod` (🆕 10-07, 출력 첫 줄에 대상 DB 표시) | `BACKUP_DATABASE_URL` |
+| 운영 시설 태그 조회 | `npm run report:tags -- --target prod` (🆕 10-15, 읽기 전용) | `BACKUP_DATABASE_URL` |
+| 운영 시설 태그 정리 | `npm run cleanup:tags -- --target prod` = 확인만 → `--apply` = 실행 (🆕 10-15, 한 트랜잭션·건수 불일치 시 롤백, 실행 전 `backup-db.ps1 -Target prod`) | `BACKUP_DATABASE_URL` |
 | 시험 | `npm test` | `TEST_DATABASE_URL` (`_test`로 끝나는 로컬 DB만) |
 
 - 새 스크립트가 운영을 읽거나 써야 하면 **같은 방식(`--target prod` + 대상 표시)으로 이 표에 한 줄을 더한다.**
