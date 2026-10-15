@@ -18,6 +18,18 @@
 > 원인 = Gemini 판정이 `gemini_tasks.md`에만 적히고 이 파일 판정 칸은 비어 있었음. 🔴 **판정은 이 파일의 그 항목 칸에 적는다**(`GEMINI.md`).
 
 ---
+## 2026-10-15 | [Sonnet] migrate-prod 도구 수정 — node 못 찾는데 "[O] 완료"를 찍은 사고
+
+- **근거 스펙**: 스펙 없음 — 도구 결함 수정(개발자 요청, 10-15 사고)
+- **건드린 파일**: .harness/tools/migrate-prod.ps1 · migrate-prod.bat(CRLF·ASCII 유지) · .harness/memory/context.md
+- **사고 기록**: 바탕화면 바로가기(`운영DB적용.lnk` → `migrate-prod.bat`)로 실행하면 PATH에 node가 없어 `npx`를 못 찾았다. ps1은 오류 검사 없이 `[2/4] migrate status`·`[4/4] migrate deploy`를 그냥 지나갔고(명령 못 찾음은 `$LASTEXITCODE`를 바꾸지 않는다), try에 catch가 없어 끝의 "[O] 운영 마이그레이션 완료"까지 내려갔다. 실제로는 확인도 deploy도 안 돌아 운영에 10-14 L-2 마이그레이션이 반영되지 않았다(백업만 생김, 운영 DB 불변 — 이후 사람이 터미널로 반영).
+- **결과**: ① 백업 전에 node·npx 검사, 없으면 `C:\Program Files\nodejs`를 PATH 앞에 붙여 재검사, 그래도 없으면 Fail. ② `catch` 추가(도중에 끊기면 Fail) · `Fail`이 DB 상태 문구를 인자로 받음(적용 중 실패는 "일부 바뀌었을 수 있음") · `migrate status`는 출력 문구로 "대기 있음(정상)"과 "status 자체 실패"를 가름 · 적용 후 확인이 0이 아니면 Fail. ③ bat: 같은 PATH 보강, node 없거나 생성기가 실패하면 "SPEC REGENERATION FAILED", 끝에 ps1 종료코드로 "MIGRATION DID NOT COMPLETE"/"Migration finished" 표시. ④ 점검: `backup-verify.ps1`·`restore-db.ps1`·`db-url.ps1`은 같은 결함 없음 — `&` 호출 뒤 즉시 `$LASTEXITCODE`를 검사하고, `backup-verify`는 `Invoke-Target`이 try/catch, `restore-db`는 `Stop`이라 명령 못 찾음이 곧 종료(완료 표시 도달 불가). 파싱 검사 4개 통과. 시험: node를 PATH에서 뺀 창에서 (a) 설치 폴더 있으면 보강 후 통과 (b) 없으면 `[X]`+exit 1 (c) bat 보강 줄 동작 · bat 실패 표시 확인. 🔴 운영 대상 실행은 하지 않았다(검사 구간만 잘라 시험).
+- **편차**: 없음. 판단 하나 — `migrate status` 출력 문구(`have not yet been applied`)에 기대어 구분한다. Prisma 문구가 바뀌면 "대기 있음"이 status 실패로 오판돼 멈추는 쪽(안전한 쪽)으로 실패한다.
+- **다음 에이전트가 알아야 할 것**: 운영 반영 자체는 사람이 터미널로 따로 마쳤다(context.md, 54건). 이번 수정이 바로가기에서 실제로 도는지는 다음 마이그레이션 때 사람이 한 번 확인해야 한다.
+
+<!-- Gemini 판정 1줄: ✅통과 / ❌반려(사유) / 🔄스펙갱신(고친 문서) -->
+
+---
 ## 2026-10-15 | [Sonnet] 백업+복구 시험 일괄 도구 — backup-verify.bat/.ps1 · restore-db.ps1 (db-safety §8-7·§8-4)
 
 - **근거 스펙**: `.harness/db-safety.md` §8-7 (10-15 Opus 스펙) · §8-4 (restore-db)
