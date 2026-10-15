@@ -18,6 +18,17 @@
 > 원인 = Gemini 판정이 `gemini_tasks.md`에만 적히고 이 파일 판정 칸은 비어 있었음. 🔴 **판정은 이 파일의 그 항목 칸에 적는다**(`GEMINI.md`).
 
 ---
+## 2026-10-15 | [Sonnet] 백업+복구 시험 일괄 도구 — backup-verify.bat/.ps1 · restore-db.ps1 (db-safety §8-7·§8-4)
+
+- **근거 스펙**: `.harness/db-safety.md` §8-7 (10-15 Opus 스펙) · §8-4 (restore-db)
+- **건드린 파일**: .harness/tools/backup-verify.bat · backup-verify.ps1(BOM) · restore-db.ps1(BOM, 작성만) · db-url.ps1(신설·공용, BOM) · .harness/db-safety.md(§8 머리·§8-4·§8-5 표·§8-7 메모)
+- **결과**: `backup-verify.bat` 1회 실행 — 로컬 [O](테이블 43, `local-20261015-115559.dump`) · 운영 [O](테이블 41, `prod-20261015-115606.dump`), 테이블·행 수 원본과 일치, 종료코드 0, 임시 컨테이너 정리 확인(`docker ps -a`에 `eobom-postgres`만). 시험 중 앞선 실행 2회가 실패해 백업 파일이 그만큼 더 생겼다(`backups/`에 쌓임, 지우지 않음). `restore-db.ps1`은 파싱 검사만 — **실행하지 않았다**(원래 DB 대상).
+- **편차**: ① 시험 `pg_restore`에 `--no-privileges` 추가(스펙은 `--no-owner`뿐) — dump의 GRANT가 임시 컨테이너에 없는 역할(`anon`·`eobom_auditor` 등)을 가리켜 오류로 끝났다. 권한은 시험 대상이 아니라고 판단, §8-7 메모에 반영. ② 스펙 파일 목록에 없는 `db-url.ps1` 추가 — 운영 주소 읽기·검사를 backup-verify와 restore-db가 같이 써서 중복을 피함(backup-db.ps1은 건드리지 않음). 
+- **다음 에이전트가 알아야 할 것**: 운영은 테이블 41·마이그레이션 53건, 로컬은 43·54건 — 운영에 `ConsentLog`·`EndingNoteViewLog`(L-2 10-14) 테이블이 아직 없다(운영 마이그레이션 미적용, 정상). 오픈 전 `restore-db.ps1`을 로컬 대상으로 한 번 시험해야 §8-3 ④·§8-4 ⑤가 검증된다. verify-log.txt는 `backups/`(gitignore) 안.
+
+<!-- Gemini 판정 1줄: ✅통과 / ❌반려(사유) / 🔄스펙갱신(고친 문서) -->
+
+---
 ## 2026-10-14 | [Sonnet] 버그 수정 — 메뉴로 페이지 진입 시 맨 위에서 시작하지 않음
 
 - **근거 스펙**: 스펙 없음 — 버그 수정(개발자 관찰, docs 변경 없음)

@@ -119,10 +119,10 @@ await prisma.familyDesignation.deleteMany({ where: { userId } })
 🔴 **규칙을 더 쓰지 말 것.** `deleteMany` 사용을 막는 lint, 또는 백업 없이는 쓰기 스크립트가
 안 돌게 하는 래퍼로 간다. **규칙이 세 번 실패했다면 규칙으로 풀 문제가 아니라는 뜻이다.**
 
-## 8. 복구 — 백업을 되돌리는 법 (🟡 초안 2026-10-15 · 복구 시험 전)
+## 8. 복구 — 백업을 되돌리는 법 (🟡 초안 2026-10-15 · 임시 컨테이너 복구 시험은 통과(§8-5) · 원래 DB에 붓는 §8-3 ④·§8-4 ⑤는 미시험)
 
 > 🔴 **되돌려 본 적 없는 백업은 있다고 믿으면 안 된다.** 08-21 `pg_restore --list`로 파일 목록만 봤고,
-> **실제로 풀어 본 적은 한 번도 없다**(10-15 확인). 아래 명령은 §8-5 시험 전까지 검증 안 된 초안이다.
+> 10-15 `backup-verify.bat`로 **처음 실제로 풀어 봤다**(§8-5). 단 원래 DB에 붓는 명령(`restore-db.ps1`)은 만들기만 했고 돌려 본 적 없다.
 > R310 Ⅵ장 "복구 절차 미작성"의 답이다.
 
 ### 8-1. 원칙 3개
@@ -159,7 +159,7 @@ docker exec eobom-postgres sh -c 'dropdb -U "$POSTGRES_USER" eobom_restore; rm -
 ### 8-4. 운영 (Supabase)
 
 - 🔴 **명령을 손으로 조립하지 않는다** — 접속 주소에 비밀번호가 들어 있어 명령 기록에 남는다. 백업처럼 `.env`의
-  `BACKUP_DATABASE_URL`을 읽는 **`restore-db.ps1`로만** 한다(🔜 미작성 → Sonnet). 접속 함정은 백업과 같다(§2·`infra.md` §4).
+  `BACKUP_DATABASE_URL`을 읽는 **`restore-db.ps1`로만** 한다(`-Target`·`-File` 필수, 접두사 불일치 시 실패, 대상 이름 입력 확인 — 10-15 작성·미실행). 접속 함정은 백업과 같다(§2·`infra.md` §4).
 - 🔴 **`public` 스키마만** 되돌린다(`-n public --no-owner --no-privileges`) — 이어봄은 Prisma로 `public`만 쓰고,
   Supabase가 관리하는 `auth`·`storage` 등은 권한이 없어 실패한다.
 
@@ -174,14 +174,15 @@ docker exec eobom-postgres sh -c 'dropdb -U "$POSTGRES_USER" eobom_restore; rm -
 | ⑦ | Render 재개 → 로그인·주요 화면 확인 |
 | ⑧ | 사고 기록 — §6 그대로(무엇을 몇 건 잃었나) |
 
-### 8-5. 복구 시험 — 🔴 아직 한 번도 안 했다
+### 8-5. 복구 시험 — 임시 컨테이너 시험 첫 성공 10-15 (원래 DB에 붓는 시험은 아직)
 
 - 방법 = §8-7 도구(임시 컨테이너에만 풀기 — 원래 DB 안 건드림). 손으로 할 때는 §8-3 ②·③·⑤.
 - 시기 = §8-7 도구를 돌릴 때마다 + **오픈 전 1회는 반드시**.
 
 | 날짜 | 파일 | 결과 |
 |---|---|---|
-| — | — | 미실시 |
+| 2026-10-15 | `local-20261015-115559.dump` (테이블 43) | ✅ 임시 컨테이너 `postgres:17-alpine`에 `--no-owner --no-privileges`로 풀림, 테이블·행 수 원본과 일치 (`backup-verify.bat`) |
+| 2026-10-15 | `prod-20261015-115606.dump` (테이블 41) | ✅ 같은 방법에 `-n public` 추가, 테이블·행 수 원본과 일치 (`backup-verify.bat`) |
 
 ### 8-6. 정해지지 않은 것
 
@@ -189,7 +190,9 @@ docker exec eobom-postgres sh -c 'dropdb -U "$POSTGRES_USER" eobom_restore; rm -
   옛 키 보관 기간(`00-33` §6.3)과 **같은 값으로 한 번에** 정한다(인프라 결정 때).
 - **운영 자동 백업** — Supabase 무료 요금제엔 없다. 인프라 전략 결정 대기(`pending-approvals`).
 
-### 8-7. 백업 + 복구 시험 한 번에 — `backup-verify.bat` (🔜 스펙 10-15 → Sonnet)
+### 8-7. 백업 + 복구 시험 한 번에 — `backup-verify.bat` (✅ 구현·시험 10-15)
+
+> 구현 메모(10-15): ② `pg_restore`에 `--no-privileges`를 더했다 — dump의 GRANT가 `anon`·`eobom_auditor` 등 임시 컨테이너에 없는 역할을 가리켜 오류로 끝났다(테이블·데이터는 풀림). 접속 주소 읽기·검사는 `db-url.ps1`(backup-verify·restore-db 공용).
 
 > 개발자 요청(10-15): 로컬·운영 백업과 복구 시험을 파일 하나로. **원래 DB 두 곳은 읽기만 한다**(백업 = 읽기).
 
