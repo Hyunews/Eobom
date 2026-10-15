@@ -21,11 +21,23 @@ $backend = Join-Path $root 'eobomDev\backend'
 $envFile = Join-Path $backend '.env'
 $outDir  = Join-Path $backend 'backups'
 
-function Fail([string]$msg) {
+function Fail([string]$msg, [string]$dbNote = '운영 DB는 바뀌지 않았습니다.') {
   Write-Host ''
   Write-Host "[X] $msg" -ForegroundColor Red
-  Write-Host '    운영 DB는 바뀌지 않았습니다.' -ForegroundColor Yellow
+  Write-Host "    $dbNote" -ForegroundColor Yellow
   exit 1
+}
+
+# 🔴 node·npx 검사 (10-15 사고) — 바탕화면 바로가기로 띄우면 PATH에 node가 없을 수 있다.
+#    백업보다 먼저 검사한다. 없으면 `C:\Program Files\nodejs` 를 이 창 PATH 앞에 붙여 한 번 더 찾는다.
+function Test-NodeTools {
+  foreach ($c in @('node', 'npx')) { if (-not (Get-Command $c -ErrorAction SilentlyContinue)) { return $false } }
+  return $true
+}
+if (-not (Test-NodeTools)) {
+  $nodeDir = 'C:\Program Files\nodejs'
+  if (Test-Path $nodeDir) { $env:PATH = "$nodeDir;$env:PATH" }
+  if (-not (Test-NodeTools)) { Fail 'node 또는 npx 를 찾을 수 없습니다(PATH·C:\Program Files\nodejs 모두 없음) — Node.js 설치/PATH를 확인하세요.' }
 }
 
 # ─── 0. 운영 주소 읽기 ─────────────────────────────────────────────
@@ -61,8 +73,14 @@ Push-Location $backend
 try {
   Write-Host ''
   Write-Host '[2/4] 운영에 아직 안 들어간 마이그레이션' -ForegroundColor Cyan
-  & npx prisma migrate status
-  # (대기 중인 게 있으면 status가 0이 아닌 코드로 끝난다 — 정상이다)
+  # status는 "대기 있음"이어도 0이 아닌 코드로 끝난다. 그래서 코드만으로 못 가르고 출력 문구로 구분한다:
+  #   0 = 최신 · 0 아님 + "have not yet been applied" = 대기 있음(정상) · 그 외 0 아님 = status 자체 실패.
+  $statusOut = (& npx prisma migrate status 2>&1 | Out-String)
+  $statusRc  = $LASTEXITCODE
+  Write-Host $statusOut
+  if ($statusRc -ne 0 -and $statusOut -notmatch 'have not yet been applied') {
+    Fail "migrate status 자체가 실패했습니다(exit $statusRc) — 대기 목록을 확인하지 못했으니 진행하지 않습니다."
+  }
 
   Write-Host ''
   Write-Host '[3/4] 위 목록을 운영에 적용할까요?' -ForegroundColor Yellow
@@ -75,9 +93,18 @@ try {
   Write-Host '[4/4] 적용 중' -ForegroundColor Cyan
   & npx prisma migrate deploy
   if ($LASTEXITCODE -ne 0) {
-    Fail "적용 실패 — 되돌려야 하면 백업 backups/$($dump.Name) 가 있습니다. 에러 문구를 그대로 Claude에게 보여주세요."
+    Fail "적용 실패 — 되돌려야 하면 백업 backups/$($dump.Name) 가 있습니다. 에러 문구를 그대로 Claude에게 보여주세요." '운영 DB가 일부 바뀌었을 수 있습니다(적용 중 실패).'
   }
-  & npx prisma migrate status
+  $afterOut = (& npx prisma migrate status 2>&1 | Out-String)
+  $afterRc  = $LASTEXITCODE
+  Write-Host $afterOut
+  if ($afterRc -ne 0) {
+    Fail "적용은 끝났지만 적용 후 확인(migrate status)이 정상이 아닙니다(exit $afterRc) — 위 출력을 확인하세요." '운영 DB는 이미 바뀌었을 수 있습니다.'
+  }
+}
+catch {
+  # 명령을 못 찾는 등 예상 밖 오류로 끊겨도 아래 "[O] 완료"까지 내려가지 않게 한다.
+  Fail "마이그레이션 도중 오류로 끊겼습니다: $($_.Exception.Message)" '운영 DB 상태를 확인하세요(적용 전에 끊겼다면 바뀌지 않았습니다).'
 }
 finally {
   Pop-Location
