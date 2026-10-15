@@ -39,6 +39,46 @@ interface GuestbookEntry {
   createdAt: string;
 }
 
+// 🔄 10-15 개발자 결정 — 불러오는 중 글자 대신 실제 화면과 같은 자리에 회색 뼈대(ObituaryLandingSkeleton과
+// 같은 틀). 영정 사진 자리는 넣지 않는다(사진 없는 추모관이 많아 자리가 튄다).
+const MemorialLandingSkeleton: React.FC = () => (
+  <div className="v2-obit-content">
+    <div className="v2-obit-box">
+      <div className="v2-obit-header v2-obit-header-has-copy">
+        <div className="skeleton-block v2-obit-copy-btn" style={{ width: '88px', height: '32px' }} />
+        <div className="skeleton-block" style={{ width: '160px', height: '13px', margin: '0 0 8px' }} />
+        <div className="skeleton-block" style={{ width: '190px', height: '28px', margin: '0 0 8px' }} />
+        <div className="skeleton-block" style={{ width: '120px', height: '13px' }} />
+      </div>
+
+      <div className="v2-obit-section">
+        <div className="skeleton-block" style={{ width: '80px', height: '16px', margin: '0 0 12px' }} />
+        <div className="v2-obit-guest-list">
+          {[0, 1, 2].map((i) => (
+            <div key={i} className="v2-obit-guest-row">
+              <div className="v2-obit-guest-head">
+                <span className="skeleton-block" style={{ width: '90px', height: '13px' }} />
+                <span className="skeleton-block" style={{ width: '70px', height: '13px' }} />
+              </div>
+              <div className="skeleton-block" style={{ width: '75%', height: '16px' }} />
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="v2-obit-section v2-obit-tribute">
+        <div className="v2-obit-tribute-row">
+          <div className="skeleton-block" style={{ width: '96px', height: '36px' }} />
+          <div className="v2-obit-tribute-main">
+            <span className="skeleton-block" style={{ width: '150px', height: '14px' }} />
+            <div className="skeleton-block" style={{ width: '88px', height: '36px' }} />
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
 interface MemorialLandingPageProps {
   currentUser: string | null;
   onOpenLogin: () => void;
@@ -214,9 +254,7 @@ export const MemorialLandingPage: React.FC<MemorialLandingPageProps> = ({ curren
   if (loading) {
     return (
       <div className="v2-obit-page">
-        <div className="v2-obit-content v2-obit-notfound">
-          <p className="v2-obit-notfound-sub">불러오는 중...</p>
-        </div>
+        <MemorialLandingSkeleton />
       </div>
     );
   }
