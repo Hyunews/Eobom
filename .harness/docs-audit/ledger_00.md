@@ -85,17 +85,17 @@
 | `00_핵심플랫폼/00-04_기능_및_API_명세서.md` | 384 | &nbsp;&nbsp;## 🔗 8. 관련 문서 | 유지 | 관련 문서 목록 | R300 |
 | `00_핵심플랫폼/00-04_기능_및_API_명세서.md` | 396 | &nbsp;&nbsp;## 📎 부록: 경위 | 묶음 | 자동 — 본문 없음(하위 절만 묶음) |  |
 
-## `00_핵심플랫폼/00-05_DB_요구사항_및_테이블_사전.md` (97KB · 절 7) <!-- sha:1ac54325ea -->
+## `00_핵심플랫폼/00-05_DB_요구사항_및_테이블_사전.md` (102KB · 절 7) <!-- sha:1ac54325ea -->
 
 | 파일 | 줄 | 절 | 판정 | 근거 | 메모 |
 |---|---:|---|---|---|---|
 | `00_핵심플랫폼/00-05_DB_요구사항_및_테이블_사전.md` | 9 | # 🗄️ 00-05. DB 요구사항 및 테이블 사전 (Prisma Schema) | 유지 | generate-db-doc.js --check '동기화됨'(09-30) | R300 |
 | `00_핵심플랫폼/00-05_DB_요구사항_및_테이블_사전.md` | 22 | &nbsp;&nbsp;## 📋 자동 생성: 테이블·컬럼 사전 | 유지 | 자동 생성 구간 — 10-12 재생성(모델 40 · 물리 컬럼 468 · 설명 없음 3, 3fb80c7 sttDataAgreedAt·OcrDailyUsage 포함) · --check 동기화 | 4단계 반영 10-12(로컬 재생성) · 이후 바탕화면 '운영DB적용'(migrate-prod.bat)이 매번 재생성 R300 |
-| `00_핵심플랫폼/00-05_DB_요구사항_및_테이블_사전.md` | 1167 | &nbsp;&nbsp;## 📝 보충 설명 (수동 관리 — 자동 생성 스크립트가 건드리지 않음) | 유지 | 보충 설명 구간 — 08-10 이후 비어 있음(자리표시 한 줄) | 4단계: 계속 비면 절 삭제 후보(JSON 형태·상태 전이는 도메인 문서에 있음) · 재판정 10-12: 10-02에 보충 설명 49줄 채움(상태 전이 3종 + Json 칸) — '계속 비면 절 삭제 후보' 메모는 해소(채워짐). 판정 유지 |
-| `00_핵심플랫폼/00-05_DB_요구사항_및_테이블_사전.md` | 1173 | &nbsp;&nbsp;&nbsp;&nbsp;### 1. 사망 확인 — `DeathVerification.status` (정본 `00-41` §7) | 유지 | DeathVerification.status 전이표 — REQUESTED→VERIFIED/REJECTED/CANCELLED 값이 deathVerificationController.ts·deathVerificationAdminController.ts에 있음. 정본 00-41 §7 | dueAt 6시간 내부 기준(10-02) 반영 · 같은 트랜잭션 EndingNote.RELEASED는 미대조 · 재판정 10-12: 새 절 |
-| `00_핵심플랫폼/00-05_DB_요구사항_및_테이블_사전.md` | 1184 | &nbsp;&nbsp;&nbsp;&nbsp;### 2. 엔딩노트 — `EndingNote.status` (정본 `06-04` §4.2·§8.1 · `00-41` §7) | 유지 | EndingNote.status 값 표 — RELEASED는 사망 확인 때만, 'SEALED로 바꾸는 서버 코드 없음'(10-02 grep) 주장은 10-12에도 deathVerificationAdminController.ts 1곳만 보임(FROZEN 검사) | SEALED 전이 코드 부재는 이번엔 부분 대조(백엔드 src 전체 'SEALED' 대입 패턴 0건) · 재판정 10-12: 새 절 |
-| `00_핵심플랫폼/00-05_DB_요구사항_및_테이블_사전.md` | 1195 | &nbsp;&nbsp;&nbsp;&nbsp;### 3. 탈퇴 유예 — `User` 시각 칸 3개 (정본 `06-05` §5.4-2·§5.4-2-1 · `00-36` §4.3·§4.3-1) | 유지 | 탈퇴 유예 시각 칸 3개(deletionRequestedAt·deletionScheduledAt·purgedAt) — 유예 중 새 자료 생성 403은 blockDuringDeletionGrace.ts로 구현 | 정본 06-05 §5.4-2 · 00-36 §4.3-1 · 재판정 10-12: 새 절 |
-| `00_핵심플랫폼/00-05_DB_요구사항_및_테이블_사전.md` | 1208 | &nbsp;&nbsp;&nbsp;&nbsp;### 4. Json 칸 6개 | 유지 | Json 칸 6개 형태 예시 — Lead.payload·consentSnapshot·statusHistory, ConsultRequest.consentSnapshot·statusHistory, EndingNote.sectionState | statusHistory.at이 한국 시각 문자열(kstIso)이라는 주의는 코드 대조 미실시(미대조) · 재판정 10-12: 새 절 |
+| `00_핵심플랫폼/00-05_DB_요구사항_및_테이블_사전.md` | 1225 | &nbsp;&nbsp;## 📝 보충 설명 (수동 관리 — 자동 생성 스크립트가 건드리지 않음) | 유지 | 보충 설명 구간 — 08-10 이후 비어 있음(자리표시 한 줄) | 4단계: 계속 비면 절 삭제 후보(JSON 형태·상태 전이는 도메인 문서에 있음) · 재판정 10-12: 10-02에 보충 설명 49줄 채움(상태 전이 3종 + Json 칸) — '계속 비면 절 삭제 후보' 메모는 해소(채워짐). 판정 유지 |
+| `00_핵심플랫폼/00-05_DB_요구사항_및_테이블_사전.md` | 1231 | &nbsp;&nbsp;&nbsp;&nbsp;### 1. 사망 확인 — `DeathVerification.status` (정본 `00-41` §7) | 유지 | DeathVerification.status 전이표 — REQUESTED→VERIFIED/REJECTED/CANCELLED 값이 deathVerificationController.ts·deathVerificationAdminController.ts에 있음. 정본 00-41 §7 | dueAt 6시간 내부 기준(10-02) 반영 · 같은 트랜잭션 EndingNote.RELEASED는 미대조 · 재판정 10-12: 새 절 |
+| `00_핵심플랫폼/00-05_DB_요구사항_및_테이블_사전.md` | 1242 | &nbsp;&nbsp;&nbsp;&nbsp;### 2. 엔딩노트 — `EndingNote.status` (정본 `06-04` §4.2·§8.1 · `00-41` §7) | 유지 | EndingNote.status 값 표 — RELEASED는 사망 확인 때만, 'SEALED로 바꾸는 서버 코드 없음'(10-02 grep) 주장은 10-12에도 deathVerificationAdminController.ts 1곳만 보임(FROZEN 검사) | SEALED 전이 코드 부재는 이번엔 부분 대조(백엔드 src 전체 'SEALED' 대입 패턴 0건) · 재판정 10-12: 새 절 |
+| `00_핵심플랫폼/00-05_DB_요구사항_및_테이블_사전.md` | 1253 | &nbsp;&nbsp;&nbsp;&nbsp;### 3. 탈퇴 유예 — `User` 시각 칸 3개 (정본 `06-05` §5.4-2·§5.4-2-1 · `00-36` §4.3·§4.3-1) | 유지 | 탈퇴 유예 시각 칸 3개(deletionRequestedAt·deletionScheduledAt·purgedAt) — 유예 중 새 자료 생성 403은 blockDuringDeletionGrace.ts로 구현 | 정본 06-05 §5.4-2 · 00-36 §4.3-1 · 재판정 10-12: 새 절 |
+| `00_핵심플랫폼/00-05_DB_요구사항_및_테이블_사전.md` | 1266 | &nbsp;&nbsp;&nbsp;&nbsp;### 4. Json 칸 6개 | 유지 | Json 칸 6개 형태 예시 — Lead.payload·consentSnapshot·statusHistory, ConsultRequest.consentSnapshot·statusHistory, EndingNote.sectionState | statusHistory.at이 한국 시각 문자열(kstIso)이라는 주의는 코드 대조 미실시(미대조) · 재판정 10-12: 새 절 |
 
 ## `00_핵심플랫폼/00-06_화면_설계서_및_와이어프레임.md` (16KB · 절 16) <!-- sha:c8552ec052 -->
 
