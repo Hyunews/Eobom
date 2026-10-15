@@ -18,6 +18,28 @@
 > 원인 = Gemini 판정이 `gemini_tasks.md`에만 적히고 이 파일 판정 칸은 비어 있었음. 🔴 **판정은 이 파일의 그 항목 칸에 적는다**(`GEMINI.md`).
 
 ---
+## 2026-10-15 | [Sonnet] 옛 목업 폴더 `_mockups/` 삭제
+
+- **근거 스펙**: 스펙 없음 — 개발자 승인(10-15, 권고 A). 사유: `src/` 참조 0건, 디자인 정본은 캔버스로 이동(09-18)
+- **건드린 파일**: eobomDev/frontend/_mockups/ 전체 삭제(EndingNotePage·FarewellMessagePage·Modals_BottomSheet·MyObituaryListPage·MyPage·ObituaryPage .html 6개, 전부 git 추적 파일 → 커밋 기록에서 복구 가능)
+- **결과**: 삭제 전 파일 목록을 개발자에게 보이고 "삭제" 확인을 받음. 삭제 후 eobomDev 안(node_modules·dist·backups 제외) `_mockups` 참조 0건, `npm run build`(frontend) 통과. Modals_BottomSheet.html 132행의 옛 동의 문구도 함께 사라짐.
+- **편차**: 없음
+- **다음 에이전트가 알아야 할 것**: 없음. 커밋은 사람이 한다.
+
+<!-- Gemini 판정 1줄: ✅통과 / ❌반려(사유) / 🔄스펙갱신(고친 문서) -->
+
+---
+## 2026-10-15 | [Sonnet] 판 2-9 제3자 제공 동의 "보유 기간" 문구 변경
+
+- **근거 스펙**: `00-19` 제5조 표 · `01-05` §7.1 · `02-03` §8 (10-15 개발자 결정)
+- **건드린 파일**: 판 2-9 캔버스 Inq_D·Inq_M · InquiryModal.tsx · ConsultRequestModal.tsx · PrivacyPage.tsx(제5조 표 3행) · leadService.ts · consultService.ts
+- **결과**: 시설 상담 창 "문의가 끝날 때까지(최대 접수일부터 90일)", 전문가 상담 창 "상담이 끝날 때까지(최대 신청일부터 90일)". 처리방침 표는 `00-19` 문구 그대로. `retention` 문구 교체 + `noticeVersion` 2026-10-15(옛 동의 기록 불변). backend·frontend `tsc --noEmit` 통과.
+- **편차**: 유품 업체 동의 창은 코드에 없어 표(PrivacyPage)만 `00-19`에 맞춤. 유품 정리 캔버스(`JtF68LBg…`)는 미확인.
+- **다음 에이전트가 알아야 할 것**: 유품 정리 시안에 옛 문구가 남아 있는지 확인 필요.
+
+<!-- Gemini 판정 1줄: ✅통과 / ❌반려(사유) / 🔄스펙갱신(고친 문서) -->
+
+---
 ## 2026-10-15 | [Sonnet] migrate-prod 도구 수정 — node 못 찾는데 "[O] 완료"를 찍은 사고
 
 - **근거 스펙**: 스펙 없음 — 도구 결함 수정(개발자 요청, 10-15 사고)

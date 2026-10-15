@@ -181,7 +181,7 @@ export const ConsultRequestModal: React.FC<ConsultRequestModalProps> = ({ expert
               <strong style={{ color: 'var(--text-main)' }}>[필수]</strong> 개인정보 제3자 제공에 동의합니다.
               <br />
               제공받는 자: {expertName} (이어봄 입점 전문가) · 제공 목적: 상담 안내 및 연락 ·
-              제공 항목: 이름, 연락처, 상담 희망 내용 · 보유 기간: 목적 달성 후 파기
+              제공 항목: 이름, 연락처, 상담 희망 내용 · 보유 기간: 상담이 끝날 때까지(최대 신청일부터 90일)
             </span>
           </label>
 

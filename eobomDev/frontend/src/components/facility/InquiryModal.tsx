@@ -158,7 +158,7 @@ export const InquiryModal: React.FC<InquiryModalProps> = ({ facilityId, facility
               <strong style={{ color: 'var(--text-main)' }}>[필수]</strong> 개인정보 제3자 제공에 동의합니다.
               <br />
               제공받는 자: {facilityName} 등 신청 시설 (또는 비제휴 시 이어봄 상담원) · 제공 목적: 문의 응대 및 연락 ·
-              제공 항목: 이름, 연락처, 문의 내용 · 보유 기간: 목적 달성 후 파기
+              제공 항목: 이름, 연락처, 문의 내용 · 보유 기간: 문의가 끝날 때까지(최대 접수일부터 90일)
             </span>
           </label>
 

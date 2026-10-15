@@ -56,11 +56,11 @@ interface ConsentNotice {
 }
 
 const buildConsentNotice = (facilityName: string, hasPartner: boolean): ConsentNotice => ({
-  noticeVersion: '2026-08-11',
+  noticeVersion: '2026-10-15',
   providedTo: hasPartner ? `${facilityName} (이어봄 제휴 사업자)` : '이어봄 상담원 (비제휴 시설 — 사업자에게 직접 전달하지 않음, §7.2)',
   purpose: '업체 문의 및 견적 안내 연락',
   items: ['이름', '연락처', '요청 내용(희망일시·규모 등)'],
-  retention: '목적 달성 후 파기 — 정산 확정 시 마스킹 처리(§7.3)',
+  retention: '문의가 끝날 때까지(최대 접수일부터 90일) — 그 뒤 사업자 화면에서 이름·연락처 마스킹(§7.3)',
 });
 
 interface CreateLeadInput {

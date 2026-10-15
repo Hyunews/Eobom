@@ -53,11 +53,11 @@ interface ConsentNotice {
 
 // 동의 시점의 고지 문구를 통째로 스냅샷 저장 — 나중에 문구가 바뀌어도 "그때 무엇에 동의했는지" 증명 가능(§8)
 const buildConsultConsentNotice = (expertName: string): ConsentNotice => ({
-  noticeVersion: '2026-08-11',
+  noticeVersion: '2026-10-15',
   providedTo: `${expertName} (이어봄 입점 전문가)`,
   purpose: '상담 안내 및 연락',
   items: ['이름', '연락처', '상담 희망 내용'],
-  retention: '목적 달성 후 파기 — 일정 기간 경과 후 마스킹 처리(§8)',
+  retention: '상담이 끝날 때까지(최대 신청일부터 90일) — 그 뒤 전문가 화면에서 이름·연락처 마스킹(§8)',
 });
 
 // 생전/사후 구분(02-04 §5). 컨트롤러가 이 목록으로 400을 낸다.
