@@ -1,7 +1,7 @@
 # db-safety.md — 🔴 DB 쓰기 게이트 (유일 정본)
 
 > **언제 읽나**: **DB에 쓰는 명령을 돌리기 직전.** 스키마 변경만이 아니다 — §1의 표에 하나라도
-> 걸리면 이 문서를 연다.
+> 걸리면 이 문서를 연다. **백업을 되돌릴 때(복구)도 같다 → §8.**
 >
 > 2026-08-27 `security.md` §6에서 분리(경위 → `_meta/db-safety_게이트_신설.md`).
 > 데이터 유실은 이 프로젝트에서 **가장 비싼 사고 유형**이고, 이미 **2회** 났다.
@@ -118,3 +118,73 @@ await prisma.familyDesignation.deleteMany({ where: { userId } })
 
 🔴 **규칙을 더 쓰지 말 것.** `deleteMany` 사용을 막는 lint, 또는 백업 없이는 쓰기 스크립트가
 안 돌게 하는 래퍼로 간다. **규칙이 세 번 실패했다면 규칙으로 풀 문제가 아니라는 뜻이다.**
+
+## 8. 복구 — 백업을 되돌리는 법 (🟡 초안 2026-10-15 · 복구 시험 전)
+
+> 🔴 **되돌려 본 적 없는 백업은 있다고 믿으면 안 된다.** 08-21 `pg_restore --list`로 파일 목록만 봤고,
+> **실제로 풀어 본 적은 한 번도 없다**(10-15 확인). 아래 명령은 §8-5 시험 전까지 검증 안 된 초안이다.
+> R310 Ⅵ장 "복구 절차 미작성"의 답이다.
+
+### 8-1. 원칙 3개
+
+1. 🔴 **복구도 DB 쓰기다** — 대상 DB를 통째로 덮는다. §2 그대로: 사람 승인 → **지금 상태부터 백업**
+   (망가진 상태라도 — 복구가 틀렸을 때 돌아갈 곳) → 복구.
+2. 🔴 **원래 DB에 곧장 붓지 않는다** — 빈 시험 DB `eobom_restore`에 먼저 풀어 행 수·최근 시각을 보고, 맞을 때만 붓는다.
+3. 🔴 **파일 이름으로 대상을 다시 본다** — `prod-` 파일을 로컬에, `local-` 파일을 운영에 붓지 않는다.
+
+### 8-2. 붓기 전에 사람에게 알릴 것 — 무엇을 잃나
+
+| 항목 | 내용 |
+|---|---|
+| 백업 뒤에 쓰인 데이터 | **사라진다.** 백업 시각과 그 뒤 범위를 말한다 |
+| 업로드 파일 | dump엔 DB만 있다(R2·로컬 디스크 파일 없음) → 복구 뒤 "파일 없는 행"·"행 없는 파일"이 생길 수 있다 |
+| 암호화 칸 | **백업 당시 키로만 풀린다.** 그 뒤 키를 바꿨으면 옛 키가 있어야 한다(`00-33` §6.3, 보관 기간 결정 대기) |
+| 구조(스키마) | dump 안 `_prisma_migrations`도 그 시점으로 돌아간다 → 그 뒤 마이그레이션을 다시 반영해야 한다 |
+
+### 8-3. 로컬 (Docker `eobom-postgres`, 5433) — PowerShell에서
+
+```powershell
+# ① 지금 상태 백업
+powershell -File .harness/tools/backup-db.ps1 -Target local
+# ② 시험 DB에 풀기 — 원래 DB는 안 건드린다
+docker cp eobomDev/backend/backups/local-YYYYMMDD-HHMMSS.dump eobom-postgres:/tmp/r.dump
+docker exec eobom-postgres sh -c 'createdb -U "$POSTGRES_USER" eobom_restore && pg_restore -U "$POSTGRES_USER" -d eobom_restore --no-owner /tmp/r.dump'
+# ③ 확인 — 주요 테이블 행 수·가장 최근 createdAt이 기대와 맞는지
+# ④ 🔴 사람이 친다(백엔드 끈 상태) — 원래 DB를 덮는다
+docker exec eobom-postgres sh -c 'pg_restore -U "$POSTGRES_USER" -d "$POSTGRES_DB" --clean --if-exists --no-owner /tmp/r.dump'
+# ⑤ 정리 — 개인정보 사본을 남기지 않는다
+docker exec eobom-postgres sh -c 'dropdb -U "$POSTGRES_USER" eobom_restore; rm -f /tmp/r.dump'
+```
+
+### 8-4. 운영 (Supabase)
+
+- 🔴 **명령을 손으로 조립하지 않는다** — 접속 주소에 비밀번호가 들어 있어 명령 기록에 남는다. 백업처럼 `.env`의
+  `BACKUP_DATABASE_URL`을 읽는 **`restore-db.ps1`로만** 한다(🔜 미작성 → Sonnet). 접속 함정은 백업과 같다(§2·`infra.md` §4).
+- 🔴 **`public` 스키마만** 되돌린다(`-n public --no-owner --no-privileges`) — 이어봄은 Prisma로 `public`만 쓰고,
+  Supabase가 관리하는 `auth`·`storage` 등은 권한이 없어 실패한다.
+
+| 순서 | 내용 |
+|---|---|
+| ① | 사람 승인 — §8-2 네 가지를 말하고 |
+| ② | Render 서비스 일시 중지 — 복구 중 새 쓰기를 막는다 |
+| ③ | `backup-db.ps1 -Target prod` — 지금 상태 백업 |
+| ④ | 시험: 운영 dump를 **로컬** `eobom_restore`에 풀어 확인 → 확인 끝나면 **바로 지운다**(운영 개인정보 사본) |
+| ⑤ | `restore-db.ps1`로 운영에 붓기 — 사람이 친다 |
+| ⑥ | 백업 뒤 마이그레이션이 있었으면 `migrate-prod.ps1`(§2-1) |
+| ⑦ | Render 재개 → 로그인·주요 화면 확인 |
+| ⑧ | 사고 기록 — §6 그대로(무엇을 몇 건 잃었나) |
+
+### 8-5. 복구 시험 — 🔴 아직 한 번도 안 했다
+
+- 방법 = §8-3 ②·③·⑤만(원래 DB 안 건드림). 최신 `local-` dump 1개.
+- 시기 = **오픈 전 1회** + 백업 방식(도구·요금제)이 바뀔 때.
+
+| 날짜 | 파일 | 결과 |
+|---|---|---|
+| — | — | 미실시 |
+
+### 8-6. 정해지지 않은 것
+
+- **백업 보관 기간·개수** — 지금 `backups/`에 70개(10-15), 지우는 규칙 없음. `00-20`에 백업 보존 기간 없음 →
+  옛 키 보관 기간(`00-33` §6.3)과 **같은 값으로 한 번에** 정한다(인프라 결정 때).
+- **운영 자동 백업** — Supabase 무료 요금제엔 없다. 인프라 전략 결정 대기(`pending-approvals`).
