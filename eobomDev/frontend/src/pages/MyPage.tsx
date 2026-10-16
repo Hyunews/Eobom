@@ -222,7 +222,7 @@ export const MyPage: React.FC<MyPageProps> = ({ currentUser, onOpenLogin, onOpen
           <NavRow icon={<Send size={20} />} label="내 상담 내역" {...nav('my-consultations')} />
           {/* 5-1 — 푸터와 같은 URL·같은 말풍선 아이콘, 새 창. 문의는 카톡 안에서 끝나므로 숫자·배지를 달지 않는다 */}
           <NavRow icon={<MessageCircle size={20} />} label="카카오톡으로 문의하기" href={KAKAO_CHANNEL_CHAT_URL} />
-          {/* 00-36 §4.5 — 개인정보·동의(약관·개인정보 동의 날짜, 마케팅 수신 토글). "내 정보" 모달에서 옮겨 왔다 */}
+          {/* 00-36 §4.5 — 개인정보·동의(약관·개인정보 동의 날짜만 표시). "내 정보" 모달에서 옮겨 왔다 */}
           <NavRow icon={<ShieldCheck size={20} />} label="개인정보·동의" onClick={() => setConsentOpen(true)} />
         </HubSection>
 

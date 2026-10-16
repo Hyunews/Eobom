@@ -98,7 +98,7 @@ export const MyPageProfile: React.FC<MyPageProfileProps> = ({ isOpen, onClose })
           addressRoad,
           addressDetail: addressDetail.trim() ? addressDetail.trim() : clearDetail ? '' : undefined,
           contactTimePref,
-          // 마케팅 수신 동의는 "개인정보·동의" 모달로 옮겼다(00-36 §4.5) — 여기서 보내지 않는다
+          // 마케팅 수신 동의는 받지 않는다(00-28 §9 #2) — 여기서 보내지 않는다
         }),
       });
       setMessage({ type: 'success', text: '저장되었습니다.' });

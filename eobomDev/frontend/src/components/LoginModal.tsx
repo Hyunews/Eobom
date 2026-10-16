@@ -136,7 +136,6 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin
   // (회원가입 탭 전용 — 로그인 탭은 동의 UI 자체가 없다, §아래 handleLoginTabSocial.)
   const [agreedTerms, setAgreedTerms] = useState(false);
   const [agreedPrivacy, setAgreedPrivacy] = useState(false);
-  const [agreedMarketing, setAgreedMarketing] = useState(false);
   // 00-19 §9-2-1 구현 요구 — 만 14세 이상 자기신고 게이트(생년월일은 받지 않는다, 최소수집
   // 원칙). 요구2에 따라 위 이용약관/개인정보 동의와 절대 묶지 않는다 — 완전히 별도 state이고
   // "전체 동의"(toggleAll/allAgreed)에도 포함시키지 않는다. 요구3에 따라 이 값은 어디로도
@@ -164,7 +163,6 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin
       mode: 'signup',
       consentTerms: agreedTerms ? '1' : '0',
       consentPrivacy: agreedPrivacy ? '1' : '0',
-      consentMarketing: agreedMarketing ? '1' : '0',
     });
     // 🆕 2026-09-10 — 전체 페이지 리다이렉트라 SPA 라우트가 끊긴다. 콜백은 항상 '/'로 돌아오므로
     // (App.tsx), 지금 경로를 저장해뒀다가 로그인 성공 후 되돌아가게 한다(prep·bereaved 등).
@@ -316,8 +314,6 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin
               onTermsChange={setAgreedTerms}
               agreedPrivacy={agreedPrivacy}
               onPrivacyChange={setAgreedPrivacy}
-              agreedMarketing={agreedMarketing}
-              onMarketingChange={setAgreedMarketing}
             />
 
             {/* 소셜 로그인 3종 — 필수 동의 전까지 비활성화(흐리게 + 클릭 무시) */}

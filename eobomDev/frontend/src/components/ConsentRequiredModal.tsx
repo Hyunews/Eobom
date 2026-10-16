@@ -25,7 +25,6 @@ export const ConsentRequiredModal: React.FC<ConsentRequiredModalProps> = ({ curr
   const [ageConfirmed, setAgeConfirmed] = useState(false);
   const [agreedTerms, setAgreedTerms] = useState(false);
   const [agreedPrivacy, setAgreedPrivacy] = useState(false);
-  const [agreedMarketing, setAgreedMarketing] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -53,7 +52,6 @@ export const ConsentRequiredModal: React.FC<ConsentRequiredModalProps> = ({ curr
     setAgeConfirmed(false);
     setAgreedTerms(false);
     setAgreedPrivacy(false);
-    setAgreedMarketing(false);
     check();
   }, [check]);
 
@@ -73,7 +71,7 @@ export const ConsentRequiredModal: React.FC<ConsentRequiredModalProps> = ({ curr
     try {
       await apiFetch('/api/me/consent', 'USER', {
         method: 'POST',
-        body: JSON.stringify({ terms: true, privacy: true, marketing: agreedMarketing }),
+        body: JSON.stringify({ terms: true, privacy: true }),
       });
       setRequired(false);
     } catch (e) {
@@ -104,8 +102,6 @@ export const ConsentRequiredModal: React.FC<ConsentRequiredModalProps> = ({ curr
           onTermsChange={setAgreedTerms}
           agreedPrivacy={agreedPrivacy}
           onPrivacyChange={setAgreedPrivacy}
-          agreedMarketing={agreedMarketing}
-          onMarketingChange={setAgreedMarketing}
         />
         {error && <p role="alert" className="v2-error-text" style={{ margin: '0 0 8px' }}>{error}</p>}
         <div className="v2-modal-actions">

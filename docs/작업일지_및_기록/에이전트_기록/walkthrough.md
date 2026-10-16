@@ -18,6 +18,17 @@
 > 원인 = Gemini 판정이 `gemini_tasks.md`에만 적히고 이 파일 판정 칸은 비어 있었음. 🔴 **판정은 이 파일의 그 항목 칸에 적는다**(`GEMINI.md`).
 
 ---
+## 2026-10-16 | [Sonnet] 마케팅 정보 수신 동의 칸 빼기 (프론트 + 캔버스 3곳)
+
+- **근거 스펙**: docs/00_핵심플랫폼/00-28 §9 #2 (10-16 개발자 결정: 받지 않음 · DB 그대로) · 00-36 §4.5·§4.5-1
+- **건드린 파일**: eobomDev/frontend/src/components/ConsentFields.tsx, LoginModal.tsx, ConsentRequiredModal.tsx, mypage/ConsentModal.tsx, pages/MyPage.tsx(주석), mypage/MyPageProfile.tsx(주석). backend·DB·마이그레이션 0. 캔버스(바탕화면·클라우드, 코드 아님): 묶음 4(4-16·4-19 4장) · 묶음 2(4-9 2장) · 바탕화면 이어봄_디자인_4단계_목록.md
+- **결과**: 회원가입 탭·재동의 창에서 마케팅 체크박스·상태·`consentMarketing` 쿼리·`marketing` 요청 필드 삭제, "전체 동의" = 약관·개인정보 둘. `ConsentCheckbox`의 `required` 인자는 항상 참이라 삭제. 마이페이지 개인정보·동의 모달은 마케팅 토글·저장(PATCH `marketingAgreed`)·`ApiError` 사용 삭제 → 동의 날짜 표시 + 탈퇴 안내 + [닫기]만. 재현: `cd eobomDev/frontend && npx tsc --noEmit` 오류 0. 프론트 `src`에 `arketing` 검색 0건(`PrivacyPage` 47행 "마케팅 수신 동의를 받지 않습니다"는 의도대로 유지). 프론트 테스트 스크립트 없음.
+- **편차**: 없음
+- **다음 에이전트가 알아야 할 것**: 백엔드는 코드로만 확인(손대지 않음): `authRoutes.ts` 54행 `req.query.consentMarketing === '1'`이라 쿼리가 없으면 `false` → `marketingAgreedAt: null`, 동의 이력(`signupConsentEvents`)에 MARKETING 안 남음. `profileController.ts` 98~124행 `body.marketing === true`일 때만 기록해 필드가 없으면 건너뜀. 둘 다 오류 없이 "기록 안 함". 이전에 가입해 `marketingAgreedAt`이 채워진 회원은 DB에 그대로 남고 화면에서 고칠 길이 없음(결정 "DB 그대로"). `PATCH /api/me/profile`의 `marketingAgreed` 처리 코드는 이제 호출처 없음(삭제 여부는 백엔드 정리 때 별도 결정). 실기동은 안 함(개발서버 기동 안 함).
+
+<!-- Gemini 판정 1줄: ✅통과 / ❌반려(사유) / 🔄스펙갱신(고친 문서) -->
+
+---
 ## 2026-10-15 | [Sonnet] 추모관 공개 화면 불러오는 중 → 회색 뼈대
 
 - **근거 스펙**: 스펙 문서 없음 — 개발자 결정 10-15 "지금 만든다"(바탕화면 `이어봄_디자인_3단계_목록.md` 확정 사항 ②). 본보기 = `ObituaryLandingPage.tsx`의 `ObituaryLandingSkeleton`

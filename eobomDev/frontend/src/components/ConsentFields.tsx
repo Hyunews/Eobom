@@ -1,18 +1,17 @@
 import React from 'react';
 import { Check } from 'lucide-react';
 
-// 만 14세 확인 + 필수 동의 2개(이용약관·개인정보) + 선택 1개(마케팅) — 회원가입 탭(LoginModal)과
+// 만 14세 확인 + 필수 동의 2개(이용약관·개인정보) — 마케팅 수신 동의는 받지 않는다(00-28 §9 #2) — 회원가입 탭(LoginModal)과
 // 기존 회원 재동의 창(ConsentRequiredModal, 00-36 §4.5-1)이 **같은 규칙**을 쓰도록 분리한 묶음이다.
 // 상태는 부모가 가진다(제출 방식이 두 곳에서 다르다).
 
-// 필수/선택 동의 한 줄
+// 필수 동의 한 줄
 const ConsentCheckbox: React.FC<{
   checked: boolean;
   onChange: (next: boolean) => void;
   label: string;
-  required: boolean;
   href?: string;
-}> = ({ checked, onChange, label, required, href }) => (
+}> = ({ checked, onChange, label, href }) => (
   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.5rem', padding: '0.3rem 0' }}>
     <label style={{ display: 'flex', alignItems: 'center', gap: '0.55rem', cursor: 'pointer', fontSize: 'var(--fs-body)', color: '#4B5563' }}>
       <span
@@ -35,9 +34,7 @@ const ConsentCheckbox: React.FC<{
         {checked && <Check size={13} color="#FFFFFF" strokeWidth={3} />}
       </span>
       <span>
-        <span style={{ color: required ? 'var(--primary-color)' : 'var(--text-muted)', fontWeight: 600 }}>
-          {required ? '[필수] ' : '[선택] '}
-        </span>
+        <span style={{ color: 'var(--primary-color)', fontWeight: 600 }}>[필수] </span>
         {label}
       </span>
     </label>
@@ -56,8 +53,6 @@ interface ConsentFieldsProps {
   onTermsChange: (next: boolean) => void;
   agreedPrivacy: boolean;
   onPrivacyChange: (next: boolean) => void;
-  agreedMarketing: boolean;
-  onMarketingChange: (next: boolean) => void;
 }
 
 export const ConsentFields: React.FC<ConsentFieldsProps> = ({
@@ -67,16 +62,13 @@ export const ConsentFields: React.FC<ConsentFieldsProps> = ({
   onTermsChange,
   agreedPrivacy,
   onPrivacyChange,
-  agreedMarketing,
-  onMarketingChange,
 }) => {
   // 만 14세 확인은 "전체 동의"에 포함하지 않는다(00-19 §9-2-1 요구2) — 별도 state·별도 박스.
-  const allAgreed = agreedTerms && agreedPrivacy && agreedMarketing;
+  const allAgreed = agreedTerms && agreedPrivacy;
   const toggleAll = () => {
     const next = !allAgreed;
     onTermsChange(next);
     onPrivacyChange(next);
-    onMarketingChange(next);
   };
 
   return (
@@ -121,7 +113,7 @@ export const ConsentFields: React.FC<ConsentFieldsProps> = ({
         </span>
       </label>
 
-      {/* 필수 동의(이용약관·개인정보) 2개 + 선택(마케팅 수신) 1개 */}
+      {/* 필수 동의(이용약관·개인정보) 2개 */}
       <div style={{ backgroundColor: 'var(--secondary-color)', borderRadius: 'var(--r-md)', padding: 'var(--sp-4) 1rem 0.4rem', marginBottom: '1.2rem' }}>
         <div
           onClick={toggleAll}
@@ -157,9 +149,8 @@ export const ConsentFields: React.FC<ConsentFieldsProps> = ({
           </span>
           전체 동의합니다
         </div>
-        <ConsentCheckbox checked={agreedTerms} onChange={onTermsChange} label="서비스 이용약관 동의" required href="/terms" />
-        <ConsentCheckbox checked={agreedPrivacy} onChange={onPrivacyChange} label="개인정보 수집 및 이용 동의" required href="/privacy" />
-        <ConsentCheckbox checked={agreedMarketing} onChange={onMarketingChange} label="마케팅 정보 수신 동의" required={false} />
+        <ConsentCheckbox checked={agreedTerms} onChange={onTermsChange} label="서비스 이용약관 동의" href="/terms" />
+        <ConsentCheckbox checked={agreedPrivacy} onChange={onPrivacyChange} label="개인정보 수집 및 이용 동의" href="/privacy" />
       </div>
     </>
   );
