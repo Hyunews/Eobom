@@ -591,12 +591,15 @@ export const AdminPage: React.FC = () => {
   };
 
   // 🔴 이 조회는 서버가 AdminAuditLog에 VIEW 기록을 남긴다(§3.2) — 클릭할 때마다 기록된다.
-  // 들어가서 알려주면 이미 기록된 뒤라 의미가 없다 — 열기 전에 확인을 받는다(취소하면 요청 자체를 안 보낸다 = 기록 없음).
+  // 들어가서 알려주면 이미 기록된 뒤라 의미가 없다 — 열기 전에 사유를 받는다(취소·빈 값이면 요청 자체를 안 보낸다 = 기록 없음).
+  // 00-37 §7 #1 — 사유 입력 필수, 서버가 AdminAuditLog.reason에 저장한다.
   const openMember = async (id: string) => {
-    if (!window.confirm('이 상세 조회는 기록됩니다. 계속하시겠습니까?')) return;
+    const input = window.prompt('이 상세 조회는 기록됩니다. 열람 사유를 입력해 주세요.');
+    const reason = input?.trim();
+    if (!reason) return;
     setMemberDetailLoading(true);
     try {
-      const res = await authFetch(`/api/admin/users/${id}`);
+      const res = await authFetch(`/api/admin/users/${id}?reason=${encodeURIComponent(reason.slice(0, 200))}`);
       if (!res) return;
       const data = await res.json();
       if (data.status === 'success') setOpenMemberDetail(data.data);

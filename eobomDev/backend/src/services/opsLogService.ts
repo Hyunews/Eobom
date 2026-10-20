@@ -113,7 +113,7 @@ export async function writeAdminAudit(entry: AdminAuditEntry): Promise<void> {
   });
 }
 
-export type AuditTarget = { targetType?: string; targetId?: string; action?: string };
+export type AuditTarget = { targetType?: string; targetId?: string; action?: string; reason?: string };
 
 // 핸들러가 호출 — 대상 회원 id처럼 라우터가 알 수 없는 값을 채운다. 안 부르면 경로의 :id가 쓰인다(middleware/adminAudit.ts가 읽는다).
 export const setAuditTarget = (res: Response, target: AuditTarget): void => {

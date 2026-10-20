@@ -39,6 +39,7 @@ function describe(req: Request, res: Response) {
     action: override?.action ?? (isRead(req.method) ? (hasId ? 'VIEW' : 'LIST') : (WRITE_ACTIONS[req.method] ?? req.method)),
     targetType: override?.targetType ?? TARGET_TYPES[first] ?? (first || 'Admin'),
     targetId: override?.targetId ?? req.params.id ?? '',
+    reason: override?.reason ?? null,
   };
 }
 

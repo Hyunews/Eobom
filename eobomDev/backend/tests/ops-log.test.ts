@@ -282,20 +282,34 @@ describe('운영자 감사 자동화', () => {
     assert.equal(listRow.result, 'SUCCESS');
     assert.ok(listRow.ip);
 
-    const detail = await call(`/api/admin/users/${user.id}`, { headers: bearer(token) });
+    const detail = await call(`/api/admin/users/${user.id}?reason=test`, { headers: bearer(token) });
     assert.equal(detail.res.status, 200);
     const viewRow = await waitFor(() => prisma.adminAuditLog.findFirst({ where: { requestId: detail.rid! } }));
     assert.equal(viewRow.action, 'VIEW');
     assert.equal(viewRow.targetType, 'User');
     assert.equal(viewRow.targetId, user.id);
+    assert.equal(viewRow.reason, 'test'); // 00-37 §7 #1 — 열람 사유가 기록에 남는다
     // 이전엔 핸들러가 직접 한 줄을 더 남겼다 — 중복 없이 이 요청에 한 줄이어야 한다
     assert.equal(await prisma.adminAuditLog.count({ where: { requestId: detail.rid! } }), 1);
+  });
+
+  it('🔴 회원 상세는 사유 없이 열 수 없다(400, 데이터 없음, FAIL 기록)', async () => {
+    const { token } = await adminLogin();
+    const user = await prisma.user.create({ data: { name: '사유없음테스트회원' } });
+    createdUserIds.push(user.id);
+    for (const q of ['', '?reason=', '?reason=%20%20']) {
+      const { res, text, rid } = await call(`/api/admin/users/${user.id}${q}`, { headers: bearer(token) });
+      assert.equal(res.status, 400);
+      assert.ok(!text.includes('사유없음테스트회원'), '사유 없이 데이터가 나갔다');
+      const row = await waitFor(() => prisma.adminAuditLog.findFirst({ where: { requestId: rid! } }));
+      assert.equal(row.result, 'FAIL');
+    }
   });
 
   it('없는 대상 조회(404)도 FAIL로 남는다', async () => {
     const { token } = await adminLogin();
     const ghost = '11111111-1111-4111-8111-111111111111';
-    const { res, rid } = await call(`/api/admin/users/${ghost}`, { headers: bearer(token) });
+    const { res, rid } = await call(`/api/admin/users/${ghost}?reason=test`, { headers: bearer(token) });
     assert.equal(res.status, 404);
     const row = await waitFor(() => prisma.adminAuditLog.findFirst({ where: { requestId: rid! } }));
     assert.equal(row.result, 'FAIL');
@@ -324,7 +338,7 @@ describe('운영자 감사 자동화', () => {
       assert.equal(list.res.status, 503);
       assert.ok(!list.text.includes('열람거부테스트회원'), '거부했는데 데이터가 나갔다');
 
-      const detail = await call(`/api/admin/users/${user.id}`, { headers: bearer(token) });
+      const detail = await call(`/api/admin/users/${user.id}?reason=test`, { headers: bearer(token) });
       assert.equal(detail.res.status, 503);
       assert.ok(!detail.text.includes('열람거부테스트회원'), '거부했는데 데이터가 나갔다');
       assert.equal(JSON.parse(detail.text).requestId, detail.rid);

@@ -214,7 +214,12 @@ export const listUsersForAdmin = async (req: Request, res: Response) => {
 // 회원(B2C User) 상세 (`GET /api/admin/users/:id`) — 도메인 데이터 조인 표시(docs 04-01 §5.4 · 05-01 §4.4).
 // `03-01` §2가 요구했던 "회원 클릭 시 관련 도메인 데이터 확인"의 실제 구현. 05 도메인(엔딩노트)은
 // 열람 범위가 미확정(`05-01` §3)이라 여기 포함하지 않는다 — 이 문서의 결정을 05에 유추 적용하지 말 것.
+// 🔴 00-37 §7 #1(10-15 확정) — 열람 사유 필수: `?reason=` 이 비면 400, 있으면 AdminAuditLog.reason에 저장.
 export const getUserDetailForAdmin = async (req: Request, res: Response) => {
+  const reason = typeof req.query.reason === 'string' ? req.query.reason.trim() : '';
+  if (!reason) {
+    return res.status(400).json({ status: 'error', message: '회원 상세를 열람하려면 사유를 입력해야 합니다.' });
+  }
   try {
     const user = await prisma.user.findUnique({
       where: { id: req.params.id },
@@ -236,7 +241,7 @@ export const getUserDetailForAdmin = async (req: Request, res: Response) => {
 
     // 00-37 §3.2·§6 A-2 #8 — "조회도 기록한다". 기록은 adminAudit 미들웨어가 남긴다(00-42 §7) —
     // 🔴 예전엔 여기서 실패를 삼켰지만 지금은 기록을 못 쓰면 응답이 나가지 않는다(00-42 §5.2 ⑤). 대상 회원 id만 채운다.
-    setAuditTarget(res, { targetType: 'User', targetId: user.id });
+    setAuditTarget(res, { targetType: 'User', targetId: user.id, reason });
 
     const { _count, ...rest } = user;
     return res.json({ status: 'success', data: { ...rest, guestbookCount: _count.memorialGuestbooks } });
