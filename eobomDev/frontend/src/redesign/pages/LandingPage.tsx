@@ -4,6 +4,7 @@ import { RdDialog } from '../parts/RdModal';
 import { RdField, RdInput } from '../parts/RdInputs';
 import { IconChevronDown, IconChevronLeft, IconChevronRight, IconPause } from '../parts/icons';
 import { useIsPhone } from '../useIsPhone';
+import { useFitScale } from '../useFitScale';
 import { parseMemorialLink } from '../../utils/memorialLink';
 import {
   PART1,
@@ -193,46 +194,37 @@ function DesktopIntro({
   paper?: boolean;
 }) {
   const [sel, setSel] = useState(0);
-  const cur = items[sel];
+  const secRef = useRef<HTMLElement>(null);
+  const fitRef = useRef<HTMLDivElement>(null);
+  useFitScale(secRef, fitRef);
   const total = String(items.length).padStart(2, '0');
   return (
-    <section id={id} className={`rd-ls${paper ? ' rd-ls--paper' : ''}`} aria-labelledby={`${id}-title`}>
-      <div className="rd-ls__inner">
-        <div className="rd-ls__head">
-          <p className="rd-t-eyebrow">{part}</p>
-          <h2 className="rd-ls__title" id={`${id}-title`} tabIndex={-1}>{title}</h2>
-          <p className="rd-ls__lead">{lead}</p>
-        </div>
-        <div className="rd-ls__body">
-          <div className={`rd-ls__list${paper ? ' rd-ls__list--ruled' : ''}`}>
-            {items.map((it, i) => (
-              <React.Fragment key={it.title + i}>
-                {it.stage && (i === 0 || items[i - 1].stage !== it.stage) && <p className="rd-ls__stage">{it.stage}</p>}
-                <button type="button" className="rd-ls__row" aria-pressed={i === sel} onClick={() => setSel(i)}>
-                  <span className="rd-ls__no">{String(i + 1).padStart(2, '0')}</span>
-                  <span className="rd-ls__rowname">{it.title}</span>
-                </button>
-              </React.Fragment>
-            ))}
+    <section ref={secRef} id={id} className={`rd-ls${paper ? ' rd-ls--paper' : ''}`} aria-labelledby={`${id}-title`}>
+      <div className="rd-ls__fit" ref={fitRef}>
+        <div className="rd-ls__inner">
+          <div className="rd-ls__head">
+            <p className="rd-t-eyebrow">{part}</p>
+            <h2 className="rd-ls__title" id={`${id}-title`} tabIndex={-1}>{title}</h2>
+            <p className="rd-ls__lead">{lead}</p>
           </div>
-          <div className="rd-ls__detail">
-            <div className="rd-ls__img" role="img" aria-label={cur.alt}>
-              <span aria-hidden="true">[{cur.title} 화면 이미지]</span>
-            </div>
-            <div className="rd-ls__nameline">
-              <h3 className="rd-ls__name">{cur.title}</h3>
-              <span className="rd-ls__count">{String(sel + 1).padStart(2, '0')} / {total}</span>
-            </div>
-            <p className="rd-ls__desc">{cur.desc}</p>
-            <ul className="rd-ls__points">
-              {cur.points.map((p) => (
-                <li key={p}>
-                  <span aria-hidden="true">—</span>
-                  <span>{p}</span>
-                </li>
+          <div className="rd-ls__body">
+            <div className={`rd-ls__list${paper ? ' rd-ls__list--ruled' : ''}`}>
+              {items.map((it, i) => (
+                <React.Fragment key={it.title + i}>
+                  {it.stage && (i === 0 || items[i - 1].stage !== it.stage) && <p className="rd-ls__stage">{it.stage}</p>}
+                  <button type="button" className="rd-ls__row" aria-pressed={i === sel} onClick={() => setSel(i)}>
+                    <span className="rd-ls__no">{String(i + 1).padStart(2, '0')}</span>
+                    <span className="rd-ls__rowname">{it.title}</span>
+                  </button>
+                </React.Fragment>
               ))}
-            </ul>
-            <RdTextLink className="rd-ls__cta" href={cur.to}>{cur.cta}</RdTextLink>
+            </div>
+            {/* 모든 항목의 상세를 같은 칸에 겹쳐 두고 고른 것만 보인다 — 칸 높이가 가장 긴 항목 기준으로 고정돼 고를 때 배율이 출렁이지 않는다(00-45 §6-1). */}
+            <div className="rd-ls__stack">
+              {items.map((it, i) => (
+                <IntroDetail key={it.title + i} item={it} no={i + 1} total={total} active={i === sel} />
+              ))}
+            </div>
           </div>
         </div>
       </div>
@@ -240,10 +232,37 @@ function DesktopIntro({
   );
 }
 
+function IntroDetail({ item, no, total, active }: { item: IntroItem; no: number; total: string; active: boolean }) {
+  return (
+    <div className={`rd-ls__detail${active ? '' : ' rd-ls__detail--ghost'}`} aria-hidden={active ? undefined : true}>
+      <div className="rd-ls__img" role="img" aria-label={item.alt}>
+        <span aria-hidden="true">[{item.title} 화면 이미지]</span>
+      </div>
+      <div className="rd-ls__nameline">
+        <h3 className="rd-ls__name">{item.title}</h3>
+        <span className="rd-ls__count">{String(no).padStart(2, '0')} / {total}</span>
+      </div>
+      <p className="rd-ls__desc">{item.desc}</p>
+      <ul className="rd-ls__points">
+        {item.points.map((p) => (
+          <li key={p}>
+            <span aria-hidden="true">—</span>
+            <span>{p}</span>
+          </li>
+        ))}
+      </ul>
+      <RdTextLink className="rd-ls__cta" href={item.to} tabIndex={active ? undefined : -1}>{item.cta}</RdTextLink>
+    </div>
+  );
+}
+
 function DesktopLanding({ onEntry }: { onEntry: (opener: HTMLElement) => void }) {
+  const heroRef = useRef<HTMLElement>(null);
+  const heroFitRef = useRef<HTMLDivElement>(null);
+  useFitScale(heroRef, heroFitRef);
   return (
     <>
-      <section id="hero" className="rd-lh" aria-label="첫 화면">
+      <section ref={heroRef} id="hero" className="rd-lh" aria-label="첫 화면">
         <button
           type="button"
           className="rd-ldown"
@@ -252,12 +271,16 @@ function DesktopLanding({ onEntry }: { onEntry: (opener: HTMLElement) => void })
         >
           <IconChevronDown size={22} />
         </button>
-        <div className="rd-lh__main">
-          <p className="rd-t-eyebrow">생전 준비부터 임종 및 사후 정리까지</p>
-          <h1 className="rd-lh__h1">장례가 전부가 아니었습니다.</h1>
-          <BranchPair />
+        <div className="rd-lh__fit" ref={heroFitRef}>
+          <div className="rd-lh__inner">
+            <div className="rd-lh__main">
+              <p className="rd-t-eyebrow">생전 준비부터 임종 및 사후 정리까지</p>
+              <h1 className="rd-lh__h1">장례가 전부가 아니었습니다.</h1>
+              <BranchPair />
+            </div>
+            <QuickCard onEntry={onEntry} />
+          </div>
         </div>
-        <QuickCard onEntry={onEntry} />
       </section>
       <DesktopIntro id="part1" part="제1부" title="생전 준비" lead={PART1_INTRO} items={PART1} paper />
       <DesktopIntro id="part2" part="제2부" title="임종 및 사후 정리" lead={PART2_INTRO} items={PART2} />

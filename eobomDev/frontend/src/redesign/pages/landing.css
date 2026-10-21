@@ -23,11 +23,23 @@
 
 /* ───────── 첫 화면 (§4) ───────── */
 
+/* 데스크톱 화면 맞춤 배율(00-45 §6-1) — .rd-lh / .rd-ls 는 구간 띠(배율 대상 아님), 안쪽 .rd-lh__fit / .rd-ls__fit 에 useFitScale 이 zoom 을 건다.
+   누르는 칸은 0.85배에서도 44 이상이 되게 배율 1 기준 52 로 둔다(52 × 0.85 = 44.2). */
 .rd-lh {
   position: relative;
   box-sizing: border-box;
-  max-width: var(--rd-landing-wide);
   min-height: calc(100svh - var(--rd-landing-head));
+  display: flex;
+  align-items: center;
+}
+
+.rd-lh__fit {
+  width: 100%;
+}
+
+.rd-lh__inner {
+  box-sizing: border-box;
+  max-width: var(--rd-landing-wide);
   margin-inline: auto;
   padding: 48px var(--rd-gutter) 88px;
   display: flex;
@@ -241,6 +253,27 @@
   border-block: 1px solid var(--rd-line);
 }
 
+.rd-ls {
+  box-sizing: border-box;
+  min-height: 100svh;
+  display: flex;
+  align-items: center;
+}
+
+.rd-ls__fit {
+  width: 100%;
+}
+
+.rd-ls__fit .rd-iconbtn,
+.rd-lh__inner .rd-iconbtn {
+  width: 52px;
+  height: 52px;
+}
+
+.rd-root .rd-ls__fit a.rd-link {
+  min-height: 52px;
+}
+
 .rd-ls__inner {
   box-sizing: border-box;
   max-width: var(--rd-landing-wide);
@@ -301,7 +334,7 @@
 
 .rd-ls__row {
   width: 100%;
-  min-height: 48px;
+  min-height: 52px;
   display: flex;
   align-items: baseline;
   gap: 12px;
@@ -336,13 +369,23 @@
   flex-grow: 1;
 }
 
-.rd-ls__detail {
+/* 모든 항목의 상세를 한 칸에 겹쳐 가장 긴 것이 칸 높이를 정한다. 나머지 폭 전부(480 제한 없음) */
+.rd-ls__stack {
   flex: 1 1 400px;
-  max-width: 480px;
+  min-width: 0;
+  display: grid;
+}
+
+.rd-ls__detail {
+  grid-area: 1 / 1;
   min-width: 0;
   display: flex;
   flex-direction: column;
   gap: 12px;
+}
+
+.rd-ls__detail--ghost {
+  visibility: hidden;
 }
 
 .rd-ls__img,
@@ -359,7 +402,17 @@
 }
 
 .rd-ls__img {
-  aspect-ratio: 16 / 10;
+  box-sizing: border-box;
+  width: 100%;
+  height: 300px; /* 배율 1 기준 고정 높이(16:10 해제) */
+  overflow: hidden;
+}
+
+.rd-ls__img > img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top;
 }
 
 .rd-ls__nameline,
@@ -594,12 +647,6 @@ html.rd-landing-snap {
   color: var(--rd-bg);
   font-size: 16px;
   border-radius: var(--rd-radius);
-}
-
-/* 낮은 데스크톱 화면(1280 × 800 등) — 소개 한 구간이 한 화면에 들어오게 그림을 줄인다 */
-@media (min-width: 768px) and (max-height: 860px) {
-  .rd-ls__inner { padding: 32px var(--rd-gutter) 40px; }
-  .rd-ls__img { max-width: 400px; }
 }
 
 /* 낮은 휴대폰 화면(주소창이 보이는 높이 등) — 칸이 화면보다 길어 아래가 잘리지 않게 여백·그림을 줄인다 */
