@@ -203,6 +203,11 @@ export const updateMemorial = async (req: Request, res: Response) => {
     if (!existing || existing.createdByUserId !== decoded.id) {
       return res.status(404).json({ status: 'error', message: '추모관을 찾을 수 없습니다.' });
     }
+    // 🔴 운영자가 내린 추모관(hiddenAt)은 개설자가 고칠 수 없다 — 화면만 막으면 API로 고칠 수 있다
+    // (00-36 §4.9 #4 · 05-01 §4.2 · 00-20 §6.2). 소유권 확인 뒤라 존재 여부는 새지 않는다.
+    if (existing.hiddenAt) {
+      return res.status(403).json({ status: 'error', message: '운영자가 비공개 처리한 추모관은 수정할 수 없습니다.' });
+    }
 
     const updated = await prisma.memorial.update({
       where: { id: existing.id },
