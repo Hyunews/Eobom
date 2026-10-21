@@ -90,7 +90,8 @@ body.rd-body {
   color: var(--rd-point);
 }
 
-.rd-root button {
+/* :where — 버튼 부품(.rd-btn 등)의 글자 값이 이 기본값에 밀리지 않게 우선순위를 0으로 둔다(묶음 2) */
+:where(.rd-root) button {
   font: inherit;
   color: inherit;
 }
