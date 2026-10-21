@@ -25,7 +25,10 @@ export interface RdDialogProps {
   title: string;
   /** 제목 위 경고 줄("되돌릴 수 없습니다") — 위험 확인 창 */
   warning?: string;
-  /** Esc · 바깥 누르기. 두 버튼 중 하나를 고르는 창은 "취소"에 해당하는 동작을 넘긴다 */
+  /**
+   * Esc · × · (입력 창이 아닐 때) 바깥 누르기. 두 버튼 중 하나를 고르는 창은 "취소"에 해당하는 동작을 넘긴다.
+   * 🔴 입력 창(form)은 바깥 누르기로 닫지 않는다 — 데스크톱은 Esc·×·[취소], 모바일은 [취소]만(§7-6)
+   */
   onClose: () => void;
   /** 오른쪽 위 × (입력 창만, 데스크톱에서만 보임) */
   closeX?: boolean;
@@ -37,8 +40,10 @@ export interface RdDialogProps {
   danger?: boolean;
   /** 처음 초점을 줄 칸/버튼의 선택자. 기본 = 첫 입력칸 또는 첫 버튼 */
   initialFocus?: string;
-  /** 입력 창: 안 입력칸 바탕을 흰색으로 */
+  /** 입력 창: 안 입력칸 바탕을 흰색으로 · 바깥 누르기로 닫지 않음 · 모바일 손잡이 */
   form?: boolean;
+  /** 버튼 줄 위에 실선 + 안 입력칸 흰색 + 바깥 누르기로 닫지 않음(같은 창에서 내용 바꾸기 — 판 07 ⑥. 입력값이 들어 있다) */
+  footLine?: boolean;
   children?: React.ReactNode;
 }
 
@@ -54,6 +59,7 @@ export function RdDialog({
   danger,
   initialFocus,
   form,
+  footLine,
   children,
 }: RdDialogProps) {
   const host = useHost();
@@ -112,12 +118,13 @@ export function RdDialog({
     <div
       className="rd-backdrop"
       onMouseDown={(e) => {
-        if (e.target === e.currentTarget) onClose();
+        // 입력 창은 바깥 누르기로 닫지 않는다(쓰던 내용 보호, §7-6). 그 밖의 창은 [취소]와 같은 동작.
+        if (!form && !footLine && e.target === e.currentTarget) onClose();
       }}
     >
       <div
         ref={ref}
-        className={['rd-dialog', danger && 'rd-dialog--danger', form && 'rd-dialog--form', evenButtons && 'rd-dialog--even'].filter(Boolean).join(' ')}
+        className={['rd-dialog', danger && 'rd-dialog--danger', form && 'rd-dialog--form', footLine && 'rd-dialog--line', evenButtons && 'rd-dialog--even'].filter(Boolean).join(' ')}
         style={{ ['--rd-dialog-w' as string]: `${width}px` }}
         role="dialog"
         aria-modal="true"

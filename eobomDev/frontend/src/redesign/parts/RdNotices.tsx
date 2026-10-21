@@ -1,6 +1,6 @@
 import React, { useEffect, useId, useRef, useState } from 'react';
 import { RdIconButton } from './RdButtons';
-import { IconCheckCircle, IconClose, IconInfo, IconPin, IconWarn, IconChevronRight } from './icons';
+import { IconCheckCircle, IconClose, IconInfo, IconMail, IconPin, IconWarn, IconChevronRight } from './icons';
 
 // 00-44 §7-5 안내. 경고·안내는 한 화면에 겹쳐 두지 않는다(§6-2-5) — 해당하는 곳에 하나씩.
 
@@ -17,6 +17,8 @@ export function RdBanner({
 }) {
   return (
     <div className="rd-banner" role="status">
+      {/* 봉투 그림은 데스크톱 판 06에만 있다(모바일 판엔 없음 → CSS가 숨김) */}
+      <span className="rd-banner__icon"><IconMail /></span>
       <p className="rd-banner__text">{children}</p>
       {action && <div className="rd-banner__action">{action}</div>}
       {onClose && (

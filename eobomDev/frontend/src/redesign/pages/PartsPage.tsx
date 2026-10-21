@@ -47,7 +47,7 @@ import {
 } from '../parts/RdNotices';
 import { RdAlertDialog, RdConfirmDialog, RdDangerDialog, RdDialog, RdLoginGate, useRdToast } from '../parts/RdModal';
 import { RdState } from '../parts/RdState';
-import { IconCamera, IconClose, IconDoc, IconFolder, IconPause } from '../parts/icons';
+import { IconClose, IconPause, IconUser, IconUsers } from '../parts/icons';
 
 // 8단계 묶음 2 — 공통 부품 견본 쪽(/preview/parts). 상태별로 전부 늘어놓는다. 00-44 §6~§8 · 0단계 판 02~08.
 // 올림·초점은 마우스를 올려야 보이므로 is-hover / is-focus 클래스로 고정해 나란히 보인다.
@@ -62,9 +62,9 @@ const SECTIONS = [
   { id: 'pt-state', label: '상태 화면' },
 ];
 
-function Sample({ title, note, children, bare }: { title: string; note?: string; children: React.ReactNode; bare?: boolean }) {
+function Sample({ title, note, children, bare, wide }: { title: string; note?: string; children: React.ReactNode; bare?: boolean; wide?: boolean }) {
   return (
-    <div className="rd-pv__sample">
+    <div className="rd-pv__sample" style={wide ? { gridColumn: '1 / -1' } : undefined}>
       <h3 className="rd-pv__sub">{title}</h3>
       {note && <p className="rd-t-small">{note}</p>}
       <div className={`rd-pv__stage${bare ? ' rd-pv__stage--bare' : ''}`}>{children}</div>
@@ -196,13 +196,13 @@ function CardsBlock() {
       <Sample title="목록 줄 · 이동 줄" note="위 먹색 실선, 줄 사이 점선. 줄 전체가 누르는 자리. 모바일은 상태가 정보 줄 안으로.">
         <div className="rd-pv__grid">
           <RdList label="목록 줄">
-            <RdListRow title="사망신고" info="접수처 주민센터 · 사망일부터 1개월" status={<RdBadge kind="danger-fill">D-12</RdBadge>} onClick={noop} />
-            <RdListRow title="건강보험 자격 상실 신고" info="국민건강보험공단 · 14일 이내" status={<RdBadge kind="draft">작성 중</RdBadge>} onClick={noop} />
+            <RdListRow title="故 김○○ 님 부고" info="발인 10월 16일 · 조문 32명" status={<span className="rd-st rd-st--done">공개 중</span>} onClick={noop} />
+            <RdListRow title="故 박○○ 님 부고" info="발인 9월 2일" status={<span className="rd-st rd-st--muted">닫힘</span>} onClick={noop} />
             <RdListRow title="연금 수급 중지" info="국민연금공단" onClick={noop} />
           </RdList>
           <RdList label="이동 줄">
-            <RdNavRow icon={<IconDoc />} name="디지털 엔딩노트" desc="나의 마지막 기록" />
-            <RdNavRow icon={<IconFolder />} name="유족 메시지 보관함" desc="남길 말을 미리 적어 둡니다" />
+            <RdNavRow icon={<IconUser />} name="내 정보" desc="이름 · 연락처 · 로그인 방법" />
+            <RdNavRow icon={<IconUsers />} name="가족 지정" desc="2명 지정됨" />
           </RdList>
         </div>
       </Sample>
@@ -226,12 +226,12 @@ function CardsBlock() {
         <RdStatGrid items={[{ name: '끝낸 일', value: '8' }, { name: '남은 일', value: '12' }, { name: '기한 임박', value: '2' }]} />
       </Sample>
       <Sample title="펼침 · 더 보기">
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 16, maxWidth: 560 }}>
-          <RdFold title="한정승인이란">
-            <p className="rd-t-support">상속받은 재산 범위 안에서만 빚을 갚겠다고 법원에 신고하는 절차입니다.</p>
+        <div className="rd-foldlist">
+          <RdFold title="장례 기간">
+            <p className="rd-t-support">펼친 내용이 이 자리에 들어갑니다.</p>
           </RdFold>
-          <RdFold title="닫혀 있는 펼침">
-            <p className="rd-t-support">펼치면 보이는 내용입니다.</p>
+          <RdFold title="장례 후 1개월" defaultOpen>
+            <p className="rd-t-support">펼친 내용이 이 자리에 들어갑니다.</p>
           </RdFold>
           {more && <p className="rd-t-support">더 보기를 누르면 이어서 나오는 내용입니다.</p>}
           {!more && <RdMoreButton onClick={() => setMore(true)} />}
@@ -564,7 +564,7 @@ function DialogBlock() {
           {gate ? (
             <div className="rd-pv__fake"><p className="rd-t-support">로그인했다고 가정한 화면입니다.</p><RdButton kind="secondary" onClick={() => setGate(false)}>가림막 다시 보기</RdButton></div>
           ) : (
-            <RdLoginGate contained screenName="디지털 엔딩노트" onLogin={() => setGate(true)} />
+            <RdLoginGate contained screenName="엔딩노트" onLogin={() => setGate(true)} />
           )}
         </div>
       </Sample>
@@ -613,7 +613,8 @@ function DialogBlock() {
       {dlg === 'alert' && <RdAlertDialog title="사진을 읽지 못했습니다" desc="사진이 흐리게 찍혔습니다. 다시 찍어 올려 주세요." onOk={close} />}
       {dlg === 'switch' && (
         <RdDialog
-          title="상속세 간이 계산"
+          title="간이 계산기"
+          footLine
           onClose={close}
           evenButtons={step === 'out'}
           footer={
@@ -625,17 +626,22 @@ function DialogBlock() {
             ) : (
               <>
                 <RdButton kind="secondary" place="dialog" onClick={() => setStep('in')}>뒤로가기</RdButton>
-                <RdButton kind="secondary" place="dialog" onClick={close}>닫기</RdButton>
+                <RdButton place="dialog" onClick={close}>닫기</RdButton>
               </>
             )
           }
         >
           {step === 'in' ? (
-            <RdField label="상속 재산 합계 (원)">
+            <RdField label="재산 합계 (만원)">
               {(p) => <RdInput {...p} inputMode="numeric" value={amount} onChange={(e) => setAmount(e.target.value)} />}
             </RdField>
           ) : (
-            <RdStatGrid items={[{ name: '재산 합계', value: total.toLocaleString() }]} />
+            <>
+              <dl className="rd-dl">
+                <div><dt>재산 합계</dt><dd>{total.toLocaleString()} 만원</dd></div>
+              </dl>
+              <p className="rd-dl__result" role="status">결과: 견본 값입니다</p>
+            </>
           )}
         </RdDialog>
       )}
@@ -649,24 +655,24 @@ function StateBlock() {
     <div className="rd-pv__grid">
       <Sample title="① 빈 화면" bare>
         <RdState kind="empty" title="아직 남긴 메시지가 없습니다" desc="가족에게 전할 말을 글이나 목소리로 남길 수 있습니다.">
-          <RdButton place="dialog">첫 메시지 쓰기</RdButton>
+          <RdButton>첫 메시지 쓰기</RdButton>
         </RdState>
       </Sample>
       <Sample title="② 처리 중" bare>
-        <RdState kind="working" title="사진의 글자를 읽고 있습니다" desc={'사진 3장 · 30초쯤 걸립니다.\n이 화면을 닫지 마세요.'} progress={{ now: 2, total: 3 }} />
+        <RdState kind="working" title="사진의 글자를 읽고 있습니다" desc="사진 3장 · 30초쯤 걸립니다. 이 화면을 닫지 마세요." progress={{ now: 2, total: 3 }} />
       </Sample>
       <Sample title="③ 연결 실패" bare>
         <RdState kind="offline" title="서버에 연결하지 못했습니다" desc="인터넷 연결을 확인한 뒤 다시 시도해 주세요. 쓰던 내용은 이 기기에 남아 있습니다.">
-          <RdButton place="dialog">다시 시도</RdButton>
+          <RdButton>다시 시도</RdButton>
         </RdState>
       </Sample>
       <Sample title="④ 오류" bare>
         <RdState kind="error" title="화면을 불러오지 못했습니다" desc="잠시 뒤 다시 열어 주세요. 계속되면 카카오톡으로 알려 주세요.">
-          <RdButton kind="secondary" place="dialog">홈으로</RdButton>
-          <RdButton place="dialog">새로 고침</RdButton>
+          <RdButton kind="secondary">홈으로</RdButton>
+          <RdButton>새로 고침</RdButton>
         </RdState>
       </Sample>
-      <Sample title="⑤ 완료 (강조 카드)" bare>
+      <Sample title="⑤ 완료 (강조 카드)" bare wide>
         <RdState
           kind="done"
           title="부고장을 만들었습니다"

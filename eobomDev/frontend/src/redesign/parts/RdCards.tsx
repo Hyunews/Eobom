@@ -169,19 +169,15 @@ export function RdChecklistRow({
       <button type="button" className="rd-check__body" onClick={onOpen}>
         <span className="rd-check__title">{title}</span>
         {info && <span className="rd-row__info">{info}</span>}
+        {/* 데스크톱 판 03: 기한 임박·끝냄은 정보 줄 자리에 글로 적는다(모바일은 아래 딱지 한 덩이) */}
+        {state === 'soon' && deadlineText && <span className="rd-check__dueline">{deadlineText}</span>}
         {state === 'soon' && (
           <span className="rd-check__pill">{deadlineBadge}{deadlineText ? ` · ${deadlineText}` : ''}</span>
         )}
         {state === 'done' && doneText && <span className="rd-check__done rd-check__due--m">{doneText}</span>}
       </button>
       <div className="rd-check__side">
-        {state === 'soon' && (
-          <>
-            <RdBadge kind="danger-fill">{deadlineBadge}</RdBadge>
-            {deadlineText && <span className="rd-check__due">{deadlineText}</span>}
-          </>
-        )}
-        {state === 'done' && doneText && <span className="rd-check__done">{doneText}</span>}
+        {state === 'soon' && <RdBadge kind="danger-fill">{deadlineBadge}</RdBadge>}
       </div>
       <button type="button" className="rd-check__chev" aria-label={`${title} 안내 보기`} onClick={onOpen}>
         <IconChevronRight />

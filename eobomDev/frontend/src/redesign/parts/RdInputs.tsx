@@ -1,6 +1,6 @@
 import React, { useId, useRef } from 'react';
 import { RdButton, RdRequired } from './RdButtons';
-import { IconCalendar, IconCamera, IconChevronDown, IconDoc, IconImage, IconUpload, IconWarn, IconClose } from './icons';
+import { IconCalendar, IconCamera, IconChevronDown, IconDoc, IconImage, IconUpload, IconErrorCircle, IconClose } from './icons';
 
 // 00-44 §8 폼 · 입력. 필수는 "필수" 딱지(별표 없음), 오류는 칸마다(브라우저 기본 검증 안 씀).
 
@@ -39,7 +39,7 @@ export function RdField({
       {note && (
         error ? (
           <p className="rd-field__error" id={noteId} role="alert">
-            <IconWarn size={14} />
+            <IconErrorCircle />
             <span>{error}</span>
           </p>
         ) : (
@@ -199,7 +199,7 @@ export function RdConsentGroup({
       </div>
       {error && (
         <p className="rd-field__error" id={errId} role="alert">
-          <IconWarn size={14} />
+          <IconErrorCircle />
           <span>{error}</span>
         </p>
       )}
@@ -322,7 +322,7 @@ export function RdSaveBar({
       <div className="rd-savebar__right">
         {!!errorCount && (
           <p className="rd-savebar__error" role="alert">
-            <IconWarn size={14} />
+            <IconErrorCircle />
             <span>확인이 필요한 항목이 {errorCount}개 있습니다.</span>
           </p>
         )}

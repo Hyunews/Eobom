@@ -3073,3 +3073,588 @@
     font-size: 12px;
   }
 }
+
+/* ───────── 데스크톱 판 02~08 대조 (0단계 *_D 판의 값, 8단계 묶음 2 보완 2026-10-21) ───────── */
+
+/* 판 03 목록 줄 상태 — 배경 없는 글자(공개 중 · 닫힘) */
+.rd-st {
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.rd-st--done {
+  color: var(--rd-done);
+}
+
+.rd-st--muted {
+  font-weight: 400;
+  color: var(--rd-ink-small);
+}
+
+.rd-foldlist {
+  border-top: 1px solid var(--rd-ink);
+}
+
+.rd-banner__icon,
+.rd-check__dueline {
+  display: none;
+}
+
+.rd-dl {
+  margin: 0;
+  border-top: 1px solid var(--rd-ink);
+}
+
+.rd-dl > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 44px;
+  border-bottom: 1px dotted var(--rd-dot);
+  font-size: 14px;
+}
+
+.rd-dl dd {
+  margin: 0;
+  white-space: nowrap;
+}
+
+.rd-dl__result {
+  margin: 16px 0 0;
+  padding-top: 12px;
+  border-top: 2px solid var(--rd-ink);
+  text-align: right;
+  font-family: var(--rd-font-serif);
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.rd-dialog--line .rd-input {
+  background: var(--rd-white);
+}
+
+@media (min-width: 768px) {
+  /* 판 02 버튼 · 링크 */
+  .rd-btn {
+    padding: 0 21px;
+  }
+
+  .rd-btn--row {
+    padding: 0 14px;
+  }
+
+  .rd-btn--dialog,
+  .rd-btn--bar {
+    padding: 0 20px;
+  }
+
+  .rd-iconbtn--bordered.is-hover,
+  .rd-iconbtn--bordered:active:not(:disabled) {
+    border-color: var(--rd-dot);
+  }
+
+  @media (hover: hover) {
+    .rd-iconbtn--bordered:hover:not(:disabled) {
+      border-color: var(--rd-dot);
+    }
+  }
+
+  .rd-iconbtn:disabled {
+    color: var(--rd-dot);
+  }
+
+  .rd-branch {
+    min-height: 0;
+    padding: 23px 27px;
+  }
+
+  .rd-branch__text {
+    gap: 6px;
+  }
+
+  .rd-branch__desc {
+    line-height: 1.55;
+  }
+
+  .rd-card > .rd-btn {
+    margin-top: 14px;
+  }
+
+  .rd-card__eyebrow {
+    line-height: 1.45;
+  }
+
+  .rd-card__title {
+    line-height: 1.45;
+  }
+
+  .rd-row__info {
+    line-height: 1.5;
+  }
+
+  .rd-badge--danger {
+    padding: 0 8px;
+    line-height: 22px;
+  }
+
+  /* 판 03 칸 · 목록 */
+  .rd-card__eyebrow {
+    margin-bottom: 14px;
+  }
+
+  .rd-card__desc {
+    margin-top: 14px;
+  }
+
+  .rd-card__foot {
+    margin-top: 14px;
+    padding-top: 14px;
+  }
+
+  .rd-card__foot .rd-link,
+  .rd-sechead .rd-link,
+  .rd-notice__action .rd-link,
+  .rd-banner .rd-link {
+    font-size: 15px;
+  }
+
+  .rd-card__foot .rd-link svg,
+  .rd-sechead .rd-link svg,
+  .rd-notice__action .rd-link svg,
+  .rd-banner .rd-link svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  .rd-sechead {
+    align-items: baseline;
+    padding-bottom: 14px;
+  }
+
+  .rd-sechead__l {
+    gap: 8px;
+  }
+
+  .rd-list__li:last-child {
+    border-bottom: 1px dotted var(--rd-dot);
+  }
+
+  .rd-row__main {
+    gap: 4px;
+  }
+
+  .rd-row--nav .rd-row__main {
+    gap: 2px;
+  }
+
+  .rd-check {
+    align-items: start;
+    padding: 12px 0;
+  }
+
+  .rd-check__box {
+    margin: -2px 0 0 -11px;
+  }
+
+  .rd-check__body {
+    gap: 4px;
+    padding-left: 5px;
+  }
+
+  .rd-check__side {
+    align-self: start;
+    padding-top: 6px;
+  }
+
+  .rd-check__chev {
+    align-self: start;
+    margin-top: -2px;
+  }
+
+  .rd-check--soon .rd-check__body > .rd-row__info,
+  .rd-check--done .rd-check__body > .rd-row__info {
+    display: none;
+  }
+
+  .rd-check__dueline {
+    display: block;
+    font-size: 14px;
+    color: var(--rd-danger);
+  }
+
+  .rd-check--done .rd-check__due--m {
+    display: block;
+    font-size: 14px;
+  }
+
+  .rd-stats {
+    border-bottom: 1px solid var(--rd-line);
+  }
+
+  .rd-stats__cell {
+    padding: 20px 0 20px 20px;
+  }
+
+  .rd-stats__cell:first-child {
+    padding-left: 0;
+  }
+
+  .rd-stats dd {
+    margin-top: 6px;
+  }
+
+  .rd-fold__head {
+    border-bottom: 1px dotted var(--rd-dot);
+  }
+
+  .rd-fold__head[aria-expanded='true'] {
+    border-bottom: 0;
+  }
+
+  .rd-fold__body {
+    padding: 0 0 18px;
+    border-bottom: 1px dotted var(--rd-dot);
+  }
+
+  .rd-more {
+    margin-top: 8px;
+    font-size: 15px;
+    color: var(--rd-ink-support);
+  }
+
+  .rd-pager {
+    justify-content: space-between;
+    margin-inline: 0;
+  }
+
+  .rd-pager__btn {
+    padding: 0 16px;
+    font-size: 15px;
+  }
+
+  .rd-pager__now {
+    font-size: 14px;
+  }
+
+  /* 판 04 입력 */
+  .rd-input,
+  .rd-input:focus,
+  .rd-input.is-focus,
+  .rd-input[aria-invalid='true'] {
+    padding-inline: 14px;
+  }
+
+  .rd-input--area,
+  .rd-input--area:focus,
+  .rd-input--area[aria-invalid='true'] {
+    min-height: 162px;
+    padding: 12px 14px;
+  }
+
+  .rd-field__label {
+    line-height: 1.45;
+  }
+
+  .rd-field__help {
+    line-height: 1.4;
+  }
+
+  .rd-drop__lead,
+  .rd-drop .rd-t-small,
+  .rd-file .rd-t-small {
+    line-height: 1.45;
+  }
+
+  .rd-file__thumb {
+    width: 50px;
+    height: 50px;
+  }
+
+  .rd-select .rd-input,
+  .rd-select .rd-input:focus {
+    padding-right: 40px;
+  }
+
+  .rd-select__chev {
+    color: var(--rd-ink);
+  }
+
+  .rd-field__error {
+    gap: 4px;
+  }
+
+  .rd-field__error > svg {
+    margin-top: 1px;
+  }
+
+  .rd-textarea__count {
+    margin-top: 8px;
+  }
+
+  .rd-radios .rd-field__label {
+    margin-bottom: 8px;
+  }
+
+  .rd-radios .rd-choice + .rd-choice {
+    margin-top: 4px;
+  }
+
+  .rd-consent {
+    padding: 8px 20px;
+  }
+
+  .rd-consent--single {
+    padding: 0 16px;
+  }
+
+  .rd-consent__all {
+    padding: 0;
+  }
+
+  .rd-consent__item,
+  .rd-consent--single .rd-consent__item {
+    padding-left: 0;
+  }
+
+  .rd-consent__title,
+  .rd-consent__desc {
+    line-height: 1.5;
+  }
+
+  .rd-consent__view {
+    color: var(--rd-ink-support);
+    text-decoration-color: currentColor;
+  }
+
+  .rd-drop {
+    gap: 12px;
+    padding: 36px 24px;
+  }
+
+  .rd-drop .rd-btn {
+    margin-top: 0;
+  }
+
+  .rd-file {
+    gap: 14px;
+    padding: 12px 0;
+  }
+
+  .rd-file__main {
+    gap: 2px;
+  }
+
+  .rd-file__thumb {
+    background: var(--rd-shadow);
+  }
+
+  .rd-file__name {
+    font-size: 15px;
+  }
+
+  .rd-file .rd-iconbtn {
+    color: var(--rd-ink-support);
+  }
+
+  .rd-filter {
+    padding-top: 20px;
+  }
+
+  /* 판 05 쪽 머리 · 쪽 안 차례 */
+  .rd-pagehead__text {
+    gap: 10px;
+  }
+
+  .rd-pagehead__text .rd-t-eyebrow {
+    font-size: 14px;
+    line-height: 1.45;
+  }
+
+  .rd-pagehead .rd-t-title {
+    line-height: 1.45;
+  }
+
+  .rd-pagehead__desc {
+    line-height: 1.45;
+  }
+
+  .rd-toc__item {
+    font-size: 15px;
+    border-bottom: 1px dotted var(--rd-dot);
+  }
+
+  /* 판 06 안내 */
+  .rd-banner {
+    padding-block: 16px;
+  }
+
+  .rd-banner__icon {
+    display: inline-flex;
+    flex: none;
+  }
+
+  .rd-notice__icon {
+    margin-top: 2px;
+  }
+
+  .rd-deadline {
+    gap: 8px;
+    padding: 0 16px;
+  }
+
+  .rd-location {
+    gap: 8px;
+    line-height: 1.5;
+  }
+
+  .rd-notice--success .rd-notice__title {
+    line-height: 1.45;
+  }
+
+  .rd-help__pop {
+    width: min(396px, 100%);
+    padding: 16px 18px;
+  }
+
+  /* 판 07 창 */
+  .rd-dialog {
+    position: relative;
+  }
+
+  .rd-dialog__head {
+    padding: 32px 32px 0;
+  }
+
+  .rd-dialog__body {
+    padding: 12px 32px 0;
+  }
+
+  .rd-dialog__foot {
+    padding: 24px 32px 32px;
+  }
+
+  .rd-dialog__desc {
+    line-height: 1.7;
+  }
+
+  .rd-dialog__warning {
+    gap: 8px;
+    margin-bottom: 12px;
+    font-size: 13px;
+  }
+
+  .rd-dialog__headtext .rd-t-eyebrow {
+    margin-bottom: 6px;
+    font-size: 13px;
+  }
+
+  .rd-dialog__x {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    margin: 0;
+  }
+
+  .rd-dialog--form .rd-dialog__head {
+    padding: 36px 40px 0;
+  }
+
+  .rd-dialog--form .rd-dialog__headtext {
+    padding-right: 40px;
+  }
+
+  .rd-dialog--form .rd-dialog__body {
+    padding: 20px 40px 0;
+  }
+
+  .rd-dialog--form .rd-form {
+    gap: 20px;
+  }
+
+  .rd-dialog--form .rd-dialog__foot {
+    margin: 24px 40px 0;
+    padding: 20px 0 32px;
+    border-top: 1px solid var(--rd-line);
+  }
+
+  .rd-dialog--line .rd-dialog__body {
+    padding-top: 16px;
+  }
+
+  .rd-dialog--line .rd-dialog__foot {
+    margin: 16px 32px 0;
+    padding: 20px 0 32px;
+    border-top: 1px solid var(--rd-line);
+  }
+
+  .rd-toast {
+    padding: 14px 20px;
+    gap: 12px;
+  }
+
+  .rd-gate__card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    padding: 28px;
+  }
+
+  .rd-gate__brand {
+    font-size: 20px;
+    line-height: 1.45;
+  }
+
+  .rd-gate__title,
+  .rd-gate__desc {
+    margin: 0;
+  }
+
+  .rd-gate__title {
+    line-height: 1.45;
+  }
+
+  .rd-gate__desc {
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  .rd-dialog__title {
+    line-height: 1.45;
+  }
+
+  .rd-gate__btn {
+    margin-top: 6px;
+  }
+
+  /* 판 08 상태 화면 */
+  .rd-state {
+    gap: 14px;
+    padding: 56px 40px;
+  }
+
+  .rd-state__icon,
+  .rd-state__icon svg {
+    width: 48px;
+    height: 48px;
+  }
+
+  .rd-state__progress {
+    gap: 14px;
+    margin-top: 8px;
+  }
+
+  .rd-state__title {
+    line-height: 1.45;
+  }
+
+  .rd-state__desc {
+    line-height: 1.4;
+  }
+
+  .rd-state__count {
+    line-height: 1.45;
+  }
+}
