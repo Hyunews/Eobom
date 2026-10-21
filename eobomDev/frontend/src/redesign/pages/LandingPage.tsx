@@ -246,7 +246,7 @@ function IntroDetail({ item, no, total, active }: { item: IntroItem; no: number;
       <ul className="rd-ls__points">
         {item.points.map((p) => (
           <li key={p}>
-            <span aria-hidden="true">—</span>
+            <span aria-hidden="true">·</span>
             <span>{p}</span>
           </li>
         ))}
@@ -357,7 +357,7 @@ function MobileIntro({
         <ul className="rd-lm__points">
           {cur.points.map((p) => (
             <li key={p}>
-              <span aria-hidden="true">—</span>
+              <span aria-hidden="true">·</span>
               <span>{p}</span>
             </li>
           ))}
