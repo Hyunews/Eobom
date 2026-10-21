@@ -37,19 +37,18 @@ export function useFitScale(sectionRef: RefObject<HTMLElement>, fitRef: RefObjec
         // data-fit-guard 칸은 자기 폭을 넘치면 안 된다(칸 사이 간격이 줄어드는 것을 막는다).
         return [...fit.querySelectorAll<HTMLElement>('[data-fit-guard]')].every((g) => g.scrollWidth <= g.clientWidth + 5); // 5 = 버튼의 투명한 눌림 영역(4)이 삐져나온 몫
       };
+      // 한 번 재는 데 30ms 안팎이 들어(글자·그림 칸이 많다) 이분 탐색으로 횟수를 줄인다: 최대 배율이 되면 1번, 아니면 8번(정밀도 0.0012).
       let s = FIT_MIN;
       if (avail > 0) {
-        let hi = FIT_MAX;
-        while (hi > FIT_MIN && !fits(hi)) hi = Math.round((hi - 0.01) * 1000) / 1000;
-        s = Math.max(hi, FIT_MIN);
-        if (s < FIT_MAX && fits(s)) {
-          // 한 칸(0.01) 안에서 이분해 구간을 화면 높이에 바짝 맞춘다.
-          let lo = s;
-          let up = Math.min(FIT_MAX, s + 0.01);
-          for (let i = 0; i < 5; i++) {
-            const mid = (lo + up) / 2;
+        if (fits(FIT_MAX)) {
+          s = FIT_MAX;
+        } else {
+          let lo = FIT_MIN;
+          let hi = FIT_MAX;
+          for (let i = 0; i < 8; i++) {
+            const mid = (lo + hi) / 2;
             if (fits(mid)) lo = mid;
-            else up = mid;
+            else hi = mid;
           }
           s = lo;
         }
@@ -59,21 +58,29 @@ export function useFitScale(sectionRef: RefObject<HTMLElement>, fitRef: RefObjec
       sec.dataset.fit = String(s);
     };
 
+    // 창 크기를 끌어당기는 동안에는 재지 않고(그 사이는 지난 배율 그대로 — 본문 폭은 CSS 가 따라가 넘치지 않는다) 멈춘 뒤 한 번 맞춘다.
+    let timer = 0;
     let raf = 0;
-    const schedule = () => {
+    const schedule = (delay = 0) => {
+      window.clearTimeout(timer);
       cancelAnimationFrame(raf);
-      raf = requestAnimationFrame(measure);
+      timer = window.setTimeout(() => {
+        raf = requestAnimationFrame(measure);
+      }, delay);
     };
+    const onResize = () => schedule(120);
+    const onFonts = () => schedule(0);
 
     measure();
-    window.addEventListener('resize', schedule);
+    window.addEventListener('resize', onResize);
     const fonts = document.fonts;
-    fonts?.ready.then(schedule).catch(() => undefined);
-    fonts?.addEventListener?.('loadingdone', schedule);
+    fonts?.ready.then(onFonts).catch(() => undefined);
+    fonts?.addEventListener?.('loadingdone', onFonts);
     return () => {
+      window.clearTimeout(timer);
       cancelAnimationFrame(raf);
-      window.removeEventListener('resize', schedule);
-      fonts?.removeEventListener?.('loadingdone', schedule);
+      window.removeEventListener('resize', onResize);
+      fonts?.removeEventListener?.('loadingdone', onFonts);
     };
   }, [sectionRef, fitRef]);
 }
