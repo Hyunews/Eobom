@@ -320,6 +320,7 @@
 .rd-ls__body {
   display: flex;
   flex-wrap: wrap;
+  justify-content: space-between; /* 상세 폭에 상한이 있어 남는 폭은 목록과 상세 사이로 — 상세는 본문 오른쪽 끝(헤더·바닥글과 같은 선)에 붙는다 */
   gap: 48px;
   align-items: flex-start;
 }
@@ -359,6 +360,15 @@
   cursor: pointer;
 }
 
+/* 제2부 목록(7줄 + 단계 머리 3)은 상세보다 길어 구간을 키우므로 줄 사이를 줄인다. 줄 높이는 누르는 칸 52(0.85배에서 44.2)를 지킨다 */
+#part2 .rd-ls__row {
+  padding-block: 11px;
+}
+
+#part2 .rd-ls__stage {
+  margin: 14px 0 2px;
+}
+
 .rd-ls__row[aria-pressed='true'] {
   background: var(--rd-ink);
   color: var(--rd-bg);
@@ -383,6 +393,7 @@
 /* 모든 항목의 상세를 한 칸에 겹쳐 가장 긴 것이 칸 높이를 정한다. 나머지 폭 전부(480 제한 없음) */
 .rd-ls__stack {
   flex: 1 1 400px;
+  max-width: 740px; /* 배율 1일 때 나머지 폭(약 732)이 상한 — 낮고 넓은 화면(배율 < 1)에서 그림만 가로로 늘어나지 않게 */
   min-width: 0;
   display: grid;
 }
