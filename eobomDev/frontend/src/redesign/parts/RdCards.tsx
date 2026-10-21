@@ -12,6 +12,8 @@ export function RdCard({
   desc,
   footer,
   onClick,
+  mobileAction,
+  className,
   children,
 }: {
   tone?: 'flat' | 'paper';
@@ -22,6 +24,10 @@ export function RdCard({
   footer?: React.ReactNode;
   /** 있으면 카드 전체가 누르는 자리(§6-5-7) */
   onClick?: () => void;
+  /** 모바일에서만 보이는 가득 폭 버튼(카드 안 버튼은 가득 폭 48, 판 03 모바일). 있으면 점선 아래 줄은 모바일에서 감춘다 */
+  mobileAction?: React.ReactNode;
+  /** 견본 쪽이 올림 모양을 고정할 때 쓴다(rd-card--press is-hover) */
+  className?: string;
   children?: React.ReactNode;
 }) {
   const inner = (
@@ -30,10 +36,11 @@ export function RdCard({
       <h3 className="rd-card__title">{title}</h3>
       {desc && <p className="rd-card__desc">{desc}</p>}
       {children}
-      {footer && <div className="rd-card__foot">{footer}</div>}
+      {footer && <div className={`rd-card__foot${mobileAction ? ' rd-card__foot--desk' : ''}`}>{footer}</div>}
+      {mobileAction && <div className="rd-card__maction">{mobileAction}</div>}
     </>
   );
-  const cls = `rd-card rd-card--${tone}`;
+  const cls = ['rd-card', `rd-card--${tone}`, className].filter(Boolean).join(' ');
   if (onClick) {
     return (
       <button type="button" className={`${cls} rd-card--press`} onClick={onClick}>
@@ -88,15 +95,18 @@ export function RdListRow({
   info,
   status,
   onClick,
+  className,
 }: {
   title: string;
   info?: string;
   status?: React.ReactNode;
   onClick?: () => void;
+  /** 견본 쪽이 올림 모양을 고정할 때 쓴다(is-hover) */
+  className?: string;
 }) {
   return (
     <li className="rd-list__li">
-      <button type="button" className="rd-row" onClick={onClick}>
+      <button type="button" className={['rd-row', className].filter(Boolean).join(' ')} onClick={onClick}>
         <span className="rd-row__main">
           <span className="rd-row__title">{title}</span>
           {(info || status) && (
@@ -146,9 +156,15 @@ export function RdChecklistRow({
   deadlineBadge,
   deadlineText,
   doneText,
+  dueTag,
+  infoMobile,
 }: {
   title: string;
   info?: string;
+  /** 모바일에서 정보 줄을 달리 적을 때 (예: "1개월 안 · D-21") */
+  infoMobile?: string;
+  /** 기한이 멀 때 오른쪽에 두는 테두리 딱지 (예: "D-21"). 모바일은 정보 줄 안으로 */
+  dueTag?: string;
   state: RdCheckState;
   checked: boolean;
   onToggle: (next: boolean) => void;
@@ -168,7 +184,8 @@ export function RdChecklistRow({
       </div>
       <button type="button" className="rd-check__body" onClick={onOpen}>
         <span className="rd-check__title">{title}</span>
-        {info && <span className="rd-row__info">{info}</span>}
+        {info && <span className={`rd-row__info${infoMobile ? ' rd-check__info-d' : ''}`}>{info}</span>}
+        {infoMobile && <span className="rd-row__info rd-check__info-m">{infoMobile}</span>}
         {/* 데스크톱 판 03: 기한 임박·끝냄은 정보 줄 자리에 글로 적는다(모바일은 아래 딱지 한 덩이) */}
         {state === 'soon' && deadlineText && <span className="rd-check__dueline">{deadlineText}</span>}
         {state === 'soon' && (
@@ -178,6 +195,7 @@ export function RdChecklistRow({
       </button>
       <div className="rd-check__side">
         {state === 'soon' && <RdBadge kind="danger-fill">{deadlineBadge}</RdBadge>}
+        {state === 'todo' && dueTag && <span className="rd-check__dtag">{dueTag}</span>}
       </div>
       <button type="button" className="rd-check__chev" aria-label={`${title} 안내 보기`} onClick={onOpen}>
         <IconChevronRight />
@@ -187,13 +205,13 @@ export function RdChecklistRow({
 }
 
 /** 숫자 칸 — 이름(보조 글자) 위, 숫자(명조) 아래, 칸 사이 세로 점선. */
-export function RdStatGrid({ items }: { items: { name: string; value: string }[] }) {
+export function RdStatGrid({ items }: { items: { name: string; value: string; tone?: 'danger' }[] }) {
   return (
     <dl className="rd-stats">
       {items.map((it) => (
         <div className="rd-stats__cell" key={it.name}>
           <dt>{it.name}</dt>
-          <dd>{it.value}</dd>
+          <dd className={it.tone === 'danger' ? 'rd-stats__danger' : undefined}>{it.value}</dd>
         </div>
       ))}
     </dl>

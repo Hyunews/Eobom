@@ -3658,3 +3658,91 @@
     line-height: 1.45;
   }
 }
+
+/* ───────── 판 03 카드 대조 보완 (2026-10-21) — 카드 아래 줄 글자·모바일 버튼, 숫자 칸 위험 색, 체크리스트 기한 딱지 ───────── */
+
+/* 초점(키보드) 고정 — 판 02 "초점" 열. 견본 쪽이 모양을 보이려고 쓴다 */
+.rd-btn.is-focus {
+  outline: 2px solid var(--rd-point);
+  outline-offset: 3px;
+}
+
+.rd-btn--danger.is-focus {
+  outline-color: var(--rd-danger);
+}
+
+.rd-link.is-focus {
+  outline: 2px solid var(--rd-point);
+  outline-offset: 2px;
+}
+
+.rd-iconbtn.is-focus {
+  outline: 2px solid var(--rd-point);
+  outline-offset: 2px;
+}
+
+.rd-card__state {
+  font-size: 13px;
+  color: var(--rd-ink-small);
+}
+
+.rd-card__state--danger {
+  font-weight: 700;
+  color: var(--rd-danger);
+}
+
+.rd-card__maction {
+  display: none;
+}
+
+.rd-stats__danger {
+  color: var(--rd-danger);
+}
+
+.rd-check__dtag {
+  padding: 3px 8px;
+  border: 1px solid var(--rd-line);
+  border-radius: var(--rd-radius);
+  font-size: 13px;
+  color: var(--rd-ink-support);
+}
+
+.rd-check__info-m {
+  display: none;
+}
+
+.rd-pv-desk-only {
+  display: contents;
+}
+
+@media (max-width: 767px) {
+  .rd-card__foot--desk {
+    display: none;
+  }
+
+  .rd-card__maction {
+    display: block;
+    margin-top: 6px;
+  }
+
+  .rd-card__maction .rd-btn {
+    margin-top: 0;
+  }
+
+  .rd-check__info-d,
+  .rd-check__dtag {
+    display: none;
+  }
+
+  .rd-check__info-m {
+    display: block;
+  }
+
+  .rd-row.is-hover {
+    background: transparent;
+  }
+
+  .rd-pv-desk-only {
+    display: none;
+  }
+}

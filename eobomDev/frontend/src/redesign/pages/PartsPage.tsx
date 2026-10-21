@@ -47,7 +47,7 @@ import {
 } from '../parts/RdNotices';
 import { RdAlertDialog, RdConfirmDialog, RdDangerDialog, RdDialog, RdLoginGate, useRdToast } from '../parts/RdModal';
 import { RdState } from '../parts/RdState';
-import { IconClose, IconPause, IconUser, IconUsers } from '../parts/icons';
+import { IconChevronLeft, IconClose, IconPause, IconUser, IconUsers } from '../parts/icons';
 
 // 8단계 묶음 2 — 공통 부품 견본 쪽(/preview/parts). 상태별로 전부 늘어놓는다. 00-44 §6~§8 · 0단계 판 02~08.
 // 올림·초점은 마우스를 올려야 보이므로 is-hover / is-focus 클래스로 고정해 나란히 보인다.
@@ -90,6 +90,7 @@ function ButtonsBlock() {
         <div className="rd-pv__row rd-pv__row--grid">
           <Cell label="기본"><RdButton>저장하기</RdButton></Cell>
           <Cell label="올림 · 눌림"><RdButton className="is-hover">저장하기</RdButton></Cell>
+          <Cell label="초점(키보드)"><RdButton className="is-focus">저장하기</RdButton></Cell>
           <Cell label="사용 불가"><RdButton disabled disabledReason="필수 항목을 모두 적어야 합니다.">저장하기</RdButton></Cell>
           <Cell label="처리 중"><RdButton busy busyText="저장하는 중">저장하기</RdButton></Cell>
         </div>
@@ -98,6 +99,7 @@ function ButtonsBlock() {
         <div className="rd-pv__row rd-pv__row--grid">
           <Cell label="기본"><RdButton kind="secondary">취소</RdButton></Cell>
           <Cell label="올림 · 눌림"><RdButton kind="secondary" className="is-hover">취소</RdButton></Cell>
+          <Cell label="초점(키보드)"><RdButton kind="secondary" className="is-focus">취소</RdButton></Cell>
           <Cell label="사용 불가"><RdButton kind="secondary" disabled>이전</RdButton></Cell>
         </div>
       </Sample>
@@ -105,6 +107,7 @@ function ButtonsBlock() {
         <div className="rd-pv__row rd-pv__row--grid">
           <Cell label="기본"><RdButton kind="danger">삭제하기</RdButton></Cell>
           <Cell label="올림 · 눌림"><RdButton kind="danger" className="is-hover">삭제하기</RdButton></Cell>
+          <Cell label="초점(키보드)"><RdButton kind="danger" className="is-focus">삭제하기</RdButton></Cell>
           <Cell label="사용 불가"><RdButton kind="danger" disabled>삭제하기</RdButton></Cell>
           <Cell label="처리 중"><RdButton kind="danger" busy busyText="삭제하는 중">삭제하기</RdButton></Cell>
         </div>
@@ -113,6 +116,7 @@ function ButtonsBlock() {
         <div className="rd-pv__row">
           <Cell label="기본"><RdTextLink href="#" onClick={(e) => e.preventDefault()}>상속 절차 보기</RdTextLink></Cell>
           <Cell label="올림"><RdTextLink href="#" className="is-hover" onClick={(e) => e.preventDefault()}>상속 절차 보기</RdTextLink></Cell>
+          <Cell label="초점(키보드)"><RdTextLink href="#" className="is-focus" onClick={(e) => e.preventDefault()}>상속 절차 보기</RdTextLink></Cell>
           <Cell label="바깥 이동 (↗)"><RdTextLink href="#" external onClick={(e) => e.preventDefault()}>장사법 제6조</RdTextLink></Cell>
           <Cell label="모바일에서 짧게"><RdTextLink href="#" short="전체" onClick={(e) => e.preventDefault()}>전체 보기</RdTextLink></Cell>
         </div>
@@ -120,8 +124,10 @@ function ButtonsBlock() {
       <Sample title="아이콘 버튼" note="44 × 44. 이름은 화면낭독용(aria-label).">
         <div className="rd-pv__row">
           <Cell label="없음(닫기)"><RdIconButton label="닫기"><IconClose /></RdIconButton></Cell>
-          <Cell label="테두리"><RdIconButton label="멈춤" bordered><IconPause /></RdIconButton></Cell>
+          <Cell label="테두리(이전)"><RdIconButton label="이전" bordered><IconChevronLeft /></RdIconButton></Cell>
+          <Cell label="테두리(멈춤)"><RdIconButton label="멈춤" bordered><IconPause /></RdIconButton></Cell>
           <Cell label="올림"><RdIconButton label="멈춤" bordered className="is-hover"><IconPause /></RdIconButton></Cell>
+          <Cell label="초점(키보드)"><RdIconButton label="이전" bordered className="is-focus"><IconChevronLeft /></RdIconButton></Cell>
           <Cell label="사용 불가"><RdIconButton label="멈춤" bordered disabled><IconPause /></RdIconButton></Cell>
         </div>
       </Sample>
@@ -165,31 +171,48 @@ function CardsBlock() {
   const [more, setMore] = useState(false);
   return (
     <>
-      <Sample title="구간 머리">
-        <RdSectionHead title="이번 주 할 일" count="3건" linkLabel="전체 보기" linkShort="전체" />
+      <Sample title="구간 머리" note="구간 제목 + 개수 + 오른쪽 링크 · 아래 실선. 링크 글자는 모바일에서 짧게(전체 보기 → 전체).">
+        <RdSectionHead title="추모공원" count="12곳" linkLabel="전체 보기" linkShort="전체" />
       </Sample>
       <Sample title="카드" note="평 카드(올림 = 눌린 바탕 + 테두리 #B9AC98) · 종이 카드(어긋난 그림자, 화면당 1~2개). 데스크톱 3칸 간격 24.">
         <div className="rd-cards">
           <RdCard
-            eyebrow="서울 · 공설"
-            title="서울추모공원"
-            desc="봉안당 · 자연장 · 화장 시설"
-            onClick={noop}
-            footer={<><RdBadge kind="state">예약 가능</RdBadge><RdTextLink href="#" onClick={(e) => e.preventDefault()}>자세히</RdTextLink></>}
+            eyebrow="서울 강남구"
+            title="[예시] 한결 유품정리"
+            desc="유품 분류 · 폐기 · 특수 청소"
+            footer={
+              <>
+                <span className="rd-card__state">견적 문의 가능</span>
+                <RdTextLink href="#" onClick={(e) => e.preventDefault()}>견적 신청</RdTextLink>
+              </>
+            }
+            mobileAction={<RdButton kind="secondary">견적 신청</RdButton>}
           />
-          <RdCard
-            eyebrow="경기 · 사설"
-            title="이어봄 추모동산"
-            desc="봉안당 · 수목장"
-          >
-            <RdButton kind="secondary">견적 신청</RdButton>
-          </RdCard>
+          <div className="rd-pv-desk-only">
+            <RdCard
+              className="rd-card--press is-hover"
+              eyebrow="서울 송파구"
+              title="[예시] 마중 정리"
+              desc="유품 분류 · 기부 연계"
+              footer={
+                <>
+                  <span className="rd-card__state">마우스 올림</span>
+                  <RdTextLink href="#" onClick={(e) => e.preventDefault()}>견적 신청</RdTextLink>
+                </>
+              }
+            />
+          </div>
           <RdCard
             tone="paper"
-            eyebrow="강조 카드"
-            title="종이 카드"
-            desc="어긋난 그림자 8(모바일 6). 강조할 한 칸에만 쓴다."
-            footer={<RdBadge kind="example">예시</RdBadge>}
+            eyebrow="강조 카드 · 화면당 1~2개"
+            title="상속포기 · 한정승인"
+            desc="사망을 안 날부터 3개월 안에 가정법원에 신고합니다."
+            footer={
+              <>
+                <span className="rd-card__state rd-card__state--danger">남은 날 12일</span>
+                <RdTextLink href="#" onClick={(e) => e.preventDefault()}>자세히</RdTextLink>
+              </>
+            }
           />
         </div>
       </Sample>
@@ -197,7 +220,7 @@ function CardsBlock() {
         <div className="rd-pv__grid">
           <RdList label="목록 줄">
             <RdListRow title="故 김○○ 님 부고" info="발인 10월 16일 · 조문 32명" status={<span className="rd-st rd-st--done">공개 중</span>} onClick={noop} />
-            <RdListRow title="故 박○○ 님 부고" info="발인 9월 2일" status={<span className="rd-st rd-st--muted">닫힘</span>} onClick={noop} />
+            <RdListRow className="is-hover" title="故 박○○ 님 부고" info="발인 9월 2일" status={<span className="rd-st rd-st--muted">닫힘</span>} onClick={noop} />
             <RdListRow title="연금 수급 중지" info="국민연금공단" onClick={noop} />
           </RdList>
           <RdList label="이동 줄">
@@ -208,9 +231,9 @@ function CardsBlock() {
       </Sample>
       <Sample title="체크리스트 줄" note="상자를 눌러야만 체크된다. 제목 · ›는 안내 창. 세 상태: 안 함 · 기한 임박 · 끝냄. 색만으로 구분하지 않고 글로도 적는다.">
         <RdList label="체크리스트">
-          <RdChecklistRow title="사망신고" info="주민센터 · 사망일부터 1개월" state="todo" checked={checks.a} onToggle={(v) => setChecks({ ...checks, a: v })} onOpen={noop} />
+          <RdChecklistRow title="사망신고" info="시·구·읍·면 사무소 · 1개월 안" infoMobile="1개월 안 · D-21" dueTag="D-21" state="todo" checked={checks.a} onToggle={(v) => setChecks({ ...checks, a: v })} onOpen={noop} />
           <RdChecklistRow
-            title="상속 한정승인 신청"
+            title="상속포기 · 한정승인 결정"
             info="가정법원"
             state="soon"
             checked={checks.b}
@@ -219,11 +242,11 @@ function CardsBlock() {
             deadlineBadge="D-12"
             deadlineText="기한이 12일 남았습니다"
           />
-          <RdChecklistRow title="장례식장 비용 정산" info="장례식장" state="done" checked={checks.c} onToggle={(v) => setChecks({ ...checks, c: v })} onOpen={noop} doneText="10월 12일 끝냄" />
+          <RdChecklistRow title="장례식장 정하기" info="장례식장" state="done" checked={checks.c} onToggle={(v) => setChecks({ ...checks, c: v })} onOpen={noop} doneText="10월 12일 끝냄" />
         </RdList>
       </Sample>
       <Sample title="숫자 칸">
-        <RdStatGrid items={[{ name: '끝낸 일', value: '8' }, { name: '남은 일', value: '12' }, { name: '기한 임박', value: '2' }]} />
+        <RdStatGrid items={[{ name: '전체 할 일', value: '24' }, { name: '끝낸 일', value: '9' }, { name: '기한 있는 일', value: '2', tone: 'danger' }]} />
       </Sample>
       <Sample title="펼침 · 더 보기">
         <div className="rd-foldlist">
@@ -525,6 +548,20 @@ function NoticeBlock() {
             </RdSourceTip>
           </RdTipHost>
           <div style={{ height: 120 }} aria-hidden="true" />
+        </div>
+      </Sample>
+      <Sample title="말풍선 열린 모양" note="시안의 닫힘 · 열림을 한꺼번에 보이려고 처음부터 열어 둔 것. 바깥을 누르면 닫힌다.">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+          <RdTipHost>
+            한정승인<RdHelpTip defaultOpen term="한정승인">물려받은 재산 안에서만 빚을 갚는 방법입니다. 사망을 안 날부터 3개월 안에 가정법원에 신고합니다.</RdHelpTip>
+          </RdTipHost>
+          <div style={{ height: 96 }} aria-hidden="true" />
+          <RdTipHost>
+            <RdSourceTip defaultOpen label="KISO 정책규정 §28①" title="KISO 정책규정 제28조 ①">
+              회원사는 상속인에게 피상속인의 계정 접속권 등을 원칙적으로 제공하지 아니한다.
+            </RdSourceTip>
+          </RdTipHost>
+          <div style={{ height: 110 }} aria-hidden="true" />
         </div>
       </Sample>
     </>

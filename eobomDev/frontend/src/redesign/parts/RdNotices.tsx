@@ -108,23 +108,27 @@ export function RdTipHost({ children }: { children: React.ReactNode }) {
 }
 
 /** 도움말 풍선 — 어려운 말 옆 ?(누르는 자리 44). 눌러서 열고 닫는다(올림만으로는 안 열림). 먹색 풍선. */
-export function RdHelpTip({ term, children }: { term: string; children: React.ReactNode }) {
-  const [open, setOpen] = useState(false);
+export function RdHelpTip({ term, children, defaultOpen }: { term: string; children: React.ReactNode; /** 견본 쪽이 열린 모양을 처음부터 보이려고 쓴다 */ defaultOpen?: boolean }) {
+  const [open, setOpen] = useState(!!defaultOpen);
   const id = useId();
   const wrap = useRef<HTMLSpanElement>(null);
   const btn = useRef<HTMLButtonElement>(null);
   const [top, setTop] = useState<number | undefined>(undefined);
   useCloseOnOutside(open, () => setOpen(false), wrap);
   // 풍선은 ? 가 있는 줄 바로 아래에 편다(문단이 여러 줄이어도). 기준은 RdTipHost.
-  const toggle = () => {
-    if (!open) {
-      const host = btn.current?.closest('.rd-tiphost');
-      if (host && btn.current) {
-        const h = host.getBoundingClientRect();
-        const b = btn.current.getBoundingClientRect();
-        setTop(b.bottom - h.top - 8);
-      }
+  const place = () => {
+    const host = btn.current?.closest('.rd-tiphost');
+    if (host && btn.current) {
+      const h = host.getBoundingClientRect();
+      const b = btn.current.getBoundingClientRect();
+      setTop(b.bottom - h.top - 8);
     }
+  };
+  useEffect(() => {
+    if (defaultOpen) place();
+  }, [defaultOpen]);
+  const toggle = () => {
+    if (!open) place();
     setOpen((v) => !v);
   };
   return (
@@ -145,15 +149,19 @@ export function RdHelpTip({ term, children }: { term: string; children: React.Re
  * 출처 말풍선 — 조문 원문을 그 자리에서 보여 준다(어려운 말 풀이와 다른 부품, §6-7-2).
  * 데스크톱: 올림·초점·누름으로 열고 Esc·바깥 누름으로 닫음 / 모바일: 누르면 열고 다시 누르거나 바깥을 누르면 닫음.
  */
-export function RdSourceTip({ label: text, title, children }: { label: string; title: string; children: React.ReactNode }) {
+export function RdSourceTip({ label: text, title, children, defaultOpen }: { label: string; title: string; children: React.ReactNode; /** 견본 쪽이 열린 모양을 처음부터 보이려고 쓴다 */ defaultOpen?: boolean }) {
   const [hover, setHover] = useState(false);
-  const [pinned, setPinned] = useState(false);
+  const [pinned, setPinned] = useState(!!defaultOpen);
   const [focus, setFocus] = useState(false);
   const id = useId();
   const wrap = useRef<HTMLSpanElement>(null);
   const label = useRef<HTMLButtonElement>(null);
   const [top, setTop] = useState<number | undefined>(undefined);
   const open = hover || pinned || focus;
+  useEffect(() => {
+    if (defaultOpen) place();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [defaultOpen]);
   // 모바일: 풍선을 글줄 폭 가득, 표기 바로 아래에 편다(문단이 여러 줄이어도). 기준은 RdTipHost. 데스크톱은 CSS가 표기 기준으로 둔다.
   const place = () => {
     const host = label.current?.closest('.rd-tiphost');
