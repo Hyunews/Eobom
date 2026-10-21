@@ -18,6 +18,17 @@
 > 원인 = Gemini 판정이 `gemini_tasks.md`에만 적히고 이 파일 판정 칸은 비어 있었음. 🔴 **판정은 이 파일의 그 항목 칸에 적는다**(`GEMINI.md`).
 
 ---
+## 2026-10-21 | [Sonnet] 운영자 회원 상세 열람 사유 필수 + 처리방침 제7조 연락처 칸
+
+- **근거 스펙**: docs/00_핵심플랫폼/00-37 §7 #1(10-15 확정: 사유 입력 필수·전건 기록) · 00-19 제7조 편집자 주(10-15, 연락처 4칸)
+- **건드린 파일**: eobomDev/backend/src/controllers/adminController.ts, middleware/adminAudit.ts, services/opsLogService.ts, tests/ops-log.test.ts · eobomDev/frontend/src/pages/AdminPage.tsx, pages/PrivacyPage.tsx. DB 스키마·마이그레이션 0(`AdminAuditLog.reason` 칸은 이미 있음).
+- **결과**: `GET /api/admin/users/:id`는 `?reason=`이 없거나 공백이면 400(데이터 없음, FAIL 기록), 있으면 `AdminAuditLog.reason`에 저장(기존 `maskText`·200자 절단 적용). 화면은 상세 열기 전 `window.prompt`로 사유를 받고 취소·빈 값이면 요청 자체를 안 보냄. `PrivacyPage` 제7조 표에 연락처 칸 추가(Vercel privacy@vercel.com · Google googlekrsupport@google.com · Render privacy@render.com · Cloudflare dpo@cloudflare.com, 00-19 제7조 표와 동일). 재현: `cd eobomDev/backend && npx tsc --noEmit` 오류 0 · `node --require ts-node/register/transpile-only --test tests/ops-log.test.ts` 25건 통과(사유 없음 400 테스트 신설, 기존 상세 호출 3곳에 `?reason=` 추가) · `cd eobomDev/frontend && npm run build` 통과. 명도 대비(00-39 §3)는 지시대로 안 함(8단계).
+- **편차**: 없음. 확인할 점: 00-37 §7 #1은 "화면은 상세 열기 전 사유 입력"만 정해 입력 방식은 기존 확인창과 같은 `window.prompt`로 함(디자인 개편 때 모달로 바뀔 수 있음).
+- **다음 에이전트가 알아야 할 것**: 사유는 쿼리 문자열로 전달돼 Render 접근 로그에 URL이 남을 수 있음(`maskText`는 DB 저장분만 가림) — 문제가 되면 헤더·POST 방식으로 바꿀 것. `/api/admin/users/:id`를 부르는 곳은 `AdminPage.openMember` 하나뿐. 실기동은 안 함(개발서버 기동 안 함). 00-19 제7조 Render 행은 제3자 사본 확인분이라 게시 전 원문 재확인 대기(00-19 편집자 주).
+
+<!-- Gemini 판정 1줄: ✅통과 / ❌반려(사유) / 🔄스펙갱신(고친 문서) -->
+
+---
 ## 2026-10-16 | [Sonnet] 마케팅 정보 수신 동의 칸 빼기 (프론트 + 캔버스 3곳)
 
 - **근거 스펙**: docs/00_핵심플랫폼/00-28 §9 #2 (10-16 개발자 결정: 받지 않음 · DB 그대로) · 00-36 §4.5·§4.5-1
