@@ -103,8 +103,8 @@ function useCloseOnOutside(open: boolean, close: () => void, ref: React.RefObjec
 /**
  * 말풍선을 놓는 글줄 — 모바일의 가득 폭 풍선이 이 줄 기준으로 펴진다. 도움말 풍선·출처 말풍선은 이 안에 둔다.
  */
-export function RdTipHost({ children }: { children: React.ReactNode }) {
-  return <p className="rd-tiphost">{children}</p>;
+export function RdTipHost({ children, term }: { children: React.ReactNode; /** 용어 한 줄(용어 + ?)로 둘 때. 글 속에 끼울 때는 쓰지 않는다 */ term?: boolean }) {
+  return <p className={`rd-tiphost${term ? ' rd-tiphost--term' : ''}`}>{children}</p>;
 }
 
 /** 도움말 풍선 — 어려운 말 옆 ?(누르는 자리 44). 눌러서 열고 닫는다(올림만으로는 안 열림). 먹색 풍선. */
@@ -114,14 +114,14 @@ export function RdHelpTip({ term, children, defaultOpen }: { term: string; child
   const wrap = useRef<HTMLSpanElement>(null);
   const btn = useRef<HTMLButtonElement>(null);
   const [top, setTop] = useState<number | undefined>(undefined);
-  useCloseOnOutside(open, () => setOpen(false), wrap);
+  useCloseOnOutside(open && !defaultOpen, () => setOpen(false), wrap); // 열어 둔 견본은 바깥을 눌러도 닫지 않는다
   // 풍선은 ? 가 있는 줄 바로 아래에 편다(문단이 여러 줄이어도). 기준은 RdTipHost.
   const place = () => {
     const host = btn.current?.closest('.rd-tiphost');
     if (host && btn.current) {
       const h = host.getBoundingClientRect();
       const b = btn.current.getBoundingClientRect();
-      setTop(b.bottom - h.top - 8);
+      setTop(b.bottom - h.top + 2); // 판 06: 풍선 윗면이 누르는 자리(44) 바닥보다 2 아래
     }
   };
   useEffect(() => {
@@ -167,7 +167,7 @@ export function RdSourceTip({ label: text, title, children, defaultOpen }: { lab
     const host = label.current?.closest('.rd-tiphost');
     if (host && label.current) setTop(label.current.getBoundingClientRect().bottom - host.getBoundingClientRect().top + 2);
   };
-  useCloseOnOutside(open, () => {
+  useCloseOnOutside(open && !defaultOpen, () => {
     setHover(false);
     setPinned(false);
     setFocus(false);

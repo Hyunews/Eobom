@@ -541,6 +541,7 @@ function NoticeBlock() {
           <RdTipHost>
             상속을 받을 때 한정승인<RdHelpTip term="한정승인">상속받은 재산 범위 안에서만 빚을 갚겠다고 법원에 신고하는 절차입니다.</RdHelpTip>을 할 수 있습니다.
           </RdTipHost>
+          <div style={{ height: 56 }} aria-hidden="true" />
           <RdTipHost>
             개인정보는 처리방침에 따라 보관합니다.{' '}
             <RdSourceTip label="개인정보 보호법 제21조" title="개인정보 보호법 제21조 제1항">
@@ -552,11 +553,11 @@ function NoticeBlock() {
       </Sample>
       <Sample title="말풍선 열린 모양" note="시안의 닫힘 · 열림을 한꺼번에 보이려고 처음부터 열어 둔 것. 바깥을 누르면 닫힌다.">
         <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-          <RdTipHost>
+          <RdTipHost term>
             한정승인<RdHelpTip defaultOpen term="한정승인">물려받은 재산 안에서만 빚을 갚는 방법입니다. 사망을 안 날부터 3개월 안에 가정법원에 신고합니다.</RdHelpTip>
           </RdTipHost>
           <div style={{ height: 96 }} aria-hidden="true" />
-          <RdTipHost>
+          <RdTipHost term>
             <RdSourceTip defaultOpen label="KISO 정책규정 §28①" title="KISO 정책규정 제28조 ①">
               회원사는 상속인에게 피상속인의 계정 접속권 등을 원칙적으로 제공하지 아니한다.
             </RdSourceTip>

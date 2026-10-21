@@ -3514,7 +3514,7 @@
   }
 
   .rd-help__pop {
-    width: min(396px, 100%);
+    width: min(360px, 100%);
     padding: 16px 18px;
   }
 
@@ -3693,6 +3693,43 @@
 
 .rd-card__maction {
   display: none;
+}
+
+/* 판 06 도움말 풍선: 풍선 위치는 TSX가 계산한 top 그대로 (여백 더하지 않음) */
+.rd-help__pop {
+  margin-top: 0;
+}
+
+/* 판 06 용어 한 줄: 용어(15 · 500) + ? 를 가운데 맞춰 한 줄에 둔다. 글 속에 끼우는 쓰임과 달리 풍선 기준이 되는 줄 */
+.rd-tiphost--term {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.rd-tiphost--term .rd-help {
+  display: inline-flex;
+}
+
+/* 용어 한 줄은 줄 높이가 누르는 자리(44)와 같아 CSS로 바로 아래 2px. 스크립트가 잰 값보다 우선한다 */
+.rd-tiphost--term .rd-help__pop {
+  top: calc(100% + 2px) !important;
+}
+
+/* 글 속에 끼운 ?는 누르는 자리(44)의 빈 곳만큼 글과 벌어지므로 좌우를 겹쳐 원이 글에 붙게 한다 */
+.rd-help__btn {
+  margin-inline: -8px;
+}
+
+.rd-tiphost--term .rd-help__btn {
+  margin-block: 0;
+  margin-inline: 0;
+}
+
+.rd-tiphost--term .rd-source__label {
+  font-size: 14px;
 }
 
 .rd-stats__danger {
