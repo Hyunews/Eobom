@@ -108,13 +108,13 @@ export function RdTipHost({ children, term }: { children: React.ReactNode; /** �
 }
 
 /** 도움말 풍선 — 어려운 말 옆 ?(누르는 자리 44). 눌러서 열고 닫는다(올림만으로는 안 열림). 먹색 풍선. */
-export function RdHelpTip({ term, children, defaultOpen }: { term: string; children: React.ReactNode; /** 견본 쪽이 열린 모양을 처음부터 보이려고 쓴다 */ defaultOpen?: boolean }) {
+export function RdHelpTip({ term, children, defaultOpen, keepOpen }: { term: string; children: React.ReactNode; /** 처음부터 열어 둔다(견본 쪽이 열린 모양을 보이려고) */ defaultOpen?: boolean; /** 견본 전용: 바깥을 눌러도 닫지 않는다. 실제 화면에서는 쓰지 않는다(00-44 §7-5: 바깥 누르면 닫힘) */ keepOpen?: boolean }) {
   const [open, setOpen] = useState(!!defaultOpen);
   const id = useId();
   const wrap = useRef<HTMLSpanElement>(null);
   const btn = useRef<HTMLButtonElement>(null);
   const [top, setTop] = useState<number | undefined>(undefined);
-  useCloseOnOutside(open && !defaultOpen, () => setOpen(false), wrap); // 열어 둔 견본은 바깥을 눌러도 닫지 않는다
+  useCloseOnOutside(open && !keepOpen, () => setOpen(false), wrap);
   // 풍선은 ? 가 있는 줄 바로 아래에 편다(문단이 여러 줄이어도). 기준은 RdTipHost.
   const place = () => {
     const host = btn.current?.closest('.rd-tiphost');
@@ -149,7 +149,7 @@ export function RdHelpTip({ term, children, defaultOpen }: { term: string; child
  * 출처 말풍선 — 조문 원문을 그 자리에서 보여 준다(어려운 말 풀이와 다른 부품, §6-7-2).
  * 데스크톱: 올림·초점·누름으로 열고 Esc·바깥 누름으로 닫음 / 모바일: 누르면 열고 다시 누르거나 바깥을 누르면 닫음.
  */
-export function RdSourceTip({ label: text, title, children, defaultOpen }: { label: string; title: string; children: React.ReactNode; /** 견본 쪽이 열린 모양을 처음부터 보이려고 쓴다 */ defaultOpen?: boolean }) {
+export function RdSourceTip({ label: text, title, children, defaultOpen, keepOpen }: { label: string; title: string; children: React.ReactNode; /** 처음부터 열어 둔다(견본 쪽이 열린 모양을 보이려고) */ defaultOpen?: boolean; /** 견본 전용: 바깥을 눌러도 닫지 않는다. 실제 화면에서는 쓰지 않는다(00-44 §7-5) */ keepOpen?: boolean }) {
   const [hover, setHover] = useState(false);
   const [pinned, setPinned] = useState(!!defaultOpen);
   const [focus, setFocus] = useState(false);
@@ -167,7 +167,7 @@ export function RdSourceTip({ label: text, title, children, defaultOpen }: { lab
     const host = label.current?.closest('.rd-tiphost');
     if (host && label.current) setTop(label.current.getBoundingClientRect().bottom - host.getBoundingClientRect().top + 2);
   };
-  useCloseOnOutside(open && !defaultOpen, () => {
+  useCloseOnOutside(open && !keepOpen, () => {
     setHover(false);
     setPinned(false);
     setFocus(false);

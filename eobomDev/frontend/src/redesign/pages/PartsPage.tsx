@@ -551,14 +551,14 @@ function NoticeBlock() {
           <div style={{ height: 120 }} aria-hidden="true" />
         </div>
       </Sample>
-      <Sample title="말풍선 열린 모양" note="시안의 닫힘 · 열림을 한꺼번에 보이려고 처음부터 열어 둔 것. 바깥을 누르면 닫힌다.">
+      <Sample title="말풍선 열린 모양" note="시안의 열린 모양을 보이려고 처음부터 열어 두고 바깥을 눌러도 닫지 않게 한 견본 전용 설정(keepOpen). 실제 화면의 말풍선은 바깥을 누르면 닫힌다 — 위의 닫힌 말풍선 견본에서 확인.">
         <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
           <RdTipHost term>
-            한정승인<RdHelpTip defaultOpen term="한정승인">물려받은 재산 안에서만 빚을 갚는 방법입니다. 사망을 안 날부터 3개월 안에 가정법원에 신고합니다.</RdHelpTip>
+            한정승인<RdHelpTip defaultOpen keepOpen term="한정승인">물려받은 재산 안에서만 빚을 갚는 방법입니다. 사망을 안 날부터 3개월 안에 가정법원에 신고합니다.</RdHelpTip>
           </RdTipHost>
           <div style={{ height: 96 }} aria-hidden="true" />
           <RdTipHost term>
-            <RdSourceTip defaultOpen label="KISO 정책규정 §28①" title="KISO 정책규정 제28조 ①">
+            <RdSourceTip defaultOpen keepOpen label="KISO 정책규정 §28①" title="KISO 정책규정 제28조 ①">
               회원사는 상속인에게 피상속인의 계정 접속권 등을 원칙적으로 제공하지 아니한다.
             </RdSourceTip>
           </RdTipHost>
