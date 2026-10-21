@@ -39,14 +39,21 @@
 
 .rd-lh__inner {
   box-sizing: border-box;
-  max-width: var(--rd-landing-wide);
+  max-width: calc(var(--rd-landing-wide) / var(--rd-fit, 1)); /* 배율을 곱하면 화면에서 헤더·바닥글과 같은 폭 */
   margin-inline: auto;
-  padding: 48px var(--rd-gutter) 88px;
+  padding: 48px calc(var(--rd-gutter) / var(--rd-fit, 1)) 88px;
   display: flex;
   flex-wrap: wrap;
   gap: 64px;
   align-items: center;
   align-content: center;
+}
+
+/* 넓은 화면은 줄을 나누지 않는다 — 넘치면 줄바꿈으로 높이가 튀지 않고 배율이 내려간다(useFitScale) */
+@media (min-width: 1100px) {
+  .rd-lh__inner {
+    flex-wrap: nowrap;
+  }
 }
 
 .rd-lh__main {
@@ -117,8 +124,7 @@
   display: flex;
   justify-content: space-between;
   align-items: baseline;
-  flex-wrap: wrap;
-  gap: 8px;
+  gap: 16px;
   padding-bottom: 16px;
   border-bottom: 1px solid var(--rd-line);
 }
@@ -135,7 +141,7 @@
 .rd-lq__ctrl {
   display: flex;
   align-items: center;
-  gap: 2px;
+  gap: 6px;
   flex: none;
 }
 
@@ -264,10 +270,15 @@
   width: 100%;
 }
 
-.rd-ls__fit .rd-iconbtn,
-.rd-lh__inner .rd-iconbtn {
-  width: 52px;
-  height: 52px;
+/* 바로 보기 카드의 버튼은 보이는 크기를 44로 두고, 눌리는 영역만 투명하게 52로 넓힌다(0.85배에서도 44.2) */
+.rd-lq__ctrl .rd-iconbtn {
+  position: relative;
+}
+
+.rd-lq__ctrl .rd-iconbtn::after {
+  content: '';
+  position: absolute;
+  inset: -4px;
 }
 
 .rd-root .rd-ls__fit a.rd-link {
@@ -276,9 +287,9 @@
 
 .rd-ls__inner {
   box-sizing: border-box;
-  max-width: var(--rd-landing-wide);
+  max-width: calc(var(--rd-landing-wide) / var(--rd-fit, 1));
   margin-inline: auto;
-  padding: 40px var(--rd-gutter) 48px;
+  padding: 40px calc(var(--rd-gutter) / var(--rd-fit, 1)) 48px;
   display: flex;
   flex-direction: column;
   gap: 32px;

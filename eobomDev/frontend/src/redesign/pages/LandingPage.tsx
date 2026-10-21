@@ -125,7 +125,7 @@ function QuickCard({ onEntry }: { onEntry: (opener: HTMLElement) => void }) {
         if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setFocus(false);
       }}
     >
-      <div className="rd-lq__head">
+      <div className="rd-lq__head" data-fit-guard>
         <h2 className="rd-lq__title" id="quick-title" tabIndex={-1}>필요한 것만 바로 보기</h2>
         <div className="rd-lq__ctrl">
           <RdIconButton bordered label="이전 묶음" onClick={() => setPage((p) => (p + n - 1) % n)}>
@@ -273,7 +273,7 @@ function DesktopLanding({ onEntry }: { onEntry: (opener: HTMLElement) => void })
         </button>
         <div className="rd-lh__fit" ref={heroFitRef}>
           <div className="rd-lh__inner">
-            <div className="rd-lh__main">
+            <div className="rd-lh__main" data-fit-guard>
               <p className="rd-t-eyebrow">생전 준비부터 임종 및 사후 정리까지</p>
               <h1 className="rd-lh__h1">장례가 전부가 아니었습니다.</h1>
               <BranchPair />
