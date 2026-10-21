@@ -1,0 +1,617 @@
+/* 랜딩 — 00-45 · 8단계 묶음 3. 값은 redesign.css·parts.css의 --rd-* 를 쓴다.
+   모든 규칙은 .rd-landing 아래(또는 모바일 풀페이지용 html.rd-landing-snap)에 가둔다. 지금 화면에 새지 않는다. */
+
+.rd-landing {
+  --rd-landing-head: 101px; /* 데스크톱 헤더 높이(실측: 패딩 28×2 + 한 줄 + 선) — 첫 화면 높이 계산용 */
+  --rd-landing-wide: calc(var(--rd-content-w) + var(--rd-gutter) * 2);
+}
+
+/* 갈래 링크(<a>)가 전역 `.rd-root a` 색·올림 색에 눌리지 않게 한다 */
+.rd-root a.rd-branch {
+  text-decoration: none;
+}
+
+.rd-root a.rd-branch--primary,
+.rd-root a.rd-branch--primary:hover {
+  color: var(--rd-bg);
+}
+
+.rd-root a.rd-branch--secondary,
+.rd-root a.rd-branch--secondary:hover {
+  color: var(--rd-ink);
+}
+
+/* ───────── 첫 화면 (§4) ───────── */
+
+.rd-lh {
+  position: relative;
+  box-sizing: border-box;
+  max-width: var(--rd-landing-wide);
+  min-height: calc(100svh - var(--rd-landing-head));
+  margin-inline: auto;
+  padding: 48px var(--rd-gutter) 88px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 64px;
+  align-items: center;
+  align-content: center;
+}
+
+.rd-lh__main {
+  flex: 1.2 1 520px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.rd-lh__h1 {
+  margin: 0;
+  font-family: var(--rd-font-serif);
+  font-size: 44px;
+  line-height: 1.35;
+  font-weight: 700;
+  letter-spacing: -1px;
+  white-space: nowrap;
+}
+
+.rd-lh__branches {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+/* ⌄ — 데스크톱은 첫 화면 아래 가운데, 모바일은 칸 아래 가운데(반투명) */
+.rd-ldown {
+  position: absolute;
+  left: 50%;
+  bottom: 24px;
+  margin-left: -22px;
+  width: var(--rd-touch);
+  height: var(--rd-touch);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--rd-point);
+  cursor: pointer;
+}
+
+.rd-ldown--m {
+  bottom: 12px;
+  color: var(--rd-ink);
+  opacity: 0.45;
+}
+
+/* ───────── 바로 보기 (§5) ───────── */
+
+.rd-lq {
+  flex: 1 1 480px;
+  min-width: 0;
+  margin-top: 20px;
+  padding: 40px 40px 36px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  background: var(--rd-paper);
+  border: 1px solid var(--rd-line);
+  box-shadow: 8px 8px 0 var(--rd-shadow);
+}
+
+.rd-lq__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--rd-line);
+}
+
+.rd-lq__title {
+  margin: 0;
+  font-family: var(--rd-font-serif);
+  font-size: 24px;
+  line-height: 1.4;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.rd-lq__ctrl {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex: none;
+}
+
+.rd-lq__grid {
+  list-style: none;
+  margin: -10px 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.rd-lq__grid > li {
+  min-width: 0;
+}
+
+.rd-lq__cell {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 14px;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  color: var(--rd-ink);
+  cursor: pointer;
+}
+
+.rd-lq__cell svg {
+  color: var(--rd-point);
+}
+
+.rd-lq__name {
+  font-family: var(--rd-font-serif);
+  font-size: 19px;
+  font-weight: 700;
+  line-height: 1.5;
+}
+
+@media (hover: hover) {
+  .rd-lq__cell:hover {
+    color: var(--rd-point);
+  }
+}
+
+/* 2 × 2 점선 — 칸 사이 */
+.rd-lq__grid > li:nth-child(1) {
+  border-right: 1px dotted var(--rd-dot);
+  border-bottom: 1px dotted var(--rd-dot);
+}
+
+.rd-lq__grid > li:nth-child(2) {
+  border-bottom: 1px dotted var(--rd-dot);
+}
+
+.rd-lq__grid > li:nth-child(3) {
+  border-right: 1px dotted var(--rd-dot);
+}
+
+.rd-lq__grid > li:nth-child(1) .rd-lq__cell { padding: 10px 20px 24px 0; }
+.rd-lq__grid > li:nth-child(2) .rd-lq__cell { padding: 10px 0 24px 24px; }
+.rd-lq__grid > li:nth-child(3) .rd-lq__cell { padding: 25px 20px 12px 0; }
+.rd-lq__grid > li:nth-child(4) .rd-lq__cell { padding: 25px 0 12px 24px; }
+
+/* 모바일 판: 카드 없이 한 화면 2열 11칸 */
+.rd-lq--m {
+  flex: none;
+  margin: 0 24px;
+  padding: 20px 20px 8px;
+  gap: 0;
+  box-shadow: 6px 6px 0 var(--rd-shadow);
+}
+
+.rd-lq--m .rd-lq__title {
+  margin: 0 0 2px;
+  padding-bottom: 12px;
+  font-size: 19px;
+  border-bottom: 1px solid var(--rd-line);
+}
+
+.rd-lq--m .rd-lq__grid {
+  margin: 0;
+}
+
+.rd-lq--m .rd-lq__grid > li {
+  border: 0;
+  border-bottom: 1px dotted var(--rd-dot);
+}
+
+.rd-lq--m .rd-lq__grid > li:nth-child(odd) {
+  border-right: 1px dotted var(--rd-dot);
+}
+
+.rd-lq--m .rd-lq__grid > li:last-child {
+  border-bottom: 0;
+}
+
+.rd-lq--m .rd-lq__grid > li .rd-lq__cell {
+  gap: 8px;
+}
+
+.rd-lq--m .rd-lq__grid > li:nth-child(odd) .rd-lq__cell { padding: 14px 12px 14px 0; }
+.rd-lq--m .rd-lq__grid > li:nth-child(even) .rd-lq__cell { padding: 14px 0 14px 16px; }
+.rd-lq--m .rd-lq__grid > li:last-child .rd-lq__cell { padding-bottom: 12px; }
+
+.rd-lq--m .rd-lq__name {
+  font-size: 16px;
+}
+
+/* ───────── 소개 — 데스크톱 (§6) ───────── */
+
+.rd-ls--paper {
+  background: var(--rd-paper);
+  border-block: 1px solid var(--rd-line);
+}
+
+.rd-ls__inner {
+  box-sizing: border-box;
+  max-width: var(--rd-landing-wide);
+  margin-inline: auto;
+  padding: 40px var(--rd-gutter) 48px;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.rd-ls__head {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.rd-ls__title {
+  margin: 0;
+  font-family: var(--rd-font-serif);
+  font-size: 40px;
+  line-height: 1.4;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+}
+
+.rd-ls__lead {
+  margin: 0;
+  font-size: 17px;
+  line-height: 1.8;
+  color: var(--rd-ink-support);
+}
+
+.rd-ls__body {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 48px;
+  align-items: flex-start;
+}
+
+.rd-ls__list {
+  flex: 0 1 340px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.rd-ls__list--ruled {
+  border-top: 1px solid var(--rd-line);
+}
+
+.rd-ls__stage {
+  margin: 20px 0 6px;
+  font-family: var(--rd-font-serif);
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--rd-ink-small);
+}
+
+.rd-ls__row {
+  width: 100%;
+  min-height: 48px;
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  padding: 14px 16px;
+  border: 0;
+  border-bottom: 1px dotted var(--rd-dot);
+  background: transparent;
+  color: var(--rd-ink);
+  font-size: 17px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.rd-ls__row[aria-pressed='true'] {
+  background: var(--rd-ink);
+  color: var(--rd-bg);
+}
+
+@media (hover: hover) {
+  .rd-ls__row[aria-pressed='false']:hover {
+    background: var(--rd-pressed);
+  }
+}
+
+.rd-ls__no {
+  width: 24px;
+  font-size: 13px;
+  opacity: 0.8;
+}
+
+.rd-ls__rowname {
+  flex-grow: 1;
+}
+
+.rd-ls__detail {
+  flex: 1 1 400px;
+  max-width: 480px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.rd-ls__img,
+.rd-lm__img {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--rd-shadow);
+  border: 12px solid var(--rd-white);
+  box-shadow: 0 0 0 1px var(--rd-line);
+  color: var(--rd-ink-small);
+  font-size: 14px;
+  text-align: center;
+}
+
+.rd-ls__img {
+  aspect-ratio: 16 / 10;
+}
+
+.rd-ls__nameline,
+.rd-lm__nameline {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 16px;
+}
+
+.rd-ls__nameline {
+  margin-top: 4px;
+}
+
+.rd-ls__name {
+  margin: 0;
+  font-family: var(--rd-font-serif);
+  font-size: 30px;
+  line-height: 1.4;
+  font-weight: 700;
+}
+
+.rd-ls__count,
+.rd-lm__count {
+  font-size: 14px;
+  color: var(--rd-ink-small);
+  white-space: nowrap;
+}
+
+.rd-ls__desc,
+.rd-lm__desc {
+  margin: 0;
+  font-size: 17px;
+  line-height: 1.8;
+  color: var(--rd-ink-support);
+}
+
+.rd-ls__points,
+.rd-lm__points {
+  margin: 0;
+  padding: 12px 0 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  border-top: 1px dotted var(--rd-dot);
+}
+
+.rd-ls__points li,
+.rd-lm__points li {
+  display: flex;
+  gap: 10px;
+  font-size: 16px;
+  line-height: 1.7;
+  color: var(--rd-ink-support);
+}
+
+.rd-ls__points li > span:first-child,
+.rd-lm__points li > span:first-child {
+  flex-shrink: 0;
+  color: var(--rd-point);
+}
+
+.rd-ls__cta {
+  align-self: flex-start;
+  margin-top: 4px;
+}
+
+/* ───────── 모바일 세로 풀페이지 (§2) ───────── */
+
+html.rd-landing-snap {
+  scroll-snap-type: y proximity;
+}
+
+.rd-lc,
+.rd-lm {
+  position: relative;
+  box-sizing: border-box;
+  min-height: calc(100svh - 56px);
+  scroll-snap-align: start;
+}
+
+.rd-lc {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.rd-lc--quick {
+  padding-bottom: 64px;
+  border-top: 1px solid var(--rd-line);
+}
+
+.rd-lc__hero {
+  padding: 24px 24px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.rd-lc__hero .rd-t-eyebrow {
+  font-size: 13px;
+  letter-spacing: 1.5px;
+}
+
+.rd-lc__h1 {
+  margin: 0;
+  font-family: var(--rd-font-serif);
+  font-size: 32px;
+  line-height: 1.35;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+}
+
+.rd-lc__ask {
+  margin: 12px 0 0;
+  font-size: 14px;
+  color: var(--rd-ink-support);
+}
+
+.rd-lc__hero .rd-lh__branches {
+  margin-top: 0;
+}
+
+.rd-lm {
+  padding: 24px 24px 60px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  border-top: 1px solid var(--rd-line);
+}
+
+.rd-lm--paper {
+  background: var(--rd-paper);
+}
+
+.rd-lm__head {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.rd-lm__head .rd-t-eyebrow {
+  font-size: 13px;
+}
+
+.rd-lm__title {
+  margin: 0;
+  font-family: var(--rd-font-serif);
+  font-size: 27px;
+  line-height: 1.4;
+  font-weight: 700;
+}
+
+.rd-lm__card {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  touch-action: pan-y;
+  user-select: none;
+}
+
+.rd-lm__img {
+  height: clamp(130px, 25svh, 220px); /* 큰 화면 220 · 작은 화면은 칸에 들어가게 줄임 */
+  border-width: 10px;
+  font-size: 13px;
+}
+
+.rd-lm__nameline {
+  margin-top: 4px;
+}
+
+.rd-lm__name {
+  margin: 0;
+  font-family: var(--rd-font-serif);
+  font-size: 23px;
+  line-height: 1.4;
+  font-weight: 700;
+}
+
+.rd-lm__count {
+  font-size: 13px;
+}
+
+.rd-lm__desc {
+  font-size: 15px;
+  line-height: 1.7;
+}
+
+.rd-lm__points {
+  padding-top: 12px;
+  gap: 8px;
+}
+
+.rd-lm__points li {
+  gap: 8px;
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.rd-lm__bar {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  padding-bottom: 8px;
+}
+
+.rd-lm__step {
+  flex: none;
+  width: 52px;
+  height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 1px solid var(--rd-ink);
+  border-radius: var(--rd-radius);
+  background: transparent;
+  color: var(--rd-ink);
+  cursor: pointer;
+}
+
+.rd-landing a.rd-lm__go,
+.rd-landing a.rd-lm__go:hover {
+  flex-grow: 1;
+  height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--rd-ink);
+  color: var(--rd-bg);
+  font-size: 16px;
+  border-radius: var(--rd-radius);
+}
+
+/* 낮은 데스크톱 화면(1280 × 800 등) — 소개 한 구간이 한 화면에 들어오게 그림을 줄인다 */
+@media (min-width: 768px) and (max-height: 860px) {
+  .rd-ls__inner { padding: 32px var(--rd-gutter) 40px; }
+  .rd-ls__img { max-width: 400px; }
+}
+
+/* 낮은 휴대폰 화면(주소창이 보이는 높이 등) — 칸이 화면보다 길어 아래가 잘리지 않게 여백·그림을 줄인다 */
+@media (max-width: 767px) and (max-height: 740px) {
+  .rd-lm { padding: 16px 24px 52px; gap: 10px; }
+  .rd-lm__img { height: clamp(100px, 19svh, 220px); }
+  .rd-lm__card { gap: 8px; }
+  .rd-lm__points { padding-top: 8px; gap: 6px; }
+  .rd-lc--quick { padding-bottom: 52px; }
+  .rd-lq--m { padding-top: 14px; }
+  .rd-lq--m .rd-lq__grid > li:nth-child(odd) .rd-lq__cell { padding: 8px 12px 8px 0; }
+  .rd-lq--m .rd-lq__grid > li:nth-child(even) .rd-lq__cell { padding: 8px 0 8px 16px; }
+  .rd-lq--m .rd-lq__grid > li .rd-lq__cell { gap: 4px; }
+  .rd-lc__hero { gap: 10px; }
+}

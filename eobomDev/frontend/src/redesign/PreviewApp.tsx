@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { RdLayout } from './layout/RdLayout';
 import { FoundationPage } from './pages/FoundationPage';
 import { PartsPage } from './pages/PartsPage';
+import { LandingPage } from './pages/LandingPage';
 
 // 8단계 미리보기 뿌리 — /preview/… 만 연다. 메뉴·링크 어디에도 이 주소를 넣지 않는다(00-44 §9-4 공통 조건).
 // 묶음 2가 /preview/parts, 묶음 3부터 화면별 주소를 여기에 더한다.
@@ -27,6 +28,7 @@ export function PreviewApp() {
         <Routes>
           <Route path="/preview" element={<FoundationPage />} />
           <Route path="/preview/parts" element={<PartsPage />} />
+          <Route path="/preview/landing" element={<LandingPage />} />
           <Route path="*" element={<FoundationPage notFound />} />
         </Routes>
       </RdLayout>

@@ -127,6 +127,25 @@ export function RdBranchButton({ tone = 'primary', title, desc, className, ...re
   );
 }
 
+interface BranchLinkProps extends React.AnchorHTMLAttributes<HTMLAnchorElement> {
+  tone?: 'primary' | 'secondary';
+  title: string;
+  desc: string;
+}
+
+/** 갈래 링크 — 갈래 버튼과 같은 모양인데 같은 쪽 안의 구간(#id)으로 내려가는 링크다(00-45 §4). */
+export function RdBranchLink({ tone = 'primary', title, desc, className, ...rest }: BranchLinkProps) {
+  return (
+    <a className={['rd-branch', `rd-branch--${tone}`, className].filter(Boolean).join(' ')} {...rest}>
+      <span className="rd-branch__text">
+        <span className="rd-branch__title">{title}</span>
+        <span className="rd-branch__desc">{desc}</span>
+      </span>
+      <IconArrow size={22} />
+    </a>
+  );
+}
+
 /** 표시 딱지 — 테두리 딱지 = 상태 / 채운 딱지 = 기한 임박(위험)·"예시"만(§6-4-1). */
 export type RdBadgeKind = 'state' | 'draft' | 'done' | 'danger' | 'danger-fill' | 'example';
 
