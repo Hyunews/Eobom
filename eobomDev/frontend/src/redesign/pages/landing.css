@@ -510,12 +510,20 @@ html.rd-landing-snap {
   scroll-snap-type: y proximity;
 }
 
+/* 헤더(56)는 스크롤하면 위로 사라지므로, 첫 화면만 헤더를 뺀 높이이고 ②~④는 화면 한 장 높이다.
+   (전부 100svh − 56이면 한 칸 넘긴 뒤 다음 칸 맨 위 56이 아래에 걸려 보인다.) */
 .rd-lc,
 .rd-lm {
   position: relative;
   box-sizing: border-box;
-  min-height: calc(100svh - 56px);
+  min-height: 100svh;
   scroll-snap-align: start;
+}
+
+/* 첫 화면은 맨 위(헤더 포함)에서 시작 — 칸 맞춤이 헤더를 가리는 56 위치로 끌어올리지 않게 한다 */
+.rd-lc--hero {
+  min-height: calc(100svh - 56px);
+  scroll-snap-align: none;
 }
 
 .rd-lc {
