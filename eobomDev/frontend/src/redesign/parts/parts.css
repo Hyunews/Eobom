@@ -3921,6 +3921,111 @@
   text-align: center;
   color: var(--rd-ink-small);
 }
+/* 링크로 만든 버튼(<a class="rd-btn">) — .rd-root a 의 글자색(먹색, 우선순위가 더 높음)에 밀리지 않게 한다 */
+.rd-root a.rd-btn,
+.rd-root a.rd-btn:hover {
+  text-decoration: none;
+}
+.rd-root a.rd-btn--primary,
+.rd-root a.rd-btn--primary:hover {
+  color: var(--rd-bg);
+}
+.rd-root a.rd-btn--secondary,
+.rd-root a.rd-btn--secondary:hover {
+  color: var(--rd-ink);
+}
+
+/* ───── 움직임: 쪽 들어옴 · 창 · 펼침 · 내용 바뀜 (랜딩 rdFadeUp과 같은 결, 움직임 줄이기 설정이면 없음) ─────
+   fill-mode 는 backwards — 끝난 뒤 transform 이 남으면 안의 고정 버튼(모바일 저장 줄)이 어긋난다 */
+@keyframes rd-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+}
+@keyframes rd-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes rd-pop {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.98);
+  }
+}
+@keyframes rd-unfold {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .rd-root:not([data-rd-ready]) .rd-screen > * {
+    opacity: 0;
+  }
+  .rd-root[data-rd-ready] .rd-screen > * {
+    animation: rd-fade-up 0.8s cubic-bezier(0.22, 0.61, 0.36, 1) backwards;
+  }
+  .rd-root[data-rd-ready] .rd-screen > *:nth-child(2) { animation-delay: 0.08s; }
+  .rd-root[data-rd-ready] .rd-screen > *:nth-child(3) { animation-delay: 0.16s; }
+  .rd-root[data-rd-ready] .rd-screen > *:nth-child(4) { animation-delay: 0.24s; }
+  .rd-root[data-rd-ready] .rd-screen > *:nth-child(5) { animation-delay: 0.32s; }
+  .rd-root[data-rd-ready] .rd-screen > *:nth-child(n + 6) { animation-delay: 0.4s; }
+
+  /* 내용이 바뀔 때(검색 결과 · 쪽 · 구간 · 목록) — 새로 그려지는 줄이 차례로 떠오른다 */
+  .rd-root .rd-af-facs > *,
+  .rd-root .rd-af-vendors > *,
+  .rd-root .rd-af-flist > li,
+  .rd-root .rd-af-section,
+  .rd-root .rd-af-steps > *,
+  .rd-root .rd-state,
+  .rd-root .rd-af-share,
+  .rd-root .rd-af-detail__main > *,
+  .rd-root .rd-af-detail__side > * {
+    animation: rd-fade-up 0.6s cubic-bezier(0.22, 0.61, 0.36, 1) backwards;
+  }
+  .rd-root .rd-af-facs > *:nth-child(3n + 2),
+  .rd-root .rd-af-vendors > *:nth-child(2n),
+  .rd-root .rd-af-flist > li:nth-child(2n) { animation-delay: 0.06s; }
+  .rd-root .rd-af-facs > *:nth-child(3n),
+  .rd-root .rd-af-flist > li:nth-child(3n) { animation-delay: 0.12s; }
+
+  /* 뒤로·앞으로 가기로 들어온 쪽은 움직임 없이 바로 */
+  .rd-root[data-rd-pop] .rd-screen,
+  .rd-root[data-rd-pop] .rd-screen *:not(.rd-spin) {
+    animation: none !important;
+  }
+  .rd-root[data-rd-pop]:not([data-rd-ready]) .rd-screen > * {
+    opacity: 1;
+  }
+
+  /* 펼침 */
+  .rd-root .rd-fold__body,
+  .rd-root .rd-af-more__body,
+  .rd-root .rd-af-warnbox,
+  .rd-root .rd-af-pick,
+  .rd-root .rd-af-memctl__note,
+  .rd-root .rd-field__error {
+    animation: rd-unfold 0.32s ease backwards;
+  }
+
+  /* 창 */
+  .rd-root .rd-backdrop {
+    animation: rd-fade-in 0.25s ease backwards;
+  }
+  .rd-root .rd-gate {
+    animation: rd-fade-in 0.5s ease backwards;
+  }
+  .rd-root .rd-toast {
+    animation: rd-fade-in 0.4s ease backwards;
+  }
+}
+@media (min-width: 768px) and (prefers-reduced-motion: no-preference) {
+  .rd-root .rd-dialog {
+    animation: rd-pop 0.3s cubic-bezier(0.22, 0.61, 0.36, 1) backwards;
+  }
+}
 .rd-root .rd-pagehead__icon {
   display: inline-flex;
   margin-right: 12px;

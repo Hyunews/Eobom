@@ -88,7 +88,8 @@ function SheetChips({ group, category, selected, onChange }: { group: TagGroup; 
 export function FacilityPage() {
   const phone = useIsPhone();
   const [demo, setDemo] = useState('normal');
-  const [view, setView] = useState<'card' | 'list'>('card');
+  // 휴대폰은 리스트형이 기본(좁은 화면에서 카드는 길어서), 데스크톱은 카드형
+  const [view, setView] = useState<'card' | 'list'>(phone ? 'list' : 'card');
   const [page, setPage] = useState(1);
   const [province, setProvince] = useState('');
   const [district, setDistrict] = useState('');
