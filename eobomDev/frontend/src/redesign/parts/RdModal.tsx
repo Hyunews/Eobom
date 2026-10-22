@@ -199,6 +199,8 @@ export function RdDangerDialog({
   lost,
   cancelLabel = '취소',
   doLabel,
+  doKind = 'danger',
+  busyText = '삭제하는 중',
   busy,
   onCancel,
   onDo,
@@ -210,6 +212,10 @@ export function RdDangerDialog({
   lost?: string[];
   cancelLabel?: string;
   doLabel: string;
+  /** 실행 버튼 색. 기본 위험(빨강). 부고장 종료는 먹색 주 버튼 — 2단계 묶음 3 결정(빨강이 부정적으로 보임, 틀의 붉은 테두리·경고 딱지는 그대로) */
+  doKind?: 'danger' | 'primary';
+  /** 처리 중 글 (기본 "삭제하는 중") */
+  busyText?: string;
   busy?: boolean;
   onCancel: () => void;
   onDo: () => void;
@@ -225,7 +231,7 @@ export function RdDangerDialog({
       footer={
         <>
           <RdButton kind="secondary" place="dialog" data-rd-cancel="" onClick={onCancel}>{cancelLabel}</RdButton>
-          <RdButton kind="danger" place="dialog" busy={busy} busyText="삭제하는 중" onClick={onDo}>{doLabel}</RdButton>
+          <RdButton kind={doKind} place="dialog" busy={busy} busyText={busyText} onClick={onDo}>{doLabel}</RdButton>
         </>
       }
     >
@@ -254,13 +260,16 @@ export function RdAlertDialog({ title, desc, onOk }: { title: string; desc?: str
 }
 
 /** ④ 짧은 알림 — 화면 아래 먹색, 4초 뒤 사라짐. 모바일은 바닥 버튼 줄 위. */
-export function useRdToast(): { show: (message: string) => void; node: React.ReactNode } {
+export function useRdToast(): { show: (message: string, tone?: 'ok' | 'warn') => void; node: React.ReactNode } {
   const [message, setMessage] = useState<string | null>(null);
+  // 실패를 알릴 때는 'warn'(경고 그림) — 행정 가이드 판 2-3 ③
+  const [tone, setTone] = useState<'ok' | 'warn'>('ok');
   const timer = useRef<number | undefined>(undefined);
   const host = useHost();
-  const show = useCallback((m: string) => {
+  const show = useCallback((m: string, t: 'ok' | 'warn' = 'ok') => {
     window.clearTimeout(timer.current);
     setMessage(m);
+    setTone(t);
     timer.current = window.setTimeout(() => setMessage(null), 4000);
   }, []);
   useEffect(() => () => window.clearTimeout(timer.current), []);
@@ -268,7 +277,7 @@ export function useRdToast(): { show: (message: string) => void; node: React.Rea
     host && message
       ? createPortal(
           <div className="rd-toast" role="status" aria-live="polite">
-            <IconCheck size={18} />
+            {tone === 'warn' ? <IconWarn size={18} /> : <IconCheck size={18} />}
             <span>{message}</span>
           </div>,
           host,

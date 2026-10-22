@@ -136,7 +136,7 @@ export function EndingNotePage() {
 
   if (demo === 'login') {
     return (
-      <div className="rd-container rd-pr-page">
+      <div className="rd-container rd-screen">
         {head}
         <div className="rd-pr-gatewrap" style={{ position: 'relative', minHeight: 520 }}>
           <RdLoginGate screenName="엔딩노트" contained />
@@ -304,7 +304,7 @@ export function EndingNotePage() {
   );
 
   return (
-    <div className="rd-container rd-pr-page">
+    <div className="rd-container rd-screen">
       {head}
       {publicLine && <p className="rd-t-support" style={{ margin: '-16px 0 0' }}>{publicLine}</p>}
 

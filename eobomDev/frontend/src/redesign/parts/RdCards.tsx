@@ -247,6 +247,35 @@ export function RdMoreButton({ onClick, children = '더 보기' }: { onClick: ()
   );
 }
 
+/**
+ * 쪽 넘김, 번호형 — [이전] 1 2 3 … 12 [다음]. 지금 쪽 = 먹색 채움. 고른 쪽 앞뒤 2쪽과 처음·끝만 보이고 사이는 …
+ * 장사시설 검색(2단계 판 2-6~2-8)이 쓰는 모양. 번호가 없는 짧은 모양은 위 RdPager.
+ */
+export function RdPagerNumbered({ page, total, onChange }: { page: number; total: number; onChange: (p: number) => void }) {
+  const nums = Array.from({ length: total }, (_, i) => i + 1)
+    .filter((p) => Math.abs(p - page) <= 2 || p === 1 || p === total)
+    .reduce<number[]>((acc, p) => {
+      if (acc.length > 0 && p - acc[acc.length - 1] > 1) acc.push(-1);
+      acc.push(p);
+      return acc;
+    }, []);
+  return (
+    <nav className="rd-pagernum" aria-label="쪽 넘김">
+      <button type="button" className="rd-pagernum__side" disabled={page <= 1} onClick={() => onChange(page - 1)}>이전</button>
+      {nums.map((p, i) =>
+        p === -1 ? (
+          <span key={`e${i}`} className="rd-pagernum__gap" aria-hidden="true">…</span>
+        ) : (
+          <button key={p} type="button" className="rd-pagernum__n" aria-current={p === page ? 'page' : undefined} onClick={() => onChange(p)}>
+            {p}
+          </button>
+        ),
+      )}
+      <button type="button" className="rd-pagernum__side rd-pagernum__side--next" disabled={page >= total} onClick={() => onChange(page + 1)}>다음</button>
+    </nav>
+  );
+}
+
 /** 쪽 넘김 — [이전] "n / m 페이지" [다음]. 첫 쪽 [이전]·마지막 쪽 [다음]은 흐리게. */
 export function RdPager({ page, total, onChange }: { page: number; total: number; onChange: (p: number) => void }) {
   return (

@@ -7,11 +7,14 @@ import { IconChevronDown, IconChevronUp } from './icons';
 export function RdPageHead({
   eyebrow,
   title,
+  icon,
   desc,
   actions,
 }: {
   eyebrow?: string;
   title: string;
+  /** 제목 앞 선 그림(장사시설 검색의 집 그림, 2단계 판 2-6) */
+  icon?: React.ReactNode;
   desc?: string;
   /** 버튼은 [보조][주] 순서로 넘긴다. 모바일은 제목 아래 세로(주 위)로 CSS가 바꾼다. */
   actions?: React.ReactNode;
@@ -20,7 +23,10 @@ export function RdPageHead({
     <header className="rd-pagehead">
       <div className="rd-pagehead__text">
         {eyebrow && <p className="rd-t-eyebrow">{eyebrow}</p>}
-        <h1 className="rd-t-title">{title}</h1>
+        <h1 className="rd-t-title">
+          {icon && <span className="rd-pagehead__icon" aria-hidden="true">{icon}</span>}
+          {title}
+        </h1>
         {desc && <p className="rd-pagehead__desc">{desc}</p>}
       </div>
       {actions && <div className="rd-pagehead__actions">{actions}</div>}
@@ -83,6 +89,8 @@ export interface RdTocItem {
   /** 진행 개수 "2 / 5". 다 하면 완료 색 "끝냄" */
   done?: number;
   total?: number;
+  /** 진행이 아니라 그냥 항목 수를 보일 때(행정 가이드 2-1: 구간 이름 + 항목 수). done/total과 같이 쓰지 않는다 */
+  count?: number;
 }
 
 /**
@@ -126,6 +134,7 @@ export function RdToc({ items, current, onSelect }: { items: RdTocItem[]; curren
                     {finished ? '끝냄' : `${it.done ?? 0} / ${it.total}`}
                   </span>
                 )}
+                {it.count !== undefined && <span className="rd-toc__count">{it.count}</span>}
               </button>
             </li>
           );

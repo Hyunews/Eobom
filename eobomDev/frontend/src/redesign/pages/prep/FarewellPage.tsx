@@ -327,7 +327,7 @@ function WriteDialog({
           )
         }
       >
-        <div className="rd-pr-write">
+        <div className="rd-formstack">
           {savedVoice && (
             <div className="rd-pr-saved">
               <b>첨부된 음성</b>
@@ -457,7 +457,7 @@ export function FarewellPage() {
 
   if (demo === 'login') {
     return (
-      <div className="rd-container rd-pr-page">
+      <div className="rd-container rd-screen">
         {head}
         <div style={{ position: 'relative', minHeight: 520 }}><RdLoginGate screenName="유족 메시지 보관함" contained /></div>
         {demoBar}
@@ -466,16 +466,16 @@ export function FarewellPage() {
   }
   if (demo === 'loading') {
     return (
-      <div className="rd-container rd-pr-page">
+      <div className="rd-container rd-screen">
         {head}
-        <p className="rd-pr-empty" role="status">불러오는 중...</p>
+        <p className="rd-lineinfo" role="status">불러오는 중...</p>
         {demoBar}
       </div>
     );
   }
   if (demo === 'loadfail') {
     return (
-      <div className="rd-container rd-pr-page">
+      <div className="rd-container rd-screen">
         {head}
         <RdState kind="error" title="화면을 불러오지 못했습니다" desc="잠시 뒤 다시 열어 주세요. 계속되면 '카카오톡 문의하기'로 알려 주세요.">
           <RdButton kind="secondary" onClick={() => navigate('/preview')}>홈으로</RdButton>
@@ -534,7 +534,7 @@ export function FarewellPage() {
         </div>
       </div>
       {cur.letters.length === 0 ? (
-        <p className="rd-pr-empty">아직 남긴 편지가 없습니다.</p>
+        <p className="rd-lineinfo">아직 남긴 편지가 없습니다.</p>
       ) : (
         <ul className="rd-pr-letters">
           {cur.letters.map((l) => (
@@ -568,7 +568,7 @@ export function FarewellPage() {
   );
 
   return (
-    <div className="rd-container rd-pr-page rd-pr-farewell">
+    <div className="rd-container rd-screen rd-pr-farewell">
       {head}
       {!phone && list.length > 0 && (
         <RdNotice tone="info" title="여기에 남기신 글과 음성은 사망 확인 후 지정하신 분에게 전달됩니다." />

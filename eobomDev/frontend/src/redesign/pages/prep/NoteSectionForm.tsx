@@ -79,7 +79,7 @@ export function NoteSectionForm({
   switch (section.kind) {
     case 'life':
       body = (
-        <div className="rd-pr-grid2">
+        <div className="rd-grid2">
           <Pick label="연명의료 중단 의향" field="lifeStop" values={v} set={setValue} />
           <Pick label="사전연명의료의향서 등록 여부" field="lifeReg" values={v} set={setValue} />
           <RdField label="날짜 (선택)">{(p) => <RdDate {...p} value={String(v.lifeDate)} onChange={(e) => setValue('lifeDate', e.target.value)} />}</RdField>

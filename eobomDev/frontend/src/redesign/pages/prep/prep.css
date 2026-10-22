@@ -2,35 +2,6 @@
    부품(parts.css)에 없는 배치만 둔다. 전부 .rd-root 아래 rd-pr- 접두어로 가둔다. 값 출처 = 1단계 캔버스 3개. */
 
 /* 미리보기 전용 상태 고르기 줄 — 실제 화면에는 없다(교체 때 삭제) */
-.rd-root .rd-pr-demo {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex-wrap: wrap;
-  margin: 24px 0 0;
-  padding: 10px 14px;
-  border: 1px dashed var(--rd-dot);
-  background: var(--rd-paper);
-  font-size: var(--rd-fs-small);
-  color: var(--rd-ink-small);
-}
-.rd-root .rd-pr-demo .rd-select {
-  min-width: 260px;
-}
-.rd-root .rd-pr-demo .rd-input {
-  height: 40px;
-  font-size: 14px;
-}
-
-.rd-root .rd-pr-page {
-  display: flex;
-  flex-direction: column;
-  gap: 32px;
-  padding-block: 64px 56px;
-}
-.rd-root .rd-pr-page > .rd-pr-demo {
-  margin: -32px 0 0;
-}
 
 /* 마음이 힘드실 때 줄 */
 .rd-root .rd-pr-help {
@@ -172,26 +143,22 @@
 }
 .rd-root .rd-pr-will__main .rd-notice,
 .rd-root .rd-pr-farewell .rd-notice,
-.rd-root .rd-pr-write .rd-notice,
 .rd-root .rd-pr-voice .rd-notice {
   gap: 10px;
   padding: 12px 16px;
 }
 .rd-root .rd-pr-will__main .rd-notice__body,
 .rd-root .rd-pr-farewell .rd-notice__body,
-.rd-root .rd-pr-write .rd-notice__body,
 .rd-root .rd-pr-voice .rd-notice__body {
   gap: 2px;
 }
 .rd-root .rd-pr-will__main .rd-notice__title,
 .rd-root .rd-pr-farewell .rd-notice__title,
-.rd-root .rd-pr-write .rd-notice__title,
 .rd-root .rd-pr-voice .rd-notice__title {
   font-size: 14px;
   line-height: 1.5;
 }
 .rd-root .rd-pr-farewell .rd-notice__desc,
-.rd-root .rd-pr-write .rd-notice__desc,
 .rd-root .rd-pr-voice .rd-notice__desc {
   font-size: 13px;
   line-height: 1.5;
@@ -215,11 +182,6 @@
 .rd-root .rd-pr-grid4 {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 16px;
-}
-.rd-root .rd-pr-grid2 {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 16px;
 }
 .rd-root .rd-pr-ins {
@@ -786,12 +748,6 @@
   font-size: 15px;
   color: var(--rd-ink-support);
 }
-.rd-root .rd-pr-empty {
-  padding: 56px 0;
-  text-align: center;
-  font-size: 15px;
-  color: var(--rd-ink-support);
-}
 .rd-root .rd-pr-mailnone {
   display: flex;
   gap: 48px;
@@ -799,11 +755,6 @@
 }
 
 /* ───── 편지 쓰기 창 ───── */
-.rd-root .rd-pr-write {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
 .rd-root .rd-pr-voice {
   display: flex;
   flex-direction: column;
@@ -928,19 +879,6 @@
   font-size: 17px;
   font-weight: 500;
 }
-.rd-root .rd-pr-dl {
-  margin: 0;
-  display: grid;
-  grid-template-columns: 90px minmax(0, 1fr);
-  gap: 10px 16px;
-  font-size: 15px;
-}
-.rd-root .rd-pr-dl dt {
-  color: var(--rd-ink-support);
-}
-.rd-root .rd-pr-dl dd {
-  margin: 0;
-}
 .rd-root .rd-pr-picks {
   display: flex;
   flex-direction: column;
@@ -1009,19 +947,7 @@
 .rd-root .rd-pr-tax__close-m {
   display: none;
 }
-
 @media (max-width: 767px) {
-  .rd-root .rd-pr-page {
-    padding-block: 32px 40px;
-    gap: 24px;
-  }
-  .rd-root .rd-pr-page > .rd-pr-demo {
-    margin: -16px 0 0;
-  }
-  .rd-root .rd-pr-demo .rd-select {
-    min-width: 0;
-    width: 100%;
-  }
   .rd-root .rd-pr-notes {
     display: block;
   }
@@ -1032,7 +958,6 @@
     min-height: 60px;
   }
   .rd-root .rd-pr-grid4,
-  .rd-root .rd-pr-grid2,
   .rd-root .rd-pr-ins,
   .rd-root .rd-pr-timing__row {
     grid-template-columns: minmax(0, 1fr);

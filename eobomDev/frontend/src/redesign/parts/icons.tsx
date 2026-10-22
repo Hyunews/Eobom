@@ -39,3 +39,13 @@ export const IconDoc = ({ size = 24 }: P) => <Svg size={size}><path d="M7 3.5h7l
 export const IconFolder = ({ size = 24 }: P) => <Svg size={size}><path d="M3.5 7.5h6l2 2.5h9v8.5h-17z" /></Svg>;
 export const IconImage = ({ size = 22 }: P) => <Svg size={size}><rect x="4" y="5" width="16" height="14" rx="1" /><circle cx="9" cy="10" r="1.6" /><path d="M5 18l5-4.5 3.5 3L16 14l3 3" /></Svg>;
 export const IconCamera = ({ size = 20 }: P) => <Svg size={size}><path d="M4 8.5h3.5L9 6h6l1.5 2.5H20V19H4z" /><circle cx="12" cy="13.5" r="3.2" /></Svg>;
+
+// 8단계 묶음 5 — 2단계 캔버스(장사시설 · 부고장)의 인라인 SVG 그대로
+export const IconHome = ({ size = 26 }: P) => <Svg size={size}><path d="M4 11l8-7 8 7M6 10v10h12V10" /></Svg>;
+export const IconMap = ({ size = 16 }: P) => <Svg size={size}><path d="M3 6l6-2 6 2 6-2v14l-6 2-6-2-6 2z" /><path d="M9 4v14M15 6v14" /></Svg>;
+export const IconSend = ({ size = 16 }: P) => <Svg size={size}><path d="M21 3L10 14M21 3l-7 18-4-7-7-4z" /></Svg>;
+export const IconSliders = ({ size = 20 }: P) => <Svg size={size}><path d="M4 6h16M7 12h10M10 18h4" /></Svg>;
+export const IconGrid = ({ size = 16 }: P) => <Svg size={size}><rect x="4" y="4" width="7" height="7" /><rect x="13" y="4" width="7" height="7" /><rect x="4" y="13" width="7" height="7" /><rect x="13" y="13" width="7" height="7" /></Svg>;
+export const IconList = ({ size = 16 }: P) => <Svg size={size}><path d="M8 6h12M8 12h12M8 18h12M4 6h.5M4 12h.5M4 18h.5" /></Svg>;
+export const IconPencil = ({ size = 16 }: P) => <Svg size={size}><path d="M4 20l1-4L16.5 4.5a1.8 1.8 0 0 1 2.5 0l.5.5a1.8 1.8 0 0 1 0 2.5L8 19z" /><path d="M14.5 6.5l3 3" /></Svg>;
+export const IconSearch = ({ size = 16 }: P) => <Svg size={size}><circle cx="11" cy="11" r="6.5" /><path d="M16 16l4 4" /></Svg>;

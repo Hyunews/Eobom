@@ -1,40 +1,10 @@
 import React from 'react';
-import { RdSelect } from '../../parts/RdInputs';
 import { IconCheck, IconErrorCircle } from '../../parts/icons';
 import './prep.css';
 
-// 8단계 묶음 4 공통 조각 — 미리보기 전용 상태 고르기 · 저장 줄 · 내려받기.
-
-export interface DemoOption {
-  value: string;
-  label: string;
-  group?: string;
-}
-
-/** 미리보기 전용 "보기 상태" 고르기. 실제 화면에는 없다(교체 때 삭제). */
-export function DemoBar({ value, options, onChange }: { value: string; options: DemoOption[]; onChange: (v: string) => void }) {
-  const groups = Array.from(new Set(options.map((o) => o.group ?? '')));
-  return (
-    <div className="rd-pr-demo">
-      <label htmlFor="rd-pr-demo-sel">미리보기 전용 · 보기 상태</label>
-      <RdSelect id="rd-pr-demo-sel" value={value} onChange={(e) => onChange(e.target.value)}>
-        {groups.map((g) =>
-          g ? (
-            <optgroup key={g} label={g}>
-              {options.filter((o) => o.group === g).map((o) => (
-                <option key={o.value} value={o.value}>{o.label}</option>
-              ))}
-            </optgroup>
-          ) : (
-            options.filter((o) => !o.group).map((o) => (
-              <option key={o.value} value={o.value}>{o.label}</option>
-            ))
-          ),
-        )}
-      </RdSelect>
-    </div>
-  );
-}
+// 8단계 묶음 4 공통 조각 — 저장 줄 · 내려받기. 미리보기 상태 고르기(DemoBar)·sleep은 묶음 5에서 parts/RdDemo로 올렸다.
+export { DemoBar, sleep } from '../../parts/RdDemo';
+export type { DemoOption } from '../../parts/RdDemo';
 
 export type SaveState = 'idle' | 'saving' | 'ok' | 'fail';
 
@@ -64,5 +34,3 @@ export function downloadText(name: string, text: string) {
   a.click();
   URL.revokeObjectURL(url);
 }
-
-export const sleep = (ms: number) => new Promise<void>((r) => window.setTimeout(r, ms));

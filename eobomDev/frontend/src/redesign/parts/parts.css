@@ -3783,3 +3783,147 @@
     display: none;
   }
 }
+
+
+/* ───── 8단계 묶음 5에서 부품으로 올린 것 — 묶음 4 prep.css에 있던 미리보기 상태 고르기 · 화면 틀 · 한 줄 안내 · 정의 목록 · 두 칸 · 입력 창 안 세로 간격 ───── */
+.rd-root .rd-demo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin: 24px 0 0;
+  padding: 10px 14px;
+  border: 1px dashed var(--rd-dot);
+  background: var(--rd-paper);
+  font-size: var(--rd-fs-small);
+  color: var(--rd-ink-small);
+}
+.rd-root .rd-demo .rd-select {
+  min-width: 260px;
+}
+.rd-root .rd-demo .rd-input {
+  height: 40px;
+  font-size: 14px;
+}
+.rd-root .rd-screen {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  padding-block: 64px 56px;
+}
+.rd-root .rd-screen > .rd-demo {
+  margin: -32px 0 0;
+}
+.rd-root .rd-formstack .rd-notice {
+  gap: 10px;
+  padding: 12px 16px;
+}
+.rd-root .rd-formstack .rd-notice__body {
+  gap: 2px;
+}
+.rd-root .rd-formstack .rd-notice__title {
+  font-size: 14px;
+  line-height: 1.5;
+}
+.rd-root .rd-formstack .rd-notice__desc {
+  font-size: 13px;
+  line-height: 1.5;
+}
+.rd-root .rd-grid2 {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+.rd-root .rd-lineinfo {
+  padding: 56px 0;
+  text-align: center;
+  font-size: 15px;
+  color: var(--rd-ink-support);
+}
+.rd-root .rd-formstack {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.rd-root .rd-dl {
+  margin: 0;
+  display: grid;
+  grid-template-columns: 90px minmax(0, 1fr);
+  gap: 10px 16px;
+  font-size: 15px;
+}
+.rd-root .rd-dl dt {
+  color: var(--rd-ink-support);
+}
+.rd-root .rd-dl dd {
+  margin: 0;
+}
+@media (max-width: 767px) {
+  .rd-root .rd-screen {
+    padding-block: 32px 40px;
+    gap: 24px;
+  }
+  .rd-root .rd-screen > .rd-demo {
+    margin: -16px 0 0;
+  }
+  .rd-root .rd-demo .rd-select {
+    min-width: 0;
+    width: 100%;
+  }
+  .rd-root .rd-grid2 {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* ───── 번호형 쪽 넘김 · 쪽 머리 제목 앞 그림 (8단계 묶음 5, 2단계 판 2-6~2-8) ───── */
+.rd-root .rd-pagernum {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+}
+.rd-root .rd-pagernum button {
+  height: var(--rd-touch);
+  border-radius: var(--rd-radius);
+  font: inherit;
+  font-size: 15px;
+  cursor: pointer;
+}
+.rd-root .rd-pagernum__n {
+  width: var(--rd-touch);
+  padding: 0;
+  background: transparent;
+  border: 1px solid var(--rd-input-line);
+  color: var(--rd-ink);
+}
+.rd-root .rd-pagernum__n[aria-current='page'] {
+  background: var(--rd-ink);
+  border-color: var(--rd-ink);
+  color: var(--rd-bg);
+  font-weight: 700;
+}
+.rd-root .rd-pagernum__side {
+  min-width: 64px;
+  padding: 0 12px;
+  background: transparent;
+  border: 1px solid var(--rd-ink);
+  color: var(--rd-ink);
+  font-weight: 500;
+}
+.rd-root .rd-pagernum__side:disabled {
+  border-color: var(--rd-line);
+  color: var(--rd-input-line);
+  cursor: default;
+}
+.rd-root .rd-pagernum__gap {
+  width: 20px;
+  text-align: center;
+  color: var(--rd-ink-small);
+}
+.rd-root .rd-pagehead__icon {
+  display: inline-flex;
+  margin-right: 12px;
+  color: var(--rd-point);
+  vertical-align: -3px;
+}

@@ -107,7 +107,7 @@ function TaxDialog({ onClose }: { onClose: () => void }) {
           {num(fin, setFin, '그중 순수 금융재산 (만원)', '부동산 제외')}
           <RdChips label="배우자 유무" options={['배우자 있음', '배우자 없음']} value={[spouse === 'yes' ? '배우자 있음' : '배우자 없음']} onChange={(v) => setSpouse(v[0] === '배우자 없음' ? 'no' : 'yes')} />
           {spouse === 'yes' && num(spouseActual, setSpouseActual, '배우자 실제 상속액 (만원, 선택)', '배우자공제는 실제 상속액 기준(최소 5억~최대 30억). 비워두면 법정상속분으로 자동 추정')}
-          <div className="rd-pr-grid2">
+          <div className="rd-grid2">
             {num(kids, setKids, '자녀 수')}
             {num(elders, setElders, '65세 이상 상속인 수')}
           </div>
@@ -195,7 +195,7 @@ function RequestDialog({ expert, demo, onClose, onDone }: { expert: Expert; demo
           </>
         }
       >
-        <div className="rd-pr-write">
+        <div className="rd-formstack">
           <p className="rd-dialog__desc">신청 내용을 남겨주시면 전문가가 확인 후 연락드립니다.</p>
           <RdCheck label="내 정보 사용 (010-****-5678)" checked={useMine} onChange={(e) => setUseMine(e.target.checked)} />
           <RdField label="이름" required>{(p) => <RdInput {...p} disabled={useMine} value={useMine ? '김OO' : name} onChange={(e) => setName(e.target.value)} />}</RdField>
@@ -262,7 +262,7 @@ export function CounselingPage() {
 
   if (demo === 'login') {
     return (
-      <div className="rd-container rd-pr-page">
+      <div className="rd-container rd-screen">
         <RdPageHead title="전문가 상담" desc="분야별 상담 신청 및 상속세 자동 시뮬레이터" />
         <div style={{ position: 'relative', minHeight: 520 }}><RdLoginGate screenName="전문가 상담" contained /></div>
         {demoBar}
@@ -273,7 +273,7 @@ export function CounselingPage() {
   const shown = demo === 'empty-all' || demo === 'empty-field' ? [] : EXPERTS.filter((e) => fields.length === 0 || fields.includes(e.field));
 
   return (
-    <div className="rd-container rd-pr-page">
+    <div className="rd-container rd-screen">
       {head}
 
       {situation && (
@@ -295,7 +295,7 @@ export function CounselingPage() {
       }} />
 
       {demo === 'loading' ? (
-        <p className="rd-pr-empty" role="status">불러오는 중...</p>
+        <p className="rd-lineinfo" role="status">불러오는 중...</p>
       ) : shown.length === 0 ? (
         <RdState
           kind="empty"
@@ -344,7 +344,7 @@ export function CounselingPage() {
             </>
           }
         >
-          <dl className="rd-pr-dl">
+          <dl className="rd-dl">
             <dt>분야</dt><dd>{detail.field}</dd>
             <dt>자격</dt><dd>{detail.license}</dd>
             <dt>전문</dt><dd>{detail.tags}</dd>
