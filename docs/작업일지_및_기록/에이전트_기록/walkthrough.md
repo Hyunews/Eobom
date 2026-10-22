@@ -28,6 +28,7 @@
 - **실기동**(개발자 10-22): `invite`·`memorial-extend` 모두 정상. `memorial` 3-5 로그인 전 창 바깥이 뿌옇게 보임 → 부품 규칙(`00-44` §7-5 ⑤ 바탕색 50% 흐림)대로라 **그대로 둠**(개발자 결정 A). 편차 ①~③은 판정 대기.
 - **다음 에이전트가 알아야 할 것**: 바뀐 3곳(`/preview/visitor/memorial` 로그인 가림막 · `/preview/visitor/invite` 알림·상태 · `/preview/visitor/memorial-extend` 상태) 눈 확인 후 묶음 7. 커밋은 사람 — 브랜치 `redesign`.
 - **판정**(Opus 10-22): 🔄스펙갱신 `00-44` §7-7 — ① `RdState`에 `missing`(문서 + 줄, 회색 선) 추가 → "찾을 수 없음" 4곳을 `empty`에서 `missing`으로 되돌림(봉투 = 아직 없음, 뜻이 다름) ② `role="alert"` 안 붙임 = 그대로 통과(상태 화면 전체가 alert 불필요) ③ 데스크톱 48 · 모바일 40 부품 규칙 = 통과, 스펙의 "40"을 바로잡음 · `RdState.tsx` 머리 주석 "40 × 40"도 맞춰 고칠 것. 나머지(은/는 자동·`onClose`·`title` 생략) 대조 편차 없음.
+- **판정 반영**(Sonnet 10-22): `RdStateKind`에 `missing`(문서+줄, 회색 `#B9AC98`, 이전 `VsState` 그림 그대로) 추가 → `VisitorObituaryPage`(부고장)·`VisitorMemorialPage`(추모관)·`VisitorInvitePage`(초대 링크) 3곳 `empty`→`missing`. 코드상 "찾을 수 없음" 호출은 3곳이었음(문서의 "4곳"과 1곳 차이 — 누락 확인 필요 시 알려 주세요). `RdState.tsx` 머리 주석 "40 × 40"→"데스크톱 48 · 모바일 40". `/preview/parts` 상태 화면에 "⑨ 찾을 수 없음" 견본 추가. `role="alert"` 안 붙임(판정 ②). `tsc --noEmit`·`npm run build` 통과. 눈 확인 ✅(개발자 10-22, "모두 정상"): `/preview/visitor/obituary`·`memorial`·`invite`의 찾을 수 없음 상태 + `/preview/parts`. 커밋은 사람.
 
 <!-- Gemini 판정 1줄: ✅통과 / ❌반려(사유) / 🔄스펙갱신(고친 문서) -->
 

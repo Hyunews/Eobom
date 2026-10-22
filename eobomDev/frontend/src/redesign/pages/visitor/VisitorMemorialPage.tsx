@@ -313,7 +313,7 @@ export function VisitorMemorialPage() {
   } else if (demo === 'missing') {
     body = (
       <div className="rd-vs-wrap">
-        <RdState kind="empty" title="추모관을 찾을 수 없습니다." desc="링크가 만료되었거나 잘못된 주소일 수 있습니다." />
+        <RdState kind="missing" title="추모관을 찾을 수 없습니다." desc="링크가 만료되었거나 잘못된 주소일 수 있습니다." />
       </div>
     );
   } else {

@@ -98,7 +98,7 @@ export function VisitorInvitePage() {
     body = <RdState kind="expired" title="초대 링크가 만료되었습니다." desc="보내신 분에게 새 링크를 다시 요청해 주세요." />;
   } else if (view === 'notfound') {
     body = (
-      <RdState kind="empty" title="초대 링크를 찾을 수 없습니다." desc="이미 처리되었거나 잘못된 주소일 수 있습니다.">
+      <RdState kind="missing" title="초대 링크를 찾을 수 없습니다." desc="이미 처리되었거나 잘못된 주소일 수 있습니다.">
         <VsLinkButton>이어봄 홈으로</VsLinkButton>
       </RdState>
     );

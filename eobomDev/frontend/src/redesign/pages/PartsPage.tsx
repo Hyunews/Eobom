@@ -730,6 +730,9 @@ function StateBlock() {
       <Sample title="⑥ 거절됨" bare>
         <RdState kind="declined" title="거절되었습니다." desc="아무 권한도 부여되지 않았습니다." />
       </Sample>
+      <Sample title="⑨ 찾을 수 없음" bare>
+        <RdState kind="missing" title="부고장을 찾을 수 없습니다." desc="링크가 만료되었거나 잘못된 주소일 수 있습니다." />
+      </Sample>
       <Sample title="⑦ 만료" bare>
         <RdState kind="expired" title="초대 링크가 만료되었습니다." desc="보내신 분에게 새 링크를 다시 요청해 주세요." />
       </Sample>
