@@ -1,5 +1,4 @@
 import React from 'react';
-import { RdBadge, type RdBadgeKind } from '../../parts/RdButtons';
 import { RdPageHead } from '../../parts/RdNav';
 import { RdLoginGate } from '../../parts/RdModal';
 import { IconCheck, IconErrorCircle } from '../../parts/icons';
@@ -122,12 +121,6 @@ export function MyLine({ kind, children }: { kind: 'loading' | 'error' | 'empty'
       {kind === 'empty' && <div>{children}</div>}
     </div>
   );
-}
-
-/** 딱지 — 상담 "종료"만 연한 회색이라 부품 종류에 없는 색을 CSS로 더한다 */
-export function MyBadge({ kind, faint, children }: { kind: RdBadgeKind; faint?: boolean; children: React.ReactNode }) {
-  if (faint) return <span className="rd-badge rd-badge--state rd-mp-badge--faint">{children}</span>;
-  return <RdBadge kind={kind}>{children}</RdBadge>;
 }
 
 /** 결과 한 줄(완료색 / 위험색) */

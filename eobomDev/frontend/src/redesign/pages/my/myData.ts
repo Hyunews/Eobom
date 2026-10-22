@@ -203,7 +203,7 @@ export const CONSULT_STATUS_BADGE: Record<StatusGroup, RdBadgeKind> = {
   RECEIVED: 'state',
   IN_PROGRESS: 'draft',
   DONE: 'done',
-  CLOSED: 'state', // 연한 회색은 화면 CSS가 더한다(rd-mp-badge--faint)
+  CLOSED: 'faint', // 끝난 상태는 회색 딱지(00-44 §6-4)
 };
 
 export const LEAD_TYPE_LABEL: Record<string, string> = { QUOTE: '견적 문의', CONSULT: '상담 문의' };

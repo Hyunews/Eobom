@@ -3,6 +3,7 @@ import { formatKST, formatDeathDate } from '../../../utils/obituaryCard';
 import { copyObituaryLink } from '../../../utils/kakaoShare';
 import { sleep, type DemoOption } from '../../parts/RdDemo';
 import { RdButton } from '../../parts/RdButtons';
+import { RdField, RdInput } from '../../parts/RdInputs';
 import { RdDialog, RdLoginGate } from '../../parts/RdModal';
 import { RdState } from '../../parts/RdState';
 import { IconChevronLeft, IconChevronRight, IconErrorCircle } from '../../parts/icons';
@@ -129,20 +130,12 @@ function GuestFormDialog({
       }
     >
       <p className="rd-vs-dlg__author">작성자: {VIEWER_NAME}</p>
-      <div className="rd-field">
-        <label className="rd-field__label" htmlFor="rd-vs-g-relation">
-          고인과의 관계
-          <span className="rd-vs-optional">선택</span>
-        </label>
-        <input id="rd-vs-g-relation" className="rd-input" type="text" value={relation} onChange={(e) => setRelation(e.target.value)} />
-      </div>
-      <div className="rd-field">
-        <label className="rd-field__label" htmlFor="rd-vs-g-message">
-          고인에게 전하는 글
-          <span className="rd-required">필수</span>
-        </label>
-        <textarea id="rd-vs-g-message" className="rd-input rd-input--area" value={message} onChange={(e) => setMessage(e.target.value)} />
-      </div>
+      <RdField label="고인과의 관계" optional>
+        {(p) => <RdInput {...p} type="text" value={relation} onChange={(e) => setRelation(e.target.value)} />}
+      </RdField>
+      <RdField label="고인에게 전하는 글" required>
+        {(p) => <textarea {...p} className="rd-input rd-input--area" value={message} onChange={(e) => setMessage(e.target.value)} />}
+      </RdField>
       {error && (
         <p className="rd-field__error" role="alert">
           <IconErrorCircle />

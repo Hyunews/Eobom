@@ -975,17 +975,6 @@
   line-height: 1.6;
   cursor: pointer;
 }
-.rd-root .rd-af-opt {
-  display: inline-block;
-  width: 34px;
-  text-align: center;
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--rd-ink-small);
-  border: 1px solid var(--rd-dot);
-  padding: 1px 0;
-  border-radius: var(--rd-radius);
-}
 /* 카카오톡 대화방 배경 + 흰 카드 — 판 2-12~2-15 값(#DCE3E8 · #FFFFFF · 그림자 0 2px 8px) */
 .rd-root .rd-af-stage {
   padding: 20px;

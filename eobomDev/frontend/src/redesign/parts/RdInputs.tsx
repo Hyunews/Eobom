@@ -1,5 +1,5 @@
 import React, { useId, useRef } from 'react';
-import { RdButton, RdRequired } from './RdButtons';
+import { RdButton, RdOptional, RdRequired } from './RdButtons';
 import { IconCalendar, IconCamera, IconChevronDown, IconDoc, IconImage, IconUpload, IconErrorCircle, IconClose } from './icons';
 
 // 00-44 §8 폼 · 입력. 필수는 "필수" 딱지(별표 없음), 오류는 칸마다(브라우저 기본 검증 안 씀).
@@ -14,12 +14,15 @@ export interface RdControlProps {
 export function RdField({
   label,
   required,
+  optional,
   help,
   error,
   children,
 }: {
   label: string;
   required?: boolean;
+  /** "선택" 딱지(회색). required와 같이 쓰지 않는다 */
+  optional?: boolean;
   /** 필요한 칸에만 단다(§8-1) */
   help?: string;
   error?: string;
@@ -34,6 +37,7 @@ export function RdField({
       <label className="rd-field__label" htmlFor={id}>
         {label}
         {required && <RdRequired />}
+        {optional && !required && <RdOptional />}
       </label>
       {children({ id, 'aria-describedby': note ? noteId : undefined, 'aria-invalid': error ? true : undefined })}
       {note && (

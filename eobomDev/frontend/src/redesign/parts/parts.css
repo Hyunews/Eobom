@@ -390,6 +390,11 @@
   color: var(--rd-point);
 }
 
+.rd-badge--faint {
+  border-color: var(--rd-line);
+  color: var(--rd-ink-small);
+}
+
 .rd-badge--done {
   font-weight: 700;
   color: var(--rd-done);
@@ -433,6 +438,12 @@
 
 .rd-required--narrow {
   width: 34px;
+}
+
+/* "선택" 딱지 — 필수 딱지와 같은 자리·크기, 색만 회색 */
+.rd-required--optional {
+  border-color: var(--rd-dot);
+  color: var(--rd-ink-small);
 }
 
 /* ───────── 칸 · 목록 (§7-2) ───────── */
@@ -2665,6 +2676,19 @@
     padding: 0;
     border: 0;
     font-size: 13px;
+  }
+
+  /* keepStatus: 모바일에서도 상태는 오른쪽 끝 */
+  .rd-row--keep .rd-row__status {
+    display: inline-flex;
+  }
+
+  .rd-row--keep .rd-row__status-m {
+    display: none;
+  }
+
+  .rd-row--keep .rd-row__title {
+    overflow-wrap: anywhere;
   }
 
   .rd-row--nav {

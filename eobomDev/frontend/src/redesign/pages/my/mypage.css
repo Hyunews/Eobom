@@ -67,19 +67,10 @@
   height: 18px;
 }
 
-/* 목록 줄: 모바일에서도 상태 딱지는 오른쪽에 둔다(4-6 모바일 줄 결정 10-16 개발자) — 부품 RdListRow는 모바일에서 상태를 정보 줄로 옮긴다 */
-.rd-root .rd-mp-keep .rd-row__title {
-  overflow-wrap: anywhere;
-}
 .rd-root .rd-mp-with {
   font-size: 14px;
   color: var(--rd-ink-support);
   white-space: nowrap;
-}
-.rd-root .rd-mp-badge--faint {
-  color: var(--rd-ink-small);
-  border-color: var(--rd-line);
-  font-weight: 500;
 }
 
 /* ───── 4-1 마이페이지 첫 화면 ───── */
@@ -329,37 +320,8 @@
 .rd-root .rd-mp-make__linkline.rd-mp-make__linkline--err {
   color: var(--rd-danger);
 }
-.rd-root .rd-mp-opt {
-  display: inline-block;
-  box-sizing: border-box;
-  width: 40px;
-  margin-left: 8px;
-  text-align: center;
-  font-size: 12px;
-  font-weight: 700;
-  line-height: 1.5;
-  color: var(--rd-ink-small);
-  border: 1px solid var(--rd-dot);
-  border-radius: var(--rd-radius);
-  vertical-align: 1px;
-}
 .rd-root .rd-mp-agrees {
-  border-bottom: 1px dotted var(--rd-dot);
-}
-.rd-root .rd-mp-agree {
-  padding: 14px 0;
   border-top: 1px dotted var(--rd-dot);
-}
-.rd-root .rd-mp-agree__lab {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  font-size: 13.5px;
-  line-height: 1.7;
-  cursor: pointer;
-}
-.rd-root .rd-mp-agree .rd-field__error {
-  margin: 6px 0 0 32px;
 }
 
 /* ───── 4-6-2 추모관 관리 ───── */
@@ -485,14 +447,6 @@
   }
   .rd-root .rd-mp-line__err span {
     font-size: 13px;
-  }
-
-  /* 목록 줄: 상태 딱지는 오른쪽 그대로 */
-  .rd-root .rd-mp-keep .rd-row__status {
-    display: inline-flex;
-  }
-  .rd-root .rd-mp-keep .rd-row__status-m {
-    display: none;
   }
 
   .rd-root .rd-mp-msg {

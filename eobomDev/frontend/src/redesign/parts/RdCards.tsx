@@ -96,17 +96,20 @@ export function RdListRow({
   status,
   onClick,
   className,
+  keepStatus,
 }: {
   title: string;
   info?: string;
   status?: React.ReactNode;
   onClick?: () => void;
+  /** 모바일에서도 상태를 오른쪽 끝에 둔다(기본은 정보 줄 안) */
+  keepStatus?: boolean;
   /** 견본 쪽이 올림 모양을 고정할 때 쓴다(is-hover) */
   className?: string;
 }) {
   return (
     <li className="rd-list__li">
-      <button type="button" className={['rd-row', className].filter(Boolean).join(' ')} onClick={onClick}>
+      <button type="button" className={['rd-row', keepStatus && 'rd-row--keep', className].filter(Boolean).join(' ')} onClick={onClick}>
         <span className="rd-row__main">
           <span className="rd-row__title">{title}</span>
           {(info || status) && (

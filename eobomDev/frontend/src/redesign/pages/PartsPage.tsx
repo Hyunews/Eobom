@@ -6,6 +6,7 @@ import {
   RdButtonRow,
   RdIconButton,
   RdRequired,
+  RdOptional,
   RdTextLink,
 } from '../parts/RdButtons';
 import {
@@ -153,12 +154,15 @@ function ButtonsBlock() {
         <div className="rd-pv__row" style={{ alignItems: 'center' }}>
           <RdBadge kind="done">공개 중</RdBadge>
           <RdBadge kind="state">닫힘</RdBadge>
+          <RdBadge kind="faint">종료</RdBadge>
           <RdBadge kind="draft">작성 중</RdBadge>
           <RdBadge kind="danger">되돌릴 수 없음</RdBadge>
           <RdBadge kind="danger-fill">D-12</RdBadge>
           <RdBadge kind="example">예시</RdBadge>
           <span style={{ fontSize: 15, fontWeight: 500 }}>성함 <RdRequired /></span>
           <span style={{ fontSize: 15 }}>동의 문장 끝 <RdRequired narrow /></span>
+          <span style={{ fontSize: 15, fontWeight: 500 }}>사망일 <RdOptional /></span>
+          <span style={{ fontSize: 15 }}>동의 문장 끝 <RdOptional narrow /></span>
         </div>
       </Sample>
     </>
@@ -216,12 +220,16 @@ function CardsBlock() {
           />
         </div>
       </Sample>
-      <Sample title="목록 줄 · 이동 줄" note="위 먹색 실선, 줄 사이 점선. 줄 전체가 누르는 자리. 모바일은 상태가 정보 줄 안으로.">
+      <Sample title="목록 줄 · 이동 줄" note="위 먹색 실선, 줄 사이 점선. 줄 전체가 누르는 자리. 모바일은 상태가 정보 줄 안으로(오른쪽에 두려면 keepStatus).">
         <div className="rd-pv__grid">
           <RdList label="목록 줄">
             <RdListRow title="故 김○○ 님 부고" info="발인 10월 16일 · 조문 32명" status={<span className="rd-st rd-st--done">공개 중</span>} onClick={noop} />
             <RdListRow className="is-hover" title="故 박○○ 님 부고" info="발인 9월 2일" status={<span className="rd-st rd-st--muted">닫힘</span>} onClick={noop} />
             <RdListRow title="연금 수급 중지" info="국민연금공단" onClick={noop} />
+          </RdList>
+          <RdList label="목록 줄 (모바일에서도 상태 오른쪽)">
+            <RdListRow keepStatus title="김○○ 님 상속 상담" info="전화 · 10월 13일" status={<RdBadge kind="draft">진행 중</RdBadge>} onClick={noop} />
+            <RdListRow keepStatus title="이○○ 님 장례 상담" info="화상 · 9월 3일" status={<RdBadge kind="faint">종료</RdBadge>} onClick={noop} />
           </RdList>
           <RdList label="이동 줄">
             <RdNavRow icon={<IconUser />} name="내 정보" desc="이름 · 연락처 · 로그인 방법" />
@@ -329,7 +337,7 @@ function InputsBlock() {
               </RdSelect>
             )}
           </RdField>
-          <RdField label="사망일">
+          <RdField label="사망일" optional>
             {(p) => <RdDate {...p} />}
           </RdField>
           <div style={{ gridColumn: '1 / -1' }}>

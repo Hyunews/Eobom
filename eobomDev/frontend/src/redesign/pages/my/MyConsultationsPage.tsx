@@ -1,14 +1,14 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { formatKstDate } from '../../../utils/kstDate';
-import { RdButton } from '../../parts/RdButtons';
+import { RdBadge, RdButton } from '../../parts/RdButtons';
 import { DemoBar, type DemoOption } from '../../parts/RdDemo';
 import { RdList, RdListRow } from '../../parts/RdCards';
 import { RdPageHead } from '../../parts/RdNav';
 import { RdDialog } from '../../parts/RdModal';
 import { RdState } from '../../parts/RdState';
 import { CONSULTS, CONSULT_STATUS_BADGE, CONSULT_STATUS_LABEL, PV, monthDay, type ConsultItem } from './myData';
-import { MyBadge, MyDl, MyGate, MyLine } from './myShared';
+import { MyDl, MyGate, MyLine } from './myShared';
 import './mypage.css';
 
 // 8단계 묶음 7 · /preview/my-consultations — 4단계 판 4-8(내 상담 내역 · 상세 창). 정본: 00-36 §4.4 · §4.4-1.
@@ -59,11 +59,11 @@ export function MyConsultationsPage() {
       <>
         <RdList>
           {CONSULTS.map((c) => (
-            <RdListRow
+            <RdListRow keepStatus
               key={c.key}
               title={c.title}
               info={`${c.how} · ${monthDay(formatKstDate(c.createdAt))}`}
-              status={<MyBadge kind={CONSULT_STATUS_BADGE[c.statusGroup]} faint={c.statusGroup === 'CLOSED'}>{CONSULT_STATUS_LABEL[c.statusGroup]}</MyBadge>}
+              status={<RdBadge kind={CONSULT_STATUS_BADGE[c.statusGroup]}>{CONSULT_STATUS_LABEL[c.statusGroup]}</RdBadge>}
               onClick={() => setOpen(c)}
             />
           ))}
@@ -75,7 +75,7 @@ export function MyConsultationsPage() {
 
   return (
     <div className="rd-container rd-screen">
-      <div className="rd-mp-read rd-mp-keep">
+      <div className="rd-mp-read">
         <RdPageHead title="내 상담 내역" />
         <div>{body}</div>
       </div>
@@ -97,11 +97,11 @@ export function MyConsultationsPage() {
               { name: '신청일', value: formatKstDate(open.createdAt) },
               {
                 name: '상태',
-                value: <MyBadge kind={CONSULT_STATUS_BADGE[open.statusGroup]} faint={open.statusGroup === 'CLOSED'}>{CONSULT_STATUS_LABEL[open.statusGroup]}</MyBadge>,
+                value: <RdBadge kind={CONSULT_STATUS_BADGE[open.statusGroup]}>{CONSULT_STATUS_LABEL[open.statusGroup]}</RdBadge>,
               },
               ...(open.summary ? [{ name: '내용', value: open.summary, stack: true }] : []),
-              // 건별 동의(제3자 제공)는 토글 대상이 아니다 — 이미 제공된 사실이라 시각만 보여준다(00-36 §4.5). 시안은 "동의함"
-              ...(open.consentAt ? [{ name: '제3자 제공 동의', value: '동의함' }] : []),
+              // 건별 동의(제3자 제공)는 토글 대상이 아니다 — 이미 제공된 사실이라 동의한 날짜만 보여준다(00-36 §4.5·§4.8). 값이 없으면 줄이 없다
+              ...(open.consentAt ? [{ name: '제3자 제공 동의', value: formatKstDate(open.consentAt) }] : []),
             ]}
           />
         </RdDialog>

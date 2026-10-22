@@ -147,7 +147,7 @@ export function RdBranchLink({ tone = 'primary', title, desc, className, ...rest
 }
 
 /** 표시 딱지 — 테두리 딱지 = 상태 / 채운 딱지 = 기한 임박(위험)·"예시"만(§6-4-1). */
-export type RdBadgeKind = 'state' | 'draft' | 'done' | 'danger' | 'danger-fill' | 'example';
+export type RdBadgeKind = 'state' | 'faint' | 'draft' | 'done' | 'danger' | 'danger-fill' | 'example';
 
 export function RdBadge({ kind = 'state', children }: { kind?: RdBadgeKind; children: React.ReactNode }) {
   return <span className={`rd-badge rd-badge--${kind}`}>{children}</span>;
@@ -156,6 +156,11 @@ export function RdBadge({ kind = 'state', children }: { kind?: RdBadgeKind; chil
 /** 필수 딱지 — 칸 이름 끝(§8-3-1). 별표를 쓰지 않는다. */
 export function RdRequired({ narrow }: { narrow?: boolean }) {
   return <span className={`rd-required${narrow ? ' rd-required--narrow' : ''}`}>필수</span>;
+}
+
+/** "선택" 딱지 — 필수 딱지와 같은 자리·크기, 회색 */
+export function RdOptional({ narrow }: { narrow?: boolean }) {
+  return <span className={`rd-required rd-required--optional${narrow ? ' rd-required--narrow' : ''}`}>선택</span>;
 }
 
 /** 이동 줄 오른쪽 › */

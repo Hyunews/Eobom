@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { formatKstDate } from '../../../utils/kstDate';
 import { copyObituaryLink } from '../../../utils/kakaoShare';
-import { RdButton, RdButtonRow } from '../../parts/RdButtons';
+import { RdBadge, RdButton, RdButtonRow } from '../../parts/RdButtons';
 import { DemoBar, sleep, type DemoOption } from '../../parts/RdDemo';
 import { RdInput } from '../../parts/RdInputs';
 import { RdList, RdListRow } from '../../parts/RdCards';
@@ -10,7 +10,7 @@ import { RdPageHead } from '../../parts/RdNav';
 import { RdAlertDialog, RdDialog } from '../../parts/RdModal';
 import { IconArrowOut } from '../../parts/icons';
 import { MEMORIAL_STATE_BADGE, MEMORIAL_STATE_LABEL, MEMORIALS, OBITS, PV, VISITED, memorialManageUrl, memorialState, visitedKind, type MyObit } from './myData';
-import { MyBadge, MyDl, MyGate, MyLine, MyResult, MySec } from './myShared';
+import { MyDl, MyGate, MyLine, MyResult, MySec } from './myShared';
 import './mypage.css';
 
 // 8단계 묶음 7 · /preview/my-obituaries-memorials — 4단계 판 4-6(내 부고장·추모관 세 구간 · 부고장 상세 창 · 삭제 확인).
@@ -108,11 +108,11 @@ export function MyListPage() {
       return (
         <RdList>
           {obits.map((o) => (
-            <RdListRow
+            <RdListRow keepStatus
               key={o.id}
               title={`故 ${o.deceasedName}`}
               info={formatKstDate(o.deceasedDeathDate ?? o.createdAt)}
-              status={<MyBadge kind={o.isClosed ? 'state' : 'done'}>{o.isClosed ? '종료됨' : '진행중'}</MyBadge>}
+              status={<RdBadge kind={o.isClosed ? 'state' : 'done'}>{o.isClosed ? '종료됨' : '진행중'}</RdBadge>}
               onClick={() => { setShareNote(null); setOpenId(o.id); }}
             />
           ))}
@@ -126,11 +126,11 @@ export function MyListPage() {
           {MEMORIALS.map((m) => {
             const s = memorialState(m);
             return (
-              <RdListRow
+              <RdListRow keepStatus
                 key={m.id}
                 title={`故 ${m.deceasedName}`}
                 info={formatKstDate(m.createdAt)}
-                status={<MyBadge kind={MEMORIAL_STATE_BADGE[s]}>{MEMORIAL_STATE_LABEL[s]}</MyBadge>}
+                status={<RdBadge kind={MEMORIAL_STATE_BADGE[s]}>{MEMORIAL_STATE_LABEL[s]}</RdBadge>}
                 onClick={() => navigate(memorialManageUrl(m.slug))}
               />
             );
@@ -142,7 +142,7 @@ export function MyListPage() {
     return (
       <RdList>
         {VISITED.map((v) => (
-          <RdListRow
+          <RdListRow keepStatus
             key={v.slug}
             title={`故 ${v.deceasedName}`}
             info={formatKstDate(v.lastAt)}
@@ -158,7 +158,7 @@ export function MyListPage() {
 
   return (
     <div className="rd-container rd-screen">
-      <div className="rd-mp-read rd-mp-keep">
+      <div className="rd-mp-read">
         <RdPageHead title="내 부고장·추모관" desc={SUBTITLE} />
         <MySec title="내가 만든 부고장" count={count(obits.length)}>
           {listOf('obit')}
@@ -182,7 +182,7 @@ export function MyListPage() {
       </div>
       {bar}
 
-      {/* 부고장 상세 창 — 버튼 두 줄: 1줄 [보기 ↗][공유(주)] / 2줄 [닫기][수정][삭제] (묶음 2 점검 ③) */}
+      {/* 부고장 상세 창 — 버튼 두 줄: 1줄 [열기 ↗][공유(주)] / 2줄 [닫기][수정][삭제] (묶음 2 점검 ③) */}
       {open && !confirmDelete && !deleteFail && (
         <RdDialog
           width={560}
@@ -194,7 +194,7 @@ export function MyListPage() {
             <div className="rd-mp-foot2">
               <div className="rd-mp-foot2__row">
                 <a className="rd-btn rd-btn--secondary rd-btn--dialog" href={PV.openObituary} target="_blank" rel="noopener noreferrer">
-                  <span>보기</span>
+                  <span>열기</span>
                   <IconArrowOut size={14} />
                 </a>
                 <RdButton place="dialog" onClick={() => share(open)}>공유</RdButton>
@@ -210,7 +210,7 @@ export function MyListPage() {
           <div className="rd-mp-body">
             <MyDl
               rows={[
-                { name: '상태', value: <MyBadge kind={open.isClosed ? 'state' : 'done'}>{open.isClosed ? '종료됨' : '진행중'}</MyBadge> },
+                { name: '상태', value: <RdBadge kind={open.isClosed ? 'state' : 'done'}>{open.isClosed ? '종료됨' : '진행중'}</RdBadge> },
                 open.deceasedDeathDate
                   ? { name: '사망일', value: formatKstDate(open.deceasedDeathDate) }
                   : { name: '개설일', value: formatKstDate(open.createdAt) },

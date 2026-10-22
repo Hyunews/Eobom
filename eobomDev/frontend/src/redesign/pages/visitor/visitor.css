@@ -464,22 +464,6 @@
   color: var(--rd-ink-support);
 }
 
-.rd-root .rd-vs-optional {
-  display: inline-block;
-  box-sizing: border-box;
-  width: 40px;
-  margin-left: 8px;
-  padding: 1px 0;
-  border: 1px solid var(--rd-dot);
-  border-radius: var(--rd-radius);
-  font-size: 12px;
-  font-weight: 500;
-  line-height: 1.5;
-  text-align: center;
-  color: var(--rd-ink-small);
-  vertical-align: 1px;
-}
-
 .rd-root .rd-vs-dlg__quote {
   margin: 16px 0 0;
   padding: 12px 14px;

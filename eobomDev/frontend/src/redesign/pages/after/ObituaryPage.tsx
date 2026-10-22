@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { OBITUARY_CARD_IMAGE_URL } from '../../../config';
 import { formatObituaryCardDescription, formatObituaryCardTitle } from '../../../utils/obituaryCard';
-import { RdButton, RdRequired, RdTextLink } from '../../parts/RdButtons';
+import { RdButton, RdOptional, RdRequired, RdTextLink } from '../../parts/RdButtons';
 import { DemoBar, sleep, type DemoOption } from '../../parts/RdDemo';
 import { RdField, RdInput, RdSaveBar, RdSelect } from '../../parts/RdInputs';
 import { RdPageHead } from '../../parts/RdNav';
@@ -47,13 +47,13 @@ function Req() {
 }
 
 /** 확인 사항 한 줄 — 박스 없이 점선 줄(판 2-12 개발자 수정). 필수/선택 딱지는 문장 앞 */
-function AgreeRow({ id, kind, checked, onChange, error, children }: { id: string; kind: 'req' | 'opt'; checked: boolean; onChange: (v: boolean) => void; error?: string; children: React.ReactNode }) {
+export function AgreeRow({ id, kind, checked, onChange, error, children }: { id: string; kind: 'req' | 'opt'; checked: boolean; onChange: (v: boolean) => void; error?: string; children: React.ReactNode }) {
   return (
     <div className="rd-af-agree">
       <label htmlFor={id} className="rd-af-agree__lab">
         <input id={id} type="checkbox" className="rd-checkbox" checked={checked} aria-invalid={error ? true : undefined} onChange={(e) => onChange(e.target.checked)} />
         <span>
-          {kind === 'req' ? <Req /> : <span className="rd-af-opt">선택</span>} {children}
+          {kind === 'req' ? <Req /> : <RdOptional narrow />} {children}
         </span>
       </label>
       {error && (

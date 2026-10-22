@@ -1,10 +1,11 @@
-import React, { useEffect, useId, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { formatKstDate, kstToday } from '../../../utils/kstDate';
 import { copyObituaryLink } from '../../../utils/kakaoShare';
-import { RdButton, RdRequired, RdTextLink } from '../../parts/RdButtons';
+import { RdBadge, RdButton, RdTextLink } from '../../parts/RdButtons';
 import { DemoBar, sleep, type DemoOption } from '../../parts/RdDemo';
-import { RdDate, RdInput, RdSaveBar, RdSelect, type RdControlProps } from '../../parts/RdInputs';
+import { RdDate, RdField, RdInput, RdSaveBar, RdSelect } from '../../parts/RdInputs';
+import { AgreeRow } from '../after/ObituaryPage';
 import { RdPageHead } from '../../parts/RdNav';
 import { RdDialog } from '../../parts/RdModal';
 import { RdState } from '../../parts/RdState';
@@ -14,7 +15,7 @@ import {
   MEMORIALS, MEMORIAL_STATE_BADGE, MEMORIAL_STATE_LABEL, PV, VISIBILITY_LABEL,
   findMemorial, memorialButtons, memorialDateLine, memorialManageUrl, memorialState, type MyMemorial,
 } from './myData';
-import { IconCopy, MyBadge, MyDl, MyGate, MyLine, MyResult } from './myShared';
+import { IconCopy, MyDl, MyGate, MyLine, MyResult } from './myShared';
 import './mypage.css';
 
 // 8단계 묶음 7 · /preview/memorial — 4단계 판 4-6-1(만들기) · 4-6-2(관리 `?slug=`) · 4-6-3(상태).
@@ -34,49 +35,6 @@ const VISIBILITY_OPTIONS = [
 ];
 
 const plusDays = (ymd: string, days: number) => formatKstDate(new Date(`${ymd}T00:00:00+09:00`).getTime() + days * 86400000);
-
-/** 칸 한 개 — RdField에 "선택" 딱지가 없어(시안 4-6-1은 선택 칸에 딱지를 단다) 같은 모양으로 한 벌 더 둔다 */
-function MpField({ label, required, optional, error, children }: { label: string; required?: boolean; optional?: boolean; error?: string; children: (p: RdControlProps) => React.ReactNode }) {
-  const base = useId();
-  const id = `${base}-c`;
-  const noteId = `${base}-n`;
-  return (
-    <div className="rd-field">
-      <label className="rd-field__label" htmlFor={id}>
-        {label}
-        {required && <RdRequired />}
-        {optional && <span className="rd-mp-opt">선택</span>}
-      </label>
-      {children({ id, 'aria-describedby': error ? noteId : undefined, 'aria-invalid': error ? true : undefined })}
-      {error && (
-        <p className="rd-field__error" id={noteId} role="alert">
-          <IconErrorCircle />
-          <span>{error}</span>
-        </p>
-      )}
-    </div>
-  );
-}
-
-/** 동의 한 줄 — 박스 없이 점선 줄(부고장과 같은 모양). 둘째 줄은 560 폭에서 두 줄 그대로 */
-function Agree({ id, checked, onChange, error, children }: { id: string; checked: boolean; onChange: (v: boolean) => void; error?: string; children: React.ReactNode }) {
-  return (
-    <div className="rd-mp-agree">
-      <label htmlFor={id} className="rd-mp-agree__lab">
-        <input id={id} type="checkbox" className="rd-checkbox" checked={checked} aria-invalid={error ? true : undefined} onChange={(e) => onChange(e.target.checked)} />
-        <span>
-          {children} <RdRequired narrow />
-        </span>
-      </label>
-      {error && (
-        <p className="rd-field__error" role="alert">
-          <IconErrorCircle />
-          <span>{error}</span>
-        </p>
-      )}
-    </div>
-  );
-}
 
 export function MemorialPage() {
   const [params] = useSearchParams();
@@ -204,16 +162,16 @@ function MakeView() {
         </div>
 
         <form className="rd-mp-make__form" noValidate onSubmit={(e) => e.preventDefault()}>
-          <MpField label="고인 성함" required error={errors.deceased}>
+          <RdField label="고인 성함" required error={errors.deceased}>
             {(p) => <RdInput {...p} placeholder="예: 홍길동" value={name} onChange={(e) => { setName(e.target.value); clear('deceased'); }} />}
-          </MpField>
-          <MpField label="사망일" optional>
+          </RdField>
+          <RdField label="사망일" optional>
             {(p) => <RdDate {...p} value={death} onChange={(e) => setDeath(e.target.value)} />}
-          </MpField>
-          <MpField label="추모 문구" optional>
+          </RdField>
+          <RdField label="추모 문구" optional>
             {(p) => <RdInput {...p} placeholder={EPITAPH_PLACEHOLDER} value={epitaph} onChange={(e) => setEpitaph(e.target.value)} />}
-          </MpField>
-          <MpField label="공개 범위">
+          </RdField>
+          <RdField label="공개 범위">
             {(p) => (
               <RdSelect {...p} value={visibility} onChange={(e) => setVisibility(e.target.value)}>
                 {VISIBILITY_OPTIONS.map((o) => (
@@ -221,14 +179,14 @@ function MakeView() {
                 ))}
               </RdSelect>
             )}
-          </MpField>
+          </RdField>
           <div className="rd-mp-agrees">
-            <Agree id="mem-false" checked={falseAgree} error={errors.falseReport} onChange={(v) => { setFalseAgree(v); if (v) clear('falseReport'); }}>
+            <AgreeRow kind="req" id="mem-false" checked={falseAgree} error={errors.falseReport} onChange={(v) => { setFalseAgree(v); if (v) clear('falseReport'); }}>
               허위로 추모관을 개설할 경우 법적 책임을 질 수 있다는 점에 동의합니다.
-            </Agree>
-            <Agree id="mem-reshared" checked={reshare} error={errors.reshared} onChange={(v) => { setReshare(v); if (v) clear('reshared'); }}>
+            </AgreeRow>
+            <AgreeRow kind="req" id="mem-reshared" checked={reshare} error={errors.reshared} onChange={(v) => { setReshare(v); if (v) clear('reshared'); }}>
               이 추모관 링크를 전달받은 분이 다시 다른 곳에 공유할 수 있다는 점을 확인했습니다.
-            </Agree>
+            </AgreeRow>
           </div>
           {createError && (
             <p className="rd-field__error" role="alert">
@@ -372,7 +330,7 @@ function ManageView({ slug }: { slug: string }) {
   const dateLine = memorialDateLine(m);
 
   const rows = [
-    { name: '상태', value: <MyBadge kind={MEMORIAL_STATE_BADGE[s]}>{MEMORIAL_STATE_LABEL[s]}</MyBadge> },
+    { name: '상태', value: <RdBadge kind={MEMORIAL_STATE_BADGE[s]}>{MEMORIAL_STATE_LABEL[s]}</RdBadge> },
     // 운영자가 내렸으면 공개 범위 글은 한 마디만(뒷말은 [수정]이 없어져 뺀다, 00-36 §4.8-3)
     { name: '공개 범위', value: s === 'hidden' ? '운영자가 비공개 처리함' : (VISIBILITY_LABEL[m.visibility] ?? m.visibility) },
     ...(m.epitaph ? [{ name: '추모 문구', value: m.epitaph }] : []),
@@ -499,10 +457,10 @@ function ManageView({ slug }: { slug: string }) {
           }
         >
           <div className="rd-mp-editbody">
-            <MpField label="추모 문구" optional>
+            <RdField label="추모 문구" optional>
               {(p) => <RdInput {...p} placeholder={EPITAPH_PLACEHOLDER} value={editEpitaph} onChange={(e) => setEditEpitaph(e.target.value)} />}
-            </MpField>
-            <MpField label="공개 범위">
+            </RdField>
+            <RdField label="공개 범위">
               {(p) => (
                 <RdSelect {...p} value={editVisibility} onChange={(e) => setEditVisibility(e.target.value)}>
                   {VISIBILITY_OPTIONS.map((o) => (
@@ -510,7 +468,7 @@ function ManageView({ slug }: { slug: string }) {
                   ))}
                 </RdSelect>
               )}
-            </MpField>
+            </RdField>
             {editError && (
               <p className="rd-field__error" role="alert">
                 <IconErrorCircle />

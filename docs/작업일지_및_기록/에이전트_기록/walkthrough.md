@@ -18,6 +18,14 @@
 > 원인 = Gemini 판정이 `gemini_tasks.md`에만 적히고 이 파일 판정 칸은 비어 있었음. 🔴 **판정은 이 파일의 그 항목 칸에 적는다**(`GEMINI.md`).
 
 ---
+## 2026-10-22 | [Sonnet] 디자인 개편 8단계 묶음 7 편차 판정 반영 — 부품 3종(목록 줄 상태 오른쪽 · `RdField` 선택 딱지 · `RdBadge` 회색) + 문구 2곳
+
+- **근거 스펙**: 묶음 7 항목의 "판정" 줄 · `00-44` §6-4·§7-2 목록 줄·§8-3 · `00-36` §4.4·§4.8-1. `docs/`는 안 고침.
+- **한 일**: ① 부고장 상세 창 [보기 ↗] → [열기 ↗](`MyListPage`). ② 상담 상세 "제3자 제공 동의" = `formatKstDate(consentAt)`, 값 없으면 줄 없음. ③ `RdListRow`에 `keepStatus`(모바일에서도 상태 오른쪽, `.rd-row--keep`) → `mypage.css` `.rd-mp-keep` 덮어쓰기 삭제, 4-6·4-8 줄에서 사용. ④ `RdField`에 `optional`(+`RdOptional` 딱지: 필수 딱지와 같은 자리·크기, 회색, `narrow` 있음) → `MpField`·`rd-af-opt`·`rd-vs-optional` 세 벌을 부품으로 교체하고 CSS 삭제, `ObituaryPage`의 `AgreeRow`를 export해 `MemorialPage`가 import(복사본 `Agree`·`rd-mp-agree*` CSS 삭제, `.rd-mp-agrees`는 위 점선만 남김). ⑤ `RdBadge`에 `faint`(회색) → `myData` `CLOSED`·상담 종료에 사용, `MyBadge` 래퍼·`rd-mp-badge--faint` 삭제(호출부는 `RdBadge` 직접). ⑥ `/preview/parts`에 2·3·4·5 견본 추가(딱지 `종료`, 선택 딱지 2종, 목록 줄 `keepStatus`, `RdField optional`).
+- **확인**: 프론트 `tsc --noEmit` 통과 · `npm run build` 통과. 실기동은 아래 요청 대기.
+- **🔴 실기동 요청(사람)**: ① `/preview/obituary` 만들기 — 확인 사항 3줄에서 [선택] 딱지가 [필수]와 같은 자리·크기·회색인지 ② `/preview/visitor/memorial` 방명록 남기기 창 — "고인과의 관계 [선택]" 딱지, 칸·글 입력 · 필수 딱지 ③ `/preview/memorial` 만들기 — 사망일·추모 문구 [선택], 동의 2줄이 부고장과 같은 모양(위 점선 포함), 오류 메시지 위치 ④ `/preview/my-obituaries-memorials` · `/preview/my-consultations` 목록 — **모바일 폭에서도** 상태 딱지가 오른쪽, 상담 "종료"가 회색 ⑤ 상담 상세 창 — "제3자 제공 동의"가 날짜 ⑥ 부고장 상세 창 — [열기 ↗] ⑦ `/preview/parts` — 새 견본 5곳이 보이는지.
+- **다음 에이전트가 알아야 할 것**: 위 ①~⑦ 눈 확인 후 묶음 8. 커밋은 사람 — 브랜치 `redesign`. 커밋 메시지 초안은 응답에 있음.
+
 ## 2026-10-22 | [Sonnet] 디자인 개편 8단계 묶음 7 — 마이페이지·추모관 `/preview/mypage` · `my-obituaries-memorials` · `memorial`(`?slug=`) · `my-guestbook` · `my-consultations` + 서버 "헌화·방명록을 남긴 추모관" API · 내 추모관 방명록·헌화 수 2칸 (나누지 않고 한 번에)
 
 - **근거 스펙**: `00-44` §9-4 묶음 7 줄 + 공통 조건 · `00-36` §4.7·§4.8·§4.8-1~§4.8-4·§4.9 #1~#7 · `05-01` §4.2 · 4단계 캔버스 `5h5nHioqXUtTP53Mw6bhnP`(묶음 1, 판 4-1)·`8UMZvjM5NJidB7dtnPdT4Z`(묶음 2, 판 4-6~4-8·4-6-1~4-6-3)의 인라인 값·문구를 직접 읽고 반영 · 바탕화면 `이어봄_디자인_4단계_목록.md` 묶음 1·2 절과 결정 기록·점검(점검 ①②③ 반영). `docs/`는 안 고침.
