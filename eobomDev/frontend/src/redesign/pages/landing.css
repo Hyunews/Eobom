@@ -2,7 +2,8 @@
    모든 규칙은 .rd-landing 아래(또는 모바일 풀페이지용 html.rd-landing-snap)에 가둔다. 지금 화면에 새지 않는다. */
 
 .rd-landing {
-  --rd-landing-head: 101px; /* 데스크톱 헤더 높이(실측: 패딩 28×2 + 한 줄 + 선) — 첫 화면 높이 계산용 */
+  --rd-landing-head: 101px;
+  /* 데스크톱 헤더 높이(실측: 패딩 28×2 + 한 줄 + 선) — 첫 화면 높이 계산용 */
   --rd-landing-wide: calc(var(--rd-content-w) + var(--rd-gutter) * 2);
 }
 
@@ -39,7 +40,8 @@
 
 .rd-lh__inner {
   box-sizing: border-box;
-  max-width: calc(var(--rd-landing-wide) / var(--rd-fit, 1)); /* 배율을 곱하면 화면에서 헤더·바닥글과 같은 폭 */
+  max-width: calc(var(--rd-landing-wide) / var(--rd-fit, 1));
+  /* 배율을 곱하면 화면에서 헤더·바닥글과 같은 폭 */
   margin-inline: auto;
   padding: 48px calc(var(--rd-gutter) / var(--rd-fit, 1)) 88px;
   display: flex;
@@ -153,7 +155,7 @@
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
-.rd-lq__grid > li {
+.rd-lq__grid>li {
   min-width: 0;
 }
 
@@ -189,23 +191,34 @@
 }
 
 /* 2 × 2 점선 — 칸 사이 */
-.rd-lq__grid > li:nth-child(1) {
+.rd-lq__grid>li:nth-child(1) {
   border-right: 1px dotted var(--rd-dot);
   border-bottom: 1px dotted var(--rd-dot);
 }
 
-.rd-lq__grid > li:nth-child(2) {
+.rd-lq__grid>li:nth-child(2) {
   border-bottom: 1px dotted var(--rd-dot);
 }
 
-.rd-lq__grid > li:nth-child(3) {
+.rd-lq__grid>li:nth-child(3) {
   border-right: 1px dotted var(--rd-dot);
 }
 
-.rd-lq__grid > li:nth-child(1) .rd-lq__cell { padding: 10px 20px 24px 0; }
-.rd-lq__grid > li:nth-child(2) .rd-lq__cell { padding: 10px 0 24px 24px; }
-.rd-lq__grid > li:nth-child(3) .rd-lq__cell { padding: 25px 20px 12px 0; }
-.rd-lq__grid > li:nth-child(4) .rd-lq__cell { padding: 25px 0 12px 24px; }
+.rd-lq__grid>li:nth-child(1) .rd-lq__cell {
+  padding: 10px 20px 24px 0;
+}
+
+.rd-lq__grid>li:nth-child(2) .rd-lq__cell {
+  padding: 10px 0 24px 24px;
+}
+
+.rd-lq__grid>li:nth-child(3) .rd-lq__cell {
+  padding: 25px 20px 12px 0;
+}
+
+.rd-lq__grid>li:nth-child(4) .rd-lq__cell {
+  padding: 25px 0 12px 24px;
+}
 
 /* 모바일 판: 카드 없이 한 화면 2열 11칸 */
 .rd-lq--m {
@@ -227,26 +240,34 @@
   margin: 0;
 }
 
-.rd-lq--m .rd-lq__grid > li {
+.rd-lq--m .rd-lq__grid>li {
   border: 0;
   border-bottom: 1px dotted var(--rd-dot);
 }
 
-.rd-lq--m .rd-lq__grid > li:nth-child(odd) {
+.rd-lq--m .rd-lq__grid>li:nth-child(odd) {
   border-right: 1px dotted var(--rd-dot);
 }
 
-.rd-lq--m .rd-lq__grid > li:last-child {
+.rd-lq--m .rd-lq__grid>li:last-child {
   border-bottom: 0;
 }
 
-.rd-lq--m .rd-lq__grid > li .rd-lq__cell {
+.rd-lq--m .rd-lq__grid>li .rd-lq__cell {
   gap: 8px;
 }
 
-.rd-lq--m .rd-lq__grid > li:nth-child(odd) .rd-lq__cell { padding: 14px 12px 14px 0; }
-.rd-lq--m .rd-lq__grid > li:nth-child(even) .rd-lq__cell { padding: 14px 0 14px 16px; }
-.rd-lq--m .rd-lq__grid > li:last-child .rd-lq__cell { padding-bottom: 12px; }
+.rd-lq--m .rd-lq__grid>li:nth-child(odd) .rd-lq__cell {
+  padding: 14px 12px 14px 0;
+}
+
+.rd-lq--m .rd-lq__grid>li:nth-child(even) .rd-lq__cell {
+  padding: 14px 0 14px 16px;
+}
+
+.rd-lq--m .rd-lq__grid>li:last-child .rd-lq__cell {
+  padding-bottom: 12px;
+}
 
 .rd-lq--m .rd-lq__name {
   font-size: 16px;
@@ -320,7 +341,8 @@
 .rd-ls__body {
   display: flex;
   flex-wrap: wrap;
-  justify-content: space-between; /* 상세 폭에 상한이 있어 남는 폭은 목록과 상세 사이로 — 상세는 본문 오른쪽 끝(헤더·바닥글과 같은 선)에 붙는다 */
+  justify-content: space-between;
+  /* 상세 폭에 상한이 있어 남는 폭은 목록과 상세 사이로 — 상세는 본문 오른쪽 끝(헤더·바닥글과 같은 선)에 붙는다 */
   gap: 48px;
   align-items: flex-start;
 }
@@ -393,7 +415,8 @@
 /* 모든 항목의 상세를 한 칸에 겹쳐 가장 긴 것이 칸 높이를 정한다. 나머지 폭 전부(480 제한 없음) */
 .rd-ls__stack {
   flex: 1 1 400px;
-  max-width: 740px; /* 배율 1일 때 나머지 폭(약 732)이 상한 — 낮고 넓은 화면(배율 < 1)에서 그림만 가로로 늘어나지 않게 */
+  max-width: 740px;
+  /* 배율 1일 때 나머지 폭(약 732)이 상한 — 낮고 넓은 화면(배율 < 1)에서 그림만 가로로 늘어나지 않게 */
   min-width: 0;
   display: grid;
 }
@@ -408,6 +431,8 @@
 
 .rd-ls__detail--ghost {
   visibility: hidden;
+  opacity: 0;
+  pointer-events: none;
 }
 
 .rd-ls__img,
@@ -426,11 +451,12 @@
 .rd-ls__img {
   box-sizing: border-box;
   width: 100%;
-  height: 300px; /* 배율 1 기준 고정 높이(16:10 해제) */
+  height: 300px;
+  /* 배율 1 기준 고정 높이(16:10 해제) */
   overflow: hidden;
 }
 
-.rd-ls__img > img {
+.rd-ls__img>img {
   width: 100%;
   height: 100%;
   object-fit: cover;
@@ -492,10 +518,11 @@
   color: var(--rd-ink-support);
 }
 
-.rd-ls__points li > span:first-child,
-.rd-lm__points li > span:first-child {
+.rd-ls__points li>span:first-child,
+.rd-lm__points li>span:first-child {
   flex-shrink: 0;
-  font-weight: 700; /* 갈색 점(·) — 가는 점이 묻히지 않게 */
+  font-weight: 700;
+  /* 갈색 점(·) — 가는 점이 묻히지 않게 */
   color: var(--rd-point);
 }
 
@@ -608,7 +635,8 @@ html.rd-landing-snap {
 }
 
 .rd-lm__img {
-  height: clamp(130px, 25svh, 220px); /* 큰 화면 220 · 작은 화면은 칸에 들어가게 줄임 */
+  height: clamp(130px, 25svh, 220px);
+  /* 큰 화면 220 · 작은 화면은 칸에 들어가게 줄임 */
   border-width: 10px;
   font-size: 13px;
 }
@@ -682,16 +710,47 @@ html.rd-landing-snap {
 
 /* 낮은 휴대폰 화면(주소창이 보이는 높이 등) — 칸이 화면보다 길어 아래가 잘리지 않게 여백·그림을 줄인다 */
 @media (max-width: 767px) and (max-height: 740px) {
-  .rd-lm { padding: 16px 24px 52px; gap: 10px; }
-  .rd-lm__img { height: clamp(100px, 19svh, 220px); }
-  .rd-lm__card { gap: 8px; }
-  .rd-lm__points { padding-top: 8px; gap: 6px; }
-  .rd-lc--quick { padding-bottom: 52px; }
-  .rd-lq--m { padding-top: 14px; }
-  .rd-lq--m .rd-lq__grid > li:nth-child(odd) .rd-lq__cell { padding: 8px 12px 8px 0; }
-  .rd-lq--m .rd-lq__grid > li:nth-child(even) .rd-lq__cell { padding: 8px 0 8px 16px; }
-  .rd-lq--m .rd-lq__grid > li .rd-lq__cell { gap: 4px; }
-  .rd-lc__hero { gap: 10px; }
+  .rd-lm {
+    padding: 16px 24px 52px;
+    gap: 10px;
+  }
+
+  .rd-lm__img {
+    height: clamp(100px, 19svh, 220px);
+  }
+
+  .rd-lm__card {
+    gap: 8px;
+  }
+
+  .rd-lm__points {
+    padding-top: 8px;
+    gap: 6px;
+  }
+
+  .rd-lc--quick {
+    padding-bottom: 52px;
+  }
+
+  .rd-lq--m {
+    padding-top: 14px;
+  }
+
+  .rd-lq--m .rd-lq__grid>li:nth-child(odd) .rd-lq__cell {
+    padding: 8px 12px 8px 0;
+  }
+
+  .rd-lq--m .rd-lq__grid>li:nth-child(even) .rd-lq__cell {
+    padding: 8px 0 8px 16px;
+  }
+
+  .rd-lq--m .rd-lq__grid>li .rd-lq__cell {
+    gap: 4px;
+  }
+
+  .rd-lc__hero {
+    gap: 10px;
+  }
 }
 
 /* ───────── 등장 효과 (데스크톱) ─────────
@@ -712,17 +771,7 @@ html.rd-landing-snap {
     opacity: 0;
     transform: translateY(18px);
   }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
 
-@keyframes rdDetailGlide {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
   to {
     opacity: 1;
     transform: translateY(0);
@@ -730,21 +779,28 @@ html.rd-landing-snap {
 }
 
 @media (prefers-reduced-motion: no-preference) {
+
   .rd-lh[data-fit-ready] .rd-lh__h1,
   .rd-lh[data-fit-ready] .rd-lh__branches,
   .rd-lh[data-fit-ready] .rd-lq {
-    animation: rdFadeUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+    animation: rdFadeUp 1.2s cubic-bezier(0.22, 0.61, 0.36, 1) both;
   }
 
   .rd-lh[data-fit-ready] .rd-lh__branches {
-    animation-delay: 0.1s;
-  }
-
-  .rd-lh[data-fit-ready] .rd-lq {
     animation-delay: 0.2s;
   }
 
-  .rd-ls[data-fit-ready] .rd-ls__detail:not(.rd-ls__detail--ghost) {
-    animation: rdDetailGlide 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+  .rd-lh[data-fit-ready] .rd-lq {
+    animation-delay: 0.4s;
+  }
+
+  /* 상세 전환 = 교차 페이드. 나가는 것은 천천히 옅어지고 들어오는 것은 겹쳐서 짙어져 사이에 빈 순간(깜빡임)이 없다.
+     visibility 는 옅어지는 동안 유지됐다가 끝나면 숨는다(나가는 쪽 지연). */
+  .rd-ls__detail {
+    transition: opacity 0.9s ease, visibility 0s linear 0s;
+  }
+
+  .rd-ls__detail--ghost {
+    transition: opacity 0.7s ease, visibility 0s linear 0.7s;
   }
 }
