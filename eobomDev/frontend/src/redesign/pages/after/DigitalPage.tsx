@@ -131,7 +131,7 @@ function ArrangeSection() {
     <section className="rd-af-sec">
       <div className="rd-af-h2 rd-af-h2--sub">
         <h2 className="rd-t-section">찾은 계정 정리하기</h2>
-        <p className="rd-af-h2__sub">인터넷 회사(포털·SNS 등)에 요청할 수 있는 것과 없는 것</p>
+        <p className="rd-af-h2__sub">요청할 수 있는 것과 없는 것</p>
       </div>
       <div className="rd-af-docols">
         <section className="rd-af-do">
