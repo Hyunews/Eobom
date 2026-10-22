@@ -71,12 +71,23 @@ export function useFitScale(sectionRef: RefObject<HTMLElement>, fitRef: RefObjec
     const onResize = () => schedule(120);
     const onFonts = () => schedule(0);
 
-    measure();
-    window.addEventListener('resize', onResize);
+    // 첫 측정은 대체 글꼴로 하게 되므로, 웹 글꼴이 오거나 800ms 가 지나면(느린 회선 상한) 한 번 더 재고 나서야 구간을 보인다(data-fit-ready).
+    // 그 전엔 CSS 가 내용을 투명하게 둔다(자리는 그대로) — 글꼴이 바뀌며 배율·여백이 흔들리는 것이 화면에 비치지 않는다.
+    let cancelled = false;
     const fonts = document.fonts;
-    fonts?.ready.then(onFonts).catch(() => undefined);
+    measure();
+    Promise.race([
+      fonts ? fonts.ready.catch(() => undefined) : Promise.resolve(),
+      new Promise((resolve) => window.setTimeout(resolve, 800)),
+    ]).then(() => {
+      if (cancelled) return;
+      measure();
+      sec.setAttribute('data-fit-ready', '');
+    });
+    window.addEventListener('resize', onResize);
     fonts?.addEventListener?.('loadingdone', onFonts);
     return () => {
+      cancelled = true;
       window.clearTimeout(timer);
       cancelAnimationFrame(raf);
       window.removeEventListener('resize', onResize);

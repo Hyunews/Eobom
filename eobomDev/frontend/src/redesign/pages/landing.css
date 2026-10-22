@@ -693,3 +693,58 @@ html.rd-landing-snap {
   .rd-lq--m .rd-lq__grid > li .rd-lq__cell { gap: 4px; }
   .rd-lc__hero { gap: 10px; }
 }
+
+/* ───────── 등장 효과 (데스크톱) ─────────
+   useFitScale 이 글꼴 적재 후 배율을 맞추면 구간에 data-fit-ready 를 단다. 그 전엔 내용만 투명(자리는 그대로라 측정에 영향 없음)이고,
+   효과는 ready 에서 시작한다. 움직임을 줄이는 설정에서는 효과 없이 바로 보인다. */
+.rd-lh__fit,
+.rd-ls__fit {
+  opacity: 0;
+}
+
+.rd-lh[data-fit-ready] .rd-lh__fit,
+.rd-ls[data-fit-ready] .rd-ls__fit {
+  opacity: 1;
+}
+
+@keyframes rdFadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes rdDetailGlide {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .rd-lh[data-fit-ready] .rd-lh__h1,
+  .rd-lh[data-fit-ready] .rd-lh__branches,
+  .rd-lh[data-fit-ready] .rd-lq {
+    animation: rdFadeUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  .rd-lh[data-fit-ready] .rd-lh__branches {
+    animation-delay: 0.1s;
+  }
+
+  .rd-lh[data-fit-ready] .rd-lq {
+    animation-delay: 0.2s;
+  }
+
+  .rd-ls[data-fit-ready] .rd-ls__detail:not(.rd-ls__detail--ghost) {
+    animation: rdDetailGlide 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+}
