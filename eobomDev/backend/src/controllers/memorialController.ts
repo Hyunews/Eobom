@@ -168,9 +168,34 @@ export const listMyMemorials = async (req: Request, res: Response) => {
       orderBy: { createdAt: 'desc' },
       include: { obituary: { select: { id: true } } }, // 부고장 수정 폼 "내 추모관 잇기" 목록용(00-13 §4.5-4-2)
     });
+    // 🆕 관리 화면(`/memorial?slug=`)의 "방명록 ○건 · 헌화 ○번" 두 칸(00-36 §4.8-3 · 05-01 §4.2). 추가형 — 기존 칸은 그대로다.
+    // 🔴 방명록은 §4.7과 같은 규칙으로 센다: 상주 삭제·운영자 숨김·본인 삭제한 글은 "방명록"으로 치지 않는다.
+    // 집계는 내 추모관 id들에만 건다(groupBy 두 번 — 추모관마다 count를 따로 부르지 않는다. DB 왕복이 느린 환경).
+    const ids = memorials.map((m) => m.id);
+    const [guestbookGroups, tributeGroups] = ids.length
+      ? await Promise.all([
+          prisma.memorialGuestbook.groupBy({
+            by: ['memorialId'],
+            where: { memorialId: { in: ids }, deletedByOwnerAt: null, deletedByAuthorAt: null, hiddenAt: null },
+            _count: { _all: true },
+          }),
+          prisma.memorialTribute.groupBy({ by: ['memorialId'], where: { memorialId: { in: ids } }, _count: { _all: true } }),
+        ])
+      : [[], []];
+    const guestbookCounts = new Map(guestbookGroups.map((g) => [g.memorialId, g._count._all]));
+    const tributeCounts = new Map(tributeGroups.map((g) => [g.memorialId, g._count._all]));
     // 연장 버튼 표시 판정은 서버가 한다(00-20 §8.1-4 ②-가) — 화면은 canExtend만 본다.
     const now = new Date();
-    return res.json({ status: 'success', data: memorials.map(({ obituary, ...m }) => ({ ...m, obituaryId: obituary?.id ?? null, canExtend: canExtendNow(m, now) })) });
+    return res.json({
+      status: 'success',
+      data: memorials.map(({ obituary, ...m }) => ({
+        ...m,
+        obituaryId: obituary?.id ?? null,
+        canExtend: canExtendNow(m, now),
+        guestbookCount: guestbookCounts.get(m.id) ?? 0,
+        tributeCount: tributeCounts.get(m.id) ?? 0,
+      })),
+    });
   } catch (error) {
     console.error('내 추모관 목록 조회 실패:', error);
     return res.status(500).json({ status: 'error', message: '목록 조회 중 오류가 발생했습니다.' });

@@ -3,7 +3,7 @@ import { listMyMemorials } from '../controllers/memorialController';
 import { listMyObituaries } from '../controllers/obituaryController';
 import { getMyProfile, updateMyProfile, recordMyConsent } from '../controllers/profileController';
 import { getMySummary } from '../controllers/summaryController';
-import { listMyLeads, listMyConsultRequests, listMyGuestbookEntries, deleteMyGuestbookEntry } from '../controllers/meActivityController';
+import { listMyLeads, listMyConsultRequests, listMyGuestbookEntries, listMyVisitedMemorials, deleteMyGuestbookEntry } from '../controllers/meActivityController';
 import { listMyCareGuideProgress, checkCareGuideTask, uncheckCareGuideTask } from '../controllers/careGuideController';
 import { getDeletionPreview, requestAccountDeletion, cancelAccountDeletion } from '../controllers/accountDeletionController';
 import { requireUserAuth } from '../middleware/requireAuth';
@@ -18,6 +18,8 @@ router.use(requireUserAuth); // 이 라우터는 전부 로그인 필수 — 새
 
 // 내가 개설한 추모관 목록
 router.get('/memorials', listMyMemorials);
+// 🆕 헌화·방명록을 남긴(로그인한 채) 남의 추모관 중 지금 열리는 것 — 마이페이지 "내 부고장·추모관" 세 번째 구간(00-36 §4.8-1)
+router.get('/visited-memorials', listMyVisitedMemorials);
 // 내가 만든 부고장 목록
 router.get('/obituaries', listMyObituaries);
 

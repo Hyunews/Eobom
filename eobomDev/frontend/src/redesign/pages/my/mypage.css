@@ -1,0 +1,526 @@
+/* 8단계 묶음 7 · 마이페이지·추모관 미리보기(/preview/mypage …). 값은 4단계 묶음 1·2 캔버스의 인라인 값.
+   🔴 .rd-root 아래에서만 걸린다 — 지금 화면(design-v2.css · index.css)으로 새지 않는다(00-44 §9-4 공통 조건).
+   부품(parts.css)은 고치지 않고, 부품에 없는 모양만 여기서 더한다(walkthrough 편차 참고). */
+
+/* ───── 공통 ───── */
+.rd-root .rd-mp-read {
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+  width: 100%;
+  max-width: var(--rd-read-w);
+  margin-inline: auto;
+}
+.rd-root .rd-mp-gatebox {
+  position: relative;
+  min-height: 520px;
+}
+.rd-root .rd-mp-sec {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.rd-root .rd-mp-ct {
+  margin-left: 8px;
+  font: 400 15px/1 var(--rd-font-sans);
+  color: var(--rd-ink-small);
+}
+.rd-root .rd-mp-act {
+  margin-top: 8px;
+}
+
+/* 이동 줄이 링크일 때(<a>) */
+.rd-root a.rd-row,
+.rd-root a.rd-row:hover {
+  color: var(--rd-ink);
+  text-decoration: none;
+}
+.rd-root .rd-mp-navrow {
+  min-height: 60px;
+}
+
+/* 구간 안 한 줄 상태 글(불러오는 중 · 실패 · 빈 목록) — 코드가 구간 안 한 줄 글이라 큰 상태 화면 틀을 쓰지 않는다(4단계 묶음 2 결정) */
+.rd-root .rd-mp-line {
+  margin: 0;
+  border-top: 1px solid var(--rd-ink);
+}
+.rd-root .rd-mp-line > div {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 28px 0;
+  border-bottom: 1px dotted var(--rd-dot);
+  font-size: 15px;
+  color: var(--rd-ink-support);
+  text-align: center;
+}
+.rd-root .rd-mp-line .rd-mp-line__err {
+  color: var(--rd-danger);
+}
+.rd-root .rd-mp-line .rd-mp-line__err svg {
+  flex: none;
+}
+.rd-root .rd-mp-line .rd-spin {
+  color: var(--rd-point);
+  width: 18px;
+  height: 18px;
+}
+
+/* 목록 줄: 모바일에서도 상태 딱지는 오른쪽에 둔다(4-6 모바일 줄 결정 10-16 개발자) — 부품 RdListRow는 모바일에서 상태를 정보 줄로 옮긴다 */
+.rd-root .rd-mp-keep .rd-row__title {
+  overflow-wrap: anywhere;
+}
+.rd-root .rd-mp-with {
+  font-size: 14px;
+  color: var(--rd-ink-support);
+  white-space: nowrap;
+}
+.rd-root .rd-mp-badge--faint {
+  color: var(--rd-ink-small);
+  border-color: var(--rd-line);
+  font-weight: 500;
+}
+
+/* ───── 4-1 마이페이지 첫 화면 ───── */
+.rd-root .rd-mp-head {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+.rd-root .rd-mp-avatar {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: var(--rd-shadow);
+  border: 1px solid var(--rd-line);
+  font-family: var(--rd-font-serif);
+  font-size: 30px;
+  font-weight: 700;
+  color: var(--rd-ink-support);
+}
+.rd-root .rd-mp-head__body {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.rd-root .rd-mp-head__name {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.rd-root .rd-mp-head__badge .rd-badge {
+  letter-spacing: 1px;
+  font-weight: 700;
+}
+.rd-root .rd-mp-head__email {
+  margin: 0;
+  font-size: 15px;
+  color: var(--rd-ink-support);
+}
+.rd-root .rd-mp-head .rd-btn {
+  flex: none;
+}
+
+.rd-root .rd-mp-stats.rd-stats {
+  border-bottom: 1px solid var(--rd-line);
+}
+.rd-root .rd-mp-stats .rd-stats__cell {
+  padding: 20px 0;
+}
+.rd-root .rd-mp-stats .rd-stats__cell + .rd-stats__cell {
+  padding-left: 24px;
+}
+.rd-root .rd-mp-stats dt {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.rd-root .rd-mp-stats dt svg {
+  color: var(--rd-point);
+}
+/* 부고장 칸 = 칸 전체가 누르는 자리(오른쪽 절반을 덮는 링크). 숫자 칸의 dt·dd는 dl 바로 아래 칸(div)의 자식이어야 해서 링크로 감싸지 않는다 */
+.rd-root .rd-mp-statwrap {
+  position: relative;
+}
+.rd-root .rd-mp-stat__link {
+  position: absolute;
+  top: 1px;
+  bottom: 1px;
+  left: 50%;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  color: var(--rd-ink-small);
+  text-decoration: none;
+}
+.rd-root .rd-mp-stat__link > span {
+  display: inline-flex;
+}
+.rd-root .rd-mp-stat__link:focus-visible {
+  outline: 2px solid var(--rd-point);
+  outline-offset: 2px;
+}
+.rd-root .rd-mp-head .rd-btn > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.rd-root .rd-mp-bottom {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+.rd-root .rd-mp-bottom button {
+  min-height: var(--rd-touch);
+  padding: 0 12px;
+  border: 0;
+  background: transparent;
+  font: 400 14px var(--rd-font-sans);
+  color: var(--rd-ink-support);
+  cursor: pointer;
+}
+.rd-root .rd-mp-bottom button:hover {
+  text-decoration: underline;
+}
+.rd-root .rd-mp-bottom .rd-mp-bottom__danger {
+  color: var(--rd-danger);
+}
+.rd-root .rd-mp-note {
+  margin: 0;
+  font-size: var(--rd-fs-small);
+  color: var(--rd-ink-small);
+}
+
+/* ───── 4-6 부고장 상세 창 · 4-7 · 4-8 ───── */
+.rd-root .rd-mp-dl {
+  margin: 0;
+  border-top: 1px solid var(--rd-ink);
+}
+.rd-root .rd-mp-dl__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 44px;
+  border-bottom: 1px dotted var(--rd-dot);
+  font-size: 15px;
+}
+.rd-root .rd-mp-dl__row dt {
+  flex: none;
+  font-weight: 500;
+}
+.rd-root .rd-mp-dl__row dd {
+  min-width: 0;
+  margin: 0;
+  text-align: right;
+}
+.rd-root .rd-mp-dl__row--stack {
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 4px;
+  padding: 10px 0;
+}
+.rd-root .rd-mp-dl__row--stack dd {
+  text-align: left;
+  line-height: 1.7;
+  color: var(--rd-ink-support);
+  word-break: keep-all;
+  white-space: pre-wrap;
+}
+.rd-root .rd-mp-body {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.rd-root .rd-mp-foot2 {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.rd-root .rd-mp-foot2__row {
+  display: flex;
+  gap: 12px;
+}
+.rd-root .rd-mp-foot2__row > .rd-btn {
+  flex: 1 1 0;
+  min-width: 0;
+}
+.rd-root .rd-mp-rs {
+  margin: 0;
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  font-size: 14px;
+  line-height: 1.6;
+}
+.rd-root .rd-mp-rs svg {
+  flex: none;
+  margin-top: 3px;
+}
+.rd-root .rd-mp-rs--ok {
+  color: var(--rd-done);
+}
+.rd-root .rd-mp-rs--err {
+  color: var(--rd-danger);
+}
+.rd-root .rd-mp-danger-line {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.7;
+  font-weight: 700;
+  color: var(--rd-danger);
+}
+.rd-root .rd-mp-msg {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--rd-ink);
+  word-break: keep-all;
+}
+.rd-root .rd-mp-foot-note {
+  margin: 16px 0 0;
+  font-size: 14px;
+  text-align: center;
+  color: var(--rd-ink-small);
+}
+
+/* ───── 4-6-1 추모관 만들기 ───── */
+.rd-root .rd-mp-make {
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+}
+.rd-root .rd-mp-make__form {
+  width: 560px;
+  max-width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+.rd-root .rd-mp-make__link {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: -16px;
+}
+.rd-root .rd-mp-make__linkline {
+  margin: -16px 0 0;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  font-size: 15px;
+  color: var(--rd-ink-support);
+}
+.rd-root .rd-mp-make__linkline.rd-mp-make__linkline--err {
+  color: var(--rd-danger);
+}
+.rd-root .rd-mp-opt {
+  display: inline-block;
+  box-sizing: border-box;
+  width: 40px;
+  margin-left: 8px;
+  text-align: center;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.5;
+  color: var(--rd-ink-small);
+  border: 1px solid var(--rd-dot);
+  border-radius: var(--rd-radius);
+  vertical-align: 1px;
+}
+.rd-root .rd-mp-agrees {
+  border-bottom: 1px dotted var(--rd-dot);
+}
+.rd-root .rd-mp-agree {
+  padding: 14px 0;
+  border-top: 1px dotted var(--rd-dot);
+}
+.rd-root .rd-mp-agree__lab {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 13.5px;
+  line-height: 1.7;
+  cursor: pointer;
+}
+.rd-root .rd-mp-agree .rd-field__error {
+  margin: 6px 0 0 32px;
+}
+
+/* ───── 4-6-2 추모관 관리 ───── */
+.rd-root .rd-mp-two {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 48px;
+  align-items: end; /* 크기는 그대로 두고 두 칸의 아래쪽 선만 맞춘다 */
+}
+.rd-root .rd-mp-h3 {
+  margin: 0;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--rd-line);
+  font-family: var(--rd-font-serif);
+  font-size: 20px;
+  font-weight: 700;
+}
+.rd-root .rd-mp-info {
+  margin: 0;
+}
+.rd-root .rd-mp-info .rd-mp-dl__row {
+  min-height: 44px;
+}
+.rd-root .rd-mp-card {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 28px;
+  background: var(--rd-paper);
+  border: 1px solid var(--rd-line);
+}
+.rd-root .rd-mp-card .rd-btn {
+  width: 100%;
+}
+.rd-root .rd-mp-card .rd-btn > span,
+.rd-root .rd-mp-card a.rd-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.rd-root .rd-mp-foot2__row a.rd-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  text-decoration: none;
+}
+.rd-root .rd-mp-pair {
+  display: contents;
+}
+.rd-root .rd-mp-sg {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-top: 18px;
+  border-top: 1px solid var(--rd-line);
+}
+.rd-root .rd-mp-sg--dot {
+  padding-top: 14px;
+  border-top: 1px dotted var(--rd-dot);
+}
+.rd-root .rd-mp-editbody {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* ───── 휴대폰 ───── */
+@media (max-width: 767px) {
+  .rd-root .rd-mp-read {
+    gap: 32px;
+  }
+  .rd-root .rd-mp-head {
+    gap: 14px;
+  }
+  .rd-root .rd-mp-avatar {
+    width: 56px;
+    height: 56px;
+    font-size: 24px;
+  }
+  .rd-root .rd-mp-head__body {
+    gap: 4px;
+  }
+  .rd-root .rd-mp-head__name {
+    gap: 8px;
+  }
+  .rd-root .rd-mp-head__name h1 {
+    white-space: nowrap;
+  }
+  .rd-root .rd-mp-head__badge .rd-badge {
+    padding: 1px 6px;
+    font-size: 11px;
+  }
+  .rd-root .rd-mp-head__email {
+    font-size: 14px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  /* [계정 연동] 모바일 = 아이콘만(제목 줄이 밀리지 않게) */
+  .rd-root .rd-mp-head .rd-btn {
+    width: var(--rd-touch);
+    padding: 0;
+  }
+  .rd-root .rd-mp-desk {
+    display: none;
+  }
+  .rd-root .rd-mp-stats .rd-stats__cell {
+    padding: 16px 0;
+  }
+  .rd-root .rd-mp-stats .rd-stats__cell + .rd-stats__cell {
+    padding-left: 16px;
+  }
+  .rd-root .rd-mp-stats dd {
+    font-size: 28px;
+  }
+  .rd-root .rd-mp-navrow {
+    min-height: 56px;
+  }
+  .rd-root .rd-mp-line > div {
+    padding: 24px 0;
+  }
+  .rd-root .rd-mp-line__err span {
+    font-size: 13px;
+  }
+
+  /* 목록 줄: 상태 딱지는 오른쪽 그대로 */
+  .rd-root .rd-mp-keep .rd-row__status {
+    display: inline-flex;
+  }
+  .rd-root .rd-mp-keep .rd-row__status-m {
+    display: none;
+  }
+
+  .rd-root .rd-mp-msg {
+    display: block;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+  .rd-root .rd-mp-foot2__row {
+    gap: 8px;
+  }
+  .rd-root .rd-mp-make {
+    gap: 32px;
+  }
+  .rd-root .rd-mp-make__form {
+    width: 100%;
+    gap: 24px;
+  }
+  .rd-root .rd-mp-two {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 32px;
+  }
+  .rd-root .rd-mp-card {
+    padding: 24px;
+  }
+  /* 모바일은 [열기][주소 복사]를 1:1 한 줄 */
+  .rd-root .rd-mp-pair {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+}

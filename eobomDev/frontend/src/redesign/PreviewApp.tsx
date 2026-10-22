@@ -14,6 +14,11 @@ import { FacilityPage } from './pages/after/FacilityPage';
 import { ObituaryPage } from './pages/after/ObituaryPage';
 import { FacilityDetailPage } from './pages/after/FacilityDetailPage';
 import { VisitorRoutes } from './pages/visitor/VisitorRoutes';
+import { MyHubPage } from './pages/my/MyHubPage';
+import { MyListPage } from './pages/my/MyListPage';
+import { MemorialPage } from './pages/my/MemorialPage';
+import { MyGuestbookPage } from './pages/my/MyGuestbookPage';
+import { MyConsultationsPage } from './pages/my/MyConsultationsPage';
 
 // 8단계 미리보기 뿌리 — /preview/… 만 연다. 메뉴·링크 어디에도 이 주소를 넣지 않는다(00-44 §9-4 공통 조건).
 // 묶음 2가 /preview/parts, 묶음 3부터 화면별 주소를 여기에 더한다.
@@ -54,6 +59,12 @@ export function PreviewApp() {
                 <Route path="/preview/obituary" element={<ObituaryPage />} />
                 <Route path="/preview/facility" element={<FacilityPage />} />
                 <Route path="/preview/facility/:id" element={<FacilityDetailPage />} />
+                {/* 묶음 7 — 마이페이지 · 추모관. /preview/memorial 은 ?slug= 가 있으면 관리, 없으면 만들기 */}
+                <Route path="/preview/mypage" element={<MyHubPage />} />
+                <Route path="/preview/my-obituaries-memorials" element={<MyListPage />} />
+                <Route path="/preview/memorial" element={<MemorialPage />} />
+                <Route path="/preview/my-guestbook" element={<MyGuestbookPage />} />
+                <Route path="/preview/my-consultations" element={<MyConsultationsPage />} />
                 <Route path="*" element={<FoundationPage notFound />} />
               </Routes>
             </RdLayout>

@@ -176,6 +176,72 @@ export const listMyGuestbookEntries = async (req: Request, res: Response) => {
   }
 };
 
+// 헌화·방명록을 남긴 추모관 (`GET /api/me/visited-memorials`) — 00-36 §4.8-1 세 번째 구간 · 05-01 §4.2. 읽기 전용, 스키마 변경 없음.
+// 🔴 where에 로그인한 사용자(userId) 조건이 필수다 — 헌화·방명록 둘 다 비회원 행(userId null)이 섞여 있다. 토큰에서 꺼낸 값만 쓴다.
+// 대상 = **로그인한 채** 헌화했거나 방명록을 쓴 **남의** 추모관(내가 만든 추모관은 뺀다) 중 **지금 열리는 것만**:
+// 비공개(PRIVATE)·닫힘(closedAt)·운영자 내림(hiddenAt)은 뺀다 — 눌러도 "찾을 수 없음"이 나오는 줄을 만들지 않고, 남의 추모관이
+// 닫혔다는 사실도 알리지 않으려는 것(findViewableMemorialBySlug와 같은 판정). 동결(frozenAt)은 열리므로 넣는다. 파기된 추모관은 행이 없다.
+// 방명록은 §4.7과 같은 규칙 — 상주 삭제·운영자 숨김·본인 삭제한 글은 "방명록"으로 치지 않는다(헌화만 남은 것으로 본다).
+// 🔴 응답 화이트리스트 — slug·고인 성함·남긴 것·마지막 날짜만. 다른 조문객의 글·개설자 정보는 내리지 않는다(05-01 §4.1 취지).
+const VISITED_SCAN_LIMIT = 500; // 한 사람이 남긴 헌화·방명록을 합칠 때 읽는 상한(각각) — 지나치게 많은 사람도 한 번에 끝나게
+const openMemorialWhere = (userId: string) => ({
+  closedAt: null,
+  hiddenAt: null,
+  visibility: { not: 'PRIVATE' },
+  createdByUserId: { not: userId },
+});
+
+export const listMyVisitedMemorials = async (req: Request, res: Response) => {
+  const decoded = verifyBearerToken(req);
+  if (!decoded) {
+    return res.status(401).json({ status: 'error', message: '로그인이 필요합니다.' });
+  }
+
+  try {
+    const userId = decoded.id;
+    const [tributes, entries] = await Promise.all([
+      prisma.memorialTribute.findMany({
+        where: { userId, memorial: openMemorialWhere(userId) },
+        orderBy: { createdAt: 'desc' },
+        take: VISITED_SCAN_LIMIT,
+        select: { createdAt: true, memorial: { select: { id: true, slug: true, deceasedName: true } } },
+      }),
+      prisma.memorialGuestbook.findMany({
+        where: { userId, deletedByOwnerAt: null, hiddenAt: null, deletedByAuthorAt: null, memorial: openMemorialWhere(userId) },
+        orderBy: { createdAt: 'desc' },
+        take: VISITED_SCAN_LIMIT,
+        select: { createdAt: true, memorial: { select: { id: true, slug: true, deceasedName: true } } },
+      }),
+    ]);
+
+    // 추모관 하나로 합친다 — 남긴 것(헌화·방명록 각각 했는지)과 마지막으로 남긴 날(둘 중 늦은 것).
+    const byMemorial = new Map<string, { slug: string; deceasedName: string; tributed: boolean; wrote: boolean; lastAt: Date }>();
+    const touch = (m: { id: string; slug: string; deceasedName: string }, at: Date, kind: 'tributed' | 'wrote') => {
+      const cur = byMemorial.get(m.id) ?? { slug: m.slug, deceasedName: m.deceasedName, tributed: false, wrote: false, lastAt: at };
+      cur[kind] = true;
+      if (at > cur.lastAt) cur.lastAt = at;
+      byMemorial.set(m.id, cur);
+    };
+    tributes.forEach((t) => touch(t.memorial, t.createdAt, 'tributed'));
+    entries.forEach((e) => touch(e.memorial, e.createdAt, 'wrote'));
+
+    const data = Array.from(byMemorial.values())
+      .sort((a, b) => b.lastAt.getTime() - a.lastAt.getTime())
+      .slice(0, LIST_LIMIT + 1) // 목록 상한 규칙은 위 세 목록과 같다(한 건 더 내려 프런트가 잘림을 안다)
+      .map((v) => ({
+        slug: v.slug,
+        deceasedName: v.deceasedName,
+        tributed: v.tributed,
+        wrote: v.wrote,
+        lastAt: v.lastAt,
+      }));
+    return res.json({ status: 'success', data });
+  } catch (error) {
+    console.error('헌화·방명록을 남긴 추모관 목록 조회 실패:', error);
+    return res.status(500).json({ status: 'error', message: '목록 조회 중 오류가 발생했습니다.' });
+  }
+};
+
 // 내 방명록 글 삭제 (`DELETE /api/me/guestbook-entries/:id`) — 00-36 §4.7-1(§6 #8 확정: 허용, **소프트 삭제**).
 // 🔴 행을 지우지 않는다: `deletedByAuthorAt`만 찍는다(이 테이블은 deletedByOwnerAt·hiddenAt도 원문을 보존한다 —
 // 본인 삭제만 하드 삭제로 두면 혼자 다른 규칙이 된다). deletedByOwnerAt을 재사용하지 않는다("상주가 지웠다"로 오염).
