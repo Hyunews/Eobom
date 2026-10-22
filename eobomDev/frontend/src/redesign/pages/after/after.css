@@ -205,41 +205,176 @@
   min-width: 0;
 }
 
-/* ───── 디지털 정산 (판 2-20 · 2-21 · 2-24) ───── */
+/* ───── 디지털 정산 (판 2-20 10-22 재구성 · 2-21 · 2-24) ───── */
+.rd-root .rd-af-sec {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+.rd-root .rd-af-sec + .rd-af-sec {
+  margin-top: 48px;
+}
 .rd-root .rd-af-h2 {
   margin: 0;
   padding-bottom: 12px;
   border-bottom: 1px solid var(--rd-line);
 }
-.rd-root .rd-af-split {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 48px;
-  align-items: start;
-}
-.rd-root .rd-af-docols {
+.rd-root .rd-af-h2--sub {
   display: flex;
   flex-direction: column;
+  gap: 8px;
+}
+.rd-root .rd-af-h2--sub .rd-t-section {
+  margin: 0;
+}
+.rd-root .rd-af-h2__sub {
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--rd-ink-support);
+}
+/* 구간 1: 카드 3칸 + 화살표 칸 2개 */
+.rd-root .rd-af-flow {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 40px minmax(0, 1fr) 40px minmax(0, 1fr);
+  align-items: stretch;
+}
+.rd-root .rd-af-flow__arrow {
+  display: flex;
+  justify-content: center;
+  padding-top: 22px;
+  color: var(--rd-ink);
+}
+.rd-root .rd-af-st {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 24px;
+  background: var(--rd-paper);
+  border: 1px solid var(--rd-line);
+  box-shadow: 6px 6px 0 var(--rd-shadow);
+}
+.rd-root .rd-af-st__rail {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: var(--rd-ink);
+}
+.rd-root .rd-af-st__no {
+  font-family: var(--rd-font-serif);
+  font-size: 36px;
+  font-weight: 700;
+  line-height: 1;
+  align-self: flex-start;
+}
+.rd-root .rd-af-st__line,
+.rd-root .rd-af-st__rail > svg {
+  display: none;
+}
+.rd-root .rd-af-st__body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.rd-root .rd-af-st__learn {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.rd-root .rd-af-st__eyebrow {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--rd-point);
+}
+.rd-root .rd-af-st__what {
+  font-family: var(--rd-font-serif);
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1.45;
+}
+.rd-root .rd-af-st__org {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-top: 14px;
+  border-top: 1px dotted var(--rd-dot);
+}
+.rd-root .rd-af-st__label {
+  font-size: 16px;
+  font-weight: 700;
+}
+.rd-root .rd-af-st__prov {
+  font-size: 14px;
+  color: var(--rd-ink-small);
+}
+.rd-root .rd-af-st__note {
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.6;
+}
+.rd-root .rd-af-st__tags {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+}
+.rd-root .rd-af-st__tag {
+  padding: 6px 10px;
+  border: 1px solid var(--rd-dot);
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--rd-ink);
+}
+.rd-root .rd-af-st__go {
+  margin-top: auto;
+  gap: 8px;
+  text-decoration: none;
+}
+.rd-root .rd-af-st__together {
+  margin-top: auto;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1px dashed var(--rd-point);
+  border-radius: var(--rd-radius);
+  color: var(--rd-point);
+  font-size: 16px;
+  font-weight: 700;
+}
+/* 구간 2: 요청할 수 있음 / 없음 두 칸 */
+.rd-root .rd-af-docols {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 32px;
+  align-items: start;
 }
 .rd-root .rd-af-do {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-}
-.rd-root .rd-af-do--box {
+  gap: 14px;
   padding: 24px;
   background: var(--rd-paper);
   border: 1px solid var(--rd-line);
 }
 .rd-root .rd-af-do__head {
   margin: 0;
-  font-size: 17px;
-  font-weight: 700;
-}
-.rd-root .rd-af-do--box .rd-af-do__head {
   padding-bottom: 12px;
   border-bottom: 1px dotted var(--rd-dot);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 18px;
+  font-weight: 700;
+}
+.rd-root .rd-af-do__head .rd-af-do__mark {
+  margin-top: 0;
 }
 .rd-root .rd-af-do__list {
   margin: 0;
@@ -247,10 +382,7 @@
   list-style: none;
   display: flex;
   flex-direction: column;
-  gap: 16px;
-}
-.rd-root .rd-af-do__list--yes {
-  gap: 8px;
+  gap: 14px;
 }
 .rd-root .rd-af-do__list li {
   display: flex;
@@ -278,31 +410,6 @@
 .rd-root .rd-af-do__sub {
   font-size: 14px;
   color: var(--rd-ink-small);
-}
-.rd-root .rd-af-step__what {
-  margin: 8px 0 0;
-  font-size: 16px;
-  line-height: 1.6;
-}
-.rd-root .rd-af-step__meta {
-  margin: 8px 0 0;
-  font-size: 14px;
-  color: var(--rd-ink-support);
-}
-.rd-root .rd-af-steps {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-.rd-root .rd-af-step__go {
-  margin-top: 16px;
-  gap: 8px;
-  text-decoration: none;
-}
-.rd-root .rd-af-static,
-.rd-root .rd-af-static:hover {
-  background: transparent;
-  cursor: default;
 }
 
 /* ───── 장사시설 검색 (판 2-6~2-8) ───── */
@@ -1274,25 +1381,71 @@
     grid-column: 3;
     grid-row: 1 / span 2;
   }
-  .rd-root .rd-af-split {
+  /* 디지털 정산: 구간 1 세로 번호 줄(카드 상자 없음), 구간 2 위아래 두 목록 */
+  .rd-root .rd-af-sec {
+    gap: 20px;
+  }
+  .rd-root .rd-af-sec + .rd-af-sec {
+    margin-top: 40px;
+  }
+  .rd-root .rd-af-flow {
+    display: flex;
+    flex-direction: column;
+  }
+  .rd-root .rd-af-flow__arrow {
+    display: none;
+  }
+  .rd-root .rd-af-st {
+    flex-direction: row;
+    gap: 14px;
+    padding: 0;
+    background: transparent;
+    border: 0;
+    box-shadow: none;
+  }
+  .rd-root .rd-af-st__rail {
+    width: 32px;
+    flex: none;
+    gap: 6px;
+  }
+  .rd-root .rd-af-st__no {
+    font-size: 32px;
+    align-self: center;
+  }
+  .rd-root .rd-af-st__line {
+    display: block;
+    flex: 1;
+    width: 0;
+    min-height: 24px;
+    border-left: 1px solid var(--rd-ink);
+  }
+  .rd-root .rd-af-st__rail > svg {
     display: block;
   }
-  /* 안내 판 안(상자 없음): 구간 사이 36, 받으실 수 있는 것은 한 줄에 둘(마지막 긴 항목은 전체 폭) */
-  .rd-root .rd-af-docols {
-    gap: 36px;
-  }
-  .rd-root .rd-af-do:not(.rd-af-do--box) .rd-af-do__list--yes {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+  .rd-root .rd-af-st__body {
     gap: 12px;
+    padding-bottom: 28px;
   }
-  .rd-root .rd-af-do:not(.rd-af-do--box) .rd-af-do__wide {
-    grid-column: 1 / -1;
+  .rd-root .rd-af-st:last-child .rd-af-st__body {
+    padding-bottom: 0;
   }
-  .rd-root .rd-af-do__text {
-    font-size: 15px;
+  .rd-root .rd-af-st__org {
+    padding-top: 0;
+    border-top: 0;
   }
-  .rd-root .rd-af-do__text--lines {
-    font-size: 13.5px;
+  .rd-root .rd-af-st__go {
+    margin-top: 0;
+    height: 52px;
+  }
+  .rd-root .rd-af-st__together {
+    margin-top: 0;
+    height: 48px;
+  }
+  .rd-root .rd-af-docols {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 20px;
+  }
+  .rd-root .rd-af-do {
+    padding: 20px;
   }
 }

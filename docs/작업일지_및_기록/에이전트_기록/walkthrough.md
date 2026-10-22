@@ -18,6 +18,17 @@
 > 원인 = Gemini 판정이 `gemini_tasks.md`에만 적히고 이 파일 판정 칸은 비어 있었음. 🔴 **판정은 이 파일의 그 항목 칸에 적는다**(`GEMINI.md`).
 
 ---
+## 2026-10-22 | [Sonnet] 디자인 개편 8단계 묶음 5 후속 — 디지털 정산 `/preview/digital-estate` 10-22 재구성 (판 2-20: 찾기 → 정리하기 2구간)
+
+- **근거 스펙**: 2단계 캔버스 `FUbro1YpovvDhawoXmJUHV` 판 2-20(`Main.dc.html` · `Est_M.dc.html`)의 인라인 값·문구를 직접 읽고 반영 · 바탕화면 `이어봄_디자인_2단계_목록.md` "묶음 4-가" 아래 "10-22 재구성" 결정 기록(⑮ 폐기 포함). `docs/`는 아직 안 고쳐짐(Opus 몫: `00-44` §9-4 · 디지털 정산 절).
+- **건드린 파일**: `eobomDev/frontend/src/redesign/pages/after/DigitalPage.tsx`(전면 재작성) · `pages/after/after.css`(디지털 정산 블록 교체 + 휴대폰 블록 교체) · `parts/parts.css`(떠오름 목록의 죽은 선택자 `.rd-af-steps > *` → `.rd-af-st` 1줄). 지금 쓰는 `DigitalEstatePage.tsx` 0 · 서버·스키마·DB 0.
+- **결과**: 구간 1 "돈이 오가는 곳 찾기" — ①②③ 단계 카드(데스크톱 가로 3칸 + 화살표 칸 40 / 휴대폰 세로 번호 줄: 번호 + 세로선 + 아래 꺾쇠, 카드 상자 없음). 단계마다 알게 되는 것 → 기관 → ③만 본문 한 줄("카드사에 요청해야 알 수 있습니다.") → 딱지(굵은 낱말 + ` · `) → ①만 [신청 페이지로 이동 ↗], ②는 점선 상자 "①과 함께 접수". 구간 2 "찾은 계정 정리하기" — 부제 + 요청할 수 있음 ✓ / 요청할 수 없음 ✕ 2칸(휴대폰 위아래). 출처 말풍선 §28①②와 `KISO_28` 원문 그대로. 폐기: 휴대폰 `RdDialog`·`sheet` 상태·한 줄 입구·`useIsPhone`·`DoColumns`·`RdCard`·`RdButton`·`IconChevronRight` import · `DEMOS` "모바일은 안내 판이 열린 채" 문구(→ "기본"). 로그인 전 가림판 데모 유지. 사용처 0건이 된 CSS(`rd-af-split`·`steps`·`step__*`·`static`·`do--box`·`do__wide`·`do__text--lines`) 삭제. 휴대폰 글자 14 미만 없음(13.5·15 제거) · 대시·이모지 없음 · 위험색 안 씀. **재현**: `cd eobomDev/frontend && npx tsc --noEmit` 오류 0 · `npm run build` 통과. **실기동·화면 대조는 안 함**(개발 서버 정책) — 1280 · 휴대폰 폭 대조는 사람.
+- **편차**: ① 구간 제목 글자는 부품 `rd-t-section`을 그대로 써서 휴대폰에서 21px(캔버스 20px). ② 구간 2 칸 머리의 ✓·✕ 아이콘 크기 16px(캔버스 20px, 줄 안 ✓·✕는 16으로 같음). ③ 구간 간격: 구간 사이 위 여백을 `margin-top`(데스크톱 48 · 휴대폰 40)으로 줌. 캔버스 휴대폰은 40. ④ 휴대폰 [신청 페이지로 이동] 높이 52는 `RdButton` 대신 `rd-btn--row` 링크에 CSS `height`로 줌(앞 화면과 같은 방식). ⑤ 단계 번호 ①②③은 화면 읽기 프로그램에서 숨김(`aria-hidden`), 순서는 `<ol>`로 전달. 나머지 값·문구는 캔버스 그대로. ①~④는 눈에 띄면 고칠 값이라 실기동 대조 때 어긋나면 알려 주세요.
+- **다음 에이전트가 알아야 할 것**: ① 실기동 대기 `/preview/digital-estate`(보기 상태 "로그인 전"도). ② 문서 반영 대기(Opus): `00-44` §9-4 묶음 5 디지털 정산 줄 · 디지털 정산 절(2단계 확정 ⑮ 폐기), 위 편차 ①~④ 판정. ③ 바로 아래 묶음 5 항목의 "디지털 정산 모바일 한 줄 목록 + 열린 판" 서술은 이 항목으로 대체됨. ④ 커밋은 사람 — 브랜치 `redesign`.
+
+<!-- Gemini 판정 1줄: -->
+
+---
 ## 2026-10-22 | [Sonnet] 디자인 개편 8단계 묶음 5 — 사후 정리 `/preview/care-guide` · `/preview/pickup` · `/preview/digital-estate` · `/preview/facility` · `/preview/facility/:id` · `/preview/obituary` + 서버 `GET /api/facilities/:id/detail`
 
 - **근거 스펙**: docs/00_핵심플랫폼/00-44 §9-4 묶음 5 줄 + 공통 조건 · docs/01_장사시설_매칭/01-01 §5.2·§5.3·§5.6·§5.7 #1~#4 · 2단계 캔버스 4개(행정 가이드·유품 정리 `JtF68LBg6wsXfMirz49PfE` 2-1~2-5·2-11 / 장사시설·상담 창·지도 창·업체 자세히 보기 `Uotf3nHZXkNWDQpUNXfosH` 2-6~2-10·2-25~2-27 / 부고장 `43tm1mhAUqUdToUggkjxxM` 2-12~2-19 / 디지털 정산 `FUbro1YpovvDhawoXmJUHV` 2-20·2-21·2-24)의 인라인 값·문구를 직접 읽고 반영 · 바탕화면 `이어봄_디자인_2단계_목록.md`(확정 사항 ①~⑭ · 묶음별 "검토 결과/결정 기록/점검" · 묶음 5 확정 ㉮~㉱).
