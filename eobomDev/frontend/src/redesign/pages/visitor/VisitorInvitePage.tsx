@@ -2,9 +2,10 @@ import React, { useState } from 'react';
 import { sleep, type DemoOption } from '../../parts/RdDemo';
 import { RdButton } from '../../parts/RdButtons';
 import { RdField, RdInput } from '../../parts/RdInputs';
+import { RdNotice } from '../../parts/RdNotices';
 import { RdDialog } from '../../parts/RdModal';
-import { IconInfo } from '../../parts/icons';
-import { VisitorShell, VsConnectionFailed, VsFoot, VsLinkButton, VsLoadingText, VsState } from './visitorParts';
+import { RdState } from '../../parts/RdState';
+import { VisitorShell, VsConnectionFailed, VsFoot, VsLinkButton, VsLoadingText } from './visitorParts';
 import { INVITE_PRIMARY, INVITE_VIEWER, RELATIONSHIP_LABEL, SCOPE_LABEL, type ExInvite } from './visitorData';
 
 // 8단계 묶음 6 · /preview/visitor/invite — 가족 지정 초대 받기(판 3-8 기본·거절 확인 · 3-9 결과·상태).
@@ -54,18 +55,6 @@ function InviteHead({ data }: { data: ExInvite }) {
   );
 }
 
-/** 알림 상자(갈색 ⓘ) — "불이익 없음"을 알리는 글이라 위험색 주의 상자가 아니다(3단계 점검, Opus 판단). */
-function InviteNotice() {
-  return (
-    <div className="rd-notice rd-notice--info">
-      <span className="rd-notice__icon"><IconInfo size={20} /></span>
-      <div className="rd-notice__body">
-        <p className="rd-notice__desc">수락하시면 사망 통지 등 권한이 생깁니다. 거절하셔도 어떤 불이익도 없습니다.</p>
-      </div>
-    </div>
-  );
-}
-
 export function VisitorInvitePage() {
   const [view, setView] = useState<View>('out');
   const [name, setName] = useState('');
@@ -106,26 +95,26 @@ export function VisitorInvitePage() {
     body = <VsConnectionFailed onRetry={() => select('out')} />;
   } else if (view === 'expired') {
     // 버튼 없음
-    body = <VsState icon="expired" title="초대 링크가 만료되었습니다." desc="보내신 분에게 새 링크를 다시 요청해 주세요." />;
+    body = <RdState kind="expired" title="초대 링크가 만료되었습니다." desc="보내신 분에게 새 링크를 다시 요청해 주세요." />;
   } else if (view === 'notfound') {
     body = (
-      <VsState icon="missing" title="초대 링크를 찾을 수 없습니다." desc="이미 처리되었거나 잘못된 주소일 수 있습니다.">
+      <RdState kind="empty" title="초대 링크를 찾을 수 없습니다." desc="이미 처리되었거나 잘못된 주소일 수 있습니다.">
         <VsLinkButton>이어봄 홈으로</VsLinkButton>
-      </VsState>
+      </RdState>
     );
   } else if (view === 'accepted') {
     body = (
-      <VsState icon="done" title="수락되었습니다." desc={`${INVITE_PRIMARY.designatorName}님의 가족으로 연결됐습니다.`}>
+      <RdState kind="done" title="수락되었습니다." desc={`${INVITE_PRIMARY.designatorName}님의 가족으로 연결됐습니다.`}>
         <VsLinkButton kind="secondary" href="/preview/ending-note">내 엔딩노트 만들기</VsLinkButton>
         <VsLinkButton>이어봄 홈으로</VsLinkButton>
-      </VsState>
+      </RdState>
     );
   } else if (view === 'declined') {
     // 거절한 분께 서비스 권유를 붙이지 않는다 — 홈으로 하나뿐(00-27 §9.1-4-2)
     body = (
-      <VsState icon="declined" title="거절되었습니다." desc="아무 권한도 부여되지 않았습니다.">
+      <RdState kind="declined" title="거절되었습니다." desc="아무 권한도 부여되지 않았습니다.">
         <VsLinkButton kind="secondary">이어봄 홈으로</VsLinkButton>
-      </VsState>
+      </RdState>
     );
   } else {
     body = (
@@ -133,7 +122,7 @@ export function VisitorInvitePage() {
         <article className="rd-vs-card">
           <InviteHead data={data} />
           <div className="rd-vs-invite-body">
-            <InviteNotice />
+            <RdNotice>수락하시면 사망 통지 등 권한이 생깁니다. 거절하셔도 어떤 불이익도 없습니다.</RdNotice>
             {loggedIn ? (
               <>
                 {/* 지정 때 적힌 이름은 화면에 나오지 않는다 — 수락 때 직접 입력(00-27 §9.1-4-3) */}

@@ -3,9 +3,10 @@ import { formatKST, formatDeathDate } from '../../../utils/obituaryCard';
 import { copyObituaryLink } from '../../../utils/kakaoShare';
 import { sleep, type DemoOption } from '../../parts/RdDemo';
 import { RdButton } from '../../parts/RdButtons';
-import { RdDialog } from '../../parts/RdModal';
+import { RdDialog, RdLoginGate } from '../../parts/RdModal';
+import { RdState } from '../../parts/RdState';
 import { IconChevronLeft, IconChevronRight, IconErrorCircle } from '../../parts/icons';
-import { Chrysanthemum, VisitorShell, VsConnectionFailed, VsFoot, VsState } from './visitorParts';
+import { Chrysanthemum, VisitorShell, VsConnectionFailed, VsFoot } from './visitorParts';
 import {
   DEFAULT_EPITAPH,
   GUESTBOOK,
@@ -90,29 +91,6 @@ function GuestPager({ page, total, onChange }: { page: number; total: number; on
         <IconChevronRight size={18} />
       </button>
     </nav>
-  );
-}
-
-/** 로그인 전 — 공통 틀 "로그인이 필요합니다"(00-34 §2.4). 부품 RdLoginGate는 "○○은(는)"으로 고정이라 글만 조사를 맞춰 따로 둔다. */
-function GuestGate({ onClose, onLogin }: { onClose: () => void; onLogin: () => void }) {
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-    };
-    document.addEventListener('keydown', onKey);
-    return () => document.removeEventListener('keydown', onKey);
-  }, [onClose]);
-  return (
-    <div className="rd-gate" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
-      <div className="rd-gate__card" role="dialog" aria-modal="true" aria-label="로그인 안내">
-        <p className="rd-gate__brand">이어봄</p>
-        <p className="rd-gate__title">로그인이 필요합니다</p>
-        <p className="rd-gate__desc">
-          <span>방명록 남기기는</span> <span className="rd-gate__rest">로그인 후 이용 가능합니다.</span>
-        </p>
-        <RdButton place="dialog" className="rd-gate__btn" onClick={onLogin}>로그인</RdButton>
-      </div>
-    </div>
   );
 }
 
@@ -335,7 +313,7 @@ export function VisitorMemorialPage() {
   } else if (demo === 'missing') {
     body = (
       <div className="rd-vs-wrap">
-        <VsState icon="missing" title="추모관을 찾을 수 없습니다." desc="링크가 만료되었거나 잘못된 주소일 수 있습니다." />
+        <RdState kind="empty" title="추모관을 찾을 수 없습니다." desc="링크가 만료되었거나 잘못된 주소일 수 있습니다." />
       </div>
     );
   } else {
@@ -441,7 +419,7 @@ export function VisitorMemorialPage() {
   return (
     <VisitorShell demo={{ value: demo, options: DEMOS, onChange: select }}>
       {body}
-      {dlg === 'gate' && <GuestGate onClose={() => setDlg(null)} onLogin={() => select('portrait')} />}
+      {dlg === 'gate' && <RdLoginGate screenName="방명록 남기기" onClose={() => setDlg(null)} onLogin={() => select('portrait')} />}
       {(dlg === 'form' || dlg === 'formError' || dlg === 'formBusy') && (
         <GuestFormDialog
           key={dlg === 'form' ? 'blank' : 'filled'}

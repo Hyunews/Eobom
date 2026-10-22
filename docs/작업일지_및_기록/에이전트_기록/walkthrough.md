@@ -18,6 +18,18 @@
 > 원인 = Gemini 판정이 `gemini_tasks.md`에만 적히고 이 파일 판정 칸은 비어 있었음. 🔴 **판정은 이 파일의 그 항목 칸에 적는다**(`GEMINI.md`).
 
 ---
+## 2026-10-22 | [Sonnet] 디자인 개편 8단계 묶음 6 편차 판정 반영 — 부품 `RdLoginGate`·`RdState`·`RdNotice` 보정
+
+- **근거**: 묶음 6 항목 "판정" 줄 · `00-44` §7-5·§7-6 ⑤·§7-7 · `00-34` §2.4 · `05-01` §6.1-2
+- **한 일**: ① `RdLoginGate` — 화면 이름 끝 글자 받침으로 은/는 자동(`josaEunNeun`). 한글 음절이 아니면(숫자·영문 등) 읽는 소리를 알 수 없어 **"은(는)"** 그대로 둠. 선택 prop `onClose` 추가(바깥 누름·Esc, `role=dialog`·`aria-modal`), 안 주면 지금처럼 안 닫힘. `VisitorMemorialPage`의 `GuestGate` 삭제 → 부품 교체. ② `RdState` — `kind`에 `declined`(원+가로선)·`expired`(시계)·`blocked`(원+느낌표) 추가, 회색 선, 40. `visitorParts`의 `VsState`·그림 표·`.rd-vs-state__icon` 삭제, 연장·초대·부고장·추모관·접속 실패를 `RdState`로 교체. ③ `RdNotice` — `title` 생략 가능(없으면 설명만, 기존 15·보통 굵기 규칙 그대로). `VisitorInvitePage`의 `InviteNotice` 삭제 → 부품 교체. ④ `/preview/parts` — 알림 상자(제목 없음)·로그인 가림막 닫기 선택·상태 화면 거절됨/만료/연장 불가 견본 추가.
+- **은/는 확인**(9곳 이름): 디지털 정산·장사시설 검색·전문가 상담·모바일 부고장 작성·유품 정리 업체 검색·유족 메시지 보관함·방명록 남기기 → "은"(받침 있음), 엔딩노트 → "는". 코드 계산으로 확인, 화면 눈 확인은 대기.
+- **결과**: `tsc --noEmit` 통과 · `npm run build` 통과(7초).
+- **편차**(Opus 판정 요청): ① 조문객 "찾을 수 없음" 4곳(부고장·추모관·초대 링크)이 쓰던 문서+줄 그림(`missing`)은 부품에 없어 `empty`(봉투)로 바꿈 — 스펙의 새 그림이 3종뿐이라서. 문서 그림을 4번째 선택으로 둘지 판정 바람. ② `RdState`는 접속 실패(`offline`)에 `role="alert"`을 붙이지 않음(`VsState`는 붙였음). 필요하면 부품에 추가. ③ 그림 크기: 지시는 40이나 부품 CSS는 768px 이상에서 48(`parts.css` 3633, 판 08 데스크톱)·모바일 40이다 — 새 3종도 같은 규칙을 따름(기존 조문객 48은 데스크톱에서 그대로, 모바일은 48→40). 판정 바람.
+- **실기동**(개발자 10-22): `invite`·`memorial-extend` 모두 정상. `memorial` 3-5 로그인 전 창 바깥이 뿌옇게 보임 → 부품 규칙(`00-44` §7-5 ⑤ 바탕색 50% 흐림)대로라 **그대로 둠**(개발자 결정 A). 편차 ①~③은 판정 대기.
+- **다음 에이전트가 알아야 할 것**: 바뀐 3곳(`/preview/visitor/memorial` 로그인 가림막 · `/preview/visitor/invite` 알림·상태 · `/preview/visitor/memorial-extend` 상태) 눈 확인 후 묶음 7. 커밋은 사람 — 브랜치 `redesign`.
+
+<!-- Gemini 판정 1줄: ✅통과 / ❌반려(사유) / 🔄스펙갱신(고친 문서) -->
+
 ## 2026-10-22 | [Sonnet] 디자인 개편 8단계 묶음 6 — 조문객 화면 `/preview/visitor/obituary` · `memorial` · `memorial-extend` · `invite` + 서버 방명록 목록 `mine` 칸
 
 - **근거 스펙**: `00-44` §9-4 묶음 6 줄 + 공통 조건 · `07-03` §6.3-2 · `05-01` §4.2(`mine`)·§6.1-2 · `00-36` §4.9 #7(공개 화면 내 글 [삭제] 쪽만 — `MyGuestbookPage` [삭제] 빼기는 묶음 7) · 3단계 캔버스 2개 `8uadArPxHWjf1Mstuo2sg6`(묶음 1)·`8B1Xtx67wt3yD8ZvXiRTU4`(묶음 2)의 인라인 값·문구를 직접 읽고 반영 · 바탕화면 `이어봄_디자인_3단계_목록.md`(결정 기록 포함). `docs/`는 안 고침.

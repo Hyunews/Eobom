@@ -1,6 +1,7 @@
 import React, { useLayoutEffect } from 'react';
 import { DemoBar, type DemoOption } from '../../parts/RdDemo';
 import { RdButton } from '../../parts/RdButtons';
+import { RdState } from '../../parts/RdState';
 import './visitor.css';
 
 // 8단계 묶음 6 · 조문객 화면 공통 조각. 조문객 화면은 껍데기가 없다(헤더·메뉴·바닥글 없이 화면만, 3단계 목록 맨 위 🔴).
@@ -70,81 +71,6 @@ export function VsFoot({ updated }: { updated?: string }) {
   );
 }
 
-export type VsIcon = 'offline' | 'missing' | 'done' | 'declined' | 'expired' | 'blocked';
-
-const IC = { width: 48, height: 48, viewBox: '0 0 24 24', fill: 'none', strokeLinecap: 'round' as const, 'aria-hidden': true, focusable: false };
-
-const ICONS: Record<VsIcon, React.ReactNode> = {
-  offline: (
-    <svg {...IC} stroke="#B9AC98" strokeWidth="1.2">
-      <path d="M2 9a15 15 0 0 1 20 0M5 12.5a10 10 0 0 1 14 0M8.5 16a5 5 0 0 1 7 0" />
-      <circle cx="12" cy="19.5" r="0.8" />
-      <path d="M3 3l18 18" stroke="#9A3B2E" />
-    </svg>
-  ),
-  missing: (
-    <svg {...IC} stroke="#B9AC98" strokeWidth="1.2">
-      <path d="M5 4h10l4 4v12H5z" />
-      <path d="M9 12h6M9 16h4" />
-    </svg>
-  ),
-  // 원 + 체크(완료 색)
-  done: (
-    <svg {...IC} stroke="#4F6B3A" strokeWidth="1.4">
-      <circle cx="12" cy="12" r="9" />
-      <path d="M7.5 12.5l3 3 6-7" />
-    </svg>
-  ),
-  // 원 + 가로선
-  declined: (
-    <svg {...IC} stroke="#B9AC98" strokeWidth="1.2">
-      <circle cx="12" cy="12" r="9" />
-      <path d="M8 12h8" />
-    </svg>
-  ),
-  // 시계
-  expired: (
-    <svg {...IC} stroke="#B9AC98" strokeWidth="1.2">
-      <circle cx="12" cy="12" r="9" />
-      <path d="M12 7v5l3 2" />
-    </svg>
-  ),
-  // 원 + 느낌표(회색 선)
-  blocked: (
-    <svg {...IC} stroke="#B9AC98" strokeWidth="1.2">
-      <circle cx="12" cy="12" r="9" />
-      <path d="M12 7.5v5M12 16v.5" />
-    </svg>
-  ),
-};
-
-/**
- * 판 8 틀 상태 화면 — 선 그림 + 제목 + 설명 + 버튼, 종이 카드(그림자 없음). 00-44 §7-7 · 3단계 결정 기록 3-3·3-7·3-9.
- * 부품 RdState와 같은 클래스(.rd-state)를 쓰되 3단계 판이 새로 그린 그림(원+가로선·시계 등)을 갈아 끼운다.
- */
-export function VsState({
-  icon,
-  title,
-  desc,
-  busy,
-  children,
-}: {
-  icon: VsIcon;
-  title: string;
-  desc?: string;
-  busy?: boolean;
-  children?: React.ReactNode;
-}) {
-  return (
-    <section className="rd-state rd-vs-state" role={icon === 'offline' ? 'alert' : busy ? 'status' : undefined} aria-busy={busy || undefined}>
-      <span className="rd-state__icon rd-vs-state__icon">{ICONS[icon]}</span>
-      <h2 className="rd-state__title">{title}</h2>
-      {desc && <p className="rd-state__desc">{desc}</p>}
-      {children && <div className="rd-state__actions">{children}</div>}
-    </section>
-  );
-}
-
 /** 불러오는 중 — 판 8 틀에 글자만(연장·초대는 짧은 화면이라 뼈대 대신, 3단계 확정 ②). */
 export function VsLoadingText() {
   return (
@@ -157,9 +83,9 @@ export function VsLoadingText() {
 /** 접속 실패 — 세 화면(부고장·추모관·연장·초대) 공통 문구. 지금 ConnectionFailed.tsx 문구와 같다. */
 export function VsConnectionFailed({ onRetry }: { onRetry: () => void }) {
   return (
-    <VsState icon="offline" title="지금 연결이 원활하지 않습니다." desc="잠시 후 다시 시도해 주세요.">
+    <RdState kind="offline" title="지금 연결이 원활하지 않습니다." desc="잠시 후 다시 시도해 주세요.">
       <RdButton place="row" onClick={onRetry}>다시 시도</RdButton>
-    </VsState>
+    </RdState>
   );
 }
 

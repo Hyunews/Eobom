@@ -1,9 +1,10 @@
 import React from 'react';
 
 // 00-44 §7-7 상태 화면 — 다섯 가지 모두 같은 틀: 선 그림 → 제목 → 한 줄 설명 → 다음에 할 버튼. 가운데 정렬, 종이 칸 안.
+// declined(거절됨 · 원+가로선) · expired(만료 · 시계) · blocked(연장 불가 · 원+느낌표)는 조문객 화면용, 회색 선.
 // 선 그림은 0단계 판 08(States_D/M)의 그림 그대로(40 × 40).
 
-export type RdStateKind = 'empty' | 'working' | 'offline' | 'error' | 'done';
+export type RdStateKind = 'empty' | 'working' | 'offline' | 'error' | 'done' | 'declined' | 'expired' | 'blocked';
 
 const S = { width: 40, height: 40, viewBox: '0 0 24 24', fill: 'none', strokeLinecap: 'round' as const, 'aria-hidden': true, focusable: false };
 
@@ -37,6 +38,24 @@ const ICON: Record<RdStateKind, React.ReactNode> = {
     <svg {...S} stroke="#4F6B3A" strokeWidth="1.4">
       <circle cx="12" cy="12" r="9" />
       <path d="M7.5 12.5l3 3 6-7" />
+    </svg>
+  ),
+  declined: (
+    <svg {...S} stroke="#B9AC98" strokeWidth="1.2">
+      <circle cx="12" cy="12" r="9" />
+      <path d="M8 12h8" />
+    </svg>
+  ),
+  expired: (
+    <svg {...S} stroke="#B9AC98" strokeWidth="1.2">
+      <circle cx="12" cy="12" r="9" />
+      <path d="M12 7v5l3 2" />
+    </svg>
+  ),
+  blocked: (
+    <svg {...S} stroke="#B9AC98" strokeWidth="1.2">
+      <circle cx="12" cy="12" r="9" />
+      <path d="M12 7.5v5M12 16v.5" />
     </svg>
   ),
 };

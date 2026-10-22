@@ -290,17 +290,47 @@ export function useRdToast(): { show: (message: string, tone?: 'ok' | 'warn') =>
  * ⑤ 로그인 가림막 — 뒤 화면을 바탕색 50%로 흐리게 + 가운데 카드. 문구는 한 틀(§6-3-7).
  * contained = 견본 쪽에서 상자 안에만 보이게 한다. 실제 화면에서는 쓰지 않는다(화면 전체를 가림).
  */
-export function RdLoginGate({ screenName, onLogin, contained }: { screenName: string; onLogin?: () => void; contained?: boolean }) {
+export function RdLoginGate({
+  screenName,
+  onLogin,
+  onClose,
+  contained,
+}: {
+  screenName: string;
+  onLogin?: () => void;
+  /** 주면 바깥 누름·Esc로 닫힌다(모달 성격). 없으면 화면 전체 가림판 그대로 안 닫힌다. */
+  onClose?: () => void;
+  contained?: boolean;
+}) {
+  useEffect(() => {
+    if (!onClose) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [onClose]);
   return (
-    <div className={`rd-gate${contained ? ' rd-gate--contained' : ''}`}>
-      <div className="rd-gate__card" role="group" aria-label="로그인 안내">
+    <div
+      className={`rd-gate${contained ? ' rd-gate--contained' : ''}`}
+      onMouseDown={onClose ? (e) => e.target === e.currentTarget && onClose() : undefined}
+    >
+      <div className="rd-gate__card" role={onClose ? 'dialog' : 'group'} aria-modal={onClose ? true : undefined} aria-label="로그인 안내">
         <p className="rd-gate__brand">이어봄</p>
         <p className="rd-gate__title">로그인이 필요합니다</p>
         <p className="rd-gate__desc">
-          <span>{screenName}은(는)</span> <span className="rd-gate__rest">로그인 후 이용 가능합니다.</span>
+          <span>{screenName}{josaEunNeun(screenName)}</span> <span className="rd-gate__rest">로그인 후 이용 가능합니다.</span>
         </p>
         <RdButton place="dialog" className="rd-gate__btn" onClick={onLogin}>로그인</RdButton>
       </div>
     </div>
   );
+}
+
+/** 마지막 글자 받침으로 은/는. 한글이 아니면(숫자·영문 등) 읽는 소리를 알 수 없어 "은(는)"으로 둔다. */
+function josaEunNeun(word: string): string {
+  const t = word.trim();
+  const code = t.charCodeAt(t.length - 1);
+  if (code < 0xac00 || code > 0xd7a3) return '은(는)';
+  return (code - 0xac00) % 28 === 0 ? '는' : '은';
 }

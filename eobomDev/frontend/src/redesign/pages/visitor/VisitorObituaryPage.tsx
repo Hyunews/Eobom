@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import type { DemoOption } from '../../parts/RdDemo';
 import { copyObituaryLink } from '../../../utils/kakaoShare';
 import { ObituaryBody, ObituarySkeleton } from './ObituaryBody';
-import { VisitorShell, VsConnectionFailed, VsState } from './visitorParts';
+import { RdState } from '../../parts/RdState';
+import { VisitorShell, VsConnectionFailed } from './visitorParts';
 import { OBIT_FULL, OBIT_MIN } from './visitorData';
 
 // 8단계 묶음 6 · /preview/visitor/obituary — 부고장 받은 화면(판 3-1 다 있음 · 3-2 최소 · 3-3 상태).
@@ -40,7 +41,7 @@ export function VisitorObituaryPage() {
   } else if (demo === 'missing') {
     body = (
       <div className="rd-vs-wrap">
-        <VsState icon="missing" title="부고장을 찾을 수 없습니다." desc="링크가 만료되었거나 잘못된 주소일 수 있습니다." />
+        <RdState kind="empty" title="부고장을 찾을 수 없습니다." desc="링크가 만료되었거나 잘못된 주소일 수 있습니다." />
       </div>
     );
   } else {

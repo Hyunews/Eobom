@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { formatKstDate } from '../../../utils/kstDate';
 import { sleep, type DemoOption } from '../../parts/RdDemo';
 import { RdButton, RdButtonRow } from '../../parts/RdButtons';
-import { Chrysanthemum, VisitorShell, VsConnectionFailed, VsFoot, VsLinkButton, VsLoadingText, VsState } from './visitorParts';
+import { Chrysanthemum, VisitorShell, VsConnectionFailed, VsFoot, VsLinkButton, VsLoadingText } from './visitorParts';
+import { RdState } from '../../parts/RdState';
 
 // 8단계 묶음 6 · /preview/visitor/memorial-extend — 추모관 연장 확인(판 3-7). 정본: 05-01 §6.1-2 · 3단계 캔버스 묶음 2-나.
 // 🔴 링크를 여는 것은 조회뿐이고 버튼을 눌러야 연장된다(00-20 §8.1-4). 예시 값은 지어낸 값.
@@ -43,19 +44,19 @@ export function VisitorExtendPage() {
     body = <VsConnectionFailed onRetry={() => setView('ready')} />;
   } else if (view === 'invalid' || view === 'invalidDefault') {
     body = (
-      <VsState
-        icon="blocked"
+      <RdState
+        kind="blocked"
         title="연장할 수 없습니다."
         desc={view === 'invalid' ? '이미 삭제된 추모관입니다.' : '유효하지 않은 링크입니다.'}
       >
         <VsLinkButton kind="secondary">이어봄 홈으로</VsLinkButton>
-      </VsState>
+      </RdState>
     );
   } else if (view === 'done') {
     body = (
-      <VsState icon="done" title="보존이 연장되었습니다." desc={`${formatKstDate(EXTENDED_UNTIL)}까지 보존됩니다.`}>
+      <RdState kind="done" title="보존이 연장되었습니다." desc={`${formatKstDate(EXTENDED_UNTIL)}까지 보존됩니다.`}>
         <VsLinkButton kind="secondary">이어봄 홈으로</VsLinkButton>
-      </VsState>
+      </RdState>
     );
   } else {
     const dateText = formatKstDate(frozen ? PURGE_AT : EXPIRES_AT);

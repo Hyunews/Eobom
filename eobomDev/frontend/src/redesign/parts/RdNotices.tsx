@@ -43,7 +43,8 @@ export function RdNotice({
   action,
 }: {
   tone?: NoticeTone;
-  title: string;
+  /** 생략하면 설명 한 문단만(15 · 보통 굵기) */
+  title?: string;
   children?: React.ReactNode;
   action?: React.ReactNode;
 }) {
@@ -52,7 +53,7 @@ export function RdNotice({
     <div className={`rd-notice rd-notice--${tone}`} role={tone === 'caution' ? 'group' : undefined}>
       <span className="rd-notice__icon">{icon}</span>
       <div className="rd-notice__body">
-        <p className="rd-notice__title">{title}</p>
+        {title && <p className="rd-notice__title">{title}</p>}
         {children && <p className="rd-notice__desc">{children}</p>}
         {action && <div className="rd-notice__action">{action}</div>}
       </div>

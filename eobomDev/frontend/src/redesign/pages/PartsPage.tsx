@@ -528,6 +528,7 @@ function NoticeBlock() {
             기한이 지나면 되돌릴 수 없습니다.
           </RdNotice>
           <RdNotice tone="success" title="부고장을 만들었습니다" />
+          <RdNotice>제목 없이 설명 한 문단만 둘 때: 수락하시면 권한이 생깁니다. 거절하셔도 어떤 불이익도 없습니다.</RdNotice>
         </div>
       </Sample>
       <Sample title="기한 한 줄 안내" note="높이 48, 한 줄. 큰 주의 상자를 숨기는 모바일에서 대신 쓴다. 누르면 해당 구간으로.">
@@ -605,6 +606,11 @@ function DialogBlock() {
           ) : (
             <RdLoginGate contained screenName="엔딩노트" onLogin={() => setGate(true)} />
           )}
+        </div>
+      </Sample>
+      <Sample title="⑤-2 로그인 가림막 · 닫기 선택" note="onClose를 주면 바깥 누름·Esc로 닫힌다(조문객 방명록). 이름 끝 받침에 따라 은/는이 바뀐다. 기본은 안 닫힘.">
+        <div style={{ position: 'relative', overflow: 'hidden', minHeight: 320 }}>
+          <RdLoginGate contained screenName="방명록 남기기" onClose={() => undefined} />
         </div>
       </Sample>
 
@@ -720,6 +726,15 @@ function StateBlock() {
           <RdButton kind="secondary">홈으로</RdButton>
           <RdButton>새로 고침</RdButton>
         </RdState>
+      </Sample>
+      <Sample title="⑥ 거절됨" bare>
+        <RdState kind="declined" title="거절되었습니다." desc="아무 권한도 부여되지 않았습니다." />
+      </Sample>
+      <Sample title="⑦ 만료" bare>
+        <RdState kind="expired" title="초대 링크가 만료되었습니다." desc="보내신 분에게 새 링크를 다시 요청해 주세요." />
+      </Sample>
+      <Sample title="⑧ 연장 불가" bare>
+        <RdState kind="blocked" title="연장할 수 없습니다." desc="이미 삭제된 추모관입니다." />
       </Sample>
       <Sample title="⑤ 완료 (강조 카드)" bare wide>
         <RdState
