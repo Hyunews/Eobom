@@ -5,11 +5,11 @@ import { RdFold } from '../../parts/RdCards';
 import { RdConsentGroup, RdField, RdFileRow, RdInput, RdTextarea } from '../../parts/RdInputs';
 import { RdPageHead, RdTabs } from '../../parts/RdNav';
 import { RdNotice } from '../../parts/RdNotices';
-import { RdAlertDialog, RdConfirmDialog, RdDialog, RdLoginGate } from '../../parts/RdModal';
+import { RdAlertDialog, RdConfirmDialog, RdDangerDialog, RdDialog, RdLoginGate } from '../../parts/RdModal';
 import { RdState } from '../../parts/RdState';
 import { IconChevronLeft, IconChevronRight, IconDoc, IconErrorCircle } from '../../parts/icons';
 import { useIsPhone } from '../../useIsPhone';
-import { DangerConfirm, DemoBar, sleep, type DemoOption } from './prepCommon';
+import { DemoBar, sleep, type DemoOption } from './prepCommon';
 
 // 8단계 묶음 4 · /preview/farewell-messages — 1단계 캔버스 1-11~1-15(유족 메시지 보관함 · 편지 쓰기 · 음성 · 상태 · 확인 창).
 // 서버·마이크 없이 예시 값으로 움직인다(녹음은 시간만 센다).
@@ -407,17 +407,19 @@ function WriteDialog({
         />
       )}
       {voiceDel && (
-        <DangerConfirm
+        <RdDangerDialog
           title={voiceDel === 'saved' ? '이 음성을 삭제하시겠어요?' : '저장 전 음성을 삭제하시겠어요?'}
-          desc={voiceDel === 'saved' ? '30일 뒤 완전히 삭제됩니다.' : '저장하기 전이라 되돌릴 수 없습니다.\n입력창의 글은 그대로 남습니다.'}
+          desc={voiceDel === 'saved' ? '30일 뒤 완전히 삭제됩니다.' : '저장하기 전이라 되돌릴 수 없습니다. 입력창의 글은 그대로 남습니다.'}
+          doLabel="삭제"
           onCancel={() => setVoiceDel(null)}
           onDo={() => { if (voiceDel === 'saved') setSavedVoice(false); else setPendingVoice(false); setVoiceDel(null); }}
         />
       )}
       {letterDel && (
-        <DangerConfirm
+        <RdDangerDialog
           title="이 편지를 삭제하시겠어요?"
           desc="30일 뒤 완전히 삭제됩니다."
+          doLabel="삭제"
           onCancel={() => setLetterDel(false)}
           onDo={() => { setLetterDel(false); onDelete(); }}
         />
@@ -630,9 +632,10 @@ export function FarewellPage() {
         />
       )}
       {delAsk && (
-        <DangerConfirm
+        <RdDangerDialog
           title="이 편지를 삭제하시겠어요?"
           desc="30일 뒤 완전히 삭제됩니다."
+          doLabel="삭제"
           onCancel={() => setDelAsk(null)}
           onDo={() => { removeLetter(delAsk.person, delAsk.letter); setDelAsk(null); }}
         />

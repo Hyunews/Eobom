@@ -1,11 +1,9 @@
 import React from 'react';
-import { RdButton } from '../../parts/RdButtons';
 import { RdSelect } from '../../parts/RdInputs';
-import { RdDialog } from '../../parts/RdModal';
 import { IconCheck, IconErrorCircle } from '../../parts/icons';
 import './prep.css';
 
-// 8단계 묶음 4 공통 조각 — 미리보기 전용 상태 고르기 · 위험 확인 창(시안 문구) · 저장 줄 · 내려받기.
+// 8단계 묶음 4 공통 조각 — 미리보기 전용 상태 고르기 · 저장 줄 · 내려받기.
 
 export interface DemoOption {
   value: string;
@@ -35,40 +33,6 @@ export function DemoBar({ value, options, onChange }: { value: string; options: 
         )}
       </RdSelect>
     </div>
-  );
-}
-
-/** 위험 확인 창 — 시안 문구(제목 + 한 줄 설명)를 그대로 쓰려고 RdDialog로 조립한다. 처음 초점은 [취소]. */
-export function DangerConfirm({
-  title,
-  desc,
-  doLabel = '삭제',
-  onCancel,
-  onDo,
-}: {
-  title: string;
-  desc?: string;
-  doLabel?: string;
-  onCancel: () => void;
-  onDo: () => void;
-}) {
-  return (
-    <RdDialog
-      danger
-      evenButtons
-      warning="되돌릴 수 없습니다"
-      title={title}
-      onClose={onCancel}
-      initialFocus="[data-rd-cancel]"
-      footer={
-        <>
-          <RdButton kind="secondary" place="dialog" data-rd-cancel="" onClick={onCancel}>취소</RdButton>
-          <RdButton kind="danger" place="dialog" onClick={onDo}>{doLabel}</RdButton>
-        </>
-      }
-    >
-      {desc && <p className="rd-dialog__desc" style={{ whiteSpace: 'pre-line' }}>{desc}</p>}
-    </RdDialog>
   );
 }
 

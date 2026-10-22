@@ -7,6 +7,7 @@ import { RdAlertDialog, RdDialog, RdLoginGate } from '../../parts/RdModal';
 import { RdState } from '../../parts/RdState';
 import { IconWarn } from '../../parts/icons';
 import { useIsPhone } from '../../useIsPhone';
+import { calculateInheritanceTax, type InheritanceTaxBreakdown } from '../../../utils/inheritanceTax';
 import { DemoBar, sleep, type DemoOption } from './prepCommon';
 
 // 8단계 묶음 4 · /preview/counseling — 1단계 캔버스 1-16~1-20(전문가 상담 · 상황 고르기 · 상세 · 신청 · 상속세 · 상태·알림).
@@ -59,26 +60,6 @@ const DEMOS: DemoOption[] = [
 const eok = (man: number) => (man / 10000).toFixed(2);
 const nf = (n: number) => Math.round(n).toLocaleString();
 
-function calc(i: { total: number; debt: number; fin: number; spouse: boolean; spouseActual: number | null; kids: number; elders: number }) {
-  const base = Math.max(i.total - i.debt, 0);
-  const basic = 20000 + i.kids * 5000 + i.elders * 5000;
-  const lump = 50000;
-  const personal = Math.max(basic, lump);
-  let spouseDed = 0;
-  if (i.spouse) {
-    const legal = (base * 1.5) / (1.5 + i.kids);
-    const raw = i.spouseActual != null ? i.spouseActual : legal;
-    spouseDed = Math.min(Math.max(raw, 50000), 300000);
-  }
-  const finDed = i.fin > 0 ? Math.min(Math.max(i.fin * 0.2, 2000), 20000) : 0;
-  const taxable = Math.max(base - personal - spouseDed - finDed, 0);
-  const table: [number, number, number][] = [[10000, 0.1, 0], [50000, 0.2, 1000], [100000, 0.3, 6000], [300000, 0.4, 16000], [Infinity, 0.5, 46000]];
-  const [, rate, ded] = table.find(([lim]) => taxable <= lim)!;
-  const tax = Math.max(taxable * rate - ded, 0);
-  const credit = tax * 0.03;
-  return { base, personal, spouseDed, finDed, taxable, rate, tax, credit, final: tax - credit };
-}
-
 function TaxDialog({ onClose }: { onClose: () => void }) {
   const [total, setTotal] = useState('150000');
   const [debt, setDebt] = useState('5000');
@@ -87,19 +68,19 @@ function TaxDialog({ onClose }: { onClose: () => void }) {
   const [spouseActual, setSpouseActual] = useState('');
   const [kids, setKids] = useState('2');
   const [elders, setElders] = useState('0');
-  const [out, setOut] = useState<ReturnType<typeof calc> | null>(null);
+  const [out, setOut] = useState<InheritanceTaxBreakdown | null>(null);
   const n = (s: string) => Math.max(Number(s.replace(/,/g, '')) || 0, 0);
 
   const run = () =>
     setOut(
-      calc({
-        total: n(total),
-        debt: n(debt),
-        fin: n(fin),
-        spouse: spouse === 'yes',
-        spouseActual: spouse === 'yes' && spouseActual.trim() !== '' ? n(spouseActual) : null,
-        kids: n(kids),
-        elders: n(elders),
+      calculateInheritanceTax({
+        totalAsset: n(total),
+        debtAndFuneralCost: n(debt),
+        financialAsset: n(fin),
+        hasSpouse: spouse === 'yes',
+        spouseInheritedAmount: spouse === 'yes' && spouseActual.trim() !== '' ? n(spouseActual) : null,
+        childrenCount: n(kids),
+        elderlyCount: n(elders),
       }),
     );
 
@@ -141,16 +122,16 @@ function TaxDialog({ onClose }: { onClose: () => void }) {
             <>
               <h3 className="rd-t-sub" style={{ margin: 0 }}>예상 상속세 산출 결과</h3>
               <dl className="rd-pr-tax__table">
-                <dt>상속세 과세가액</dt><dd>{nf(out.base)} 만원</dd>
-                <dt>기초·일괄공제(큰 금액)</dt><dd>- {nf(out.personal)} 만원</dd>
-                {spouse === 'yes' && (<><dt>배우자공제{spouseActual.trim() === '' ? '(추정)' : ''}</dt><dd>- {nf(out.spouseDed)} 만원</dd></>)}
-                <dt>금융재산 상속공제</dt><dd>- {nf(out.finDed)} 만원</dd>
-                <dt>과세표준</dt><dd>{nf(out.taxable)} 만원</dd>
-                <dt>최고세율 구간</dt><dd>{Math.round(out.rate * 100)}%</dd>
-                <dt>산출세액</dt><dd>{nf(out.tax)} 만원</dd>
-                <dt>신고세액공제(3%)</dt><dd>- {nf(out.credit)} 만원</dd>
+                <dt>상속세 과세가액</dt><dd>{nf(out.taxableBase)} 만원</dd>
+                <dt>기초·일괄공제(큰 금액)</dt><dd>- {nf(out.basicOrLumpSumDeduction)} 만원</dd>
+                {out.spouseDeduction > 0 && (<><dt>배우자공제{out.spouseDeductionIsEstimated ? '(추정)' : ''}</dt><dd>- {nf(out.spouseDeduction)} 만원</dd></>)}
+                <dt>금융재산 상속공제</dt><dd>- {nf(out.financialAssetDeduction)} 만원</dd>
+                <dt>과세표준</dt><dd>{nf(out.taxBase)} 만원</dd>
+                <dt>최고세율 구간</dt><dd>{Math.round(out.bracketRate)}%</dd>
+                <dt>산출세액</dt><dd>{nf(out.calculatedTax)} 만원</dd>
+                <dt>신고세액공제(3%)</dt><dd>- {nf(out.reportingDeduction)} 만원</dd>
               </dl>
-              <p className="rd-pr-tax__final">최종 예상 상속세액: 약 {nf(out.final)} 만원 ({eok(out.final)} 억원)</p>
+              <p className="rd-pr-tax__final">최종 예상 상속세액: 약 {nf(out.finalTax)} 만원 ({eok(out.finalTax)} 억원)</p>
               <p className="rd-pr-tax__refs">
                 <b>계산 기준 및 참고사항</b><br />
                 <b>반영</b>: 기초공제(2억)·자녀공제(1인당 5천만원)·연로자공제(1인당 5천만원) 중 일괄공제(5억)와 비교해 큰 금액, 배우자공제(최소 5억~최대 30억), 금융재산 상속공제(순금융재산의 20%, 최소 2천만원~한도 2억), 5단계 누진세율(10~50%), 신고세액공제(3%)<br />

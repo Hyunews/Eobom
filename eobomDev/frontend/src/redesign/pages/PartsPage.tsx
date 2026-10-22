@@ -570,7 +570,7 @@ function NoticeBlock() {
 }
 
 function DialogBlock() {
-  const [dlg, setDlg] = useState<null | 'input' | 'confirm' | 'danger' | 'alert' | 'switch'>(null);
+  const [dlg, setDlg] = useState<null | 'input' | 'confirm' | 'danger' | 'dangerDesc' | 'alert' | 'switch'>(null);
   const [step, setStep] = useState<'in' | 'out'>('in');
   const [amount, setAmount] = useState('300000000');
   const [busy, setBusy] = useState(false);
@@ -588,7 +588,8 @@ function DialogBlock() {
         <div className="rd-pv__row rd-pv__row--grid">
           <RdButton kind="secondary" onClick={() => setDlg('input')}>① 입력 창</RdButton>
           <RdButton kind="secondary" onClick={() => setDlg('confirm')}>② 확인 창</RdButton>
-          <RdButton kind="secondary" onClick={() => setDlg('danger')}>③ 위험 확인 창</RdButton>
+          <RdButton kind="secondary" onClick={() => setDlg('danger')}>③ 위험 확인 창 (목록형)</RdButton>
+          <RdButton kind="secondary" onClick={() => setDlg('dangerDesc')}>③ 위험 확인 창 (설명형)</RdButton>
           <RdButton kind="secondary" onClick={() => setDlg('alert')}>④ 알림 창</RdButton>
           <RdButton kind="secondary" onClick={() => show('저장했습니다')}>④ 짧은 알림</RdButton>
           <RdButton kind="secondary" onClick={() => setDlg('switch')}>⑥ 내용 바꾸기</RdButton>
@@ -643,6 +644,16 @@ function DialogBlock() {
           title="메시지를 삭제할까요?"
           lost={['메시지 본문', '첨부한 사진 2장', '받는 사람 지정']}
           doLabel="삭제하기"
+          busy={busy}
+          onCancel={close}
+          onDo={() => { setBusy(true); window.setTimeout(() => { close(); show('삭제했습니다'); }, 1200); }}
+        />
+      )}
+      {dlg === 'dangerDesc' && (
+        <RdDangerDialog
+          title="이 편지를 삭제하시겠어요?"
+          desc="30일 뒤 완전히 삭제됩니다."
+          doLabel="삭제"
           busy={busy}
           onCancel={close}
           onDo={() => { setBusy(true); window.setTimeout(() => { close(); show('삭제했습니다'); }, 1200); }}

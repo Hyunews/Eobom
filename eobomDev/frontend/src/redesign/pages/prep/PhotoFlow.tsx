@@ -2,12 +2,12 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { RdBadge, RdButton, RdIconButton, RdRequired } from '../../parts/RdButtons';
 import { RdTabs } from '../../parts/RdNav';
 import { RdTextarea } from '../../parts/RdInputs';
-import { RdAlertDialog, RdConfirmDialog, RdDialog } from '../../parts/RdModal';
+import { RdAlertDialog, RdConfirmDialog, RdDangerDialog, RdDialog } from '../../parts/RdModal';
 import { RdState } from '../../parts/RdState';
 import { IconChevronDown, IconChevronLeft, IconChevronRight, IconChevronUp, IconClose, IconErrorCircle } from '../../parts/icons';
 import { useIsPhone } from '../../useIsPhone';
 import { FOUND_LABEL, OCR_PAGES, OCR_REQS, VAULT, type OcrReq, type VaultBundle } from './noteData';
-import { DangerConfirm, sleep } from './prepCommon';
+import { sleep } from './prepCommon';
 
 // 사진 읽기 창 묶음(1-6 올리기 · 1-7 읽는 중 · 1-8 결과 · 1-9 보관한 사진 · 1-10 상태). 서버 호출 없이 예시 값으로 흐름만 돈다.
 
@@ -421,9 +421,10 @@ export function PhotoFlow({
         />
       )}
       {delAsk && (
-        <DangerConfirm
+        <RdDangerDialog
           title="이 사진 묶음을 삭제하시겠어요?"
           desc="30일 뒤 완전히 삭제됩니다."
+          doLabel="삭제"
           onCancel={() => setDelAsk(false)}
           onDo={() => {
             setDelAsk(false);

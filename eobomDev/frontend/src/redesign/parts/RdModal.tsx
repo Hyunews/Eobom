@@ -192,9 +192,10 @@ export function RdConfirmDialog({
   );
 }
 
-/** ③ 위험 확인 창 — 지우기 전. 무엇이 지워지는지 적고, 처음 초점은 [취소]. */
+/** ③ 위험 확인 창 — 지우기 전. 본문은 두 가지: 목록형(lost) · 한 줄 설명형(desc). 처음 초점은 [취소]. */
 export function RdDangerDialog({
   title,
+  desc,
   lost,
   cancelLabel = '취소',
   doLabel,
@@ -203,8 +204,10 @@ export function RdDangerDialog({
   onDo,
 }: {
   title: string;
-  /** 무엇이 지워지는지 */
-  lost: string[];
+  /** 설명형 — 한 문단. 줄바꿈 문자 없이 문장을 이어 쓴다(§6-3-5) */
+  desc?: string;
+  /** 목록형 — 무엇이 지워지는지 */
+  lost?: string[];
   cancelLabel?: string;
   doLabel: string;
   busy?: boolean;
@@ -226,12 +229,17 @@ export function RdDangerDialog({
         </>
       }
     >
-      <p className="rd-dialog__desc">아래 내용이 지워집니다.</p>
-      <ul className="rd-dialog__lost">
-        {lost.map((l) => (
-          <li key={l}>{l}</li>
-        ))}
-      </ul>
+      {desc && <p className="rd-dialog__desc">{desc}</p>}
+      {lost && (
+        <>
+          <p className="rd-dialog__desc">아래 내용이 지워집니다.</p>
+          <ul className="rd-dialog__lost">
+            {lost.map((l) => (
+              <li key={l}>{l}</li>
+            ))}
+          </ul>
+        </>
+      )}
     </RdDialog>
   );
 }
