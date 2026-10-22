@@ -318,10 +318,14 @@ export const listGuestbook = async (req: Request, res: Response) => {
 
     const entries = await prisma.memorialGuestbook.findMany({
       where: { memorialId: memorial.id, deletedByOwnerAt: null, hiddenAt: null, deletedByAuthorAt: null },
-      select: { id: true, authorName: true, relationToDeceased: true, message: true, createdAt: true },
+      select: { id: true, authorName: true, relationToDeceased: true, message: true, createdAt: true, userId: true },
       orderBy: { createdAt: 'desc' },
     });
-    return res.json({ status: 'success', data: entries });
+    // 05-01 §4.2 — 로그인한 요청일 때만 글마다 `mine`을 더한다(공개 화면 내 글 [삭제] 자리). 비로그인은 칸 없음.
+    // 🔴 작성자 userId는 응답에 싣지 않는다. 인증은 선택이라 실패해도 401이 아니라 칸만 빠진다.
+    const viewer = verifyBearerToken(req);
+    const data = entries.map(({ userId, ...rest }) => (viewer ? { ...rest, mine: userId === viewer.id } : rest));
+    return res.json({ status: 'success', data });
   } catch (error) {
     console.error('방명록 조회 실패:', error);
     return res.status(500).json({ status: 'error', message: '방명록 조회 중 오류가 발생했습니다.' });

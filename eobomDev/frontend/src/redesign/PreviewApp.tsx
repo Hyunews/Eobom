@@ -13,6 +13,7 @@ import { DigitalPage } from './pages/after/DigitalPage';
 import { FacilityPage } from './pages/after/FacilityPage';
 import { ObituaryPage } from './pages/after/ObituaryPage';
 import { FacilityDetailPage } from './pages/after/FacilityDetailPage';
+import { VisitorRoutes } from './pages/visitor/VisitorRoutes';
 
 // 8단계 미리보기 뿌리 — /preview/… 만 연다. 메뉴·링크 어디에도 이 주소를 넣지 않는다(00-44 §9-4 공통 조건).
 // 묶음 2가 /preview/parts, 묶음 3부터 화면별 주소를 여기에 더한다.
@@ -33,23 +34,32 @@ export function PreviewApp() {
 
   return (
     <BrowserRouter>
-      <RdLayout>
-        <Routes>
-          <Route path="/preview" element={<FoundationPage />} />
-          <Route path="/preview/parts" element={<PartsPage />} />
-          <Route path="/preview/landing" element={<LandingPage />} />
-          <Route path="/preview/ending-note" element={<EndingNotePage />} />
-          <Route path="/preview/farewell-messages" element={<FarewellPage />} />
-          <Route path="/preview/counseling" element={<CounselingPage />} />
-          <Route path="/preview/care-guide" element={<GuidePage />} />
-          <Route path="/preview/pickup" element={<PickupPage />} />
-          <Route path="/preview/digital-estate" element={<DigitalPage />} />
-          <Route path="/preview/obituary" element={<ObituaryPage />} />
-          <Route path="/preview/facility" element={<FacilityPage />} />
-          <Route path="/preview/facility/:id" element={<FacilityDetailPage />} />
-          <Route path="*" element={<FoundationPage notFound />} />
-        </Routes>
-      </RdLayout>
+      <Routes>
+        {/* 묶음 6 — 조문객 화면은 껍데기(헤더·메뉴·바닥글)가 없다. 틀 밖에서 연다. */}
+        <Route path="/preview/visitor/*" element={<VisitorRoutes />} />
+        <Route
+          path="*"
+          element={
+            <RdLayout>
+              <Routes>
+                <Route path="/preview" element={<FoundationPage />} />
+                <Route path="/preview/parts" element={<PartsPage />} />
+                <Route path="/preview/landing" element={<LandingPage />} />
+                <Route path="/preview/ending-note" element={<EndingNotePage />} />
+                <Route path="/preview/farewell-messages" element={<FarewellPage />} />
+                <Route path="/preview/counseling" element={<CounselingPage />} />
+                <Route path="/preview/care-guide" element={<GuidePage />} />
+                <Route path="/preview/pickup" element={<PickupPage />} />
+                <Route path="/preview/digital-estate" element={<DigitalPage />} />
+                <Route path="/preview/obituary" element={<ObituaryPage />} />
+                <Route path="/preview/facility" element={<FacilityPage />} />
+                <Route path="/preview/facility/:id" element={<FacilityDetailPage />} />
+                <Route path="*" element={<FoundationPage notFound />} />
+              </Routes>
+            </RdLayout>
+          }
+        />
+      </Routes>
     </BrowserRouter>
   );
 }

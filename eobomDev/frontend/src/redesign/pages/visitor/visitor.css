@@ -1,0 +1,867 @@
+/* 8단계 묶음 6 · 조문객 화면(부고장 받은 화면 · 추모관 공개 화면 · 연장 · 초대).
+   값은 3단계 캔버스 묶음 1(8uadArPxHWjf1Mstuo2sg6) · 묶음 2(8B1Xtx67wt3yD8ZvXiRTU4)에서 옮겼다 — 07-03 §6.3-2 · 05-01 §6.1-2.
+   전부 .rd-root 아래에 가둔다(지금 화면의 design-v2.css에 새지 않게, 00-44 §9-4 공통 조건).
+   껍데기(헤더·메뉴·바닥글)가 없는 화면이라 .rd-main 안이 아니라 자기 틀(.rd-vs-page)을 쓴다.
+   데스크톱 기본, 휴대폰(≤767px) 값은 맨 아래 한 곳에 모았다. */
+
+/* ───────── 틀 ───────── */
+
+.rd-root .rd-vs-page {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 96px 20px;
+}
+
+.rd-root .rd-vs-wrap {
+  width: 680px;
+  max-width: 100%;
+}
+
+.rd-root .rd-vs-card {
+  position: relative;
+  box-sizing: border-box;
+  padding: 48px 52px 44px;
+  background: var(--rd-paper);
+  border: 1px solid var(--rd-line);
+  box-shadow: 8px 8px 0 var(--rd-shadow);
+}
+
+.rd-root .rd-vs-card > .rd-vs-flower {
+  display: block;
+  margin-bottom: 16px;
+}
+
+.rd-root .rd-vs-demo {
+  display: flex;
+  justify-content: center;
+  padding: 0 20px 48px;
+}
+
+/* 관리 화면 안 "조문객 화면 미리보기" 창에 넣을 때의 바탕 */
+.rd-root .rd-vs-modalframe {
+  display: flex;
+  justify-content: center;
+  margin-top: 16px;
+  padding: 32px 24px;
+  background: var(--rd-bg);
+  border: 1px dashed var(--rd-dot);
+}
+
+/* ───────── 머리 ───────── */
+
+.rd-root .rd-vs-head {
+  position: relative;
+}
+
+.rd-root .rd-vs-flower {
+  display: block;
+  margin-bottom: 16px;
+}
+
+.rd-root .rd-vs-head.has-portrait .rd-vs-flower {
+  position: absolute;
+  top: 0;
+  left: 0;
+  margin: 0;
+}
+
+.rd-root .rd-vs-copy {
+  position: absolute;
+  top: 0;
+  right: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 36px;
+  padding: 0 12px;
+  background: transparent;
+  border: 1px solid var(--rd-ink);
+  border-radius: var(--rd-radius);
+  color: var(--rd-ink);
+  font-family: var(--rd-font-sans);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.rd-root .rd-vs-copy:active {
+  background: var(--rd-pressed);
+}
+
+/* 복사 결과 글: [링크 복사] 바로 아래 오른쪽 구석, 줄을 차지하지 않는다 */
+.rd-root .rd-vs-copy-note {
+  position: absolute;
+  top: 42px;
+  right: 0;
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--rd-done);
+  white-space: nowrap;
+}
+
+.rd-root .rd-vs-copy-note.is-fail {
+  color: var(--rd-danger);
+}
+
+.rd-root .rd-vs-portrait {
+  box-sizing: border-box;
+  width: 120px;
+  height: 120px;
+  margin: 0 auto 24px;
+  border-radius: 50%;
+  background: var(--rd-shadow);
+  border: 1px solid var(--rd-line);
+}
+
+.rd-root .rd-vs-lede {
+  margin: 0 0 8px;
+  font-size: 15px;
+  color: var(--rd-ink-support);
+  letter-spacing: 0.02em;
+}
+
+.rd-root .rd-vs-name {
+  margin: 0;
+  font-family: var(--rd-font-serif);
+  font-size: 36px;
+  font-weight: 700;
+  line-height: 1.4;
+  letter-spacing: -0.5px;
+}
+
+.rd-root .rd-vs-name--invite {
+  font-size: 28px;
+}
+
+.rd-root .rd-vs-death {
+  margin: 8px 0 0;
+  font-size: 16px;
+  color: var(--rd-ink-support);
+}
+
+.rd-root .rd-vs-epitaph {
+  margin: 12px 0 0;
+  font-family: var(--rd-font-serif);
+  font-size: 17px;
+  line-height: 1.7;
+}
+
+/* ───────── 묶음(구간) · 줄 ───────── */
+
+.rd-root .rd-vs-sec {
+  margin-top: 32px;
+  padding-top: 32px;
+  border-top: 1px dashed var(--rd-dot);
+}
+
+.rd-root .rd-vs-sec__title {
+  margin: 0 0 14px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--rd-point);
+  letter-spacing: 2px;
+}
+
+.rd-root .rd-vs-sec__title--guest {
+  margin-bottom: 4px;
+  font-size: 16px;
+}
+
+.rd-root .rd-vs-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.rd-root .rd-vs-row:last-child {
+  margin-bottom: 0;
+}
+
+.rd-root .rd-vs-row__label {
+  flex: none;
+  width: 72px;
+  padding-top: 4px;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--rd-ink-support);
+}
+
+.rd-root .rd-vs-row__value {
+  flex: 1;
+  min-width: 0;
+  font-size: 17px;
+  line-height: 1.7;
+}
+
+.rd-root .rd-vs-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.rd-root .rd-vs-addr {
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--rd-ink-support);
+}
+
+/* [길찾기 ↗] · [전화 걸기] — 줄 오른쪽 끝 */
+.rd-root .rd-vs-go {
+  flex: none;
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  box-sizing: border-box;
+  height: 44px;
+  padding: 0 16px;
+  border: 1px solid var(--rd-dot);
+  border-radius: var(--rd-radius);
+  color: var(--rd-ink);
+  font-size: 14px;
+  font-weight: 500;
+  white-space: nowrap;
+  text-decoration: none;
+}
+
+.rd-root .rd-vs-go:active {
+  background: var(--rd-pressed);
+}
+
+.rd-root .rd-vs-memorial-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-sizing: border-box;
+  width: 100%;
+  height: 52px;
+  margin-top: 32px;
+  border: 1px solid var(--rd-ink);
+  border-radius: var(--rd-radius);
+  color: var(--rd-ink);
+  font-size: 16px;
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.rd-root .rd-vs-memorial-btn:active {
+  background: var(--rd-pressed);
+}
+
+.rd-root .rd-vs-foot {
+  margin-top: 28px;
+  text-align: center;
+}
+
+.rd-root .rd-vs-foot__updated {
+  margin: 0;
+  font-size: 14px;
+  color: var(--rd-ink-small);
+}
+
+.rd-root .rd-vs-foot__brand {
+  margin: 0;
+  font-family: var(--rd-font-serif);
+  font-size: 13px;
+  color: var(--rd-ink-small);
+}
+
+.rd-root .rd-vs-foot__updated + .rd-vs-foot__brand {
+  margin-top: 6px;
+}
+
+/* 데스크톱·모바일에서 한쪽에만 보이는 조각 */
+.rd-root .rd-vs-only-phone {
+  display: none;
+}
+
+/* ───────── 불러오는 중 뼈대 ───────── */
+
+.rd-root .rd-vs-sk {
+  background: var(--rd-shadow);
+}
+
+.rd-root .rd-vs-sk--btn {
+  width: 100%;
+  height: 52px;
+  margin-top: 32px;
+}
+
+.rd-root .rd-vs-sk--btn44 {
+  height: 44px;
+}
+
+/* 뼈대 줄은 글자 줄보다 위 여백이 조금 더 있다 */
+.rd-root .rd-vs-card .rd-vs-row__label > .rd-vs-sk {
+  margin-top: 2px;
+}
+
+/* ───────── 추모관: 방명록 ───────── */
+
+.rd-root .rd-vs-guest {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--rd-line);
+}
+
+.rd-root .rd-vs-guest:last-child {
+  border-bottom: 0;
+}
+
+.rd-root .rd-vs-guest__main {
+  flex: 1;
+  min-width: 0;
+}
+
+.rd-root .rd-vs-guest__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0 0 6px;
+}
+
+.rd-root .rd-vs-guest__name {
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.rd-root .rd-vs-guest__date {
+  flex: none;
+  font-size: 14px;
+  color: var(--rd-ink-small);
+  white-space: nowrap;
+}
+
+.rd-root .rd-vs-guest__msg {
+  margin: 0;
+  font-size: 17px;
+  line-height: 1.7;
+}
+
+/* 내 글 [삭제]: 데스크톱 = 줄 오른쪽(글과 위쪽 맞춤), 일시 바로 아래. 머리 줄의 일시는 숨긴다 */
+.rd-root .rd-vs-guest.is-mine .rd-vs-guest__head .rd-vs-guest__date {
+  display: none;
+}
+
+.rd-root .rd-vs-guest__side {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.rd-root .rd-vs-empty {
+  margin: 16px 0 0;
+  font-size: 16px;
+  color: var(--rd-ink-small);
+}
+
+.rd-root .rd-vs-listfail {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  padding: 24px 0;
+  font-size: 15px;
+  color: var(--rd-danger);
+}
+
+/* 쪽 넘김 — 데스크톱 = 쪽 번호, 모바일 = ‹ 1 / 6 › */
+.rd-root .rd-vs-pager {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 4px;
+  margin-top: 16px;
+}
+
+.rd-root .rd-vs-pager__nums {
+  display: inline-flex;
+  gap: 4px;
+}
+
+.rd-root .rd-vs-pager__side {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  color: var(--rd-ink);
+  cursor: pointer;
+}
+
+.rd-root .rd-vs-pager__side:disabled {
+  color: var(--rd-dot);
+  cursor: default;
+}
+
+.rd-root .rd-vs-pager__n {
+  min-width: 44px;
+  height: 44px;
+  padding: 0 8px;
+  background: transparent;
+  color: var(--rd-ink);
+  border: 1px solid transparent;
+  border-radius: var(--rd-radius);
+  font-family: var(--rd-font-sans);
+  font-size: 15px;
+  cursor: pointer;
+}
+
+.rd-root .rd-vs-pager__n[aria-current='page'] {
+  background: var(--rd-ink);
+  color: var(--rd-bg);
+  border-color: var(--rd-ink);
+  font-weight: 500;
+}
+
+.rd-root .rd-vs-pager__now {
+  font-size: 15px;
+}
+
+/* 헌화 줄 */
+.rd-root .rd-vs-tribute {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.rd-root .rd-vs-tribute__count {
+  margin: 0 0 0 auto;
+  font-size: 16px;
+}
+
+.rd-root .rd-vs-tribute__status {
+  margin: 12px 0 0;
+  text-align: right;
+  font-size: 14px;
+  color: var(--rd-ink-support);
+}
+
+.rd-root .rd-vs-tribute__status.is-error {
+  color: var(--rd-danger);
+}
+
+/* ───────── 방명록 창 · 글 삭제 창 안 ───────── */
+
+.rd-root .rd-vs-dlg__author {
+  margin: 0 0 16px;
+  font-size: 15px;
+  color: var(--rd-ink-support);
+}
+
+.rd-root .rd-vs-optional {
+  display: inline-block;
+  box-sizing: border-box;
+  width: 40px;
+  margin-left: 8px;
+  padding: 1px 0;
+  border: 1px solid var(--rd-dot);
+  border-radius: var(--rd-radius);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.5;
+  text-align: center;
+  color: var(--rd-ink-small);
+  vertical-align: 1px;
+}
+
+.rd-root .rd-vs-dlg__quote {
+  margin: 16px 0 0;
+  padding: 12px 14px;
+  background: var(--rd-bg);
+  border: 1px dotted var(--rd-dot);
+  font-size: 15px;
+  line-height: 1.7;
+  color: var(--rd-ink);
+  word-break: keep-all;
+}
+
+.rd-root .rd-vs-dlg__fail {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  margin: 12px 0 0;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--rd-danger);
+}
+
+.rd-root .rd-vs-dlg__fail svg {
+  flex: none;
+  margin-top: 3px;
+}
+
+/* ───────── 연장 · 초대 ───────── */
+
+.rd-root .rd-vs-invite-desc {
+  margin: 8px 0 0;
+  font-size: 17px;
+  line-height: 1.6;
+  color: var(--rd-ink-support);
+}
+
+.rd-root .rd-vs-invite-desc--tight {
+  margin-top: 4px;
+}
+
+.rd-root .rd-vs-actions {
+  margin-top: 32px;
+}
+
+.rd-root .rd-vs-actions__error {
+  margin: 0 0 8px;
+  text-align: right;
+  font-size: 14px;
+  color: var(--rd-danger);
+}
+
+.rd-root .rd-vs-invite-body {
+  margin-top: 32px;
+}
+
+.rd-root .rd-vs-invite-field {
+  margin-top: 24px;
+}
+
+.rd-root .rd-vs-invite-btns {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.rd-root .rd-vs-invite-ask {
+  margin: 20px 0 0;
+  font-size: 16px;
+  color: var(--rd-ink-support);
+}
+
+.rd-root .rd-vs-invite-cta {
+  width: 100%;
+  height: 52px;
+  margin-top: 12px;
+}
+
+.rd-root .rd-vs-textlink-wrap {
+  display: flex;
+  justify-content: center;
+  margin-top: 8px;
+}
+
+.rd-root .rd-vs-textlink {
+  min-height: 44px;
+  padding: 0 8px;
+  background: none;
+  border: 0;
+  font-family: var(--rd-font-sans);
+  font-size: 14px;
+  color: var(--rd-ink-support);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  cursor: pointer;
+}
+
+/* 판 8 틀 상태 화면(그림자 없음, 그림 48) */
+.rd-root .rd-vs-state {
+  box-sizing: border-box;
+  padding: 56px 40px;
+  gap: 14px;
+}
+
+.rd-root .rd-vs-state__icon {
+  width: 48px;
+  height: 48px;
+}
+
+.rd-root .rd-vs-index {
+  margin: 24px 0 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.rd-root .rd-vs-index li {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.rd-root .rd-vs-index code {
+  font-size: 13px;
+  color: var(--rd-ink-small);
+}
+
+/* ───────── 휴대폰 배치 (≤767) ───────── */
+
+@media (max-width: 767px) {
+  .rd-root .rd-vs-page {
+    padding: 64px 20px;
+  }
+
+  .rd-root .rd-vs-card {
+    padding: 36px 24px 32px;
+    box-shadow: 6px 6px 0 var(--rd-shadow);
+  }
+
+  /* 모바일에서만 */
+  .rd-root .rd-vs-go.rd-vs-only-phone {
+    display: inline-flex;
+  }
+
+  .rd-root .rd-vs-people.rd-vs-only-phone {
+    display: block;
+  }
+
+  .rd-root .rd-vs-pager__now.rd-vs-only-phone {
+    display: inline;
+  }
+
+  .rd-root .rd-vs-only-desktop {
+    display: none;
+  }
+
+  .rd-root .rd-vs-head {
+    margin-bottom: 40px;
+  }
+
+  .rd-root .rd-vs-portrait {
+    width: 76px;
+    height: 76px;
+  }
+
+  .rd-root .rd-vs-head.has-portrait .rd-vs-copy-note {
+    max-width: 8.5em;
+    text-align: right;
+    white-space: normal;
+  }
+
+  .rd-root .rd-vs-lede {
+    font-size: 14px;
+  }
+
+  .rd-root .rd-vs-name {
+    font-size: 28px;
+    letter-spacing: 0;
+  }
+
+  .rd-root .rd-vs-name--invite {
+    font-size: 24px;
+  }
+
+  .rd-root .rd-vs-name__line {
+    display: block;
+  }
+
+  .rd-root .rd-vs-death {
+    font-size: 14px;
+  }
+
+  .rd-root .rd-vs-epitaph {
+    font-size: 16px;
+  }
+
+  /* 구분 점선 대신 묶음 사이 여백, 줄마다 밑줄 */
+  .rd-root .rd-vs-sec {
+    margin-top: 0;
+    margin-bottom: 40px;
+    padding-top: 0;
+    border-top: 0;
+  }
+
+  .rd-root .rd-vs-card > :last-child {
+    margin-bottom: 0;
+  }
+
+  .rd-root .rd-vs-sec__title {
+    margin-bottom: 4px;
+    font-size: 13px;
+  }
+
+  .rd-root .rd-vs-sec__title--guest {
+    font-size: 16px;
+  }
+
+  .rd-root .rd-vs-row {
+    margin-bottom: 0;
+    padding: 18px 0;
+    border-bottom: 1px solid var(--rd-line);
+  }
+
+  .rd-root .rd-vs-row__label {
+    width: 52px;
+    padding-top: 3px;
+    font-size: 13px;
+  }
+
+  .rd-root .rd-vs-row__value {
+    font-size: 16px;
+    line-height: 1.6;
+  }
+
+  .rd-root .rd-vs-addr {
+    font-size: 14px;
+  }
+
+  .rd-root .rd-vs-go {
+    padding: 0 12px;
+  }
+
+  .rd-root .rd-vs-memorial-btn {
+    margin-top: 14px;
+  }
+
+  .rd-root .rd-vs-foot {
+    margin-top: 40px;
+  }
+
+  .rd-root .rd-vs-sk--btn {
+    margin-top: 14px;
+  }
+
+  /* 방명록 줄 */
+  .rd-root .rd-vs-guest {
+    display: block;
+    padding: 18px 0;
+  }
+
+  .rd-root .rd-vs-guest:last-child {
+    border-bottom: 1px solid var(--rd-line);
+  }
+
+  .rd-root .rd-vs-guest__date {
+    font-size: 13px;
+  }
+
+  .rd-root .rd-vs-guest__msg {
+    font-size: 16px;
+    line-height: 1.6;
+  }
+
+  .rd-root .rd-vs-guest.is-mine .rd-vs-guest__head .rd-vs-guest__date {
+    display: inline;
+  }
+
+  .rd-root .rd-vs-guest__date--side {
+    display: none;
+  }
+
+  .rd-root .rd-vs-guest__side {
+    flex-direction: row;
+    justify-content: flex-end;
+    margin-top: 8px;
+  }
+
+  /* 쪽 넘김: ‹ 1 / 6 › */
+  .rd-root .rd-vs-pager {
+    gap: 20px;
+  }
+
+  .rd-root .rd-vs-pager__side {
+    width: 48px;
+    height: 48px;
+    border: 1px solid var(--rd-line);
+    border-radius: var(--rd-radius);
+  }
+
+  .rd-root .rd-vs-pager__side:disabled {
+    border-color: var(--rd-line);
+  }
+
+  /* 헌화 줄: [방명록 남기기] [헌화하기] 1 : 1, 아래 가운데 숫자 */
+  .rd-root .rd-vs-tribute {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .rd-root .rd-vs-tribute__guest {
+    grid-column: 1;
+    grid-row: 1;
+    padding: 0 12px;
+  }
+
+  .rd-root .rd-vs-tribute__btn {
+    grid-column: 2;
+    grid-row: 1;
+    padding: 0 12px;
+  }
+
+  .rd-root .rd-vs-tribute__count {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    margin: 0;
+    text-align: center;
+    font-size: 15px;
+    line-height: 1.5;
+  }
+
+  .rd-root .rd-vs-tribute__status {
+    text-align: center;
+  }
+
+  /* 연장 · 초대 */
+  .rd-root .rd-vs-invite-desc {
+    font-size: 16px;
+  }
+
+  .rd-root .rd-vs-invite-desc--tight .rd-vs-nobr {
+    display: block;
+  }
+
+  .rd-root .rd-vs-actions {
+    margin-top: 24px;
+  }
+
+  .rd-root .rd-vs-actions .rd-btn {
+    width: 100%;
+    height: 52px;
+  }
+
+  .rd-root .rd-vs-invite-btns .rd-btn {
+    height: 52px;
+    min-width: 0;
+  }
+
+  .rd-root .rd-vs-invite-btns > :first-child {
+    flex: 1;
+  }
+
+  .rd-root .rd-vs-invite-btns > :last-child {
+    flex: 2;
+  }
+
+  .rd-root .rd-vs-state {
+    padding: 48px 24px;
+  }
+
+  .rd-root .rd-vs-state .rd-state__actions {
+    flex-direction: column-reverse;
+    align-self: stretch;
+  }
+
+  .rd-root .rd-vs-state .rd-state__actions .rd-btn {
+    width: 100%;
+    height: 52px;
+  }
+
+  .rd-root .rd-vs-modalframe {
+    padding: 20px 12px;
+  }
+}

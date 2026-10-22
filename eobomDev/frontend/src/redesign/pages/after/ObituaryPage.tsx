@@ -9,6 +9,8 @@ import { RdConfirmDialog, RdDangerDialog, RdDialog, RdLoginGate } from '../../pa
 import { RdState } from '../../parts/RdState';
 import { IconChevronDown, IconChevronRight, IconChevronUp, IconClose, IconErrorCircle, IconPencil, IconWarn } from '../../parts/icons';
 import { useIsPhone } from '../../useIsPhone';
+import { ObituaryBody } from '../visitor/ObituaryBody';
+import { OBIT_FULL } from '../visitor/visitorData';
 import './after.css';
 
 // 8단계 묶음 5 · /preview/obituary — 2단계 캔버스 판 2-12~2-19(만들기 · 선택 정보 · 관리 · 공유 · 종료 · 수정 창 · 미리보기 창 · 확인 창 · 상태).
@@ -516,7 +518,10 @@ export function ObituaryPage() {
           footer={<RdButton kind="secondary" place="dialog" onClick={() => setPreviewOpen(false)}>닫기</RdButton>}
         >
           <p className="rd-dialog__desc">조문객에게 보이는 화면입니다. 수정하면 이 화면은 바로 바뀌지만, 이미 보낸 카카오톡 카드는 바뀌지 않습니다.</p>
-          <div className="rd-af-previewbox">조문객 화면(부고장 본문)은 묶음 6에서 이 자리에 들어옵니다.</div>
+          {/* 묶음 6 — 조문객이 받는 부고장 본문 그대로(링크 복사 없음). 값은 예시이며 10단계 교체 때 이 화면의 입력 값을 넘긴다(07-03 §6.4 ⓑ). */}
+          <div className="rd-vs-modalframe">
+            <ObituaryBody data={OBIT_FULL} />
+          </div>
         </RdDialog>
       )}
 
