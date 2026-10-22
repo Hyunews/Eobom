@@ -311,6 +311,7 @@ function WriteDialog({
     <>
       <RdDialog
         form
+        width={720}
         eyebrow={`${person.name}님께`}
         title={editing ? '편지 수정' : '새 편지 쓰기'}
         closeX
@@ -380,6 +381,7 @@ function WriteDialog({
       {recAsk && (
         <RdDialog
           title="목소리를 녹음합니다"
+          width={560}
           onClose={() => setRecAsk(false)}
           evenButtons
           footer={
@@ -564,7 +566,7 @@ export function FarewellPage() {
   );
 
   return (
-    <div className="rd-container rd-pr-page">
+    <div className="rd-container rd-pr-page rd-pr-farewell">
       {head}
       {!phone && list.length > 0 && (
         <RdNotice tone="info" title="여기에 남기신 글과 음성은 사망 확인 후 지정하신 분에게 전달됩니다." />

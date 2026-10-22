@@ -334,6 +334,7 @@ export function CounselingPage() {
       {picking && (
         <RdDialog
           title="어떤 도움이 필요하세요?"
+          width={560}
           onClose={() => setPicking(false)}
           footer={<RdButton kind="secondary" place="dialog" onClick={() => setPicking(false)}>닫기</RdButton>}
         >

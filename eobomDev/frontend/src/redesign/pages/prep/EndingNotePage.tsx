@@ -221,7 +221,11 @@ export function EndingNotePage() {
                     {phone ? <IconChevronRight /> : isOpen ? <IconChevronUp /> : <IconChevronDown />}
                   </span>
                 </button>
-                {isOpen && sectionBody(s.id)}
+                {!phone && (
+                  <div className={`rd-pr-acc__panel${isOpen ? ' is-open' : ''}`} aria-hidden={!isOpen}>
+                    <div className="rd-pr-acc__panel-in">{sectionBody(s.id)}</div>
+                  </div>
+                )}
               </li>
             );
           })}
@@ -232,9 +236,6 @@ export function EndingNotePage() {
 
   const willTab = (
     <>
-      <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-        <RdButton kind="secondary" onClick={() => navigate('/preview/farewell-messages')}>음성 메시지 남기기</RdButton>
-      </div>
       <div className="rd-pr-will">
         <section className="rd-pr-will__main" aria-label="초안">
           <div className="rd-pr-will__bar">

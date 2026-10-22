@@ -141,6 +141,61 @@
   font-weight: 700;
   color: var(--rd-done);
 }
+/* 펼침 — 높이 0fr→1fr. 닫힌 칸은 visibility로 탭 순서에서 뺀다 */
+.rd-root .rd-pr-acc__panel {
+  display: grid;
+  grid-template-rows: 0fr;
+  visibility: hidden;
+}
+.rd-root .rd-pr-acc__panel.is-open {
+  grid-template-rows: 1fr;
+  visibility: visible;
+}
+.rd-root .rd-pr-acc__panel-in {
+  min-height: 0;
+  overflow: hidden;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .rd-root .rd-pr-acc__panel {
+    transition: grid-template-rows 0.28s ease, visibility 0s linear 0.28s;
+  }
+  .rd-root .rd-pr-acc__panel.is-open {
+    transition: grid-template-rows 0.28s ease, visibility 0s;
+  }
+}
+
+/* 편지 화면·유언장 초안 알림 박스 — 높이·글자 줄임 */
+.rd-root .rd-pr-will__main .rd-notice,
+.rd-root .rd-pr-will__main .rd-notice__body,
+.rd-root .rd-pr-will__main .rd-notice__title {
+  min-height: 0;
+}
+.rd-root .rd-pr-will__main .rd-notice,
+.rd-root .rd-pr-farewell .rd-notice,
+.rd-root .rd-pr-write .rd-notice,
+.rd-root .rd-pr-voice .rd-notice {
+  gap: 10px;
+  padding: 12px 16px;
+}
+.rd-root .rd-pr-will__main .rd-notice__body,
+.rd-root .rd-pr-farewell .rd-notice__body,
+.rd-root .rd-pr-write .rd-notice__body,
+.rd-root .rd-pr-voice .rd-notice__body {
+  gap: 2px;
+}
+.rd-root .rd-pr-will__main .rd-notice__title,
+.rd-root .rd-pr-farewell .rd-notice__title,
+.rd-root .rd-pr-write .rd-notice__title,
+.rd-root .rd-pr-voice .rd-notice__title {
+  font-size: 14px;
+  line-height: 1.5;
+}
+.rd-root .rd-pr-farewell .rd-notice__desc,
+.rd-root .rd-pr-write .rd-notice__desc,
+.rd-root .rd-pr-voice .rd-notice__desc {
+  font-size: 13px;
+  line-height: 1.5;
+}
 .rd-root .rd-pr-acc__chev {
   flex: none;
   display: inline-flex;

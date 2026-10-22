@@ -19,7 +19,7 @@ function useHost(): HTMLElement | null {
 
 export interface RdDialogProps {
   /** 데스크톱 폭. 입력 창 560 · 그 밖 420(§7-6) · 960 = 입력과 결과를 나란히 두는 2단 창(1-8 사진 읽기 결과 · 1-19 상속세, 묶음 4에서 옵션 추가) */
-  width?: 420 | 560 | 960;
+  width?: 420 | 560 | 720 | 960;
   /** 윗글(업체명 등) */
   eyebrow?: string;
   title: string;
