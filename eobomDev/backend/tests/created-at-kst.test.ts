@@ -107,6 +107,10 @@ describe('API 응답에는 createdAtKst가 없다', () => {
       assert.ok(detailText.includes('응답 시험'), '상세 응답에 중첩 리뷰가 없다');
       assert.ok(!detailText.includes('createdAtKst'), '시설 상세(중첩 리뷰 포함) 응답에 createdAtKst가 있다');
       assert.ok(!detailText.includes('updatedAtKst'), '시설 상세 응답에 updatedAtKst가 있다');
+
+      // 시설 전화번호는 서버 응답에 넣지 않는다(01-01 §3.3, 10-22) — 목록·단건 모두
+      assert.ok(!listText.includes('"phone"'), '시설 목록 응답에 phone이 있다');
+      assert.ok(!detailText.includes('"phone"'), '시설 상세 응답에 phone이 있다');
     } finally {
       await new Promise<void>((r) => server.close(() => r()));
       await prisma.facilityReview.deleteMany({ where: { facilityId: facility.id } });

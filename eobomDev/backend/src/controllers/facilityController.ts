@@ -93,8 +93,9 @@ const buildWhere = (query: Request['query']): Prisma.FacilityWhereInput => {
 const REVIEW_THRESHOLD = 5; // 이 건수 이상 쌓이면 실제 리뷰 평균으로 전환 (docs/01-01 2.1 정책)
 
 // 리뷰 5건 미만이면 시딩된 기본 평점, 이상이면 리뷰 평균으로 노출 평점을 계산
-const withEffectiveRating = <T extends { rating: number; reviews: { rating: number }[] }>(facility: T) => {
-  const { reviews, ...rest } = facility;
+// 🔴 시설 전화번호(phone)는 응답에 넣지 않는다 — 목록·단건 모두 이 함수를 거친다(01-01 §3.3, 10-22)
+const withEffectiveRating = <T extends { rating: number; phone: string | null; reviews: { rating: number }[] }>(facility: T) => {
+  const { reviews, phone: _phone, ...rest } = facility;
   const effectiveRating =
     reviews.length >= REVIEW_THRESHOLD
       ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length
