@@ -152,6 +152,11 @@
   color: var(--rd-ink-small);
   text-decoration: none;
 }
+.rd-root .rd-mp-stat__link--left {
+  left: 0;
+  right: 50%;
+  padding-right: 24px;
+}
 .rd-root .rd-mp-stat__link > span {
   display: inline-flex;
 }
@@ -435,6 +440,9 @@
   }
   .rd-root .rd-mp-stats .rd-stats__cell + .rd-stats__cell {
     padding-left: 16px;
+  }
+  .rd-root .rd-mp-stat__link--left {
+    padding-right: 16px;
   }
   .rd-root .rd-mp-stats dd {
     font-size: 28px;

@@ -172,7 +172,7 @@ export function MyHubPage() {
           </RdButton>
         </div>
 
-        {/* 숫자 줄 — 상담은 누를 수 없고, 부고장은 "내 부고장 · 추모관 줄"과 같은 곳으로 가는 두 번째 입구 */}
+        {/* 숫자 줄 — 상담·부고장 모두 숫자 + ›, 각각 아래 목록의 같은 이름 줄로 가는 두 번째 입구 */}
         <div className="rd-mp-statwrap">
           <dl className="rd-stats rd-mp-stats">
             <div className="rd-stats__cell">
@@ -184,7 +184,10 @@ export function MyHubPage() {
               <dd>1</dd>
             </div>
           </dl>
-          {/* 부고장 칸(오른쪽 절반)을 덮는 링크 — dt·dd를 링크로 감싸지 않으려고 dl 밖에 둔다 */}
+          {/* 각 칸 절반을 덮는 링크 — dt·dd를 링크로 감싸지 않으려고 dl 밖에 둔다 */}
+          <Link className="rd-mp-stat__link rd-mp-stat__link--left" to={PV.consult} aria-label="상담 3건, 내 상담 내역으로">
+            <span aria-hidden="true"><IconChevronRight /></span>
+          </Link>
           <Link className="rd-mp-stat__link" to={PV.list} aria-label="부고장 1건, 내 부고장·추모관으로">
             <span aria-hidden="true"><IconChevronRight /></span>
           </Link>
