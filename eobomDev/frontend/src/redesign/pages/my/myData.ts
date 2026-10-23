@@ -18,6 +18,9 @@ export const PV = {
   farewell: '/preview/farewell-messages',
   digital: '/preview/digital-estate',
   counseling: '/preview/counseling',
+  // 묶음 8
+  familyShared: '/preview/family-shared',
+  login: '/preview/login',
 } as const;
 
 export const memorialManageUrl = (slug: string) => `${PV.memorial}?slug=${slug}`;
