@@ -14,9 +14,14 @@ import { LOCATION_LEGAL_PUBLISHED } from '../../../config';
 // 작성됐다(2026-08-18 개발자 지시). §0.2 잠금 규칙에 따라 신고 완료가 확인되기 전까지는
 // LOCATION_LEGAL_PUBLISHED가 false로 유지되고, 이 화면은 제6장을 렌더링하지 않는다. GPS 자동감지
 // 기능 자체는 LOCATION_FEATURE_ENABLED로 별도 제어되며 2026-09-10부터 이미 켜져 있다.
-export const TermsPage: React.FC = () => {
+// bare = 로그인 창 [보기]용 "본문만" 겉틀(00-21 §0.4). 조문은 같은 컴포넌트를 그대로 쓴다.
+export const TermsPage: React.FC<{ onOpenPrivacy?: () => void }> = ({ onOpenPrivacy }) => {
   return (
-    <RdLegalDoc title="이어봄(Eobom) 서비스 이용약관" effectiveDateLabel="시행일: 추후 공지">
+    <RdLegalDoc
+      title="이어봄(Eobom) 서비스 이용약관"
+      effectiveDateLabel="시행일: 추후 공지"
+      bare={onOpenPrivacy ? { title: '이용약관', onNavigate: onOpenPrivacy } : undefined}
+    >
       <RdLegalChapter title="제1장 총칙">
         <RdLegalArticle title="제1조 (목적)">
           <p>

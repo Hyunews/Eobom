@@ -18,6 +18,19 @@
 > 원인 = Gemini 판정이 `gemini_tasks.md`에만 적히고 이 파일 판정 칸은 비어 있었음. 🔴 **판정은 이 파일의 그 항목 칸에 적는다**(`GEMINI.md`).
 
 ---
+## 2026-10-23 | [Sonnet] 디자인 개편 8단계 묶음 9 후속 — 로그인 창 약관 [보기] = 새 법적 문서 본문 재사용
+
+- **근거 스펙**: `00-21` §0.4 표 "로그인 창 [보기](본문만 보기)" 줄(10-23 개발자 결정 나안) · `00-44` §7-6 ⑥(같은 창 갈아끼움).
+- **건드린 파일**: `redesign/pages/legal/{LegalDoc.tsx, legal.css, TermsPage.tsx, PrivacyPage.tsx}` · `redesign/pages/auth/LoginDialogs.tsx`. 지금 `pages/TermsPage`·`PrivacyPage`·`LegalDocLayout`·서버·DB 0줄. 조문 글 복사 0건.
+- **결과**: `LoginDialogs`가 `legal/TermsPage`·`legal/PrivacyPage`를 import(옛 `pages/*` import 제거). 두 페이지가 선택 prop(`TermsPage onOpenPrivacy` · `PrivacyPage bare`)을 받아 `RdLegalDoc`에 `bare` 겉틀을 넘김. `bare`일 때: 목차(데스크톱 nav·휴대폰 [목차] 버튼·판) 안 그림, 홈 링크 안 그림, `rd-container rd-screen` 바깥 틀 뺌(창 안이라), 판 머리 제목 = "이용약관"·"개인정보처리방침"(시행일 부제·알림 상자 그대로). 표는 `.rd-lg--bare` 아래에 모바일 규칙 블록을 같은 값으로 한 번 더 둠(2열 첫 칸 96 · 여백 10, 3열 이상 세로 쌓기). 제4조 처리방침 링크는 `RdLegalLink`가 컨텍스트의 `onNavigate`로 `preventDefault` 후 `setViewing('privacy')`. 같은 창 갈아끼움·[뒤로가기]·체크 유지는 훅 그대로. 게시 화면 `/preview/terms`·`/preview/privacy`는 prop이 없으면 이전과 같은 경로(마크업·클래스 불변). `npm run build` 통과. 실기동 확인은 안 함(개발 서버 정책) → 사람.
+- **끝난 # 번호**: `00-21` §0.4 "로그인 창 [보기](본문만 보기)" 줄 전부.
+- **편차**:
+  ① 창 제목(`RdDialog` "서비스 이용약관"/"개인정보처리방침")과 판 머리 제목("이용약관"/"개인정보처리방침")이 한 화면에 같이 보인다 — 정본이 둘 다 남기라고 해서 그대로 둠. 겹쳐 보이면 판정에서 창 제목을 뺄지 정해 주세요.
+  ② 표 모바일 규칙을 CSS 미디어 쿼리 안 블록과 `.rd-lg--bare` 블록으로 두 벌 둠(값 동일). 한 벌로 합치려면 모바일 블록을 클래스 기준으로 바꿔야 해서 게시 화면 CSS를 건드려야 함 → 안 건드림.
+  ③ 휴대폰 폭에서 `.rd-lg__body`의 글자·목록 크기는 창 폭이 아니라 화면 폭 기준 미디어 쿼리를 따른다(데스크톱 창 안에선 데스크톱 글자). 정본 "글자·목록·조 사이 점선은 위 값 그대로"로 읽음.
+- **추가 수정(같은 날, 개발자 실기동 지적)**: 브라우저 뒤로가기가 바탕 화면을 뒤로 보냈음 → `useConsent`가 본문을 열 때 `pushState` 한 칸, `popstate`에 `setViewing(null)`, [뒤로가기]·바깥 클릭·Esc는 `history.back()`(약관→처리방침 갈아끼움은 칸 안 쌓음). **개발자 실기동 ✅ 10-23**: 창 안 뒤로가기 · 표 쌓기 · `/preview/terms` 모양 불변 모두 정상.
+- **다음 에이전트가 알아야 할 것**: 커밋은 사람(브랜치 `redesign`). 실기동 확인 항목: 로그인 창 → 회원가입 탭 → 약관 [보기](제4조 링크 → 처리방침, [뒤로가기] 시 체크 유지) · 표 쌓기 · `/preview/terms` 모양 불변.
+
 ## 2026-10-23 | [Sonnet] 디자인 개편 8단계 묶음 9 — 법적 문서 `/preview/terms` · `/preview/privacy` (이용약관 · 개인정보처리방침)
 
 - **근거 스펙**: `00-44` §9-4 묶음 9 · `00-21` §0.4(게시 화면 틀 · 조 제목 대시 정리 · "8단계로 넘기는 코드 차이") · `00-19` §0 편집자 주(10-20) ①②③ · 5단계 캔버스 판 5-1~5-3.

@@ -15,9 +15,14 @@ import { LOCATION_LEGAL_PUBLISHED } from '../../../config';
 // 잠금 규칙). 신고 완료가 확인되기 전까지 LOCATION_LEGAL_PUBLISHED는 false로 유지되고
 // 이 화면은 제3-6조를 렌더링하지 않는다. GPS 자동감지 기능 자체는 LOCATION_FEATURE_ENABLED로
 // 별도 제어되며 2026-09-10부터 이미 켜져 있다 — 조문 미게시가 기능 중단을 의미하지 않는다.
-export const PrivacyPage: React.FC = () => {
+// bare = 로그인 창 [보기]용 "본문만" 겉틀(00-21 §0.4).
+export const PrivacyPage: React.FC<{ bare?: boolean }> = ({ bare }) => {
   return (
-    <RdLegalDoc title="이어봄(Eobom) 개인정보처리방침" effectiveDateLabel="시행일: 추후 공지">
+    <RdLegalDoc
+      title="이어봄(Eobom) 개인정보처리방침"
+      effectiveDateLabel="시행일: 추후 공지"
+      bare={bare ? { title: '개인정보처리방침' } : undefined}
+    >
       <RdLegalArticle title="제1조 (총칙)">
         <p>
           <strong>주식회사 삼일정보시스템</strong>(이하 "회사")은 이용자의 개인정보를 중요하게 생각하며, 「개인정보 보호법」 등 관계 법령을

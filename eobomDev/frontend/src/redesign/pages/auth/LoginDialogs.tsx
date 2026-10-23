@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { RdButton, RdTextLink } from '../../parts/RdButtons';
 import { sleep } from '../../parts/RdDemo';
 import { RdConsentGroup, type RdConsentItem } from '../../parts/RdInputs';
@@ -7,8 +7,8 @@ import { RdNotice } from '../../parts/RdNotices';
 import { RdTabs } from '../../parts/RdNav';
 import { FAKE_MS } from '../my/accountData';
 import { MyResult } from '../my/myShared';
-import { PrivacyPage } from '../../../pages/PrivacyPage';
-import { TermsPage } from '../../../pages/TermsPage';
+import { PrivacyPage } from '../legal/PrivacyPage';
+import { TermsPage } from '../legal/TermsPage';
 import '../my/account.css';
 
 // 8단계 묶음 8 · 로그인 창 4종(4-16~4-19). 정본: 00-27 §8.2 · 00-34 §2.2 · 00-36 §4.5-1 · 4단계 묶음 4 캔버스.
@@ -63,6 +63,20 @@ function useConsent() {
   const [agree, setAgree] = useState<Record<string, boolean>>({});
   const [viewing, setViewing] = useState<'terms' | 'privacy' | null>(null);
   const ready = !!age.age && !!agree.terms && !!agree.privacy;
+  // 브라우저 뒤로가기도 창 안 [뒤로가기]와 같게 — 본문을 열 때 기록 한 칸을 쌓고, 뒤로 가면 그 칸만 걷는다(바탕 화면은 그대로).
+  // 약관 → 처리방침 갈아끼움은 칸을 더 쌓지 않는다. [뒤로가기] 버튼도 history.back()으로 같은 길을 탄다.
+  const isViewing = viewing !== null;
+  useEffect(() => {
+    if (!isViewing) return;
+    window.history.pushState({ rdLegalView: true }, '');
+    const onPop = () => setViewing(null);
+    window.addEventListener('popstate', onPop);
+    return () => window.removeEventListener('popstate', onPop);
+  }, [isViewing]);
+  const closeViewer = () => {
+    if (window.history.state?.rdLegalView) window.history.back();
+    else setViewing(null);
+  };
   const node = (
     <div className="rd-ac-consent">
       <RdConsentGroup items={[AGE_ITEM]} checked={age} onChange={setAge} />
@@ -70,16 +84,16 @@ function useConsent() {
     </div>
   );
   // [보기]는 새 탭도 창 위의 창도 아니다 — 같은 창 안에서 본문을 갈아끼운다(00-44 §7-6 ⑥). 체크 상태는 이 훅에 있어 돌아와도 그대로.
-  // 본문은 지금 /terms · /privacy 쪽 컴포넌트를 그대로 넣는다(법적 문서 틀은 묶음 9에서 새로 만든다).
+  // 본문은 묶음 9의 새 TermsPage·PrivacyPage 를 "본문만" 겉틀로 넣는다(00-21 §0.4). 제4조 처리방침 링크는 판 안에서 갈아끼운다.
   const viewer = viewing && (
     <RdDialog
       footLine
       width={560}
       title={viewing === 'terms' ? '서비스 이용약관' : '개인정보처리방침'}
-      onClose={() => setViewing(null)}
-      footer={<RdButton place="dialog" onClick={() => setViewing(null)}>뒤로가기</RdButton>}
+      onClose={closeViewer}
+      footer={<RdButton place="dialog" onClick={closeViewer}>뒤로가기</RdButton>}
     >
-      {viewing === 'terms' ? <TermsPage /> : <PrivacyPage />}
+      {viewing === 'terms' ? <TermsPage onOpenPrivacy={() => setViewing('privacy')} /> : <PrivacyPage bare />}
     </RdDialog>
   );
   return { ready, node, viewer };

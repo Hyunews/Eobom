@@ -432,3 +432,76 @@
     overflow-wrap: anywhere;
   }
 }
+
+/* ───────── "본문만 보기" 겉틀(로그인 창 [보기], 00-21 §0.4) — 표는 판 폭과 관계없이 모바일 규칙 ───────── */
+
+/* 표: 2열은 표 그대로(첫 칸 96 · 안 여백 10, 글자 14) */
+.rd-root .rd-lg--bare .rd-lg__table {
+  font-size: 14px;
+}
+
+.rd-root .rd-lg--bare .rd-lg__table th,
+.rd-root .rd-lg--bare .rd-lg__table td {
+  padding: 10px;
+}
+
+.rd-root .rd-lg--bare .rd-lg__table th {
+  font-size: 13px;
+}
+
+.rd-root .rd-lg--bare .rd-lg__table:not(.rd-lg__table--stack) th:first-child {
+  width: 96px !important; /* 데스크톱 폭을 인라인으로 넘기므로 */
+}
+
+/* 3열 이상은 줄마다 세로로 쌓는다(칸 이름 + 값) */
+.rd-root .rd-lg--bare .rd-lg__table--stack,
+.rd-root .rd-lg--bare .rd-lg__table--stack tbody,
+.rd-root .rd-lg--bare .rd-lg__table--stack tr,
+.rd-root .rd-lg--bare .rd-lg__table--stack td {
+  display: block;
+}
+
+.rd-root .rd-lg--bare .rd-lg__table--stack {
+  border-top: 1px solid var(--rd-ink);
+}
+
+.rd-root .rd-lg--bare .rd-lg__table--stack thead {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+}
+
+.rd-root .rd-lg--bare .rd-lg__table--stack tr {
+  padding: 14px 0;
+  border-bottom: 1px dotted var(--rd-dot);
+}
+
+.rd-root .rd-lg--bare .rd-lg__table--stack td {
+  display: flex;
+  gap: 12px;
+  padding: 0;
+  border: 0;
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.rd-root .rd-lg--bare .rd-lg__table--stack td + td {
+  margin-top: 8px;
+}
+
+.rd-root .rd-lg--bare .rd-lg__table--stack td::before {
+  content: attr(data-label);
+  flex: none;
+  width: var(--lg-label-w, 96px);
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--rd-ink-small);
+}
+
+.rd-root .rd-lg--bare .rd-lg__table--stack .rd-lg__cell {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}

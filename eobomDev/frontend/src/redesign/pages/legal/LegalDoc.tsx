@@ -37,10 +37,18 @@ function collectTocEntries(children: React.ReactNode): TocEntry[] {
 
 const scrollBehavior = (): ScrollBehavior => (window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth');
 
-export function RdLegalDoc({ title, effectiveDateLabel, children }: { title: string; effectiveDateLabel: string; children: React.ReactNode }) {
+// "본문만 보기" 겉틀(00-21 §0.4 로그인 창 [보기]) — 목차·홈 링크를 빼고 표를 모바일 규칙으로 그린다.
+// 본문 안 링크(제4조 → 처리방침)는 주소로 나가지 않고 onNavigate 로 넘긴다.
+export interface LegalBare {
+  title: string;
+  onNavigate?: (href: string) => void;
+}
+const LegalBareContext = React.createContext<LegalBare | null>(null);
+
+export function RdLegalDoc({ title, effectiveDateLabel, bare, children }: { title: string; effectiveDateLabel: string; bare?: LegalBare; children: React.ReactNode }) {
   const mainRef = useRef<HTMLDivElement | null>(null);
   const phone = useIsPhone();
-  const entries = collectTocEntries(children);
+  const entries = bare ? [] : collectTocEntries(children);
   const tocKey = entries.map((e) => e.id).join('|');
   const [activeId, setActiveId] = useState<string>(entries[0]?.id ?? '');
   const [sheet, setSheet] = useState(false);
@@ -91,8 +99,9 @@ export function RdLegalDoc({ title, effectiveDateLabel, children }: { title: str
   };
 
   return (
-    <div className="rd-container rd-screen rd-lg">
-      <RdPageHead title={title} desc={effectiveDateLabel} />
+    <LegalBareContext.Provider value={bare ?? null}>
+    <div className={bare ? 'rd-lg rd-lg--bare' : 'rd-container rd-screen rd-lg'}>
+      <RdPageHead title={bare ? bare.title : title} desc={effectiveDateLabel} />
 
       <div className="rd-lg__shell">
         <div className="rd-lg__main" ref={mainRef}>
@@ -100,9 +109,11 @@ export function RdLegalDoc({ title, effectiveDateLabel, children }: { title: str
 
           <div className="rd-lg__body">{children}</div>
 
-          <div className="rd-lg__back">
-            <RdTextLink href={LEGAL_PATH.home}>이어봄 홈으로</RdTextLink>
-          </div>
+          {!bare && (
+            <div className="rd-lg__back">
+              <RdTextLink href={LEGAL_PATH.home}>이어봄 홈으로</RdTextLink>
+            </div>
+          )}
         </div>
 
         {entries.length > 0 && !phone && (
@@ -141,6 +152,7 @@ export function RdLegalDoc({ title, effectiveDateLabel, children }: { title: str
         </RdDialog>
       )}
     </div>
+    </LegalBareContext.Provider>
   );
 }
 
@@ -186,8 +198,15 @@ export function RdLegalNote({ children }: { children: React.ReactNode }) {
 
 // 본문 안 링크 — 갈색 + 밑줄.
 export function RdLegalLink({ href, children }: { href: string; children: React.ReactNode }) {
+  const bare = React.useContext(LegalBareContext);
+  const onClick = bare?.onNavigate
+    ? (e: React.MouseEvent) => {
+        e.preventDefault();
+        bare.onNavigate?.(href);
+      }
+    : undefined;
   return (
-    <a className="rd-lg__link" href={href}>
+    <a className="rd-lg__link" href={href} onClick={onClick}>
       {children}
     </a>
   );
