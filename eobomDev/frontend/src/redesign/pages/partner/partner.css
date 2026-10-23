@@ -167,6 +167,15 @@
   gap: 24px;
 }
 
+/* 내 프로필: 제목 줄을 박스(.rd-pt-card--form 640)와 같은 폭으로 묶어 딱지가 박스 오른쪽 끝에 서게 한다 */
+.rd-root .rd-pt-profilehead {
+  max-width: 640px;
+}
+
+.rd-root .rd-pt-profilehead .rd-badge {
+  align-self: flex-end;
+}
+
 .rd-root .rd-pt-title {
   margin: 0;
   font-family: var(--rd-font-serif);
@@ -262,6 +271,10 @@
 
 .rd-root .rd-pt-stat__num.is-warm {
   color: var(--rd-point);
+}
+
+.rd-root .rd-pt-stat__num.is-done {
+  color: var(--rd-done);
 }
 
 /* ───────── 입구 ───────── */

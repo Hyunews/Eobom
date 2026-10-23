@@ -18,6 +18,17 @@
 > 원인 = Gemini 판정이 `gemini_tasks.md`에만 적히고 이 파일 판정 칸은 비어 있었음. 🔴 **판정은 이 파일의 그 항목 칸에 적는다**(`GEMINI.md`).
 
 ---
+## 2026-10-23 | [Sonnet] 디자인 개편 8단계 묶음 10 반려 반영 + 묶음 11 — 파트너 전문가 (`/preview/partner/expert/…`) + 서버 추가형(스키마 변경 없음)
+
+- **근거 스펙**: docs/02_전문가_매칭/02-03 §7.3-1·§7.3-2 #1~#3·#8, §5.3, §4.3 · docs/00_핵심플랫폼/00-44 §9-4 묶음 11 · 6단계 묶음 2 캔버스 판 6-10~6-12 · 사업자 틀 `01-05` §14-1·§14-2
+- **묶음 10 반려 반영**: `PartnerEntrancePage.tsx` 빈 칸 오류 "입력해주세요." → "확인이 필요한 항목입니다."(주석 포함). `npm run build` 통과.
+- **건드린 파일**: eobomDev/frontend/src/redesign/pages/partner/{ExpertHomePage, ExpertConsultsPage, ExpertProfilePage(+ExpertAdsPage)}.tsx 신설 · partnerData.ts(전문가 메뉴·상태/경로 이름·예시 상담)·partnerCommon.tsx(`ExpertShellFor`)·PartnerRoutes.tsx(라우트 4 + 목차)·PartnerEntrancePage.tsx(전문가 로그인 성공 → 전문가 홈)·partner.css(`is-done` 한 줄) / eobomDev/backend/src/controllers/expertController.ts. 스키마·마이그레이션·DB 0건(`Expert.isPublished`·`bio`·`rejectReason`이 이미 있음) → 백업 안 함.
+- **결과**: 미리보기 4곳 — `expert/home`(숫자 칸 3칸: 수락 전 상담·승인 상태·소비자 화면 공개) · `expert/consults`(목록 400 + 상세, 모바일 목록→상세, 상태 고르기, [거절][수락] / [상담 완료 처리], 확인 창 없음, 쪽 넘김 없음) · `expert/profile`(상태 딱지 → 보기만 전문 분야·자격증 번호 → 연락처·사무실 주소[주소 검색]·소개 → 승인됨일 때만 "소비자 화면 공개" 체크 → [저장]) · `expert/ads`(준비 중). 틀은 묶음 10 `PartnerShell` 그대로(저울 그림·전문가 메뉴·자물쇠). 서버: `PATCH /api/expert/me`에 `isPublished`(승인됨일 때만 true, 아니면 400 · 끄기는 언제든)·소개 저장 때 막기(사업자와 같은 `findBlockedIntroMessage`)·`GET/PATCH` 응답에 `isPublished` / 로그인 거부(REJECTED)에 `rejectReason` / 반려 건 같은 이메일+같은 직역·자격증 번호 재신청 시 덮어 `PENDING`(`rejectReason`·`isPublished`·`refreshTokenHash` 초기화). 재현: `cd eobomDev/frontend && npm run build`(통과) · `cd eobomDev/backend && npx tsc --noEmit`(통과). 실기동 미확인(사람).
+- **끝난 # 번호**: `02-03` §7.3-2 **#1·#2·#3·#8** (#4·#5 상태/경로 글자 = 미리보기는 새 글자로 그렸고 지금 `BizDashboard` 교체는 10단계 · #6·#7 = 묶음 13).
+- **편차**: ① 소개 최대 길이 1000자를 서버·화면에 둠(스펙에 없음 — `RdTextarea`가 `maxLength`를 필수로 받고, 사업자 소개 글 `INTRO_MAX_LENGTH`와 맞춤). ② 소개 막기 오류 글은 사업자 글에서 "소개 글"→"소개"만 바꿈(칸 이름이 "소개"라). ③ 스펙에 문구가 없어 지은 것: "승인된 전문가만 소비자 화면에 공개할 수 있습니다."(서버 400) · "소개는 1000자 이하로 입력해주세요." · 화면 저장 알림 "저장했습니다." · 연락처 오류(사업자 계정 정보 화면과 같은 글). ④ 판 6-11 "심사 대기"·6-12 "반려됨" 화면은 스펙대로 안 만듦 — 로그인 중 상태가 바뀐 경우 확인용으로 보기 상태 줄에 딱지만 보이게 둠. ⑤ 홈 "승인 상태" 칸은 승인됨 고정(홈은 로그인 후에만 보이고 로그인은 승인됨만 통과). ⑥ 서버 재신청은 같은 이메일·같은 직역+자격증 번호 **같은 가입 건**일 때만(`category_licenseNo` 유니크 기준, 한쪽만 같으면 기존 409) · 자격 정보(성명·등록 기관 등)는 재신청 입력으로 덮음 — 반려 기록은 `AdminAuditLog`가 가짐.
+- **다음 에이전트가 알아야 할 것**: 커밋은 사람(브랜치 `redesign`) · 메시지 초안은 아래 응답. 교체 때 미리보기 값(예시 상담·번호 꼴·연락처)은 서버 응답으로 바꾸고 "보기 상태" 줄 삭제. 메뉴 갈색 숫자는 지금 받는 목록(`status=REQUESTED`)에서 센다. 상태/경로 글자 교체(`CONSULT_STATUS_LABELS`·영문 경로)는 지금 `BizDashboard.tsx`가 10단계.
+
+---
 ## 2026-10-23 | [Sonnet] 디자인 개편 8단계 묶음 10 — 파트너 장사시설 + 사업자 틀 (`/preview/partner/…`) + 스키마·서버 추가형
 
 - **근거 스펙**: docs/01_장사시설_매칭/01-05 §14-1~§14-8·§14-10 #1~#6·#10(사업자 화면 쪽)·#11, §4.3(무산 사유) · docs/00_핵심플랫폼/00-44 §9-4 묶음 10 · 6단계 캔버스 판 6-1~6-9

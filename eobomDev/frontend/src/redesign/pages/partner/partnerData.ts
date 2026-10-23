@@ -10,6 +10,11 @@ export const PV_PARTNER = {
   link: '/preview/partner/link',
   account: '/preview/partner/account',
   settlement: '/preview/partner/settlement',
+  // 묶음 11 · 전문가 — 같은 틀, 메뉴만 다르다
+  expertHome: '/preview/partner/expert/home',
+  expertConsults: '/preview/partner/expert/consults',
+  expertProfile: '/preview/partner/expert/profile',
+  expertAds: '/preview/partner/expert/ads',
   site: '/preview',
 } as const;
 
@@ -35,6 +40,64 @@ export const facilityMenu = (waitingInquiries: number): PartnerMenuItem[] => [
 ];
 
 export const PARTNER_NAME = '[예시] 한결 장례식장';
+
+// ───── 전문가 (02-03 §7.3-1) ─────
+/** 전문가 메뉴. 위 이름 = 성명, 그림 = 저울. 유료 상담·광고는 결정 대기라 자물쇠 + 보조 글색 */
+export const expertMenu = (waitingConsults: number): PartnerMenuItem[] => [
+  { key: 'home', label: '홈', to: PV_PARTNER.expertHome },
+  { key: 'consults', label: '받은 상담', to: PV_PARTNER.expertConsults, badge: waitingConsults },
+  { key: 'profile', label: '내 프로필', to: PV_PARTNER.expertProfile },
+  { key: 'ads', label: '유료 상담·광고', to: PV_PARTNER.expertAds, locked: true },
+];
+
+export const EXPERT_NAME = '[예시] 박○○';
+
+/** 상담 신청 상태 — 글자 하나로(02-03 §7.3-1): 접수 · 수락됨 · 상담 완료 · 취소됨 · 무효 처리. 코드 값은 지금과 같다 */
+export type ConsultStatus = 'REQUESTED' | 'ACCEPTED' | 'COMPLETED' | 'CANCELLED' | 'INVALID';
+export type ConsultChannel = 'ALIMTALK' | 'PHONE' | 'VIDEO' | 'VISIT';
+export const CONSULT_STATUS_LABEL: Record<ConsultStatus, string> = {
+  REQUESTED: '접수',
+  ACCEPTED: '수락됨',
+  COMPLETED: '상담 완료',
+  CANCELLED: '취소됨',
+  INVALID: '무효 처리',
+};
+/** 상태 색(00-44 §6-4): 접수·수락됨 = 갈색 · 상담 완료 = 완료 · 취소됨·무효 처리 = 보조 */
+export const CONSULT_STATUS_TONE: Record<ConsultStatus, StatusTone> = {
+  REQUESTED: 'state',
+  ACCEPTED: 'state',
+  COMPLETED: 'done',
+  CANCELLED: 'faint',
+  INVALID: 'faint',
+};
+/** 경로 = 한글 (MyConsultationsPage.tsx의 이름) */
+export const CONSULT_CHANNEL_LABEL: Record<ConsultChannel, string> = { ALIMTALK: '알림톡', PHONE: '전화', VIDEO: '화상', VISIT: '방문' };
+export const CONSULT_CONTEXT_LABEL = { PRE_DEATH: '생전 상담', POST_DEATH: '사후 상담' } as const;
+export const CONSULT_FILTER: { value: '' | ConsultStatus; label: string }[] = [
+  { value: '', label: '전체 상태' },
+  ...(Object.keys(CONSULT_STATUS_LABEL) as ConsultStatus[]).map((value) => ({ value, label: CONSULT_STATUS_LABEL[value] })),
+];
+
+export interface ConsultItem {
+  requestNo: string;
+  status: ConsultStatus;
+  applicantName: string;
+  applicantPhone: string;
+  channel: ConsultChannel;
+  context: keyof typeof CONSULT_CONTEXT_LABEL;
+  content: string;
+}
+/** 🔴 미리보기가 지어낸 예시다(10단계 교체 때 서버 응답으로). 쪽 넘김 없음 — 코드에 없다 */
+export const CONSULTS: ConsultItem[] = [
+  { requestNo: 'EC-261023-0003', status: 'REQUESTED', applicantName: '김○○', applicantPhone: '010-1234-5678', channel: 'PHONE', context: 'POST_DEATH', content: '[예시] 부친 상속 재산 분할 절차가 궁금합니다. 평일 오후에 통화 가능한 시간을 알려주세요.' },
+  { requestNo: 'EC-261022-0002', status: 'ACCEPTED', applicantName: '이○○', applicantPhone: '010-2345-6789', channel: 'VIDEO', context: 'PRE_DEATH', content: '[예시] 유언장 작성 전에 상속인 범위를 확인하고 싶습니다.' },
+  { requestNo: 'EC-261020-0001', status: 'COMPLETED', applicantName: '최○○', applicantPhone: '010-****-8901', channel: 'ALIMTALK', context: 'POST_DEATH', content: '[예시] 상속세 신고 기한 문의.' },
+  { requestNo: 'EC-261001-0004', status: 'CANCELLED', applicantName: '정○○', applicantPhone: '010-****-1122', channel: 'VISIT', context: 'POST_DEATH', content: '[예시] 방문 상담 요청.' },
+];
+
+export type ExpertStatus = 'PENDING' | 'APPROVED' | 'REJECTED';
+export const EXPERT_STATUS_LABEL: Record<ExpertStatus, string> = { PENDING: '심사 대기', APPROVED: '승인됨', REJECTED: '반려됨' };
+export const EXPERT_STATUS_BADGE: Record<ExpertStatus, 'faint' | 'done' | 'danger'> = { PENDING: 'faint', APPROVED: 'done', REJECTED: 'danger' };
 
 // ───── 받은 문의 (01-05 §14-4 · §4.3) ─────
 export type LeadStatus = 'REQUESTED' | 'NOTIFIED' | 'RESPONDED' | 'CONVERTED' | 'LOST' | 'INVALID';

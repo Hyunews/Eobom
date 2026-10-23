@@ -7,7 +7,8 @@ import prisma from '../config/prisma';
 import { JWT_SECRET } from '../config/jwt';
 import { encryptField, decryptField } from '../utils/crypto';
 import { kstIso } from '../utils/kst';
-import { normalizePhone, isValidPhoneLength, maskPhone, MIN_PHONE_DIGITS, MAX_PHONE_DIGITS } from '../utils/phone';
+import { INTRO_MAX_LENGTH, findBlockedIntroMessage } from '../utils/facilityIntro';
+import { normalizePhone,isValidPhoneLength, maskPhone, MIN_PHONE_DIGITS, MAX_PHONE_DIGITS } from '../utils/phone';
 
 // 전문가(변호사·세무사·행정사·장례지도사) 인증 — Partner(장사시설)와 완전 분리된 계정 체계.
 // docs/02_전문가_매칭/02-02_전문가_계정_체계_구현_메모.md 근거. 인증 방식(비밀번호 해시,
@@ -105,6 +106,33 @@ export const signup = async (req: Request, res: Response) => {
       prisma.expert.findUnique({ where: { email } }),
       prisma.expert.findUnique({ where: { category_licenseNo: { category, licenseNo } } }),
     ]);
+    // 🔴 반려된 가입 건 재신청(02-03 §7.3-1·§7.3-2 #8, 2026-10-21 개발자 확정) — 같은 이메일 + 같은 직역·자격증 번호로 다시 신청하면
+    // 새 중복 오류 대신 그 건을 새 정보로 덮어 PENDING으로 되돌린다(사업자와 같다, partnerController.ts). 반려 기록은 AdminAuditLog에 남아 있다.
+    // 이메일이나 번호 한쪽만 같으면 다른 사람의 건일 수 있어 그대로 중복 오류.
+    if (existingEmail && existingLicense && existingEmail.id === existingLicense.id && existingEmail.status === 'REJECTED') {
+      const passwordHash = await bcrypt.hash(password, 10);
+      await prisma.expert.update({
+        where: { id: existingEmail.id },
+        data: {
+          passwordHash,
+          name,
+          licenseOrg,
+          licenseDocUrl,
+          contactPhone: normalizedPhone,
+          officeAddress,
+          bio,
+          status: 'PENDING',
+          rejectReason: null,
+          isPublished: false,
+          refreshTokenHash: null,
+        },
+      });
+      return res.status(201).json({
+        status: 'success',
+        message: '가입 신청이 접수되었습니다. 자격 확인 후 승인 결과를 안내드립니다.',
+        data: { id: existingEmail.id, status: 'PENDING' },
+      });
+    }
     if (existingEmail) {
       return res.status(409).json({ status: 'error', message: '이미 가입 신청된 이메일입니다.' });
     }
@@ -156,7 +184,8 @@ export const login = async (req: Request, res: Response) => {
       return res.status(403).json({
         status: 'error',
         message: EXPERT_STATUS_MESSAGE[expert.status] || '로그인할 수 없는 계정 상태입니다.',
-        data: { status: expert.status },
+        // 반려된 계정은 사유를 같이 싣는다 — 로그인 화면 결과 상자가 보여준다(02-03 §7.3-2 #8). 다른 상태는 사유를 싣지 않는다.
+        data: { status: expert.status, ...(expert.status === 'REJECTED' ? { rejectReason: expert.rejectReason } : {}) },
       });
     }
 
@@ -226,6 +255,7 @@ const serializeExpert = (expert: {
   specialties: string[];
   status: string;
   rejectReason: string | null;
+  isPublished: boolean;
   settlementBank: string | null;
   settlementAccount: string | null;
 }) => ({
@@ -241,6 +271,7 @@ const serializeExpert = (expert: {
   specialties: expert.specialties,
   status: expert.status,
   rejectReason: expert.rejectReason,
+  isPublished: expert.isPublished,
   settlementBank: expert.settlementBank,
   settlementAccount: expert.settlementAccount ? decryptField(expert.settlementAccount) : null,
 });
@@ -264,18 +295,19 @@ export const getMe = async (req: Request, res: Response) => {
   }
 };
 
-// 연락처·소개·정산계좌 수정 (`PATCH /api/expert/me`)
+// 연락처·소개·공개·정산계좌 수정 (`PATCH /api/expert/me`) — 자격 정보(직역·성명·자격증 번호·등록 기관)는 못 고친다(02-03 §5.3)
 export const updateMe = async (req: Request, res: Response) => {
   const decoded = verifyExpertBearerToken(req);
   if (!decoded) {
     return res.status(401).json({ status: 'error', message: '인증 토큰이 없거나 유효하지 않습니다.' });
   }
 
-  const { contactPhone, officeAddress, bio, specialties, settlementBank, settlementAccount } = req.body as {
+  const { contactPhone, officeAddress, bio, specialties, isPublished, settlementBank, settlementAccount } = req.body as {
     contactPhone?: string;
     officeAddress?: string;
     bio?: string;
     specialties?: string[];
+    isPublished?: boolean;
     settlementBank?: string;
     settlementAccount?: string;
   };
@@ -283,11 +315,31 @@ export const updateMe = async (req: Request, res: Response) => {
   if (contactPhone && !isValidPhoneLength(normalizePhone(contactPhone))) {
     return res.status(400).json({ status: 'error', message: `연락처는 숫자 ${MIN_PHONE_DIGITS}~${MAX_PHONE_DIGITS}자리여야 합니다.` });
   }
+  // 소개 글 규칙은 사업자와 같다(02-03 §5.3) — 전화번호·링크·카톡 안내는 저장 때 막고, 나머지는 운영자가 나중에 고친다.
+  if (typeof bio === 'string' && bio.length > INTRO_MAX_LENGTH) {
+    return res.status(400).json({ status: 'error', message: `소개는 ${INTRO_MAX_LENGTH}자 이하로 입력해주세요.` });
+  }
+  if (typeof bio === 'string' && bio.trim()) {
+    const blocked = findBlockedIntroMessage(bio);
+    if (blocked) return res.status(400).json({ status: 'error', message: blocked.replace('소개 글', '소개') });
+  }
+  if (isPublished !== undefined && typeof isPublished !== 'boolean') {
+    return res.status(400).json({ status: 'error', message: 'isPublished는 true 또는 false여야 합니다.' });
+  }
 
   try {
+    // 공개는 승인됨일 때만 켤 수 있다(02-03 §4.3) — 미승인은 운영자 토글(PATCH /admin/experts/:id/publish)처럼 400. 끄는 것은 언제든.
+    if (isPublished === true) {
+      const current = await prisma.expert.findUnique({ where: { id: decoded.id }, select: { status: true } });
+      if (!current) return res.status(404).json({ status: 'error', message: '전문가 정보를 찾을 수 없습니다.' });
+      if (current.status !== 'APPROVED') {
+        return res.status(400).json({ status: 'error', message: '승인된 전문가만 소비자 화면에 공개할 수 있습니다.' });
+      }
+    }
     const expert = await prisma.expert.update({
       where: { id: decoded.id },
       data: {
+        ...(isPublished !== undefined ? { isPublished } : {}),
         ...(contactPhone ? { contactPhone: normalizePhone(contactPhone) } : {}),
         ...(officeAddress !== undefined ? { officeAddress } : {}),
         ...(bio !== undefined ? { bio } : {}),

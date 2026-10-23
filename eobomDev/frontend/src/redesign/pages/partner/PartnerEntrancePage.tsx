@@ -11,7 +11,7 @@ import { EXPERT_CATEGORIES, PARTNER_NAME, PV_PARTNER } from './partnerData';
 
 // 8단계 묶음 10 · /preview/partner/login — 파트너 포털 입구(로그인 · 가입). 정본: 01-05 §14-2 · 판 6-1(로그인) · 6-2(사업자 가입) · 6-3(전문가 가입).
 // 데스크톱 = 왼쪽 460 설명 + 오른쪽 종이 카드(최대 600) / 모바일 = 한 열(제목 한 줄, 심사 안내는 카드 아래).
-// 전문가 가입 칸 구성은 묶음 11이 서버(전문가 재신청·반려 사유)와 함께 마무리한다 — 입구 카드는 한 장이라 여기서 같이 그린다.
+// 전문가 가입 칸 구성도 입구 카드 한 장이라 여기서 같이 그린다. 반려 사유·재신청은 전문가 서버(expertController.ts)도 사업자와 같은 방식(묶음 11).
 
 type AccountType = 'FACILITY' | 'EXPERT';
 type Mode = 'login' | 'signup';
@@ -113,7 +113,7 @@ export function PartnerEntrancePage() {
         // 로그인 성공 문구는 이름 대신 상호(2026-10-19 개발자)
         setResult({ tone: 'success', title: `${type === 'FACILITY' ? PARTNER_NAME : '[예시] 박○○'}님, 로그인되었습니다.` });
         await sleep(900);
-        navigate(PV_PARTNER.home);
+        navigate(type === 'FACILITY' ? PV_PARTNER.home : PV_PARTNER.expertHome);
       }
       return;
     }
