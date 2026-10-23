@@ -1,0 +1,434 @@
+/* 8단계 묶음 9 — 법적 문서(이용약관·처리방침). 정본 00-21 §0.4 · 5단계 판 5-1~5-3.
+   🔴 미리보기 뿌리(.rd-root) 아래에서만 걸린다 — 지금 화면의 v2-legal-* 와 섞이지 않는다. */
+
+/* 쪽 틀: 본문 804 + 사이 56 + 목차 260 (= 1120). 큰 화면에서는 양옆 여백만 늘어난다. */
+.rd-root .rd-lg__shell {
+  display: flex;
+  align-items: flex-start;
+  gap: 56px;
+}
+
+.rd-root .rd-lg__main {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+/* ───────── 장 · 조 ───────── */
+
+.rd-root .rd-lg__chapter {
+  display: flex;
+  flex-direction: column;
+}
+
+.rd-root .rd-lg__body > .rd-lg__chapter + .rd-lg__chapter {
+  margin-top: 40px;
+}
+
+.rd-root .rd-lg__chapter-title {
+  margin: 0;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--rd-ink);
+  font-family: var(--rd-font-serif);
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.rd-root .rd-lg__article {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 28px 0;
+  border-top: 1px dotted var(--rd-dot);
+  scroll-margin-top: 24px;
+}
+
+/* 장 표제 바로 아래 첫 조(실선이 이미 있다) · 장 없는 문서의 첫 조 */
+.rd-root .rd-lg__chapter-title + .rd-lg__article,
+.rd-root .rd-lg__body > .rd-lg__article:first-child {
+  padding-top: 24px;
+  border-top: 0;
+}
+
+.rd-root .rd-lg__article-title {
+  margin: 0;
+  font-family: var(--rd-font-serif);
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1.5;
+}
+
+.rd-root .rd-lg__article-body {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  font-size: 16px;
+  line-height: 1.85;
+}
+
+.rd-root .rd-lg__article-body p {
+  margin: 0;
+}
+
+.rd-root .rd-lg__subhead {
+  margin: 12px 0 0;
+  font-family: var(--rd-font-sans);
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1.5;
+}
+
+.rd-root .rd-lg__article-body > .rd-lg__subhead:first-child {
+  margin-top: 0;
+}
+
+.rd-root .rd-lg__note {
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--rd-ink-small);
+}
+
+.rd-root a.rd-lg__link {
+  color: var(--rd-point);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-color: var(--rd-point);
+}
+
+.rd-root a.rd-lg__link:hover {
+  color: var(--rd-ink);
+}
+
+/* ───────── 목록 ───────── */
+
+.rd-root .rd-lg__list,
+.rd-root .rd-lg__sublist {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.rd-root .rd-lg__list {
+  counter-reset: lg-item;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.rd-root .rd-lg__list > li {
+  position: relative;
+  padding-left: 28px;
+  counter-increment: lg-item;
+}
+
+.rd-root .rd-lg__list > li::before {
+  content: counter(lg-item) '.';
+  position: absolute;
+  left: 0;
+  color: var(--rd-ink-support);
+}
+
+.rd-root .rd-lg__sublist {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.rd-root .rd-lg__sublist > li {
+  position: relative;
+  padding-left: 15px;
+}
+
+.rd-root .rd-lg__sublist > li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: calc((1.85em - 5px) / 2);
+  width: 5px;
+  height: 5px;
+  background: var(--rd-point);
+}
+
+.rd-root .rd-lg__list > li > .rd-lg__table {
+  margin-top: 8px;
+}
+
+/* ───────── 표 ───────── */
+
+.rd-root .rd-lg__table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  font-size: 15px;
+  line-height: 1.65;
+}
+
+.rd-root .rd-lg__table--wide {
+  font-size: 14px;
+}
+
+.rd-root .rd-lg__table th,
+.rd-root .rd-lg__table td {
+  box-sizing: content-box; /* 칸 폭은 칸 안 여백을 뺀 값이다(00-21 §0.4) */
+  padding: 12px 14px;
+  text-align: left;
+}
+
+.rd-root .rd-lg__table--wide th,
+.rd-root .rd-lg__table--wide td {
+  padding: 10px;
+}
+
+.rd-root .rd-lg__table th {
+  white-space: nowrap;
+  background: var(--rd-pressed);
+  border-top: 1px solid var(--rd-ink);
+  border-bottom: 1px solid var(--rd-line);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.rd-root .rd-lg__table td {
+  vertical-align: top;
+  border-bottom: 1px dotted var(--rd-dot);
+  overflow-wrap: break-word;
+  word-break: keep-all;
+}
+
+.rd-root .rd-lg__table td:first-child {
+  font-weight: 500;
+}
+
+/* ───────── 목차(데스크톱) ───────── */
+
+.rd-root .rd-lg__toc {
+  position: sticky;
+  top: 24px;
+  flex: none;
+  width: 260px;
+  max-height: min(560px, calc(100vh - 48px));
+  overflow-y: auto;
+  border-top: 1px solid var(--rd-ink);
+  scrollbar-width: thin;
+  scrollbar-color: var(--rd-dot) transparent;
+}
+
+.rd-root .rd-lg__toc-item,
+.rd-root .rd-lg__sheet-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  width: 100%;
+  min-height: 44px;
+  padding: 8px 10px 8px 0;
+  background: transparent;
+  border: 0;
+  border-bottom: 1px dotted var(--rd-dot);
+  border-radius: 0;
+  font: inherit;
+  font-size: 14px;
+  line-height: 1.5;
+  text-align: left;
+  color: var(--rd-ink-support);
+  cursor: pointer;
+}
+
+.rd-root .rd-lg__toc-item {
+  align-items: center;
+}
+
+.rd-root .rd-lg__toc-mark {
+  flex: none;
+  width: 6px;
+  height: 6px;
+  margin-top: 8px;
+  background: transparent;
+}
+
+.rd-root .rd-lg__toc-item .rd-lg__toc-mark {
+  margin-top: 0;
+}
+
+.rd-root .rd-lg__toc-item:hover,
+.rd-root .rd-lg__sheet-item:hover,
+.rd-root .rd-lg__toc-item:active,
+.rd-root .rd-lg__sheet-item:active {
+  background: var(--rd-pressed);
+}
+
+.rd-root .rd-lg__toc-item[aria-current='true'],
+.rd-root .rd-lg__sheet-item[aria-current='true'] {
+  font-weight: 700;
+  color: var(--rd-ink);
+}
+
+.rd-root .rd-lg__toc-item[aria-current='true'] .rd-lg__toc-mark,
+.rd-root .rd-lg__sheet-item[aria-current='true'] .rd-lg__toc-mark {
+  background: var(--rd-ink);
+}
+
+/* 키보드 초점은 먹색 2px 테두리(판 5-3) */
+.rd-root .rd-lg__toc-item:focus-visible,
+.rd-root .rd-lg__sheet-item:focus-visible {
+  outline: 2px solid var(--rd-ink);
+  outline-offset: -2px;
+}
+
+/* 본문 맨 아래 구분선 위 오른쪽 정렬 */
+.rd-root .rd-lg__back {
+  margin-top: -16px;
+  padding-top: 12px;
+  border-top: 1px solid var(--rd-line);
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* ───────── 목차 판(모바일) ───────── */
+
+.rd-root .rd-lg__toc-open {
+  position: fixed;
+  right: 16px;
+  bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+  z-index: 50;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 48px;
+  padding: 0 18px;
+  background: var(--rd-paper);
+  color: var(--rd-ink);
+  border: 1px solid var(--rd-ink);
+  border-radius: var(--rd-radius);
+  box-shadow: 4px 4px 0 var(--rd-shadow);
+  font: 500 16px var(--rd-font-sans);
+  cursor: pointer;
+}
+
+.rd-root .rd-lg__sheet-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid var(--rd-ink);
+}
+
+.rd-root .rd-lg__sheet-item {
+  min-height: 48px;
+  align-items: center;
+  padding-right: 12px;
+  font-size: 15px;
+}
+
+.rd-root .rd-lg__sheet-item .rd-lg__toc-mark {
+  margin-top: 0;
+}
+
+/* ───────── 휴대폰 (≤767) ───────── */
+
+@media (max-width: 767px) {
+  .rd-root .rd-lg__shell {
+    display: block;
+  }
+
+  .rd-root .rd-lg__body > .rd-lg__chapter + .rd-lg__chapter {
+    margin-top: 32px;
+  }
+
+  .rd-root .rd-lg__chapter-title {
+    font-size: 21px;
+  }
+
+  .rd-root .rd-lg__article-title {
+    font-size: 18px;
+  }
+
+  .rd-root .rd-lg__article-body {
+    font-size: 15px;
+  }
+
+  .rd-root .rd-lg__subhead {
+    font-size: 16px;
+  }
+
+  .rd-root .rd-lg__note {
+    font-size: 13px;
+  }
+
+  .rd-root .rd-lg__list > li {
+    padding-left: 24px;
+  }
+
+  /* 표: 2열은 표 그대로(첫 칸 96 · 안 여백 10, 글자 14) */
+  .rd-root .rd-lg__table {
+    font-size: 14px;
+  }
+
+  .rd-root .rd-lg__table th,
+  .rd-root .rd-lg__table td {
+    padding: 10px;
+  }
+
+  .rd-root .rd-lg__table th {
+    font-size: 13px;
+  }
+
+  .rd-root .rd-lg__table:not(.rd-lg__table--stack) th:first-child {
+    width: 96px !important; /* 데스크톱 폭을 인라인으로 넘기므로 */
+  }
+
+  /* 3열 이상은 줄마다 세로로 쌓는다(칸 이름 + 값) */
+  .rd-root .rd-lg__table--stack,
+  .rd-root .rd-lg__table--stack tbody,
+  .rd-root .rd-lg__table--stack tr,
+  .rd-root .rd-lg__table--stack td {
+    display: block;
+  }
+
+  .rd-root .rd-lg__table--stack {
+    border-top: 1px solid var(--rd-ink);
+  }
+
+  .rd-root .rd-lg__table--stack thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+  }
+
+  .rd-root .rd-lg__table--stack tr {
+    padding: 14px 0;
+    border-bottom: 1px dotted var(--rd-dot);
+  }
+
+  .rd-root .rd-lg__table--stack td {
+    display: flex;
+    gap: 12px;
+    padding: 0;
+    border: 0;
+    font-size: 14px;
+    line-height: 1.7;
+  }
+
+  .rd-root .rd-lg__table--stack td + td {
+    margin-top: 8px;
+  }
+
+  .rd-root .rd-lg__table--stack td::before {
+    content: attr(data-label);
+    flex: none;
+    width: var(--lg-label-w, 96px);
+    font-size: 13px;
+    font-weight: 400;
+    color: var(--rd-ink-small);
+  }
+
+  .rd-root .rd-lg__table--stack .rd-lg__cell {
+    flex: 1;
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+}
