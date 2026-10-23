@@ -73,8 +73,20 @@ export const IconCopy = ({ size = 16 }: { size?: number }) => (
   </Svg>
 );
 
+// ───── 묶음 8 ─────
+export const IconTrash = ({ size = 18 }: { size?: number }) => (
+  <Svg size={size} sw={1.6}>
+    <path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3" />
+  </Svg>
+);
+export const IconPlus = ({ size = 18 }: { size?: number }) => (
+  <Svg size={size} sw={1.8}>
+    <path d="M12 5v14M5 12h14" />
+  </Svg>
+);
+
 /** 로그인 전 — 쪽 제목(+부제) 위에 두고 아래에 가림막 카드. 실제 화면은 화면 전체를 가리지만 견본은 상자 안에만 보인다 */
-export function MyGate({ title, desc, screenName }: { title?: string; desc?: string; screenName: string }) {
+export function MyGate({ title, desc, screenName, onLogin }: { title?: string; desc?: string; screenName: string; onLogin?: () => void }) {
   return (
     <>
       {title && (
@@ -83,7 +95,7 @@ export function MyGate({ title, desc, screenName }: { title?: string; desc?: str
         </div>
       )}
       <div className="rd-mp-gatebox">
-        <RdLoginGate screenName={screenName} contained />
+        <RdLoginGate screenName={screenName} contained onLogin={onLogin} />
       </div>
     </>
   );

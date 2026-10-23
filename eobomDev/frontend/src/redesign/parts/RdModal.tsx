@@ -22,7 +22,8 @@ export interface RdDialogProps {
   width?: 420 | 560 | 720 | 960;
   /** 윗글(업체명 등) */
   eyebrow?: string;
-  title: string;
+  /** 글. 탈퇴 신청 접수처럼 제목 앞에 완료 표시를 붙일 때만 노드로 넘긴다(묶음 8) */
+  title: React.ReactNode;
   /** 제목 위 경고 줄("되돌릴 수 없습니다") — 위험 확인 창 */
   warning?: string;
   /**
