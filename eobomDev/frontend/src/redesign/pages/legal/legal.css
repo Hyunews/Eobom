@@ -333,6 +333,11 @@
     display: block;
   }
 
+  /* 접힌 차례 띠(52)가 헤더 아래 붙는 쪽: 도착한 조 제목이 띠에 가리지 않게 52를 더한다(00-44 §5-5) */
+  .rd-root .rd-lg__article {
+    scroll-margin-top: calc(var(--rd-head-h) + 52px + 24px);
+  }
+
   .rd-root .rd-lg__body > .rd-lg__chapter + .rd-lg__chapter {
     margin-top: 32px;
   }

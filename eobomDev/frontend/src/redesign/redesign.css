@@ -354,11 +354,10 @@ body.rd-body {
   }
 }
 
-/* 모바일 전체 판: 흐린 상태에서 나타나며 8px 내려온다(옆에서 밀려 들어오지 않는다) */
+/* 모바일 전체 판: 투명에서 나타나며 8px 내려온다(옆에서 밀려 들어오지 않는다) — 흐림 = 투명도(00-44 §6-8) */
 @keyframes rd-sheet-in {
   from {
     opacity: 0;
-    filter: blur(6px);
     transform: translateY(-8px);
   }
 }
@@ -366,7 +365,6 @@ body.rd-body {
 @keyframes rd-sheet-out {
   to {
     opacity: 0;
-    filter: blur(6px);
     transform: translateY(-8px);
   }
 }
