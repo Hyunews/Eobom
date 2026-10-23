@@ -18,6 +18,16 @@
 > 원인 = Gemini 판정이 `gemini_tasks.md`에만 적히고 이 파일 판정 칸은 비어 있었음. 🔴 **판정은 이 파일의 그 항목 칸에 적는다**(`GEMINI.md`).
 
 ---
+## 2026-10-23 | [Sonnet] 디자인 개편 8단계 묶음 12 — 운영자 틀 · 홈 · 알림 종 · 등급 표시/서버 등급 검사 · 로그인 (`/preview/admin/…`) + 스키마 1칸(추가형)
+
+- **근거 스펙**: docs/00_핵심플랫폼/00-44 §9-4 묶음 12 + 공통 조건 · 00-37 §4.1 · §4.2 #1·#2·#3·#5 · §3.3 · §4 #12 · 6단계 묶음 3 캔버스(판 6-13 `Login_M` · 6-14 `Home`)
+- **건드린 파일**: eobomDev/backend/prisma/schema.prisma(`Admin.notificationsReadAt`), prisma/migrations/20261023150000_add_admin_notifications_read_at/, src/controllers/adminDashboardController.ts(신규), adminController.ts(`requireSuperAdmin` · 로그인/`me` 응답에 `role` 추가), src/routes/adminRoutes.ts, src/middleware/adminAudit.ts · eobomDev/frontend/src/redesign/pages/admin/(adminData.ts · AdminShell.tsx · AdminHomePage.tsx · AdminLoginPage.tsx · AdminRoutes.tsx · admin.css 신규), redesign/PreviewApp.tsx
+- **결과**: 끝난 # = **00-37 §4.2 #1 · #2 · #3 · #5** (+ 운영자 로그인 화면). 틀 = 왼쪽 메뉴 260·묶음 제목·범례·쪽 제목 빼기·최소폭 1200·로그인만 좁은 폭(사업자 틀 PartnerRoot/.rd-pt-top/.rd-pt-side 재사용). 홈 = 심사 3 · 사후 처리 4 · 최근 2칸. 알림 종 = 안 읽은 건수·[모두 읽음]·빈 칸·바깥 클릭/Esc 닫힘. 등급 = 열쇠(운영자 계정 메뉴)·OPERATOR 흐림·눌리지 않음·범례. 서버 = `GET /admin/dashboard` · `GET /admin/notifications` · `POST /admin/notifications/read-all`(큐에서 계산, 알림 표 없음) · 파기 실행에 `requireSuperAdmin`(403). `frontend npm run build` ✅ · `backend npx tsc --noEmit` ✅(0 오류). 로컬 백업 `local-20261023-143119.dump` 생성 확인. 마이그레이션 **로컬 적용 완료**(10-23, 백업 `local-20261023-144909.dump` 확인 후 `migrate deploy`). 서버 호출 확인(개발자 Postman + Sonnet curl): 로그인(`role` 포함) · `GET /dashboard`(건수 전부 0) · `GET /notifications`(unreadCount 0·빈 items) · `POST /notifications/read-all`(읽은 시각 저장). 프런트 미리보기 실기동 = 개발자 확인. 🔴 **미확인**: 건수 계산·안 읽음 판정(로컬 DB에 대기 건이 없어 빈 값만 봄) · OPERATOR의 파기 실행 403. 시험용 로컬 운영자 계정 `test-admin@eobom.local`(SUPERADMIN)이 남아 있음.
+- **편차**: ① 사망 확인 홈 칸 "대외 마감 초과 / 내부 목표 초과"는 **겹치지 않게**(목표 초과 = 목표는 넘겼으나 마감 전) 셈 — 스펙에 셈법 없음, 판 예시(대기 2 = 1+1)에 맞춤. ② 알림 줄을 큐 건마다 만들되 파기 만료·아카이브 미이행·최근 오류는 **한 줄로 묶음**(건수 문구, 시각 = 가장 늦은 만료/적재/오류 시각) — 건마다 만들면 수십 줄. ③ 알림 문구 9종(예: "새 사업자 가입 신청이 있습니다.")은 스펙에 없어 **지어냄**. ④ `adminAudit`: `/dashboard`·`/notifications` 읽기를 `/me`처럼 fail-open(건수뿐·페이지마다 부르므로). 감사로그엔 그대로 남음. ⑤ 서버 등급 검사는 지금 존재하는 라우트 중 표에 해당하는 **파기 실행 1곳**뿐(회원 정지·요율·계정 관리 라우트는 아직 없음 → 묶음 13이 같은 가드를 걸 것). ⑥ 미리보기에서 등급·알림 상태는 `?role=operator`·`?bell=empty`로 들고 다님. ⑦ 메뉴 자리 쪽 `/preview/admin/:key`("이 화면은 묶음 13에서 만듭니다.")는 미리보기 전용 문구. ⑧ 홈·알림은 미리보기가 예시 값 사용(서버 호출 안 함, 10단계에서 연결) — 묶음 10·11과 같은 방식.
+- **다음 에이전트가 알아야 할 것**: (1) 로컬 마이그레이션·`prisma generate` 완료. 운영 반영은 10단계 `migrate-prod.ps1`(추가형 1칸). (2) 로그인 응답·`/me`에 `role` 추가(기존 키 유지, 지금 화면 영향 없음). (3) 묶음 13: 목록+상세(#4) 등 나머지 화면, 열쇠 붙일 버튼([선택 파기] 등)·`requireSuperAdmin` 확대, 감사로그 `?result=FAIL` 거르기(홈 최근 오류 링크가 이 주소로 감). (4) 알림 [줄 눌러도 그 줄만 읽음 처리 안 함]은 스펙대로.
+
+<!-- Gemini 판정 1줄: -->
+
 ## 2026-10-23 | [Sonnet] 디자인 개편 8단계 묶음 10 반려 반영 + 묶음 11 — 파트너 전문가 (`/preview/partner/expert/…`) + 서버 추가형(스키마 변경 없음)
 
 - **근거 스펙**: docs/02_전문가_매칭/02-03 §7.3-1·§7.3-2 #1~#3·#8, §5.3, §4.3 · docs/00_핵심플랫폼/00-44 §9-4 묶음 11 · 6단계 묶음 2 캔버스 판 6-10~6-12 · 사업자 틀 `01-05` §14-1·§14-2

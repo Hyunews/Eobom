@@ -965,6 +965,9 @@ model Admin {
   failedLoginCount Int       @default(0) // 연속 로그인 실패 횟수(성공 시 0). 잠금이 풀린 뒤 첫 실패는 1부터 다시 센다
   lockedUntil      DateTime? // 이 시각까지 로그인 거부(null = 잠기지 않음)
 
+  // 00-37 §4.1 알림 종(10-21 확정) — 알림 표를 따로 두지 않고 큐에서 그때그때 계산한다. 이 시각보다 새 건 = 안 읽음, [모두 읽음] = 이 시각 갱신. null = 한 번도 안 읽음(전부 안 읽음).
+  notificationsReadAt DateTime?
+
   createdAt DateTime @default(now()) // 계정 생성 일시 (seed-admin.ts로만 생성됨)
   createdAtKst DateTime? // 보기 전용 · DB 트리거가 createdAt+9시간(한국 시간)으로 채움 · 🔴 코드에서 읽기·쓰기 금지(트리거가 쓰기를 덮어씀)
   updatedAt DateTime @updatedAt // 최종 수정 일시

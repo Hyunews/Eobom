@@ -24,7 +24,12 @@ const TARGET_TYPES: Record<string, string> = {
   memorials: 'Memorial',
   'farewell-purge': 'FarewellPurge',
   me: 'Admin',
+  dashboard: 'Admin',
+  notifications: 'Admin',
 };
+
+// 본인 세션 확인·건수뿐인 읽기 — 감사 저장소 장애로 막히면 안 된다(개인정보 없음). 쓰기(read-all)는 원래 fail-open이다.
+const FAIL_OPEN_READS = new Set(['/me', '/dashboard', '/notifications']);
 
 const WRITE_ACTIONS: Record<string, string> = { POST: 'CREATE', PATCH: 'UPDATE', PUT: 'UPDATE', DELETE: 'DELETE' };
 
@@ -47,7 +52,7 @@ export const adminAudit: RequestHandler = (req, res, next) => {
   const decoded = verifyAdminBearerToken(req);
   if (!decoded) return next(); // requireAdminAuth가 이미 걸렀다 — 여기서 다시 막지 않는다(순서가 바뀌어도 기록만 건너뛴다)
 
-  const failClosed = isRead(req.method) && req.path !== '/me';
+  const failClosed = isRead(req.method) && !FAIL_OPEN_READS.has(req.path);
   let written = false;
 
   const write = (status: number) => {

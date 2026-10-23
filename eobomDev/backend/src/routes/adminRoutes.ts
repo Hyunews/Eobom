@@ -1,5 +1,6 @@
 import { Router } from 'express';
-import { login, refresh, getMe, getUserDetailForAdmin, listUsersForAdmin, requireAdminAuth } from '../controllers/adminController';
+import { login, refresh, getMe, getUserDetailForAdmin, listUsersForAdmin, requireAdminAuth, requireSuperAdmin } from '../controllers/adminController';
+import { getDashboard, getNotifications, markNotificationsRead } from '../controllers/adminDashboardController';
 import {
   listPartners,
   updatePartnerStatus,
@@ -50,6 +51,11 @@ router.use(adminAudit);
 
 // 운영자 내 정보 조회
 router.get('/me', getMe);
+
+// 홈 건수(00-37 §4.1 · A-3) · 알림 종(§4 #12) — 큐에서 계산, 알림 표 없음. 건수·시각뿐
+router.get('/dashboard', getDashboard);
+router.get('/notifications', getNotifications);
+router.post('/notifications/read-all', markNotificationsRead);
 
 // 사업자·전문가 가입 심사
 router.get('/partners', listPartners);
@@ -106,7 +112,8 @@ router.get('/farewell-purge/expired', listFarewellPurgeExpired);
 // 아카이브 2단계 미이행 목록
 router.get('/farewell-purge/pending-archive', listFarewellPendingArchive);
 // 유족 메시지 건별 파기 실행
-router.post('/farewell-purge/execute', executeFarewellPurge);
+// 🔴 00-37 §3.3 — 파기 실행은 SUPERADMIN만(서버 등급 검사). 회원 정지/탈퇴 처리·요율 변경·운영자 계정 관리는 아직 라우트가 없다(묶음 13) — 생기면 같은 가드를 건다.
+router.post('/farewell-purge/execute', requireSuperAdmin, executeFarewellPurge);
 // 파기 기록 조회
 router.get('/farewell-purge/logs', listFarewellPurgeLogs);
 // 아카이브 2단계 완료 표시

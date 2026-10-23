@@ -15,6 +15,7 @@ import { ObituaryPage } from './pages/after/ObituaryPage';
 import { FacilityDetailPage } from './pages/after/FacilityDetailPage';
 import { VisitorRoutes } from './pages/visitor/VisitorRoutes';
 import { PartnerRoutes } from './pages/partner/PartnerRoutes';
+import { AdminRoutes } from './pages/admin/AdminRoutes';
 import { MyHubPage } from './pages/my/MyHubPage';
 import { MyListPage } from './pages/my/MyListPage';
 import { MemorialPage } from './pages/my/MemorialPage';
@@ -49,6 +50,8 @@ export function PreviewApp() {
         <Route path="/preview/visitor/*" element={<VisitorRoutes />} />
         {/* 묶음 10 — 파트너 장사시설(사업자 틀). 포털도 이용자 헤더·바닥글이 없어 틀 밖에서 연다 */}
         <Route path="/preview/partner/*" element={<PartnerRoutes />} />
+        {/* 묶음 12 — 운영자 틀(왼쪽 메뉴 · 홈 · 알림 종 · 로그인). 포털이라 틀 밖에서 연다 */}
+        <Route path="/preview/admin/*" element={<AdminRoutes />} />
         <Route
           path="*"
           element={

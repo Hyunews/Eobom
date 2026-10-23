@@ -67,6 +67,25 @@ export const requireAdminAuth = (req: Request, res: Response, next: NextFunction
   next();
 };
 
+// 00-37 §3.3 서버 등급 검사 — SUPERADMIN만 하는 일의 라우트에 건다(requireAdminAuth 다음). 화면이 흐리게 보여 주는 것과 별개로 서버가 막는다.
+// 토큰에는 등급을 싣지 않는다(등급을 바꿔도 이미 받은 토큰이 낡은 등급을 들고 있지 않게) — 요청마다 DB에서 읽는다.
+export const requireSuperAdmin = async (req: Request, res: Response, next: NextFunction) => {
+  const decoded = verifyAdminBearerToken(req);
+  if (!decoded) {
+    return res.status(401).json({ status: 'error', message: '인증 토큰이 없거나 유효하지 않습니다.' });
+  }
+  try {
+    const admin = await prisma.admin.findUnique({ where: { id: decoded.id }, select: { role: true } });
+    if (admin?.role !== 'SUPERADMIN') {
+      return res.status(403).json({ status: 'error', message: '최고 관리자(SUPERADMIN)만 할 수 있습니다.' });
+    }
+    next();
+  } catch (error) {
+    console.error('운영자 등급 확인 실패:', error);
+    return res.status(500).json({ status: 'error', message: '권한 확인 중 오류가 발생했습니다.' });
+  }
+};
+
 // 로그인 (`POST /api/admin/login`)
 export const login = async (req: Request, res: Response) => {
   const { email, password } = req.body as { email?: string; password?: string };
@@ -112,7 +131,7 @@ export const login = async (req: Request, res: Response) => {
     });
     await writeAdminLoginAudit(req, { adminId: admin.id, adminName: admin.name, action: 'LOGIN', result: 'SUCCESS' });
 
-    return res.json({ status: 'success', accessToken, refreshToken, admin: { id: admin.id, name: admin.name, email: admin.email } });
+    return res.json({ status: 'success', accessToken, refreshToken, admin: { id: admin.id, name: admin.name, email: admin.email, role: admin.role } });
   } catch (error) {
     console.error('운영자 로그인 실패:', error);
     return res.status(500).json({ status: 'error', message: '로그인 처리 중 오류가 발생했습니다.' });
@@ -162,7 +181,7 @@ export const getMe = async (req: Request, res: Response) => {
     if (!admin) {
       return res.status(404).json({ status: 'error', message: '운영자 정보를 찾을 수 없습니다.' });
     }
-    return res.json({ status: 'success', data: { id: admin.id, name: admin.name, email: admin.email } });
+    return res.json({ status: 'success', data: { id: admin.id, name: admin.name, email: admin.email, role: admin.role } });
   } catch (error) {
     console.error('운영자 정보 조회 실패:', error);
     return res.status(500).json({ status: 'error', message: '정보 조회 중 오류가 발생했습니다.' });
