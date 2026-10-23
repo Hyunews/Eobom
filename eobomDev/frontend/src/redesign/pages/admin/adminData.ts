@@ -11,7 +11,7 @@ export const PV_ADMIN = {
 
 export type AdminRole = 'SUPERADMIN' | 'OPERATOR';
 
-/** 메뉴 key → 미리보기 주소. 홈만 만들어져 있고 나머지는 묶음 13이 채운다(지금은 자리 쪽으로 간다). */
+/** 메뉴 key → 미리보기 주소. 홈은 묶음 12, 나머지 메뉴 화면은 묶음 13(AdminRoutes.tsx). */
 export const adminPath = (key: string) => (key === 'home' ? PV_ADMIN.home : `${PV_ADMIN.index}/${key}`);
 
 // ───── 메뉴 (00-37 §4.1 표) ─────
