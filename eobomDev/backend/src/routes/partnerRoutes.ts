@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { signup, login, refresh, getMe, updateMe } from '../controllers/partnerController';
 import { submitClaim, listMyClaims, listMyFacilities } from '../controllers/claimController';
+import { updateMyFacility } from '../controllers/partnerFacilityController';
 import { addFacilityImage, removeFacilityImage, setCoverImage } from '../controllers/facilityMediaController';
 import { listMyLeads, getMyLeadDetail, updateMyLeadStatus } from '../controllers/leadController';
 import { requirePartnerAuth } from '../middleware/requireAuth';
@@ -27,6 +28,8 @@ router.post('/claims', submitClaim);
 router.get('/claims', listMyClaims);
 // 클레임 승인된 내 시설 목록
 router.get('/facilities', listMyFacilities);
+// 내 시설 정보 수정 — 소개 글·종교·수용 규모·부대시설 (01-05 §14-5)
+router.patch('/facilities/:id', updateMyFacility);
 // 시설 이미지 업로드(multipart)
 router.post('/facilities/:id/images', addFacilityImage);
 // 시설 이미지 삭제

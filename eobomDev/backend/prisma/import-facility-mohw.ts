@@ -139,6 +139,7 @@ interface ExistingFacility {
   phone: string | null;
   partnerId: string | null;
   images: string[];
+  partnerEditedAt: Date | null;
 }
 
 interface MatchResult {
@@ -269,7 +270,7 @@ async function main() {
   // 2) 기존 DB 행(type='장례식장') 로드
   const existing = await prisma.facility.findMany({
     where: { type: '장례식장' },
-    select: { id: true, name: true, publicName: true, location: true, phone: true, partnerId: true, images: true },
+    select: { id: true, name: true, publicName: true, location: true, phone: true, partnerId: true, images: true, partnerEditedAt: true },
   });
   console.log(`\nDB 기존 장례식장 행: ${existing.length}건`);
 
@@ -294,7 +295,8 @@ async function main() {
           location: normalizeAddressProvince(row.addr),
           phone: row.telno || null,
           tags: buildTags(row),
-          amenities: buildAmenities(row),
+          // 🔴 사업자가 저장한 시설은 부대시설을 덮지 않는다(01-05 §14-5 — 소개 글·종교·수용 규모는 이 스크립트가 원래 건드리지 않는다)
+          ...(result.db.partnerEditedAt ? {} : { amenities: buildAmenities(row) }),
           publicName: row.fcltNm,
           source: 'mohw',
           sourceRef: buildSourceRef(row),

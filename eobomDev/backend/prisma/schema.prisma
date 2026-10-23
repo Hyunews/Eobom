@@ -166,6 +166,12 @@ model Facility {
   tags         String[] @default([]) // 표시용 태그 배열 — 분류 가능한 값(공설/사설 등)만 frontend TAG_CATALOG로 필터링됨(docs 01-06)
   amenities    String[] @default([]) // 부대시설 목록 (예: 식당/매점/주차장/유족대기실/장애인편의시설)
   images       String[] @default([]) // 파트너가 BizDashboard에서 업로드한 시설 사진 URL 목록 (2026-08-10)
+  // 사업자가 쓰는 소개 글 + 운영자 숨김 칸 + 사업자 수정 시각 (디자인 개편 8단계 묶음 10, 01-05 §14-5). 모두 추가형 — 지금 화면은 읽지 않는다.
+  intro            String? // 소개 글(사업자 입력, 여러 줄). null이면 안 쓴 것. 저장 때 전화·링크·카카오 유도 글을 막는다(01-05 §14-5)
+  introHiddenAt    DateTime? // 운영자가 소개 글을 숨긴 시각. null이면 보임. 사업자가 고쳐 저장하면 풀린다
+  introHiddenReason String? // 숨김 사유 코드 3개 — EXTERNAL_CONTACT(이어봄 밖 연락 유도) | PRICE(가격 글) | DEFAMATION(다른 업체 비방·욕설)
+  introHiddenNote  String? // 숨길 때 운영자가 덧붙인 말(선택)
+  partnerEditedAt  DateTime? // 사업자가 종교·수용 규모·부대시설·소개 글을 한 번이라도 저장한 시각 — 공공 데이터 재적재가 부대시설을 덮지 않게 하는 표시(01-05 §14-5)
   createdAt    DateTime @default(now()) // 레코드 생성 일시
   createdAtKst DateTime? // 보기 전용 · DB 트리거가 createdAt+9시간(한국 시간)으로 채움 · 🔴 코드에서 읽기·쓰기 금지(트리거가 쓰기를 덮어씀)
   updatedAt    DateTime @updatedAt // 최종 수정 일시
@@ -299,6 +305,7 @@ model Lead {
   settlementId       String? // 정산에 포함된 이후 채워짐
   settlement         Settlement?       @relation(fields: [settlementId], references: [id])
   disputeReason      String? // 정산 이의제기 사유
+  lostReason         String? // 무산(LOST) 사유 코드 — CONDITION | NO_CONTACT | PLAN_CHANGED | OTHER (01-05 §4.3). 글은 statusHistory note에도 같이 남는다
 
   createdAt DateTime @default(now()) // 리드 발생 일시
   createdAtKst DateTime? // 보기 전용 · DB 트리거가 createdAt+9시간(한국 시간)으로 채움 · 🔴 코드에서 읽기·쓰기 금지(트리거가 쓰기를 덮어씀)

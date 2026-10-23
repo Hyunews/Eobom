@@ -184,7 +184,7 @@ export const getFacilityById = async (req: Request, res: Response) => {
 // 가격 글(01-01 §2.3) · 사진(01-01 §3.3 결정 대기) · 평점·리뷰(0건·작성 보류)는 응답에 넣지 않는다(select로 열거).
 // 위의 `GET /:id`(전체 칸)는 지금 화면 응답이라 그대로 둔다 — 이 라우트는 추가형이다.
 // 표시 조건(기본값 종교·수용 규모 감춤 · 부대시설 0개면 칸 감춤)은 화면이 건다(01-01 §5.2). 서버는 저장된 값을 그대로 준다.
-// intro(소개 글)는 묶음 10 스키마(사업자가 쓰는 새 칸 · 운영자 숨김 칸)가 들어오기 전이라 null 고정이다.
+// intro(소개 글)는 묶음 10 스키마가 들어오면서 실제 값이 된다 — 사업자가 안 썼거나 운영자가 숨겼으면 null.
 export const getFacilityPublicDetail = async (req: Request, res: Response) => {
   try {
     const facility = await prisma.facility.findUnique({
@@ -201,12 +201,16 @@ export const getFacilityPublicDetail = async (req: Request, res: Response) => {
         religion: true,
         guests: true,
         isPartner: true,
+        intro: true,
+        introHiddenAt: true,
       },
     });
     if (!facility) {
       return res.status(404).json({ status: 'error', message: '시설을 찾을 수 없습니다.' });
     }
-    return res.json({ status: 'success', data: { ...facility, intro: null } });
+    // 운영자가 숨긴 소개 글은 내려주지 않는다(01-05 §14-5) — 숨김 시각·사유는 공개 응답에 싣지 않는다.
+    const { introHiddenAt, intro, ...publicFields } = facility;
+    return res.json({ status: 'success', data: { ...publicFields, intro: introHiddenAt ? null : intro } });
   } catch (error) {
     console.error('시설 공개 상세 조회 실패:', error);
     return res.status(500).json({ status: 'error', message: '시설 정보를 불러오지 못했습니다.' });

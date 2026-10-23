@@ -18,6 +18,17 @@
 > 원인 = Gemini 판정이 `gemini_tasks.md`에만 적히고 이 파일 판정 칸은 비어 있었음. 🔴 **판정은 이 파일의 그 항목 칸에 적는다**(`GEMINI.md`).
 
 ---
+## 2026-10-23 | [Sonnet] 디자인 개편 8단계 묶음 10 — 파트너 장사시설 + 사업자 틀 (`/preview/partner/…`) + 스키마·서버 추가형
+
+- **근거 스펙**: docs/01_장사시설_매칭/01-05 §14-1~§14-8·§14-10 #1~#6·#10(사업자 화면 쪽)·#11, §4.3(무산 사유) · docs/00_핵심플랫폼/00-44 §9-4 묶음 10 · 6단계 캔버스 판 6-1~6-9
+- **건드린 파일**: eobomDev/frontend/src/redesign/pages/partner/*(신설 12개: Shell·Entrance·Home·Inquiries·Facility·Link·Account(+정산)·Routes·common·data·css), redesign/PreviewApp.tsx / eobomDev/backend/prisma/schema.prisma, prisma/migrations/20261023120000_add_facility_intro_and_lead_lost_reason/migration.sql(🔴 **아직 DB에 안 돌림**), prisma/import-facility-mohw.ts / backend/src/utils/facilityIntro.ts(신설), controllers/partnerFacilityController.ts(신설)·claimController·partnerController·leadController·facilityController, routes/partnerRoutes.ts
+- **결과**: 미리보기 8곳(`/preview/partner` 목차, `login`·`home`·`inquiries`·`facility`·`link`·`account`·`settlement`) — 틀(먹색 바·왼쪽 메뉴 260·모바일 탭 줄), 입구(로그인·사업자/전문가 가입·반려 사유 결과 상자), 받은 문의(목록+상세, 모바일 목록→상세, 무산 처리 창 사유 4개), 내 시설(탭·소개 글 저장 때 막기·운영자 숨김 안내), 시설 연동, 계정 정보. 서버: `Facility` 소개 글·숨김 3칸·`partnerEditedAt`, `Lead.lostReason`, `PATCH /api/partner/facilities/:id`, 로그인 거부(REJECTED)에 `rejectReason`, 반려 건 같은 이메일+번호 재신청 시 덮어 `PENDING`, 무산 사유 코드 저장, 시설 공개 상세 `intro` 실값(숨김이면 null), 중복 적재가 사업자 저장 시설의 부대시설을 안 덮음. 재현: `cd eobomDev/frontend && npm run build`(통과) · `cd eobomDev/backend && npx tsc --noEmit`(통과, `prisma generate`는 엔진 DLL 잠금으로 타입만 갱신됨). 실기동 미확인(사람).
+- **편차**: ① `Facility.partnerEditedAt` 칸 1개 추가(스펙 스키마 목록에 없음) — 재적재가 부대시설을 덮지 않게 하는 표시가 필요해서. ② 무산 사유 코드는 서버가 **없어도 받는다**(지금 `BizDashboard`가 코드 없이 자유 글만 보내 깨지 않게) — 새 화면은 필수. 10단계 교체 때 필수로 올릴 것. ③ 전문가 입구(가입 칸·사무실 주소)는 입구 카드가 한 장이라 이 묶음에서 그렸다 — 전문가 서버(반려 사유·재신청 #8)는 묶음 11. ④ 스펙에 문구가 없어 지은 것: 칸 비어 있음 오류 "입력해주세요." · 비밀번호 8자 오류 · 숨김 안내 "운영자가 소개 글을 숨겼습니다. (숨긴 사유: …)" · 저장 알림 "저장했습니다. 유족 화면에 바로 반영됩니다." · 소개 글 막기 3문구 · 무산 창 오류 2문구. ⑤ 반려 건 재신청은 이메일·사업자번호가 **같은 가입 건**일 때만(한쪽만 같으면 기존 409). ⑥ #10 중 운영자 숨기기·되돌리기 화면/API는 묶음 13 — 컬럼만 이 묶음.
+- **다음 에이전트가 알아야 할 것**: 🔴 마이그레이션 SQL은 파일만 있고 로컬 DB에 안 돌렸다(백업 `-Target local` + 사람 확인 후 `prisma migrate dev`/`deploy`). 그 전엔 서버가 새 칸을 읽는 `GET /api/partner/facilities`·시설 공개 상세가 500. 운영 반영은 10단계 `migrate-prod.ps1`. 교체 때 미리보기 값(예시 시설·문의·연동 현황·`#1024` 번호 꼴·쪽 수)은 서버 응답으로 바꾸고 "보기 상태" 줄 삭제, [주소 검색]은 `AddressSearchModal`로 잇는다. 메뉴 갈색 숫자는 지금 받는 목록에서 센다(쪽 넘김 때문에 실제론 전체 건수 API가 필요할 수 있음 — 확인 필요).
+
+<!-- Gemini 판정 1줄: ✅통과 / ❌반려(사유) / 🔄스펙갱신(고친 문서) -->
+
+---
 ## 2026-10-23 | [Sonnet] 디자인 개편 8단계 묶음 9 후속 — 로그인 창 약관 [보기] = 새 법적 문서 본문 재사용
 
 - **근거 스펙**: `00-21` §0.4 표 "로그인 창 [보기](본문만 보기)" 줄(10-23 개발자 결정 나안) · `00-44` §7-6 ⑥(같은 창 갈아끼움).
