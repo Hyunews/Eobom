@@ -873,7 +873,7 @@
 .rd-toc {
   width: 220px;
   position: sticky;
-  top: 24px;
+  top: calc(var(--rd-head-h) + 24px);
 }
 
 .rd-toc__band {
@@ -2165,7 +2165,7 @@
   /* 쪽 안 차례: 화면 위에 붙는 접힌 띠 52 → 누르면 펼침(줄 48) */
   .rd-toc {
     position: sticky;
-    top: 0;
+    top: var(--rd-head-h);
     z-index: 20;
     width: auto;
     margin-inline: calc(var(--rd-gutter) * -1);
@@ -2493,7 +2493,7 @@
 
 .rd-pv__nav {
   position: sticky;
-  top: 0;
+  top: var(--rd-head-h);
   z-index: 35;
   display: flex;
   gap: 8px 20px;

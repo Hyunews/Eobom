@@ -5,6 +5,7 @@ import { RdItem } from './RdMenuPanel';
 import { KakaoIcon } from './KakaoIcon';
 
 interface Props {
+  leaving?: boolean;
   onClose: () => void;
   onLogin?: () => void;
 }
@@ -12,7 +13,7 @@ interface Props {
 const FOCUSABLE = 'a[href], button:not([disabled])';
 
 /** 모바일 메뉴 펼침 — 전체 화면 판. 머리와 [로그인]은 고정, 가운데만 스크롤(연락처 묶음이 바닥글을 대신한다). */
-export function RdMenuSheet({ onClose, onLogin }: Props) {
+export function RdMenuSheet({ leaving, onClose, onLogin }: Props) {
   const ref = useRef<HTMLDivElement>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
 
@@ -46,7 +47,7 @@ export function RdMenuSheet({ onClose, onLogin }: Props) {
   };
 
   return (
-    <div className="rd-sheet" role="dialog" aria-modal="true" aria-label="메뉴" ref={ref} onKeyDown={onKeyDown}>
+    <div className="rd-sheet" role="dialog" aria-modal="true" aria-label="메뉴" ref={ref} onKeyDown={onKeyDown} data-leaving={leaving ? '' : undefined}>
       <div className="rd-sheet__bar">
         <a href="/" className="rd-logo">이어봄</a>
         <button type="button" className="rd-menu-btn" style={{ display: 'inline-flex' }} aria-label="메뉴 닫기" ref={closeRef} onClick={onClose}>

@@ -18,6 +18,21 @@
 > 원인 = Gemini 판정이 `gemini_tasks.md`에만 적히고 이 파일 판정 칸은 비어 있었음. 🔴 **판정은 이 파일의 그 항목 칸에 적는다**(`GEMINI.md`).
 
 ---
+## 2026-10-23 | [Sonnet] 디자인 개편 8단계 묶음 14 — 헤더 따라오기 · 메뉴 펼침 움직임 · 운영자 전체 시설 3×3(한 쪽 9개)
+
+- **근거 스펙**: docs/00_핵심플랫폼/00-44_디자인_기준_개편_명세서.md §5-5 "헤더 따라오기" · §6-8 "헤더 메뉴 펼침" · §9-4 묶음 14 / 00-45 §2·§3·§6-1 / 01-05 §14-9 / 캔버스 https://claude.ai/artifact/R4jR4bGB7DjoNKddHo7LyV
+- **건드린 파일**: eobomDev/frontend/src/redesign/ 아래 — redesign.css, layout/RdLayout.tsx, layout/RdHeader.tsx, layout/RdMenuPanel.tsx, layout/RdMenuSheet.tsx, layout/useLeave.ts(신규), parts/parts.css, pages/landing.css, pages/after/after.css, pages/after/GuidePage.tsx, pages/legal/legal.css, pages/legal/LegalDoc.tsx, pages/prep/prep.css, pages/admin/AdminFacilityPages.tsx, pages/admin/adminSamples.ts
+- **결과**:
+  ① 헤더: `.rd-head`(자리, 높이 `--rd-head-full` 101/모바일 56) 안에 `.rd-head__bar`(position: fixed)를 두고 띠만 줄인다 → 본문이 튀지 않음. `RdLayout`이 `scrollY > 0`이면 `.rd-root[data-rd-slim]`. 슬림 시 높이 `--rd-head-h`(64) · 로고 26→22 · 메뉴 17→16 · 로그인 20→17 · 0.2초 전환 · 테두리 1px · 그림자 없음. 모바일 56 그대로 항상 따라옴. 변수 3개: `--rd-head-full` · `--rd-head-h` · `--rd-head-cur`.
+  ② 화면 위에 붙는 것에 `--rd-head-h` 더함: `.rd-toc`(데스크톱 `calc(h+24px)` · 모바일 띠 `h`) · `.rd-pv__nav` · `.rd-af-guide__toc` · `.rd-af-detail__side` · `.rd-af-make__side` · `.rd-pr-toc` · `.rd-lg__toc`(top·max-height) / scroll-margin-top: `.rd-af-section`(96→`h+96`) · `.rd-lg__article`(24→`h+24`) · `.rd-pr-acc__item` · GuidePage 상속 승인·포기 칸(인라인) · `.rd-ls`. LegalDoc 현재 구간 감지 rootMargin `-24px`→`-(h+24)px`(`headHeight()`). 랜딩: `.rd-lh` 100svh−`--rd-head-full`, `.rd-ls` 100svh−`--rd-head-h`, 모바일 `.rd-lc/.rd-lm` 100svh→100svh−56 + `html.rd-landing-snap`에 `scroll-padding-top: 56px`. `--rd-landing-head` 변수 삭제.
+  ③ 메뉴: 데스크톱 판 `position:absolute; top:100%`(띠 아래) + `max-height: calc(100dvh − 현재 높이)` · `overflow-y:auto`. 움직임: 판 8px 0.32초 · 어둠 0.25초 · 꺾쇠 `rotate(180deg)` 0.2초(경로 2개→1개) · 모바일 판 흐림(blur 6px)+8px 0.25초 · 닫을 때 0.2초 거꾸로(`useLeave`, `data-leaving`). `prefers-reduced-motion`이면 animation·transition 전부 none, 닫힘 지연도 없음.
+  ④ 운영자 전체 시설: `AdminFacilityPages.tsx`에 `FACILITY_PAGE_SIZE = 9`(`PREVIEW_PAGE_SIZE`는 안 바꿈, 이 파일 import에서만 뺌), 예시 시설 f8~f13 6건 추가(7→13건, 2쪽).
+  `npx tsc --noEmit`(frontend) 통과 · `npx vite build` 통과(1673 modules).
+- **편차**: ① 모바일 판 "흐림"을 `filter: blur(6px)`+opacity로 해석(스펙에 수치 없음, 캔버스 미대조). ② 모바일 랜딩 칸 안 그림 높이 `clamp(…svh…)`는 그대로 둠 — 칸이 56 줄어 내용이 빠듯하면 칸이 늘어남(자르지 않음). ③ 쪽 안 차례 바로가기 도착 위치: 모바일 접힌 띠(52)까지는 scroll-margin에 더하지 않음(`h+24`만). ④ 헤더 높이는 실측 대신 `height` 명시(101/64, 테두리 포함).
+- **다음 에이전트가 알아야 할 것**: 🔴 실기동 안 함(규정) — 사람이 확인할 곳: 내릴 때 본문 안 튐 · 슬림 64 · 판이 띠 바로 아래 · 긴 판 내부 스크롤 · 모바일 랜딩 칸 맞춤이 헤더 아래에 서는지 · 쪽 안 차례 sticky 위치(1280/1920/휴대폰). 운영자·파트너 틀은 `RdLayout`을 안 쓴다고 가정(`rd-ad-stickybar` 안 건드림). 커밋은 사람.
+
+<!-- Gemini 판정 1줄: ✅통과 / ❌반려(사유) / 🔄스펙갱신(고친 문서) -->
+
 ## 2026-10-23 | [Sonnet] 디자인 개편 8단계 묶음 13 — 운영자 화면 15곳 (`/preview/admin/<메뉴>`) + 서버(SUPERADMIN 라우트 · 회원 정지/탈퇴 대리 접수 · 감사로그 · 요율 · 업체 문의 · 소개 글 숨김) + 스키마 4칸(추가형)
 
 - **근거 스펙**: docs/00_핵심플랫폼/00-44 §9-4 묶음 13 · 00-37 §3.3·§4.1("회원 정지"·"탈퇴 대리 접수" 포함)·§4.2 #4·#6~#11 · 01-05 §14-5·§14-9·§14-10 #7~#10·§8.2 · 02-03 §7.3-2 #4~#7·§7.4 · 00-41 §5.3 · 06-05 §5.6-8-3

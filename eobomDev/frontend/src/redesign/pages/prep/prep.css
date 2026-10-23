@@ -22,7 +22,7 @@
 }
 .rd-root .rd-pr-toc {
   position: sticky;
-  top: 24px;
+  top: calc(var(--rd-head-h) + 24px);
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -78,6 +78,7 @@
   border-top: 1px solid var(--rd-ink);
 }
 .rd-root .rd-pr-acc__item {
+  scroll-margin-top: calc(var(--rd-head-h) + 24px);
   border-bottom: 1px dotted var(--rd-dot);
 }
 .rd-root .rd-pr-acc__head {

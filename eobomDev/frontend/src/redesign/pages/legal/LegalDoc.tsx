@@ -35,6 +35,11 @@ function collectTocEntries(children: React.ReactNode): TocEntry[] {
   return entries;
 }
 
+/** 화면 위에 붙는 헤더 높이(CSS 변수 --rd-head-h) */
+const headHeight = (): number => {
+  const root = document.querySelector('.rd-root');
+  return root ? parseFloat(getComputedStyle(root).getPropertyValue('--rd-head-h')) || 0 : 0;
+};
 const scrollBehavior = (): ScrollBehavior => (window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth');
 
 // "본문만 보기" 겉틀(00-21 §0.4 로그인 창 [보기]) — 목차·홈 링크를 빼고 표를 모바일 규칙으로 그린다.
@@ -70,7 +75,8 @@ export function RdLegalDoc({ title, effectiveDateLabel, bare, children }: { titl
         const top = visible.reduce((a, b) => (a.boundingClientRect.top < b.boundingClientRect.top ? a : b));
         if (top.target.id) setActiveId(top.target.id);
       },
-      { rootMargin: '-24px 0px -70% 0px', threshold: 0 },
+      // 위 24 = 화면 위에 붙은 헤더 아래 간격(CSS scroll-margin-top 과 같은 기준)
+      { rootMargin: `-${headHeight() + 24}px 0px -70% 0px`, threshold: 0 },
     );
     sections.forEach((el) => observer.observe(el));
     return () => observer.disconnect();

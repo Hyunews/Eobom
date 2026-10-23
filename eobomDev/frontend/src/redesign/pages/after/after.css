@@ -21,7 +21,7 @@
 }
 .rd-root .rd-af-guide__toc {
   position: sticky;
-  top: 24px;
+  top: calc(var(--rd-head-h) + 24px);
 }
 .rd-root .rd-af-callout {
   display: flex;
@@ -56,7 +56,7 @@
 .rd-root .rd-af-section {
   display: flex;
   flex-direction: column;
-  scroll-margin-top: 96px;
+  scroll-margin-top: calc(var(--rd-head-h) + 96px);
 }
 .rd-root .rd-af-section .rd-sechead {
   margin-bottom: 12px;
@@ -779,7 +779,7 @@
 }
 .rd-root .rd-af-detail__side {
   position: sticky;
-  top: 24px;
+  top: calc(var(--rd-head-h) + 24px);
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -834,7 +834,7 @@
 }
 .rd-root .rd-af-make__side {
   position: sticky;
-  top: 24px;
+  top: calc(var(--rd-head-h) + 24px);
   display: flex;
   flex-direction: column;
   gap: 16px;

@@ -4,6 +4,7 @@ import { RdHeader, type MenuPart } from './RdHeader';
 import { RdFooter } from './RdFooter';
 import { RdMenuPanel } from './RdMenuPanel';
 import { RdMenuSheet } from './RdMenuSheet';
+import { useLeave } from './useLeave';
 import { MOBILE_MAX } from '../nav';
 
 interface Props {
@@ -101,20 +102,38 @@ export function RdLayout({ children, onLogin }: Props) {
     menuBtnRef.current?.focus();
   }, []);
 
+  // 헤더 따라오기(00-44 §5-5): 맨 위에서 조금이라도 내리면 얇은 띠. 모바일은 높이가 같아 바뀌는 것이 없다.
+  const [slim, setSlim] = useState(() => window.scrollY > 0);
+  useEffect(() => {
+    const on = () => setSlim(window.scrollY > 0);
+    on();
+    window.addEventListener('scroll', on, { passive: true });
+    return () => window.removeEventListener('scroll', on);
+  }, []);
+
+  // 닫을 때 0.2초 거꾸로 사라진다(§6-8) — 사라지는 동안에는 마지막으로 열렸던 쪽을 그대로 그린다.
+  const panelPart = !phone && open !== null && open !== 'sheet' ? open : null;
+  const lastPart = useRef<MenuPart>('part1');
+  if (panelPart) lastPart.current = panelPart;
+  const panel = useLeave(panelPart !== null);
+  const sheet = useLeave(phone && open === 'sheet');
+
   return (
-    <div className="rd-root" data-rd-ready={ready ? '' : undefined} data-rd-pop={back ? '' : undefined}>
+    <div className="rd-root" data-rd-ready={ready ? '' : undefined} data-rd-pop={back ? '' : undefined} data-rd-slim={slim ? '' : undefined}>
       <div className="rd-head" ref={headRef}>
-        <RdHeader
-          open={open === 'sheet' ? null : open}
-          onToggle={(part) => setOpen((cur) => (cur === part ? null : part))}
-          onOpenSheet={() => setOpen('sheet')}
-          menuBtnRef={menuBtnRef}
-          onLogin={onLogin}
-        />
-        {!phone && open !== null && open !== 'sheet' && <RdMenuPanel active={open} onNavigate={close} />}
+        <div className="rd-head__bar">
+          <RdHeader
+            open={open === 'sheet' ? null : open}
+            onToggle={(part) => setOpen((cur) => (cur === part ? null : part))}
+            onOpenSheet={() => setOpen('sheet')}
+            menuBtnRef={menuBtnRef}
+            onLogin={onLogin}
+          />
+          {!phone && panel.mounted && <RdMenuPanel active={panelPart ?? lastPart.current} leaving={panel.leaving} onNavigate={close} />}
+        </div>
       </div>
-      {!phone && open !== null && open !== 'sheet' && <div className="rd-scrim" aria-hidden="true" onClick={close} />}
-      {phone && open === 'sheet' && <RdMenuSheet onClose={closeSheet} onLogin={onLogin} />}
+      {!phone && panel.mounted && <div className="rd-scrim" aria-hidden="true" data-leaving={panel.leaving ? '' : undefined} onClick={close} />}
+      {phone && sheet.mounted && <RdMenuSheet leaving={sheet.leaving} onClose={closeSheet} onLogin={onLogin} />}
       <main className="rd-main">{children}</main>
       <RdFooter />
     </div>

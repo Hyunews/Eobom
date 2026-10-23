@@ -147,6 +147,13 @@ export const FACILITIES: FacilityAdminRow[] = [
   { id: 'f5', name: '[예시] 하늘공원 봉안당', type: '묘지/수목장', location: '충청북도 예시군 예시면 12', linked: false, partnerName: null, religion: '전체 종교', capacity: '—', amenities: [], intro: null, introHidden: null },
   { id: 'f6', name: '[예시] 그린장례식장', type: '장례식장', location: '광주광역시 예시구 예시로 8', linked: false, partnerName: null, religion: '전체 종교', capacity: '100~300명', amenities: [], intro: null, introHidden: null },
   { id: 'f7', name: '[예시] 평안추모원', type: '묘지/수목장', location: '전라북도 예시시 예시로 41', linked: true, partnerName: '[예시] 햇살수목장', religion: '개신교', capacity: '—', amenities: ['주차장', '장애인편의시설'], intro: '조용한 숲속에서 고인을 기릴 수 있습니다.', introHidden: null },
+  // 한 쪽 9개(3×3)를 넘겨 2쪽 이상이 보이게 늘린 예시 — 01-05 §14-9 전체 시설
+  { id: 'f8', name: '[예시] 새봄장례식장', type: '장례식장', location: '부산광역시 예시구 예시로 22', linked: true, partnerName: '[예시] 새봄장례식장', religion: '전체 종교', capacity: '150명', amenities: ['식당', '주차장'], intro: '가족 단위 조문 공간을 따로 두었습니다.', introHidden: null },
+  { id: 'f9', name: '[예시] 은하봉안당', type: '봉안당', location: '충청남도 예시시 예시로 9', linked: false, partnerName: null, religion: '전체 종교', capacity: '—', amenities: [], intro: null, introHidden: null },
+  { id: 'f10', name: '[예시] 가온장례식장', type: '장례식장', location: '대구광역시 예시구 예시로 31', linked: false, partnerName: null, religion: '천주교', capacity: '100~300명', amenities: [], intro: null, introHidden: null },
+  { id: 'f11', name: '[예시] 솔향수목장', type: '묘지/수목장', location: '강원특별자치도 예시군 예시로 6', linked: true, partnerName: '[예시] 솔향수목장', religion: '전체 종교', capacity: '—', amenities: ['주차장'], intro: '소나무 숲 안쪽에 자리해 있습니다.', introHidden: null },
+  { id: 'f12', name: '[예시] 도담장례식장', type: '장례식장', location: '울산광역시 예시구 예시길 14', linked: false, partnerName: null, religion: '전체 종교', capacity: '100~300명', amenities: [], intro: null, introHidden: null },
+  { id: 'f13', name: '[예시] 한울추모원', type: '묘지/수목장', location: '경상남도 예시시 예시로 55', linked: false, partnerName: null, religion: '불교', capacity: '—', amenities: [], intro: null, introHidden: null },
 ];
 
 // ───────────── 업체 문의 ─────────────

@@ -164,7 +164,7 @@ export function GuidePage() {
               >
                 <RdSectionHead title={section.title ?? section.label} count={`(${section.items.length})`} />
                 {order.map((cat) => (
-                  <div key={cat} ref={cat === '상속 승인·포기' ? inheritanceRef : undefined}>
+                  <div key={cat} ref={cat === '상속 승인·포기' ? inheritanceRef : undefined} style={{ scrollMarginTop: 'calc(var(--rd-head-h) + 24px)' }}>
                     {order.length > 1 && <p className="rd-af-cat">{cat}</p>}
                     <ul className="rd-list rd-af-rows">
                       {byCat.get(cat)!.map((t) => (

@@ -49,6 +49,12 @@ body.rd-body {
   --rd-gap-section: 64px;
   --rd-card-pad: 32px;
 
+  /* §5-5 헤더 따라오기 — 높이는 값 하나씩.
+     full = 맨 위 높이(자리는 늘 이 높이로 잡아 둬서 띠가 줄어도 본문이 튀지 않는다) · h = 내린 뒤 얇은 띠(화면 위에 붙는 것은 모두 이 값 기준) · cur = 지금 높이 */
+  --rd-head-full: 101px;
+  --rd-head-h: 64px;
+  --rd-head-cur: var(--rd-head-full);
+
   min-height: 100vh;
   display: flex;
   flex-direction: column;
@@ -72,7 +78,13 @@ body.rd-body {
     --rd-gutter: 24px;
     --rd-gap-section: 48px;
     --rd-card-pad: 24px;
+    --rd-head-full: 56px;
+    --rd-head-h: 56px;
   }
+}
+
+.rd-root[data-rd-slim] {
+  --rd-head-cur: var(--rd-head-h);
 }
 
 .rd-root *,
@@ -162,19 +174,54 @@ body.rd-body {
 
 /* ───────── 헤더 (§5-5) ───────── */
 
+/* 자리(.rd-head)는 늘 맨 위 높이로 잡고, 실제 띠(.rd-head__bar)는 화면 위에 붙여 따라오게 한다 */
 .rd-head {
   position: relative;
+  z-index: 40;
+  height: var(--rd-head-full);
+}
+
+.rd-head__bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
   z-index: 40;
   background: var(--rd-bg);
 }
 
 .rd-header {
+  box-sizing: border-box;
+  height: var(--rd-head-cur);
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  padding-block: 28px;
   border-bottom: 1px solid var(--rd-line);
+  transition: height 0.2s ease;
+}
+
+.rd-logo,
+.rd-nav__link,
+.rd-nav__trigger,
+.rd-login {
+  transition: font-size 0.2s ease;
+}
+
+/* 내린 뒤 얇은 띠: 로고 26 → 22 · 메뉴 17 → 16 · 로그인 20 → 17 (모바일은 바뀌는 것이 없다) */
+@media (min-width: 768px) {
+  .rd-root[data-rd-slim] .rd-logo {
+    font-size: 22px;
+  }
+
+  .rd-root[data-rd-slim] .rd-nav__link,
+  .rd-root[data-rd-slim] .rd-nav__trigger {
+    font-size: 16px;
+  }
+
+  .rd-root[data-rd-slim] .rd-login {
+    font-size: 17px;
+  }
 }
 
 .rd-header__left {
@@ -210,6 +257,14 @@ body.rd-body {
   cursor: pointer;
   font-size: 17px;
   line-height: 1.4;
+}
+
+.rd-nav__chevron {
+  transition: transform 0.2s ease;
+}
+
+.rd-nav__trigger[aria-expanded='true'] .rd-nav__chevron {
+  transform: rotate(180deg);
 }
 
 .rd-nav__trigger[aria-expanded='true'] {
@@ -257,9 +312,63 @@ body.rd-body {
   top: 100%;
   left: 0;
   right: 0;
+  max-height: calc(100vh - var(--rd-head-cur));
+  max-height: calc(100dvh - var(--rd-head-cur));
+  overflow-y: auto;
+  overscroll-behavior: contain;
   background: var(--rd-paper);
   border-bottom: 1px solid var(--rd-line);
   box-shadow: 0 12px 24px rgba(43, 38, 32, 0.08);
+  animation: rd-panel-in 0.32s ease-out;
+}
+
+.rd-panel[data-leaving] {
+  animation: rd-panel-out 0.2s ease-in forwards;
+  pointer-events: none;
+}
+
+/* §6-8 메뉴 펼침 — 판은 8px 내려오며(0.32초), 닫을 때는 0.2초 거꾸로 */
+@keyframes rd-panel-in {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+}
+
+@keyframes rd-panel-out {
+  to {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+}
+
+@keyframes rd-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes rd-fade-out {
+  to {
+    opacity: 0;
+  }
+}
+
+/* 모바일 전체 판: 흐린 상태에서 나타나며 8px 내려온다(옆에서 밀려 들어오지 않는다) */
+@keyframes rd-sheet-in {
+  from {
+    opacity: 0;
+    filter: blur(6px);
+    transform: translateY(-8px);
+  }
+}
+
+@keyframes rd-sheet-out {
+  to {
+    opacity: 0;
+    filter: blur(6px);
+    transform: translateY(-8px);
+  }
 }
 
 .rd-panel__inner {
@@ -340,6 +449,12 @@ body.rd-body {
   inset: 0;
   z-index: 30;
   background: rgba(43, 38, 32, 0.055);
+  animation: rd-fade-in 0.25s ease-out;
+}
+
+.rd-scrim[data-leaving] {
+  animation: rd-fade-out 0.2s ease-in forwards;
+  pointer-events: none;
 }
 
 /* ───────── 메뉴 펼침 — 모바일 전체 화면 판 ───────── */
@@ -353,6 +468,12 @@ body.rd-body {
   display: flex;
   flex-direction: column;
   background: var(--rd-paper);
+  animation: rd-sheet-in 0.25s ease-out;
+}
+
+.rd-sheet[data-leaving] {
+  animation: rd-sheet-out 0.2s ease-in forwards;
+  pointer-events: none;
 }
 
 .rd-sheet__bar {
@@ -615,6 +736,27 @@ body.rd-body {
 @media (min-width: 768px) {
   .rd-sheet {
     display: none;
+  }
+}
+
+/* 움직임 줄이기 설정이면 헤더 따라오기·메뉴 펼침 움직임을 모두 끈다(§6-8) */
+@media (prefers-reduced-motion: reduce) {
+  .rd-header,
+  .rd-logo,
+  .rd-nav__link,
+  .rd-nav__trigger,
+  .rd-login,
+  .rd-nav__chevron {
+    transition: none;
+  }
+
+  .rd-panel,
+  .rd-panel[data-leaving],
+  .rd-scrim,
+  .rd-scrim[data-leaving],
+  .rd-sheet,
+  .rd-sheet[data-leaving] {
+    animation: none;
   }
 }
 

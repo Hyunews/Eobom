@@ -2,8 +2,6 @@
    모든 규칙은 .rd-landing 아래(또는 모바일 풀페이지용 html.rd-landing-snap)에 가둔다. 지금 화면에 새지 않는다. */
 
 .rd-landing {
-  --rd-landing-head: 101px;
-  /* 데스크톱 헤더 높이(실측: 패딩 28×2 + 한 줄 + 선) — 첫 화면 높이 계산용 */
   --rd-landing-wide: calc(var(--rd-content-w) + var(--rd-gutter) * 2);
 }
 
@@ -29,7 +27,8 @@
 .rd-lh {
   position: relative;
   box-sizing: border-box;
-  min-height: calc(100svh - var(--rd-landing-head));
+  /* 첫 화면은 맨 위라 헤더가 아직 원래 높이(101)다 */
+  min-height: calc(100svh - var(--rd-head-full));
   display: flex;
   align-items: center;
 }
@@ -280,9 +279,11 @@
   border-block: 1px solid var(--rd-line);
 }
 
+/* 제1부·제2부는 내린 뒤라 얇은 띠가 위에 있다 — 쓸 수 있는 높이 = 화면 − 얇은 띠(00-45 §2·§6-1), 바로가기로 오면 띠 바로 아래에 선다 */
 .rd-ls {
   box-sizing: border-box;
-  min-height: 100svh;
+  min-height: calc(100svh - var(--rd-head-h));
+  scroll-margin-top: var(--rd-head-h);
   display: flex;
   align-items: center;
 }
@@ -533,17 +534,17 @@
 
 /* ───────── 모바일 세로 풀페이지 (§2) ───────── */
 
+/* 헤더(56)가 늘 따라오므로(00-44 §5-5) 칸은 헤더를 뺀 높이이고, 칸 맞춤은 헤더 바로 아래(scroll-padding-top)에 선다 */
 html.rd-landing-snap {
   scroll-snap-type: y proximity;
+  scroll-padding-top: 56px;
 }
 
-/* 헤더(56)는 스크롤하면 위로 사라지므로, 첫 화면만 헤더를 뺀 높이이고 ②~④는 화면 한 장 높이다.
-   (전부 100svh − 56이면 한 칸 넘긴 뒤 다음 칸 맨 위 56이 아래에 걸려 보인다.) */
 .rd-lc,
 .rd-lm {
   position: relative;
   box-sizing: border-box;
-  min-height: 100svh;
+  min-height: calc(100svh - 56px);
   scroll-snap-align: start;
 }
 

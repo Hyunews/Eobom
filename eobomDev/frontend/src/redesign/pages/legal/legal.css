@@ -43,7 +43,7 @@
   gap: 16px;
   padding: 28px 0;
   border-top: 1px dotted var(--rd-dot);
-  scroll-margin-top: 24px;
+  scroll-margin-top: calc(var(--rd-head-h) + 24px);
 }
 
 /* 장 표제 바로 아래 첫 조(실선이 이미 있다) · 장 없는 문서의 첫 조 */
@@ -207,10 +207,10 @@
 
 .rd-root .rd-lg__toc {
   position: sticky;
-  top: 24px;
+  top: calc(var(--rd-head-h) + 24px);
   flex: none;
   width: 260px;
-  max-height: min(560px, calc(100vh - 48px));
+  max-height: min(560px, calc(100vh - 48px - var(--rd-head-h)));
   overflow-y: auto;
   border-top: 1px solid var(--rd-ink);
   scrollbar-width: thin;

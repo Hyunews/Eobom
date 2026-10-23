@@ -16,9 +16,9 @@ export function RdItem({ item, no, onNavigate }: { item: NavItem; no: number; on
 }
 
 /** 데스크톱 메뉴 펼침 — 두 부를 한 판에 "차례" 모양으로. 열어 둔 쪽의 표제가 먹색, 다른 쪽은 작은 글자색. */
-export function RdMenuPanel({ active, onNavigate }: { active: MenuPart; onNavigate: () => void }) {
+export function RdMenuPanel({ active, leaving, onNavigate }: { active: MenuPart; leaving?: boolean; onNavigate: () => void }) {
   return (
-    <div className="rd-panel" id="rd-menu-panel">
+    <div className="rd-panel" id="rd-menu-panel" data-leaving={leaving ? '' : undefined}>
       <div className="rd-container rd-panel__inner">
         <section className="rd-panel__sec" data-on={active === 'part1'} aria-labelledby="rd-part1">
           <p className="rd-panel__title" id="rd-part1" data-on={active === 'part1'}>{PART1_TITLE}</p>

@@ -10,10 +10,11 @@ interface Props {
   onLogin?: () => void;
 }
 
-function Chevron({ up }: { up: boolean }) {
+/** 꺾쇠는 아래 모양 하나를 두고, 펼치면 CSS가 0.2초에 걸쳐 돌린다. */
+function Chevron() {
   return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden="true">
-      <path d={up ? 'M6 15l6-6 6 6' : 'M6 9l6 6 6-6'} />
+    <svg className="rd-nav__chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden="true">
+      <path d="M6 9l6 6 6-6" />
     </svg>
   );
 }
@@ -34,7 +35,7 @@ export function RdHeader({ open, onToggle, onOpenSheet, menuBtnRef, onLogin }: P
             onClick={() => onToggle('part1')}
           >
             <span>생전 준비</span>
-            <Chevron up={open === 'part1'} />
+            <Chevron />
           </button>
           <button
             type="button"
@@ -44,7 +45,7 @@ export function RdHeader({ open, onToggle, onOpenSheet, menuBtnRef, onLogin }: P
             onClick={() => onToggle('part2')}
           >
             <span>임종·사후 정리</span>
-            <Chevron up={open === 'part2'} />
+            <Chevron />
           </button>
         </nav>
       </div>

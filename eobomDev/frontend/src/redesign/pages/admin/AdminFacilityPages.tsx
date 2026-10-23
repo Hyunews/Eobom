@@ -13,7 +13,7 @@ import {
 } from './AdminKit';
 import {
   CONSULTS, CONSULT_CHANNEL_LABEL, CONSULT_FILTER, CONSULT_STATUS_LABEL, CONSULT_STATUS_TONE, EXPERT_CATEGORY_LABEL, FACILITIES, INTRO_HIDE_LABEL,
-  LEADS, LEAD_FILTER, LEAD_LABEL, LEAD_TONE, LEAD_TYPE_LABEL, LOST_REASON_LABEL, PREVIEW_PAGE_SIZE, ymd, ymdHm,
+  LEADS, LEAD_FILTER, LEAD_LABEL, LEAD_TONE, LEAD_TYPE_LABEL, LOST_REASON_LABEL, ymd, ymdHm,
   type FacilityAdminRow, type LeadAdminRow,
 } from './adminSamples';
 
@@ -23,6 +23,9 @@ import {
 // ───────────── 전체 시설 ─────────────
 const hiddenLine = (f: FacilityAdminRow) =>
   f.introHidden ? `숨긴 사유: ${INTRO_HIDE_LABEL[f.introHidden.reason]}${f.introHidden.note ? ` (${f.introHidden.note})` : ''}` : null;
+
+/** 전체 시설 카드는 한 쪽 9개(3×3) — 01-05 §14-9. 다른 목록이 쓰는 PREVIEW_PAGE_SIZE(6)는 바꾸지 않는다. */
+const FACILITY_PAGE_SIZE = 9;
 
 export function AdminFacilitiesPage() {
   const [rows, setRows] = useState<FacilityAdminRow[]>(FACILITIES);
@@ -130,8 +133,8 @@ export function AdminFacilitiesPage() {
     );
   }
 
-  const totalPages = Math.max(1, Math.ceil(shown.length / PREVIEW_PAGE_SIZE));
-  const cards = view === 'ready' ? shown.slice((page - 1) * PREVIEW_PAGE_SIZE, page * PREVIEW_PAGE_SIZE) : [];
+  const totalPages = Math.max(1, Math.ceil(shown.length / FACILITY_PAGE_SIZE));
+  const cards = view === 'ready' ? shown.slice((page - 1) * FACILITY_PAGE_SIZE, page * FACILITY_PAGE_SIZE) : [];
   return (
     <AdminShellFor current="facilities" badges={badgesOf(null)}>
       <div className="rd-ad-screen">
