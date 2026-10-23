@@ -284,6 +284,8 @@
   box-sizing: border-box;
   min-height: calc(100svh - var(--rd-head-h));
   scroll-margin-top: var(--rd-head-h);
+  /* 위아래 최소 여백 56(배율 밖) — 남는 높이는 아래 가운데 정렬이 위아래 반씩 나눈다 */
+  padding-block: 56px;
   display: flex;
   align-items: center;
 }
@@ -309,9 +311,10 @@
 
 .rd-ls__inner {
   box-sizing: border-box;
-  max-width: calc(var(--rd-landing-wide) / var(--rd-fit, 1));
+  /* 안쪽 폭 960 가운데(헤더·바닥글은 1120 그대로) */
+  max-width: calc((960px + var(--rd-gutter) * 2) / var(--rd-fit, 1));
   margin-inline: auto;
-  padding: 40px calc(var(--rd-gutter) / var(--rd-fit, 1)) 48px;
+  padding-inline: calc(var(--rd-gutter) / var(--rd-fit, 1));
   display: flex;
   flex-direction: column;
   gap: 32px;
@@ -326,7 +329,7 @@
 .rd-ls__title {
   margin: 0;
   font-family: var(--rd-font-serif);
-  font-size: 40px;
+  font-size: 34px;
   line-height: 1.4;
   font-weight: 700;
   letter-spacing: -0.5px;
@@ -334,7 +337,7 @@
 
 .rd-ls__lead {
   margin: 0;
-  font-size: 17px;
+  font-size: 16px;
   line-height: 1.8;
   color: var(--rd-ink-support);
 }
@@ -343,8 +346,7 @@
   display: flex;
   flex-wrap: wrap;
   justify-content: space-between;
-  /* 상세 폭에 상한이 있어 남는 폭은 목록과 상세 사이로 — 상세는 본문 오른쪽 끝(헤더·바닥글과 같은 선)에 붙는다 */
-  gap: 48px;
+  gap: 56px;
   align-items: flex-start;
 }
 
@@ -369,25 +371,22 @@
 
 .rd-ls__row {
   width: 100%;
-  min-height: 52px;
+  /* 줄 최소 높이 44 — 배율로 줄어도 화면에서 44 밑으로 안 가게 ÷배율 */
+  min-height: calc(44px / var(--rd-fit, 1));
   display: flex;
-  align-items: baseline;
+  align-items: center;
   gap: 12px;
-  padding: 14px 16px;
+  padding: 8px 16px;
   border: 0;
   border-bottom: 1px dotted var(--rd-dot);
   background: transparent;
   color: var(--rd-ink);
-  font-size: 17px;
+  font-size: 18px;
   text-align: left;
   cursor: pointer;
 }
 
-/* 제2부 목록(7줄 + 단계 머리 3)은 상세보다 길어 구간을 키우므로 줄 사이를 줄인다. 줄 높이는 누르는 칸 52(0.85배에서 44.2)를 지킨다 */
-#part2 .rd-ls__row {
-  padding-block: 11px;
-}
-
+/* 제2부 목록(7줄 + 단계 머리 3)은 상세보다 길어 단계 머리 여백을 줄인다 */
 #part2 .rd-ls__stage {
   margin: 14px 0 2px;
 }
@@ -416,8 +415,8 @@
 /* 모든 항목의 상세를 한 칸에 겹쳐 가장 긴 것이 칸 높이를 정한다. 나머지 폭 전부(480 제한 없음) */
 .rd-ls__stack {
   flex: 1 1 400px;
-  max-width: 740px;
-  /* 배율 1일 때 나머지 폭(약 732)이 상한 — 낮고 넓은 화면(배율 < 1)에서 그림만 가로로 늘어나지 않게 */
+  max-width: 564px;
+  /* 960 − 목록 340 − 사이 56 = 나머지 564 */
   min-width: 0;
   display: grid;
 }
@@ -452,8 +451,8 @@
 .rd-ls__img {
   box-sizing: border-box;
   width: 100%;
-  height: 300px;
-  /* 배율 1 기준 고정 높이(16:10 해제) */
+  height: 280px;
+  /* 배율 1 기준 고정 높이(564 × 280) */
   overflow: hidden;
 }
 
@@ -479,7 +478,7 @@
 .rd-ls__name {
   margin: 0;
   font-family: var(--rd-font-serif);
-  font-size: 30px;
+  font-size: 26px;
   line-height: 1.4;
   font-weight: 700;
 }
@@ -494,7 +493,7 @@
 .rd-ls__desc,
 .rd-lm__desc {
   margin: 0;
-  font-size: 17px;
+  font-size: 16px;
   line-height: 1.8;
   color: var(--rd-ink-support);
 }
@@ -514,7 +513,7 @@
 .rd-lm__points li {
   display: flex;
   gap: 10px;
-  font-size: 16px;
+  font-size: 15px;
   line-height: 1.7;
   color: var(--rd-ink-support);
 }

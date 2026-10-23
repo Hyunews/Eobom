@@ -2,7 +2,7 @@ import { useLayoutEffect, type RefObject } from 'react';
 
 // 랜딩 데스크톱 "화면 맞춤 배율" — 00-45 §6-1. 구간의 안쪽 내용(fit)을 슬라이드처럼 통째로 줄이고 늘려 구간 높이(section)에 맞춘다.
 // 줄이고 늘리는 방법은 CSS zoom(배치에 반영되므로 빈 높이·겹침이 생기지 않는다).
-// 배율 = 쓸 수 있는 높이 ÷ 내용 높이, 0.85 ~ 1.15. 가로는 화면에서 늘 헤더·바닥글과 같은 폭(본문 1120 + 좌우 여백)이다 —
+// 배율 = 쓸 수 있는 높이 ÷ 내용 높이, 0.85 ~ 1.15. 제1부·제2부는 opts 로 목표 0.8 · 상한 1.0(10-23, 구간 위아래 padding 은 배율 밖). 가로는 화면에서 늘 헤더·바닥글과 같은 폭(본문 1120 + 좌우 여백)이다 —
 // 본문 최대 폭·좌우 여백을 CSS 에서 ÷배율로 잡으므로(--rd-fit) 화면 폭을 넘지 않고, 폭 한계를 따로 걸 필요가 없다(00-45 §6-1 폭 한계의 구현).
 // 0.85로도 넘치면 구간이 늘어난다(section의 min-height만 있고 height는 없다).
 
@@ -13,7 +13,11 @@ export const FIT_MAX = 1.15;
  * section: 구간 바탕 띠(min-height가 쓸 수 있는 높이) · fit: 배율을 거는 래퍼(첫 자식 = max-width를 가진 본문).
  * 창 크기가 바뀔 때와 웹 글꼴이 적재된 뒤 다시 잰다.
  */
-export function useFitScale(sectionRef: RefObject<HTMLElement>, fitRef: RefObject<HTMLElement>) {
+export function useFitScale(
+  sectionRef: RefObject<HTMLElement>,
+  fitRef: RefObject<HTMLElement>,
+  { target = 1, max = FIT_MAX }: { target?: number; max?: number } = {},
+) {
   useLayoutEffect(() => {
     const sec = sectionRef.current;
     const fit = fitRef.current;
@@ -30,7 +34,9 @@ export function useFitScale(sectionRef: RefObject<HTMLElement>, fitRef: RefObjec
       // 가로로 넘치지 않는" 가장 큰 배율을 위에서 아래로 찾는다(같은 동기 구간이라 화면에 그려지지 않는다).
       // getBoundingClientRect 높이는 배율이 반영된 화면 크기다.
       const cs = getComputedStyle(sec);
-      const avail = parseFloat(cs.minHeight) - parseFloat(cs.borderTopWidth) - parseFloat(cs.borderBottomWidth);
+      const usable = parseFloat(cs.minHeight) - parseFloat(cs.borderTopWidth) - parseFloat(cs.borderBottomWidth);
+      // 내용은 쓸 수 있는 높이의 target 배까지, 구간 위아래 padding(최소 여백)도 남긴다
+      const avail = Math.min(usable * target, usable - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom));
       const fits = (s: number) => {
         apply(s);
         if (fit.getBoundingClientRect().height > avail + 0.5 || inner.scrollWidth > inner.clientWidth + 2) return false;
@@ -40,11 +46,11 @@ export function useFitScale(sectionRef: RefObject<HTMLElement>, fitRef: RefObjec
       // 한 번 재는 데 30ms 안팎이 들어(글자·그림 칸이 많다) 이분 탐색으로 횟수를 줄인다: 최대 배율이 되면 1번, 아니면 8번(정밀도 0.0012).
       let s = FIT_MIN;
       if (avail > 0) {
-        if (fits(FIT_MAX)) {
-          s = FIT_MAX;
+        if (fits(max)) {
+          s = max;
         } else {
           let lo = FIT_MIN;
-          let hi = FIT_MAX;
+          let hi = max;
           for (let i = 0; i < 8; i++) {
             const mid = (lo + hi) / 2;
             if (fits(mid)) lo = mid;
@@ -93,5 +99,5 @@ export function useFitScale(sectionRef: RefObject<HTMLElement>, fitRef: RefObjec
       window.removeEventListener('resize', onResize);
       fonts?.removeEventListener?.('loadingdone', onFonts);
     };
-  }, [sectionRef, fitRef]);
+  }, [sectionRef, fitRef, target, max]);
 }

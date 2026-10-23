@@ -196,7 +196,7 @@ function DesktopIntro({
   const [sel, setSel] = useState(0);
   const secRef = useRef<HTMLElement>(null);
   const fitRef = useRef<HTMLDivElement>(null);
-  useFitScale(secRef, fitRef);
+  useFitScale(secRef, fitRef, { target: 0.8, max: 1 });
   const total = String(items.length).padStart(2, '0');
   return (
     <section ref={secRef} id={id} className={`rd-ls${paper ? ' rd-ls--paper' : ''}`} aria-labelledby={`${id}-title`}>
