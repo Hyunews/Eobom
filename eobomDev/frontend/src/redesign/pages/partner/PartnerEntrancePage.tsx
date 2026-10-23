@@ -70,7 +70,7 @@ export function PartnerEntrancePage() {
     setErrors({});
   };
 
-  // 칸마다 오류(브라우저 기본 검증 안 씀, 00-44 §8). 비어 있는 칸은 같은 글 "입력해주세요."
+  // 칸마다 오류(브라우저 기본 검증 안 씀, 00-44 §8). 비어 있는 칸은 같은 글 "확인이 필요한 항목입니다."
   const validate = (): boolean => {
     const need: (keyof Form)[] =
       mode === 'login'
@@ -80,7 +80,7 @@ export function PartnerEntrancePage() {
           : ['email', 'password', 'passwordConfirm', 'expertName', 'licenseNo', 'expertPhone'];
     const next: Partial<Record<keyof Form, string>> = {};
     need.forEach((k) => {
-      if (!form[k].trim()) next[k] = '입력해주세요.';
+      if (!form[k].trim()) next[k] = '확인이 필요한 항목입니다.';
     });
     if (mode === 'signup') {
       if (!next.password && form.password.length < 8) next.password = '비밀번호는 8자 이상이어야 합니다.';
