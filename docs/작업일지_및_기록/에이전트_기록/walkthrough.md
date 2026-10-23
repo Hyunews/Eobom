@@ -18,6 +18,14 @@
 > 원인 = Gemini 판정이 `gemini_tasks.md`에만 적히고 이 파일 판정 칸은 비어 있었음. 🔴 **판정은 이 파일의 그 항목 칸에 적는다**(`GEMINI.md`).
 
 ---
+## 2026-10-23 | [Sonnet] 디자인 개편 8단계 묶음 8 반려 반영 — 접수 시각 · 가족 지정 오류 요약 · 선택 딱지 · 주의 띠 부품 · 약관 [보기] 같은 창 갈아끼움
+
+- **근거**: 아래 묶음 8 항목 "판정" 줄(10-23 Opus) · `00-44` §6-3-11 · §7-5 · §7-6 ⑥ · §8-3. `docs/`는 안 고침.
+- **한 일**: ① 새 `redesign/parts/rdDate.ts`의 `formatRdMonthDayTime`("10월 13일 15:20", KST 24시) → `SharedPage` 4-13 접수 줄이 사용. 공용 `utils/kstDate.ts` 0줄. ② `FamilyDialog` 추가·수정 칸: 제출 실패 때 버튼 줄 안 왼쪽에 `확인이 필요한 항목이 N개 있습니다.`(`role="alert"`, 아이콘) + 첫 오류 칸 초점. ③ `AccountDialogs` 내 정보 창: 연락처·주소·연락 가능 시간대의 `optional` 제거 → 선택 딱지는 이메일만. ④ `RdBanner`에 `tone='warn'`(연한 위험 바탕·위험색 아랫선·△·윤곽선 버튼 `action`·반투명 ✕, 모바일 글 + 가득 폭 48 버튼 + 구석 ✕) → `ReleaseBand`가 사용, `account.css` `.rd-ac-band*` 삭제, `role="status"` 유지, `/preview/parts`에 "주의 띠" 견본 1개. ⑤ `LoginDialogs` 약관 [보기]: `useConsent`가 `viewer`를 돌려주고 로그인 창(4-16)·이용 동의 필요 창(4-19)이 본문을 `TermsPage`·`PrivacyPage`로 갈아끼움(제목 = 문서 이름, 버튼 `뒤로가기`, 체크 상태는 훅에 있어 유지). iframe·창 위 창·`onClose` 막는 코드·`.rd-ac-legal` 삭제. 탈퇴 안내 줄 오른쪽 정렬(`account.css`)은 유지.
+- **확인**: `tsc --noEmit` 오류 0 · `vite build` 통과. 실기동은 안 함(개발 서버 정책).
+- **🔴 실기동 요청(사람)**: ⓐ `/preview/login` 회원가입 탭·`consent` 창에서 [보기] → 본문이 같은 창에 들어오고 [뒤로가기] 뒤 체크 유지 — 특히 `LegalDocLayout`(왼쪽 목차 틀 + `design-v2.css`)이 560 폭·모바일 판 한 장 안에서 어색하지 않은지(어색하면 Opus 판정 요청) ⓑ `/preview/mypage` 가족 지정 [가족 추가] 빈 채 [등록] → 버튼 줄 요약·초점, 모바일 폭에서 버튼 위 줄 ⓒ 사후 개봉 띠 데스크톱·모바일 ⓓ `/preview/family-shared` 접수 시각 표기 ⓔ `/preview/parts` 주의 띠 견본.
+- **다음 에이전트가 알아야 할 것**: 커밋은 사람 — 브랜치 `redesign`. 요약 줄 CSS는 `account.css` `.rd-ac-footerr`(다음 항목 참고, 모바일은 버튼 위 한 줄).
+
 ## 2026-10-23 | [Sonnet] 디자인 개편 8단계 묶음 8 — 내 정보 나머지: 내 정보 · 가족 지정 · 계정 연동 · 개인정보·동의 · 탈퇴 창(`/preview/mypage`에서 열림) + `/preview/family-shared` · `/preview/login` + 사후 개봉 띠
 
 - **근거 스펙**: `00-44` §9-4 표 "8" · `00-36` §4.9 #8~#11 · `00-27` §8.2·§8.3 · `00-41` §8.1~§8.3 · 4단계 묶음 1·3·4 캔버스(`이어봄_디자인_4단계_목록.md`) · 판 4-9(10-22 배정). 서버·DB 변경 없음.

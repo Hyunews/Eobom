@@ -4,25 +4,31 @@ import { IconCheckCircle, IconClose, IconInfo, IconMail, IconPin, IconWarn, Icon
 
 // 00-44 §7-5 안내. 경고·안내는 한 화면에 겹쳐 두지 않는다(§6-2-5) — 해당하는 곳에 하나씩.
 
-/** 띠 알림 — 쪽 맨 위 먹색 띠. 한 번에 하나. 계속 떠 있으므로 role="status"(alert 아님, 4단계 묶음 3). */
+/**
+ * 띠 알림 — 쪽 맨 위 먹색 띠. 한 번에 하나. 계속 떠 있으므로 role="status"(alert 아님, 4단계 묶음 3).
+ * tone='warn' = 주의 띠(연한 위험 바탕 + △ + 오른쪽 윤곽선 버튼). 되돌릴 수 없는 일·기한에만(§7-5, 묶음 8 편차 ⑦).
+ */
 export function RdBanner({
+  tone = 'ink',
   children,
   action,
   onClose,
 }: {
+  tone?: 'ink' | 'warn';
   children: React.ReactNode;
-  /** 링크(바탕색 밑줄). 모바일은 글 아래 줄 오른쪽 */
+  /** ink = 링크(바탕색 밑줄) · warn = 윤곽선 버튼. 모바일은 글 아래 줄(ink 오른쪽, warn 가득 폭) */
   action?: React.ReactNode;
   onClose?: () => void;
 }) {
+  const warn = tone === 'warn';
   return (
-    <div className="rd-banner" role="status">
-      {/* 봉투 그림은 데스크톱 판 06에만 있다(모바일 판엔 없음 → CSS가 숨김) */}
-      <span className="rd-banner__icon"><IconMail /></span>
+    <div className={`rd-banner${warn ? ' rd-banner--warn' : ''}`} role="status">
+      {/* 봉투·△ 그림은 데스크톱 판 06에만 있다(모바일 판엔 없음 → CSS가 숨김) */}
+      <span className="rd-banner__icon">{warn ? <IconWarn size={22} /> : <IconMail />}</span>
       <p className="rd-banner__text">{children}</p>
       {action && <div className="rd-banner__action">{action}</div>}
       {onClose && (
-        <RdIconButton label="알림 닫기" onDark className="rd-banner__close" onClick={onClose}>
+        <RdIconButton label="알림 닫기" onDark={!warn} className="rd-banner__close" onClick={onClose}>
           <IconClose />
         </RdIconButton>
       )}

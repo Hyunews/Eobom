@@ -4,7 +4,7 @@ import { sleep } from '../../parts/RdDemo';
 import { RdField, RdInput, RdSelect } from '../../parts/RdInputs';
 import { RdDialog } from '../../parts/RdModal';
 import { RdNotice } from '../../parts/RdNotices';
-import { IconCheck, IconPencil, IconSend } from '../../parts/icons';
+import { IconCheck, IconErrorCircle, IconPencil, IconSend } from '../../parts/icons';
 import {
   EXAMPLE_INVITE_URL, FAKE_MS, FAMILY_ITEMS, FAMILY_MAX, FAMILY_RELATIONS, FAMILY_SCOPES, familyRelationText, familyStatusText, scopeLabel,
   type FamilyItem,
@@ -83,7 +83,11 @@ export function FamilyDialog({ variant, onClose }: { variant?: string; onClose: 
     if (!editingId && !form.phone.trim()) next.phone = '휴대전화번호를 입력해 주세요.';
     if (form.relationship === 'OTHER' && !form.relationshipEtc.trim()) next.etc = '확인이 필요한 항목입니다.';
     setErrors(next);
-    if (Object.keys(next).length) return;
+    if (Object.keys(next).length) {
+      // §8-3 ④ 첫 오류 칸으로 초점 — 칸이 오류 상태로 그려진 다음에 찾는다
+      window.setTimeout(() => document.querySelector<HTMLElement>('.rd-dialog [aria-invalid="true"]')?.focus(), 0);
+      return;
+    }
 
     setSaving(true);
     setMsg(null);
@@ -156,7 +160,8 @@ export function FamilyDialog({ variant, onClose }: { variant?: string; onClose: 
     setDeleting(null);
   };
 
-  const anyUnaccepted = items.some((it) => it.status !== 'ACCEPTED');
+  const errorCount = Object.values(errors).filter(Boolean).length;
+  const anyUnaccepted =items.some((it) => it.status !== 'ACCEPTED');
 
   // ─ 불러오는 중
   if (variant === 'loading') {
@@ -183,6 +188,12 @@ export function FamilyDialog({ variant, onClose }: { variant?: string; onClose: 
         footer={
           showForm ? (
             <>
+              {errorCount > 0 && (
+                <p className="rd-ac-footerr" role="alert">
+                  <IconErrorCircle />
+                  <span>확인이 필요한 항목이 {errorCount}개 있습니다.</span>
+                </p>
+              )}
               <RdButton kind="secondary" place="dialog" disabled={saving} onClick={closeForm}>취소</RdButton>
               <RdButton place="dialog" busy={saving} busyText="저장 중..." onClick={submit}>{editingId ? '수정 저장' : '등록'}</RdButton>
             </>

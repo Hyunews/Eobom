@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { SECTIONS } from '../../../components/endingNote/constants';
 import { entryFields } from '../../../components/familyShared/sectionFields';
-import { formatKstMonthDayTime } from '../../../utils/kstDate';
+import { formatRdMonthDayTime } from '../../parts/rdDate';
 import { RdBadge, RdButton } from '../../parts/RdButtons';
 import { RdList, RdListRow } from '../../parts/RdCards';
 import { DemoBar, sleep, type DemoOption } from '../../parts/RdDemo';
@@ -138,7 +138,7 @@ function Body({ view }: { view: View }) {
           {!p.released && req.status === 'REQUESTED' && (
             <div className="rd-ac-reqrow rd-ac-reqrow--text">
               <p className="rd-ac-reqtext">
-                {req.isMine ? '요청했습니다.' : '가족 중 한 분이 요청했습니다.'} {formatKstMonthDayTime(req.requestedAt)} 접수
+                {req.isMine ? '요청했습니다.' : '가족 중 한 분이 요청했습니다.'} {formatRdMonthDayTime(req.requestedAt)} 접수
               </p>
               <RdButton kind="secondary" disabled={busyId === p.id} onClick={() => cancelRequest(p)}>요청 취소</RdButton>
             </div>

@@ -527,6 +527,11 @@ function NoticeBlock() {
           <RdButton kind="secondary" onClick={() => setBanner(true)}>띠 다시 보기</RdButton>
         )}
       </Sample>
+      <Sample title="주의 띠" note="같은 부품의 선택 · tone=warn. 되돌릴 수 없는 일·기한에만. 오른쪽 윤곽선 버튼 하나 + ✕.">
+        <RdBanner tone="warn" onClose={() => {}} action={<RdButton kind="secondary" place="row">취소</RdButton>}>
+          김영희 님이 엔딩노트 개봉을 요청했습니다.
+        </RdBanner>
+      </Sample>
       <Sample title="알림 상자 · 주의 · 성공 상자" note="주의는 되돌릴 수 없는 일과 기한에만. 성공 상자는 일이 끝났음을 한 줄 사실로.">
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           <RdNotice title="사진의 글자를 읽어 옮깁니다" action={<RdTextLink href="#" onClick={(e) => e.preventDefault()}>읽는 방법</RdTextLink>}>

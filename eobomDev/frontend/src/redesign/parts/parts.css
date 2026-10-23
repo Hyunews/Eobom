@@ -956,6 +956,35 @@
   margin-right: -12px;
 }
 
+/* 주의 띠(tone='warn') — 연한 위험 바탕 + 위험 색 아랫선 + △ */
+.rd-banner--warn {
+  background: var(--rd-danger-bg);
+  border-bottom: 2px solid var(--rd-danger);
+  color: var(--rd-danger-press);
+}
+
+.rd-banner--warn .rd-banner__icon {
+  color: var(--rd-danger);
+}
+
+.rd-banner--warn .rd-banner__text {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.rd-banner--warn .rd-banner__close {
+  color: var(--rd-danger-press);
+  opacity: 0.6;
+}
+
+.rd-banner--warn .rd-banner__close:hover {
+  opacity: 1;
+}
+
+.rd-banner__err {
+  font-weight: 400;
+}
+
 .rd-notice {
   display: flex;
   gap: 16px;
@@ -2919,6 +2948,32 @@
   .rd-banner__action .rd-link {
     min-height: 44px;
     font-size: 15px;
+  }
+
+  /* 주의 띠: 글 두 줄 + 버튼 가득 폭 48 + ✕ 오른쪽 위 구석 */
+  .rd-banner--warn {
+    position: relative;
+    padding: 14px 16px;
+  }
+
+  .rd-banner--warn .rd-banner__text {
+    padding-right: 36px;
+  }
+
+  .rd-banner--warn .rd-banner__action {
+    justify-self: stretch;
+    margin-right: 0;
+  }
+
+  .rd-banner--warn .rd-banner__action .rd-btn {
+    width: 100%;
+    min-height: 48px;
+  }
+
+  .rd-banner--warn .rd-banner__close {
+    position: absolute;
+    top: 4px;
+    right: 4px;
   }
 
   .rd-notice {

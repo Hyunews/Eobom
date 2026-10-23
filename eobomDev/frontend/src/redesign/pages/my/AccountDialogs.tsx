@@ -91,7 +91,7 @@ export function ProfileDialog({ variant, onClose }: { variant?: string; onClose:
         <RdField label="이메일" optional>
           {(p) => <RdInput {...p} type="email" value={email} onChange={(e) => setEmail(e.target.value)} />}
         </RdField>
-        <RdField label="연락처" optional>
+        <RdField label="연락처">
           {(p) => (
             <>
               {cur.contactPhone && !clearPhone && <p className="rd-ac-cur">현재 등록된 번호: {cur.contactPhone}</p>}
@@ -112,7 +112,7 @@ export function ProfileDialog({ variant, onClose }: { variant?: string; onClose:
             </>
           )}
         </RdField>
-        <RdField label="주소" optional>
+        <RdField label="주소">
           {(p) => (
             <div className="rd-ac-addr">
               <div className="rd-ac-inline">
@@ -144,7 +144,7 @@ export function ProfileDialog({ variant, onClose }: { variant?: string; onClose:
             </div>
           )}
         </RdField>
-        <RdField label="연락 가능 시간대" optional>
+        <RdField label="연락 가능 시간대">
           {(p) => (
             <RdSelect {...p} value={timePref} onChange={(e) => setTimePref(e.target.value)}>
               {CONTACT_TIME_OPTIONS.map((o) => (

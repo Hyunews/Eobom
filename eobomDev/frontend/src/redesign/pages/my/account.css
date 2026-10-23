@@ -148,9 +148,10 @@
 .rd-root .rd-ac-withdrawline {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
   flex-wrap: wrap;
   gap: 4px 12px;
+  text-align: right;
 }
 .rd-root .rd-ac-withdrawline p {
   margin: 0;
@@ -238,49 +239,6 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
-}
-
-/* ───── 4-15 사후 개봉 요청 띠 ───── */
-.rd-root .rd-ac-band {
-  background: var(--rd-danger-bg);
-  border-bottom: 2px solid var(--rd-danger);
-  color: var(--rd-danger-press);
-}
-.rd-root .rd-ac-band__in {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  max-width: 1120px;
-  margin: 0 auto;
-  padding: 10px 24px;
-}
-.rd-root .rd-ac-band__icon {
-  display: flex;
-  flex: none;
-  color: var(--rd-danger);
-}
-.rd-root .rd-ac-band__text {
-  flex: 1 1 auto;
-  min-width: 0;
-  margin: 0;
-  font-size: 15px;
-  font-weight: 600;
-  line-height: 1.6;
-}
-.rd-root .rd-ac-band__err {
-  font-weight: 400;
-}
-.rd-root .rd-ac-band__btn {
-  flex: none;
-}
-.rd-root .rd-ac-band__x {
-  flex: none;
-  margin-right: -8px;
-  color: var(--rd-danger-press);
-  opacity: 0.6;
-}
-.rd-root .rd-ac-band__x:hover {
-  opacity: 1;
 }
 
 /* ───── 4-13 나에게 공유된 것 ───── */
@@ -438,7 +396,25 @@
 }
 
 /* ───── 휴대폰 ───── */
+/* 가족 지정 추가·수정 칸 — 제출 실패 요약 줄은 버튼 줄 안, 버튼 왼쪽(§8-3 ② ③) */
+.rd-root .rd-ac-footerr {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 4px 0 0;
+  font-size: 14px;
+  color: var(--rd-danger);
+}
+
 @media (max-width: 767px) {
+  /* 모바일은 버튼 바로 위 한 줄 */
+  .rd-root .rd-dialog__foot:has(> .rd-ac-footerr) {
+    flex-wrap: wrap;
+  }
+  .rd-root .rd-ac-footerr {
+    flex: 1 0 100%;
+    margin: 0 0 4px;
+  }
   .rd-root .rd-ac-pair {
     grid-template-columns: minmax(0, 1fr);
     gap: 20px;
@@ -456,27 +432,6 @@
   }
   .rd-root .rd-ac-wsec .rd-mp-dl__row dd {
     text-align: left;
-  }
-  .rd-root .rd-ac-band__in {
-    position: relative;
-    flex-wrap: wrap;
-    gap: 10px 12px;
-    padding: 14px 16px;
-  }
-  .rd-root .rd-ac-band__text {
-    flex-basis: calc(100% - 44px - 34px);
-    padding-right: 36px;
-  }
-  .rd-root .rd-ac-band__btn {
-    flex: 1 1 100%;
-    width: 100%;
-    min-height: 48px;
-  }
-  .rd-root .rd-ac-band__x {
-    position: absolute;
-    top: 4px;
-    right: 4px;
-    margin: 0;
   }
   .rd-root .rd-ac-who {
     flex-direction: column;
