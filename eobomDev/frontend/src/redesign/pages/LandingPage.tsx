@@ -13,6 +13,7 @@ import {
   PART2_INTRO,
   QUICK_PAGES,
   type IntroItem,
+  type IntroPic,
   type QuickIcon,
   type QuickItem,
 } from './landingData';
@@ -177,6 +178,176 @@ function BranchPair() {
   );
 }
 
+// ── 소개 그림 칸 — 겹친 종이 더미 · 5초 자동 넘김(멈춤 버튼) · 누르기·점으로도 넘김(00-45 §9-1) ──
+// 🔵 자동 넘김은 §9-1 1번(금지)과 다르다 — 2026-10-26 개발자 요청으로 구현, 멈춤 버튼·올림/초점 멈춤은 WCAG 2.2.2 때문에 둔다.
+const PIC_AUTO_MS = 5000;
+const fanned = new Set<string>(); // 처음 한 번 펼쳐 보임을 이미 한 쪽
+
+type PicVars = React.CSSProperties & { '--k'?: number };
+
+function IntroPics({
+  pics,
+  className,
+  eager,
+  active = true,
+  fanKey,
+}: {
+  pics: IntroPic[];
+  className: string;
+  eager?: boolean;
+  /** 지금 보이는 상세인가(데스크톱은 고른 항목만). 보이지 않으면 첫 장으로 돌아가고 자동 넘김도 멈춘다. */
+  active?: boolean;
+  /** 이 쪽에서 처음 한 번 펼쳐 보일 때의 열쇠(쪽마다 첫 항목에만 준다) */
+  fanKey?: string;
+}) {
+  const [idx, setIdx] = useState(0);
+  const [leave, setLeave] = useState<number | null>(null);
+  const [paused, setPaused] = useState(prefersReducedMotion);
+  const [over, setOver] = useState(false);
+  const [visible, setVisible] = useState(false);
+  const [fan, setFan] = useState(false);
+  const wrapRef = useRef<HTMLDivElement>(null);
+  const downX = useRef<number | null>(null);
+  const dragged = useRef(false);
+  const n = pics.length;
+
+  const go = useCallback(
+    (next: number) => {
+      if (next === idx) return;
+      if (!prefersReducedMotion()) setLeave(idx);
+      setIdx(next);
+    },
+    [idx],
+  );
+
+  // 항목을 바꿔 상세가 가려지면 첫 장으로 돌아간다.
+  useEffect(() => {
+    if (!active) {
+      setIdx(0);
+      setLeave(null);
+    }
+  }, [active]);
+
+  // 화면에 들어와 있을 때만 자동으로 넘기고, 처음 한 번만 펼쳐 보인다.
+  useEffect(() => {
+    const el = wrapRef.current;
+    if (!el || typeof IntersectionObserver === 'undefined') return;
+    const io = new IntersectionObserver(([e]) => setVisible(e.isIntersecting), { threshold: 0.5 });
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+
+  useEffect(() => {
+    if (!visible || !active || !fanKey || fanned.has(fanKey) || prefersReducedMotion()) return;
+    fanned.add(fanKey);
+    // 쪽 들어옴 떠오름(1.2초)이 끝난 뒤 시작
+    const t1 = window.setTimeout(() => setFan(true), 1300);
+    const t2 = window.setTimeout(() => setFan(false), 1300 + 700);
+    return () => {
+      window.clearTimeout(t1);
+      window.clearTimeout(t2);
+    };
+  }, [visible, active, fanKey]);
+
+  useEffect(() => {
+    if (n < 2 || paused || over || !visible || !active) return;
+    const t = window.setTimeout(() => go((idx + 1) % n), PIC_AUTO_MS);
+    return () => window.clearTimeout(t);
+  }, [idx, n, paused, over, visible, active, go]);
+
+  const imgs = pics.map((p, i) => (
+    <img
+      key={p.src}
+      className={`rd-pic__img${i === idx ? ' is-on' : ''}`}
+      src={p.src}
+      alt={p.alt}
+      aria-hidden={i === idx ? undefined : true}
+      loading={eager && i === 0 ? undefined : 'lazy'}
+      decoding="async"
+      draggable={false}
+    />
+  ));
+  const backs = Math.min(n - 1, 2);
+
+  return (
+    <>
+      <div
+        ref={wrapRef}
+        className={`rd-pic-wrap ${className}-wrap${fan ? ' is-fan' : ''}`}
+        onMouseEnter={() => setOver(true)}
+        onMouseLeave={() => setOver(false)}
+        onFocus={() => setOver(true)}
+        onBlur={(e) => {
+          if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setOver(false);
+        }}
+      >
+        {/* 뒤에 더 있다는 표시 — 그림 없이 종이 테두리만 비껴 겹친다 */}
+        {Array.from({ length: backs }, (_, k) => (
+          <div key={k} className={`rd-pic__back ${className}`} style={{ '--k': k + 1 } as PicVars} aria-hidden="true" />
+        ))}
+        {n > 1 ? (
+          <button
+            type="button"
+            className={`rd-pic ${className}`}
+            aria-label={`다음 그림 보기 (${idx + 1} / ${n})`}
+            // 모바일에서 그림 위를 밀면 카드 넘김이다 — 밀고 난 끝의 click 은 그림 넘김으로 치지 않는다(00-45 §9-1 4).
+            onPointerDown={(e) => {
+              downX.current = e.clientX;
+              dragged.current = false;
+            }}
+            onPointerUp={(e) => {
+              if (downX.current != null && Math.abs(e.clientX - downX.current) > 10) dragged.current = true;
+              downX.current = null;
+            }}
+            onClick={() => {
+              if (dragged.current) {
+                dragged.current = false;
+                return;
+              }
+              go((idx + 1) % n);
+            }}
+          >
+            {imgs}
+          </button>
+        ) : (
+          <div className={`rd-pic ${className}`}>{imgs}</div>
+        )}
+        {/* 넘어간 앞 장 — 왼쪽 위로 들리며 사라지고 끝나면 치운다 */}
+        {leave != null && (
+          <div className={`rd-pic__leave ${className}`} aria-hidden="true" onAnimationEnd={() => setLeave(null)}>
+            <img className="rd-pic__img is-on" src={pics[leave].src} alt="" draggable={false} />
+          </div>
+        )}
+      </div>
+      {/* 점 자리 높이는 한 장짜리에도 비워 둔다(내용 높이가 출렁이지 않게) */}
+      <div className="rd-pic__dots">
+        {n > 1 && (
+          <>
+            {pics.map((_, i) => (
+              <button
+                key={i}
+                type="button"
+                className="rd-pic__dot"
+                aria-label={`${i + 1}번째 그림 보기`}
+                aria-current={i === idx ? 'true' : undefined}
+                onClick={() => go(i)}
+              />
+            ))}
+            <button
+              type="button"
+              className="rd-pic__pause"
+              aria-label={paused ? '그림 자동 넘김 다시 켜기' : '그림 자동 넘김 멈추기'}
+              onClick={() => setPaused((v) => !v)}
+            >
+              {paused ? <PlayGlyph /> : <IconPause size={14} />}
+            </button>
+          </>
+        )}
+      </div>
+    </>
+  );
+}
+
 // ── 데스크톱: 소개(왼쪽 목록 + 오른쪽 상세) ──
 function DesktopIntro({
   id,
@@ -222,7 +393,7 @@ function DesktopIntro({
             {/* 모든 항목의 상세를 같은 칸에 겹쳐 두고 고른 것만 보인다 — 칸 높이가 가장 긴 항목 기준으로 고정돼 고를 때 배율이 출렁이지 않는다(00-45 §6-1). */}
             <div className="rd-ls__stack">
               {items.map((it, i) => (
-                <IntroDetail key={it.title + i} item={it} no={i + 1} total={total} active={i === sel} />
+                <IntroDetail key={it.title + i} item={it} part={id} no={i + 1} total={total} active={i === sel} first={id === 'part1' && i === 0} />
               ))}
             </div>
           </div>
@@ -232,12 +403,10 @@ function DesktopIntro({
   );
 }
 
-function IntroDetail({ item, no, total, active }: { item: IntroItem; no: number; total: string; active: boolean }) {
+function IntroDetail({ item, part, no, total, active, first }: { item: IntroItem; part: string; no: number; total: string; active: boolean; first?: boolean }) {
   return (
     <div className={`rd-ls__detail${active ? '' : ' rd-ls__detail--ghost'}`} aria-hidden={active ? undefined : true}>
-      <div className="rd-ls__img" role="img" aria-label={item.alt}>
-        <span aria-hidden="true">[{item.title} 화면 이미지]</span>
-      </div>
+      <IntroPics pics={item.pics} className="rd-ls__img" eager={first} active={active} fanKey={no === 1 ? part : undefined} />
       <div className="rd-ls__nameline">
         <h3 className="rd-ls__name">{item.title}</h3>
         <span className="rd-ls__count">{String(no).padStart(2, '0')} / {total}</span>
@@ -346,9 +515,8 @@ function MobileIntro({
           }
         }}
       >
-        <div className="rd-lm__img" role="img" aria-label={cur.alt}>
-          <span aria-hidden="true">[{cur.title} 화면 이미지]</span>
-        </div>
+        {/* key = 항목 번호 — 카드를 넘기면 첫 장으로 돌아간다 */}
+        <IntroPics key={`${id}-${i}`} pics={cur.pics} className="rd-lm__img" eager={id === 'part1' && i === 0} fanKey={i === 0 ? id : undefined} />
         <div className="rd-lm__nameline">
           <h3 className="rd-lm__name">{cur.title}</h3>
           <span className="rd-lm__count" aria-live="polite">{i + 1} / {n}</span>

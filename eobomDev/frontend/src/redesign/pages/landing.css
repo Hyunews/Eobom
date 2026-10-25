@@ -456,11 +456,198 @@
   overflow: hidden;
 }
 
-.rd-ls__img>img {
+/* 소개 그림 칸(button 또는 div) — 여러 장을 같은 자리에 겹쳐 두고 지금 장만 보인다. 파일 1080 × 512 = 칸 안쪽 540 × 256 이라 자르지 않는다. */
+.rd-pic {
+  position: relative;
+  display: grid;
+  grid-template: minmax(0, 1fr) / minmax(0, 1fr);
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  overflow: hidden;
+}
+
+/* 겹친 종이 더미 — 앞 장(.rd-pic) 뒤로 오른쪽·아래로 비낀 빈 종이 최대 두 장. 비낀 몫은 아래 여백에서 쓴다(고정, 장 수가 달라도 높이가 같다) */
+.rd-pic-wrap {
+  position: relative;
+  isolation: isolate;
+  --off: 8px;
+  margin-bottom: 16px;
+}
+
+.rd-lm__img-wrap {
+  --off: 5px;
+  margin-bottom: 10px;
+}
+
+.rd-pic-wrap>.rd-pic__back,
+.rd-pic-wrap>.rd-pic__leave {
+  position: absolute;
+  inset: 0;
+  width: auto;
+  height: auto;
+  box-sizing: border-box;
+}
+
+.rd-pic-wrap>.rd-pic__back {
+  z-index: 0;
+  inset: 0;
+  transform: translate(calc(var(--off) * var(--k)), calc(var(--off) * var(--k)));
+  background: var(--rd-shadow);
+  box-shadow: 0 0 0 1px var(--rd-ink);
+  filter: brightness(0.98);
+  pointer-events: none;
+}
+
+.rd-pic-wrap>.rd-pic__back:nth-child(2) {
+  z-index: -1;
+  filter: brightness(0.95);
+}
+
+.rd-pic-wrap>.rd-pic {
+  z-index: 1;
+}
+
+.rd-pic-wrap>.rd-pic__leave {
+  z-index: 2;
+  display: grid;
+  grid-template: minmax(0, 1fr) / minmax(0, 1fr);
+  overflow: hidden;
+  pointer-events: none;
+}
+
+@media (hover: hover) {
+  .rd-pic-wrap:hover>.rd-pic__back {
+    transform: translate(calc(var(--off) * var(--k) + 2px * var(--k)), calc(var(--off) * var(--k) + 2px * var(--k)));
+  }
+}
+
+@keyframes rdPicLeave {
+  from {
+    opacity: 1;
+    transform: translate(0, 0);
+  }
+
+  to {
+    opacity: 0;
+    transform: translate(-14px, -14px);
+  }
+}
+
+@keyframes rdPicIn {
+  from {
+    opacity: 0;
+    transform: translate(6px, 6px) scale(0.985);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes rdPicFan {
+  50% {
+    transform: translate(calc(var(--off) * var(--k) * 2), calc(var(--off) * var(--k) * 2));
+  }
+}
+
+button.rd-pic {
+  cursor: pointer;
+  /* 칸을 가로질러 밀 때 브라우저가 이미지를 끌지 않게 */
+  -webkit-user-drag: none;
+}
+
+.rd-pic__img {
+  grid-area: 1 / 1;
+  display: block;
   width: 100%;
   height: 100%;
+  min-height: 0;
   object-fit: cover;
   object-position: top;
+  opacity: 0;
+  pointer-events: none;
+  user-select: none;
+}
+
+.rd-pic__img.is-on {
+  opacity: 1;
+}
+
+/* 모바일 칸은 높이를 파일 비율(1080 : 512)에 맞춰 폭에서 정한다 — 위아래 빈 공간 없이 그림이 칸을 채운다 */
+.rd-lm__img {
+  height: auto;
+}
+
+.rd-lm__img .rd-pic__img {
+  height: auto;
+  aspect-ratio: 1080 / 512;
+}
+
+.rd-pic__leave .rd-pic__img {
+  opacity: 1;
+}
+
+/* 점 표시 — 점 지름 8, 누르는 칸 44 × 44. 높이 44 는 점이 없는 항목에도 남겨 둔다 */
+.rd-pic__dots {
+  display: flex;
+  justify-content: center;
+  height: 44px;
+}
+
+.rd-pic__dot {
+  position: relative;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+}
+
+.rd-pic__dot::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 8px;
+  height: 8px;
+  margin: -4px 0 0 -4px;
+  border-radius: 50%;
+  background: var(--rd-line);
+}
+
+.rd-pic__dot[aria-current='true']::before {
+  background: var(--rd-ink);
+}
+
+/* 자동 넘김 멈춤 — 점 줄 오른쪽 끝 */
+.rd-pic__dots {
+  position: relative;
+}
+
+.rd-pic__pause {
+  position: absolute;
+  right: 0;
+  top: 0;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--rd-ink-small);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.rd-pic__dot:focus-visible,
+.rd-pic__pause:focus-visible,
+button.rd-pic:focus-visible {
+  outline: 2px solid var(--rd-ink);
+  outline-offset: 2px;
 }
 
 .rd-ls__nameline,
@@ -635,8 +822,7 @@ html.rd-landing-snap {
 }
 
 .rd-lm__img {
-  height: clamp(130px, 25svh, 220px);
-  /* 큰 화면 220 · 작은 화면은 칸에 들어가게 줄임 */
+  /* 높이는 그림 비율로 정해진다(.rd-pic 묶음) */
   border-width: 10px;
   font-size: 13px;
 }
@@ -713,10 +899,6 @@ html.rd-landing-snap {
   .rd-lm {
     padding: 16px 24px 52px;
     gap: 10px;
-  }
-
-  .rd-lm__img {
-    height: clamp(100px, 19svh, 220px);
   }
 
   .rd-lm__card {
@@ -802,5 +984,27 @@ html.rd-landing-snap {
 
   .rd-ls__detail--ghost {
     transition: opacity 0.7s ease, visibility 0s linear 0.7s;
+  }
+
+  /* 장 바꿈: 앞 장은 왼쪽 위로 14px 들리며 사라지고(0.28초), 새 그림은 0.08초 뒤 떠오른다(0.36초). 끝나면 위치 이동 값은 남지 않는다 */
+  .rd-pic__leave {
+    animation: rdPicLeave 0.28s ease-out forwards;
+  }
+
+  .rd-pic__img.is-on {
+    animation: rdPicIn 0.36s 0.08s ease-out backwards;
+  }
+
+  .rd-pic__leave .rd-pic__img.is-on {
+    animation: none;
+  }
+
+  /* 처음 한 번 펼쳐 보임 — 뒤 장이 비낀 거리의 2배까지 벌어졌다 접힌다 */
+  .rd-pic-wrap.is-fan>.rd-pic__back {
+    animation: rdPicFan 0.6s ease-in-out;
+  }
+
+  .rd-pic-wrap>.rd-pic__back {
+    transition: transform 0.2s ease;
   }
 }

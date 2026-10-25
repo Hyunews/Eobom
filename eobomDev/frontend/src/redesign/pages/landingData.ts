@@ -42,9 +42,23 @@ export interface IntroItem {
   points: string[];
   cta: string;
   to: string;
-  /** 이미지 대체 글 — 무슨 화면인지 한 줄(00-45 §9) */
+  /** 소개 그림 — 장마다 장면을 차례로 한 줄에 적은 대체 글(00-45 §9-1) */
+  pics: IntroPic[];
+}
+
+export interface IntroPic {
+  src: string;
   alt: string;
 }
+
+// 파일 이름 = p{부}-{번호}-desktop-{장}.webp(00-45 §9-2). 10단계 뒤로 미룬 장(엔딩노트 3 · 유족 메시지 2 · 장사시설 2)은 파일이 없어 건너뛴다.
+const pic = (key: string, n: number, alt: string): IntroPic => ({ src: `/landing/${key}-desktop-${n}.webp`, alt });
+
+const COUNSEL_PICS: IntroPic[] = [
+  pic('p1-03', 1, '전문가 상담 · 들어올 때 도움이 필요하신가요 창'),
+  pic('p1-03', 2, '전문가 상담 · 상담 신청 창'),
+  pic('p1-03', 3, '전문가 상담 · 상속세 계산 화면'),
+];
 
 export const PART1_INTRO = '미리 적어 두고, 남길 말을 담아 두고, 필요한 것은 전문가에게 묻습니다.';
 export const PART2_INTRO = '장례 기간부터 그 이후까지, 해야 할 일의 순서대로 놓았습니다.';
@@ -59,7 +73,7 @@ export const PART1: IntroItem[] = [
     ],
     cta: '엔딩노트 쓰기',
     to: '/ending-note',
-    alt: '디지털 엔딩노트 쓰기 화면',
+    pics: [pic('p1-01', 1, '엔딩노트 들어온 화면'), pic('p1-01', 2, '엔딩노트 · 유언장 초안 화면')],
   },
   {
     title: '유족 메시지 보관함',
@@ -67,7 +81,7 @@ export const PART1: IntroItem[] = [
     points: ['말로 녹음하면 글자로 받아 적어 줍니다.', '미리 녹음해 둔 음성 파일을 올려도 됩니다.'],
     cta: '메시지 남기기',
     to: '/farewell-messages',
-    alt: '유족 메시지 보관함 화면',
+    pics: [pic('p1-02', 1, '유족 메시지 보관함 들어온 화면'), pic('p1-02', 3, '유족 메시지 · 음성 녹음 확인하고 시작하기 창')],
   },
   {
     title: '전문가 상담',
@@ -75,7 +89,7 @@ export const PART1: IntroItem[] = [
     points: ['상속세가 얼마쯤 나올지 미리 계산해 볼 수 있습니다.'],
     cta: '상담 신청하기',
     to: '/counseling',
-    alt: '전문가 상담 신청 화면',
+    pics: COUNSEL_PICS,
   },
 ];
 
@@ -87,7 +101,7 @@ export const PART2: IntroItem[] = [
     points: ['지금 있는 곳에서 가까운 순서로 보여 줍니다.', '지도에서 위치를 바로 확인합니다.'],
     cta: '장사시설 찾기',
     to: '/facility',
-    alt: '장사시설 검색 화면',
+    pics: [pic('p2-01', 1, '장사시설 검색 들어온 화면'), pic('p2-01', 3, '장사시설 · 상담 창')],
   },
   {
     stage: '장례 기간',
@@ -96,7 +110,11 @@ export const PART2: IntroItem[] = [
     points: ['카카오톡으로 바로 보낼 수 있습니다.', '문자나 링크 복사로도 전할 수 있습니다.'],
     cta: '부고장 만들기',
     to: '/obituary',
-    alt: '모바일 부고장 만들기 화면',
+    pics: [
+      pic('p2-02', 1, '부고장 입력 화면'),
+      pic('p2-02', 2, '부고장 · 입력 뒤 미리보기와 공유 화면'),
+      pic('p2-02', 3, '부고장 · 조문객이 보는 화면'),
+    ],
   },
   {
     stage: '장례 후',
@@ -108,7 +126,11 @@ export const PART2: IntroItem[] = [
     ],
     cta: '할 일 확인하기',
     to: '/care-guide',
-    alt: '상중 행정 가이드 화면',
+    pics: [
+      pic('p2-03', 1, '행정 가이드 들어온 화면'),
+      pic('p2-03', 2, '행정 가이드 · 몇 항목 체크한 화면'),
+      pic('p2-03', 3, '행정 가이드 · 항목을 누른 뒤 기한과 근거 창'),
+    ],
   },
   {
     stage: '장례 후',
@@ -117,7 +139,7 @@ export const PART2: IntroItem[] = [
     points: ['상속세가 얼마쯤 나올지 미리 계산해 볼 수 있습니다.'],
     cta: '상담 신청하기',
     to: '/counseling',
-    alt: '전문가 상담 신청 화면',
+    pics: COUNSEL_PICS,
   },
   {
     stage: '정리와 기억',
@@ -126,7 +148,7 @@ export const PART2: IntroItem[] = [
     points: ['시·도와 시·군·구를 골라 가까운 업체를 찾습니다.'],
     cta: '업체 찾기',
     to: '/pickup',
-    alt: '유품 정리 업체 검색 화면',
+    pics: [pic('p2-05', 1, '유품 정리 들어온 화면'), pic('p2-05', 2, '유품 정리 · 견적 신청 창')],
   },
   {
     stage: '정리와 기억',
@@ -135,7 +157,7 @@ export const PART2: IntroItem[] = [
     points: ['한 번에 조회하는 공공 서비스(정부24 안심상속 원스톱) 신청 방법을 단계별로 알려 줍니다.'],
     cta: '정산 안내 보기',
     to: '/digital-estate',
-    alt: '디지털 정산 안내 화면',
+    pics: [pic('p2-06', 1, '디지털 정산 · 돈이 오가는 곳 찾기 단계'), pic('p2-06', 2, '디지털 정산 · 찾은 계정 정리하기 단계')],
   },
   {
     stage: '정리와 기억',
@@ -144,6 +166,6 @@ export const PART2: IntroItem[] = [
     points: ['링크를 아는 사람에게만 보이도록 공개 범위를 정할 수 있습니다.'],
     cta: '추모관 만들기',
     to: '/memorial',
-    alt: '디지털 추모관 만들기 화면',
+    pics: [pic('p2-07', 1, '추모관 만들기 화면과 조문객이 보는 화면'), pic('p2-07', 2, '추모관 관리 화면')],
   },
 ];
