@@ -440,23 +440,21 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  /* 종이 카드(00-45 §9-1 "그림 칸 모양과 움직임" 1번) — 선 1px · 모서리 2 · 어긋난 그림자 */
+  box-sizing: border-box;
+  width: 100%;
+  height: auto;
   background: var(--rd-shadow);
-  border: 12px solid var(--rd-white);
-  box-shadow: 0 0 0 1px var(--rd-line);
+  border: 1px solid var(--rd-line);
+  border-radius: 2px;
+  box-shadow: 8px 8px 0 var(--rd-shadow);
   color: var(--rd-ink-small);
   font-size: 14px;
   text-align: center;
-}
-
-.rd-ls__img {
-  box-sizing: border-box;
-  width: 100%;
-  height: 280px;
-  /* 배율 1 기준 고정 높이(564 × 280) */
   overflow: hidden;
 }
 
-/* 소개 그림 칸(button 또는 div) — 여러 장을 같은 자리에 겹쳐 두고 지금 장만 보인다. 파일 1080 × 512 = 칸 안쪽 540 × 256 이라 자르지 않는다. */
+/* 소개 그림 칸(button 또는 div) — 여러 장을 같은 자리에 겹쳐 두고 지금 장만 보인다. 높이는 그림 비율(1080 : 512)로 폭에서 정한다. */
 .rd-pic {
   position: relative;
   display: grid;
@@ -467,89 +465,47 @@
   overflow: hidden;
 }
 
-/* 겹친 종이 더미 — 앞 장(.rd-pic) 뒤로 오른쪽·아래로 비낀 빈 종이 최대 두 장. 비낀 몫은 아래 여백에서 쓴다(고정, 장 수가 달라도 높이가 같다) */
+/* 그림 칸 묶음 — 그림자(8, 올리면 10)가 바깥으로 나오는 몫은 아래 여백에서 쓴다 */
 .rd-pic-wrap {
   position: relative;
   isolation: isolate;
-  --off: 8px;
   margin-bottom: 16px;
 }
 
 .rd-lm__img-wrap {
-  --off: 5px;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
 }
 
-.rd-pic-wrap>.rd-pic__back,
+/* 모바일 — 점·멈춤 줄이 자리를 차지하지 않는다(높이 0). 그림 아래쪽 위에 겹쳐 띄우고 사진 높이를 확보한다.
+   wrap 아래 여백 8 + 카드 gap 12 = 20, 누르는 칸 44 → 위로 64 */
+.rd-lm__img-wrap+.rd-pic__dots {
+  height: 0;
+  z-index: 3;
+}
+
+.rd-lm__img-wrap+.rd-pic__dots>* {
+  transform: translateY(-64px);
+}
+
+.rd-lm__img-wrap+.rd-pic__dots .rd-pic__dot::before {
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.85);
+}
+
+.rd-lm__img {
+  box-shadow: 6px 6px 0 var(--rd-shadow);
+}
+
+/* 넘어간 앞 장 — 같은 자리에 겹쳐 두고 투명해지며 사라진다(칸 모양은 같고 그림자는 아래 칸 것을 쓴다) */
 .rd-pic-wrap>.rd-pic__leave {
   position: absolute;
   inset: 0;
-  width: auto;
-  height: auto;
-  box-sizing: border-box;
-}
-
-.rd-pic-wrap>.rd-pic__back {
-  z-index: 0;
-  inset: 0;
-  transform: translate(calc(var(--off) * var(--k)), calc(var(--off) * var(--k)));
-  background: var(--rd-shadow);
-  box-shadow: 0 0 0 1px var(--rd-ink);
-  filter: brightness(0.98);
-  pointer-events: none;
-}
-
-.rd-pic-wrap>.rd-pic__back:nth-child(2) {
-  z-index: -1;
-  filter: brightness(0.95);
-}
-
-.rd-pic-wrap>.rd-pic {
-  z-index: 1;
-}
-
-.rd-pic-wrap>.rd-pic__leave {
   z-index: 2;
   display: grid;
   grid-template: minmax(0, 1fr) / minmax(0, 1fr);
-  overflow: hidden;
+  height: auto;
+  background: none;
+  box-shadow: none;
   pointer-events: none;
-}
-
-@media (hover: hover) {
-  .rd-pic-wrap:hover>.rd-pic__back {
-    transform: translate(calc(var(--off) * var(--k) + 2px * var(--k)), calc(var(--off) * var(--k) + 2px * var(--k)));
-  }
-}
-
-@keyframes rdPicLeave {
-  from {
-    opacity: 1;
-    transform: translate(0, 0);
-  }
-
-  to {
-    opacity: 0;
-    transform: translate(-14px, -14px);
-  }
-}
-
-@keyframes rdPicIn {
-  from {
-    opacity: 0;
-    transform: translate(6px, 6px) scale(0.985);
-  }
-
-  to {
-    opacity: 1;
-    transform: none;
-  }
-}
-
-@keyframes rdPicFan {
-  50% {
-    transform: translate(calc(var(--off) * var(--k) * 2), calc(var(--off) * var(--k) * 2));
-  }
 }
 
 button.rd-pic {
@@ -569,17 +525,16 @@ button.rd-pic {
   opacity: 0;
   pointer-events: none;
   user-select: none;
+  transform-origin: 50% 35%;
 }
 
-.rd-pic__img.is-on {
+.rd-pic__img.is-on,
+.rd-pic__leave .rd-pic__img {
   opacity: 1;
 }
 
-/* 모바일 칸은 높이를 파일 비율(1080 : 512)에 맞춰 폭에서 정한다 — 위아래 빈 공간 없이 그림이 칸을 채운다 */
-.rd-lm__img {
-  height: auto;
-}
-
+/* 칸 높이는 파일 비율(1080 : 512)에 맞춰 폭에서 정한다 — 위아래 빈 공간 없이 그림이 칸을 채운다 */
+.rd-ls__img .rd-pic__img,
 .rd-lm__img .rd-pic__img {
   height: auto;
   aspect-ratio: 1080 / 512;
@@ -618,8 +573,23 @@ button.rd-pic {
   background: var(--rd-line);
 }
 
+/* 지금 장 = 진행 막대(28 × 8) — 안이 왼쪽부터 먹색으로 5초 동안 찬다(자동 넘김 시간과 같다) */
 .rd-pic__dot[aria-current='true']::before {
+  width: 28px;
+  margin-left: -14px;
+  border-radius: 4px;
+}
+
+.rd-pic__fill {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 28px;
+  height: 8px;
+  margin: -4px 0 0 -14px;
+  border-radius: 4px;
   background: var(--rd-ink);
+  pointer-events: none;
 }
 
 /* 자동 넘김 멈춤 — 점 줄 오른쪽 끝 */
@@ -823,7 +793,6 @@ html.rd-landing-snap {
 
 .rd-lm__img {
   /* 높이는 그림 비율로 정해진다(.rd-pic 묶음) */
-  border-width: 10px;
   font-size: 13px;
 }
 
@@ -986,25 +955,113 @@ html.rd-landing-snap {
     transition: opacity 0.7s ease, visibility 0s linear 0.7s;
   }
 
-  /* 장 바꿈: 앞 장은 왼쪽 위로 14px 들리며 사라지고(0.28초), 새 그림은 0.08초 뒤 떠오른다(0.36초). 끝나면 위치 이동 값은 남지 않는다 */
+  /* 장 바꿈 = 겹쳐 바뀜(00-45 §9-1 4번): 앞 장은 투명해지기만 하고(0.3초, 위치 이동 없음),
+     새 장은 1.03 → 1 로 자리 잡으며 0.15초 늦게 0.5초 동안 나타난다. 끝나면 transform 값은 남지 않는다 */
   .rd-pic__leave {
-    animation: rdPicLeave 0.28s ease-out forwards;
+    animation: rdPicLeave 0.3s ease-out forwards;
   }
 
-  .rd-pic__img.is-on {
-    animation: rdPicIn 0.36s 0.08s ease-out backwards;
+  /* 천천히 다가가기 — 개별 scale 속성이라 rdPicIn 의 transform 과 겹치지 않는다. 멈추면 같이 멈춘다 */
+  .rd-pic__img.is-on,
+  .rd-pic__leave .rd-pic__img {
+    animation-name: rdPicIn, rdPicZoom;
+    animation-duration: 0.5s, 5.6s;
+    animation-delay: 0.15s, 0s;
+    animation-timing-function: ease-out, linear;
+    animation-fill-mode: backwards, forwards;
+    animation-play-state: running, paused;
   }
 
-  .rd-pic__leave .rd-pic__img.is-on {
-    animation: none;
+  .rd-pic-wrap.is-run .rd-pic__img.is-on {
+    animation-play-state: running, running;
   }
 
-  /* 처음 한 번 펼쳐 보임 — 뒤 장이 비낀 거리의 2배까지 벌어졌다 접힌다 */
-  .rd-pic-wrap.is-fan>.rd-pic__back {
-    animation: rdPicFan 0.6s ease-in-out;
+  /* 앞 장 복사본: 들어오는 움직임 없이 다가가기를 멈춘 자리에서 얼린다(--t = 그 순간의 진행 시간) */
+  .rd-pic__leave .rd-pic__img {
+    animation-name: none, rdPicZoom;
+    animation-delay: 0s, calc(var(--t, 0) * -1ms);
   }
 
-  .rd-pic-wrap>.rd-pic__back {
-    transition: transform 0.2s ease;
+  /* 진행 막대 — 지금 장 점 안이 5초 동안 일정하게 찬다. 멈춤·올림·초점이면 그 자리에서 멈춘다 */
+  .rd-pic__fill {
+    animation: rdPicFill 5s linear both paused;
+  }
+
+  .rd-pic__dots.is-run .rd-pic__fill {
+    animation-play-state: running;
+  }
+
+  /* 올림(데스크톱) — 왼쪽 위로 2px 들리고 그림자 8 → 10 */
+  .rd-pic-wrap>.rd-pic,
+  .rd-pic-wrap>.rd-pic__leave {
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+  }
+
+  @media (hover: hover) {
+    .rd-pic-wrap:hover>button.rd-pic {
+      transform: translate(-2px, -2px);
+      box-shadow: 10px 10px 0 var(--rd-shadow);
+    }
+
+    .rd-pic-wrap:hover>.rd-pic__leave {
+      transform: translate(-2px, -2px);
+    }
+  }
+
+  /* 스크롤로 들어올 때 세우기(선택) — 지원하는 브라우저에서만. 화면 40% 지점까지 오르는 동안 16° → 0 */
+  @supports (animation-timeline: view()) {
+    .rd-pic-wrap {
+      animation: rdPicTilt linear both;
+      animation-timeline: view();
+      animation-range: entry 0% cover 40%;
+    }
+  }
+}
+
+@keyframes rdPicLeave {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes rdPicIn {
+  from {
+    opacity: 0;
+    transform: scale(1.03);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes rdPicZoom {
+  from {
+    scale: 1;
+  }
+
+  to {
+    scale: 1.05;
+  }
+}
+
+@keyframes rdPicFill {
+  from {
+    clip-path: inset(0 100% 0 0);
+  }
+
+  to {
+    clip-path: inset(0);
+  }
+}
+
+@keyframes rdPicTilt {
+  from {
+    transform: perspective(900px) rotateX(16deg);
+  }
+
+  to {
+    transform: perspective(900px) rotateX(0);
   }
 }
