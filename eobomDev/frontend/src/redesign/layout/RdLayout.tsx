@@ -6,11 +6,10 @@ import { RdMenuPanel } from './RdMenuPanel';
 import { RdMenuSheet } from './RdMenuSheet';
 import { useLeave } from './useLeave';
 import { MOBILE_MAX } from '../nav';
+import { useAuth } from '../auth/AuthProvider';
 
 interface Props {
   children: React.ReactNode;
-  /** 로그인 버튼. 미리보기에는 로그인 상태가 없어 기본은 아무 일도 하지 않는다(묶음 3 이후 연결). */
-  onLogin?: () => void;
 }
 
 function useIsPhone(): boolean {
@@ -27,7 +26,9 @@ function useIsPhone(): boolean {
 }
 
 /** 새 디자인 공통 틀 — 헤더 · 메뉴 펼침 · 본문 · 바닥글. 00-44 §5-5. */
-export function RdLayout({ children, onLogin }: Props) {
+export function RdLayout({ children }: Props) {
+  const { currentUser, openLogin, logout } = useAuth();
+  const onLogin = useCallback(() => openLogin(), [openLogin]);
   const phone = useIsPhone();
   const [open, setOpen] = useState<MenuPart | 'sheet' | null>(null);
   const headRef = useRef<HTMLDivElement>(null);
@@ -128,12 +129,14 @@ export function RdLayout({ children, onLogin }: Props) {
             onOpenSheet={() => setOpen('sheet')}
             menuBtnRef={menuBtnRef}
             onLogin={onLogin}
+            user={currentUser}
+            onLogout={logout}
           />
           {!phone && panel.mounted && <RdMenuPanel active={panelPart ?? lastPart.current} leaving={panel.leaving} onNavigate={close} />}
         </div>
       </div>
       {!phone && panel.mounted && <div className="rd-scrim" aria-hidden="true" data-leaving={panel.leaving ? '' : undefined} onClick={close} />}
-      {phone && sheet.mounted && <RdMenuSheet leaving={sheet.leaving} onClose={closeSheet} onLogin={onLogin} />}
+      {phone && sheet.mounted && <RdMenuSheet leaving={sheet.leaving} onClose={closeSheet} onLogin={onLogin} user={currentUser} onLogout={logout} />}
       <main className="rd-main">{children}</main>
       <RdFooter />
     </div>

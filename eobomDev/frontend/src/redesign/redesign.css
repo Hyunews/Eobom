@@ -294,6 +294,22 @@ body.rd-body {
   color: var(--rd-point);
 }
 
+/* 로그인 뒤: [로그인] 자리에 이름 + [로그아웃] (10-1 — 시안에 없는 자리라 기존 [로그인] 값을 그대로 따른다) */
+.rd-login-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.rd-login__name {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--rd-touch);
+  font-size: 16px;
+  color: var(--rd-ink);
+  text-decoration: none;
+}
+
 .rd-menu-btn {
   display: none;
   width: 44px;
@@ -605,6 +621,17 @@ body.rd-body {
   border-top: 1px solid var(--rd-line);
 }
 
+.rd-sheet__user {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--rd-touch);
+  margin-bottom: 8px;
+  font-size: 16px;
+  color: var(--rd-ink);
+  text-decoration: none;
+}
+
 .rd-sheet__login {
   width: 100%;
   height: 52px;
@@ -713,7 +740,8 @@ body.rd-body {
   }
 
   .rd-nav,
-  .rd-login {
+  .rd-login,
+  .rd-login-group {
     display: none;
   }
 

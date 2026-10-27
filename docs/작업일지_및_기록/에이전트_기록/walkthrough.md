@@ -18,6 +18,17 @@
 > 원인 = Gemini 판정이 `gemini_tasks.md`에만 적히고 이 파일 판정 칸은 비어 있었음. 🔴 **판정은 이 파일의 그 항목 칸에 적는다**(`GEMINI.md`).
 
 ---
+## 2026-10-27 | [Sonnet] 디자인 개편 10단계 묶음 10-1 기반 — 로그인 상태 · 소셜 로그인 · 가림판 · 헤더 로그인 표시 · 이어봄 창 · `CONTACT_EMAIL` (브랜치 redesign, 미리보기 `/preview/…`)
+
+- **근거 스펙**: docs/00_핵심플랫폼/00-44_디자인_기준_개편_명세서.md §9-5-2 · §9-5-3 10-1 줄
+- **건드린 파일**: 신규 eobomDev/frontend/src/redesign/auth/{AuthProvider.tsx, LoginRequired.tsx, loginErrors.ts} , eobomDev/frontend/src/redesign/pages/auth/LoginDialogs.tsx(실제 연결용 선택 속성 `onSocial`·`live` 추가, 견본 동작은 그대로) , redesign/layout/{RdLayout, RdHeader, RdMenuSheet}.tsx · redesign/redesign.css(로그인 뒤 헤더) , redesign/PreviewApp.tsx(`AuthProvider`로 이용자 틀 감쌈) , eobomDev/frontend/src/main.tsx(소셜 로그인 돌아오는 주소를 /preview로 이어주는 블록, 10-9에서 걷음) , eobomDev/frontend/src/config.ts · eobomDev/backend/src/config/contact.ts(`CONTACT_EMAIL` = `yhw@samil25.co.kr`). 지금 화면 파일(`pages/*` · `App.tsx`)은 읽기만.
+- **결과**: ① 세션 저장·읽기·탭 간 공유·`apiFetch`·401 만료 처리는 지금 `lib/storage.ts`·`lib/api.ts`를 **그대로 불러 씀**(키 값이 같아야 이미 로그인한 세션이 이어지고, 두 벌이 되지 않음). `AuthProvider`가 지금 App.tsx의 `currentUser`·`handleLoginSuccess`·`handleLogout`·세션 만료 콜백·`#loginSuccess`/`#socialLinkPrompt`/`?loginError` 처리를 옮김. ② 로그인 창 소셜 버튼 3개가 실제로 `${BACKEND_URL}/api/auth/{provider}?mode=login` / 가입 탭은 `mode=signup&consentTerms=1&consentPrivacy=1`로 나감(돌아올 경로 저장 포함). 이미 가입된 이메일 창(`confirm-link`) · 탈퇴 신청 계정 창(`/api/me/deletion-request`) · 이용 동의 필요 창(`/api/me/consent`)도 실제 호출로 연결, `/api/auth/me`로 판정. ③ `loginError` 표를 `auth/loginErrors.ts`로 옮기고 `account_suspended` = "이용이 정지된 계정입니다. 문의: {CONTACT_EMAIL}" 추가, `not_registered` → [회원가입] 탭 + 안내문. 알림은 `alert()` 대신 `RdAlertDialog`, 로그아웃은 `RdToast`. ④ 헤더: 로그인 전 [로그인], 뒤에는 `{이름}님`(→ /mypage) + [로그아웃] / 모바일 메뉴 판 아래 이름 + [로그아웃]. ⑤ `LoginRequired`(= `MyGate` 틀 + 로그인 창 연결) 신설 — 10-2 이후 화면이 감싸 씀, 로그인 전엔 본문을 그리지 않음. ⑥ 바닥글·모바일 메뉴 판은 이미 `config.ts`의 `CONTACT_EMAIL`을 읽음(코드 확인) — 값 한 줄 교체로 둘 다 바뀜. `npm run build`(tsc && vite build) 통과, 백엔드 `tsc --noEmit` 통과. **dev 서버는 띄우지 않음.**
+- **편차**: ① **"이메일 로그인"은 없음** — 지금 로그인 창에는 소셜 3종과 `demo-login`(개발용)뿐이고 새 시안은 데모 칸을 그리지 않는다(8단계 확정 ③). 이메일/비밀번호 로그인 화면·서버가 지금 코드에 없어 연결할 대상이 없다. §9-5-5 ①의 "이메일"은 소셜 가입 이메일 통합창을 말하는 것으로 읽음 → Opus 확인 필요. ② **로그인 뒤 헤더(이름·로그아웃)는 시안에 자리가 없다** — 기존 [로그인] 값(20px 포인트색)을 따른 임시 모양(이름 16px 먹색). 시안 판정 필요. ③ 소셜 로그인은 서버가 항상 `/`로 돌려보내므로 `main.tsx`에 "돌아올 경로가 /preview면 그쪽으로 주소를 바꿔 새 앱이 받는" 블록을 넣음(`PENDING_RETURN_PATH_KEY` 값을 복사해 씀 — `lib/storage.ts`를 불러오면 지금 화면 묶음이 딸려와서). 10-9에서 `/preview` 분기와 함께 걷는다. ④ 가림판은 `MyGate`(상자 안) 틀을 그대로 씀 — 화면 전체를 덮는 `RdLoginGate`는 헤더 메뉴까지 가려 쓰지 않음. 초대 링크 로그인 뒤 복귀(`eobom_pending_invite_token`)는 건드리지 않음 → 10-4 소관. ⑤ 새 스키마 없음.
+- **다음 에이전트가 알아야 할 것**: **실기동 검증 대기(사람)** — 로컬 서버 + 로컬 DB, `/preview` 아무 쪽에서 ① [로그인] → 카카오·네이버·구글 각각 로그인 후 같은 /preview 쪽으로 돌아오고 헤더에 이름이 뜨는지 ② 가입 탭(동의 전 버튼 흐림) / 가입 안 된 계정으로 로그인 탭 → 가입 탭 + 안내문 ③ 정지 회원 로그인 → "이용이 정지된 계정입니다. 문의: yhw@samil25.co.kr" 알림 창 ④ 탈퇴 유예 계정 · 동의 기록 없는 계정 창 ⑤ 로그아웃 알림, 토큰 만료 후 아무 요청 → 로그인 창 + 만료 안내 ⑥ 모바일 폭 메뉴 판 아래 이름·로그아웃 ⑦ 바닥글·메뉴 판 이메일 `yhw@samil25.co.kr`. 🔴 운영 서버 환경변수 `CONTACT_EMAIL`이 따로 있으면 그 값이 이김(배포 뒤 확인, §9-5-5 ③). 커밋 메시지 초안은 응답에.
+
+<!-- Gemini 판정 1줄: ✅통과 / ❌반려(사유) / 🔄스펙갱신(고친 문서) -->
+
+---
 ## 2026-10-26 | [Sonnet] 디자인 개편 9단계 — 랜딩 소개 그림 넣기 (`/preview/landing`, 브랜치 redesign)
 
 - **근거 스펙**: docs/00_핵심플랫폼/00-45_랜딩_개편_명세서.md §9-1 · §9-2

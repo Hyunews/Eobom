@@ -6,6 +6,8 @@ import { RdDialog } from '../../parts/RdModal';
 import { RdNotice } from '../../parts/RdNotices';
 import { RdTabs } from '../../parts/RdNav';
 import { FAKE_MS } from '../my/accountData';
+import { formatKstDate } from '../../../utils/kstDate';
+import { providerLabel } from '../../../config';
 import { MyResult } from '../my/myShared';
 import { PrivacyPage } from '../legal/PrivacyPage';
 import { TermsPage } from '../legal/TermsPage';
@@ -20,24 +22,28 @@ const NOTICE_TEXT = {
   notfound: '가입되지 않은 계정입니다. 아래에서 약관 동의 후 회원가입을 진행해주세요.',
 } as const;
 export type LoginNotice = keyof typeof NOTICE_TEXT;
+/** 견본은 키로, 실제 로그인은 서버가 준 문구(`{ text }`)를 그대로 넣는다 */
+export type LoginNoticeInput = LoginNotice | { text: string };
+export type SocialProvider = 'kakao' | 'naver' | 'google';
+const noticeText = (n: LoginNoticeInput) => (typeof n === 'string' ? NOTICE_TEXT[n] : n.text);
 
 const noop = () => {};
 
 // ───── 소셜 버튼 3개 — 각 회사 지침 색은 그대로(네이버 흰 글자 대비 2.2:1 예외, 4단계 묶음 4 점검) ─────
-function SocialButtons({ disabled, onSelect }: { disabled?: boolean; onSelect: () => void }) {
+function SocialButtons({ disabled, onSelect }: { disabled?: boolean; onSelect: (provider: SocialProvider) => void }) {
   return (
     <div className={`rd-ac-social${disabled ? ' is-off' : ''}`}>
-      <button type="button" className="rd-ac-social__btn rd-ac-social__btn--kakao" disabled={disabled} onClick={onSelect}>
+      <button type="button" className="rd-ac-social__btn rd-ac-social__btn--kakao" disabled={disabled} onClick={() => onSelect('kakao')}>
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
           <path fillRule="evenodd" clipRule="evenodd" d="M12 3C6.477 3 2 6.484 2 10.782C2 13.567 3.791 16.002 6.5 17.388L5.59 20.738C5.474 21.164 5.952 21.492 6.31 21.254L10.378 18.55C10.906 18.625 11.446 18.665 12 18.665C17.523 18.665 22 15.181 22 10.883C22 6.584 17.523 3 12 3Z" fill="#191919" />
         </svg>
         <span>카카오로 시작하기</span>
       </button>
-      <button type="button" className="rd-ac-social__btn rd-ac-social__btn--naver" disabled={disabled} onClick={onSelect}>
+      <button type="button" className="rd-ac-social__btn rd-ac-social__btn--naver" disabled={disabled} onClick={() => onSelect('naver')}>
         <span className="rd-ac-social__n" aria-hidden="true">N</span>
         <span>네이버로 시작하기</span>
       </button>
-      <button type="button" className="rd-ac-social__btn rd-ac-social__btn--google" disabled={disabled} onClick={onSelect}>
+      <button type="button" className="rd-ac-social__btn rd-ac-social__btn--google" disabled={disabled} onClick={() => onSelect('google')}>
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
           <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
           <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
@@ -104,13 +110,17 @@ export function LoginDialog({
   initialTab = 'login',
   initialNotice,
   onClose,
+  onSocial,
 }: {
   initialTab?: 'login' | 'signup';
-  initialNotice?: LoginNotice;
+  initialNotice?: LoginNoticeInput;
   onClose: () => void;
+  /** 실제 로그인: 소셜 버튼이 이 함수로 각 회사 로그인에 보낸다. 없으면(견본) 창만 닫는다. */
+  onSocial?: (provider: SocialProvider, tab: 'login' | 'signup') => void;
 }) {
   const [tab, setTab] = useState<'login' | 'signup'>(initialTab);
-  const [notice, setNotice] = useState<LoginNotice | undefined>(initialNotice);
+  const [notice, setNotice] = useState<LoginNoticeInput | undefined>(initialNotice);
+  const select = (provider: SocialProvider) => (onSocial ? onSocial(provider, tab) : onClose());
   const consent = useConsent();
 
   if (consent.viewer) return consent.viewer;
@@ -124,7 +134,7 @@ export function LoginDialog({
       footer={
         <div className="rd-ac-partner">
           {/* 사업자·전문가는 따로 쓰는 로그인으로 보낸다(00-06 §7.3 ①) */}
-          <RdTextLink href="/partner" onClick={(e) => e.preventDefault()}>파트너 로그인</RdTextLink>
+          <RdTextLink href="/partner" onClick={onSocial ? undefined : (e) => e.preventDefault()}>파트너 로그인</RdTextLink>
         </div>
       }
     >
@@ -138,14 +148,14 @@ export function LoginDialog({
           value={tab}
           onChange={(v) => { setTab(v as 'login' | 'signup'); setNotice(undefined); }}
         />
-        {notice && <RdNotice>{NOTICE_TEXT[notice]}</RdNotice>}
+        {notice && <RdNotice>{noticeText(notice)}</RdNotice>}
         {tab === 'login' ? (
-          <SocialButtons onSelect={onClose} />
+          <SocialButtons onSelect={select} />
         ) : (
           <>
             {consent.node}
             {/* 필수 동의 전에는 세 버튼 모두 흐리다 */}
-            <SocialButtons disabled={!consent.ready} onSelect={onClose} />
+            <SocialButtons disabled={!consent.ready} onSelect={select} />
           </>
         )}
       </div>
@@ -166,17 +176,32 @@ const IconPersonPlus = () => (
   </svg>
 );
 
-export function LinkDialog({ variant, onClose }: { variant?: string; onClose: () => void }) {
+/** 실제 로그인에서 넘기는 값 — 있으면 견본 값·가짜 대기 대신 이것을 쓴다 */
+export interface LinkLive {
+  email: string;
+  existingProvider: string;
+  newProvider: string;
+  /** 서버에 보내고, 실패하면 화면에 보일 글을 돌려준다(성공이면 null) */
+  onSubmit: (action: 'MERGE' | 'CREATE_NEW') => Promise<string | null>;
+}
+
+export function LinkDialog({ variant, onClose, live }: { variant?: string; onClose: () => void; live?: LinkLive }) {
   // variant: err1 / err2 = 실패 글 둘 · busy = 처리 중(세 버튼이 흐려지기만 하고 글자는 그대로)
   const [busy, setBusy] = useState(variant === 'busy');
   const [error, setError] = useState(variant === 'err1' ? '처리 중 오류가 발생했습니다. 다시 시도해주세요.' : variant === 'err2' ? '서버와 통신 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.' : '');
 
-  const choose = async () => {
+  const choose = async (action: 'MERGE' | 'CREATE_NEW') => {
     setBusy(true);
     setError('');
-    await sleep(FAKE_MS);
+    if (!live) {
+      await sleep(FAKE_MS);
+      setBusy(false);
+      onClose();
+      return;
+    }
+    const failed = await live.onSubmit(action);
     setBusy(false);
-    onClose();
+    if (failed) setError(failed);
   };
 
   return (
@@ -186,10 +211,10 @@ export function LinkDialog({ variant, onClose }: { variant?: string; onClose: ()
       onClose={() => !busy && onClose()}
       footer={
         <div className="rd-ac-stackfoot">
-          <RdButton place="dialog" disabled={busy} onClick={choose}>
+          <RdButton place="dialog" disabled={busy} onClick={() => choose('MERGE')}>
             <span className="rd-ac-btnicon"><IconChain />기존 계정에 통합하기 (추천)</span>
           </RdButton>
-          <RdButton kind="secondary" place="dialog" disabled={busy} onClick={choose}>
+          <RdButton kind="secondary" place="dialog" disabled={busy} onClick={() => choose('CREATE_NEW')}>
             <span className="rd-ac-btnicon"><IconPersonPlus />독립된 새 계정으로 가입하기</span>
           </RdButton>
           <button type="button" className="rd-ac-textbtn" disabled={busy} onClick={onClose}>취소</button>
@@ -197,9 +222,9 @@ export function LinkDialog({ variant, onClose }: { variant?: string; onClose: ()
       }
     >
       <p className="rd-dialog__desc">
-        <strong>hong@example.com</strong>로 이미 <strong>카카오</strong> 계정이 가입되어 있어요.
+        <strong>{live?.email ?? 'hong@example.com'}</strong>로 이미 <strong>{live ? providerLabel(live.existingProvider) : '카카오'}</strong> 계정이 가입되어 있어요.
         <br />
-        지금 로그인하신 <strong>네이버</strong> 계정을 어떻게 처리할까요?
+        지금 로그인하신 <strong>{live ? providerLabel(live.newProvider) : '네이버'}</strong> 계정을 어떻게 처리할까요?
       </p>
       {error && <div className="rd-ac-errline"><MyResult tone="err">{error}</MyResult></div>}
     </RdDialog>
@@ -207,7 +232,17 @@ export function LinkDialog({ variant, onClose }: { variant?: string; onClose: ()
 }
 
 // ───── 4-18 탈퇴 신청 계정 창 ─────
-export function RecoveryDialog({ variant, onClose }: { variant?: string; onClose: () => void }) {
+/** 실제 로그인에서 넘기는 값 */
+export interface RecoveryLive {
+  /** 삭제 예정일(서버가 준 시각) */
+  scheduledAt: string;
+  /** [계속 이용] — 실패하면 화면에 보일 글을 돌려준다(성공이면 null) */
+  onKeep: () => Promise<string | null>;
+  /** [로그아웃] */
+  onLogout: () => void;
+}
+
+export function RecoveryDialog({ variant, onClose, live }: { variant?: string; onClose: () => void; live?: RecoveryLive }) {
   // variant: busy = 처리 중(두 버튼 잠김) · fail = 실패 글
   const [busy, setBusy] = useState(variant === 'busy');
   const [error, setError] = useState(variant === 'fail' ? '처리 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.' : '');
@@ -215,9 +250,15 @@ export function RecoveryDialog({ variant, onClose }: { variant?: string; onClose
   const keepUsing = async () => {
     setBusy(true);
     setError('');
-    await sleep(FAKE_MS);
+    if (!live) {
+      await sleep(FAKE_MS);
+      setBusy(false);
+      onClose();
+      return;
+    }
+    const failed = await live.onKeep();
     setBusy(false);
-    onClose();
+    if (failed) setError(failed);
   };
 
   return (
@@ -227,13 +268,13 @@ export function RecoveryDialog({ variant, onClose }: { variant?: string; onClose
       onClose={noop}
       footer={
         <>
-          <RdButton kind="secondary" place="dialog" disabled={busy} onClick={onClose}>로그아웃</RdButton>
+          <RdButton kind="secondary" place="dialog" disabled={busy} onClick={live ? live.onLogout : onClose}>로그아웃</RdButton>
           <RdButton place="dialog" busy={busy} busyText="처리 중…" onClick={keepUsing}>계속 이용</RdButton>
         </>
       }
     >
       <p className="rd-dialog__desc">
-        2026-11-15에 삭제될 예정입니다. 계속 이용하시려면 아래 “계속 이용”을 눌러 탈퇴 신청을 취소해 주세요. 누르지 않고 로그아웃하면 탈퇴 신청이 그대로 유지됩니다.
+        {live ? formatKstDate(live.scheduledAt, '-') : '2026-11-15'}에 삭제될 예정입니다. 계속 이용하시려면 아래 “계속 이용”을 눌러 탈퇴 신청을 취소해 주세요. 누르지 않고 로그아웃하면 탈퇴 신청이 그대로 유지됩니다.
       </p>
       {error && <div className="rd-ac-errline"><MyResult tone="err">{error}</MyResult></div>}
     </RdDialog>
@@ -241,7 +282,15 @@ export function RecoveryDialog({ variant, onClose }: { variant?: string; onClose
 }
 
 // ───── 4-19 이용 동의 필요 창 ─────
-export function ConsentRequiredDialog({ variant, onClose }: { variant?: string; onClose: () => void }) {
+/** 실제 로그인에서 넘기는 값 */
+export interface ConsentLive {
+  /** [동의하고 계속하기] — 실패하면 화면에 보일 글을 돌려준다(성공이면 null) */
+  onAgree: () => Promise<string | null>;
+  /** [동의하지 않고 로그아웃] */
+  onDecline: () => void;
+}
+
+export function ConsentRequiredDialog({ variant, onClose, live }: { variant?: string; onClose: () => void; live?: ConsentLive }) {
   // variant: fail = 실패 글
   const consent = useConsent();
   const [busy, setBusy] = useState(false);
@@ -251,6 +300,12 @@ export function ConsentRequiredDialog({ variant, onClose }: { variant?: string; 
     if (!consent.ready || busy) return;
     setBusy(true);
     setError('');
+    if (live) {
+      const failed = await live.onAgree();
+      setBusy(false);
+      if (failed) setError(failed);
+      return;
+    }
     await sleep(FAKE_MS);
     setBusy(false);
     if (variant === 'fail') {
@@ -269,7 +324,7 @@ export function ConsentRequiredDialog({ variant, onClose }: { variant?: string; 
       onClose={noop}
       footer={
         <>
-          <RdButton kind="secondary" place="dialog" className="rd-ac-fit" disabled={busy} onClick={onClose}>동의하지 않고 로그아웃</RdButton>
+          <RdButton kind="secondary" place="dialog" className="rd-ac-fit" disabled={busy} onClick={live ? live.onDecline : onClose}>동의하지 않고 로그아웃</RdButton>
           <RdButton place="dialog" className="rd-ac-fit" disabled={!consent.ready} busy={busy} busyText="처리 중…" onClick={agree}>동의하고 계속하기</RdButton>
         </>
       }

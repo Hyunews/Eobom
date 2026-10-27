@@ -25,6 +25,7 @@ import { SharedPage } from './pages/my/SharedPage';
 import { LoginPage } from './pages/auth/LoginPage';
 import { TermsPage } from './pages/legal/TermsPage';
 import { PrivacyPage } from './pages/legal/PrivacyPage';
+import { AuthProvider } from './auth/AuthProvider';
 
 // 8단계 미리보기 뿌리 — /preview/… 만 연다. 메뉴·링크 어디에도 이 주소를 넣지 않는다(00-44 §9-4 공통 조건).
 // 묶음 2가 /preview/parts, 묶음 3부터 화면별 주소를 여기에 더한다.
@@ -55,6 +56,7 @@ export function PreviewApp() {
         <Route
           path="*"
           element={
+            <AuthProvider>
             <RdLayout>
               <Routes>
                 <Route path="/preview" element={<FoundationPage />} />
@@ -84,6 +86,7 @@ export function PreviewApp() {
                 <Route path="*" element={<FoundationPage notFound />} />
               </Routes>
             </RdLayout>
+            </AuthProvider>
           }
         />
       </Routes>

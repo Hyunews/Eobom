@@ -8,12 +8,14 @@ interface Props {
   leaving?: boolean;
   onClose: () => void;
   onLogin?: () => void;
+  user?: string | null;
+  onLogout?: () => void;
 }
 
 const FOCUSABLE = 'a[href], button:not([disabled])';
 
 /** 모바일 메뉴 펼침 — 전체 화면 판. 머리와 [로그인]은 고정, 가운데만 스크롤(연락처 묶음이 바닥글을 대신한다). */
-export function RdMenuSheet({ leaving, onClose, onLogin }: Props) {
+export function RdMenuSheet({ leaving, onClose, onLogin, user, onLogout }: Props) {
   const ref = useRef<HTMLDivElement>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
 
@@ -92,7 +94,14 @@ export function RdMenuSheet({ leaving, onClose, onLogin }: Props) {
       </div>
 
       <div className="rd-sheet__foot">
-        <button type="button" className="rd-sheet__login" onClick={onLogin}>로그인</button>
+        {user ? (
+          <>
+            <a href="/mypage" className="rd-sheet__user" onClick={onClose}>{user}님</a>
+            <button type="button" className="rd-sheet__login" onClick={onLogout}>로그아웃</button>
+          </>
+        ) : (
+          <button type="button" className="rd-sheet__login" onClick={onLogin}>로그인</button>
+        )}
       </div>
     </div>
   );
