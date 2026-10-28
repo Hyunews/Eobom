@@ -89,7 +89,8 @@ function EndingNoteBody() {
   const pendingGrants = useRef<Record<string, Record<string, { timing: string | null; grantId?: string }>>>({});
   const pendingScroll = useRef<string | null>(null);
   const alive = useRef(true);
-  useEffect(() => () => { alive.current = false; }, []);
+  // 개발 모드(StrictMode)는 마운트→해제→마운트를 한 번 돌린다 — 다시 붙을 때 true로 되돌려야 응답을 받는다
+  useEffect(() => { alive.current = true; return () => { alive.current = false; }; }, []);
 
   const loadAll = useCallback(() => {
     setLoad('loading');
@@ -389,7 +390,7 @@ function EndingNoteBody() {
       <div style={{ marginBottom: 16 }}>
         <RdTextLink href="/preview/farewell-messages" onClick={(e) => { e.preventDefault(); navigate('/preview/farewell-messages'); }}>음성 메시지 남기기</RdTextLink>
       </div>
-      <RdNotice tone="caution" title={NOT_A_WILL_NOTICE} />
+      <div className="rd-pr-willnotice"><RdNotice tone="caution" title={NOT_A_WILL_NOTICE} /></div>
       <div className="rd-pr-will">
         <section className="rd-pr-will__main" aria-label="초안">
           <div className="rd-pr-will__bar">

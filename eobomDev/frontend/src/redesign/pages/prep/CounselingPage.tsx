@@ -175,7 +175,7 @@ function RequestDialog({ expert, onClose, onDone }: { expert: PublicExpert; onCl
   const [busy, setBusy] = useState(false);
   const [alertBox, setAlertBox] = useState<{ title: string; desc?: string } | null>(null);
   const alive = useRef(true);
-  useEffect(() => () => { alive.current = false; }, []);
+  useEffect(() => { alive.current = true; return () => { alive.current = false; }; }, []);
 
   const submit = async () => {
     if (!agree.c) {
@@ -408,7 +408,7 @@ function CounselingBody() {
             </>
           }
         >
-          <dl className="rd-dl">
+          <dl className="rd-dl rd-pr-expert-dl">
             <dt>분야</dt><dd>{labelOf(detail.category)}</dd>
             {detail.licenseOrg && (<><dt>자격</dt><dd>{detail.licenseOrg}</dd></>)}
             {detail.specialties.length > 0 && (<><dt>전문</dt><dd>{detail.specialties.map((s) => `#${s}`).join(' ')}</dd></>)}

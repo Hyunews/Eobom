@@ -138,10 +138,13 @@ function WriteDialog({
   const savedAudioRef = useRef(savedAudioSrc);
   savedAudioRef.current = savedAudioSrc;
   const alive = useRef(true);
-  useEffect(() => () => {
+  useEffect(() => {
+    alive.current = true;
+    return () => {
     alive.current = false;
     if (pendingRef.current) URL.revokeObjectURL(pendingRef.current.url);
     if (savedAudioRef.current) URL.revokeObjectURL(savedAudioRef.current);
+    };
   }, []);
 
   // 변환이 끝나면 글은 입력창에만 넣고 편지는 저장하지 않는다. 원본 음성은 메모리의 "저장 전 음성"으로 둔다(R2·DB 없음).
@@ -563,7 +566,7 @@ function FarewellBody() {
   const [sttEnabled, setSttEnabled] = useState(false);
   const [voiceStorageEnabled, setVoiceStorageEnabled] = useState(false); // R2_VOICE_ENABLED — /status로만 판단
   const alive = useRef(true);
-  useEffect(() => () => { alive.current = false; }, []);
+  useEffect(() => { alive.current = true; return () => { alive.current = false; }; }, []);
 
   const loadAll = useCallback(() => {
     setLoad('loading');

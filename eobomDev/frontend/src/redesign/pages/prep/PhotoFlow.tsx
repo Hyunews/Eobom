@@ -125,7 +125,7 @@ export function PhotoFlow({
   const fileRef = useRef<HTMLInputElement>(null);
   const abortRef = useRef<AbortController | null>(null);
   const alive = useRef(true);
-  useEffect(() => () => { alive.current = false; abortRef.current?.abort(); }, []);
+  useEffect(() => { alive.current = true; return () => { alive.current = false; abortRef.current?.abort(); }; }, []);
 
   // 쪽별 글은 닫을 때 한 번 부모에 넘긴다(글자 칠 때마다 부모가 다시 그려지지 않게). 다시 열면 고친 글로 열린다.
   const latest = useRef({ result, resultFiles, pageTexts, onRecognized });

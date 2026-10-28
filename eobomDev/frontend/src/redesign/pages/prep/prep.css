@@ -144,20 +144,34 @@
 }
 .rd-root .rd-pr-will__main .rd-notice,
 .rd-root .rd-pr-farewell .rd-notice,
+.rd-root .rd-pr-form .rd-notice,
+.rd-root .rd-pr-willnotice .rd-notice,
 .rd-root .rd-pr-voice .rd-notice {
   gap: 10px;
   padding: 12px 16px;
 }
 .rd-root .rd-pr-will__main .rd-notice__body,
 .rd-root .rd-pr-farewell .rd-notice__body,
+.rd-root .rd-pr-form .rd-notice__body,
+.rd-root .rd-pr-willnotice .rd-notice__body,
 .rd-root .rd-pr-voice .rd-notice__body {
   gap: 2px;
 }
 .rd-root .rd-pr-will__main .rd-notice__title,
 .rd-root .rd-pr-farewell .rd-notice__title,
+.rd-root .rd-pr-form .rd-notice__title,
+.rd-root .rd-pr-willnotice .rd-notice__title,
 .rd-root .rd-pr-voice .rd-notice__title {
   font-size: 14px;
   line-height: 1.5;
+}
+.rd-root .rd-pr-form .rd-notice__icon svg,
+.rd-root .rd-pr-willnotice .rd-notice__icon svg {
+  width: 18px;
+  height: 18px;
+}
+.rd-root .rd-pr-expert-dl {
+  padding-top: 15px;
 }
 .rd-root .rd-pr-farewell .rd-notice__desc,
 .rd-root .rd-pr-voice .rd-notice__desc {
@@ -363,7 +377,6 @@
   font-size: 14px;
   color: var(--rd-ink-support);
   line-height: 1.5;
-  white-space: nowrap;
 }
 .rd-root .rd-pr-checks {
   border-top: 1px dotted var(--rd-dot);
