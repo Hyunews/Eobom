@@ -1,73 +1,74 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { ApiError, apiFetch, apiFetchRaw } from '../../../lib/api';
+import { HEAVY_CLIENT_LIMITS } from '../../../lib/heavyLimits';
+import { formatKstDate, kstTodayCompact } from '../../../utils/kstDate';
+import { LoginRequired } from '../../auth/LoginRequired';
+import { useAuth } from '../../auth/AuthProvider';
 import { RdBadge, RdButton, RdIconButton, RdTextLink } from '../../parts/RdButtons';
 import { RdFold } from '../../parts/RdCards';
 import { RdConsentGroup, RdField, RdFileRow, RdInput, RdTextarea } from '../../parts/RdInputs';
 import { RdPageHead, RdTabs } from '../../parts/RdNav';
 import { RdNotice } from '../../parts/RdNotices';
-import { RdAlertDialog, RdConfirmDialog, RdDangerDialog, RdDialog, RdLoginGate } from '../../parts/RdModal';
+import { RdAlertDialog, RdConfirmDialog, RdDangerDialog, RdDialog } from '../../parts/RdModal';
 import { RdState } from '../../parts/RdState';
 import { IconChevronLeft, IconChevronRight, IconDoc, IconErrorCircle } from '../../parts/icons';
 import { useIsPhone } from '../../useIsPhone';
-import { DemoBar, sleep, type DemoOption } from './prepCommon';
+import { relationLabel, type FamilyItem } from './noteData';
+import { extensionForMime, fmtClock, markRecordNoticeSeen, MAX_RECORD_MINUTES, recordNoticeSeen, useVoiceCapture, type PendingVoice, type SavedMedia } from './voice';
+import './prep.css';
 
-// 8단계 묶음 4 · /preview/farewell-messages — 1단계 캔버스 1-11~1-15(유족 메시지 보관함 · 편지 쓰기 · 음성 · 상태 · 확인 창).
-// 서버·마이크 없이 예시 값으로 움직인다(녹음은 시간만 센다).
+// 10단계 묶음 10-2 · 유족 메시지 보관함 — 1단계 캔버스 1-11~1-15(보관함 · 편지 쓰기 · 음성 · 상태 · 확인 창).
+// 서버 `/api/farewell-messages` · `/api/family-designations` · `/api/stt/*`. 규칙은 지금 화면(`pages/FarewellMessagePage.tsx` · `components/farewell/*`)에서 옮겼다.
+// 정본 = 06-05(유족 메시지 보관함). 06-05 §7.2 — 엔딩노트의 "음성 메시지 남기기"가 이 화면으로 온다.
 
-interface Letter {
+const TITLE = '유족 메시지 보관함';
+
+interface Recipient extends FamilyItem {
+  scope: string;
+}
+interface MessageItem {
+  id: string;
+  recipientId: string;
+  title: string | null;
+  preview: string;
+  hasAudio: boolean;
+  mediaMime: string | null;
+  mediaDurationSec: number | null;
+  createdAt: string;
+  updatedAt: string;
+}
+interface LetterDetail {
   id: string;
   title: string;
-  date: string;
-  voice: boolean;
   body: string;
-}
-interface Person {
-  id: string;
-  name: string;
-  relation: string;
-  status: string;
-  letters: Letter[];
+  hasAudio: boolean;
+  mediaMime: string | null;
 }
 
-const PEOPLE: Person[] = [
-  {
-    id: 'kim',
-    name: '김OO',
-    relation: '자녀',
-    status: '가족으로 연결됨',
-    letters: [
-      { id: 'l1', title: '생일 축하한다', date: '2026.10.12', voice: true, body: '올해 생일에는 같이 밥을 먹지 못할 것 같아서 미리 적어 둔다. 미역국은 네가 끓인 게 제일 맛있었다.' },
-      { id: 'l2', title: '김OO에게…', date: '2026.10.03', voice: false, body: '현관 비밀번호는 예전 그대로다. 보일러는 겨울 전에 한 번 점검받아라.' },
-      { id: 'l3', title: '못다 한 말', date: '2026.09.21', voice: false, body: '그때 화를 내서 미안했다. 말로는 끝내 못 했다.' },
-    ],
-  },
-  { id: 'lee', name: '이OO', relation: '배우자', status: '수락 대기 중', letters: [{ id: 'l4', title: '고마웠던 날들', date: '2026.09.02', voice: false, body: '함께 걸었던 길이 가장 오래 남는다.' }] },
-  { id: 'park', name: '박OO', relation: '자녀', status: '아직 알리지 않음', letters: [] },
-  { id: 'choi', name: '최OO', relation: '형제', status: '거절됨', letters: [
-    { id: 'l5', title: '건강 챙기거라', date: '2026.08.15', voice: false, body: '끼니 거르지 말고 먹어라.' },
-    { id: 'l6', title: '고향집', date: '2026.08.01', voice: false, body: '고향집 열쇠는 둘째 서랍에 있다.' },
-  ] },
-];
+const STATUS_LABEL: Record<string, string> = {
+  DRAFT: '아직 알리지 않음',
+  PENDING: '수락 대기 중',
+  ACCEPTED: '가족으로 연결됨',
+  DECLINED: '거절됨',
+};
 
-const DEMOS: DemoOption[] = [
-  { value: 'normal', label: '기본' },
-  { value: 'login', label: '로그인 전' },
-  { value: 'loading', label: '불러오는 중' },
-  { value: 'nofamily', label: '지정한 가족이 없을 때' },
-  { value: 'noletters', label: '받는 분은 있고 편지가 없을 때' },
-  { value: 'loadfail', label: '불러오기 실패' },
-  { value: 'save-fail', label: '저장 실패 (저장을 누르면)', group: '편지 쓰기 창' },
-  { value: 'voice-format', label: '올리기 실패 ① 형식', group: '편지 쓰기 창' },
-  { value: 'voice-size', label: '올리기 실패 ② 용량', group: '편지 쓰기 창' },
-  { value: 'voice-stt', label: '올리기 실패 ③ 변환 실패', group: '편지 쓰기 창' },
-  { value: 'mic-denied', label: '마이크 권한 없음', group: '편지 쓰기 창' },
-  { value: 'mic-unsupported', label: '녹음 미지원 브라우저', group: '편지 쓰기 창' },
-  { value: 'stt-off', label: '음성 기능이 꺼져 있을 때', group: '편지 쓰기 창' },
-  { value: 'voice-exists', label: '이미 음성이 있을 때', group: '편지 쓰기 창' },
-  { value: 'del-fail', label: '삭제 실패 알림 (삭제하면)', group: '편지 쓰기 창' },
-];
+// 00-34 §8 — apiFetch가 던지는 ApiError는 서버 문구(5xx면 오류 번호 포함)를 그대로 보여 준다.
+const errText = (e: unknown, fallback: string): string => (e instanceof ApiError ? e.message : fallback);
 
-const fmtClock = (s: number) => `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
+// 건별 반출 파일명 — 백엔드 farewellMessageExport.ts의 규칙과 맞춘다(40자 절단·금지문자 제거).
+const sanitizeForFilename = (raw: string): string => raw.replace(/[\\/:*?"<>|]/g, '').trim().slice(0, 40) || '무제';
+
+function saveBlob(blob: Blob, name: string) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = name;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
 
 const DownIcon = ({ size = 18 }: { size?: number }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -89,106 +90,203 @@ const MicIcon = ({ size = 12 }: { size?: number }) => (
 /* ───────── 편지 쓰기 창 ───────── */
 
 type Method = 'upload' | 'record' | 'write';
-type Rec = 'idle' | 'recording' | 'done';
 
 function WriteDialog({
   person,
   letter,
-  demo,
+  sttEnabled,
+  voiceStorageEnabled,
   onClose,
-  onSaved,
-  onDelete,
+  onChanged,
 }: {
-  person: Person;
-  letter: Letter | null;
-  demo: string;
+  person: Recipient;
+  /** 고치는 편지 — 없으면 새 편지 */
+  letter: LetterDetail | null;
+  sttEnabled: boolean;
+  voiceStorageEnabled: boolean;
   onClose: () => void;
-  onSaved: (title: string, body: string, voice: boolean) => void;
-  onDelete: () => void;
+  /** 저장·삭제·음성 삭제가 서버에 반영됐다 — 부모가 목록을 다시 불러온다 */
+  onChanged: () => void;
 }) {
   const phone = useIsPhone();
   const editing = !!letter;
-  const [method, setMethod] = useState<Method>(demo === 'normal' || demo === 'save-fail' ? 'write' : demo.startsWith('mic') || demo === 'stt-off' ? 'record' : 'upload');
+  // 편지를 열 때 탭이 "저장된 기준"(첨부 음성 유무·형식)을 따라간다 — 녹음(MediaRecorder)은 거의 항상 webm으로 저장되고 업로드는 m4a·mp3·wav가 대부분이라 mediaMime이 둘을 가르는 유일한 단서다(09-08)
+  const [method, setMethod] = useState<Method>(
+    letter ? (!letter.hasAudio ? 'write' : letter.mediaMime?.includes('webm') ? 'record' : 'upload') : sttEnabled ? 'upload' : 'write',
+  );
   const [title, setTitle] = useState(letter?.title ?? '');
   const [body, setBody] = useState(letter?.body ?? '');
-  const [savedVoice, setSavedVoice] = useState(letter?.voice ?? demo === 'voice-exists');
-  const [pendingVoice, setPendingVoice] = useState(false);
-  const [keepVoice, setKeepVoice] = useState(true);
+  const [savedVoice, setSavedVoice] = useState(letter?.hasAudio ?? false);
+  const [pending, setPending] = useState<(PendingVoice & { url: string }) | null>(null);
+  const [keepVoice, setKeepVoice] = useState(true); // §5.5-3 — 기본값 켬
   const [consent, setConsent] = useState<Record<string, boolean>>({ c: false });
   const [recConsent, setRecConsent] = useState<Record<string, boolean>>({ c: false });
-  const [file, setFile] = useState<File | null>(null);
-  const [fileErr, setFileErr] = useState<string | null>(demo === 'voice-format' ? 'm4a · mp3 · wav · webm 파일만 올릴 수 있습니다.' : demo === 'voice-size' ? '파일이 너무 큽니다. 최대 20MB까지 올릴 수 있습니다.' : null);
-  const [working, setWorking] = useState(false);
-  const [workErr, setWorkErr] = useState<string | null>(demo === 'voice-stt' ? '음성 변환에 실패했습니다.\n직접 녹음이나 위 입력창에 직접 입력해 이어서 작성해 주세요.' : null);
-  const [rec, setRec] = useState<Rec>('idle');
-  const [sec, setSec] = useState(0);
   const [recAsk, setRecAsk] = useState(false);
-  const [askedOnce, setAskedOnce] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [saveErr, setSaveErr] = useState(false);
+  const [saveErr, setSaveErr] = useState<string | null>(null);
   const [closeAsk, setCloseAsk] = useState(false);
   const [voiceDel, setVoiceDel] = useState<'saved' | 'pending' | null>(null);
   const [letterDel, setLetterDel] = useState(false);
+  const [alertBox, setAlertBox] = useState<string | null>(null);
+  const [listen, setListen] = useState<'saved' | 'pending' | null>(null);
+  const [savedAudioSrc, setSavedAudioSrc] = useState<string | null>(null);
+  const [audioBusy, setAudioBusy] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+  const storedMediaRef = useRef<SavedMedia | null>(null);
+  const pendingRef = useRef(pending);
+  pendingRef.current = pending;
+  const savedAudioRef = useRef(savedAudioSrc);
+  savedAudioRef.current = savedAudioSrc;
   const alive = useRef(true);
-  useEffect(() => () => { alive.current = false; }, []);
+  useEffect(() => () => {
+    alive.current = false;
+    if (pendingRef.current) URL.revokeObjectURL(pendingRef.current.url);
+    if (savedAudioRef.current) URL.revokeObjectURL(savedAudioRef.current);
+  }, []);
 
-  useEffect(() => {
-    if (rec !== 'recording') return;
-    const t = window.setInterval(() => setSec((s) => (s >= 600 ? 600 : s + 1)), 1000);
-    return () => window.clearInterval(t);
-  }, [rec]);
+  // 변환이 끝나면 글은 입력창에만 넣고 편지는 저장하지 않는다. 원본 음성은 메모리의 "저장 전 음성"으로 둔다(R2·DB 없음).
+  const voice = useVoiceCapture((text, v) => {
+    setBody((prev) => (prev ? `${prev.trimEnd()} ${text}`.trim() : text));
+    setSaveErr(null);
+    setPending((prev) => {
+      if (prev) URL.revokeObjectURL(prev.url);
+      return { ...v, url: URL.createObjectURL(v.blob) };
+    });
+    storedMediaRef.current = null;
+    setListen(null);
+    setMethod('write');
+  });
 
-  const dirty = (!editing && (title.trim() || body.trim())) || pendingVoice || (editing && (title !== letter?.title || body !== letter?.body));
+  const voiceBlocked = savedVoice || !!pending;
+  const dirty = (!editing && (title.trim() || body.trim())) || !!pending || (editing && (title !== letter?.title || body !== letter?.body));
   const tryClose = () => (dirty ? setCloseAsk(true) : onClose());
 
-  const toText = async () => {
-    setWorking(true);
-    setWorkErr(null);
-    await sleep(1800);
-    if (!alive.current) return;
-    setWorking(false);
-    if (demo === 'voice-stt') {
-      setWorkErr('음성 변환에 실패했습니다.\n직접 녹음이나 위 입력창에 직접 입력해 이어서 작성해 주세요.');
-      return;
-    }
-    setBody((b) => (b ? `${b}\n` : '') + '민수야, 잘 지내고 있니. 이 글은 목소리로 남긴 말을 옮긴 것이다. 밥은 거르지 말고 먹어라.');
-    setPendingVoice(true);
-    setMethod('write');
-    setFile(null);
-    setRec('idle');
-    setSec(0);
+  // 저장 전 음성을 버린다 — 입력창의 글은 그대로 남는다
+  const dropPending = () => {
+    if (pending) URL.revokeObjectURL(pending.url);
+    setPending(null);
+    storedMediaRef.current = null;
+    setListen((l) => (l === 'pending' ? null : l));
   };
 
-  const onFile = (f: File | null) => {
-    if (!f) return;
-    const ext = f.name.split('.').pop()?.toLowerCase() ?? '';
-    if (!['m4a', 'mp3', 'wav', 'webm'].includes(ext)) {
-      setFile(null);
-      setFileErr('m4a · mp3 · wav · webm 파일만 올릴 수 있습니다.');
-    } else if (f.size > 20 * 1024 * 1024) {
-      setFile(null);
-      setFileErr('파일이 너무 큽니다. 최대 20MB까지 올릴 수 있습니다.');
-    } else {
-      setFileErr(null);
-      setFile(f);
-    }
+  // 원본 음성을 R2에 올린다(`POST /api/stt/store-audio`) — 편지 [저장]에서만 부른다(§5.6-9-1)
+  const storeAudio = async (v: PendingVoice): Promise<SavedMedia> => {
+    const formData = new FormData();
+    formData.append('audio', v.blob, v.blob instanceof File ? v.blob.name : `recording.${extensionForMime(v.mime)}`);
+    const data = await apiFetch<any>('/api/stt/store-audio', 'USER', { method: 'POST', body: formData });
+    if (!data?.media?.mediaKey) throw new Error('음성 저장에 실패했습니다.');
+    return {
+      mediaKey: data.media.mediaKey,
+      mediaMime: data.media.mediaMime,
+      ...(v.durationSec !== null ? { mediaDurationSec: v.durationSec } : {}),
+    };
   };
 
+  // 편지 [저장] — ① 저장 전 음성이 있고 "목소리도 함께 남기기"가 켜져 있으면 store-audio → ② 글 + mediaKey로 편지 저장.
+  // 🔴 ①의 mediaKey는 ②가 성공할 때까지 storedMediaRef에 둔다 — ②가 실패해 다시 [저장]을 눌러도 ①을 건너뛴다.
   const doSave = async () => {
-    setSaving(true);
-    setSaveErr(false);
-    await sleep(700);
-    if (!alive.current) return;
-    setSaving(false);
-    if (demo === 'save-fail') {
-      setSaveErr(true);
+    if (!body.trim()) {
+      setSaveErr('내용을 입력해 주세요.');
       return;
     }
-    onSaved(title.trim() || '제목 없음', body, savedVoice || (pendingVoice && keepVoice));
+    setSaving(true);
+    setSaveErr(null);
+    let media: SavedMedia | null = null;
+    if (pending && keepVoice && voiceStorageEnabled) {
+      media = storedMediaRef.current;
+      if (!media) {
+        try {
+          media = await storeAudio(pending);
+          storedMediaRef.current = media;
+        } catch (e) {
+          if (alive.current) {
+            setSaveErr(e instanceof Error ? e.message : '음성 저장 중 오류가 발생했습니다.');
+            setSaving(false);
+          }
+          return;
+        }
+      }
+    }
+    try {
+      const mediaFields = media ? { mediaKey: media.mediaKey, mediaMime: media.mediaMime, mediaDurationSec: media.mediaDurationSec } : {};
+      const payload = letter
+        ? { title: title.trim() || null, body, ...mediaFields }
+        : { recipientId: person.id, title: title.trim() || null, body, ...mediaFields };
+      await apiFetch<any>(`/api/farewell-messages${letter ? `/${letter.id}` : ''}`, 'USER', {
+        method: letter ? 'PATCH' : 'POST',
+        body: JSON.stringify(payload),
+      });
+      storedMediaRef.current = null;
+      onChanged();
+      onClose();
+    } catch (e) {
+      if (alive.current) {
+        setSaveErr(errText(e, '저장 중 오류가 발생했습니다.'));
+        setSaving(false);
+      }
+    }
   };
 
-  const voiceBlocked = savedVoice || pendingVoice;
+  // 저장된 음성은 GET .../audio로 받아온다 — presigned URL 없이 인증 fetch → blob → objectURL (§5.6-2)
+  const listenSaved = async () => {
+    if (!letter) return;
+    if (savedAudioSrc) {
+      setListen('saved');
+      return;
+    }
+    setAudioBusy(true);
+    try {
+      const res = await apiFetchRaw(`/api/farewell-messages/${letter.id}/audio`, 'USER');
+      if (!res.ok) throw new Error('load');
+      setSavedAudioSrc(URL.createObjectURL(await res.blob()));
+      setListen('saved');
+    } catch {
+      setAlertBox('음성을 불러오지 못했습니다.');
+    } finally {
+      if (alive.current) setAudioBusy(false);
+    }
+  };
+
+  // 소프트 삭제뿐이다 — "즉시 삭제됩니다"가 아니라 유예 기간을 안내한다(§5.6-4)
+  const deleteSavedVoice = async () => {
+    if (!letter) return;
+    setVoiceDel(null);
+    try {
+      await apiFetch(`/api/farewell-messages/${letter.id}/audio`, 'USER', { method: 'DELETE' });
+      if (!alive.current) return;
+      if (savedAudioSrc) URL.revokeObjectURL(savedAudioSrc);
+      setSavedAudioSrc(null);
+      setListen(null);
+      setSavedVoice(false);
+      onChanged();
+    } catch (e) {
+      setAlertBox(errText(e, '삭제 중 오류가 발생했습니다.'));
+    }
+  };
+
+  const deleteLetter = async () => {
+    if (!letter) return;
+    setLetterDel(false);
+    try {
+      await apiFetch(`/api/farewell-messages/${letter.id}`, 'USER', { method: 'DELETE' });
+      onChanged();
+      onClose();
+    } catch (e) {
+      setAlertBox(errText(e, '삭제 중 오류가 발생했습니다.'));
+    }
+  };
+
+  const exportLetter = async () => {
+    if (!letter) return;
+    try {
+      const res = await apiFetchRaw(`/api/farewell-messages/${letter.id}/export`, 'USER');
+      if (!res.ok) return;
+      saveBlob(await res.blob(), `eobom_유족메시지_${sanitizeForFilename(title.trim() || `${person.name}에게`)}_${kstTodayCompact()}.zip`);
+    } catch {
+      // 실패는 조용히 삼킨다 — 다시 누르면 재시도된다(전체 반출과 같은 태도)
+    }
+  };
+
   const consentUpload = [
     {
       id: 'c',
@@ -206,83 +304,88 @@ function WriteDialog({
     },
   ];
 
-  const sttOff = demo === 'stt-off';
-  const existsLine = (
-    <RdNotice tone="info" title="이미 저장된 음성이 있습니다.">
-      위의 '음성 삭제'를 누르면 다시 올리거나 녹음할 수 있습니다.
-    </RdNotice>
+  const blockedLine = pending ? (
+    <RdNotice tone="info" title="변환이 끝났습니다.">다른 음성으로 바꾸려면 위의 '삭제'를 누르세요.</RdNotice>
+  ) : (
+    <RdNotice tone="info" title="이미 저장된 음성이 있습니다.">위의 '음성 삭제'를 누르면 다시 올리거나 녹음할 수 있습니다.</RdNotice>
   );
 
   let methodBody: React.ReactNode = null;
-  if (working) {
+  if (voice.working) {
     methodBody = (
-      <div className="rd-pr-working" role="status">
-        <RdState kind="working" title="처리하고 있습니다." desc="최대 2분까지 걸릴 수 있습니다." />
+      <div className="rd-pr-working" role="status" aria-busy="true">
+        <RdState kind="working" title="처리하고 있습니다." desc={`최대 ${HEAVY_CLIENT_LIMITS.audio.maxMinutes}분까지 걸릴 수 있습니다.`} />
         <p>이 화면을 닫으면 처음부터 다시 해야 합니다.</p>
       </div>
     );
   } else if (method === 'upload') {
-    methodBody = voiceBlocked ? existsLine : sttOff ? (
+    methodBody = voiceBlocked ? blockedLine : !sttEnabled ? (
       <RdNotice tone="info" title="지금은 음성 파일 업로드를 사용할 수 없습니다.">"직접 쓰기" 탭을 이용해 주세요.</RdNotice>
     ) : (
       <div className="rd-pr-voice">
         <h4>녹음해 둔 음성 파일 올리기</h4>
-        <p className="rd-t-small" style={{ margin: 0 }}>m4a · mp3 · wav · webm, 최대 20MB · 10분 이하.</p>
+        <p className="rd-t-small" style={{ margin: 0 }}>m4a · mp3 · wav · webm, 최대 20MB · {MAX_RECORD_MINUTES}분 이하.</p>
         <RdNotice tone="info" title={phone ? '본인의 음성만 올려 주세요.' : '본인의 음성만 올려 주세요. 다른 분의 녹음은 올리지 마세요.'}>
           이 녹음으로 만든 편지는 사후에 지정한 가족에게 전달됩니다.
         </RdNotice>
         <RdConsentGroup items={consentUpload} checked={consent} onChange={setConsent} />
-        {file && <ul style={{ margin: 0, padding: 0, listStyle: 'none' }}><RdFileRow name={file.name} meta={`${(file.size / 1048576).toFixed(1)}MB`} onRemove={() => setFile(null)} /></ul>}
-        {fileErr && <p className="rd-pr-err" role="alert"><IconErrorCircle /><span>{fileErr}</span></p>}
-        {workErr && <p className="rd-pr-err" role="alert" style={{ whiteSpace: 'pre-line' }}><IconErrorCircle /><span>{workErr}</span></p>}
+        {voice.file && (
+          <ul style={{ margin: 0, padding: 0, listStyle: 'none' }}>
+            <RdFileRow name={voice.file.name} meta={`${(voice.file.size / 1048576).toFixed(1)}MB`} onRemove={voice.clearFile} />
+          </ul>
+        )}
+        {voice.fileErr && <p className="rd-pr-err" role="alert"><IconErrorCircle /><span>{voice.fileErr}</span></p>}
+        {voice.workErr && <p className="rd-pr-err" role="alert" style={{ whiteSpace: 'pre-line' }}><IconErrorCircle /><span>{voice.workErr}</span></p>}
         <div className="rd-pr-actions">
           <RdButton kind="secondary" place="dialog" onClick={() => fileRef.current?.click()}>파일 선택</RdButton>
-          <RdButton place="dialog" disabled={!consent.c || !file} onClick={toText}>업로드</RdButton>
+          <RdButton place="dialog" disabled={!consent.c || !voice.file} onClick={voice.uploadFile}>업로드</RdButton>
         </div>
-        <input ref={fileRef} type="file" accept=".m4a,.mp3,.wav,.webm,audio/*" hidden onChange={(e) => { onFile(e.target.files?.[0] ?? null); e.target.value = ''; }} />
+        <input ref={fileRef} type="file" accept=".m4a,.mp3,.wav,.webm,audio/*" hidden onChange={(e) => { void voice.pickFile(e.target.files?.[0] ?? null); e.target.value = ''; }} />
       </div>
     );
   } else if (method === 'record') {
-    methodBody = voiceBlocked ? existsLine : sttOff ? (
+    methodBody = voiceBlocked ? blockedLine : !sttEnabled ? (
       <RdNotice tone="info" title="지금은 음성 녹음을 글로 바꾸는 기능을 사용할 수 없습니다.">"직접 쓰기" 탭을 이용해 주세요.</RdNotice>
-    ) : demo === 'mic-unsupported' ? (
+    ) : !voice.recSupported || voice.micError === 'unsupported' ? (
       <RdNotice tone="info" title="이 브라우저에서는 음성 입력을 지원하지 않습니다.">아래 입력창에 직접 입력해 주세요.</RdNotice>
-    ) : demo === 'mic-denied' ? (
+    ) : voice.micError === 'denied' ? (
       <RdNotice tone="info" title="마이크를 사용할 수 없습니다.">권한을 확인하거나 아래 입력창에 직접 입력해 주세요.</RdNotice>
     ) : (
       <div className="rd-pr-voice">
         <RdConsentGroup items={consentRecord} checked={recConsent} onChange={setRecConsent} />
-        {rec === 'idle' && (
+        {voice.rec === 'idle' && (
           <div className="rd-pr-actions">
             <RdButton
               place="dialog"
               disabled={!recConsent.c}
-              onClick={() => (askedOnce ? (setRec('recording'), setSec(0)) : setRecAsk(true))}
+              onClick={() => (recordNoticeSeen() ? void voice.startRecording() : setRecAsk(true))}
             >
               녹음 시작
             </RdButton>
           </div>
         )}
-        {rec === 'recording' && (
+        {voice.rec === 'recording' && (
           <div className="rd-pr-rec">
-            <p className="rd-pr-rec__now" role="status"><span className="rd-pr-rec__dot" aria-hidden="true" />녹음 중 {fmtClock(sec)} <span className="rd-t-small">(최대 10분)</span></p>
-            <RdButton kind="secondary" place="dialog" onClick={() => setRec('done')}>녹음 멈춤</RdButton>
+            <p className="rd-pr-rec__now" role="status"><span className="rd-pr-rec__dot" aria-hidden="true" />녹음 중 {fmtClock(voice.sec)} <span className="rd-t-small">(최대 {MAX_RECORD_MINUTES}분)</span></p>
+            <RdButton kind="secondary" place="dialog" onClick={voice.stopRecording}>녹음 멈춤</RdButton>
           </div>
         )}
-        {rec === 'done' && (
+        {voice.rec === 'done' && (
           <div className="rd-pr-rec">
             <p className="rd-pr-rec__now">녹음을 마쳤습니다.</p>
             <div className="rd-pr-rec__row">
-              <RdButton kind="secondary" place="row" onClick={() => undefined}>먼저 들어보기</RdButton>
+              <RdButton kind="secondary" place="row" onClick={voice.openPreview}>먼저 들어보기</RdButton>
             </div>
+            {voice.previewUrl && <audio controls autoPlay src={voice.previewUrl} style={{ width: '100%' }} />}
             <p className="rd-t-small" style={{ margin: 0 }}>취소하면 녹음이 사라집니다.</p>
             <div className="rd-pr-actions">
-              <RdButton kind="secondary" place="dialog" onClick={() => { setRec('idle'); setSec(0); }}>취소</RdButton>
-              <RdButton place="dialog" onClick={toText}>글로 바꾸기</RdButton>
+              <RdButton kind="secondary" place="dialog" onClick={voice.discardRecording}>취소</RdButton>
+              <RdButton place="dialog" onClick={voice.convertRecording}>글로 바꾸기</RdButton>
             </div>
           </div>
         )}
-        {workErr && <p className="rd-pr-err" role="alert" style={{ whiteSpace: 'pre-line' }}><IconErrorCircle /><span>{workErr}</span></p>}
+        {voice.recNotice && <p className="rd-t-small" role="status" style={{ margin: 0 }}>{voice.recNotice}</p>}
+        {voice.workErr && <p className="rd-pr-err" role="alert" style={{ whiteSpace: 'pre-line' }}><IconErrorCircle /><span>{voice.workErr}</span></p>}
       </div>
     );
   } else {
@@ -317,12 +420,12 @@ function WriteDialog({
         closeX
         onClose={tryClose}
         footer={
-          working ? (
-            <RdButton kind="secondary" place="dialog" onClick={onClose}>닫기</RdButton>
+          voice.working ? (
+            <RdButton kind="secondary" place="dialog" onClick={voice.closeWorking}>닫기</RdButton>
           ) : (
             <>
-              <RdButton kind="secondary" place="dialog" onClick={tryClose}>취소</RdButton>
-              <RdButton place="dialog" busy={saving} busyText="저장" onClick={doSave}>저장</RdButton>
+              <RdButton kind="secondary" place="dialog" disabled={saving} onClick={tryClose}>취소</RdButton>
+              <RdButton place="dialog" busy={saving} busyText="저장" disabled={!body.trim()} onClick={doSave}>저장</RdButton>
             </>
           )
         }
@@ -331,18 +434,23 @@ function WriteDialog({
           {savedVoice && (
             <div className="rd-pr-saved">
               <b>첨부된 음성</b>
-              <RdButton kind="secondary" place="row" onClick={() => undefined}>듣기</RdButton>
+              <RdButton kind="secondary" place="row" disabled={audioBusy} onClick={listenSaved}>{audioBusy ? '불러오는 중…' : '듣기'}</RdButton>
               <RdButton kind="secondary" place="row" onClick={() => setVoiceDel('saved')}>음성 삭제</RdButton>
+              {listen === 'saved' && savedAudioSrc && <audio controls autoPlay src={savedAudioSrc} style={{ width: '100%', marginTop: 4 }} />}
             </div>
           )}
-          {pendingVoice && (
+          {pending && (
             <div className="rd-pr-saved" style={{ flexDirection: 'column', alignItems: 'stretch', padding: '8px 0' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <b>저장 전 음성</b>
-                <RdButton kind="secondary" place="row" onClick={() => undefined}>듣기</RdButton>
-                <RdButton kind="secondary" place="row" onClick={() => setVoiceDel('pending')}>삭제</RdButton>
+                <RdButton kind="secondary" place="row" disabled={saving} onClick={() => setListen('pending')}>듣기</RdButton>
+                <RdButton kind="secondary" place="row" disabled={saving} onClick={() => setVoiceDel('pending')}>삭제</RdButton>
               </div>
-              <label className="rd-choice"><input type="checkbox" className="rd-checkbox" checked={keepVoice} onChange={(e) => setKeepVoice(e.target.checked)} /><span>목소리도 함께 남기기</span></label>
+              {listen === 'pending' && <audio controls autoPlay src={pending.url} style={{ width: '100%' }} />}
+              {/* "목소리도 함께 남기기" — 저장 때 결정하는 값이라 저장 전 음성 박스에 둔다. 서버에 음성 보관이 꺼져 있으면 두지 않는다(R2_VOICE_ENABLED) */}
+              {voiceStorageEnabled && (
+                <label className="rd-choice"><input type="checkbox" className="rd-checkbox" checked={keepVoice} disabled={saving} onChange={(e) => setKeepVoice(e.target.checked)} /><span>목소리도 함께 남기기</span></label>
+              )}
               <p className="rd-t-small" style={{ margin: 0 }}>저장하면 글과 함께 저장되고, 저장 없이 닫거나 떠나면 사라집니다.</p>
             </div>
           )}
@@ -358,23 +466,20 @@ function WriteDialog({
             onChange={(v) => setMethod(v as Method)}
           />
           {methodBody}
-          {pendingVoice && method !== 'write' ? null : (
+          {pending && method !== 'write' ? null : (
             <>
               {phone && titleField}
               {bodyField}
             </>
           )}
-          {pendingVoice && method === 'write' && !working && (
-            <p className="rd-t-small" style={{ margin: 0 }}>변환이 끝났습니다. 다른 음성으로 바꾸려면 위의 '삭제'를 누르세요.</p>
-          )}
-          {pendingVoice && <p className="rd-t-small" style={{ margin: 0 }}>자동으로 바뀐 글. 확인 후 수정하세요.</p>}
+          {pending && <p className="rd-t-small" style={{ margin: 0 }}>자동으로 바뀐 글. 확인 후 수정하세요.</p>}
           {editing && (
             <div className="rd-pr-textbtns">
-              <button type="button" className="rd-pr-textbtn" onClick={() => undefined}>다운로드</button>
+              <button type="button" className="rd-pr-textbtn" onClick={exportLetter}>다운로드</button>
               <button type="button" className="rd-pr-textbtn rd-pr-textbtn--danger" onClick={() => setLetterDel(true)}>삭제</button>
             </div>
           )}
-          {saveErr && <p className="rd-pr-err" role="alert"><IconErrorCircle /><span>저장 중 오류가 발생했습니다.</span></p>}
+          {saveErr && <p className="rd-pr-err" role="alert"><IconErrorCircle /><span>{saveErr}</span></p>}
         </div>
       </RdDialog>
 
@@ -387,7 +492,7 @@ function WriteDialog({
           footer={
             <>
               <RdButton kind="secondary" place="dialog" onClick={() => setRecAsk(false)}>취소</RdButton>
-              <RdButton place="dialog" onClick={() => { setRecAsk(false); setAskedOnce(true); setRec('recording'); setSec(0); }}>확인하고 시작하기</RdButton>
+              <RdButton place="dialog" onClick={() => { setRecAsk(false); markRecordNoticeSeen(); void voice.startRecording(); }}>확인하고 시작하기</RdButton>
             </>
           }
         >
@@ -412,7 +517,10 @@ function WriteDialog({
           desc={voiceDel === 'saved' ? '30일 뒤 완전히 삭제됩니다.' : '저장하기 전이라 되돌릴 수 없습니다. 입력창의 글은 그대로 남습니다.'}
           doLabel="삭제"
           onCancel={() => setVoiceDel(null)}
-          onDo={() => { if (voiceDel === 'saved') setSavedVoice(false); else setPendingVoice(false); setVoiceDel(null); }}
+          onDo={() => {
+            if (voiceDel === 'saved') void deleteSavedVoice();
+            else { dropPending(); setVoiceDel(null); }
+          }}
         />
       )}
       {letterDel && (
@@ -421,9 +529,11 @@ function WriteDialog({
           desc="30일 뒤 완전히 삭제됩니다."
           doLabel="삭제"
           onCancel={() => setLetterDel(false)}
-          onDo={() => { setLetterDel(false); onDelete(); }}
+          onDo={() => void deleteLetter()}
         />
       )}
+      {voice.notice && <RdAlertDialog title={voice.notice} onOk={voice.clearNotice} />}
+      {alertBox && <RdAlertDialog title={alertBox} onOk={() => setAlertBox(null)} />}
     </>
   );
 }
@@ -431,81 +541,147 @@ function WriteDialog({
 /* ───────── 쪽 ───────── */
 
 export function FarewellPage() {
+  return (
+    <LoginRequired screenName={TITLE} title={TITLE} desc="가족 한 분 한 분께 따로 남기는 편지입니다. 생각날 때마다 남기세요.">
+      <FarewellBody />
+    </LoginRequired>
+  );
+}
+
+function FarewellBody() {
   const phone = useIsPhone();
   const navigate = useNavigate();
-  const [demo, setDemo] = useState('normal');
-  const [people, setPeople] = useState(PEOPLE);
-  const [sel, setSel] = useState<string | null>('kim');
-  const [writing, setWriting] = useState<{ person: Person; letter: Letter | null } | null>(null);
-  const [delAsk, setDelAsk] = useState<{ person: string; letter: string } | null>(null);
-  const [alert, setAlert] = useState(false);
+  const { showToast } = useAuth();
+  const [load, setLoad] = useState<'loading' | 'ready' | 'fail'>('loading');
+  const [people, setPeople] = useState<Recipient[]>([]);
+  const [messages, setMessages] = useState<MessageItem[]>([]);
+  const [sel, setSel] = useState<string | null>(null);
+  const [writing, setWriting] = useState<{ person: Recipient; letter: LetterDetail | null } | null>(null);
+  const [opening, setOpening] = useState<string | null>(null);
+  const [delAsk, setDelAsk] = useState<MessageItem | null>(null);
+  const [alertBox, setAlertBox] = useState<string | null>(null);
+  const [sttEnabled, setSttEnabled] = useState(false);
+  const [voiceStorageEnabled, setVoiceStorageEnabled] = useState(false); // R2_VOICE_ENABLED — /status로만 판단
+  const alive = useRef(true);
+  useEffect(() => () => { alive.current = false; }, []);
 
+  const loadAll = useCallback(() => {
+    setLoad('loading');
+    Promise.all([apiFetch<Recipient[]>('/api/family-designations', 'USER'), apiFetch<MessageItem[]>('/api/farewell-messages', 'USER')])
+      .then(([designations, msgs]) => {
+        if (!alive.current) return;
+        setPeople(designations);
+        setMessages(msgs);
+        setLoad('ready');
+      })
+      .catch(() => { if (alive.current) setLoad('fail'); });
+  }, []);
+  useEffect(loadAll, [loadAll]);
+
+  const refreshMessages = useCallback(() => {
+    apiFetch<MessageItem[]>('/api/farewell-messages', 'USER')
+      .then((d) => { if (alive.current) setMessages(d); })
+      .catch(() => { /* 목록이 한 번 안 갱신될 뿐이다 — 다음 열기 때 다시 받는다 */ });
+  }, []);
+
+  // §6.4-9-5 — 서버에 물어서만 업로드·저장 UI를 켠다(프론트에 플래그를 직접 심지 않는다)
   useEffect(() => {
-    setSel(demo === 'noletters' ? 'park' : phone ? null : 'kim');
-    const writeDemos = ['save-fail', 'voice-format', 'voice-size', 'voice-stt', 'mic-denied', 'mic-unsupported', 'stt-off', 'voice-exists'];
-    setWriting(writeDemos.includes(demo) ? { person: PEOPLE[0], letter: demo === 'voice-exists' ? PEOPLE[0].letters[0] : null } : null);
-    setAlert(false);
-  }, [demo]); // eslint-disable-line react-hooks/exhaustive-deps
+    apiFetch<{ enabled?: boolean; voiceStorageEnabled?: boolean }>('/api/stt/status')
+      .then((d) => {
+        setSttEnabled(!!d?.enabled);
+        setVoiceStorageEnabled(!!d?.voiceStorageEnabled);
+      })
+      .catch(() => {
+        setSttEnabled(false);
+        setVoiceStorageEnabled(false);
+      });
+  }, []);
+
+  // 데스크톱은 첫 사람을 미리 고른다. 모바일은 목록을 먼저 보여 주려고 고를 때까지 비워 둔다(00-38 §8.1-1 ⓕ)
+  useEffect(() => {
+    setSel((prev) => {
+      if (people.length === 0) return null;
+      if (prev && people.some((p) => p.id === prev)) return prev;
+      return phone ? null : people[0].id;
+    });
+  }, [people, phone]);
 
   const head = (
-    <RdPageHead
-      title="유족 메시지 보관함"
-      desc={phone ? undefined : '가족 한 분 한 분께 따로 남기는 편지입니다. 생각날 때마다 남기세요.'}
-    />
+    <RdPageHead title={TITLE} desc={phone ? undefined : '가족 한 분 한 분께 따로 남기는 편지입니다. 생각날 때마다 남기세요.'} />
   );
-  const demoBar = <DemoBar value={demo} options={DEMOS} onChange={setDemo} />;
 
-  if (demo === 'login') {
-    return (
-      <div className="rd-container rd-screen">
-        {head}
-        <div style={{ position: 'relative', minHeight: 520 }}><RdLoginGate screenName="유족 메시지 보관함" contained /></div>
-        {demoBar}
-      </div>
-    );
-  }
-  if (demo === 'loading') {
+  if (load === 'loading') {
     return (
       <div className="rd-container rd-screen">
         {head}
         <p className="rd-lineinfo" role="status">불러오는 중...</p>
-        {demoBar}
       </div>
     );
   }
-  if (demo === 'loadfail') {
+  if (load === 'fail') {
     return (
       <div className="rd-container rd-screen">
         {head}
         <RdState kind="error" title="화면을 불러오지 못했습니다" desc="잠시 뒤 다시 열어 주세요. 계속되면 '카카오톡 문의하기'로 알려 주세요.">
-          <RdButton kind="secondary" onClick={() => navigate('/preview')}>홈으로</RdButton>
-          <RdButton onClick={() => setDemo('normal')}>새로 고침</RdButton>
+          <RdButton kind="secondary" onClick={() => window.location.assign('/')}>홈으로</RdButton>
+          <RdButton onClick={loadAll}>새로 고침</RdButton>
         </RdState>
-        {demoBar}
       </div>
     );
   }
 
-  const list = demo === 'nofamily' ? [] : people;
-  const cur = list.find((p) => p.id === sel) ?? null;
+  const cur = people.find((p) => p.id === sel) ?? null;
+  const lettersOf = (pid: string) => messages.filter((m) => m.recipientId === pid);
+  const titleOf = (m: MessageItem, p: Recipient) => m.title || `${p.name}에게`;
 
-  const removeLetter = (pid: string, lid: string) => {
-    if (demo === 'del-fail') {
-      setAlert(true);
-      return;
+  const openLetter = async (p: Recipient, m: MessageItem) => {
+    setOpening(m.id);
+    try {
+      const d = await apiFetch<any>(`/api/farewell-messages/${m.id}`, 'USER');
+      if (!alive.current) return;
+      setWriting({ person: p, letter: { id: m.id, title: d.title || '', body: d.body || '', hasAudio: !!d.hasAudio, mediaMime: d.mediaMime ?? null } });
+    } catch (e) {
+      showToast(errText(e, '편지를 불러오는 중 오류가 발생했습니다.'), 'warn');
+    } finally {
+      if (alive.current) setOpening(null);
     }
-    setPeople((ps) => ps.map((p) => (p.id === pid ? { ...p, letters: p.letters.filter((l) => l.id !== lid) } : p)));
+  };
+
+  const removeLetter = async (m: MessageItem) => {
+    setDelAsk(null);
+    try {
+      await apiFetch(`/api/farewell-messages/${m.id}`, 'USER', { method: 'DELETE' });
+      refreshMessages();
+    } catch (e) {
+      setAlertBox(errText(e, '삭제 중 오류가 발생했습니다.'));
+    }
+  };
+
+  // 건별 · 전체 반출(zip). presigned URL이 없어 인증 fetch로 받아 blob URL을 만든 뒤 내려받는다. 실패해도 조용히 두고 다시 누르면 재시도된다(보조 기능)
+  const exportOne = async (m: MessageItem, p: Recipient) => {
+    try {
+      const res = await apiFetchRaw(`/api/farewell-messages/${m.id}/export`, 'USER');
+      if (!res.ok) return;
+      saveBlob(await res.blob(), `eobom_유족메시지_${sanitizeForFilename(titleOf(m, p))}_${kstTodayCompact()}.zip`);
+    } catch { /* 다시 누르면 재시도 */ }
+  };
+  const exportAll = async () => {
+    try {
+      const res = await apiFetchRaw('/api/farewell-messages/export', 'USER');
+      if (!res.ok) return;
+      saveBlob(await res.blob(), `eobom_유족메시지_${kstTodayCompact()}.zip`);
+    } catch { /* 다시 누르면 재시도 */ }
   };
 
   const peopleNav = (
     <ul className="rd-pr-people" aria-label="받는 분">
-      {list.map((p) => (
+      {people.map((p) => (
         <li key={p.id}>
           <button type="button" className="rd-pr-person" aria-current={!phone && sel === p.id ? 'true' : undefined} onClick={() => setSel(p.id)}>
             <span className="rd-pr-avatar" aria-hidden="true">{p.name[0]}</span>
             <span className="rd-pr-person__text">
               <b>{p.name}</b>
-              <span>{p.relation} · {p.letters.length}통</span>
+              <span>{relationLabel(p)} · {lettersOf(p.id).length}통</span>
             </span>
             <span className="rd-pr-person__chev"><IconChevronRight /></span>
           </button>
@@ -514,51 +690,55 @@ export function FarewellPage() {
     </ul>
   );
 
-  const detail = cur && (
-    <section className="rd-pr-mail__main" aria-label={`${cur.name}님께 남기는 글`}>
-      <div className="rd-pr-mail__head">
-        <div>
-          <h2 className="rd-t-section">{cur.name}님께 남기는 글</h2>
-          {phone ? (
-            <>
-              <p>총 {cur.letters.length}통의 편지가 보관되어 있습니다</p>
-              <p style={{ marginTop: 6 }}><RdBadge kind={cur.status === '가족으로 연결됨' ? 'done' : 'state'}>{cur.status}</RdBadge></p>
-            </>
-          ) : (
-            <p>총 {cur.letters.length}통의 편지가 보관되어 있습니다 · {cur.status}</p>
-          )}
+  const detail = cur && (() => {
+    const letters = lettersOf(cur.id);
+    const status = STATUS_LABEL[cur.status] || cur.status;
+    return (
+      <section className="rd-pr-mail__main" aria-label={`${cur.name}님께 남기는 글`}>
+        <div className="rd-pr-mail__head">
+          <div>
+            <h2 className="rd-t-section">{cur.name}님께 남기는 글</h2>
+            {phone ? (
+              <>
+                <p>총 {letters.length}통의 편지가 보관되어 있습니다</p>
+                <p style={{ marginTop: 6 }}><RdBadge kind={cur.status === 'ACCEPTED' ? 'done' : 'state'}>{status}</RdBadge></p>
+              </>
+            ) : (
+              <p>총 {letters.length}통의 편지가 보관되어 있습니다 · {status}</p>
+            )}
+          </div>
+          <div className="rd-pr-mail__tools">
+            <RdIconButton label="전체 다운로드" bordered={phone} onClick={exportAll}><DownIcon size={20} /></RdIconButton>
+            <RdButton place="row" onClick={() => setWriting({ person: cur, letter: null })}>새 편지 쓰기</RdButton>
+          </div>
         </div>
-        <div className="rd-pr-mail__tools">
-          <RdIconButton label="전체 다운로드" bordered={phone} onClick={() => undefined}><DownIcon size={20} /></RdIconButton>
-          <RdButton place="row" onClick={() => setWriting({ person: cur, letter: null })}>새 편지 쓰기</RdButton>
-        </div>
-      </div>
-      {cur.letters.length === 0 ? (
-        <p className="rd-lineinfo">아직 남긴 편지가 없습니다.</p>
-      ) : (
-        <ul className="rd-pr-letters">
-          {cur.letters.map((l) => (
-            <li className="rd-pr-letter" key={l.id}>
-              <button type="button" className="rd-pr-letter__open" onClick={() => setWriting({ person: cur, letter: l })}>
-                <span className="rd-pr-letter__meta">
-                  {l.voice ? (
-                    <RdBadge kind="state"><MicIcon /> 음성 첨부</RdBadge>
-                  ) : (
-                    <RdBadge kind="draft"><IconDoc size={12} /> 텍스트</RdBadge>
-                  )}
-                  <span>{l.date}</span>
-                </span>
-                <span className="rd-pr-letter__title">{l.title}</span>
-                <span className="rd-pr-letter__peek">{l.body}</span>
-              </button>
-              <RdIconButton label="다운로드" onClick={() => undefined}><DownIcon /></RdIconButton>
-              <RdIconButton label="편지 삭제" className="rd-pr-iconbtn--danger" onClick={() => setDelAsk({ person: cur.id, letter: l.id })}><TrashIcon /></RdIconButton>
-            </li>
-          ))}
-        </ul>
-      )}
-    </section>
-  );
+        {letters.length === 0 ? (
+          <p className="rd-lineinfo">아직 남긴 편지가 없습니다.</p>
+        ) : (
+          <ul className="rd-pr-letters">
+            {letters.map((m) => (
+              <li className="rd-pr-letter" key={m.id}>
+                <button type="button" className="rd-pr-letter__open" disabled={opening === m.id} onClick={() => void openLetter(cur, m)}>
+                  <span className="rd-pr-letter__meta">
+                    {m.hasAudio ? (
+                      <RdBadge kind="state"><MicIcon /> 음성 첨부</RdBadge>
+                    ) : (
+                      <RdBadge kind="draft"><IconDoc size={12} /> 텍스트</RdBadge>
+                    )}
+                    <span>{formatKstDate(m.createdAt, '.')}</span>
+                  </span>
+                  <span className="rd-pr-letter__title">{titleOf(m, cur)}</span>
+                  <span className="rd-pr-letter__peek">{m.preview}</span>
+                </button>
+                <RdIconButton label="다운로드" onClick={() => void exportOne(m, cur)}><DownIcon /></RdIconButton>
+                <RdIconButton label="편지 삭제" className="rd-pr-iconbtn--danger" onClick={() => setDelAsk(m)}><TrashIcon /></RdIconButton>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+    );
+  })();
 
   const endingLink = (
     <div className="rd-pr-linkrow">
@@ -567,23 +747,25 @@ export function FarewellPage() {
     </div>
   );
 
+  const goFamily = () => navigate('/preview/mypage');
+
   return (
     <div className="rd-container rd-screen rd-pr-farewell">
       {head}
-      {!phone && list.length > 0 && (
+      {!phone && people.length > 0 && (
         <RdNotice tone="info" title="여기에 남기신 글과 음성은 사망 확인 후 지정하신 분에게 전달됩니다." />
       )}
 
-      {list.length === 0 ? (
+      {people.length === 0 ? (
         <div className="rd-pr-mailnone">
           {!phone && (
             <div style={{ width: 280, flex: 'none' }}>
-              <RdButton kind="secondary" place="row" onClick={() => undefined}>가족 추가</RdButton>
+              <RdButton kind="secondary" place="row" onClick={goFamily}>가족 추가</RdButton>
             </div>
           )}
           <div style={{ flex: 1 }}>
             <RdState kind="empty" title="아직 지정된 가족이 없습니다" desc={phone ? '받으실 분을 먼저 가족으로 지정해 주세요.' : '편지를 남기려면 먼저 받으실 분을 가족으로 지정해 주세요. 수신자가 없으면 사후에도 전달되지 않습니다.'}>
-              {phone && <RdButton onClick={() => undefined}>가족 추가</RdButton>}
+              {phone && <RdButton onClick={goFamily}>가족 추가</RdButton>}
             </RdState>
           </div>
         </div>
@@ -602,33 +784,17 @@ export function FarewellPage() {
           {detail}
         </div>
       )}
-      {list.length > 0 && endingLink}
-      {demoBar}
+      {people.length > 0 && endingLink}
 
       {writing && (
         <WriteDialog
-          key={`${writing.person.id}-${writing.letter?.id ?? 'new'}-${demo}`}
+          key={`${writing.person.id}-${writing.letter?.id ?? 'new'}`}
           person={writing.person}
           letter={writing.letter}
-          demo={demo}
+          sttEnabled={sttEnabled}
+          voiceStorageEnabled={voiceStorageEnabled}
           onClose={() => setWriting(null)}
-          onSaved={(title, body, voice) => {
-            const { person, letter } = writing;
-            setPeople((ps) =>
-              ps.map((p) =>
-                p.id !== person.id
-                  ? p
-                  : {
-                      ...p,
-                      letters: letter
-                        ? p.letters.map((l) => (l.id === letter.id ? { ...l, title, body, voice } : l))
-                        : [{ id: `n${Date.now()}`, title, body, voice, date: '2026.10.22' }, ...p.letters],
-                    },
-              ),
-            );
-            setWriting(null);
-          }}
-          onDelete={() => { removeLetter(writing.person.id, writing.letter!.id); setWriting(null); }}
+          onChanged={refreshMessages}
         />
       )}
       {delAsk && (
@@ -637,10 +803,10 @@ export function FarewellPage() {
           desc="30일 뒤 완전히 삭제됩니다."
           doLabel="삭제"
           onCancel={() => setDelAsk(null)}
-          onDo={() => { removeLetter(delAsk.person, delAsk.letter); setDelAsk(null); }}
+          onDo={() => void removeLetter(delAsk)}
         />
       )}
-      {alert && <RdAlertDialog title="삭제 중 오류가 발생했습니다." onOk={() => setAlert(false)} />}
+      {alertBox && <RdAlertDialog title={alertBox} onOk={() => setAlertBox(null)} />}
     </div>
   );
 }

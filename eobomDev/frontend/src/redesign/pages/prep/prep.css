@@ -480,6 +480,33 @@
   flex-direction: column;
   gap: 12px;
 }
+/* 10-2: 실제 사진 — 줄무늬 견본의 안쪽 여백·세로 비율을 걷고 그림 비율 그대로 */
+.rd-root .rd-pr-photo__page--img {
+  display: block;
+  aspect-ratio: auto;
+  padding: 0;
+  line-height: 0;
+}
+.rd-root .rd-pr-photo__img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.rd-root .rd-pr-rq__btn--static {
+  cursor: default;
+}
+.rd-root .rd-pr-rq__btn--static:hover {
+  background: transparent;
+}
+.rd-root .rd-pr-rq__ev {
+  flex-basis: 100%;
+  order: 3;
+  font-size: 14px;
+  color: var(--rd-ink-support);
+}
+.rd-root .rd-pr-ocr__page + .rd-pr-ocr__page {
+  margin-top: 16px;
+}
 .rd-root .rd-pr-photo__line {
   height: 8px;
   background: var(--rd-shadow);
@@ -526,8 +553,9 @@
   align-items: center;
   gap: 12px;
   width: 100%;
+  flex-wrap: wrap;
   min-height: 48px;
-  padding: 0 4px;
+  padding: 8px 4px;
   background: transparent;
   border: 0;
   border-bottom: 1px dotted var(--rd-dot);

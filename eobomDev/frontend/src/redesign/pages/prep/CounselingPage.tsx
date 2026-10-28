@@ -1,59 +1,66 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { ApiError, apiFetch } from '../../../lib/api';
+import { useProfileContact } from '../../../hooks/useProfileContact';
+import { calculateInheritanceTax, type InheritanceTaxBreakdown } from '../../../utils/inheritanceTax';
+import { COUNSELING_SITUATIONS, type CounselingSituation } from '../../../utils/counselingSituations';
+import { LoginRequired } from '../../auth/LoginRequired';
 import { RdBranchButton, RdButton, RdTextLink } from '../../parts/RdButtons';
 import { RdList, RdListRow } from '../../parts/RdCards';
 import { RdChips, RdConsentGroup, RdField, RdInput, RdTextarea, RdCheck } from '../../parts/RdInputs';
 import { RdPageHead } from '../../parts/RdNav';
-import { RdAlertDialog, RdDialog, RdLoginGate } from '../../parts/RdModal';
+import { RdAlertDialog, RdDialog } from '../../parts/RdModal';
 import { RdState } from '../../parts/RdState';
 import { IconWarn } from '../../parts/icons';
 import { useIsPhone } from '../../useIsPhone';
-import { calculateInheritanceTax, type InheritanceTaxBreakdown } from '../../../utils/inheritanceTax';
-import { DemoBar, sleep, type DemoOption } from './prepCommon';
+import './prep.css';
 
-// 8단계 묶음 4 · /preview/counseling — 1단계 캔버스 1-16~1-20(전문가 상담 · 상황 고르기 · 상세 · 신청 · 상속세 · 상태·알림).
-// 전문가·금액·접수번호는 모두 예시. 서버 없이 움직인다.
+// 10단계 묶음 10-2 · 전문가 상담 — 1단계 캔버스 1-16~1-20(전문가 상담 · 상황 고르기 · 상세 · 신청 · 상속세 · 상태·알림).
+// 서버 `GET /api/experts` · `POST /api/experts/:id/consult-requests` · `GET /api/me/profile`. 규칙은 지금 화면(`pages/CounselingPage.tsx` · `components/expert/ConsultRequestModal.tsx`)에서 옮겼다.
+// 정본 = 02-05(전문가 상담 화면) · 02-03 §4(상담 신청).
 
-interface Expert {
+const TITLE = '상속 · 법률 · 세무 전문가 상담';
+const DESC = '분야별 전문가 상담 신청 및 상속세 시뮬레이터';
+
+// 상황 모달 "처음 1회 자동" 표시용 — 계정이 아니라 브라우저 기준(02-05 §2.2 ①)
+const SITUATION_SEEN_KEY = 'eobom_counseling_situation_seen';
+const hasSeenSituationModal = (): boolean => {
+  try {
+    return localStorage.getItem(SITUATION_SEEN_KEY) === '1';
+  } catch {
+    return false;
+  }
+};
+const markSituationModalSeen = () => {
+  try {
+    localStorage.setItem(SITUATION_SEEN_KEY, '1');
+  } catch {
+    // 저장 불가 환경 — 매번 열려도 화면은 정상 동작
+  }
+};
+
+// docs/02_전문가_매칭/02-05 §3.3의 5대 직역. 순서 = 탭 노출 순서.
+const CATEGORIES: { value: string; label: string }[] = [
+  { value: 'LAWYER', label: '상속 변호사' },
+  { value: 'JUDICIAL_SCRIVENER', label: '상속 법무사' },
+  { value: 'TAX_ACCOUNTANT', label: '상속세 세무사' },
+  { value: 'ADMINISTRATIVE_SCRIVENER', label: '행정사' },
+  { value: 'FUNERAL_DIRECTOR', label: '장례 지도사' },
+];
+const ALL = '전체';
+const labelOf = (value: string) => CATEGORIES.find((c) => c.value === value)?.label ?? value;
+const valueOf = (label: string) => CATEGORIES.find((c) => c.label === label)?.value ?? label;
+
+interface PublicExpert {
   id: string;
+  category: string;
   name: string;
-  field: string;
-  intro: string;
-  license: string;
-  tags: string;
-  office: string;
+  licenseOrg: string | null;
+  bio: string | null;
+  specialties: string[];
+  /** 02-03 §4.3 — 공개 필드(의뢰인이 방문하려면 알아야 하는 정보) */
+  officeAddress: string | null;
+  createdAt: string;
 }
-const EXPERTS: Expert[] = [
-  { id: 'e1', name: '김OO', field: '상속 변호사', intro: '상속 분쟁 · 유류분 청구 상담', license: '서울지방변호사회', tags: '#상속 #유류분 #상속포기', office: '서울특별시 서초구 OO로 00' },
-  { id: 'e2', name: '이OO', field: '상속 법무사', intro: '부동산 상속등기 · 자동차 명의 이전', license: '대한법무사협회', tags: '#상속등기 #명의이전', office: '서울특별시 강남구 OO로 00' },
-  { id: 'e3', name: '박OO', field: '상속세 세무사', intro: '상속세 신고 · 취득세 상담', license: '한국세무사회', tags: '#상속세 #취득세', office: '서울특별시 송파구 OO로 00' },
-  { id: 'e4', name: '최OO', field: '행정사', intro: '사망 관련 행정 서류 · 각종 신고 대행', license: '행정사 자격증', tags: '#행정서류 #신고대행', office: '서울특별시 마포구 OO로 00' },
-  { id: 'e5', name: '정OO', field: '장례 지도사', intro: '장례 절차 안내 · 장례식장 연결', license: '장례지도사 자격증', tags: '#장례절차 #장례식장', office: '서울특별시 종로구 OO로 00' },
-];
-const FIELDS = ['상속 변호사', '상속 법무사', '상속세 세무사', '행정사', '장례 지도사'];
-
-interface Situation {
-  title: string;
-  fields: string[];
-  deadline?: string;
-}
-const SITUATIONS: Situation[] = [
-  { title: '고인에게 빚이 있을 수 있습니다', fields: ['상속 변호사', '상속 법무사'], deadline: '사망을 안 날부터 3개월 안에 상속포기·한정승인 신청' },
-  { title: '부동산·자동차 명의를 바꿔야 합니다', fields: ['상속 법무사'] },
-  { title: '상속세·취득세를 알아봐야 합니다', fields: ['상속세 세무사'] },
-  { title: '가족 간에 의견이 다릅니다', fields: ['상속 변호사'] },
-  { title: '행정 서류·신고가 남아 있습니다', fields: ['행정사'] },
-  { title: '장례 절차를 상담하고 싶습니다', fields: ['장례 지도사'] },
-];
-
-const DEMOS: DemoOption[] = [
-  { value: 'normal', label: '기본' },
-  { value: 'login', label: '로그인 전' },
-  { value: 'loading', label: '불러오는 중' },
-  { value: 'empty-all', label: '빈 화면 (전체)' },
-  { value: 'empty-field', label: '빈 화면 (분야를 골랐을 때)' },
-  { value: 'noconsent', label: '알림 ④ 동의하지 않고 신청 (신청 창이 열림)', group: '신청·알림' },
-  { value: 'servererr', label: '알림 ⑥ 서버 오류 (신청하면)', group: '신청·알림' },
-];
 
 /* ───────── 상속세 간이 계산 (1-19) ───────── */
 
@@ -149,37 +156,65 @@ function TaxDialog({ onClose }: { onClose: () => void }) {
 
 /* ───────── 상담 신청 창 (1-18) ───────── */
 
-const METHODS = ['카카오 알림톡', '전화', '화상 상담', '방문'];
+const METHODS: { value: string; label: string }[] = [
+  { value: 'ALIMTALK', label: '카카오 알림톡' },
+  { value: 'PHONE', label: '전화' },
+  { value: 'VIDEO', label: '화상 상담' },
+  { value: 'VISIT', label: '방문' },
+];
 
-function RequestDialog({ expert, demo, onClose, onDone }: { expert: Expert; demo: string; onClose: () => void; onDone: (msg: { title: string; desc?: string }) => void }) {
-  const [useMine, setUseMine] = useState(true);
+function RequestDialog({ expert, onClose, onDone }: { expert: PublicExpert; onClose: () => void; onDone: (msg: { title: string; desc?: string }) => void }) {
+  // 00-28 §6.4 — 저장된 연락처 재사용. 연락처는 마스킹돼 오고, 제출 때는 값이 아니라 "프로필 걸 쓰겠다"는 의사만 보낸다
+  const { maskedPhone, profileName, useProfileContact: useMine, setUseProfileContact: setUseMine, saveToProfile: saveMine, setSaveToProfile: setSaveMine } = useProfileContact();
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
-  const [saveMine, setSaveMine] = useState(false);
-  const [method, setMethod] = useState<string[]>(['카카오 알림톡']);
+  const [channel, setChannel] = useState('ALIMTALK');
   const [when, setWhen] = useState('');
   const [text, setText] = useState('');
   const [agree, setAgree] = useState<Record<string, boolean>>({ c: false });
   const [busy, setBusy] = useState(false);
-  const [alert, setAlert] = useState<{ title: string; desc?: string } | null>(null);
+  const [alertBox, setAlertBox] = useState<{ title: string; desc?: string } | null>(null);
   const alive = useRef(true);
   useEffect(() => () => { alive.current = false; }, []);
 
   const submit = async () => {
     if (!agree.c) {
-      setAlert({ title: '개인정보 제3자 제공에 동의해야 상담을 신청할 수 있습니다.' });
+      setAlertBox({ title: '개인정보 제3자 제공에 동의해야 상담을 신청할 수 있습니다.' });
+      return;
+    }
+    if (!useMine && (!name.trim() || !phone.trim())) {
+      setAlertBox({ title: '이름과 연락처를 입력해 주세요.' });
+      return;
+    }
+    if (!text.trim()) {
+      setAlertBox({ title: '상담 희망 내용을 입력해 주세요.' });
       return;
     }
     setBusy(true);
-    await sleep(900);
-    if (!alive.current) return;
-    setBusy(false);
-    if (demo === 'servererr') {
-      setAlert({ title: '서버와 통신 중 오류가 발생했습니다.' });
-      return;
+    try {
+      const data = await apiFetch<{ requestNo: string }>(`/api/experts/${expert.id}/consult-requests`, 'USER', {
+        method: 'POST',
+        body: JSON.stringify({
+          ...(useMine ? {} : { applicantName: name, applicantPhone: phone }),
+          useProfileContact: useMine,
+          saveToProfile: !useMine && saveMine,
+          channel,
+          preferredAt: when || undefined,
+          content: text,
+          contextType: 'POST_DEATH',
+          thirdPartyConsent: agree.c,
+        }),
+      });
+      if (!alive.current) return;
+      onDone({ title: `[${expert.name}]님께 상담 신청이 접수되었습니다.`, desc: `접수번호: ${data.requestNo}\n(문의 시 이 번호를 말씀해주시면 빠르게 확인 가능합니다)` });
+    } catch (e) {
+      if (alive.current) setAlertBox({ title: e instanceof ApiError ? e.message : '서버와 통신 중 오류가 발생했습니다.' });
+    } finally {
+      if (alive.current) setBusy(false);
     }
-    onDone({ title: `[${expert.name}]님께 상담 신청이 접수되었습니다.`, desc: '접수번호: EC-261014-0001\n(문의 시 이 번호를 말씀해주시면 빠르게 확인 가능합니다)' });
   };
+
+  const methodLabel = METHODS.find((m) => m.value === channel)?.label ?? METHODS[0].label;
 
   return (
     <>
@@ -190,20 +225,30 @@ function RequestDialog({ expert, demo, onClose, onDone }: { expert: Expert; demo
         onClose={onClose}
         footer={
           <>
-            <RdButton kind="secondary" place="dialog" onClick={onClose}>취소</RdButton>
+            <RdButton kind="secondary" place="dialog" disabled={busy} onClick={onClose}>취소</RdButton>
             <RdButton place="dialog" busy={busy} busyText="전송 중..." onClick={submit}>상담 신청</RdButton>
           </>
         }
       >
         <div className="rd-formstack">
           <p className="rd-dialog__desc">신청 내용을 남겨주시면 전문가가 확인 후 연락드립니다.</p>
-          <RdCheck label="내 정보 사용 (010-****-5678)" checked={useMine} onChange={(e) => setUseMine(e.target.checked)} />
-          <RdField label="이름" required>{(p) => <RdInput {...p} disabled={useMine} value={useMine ? '김OO' : name} onChange={(e) => setName(e.target.value)} />}</RdField>
-          <RdField label="연락처" required>{(p) => <RdInput {...p} inputMode="tel" disabled={useMine} value={useMine ? '010-1234-5678' : phone} onChange={(e) => setPhone(e.target.value)} />}</RdField>
+          {maskedPhone && <RdCheck label={`내 정보 사용 (${maskedPhone})`} checked={useMine} onChange={(e) => setUseMine(e.target.checked)} />}
+          <RdField label="이름" required>{(p) => <RdInput {...p} disabled={useMine} value={useMine ? profileName || '' : name} onChange={(e) => setName(e.target.value)} />}</RdField>
+          <RdField label="연락처" required>{(p) => <RdInput {...p} inputMode="tel" placeholder="010-0000-0000" disabled={useMine} value={useMine ? maskedPhone || '' : phone} onChange={(e) => setPhone(e.target.value)} />}</RdField>
           {!useMine && <RdCheck label="다음에도 쓸 수 있게 내 정보에 저장" checked={saveMine} onChange={(e) => setSaveMine(e.target.checked)} />}
-          <RdChips label="희망 상담 방식" options={METHODS} value={method} onChange={(v) => setMethod(v.length ? v : method)} />
+          <RdChips
+            label="희망 상담 방식"
+            options={METHODS.map((m) => m.label)}
+            value={[methodLabel]}
+            onChange={(v) => {
+              const hit = METHODS.find((m) => m.label === v[0]);
+              if (hit) setChannel(hit.value);
+            }}
+          />
           <RdField label="희망 상담 일시 (선택)">{(p) => <RdInput {...p} type="datetime-local" value={when} onChange={(e) => setWhen(e.target.value)} />}</RdField>
-          <RdField label="상담 희망 내용">{(p) => <RdTextarea {...p} rows={4} maxLength={1000} value={text} onChange={(e) => setText(e.target.value)} />}</RdField>
+          <RdField label="상담 희망 내용">
+            {(p) => <RdTextarea {...p} rows={4} maxLength={1000} value={text} placeholder="궁금하신 내용을 남겨주세요 (예: 상속세 절세 방안, 유언장 작성 관련 등)" onChange={(e) => setText(e.target.value)} />}
+          </RdField>
           <div className="rd-pr-voice">
             <RdConsentGroup
               items={[
@@ -211,7 +256,8 @@ function RequestDialog({ expert, demo, onClose, onDone }: { expert: Expert; demo
                   id: 'c',
                   label: '개인정보 제3자 제공에 동의합니다.',
                   required: true,
-                  desc: `제공받는 자: ${expert.name} (이어봄 입점 전문가)\n제공 목적: 상담 안내 및 연락\n제공 항목: 이름, 연락처, 상담 희망 내용\n보유 기간: 목적 달성 후 파기`,
+                  // 보유기간 문구 = 02-03 §4(10-15 개발자 결정) · 00-19 제5조와 같다
+                  desc: `제공받는 자: ${expert.name} (이어봄 입점 전문가)\n제공 목적: 상담 안내 및 연락\n제공 항목: 이름, 연락처, 상담 희망 내용\n보유 기간: 상담이 끝날 때까지(최대 신청일부터 90일)`,
                 },
               ]}
               checked={agree}
@@ -220,7 +266,7 @@ function RequestDialog({ expert, demo, onClose, onDone }: { expert: Expert; demo
           </div>
         </div>
       </RdDialog>
-      {alert && <RdAlertDialog title={alert.title} desc={alert.desc} onOk={() => setAlert(null)} />}
+      {alertBox && <RdAlertDialog title={alertBox.title} desc={alertBox.desc} onOk={() => setAlertBox(null)} />}
     </>
   );
 }
@@ -228,28 +274,48 @@ function RequestDialog({ expert, demo, onClose, onDone }: { expert: Expert; demo
 /* ───────── 쪽 ───────── */
 
 export function CounselingPage() {
+  return (
+    <LoginRequired screenName="전문가 상담" title="전문가 상담" desc="분야별 상담 신청 및 상속세 자동 시뮬레이터">
+      <CounselingBody />
+    </LoginRequired>
+  );
+}
+
+function CounselingBody() {
   const phone = useIsPhone();
-  const [demo, setDemo] = useState('normal');
-  const [situation, setSituation] = useState<Situation | null>(null);
-  const [fields, setFields] = useState<string[]>([]);
-  const [picking, setPicking] = useState(true);
-  const [detail, setDetail] = useState<Expert | null>(null);
-  const [request, setRequest] = useState<Expert | null>(null);
+  const [situation, setSituation] = useState<CounselingSituation | null>(null);
+  /** 켜진 분야(서버 코드) — 비어 있으면 "전체". 상황을 고르면 그 상황의 직역 전부(02-05 §2.2 ③) */
+  const [cats, setCats] = useState<string[]>([]);
+  const [picking, setPicking] = useState(() => !hasSeenSituationModal());
+  const [experts, setExperts] = useState<PublicExpert[]>([]);
+  const [load, setLoad] = useState<'loading' | 'ready' | 'fail'>('loading');
+  const [detail, setDetail] = useState<PublicExpert | null>(null);
+  const [request, setRequest] = useState<PublicExpert | null>(null);
   const [tax, setTax] = useState(false);
   const [done, setDone] = useState<{ title: string; desc?: string } | null>(null);
 
+  // 자동으로 뜬 모달도 "봤음"으로 남긴다 — 닫는 방식과 상관없이 다음 방문엔 자동으로 안 뜬다
   useEffect(() => {
-    setSituation(null);
-    setFields(demo === 'empty-field' ? ['상속 변호사'] : []);
-    setPicking(demo === 'normal');
-    setDetail(null);
-    setRequest(demo === 'noconsent' || demo === 'servererr' ? EXPERTS[0] : null);
-  }, [demo]);
+    if (picking) markSituationModalSeen();
+  }, [picking]);
+
+  const catParam = cats.join(',');
+  const fetchExperts = useCallback(() => {
+    let live = true;
+    setLoad('loading');
+    const qs = new URLSearchParams();
+    if (catParam) qs.set('category', catParam);
+    apiFetch<PublicExpert[]>(`/api/experts?${qs.toString()}`)
+      .then((d) => { if (live) { setExperts(d); setLoad('ready'); } })
+      .catch(() => { if (live) setLoad('fail'); });
+    return () => { live = false; };
+  }, [catParam]);
+  useEffect(() => fetchExperts(), [fetchExperts]);
 
   const head = (
     <RdPageHead
-      title="상속 · 법률 · 세무 전문가 상담"
-      desc="분야별 전문가 상담 신청 및 상속세 시뮬레이터"
+      title={TITLE}
+      desc={DESC}
       actions={
         <>
           <RdButton kind="secondary" onClick={() => setTax(true)}>상속세 계산하기</RdButton>
@@ -258,59 +324,57 @@ export function CounselingPage() {
       }
     />
   );
-  const demoBar = <DemoBar value={demo} options={DEMOS} onChange={setDemo} />;
-
-  if (demo === 'login') {
-    return (
-      <div className="rd-container rd-screen">
-        <RdPageHead title="전문가 상담" desc="분야별 상담 신청 및 상속세 자동 시뮬레이터" />
-        <div style={{ position: 'relative', minHeight: 520 }}><RdLoginGate screenName="전문가 상담" contained /></div>
-        {demoBar}
-      </div>
-    );
-  }
-
-  const shown = demo === 'empty-all' || demo === 'empty-field' ? [] : EXPERTS.filter((e) => fields.length === 0 || fields.includes(e.field));
 
   return (
     <div className="rd-container rd-screen">
       {head}
 
+      {/* 고른 상황 한 줄 + 다시 고르기(02-05 §2.2 ③) */}
       {situation && (
         <div className="rd-pr-situation">
-          {situation.deadline && (
-            <p className="rd-pr-situation__deadline"><IconWarn size={16} />{situation.deadline}</p>
+          {situation.deadlineNote && (
+            <p className="rd-pr-situation__deadline"><IconWarn size={16} />{situation.deadlineNote}</p>
           )}
           <div className="rd-pr-situation__row">
-            <span className="rd-pr-situation__name">{situation.title}</span>
+            <span className="rd-pr-situation__name">{situation.label}</span>
             <RdTextLink href="#" onClick={(e) => { e.preventDefault(); setPicking(true); }}>다시 고르기</RdTextLink>
           </div>
         </div>
       )}
 
-      <RdChips label="분야" options={['전체', ...FIELDS]} value={fields.length === 0 ? ['전체'] : fields} multiple onChange={(v) => {
-        const next = v.filter((x) => x !== '전체');
-        // 방금 눌러서 "전체"가 새로 들어왔으면 모두 풀고, 분야가 새로 들어왔으면 그 분야만 남긴다
-        setFields(v.includes('전체') && fields.length > 0 ? [] : next);
-      }} />
+      {/* 분야를 직접 누르면 상황 줄이 사라진다(02-05 §2.2 ③) */}
+      <RdChips
+        label="분야"
+        options={[ALL, ...CATEGORIES.map((c) => c.label)]}
+        value={cats.length === 0 ? [ALL] : cats.map(labelOf)}
+        multiple
+        onChange={(v) => {
+          setSituation(null);
+          const next = v.filter((x) => x !== ALL).map(valueOf);
+          // 방금 눌러서 "전체"가 새로 들어왔으면 모두 풀고, 분야가 새로 들어왔으면 그 분야만 남긴다
+          setCats(v.includes(ALL) && cats.length > 0 ? [] : next);
+        }}
+      />
 
-      {demo === 'loading' ? (
+      {load === 'loading' ? (
         <p className="rd-lineinfo" role="status">불러오는 중...</p>
-      ) : shown.length === 0 ? (
+      ) : load === 'fail' ? (
+        <RdState kind="error" title="전문가 목록을 불러오지 못했습니다." desc="잠시 뒤 다시 시도해 주세요.">
+          <RdButton onClick={fetchExperts}>다시 불러오기</RdButton>
+        </RdState>
+      ) : experts.length === 0 ? (
         <RdState
           kind="empty"
-          title={demo === 'empty-field' ? '상속 변호사 분야에 입점한 전문가가 아직 없습니다.' : '아직 입점한 전문가가 없습니다.'}
+          title={cats.length === 0 ? '아직 입점한 전문가가 없습니다.' : `${cats.map(labelOf).join('·')} 분야에 입점한 전문가가 아직 없습니다.`}
           desc="준비되는 대로 순차적으로 노출됩니다."
         />
       ) : (
         <RdList label="전문가">
-          {shown.map((e) => (
-            <RdListRow key={e.id} title={e.name} info={phone ? e.field : `${e.field} · ${e.intro}`} onClick={() => setDetail(e)} />
+          {experts.map((e) => (
+            <RdListRow key={e.id} title={e.name} info={phone || !e.bio ? labelOf(e.category) : `${labelOf(e.category)} · ${e.bio}`} onClick={() => setDetail(e)} />
           ))}
         </RdList>
       )}
-
-      {demoBar}
 
       {picking && (
         <RdDialog
@@ -320,13 +384,13 @@ export function CounselingPage() {
           footer={<RdButton kind="secondary" place="dialog" onClick={() => setPicking(false)}>닫기</RdButton>}
         >
           <div className="rd-pr-picks">
-            {SITUATIONS.map((s, i) => (
+            {COUNSELING_SITUATIONS.map((s, i) => (
               <RdBranchButton
-                key={s.title}
+                key={s.id}
                 tone={i === 0 ? 'primary' : 'secondary'}
-                title={s.title}
-                desc={`${s.fields.join(' · ')}${s.deadline ? ' · 기한 3개월' : ''}`}
-                onClick={() => { setSituation(s); setFields(s.fields); setPicking(false); }}
+                title={s.label}
+                desc={`${s.categories.map(labelOf).join(' · ')}${s.deadline ? ` · ${s.deadline}` : ''}`}
+                onClick={() => { setSituation(s); setCats(s.categories); setPicking(false); }}
               />
             ))}
           </div>
@@ -345,11 +409,11 @@ export function CounselingPage() {
           }
         >
           <dl className="rd-dl">
-            <dt>분야</dt><dd>{detail.field}</dd>
-            <dt>자격</dt><dd>{detail.license}</dd>
-            <dt>전문</dt><dd>{detail.tags}</dd>
-            <dt>사무실</dt><dd>{detail.office}</dd>
-            <dt>소개</dt><dd>{detail.intro}</dd>
+            <dt>분야</dt><dd>{labelOf(detail.category)}</dd>
+            {detail.licenseOrg && (<><dt>자격</dt><dd>{detail.licenseOrg}</dd></>)}
+            {detail.specialties.length > 0 && (<><dt>전문</dt><dd>{detail.specialties.map((s) => `#${s}`).join(' ')}</dd></>)}
+            {detail.officeAddress && (<><dt>사무실</dt><dd>{detail.officeAddress}</dd></>)}
+            {detail.bio && (<><dt>소개</dt><dd>{detail.bio}</dd></>)}
           </dl>
         </RdDialog>
       )}
@@ -357,7 +421,6 @@ export function CounselingPage() {
       {request && (
         <RequestDialog
           expert={request}
-          demo={demo}
           onClose={() => { setRequest(null); setDetail(null); }}
           onDone={(m) => { setRequest(null); setDetail(null); setDone(m); }}
         />
