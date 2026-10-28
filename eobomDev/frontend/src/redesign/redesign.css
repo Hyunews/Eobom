@@ -298,16 +298,44 @@ body.rd-body {
 .rd-login-group {
   display: inline-flex;
   align-items: center;
-  gap: 20px;
+  gap: 16px;
 }
 
+/* {이름}님 = [로그인]과 같은 20 · 포인트색 (얇은 띠에서 17) */
 .rd-login__name {
+  margin-block: -6px;
   display: inline-flex;
   align-items: center;
   min-height: var(--rd-touch);
-  font-size: 16px;
-  color: var(--rd-ink);
+  font-size: 20px;
+  color: var(--rd-point);
   text-decoration: none;
+  transition: font-size 0.2s ease;
+}
+
+.rd-login-group__divider {
+  width: 1px;
+  height: 14px;
+  background: #B9AC98;
+}
+
+.rd-login__out {
+  margin-block: -6px;
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--rd-touch);
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  font-size: 15px;
+  color: #5A5046;
+}
+
+@media (min-width: 768px) {
+  .rd-root[data-rd-slim] .rd-login__name {
+    font-size: 17px;
+  }
 }
 
 .rd-menu-btn {
@@ -617,19 +645,44 @@ body.rd-body {
 
 .rd-sheet__foot {
   flex: none;
-  padding: 16px 24px 28px;
+  padding: 12px 24px 24px;
   border-top: 1px solid var(--rd-line);
 }
 
-.rd-sheet__user {
+/* 로그인 뒤: 한 줄 — 왼쪽 {이름}님 › (칸 전체가 링크) · 구분선 · 로그아웃 */
+.rd-sheet__foot:has(.rd-sheet__user) {
   display: flex;
   align-items: center;
-  justify-content: center;
-  min-height: var(--rd-touch);
-  margin-bottom: 8px;
-  font-size: 16px;
+}
+
+.rd-sheet__user {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  height: 52px;
+  font-size: 17px;
+  font-weight: 500;
   color: var(--rd-ink);
   text-decoration: none;
+}
+
+.rd-sheet__divider {
+  flex: none;
+  width: 1px;
+  height: 14px;
+  margin: 0 16px;
+  background: #B9AC98;
+}
+
+.rd-sheet__out {
+  flex: none;
+  min-height: var(--rd-touch);
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  font-size: 14px;
+  color: #5A5046;
 }
 
 .rd-sheet__login {

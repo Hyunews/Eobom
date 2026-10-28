@@ -96,8 +96,9 @@ export function RdMenuSheet({ leaving, onClose, onLogin, user, onLogout }: Props
       <div className="rd-sheet__foot">
         {user ? (
           <>
-            <a href="/mypage" className="rd-sheet__user" onClick={onClose}>{user}님</a>
-            <button type="button" className="rd-sheet__login" onClick={onLogout}>로그아웃</button>
+            <a href="/mypage" className="rd-sheet__user" aria-label={`${user}님 마이페이지`} onClick={onClose}>{user}님 ›</a>
+            <span className="rd-sheet__divider" aria-hidden="true" />
+            <button type="button" className="rd-sheet__out" onClick={onLogout}>로그아웃</button>
           </>
         ) : (
           <button type="button" className="rd-sheet__login" onClick={onLogin}>로그인</button>

@@ -55,7 +55,8 @@ export function RdHeader({ open, onToggle, onOpenSheet, menuBtnRef, onLogin, use
       {user ? (
         <div className="rd-login-group">
           <a href="/mypage" className="rd-login__name">{user}님</a>
-          <button type="button" className="rd-login" onClick={onLogout}>로그아웃</button>
+          <span className="rd-login-group__divider" aria-hidden="true" />
+          <button type="button" className="rd-login__out" onClick={onLogout}>로그아웃</button>
         </div>
       ) : (
         <button type="button" className="rd-login" onClick={onLogin}>로그인</button>
