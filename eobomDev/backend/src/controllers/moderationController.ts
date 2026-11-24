@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import prisma from '../config/prisma';
 import { verifyAdminBearerToken } from './adminController';
+import { setAuditTarget } from '../services/opsLogService';
 import { isAutoExpired } from './obituaryController';
 import { normalizePhone, isValidPhoneLength, MIN_PHONE_DIGITS, MAX_PHONE_DIGITS } from '../utils/phone';
 
@@ -26,6 +27,7 @@ export const listPartners = async (req: Request, res: Response) => {
         bizLicenseUrl: true,
         status: true,
         rejectReason: true,
+        suspendReason: true,
         createdAt: true,
       },
       orderBy: { createdAt: 'asc' },
@@ -37,20 +39,46 @@ export const listPartners = async (req: Request, res: Response) => {
   }
 };
 
+// 정지 사유 최대 길이 — 추모관 내리기(MAX_REASON_LENGTH)와 같은 값
+const MAX_SUSPEND_REASON = 500;
+
+// 정지(SUSPENDED)는 사유 필수(01-05 §14-9 · 02-03 §7.3-2 #7), 해제(정지됨 → 승인됨)는 사유를 지우고 승인 시각을 새로 찍지 않는다.
+// 정지·해제는 심사 일이라 OPERATOR도 한다(00-37 §3.3) — 가드를 걸지 않는다. 감사로그에는 SUSPEND·UNSUSPEND로 남긴다.
+const suspendFields = (status: string, prevStatus: string | undefined, suspendReason: unknown) => {
+  const reason = typeof suspendReason === 'string' ? suspendReason.trim() : '';
+  if (status === 'SUSPENDED') {
+    if (!reason) return { error: '정지 사유를 입력해야 처리할 수 있습니다.' } as const;
+    if (reason.length > MAX_SUSPEND_REASON) return { error: `정지 사유는 ${MAX_SUSPEND_REASON}자 이하여야 합니다.` } as const;
+  }
+  const isRelease = status === 'APPROVED' && prevStatus === 'SUSPENDED';
+  return {
+    data: { suspendReason: status === 'SUSPENDED' ? reason : null },
+    keepApprovedAt: isRelease,
+    audit: status === 'SUSPENDED' ? { action: 'SUSPEND', reason } : isRelease ? { action: 'UNSUSPEND' } : null,
+  } as const;
+};
+
 // 사업자 승인/반려/정지 (`PATCH /api/admin/partners/:id/status`)
 export const updatePartnerStatus = async (req: Request, res: Response) => {
-  const { status, rejectReason } = req.body as { status?: string; rejectReason?: string };
+  const { status, rejectReason, suspendReason } = req.body as { status?: string; rejectReason?: string; suspendReason?: string };
   if (!status || !VALID_STATUSES.includes(status as (typeof VALID_STATUSES)[number])) {
     return res.status(400).json({ status: 'error', message: `status는 ${VALID_STATUSES.join(', ')} 중 하나여야 합니다.` });
   }
 
   try {
+    const prev = await prisma.partner.findUnique({ where: { id: req.params.id }, select: { status: true } });
+    if (!prev) return res.status(404).json({ status: 'error', message: '사업자를 찾을 수 없습니다.' });
+    const sus = suspendFields(status, prev.status, suspendReason);
+    if ('error' in sus) return res.status(400).json({ status: 'error', message: sus.error });
+    if (sus.audit) setAuditTarget(res, { targetType: 'Partner', targetId: req.params.id, ...sus.audit });
+
     const partner = await prisma.partner.update({
       where: { id: req.params.id },
       data: {
         status,
         rejectReason: status === 'REJECTED' ? rejectReason : null,
-        approvedAt: status === 'APPROVED' ? new Date() : undefined,
+        ...sus.data,
+        approvedAt: status === 'APPROVED' && !sus.keepApprovedAt ? new Date() : undefined,
       },
     });
     return res.json({ status: 'success', data: { id: partner.id, status: partner.status } });
@@ -117,6 +145,7 @@ export const listExperts = async (req: Request, res: Response) => {
         bio: true,
         status: true,
         rejectReason: true,
+        suspendReason: true,
         isPublished: true,
         createdAt: true,
       },
@@ -131,18 +160,25 @@ export const listExperts = async (req: Request, res: Response) => {
 
 // 전문가 승인/반려/정지 (`PATCH /api/admin/experts/:id/status`)
 export const updateExpertStatus = async (req: Request, res: Response) => {
-  const { status, rejectReason } = req.body as { status?: string; rejectReason?: string };
+  const { status, rejectReason, suspendReason } = req.body as { status?: string; rejectReason?: string; suspendReason?: string };
   if (!status || !VALID_STATUSES.includes(status as (typeof VALID_STATUSES)[number])) {
     return res.status(400).json({ status: 'error', message: `status는 ${VALID_STATUSES.join(', ')} 중 하나여야 합니다.` });
   }
 
   try {
+    const prev = await prisma.expert.findUnique({ where: { id: req.params.id }, select: { status: true } });
+    if (!prev) return res.status(404).json({ status: 'error', message: '전문가를 찾을 수 없습니다.' });
+    const sus = suspendFields(status, prev.status, suspendReason);
+    if ('error' in sus) return res.status(400).json({ status: 'error', message: sus.error });
+    if (sus.audit) setAuditTarget(res, { targetType: 'Expert', targetId: req.params.id, ...sus.audit });
+
     const expert = await prisma.expert.update({
       where: { id: req.params.id },
       data: {
         status,
         rejectReason: status === 'REJECTED' ? rejectReason : null,
-        approvedAt: status === 'APPROVED' ? new Date() : undefined,
+        ...sus.data,
+        approvedAt: status === 'APPROVED' && !sus.keepApprovedAt ? new Date() : undefined,
       },
     });
     return res.json({ status: 'success', data: { id: expert.id, status: expert.status } });
@@ -212,12 +248,19 @@ export const updateExpertPublish = async (req: Request, res: Response) => {
 // 전체 상담 신청 조회 (`GET /api/admin/consult-requests`, docs 02-03 §5.4) — 분쟁 대응·품질 모니터링용
 export const listConsultRequestsForAdmin = async (req: Request, res: Response) => {
   const status = (req.query.status as string) || undefined;
+  // 8단계 묶음 13(02-03 §7.4 "쪽 넘김 n / m 페이지 (총 n건)") — `page`·`pageSize`를 주면 나눠 받는다. 안 주면 지금처럼 전부(지금 화면이 쓰는 응답 모양을 바꾸지 않는다).
+  const paging = req.query.page !== undefined || req.query.pageSize !== undefined;
+  const page = Math.max(1, parseInt((req.query.page as string) || '1', 10) || 1);
+  const pageSize = Math.min(100, Math.max(1, parseInt((req.query.pageSize as string) || '20', 10) || 20));
   try {
     // 00-37 §3.1 — 운영자 API 응답도 select 명시. 기존 include(전체 스칼라 필드 암묵 반환)를
     // 지금 실제로 쓰는 필드 그대로 select로 옮긴 것 — 동작은 바뀌지 않는다(화면이 아직 없어
     // 소비처가 없음, 2026-09-07 실측).
+    const where = status ? { status } : {};
+    const count = paging ? await prisma.consultRequest.count({ where }) : 0;
     const requests = await prisma.consultRequest.findMany({
-      where: status ? { status } : {},
+      where,
+      ...(paging ? { skip: (page - 1) * pageSize, take: pageSize } : {}),
       select: {
         id: true,
         requestNo: true,
@@ -239,6 +282,9 @@ export const listConsultRequestsForAdmin = async (req: Request, res: Response) =
       },
       orderBy: { createdAt: 'desc' },
     });
+    if (paging) {
+      return res.json({ status: 'success', count, page, pageSize, totalPages: Math.max(1, Math.ceil(count / pageSize)), data: requests });
+    }
     return res.json({ status: 'success', data: requests });
   } catch (error) {
     console.error('상담 신청 전체 조회 실패:', error);

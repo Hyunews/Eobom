@@ -8,6 +8,7 @@ import { createLead, ConsentRequiredError, FacilityNotFoundError } from '../serv
 import { resolveApplicantContact, ProfileContactMissingError } from '../utils/applicantContact';
 import { normalizePhone } from '../utils/phone';
 import { kstIso } from '../utils/kst';
+import { LOST_REASONS } from '../utils/facilityIntro';
 
 const safeLead = (lead: { leadNo: string; type: string; status: string; createdAt: Date }) => ({
   leadNo: lead.leadNo,
@@ -157,6 +158,7 @@ const serializePartnerLead = (lead: LeadWithFacility) => {
     applicantName: shouldMask && lead.applicantName ? maskName(lead.applicantName) : lead.applicantName,
     applicantPhone: shouldMask && lead.applicantPhone ? maskPhone(lead.applicantPhone) : lead.applicantPhone,
     statusHistory: lead.statusHistory,
+    lostReason: lead.lostReason,
     createdAt: lead.createdAt,
     updatedAt: lead.updatedAt,
   };
@@ -260,10 +262,23 @@ export const updateMyLeadStatus = async (req: Request, res: Response) => {
     return res.status(401).json({ status: 'error', message: '인증 토큰이 없거나 유효하지 않습니다.' });
   }
 
-  const { status, note } = req.body as { status?: string; note?: string };
+  const { status, note, lostReason } = req.body as { status?: string; note?: string; lostReason?: string };
   const requestable = new Set(['RESPONDED', 'CONVERTED', 'LOST']);
   if (!status || !requestable.has(status)) {
     return res.status(400).json({ status: 'error', message: "status는 'RESPONDED', 'CONVERTED', 'LOST' 중 하나여야 합니다." });
+  }
+  // 무산 사유 코드(01-05 §4.3) — 새 화면은 4개 중 하나를 꼭 보낸다. 🟡 지금 화면(BizDashboard)은 코드를 안 보내고 자유 글만 보내므로
+  // 코드가 없는 요청은 받아준다(추가형, 지금 화면을 깨지 않는다). 10단계 교체 때 필수로 올린다. 보냈다면 값 검증은 한다.
+  if (lostReason !== undefined) {
+    if (status !== 'LOST') {
+      return res.status(400).json({ status: 'error', message: '무산 사유는 무산 처리에서만 보낼 수 있습니다.' });
+    }
+    if (!(LOST_REASONS as readonly string[]).includes(lostReason)) {
+      return res.status(400).json({ status: 'error', message: '무산 사유를 목록에서 골라주세요.' });
+    }
+    if (lostReason === 'OTHER' && !note?.trim()) {
+      return res.status(400).json({ status: 'error', message: '기타를 고르면 사유를 직접 적어야 합니다.' });
+    }
   }
 
   try {
@@ -288,9 +303,17 @@ export const updateMyLeadStatus = async (req: Request, res: Response) => {
       where: { id: lead.id },
       data: {
         status,
+        ...(status === 'LOST' && lostReason ? { lostReason } : {}),
         statusHistory: [
           ...history,
-          { status, at: kstIso(), by: 'partner', ...(note?.trim() ? { note: note.trim() } : {}) },
+          {
+            status,
+            at: kstIso(),
+            by: 'partner',
+            // 사유 코드는 이력에도 같이 남긴다 — 분쟁 때 이력이 유일한 증거(§4.3)
+            ...(status === 'LOST' && lostReason ? { reason: lostReason } : {}),
+            ...(note?.trim() ? { note: note.trim() } : {}),
+          },
         ] as unknown as Prisma.InputJsonValue,
       },
       include: { facility: { select: FACILITY_SELECT } },

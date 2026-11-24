@@ -65,6 +65,11 @@ model User {
   // Deceased.userId로 이어진 회원에게 기록. 값이 있으면 OAuth 로그인·회원 API 접근 차단. 데이터는 지우지 않는다.
   memorializedAt DateTime?
 
+  // 회원 정지(운영자) — docs 00-37 §4.1 "회원 정지". memorializedAt과 같은 방식(로그인 콜백 거부 + 이미 받은 토큰 403), 데이터는 그대로, [해제]하면 둘 다 null.
+  // 🔴 suspendReason(운영자 메모)은 화면·응답에 내보내지 않는다 — 거부 문구는 고정 글이다.
+  suspendedAt   DateTime?
+  suspendReason String?
+
   // 회원 탈퇴 — docs 00-36 §4.3·M-3, 06-05 §5.4-2·§5.4-2-1(소프트 삭제 = **시각 필드 방식**). 상태 문자열을
   // 새로 만들지 않는다. 둘 다 null이면 정상 회원. 🔴 런타임에서 행·파일을 지우지 않는다 — 실삭제는
   // SCR-010 파기 탭의 운영자 승인 배치(06-05 §5.6-8 ④)만. 🔴 되살리기는 자동이 아니다: 유예 중 로그인하면
@@ -166,6 +171,12 @@ model Facility {
   tags         String[] @default([]) // 표시용 태그 배열 — 분류 가능한 값(공설/사설 등)만 frontend TAG_CATALOG로 필터링됨(docs 01-06)
   amenities    String[] @default([]) // 부대시설 목록 (예: 식당/매점/주차장/유족대기실/장애인편의시설)
   images       String[] @default([]) // 파트너가 BizDashboard에서 업로드한 시설 사진 URL 목록 (2026-08-10)
+  // 사업자가 쓰는 소개 글 + 운영자 숨김 칸 + 사업자 수정 시각 (디자인 개편 8단계 묶음 10, 01-05 §14-5). 모두 추가형 — 지금 화면은 읽지 않는다.
+  intro            String? // 소개 글(사업자 입력, 여러 줄). null이면 안 쓴 것. 저장 때 전화·링크·카카오 유도 글을 막는다(01-05 §14-5)
+  introHiddenAt    DateTime? // 운영자가 소개 글을 숨긴 시각. null이면 보임. 사업자가 고쳐 저장하면 풀린다
+  introHiddenReason String? // 숨김 사유 코드 3개 — EXTERNAL_CONTACT(이어봄 밖 연락 유도) | PRICE(가격 글) | DEFAMATION(다른 업체 비방·욕설)
+  introHiddenNote  String? // 숨길 때 운영자가 덧붙인 말(선택)
+  partnerEditedAt  DateTime? // 사업자가 종교·수용 규모·부대시설·소개 글을 한 번이라도 저장한 시각 — 공공 데이터 재적재가 부대시설을 덮지 않게 하는 표시(01-05 §14-5)
   createdAt    DateTime @default(now()) // 레코드 생성 일시
   createdAtKst DateTime? // 보기 전용 · DB 트리거가 createdAt+9시간(한국 시간)으로 채움 · 🔴 코드에서 읽기·쓰기 금지(트리거가 쓰기를 덮어씀)
   updatedAt    DateTime @updatedAt // 최종 수정 일시
@@ -218,6 +229,7 @@ model Partner {
 
   status       String    @default("PENDING") // PENDING | APPROVED | REJECTED | SUSPENDED (01-05 §3.2)
   rejectReason String? // 반려 사유 (status=REJECTED일 때)
+  suspendReason String? // 정지 사유 (status=SUSPENDED일 때, 8단계 묶음 13 · 01-05 §14-9). 해제하면 null
   approvedAt   DateTime? // 운영자 승인 일시
 
   settlementBank    String? // 정산 계좌 은행명
@@ -299,6 +311,7 @@ model Lead {
   settlementId       String? // 정산에 포함된 이후 채워짐
   settlement         Settlement?       @relation(fields: [settlementId], references: [id])
   disputeReason      String? // 정산 이의제기 사유
+  lostReason         String? // 무산(LOST) 사유 코드 — CONDITION | NO_CONTACT | PLAN_CHANGED | OTHER (01-05 §4.3). 글은 statusHistory note에도 같이 남는다
 
   createdAt DateTime @default(now()) // 리드 발생 일시
   createdAtKst DateTime? // 보기 전용 · DB 트리거가 createdAt+9시간(한국 시간)으로 채움 · 🔴 코드에서 읽기·쓰기 금지(트리거가 쓰기를 덮어씀)
@@ -378,6 +391,7 @@ model Expert {
 
   status       String    @default("PENDING") // PENDING | APPROVED | REJECTED | SUSPENDED — 자동승인 없음(Partner와 동일 원칙)
   rejectReason String? // 반려 사유 (status=REJECTED일 때)
+  suspendReason String? // 정지 사유 (status=SUSPENDED일 때, 8단계 묶음 13 · 02-03 §7.3-2 #7). 해제하면 null
   approvedAt   DateTime? // 운영자 승인 일시
   // isPublished: 승인(status=APPROVED)과 공개 노출을 분리하는 독립 플래그 — 승인은 됐지만
   // 프로필이 미비해 아직 노출하고 싶지 않은 경우가 있다(docs 02-03 §4.3). 운영자가 직접 켠다.
@@ -958,6 +972,9 @@ model Admin {
   failedLoginCount Int       @default(0) // 연속 로그인 실패 횟수(성공 시 0). 잠금이 풀린 뒤 첫 실패는 1부터 다시 센다
   lockedUntil      DateTime? // 이 시각까지 로그인 거부(null = 잠기지 않음)
 
+  // 00-37 §4.1 알림 종(10-21 확정) — 알림 표를 따로 두지 않고 큐에서 그때그때 계산한다. 이 시각보다 새 건 = 안 읽음, [모두 읽음] = 이 시각 갱신. null = 한 번도 안 읽음(전부 안 읽음).
+  notificationsReadAt DateTime?
+
   createdAt DateTime @default(now()) // 계정 생성 일시 (seed-admin.ts로만 생성됨)
   createdAtKst DateTime? // 보기 전용 · DB 트리거가 createdAt+9시간(한국 시간)으로 채움 · 🔴 코드에서 읽기·쓰기 금지(트리거가 쓰기를 덮어씀)
   updatedAt DateTime @updatedAt // 최종 수정 일시
@@ -976,7 +993,7 @@ model AdminAuditLog {
   id         String   @id @default(uuid()) // 고유 식별자(UUID)
   adminId    String // 실행한 운영자 id(FK 아님)
   adminName  String // 실행 시점 운영자 이름 스냅샷
-  action     String // VIEW | APPROVE | REJECT | SUSPEND | PURGE | HIDE | UNHIDE(09-30 추모관 내리기·되돌리기) | MEMORIALIZE(10-12 사망 확인 승인으로 회원 계정 비활성, 00-12 §5.3)
+  action     String // VIEW | APPROVE | REJECT | SUSPEND | PURGE | HIDE | UNHIDE(09-30 추모관 내리기·되돌리기) | MEMORIALIZE(10-12 사망 확인 승인으로 회원 계정 비활성, 00-12 §5.3) | UNSUSPEND(묶음 13 해제) | WITHDRAW(묶음 13 탈퇴 대리 접수, 00-37 §4.1) | CONFIRM_BILLABLE·INVALIDATE(묶음 13 업체 문의 청구 대상 확정·무효 처리)
   targetType String // 대상 종류 — 예: User, Memorial, Partner, Expert, FacilityClaim
   targetId   String // 대상 레코드 id
   reason     String? // 사유(선택)

@@ -1,0 +1,1067 @@
+/* 랜딩 — 00-45 · 8단계 묶음 3. 값은 redesign.css·parts.css의 --rd-* 를 쓴다.
+   모든 규칙은 .rd-landing 아래(또는 모바일 풀페이지용 html.rd-landing-snap)에 가둔다. 지금 화면에 새지 않는다. */
+
+.rd-landing {
+  --rd-landing-wide: calc(var(--rd-content-w) + var(--rd-gutter) * 2);
+}
+
+/* 갈래 링크(<a>)가 전역 `.rd-root a` 색·올림 색에 눌리지 않게 한다 */
+.rd-root a.rd-branch {
+  text-decoration: none;
+}
+
+.rd-root a.rd-branch--primary,
+.rd-root a.rd-branch--primary:hover {
+  color: var(--rd-bg);
+}
+
+.rd-root a.rd-branch--secondary,
+.rd-root a.rd-branch--secondary:hover {
+  color: var(--rd-ink);
+}
+
+/* ───────── 첫 화면 (§4) ───────── */
+
+/* 데스크톱 화면 맞춤 배율(00-45 §6-1) — .rd-lh / .rd-ls 는 구간 띠(배율 대상 아님), 안쪽 .rd-lh__fit / .rd-ls__fit 에 useFitScale 이 zoom 을 건다.
+   누르는 칸은 0.85배에서도 44 이상이 되게 배율 1 기준 52 로 둔다(52 × 0.85 = 44.2). */
+.rd-lh {
+  position: relative;
+  box-sizing: border-box;
+  /* 첫 화면은 맨 위라 헤더가 아직 원래 높이(101)다 */
+  min-height: calc(100svh - var(--rd-head-full));
+  display: flex;
+  align-items: center;
+}
+
+.rd-lh__fit {
+  width: 100%;
+}
+
+.rd-lh__inner {
+  box-sizing: border-box;
+  max-width: calc(var(--rd-landing-wide) / var(--rd-fit, 1));
+  /* 배율을 곱하면 화면에서 헤더·바닥글과 같은 폭 */
+  margin-inline: auto;
+  padding: 48px calc(var(--rd-gutter) / var(--rd-fit, 1)) 88px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 64px;
+  align-items: center;
+  align-content: center;
+}
+
+/* 넓은 화면은 줄을 나누지 않는다 — 넘치면 줄바꿈으로 높이가 튀지 않고 배율이 내려간다(useFitScale) */
+@media (min-width: 1100px) {
+  .rd-lh__inner {
+    flex-wrap: nowrap;
+  }
+}
+
+.rd-lh__main {
+  flex: 1.2 1 520px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.rd-lh__h1 {
+  margin: 0;
+  font-family: var(--rd-font-serif);
+  font-size: 44px;
+  line-height: 1.35;
+  font-weight: 700;
+  letter-spacing: -1px;
+  white-space: nowrap;
+}
+
+.rd-lh__branches {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+/* ⌄ — 데스크톱은 첫 화면 아래 가운데, 모바일은 칸 아래 가운데(반투명) */
+.rd-ldown {
+  position: absolute;
+  left: 50%;
+  bottom: 24px;
+  margin-left: -22px;
+  width: var(--rd-touch);
+  height: var(--rd-touch);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--rd-point);
+  cursor: pointer;
+}
+
+.rd-ldown--m {
+  bottom: 12px;
+  color: var(--rd-ink);
+  opacity: 0.45;
+}
+
+/* ───────── 바로 보기 (§5) ───────── */
+
+.rd-lq {
+  flex: 1 1 480px;
+  min-width: 0;
+  margin-top: 20px;
+  padding: 40px 40px 36px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  background: var(--rd-paper);
+  border: 1px solid var(--rd-line);
+  box-shadow: 8px 8px 0 var(--rd-shadow);
+}
+
+.rd-lq__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 16px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--rd-line);
+}
+
+.rd-lq__title {
+  margin: 0;
+  font-family: var(--rd-font-serif);
+  font-size: 24px;
+  line-height: 1.4;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.rd-lq__ctrl {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: none;
+}
+
+.rd-lq__grid {
+  list-style: none;
+  margin: -10px 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.rd-lq__grid>li {
+  min-width: 0;
+}
+
+.rd-lq__cell {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 14px;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  color: var(--rd-ink);
+  cursor: pointer;
+}
+
+.rd-lq__cell svg {
+  color: var(--rd-point);
+}
+
+.rd-lq__name {
+  font-family: var(--rd-font-serif);
+  font-size: 19px;
+  font-weight: 700;
+  line-height: 1.5;
+}
+
+@media (hover: hover) {
+  .rd-lq__cell:hover {
+    color: var(--rd-point);
+  }
+}
+
+/* 2 × 2 점선 — 칸 사이 */
+.rd-lq__grid>li:nth-child(1) {
+  border-right: 1px dotted var(--rd-dot);
+  border-bottom: 1px dotted var(--rd-dot);
+}
+
+.rd-lq__grid>li:nth-child(2) {
+  border-bottom: 1px dotted var(--rd-dot);
+}
+
+.rd-lq__grid>li:nth-child(3) {
+  border-right: 1px dotted var(--rd-dot);
+}
+
+.rd-lq__grid>li:nth-child(1) .rd-lq__cell {
+  padding: 10px 20px 24px 0;
+}
+
+.rd-lq__grid>li:nth-child(2) .rd-lq__cell {
+  padding: 10px 0 24px 24px;
+}
+
+.rd-lq__grid>li:nth-child(3) .rd-lq__cell {
+  padding: 25px 20px 12px 0;
+}
+
+.rd-lq__grid>li:nth-child(4) .rd-lq__cell {
+  padding: 25px 0 12px 24px;
+}
+
+/* 모바일 판: 카드 없이 한 화면 2열 11칸 */
+.rd-lq--m {
+  flex: none;
+  margin: 0 24px;
+  padding: 20px 20px 8px;
+  gap: 0;
+  box-shadow: 6px 6px 0 var(--rd-shadow);
+}
+
+.rd-lq--m .rd-lq__title {
+  margin: 0 0 2px;
+  padding-bottom: 12px;
+  font-size: 19px;
+  border-bottom: 1px solid var(--rd-line);
+}
+
+.rd-lq--m .rd-lq__grid {
+  margin: 0;
+}
+
+.rd-lq--m .rd-lq__grid>li {
+  border: 0;
+  border-bottom: 1px dotted var(--rd-dot);
+}
+
+.rd-lq--m .rd-lq__grid>li:nth-child(odd) {
+  border-right: 1px dotted var(--rd-dot);
+}
+
+.rd-lq--m .rd-lq__grid>li:last-child {
+  border-bottom: 0;
+}
+
+.rd-lq--m .rd-lq__grid>li .rd-lq__cell {
+  gap: 8px;
+}
+
+.rd-lq--m .rd-lq__grid>li:nth-child(odd) .rd-lq__cell {
+  padding: 14px 12px 14px 0;
+}
+
+.rd-lq--m .rd-lq__grid>li:nth-child(even) .rd-lq__cell {
+  padding: 14px 0 14px 16px;
+}
+
+.rd-lq--m .rd-lq__grid>li:last-child .rd-lq__cell {
+  padding-bottom: 12px;
+}
+
+.rd-lq--m .rd-lq__name {
+  font-size: 16px;
+}
+
+/* ───────── 소개 — 데스크톱 (§6) ───────── */
+
+.rd-ls--paper {
+  background: var(--rd-paper);
+  border-block: 1px solid var(--rd-line);
+}
+
+/* 제1부·제2부는 내린 뒤라 얇은 띠가 위에 있다 — 쓸 수 있는 높이 = 화면 − 얇은 띠(00-45 §2·§6-1), 바로가기로 오면 띠 바로 아래에 선다 */
+.rd-ls {
+  box-sizing: border-box;
+  min-height: calc(100svh - var(--rd-head-h));
+  scroll-margin-top: var(--rd-head-h);
+  /* 위아래 최소 여백 56(배율 밖) — 남는 높이는 아래 가운데 정렬이 위아래 반씩 나눈다 */
+  padding-block: 56px;
+  display: flex;
+  align-items: center;
+}
+
+.rd-ls__fit {
+  width: 100%;
+}
+
+/* 바로 보기 카드의 버튼은 보이는 크기를 44로 두고, 눌리는 영역만 투명하게 52로 넓힌다(0.85배에서도 44.2) */
+.rd-lq__ctrl .rd-iconbtn {
+  position: relative;
+}
+
+.rd-lq__ctrl .rd-iconbtn::after {
+  content: '';
+  position: absolute;
+  inset: -4px;
+}
+
+.rd-root .rd-ls__fit a.rd-link {
+  min-height: 52px;
+}
+
+.rd-ls__inner {
+  box-sizing: border-box;
+  /* 안쪽 폭 960 가운데(헤더·바닥글은 1120 그대로) */
+  max-width: calc((960px + var(--rd-gutter) * 2) / var(--rd-fit, 1));
+  margin-inline: auto;
+  padding-inline: calc(var(--rd-gutter) / var(--rd-fit, 1));
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.rd-ls__head {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.rd-ls__title {
+  margin: 0;
+  font-family: var(--rd-font-serif);
+  font-size: 34px;
+  line-height: 1.4;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+}
+
+.rd-ls__lead {
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.8;
+  color: var(--rd-ink-support);
+}
+
+.rd-ls__body {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 56px;
+  align-items: flex-start;
+}
+
+.rd-ls__list {
+  flex: 0 1 340px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.rd-ls__list--ruled {
+  border-top: 1px solid var(--rd-line);
+}
+
+.rd-ls__stage {
+  margin: 20px 0 6px;
+  font-family: var(--rd-font-serif);
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--rd-ink-small);
+}
+
+.rd-ls__row {
+  width: 100%;
+  /* 줄 최소 높이 44 — 배율로 줄어도 화면에서 44 밑으로 안 가게 ÷배율 */
+  min-height: calc(44px / var(--rd-fit, 1));
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 16px;
+  border: 0;
+  border-bottom: 1px dotted var(--rd-dot);
+  background: transparent;
+  color: var(--rd-ink);
+  font-size: 18px;
+  text-align: left;
+  cursor: pointer;
+}
+
+/* 제2부 목록(7줄 + 단계 머리 3)은 상세보다 길어 단계 머리 여백을 줄인다 */
+#part2 .rd-ls__stage {
+  margin: 14px 0 2px;
+}
+
+.rd-ls__row[aria-pressed='true'] {
+  background: var(--rd-ink);
+  color: var(--rd-bg);
+}
+
+@media (hover: hover) {
+  .rd-ls__row[aria-pressed='false']:hover {
+    background: var(--rd-pressed);
+  }
+}
+
+.rd-ls__no {
+  width: 24px;
+  font-size: 13px;
+  opacity: 0.8;
+}
+
+.rd-ls__rowname {
+  flex-grow: 1;
+}
+
+/* 모든 항목의 상세를 한 칸에 겹쳐 가장 긴 것이 칸 높이를 정한다. 나머지 폭 전부(480 제한 없음) */
+.rd-ls__stack {
+  flex: 1 1 400px;
+  max-width: 564px;
+  /* 960 − 목록 340 − 사이 56 = 나머지 564 */
+  min-width: 0;
+  display: grid;
+}
+
+.rd-ls__detail {
+  grid-area: 1 / 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.rd-ls__detail--ghost {
+  visibility: hidden;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.rd-ls__img,
+.rd-lm__img {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* 종이 카드(00-45 §9-1 "그림 칸 모양과 움직임" 1번) — 선 1px · 모서리 2 · 어긋난 그림자 */
+  box-sizing: border-box;
+  width: 100%;
+  height: auto;
+  background: var(--rd-shadow);
+  border: 1px solid var(--rd-line);
+  border-radius: 2px;
+  box-shadow: 8px 8px 0 var(--rd-shadow);
+  color: var(--rd-ink-small);
+  font-size: 14px;
+  text-align: center;
+  overflow: hidden;
+}
+
+/* 소개 그림 칸(button 또는 div) — 여러 장을 같은 자리에 겹쳐 두고 지금 장만 보인다. 높이는 그림 비율(1080 : 512)로 폭에서 정한다. */
+.rd-pic {
+  position: relative;
+  display: grid;
+  grid-template: minmax(0, 1fr) / minmax(0, 1fr);
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  overflow: hidden;
+}
+
+/* 그림 칸 묶음 — 그림자(8, 올리면 10)가 바깥으로 나오는 몫은 아래 여백에서 쓴다 */
+.rd-pic-wrap {
+  position: relative;
+  isolation: isolate;
+  margin-bottom: 16px;
+}
+
+.rd-lm__img-wrap {
+  margin-bottom: 8px;
+}
+
+/* 모바일 — 점·멈춤 줄이 자리를 차지하지 않는다(높이 0). 그림 아래쪽 위에 겹쳐 띄우고 사진 높이를 확보한다.
+   wrap 아래 여백 8 + 카드 gap 12 = 20, 누르는 칸 44 → 위로 64 */
+.rd-lm__img-wrap+.rd-pic__dots {
+  height: 0;
+  z-index: 3;
+}
+
+.rd-lm__img-wrap+.rd-pic__dots>* {
+  transform: translateY(-64px);
+}
+
+.rd-lm__img-wrap+.rd-pic__dots .rd-pic__dot::before {
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.85);
+}
+
+.rd-lm__img {
+  box-shadow: 6px 6px 0 var(--rd-shadow);
+}
+
+/* 넘어간 앞 장 — 같은 자리에 겹쳐 두고 투명해지며 사라진다(칸 모양은 같고 그림자는 아래 칸 것을 쓴다) */
+.rd-pic-wrap>.rd-pic__leave {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: grid;
+  grid-template: minmax(0, 1fr) / minmax(0, 1fr);
+  height: auto;
+  background: none;
+  box-shadow: none;
+  pointer-events: none;
+}
+
+button.rd-pic {
+  cursor: pointer;
+  /* 칸을 가로질러 밀 때 브라우저가 이미지를 끌지 않게 */
+  -webkit-user-drag: none;
+}
+
+.rd-pic__img {
+  grid-area: 1 / 1;
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  object-fit: cover;
+  object-position: top;
+  opacity: 0;
+  pointer-events: none;
+  user-select: none;
+  transform-origin: 50% 35%;
+}
+
+.rd-pic__img.is-on,
+.rd-pic__leave .rd-pic__img {
+  opacity: 1;
+}
+
+/* 칸 높이는 파일 비율(1080 : 512)에 맞춰 폭에서 정한다 — 위아래 빈 공간 없이 그림이 칸을 채운다 */
+.rd-ls__img .rd-pic__img,
+.rd-lm__img .rd-pic__img {
+  height: auto;
+  aspect-ratio: 1080 / 512;
+}
+
+.rd-pic__leave .rd-pic__img {
+  opacity: 1;
+}
+
+/* 점 표시 — 점 지름 8, 누르는 칸 44 × 44. 높이 44 는 점이 없는 항목에도 남겨 둔다 */
+.rd-pic__dots {
+  display: flex;
+  justify-content: center;
+  height: 44px;
+}
+
+.rd-pic__dot {
+  position: relative;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+}
+
+.rd-pic__dot::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 8px;
+  height: 8px;
+  margin: -4px 0 0 -4px;
+  border-radius: 50%;
+  background: var(--rd-line);
+}
+
+/* 지금 장 = 진행 막대(28 × 8) — 안이 왼쪽부터 먹색으로 5초 동안 찬다(자동 넘김 시간과 같다) */
+.rd-pic__dot[aria-current='true']::before {
+  width: 28px;
+  margin-left: -14px;
+  border-radius: 4px;
+}
+
+.rd-pic__fill {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 28px;
+  height: 8px;
+  margin: -4px 0 0 -14px;
+  border-radius: 4px;
+  background: var(--rd-ink);
+  pointer-events: none;
+}
+
+/* 자동 넘김 멈춤 — 점 줄 오른쪽 끝 */
+.rd-pic__dots {
+  position: relative;
+}
+
+.rd-pic__pause {
+  position: absolute;
+  right: 0;
+  top: 0;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--rd-ink-small);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.rd-pic__dot:focus-visible,
+.rd-pic__pause:focus-visible,
+button.rd-pic:focus-visible {
+  outline: 2px solid var(--rd-ink);
+  outline-offset: 2px;
+}
+
+.rd-ls__nameline,
+.rd-lm__nameline {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 16px;
+}
+
+.rd-ls__nameline {
+  margin-top: 4px;
+}
+
+.rd-ls__name {
+  margin: 0;
+  font-family: var(--rd-font-serif);
+  font-size: 26px;
+  line-height: 1.4;
+  font-weight: 700;
+}
+
+.rd-ls__count,
+.rd-lm__count {
+  font-size: 14px;
+  color: var(--rd-ink-small);
+  white-space: nowrap;
+}
+
+.rd-ls__desc,
+.rd-lm__desc {
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.8;
+  color: var(--rd-ink-support);
+}
+
+.rd-ls__points,
+.rd-lm__points {
+  margin: 0;
+  padding: 12px 0 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  border-top: 1px dotted var(--rd-dot);
+}
+
+.rd-ls__points li,
+.rd-lm__points li {
+  display: flex;
+  gap: 10px;
+  font-size: 15px;
+  line-height: 1.7;
+  color: var(--rd-ink-support);
+}
+
+.rd-ls__points li>span:first-child,
+.rd-lm__points li>span:first-child {
+  flex-shrink: 0;
+  font-weight: 700;
+  /* 갈색 점(·) — 가는 점이 묻히지 않게 */
+  color: var(--rd-point);
+}
+
+.rd-ls__cta {
+  align-self: flex-end;
+  margin-top: 4px;
+}
+
+/* ───────── 모바일 세로 풀페이지 (§2) ───────── */
+
+/* 헤더(56)가 늘 따라오므로(00-44 §5-5) 칸은 헤더를 뺀 높이이고, 칸 맞춤은 헤더 바로 아래(scroll-padding-top)에 선다 */
+html.rd-landing-snap {
+  scroll-snap-type: y proximity;
+  scroll-padding-top: 56px;
+}
+
+.rd-lc,
+.rd-lm {
+  position: relative;
+  box-sizing: border-box;
+  min-height: calc(100svh - 56px);
+  scroll-snap-align: start;
+}
+
+/* 첫 화면은 맨 위(헤더 포함)에서 시작 — 칸 맞춤이 헤더를 가리는 56 위치로 끌어올리지 않게 한다 */
+.rd-lc--hero {
+  min-height: calc(100svh - 56px);
+  scroll-snap-align: none;
+}
+
+.rd-lc {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.rd-lc--quick {
+  padding-bottom: 64px;
+  border-top: 1px solid var(--rd-line);
+}
+
+.rd-lc__hero {
+  padding: 24px 24px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.rd-lc__hero .rd-t-eyebrow {
+  font-size: 13px;
+  letter-spacing: 1.5px;
+}
+
+.rd-lc__h1 {
+  margin: 0;
+  font-family: var(--rd-font-serif);
+  font-size: 32px;
+  line-height: 1.35;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+}
+
+.rd-lc__ask {
+  margin: 12px 0 0;
+  font-size: 14px;
+  color: var(--rd-ink-support);
+}
+
+.rd-lc__hero .rd-lh__branches {
+  margin-top: 0;
+}
+
+.rd-lm {
+  padding: 24px 24px 60px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  border-top: 1px solid var(--rd-line);
+}
+
+.rd-lm--paper {
+  background: var(--rd-paper);
+}
+
+.rd-lm__head {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.rd-lm__head .rd-t-eyebrow {
+  font-size: 13px;
+}
+
+.rd-lm__title {
+  margin: 0;
+  font-family: var(--rd-font-serif);
+  font-size: 27px;
+  line-height: 1.4;
+  font-weight: 700;
+}
+
+.rd-lm__card {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  touch-action: pan-y;
+  user-select: none;
+}
+
+.rd-lm__img {
+  /* 높이는 그림 비율로 정해진다(.rd-pic 묶음) */
+  font-size: 13px;
+}
+
+.rd-lm__nameline {
+  margin-top: 4px;
+}
+
+.rd-lm__name {
+  margin: 0;
+  font-family: var(--rd-font-serif);
+  font-size: 23px;
+  line-height: 1.4;
+  font-weight: 700;
+}
+
+.rd-lm__count {
+  font-size: 13px;
+}
+
+.rd-lm__desc {
+  font-size: 15px;
+  line-height: 1.7;
+}
+
+.rd-lm__points {
+  padding-top: 12px;
+  gap: 8px;
+}
+
+.rd-lm__points li {
+  gap: 8px;
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.rd-lm__bar {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  padding-bottom: 8px;
+}
+
+.rd-lm__step {
+  flex: none;
+  width: 52px;
+  height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 1px solid var(--rd-ink);
+  border-radius: var(--rd-radius);
+  background: transparent;
+  color: var(--rd-ink);
+  cursor: pointer;
+}
+
+.rd-landing a.rd-lm__go,
+.rd-landing a.rd-lm__go:hover {
+  flex-grow: 1;
+  height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--rd-ink);
+  color: var(--rd-bg);
+  font-size: 16px;
+  border-radius: var(--rd-radius);
+}
+
+/* 낮은 휴대폰 화면(주소창이 보이는 높이 등) — 칸이 화면보다 길어 아래가 잘리지 않게 여백·그림을 줄인다 */
+@media (max-width: 767px) and (max-height: 740px) {
+  .rd-lm {
+    padding: 16px 24px 52px;
+    gap: 10px;
+  }
+
+  .rd-lm__card {
+    gap: 8px;
+  }
+
+  .rd-lm__points {
+    padding-top: 8px;
+    gap: 6px;
+  }
+
+  .rd-lc--quick {
+    padding-bottom: 52px;
+  }
+
+  .rd-lq--m {
+    padding-top: 14px;
+  }
+
+  .rd-lq--m .rd-lq__grid>li:nth-child(odd) .rd-lq__cell {
+    padding: 8px 12px 8px 0;
+  }
+
+  .rd-lq--m .rd-lq__grid>li:nth-child(even) .rd-lq__cell {
+    padding: 8px 0 8px 16px;
+  }
+
+  .rd-lq--m .rd-lq__grid>li .rd-lq__cell {
+    gap: 4px;
+  }
+
+  .rd-lc__hero {
+    gap: 10px;
+  }
+}
+
+/* ───────── 등장 효과 (데스크톱) ─────────
+   useFitScale 이 글꼴 적재 후 배율을 맞추면 구간에 data-fit-ready 를 단다. 그 전엔 내용만 투명(자리는 그대로라 측정에 영향 없음)이고,
+   효과는 ready 에서 시작한다. 움직임을 줄이는 설정에서는 효과 없이 바로 보인다. */
+.rd-lh__fit,
+.rd-ls__fit {
+  opacity: 0;
+}
+
+.rd-lh[data-fit-ready] .rd-lh__fit,
+.rd-ls[data-fit-ready] .rd-ls__fit {
+  opacity: 1;
+}
+
+@keyframes rdFadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+
+  .rd-lh[data-fit-ready] .rd-lh__h1,
+  .rd-lh[data-fit-ready] .rd-lh__branches,
+  .rd-lh[data-fit-ready] .rd-lq {
+    animation: rdFadeUp 1.2s cubic-bezier(0.22, 0.61, 0.36, 1) both;
+  }
+
+  .rd-lh[data-fit-ready] .rd-lh__branches {
+    animation-delay: 0.2s;
+  }
+
+  .rd-lh[data-fit-ready] .rd-lq {
+    animation-delay: 0.4s;
+  }
+
+  /* 상세 전환 = 교차 페이드. 나가는 것은 천천히 옅어지고 들어오는 것은 겹쳐서 짙어져 사이에 빈 순간(깜빡임)이 없다.
+     visibility 는 옅어지는 동안 유지됐다가 끝나면 숨는다(나가는 쪽 지연). */
+  .rd-ls__detail {
+    transition: opacity 0.9s ease, visibility 0s linear 0s;
+  }
+
+  .rd-ls__detail--ghost {
+    transition: opacity 0.7s ease, visibility 0s linear 0.7s;
+  }
+
+  /* 장 바꿈 = 겹쳐 바뀜(00-45 §9-1 4번): 앞 장은 투명해지기만 하고(0.3초, 위치 이동 없음),
+     새 장은 1.03 → 1 로 자리 잡으며 0.15초 늦게 0.5초 동안 나타난다. 끝나면 transform 값은 남지 않는다 */
+  .rd-pic__leave {
+    animation: rdPicLeave 0.3s ease-out forwards;
+  }
+
+  /* 천천히 다가가기 — 개별 scale 속성이라 rdPicIn 의 transform 과 겹치지 않는다. 멈추면 같이 멈춘다 */
+  .rd-pic__img.is-on,
+  .rd-pic__leave .rd-pic__img {
+    animation-name: rdPicIn, rdPicZoom;
+    animation-duration: 0.5s, 5.6s;
+    animation-delay: 0.15s, 0s;
+    animation-timing-function: ease-out, linear;
+    animation-fill-mode: backwards, forwards;
+    animation-play-state: running, paused;
+  }
+
+  .rd-pic-wrap.is-run .rd-pic__img.is-on {
+    animation-play-state: running, running;
+  }
+
+  /* 앞 장 복사본: 들어오는 움직임 없이 다가가기를 멈춘 자리에서 얼린다(--t = 그 순간의 진행 시간) */
+  .rd-pic__leave .rd-pic__img {
+    animation-name: none, rdPicZoom;
+    animation-delay: 0s, calc(var(--t, 0) * -1ms);
+  }
+
+  /* 진행 막대 — 지금 장 점 안이 5초 동안 일정하게 찬다. 멈춤·올림·초점이면 그 자리에서 멈춘다 */
+  .rd-pic__fill {
+    animation: rdPicFill 5s linear both paused;
+  }
+
+  .rd-pic__dots.is-run .rd-pic__fill {
+    animation-play-state: running;
+  }
+
+  /* 올림(데스크톱) — 왼쪽 위로 2px 들리고 그림자 8 → 10 */
+  .rd-pic-wrap>.rd-pic,
+  .rd-pic-wrap>.rd-pic__leave {
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+  }
+
+  @media (hover: hover) {
+    .rd-pic-wrap:hover>button.rd-pic {
+      transform: translate(-2px, -2px);
+      box-shadow: 10px 10px 0 var(--rd-shadow);
+    }
+
+    .rd-pic-wrap:hover>.rd-pic__leave {
+      transform: translate(-2px, -2px);
+    }
+  }
+
+  /* 스크롤로 들어올 때 세우기(선택) — 지원하는 브라우저에서만. 화면 40% 지점까지 오르는 동안 16° → 0 */
+  @supports (animation-timeline: view()) {
+    .rd-pic-wrap {
+      animation: rdPicTilt linear both;
+      animation-timeline: view();
+      animation-range: entry 0% cover 40%;
+    }
+  }
+}
+
+@keyframes rdPicLeave {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes rdPicIn {
+  from {
+    opacity: 0;
+    transform: scale(1.03);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes rdPicZoom {
+  from {
+    scale: 1;
+  }
+
+  to {
+    scale: 1.05;
+  }
+}
+
+@keyframes rdPicFill {
+  from {
+    clip-path: inset(0 100% 0 0);
+  }
+
+  to {
+    clip-path: inset(0);
+  }
+}
+
+@keyframes rdPicTilt {
+  from {
+    transform: perspective(900px) rotateX(16deg);
+  }
+
+  to {
+    transform: perspective(900px) rotateX(0);
+  }
+}

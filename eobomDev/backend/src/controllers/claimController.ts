@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import prisma from '../config/prisma';
 import { verifyPartnerBearerToken } from './partnerController';
+import { MY_FACILITY_SELECT } from './partnerFacilityController';
 
 // 시설 소유권 클레임 — 사업자(Partner)가 자기 시설을 "이게 제 시설입니다"라고 신청하고,
 // 운영자가 심사해서 승인하면 Facility.partnerId가 채워진다 (docs 01-05 §3.3, §3.4).
@@ -74,7 +75,7 @@ export const listMyFacilities = async (req: Request, res: Response) => {
   try {
     const facilities = await prisma.facility.findMany({
       where: { partnerId: decoded.id },
-      select: { id: true, name: true, type: true, location: true, isPartner: true, images: true },
+      select: MY_FACILITY_SELECT,
       orderBy: { name: 'asc' },
     });
     return res.json({ status: 'success', data: facilities });

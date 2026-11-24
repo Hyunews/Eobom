@@ -110,6 +110,31 @@ export const signup = async (req: Request, res: Response) => {
       prisma.partner.findUnique({ where: { email } }),
       prisma.partner.findUnique({ where: { bizRegNo: normalizedBizRegNo } }),
     ]);
+    // 🔴 반려된 가입 건 재신청(01-05 §14-2, 2026-10-21 개발자 확정) — 같은 이메일 + 같은 사업자등록번호로 다시 신청하면
+    // 새 중복 오류 대신 그 건을 새 정보로 덮어 PENDING으로 되돌린다. 반려 기록은 AdminAuditLog REJECT+사유로 이미 남아 있다.
+    // 이메일이나 번호 한쪽만 같으면 다른 사람의 건일 수 있어 그대로 중복 오류.
+    if (existingEmail && existingBizRegNo && existingEmail.id === existingBizRegNo.id && existingEmail.status === 'REJECTED') {
+      const passwordHash = await bcrypt.hash(password, 10);
+      await prisma.partner.update({
+        where: { id: existingEmail.id },
+        data: {
+          passwordHash,
+          companyName,
+          ownerName,
+          contactName,
+          contactPhone: normalizedPhone,
+          bizLicenseUrl,
+          status: 'PENDING',
+          rejectReason: null,
+          refreshTokenHash: null,
+        },
+      });
+      return res.status(201).json({
+        status: 'success',
+        message: '가입 신청이 접수되었습니다. 운영자 심사 후 승인 결과를 안내드립니다.',
+        data: { id: existingEmail.id, status: 'PENDING' },
+      });
+    }
     if (existingEmail) {
       return res.status(409).json({ status: 'error', message: '이미 가입 신청된 이메일입니다.' });
     }
@@ -161,7 +186,8 @@ export const login = async (req: Request, res: Response) => {
       return res.status(403).json({
         status: 'error',
         message: PARTNER_STATUS_MESSAGE[partner.status] || '로그인할 수 없는 계정 상태입니다.',
-        data: { status: partner.status },
+        // 반려된 계정은 사유를 같이 싣는다 — 로그인 화면 결과 상자가 보여준다(01-05 §14-2). 다른 상태는 사유를 싣지 않는다.
+        data: { status: partner.status, ...(partner.status === 'REJECTED' ? { rejectReason: partner.rejectReason } : {}) },
       });
     }
 

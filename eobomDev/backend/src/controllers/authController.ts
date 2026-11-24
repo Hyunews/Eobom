@@ -201,7 +201,7 @@ const handleLinkCallback = async (req: Request, res: Response, userId: string, f
   try {
     // 🔴 익명화된 계정(06-05 §5.6-8 ④)에 소셜 계정을 새로 붙이면 로그인 경로가 되살아난다 — 12시간 안에 남은 토큰으로도 막는다
     // 비활성 계정(memorializedAt)도 막는다(00-12 §5.3)
-    const owner = await prisma.user.findFirst({ where: { id: userId, purgedAt: null, memorializedAt: null }, select: { id: true } });
+    const owner = await prisma.user.findFirst({ where: { id: userId, purgedAt: null, memorializedAt: null, suspendedAt: null }, select: { id: true } });
     if (!owner) {
       return res.redirect(`${frontendUrl}/#mypage?linkError=auth_failed`);
     }
@@ -283,13 +283,17 @@ export const handleSocialLoginCallback = async (req: Request, res: Response) => 
         providerId: socialUser.providerId,
         user: { purgedAt: null },
       },
-      include: { user: { select: { memorializedAt: true } } },
+      include: { user: { select: { memorializedAt: true, suspendedAt: true } } },
     });
 
     if (existingAccount) {
       // 비활성 계정(00-12 §5.3 1차 스펙, 10-12) — 토큰을 주지 않고 로그인 화면으로 돌려보낸다.
       if (existingAccount.user.memorializedAt) {
         return res.redirect(`${frontendUrl}?loginError=account_unavailable`);
+      }
+      // 운영자 정지(00-37 §4.1 "회원 정지", 묶음 13) — 같은 방식. 문구는 화면이 고정 글로 보인다(suspendReason은 내보내지 않는다)
+      if (existingAccount.user.suspendedAt) {
+        return res.redirect(`${frontendUrl}?loginError=account_suspended`);
       }
       // §3-1 — 로그인 왕복 단축. 백엔드(Render 오리건)↔DB(Supabase 서울)가 왕복당 ~1.3초라
       // user.update와 (조건부) socialAccount.update를 직렬로 두 번 타면 그 자리에서 느려진다.
@@ -328,6 +332,9 @@ export const handleSocialLoginCallback = async (req: Request, res: Response) => 
       if (existingUserByEmail) {
         if (existingUserByEmail.memorializedAt) {
           return res.redirect(`${frontendUrl}?loginError=account_unavailable`);
+        }
+        if (existingUserByEmail.suspendedAt) {
+          return res.redirect(`${frontendUrl}?loginError=account_suspended`);
         }
         const tempToken = generateTempLinkToken(socialUser, existingUserByEmail.id, consent);
         const existingProvider = existingUserByEmail.accounts[0]?.provider || 'UNKNOWN';
@@ -401,7 +408,7 @@ export const confirmLink = async (req: Request, res: Response) => {
     if (action === 'MERGE') {
       // 🔴 tempToken(10분) 발급 뒤 그 계정이 익명화됐을 수 있다 — 소셜 계정을 붙이기 전에 막는다
       // 비활성 계정(memorializedAt)도 막는다(00-12 §5.3)
-      const target = await prisma.user.findFirst({ where: { id: payload.existingUserId, purgedAt: null, memorializedAt: null }, select: { id: true } });
+      const target = await prisma.user.findFirst({ where: { id: payload.existingUserId, purgedAt: null, memorializedAt: null, suspendedAt: null }, select: { id: true } });
       if (!target) {
         return res.status(401).json({ status: 'error', message: '유효하지 않거나 만료된 요청입니다. 다시 로그인해주세요.' });
       }

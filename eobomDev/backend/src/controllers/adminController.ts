@@ -5,6 +5,7 @@ import jwt from 'jsonwebtoken';
 import prisma from '../config/prisma';
 import { JWT_SECRET } from '../config/jwt';
 import { writeAdminLoginAudit, setAuditTarget } from '../services/opsLogService';
+import { scheduleAccountDeletion } from '../services/accountDeletionService';
 
 // 운영자(내부 직원) 인증. Partner/Expert와 같은 패턴(비밀번호 해시, JWT 회전)이지만
 // **공개 가입 API가 없다** — 계정은 `prisma/seed-admin.ts`로만 만든다(README 참고).
@@ -67,6 +68,25 @@ export const requireAdminAuth = (req: Request, res: Response, next: NextFunction
   next();
 };
 
+// 00-37 §3.3 서버 등급 검사 — SUPERADMIN만 하는 일의 라우트에 건다(requireAdminAuth 다음). 화면이 흐리게 보여 주는 것과 별개로 서버가 막는다.
+// 토큰에는 등급을 싣지 않는다(등급을 바꿔도 이미 받은 토큰이 낡은 등급을 들고 있지 않게) — 요청마다 DB에서 읽는다.
+export const requireSuperAdmin = async (req: Request, res: Response, next: NextFunction) => {
+  const decoded = verifyAdminBearerToken(req);
+  if (!decoded) {
+    return res.status(401).json({ status: 'error', message: '인증 토큰이 없거나 유효하지 않습니다.' });
+  }
+  try {
+    const admin = await prisma.admin.findUnique({ where: { id: decoded.id }, select: { role: true } });
+    if (admin?.role !== 'SUPERADMIN') {
+      return res.status(403).json({ status: 'error', message: '최고 관리자(SUPERADMIN)만 할 수 있습니다.' });
+    }
+    next();
+  } catch (error) {
+    console.error('운영자 등급 확인 실패:', error);
+    return res.status(500).json({ status: 'error', message: '권한 확인 중 오류가 발생했습니다.' });
+  }
+};
+
 // 로그인 (`POST /api/admin/login`)
 export const login = async (req: Request, res: Response) => {
   const { email, password } = req.body as { email?: string; password?: string };
@@ -112,7 +132,7 @@ export const login = async (req: Request, res: Response) => {
     });
     await writeAdminLoginAudit(req, { adminId: admin.id, adminName: admin.name, action: 'LOGIN', result: 'SUCCESS' });
 
-    return res.json({ status: 'success', accessToken, refreshToken, admin: { id: admin.id, name: admin.name, email: admin.email } });
+    return res.json({ status: 'success', accessToken, refreshToken, admin: { id: admin.id, name: admin.name, email: admin.email, role: admin.role } });
   } catch (error) {
     console.error('운영자 로그인 실패:', error);
     return res.status(500).json({ status: 'error', message: '로그인 처리 중 오류가 발생했습니다.' });
@@ -162,7 +182,7 @@ export const getMe = async (req: Request, res: Response) => {
     if (!admin) {
       return res.status(404).json({ status: 'error', message: '운영자 정보를 찾을 수 없습니다.' });
     }
-    return res.json({ status: 'success', data: { id: admin.id, name: admin.name, email: admin.email } });
+    return res.json({ status: 'success', data: { id: admin.id, name: admin.name, email: admin.email, role: admin.role } });
   } catch (error) {
     console.error('운영자 정보 조회 실패:', error);
     return res.status(500).json({ status: 'error', message: '정보 조회 중 오류가 발생했습니다.' });
@@ -191,7 +211,7 @@ export const listUsersForAdmin = async (req: Request, res: Response) => {
       prisma.user.count({ where }),
       prisma.user.findMany({
         where,
-        select: { id: true, name: true, email: true, role: true, createdAt: true },
+        select: { id: true, name: true, email: true, role: true, createdAt: true, suspendedAt: true, deletionScheduledAt: true },
         orderBy: { createdAt: 'desc' },
         skip: (page - 1) * pageSize,
         take: pageSize,
@@ -228,8 +248,18 @@ export const getUserDetailForAdmin = async (req: Request, res: Response) => {
         name: true,
         email: true,
         createdAt: true,
+        // 묶음 13 — 정지·탈퇴 대리 접수 창이 쓴다(00-37 §4.1). 🔴 suspendReason(운영자 메모)은 운영자 화면 전용이라 여기서만 내보낸다
+        suspendedAt: true,
+        suspendReason: true,
+        deletionRequestedAt: true,
+        deletionScheduledAt: true,
         memorials: {
           select: { id: true, slug: true, deceasedName: true, visibility: true, closedAt: true, createdAt: true },
+          orderBy: { createdAt: 'desc' },
+        },
+        // 정지 창 "이 회원이 연 부고장 n건" + 각 글로 가는 링크 — 건수·링크뿐, 내용은 넣지 않는다(§3.1)
+        obituaries: {
+          select: { id: true, closedAt: true, createdAt: true },
           orderBy: { createdAt: 'desc' },
         },
         _count: { select: { memorialGuestbooks: true } },
@@ -248,5 +278,76 @@ export const getUserDetailForAdmin = async (req: Request, res: Response) => {
   } catch (error) {
     console.error('회원 상세 조회 실패:', error);
     return res.status(500).json({ status: 'error', message: '회원 상세 조회 중 오류가 발생했습니다.' });
+  }
+};
+
+// ───────────── 회원 정지·해제 · 탈퇴 대리 접수 (8단계 묶음 13, 00-37 §4.1 · §3.3) ─────────────
+// 🔴 셋 다 SUPERADMIN만(adminRoutes.ts에서 requireSuperAdmin) · 사유 필수 → 감사로그 사유 칸.
+const MAX_USER_REASON_LENGTH = 500;
+
+const readReason = (req: Request): { reason: string } | { error: string } => {
+  const reason = typeof req.body?.reason === 'string' ? req.body.reason.trim() : '';
+  if (!reason) return { error: '사유를 입력해야 처리할 수 있습니다.' };
+  if (reason.length > MAX_USER_REASON_LENGTH) return { error: `사유는 ${MAX_USER_REASON_LENGTH}자 이하여야 합니다.` };
+  return { reason };
+};
+
+// 회원 정지 (`PATCH /api/admin/users/:id/suspend`) — memorializedAt과 같은 방식으로 막는다(로그인 콜백 거부 + 이미 받은 토큰 403).
+// 데이터·추모관·부고장은 건드리지 않는다. 이미 정지된 회원이면 사유·시각을 다시 찍지 않는다(409).
+export const suspendUser = async (req: Request, res: Response) => {
+  const r = readReason(req);
+  if ('error' in r) return res.status(400).json({ status: 'error', message: r.error });
+  try {
+    const user = await prisma.user.findFirst({ where: { id: req.params.id, purgedAt: null }, select: { id: true, suspendedAt: true } });
+    if (!user) return res.status(404).json({ status: 'error', message: '회원을 찾을 수 없습니다.' });
+    if (user.suspendedAt) return res.status(409).json({ status: 'error', message: '이미 정지된 회원입니다.' });
+    const updated = await prisma.user.update({
+      where: { id: user.id },
+      data: { suspendedAt: new Date(), suspendReason: r.reason },
+      select: { id: true, suspendedAt: true },
+    });
+    setAuditTarget(res, { action: 'SUSPEND', targetType: 'User', targetId: user.id, reason: r.reason });
+    return res.json({ status: 'success', data: updated });
+  } catch (error) {
+    console.error('회원 정지 실패:', error);
+    return res.status(500).json({ status: 'error', message: '회원 정지 처리 중 오류가 발생했습니다.' });
+  }
+};
+
+// 회원 정지 해제 (`PATCH /api/admin/users/:id/unsuspend`) — 두 칸을 비우면 바로 복구된다. 해제도 사유 필수(같은 일의 반쪽, 00-37 §4.1).
+export const unsuspendUser = async (req: Request, res: Response) => {
+  const r = readReason(req);
+  if ('error' in r) return res.status(400).json({ status: 'error', message: r.error });
+  try {
+    const user = await prisma.user.findFirst({ where: { id: req.params.id, purgedAt: null }, select: { id: true, suspendedAt: true } });
+    if (!user) return res.status(404).json({ status: 'error', message: '회원을 찾을 수 없습니다.' });
+    if (!user.suspendedAt) return res.status(409).json({ status: 'error', message: '정지된 회원이 아닙니다.' });
+    await prisma.user.update({ where: { id: user.id }, data: { suspendedAt: null, suspendReason: null } });
+    setAuditTarget(res, { action: 'UNSUSPEND', targetType: 'User', targetId: user.id, reason: r.reason });
+    return res.json({ status: 'success', data: { id: user.id, suspendedAt: null } });
+  } catch (error) {
+    console.error('회원 정지 해제 실패:', error);
+    return res.status(500).json({ status: 'error', message: '정지 해제 처리 중 오류가 발생했습니다.' });
+  }
+};
+
+// 탈퇴 대리 접수 (`POST /api/admin/users/:id/deletion-request`) — 메일·서면으로 요청한 회원 본인(또는 위임장을 낸 대리인) 대신 신청을 넣는다.
+// 🔴 본인 탈퇴와 **같은 처리**(accountDeletionService) — 유예는 항상 30일(줄이거나 건너뛰지 않음), 접수 뒤 본인이 로그인하면 직접 취소할 수 있다.
+// 🔴 운영자가 대신 취소하는 기능은 없다. 이미 유예 중이면 409(버튼도 흐림).
+export const requestUserDeletionByAdmin = async (req: Request, res: Response) => {
+  const r = readReason(req);
+  if ('error' in r) return res.status(400).json({ status: 'error', message: r.error });
+  try {
+    const result = await scheduleAccountDeletion(req.params.id);
+    if (!result) return res.status(404).json({ status: 'error', message: '회원을 찾을 수 없습니다.' });
+    if (!result.created) {
+      return res.status(409).json({ status: 'error', message: '이미 탈퇴 유예 중인 회원입니다.', data: { deletionScheduledAt: result.deletionScheduledAt } });
+    }
+    setAuditTarget(res, { action: 'WITHDRAW', targetType: 'User', targetId: req.params.id, reason: r.reason });
+    const { created: _created, ...data } = result;
+    return res.status(201).json({ status: 'success', data });
+  } catch (error) {
+    console.error('탈퇴 대리 접수 실패:', error);
+    return res.status(500).json({ status: 'error', message: '탈퇴 접수 중 오류가 발생했습니다.' });
   }
 };

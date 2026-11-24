@@ -1,5 +1,32 @@
 import { Router } from 'express';
-import { login, refresh, getMe, getUserDetailForAdmin, listUsersForAdmin, requireAdminAuth } from '../controllers/adminController';
+import {
+  login,
+  refresh,
+  getMe,
+  getUserDetailForAdmin,
+  listUsersForAdmin,
+  suspendUser,
+  unsuspendUser,
+  requestUserDeletionByAdmin,
+  requireAdminAuth,
+  requireSuperAdmin,
+} from '../controllers/adminController';
+import {
+  listAuditLogs,
+  listAdminAccounts,
+  changeAdminRole,
+  changeAdminPassword,
+  listCommissionPolicies,
+  createCommissionPolicy,
+  closeCommissionPolicy,
+  listLeadsForAdmin,
+  updateLeadBillable,
+  listFacilitiesForAdmin,
+  getFacilityForAdmin,
+  hideFacilityIntro,
+  unhideFacilityIntro,
+} from '../controllers/adminOpsController';
+import { getDashboard, getNotifications, markNotificationsRead } from '../controllers/adminDashboardController';
 import {
   listPartners,
   updatePartnerStatus,
@@ -51,6 +78,11 @@ router.use(adminAudit);
 // 운영자 내 정보 조회
 router.get('/me', getMe);
 
+// 홈 건수(00-37 §4.1 · A-3) · 알림 종(§4 #12) — 큐에서 계산, 알림 표 없음. 건수·시각뿐
+router.get('/dashboard', getDashboard);
+router.get('/notifications', getNotifications);
+router.post('/notifications/read-all', markNotificationsRead);
+
 // 사업자·전문가 가입 심사
 router.get('/partners', listPartners);
 // 사업자 승인·반려·정지
@@ -101,12 +133,41 @@ router.get('/users', listUsersForAdmin);
 // 회원 상세 — 도메인 데이터 조인
 router.get('/users/:id', getUserDetailForAdmin);
 
+// 🔴 8단계 묶음 13 · 00-37 §3.3 — SUPERADMIN만 하는 일(회원 정지/해제·탈퇴 대리 접수)은 requireSuperAdmin. 사유 필수·감사로그(00-37 §4.1).
+router.patch('/users/:id/suspend', requireSuperAdmin, suspendUser);
+router.patch('/users/:id/unsuspend', requireSuperAdmin, unsuspendUser);
+router.post('/users/:id/deletion-request', requireSuperAdmin, requestUserDeletionByAdmin);
+
+// 감사로그 열람(00-37 §4.1 판 6-24) — ?q=대상ID&action=&result=SUCCESS|FAIL(홈 "최근 오류" 링크). OPERATOR도 본다.
+router.get('/audit-logs', listAuditLogs);
+
+// 운영자 계정(00-37 §4.1 판 6-25) — 메뉴째 SUPERADMIN. 마지막 남은 SUPERADMIN은 낮출 수 없다(서버 거부).
+router.get('/accounts', requireSuperAdmin, listAdminAccounts);
+router.patch('/accounts/:id/role', requireSuperAdmin, changeAdminRole);
+router.patch('/accounts/:id/password', requireSuperAdmin, changeAdminPassword);
+
+// 요율 등록 틀(01-05 §14-9 · §8.2) — 메뉴는 OPERATOR도 열어 보고, 값 변경([등록]·[적용 종료 저장])만 SUPERADMIN. 값은 예시(수수료 산정 기준 결정 대기).
+router.get('/commission-policies', listCommissionPolicies);
+router.post('/commission-policies', requireSuperAdmin, createCommissionPolicy);
+router.patch('/commission-policies/:id', requireSuperAdmin, closeCommissionPolicy);
+
+// 업체 문의(01-05 §14-9 · §6.2) — 조회 + 청구 대상 확정 / 무효 처리(심사 일이라 OPERATOR도)
+router.get('/leads', listLeadsForAdmin);
+router.patch('/leads/:id/billable', updateLeadBillable);
+
+// 전체 시설 + 소개 글 숨기기/되돌리기(01-05 §14-5·§14-9, 심사 일이라 OPERATOR도)
+router.get('/facilities', listFacilitiesForAdmin);
+router.get('/facilities/:id', getFacilityForAdmin);
+router.patch('/facilities/:id/intro-hide', hideFacilityIntro);
+router.patch('/facilities/:id/intro-unhide', unhideFacilityIntro);
+
 // 유족 메시지 파기 (docs 06-05 §5.6-8-3 D-11) — 정상 만료분만, 강제 삭제 경로 없음
 router.get('/farewell-purge/expired', listFarewellPurgeExpired);
 // 아카이브 2단계 미이행 목록
 router.get('/farewell-purge/pending-archive', listFarewellPendingArchive);
 // 유족 메시지 건별 파기 실행
-router.post('/farewell-purge/execute', executeFarewellPurge);
+// 🔴 00-37 §3.3 — 파기 실행은 SUPERADMIN만(서버 등급 검사). 회원 정지/탈퇴 처리·요율 저장·운영자 계정 관리도 위에서 같은 가드를 건다(묶음 13).
+router.post('/farewell-purge/execute', requireSuperAdmin, executeFarewellPurge);
 // 파기 기록 조회
 router.get('/farewell-purge/logs', listFarewellPurgeLogs);
 // 아카이브 2단계 완료 표시

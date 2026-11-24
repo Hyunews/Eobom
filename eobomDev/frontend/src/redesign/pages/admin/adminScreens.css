@@ -1,0 +1,499 @@
+/* 8단계 묶음 13 · 운영자 화면(목록 380 + 상세 · 카드 격자 · 표 · 요율 · 파기)의 값. 정본 00-37 §4.1 · 01-05 §14-9 · 판 6-15~6-25.
+   admin.css(틀 · 홈 · 알림 종)와 partner.css(.rd-pt-list · .rd-pt-row · .rd-pt-detail)를 그대로 쓰고, 운영자 목록 화면에만 다른 값만 여기 둔다.
+   전부 .rd-root 아래에 가둔다(지금 화면에 새지 않게, 00-44 §9-4 공통 조건). 데스크톱 전용 · 최소폭 1200 — 휴대폰 규칙은 없다. */
+
+.rd-root .rd-ad-screen {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.rd-root .rd-ad-screen > .rd-demo {
+  margin: 0;
+}
+
+/* ───────── 거르기 줄 ───────── */
+
+.rd-root .rd-ad-filters {
+  max-width: 904px;
+}
+
+.rd-root .rd-ad-filterrow {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.rd-root .rd-ad-filterrow__search {
+  width: 300px;
+}
+
+.rd-root .rd-ad-filterrow__select {
+  width: 200px;
+}
+
+/* ───────── 목록 380 + 고른 건의 상세 ───────── */
+
+.rd-root .rd-ad-split {
+  display: grid;
+  grid-template-columns: 380px minmax(0, 520px);
+  gap: 24px;
+  align-items: start;
+}
+
+.rd-root .rd-ad-listcol {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.rd-root .rd-ad-detail__title {
+  font-size: 22px;
+}
+
+.rd-root .rd-ad-kv {
+  margin: 0;
+  display: grid;
+  grid-template-columns: 112px minmax(0, 1fr);
+  gap: 10px 16px;
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.rd-root .rd-ad-kv dt {
+  color: var(--rd-ink-small);
+}
+
+.rd-root .rd-ad-kv dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.rd-root .rd-ad-note {
+  margin: 0;
+  padding: 12px 16px;
+  border-left: 3px solid var(--rd-line);
+  background: var(--rd-pressed);
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--rd-ink-support);
+}
+
+.rd-root .rd-ad-note b {
+  color: var(--rd-ink);
+  font-weight: 700;
+}
+
+.rd-root .rd-ad-actions {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.rd-root .rd-ad-actions__gap {
+  flex: 1;
+}
+
+.rd-root .rd-ad-keybtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.rd-root .rd-ad-editform {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.rd-root .rd-ad-addr {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.rd-root .rd-ad-addr .rd-input {
+  flex: 1;
+}
+
+.rd-root .rd-ad-intro {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.rd-root .rd-ad-intro__title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.rd-root .rd-ad-sub {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 16px;
+  border-top: 1px dotted var(--rd-dot);
+}
+
+.rd-root .rd-ad-sublist {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 15px;
+}
+
+.rd-root .rd-ad-posts {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 16px;
+  background: var(--rd-pressed);
+}
+
+.rd-root .rd-ad-posts__line {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.rd-root .rd-ad-guest {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+}
+
+.rd-root .rd-ad-guest li {
+  display: grid;
+  grid-template-columns: 72px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px dotted var(--rd-dot);
+  font-size: 15px;
+}
+
+.rd-root .rd-ad-guest li.is-hidden {
+  color: var(--rd-ink-support);
+}
+
+.rd-root .rd-ad-guest__who {
+  color: var(--rd-ink-small);
+}
+
+/* ───────── 전체 시설 카드 격자 3열(최소 280) ───────── */
+
+.rd-root .rd-ad-cards {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(280px, 1fr));
+  gap: 16px;
+  max-width: 1100px;
+}
+
+.rd-root .rd-ad-card {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 20px;
+  text-align: left;
+  background: var(--rd-paper);
+  border: 1px solid var(--rd-line);
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+}
+
+.rd-root .rd-ad-card:hover {
+  background: var(--rd-pressed);
+}
+
+.rd-root .rd-ad-card__top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 16px;
+}
+
+.rd-root .rd-ad-card__line {
+  font-size: 14px;
+  color: var(--rd-ink-small);
+}
+
+/* ───────── 사망 확인 확인·반려 줄 ───────── */
+
+.rd-root .rd-ad-dvrow {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+  padding-top: 16px;
+  border-top: 1px dotted var(--rd-dot);
+}
+
+.rd-root .rd-ad-dvrow__field {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.rd-root .rd-ad-dvrow__key {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--rd-ink-small);
+}
+
+/* ───────── 유족메시지 파기 ───────── */
+
+.rd-root .rd-ad-todobox {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-width: 904px;
+  padding: 24px;
+  border: 1px solid var(--rd-line);
+  background: var(--rd-paper);
+}
+
+.rd-root .rd-ad-todobox__title {
+  margin: 0;
+  font-family: var(--rd-font-serif);
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.rd-root .rd-ad-todolist {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+}
+
+.rd-root .rd-ad-todolist li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 140px 150px auto;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+  border-top: 1px dotted var(--rd-dot);
+  font-size: 14px;
+}
+
+.rd-root .rd-ad-mono {
+  font-family: ui-monospace, 'Cascadia Mono', Consolas, monospace;
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+
+.rd-root .rd-ad-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.rd-root .rd-ad-chip {
+  position: relative;
+  min-height: 40px;
+  padding: 0 16px;
+  border: 1px solid var(--rd-line);
+  background: var(--rd-paper);
+  font: inherit;
+  font-size: 15px;
+  color: var(--rd-ink);
+  cursor: pointer;
+}
+
+.rd-root .rd-ad-chip.is-on {
+  border-color: var(--rd-ink);
+  background: var(--rd-ink);
+  color: var(--rd-paper);
+}
+
+/* 마우스를 대면 뜨는 설명 말풍선 */
+.rd-root .rd-ad-chip[data-tip]:hover::after,
+.rd-root .rd-ad-chip[data-tip]:focus-visible::after {
+  content: attr(data-tip);
+  position: absolute;
+  left: 0;
+  top: calc(100% + 8px);
+  z-index: 5;
+  width: 260px;
+  padding: 10px 12px;
+  background: var(--rd-ink);
+  color: var(--rd-paper);
+  font-size: 13px;
+  line-height: 1.5;
+  text-align: left;
+  white-space: normal;
+}
+
+.rd-root .rd-ad-stickybar {
+  position: sticky;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  max-width: 904px;
+  padding: 14px 16px;
+  background: var(--rd-paper);
+  border: 1px solid var(--rd-ink);
+}
+
+.rd-root .rd-ad-stickybar__n {
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.rd-root .rd-pt-dlgbody.is-busy {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+/* ───────── 표(파기 · 감사로그 · 운영자 계정) ───────── */
+
+.rd-root .rd-ad-table {
+  width: 100%;
+  max-width: 904px;
+  border-collapse: collapse;
+  font-size: 15px;
+  border-top: 1px solid var(--rd-ink);
+}
+
+.rd-root .rd-ad-table th {
+  padding: 12px;
+  text-align: left;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--rd-ink-small);
+  border-bottom: 1px solid var(--rd-line);
+}
+
+.rd-root .rd-ad-table td {
+  padding: 12px;
+  border-bottom: 1px dotted var(--rd-dot);
+  vertical-align: middle;
+}
+
+.rd-root .rd-ad-table tr.is-on td {
+  background: var(--rd-pressed);
+}
+
+.rd-root .rd-ad-table__chk {
+  width: 48px;
+}
+
+.rd-root .rd-ad-table__acts {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.rd-root .rd-ad-table__pick {
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  text-decoration: underline;
+  text-decoration-color: var(--rd-dot);
+  text-underline-offset: 4px;
+  cursor: pointer;
+  color: inherit;
+}
+
+.rd-root .rd-ad-table--audit {
+  max-width: 1100px;
+}
+
+.rd-root .rd-ad-auditdetail {
+  margin: 0;
+  padding: 12px 16px;
+  background: var(--rd-pressed);
+  font-size: 15px;
+}
+
+/* ───────── 요율 등록 ───────── */
+
+.rd-root .rd-ad-rates {
+  display: grid;
+  grid-template-columns: 400px minmax(0, 480px);
+  gap: 32px;
+  align-items: start;
+}
+
+.rd-root .rd-ad-rates__form {
+  gap: 16px;
+}
+
+.rd-root .rd-ad-rates__history {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.rd-root .rd-ad-basis {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.rd-root .rd-ad-basis .rd-select {
+  flex: 1;
+}
+
+.rd-root .rd-ad-ratelist {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.rd-root .rd-ad-rateitem {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 16px;
+  border: 1px solid var(--rd-line);
+  background: var(--rd-paper);
+}
+
+.rd-root .rd-ad-rateitem__top {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 16px;
+}
+
+.rd-root .rd-ad-rateitem__line {
+  margin: 0;
+  font-size: 14px;
+  color: var(--rd-ink-small);
+}
+
+.rd-root .rd-ad-rateitem__end {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+  padding-top: 12px;
+  border-top: 1px dotted var(--rd-dot);
+}
+
+.rd-root .rd-ad-rateitem__end .rd-field {
+  flex: 1;
+}

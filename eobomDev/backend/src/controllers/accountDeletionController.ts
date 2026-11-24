@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import prisma from '../config/prisma';
 import { verifyBearerToken } from './authController';
 import { calculateMemorialPurgeAt } from '../utils/memorialLifecycle';
+import { GRACE_DAYS, scheduleAccountDeletion } from '../services/accountDeletionService';
 
 // 회원 탈퇴 — 00-36 §4.3·M-3(#10·#11), 06-05 §5.4-2·§5.4-2-1·§5.6-8 ④.
 //
@@ -10,9 +11,6 @@ import { calculateMemorialPurgeAt } from '../utils/memorialLifecycle';
 // 스토리지 객체는 그대로다 — 실삭제는 유예(30일) 뒤 사람이 승인하는 파기 배치(별도 스크립트, §5.6-8 ④)만 한다.
 // 🔴 **되살리기는 자동이 아니다.** 유예 중 로그인해도 두 필드는 그대로이고, 사용자가 복구 안내에서
 // "계속 이용"을 눌러 `DELETE /api/me/deletion-request`를 호출해야만 비운다(모르고 로그인해서 되살아나면 안 된다).
-
-const GRACE_DAYS = 30;
-const DAY_MS = 24 * 60 * 60 * 1000;
 
 // 탈퇴 미리보기 (`GET /api/me/deletion-preview`) — ① "무엇이 지워지는가"를 **건수만** 보여준다.
 // 🔴 본문 금지(00-36 §4.2와 같은 규칙) — 편지·엔딩노트·방명록의 내용·수신자 실명은 절대 내리지 않는다.
@@ -99,38 +97,14 @@ export const requestAccountDeletion = async (req: Request, res: Response) => {
   }
 
   try {
-    // 🔴 purgedAt: null — 이미 익명화된 계정(유령)은 없는 회원으로 취급한다
-    const user = await prisma.user.findFirst({
-      where: { id: decoded.id, purgedAt: null },
-      select: { id: true, deletionRequestedAt: true, deletionScheduledAt: true },
-    });
-    if (!user) {
+    // 쓰기 부분(시각 두 개 + 추모관·부고장 닫기)은 서비스로 옮겼다 — 운영자 대리 접수(00-37 §4.1)가 같은 처리를 부른다
+    const result = await scheduleAccountDeletion(decoded.id);
+    if (!result) {
       return res.status(404).json({ status: 'error', message: '회원 정보를 찾을 수 없습니다.' });
     }
-    if (user.deletionRequestedAt && user.deletionScheduledAt) {
-      return res.json({
-        status: 'success',
-        data: { deletionRequestedAt: user.deletionRequestedAt, deletionScheduledAt: user.deletionScheduledAt },
-      });
-    }
-
-    const now = new Date();
-    const scheduled = new Date(now.getTime() + GRACE_DAYS * DAY_MS);
-    // 🔵 09-30 — 추모관·부고장도 탈퇴를 따라간다(00-20 §6.3-2). 같은 트랜잭션에서 함께 닫는다.
-    // 🔴 closedAt에 **User.deletionRequestedAt과 같은 `now`** 를 넣는다 — 이 일치가 "탈퇴로 닫힌 것"의 표지다.
-    // 복구 때 이 값이 같은 것만 되살린다(원래 본인이 닫아둔 것은 closedAt이 다른 시각이라 안 건드린다).
-    // 이미 닫힌(closedAt != null) 행은 여기서 걸리지 않는다 — 기존 closedAt·purgeAt을 덮어쓰지 않는다.
-    // User는 id 하나만 갱신한다(db-safety.md §3). 추모관·부고장은 `createdByUserId` + `closedAt: null` — 본인 것 중 열려 있는 것뿐이다.
-    const [updated] = await prisma.$transaction([
-      prisma.user.update({
-        where: { id: user.id },
-        data: { deletionRequestedAt: now, deletionScheduledAt: scheduled },
-        select: { deletionRequestedAt: true, deletionScheduledAt: true },
-      }),
-      prisma.memorial.updateMany({ where: { createdByUserId: user.id, closedAt: null }, data: { closedAt: now, purgeAt: scheduled } }),
-      prisma.obituary.updateMany({ where: { createdByUserId: user.id, closedAt: null }, data: { closedAt: now } }),
-    ]);
-    return res.status(201).json({ status: 'success', data: updated });
+    const { created, ...data } = result;
+    // 이미 요청된 계정이면 다시 찍지 않고 기존 값(200), 새로 접수하면 201
+    return res.status(created ? 201 : 200).json({ status: 'success', data });
   } catch (error) {
     console.error('탈퇴 요청 실패:', error);
     return res.status(500).json({ status: 'error', message: '탈퇴 요청 처리 중 오류가 발생했습니다.' });
